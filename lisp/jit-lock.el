@@ -41,15 +41,14 @@
 	 (unless ,modified
 	   (restore-buffer-modified-p nil)))))
   
-  (defmacro with-buffer-prepared-for-font-lock (&rest body)
+  (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
     `(with-buffer-unmodified
       (let ((buffer-undo-list t)
 	    (inhibit-read-only t)
 	    (inhibit-point-motion-hooks t)
-	    before-change-functions
-	    after-change-functions
+	    (inhibit-modification-hooks t)
 	    deactivate-mark
 	    buffer-file-name
 	    buffer-file-truename)
@@ -60,7 +59,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
 ;;; Customization.
 
 (defcustom jit-lock-chunk-size 500
-  "*Font-lock chunks of this many characters, or smaller."
+  "*Jit-lock chunks of this many characters, or smaller."
   :type 'integer
   :group 'jit-lock)
 
@@ -140,7 +139,8 @@ The value of this variable is used when JIT Lock mode is turned on."
 
 
 (defvar jit-lock-first-unfontify-pos nil
-  "Consider text after this position as unfontified.")
+  "Consider text after this position as unfontified.
+If nil, contextual fontification is disabled.")
 (make-variable-buffer-local 'jit-lock-first-unfontify-pos)
 
 
@@ -156,7 +156,7 @@ The value of this variable is used when JIT Lock mode is turned on."
 ;;;###autoload
 (defun jit-lock-mode (arg)
   "Toggle Just-in-time Lock mode.
-With arg, turn Just-in-time Lock mode on if and only if arg is positive.
+Turn Just-in-time Lock mode on if and only if ARG is non-nil.
 Enable it automatically by customizing group `font-lock'.
 
 When Just-in-time Lock mode is enabled, fontification is different in the
@@ -185,20 +185,10 @@ Stealth fontification only occurs while the system remains unloaded.
 If the system load rises above `jit-lock-stealth-load' percent, stealth
 fontification is suspended.  Stealth fontification intensity is controlled via
 the variable `jit-lock-stealth-nice'."
-  (interactive "P")
-  (setq jit-lock-mode (if arg
-			  (> (prefix-numeric-value arg) 0)
-			(not jit-lock-mode)))
-  (cond ((and jit-lock-mode
-	      (or (not (boundp 'font-lock-mode))
-		  (not font-lock-mode)))
-	 ;; If font-lock is not on, turn it on, with Just-in-time
-	 ;; Lock mode as support mode; font-lock will call us again.
-	 (let ((font-lock-support-mode 'jit-lock-mode))
-	   (font-lock-mode t)))
+  (setq jit-lock-mode arg)
+  (cond (;; Turn Just-in-time Lock mode on.
+	 jit-lock-mode
 
-	;; Turn Just-in-time Lock mode on.
-	(jit-lock-mode
 	 ;; Mark the buffer for refontification
 	 ;; (in case spurious `fontified' text-props were left around).
 	 (jit-lock-fontify-buffer)
@@ -215,8 +205,6 @@ the variable `jit-lock-stealth-nice'."
 	   (set (make-local-variable 'font-lock-fontify-buffer-function)
 		'jit-lock-fontify-buffer))
 
-	 (setq jit-lock-first-unfontify-pos nil)
-	 
 	 ;; Install an idle timer for stealth fontification.
 	 (when (and jit-lock-stealth-time
 		    (null jit-lock-stealth-timer))
@@ -225,11 +213,16 @@ the variable `jit-lock-stealth-nice'."
 				      jit-lock-stealth-time
 				      'jit-lock-stealth-fontify)))
 
-	 ;; Add a hook for deferred contectual fontification.
+	 ;; Initialize deferred contextual fontification if requested.
 	 (when (or (eq jit-lock-defer-contextually 'always)
 		   (and (not (eq jit-lock-defer-contextually 'never))
 			(null font-lock-keywords-only)))
-	   (add-hook 'after-change-functions 'jit-lock-after-change nil t))
+	   (setq jit-lock-first-unfontify-pos (point-max)))
+
+	 ;; Setup our after-change-function
+	 ;; and remove font-lock's (if any).
+	 (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+	 (add-hook 'after-change-functions 'jit-lock-after-change nil t)
 	 
 	 ;; Install the fontification hook.
 	 (add-hook 'fontification-functions 'jit-lock-function))
@@ -247,22 +240,20 @@ the variable `jit-lock-stealth-nice'."
 		jit-lock-saved-fontify-buffer-function)
 	   (setq jit-lock-saved-fontify-buffer-function nil))
 
-	 ;; Remove hooks.
+	 ;; Remove hooks (and restore font-lock's if necessary).
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
+	 (when font-lock-mode
+	   (add-hook 'after-change-functions
+		     'font-lock-after-change-function nil t))
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
-
-;;;###autoload
-(defun turn-on-jit-lock ()
-  "Unconditionally turn on Just-in-time Lock mode."
-  (jit-lock-mode 1))
 
 ;; This function is used to prevent font-lock-fontify-buffer from
 ;; fontifying eagerly the whole buffer.  This is important for
 ;; things like CWarn mode which adds/removes a few keywords and
 ;; does a refontify (which takes ages on large files).
 (defun jit-lock-fontify-buffer ()
-  (with-buffer-prepared-for-font-lock
+  (with-buffer-prepared-for-jit-lock
    (save-restriction
      (widen)
      (add-text-properties (point-min) (point-max) '(fontified nil)))))
@@ -280,7 +271,7 @@ is active."
   
 (defun jit-lock-function-1 (start)
   "Fontify current buffer starting at position START."
-  (with-buffer-prepared-for-font-lock
+  (with-buffer-prepared-for-jit-lock
    (save-excursion
      (save-restriction
        (widen)
@@ -325,21 +316,6 @@ is active."
 	 ;; Restore previous buffer settings.
 	 (set-syntax-table old-syntax-table))))))
 
-
-(defun jit-lock-after-fontify-buffer ()
-  "Mark the current buffer as fontified.
-Called from `font-lock-after-fontify-buffer."
-  (with-buffer-prepared-for-font-lock
-   (add-text-properties (point-min) (point-max) '(fontified t))))
-
-
-(defun jit-lock-after-unfontify-buffer ()
-  "Mark the current buffer as unfontified.
-Called from `font-lock-after-fontify-buffer."
-  (with-buffer-prepared-for-font-lock
-   (remove-text-properties (point-min) (point-max) '(fontified nil))))
-
-
 
 ;;; Stealth fontification.
 
@@ -366,7 +342,7 @@ Value is nil if there is nothing more to fontify."
 			     (- around (/ jit-lock-chunk-size 2)))))
 		     (prop
 		      ;; PREV is the start of a region of fontified
-		      ;; text containing AROUND.  Start fontfifying a
+		      ;; text containing AROUND.  Start fontifying a
 		      ;; chunk size before the end of the unfontified
 		      ;; region in front of that.
 		      (max (or (previous-single-property-change prev 'fontified)
@@ -424,10 +400,10 @@ This functions is called after Emacs has been idle for
 		    (widen)
 		    (when (and (>= jit-lock-first-unfontify-pos (point-min))
 			       (< jit-lock-first-unfontify-pos (point-max)))
-		      (with-buffer-prepared-for-font-lock
+		      (with-buffer-prepared-for-jit-lock
 		       (put-text-property jit-lock-first-unfontify-pos
 					  (point-max) 'fontified nil))
-		      (setq jit-lock-first-unfontify-pos nil))))
+		      (setq jit-lock-first-unfontify-pos (point-max)))))
 
 		;; In the following code, the `sit-for' calls cause a
 		;; redisplay, so it's required that the
@@ -462,16 +438,22 @@ is the pre-change length.
 This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
-  ;; Don't do much here---removing text properties is too slow for
-  ;; fast typers, giving them the impression of Emacs not being
-  ;; very responsive.
   (when jit-lock-mode
-    (setq jit-lock-first-unfontify-pos
-	  (if jit-lock-first-unfontify-pos
-	      (min jit-lock-first-unfontify-pos start)
-	    start))))
+    ;; It's important that the `fontified' property be set from the
+    ;; beginning of the line, else font-lock will properly change the
+    ;; text's face, but the display will have been done already and will
+    ;; be inconsistent with the buffer's content.
+    (setq start (line-beginning-position))
+    ;; Make sure we change at least one char (in case of deletions).
+    (setq end (min (max end (1+ start)) (point-max)))
+    ;; Request refontification.
+    (with-buffer-prepared-for-jit-lock
+     (put-text-property start end 'fontified nil))
+    ;; Mark the change for deferred contextual refontification.
+    (when jit-lock-first-unfontify-pos
+      (setq jit-lock-first-unfontify-pos
+	    (min jit-lock-first-unfontify-pos start)))))
   
-
 (provide 'jit-lock)
 
 ;; jit-lock.el ends here
