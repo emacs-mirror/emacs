@@ -3796,12 +3796,14 @@ Non-nil second argument means save only current buffer.")
 
   if (STRINGP (Vauto_save_list_file_name))
     {
+      Lisp_Object listfile;
+      listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
 #ifdef DOS_NT
-      listdesc = open (XSTRING (Vauto_save_list_file_name)->data, 
+      listdesc = open (XSTRING (listfile)->data, 
 		       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
 		       S_IREAD | S_IWRITE);
 #else  /* not DOS_NT */
-      listdesc = creat (XSTRING (Vauto_save_list_file_name)->data, 0666);
+      listdesc = creat (XSTRING (listfile)->data, 0666);
 #endif /* not DOS_NT */
     }
   else
@@ -3823,10 +3825,17 @@ Non-nil second argument means save only current buffer.")
 	b = XBUFFER (buf);
       
 	/* Record all the buffers that have auto save mode
-	   in the special file that lists them.  */
+	   in the special file that lists them.  For each of these buffers,
+	   Record visited name (if any) and auto save name.  */
 	if (STRINGP (b->auto_save_file_name)
 	    && listdesc >= 0 && do_handled_files == 0)
 	  {
+	    if (!NILP (b->filename))
+	      {
+		write (listdesc, XSTRING (b->filename)->data,
+		       XSTRING (b->filename)->size);
+	      }
+	    write (listdesc, "\n", 1);
 	    write (listdesc, XSTRING (b->auto_save_file_name)->data,
 		   XSTRING (b->auto_save_file_name)->size);
 	    write (listdesc, "\n", 1);
