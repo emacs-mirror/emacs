@@ -6265,7 +6265,10 @@ An obsolete but still supported form is
 Where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support.
-usage: (sit-for SECONDS &optional NODISP) */)
+usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
+
+/* The `old-nodisp' stuff is there so that the arglist has the correct
+   length.  Otherwise, `defdvice' will redefine it with fewer args.  */
      (seconds, milliseconds, nodisp)
      Lisp_Object seconds, milliseconds, nodisp;
 {
