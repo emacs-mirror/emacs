@@ -1,3 +1,8 @@
+2004-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Set emacs_dir correctly when running
+	emacs from the build directory.
+
 2004-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fdelete_and_extract_region):
