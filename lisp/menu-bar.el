@@ -85,6 +85,8 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
 
+(define-key menu-bar-tools-menu [ediff-misc]
+  '("Ediff Miscellanea" . menu-bar-ediff-misc-menu))
 (define-key menu-bar-tools-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
