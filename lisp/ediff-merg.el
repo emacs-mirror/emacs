@@ -348,7 +348,8 @@ Combining is done according to the specifications in variable
 
 	(reverse delim-regs-list)
 	)))
-	
+
+(eval-when-compile (defvar state-of-merge)) ; dynamic var
 
 ;; Check if the non-preferred merge has been modified since originally set.
 ;; This affects only the regions that are marked as default-A/B or combined.
