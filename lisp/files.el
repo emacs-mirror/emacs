@@ -3461,10 +3461,10 @@ Auto Revert Mode sets NOCONFIRM to t.  The function should return
 non-nil if the buffer should be reverted.  The buffer is current
 when this function is called.
 
-The idea behind the NOCONFIRM argument is that it should be t if
-the buffer is going to be reverted without asking the user.  In
-such situations, one has to be careful with potentially time
-consuming operations.")
+The idea behind the NOCONFIRM argument is that it should be
+non-nil if the buffer is going to be reverted without asking the
+user.  In such situations, one has to be careful with potentially
+time consuming operations.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
