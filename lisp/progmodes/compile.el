@@ -90,6 +90,7 @@ are found.")
 
 (defvar compilation-error-regexp-alist
   '(
+    ;; NOTE!  This first one is repeated in grep-regexp-alist, below.
     ;; 4.3BSD grep, cc, lint pass 1:
     ;; /usr/src/foo/foo.c(8): warning: w may be used before set
     ;; or GNU utilities
@@ -121,6 +122,10 @@ are found.")
   "Alist (REGEXP FILE-IDX LINE-IDX) of regular expressions to match errors in
 compilation.  If REGEXP matches, the FILE-IDX'th subexpression gives the file
 name, and the LINE-IDX'th subexpression gives the line number.")
+
+(defvar grep-regexp-alist
+  '(("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 ;;;###autoload
 (defvar compilation-search-path '(nil)
@@ -205,7 +210,9 @@ easily repeat a grep command."
    (list (read-from-minibuffer "Run grep (like this): "
 			       "grep -n " nil nil 'grep-history)))
   (compile-internal (concat command-args " /dev/null")
-		    "No more grep hits" "grep"))
+		    "No more grep hits" "grep"
+		    ;; Give it a simpler regexp to match.
+		    nil grep-regexp-alist))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
@@ -544,6 +551,9 @@ other kinds of prefix arguments are ignored."
       (error "Not in a compilation buffer."))
   (setq compilation-last-buffer (current-buffer))
   (compile-reinitialize-errors argp (point))
+
+  ;; Move to bol; the marker for the error on this line will point there.
+  (beginning-of-line)
 
   ;; Move compilation-error-list to the elt of compilation-old-error-list
   ;; we want.
