@@ -252,10 +252,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 /* ??? MCC did redraw_screen here if switching screens.  */
   recursive_edit_1 ();
 
-  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
-      && !NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qminibuffer_exit_hook);
-
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
   if ((FRAME_CURSOR_Y (selected_frame)
@@ -353,6 +349,12 @@ void
 read_minibuf_unwind (data)
      Lisp_Object data;
 {
+  /* We are exiting the minibuffer one way or the other,
+     so run the hook.  */
+  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
+      && !NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qminibuffer_exit_hook);
+
   /* Erase the minibuffer we were using at this level.  */
   Fset_buffer (XWINDOW (minibuf_window)->buffer);
 
