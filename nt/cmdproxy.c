@@ -209,6 +209,7 @@ get_next_token (char * buf, char ** pSrc)
       char * p1 = skip_nonspace (p);
       memcpy (o, p, p1 - p);
       o += (p1 - p);
+      *o = '\0';
       p = p1;
     }
 
@@ -371,6 +372,7 @@ spawn (char * progname, char * cmdline)
   DWORD rc = 0xff;
   SECURITY_ATTRIBUTES sec_attrs;
   STARTUPINFO start;
+  char * envblock = GetEnvironmentStrings ();
 
   sec_attrs.nLength = sizeof (sec_attrs);
   sec_attrs.lpSecurityDescriptor = NULL;
@@ -380,7 +382,7 @@ spawn (char * progname, char * cmdline)
   start.cb = sizeof (start);
 
   if (CreateProcess (progname, cmdline, &sec_attrs, NULL, TRUE,
-		     0, NULL, NULL, &start, &child))
+		     0, envblock, NULL, &start, &child))
   {
     /* wait for completion and pass on return code */
     WaitForSingleObject (child.hProcess, INFINITE);
@@ -390,7 +392,22 @@ spawn (char * progname, char * cmdline)
     child.hProcess = NULL;
   }
 
+  FreeEnvironmentStrings (envblock);
+
   return (int) rc;
+}
+
+/* Return size of current environment block.  */
+int
+get_env_size ()
+{
+  char * start = GetEnvironmentStrings ();
+  char * tmp = start;
+
+  while (tmp[0] || tmp[1])
+    ++tmp;
+  FreeEnvironmentStrings (start);
+  return  tmp + 2 - start;
 }
 
 /*******  Main program  ********************************************/
@@ -403,6 +420,8 @@ main (int argc, char ** argv)
   char * cmdline;
   char * progname;
   int envsize;
+  char **pass_through_args;
+  int num_pass_through_args;
   char modname[MAX_PATH];
   char path[MAX_PATH];
 
@@ -424,7 +443,7 @@ main (int argc, char ** argv)
      from the command line.)  */
 
   if (!GetModuleFileName (NULL, modname, sizeof (modname)))
-    fail ("GetModuleFileName failed");
+    fail ("error: GetModuleFileName failed\n");
 
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
@@ -453,44 +472,71 @@ main (int argc, char ** argv)
   /* If no args, spawn real shell for interactive use.  */
   need_shell = TRUE;
   interactive = TRUE;
-  /* Ask for a reasonable size environment for command.com.  */
-  envsize = 1024;
+  /* Ask command.com to create an environment block with a reasonable
+     amount of free space.  */
+  envsize = get_env_size () + 300;
+  pass_through_args = (char **) alloca (argc * sizeof(char *));
+  num_pass_through_args = 0;
 
   while (--argc > 0)
     {
       ++argv;
-      /* Only support single letter switches (except for -e); allow / as
+      /* Act on switches we recognize (mostly single letter switches,
+	 except for -e); all unrecognised switches and extra args are
+	 passed on to real shell if used (only really of benefit for
+	 interactive use, but allow for batch use as well).  Accept / as
 	 switch char for compatability with cmd.exe.  */
-      if ( ((*argv)[0] == '-' || (*argv)[0] == '/')
-	   && (*argv)[1] != '\0' && (*argv)[2] == '\0' )
+      if ( ((*argv)[0] == '-' || (*argv)[0] == '/') && (*argv)[1] != '\0' )
 	{
 	  if ( ((*argv)[1] == 'c') && ((*argv)[2] == '\0')  )
 	    {
 	      if (--argc == 0)
-		fail ("error: expecting arg for %s", *argv);
+		fail ("error: expecting arg for %s\n", *argv);
 	      cmdline = *(++argv);
 	      interactive = FALSE;
 	    }
 	  else if ( ((*argv)[1] == 'i') && ((*argv)[2] == '\0')  )
 	    {
 	      if (cmdline)
-		warn ("warning: %s ignored because of -c", *argv);
+		warn ("warning: %s ignored because of -c\n", *argv);
 	    }
 	  else if ( ((*argv)[1] == 'e') && ((*argv)[2] == ':')  )
 	    {
-	      envsize = atoi (*argv + 3);
-	      /* Enforce a reasonable minimum size.  */
-	      if (envsize < 256)
-		envsize = 256;
+	      int requested_envsize = atoi (*argv + 3);
+	      /* Enforce a reasonable minimum size, as above.  */
+	      if (requested_envsize > envsize)
+		envsize = requested_envsize;
+	      /* For sanity, enforce a reasonable maximum.  */
+	      if (envsize > 32768)
+		envsize = 32768;
 	    }
 	  else
 	    {
-	      warn ("warning: unknown option %s ignored", *argv);
+	      /* warn ("warning: unknown option %s ignored", *argv); */
+	      pass_through_args[num_pass_through_args++] = *argv;
 	    }
 	}
       else
 	break;
     }
+
+#if 0
+  /* I think this is probably not useful - cmd.exe ignores extra
+     (non-switch) args in interactive mode, and they cannot be passed on
+     when -c was given.  */
+
+  /* Collect any remaining args after (initial) switches.  */
+  while (argc-- > 0)
+    {
+      pass_through_args[num_pass_through_args++] = *argv++;
+    }
+#else
+  /* Probably a mistake for there to be extra args; not fatal.  */
+  if (argc > 0)
+    warn ("warning: extra args ignored after %s\n", argv[-1]);
+#endif
+
+  pass_through_args[num_pass_through_args] = NULL;
 
   /* If -c option, determine if we must spawn a real shell, or if we can
      execute the command directly ourself.  */
@@ -525,26 +571,47 @@ main (int argc, char ** argv)
   if (need_shell)
     {
       char * p;
+      int    extra_arg_space = 0;
 
       progname = getenv ("COMSPEC");
       if (!progname)
-	fail ("error: COMSPEC is not set");
+	fail ("error: COMSPEC is not set\n");
 
       canon_filename (progname);
       progname = make_absolute (progname);
 
       if (progname == NULL || strchr (progname, '\\') == NULL)
-	fail ("make_absolute failed");
+	fail ("error: the program %s could not be found.\n", getenv ("COMSPEC"));
+
+      /* Work out how much extra space is required for
+         pass_through_args.  */
+      for (argv = pass_through_args; *argv != NULL; ++argv)
+	/* We don't expect to have to quote switches.  */
+	extra_arg_space += strlen (*argv) + 2;
 
       if (cmdline)
 	{
+	  char * buf;
+
 	  /* Convert to syntax expected by cmd.exe/command.com for
 	     running non-interactively.  Always quote program name in
 	     case path contains spaces (fortunately it can't contain
 	     quotes, since they are illegal in path names).  */
-	  wsprintf (p = alloca (strlen (cmdline) + strlen (progname) + 7),
-		    "\"%s\" /c %s", progname, cmdline);
-	  cmdline = p;
+
+	  buf = p = alloca (strlen (progname) + extra_arg_space +
+			    strlen (cmdline) + 16);
+
+	  /* Quote progname in case it contains spaces.  */
+	  p += wsprintf (p, "\"%s\"", progname);
+
+	  /* Include pass_through_args verbatim; these are just switches
+             so should not need quoting.  */
+	  for (argv = pass_through_args; *argv != NULL; ++argv)
+	    p += wsprintf (p, " %s", *argv);
+
+	  /* Always set environment size to something reasonable.  */
+	  wsprintf(p, " /e:%d /c %s", envsize, cmdline);
+	  cmdline = buf;
 	}
       else
 	{
@@ -556,15 +623,23 @@ main (int argc, char ** argv)
 	     - command.com doesn't like it), we always use the 8.3 form.  */
 	  GetShortPathName (progname, path, sizeof (path));
 	  p = strrchr (path, '\\');
-	  /* Trailing slash is acceptable.  */
-	  p++;
+	  /* Trailing slash is acceptable, so always leave it.  */
+	  *(++p) = '\0';
 
-	  /* Set environment size - again cmd.exe ignores this silently.  */
-	  wsprintf (p, " /e:%d", envsize);
+	  cmdline = p = alloca (strlen (progname) + extra_arg_space +
+				strlen (path) + 13);
 
 	  /* Quote progname in case it contains spaces.  */
-	  wsprintf (cmdline = alloca (strlen (progname) + strlen (path) + 4),
-		    "\"%s\" %s", progname, path);
+	  p += wsprintf (p, "\"%s\" %s", progname, path);
+
+	  /* Include pass_through_args verbatim; these are just switches
+             so should not need quoting.  */
+	  for (argv = pass_through_args; *argv != NULL; ++argv)
+	    p += wsprintf (p, " %s", *argv);
+
+	  /* Always set environment size to something reasonable - again
+             cmd.exe ignores this silently.  */
+	  wsprintf (p, " /e:%d", envsize);
 	}
     }
 
