@@ -516,9 +516,6 @@ submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a non-nil value returned
 by `easy-menu-item-present-p' or `easy-menu-remove-item' or a menu defined
 earlier by `easy-menu-define' or `easy-menu-create-menu'."
-  (unless map
-    (setq map (current-global-map))
-    (push 'menu-bar path))
   (setq map (easy-menu-get-map map path
 			       (and (null map) (null path)
 				    (stringp (car-safe item))
