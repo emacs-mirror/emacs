@@ -2101,6 +2101,9 @@ x_set_tool_bar_lines (f, value, oldval)
       x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		    0, y, width, height, False);
       UNBLOCK_INPUT;
+
+      if (WINDOWP (f->tool_bar_window))
+	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
 }
 
