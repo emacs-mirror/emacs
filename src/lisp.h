@@ -2650,6 +2650,9 @@ extern int read_bytecode_char P_ ((int));
 extern Lisp_Object Qbytecode;
 EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode P_ ((void));
+extern struct byte_stack *byte_stack_list;
+extern void mark_byte_stack P_ ((void));
+extern void relocate_byte_pcs P_ ((void));
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
