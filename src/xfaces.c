@@ -34,8 +34,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "blockinput.h"
 #include "window.h"
 
-/* Compensate for bug in Xos.h on hpux.  */
-#ifdef HPUX
+/* Compensate for bug in Xos.h on some systems.  */
+#ifdef XOS_NEEDS_TIME_H
 #include <time.h>
 #define __TIMEVAL__
 #endif
