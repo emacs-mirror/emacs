@@ -443,23 +443,23 @@ is how it appears in the customization buffer:
 
 @smallexample
 File Coding System Alist: [Hide]
-[INS] [DEL] File regexp: \.elc\'
+[+/-] File regexp: \.elc\'
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: emacs-mule
             Encoding: emacs-mule
-[INS] [DEL] File regexp: \(\`\|/\)loaddefs.el\'
+[+/-] File regexp: \(\`\|/\)loaddefs.el\'
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: no-conversion
             Encoding: no-conversion
-[INS] [DEL] File regexp: \.tar\'
+[+/-] File regexp: \.tar\'
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: no-conversion
             Encoding: no-conversion
-[INS] [DEL] File regexp:
+[+/-] File regexp:
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: undecided
             Encoding: nil
-[INS
+[+]
    [State]: this option is unchanged from its standard setting.
 Alist to decide a coding system to use for a file I/O operation. [Hide]
 @dots{}
@@ -472,8 +472,13 @@ several editable or active fields.
   You can edit the regexps and coding systems or select @samp{[Value
 Menu]} to change the choice for the second part of the pair, e.g.@: to a
 function.  To delete an item from the list or to add one after another
-item, invoke @samp{[DEL]} or @samp{[INS]} respectively at that item.  An inserted item appears with some default values.
+item, invoke @samp{+/-} at that item.  You are then asked whether to
+insert or delete.  An inserted item appears with some default values.
 Invoke @samp{[+]} to append an extra item to the current list.
+@kindex C-k @r{(customization list item)}
+@kindex C-o @r{(customization list item)}
+When point is at @samp{[+/-]}, you can use the keys @kbd{C-k} and
+@kbd{C-o} respectively to delete and insert items directly.
 
 @kindex TAB @r{(customization buffer)}
 @kindex S-TAB @r{(customization buffer)}
