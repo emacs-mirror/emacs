@@ -86,7 +86,8 @@ This is nil while loading `scroll-bar.el', and t afterward.")
 	 (list (cons 'vertical-scroll-bars scroll-bar-mode)))
 	(setq frames (cdr frames))))))
 
-(defcustom scroll-bar-mode 'left
+(defcustom scroll-bar-mode
+  (if (eq system-type 'windows-nt) 'right 'left)
   "*Specify whether to have vertical scroll bars, and on which side.
 Possible values are nil (no scroll bars), `left' (scroll bars on left)
 and `right' (scroll bars on right).
@@ -116,7 +117,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
   ;; Tweedle the variable according to the argument.
   (set-scroll-bar-mode (if (null flag) (not scroll-bar-mode)
 			 (and (or (not (numberp flag)) (>= flag 0))
-			      'left))))
+			      (if (eq system-type 'windows-nt) 'right 'left)))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
@@ -130,10 +131,12 @@ when they are turned on; if it is nil, they go on the left."
 			   (frame-parameters (selected-frame))))
 		-1 1))
     (setq arg (prefix-numeric-value arg)))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'vertical-scroll-bars
-				       (if (> arg 0)
-					   (or scroll-bar-mode 'left))))))
+  (modify-frame-parameters
+   (selected-frame)
+   (list (cons 'vertical-scroll-bars
+	       (if (> arg 0)
+		   (or scroll-bar-mode
+		       (if (eq system-type 'windows-nt) 'right 'left)))))))
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
