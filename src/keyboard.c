@@ -5407,13 +5407,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		{
 		  if (t + 1 >= bufsize)
 		    error ("key sequence too long");
-		  /* Run the Lucid hook.  */
-		  if (!NILP (Vrun_hooks))
-		    call1 (Vrun_hooks, Qactivate_menubar_hook);
-		  /* If it has changed current-menubar from previous value,
-		     really recompute the menubar from the value.  */
-		  if (! NILP (Vlucid_menu_bar_dirty_flag))
-		    call0 (Qrecompute_lucid_menubar);
 		  keybuf[t] = posn;
 		  keybuf[t+1] = key;
 
