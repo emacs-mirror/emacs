@@ -243,9 +243,17 @@ attribute."
     ;; If :dimension is omitted, get the dimension from :code-space.
     (let ((dimension (plist-get props :dimension)))
       (or dimension
-	  (progn
-	    (setq dimension (/ (length (plist-get props :code-space)) 2))
+	  (let ((code-space (plist-get props :code-space)))
+	    (setq dimension (if code-space (/ (length code-space) 2) 4))
 	    (setq props (plist-put props :dimension dimension)))))
+
+    (let ((code-space (plist-get props :code-space)))
+      (or code-space
+	  (let ((dimension (plist-get props :dimension)))
+	    (setq code-space (make-vector 8 0))
+	    (dotimes (i dimension)
+	      (aset code-space (1+ (* i 2)) #xFF))
+	    (setq props (plist-put props :code-space code-space)))))
 
     ;; If :emacs-mule-id is specified, update emacs-mule-charset-table.
     (let ((emacs-mule-id (plist-get props :emacs-mule-id)))
