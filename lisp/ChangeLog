@@ -1,5 +1,8 @@
 2002-02-25  Jason Rumney  <jasonr@gnu.org>
 
+	* term/w32-win.el (mouse-wheel-scroll-line): Use car of
+	mouse-wheel-scroll-amount.
+
 	* w32-vars.el (mouse-wheel-scroll-amount): Use same definition as
 	mwheel.el.
 
