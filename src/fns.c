@@ -32,6 +32,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "keyboard.h"
 #include "intervals.h"
 
+#ifndef NULL
+#define NULL (void *)0
+#endif
+
 extern Lisp_Object Flookup_key ();
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
