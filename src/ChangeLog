@@ -1,5 +1,8 @@
 2002-08-28  Juanma Barranquero  <lektu@terra.es>
 
+	* makefile.w32-in: Add missing dependencies on w32term.h and
+	composite.h.
+
 	* emacs.c (USAGE1): Add missing newline.
 
 2002-08-27  Andrew Choi  <akochoi@shaw.ca>
