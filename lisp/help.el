@@ -68,6 +68,7 @@
 (define-key help-map "i" 'info)
 (define-key help-map "\C-f" 'Info-goto-emacs-command-node)
 (define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
+(define-key help-map "\C-i" 'word-help)
 
 (define-key help-map "l" 'view-lossage)
 
