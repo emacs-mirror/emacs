@@ -647,6 +647,10 @@ back past position LIMIT; fail if nothing is found before LIMIT.")
   if (NULL_INTERVAL_P (i))
     return limit;
 
+  /* Start with the interval containing the char before point.  */
+  if (i->position == XFASTINT (pos))
+    i = previous_interval (i);
+
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i)
 	 && (NILP (limit)
@@ -685,6 +689,10 @@ back past position LIMIT; fail if nothing is found before LIMIT.")
   i = validate_interval_range (object, &pos, &pos, soft);
   if (NULL_INTERVAL_P (i))
     return limit;
+
+  /* Start with the interval containing the char before point.  */
+  if (i->position == XFASTINT (pos))
+    i = previous_interval (i);
 
   here_val = textget (i->plist, prop);
   previous = previous_interval (i);
