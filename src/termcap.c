@@ -23,10 +23,14 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef emacs
 
+#include <lisp.h>		/* xmalloc is here */
 /* Get the O_* definitions for open et al.  */
 #include <sys/file.h>
-#ifdef USG5
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #else /* not emacs */
@@ -313,7 +317,7 @@ tputs (str, nlines, outfun)
   register int speed;
 
 #ifdef emacs
-  extern baud_rate;
+  extern int baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
