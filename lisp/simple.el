@@ -4158,7 +4158,7 @@ after it has been set up properly in other respects."
     new))
 
 
-(defun clone-indirect-buffer (newname display-flag)
+(defun clone-indirect-buffer (newname display-flag &optional norecord)
   "Create an indirect buffer that is a twin copy of the current buffer.
 
 Give the indirect buffer name NEWNAME.  Interactively, read NEW-NAME
@@ -4168,7 +4168,10 @@ buffer's name.  The name is modified by adding a `<N>' suffix to it
 or by incrementing the N in an existing suffix.
 
 DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
-This is always done when called interactively."
+This is always done when called interactively.
+
+Optional last arg NORECORD non-nil means do not put this buffer at the
+front of the list of recently selected ones."
   (interactive (list (if current-prefix-arg
 			 (read-string "BName of indirect buffer: "))
 		     t))
@@ -4181,6 +4184,18 @@ This is always done when called interactively."
       (pop-to-buffer buffer))
     buffer))
 
+
+(defun clone-indirect-buffer-other-window (buffer &optional norecord)
+  "Create an indirect buffer that is a twin copy of BUFFER.
+Select the new buffer in another window.
+Optional second arg NORECORD non-nil means do not put this buffer at
+the front of the list of recently selected ones."
+  (interactive "bClone buffer in other window: ")
+  (let ((popup-windows t))
+    (set-buffer buffer)
+    (clone-indirect-buffer nil t norecord)))
+
+(define-key ctl-x-4-map "c" 'display-buffer)
 
 
 ;;; Syntax stuff.
