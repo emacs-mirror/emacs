@@ -2246,14 +2246,21 @@ msdos_downcase_filename (p)
 DEFUN ("msdos-downcase-filename", Fmsdos_downcase_filename, Smsdos_downcase_filename,
        1, 1, 0,
   "Convert alphabetic characters in FILENAME to lower case and return that.\n\
-When long filenames are supported, doesn't change FILENAME.")
+When long filenames are supported, doesn't change FILENAME.\n\
+If FILENAME is not a string, returns nil.\n\
+The argument object is never altered--the value is a copy.")
   (filename)
      Lisp_Object filename;
 {
-  char *fname = XSTRING (filename)->data;
+  char *fname;
+  Lisp_Object tem;
 
-  msdos_downcase_filename (fname);
-  return make_string (fname, XSTRING (filename)->size);
+  if (! STRINGP (filename))
+    return Qnil;
+
+  tem = Fcopy_sequence (filename);
+  msdos_downcase_filename (XSTRING (tem)->data);
+  return tem;
 }
 
 /* The Emacs root directory as determined by init_environment.  */
