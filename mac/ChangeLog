@@ -8,7 +8,7 @@
 
 	* inc/defs-cw6.h: renamed from inc/cmdline-defs-cw6.h.
 
-a2000-10-24  Andrew Choi  <akochoi@i-cable.com>
+2000-10-24  Andrew Choi  <akochoi@i-cable.com>
 
 	* src/macterm.c (XTread_socket): check whether Lisp variable
 	mac-ready-for-drag-n-drop is bound rather than non-nil value.
