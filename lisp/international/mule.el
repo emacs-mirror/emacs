@@ -271,8 +271,8 @@ Return t if file exists."
 	      ;; Otherwise, eval-buffer might try to interpret random
 	      ;; binary junk as multibyte characters.
 	      (if (and enable-multibyte-characters
-		       (or (eq (coding-system-type last-coding-system-used) 'raw-text)
-			   (eq last-coding-system-used 'no-conversion)))
+		       (eq (coding-system-type last-coding-system-used)
+			   'raw-text))
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
