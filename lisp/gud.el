@@ -93,7 +93,7 @@ Used to grey out relevant toolbar icons.")
   '(([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb))))
+				  (memq gud-minor-mode '(gdba gdb jdb))))
     ([goto]	menu-item "Continue to selection" gud-goto
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb))))
@@ -1367,6 +1367,7 @@ and source-file directory for your debugger."
 ;;
 ;; CREATED:	Sun Feb 22 10:46:38 1998 Derek Davies.
 ;; UPDATED:	Nov 11, 2001 Zoltan Kemenczy
+;;              Dec 10, 2002 Zoltan Kemenczy - added nested class support
 ;;
 ;; INVOCATION NOTES:
 ;;
@@ -1810,7 +1811,7 @@ relative to a classpath directory."
        ;; name relative to classpath
        (filename
 	(concat
-	 (mapconcat (lambda (x) x)
+	 (mapconcat 'identity
 		    (split-string
 		     ;; Eliminate any subclass references in the class
 		     ;; name string. These start with a "$"
@@ -1897,8 +1898,15 @@ nil)
 	 ;;
 	 ;; FIXME: Java ID's are UNICODE strings, this matches ASCII
 	 ;; ID's only.
-	 "\\(?:\[\\([0-9]+\\)\] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
-\\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9]+\\)"
+         ;;
+         ;; The "," in the last square-bracket is necessary because of
+         ;; Sun's total disrespect for backwards compatibility in
+         ;; reported line numbers from jdb - starting in 1.4.0 they
+         ;; introduced a comma at the thousands position (how
+         ;; ingenious!)
+
+	 "\\(\[[0-9]+\] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
+\\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9,]+\\)"
 	 gud-marker-acc)
 
       ;; A good marker is one that:
@@ -1911,7 +1919,10 @@ nil)
       ;;     (<file-name> . <line-number>) .
       (if (if (match-beginning 1)
 	      (let (n)
-		(setq n (string-to-int (match-string 1 gud-marker-acc)))
+		(setq n (string-to-int (substring
+					gud-marker-acc
+					(1+ (match-beginning 1))
+					(- (match-end 1) 2))))
 		(if (< n gud-jdb-lowest-stack-level)
 		    (progn (setq gud-jdb-lowest-stack-level n) t)))
 	    t)
@@ -1919,7 +1930,12 @@ nil)
 		    (gud-jdb-find-source (match-string 2 gud-marker-acc)))
 	      (setq gud-last-frame
 		    (cons file-found
-			  (string-to-int (match-string 4 gud-marker-acc))))
+			  (string-to-int
+			   (let 
+                               ((numstr (match-string 4 gud-marker-acc)))
+                             (if (string-match "," numstr)
+                                 (replace-match "" nil nil numstr)
+                               numstr)))))
 	    (message "Could not find source file.")))
 
       ;; Set the accumulator to the remaining text.
@@ -1990,6 +2006,7 @@ gud, see `gud-mode'."
   (gud-def gud-finish "step up"       "\C-f" "Continue until current method returns.")
   (gud-def gud-up     "up\C-Mwhere"   "<"    "Up one stack frame.")
   (gud-def gud-down   "down\C-Mwhere" ">"    "Up one stack frame.")
+  (gud-def gud-run    "run"           nil    "Run the program.") ;if VM start using jdb
 
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
@@ -2524,9 +2541,17 @@ Obeying it means displaying in another window the specified file and line."
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
 	 ((eq key ?c)
-	  (setq subst (gud-find-class (if insource
-					  (buffer-file-name)
-					(car frame)))))
+	  (setq subst 
+                (gud-find-class 
+                 (if insource
+                      (buffer-file-name)
+                    (car frame))
+                 (if insource
+                      (save-restriction
+                        (widen)
+                        (+ (count-lines (point-min) (point))
+                           (if (bolp) 1 0)))
+                    (cdr frame)))))
 	 ((eq key ?p)
 	  (setq subst (if arg (int-to-string arg)))))
 	(setq result (concat result (match-string 1 str) subst)))
@@ -2730,32 +2755,77 @@ Link exprs of the form:
 	  (t nil)))
      (t nil))))
 
-(defun gud-find-class (f)
-  "Find fully qualified class corresponding to file F.
+(defun gud-find-class (f line)
+  "Find fully qualified class in file F at line LINE.
 This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
 pathname relative to its classpath directory. The values in
 `gud-jdb-classpath' are assumed to have been converted to absolute
-pathname standards using file-truename."
+pathname standards using file-truename.
+If F is visited by a buffer and its mode is CC-mode(Java),
+syntactic information of LINE is used to find the enclosing (nested)
+class string which is appended to the top level
+class of the file (using s to separate nested class ids)."
   ;; Convert f to a standard representation and remove suffix
   (if (and gud-jdb-use-classpath (or gud-jdb-classpath gud-jdb-sourcepath))
       (save-match-data
-	(let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
-	      class-found)
-	  (setq f (file-name-sans-extension (file-truename f)))
-	  ;; Search through classpath list for an entry that is
-	  ;; contained in f
-	  (while (and cplist (not class-found))
-	    (if (string-match (car cplist) f)
-		(setq class-found
+        (let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
+              (fbuffer (get-file-buffer f))
+              class-found)
+          (setq f (file-name-sans-extension (file-truename f)))
+          ;; Search through classpath list for an entry that is
+          ;; contained in f
+          (while (and cplist (not class-found))
+            (if (string-match (car cplist) f)
+                (setq class-found
 		      (mapconcat 'identity
-				 (split-string
-				  (substring f (+ (match-end 0) 1))
-				  "/") ".")))
-	    (setq cplist (cdr cplist)))
-	  (if (not class-found)
-	     (message "gud-find-class: class for file %s not found!" f))
-	  class-found))
+                                 (split-string
+                                   (substring f (+ (match-end 0) 1))
+                                  "/") ".")))
+            (setq cplist (cdr cplist)))
+          ;; if f is visited by a java(cc-mode) buffer, walk up the
+          ;; syntactic information chain and collect any 'inclass
+          ;; symbols until 'topmost-intro is reached to find out if
+          ;; point is within a nested class
+          (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
+              (save-excursion
+                (set-buffer fbuffer)
+                (let ((nclass) (syntax)
+                      (pos (point)))
+                  ;; While the c-syntactic information does not start
+                  ;; with the 'topmost-intro symbol, there may be
+                  ;; nested classes...
+                  (while (not (eq 'topmost-intro 
+                                  (car (car (c-guess-basic-syntax)))))
+                    ;; Check if the current position c-syntactic
+                    ;; analysis has 'inclass
+                    (setq syntax (c-guess-basic-syntax))
+                    (while 
+                        (and (not (eq 'inclass (car (car syntax))))
+                             (cdr syntax))
+                      (setq syntax (cdr syntax)))
+                    (if (eq 'inclass (car (car syntax)))
+                        (progn
+                          (goto-char (cdr (car syntax)))
+                          ;; Now we're at the beginning of a class
+                          ;; definition.  Find class name
+                          (looking-at
+                           "[A-Za-z0-9 \t\n]*?class[ \t\n]+\\([^ \t\n]+\\)")
+                          (setq nclass
+                                (append (list (match-string-no-properties 1))
+                                        nclass)))
+                      (setq syntax (c-guess-basic-syntax))
+                      (while (and (not (cdr (car syntax))) (cdr syntax))
+                        (setq syntax (cdr syntax)))
+                      (goto-char (cdr (car syntax)))
+                      ))
+                  (string-match (concat (car nclass) "$") class-found)
+                  (setq class-found 
+                        (replace-match (mapconcat 'identity nclass "$")
+                                       t t class-found)))))
+          (if (not class-found)
+              (message "gud-find-class: class for file %s not found!" f))
+          class-found))
     ;; Not using classpath - try class/source association list
     (let ((class-found (rassoc f gud-jdb-class-source-alist)))
       (if class-found
