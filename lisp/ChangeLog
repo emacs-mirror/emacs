@@ -1,3 +1,8 @@
+2004-06-03  Miles Bader  <miles@gnu.org>
+
+	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
+	regexp for " [...]" style defaults.
+
 2004-06-02  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (ibuffer-jump-to-buffer): Add support for filter
