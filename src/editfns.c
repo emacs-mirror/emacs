@@ -3240,6 +3240,8 @@ usage: (format STRING &rest OBJECTS)  */)
   }
 
   CHECK_STRING (args[0]);
+  /* We may have to change "%S" to "%s". */
+  args[0] = Fcopy_sequence (args[0]);
 
   /* If we start out planning a unibyte result,
      and later find it has to be multibyte, we jump back to retry.  */
@@ -3326,6 +3328,11 @@ usage: (format STRING &rest OBJECTS)  */)
 		goto retry;
 	      }
 	    args[n] = tem;
+	    /* If we restart the loop, we should not come here again
+	       because args[n] is now a string and calling
+	       Fprin1_to_string on it produces superflous double
+	       quotes.  So, change "%S" to "%s" now.  */
+	    *format = 's';
 	    goto string;
 	  }
 	else if (SYMBOLP (args[n]))
