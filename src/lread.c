@@ -2320,7 +2320,7 @@ it defaults to the value of `obarray'.")
   XSYMBOL (sym)->obarray = obarray;
 
   if ((XSTRING (string)->data[0] == ':')
-      && obarray == initial_obarray)
+      && EQ (obarray, initial_obarray))
     XSYMBOL (sym)->value = sym;
 
   ptr = &XVECTOR (obarray)->contents[XINT (tem)];
