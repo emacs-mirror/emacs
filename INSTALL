@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (c) 1992, 1994, 1996 Free software Foundation, Inc.
+Copyright (c) 1992, 1994, 1996, 1997 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -38,8 +38,12 @@ build Emacs again and install it again.
 The intlfonts distribution contains X11 fonts that Emacs needs in
 order to display international characters.  If you see a non-ASCII
 character appear as a hollow box, that means you don't have a font for
-it.  You might find a font in the intlfonts distribution.  That
-distribution contains its own installation instructions.
+it.  You might find a font in the intlfonts distribution.  If some
+characters don't look right, or appear improperly aligned, a font
+fron the intlfonts distribution might look better.
+
+The intlfonts distribution contains its own installation instructions,
+in the intlfonts/README file.
 
 
 BUILDING AND INSTALLATION:
