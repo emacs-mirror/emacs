@@ -3433,6 +3433,9 @@ encode_coding_iso_2022 (coding)
   int c;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  setup_iso_safe_charsets (attrs);
+  coding->safe_charsets
+    = (char *) XSTRING (CODING_ATTR_SAFE_CHARSETS(attrs))->data;
 
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
@@ -6811,8 +6814,8 @@ Return the corresponding character.  */)
 
   val = CODING_ATTR_CHARSET_LIST (attrs);
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kana = CHARSET_FROM_ID (XINT (XCAR (val)));
+  charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val)));
 
   if (c <= 0x7F)
     charset = charset_roman;
@@ -6823,7 +6826,7 @@ Return the corresponding character.  */)
     }
   else
     {
-      int s1 = c >> 8, s2 = c & 0x7F;
+      int s1 = c >> 8, s2 = c & 0xFF;
 
       if (s1 < 0x81 || (s1 > 0x9F && s1 < 0xE0) || s1 > 0xEF
 	  || s2 < 0x40 || s2 == 0x7F || s2 > 0xFC)
