@@ -1,5 +1,8 @@
 2002-08-26  Miles Bader  <miles@gnu.org>
 
+	* international/mule.el (make-char): Macroexpand call to
+	charset-id constructed by `byte-compile' hook.
+
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defconst value.
 
 	* emacs-lisp/byte-opt.el (byte-opt-update-stack-params): New macro.

@@ -286,7 +286,9 @@ would need to index the corresponding Emacs charset."
 		     (cons (charset-id (nth 1 charset)) (nthcdr 2 form))))
 	    (byte-compile-normal-call
 	     (cons 'make-char-internal
-		   (cons (list 'charset-id charset) (nthcdr 2 form)))))))))
+		   (cons (macroexpand (list 'charset-id charset)
+				      byte-compile-macro-environment)
+			 (nthcdr 2 form)))))))))
 
 (defun charset-list ()
   "Return list of charsets ever defined.
