@@ -192,6 +192,10 @@ that Ediff doesn't know about.")
 	     (error ediff-KILLED-VITAL-BUFFER))
 	 ))))
 	 
+(put 'ediff-eval-in-buffer 'lisp-indent-function 1)
+(put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+(put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+
 
 (defsubst ediff-multiframe-setup-p ()
   (and (ediff-window-display-p) ediff-multiframe))
