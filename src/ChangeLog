@@ -6,6 +6,9 @@
 	the value of last-coding-sytem, keep the new value in
 	coding->symbol so that it won't be overridden.
 	(run_pre_post_conversion_on_str): Likewise.
+	(coding_system_accept_latin_extra_p): New function.
+	(find_safe_codings): Pay attention to characters registered in
+	latin-extra-code-table.
 
 2003-04-07  Thien-Thi Nguyen  <ttn@gnu.org>
 

@@ -1,5 +1,8 @@
 2003-04-08  Kenichi Handa  <handa@etlken2>
 
+	* international/mule-conf.el: Register ?\225 in
+	latin-extra-code-table.
+
 	* international/utf-16.el (utf-16-le-decode-loop)
 	(utf-16-be-decode-loop): New temporary variables.
 	(ccl-decode-mule-utf-16-le): Use utf-16-le-decode-loop.
