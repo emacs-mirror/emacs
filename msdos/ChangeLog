@@ -1,3 +1,8 @@
+2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mainmake.v2 (man lispref lispintro): Specify an explicit target
+	`info', like Makefile.in does.
+
 2003-08-31  Eli Zaretskii  <eliz@elta.co.il>
 
 	* sed3v2.inp (srcdir): Use "command.com /c cd" to produce an

@@ -1,3 +1,8 @@
+2003-09-22  Eli Zaretskii  <eliz@elta.co.il>
+
+	* term.c (set_tty_color_mode): Use INTEGERP to test whether a
+	color mode is an integer number (it could be -1).
+
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* intervals.c (graft_intervals_into_buffer): Correct the main loop
