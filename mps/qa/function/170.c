@@ -1,10 +1,10 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!167.c(trunk.1) $
+ id = $HopeName: MMQA_test_function!170.c(trunk.1) $
  summary = spare_commit_limit tests
  language = c
  link = testlib.o rankfmt.o
- harness = 2.0
+ harness = 2.1
  parameters = EXTEND=65536 AVGSIZE=32 ALIGN=4 \
               BIGSIZE=(5*1024*1024);
 OUTPUT_SPEC
@@ -29,6 +29,7 @@ enum {
 
 enum {
  COMMIT_EXACT,
+ COMMIT_NOCHANGE,
  COMMIT_LITTLE,
  COMMIT_PLENTY
 };
@@ -49,7 +50,7 @@ mps_addr_t objlo, objhi;
 #define HUGE (size_t)(1024ul*1024ul*100)
 
 #define SPARE_LIMIT HUGE
-#define SPARE_ZERO 1
+#define SPARE_ZERO 0
 
 static void t_alloc(int spare, int spare_total, int commit, int obj_size) { 
  size_t size, spsize, losize, hisize, comsize, comlimit;
@@ -120,30 +121,42 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
  mps_arena_spare_commit_limit_set(arena, SPARE_ZERO);
  mps_arena_spare_commit_limit_set(arena, SPARE_LIMIT);
 
+ /* allocate something in each pool (to reduce risk of subsidiary
+    allocation being neede later */
+
+ die(mps_alloc(&objlo, poollo, EXTEND), "low alloc");
+ die(mps_alloc(&objhi, poolhi, EXTEND), "high alloc");
+
+ /* set up spare committed the way we want it */
+
  if (losize>0) {
-  die(mps_alloc(&objlo, poollo, losize), "low alloc");
+  die(mps_alloc(&objlo, poollo, losize), "low setup");
   mps_free(poollo, objlo, losize);
  }
 
  if (hisize>0) {
-  die(mps_alloc(&objhi, poolhi, hisize), "high alloc");
+  die(mps_alloc(&objhi, poolhi, hisize), "high setup");
   mps_free(poolhi, objhi, hisize);
  }
 
  /* spare is now set up correctly */
  /* now we need to set the commit limit correctly */
 
- comsize = mps_arena_committed(arena);
+ comsize = arena_committed_and_used(arena);
+
+/* allow for 1/16th memory overhead in setting commit limit */
 
  if (commit == COMMIT_EXACT) {
-  comlimit = comsize;
+  comlimit = comsize+size+(size/16);
+ } else if (commit == COMMIT_NOCHANGE) {
+  comlimit = mps_arena_committed(arena);
  } else if (commit == COMMIT_PLENTY) {
   comlimit = HUGE;
  } else /* commit == COMMIT_LITTLE */ {
   if (size > DIFF_SIZE) {
-   comlimit = comsize+size-DIFF_SIZE;
+   comlimit = comsize+size+(size/16)+DIFF_SIZE;
   } else {
-   comlimit = comsize;
+   comlimit = comsize+size+(size/16);
   }
  }
 
@@ -151,14 +164,16 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
 
  res = mps_alloc(&objlo, poollo, size);
 
- if (size <= (comlimit-comsize +hisize+losize)) {
+ asserts(comlimit >= comsize, "comlimit was less than comsize!");
+
+ if (size <= (comlimit-comsize)) {
   res_expected = MPS_RES_OK;
  } else {
   res_expected = MPS_RES_COMMIT_LIMIT;
  }
 
  if (res != res_expected) {
-  comment("Spare useful/total %i/%i. Limit %i. Size %i. Expected %i", spare, spare_total, commit, obj_size, res_expected);
+  comment("Spare useful/total %i/%i. Limit %i. Size %i. Expected %s. Got %s", spare, spare_total, commit, obj_size, err_text(res_expected), err_text(res));
   report("failed", "yes");
  }
 
