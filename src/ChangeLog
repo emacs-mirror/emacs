@@ -1,5 +1,7 @@
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* minibuf.c (read_minibuf_unwind): Bind inhibit-modification-hooks.
+	
 	* minibuf.c (read_minibuf): Bind inhibit-modification-hooks to t,
 	in addition to read-only.
 
