@@ -2922,136 +2922,211 @@ timer_stop_idle ()
    timer is triggering now, return zero seconds.
    If no timer is active, return -1 seconds.
 
-   If a timer is triggering now, either queue a timer-event
-   or run the timer's handler function if DO_IT_NOW is nonzero.  */
+   If a timer is ripe now, either queue a timer-event,
+   or call the timer's handler function here if DO_IT_NOW is nonzero.  */
 
 EMACS_TIME
 timer_check (do_it_now)
      int do_it_now;
 {
   EMACS_TIME nexttime;
-  EMACS_TIME now;
-  Lisp_Object timers, timer;
+  EMACS_TIME now, idleness_now;
+  Lisp_Object timers, idle_timers, chosen_timer;
   /* Nonzero if we generate some events.  */
   int events_generated = 0;
-  struct gcpro gcpro1, gcpro2;
-  int listnum;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   EMACS_SET_SECS (nexttime, -1);
   EMACS_SET_USECS (nexttime, -1);
 
+  /* Always consider the ordinary timers.  */
   timers = Vtimer_list;
-  timer = Qnil;
-  GCPRO2 (timers, timer);
+  /* Consider the idle timers only if Emacs is idle.  */
+  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+    idle_timers = Vtimer_idle_list;
+  else
+    idle_timers = Qnil;
+  chosen_timer = Qnil;
+  GCPRO3 (timers, idle_timers, chosen_timer);
 
-  if (CONSP (Vtimer_list) || CONSP (Vtimer_idle_list))
-    EMACS_GET_TIME (now);
-
-  for (listnum = 0; listnum < 2; listnum++)
+  if (CONSP (timers) || CONSP (idle_timers))
     {
-      EMACS_TIME compare_time;
+      EMACS_GET_TIME (now);
+      if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+	EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
+    }
 
-      /* Always first scan the absolute timer list.  */
-      if (listnum == 0)
-	{
-	  timers = Vtimer_list;
-	  compare_time = now;
-	}
-      /* If Emacs is idle, scan the idle timer list
-	 using the length of idleness as the time value.  */
-      else if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
-	{
-	  timers = Vtimer_idle_list;
-	  EMACS_SUB_TIME (compare_time, now, timer_idleness_start_time);
-	}
-      else
-	break;
+  while (CONSP (timers) || CONSP (idle_timers))
+    {
+      int triggertime = EMACS_SECS (now);
+      Lisp_Object *vector;
+      Lisp_Object timer, idle_timer;
+      EMACS_TIME timer_time, idle_timer_time;
+      EMACS_TIME difference, timer_difference, idle_timer_difference;
 
-      while (CONSP (timers))
+      /* Skip past invalid timers and timers already handled.  */
+      if (!NILP (timers))
 	{
-	  int triggertime = EMACS_SECS (now);
-	  Lisp_Object *vector;
-	  EMACS_TIME timer_time;
-	  EMACS_TIME difference;
-
 	  timer = XCONS (timers)->car;
-	  timers = XCONS (timers)->cdr;
-
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
-	    continue;
+	    {
+	      timers = XCONS (timers)->cdr;
+	      continue;
+	    }
 	  vector = XVECTOR (timer)->contents;
 
 	  if (!INTEGERP (vector[1]) || !INTEGERP (vector[2])
-	      || !INTEGERP (vector[3]))
-	    continue;
+	      || !INTEGERP (vector[3])
+	      || ! NILP (vector[0]))
+	    {
+	      timers = XCONS (timers)->cdr;
+	      continue;
+	    }
+	}
+      if (!NILP (idle_timers))
+	{
+	  timer = XCONS (idle_timers)->car;
+	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
+	    {
+	      idle_timers = XCONS (idle_timers)->cdr;
+	      continue;
+	    }
+	  vector = XVECTOR (timer)->contents;
 
+	  if (!INTEGERP (vector[1]) || !INTEGERP (vector[2])
+	      || !INTEGERP (vector[3])
+	      || ! NILP (vector[0]))
+	    {
+	      idle_timers = XCONS (idle_timers)->cdr;
+	      continue;
+	    }
+	}
+
+      /* Set TIMER, TIMER_TIME and TIMER_DIFFERENCE
+	 based on the next ordinary timer.
+	 TIMER_DIFFERENCE is the distance in time from NOW to when
+	 this timer becomes ripe (negative if it's already ripe).  */
+      if (!NILP (timers))
+	{
+	  timer = XCONS (timers)->car;
+	  vector = XVECTOR (timer)->contents;
 	  EMACS_SET_SECS (timer_time,
 			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
 	  EMACS_SET_USECS (timer_time, XINT (vector[3]));
-	  EMACS_SUB_TIME (difference, timer_time, compare_time);
-	  /* If event is past, run it if it hasn't been run.  */
-	  if (EMACS_TIME_NEG_P (difference)
-	      || (EMACS_SECS (difference) == 0
-		  && EMACS_USECS (difference) == 0))
+	  EMACS_SUB_TIME (timer_difference, timer_time, now);
+	}
+
+      /* Set IDLE_TIMER, IDLE_TIMER_TIME and IDLE_TIMER_DIFFERENCE
+	 based on the next idle timer.  */
+      if (!NILP (idle_timers))
+	{
+	  idle_timer = XCONS (idle_timers)->car;
+	  vector = XVECTOR (idle_timer)->contents;
+	  EMACS_SET_SECS (idle_timer_time,
+			  (XINT (vector[1]) << 16) | (XINT (vector[2])));
+	  EMACS_SET_USECS (idle_timer_time, XINT (vector[3]));
+	  EMACS_SUB_TIME (idle_timer_difference, idle_timer_time, idleness_now);
+	}
+
+      /* Decide which timer is the next timer,
+	 and set CHOSEN_TIMER, VECTOR and DIFFERENCE accordingly.
+	 Also step down the list where we found that timer.  */
+
+      if (! NILP (timers) && ! NILP (idle_timers))
+	{
+	  EMACS_TIME temp;
+	  EMACS_SUB_TIME (temp, timer_difference, idle_timer_difference);
+	  if (EMACS_TIME_NEG_P (temp))
 	    {
-	      if (NILP (vector[0]))
-		{
-		  /* Mark the timer as triggered to prevent problems if the lisp
-		     code fails to reschedule it right.  */
-		  vector[0] = Qt;
-
-		  /* Run the timer or queue a timer event.  */
-		  if (do_it_now)
-		    {
-		      Lisp_Object tem, event;
-		      int was_locked = single_kboard;
-
-		      tem = get_keymap_1 (Vspecial_event_map, 0, 0);
-		      tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
-					1);
-		      event = Fcons (Qtimer_event, Fcons (timer, Qnil));
-		      Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
-
-		      /* Resume allowing input from any kboard, if that was true before.  */
-		      if (!was_locked)
-			any_kboard_state ();
-
-		      /* Since we have handled the event,
-			 we don't need to tell the caller to wake up and do it.  */
-		    }
-		  else
-		    {
-		      /* Generate a timer event so the caller will handle it.  */
-		      struct input_event event;
-
-		      event.kind = timer_event;
-		      event.modifiers = 0;
-		      event.x = event.y = Qnil;
-		      event.timestamp = triggertime;
-		      /* Store the timer in the frame slot.  */
-		      event.frame_or_window = Fcons (Fselected_frame (), timer);
-		      kbd_buffer_store_event (&event);
-
-		      /* Tell caller to handle this event right away.  */
-		      events_generated = 1;
-		      EMACS_SET_SECS (nexttime, 0);
-		      EMACS_SET_USECS (nexttime, 0);
-		    }
-		}
+	      chosen_timer = timer;
+	      timers = XCONS (timers)->cdr;
+	      difference = timer_difference;
 	    }
 	  else
-	    /* When we encounter a timer that is still waiting,
-	       return the amount of time to wait before it is ripe.  */
 	    {
-	      UNGCPRO;
-	      /* But if we generated an event,
-		 tell the caller to handle it now.  */
-	      if (events_generated)
-		return nexttime;
-	      return difference;
+	      chosen_timer = idle_timer;
+	      idle_timers = XCONS (idle_timers)->cdr;
+	      difference = idle_timer_difference;
 	    }
 	}
+      else if (! NILP (timers))
+	{
+	  chosen_timer = timer;
+	  timers = XCONS (timers)->cdr;
+	  difference = timer_difference;
+	}
+      else
+	{
+	  chosen_timer = idle_timer;
+	  idle_timers = XCONS (idle_timers)->cdr;
+	  difference = idle_timer_difference;
+	}
+      vector = XVECTOR (chosen_timer)->contents;
+	
+      /* If timer is rupe, run it if it hasn't been run.  */
+      if (EMACS_TIME_NEG_P (difference)
+	  || (EMACS_SECS (difference) == 0
+	      && EMACS_USECS (difference) == 0))
+	{
+	  if (NILP (vector[0]))
+	    {
+	      /* Mark the timer as triggered to prevent problems if the lisp
+		 code fails to reschedule it right.  */
+	      vector[0] = Qt;
+
+	      /* Run the timer or queue a timer event.  */
+	      if (do_it_now)
+		{
+		  Lisp_Object tem, event;
+		  int was_locked = single_kboard;
+
+		  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
+		  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
+				    1);
+		  event = Fcons (Qtimer_event, Fcons (chosen_timer, Qnil));
+		  Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
+
+		  /* Resume allowing input from any kboard, if that was true before.  */
+		  if (!was_locked)
+		    any_kboard_state ();
+
+		  /* Since we have handled the event,
+		     we don't need to tell the caller to wake up and do it.  */
+		}
+	      else
+		{
+		  /* Generate a timer event so the caller will handle it.  */
+		  struct input_event event;
+
+		  event.kind = timer_event;
+		  event.modifiers = 0;
+		  event.x = event.y = Qnil;
+		  event.timestamp = triggertime;
+		  /* Store the timer in the frame slot.  */
+		  event.frame_or_window
+		    = Fcons (Fselected_frame (), chosen_timer);
+		  kbd_buffer_store_event (&event);
+
+		  /* Tell caller to handle this event right away.  */
+		  events_generated = 1;
+		  EMACS_SET_SECS (nexttime, 0);
+		  EMACS_SET_USECS (nexttime, 0);
+		}
+	    }
+	}
+      else
+	/* When we encounter a timer that is still waiting,
+	   return the amount of time to wait before it is ripe.  */
+	{
+	  UNGCPRO;
+	  /* But if we generated an event,
+	     tell the caller to handle it now.  */
+	  if (events_generated)
+	    return nexttime;
+	  return difference;
+	}
     }
+
   /* No timers are pending in the future.  */
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
