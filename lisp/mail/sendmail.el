@@ -379,7 +379,8 @@ the user from the mailer."
 			       (% abs 60))))
       (set-buffer tembuf)
       (erase-buffer)
-      (insert "From " (user-login-name) " "
+      ;; This initial newline is written out if the fcc file already exists.
+      (insert "\nFrom " (user-login-name) " "
 	      (current-time-string time) "\n")
       ;; Insert the time zone before the year.
       (forward-char -1)
@@ -433,6 +434,7 @@ the user from the mailer."
 	    ;; Else append to the file directly.
 	    (write-region
 	     ;; Include a blank line before if file already exists.
+
 	     (if (file-exists-p (car fcc-list)) (point-min) (1+ (point-min)))
 	     (point-max) (car fcc-list) t)))
 	(setq fcc-list (cdr fcc-list))))
