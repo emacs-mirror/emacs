@@ -693,7 +693,7 @@ from being initialized.")
 		   ;; and does not end with any newlines.
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1995 Free Software Foundation, Inc.")
+Copyright (C) 1996 Free Software Foundation, Inc.")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
