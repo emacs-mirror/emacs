@@ -381,6 +381,16 @@ selected.")
 (defvar iswitchb-default nil
   "Default buffer for iswitchb.")
 
+;; The following variables are needed to keep the byte compiler quiet.
+(defvar iswitchb-require-match nil
+  "Non-nil if matching buffer must be selected.")
+
+(defvar iswitchb-temp-buflist nil
+  "Stores a temporary version of the buffer list being created.")
+
+(defvar iswitchb-bufs-in-frame nil
+  "List of the buffers visible in the current frame.")
+
 ;;; FUNCTIONS
 
 ;;; ISWITCHB KEYMAP 
@@ -653,7 +663,7 @@ in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
 it is put to the start of the list."
   (setq iswitchb-buflist 
 	(let* ((iswitchb-current-buffers (iswitchb-get-buffers-in-frames))
-	      (buflist 
+	      (iswitchb-temp-buflist
 	       (delq nil 
 		     (mapcar
 		      (lambda (x)
@@ -664,23 +674,25 @@ it is put to the start of the list."
 				(memq b-name iswitchb-current-buffers)))
 			      b-name)))
 		      (buffer-list)))))
-	  (nconc buflist iswitchb-current-buffers)
+	  (nconc iswitchb-temp-buflist iswitchb-current-buffers)
 	  (run-hooks 'iswitchb-make-buflist-hook)
 	  ;; Should this be after the hooks, or should the hooks be the
 	  ;; final thing to be run?
 	  (if default
 	      (progn
-		(setq buflist (delete default buflist))
-		(setq buflist (cons default buflist))))
-	    buflist)))
+		(setq iswitchb-temp-buflist 
+		      (delete default iswitchb-temp-buflist))
+		(setq iswitchb-temp-buflist 
+		      (cons default iswitchb-temp-buflist))))
+	  iswitchb-temp-buflist)))
 
 (defun iswitchb-to-end (lst)
-  "Move the elements from LST to the end of BUFLIST."
+  "Move the elements from LST to the end of `iswitchb-temp-buflist'."
   (mapcar 
    (lambda (elem)  
-     (setq buflist (delq elem buflist)))
+     (setq iswitchb-temp-buflist (delq elem iswitchb-temp-buflist)))
    lst)
-  (nconc buflist lst))
+  (nconc iswitchb-temp-buflist lst))
 
 (defun iswitchb-get-buffers-in-frames (&optional current)
   "Return the list of buffers that are visible in the current frame.
@@ -1229,7 +1241,7 @@ This is an example function which can be hooked on to
 				      (string-match "Summary" x)
 				      (string-match "output\\*$" x))
 				     x))
-			      buflist))))
+			      iswitchb-temp-buflist))))
     (iswitchb-to-end summaries)))
 
 ;;; HOOKS
