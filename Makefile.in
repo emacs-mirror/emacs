@@ -339,12 +339,12 @@ install-arch-indep: mkdir
 	-rm -f ${lispdir}/subdirs.el
 	$(srcdir)/update-subdirs ${lispdir}
 	-rm -f ${datadir}/emacs/${version}/site-lisp/subdirs.el
-	(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
+	-(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	 echo "    (normal-top-level-add-subdirs-to-load-path))") \
 	  > ${datadir}/emacs/${version}/site-lisp/subdirs.el
 	chmod a+r ${datadir}/emacs/${version}/site-lisp/subdirs.el
 	-rm -f ${datadir}/emacs/site-lisp/subdirs.el
-	(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
+	-(echo "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)"; \
 	 echo "    (normal-top-level-add-subdirs-to-load-path))") \
 	  > ${datadir}/emacs/site-lisp/subdirs.el
 	chmod a+r ${datadir}/emacs/site-lisp/subdirs.el
