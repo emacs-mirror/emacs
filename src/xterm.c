@@ -2893,22 +2893,22 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	      if (numchars > 1)
 		{
-		  if ((keysym >= XK_BackSpace && keysym <= XK_Escape)
-		      || keysym == XK_Delete
-		      || IsCursorKey (keysym)       /* 0xff50 <= x < 0xff60 */
-		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
+		  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+		       || keysym == XK_Delete
+		       || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
+		       || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
-		      /* This recognizes the "extended function keys".
-			 It seems there's no cleaner way.
-			 Test IsModifierKey to avoid handling mode_switch
-			 incorrectly.  */
-		      || (!IsModifierKey (orig_keysym)
-			  && (unsigned) (keysym) >= XK_Select
-			  && (unsigned)(keysym) < XK_KP_Space)
+		       /* This recognizes the "extended function keys".
+			  It seems there's no cleaner way.
+			  Test IsModifierKey to avoid handling mode_switch
+			  incorrectly.  */
+		       || ((unsigned) (keysym) >= XK_Select
+			   && (unsigned)(keysym) < XK_KP_Space)
 #endif
-		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
-		      || IsFunctionKey (keysym)     /* 0xffbe <= x < 0xffe1 */
-		      || x_is_vendor_fkey (orig_keysym)) /* wherever */
+		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
+		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
+		       || x_is_vendor_fkey (orig_keysym))
+		      && ! IsModifierKey (orig_keysym)) /* wherever */
 		    {
 		      if (temp_index == sizeof temp_buffer / sizeof (short))
 			temp_index = 0;
