@@ -463,6 +463,13 @@ the text @samp{abbb}, @samp{ab*} will match it all (the longest valid
 match), while @samp{ab*?}  will match just @samp{a} (the shortest
 valid match).
 
+Non-greedy operators match the shortest possible string starting at a
+given starting point; in a forward search, though, the earliest
+possible starting point for match is always the one chosen.  Thus, if
+you search for @samp{a.*?$} against the text @samp{abbab} followed by
+a newline, it matches the whole string.  Since it @emph{can} match
+starting at the first @samp{a}, it does.
+
 @item \@{@var{n}\@}
 is a postfix operator that specifies repetition @var{n} times---that
 is, the preceding regular expression must match exactly @var{n} times
