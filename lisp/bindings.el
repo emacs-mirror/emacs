@@ -731,9 +731,9 @@ language you are using."
 (define-key function-key-map [kp-end] [end])
 (define-key function-key-map [kp-begin] [begin])
 (define-key function-key-map [kp-insert] [insert])
-(define-key function-key-map [kp-delete] [delete])
 (define-key function-key-map [backspace] [?\C-?])
 (define-key function-key-map [delete] [?\C-?])
+(define-key function-key-map [kp-delete] [?\C-?])
 
 (define-key global-map [mouse-movement] 'ignore)
 
