@@ -881,7 +881,7 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-history nil)
 
 (defun gud-perldb-massage-args (file args)
-  (cons "-d" (cons "-emacs" args)))
+  (cons "-d" (cons (car args) (cons "-emacs" (cdr args)))))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
