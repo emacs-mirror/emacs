@@ -328,10 +328,10 @@ DEFUN ("set-window-redisplay-end-trigger", Fset_window_redisplay_end_trigger,
        Sset_window_redisplay_end_trigger, 2, 2, 0,
   "Set WINDOW's redisplay end trigger value to VALUE.\n\
 VALUE should be a buffer position (typically a marker) or nil.\n\
-If it is a buffer position, then if redisplay in WINDOW\n\
-reaches a position beyond VALUE, the normal hook\n\
-`redisplay-end-trigger-hook' is run (and then the end-trigger value\n\
-is reset to nil.")
+If it is a buffer position, then if redisplay in WINDOW reaches a position\n\
+beyond VALUE, the functions in `redisplay-end-trigger-functions' are called\n\
+with two arguments: WINDOW, and the end trigger value.\n\
+Afterwards the end-trigger value is reset to nil.")
   (window, value)
      register Lisp_Object window, value;
 {
