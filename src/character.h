@@ -510,6 +510,8 @@ extern Lisp_Object Vchar_width_table;
 extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
 
+extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
+
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
