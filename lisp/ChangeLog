@@ -1,3 +1,8 @@
+1999-12-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* dos-w32.el (file-name-buffer-file-type-alist): Add `$' at end of
+	regexp matching image and audio files.
+
 1999-12-09  Dave Love  <fx@gnu.org>
 
 	* mail/footnote.el: New file.
