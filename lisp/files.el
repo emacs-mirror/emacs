@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,2003
+;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,03,2004
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2905,9 +2905,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (or
 	   ;; Test for different drives on DOS/Windows
 	   (and
+	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
-	    (not (string-equal (substring filename  0 2)
-			       (substring directory 0 2))))
+	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
 	   ;; Test for different remote file handlers
 	   (not (eq hf hd))
 	   ;; Test for different remote file system identification
@@ -2925,18 +2925,19 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  filename
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))
-          (while
-	      (and
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename-dir))
-	       (not (string-match (concat "\\`" (regexp-quote directory))
-				  filename)))
+          (while (not
+		  (or
+		   (eq t (compare-strings filename-dir nil (length directory)
+					  directory nil nil case-fold-search))
+		   (eq t (compare-strings filename nil (length directory)
+					  directory nil nil case-fold-search))))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
           ;; Now ancestor is empty, or .., or ../.., etc.
-          (if (string-match (concat "^" (regexp-quote directory)) filename)
+          (if (eq t (compare-strings filename nil (length directory)
+				     directory nil nil case-fold-search))
 	      ;; We matched within FILENAME's directory part.
 	      ;; Add the rest of FILENAME onto ANCESTOR.
 	      (let ((rest (substring filename (match-end 0))))
