@@ -1129,9 +1129,6 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bscan_buffer:
 	  error ("scan-buffer is an obsolete bytecode");
 	  break;
-	case Bmark:
-	  error ("mark is an obsolete bytecode");
-	  break;
 #endif
 
 	default:
