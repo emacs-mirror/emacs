@@ -1310,6 +1310,17 @@ If we have lots of buffers, divide them into groups of
   :type 'integer
   :group 'mouse)
 
+(defcustom mouse-buffer-menu-mode-mult 4
+  "*Group the buffers by the major mode groups on \\[mouse-buffer-menu]?
+This number which determines (in a hairy way) whether \\[mouse-buffer-menu]
+will split the buffer menu by the major modes (see
+`mouse-buffer-menu-mode-groups') or just by menu length.
+Set to 1 (or even 0!) if you want to group by major mode always, and to
+a large number if you prefer a mixed multitude.  The default is 4."
+  :type 'integer
+  :group 'mouse
+  :version "20.3")
+
 (defvar mouse-buffer-menu-mode-groups
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
     ("\\bVM\\b\\|\\bMH\\b\\|Message\\|Mail\\|Group\\|Score\\|Summary\\|Article"
@@ -1329,8 +1340,7 @@ This switches buffers in the window that you clicked on,
 and selects that window."
   (interactive "e")
   (mouse-minibuffer-check event)
-  (let (buffers alist menu split-by-major-mode sum-of-squares)
-    (setq buffers (buffer-list))
+  (let ((buffers (buffer-list))  alist menu split-by-major-mode sum-of-squares)
     ;; Make an alist of elements that look like (MENU-ITEM . BUFFER).
     (let ((tail buffers))
       (while tail
@@ -1359,10 +1369,10 @@ and selects that window."
       (while tail
 	(setq sum-of-squares
 	      (+ sum-of-squares
-		 (* (length (cdr (cdr (car tail))))
-		    (length (cdr (cdr (car tail)))))))
+		 (let ((len (length (cdr (cdr (car tail)))))) (* len len))))
 	(setq tail (cdr tail))))
-    (if (< (* sum-of-squares 4) (* (length buffers) (length buffers)))
+    (if (< (* sum-of-squares mouse-buffer-menu-mode-mult)
+	   (* (length buffers) (length buffers)))
 	;; Subdividing by major modes really helps, so let's do it.
 	(let (subdivided-menus (buffers-left (length buffers)))
 	  ;; Sort the list to put the most popular major modes first.
@@ -1392,23 +1402,20 @@ and selects that window."
 		    (cons (cons
 			   "Others"
 			   (mouse-buffer-menu-alist
-			    (apply 'append
-				   (mapcar 'cdr
-					   (mapcar 'cdr split-by-major-mode)))))
+			    ;; we don't need split-by-major-mode any
+			    ;; more, so we can ditch it with nconc.
+			    (apply 'nconc (mapcar 'cddr split-by-major-mode))))
 			  subdivided-menus)))
-	  (setq subdivided-menus
-		(nreverse subdivided-menus))
-	  (setq menu (cons "Buffer Menu" subdivided-menus)))
+	  (setq menu (cons "Buffer Menu" (nreverse subdivided-menus))))
       (progn
 	(setq alist (mouse-buffer-menu-alist buffers))
 	(setq menu (cons "Buffer Menu"
 			 (mouse-buffer-menu-split "Select Buffer" alist)))))
     (let ((buf (x-popup-menu event menu))
 	  (window (posn-window (event-start event))))
-      (if buf
-	  (progn
+      (when buf
 	    (or (framep window) (select-window window))
-	    (switch-to-buffer buf))))))
+	(switch-to-buffer buf)))))
 
 (defun mouse-buffer-menu-alist (buffers)
   (let (tail
