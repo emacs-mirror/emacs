@@ -60,10 +60,8 @@
 (load "isearch")
 (garbage-collect)
 (load "window")
-(if (fboundp 'delete-frame)
-    (progn
-      (garbage-collect)
-      (load "frame")))
+(garbage-collect)
+(load "frame")
 (if (fboundp 'frame-face-alist)
     (progn
       (garbage-collect)
