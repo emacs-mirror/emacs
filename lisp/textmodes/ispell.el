@@ -1004,7 +1004,7 @@ used."
 					   (- (point) (length word))))
 		    nil)
 		   ((= char ?q)
-		    (if (y-or-n-p "Really quit ignoring changes? ")
+		    (if (y-or-n-p "Really kill Ispell process? ")
 			(progn
 			  (ispell-kill-ispell t) ; terminate process.
 			  (setq ispell-quit (or (not ispell-checking-message)
