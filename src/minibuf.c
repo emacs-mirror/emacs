@@ -968,7 +968,7 @@ or the symbol from the obarray.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && STRING_BYTES (XSTRING (string)) <= STRING_BYTES (XSTRING (eltstring))
+	  && XSTRING (string)->size <= XSTRING (eltstring)->size
 	  && (tem = Fcompare_strings (eltstring, make_number (0),
 				      make_number (XSTRING (string)->size),
 				      string, make_number (0), Qnil,
@@ -1216,7 +1216,7 @@ are ignored unless STRING itself starts with a space.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && STRING_BYTES (XSTRING (string)) <= STRING_BYTES (XSTRING (eltstring))
+	  && XSTRING (string)->size <= XSTRING (eltstring)->size
 	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
 	  && ((STRING_BYTES (XSTRING (string)) > 0
