@@ -399,7 +399,7 @@ is the analogue, for buffers, of a symbolic link between files.
 
 @table @kbd
 @findex make-indirect-buffer
-@item M-x make-indirect-buffer @var{base-buffer} @key{RET} @var{indirect-name} @key{RET}
+@item M-x make-indirect-buffer @key{RET} @var{base-buffer} @key{RET} @var{indirect-name} @key{RET}
 Create an indirect buffer named @var{indirect-name} whose base buffer
 is @var{base-buffer}.
 @findex clone-indirect-buffer
