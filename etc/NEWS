@@ -89,6 +89,10 @@ See the files mac/README and mac/INSTALL for build instructions.
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
+** Mac OS 9 port now uses the Carbon API by default.  You can also
+create non-Carbon build by specifying `NonCarbon' as a target.  See
+the files mac/README and mac/INSTALL for build instructions.
+
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
