@@ -1850,7 +1850,9 @@ push_key_description (c, p)
       *p++ = 'P';
       *p++ = 'C';
     }
-  else if (c < 128)
+  else if (c < 128
+	   || (NILP (current_buffer->enable_multibyte_characters)
+	       && SINGLE_BYTE_CHAR_P (c)))
     *p++ = c;
   else
     {
