@@ -60,6 +60,7 @@ insertion commands first delete the region and then insert.")
 (add-hook 'pre-command-hook 'delete-selection-pre-hook)
 
 (put 'self-insert-command 'delete-selection t)
+(put 'self-insert-iso 'delete-selection t)
 
 (put 'yank 'delete-selection t)
 (put 'insert-register 'delete-selection t)
