@@ -1,5 +1,9 @@
 2002-05-30  Kenichi Handa  <handa@etl.go.jp>
 
+	* Makefile.in (lisp): Change chienese.elc to chinese.el.  They are
+	not bytecompiled now.
+	(shortlisp): Likewise.
+
 	* charset.c (charset_jisx0201_roman, charset_jisx0208_1978,
 	charset_jisx0208): New variables.
 	(Fdefine_charset_internal): Setup them if appropriate.

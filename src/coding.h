@@ -250,7 +250,7 @@ enum coding_result_code
    `coding_system'.  */
 struct iso_2022_spec
 {
-  /*  */
+  /* Bit-wise-or of CODING_ISO_FLAG_XXX.  */
   unsigned flags;
 
   /* The current graphic register invoked to each graphic plane.  */

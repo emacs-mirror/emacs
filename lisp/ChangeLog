@@ -1,7 +1,11 @@
 2002-05-30  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/japanese.el (japanese-iso-7bit-1978-irv): Add
+	`designation' to :flags, `ascii' to :charset-list.
+
 	* international/mule.el (define-charset): New args :min-code and
 	:max-code.
+	(coding-system-iso-2022-flags): Add use-roman, use-oldjis.
 
 	* international/mule-conf.el (chinese-gbk): Change :code-offset to
 	#x160000.
