@@ -3925,8 +3925,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   
   /* If PT is not visible in WINDOW, move back one half of
      the screen.  */
-  XSETFASTINT (tem, PT);
-  tem = Fpos_visible_in_window_p (tem, window, Qnil);
+  tem = Fpos_visible_in_window_p (make_number (PT), window, Qnil);
   if (NILP (tem))
     {
       /* Move backward half the height of the window.  Performance note:
@@ -3970,7 +3969,16 @@ window_scroll_pixel_based (window, n, whole, noerror)
       int screen_full = (it.last_visible_y
 			 - next_screen_context_lines * CANON_Y_UNIT (it.f));
       int direction = n < 0 ? -1 : 1;
-      move_it_vertically (&it, direction * screen_full);
+      int dy = direction * screen_full;
+
+      /* Note that move_it_vertically always moves the iterator to the
+         start of a line.  So, if the last line doesn't have a newline,
+	 we would end up at the start of the line ending at ZV.  */
+      if (dy <= 0)
+	move_it_vertically_backward (&it, -dy);
+      else if (dy > 0)
+	move_it_to (&it, ZV, -1, it.current_y + dy, -1,
+		    MOVE_TO_POS | MOVE_TO_Y);
     }
   else
     move_it_by_lines (&it, n, 1);
@@ -3985,9 +3993,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	      > it.last_visible_y)
 	    /* The last line was only partially visible, make it fully
 	       visible.  */
-	    w->vscroll = 
-	      it.last_visible_y
-	      - it.current_y + it.max_ascent + it.max_descent;
+	    w->vscroll = (it.last_visible_y
+			  - it.current_y + it.max_ascent + it.max_descent);
 	  else if (noerror)
 	    return;
 	  else
