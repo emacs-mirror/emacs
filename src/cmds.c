@@ -42,21 +42,21 @@ extern Lisp_Object Qface;
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
   "Move point right ARG characters (left if ARG negative).\n\
 On reaching end of buffer, stop and signal error.")
-  (n)
-     Lisp_Object n;
+  (arg)
+     Lisp_Object arg;
 {
-  if (NILP (n))
-    XSETFASTINT (n, 1);
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (arg, 0);
 
-  /* This used to just set point to point + XINT (n), and then check
+  /* This used to just set point to point + XINT (arg), and then check
      to see if it was within boundaries.  But now that SET_PT can
      potentially do a lot of stuff (calling entering and exiting
      hooks, etcetera), that's not a good approach.  So we validate the
      proposed position, then set point.  */
   {
-    int new_point = point + XINT (n);
+    int new_point = point + XINT (arg);
 
     if (new_point < BEGV)
       {
@@ -78,16 +78,16 @@ On reaching end of buffer, stop and signal error.")
 DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "p",
   "Move point left ARG characters (right if ARG negative).\n\
 On attempt to pass beginning or end of buffer, stop and signal error.")
-  (n)
-     Lisp_Object n;
+  (arg)
+     Lisp_Object arg;
 {
-  if (NILP (n))
-    XSETFASTINT (n, 1);
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
   else
-    CHECK_NUMBER (n, 0);
+    CHECK_NUMBER (arg, 0);
 
-  XSETINT (n, - XINT (n));
-  return Fforward_char (n);
+  XSETINT (arg, - XINT (arg));
+  return Fforward_char (arg);
 }
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "p",
