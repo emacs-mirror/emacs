@@ -531,6 +531,9 @@ off the specialized speedbar mode."
 
 (defvar gdb-first-prompt t)
 
+(defvar gud-filter-pending-text nil
+  "Non-nil means this is text that has been saved for later in `gud-filter'.")
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -562,6 +565,7 @@ and source-file directory for your debugger."
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
+  (setq gud-filter-pending-text nil)
   (run-hooks 'gdb-mode-hook))
 
 ;; One of the nice features of GDB is its impressive support for
@@ -2445,9 +2449,6 @@ comint mode, which see."
   "Non-nil means don't process anything from the debugger right now.
 It is saved for when this flag is not set.")
 
-(defvar gud-filter-pending-text nil
-  "Non-nil means this is text that has been saved for later in `gud-filter'.")
-
 ;; These functions are responsible for inserting output from your debugger
 ;; into the buffer.  The hard work is done by the method that is
 ;; the value of gud-marker-filter.
@@ -2516,19 +2517,22 @@ It is saved for when this flag is not set.")
 	      (gud-filter proc ""))))))
 
 (defvar gud-minor-mode-type nil)
+(defvar gud-overlay-arrow-position nil)
+(put 'gud-overlay-arrow-position 'overlay-arrow-string "=>")
+(add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
 	 ;; Stop displaying an arrow in a source file.
-	 (setq overlay-arrow-position nil)
+	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
 	 (if (memq gud-minor-mode-type '(gdbmi gdba))
 	     (gdb-reset)
 	   (gud-reset)))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
-	 (setq overlay-arrow-position nil)
+	 (setq gud-overlay-arrow-position nil)
 	 (with-current-buffer gud-comint-buffer
 	   (if (memq gud-minor-mode-type '(gdbmi gdba))
 	       (gdb-reset)
@@ -2611,13 +2615,13 @@ Obeying it means displaying in another window the specified file and line."
 	      (goto-line line)
 	      (setq pos (point))
 	      (setq overlay-arrow-string "=>")
-	      (or overlay-arrow-position
-		  (setq overlay-arrow-position (make-marker)))
-	      (set-marker overlay-arrow-position (point) (current-buffer)))
+	      (or gud-overlay-arrow-position
+		  (setq gud-overlay-arrow-position (make-marker)))
+	      (set-marker gud-overlay-arrow-position (point) (current-buffer)))
 	    (cond ((or (< pos (point-min)) (> pos (point-max)))
 		   (widen)
 		   (goto-char pos))))
-	  (if window (set-window-point window overlay-arrow-position))))))
+	  (if window (set-window-point window gud-overlay-arrow-position))))))
 
 ;; The gud-call function must do the right thing whether its invoking
 ;; keystroke is from the GUD buffer itself (via major-mode binding)
