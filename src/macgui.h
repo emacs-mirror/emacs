@@ -29,10 +29,11 @@ typedef char * XrmDatabase;  /* fix later */
 
 typedef unsigned long Time;
 
-#if MAC_OSX
+#ifdef HAVE_CARBON
+#undef Z
+#ifdef MAC_OSX
 #undef mktime
 #undef DEBUG
-#undef Z
 #undef free
 #undef malloc
 #undef realloc
@@ -44,8 +45,6 @@ typedef unsigned long Time;
 #include <Carbon/Carbon.h>
 #undef mktime
 #define mktime emacs_mktime
-#undef Z
-#define Z (current_buffer->text->z)
 #undef free
 #define free unexec_free
 #undef malloc
@@ -59,12 +58,19 @@ typedef unsigned long Time;
 #undef init_process
 #define init_process emacs_init_process
 #undef INFINITY
-#else
+#else  /* not MAC_OSX */
+#undef SIGHUP
+#define OLDP2C 1
+#include <Carbon.h>
+#endif  /* not MAC_OSX */
+#undef Z
+#define Z (current_buffer->text->z)
+#else /* not HAVE_CARBON */
 #include <QuickDraw.h>		/* for WindowPtr */
 #include <QDOffscreen.h>	/* for GWorldPtr */
 #include <Windows.h>
 #include <Gestalt.h>
-#endif
+#endif /* not HAVE_CARBON */
 
 typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
