@@ -239,6 +239,19 @@ prepend_msg (W32Msg *lpmsg)
   return (TRUE);
 }
 
+/* Process all messages in the current thread's queue.  */
+void
+drain_message_queue ()
+{
+  MSG msg;
+  while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
+    {
+      TranslateMessage (&msg);
+      DispatchMessage (&msg);
+    }
+}
+
+
 /*
  *    XParseGeometry parses strings of the form
  *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
