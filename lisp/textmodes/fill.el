@@ -697,18 +697,20 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 	    ;; Fill prefix used for filling the paragraph.
 	    fill-pfx)
 	(save-excursion
-	  (forward-paragraph)
-	  (or (bolp) (newline 1))
-	  (let ((end (point))
-		(beg (progn (backward-paragraph) (point))))
-	    (goto-char before)
-	    (setq fill-pfx
-		  (if use-hard-newlines
-		      ;; Can't use fill-region-as-paragraph, since this
-		      ;; paragraph may still contain hard newlines.  See
-		      ;; fill-region.
-		      (fill-region beg end arg)
-		    (fill-region-as-paragraph beg end arg)))))
+	  (if (not (zerop (forward-paragraph)))
+	      ;; There's no paragraph at or after point: give up.
+	      (setq fill-pfx "")
+	    (or (bolp) (newline 1))
+	    (let ((end (point))
+		  (beg (progn (backward-paragraph) (point))))
+	      (goto-char before)
+	      (setq fill-pfx
+		    (if use-hard-newlines
+			;; Can't use fill-region-as-paragraph, since this
+			;; paragraph may still contain hard newlines.  See
+			;; fill-region.
+			(fill-region beg end arg)
+		      (fill-region-as-paragraph beg end arg))))))
 	;; See if point ended up inside the fill-prefix, and if so, move
 	;; past it.
 	(skip-line-prefix fill-pfx)
