@@ -440,7 +440,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 		  (insert-buffer-substring buffer start end)
 		  (set-marker final-context-start 
 			      (- (point) (- end (match-end 0))))
-		  (backward-char (- end start))
+		  (goto-char (- (point) (- end start)))
 		  (setq tem nlines)
 		  (while (> tem 0)
 		    (insert empty ?:)
