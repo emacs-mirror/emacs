@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_test_function!103.c(trunk.1) $
 TEST_HEADER
  summary = more low memory tests with AMC (using MV)
  language = c
@@ -57,6 +57,8 @@ static void test(void)
 
  cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*30)),
   "create arena");
+
+ cdie(mps_arena_commit_limit_set(space, (size_t) (1024*1024*30)), "limit");
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
@@ -127,7 +129,7 @@ static void test(void)
 
  comment("collect world...");
 
- for (j=0; j<1000; j++) {
+ for (j=0; j<100; j++) {
   mps_arena_collect(space);
  }
 
@@ -135,7 +137,6 @@ static void test(void)
  comment("Destroyed ap.");
 
  mps_pool_destroy(pool);
- mps_pool_destroy(poolmv);
  comment("Destroyed pool.");
 
  mps_fmt_destroy(format);
