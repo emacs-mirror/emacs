@@ -7273,6 +7273,7 @@ redisplay_tool_bar (f)
 	{
 	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
+	  int old_height = XFASTINT (w->height);
 	  
 	  XSETFRAME (frame, f);
 	  clear_glyph_matrix (w->desired_matrix);
@@ -7280,7 +7281,8 @@ redisplay_tool_bar (f)
 				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
-	  fonts_changed_p = 1;
+	  if (XFASTINT (w->height) != old_height)
+	    fonts_changed_p = 1;
 	}
     }
 
