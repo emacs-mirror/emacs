@@ -181,3 +181,5 @@ and this notice must be preserved on all copies.  */
 #undef BSTRING
 #endif /* HAVE_X_WINDOWS */
 #endif /* USG5_4 */
+
+#define NO_PTY_H
