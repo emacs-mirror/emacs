@@ -1,3 +1,8 @@
+2001-03-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (read-input-method-name): Locally
+	bind enable-recursive-minibuffers to t.
+
 2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-util.el: Copyright years.
