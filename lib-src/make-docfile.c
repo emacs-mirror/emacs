@@ -629,7 +629,7 @@ scan_lisp_file (filename, mode)
 	  continue;
 	}
       /* Skip the line break.  */
-      while (c == '\n' || c != '\r')
+      while (c == '\n' || c == '\r')
 	c = getc (infile);
       /* Detect a dynamic doc string and save it for the next expression.  */
       if (c == '#')
