@@ -47,6 +47,17 @@
       (setq alist (delete entry alist)))
     alist))
 
+;; borrowed from Gnus
+(defun ibuffer-remove-duplicates (list)
+  "Return a copy of LIST with duplicate elements removed."
+  (let ((new nil)
+	(tail list))
+    (while tail
+      (or (member (car tail) new)
+	  (setq new (cons (car tail) new)))
+      (setq tail (cdr tail)))
+    (nreverse new)))
+
 (defun ibuffer-split-list (ibuffer-split-list-fn ibuffer-split-list-elts)
   (let ((hip-crowd nil)
 	(lamers nil))
@@ -545,7 +556,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
         (mapcar (lambda (mode)
                   (cons (format "%s" mode) `((mode . ,mode))))
                 (let ((modes
-                       (delete-duplicates
+                       (ibuffer-remove-duplicates
                         (mapcar (lambda (buf) (with-current-buffer buf major-mode))
                                 (buffer-list)))))
                   (if ibuffer-view-ibuffer
@@ -646,13 +657,20 @@ See also `ibuffer-kill-filter-group'."
 	       #'kill-line arg)))
 
 (defun ibuffer-insert-filter-group-before (newgroup group)
-  (let ((pos (or (position group (mapcar #'car ibuffer-filter-groups)
-			   :test #'equal)
-		 (length ibuffer-filter-groups))))
-    (cond ((<= pos 0)
-	   (push newgroup ibuffer-filter-groups))
-	  ((= pos (length ibuffer-filter-groups))
+  (let* ((found nil)
+	 (pos (let ((groups (mapcar #'car ibuffer-filter-groups))
+		    (res 0))
+		(while groups
+		  (if (equal (car groups) group)
+		      (setq found t
+			    groups nil)
+		    (incf res)
+		    (setq groups (cdr groups))))
+		res)))
+    (cond ((not found)
 	   (setq ibuffer-filter-groups (nconc ibuffer-filter-groups (list newgroup))))
+	  ((zerop pos)
+	   (push newgroup ibuffer-filter-groups))
 	  (t
 	   (let ((cell (nthcdr pos ibuffer-filter-groups)))
 	     (setf (cdr cell) (cons (car cell) (cdr cell)))

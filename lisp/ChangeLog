@@ -1,3 +1,19 @@
+2002-12-09  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* ibuffer.el (ibuffer-mode): If `show-paren-mode' is enabled,
+	disable it buffer-locally.
+	(ibuffer-mouse-popup-menu): Use `=' instead of `eq' to compare
+	`eventpt' and point.
+
+	* ibuf-ext.el (ibuffer-remove-duplicates): New function.
+	(ibuffer-set-filter-groups-by-mode): Use it instead of
+	`delete-duplicates' so we don't require cl library at runtime.
+	(ibuffer-insert-filter-group-before): Don't use `position' so we
+	don't require cl library at runtime.
+
+	* chistory.el (command-history-mode): Add interactive spec.
+	Improve doc string.
+
 2002-12-09  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-no-upper-case-p): \\ only quotes one character.

@@ -883,7 +883,7 @@ width and the longest string in LIST."
 	     (save-excursion
 	       (popup-menu ibuffer-mode-operate-map)))))
       (setq buffer-read-only t)
-      (if (eq eventpt (point))
+      (if (= eventpt (point))
 	  (goto-char origpt)))))
 
 (defun ibuffer-skip-properties (props direction)
@@ -2387,6 +2387,9 @@ will be inserted before the group at point."
   ;; This makes things less ugly for Emacs 21 users with a non-nil
   ;; `show-trailing-whitespace'.
   (setq show-trailing-whitespace nil)
+  ;; disable `show-paren-mode' buffer-locally
+  (if (bound-and-true-p show-paren-mode)
+      (set (make-local-variable 'show-paren-mode) nil))
   (set (make-local-variable 'revert-buffer-function)
        #'ibuffer-update)
   (set (make-local-variable 'ibuffer-sorting-mode)

@@ -126,7 +126,11 @@ The buffer is left in Command History mode."
 	(command-history-mode)))))
 
 (defun command-history-mode ()
-  "Major mode for listing and repeating recent commands."
+  "Major mode for listing and repeating recent commands.
+
+Keybindings:
+\\{command-history-map}"
+  (interactive)
   (Command-history-setup)
   (setq major-mode 'command-history-mode)
   (setq mode-name "Command History")
