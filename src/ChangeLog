@@ -101,6 +101,18 @@
 	a user interrupt.  Also enable immediate_quit while calling
 	re_search, so that matching can be interrupted as well.
 
+2000-10-24  Andrew Innes  <andrewi@gnu.org>
+
+	* regex.c (IMMEDIATE_QUIT_CHECK): New macro, which does QUIT on
+	NT-Emacs only.
+	(re_match_2_internal): Use IMMEDIATE_QUIT_CHECK instead of QUIT,
+	so that re_search functions only quit when callers expect them to.
+
+2000-10-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* regex.c (regex_compile): Change the way of handling a range from
+	a char less than 256 to a char not less than 256.
+
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (size_window): Prevent setting window's width or
