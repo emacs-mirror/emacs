@@ -1300,7 +1300,26 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	 It might even give us a list that isn't a keymap.  */
       tem = get_keymap_1 (tem, 0, 0);
       if (!NILP (tem))
-	maps = Fcons (Fcons (prefix, tem), Qnil);
+	{
+	  /* Convert PREFIX to a vector now, so that later on
+	     we don't have to deal with the possibility of a string.  */
+	  if (STRINGP (prefix))
+	    {
+	      int i;
+	      Lisp_Object copy;
+
+	      copy = Fmake_vector (make_number (XSTRING (prefix)->size), Qnil);
+	      for (i = 0; i < XSTRING (prefix)->size; i++)
+		{
+		  int c = XSTRING (prefix)->data[i];
+		  if (c & 0200)
+		    c ^= 0200 | meta_modifier;
+		  XVECTOR (copy)->contents[i] = make_number (c);
+		}
+	      prefix = copy;
+	    }
+	  maps = Fcons (Fcons (prefix, tem), Qnil);
+	}
       else
 	return Qnil;
     }
