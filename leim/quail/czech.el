@@ -38,7 +38,7 @@
 (quail-define-package
  "czech" "Czech" "CZ" nil
  "\"Standard\" Czech keyboard in the Windoze NT 105 keys version."
- nil t nil nil nil nil nil nil nil nil t)
+ nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
  ("1" ?+)
