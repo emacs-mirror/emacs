@@ -18,7 +18,11 @@
 #define C_SWITCH_SYSTEM -Wp,-H200000 -D_BSD
 #endif
 
+#if 0 /* These definitions run into a bug in hpux
+	 whereby trying to disable the vdsusp character has no effect.
+	 supposedly there is no particular need for this.  */
 /* neal@ctd.comsat.com */
 #undef HAVE_TERMIO
 #define HAVE_TERMIOS
 #define NO_TERMIO
+#endif
