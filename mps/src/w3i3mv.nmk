@@ -1,10 +1,14 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.66) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.67) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3i3mv
-PFMDEFS = /DWIN32 /D_WINDOWS
+
+RAINBOWPATH = MSVISUAL\WIN32\I386
+DONGLELIB = $(RAINBOWPATH)\spromeps.lib
+
+PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
 MPM = <assert> <ring> <mpm> <bt> <protocol> \
       <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
@@ -24,9 +28,9 @@ SW  = <assert> <ring> <mpm> <bt> <protocol> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 CONFIGURA = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> <dongle> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <lockw3> \
+      <root> <format> <buffer> \
       <ref> <trace> <protw3> <proti3> <prmci3w3> <shield> <vmw3> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \
@@ -46,14 +50,14 @@ TESTLIB = <testlib>
 
 !INCLUDE commpre.nmk
 
-# Source to object file mappings
-# and CFLAGS amalgamation
+
+# Source to object file mappings and CFLAGS amalgamation
 # %%VARIETY %%PART: Add new macros which expand to the files included 
 # in the part for each variety
 # %%VARIETY: Add a CFLAGS macro which expands to the flags that that variety
 # should use when compiling C.  And a LINKFLAGS macro which expands to the
 # flags that the variety should use when building executables.  And a LIBFLAGS
-# macro which expands to the flags that the variety should use when builing
+# macro which expands to the flags that the variety should use when building
 # libraries
 
 !IF "$(VARIETY)" == "he"

@@ -1,6 +1,6 @@
 # impl.nmk.commpost: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.37) $
+# $HopeName: MMsrc!commpost.nmk(trunk.38) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -86,6 +86,7 @@ FORCE:
 # to build it.
 # %%TARGET: Add your new target here
 
+
 !IFDEF VARIETY
 
 # .special.version: version.obj has a special rule so that it is always
@@ -123,7 +124,7 @@ $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
 	$(CONFIGURAOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
-	$(TESTLIBOBJ)
+	$(TESTLIBOBJ) $(DONGLELIB)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
@@ -215,7 +216,7 @@ $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
 $(PFM)\$(VARIETY)\mps_conf.lib: $(CONFIGURAOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
         $(MVFFOBJ) $(AMSOBJ)
 	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $(DONGLELIB) $**
 
 $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
