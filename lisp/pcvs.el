@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.18 2000/11/21 20:47:49 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.19 2000/12/06 19:36:20 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -52,10 +52,16 @@
 ;; To use PCL-CVS just use `M-x cvs-examine RET <dir> RET'.
 ;; There is a TeXinfo manual, which can be helpful to get started.
 
+;;; Bugs:
+
+;; - can somehow ignore important messages like `co aborted' or
+;;   or `co: output error: No space left on device'.
+
 ;;; Todo:
 
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
+;; - rework the displaying of error messages.
 ;; - use UP-TO-DATE rather than DEAD when cleaning before `examine'.
 ;; - allow to flush messages only
 ;; - allow to protect files like ChangeLog from flushing
@@ -198,7 +204,7 @@
   (let ((cvs-minor-current-files
 	 (list (ewoc-data (ewoc-locate
 			   cvs-cookies (posn-point (event-end e)))))))
-    (popup-menu cvs-menu-map e)))
+    (popup-menu cvs-menu e)))
 
 (defvar cvs-mode-line-process nil
   "Mode-line control for displaying info on cvs process status.")
@@ -1052,7 +1058,7 @@ Full documentation is in the Texinfo file."
 	(error "Inconsistent %s in buffer %s" check (buffer-name buf)))))
 
 
-(defun-cvs-mode cvs-mode-quit ()
+(defun cvs-mode-quit ()
   "Quit PCL-CVS, killing the *cvs* buffer."
   (interactive)
   (and (y-or-n-p "Quit pcl-cvs? ") (kill-buffer (current-buffer))))
