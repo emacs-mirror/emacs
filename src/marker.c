@@ -220,8 +220,9 @@ unchain_marker (marker)
 	      BUF_MARKERS (b) = next;
 	      /* Deleting first marker from the buffer's chain.  Crash
 		 if new first marker in chain does not say it belongs
-		 to the same buffer (or one of its indirect buffers).  */
-	      if (!NILP (next) && b != XMARKER (next)->buffer)
+		 to the same buffer, or at least that they have the same
+		 base buffer.  */
+	      if (!NILP (next) && b->text != XMARKER (next)->buffer->text)
 		abort ();
 	    }
 	  else
