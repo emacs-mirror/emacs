@@ -4373,7 +4373,7 @@ CHAR
      still match.  A non-greedy regexp matches as little as possible.
 
 `(maximal-match SEXP)'
-     produce a greedy regexp for SEXP.   This is the default.
+     produce a greedy regexp for SEXP.  This is the default.
 
 `(zero-or-more SEXP)'
      matches zero or more occurrences of what SEXP matches.
@@ -4418,7 +4418,7 @@ CHAR
      matches N to M occurrences of what SEXP matches.
 
 `(eval FORM)'
-      evaluate FORM and insert result.   If result is a string,
+      evaluate FORM and insert result.  If result is a string,
       `regexp-quote' it.
 
 `(regexp REGEXP)'
@@ -8572,7 +8572,7 @@ write a file, it uses the specified coding system for that file.
 If the immediately following command does not use the coding system,
 then C-x RET c ultimately has no effect.
 
-For example,  C-x RET c iso-8859-1 RET C-x C-f temp RET
+For example, C-x RET c iso-8859-1 RET C-x C-f temp RET
 visits the file `temp' treating it as ISO Latin-1.
 
 *** You can specify the coding system for a file using the -*-
