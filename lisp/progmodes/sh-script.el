@@ -814,6 +814,7 @@ See `sh-feature'.")
 ;; These are used for the syntax table stuff (derived from cperl-mode).
 ;; Note: parse-sexp-lookup-properties must be set to t for it to work.
 (defconst sh-st-punc (string-to-syntax "."))
+(defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
 (defun sh-font-lock-heredoc (start string quoted)
@@ -867,15 +868,11 @@ See `sh-feature'.")
       sh-st-punc)))
 
 (defconst sh-font-lock-syntactic-keywords
-  ;; Mark a `#' character as having punctuation syntax in a variable reference.
-  ;; Really we should do this properly.  From Chet Ramey and Brian Fox:
-  ;; "A `#' begins a comment when it is unquoted and at the beginning of a
-  ;; word.  In the shell, words are separated by metacharacters."
-  ;; To do this in a regexp would be slow as it would be anchored to the right.
-  ;; But I can't be bothered to write a function to do it properly and
-  ;; efficiently.  So we only do it properly for `#' in variable references and
-  ;; do it efficiently by anchoring the regexp to the left.
-  `(("\\${?[^}#\n\t ]*\\(##?\\)" 1 ,sh-st-punc)
+  ;; A `#' begins a comment when it is unquoted and at the beginning of a
+  ;; word.  In the shell, words are separated by metacharacters.
+  ;; The list of special chars is taken from the single-unix spec
+  ;; of the shell command language (under `quoting') but with `$' removed.
+  `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
     ("[^<>]<<\\(-\\)?\\s-*\\(\\(['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)"
      4 (sh-font-lock-heredoc
@@ -1257,7 +1254,6 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell-variables-initialized)
   (make-local-variable 'imenu-generic-expression)
   (make-local-variable 'sh-indent-supported-here)
-  (make-local-variable 'font-lock-unfontify-region-function)
   (setq skeleton-end-hook (lambda ()
 			    (or (eolp) (newline) (indent-relative)))
 	paragraph-start (concat page-delimiter "\\|$")
