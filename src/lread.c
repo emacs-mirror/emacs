@@ -1054,6 +1054,8 @@ openp (path, str, suffixes, storeptr, predicate)
   Lisp_Object string, tail, encoded_fn;
   int max_suffix_len = 0;
 
+  CHECK_STRING (str);
+
   for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
     {
       CHECK_STRING_CAR (tail);
