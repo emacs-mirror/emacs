@@ -324,17 +324,27 @@ make_terminal_frame ()
 }
 
 DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
-  "Select the frame FRAME.  FRAME's selected window becomes \"the\"\n\
-selected window.  If the optional parameter NO-ENTER is non-nil, don't\n\
-focus on that frame.\n\
+  "Select the frame FRAME.\n\
+Subseqent editing commands apply to its selected window.\n\
+The selection of FRAME lasts until the next time the user does\n\
+something to select a different frame, or until the next time this\n\
+function is called.")
+  (frame, no_enter)
+    Lisp_Object frame, no_enter;
+{
+  return Fhandle_switch_frame (frame, no_enter);
+}
+
+
+DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
+  "Handle a switch-frame event EVENT.\n\
+Switch-frame events is usually bound to this function.\n\
+A switch-frame event tells Emacs that the window manager has requested\n\
+that the user's events be directed to the frame mentioned in the event.\n\
+This function selects the selected window of the frame of EVENT.\n\
 \n\
-This function is interactive, and may be bound to the ``switch-frame''\n\
-event; when invoked this way, it switches to the frame named in the\n\
-event.  When called from lisp, FRAME may be a ``switch-frame'' event;\n\
-if it is, select the frame named in the event.\n\
-\n\
-Changing the selected frame can change focus redirections.  See\n\
-`redirect-frame-focus' for details.")
+If EVENT is frame object, handle it as if it were a switch-frame event\n\
+to that frame.")
   (frame, no_enter)
      Lisp_Object frame, no_enter;
 {
@@ -641,7 +651,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
   /* Don't let the frame remain selected.  */
   if (f == selected_frame)
-    Fselect_frame (next_frame (frame, Qt), Qnil);
+    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
@@ -1463,6 +1473,7 @@ For values specific to the separate minibuffer frame, see\n\
 
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
+  defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
   defsubr (&Swindow_frame);
@@ -1503,7 +1514,7 @@ For values specific to the separate minibuffer frame, see\n\
 
 keys_of_frame ()
 {
-  initial_define_lispy_key (global_map, "switch-frame", "select-frame");
+  initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
 }
 
 #else /* not MULTI_FRAME */
