@@ -356,8 +356,8 @@ Remove all marks from all the files in this Dired buffer
 Remove all marks that use the character @var{markchar}
 (@code{dired-unmark-all-files}).  The argument is a single
 character---do not use @key{RET} to terminate it.  See the description
-of the @kbd{* c} command below, which lets you change the character that
-marks files.
+of the @kbd{* c} command below, which lets you replace one mark
+character with another.
 
 With a numeric argument, this command queries about each marked file,
 asking whether to remove its mark.  You can answer @kbd{y} meaning yes,
@@ -406,7 +406,7 @@ that already have @samp{D} flags:
 * c D t  * c SPC D  * c t SPC
 @end example
 
-This assumes that no files are marked with @samp{t}.
+This assumes that no files were already marked with @samp{t}.
 
 @item % m @var{regexp} @key{RET}
 @itemx * % @var{regexp} @key{RET}
