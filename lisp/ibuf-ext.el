@@ -146,12 +146,50 @@ to this variable."
 (defvar ibuffer-cached-filter-formats nil)
 (defvar ibuffer-compiled-filter-formats nil)  
 
-(defvar ibuffer-filtering-groups nil
+(defvar ibuffer-filter-groups nil
   "A list like ((\"NAME\" ((SYMBOL . QUALIFIER) ...) ...) which groups buffers.
-See also `ibuffer-filtering-alist'.")
+The SYMBOL should be one from `ibuffer-filtering-alist'.
+The QUALIFIER should be the same as QUALIFIER in
+`ibuffer-filtering-qualifiers'.")
 
-(defvar ibuffer-hidden-filtering-groups nil
+(defcustom ibuffer-show-empty-filter-groups t
+  "If non-nil, then show the names of filter groups which are empty."
+  :type 'boolean
+  :group 'ibuffer)
+
+(defcustom ibuffer-saved-filter-groups
+  '(("gnus"
+     ((or (mode . message-mode)
+	  (mode . mail-mode)
+	  (mode . gnus-group-mode)
+	  (mode . gnus-summary-mode) 
+	  (mode . gnus-article-mode))))
+    ("programming"
+     ((or (mode . emacs-lisp-mode)
+	  (mode . cperl-mode)
+	  (mode . c-mode)
+	  (mode . java-mode) 
+	  (mode . idl-mode)
+	  (mode . lisp-mode)))))
+				  
+  "An alist of filtering groups to switch between.
+
+This variable should look like ((\"STRING\" QUALIFIERS)
+                                (\"STRING\" QUALIFIERS) ...), where
+QUALIFIERS is a list of the same form as
+`ibuffer-filtering-qualifiers'.
+
+See also the variables `ibuffer-filter-groups',
+`ibuffer-filtering-qualifiers', `ibuffer-filtering-alist', and the
+functions `ibuffer-switch-to-saved-filter-group',
+`ibuffer-save-filter-group'."
+  :type '(repeat sexp)
+  :group 'ibuffer)
+
+(defvar ibuffer-hidden-filter-groups nil
   "A list of filtering groups which are currently hidden.")
+
+(defvar ibuffer-filter-group-kill-ring nil)
 
 (defcustom ibuffer-old-time 72
   "The number of hours before a buffer is considered \"old\"."
@@ -163,7 +201,8 @@ See also `ibuffer-filtering-alist'.")
 
 (defcustom ibuffer-save-with-custom t
   "If non-nil, then use Custom to save interactively changed variables.
-Currently, this only applies to `ibuffer-saved-filters'."
+Currently, this only applies to `ibuffer-saved-filters' and
+`ibuffer-saved-filter-groups."
   :type 'boolean
   :group 'ibuffer)
 
@@ -253,10 +292,10 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
   (let ((name (get-text-property posn 'ibuffer-filter-group-name)))
     (unless (stringp name)
       (error "No filtering group name present"))
-    (if (member name ibuffer-hidden-filtering-groups)
-	(setq ibuffer-hidden-filtering-groups
-	      (delete name ibuffer-hidden-filtering-groups))
-      (push name ibuffer-hidden-filtering-groups))
+    (if (member name ibuffer-hidden-filter-groups)
+	(setq ibuffer-hidden-filter-groups
+	      (delete name ibuffer-hidden-filter-groups))
+      (push name ibuffer-hidden-filter-groups))
     (ibuffer-update nil t)))
 
 ;;;###autoload
@@ -478,14 +517,14 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 		   (cdr filter))))))))))
 
 (defun ibuffer-generate-filter-groups (bmarklist)
-  (let ((filtering-group-alist (append ibuffer-filtering-groups
+  (let ((filter-group-alist (append ibuffer-filter-groups
 				       (list (cons "Default" nil)))))
-;;     (dolist (hidden ibuffer-hidden-filtering-groups)
-;;       (setq filtering-group-alist (ibuffer-delete-alist
-;; 				   hidden filtering-group-alist)))
-    (let ((vec (make-vector (length filtering-group-alist) nil))
+;;     (dolist (hidden ibuffer-hidden-filter-groups)
+;;       (setq filter-group-alist (ibuffer-delete-alist
+;; 				   hidden filter-group-alist)))
+    (let ((vec (make-vector (length filter-group-alist) nil))
 	  (i 0))
-      (dolist (filtergroup filtering-group-alist)
+      (dolist (filtergroup filter-group-alist)
 	(let ((filterset (cdr filtergroup)))
 	  (multiple-value-bind (hip-crowd lamers)
 	      (ibuffer-split-list (lambda (bufmark)
@@ -497,7 +536,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	    (setq bmarklist lamers))))
       (let ((ret nil))
 	(dotimes (j i ret)
-	  (push (cons (car (nth j filtering-group-alist))
+	  (push (cons (car (nth j filter-group-alist))
 		      (aref vec j))
 		ret))))))
 
@@ -507,28 +546,161 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
   (interactive "sName for filtering group: ")
   (when (null ibuffer-filtering-qualifiers)
     (error "No filters in effect"))
-  (push (cons name ibuffer-filtering-qualifiers) ibuffer-filtering-groups)
+  (push (cons name ibuffer-filtering-qualifiers) ibuffer-filter-groups)
   (ibuffer-filter-disable))
+
+;;;###autoload
+(defun ibuffer-set-filter-groups-by-mode ()
+  "Set the current filter groups to filter by mode."
+  (interactive)
+  (setq ibuffer-filter-groups
+	(mapcar (lambda (mode)
+		  (cons (format "%s" mode) `((mode . ,mode))))
+		(delete-duplicates
+		 (mapcar (lambda (buf) (with-current-buffer buf major-mode))
+			 (buffer-list)))))
+  (ibuffer-update nil t))
 
 ;;;###autoload
 (defun ibuffer-pop-filter-group ()
   "Remove the first filtering group."
   (interactive)
-  (when (null ibuffer-filtering-groups)
+  (when (null ibuffer-filter-groups)
     (error "No filtering groups active"))
-  (pop ibuffer-filtering-groups)
+  (pop ibuffer-filter-groups)
   (ibuffer-update nil t))
+
+;;;###autoload
+(defun ibuffer-clear-filter-groups ()
+  "Remove all filtering groups."
+  (interactive)
+  (setq ibuffer-filter-groups nil)
+  (ibuffer-update nil t))
+
+(defun ibuffer-current-filter-groups-with-position ()
+  (save-excursion
+    (goto-char (point-min))
+    (let ((pos nil)
+	  (result nil))
+      (while (and (not (eobp))
+		  (setq pos (next-single-property-change
+			     (point) 'ibuffer-filter-group-name)))
+	(goto-char pos)
+	(push (cons (get-text-property (point) 'ibuffer-filter-group-name)
+		    pos)
+	      result)
+	(goto-char (next-single-property-change
+		    pos 'ibuffer-filter-group-name)))
+      (nreverse result))))
 
 ;;;###autoload
 (defun ibuffer-jump-to-filter-group (name)
   "Move point to the filter group whose name is NAME."
   (interactive (list nil))
-  (let ((table (ibuffer-current-filter-groups)))
+  (let ((table (ibuffer-current-filter-groups-with-position)))
     (when (interactive-p)
       (setq name (completing-read "Jump to filter group: " table nil t)))
     (ibuffer-aif (assoc name table)
 	(goto-char (cdr it))
       (error "No filter group with name %s" name))))
+
+;;;###autoload
+(defun ibuffer-kill-filter-group (name)
+  "Delete the filtering group named NAME."
+  (interactive (list nil))
+  (when (interactive-p)
+    (setq name (completing-read "Kill filter group: "
+				ibuffer-filter-groups nil t)))
+  (ibuffer-aif (assoc name ibuffer-filter-groups)
+      (setq ibuffer-filter-groups (ibuffer-delete-alist
+				   name ibuffer-filter-groups))
+    (error "No filter group with name \"%s\"" name))
+  (ibuffer-update nil t))
+
+;;;###autoload
+(defun ibuffer-kill-line (&optional arg)
+  (interactive "P")
+  (ibuffer-aif (save-excursion
+		 (ibuffer-forward-line 0)
+		 (get-text-property (point) 'ibuffer-filter-group-name))
+      (progn
+	(when (equal it "Default")
+	  (error "Can't kill default filtering group"))
+	(push (assoc it ibuffer-filter-groups) ibuffer-filter-group-kill-ring)
+	(ibuffer-kill-filter-group it))
+      (funcall (if (interactive-p) #'call-interactively #'funcall)
+	       #'kill-line arg)))
+
+;;;###autoload
+(defun ibuffer-yank (&optional arg)
+  (interactive "P")
+  (unless ibuffer-filter-group-kill-ring
+    (error "ibuffer-filter-group-kill-ring is empty"))
+  (save-excursion
+    (ibuffer-forward-line 0)
+    (let* ((last-killed (pop ibuffer-filter-group-kill-ring))
+	   (all-groups ibuffer-filter-groups)
+	   (cur (or (get-text-property (point) 'ibuffer-filter-group-name)
+		    (get-text-property (point) 'ibuffer-filter-group)
+		    (last all-groups)))
+	   (pos (or (position cur (mapcar #'car all-groups) :test #'equal)
+		    (1- (length all-groups)))))
+      (cond ((= pos 0)
+	     (push last-killed ibuffer-filter-groups))
+	    ((= pos (1- (length all-groups)))
+	     (nconc ibuffer-filter-groups (list last-killed)))
+	    (t
+	     (let ((cell (nthcdr pos ibuffer-filter-groups)))
+	       (setf (cdr cell) (cons (car cell) (cdr cell)))
+	       (setf (car cell) last-killed))))))
+  (ibuffer-update nil t))
+
+;;;###autoload
+(defun ibuffer-save-filter-groups (name groups) 
+  "Save all active filter groups GROUPS as NAME.
+They are added to `ibuffer-saved-filter-groups'.  Interactively,
+prompt for NAME, and use the current filters."
+  (interactive
+   (if (null ibuffer-filter-groups)
+       (error "No filter groups active")
+     (list
+      (read-from-minibuffer "Save current filter groups as: ")
+      ibuffer-filter-groups)))
+  (ibuffer-aif (assoc name ibuffer-saved-filter-groups)
+      (setcdr it groups)
+    (push (list name groups) ibuffer-saved-filter-groups))
+  (ibuffer-maybe-save-stuff)
+  (ibuffer-update-mode-name))
+
+;;;###autoload
+(defun ibuffer-delete-saved-filter-groups (name)
+  "Delete saved filter groups with NAME.
+They are removed from `ibuffer-saved-filter-groups'."
+  (interactive
+   (list
+    (if (null ibuffer-saved-filter-groups)
+	(error "No saved filters")
+      (completing-read "Delete saved filters: "
+		       ibuffer-saved-filter-groups nil t))))
+  (setq ibuffer-saved-filter-groups
+	(ibuffer-delete-alist name ibuffer-saved-filter-groups))
+  (ibuffer-maybe-save-stuff)
+  (ibuffer-update nil t))
+
+;;;###autoload
+(defun ibuffer-switch-to-saved-filter-groups (name)
+  "Set this buffer's filter groups to saved version with NAME.
+The value from `ibuffer-saved-filters' is used.
+If prefix argument ADD is non-nil, then add the saved filters instead
+of replacing the current filters."
+  (interactive
+   (list
+    (if (null ibuffer-saved-filter-groups)
+	(error "No saved filters")
+      (completing-read "Switch to saved filter group: "
+		       ibuffer-saved-filter-groups nil t))))
+  (setq ibuffer-filter-groups (assoc name ibuffer-saved-filter-groups))
+  (ibuffer-update nil t))
 
 ;;;###autoload
 (defun ibuffer-filter-disable ()
@@ -633,12 +805,14 @@ filter into parts."
 	      ibuffer-filtering-qualifiers))))
   (ibuffer-update nil t))
 
-(defun ibuffer-maybe-save-saved-filters ()
+(defun ibuffer-maybe-save-stuff ()
   (when ibuffer-save-with-custom
     (if (fboundp 'customize-save-variable)
 	(progn
 	  (customize-save-variable 'ibuffer-saved-filters
-				   ibuffer-saved-filters))
+				   ibuffer-saved-filters)
+	  (customize-save-variable 'ibuffer-saved-filter-groups
+				   ibuffer-saved-filter-groups))
       (message "Not saved permanently: Customize not available"))))
 
 ;;;###autoload
@@ -654,7 +828,7 @@ Interactively, prompt for NAME, and use the current filters."
   (ibuffer-aif (assoc name ibuffer-saved-filters)
       (setcdr it filters)
     (push (list name filters) ibuffer-saved-filters))
-  (ibuffer-maybe-save-saved-filters)
+  (ibuffer-maybe-save-stuff)
   (ibuffer-update-mode-name))
 
 ;;;###autoload
@@ -668,7 +842,7 @@ Interactively, prompt for NAME, and use the current filters."
 		       ibuffer-saved-filters nil t))))
   (setq ibuffer-saved-filters
 	(ibuffer-delete-alist name ibuffer-saved-filters))
-  (ibuffer-maybe-save-saved-filters)
+  (ibuffer-maybe-save-stuff)
   (ibuffer-update nil t))
 
 ;;;###autoload
@@ -1048,13 +1222,16 @@ You can then feed the file name(s) to other commands with C-y.
 			 " "))))
       (push ibuffer-copy-filename-as-kill-result kill-ring))))
 
-(defun ibuffer-mark-on-buffer (func)
+(defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
 	 (ibuffer-map-lines
 	  #'(lambda (buf mark)
 	      (when (funcall func buf)
-		(ibuffer-set-mark-1 ibuffer-marked-char)
-		t)))))
+		(ibuffer-set-mark-1 (or ibuffer-mark-on-buffer-mark
+					ibuffer-marked-char))
+		t))
+	  nil
+	  group)))
     (ibuffer-redisplay t)
     (message "Marked %s buffers" count)))
 
