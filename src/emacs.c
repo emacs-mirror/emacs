@@ -270,7 +270,14 @@ init_cmdargs (argc, argv, skip_args)
 	     not including lisp and info.  */
 	  tem = Fexpand_file_name (build_string ("lib-src"), dir);
 	  lib_src_exists = Ffile_exists_p (tem);
-	  if (!NILP (lib_src_exists))
+
+	  /* MSDOS installations frequently remove lib-src, but we still
+	     must set installation-directory, or else info won't find
+	     its files (it uses the value of installation-directory).  */
+	  tem = Fexpand_file_name (build_string ("info"), dir);
+	  info_exists = Ffile_exists_p (tem);
+
+	  if (!NILP (lib_src_exists) || !NILP (info_exists))
 	    {
 	      tem = Fexpand_file_name (build_string ("etc"), dir);
 	      etc_exists = Ffile_exists_p (tem);
@@ -285,7 +292,11 @@ init_cmdargs (argc, argv, skip_args)
 	  /* See if dir's parent contains those subdirs.  */
 	  tem = Fexpand_file_name (build_string ("../lib-src"), dir);
 	  lib_src_exists = Ffile_exists_p (tem);
-	  if (!NILP (lib_src_exists))
+
+	  tem = Fexpand_file_name (build_string ("../info"), dir);
+	  info_exists = Ffile_exists_p (tem);
+
+	  if (!NILP (lib_src_exists) || !NILP (info_exists))
 	    {
 	      tem = Fexpand_file_name (build_string ("../etc"), dir);
 	      etc_exists = Ffile_exists_p (tem);
