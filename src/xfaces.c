@@ -5974,7 +5974,7 @@ realize_basic_faces (f)
       /* Reflect changes in the `menu' face in menu bars.  */
       if (menu_face_change_count)
 	{
-	  menu_face_change_count = 0;
+	  --menu_face_change_count;
 #ifdef USE_X_TOOLKIT
 	  x_update_menu_appearance (f);
 #endif
