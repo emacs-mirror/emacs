@@ -1,14 +1,186 @@
+1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c: Add suffix psw for PSWrap.
+	(L_getit): Generalize a "cp!=' '" into "!isspace(*cp)".
+	(Postscript_functions): Add code for PSWrap.
+	(Scheme_functions): Use local pointer and new get_tag function.
+	(get_tag): New name for old get_scheme.
+	(process_file): Do not free NULL when file does not exist.
+	(typdef): ttypedefseen renamed to tkeyseen, new label ttypeseen.
+	(C_entries): Modifications that make --members tag even inside
+	typedefs and C nested structs (one level only).
+	(consider_token): Corrected a bug which prevented tagging of enum
+	constants.
+	(C_stab_entry): Added if, for, while, switch, return as
+	st_C_ignore.  This makes it simpler to work when cblev!=0.
+
+	* etags.c (C_entries): tag member function declarations when
+	--declarations is used.
+
+	* etags.c (C_entries, consider_token): C++ `operator' now is
+	tagged in most cases.
+	As before, :: is not recognised if surrounded by spaces.
+
+	* etags.c (relative_filename): Account for DOS file names such
+	that is impossible to make one relative to another.
+
+	* etags.c (sym_type): New st_C_extern tag.
+	(gperf input): Use it for spotting external declarations.
+	(print_help): Document the new behaviour of --declarations.
+	(fvextern): New global variable.
+	(consider_token, C_entries): Use it.
+
+	* etags.c (HAVE_GETCWD) [WINDOWSNT]: Define if undefined.
+	(etags_getcwd): Remove test for WINDOWSNT.
+
+	* etags.c (process_file) [MSDOS]: If foo.c.gz is not found, try
+	foo.cgz, foo.cz, etc.
+
+	* etags.c (declarations): New global switch.
+	(longopts): Describe it.
+	(print_help): Document it.
+	(C_entries): Use it.
+	(process_file): Don't process a file twice.
+
+	* etags.c (Fortran_functions): No tags for "procedure".
+
+1999-11-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.c (get_compressor_from_suffix): Second argument EXTPTR, if
+	non-zero, returns a pointer to where the extension begins; callers
+	changed.
+	[MSDOS]: Support DOS file names by handling e.g. foo.cgz as if it
+	were foo.c.gz.
+
+1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c (sym_type, C_stab_entry): New constant st_C_operator.
+	(fvdev): New constant foperator.
+	(consider_token): Use it to get "operator" in C++.
+	(C_entries): Extend length of operator@ function name.
+	(C_entries): Use foperator when necessary.
+
+	* etags.c (main) [!ETAGS_REGEXPS]: Do not call free_patterns.
+
+	* etags.c (compressor): New struct for compressed files.
+	(get_compressor_from_suffix): New function.
+	(get_language_from_suffix): Use it.  Also, semantics changed.
+	(process_file): Consider compressed files, close file.
+	(find_entries): Use different call arg for get_language_from_suffix,
+	don't close file.
+
+	* etags.c (main): Call free_tree.
+	(find_entries): Do not free curfile.
+	(pfnote): Cosmetic change: NULL and '\0' where appropriate.
+	(prolog_pred, erlang_func, substitute): Cast strlen to int when
+	comparing.
+	(canonicalize_filename): Shut up compiler warning.
+	(Perl_functions): Make tag significant.
+
+1999-11-01  Dave Love  <d.love@dl.ac.uk>
+
+	* etags.c (longopts, optstring): New option --ignore-case-regex (-c).
+	(argument_type): New member at_icregexp.
+	(lc_trans): New global.
+	(main): Fill lc_trans.  Process -c args.
+	(add_regex): New arg determining whether to use translation table.
+	(analyse_regex): New arg.  Use it for add_regex.
+
+1999-11-01  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c (init): Cosmetic change: NULL --> '\0'.
+	(erlang_attribute): Bug corrected (uninitialized variable).
+	(filename_is_absolute): New function replaces absolutefn macro and
+ 	corrects a bug.  All callers changed.
+	(canonicalize_filename): New function.
+	(process_file, etags_getcwd, absolute_dirname): Use it.
+	(relative_filename, absolute_filename): Removed var shadowing.
+	(C_entries, Pascal_functions): Add fake initializations to keep
+ 	compilers quiet.
+	(TeX_functions, Prolog_functions, Erlang_functions): Cleanup.
+
+	* etags.c (xrnew): New macro.  All callers of xrealloc changed.
+	(language): New typedef (was struct lang_entry).
+	(curlang): New global variable.
+	(node): typedef renamed from NODE.
+	(linebuffer): New typedef (was struct linebuffer).
+	(pattern): New typedef (was struct pattern).  Some members added.
+	Now used as element of a linked list.
+	(patterns, num_patterns): Global variables deleted.
+	(p_head): New global variable.
+	(forced_lang):  New global variable (replaces lang_func).
+	(get_language_from_name, get_language_from_interpreter,
+	get_language_from_suffix): Semantics changed.  All callers changed.
+	(last_node): New global variable.
+	(free_tree, add_node, put_entries, total_size_of_entries): Change
+	name of local vars to avoid clashes with typedef node.
+	(number_len): Rewritten for elegance.
+	(token): New typedef replaces TOKEN.
+	(analyse_regex, add_regex): Rewritten for new functionality.
+	(free_patterns): New function called from main and add_regex.
+	(initbuffer, readline_internal, readline, grow_linebuffer):
+	Change name of local vars to avoid clashes with typedef
+	linebuffer.
+	(readline): Rewritten for new functionality.
+
+	* etags.c: (Scheme_suffixes): New suffix ".ss".
+	(print_help): --globals is now used for more than C-type languages.
+	(Perl_functions): Tag global variables ("my" and "local").
+
+	* etags.c (print_help): Some messages clarified.
+	(LOOP_ON_INPUT_LINES): New macro.
+	(just_read_file, Fortran_functions, Asm_labels, Perl_functions,
+	Python_functions, Cobol_paragraphs, Pascal_functions,
+	Lisp_functions, Postscript_functions, Scheme_functions,
+	TeX_functions, Prolog_functions, Erlang_functions): Use it.
+	(Cobol_paragraphs, Postscript_functions, TeX_functions,
+	Prolog_functions, Erlang_functions): Use a local variable instead
+	of the global variable dbp.
+	(Pascal_functions, L_isquote, Scheme_functions): Use GNU coding
+	standard indentation.
+
+	* etags.c (Python_suffixes, lang_names, Python_functions): Python
+	support.
+	(skip_spaces, skip_non_spaces): Utility functions.
+	(find_entries, takeprec, getit, Fortran_functions, Perl_functions,
+	Python_functions, L_getit, Lisp_functions, Scheme_functions,
+	prolog_pred, erlanf_func, erlang_attribute): Use them.
+	(eat_white): Deleted.
+
+	* etags.c (CHAR, init): Keep into account non US-ASCII
+	characters and compilers with default signed chars.
+	(L_getit): Tag "(defstruct (foo", "(defun (operator" and similar
+	constructs.
+
+	* (C_stab_entry): "interface" in Java behaves like "class".
+
+	* etags.c: (HAVE_NTGUI) [WINDOWSNT]: #undef if HAVE_CONFIG_H.
+	(main): Put interval syntax here.
+	(add_regex): And remove it from here.
+
+	* etags.c (suggest_asking_for_help): Provide a
+	meaningful help message with and without LONG_OPTIONS.
+
+	* etags.c: <io.h> [MSDOS]: Include it, don't include string.h.
+	<stdlib.h, string.h>: Don't test MSDOS when including them.
+	(white, nonam, endtk): Like elsewhere, use \r instead of \013.
+	(put_entries): Correctly use %ld instead of %d in printf.
+
+	* etags.c: <unistd.h> [HAVE_UNISTD_H]: Include conditionally, else
+	declare getcwd if HAVE_GETCWD.
+	(consider_token): Dead break instruction removed.
+
 1999-10-19  Paul Eggert  <eggert@twinsun.com>
 
 	Add support for large files.  Merge glibc 2.1.2.
-	
+
 	* b2m.c, emacsclient.c, emacsserver.c, fakemail.c, make-docfile.c,
 	movemail.c, pop.c:
 	Do not include <stdlib.h>, as <config.h> does this now.
 
 	* b2m.c, emacsserver.c, etags.c, profile.c:
 	Include <config.h> before any system include files.
-	
+
 	* emacsclient.c, emacsserver.c, fakemail.c, movemail.c, pop.c,
 	test-distrib.c:
 	(read, write, open, close): Do not undef.
@@ -17,7 +189,7 @@
 	(const): Do not define if HAVE_CONFIG_H; that's config.h's job.
 
 	* getopt.h: Adopt glibc 2.1.2.
- 	
+
 1999-10-15  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (pop.o): Depend on config.h.
@@ -80,7 +252,7 @@
 
 1999-06-30  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* Makefile.in (clean): Remove fns*.el.  
+	* Makefile.in (clean): Remove fns*.el.
 
 1999-06-23  Dave Love  <fx@gnu.org>
 
@@ -193,7 +365,7 @@
 
 	* lib-src/Makefile.in (REGEXPDEPS, regex.o):
 	Prepend $(srcdir)/ to rule dependencies outside this dir.
-	
+
 1998-06-09  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* etags.c (etags_getcwd) [WINDOWSNT]: Use getcwd on Windows.
@@ -312,7 +484,7 @@
 	server to contain embedded nulls.
 
 1997-12-02  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
-	 
+
 	* movemail.c (mbx_write) [MAIL_USE_POP]: Disable the code which
 	quotes with a '>' any lines starting with "From " read from the
 	POP server, but leave the code in place, wrapped in #ifdef
@@ -420,7 +592,7 @@
 	* fakemail.c [HAVE_UNISTD_H]: Include unistd.h.
 
 	* etags.c [HAVE_UNISTD_H]: Include unistd.h.
-	
+
 1997-07-09  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* emacsclient.c [C_ALLOCA] (xmalloc): New function.
@@ -476,12 +648,12 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(sym_type, C_stab_entry, consider_token): st_C_ignore is used to
 	get rid of "import", "package" and "friend".
 	(fvdef): Renamed from funcdef.  Also some constants renamed.  All
-	users changed. 
+	users changed.
 	(C_entries): Make separate tags for variables separated by comma.
 	(globals, members): New flags.
 	(main, C_entries): Use them.
 	(make_C_tag, C_entries): Make tok a global variable.
-	
+
 1997-05-16  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
 	* etags.c (funcdef): New vignore constant.
@@ -546,7 +718,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
  	PC-based shells mishandle CR.
 	(initialize_fullname): Set NIS_PATH to the empty string before invoking
 	nismatch, in case it's set to some nonstandard value.
-	
+
 1997-05-06  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 
 	* pop.c (getline): Don't miss CRLF pairs when the CR and LF are
@@ -583,7 +755,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(relative_filename): Small memory leak closed.
 	(absolute_filename): Cleaned up the code, possibly closing a bug.
 	(absolute_dirname): Always return a newly allocated string.
-	
+
 1997-03-21  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs2log (files): Ignore files in RCS directory whose names are
@@ -616,7 +788,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(main, popmail): Add the optional "-p" argument, which causes
 	movemail to leave mail in the inbox after copying it into the
 	output file.
-	
+
 	* Makefile.in (movemail): Link with getopt.
 
 1997-01-20  Paul Eggert  <eggert@twinsun.com>
@@ -667,7 +839,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	particular cases involving function declarations that failed.
 
 1996-11-22  Charles Hannum  <mycroft@gnu.ai.mit.edu>
-	
+
 	* pop.c (socket_connection):
 	gethostbyname may return a pointer to static data.
 	krb_realmofhost can clobber it.  So copy it.
@@ -780,7 +952,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(decode_options): Don't return a value.
 	(main, both versions): Use optind.
 	Don't check for -nowait here.
-	
+
 	* emacsclient.c (decode_options): New function.
 	(main, both versions): Call decode_options.
 	(print_help_and_exit): New function.
@@ -966,7 +1138,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	Open output file in binary mode.
 
 	* pop.c [WINDOWSNT]: Include winsock.h and ntlib.h.
-	Macro SOCKET_ERROR undefined.	
+	Macro SOCKET_ERROR undefined.
 	Don't declare h_errno.
 	[!WINDOWSNT]: Define macros recv and send.
 	[!WINDOWSNT] (POP_SERVICE): Change to pop3.
@@ -1043,7 +1215,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* etags.c (absolutefn): DOS_NT version corrected.
 	(main): Append "/" to the dir name only if not already there.
 	(print_help): Explain the absolute/relative file name issue.
-	
+
 1996-03-08  Anders Lindgren  <andersl@csd.uu.se>
 
 	* etags.c: New Languange Erlang added.
@@ -1108,7 +1280,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* makefile.nt (etags, ctags): Compile with regexp support.
 	(make-docfile, wakeup, etags, ctags, hexl): Ensure build
 	subdirectory exists before compiling.
-	
+
 1996-01-02  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
 	* emacsserver.c (main): Do chmod based on existing permission.
@@ -1233,11 +1405,11 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	(pfnote): Put the definition of fp in the innermost block.
 	(NODE): `named' member removed.
 	(pfnote, free_tree, put_entries, total_size_of_entries): Do not
-	use the `named' member, check whether `name' is NULL instead. 
+	use the `named' member, check whether `name' is NULL instead.
 	(pfnote): `named' argument removed, all callers changed.
 	(getit, Asm_labels, Pascal_functions, L_getit, get_scheme,
 	TeX_functions, TEX_getit, prolog_getit): Useless string allocation
-	removed from pfnote call, some code cleanup. 
+	removed from pfnote call, some code cleanup.
 	(relative_filename): Free temporary space allocated by concat.
 
 1995-08-16  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -2168,7 +2340,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* Makefile.in (UTILITIES): `env' deleted.
 	(env): Target deleted.
 	* env.c: File deleted.
-	
+
 1994-03-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* Makefile.in (install, ${archlibdir}): Switch back to ..
@@ -2287,7 +2459,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	Loop calling getevent.
 	(sigcatch): Delete code to handle SIGIO.
 	if defer_alarms is set, don't call notify, just set alarm_deferred.
-	(getevent): Use read, not getchar.  Handle EINTR and EAGAIN.  
+	(getevent): Use read, not getchar.  Handle EINTR and EAGAIN.
 	Set defer_alarms around realloc and schedule.
 	If alarm_deferred gets set, call notify.
 	Likewise if this event is the only pending event.
@@ -2629,7 +2801,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* Makefile.in (distclean): Call clean to do most of the work.
 	Delete aixcc.c and TAGS.
 	(realclean): Just call distclean.
-	
+
 	* Makefile.in: Remember, spaces are not tabs.
 
 1993-06-13  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2757,7 +2929,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
 	* Makefile.in (timer.o, sorted-doc.c): Link with alloca.o, if it's
-	appropriate. 
+	appropriate.
 
 	* Makefile.in (install): Refer to the variables INSTALLABLES and
 	INSTALLABLE_SCRIPTS, instead of writing them out.
@@ -3131,7 +3303,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* movemail.c: Merged changes from Jamie Zawinski's byte compiler
 	distribution:
 	Miscellaneous doc fixes.
-	(skip_white, read_lisp_symbol): New functions.	
+	(skip_white, read_lisp_symbol): New functions.
 	(scan_lisp_file): Instead of using long hairy strings of ifs, call
 	read_lisp_symbol and then see what we got.  Call skip_white
 	instead of writing out a loop to do its job.  Correctly extract
@@ -3214,7 +3386,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	and lib-src, the old etc's ChangeLog has been duplicated in the
 	new etc and lib-src.  That means that each contains complete and
 	coherent information, although each contains extraneous
-	information.	 
+	information.
 
 1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -3497,7 +3669,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* timer.c, getdate.y (new files) and Makefile:
 	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG. 
+	  Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon at pogo)
 
