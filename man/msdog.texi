@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001 
+@c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node MS-DOS, Manifesto, Mac OS, Top
 @appendix Emacs and MS-DOS 
@@ -9,18 +10,18 @@
   This section briefly describes the peculiarities of using Emacs under
 the MS-DOS ``operating system'' (also known as ``MS-DOG'').  If you
 build Emacs for MS-DOS, the binary will also run on Windows 3.X, Windows
-NT, Windows 9X, or OS/2 as a DOS application; the information in this
-chapter applies for all of those systems, if you use an Emacs that was
-built for MS-DOS.
+NT, Windows 9X/ME, Windows 2000, or OS/2 as a DOS application; the
+information in this chapter applies for all of those systems, if you use
+an Emacs that was built for MS-DOS.
 
-  Note that it is possible to build Emacs specifically for Windows NT or
-Windows 9X.  If you do that, most of this chapter does not apply;
+  Note that it is possible to build Emacs specifically for Windows NT/2K
+or Windows 9X/ME.  If you do that, most of this chapter does not apply;
 instead, you get behavior much closer to what is documented in the rest
 of the manual, including support for long file names, multiple frames,
 scroll bars, mouse menus, and subprocesses.  However, the section on
 text files and binary files does still apply.  There are also two
-sections at the end of this chapter which apply specifically for Windows
-NT and 9X.
+sections at the end of this chapter which apply specifically for the
+Windows version.
 
 @menu
 * Input: MS-DOS Input.         Keyboard and mouse usage on MS-DOS.
@@ -268,14 +269,14 @@ example, the name of a backup file for @file{docs.txt} is
 
 @cindex file names under Windows 95/NT
 @cindex long file names in DOS box under Windows 95/NT
-  If you run Emacs as a DOS application under Windows 9X, you can
-turn on support for long file names.  If you do that, Emacs doesn't
-truncate file names or convert them to lower case; instead, it uses the
-file names that you specify, verbatim.  To enable long file name
-support, set the environment variable @env{LFN} to @samp{y} before
-starting Emacs.  Unfortunately, Windows NT doesn't allow DOS programs to
-access long file names, so Emacs built for MS-DOS will only see their
-short 8+3 aliases.
+  If you run Emacs as a DOS application under Windows 9X, Windows ME, or
+Windows 2000, you can turn on support for long file names.  If you do
+that, Emacs doesn't truncate file names or convert them to lower case;
+instead, it uses the file names that you specify, verbatim.  To enable
+long file name support, set the environment variable @env{LFN} to
+@samp{y} before starting Emacs.  Unfortunately, Windows NT doesn't allow
+DOS programs to access long file names, so Emacs built for MS-DOS will
+only see their short 8+3 aliases.
 
 @cindex @env{HOME} directory under MS-DOS
   MS-DOS has no notion of home directory, so Emacs on MS-DOS pretends
@@ -778,13 +779,13 @@ the @code{dired-listing-switches} variable.  The options that work are
 @samp{-s}, @samp{-t}, and @samp{-u}.
 
 @node Windows Processes
-@section Subprocesses on Windows 95 and NT
+@section Subprocesses on Windows 9X/ME and Windows NT/2K
 
 Emacs compiled as a native Windows application (as opposed to the DOS
 version) includes full support for asynchronous subprocesses.
 In the Windows version, synchronous and asynchronous subprocesses work
 fine on both
-Windows 95 and Windows NT as long as you run only 32-bit Windows
+Windows 9X and Windows NT/2K as long as you run only 32-bit Windows
 applications.  However, when you run a DOS application in a subprocess,
 you may encounter problems or be unable to run the application at all;
 and if you run two DOS applications at the same time in two
@@ -815,12 +816,12 @@ If you can go to the first subprocess, and tell it to exit, the second
 subprocess should continue normally.  However, if the second subprocess
 is synchronous, Emacs itself will be hung until the first subprocess
 finishes.  If it will not finish without user input, then you have no
-choice but to reboot if you are running on Windows 95.  If you are
-running on Windows NT, you can use a process viewer application to kill
+choice but to reboot if you are running on Windows 9X.  If you are
+running on Windows NT/2K, you can use a process viewer application to kill
 the appropriate instance of ntvdm instead (this will terminate both DOS
 subprocesses).
 
-If you have to reboot Windows 95 in this situation, do not use the
+If you have to reboot Windows 9X in this situation, do not use the
 @code{Shutdown} command on the @code{Start} menu; that usually hangs the
 system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
 @code{Shutdown}.  That usually works, although it may take a few minutes
