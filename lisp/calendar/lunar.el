@@ -1,6 +1,6 @@
 ;;; lunar.el --- calendar functions for phases of the moon.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -160,10 +160,12 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                            ((= phase 2) (- adjustment adj))
                            (t adjustment)))
          (date (+ date adjustment))
-	 (date (+ date (- (/ (solar-ephemeris-correction
+	 (date (+ date (/ (- calendar-time-zone
+			     (solar-ephemeris-correction
                               (extract-calendar-year
                                (calendar-gregorian-from-absolute
-                                (truncate date)))) 60.0 24.0))))
+                                (truncate date)))))
+			  60.0 24.0)))
          (time (* 24 (- date (truncate date))))
 	 (date (calendar-gregorian-from-absolute (truncate date))))
     (list date (solar-time-string time date) phase)))
