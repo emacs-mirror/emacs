@@ -181,7 +181,7 @@ Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
   :type '(choice (const step) (const next) (const go)
 		 (const Go-nonstop) (const trace)
 		 (const Trace-fast) (const continue)
-		 (const continue-fast))
+		 (const Continue-fast))
   :group 'edebug)
 
 (defcustom edebug-trace nil
@@ -243,7 +243,11 @@ these errors are signaled from Lisp code whether or not the signal is
 handled by a `condition-case'.  This option is useful for debugging
 signals that *are* handled since they would otherwise be missed.
 After execution is resumed, the error is signaled again."
-  :type '(choice boolean (repeat string))
+  :type '(choice (const :tag "off")
+		 (repeat :menu-tag "When"
+			 :value (nil)
+			 (symbol :format "%v"))
+		 (const :tag "always" t))
   :group 'edebug)
 
 (defcustom edebug-on-quit t
