@@ -293,16 +293,30 @@ if that value is non-nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t))
-	(opoint (point)))
-    (prin1 (let ((stab (syntax-table)))
-	     (eval (unwind-protect
+  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
+    (prin1 (eval (let ((stab (syntax-table))
+		       (opoint (point))
+		       expr)
+		   (unwind-protect
 		       (save-excursion
 			 (set-syntax-table emacs-lisp-mode-syntax-table)
 			 (forward-sexp -1)
 			 (save-restriction
 			   (narrow-to-region (point-min) opoint)
-			   (read (current-buffer))))
+			   (setq expr (read (current-buffer)))
+			   ;; If it's an (interactive ...) form, it's more
+			   ;; useful to show how an interactive call would
+			   ;; use it.
+			   (and (consp expr)
+				(eq (car expr) 'interactive)
+				(setq expr
+				      (list 'call-interactively
+					    (list 'quote
+						  (list 'lambda
+							'(&rest args)
+							expr
+							'args)))))
+			   expr))
 		     (set-syntax-table stab)))))))
 
 (defun eval-defun (eval-defun-arg-internal)
