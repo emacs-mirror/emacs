@@ -3589,6 +3589,12 @@ actually used.")
 	  if (XINT (end) != st.st_size
 	      || ((int) st.st_size * 4) / 4 != st.st_size)
 	    error ("Maximum buffer size exceeded");
+
+	  /* The file size returned from stat may be zero, but data
+	     may be readable nonetheless, for example when this is a
+	     file in the /proc filesystem.  */
+	  if (st.st_size == 0)
+	    XSETINT (end, READ_BUF_SIZE);
 	}
     }
 
