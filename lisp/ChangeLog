@@ -1,3 +1,9 @@
+2003-04-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el (c-symbol-key): Use POSIX char classes
+	to match symbols.  This makes CC Mode cope with the full range
+	of identifier characters in e.g. Java.
+
 2003-04-07  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* xt-mouse.el (xterm-mouse-event-read): New function.
