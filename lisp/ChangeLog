@@ -1,3 +1,16 @@
+2002-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-resend): Call mail-abbrev-make-syntax-table.
+
+	* progmodes/etags.el (tags-query-replace): Pass t for NOERROR
+	to query-replace-read-args.
+
+	* progmodes/compile.el (compilation-forget-errors):
+	Don't adjust compilation-parsing-end if it's nil.
+
+	* replace.el (query-replace-read-args): New optional arg NOERROR.
+	(perform-replace): Use save-window-excursion around recursive edit.
+
 2002-03-24  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer): If the user has `ibuffer-use-other-window'
