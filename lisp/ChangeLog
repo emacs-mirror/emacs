@@ -1,3 +1,16 @@
+2003-07-10  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/timeclock.el (timeclock-use-display-time)
+	(timeclock-day-over-hook, timeclock-workday-remaining)
+	(timeclock-status-string, timeclock-when-to-leave)
+	(timeclock-when-to-leave-string, timeclock-log-data)
+	(timeclock-find-discrep, timeclock-day-base) 
+	(timeclock-generate-report, timeclock-visit-timelog): Doc fix.
+	(timeclock-modeline-display): Set the variable
+	`timeclock-modeline-display'.
+	(timeclock-update-modeline): Doc fix.  Respect value of
+	`timeclock-relative'.
+
 2003-07-09  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/reftex-parse.el (reftex-all-document-files):
