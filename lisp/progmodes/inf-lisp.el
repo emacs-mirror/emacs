@@ -246,7 +246,7 @@ to continue it."
   (setq comint-prompt-regexp inferior-lisp-prompt)
   (setq major-mode 'inferior-lisp-mode)
   (setq mode-name "Inferior Lisp")
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (lisp-mode-variables t)
   (use-local-map inferior-lisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
