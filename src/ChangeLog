@@ -1,3 +1,8 @@
+2000-08-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (set_font_frame_param): Use Fmodify_frame_parameters
+	instead of store_frame_param.
+
 2000-08-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (build_frame_matrix_from_leaf_window): If a row of a
