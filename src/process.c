@@ -211,6 +211,12 @@ static int update_tick;
 #define FD_ZERO(p) (*(p) = 0)
 #endif /* no FD_SET */
 
+/* If we support X Windows, turn on the code to poll periodically
+   to detect C-g.  It isn't actually used when doing interrupt input.  */
+#ifdef HAVE_X_WINDOWS
+#define POLL_FOR_INPUT
+#endif
+
 /* Mask of bits indicating the descriptors that we wait for input on */
 
 static SELECT_TYPE input_wait_mask;
@@ -1485,11 +1491,12 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   struct hostent host_info_fixed;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int retry = 0;
+  int count = specpdl_ptr - specpdl;
 
   GCPRO4 (name, buffer, host, service);
   CHECK_STRING (name, 0);
   CHECK_STRING (host, 0);
-  if (XTYPE(service) == Lisp_Int)
+  if (XTYPE (service) == Lisp_Int)
     port = htons ((unsigned short) XINT (service));
   else
     {
@@ -1543,6 +1550,13 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (interrupt_input)
     unrequest_sigio ();
 
+  /* Slow down polling to every ten seconds.
+     Some kernels have a bug which causes retrying connect to fail
+     after a connect.  */
+#ifdef POLL_FOR_INPUT
+  bind_polling_period (10);
+#endif
+
  loop:
   if (connect (s, (struct sockaddr *) &address, sizeof address) == -1
       && errno != EISCONN)
@@ -1566,6 +1580,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
+
+#ifdef POLL_FOR_INPUT
+  unbind_to (count, Qnil);
+#endif
 
   if (interrupt_input)
     request_sigio ();
