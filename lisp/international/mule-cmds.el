@@ -887,7 +887,7 @@ This returns a language environment name as a string."
 	 (name (completing-read prompt
 				language-info-alist
 				(and key
-				     (function (lambda (elm) (assq key elm))))
+				     (function (lambda (elm) (and (listp elm) (assq key elm)))))
 				t nil nil default)))
     (if (and (> (length name) 0)
 	     (or (not key)
