@@ -342,7 +342,7 @@ Other major modes are defined by comparison with this one."
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (expression)
   "Evaluate EXPRESSION and print value in minibuffer.
-Value is also consed on to front of variable  values  's value."
+Value is also consed on to front of the variable `values'."
   (interactive "xEval: ")
   (setq values (cons (eval expression) values))
   (prin1 (car values) t))
