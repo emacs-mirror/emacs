@@ -2714,21 +2714,22 @@ You can alter the way help text is displayed by setting the variable
 This feature is used in the mode line and for other active text.  It is
 available starting in Emacs 21.
 
-@item local-map
-@cindex keymap of character
-@kindex local-map @r{(text property)}
-You can specify a different keymap for some of the text in a buffer by
-means of the @code{local-map} property.  The property's value for the
-character after point, if non-@code{nil}, is used for key lookup instead
-of the buffer's local map.  If the property value is a symbol, the
-symbol's function definition is used as the keymap.  @xref{Active
-Keymaps}.
-
 @item keymap
+@cindex keymap of character
 @kindex keymap @r{(text property)}
-The @code{keymap} property is similar to @code{local-map} but overrides the
-buffer's local map (and the map specified by the @code{local-map}
-property) rather than replacing it.
+The @code{keymap} property specifies an additional keymap for
+commands.  The property's value for the character after point, if
+non-@code{nil}, is used for key lookup before the buffer's local map.
+(For mouse clicks, the @code{keymap} property of the character clicked
+on is the one used.)  If the property value is a symbol, the symbol's
+function definition is used as the keymap.  @xref{Active Keymaps}.
+
+@item local-map
+@kindex local-map @r{(text property)}
+This property specifies a keymap to use @emph{instead of} the buffer's
+local map.  If the property value is a symbol, the symbol's function
+definition is used as the keymap.  For most purposes (perhaps all
+purposes), the @code{keymap} is superior.
 
 @item syntax-table
 The @code{syntax-table} property overrides what the syntax table says
