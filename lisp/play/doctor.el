@@ -905,7 +905,7 @@ Otherwise call the Doctor to parse preceding sentence."
 			'sentence 'used 'was
 			"..."
 			'(doc// bak))))
-   ((memq (car sent) '(do has have how when where who why))
+   ((memq (car sent) '(are is do has have how when where who why))
     (doctor-type (doc$ qlist)))
    ;;   ((eq (car sent) 'forget)
    ;;    (set (cadr sent) nil)
@@ -1166,7 +1166,9 @@ the subject noun, and return the portion of the sentence following it."
 						   (car x) (car x))))))
 				     " ")
 		       (doctor-getnoun (cdr x))))
-	(t (setq object (car x))) ))
+	(t (setq object (car x))
+	   (doctor-build (doctor-build (car x) " ") (doctor-getnoun (cdr x))))
+	))
 
 (defun doctor-modifierp (x)
   (or (doctor-adjectivep x)
