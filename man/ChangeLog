@@ -1,3 +1,8 @@
+1999-11-24  Michael Kifer <kifer@cs.sunysb.edu>
+	
+	* ediff.texi: Describe the new format for
+	ediff-combination-pattern.
+	
 1999-11-20  Paul Eggert  <eggert@twinsun.com>
 
 	* mule.texi: Describe the relationship between
