@@ -1796,6 +1796,8 @@ x_make_gc (f)
 	f->display.x->background_pixel,
 	DefaultDepth (x_current_display, XDefaultScreen (x_current_display))));
 
+  init_frame_faces (f);
+
   UNBLOCK_INPUT;
 }
 #endif /* HAVE_X11 */
