@@ -618,6 +618,11 @@ struct x_output
      these may differ because this does not take into account possible
      menubar.  y_pixels_diff is with menubar height included */
   int y_pixels_outer_diff;
+
+  /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
+     frame, or IMPLICIT if we received an EnterNotify.
+     FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
+  int focus_state;
 };
 
 enum
@@ -630,6 +635,19 @@ enum
   FULLSCREEN_WAIT       = 4,
   FULLSCREEN_MOVE_WAIT  = 8,
 };
+
+enum
+{
+  /* Values for focus_state, used as bit mask.
+     EXPLICIT means if we received a FocusIn for the frame and know it has
+     the focus.  IMPLICIT means we recevied an EnterNotify and the frame
+     may have the focus if no window manager is running.
+     FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
+  FOCUS_NONE     = 0,
+  FOCUS_IMPLICIT = 1,
+  FOCUS_EXPLICIT = 2
+};
+
 
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
