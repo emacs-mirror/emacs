@@ -740,6 +740,8 @@ The buffer is not selected, just returned to the caller."
 	  (after-find-file error (not nowarn))))
       buf)))
 
+(defvar after-find-file-from-revert-buffer nil)
+
 (defun after-find-file (&optional error warn noauto
 				  after-find-file-from-revert-buffer)
   "Called after finding a file and by the default revert function.
