@@ -1003,7 +1003,6 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
   "Return a unibyte string with the same individual bytes as STRING.\n\
 If STRING is unibyte, the result is STRING itself.\n\
-If STRING is multibyte, the result is STRING itself.\n\
 Otherwise it is a newly created string, with no text properties.")
   (string)
      Lisp_Object string;
