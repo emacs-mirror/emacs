@@ -31,30 +31,38 @@
 ;;; Code:
 
 ;;;###autoload
-(defun setenv (variable &optional value)
+(defun setenv (variable &optional value unset)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or is
 `nil', the environment variable VARIABLE will be removed.  
+
+Interactively, a prefix argument means to unset the variable.
 This function works by modifying `process-environment'."
-  (interactive "sSet environment variable: \nsSet %s to value: ")
+  (interactive
+   (if current-prefix-arg
+       (list (read-string "Clear environment variable: ") nil t)
+     (let ((var (read-string "Set environment variable: ")))
+       (list var (read-string (format "Set %s to value: " var))))))
+  (if unset (setq value nil))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
     (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
 	  (case-fold-search nil)
-	  (scan process-environment))
-      (if scan
-	  (while scan
-	    (cond
-	     ((string-match pattern (car scan))
-	      (if (eq nil value)
-		  (setq process-environment (delq (car scan) process-environment))
-		(setcar scan (concat variable "=" value)))
-	      (setq scan nil))
-	     ((null (setq scan (cdr scan)))
+	  (scan process-environment)
+	  found)
+      (while scan
+	(cond ((string-match pattern (car scan))
+	       (setq found t)
+	       (if (eq nil value)
+		   (setq process-environment (delq (car scan) process-environment))
+		 (setcar scan (concat variable "=" value)))
+	       (setq scan nil)))
+	(setq scan (cdr scan)))
+      (or found
+	  (if value
 	      (setq process-environment
-		    (cons (concat variable "=" value) process-environment)))))
-	(setq process-environment
-	      (cons (concat variable "=" value) process-environment))))))
+		    (cons (concat variable "=" value)
+			  process-environment)))))))
 
 (provide 'env)
 
