@@ -1,3 +1,9 @@
+2004-12-27  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Send AUTH CRAM-MD5
+	in upper case.  Reported by Wojciech Polak <polak@gnu.org> and
+	tiny patch from Sergey Poznyakoff.
+
 2004-12-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-8.el (utf-translate-cjk-load-tables): Bind

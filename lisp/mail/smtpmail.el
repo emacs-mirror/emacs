@@ -523,7 +523,7 @@ This is relative to `smtpmail-queue-dir'.")
     (when (and cred mech)
       (cond
        ((eq mech 'cram-md5)
-	(smtpmail-send-command process (format "AUTH %s" mech))
+	(smtpmail-send-command process (format "AUTH %s" (upcase mech)))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
