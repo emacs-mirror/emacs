@@ -80,10 +80,7 @@
 ;; The "-nw" switch to Emacs means no windowing system.
 
 ;; Insert this in your .emacs file:
-;;(setq suspend-resume-hook 'resume-process-args)
-;;(setq suspend-hooks 'resume-empty-args-file)
-;;(autoload 'resume-empty-args-file "resume")
-;;(autoload 'resume-process-args "resume")
+;;(add-hook 'suspend-hook 'resume-suspend-hook)
 
 ;; Finally, put the rest in a file named "resume.el" in a lisp library
 ;; directory.
@@ -145,7 +142,7 @@
 	  (set-buffer start-buffer)))))
 
 ;;;###autoload
-(defun resume-empty-args-file ()
+(defun resume-suspend-hook ()
   "Clear out the file used for transmitting args when Emacs resumes."
   (save-excursion
     (set-buffer (get-buffer-create resume-emacs-args-buffer))
