@@ -3803,9 +3803,11 @@ x_error_quitter (display, error)
   fprintf (stderr, "X protocol error: %s on protocol request %d\n",
 	   buf, error->request_code);
 
+#if 0
   /* While we're testing Emacs 19, we'll just dump core whenever we
      get an X error, so we can figure out why it happened.  */
   abort ();
+#endif
 
   x_connection_closed ();
 }
@@ -3820,9 +3822,11 @@ x_io_error_quitter (display)
   fprintf (stderr, "Connection to X server %s lost.\n",
 	   XDisplayName (DisplayString (display)));
 
+#if 0
   /* While we're testing Emacs 19, we'll just dump core whenever we
      get an X error, so we can figure out why it happened.  */
   abort ();
+#endif
 
   x_connection_closed ();
 }
