@@ -1059,10 +1059,6 @@ Returns nil if format of ADDRESS is invalid.  */)
      (address)
      Lisp_Object address;
 {
-  register struct Lisp_Vector *p;
-  register unsigned char *cp;
-  register int i;
-
   if (NILP (address))
     return Qnil;
 
