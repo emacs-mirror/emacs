@@ -895,7 +895,6 @@ w32_per_char_metric (font, char2b, font_type)
   BOOL retval;
 
   xassert (font && char2b);
-  xassert (font_type != UNKNOWN_FONT);
 
   /* Handle the common cases quickly.  */
   if (!font->bdf && font->per_char == NULL)
@@ -903,6 +902,8 @@ w32_per_char_metric (font, char2b, font_type)
     return &font->max_bounds;
   else if (!font->bdf && *char2b < 128)
     return &font->per_char[*char2b];
+
+  xassert (font_type != UNKNOWN_FONT);
 
   pcm = &font->scratch;
 

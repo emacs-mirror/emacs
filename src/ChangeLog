@@ -1,5 +1,8 @@
 2003-08-31  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c (w32_per_char_metric): Allow cached metrics to be
+	returned even when font_type is unknown.
+
 	* xdisp.c (init_iterator): Remove old WINDOWSNT conditional.
 
 2003-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
