@@ -92,6 +92,9 @@ Lisp_Object Vsource_directory;
 /* Search path for files to be loaded. */
 Lisp_Object Vload_path;
 
+/* File name of user's init file.  */
+Lisp_Object Vuser_init_file;
+
 /* This is the user-visible association list that maps features to
    lists of defs in their load files. */
 Lisp_Object Vload_history;
@@ -651,6 +654,9 @@ Return t if file exists.")
       else
 	return Qnil;
     }
+
+  if (EQ (Qt, Vuser_init_file))
+    Vuser_init_file = found;
 
   /* If FD is 0, that means openp found a magic file.  */
   if (fd == 0)
@@ -3210,6 +3216,10 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   DEFVAR_LISP ("load-file-name", &Vload_file_name,
     "Full name of file being loaded by `load'.");
   Vload_file_name = Qnil;
+
+  DEFVAR_LISP ("user-init-file", &Vuser_init_file,
+    "File name, including directory, of user's initialization file.");
+  Vuser_init_file = Qnil;
 
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
     "Used for internal purposes by `load'.");
