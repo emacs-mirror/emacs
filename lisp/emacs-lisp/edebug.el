@@ -4396,7 +4396,7 @@ Print result in minibuffer."
       (edebug-safe-prin1-to-string (car values)))))
 
   (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-  (if window-system
+  (if (display-popup-menus-p)
       (x-popup-menu nil (lookup-key edebug-mode-map [menu-bar Edebug])))
   )
 
