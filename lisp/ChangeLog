@@ -1,3 +1,8 @@
+2000-03-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ccl.el (ccl-compile-expression): Don't generate
+	invalie self-assignment code.
+
 2000-03-14  Dave Love  <fx@gnu.org>
 
 	* subr.el (replace-regexp-in-string): Renamed from
