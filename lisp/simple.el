@@ -678,15 +678,17 @@ the echo area."
 COMMAND is a Lisp expression.  Let user edit that expression in
 the minibuffer, then read and evaluate the result."
   (let ((command
-	 (unwind-protect
-	     (read-from-minibuffer prompt
-				   (prin1-to-string command)
-				   read-expression-map t
-				   '(command-history . 1))
-	   ;; If command was added to command-history as a string,
-	   ;; get rid of that.  We want only evaluable expressions there.
-	   (if (stringp (car command-history))
-	       (setq command-history (cdr command-history))))))
+	 (let ((print-level nil)
+	       (minibuffer-history-sexp-flag (1+ (minibuffer-depth))))
+	   (unwind-protect
+	       (read-from-minibuffer prompt
+				     (prin1-to-string command)
+				     read-expression-map t
+				     'command-history)
+	     ;; If command was added to command-history as a string,
+	     ;; get rid of that.  We want only evaluable expressions there.
+	     (if (stringp (car command-history))
+		 (setq command-history (cdr command-history)))))))
 
     ;; If command to be redone does not match front of history,
     ;; add it to the history.
