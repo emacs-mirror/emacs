@@ -7929,7 +7929,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	 for them on the frame, we have to clear "under" them.  */
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  pixel_left, pixel_top,
-		  pixel_width + 1, pixel_height, False);
+		  FRAME_SCROLL_BAR_COLS (f) * CANON_X_UNIT (f),
+		  pixel_height, False);
 
       /* Move/size the scroll bar widget.  */
       if (mask)
