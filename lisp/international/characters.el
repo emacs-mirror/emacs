@@ -274,24 +274,6 @@
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
 
-;; European character set (Latin-1,2,3,4,5)
-
-(modify-category-entry (make-char 'latin-iso8859-1) ?l)
-(modify-category-entry (make-char 'latin-iso8859-2) ?l)
-(modify-category-entry (make-char 'latin-iso8859-3) ?l)
-(modify-category-entry (make-char 'latin-iso8859-4) ?l)
-(modify-category-entry (make-char 'latin-iso8859-9) ?l)
-(modify-category-entry (make-char 'latin-iso8859-14) ?l)
-(modify-category-entry (make-char 'latin-iso8859-15) ?l)
-
-(modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-14 160) ?\ )
-(modify-category-entry (make-char 'latin-iso8859-15 160) ?\ )
-
 ;; Greek character set (ISO-8859-7)
 
 (modify-category-entry (make-char 'greek-iso8859-7) ?g)
@@ -468,6 +450,24 @@
 (modify-category-entry (make-char 'korean-ksc5601 43) ?K)
 (modify-category-entry (make-char 'korean-ksc5601 44) ?Y)
 
+;; Latin character set (latin-1,2,3,4,5,8,9)
+
+(modify-category-entry (make-char 'latin-iso8859-1) ?l)
+(modify-category-entry (make-char 'latin-iso8859-2) ?l)
+(modify-category-entry (make-char 'latin-iso8859-3) ?l)
+(modify-category-entry (make-char 'latin-iso8859-4) ?l)
+(modify-category-entry (make-char 'latin-iso8859-9) ?l)
+(modify-category-entry (make-char 'latin-iso8859-14) ?l)
+(modify-category-entry (make-char 'latin-iso8859-15) ?l)
+
+(modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-14 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-15 160) ?\ )
+
 ;; Lao character set
 
 (modify-category-entry (make-char 'lao) ?o)
@@ -598,6 +598,120 @@
 			  (make-char 'vietnamese-viscii-lower i)
 			  tbl)
     (setq i (1+ i))))
+
+;; Unicode (mule-unicode-0100-24ff)
+
+(let ((c #x0100) (tbl (standard-case-table)))
+  (while (<= c #x0233)			; Latin Extended-A, Latin Extended-B
+    (modify-category-entry (decode-char 'ucs c) ?l)
+    (and (<= c #x0176)
+	 (zerop (% c 2))
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
+    (setq c (1+ c)))
+  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)
+  (set-case-syntax-pair ?$,1!9(B ?$,1!:(B tbl)
+  (set-case-syntax-pair ?$,1!;(B ?$,1!<(B tbl)
+  (set-case-syntax-pair ?$,1!=(B ?$,1!>(B tbl)
+
+  (setq c #x1e00)			; Latin Extended Additional
+  (while (<= c #x1ef9)
+    (modify-category-entry (decode-char 'ucs c) ?l)
+    (and (zerop (% c 2))
+	 (or (<= c #x1e94) (>= c #x1ea0))
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
+    (setq c (1+ c)))
+
+  (setq c #x0370)			; Greek
+  (while (<= c #x03ff)
+    (modify-category-entry (decode-char 'ucs c) ?g)
+    (if (or (and (>= c #x0391) (<= c #x03a1))
+	    (and (>= c #x03a3) (<= c #x03ab)))
+	(set-case-syntax-pair
+	 (decode-char 'ucs c) (decode-char 'ucs (+ c 32)) tbl))
+    (and (>= c #x03da)
+	 (<= c #x03ee)
+	 (zerop (% c 2))
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
+    (setq c (1+ c)))
+  (set-case-syntax-pair ?$,1&f(B ?$,1',(B tbl)
+  (set-case-syntax-pair ?$,1&h(B ?$,1'-(B tbl)
+  (set-case-syntax-pair ?$,1&i(B ?$,1'.(B tbl)
+  (set-case-syntax-pair ?$,1&j(B ?$,1'/(B tbl)
+  (set-case-syntax-pair ?$,1&l(B ?$,1'L(B tbl)
+  (set-case-syntax-pair ?$,1&n(B ?$,1'M(B tbl)
+  (set-case-syntax-pair ?$,1&o(B ?$,1'N(B tbl)
+
+  (setq c #x1f00)			; Greek Extended
+  (while (<= c #x1fff)
+    (modify-category-entry (decode-char 'ucs c) ?g)
+    (and (<= (logand c #x000f) 7)
+	 (<= c #x1fa7)
+	 (not (memq c '(#x1f50 #x1f52 #x1f54 #x1f56)))
+	 (/= (logand c #x00f0) 7)
+	 (set-case-syntax-pair
+	  (decode-char 'ucs (+ c 8)) (decode-char 'ucs c) tbl))
+    (setq c (1+ c)))
+  (set-case-syntax-pair ?$,1qx(B ?$,1qp(B tbl)
+  (set-case-syntax-pair ?$,1qy(B ?$,1qq(B tbl)
+  (set-case-syntax-pair ?$,1qz(B ?$,1q0(B tbl)
+  (set-case-syntax-pair ?$,1q{(B ?$,1q1(B tbl)
+  (set-case-syntax-pair ?$,1q|(B ?$,1qs(B tbl)
+  (set-case-syntax-pair ?$,1r((B ?$,1q2(B tbl)
+  (set-case-syntax-pair ?$,1r)(B ?$,1q3(B tbl)
+  (set-case-syntax-pair ?$,1r*(B ?$,1q4(B tbl)
+  (set-case-syntax-pair ?$,1r+(B ?$,1q5(B tbl)
+  (set-case-syntax-pair ?$,1r,(B ?$,1r#(B tbl)
+  (set-case-syntax-pair ?$,1r8(B ?$,1r0(B tbl)
+  (set-case-syntax-pair ?$,1r9(B ?$,1r1(B tbl)
+  (set-case-syntax-pair ?$,1r:(B ?$,1q6(B tbl)
+  (set-case-syntax-pair ?$,1r;(B ?$,1q7(B tbl)
+  (set-case-syntax-pair ?$,1rH(B ?$,1r@(B tbl)
+  (set-case-syntax-pair ?$,1rI(B ?$,1rA(B tbl)
+  (set-case-syntax-pair ?$,1rJ(B ?$,1q:(B tbl)
+  (set-case-syntax-pair ?$,1rK(B ?$,1q;(B tbl)
+  (set-case-syntax-pair ?$,1rL(B ?$,1rE(B tbl)
+  (set-case-syntax-pair ?$,1rX(B ?$,1q8(B tbl)
+  (set-case-syntax-pair ?$,1rY(B ?$,1q9(B tbl)
+  (set-case-syntax-pair ?$,1rZ(B ?$,1q<(B tbl)
+  (set-case-syntax-pair ?$,1r[(B ?$,1q=(B tbl)
+  (set-case-syntax-pair ?$,1r\(B ?$,1rS(B tbl)
+
+  (setq c #x0400)			; cyrillic
+  (while (<= c #x04ff)
+    (modify-category-entry (decode-char 'ucs c) ?y)
+    (and (>= c #x0400)
+	 (<= c #x040f)
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (+ c 80)) tbl))
+    (and (>= c #x0410)
+	 (<= c #x042f)
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (+ c 32)) tbl))
+    (and (zerop (% c 2))
+	 (or (and (>= c #x0460) (<= c #x0480))
+	     (and (>= c #x048c) (<= c #x04be))
+	     (and (>= c #x04d0) (<= c #x04f4)))
+	 (set-case-syntax-pair
+	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))	 
+    (setq c (1+ c)))
+  (set-case-syntax-pair ?$,1*!(B ?$,1*"(B tbl)
+  (set-case-syntax-pair ?$,1*#(B ?$,1*$(B tbl)
+  (set-case-syntax-pair ?$,1*'(B ?$,1*((B tbl)
+  (set-case-syntax-pair ?$,1*+(B ?$,1*,(B tbl)
+  (set-case-syntax-pair ?$,1*X(B ?$,1*Y(B tbl)
+
+  (setq c #x2000)			; general punctuation
+  (while (<= c #x200b)
+    (set-case-syntax c " " tbl)
+    (setq c (1+ c)))
+  (setq c #x2010)
+  (while (<= c #x2027)
+    (set-case-syntax c "_" tbl)
+    (setq c (1+ c)))
+  )
 
 
 ;;; Setting word boundary.
