@@ -1,3 +1,8 @@
+2004-03-07  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sort.el (sort-columns): Remove ms-dos from the list of systems
+	where the external `sort' command is not used.
+
 2004-03-07  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (gdb-overlay-arrow-position): Add defvar.
