@@ -13,6 +13,18 @@
 
 2001-12-07  Dave Love  <fx@gnu.org>
 
+	* international/latin1-disp.el: Fix some 8-bit-graphic characters.
+	Use iso2022 encoding.
+	(latin1-char-displayable-p): Doc fix.
+	(latin1-display-ucs-per-lynx): New option.
+	(latin1-display-ucs-per-lynx): New command.
+	(latin1-display-reset): Special-case arabic.
+	(ucs-tables): Require.
+	(latin1-display-sets, latin1-display-setup): Add arabic.
+	(latin1-display) <variable>: Use function latin1-display.
+	(latin1-display) <function>: Add mule-unicode stuff.
+	(latin1-display-check-font): Don't lose if `info' is nil.
+
 	* international/iso-transl.el: Insert Latin-1 characters, not
 	unibyte codes.
 
