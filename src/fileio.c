@@ -4630,7 +4630,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
     {
       if (omessage)
 	{
-	  sit_for (1, 0, 0, 0);
+	  sit_for (1, 0, 0, 0, 0);
 	  message2 (omessage, omessage_length);
 	}
       else
