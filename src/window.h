@@ -75,7 +75,7 @@ struct window
   {
     /* The first two fields are really the header of a vector */
     /* The window code does not refer to them.  */
-    int size;
+    EMACS_INT size;
     struct Lisp_Vector *vec_next;
     /* The frame this window is on.  */
     Lisp_Object frame;
