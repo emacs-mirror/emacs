@@ -1,5 +1,16 @@
 2000-06-20  Dave Love  <fx@gnu.org>
 
+	* m/stride.h, m/mips.h: Don't define HAVE_GETWD,
+	HAVE_GETTIMEOFDAY.
+
+	* m/ibmrt-aix.h:
+	Don't declare HAVE_GETTIMEOFDAY, HAVE_VFORK.
+
+	* m/ibmrs6000.h, m/ibmps2-aix.h, m/dpx2.h: Don't declare
+	HAVE_GETWD.
+
+	* m/alpha.h: Don't declare xmalloc, xrealloc.
+
 	* s/ux4800.h: Don't declare GETTIMEOFDAY_ONE_ARGUMENT.
 
 	* s/usg5-4-2.h: Don't declare HAVE_GETWD, VFORK_RETURN_TYPE.
