@@ -155,24 +155,26 @@ The following interactive lisp functions help control operation :
   (save-excursion
     (let ((expr (gud-find-c-expr)))
       (gdb-enqueue-input
-       (list (concat "server whatis " expr "\n")
+       (list (concat "server ptype " expr "\n")
 	     `(lambda () (gud-display1 ,expr)))))))
 
 (defun gud-display1 (expr)
   (goto-char (point-min))
-  (if (re-search-forward "\*" nil t)
+  (if (looking-at "No symbol")
+      (progn
+	(gdb-set-output-sink 'user)
+	(gud-call (concat "server ptype " expr)))
+    (goto-char (- (point-max) 1))
+    (if (equal (char-before) (string-to-char "\*"))
+	(gdb-enqueue-input
+	 (list (concat "server display* " expr "\n") 'ignore))
       (gdb-enqueue-input
-       (list (concat "server display* " expr "\n") 'ignore))
-    (gdb-enqueue-input
-     (list (concat "server display " expr "\n") 'ignore))))
+       (list (concat "server display " expr "\n") 'ignore)))))
 
 ; this would messy because these bindings don't work with M-x gdb
 ; (define-key global-map "\C-x\C-a\C-a" 'gud-display)
 ; (define-key gud-minor-mode-map "\C-c\C-a" 'gud-display)
 
-;; The completion process filter is installed temporarily to slurp the
-;; output of GDB up to the next prompt and build the completion list.
-;; It must also handle annotations.
 
 
 ;; ======================================================================
@@ -511,6 +513,10 @@ This filter may simply queue output for a later time."
     ("stopped" gdb-stopped)
     ("display-begin" gdb-display-begin)
     ("display-end" gdb-display-end)
+; GDB commands info stack, info locals and frame generate an error-begin
+; annotation at start when there is no stack but this is a quirk/bug in
+; annotations.  
+;    ("error-begin" gdb-error-begin)
     ("display-number-end" gdb-display-number-end)
     ("array-section-begin" gdb-array-section-begin)
     ("array-section-end" gdb-array-section-end)
@@ -1718,7 +1724,7 @@ the source buffer."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "v" 'gdb-array-visualise)
-    (define-key map "q" 'gdb-delete-display)
+    (define-key map "q" 'gdb-delete-expression)
     (define-key map [mouse-3] 'gdb-expressions-popup-menu)
     map))
 
@@ -1923,33 +1929,29 @@ static char *magick[] = {
 		       :conversion laplace)))
   "Icon for disabled breakpoint in display margin")
 
-(defun gdb-quit ()
-  "Kill the GUD interaction and gdb buffers and reset variables.
-Use this command to exit a debugging session cleanly and reset
-things like the toolbar and margin in the source buffers."
-  (interactive)
+(defun gdb-reset ()
+  "Exit a debugging session cleanly by killing the gdb buffers and resetting
+ the source buffers."
   (gdb-delete-frames '())
   (dolist (buffer (buffer-list))
-    (save-excursion
-      (set-buffer buffer)
-      (if (eq gud-minor-mode 'gdba)
-	  (if (string-match "^\*" (buffer-name))
-	      (kill-buffer nil)
-	    (if (display-graphic-p)
-		(remove-images (point-min) (point-max))
-	      (remove-strings (point-min) (point-max)))
-	    (setq left-margin-width 0)
-	    (setq gud-minor-mode nil)
-	    (kill-local-variable 'tool-bar-map)
-	    (setq gud-running nil)
-	    (if (get-buffer-window (current-buffer))
-		(set-window-margins (get-buffer-window
-				     (current-buffer))
-				    left-margin-width
-				    right-margin-width))))))
-  (if (eq (selected-window) (minibuffer-window))
-      (other-window 1))
-  (delete-other-windows))
+    (if (not (eq buffer gud-comint-buffer))
+	(save-excursion
+	  (set-buffer buffer)
+	  (if (eq gud-minor-mode 'gdba)
+	      (if (string-match "^\*.+*$" (buffer-name))
+		  (kill-buffer nil)
+		(if (display-graphic-p)
+		    (remove-images (point-min) (point-max))
+		  (remove-strings (point-min) (point-max)))
+		(setq left-margin-width 0)
+		(setq gud-minor-mode nil)
+		(kill-local-variable 'tool-bar-map)
+		(setq gud-running nil)
+		(if (get-buffer-window (current-buffer))
+		    (set-window-margins (get-buffer-window
+					 (current-buffer))
+					left-margin-width
+					right-margin-width))))))))
 
 (defun gdb-source-info ()
   "Find the source file where the program starts and displays it with related
