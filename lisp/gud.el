@@ -4,7 +4,7 @@
 ;; Version: 1.3
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -100,15 +100,14 @@ we're in the GUD buffer)."
 	      '(interactive "p")
 	      (list 'gud-call cmd 'arg))
 	(if key
-	    (progn
-	      (list 'define-key
-		    '(current-local-map)
-		    (concat "\C-c" key)
-		    (list 'quote func))
-	      (list 'global-set-key
-		    (concat gud-key-prefix key)
-		    (list 'quote func))
-	      ))))
+	    (list 'define-key
+		  '(current-local-map)
+		  (concat "\C-c" key)
+		  (list 'quote func)))
+	(if key
+	    (list 'global-set-key
+		  (concat gud-key-prefix key)
+		  (list 'quote func)))))
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
 ;; set by the marker-filter, which scans the debugger's output for
@@ -178,17 +177,17 @@ and source-file directory for your debugger."
 
   (gud-common-init args)
 
-  (gud-def gud-break  "break %f:%l"  "b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %f:%l" "t" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %l"     "d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"      "s" "Step one source line with display.")
-  (gud-def gud-stepi  "stepi %p"     "i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"      "n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"         "r" "Continue with display.")
-  (gud-def gud-finish "finish"       "f" "Finish executing current function.")
+  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "print %e"     "p" "Evaluate C expression at point.")
+  (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (run-hooks 'gdb-mode-hook)
@@ -252,14 +251,14 @@ and source-file directory for your debugger."
 
   (gud-common-init args)
 
-  (gud-def gud-break  "%l b" "b"   "Set breakpoint at current line.")
-  (gud-def gud-tbreak "%l c" "t"   "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "%l d" "d"   "Remove breakpoint at current line")
-  (gud-def gud-step   "s %p" "s"   "Step one source line with display.")
-  (gud-def gud-stepi  "i %p" "i"   "Step one instruction with display.")
-  (gud-def gud-next   "S %p" "n"   "Step one line (skip functions).")
-  (gud-def gud-cont   "c"    "r"   "Continue with display.")
-  (gud-def gud-print  "%e/"  "p"   "Evaluate C expression at point.")
+  (gud-def gud-break  "%l b" "\C-b"   "Set breakpoint at current line.")
+  (gud-def gud-tbreak "%l c" "\C-t"   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "%l d" "\C-d"   "Remove breakpoint at current line")
+  (gud-def gud-step   "s %p" "\C-s"   "Step one source line with display.")
+  (gud-def gud-stepi  "i %p" "\C-i"   "Step one instruction with display.")
+  (gud-def gud-next   "S %p" "\C-n"   "Step one line (skip functions).")
+  (gud-def gud-cont   "c"    "\C-r"   "Continue with display.")
+  (gud-def gud-print  "%e/"  "\C-p"   "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "\\(^\\|\n\\)\\*")
   (run-hooks 'sdb-mode-hook)
@@ -298,15 +297,15 @@ and source-file directory for your debugger."
   (gud-common-init args)
 
   (gud-def gud-break  "stop at \"%f\":%l"
-	   			  "b" "Set breakpoint at current line.")
-  (gud-def gud-remove "clear %l"  "d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"	  "s" "Step one line with display.")
-  (gud-def gud-stepi  "stepi %p"  "i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"	  "n" "Step one line (skip functions).")
-  (gud-def gud-cont   "cont"	  "r" "Continue with display.")
+	   			  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-remove "clear %l"  "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"	  "\C-s" "Step one line with display.")
+  (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"	  "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "cont"	  "\C-r" "Continue with display.")
   (gud-def gud-up     "up %p"	  "<" "Up (numeric arg) stack frames.")
   (gud-def gud-down   "down %p"	  ">" "Down (numeric arg) stack frames.")
-  (gud-def gud-print  "print %e"  "p" "Evaluate C expression at point.")
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
 
   (setq comint-prompt-regexp  "^[^)]*dbx) *")
   (run-hooks 'dbx-mode-hook)
@@ -433,20 +432,21 @@ comint mode, which see."
   (let (file i)
     (if (string= args "")
 	(setq args nil)
-      (set-buffer (get-buffer-create "*gud-scratch*"))
-      (erase-buffer)
-      (insert args)
-      (goto-char (point-max))
-      (insert "\")")
-      (goto-char (point-min))
-      (insert "(\"")
-      (while (re-search-forward " +" nil t)
-	(replace-match "\" \"" nil nil))
-      (goto-char (point-min))
-      (while (re-search-forward "\"\"" nil t)
-	(replace-match "" nil nil))
-      (setq args (read (buffer-string)))
-      (kill-buffer (current-buffer)))
+      (save-excursion
+	(set-buffer (get-buffer-create "*gud-scratch*"))
+	(erase-buffer)
+	(insert args)
+	(goto-char (point-max))
+	(insert "\")")
+	(goto-char (point-min))
+	(insert "(\"")
+	(while (re-search-forward " +" nil t)
+	  (replace-match "\" \"" nil nil))
+	(goto-char (point-min))
+	(while (re-search-forward "\"\"" nil t)
+	  (replace-match "" nil nil))
+	(setq args (read (buffer-string)))
+	(kill-buffer (current-buffer))))
     (setq i (1- (length args)))
     (while (and (>= i 0) (not (= (aref (nth i args) 0) ?-)))
       (setq file (nth i args)) (setq i (1- i)))
@@ -476,8 +476,7 @@ comint mode, which see."
   (let ((inhibit-quit t))
     (save-excursion
       (set-buffer (process-buffer proc))
-      (let ((moving (= (point) (process-mark proc)))
-	    (output-after-point (< (point) (process-mark proc))))
+      (let (moving output-after-point)
 	(save-excursion
 	  (goto-char (process-mark proc))
 	  ;; If we have been so requested, delete the debugger prompt.
@@ -486,6 +485,8 @@ comint mode, which see."
 		(delete-region (point) gud-delete-prompt-marker)
 		(set-marker gud-delete-prompt-marker nil)))
 	  (insert-before-markers (gud-marker-filter string))
+	  (setq moving (= (point) (process-mark proc)))
+	  (setq output-after-point (< (point) (process-mark proc)))
 	  ;; Check for a filename-and-line number.
 	  ;; Don't display the specified file
 	  ;; unless (1) point is at or after the position where output appears
@@ -552,12 +553,12 @@ Obeying it means displaying in another window the specified file and line."
   (let* ((buffer (gud-find-file true-file))
 	 (window (display-buffer buffer))
 	 (pos))
-    (if (equal buffer (current-buffer))
-	nil
-      (setq buffer-read-only nil))
+;;;    (if (equal buffer (current-buffer))
+;;;	nil
+;;;      (setq buffer-read-only nil))
     (save-excursion
+;;;      (setq buffer-read-only t)
       (set-buffer buffer)
-      (setq buffer-read-only t)
       (save-restriction
 	(widen)
 	(goto-line line)
