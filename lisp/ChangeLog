@@ -1,3 +1,7 @@
+2001-07-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* which-func.el (which-func-mode): Doc fix.
+
 2001-07-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/rcompile.el (remote-compile): Use make-local-variable.
