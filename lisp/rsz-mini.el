@@ -32,8 +32,8 @@
 ;; typing, the minibuffer will return to its original size.
 
 ;; In window systems where it is possible to have a frame in which the
-;; minibuffer is the only window, the frame itself can be resized.  In FSF
-;; GNU Emacs 19.22 and earlier, the frame may not be properly returned to
+;; minibuffer is the only window, the frame itself can be resized.  In
+;; Emacs 19.22 and earlier, the frame may not be properly returned to
 ;; its original size after it ceases to be active because
 ;; `minibuffer-exit-hook' didn't exist until version 19.23.
 ;;
