@@ -292,7 +292,7 @@ bootstrap-clean:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	else							\
-	  if ! test -r $(lisp)/loaddefs.el; then		\
+	  if test ! -r $(lisp)/loaddefs.el; then		\
 	    cp $(lisp)/loaddefs-boot.el $(lisp)/loaddefs.el;	\
 	  fi							\
 	fi
