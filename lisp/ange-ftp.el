@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.37 $")
+(defconst ange-ftp-version "$Revision: 1.38 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2897,6 +2897,7 @@ system TYPE.")
 		(ange-ftp-set-ascii-mode host user)))
 	  (if (eq visit t)
 	      (progn
+		(set-visited-file-modtime '(0 0))
 		(ange-ftp-set-buffer-mode)
 		(setq buffer-file-name filename)
 		(set-buffer-modified-p nil)))
@@ -2957,7 +2958,9 @@ system TYPE.")
 		      (ange-ftp-set-ascii-mode host user))
 		  (ange-ftp-del-tmp-name temp))
 		(if visit
-		    (setq buffer-file-name filename))
+		    (progn
+		      (set-visited-file-modtime '(0 0))
+		      (setq buffer-file-name filename)))
 		(list filename size))
 	    (signal 'file-error
 		    (list 
