@@ -73,8 +73,18 @@ customizing the variable `eshell-modules-list'."
 (eval-when-compile
   (when (and (boundp 'byte-compile-current-file)
 	     byte-compile-current-file
-	     (equal (file-name-nondirectory byte-compile-current-file)
-		    "esh-module.el"))
+	     (or
+	      (equal (file-name-nondirectory byte-compile-current-file)
+		     "esh-module.el")
+	      ;; When eshell file names are expanded from a wildcard
+	      ;; or by reading the Eshell directory, e.g. when they
+	      ;; say "make recompile" in the lisp directory, Emacs on
+	      ;; MS-DOS sees a truncated name "esh-modu.el" instead of
+	      ;; "esh-module.el".
+	      (and (fboundp 'msdos-long-file-names)
+		   (null (msdos-long-file-names))
+		   (equal (file-name-nondirectory byte-compile-current-file)
+			  "esh-modu.el"))))
     (let* ((directory (file-name-directory byte-compile-current-file))
            (elc-file (expand-file-name "esh-groups.elc" directory)))
       (eshell-load-defgroups directory)
