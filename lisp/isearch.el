@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/11/24 01:22:40 $|$Revision: 1.53 $
+;; |$Date: 1993/11/26 22:20:23 $|$Revision: 1.55 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1365,7 +1365,9 @@ since they have special meaning in a regexp."
       (make-string 1 (event-to-character c)))))
 
 (defun isearch-text-char-description (c)
-  (isearch-char-to-string c))
+  (if (and (integerp c) (or (< c ?\ ) (= c ?\^?)))
+      (text-char-description c)
+    (isearch-char-to-string c)))
 
 (defun isearch-unread (&rest char-or-events)
   ;; General function to unread characters or events.
