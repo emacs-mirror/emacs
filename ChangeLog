@@ -1,3 +1,8 @@
+2003-01-22  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Set HAVE_MENUS=yes when HAVE_CARBON=yes instead of
+	redefining it explicitly in src/config.in.
+
 2003-01-22  Markus Rost  <rost@math.ohio-state.edu>
 
 	* Makefile.in (bootstrap): Make bootstrap-after.
