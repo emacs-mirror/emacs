@@ -675,6 +675,7 @@ which font is being used for displaying the character."
 		     (interactive-p))
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
+      (princ "\n")
       (let ((coding-spec (coding-system-spec coding-system)))
 	(princ "Type: ")
 	(let ((type (coding-system-type coding-system))
@@ -814,10 +815,10 @@ at the place of `..':
 	      (princ (format " %S" (cons 'alias: (cdr aliases)))))
 	(if (memq coding-system aliases)
 	    (princ (format " (alias of %s)" (car aliases))))))
-    (princ "\n")
+    (princ "\n\n")
     (if (and doc-string
 	     (setq doc-string (coding-system-doc-string coding-system)))
-	(princ (format "  %s\n" doc-string)))))
+	(princ (format "%s\n" doc-string)))))
 
 ;;;###autoload
 (defun describe-current-coding-system ()
