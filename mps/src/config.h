@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.22) $
+ * $HopeName: MMsrc!config.h(trunk.23) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: MPS developers.
@@ -88,6 +88,10 @@
 #elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
 #define MPS_HOT
 #define MPS_HOT_WHITE
+#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
+#define MPS_HOT
+#define MPS_HOT_RED
+#define EVENT
 #else
 #error "No target variety configured."
 #endif
