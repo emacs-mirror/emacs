@@ -39,7 +39,7 @@
 ;; Viper version
 (defun viper-version ()
   (interactive)
-  (message "Viper version is %s" viper-version)) 
+  (message "Viper version is %s" viper-version))
 
 ;; Is it XEmacs?
 (defconst viper-xemacs-p (string-match "XEmacs" emacs-version))
@@ -84,52 +84,48 @@ In all likelihood, you don't need to bother with this setting."
 ;;; Macros
 
 (defmacro viper-deflocalvar (var default-value &optional documentation)
-  (` (progn
-       (defvar (, var) (, default-value)
-	       (, (format "%s\n\(buffer local\)" documentation)))
-       (make-variable-buffer-local '(, var))
-     )))
+  `(progn
+    (defvar ,var ,default-value
+      ,(format "%s\n\(buffer local\)" documentation))
+    (make-variable-buffer-local ',var)))
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
 (defmacro viper-loop (count &rest body)
-  (` (let ((count (, count)))
-       (while (> count 0)
-	 (progn
-	   (,@ body)
-	   (setq count (1- count))
-	   ))
-       )))
+  `(let ((count ,count))
+    (while (> count 0)
+      ,@body
+      (setq count (1- count)))))
 
 (defmacro viper-buffer-live-p (buf)
-  (` (and (, buf) (get-buffer (, buf)) (buffer-name (get-buffer (, buf))))))
-  
+  `(and ,buf (get-buffer ,buf) (buffer-name (get-buffer ,buf))))
+
 ;; return buffer-specific macro definition, given a full macro definition
 (defmacro viper-kbd-buf-alist (macro-elt)
-  (` (nth 1 (, macro-elt))))
+  `(nth 1 ,macro-elt))
 ;; get a pair: (curr-buffer . macro-definition)
 (defmacro viper-kbd-buf-pair (macro-elt)
-  (` (assoc (buffer-name) (viper-kbd-buf-alist (, macro-elt)))))
+  `(assoc (buffer-name) (viper-kbd-buf-alist ,macro-elt)))
 ;; get macro definition for current buffer
 (defmacro viper-kbd-buf-definition (macro-elt)
-  (` (cdr (viper-kbd-buf-pair (, macro-elt)))))
-  
+  `(cdr (viper-kbd-buf-pair ,macro-elt)))
+
 ;; return mode-specific macro definitions, given a full macro definition
 (defmacro viper-kbd-mode-alist (macro-elt)
-  (` (nth 2 (, macro-elt))))
+  `(nth 2 ,macro-elt))
 ;; get a pair: (major-mode . macro-definition)
 (defmacro viper-kbd-mode-pair (macro-elt)
-  (` (assoc major-mode (viper-kbd-mode-alist (, macro-elt)))))
+  `(assoc major-mode (viper-kbd-mode-alist ,macro-elt)))
 ;; get macro definition for the current major mode
 (defmacro viper-kbd-mode-definition (macro-elt)
-  (` (cdr (viper-kbd-mode-pair (, macro-elt)))))
-  
+  `(cdr (viper-kbd-mode-pair ,macro-elt)))
+
 ;; return global macro definition, given a full macro definition
 (defmacro viper-kbd-global-pair (macro-elt)
-  (` (nth 3 (, macro-elt))))
+  `(nth 3 ,macro-elt))
 ;; get global macro definition from an elt of macro-alist
 (defmacro viper-kbd-global-definition (macro-elt)
-  (` (cdr (viper-kbd-global-pair (, macro-elt)))))
-  
+  `(cdr (viper-kbd-global-pair ,macro-elt)))
+
 ;; last elt of a sequence
 (defsubst viper-seq-last-elt (seq)
   (elt seq (1- (length seq))))
@@ -146,12 +142,12 @@ In all likelihood, you don't need to bother with this setting."
   (if (eq direction 'forward)
       (char-after (+ (point) offset))
     (char-before (- (point) offset))))
-  
+
 
 (defvar viper-minibuffer-overlay-priority 300)
 (defvar viper-replace-overlay-priority 400)
 (defvar viper-search-overlay-priority 500)
-  
+
 
 ;;; Viper minor modes
 
@@ -160,7 +156,7 @@ In all likelihood, you don't need to bother with this setting."
 
 (viper-deflocalvar viper-vi-basic-minor-mode nil
   "Viper's minor mode for Vi bindings.")
-  
+
 (viper-deflocalvar viper-vi-local-user-minor-mode nil
   "Auxiliary minor mode for user-defined local bindings in Vi state.")
 
@@ -211,16 +207,16 @@ the Ex command :map!.")
 ;; is invoked.  So, any new buffer will have C-z defined as switch to Vi,
 ;; unless we switched states in this buffer
 (viper-deflocalvar viper-emacs-intercept-minor-mode nil)
-  
+
 (viper-deflocalvar viper-emacs-local-user-minor-mode nil
   "Minor mode for local user bindings effective in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
-state.")  
-  
+state.")
+
 (viper-deflocalvar viper-emacs-global-user-minor-mode nil
   "Minor mode for global user bindings in effect in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
-state.")  
+state.")
 
 (viper-deflocalvar viper-emacs-kbd-minor-mode nil
   "Minor mode for Vi style macros in Emacs state.
@@ -238,7 +234,7 @@ that deletes a file.")
 
 (viper-deflocalvar viper-insert-minibuffer-minor-mode nil
    "Minor mode that forces Vi-style when the Minibuffer is in Insert state.")
-  
+
 
 
 ;; Some common error messages
@@ -256,7 +252,7 @@ that deletes a file.")
 (defconst viper-FirstAddrExceedsSecond "First address exceeds second"   "")
 (defconst viper-NoFileSpecified "No file specified"   "")
 
-;; Is t until viper-mode executes for the very first time. 
+;; Is t until viper-mode executes for the very first time.
 ;; Prevents recursive descend into startup messages.
 (defvar viper-first-time t)
 
@@ -283,13 +279,13 @@ Use `M-x viper-set-expert-level' to change this.")
 (defsubst viper-set-iso-accents-mode (arg)
   (if (boundp 'iso-accents-mode)
       (setq iso-accents-mode arg)))
-  
+
 ;; Internal flag used to control when viper mule hooks are run.
 ;; Don't change this!
 (defvar viper-mule-hook-flag t)
 ;; If non-nil, the default intl.  input method is turned on.
 (viper-deflocalvar viper-special-input-method nil "")
-  
+
 ;; viper hook to run on input-method activation
 (defun viper-activate-input-method-action ()
   (if (null viper-mule-hook-flag)
@@ -301,7 +297,7 @@ Use `M-x viper-set-expert-level' to change this.")
     (if (memq viper-current-state '(vi-state insert-state replace-state))
 	(message "Viper special input method%s: on"
 		 (if (or current-input-method default-input-method)
-		     (format " %S" 
+		     (format " %S"
 			     (or current-input-method default-input-method))
 		   "")))
     ))
@@ -323,7 +319,7 @@ Use `M-x viper-set-expert-level' to change this.")
 	 (inactivate-input-method))
 	((and viper-xemacs-p (boundp 'current-input-method))
 	 ;; XEmacs had broken quil-mode for some time, so we are working around
-	 ;; it here 
+	 ;; it here
 	 (setq quail-mode nil)
 	 (if (featurep 'quail)
 	     (quail-delete-overlays))
@@ -367,7 +363,7 @@ This style is different from Emacs and Vi.  Try it to see if
 it better fits your working style."
   :type 'boolean
   :tag "Preserve Position of Point After Undo"
-  :group 'viper)  
+  :group 'viper)
 
 ;; Replace mode and changing text
 
@@ -378,7 +374,7 @@ it better fits your working style."
 ;; viper-set-destructive-command whenever (this-command-keys) doesn't give the
 ;; right result.  For instance, in commands like c/bla<RET>,
 ;; (this-command-keys) will return ^M, which invoked exit-minibuffer, while we
-;; need "c/" 
+;; need "c/"
 (defconst viper-this-command-keys nil)
 
 ;; Indicates that the current destructive command has started in replace mode.
@@ -403,7 +399,7 @@ delete the text being replaced, as in standard Vi."
 
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
-  
+
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
 
@@ -419,7 +415,7 @@ It is used only with TTYs or if `viper-use-replace-region-delimiters'
 is non-nil."
   :type 'string
   :group 'viper)
-(defcustom viper-use-replace-region-delimiters 
+(defcustom viper-use-replace-region-delimiters
   (or (not (viper-has-face-support-p))
       (and viper-xemacs-p (eq (viper-device-type) 'tty)))
   "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
@@ -432,7 +428,7 @@ color displays.  By default, the delimiters are used only on TTYs."
   "Function to use for prompting the user for a buffer name."
   :type 'symbol
   :group 'viper)
-  
+
 ;; XEmacs requires glyphs
 (if viper-xemacs-p
     (progn
@@ -443,8 +439,8 @@ color displays.  By default, the delimiters are used only on TTYs."
 	  (setq viper-replace-region-start-delimiter
 		(make-glyph viper-replace-region-start-delimiter)))
       ))
-      
-  
+
+
 ;; These are local marker that must be initialized to nil and moved with
 ;; `viper-move-marker-locally'
 ;;
@@ -457,7 +453,7 @@ color displays.  By default, the delimiters are used only on TTYs."
 
 (viper-deflocalvar viper-sitting-in-replace nil "")
 (put 'viper-sitting-in-replace 'permanent-local t)
-  
+
 ;; Remember the number of characters that have to be deleted in replace
 ;; mode to compensate for the inserted characters.
 (viper-deflocalvar viper-replace-chars-to-delete 0 "")
@@ -559,7 +555,7 @@ This is useful for doing repeated changes with the '.' key.
 The user can change this to nil, if she likes when the cursor moves
 to a new place after repeating previous Vi command."
   :type 'boolean
-  :group 'viper) 
+  :group 'viper)
 
 ;; Remember insert point as a marker.  This is a local marker that must be
 ;; initialized to nil and moved with `viper-move-marker-locally'.
@@ -589,10 +585,10 @@ to a new place after repeating previous Vi command."
 
 ;; This is used for saving inserted text.
 (defvar viper-last-insertion  nil)
-  
+
 ;; Remembers the last replaced region.
 (defvar viper-last-replace-region "")
-  
+
 ;; Remember com point as a marker.
 ;; This is a local marker.  Should be moved with `viper-move-marker-locally'
 (viper-deflocalvar viper-com-point nil)
@@ -725,7 +721,7 @@ If nil, the cursor will move backwards without deleting anything."
   :type 'boolean
   :tag "Search Wraps Around"
   :group 'viper-search)
-  
+
 (viper-deflocalvar viper-related-files-and-buffers-ring nil "")
 (defcustom viper-related-files-and-buffers-ring nil
   "*List of file and buffer names that are considered to be related to the current buffer.
@@ -743,7 +739,7 @@ Related buffers can be cycled through via :R and :P commands."
 (viper-deflocalvar viper-search-overlay nil)
 
 
-(defvar viper-heading-start 
+(defvar viper-heading-start
   (concat "^\\s-*(\\s-*defun\\s-\\|"			        ; lisp
 	  "^{\\s-*$\\|^[_a-zA-Z][^()]*[()].*{\\s-*$\\|"	        ; C/C++
 	  "^\\s-*class.*{\\|^\\s-*struct.*{\\|^\\s-*enum.*{\\|"
@@ -752,7 +748,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^.+:-")			                        ; prolog
   "*Regexps for Headings.  Used by \[\[ and \]\].")
 
-(defvar viper-heading-end 
+(defvar viper-heading-end
   (concat "^}\\|"						; C/C++
 	  "^\\\\end{\\|"					; latex
 	  "^@end \\|"						; texinfo
@@ -819,7 +815,7 @@ DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-search-face'
 this variable represents.")
 (viper-hide-face 'viper-search-face)
-  
+
 
 (defface viper-replace-overlay-face
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
@@ -847,7 +843,7 @@ DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-emacs-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-emacs-face)
-    
+
 
 (defface viper-minibuffer-insert-face
   '((((class color)) (:foreground "Black" :background "pink"))
@@ -861,7 +857,7 @@ DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-insert-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-insert-face)
-    
+
 
 (defface viper-minibuffer-vi-face
   '((((class color)) (:foreground "DarkGreen" :background "grey"))
@@ -875,7 +871,7 @@ DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-vi-face'
 this variable represents.")
 (viper-hide-face 'viper-minibuffer-vi-face)
-    
+
 ;; the current face to be used in the minibuffer
 (viper-deflocalvar
   viper-minibuffer-current-face viper-minibuffer-emacs-face "")
@@ -911,7 +907,7 @@ value refers to the number of characters affected."
 Should be set in `~/.viper' file."
   :type 'boolean
   :group 'viper)
-  
+
 ;; overlay used in the minibuffer to indicate which state it is in
 (viper-deflocalvar viper-minibuffer-overlay nil)
 (put 'viper-minibuffer-overlay 'permanent-local t)
@@ -920,7 +916,7 @@ Should be set in `~/.viper' file."
 ;; This is needed because beginning with Emacs 19.26, the standard
 ;; `minibuffer-exit-hook' is run *after* exiting the minibuffer
 (defvar viper-minibuffer-exit-hook nil)
-       
+
 
 ;; Mode line
 (defconst viper-vi-state-id  	"<V> "
@@ -954,12 +950,12 @@ Should be set in `~/.viper' file."
   "*Hooks run just before the switch to Emacs mode is completed."
   :type 'hook
   :group 'viper-hooks)
-  
+
 (defcustom viper-load-hook nil
   "Hooks run just after loading Viper."
   :type 'hook
   :group 'viper-hooks)
-  
+
 
 ;;; Local Variables:
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)

@@ -1,5 +1,16 @@
 1999-11-12  Sam Steingold  <sds@ksp.com>
 
+	* emulation/viper-init.el (viper-deflocalvar, viper-loop,
+	viper-buffer-live-p, viper-kbd-buf-alist, viper-kbd-buf-pair,
+	viper-kbd-buf-definition, viper-kbd-mode-alist,
+	viper-kbd-mode-pair, viper-kbd-mode-definition,
+	viper-kbd-global-pair, viper-kbd-global-definition):
+	Use the new backquote syntax.
+
+	* emulation/viper-cmd.el (viper-test-com-defun,
+	viper-prefix-arg-value, viper-prefix-arg-com):
+	Use the new backquote syntax.
+
 	* emacs-lisp/debug.el (debugger-env-macro):
 	Use the new backquote syntax.
 
