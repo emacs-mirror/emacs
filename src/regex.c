@@ -124,15 +124,34 @@ init_syntax_once ()
 /* Get the interface, including the syntax bits.  */
 #include "regex.h"
 
-
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
-#ifndef isgraph
-#define isgraph(c) (isprint (c) && !isspace (c))
+
+#ifndef isascii
+#define isascii(c) 1
 #endif
-#ifndef isblank
-#define isblank(c) ((c) == ' ' || (c) == '\t')
+
+#ifdef isblank
+#define ISBLANK(c) (isascii (c) && isblank (c))
+#else
+#define ISBLANK(c) ((c) == ' ' || (c) == '\t')
 #endif
+#ifdef isgraph
+#define ISGRAPH(c) (isascii (c) && isgraph (c))
+#else
+#define ISGRAPH(c) (isascii (c) && isprint (c) && !isspace (c))
+#endif
+
+#define ISPRINT(c) (isascii (c) && isprint (c))
+#define ISDIGIT(c) (isascii (c) && isdigit (c))
+#define ISALNUM(c) (isascii (c) && isalnum (c))
+#define ISALPHA(c) (isascii (c) && isalpha (c))
+#define ISCNTRL(c) (isascii (c) && iscntrl (c))
+#define ISLOWER(c) (isascii (c) && islower (c))
+#define ISPUNCT(c) (isascii (c) && ispunct (c))
+#define ISSPACE(c) (isascii (c) && isspace (c))
+#define ISUPPER(c) (isascii (c) && isupper (c))
+#define ISXDIGIT(c) (isascii (c) && isxdigit (c))
 
 #ifndef NULL
 #define NULL 0
@@ -999,7 +1018,7 @@ typedef struct
   { if (p != pend)							\
      {									\
        PATFETCH (c); 							\
-       while (isdigit (c)) 						\
+       while (ISDIGIT (c)) 						\
          { 								\
            if (num < 0)							\
               num = 0;							\
@@ -1464,18 +1483,18 @@ regex_compile (pattern, size, syntax, bufp)
 
                         for (ch = 0; ch < 1 << BYTEWIDTH; ch++)
                           {
-                            if (   (is_alnum  && isalnum (ch))
-                                || (is_alpha  && isalpha (ch))
-                                || (is_blank  && isblank (ch))
-                                || (is_cntrl  && iscntrl (ch))
-                                || (is_digit  && isdigit (ch))
-                                || (is_graph  && isgraph (ch))
-                                || (is_lower  && islower (ch))
-                                || (is_print  && isprint (ch))
-                                || (is_punct  && ispunct (ch))
-                                || (is_space  && isspace (ch))
-                                || (is_upper  && isupper (ch))
-                                || (is_xdigit && isxdigit (ch)))
+                            if (   (is_alnum  && ISALNUM (ch))
+                                || (is_alpha  && ISALPHA (ch))
+                                || (is_blank  && ISBLANK (ch))
+                                || (is_cntrl  && ISCNTRL (ch))
+                                || (is_digit  && ISDIGIT (ch))
+                                || (is_graph  && ISGRAPH (ch))
+                                || (is_lower  && ISLOWER (ch))
+                                || (is_print  && ISPRINT (ch))
+                                || (is_punct  && ISPUNCT (ch))
+                                || (is_space  && ISSPACE (ch))
+                                || (is_upper  && ISUPPER (ch))
+                                || (is_xdigit && ISXDIGIT (ch)))
                             SET_LIST_BIT (ch);
                           }
                         had_char_class = true;
@@ -4740,7 +4759,7 @@ regcomp (preg, pattern, cflags)
 
       /* Map uppercase characters to corresponding lowercase ones.  */
       for (i = 0; i < CHAR_SET_SIZE; i++)
-        preg->translate[i] = isupper (i) ? tolower (i) : i;
+        preg->translate[i] = ISUPPER (i) ? tolower (i) : i;
     }
   else
     preg->translate = NULL;
