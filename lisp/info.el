@@ -1612,16 +1612,46 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (buffer-modified-p)
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
+(defvar Info-file-list-for-emacs
+  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc")
+  "List of Info files that describe Emacs commands.
+An element can be a file name, or a list of the form (PREFIX . FILE)
+where PREFIX is a name prefix and FILE is the file to look in.
+If the element is just a file name, the file name also serves as the prefix.")
+
 (defun Info-find-emacs-command-nodes (command)
-  "Return a list of locations documenting COMMAND in the Emacs Info manual.
+  "Return a list of locations documenting COMMAND.
+The variable `Info-file-alist' tells what Info manual to search.
 The locations are of the format used in Info-history, i.e.
 \(FILENAME NODENAME BUFFERPOS\)."
-  (require 'info)
   (let ((where '())
 	(cmd-desc (concat "^\\* " (regexp-quote (symbol-name command))
-			  ":\\s *\\(.*\\)\\.$")))
+			  ":\\s *\\(.*\\)\\.$"))
+	(info-file "emacs"))		;default
+    ;; Determine which info file this command is documented in.
+    (if (get command 'info-file)
+	(setq info-file (get command 'info-file))
+      ;; If it doesn't say explicitly, test its name against
+      ;; various prefixes that we know.
+      (let ((file-list Info-file-list-for-emacs))
+	(while file-list
+	  (let* ((elt (car file-list))
+		 (name (if (consp elt)
+			   (car elt)
+			 elt))
+		 (file (if (consp elt) (cdr elt) elt))
+		 (regexp (concat "^" (regexp-quote name)
+				 "\\(\\'\\|-\\)")))
+	    (if (string-match regexp (symbol-name command))
+		(setq info-file file file-list nil))
+	    (setq file-list (cdr file-list))))))
     (save-excursion
-      (Info-find-node "emacs" "Command Index")
+      (condition-case nil
+	  (Info-find-node info-file "Command Index")
+	;; Some manuals may not have a separate Command Index node,
+	;; so try just Index instead.
+	(error
+	 (Info-find-node info-file "Index")))
       ;; Take the index node off the Info history.
       (setq Info-history (cdr Info-history))
       (goto-char (point-max))
@@ -1637,7 +1667,8 @@ The locations are of the format used in Info-history, i.e.
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
-The command is found by looking up in Emacs manual's Command Index."
+The command is found by looking up in Emacs manual's Command Index
+or in another manual found via `Info-file-list-for-emacs'."
   (interactive "CFind documentation for command: ")
   (or (commandp command)
       (signal 'wrong-type-argument (list 'commandp command)))
@@ -1667,7 +1698,8 @@ The command is found by looking up in Emacs manual's Command Index."
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the Info node in the Emacs manual the command bound to KEY, a string.
 Interactively, if the binding is execute-extended-command, a command is read.
-The command is found by looking up in Emacs manual's Command Index."
+The command is found by looking up in Emacs manual's Command Index
+or in another manual found via `Info-file-list-for-emacs'."
   (interactive "kFind documentation for key:")
   (let ((command (key-binding key)))
     (cond ((null command)
