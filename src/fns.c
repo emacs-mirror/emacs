@@ -223,6 +223,8 @@ DEFUN ("compare-strings", Fcompare_strings,
   "Compare the contents of two strings, converting to multibyte if needed.\n\
 In string STR1, skip the first START1 characters and stop at END1.\n\
 In string STR2, skip the first START2 characters and stop at END2.\n\
+END1 and END2 default to the full lengths of the respective strings.\n\
+\n\
 Case is significant in this comparison if IGNORE-CASE is nil.\n\
 Unibyte strings are converted to multibyte for comparison.\n\
 \n\
