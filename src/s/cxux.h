@@ -193,10 +193,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define HAVE_SOCKETS
 
-/* We use the Berkeley (and usg5.2.2) interface to nlist.  */
-
-#define NLIST_STRUCT
-
 /* The symbol in the kernel where the load average is found
    is named _avenrun.  */
 

@@ -164,12 +164,6 @@ Boston, MA 02111-1307, USA.  */
 			  4800, 9600, 19200, 38400 }
 
 /*
- *	Define NLIST_STRUCT if the system has nlist.h
- */
-
-#define	NLIST_STRUCT
-
-/*
  *      Make WM Interface Compliant.
  */
 

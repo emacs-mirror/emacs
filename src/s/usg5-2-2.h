@@ -107,10 +107,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define SHORTNAMES */
 
-/* We use the Berkeley (and usg5.2.2) interface to nlist.  */
-
-#define NLIST_STRUCT
-
 /* The file containing the kernel's symbol table is called /unix.  */
 
 #define KERNEL_FILE "/unix"

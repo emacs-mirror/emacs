@@ -136,10 +136,6 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define SHORTNAMES */
 
-/* We do not use the Berkeley (and usg5.2.2) interface to nlist.  */
-
-/* #define NLIST_STRUCT */
-
 /* Compensate for one incompatibility between Xenix and V.0.  */
 #define n_zeroes n_name[0]
 
