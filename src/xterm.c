@@ -2488,6 +2488,9 @@ static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, XRectangle *));
 static void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 					enum glyph_row_area));
+static int x_fill_stretch_glyph_string P_ ((struct glyph_string *,
+					    struct glyph_row *,
+					    enum glyph_row_area, int, int));
 
 #if GLYPH_DEBUG
 static void x_check_font P_ ((struct frame *, XFontStruct *));
@@ -2661,7 +2664,6 @@ x_set_mode_line_face_gc (s)
      struct glyph_string *s;
 {     
   s->gc = s->face->gc;
-  xassert (s->gc != 0);
 }
 
 
@@ -2673,6 +2675,8 @@ static INLINE void
 x_set_glyph_string_gc (s)
      struct glyph_string *s;
 {
+  PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
+  
   if (s->hl == DRAW_NORMAL_TEXT)
     {
       s->gc = s->face->gc;
@@ -4134,11 +4138,12 @@ static int x_fill_composite_glyph_string P_ ((struct glyph_string *,
 					      struct face **, int));
 
 
-/* Load glyph string S with a composition components specified by S->cmp.
+/* Fill glyph string S with composition components specified by S->cmp.
+   
    FACES is an array of faces for all components of this composition.
    S->gidx is the index of the first component for S.
    OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its lines physical height for clipping.
+   use its physical height for clipping.
 
    Value is the index of a component not in S.  */
 
@@ -4192,11 +4197,12 @@ x_fill_composite_glyph_string (s, faces, overlaps_p)
 }
 
 
-/* Load glyph string S with a sequence characters.
+/* Fill glyph string S from a sequence of character glyphs.
+   
    FACE_ID is the face id of the string.  START is the index of the
    first glyph to consider, END is the index of the last + 1.
    OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its lines physical height for clipping.
+   use its physical height for clipping.
 
    Value is the index of the first glyph not in S.  */
 
@@ -4279,19 +4285,48 @@ x_fill_image_glyph_string (s)
 }
 
 
-/* Fill glyph string S from stretch glyph S->first_glyph.  */
+/* Fill glyph string S from a sequence of stretch glyphs.
 
-static void
-x_fill_stretch_glyph_string (s)
+   ROW is the glyph row in which the glyphs are found, AREA is the
+   area within the row.  START is the index of the first glyph to
+   consider, END is the index of the last + 1.
+
+   Value is the index of the first glyph not in S.  */
+
+static int
+x_fill_stretch_glyph_string (s, row, area, start, end)
      struct glyph_string *s;
+     struct glyph_row *row;
+     enum glyph_row_area area;
+     int start, end;
 {
+  struct glyph *glyph, *last;
+  int voffset, face_id;
+  
   xassert (s->first_glyph->type == STRETCH_GLYPH);
-  s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+  
+  glyph = s->row->glyphs[s->area] + start;
+  last = s->row->glyphs[s->area] + end;
+  face_id = glyph->face_id;
+  s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font;
-  s->width = s->first_glyph->pixel_width;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  s->width = glyph->pixel_width;
+  voffset = glyph->voffset;
+
+  for (++glyph;
+       (glyph < last
+	&& glyph->type == STRETCH_GLYPH
+	&& glyph->voffset == voffset
+	&& glyph->face_id == face_id);
+       ++glyph)
+    s->width += glyph->pixel_width;
   
   /* Adjust base line for subscript/superscript text.  */
-  s->ybase += s->first_glyph->voffset;
+  s->ybase += voffset;
+
+  xassert (s->face && s->face->gc);
+  return glyph - s->row->glyphs[s->area];
 }
 
 
@@ -4380,9 +4415,8 @@ x_set_glyph_string_background_width (s, start, last_x)
        {								    \
 	 s = (struct glyph_string *) alloca (sizeof *s);		    \
 	 x_init_glyph_string (s, NULL, W, ROW, AREA, START, HL);	    \
-	 x_fill_stretch_glyph_string (s);				    \
+	 START = x_fill_stretch_glyph_string (s, ROW, AREA, START, END);    \
 	 x_append_glyph_string (&HEAD, &TAIL, s);			    \
-	 ++START;							    \
          s->x = (X);							    \
        }								    \
      while (0)
