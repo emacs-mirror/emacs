@@ -6477,9 +6477,9 @@ x_list_fonts (f, pattern, size, maxnames)
 	      char *tmp;
 
 	      num_fonts = 1;
-	      names = alloca (sizeof (char *));
+	      names = (char **) alloca (sizeof (char *));
 	      /* Some systems only allow alloca assigned to a simple var.  */
-	      tmp = alloca (len + 1);  names[0] = tmp;
+	      tmp = (char *) alloca (len + 1);  names[0] = tmp;
 	      bcopy (name, names[0], len + 1);
 	      XFree (name);
 	    }
