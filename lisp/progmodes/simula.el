@@ -1703,7 +1703,7 @@ If not nil and not t, move to limit of search and return nil."
 	 limit t)
     (when (match-beginning 3)
       ;; We've matched an end-comment.  Yuck.  Find the extent of it.
-      (store-match-data
+      (set-match-data
        (list (point)
 	(if (re-search-forward "\\<\\(end\\|else\\|when\\|otherwise\\)\\>\\|;"
 			       limit 'move)
