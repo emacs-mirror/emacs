@@ -310,6 +310,8 @@
 (if noninteractive
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
+	(or (featurep 'viper-init)
+	    (load "viper-init.el" nil nil 'nosuffix))
 	(or (featurep 'viper-cmd)
 	    (load "viper-cmd.el" nil nil 'nosuffix))
 	)))
