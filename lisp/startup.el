@@ -648,7 +648,7 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 		   ;; if that is not with the mouse.
 		   (if (not (assq 'display (frame-parameters)))
 		       (if (eq (key-binding "\M-`") 'tmm-menubar)
-			   (insert "\n\nType ESC ` or Meta-` to use the menu bar.")
+			   (insert "\n\nType F10, ESC ` or Meta-` to use the menu bar.")
 			 (insert (substitute-command-keys
 				  "\n\nType \\[tmm-menubar] to use the menu bar."))))
 
