@@ -1332,9 +1332,9 @@ determines whether case is significant or ignored.")
 {
   register int begp1, endp1, begp2, endp2, temp, len1, len2, length, i;
   register struct buffer *bp1, *bp2;
-  register unsigned char *trt
+  register Lisp_Object *trt
     = (!NILP (current_buffer->case_fold_search)
-       ? XSTRING (current_buffer->case_canon_table)->data : 0);
+       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents : 0);
 
   /* Find the first buffer and its substring.  */
 
