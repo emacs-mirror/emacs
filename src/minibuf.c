@@ -441,6 +441,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       XWINDOW (minibuf_window)->cursor.x = 0;
       XWINDOW (minibuf_window)->must_be_updated_p = 1;
       update_frame (selected_frame, 1, 1);
+      if (rif && rif->flush_display)
+	rif->flush_display (XFRAME (XWINDOW (minibuf_window)->frame));
     }
 
   /* Make minibuffer contents into a string.  */
