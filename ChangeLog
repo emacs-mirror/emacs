@@ -1,3 +1,8 @@
+2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat (maindir): Update src/_gdbinit even if it does
+	already exist.
+
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (config.status): Prepend `$(srcdir)/' to
