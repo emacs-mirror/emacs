@@ -44,6 +44,7 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 				 minor-mode-alist)))
 
 (make-variable-buffer-local 'vc-mode)
+(put 'vc-mode 'permanent-local t)
 
 ;; We need a notion of per-file properties because the version
 ;; control state of a file is expensive to derive --- we don't
@@ -108,13 +109,15 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 	   (vc-file-setprop file 'vc-backend (cdr (vc-registered file))))))
 
 (defun vc-toggle-read-only ()
-  "If the file in the current buffer is under version control, perform the
-logical next version-control action; otherwise, just toggle the buffer's
-read-only flag."
+  "Change read-only status of current buffer, perhaps via version control.
+If the buffer is visiting a file registered with version control,
+then check the file in or out.  Otherwise, just change the read-only flag
+of the buffer."
   (interactive)
   (if (vc-backend-deduce (buffer-file-name))
       (vc-next-action nil)
     (toggle-read-only)))
+(define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
 (defun vc-mode-line (file &optional label)
   "Set `vc-mode' to display type of version control for FILE.
@@ -124,9 +127,6 @@ visiting FILE."
   (let ((vc-type (vc-backend-deduce file)))
     (if vc-type
 	(progn
-	  (if (null (current-local-map))
-	      (use-local-map (make-sparse-keymap)))
-	  (define-key (current-local-map) "\C-x\C-q" 'vc-toggle-read-only)
 	  (setq vc-mode
 		(concat " " (or label (symbol-name vc-type))))))
     ;; force update of mode line
