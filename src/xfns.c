@@ -4955,7 +4955,12 @@ or when you set the mouse color.");
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
-	       "Non-nil if no X window manager is in use.");
+	       "Non-nil if no X window manager is in use.\n\
+Emacs doesn't try to figure this out; this is always nil\n\
+unless you set it to something else.");
+  /* We don't have any way to find this out, so set it to nil
+     and maybe the user would like to set it to t.  */
+  Vx_no_window_manager = Qnil;
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
