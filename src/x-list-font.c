@@ -25,7 +25,7 @@ the WIDTH times as wide as FACE on FRAME.")
   int size, cols;
   int maxnames;
 
-  check_x ();
+  (*check_window_system_func) ();
   CHECK_STRING (pattern, 0);
   if (!NILP (face))
     CHECK_SYMBOL (face, 1);
@@ -50,7 +50,7 @@ the WIDTH times as wide as FACE on FRAME.")
       CHECK_LIVE_FRAME (frame, 0);
       f = XFRAME (frame);
     }
-  if (! FRAME_X_P (f))
+  if (! FRAME_WINDOW_P (f))
     {
       /* Perhaps we have not yet created any frame.  */
       f = NULL;
@@ -70,9 +70,9 @@ the WIDTH times as wide as FACE on FRAME.")
       if (face_id < 0 || face_id >= FRAME_N_PARAM_FACES (f)
 	  || FRAME_PARAM_FACES (f) [face_id] == 0
 	  || FRAME_PARAM_FACES (f) [face_id]->font == (XFontStruct *) (~0))
-	size = f->output_data.x->font->max_bounds.width;
+	size = FONT_WIDTH (FRAME_FONT (f));
       else
-	size = FRAME_PARAM_FACES (f) [face_id]->font->max_bounds.width;
+	size = FONT_WIDTH (FRAME_PARAM_FACES (f) [face_id]->font);
 
       if (!NILP (width))
 	  size *= XINT (width);
@@ -81,7 +81,7 @@ the WIDTH times as wide as FACE on FRAME.")
   {
     Lisp_Object args[2];
 
-    args[0] = x_list_fonts (f, pattern, size, maxnames);
+    args[0] = (*list_fonts_func) (f, pattern, size, maxnames);
     if (f == NULL)
       /* We don't have to check fontsets.  */
       return args[0];
