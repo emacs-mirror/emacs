@@ -113,6 +113,7 @@
 	     . ,(indian-glyph-char 255 'kannada)) . (nil . "Kannada-CDAC"))
 	   ((,(indian-glyph-char 0 'malayalam)
 	     . ,(indian-glyph-char 255 'malayalam)) . (nil . "Malayalam-CDAC"))
+	   (unicode . (nil . "ISO10646-1"))
 	   )))
       charset font-spec)
   (while l
