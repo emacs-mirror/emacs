@@ -1014,9 +1014,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	}
     }
 
-  /* If we've deleted Vdefault_minibuffer_frame, try to find another
-     one.  Prefer minibuffer-only frames, but also notice frames
-     with other windows.  */
+  /* If we've deleted this keyboard's default_minibuffer_frame, try to
+     find another one.  Prefer minibuffer-only frames, but also notice
+     frames with other windows.  */
   if (EQ (frame, FRAME_KBOARD (f)->Vdefault_minibuffer_frame))
     {
       Lisp_Object frames;
@@ -1030,16 +1030,20 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	   frames = XCONS (frames)->cdr)
 	{
 	  Lisp_Object this;
+	  struct frame *f1;
 
 	  this = XCONS (frames)->car;
 	  if (!FRAMEP (this))
 	    abort ();
-	  f = XFRAME (this);
+	  f1 = XFRAME (this);
 
-	  if (FRAME_HAS_MINIBUF_P (f))
+	  /* Consider only frames on the same kboard
+	     and only those with minibuffers.  */
+	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1)
+	      && FRAME_HAS_MINIBUF_P (f1))
 	    {
 	      frame_with_minibuf = this;
-	      if (FRAME_MINIBUF_ONLY_P (f))
+	      if (FRAME_MINIBUF_ONLY_P (f1))
 		break;
 	    }
 	}
