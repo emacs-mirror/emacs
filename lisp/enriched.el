@@ -99,7 +99,7 @@ expression, which is evaluated to get the string to insert.")
 (defconst enriched-annotation-format "<%s%s>"
   "General format of enriched-text annotations.")
 
-(defconst enriched-annotation-regexp "<\\(/\\)?\\([-A-za-z0-9]+\\)>"
+(defconst enriched-annotation-regexp "<\\(/\\)?\\([-A-Za-z0-9]+\\)>"
   "Regular expression matching enriched-text annotations.")
 
 (defconst enriched-translations
