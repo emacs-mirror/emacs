@@ -329,16 +329,25 @@ containing it, until no links are left at any level."
 	;; If these are equal, we have the (or a) root directory.
 	(or (string= dir dirfile)
 	    (setq dir (file-name-as-directory (file-truename dirfile))))
-	;; Put it back on the file name.
-	(setq filename (concat dir (file-name-nondirectory filename)))
-	;; Is the file name the name of a link?
-	(setq target (file-symlink-p filename))
-	(if target
-	    ;; Yes => chase that link, then start all over
-	    ;; since the link may point to a directory name that uses links.
-	    (file-truename (expand-file-name target dir))
-	  ;; No, we are done!
-	  filename)))))
+	(if (equal ".." (file-name-nondirectory filename))
+	    (directory-file-name (file-name-directory (directory-file-name dir)))
+	  (if (equal "." (file-name-nondirectory filename))
+	      (directory-file-name dir)
+	    ;; Put it back on the file name.
+	    (setq filename (concat dir (file-name-nondirectory filename)))
+	    ;; Is the file name the name of a link?
+	    (setq target (file-symlink-p filename))
+	    (if target
+		;; Yes => chase that link, then start all over
+		;; since the link may point to a directory name that uses links.
+		;; We can't safely use expand-file-name here
+		;; since target might look like foo/../bar where foo
+		;; is itself a link.  Instead, we handle . and .. above.
+		(if (file-name-absolute-p target)
+		    (file-truename target)
+		  (file-truename (concat dir target)))
+	      ;; No, we are done!
+	      filename)))))))
 
 (defun file-chase-links (filename)
   "Chase links in FILENAME until a name that is not a link.
