@@ -4,6 +4,7 @@
 
 ;;; Author: Masanobu Umeda
 ;;; Maintainer: umerin@mse.kyutech.ac.jp
+;;; Keywords: news
 
 ;; This file is part of GNU Emacs.
 
