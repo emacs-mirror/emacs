@@ -1182,57 +1182,66 @@ If within a string or comment, move by sentences instead of statements."
 	  ;; past the region.)
 	  (if (or (eolp) (and endpos (>= (point) endpos)))
 	      nil
+	    ;; Is this line in a new nesting level?
+	    ;; In other words, is this the first line that
+	    ;; starts in the new level?
 	    (if (and (car indent-stack)
 		     (>= (car indent-stack) 0))
-		;; Line is on an existing nesting level.
-		;; Lines inside parens are handled specially.
-		(if (/= (char-after (car contain-stack)) ?{)
-		    (setq this-indent (car indent-stack))
-		  ;; Line is at statement level.
-		  ;; Is it a new statement?  Is it an else?
-		  ;; Find last non-comment character before this line
-		  (save-excursion
-		    (setq this-point (point))
-		    (setq at-else (and (looking-at "else\\b")
-				       (not (looking-at "else\\s_"))))
-		    (setq at-brace (= (following-char) ?{))
-		    (setq at-while (and (looking-at "while\\b")
-					(not (looking-at "while\\s_"))))
-		    (if (= (following-char) ?})
-			(setq this-indent (car indent-stack))
-		      (c-backward-to-noncomment opoint)
-		      (if (not (memq (preceding-char) '(0 ?\, ?\; ?} ?: ?{)))
-			  ;; Preceding line did not end in comma or semi;
-			  ;; indent this line  c-continued-statement-offset
-			  ;; more than previous.
-			  (progn
-			    (c-backward-to-start-of-continued-exp (car contain-stack))
-			    (setq this-indent
-				  (+ c-continued-statement-offset (current-column)
-				     (if at-brace c-continued-brace-offset 0))))
-			;; Preceding line ended in comma or semi;
-			;; use the standard indent for this level.
-			(cond (at-else (progn (c-backward-to-start-of-if opoint)
-					      (setq this-indent
-						    (current-indentation))))
-			      ((and at-while (c-backward-to-start-of-do opoint))
-			       (setq this-indent (current-indentation)))
-			      ((eq (preceding-char) ?\,)
-			       (goto-char this-point)
-			       (setq this-indent (calculate-c-indent)))
-			      (t (setq this-indent (car indent-stack))))))))
-	      ;; Just started a new nesting level.
+		nil
+	      ;; Yes.
 	      ;; Compute the standard indent for this level.
-	      (let ((val (calculate-c-indent
-			   (if (car indent-stack)
-			       (- (car indent-stack))
-			     opoint))))
+	      (let (val)
+		(if (= (char-after (car contain-stack)) ?{)
+		    (save-excursion
+		      (goto-char (car contain-stack))
+		      (setq val (+ c-indent-level (current-column))))
+		  (setq val (calculate-c-indent
+			     (if (car indent-stack)
+				 (- (car indent-stack))
+			       opoint))))
 		;; t means we are in a block comment and should
 		;; calculate accordingly.
 		(if (eq val t)
 		    (setq val (calculate-c-indent-within-comment)))
-		(setcar indent-stack
-			(setq this-indent val))))
+		(setcar indent-stack val)))
+	    ;; Adjust indent of this individual line
+	    ;; based on its predecessor.
+	    ;; Handle continuation lines, if, else, while, and so on.
+	    (if (/= (char-after (car contain-stack)) ?{)
+		(setq this-indent (car indent-stack))
+	      ;; Line is at statement level.
+	      ;; Is it a new statement?  Is it an else?
+	      ;; Find last non-comment character before this line
+	      (save-excursion
+		(setq this-point (point))
+		(setq at-else (and (looking-at "else\\b")
+				   (not (looking-at "else\\s_"))))
+		(setq at-brace (= (following-char) ?{))
+		(setq at-while (and (looking-at "while\\b")
+				    (not (looking-at "while\\s_"))))
+		(if (= (following-char) ?})
+		    (setq this-indent (car indent-stack))
+		  (c-backward-to-noncomment opoint)
+		  (if (not (memq (preceding-char) '(0 ?\, ?\; ?} ?: ?{)))
+		      ;; Preceding line did not end in comma or semi;
+		      ;; indent this line  c-continued-statement-offset
+		      ;; more than previous.
+		      (progn
+			(c-backward-to-start-of-continued-exp (car contain-stack))
+			(setq this-indent
+			      (+ c-continued-statement-offset (current-column)
+				 (if at-brace c-continued-brace-offset 0))))
+		    ;; Preceding line ended in comma or semi;
+		    ;; use the standard indent for this level.
+		    (cond (at-else (progn (c-backward-to-start-of-if opoint)
+					  (setq this-indent
+						(current-indentation))))
+			  ((and at-while (c-backward-to-start-of-do opoint))
+			   (setq this-indent (current-indentation)))
+			  ((eq (preceding-char) ?\,)
+			   (goto-char this-point)
+			   (setq this-indent (calculate-c-indent)))
+			  (t (setq this-indent (car indent-stack))))))))
 	    ;; Adjust line indentation according to its contents
 	    (if (or (looking-at c-switch-label-regexp)
 		    (and (looking-at "[A-Za-z]")
