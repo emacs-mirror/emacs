@@ -1,3 +1,29 @@
+1999-12-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (Qratio): New symbol.
+	(scroll_bar_parts): Add `Qratio' to it.
+	(syms_of_keyboard): Init `Qratio'.
+	* termhooks.h (scroll_bar_part): Add `scroll_bar_move_ratio'.
+	* xterm.c (#includes): Allow compilation with only Xaw.
+	(xaw3d_arrow_scroll, xaw3d_pick_top): New variables.
+	(xt_action_hook): Replace XAW3D by XAW.
+	(xaw3d_jump_callback): Renamed to xaw_jump_callback.
+	(xaw_jump_callback): Renamed from xaw3d_jump_callback.
+	Determine epsilon dynamically and don't try to be too clever.
+	(xaw3d_scroll_callback): Renamed to xaw_scroll_callback.
+	(xaw_scroll_callback): Renamed from xaw3d_scroll_callback.
+	Handle both Xaw3d with arrow-scrollbars and with Xaw-style
+	scrollbar (using `ratio').
+	(x_create_toolkit_scroll_bar): Try to detect which style of Xaw3d
+	scrollbar we have so as to set it up more optimally and to fix
+	xaw3d_arrow_scroll and xaw3d_pick_top.
+	(x_set_toolkit_scroll_bar_thumb): Try to maintain 2 spare pixels at the
+	bottom of the Xaw3d scrollbar, to work around its tendency to refuse
+	shrinking the thumb.  Also make sure that `XawScrollbarSetThumb'
+	is not ignored, using a major gross hack.
+	(x_initialize): Init default values for xaw3d_arrow_scroll and
+	xaw3d_pick_top.
+
 1999-12-09  Dave Love  <fx@gnu.org>
 
 	* frame.h: (PIX_TYPE) [! HAVE_X_WINDOWS]: Define PIX_TYPE.
