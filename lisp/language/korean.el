@@ -59,7 +59,7 @@
 
   (setq-default buffer-file-coding-system 'korean-iso-8bit)
 
-  (setq default-input-method '("Korean" . "quail-hangul"))
+  (setq default-input-method '("Korean" . "korean-hangul"))
   )
 
 (set-language-info-alist
