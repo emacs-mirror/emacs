@@ -8,6 +8,12 @@
 
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fset_window_point): If displaying cursors in windows
+	other than the selected window, make sure redisplay updates
+	other windows to show the new value of point in the window.
+
+	* dispextern.h (cursor_in_non_selected_windows): Declare extern.
+
 	* buffer.c (Fkill_buffer): Don't Fset_buffer when testing if
 	the buffer is the sole visible buffer when in the mini-buffer.
 

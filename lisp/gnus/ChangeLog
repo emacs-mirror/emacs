@@ -1,3 +1,11 @@
+2000-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* smiley-ems.el (smiley-regexp-alist): Make regexps match
+	at the end of the buffer.
+	(smiley-region): In the loop, move to the end of the submatch
+	matching the smiley instead of using the end of the match 
+	of the whole regexp.
+
 2000-12-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* message.el (message-mode): Doc fix.
@@ -5,7 +13,7 @@
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* smiley-ems.el (smiley-region): Doc fix.
-
+	
 2000-12-11  Miles Bader  <miles@gnu.org>
 
 	* gnus-sum.el (gnus-summary-recenter): When trying to keep the

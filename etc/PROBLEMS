@@ -1,6 +1,11 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* On AIX, if linking fails because libXbsd isn't found, check if you
+are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
+so, you have hit a compiler bug.  Please make sure to re-configure
+Emacs so that it isn't compiled with `-O5'.
+
 * The PSGML package uses the obsolete variables
 `before-change-function' and `after-change-function', which are no
 longer used by Emacs.  These changes to PSGML 1.2.1 fix that.
