@@ -948,10 +948,11 @@ The returned value is a Quail map specific to KEY."
 	(quail-delete-region)
 	(if (and quail-current-str (> (length quail-current-str) 0))
 	    (setq generated-events
-		  (if (stringp quail-current-str)
-		      (append (string-to-list quail-current-str)
-			      generated-events)
-		    (cons quail-current-str generated-events))))
+		  (append (string-to-list
+			   (if enable-multibyte-characters
+			       quail-current-str
+			     (string-make-unibyte quail-current-str)))
+			  generated-events)))
 	(if (and input-method-exit-on-first-char generated-events)
 	    (list (car generated-events))
 	  generated-events))
@@ -1023,7 +1024,10 @@ The returned value is a Quail map specific to KEY."
 			   (overlay-end quail-conv-overlay)))
 	(if (> (length quail-conversion-str) 0)
 	    (setq generated-events
-		  (append (string-to-list quail-conversion-str)
+		  (append (string-to-list
+			   (if enable-multibyte-characters
+			       quail-conversion-str
+			     (string-make-unibyte quail-conversion-str)))
 			  generated-events)))
 	(if (and input-method-exit-on-first-char generated-events)
 	    (list (car generated-events))
