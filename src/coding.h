@@ -361,12 +361,6 @@ struct coding_system
      CODING_MODE_XXX.  */
   unsigned int mode;
 
-  /* Table of safe character sets for this coding system.  If the Nth
-     element is 0, the charset of ID N is not a safe character set.
-     Such a character set is not encoded when CODING_ISO_FLAG_SAFE is
-     set.  */
-  unsigned char safe_charsets[MAX_CHARSET + 1];
-
   /* The current status of composition handling.  */
   int composing;
 
