@@ -677,14 +677,20 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (varlist &rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    `(let* ,(append varlist
-		    '((modified (buffer-modified-p)) (buffer-undo-list t)
-		      (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		      (inhibit-modification-hooks t)
-		      deactivate-mark buffer-file-name buffer-file-truename))
-       ,@body
-       (unless modified
-	 (restore-buffer-modified-p nil))))
+    (let ((modified (make-symbol "modified")))
+      `(let* ,(append varlist
+		      '((,modified (buffer-modified-p))
+			(buffer-undo-list t)
+			(inhibit-read-only t)
+			(inhibit-point-motion-hooks t)
+			(inhibit-modification-hooks t)
+			deactivate-mark
+			buffer-file-name
+			buffer-file-truename))
+	 (progn
+	   ,@body)
+	 (unless ,modified
+	   (restore-buffer-modified-p nil)))))
   (put 'save-buffer-state 'lisp-indent-function 1)
   (def-edebug-spec save-buffer-state let)
   ;;
