@@ -1,3 +1,8 @@
+2004-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el: New coding system aliases unix, dos,
+	and mac.
+
 2004-10-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/titdic-cnv.el (tit-process-header): Fix embedded
