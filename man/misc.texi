@@ -2315,3 +2315,7 @@ Likewise, @kbd{M-x snake} provides an implementation of Snake.
 
 @cindex Zippy
   When you are feeling strange, type @kbd{M-x yow}.
+
+@findex zone
+The command @kbd{M-x zone} plays games with the display when Emacs is
+idle.
