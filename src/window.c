@@ -3295,7 +3295,7 @@ where `pop-up-frame-alist' would hold the default frame parameters.");
 Displaying a buffer whose name is in this list makes a special frame for it\n\
 using `special-display-function'.\n\
 Instead of a buffer name, the list entries can be cons cells.  In that\n\
-case the car should be a buffer name, and the cdr data to be passed as a 
+case the car should be a buffer name, and the cdr data to be passed as a\n\
 second argument to `special-display-function'.\n\
 See also `special-display-regexps'.");
   Vspecial_display_buffer_names = Qnil;
@@ -3306,7 +3306,7 @@ If a buffer name matches one of these regexps, it gets its own frame.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
 using `special-display-function'.\n\
 Instead of a buffer name, the list entries can be cons cells.  In that\n\
-case the car should be the regexp, and the cdr data to be passed as a 
+case the car should be the regexp, and the cdr data to be passed as a\n\
 second argument to `special-display-function'.\n\
 See also `special-display-buffer-names'.");
   Vspecial_display_regexps = Qnil;
