@@ -9398,8 +9398,10 @@ x_make_frame_visible (f)
 	  {
 	    /* It could be confusing if a real alarm arrives while processing
 	       the fake one.  Turn it off and let the handler reset it.  */
-	    alarm (0);
-	    input_poll_signal (0);
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
 	  }
       }
     FRAME_SAMPLE_VISIBILITY (f);
