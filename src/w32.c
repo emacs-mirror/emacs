@@ -503,9 +503,10 @@ w32_get_long_filename (char * name, char * buf, int size)
   len = parse_root (full, &p);
   memcpy (o, full, len);
   o += len;
+  *o = '\0';
   size -= len;
 
-  do
+  while (p != NULL && *p)
     {
       q = p;
       p = strchr (q, '\\');
@@ -528,7 +529,6 @@ w32_get_long_filename (char * name, char * buf, int size)
       else
 	return FALSE;
     }
-  while (p != NULL && *p);
 
   return TRUE;
 }
