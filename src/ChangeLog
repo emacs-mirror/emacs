@@ -1,3 +1,7 @@
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xdisp.c:  Fix typos in comments.
+
 2001-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (grow_mini_window): Handle case that the root
