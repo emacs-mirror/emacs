@@ -223,7 +223,9 @@ See documentation of variable tags-file-name."
 	(switch-to-buffer-other-window tagbuf)
       (switch-to-buffer tagbuf))
     )
-  (setq tags-loop-form '(find-tag nil t))
+;; I turned this off because people complain that it causes trouble
+;; when they find a tag during a tags-search.  M-0 M-. is easy enough. --RMS
+;;  (setq tags-loop-form '(find-tag nil t))
   ;; Return t in case used as the tags-loop-form.
   t)
 
