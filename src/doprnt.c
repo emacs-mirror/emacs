@@ -42,26 +42,38 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
   int cnt = 0;			/* Number of arg to gobble next */
   register char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
+
   /* Use this for sprintf unless we need something really big.  */
   char tembuf[100];
+
   /* Size of sprintf_buffer.  */
   int size_allocated = 100;
+
   /* Buffer to use for sprintf.  Either tembuf or same as BIG_BUFFER.  */
   char *sprintf_buffer = tembuf;
+
   /* Buffer we have got with malloc.  */
   char *big_buffer = 0;
+
   register int tem;
   char *string;
-  char fmtcpy[20];
+  char fixed_buffer[20];	/* Default buffer for small formatting. */
+  char *fmtcpy;
   int minlen;
   int size;			/* Field width factor; e.g., %90d */
 
   if (format_end == 0)
     format_end = format + strlen (format);
 
+  if ((format_end - format + 1) < sizeof (fixed_buffer))
+    fmtcpy = fixed_buffer;
+  else
+    fmtcpy = alloca (format_end - format + 1);
+
   bufsize--;
-  while (fmt != format_end && bufsize > 0)	/* Loop until end of format
-						   string or buffer full */
+
+  /* Loop until end of format string or buffer full. */
+  while (fmt != format_end && bufsize > 0)
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
@@ -71,16 +83,22 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	  /* Copy this one %-spec into fmtcpy.  */
 	  string = fmtcpy;
 	  *string++ = '%';
-	  while (string < fmtcpy + sizeof fmtcpy - 1)
+	  while (1)
 	    {
 	      *string++ = *fmt;
-	      if (! (*fmt >= '0' && *fmt <= '9') && *fmt != '-' && *fmt != ' ')
+	      if (! (*fmt >= '0' && *fmt <= '9')
+		  && *fmt != '-' && *fmt != ' '&& *fmt != '.')
 		break;
 	      fmt++;
 	    }
 	  *string = 0;
 	  /* Get an idea of how much space we might need.  */
 	  size_bound = atoi (&fmtcpy[1]) + 50;
+
+	  /* Avoid pitfall of negative "size" parameter ("%-200d"). */
+	  if (size_bound < 0)
+	    size_bound = -size_bound;
+
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
 	    {
