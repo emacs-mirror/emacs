@@ -356,7 +356,7 @@ static char *noname[] = {
     (erase-buffer)
     (setq gamegrid-buffer-start (point))
     (dotimes (i height)
-      (insert-string line))
+      (insert line))
     (goto-char (point-min))))
 
 (defun gamegrid-init (options)
