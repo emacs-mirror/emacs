@@ -29,14 +29,15 @@
 ;;; Code:
 
 (make-coding-system
- 'th-tis620 2 ?T
- "Coding-system used for ASCII(MSB=0) & TIS620(MSB=1)."
+ 'thai-tis620 2 ?T
+ "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)"
  '((ascii t) (thai-tis620 t) nil nil
    nil ascii-eol))
-(put 'th-tis620 'post-read-conversion 'thai-post-read-conversion)
-(put 'th-tis620 'pre-write-conversion 'thai-pre-write-conversion)
+(put 'thai-tis620 'post-read-conversion 'thai-post-read-conversion)
+(put 'thai-tis620 'pre-write-conversion 'thai-pre-write-conversion)
 
-(define-coding-system-alias 'th-tis620 'tis620)
+(define-coding-system-alias 'thai-tis620 'th-tis620)
+(define-coding-system-alias 'thai-tis620 'tis620)
 
 (register-input-method
  "Thai" '("quail-thai" quail-use-package "quail/thai"))
@@ -45,7 +46,7 @@
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)
 	  (charset . (thai-tis620))
-	  (coding-system . (th-tis620))
+	  (coding-system . (thai-tis620))
 	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")
 	  (documentation . t)))
 

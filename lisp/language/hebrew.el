@@ -29,9 +29,12 @@
 ;;; Code:
 
 (make-coding-system
- 'iso-8859-8 2 ?8 "MIME ISO-8859-8"
+ 'hebrew-iso-8bit 2 ?8
+ "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)"
  '((ascii t) (hebrew-iso8859-8 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t))
+
+(define-coding-system-alias 'hebrew-iso-8bit 'iso-8859-8)
 
 (register-input-method
  "Hebrew" '("quail-hebrew" quail-use-package "quail/hebrew"))
@@ -40,16 +43,16 @@
   "Setup multilingual environment (MULE) for Hebrew.
 But, please note that right-to-left writing is not yet supported."
   (interactive)
-  (setup-8-bit-environment 'hebrew-iso8859-8 'iso-8859-8
+  (setup-8-bit-environment 'hebrew-iso8859-8 'hebrew-iso-8bit
 			   '("Hebrew" . "quail-hebrew")))
 
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
 	    (describe-function . describe-hebrew-support)
 	    (charset . (hebrew-iso8859-8))
-	    (coding-system . (iso-8859-8))
+	    (coding-system . (hebrew-iso-8bit))
 	    (sample-text . "Hebrew	,Hylem(B")
 	    (documentation . "Right-to-left writing is not yet supported.")
 	    ))
 
-;;; hebew.el ends here
+;;; hebrew.el ends here

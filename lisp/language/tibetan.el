@@ -90,7 +90,7 @@
 
 (make-coding-system
  'tibetan 2 ?Q
- "Coding-system used for ASCII(MSB=0) & TIBETAN(MSB=1)."
+ "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)"
  '((ascii t) (tibetan t) nil nil
    nil ascii-eol))
 

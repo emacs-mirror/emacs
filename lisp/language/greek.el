@@ -29,9 +29,12 @@
 ;;; Code:
 
 (make-coding-system
- 'iso-8859-7 2 ?7 "MIME ISO-8859-7"
+ 'greek-iso-8bit 2 ?7
+ "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)"
  '((ascii t) (greek-iso8859-7 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'greek-iso-8bit 'iso-8859-7)
 
 (register-input-method
  "Greek" '("quail-greek" quail-use-package "quail/greek"))
@@ -39,13 +42,13 @@
 (defun setup-greek-environment ()
   "Setup multilingual environment (MULE) for Greek."
   (interactive)
-  (setup-8-bit-environment 'greek-iso8859-7 'iso-8859-7
+  (setup-8-bit-environment 'greek-iso8859-7 'greek-iso-8bit
 			   '("Greek" . "quail-greek")))
 
 (set-language-info-alist
  "Greek" '((setup-function . setup-greek-environment)
 	   (charset . (greek-iso8859-7))
-	   (coding-system . (iso-8859-7))
+	   (coding-system . (greek-iso-8bit))
 	   (sample-text . "Greek (,FGkk]mija(B)	,FCei\(B ,Fsar(B")
 	   (documentation . t)))
 

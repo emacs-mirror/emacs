@@ -28,7 +28,7 @@
 (defun setup-thai-environment ()
   "Setup multilingual environment (MULE) for Thai."
   (interactive)
-  (setup-8-bit-environment 'thai-tis620 'th-tis620
+  (setup-8-bit-environment 'thai-tis620 'thai-tis620
 			   '("Thai" . "quail-thai")))
 
 ;; Setting information of Thai characters.

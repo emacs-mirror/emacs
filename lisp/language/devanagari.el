@@ -31,14 +31,16 @@
 ;;; Code:
 
 (make-coding-system
- 'in-is13194-devanagari 2 ?D
- "Coding-system used for ASCII(MSB=0) & IS13194-Devanagari(MSB=1)."
+ 'devanagari 2 ?D
+ "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)"
  '((ascii t) (indian-is13194 t) nil nil
    nil ascii-eol))
-devanagari-compose-from-is13194-region
-(put 'in-is13194-devanagari
+
+(define-coding-system-alias 'devanagari 'in-is13194-devanagari)
+
+(put 'devanagari
      'post-read-conversion 'in-is13194-devanagari-post-read-conversion)
-(put 'in-is13194-devanagari
+(put 'devanagari
      'pre-write-conversion 'in-is13194-devanagari-pre-write-conversion)
 
 (register-input-method
@@ -61,7 +63,7 @@ devanagari-compose-from-is13194-region
  "Devanagari" '((setup-function . (setup-devanagari-environment
 				   . setup-indian-environment-map))
 		(charset . (indian-is13194 indian-2-column indian-1-column))
-		(coding-system . (in-is13194-devanagari))
+		(coding-system . (devanagari))
 		(documentation . ("\
 Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."

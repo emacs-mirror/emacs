@@ -25,8 +25,8 @@
 ;;; Code:
 
 (make-coding-system
- 'lao 2 ?T
- "Coding-system used for ASCII(MSB=0) & LAO(MSB=1)."
+ 'lao 2 ?L
+ "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)"
  '((ascii t) (lao t) nil nil
    nil ascii-eol))
 

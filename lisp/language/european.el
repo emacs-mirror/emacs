@@ -47,7 +47,7 @@
 	coding-category-iso-8-2 coding-system)
   (set-terminal-coding-system-internal coding-system)
   (set-keyboard-coding-system-internal coding-system)
-  (setq sendmail-coding-system nil
+  (setq sendmail-coding-system coding-system
 	rmail-file-coding-system coding-system)
 
   (if charset
@@ -68,13 +68,13 @@
 ;; Latin-1 (ISO-8859-1)
 
 (make-coding-system
- 'iso-8859-1 2 ?1
- "MIME ISO-8859-1 Compound Text Encoding."
+ 'iso-latin-1 2 ?1
+ "ISO 2022 based 8-bit encoding (MIME:ISO-8859-1, Compound Text Encoding)"
  '((ascii t) (latin-iso8859-1 t) nil nil
    nil ascii-eol ascii-cntl))
 
-;; CTEXT is an alias for ISO-8859-1
-(define-coding-system-alias 'iso-8859-1 'ctext)
+(define-coding-system-alias 'iso-latin-1 'iso-8859-1)
+(define-coding-system-alias 'iso-latin-1 'ctext)
 
 (register-input-method "Latin-1"
 		       '("quail-latin-1" quail-use-package "quail/latin"))
@@ -82,14 +82,14 @@
 (defun setup-latin1-environment ()
   "Set up multilingual environment (MULE) for European Latin-1 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-1 'iso-8859-1
+  (setup-8-bit-environment 'latin-iso8859-1 'iso-latin-1
 			   '("Latin-1" . "quail-latin-1")))
 
 (set-language-info-alist
  "Latin-1" '((setup-function . (setup-latin1-environment
 				. setup-european-environment-map))
 	     (charset . (ascii latin-iso8859-1))
-	     (coding-system . (iso-8859-1))
+	     (coding-system . (iso-latin-1))
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . ("\
@@ -102,9 +102,12 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 ;; Latin-2 (ISO-8859-2)
 
 (make-coding-system
- 'iso-8859-2 2 ?2 "MIME ISO-8859-2"
+ 'iso-latin-2 2 ?2
+ "ISO 2022 based 8-bit encoding (MIME:ISO-8859-2)"
  '((ascii t) (latin-iso8859-2 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'iso-latin-2 'iso-8859-2)
 
 (register-input-method "Latin-2"
 		       '("quail-latin-2" quail-use-package "quail/latin"))
@@ -112,14 +115,14 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-2 'iso-8859-2
+  (setup-8-bit-environment 'latin-iso8859-2 'iso-latin-2
 			   '("Latin-2" . "quail-latin-2")))
 
 (set-language-info-alist
  "Latin-2" '((setup-function . (setup-latin2-environment
 				. setup-european-environment-map))
 	     (charset . (ascii latin-iso8859-2))
-	     (coding-system . (iso-8859-2))
+	     (coding-system . (iso-latin-2))
 	     (documentation . ("\
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
@@ -130,9 +133,12 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 ;; Latin-3 (ISO-8859-3)
 
 (make-coding-system
- 'iso-8859-3 2 ?3 "MIME ISO-8859-3"
+ 'iso-latin-3 2 ?3
+ "ISO 2022 based 8-bit encoding (MIME:ISO-8859-3)"
  '((ascii t) (latin-iso8859-3 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'iso-latin-3 'iso-8859-3)
 
 (register-input-method "Latin-3"
 		       '("quail-latin-3" quail-use-package "quail/latin"))
@@ -140,14 +146,14 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 (defun setup-latin3-environment ()
   "Set up multilingual environment (MULE) for European Latin-3 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-3 'iso-8859-3
+  (setup-8-bit-environment 'latin-iso8859-3 'iso-latin-3
 			   '("Latin-3" . "quail-latin-3")))
 
 (set-language-info-alist
  "Latin-3" '((setup-function . (setup-latin3-environment
 				. setup-european-environment-map))
 	     (charset . (ascii latin-iso8859-3))
-	     (coding-system . (iso-8859-3))
+	     (coding-system . (iso-latin-3))
 	     (documentation . ("\
 These languages are supported with the Latin-3 (ISO-8859-3) character set:
  Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
@@ -158,9 +164,12 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 ;; Latin-4 (ISO-8859-4)
 
 (make-coding-system
- 'iso-8859-4 2 ?4 "MIME ISO-8859-4"
+ 'iso-latin-4 2 ?4
+ "ISO 2022 based 8-bit encoding (MIME:ISO-8859-4)"
  '((ascii t) (latin-iso8859-4 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'iso-latin-4 'iso-8859-4)
 
 (register-input-method "Latin-4"
 		       '("quail-latin-4" quail-use-package "quail/latin"))
@@ -168,7 +177,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 (defun setup-latin4-environment ()
   "Set up multilingual environment (MULE) for European Latin-4 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-4 'iso-8859-4
+  (setup-8-bit-environment 'latin-iso8859-4 'iso-latin-4
 			   '("Latin-4" . "quail-latin-4")))
 
 (set-language-info-alist
@@ -186,9 +195,12 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 ;; Latin-5 (ISO-8859-9)
 
 (make-coding-system
- 'iso-8859-9 2 ?9 "MIME ISO-8859-9"
+ 'iso-latin-5 2 ?9
+ "ISO 2022 based 8-bit encoding (MIME:ISO-8859-9)"
  '((ascii t) (latin-iso8859-9 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
+
+(define-coding-system-alias 'iso-latin-5 'iso-8859-9)
 
 (register-input-method "Latin-5"
 		       '("quail-latin-5" quail-use-package "quail/latin"))
@@ -196,14 +208,14 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 (defun setup-latin5-environment ()
   "Set up multilingual environment (MULE) for European Latin-5 users."
   (interactive)
-  (setup-8-bit-environment 'latin-iso8859-9 'iso-8859-9
+  (setup-8-bit-environment 'latin-iso8859-9 'iso-latin-5
 			   '("Latin-5" . "quail-latin-5")))
 
 (set-language-info-alist
  "Latin-5" '((setup-function . (setup-latin5-environment
 				. setup-european-environment-map))
 	     (charset . (ascii latin-iso8859-9))
-	     (coding-system . (iso-8859-9))
+	     (coding-system . (iso-latin-5))
 	     (documentation . ("\
 These languages are supported with the Latin-5 (ISO-8859-9) character set.
 " . describe-european-environment-map))

@@ -29,7 +29,7 @@
   "Setup multilingual environment (MULE) for Japanese."
   (interactive)
   (setup-english-environment)
-  (setq coding-category-iso-8-2 'euc-japan-1990)
+  (setq coding-category-iso-8-2 'japanese-iso-8bit)
 
   (set-coding-priority
    '(coding-category-iso-7
@@ -41,15 +41,16 @@
 
   (if (eq system-type 'ms-dos)
       (progn
-	(setq-default buffer-file-coding-system 'sjis)
-	(set-terminal-coding-system-internal 'sjis)
-	(set-keyboard-coding-system-internal 'sjis)
-	(setq default-process-coding-system '(sjis-dos . sjis-dos)))
-    (setq-default buffer-file-coding-system 'iso-2022-jp)
-    (set-terminal-coding-system-internal 'iso-2022-jp)
-    (set-keyboard-coding-system-internal 'iso-2022-jp))
+	(setq-default buffer-file-coding-system 'japanese-shift-jis)
+	(set-terminal-coding-system-internal 'japanese-shift-jis)
+	(set-keyboard-coding-system-internal 'japanese-shift-jis)
+	(setq default-process-coding-system
+	      '(japanese-shift-jis-dos . japanese-shift-jis-dos)))
+    (setq-default buffer-file-coding-system 'iso-2022-7bit)
+    (set-terminal-coding-system-internal 'iso-2022-7bit)
+    (set-keyboard-coding-system-internal 'iso-2022-7bit))
 
-  (set-default-input-method "Japanese" "quail-ja")
+  (setq default-input-method '("Japanese" . "quail-ja"))
 
   (setq sendmail-coding-system 'iso-2022-jp
 	rmail-file-coding-system 'iso-2022-jp)

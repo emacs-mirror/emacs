@@ -92,7 +92,7 @@
   "CCL program to encode KOI8.")
 	     
 (make-coding-system
- 'koi8-r 4
+ 'cyrillic-koi8 4
  ;; We used to use ?K.  It is true that ?K is more strictly correct,
  ;; but it is also used for Korean.
  ;; So people who use koi8 for languages other than Russian
@@ -100,7 +100,8 @@
  ?R "Coding-system used for KOI8."
  (cons ccl-decode-koi8 ccl-encode-koi8))
 
-(define-coding-system-alias 'koi8-r 'koi8)
+(define-coding-system-alias 'cyrillic-koi8 'koi8-r)
+(define-coding-system-alias 'cyrillic-koi8 'koi8)
 
 (define-ccl-program ccl-encode-koi8-font
   '(0
@@ -209,19 +210,19 @@
 		  (documentation . (t . describe-cyrillic-environment-map))))
 
 (set-language-info-alist
- "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-iso-environment
+ "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-koi8-environment
 				      . setup-cyrillic-environment-map))
 		   (charset . (cyrillic-iso8859-5))
-		   (coding-system . (koi8-4))
+		   (coding-system . (cyrillic-koi8))
 		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 		   (documentation . (t . describe-cyrillic-environment-map))))
 
 (set-language-info-alist
  "Cyrillic-Alternativnyj" '((setup-function
-			     . (setup-cyrillic-iso-environment
+			     . (setup-cyrillic-alternativnyj-environment
 				. setup-cyrillic-environment-map))
 			    (charset . (cyrillic-iso8859-5))
-			    (coding-system . (alternativnyj))
+			    (coding-system . (cyrillic-alternativnyj))
 			    (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 			    (documentation
 			     . (t . describe-cyrillic-environment-map))))

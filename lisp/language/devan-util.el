@@ -48,7 +48,7 @@
 (defun setup-devanagari-environment ()
   "Setup multilingual environment (MULE) for languages using Devanagari."
   (interactive)
-  (setup-8-bit-environment nil 'in-is13194-devanagari
+  (setup-8-bit-environment nil 'devanagari
 			   '("Devanagari" . "quail-devanagari-itrans")))
 
 ;;; Basic functions.

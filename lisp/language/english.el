@@ -44,25 +44,25 @@ The default status is as follows.
   bound to each category are as follows
 	coding category			coding system
 	--------------------------------------------------
-	coding-category-iso-7		iso-2022-7
-	coding-category-iso-8-2		iso-8859-1
-	coding-category-iso-8-1		iso-8859-1
-	coding-category-iso-else	iso-2022-lock
+	coding-category-iso-7		iso-2022-7bit
+	coding-category-iso-8-2		iso-latin-1
+	coding-category-iso-8-1		iso-latin-1
+	coding-category-iso-else	iso-2022-7bit-lock
 	coding-category-emacs-mule 	emacs-mule
 	coding-category-binary		no-conversion
-	coding-category-sjis		sjis
-	coding-category-big5		big5
+	coding-category-sjis		japanese-shift-jis
+	coding-category-big5		chinese-big5
 "
   (interactive)
   (setq-default enable-multibyte-characters t)
 
-  (setq coding-category-iso-7		'iso-2022-7
-	coding-category-iso-8-1		'iso-8859-1
-	coding-category-iso-8-2		'iso-8859-1
-	coding-category-iso-else	'iso-2022-lock
+  (setq coding-category-iso-7		'iso-2022-7bit
+	coding-category-iso-8-1		'iso-latin-1
+	coding-category-iso-8-2		'iso-latin-1
+	coding-category-iso-else	'iso-2022-7bit-lock
 	coding-category-emacs-mule	'emacs-mule
-	coding-category-sjis		'sjis
-	coding-category-big5		'big5
+	coding-category-sjis		'japanese-shift-jis
+	coding-category-big5		'chinese-big5
 	coding-category-binary		'no-conversion)
 
   (set-coding-priority

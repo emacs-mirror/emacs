@@ -201,21 +201,27 @@ Both tables are indexed by the position code of Vietnamese characters.")
 
 
 (make-coding-system
- 'viscii 4 ?V
- "Coding-system used for VISCII 1.1."
+ 'vietnamese-viscii 4 ?V
+ "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
  (cons ccl-decode-viscii ccl-encode-viscii))
 
-(make-coding-system
- 'vscii 4 ?V
- "Coding-system used for VSCII-1."
- (cons ccl-decode-vscii ccl-encode-vscii))
+(define-coding-system-alias 'vietnamese-viscii 'viscii)
 
 (make-coding-system
- 'viqr 0 ?v
- "Codins-system used for VIQR."
+ 'vietnamese-vscii 4 ?v
+ "8-bit encoding for Vietnamese VSCII-1"
+ (cons ccl-decode-vscii ccl-encode-vscii))
+
+(define-coding-system-alias 'vietnamese-vscii 'vscii)
+
+(make-coding-system
+ 'vietnamese-viqr 0 ?q
+ "Vietnamese latin transcription (VIQR)"
  nil)
-(put 'viqr 'post-read-conversion 'viqr-post-read-conversion)
-(put 'viqr 'pre-write-conversion 'viqr-pre-write-conversion)
+(put 'vietnamese-viqr 'post-read-conversion 'viqr-post-read-conversion)
+(put 'vietnamese-viqr 'pre-write-conversion 'viqr-pre-write-conversion)
+
+(define-coding-system-alias 'vietnamese-viqr 'viqr)
 
 (setq font-ccl-encoder-alist
       (cons (cons "viscii" ccl-encode-viscii-font) font-ccl-encoder-alist))
@@ -230,7 +236,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "Vietnamese" '((setup-function . setup-vietnamese-environment)
 		(charset . (vietnamese-viscii-lower
 			    vietnamese-viscii-upper))
-		(coding-system . (viscii vscii viqr))
+		(coding-system . (vietnamese-viscii vietnamese-vscii
+				  vietnamese-viqr))
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
 For Vietnamese, Emacs uses special charasets internally.

@@ -26,18 +26,17 @@
 
 ;;;###autoload
 (defun setup-cyrillic-iso-environment ()
-  "Setup multilingual environment for Cyrillic (ISO-8859-5) users."
+  "Setup multilingual environment (MULE) for Cyrillic ISO-8859-5 users."
   (interactive)
-  (setup-8-bit-environment 'cyrillic-iso8859-5 'iso-8859-5
+  (setup-8-bit-environment 'cyrillic-iso8859-5 'cyrillic-iso-8bit
 			   '("Cyrillic" . "quail-yawerty"))
-
   (setq primary-language "Cyrillic"))
 
 ;;;###autoload
 (defun setup-cyrillic-koi8-environment ()
   "Setup multilingual environment for Cyrillic (KOI8-R) users."
   (interactive)
-  (setup-8-bit-environment 'cyrillic-iso8859-5 'koi8-r
+  (setup-8-bit-environment 'cyrillic-iso8859-5 'cyrillic-koi8
 			   '("Cyrillic" . "quail-yawerty"))
 
   (setq primary-language "Cyrillic"))
@@ -46,7 +45,7 @@
 (defun setup-cyrillic-alternativnyj-environment ()
   "Setup multilingual environment for Cyrillic (ALTERNATIVNYJ) users."
   (interactive)
-  (setup-8-bit-environment 'cyrillic-iso8859-5 'alternativnyj
+  (setup-8-bit-environment 'cyrillic-iso8859-5 'cyrillic-alternativnyj
 			   '("Cyrillic" . "quail-yawerty"))
 
   (setq primary-language "Cyrillic"))

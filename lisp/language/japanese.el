@@ -29,30 +29,34 @@
 
 ;;; Code:
 
-(define-coding-system-alias 'iso-2022-7 'iso-2022-jp)
-(define-coding-system-alias 'iso-2022-7 'junet)
+(define-coding-system-alias 'iso-2022-7bit 'iso-2022-jp)
+(define-coding-system-alias 'iso-2022-7bit 'junet)
 
 (make-coding-system
- 'shift_jis 1 ?S
- "Coding-system of Shift-JIS used in Japan." t)
+ 'japanese-shift-jis 1 ?S
+ "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)")
 
-(define-coding-system-alias 'shift_jis 'sjis)
+(define-coding-system-alias 'japanese-shift-jis 'shift_jis)
+(define-coding-system-alias 'japanese-shift-jis 'sjis)
 
 (make-coding-system
- 'iso-2022-jp-1978-irv 2 ?J
- "Coding-system used for old jis terminal."
+ 'japanese-iso-7bit-1978-irv 2 ?j
+ "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman"
  '((ascii t) nil nil nil
    short ascii-eol ascii-cntl seven nil nil use-roman use-oldjis))
 
-(define-coding-system-alias 'iso-2022-jp-1978-irv 'old-jis)
+(define-coding-system-alias 'japanese-iso-7bit-1978-irv 'iso-2022-jp-1978-irv)
+(define-coding-system-alias 'japanese-iso-7bit-1978-irv 'old-jis)
 
 (make-coding-system
- 'euc-japan-1990 2 ?E
- "Coding-system of Japanese EUC (Extended Unix Code)."
+ 'japanese-iso-8bit 2 ?E
+ "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)"
  '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
 	 short ascii-eol ascii-cntl nil nil single-shift))
 
-(define-coding-system-alias 'euc-japan-1990 'euc-japan)
+(define-coding-system-alias 'japanese-iso-8bit 'euc-japan-1990)
+(define-coding-system-alias 'japanese-iso-8bit 'euc-japan)
+(define-coding-system-alias 'japanese-iso-8bit 'euc-jp)
 
 (register-input-method
  "Japanese" '("quail-ja-hiragana" quail-use-package "quail/japanese"))
@@ -65,8 +69,8 @@
 	      (charset . (japanese-jisx0208 japanese-jisx0208-1978
 			  japanese-jisx0212 latin-jisx0201
 			  katakana-jisx0201))
-	      (coding-system . (euc-japan-1990 sjis
-				iso-2022-jp iso-2022-jp-1978-irv))
+	      (coding-system . (japanese-iso-7bit japanese-iso-8bit
+				japanese-shift-jis japanese-iso-7bit-1978-irv))
 	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
 
