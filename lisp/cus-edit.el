@@ -74,6 +74,7 @@
 
 (defgroup emulations nil
   "Emulations of other editors."
+  :link '(custom-manual "(emacs)Emulation")
   :group 'editing)
 
 (defgroup mouse nil
@@ -87,11 +88,6 @@
 (defgroup external nil
   "Interfacing to external utilities."
   :group 'emacs)
-
-(defgroup bib nil
-  "Code related to the `bib' bibliography processor."
-  :tag "Bibliography"
-  :group 'external)
 
 (defgroup processes nil
   "Process, subshell, compilation, and job control support."
@@ -117,6 +113,7 @@
 
 (defgroup c nil
   "Support for the C language and related languages."
+  :link '(custom-manual "(ccmode)")
   :group 'languages)
 
 (defgroup tools nil
@@ -141,6 +138,7 @@
 
 (defgroup news nil
   "Support for netnews reading and posting."
+  :link '(custom-manual "(gnus)")
   :group 'applications)
 
 (defgroup games nil
@@ -195,6 +193,7 @@
 
 (defgroup i18n nil
   "Internationalization and alternate character-set support."
+  :link '(custom-manual "(emacs)International")
   :group 'environment
   :group 'editing)
 
@@ -245,8 +244,6 @@
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
   :link '(custom-manual "(elisp)Customization")
-  :link '(url-link :tag "(Old?) Development Page"
-		   "http://www.dina.kvl.dk/~abraham/custom/")
   :prefix "custom-"
   :group 'help)
 
@@ -272,6 +269,7 @@
 
 (defgroup abbrev-mode nil
   "Word abbreviations mode."
+  :link '(custom-manual "(emacs)Abbrevs")
   :group 'abbrev)
 
 (defgroup alloc nil
@@ -281,6 +279,7 @@
 
 (defgroup undo nil
   "Undoing changes in buffers."
+  :link '(custom-manual "(emacs)Undo")
   :group 'editing)
 
 (defgroup modeline nil
@@ -289,6 +288,7 @@
 
 (defgroup fill nil
   "Indenting and filling text."
+  :link '(custom-manual "(emacs)Filling Text")
   :group 'editing)
 
 (defgroup editing-basics nil
@@ -321,6 +321,7 @@
 
 (defgroup minibuffer nil
   "Controling the behaviour of the minibuffer."
+  :link '(custom-manual "(emacs)Minibuffer")
   :group 'environment)
 
 (defgroup keyboard nil
@@ -349,6 +350,7 @@
 
 (defgroup windows nil
   "Windows within a frame."
+  :link '(custom-manual "(emacs)Windows")
   :group 'environment)
 
 ;;; Utilities.
