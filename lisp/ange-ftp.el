@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.50 $")
+(defconst ange-ftp-version "$Revision: 1.51 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1621,14 +1621,17 @@ good, skip, fatal, or unknown."
 	 ;; but that doesn't work: ftp never responds.
 	 ;; Can anyone find a fix for that?
 	 (proc (let ((process-connection-type t))
-		 (start-process name name 
+		 (start-process name name
 				ange-ftp-gateway-program
 				ange-ftp-gateway-host)))
 	 (ftp (mapconcat (function identity) args " ")))
     (process-kill-without-query proc)
     (set-process-sentinel proc (function ange-ftp-gwp-sentinel))
     (set-process-filter proc (function ange-ftp-gwp-filter))
-    (set-marker (process-mark proc) (point))
+    (save-excursion
+      (set-buffer (process-buffer proc))
+      (internal-ange-ftp-mode)
+      (set-marker (process-mark proc) (point)))
     (setq ange-ftp-gwp-running t
 	  ange-ftp-gwp-status nil)
     (ange-ftp-message "Connecting to gateway %s..." ange-ftp-gateway-host)
