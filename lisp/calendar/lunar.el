@@ -160,41 +160,13 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                            ((= phase 2) (- adjustment adj))
                            (t adjustment)))
          (date (+ date adjustment))
-         (calendar-standard-time-zone-name
-          (if calendar-time-zone calendar-standard-time-zone-name "UT"))
-         (calendar-daylight-savings-starts
-          (if calendar-time-zone calendar-daylight-savings-starts))
-         (calendar-daylight-savings-ends
-          (if calendar-time-zone calendar-daylight-savings-ends))
-         (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
-	 (year (extract-calendar-year
-                (calendar-gregorian-from-absolute (truncate date))))
-	 (dst (and calendar-daylight-savings-starts
-		   calendar-daylight-savings-ends
-		   (<= (calendar-absolute-from-gregorian
-			(eval calendar-daylight-savings-starts))
-		       date)
-		   (< date
-		      (calendar-absolute-from-gregorian
-		       (eval calendar-daylight-savings-ends)))))
-	 (date (+ date 
-                  (/ (+ (if dst 60 0) calendar-time-zone) 60.0 24.0)
-                  (- (/ (solar-ephemeris-correction year) 60.0 24.0))))
+	 (date (+ date (- (/ (solar-ephemeris-correction
+                              (extract-calendar-year
+                               (calendar-gregorian-from-absolute
+                                (truncate date)))) 60.0 24.0))))
          (time (* 24 (- date (truncate date))))
-         (date (calendar-gregorian-from-absolute (truncate date)))
-         (time-zone calendar-time-zone)
-	 (time-zone (if dst
-			calendar-daylight-time-zone-name
-			calendar-standard-time-zone-name))
-	 (24-hours (truncate time))
-	 (12-hours (format "%d" (if (> 24-hours 12)
-				    (- 24-hours 12)
-				  (if (= 24-hours 0) 12 24-hours))))
-	 (am-pm (if (>= 24-hours 12) "pm" "am"))
-	 (minutes (format "%02d" (round (* 60 (- time 24-hours)))))
-	 (24-hours (format "%02d" 24-hours))
-         (time (mapconcat 'eval calendar-time-display-form "")))
-    (list date time phase)))
+	 (date (calendar-gregorian-from-absolute (truncate date))))
+    (list date (solar-time-string time date) phase)))
 
 (defun lunar-phase-name (phase)
   "Name of lunar PHASE.
