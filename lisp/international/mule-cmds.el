@@ -41,7 +41,7 @@
 (define-key mule-keymap "\C-\\" 'select-input-method)
 (define-key mule-keymap "c" 'universal-coding-system-argument)
 
-(define-key help-map "\C-L" 'describe-language-support)
+(define-key help-map "\C-L" 'describe-language-environment)
 (define-key help-map "\C-\\" 'describe-input-method)
 (define-key help-map "C" 'describe-current-coding-system)
 (define-key help-map "h" 'view-hello-file)
@@ -54,8 +54,8 @@
 
 (setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 
-(defvar describe-language-support-map nil)
-(define-prefix-command 'describe-language-support-map)
+(defvar describe-language-environment-map nil)
+(define-prefix-command 'describe-language-environment-map)
 
 (defvar setup-language-environment-map nil)
 (define-prefix-command 'setup-language-environment-map)
@@ -66,8 +66,8 @@
 (define-key-after mule-menu-keymap [toggle-mule]
   '("Toggle MULE facility" . toggle-enable-multibyte-characters)
   t)
-(define-key-after mule-menu-keymap [describe-language-support]
-  '("Describe language support" . describe-language-support-map)
+(define-key-after mule-menu-keymap [describe-language-environment]
+  '("Describe language environment" . describe-language-environment-map)
   t)
 (define-key-after mule-menu-keymap [set-language-environment]
   '("Set language environment" . setup-language-environment-map)
@@ -193,18 +193,25 @@ KEY is a symbol denoting the kind of information.
 INFO is any Lisp object which contains the actual information.
 
 Currently, the following KEYs are used by Emacs:
+
 charset: list of symbols whose values are charsets specific to the language.
+
 coding-system: list of coding systems specific to the langauge.
+
 tutorial: a tutorial file name written in the language.
+
 sample-text: one line short text containing characters of the language.
+
 input-method: alist of input method names for the language vs information
-  for activating them.  Use `register-input-method' (which see)
-  to add a new input method to the alist.
+      for activating them.  Use `register-input-method' (which see)
+      to add a new input method to the alist.
+
 documentation: t or a string describing how Emacs supports the language.
-  If a string is specified, it is shown before any other information
-  of the language by the command describe-language-support.
+      If a string is specified, it is shown before any other information
+      of the language by the command `describe-language-environment'.
+
 setup-function: a function to call for setting up environment
- convenient for a user of the language.
+       convenient for a user of the language.
 
 If KEY is documentation or setup-function, you can also specify
 a cons cell as INFO, in which case, the car part should be
@@ -213,9 +220,8 @@ and the cdr part should be a symbol whose value is a menu keymap
 in which an entry for the language is defined.  But, only the car part
 is actually set as the information.
 
-Emacs will use more KEYs in the future.  To avoid conflict, users
-should use prefix \"user-\" in the name of KEY if he wants to set
-different kind of information for personal use."
+We will define more KEYs in the future.  To avoid conflict,
+if you want to use your own KEY values, make them start with `user-'."
   (let (lang-slot key-slot)
     (setq lang-slot (assoc language-name language-info-alist))
     (if (null lang-slot)		; If no slot for the language, add it.
@@ -232,7 +238,7 @@ different kind of information for personal use."
 	     (if (consp info)
 		 (prog1 (symbol-value (cdr info))
 		   (setq info (car info)))
-	       describe-language-support-map)
+	       describe-language-environment-map)
 	     (vector (intern language-name))
 	     (cons language-name 'describe-specified-language-support)
 	     t))
@@ -504,35 +510,41 @@ and sometimes other things."
 ;; Print a language specific information such as input methods,
 ;; charsets, and coding systems.  This function is intended to be
 ;; called from the menu:
-;;   [menu-bar mule describe-language-support LANGUAGE]
+;;   [menu-bar mule describe-language-environment LANGUAGE]
 ;; and should not run it by `M-x describe-current-input-method-function'.
 (defun describe-specified-language-support ()
   "Describe how Emacs supports the specified langugage."
   (interactive)
-  (let (language-name doc)
+  (let (language-name)
     (if (not (and (symbolp last-command-event)
-		  (setq language-name (symbol-name last-command-event))
-		  (setq doc (get-language-info language-name 'documentation))))
+		  (setq language-name (symbol-name last-command-event))))
 	(error "Bogus calling sequence"))
+    (describe-language-environment language-name)))
+
+(defun describe-language-environment (language-name)
+  "Describe how Emacs supports language environment LANGUAGE-NAME."
+  (interactive (list (read-language-name 'documentation "Language: ")))
+  (if (or (null language-name)
+	  (null (get-language-info language-name 'documentation)))
+      (error "No documentation for the specified language"))
+  (let ((doc (get-language-info language-name 'documentation)))
     (with-output-to-temp-buffer "*Help*"
       (if (stringp doc)
 	  (princ-list doc))
-      (princ "-----------------------------------------------------------\n")
-      (princ-list "List of items specific to "
-		  language-name
-		  " support")
-      (princ "-----------------------------------------------------------\n")
+      (terpri)
       (let ((str (get-language-info language-name 'sample-text)))
 	(if (stringp str)
 	    (progn
-	      (princ "<sample text>\n")
+	      (princ "Sample text:\n")
 	      (princ-list "  " str))))
-      (princ "<input methods>\n")
+      (terpri)
+      (princ "Input methods:\n")
       (let ((l (get-language-info language-name 'input-method)))
 	(while l
 	  (princ-list "  " (car (car l)))
 	  (setq l (cdr l))))
-      (princ "<character sets>\n")
+      (terpri)
+      (princ "Character sets:\n")
       (let ((l (get-language-info language-name 'charset)))
 	(if (null l)
 	    (princ-list "  nothing specific to " language-name)
@@ -540,23 +552,17 @@ and sometimes other things."
 	    (princ-list "  " (car l) ": "
 			(charset-description (car l)))
 	    (setq l (cdr l)))))
-      (princ "<coding systems>\n")
+      (terpri)
+      (princ "Coding systems:\n")
       (let ((l (get-language-info language-name 'coding-system)))
 	(if (null l)
 	    (princ-list "  nothing specific to " language-name)
 	  (while l
-	    (princ-list "  " (car l) ":\n\t"
-			(coding-system-docstring (car l)))
+	    (princ (format "  %s (`%c' in mode line):\n\t%s\n"
+			   (car l)
+			   (coding-system-mnemonic (car l))
+			   (coding-system-docstring (car l))))
 	    (setq l (cdr l))))))))
-
-(defun describe-language-support (language-name)
-  "Describe how Emacs supports LANGUAGE-NAME."
-  (interactive (list (read-language-name 'documentation "Language: ")))
-  (if (or (null language-name)
-	  (null (get-language-info language-name 'documentation)))
-      (error "No documentation for the specified language"))
-  (let ((last-command-event (intern language-name)))
-    (describe-specified-language-support)))
 
 ;;; Charset property
 
