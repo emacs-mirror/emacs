@@ -50,7 +50,8 @@ a non-nil value, TYPE is the image's type ")
 
 
 (defun image-jpeg-p (data)
-  "Value is non-nil if DATA, a string, consists of JFIF image data."
+  "Value is non-nil if DATA, a string, consists of JFIF image data.
+We accept the tag Exif because that is the same format."
   (when (string-match "\\`\xff\xd8" data)
     (catch 'jfif
       (let ((len (length data)) (i 2))
@@ -66,7 +67,7 @@ a non-nil value, TYPE is the image's type ")
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
 	      (throw 'jfif 
-		     (string-match "JFIF" (substring data i (+ i nbytes)))))
+		     (string-match "JFIF\\|Exif" (substring data i (+ i nbytes)))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
