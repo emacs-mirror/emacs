@@ -50,26 +50,9 @@
 
 ;; Pull in custom if it exists and is recent enough (the one in Emacs
 ;; 19.34 isn't).
-(eval
- (cc-eval-when-compile
-   (condition-case nil
-       (progn
-	 (require 'custom)
-	 (or (fboundp 'defcustom) (error ""))
-	 (require 'wid-edit)
-	 '(progn			; Compile in the require's.
-	    (require 'custom)
-	    (require 'wid-edit)))
-     (error
-      (message "Warning: Compiling without Customize support \
-since a (good enough) custom library wasn't found")
-      (cc-bytecomp-defmacro define-widget (name class doc &rest args))
-      (cc-bytecomp-defmacro defcustom (symbol value doc &rest args)
-	`(defvar ,symbol ,value ,doc))
-      (cc-bytecomp-defmacro custom-declare-variable (symbol value doc
-						     &rest args)
-	`(defvar ,(eval symbol) ,(eval value) ,doc))
-      nil))))
+(eval-when-compile
+  (require 'custom)
+  (require 'wid-edit))
 
 (cc-eval-when-compile
   ;; Need the function form of `backquote', which isn't standardized
