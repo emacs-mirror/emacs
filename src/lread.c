@@ -68,6 +68,7 @@ extern int errno;
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
 Lisp_Object Qascii_character, Qload, Qload_file_name;
+Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 
@@ -102,6 +103,12 @@ static int read_pure;
 /* For use within read-from-string (this reader is non-reentrant!!) */
 static int read_from_string_index;
 static int read_from_string_limit;
+
+/* Nonzero means inside a new-style backquote
+   with no surrounding parentheses.
+   Fread initializes this to zero, so we need not specbind it
+   or worry about what happens to it when there is an error.  */
+static int new_backquote_flag;
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
@@ -892,6 +899,8 @@ STREAM or the value of `standard-input' may be:\n\
   if (EQ (readcharfun, Qt))
     readcharfun = Qread_char;
 
+  new_backquote_flag = 0;
+
 #ifndef standalone
   if (EQ (readcharfun, Qread_char))
     return Fread_minibuffer (build_string ("Lisp expression: "), Qnil);
@@ -937,6 +946,8 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   read_from_string_index = startval;
   read_from_string_limit = endval;
 
+  new_backquote_flag = 0;
+
   tem = read0 (string);
   return Fcons (tem, make_number (read_from_string_index));
 }
@@ -950,7 +961,7 @@ read0 (readcharfun)
   register Lisp_Object val;
   char c;
 
-  val = read1 (readcharfun, &c);
+  val = read1 (readcharfun, &c, 0);
   if (c)
     Fsignal (Qinvalid_read_syntax, Fcons (make_string (&c, 1), Qnil));
 
@@ -1117,11 +1128,15 @@ read_escape (readcharfun)
 
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
-   zero in *PCH and we read and return one lisp object.  */
+   zero in *PCH and we read and return one lisp object.
+
+   FIRST_IN_LIST is nonzero if this is the first element of a list.  */
+
 static Lisp_Object
-read1 (readcharfun, pch)
+read1 (readcharfun, pch, first_in_list)
      register Lisp_Object readcharfun;
      char *pch;
+     int first_in_list;
 {
   register int c;
   *pch = 0;
@@ -1165,7 +1180,7 @@ read1 (readcharfun, pch)
 	  char ch;
 
 	  /* Read the string itself.  */
-	  tmp = read1 (readcharfun, &ch);
+	  tmp = read1 (readcharfun, &ch, 0);
 	  if (ch != 0 || !STRINGP (tmp))
 	    Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
 	  GCPRO1 (tmp);
@@ -1174,13 +1189,13 @@ read1 (readcharfun, pch)
 	    {
 	      Lisp_Object beg, end, plist;
 
-	      beg = read1 (readcharfun, &ch);
+	      beg = read1 (readcharfun, &ch, 0);
 	      if (ch == ')')
 		break;
 	      if (ch == 0)
-		end = read1 (readcharfun, &ch);
+		end = read1 (readcharfun, &ch, 0);
 	      if (ch == 0)
-		plist = read1 (readcharfun, &ch);
+		plist = read1 (readcharfun, &ch, 0);
 	      if (ch)
 		Fsignal (Qinvalid_read_syntax,
 			 Fcons (build_string ("invalid string property list"),
@@ -1227,6 +1242,45 @@ read1 (readcharfun, pch)
       {
 	return Fcons (Qquote, Fcons (read0 (readcharfun), Qnil));
       }
+
+    case '`':
+      if (first_in_list)
+	goto default_label;
+      else
+	{
+	  Lisp_Object value;
+
+	  new_backquote_flag = 1;
+	  value = read0 (readcharfun);
+	  new_backquote_flag = 0;
+
+	  return Fcons (Qbackquote, Fcons (value, Qnil));
+	}
+
+    case ',':
+      if (new_backquote_flag)
+	{
+	  Lisp_Object comma_type = Qnil;
+	  Lisp_Object value;
+	  int ch = READCHAR;
+
+	  if (ch == '@')
+	    comma_type = Qcomma_at;
+	  else if (ch == '.')
+	    comma_type = Qcomma_dot;
+	  else
+	    {
+	      if (ch >= 0) UNREAD (ch);
+	      comma_type = Qcomma;
+	    }
+
+	  new_backquote_flag = 0;
+	  value = read0 (readcharfun);
+	  new_backquote_flag = 1;
+	  return Fcons (comma_type, Fcons (value, Qnil));
+	}
+      else
+	goto default_label;
 
     case '?':
       {
@@ -1319,6 +1373,7 @@ read1 (readcharfun, pch)
 	   try to UNREAD two characters in a row.  */
       }
     default:
+    default_label:
       if (c <= 040) goto retry;
       {
 	register char *p = read_buffer;
@@ -1506,6 +1561,9 @@ read_list (flag, readcharfun)
   struct gcpro gcpro1, gcpro2;
   int cancel = 0;
 
+  /* Initialize this to 1 if we are reading a list.  */
+  int first_in_list = flag <= 0;
+
   val = Qnil;
   tail = Qnil;
 
@@ -1513,8 +1571,10 @@ read_list (flag, readcharfun)
     {
       char ch;
       GCPRO2 (val, tail);
-      elt = read1 (readcharfun, &ch);
+      elt = read1 (readcharfun, &ch, first_in_list);
       UNGCPRO;
+
+      first_in_list = 0;
 
 	/* If purifying, and the list starts with #$,
 	   return 0 instead.  This is a doc string reference
@@ -1541,7 +1601,7 @@ read_list (flag, readcharfun)
 		XCONS (tail)->cdr = read0 (readcharfun);
 	      else
 		val = read0 (readcharfun);
-	      read1 (readcharfun, &ch);
+	      read1 (readcharfun, &ch, 0);
 	      UNGCPRO;
 	      if (ch == ')')
 		return (cancel ? make_number (0) : val);
@@ -2190,6 +2250,15 @@ The default is nil, which means use the function `read'.");
 
   Qget_file_char = intern ("get-file-char");
   staticpro (&Qget_file_char);
+
+  Qbackquote = intern ("`");
+  staticpro (&Qbackquote);
+  Qcomma = intern (",");
+  staticpro (&Qcomma);
+  Qcomma_at = intern (",@");
+  staticpro (&Qcomma_at);
+  Qcomma_dot = intern (",.");
+  staticpro (&Qcomma_dot);
 
   Qascii_character = intern ("ascii-character");
   staticpro (&Qascii_character);
