@@ -1,3 +1,12 @@
+2002-07-31  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
+	Check that (car elt) is a string.
+
+	* pcomplete.el (pcomplete-entries): Doc fix.
+
+	* international/mule.el (non-standard-icccm-encodings-alist): Doc fix.
+
 2002-07-31  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el: Hide disabling of dired-find-alternate-file behind
@@ -98,6 +107,13 @@
 	* files.el (revert-buffer): Fix previous change.
 
 2002-07-29  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (help-echo): If global-mode-string is non-nil,
+	display some spaces after it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
+	Don't call string-match on non-string.
+	(displaying-byte-compile-warnings): 
 
 	* textmodes/ispell.el (check-ispell-version): Bind default-directory
 	to avoid errors.  Kill the old temp buffer at the beginning.
