@@ -1,3 +1,10 @@
+2004-06-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (show-trailing-whitespace): Doc fix.
+
+	* cus-edit.el (custom-variable-documentation): New function.
+	(custom-variable): Use it.
+
 2004-06-19  Nick Roberts  <nickrob@gnu.org>
 
 	* man.el (Man-getpage-in-background): Revert previous change but
