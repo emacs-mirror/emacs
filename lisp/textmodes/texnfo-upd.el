@@ -1783,7 +1783,13 @@ Requirements:
   * this node must be the first node in the included file,
   * each highest hierarchical level node must be of the same type.
 
-Thus, normally, each included file contains one, and only one, chapter."
+Thus, normally, each included file contains one, and only one, chapter.
+
+However, when an included file does not have any node lines in
+it, this command does not try to create a menu entry for it.
+Consequently, you can include any file, such as a version or an
+update file without node lines, not just files that are
+chapters."
 
 ;; The menu-list has the form:
 ;;
