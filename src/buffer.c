@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997, 1998
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4090,12 +4090,12 @@ This is the same as (default-value 'ctl-arrow).");
    DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
  	      &buffer_defaults.enable_multibyte_characters,
      "Default value of `enable-multibyte-characters' for buffers not overriding it.\n\
- This is the same as (default-value 'enable-multibyte-characters).");
+This is the same as (default-value 'enable-multibyte-characters).");
  
    DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
  	      &buffer_defaults.buffer_file_coding_system,
      "Default value of `buffer-file-coding-system' for buffers not overriding it.\n\
- This is the same as (default-value 'buffer-file-coding-system).");
+This is the same as (default-value 'buffer-file-coding-system).");
  
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
 	      &buffer_defaults.truncate_lines,
@@ -4222,7 +4222,13 @@ in the current display table (if there is one).");
 		     make_number (-1),
     "*Non-nil means the buffer contents are regarded as multi-byte characters.\n\
 Otherwise they are regarded as unibyte.  This affects the display,\n\
-file I/O and the behavior of various editing commands.");
+file I/O and the behavior of various editing commands.\n\
+\n\
+This variable is buffer-local but you cannot set it directly;\n\
+use the function `set-buffer-multibyte' to change a buffer's representation.\n\
+Changing its default value with `setq-default' is supported.\n\
+See also variable `default-enable-multibyte-characters' and Info node\n\
+`(elisp)Text Representations'.");
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
