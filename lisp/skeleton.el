@@ -200,7 +200,7 @@ strings with the subskeleton being repeated once for each string.
 
 Quoted lisp-expressions are evaluated evaluated for their side-effect.
 Other lisp-expressions are evaluated and the value treated as above.
-Note that expressions may not return `t' since this impplies an
+Note that expressions may not return `t' since this implies an
 endless loop.  Modes can define other symbols by locally setting them
 to any valid skeleton element.  The following local variables are
 available:
