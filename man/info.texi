@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.14 2001/09/19 19:58:29 rms Exp $
+@comment $Id: info.texi,v 1.15 2001/09/19 20:08:17 rms Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -378,7 +378,7 @@ keys will never scroll beyond the beginning or the end of the current
 node.
 
 @kindex C-l @r{(Info mode)}
-  If your screen is ever garbaged, you can tell Info to print it out
+  If your screen is ever garbaged, you can tell Info to display it
 again by typing @kbd{C-l} (@kbd{Control-L}, that is---hold down
 @key{CTRL} and type @kbd{L} or @kbd{l}).
 
@@ -406,7 +406,7 @@ In that case, @kbd{b} won't do anything.  Sorry; what can we do?
   You have just learned a considerable number of commands.  If you
 want to use one but have trouble remembering which, you should type
 a @kbd{?} (in Emacs it runs the @code{Info-summary} command) which
-prints out a brief list of commands.  When you are finished looking at
+displays a brief list of commands.  When you are finished looking at
 the list, make it go away by typing a @key{SPC} repeatedly.
 
 @format
@@ -605,7 +605,7 @@ change its appearance (usually, its background color will change), and
 the shape of the mouse pointer will change if your platform supports
 that.  After a while, if you leave the mouse on that spot, a tooltip
 will pop up saying ``Mouse-2: go to that node''.  (If the tooltips are
-turned off or unavailable, this message is printed in the @dfn{echo
+turned off or unavailable, this message is displayed in the @dfn{echo
 area}, the bottom screen line where you typed the menu subtopics in
 response to the prompt.)  @kbd{Mouse-2} is the second button of your
 mouse counting from the left---the rightmost button for two-button
@@ -663,37 +663,42 @@ the header line (provided that you have a mouse).
 @comment  node-name,  next,  previous,  up
 @section Following Cross-References
 
-  Sometimes, in Info documentation, you will see a cross reference.
-Cross references look like this: @xref{Help-Cross, Cross}.  That is a
-real, live cross reference which is named @samp{Cross} and points at
-the node named @samp{Help-Cross}.
+@cindex cross references in Info documents
+  In Info documentation, you will see many @dfn{cross references}.
+Cross references look like this: @xref{Help-Cross, Cross}.  That text
+is a real, live cross reference, whose name is @samp{Cross} and which
+points to the node named @samp{Help-Cross}.
 
 @kindex f @r{(Info mode)}
 @findex Info-follow-reference
-@cindex cross references in Info documents
-  If you wish to follow a cross reference, you must use the @kbd{f}
-command.  The @kbd{f} must be followed by the cross reference name
-(in this case, @samp{Cross}).  If the cursor is on or near the cross
-reference, Info suggests the name if the nearest reference in
-parentheses; typing @key{RET} will follow that reference.  You can
-also type a different name, if the default is not what you want.
-While you enter the name, you can use the @key{DEL} (or
-@key{BACKSPACE}) key to edit your input.  If you change your mind
-about following any reference, you can use @kbd{Control-g} to cancel
-the command.
+  There are two ways to follow a cross reference.  You can move the
+cursor to it and press @key{RET}, just as in a menu.  @key{RET}
+follows the cross reference that the cursor is on.  Or you can type
+@kbd{f} and then specify the name of the cross reference (in this
+case, @samp{Cross}) as an argument.  In Emacs Info, @kbd{f} runs
+@code{Info-follow-reference},
 
-  Completion is available in the @kbd{f} command; you can complete among
-all the cross reference names in the current node by typing a @key{TAB}.
-
-  @kbd{f} runs @code{Info-follow-reference} in Emacs.
+  In the @kbd{f} command, you select the cross reference with its
+name, so it does not matter where the cursor was.  If the cursor is on
+or near a cross reference, @kbd{f} suggests that reference name in
+parentheses as the default; typing @key{RET} will follow that
+reference.  However, if you type a different reference name, @kbd{f}
+will follow the other reference which has that name.
 
 @format
->> Type @kbd{f}, followed by @kbd{Cross}, and a @key{RET}.
+>> Type @kbd{f}, followed by @kbd{Cross}, and then @key{RET}.
 @end format
 
-  To get a list of all the cross references in the current node, you can
-type @kbd{?} after an @kbd{f}.  The @kbd{f} continues to await a
-cross reference name even after printing the list, so if you don't
+  As you enter the reference name, you can use the @key{DEL} (or
+@key{BACKSPACE}) key to edit your input.  If you change your mind
+about following any reference, you can use @kbd{Control-g} to cancel
+the command.  Completion is available in the @kbd{f} command; you can
+complete among all the cross reference names in the current node by
+typing a @key{TAB}.
+
+  To get a list of all the cross references in the current node, you
+can type @kbd{?} after an @kbd{f}.  The @kbd{f} continues to await a
+cross reference name even after displaying the list, so if you don't
 actually want to follow a reference, you should type a @kbd{Control-g}
 to cancel the @kbd{f}.
 
@@ -702,10 +707,8 @@ to cancel the @kbd{f}.
    type a @kbd{Control-g} and see how the @samp{f} gives up.
 @end format
 
-  The @key{TAB} and @kbd{M-@key{TAB}} key, which move between
-subtopics in a menu can move between cross references as well.  Once
-the cursor is on a cross reference, you can press @key{RET} to follow
-that reference, just like you do in a menu.
+  The @key{TAB} and @kbd{M-@key{TAB}} key, which move between menu
+items in a menu, also move between cross references outside of menus.
 
 @node Help-Int, Help-Q, Help-Xref, Getting Started
 @comment  node-name,  next,  previous,  up
