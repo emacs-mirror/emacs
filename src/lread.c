@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include <epaths.h>
 #include "commands.h"
@@ -1476,36 +1477,51 @@ static char *read_buffer;
 
 /* Read multibyte form and return it as a character.  C is a first
    byte of multibyte form, and rest of them are read from
-   READCHARFUN.  */
+   READCHARFUN.  Store the byte length of the form into *NBYTES.  */
 
 static int
-read_multibyte (c, readcharfun)
+read_multibyte (c, readcharfun, nbytes)
      register int c;
      Lisp_Object readcharfun;
+     int *nbytes;
 {
   /* We need the actual character code of this multibyte
      characters.  */
   unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len = 0;
-  int bytes;
+  int bytes = BYTES_BY_CHAR_HEAD (c);
 
   str[len++] = c;
-  while ((c = READCHAR) >= 0xA0
-	 && len < MAX_MULTIBYTE_LENGTH)
-    str[len++] = c;
-  UNREAD (c);
-  if (UNIBYTE_STR_AS_MULTIBYTE_P (str, len, bytes))
-    return STRING_CHAR (str, len);
+  while (len < bytes)
+    {
+      c = READCHAR;
+      if (CHAR_HEAD_P (c))
+	{
+	  UNREAD (c);
+	  break;
+	}
+      str[len++] = c;
+    }
+
+  if (len == bytes && MULTIBYTE_LENGTH_NO_CHECK (str) > 0)
+    {
+      *nbytes = len;
+      return STRING_CHAR (str, len);
+    }
   /* The byte sequence is not valid as multibyte.  Unread all bytes
      but the first one, and return the first byte.  */
   while (--len > 0)
     UNREAD (str[len]);
+  *nbytes = 1;
   return str[0];
 }
 
 /* Read a \-escape sequence, assuming we already read the `\'.
    If the escape sequence forces unibyte, store 1 into *BYTEREP.
-   If the escape sequence forces multibyte, store 2 into *BYTEREP.
+   If the escape sequence forces multibyte and the returned character
+   is raw 8-bit char, store 2 into *BYTEREP.
+   If the escape sequence forces multibyte and the returned character
+   is not raw 8-bit char, store 3 into *BYTEREP.
    Otherwise store 0 into *BYTEREP.  */
 
 static int
@@ -1640,7 +1656,10 @@ read_escape (readcharfun, stringp, byterep)
 	      }
 	  }
 	
-	*byterep = 1;
+	if (c < 0x100)
+	  *byterep = 1;
+	else
+	  *byterep = 3;
 	return i;
       }
 
@@ -1648,6 +1667,7 @@ read_escape (readcharfun, stringp, byterep)
       /* A hex escape, as in ANSI C.  */
       {
 	int i = 0;
+	int count = 0;
 	while (1)
 	  {
 	    c = READCHAR;
@@ -1670,15 +1690,26 @@ read_escape (readcharfun, stringp, byterep)
 		UNREAD (c);
 		break;
 	      }
+	    count++;
 	  }
 
-	*byterep = 2;
+	if (count < 3 && i >= 0x80)
+	  *byterep = 2;
+	else
+	  *byterep = 3;
 	return i;
       }
 
     default:
-      if (BASE_LEADING_CODE_P (c))
-	c = read_multibyte (c, readcharfun);
+      if (EQ (readcharfun, Qget_file_char)
+	  && BASE_LEADING_CODE_P (c))
+	{
+	  int nbytes;
+
+	  c = read_multibyte (c, readcharfun, &nbytes);
+	  if (nbytes > 1)
+	    *byterep = 3;
+	}
       return c;
     }
 }
@@ -1750,43 +1781,6 @@ read_integer (readcharfun, radix)
 }
 
 
-/* Convert unibyte text in read_buffer to multibyte.
-
-   Initially, *P is a pointer after the end of the unibyte text, and
-   the pointer *END points after the end of read_buffer.
-
-   If read_buffer doesn't have enough room to hold the result
-   of the conversion, reallocate it and adjust *P and *END.
-
-   At the end, make *P point after the result of the conversion, and
-   return in *NCHARS the number of characters in the converted
-   text.  */
-
-static void
-to_multibyte (p, end, nchars)
-     char **p, **end;
-     int *nchars;
-{
-  int nbytes;
-
-  parse_str_as_multibyte (read_buffer, *p - read_buffer, &nbytes, nchars);
-  if (read_buffer_size < 2 * nbytes)
-    {
-      int offset = *p - read_buffer;
-      read_buffer_size = 2 * max (read_buffer_size, nbytes);
-      read_buffer = (char *) xrealloc (read_buffer, read_buffer_size);
-      *p = read_buffer + offset;
-      *end = read_buffer + read_buffer_size;
-    }
-
-  if (nbytes != *nchars)
-    nbytes = str_as_multibyte (read_buffer, read_buffer_size,
-			       *p - read_buffer, nchars);
-  
-  *p = read_buffer + nbytes;
-}
-
-
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
    zero in *PCH and we read and return one lisp object.
@@ -1834,11 +1828,9 @@ read1 (readcharfun, pch, first_in_list)
 	    {
 	      Lisp_Object tmp;
 	      tmp = read_vector (readcharfun, 0);
-	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS
-		  || XVECTOR (tmp)->size > CHAR_TABLE_STANDARD_SLOTS + 10)
+	      if (XVECTOR (tmp)->size != VECSIZE (struct Lisp_Char_Table))
 		error ("Invalid size char-table");
 	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
-	      XCHAR_TABLE (tmp)->top = Qt;
 	      return tmp;
 	    }
 	  else if (c == '^')
@@ -1847,11 +1839,18 @@ read1 (readcharfun, pch, first_in_list)
 	      if (c == '[')
 		{
 		  Lisp_Object tmp;
+		  int depth, size;
+		  
 		  tmp = read_vector (readcharfun, 0);
-		  if (XVECTOR (tmp)->size != SUB_CHAR_TABLE_STANDARD_SLOTS)
+		  if (!INTEGERP (AREF (tmp, 0)))
+		    error ("Invalid depth in char-table");
+		  depth = XINT (AREF (tmp, 0));
+		  if (depth < 1 || depth > 3)
+		    error ("Invalid depth in char-table");
+		  size = XVECTOR (tmp)->size + 2;
+		  if (chartab_size [depth] != size)
 		    error ("Invalid size char-table");
-		  XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
-		  XCHAR_TABLE (tmp)->top = Qnil;
+		  XSETSUB_CHAR_TABLE (tmp, XSUB_CHAR_TABLE (tmp));
 		  return tmp;
 		}
 	      Fsignal (Qinvalid_read_syntax,
@@ -2134,8 +2133,9 @@ read1 (readcharfun, pch, first_in_list)
 
 	if (c == '\\')
 	  c = read_escape (readcharfun, 0, &discard);
-	else if (BASE_LEADING_CODE_P (c))
-	  c = read_multibyte (c, readcharfun);
+	else if (EQ (readcharfun, Qget_file_char)
+		 && BASE_LEADING_CODE_P (c))
+	  c = read_multibyte (c, readcharfun, &discard);
 
 	return make_number (c);
       }
@@ -2145,14 +2145,12 @@ read1 (readcharfun, pch, first_in_list)
 	char *p = read_buffer;
 	char *end = read_buffer + read_buffer_size;
 	register int c;
-	/* 1 if we saw an escape sequence specifying
-	   a multibyte character, or a multibyte character.  */
+	/* Nonzero if we saw an escape sequence specifying
+	   a multibyte character.  */
 	int force_multibyte = 0;
-	/* 1 if we saw an escape sequence specifying
+	/* Nonzero if we saw an escape sequence specifying
 	   a single-byte character.  */
 	int force_singlebyte = 0;
-	/* 1 if read_buffer contains multibyte text now.  */
-	int is_multibyte = 0;
 	int cancel = 0;
 	int nchars = 0;
 
@@ -2170,6 +2168,7 @@ read1 (readcharfun, pch, first_in_list)
 
 	    if (c == '\\')
 	      {
+		int modifiers;
 		int byterep;
 
 		c = read_escape (readcharfun, 1, &byterep);
@@ -2182,53 +2181,92 @@ read1 (readcharfun, pch, first_in_list)
 		    continue;
 		  }
 
+		modifiers = c & CHAR_MODIFIER_MASK;
+		c = c & ~CHAR_MODIFIER_MASK;
+
 		if (byterep == 1)
-		  force_singlebyte = 1;
-		else if (byterep == 2)
+		  {
+		    force_singlebyte = 1;
+		    if (c >= 0x80)
+		      /*  Raw 8-bit code */
+		      c = BYTE8_TO_CHAR (c);
+		  }
+		else if (byterep > 1)
+		  {
+		    force_multibyte = 1;
+		    if (byterep == 2)
+		      c = BYTE8_TO_CHAR (c);
+		  }
+		else if (c >= 0x80)
+		  {
+		    force_singlebyte = 1;
+		    c = BYTE8_TO_CHAR (c);
+		  }
+
+		if (ASCII_CHAR_P (c))
+		  {
+		    /* Allow `\C- ' and `\C-?'.  */
+		    if (modifiers == CHAR_CTL)
+		      {
+			if (c == ' ')
+			  c = 0, modifiers = 0;
+			else if (c == '?')
+			  c = 127, modifiers = 0;
+		      }
+		    if (modifiers & CHAR_SHIFT)
+		      {
+			/* Shift modifier is valid only with [A-Za-z].  */
+			if (c >= 'A' && c <= 'Z')
+			  modifiers &= ~CHAR_SHIFT;
+			else if (c >= 'a' && c <= 'z')
+			  c -= ('a' - 'A'), modifiers &= ~CHAR_SHIFT;
+		      }
+
+		    if (modifiers & CHAR_META)
+		      {
+			/* Move the meta bit to the right place for a
+			   string.  */
+			modifiers &= ~CHAR_META;
+			c = BYTE8_TO_CHAR (c | 0x80);
+			force_singlebyte = 1;
+		      }
+		  }
+
+		/* Any modifiers remaining are invalid.  */
+		if (modifiers)
+		  error ("Invalid modifier in string");
+		p += CHAR_STRING (c, (unsigned char *) p);
+	      }
+	    else if (c >= 0x80)
+	      {
+		if (EQ (readcharfun, Qget_file_char))
+		  {
+		    if (BASE_LEADING_CODE_P (c))
+		      {
+			int nbytes;
+			c = read_multibyte (c, readcharfun, &nbytes);
+			if (nbytes > 1)
+			  force_multibyte = 1;
+			else
+			  {
+			    force_singlebyte = 1;
+			    c = BYTE8_TO_CHAR (c);
+			  }
+		      }
+		    else
+		      {
+			force_singlebyte = 1;
+			c = BYTE8_TO_CHAR (c);
+		      }
+		  }
+		else
 		  force_multibyte = 1;
+		p += CHAR_STRING (c, (unsigned char *) p);
 	      }
-
-	    /* A character that must be multibyte forces multibyte.  */
-	    if (! SINGLE_BYTE_CHAR_P (c & ~CHAR_MODIFIER_MASK))
-	      force_multibyte = 1;
-
-	    /* If we just discovered the need to be multibyte,
-	       convert the text accumulated thus far.  */
-	    if (force_multibyte && ! is_multibyte)
-	      {
-		is_multibyte = 1;
-		to_multibyte (&p, &end, &nchars);
-	      }
-
-	    /* Allow `\C- ' and `\C-?'.  */
-	    if (c == (CHAR_CTL | ' '))
-	      c = 0;
-	    else if (c == (CHAR_CTL | '?'))
-	      c = 127;
-
-	    if (c & CHAR_SHIFT)
-	      {
-		/* Shift modifier is valid only with [A-Za-z].  */
-		if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
-		  c &= ~CHAR_SHIFT;
-		else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
-		  c = (c & ~CHAR_SHIFT) - ('a' - 'A');
-	      }
-
-	    if (c & CHAR_META)
-	      /* Move the meta bit to the right place for a string.  */
-	      c = (c & ~CHAR_META) | 0x80;
-	    if (c & CHAR_MODIFIER_MASK)
-	      error ("Invalid modifier in string");
-
-	    if (is_multibyte)
-	      p += CHAR_STRING (c, p);
 	    else
 	      *p++ = c;
-
 	    nchars++;
 	  }
-
 	if (c < 0)
 	  end_of_file_error ();
 
@@ -2238,42 +2276,24 @@ read1 (readcharfun, pch, first_in_list)
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
-	if (is_multibyte || force_singlebyte)
+	if (force_multibyte)
+	  /* READ_BUFFER already contains valid multibyte forms.  */
 	  ;
-	else if (load_convert_to_unibyte)
+	else if (force_singlebyte)
 	  {
-	    Lisp_Object string;
-	    to_multibyte (&p, &end, &nchars);
-	    if (p - read_buffer != nchars)
-	      {
-		string = make_multibyte_string (read_buffer, nchars,
-						p - read_buffer);
-		return Fstring_make_unibyte (string);
-	      }
-	    /* We can make a unibyte string directly.  */
-	    is_multibyte = 0;
-	  }
-	else if (EQ (readcharfun, Qget_file_char)
-		 || EQ (readcharfun, Qlambda))
-	  {
-	    /* Nowadays, reading directly from a file is used only for
-	       compiled Emacs Lisp files, and those always use the
-	       Emacs internal encoding.  Meanwhile, Qlambda is used
-	       for reading dynamic byte code (compiled with
-	       byte-compile-dynamic = t).  */
-	    to_multibyte (&p, &end, &nchars);
-	    is_multibyte = 1;
+	    nchars = str_as_unibyte (read_buffer, p - read_buffer);
+	    p = read_buffer + nchars;
 	  }
 	else
-	  /* In all other cases, if we read these bytes as
-	     separate characters, treat them as separate characters now.  */
-	  ;
+	  /* Otherwise, READ_BUFFER contains only ASCII.  */
 
 	if (read_pure)
 	  return make_pure_string (read_buffer, nchars, p - read_buffer,
-				   is_multibyte);
+				   (force_multibyte
+				    || (p - read_buffer != nchars)));
 	return make_specified_string (read_buffer, nchars, p - read_buffer,
-				      is_multibyte);
+				      (force_multibyte
+				       || (p - read_buffer != nchars)));
       }
 
     case '.':
