@@ -4581,7 +4581,7 @@ x_connection_signal_1 (signalnum)	/* If we don't have an argument, */
      int signalnum;		/* some compilers complain in signal calls. */
 {
   signal (SIGPIPE, x_connection_signal);
-  x_connection_closed (x_connection_signal_dpyinfo,
+  x_connection_closed (x_connection_signal_dpyinfo->display,
 		       "connection was lost");
 }
 
