@@ -571,6 +571,8 @@ emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
 @end smallexample
 
 @table @var
+@item maker
+This is the name of the font manufacturer.
 @item family
 This is the name of the font family---for example, @samp{courier}.
 @item weight
@@ -603,7 +605,7 @@ your system is the right value for your screen; therefore, you normally
 specify @samp{*} for this and @var{horiz}.
 @item spacing
 This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
-(character cell).  Emacs can use @samp{m} and @samp{c} fonts.
+(character cell).
 @item width
 This is the average character width, in pixels, multiplied by ten.
 @item charset
@@ -611,12 +613,11 @@ This is the character set that the font depicts.
 Normally you should use @samp{iso8859-1}.
 @end table
 
-  Use only fixed-width fonts---that is, fonts in which all characters
-have the same width; Emacs cannot yet handle display properly for
-variable-width fonts.  Any font with @samp{m} or @samp{c} in the
-@var{spacing} field of the long name is a fixed-width font.  Here's how
-to use the @code{xlsfonts} program to list all the fixed-width fonts
-available on your system:
+  You will probably want to use a fixed-width default font---that is,
+a font in which all characters have the same width.  Any font with
+@samp{m} or @samp{c} in the @var{spacing} field of the long name is a
+fixed-width font.  Here's how to use the @code{xlsfonts} program to
+list all the fixed-width fonts available on your system:
 
 @example
 xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
