@@ -77,6 +77,11 @@ Control whether an italic font should be used.")
 Control whether the text should be underlined.")
 		set-face-underline-p
 		face-underline-p)
+    (:inverse-video (toggle :format "%[Inverse-Video%]: %v\n"
+			:help-echo "\
+Control whether the text should be in inverse video.")
+		set-face-inverse-video-p
+		face-inverse-video-p)
     (:foreground (color :tag "Foreground"
 			:value "black"
 			:help-echo "Set foreground color.")
