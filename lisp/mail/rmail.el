@@ -1789,7 +1789,7 @@ Interactively, empty argument means use same regexp used last time."
 	     (error "No previous Rmail search string")))
       (list rmail-search-last-regexp
 	    (prefix-numeric-value current-prefix-arg))))
-  (rmail-search regexp (- (or n -1))))
+  (rmail-search regexp (- (or n 1))))
 
 ;; Show the first message which has the `unseen' attribute.
 (defun rmail-first-unseen-message ()
