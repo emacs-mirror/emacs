@@ -197,7 +197,9 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
 (defvar outline-minor-mode-prefix "\C-c\C-o"
-  "*Prefix key to use for Outline commands in Outline minor mode.")
+  "*Prefix key to use for Outline commands in Outline minor mode.
+The value of this variable is checked as part of loading Outline mode.
+After that, changing the prefix key requires manipulating keymaps.")
 
 (defvar outline-minor-mode-map nil)
 (if outline-minor-mode-map
