@@ -2130,7 +2130,7 @@ Control characters turn into "^char", etc.  */)
   CHECK_NUMBER (character);
 
   c = XINT (character);
-  if (!SINGLE_BYTE_CHAR_P (c))
+  if (!ASCII_CHAR_P (c))
     {
       int len = CHAR_STRING (c, str);
 
