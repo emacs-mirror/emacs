@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc-hooks.el,v 1.3 1992/09/27 00:45:57 roland Exp rms $	
+;;	$Id: vc-hooks.el,v 1.4 1992/10/20 06:44:21 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -65,14 +65,16 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 ;;; actual version-control code starts here
 
 (defun vc-registered (file)
-  (let (handler (handlers file-name-handler-alist))
-    (save-match-data
-     (while (and (consp handlers) (null handler))
-       (if (and (consp (car handlers))
-		(stringp (car (car handlers)))
-		(string-match (car (car handlers)) file))
-	   (setq handler (cdr (car handlers))))
-       (setq handlers (cdr handlers))))
+  (let (handler handlers)
+    (if (boundp 'file-name-handler-alist)
+	(save-match-data
+	  (setq handlers file-name-handler-alist)
+	  (while (and (consp handlers) (null handler))
+	    (if (and (consp (car handlers))
+		     (stringp (car (car handlers)))
+		     (string-match (car (car handlers)) file))
+		(setq handler (cdr (car handlers))))
+	    (setq handlers (cdr handlers)))))
     (if handler
 	(funcall handler 'vc-registered file)
       ;; Search for a master corresponding to the given file
@@ -96,8 +98,7 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 				   (file-attributes trial)))))
 		    (throw 'found (cons trial (cdr s)))))))
 	   vc-master-templates)
-	  nil)
-	))))
+	  nil)))))
 
 (defun vc-backend-deduce (file)
   "Return the version-control type of a file, nil if it is not registered"
