@@ -481,40 +481,43 @@ start a background process even if a buffer already exists and
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
 See the variable `Man-notify' for the different notification behaviors."
-  (cond
-   ((eq Man-notify 'newframe)
-    ;; Since we run asynchronously, perhaps while Emacs is waiting for input,
-    ;; we must not leave a different buffer current.
-    ;; We can't rely on the editor command loop to reselect
-    ;; the selected window's buffer.
-    (save-excursion
-      (set-buffer man-buffer)
-      (make-frame Man-frame-parameters)))
-   ((eq Man-notify 'bully)
-    (and window-system
-	 (frame-live-p Man-original-frame)
-	 (select-frame Man-original-frame))
-    (pop-to-buffer man-buffer)
-    (delete-other-windows))
-   ((eq Man-notify 'aggressive)
-    (and window-system
-	 (frame-live-p Man-original-frame)
-	 (select-frame Man-original-frame))
-    (pop-to-buffer man-buffer))
-   ((eq Man-notify 'friendly)
-    (and window-system
-	 (frame-live-p Man-original-frame)
-	 (select-frame Man-original-frame))
-    (display-buffer man-buffer 'not-this-window))
-   ((eq Man-notify 'polite)
-    (beep)
-    (message "Manual buffer %s is ready." (buffer-name man-buffer)))
-   ((eq Man-notify 'quiet)
-    (message "Manual buffer %s is ready." (buffer-name man-buffer)))
-   ((or (eq Man-notify 'meek)
-	t)
-    (message ""))
-   ))
+  (let ((saved-frame (save-excursion
+		       (set-buffer man-buffer)
+		       Man-original-frame)))
+    (cond
+     ((eq Man-notify 'newframe)
+      ;; Since we run asynchronously, perhaps while Emacs is waiting for input,
+      ;; we must not leave a different buffer current.
+      ;; We can't rely on the editor command loop to reselect
+      ;; the selected window's buffer.
+      (save-excursion
+	(set-buffer man-buffer)
+	(make-frame Man-frame-parameters)))
+     ((eq Man-notify 'bully)
+      (and window-system
+	   (frame-live-p saved-frame)
+	   (select-frame saved-frame))
+      (pop-to-buffer man-buffer)
+      (delete-other-windows))
+     ((eq Man-notify 'aggressive)
+      (and window-system
+	   (frame-live-p saved-frame)
+	   (select-frame saved-frame))
+      (pop-to-buffer man-buffer))
+     ((eq Man-notify 'friendly)
+      (and window-system
+	   (frame-live-p saved-frame)
+	   (select-frame saved-frame))
+      (display-buffer man-buffer 'not-this-window))
+     ((eq Man-notify 'polite)
+      (beep)
+      (message "Manual buffer %s is ready." (buffer-name man-buffer)))
+     ((eq Man-notify 'quiet)
+      (message "Manual buffer %s is ready." (buffer-name man-buffer)))
+     ((or (eq Man-notify 'meek)
+	  t)
+      (message ""))
+     )))
 
 (defun Man-set-fonts ()
   (goto-char (point-min))
