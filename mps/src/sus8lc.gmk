@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SUNOS/SPARC/LCC PLATFORM
 #
-#  $HopeName: MMsrc!susplc.gmk(trunk.5) $
+#  $HopeName: MMsrc!susplc.gmk(trunk.6) $
 #  Copyright (C) 1996,1997 Harlequin Group, all rights reserved
 #
 #  This is the GNU makefile for platform.susplc.
@@ -16,6 +16,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       mpsioan.c event.c action.c seg.c
 MPMS = sssusp.s
 AMC = amc.c
+AWL = poolawl.c
 LO = lo.c
 MRG = poolmrg.c
 DW = fmtdy.c dw.c
