@@ -587,25 +587,26 @@ Note that changing the size of one terminal frame automatically affects all.")
 {
   struct frame *f;
   Lisp_Object frame, tem;
+  struct frame *sf = SELECTED_FRAME ();
 
 #ifdef MSDOS
-  if (selected_frame->output_method != output_msdos_raw)
+  if (sf->output_method != output_msdos_raw)
     abort ();
 #else /* not MSDOS */
 
 #ifdef macintosh
-  if (selected_frame->output_method != output_mac)
+  if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
-  if (selected_frame->output_method != output_termcap)
+  if (sf->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
 #endif
 #endif /* not MSDOS */
 
   f = make_terminal_frame ();
 
-  change_frame_size (f, FRAME_HEIGHT (selected_frame),
-		     FRAME_WIDTH (selected_frame), 0, 0, 0);
+  change_frame_size (f, FRAME_HEIGHT (sf),
+		     FRAME_WIDTH (sf), 0, 0, 0);
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
@@ -614,7 +615,7 @@ Note that changing the size of one terminal frame automatically affects all.")
 
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
-  f->face_alist = Fcopy_alist (selected_frame->face_alist);
+  f->face_alist = Fcopy_alist (sf->face_alist);
   /* Simple Fcopy_alist isn't enough, because we need the contents of
      the vectors which are the CDRs of associations in face_alist to
      be copied as well.  */
@@ -628,6 +629,8 @@ do_switch_frame (frame, no_enter, track)
      Lisp_Object frame, no_enter;
      int track;
 {
+  struct frame *sf = SELECTED_FRAME ();
+  
   /* If FRAME is a switch-frame event, extract the frame we should
      switch to.  */
   if (CONSP (frame)
@@ -642,7 +645,7 @@ do_switch_frame (frame, no_enter, track)
   if (! FRAME_LIVE_P (XFRAME (frame)))
     return Qnil;
 
-  if (selected_frame == XFRAME (frame))
+  if (sf == XFRAME (frame))
     return frame;
 
   /* This is too greedy; it causes inappropriate focus redirection
@@ -668,7 +671,7 @@ do_switch_frame (frame, no_enter, track)
 
 	  focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
 
-	  if (FRAMEP (focus) && XFRAME (focus) == selected_frame)
+	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
 	    Fredirect_frame_focus (XCONS (tail)->car, frame);
 	}
     }
@@ -683,16 +686,16 @@ do_switch_frame (frame, no_enter, track)
       if (FRAMEP (xfocus))
 	{
 	  focus = FRAME_FOCUS_FRAME (XFRAME (xfocus));
-	  if (FRAMEP (focus) && XFRAME (focus) == selected_frame)
+	  if (FRAMEP (focus) && XFRAME (focus) == SELECTED_FRAME ())
 	    Fredirect_frame_focus (xfocus, frame);
 	}
     }
 #endif /* HAVE_X_WINDOWS */
 #endif /* ! 0 */
 
-  selected_frame = XFRAME (frame);
-  if (! FRAME_MINIBUF_ONLY_P (selected_frame))
-    last_nonminibuf_frame = selected_frame;
+  selected_frame = frame;
+  if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
+    last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (XFRAME (frame)->selected_window);
 
@@ -751,9 +754,7 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   "Return the frame that is now selected.")
   ()
 {
-  Lisp_Object tem;
-  XSETFRAME (tem, selected_frame);
-  return tem;
+  return selected_frame;
 }
 
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
@@ -774,7 +775,7 @@ If omitted, FRAME defaults to the currently selected frame.")
   Lisp_Object w;
 
   if (NILP (frame))
-    w = selected_frame->root_window;
+    w = SELECTED_FRAME ()->root_window;
   else
     {
       CHECK_LIVE_FRAME (frame, 0);
@@ -806,12 +807,17 @@ If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
+  Lisp_Object window;
+  
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    window = SELECTED_FRAME ()->root_window;
   else
-    CHECK_LIVE_FRAME (frame, 0);
-
-  return XFRAME (frame)->root_window;
+    {
+      CHECK_LIVE_FRAME (frame, 0);
+      window = XFRAME (frame)->root_window;
+    }
+  
+  return window;
 }
 
 DEFUN ("frame-selected-window", Fframe_selected_window,
@@ -821,12 +827,17 @@ If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
+  Lisp_Object window;
+  
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    window = SELECTED_FRAME ()->selected_window;
   else
-    CHECK_LIVE_FRAME (frame, 0);
+    {
+      CHECK_LIVE_FRAME (frame, 0);
+      window = XFRAME (frame)->selected_window;
+    }
 
-  return XFRAME (frame)->selected_window;
+  return window;
 }
 
 DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
@@ -838,16 +849,15 @@ If FRAME is the selected frame, this makes WINDOW the selected window.")
      Lisp_Object frame, window;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
-  else
-    CHECK_LIVE_FRAME (frame, 0);
-
+    frame = selected_frame;
+  
+  CHECK_LIVE_FRAME (frame, 0);
   CHECK_LIVE_WINDOW (window, 1);
 
   if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
     error ("In `set-frame-selected-window', WINDOW is not on FRAME");
 
-  if (XFRAME (frame) == selected_frame)
+  if (EQ (frame, selected_frame))
     return Fselect_window (window);
 
   return XFRAME (frame)->selected_window = window;
@@ -1039,10 +1049,9 @@ Otherwise, include all frames.")
   Lisp_Object tail;
 
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
-  else
-    CHECK_LIVE_FRAME (frame, 0);
-
+    frame = selected_frame;
+  
+  CHECK_LIVE_FRAME (frame, 0);
   return next_frame (frame, miniframe);
 }
 
@@ -1063,10 +1072,8 @@ Otherwise, include all frames.")
   Lisp_Object tail;
 
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
-  else
-    CHECK_LIVE_FRAME (frame, 0);
-
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
   return prev_frame (frame, miniframe);
 }
 
@@ -1080,7 +1087,7 @@ other_visible_frames (f)
 {
   /* We know the selected frame is visible,
      so if F is some other frame, it can't be the sole visible one.  */
-  if (f == selected_frame)
+  if (f == SELECTED_FRAME ())
     {
       Lisp_Object frames;
       int count = 0;
@@ -1125,11 +1132,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
      Lisp_Object frame, force;
 {
   struct frame *f;
+  struct frame *sf = SELECTED_FRAME ();
   int minibuffer_selected;
 
   if (EQ (frame, Qnil))
     {
-      f = selected_frame;
+      f = sf;
       XSETFRAME (frame, f);
     }
   else
@@ -1175,7 +1183,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   minibuffer_selected = EQ (minibuf_window, selected_window);
 
   /* Don't let the frame remain selected.  */
-  if (f == selected_frame)
+  if (f == sf)
     {
       Lisp_Object tail, frame1;
 
@@ -1198,9 +1206,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
     {
-      Fset_window_buffer (selected_frame->minibuffer_window,
+      Fset_window_buffer (sf->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
-      minibuf_window = selected_frame->minibuffer_window;
+      minibuf_window = sf->minibuffer_window;
 
       /* If the dying minibuffer window was selected,
 	 select the new one.  */
@@ -1372,7 +1380,7 @@ and nil for X and Y.")
   int col, row;
   unsigned long long_dummy;
 
-  f = selected_frame;
+  f = SELECTED_FRAME ();
   x = y = Qnil;
 
 #ifdef HAVE_MOUSE
@@ -1412,7 +1420,7 @@ and nil for X and Y.")
   int col, row;
   unsigned long long_dummy;
 
-  f = selected_frame;
+  f = SELECTED_FRAME ();
   x = y = Qnil;
 
 #ifdef HAVE_MOUSE
@@ -1504,7 +1512,7 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1558,7 +1566,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
      Lisp_Object frame, force;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1567,16 +1575,17 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
-  if (XFRAME (frame) == selected_frame)
+  if (EQ (frame, selected_frame))
     do_switch_frame (next_frame (frame, Qt), Qnil, 0)
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
     {
-      Fset_window_buffer (selected_frame->minibuffer_window,
+      struct frame *sf = XFRAME (selected_frame);
+      Fset_window_buffer (sf->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
-      minibuf_window = selected_frame->minibuffer_window;
+      minibuf_window = sf->minibuffer_window;
     }
 
   /* I think this should be done with a hook.  */
@@ -1599,22 +1608,23 @@ If omitted, FRAME defaults to the currently selected frame.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    frame = selected_frame;
   
   CHECK_LIVE_FRAME (frame, 0);
 
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
-  if (XFRAME (frame) == selected_frame)
+  if (EQ (frame, selected_frame))
     Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (XFRAME (frame)->minibuffer_window, minibuf_window))
     {
-      Fset_window_buffer (selected_frame->minibuffer_window,
+      struct frame *sf = XFRAME (selected_frame);
+      Fset_window_buffer (sf->minibuffer_window,
 			  XWINDOW (minibuf_window)->buffer);
-      minibuf_window = selected_frame->minibuffer_window;
+      minibuf_window = sf->minibuffer_window;
     }
 
   /* I think this should be done with a hook.  */
@@ -1682,7 +1692,7 @@ doesn't support multiple overlapping frames, this function does nothing.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1705,7 +1715,7 @@ doesn't support multiple overlapping frames, this function does nothing.")
      Lisp_Object frame;
 {
   if (NILP (frame))
-    XSETFRAME (frame, selected_frame);
+    frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame, 0);
   
@@ -1981,12 +1991,10 @@ If FRAME is omitted, return information on the currently selected frame.")
   int height, width;
 
   if (EQ (frame, Qnil))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+
+  CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -2021,7 +2029,7 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qbuffer_list,
-		  frame_buffer_list (Fselected_frame ()));
+		  frame_buffer_list (selected_frame));
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2053,12 +2061,9 @@ so that `frame-parameters' will return them.")
   register Lisp_Object tail, elt, prop, val;
 
   if (EQ (frame, Qnil))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2121,12 +2126,9 @@ For a terminal frame, the value is always 1.")
   struct frame *f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -2150,12 +2152,9 @@ For a terminal screen, the value is always 1.")
   struct frame *f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -2178,12 +2177,9 @@ If FRAME is omitted, the selected frame is used.")
   struct frame *f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -2204,12 +2200,9 @@ If FRAME is omitted, the selected frame is used.")
   struct frame *f;
 
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
@@ -2230,12 +2223,9 @@ but that the idea of the actual height of the frame should not be changed.")
 
   CHECK_NUMBER (lines, 0);
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2261,12 +2251,9 @@ but that the idea of the actual width of the frame should not be changed.")
   register struct frame *f;
   CHECK_NUMBER (cols, 0);
   if (NILP (frame))
-    f = selected_frame;
-  else
-    {
-      CHECK_LIVE_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
