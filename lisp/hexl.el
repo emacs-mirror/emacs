@@ -102,6 +102,8 @@ and \"-de\" when dehexlifying a buffer."
 
 ;; routines
 
+(put 'hexl-mode 'mode-class 'special)
+
 ;;;###autoload
 (defun hexl-mode (&optional arg)
   "\\<hexl-mode-map>
