@@ -64,6 +64,8 @@ struct x_output
   PIX_TYPE background_pixel;
   PIX_TYPE foreground_pixel;
   XFontStruct *font;
+  Window busy_window;
+  unsigned busy_p : 1;
   struct face **param_faces;
   int n_param_faces;
   struct face **computed_faces;
@@ -93,40 +95,27 @@ extern Display *x_current_display;
 /* Forward declarations for prototypes.  */
 struct frame;
 struct window;
-extern void init_frame_faces P_ ((struct frame *));
-extern void free_frame_faces P_ ((struct frame *));
-extern struct face *intern_face P_ ((struct frame *, struct face *));
-extern int face_name_id_number P_ ((struct frame *, Lisp_Object));
-extern void recompute_basic_faces P_ ((struct frame *));
-extern int compute_char_face P_ ((struct frame *frame,
-				  struct window *w,
-				  int pos,
-				  int region_beg, int region_end,
-				  int *endptr,
-				  int limit, int mouse));
-extern int compute_glyph_face P_ ((struct frame *, int, int));
+#if 0
+extern int face_name_id_number P_ ((struct frame *, Lisp_Object)); /* !!! */
+extern int compute_glyph_face P_ ((struct frame *, int, int)); /* !!! */
+#endif
+
+/* From xterm.c; emulated on msdos.c */
+
 extern void pixel_to_glyph_coords P_ ((struct frame *f, int pix_x, int pix_y,
 				       int *x, int *y, XRectangle *bounds,
 				       int noclip));
 extern void glyph_to_pixel_coords P_ ((struct frame *f, int x, int y,
 				       int *pix_x, int *pix_y));
 
-/* Defined in xfns.c */
+/* Defined in xfns.c; emulated on msdos.c */
 
 extern int have_menus_p P_ ((void));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern int x_pixel_width P_ ((struct frame *));
 extern int x_pixel_height P_ ((struct frame *));
 
-/* Defined in xfaces.c */
-extern void clear_face_cache P_ ((void));
-extern int compute_glyph_face P_ ((struct frame *, int, int));
-extern int compute_glyph_face_1 P_ ((struct frame *, Lisp_Object, int));
-
-
 #define XFreeGC (void)
-#define same_size_fonts(foo,bar) (1)
-#define unload_font(p1,p2)
 #define unload_color(p1,p2)
 #define x_destroy_bitmap(p1,p2)
 #define load_pixmap(p1,p2,p3,p4) (0)
