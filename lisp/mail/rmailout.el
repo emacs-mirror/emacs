@@ -45,6 +45,9 @@ buffer visiting that file.
 If the file exists and is not an Rmail file, 
 the message is appended in inbox format.
 
+The default file name comes from `rmail-last-rmail-file',
+which is updated to the name you use in this command.
+
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count."
   (interactive
@@ -177,6 +180,9 @@ When called from lisp code, N may be omitted.
 If the pruned message header is shown on the current message, then
 messages will be appended with pruned headers; otherwise, messages
 will be appended with their original headers.
+
+The default file name comes from `rmail-last-file',
+which is updated to the name you use in this command.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not
 to set the `filed' attribute, and not to display a message.
