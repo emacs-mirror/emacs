@@ -1,5 +1,9 @@
 2000-07-13  Dave Love  <fx@gnu.org>
 
+	* progmodes/fortran.el (fortran-imenu-generic-expression): Change
+	definition layout.
+	(fortran-mode-menu): Reinstate customize entries.
+
 	* cus-edit.el (custom-group-menu-create, customize-menu-create):
 	Use :filter, per old XEmacs code.
 
