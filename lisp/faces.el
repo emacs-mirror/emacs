@@ -1382,14 +1382,14 @@ created."
   :group 'basic-faces)
 
 
-(defface bitmap-area
+(defface margin
   '((((class color))
      (:background "grey95"))
     (((class mono))
      (:background "white"))
     (t
      (:background "gray")))
-  "Basic face for bitmap areas under X."
+  "Basic face for the margins to the left and right of windows under X."
   :version "21.1"
   :group 'basic-faces)
 
