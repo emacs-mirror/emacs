@@ -34,7 +34,6 @@ Boston, MA 02111-1307, USA.  */
 #define GC_CHECK_STRING_BYTES 1
 #endif /* 0*/
 
-
 /* These are default choices for the types to use.  */
 #ifdef _LP64
 #ifndef EMACS_INT
@@ -743,7 +742,7 @@ struct Lisp_Vector
   char_table_translate (CT, IDX)
 
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
-   8-bit Europeans characters.  Do not check validity of CT.  */
+   8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
   (((IDX) >= 0 && ASCII_CHAR_P (IDX)					\
     && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii))			\
@@ -3062,6 +3061,7 @@ extern void fatal () NO_RETURN;
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));
 EXFUN (Fset_fontset_font, 5);
+EXFUN (Fnew_fontset, 2);
 #endif
 
 /* Defined in xfaces.c */
