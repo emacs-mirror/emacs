@@ -860,8 +860,7 @@ Returns number of lines moved; may be closer to zero than LINES\n\
      Lisp_Object lines, window;
 {
   struct position pos;
-  register struct window *w = XWINDOW (selected_window);
-  int width = window_internal_width (w) - 1;
+  register struct window *w;
 
   CHECK_NUMBER (lines, 0);
   if (! NILP (window))
@@ -869,7 +868,8 @@ Returns number of lines moved; may be closer to zero than LINES\n\
   else
     XSET (window, Lisp_Window, selected_window);
 
-  pos = *vmotion (point, XINT (lines), width,
+  w = XWINDOW (window);
+  pos = *vmotion (point, XINT (lines), window_internal_width (w) - 1,
 		  /* Not XFASTINT since perhaps could be negative */
 		  XINT (w->hscroll), window);
 
