@@ -1,3 +1,32 @@
+2003-01-13  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-comment-column-char)
+	(ruler-mode-goal-column-char)
+	(ruler-mode-set-goal-column-ding-flag)
+	(ruler-mode-mouse-current-grab-object): New variables.
+	(ruler-mode-comment-column-face, ruler-mode-goal-column-face): New
+	faces.
+	(ruler-mode-mouse-set-fill-column): Removed.
+	(ruler-mode-mouse-grab-any-column)
+	(ruler-mode-mouse-drag-any-column-iteration)
+	(ruler-mode-mouse-drag-any-column): New functions.
+	(ruler-mode-map): [header-line down-mouse-2] Bound to
+	`ruler-mode-mouse-grab-any-column' instead of
+	`ruler-mode-mouse-set-fill-column'.
+	(ruler-mode): Cleanup buffer local variable `header-line-format' if it
+	didn't exist when `ruler-mode' was enabled.
+	(ruler-mode-ruler-help-echo): Updated its value.
+	(ruler-mode-ruler-help-echo-when-goal-column): New help string used when
+	goal-column is already set.
+	(ruler-mode-ruler-help-echo-tab): Renamed to...
+	(ruler-mode-ruler-help-echo-when-tab-stops): New.
+	(ruler-mode-fill-column-help-echo, ruler-mode-comment-column-help-echo)
+	(ruler-mode-goal-column-help-echo): New help strings.
+	(ruler-mode-ruler): Use `ruler-mode-ruler-help-echo-when-goal-column'
+	instead of `ruler-mode-ruler-help-echo' if `goal-column' is set.  Show
+	`comment-column' and `goal-column'.  Echo the different help string for
+	each *-column characters on the ruler.
+
 2003-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* apropos.el (apropos-documentation-property): New function.
@@ -210,16 +239,9 @@
 
 2003-01-05  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
 
-<<<<<<< ChangeLog
-	* mail/sendmail.el (mail-font-lock-keywords):
-	Match multiline In-Reply-To and X-*.
-	* mail/rmail.el (rmail-font-lock-keywords):
-	Match multiline In-Reply-To and X-*.
-=======
 	* mail/sendmail.el (mail-font-lock-keywords):
 	* mail/rmail.el (rmail-font-lock-keywords): Match multiline
 	In-Reply-To and X-*.
->>>>>>> 1.4713
 
 2003-01-05  Mark A. Hershberger  <mah@everybody.org>
 
