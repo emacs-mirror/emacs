@@ -181,7 +181,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 1)	; SJIS
     (let ((i 128))
       (while (< i 256)
-	(define-key encoded-kbd-mode-map
+	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-sjis)
 	(setq i (1+ i))))
     8)
@@ -189,7 +189,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 3)	; Big5
     (let ((i 161))
       (while (< i 255)
-	(define-key encoded-kbd-mode-map
+	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-big5)
 	(setq i (1+ i))))
     8)
