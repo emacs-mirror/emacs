@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate August  1, 1998
+@set lastupdate September 13, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -396,6 +396,10 @@ If you think of others that should be added, please
 send them to @email{gnu@@gnu.org}.
 
 @itemize @bullet
+
+@item
+A program to reformat HTML source to make it easier to read as HTML.
+
 @item
 A simple PC BIOS.  On most new PCs, the BIOS is stored in writable
 memory (misleadingly known as ``flash ROM'').  In order to have a wholly
