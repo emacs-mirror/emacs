@@ -294,27 +294,31 @@ key is supported."
   :type 'sexp
   :group 'filesets)
 
-(when filesets-running-xemacs
-  (defcustom filesets-menu-path nil
-    "*The menu under which the filesets menu should be inserted.
+(if
+    (progn
+      (defcustom filesets-menu-path nil
+	"*The menu under which the filesets menu should be inserted.
 XEmacs specific; see `add-submenu' for documentation."
-    :set (function filesets-set-default)
-    :type 'sexp
-    :group 'filesets)
+	:set (function filesets-set-default)
+	:type 'sexp
+	:group 'filesets)
 
-  (defcustom filesets-menu-before "File"
-    "*The name of a menu before which this menu should be added.
+      (defcustom filesets-menu-before "File"
+	"*The name of a menu before which this menu should be added.
 XEmacs specific; see `add-submenu' for documentation."
-    :set (function filesets-set-default)
-    :type 'sexp
-    :group 'filesets)
+	:set (function filesets-set-default)
+	:type 'sexp
+	:group 'filesets)
 
-  (defcustom filesets-menu-in-menu nil
-    "*Use that instead of `current-menubar' as the menu to change.
+      (defcustom filesets-menu-in-menu nil
+	"*Use that instead of `current-menubar' as the menu to change.
 XEmacs specific; see `add-submenu' for documentation."
-    :set (function filesets-set-default)
-    :type 'sexp
-    :group 'filesets))
+	:set (function filesets-set-default)
+	:type 'sexp
+	:group 'filesets))
+  (defvar filesets-menu-path nil)
+  (defvar filesets-menu-before nil)
+  (defvar filesets-menu-in-menu nil))
 
 (defcustom filesets-menu-shortcuts-flag t
   "*Non-nil means to prepend menus with hopefully unique shortcuts."
@@ -1103,7 +1107,7 @@ If SIMPLY-DO-IT is non-nil, the list is sorted regardless of
 		   (lambda (a b)
 		     (string< (upcase (funcall fni a))
 			      (upcase (funcall fni b)))))))
-	(sort (copy-list lst) fn))
+	(sort (copy-sequence lst) fn))
     lst))
 
 (defun filesets-directory-files (dir &optional
