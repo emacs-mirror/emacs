@@ -1,9 +1,9 @@
 ;;; quickurl.el --- Insert an URL based on text at point in buffer.
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999,2000 Free Software Foundation, Inc.
 
-;; Author: Dave Pearson <davep@hagbard.demon.co.uk>
-;; Maintainer: Dave Pearson <davep@hagbard.demon.co.uk>
+;; Author: Dave Pearson <davep@davep.org>
+;; Maintainer: Dave Pearson <davep@davep.org>
 ;; Created: 1999-05-28
 ;; Keywords: hypermedia
 
@@ -111,7 +111,7 @@
   :type  'file
   :group 'quickurl)
 
-(defcustom quickurl-format-function (lambda (url) (format "<URL:%s>" url))
+(defcustom quickurl-format-function (lambda (url) (format "<URL:%s>" (quickurl-url-url url)))
   "*Function to format the URL before insertion into the current buffer."
   :type  'function
   :group 'quickurl)
@@ -294,7 +294,7 @@ depends on the setting of the variable `quickurl-assoc-function'."
   "Insert URL, formatted using `quickurl-format-function'.
 
 Also display a `message' saying what the URL was unless SILENT is non-nil."
-  (insert (funcall quickurl-format-function (quickurl-url-url url)))
+  (insert (funcall quickurl-format-function url))
   (unless silent
     (message "Found %s" (quickurl-url-url url))))
 
@@ -521,7 +521,7 @@ TYPE dictates what will be inserted, options are:
         (with-current-buffer quickurl-list-last-buffer
           (insert
            (case type
-             ('url         (format "<URL:%s>" (quickurl-url-url url)))
+             ('url         (funcall quickurl-format-function url))
              ('naked-url   (quickurl-url-url url))
              ('with-lookup (format "%s <URL:%s>"
                                    (quickurl-url-keyword url)
