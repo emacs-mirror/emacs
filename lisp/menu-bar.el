@@ -634,20 +634,20 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [highlight-paren-mode]
   (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
-			"Highlight Matching Parentheses"
+			"Paren Match Highlighting (Show Paren mode)"
 			"Show Paren mode %s"
-			"Highlight matching and mismatched parentheses"
+			"Highlight matching/mismatched parentheses at cursor"
 			(show-paren-mode)))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Highlight Marked Text (Transient Mark mode)"
+			"Active Region Highlighting (Transient Mark mode)"
 			"Transient Mark mode %s"
-			"Highlight the marked region when active"))
+			"Make text in active region stand out in color"))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
-			"Highlight Syntactically"
+			"Syntax Highlighting (Global Font Lock mode)"
 			"Global Font Lock mode %s"
-			"Highlight text based on language syntax"
+			"Colorize text based on language syntax"
 			(global-font-lock-mode)))
 
 
