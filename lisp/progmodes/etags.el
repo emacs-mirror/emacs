@@ -305,10 +305,7 @@ If optional arg is the atom `same', don't look for a new table;
 If arg is nil or absent, choose a first buffer from information in
 `tags-file-name', `tags-table-list', `tags-table-list-pointer'.
 Returns t if it visits a tags table, or nil if there are no more in the list."
-  (cond ((eq cont 'same)
-	 ;; We don't need to look for a setting for tags-file-name,
-	 ;; but other than that we should behave just as if passed nil.
-	 (setq cont nil))
+  (cond ((eq cont 'same))
 
 	(cont
 	 (if (tags-next-table)
@@ -340,7 +337,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 
   (setq tags-file-name (tags-expand-table-name tags-file-name))
 
-  (if (and cont (null tags-table-list-pointer))
+  (if (and (eq cont t) (null tags-table-list-pointer))
       ;; All out of tables.
       nil
 
@@ -411,7 +408,10 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		      (setq elt tags-table-list))))
 
 	      (setq tags-table-list-started-at elt
-		    tags-table-list-pointer elt))))
+		    tags-table-list-pointer elt)))
+
+	  ;; Return of t says the tags table is valid.
+	  t)
 
       ;; The buffer was not valid.  Don't use it again.
       (kill-local-variable 'tags-file-name)
