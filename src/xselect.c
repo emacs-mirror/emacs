@@ -1167,7 +1167,7 @@ receive_incremental_selection (display, window, property, target_type,
 	  *size_bytes_ret = offset + tmp_size_bytes;
 	  *data_ret = (unsigned char *) xrealloc (*data_ret, *size_bytes_ret);
 	}
-      memcpy ((*data_ret) + offset, tmp_data, tmp_size_bytes);
+      bcopy (tmp_data, (*data_ret) + offset, tmp_size_bytes);
       offset += tmp_size_bytes;
       xfree (tmp_data);
     }
