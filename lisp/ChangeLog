@@ -1,3 +1,11 @@
+2004-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* novice.el (disabled-command-hook): Use shorthand for obsolescence.
+	(disabled-command-function): Make the ?\  char more obvious.
+
+	* vc-arch.el (vc-arch-root, vc-arch-registered):
+	* vc-mcvs.el (vc-mcvs-root, vc-mcvs-registered): Use vc-find-root.
+
 2004-09-13  Hovav Shacham  <hovav@sha1.stanford.edu>
 
 	* windmove.el (windmove-frame-edges): Report coordinates of
@@ -14,7 +22,7 @@
 	* isearch.el (isearch-resume-in-command-history): Rename from
 	isearch-resume-enabled and change default to nil.
 
-2004-09-12  Stefan  <monnier@iro.umontreal.ca>
+2004-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-ignore-dir-regexp): New var.
 	(vc-registered): Use it.
@@ -120,7 +128,7 @@
 	* desktop.el (desktop-clear-preserve-buffers):
 	Remove make-obsolete-variable.
 
-2004-09-08  Stefan  <monnier@iro.umontreal.ca>
+2004-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-state): Fix parsing for `names' method.
 
@@ -207,7 +215,7 @@
 	window system if overflow-newline-into-fringe is enabled.
 	(term-mode): Don't disable overflow-newline-into-fringe.
 
-2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+2004-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (function-key-map): Add bindings for C- and S- cursor
 	motion as seen on my Mac OS X xterms.
@@ -464,8 +472,8 @@
 
 2004-08-29  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua-auto-expand-rectangles): Remove
-	automatic rectangle padding feature; replace by non-destructive
+	* emulation/cua-base.el (cua-auto-expand-rectangles):
+	Remove automatic rectangle padding feature; replace by non-destructive
 	virtual rectangle edges feature.
 	(cua-virtual-rectangle-edges): New defcustom.
 	(cua-auto-tabify-rectangles): New defcustom.
@@ -948,8 +956,8 @@
 	key-translation-map.
 	(encoded-kbd-setup-keymap): Setup key-translation-map.
 	(saved-key-translation-map): New variable.
-	(encoded-kbd-mode): Save/restore key-translation-map.  Adjusted
-	for the change of encoded-kbd-setup-keymap.
+	(encoded-kbd-mode): Save/restore key-translation-map.
+	Adjust for the change of encoded-kbd-setup-keymap.
 
 2004-08-02  Kim F. Storm  <storm@cua.dk>
 
@@ -1112,12 +1120,11 @@
 
 	Sync with Tramp 2.0.43.
 
-	* net/tramp.el (tramp-handle-verify-visited-file-modtime): Remove
-	outdated comment.
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	Remove outdated comment.
 	(tramp-locked, tramp-locker): New variables for implementing a
 	global lock.
-	(tramp-sh-file-name-handler): Use them to implement the global
-	lock.
+	(tramp-sh-file-name-handler): Use them to implement the global lock.
 
 2004-07-13  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -1152,14 +1159,15 @@
 	* emacs-lisp/testcover.el: New category "potentially-1valued" for
 	functions that are not erroneous if either 1-valued or
 	multi-valued.  Detect functions in this class.
-	(testcover-1value-functions, testcover-compose-functions,
-	testcover-progn-functions) Added some additional functions to lists.
+	(testcover-1value-functions, testcover-compose-functions)
+	(testcover-progn-functions) Added some additional functions to lists.
 	(testcover-mark): Bugfix when marking up the definition for an
 	empty function.
 
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
 
-	* replace.el (occur-read-primary-args): Pass default to read-from-minibuffer.
+	* replace.el (occur-read-primary-args): Pass default to
+	read-from-minibuffer.
 
 	* mail/footnote.el (footnote-section-tag): Use defcustom.
 
@@ -1268,8 +1276,8 @@
 
 2004-07-09  John Paul Wallington  <jpw@gnu.org>
 
-	* emacs-lisp/re-builder.el (reb-update-overlays): Distinguish
-	between one and several matches in message.
+	* emacs-lisp/re-builder.el (reb-update-overlays):
+	Distinguish between one and several matches in message.
 
 2004-07-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -1307,11 +1315,11 @@
 	Do not treat double clicks and triple clicks specially in the
 	scroll bar (preventing strange repositioning problems)
 
-2004-07-06  Stefan  <monnier@iro.umontreal.ca>
+2004-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (query-replace-regexp-eval): Fix last change.
 
-2004-07-05  Stefan  <monnier@iro.umontreal.ca>
+2004-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* replace.el (query-replace-descr): New fun.
 	(query-replace-read-from, query-replace-read-args): Default to the
