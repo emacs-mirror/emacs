@@ -1,3 +1,109 @@
+2002-07-26  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are to allow specifying multiple font
+	patterns for a character range (specified by script or charset).
+
+	* Makefile.in (abbrev.o): Depend on syntax.h.
+	(xfaces.o): Depend on charset.h.
+
+	* alloc.c (Fmake_string): Use ASCII_CHAR_P, not
+	SINGLE_BYTE_CHAR_P.
+
+	* ccl.c (Fccl_execute_on_string): Add `const' to local variables.
+
+	* chartab.c (Fmake_char_table): Doc fixed.  If PURPOSE doesn't
+	have property char-table-extra-slots, make no extra slot.
+
+	* dispextern.h (struct face): Member `charset' deleted.
+	(FACE_SUITABLE_FOR_CHAR_P): Use ASCII_CHAR_P, not
+	SINGLE_BYTE_CHAR_P.
+	(FACE_FOR_CHAR): Likewise.
+	(choose_face_font, lookup_non_ascii_face, font_name_registry): Add
+	prototypes
+	(lookup_face, lookup_named_face, lookup_derived_face): Prototype
+	fixed.
+	(generate_ascii_font_name): Renamed from generate_ascii_font.
+	
+	* fontset.h (get_font_repertory_func): New prototype.
+	(make_fontset_for_ascii_face, fs_load_font): Prototypes fixed.
+	(FS_LOAD_FONT): Call fs_load_font with the 3rd arg charset_ascii.
+
+	* fontset.c (Qprepend, Qappend): New variables.
+	(FONTSET_CHARSET_ALIST, FONTSET_FACE_ALIST): These macros deleted.
+	(FONTSET_NOFONT_FACE, FONTSET_REPERTORY): New macros.
+	(FONTSET_REF): Optimize if FONTSET is Vdefault_fontset.
+	(FONTSET_REF_AND_RANGE, FONTSET_ADD): New macros.
+	(fontset_ref_and_range, fontset_add, reorder_font_vector)
+	(load_font_get_repertory): New functions.
+	(fontset_set): This function deleted.
+	(fontset_face): New arg FACE.  Return face ID, not face.
+	Completely re-written to handle new fontset structure.  Caller
+	changed.
+	(free_face_fontset): Use ASET istead of AREF (X) = Y.
+	(face_for_char): Don't call lookup_face.
+	(make_fontset_for_ascii_face): New arg FACE.
+	(fs_load_font): New arg CHARSET_ID.  Don't check
+	Vfont_encoding_alist here.
+	(find_font_encoding): New function.
+	(list_fontsets): Use STRINGP, not ! NILP.
+	(accumulate_script_ranges): New function.
+	(Fset_fontset_font, Fnew_fontset, Ffontset_info): Completely
+	re-written to handle new fontset structure.
+	(Ffontset_font): Return a copy of element.
+	(syms_of_fontset): Define symbols Qprepend and Qappend.  Fix
+	docstring of font-encoding-alist.
+
+	* lisp.h (CHAR_TABLE_REF): Remove unnecessary check (IDX >= 0).
+	(Fset_fotset_font): Fix arguments to 5.
+
+	* msdos.c (XMenuActivate): Adjuted for the change of
+	lookup_derived_face.
+
+	* xdisp.c (message_dolog, set_message_1,
+	extend_face_to_end_of_line): Use ASCII_CHAR_P, not
+	SINGLE_BYTE_CHAR_P.
+	(highlight_trailing_whitespace): Adjusted for the change of
+	lookup_named_face.
+
+	* xfaces.c: Include charset.h.
+	(load_face_font): Argument C deleted.  Caller changed.
+	(generate_ascii_font_name): Renamed from generate_ascii_font.
+	(font_name_registry): New function.
+	(cache_face): Store ascii faces before non-ascii faces in buckets.
+	(lookup_face): Arguments C and BASE_FACE deleted.  Caller changed.
+	Lookup only ascii faces.
+	(lookup_non_ascii_face): New function.
+	(lookup_named_face): Argument C deleted.  Caller changed.
+	(lookup_derived_face): Argument C deleted.  Caller changed.
+	(try_font_list): New arg PATTERN.  Caller changed.  If PATTERN is
+	a string, just call font_list with it.
+	(choose_face_font): Arguments FACE and C deleted.  New arg
+	FONT_SPEC.  Caller changed.
+	(realize_face): Arguments C and BASE_FACE deleted.  Caller
+	(realize_x_face): Likewise.
+	(realize_non_ascii_face): New function.
+	(realize_x_face): Call load_face_font here.
+	(realize_tty_face): Argument C deleted.  Caller changed.
+	(compute_char_face): If CH is not ascii, call FACE_FOR_CHAR to
+	get a face ID.
+	(dump_realized_face): Don't print charset of FACE.
+
+	* xfns.c (x_set_font): Always call x_new_fontset and
+	store_frame_parameter.
+	(Fx_create_frame): Call x_new_fontset, not x_new_font.
+	(syms_of_xfns): Set get_font_repertory_func to
+	x_get_font_repertory.
+
+	* xterm.h (x_get_font_repertory): Extern it.
+
+	* xterm.c (x_produce_glyphs): Use ASCII_CHAR_P, not
+	SINGLE_BYTE_CHAR_P.  Fix the logic of handling non-ASCII char when
+	it->multibyte_p is zero.
+	(XTread_socket): Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
+	(x_new_fontset): If FONTSETNAME doesn't match any existing
+	fontsets, create a new one.
+	(x_get_font_repertory): New function.
+
 2002-07-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (Ffind_coding_systems_region_internal): Detect an

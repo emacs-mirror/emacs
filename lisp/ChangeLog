@@ -1,3 +1,28 @@
+2002-07-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Setup char-script-table.
+
+	* international/fontset.el: Setup the default fontset by the new
+	script based way.
+	(x-complement-fontset-spec): Change the format of arg FONTLIST to
+	an alist of charsets vs font name lists.
+	(charset-script-alist): New variable.
+	(create-fontset-from-fontset-spec): Allow script name in
+	FONTSET-SPEC.  If charset is specified in FONTSET-SPEC, change it
+	to the corresponding script name.
+	(create-fontset-from-ascii-font): Slightly tuned.
+
+	* international/mule-conf.el (devanagari-glyph): New charset.
+	Unify these charses: korean-ksc5601, ipa, tibetan, ethiopic,
+	japanese-jisx0208, japanese-jisx0212, japanese-jisx0213-1,
+	japanese-jisx0213-2.
+
+	* international/mule-diag.el (print-fontset): Use describe-vector
+	to handle a char table returned by fontset-info.
+
+	* language/indian.el: Don't register ccl-encode-indian-glyph-font
+	and ccl-encode-unicode-font in font-ccl-encoder-alist.
+
 2002-07-18  Dave Love  <fx@gnu.org>
 
 	* startup.el (fancy-splash-head): Warn about status.
