@@ -62,42 +62,7 @@
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
 ;;;###autoload
-(defvar non-iso-charset-alist
-  `((mac-roman
-     (ascii latin-iso8859-1 mule-unicode-2500-33ff
-	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
-     mac-roman-decoder
-     ((0 255)))
-    (viscii
-     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     viet-viscii-nonascii-translation-table
-     ((0 255)))
-    (vietnamese-tcvn
-     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     viet-tcvn-nonascii-translation-table
-     ((0 255)))
-    (koi8-r
-     (ascii cyrillic-iso8859-5)
-     cyrillic-koi8-r-nonascii-translation-table
-     ((32 255)))
-    (alternativnyj
-     (ascii cyrillic-iso8859-5)
-     cyrillic-alternativnyj-nonascii-translation-table
-     ((32 255)))
-    (koi8-u
-     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
-     cyrillic-koi8-u-nonascii-translation-table
-     ((32 255)))
-    (big5
-     (ascii chinese-big5-1 chinese-big5-2)
-     decode-big5-char
-     ((32 127)
-      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
-    (sjis
-     (ascii katakana-jisx0201 japanese-jisx0208)
-     decode-sjis-char
-     ((32 127 ?\xA1 ?\xDF)
-      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
+(defvar non-iso-charset-alist nil
   "Alist of charset names vs the corresponding information.
 This is mis-named for historical reasons.  The charsets are actually
 non-built-in ones.  They correspond to Emacs coding systems, not Emacs
@@ -127,6 +92,47 @@ In the first form, valid codes are between FROM1 and TO1, or FROM2 and
 TO2, or...
 The second form is used for 2-byte codes.  The car part is the ranges
 of the first byte, and the cdr part is the ranges of the second byte.")
+
+;; Set it like this in case code-pages &c has been loaded previously,
+;; in which case defvar would be useless.
+(setq non-iso-charset-alist
+      (append
+       non-iso-charset-alist
+       `((mac-roman
+	  (ascii latin-iso8859-1 mule-unicode-2500-33ff
+		 mule-unicode-0100-24ff mule-unicode-e000-ffff)
+	  mac-roman-decoder
+	  ((0 255)))
+	 (viscii
+	  (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+	  viet-viscii-nonascii-translation-table
+	  ((0 255)))
+	 (vietnamese-tcvn
+	  (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+	  viet-tcvn-nonascii-translation-table
+	  ((0 255)))
+	 (koi8-r
+	  (ascii cyrillic-iso8859-5)
+	  cyrillic-koi8-r-nonascii-translation-table
+	  ((32 255)))
+	 (alternativnyj
+	  (ascii cyrillic-iso8859-5)
+	  cyrillic-alternativnyj-nonascii-translation-table
+	  ((32 255)))
+	 (koi8-u
+	  (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
+	  cyrillic-koi8-u-nonascii-translation-table
+	  ((32 255)))
+	 (big5
+	  (ascii chinese-big5-1 chinese-big5-2)
+	  decode-big5-char
+	  ((32 127)
+	   ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
+	 (sjis
+	  (ascii katakana-jisx0201 japanese-jisx0208)
+	  decode-sjis-char
+	  ((32 127 ?\xA1 ?\xDF)
+	   ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))))
 
 ;;;###autoload
 (defun list-character-sets (arg)
@@ -349,27 +355,6 @@ coding system cpCODEPAGE."
 	(codepage-setup codepage))
     (string-to-char
      (decode-coding-string (char-to-string code) coding-system))))
-
-
-;; Add DOS codepages to `non-iso-charset-alist'.
-
-(let ((tail (cp-supported-codepages))
-      elt)
-  (while tail
-    (setq elt (car tail) tail (cdr tail))
-    ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
-    ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
-    ;; are mapped to.
-    (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
-      (setq non-iso-charset-alist
-	    (cons (list (intern (concat "cp" (car elt)))
-			(list 'ascii (cdr elt))
-			`(lambda (code)
-			   (decode-codepage-char ,(string-to-int (car elt))
-						 code))
-			(list (list 0 255)))
-		  non-iso-charset-alist)))))
-
 
 ;; A variable to hold charset input history.
 (defvar charset-history nil)
@@ -594,10 +579,10 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 			     charset (charset-description charset)))
 		    ((listp charset)
 		     (if (charsetp (car charset))
-			 (format "%s:%s, and also used by the followings:"
+			 (format "%s:%s, and also used by the following:"
 				 (car charset)
 				 (charset-description (car charset)))
-		       "no initial designation, and used by the followings:"))
+		       "no initial designation, and used by the following:"))
 		    (t
 		     "invalid designation information"))))
       (when (listp charset)
@@ -1004,7 +989,7 @@ but still contains full information about each coding system."
 ##  EOL = 0 (LF), 1 (CRLF), 2 (CR), or 3 (Automatic detection)
 ##  FLAGS =
 ##    if TYPE = 2 then
-##      comma (`,') separated data of the followings:
+##      comma (`,') separated data of the following:
 ##        G0, G1, G2, G3, SHORT-FORM, ASCII-EOL, ASCII-CNTL, SEVEN,
 ##        LOCKING-SHIFT, SINGLE-SHIFT, USE-ROMAN, USE-OLDJIS, NO-ISO6429
 ##    else if TYPE = 4 then
