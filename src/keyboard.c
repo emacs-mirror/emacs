@@ -1695,7 +1695,7 @@ static Lisp_Object
 safe_run_hooks_error (data)
      Lisp_Object data;
 {
-  Fset (Vinhibit_quit, Qnil);
+  return Fset (Vinhibit_quit, Qnil);
 }
 
 /* If we get an error while running the hook, cause the hook variable
@@ -2873,6 +2873,7 @@ tracking_off (old_value)
 	  get_input_pending (&input_pending, 1);
 	}
     }
+  return Qnil;
 }
 
 DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
@@ -5951,11 +5952,18 @@ menu_bar_items (old)
       }
     else
       {
-	/* No, so use major and minor mode keymaps.  */
+	/* No, so use major and minor mode keymaps and keymap property.  */
+	int extra_maps = 2;
+	Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+	if (!NILP (map))
+	  extra_maps = 3;
 	nmaps = current_minor_maps (NULL, &tmaps);
-	maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
+	maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
+				       * sizeof (maps[0]));
 	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-	maps[nmaps++] = get_local_map (PT, current_buffer);
+	if (!NILP (map))
+	  maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+	maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
       }
     maps[nmaps++] = current_global_map;
   }
@@ -6603,11 +6611,18 @@ tool_bar_items (reuse, nitems)
     }
   else
     {
-      /* No, so use major and minor mode keymaps.  */
+      /* No, so use major and minor mode keymaps and keymap property.  */
+      int extra_maps = 2;
+      Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+      if (!NILP (map))
+	extra_maps = 3;
       nmaps = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) alloca ((nmaps + 2) * sizeof (maps[0]));
+      maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
+				     * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-      maps[nmaps++] = get_local_map (PT, current_buffer);
+      if (!NILP (map))
+	maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+      maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
     }
 
   /* Add global keymap at the end.  */
@@ -7421,6 +7436,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* The local map to start out with at start of key sequence.  */
   Lisp_Object orig_local_map;
 
+  /* The map from the `keymap' property to start out with at start of
+     key sequence.  */
+  Lisp_Object orig_keymap;
+
   /* 1 if we have already considered switching to the local-map property
      of the place where a mouse click occurred.  */
   int localized_local_map = 0;
@@ -7542,7 +7561,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			   &junk);
 #endif /* GOBBLE_FIRST_EVENT */
 
-  orig_local_map = get_local_map (PT, current_buffer);
+  orig_local_map = get_local_map (PT, current_buffer, local_map);
+  orig_keymap = get_local_map (PT, current_buffer, keymap);
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -7578,14 +7598,21 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       }
     else
       {
+	int extra_maps = 2;
 	nmaps = current_minor_maps (0, &maps);
-	if (nmaps + 2 > nmaps_allocated)
+	if (!NILP (orig_keymap))
+	  extra_maps = 3;
+	if (nmaps + extra_maps > nmaps_allocated)
 	  {
-	    submaps = (Lisp_Object *) alloca ((nmaps+2) * sizeof (submaps[0]));
-	    defs    = (Lisp_Object *) alloca ((nmaps+2) * sizeof (defs[0]));
-	    nmaps_allocated = nmaps + 2;
+	    submaps = (Lisp_Object *) alloca ((nmaps+extra_maps)
+					      * sizeof (submaps[0]));
+	    defs    = (Lisp_Object *) alloca ((nmaps+extra_maps)
+					      * sizeof (defs[0]));
+	    nmaps_allocated = nmaps + extra_maps;
 	  }
 	bcopy (maps, submaps, nmaps * sizeof (submaps[0]));
+	if (!NILP (orig_keymap))
+	  submaps[nmaps++] = orig_keymap;
 	submaps[nmaps++] = orig_local_map;
       }
     submaps[nmaps++] = current_global_map;
@@ -7704,7 +7731,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			       interrupted_kboard->kbd_queue);
 		  }
 		mock_input = 0;
-		orig_local_map = get_local_map (PT, current_buffer);
+		orig_local_map = get_local_map (PT, current_buffer, local_map);
+		orig_keymap = get_local_map (PT, current_buffer, keymap);
 		goto replay_sequence;
 	      }
 #endif
@@ -7749,7 +7777,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    Fset_buffer (XWINDOW (selected_window)->buffer);
 		}
 
-	      orig_local_map = get_local_map (PT, current_buffer);
+	      orig_local_map = get_local_map (PT, current_buffer, local_map);
+	      orig_keymap = get_local_map (PT, current_buffer, keymap);
 	      goto replay_sequence;
 	    }
 
@@ -7763,7 +7792,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
-	      orig_local_map = get_local_map (PT, current_buffer);
+	      orig_local_map = get_local_map (PT, current_buffer, local_map);
+	      orig_keymap = get_local_map (PT, current_buffer, keymap);
 	      goto replay_sequence;
 	    }
 
@@ -7848,8 +7878,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
-		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		  orig_local_map = get_local_map (PT, current_buffer);
+		  set_buffer_internal (XBUFFER (XWINDOW
+		  (window)->buffer)
+);
+		  orig_local_map = get_local_map (PT, current_buffer,
+						  local_map);
+		  orig_keymap = get_local_map (PT, current_buffer, keymap);
 		  goto replay_sequence;
 		}
 	      
@@ -7870,10 +7904,21 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      if (INTEGERP (pos)
 			  && XINT (pos) >= BEG && XINT (pos) <= Z)
 			{
-			  map_here = get_local_map (XINT (pos), current_buffer);
+			  map_here = get_local_map (XINT (pos),
+						    current_buffer, local_map);
 			  if (!EQ (map_here, orig_local_map))
 			    {
 			      orig_local_map = map_here;
+			      keybuf[t] = key;
+			      mock_input = t + 1;
+
+			      goto replay_sequence;
+			    }
+			  map_here = get_local_map (XINT (pos),
+						     current_buffer, keymap);
+			  if (!EQ (map_here, orig_keymap))
+			    {
+			      orig_keymap = map_here;
 			      keybuf[t] = key;
 			      mock_input = t + 1;
 
@@ -7902,21 +7947,22 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		     reconsider the key sequence with that keymap.  */
 		  if (CONSP (POSN_STRING (EVENT_START (key))))
 		    {
-		      Lisp_Object string, pos, map;
+		      Lisp_Object string, pos, map, map2;
 
 		      string = POSN_STRING (EVENT_START (key));
 		      pos = XCDR (string);
 		      string = XCAR (string);
-		      
-		      if (XINT (pos) >= 0
-			  && XINT (pos) < XSTRING (string)->size
-			  && (map = Fget_text_property (pos, Qlocal_map,
-							string),
-			      !NILP (map)))
-			{
-			  orig_local_map = map;
-			  goto replay_sequence;
-			}
+                      if (pos >= 0 && pos < XSTRING (string)->size)
+                        {
+                          map = Fget_text_property (pos, Qlocal_map, string);
+                          if (!NILP (map))
+                            orig_local_map = map;
+                          map2 = Fget_text_property (pos, Qkeymap, string);
+                          if (!NILP (map2))
+                            orig_keymap = map2;
+                          if (!NILP (map) || !NILP (map2))
+                            goto replay_sequence;
+                        }
 		    }
 
 		  goto replay_key;
@@ -8896,11 +8942,18 @@ current_active_maps (maps_p)
     }
   else
     {
-      /* No, so use major and minor mode keymaps.  */
+      /* No, so use major and minor mode keymaps and keymap property.  */
+      int extra_maps = 2;
+      Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+      if (!NILP (map))
+	extra_maps = 3;
       nmaps = current_minor_maps (NULL, &tmaps);
-      maps = (Lisp_Object *) xmalloc ((nmaps + 2) * sizeof (maps[0]));
+      maps = (Lisp_Object *) alloca ((nmaps + extra_maps)
+				     * sizeof (maps[0]));
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
-      maps[nmaps++] = get_local_map (PT, current_buffer);
+      if (!NILP (map))
+	maps[nmaps++] = get_local_map (PT, current_buffer, keymap);
+      maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
     }
   maps[nmaps++] = current_global_map;
 
