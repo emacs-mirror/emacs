@@ -1335,8 +1335,7 @@ update_frame (f, force, inhibit_hairy_id)
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
   display_completed = !pause;
 
-  if (desired_frame)
-    bzero (desired_frame->enable, FRAME_HEIGHT (f));
+  bzero (FRAME_DESIRED_GLYPHS (f)->enable, FRAME_HEIGHT (f));
   return pause;
 }
 
