@@ -1886,8 +1886,7 @@ Customization}) to set @code{desktop-enable} to a non-@code{nil} value,
 or add these lines at the end of your @file{.emacs} file:
 
 @example
-(desktop-load-default)
-(desktop-read)
+(require 'desktop)
 (setq desktop-enable t)
 @end example
 
