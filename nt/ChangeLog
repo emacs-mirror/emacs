@@ -2,6 +2,13 @@
 
 	* COPYING: New file.
 
+2001-12-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake):
+	(bootstrap-gmake): Extend bootstrap process to first do
+	bootstrap-clean in lisp dir and rebuild the DOC file.
+	(bootstrap): Do a "normal" make after the bootstrap work.
+
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* INSTALL: Update table of versions of make that are suitable
