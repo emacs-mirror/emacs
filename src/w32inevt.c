@@ -93,7 +93,7 @@ get_frame (void)
 }
 
 #ifdef MULTI_FRAME
-#define SET_FRAME(o, f) XSET (o, Lisp_Frame, f)
+#define SET_FRAME(o, f) XSETFRAME (o, f)
 #else
 #define SET_FRAME(o, f) ((o) = Qnil)
 #endif
@@ -258,7 +258,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       /* ASCII */
       emacs_ev->kind = ascii_keystroke;
-      XSET (emacs_ev->code, Lisp_Int, event->uChar.AsciiChar);
+      XSETINT (emacs_ev->code, event->uChar.AsciiChar);
     }
   else
     {
@@ -269,7 +269,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
        * the full X keysym values (2nd byte is 0xff).  add it on.
        */
       map |= 0xff00;
-      XSET (emacs_ev->code, Lisp_Int, map);
+      XSETINT (emacs_ev->code, map);
     }
   SET_FRAME (emacs_ev->frame_or_window, get_frame ());
   emacs_ev->modifiers = nt_kbd_mods_to_emacs (event->dwControlKeyState);
@@ -360,7 +360,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   for (i = 0; i < NUM_MOUSE_BUTTONS; i++, mask <<= 1)
     if (but_change & mask)
       {
-	XSET (emacs_ev->code, Lisp_Int, emacs_button_translation[i]);
+	XSETINT (emacs_ev->code, emacs_button_translation[i]);
 	break;
       }
 
@@ -374,8 +374,8 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   emacs_ev->modifiers = nt_kbd_mods_to_emacs (event->dwControlKeyState) |
     ((event->dwButtonState & mask) ? down_modifier : up_modifier);
   
-  XFASTINT (emacs_ev->x) = event->dwMousePosition.X;
-  XFASTINT (emacs_ev->y) = event->dwMousePosition.Y;
+  XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
+  XSETFASTINT (emacs_ev->y, event->dwMousePosition.Y);
   SET_FRAME (emacs_ev->frame_or_window, get_frame ());
   
   return 1;
