@@ -243,7 +243,7 @@ Returns the abbrev symbol, if expansion took place.")
       Vabbrev_start_location = Qnil;
       if (wordstart < BEGV || wordstart > ZV)
 	wordstart = 0;
-      if (wordstart && wordstart != ZV && FETCH_CHAR (wordstart) == '-')
+      if (wordstart && wordstart != ZV && FETCH_BYTE (wordstart) == '-')
 	del_range (wordstart, wordstart + 1);
     }
   if (!wordstart)
@@ -266,7 +266,7 @@ Returns the abbrev symbol, if expansion took place.")
 
   for (idx = wordstart; idx < wordend; idx++)
     {
-      register int c = FETCH_CHAR (idx);
+      register int c = FETCH_BYTE (idx);
       if (UPPERCASEP (c))
 	c = DOWNCASE (c), uccount++;
       else if (! NOCASEP (c))

@@ -149,13 +149,13 @@ casify_region (flag, b, e)
 
   for (i = start; i < end; i++)
     {
-      c = FETCH_CHAR (i);
+      c = FETCH_BYTE (i);
       if (inword && flag != CASE_CAPITALIZE_UP)
 	c = DOWNCASE (c);
       else if (!UPPERCASEP (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
 	c = UPCASE1 (c);
-      FETCH_CHAR (i) = c;
+      FETCH_BYTE (i) = c;
       if ((int) flag >= (int) CASE_CAPITALIZE)
 	inword = SYNTAX (c) == Sword;
     }
