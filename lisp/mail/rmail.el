@@ -928,9 +928,26 @@ argument causes us to read a file name and use that file as the inbox."
 					      header-end t)
 			      (let ((beg (point))
 				    (eol (progn (end-of-line) (point))))
-				(read (buffer-substring beg eol)))))))
-		 (and size (numberp size) (>= size 0)
-		      (goto-char (+ header-end size))))
+				(string-to-int (buffer-substring beg eol)))))))
+		 (and size
+		      (if (and (natnump size)
+			       (<= (+ header-end size) (point-max))
+			       ;; Make sure this would put us at a position
+			       ;; that we could continue from.
+			       (save-excursion
+				 (goto-char (+ header-end size))
+				 (skip-chars-forward "\n")
+				 (or (eobp)
+				     (and (looking-at "BABYL OPTIONS:")
+					  (search-forward "\n\^_" nil t))
+				     (and (looking-at "\^L")
+					  (search-forward "\n\^_" nil t))
+				     (let ((case-fold-search t))
+				       (looking-at mmdf-delim1))
+				     (looking-at "From "))))
+			  (goto-char (+ header-end size))
+			(message "Ignoring invalid Content-Length field")
+			(sit-for 1 0 t))))
 
 	       (if (re-search-forward
 		    (concat "^[\^_]?\\("
