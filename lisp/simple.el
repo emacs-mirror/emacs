@@ -2447,13 +2447,22 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
-With no prefix argument, set mark, push old mark position on local mark
-ring, and push mark on global mark ring.  Immediately repeating the
-command activates `transient-mark-mode' temporarily.
+With no prefix argument, set mark, and push old mark position on local
+mark ring; also push mark on global mark ring if last mark was set in
+another buffer.  Immediately repeating the command activates
+`transient-mark-mode' temporarily.
 
-With argument, jump to mark, and pop a new position for mark off the ring
-\(does not affect global mark ring\).  Repeating the command without
-an argument jumps to the next position off the mark ring.
+With argument, e.g. \\[universal-argument] \\[set-mark-command], \
+jump to mark, and pop a new position
+for mark off the local mark ring \(this does not affect the global
+mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
+mark ring \(see `pop-global-mark'\).
+Repeating the \\[set-mark-command] command without the prefix jumps to the next
+position off the local (or global) mark ring.
+
+With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
+\\[universal-argument] \\[set-mark-command], unconditionally
+set mark where point is.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
@@ -2465,11 +2474,14 @@ purposes.  See the documentation of `set-mark' for more information."
     (if arg
 	(pop-to-mark-command)
       (push-mark-command t)))
+   ((and (consp arg) (> (prefix-numeric-value arg) 4))
+    (push-mark-command nil))
    ((eq last-command 'pop-to-mark-command)
-    (if (and (consp arg) (> (prefix-numeric-value arg) 4))
-	(push-mark-command nil)
-      (setq this-command 'pop-to-mark-command)
-      (pop-to-mark-command)))
+    (setq this-command 'pop-to-mark-command)
+    (pop-to-mark-command))
+   ((and (eq last-command 'pop-global-mark) (not arg))
+    (setq this-command 'pop-global-mark)
+    (pop-global-mark))
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
