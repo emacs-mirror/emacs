@@ -1,3 +1,8 @@
+2002-12-07  Andreas Schwab  <schwab@suse.de>
+
+	* cus-edit.el (custom-face-edit-fix-value): Change :reverse-video
+	to :inverse-video.
+
 2002-12-07   Markus Rost  <rost@math.ohio-state.edu>
 
 	* wid-edit.el (define-widget number): Clarify doc and error
