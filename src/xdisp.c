@@ -254,6 +254,10 @@ int auto_resize_tool_bars_p;
 
 Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
 
+/* Non-zero means Lisp evaluation during redisplay is inhibited.  */
+
+int inhibit_eval_during_redisplay, Qinhibit_eval_during_redisplay;
+
 /* Names of text properties relevant for redisplay.  */
 
 Lisp_Object Qdisplay, Qrelative_width, Qalign_to;
@@ -1278,15 +1282,24 @@ Lisp_Object
 safe_eval (sexpr)
      Lisp_Object sexpr;
 {
-  int count = BINDING_STACK_SIZE ();
-  struct gcpro gcpro1;
   Lisp_Object val;
+  
+  if (inhibit_eval_during_redisplay)
+    val = Qnil;
+  else
+    {
+      int count = BINDING_STACK_SIZE ();
+      struct gcpro gcpro1;
 
-  GCPRO1 (sexpr);
-  specbind (Qinhibit_redisplay, Qt);
-  val = internal_condition_case_1 (Feval, sexpr, Qerror, safe_eval_handler);
-  UNGCPRO;
-  return unbind_to (count, val);
+      GCPRO1 (sexpr);
+      specbind (Qinhibit_redisplay, Qt);
+      val = internal_condition_case_1 (Feval, sexpr, Qerror,
+				       safe_eval_handler);
+      UNGCPRO;
+      val = unbind_to (count, val);
+    }
+  
+  return val;
 }
 
 
@@ -1298,17 +1311,25 @@ safe_call (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  int count = BINDING_STACK_SIZE ();
   Lisp_Object val;
-  struct gcpro gcpro1;
+  
+  if (inhibit_eval_during_redisplay)
+    val = Qnil;
+  else
+    {
+      int count = BINDING_STACK_SIZE ();
+      struct gcpro gcpro1;
 
-  GCPRO1 (args[0]);
-  gcpro1.nvars = nargs;
-  specbind (Qinhibit_redisplay, Qt);
-  val = internal_condition_case_2 (Ffuncall, nargs, args, Qerror,
-				   safe_eval_handler);
-  UNGCPRO;
-  return unbind_to (count, val);
+      GCPRO1 (args[0]);
+      gcpro1.nvars = nargs;
+      specbind (Qinhibit_redisplay, Qt);
+      val = internal_condition_case_2 (Ffuncall, nargs, args, Qerror,
+				       safe_eval_handler);
+      UNGCPRO;
+      val = unbind_to (count, val);
+    }
+
+  return val;
 }
 
 
@@ -14283,6 +14304,8 @@ syms_of_xdisp ()
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
   staticpro (&Qinhibit_menubar_update);
+  Qinhibit_eval_during_redisplay = intern ("inhibit-eval-during-redisplay");
+  staticpro (&Qinhibit_eval_during_redisplay);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
@@ -14511,6 +14534,10 @@ Can be used to update submenus whose contents should vary.");
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
     "Non-nil means don't update menu bars.  Internal use only.");
   inhibit_menubar_update = 0;
+
+  DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
+    "Non-nil means don't eval Lisp during redisplay.");
+  inhibit_eval_during_redisplay = 0;
 }
 
 
