@@ -85,7 +85,7 @@ of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
 use its file extension.as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:heuristic-mask t'.
+like, e.g. `:mask MASK'.
 Value is the image created, or nil if images of type TYPE are not supported."
   (when (and (not data-p) (not (stringp file-or-data)))
     (error "Invalid image file name `%s'" file-or-data))
