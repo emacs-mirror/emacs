@@ -1692,6 +1692,9 @@ sequence counting from the head."
 
 	    (t
 	     ;; No way to handle the last character in this context.
+	     (setq def (quail-map-definition
+			(quail-lookup-key quail-current-key (1- len))))
+	     (setq quail-current-str (quail-get-current-str (1- len) def))
 	     (1- len))))))
 
 (defun quail-next-translation ()
