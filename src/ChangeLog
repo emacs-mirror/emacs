@@ -1,3 +1,7 @@
+2000-02-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs.c (main): Remove code snipped commented out with `//'.
+
 2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 	
 	* fileio.c (Ffile_symlink_p): If result starts with a `/'
