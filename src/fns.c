@@ -304,15 +304,14 @@ with the original.")
 
   if (CHAR_TABLE_P (arg))
     {
-      int i, size;
+      int i;
       Lisp_Object copy;
 
-      /* Calculate the number of extra slots.  */
-      size = CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (arg));
       copy = Fmake_char_table (XCHAR_TABLE (arg)->purpose, Qnil);
       /* Copy all the slots, including the extra ones.  */
       bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
-	     (XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK) * sizeof (Lisp_Object));
+	     ((XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK)
+	      * sizeof (Lisp_Object)));
 
       /* Recursively copy any char-tables in the ordinary slots.  */
       for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
@@ -1251,7 +1250,7 @@ PARENT must be either nil or another char-table.")
 
 DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
        2, 2, 0,
-  "Return the value in extra-slot number N of char-table CHAR-TABLE.")
+  "Return the value of CHAR-TABLE's extra-slot number N.")
   (char_table, n)
      Lisp_Object char_table, n;
 {
@@ -1267,7 +1266,7 @@ DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
 DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
        Sset_char_table_extra_slot,
        3, 3, 0,
-  "Set extra-slot number N of CHAR-TABLE to VALUE.")
+  "Set CHAR-TABLE's extra-slot number N to VALUE.")
   (char_table, n, value)
      Lisp_Object char_table, n, value;
 {
@@ -1378,7 +1377,7 @@ map_char_table (c_function, function, chartable, depth, indices)
   if ((depth % 10) == 9)
     {
       Lisp_Object *new_indices
-	= (Lisp_Object *) alloca ((depth += 10) * sizeof (Lisp_Object));
+	= (Lisp_Object *) alloca ((depth + 10) * sizeof (Lisp_Object));
       bcopy (indices, new_indices, depth * sizeof (Lisp_Object));
       indices = new_indices;
     }
