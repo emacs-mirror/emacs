@@ -67,17 +67,17 @@ void dump_bss_and_heap (file_data *p_infile, file_data *p_outfile);
 
 /* Cached info about the .data section in the executable.  */
 PIMAGE_SECTION_HEADER data_section;
-PUCHAR data_start = 0;
+PCHAR  data_start = 0;
 DWORD  data_size = 0;
 
 /* Cached info about the .bss section in the executable.  */
 PIMAGE_SECTION_HEADER bss_section;
-PUCHAR bss_start = 0;
+PCHAR  bss_start = 0;
 DWORD  bss_size = 0;
 DWORD  extra_bss_size = 0;
 /* bss data that is static might be discontiguous from non-static.  */
 PIMAGE_SECTION_HEADER bss_section_static;
-PUCHAR bss_start_static = 0;
+PCHAR  bss_start_static = 0;
 DWORD  bss_size_static = 0;
 DWORD  extra_bss_size_static = 0;
 
@@ -284,7 +284,7 @@ offset_to_section (DWORD offset, IMAGE_NT_HEADERS * nt_header)
 /* Return offset to an object in dst, given offset in src.  We assume
    there is at least one section in both src and dst images, and that
    the some sections may have been added to dst (after sections in src).  */
-static DWORD
+DWORD
 relocate_offset (DWORD offset,
 		 IMAGE_NT_HEADERS * src_nt_header,
 		 IMAGE_NT_HEADERS * dst_nt_header)
@@ -331,14 +331,14 @@ relocate_offset (DWORD offset,
 #define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
-          ((char *)(ptr) - (pfile_data)->file_base)
+          ((unsigned char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
           ((pfile_data)->file_base + (DWORD)(offset))
 
 
 /* Flip through the executable and cache the info necessary for dumping.  */
-static void
+void
 get_section_info (file_data *p_infile)
 {
   PIMAGE_DOS_HEADER dos_header;
@@ -481,7 +481,7 @@ get_section_info (file_data *p_infile)
 
 /* The dump routines.  */
 
-static void
+void
 copy_executable_and_dump_data (file_data *p_infile, 
 			       file_data *p_outfile)
 {
@@ -617,7 +617,7 @@ copy_executable_and_dump_data (file_data *p_infile,
 	}
       if (section == heap_section)
 	{
-	  DWORD heap_start = get_heap_start ();
+	  DWORD heap_start = (DWORD) get_heap_start ();
 	  DWORD heap_size = get_committed_heap_size ();
 
 	  /* Dump the used portion of the predump heap, adjusting the
@@ -719,18 +719,28 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
   file_data in_file, out_file;
   char out_filename[MAX_PATH], in_filename[MAX_PATH];
   unsigned long size;
-  char *ptr;
-  
-  /* Make sure that the input and output filenames have the
-     ".exe" extension...patch them up if they don't.  */
-  strcpy (in_filename, old_name);
-  ptr = in_filename + strlen (in_filename) - 4;
-  if (strcmp (ptr, ".exe"))
-    strcat (in_filename, ".exe");
+  char *p;
+  char *q;
 
-  strcpy (out_filename, new_name);
-  ptr = out_filename + strlen (out_filename) - 4;
-  if (strcmp (ptr, ".exe"))
+  /* Ignore old_name, and get our actual location from the OS.  */
+  if (!GetModuleFileName (NULL, in_filename, MAX_PATH))
+    abort ();
+  dostounix_filename (in_filename);
+  strcpy (out_filename, in_filename);
+
+  /* Change the base of the output filename to match the requested name.  */
+  if ((p = strrchr (out_filename, '/')) == NULL)
+    abort ();
+  /* The filenames have already been expanded, and will be in Unix
+     format, so it is safe to expect an absolute name.  */
+  if ((q = strrchr (new_name, '/')) == NULL)
+    abort ();
+  strcpy (p, q);
+  
+  /* Make sure that the output filename has the ".exe" extension...patch
+     it up if not.  */
+  p = out_filename + strlen (out_filename) - 4;
+  if (strcmp (p, ".exe"))
     strcat (out_filename, ".exe");
 
   printf ("Dumping from %s\n", in_filename);
