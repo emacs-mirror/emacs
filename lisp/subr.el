@@ -69,14 +69,10 @@ change the list."
 (defmacro when (cond &rest body)
   "(when COND BODY...): if COND yields non-nil, do BODY, else return nil."
   (list 'if cond (cons 'progn body)))
-(put 'when 'lisp-indent-function 1)
-(put 'when 'edebug-form-spec '(&rest form))
 
 (defmacro unless (cond &rest body)
   "(unless COND BODY...): if COND yields nil, do BODY, else return nil."
   (cons 'if (cons cond (cons nil body))))
-(put 'unless 'lisp-indent-function 1)
-(put 'unless 'edebug-form-spec '(&rest form))
 
 (defmacro dolist (spec &rest body)
   "(dolist (VAR LIST [RESULT]) BODY...): loop over a list.
