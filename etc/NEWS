@@ -32,6 +32,19 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** The amount of automatic hscrolling can now be customized.
+The variable `automatic-hscroll-margin' determines how many columns
+away from the window edge point is allowed to get before automatic
+hscrolling will horizontally scroll the window.  The default value is 5.
+
+The variable `automatic-hscroll-step' determines how many many
+columns will automatic hscrolling scroll the window when point gets
+too close to the window edge.  If its value is zero, the default, the
+window will be scrolled so as to center point.  If its value is an
+integer, it says how many columns to scroll.  If the value is a
+floating-point number, it gives the fraction of the window's width to
+scroll the window.
+
 ** New display feature: focus follows mouse.
 By setting the variable x-autoselect-window to non-nil value, mouse will
 autoselect the window it is in.  It is turned off by default.
