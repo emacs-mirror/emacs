@@ -55,39 +55,7 @@ Boston, MA 02111-1307, USA.  */
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 
-/* Windows libraries do not define codepages other than ANSI and
-   Unicode. We need all the ones for the languages that Emacs supports
-   if languages other than that of the current locale are to be
-   displayed under NT. */
 #define CP_DEFAULT 1004
-#define CP_SJIS     932
-#define CP_GB2312   936
-#define CP_BIG5     950
-#define CP_KOREAN   949
-#define CP_THAI     874
-#define CP_LATIN1  1252
-#define CP_LATIN2  1250
-#define CP_LATIN3  1254
-#define CP_LATIN4  1257
-#define CP_CYRILLIC5  1251
-#define CP_ARABIC6  1256
-#define CP_GREEK7  1253
-#define CP_HEBREW8  1255
-#define CP_LATIN9  /*1258?*/
-#define CP_VIETNAM  /*???*/
-
-/* ENCODE_SJIS is defined in coding.h, but ENCODE_BIG5 is only in
-   coding.c, so need our own copy here */
-#define BIG5_SAME_ROW (0xFF - 0xA1 + 0x7F - 0x40)
-#define ENCODE_BIG5(charset, c1, c2, b1, b2)			  	\
-  do {								  	\
-    unsigned int temp = (c1 - 0x21) * (0xFF - 0xA1) + (c2 - 0x21);	\
-    if (charset == charset_big5_2)				  	\
-      temp += BIG5_SAME_ROW * (0xC9 - 0xA1);			  	\
-    b1 = temp / BIG5_SAME_ROW + 0xA1;				  	\
-    b2 = temp % BIG5_SAME_ROW;					  	\
-    b2 += b2 < 0x3F ? 0x40 : 0x62;				  	\
-  } while (0)
 
 extern unsigned int msh_mousewheel;
 
@@ -211,6 +179,9 @@ int last_mouse_scroll_bar_pos;
    of the last movement we received, and return that in hopes that
    it's somewhat accurate.  */
 Time last_mouse_movement_time;
+
+/* Associative list linking character set strings to Windows codepages. */
+Lisp_Object Vw32_charset_to_codepage_alist;
 
 /* Incremented by w32_read_socket whenever it really tries to read events.  */
 #ifdef __STDC__
@@ -514,43 +485,41 @@ w32_cursor_to (row, col)
     }
 }
 
+/* Get the Windows codepage corresponding to the specified font.  The
+   charset info in the font name is used to look up
+   w32-charset-to-codepage-alist.  */
 int 
-w32_codepage_for_charset (int charset)
+w32_codepage_for_font (char *fontname)
 {
-  /* The codepage is only used to convert to unicode, so we only need
-     to cover the languages that we may print via unicode.  */
-  if (charset == charset_latin_iso8859_1)
-    return CP_LATIN1;
-  else if (charset == charset_big5_1 ||
-           charset == charset_big5_2)
-    return CP_BIG5;
-  else if (charset == charset_jisx0208
-   || charset == charset_jisx0208_1978
-   || charset == charset_katakana_jisx0201
-   || charset == charset_latin_jisx0201
-   || charset == charset_id_internal ("japanese-jisx0212"))
-    return CP_SJIS;
-  else if (charset == charset_id_internal ("chinese-gb2312"))
-    return CP_GB2312;
-  else if (charset == charset_id_internal ("korean-ksc5601"))
-    return CP_KOREAN;
-  else if (charset == charset_id_internal ("latin-iso8859-2"))
-    return CP_LATIN2;
-  else if (charset == charset_id_internal ("latin-iso8859-3"))
-    return CP_LATIN3;
-  else if (charset == charset_id_internal ("latin-iso8859-4"))
-    return CP_LATIN4;
-  else if (charset == charset_id_internal ("cyrillic-iso8859-5"))
-    return CP_CYRILLIC5;
-  else if (charset == charset_id_internal ("arabic-iso8859-6"))
-    return CP_ARABIC6;
-  else if (charset == charset_id_internal ("greek-iso8859-7"))
-    return CP_GREEK7;
-  else if (charset == charset_id_internal ("hebrew-iso8859-8"))
-    return CP_HEBREW8;
-  else if (charset == charset_id_internal ("thai-tis620"))
-    return CP_THAI;
-  else               /* Don't care - return system default.  */
+  Lisp_Object codepage;
+  char charset_str[20], *charset, *end;
+
+  /* Extract charset part of font string.  */
+  if (sscanf (fontname,
+              "-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%19s",
+              charset_str) == EOF)
+    return CP_DEFAULT;
+
+  /* Remove leading "*-".  */
+  if (strncmp ("*-", charset_str, 2) == 0)
+    charset = charset_str + 2;
+  else
+    charset = charset_str;
+
+  /* Stop match at wildcard (including preceding '-'). */
+  if (end = strchr (charset, '*'))
+      {
+        if (end > charset && *(end-1) == '-')
+          end--;
+        *end = '\0';
+      }
+
+  codepage = Fcdr (Fassoc (build_string(charset),
+                           Vw32_charset_to_codepage_alist));
+
+  if (INTEGERP (codepage))
+    return XINT (codepage);
+  else
     return CP_DEFAULT;
 }
 
@@ -699,6 +668,9 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       {
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	XFontStruct *font = NULL;
+        int fontset;
+        struct font_info *fontp;
+        int font_id;
 	COLORREF fg;
 	COLORREF bg;
 	int stippled = 0;
@@ -763,9 +735,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
         /* Setting appropriate font and codepage for this charset.  */
         if (charset != CHARSET_ASCII)
           {
-            int font_id;
-            int fontset = FACE_FONTSET (face);
-            struct font_info *fontp;
+            fontset = FACE_FONTSET (face);
 
 	    if ((fontset < 0 && (fontset = FRAME_FONTSET (f)) < 0)
 		|| !(fontp = FS_LOAD_FONT (f, FRAME_W32_FONT_TABLE (f),
@@ -773,7 +743,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      goto font_not_found;
 
 	    font = (XFontStruct *) (fontp->font);
-            codepage = w32_codepage_for_charset (charset);
+            codepage = w32_codepage_for_font (fontp->name);
             print_via_unicode = w32_use_unicode_for_codepage (codepage);
 
             /* tmLastChar will only exceed 255 if TEXTMETRICW is used
@@ -797,20 +767,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 
 	    /* We have to change code points in the following cases. */
-            if (charset == charset_big5_1
-                 || charset == charset_big5_2)
-              {
-                /* Handle Big5 encoding specially rather than
-                   requiring a CCL. */
-                int big1, big2;
-                for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
-                  {
-                    ENCODE_BIG5 (charset, BYTE1 (*cp), BYTE2 (*cp),
-                                 big1, big2);
-                    *cp = BUILD_WCHAR_T (big1, big2);
-                  }
-              }
-	    else if (fontp->font_encoder)
+            if (fontp->font_encoder)
 	      {
 		/* This font requires CCL program to calculate code
                    point of characters.  */
@@ -1103,7 +1060,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      }
 
 		    if (cmpcharp->cmp_rule)
-		      x_offset = (cmpcharp->col_offset[0]
+		      x_offset = (int)(cmpcharp->col_offset[0]
 				  * FONT_WIDTH (FRAME_FONT (f)));
 
                     i = 1;
@@ -1226,7 +1183,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			if (bottom < lowest)
 			  lowest = bottom;
 			y_offset = bottom + font->tm.tmDescent;
-			x_offset = (cmpcharp->col_offset[gidx]
+			x_offset = (int)(cmpcharp->col_offset[gidx]
 				    * FONT_WIDTH (FRAME_FONT(f)));
 		      }
 
@@ -5146,6 +5103,8 @@ w32_initialize ()
 void
 syms_of_w32term ()
 {
+  Lisp_Object codepage;
+
   staticpro (&w32_display_name_list);
   w32_display_name_list = Qnil;
 
@@ -5195,4 +5154,65 @@ Far-East Languages on Windows 95/98 from working properly.\n\
 NT uses Unicode internally anyway, so this flag will probably have no\n\
 affect on NT machines.");
   w32_enable_unicode_output = 1;
+
+  /* w32-charset-to-codepage-alist is initialized in w32-win.el.  */
+  DEFVAR_LISP ("w32-charset-to-codepage-alist",
+               &Vw32_charset_to_codepage_alist,
+               "Alist linking character sets to Windows Codepages.");
+  Vw32_charset_to_codepage_alist = Qnil;
+  /* Initialise the alist with some defaults.  */
+  XSETFASTINT (codepage, 936);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("gb2312"), codepage);
+  XSETFASTINT (codepage, 950);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("big5"), codepage);
+  XSETFASTINT (codepage, 949);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("ksc5601"), codepage);
+  XSETFASTINT (codepage, 932);
+  /* SJIS only contains a subset of JISX0212, but list it anyway.  */
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("jisx0212-sjis"), codepage);
+  XSETFASTINT (codepage, 932);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("jisx0208-sjis"), codepage);
+  XSETFASTINT (codepage, 874);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("tis620"), codepage);
+  XSETFASTINT (codepage, 20866);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("koi8-r"), codepage);
+  /* iso8859-13 is not yet officially adopted, but it is conveniently
+     covered by CP 1257.  */
+  XSETFASTINT (codepage, 1257);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-13"), codepage);
+  XSETFASTINT (codepage, 1254);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-9"), codepage);
+  XSETFASTINT (codepage, 1255);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-8"), codepage);
+  XSETFASTINT (codepage, 28597);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-7"), codepage);
+  XSETFASTINT (codepage, 28596);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-6"), codepage);
+  XSETFASTINT (codepage, 28595);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-5"), codepage);
+  XSETFASTINT (codepage, 28594);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-4"), codepage);
+  XSETFASTINT (codepage, 28593);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-3"), codepage);
+  XSETFASTINT (codepage, 28592);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-2"), codepage);
+  XSETFASTINT (codepage, 1252);
+  store_in_alist (&Vw32_charset_to_codepage_alist,
+                  build_string ("iso8859-1"), codepage);
 }
