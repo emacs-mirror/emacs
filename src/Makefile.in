@@ -472,7 +472,8 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #define GETLOADAVG_OBJ getloadavg.o
 #endif
 
-#ifdef HAVE_MKTIME
+/* NEXTSTEP mktime wrongly ignores TZ.  */
+#if HAVE_MKTIME && ! defined (_NEXT_SOURCE)
 #define MKTIME_OBJ
 #else
 #define MKTIME_OBJ mktime.o
