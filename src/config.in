@@ -120,6 +120,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_RMDIR
 #undef HAVE_RANDOM
 #undef HAVE_BCOPY
+#undef HAVE_BCMP
 #undef HAVE_LOGB
 #undef HAVE_FREXP
 #undef HAVE_FTIME
@@ -210,9 +211,10 @@ and this notice must be preserved on all copies.  */
 #endif
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.  */
+   Override any claims made by the system-description files.
+   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
 #undef BSTRING
-#ifdef HAVE_BCOPY
+#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
 #define BSTRING
 #endif
 
