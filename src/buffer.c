@@ -1900,12 +1900,14 @@ selected window if it is displayed there.  */)
       tem = Fwindow_buffer (selected_window);
       /* If we're burying the current buffer, unshow it.  */
       if (EQ (buffer, tem))
-	if (NILP (Fwindow_dedicated_p (selected_window)))
-	  Fswitch_to_buffer (Fother_buffer (buffer, Qnil, Qnil), Qnil);
-	else if (NILP (XWINDOW (selected_window)->parent))
-	  Ficonify_frame (Fwindow_frame (selected_window));
-	else
-	  Fdelete_window (selected_window);
+	{
+	  if (NILP (Fwindow_dedicated_p (selected_window)))
+	    Fswitch_to_buffer (Fother_buffer (buffer, Qnil, Qnil), Qnil);
+	  else if (NILP (XWINDOW (selected_window)->parent))
+	    Ficonify_frame (Fwindow_frame (selected_window));
+	  else
+	    Fdelete_window (selected_window);
+	}
     }
   else
     {
