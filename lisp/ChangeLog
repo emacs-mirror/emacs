@@ -1,5 +1,10 @@
 2001-10-21  Miles Bader  <miles@gnu.org>
 
+	* help-funs.el (help-manyarg-func-alist): Remove entries for
+	`list', `vector', `make-byte-code', `call-process',
+	`call-process-region', `string', `+', `-', `*', `/', `max', `min',
+	`logand', `logior', and `logxor'.
+
 	* wid-edit.el (checkbox): Swap bg/fg colors in image, and invert
 	image bits to compensate.  Use `make-string' instead of
 	`make-bool-vector' (XBM apparently wants byte-aligned rows).

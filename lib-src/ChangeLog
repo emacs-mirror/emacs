@@ -1,3 +1,10 @@
+2001-10-21  Miles Bader  <miles@gnu.org>
+
+	* make-docfile.c (read_c_string_or_comment): Add SAW_USAGE
+	parameter, and implement scanning for a `usage:' keyword.
+	(scan_c_file): Pass SAW_USAGE argument to read_c_string_or_comment.
+	Don't output a usage-string if there was one in the doc-string.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 21.1 released.

@@ -1,3 +1,11 @@
+2001-10-21  Miles Bader  <miles@gnu.org>
+
+	* data.c (Fplus, Fminus, Fmax, Ftimes, Fquo, Flogand, Flogior) 
+	(Flogxor): Add usage: string to doc string.
+	* charset.c (Fstring): Likewise.
+	* callproc.c (Fcall_process_region, Fcall_process): Likewise.
+	* alloc.c (Fmake_byte_code, Fvector, Flist): Likewise.
+
 2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buffer.c: Reindent DEFUNs and DEFVARs with doc: keywords.
