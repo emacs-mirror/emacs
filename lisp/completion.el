@@ -2542,7 +2542,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (defun completion-before-command ()
   (funcall (or (get this-command 'completion-function)
 	       'use-completion-under-or-before-point)))
-(add-hook 'before-command-hook 'completion-before-command)
+(add-hook 'pre-command-hook 'completion-before-command)
 
 
 ;;;---------------------------------------------------------------------------
