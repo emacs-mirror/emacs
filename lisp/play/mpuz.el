@@ -76,20 +76,23 @@
 
 (if mpuz-read-map nil
     (setq mpuz-read-map (make-keymap))
-    (fillarray mpuz-read-map 'exit-minibuffer))
+    (let ((i 0))
+      (while (< i (length mpuz-read-map))
+	(define-key mpuz-read-map (char-to-string i) 'exit-minibuffer)
+	(setq i (1+ i)))))
 
 (defun mpuz-mode ()
-  "Multiplication puzzle with GNU Emacs.
+  "Multiplication puzzle mode.
 
 You have to guess which letters stand for which digits in the
-multiplication displayed inside the *Mult Puzzle* buffer.
+multiplication displayed inside the `*Mult Puzzle*' buffer.
 
-You may enter a proposal (e.g. A=3) by hitting first the letter A,
-then the digit 3, on your keyboard.
+You may enter a guess for a letter's value by typing first the letter,
+then the digit.  Thus, to guess that A=3, type A 3.
 
-At any time you may leave the game to do other editing work. :-)
-Then you may resume the game with M-x mult-puzzle.
-You may abort a game by hitting \\[keyboard-quit]."
+To leave the game to do other editing work, just switch buffers.
+Then you may resume the game with M-x mpuz.
+You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (interactive)
   (setq major-mode 'mpuz-mode
 	mode-name  "Mult Puzzle")
@@ -336,7 +339,8 @@ You may abort a game by hitting \\[keyboard-quit]."
       (mpuz-start-new-game)
       (message "OK. I won't.")))
 
-(defun mult-puzzle ()
+;;;###autoload
+(defun mpuz ()
   "Multiplication puzzle with GNU Emacs."
   ;; Main entry point
   (interactive)
