@@ -389,8 +389,8 @@ Returns the abbrev symbol, if expansion took place.  */)
       /* If the abbrev has a hook function, run it.  */
       expanded = call0 (hook);
 
-      /* In addition, if the hook function is a symbol with a a
-	 non-nil `no-self-insert' property, let the value it returned
+      /* In addition, if the hook function is a symbol with
+	 a non-nil `no-self-insert' property, let the value it returned
 	 specify whether we consider that an expansion took place.  If
 	 it returns nil, no expansion has been done.  */
 
@@ -635,7 +635,7 @@ nil if the abbrev has already been unexpanded.  */);
 
   DEFVAR_LISP ("abbrev-start-location", &Vabbrev_start_location,
 	       doc: /* Buffer position for `expand-abbrev' to use as the start of the abbrev.
-nil means use the word before point as the abbrev.
+When nil, use the word before point as the abbrev.
 Calling `expand-abbrev' sets this to nil.  */);
   Vabbrev_start_location = Qnil;
 
