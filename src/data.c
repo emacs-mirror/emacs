@@ -1336,7 +1336,7 @@ ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
   if (STRINGP (array))
     {
       Lisp_Object val;
-      XFASTINT (val) = (unsigned char) XSTRING (array)->data[idxval];
+      XSETFASTINT (val, (unsigned char) XSTRING (array)->data[idxval]);
       return val;
     }
   else
@@ -1378,7 +1378,7 @@ Farray_length (array)
   register Lisp_Object size;
   if (!VECTORP (array) && !STRINGP (array) && !COMPILEDP (array))
     array = wrong_type_argument (Qarrayp, array);
-  XFASTINT (size) = XVECTOR (array)->size;
+  XSETFASTINT (size, XVECTOR (array)->size);
   return size;
 }
 
