@@ -314,12 +314,11 @@ modify_lower_category_set (table, category, set_value)
   Lisp_Object val;
   int i;
 
-  if (NILP (XCHAR_TABLE (table)->defalt))
-    {
-      val = MAKE_CATEGORY_SET;
-      SET_CATEGORY_SET (val, category, set_value);
-      XCHAR_TABLE (table)->defalt = val;
-    }
+  val = XCHAR_TABLE (table)->defalt;
+  if (!CATEGORY_SET_P (val))
+    val = MAKE_CATEGORY_SET;
+  SET_CATEGORY_SET (val, category, set_value);
+  XCHAR_TABLE (table)->defalt = val;
 
   for (i = 32; i < SUB_CHAR_TABLE_ORDINARY_SLOTS; i++)
     {
