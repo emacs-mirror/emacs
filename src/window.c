@@ -48,10 +48,6 @@ Boston, MA 02111-1307, USA.  */
 #include "macterm.h"
 #endif
 
-#ifndef max
-#define max(a, b) ((a) < (b) ? (b) : (a))
-#endif
-
 /* Values returned from coordinates_in_window.  */
 
 enum window_part
@@ -517,7 +513,7 @@ coordinates_in_window (w, x, y)
   int left_x, right_x, top_y, bottom_y;
   int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
   enum window_part part;
-  int ux = CANON_X_UNIT (f), uy = CANON_Y_UNIT (f);
+  int ux = CANON_X_UNIT (f);
   int x0 = XFASTINT (w->left) * ux;
   int x1 = x0 + XFASTINT (w->width) * ux;
   /* The width of the area where the vertical line can be dragged.
