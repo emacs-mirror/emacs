@@ -90,7 +90,9 @@ extern char *sys_errlist[];
 #include <fcntl.h>
 #endif
 #ifdef USG
+#ifndef USG5
 #include <fcntl.h>
+#endif
 #endif
 #endif /* not 4.1 bsd */
 
@@ -1662,7 +1664,7 @@ select (nfds, rfds, wfds, efds, timeout)
       if (*local_timeout == 0 || ravail != 0 || process_tick != update_tick)
 	break;
       old_alarm = alarm (0);
-      old_trap = (int (*)()) signal (SIGALRM, select_alarm);
+      old_trap = signal (SIGALRM, select_alarm);
       select_alarmed = 0;
       alarm (SELECT_PAUSE);
       /* Wait for a SIGALRM (or maybe a SIGTINT) */
@@ -1714,7 +1716,8 @@ read_input_waiting ()
 {
   char buf[256 * BUFFER_SIZE_FACTOR];
   struct input_event e;
-  int nread;
+  int nread, i;
+  extern int quit_char;
 
   if (read_socket_hook)
     {
@@ -1736,7 +1739,7 @@ read_input_waiting ()
       kbd_buffer_store_event (&e);
       /* Don't look at input that follows a C-g too closely.
 	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i] == Ctl ('G'))
+      if (buf[i] == quit_char)
 	break;
     }
 }
