@@ -1,6 +1,6 @@
 ;;; register.el --- register commands for Emacs.
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -151,6 +151,11 @@ REGISTER is a character."
 
 	 ((frame-configuration-p val)
 	  (princ "a frame configuration."))
+
+	 ((and (consp val) (eq (car val) 'file))
+	  (princ "the file ")
+	  (prin1 (cdr val))
+	  (princ "."))
 
 	 ((consp val)
 	  (princ "the rectangle:\n")
