@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc/!pool.c(trunk.4)$
+ *  $HopeName: MMsrc!pool.c(trunk.5) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -156,6 +156,8 @@ void PoolMark(Pool pool, Trace trace)
 
 Error PoolScan(Pool pool, Trace trace, RefRank rank)
 {
+  AVER(rank == TraceRank(trace));
+
   if(pool->class->scan != NULL)
     return (*pool->class->scan)(pool, trace, rank);
   return ErrSUCCESS;
@@ -217,11 +219,10 @@ Error PoolDescribe(Pool pool, LibStream stream)
 }
 
 
+/* Thread safe */
 Space (PoolSpace)(Pool pool)
 {
-  AVER(ISVALID(Pool, pool));
-  return PARENT(SpaceStruct, poolDeque,
-                DequeNodeParent(&pool->spaceDeque));
+  return PARENT(SpaceStruct, poolDeque, pool->spaceDeque.deque);
 }
 
 PoolClass (PoolGetClass)(Pool pool)
