@@ -1,17 +1,15 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.3) $
+ * $HopeName: MMsrc!vmli.c(trunk.4) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
  *
  * Design: design.mps.vm, design.mps.vmli
  *
- * Status: a bit hacky, but probably working.
- *
- * This is the implementation of the virtual memory mapping interface
- * (vm.h) for LINUX.  It was created by copying vmo1.c (the DIGITAL
- * UNIX implementation) as that seemed to be closest.
+ * .purpose: This is the implementation of the virtual memory mapping 
+ * interface (vm.h) for LINUX.  It was created by copying vmo1.c (the 
+ * DIGITAL UNIX implementation) as that seemed to be closest.
  *
  * mmap(2) is used to reserve address space by creating a mapping to
  * /etc/passwd with page access none.  mmap(2) is used to map pages
@@ -23,7 +21,7 @@
  * appears to be a bug, so we work round it by using /etc/passwd,
  * the only file we can think of which is pretty much guaranteed
  * to be around. [these experiments have not been tried on LINUX
- * so might be okay to /dev/zero].
+ * so it might be okay to use /dev/zero].
  *
  * .assume.not-last: The implementation of VMCreate assumes that
  *   mmap() will not choose a region which contains the last page
@@ -64,7 +62,7 @@
 /* for sysconf(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.3) $");
+SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.4) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -262,7 +260,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += size;
 
-  EVENT_PAA(VMUnmap, vm, base, limit);
+  EVENT_PAA(VMMap, vm, base, limit);
   return ResOK;
 }
 
