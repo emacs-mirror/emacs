@@ -2711,19 +2711,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      break;
 	    }
 
-#ifdef HAVE_FACES
-	  /* Did we hit a face change?  Figure out what face we should
-	     use now.  We also hit this the first time through the
-	     loop, to see what face we should start with.  */
-	  if (pos >= next_face_change && (FRAME_WINDOW_P (f)))
-	    current_face = compute_char_face (f, w, pos,
-					      region_beg, region_end,
-					      &next_face_change, pos + 50, 0);
-#endif
-
 	  /* Figure out where (if at all) the
 	     redisplay_end_trigger-hook should run.  */
-	  if (MARKERP (w->redisplay_end_trigger))
+	  if (MARKERP (w->redisplay_end_trigger)
+	      && XMARKER (w->redisplay_end_trigger)->buffer != 0)
 	    e_t_h = marker_position (w->redisplay_end_trigger);
 	  else if (INTEGERP (w->redisplay_end_trigger))
 	    e_t_h = XINT (w->redisplay_end_trigger);
@@ -2737,7 +2728,19 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      Frun_hooks (1, &Qredisplay_end_trigger_hook);
 	      w->redisplay_end_trigger = Qnil;
 	      e_t_h = ZV;
+	      /* Notice if it changed the face of this character.  */
+	      next_face_change = pos;
 	    }
+
+#ifdef HAVE_FACES
+	  /* Did we hit a face change?  Figure out what face we should
+	     use now.  We also hit this the first time through the
+	     loop, to see what face we should start with.  */
+	  if (pos >= next_face_change && (FRAME_WINDOW_P (f)))
+	    current_face = compute_char_face (f, w, pos,
+					      region_beg, region_end,
+					      &next_face_change, pos + 50, 0);
+#endif
 
 	  /* Compute the next place we need to stop
 	     and do something special; set PAUSE.  */
