@@ -270,7 +270,7 @@ for Shell mode only."
 		 (const input)
 		 (const history)
 		 (const :tag "on" t))
-  :type 'shell)
+  :group 'shell)
 
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.
