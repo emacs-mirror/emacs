@@ -34,6 +34,7 @@
 (defvar Info-default-directory-list
   (list "/usr/local/info/"
 	"/usr/local/lib/info/"
+	configured-info-directory
 	(expand-file-name "../info/" data-directory)
 	(expand-file-name "../../info/" data-directory))
   "List of directories to search for Info documentation files.")
