@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.59) $
+# $HopeName: MMsrc!comm.gmk(trunk.60) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -269,8 +269,8 @@ all: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv \
-         locv qs finalcv arenacv abqtest cbstest btcv messtest
+testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut mpsicv lockcov \
+         poolncv locv qs finalcv arenacv abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # Runs the automatic tests that are built with CONFIG_PROD_EPCORE
@@ -284,8 +284,8 @@ testrunep: epvmss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss sacss amcss amcssth amsss segsmss awlut awlutth mpsicv lockcov \
-  poolncv locv qs finalcv arenacv bttest teletest epvmss \
+mpmss apss sacss amcss amcssth amcsshe amsss segsmss awlut awlutth mpsicv \
+  lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2eptst mv2test messtest eventcnv replay replaysw \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -368,6 +368,9 @@ $(PFM)/$(VARIETY)/amcss: $(PFM)/$(VARIETY)/amcss.o \
 
 $(PFM)/$(VARIETY)/amcssth: $(PFM)/$(VARIETY)/amcssth.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
+	$(PFM)/$(VARIETY)/fmthe.o $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
