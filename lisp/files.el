@@ -1225,6 +1225,7 @@ suppresses this warning."
 When nil, never request confirmation."
   :group 'files
   :group 'find-file
+  :version "21.4"
   :type '(choice integer (const :tag "Never request confirmation" nil)))
 
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
@@ -3813,7 +3814,7 @@ This command is used in the special Dired buffer created by
 
 (defun kill-some-buffers (&optional list)
   "Kill some buffers.  Asks the user whether to kill each one of them.
-Non-interactively, if optional argument LIST is non-`nil', it
+Non-interactively, if optional argument LIST is non-nil, it
 specifies the list of buffers to kill, asking for approval for each one."
   (interactive)
   (if (null list)
