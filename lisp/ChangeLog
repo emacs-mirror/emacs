@@ -1,3 +1,7 @@
+2001-02-01  Dave Love  <fx@gnu.org>
+
+	* progmodes/f90.el (f90-mode): Remove startup message.
+
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Fix code determining whether or not
