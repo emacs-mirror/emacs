@@ -1,5 +1,9 @@
 2002-06-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xselect.c (lisp_data_to_selection_data): If the requested type
+	 is STRING, call string_make_unibyte to encode the selected text
+	 as a string.
+
 	* window.c (Fset_window_hscroll): Doc fix.
 
 2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
