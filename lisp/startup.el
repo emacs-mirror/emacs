@@ -246,13 +246,28 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
   ;;! (setq split-window-keep-point (> baud-rate 2400))
 
   ;; Read window system's init file if using a window system.
-  (if (and window-system (not noninteractive))
-      (load (concat term-file-prefix
-		    (symbol-name window-system)
-		    "-win")
-	    ;; Every window system should have a startup file;
-	    ;; barf if we can't find it.
-	    nil t))
+  (condition-case error
+      (if (and window-system (not noninteractive))
+	  (load (concat term-file-prefix
+			(symbol-name window-system)
+			"-win")
+		;; Every window system should have a startup file;
+		;; barf if we can't find it.
+		nil t))
+    ;; If we can't read it, print the error message and exit.
+    (error
+     (if (eq (car error) 'error)
+	 (message "%s" (apply 'concat (cdr error)))
+       (if (memq 'file-error (get (car error) 'error-conditions))
+	   (message "%s: %s"
+		    (nth 1 error)
+		    (mapconcat '(lambda (obj) (prin1-to-string obj t))
+			       (cdr (cdr error)) ", "))
+	 (message "%s: %s"
+		  (get (car error) 'error-message)
+		  (mapconcat '(lambda (obj) (prin1-to-string obj t))
+			     (cdr error) ", "))))
+     (kill-emacs)))
 
   (let ((done nil)
 	(args (cdr command-line-args)))
