@@ -1,3 +1,15 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket): Increment handling_signal at the start,
+	decrement it at the end.
+
+	* eval.c (handling_signal): New variable.
+	(Fsignal): Abort if handling_signal is non-zero.
+
+	* lisp.h (handling_signal): External declaration.
+	
+	* s/freebsd.h (WAITTYPE, WRETCODE): Put in #if 0.
+
 2000-07-05  Ken Raeburn  <raeburn@gnu.org>
 
 	Sound support for NetBSD through "Linux emulation" support:
