@@ -141,26 +141,6 @@ Date: Mon, 11 Oct 2004 11:14:49 +0200
 now I can drag the modeline only upwards but not downwards
 
 
-** line-spacing and (recenter -1)
-
-From: SAITO Takuya <tabmore@rivo.mediatti.net>
-Date: Mon, 31 May 2004 02:07:57 +0900 (JST)
-
-(recenter -1) does not show point at the bottom of the window
-if line-spacing is set to positive integer.
-
-Start emacs -Q, and evaluate below:
-
-(progn
-  (setq line-spacing 1)
-  (dotimes (i (window-height))
-    (insert "\n" (int-to-string i)))
-  (recenter -1))
-
-Then, point is displayed at the center of the window.
-But point should be displayed at the bottom of the window like Emacs-21.3.
-
-
 ** line-spacing and Electric-pop-up-window
 
 From: SAITO Takuya <tabmore@rivo.mediatti.net>
