@@ -106,6 +106,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    characters.  Elements 0 and 1 of computed_faces always describe the
    default and mode-line faces.
 
+   Each computed face belongs to a particular frame.
+
    Computed faces have graphics contexts some of the time.
    intern_face builds a GC for a specified computed face
    if it doesn't have one already.
@@ -147,6 +149,7 @@ int region_face;
 #define FACE_DEFAULT (~0)
 
 Lisp_Object Qface, Qmouse_face;
+Lisp_Object Qpixmap_spec_p;
 
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
 
@@ -183,6 +186,8 @@ copy_face (face)
   result->background = face->background;
   result->stipple = face->stipple;
   result->underline = face->underline;
+  result->pixmap_h = face->pixmap_h;
+  result->pixmap_w = face->pixmap_w;
 
   return result;
 }
@@ -234,13 +239,14 @@ intern_face (f, face)
   xgcv.graphics_exposures = 0;
 
   mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+  if (face->stipple && face->stipple != FACE_DEFAULT)
+    xgcv.fill_style = FillStippled;
+
   gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  mask, &xgcv);
 
-#if 0
   if (face->stipple && face->stipple != FACE_DEFAULT)
-    XSetStipple (FRAME_X_DISPLAY (f), gc, face->stipple);
-#endif
+    XSetStipple (FRAME_X_DISPLAY (f), gc, x_bitmap_pixmap (f, face->stipple));
 
   face->gc = gc;
 
@@ -281,7 +287,11 @@ clear_face_cache ()
   UNBLOCK_INPUT;
 }
 
-/* Allocating, freeing, and duplicating fonts, colors, and pixmaps.  */
+/* Allocating, freeing, and duplicating fonts, colors, and pixmaps.
+
+   These functions operate on param faces only.
+   Computed faces get their fonts, colors and pixmaps
+   by merging param faces.  */
 
 static XFontStruct *
 load_font (f, name)
@@ -353,13 +363,6 @@ unload_color (f, pixel)
      struct frame *f;
      unsigned long pixel;
 {
-  /* Since faces get built by copying parameters from other faces, the
-     allocation counts for the colors get all screwed up.  I don't see
-     any solution that will take less than 10 minutes, and it's better
-     to have a color leak than a crash, so I'm just dyking this out.
-     This isn't really a color leak, anyway - if we ask for it again,
-     we'll get the same pixel.  */
-#if 0
   Colormap cmap;
   Display *dpy = FRAME_X_DISPLAY (f);
   if (pixel == FACE_DEFAULT
@@ -370,7 +373,85 @@ unload_color (f, pixel)
   BLOCK_INPUT;
   XFreeColors (dpy, cmap, &pixel, 1, 0);
   UNBLOCK_INPUT;
-#endif
+}
+
+DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
+  "Return t if ARG is a valid pixmap specification.")
+  (arg)
+     Lisp_Object arg;
+{
+  Lisp_Object height, width;
+
+  return ((STRINGP (arg)
+	   || (CONSP (arg)
+	       && CONSP (Fcdr (arg))
+	       && CONSP (Fcdr (Fcdr (arg)))
+	       && NILP (Fcdr (Fcdr (Fcdr (arg))))
+	       && INTEGERP (width = Fcar (arg))
+	       && INTEGERP (height = Fcar (Fcdr (arg)))
+	       && STRINGP (Fcar (Fcdr (Fcdr (arg))))
+	       && XINT (width) > 0
+	       && XINT (height) > 0
+	       /* The string must have enough bits for width * height.  */
+	       && (XINT (width) * XINT (height)
+		   <= (XSTRING (Fcar (Fcdr (Fcdr (arg))))->size
+		       * (INTBITS / sizeof (int))))))
+	  ? Qt : Qnil);
+}
+
+/* Load a bitmap according to NAME (which is either a file name
+   or a pixmap spec).  Return the bitmap_id (see xfns.c)
+   or get an error if NAME is invalid.
+
+   Store the bitmap width in *W_PTR and height in *H_PTR.  */
+
+static long
+load_pixmap (f, name, w_ptr, h_ptr)
+     FRAME_PTR *f;
+     Lisp_Object name;
+     unsigned int *w_ptr, *h_ptr;
+{
+  int bitmap_id;
+  Lisp_Object tem;
+
+  if (NILP (name))
+    return FACE_DEFAULT;
+
+  tem = Fpixmap_spec_p (name);
+  if (NILP (tem))
+    wrong_type_argument (Qpixmap_spec_p, name);
+
+  BLOCK_INPUT;
+
+  if (CONSP (name))
+    {
+      /* Decode a bitmap spec into a bitmap.  */
+
+      int h, w;
+      Lisp_Object bits;
+
+      w = XINT (Fcar (name));
+      h = XINT (Fcar (Fcdr (name)));
+      bits = Fcar (Fcdr (Fcdr (name)));
+
+      bitmap_id = x_create_bitmap_from_data (f, XSTRING (bits)->data,
+					     w, h);
+    }
+  else
+    {
+      /* It must be a string -- a file name.  */
+      bitmap_id = x_create_bitmap_from_file (f, name);
+    }
+  UNBLOCK_INPUT;
+
+  if (! bitmap_id)
+    Fsignal (Qerror, Fcons (build_string ("undefined bitmap"),
+			    Fcons (name, Qnil)));
+
+  *w_ptr = x_bitmap_width (f, bitmap_id);
+  *h_ptr = x_bitmap_height (f, bitmap_id);
+
+  return bitmap_id;
 }
 
 /* Managing parameter face arrays for frames. */
@@ -421,6 +502,7 @@ init_frame_faces (f)
 
 
 /* Called from Fdelete_frame.  */
+
 void
 free_frame_faces (f)
      struct frame *f;
@@ -438,9 +520,7 @@ free_frame_faces (f)
 	  unload_font (f, face->font);
 	  unload_color (f, face->foreground);
 	  unload_color (f, face->background);
-#if 0
-	  unload_pixmap (f, face->stipple);
-#endif
+	  x_destroy_bitmap (f, face->stipple);
 	  xfree (face);
 	}
     }
@@ -604,7 +684,11 @@ merge_faces (from, to)
   if (from->background != FACE_DEFAULT)
     to->background = from->background;
   if (from->stipple != FACE_DEFAULT)
-    to->stipple = from->stipple;
+    {
+      to->stipple = from->stipple;
+      to->pixmap_h = from->pixmap_h;
+      to->pixmap_w = from->pixmap_w;
+    }
   if (from->underline)
     to->underline = from->underline;
 }
@@ -617,17 +701,12 @@ compute_base_face (f, face)
      FRAME_PTR f;
      struct face *face;
 {
-  struct x_display *d = f->display.x;
-  
   face->gc = 0;
-  face->foreground = d->foreground_pixel;
-  face->background = d->background_pixel;
-  face->font = d->font;
+  face->foreground = FRAME_FOREGROUND_PIXEL (f);
+  face->background = FRAME_BACKGROUND_PIXEL (f);
+  face->font = FRAME_FONT (f);
   face->stipple = 0;
   face->underline = 0;
-
-  /* Avoid a face comparison by making this invalid.  */
-  face->cached_index = -1;
 }
 
 /* Return the face ID to use to display a special glyph which selects
@@ -990,20 +1069,16 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       face->background = new_color;
       garbaged = 1;
     }
-#if 0
   else if (EQ (attr_name, intern ("background-pixmap")))
     {
-      unsigned int w, h, d;
-      unsigned long new_pixmap = load_pixmap (f, attr_value, &w, &h, &d, 0);
-      unload_pixmap (f, face->stipple);
-      if (NILP (attr_value))
-	new_pixmap = 0;
+      unsigned int w, h;
+      unsigned long new_pixmap = load_pixmap (f, attr_value, &w, &h);
+      x_destroy_bitmap (f, face->stipple);
       face->stipple = new_pixmap;
       face->pixmap_w = w;
       face->pixmap_h = h;
-/*      face->pixmap_depth = d; */
+      garbaged = 1;
     }
-#endif /* 0 */
   else if (EQ (attr_name, intern ("underline")))
     {
       int new = !NILP (attr_value);
@@ -1063,12 +1138,15 @@ syms_of_xfaces ()
   staticpro (&Qface);
   Qmouse_face = intern ("mouse-face");
   staticpro (&Qmouse_face);
+  Qpixmap_spec_p = intern ("pixmap-spec-p");
+  staticpro (&Qpixmap_spec_p);
 
   DEFVAR_INT ("region-face", &region_face,
     "Face number to use to highlight the region\n\
 The region is highlighted with this face\n\
 when Transient Mark mode is enabled and the mark is active.");
 
+  defsubr (&Spixmap_spec_p);
   defsubr (&Sframe_face_alist);
   defsubr (&Sset_frame_face_alist);
   defsubr (&Smake_face_internal);
