@@ -1377,7 +1377,7 @@ it specifies the file name to use for `load-history'.
 The optional fourth argument UNIBYTE specifies `load-convert-to-unibyte'
 for this invocation.
 
-The optional fifth argument DO-ALLOW-PRINT, if not-nil, specifies that
+The optional fifth argument DO-ALLOW-PRINT, if non-nil, specifies that
 `print' and related functions should work normally even if PRINTFLAG is nil.
 
 This function preserves the position of point.  */)

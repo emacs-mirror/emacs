@@ -1,3 +1,7 @@
+2002-11-04  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* lread.c (Feval_buffer): Doc fix.
+
 2002-11-04  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (read_char): Always translate iff
