@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!amsss.c(trunk.7) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
@@ -8,31 +8,32 @@
  * when AMS is collected).
  */
 
+#include "fmtdy.h"
+#include "testlib.h"
+#include "mpscams.h"
+#include "mpsavm.h"
+#include "mpstd.h"
+#ifdef MPS_OS_W3
+#include "mpsw3.h"
+#endif
+#include "mps.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#include "testlib.h"
-#include "mps.h"
-#include "mpscams.h"
-#include "mpsavm.h"
-#include "fmtdy.h"
-#include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 
 #define exactRootsCOUNT 50
-#define ambigRootsCOUNT 50
-/* Even this much takes 20 min to run in variety CI on gaia. */ 
+#define ambigRootsCOUNT 100
+/* This is enough for five GCs. */ 
 #define totalSizeMAX    800 * (size_t)1024
 #define totalSizeSTEP   200 * (size_t)1024
+/* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL         ((mps_addr_t)0xDECEA5ED)
 #define testArenaSIZE   ((size_t)16<<20)
 #define initTestFREQ    6000
@@ -91,14 +92,15 @@ static void *test(void *arg, size_t s)
   for(i = 0; i < ambigRootsCOUNT; ++i)
     ambigRoots[i] = (mps_addr_t)rnd();
 
-  die(mps_root_create_table(&exactRoot, arena,
-                            MPS_RANK_EXACT, (mps_rm_t)0,
-                            &exactRoots[0], exactRootsCOUNT),
-                            "root_create_table(exact)");
+  die(mps_root_create_table_masked(&exactRoot, arena,
+                                   MPS_RANK_EXACT, (mps_rm_t)0,
+                                   &exactRoots[0], exactRootsCOUNT,
+                                   (mps_word_t)1),
+      "root_create_table(exact)");
   die(mps_root_create_table(&ambigRoot, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
-                            "root_create_table(ambig)");
+      "root_create_table(ambig)");
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
@@ -121,6 +123,10 @@ static void *test(void *arg, size_t s)
       exactRoots[rnd() % exactRootsCOUNT] = make();
     else
       ambigRoots[rnd() % ambigRootsCOUNT] = make();
+
+    /* Create random interior pointers */
+    r = rnd() % ambigRootsCOUNT;
+    ambigRoots[r] = (mps_addr_t)((char *)(ambigRoots[r/2]) + 1);
 
     r = rnd() % exactRootsCOUNT;
     if(exactRoots[r] != objNULL)
