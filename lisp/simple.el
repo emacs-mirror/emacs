@@ -1906,7 +1906,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	new)
+	new line-end line-beg)
     (unwind-protect
 	(progn
 	  (if (not (or (eq last-command 'next-line)
@@ -1973,25 +1973,42 @@ Outline mode sets this."
       ;; If we are moving into some intangible text,
       ;; look for following text on the same line which isn't intangible
       ;; and move there.
+      (setq line-end (save-excursion (end-of-line) (point)))
+      (setq line-beg (save-excursion (beginning-of-line) (point)))
       (let ((after (and (< new (point-max))
 			(get-char-property new 'intangible)))
 	    (before (and (> new (point-min))
-			 (get-char-property (1- new) 'intangible)))
-	    line-end)
-	(when (and before (eq before after))
-	  (setq line-end (save-excursion (end-of-line) (point)))
+			 (get-char-property (1- new) 'intangible))))
+	(when (and before (eq before after)
+		   (not (bolp)))
 	  (goto-char (point-min))
 	  (let ((inhibit-point-motion-hooks nil))
 	    (goto-char new))
 	  (if (<= new line-end)
 	      (setq new (point)))))
-      ;; Remember where we moved to, go back home,
-      ;; then do the motion over again
-      ;; in just one step, with intangibility and point-motion hooks
-      ;; enabled this time.
+      ;; NEW is where we want to move to.
+      ;; LINE-BEG and LINE-END are the beginning and end of the line.
+      ;; Move there in just one step, from our starting position,
+      ;; with intangibility and point-motion hooks enabled this time.
       (goto-char opoint)
       (setq inhibit-point-motion-hooks nil)
-      (goto-char new)))
+      (goto-char new)
+      ;; If intangibility processing moved us to a different line,
+      ;; readjust the horizontal position within the line we ended up at.
+      (when (or (< (point) line-beg) (> (point) line-end))
+	(setq new (point))
+	(setq inhibit-point-motion-hooks t)
+	(setq line-end (save-excursion (end-of-line) (point)))
+	(beginning-of-line)
+	(setq line-beg (point))
+	(let ((buffer-invisibility-spec nil))
+	  (move-to-column (or goal-column temporary-goal-column)))
+	(if (<= (point) line-end)
+	    (setq new (point)))
+	(goto-char (point-min))
+	(setq inhibit-point-motion-hooks nil)
+	(goto-char new)
+	)))
   nil)
 
 ;;; Many people have said they rarely use this feature, and often type
