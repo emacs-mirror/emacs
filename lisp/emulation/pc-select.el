@@ -53,6 +53,8 @@
 ;; David Biesack <sasdjb@unx.sas.com> suggested some more cleanup.
 ;; Thanks to Pete Forman <pete.forman@airgun.wg.waii.com>
 ;; for additional motif keybindings.
+;; Thanks to jvromans@squirrel.nl (Johan Vromans) for a bug report
+;; concerning setting of this-command.
 ;;
 ;;
 ;; Ok, some details about the idea of pc-selection-mode:
@@ -121,7 +123,7 @@ and nil is returned."
   "Ensure mark is active; move forward to end of paragraph.
 With arg N, do it N times; negative arg -N means move backward N paragraphs.\n
 A line which `paragraph-start' matches either separates paragraphs
-(if `paragraph-separate' matches it also) or is the first line of a paragraph.
+\(if `paragraph-separate' matches it also) or is the first line of a paragraph.
 A paragraph end is the beginning of a line which is not part of the paragraph
 to which the end of the previous line belongs, or the end of the buffer."
   (interactive "p")
@@ -144,7 +146,8 @@ Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
   (interactive "p")
   (ensure-mark)
-  (next-line arg))
+  (next-line arg)
+  (setq this-command 'next-line))
 
 (defun end-of-line-mark (&optional arg)
   "Ensure mark is active; move point to end of current line.
@@ -152,7 +155,8 @@ With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
   (interactive "p")
   (ensure-mark)
-  (end-of-line arg))
+  (end-of-line arg)
+  (setq this-command 'end-of-line))
 
 (defun scroll-down-mark (&optional arg)
   "Ensure mark is active; scroll down ARG lines; or near full screen if no ARG.
@@ -219,7 +223,7 @@ and nil is returned."
   "Deactivate mark; move forward to end of paragraph.
 With arg N, do it N times; negative arg -N means move backward N paragraphs.\n
 A line which `paragraph-start' matches either separates paragraphs
-(if `paragraph-separate' matches it also) or is the first line of a paragraph.
+\(if `paragraph-separate' matches it also) or is the first line of a paragraph.
 A paragraph end is the beginning of a line which is not part of the paragraph
 to which the end of the previous line belongs, or the end of the buffer."
   (interactive "p")
@@ -242,7 +246,8 @@ Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
   (interactive "p")
   (setq mark-active nil)
-  (next-line arg))
+  (next-line arg)
+  (setq this-command 'next-line))
 
 (defun end-of-line-nomark (&optional arg)
   "Deactivate mark; move point to end of current line.
@@ -250,7 +255,8 @@ With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
   (interactive "p")
   (setq mark-active nil)
-  (end-of-line arg))
+  (end-of-line arg)
+  (setq this-command 'end-of-line))
 
 (defun scroll-down-nomark (&optional arg)
   "Deactivate mark; scroll down ARG lines; or near full screen if no ARG.
@@ -267,7 +273,7 @@ With arg N, put point N/10 of the way from the end.\n
 If the buffer is narrowed, this command uses the beginning and size
 of the accessible part of the buffer.\n
 Don't use this command in Lisp programs!
-(goto-char (point-max)) is faster and avoids clobbering the mark."
+\(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
   (setq mark-active nil)
   (let ((size (- (point-max) (point-min))))
@@ -338,7 +344,8 @@ If you are thinking of using this in a Lisp program, consider using
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (ensure-mark)
-  (previous-line arg))
+  (previous-line arg)
+  (setq this-command 'previous-line))
 
 (defun beginning-of-line-mark (&optional arg)
   "Ensure mark is active; move point to beginning of current line.
@@ -419,7 +426,8 @@ a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically."
   (interactive "p")
   (setq mark-active nil)
-  (previous-line arg))
+  (previous-line arg)
+  (setq this-command 'previous-line))
 
 (defun beginning-of-line-nomark (&optional arg)
   "Deactivate mark; move point to beginning of current line.
@@ -444,7 +452,7 @@ With arg N, put point N/10 of the way from the beginning.\n
 If the buffer is narrowed, this command uses the beginning and size
 of the accessible part of the buffer.\n
 Don't use this command in Lisp programs!
-(goto-char (point-min)) is faster and avoids clobbering the mark."
+\(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
   (setq mark-active nil)
   (let ((size (- (point-max) (point-min))))
@@ -487,6 +495,8 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [right]     'forward-char-nomark)
   (define-key global-map [C-S-right] 'forward-word-mark)
   (define-key global-map [C-right]   'forward-word-nomark)
+  (define-key global-map [M-S-right] 'forward-word-mark)
+  (define-key global-map [M-right]   'forward-word-nomark)
 
   (define-key global-map [S-down]    'next-line-mark)
   (define-key global-map [down]      'next-line-nomark)
@@ -495,6 +505,8 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [end]       'end-of-line-nomark)
   (global-set-key [S-C-end]          'end-of-buffer-mark)
   (global-set-key [C-end]            'end-of-buffer-nomark)
+  (global-set-key [S-M-end]          'end-of-buffer-mark)
+  (global-set-key [M-end]            'end-of-buffer-nomark)
 
   (define-key global-map [S-next]    'scroll-up-mark)
   (define-key global-map [next]      'scroll-up-nomark)
@@ -503,6 +515,8 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [left]      'backward-char-nomark)
   (define-key global-map [C-S-left]  'backward-word-mark)
   (define-key global-map [C-left]    'backward-word-nomark)
+  (define-key global-map [M-S-left]  'backward-word-mark)
+  (define-key global-map [M-left]    'backward-word-nomark)
 
   (define-key global-map [S-up]      'previous-line-mark)
   (define-key global-map [up]        'previous-line-nomark)
@@ -511,6 +525,8 @@ the MAC GUI or MS-Windows (sorry for the last one)."
   (define-key global-map [home]      'beginning-of-line-nomark)
   (global-set-key [S-C-home]         'beginning-of-buffer-mark)
   (global-set-key [C-home]           'beginning-of-buffer-nomark)
+  (global-set-key [S-M-home]         'beginning-of-buffer-mark)
+  (global-set-key [M-home]           'beginning-of-buffer-nomark)
 
   (define-key global-map [S-prior]   'scroll-down-mark)
   (define-key global-map [prior]     'scroll-down-nomark)
