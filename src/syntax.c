@@ -1213,8 +1213,9 @@ skip_chars (forwardp, syntaxp, string, lim)
   int *char_ranges;
   int n_char_ranges = 0;
   int negate = 0;
-  register int i;
+  register int i, i_byte;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int string_multibyte = STRING_MULTIBYTE (string);
 
   CHECK_STRING (string, 0);
   char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
@@ -1230,70 +1231,95 @@ skip_chars (forwardp, syntaxp, string, lim)
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  p = XSTRING (string)->data;
-  pend = p + XSTRING (string)->size;
   bzero (fastmap, sizeof fastmap);
 
-  if (p != pend && *p == '^')
+  i = 0, i_byte = 0;
+
+  if (i < XSTRING (string)->size
+      && XSTRING (string)->data[0] == '^')
     {
-      negate = 1; p++;
+      negate = 1; i++, i_byte++;
     }
 
   /* Find the characters specified and set their elements of fastmap.
      If syntaxp, each character counts as itself.
      Otherwise, handle backslashes and ranges specially.  */
 
-  while (p != pend)
+  while (i < XSTRING (string)->size)
     {
-      c = *p;
-      if (multibyte)
+      int c_leading_code;
+
+      if (string_multibyte)
 	{
-	  ch = STRING_CHAR (p, pend - p);
-	  p += BYTES_BY_CHAR_HEAD (*p);
+	  c_leading_code = XSTRING (string)->data[i_byte];
+	  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 	}
       else
+	c = c_leading_code = XSTRING (string)->data[i++];
+
+      /* Convert multibyteness between what the string has
+	 and what the buffer has.  */
+      if (multibyte)
 	{
-	  ch = c;
-	  p++;
+	  if (c >= 0200 && c < 0400)
+	    c += nonascii_insert_offset;
 	}
+      else
+	c &= 0377;
+
       if (syntaxp)
-	fastmap[syntax_spec_code[c]] = 1;
+	fastmap[syntax_spec_code[c & 0377]] = 1;
       else
 	{
 	  if (c == '\\')
 	    {
-	      if (p == pend) break;
-	      c = *p++;
-	    }
-	  if (p != pend && *p == '-')
-	    {
-	      unsigned int ch2;
+	      if (i == XSTRING (string)->size)
+		break;
 
-	      p++;
-	      if (p == pend) break;
-	      if (SINGLE_BYTE_CHAR_P (ch))
-		while (c <= *p)
+	      if (string_multibyte)
+		FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+	      else
+		c = XSTRING (string)->data[i++];
+	    }
+	  if (i == XSTRING (string)->size && XSTRING (string)->data[i] == '-')
+	    {
+	      unsigned int c2;
+
+	      /* Skip over the dash.  */
+	      i++, i_byte++;
+
+	      if (i == XSTRING (string)->size)
+		break;
+
+	      /* Get the end of the range.  */
+	      if (string_multibyte)
+		FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
+	      else
+		c2 = XSTRING (string)->data[i++];
+
+	      if (SINGLE_BYTE_CHAR_P (c))
+		while (c <= c2)
 		  {
 		    fastmap[c] = 1;
 		    c++;
 		  }
 	      else
 		{
-		  fastmap[c] = 1; /* C is the base leading-code.  */
-		  ch2 = STRING_CHAR (p, pend - p);
-		  if (ch <= ch2)
-		    char_ranges[n_char_ranges++] = ch,
-		    char_ranges[n_char_ranges++] = ch2;
+		  fastmap[c_leading_code] = 1;
+		  if (c <= c2)
+		    {
+		      char_ranges[n_char_ranges++] = c;
+		      char_ranges[n_char_ranges++] = c2;
+		    }
 		}
-	      p += multibyte ? BYTES_BY_CHAR_HEAD (*p) : 1;
 	    }
 	  else
 	    {
-	      fastmap[c] = 1;
-	      if (!SINGLE_BYTE_CHAR_P (ch))
+	      fastmap[c_leading_code] = 1;
+	      if (!SINGLE_BYTE_CHAR_P (c))
 		{
-		  char_ranges[n_char_ranges++] = ch;
-		  char_ranges[n_char_ranges++] = ch;
+		  char_ranges[n_char_ranges++] = c;
+		  char_ranges[n_char_ranges++] = c;
 		}
 	    }
 	}
