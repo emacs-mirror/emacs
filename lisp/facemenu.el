@@ -153,8 +153,8 @@ call `facemenu-update' to recalculate the menu contents.
 If this variable is t, no faces will be added to the menu.  This is useful for
 temporarily turning off the feature that automatically adds faces to the menu
 when they are created."
-  :type '(choice (const :tag "Don't add" t)
-		 (const :tag "None" nil)
+  :type '(choice (const :tag "Don't add faces" t)
+		 (const :tag "None (do add any face)" nil)
 		 (repeat (choice symbol regexp)))
   :group 'facemenu)
 
@@ -321,55 +321,75 @@ variables."
 ;;;###autoload
 (defun facemenu-set-face (face &optional start end)
   "Add FACE to the region or next character typed.
-It will be added to the top of the face list; any faces lower on the list that
+This adds FACE to the top of the face list; any faces lower on the list that
 will not show through at all will be removed.
 
-Interactively, the face to be used is read with the minibuffer.
+Interactively, reads the face name with the minibuffer.
 
-In the Transient Mark mode, if the region is active and there is no
-prefix argument, this command sets the region to the requested face.
+If the region is active (normally true except in Transient Mark mode)
+and there is no prefix argument, this command sets the region to the
+requested face.
 
 Otherwise, this command specifies the face for the next character
 inserted.  Moving point or switching buffers before
 typing a character to insert cancels the specification." 
-  (interactive (list (read-face-name "Use face")))
-  (barf-if-buffer-read-only)
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (read-face-name "Use face"))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
   (facemenu-add-new-face face)
-  (if (and mark-active (not current-prefix-arg))
-      (let ((start (or start (region-beginning)))
-	    (end (or end (region-end))))
-	(facemenu-add-face face start end))
-    (facemenu-add-face face)))
+  (facemenu-add-face face start end))
 
 ;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
   "Set the foreground COLOR of the region or next character typed.
 The color is prompted for.  A face named `fg:color' is used \(or created).
-If the region is active, it will be set to the requested face.  If
-it is inactive \(even if mark-even-if-inactive is set) the next
-character that is typed \(via `self-insert-command') will be set to
-the selected face.  Moving point or switching buffers before
-typing a character cancels the request." 
-  (interactive (list (facemenu-read-color "Foreground color: ")))
-  (let ((face (intern (concat "fg:" color))))
-    (or (facemenu-get-face face)
-	(error "Unknown color: %s" color))
-    (facemenu-set-face face start end)))
+
+If the region is active (normally true except in Transient Mark mode)
+and there is no prefix argument, this command sets the region to the
+requested face.
+
+Otherwise, this command specifies the face for the next character
+inserted.  Moving point or switching buffers before
+typing a character to insert cancels the specification." 
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (facemenu-read-color "Foreground color: "))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
+  (unless (color-defined-p color)
+    (message "Color `%s' undefined" color))
+  (facemenu-add-new-face color 'facemenu-foreground-menu)
+  (facemenu-add-face (list (list :foreground color)) start end))
 
 ;;;###autoload
 (defun facemenu-set-background (color &optional start end)
   "Set the background COLOR of the region or next character typed.
-The color is prompted for.  A face named `bg:color' is used \(or created).
-If the region is active, it will be set to the requested face.  If
-it is inactive \(even if mark-even-if-inactive is set) the next
-character that is typed \(via `self-insert-command') will be set to
-the selected face.  Moving point or switching buffers before
-typing a character cancels the request." 
-  (interactive (list (facemenu-read-color "Background color: ")))
-  (let ((face (intern (concat "bg:" color))))
-    (or (facemenu-get-face face)
-	(error "Unknown color: %s" color))
-    (facemenu-set-face face start end)))
+Reads the color in the minibuffer.
+
+If the region is active (normally true except in Transient Mark mode)
+and there is no prefix argument, this command sets the region to the
+requested face.
+
+Otherwise, this command specifies the face for the next character
+inserted.  Moving point or switching buffers before
+typing a character to insert cancels the specification." 
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (facemenu-read-color "Background color: "))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
+  (unless (color-defined-p color)
+    (message "Color `%s' undefined" color))
+  (facemenu-add-new-face color 'facemenu-background-menu)
+  (facemenu-add-face (list (list :background color)) start end))
 
 ;;;###autoload
 (defun facemenu-set-face-from-menu (face start end)
@@ -377,8 +397,9 @@ typing a character cancels the request."
 This function is designed to be called from a menu; the face to use
 is the menu item's name.
 
-In the Transient Mark mode, if the region is active and there is no
-prefix argument, this command sets the region to the requested face.
+If the region is active (normally true except in Transient Mark mode)
+and there is no prefix argument, this command sets the region to the
+requested face.
 
 Otherwise, this command specifies the face for the next character
 inserted.  Moving point or switching buffers before
@@ -588,15 +609,25 @@ This means each face attribute is not specified in a face earlier in FACE-LIST
 and such a face is therefore active when used to display text.
 If the optional argument FRAME is given, use the faces in that frame; otherwise
 use the selected frame.  If t, then the global, non-frame faces are used."
-  (let* ((mask-atts (copy-sequence (internal-get-face (car face-list) frame)))
+  (let* ((mask-atts (copy-sequence
+		     (if (consp (car face-list))
+			 (face-attribute-vector (car face-list))
+		       (or (internal-lisp-face-p (car face-list) frame)
+			   (check-face (car face-list))))))
 	 (active-list (list (car face-list)))
 	 (face-list (cdr face-list))
 	 (mask-len (length mask-atts)))
     (while face-list
-      (if (let ((face-atts (internal-get-face (car face-list) frame))
-		(i mask-len) (useful nil))
+      (if (let ((face-atts
+		 (if (consp (car face-list))
+		     (face-attribute-vector (car face-list))
+		   (or (internal-lisp-face-p (car face-list) frame)
+		       (check-face (car face-list)))))
+		(i mask-len)
+		(useful nil))
 	    (while (> (setq i (1- i)) 1)
-	      (and (aref face-atts i) (not (aref mask-atts i))
+	      (and (not (memq (aref face-atts i) '(nil unspecified)))
+		   (memq (aref mask-atts i) '(nil unspecified))
 		   (aset mask-atts i (setq useful t))))
 	    useful)
 	  (setq active-list (cons (car face-list) active-list)))
@@ -605,54 +636,46 @@ use the selected frame.  If t, then the global, non-frame faces are used."
 
 (defun facemenu-get-face (symbol)
   "Make sure FACE exists.
-If not, create it and add it to the appropriate menu.  Return the SYMBOL.
-
-If a window system is in use, and this function creates a face named
-`fg:color', then it sets the foreground to that color.  Likewise, `bg:color'
-means to set the background.  In either case, if the color is undefined,
-no color is set and a warning is issued."
+If not, create it and add it to the appropriate menu.  Return the SYMBOL."
   (let ((name (symbol-name symbol))
 	foreground)
     (cond ((facep symbol))
-	  ((and (display-color-p)
-		(or (setq foreground (string-match "^fg:" name))
-		    (string-match "^bg:" name)))
-	   (let ((face (make-face symbol))
-		 (color (substring name 3)))
-	     (if (x-color-defined-p color)
-		 (if foreground
-		     (set-face-foreground face color)
-		   (set-face-background face color))
-	       (message "Color \"%s\" undefined" color))))
 	  (t (make-face symbol))))
   symbol)
 
-(defun facemenu-add-new-face (face)
-  "Add a FACE to the appropriate Face menu.
-Automatically called when a new face is created."
-  (let* ((name (symbol-name face))
-	 menu docstring
+(defun facemenu-add-new-face (face-or-color &optional menu)
+  "Add FACE-OR-COLOR (a face or a color) to the appropriate Face menu.
+If MENU is nil, then FACE-OR-COLOR is a face to be added
+to `facemenu-face-menu'.  If MENU is `facemenu-foreground-menu'
+or `facemenu-background-menu', FACE-OR-COLOR is a color
+to be added to the specified menu.
+
+This is called whenever you create a new face."
+  (let* (name
+	 symbol
+	 docstring
 	 (key (cdr (assoc face facemenu-keybindings)))
 	 function menu-val)
-    (cond ((string-match "^fg:" name) 
-	   (setq name (substring name 3))
+    (if (symbolp face-or-color)
+	(setq name (symbol-name face-or-color)
+	      symbol face-or-color)
+      (setq name face-or-color
+	    face (intern name)))
+    (cond ((eq menu 'facemenu-foreground-menu)
 	   (setq docstring
 		 (format "Select foreground color %s for subsequent insertion."
-			 name))
-	   (setq menu 'facemenu-foreground-menu))
-	  ((string-match "^bg:" name) 
-	   (setq name (substring name 3))
+			 name)))
+	  ((eq menu 'facemenu-background-menu)
 	   (setq docstring
 		 (format "Select background color %s for subsequent insertion."
-			 name))
-	   (setq menu 'facemenu-background-menu))
+			 name)))
 	  (t
+	   (setq menu 'facemenu-face-menu)
 	   (setq docstring
 		 (format "Select face `%s' for subsequent insertion."
-			 name))
-	   (setq menu 'facemenu-face-menu)))
+			 name))))
     (cond ((eq t facemenu-unlisted-faces))
-	  ((memq face facemenu-unlisted-faces))
+	  ((memq symbol facemenu-unlisted-faces))
 	  ;; test against regexps in facemenu-unlisted-faces
 	  ((let ((unlisted facemenu-unlisted-faces)
 		 (matched nil))
@@ -668,16 +691,16 @@ Automatically called when a new face is created."
 		 `(lambda ()
 		    ,docstring
 		    (interactive)
-		    (facemenu-set-face (quote ,face))))
+		    (facemenu-set-face (quote ,symbol))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m) 
 			     (symbolp (car m))
-			     (face-equal (car m) face)))
+			     (face-equal (car m) symbol)))
 	    (cdr (symbol-function menu))))
 	  (t   ; No keyboard equivalent.  Figure out where to put it:
-	   (setq key (vector face)
+	   (setq key (vector symbol)
 		 function 'facemenu-set-face-from-menu
 		 menu-val (symbol-function menu))
 	   (if (and facemenu-new-faces-at-end
