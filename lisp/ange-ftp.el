@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.45 $")
+(defconst ange-ftp-version "$Revision: 1.46 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2304,7 +2304,7 @@ away in the internal cache."
    "\\|Nov\\|Dec\\) +[0-3]?[0-9] "))
 
 (defvar ange-ftp-add-file-entry-alist nil
-  ""Alist saying how to add file entries on certain OS types.
+  "Alist saying how to add file entries on certain OS types.
 Association list of pairs \( TYPE \. FUNC \), where FUNC
 is a function to be used to add a file entry for the OS TYPE. The
 main reason for this alist is to deal with file versions in VMS.")
