@@ -48,6 +48,13 @@ extern BOOL   	      need_to_recreate_heap;
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;
 
+enum {
+  OS_WIN95 = 1,
+  OS_NT
+};
+
+extern int os_subtype;
+
 /* Emulation of Unix sbrk().  */
 extern void *sbrk (unsigned long size);
 
@@ -69,5 +76,38 @@ extern void cache_system_info (void);
 /* Round ADDRESS up to be aligned with ALIGN.  */
 extern unsigned char *round_to_next (unsigned char *address, 
 				     unsigned long align);
+
+/* ----------------------------------------------------------------- */
+/* Useful routines for manipulating memory-mapped files. */
+
+typedef struct file_data {
+    char          *name;
+    unsigned long  size;
+    HANDLE         file;
+    HANDLE         file_mapping;
+    unsigned char *file_base;
+} file_data;
+
+#define OFFSET_TO_RVA(var,section) \
+	  (section->VirtualAddress + ((DWORD)(var) - section->PointerToRawData))
+
+#define RVA_TO_OFFSET(var,section) \
+	  (section->PointerToRawData + ((DWORD)(var) - section->VirtualAddress))
+
+#define RVA_TO_PTR(var,section,filedata) \
+	  ((void *)(RVA_TO_OFFSET(var,section) + (filedata).file_base))
+
+int open_input_file (file_data *p_file, char *name);
+int open_output_file (file_data *p_file, char *name, unsigned long size);
+void close_file_data (file_data *p_file);
+
+unsigned long get_section_size (PIMAGE_SECTION_HEADER p_section);
+
+/* Return pointer to section header for named section. */
+IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
+
+/* Return pointer to section header for section containing the given
+   relative virtual address. */
+IMAGE_SECTION_HEADER * rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */
