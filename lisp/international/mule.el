@@ -221,7 +221,7 @@ See the function `charset-info' for more detail."
     `(aref (charset-info ,charset) 12)))
 
 (defmacro charset-description (charset)
-  "Return descriptoin of CHARSET.
+  "Return description of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 13)
