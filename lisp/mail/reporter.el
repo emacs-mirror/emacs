@@ -318,7 +318,7 @@ is non-nil.
 
 This function does not send a message; it uses the given information
 to initialize a a messagem, which the user can then edit and finally send
-(or decline to send).  The variable `mail-user-agent' controls which
+\(or decline to send).  The variable `mail-user-agent' controls which
 mail-sending package is used for editing and sending the message."
   (let ((reporter-eval-buffer (current-buffer))
 	final-resting-place
@@ -370,9 +370,7 @@ mail-sending package is used for editing and sending the message."
       (skip-chars-backward " \t\n")
       (setq reporter-initial-text (buffer-substring after-sep-pos (point))))
     (if (setq hookvar (get agent 'hookvar))
-	(progn
-	  (make-variable-buffer-local hookvar)
-	  (add-hook hookvar 'reporter-bug-hook)))
+	(add-hook hookvar 'reporter-bug-hook nil t))
 
     ;; compose the minibuf message and display this.
     (let* ((sendkey-whereis (where-is-internal
