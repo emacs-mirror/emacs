@@ -533,7 +533,8 @@ they are not defaultly assigned to keys."
       "Type \\[picture-mode-exit] in this buffer to return it to %s mode.")
      picture-mode-old-mode-name)))
 
-;;;###autoload (fset 'picture-mode 'edit-picture)
+;;;###autoload
+(fset 'picture-mode 'edit-picture)
 
 (defun picture-mode-exit (&optional nostrip)
   "Undo edit-picture and return to previous major mode.

@@ -161,7 +161,8 @@ first comment line visible (if point is in a comment)."
 	   ;;(repos-debug-macro "4")
 	   ))))
 
-;;;###autoload (define-key esc-map "\C-l" 'resposition-window)
+;;;###autoload
+(define-key esc-map "\C-l" 'resposition-window)
 
 ;;; Auxiliary functions
 

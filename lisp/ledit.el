@@ -33,12 +33,15 @@
 (defconst ledit-buffer "*LEDIT*"
   "Name of buffer in which Ledit accumulates data to send to Lisp.")
 
-;;;###autoload (defconst ledit-save-files t
-;;;###autoload   "*Non-nil means Ledit should save files before transferring to Lisp.")
-;;;###autoload (defconst ledit-go-to-lisp-string "%?lisp"
-;;;###autoload   "*Shell commands to execute to resume Lisp job.")
-;;;###autoload (defconst ledit-go-to-liszt-string "%?liszt"
-;;;###autoload   "*Shell commands to execute to resume Lisp compiler job.")
+;;;###autoload
+(defconst ledit-save-files t "\
+*Non-nil means Ledit should save files before transferring to Lisp.")
+;;;###autoload
+(defconst ledit-go-to-lisp-string "%?lisp" "\
+*Shell commands to execute to resume Lisp job.")
+;;;###autoload
+(defconst ledit-go-to-liszt-string "%?liszt" "\
+*Shell commands to execute to resume Lisp compiler job.")
 
 (defun ledit-save-defun ()
   "Save the current defun in the ledit buffer"

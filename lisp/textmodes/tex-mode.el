@@ -165,8 +165,10 @@ is used."
 		       'plain-tex-mode))))
     (if mode (funcall mode)
       (funcall tex-default-mode))))
-;;;###autoload (fset 'TeX-mode 'tex-mode)
-;;;###autoload (fset 'LaTeX-mode 'latex-mode)
+;;;###autoload
+(fset 'TeX-mode 'tex-mode)
+;;;###autoload
+(fset 'LaTeX-mode 'latex-mode)
 
 ;;;###autoload
 (defun plain-tex-mode ()
@@ -215,7 +217,8 @@ subshell is initiated, the value of tex-shell-hook is called."
   (setq tex-end-of-header "%**end of header")
   (setq tex-trailer "\\bye\n")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'plain-tex-mode-hook))
-;;;###autoload (fset 'plain-TeX-mode 'plain-tex-mode)
+;;;###autoload
+(fset 'plain-TeX-mode 'plain-tex-mode)
 
 ;;;###autoload
 (defun latex-mode ()
