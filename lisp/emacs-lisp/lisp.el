@@ -33,7 +33,9 @@
 (defcustom defun-prompt-regexp nil
   "*If non-nil, a regexp to ignore before the character that starts a defun.
 This is only necessary if the opening paren or brace is not in column 0.
-See function `beginning-of-defun'."
+See function `beginning-of-defun'.
+
+Setting this variable automatically makes it local to the current buffer."
   :type '(choice (const nil)
 		 regexp)
   :group 'lisp)
