@@ -1,4 +1,7 @@
-2001-11-10  Eli Zaretskii  <eliz@gnu.org>
+2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (install-arch-indep): Add elisp* to the list of
+	installed Info files.
 
 	* config.bat: Configure in `lispref'.
 
