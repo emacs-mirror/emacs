@@ -1200,7 +1200,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".lit8")
 #if __sgi
-	    || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".got")
 #endif
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
