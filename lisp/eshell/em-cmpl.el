@@ -24,6 +24,7 @@
 (provide 'em-cmpl)
 
 (eval-when-compile (require 'esh-maint))
+(require 'esh-util)
 
 (defgroup eshell-cmpl nil
   "This module provides a programmable completion function bound to

@@ -24,6 +24,7 @@
 (provide 'esh-ext)
 
 (eval-when-compile (require 'esh-maint))
+(require 'esh-util)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
