@@ -143,6 +143,8 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF
 #undef HAVE_SELECT
+#undef HAVE_MKTIME
+#undef HAVE_EACCESS
 
 #undef HAVE_INET_SOCKETS
 
