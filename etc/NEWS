@@ -146,6 +146,7 @@ converts whitespace around point to N spaces.
 ** Control characters and escape glyphs are now shown in the new
 escape-glyph face.
 
++++
 ** Non-breaking space and hyphens are now prefixed with an escape
 character, unless the new user variable `show-nonbreak-escape' is set
 to nil.
@@ -222,6 +223,7 @@ you about it.
 +++
 ** line-move-ignore-invisible now defaults to t.
 
++++
 ** In Outline mode, hide-body no longer hides lines at the top
 of the file that precede the first header line.
 
@@ -238,6 +240,7 @@ suffix are from every line before processing all the lines.
 ** `apply-macro-to-region-lines' now operates on all lines that begin
 in the region, rather than on all complete lines in the region.
 
+---
 ** global-whitespace-mode is a new alias for whitespace-global-mode.
 
 +++
@@ -288,6 +291,7 @@ in the current input method to input a character at point.
 ** Commands winner-redo and winner-undo, from winner.el, are now bound to
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
+---
 ** Help commands `describe-function' and `describe-key' now show function
 arguments in lowercase italics on displays that support it.  To change the
 default, customize face `help-argument-name' or redefine the function
@@ -315,9 +319,11 @@ not the case, then `comint-kill-region' behaves just like
 `kill-region' if read-only are involved: it copies the text to the
 kill-ring, but does not delete it.
 
++++
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
 
++++
 ** Telnet now prompts you for a port number with C-u M-x telnet.
 
 +++
@@ -366,6 +372,7 @@ decides whether the buffer should be reverted.  Currently, this means
 that auto reverting works for Dired buffers (although this may not
 work properly on all operating systems) and for the Buffer Menu.
 
++++
 ** If the new user option `auto-revert-check-vc-info' is non-nil, Auto
 Revert mode reliably updates version control info (such as the version
 control number in the mode line), in all version controlled buffers in
@@ -405,6 +412,7 @@ This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
 
++++
 ** Grep has been decoupled from compilation mode setup.
 
 ---
@@ -465,6 +473,7 @@ C-c C-f.
 ** M-x compare-windows now can automatically skip non-matching text to
 resync points in both windows.
 
+---
 ** New command `strokes-global-set-stroke-string'.
 This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
@@ -472,10 +481,12 @@ using strokes as an input method.
 
 ** Gnus package
 
+---
 *** Gnus now includes Sieve and PGG
 Sieve is a library for managing Sieve scripts.  PGG is a library to handle
 PGP/MIME.
 
+---
 *** There are many news features, bug fixes and improvements.
 See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 
@@ -495,6 +506,7 @@ buffer list.
 *** The desktop package can be customized to restore only some buffers immediately,
 remaining buffers are restored lazily (when Emacs is idle).
 
++++
 *** New commands:
   - desktop-revert reverts to the last loaded desktop.
   - desktop-change-dir kills current desktop and loads a new.
@@ -503,6 +515,7 @@ remaining buffers are restored lazily (when Emacs is idle).
   - desktop-lazy-complete runs the desktop load to completion.
   - desktop-lazy-abort aborts lazy loading of the desktop.
 
+---
 *** New customizable variables:
   - desktop-save. Determins whether the desktop should be saved when it is
     killed.
@@ -520,6 +533,7 @@ remaining buffers are restored lazily (when Emacs is idle).
 +++
 *** New command line option --no-desktop
 
+---
 *** New hooks:
   - desktop-after-read-hook run after a desktop is loaded.
   - desktop-no-desktop-file-hook run when no desktop file is found.
@@ -533,6 +547,7 @@ to get the old behavior.  The new options `save-place-save-skipped'
 and `save-place-skip-check-regexp' allow further fine-tuning of this
 feature.
 
++++
 ** You can have several Emacs servers on the same machine.
 
 	% emacs --eval '(setq server-name "foo")' -f server-start &
@@ -571,18 +586,21 @@ in left fringe, the bottom angle bitmap in right fringe, and both
 arrow bitmaps in right fringe.  To show just the angle bitmaps in the
 left fringe, but no arrow bitmaps, use ((top . left) (bottom . left)).
 
++++
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
 same string that would be displayed on mouse-over using the
 `help-echo' property, but, in certain cases, it can display a more
 keyboard oriented alternative.
 
++++
 ** New user option `help-at-pt-display-when-idle' allows to
 automatically show the help provided by `display-local-help' on
 point-over, after suitable idle time.  The amount of idle time is
 determined by the user option `help-at-pt-timer-delay' and defaults
 to one second.  This feature is turned off by default.
 
+---
 ** New commands `scan-buf-next-region' and `scan-buf-previous-region'
 move to the start of the next (previous, respectively) region with
 non-nil help-echo property and display any help found there in the
@@ -606,7 +624,7 @@ On 32bit machines, it is now 256M (i.e. 268435455).
 now reads arguments for the function interactively if it is
 an interactively callable function.
 
-
+---
 ** sql changes.
 
 *** The variable `sql-product' controls the highlightng of different
@@ -678,6 +696,7 @@ defaults.
 appropriate sql-interactive-mode wrapper for the current setting of
 `sql-product'.
 
+---
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
@@ -689,6 +708,7 @@ When more than one word is specified, at least two of those words must
 be present for an item to match.  Regular expression matching is still
 available.
 
++++
 *** The new option `apropos-sort-by-scores' causes the matching items
 to be sorted according to their score.  The score for an item is a
 number calculated to indicate how well the item matches the words or
@@ -701,6 +721,7 @@ matching item.
 since there are situations where one or the other will shut down
 the operating system or your X server.
 
+---
 ** New minor mode, Visible mode, toggles invisibility in the current buffer.
 When enabled, it makes all invisible text visible.  When disabled, it
 restores the previous value of `buffer-invisibility-spec'.
@@ -709,6 +730,7 @@ restores the previous value of `buffer-invisibility-spec'.
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
+---
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
@@ -745,6 +767,7 @@ into the kill ring.  With a zero prefix arg, copies absolute file names.
 +++
 ** Dired-x:
 
++++
 *** Omitting files is now a minor mode, dired-omit-mode. The mode toggling
 command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
 marks omitted files. The variable dired-omit-files-p is obsoleted, use the
@@ -891,6 +914,7 @@ Such individual settings are now preserved when windows are split
 horizontally or vertically, a saved window configuration is restored,
 or when the frame is resized.
 
++++
 ** New functions frame-current-scroll-bars and window-current-scroll-bars.
 
 These functions return the current locations of the vertical and
@@ -913,6 +937,7 @@ XIM by default, the X resource useXIM can be used to turn it on.
 +++
 ** `undo-only' does an undo which does not redo any previous undo.
 
+---
 ** `uniquify-strip-common-suffix' tells uniquify to prefer
 `file|dir1' and `file|dir2' to `file|dir1/subdir' and `file|dir2/subdir'.
 
@@ -927,6 +952,7 @@ Emacs prompts her for confirmation.
 ** GUD mode has its own tool bar for controlling execution of the inferior
 and other common debugger commands.
 
+---
 ** recentf changes.
 
 The recent file list is now automatically cleanup when recentf mode is
@@ -959,6 +985,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 ---
 ** partial-completion-mode now does partial completion on directory names.
 
+---
 ** skeleton.el now supports using - to mark the skeleton-point without
    interregion interaction.  @ has reverted to only setting
    skeleton-positions and no longer sets skeleton-point.  Skeletons
@@ -1011,6 +1038,7 @@ file.)
 ** The new command `revert-buffer-with-coding-system' (C-x RET r)
 revisits the current file using a coding system that you specify.
 
++++
 ** The new command `recode-file-name' changes the encoding of the name
 of a file.
 
@@ -1133,6 +1161,7 @@ either Unicode (the mule-unicode charsets) or the iso-8859 charsets,
 when possible.  The latter are more space-efficient.  This is
 controlled by user option utf-fragment-on-decoding.
 
++++
 ** The new command `set-file-name-coding-system' (C-x RET F) sets
 coding system for encoding and decoding file names.  A new menu item
 (Options->Mule->Set Coding Systems->For File Name) invokes this
@@ -1228,9 +1257,11 @@ by two new user options: `tex-start-options', which should hold
 command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
 
+---
 *** verbatim environments are now highlighted in courier by font-lock
 and super/sub-scripts are made into super/sub-scripts.
 
++++
 *** New major mode doctex-mode for *.dtx files.
 
 +++
@@ -1241,6 +1272,7 @@ different Emacs window will select that window (minibuffer window can
 be selected only when it is active).  The default is nil, so that this
 feature is not enabled.
 
++++
 ** On X, when the window manager requires that you click on a frame to
 select it (give it focus), the selected window and cursor position
 normally changes according to the mouse click position.  If you set
@@ -1262,10 +1294,12 @@ search multiple buffers.  There is also a new command
 buffers to search by their filename.  Internally, Occur mode has been
 rewritten, and now uses font-lock, among other changes.
 
++++
 ** The default values of paragraph-start and indent-line-function have
 been changed to reflect those used in Text mode rather than those used
 in Indented-Text mode.
 
+---
 ** New user option `query-replace-skip-read-only': when non-nil,
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
@@ -1296,6 +1330,7 @@ can optionally enable mouse highlighting only after you move the
 mouse, so that highlighting disappears when you press a key.  You can
 also disable mouse highlighting.
 
++++
 ** You can now customize if selecting a region by dragging the mouse
 shall not copy the selected text to the kill-ring by setting the new
 variable mouse-drag-copy-region to nil.
@@ -1715,6 +1750,7 @@ count backward from the end of the year.
 prompts for a year and a week number, and moves to the first
 day of that ISO week.
 
+---
 ** The new variable `calendar-minimum-window-height' affects the
 window generated by the function `generate-calendar-window'.
 
@@ -1724,6 +1760,7 @@ optional arguments, in order to only report on the specified holiday
 rather than all. This makes customization of variables such as
 `christian-holidays' simpler.
 
+---
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
@@ -1744,6 +1781,7 @@ formats.
 
 ** VC Changes
 
++++
 *** The key C-x C-q no longer checks files in or out, it only changes
 the read-only state of the buffer (toggle-read-only).  We made this
 change because we held a poll and found that many users were unhappy
@@ -2357,6 +2395,7 @@ anyone has committed to the repository since you last executed
 "checkout", "update" or "commit".  That means using cvs diff options
 -rBASE -rHEAD.
 
+---
 ** New variable `hs-set-up-overlay' allows customization of the overlay
 used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
@@ -2368,14 +2407,13 @@ coding system.
 
 * New modes and packages in Emacs 22.1
 
++++
 ** The new package conf-mode.el handles thousands of configuration files, with
 varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
 var : value, var value or keyword var value) and sections ([section] or
 section { }).  Many files under /etc/, or with suffixes like .cf through
 .config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
 recognized.
-
-** The new package password.el provide a password cache and expiring mechanism.
 
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
@@ -2394,6 +2432,7 @@ buffers to change filenames, permissions, etc...
 ** The thumbs.el package allows you to preview image files as thumbnails
 and can be invoked from a Dired buffer.
 
++++
 ** The new python.el package is used to edit Python and Jython programs.
 
 ** The URL package (which had been part of W3) is now part of Emacs.
@@ -2609,6 +2648,7 @@ mode-lines in inverse-video.
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
 
+---
 ** The new Lisp library fringe.el controls the appearance of fringes.
 
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
@@ -2659,6 +2699,7 @@ save-some-buffers will always save that buffer without asking
 ** The function symbol-file tells you which file defined
 a certain function or variable.
 
++++
 ** Lisp code can now test if a given buffer position is inside a
 clickable link with the new function `mouse-on-link-p'.  This is the
 function used by the new `mouse-1-click-follows-link' functionality.
@@ -2739,6 +2780,7 @@ been declared obsolete.
 the up-event that was discarded in case the last key sequence read for a
 previous 'k' or 'K' argument was a down-event; otherwise nil is used.
 
++++
 ** Function `translate-region' accepts also a char-table as TABLE
 argument.
 
@@ -2755,6 +2797,7 @@ argument.
 been renamed to `disabled-command-function'.  The variable
 `disabled-command-hook' has been kept as an obsolete alias.
 
++++
 ** Function `compute-motion' now calculates the usable window
 width if the WIDTH argument is nil.  If the TOPOS argument is nil,
 the usable window height and width is used.
@@ -2763,6 +2806,7 @@ the usable window height and width is used.
 ** `visited-file-modtime' and `calendar-time-from-absolute' now return
 a list of two integers, instead of a cons.
 
++++
 ** If a command sets transient-mark-mode to `only', that
 enables Transient Mark mode for the following command only.
 During that following command, the value of transient-mark-mode
@@ -3024,6 +3068,7 @@ then this function returns the regexp constructed from the variables
 `format' are now documented.  Some flags that were accepted but not
 implemented (such as "*") are no longer accepted.
 
++++
 ** New function `macroexpand-all' expands all macros in a form.
 It is similar to the Common-Lisp function of the same name.
 One difference is that it guarantees to return the original argument
@@ -3050,6 +3095,7 @@ sure saved files have the current year in any copyright headers.
 string.  The old behavior is available if you call
 `insert-for-yank-1' instead.
 
++++
 ** New function `get-char-property-and-overlay' accepts the same
 arguments as `get-char-property' and returns a cons whose car is the
 return value of `get-char-property' called with those arguments and
@@ -3592,7 +3638,7 @@ variable is used by read-file-name-internal to filter the completion list.
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
-
++++
 ** The new variable `read-file-name-completion-ignore-case' specifies
 whether completion ignores case when reading a file name with the
 `read-file-name' function.
@@ -3844,6 +3890,7 @@ A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
 defined with defface.
 
+---
 ** The function face-differs-from-default-p now truly checks whether the
 given face displays differently from the default face or not (previously
 it did only a very cursory check).
@@ -3857,6 +3904,7 @@ inheritance is used when determining the value of a face attribute.
 ** New functions face-attribute-relative-p and merge-face-attribute
 help with handling relative face attributes.
 
++++
 ** The priority of faces in an :inherit attribute face-list is reversed.
 If a face contains an :inherit attribute with a list of faces, earlier
 faces in the list override later faces in the list; in previous releases
@@ -4375,6 +4423,7 @@ data structures.
 *** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
 
++++
 *** The new package button.el implements simple and fast `clickable buttons'
 in emacs buffers.  `buttons' are much lighter-weight than the `widgets'
 implemented by widget.el, and can be used by lisp code that doesn't

@@ -1,3 +1,21 @@
+2005-03-25  Richard M. Stallman  <rms@gnu.org>
+
+	* filesets.el (filesets-init): Add autoload.
+
+	* mail/mailalias.el (mail-directory): Doc fix.
+
+2005-03-25  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+	
+	* mail/mailalias.el (mail-directory-process): Do nothing if
+	mail-directory-process is an atom.
+	(mail-get-names): Ignore mail-directory-names if it is an atom.
+	(mail-directory-process defvar): Doc fix.
+	(mail-names): Doc fix.
+
+2005-03-25  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>  (tiny change)
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify): Fix regexp syntax.
+
 2005-03-26  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (detect-coding-with-priority): Call

@@ -1,5 +1,11 @@
 2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xresources.texi (X Resources): GTK options documented too.
+	(Resources): Clarify meaning of program name.
+	(Table of Resources): Add visualClass.
+	(GTK resources): Rewrite.
+	(GTK widget names, GTK Names in Emacs, GTK styles): Cleanups.
+
 	* display.texi (Text Display): Mention non-breaking spaces.
 
 	* files.texi (Reverting): Document auto-revert-check-vc-info.
