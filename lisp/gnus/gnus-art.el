@@ -226,6 +226,7 @@ asynchronously.	 The compressed face will be piped to this command."
   "Banner alist for stripping.
 For example, 
      ((egroups . \"^[ \\t\\n]*-------------------+\\\\( eGroups Sponsor -+\\\\)?....\\n\\\\(.+\\n\\\\)+\"))"
+  :version "21.1"
   :type '(repeat (cons symbol regexp))
   :group 'gnus-article-washing)
 
@@ -270,6 +271,7 @@ is the face used for highlighting."
 Typical values are \"^[ \\t]+\\\\|[ \\t]*\\n\" and \"[ \\t]+\\\\|[ \\t]*\\n\".
 The former avoids underlining of leading and trailing whitespace,
 and the latter avoids underlining any whitespace at all."
+  :version "21.1"
   :group 'gnus-article-emphasis
   :type 'regexp)
 
@@ -615,11 +617,13 @@ displayed by the first non-nil matching CONTENT face."
 
 (defcustom gnus-ignored-mime-types nil
   "List of MIME types that should be ignored by Gnus."
+  :version "21.1"
   :group 'gnus-article-mime
   :type '(repeat regexp))
 
 (defcustom gnus-unbuttonized-mime-types '(".*/.*")
   "List of MIME types that should not be given buttons when rendered inline."
+  :version "21.1"
   :group 'gnus-article-mime
   :type '(repeat regexp))
 
@@ -631,13 +635,17 @@ on parts -- for instance, adding Vcard info to a database."
   :type 'function)
 
 (defcustom gnus-mime-multipart-functions nil
-  "An alist of MIME types to functions to display them.")
+  "An alist of MIME types to functions to display them."
+  :version "21.1"
+  :group 'gnus-article-mime
+  :type 'alist)
 
 (defcustom gnus-article-date-lapsed-new-header nil
   "Whether the X-Sent and Date headers can coexist.
 When using `gnus-treat-date-lapsed', the \"X-Sent:\" header will
 either replace the old \"Date:\" header (if this variable is nil), or
 be added below it (otherwise)."
+  :version "21.1"
   :group 'gnus-article-headers
   :type 'boolean)
 
@@ -649,6 +657,7 @@ part or alternative part is used.  For `undisplayed', the first
 undisplayed part is used.  For a function, the first part which 
 the function return `t' is used.  For `nil', the first part is
 used."
+  :version "21.1"
   :group 'gnus-article-mime
   :type '(choice 
 	  (item :tag "first" :value nil)
@@ -667,6 +676,7 @@ used."
     ("internalize type" . gnus-mime-internalize-part)
     ("externalize type" . gnus-mime-externalize-part))
   "An alist of actions that run on the MIME attachment."
+  :version "21.1"
   :group 'gnus-article-mime
   :type '(repeat (cons (string :tag "name")
 		       (function))))
@@ -782,6 +792,7 @@ See the manual for details."
   "Strip list identifiers from `gnus-list-identifiers`.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-custom)
 
@@ -855,6 +866,7 @@ See the manual for details."
   "Display the date in the ISO8601 format.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-head-custom)
 
@@ -870,6 +882,7 @@ See the manual for details."
   "Strip the X-No-Archive header line from the beginning of the body.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-custom)
 
@@ -940,6 +953,7 @@ See the manual for details."
   "Capitalize sentence-starting words.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-custom)
 
@@ -954,6 +968,7 @@ See the manual for details."
   "Play sounds.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-custom)
 
@@ -961,6 +976,7 @@ See the manual for details."
   "Translate articles from one language to another.
 Valid values are nil, t, `head', `last', an integer or a predicate.
 See the manual for details."
+  :version "21.1"
   :group 'gnus-article-treat
   :type gnus-article-treat-custom)
 
