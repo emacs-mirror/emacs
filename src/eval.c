@@ -3076,7 +3076,8 @@ unbind_to (count, value)
 	 the same entry again, and we copy the binding first
 	 in case more bindings are made during some of the code we run.  */
 
-      struct specbinding this_binding = *--specpdl_ptr;
+      struct specbinding this_binding;
+      this_binding = *--specpdl_ptr;
 
       if (this_binding.func != 0)
 	(*this_binding.func) (this_binding.old_value);
