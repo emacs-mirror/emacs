@@ -1,3 +1,14 @@
+2004-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Use
+	mail-unquote-printable-region.
+	(rmail-hex-string-to-integer, rmail-decode-quoted-printable):
+	(rmail-hex-char-to-integer): Functions deleted.
+
+	* mail/mail-utils.el (mail-unquote-printable-hexdigit): Upcase CHAR.
+	(mail-unquote-printable-region): New arg NOERROR.
+	For invalid encoding, either signal an error to just return nil.
+
 2004-01-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/appt.el: Update copyright and commentary.
