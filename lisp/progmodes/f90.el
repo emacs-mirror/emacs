@@ -514,15 +514,15 @@ whether to blink the matching beginning.")
    (list "\\<\\(exit\\|cycle\\)[ \t]*\\sw+\\>" nil f90-face-label)
    (list "\\<\\(stop\\|return\\)\\>" nil f90-face-stop)
    (list "^[ \t]*\\(case\\)[ \t]*\\((\\|default\\)" 1 f90-face-select)
-   (list (concat "\\<\\("(mapconcat 'identity f90-keywords "\\|")
+   (list (concat "\\<\\("(mapconcat 'identity f90-keywords-re "\\|")
 		 "\\)\\>") nil f90-face-keyword)
- (list (concat "\\<\\("(mapconcat 'identity f90-intrinsic-procedures "\\|")
+ (list (concat "\\<\\("(mapconcat 'identity f90-procedures-re "\\|")
 	       "\\)\\>") nil f90-face-intrinsics)
- (list (concat "\\<\\("(mapconcat 'identity f90-hpf-procedures "\\|")
-	       "\\)\\>") nil f90-face-hpf-procedures)
- (list (concat "\\<\\("(mapconcat 'identity f90-hpf-directives "\\|")
-	       "\\)\\>") nil f90-face-hpf-directives)
- (list (concat "\\<\\("(mapconcat 'identity f90-hpf-keywords "\\|")
+;;; (list (concat "\\<\\("(mapconcat 'identity f90-hpf-procedures "\\|")
+;;;	       "\\)\\>") nil f90-face-hpf-procedures)
+;;; (list (concat "\\<\\("(mapconcat 'identity f90-hpf-directives "\\|")
+;;;	       "\\)\\>") nil f90-face-hpf-directives)
+ (list (concat "\\<\\("(mapconcat 'identity f90-hpf-keywords-re "\\|")
 	       "\\)\\>") nil f90-face-hpf-keywords)))
 
 ;; syntax table
@@ -804,7 +804,7 @@ Variables controlling indentation style and extra features:
     Do not left-justify line numbers. (default nil)
  f90-startup-message
     Set to nil to inhibit message first time F90 mode is used. (default t)
- f90-keywords
+ f90-keywords-re
     List of keywords used for highlighting/upcase-keywords etc.
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
