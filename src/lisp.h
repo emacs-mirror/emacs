@@ -65,11 +65,6 @@ enum Lisp_Type
        as well as pointing to the code. */
     Lisp_Subr,
 
-    /* Internal value return by subroutines of read.
-       The user never sees this data type.
-       Its value is just a number. */
-    Lisp_Internal,
-
     /* Forwarding pointer to an int variable.
        This is allowed only in the value cell of a symbol,
        and it means that the symbol's value really lives in the
@@ -461,7 +456,6 @@ extern int pure_size;
 #define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
 #define XSETINTERNAL_STREAM(a, b) XSET (a, Lisp_Internal_Stream, b)
 #define XSETINTFWD(a, b) XSET (a, Lisp_Intfwd, b)
-#define XSETINTERNAL(a, b) XSET (a, Lisp_Internal, b)
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h */
@@ -728,7 +722,6 @@ typedef unsigned char UCHAR;
 #endif
 #define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
 #define BOOLFWDP(x) (XTYPE ((x)) == Lisp_Boolfwd)
-#define INTERNALP(x) (XTYPE ((x)) == Lisp_Internal)
 #define INTFWDP(x) (XTYPE ((x)) == Lisp_Intfwd)
 #define OBJFWDP(x) (XTYPE ((x)) == Lisp_Objfwd)
 #define INTERNAL_STREAMP(x) (XTYPE ((x)) == Lisp_Internal_Stream)
