@@ -1,3 +1,7 @@
+2004-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (gdb-mouse-toggle-breakpoint): Remove debug message.
+
 2004-03-01  Juanma Barranquero  <lektu@terra.es>
 
 	* allout.el (allout-rebullet-heading): Fix typo in docstring.

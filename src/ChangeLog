@@ -1,3 +1,34 @@
+2004-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* window.h (struct window): New member overlay_arrow_bitmap.
+
+	* window.c (make_window): Initialize overlay_arrow_bitmap.
+
+	* xdisp.c (Voverlay_arrow_variable_list): New variable to properly
+	implement and integrate multiple overlay arrows with redisplay.
+	(syms_of_xdisp): DEFVAR_LISP and initialize it.
+	(last_arrow_position, last_arrow_string): Replace by properties.
+	(Qlast_arrow_position, Qlast_arrow_string)
+	(Qoverlay_arrow_string, Qoverlay_arrow_bitmap): New variables.
+	(syms_of_xdisp): Intern and staticpro them.
+	(overlay_arrow_string_or_property, update_overlay_arrows)
+	(overlay_arrow_in_current_buffer_p, overlay_arrows_changed_p)
+	(overlay_arrow_at_row): New functions for multiple overlay arrows.
+	(redisplay_internal): Use them instead of directly accessing
+	Voverlay_arrow_position etc. for multiple overlay arrows.
+	(mark_window_display_accurate): Use update_overlay_arrows.
+	(try_cursor_movement): Use overlay_arrow_in_current_buffer_p.
+	(try_window_id): Use overlay_arrows_changed_p.
+	(get_overlay_arrow_glyph_row): Add overlay_arrow_string arg.
+	(display_line): Use overlay_arrow_at_row to check multiple
+	overlay arrows, and get relevant overlay-arrow-string and
+	overlay-arrow-bitmap.  Set w->overlay_arrow_bitmap accordingly. 
+	(produce_image_glyph): Set pixel_width = 0 for fringe bitmap.
+	(syms_of_xdisp): Remove last_arrow_position and last_arrow_string.
+
+	* fringe.c (draw_fringe_bitmap): Use w->overlay_arrow_bitmap if set.
+	(update_window_fringes): Remove unused code.
+
 2004-03-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket): Fix last change to ButtonPress handling.
