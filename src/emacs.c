@@ -341,10 +341,11 @@ main (argc, argv, envp)
   clearerr (stdin);
 
 #ifdef BSD
-  {
-    inherited_pgroup = EMACS_GETPGRP (0);
-    setpgrp (0, getpid ());
-  }
+  if (initialized)
+    {
+      inherited_pgroup = EMACS_GETPGRP (0);
+      setpgrp (0, getpid ());
+    }
 #endif
 
 
