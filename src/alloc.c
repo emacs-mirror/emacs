@@ -3773,7 +3773,7 @@ mark_stack ()
 #ifndef GC_LISP_OBJECT_ALIGNMENT
 #define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
 #endif
-  for (i = 0; i < sizeof (Lisp_Object) / GC_LISP_OBJECT_ALIGNMENT; i++)
+  for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
     mark_memory ((char *) stack_base + i, end);
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
