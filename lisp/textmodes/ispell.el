@@ -104,7 +104,7 @@
 ;;; 'm': Like 'i', but allows one to include dictionary completion info.
 ;;; 'C-l': redraws screen
 ;;; 'C-r': recursive edit
-;;; 'C-z': suspend emacs
+;;; 'C-z': suspend emacs or iconify frame
 ;;;
 ;;; Buffer-Local features:
 ;;; There are a number of buffer-local features that can be used to customize
@@ -629,10 +629,12 @@ You can set this variable in hooks in your init file -- eg:
 ;;;###autoload (define-key global-map "\M-$" 'ispell-word)
 
 ;;;###autoload
-(defun ispell-word (&optional following quietly)
+(defun ispell-word (&optional following quietly continue)
   "Check spelling of word under or before the cursor.
 If word not found in dictionary, display possible corrections in a window
 and let user select.
+  With a prefix argument (or if CONTINUE is non-nil),
+resume interrupted spell-checking of a buffer or region.
   If optional argument FOLLOWING is non-nil or if ispell-following-word
 is non-nil when called interactively, then the following word
 \(rather than preceding\) will be checked when the cursor is not over a word.
@@ -643,73 +645,75 @@ when called interactively, non-corrective messages are suppressed.
 
 This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
 or \\[ispell-region] to update the ispell process."
-  (interactive)
-  (if (interactive-p)
-      (setq following ispell-following-word
-	    quietly ispell-quietly))
-  (ispell-buffer-local-dict)		; use the correct dictionary
-  (let ((cursor-location (point))	; retain cursor location
-	ispell-keep-choices-win		; override global to force creation
-	(word (ispell-get-word following))
-	start end poss replace)
-    ;; destructure return word info list.
-    (setq start (car (cdr word))
-	  end (car (cdr (cdr word)))
-	  word (car word))
+  (interactive (list nil nil current-prefix-arg))
+  (if continue
+      (ispell-continue)
+    (if (interactive-p)
+	(setq following ispell-following-word
+	      quietly ispell-quietly))
+    (ispell-buffer-local-dict)		; use the correct dictionary
+    (let ((cursor-location (point))	; retain cursor location
+	  ispell-keep-choices-win	; override global to force creation
+	  (word (ispell-get-word following))
+	  start end poss replace)
+      ;; destructure return word info list.
+      (setq start (car (cdr word))
+	    end (car (cdr (cdr word)))
+	    word (car word))
 
-    ;; now check spelling of word.
-    (or quietly
-	(message "Checking spelling of %s..."
-		 (funcall ispell-format-word word)))
-    (ispell-init-process)		; erases ispell output buffer
-    (process-send-string ispell-process "%\n") ;put in verbose mode
-    (process-send-string ispell-process (concat "^" word "\n"))
-    ;; wait until ispell has processed word
-    (while (progn
-	     (accept-process-output ispell-process)
-	     (not (string= "" (car ispell-filter)))))
-    ;;(process-send-string ispell-process "!\n") ;back to terse mode.
-    (setq ispell-filter (cdr ispell-filter))
-    (if (listp ispell-filter)
-	(setq poss (ispell-parse-output (car ispell-filter))))
-    (cond ((eq poss t)
-	   (or quietly
-	       (message "%s is correct." (funcall ispell-format-word word))))
-	  ((stringp poss)
-	   (or quietly
-	       (message "%s is correct because of root %s"
-			(funcall ispell-format-word word)
-			(funcall ispell-format-word poss))))
-	  ((null poss) (message "Error in ispell process"))
-	  (t				; prompt for correct word.
-	   (unwind-protect
-	       (progn
-		 (if ispell-highlight-p
-		     (highlight-spelling-error start end t)) ; highlight word
-		 (setq replace (ispell-command-loop
-				(car (cdr (cdr poss)))
-				(car (cdr (cdr (cdr poss))))
-				(car poss))))
-	     ;; protected
-	     (if ispell-highlight-p	; clear highlight
-		 (highlight-spelling-error start end)))
-	   (cond ((equal 0 replace)
-		  (ispell-add-per-file-word-list (car poss)))
-		 (replace
-		  (delete-region start end)
-		  (setq word (if (atom replace) replace (car replace))
-			cursor-location (+ (- (length word) (- end start))
-					   cursor-location))
-		  (insert word)
-		  (if (not (atom replace)) ; recheck spelling of replacement
-		      (progn
-			(goto-char cursor-location)
-			(ispell-word following quietly)))))
-	   (if (get-buffer ispell-choices-buffer)
-	       (kill-buffer ispell-choices-buffer))))
-    (goto-char cursor-location)		; return to original location
-    (ispell-pdict-save ispell-silently-savep)
-    (if ispell-quit (setq ispell-quit nil))))
+      ;; now check spelling of word.
+      (or quietly
+	  (message "Checking spelling of %s..."
+		   (funcall ispell-format-word word)))
+      (ispell-init-process)		; erases ispell output buffer
+      (process-send-string ispell-process "%\n") ;put in verbose mode
+      (process-send-string ispell-process (concat "^" word "\n"))
+      ;; wait until ispell has processed word
+      (while (progn
+	       (accept-process-output ispell-process)
+	       (not (string= "" (car ispell-filter)))))
+      ;;(process-send-string ispell-process "!\n") ;back to terse mode.
+      (setq ispell-filter (cdr ispell-filter))
+      (if (listp ispell-filter)
+	  (setq poss (ispell-parse-output (car ispell-filter))))
+      (cond ((eq poss t)
+	     (or quietly
+		 (message "%s is correct." (funcall ispell-format-word word))))
+	    ((stringp poss)
+	     (or quietly
+		 (message "%s is correct because of root %s"
+			  (funcall ispell-format-word word)
+			  (funcall ispell-format-word poss))))
+	    ((null poss) (message "Error in ispell process"))
+	    (t				; prompt for correct word.
+	     (unwind-protect
+		 (progn
+		   (if ispell-highlight-p
+		       (highlight-spelling-error start end t)) ; highlight word
+		   (setq replace (ispell-command-loop
+				  (car (cdr (cdr poss)))
+				  (car (cdr (cdr (cdr poss))))
+				  (car poss))))
+	       ;; protected
+	       (if ispell-highlight-p	; clear highlight
+		   (highlight-spelling-error start end)))
+	     (cond ((equal 0 replace)
+		    (ispell-add-per-file-word-list (car poss)))
+		   (replace
+		    (delete-region start end)
+		    (setq word (if (atom replace) replace (car replace))
+			  cursor-location (+ (- (length word) (- end start))
+					     cursor-location))
+		    (insert word)
+		    (if (not (atom replace)) ; recheck spelling of replacement
+			(progn
+			  (goto-char cursor-location)
+			  (ispell-word following quietly)))))
+	     (if (get-buffer ispell-choices-buffer)
+		 (kill-buffer ispell-choices-buffer))))
+      (goto-char cursor-location)	; return to original location
+      (ispell-pdict-save ispell-silently-savep)
+      (if ispell-quit (setq ispell-quit nil)))))
 
 
 (defun ispell-get-word (following &optional extra-otherchars)
@@ -877,8 +881,13 @@ used."
 	  (progn
 	    (undo-boundary)
 	    (message "C-h or ? for more options; SPC to leave unchanged, Character to replace word")
-	    (setq char (read-char)
-		  skipped 0)
+	    (let ((inhibit-quit t))
+	      (setq char (read-char)
+		    skipped 0)
+	      ;; Implement quit by using the X command to get out.
+	      (if (eq char (nth 3 (current-input-mode)))
+		  (setq char ?X
+			quit-flag nil)))
 	    ;; Adjust num to array offset skipping command characters.
 	    (let ((com-chars command-characters))
 	      (while com-chars
@@ -912,8 +921,7 @@ used."
 	      (message "exited ispell")
 	      (setq ispell-quit (if (= char ?X) (point) t))
 	      nil)
-	     ((or (= char ?q)
-		  (= char (nth 3 (current-input-mode)))) ; C-g
+	     ((= char ?q)
 	      (if (y-or-n-p "Really quit ignoring changes? ")
 		  (progn
 		    (ispell-kill-ispell t) ; terminate process.
@@ -921,7 +929,7 @@ used."
 			  ispell-pdict-modified-p nil))
 		t))			; continue if they don't quit.
 	     ((= char ?l)
-	      (let ((new-word (read-string "Lookup string ('*' is wildcard): "
+	      (let ((new-word (read-string "Lookup string (`*' is wildcard): "
 					   word))
 		    (new-line 2))
 		(if new-word
@@ -979,7 +987,8 @@ used."
 	     ((= char ?\C-r)
 	      (save-window-excursion (recursive-edit)) t)
 	     ((= char ?\C-z)
-	      (suspend-emacs) t)
+	      (funcall (key-binding "\C-z"))
+	      t)
 	     (t (ding) t))))))
     result))
   (if (not ispell-keep-choices-win) (bury-buffer ispell-choices-buffer))))
@@ -1008,7 +1017,7 @@ DIGIT: Replace the word with a digit offered in the *Choices* buffer.
 'm':   Like 'i', but allows one to include dictionary completion information.
 'C-l':  redraws screen
 'C-r':  recursive edit
-'C-z':  suspend emacs"
+'C-z':  suspend emacs or iconify frame"
 
   (let ((help-1 "[r/R]eplace word; [a/A]ccept for this session; [i]nsert into private dictionary")
 	(help-2 "[l]ook a word up in alternate dictionary;  e[x/X]it;  [q]uit session")
