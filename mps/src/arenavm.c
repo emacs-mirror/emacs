@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.58) $
+ * $HopeName: MMsrc!arenavm.c(trunk.59) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -32,7 +32,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.58) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.59) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -832,9 +832,11 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
 {
   Size userSize;        /* size requested by user */
   Size chunkSize;       /* size actually created */
+  size_t vmArenaSize;   /* aligned size of VMArenaStruct */
   Res res;
   VMArena vmArena;
   Arena arena;
+  Lock lock;
   Index gen;
   void *spare;
   VMArenaChunk chunk;
@@ -845,12 +847,15 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
        (ArenaClass)mps_arena_class_vmnz() == class);
   AVER(userSize > 0);
 
+  vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN); 
   res = VMArenaChunkCreate(&chunk, &spare, TRUE /* is primary */,
-                           NULL, userSize, sizeof(VMArenaStruct));
+                           NULL, userSize, 
+                           vmArenaSize + LockSize());
   if(res != ResOK)
     goto failChunkCreate;
   
   vmArena = spare;
+  lock = PointerAdd(spare, vmArenaSize);
   vmArena->primary = chunk;
   RingInit(&vmArena->chunkRing);
   RingAppend(&vmArena->chunkRing, &chunk->arenaRing);
@@ -864,7 +869,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
 
   arena = VMArenaArena(vmArena);
   /* impl.c.arena.init.caller */
-  ArenaInit(arena, class);
+  ArenaInit(arena, lock, class);
 
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
   /* number of zones as will fit into a reference set (the number of */

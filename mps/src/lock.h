@@ -2,7 +2,7 @@
  *
  *                          RECURSIVE LOCKS
  *
- *  $HopeName: MMsrc!lock.h(trunk.3) $
+ *  $HopeName: MMsrc!lock.h(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -85,7 +85,17 @@
 
 #include "mpm.h"
 
-/*  == LockInit/Finish ==
+#define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */ 
+
+/* LockSize -- Return the size of a LockStruct
+ *
+ * Supports allocation of locks.
+ */
+
+extern size_t LockSize(void);
+
+
+/*  LockInit/Finish
  *
  *  lock points to the allocated lock structure.  A lock has no
  *  owner after initialisation.
@@ -95,7 +105,7 @@ extern void LockInit(Lock lock);
 extern void LockFinish(Lock lock);
 
 
-/*  == LockClaimRecursive ==
+/*  LockClaimRecursive
  *
  *  This is called to increase the number of claims on the lock.
  *  LockClaimRecursive will wait until the lock is not owned by another
@@ -106,7 +116,7 @@ extern void LockFinish(Lock lock);
 extern void LockClaimRecursive(Lock lock);
 
 
-/*  == LockReleaseRecursive ==
+/*  LockReleaseRecursive
  *
  *  This is called to reduce the number of claims on the lock.
  *  If the number of claims drops to zero, ownership is relinquished.
@@ -116,7 +126,7 @@ extern void LockClaimRecursive(Lock lock);
 extern void LockReleaseRecursive(Lock lock);
 
 
-/*  == LockClaim ==
+/*  LockClaim
  *
  *  This may only be used when the lock is not already owned by
  *  the calling thread.
@@ -127,9 +137,9 @@ extern void LockReleaseRecursive(Lock lock);
 extern void LockClaim(Lock lock);
 
 
-/*  == LockReleaseMPM ==
+/*  LockReleaseMPM
  *
- *  This must any may only be used to release a Lock symmetrically
+ *  This must only be used to release a Lock symmetrically
  *  with LockClaim.  It therefore should only be called with
  *  a single claim.
  */
@@ -137,7 +147,7 @@ extern void LockClaim(Lock lock);
 extern void LockReleaseMPM(Lock lock);
 
 
-/*  == Validation == */
+/*  LockCheck -- Validation */
 
 extern Bool LockCheck(Lock lock);
 
@@ -145,27 +155,46 @@ extern Bool LockCheck(Lock lock);
 /*  == Global locks == */
 
 
-/*  == LockClaimGlobalRecursive ==
+/*  LockClaimGlobalRecursive
  *
- *  This is called to increase the number of claims on the global lock.
- *  LockClaimRecursive will wait until the lock is not owned by another
- *  thread and return with the lock owned.
+ *  This is called to increase the number of claims on the recursive 
+ *  global lock.  LockClaimRecursive will wait until the lock is not 
+ *  owned by another thread and return with the lock owned.
  *  This can be called recursively.
  */
 
 extern void LockClaimGlobalRecursive(void);
 
 
-
-/*  == LockReleaseGlobalRecursive ==
+/*  LockReleaseGlobalRecursive
  *
- *  This is called to reduce the number of claims on the global lock.
- *  If the number of claims drops to zero, ownership is relinquished.
- *  This must not be called without possession of the lock.
+ *  This is called to reduce the number of claims on the recursive 
+ *  global lock. If the number of claims drops to zero, ownership 
+ *  is relinquished. This must not be called without possession of 
+ *  the lock.
  */
 
 extern void LockReleaseGlobalRecursive(void);
 
+
+/*  LockClaimGlobal
+ *
+ *  This is called to claim the binary global lock, and may only be
+ *  used if that lock is not already owned by the calling thread.
+ *  It must be matched by a call to LockReleaseGlobal.
+ */
+
+extern void LockClaimGlobal(void);
+
+
+/*  LockReleaseGlobal
+ *
+ *  This must only be used to release the binary global lock
+ *  symmetrically with LockClaimGlobal.
+ *  It therefore should only be called with a single claim.
+ */
+
+extern void LockReleaseGlobal(void);
 
 
 #endif /* lock_h */

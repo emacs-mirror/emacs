@@ -1,6 +1,6 @@
 /* impl.c.lockan: ANSI RECURSIVE LOCKS
  *
- * $HopeName$
+ * $HopeName: MMsrc!lockan.c(trunk.8) $
  * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a trivial implementation of recursive locks
@@ -13,8 +13,19 @@
 
 #include "mpm.h"
 
-SRCID(lockan, "$HopeName$");
+SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.8) $");
 
+
+typedef struct LockStruct {     /* ANSI fake lock structure */
+  Sig sig;                      /* design.mps.sig */
+  unsigned long claims;         /* # claims held by owner */
+} LockStruct;
+
+
+size_t LockSize(void)
+{
+  return sizeof(LockStruct);
+}
 
 Bool LockCheck(Lock lock)
 {
@@ -66,21 +77,42 @@ void LockReleaseRecursive(Lock lock)
 }
 
 
-/* Global locking is performed by a normal lock. */
+/* Global locking is performed by normal locks. 
+ * A separate lock structure is used for recursive and 
+ * non-recursive locks so that each may be differently ordered
+ * with respect to client-allocated locks.
+ */
 
 static LockStruct globalLockStruct = {
   LockSig,
   0
 };
 
+static LockStruct globalRecursiveLockStruct = {
+  LockSig,
+  0
+};
+
 static Lock globalLock = &globalLockStruct;
+
+static Lock globalRecLock = &globalRecursiveLockStruct;
 
 void LockClaimGlobalRecursive(void)
 {
-  LockClaimRecursive(globalLock);
+  LockClaimRecursive(globalRecLock);
 }
 
 void LockReleaseGlobalRecursive(void)
 {
-  LockReleaseRecursive(globalLock);
+  LockReleaseRecursive(globalRecLock);
+}
+
+void LockClaimGlobal(void)
+{
+  LockClaim(globalLock);
+}
+
+void LockReleaseGlobal(void)
+{
+  LockReleaseMPM(globalLock);
 }

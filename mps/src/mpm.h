@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.122) $
+ * $HopeName: MMsrc!mpm.h(trunk.123) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -605,7 +605,7 @@ extern Bool ArenaCheck(Arena arena);
 #define SpaceCheck(space) ArenaCheck(space)
 extern Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args);
 extern void ArenaDestroy(Arena arena);
-extern void ArenaInit(Arena arena, ArenaClass class);
+extern void ArenaInit(Arena arena, Lock lock, ArenaClass class);
 extern void ArenaFinish(Arena arena);
 extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeSegs(Arena arena, mps_lib_FILE *stream);
