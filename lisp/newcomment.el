@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.44 2002/01/13 09:59:39 pj Exp $
+;; Revision: $Id: newcomment.el,v 1.45 2002/03/04 01:10:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -89,9 +89,10 @@ Major modes should set this variable.")
 ;;;###autoload
 (defcustom comment-column 32
   "*Column to indent right-margin comments to.
-Setting this variable automatically makes it local to the current buffer.
 Each mode establishes a different default value for this variable; you
-can set the value for a particular mode using that mode's hook."
+can set the value for a particular mode using that mode's hook.
+Comments might be indented to a value smaller than this in order
+not to go beyond `fill-column'."
   :type 'integer)
 (make-variable-buffer-local 'comment-column)
 
