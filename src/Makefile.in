@@ -880,6 +880,7 @@ scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
    blockinput.h $(config_h) 
 strftime.o: strftime.c $(config_h)
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -Dstrftime=emacs_strftime $<
 syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h) 
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h
