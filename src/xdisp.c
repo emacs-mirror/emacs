@@ -1302,6 +1302,7 @@ redisplay_window (window, just_this_one)
   int opoint = PT;
   int tem;
   int update_mode_line;
+  struct Lisp_Vector *dp = window_display_table (w);
 
   if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
 
@@ -1543,6 +1544,9 @@ redisplay_window (window, just_this_one)
 	   /* Can't use this case if highlighting a region.  */
 	   && !(!NILP (Vtransient_mark_mode)
 		&& !NILP (current_buffer->mark_active))
+	   /* Don't use try_window_id if newline
+	      doesn't display as the end of a line.  */
+	   && !(dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, '\n')))
 	   && NILP (w->region_showing)
 	   && EQ (last_arrow_position, Voverlay_arrow_position)
 	   && EQ (last_arrow_string, Voverlay_arrow_string)
