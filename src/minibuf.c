@@ -1819,7 +1819,7 @@ complete_and_exit_2 (ignore)
 }
 
 DEFUN ("minibuffer-complete-and-exit", Fminibuffer_complete_and_exit,
-        Sminibuffer_complete_and_exit, 0, 0, "",
+       Sminibuffer_complete_and_exit, 0, 0, "",
        doc: /* If the minibuffer contents is a valid completion then exit.
 Otherwise try to complete it.  If completion leads to a valid completion,
 a repetition of this command will exit.  */)
@@ -1864,7 +1864,7 @@ a repetition of this command will exit.  */)
 }
 
 DEFUN ("minibuffer-complete-word", Fminibuffer_complete_word, Sminibuffer_complete_word,
-  0, 0, "",
+       0, 0, "",
        doc: /* Complete the minibuffer contents at most a single word.
 After one word is completed as much as possible, a space or hyphen
 is added, provided that matches some possible completion.
@@ -2220,7 +2220,7 @@ It can find the completion buffer in `standard-output'.  */)
 }
 
 DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_completion_help,
-  0, 0, "",
+       0, 0, "",
        doc: /* Display a list of possible completions of the current minibuffer contents.  */)
      ()
 {
@@ -2316,7 +2316,7 @@ temp_echo_area_glyphs (m)
 }
 
 DEFUN ("minibuffer-message", Fminibuffer_message, Sminibuffer_message,
-  1, 1, 0,
+       1, 1, 0,
        doc: /* Temporarily display STRING at the end of the minibuffer.
 The text is displayed for two seconds,
 or until the next input event arrives, whichever comes first.  */)
