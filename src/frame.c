@@ -1896,7 +1896,7 @@ store_in_alist (alistptr, prop, val)
 static int
 frame_name_fnn_p (str, len)
      char *str;
-     int len;
+     EMACS_INT len;
 {
   if (len > 1 && str[0] == 'F')
     {
