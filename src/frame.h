@@ -196,6 +196,7 @@ extern struct screen *make_screen_without_minibuffer ();
 
 extern Lisp_Object Vscreen_list;
 extern Lisp_Object Vglobal_minibuffer_screen;
+extern Lisp_Object Vdefault_screen_alist;
 
 extern Lisp_Object Vterminal_screen;
 

@@ -124,23 +124,23 @@
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
 	(if (nth 2 aelt)
-	    (setq screen-default-alist
+	    (setq default-screen-alist
 		  (cons (cons (nth 1 aelt) (nth 2 aelt))
-			screen-default-alist))
-	  (setq screen-default-alist
+			default-screen-alist))
+	  (setq default-screen-alist
 		(cons (cons (nth 1 aelt)
 			    (car x-invocation-args))
-		      screen-default-alist)
+		      default-screen-alist)
 		x-invocation-args (cdr x-invocation-args))))))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
-	(setq screen-default-alist
+	(setq default-screen-alist
 	      (cons (cons (nth 1 aelt)
 			  (string-to-int (car x-invocation-args)))
-		    screen-default-alist)
+		    default-screen-alist)
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
 
@@ -177,44 +177,6 @@ This returns ARGS with the arguments that have been processed removed."
 	(setq args (cons this-switch args)))))
   (setq args (nreverse args)))
 
-
-;; Handle Xresources.
-
-(defun x-read-resources ()
-  "Reread the X defaults from the X server and install them in
-`screen-default-alist', to be used in new screens."
-  (interactive)
-  (mapcar (function
-	   (lambda (key-resname-default)
-	     (let* ((key (nth 0 key-resname-default))
-		    (tail (assq key screen-default-alist))
-		    (value
-		     (or (x-get-resource (nth 1 key-resname-default))
-			 (nth 2 key-resname-default))))
-	       (if tail (setcdr tail value)
-		 (setq screen-default-alist
-		       (cons (cons key value)
-			     screen-default-alist))))))
-	  '((font "font" "9x15")
-	    (background-color "background" "white")
-	    (border-width "#BorderWidth" 2)
-	    (internal-border-width "#InternalBorderWidth" 1)
-
-	    (foreground-color "foreground" "black")
-	    (mouse-color "mouse" "black")
-	    (cursor-color "cursor" "black")
-	    (border-color "border" "black")))
-  (setq x-screen-defaults screen-default-alist))
-
-
-;; This is the function which creates the first X window.  It is called
-;; from startup.el before the user's init file is processed.
-
-(defun x-pop-initial-window ()
-  ;; see screen.el for this function
-  (pop-initial-screen (append initial-screen-alist
-			      screen-default-alist))
-  (delete-screen terminal-screen))
 
 
 ;;
@@ -628,9 +590,6 @@ This returns ARGS with the arguments that have been processed removed."
 (set-input-mode t nil t)
 
 (setq screen-creation-function 'x-create-screen)
-(x-read-resources)
-;(x-pop-initial-window)
-
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
@@ -638,5 +597,3 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
-
-(define-key global-map "\C-z" 'iconify-emacs)
