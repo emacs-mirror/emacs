@@ -9608,8 +9608,8 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->root_window = GetDesktopWindow ();
   dpyinfo->n_planes = GetDeviceCaps (hdc, PLANES);
   dpyinfo->n_cbits = GetDeviceCaps (hdc, BITSPIXEL);
-  dpyinfo->height_in = GetDeviceCaps (hdc, LOGPIXELSX);
-  dpyinfo->width_in = GetDeviceCaps (hdc, LOGPIXELSY);
+  dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
+  dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
   dpyinfo->grabbed = 0;
   dpyinfo->reference_count = 0;
@@ -9632,8 +9632,8 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->w32_focus_event_frame = 0;
   dpyinfo->w32_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
-  dpyinfo->resx = dpyinfo->height / dpyinfo->height_in;
-  dpyinfo->resy = dpyinfo->width / dpyinfo->width_in;
+  dpyinfo->height_in = dpyinfo->height / dpyinfo->resx;
+  dpyinfo->width_in = dpyinfo->width / dpyinfo->resy;
   ReleaseDC (GetDesktopWindow (), hdc);
   /* NTEMACS_TODO: dpyinfo->gray */
   /* Determine if there is a middle mouse button, to allow parse_button
@@ -9644,8 +9644,8 @@ w32_term_init (display_name, xrm_option, resource_name)
   /* initialise palette with white and black */
   {
     COLORREF color;
-    defined_color (0, "white", &color, 1);
-    defined_color (0, "black", &color, 1);
+    w32_defined_color (0, "white", &color, 1);
+    w32_defined_color (0, "black", &color, 1);
   }
 
 #ifndef F_SETOWN_BUG
