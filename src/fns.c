@@ -527,6 +527,11 @@ concat (nargs, args, target_type, last_special)
   Lisp_Object last_tail;
   Lisp_Object prev;
   int some_multibyte;
+  /* When we make a multibyte string, we must pay attention to the
+     byte combining problem, i.e., a byte may be combined with a
+     multibyte charcter of the previous string.  This flag tells if we
+     must consider such a situation or not.  */
+  int maybe_combine_byte;
 
   /* In append, the last arg isn't treated like the others */
   if (last_special && nargs > 0)
@@ -636,6 +641,7 @@ concat (nargs, args, target_type, last_special)
 
   prev = Qnil;
 
+  maybe_combine_byte = 0;
   for (argnum = 0; argnum < nargs; argnum++)
     {
       Lisp_Object thislen;
@@ -659,6 +665,11 @@ concat (nargs, args, target_type, last_special)
 	  int thislen_byte = STRING_BYTES (XSTRING (this));
 	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
 		 STRING_BYTES (XSTRING (this)));
+	  if (some_multibyte
+	      && toindex_byte > 0
+	      && XSTRING (val)->data[toindex_byte - 1] >= 0x80
+	      && XSTRING (this)->data[0] >= 0xA0)
+	    maybe_combine_byte = 1;
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
 	}
@@ -731,6 +742,11 @@ concat (nargs, args, target_type, last_special)
 		CHECK_NUMBER (elt, 0);
 		if (SINGLE_BYTE_CHAR_P (XINT (elt)))
 		  {
+		    if (some_multibyte
+			&& toindex_byte > 0
+			&& XSTRING (val)->data[toindex_byte - 1] >= 0x80
+			&& XINT (elt) >= 0xA0)
+		      maybe_combine_byte = 1;
 		    XSTRING (val)->data[toindex_byte++] = XINT (elt);
 		    toindex++;
 		  }
@@ -754,6 +770,12 @@ concat (nargs, args, target_type, last_special)
     }
   if (!NILP (prev))
     XCONS (prev)->cdr = last_tail;
+
+  if (maybe_combine_byte)
+    /* Characater counter of the multibyte string VAL may be wrong
+       because of byte combining problem.  We must re-calculate it.  */
+    XSTRING (val)->size = multibyte_chars_in_text (XSTRING (val)->data,
+						   XSTRING (val)->size_byte);
 
   return val;
 }
