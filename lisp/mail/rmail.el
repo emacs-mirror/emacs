@@ -2038,19 +2038,17 @@ again afterward.
 FUNCTION may not change the visible text of the message, but it may
 change the invisible header text."
   (save-excursion
-    (let ((obeg (- (point-max) (point-min))))
-      (unwind-protect
-	  (progn
-	    (narrow-to-region (rmail-msgbeg rmail-current-message)
-			      (point-max))
-	    (goto-char (point-min))
-	    (funcall function))
+    (unwind-protect
+	(progn
+	  (narrow-to-region (rmail-msgbeg rmail-current-message)
+			    (point-max))
+	  (goto-char (point-min))
+	  (funcall function))
 	;; Note: we don't use save-restriction because that does not work right
 	;; if changes are made outside the saved restriction
 	;; before that restriction is restored.
-	;; Here we assume that changes made by FUNCTION
-	;; occur before the visible region of the message.
-	(narrow-to-region (- (point-max) obeg) (point-max))))))
+      (narrow-to-region (rmail-msgbeg rmail-current-message)
+			(rmail-msgend rmail-current-message)))))
 
 (defun rmail-forget-messages ()
   (unwind-protect
