@@ -123,17 +123,11 @@ NOTE-END */
    already has FSCALE defined in a system header.  */
 #define LIBS_MACHINE -lkvm
 
-/* 14/9/84 J.W.Hawtin@lut.ac.uk Solaris 2.1 X86 does not like -traditional 
-   with GCC on the C_SWITCH_SYSTEM flags.  */
-#ifdef __GNUC__
-#undef C_SWITCH_SYSTEM
-#endif /* GCC */
 #define HAVE_VFORK
 
 #else /* SOLARIS2_4 */
 #ifndef __GNUC__
-#undef  C_SWITCH_SYSTEM
-#define C_SWITCH_SYSTEM -Xa
+#define C_SWITCH_MACHINE -Xa
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif /* HAVE_ALLOCA_H */
