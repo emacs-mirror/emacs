@@ -21,6 +21,24 @@
 	* language/mlm-util.el (mlm-char-glyph): Add entries for "halant +
 	rakar + halant" and "halant + rrakar + halant".
 
+2003-02-23  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (query-replace-read-args): Return just 3 values.
+	(query-replace, query-replace-regexp)
+	(query-replace-regexp-eval, map-query-replace-regexp) 
+	(replace-string, replace-regexp): Read the start and end args
+	separately so that the expressions are recorded in command-history.
+
+	* menu-bar.el (Revert Buffer): Condition on buffer-file-number.
+
+	* startup.el (inhibit-startup-hooks): New variable.
+	(normal-top-level): Obey that variable.
+	(command-line-1): Run emacs-startup-hook before term-setup-hook.
+	Set inhibit-startup-hooks too.
+
+	* files.el (revert-buffer): Different error message
+	for reverting a nonexistent file.
+
 2003-02-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Shorten docstring: variables
