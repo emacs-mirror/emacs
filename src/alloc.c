@@ -1332,7 +1332,6 @@ mark_object (objptr)
     case Lisp_Window:
     case Lisp_Process:
     case Lisp_Window_Configuration:
-    case Lisp_Compiled:
       {
 	register struct Lisp_Vector *ptr = XVECTOR (obj);
 	register int size = ptr->size;
@@ -1349,6 +1348,30 @@ mark_object (objptr)
 	  }
       }
       break;
+
+    case Lisp_Compiled:
+      /* We could treat this just like a vector, but it is better
+	 to save the COMPILED_CONSTANTS element for last and avoid recursion
+	 there.  */
+      {
+	register struct Lisp_Vector *ptr = XVECTOR (obj);
+	register int size = ptr->size;
+	struct Lisp_Vector *volatile ptr1 = ptr;
+	register int i;
+
+	if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
+	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	for (i = 0; i < size; i++)     /* and then mark its elements */
+	  {
+	    if (ptr != ptr1)
+	      abort ();
+	    if (i != COMPILED_CONSTANTS)
+	      mark_object (&ptr->contents[i]);
+	  }
+	objptr = &ptr->contents[COMPILED_CONSTANTS];
+	obj = *objptr;
+	goto loop;
+      }
 
 #ifdef MULTI_FRAME
     case Lisp_Frame:
@@ -1370,19 +1393,6 @@ mark_object (objptr)
       }
       break;
 #endif /* not MULTI_FRAME */
-
-#if 0
-    case Lisp_Temp_Vector:
-      {
-	register struct Lisp_Vector *ptr = XVECTOR (obj);
-	register int size = ptr->size;
-	register int i;
-
-	for (i = 0; i < size; i++)     /* and then mark its elements */
-	  mark_object (&ptr->contents[i]);
-      }
-      break;
-#endif /* 0 */
 
     case Lisp_Symbol:
       {
@@ -1410,7 +1420,7 @@ mark_object (objptr)
       XMARK (XMARKER (obj)->chain);
       /* DO NOT mark thru the marker's chain.
 	 The buffer's markers chain does not preserve markers from gc;
-	 instead, markers are removed from the chain when they are freed by gc. */
+	 instead, markers are removed from the chain when freed by gc.  */
       break;
 
     case Lisp_Cons:
@@ -1420,6 +1430,14 @@ mark_object (objptr)
 	register struct Lisp_Cons *ptr = XCONS (obj);
 	if (XMARKBIT (ptr->car)) break;
 	XMARK (ptr->car);
+	/* If the cdr is nil, avoid recursion for the car.  */
+	if (EQ (ptr->cdr, Qnil))
+	  {
+	    objptr = &ptr->car;
+	    obj = ptr->car;
+	    XUNMARK (obj);
+	    goto loop;
+	  }
 	mark_object (&ptr->car);
 	objptr = &ptr->cdr;
 	obj = ptr->cdr;
