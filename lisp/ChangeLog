@@ -2,6 +2,11 @@
 
 	* emacs-lisp/byte-run.el (make-obsolete-variable): Fix docstring.
 
+2004-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-font-lock-keywords): New var.
+	(log-edit-mode): Use it.
+
 2004-03-17  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-var-list-children-handler): Handle C++ classes
@@ -9,8 +14,15 @@
 
 2004-03-17  Masatake YAMATO  <jet@gyve.org>
 
-	* smerge-mode.el (smerge-popup-context-menu): Put
-	`unwind-protect' around `overlay-put' and `popup-menu'.
+	* smerge-mode.el (smerge-popup-context-menu):
+	Put `unwind-protect' around `overlay-put' and `popup-menu'.
+
+2004-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-workfile-unchanged-p): Define to avoid dup-diff.
+	(vc-arch-workfile-version, vc-arch-mode-line-rewrite):
+	Take sealed revisions into account.
+	(vc-arch-checkin): Extract a summary line from the message.
 
 2004-03-16  Masatake YAMATO  <jet@gyve.org>
 
