@@ -1949,7 +1949,7 @@ Both X and Y must be numbers or markers.")
 
       f1 = fmod (f1, f2);
       /* If the "remainder" comes out with the wrong sign, fix it.  */
-      if ((f1 < 0) != (f2 < 0))
+      if (f2 < 0 ? f1 > 0 : f1 < 0)
 	f1 += f2;
       return (make_float (f1));
     }
