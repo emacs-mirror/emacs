@@ -490,6 +490,8 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    enum scroll_bar_part *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
+static void x_check_fullscreen P_ ((struct frame *));
+static void x_check_fullscreen_move P_ ((struct frame *));
 
 /* Flush display of frame F, or of all frames if F is null.  */
 
@@ -10243,6 +10245,8 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_window_to_frame (dpyinfo, event.xexpose.window);
 	      if (f)
 		{
+                  x_check_fullscreen (f);
+
 		  if (f->async_visible == 0)
 		    {
 		      f->async_visible = 1;
@@ -10844,9 +10848,18 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
 	      if (f)
 		{
+                  /* If there is a pending resize for fullscreen, don't
+                     do this one, the right one will come later.
+		     The toolkit version doesn't seem to need this, but we
+		     need to reset it below. */
+                  int dont_resize =
+                    ((f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
+                     && FRAME_NEW_WIDTH (f) != 0);
 #ifndef USE_X_TOOLKIT
 		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
 		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
+                  if (dont_resize)
+                    goto OTHER;
 		  
 		  /* In the toolkit version, change_frame_size
 		     is called by the code that handles resizing
@@ -10874,6 +10887,10 @@ XTread_socket (sd, bufp, numchars, expected)
 		  x_real_positions (f, &f->output_data.x->left_pos,
 				    &f->output_data.x->top_pos);
 
+                  x_check_fullscreen_move(f);
+                  if (f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
+                    f->output_data.x->want_fullscreen &=
+                      ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
 #ifdef HAVE_X_I18N
 		  if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
 		    xic_set_statusarea (f);
@@ -12641,6 +12658,114 @@ x_set_offset (f, xoff, yoff, change_gravity)
 	       modified_left, modified_top);
 #endif /* not USE_X_TOOLKIT */
   UNBLOCK_INPUT;
+}
+
+/* Check if we need to resize the frame due to a fullscreen request.
+   If so needed, resize the frame. */
+static void
+x_check_fullscreen (f)
+     struct frame *f;
+{
+  if (f->output_data.x->want_fullscreen & FULLSCREEN_BOTH)
+    {
+      int width, height, ign;
+                      
+      x_real_positions (f, &f->output_data.x->left_pos,
+                        &f->output_data.x->top_pos);
+
+      x_fullscreen_adjust (f, &width, &height, &ign, &ign);
+                  
+      /* We do not need to move the window, it shall be taken care of
+         when setting WM manager hints.
+         If the frame is visible already, the position is checked by
+         x_check_fullscreen_move. */
+      if (f->width != width || f->height != height)
+        {
+          change_frame_size (f, height, width, 0, 1, 0);
+          SET_FRAME_GARBAGED (f);
+          cancel_mouse_face (f);
+
+          /* Wait for the change of frame size to occur */
+          f->output_data.x->want_fullscreen |= FULLSCREEN_WAIT;
+          
+        }
+    }
+}
+
+/* If frame parameters are set after the frame is mapped, we need to move
+   the window.  This is done in xfns.c.
+   Some window managers moves the window to the right position, some
+   moves the outer window manager window to the specified position.
+   Here we check that we are in the right spot.  If not, make a second
+   move, assuming we are dealing with the second kind of window manager. */
+static void
+x_check_fullscreen_move (f)
+     struct frame *f;
+{
+  if (f->output_data.x->want_fullscreen & FULLSCREEN_MOVE_WAIT)
+  {
+    int expect_top = f->output_data.x->top_pos;
+    int expect_left = f->output_data.x->left_pos;
+
+    if (f->output_data.x->want_fullscreen & FULLSCREEN_HEIGHT)
+      expect_top = 0;
+    if (f->output_data.x->want_fullscreen & FULLSCREEN_WIDTH)
+      expect_left = 0;
+    
+    if (expect_top != f->output_data.x->top_pos
+        || expect_left != f->output_data.x->left_pos)
+      x_set_offset (f, expect_left, expect_top, 1);
+
+    /* Just do this once */
+    f->output_data.x->want_fullscreen &= ~FULLSCREEN_MOVE_WAIT;
+  }
+}
+
+
+/* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
+   wanted positions of the WM window (not emacs window).
+   Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
+   window (FRAME_X_WINDOW).
+ */
+void
+x_fullscreen_adjust (f, width, height, top_pos, left_pos)
+     struct frame *f;
+     int *width;
+     int *height;
+     int *top_pos;
+     int *left_pos;
+{
+  int newwidth = f->width, newheight = f->height;
+
+  *top_pos = f->output_data.x->top_pos;
+  *left_pos = f->output_data.x->left_pos;
+  
+  if (f->output_data.x->want_fullscreen & FULLSCREEN_HEIGHT)
+    {
+      int ph;
+      
+      ph = FRAME_X_DISPLAY_INFO (f)->height;
+      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
+      ph = CHAR_TO_PIXEL_HEIGHT (f, newheight)
+        - f->output_data.x->y_pixels_diff;
+      newheight = PIXEL_TO_CHAR_HEIGHT (f, ph);
+      *top_pos = 0;
+    }
+
+  if (f->output_data.x->want_fullscreen & FULLSCREEN_WIDTH)
+    {
+      int pw;
+      
+      pw = FRAME_X_DISPLAY_INFO (f)->width;
+      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
+      pw = CHAR_TO_PIXEL_WIDTH (f, newwidth)
+        - f->output_data.x->x_pixels_diff;
+      newwidth = PIXEL_TO_CHAR_WIDTH (f, pw);
+      *left_pos = 0;
+    }
+
+  *width = newwidth;
+  *height = newheight;
 }
 
 
