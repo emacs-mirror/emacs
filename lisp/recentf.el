@@ -102,7 +102,7 @@ You should define the options of your own filters in this group."
 
 (defcustom recentf-menu-path '("files")
   "*Path where to add the recentf menu.
-If nil add it at top-level (see also `easy-menu-change')."
+If nil add it at top level (see also `easy-menu-change')."
   :group 'recentf
   :type '(choice (const :tag "Top Level" nil)
                  (sexp :tag "Menu Path"))
@@ -195,15 +195,15 @@ use either \\[customize] or the function `recentf-mode'."
   :group 'recentf
   :type 'hook)
 
-;;;
-;;; Common functions
-;;;
+;;;;
+;;;; Common functions
+;;;;
 (defconst recentf-case-fold-search
   (memq system-type '(vax-vms windows-nt))
   "Non-nil if recentf searches and matches should ignore case.")
 
 (defun recentf-include-p (filename)
-  "Return t if FILENAME matches none of the `recentf-exclude' regexps."
+  "Return t if FILENAME match none of the `recentf-exclude' regexps."
   (let ((case-fold-search recentf-case-fold-search)
         (rl recentf-exclude))
     (while (and rl (not (string-match (car rl) filename)))
@@ -297,7 +297,7 @@ See also `recentf-make-default-menu-element'."
 (defun recentf-apply-menu-filter (filter l)
   "Apply function FILTER to the list of menu-elements L.
 It takes care of sub-menu elements in L and recursively apply FILTER
-to them.  It is guarantee than FILTER receives only a list of single
+to them.  It is guaranteed that FILTER receives only a list of single
 menu-elements (no sub-menu)."
   (if (and (functionp filter) l)
       (let ((case-fold-search recentf-case-fold-search)
@@ -366,7 +366,7 @@ filter function this variable is reset to nil.")
                        recentf-menu-items-for-commands)))))
 
 (defun recentf-make-menu-item (menu-element)
-  "Make a menu item from a menu element (see `recentf-make-menu-element')."
+  "Make a menu item from MENU-ELEMENT (see `recentf-make-menu-element')."
   (let ((menu-item  (recentf-menu-element-item  menu-element))
         (menu-value (recentf-menu-element-value menu-element)))
     (if (recentf-sub-menu-element-p menu-element)
@@ -375,9 +375,9 @@ filter function this variable is reset to nil.")
               (list recentf-menu-action menu-value)
               t))))
 
-;;;
-;;; Predefined menu filter functions
-;;;
+;;;;
+;;;; Predefined menu filter functions
+;;;;
 
 (defun recentf-sort-ascending (l)
   "Sort the list of menu elements L in ascending order.
@@ -764,9 +764,9 @@ unchanged."
                               t)))))
     l))
 
-;;;
-;;; Dialogs stuff
-;;;
+;;;;
+;;;; Dialogs stuff
+;;;;
 
 (defun recentf-cancel-dialog (&rest ignore)
   "Cancel the current dialog.
@@ -788,16 +788,16 @@ Used by `recentf-edit-list' and `recentf-open-files' dialogs."
 (defun recentf-dialog-mode ()
   "Major mode used in recentf dialogs.
 
-These are the special commands of recentf-dialog-mode mode:
+These are the special commands of `recentf-dialog-mode' mode:
     q -- cancel this dialog."
   (interactive)
   (setq major-mode 'recentf-dialog-mode)
   (setq mode-name "recentf-dialog")
   (use-local-map recentf-dialog-mode-map))
 
-;;;
-;;; Hooks and Commands
-;;;
+;;;;
+;;;; Hooks and Commands
+;;;;
 
 (defun recentf-add-file-hook ()
   "Insert the name of the file just opened or written into `recentf-list'."
@@ -858,7 +858,7 @@ is a list (default to the full list)."
 Holds list of files to be deleted from `recentf-list'.")
 
 (defun recentf-edit-list-action (widget &rest ignore)
-  "Checkbox widget action used by `recentf-edit-list' to select/unselect a file."
+  "Checkbox WIDGET action used by `recentf-edit-list' to select/unselect a file."
   (let ((value (widget-get widget ':tag)))
     ;; if value is already in the selected items
     (if (memq value recentf-edit-selected-items)
@@ -946,7 +946,7 @@ Holds list of files to be deleted from `recentf-list'.")
   (setq recentf-update-menu-p t))
 
 (defun recentf-open-files-action (widget &rest ignore)
-  "Button widget action used by `recentf-open-files' to open a file."
+  "Button WIDGET action used by `recentf-open-files' to open a file."
   (kill-buffer (current-buffer))
   (funcall recentf-menu-action (widget-value widget)))
 
@@ -954,7 +954,7 @@ Holds list of files to be deleted from `recentf-list'.")
   "String used by `recentf-open-files' to shift right sub-menu items.")
 
 (defun recentf-open-files-item (menu-element)
-  "Insert menu-element item in the current interaction buffer."
+  "Insert MENU-ELEMENT item in the current interaction buffer."
   (let ((menu-item (car menu-element))
         (file-path (cdr menu-element)))
     (if (consp file-path)               ; This is a sub-menu
@@ -980,7 +980,7 @@ Holds list of files to be deleted from `recentf-list'.")
 (defun recentf-open-files (&optional files buffer-name)
   "Display buffer allowing user to choose a file from recently-opened list.
 The optional argument FILES may be used to specify the list, otherwise
-recentf-list is used.  The optional argument BUFFER-NAME specifies
+`recentf-list' is used.  The optional argument BUFFER-NAME specifies
 which buffer to use for the interaction."
   (interactive)
   (if (null files)
@@ -1057,4 +1057,4 @@ were operated on recently."
 
 (run-hooks 'recentf-load-hook)
 
-;;; recentf.el ends here.
+;;; recentf.el ends here
