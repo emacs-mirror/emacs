@@ -258,16 +258,16 @@ If 4th arg LIST is non-nil, return a list of all such fields."
 (defun mail-parse-comma-list ()
   (let (accumulated
 	beg)
-    (skip-chars-forward " ")
+    (skip-chars-forward " \t\n")
     (while (not (eobp))
       (setq beg (point))
       (skip-chars-forward "^,")
-      (skip-chars-backward " ")
+      (skip-chars-backward " \t\n")
       (setq accumulated
 	    (cons (buffer-substring-no-properties beg (point))
 		  accumulated))
       (skip-chars-forward "^,")
-      (skip-chars-forward ", "))
+      (skip-chars-forward ", \t\n"))
     accumulated))
 
 (defun mail-comma-list-regexp (labels)
