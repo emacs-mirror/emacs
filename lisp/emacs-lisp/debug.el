@@ -320,7 +320,7 @@ Applies to the frame whose line point is on in the backtrace."
   (beginning-of-line))
 
 (defun debugger-frame-clear ()
-  "Do not enter to debugger when this frame exits.
+  "Do not enter debugger when this frame exits.
 Applies to the frame whose line point is on in the backtrace."
   (interactive)
   (beginning-of-line)
