@@ -1,3 +1,32 @@
+2000-02-02  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl.el: Use bytecomp-load-hook, not
+	emacs-lisp-mode-hook.  Don't check for defalias being defined.
+
+	* emacs-lisp/cl-extra.el (cl-builtin-gethash, cl-builtin-remhash)
+	(cl-builtin-maphash, cl-builtin-clrhash): Remove definitions.  Use
+	the new builtins directly.
+
+	* whitespace.el (whitespace): Add :version to defgroup.
+
+	* tooltip.el (tooltip-gud-tips-p, tooltip-gud-toggle-dereference):
+	Doc fix.
+
+	* thingatpt.el (sexp-at-point, symbol-at-point)
+	(number-at-point, list-at-point): Add autoload cookie.
+
+	* recentf.el (recentf): Add :version to defgroup.
+
+	* quickurl.el (quickurl): Add :version to defgroup.
+
+	* elide-head.el (elide-head): Use point-marker more.
+
+	* bs.el (bs): Add :version to defgroup.
+
+	* autorevert.el (global-auto-revert-mode): Add autoload cookie.
+
+	* progmodes/delphi.el (delphi): Add :version to defgroup.
+
 2000-02-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* ange-ftp.el (ange-ftp-write-region): Handle case that
