@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: 1.2
+;; Version: $Id: lisp-mnt.el,v 1.3 1993/03/24 23:46:52 esr Exp $
 ;; Keywords: docs
 ;; Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -51,7 +51,7 @@
 ;;    * Author line --- contains the name and net address of at least
 ;; the principal author.
 ;; 
-;;    If there are multible authors, they should be listed on continuation
+;;    If there are multiple authors, they should be listed on continuation
 ;; lines led by ;;<TAB>, like this:
 ;; 
 ;; ;; Author: Ashwin Ram <Ram-Ashwin@cs.yale.edu>
@@ -78,8 +78,8 @@
 ;; file.  For historical interest, basically.
 ;; 
 ;;    * Version line --- intended to give the reader a clue if they're looking
-;; at a different version of the file than the one they're accustomed to.  Not
-;; needed if you have an RCS or SCCS header.
+;; at a different version of the file than the one they're accustomed to.  This
+;; may be an RCS or SCCS header.
 ;; 
 ;;    * Adapted-By line --- this is for FSF's internal use.  The person named
 ;; in this field was the one responsible for installing and adapting the
@@ -113,6 +113,7 @@
 ;;; Code:
 
 (require 'picture)		; provides move-to-column-force
+(require 'emacsbug)
 
 ;; These functions all parse the headers of the current buffer
 
@@ -174,33 +175,47 @@
 	  (kill-buffer (current-buffer)))
       )))
 
+
+(defun lm-crack-address (x)
+  ;; Given a string containing a human and email address, parse it
+  ;; into a cons pair (name . address).
+  (cond ((string-match "\\(.+\\) [(<]\\(\\S-+@\\S-+\\)[>)]" x)
+	 (cons (substring x (match-beginning 1) (match-end 1))
+	       (substring x (match-beginning 2) (match-end 2))))
+	((string-match "\\(\\S-+@\\S-+\\) [(<]\\(.*\\)[>)]" x)
+	 (cons (substring x (match-beginning 2) (match-end 2))
+	       (substring x (match-beginning 1) (match-end 1))))
+	((string-match "\\S-+@\\S-+" x)
+	 (cons nil x))
+	(t
+	 (cons x nil))))
+
 (defun lm-authors (&optional file)
-  ;; Return the buffer's or FILE's author list.
+  ;; Return the buffer's or FILE's author list.  Each element of the
+  ;; list is a cons; the car is a name-aming-humans, the cdr an email
+  ;; address.
   (save-excursion
     (if file
 	(find-file file))
-    (prog1
-	(lm-header-multiline "author")
-      (if file
-	  (kill-buffer (current-buffer)))
-    )))
+    (let ((authorlist (lm-header-multiline "author")))
+      (prog1
+	 (mapcar 'lm-crack-address authorlist)
+	  (if file
+	      (kill-buffer (current-buffer)))
+	))))
 
 (defun lm-maintainer (&optional file)
   ;; Get a package's bug-report & maintenance address.  Parse it out of FILE,
   ;; or the current buffer if FILE is nil.
-  ;; This may be a name-address pair, or an address by itself,
+  ;; The return value is a (name . address) cons.
   (save-excursion
     (if file
 	(find-file file))
     (prog1
-	(let ((raw-address
-	       (or
-		(save-excursion (lm-header "maintainer"))
-		(car (lm-authors)))))
-	  (cond	((string-match "[^<]<\\([^>]+\\)>" raw-address)
-		 (substring raw-address  (match-beginning 1) (match-end 1)))
-		(t raw-address))
-	  )
+	(let ((maint (lm-header "maintainer")))
+	  (if maint
+	      (lm-crack-address maint)
+	    (car (lm-authors))))
       (if file
 	  (kill-buffer (current-buffer)))
       )))
@@ -224,22 +239,22 @@
     (if file
 	(find-file file))
     (prog1
-	 (if (progn
-	       (goto-char (point-min))
-	       (re-search-forward
-		"\\$Id: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
-		(lm-code-mark) t))
-	     (format "%s %s %s"
-		     (buffer-substring (match-beginning 3) (match-end 3))
-		     (nth (string-to-int 
-			   (buffer-substring (match-beginning 2) (match-end 2)))
-			  '("" "Jan" "Feb" "Mar" "Apr" "May" "Jun"
-			    "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
-		     (buffer-substring (match-beginning 1) (match-end 1))
-		     )))
+	(if (progn
+	      (goto-char (point-min))
+	      (re-search-forward
+	       "\\$Id: [^ ]+ [^ ]+ \\([^/]+\\)/\\([^/]+\\)/\\([^ ]+\\) "
+	       (lm-code-mark) t))
+	    (format "%s %s %s"
+		    (buffer-substring (match-beginning 3) (match-end 3))
+		    (nth (string-to-int 
+			  (buffer-substring (match-beginning 2) (match-end 2)))
+			 '("" "Jan" "Feb" "Mar" "Apr" "May" "Jun"
+			   "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
+		    (buffer-substring (match-beginning 1) (match-end 1))
+		    ))
       (if file
 	  (kill-buffer (current-buffer)))
-      ))
+      )))
 
 (defun lm-version (&optional file)
   ;; Return the package's version field.
@@ -400,16 +415,11 @@ which do not include a recognizable synopsis."
 (defun lm-report-bug (topic)
   "Report a bug in the package currently being visited to its maintainer.
 Prompts for bug subject.  Leaves you in a mail buffer."
+  (interactive "sBug Subject: ")
   (let ((package (buffer-name))
 	(addr (lm-maintainer))
 	(version (lm-version)))
-    ;; We do this in order to avoid duplicating the general bug address here
-    (if (or (not addr) (string= "FSF"))
-	(progn
-	  (load-library "emacsbug.el")
-	  (emacsbug (format "%s --- %s" package topic))))
-    (interactive "sBug Subject: ")
-    (mail nil addr topic)
+    (mail nil (or addr bug-gnu-emacs) topic)
     (goto-char (point-max))
     (insert "\nIn "
 	    package
