@@ -313,15 +313,15 @@ ALIST is an alist of KEY and INFO.  See the documentation of
     (set-language-info language-name (car (car alist)) (cdr (car alist)))
     (setq alist (cdr alist))))
 
-(defun read-language-name (key prompt &optional initial-input)
+(defun read-language-name (key prompt &optional default)
   "Read language name which has information for KEY, prompting with PROMPT.
+DEFAULT is the default choice of language.
 It returns a string as language name."
   (let* ((completion-ignore-case t)
 	 (name (completing-read prompt
 				language-info-alist
 				(function (lambda (elm) (assq key elm)))
-				t
-				initial-input)))
+				t nil nil default)))
     (if (and (> (length name) 0)
 	     (get-language-info name key))
 	name)))
