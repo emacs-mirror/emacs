@@ -1,3 +1,15 @@
+2004-10-04  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (message_dolog, set_message_1): Call
+	unibyte_char_to_multibyte with arg type int.
+
+	* fileio.c (Fsubstitute_in_file_name): Fix previous change.
+
+	* lread.c (read1): Fix reading of a char-table.
+
+	* print.c (print_object): Include sub char-table in cicularities
+	detection.
+
 2004-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (where_is_internal_2): Fix for the case that KEY is a
