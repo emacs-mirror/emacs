@@ -94,10 +94,20 @@ it to get a real sense of how it works."
   :group 'eshell-smart)
 
 (defcustom eshell-review-quick-commands nil
-  "*If nil, point does not stay on quick commands.
-A quick command is one that produces no output, and exits
-successfully."
-  :type 'boolean
+  "*If t, always review commands.
+Reviewing means keeping point on the text of the command that was just
+invoked, to allow corrections to be made easily.
+
+If set to nil, quick commands won't be reviewed.  A quick command is a
+command that produces no output, and exits successfully.
+
+If set to `not-even-short-output', then the definition of \"quick
+command\" is extended to include commands that produce output, iff
+that output can be presented in its entirely in the Eshell window."
+  :type '(choice (const :tag "No" nil)
+		 (const :tag "Yes" t)
+		 (const :tag "Not even short output"
+			not-even-short-output))
   :group 'eshell-smart)
 
 (defcustom eshell-smart-display-navigate-list
@@ -177,7 +187,7 @@ The options are `begin', `after' or `end'."
 		(lambda ()
 		  (setq eshell-smart-command-done t))) t t)
 
-    (unless eshell-review-quick-commands
+    (unless (eq eshell-review-quick-commands t)
       (add-hook 'eshell-post-command-hook
 		'eshell-smart-maybe-jump-to-end nil t))))
 
@@ -233,11 +243,14 @@ The options are `begin', `after' or `end'."
 
 (defun eshell-smart-maybe-jump-to-end ()
   "Jump to the end of the input buffer.
-This is done whenever a command exits sucessfully that displayed no
-output."
+This is done whenever a command exits sucessfully and both the command
+and the end of the buffer are still visible."
   (when (and (= eshell-last-command-status 0)
-	     (= (count-lines eshell-last-input-end
-			     eshell-last-output-end) 0))
+	     (if (eq eshell-review-quick-commands 'not-even-short-output)
+		 (and (pos-visible-in-window-p (point-max))
+		      (pos-visible-in-window-p eshell-last-input-start))
+	       (= (count-lines eshell-last-input-end
+			       eshell-last-output-end) 0)))
     (goto-char (point-max))
     (remove-hook 'pre-command-hook 'eshell-smart-display-move t)))
 

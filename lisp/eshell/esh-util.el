@@ -262,7 +262,7 @@ If N or M is nil, it means the end of the list."
 
 (put 'eshell-for 'lisp-indent-function 2)
 
-(defun eshell-flatten-list (args)
+(defsubst eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
     (eshell-for a args
@@ -417,7 +417,8 @@ list."
 		  (split-string (buffer-substring
 				 (point) (progn (end-of-line)
 						(point))) ":")))
-	    (if (and fields (nth 0 fields) (nth 2 fields))
+	    (if (and (and fields (nth 0 fields) (nth 2 fields))
+		     (not (assq (string-to-int (nth 2 fields)) names)))
 		(setq names (cons (cons (string-to-int (nth 2 fields))
 					(nth 0 fields))
 				  names))))
@@ -605,6 +606,10 @@ argument VECP, this copies vectors as well as conses."
 	  (while (>= (setq i (1- i)) 0)
 	    (aset tree i (eshell-copy-tree (aref tree i) vecp))))))
   tree)
+
+(defsubst eshell-processp (proc)
+  "If the `processp' function does not exist, PROC is not a process."
+  (and (fboundp 'processp) (processp proc)))
 
 ; (defun eshell-copy-file
 ;   (file newname &optional ok-if-already-exists keep-date)

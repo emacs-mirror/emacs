@@ -1,5 +1,18 @@
 2000-08-28  John Wiegley  <johnw@gnu.org>
 
+	* eshell/em-smart.el (eshell-smart-redisplay): Added a safety
+	catch, in case re-centering point at bottom messes up the display.
+	This happens frequently in Emacs 21, due I believe to variable
+	line heights.
+
+	* eshell/esh-mode.el (eshell-find-tag): Require `etags', in order
+	to call `find-tag-interactive'.
+
+	* eshell/em-dirs.el (eshell/cd): Use buffered printing to display
+	the list of remember directories.
+
+2000-08-28  John Wiegley  <johnw@gnu.org>
+
 	* align.el: Test align-region-separate to see if it's a symbol.
 
 2000-08-27  John Wiegley  <johnw@gnu.org>
@@ -4068,7 +4081,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
+	* time.el: Small doc fixes from Pavel JanÅÌk ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 

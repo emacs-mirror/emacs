@@ -326,6 +326,10 @@ sessions, such as when using `eshell-command'.")
        (symbol-function eshell-command-prefix))
   (define-key eshell-mode-map [(control ?c)] eshell-command-prefix)
 
+  ;; without this, find-tag complains about read-only text being
+  ;; modified
+  (if (eq (key-binding [(meta ?.)]) 'find-tag)
+      (define-key eshell-mode-map [(meta ?.)] 'eshell-find-tag))
   (define-key eshell-command-map [(meta ?o)] 'eshell-mark-output)
 
   (define-key eshell-command-map [(control ?a)] 'eshell-bol)
@@ -339,6 +343,7 @@ sessions, such as when using `eshell-command'.")
   (define-key eshell-command-map [(control ?t)] 'eshell-truncate-buffer)
   (define-key eshell-command-map [(control ?u)] 'eshell-kill-input)
   (define-key eshell-command-map [(control ?w)] 'backward-kill-word)
+  (define-key eshell-command-map [(control ?y)] 'eshell-repeat-argument)
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
   (set-syntax-table eshell-mode-syntax-table)
@@ -350,6 +355,9 @@ sessions, such as when using `eshell-command'.")
   ;; always set the tab width to 8 in Eshell buffers, since external
   ;; commands which do their own formatting almost always expect this
   (set (make-local-variable 'tab-width) 8)
+
+  ;; don't ever use auto-fill in Eshell buffers
+  (setq auto-fill-function nil)
 
   ;; always display everything from a return value
   (if (boundp 'print-length)
@@ -463,21 +471,27 @@ sessions, such as when using `eshell-command'.")
 
 ;;; Internal Functions:
 
+(defun eshell-find-tag (&optional tagname next-p regexp-p)
+  "A special version of `find-tag' that ignores read-onlyness."
+  (interactive)
+  (let ((inhibit-read-only t)
+	(no-default (eobp)))
+    (setq tagname (find-tag-interactive "Find tag: " no-default))
+    (find-tag tagname next-p regexp-p)))
+
 (defun eshell-move-argument (limit func property arg)
   "Move forward ARG arguments."
   (catch 'eshell-incomplete
     (eshell-parse-arguments (save-excursion (eshell-bol) (point))
 			    (line-end-position)))
-  (let ((pos
-	 (save-excursion
-	   (funcall func 1)
-	   (while (and (> arg 0)
-		       (not (= (point) limit)))
-	     (if (get-text-property (point) property)
-		 (setq arg (1- arg)))
-	     (if (> arg 0)
-		 (funcall func 1)))
-	   (point))))
+  (let ((pos (save-excursion
+	       (funcall func 1)
+	       (while (and (> arg 0) (/= (point) limit))
+		 (if (get-text-property (point) property)
+		     (setq arg (1- arg)))
+		 (if (> arg 0)
+		     (funcall func 1)))
+	       (point))))
     (goto-char pos)
     (if (and (eq func 'forward-char)
 	     (= (1+ pos) limit))
@@ -506,6 +520,14 @@ sessions, such as when using `eshell-command'.")
   "Move backward ARG arguments."
   (interactive "p")
   (eshell-move-argument (point-min) 'backward-char 'arg-begin arg))
+
+(defun eshell-repeat-argument (&optional arg)
+  (interactive "p")
+  (let ((begin (save-excursion
+		 (eshell-backward-argument arg)
+		 (point))))
+    (kill-ring-save begin (point))
+    (yank)))
 
 (defun eshell-bol ()
   "Goes to the beginning of line, then skips past the prompt, if any."
@@ -562,11 +584,17 @@ function will inform the caller whether more input is required.
 If nil is returned, more input is necessary (probably because a
 multi-line input string wasn't terminated properly).  Otherwise, it
 will return the parsed command."
-  (let (command)
-    (unless (catch 'eshell-incomplete
-	      (ignore
-	       (setq command
-		     (eshell-parse-command (cons beg end) args t))))
+  (let (delim command)
+    (if (setq delim
+	      (catch 'eshell-incomplete
+		(ignore
+		 (setq command (eshell-parse-command (cons beg end)
+						     args t)))))
+	(ignore
+	 (message "Expecting completion of delimeter %c ..."
+		  (if (listp delim)
+		      (car delim)
+		    delim)))
       command)))
 
 (defun eshell-update-markers (pmark)
