@@ -357,17 +357,23 @@ text_property_stickiness (prop, pos)
   if (XINT (pos) > BEGV)
     /* Consider previous character.  */
     {
-      Lisp_Object prev_pos, rear_non_sticky;
+      Lisp_Object prev_pos = make_number (XINT (pos) - 1);
 
-      prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+      if (! NILP (Fget_text_property (prev_pos, prop, Qnil)))
+	/* Non-rear-non-stickiness only takes precedence if the
+	   preceding property value is non-nil.  */
+	{
+	  Lisp_Object rear_non_sticky
+	    = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
 
-      if (EQ (rear_non_sticky, Qnil)
-	  || (CONSP (rear_non_sticky)
-	      && NILP (Fmemq (prop, rear_non_sticky))))
-	/* PROP is not rear-non-sticky, and since this takes precedence over
-	   any front-stickiness, PROP is inherited from before.  */
-	return -1;
+	  if (EQ (rear_non_sticky, Qnil)
+	      || (CONSP (rear_non_sticky)
+		  && NILP (Fmemq (prop, rear_non_sticky))))
+	    /* PROP is not rear-non-sticky, and since this takes
+	       precedence over any front-stickiness, PROP is inherited
+	       from before.  */
+	    return -1;
+	}
     }
 
   /* Consider following character.  */
@@ -1599,7 +1605,7 @@ DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
 This is the reverse operation of `decode-time', which see.
 ZONE defaults to the current time zone rule.  This can
 be a string or t (as from `set-time-zone-rule'), or it can be a list
-(as from `current-time-zone') or an integer (as from `decode-time')
+\(as from `current-time-zone') or an integer (as from `decode-time')
 applied without consideration for daylight savings time.
 
 You can pass more than 7 arguments; then the first six arguments
