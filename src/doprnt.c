@@ -137,7 +137,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	    size_bound = -size_bound;
 	  size_bound += 50;
 
-	  if (size_bound > (unsigned) (1 << (BITS_PER_INT - 1)))
+	  if (size_bound > (((unsigned) 1) << (BITS_PER_INT - 1)))
 	    error ("Format padding too large");
 
 	  /* Make sure we have that much.  */
