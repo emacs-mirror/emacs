@@ -1,3 +1,10 @@
+2003-03-03  Andreas Schwab  <schwab@suse.de>
+
+	* info.el (Info-fontify-node): Don't hide indentation before the
+	reference name.  Don't process a reference twice when a new tag is
+	inserted.
+	(Info-hide-note-references): Fix doc and customize type.
+
 2003-03-02  Matt Swift  <swift@alum.mit.edu>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): New
