@@ -621,7 +621,7 @@ Automatically called when a new face is created."
 		 `(lambda ()
 		    ,docstring
 		    (interactive)
-		    (facemenu-set-face (quote (, face)))))
+		    (facemenu-set-face (quote ,face))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ((facemenu-iterate ; check if equivalent face is already in the menu
