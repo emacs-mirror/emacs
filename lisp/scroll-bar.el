@@ -99,6 +99,9 @@ Setting the variable with a customization buffer also takes effect."
 		 (const left)
 		 (const right))
   :group 'frames
+  ;; The default value for :initialize would try to use :set
+  ;; when processing the file in cus-dep.el.
+  :initialize 'custom-initialize-default
   :set 'set-scroll-bar-mode-1)
 
 ;; We just set scroll-bar-mode, but that was the default.
