@@ -29,3 +29,7 @@
 /* It is safe to have no parens around the args in the safe_bcopy call,
    and parens would screw up the prototype decl for memmove.  */
 #define	memmove(d, s, n) safe_bcopy (s, d, n)
+
+/* This works around a bug in ISC 4.0 and 3.0; it fails
+   to clear the "POSIX process" flag on an exec.  */
+#define EXTRA_INITIALIZE __setostype (0)
