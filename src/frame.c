@@ -545,11 +545,25 @@ Note that changing the size of one terminal frame automatically affects all.")
     XCDR (XCAR (tem)) = Fcopy_sequence (XCDR (XCAR (tem)));
   return frame;
 }
+
 
+/* Perform the switch to frame FRAME.
+
+   If FRAME is a switch-frame event `(switch-frame FRAME1)', use
+   FRAME1 as frame.
+
+   If TRACK is non-zero and the frame that currently has the focus
+   redirects its focus to the selected frame, redirect that focused
+   frame's focus to FRAME instead.
+
+   FOR_DELETION non-zero means that the selected frame is being
+   deleted, which includes the possibility that the frame's display
+   is dead.  */
+
 Lisp_Object
-do_switch_frame (frame, no_enter, track)
-     Lisp_Object frame, no_enter;
-     int track;
+do_switch_frame (frame, track, for_deletion)
+     Lisp_Object frame;
+     int track, for_deletion;
 {
   struct frame *sf = SELECTED_FRAME ();
   
@@ -600,7 +614,7 @@ do_switch_frame (frame, no_enter, track)
 #else /* ! 0 */
   /* Instead, apply it only to the frame we're pointing to.  */
 #ifdef HAVE_WINDOW_SYSTEM
-  if (track && (FRAME_WINDOW_P (XFRAME (frame))))
+  if (track && FRAME_WINDOW_P (XFRAME (frame)))
     {
       Lisp_Object focus, xfocus;
 
@@ -615,7 +629,7 @@ do_switch_frame (frame, no_enter, track)
 #endif /* HAVE_X_WINDOWS */
 #endif /* ! 0 */
 
-  if (FRAME_HAS_MINIBUF_P (sf))
+  if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
   selected_frame = frame;
@@ -644,7 +658,7 @@ function is called.")
   (frame, no_enter)
     Lisp_Object frame, no_enter;
 {
-  return do_switch_frame (frame, no_enter, 1);
+  return do_switch_frame (frame, 1, 0);
 }
 
 
@@ -663,7 +677,7 @@ to that frame.")
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
   call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
-  return do_switch_frame (event, no_enter, 0);
+  return do_switch_frame (event, 0, 0);
 }
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
@@ -1135,7 +1149,7 @@ frame.  The hook is called with one argument FRAME.")
 	    }
 	}
 
-      do_switch_frame (frame1, Qnil, 0);
+      do_switch_frame (frame1, 0, 1);
       sf = SELECTED_FRAME ();
     }
 
@@ -1509,7 +1523,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (EQ (frame, selected_frame))
-    do_switch_frame (next_frame (frame, Qt), Qnil, 0)
+    do_switch_frame (next_frame (frame, Qt), 0, 0)
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
