@@ -2720,6 +2720,10 @@ x_window (f, window_prompting, minibuffer_only)
     }
 
     len = strlen (shell_position) + 1;
+    /* We don't free this because we don't know whether
+       it is safe to free it while the frame exists.
+       It isn't worth the trouble of arranging to free it
+       when the frame is deleted.  */
     tem = (char *) xmalloc (len);
     strncpy (tem, shell_position, len);
     XtSetArg (al[ac], XtNgeometry, tem); ac++;
