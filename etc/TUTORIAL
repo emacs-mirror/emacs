@@ -35,8 +35,8 @@ key).
 >>  Try typing M-v and then C-v to move back and forth a few times.
 
 
-SUMMARY
--------
+* SUMMARY
+---------
 
 The following commands are useful for viewing screenfuls:
 
@@ -52,8 +52,8 @@ The following commands are useful for viewing screenfuls:
    Find the cursor again and see what text is near it now.
 
 
-BASIC CURSOR CONTROL
---------------------
+* BASIC CURSOR CONTROL
+----------------------
 
 Getting from screenful to screenful is useful, but how do you
 reposition yourself within a given screen to a specific place?
@@ -181,8 +181,8 @@ Did it scroll the screen up by 8 lines?  If you would like to
 scroll it down you can give an argument to M-v.
 
 
-WHEN EMACS IS HUNG
------------------
+* WHEN EMACS IS HUNG
+--------------------
 
 If Emacs gets into an infinite (or simply very long) computation which
 you don't want to finish, you can stop it safely by typing C-g.
@@ -207,8 +207,8 @@ not want to execute M-ESC, you would type "n" to answer the question.
 >> Type <ESC> <ESC>, then type n.
 
 
-WINDOWS
--------
+* WINDOWS
+---------
 
 Emacs can have several windows, each displaying its own text.
 At this stage it is better not to go into the techniques of
@@ -230,8 +230,8 @@ the full screen, by getting rid of any other windows.
 >> Type C-x 1 and see the documentation listing window disappear.
 
 
-INSERTING AND DELETING
-----------------------
+* INSERTING AND DELETING
+------------------------
 
 If you want to insert text, just type it.  Characters which you can
 see, such as A, 7, *, etc. are taken by Emacs as text and inserted
@@ -343,8 +343,8 @@ starting point (the most recent kill).
    arguments.
 
 
-UNDO
-----
+* UNDO
+------
 
 Any time you make a change to the text and wish you had not done so,
 you can undo the change (return the text to its previous state)
@@ -368,8 +368,8 @@ Giving a numeric argument to C-_ or C-x u is equivalent to repeating
 it as many times as the argument says.
 
 
-FILES
------
+* FILES
+-------
 
 In order to make the text you edit permanent, you must put it in a
 file.  Otherwise, it will go away when your invocation of Emacs goes
@@ -437,8 +437,8 @@ From then on, you can consider yourself to be editing an already
 existing file.
 
 
-BUFFERS
--------
+* BUFFERS
+---------
 
 If you find a second file with C-x C-f, the first file remains
 inside Emacs.  You can switch back to it by finding it again with
@@ -476,8 +476,8 @@ and finds the ones that contain files you have changed.
 For each such buffer, C-x s asks you whether to save it.
 
 
-EXTENDING THE COMMAND SET
--------------------------
+* EXTENDING THE COMMAND SET
+---------------------------
 
 There are many, many more Emacs commands than could possibly be put
 on all the control and meta characters.  Emacs gets around this with
@@ -537,15 +537,15 @@ to replace it with--each one ended with a Return.
    after the cursor.
 
 
-MODE LINE
----------
+* MODE LINE
+-----------
 
 If Emacs sees that you are typing commands slowly it shows them to you
 at the bottom of the screen in an area called the "echo area."  The echo
 area contains the bottom line of the screen.  The line immediately above
 it is called the MODE LINE.  The mode line says something like
 
---**--Emacs: TUTORIAL		    (Fundamental)----58%-------------
+----**--Emacs: TUTORIAL		    (Fundamental)----58%-------------
 
 This is a very useful "information" line.
 
@@ -624,8 +624,8 @@ that paragraph.
 
 >> Move the cursor into the previous paragraph and type M-q.
 
-SEARCHING
----------
+* SEARCHING
+-----------
 
 Emacs can do searches for strings (these are groups of contiguous
 characters or words) either forward through the file or backward
@@ -675,8 +675,8 @@ Reverse search.  Everything that applies to C-s applies to C-r except
 that the direction of the search is reversed.
 
 
-MULTIPLE WINDOWS
-----------------
+* MULTIPLE WINDOWS
+------------------
 
 One of the nice features of Emacs is that you can display more than one
 window on the screen at the same time.
@@ -727,8 +727,8 @@ things:
    the bottom window.
 
 
-RECURSIVE EDITING LEVELS
-------------------------
+* RECURSIVE EDITING LEVELS
+--------------------------
 
 Sometimes you will get into what is called a "recursive editing
 level".  This is indicated by square brackets in the mode line,
@@ -751,8 +751,8 @@ is used for discarding numeric arguments and partially typed commands
 WITHIN the recursive editing level.
 
 
-GETTING MORE HELP
------------------
+* GETTING MORE HELP
+-------------------
 
 In this tutorial we have tried to supply just enough information to
 get you started using Emacs.  There is so much available in Emacs that
@@ -823,8 +823,8 @@ write-file.
 >> Type C-x 1 to delete the help window.
 
 
-CONCLUSION
-----------
+* CONCLUSION
+------------
 
 Remember, to exit Emacs permanently use C-x C-c.  To exit to a shell
 temporarily, so that you can come back in, use C-z.
