@@ -1495,7 +1495,8 @@ Mark is left at original location."
       (make-comint
        "tex-shell"
        (or tex-shell-file-name (getenv "ESHELL") shell-file-name)
-       nil)
+       nil
+       "-i")
     (let ((proc (get-process "tex-shell")))
       (set-process-sentinel proc 'tex-shell-sentinel)
       (set-process-query-on-exit-flag proc nil)
