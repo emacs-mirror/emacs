@@ -1,3 +1,11 @@
+2000-01-24  Dave Love  <fx@gnu.org>
+
+	* fortran.el (fortran-mode): Use beginning-of-defun-function,
+	end-of-defun-function.
+
+	* font-lock.el (turn-on-font-lock): Don't depend on window-system
+	&c.
+
 2000-01-22  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32_create_initial_fontsets): Disabled as it
