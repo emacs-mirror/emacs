@@ -1,3 +1,8 @@
+2002-10-27  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-mode-syntax-table): Don't make ^L
+	end-of-comment syntax.
+
 2002-10-27  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-cannot-complete-command): New defcustom, default to
