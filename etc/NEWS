@@ -280,6 +280,15 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** The position after an invisible, intangible character
+is considered an unacceptable value for point;
+intangibility processing effectively treats the following character
+as part of the intangible region even if it is not itself intangible.
+
+Thus, point can go before an invisible, intangible region, but not
+after it.  This prevents C-f and C-b from appearing to stand still on
+the screen.
+
 ** Support for Mocklisp has been removed.
 
 ** The function insert-string is now obsolete.

@@ -1,3 +1,8 @@
+2001-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* intervals.c (set_point_both): The position after an invisible,
+	intangible character is not an acceptable stopping point.
+
 2001-12-27  Ken Raeburn  <raeburn@gnu.org>
 
 	* window.c (enlarge_window): In new preserve_before code, convert

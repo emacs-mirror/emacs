@@ -1,3 +1,13 @@
+2001-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-invisible): New subroutine.
+	(line-move-to-column): New subroutine--smarter about advancing over
+	invisible parts of a line, or lines, but only as long as hpos grows.
+	(line-move-finish): New subroutine: repeatedly processes desired
+	column, intangibility, and fields.
+	(line-move): Use those subroutines.
+	When moving lines downward, skip invisible text first rather than last.
+
 2001-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-diag.el (describe-char-after):
