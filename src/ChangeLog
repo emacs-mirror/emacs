@@ -1,3 +1,26 @@
+2000-08-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (trace_move) [GLYPH_DEBUG]: New variable.
+	(TRACE_MOVE) [GLYPH_DEBUG]: New macro.
+	(move_it_in_display_line_to): Record iterator's ascent and descent
+	before producing glyphs, and restore them when we know the glyph
+	doesn't fit on the line.
+	(move_it_to): Restructured so that it's easier to debug.  If
+	moving to a vpos, and not moving to an x or character position,
+	stop as soon as the specified vpos is reached; don't move further
+	into that line because that might change the computed line height.
+	(try_cursor_movement): New function, extracted from the cursor
+	movement branch of redisplay_window.  If ending on a partially
+	visible line, don't try to scroll if the cursor line is taller
+	than the window.
+	(redisplay_window): Use try_cursor_movement.
+
+	* window.c (Fwindow_end): Rewritten to not use Fvertical_motion,
+	because that function doesn't cope with variable-height lines.
+
+	* xterm.c (x_draw_bar_cursor): If cursor is on an image, draw a
+	box cursor because that's better visible for large images.
+	
 2000-08-10  Miles Bader  <miles@gnu.org>
 
 	* w32term.c (note_mouse_highlight): Update calls to overlays_at.
