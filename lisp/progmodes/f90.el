@@ -314,7 +314,9 @@ This does fairly subdued highlighting of comments and function names.")
   "For consideration as a value of `f90-font-lock-keywords'.
 This highlights variable types, \"keywords,\" etc.")
 
-(defvar f90-font-lock-keywords f90-font-lock-keywords-2
+(defvar f90-font-lock-keywords (if font-lock-maximum-decoration
+				   f90-font-lock-keywords-2
+				 f90-font-lock-keywords-1)
   "*Additional expressions to highlight in F90 mode.")
 
 ;; hilit19 customization and expressions
