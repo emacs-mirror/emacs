@@ -694,7 +694,7 @@ x_set_frame_parameters (f, alist)
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
   Lisp_Object *values;
-  int i;
+  int i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
 
@@ -736,6 +736,29 @@ x_set_frame_parameters (f, alist)
   width = FRAME_WIDTH (f);
   height = FRAME_HEIGHT (f);
 
+  /* Process foreground_color and background_color before anything else.
+     They are independent of other properties, but other properties (e.g.,
+     cursor_color) are dependent upon them.  */
+  for (p = 0; p < i; p++) 
+    {
+      Lisp_Object prop, val;
+
+      prop = parms[p];
+      val = values[p];
+      if (EQ (prop, Qforeground_color) || EQ (prop, Qbackground_color))
+	{
+	  register Lisp_Object param_index, old_value;
+
+	  param_index = Fget (prop, Qx_frame_parameter);
+	  old_value = get_frame_param (f, prop);
+	  store_frame_param (f, prop, val);
+ 	  if (NATNUMP (param_index)
+	      && (XFASTINT (param_index)
+		  < sizeof (x_frame_parms)/sizeof (x_frame_parms[0])))
+	    (*x_frame_parms[XINT (param_index)].setter)(f, val, old_value);
+	}
+    }
+
   /* Now process them in reverse of specified order.  */
   for (i--; i >= 0; i--)
     {
@@ -756,6 +779,9 @@ x_set_frame_parameters (f, alist)
 	icon_top = val;
       else if (EQ (prop, Qicon_left))
 	icon_left = val;
+      else if (EQ (prop, Qforeground_color) || EQ (prop, Qbackground_color))
+	/* Processed above.  */
+	continue;
       else
 	{
 	  register Lisp_Object param_index, old_value;
