@@ -227,7 +227,7 @@ casify_region (flag, b, e)
       if (c != c2)
 	changed = 1;
       if ((int) flag >= (int) CASE_CAPITALIZE)
-	inword = SYNTAX (c) == Sword;
+	inword = SYNTAX (c) == Sword && (inword || !SYNTAX_PREFIX (c));
     }
   if (i < end_byte)
     {
