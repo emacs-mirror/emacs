@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.6) $
+ *  $HopeName: MMsrc!format.c(trunk.7) $
  */
 
 #include "std.h"
@@ -8,7 +8,7 @@
 #include "format.h"
 #include "pool.h"
 
-SRCID("$HopeName: MMsrc!format.c(trunk.6) $");
+SRCID("$HopeName: MMsrc!format.c(trunk.7) $");
 
 
 #ifdef DEBUG
@@ -25,6 +25,7 @@ Bool FormatIsValid(Format format, ValidationType validParam)
   AVER(format->move != NULL);
   AVER(format->isMoved != NULL);
   AVER(format->copy != NULL);
+  AVER(format->pad != NULL);
   return TRUE;
 }
 
@@ -37,7 +38,8 @@ Error FormatCreate(Format *formatReturn, Space space,
                    FormatSkipMethod skip,
                    FormatMoveMethod move,
                    FormatIsMovedMethod isMoved,
-                   FormatCopyMethod copy)
+                   FormatCopyMethod copy,
+                   FormatPadMethod pad)
 {
   Format format;
   Error e;
@@ -56,6 +58,7 @@ Error FormatCreate(Format *formatReturn, Space space,
   format->move = move;
   format->isMoved = isMoved;
   format->copy = copy;
+  format->pad = pad;
 
   format->sig = FormatSig;
 
@@ -75,7 +78,7 @@ void FormatDestroy(Format format)
            (Addr)format, sizeof(FormatStruct));
 }
 
-/* thread safe */
+/* Must be thread safe.  See impl.c.mpsi.thread-safety. */
 Space FormatSpace(Format format)
 {
   return format->space;
