@@ -938,7 +938,7 @@
 
 	* misc.texi: Section "Saving Emacs Sessions" rewritten.
 
-2003-09-29  Jan D.  <jhd@gaffa.gaia.swipnet.se>
+2003-09-29  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Correct typo.
 
