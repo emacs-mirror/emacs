@@ -141,9 +141,9 @@ validate_interval_range (object, begin, end, force)
 	args_out_of_range (*begin, *end);
       /* User-level Positions in strings start with 0,
 	 but the interval code always wants positions starting with 1.  */
-      XFASTINT (*begin) += 1;
+      XSETFASTINT (*begin, XFASTINT (*begin) + 1);
       if (begin != end)
-	XFASTINT (*end) += 1;
+	XSETFASTINT (*end, XFASTINT (*end) + 1);
       i = s->intervals;
 
       if (s->size == 0)
