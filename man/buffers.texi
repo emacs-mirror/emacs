@@ -146,23 +146,23 @@ Each line in the list shows one buffer's name, major mode and visited
 file.  The buffers are listed in the order that they were current; the
 buffers that were current most recently come first.
 
-  @samp{*} at the beginning of a line indicates the buffer is ``modified.''
+  @samp{*} in the first field of a line indicates the buffer is ``modified.''
 If several buffers are modified, it may be time to save some with @kbd{C-x s}
 (@pxref{Saving}).  @samp{%} indicates a read-only buffer.  @samp{.} marks the
 current buffer.  Here is an example of a buffer list:@refill
 
 @smallexample
- MR Buffer         Size  Mode           File
- -- ------         ----  ----           ----
-.*  emacs.tex      383402 Texinfo       /u2/emacs/man/emacs.tex
-    *Help*         1287  Fundamental
-    files.el       23076 Emacs-Lisp     /u2/emacs/lisp/files.el
-  % RMAIL          64042 RMAIL          /u/rms/RMAIL
- *% man            747   Dired          /u2/emacs/man/
-    net.emacs      343885 Fundamental   /u/rms/net.emacs
-    fileio.c       27691 C              /u2/emacs/src/fileio.c
-    NEWS           67340 Text           /u2/emacs/etc/NEWS
-    *scratch*	   0	 Lisp Interaction
+CRM Buffer                Size  Mode             File
+. * *mail*                  42  Mail
+    search.c             86055  C                 ~/cvs/emacs/src/search.c
+ %  src                  20959  Dired by name     ~/cvs/emacs/src/
+  * .emacs                3294  Emacs-Lisp        ~/.emacs
+ %  ~                     7677  Dired by name     ~/
+ %  HELLO                 1607  Fundamental       ~/cvs/emacs/etc/HELLO
+ %  NEWS                481184  Outline           ~/cvs/emacs/etc/NEWS
+    *scratch*              191  Lisp Interaction
+ %  cvs                   1272  Dired by name     ~/cvs/
+  * *Messages*            1554  Fundamental
 @end smallexample
 
 @noindent
