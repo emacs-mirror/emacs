@@ -47,7 +47,7 @@
 	    ;;	- that have a suffix .sh or .shar (shell archive)
 	    ;;	- that contain resources for the various shells
 	    ;;	- startup files for X11
-	    (cons '("\\.sh$\\|\\.shar$\\|/\\.\\(profile\\|bash_profile\\|login\\|bash_login\\|logout\\|bash_logout\\|bashrc\\|t?cshrc\\|xinitrc\\|startxrc\\|xsession\\)$" . sh-mode)
+	    (cons '("\\.sh\\'\\|\\.shar\\'\\|/\\.\\(profile\\|bash_profile\\|login\\|bash_login\\|logout\\|bash_logout\\|bashrc\\|t?cshrc\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
 		  auto-mode-alist)))
 
 
