@@ -179,7 +179,6 @@ no aliases, which is represented by this being a table with no entries.)")
 	      (nth 5 (file-attributes mail-personal-alias-file)))
 	(build-mail-abbrevs)))
   (mail-abbrevs-sync-aliases)
-  (make-local-hook 'pre-abbrev-expand-hook)
   (add-hook 'pre-abbrev-expand-hook 'sendmail-pre-abbrev-expand-hook
 	    nil t)
   (abbrev-mode 1))
