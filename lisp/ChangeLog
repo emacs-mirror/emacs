@@ -1,5 +1,7 @@
 2002-02-01  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* mail/sendmail.el (mail-mode): Undo half of last change.
+
 	* indent.el (indent-for-tab-command): Remove spurious code.
 
 	* hi-lock.el (hi-lock-find-patterns): Save restriction.
