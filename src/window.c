@@ -1710,19 +1710,19 @@ window_loop (type, obj, mini, frames)
 
 	  case GET_LARGEST_WINDOW:
 	    {
-	      struct window *b;
-	      
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w)
-		  || !NILP (w->dedicated)
-		  || NILP (best_window))
+	      if (MINI_WINDOW_P (w) || !NILP (w->dedicated))
 		break;
 	      
-	      b = XWINDOW (best_window);
-	      if (NILP (best_window)
-		  || (XFASTINT (w->height) * XFASTINT (w->width)
-		      > (XFASTINT (b->height) * XFASTINT (b->width))))
+	      if (NILP (best_window))
 		best_window = window;
+	      else
+		{
+		  struct window *b = XWINDOW (best_window);
+		  if (XFASTINT (w->height) * XFASTINT (w->width)
+		      > XFASTINT (b->height) * XFASTINT (b->width))
+		    best_window = window;
+		}
 	    }
 	    break;
 
