@@ -1014,14 +1014,15 @@ write_segment (new, ptr, end)
   register int i, nwrite, ret;
   char buf[80];
   extern int errno;
-  char zeros[128];
+  int pagesize = getpagesize ();
+  char *zeros = (char *) alloca (pagesize);
 
-  bzero (zeros, sizeof zeros);
+  bzero (zeros, pagesize);
 
   for (i = 0; ptr < end;)
     {
-      /* distance to next multiple of 128.  */
-      nwrite = (((int) ptr + 128) & -128) - (int) ptr;
+      /* distance to next multiple of pagesize.  */
+      nwrite = (((int) ptr + pagesize) & -pagesize) - (int) ptr;
       /* But not beyond specified end.  */
       if (nwrite > end - ptr) nwrite = end - ptr;
       ret = write (new, ptr, nwrite);
