@@ -38,10 +38,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    if this is not done before the other system files.  */
 #include "xterm.h"
 
+#ifndef USG
 /* Load sys/types.h if not already loaded.
    In some systems loading it twice is suicidal.  */
 #ifndef makedev
 #include <sys/types.h>
+#endif
 #endif
 
 #ifdef BSD
@@ -153,19 +155,6 @@ extern Lisp_Object Vcommand_line_args;
 char *hostname, *x_id_name;
 Lisp_Object invocation_name;
 
-/* These are the current window manager hints.  It seems that
-   XSetWMHints, when presented with an unset bit in the `flags' member
-   of the hints structure, does not leave the corresponding attribute
-   unchanged; rather, it resets that attribute to its default value.
-   For example, unless you set the `icon_pixmap' field and the
-   `IconPixmapHint' bit, XSetWMHints will forget what your icon pixmap
-   was.  This is rather troublesome, since some of the members (for
-   example, `input' and `icon_pixmap') want to stay the same
-   throughout the execution of Emacs.  So, we keep this structure
-   around, just leaving values in it and adding new bits to the mask
-   as we go.  */
-XWMHints x_wm_hints;
-
 /* This is the X connection that we are using.  */
 
 Display *x_current_display;
@@ -269,6 +258,62 @@ static void dumpqueue ();
 void dumpborder ();
 static int XTcursor_to ();
 static int XTclear_end_of_line ();
+
+/* R3/R4 compatibility stuff.  Rah.  */
+
+
+/* Set the property PROPERTY on the window displaying FRAME to VALUE.
+   VALUE must be a string.
+   
+   We use this function instead of XSetWMName and XStoreName, since
+   the former isn't present in R3, while the latter isn't likely to
+   stay around.  XChangeProperty, however, is likely to be around.
+
+   I have no idea if this is the right thing to do.  Someone who is more
+   hip on how X is supposed to work should let us know if this is wrong.  */
+
+x_set_text_property (f, property, value)
+     FRAME_PTR f;
+     Atom property;
+     Lisp_Object value;
+{
+  BLOCK_INPUT;
+
+#ifdef HAVE_X11R4
+  {
+    XTextProperty text;
+    text.value = XSTRING (value)->data;
+    text.encoding = XA_STRING;
+    text.format = 8;
+    text.nitems = XSTRING (value)->size;
+    switch (property)
+      {
+      case XA_WM_NAME:
+	XSetWMName (x_current_display, f->display.x->window_desc, &text);
+	break;
+      case XA_WM_ICON_NAME:
+	XSetWMIconName (x_current_display, f->display.x->window_desc, &text);
+	break;
+      default:
+	/* If you want to use this function, you have to make sure it supports
+	   the atoms you want!  Dummy.  */
+	abort ();
+      }
+  }
+#else
+  XChangeProperty (x_current_display,
+		   f->display.x->window_desc,
+		   prop,
+		   XA_STRING,	/* type */
+		   8,		/* format */
+		   PropModeReplace, /* mode */
+		   XSTRING (value)->data,
+		   XSTRING (value)->size);
+#endif
+
+  UNBLOCK_INPUT;
+}
+
 
 /* These hooks are called by update_frame at the beginning and end
    of a frame update.  We record in `updating_frame' the identity
@@ -2862,7 +2907,10 @@ x_text_icon (f, icon_name)
 /* Handling X errors.  */
 
 /* A handler for SIGPIPE, when it occurs on the X server's connection.
-   This basically does an orderly shutdown of Emacs.  */
+   This basically does an orderly shutdown of Emacs.  The arg to
+   Fkill_emacs is an exit status value and also prevents any
+   questions.  */
+
 static SIGTYPE
 x_death_handler ()
 {
@@ -2996,6 +3044,11 @@ static char *x_proto_requests[] =
   "NoOperation"
 };
 
+/* 94 is the code for X_CreateGlyphCursor.  The idea is that we
+   probably shouldn't let a bad mouse cursor request crash Emacs.
+   You'd think we could #include <X11/Xproto.h> and use a symbolic
+   constant for this, but that's been commented out above; perhaps
+   that file is not available on all systems.  */
 #define acceptable_x_error_p(type) ((type) == 94)
 
 x_handle_error_gracefully (event)
@@ -3018,11 +3071,7 @@ extern int x_converting_selection;
 
 /* Handle X Errors.  If the error is not traumatic,
    just call error ().  Otherwise print a (hopefully) interesting
-   message and quit.
-
-   The arg to Fkill_emacs is an exit status value
-   and also prevents any questions.  */
-
+   message and quit.  */
 x_error_handler (disp, event)
      Display *disp;
 #ifdef HAVE_X11
@@ -3048,14 +3097,15 @@ x_error_handler (disp, event)
 #endif
       if (acceptable_x_error_p (event->request_code))
 	x_handle_error_gracefully (event);
-      else
-	_XDefaultError (disp, event);
     }
-  else
-    {
-      disp->flags |= XlibDisplayIOError;
-      _XDefaultIOError (disp);
-    }
+
+  {
+    char message[80];
+
+    XGetErrorText (disp, event->error_code, message, sizeof (message));
+    fprintf (stderr, "Fatal X error:\n%s\n", message);
+  }
+
   UNBLOCK_INPUT;
 
   x_death_handler ();
@@ -3430,34 +3480,32 @@ x_make_frame_invisible (f)
 
   BLOCK_INPUT;
 #ifdef HAVE_X11
-#if 0
+  /* It would be nice if we didn't have to be backward compatible with
+     very old versions of X, because then we could use the
+     XWithdrawWindow function in R4 instead of writing it out ourselves.  */
+
+  /*  Tell the window manager what we've done.  */
   if (! EQ (Vx_no_window_manager, Qt))
     {
-      XUnmapEvent unmap;
+      XEvent unmap;
 
-      unmap.type = UnmapNotify;
-      unmap.window = f->display.x->window_desc;
-      unmap.event = DefaultRootWindow (x_current_display);
-      unmap.from_configure = False;
-      XSendEvent (x_current_display, DefaultRootWindow (x_current_display),
-		  False, SubstructureRedirectMask|SubstructureNotifyMask,
-		  &unmap);
+      unmap.xunmap.type = UnmapNotify;
+      unmap.xunmap.window = f->display.x->window_desc;
+      unmap.xunmap.event = DefaultRootWindow (x_current_display);
+      unmap.xunmap.from_configure = False;
+      if (! XSendEvent (x_current_display,
+			DefaultRootWindow (x_current_display),
+			False,
+			SubstructureRedirectMask|SubstructureNotifyMask,
+			&unmap))
+	{
+	  UNBLOCK_INPUT_RESIGNAL;
+	  error ("can't notify window manager of withdrawal");
+	}
     }
 
-  /* The new function below does the same as the above code, plus unmapping
-     the window.  Sending the event without actually unmapping can make
-     the window manager start ignoring the window (i.e., no more title bar,
-     icon manager stuff.) */
-#endif
-
-  /* New function available with R4 */
-  if (! XWithdrawWindow (x_current_display, f->display.x->window_desc,
-			 DefaultScreen (x_current_display)))
-    {
-      UNBLOCK_INPUT_RESIGNAL;
-      error ("Can't notify window manager of iconification.");
-    }
-
+  /* Unmap the window ourselves.  Cheeky!  */
+  XUnmapWindow (x_current_display, f->display.x->window_desc);
 #else
   XUnmapWindow (XDISPLAY f->display.x->window_desc);
 
@@ -3470,7 +3518,7 @@ x_make_frame_invisible (f)
   UNBLOCK_INPUT;
 }
 
- /* Window manager communication.  Created in Fx_open_connection. */
+/* Window manager communication.  Created in Fx_open_connection. */
 extern Atom Xatom_wm_change_state;
 
 /* Change window state from mapped to iconified. */
@@ -3486,37 +3534,36 @@ x_iconify_frame (f)
   BLOCK_INPUT;
 
 #ifdef HAVE_X11
-  if (! EQ (Vx_no_window_manager, Qt))
-    if (! XIconifyWindow (x_current_display, f->display.x->window_desc,
-			  DefaultScreen (x_current_display)))
+  /* Since we don't know which revision of X we're running, we'll use both
+     the X11R3 and X11R4 techniques.  I don't know if this is a good idea.  */
+
+  /* X11R4: send a ClientMessage to the window manager using the
+     WM_CHANGE_STATE type.  */
+  {
+    XEvent message;
+    
+    message.xclient.window = f->display.x->window_desc;
+    message.xclient.type = ClientMessage;
+    message.xclient.message_type = Xatom_wm_change_state;
+    message.xclient.format = 32;
+    message.xclient.data.l[0] = IconicState;
+
+    if (! XSendEvent (x_current_display,
+		      DefaultRootWindow (x_current_display),
+		      False,
+		      SubstructureRedirectMask | SubstructureNotifyMask,
+		      &message))
       {
 	UNBLOCK_INPUT_RESIGNAL;
 	error ("Can't notify window manager of iconification.");
       }
+  }
+
+  /* X11R3: set the initial_state field of the window manager hints to 
+     IconicState.  */
+  x_wm_set_window_state (f, IconicState);
 
   f->iconified = 1;
-  
-#if 0
-    {
-      XClientMessageEvent message;
-    
-      message.window = f->display.x->window_desc;
-      message.type = ClientMessage;
-      message.message_type = Xatom_wm_change_state;
-      message.format = 32;
-      message.data.l[0] = IconicState;
-
-      if (! XSendEvent (x_current_display,
-			DefaultRootWindow (x_current_display),
-			False,
-			SubstructureRedirectMask | SubstructureNotifyMask,
-			&message))
-	{
-	  UNBLOCK_INPUT_RESIGNAL;
-	  error ("Can't notify window manager of iconification.");
-	}
-    }
-#endif
 #else /* X10 */
   XUnmapWindow (XDISPLAY f->display.x->window_desc);
 
@@ -3654,23 +3701,15 @@ x_wm_set_size_hint (f, prompting)
     (x_screen_height - ((2 * f->display.x->internal_border_width)
 			+ f->display.x->h_scrollbar_height));
   {
-    int base_width = ((2 * f->display.x->internal_border_width)
-		      + f->display.x->v_scrollbar_width);
-    int base_height = ((2 * f->display.x->internal_border_width)
-		       + f->display.x->h_scrollbar_height);
+    int min_rows = 0, min_cols = 0;
+    check_frame_size (f, &min_rows, &min_cols);
+    size_hints.min_width  = ((2 * f->display.x->internal_border_width)
+			     + min_cols * size_hints.width_inc
+			     + f->display.x->v_scrollbar_width);
+    size_hints.min_height = ((2 * f->display.x->internal_border_width)
+			     + min_rows * size_hints.height_inc
+			     + f->display.x->h_scrollbar_height);
 
-#ifdef PBaseSize
-    size_hints.flags |= PBaseSize;
-    size_hints.base_width = base_width;
-    size_hints.base_height = base_height;
-#endif
-
-    {
-      int min_rows = 0, min_cols = 0;
-      check_frame_size (f, &min_rows, &min_cols);
-      size_hints.min_width  = base_width  + min_cols * size_hints.width_inc;
-      size_hints.min_height = base_height + min_rows * size_hints.height_inc;
-    }
   }
 
   if (prompting)
@@ -3689,11 +3728,8 @@ x_wm_set_size_hint (f, prompting)
       if (hints.flags & USSize)
 	size_hints.flags |= USSize;
     }
-  
-#if 0				/* R3 */
+
   XSetNormalHints (x_current_display, window, &size_hints);
-#endif
-  XSetWMNormalHints (x_current_display, window, &size_hints);
 }
 
 /* Used for IconicState or NormalState */
@@ -3703,10 +3739,10 @@ x_wm_set_window_state (f, state)
 {
   Window window = f->display.x->window_desc;
 
-  x_wm_hints.flags |= StateHint;
-  x_wm_hints.initial_state = state;
+  f->display.x->wm_hints.flags |= StateHint;
+  f->display.x->wm_hints.initial_state = state;
 
-  XSetWMHints (x_current_display, window, &x_wm_hints);
+  XSetWMHints (x_current_display, window, &f->display.x->wm_hints);
 }
 
 x_wm_set_icon_pixmap (f, icon_pixmap)
@@ -3715,15 +3751,10 @@ x_wm_set_icon_pixmap (f, icon_pixmap)
 {
   Window window = f->display.x->window_desc;
 
-  if (icon_pixmap)
-    {
-      x_wm_hints.flags |= IconPixmapHint;
-      x_wm_hints.icon_pixmap = icon_pixmap;
-    }
-  else
-    x_wm_hints.flags &= ~IconPixmapHint;
+  f->display.x->wm_hints.flags |= IconPixmapHint;
+  f->display.x->wm_hints.icon_pixmap = icon_pixmap ? icon_pixmap : None;
 
-  XSetWMHints (x_current_display, window, &x_wm_hints);
+  XSetWMHints (x_current_display, window, &f->display.x->wm_hints);
 }
 
 x_wm_set_icon_position (f, icon_x, icon_y)
@@ -3732,11 +3763,11 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 {
   Window window = f->display.x->window_desc;
 
-  x_wm_hints.flags |= IconPositionHint;
-  x_wm_hints.icon_x = icon_x;
-  x_wm_hints.icon_y = icon_y;
+  f->display.x->wm_hints.flags |= IconPositionHint;
+  f->display.x->wm_hints.icon_x = icon_x;
+  f->display.x->wm_hints.icon_y = icon_y;
 
-  XSetWMHints (x_current_display, window, &x_wm_hints);
+  XSetWMHints (x_current_display, window, &f->display.x->wm_hints);
 }
 
 
@@ -3759,7 +3790,7 @@ x_term_init (display_name)
 
 #ifdef HAVE_X11
   {
-    int hostname_size = MAXHOSTNAMELEN + 1;
+    int hostname_size = 256;
 
     hostname = (char *) xmalloc (hostname_size);
 
@@ -3861,22 +3892,6 @@ x_term_init (display_name)
 #endif /* SIGWINCH */
 
   signal (SIGPIPE, x_death_handler);
-
-  /* When XSetWMHints eventually gets called, this will indicate that
-     we use the "Passive Input" input model.  Unless we do this, we
-     don't get the Focus{In,Out} events that we need to draw the
-     cursor correctly.  Accursed bureaucrats.
-
-     We set this here and leave it, because we know, being decidedly
-     non-humble programmers (nay, weigh'd low by our hubris!), that
-     Fx_create_frame calls x_icon which begat x_wm_set_window_state
-     which begat XSetWMHints, which will get this information to the
-     right parties.
-
-  XWhipsAndChains (x_current_display, IronMaiden, &TheRack);  */
-
-  x_wm_hints.input = True;
-  x_wm_hints.flags |= InputHint;
 }
 
 void
