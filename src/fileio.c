@@ -3412,7 +3412,7 @@ actually used.")
       st.st_mtime = -1;
       how_much = 0;
       if (!NILP (Vcoding_system_for_read))
-	current_buffer->buffer_file_coding_system = Vcoding_system_for_read;
+	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
       goto notfound;
     }
 
