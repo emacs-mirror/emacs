@@ -186,7 +186,7 @@ data if you want to preserve them.")
 	search_regs.start[i] += BEGV;
 	search_regs.end[i] += BEGV;
       }
-  XSET (last_thing_searched, Lisp_Buffer, current_buffer);
+  XSETBUFFER (last_thing_searched, current_buffer);
   immediate_quit = 0;
   return val;
 }
@@ -425,7 +425,7 @@ skip_chars (forwardp, syntaxp, string, lim)
   CHECK_STRING (string, 0);
 
   if (NILP (lim))
-    XSET (lim, Lisp_Int, forwardp ? ZV : BEGV);
+    XSETINT (lim, forwardp ? ZV : BEGV);
   else
     CHECK_NUMBER_COERCE_MARKER (lim, 1);
 
@@ -712,7 +712,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    search_regs.start[i] += j;
 		    search_regs.end[i] += j;
 		  }
-	      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
+	      XSETBUFFER (last_thing_searched, current_buffer);
 	      /* Set pos to the new position. */
 	      pos = search_regs.start[0];
 	    }
@@ -742,7 +742,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    search_regs.start[i] += j;
 		    search_regs.end[i] += j;
 		  }
-	      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
+	      XSETBUFFER (last_thing_searched, current_buffer);
 	      pos = search_regs.end[0];
 	    }
 	  else
@@ -1038,7 +1038,7 @@ set_search_regs (beg, len)
 
   search_regs.start[0] = beg;
   search_regs.end[0] = beg + len;
-  XSET (last_thing_searched, Lisp_Buffer, current_buffer);
+  XSETBUFFER (last_thing_searched, current_buffer);
 }
 
 /* Given a string of words separated by word delimiters,
@@ -1589,8 +1589,7 @@ LIST should have been created by calling `match-data' previously.")
 	      if (XMARKER (marker)->buffer == 0)
 		XFASTINT (marker) = 0;
 	      else
-		XSET (last_thing_searched, Lisp_Buffer,
-		      XMARKER (marker)->buffer);
+		XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
 	    }
 
 	  CHECK_NUMBER_COERCE_MARKER (marker, 0);
