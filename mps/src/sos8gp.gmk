@@ -1,7 +1,7 @@
 # impl.gmk.sos8gp: BUILD FOR SOLARIS/SPARC v8/GCC WITH PROFILING PLATFORM
 #
-# $HopeName$
-# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+# $HopeName: MMsrc!sos8gp.gmk(trunk.5) $
+# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
 #
 # This is the GNU makefile for platform.sos8gp.
 #
@@ -11,7 +11,6 @@ PFM = sos8gp
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
 MPMS = sssos8.s
-DW = fmtdy.c dw.c
 SWPF = lockan.c than.c vmso.c protsw.c prmcan.c ssan.c
 # Need to pass the profile option to the linker as well.
 LIBS = -lm -pg 
