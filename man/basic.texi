@@ -175,8 +175,7 @@ Move backward one word (@code{backward-word}).
 @item C-n
 Move down one line, vertically (@code{next-line}).  This command
 attempts to keep the horizontal position unchanged, so if you start in
-the middle of one line, you end in the middle of the next.  When on
-the last line of text, @kbd{C-n} creates a new line and moves onto it.
+the middle of one line, you end in the middle of the next.
 @item C-p
 Move up one line, vertically (@code{previous-line}).
 @item M-r
@@ -219,10 +218,11 @@ to the end of another line.  Normally, @code{track-eol} is @code{nil}.
 @xref{Variables}, for how to set variables such as @code{track-eol}.
 
 @vindex next-line-add-newlines
-  If non-@code{nil}, @kbd{C-n} on the last line of a buffer appends a
-newline to it.  If the variable @code{next-line-add-newlines} is
-@code{nil}, the default, then @kbd{C-n} gets an error instead (like
-@kbd{C-p} on the first line).
+  @kbd{C-n} normally gets an error when you use it on the last line of
+the buffer (just as @kbd{C-p} gets an error on the first line).  But
+if you set the variable @code{next-line-add-newlines} to a
+non-@code{nil} value, @kbd{C-n} on the last line of a buffer creates
+an additional line at the end and moves down onto it.
 
 @node Erasing	
 @section Erasing Text

@@ -350,10 +350,10 @@ buffers, unless you have set @code{dabbrev-check-all-buffers} to
 @code{nil}.
 
 @vindex dabbrev-ignored-buffer-regexps
-  A more fine control of the buffers that are scanned is possible by
-customizing the variable @code{dabbrev-ignored-buffer-regexps}, which should
-contain a list of regular expressions.  Buffers matching a regular
-expression from that list are not searched.
+  For finer control over which buffers to scan, customize the variable
+@code{dabbrev-ignored-buffer-regexps}.  Its value is a list of regular
+expressions.  If a buffer's name matches any of these regular
+expressions, dynamic abbrev expansion skips that buffer.
 
   A negative argument to @kbd{M-/}, as in @kbd{C-u - M-/}, says to
 search first for expansions after point, and second for expansions

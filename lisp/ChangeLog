@@ -1,3 +1,8 @@
+2001-02-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* dabbrev.el (dabbrev-ignored-buffer-regexps): Renamed from
+	dabbrev-ignored-regexps.
+
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (kill-line): Doc fix.
