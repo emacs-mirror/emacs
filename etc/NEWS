@@ -1,5 +1,5 @@
 GNU Emacs NEWS -- history of user-visible changes.  2001-03-15
-Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -97,9 +97,11 @@ Upgraded to MH-E version 7.1. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
-** The `emacsclient' understand the options `--eval' and `--display'
-which tell Emacs resp. to evaluate the given elisp expressions and
-to use the given display when visiting files.
+** The `emacsclient' command understands the options `--eval' and
+`--display' which tell Emacs respectively to evaluate the given elisp
+expression and to use the given display when visiting files.
+
+** User option `server-mode' can be used to start a server process.
 
 +++
 ** The mode line position information now comes before the major mode.
@@ -162,16 +164,21 @@ now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
 faces.
 
-** New language environments: French, Cyrillic-KOI8-U, Windows-1251,
-Cyrillic-KOI8-T, Bulgarian, Belarusian, Ukrainian, UTF-8,
-Windows-1255, Welsh, Latin-7, Lithuanian, Latvian.
+** New language environments: French, Ukrainian, Windows-1251, Tajik,
+Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
+Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian.
+
+** Indian support has been updated.
+The in-is13194 coding system is now Unicode-based.  CDAC fonts are
+assumed.  There is a framework for supporting various
+Indian scripts, but currently still only Devanagari is supported.
 
 ---
 ** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
 ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
 vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
 latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
-bulgarian-phonetic, dutch, slovenian.
+bulgarian-phonetic, dutch, slovenian, croatian.
 
 ---
 ** A new coding system `euc-tw' has been added for traditional Chinese
@@ -1139,6 +1146,8 @@ region as if it is read from a file without decoding.
 
 ** New function `optimize-char-coding-system-table' can be called
 after making changes to `char-coding-system-table'.
+
+** New function `langinfo' accesses locale information.
 
 ** `save-selected-window' now saves and restores the selected window
 of every frame.  This way, it restores everything that can be changed
@@ -4592,7 +4601,7 @@ CHAR
      `chinse-two-byte'			(\\cC)
      `greek-two-byte'			(\\cG)
      `japanese-hiragana-two-byte'	(\\cH)
-     `indian-tow-byte'			(\\cI)
+     `indian-two-byte'			(\\cI)
      `japanese-katakana-two-byte'	(\\cK)
      `korean-hangul-two-byte'		(\\cN)
      `cyrillic-two-byte'		(\\cY)
@@ -11207,7 +11216,7 @@ select one of those items.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
