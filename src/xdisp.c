@@ -1838,23 +1838,25 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && current_buffer != XMARKER (Voverlay_arrow_position)->buffer)
     {
       int this_scroll_margin = scroll_margin;
-      int last_point_y = w->last_point_y - XINT (w->top);
-      int last_point_x = (w->last_point_x
+      int last_point_y = XFASTINT (w->last_point_y) - XINT (w->top);
+      int last_point_x = (XFASTINT (w->last_point_x)
 			  + (hscroll ? 1 - hscroll : 0)
 			  - WINDOW_LEFT_MARGIN (w));
 
       /* Find where PT is located now on the frame.  */
       /* Check just_this_one as a way of verifying that the 
 	 window edges have not changed.  */
-      if (PT == w->last_point && just_this_one)
+      if (PT == XFASTINT (w->last_point) && just_this_one)
 	{
 	  pos.hpos = last_point_x;
 	  pos.vpos = last_point_y;
 	  pos.bufpos = PT;
 	}
-      else if (PT > w->last_point && w->last_point > startp && just_this_one)
+      else if (PT > XFASTINT (w->last_point)
+	       && XFASTINT (w->last_point) > startp && just_this_one)
 	{
-	  pos = *compute_motion (w->last_point, last_point_y, last_point_x, 0,
+	  pos = *compute_motion (XFASTINT (w->last_point),
+				 last_point_y, last_point_x, 0,
 				 PT, height,
 				 /* BUG FIX: See the comment of
 				    Fpos_visible_in_window_p (window.c).  */
