@@ -50,7 +50,7 @@ Returns non-nil if CH is Tibetan. Otherwise, returns nil."
 	(i 0)
 	ch this-trans)
     (while (< i len)
-      (let ((idx (string-match tibetan-precomposition-rule-alist str i)))
+      (let ((idx (string-match tibetan-precomposition-rule-regexp str i)))
 	(if (eq idx i)
 	    ;; Ith character and the followings matches precomposable
 	    ;; Tibetan sequence.
@@ -116,13 +116,13 @@ The returned string has no composition information."
 ;;; (Sanskrit visarga, though it is a vowel modifier, is considered
 ;;;  to be a punctuation.)
 ;;;
-;;; Here are examples of the words "bsgrubs" and "h'uM"
+;;; Here are examples of the words "bsgrubs" and "hfauM"
 ;;;
-;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B         4$(7"Hx!"Rx!"Ur'"_0"H"A"U"_1(B
+;;;            4$(7"70"714%qx!"U0"G###C"U14"70"714"G0"G1(B            4$(7"Hx!"Rx!"Ur'"_0"H"R"U"_1(B
 ;;;
 ;;;                             M
 ;;;             b s b s         h
-;;;               g             '
+;;;               g             fa
 ;;;               r             u
 ;;;               u
 ;;;
@@ -153,8 +153,9 @@ The returned string has no composition information."
     ;; Added by Tomabechi 2000/06/08
     (if (memq char '(?$(7"T(B ?$(7"V(B ?$(7"W(B ?$(7"X(B ?$(7"Y(B ?$(7"Z(B ?$(7"b(B))
 	(setq comp-vowel
-	      (cddr (assoc (char-to-string char)
-			   tibetan-composite-vowel-alist))
+	      (copy-sequence
+	       (cddr (assoc (char-to-string char)
+			    tibetan-composite-vowel-alist)))
 	      char
 	      (cadr (assoc (char-to-string char)
 			   tibetan-composite-vowel-alist))))
