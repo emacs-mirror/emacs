@@ -408,7 +408,7 @@ Use `face-attribute' for finer control."
 
 (defun set-face-documentation (face string)
   "Set the documentation string for FACE to STRING."
-  ;; The text doesn't get into DOC.
+  ;; Perhaps the text should go in DOC.
   (put face 'face-documentation (purecopy string)))
 
 
@@ -545,7 +545,8 @@ must be t or nil in that case.  A value of `unspecified' is not allowed."
 	(t
 	 (while args
 	   (internal-set-lisp-face-attribute face (car args)
-					     (car (cdr args)) frame)
+					     (purecopy (cadr args))
+					     frame)
 	   (setq args (cdr (cdr args)))))))
 
 
