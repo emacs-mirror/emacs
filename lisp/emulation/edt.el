@@ -1037,7 +1037,7 @@ Accepts a positive prefix argument for the number windows to move."
 (defun edt-indent-or-fill-region ()
   "Fill region in text modes, indent region in programming language modes."
   (interactive "*")         
-  (if (string= paragraph-start "^$\\|^\f")
+  (if (string= paragraph-start "$\\|\f")
       (indent-region (point) (mark) nil)
       (fill-region (point) (mark))))
 
