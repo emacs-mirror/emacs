@@ -148,7 +148,7 @@ Important General Concepts
 			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
-* Command Arguments::   Hairy startup options.
+* Command Line::        Hairy startup options.
 
 Fundamental Editing Commands
 * Basic::	        The most basic editing commands.
@@ -729,6 +729,8 @@ Customization
 
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
+* Easy Customization::
+                        Convenient way to browse and change user options.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
@@ -746,8 +748,6 @@ Customization
 Variables
 
 * Examining::	        Examining or setting one variable's value.
-* Easy Customization::
-                        Convenient and easy customization of variables.
 * Hooks::	        Hook variables let you specify programs for parts
 		          of Emacs to run on particular occasions.
 * Locals::	        Per-buffer values of variables.
