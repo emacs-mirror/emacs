@@ -82,9 +82,9 @@ Find File: /u2/emacs/src/
 @end example
 
 @noindent
-where @samp{Find File:@: } is the prompt.  Typing @kbd{buffer.c}
-specifies the file @file{/u2/emacs/src/buffer.c}.  To find files in
-nearby directories, use @kbd{..}; thus, if you type
+where @samp{Find File:@: } is the prompt.  Typing @kbd{buffer.c} as
+input specifies the file @file{/u2/emacs/src/buffer.c}.  To find files
+in nearby directories, use @kbd{..}; thus, if you type
 @kbd{../lisp/simple.el}, you will get the file named
 @file{/u2/emacs/lisp/simple.el}.  Alternatively, you can kill with
 @kbd{M-@key{DEL}} the directory names you don't want (@pxref{Words}).
