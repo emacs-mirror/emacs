@@ -204,17 +204,18 @@ and input.
 @item -batch
 @opindex --batch
 @itemx --batch
-Run Emacs in @dfn{batch mode}, which means that the text being edited is
-not displayed and the standard terminal interrupt characters such as
-@kbd{C-z} and @kbd{C-c} continue to have their normal effect.  Emacs in
-batch mode outputs to @code{stderr} only what would normally be displayed
-in the echo area under program control, and functions which would
-normally read from the minibuffer take their input from @code{stdin}.
+Run Emacs in @dfn{batch mode}.  Batch mode is used for running
+programs written in Emacs Lisp from shell scripts, makefiles, and so
+on.  You should also use the @samp{-l} option or @samp{-f} option, to
+invoke a Lisp program to do batch processing.
 
-Batch mode is used for running programs written in Emacs Lisp from
-shell scripts, makefiles, and so on.  Normally the @samp{-l} option
-or @samp{-f} option will be used as well, to invoke a Lisp program
-to do the batch processing.
+In batch mode, Emacs does not display the text being edited, and the
+standard terminal interrupt characters such as @kbd{C-z} and @kbd{C-c}
+continue to have their normal effect.  The functions @code{prin1},
+@code{princ} and @code{print} output to @code{stdout} instead of the
+echo area, while @code{message} and error messages output to
+@code{stderr}.  Functions that would normally read from the minibuffer
+take their input from @code{stdin} instead.
 
 @samp{--batch} implies @samp{-q} (do not load an init file).  It also
 causes Emacs to exit after processing all the command options.  In
