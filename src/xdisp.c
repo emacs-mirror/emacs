@@ -1928,7 +1928,7 @@ copy_part_of_rope (f, to, s, from, len, face)
 #endif
     while (n--)
       {
-	if (to >= s) *to = XFASTINT (*fp);
+	if (to >= s) *to = (INTEGERP (*fp) ? XFASTINT (*fp) : 0);
 	++to;
 	++fp;
       }
