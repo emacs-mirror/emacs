@@ -1,3 +1,14 @@
+2004-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Undo recent changes for restoring saved_face_id. Instead,
+	set it when it->method is set to next_element_from_display_vector.
+	(setup_for_ellipsis): Add LEN argument.  Callers changed.
+	Set it->saved_face_id.
+	(get_next_display_element): Use loop instead of recursion.
+	Set it->saved_face_id.  Combine duplicate code for ctr chars.
+	(next_element_from_display_vector): Do not set it->saved_face_id.
+	(next_element_from_ellipsis): Use setup_for_ellipsis.
+
 2004-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* eval.c (Fdefvar): Declare pdl from last change as `volatile' to
