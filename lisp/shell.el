@@ -122,9 +122,11 @@
 
 ;;;###autoload
 (defcustom shell-dumb-shell-regexp "cmd\\(proxy\\)?\\.exe"
-  "Regexp to match shells that don't save their command history.
-For shells that match this regexp, Emacs will write out the
-command history when the shell finishes."
+  "Regexp to match shells that don't save their command history, and
+don't handle the backslash as a quote character.  For shells that
+match this regexp, Emacs will write out the command history when the
+shell finishes, and won't remove backslashes when it unquotes shell
+arguments."
   :type 'regexp
   :group 'shell)
 
@@ -597,9 +599,15 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun shell-unquote-argument (string)
   "Remove all kinds of shell quoting from STRING."
   (save-match-data
-    (let ((idx 0) next inside)
+    (let ((idx 0) next inside
+	  (quote-chars
+	   (if (string-match shell-dumb-shell-regexp
+			     (file-name-nondirectory
+			      (car (process-command (get-buffer-process (current-buffer))))))
+	       "['`\"]"
+	     "[\\'`\"]")))
       (while (and (< idx (length string))
-		  (setq next (string-match "[\\'`\"]" string next)))
+		  (setq next (string-match quote-chars string next)))
 	(cond ((= (aref string next) ?\\)
 	       (setq string (replace-match "" nil nil string))
 	       (setq next (1+ next)))
