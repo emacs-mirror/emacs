@@ -1,21 +1,26 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!21.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!224.c(trunk.1) $
  summary = MV allocate large promise, make it small, repeat
  language = c
  link = testlib.o
  harness = 2.5
  parameters = EXTENDBY=65536 AVGSIZE=32 PROMISE=64 ITERATE=2000
 END_HEADER
+
+This one is supposed to fail, telling us that MV is badly fragmented.
 */
 
 #include "testlib.h"
 #include "mpscmv.h"
 #include "mpsavm.h"
 
+
 #define VMNZSIZE ((size_t) 30*1024*1024)
 
-static void test(void) {
+
+static void test(void)
+{
  mps_arena_t arena;
  mps_pool_t pool;
  mps_addr_t q;
@@ -25,7 +30,8 @@ static void test(void) {
  die(mps_arena_commit_limit_set(arena, VMNZSIZE), "commit limit");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-  EXTENDBY, AVGSIZE, EXTENDBY), "pool create");
+                     EXTENDBY, AVGSIZE, EXTENDBY),
+     "pool create");
 
  for (p=0; p<ITERATE; p++) {
   die(mps_alloc(&q, pool, PROMISE*1024), "alloc");
@@ -38,7 +44,9 @@ static void test(void) {
  mps_arena_destroy(arena);
 }
 
-int main(void) {
+
+int main(void)
+{
  easy_tramp(test);
  pass();
  return 0;
