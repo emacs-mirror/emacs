@@ -1,244 +1,275 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>MPS Assertion Protocol</title>
 
-  <head>
+</head>
 
-   <title>MPS Assertion Protocol</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>MPS Assertion Protocol</h1>
 
-   <div align='center'>
+<p>incomplete</p>
 
-    <h1>MPS Assertion Protocol</h1>
+<address>
+<a href="mailto:nb@ravenbrook.com">Nick Barnes</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2001-11-14
+</address>
 
-    <p>incomplete</p>
+</div>
 
-    <address>lmb, 1997-05-01</address>
+<h2><a id="section-Contents" name="section-Contents">Contents</a></h2>
 
-   </div>
+<ul>
 
-   <h2>
+<li><a href="#section-1">1. Introduction</a></li>
 
-    <a id='section-description' name='section-description'>Description</a>
+<li><a href="#section-2">2. Alignment</a></li>
 
-   </h2>
+<li><a href="#section-A">A. References</a></li>
 
-   <p>The MPS is able to do a great deal of checking: of arguments, protocols, and the consistency of internal data structures.  The number and precise nature of the checks performed depends on the variety of the MPS library, and also on the current setting of some controls.  See [the documentation of varieties].  If such a check fails, an assertion handler is called.</p>
+<li><a href="#section-B">B. Document history</a></li>
 
-   <p>Assertion handlers are of type *mps_assert_t, declared in mps.h like this:</p>
+</ul>
 
-   <p>
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-    typedef void (*mps_assert_t)(const char *, const char *, const char *,
+<h2><a id="section-description" name="section-description">Description</a></h2>
 
-    <br />
+<p>The MPS is able to do a great deal of checking: of arguments,
+protocols, and the consistency of internal data structures.  The
+number and precise nature of the checks performed depends on the
+variety of the MPS library, and also on the current setting of some
+controls.  See [the documentation of varieties].  If such a check
+fails, an assertion handler is called.</p>
 
-                                 unsigned line);
+<p>Assertion handlers are of type <code
+class="source">*mps_assert_t</code>, declared in <code
+class="filename">mps.h</code> like this:</p>
 
-   </p>
+<p><code class="source">typedef void (*mps_assert_t)(const char *,
+const char *, const char *, unsigned line);</code></p>
 
-   <p>A handler is called as handler(cond, id, file, line), where:</p>
+<p>A handler is called as <code class="source">handler(cond, id, file,
+line)</code>, where:</p>
 
-   <p>
+<ul>
 
-    - const char *cond is a textual representation of the check which has
+<li><code class="source">const char *cond</code> is a textual
+representation of the check which has failed</li>
 
-    <br />
+<li><code class="source">const char *id</code> is internal version
+information about the source file containing the check</li>
 
-       failed
+<li><code class="source">const char *file</code> is the name of that
+source file</li>
 
-    <br />
+<li><code class="source">unsigned int line</code> is the line number
+of the check</li>
 
-    - const char *id is internal version information about the source file
+</ul>
 
-   containing the check
+<p>The MPS cannot safely proceed after a check has failed, so the
+assertion handler should not return to its caller.  It may terminate
+the program, for example, by calling <code
+class="source">abort()</code> (<a href="#ref-ISO-1990-12-15">[ISO
+1990-12-15]</a>, section 7.10.4.1) or <code
+class="source">exit()</code> (<a href="#ref-ISO-1990-12-15">[ISO
+1990-12-15]</a>, section 7.10.4.3), or it may use <code
+class="source">longjmp()</code> to perform a non-local exit (<a
+href="#ref-ISO-1990-12-15">[ISO 1990-12-15]</a>, section 7.6.2.1).
+However, once an assertion handler has been called, the MPS may not be
+used again during the current run of the program.</p>
 
-    <br />
+<p>The default assertion handler is internal to the MPS.  This handler
+uses <code class="source">mps_lib_fputs()</code> and <code
+class="source">mps_lib_fputc()</code> to write a diagnostic message to
+<code class="source">mps_lib_stderr()</code> and then calls <code
+class="source">mps_lib_abort()</code>.  However, you can write your
+own assertion handlers and install them using <code
+class="source">mps_assert_install()</code>.</p>
 
-    - const char *file is the name of that source file
+<p><code class="source">mps_assert_default()</code> is a function that
+takes no arguments and returns a pointer to the default assertion
+handler.  This function is intended to be used in conjunction with
+<code class="source">mps_assert_install()</code>.  Clients may also
+call the default assertion handler directly, in which case the first,
+second, and third arguments must be non-NULL pointers to
+zero-terminated strings.</p>
 
-    <br />
+<p><code class="source">mps_assert_install()</code> is a function that
+takes a pointer to an assertion handler and installs it as the current
+assertion handler.  It returns a pointer to the previously installed
+assertion handler.</p>
 
-    - unsigned int line is the line number of the check
+<p>Among the actions that might be taken by a client assertion handler
+are:</p>
 
-   </p>
+<ul>
 
-   <p>The MPS cannot safely proceed after a check has failed, so the assertion handler should not return to its caller.  It may terminate the program, for example, by calling abort() (standard.ansic section 7.10.4.1) or exit() (section 7.10.4.3), or it may use longjmp() to perform a non-local exit (section 7.6.2.1).  However, once an assertion handler has been called, the MPS may not be used again during the current run of the program.</p>
+<li>displaying the assertion in a dialog;</li>
 
-   <p>The default assertion handler is internal to the MPS.  This handler uses mps_lib_fputs() and mps_lib_fputc() to write a diagnostic message to mps_lib_stderr() and then calls mps_lib_abort().  However, you can write your own assertion handlers and install them using mps_assert_install().</p>
+<li>recording the assertion in a log;</li>
 
-   <p>mps_assert_default is a function that takes no arguments and returns a pointer to the default assertion handler.  This function is intended to be used in conjunction with mps_assert_install.  Clients may also call the default assertion handler directly, in which case the first, second, and third arguments must be non-NULL pointers to zero-terminated strings.</p>
+<li>writing client-specific diagnostics to a file;</li>
 
-   <p>mps_assert_install is a function that takes a pointer to an assertion handler and installs it as the current assertion handler.  It returns a pointer to the previously installed assertion handler.</p>
+<li>starting a debugging session.</li>
 
-   <p>Among the actions that might be taken by a client assertion handler are:</p>
+</ul>
 
-   <p>
+<p>Authors of software that may be used in conjunction with other
+clients of the MPS (for example, components, plugins, or modules of a
+larger product) should consider the benefits of passing assertions on
+to the previously installed handler.  If this is not done, the
+behavior will depend upon the order in which different handlers are
+installed.</p>
 
-    - displaying the assertion in a dialog
+<p>The typical use of the functions described above is as follows:</p>
 
-    <br />
+<blockquote>
+<code class="source">
+mps_assert_t old_handler;<br />
+<br />
+void my_assertion_handler(const char *cond,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const char *id,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const char *file,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unsigned int line)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;&nbsp;fatal_error_dialog("The Memory Pool System detected an inconsistency"<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"in file %s at line %u: %s\n", file, line, cond);<br />
+&nbsp;&nbsp;&nbsp;&nbsp;old_handler(cond, id, file, line);<br />
+&nbsp;&nbsp;&nbsp;&nbsp;abort();<br />
+&nbsp;&nbsp;&nbsp;&nbsp;NOTREACHED;<br />
+}<br />
+<br />
+...<br />
+<br />
+&nbsp;&nbsp;&nbsp;&nbsp;/* install the handler: */<br />
+&nbsp;&nbsp;&nbsp;&nbsp;old_handler = mps_assert_install(my_assertion_handler);<br />
+&nbsp;&nbsp;&nbsp;&nbsp;/* ... use the MPS ... */<br />
+&nbsp;&nbsp;&nbsp;&nbsp;/* restore the old handler */<br />
+&nbsp;&nbsp;&nbsp;&nbsp;(void) mps_assert_install(old_handler);<br />
+</code>
+</blockquote>
 
-    - recording the assertion in a log
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-    <br />
+<table>
 
-    - writing client-specific diagnostics to a file
+<tr valign="top">
 
-- starting a debugging session
+  <td>[<a id="ref-ISO-1990-12-15" name="ref-ISO-1990-12-15">ISO 1990-12-15</a>]</td>
 
-   </p>
+  <td>
+    "International Standard ISO/IEC 9899:1990: Programming Languages -- C";
+    <a href="http://www.iso.ch/">International Organization for Standardization</a>;
+    1990-12-15.
+  </td>
 
-   <p>Authors of software that may be used in conjunction with other clients of the MPS (for example, components, plugins, or modules of a larger product) should consider the benefits of passing assertions on to the previously installed handler.  If this is not done, the behavior will depend upon the order in which different handlers are installed.</p>
+</tr>
 
-   <p>The typical use of the functions described above is as follows:</p>
+</table>
 
-   <p>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-    <pre>      mps_assert_t old_handler;
+<table>
 
-	void my_assertion_handler(const char *cond, 
+<tr valign="top">
 
-				  const char *id,
+  <td>1997-05-01 19:25:45 +01</td>
 
-				  const char *file,
+  <td>lmb</td>
 
-				  unsigned int line)
+  <td>New document saved</td>
 
-        {
+</tr>
 
-	  fatal_error_dialog("The Memory Pool System detected an inconsistency"
+<tr valign="top">
 
-                             "in file %s at line %u: %s\n", file, line, cond);
+  <td>1997-05-09 17:48:24 +01</td>
 
-          old_handler(cond, id, file, line);
+  <td>lmb</td>
 
-          abort();
+  <td></td>
 
-	  NOTREACHED;
+</tr>
 
-	}
+<tr valign="top">
 
-	/* install the handler: */
+  <td>1997-06-20 17:20:21 -04</td>
 
-	old_handler = mps_assert_install(my_assertion_handler);
+  <td>lmb</td>
 
-	/* ... use the MPS ... */
+  <td>Some minor edits.</td>
 
-	/* restore the old handler */
+</tr>
 
-	(void) mps_assert_install(old_handler);</pre>
+<tr valign="top">
 
-   </p>
+  <td>1998-06-25 15:17:09 +00</td>
 
-   <h2>
+  <td>drj</td>
 
-    <a id='section-A' name='section-A'>A. References</a>
+  <td>added .source</td>
 
-   </h2>
+</tr>
 
-   <h2>
+<tr valign="top">
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+  <td>2000-05-22 16:06:45 +01</td>
 
-   </h2>
+  <td>pekka</td>
 
-   <table>
+  <td>clean up</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1997-05-01 19:25:45 +01</td>
+<tr valign="top">
 
-     <td>lmb</td>
+  <td>2001-09-26</td>
 
-     <td>New document saved</td>
+  <td><a href="mailto:ndl@ravenbrook.com">NDL</a></td>
 
-    </tr>
+  <td>Converted from xml to html (second pass).</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1997-05-09 17:48:24 +01</td>
+<tr valign="top">
 
-     <td>lmb</td>
+  <td>2001-11-14</td>
 
-     <td></td>
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-    </tr>
+  <td>Reformatted and adopted.</td>
 
-    <tr valign='top'>
+</tr>
 
-     <td>1997-06-20 17:20:21 -04</td>
+</table>
 
-     <td>lmb</td>
+<hr />
 
-     <td>Some minor edits.</td>
+<p><small>Copyright &copy; 2001 Ravenbrook Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document.  You may not duplicate or reproduce this
+document in any form without the express permission of the copyright
+holder.</small></p>
 
-    </tr>
+<div align="center">
 
-    <tr valign='top'>
+<p><code>$Id$</code></p>
 
-     <td>1998-06-25 15:17:09 +00</td>
+</div>
 
-     <td>drj</td>
+</body>
 
-     <td>added .source</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-22 16:06:45 +01</td>
-
-     <td>pekka</td>
-
-     <td>clean up</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2001-09-26</td>
-
-     <td>
-
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
-
-     </td>
-
-     <td>Converted from xml to html (second pass).</td>
-
-    </tr>
-
-   </table>
-
-   <hr />
-
-   <p>
-
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
-
-   </p>
-
-   <div align='center'>
-
-    <p>
-
-     <code>$Id$</code>
-
-    </p>
-
-   </div>
-
-  </body>
-
- </html>
+</html>
 
