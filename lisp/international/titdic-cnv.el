@@ -64,15 +64,65 @@
     ("JIS" euc-japan "Japanese")
     ("KS" euc-kr "Korean")))
 
-;; List of package names and the corresponding titles.
+;; Alist of input method names and the corresponding title and extra
+;; docstring.  For each of input method generated from TIT dictionary,
+;; a docstring is automatically generated from the comments in the
+;; dictionary.  The extra docstring in this alist is to add more
+;; information.
+;; The command describe-input-method shows the automatically generated
+;; docstring, then an extra docstrings while replacing the form \<VAR>
+;; by the value of variable VAR.  For instance, the form
+;; \<quail-translation-docstring> is replaced by a description about
+;; how to select a translation from a list of candidates.
+
 (defvar quail-cxterm-package-ext-info
   '(("chinese-4corner" "$(0(?-F(B")
     ("chinese-array30" "$(0#R#O(B")
-    ("chinese-ccdospy" "$AKuF4(B")
+    ("chinese-ccdospy" "$AKuF4(B"
+     "Pinyin base input method for Chinese charset GB2312 \(`chinese-gb2312').
+
+Pinyin is the standared roman transliteration method for Chinese.
+For the detail of Pinyin system, see the documentation of the input
+method `chinese-py'.
+
+This input method works almost the same way as `chinese-py'.  The
+difference is that you type a single key for these Pinyin spelling.
+    Pinyin:  zh  en  eng ang ch  an  ao  ai  ong sh  ing  yu($A(9(B)
+    keyseq:   a   f   g   h   i   j   k   l   s   u   y   v
+For expample:
+    Chinese:  $A0!(B    $A9{(B    $AVP(B    $AND(B    $A9b(B    $ASq(B    $AH+(B
+    Pinyin:   a    guo   zhong  wen  guang  yu   quan
+    Keyseq:   a1   guo4   as1   wf4  guh1  yu..6 qvj6
+
+\\<quail-translation-docstring>
+
+For double-width GB2312 characters correponding to ASCII, use the
+input method `chinese-qj'.")
+
     ("chinese-ctlau" "$AAuTA(B")
+
     ("chinese-ctlaub" "$(0N,Gn(B")
-    ("chinese-ecdict" "$(05CKH(B")
-    ("chinese-etzy" "$(06/0D(B")
+
+    ("chinese-ecdict" "$(05CKH(B"
+"In this input method, you enter a Chinese (Big5) charactere or word
+by typing the corresponding English word.  For example, if you type
+\"computer\", \"$(0IZH+(B\" is input.
+
+\\<quail-translation-docstring>")
+
+    ("chinese-etzy" "$(06/0D(B"
+"Zhuyin base input method for Chinese Big5 characters (`chinese-big5-1',
+`chinese-big5-2').
+
+Zhuyin is a kind of phonetic symbol.  One to three Zhuyin symbols
+compose one Chinese character.
+
+In this input method, you enter a Chinese character by first typing
+keys corresponding to Zhuyin symbols (see the above table) followed by
+SPC, 1, 2, 3, or 4 specifing a tone (SPC:$(0?v(N(B, 1:$(0M=Vy(B, 2:$(0Dm(N(B, 3: $(0&9Vy(B,
+4:$(0(+Vy(B).
+
+\\<quail-translation-docstring>")
 
     ("chinese-punct-b5" "$(0O:(BB"
      "Input method for Chinese punctuations and symbols of Big5
@@ -107,7 +157,7 @@ based, but for the character set GB2312 (`chinese-gb2312').")
 Pinyin is the standared roman transliteration method for Chinese.
 Pinyin uses a sequence of Latin alphabetic characters for each Chinese
 character.  The sequence is made by the combination of the initials
-(the beginning sounds) and finals (the ending sounds).
+\(the beginning sounds) and finals \(the ending sounds).
 
   initials: b p m f d t n l z c s zh ch sh r j q x g k h
   finals: a o e i er ai ei oa ou an en ang eng ong i ia iao ie iu ian in
@@ -116,21 +166,20 @@ character.  The sequence is made by the combination of the initials
   (Note: In the correct Pinyin writing, the sequence \"yu\" in the last
    four finals should be written by the character u-umlaut `$A(9(B'.)
 
-With this input method, each time you type a key, list of Chinese
-characters corresponding to the accumulated key sequence is shown in
-the echo area.  You can then select one character from that list by
-typing an index number or by navigating in the list of candidates with
-C-b, C-f, C-n, and C-p.
+With this input method, you enter a Chinese character by first
+entering its pinyin spelling.
+
+\\<quail-translation-docstring>
 
 For instance, to input $ADc(B, you type \"n i C-n 3\".  The first \"n i\"
 is a Pinyin, \"C-n\" selects the next group of candidates (each group
 contains at most 10 characters), \"3\" select the third character in
 that group.
 
-This input method supports only Han characters.  The more convenient
-method is `chinese-py-punct', which is the combination of this method
-and `chinese-punct', and supports both Han characters and
-punctuation/symbols.
+This input method supports only Han characters.  The related input
+method which `chinese-py-punct' is the combination of this method and
+`chinese-punct'; it supports both Han characters and punctuation
+characters.
 
 For double-width GB2312 characters corresponding to ASCII, use the
 input method `chinese-qj'.
@@ -142,14 +191,27 @@ to the same key sequence) input.  You may also want to try the input
 method `chinese-tonepy' with which you must specify tones by digits
 \(1..5).")
 
-    ("chinese-qj-b5" "$(0)A(BB"
-"
-"
-)
-    ("chinese-qj" "$AH+(BG"
-"")
+    ("chinese-qj-b5" "$(0)A(BB")
+
+    ("chinese-qj" "$AH+(BG")
+
     ("chinese-sw" "$AJWN2(B"
-"")
+"Radical base input method for Chinese charset GB2312 (`chinese-gb2312').
+
+In this input method, you enter a Chinese character byte typing two
+keys.  characters.  The first key corresponds to the first ($AJW(B)
+radical, the second key corresponds to the last ($AN2(B) radical.  The
+correspondance of keys and radicals are as below:
+
+ first radical:
+ a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+ $APD(B $AZ"(B $AJ,(B $AX<(B $A;p(B $A?Z(B $A^P(B $Ac_(B $AZ%(B $A\3(B $AXi(B $AD>(B $Alj(B $Ab;(B $ATB(B $Afy(B $AJ/(B $AMu(B $A0K(B $AX/(B $AHU(B $AeA(B $Aak(B $AVq(B $AR;(B $AHK(B 
+ last radical:
+ a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+ $ASV(B $AI=(B $AMA(B $A56(B $AZb(B $A?Z(B $ARB(B $Aqb(B $A4s(B $A6!(B $A[L(B $Ala(B $AJ.(B $A4u(B $AXg(B $ACE(B $A=q(B $AX-(B $AE.(B $ARR(B $A`m(B $AP!(B $A3'(B $A3f(B $A_.(B $A27(B 
+
+\<quail-translation-docstring>")
+
     ("chinese-tonepy" "$A5wF4(B"
      "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
@@ -158,16 +220,74 @@ For the detail of Pinyin system, see the documentation of the input
 method `chinese-py'.
 
 This input method works almost the same way as `chinese-py'.  The
-difference is that you must type 1..5 after each Pinyin to specify a
-tone.  So, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is a
-Pinyin, the next \"3\" specifies tone, and the last \"3\" selects the
-third character from the candidate list.
+difference is that you must type 1..5 after each Pinyin spelling to
+specify a tone (1:$ARuF=(B, 2:$AQtF=(B, 3:$AIOIy(B, 4$AOBIy(B, 5:$AGaIy(B).
+
+\<quail-translation-docstring>
+
+For instance, to input $ADc(B, you type \"n i 3 3\", the first \"n i\" is
+a Pinyin, the next \"3\" specifies tone, and the last \"3\" selects
+the third character from the candidate list.
 
 For double-width GB2312 characters correponding to ASCII, use the
 input method `chinese-qj'.")
 
-    ("chinese-ziranma" "$AK+F4(B")
-    ("chinese-zozy" "$(0I\0D(B")))
+    ("chinese-ziranma" "$AK+F4(B"
+"Pinyin base input method for Chinese GB2312 characters (`chinese-gb2312').
+
+Pinyin is the standared roman transliteration method for Chinese.
+For the detail of Pinyin system, see the documentation of the input
+method `chinese-py'.
+
+In this input method, unlike the standard spelling of Pinyin, all
+initials and finals are assigned to single keys (see the above table).
+For instance, the initial \"ch\" is assigned to the key `i', the final
+\"iu\" is assigned to the key `q'.  And tones 1, 2, 3, 4, and $AGaIy(B are
+assigned to the keys `q', `w', `e', `r', `t' respectively.
+
+\<quail-translation-docstring>
+
+To input one letter Chinese words, you type 4 keys, the first two for
+the Pinyin of the letter, next one for tone, and the last one is
+always quote (').  For instance, \"vsq'1\" input $AVP(B.  Exceptions are
+these letters.  You can input them just by typing a single key.
+
+	Character: $A04(B $A2;(B $A4N(B $A5D(B $A6~(B $A7"(B $A8v(B $A:M(B $A3v(B $A<0(B $A?I(B $AAK(B $AC;(B
+	Key:	   a  b  c  d  e  f  g  h  i  j  k  l  m
+	Character: $ADc(B $AE7(B $AF,(B $AF_(B $AHK(B $AH}(B $AK{(B $AJG(B $AWE(B $ANR(B $AP!(B $AR;(B $ATZ(B
+	Key:	   n  o  p  q  r  s  t  u  v  w  x  y  z
+
+To input two letter words, you have two ways.  One way is to type 4
+keys, two for the first Pinyin, two for the second Pinyin.  For
+instance, \"vsgo\" input $AVP9z(B.  Another is to type 3 keys\; initials
+of two letters, and quote (').  For instance, \"vg'\" also input $AVP9z(B.
+
+To input three letter words, you type 4 keys\; initials of three
+letters, and the last is quote (').  For instance, \"bjy'2\" input $A11(B
+$A>)Q<(B (the last `2' is to select one from candidates).
+
+To input words of more than three letters, you type 4 keys, initials
+of the first three letters and the last letter.  For instance,
+\"bjdt\" input $A11>)5gJSL((B.
+
+To input symbols and punctuations, type `/' followed by one of `a' to
+`z', then select one from candidates.
+
+")
+
+    ("chinese-zozy" "$(0I\0D(B"
+"Zhuyin base input method for Chinese Big5 characters (`chinese-big5-1',
+`chinese-big5-2').
+
+Zhuyin is a kind of phonetic symbol.  One to three Zhuyin symbols
+compose a Chinese character.
+
+In this input method, you enter a Chinese character by first typing
+keys corresponding to Zhuyin symbols (see the above table) followed by
+SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy(B, 4:$(0(+Vy(B,
+7:$(0M=Vy(B).
+
+\<quail-translation-docstring>")))
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
