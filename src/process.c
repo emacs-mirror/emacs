@@ -2108,7 +2108,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  timeout_reduced_for_timers = 1;
 		}
 	    }
-	  else
+	  /* If time_limit is -1, we are not going to wait at all.  */
+	  else if (time_limit != -1)
 	    {
 	      /* This is so a breakpoint can be put here.  */
 	      wait_reading_process_input_1 ();
