@@ -480,10 +480,12 @@ extern struct frame *last_nonminibuf_frame;
 
 extern struct frame *make_terminal_frame P_ ((void));
 extern struct frame *make_frame P_ ((int));
+#ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));
 extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
 							struct kboard *,
 							Lisp_Object));
+#endif /* HAVE_WINDOW_SYSTEM */
 extern int other_visible_frames P_ ((struct frame *));
 
 extern Lisp_Object Vframe_list;
