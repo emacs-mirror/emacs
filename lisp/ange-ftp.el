@@ -1601,8 +1601,10 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-gwp-filter (proc str)
   (comint-output-filter proc str)
-  ;; Replace STR by the result of the comint processing.
-  (setq str (buffer-substring comint-last-output-start (process-mark proc)))
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    ;; Replace STR by the result of the comint processing.
+    (setq str (buffer-substring comint-last-output-start (process-mark proc))))
   (cond ((string-match "login: *$" str)
 	 (send-string proc
 		      (concat
