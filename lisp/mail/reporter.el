@@ -1,13 +1,10 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
+;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing Inc. <bwarsaw@cen.com>
 ;; Maintainer:      bwarsaw@cen.com
 ;; Created:         19-Apr-1993
-;; Version:         1.18
-;; Last Modified:   1993/05/22 00:29:49
 ;; Keywords: bug reports lisp
-
-;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; This file is not yet part of GNU Emacs.
 ;;
@@ -81,10 +78,17 @@
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end of user defined variables
 
+(defvar reporter-eval-buffer nil
+  "Buffer to retrieve variable's value from.
+This is necessary to properly support the printing of buffer-local
+variables.  Current buffer will always be the mail buffer being
+composed.")
 
 (defun reporter-dump-variable (varsym)
   "Pretty-print the value of the variable in symbol VARSYM."
-  (let ((val (eval varsym))
+  (let ((val (save-excursion
+	       (set-buffer reporter-eval-buffer)
+	       (eval varsym)))
 	(sym (symbol-name varsym))
 	(print-escape-newlines t))
     (insert "     " sym " "
@@ -107,6 +111,13 @@ passed to `reporter-dump-variable' for insertion into the mail buffer.
 If a cons cell, the car must be a variable symbol and the cdr must be
 a function which will be `funcall'd with the symbol. Use this to write
 your own custom variable value printers for specific variables.
+
+Note that the global variable `reporter-eval-buffer' will be bound to
+the buffer in which `reporter-submit-bug-report' was invoked.  If you
+want to print the value of a buffer local variable, you should wrap
+the `eval' call in your custom printer inside a `set-buffer' (and
+probably a `save-excursion'). `reporter-dump-variable' handles this
+properly.
 
 PRE-HOOKS is run after the emacs-version and PKGNAME are inserted, but
 before the VARLIST is dumped.  POST-HOOKS is run after the VARLIST is
@@ -143,11 +154,11 @@ mail buffer, and point is left after the salutation.
 
 The mailer used is described in the variable `reporter-mailer'."
 
-  (let ((curbuf (current-buffer))
+  (let ((reporter-eval-buffer (current-buffer))
 	(mailbuf (progn (call-interactively reporter-mailer)
 			(current-buffer))))
     (require 'sendmail)
-    (pop-to-buffer curbuf)
+    (pop-to-buffer reporter-eval-buffer)
     (pop-to-buffer mailbuf)
     (goto-char (point-min))
     ;; different mailers use different separators, some may not even
