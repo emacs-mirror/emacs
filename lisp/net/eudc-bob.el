@@ -37,7 +37,7 @@
   "Keymap for inline images.")
 
 (defvar eudc-bob-sound-keymap nil
-  "Keymap for inline images.")
+  "Keymap for inline sounds.")
 
 (defvar eudc-bob-url-keymap nil
   "Keymap for inline images.")
@@ -84,10 +84,11 @@
 
 (defun eudc-bob-can-display-inline-images ()
   "Return non-nil if we can display images inline."
-  (and eudc-xemacs-p
-       (memq (console-type) 
-	     '(x mswindows))
-       (fboundp 'make-glyph)))
+  (if eudc-xemacs-p
+      (and (memq (console-type) '(x mswindows))
+	   (fboundp 'make-glyph))
+    (and (boundp 'image-types)
+	 (not (null images-types)))))
 
 (defun eudc-bob-make-button (label keymap &optional menu plist)
   "Create a button with LABEL.
@@ -112,41 +113,70 @@ LABEL."
 
 (defun eudc-bob-display-jpeg (data inline)
   "Display the JPEG DATA at point.
-if INLINE is non-nil, try to inline the image otherwise simply 
+If INLINE is non-nil, try to inline the image otherwise simply 
 display a button."
-  (let ((glyph (if (eudc-bob-can-display-inline-images)
-		   (make-glyph (list (vector 'jpeg :data data) 
-				     [string :data "[JPEG Picture]"])))))
-    (eudc-bob-make-button "[JPEG Picture]"
-			  eudc-bob-image-keymap
-			  eudc-bob-image-menu
-			  (list 'glyph glyph
-				'end-glyph (if inline glyph)
-				'duplicable t
-				'invisible inline
-				'start-open t
-				'end-open t
-				'object-data data))))
+  (cond (eudc-xemacs-p
+	 (let ((glyph (if (eudc-bob-can-display-inline-images)
+			  (make-glyph (list (vector 'jpeg :data data) 
+					    [string :data "[JPEG Picture]"])))))
+	   (eudc-bob-make-button "[JPEG Picture]"
+				 eudc-bob-image-keymap
+				 eudc-bob-image-menu
+				 (list 'glyph glyph
+				       'end-glyph (if inline glyph)
+				       'duplicable t
+				       'invisible inline
+				       'start-open t
+				       'end-open t
+				       'object-data data))))
+	(t
+	 (let* ((image (create-image data nil t))
+		(props (list 'object-data data 'eudc-image image)))
+	   (when inline
+	     (setq props (nconc (list 'display image) props)))
+	   (eudc-bob-make-button "[Picture]"
+				 eudc-bob-image-keymap
+				 eudc-bob-image-menu
+				 props)))))
 
 (defun eudc-bob-toggle-inline-display ()
   "Toggle inline display of an image."
   (interactive)
-  (if (eudc-bob-can-display-inline-images)
-      (let ((overlays (append (overlays-at (1- (point)))
-			      (overlays-at (point))))
-	    overlay glyph)
-	(setq overlay (car overlays))
-	(while (and overlay
-		    (not (setq glyph (overlay-get overlay 'glyph))))
-	  (setq overlays (cdr overlays))
-	  (setq overlay (car overlays)))
-	(if overlay
-	    (if (overlay-get overlay 'end-glyph)
-		(progn
-		  (overlay-put overlay 'end-glyph nil)
-		  (overlay-put overlay 'invisible nil))
-	      (overlay-put overlay 'end-glyph glyph)
-	      (overlay-put overlay 'invisible t))))))
+  (when (eudc-bob-can-display-inline-images)
+    (cond (eudc-xemacs-p
+	   (let ((overlays (append (overlays-at (1- (point)))
+				   (overlays-at (point))))
+		 overlay glyph)
+	     (setq overlay (car overlays))
+	     (while (and overlay
+			 (not (setq glyph (overlay-get overlay 'glyph))))
+	       (setq overlays (cdr overlays))
+	       (setq overlay (car overlays)))
+	     (if overlay
+		 (if (overlay-get overlay 'end-glyph)
+		     (progn
+		       (overlay-put overlay 'end-glyph nil)
+		       (overlay-put overlay 'invisible nil))
+		   (overlay-put overlay 'end-glyph glyph)
+		   (overlay-put overlay 'invisible t)))))
+	  (t
+	   (let* ((overlays (append (overlays-at (1- (point)))
+				    (overlays-at (point))))
+		  image)
+
+	     ;; Search overlay with an image.
+	     (while (and overlays (null image))
+	       (let ((prop (overlay-get (car overlays) 'eudc-image)))
+		 (if (imagep prop)
+		     (setq image prop)
+		   (setq overlays (cdr overlays)))))
+
+	     ;; Toggle that overlay's image display.
+	     (when overlays
+	       (let ((overlay (car overlays)))
+		 (overlay-put overlay 'display
+			      (if (overlay-get overlay 'display)
+				  nil image)))))))))
 
 (defun eudc-bob-display-audio (data)
   "Display a button for audio DATA."
@@ -157,7 +187,6 @@ display a button."
 			      'start-open t
 			      'end-open t
 			      'object-data data)))
-
 
 (defun eudc-bob-display-generic-binary (data)
   "Display a button for unidentified binary DATA."
@@ -175,17 +204,22 @@ display a button."
   (let (sound)
     (if (null (setq sound (eudc-bob-get-overlay-prop 'object-data)))
 	(error "No sound data available here")
-      (if (not (and (boundp 'sound-alist)
-		    sound-alist))
-	  (error "Don't know how to play sound on this Emacs version")
-	(setq sound-alist 
-	      (cons (list 'eudc-sound 
-			  :sound sound)
-		    sound-alist))
-	(condition-case nil
-	    (play-sound 'eudc-sound)
-	  (t 
-	   (setq sound-alist (cdr sound-alist))))))))
+      (cond (eudc-xemacs-p
+	     (if (not (and (boundp 'sound-alist)
+			   sound-alist))
+		 (error "Don't know how to play sound on this Emacs version")
+	       (setq sound-alist 
+		     (cons (list 'eudc-sound 
+				 :sound sound)
+			   sound-alist))
+	       (condition-case nil
+		   (play-sound 'eudc-sound)
+		 (t 
+		  (setq sound-alist (cdr sound-alist))))))
+	    (t
+	     (unless (fboundp 'play-sound)
+	       (error "Playing sounds not supported on this system"))
+	     (play-sound (list 'sound :data sound)))))))
   
 
 (defun eudc-bob-play-sound-at-mouse (event)
