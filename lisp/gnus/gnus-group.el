@@ -822,9 +822,11 @@ For example:
 
 ;; Emacs 21 tool bar.  Should be no-op otherwise.
 (defun gnus-group-make-tool-bar ()
-  (if (and (fboundp 'tool-bar-add-item-from-menu)
-	   (default-value 'tool-bar-mode)
-	   (not gnus-group-toolbar-map))
+  (if (and 
+       (condition-case nil (require 'tool-bar) (error nil))
+       (fboundp 'tool-bar-add-item-from-menu)
+       (default-value 'tool-bar-mode)
+       (not gnus-group-toolbar-map))
       (setq gnus-group-toolbar-map
 	    (let ((tool-bar-map (make-sparse-keymap)))
 	      (tool-bar-add-item-from-menu

@@ -4491,8 +4491,10 @@ which specify the range to operate on."
 (eval-when-compile (defvar tool-bar-map))
 (if (featurep 'xemacs)
     (require 'messagexmas)
-  (when (and (fboundp 'tool-bar-add-item-from-menu)
- 	     tool-bar-mode)
+  (when (and 
+	 (condition-case nil (require 'tool-bar) (error nil))
+	 (fboundp 'tool-bar-add-item-from-menu)
+	 tool-bar-mode)
     (defvar message-tool-bar-map
       (let ((tool-bar-map (copy-keymap tool-bar-map)))
  	;; Zap some items which aren't so relevant and take up space.

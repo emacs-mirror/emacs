@@ -1,3 +1,11 @@
+2002-04-02  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-group.el (gnus-group-make-tool-bar): Load tool-bar first.
+
+	* message.el (message-tool-bar-map): Ditto.
+
+	* gnus-sum.el (gnus-summary-make-tool-bar): Ditto.
+
 2002-04-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnwarchive.el (nnwarchive-mail-archive-article): Fix typo.
