@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!132.c(trunk.3) $
  summary = low-memory reservoir tests with commit limit, part I
  language = c
  link = testlib.o rankfmt.o
@@ -9,11 +9,11 @@ OUTPUT_SPEC
  avail0 = 0
  lim1 > 5000000
  lim1 < 6000000
- defecit1 = 0
+ deficit1 = 0
  lim2 > 1045
  lim2 < 32768
- defecit2 = 0
- defecit3 > 8000000
+ deficit2 = 0
+ deficit3 > 8000000
  spill3 <= 0
  spill4 <= 0
  grow4 > 500000
@@ -87,13 +87,13 @@ static void test(void) {
  report("lim1", "%d", lim1 = mps_reservoir_limit(arena));
  report("avail1",  "%d", avail1 = mps_reservoir_available(arena));
  report("commit1", "%d", commit1 = mps_arena_committed(arena));
- report("defecit1", "%d", lim1-avail1);
+ report("deficit1", "%d", lim1-avail1);
 
  mps_reservoir_limit_set(arena, (size_t) (1045));
  report("lim2", "%d", lim2 = mps_reservoir_limit(arena));
  report("avail2",  "%d", avail2 = mps_reservoir_available(arena));
  report("commit2", "%d", commit2 = mps_arena_committed(arena));
- report("defecit2", "%d", lim2-avail2);
+ report("deficit2", "%d", lim2-avail2);
 
 /* set commit limit to whatever is currently committed plus 1 MB
 */
@@ -103,7 +103,7 @@ static void test(void) {
  report("lim3", "%d", lim3 = mps_reservoir_limit(arena));
  report("avail3",  "%d", avail3 = mps_reservoir_available(arena));
  report("commit3", "%d", commit3 = mps_arena_committed(arena));
- report("defecit3", "%d", lim3-avail3);
+ report("deficit3", "%d", lim3-avail3);
  report("spill3", "%d", commit3-mps_arena_commit_limit(arena));
 
 /* now raise it by 1/2 MB -- reservoir should grow
