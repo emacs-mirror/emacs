@@ -1,3 +1,8 @@
+2000-09-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/authors.el (authors-add): Use `nconc' instead of
+	`append'.
+
 2000-09-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* info.el (Info-extract-pointer): Undo last change.
@@ -9,7 +14,7 @@
 	Widen more carefully, to avoid finding pointers in other nodes.
 	(Info-index): Use push.
 
-2000-09-27 +00  Gerd Moellmann  <gerd@gnu.org>
+2000-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (set-frame-font): Remove call to obsolete function
 	frame-update-faces.

@@ -1,11 +1,22 @@
+ (changed) gnus-win.el
+ (changed) message.el
+ (wrote) pcvs.el
+??:??:??  Alexandre Oliva (changed) gnus-mlspl.el
+??:??:??  Alexandre Oliva (changed) gnus.el
+Aaron M. Ucko (changed) mail-source.el
+Aaron M. Ucko (changed) message.el
+Aaron M. Ucko (changed) nnmail.el
+Aaron M. Ucko (changed) nnsoup.el
 Abraham Nahum (changed) configure.in
 Abraham Nahum (changed) dgux4.h
 Abraham Nahum (changed) sysdep.c
 Abramo Bagnara (changed) term.c
+Adam P. Jenkins (changed) gnus-sum.el
+Adrian Aichner (changed) nnmail.el
 Adrian Colley (changed) aix3-2.h
 Ake Stenhoff (changed) cc-mode.el
-Ake Stenhoff (changed) imenu.el
 Ake Stenhoff (changed) perl-mode.el
+Ake Stenhoff (wrote) imenu.el
 Aki Vehtari (changed) bibtex.el
 Aki Vehtari (changed) gnus-art.el
 Aki Vehtari (changed) gnus-score.el
@@ -20,28 +31,44 @@ Albert (wrote) rcompile.el
 Albert L. Ting (changed) gnus-group.el
 Albert L. Ting (changed) mail-hist.el
 Alex Rezinsky (wrote) which-func.el
-Alex Schroeder (changed) ansi-color.el
 Alex Schroeder (changed) comint.el
-Alex Schroeder (changed) sql.el
+Alex Schroeder (wrote) ansi-color.el
+Alex Schroeder (wrote) sql.el
 Alexandre Oliva (changed) format.el
+Alexandre Oliva (changed) gnus-cus.el
+Alexandre Oliva (changed) gnus-mlsplt.el
+Alexandre Oliva (changed) gnus.el
 Alexandre Oliva (changed) iris4d.h
 Alexandre Oliva (changed) iris5d.h
+Alexandre Oliva (changed) nnmail.el
 Alexandre Oliva (changed) unexelf.c
 Alexandre Oliva (changed) unexsgi.c
+Alexandre Oliva (wrote) gnus-mlspl.el
 Alfred Correira (changed) generic-x.el
-Anders Holst (changed) hippie-exp.el
-Anders Lindgren (changed) autorevert.el
+Anders Holst (wrote) hippie-exp.el
 Anders Lindgren (changed) compile.el
 Anders Lindgren (changed) etags.c
-Anders Lindgren (changed) follow.el
 Anders Lindgren (changed) font-lock.el
+Anders Lindgren (wrote) autorevert.el
 Anders Lindgren (wrote) cwarn.el
+Anders Lindgren (wrote) follow.el
 Andre Spiegel (changed) dired.el
 Andre Spiegel (changed) files.el
+Andre Spiegel (changed) spec.txt
 Andre Spiegel (changed) startup.el
+Andre Spiegel (changed) vc-*.el
+Andre Spiegel (changed) vc-cvs-hooks.el
+Andre Spiegel (changed) vc-cvs.el
 Andre Spiegel (changed) vc-hooks.el
+Andre Spiegel (changed) vc-rcs-hooks.el
+Andre Spiegel (changed) vc-rcs.el
+Andre Spiegel (changed) vc-sccs-hooks.el
+Andre Spiegel (changed) vc-sccs.el
 Andre Spiegel (changed) vc.el
+Andrea Arcangeli (changed) message.el
+Andreas Jaeger (changed) gnus-cus.el
 Andreas Jaeger (changed) gnus-start.el
+Andreas Jaeger (changed) gnus-uu.el
 Andreas Jaeger (changed) gnus-xmas.el
 Andreas Luik (changed) xfns.c
 Andreas Luik (changed) xterm.c
@@ -57,7 +84,9 @@ Andrew Choi (changed) xfaces.c
 Andrew Csillag (wrote) m4-mode.el
 Andrew Hall (changed) paren.el
 Andrew Innes (changed) [changes in more than 20 files]
+Andrew J. Cosgriff (changed) mm-view.el
 Andy Norman (wrote) ange-ftp.el
+Andy Piper (changed) nnmail.el
 Arne Georg Gleditsch (changed) gnus-sum.el
 Ashwin Ram (wrote) refer.el
 Atae@Spva.Physics.Imperial.Ac.Uk (wrote) cdl.el
@@ -65,9 +94,12 @@ Axel Boldt (changed) ehelp.el
 Axel Boldt (changed) electric.el
 Barry A. Warsaw (changed) [changes in more than 20 files]
 Barry A. Warsaw (wrote) assoc.el
+Barry A. Warsaw (wrote) elp.el
 Barry A. Warsaw (wrote) man.el
 Barry A. Warsaw (wrote) regi.el
+Barry A. Warsaw (wrote) reporter.el
 Barry A. Warsaw (wrote) supercite.el
+Ben Gertzfield (changed) gnus-sum.el
 Ben Harris (changed) configure.in
 Benjamin Drieu (wrote) pong.el
 Bill Burton (changed) ptx.h
@@ -89,16 +121,23 @@ Bill Richter (changed) mule-util.el
 Bill Richter (changed) mule.el
 Bill Richter (changed) quail.el
 Bill Rosenblatt (wrote) float.el
-Bill Rozas (changed) scheme.el
 Bill Rozas (changed) xscheme.el
+Bill Rozas (wrote) scheme.el
+Björn Torkelsson (changed) rfc2047.el
 Boaz Ben-Zvi (wrote) profile.el
 Bob Glickstein (changed) sendmail.el
 Bob Glickstein (wrote) sregex.el
 Bob Weiner (changed) info.el
 Bob Weiner (changed) quail.el
 Boris Goldowsky (changed) [changes in more than 20 files]
+Boris Goldowsky (wrote) avoid.el
+Boris Goldowsky (wrote) enriched.el
+Boris Goldowsky (wrote) facemenu.el
+Boris Goldowsky (wrote) format.el
+Boris Goldowsky (wrote) shadowfile.el
 Brad Howes (changed) gnus-demon.el
 Brad Miller (wrote) gnus-gl.el
+Brendan Kehoe (changed) gnus-sum.el
 Brendan Kehoe (changed) hpux9.h
 Brian D. Carlstrom (changed) gud.el
 Brian D. Carlstrom (changed) smtpmail.el
@@ -111,9 +150,25 @@ Brian J. Fox (changed) simple.el
 Brian J. Fox (changed) systty.h
 Brian Preble (changed) [changes in more than 20 files]
 Bryan O'sullivan (changed) ange-ftp.el
+Bryan P. Johnson (changed) gnus-group.el
 Caleb Deupree (changed) winnt.el
 Carsten Bormann (changed) ibmrs6000.h
 Carsten Dominik (changed) [changes in more than 20 files]
+Carsten Dominik (wrote) idlw-rinfo.el
+Carsten Dominik (wrote) idlw-toolbar.el
+Carsten Dominik (wrote) reftex-auc.el
+Carsten Dominik (wrote) reftex-cite.el
+Carsten Dominik (wrote) reftex-dcr.el
+Carsten Dominik (wrote) reftex-global.el
+Carsten Dominik (wrote) reftex-index.el
+Carsten Dominik (wrote) reftex-parse.el
+Carsten Dominik (wrote) reftex-ref.el
+Carsten Dominik (wrote) reftex-sel.el
+Carsten Dominik (wrote) reftex-toc.el
+Carsten Dominik (wrote) reftex-vars.el
+Carsten Dominik (wrote) reftex.el
+Carsten Leonhardt (changed) mail-source.el
+Carsten Leonhardt (changed) nnmail.el
 Castor (changed) nntp.el
 Caveh Jalali (changed) configure.in
 Caveh Jalali (changed) intel386.h
@@ -131,6 +186,7 @@ Charles Hannum (changed) systime.h
 Charles Hannum (changed) systty.h
 Charles Hannum (changed) xrdb.c
 Charlie Martin (wrote) autoinsert.el
+Chris Brierley (changed) gnus-sum.el
 Chris Chase (wrote) idlw-shell.el
 Chris Chase (wrote) idlwave.el
 Chris Hanson (changed) [changes in more than 20 files]
@@ -141,24 +197,33 @@ Christian Lynbech (changed) appt.el
 Christian Lynbech (changed) emacsserver.c
 Christian Plaunt (wrote) soundex.el
 Christian Von Roques (changed) gnus-start.el
-Christoph Wedler (changed) antlr-mode.el
+Christoph Rohland (changed) rfc2047.el
 Christoph Wedler (changed) gnus-art.el
 Christoph Wedler (changed) gnus-picon.el
 Christoph Wedler (changed) message.el
 Christoph Wedler (changed) register.el
 Christoph Wedler (changed) smiley.el
-Christopher J. Madsen (changed) decipher.el
+Christoph Wedler (wrote) antlr-mode.el
 Christopher J. Madsen (changed) files.el
 Christopher J. Madsen (changed) replace.el
 Christopher J. Madsen (changed) time.el
+Christopher J. Madsen (wrote) decipher.el
 Chue Chi To (wrote) quick-b5.el
 Chue Chi To (wrote) quick-cns.el
 Chue Chi To (wrote) tsang-b5.el
 Chue Chi To (wrote) tsang-cns.el
 Chung Jae-Youn (changed) gnus-mule.el
+Colin Rafferty (changed) gnus-art.el
+Colin Rafferty (changed) gnus-sum.el
 Colin Rafferty (changed) message.el
 Colin Walters (changed) comint.el
 Colin Walters (changed) window.c
+Conrad Sauerwald (changed) mm-decode.el
+Daiki Ueno (changed) gnus-sum.el
+Daiki Ueno (changed) imap.el
+Dale Hagglund (changed) gnus-art.el
+Dale Hagglund (changed) gnus-sum.el
+Dale Hagglund (changed) mm-decode.el
 Dale R. Worley (wrote) emerge.el
 Damon Anton Permezel (wrote) hanoi.el
 Dan Christensen (changed) gnus-art.el
@@ -168,28 +233,29 @@ Dan Christensen (changed) nnfolder.el
 Dan Christensen (changed) nnmail.el
 Dan Nicolaescu (changed) [changes in more than 20 files]
 Dan Nicolaescu (wrote) iris-ansi.el
-Daniel Laliberte (changed) cust-print.el
-Daniel Laliberte (changed) edebug.el
+Dan Nicolaescu (wrote) romanian.el
 Daniel Laliberte (changed) eval-region.el
 Daniel Laliberte (changed) mlconvert.el
 Daniel Laliberte (wrote) cl-specs.el
+Daniel Laliberte (wrote) cust-print.el
+Daniel Laliberte (wrote) edebug.el
 Daniel Laliberte (wrote) hideif.el
 Daniel Laliberte (wrote) isearch.el
 Daniel Pfeiffer (changed) apropos.el
 Daniel Pfeiffer (changed) autoinsert.el
 Daniel Pfeiffer (changed) autoload.el
-Daniel Pfeiffer (changed) copyright.el
-Daniel Pfeiffer (changed) executable.el
 Daniel Pfeiffer (changed) facemenu.el
 Daniel Pfeiffer (changed) gomoku.el
 Daniel Pfeiffer (changed) help.el
 Daniel Pfeiffer (changed) mailalias.el
 Daniel Pfeiffer (changed) sendmail.el
 Daniel Pfeiffer (changed) sgml-mode.el
-Daniel Pfeiffer (changed) sh-script.el
-Daniel Pfeiffer (changed) skeleton.el
 Daniel Pfeiffer (changed) tex-mode.el
-Daniel Pfeiffer (changed) two-column.el
+Daniel Pfeiffer (wrote) copyright.el
+Daniel Pfeiffer (wrote) executable.el
+Daniel Pfeiffer (wrote) sh-script.el
+Daniel Pfeiffer (wrote) skeleton.el
+Daniel Pfeiffer (wrote) two-column.el
 Daniel Pfeiffer (wrote) wyse50.el
 Daniel Quinlan (changed) dired.el
 Daniel Quinlan (changed) info.el
@@ -202,17 +268,30 @@ Darrin B. Jewell (changed) etags.c
 Darrin B. Jewell (changed) lisp.h
 Dave Edmondson (changed) message.el
 Dave Gillespie (changed) bytecomp.el
-Dave Gillespie (changed) cl-macs.el
-Dave Gillespie (changed) complete.el
 Dave Gillespie (wrote) cl-compat.el
 Dave Gillespie (wrote) cl-extra.el
+Dave Gillespie (wrote) cl-macs.el
 Dave Gillespie (wrote) cl-seq.el
 Dave Gillespie (wrote) cl.el
+Dave Gillespie (wrote) complete.el
 Dave Gillespie (wrote) edmacro.el
 Dave Love (changed) [changes in more than 20 files]
+Dave Love (wrote) autoarg.el
+Dave Love (wrote) autoconf.el
+Dave Love (wrote) elide-head.el
+Dave Love (wrote) hl-line.el
+Dave Love (wrote) latin-8.el
+Dave Love (wrote) latin-9.el
+Dave Love (wrote) latin1-disp.el
+Dave Love (wrote) smiley-ems.el
+Dave Love (wrote) tool-bar.el
 Dave Pearson (changed) [changes in more than 20 files]
+Dave Pearson (wrote) 5x5.el
+Dave Pearson (wrote) quickurl.el
+David Aspinwall (changed) gnus-art.el
 David Bakhash (wrote) strokes.el
 David Byers (changed) minibuf.c
+David Edmondson (changed) gnus.el
 David Gillespie (changed) cl-compat.el
 David Gillespie (changed) cl-extra.el
 David Gillespie (changed) cl-macs.el
@@ -222,7 +301,7 @@ David Gillespie (changed) info.el
 David J. Mackenzie (changed) [changes in more than 20 files]
 David Kegedal (changed) sendmail.el
 David K}Gedal (changed) sendmail.el
-David K}Gedal (changed) tempo.el
+David K}Gedal (wrote) tempo.el
 David Kågedal (changed) xmenu.c
 David Lawrence (changed) [changes in more than 20 files]
 David M Smith (changed) ielm.el
@@ -253,18 +332,32 @@ David Mosberger-Tang (changed) terminfo.c
 David Mosberger-Tang (changed) unexelf.c
 David Mosberger-Tang (changed) unexelf1.c
 David Mosberger-Tang (changed) yow.c
-David Ponce (changed) recentf.el
+David Ponce (wrote) recentf.el
 David Robinson (changed) menu-bar.el
 David Robinson (changed) x-win.el
+David S. Goldberg (changed) emacs-mime.texi
 David S. Goldberg (changed) gnus-art.el
+David S. Goldberg (changed) mm-decode.el
+David S. Goldberg (changed) mm-inline-override-types
 David Smith (wrote) ielm.el
 Decklin Foster (changed) nngateway.el
-Denis Howe (changed) browse-url.el
+Denis Howe (wrote) browse-url.el
 Derek L. Davies (changed) gud.el
-Detlev Zundel (changed) re-builder.el
+Detlev Zundel (wrote) re-builder.el
 Dick King (wrote) uniquify.el
+Didier Verna (changed) binhex.el
+Didier Verna (changed) gnus-art.el
+Didier Verna (changed) gnus-msg.el
 Didier Verna (changed) gnus-picon.el
+Didier Verna (changed) gnus-spec.el
+Didier Verna (changed) gnus-start.el
 Didier Verna (changed) gnus-sum.el
+Didier Verna (changed) gnus.el
+Didier Verna (changed) gnus.texi
+Didier Verna (changed) message.el
+Didier Verna (changed) mm-bodies.el
+Didier Verna (changed) mm-util.el
+Didier Verna (changed) nnmail.el
 Didier Verna (changed) rect.el
 Dirk Herrmann (changed) bibtex.el
 Don Morrison (wrote) dabbrev.el
@@ -275,13 +368,47 @@ E. Jay Berkenbilt (changed) flyspell.el
 E. Jay Berkenbilt (changed) ispell.el
 E. Jay Berkenbilt (changed) window.h
 Ed Reingold (changed) [changes in more than 20 files]
-Edward M. Reingold (changed) [changes in more than 20 files]
+Edward M. Reingold (changed) Holidays
+Edward M. Reingold (changed) cal-chinese.el
+Edward M. Reingold (changed) cal-dst.el
+Edward M. Reingold (changed) cal-hebrew.el
+Edward M. Reingold (changed) cal-islamic.el
+Edward M. Reingold (changed) cal-mayan.el
+Edward M. Reingold (changed) cal-tex.el
+Edward M. Reingold (changed) cal-x.el
+Edward M. Reingold (changed) diary
+Edward M. Reingold (changed) diary-ins.el
+Edward M. Reingold (changed) diary-insert.el
+Edward M. Reingold (changed) diary.el
+Edward M. Reingold (changed) holiday.el
+Edward M. Reingold (changed) integrated
+Edward M. Reingold (changed) into
+Edward M. Reingold (changed) list-holidays.el
+Edward M. Reingold (changed) tex-mode.el
+Edward M. Reingold (changed) the
+Edward M. Reingold (wrote) cal-china.el
+Edward M. Reingold (wrote) cal-coptic.el
+Edward M. Reingold (wrote) cal-french.el
+Edward M. Reingold (wrote) cal-islam.el
+Edward M. Reingold (wrote) cal-iso.el
+Edward M. Reingold (wrote) cal-julian.el
+Edward M. Reingold (wrote) cal-menu.el
+Edward M. Reingold (wrote) cal-move.el
+Edward M. Reingold (wrote) cal-persia.el
+Edward M. Reingold (wrote) calendar.el
+Edward M. Reingold (wrote) diary-lib.el
+Edward M. Reingold (wrote) holidays.el
+Edward M. Reingold (wrote) lunar.el
+Edward M. Reingold (wrote) solar.el
 Ehud Karni (changed) aviion-intel.h
 Ehud Karni (changed) configure.in
 Eirik Fuller (changed) ralloc.c
 Eirik Fuller (changed) xterm.c
-Eli Barzilay (changed) calculator.el
+Eli Barzilay (wrote) calculator.el
 Eli Zaretskii (changed) [changes in more than 20 files]
+Eli Zaretskii (wrote) codepage.el
+Eli Zaretskii (wrote) tty-colors.el
+Emerick Rogul (changed) message.el
 Emilio Lopes (changed) apropos.el
 Emilio Lopes (changed) bookmark.el
 Emilio Lopes (changed) fortran.el
@@ -291,6 +418,8 @@ Emilio Lopes (changed) iso-acc.el
 Emilio Lopes (changed) process.c
 Emilio Lopes (changed) window.el
 Emmanuel Briot (changed) [changes in more than 20 files]
+Emmanuel Briot (wrote) ada-prj.el
+Emmanuel Briot (wrote) xml.el
 Enami Tsugutomo (changed) add-log.el
 Enami Tsugutomo (changed) bytecomp.el
 Enami Tsugutomo (changed) configure.in
@@ -311,19 +440,33 @@ Enami Tsugutomo (changed) vc.el
 Enami Tsugutomo (changed) window.c
 Enami Tsugutomo (changed) window.el
 Enami Tsugutomo (changed) xdisp.c
-Eric Ding (changed) goto-addr.el
+Eric Ding (wrote) goto-addr.el
 Eric Hanchrow (changed) emacsclient.c
 Eric M. Ludlam (changed) [changes in more than 20 files]
+Eric M. Ludlam (wrote) checkdoc.el
+Eric M. Ludlam (wrote) speedbar.el
+Eric Marsden (changed) gnus-art.el
+Eric Marsden (changed) nnslashdot.el
 Eric S. Raymond (changed) [changes in more than 20 files]
+Eric S. Raymond (wrote) AT386.el
 Eric S. Raymond (wrote) asm-mode.el
 Eric S. Raymond (wrote) cookie1.el
+Eric S. Raymond (wrote) finder.el
+Eric S. Raymond (wrote) gud.el
+Eric S. Raymond (wrote) keyswap.el
+Eric S. Raymond (wrote) lisp-mnt.el
+Eric S. Raymond (wrote) loadhist.el
 Eric Youngdale (changed) etags-vmslib.c
 Erik Naggum (changed) [changes in more than 20 files]
+Erik Naggum (wrote) disp-table.el
+Erik Naggum (wrote) latin-4.el
+Erik Naggum (wrote) latin-5.el
 Erik Naggum (wrote) mailheader.el
 Erik Naggum (wrote) parse-time.el
 Erik Toubro Nielsen (changed) gnus-sum.el
 Erik Toubro Nielsen (changed) gnus-topic.el
-Espen Skoglund (changed) pascal.el
+Erik Toubro Nielsen (changed) gnus-util.el
+Espen Skoglund (wrote) pascal.el
 Ethan Bradford (changed) ange-ftp.el
 Ethan Bradford (changed) gnus.el
 Ethan Bradford (changed) gnuspost.el
@@ -331,12 +474,16 @@ Ethan Bradford (changed) ispell.el
 Ethan Bradford (changed) lpr.el
 Ethan Bradford (changed) mailalias.el
 Ethan Bradford (changed) vt-control.el
+Ettore Perazzoli (changed) mail-source.el
 F. Thomas May (wrote) blackbox.el
 Fabrice Popineau (changed) etags.c
 Fabrice Popineau (changed) gnus-cache.el
+Fabrice Popineau (changed) gnus-score.el
 Felix Lee (changed) compile.el
 Felix Lee (changed) data.c
 Felix Lee (changed) flyspell.el
+Felix Lee (changed) gnus-async.el
+Felix Lee (changed) gnus.el
 Felix Lee (changed) gud.el
 Felix Lee (changed) nntp.el
 Felix Lee (changed) outline.el
@@ -344,12 +491,30 @@ Felix Lee (changed) process.c
 Felix Lee (changed) vc.el
 Felix Lee (changed) xdisp.c
 Flemming Hoejstrup Hansen (changed) forms.el
+Florian Weimer (changed) gnus-cite.el
+Florian Weimer (changed) gnus-msg.el
+Florian Weimer (changed) gnus-score.el
+Florian Weimer (changed) gnus-spec.el
+Florian Weimer (changed) gnus-uu.el
+Florian Weimer (changed) mailcap.el
+Florian Weimer (changed) message.el
+Florian Weimer (changed) mm-bodies.el
+Florian Weimer (changed) mm-encode.el
+Florian Weimer (changed) mm-util.el
+Florian Weimer (changed) mml.el
+Florian Weimer (changed) nnultimate.el
+Florian Weimer (changed) qp.el
+Florian Weimer (changed) rfc2047.el
 Francesco Potorti (changed) sgml-mode.el
 Francesco Potorti` (changed) [changes in more than 20 files]
+Francesco Potorti` (wrote) cmacexp.el
 Francis J. Wright (wrote) woman.el
+Francis Litterio (changed) gnus-group.el
 Francis Litterio (changed) saveplace.el
 Francis Wright (changed) dired.el
+Francisco Solsona (changed) message.el
 Francois Felix Ingrand (changed) gnus-salt.el
+Francois Felix Ingrand (changed) gnus-start.el
 Frank Bennett (changed) nnmail.el
 François Pinard (changed) allout.el
 François Pinard (changed) bytecomp.el
@@ -368,18 +533,23 @@ Frederic Lepied (wrote) expand.el
 Frederic Pierresteguy (changed) [changes in more than 20 files]
 Fritz Knabe (changed) mh-mime.el
 G Dinesh Dutt (changed) etags.el
+Gareth Jones (changed) gnus-art.el
 Gareth Jones (changed) gnus-score.el
-Gary D. Foster (changed) crisp.el
 Gary D. Foster (changed) gnus-group.el
 Gary D. Foster (changed) gnus-topic.el
+Gary D. Foster (wrote) crisp.el
 Gary D. Foster (wrote) scroll-all.el
 Gary Delp (wrote) mailpost.el
 Gary Oberbrunner (changed) gud.el
 Geoff Voelker (changed) [changes in more than 20 files]
+Geoff Voelker (wrote) w32-fns.el
 George V. Reilly (changed) emacs.ico
 George V. Reilly (changed) makefile.nt
 Georges Brun-Cottan (wrote) easy-mmode.el
 Gerd Moellmann (changed) [changes in more than 20 files]
+Gerd Moellmann (wrote) ebrowse.el
+Gerd Moellmann (wrote) jit-lock.el
+Gerd Moellmann (wrote) tooltip.el
 Germano Caronni (changed) ralloc.c
 Gernot Heiser (changed) refer.el
 Glynn Clements (wrote) gamegrid.el
@@ -408,18 +578,22 @@ Hallvard B. Furuseth (changed) gnus-cache.el
 Hallvard B. Furuseth (changed) gnus-sum.el
 Hallvard B. Furuseth (changed) gnus-util.el
 Hallvard B. Furuseth (changed) lread.c
+Hallvard B. Furuseth (changed) mailcap.el
 Hallvard B. Furuseth (changed) messcompat.el
+Hallvard B. Furuseth (changed) mm-bodies.el
+Hallvard B. Furuseth (changed) mm-util.el
 Hallvard B. Furuseth (changed) nntp.el
 Hallvard B. Furuseth (changed) print.c
 Hallvard B. Furuseth (changed) process.c
+Hallvard B. Furuseth (changed) rfc2047.el
 Hallvard B. Furuseth (changed) search.c
 Han-Wen Nienhuys (changed) emacsclient.c
-Hans Chalupsky (changed) advice.el
 Hans Chalupsky (changed) bytecomp.el
+Hans Chalupsky (wrote) advice.el
 Hans Chalupsky (wrote) trace.el
-Hans Henrik Eriksen (changed) simula.el
+Hans Henrik Eriksen (wrote) simula.el
 Heiko Muenkel (changed) b2m.c
-Henry Guillaume (changed) find-file.el
+Henry Guillaume (wrote) find-file.el
 Henry Kautz (wrote) refbib.el
 Hiroshi Nakano (changed) unexelf.c
 Holger Schauer (wrote) fortune.el
@@ -440,8 +614,8 @@ Hrvoje Niksic (changed) [changes in more than 20 files]
 Ian Lance Taylor (changed) sco4.h
 Ian T Zimmerman (changed) ange-ftp.el
 Ian T Zimmerman (changed) desktop.el
-Ian T Zimmerman (changed) gametree.el
 Ian T Zimmerman (changed) tex-mode.el
+Ian T Zimmerman (wrote) gametree.el
 Ilja Weis (wrote) gnus-topic.el
 Ilya Zakharevich (changed) cperl-mode.el
 Ilya Zakharevich (changed) dired.c
@@ -474,14 +648,20 @@ Inoue Seiichiro (changed) xfns.c
 Inoue Seiichiro (changed) xterm.c
 Inoue Seiichiro (changed) xterm.h
 Istvan Marko (changed) gnus-agent.el
-Ivar Rummelhoff (changed) winner.el
+Istvan Marko (changed) mm-decode.el
+Ivar Rummelhoff (wrote) winner.el
 Iwamuro Motonori (changed) gnus-kill.el
+Jaap-Henk Hoepman (changed) gnus-msg.el
 Jack Repenning (changed) unexelfsgi.c
-Jacques Duthen (changed) ps-print.el
+Jack Vinson (changed) mailcap.el
+Jacques Duthen (wrote) ps-print.el
+Jae-You Chung (changed) gnus.el
 Jae-Youn Chung (changed) hanja3.el
 James Clark (changed) window.c
 James Clark (changed) xselect.c
 James Clark (wrote) sgml-mode.el
+James H. Cloos, Jr. (changed) gnus-art.el
+James H. Cloos, Jr. (changed) gnus-sum.el
 James Thompson (changed) ps-print.el
 James Troup (changed) gnus-sum.el
 Jamie Zawinski (changed) mail-extr.el
@@ -494,6 +674,7 @@ Jamie Zawinski (wrote) tar-mode.el
 Jan Schormann (wrote) solitaire.el
 Jan Vroonhof (changed) gnus-cite.el
 Jan Vroonhof (changed) gnus-msg.el
+Jan Vroonhof (changed) message.el
 Jan Vroonhof (changed) nntp.el
 Jan-Hein Buhrman (changed) ange-ftp.el
 Jan-Hein Buhrman (changed) env.el
@@ -503,10 +684,12 @@ Jari Aalto (changed) debug.el
 Jari Aalto (changed) font-lock.el
 Jari Aalto (changed) gnus-art.el
 Jari Aalto (changed) lisp-mnt.el
+Jari Aalto (changed) mailcap.el
 Jari Aalto (changed) nnmail.el
+Jason R Mastaler (changed) drums.el
 Jason Rumney (changed) [changes in more than 20 files]
 Jay Adams (changed) jka-compr.el
-Jay K. Adams (changed) jka-compr.el
+Jay K. Adams (wrote) jka-compr.el
 Jay Sachs (changed) gnus-score.el
 Jay Sachs (changed) gnus-win.el
 Jeff Dwork (changed) ehelp.el
@@ -522,11 +705,17 @@ Jens Petersen (wrote) find-func.el
 Jens Toivo Berger Thielemann (changed) word-help.el
 Jens-Ulrik Holger Petersen (changed) cus-edit.el
 Jens-Ulrik Holger Petersen (changed) find-func.el
+Jens-Ulrik Holger Petersen (changed) gnus-group.el
+Jens-Ulrik Holger Petersen (changed) gnus-msg.el
 Jens-Ulrik Holger Petersen (changed) gnus.el
 Jerry Frain (changed) systime.h
 Jerry Frain (changed) usg5-4.h
 Jerry James (changed) format.el
+Jesper Harder (changed) message.el
 Jim Blandy (changed) [changes in more than 20 files]
+Jim Blandy (wrote) tvi970.el
+Jim Davidson (changed) gnus-sum.el
+Jim Davidson (changed) message.el
 Jim Kingdon (changed) MACHINES
 Jim Kingdon (changed) SERVICE
 Jim Kingdon (changed) emacs.tex
@@ -537,7 +726,7 @@ Jim Meyering (changed) Makefile.in
 Jim Meyering (changed) grep-changelog
 Jim Radford (changed) gnus-start.el
 Jim Salem (wrote) completion.el
-Jim Thompson (changed) ps-print.el
+Jim Thompson (wrote) ps-print.el
 Jim Wilson (changed) Makefile.in
 Jim Wilson (changed) alloca.c
 Joe Arceneaux (changed) bytecode.c
@@ -555,11 +744,15 @@ Joe Wells (wrote) resume.el
 Joel N. Weber Ii (changed) comint.el
 Joel N. Weber Ii (changed) make-dist
 Joel Ray Holveck (changed) info.el
+Joerg Lenneis (changed) nneething.el
+Joerg Lenneis (changed) nnheader.el
 Joev Dubach (changed) nntp.el
+Johan Kullstam (changed) mm-encode.el
 Johan Vromans (changed) complete.el
-Johan Vromans (changed) forms-d2.el
-Johan Vromans (changed) forms.el
+Johan Vromans (wrote) forms-d2.el
+Johan Vromans (wrote) forms.el
 Johan Vromans (wrote) iso-acc.el
+Johannes Weinert (changed) gnus-sum.el
 John Eaton (wrote) octave-hlp.el
 John Eaton (wrote) octave-inf.el
 John Eaton (wrote) octave-mod.el
@@ -568,22 +761,39 @@ John F. Whitehead (changed) mule-cmds.el
 John F. Whitehead (changed) mule-diag.el
 John Grabowski (changed) xfaces.c
 John Grabowski (changed) xfns.c
-John Heidemann (changed) mouse-drag.el
+John H. Palmieri (changed) mail-source.el
 John Heidemann (wrote) mouse-copy.el
+John Heidemann (wrote) mouse-drag.el
 John Heidemann (wrote) zone-mode.el
 John Hughes (changed) term.c
 John Robinson (wrote) bg-mouse.el
 John Tobey (changed) gud.el
 John W. Eaton (changed) octave-mod.el
-John Wiegley (changed) align.el
 John Wiegley (changed) allout.el
 John Wiegley (changed) compile.el
+John Wiegley (changed) em-cmpl.el
+John Wiegley (changed) em-dirs.el
+John Wiegley (changed) em-ls.el
+John Wiegley (changed) em-rebind.el
+John Wiegley (changed) em-smart.el
+John Wiegley (changed) em-unix.el
+John Wiegley (changed) em-xtra.el
+John Wiegley (changed) esh-cmd.el
+John Wiegley (changed) esh-mode.el
+John Wiegley (changed) esh-util.el
+John Wiegley (changed) esh-var.el
+John Wiegley (changed) mail-source.el
 John Wiegley (changed) outline.el
+John Wiegley (changed) pcmpl-gnu.el
 John Wiegley (changed) term.el
+John Wiegley (wrote) align.el
 John Wiegley (wrote) esh-module.el
 John Wiegley (wrote) eshell.el
 John Wiegley (wrote) pcomplete.el
 John Wiegley (wrote) timeclock.el
+Jon K Hellan (wrote) utf7.el
+Jon Kv (changed) nnfolder.el
+Jonas Steverud (changed) gnus-art.el
 Jonathan I. Kamens (changed) Makefile.in
 Jonathan I. Kamens (changed) Makefile.in.in
 Jonathan I. Kamens (changed) config.in
@@ -607,11 +817,27 @@ Jonathan Stigelman (wrote) hilit19.el
 Joseph Arceneaux (changed) [changes in more than 20 files]
 Joseph Arceoeaux (changed) lread.c
 Juergen Nickelsen (wrote) ws-mode.el
+Julien Gilles (wrote) gnus-ml.el
 Junio Hamano (changed) window.el
+Justin Sheehy (changed) gnus-util.el
+Justin Sheehy (changed) nnmail.el
 Justin Sheehy (changed) nntp.el
 K. Berry (changed) dired.c
 K. Berry (changed) fileio.c
 K. Shane Hartman (changed) [changes in more than 20 files]
+K. Shane Hartman (wrote) chistory.el
+K. Shane Hartman (wrote) echistory.el
+K. Shane Hartman (wrote) electric.el
+K. Shane Hartman (wrote) emacsbug.el
+K. Shane Hartman (wrote) helper.el
+K. Shane Hartman (wrote) picture.el
+K. Shane Hartman (wrote) view.el
+Kai Grossjohann (changed) nnheader.el
+Kai Großjohann (changed) gnus-cus.el
+Kai Großjohann (changed) gnus-sum.el
+Kai Großjohann (changed) gnus-util.el
+Kai Großjohann (changed) nnmail.el
+Kai.Grossjohann@Cs.Uni-Dortmund.De (changed) nnimap.el
 Karl Berry (changed) compile.el
 Karl Berry (changed) dired.c
 Karl Berry (changed) filelock.c
@@ -624,15 +850,38 @@ Karl Eichwalder (changed) dired.el
 Karl Eichwalder (changed) info.el
 Karl Eichwalder (changed) menu-bar.el
 Karl Eichwalder (changed) midnight.el
-Karl Fogel (changed) bookmark.el
 Karl Fogel (changed) editfns.c
-Karl Fogel (changed) mail-hist.el
 Karl Fogel (changed) menu-bar.el
-Karl Fogel (changed) saveplace.el
 Karl Fogel (changed) window.c
+Karl Fogel (wrote) bookmark.el
+Karl Fogel (wrote) mail-hist.el
+Karl Fogel (wrote) saveplace.el
 Karl Heuer (changed) [changes in more than 20 files]
+Karl Kleinpaste (changed) gnus-art.el
+Karl Kleinpaste (changed) gnus-cus.el
+Karl Kleinpaste (changed) gnus-msg.el
+Karl Kleinpaste (changed) gnus-score.el
+Karl Kleinpaste (changed) gnus-sum.el
+Karl Kleinpaste (changed) gnus-util.el
+Karl Kleinpaste (changed) mailcap.el
+Karl Kleinpaste (changed) message.el
+Karl Kleinpaste (changed) mm-encode.el
+Karl Kleinpaste (changed) mm-uu.el
+Karl Kleinpaste (changed) nnheader.el
 Karl M. Hegbloom (changed) gnus.el
+Katsumi Yamaoka (changed) gnus-art.el
+Katsumi Yamaoka (changed) gnus-group.el
+Katsumi Yamaoka (changed) gnus-start.el
 Katsumi Yamaoka (changed) gnus-sum.el
+Katsumi Yamaoka (changed) gnus-util.el
+Katsumi Yamaoka (changed) mail-source.el
+Katsumi Yamaoka (changed) message.el
+Katsumi Yamaoka (changed) mm-bodies.el
+Katsumi Yamaoka (changed) nnagent.el
+Katsumi Yamaoka (changed) nnheader.el
+Katsumi Yamaoka (changed) nnimap.el
+Katsumi Yamaoka (changed) nnmail.el
+Katsumi Yamaoka (changed) parse-time.el
 Kaveh R. Ghazi (changed) delta88k.h
 Kaveh R. Ghazi (changed) xterm.c
 Kawabata, Taichi (wrote) devan-util.el
@@ -660,7 +909,6 @@ Ken Manheimer (changed) delay
 Ken Manheimer (changed) don't
 Ken Manheimer (changed) for
 Ken Manheimer (changed) icomplete
-Ken Manheimer (changed) icomplete.el
 Ken Manheimer (changed) input
 Ken Manheimer (changed) intrude
 Ken Manheimer (changed) quickly
@@ -669,10 +917,16 @@ Ken Manheimer (changed) so
 Ken Manheimer (changed) variables
 Ken Manheimer (changed) with
 Ken Manheimer (wrote) allout.el
+Ken Manheimer (wrote) icomplete.el
 Ken Raeburn (changed) [changes in more than 20 files]
-Ken Stevens (changed) ispell.el
+Ken Stevens (wrote) ispell.el
 Kenichi Handa (changed) [changes in more than 20 files]
+Kenichi Handa (wrote) isearch-x.el
+Kenichi Handa (wrote) ps-mule.el
+Kenichi Handa (wrote) ps-print.el
+Kenichi Handa (wrote) py-punct.el
 Kenichi Handa (wrote) pypunct-b5.el
+Kenichi Handa (wrote) quail.el
 Kenneth Manheimer (changed) allout.el
 Kenneth Manheimer (changed) icomplete.el
 Kenneth Stailey (changed) alpha.h
@@ -685,7 +939,7 @@ Kenneth Stailey (changed) unexalpha.c
 Kenneth Stailey (changed) unexelf.c
 Kevin Blake (changed) font-lock.el
 Kevin Blake (changed) ring.el
-Kevin Broadey (changed) foldout.el
+Kevin Broadey (wrote) foldout.el
 Kevin Christian (changed) gnus-score.el
 Kevin Gallagher (wrote) edt-lk201.el
 Kevin Gallagher (wrote) edt-mapper.el
@@ -712,6 +966,7 @@ Kevin Rodgers (changed) sendmail.el
 Kevin Rodgers (changed) simple.el
 Kevin Rodgers (changed) vc.el
 Kevin Rodgers (changed) xfns.c
+Kevin The Bandicoot (changed) gnus-art.el
 Kim F. Storm (changed) addpm.c
 Kim F. Storm (changed) dosfns.c
 Kim F. Storm (changed) dosfns.h
@@ -730,19 +985,22 @@ Kim F. Storm (changed) sed1.inp
 Kim F. Storm (changed) sysdep.c
 Kim-Minh Kaplan (changed) [changes in more than 20 files]
 Kishore Kumar (changed) terminal.el
+Kiyokazu Suto (changed) nnspool.el
+Kjetil Torgrim Homme (changed) nnmail.el
 Koaunghi Un (changed) hangul.el
 Koaunghi Un (changed) hangul3.el
 Koaunghi Un (changed) hanja-jis.el
 Koaunghi Un (changed) hanja.el
-Koaunghi Un (changed) hanja3.el
 Koaunghi Un (changed) symbol-ksc.el
+Koaunghi Un (wrote) hanja3.el
 Kohtala Marko (changed) info.el
+Koseki Yoshinori (changed) mm-util.el
 Koseki Yoshinori (changed) nnmail.el
 Kurt Hornik (changed) ielm.el
-Kurt Hornik (changed) octave-hlp.el
-Kurt Hornik (changed) octave-inf.el
-Kurt Hornik (changed) octave-mod.el
 Kurt Hornik (changed) term.el
+Kurt Hornik (wrote) octave-hlp.el
+Kurt Hornik (wrote) octave-inf.el
+Kurt Hornik (wrote) octave-mod.el
 Kurt Swanson (changed) gnus-art.el
 Kurt Swanson (changed) gnus-ems.el
 Kurt Swanson (changed) gnus-group.el
@@ -758,17 +1016,81 @@ Kyle Jones (changed) mail-utils.el
 Kyle Jones (changed) saveconf.el
 Kyle Jones (changed) sendmail.el
 Kyle Jones (wrote) life.el
+Lantz Moore (changed) nnmail.el
 Lars Balker Rasmussen (changed) gnus-agent.el
 Lars Balker Rasmussen (changed) gnus-art.el
 Lars Balker Rasmussen (changed) message.el
-Lars Lindberg (changed) msb.el
+Lars Lindberg (wrote) msb.el
 Lars Magne Ingebrigtsen (changed) [changes in more than 20 files]
+Lars Magne Ingebrigtsen (wrote) format-spec.el
+Lars Magne Ingebrigtsen (wrote) gnus-agent.el
+Lars Magne Ingebrigtsen (wrote) gnus-art.el
+Lars Magne Ingebrigtsen (wrote) gnus-async.el
+Lars Magne Ingebrigtsen (wrote) gnus-bcklg.el
+Lars Magne Ingebrigtsen (wrote) gnus-cache.el
+Lars Magne Ingebrigtsen (wrote) gnus-demon.el
+Lars Magne Ingebrigtsen (wrote) gnus-draft.el
 Lars Magne Ingebrigtsen (wrote) gnus-dup.el
+Lars Magne Ingebrigtsen (wrote) gnus-eform.el
+Lars Magne Ingebrigtsen (wrote) gnus-ems.el
+Lars Magne Ingebrigtsen (wrote) gnus-group.el
+Lars Magne Ingebrigtsen (wrote) gnus-int.el
 Lars Magne Ingebrigtsen (wrote) gnus-logic.el
+Lars Magne Ingebrigtsen (wrote) gnus-move.el
+Lars Magne Ingebrigtsen (wrote) gnus-nocem.el
 Lars Magne Ingebrigtsen (wrote) gnus-range.el
+Lars Magne Ingebrigtsen (wrote) gnus-salt.el
+Lars Magne Ingebrigtsen (wrote) gnus-spec.el
+Lars Magne Ingebrigtsen (wrote) gnus-srvr.el
+Lars Magne Ingebrigtsen (wrote) gnus-start.el
+Lars Magne Ingebrigtsen (wrote) gnus-sum.el
+Lars Magne Ingebrigtsen (wrote) gnus-undo.el
+Lars Magne Ingebrigtsen (wrote) gnus-util.el
+Lars Magne Ingebrigtsen (wrote) gnus-uu.el
+Lars Magne Ingebrigtsen (wrote) gnus-win.el
+Lars Magne Ingebrigtsen (wrote) ietf-drums.el
+Lars Magne Ingebrigtsen (wrote) mail-parse.el
+Lars Magne Ingebrigtsen (wrote) mail-prsvr.el
+Lars Magne Ingebrigtsen (wrote) mail-source.el
+Lars Magne Ingebrigtsen (wrote) message.el
 Lars Magne Ingebrigtsen (wrote) messcompat.el
+Lars Magne Ingebrigtsen (wrote) mm-bodies.el
+Lars Magne Ingebrigtsen (wrote) mm-decode.el
+Lars Magne Ingebrigtsen (wrote) mm-encode.el
+Lars Magne Ingebrigtsen (wrote) mm-util.el
+Lars Magne Ingebrigtsen (wrote) mm-view.el
+Lars Magne Ingebrigtsen (wrote) mml.el
+Lars Magne Ingebrigtsen (wrote) nnagent.el
+Lars Magne Ingebrigtsen (wrote) nnbabyl.el
+Lars Magne Ingebrigtsen (wrote) nndir.el
+Lars Magne Ingebrigtsen (wrote) nndoc.el
+Lars Magne Ingebrigtsen (wrote) nndraft.el
+Lars Magne Ingebrigtsen (wrote) nneething.el
+Lars Magne Ingebrigtsen (wrote) nngateway.el
+Lars Magne Ingebrigtsen (wrote) nnkiboze.el
+Lars Magne Ingebrigtsen (wrote) nnlistserv.el
+Lars Magne Ingebrigtsen (wrote) nnmail.el
+Lars Magne Ingebrigtsen (wrote) nnmbox.el
+Lars Magne Ingebrigtsen (wrote) nnmh.el
+Lars Magne Ingebrigtsen (wrote) nnml.el
+Lars Magne Ingebrigtsen (wrote) nnoo.el
+Lars Magne Ingebrigtsen (wrote) nnslashdot.el
+Lars Magne Ingebrigtsen (wrote) nnsoup.el
+Lars Magne Ingebrigtsen (wrote) nntp.el
+Lars Magne Ingebrigtsen (wrote) nnultimate.el
+Lars Magne Ingebrigtsen (wrote) nnweb.el
+Lars Magne Ingebrigtsen (wrote) qp.el
+Lars Magne Ingebrigtsen (wrote) rfc2045.el
+Lars Magne Ingebrigtsen (wrote) rfc2047.el
+Lars Magne Ingebrigtsen (wrote) rfc2231.el
+Lars Magne Ingebrigtsen (wrote) score-mode.el
+Lars Magne Ingebrigtsen (wrote) time-date.el
+Lars Magne Ingebrigtsen- (changed) gnus-art.el
+Lars Magne Ingebrigtsen- (changed) mm-decode.el
+Lars Magne Ingebrigtsen- (changed) mm-view.el
 Lasse Rasinen (changed) gnus-start.el
 Lawrence R. Dodd (changed) [changes in more than 20 files]
+Lee Willis (changed) gnus-art.el
 Lennart Staflin (changed) diary-ins.el
 Lennart Staflin (changed) diary-lib.el
 Lennart Staflin (changed) dired.el
@@ -779,6 +1101,9 @@ Leonard H. Tower Jr. (changed) rmailout.el
 Leonard H. Tower Jr. (changed) rnews.el
 Leonard H. Tower Jr. (changed) rnewspost.el
 Leonard H. Tower Jr. (changed) rnewspost.el;
+Lloyd Zusman (changed) gnus-sum.el
+Lloyd Zusman (changed) mailcap.el
+Lloyd Zusman (changed) nnmail.el
 Lynn Slater (wrote) help-macro.el
 Manuel Serrano (wrote) flyspell.el
 Marc Fleischeuers (changed) files.el
@@ -816,6 +1141,7 @@ Mark Diekhans (changed) compile.el
 Mark Mitchell (changed) font-lock.el
 Mark Osbourne (changed) hexl-mode.el
 Mark W Maimone (changed) mpuz.el
+Mark W. Eichin (changed) gnus.el
 Mark W. Eichin (changed) keyboard.c
 Mark W. Eichin (changed) xterm.c
 Marko Rahamaa (wrote) latin-3.el
@@ -828,14 +1154,22 @@ Martin Buchholz (changed) etags.c
 Martin Larose (changed) message.el
 Martin Lorentzon (changed) vc-hooks.el
 Martin Lorentzon (changed) vc.el
+Martin Lorentzson (changed) vc-cvs-hooks.el
+Martin Lorentzson (changed) vc-cvs.el
+Martin Lorentzson (changed) vc-hooks.el
+Martin Lorentzson (changed) vc-rcs-hooks.el
+Martin Lorentzson (changed) vc-rcs.el
+Martin Lorentzson (changed) vc-sccs-hooks.el
+Martin Lorentzson (changed) vc-sccs.el
+Martin Lorentzson (changed) vc.el
 Martin Stjernholm (changed) [changes in more than 20 files]
 Masahiko Sato (wrote) vip.el
-Masanobu Umeda (changed) gnus.el
 Masanobu Umeda (changed) gnuspost.el
-Masanobu Umeda (changed) metamail.el
 Masanobu Umeda (wrote) gnus-kill.el
 Masanobu Umeda (wrote) gnus-mh.el
 Masanobu Umeda (wrote) gnus-msg.el
+Masanobu Umeda (wrote) gnus.el
+Masanobu Umeda (wrote) metamail.el
 Masanobu Umeda (wrote) nnheader.el
 Masanobu Umeda (wrote) nnspool.el
 Masanobu Umeda (wrote) prolog.el
@@ -846,16 +1180,25 @@ Masatake Yamato (changed) bookmark.el
 Masatake Yamato (changed) cus-face.el
 Masatake Yamato (changed) faces.el
 Masatake Yamato (changed) page-ext.el
+Matt Pharr (changed) gnus-group.el
+Matt Pharr (changed) gnus-msg.el
 Matt Pharr (changed) message.el
 Matt Simmons (changed) message.el
+Matt Swift (changed) gnus-group.el
+Matt Swift (changed) gnus-uu.el
 Matthew Swift (changed) simple.el
+Matthias Andree (changed) imap.el
 Matthieu Devin (wrote) delsel.el
+Max Froumentin (changed) gnus-score.el
 Michael Ben-Gershon (changed) acorn.h
 Michael Ben-Gershon (changed) configure.in
 Michael Ben-Gershon (changed) riscix1-1.h
 Michael Ben-Gershon (changed) riscix1-2.h
 Michael Ben-Gershon (changed) unexec.c
+Michael Cook (changed) gnus-art.el
+Michael Cook (changed) gnus-cite.el
 Michael D. Ernst (changed) [changes in more than 20 files]
+Michael D. Ernst (wrote) reposition.el
 Michael D. Prange (wrote) fortran.el
 Michael Ernst (changed) [changes in more than 20 files]
 Michael Gschwind (wrote) iso-cvt.el
@@ -874,6 +1217,18 @@ Michael I. Bushnell (changed) startup.el
 Michael I. Bushnell (changed) timer.c
 Michael Kifer (changed) [changes in more than 20 files]
 Michael Kifer (wrote) cal-x.el
+Michael Kifer (wrote) ediff-diff.el
+Michael Kifer (wrote) ediff-help.el
+Michael Kifer (wrote) ediff-hook.el
+Michael Kifer (wrote) ediff-init.el
+Michael Kifer (wrote) ediff-merg.el
+Michael Kifer (wrote) ediff-mult.el
+Michael Kifer (wrote) ediff-ptch.el
+Michael Kifer (wrote) ediff-util.el
+Michael Kifer (wrote) ediff-vers.el
+Michael Kifer (wrote) ediff-wind.el
+Michael Kifer (wrote) ediff.el
+Michael Kifer (wrote) viper.el
 Michael R. Cook (changed) gnus-art.el
 Michael R. Cook (changed) gnus-sum.el
 Michael R. Cook (changed) gnus-topic.el
@@ -882,7 +1237,9 @@ Michael Shields (changed) Makefile.in.in
 Michael Shields (changed) intel386.h
 Michael Sperber [Mr. Preprocessor] (changed) aix3-1.h
 Michael Sperber [Mr. Preprocessor] (changed) aix4-2.h
-Michael Staats (changed) pc-select.el
+Michael Staats (wrote) pc-select.el
+Michael Welsh Duggan (changed) gnus-art.el
+Michael Welsh Duggan (changed) gnus-start.el
 Michael Welsh Duggan (changed) keyboard.c
 Michael Welsh Duggan (changed) lisp.h
 Michael Welsh Duggan (changed) termhooks.h
@@ -893,9 +1250,10 @@ Michael Welsh Duggan (changed) w32term.c
 Michael Welsh Duggan (changed) w32term.h
 Michal Jankowski (changed) insdel.c
 Michal Jankowski (changed) keyboard.c
-Michelangelo Grigni (changed) ffap.el
 Michelangelo Grigni (changed) gnus-score.el
+Michelangelo Grigni (wrote) ffap.el
 Mikael Djurfeldt (changed) xdisp.c
+Mike Fabian (changed) gnus-group.el
 Mike Haertel (changed) m-7300.h
 Mike Long (changed) b2m.c
 Mike Long (changed) make-dist
@@ -904,8 +1262,11 @@ Mike Long (changed) netbsd.h
 Mike Long (changed) view.el
 Mike Long (changed) vms.h
 Mike Mcewan (changed) gnus-agent.el
+Mike Mcewan (changed) gnus-art.el
 Mike Mcewan (changed) gnus-score.el
 Mike Mcewan (changed) gnus-sum.el
+Mike Mcewan (changed) gnus.texi
+Mike Mcewan (changed) mml.el
 Mike Newton (changed) --
 Mike Newton (changed) 0.99c
 Mike Newton (changed) better
@@ -927,20 +1288,22 @@ Mike Rowan (changed) replaced
 Mike Rowan (changed) sysdep.c
 Mike Rowan (changed) xdisp.c
 Mike Williams (changed) Rewrite
-Mike Williams (changed) mouse-sel.el
 Mike Williams (changed) secondary
 Mike Williams (changed) selection.
 Mike Williams (changed) support
-Mike Williams (changed) thingatpt.el
 Mike Williams (changed) to
+Mike Williams (wrote) mouse-sel.el
+Mike Williams (wrote) thingatpt.el
 Mikio Nakajima (changed) viper-util.el
 Milan Zamazal (changed) abbrev.el
-Milan Zamazal (changed) czech.el
-Milan Zamazal (changed) glasses.el
 Milan Zamazal (changed) slovak.el
+Milan Zamazal (wrote) czech.el
+Milan Zamazal (wrote) glasses.el
 Milan Zamazal (wrote) tildify.el
 Miles Bader (changed) [changes in more than 20 files]
+Miles Bader (wrote) image-file.el
 Miyashita Hisashi (changed) ccl.c
+Miyashita Hisashi (changed) charset.c
 Miyashita Hisashi (changed) coding.c
 Miyashita Hisashi (changed) coding.h
 Miyashita Hisashi (changed) mule-cmds.el
@@ -953,6 +1316,11 @@ Morioka Tomohiko (changed) nnheader.el
 Morioka Tomohiko (changed) nnmail.el
 Morioka Tomohiko (changed) smiley.el
 Morten Welinder (changed) [changes in more than 20 files]
+Morten Welinder (wrote) arc-mode.el
+Morten Welinder (wrote) desktop.el
+Morten Welinder (wrote) internal.el
+Morten Welinder (wrote) pc-win.el
+Morten Welinder (wrote) s-region.el
 Mukesh Prasad (wrote) vmsproc.el
 Murata Shuuichirou (changed) coding.c
 Nachum Dershowitz (wrote) cal-hebrew.el
@@ -963,17 +1331,23 @@ Naoto Takahashi (changed) latin-post.el
 Naoto Takahashi (changed) mule-conf.el
 Naoto Takahashi (changed) quail.el
 Neal Ziring (wrote) vi.el
-Neil Mager (changed) appt.el
+Neil Crellin (changed) mail-source.el
+Neil Mager (wrote) appt.el
 Neil W. Van Dyke (wrote) webjump.el
 Nelson Jose Dos Santos Ferreira (changed) nnsoup.el
 Nico Francois (changed) ntinevt.c
 Nico Francois (changed) w32fns.c
 Nico Francois (changed) w32menu.c
 Noah Friedman (changed) [changes in more than 20 files]
+Noah Friedman (wrote) eldoc.el
+Noah Friedman (wrote) rlogin.el
+Noah Friedman (wrote) rsz-mini.el
+Noah Friedman (wrote) type-break.el
 Nobuyuki Hikichi (changed) news-risc.h
 Odd Gripenstam (wrote) dcl-mode.el
 Olaf Sylvester (wrote) bs.el
 Oleg S. Tihonov (changed) cyrillic.el
+Oleg S. Tihonov (changed) gnus-sum.el
 Oleg S. Tihonov (changed) ispell.el
 Oleg S. Tihonov (changed) map-ynp.el
 Oleg S. Tihonov (changed) subr.el
@@ -1011,7 +1385,9 @@ Paul D. Smith (changed) imenu.el
 Paul D. Smith (changed) make-mode.el
 Paul D. Smith (wrote) snmp-mode.el
 Paul Eggert (changed) [changes in more than 20 files]
+Paul Eggert (wrote) cal-dst.el
 Paul Fisher (changed) fns.c
+Paul Fisher (changed) mm-decode.el
 Paul Franklin (changed) message.el
 Paul Franklin (changed) nnmail.el
 Paul Hilfinger (changed) fill.el
@@ -1039,13 +1415,32 @@ Paul Rubin (changed) config.h
 Paul Rubin (changed) m-sun2.h
 Paul Rubin (changed) texinfmt.el
 Paul Rubin (changed) window.c
+Paul Stevenson (changed) gnus-sum.el
+Paul Stodghill (changed) gnus-agent.el
+Paul Stodghill (changed) gnus-msg.el
+Paul Stodghill (changed) message.el
+Paul Stodghill (changed) nnimap.el
+Pavel Janik Ml. (changed) gnus-draft.el
+Per Abhiddenware (wrote) gnus-cite.el
 Per Abrahamsen (changed) [changes in more than 20 files]
+Per Abrahamsen (wrote) cpp.el
+Per Abrahamsen (wrote) cus-dep.el
+Per Abrahamsen (wrote) cus-edit.el
+Per Abrahamsen (wrote) cus-face.el
+Per Abrahamsen (wrote) cus-start.el
+Per Abrahamsen (wrote) custom.el
+Per Abrahamsen (wrote) double.el
+Per Abrahamsen (wrote) gnus-cus.el
 Per Abrahamsen (wrote) gnus-score.el
 Per Abrahamsen (wrote) gnus-soup.el
+Per Abrahamsen (wrote) wid-browse.el
+Per Abrahamsen (wrote) wid-edit.el
+Per Abrahamsen (wrote) widget.el
+Per Abrahamsen (wrote) xt-mouse.el
 Per Bothner (changed) iso-acc.el
 Per Bothner (changed) process.c
 Per Bothner (changed) sysdep.c
-Per Bothner (changed) term.el
+Per Bothner (wrote) term.el
 Per Cederqvist (changed) forms.el
 Per Cederqvist (changed) hexl.el
 Per Cederqvist (changed) vc-hooks.el
@@ -1069,19 +1464,22 @@ Per Starback (changed) vc.el
 Per Starback (changed) xdisp.c
 Pete Ware (changed) message.el
 Pete Ware (wrote) auto-show.el
-Peter Breton (changed) dirtrack.el
-Peter Breton (changed) filecache.el
-Peter Breton (changed) generic-x.el
-Peter Breton (changed) generic.el
-Peter Breton (changed) locate.el
-Peter Breton (changed) net-utils.el
+Peter Breton (wrote) dirtrack.el
+Peter Breton (wrote) filecache.el
 Peter Breton (wrote) find-lisp.el
+Peter Breton (wrote) generic-x.el
+Peter Breton (wrote) generic.el
+Peter Breton (wrote) locate.el
+Peter Breton (wrote) net-utils.el
 Peter Galbraith (changed) simple.el
-Peter Kleiweg (changed) ps-mode.el
+Peter Kleiweg (wrote) ps-mode.el
 Peter Liljenberg (wrote) elint.el
 Peter S Galbraith (changed) goto-addr.el
 Peter S Galbraith (changed) info-look.el
-Peter Stephenson (changed) vcursor.el
+Peter Stephenson (wrote) vcursor.el
+Peter Von Der Ahe (changed) gnus-sum.el
+Peter Von Der Ahe (changed) message.el
+Petersen Jens-Ulrik (changed) gnus-start.el
 Petri Kaurinkoski (changed) configure.in
 Petri Kaurinkoski (changed) iris4d.h
 Petri Kaurinkoski (changed) irix6-0.h
@@ -1090,30 +1488,41 @@ Petri Kaurinkoski (changed) usg5-4.h
 Philippe Schnoebelen (wrote) gomoku.el
 Philippe Schnoebelen (wrote) mpuz.el
 Piet Van Oostrum (changed) smtpmail.el
+Puneet Goel (changed) message.el
 Rainer Schoepf (changed) [changes in more than 20 files]
 Rajappa Iyer (changed) gnus-salt.el
-Rajesh Vaidheeswarran (changed) whitespace.el
+Rajesh Vaidheeswarran (wrote) whitespace.el
 Ralf Fassel (changed) dabbrev.el
 Ralf Fassel (changed) files.el
 Ralf Fassel (changed) fill.el
 Ralf Fassel (changed) iso-acc.el
 Ralf Fassel (changed) tar-mode.el
-Ralph Schleicher (changed) battery.el
-Ralph Schleicher (changed) info-look.el
 Ralph Schleicher (changed) libc.el
+Ralph Schleicher (wrote) battery.el
+Ralph Schleicher (wrote) info-look.el
 Randal Schwartz (wrote) pp.el
 Randall Smith (changed) dired.el
 Raul Acevedo (changed) info.el
 Raul Acevedo (changed) options.el
-Ray Blaak (changed) delphi.el
+Ray Blaak (wrote) delphi.el
 Remek Trzaska (changed) gnus-ems.el
+Renaud Rioboo (changed) gnus-demon.el
 Renaud Rioboo (changed) nnmail.el
 Reto Zimmermann (changed) vhdl-mode.el
 Richard Hoskins (changed) message.el
 Richard L. Pieri (wrote) pop3.el
 Richard M. Heiberger (changed) tex-mode.el
 Richard M. Stallman (changed) [changes in more than 20 files]
+Richard M. Stallman (wrote) easymenu.el
+Richard M. Stallman (wrote) font-lock.el
+Richard M. Stallman (wrote) menu-bar.el
+Richard M. Stallman (wrote) paren.el
 Richard Mlynarik (changed) [changes in more than 20 files]
+Richard Mlynarik (wrote) cl-indent.el
+Richard Mlynarik (wrote) ebuff-menu.el
+Richard Mlynarik (wrote) rfc822.el
+Richard Mlynarik (wrote) terminal.el
+Richard Mlynarik (wrote) yow.el
 Richard Sharman (changed) ediff-init.el
 Richard Sharman (changed) regexp-opt.el
 Richard Sharman (changed) sh-script.el
@@ -1126,15 +1535,25 @@ Rick Sladkey (changed) intervals.h
 Rick Sladkey (changed) simple.el
 Rick Sladkey (wrote) backquote.el
 Rob Riepel (changed) tpu-doc.el
-Rob Riepel (changed) tpu-edt.el
-Rob Riepel (changed) tpu-extras.el
-Rob Riepel (changed) tpu-mapper.el
-Rob Riepel (changed) vt-control.el
+Rob Riepel (wrote) tpu-edt.el
+Rob Riepel (wrote) tpu-extras.el
+Rob Riepel (wrote) tpu-mapper.el
+Rob Riepel (wrote) vt-control.el
+Robert Bihlmeyer (changed) gnus-art.el
 Robert Bihlmeyer (changed) gnus-score.el
 Robert Bihlmeyer (changed) gnus-util.el
 Robert Bihlmeyer (changed) message.el
+Robert Bihlmeyer (changed) mm-view.el
+Robert Bihlmeyer (changed) mml.el
 Robert J. Chassell (changed) [changes in more than 20 files]
 Robert J. Chassell (wrote) makeinfo.el
+Robert J. Chassell (wrote) texinfo.el
+Robert J. Chassell (wrote) texnfo-upd.el
+Robert Pluim (changed) mm-util.el
+Robin S. Socha (changed) message.el
+Rod Whitby (changed) gnus-sum.el
+Rod Whitby (changed) nnmail.el
+Rod Whitby (changed) nnml.el
 Roderick Schertler (changed) dgux.h
 Roderick Schertler (changed) dgux4.h
 Roderick Schertler (changed) gud.el
@@ -1143,15 +1562,24 @@ Roger Breitenstein (changed) smtpmail.el
 Roland B. Roberts (changed) gnus-group.el
 Roland B. Roberts (wrote) vms-pmail.el
 Roland Mcgrath (changed) [changes in more than 20 files]
+Roland Mcgrath (wrote) autoload.el
+Roland Mcgrath (wrote) compile.el
+Roland Mcgrath (wrote) etags.el
+Roland Mcgrath (wrote) find-dired.el
+Roland Mcgrath (wrote) map-ynp.el
 Roland Roberts (changed) gnus-sum.el
-Rolf Ebert (changed) ada-mode.el
 Rolf Ebert (changed) files.el
 Rolf Ebert (changed) find-file.el
+Rolf Ebert (wrote) ada-mode.el
 Roman Belenov (changed) which-func.el
-Ron Schnell (changed) dunnet.el
+Ron Schnell (wrote) dunnet.el
 Ronan Waide (changed) smtpmail.el
 Roth@Klondike.Cse.Ucsc.Edu (changed) gnus-nocem.el
+Rui Zhu (changed) gnus-art.el
+Rui Zhu (changed) gnus-sum.el
 Rui-Tao Dong ~{6-Hpln~} (changed) nnweb.el
+Rupa Schomaker (changed) gnus-msg.el
+Rupa Schomaker (changed) message.el
 Russ Allbery (changed) message.el
 Ryszard Kubiak (changed) ogonek.el
 Sam Dooley (changed) keyboard.c
@@ -1162,37 +1590,39 @@ Sam Steingold (wrote) midnight.el
 Scott Byer (changed) gnus-sum.el
 Scott Byer (wrote) nnfolder.el
 Scott Draves (wrote) tq.el
+Scott Hofmann (changed) nntp.el
 Scott M. Meyers (changed) cmacexp.el
 Sebastian Kremer (wrote) dired-aux.el
 Sebastian Kremer (wrote) dired-x.el
 Sebastian Kremer (wrote) dired.el
 Sebastian Kremer (wrote) ls-lisp.el
-Sen Nagata (changed) crm.el
+Sen Nagata (wrote) crm.el
 Sen Nagata (wrote) rfc2368.el
 Seokchan Lee (changed) message.el
+Seokchan Lee (changed) mm-bodies.el
 Shane Hartman (changed) buffer.c
 Shane Hartman (changed) c++-mode.el
 Shane Hartman (changed) gud.el
 Shane Hartman (changed) keymap.c
 Shane Hartman (changed) window.c
 Shane Hartman (changed) xterm.c
-Shenghuo Zhu (changed) gnus-agent.el
+Shenghuo Zhu (changed) [changes in more than 20 files]
+Shenghuo Zhu (wrote) binhex.el
+Shenghuo Zhu (wrote) mm-partial.el
+Shenghuo Zhu (wrote) mm-uu.el
+Shenghuo Zhu (wrote) nnwarchive.el
+Shenghuo Zhu (wrote) rfc1843.el
+Shenghuo Zhu (wrote) uudecode.el
+Shenghuo Zhu (wrote) webmail.el
 Shuhei Kobayashi (changed) gnus-group.el
 Shuhei Kobayashi (changed) message.el
 Shuhei Kobayashi (changed) nnmail.el
 Sigbjorn Finne (changed) gnus-srvr.el
-Simon Josefsson (changed) configure.in
-Simon Josefsson (changed) emacsserver.c
-Simon Josefsson (changed) gnus-cache.el
-Simon Josefsson (changed) gnus-int.el
-Simon Josefsson (changed) gnus-msg.el
-Simon Josefsson (changed) gnus-range.el
-Simon Josefsson (changed) gnus-srvr.el
-Simon Josefsson (changed) gnus-sum.el
-Simon Josefsson (changed) gnus-util.el
-Simon Josefsson (changed) message.el
-Simon Josefsson (changed) nndoc.el
-Simon Josefsson (changed) nnmail.el
+Simon Josefsson (changed) [changes in more than 20 files]
+Simon Josefsson (wrote) flow-fill.el
+Simon Josefsson (wrote) imap.el
+Simon Josefsson (wrote) nnimap.el
+Simon Josefsson (wrote) rfc2104.el
 Simon Leinen (changed) Makefile
 Simon Leinen (changed) Makefile.in
 Simon Leinen (changed) cm.c
@@ -1208,17 +1638,34 @@ Simon Leinen (changed) xfns.c
 Simon Leinen (changed) xmenu.c
 Simon Leinen (changed) xterm.c
 Simon Marshall (changed) [changes in more than 20 files]
+Simon Marshall (wrote) fast-lock.el
+Simon Marshall (wrote) lazy-lock.el
+Simon Marshall (wrote) regexp-opt.el
 Skip Collins (changed) w32fns.c
 Skip Collins (changed) w32term.c
 Skip Collins (changed) w32term.h
-Stanislav Shalunov (changed) uce.el
+Stainless Steel Rat (changed) gnus-sum.el
+Stainless Steel Rat (changed) pop3.el
+Stanislav Shalunov (wrote) uce.el
 Stefan Monnier (changed) [changes in more than 20 files]
-Stefan Schoef (changed) bibtex.el
+Stefan Monnier (wrote) cvs-status.el
+Stefan Monnier (wrote) diff-mode.el
+Stefan Monnier (wrote) log-edit.el
+Stefan Monnier (wrote) log-view.el
+Stefan Monnier (wrote) pcvs-defs.el
+Stefan Monnier (wrote) pcvs-info.el
+Stefan Monnier (wrote) pcvs-parse.el
+Stefan Monnier (wrote) pcvs-util.el
+Stefan Monnier (wrote) smerge-mode.el
+Stefan Schoef (wrote) bibtex.el
 Stefan Waldherr (changed) nnweb.el
+Steinar Bang (changed) nnweb.el
 Stephen A. Wood (changed) 1.28.8
 Stephen A. Wood (changed) fortran.el
 Stephen A. Wood (changed) version
 Stephen Eglen (changed) [changes in more than 20 files]
+Stephen Eglen (wrote) iswitchb.el
+Stephen Eglen (wrote) mspools.el
 Stephen Gildea (changed) files.el
 Stephen Gildea (changed) fortran.el
 Stephen Gildea (changed) mh-comp.el
@@ -1233,12 +1680,17 @@ Steve Nygard (changed) unexnext.c
 Steven L. Baur (changed) add-log.el
 Steven L. Baur (changed) dgnushack.el
 Steven L. Baur (changed) edebug.el
+Steven L. Baur (changed) gnus-art.el
 Steven L. Baur (changed) gnus-ems.el
 Steven L. Baur (changed) gnus-msg.el
+Steven L. Baur (changed) gnus-picon.el
 Steven L. Baur (changed) gnus-start.el
+Steven L. Baur (changed) gnus-sum.el
 Steven L. Baur (changed) gnus-topic.el
 Steven L. Baur (changed) gnus-xmas.el
 Steven L. Baur (changed) message.el
+Steven L. Baur (changed) mm-decode.el
+Steven L. Baur (changed) mm-view.el
 Steven L. Baur (changed) nnbabyl.el
 Steven L. Baur (changed) nntp.el
 Steven L. Baur (changed) webjump.el
@@ -1252,7 +1704,9 @@ Steven Suhr (changed) term.c
 Steven Suhr (changed) termchar.h
 Stewart M. Clamen (wrote) cal-mayan.el
 Stig@Netcom.Com (changed) hilit19.el
+Sudish Joseph (changed) gnus.el
 Sundar Narasimhan (changed) rnews.el
+Sven Fischer (changed) mailcap.el
 Tak Ota (changed) w32bdf.c
 Takahashi Naoto (wrote) ethio-util.el
 Takahashi Naoto (wrote) ethiopic.el
@@ -1261,10 +1715,12 @@ Takahashi Naoto (wrote) latin-post.el
 Takeshi Yamada (changed) fns.c
 Tatsuya Ichikawa (changed) gnus-agent.el
 Tatsuya Ichikawa (changed) gnus-cache.el
+Tatsuya Ichikawa (changed) mail-source.el
+Tatsuya Ichikawa (changed) pop3.el
 Ted Lemon (changed) emacs.c
 Ted Lemon (changed) lastfile.c
 Ted Lemon (changed) puresize.h
-Terrence Brannon (changed) landmark.el
+Terrence Brannon (wrote) landmark.el
 Terry Jones (wrote) shadow.el
 Theodore Jump (changed) makefile.def
 Theodore Jump (changed) makefile.nt
@@ -1272,7 +1728,7 @@ Theodore Jump (changed) w32-win.el
 Theodore Jump (changed) w32faces.c
 Thien-Thi Nguyen (changed) compile.el
 Thien-Thi Nguyen (changed) desktop.el
-Thien-Thi Nguyen (changed) hideshow.el
+Thien-Thi Nguyen (wrote) hideshow.el
 Thierry Emery (changed) timezone.el
 Thierry Emery (changed) wid-edit.el
 Thomas Horsley (changed) cxux-crt0.s
@@ -1289,6 +1745,7 @@ Thomas Wurgler (changed) emacs-lock.el
 Thor Kristoffersen (changed) nntp.el
 Thorsten Ohl (changed) lread.c
 Thorsten Ohl (changed) next.h
+Toby Speight (changed) mm-view.el
 Toby Speight (changed) window.el
 Tom Breton (changed) autoinsert.el
 Tom Breton (changed) gnus-agent.el
@@ -1329,6 +1786,7 @@ Torbj|Rn Einarsson (changed) f90.el
 Toru Tomabechi, (wrote) tibet-util.el
 Toru Tomabechi, (wrote) tibetan.el
 Toshiaki Nomura (changed) uxpds.h
+Tozawa Akihiko (changed) nndoc.el
 Trung Tran-Duc (changed) nntp.el
 Tsugutomo Enami (changed) nnheader.el
 Tsugutomo Enami (changed) regex.c
@@ -1342,21 +1800,20 @@ Ulrich Mueller (changed) gud.el
 Ulrich Mueller (changed) iso-acc.el
 Ulrich Mueller (changed) sysdep.c
 Ulrik Vieth (changed) files.el
-Ulrik Vieth (changed) meta-mode.el
+Ulrik Vieth (wrote) meta-mode.el
+Urban Engberg (changed) gnus-demon.el
 Valery Alexeev (changed) cyril-util.el
 Valery Alexeev (changed) cyrillic.el
+Victor S. Miller (changed) webmail.el
 Victor Zandy (wrote) zone.el
 Vince Del Vecchio (changed) mh-utils.el
 Vincent Del Vecchio (changed) info.el
-Vinicius Jose Latorre (changed) ebnf2ps.el
 Vinicius Jose Latorre (changed) ps-bdf.el
-Vinicius Jose Latorre (changed) ps-mule.el
 Vinicius Jose Latorre (changed) ps-prin0.ps
 Vinicius Jose Latorre (changed) ps-prin1.ps
 Vinicius Jose Latorre (changed) ps-prin2.ps
 Vinicius Jose Latorre (changed) ps-prin3.ps
 Vinicius Jose Latorre (changed) ps-print-def.el
-Vinicius Jose Latorre (changed) ps-print.el
 Vinicius Jose Latorre (changed) ps-print0.ps
 Vinicius Jose Latorre (changed) ps-vars.el
 Vinicius Jose Latorre (wrote) delim-col.el
@@ -1364,9 +1821,14 @@ Vinicius Jose Latorre (wrote) ebnf-bnf.el
 Vinicius Jose Latorre (wrote) ebnf-iso.el
 Vinicius Jose Latorre (wrote) ebnf-otz.el
 Vinicius Jose Latorre (wrote) ebnf-yac.el
+Vinicius Jose Latorre (wrote) ebnf2ps.el
+Vinicius Jose Latorre (wrote) ps-mule.el
+Vinicius Jose Latorre (wrote) ps-print.el
 Vladimir Alexiev (changed) arc-mode.el
 Vladimir Alexiev (changed) nnvirtual.el
 Vladimir Alexiev (changed) tmm.el
+Vladimir Volovich (changed) message.el
+Vladimir Volovich (changed) mm-bodies.el
 Wayne Mesard (wrote) hscroll.el
 Werner Benger (changed) keyboard.c
 Werner Lemberg (changed) fill.el
@@ -1377,14 +1839,18 @@ Will Mengarini (wrote) repeat.el
 William F. Mann (wrote) perl-mode.el
 William F. Schelter (wrote) telnet.el
 William M. Perry (changed) image.el
+William M. Perry (changed) mail-source.el
+William M. Perry (changed) mm-view.el
 William M. Perry (changed) mwheel.el
 William M. Perry (changed) xfns.c
+William M. Perry (wrote) mailcap.el
 William Sommerfeld (wrote) server.el
 Wilson H. Tien (changed) unexelf.c
 Wjcarpenter (changed) feedmail.el
 Wlodzimierz Bzyl (changed) latin-pre.el
 Wlodzimierz Bzyl (changed) refcard-pl.ps
 Wlodzimierz Bzyl (changed) refcard-pl.tex
+Wlodzimierz Bzyl (changed) survival.tex
 Wolfgang Glas (changed) unexsgi.c
 Wolfgang Rupprecht (changed) config.in
 Wolfgang Rupprecht (changed) configure.in
@@ -1394,9 +1860,12 @@ Wolfgang Rupprecht (changed) process.c
 Wolfgang Rupprecht (wrote) sup-mouse.el
 Wolfram Gloger (changed) emacs.c
 W{\L}Odek Bzyl, Ryszard Kubiak (wrote) ogonek.el
+Yamamoto Kouji (changed) nnmail.el
 Yamamoto Mitsuharu (changed) byte-opt.el
 Yann Dirson (changed) imenu.el
+Yoshiki Hayashi (changed) gnus-art.el
 Yoshiki Hayashi (changed) nnheader.el
+Yoshiki Hayashi (changed) nnvirtual.el
 Yoshiki Hayashi (changed) texinfmt.el
 Yutaka Niibe (changed) Makefile.in
 Yutaka Niibe (changed) config.in
@@ -1416,3 +1885,6 @@ Yutaka Niibe (changed) sysdep.c
 Yutaka Niibe (changed) term.c
 Yutaka Niibe (changed) window.c
 Yutaka Niibe (changed) xdisp.c
+Zhu Shenghuo (changed) gnus-art.el
+Zhu Shenghuo (changed) gnus-cus.el
+Zhu Shenghuo (changed) mm-decode.el
