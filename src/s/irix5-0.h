@@ -15,7 +15,7 @@
 #ifdef SYSTEM_TYPE
 #undef SYSTEM_TYPE
 #endif
-#define SYSTEM_TYPE "silicon-graphics-unix"
+#define SYSTEM_TYPE "irix"
 
 #ifdef SETUP_SLAVE_PTY
 #undef SETUP_SLAVE_PTY
