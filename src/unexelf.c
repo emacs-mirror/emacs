@@ -583,8 +583,13 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (ftruncate (new_file, new_file_size))
     fatal ("Can't ftruncate (%s): errno %d\n", new_name, errno);
 
+#ifdef UNEXEC_USE_MAP_PRIVATE
+  new_base = mmap (0, new_file_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
+		   new_file, 0);
+#else
   new_base = mmap (0, new_file_size, PROT_READ | PROT_WRITE, MAP_SHARED,
 		   new_file, 0);
+#endif
 
   if (new_base == (caddr_t) -1)
     fatal ("Can't mmap (%s): errno %d\n", new_name, errno);
@@ -801,6 +806,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    || strcmp ((char *) (symnames + symp->st_name), "_edata") == 0)
 	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
     }
+
+#ifdef UNEXEC_USE_MAP_PRIVATE
+  if (lseek (new_file, 0, SEEK_SET) == -1)
+    fatal ("Can't rewind (%s): errno %d\n", new_name, errno);
+
+  if (write (new_file, new_base, new_file_size) != new_file_size)
+    fatal ("Can't write (%s): errno %d\n", new_name, errno);
+#endif
 
   /* Close the files and make the new file executable.  */
 
