@@ -1,3 +1,13 @@
+2000-01-05  Dave Love  <fx@gnu.org>
+
+	* cl-extra.el (cl-make-hash-table): Use make-hash-table.
+	(cl-lucid-hash-tag): Delete.
+	(cl-hash-table-p): Correct test for native table.
+	(cl-hash-table-count): Use hash-table-count.
+
+	* browse-url.el (browse-url): Fix case of
+	browse-url-browser-function being an alist.
+
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-parse-file-extension,
@@ -82,8 +92,8 @@
 
 2000-01-04  Dave Love  <fx@gnu.org>
 
-	* bindings.el (make-mode-line-mouse-sensitive):
-	Fix the toggle menu items.
+	* bindings.el (make-mode-line-mouse-sensitive): Fix the toggle
+	menu items.
 
 2000-01-03  Dave Love  <fx@gnu.org>
 
