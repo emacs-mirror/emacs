@@ -1,10 +1,10 @@
-;;; pcvs-info.el --- Internal representation of a fileinfo entry
+;;; pcvs-info.el --- internal representation of a fileinfo entry
 
 ;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.5 2000/12/06 19:52:13 fx Exp $
+;; Revision: $Id: pcvs-info.el,v 1.6 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -477,4 +477,4 @@ DIR can also be a file."
 
 (provide 'pcvs-info)
 
-;;; pcl-cvs-info.el ends here
+;;; pcvs-info.el ends here

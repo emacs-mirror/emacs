@@ -1,4 +1,4 @@
-;;; cal-julian.el --- calendar functions for the Julian calendar.
+;;; cal-julian.el --- calendar functions for the Julian calendar
 
 ;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; cal-tex.el --- calendar functions for printing calendars with LaTeX.
+;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 

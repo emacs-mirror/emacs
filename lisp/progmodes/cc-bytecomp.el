@@ -1,4 +1,4 @@
-;;; cc-bytecomp.el --- Compile time setup for proper compilation
+;;; cc-bytecomp.el --- compile time setup for proper compilation
 
 ;; Copyright (C) 2000, 01 Free Software Foundation, Inc.
 
@@ -33,6 +33,8 @@
 ;; features to defeat the compiler warnings for selected symbols.
 
 
+;;; Code:
+
 (defvar cc-bytecomp-unbound-variables nil)
 (defvar cc-bytecomp-original-functions nil)
 (defvar cc-bytecomp-original-properties nil)
@@ -290,3 +292,5 @@ Don't use within `eval-when-compile'."
 
 
 (provide 'cc-bytecomp)
+
+;;; cc-bytecomp.el ends here

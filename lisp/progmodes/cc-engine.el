@@ -29,6 +29,10 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile
   (let ((load-path
 	 (if (and (boundp 'byte-compile-dest-file)
@@ -2790,4 +2794,5 @@ With universal argument, inserts the analysis as a comment on that line."
 
 
 (cc-provide 'cc-engine)
+
 ;;; cc-engine.el ends here

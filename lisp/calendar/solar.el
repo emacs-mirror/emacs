@@ -1,4 +1,4 @@
-;;; solar.el --- calendar functions for solar events.
+;;; solar.el --- calendar functions for solar events
 
 ;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 
@@ -61,7 +61,7 @@
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
-  (error "Solar/lunar calculations impossible since floating point is unavailable."))
+  (error "Solar/lunar calculations impossible since floating point is unavailable"))
 
 (require 'cal-dst)
 (require 'cal-julian)

@@ -1,4 +1,4 @@
-;;; lunar.el --- calendar functions for phases of the moon.
+;;; lunar.el --- calendar functions for phases of the moon
 
 ;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 
@@ -51,7 +51,7 @@
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
-  (error "Lunar calculations impossible since floating point is unavailable."))
+  (error "Lunar calculations impossible since floating point is unavailable"))
 
 (require 'solar)
 

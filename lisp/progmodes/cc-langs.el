@@ -29,6 +29,10 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile
   (let ((load-path
 	 (if (and (boundp 'byte-compile-dest-file)
@@ -539,4 +543,5 @@ are parsed.")
 
 
 (cc-provide 'cc-langs)
+
 ;;; cc-langs.el ends here

@@ -1,9 +1,11 @@
-;;; ada-stmt.el --- An extension to Ada mode for inserting statement templates.
+;;; ada-stmt.el --- an extension to Ada mode for inserting statement templates
 
 ;; Copyright(C) 1987, 1993, 1994, 1996, 1997, 1998, 1999
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.8 $
+;; Ada Core Technologies's version:   $Revision: 1.9 $
+
+;; This file is part of GNU Emacs.
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>

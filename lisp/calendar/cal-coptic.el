@@ -1,4 +1,4 @@
-;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars.
+;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars
 
 ;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 

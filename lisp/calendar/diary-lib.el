@@ -1,4 +1,4 @@
-;;; diary-lib.el --- diary functions.
+;;; diary-lib.el --- diary functions
 
 ;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995 Free Software
 ;; Foundation, Inc.

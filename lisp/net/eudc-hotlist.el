@@ -1,4 +1,4 @@
-;;; eudc-hotlist.el --- Hotlist Management for EUDC
+;;; eudc-hotlist.el --- hotlist management for EUDC
 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 

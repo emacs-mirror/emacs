@@ -1,4 +1,4 @@
-;;; cal-iso.el --- calendar functions for the ISO calendar.
+;;; cal-iso.el --- calendar functions for the ISO calendar
 
 ;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; cal-dst.el --- calendar functions for daylight savings rules.
+;;; cal-dst.el --- calendar functions for daylight savings rules
 
 ;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 

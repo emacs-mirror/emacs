@@ -21,6 +21,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
 ;;;   These must be placed in menu-bar.el in Emacs
@@ -354,6 +356,5 @@
 
 
 (provide 'ediff-hook)
-
 
 ;;; ediff-hook.el ends here

@@ -1,4 +1,4 @@
-;; @(#) ada-mode.el --- major-mode for editing Ada source.
+;;; ada-mode.el --- major-mode for editing Ada sources
 
 ;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001
 ;;  Free Software Foundation, Inc.
@@ -7,10 +7,10 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.40 $
+;; Ada Core Technologies's version:   $Revision: 1.41 $
 ;; Keywords: languages ada
 
-;; This file is part of GNU Emacs
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -4668,7 +4668,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
           (setq body-file (ada-get-body-name))
           (if body-file
               (find-file body-file)
-            (error "No body found for the package. Create it first."))
+            (error "No body found for the package. Create it first"))
 
           (save-restriction
             (widen)

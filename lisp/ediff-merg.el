@@ -21,6 +21,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
 (provide 'ediff-merg)
@@ -385,4 +387,4 @@ Combining is done according to the specifications in variable
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
-;; ediff-merg.el ends here
+;;; ediff-merg.el ends here

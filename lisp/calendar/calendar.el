@@ -1,4 +1,4 @@
-;;; calendar.el --- Calendar functions.
+;;; calendar.el --- calendar functions
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2000
 ;;        Free Software Foundation, Inc.
@@ -1813,7 +1813,7 @@ Or, for optional MON, YR."
 (defun generate-calendar (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
   (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before February, 1 AD are not available."))
+      (error "Months before February, 1 AD are not available"))
   (setq displayed-month month)
   (setq displayed-year year)
   (erase-buffer)
@@ -2073,7 +2073,7 @@ the inserted text.  Value is always t."
   (let ((where (save-window-excursion
 		 (Info-find-emacs-command-nodes 'calendar))))
     (if (not where)
-        (error "Couldn't find documentation for the calendar.")
+        (error "Couldn't find documentation for the calendar")
       (let (same-window-buffer-names)
 	(info))
       (Info-find-node (car (car where)) (car (cdr (car where)))))))

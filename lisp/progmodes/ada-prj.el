@@ -1,9 +1,9 @@
-;;; @(#) ada-prj.el --- Easy editing of project files for the ada-mode
+;;; ada-prj.el --- easy editing of project files for the ada-mode
 
 ;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.5 $
+;; Ada Core Technologies's version:   $Revision: 1.6 $
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -23,6 +23,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; This package provides a set of functions to easily edit the project
 ;;; files used by the ada-mode.
 ;;; The only function publicly available here is `ada-customize'.
@@ -31,7 +33,7 @@
 ;;; Internally, a project file is represented as a property list, with each
 ;;; field of the project file matching one property of the list.
 
-;; Code:
+;;; Code:
 
 
 ;; ----- Requirements -----------------------------------------------------
@@ -644,4 +646,5 @@ AFTER-TEXT is inserted just after the widget."
 (ada-prj-add-ada-menu)
 
 (provide 'ada-prj)
-;;; package ada-prj.el ends here
+
+;;; ada-prj.el ends here

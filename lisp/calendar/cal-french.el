@@ -1,4 +1,4 @@
-;;; cal-french.el --- calendar functions for the French Revolutionary calendar.
+;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
 ;; Copyright (C) 1988, 89, 92, 94, 95, 1997 Free Software Foundation, Inc.
 

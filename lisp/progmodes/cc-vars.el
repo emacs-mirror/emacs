@@ -29,6 +29,10 @@
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; Code:
+
 (eval-when-compile
   (let ((load-path
 	 (if (and (boundp 'byte-compile-dest-file)
@@ -1114,4 +1118,5 @@ Infodock (based on XEmacs) has an additional symbol on this list:
 
 
 (cc-provide 'cc-vars)
+
 ;;; cc-vars.el ends here

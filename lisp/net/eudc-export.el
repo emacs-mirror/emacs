@@ -1,4 +1,4 @@
-;;; eudc-export.el --- Functions to export EUDC qeuery results
+;;; eudc-export.el --- functions to export EUDC query results
 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 

@@ -1,11 +1,11 @@
-;;; pcvs-util.el --- Utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
+;;; pcvs-util.el --- utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
 
 ;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.11 2001/03/20 20:26:13 johnw Exp $
+;; Revision: $Id: pcvs-util.el,v 1.12 2001/04/13 14:56:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -321,7 +321,7 @@ If it is \\[universal-argument] \\[universal-argument], behave just
 
     ;; sanity check
     (unless (< (abs numarg) (length defaults))
-      (error "There is no %sth default." (abs numarg)))
+      (error "There is no %sth default" (abs numarg)))
 
     (if permstr
 	(let* ((prompt (format "%s%s: " desc permstr))
@@ -411,4 +411,4 @@ and reset it unless READ-ONLY is non-nil."
 
 (provide 'pcvs-util)
 
-;;; pcl-cvs-util.el ends here
+;;; pcvs-util.el ends here

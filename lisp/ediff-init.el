@@ -1,4 +1,4 @@
-;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
+;;; ediff-init.el --- macros, variables, and defsubsts used by Ediff
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
@@ -20,6 +20,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;;; Code:
 
@@ -1780,5 +1782,4 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 (provide 'ediff-init)
 
-
-;;; ediff-init.el  ends here
+;;; ediff-init.el ends here

@@ -1,4 +1,4 @@
-;;; cal-hebrew.el --- calendar functions for the Hebrew calendar.
+;;; cal-hebrew.el --- calendar functions for the Hebrew calendar
 
 ;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 

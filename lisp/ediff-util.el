@@ -21,6 +21,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 	 
 (provide 'ediff-util)
@@ -269,7 +271,7 @@ to invocation.")
 	       (expand-file-name merge-buffer-file)))
 	;; check the directory exists
 	(or (file-exists-p (file-name-directory merge-buffer-file))
-	    (error "Directory %s given as place to save the merge doesn't exist."
+	    (error "Directory %s given as place to save the merge doesn't exist"
 		   (abbreviate-file-name 
 		    (file-name-directory merge-buffer-file))))
 	(if (and (file-exists-p merge-buffer-file)

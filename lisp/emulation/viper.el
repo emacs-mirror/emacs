@@ -39,7 +39,7 @@
 ;; of minor modes and it is designed to provide full access to all Emacs
 ;; major and minor modes.
 ;;
-;;; History
+;;; History:
 ;;
 ;; Viper is a new name for a package formerly known as VIP-19,
 ;; which was a successor of VIP version 3.5 by Masahiko Sato

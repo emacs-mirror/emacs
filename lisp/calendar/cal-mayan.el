@@ -1,4 +1,4 @@
-;;; cal-mayan.el --- calendar functions for the Mayan calendars.
+;;; cal-mayan.el --- calendar functions for the Mayan calendars
 
 ;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 

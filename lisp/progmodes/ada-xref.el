@@ -1,4 +1,4 @@
-;; @(#) ada-xref.el --- for lookup and completion in Ada mode
+;;; ada-xref.el --- for lookup and completion in Ada mode
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.5 $
+;; Ada Core Technologies's version:   $Revision: 1.6 $
 ;; Keywords: languages ada xref
 
 ;; This file is part of GNU Emacs.
@@ -57,6 +57,8 @@
 ;;; time a cross-reference is asked for, and is not read later.
 
 ;;; You need Emacs >= 20.2 to run this package
+
+;;; Code:
 
 ;; ----- Requirements -----------------------------------------------------
 

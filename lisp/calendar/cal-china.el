@@ -1,4 +1,4 @@
-;;; cal-china.el --- calendar functions for the Chinese calendar.
+;;; cal-china.el --- calendar functions for the Chinese calendar
 
 ;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 

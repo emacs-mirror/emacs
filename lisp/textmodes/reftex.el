@@ -1,9 +1,9 @@
-;;; reftex.el --- Minor mode for doing \label, \ref, \cite, \index in LaTeX
+;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.16
-;; Keywords:   tex
+;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
+;; Version: 4.16
+;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
 
@@ -2524,4 +2524,3 @@ With optional NODE, go directly to that node."
 ;;;============================================================================
 
 ;;; reftex.el ends here
-

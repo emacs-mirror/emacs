@@ -1,4 +1,4 @@
-;;; cal-persia.el --- calendar functions for the Persian calendar.
+;;; cal-persia.el --- calendar functions for the Persian calendar
 
 ;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 

@@ -1,10 +1,10 @@
-;;; pcvs-parse.el --- The CVS output parser
+;;; pcvs-parse.el --- the CVS output parser
 
 ;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.6 2001/03/07 00:17:53 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.7 2001/04/13 14:55:48 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -497,4 +497,4 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (provide 'pcvs-parse)
 
-;;; pcl-cvs-parse.el ends here
+;;; pcvs-parse.el ends here

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.13 2001/05/11 20:50:37 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.14 2001/05/18 16:59:52 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -502,4 +502,4 @@ message and replace it with a message tell you to change this variable.")
 ;;
 (provide 'pcvs-defs)
 
-;;; pcl-cvs-defs.el ends here
+;;; pcvs-defs.el ends here

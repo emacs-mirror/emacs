@@ -11,6 +11,34 @@
 
 2001-07-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* calendar/cal-china.el, calendar/cal-coptic.el,
+	calendar/cal-dst.el, calendar/cal-french.el,
+	calendar/cal-hebrew.el, calendar/cal-islam.el,
+	calendar/cal-iso.el, calendar/cal-julian.el,
+	calendar/cal-mayan.el, calendar/cal-persia.el,
+	calendar/cal-tex.el, calendar/calendar.el, calendar/diary-lib.el,
+	calendar/lunar.el, calendar/solar.el, ediff-diff.el,
+	ediff-help.el, ediff-hook.el, ediff-init.el, ediff-merg.el,
+	ediff-ptch.el, ediff-util.el, ediff-vers.el, ediff-wind.el,
+	net/eudc-bob.el, net/eudc-export.el, net/eudc-hotlist.el,
+	net/eudc-vars.el, net/ldap.el, pcvs-defs.el, pcvs-info.el,
+	pcvs-parse.el, pcvs-util.el, pcvs.el, progmodes/ada-mode.el,
+	progmodes/ada-prj.el, progmodes/ada-stmt.el,
+	progmodes/ada-xref.el, progmodes/cc-align.el,
+	progmodes/cc-bytecomp.el, progmodes/cc-cmds.el,
+	progmodes/cc-defs.el, progmodes/cc-engine.el,
+	progmodes/cc-langs.el, progmodes/cc-menus.el,
+	progmodes/cc-styles.el, progmodes/cc-vars.el,
+	textmodes/reftex-auc.el, textmodes/reftex-cite.el,
+	textmodes/reftex-dcr.el, textmodes/reftex-global.el,
+	textmodes/reftex-index.el, textmodes/reftex-parse.el,
+	textmodes/reftex-ref.el, textmodes/reftex-sel.el,
+	textmodes/reftex-toc.el, textmodes/reftex-vars.el,
+	textmodes/reftex.el: Some fixes to follow coding
+	conventions in Eshell files with known maintainers.
+
+	* emulation/viper.el: A fix to follow coding conventions.
+
 	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el,
 	eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el,
 	eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el,

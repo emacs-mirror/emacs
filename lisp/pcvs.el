@@ -1,4 +1,4 @@
-;;; pcvs.el -- A Front-end to CVS.
+;;; pcvs.el --- a front-end to CVS
 
 ;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000  Free Software Foundation, Inc.
 
@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.26 2001/03/07 00:20:30 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.27 2001/04/13 15:18:11 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -250,7 +250,7 @@ If -CVS-MODE!-NOERROR is non-nil, then failure to find a *cvs* buffer does
 	 (cvsbuf (cond ((cvs-buffer-p) (current-buffer))
 		       ((and cvs-buffer (cvs-buffer-p cvs-buffer)) cvs-buffer)
 		       (-cvs-mode!-noerror (current-buffer))
-		       (t (error "can't find the *cvs* buffer."))))
+		       (t (error "can't find the *cvs* buffer"))))
 	 (-cvs-mode!-wrapper cvs-minor-wrap-function)
 	 (-cvs-mode!-cont (lambda ()
 			    (save-current-buffer
@@ -1438,7 +1438,7 @@ See ``cvs-mode-diff'' for more info."
 This command can be used on files that are marked with \"Merged\"
 or \"Conflict\" in the *cvs* buffer."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "diff flags")))
-  (unless (listp flags) (error "flags should be a list of strings."))
+  (unless (listp flags) (error "flags should be a list of strings"))
   (save-some-buffers)
   (let* ((filter 'diff)
 	 (marked (cvs-get-marked (cvs-ignore-marks-p "diff")))
@@ -1460,7 +1460,7 @@ or \"Conflict\" in the *cvs* buffer."
 Signal an error if there is no backup file."
   (let ((backup-file (cvs-fileinfo->backup-file fileinfo)))
     (unless backup-file
-      (error "%s has no backup file." (cvs-fileinfo->full-path fileinfo)))
+      (error "%s has no backup file" (cvs-fileinfo->full-path fileinfo)))
     (list backup-file (cvs-fileinfo->full-path fileinfo))))
 
 ;;
@@ -1586,7 +1586,7 @@ Signal an error if there is no backup file."
 	 (rev2 (and rev1 (cvs-prefix-get 'cvs-secondary-branch-prefix)))
 	 (fis (cvs-mode-marked 'diff "idiff" :file t)))
     (when (> (length fis) 2)
-      (error "idiff-other cannot be applied to more than 2 files at a time."))
+      (error "idiff-other cannot be applied to more than 2 files at a time"))
     (let* ((fi1 (car fis))
 	   (rev1-buf (if rev1 (cvs-retrieve-revision fi1 rev1)
 		       (find-file-noselect (cvs-fileinfo->full-path fi1))))
@@ -1596,7 +1596,7 @@ Signal an error if there is no backup file."
 	    (setq rev2-buf
 		  (if rev2 (cvs-retrieve-revision fi2 rev2)
 		    (find-file-noselect (cvs-fileinfo->full-path fi2)))))
-	(error "idiff-other doesn't know what other file/buffer to use."))
+	(error "idiff-other doesn't know what other file/buffer to use"))
       (let* (;; this binding is used by cvs-ediff-startup-hook
 	     (cvs-transient-buffers (list rev1-buf rev2-buf)))
 	(funcall (car cvs-idiff-imerge-handlers)
@@ -1857,7 +1857,7 @@ if you are convinced that the process that created the lock is dead."
   (let* ((default-directory (cvs-expand-dir-name cvs-lock-file))
 	 (locks (directory-files default-directory nil cvs-lock-file-regexp)))
     (cond
-     ((not locks) (error "No lock files found."))
+     ((not locks) (error "No lock files found"))
      ((yes-or-no-p (concat "Really delete locks in " cvs-lock-file "? "))
       (dolist (lock locks)
 	(cond ((file-directory-p lock) (delete-directory lock))

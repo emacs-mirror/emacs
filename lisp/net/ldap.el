@@ -1,4 +1,4 @@
-;;; ldap.el --- Client interface to LDAP for Emacs
+;;; ldap.el --- client interface to LDAP for Emacs
 
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
