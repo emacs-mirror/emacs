@@ -1358,7 +1358,7 @@ Garbage collection happens automatically if you cons more than\n\
   if (gc_cons_threshold < 10000)
     gc_cons_threshold = 10000;
 
-  if (omessage)
+  if (omessage || minibuf_level > 0)
     message1 (omessage);
   else if (!noninteractive)
     message1 ("Garbage collecting...done");
