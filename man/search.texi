@@ -1068,11 +1068,11 @@ moves point to the original of the chosen occurrence.
 Synonym for @kbd{M-x occur}.
 
 @item M-x multi-occur @key{RET} @var{buffers} @key{RET} @var{regexp} @key{RET}
-This function is just like `occur', except it is able to search
+This function is just like @code{occur}, except it is able to search
 through multiple buffers.
 
 @item M-x multi-occur-by-filename-regexp @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
-This function is similar to `multi-occur', except the buffers to
+This function is similar to @code{multi-occur}, except the buffers to
 search are specified by a regexp on their filename.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}
