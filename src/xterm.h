@@ -979,8 +979,9 @@ extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
-void x_display_cursor P_ ((struct window *, int, int, int, int, int));
-void x_update_cursor P_ ((struct frame *, int));
+extern void x_display_cursor P_ ((struct window *, int, int, int, int, int));
+extern void x_update_cursor P_ ((struct frame *, int));
+extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 
 /* Defined in xselect.c */
 
@@ -1019,6 +1020,7 @@ extern int x_char_width P_ ((struct frame *));
 extern int x_char_height P_ ((struct frame *));
 extern int x_screen_planes P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
+extern enum text_cursor_kinds x_specified_cursor_type P_ ((Lisp_Object, int *));
 
 /* Defined in xfaces.c */
 
