@@ -1,3 +1,10 @@
+2000-10-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (echo_area_display): Don't perform a display update from
+	inside redisplay.  The update will happen anyway at the end of
+	redisplay, and it can confuse redisplay (GC messages while
+	redisplaying, for instance.)
+
 2000-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (re_iswctype, re_wctype_to_bit): Fix braino.
