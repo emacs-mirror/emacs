@@ -103,10 +103,10 @@ shell it really is.")
 
 (defvar sh-shell-file
   (or
-   ;; On MSDOS, collapse $SHELL to lower-case and remove the
-   ;; executable extension, so comparisons with the list of
+   ;; On MSDOS and Windows, collapse $SHELL to lower-case and remove
+   ;; the executable extension, so comparisons with the list of
    ;; known shells work.
-   (and (eq system-type 'ms-dos)
+   (and (memq system-type '(ms-dos windows-nt))
 	(file-name-sans-extension (downcase (getenv "SHELL"))))
    (getenv "SHELL")
    "/bin/sh")
