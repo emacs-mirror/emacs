@@ -124,7 +124,7 @@ validate_interval_range (object, begin, end, force)
       if (!(BUF_BEGV (b) <= XINT (*begin) && XINT (*begin) <= XINT (*end)
 	    && XINT (*end) <= BUF_ZV (b)))
 	args_out_of_range (*begin, *end);
-      i = b->intervals;
+      i = BUF_INTERVALS (b);
 
       /* If there's no text, there are no properties. */
       if (BUF_BEGV (b) == BUF_ZV (b))
