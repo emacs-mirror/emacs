@@ -966,7 +966,7 @@ Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
 of what was evaluated will be overwritten by the diagnostic message."
   (interactive)
-  (eval-defun nil)
+  (call-interactively 'eval-defun)
   (checkdoc-defun))
 
 ;;;###autoload
@@ -1654,7 +1654,7 @@ function,command,variable,option or symbol." ms1))))))
 					  ;; Require whitespace OR
 					  ;; ITEMth<space> OR
 					  ;; ITEMs<space>
-					  "\\(\\>\\|th\\>\\|s\\>\\)")
+					  "\\(\\>\\|th\\>\\|s\\>\\|[.,;:]\\)")
 				  e t)))
 		   (if (not found)
 		       (let ((case-fold-search t))
@@ -2004,35 +2004,35 @@ If the offending word is in a piece of quoted text, then it is skipped."
 	      (progn
 		(set-syntax-table checkdoc-syntax-table)
 		(goto-char begin)
-		(while (re-search-forward "[^.0-9]\\(\\. \\)[^ \n]" end t)
+		(while (re-search-forward "[^ .0-9]\\(\\. \\)[^ \n]" end t)
 		  (let ((b (match-beginning 1))
 			(e (match-end 1)))
-		    (if (and (not (checkdoc-in-sample-code-p begin end))
-			     (not (checkdoc-in-example-string-p begin end))
-			     (not (save-excursion
-				    (goto-char (match-beginning 1))
-				    (condition-case nil
-					(progn
-					  (forward-sexp -1)
-					  ;; piece of an abbreviation
-					  (looking-at
-					   "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
-				      (error t)))))
-			(if (checkdoc-autofix-ask-replace
-			     b e
-			     "There should be two spaces after a period.  Fix? "
-			     ".  ")
-			    nil
-			  (if errtxt
-			      ;; If there is already an error, then generate
-			      ;; the warning output if applicable
-			      (if checkdoc-generate-compile-warnings-flag
-				  (checkdoc-create-error
-				   "There should be two spaces after a period"
-				   b e))
-			    (setq errtxt
-				  "There should be two spaces after a period"
-				  bb b be e)))))))
+		    (unless (or (checkdoc-in-sample-code-p begin end)
+				(checkdoc-in-example-string-p begin end)
+				(save-excursion
+				  (goto-char b)
+				  (condition-case nil
+				      (progn
+					(forward-sexp -1)
+					;; piece of an abbreviation
+					(looking-at
+					 "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+				    (error t))))
+		      (if (checkdoc-autofix-ask-replace
+			   b e
+			   "There should be two spaces after a period.  Fix? "
+			   ".  ")
+			  nil
+			(if errtxt
+			    ;; If there is already an error, then generate
+			    ;; the warning output if applicable
+			    (if checkdoc-generate-compile-warnings-flag
+				(checkdoc-create-error
+				 "There should be two spaces after a period"
+				 b e))
+			  (setq errtxt
+				"There should be two spaces after a period"
+				bb b be e)))))))
 	    (set-syntax-table old-syntax-table))
 	  (if errtxt (checkdoc-create-error errtxt bb be))))))
 
@@ -2655,6 +2655,7 @@ function called to create the messages."
 
 (add-to-list 'debug-ignored-errors
 	     "Argument `.*' should appear (as .*) in the doc string")
+(add-to-list 'debug-ignored-errors "Disambiguate .* by preceding .*")
 
 (provide 'checkdoc)
 
