@@ -1,3 +1,9 @@
+2000-01-22  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* replace.el (query-replace): Rename last arg to DELIMITED.
+	(map-query-replace-regexp, query-replace-regexp-eval): Likewise.
+	(query-replace-regexp): Likewise.
+
 2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* subr.el (with-syntax-table): Use make-symbol, not gensym.
