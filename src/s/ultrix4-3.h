@@ -6,3 +6,8 @@
 
 /* Must set the line discipline to this, to make termio work.  */
 #define SET_LINE_DISCIPLINE TERMIODISC
+
+#ifndef NOT_C_CODE
+/* The address of this is used, but Ultrix header files don't declare it.  */
+extern double rint ();
+#endif
