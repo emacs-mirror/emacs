@@ -163,7 +163,7 @@ Normally auto-save files are written under other names.")
 Loading an abbrev file sets this to t.")
 
 (defconst find-file-run-dired t
-  "*Non-nil says run dired if find-file is given the name of a directory.")
+  "*Non-nil says run dired if `find-file' is given the name of a directory.")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
@@ -408,7 +408,8 @@ Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only: ")
   (find-file filename)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (current-buffer))
 
 (defun find-file-read-only-other-window (filename)
   "Edit file FILENAME in another window but don't allow changes.
@@ -416,7 +417,8 @@ Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other window: ")
   (find-file-other-window filename)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (current-buffer))
 
 (defun find-file-read-only-other-frame (filename)
   "Edit file FILENAME in another frame but don't allow changes.
@@ -424,7 +426,8 @@ Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only other frame: ")
   (find-file-other-frame filename)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (current-buffer))
 
 (defun find-alternate-file (filename)
   "Find file FILENAME, select its buffer, kill previous buffer.
