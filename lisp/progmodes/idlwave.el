@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/12/30 22:18:30 $
+;; Date: $Date: 2001/12/31 20:42:10 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -1884,13 +1884,10 @@ The main features of this mode are
        'idlwave-prev-index-position)
 
   ;; Make a local post-command-hook and add our hook to it
-  (make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook 'idlwave-command-hook nil 'local)
 
   ;; Make local hooks for buffer updates
-  (make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'idlwave-kill-buffer-update nil 'local)
-  (make-local-hook 'after-save-hook)
   (add-hook 'after-save-hook 'idlwave-save-buffer-update nil 'local)
   (add-hook 'after-save-hook 'idlwave-revoke-license-to-kill nil 'local)
 
