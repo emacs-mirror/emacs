@@ -544,36 +544,28 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (select-window window)
       (goto-char pos))))
 
-(defun occur-next (&optional n)
-  "Move to the Nth (default 1) next match in an Occur mode buffer."
-  (interactive "p")
+(defun occur-find-match (n search message)
   (if (not n) (setq n 1))
   (let ((r))
     (while (> n 0)
-      (if (get-text-property (point) 'occur-point)
-	  (forward-char 1))
-      (setq r (next-single-property-change (point) 'occur-point))
+      (setq r (funcall search (point) 'occur-match))
+      (and r
+           (get-text-property r 'occur-match)
+           (setq r (funcall search r 'occur-match)))
       (if r
-	  (goto-char r)
-	(error "No more matches"))
+          (goto-char r)
+        (error message))
       (setq n (1- n)))))
+
+(defun occur-next (&optional n)
+  "Move to the Nth (default 1) next match in an Occur mode buffer."
+  (interactive "p")
+  (occur-find-match n #'next-single-property-change "No more matches"))
 
 (defun occur-prev (&optional n)
   "Move to the Nth (default 1) previous match in an Occur mode buffer."
   (interactive "p")
-  (if (not n) (setq n 1))
-  (let ((r))
-    (while (> n 0)
-
-      (setq r (get-text-property (point) 'occur-point))
-      (if r (forward-char -1))
-
-      (setq r (previous-single-property-change (point) 'occur-point))
-      (if r
-	  (goto-char (- r 1))
-	(error "No earlier matches"))
-
-      (setq n (1- n)))))
+  (occur-find-match n #'previous-single-property-change "No earlier matches"))
 
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.
