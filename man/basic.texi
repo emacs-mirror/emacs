@@ -759,6 +759,13 @@ the command.
 @section Repeating a Command
 @cindex repeating a command
 
+  Many simple commands, such as those invoked with a single key or with
+@kbd{M-x @var{command-name} @key{RET}}, can be repeated by invoking them
+with a numeric argument which serves as a repeat count
+(@pxref{Arguments}).  However, if the command you want to repeat prompts
+for some input, or is itself invoked with a numeric argument, using a
+numeric argument might be inconvenient or even impossible.
+
 @kindex C-x z
 @findex repeat
   The command @kbd{C-x z} (@code{repeat}) provides another way to repeat
