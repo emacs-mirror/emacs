@@ -1,5 +1,7 @@
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/compile.el (grep): `tag-default' can be nil.
+
 	* newcomment.el (comment-indent): Paren typo.
 
 2000-11-14  Dave Love  <fx@gnu.org>

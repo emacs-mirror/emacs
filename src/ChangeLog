@@ -1,3 +1,12 @@
+2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (try_scrolling): Set scroll_max to max of scroll_* args
+	so setting scroll-step to 1 doesn't defeat scroll-conservatively.
+	Set amount_to_scroll to max of dx and scroll_step so that
+	scroll-conservatively doesn't defeat scroll-step>1.
+	(syms_of_xdisp): Add a hint in scroll-step's docstring to use
+	scroll-conservatively for line-at-a-time scrolling.
+
 2000-11-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fpos_visible_in_window_p): Call pos_visible with
