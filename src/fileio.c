@@ -1864,7 +1864,7 @@ This happens for interactive use with M-x.")
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
-	  unlink (XSTRING (filename)->data);
+	  unlink (XSTRING (linkname)->data);
 	  if (0 <= symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
 	    return Qnil;
 	}
