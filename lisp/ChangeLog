@@ -7,6 +7,12 @@
 	(ps-print-duplex-feature): Variable eliminated.
 	(ps-even-or-odd-pages): New variable.
 
+	* ebnf2ps.el: Doc fix.
+	(ebnf-version): New version (3.3).
+	(ebnf-user-arrow): Change variable customization to sexp.
+	(ebnf-user-arrow): Function eliminated.
+	(ebnf-eps-finish-and-write, ebnf-insert-ebnf-prologue): Code fix.
+	
 2000-08-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* help.el (help-xref-mule-regexp): New variable.

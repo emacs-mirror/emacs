@@ -1,3 +1,8 @@
+2000-08-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* lread.c (openp): Prevent temporary string passed to
+	Ffile_readable_p from being garbage collected.
+
 2000-08-28  Dave Love  <fx@gnu.org>
 
 	* keymap.c (store_in_keymap): Add `static' to declaration.
