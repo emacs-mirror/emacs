@@ -1,3 +1,7 @@
+2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>  (tiny change)
+
+	* progmodes/grep.el (grep-compute-defaults): Fix typos.
+
 2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el: Mention support for Motif in commentary.
