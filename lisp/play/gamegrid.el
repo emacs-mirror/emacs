@@ -407,7 +407,17 @@ static char *noname[] = {
 (defun gamegrid-add-score (file score)
   "Add the current score to the high score file."
   (let ((result nil)
-	(errbuf (generate-new-buffer " *update-game-score loss*")))
+	(errbuf (generate-new-buffer " *update-game-score loss*"))
+	(target (if game-score-directory
+		    file
+		  (let ((f (expand-file-name "~/.emacs.d/games")))
+		    (unless (eq (car-safe (file-attributes f))
+				t)
+		      (make-directory f))
+		    (setq f (expand-file-name file f))
+		    (unless (file-exists-p f)
+		      (write-region "" nil f nil 'silent nil 'excl))
+		    f))))
     (let ((default-directory "/"))
       (apply
        'call-process
@@ -426,14 +436,14 @@ static char *noname[] = {
 		 user-mail-address)
 		(t ""))
 	  ">  "
-	  (current-time-string)))))
-      (if (buffer-modified-p errbuf)
-	  (progn
-	    (display-buffer errbuf)
-	    (error "Failed to update game score file"))
-	(kill-buffer errbuf))))
-  (save-excursion
-    (find-file-read-only-other-window (expand-file-name file game-score-directory))))
+	  (current-time-string))))))
+    (if (buffer-modified-p errbuf)
+	(progn
+	  (display-buffer errbuf)
+	  (error "Failed to update game score file"))
+      (kill-buffer errbuf))
+    (save-excursion
+      (find-file-read-only-other-window target))))
 	
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
