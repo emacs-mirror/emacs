@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.12) $
+# $HopeName: MMQA_harness!script:runtest(trunk.13) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -148,7 +148,7 @@ sub run_from_testset {
   &describe_test("verbose", LOG_VERBOSE);
   close(LOG_VERBOSE);
   &mailfile("$LOG_DIR/last.log",
-   "MMQA-log: ".$testconclusion."ED test $testfile (runset)");
+   "$MAIL_SUBJECT $testid $testconclusion");
  }
 }
 
@@ -184,6 +184,6 @@ sub run_testset {
  close(LOG_SUMMARY);
  close(LOG_RESULTS);
  close(LOG_FULL);
- &mailfile($logsummfile, "MMQA-log: summary of test set $testsetfile");
+ &mailfile($logsummfile, "$MAIL_SUBJECT summary of test set $testsetfile");
 }
  
