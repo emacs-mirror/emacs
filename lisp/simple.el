@@ -1244,6 +1244,9 @@ When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.")
 
+(put 'mark-inactive 'error-conditions '(mark-inactive error))
+(put 'mark-inactive 'error-message "The mark is not active now")
+
 (defun mark (&optional force)
   "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
@@ -1254,7 +1257,7 @@ If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
   (if (or force mark-active mark-even-if-inactive)
       (marker-position (mark-marker))
-    (error "The mark is not currently active")))
+    (signal 'mark-inactive nil)))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
