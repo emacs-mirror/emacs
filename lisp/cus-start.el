@@ -104,6 +104,8 @@
 				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
+	     ;; fns.c
+	     (use-dialog-box menu boolean)
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
