@@ -268,71 +268,28 @@ skip_invisible (pos, next_boundary_p, to, window)
 
 /* Set variables WIDTH and BYTES for a multibyte sequence starting at P.
 
-   C is *P which should satisfy `BASE_LEADING_CODE_P (c)'.
-
    DP is a display table or NULL.
 
    This macro is used in current_column_1, Fmove_to_column, and
    compute_motion.  */
 
-#define MULTIBYTE_BYTES_WIDTH(p, c, dp)					\
-  do {									\
-    unsigned char *pend = p + 1;					\
-    									\
-    wide_column = 0;							\
-    while (! CHAR_HEAD_P (*pend)) pend++;				\
-    									\
-    if (c == LEADING_CODE_COMPOSITION)					\
-      {									\
-	int id = str_cmpchar_id (p, pend - p);				\
-	int ch = MAKE_COMPOSITE_CHAR (id);				\
-									\
-	if (id >= 0)							\
-	  {								\
-	    bytes = cmpchar_table[id]->len;				\
-	    if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	      width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
-	    else							\
-	      width = cmpchar_table[id]->width;				\
-	    if (width > 1)						\
-	      wide_column = width;					\
-	  }								\
-	else								\
-	  {								\
-	    bytes = 1;							\
-	    width = 4;							\
-	  }								\
-      }									\
-    else								\
-      {									\
-	bytes = BYTES_BY_CHAR_HEAD (c);					\
-	if (bytes >= 2 && bytes <= pend - p)				\
-	  {								\
-	    int ch = STRING_CHAR (p, bytes);				\
-	    								\
-	    if (CHAR_VALID_P (ch, 0))					\
-	      {								\
-		if (dp && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-		  width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
-		else							\
-		  width = WIDTH_BY_CHAR_HEAD (c);			\
-	      }								\
-	    else							\
-	      width = bytes * 4;					\
-	    if (width > 1)						\
-	      wide_column = width;					\
-	  }								\
-	else								\
-	  {								\
-	    bytes = 1;							\
-	    width = 4;							\
-	  }								\
-      }									\
-    if (p + bytes < pend)						\
-      {									\
-	width += 4 * (pend - (p + bytes));				\
-	bytes = pend - p;						\
-      }									\
+#define MULTIBYTE_BYTES_WIDTH(p, dp)					  \
+  do {									  \
+    int c;								  \
+    									  \
+    wide_column = 0;							  \
+    c = STRING_CHAR_AND_LENGTH (p, MAX_LENGTH_OF_MULTI_BYTE_FORM, bytes); \
+    if (BYTES_BY_CHAR_HEAD (*p) != bytes)				  \
+      width = bytes * 4;						  \
+    else								  \
+      {									  \
+	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		  \
+	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		  \
+	else								  \
+	  width = WIDTH_BY_CHAR_HEAD (*p);				  \
+	if (width > 1)							  \
+	  wide_column = width;						  \
+      }									  \
   } while (0)
 
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
@@ -536,7 +493,7 @@ current_column_1 ()
 
 	  scan_byte--;
 	  ptr = BYTE_POS_ADDR (scan_byte);
-	  MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	  MULTIBYTE_BYTES_WIDTH (ptr, dp);
 	  scan_byte += bytes;
 	  col += width;
 	}
@@ -919,7 +876,7 @@ The return value is the current column.")
 
 	  pos_byte--;
 	  ptr = BYTE_POS_ADDR (pos_byte);
-	  MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	  MULTIBYTE_BYTES_WIDTH (ptr, dp);
 	  pos_byte += bytes;
 	  col += width;
 	}
@@ -1482,7 +1439,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 
 	      pos_byte--;	/* rewind POS_BYTE */
 	      ptr = BYTE_POS_ADDR (pos_byte);
-	      MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
 	      pos_byte += bytes;
 	      if (wide_column)
 		wide_column_end_hpos = hpos + wide_column;
