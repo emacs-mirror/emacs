@@ -426,7 +426,7 @@ is okay.  See `mode-line-format'.")
 		".a" ".ln" ".blg" ".bbl"))
 	     ((eq system-type 'vax-vms)
 	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
-		".brn" ".rnt" ".mem" ".lni" ".lis"
+		".brn" ".rnt" ".mem" ".lni"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
 	      '(".o" "~" ".bin" ".lbin" ".fasl" ".ufsl"
@@ -444,7 +444,7 @@ is okay.  See `mode-line-format'.")
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Texinfo-related
-	 ".toc" ".log" ".aux"
+	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
