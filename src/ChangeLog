@@ -1,3 +1,11 @@
+2004-03-11  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (XOBJ): Consolidate into one list.  Add fringe.o.
+	Move gtkutil.o to new GTK_OBJ list.  
+	(XMENU_OBJ) [HAVE_MENUS]: Move declaration to proper place.
+	(GTK_OBJ) [USE_GTK]: New declaration.
+	(obj): Add $(GTK_OBJ) to list.
+
 2004-03-11  Steven Tamm <steventamm@mac.com>
 	* image.c [MAC_OSX]: Include sys/stat.h
 
