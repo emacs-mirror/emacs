@@ -13,5 +13,7 @@
 #undef REL_ALLOC
 #endif
 
+#ifndef __GNUC__
 /* Make room for enough symbols, so dispnew.c does not fail.  */
 #define C_SWITCH_SYSTEM -Wp,-H200000
+#endif
