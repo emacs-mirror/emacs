@@ -632,13 +632,13 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 
 (defun modify-coding-system-alist (target-type regexp coding-system)
   "Modify one of look up tables for finding a coding system on I/O operation.
-There are three of such tables, file-coding-system-alist,
-process-coding-system-alist, and network-coding-system-alist.
+There are three of such tables, `file-coding-system-alist',
+`process-coding-system-alist', and `network-coding-system-alist'.
 
 TARGET-TYPE specifies which of them to modify.
-If it is `file', it affects file-coding-system-alist (which see).
-If it is `process', it affects process-coding-system-alist (which see).
-If it is `network', it affects network-codign-system-alist (which see).
+If it is `file', it affects `file-coding-system-alist' (which see).
+If it is `process', it affects `process-coding-system-alist' (which see).
+If it is `network', it affects `network-codign-system-alist' (which see).
 
 REGEXP is a regular expression matching a target of I/O operation.
 The target is a file name if TARGET-TYPE is `file', a program name if
@@ -646,8 +646,9 @@ TARGET-TYPE is `process', or a network service name or a port number
 to connect to if TARGET-TYPE is `network'.
 
 CODING-SYSTEM is a coding system to perform code conversion on the I/O
-operation, or a cons of coding systems for decoding and encoding
-respectively, or a function symbol which returns the cons."
+operation, or a cons cell (DECODING . ENCODING) specifying the coding systems
+for decoding and encoding respectively,
+or a function symbol which, when called, returns such a cons cell."
   (or (memq target-type '(file process network))
       (error "Invalid target type: %s" target-type))
   (or (stringp regexp)
