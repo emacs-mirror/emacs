@@ -2640,6 +2640,8 @@ Run the program @command{locate} to match @var{pattern} in the database,
 putting results in a buffer.
 @item M-x locate-with-filter @key{RET} @var{pattern} @key{RET} @var{filter} @key{RET}
 Like @code{locate}, but use a @var{filter} on the results.
+@item M-x auto-image-file-mode
+Toggle visiting of image files as images.
 @end table
 
 @findex ff-find-other-file
@@ -2696,3 +2698,15 @@ The command @kbd{M-x recentf-mode} or the Customize option of the same
 name adds to the Files menu a submenu containing a list of recently
 opened files.  @kbd{recentf-save-list} saves the current file list to a
 file and @kbd{recentf-edit-list} edits it.
+
+@findex auto-image-file-mode
+@findex mode, auto-image-file
+@cindex images, visiting
+@cindex visiting image files
+@vindex image-file-name-regexps
+@vindex image-file-name-extensions
+When Auto-image-file minor mode is enabled, image files are displayed as
+images when they are visited or inserted into buffers if Emacs can
+display the relevant image type.  File names matching
+@code{image-file-name-extensions} or @code{image-file-name-regexps} are
+considered to contain images.
