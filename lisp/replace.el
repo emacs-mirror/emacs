@@ -965,15 +965,20 @@ which will run faster and probably do exactly what you want."
 	  (setq nonempty-match
 		(/= (nth 0 real-match-data) (nth 1 real-match-data)))
 
-	  ;; If the match is empty, record that the next one can't be adjacent.
+	  ;; If the match is empty, record that the next one can't be
+	  ;; adjacent.
+
 	  ;; Otherwise, if matching a regular expression, do the next
 	  ;; match now, since the replacement for this match may
 	  ;; affect whether the next match is adjacent to this one.
+	  ;; If that match is empty, don't use it.
 	  (setq match-again
 		(and nonempty-match
 		     (or (not regexp-flag)
 			 (and (looking-at search-string)
-			      (match-data)))))
+			      (let ((match (match-data)))
+				(and (/= (nth 0 match) (nth 1 match))
+				     match))))))
 
 	  ;; Calculate the replacement string, if necessary.
 	  (when replacements
