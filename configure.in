@@ -1373,7 +1373,11 @@ configure___ system_malloc=no
 #endif
 
 #ifndef C_OPTIMIZE_SWITCH
+#ifdef __GNUC__
+#define C_OPTIMIZE_SWITCH -O2
+#else
 #define C_OPTIMIZE_SWITCH -O
+#endif
 #endif
 
 #ifndef LD_SWITCH_MACHINE
