@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.2) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.3) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.2) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.3) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -284,10 +284,9 @@ found:
 }
 
 
-static void SNCBufferEmpty(Pool pool, Buffer buffer)
+static void SNCBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   SNC snc;
-  Seg seg;
   Arena arena;
   Size size;
 
@@ -299,7 +298,6 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer)
   /* .lw-frame-state */
   BufferFrameSetState(buffer, BufferFrameDISABLED); 
 
-  seg = BufferSeg(buffer);
   arena = BufferArena(buffer);
 
   /* Pad the end unused space at the end of the segment */

@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.65) $
+ * $HopeName: MMsrc!pool.c(trunk.66) $
  * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.65) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.66) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -758,21 +758,21 @@ Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   return ResOK;
 }
 
-void PoolNoBufferEmpty(Pool pool, Buffer buffer)
+void PoolNoBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
   NOTREACHED;
 }
 
-void PoolTrivBufferEmpty(Pool pool, Buffer buffer)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
-  AVER(!BufferIsReset(buffer));
   AVER(BufferIsReady(buffer));
+  AVER(SegCheck(seg));
 }
 
 Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream)

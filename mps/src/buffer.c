@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName$
+ * $HopeName: MMsrc!buffer.c(trunk.48) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.47) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.48) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -48,7 +48,9 @@ Bool BufferCheck(Buffer buffer)
   /* If any of the buffer's fields indicate that it is reset, make */
   /* sure it is really reset.  Otherwise, check various properties */
   /* of the non-reset fields. */
-  if((buffer->mode & BufferModeATTACHED) == 0 ||
+  if(buffer->mode & BufferModeTRANSITION) {
+    /* nothing to check */
+  } else if((buffer->mode & BufferModeATTACHED) == 0 ||
      buffer->seg == NULL ||
      buffer->base == (Addr)0 ||
      buffer->apStruct.init == (Addr)0 ||
@@ -291,10 +293,15 @@ void BufferDetach(Buffer buffer, Pool pool)
   AVER(BufferIsReady(buffer));
 
   if(!BufferIsReset(buffer)) {
+    Seg seg = BufferSeg(buffer);
     Size spare;
+
+    SegSetBuffer(seg, NULL);
+    buffer->seg = NULL;
+    buffer->mode |= BufferModeTRANSITION;
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
-    (*pool->class->bufferEmpty)(pool, buffer);
+    (*pool->class->bufferEmpty)(pool, buffer, seg);
     /* Use of lightweight frames must have been disabled by now */
     AVER(BufferFrameState(buffer) == BufferFrameDISABLED);
 
@@ -311,15 +318,14 @@ void BufferDetach(Buffer buffer, Pool pool)
     }
 
     /* Reset the buffer. */
-    SegSetBuffer(buffer->seg, NULL);
-    buffer->seg = NULL;
     buffer->base = (Addr)0;
     buffer->initAtFlip = (Addr)0;
     buffer->apStruct.init = (Addr)0;
     buffer->apStruct.alloc = (Addr)0;
     buffer->apStruct.limit = (Addr)0;
     buffer->poolLimit = (Addr)0;
-    buffer->mode &= ~(BufferModeATTACHED|BufferModeFLIPPED);
+    buffer->mode &=
+      ~(BufferModeATTACHED|BufferModeFLIPPED|BufferModeTRANSITION);
     BufferFrameSetState(buffer, BufferFrameDISABLED);
 
     EVENT_PW(BufferEmpty, buffer, spare);

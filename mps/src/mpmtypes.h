@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.71) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.72) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -144,7 +144,7 @@ typedef Res (*PoolBufferFillMethod)(Seg *segReturn,
                                     Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size,
                                     Bool withReservoirPermit);
-typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer);
+typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, Seg seg);
 typedef void (*PoolBufferFinishMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
@@ -258,6 +258,7 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define BufferModeATTACHED      ((BufferMode)(1<<0))
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
+#define BufferModeTRANSITION    ((BufferMode)(1<<3))
 
 /* Buffer frame states. See design.mps.alloc-frame.lw-frame.states */
 enum {

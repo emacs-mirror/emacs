@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.118) $
+ * $HopeName: MMsrc!mpm.h(trunk.119) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -369,8 +369,8 @@ extern Res PoolTrivBufferFill(Seg *segReturn,
                               Addr *baseReturn, Addr *limitReturn,
                               Pool pool, Buffer buffer, Size size,
                               Bool withReservoirPermit);
-extern void PoolNoBufferEmpty(Pool pool, Buffer buffer);
-extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer);
+extern void PoolNoBufferEmpty(Pool pool, Buffer buffer, Seg seg);
+extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Seg seg);
 extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
