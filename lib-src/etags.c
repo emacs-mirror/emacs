@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 10.6
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 10.7
  */
 
 #ifdef MSDOS
@@ -47,10 +47,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "getopt.h"
 
-extern char *malloc (), *realloc ();
 extern char *getenv ();
-extern char *strcpy (), *strncpy ();
-extern int strcmp ();
+extern char *getcwd ();
 
 char *etags_index (), *etags_rindex ();
 char *savenstr ();
@@ -248,6 +246,7 @@ char *curfile,			/* current input file name		*/
  *intk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 int append_to_tagfile;		/* -a: append to tags */
+int absolute_pathnames;		/* -A: use absolute pathnames in tag file */
 int emacs_tags_format;		/* emacs style output (no -e option any more) */
 /* The following three default to 1 for etags, but to 0 for ctags.  */
 int typedefs;			/* -t: create tags for typedefs */
@@ -268,8 +267,12 @@ int noindentypedefs;		/* -S: ignore indentation in C */
 /* Name this program was invoked with.  */
 char *progname;
 
+/* The current working directory, used if --absolute-pathnames. */
+char *cwd;
+
 struct option longopts[] = {
   { "append",			no_argument,	   NULL, 'a' },
+  { "absolute-pathnames",	no_argument,	   NULL, 'A' },
   { "backward-search",		no_argument,	   NULL, 'B' }, 
   { "c++",			no_argument,	   NULL, 'C' },
   { "cxref",			no_argument,	   NULL, 'x' },
@@ -328,42 +331,67 @@ print_version ()
 #endif
   printf ("for Emacs version 19.\n");
 
-  exit (0);
+  exit (GOOD);
 }
 
 void
 print_help ()
 {
   printf ("These are the options accepted by %s.  You may use unambiguous\n\
-abbreviations for the long option names.\n\n", progname);
+abbreviations for the long option names.  A - as file name means read file\n\
+names from stdin.\n\n", progname);
 
   puts ("-a, --append\n\
         Append tag entries to existing tags file.");
+  puts ("-A, --absolute-pathnames\n\
+        Use absolute pathnames for tagged files.");
+
+#ifdef CTAGS
+  puts ("-B, --backward-search\n\
+        Write the search commands for the tag entries using '?', the\n\
+        backward-search command.");
+#endif
+
   puts ("-C, --c++\n\
         Treat files with `.c' and `.h' extensions as C++ code, not C\n\
         code.  Files with `.C', `.H', `.cxx', `.hxx', or `.cc'\n\
         extensions are always assumed to be C++ code.");
-  fputs ("-d, --defines\n\
-        Create tag entries for #defines, too.", stdout);
 
 #ifdef ETAGS
-  fputs ("  This is the default\n\
-        behavior.", stdout);
+  puts ("-d, --defines\n\
+        Create tag entries for #defines, too.  This is the default\n\
+        behavior.");
+#else
+  puts ("-d, --defines\n\
+        Create tag entries for #defines, too.");
 #endif
-
-  fputs ("\n\
--D, --no-defines\n\
-        Don't create tag entries for #defines.", stdout);
 
 #ifdef CTAGS
-  fputs ("  This is the default\n\
-        behavior.", stdout);
+  puts ("-D, --no-defines\n\
+        Don't create tag entries for #defines.  This is the default\n\
+        behavior.");
+#else
+  puts ("-D, --no-defines\n\
+        Don't create tag entries for #defines.");
 #endif
 
-  puts ("\n\
--o FILE, --output=FILE\n\
-        Write the tags to FILE.\n\
--S, --ignore-indentation\n\
+#ifdef CTAGS
+  puts ("-F, --forward-search\n\
+        Write the search commands for the tag entries using '/', the\n\
+        forward-search command.");
+#endif
+
+
+#ifdef ETAGS
+  puts ("-i FILE, --include=FILE\n\
+        Include a note in tag file indicating that, when searching for\n\
+        a tag, one should also consult the tags file FILE after\n\
+        checking the current file.");
+#endif
+
+  puts ("-o FILE, --output=FILE\n\
+        Write the tags to FILE.");
+  puts ("-S, --ignore-indentation\n\
         Don't rely on indentation quite as much as normal.  Currently,\n\
         this means not to assume that a closing brace in the first\n\
         column is the final brace of a function or structure\n\
@@ -375,20 +403,7 @@ abbreviations for the long option names.\n\n", progname);
         Generate tag entries for typedefs, struct/enum/union tags, and\n\
         C++ member functions.");
 
-#ifdef ETAGS
-  puts ("-i FILE, --include=FILE\n\
-        Include a note in tag file indicating that, when searching for\n\
-        a tag, one should also consult the tags file FILE after\n\
-        checking the current file.");
-#endif
-
 #ifdef CTAGS
-  puts ("-B, --backward-search\n\
-        Write the search commands for the tag entries using '?', the\n\
-        backward-search command.");
-  puts ("-F, --forward-search\n\
-        Write the search commands for the tag entries using '/', the\n\
-        forward-search command.");
   puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
@@ -415,7 +430,7 @@ abbreviations for the long option names.\n\n", progname);
 -H, --help\n\
         Print this help message.");
 
-  exit (0);
+  exit (GOOD);
 }
 
 
@@ -458,7 +473,7 @@ main (argc, argv)
   for (;;)
     {
       int opt;
-      opt = getopt_long (argc, argv, "aCdDo:f:StTi:BFuvxwVH", longopts, 0);
+      opt = getopt_long (argc, argv, "aACdDo:f:StTi:BFuvxwVH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -473,6 +488,9 @@ main (argc, argv)
 	  /* Common options. */
 	case 'a':
 	  append_to_tagfile++;
+	  break;
+	case 'A':
+	  absolute_pathnames++;
 	  break;
 	case 'C':
 	  cplusplus = 1;
@@ -582,10 +600,10 @@ main (argc, argv)
 	outf = stdout;
       else
 	outf = fopen (outfile, append_to_tagfile ? "a" : "w");
-      if (!outf)
+      if (outf == NULL)
 	{
 	  perror (outfile);
-	  exit (1);
+	  exit (BAD);
 	}
     }
 
@@ -607,6 +625,16 @@ main (argc, argv)
     }			/* solely to balance out the ifdef'd parens above */
 #endif
 #else
+  if (absolute_pathnames)
+    {
+      cwd = getcwd (NULL, 2*BUFSIZ);
+      if (cwd == NULL)
+	{
+	  perror ("pwd");
+	  exit (BAD);
+	}
+      strcat (cwd, "/");
+    }
   for (; optind < argc; optind++)
     {
       this_file = argv[optind];
@@ -631,7 +659,7 @@ main (argc, argv)
 	fprintf (outf, "\f\n%s,include\n", *included_files++);
 
       (void) fclose (outf);
-      exit (0);
+      exit (GOOD);
     }
 
   if (cxref_style)
@@ -694,7 +722,9 @@ process_file (file)
     }
   if (emacs_tags_format)
     {
-      fprintf (outf, "\f\n%s,%d\n", file, total_size_of_entries (head));
+      fprintf (outf, "\f\n%s%s,%d\n",
+	       ((absolute_pathnames && file[0] != '/') ? cwd : ""),
+	       file, total_size_of_entries (head));
       put_entries (head);
       free_tree (head);
       head = NULL;
@@ -888,7 +918,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
   char tem[51];
   char c;
 
-  np = (NODE *) malloc (sizeof (NODE));
+  np = xnew (1, NODE);
   if (np == NULL)
     {
       if (!emacs_tags_format)
@@ -897,7 +927,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
 	   * character count of the tag entries, which is no longer used
 	   * by tags.el anyway.
 	   */
-	  error ("too many entries to sort");
+	  error ("too many entries to sort", 0);
 	}
       put_entries (head);
       free_tree (head);
@@ -990,8 +1020,8 @@ add_node (node, cur_node_p)
   if (emacs_tags_format)
     {
       /* Etags Mode */
-      if (!last_node)
-	fatal ("internal error in add_node");
+      if (last_node == NULL)
+	fatal ("internal error in add_node", 0);
       last_node->right = node;
       last_node = node;
     }
@@ -1029,8 +1059,8 @@ add_node (node, cur_node_p)
       /* Maybe refuse to add duplicate nodes.  */
       if (!permit_duplicates)
 	{
-	  if (!strcmp (node->name, cur_node->name)
-	      && !strcmp (node->file, cur_node->file))
+	  if (streq (node->name, cur_node->name)
+	      && streq (node->file, cur_node->file))
 	    return;
 	}
 
@@ -1274,7 +1304,7 @@ in_word_set  (str, len)
         {
           register char *s = wordlist[key].name;
 
-          if (*s == *str && !strncmp (str + 1, s + 1, len - 1))
+          if (*s == *str && strneq (str + 1, s + 1, len - 1))
             return &wordlist[key];
         }
     }
@@ -1803,7 +1833,7 @@ C_entries (c_ext)
 	      if (typdef == tinbody)
 		typdef = tend;
 	      structdef = snone;
-	      (void) strcpy (structtag, "<error 2>");
+	      strcpy (structtag, "<error 2>");
 	    }
 	  break;
 	case '=':
@@ -1890,7 +1920,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
     case dignorerest:
       return (FALSE);
     default:
-      error ("internal error: definedef value");
+      error ("internal error: definedef value is %d", definedef);
     }
 
   /*
@@ -1961,7 +1991,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
     {
       if (structtype == st_C_struct)
 	{
-	  (void) strncpy (structtag, tokp->p, tokp->len);
+	  strncpy (structtag, tokp->p, tokp->len);
 	  structtag[tokp->len] = '\0';	/* for struct/union/class */
 	}
       else
@@ -2179,7 +2209,7 @@ getit (fi)
     continue;
   c = *cp;
   *cp = '\0';
-  (void) strcpy (nambuf, dbp);
+  strcpy (nambuf, dbp);
   *cp = c;
   pfnote (nambuf, TRUE, FALSE, lb.buffer,
 	  cp - lb.buffer + 1, lineno, linecharno);
@@ -2510,7 +2540,7 @@ L_getit ()
   
   c = cp[0];
   cp[0] = 0;
-  (void) strcpy (nambuf, dbp);
+  strcpy (nambuf, dbp);
   cp[0] = c;
   pfnote (nambuf, TRUE, FALSE, lb.buffer,
 	  cp - lb.buffer + 1, lineno, linecharno);
@@ -2777,7 +2807,7 @@ TEX_getit (name, len)
   /* Let tag name extend to next group close (or end of line) */
   while (*p && *p != TEX_clgrp)
     p++;
-  (void) strncpy (nambuf, name, p - name);
+  strncpy (nambuf, name, p - name);
   nambuf[p - name] = 0;
 
   pfnote (nambuf, TRUE, FALSE, lb.buffer, strlen (lb.buffer), lineno, linecharno);
@@ -2797,7 +2827,7 @@ TEX_Token (cp)
   int i;
 
   for (i = 0; TEX_toktab[i].len > 0; i++)
-    if (strncmp (TEX_toktab[i].name, cp, TEX_toktab[i].len) == 0)
+    if (strneq (TEX_toktab[i].name, cp, TEX_toktab[i].len))
       return i;
   return -1;
 }
@@ -2996,7 +3026,7 @@ savenstr (cp, len)
   register char *dp;
 
   dp = xnew (len + 1, char);
-  (void) strncpy (dp, cp, len);
+  strncpy (dp, cp, len);
   dp[len] = '\0';
   return dp;
 }
@@ -3051,7 +3081,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (BAD);
 }
 
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
@@ -3075,9 +3105,9 @@ concat (s1, s2, s3)
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = xnew (len1 + len2 + len3 + 1, char);
 
-  (void) strcpy (result, s1);
-  (void) strcpy (result + len1, s2);
-  (void) strcpy (result + len1 + len2, s3);
+  strcpy (result, s1);
+  strcpy (result + len1, s2);
+  strcpy (result + len1 + len2, s3);
   *(result + len1 + len2 + len3) = 0;
 
   return result;
@@ -3089,8 +3119,8 @@ char *
 xmalloc (size)
      unsigned int size;
 {
-  char *result = malloc (size);
-  if (!result)
+  char *result = (char *) malloc (size);
+  if (result == NULL)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
@@ -3100,8 +3130,8 @@ xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
 {
-  char *result = realloc (ptr, size);
-  if (!result)
+  char *result = (char *) realloc (ptr, size);
+  if (result == NULL)
     fatal ("virtual memory exhausted");
   return result;
 }
