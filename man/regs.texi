@@ -103,10 +103,10 @@ well; you can think of this as ``moving'' the region text into the register.
   @kbd{M-x append-to-register @key{RET} @var{r}} appends the copy of
 the text in the region to the text already stored in the register
 named @var{r}.  If invoked with a numeric argument, it deletes the
-region after appending it to the register.  A similar command
-@code{prepend-to-register} works the same, except that it
-@emph{prepends} the region text to the text in the register, rather
-than @emph{appending} it.
+region after appending it to the register.  The command
+@code{prepend-to-register} is similar, except that it @emph{prepends}
+the region text to the text in the register, rather than
+@emph{appending} it.
 
   @kbd{C-x r i @var{r}} inserts in the buffer the text from register
 @var{r}.  Normally it leaves point before the text and places the mark
