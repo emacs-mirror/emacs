@@ -81,7 +81,7 @@ first will be printed into the backtrace buffer."
 	(debugger-outer-cursor-in-echo-area cursor-in-echo-area))
     ;; Don't let these magic variables affect the debugger itself.
     (let ((last-command nil) this-command track-mouse
-	  unread-command-char unread-command-events
+	  (unread-command-char -1) unread-command-events
 	  last-input-event last-command-event last-nonmenu-event
 	  last-event-frame
 	  (standard-input t) (standard-output t)
