@@ -252,12 +252,14 @@ Thus, this does not include the shell's current directory.")
 
 (defvar shell-mode-map nil)
 (cond ((not shell-mode-map)
-       (setq shell-mode-map (copy-keymap comint-mode-map))
+       (setq shell-mode-map (nconc (make-sparse-keymap) comint-mode-map))
        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
+       (define-key shell-mode-map [menu-bar completion]
+	 (copy-keymap (lookup-key comint-mode-map [menu-bar completion])))
        (define-key-after (lookup-key shell-mode-map [menu-bar completion])
 	 [complete-env-variable] '("Complete Env. Variable Name" .
 				   shell-dynamic-complete-environment-variable)
