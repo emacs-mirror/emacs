@@ -2858,13 +2858,8 @@ and (2) it puts less data in the undo list.")
   /* Determine file type from name and remove LFs from CR-LFs if the file
      is deemed to be a text file.  */
   {
-    struct gcpro gcpro1;
-    Lisp_Object code;
-    code = Qnil;
-    GCPRO1 (filename);
     current_buffer->buffer_file_type
       = call1 (Qfind_buffer_file_type, filename);
-    UNGCPRO;
     if (NILP (current_buffer->buffer_file_type))
       {
 	int reduced_size
