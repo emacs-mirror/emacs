@@ -383,7 +383,10 @@ but optional second arg NODIGITS non-nil treats them like other chars."
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine
-in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP."
+in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
+
+For most uses, it is simpler and safer to use command remappping like this:
+  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
