@@ -1081,7 +1081,7 @@ sort_args (argc, argv)
   while (to < argc)
     {
       int best = -1;
-      int best_priority = -2;
+      int best_priority = -9999;
 
       /* Find the highest priority remaining option.
 	 If several have equal priority, take the first of them.  */
