@@ -351,6 +351,20 @@ unlike `file-truename'."
     (while (setq tem (file-symlink-p newname))
       (if (= count 0)
 	  (error "Apparent cycle of symbolic links for %s" filename))
+      ;; Handle `..' by hand, since it needs to work in the
+      ;; target of any directory symlink.
+      ;; This code is not quite complete; it does not handle
+      ;; embedded .. in some cases such as ./../foo and foo/bar/../../../lose.
+      (while (string-match "\\.\\./" tem)
+	(setq tem (substring tem 3))
+	(setq newname (file-name-as-directory
+		       ;; Do the .. by hand.
+		       (directory-file-name
+			(file-name-directory
+			 ;; Chase links in the default dir of the symlink.
+			 (file-chase-links
+			  (directory-file-name
+			   (file-name-directory newname))))))))
       (setq newname (expand-file-name tem (file-name-directory newname)))
       (setq count (1- count)))
     newname))
