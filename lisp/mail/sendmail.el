@@ -1241,7 +1241,9 @@ The seventh argument ACTIONS is a list of actions to take
   (let (initialized)
     (and (not noerase)
 	 (or (not (buffer-modified-p))
-	     (y-or-n-p "Unsent message being composed; erase it? "))
+	     (if buffer-file-name
+		 (y-or-n-p "Buffer is modified; erase it and reinitialize? ")
+	       (y-or-n-p "Unsent message being composed; erase it? ")))
 	 (let ((inhibit-read-only t))
 	   (erase-buffer)
 	   (mail-setup to subject in-reply-to cc replybuffer actions)
