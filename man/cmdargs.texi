@@ -335,10 +335,13 @@ software) inherit the environment from Emacs, too.
 @findex getenv
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
-environment.  The way to set environment variables outside of Emacs
-depends on the operating system, and especially the shell that you are
-using.  For example, here's how to set the environment variable
-@env{ORGANIZATION} to @samp{not very much} using Bash:
+environment.  (Environment variable substitutions with @samp{$} work
+in the value just as in file names; see @ref{File Names with $}.)
+
+  The way to set environment variables outside of Emacs depends on the
+operating system, and especially the shell that you are using.  For
+example, here's how to set the environment variable @env{ORGANIZATION}
+to @samp{not very much} using Bash:
 
 @example
 export ORGANIZATION="not very much"
@@ -351,9 +354,9 @@ and here's how to do it in csh or tcsh:
 setenv ORGANIZATION "not very much"
 @end example
 
-  When Emacs uses the X Window System, it inherits the use
-of a large number of environment variables from the X libraries.  See
-the X documentation for more information.
+  When Emacs is using the X Window System, various environment
+variables that control X work for Emacs as well.  See the X
+documentation for more information.
 
 @menu
 * General Variables::   Environment variables that all versions of Emacs use.
@@ -898,9 +901,9 @@ position of the initial Emacs frame:
 @table @samp
 @item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex -g
-Specify window size @var{width} and @var{height} (measured in character
+Specify the size @var{width} and @var{height} (measured in character
 columns and lines), and positions @var{xoffset} and @var{yoffset}
-(measured in pixels).
+(measured in pixels).  This applies to all frames.
 
 @item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex --geometry
