@@ -1144,6 +1144,9 @@ mode-lines in inverse-video.
 ** The obsolete C mode (c-mode.el) has been removed to avoid problems
 with Custom.
 
+** New package benchmark.el contains simple support for convenient
+timing measurements of code (including the garbage collection component).
+
 
 * Lisp Changes in Emacs 21.4
 

@@ -1,3 +1,7 @@
+2003-02-03  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/benchmark.el: New.
+
 2003-02-02  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/asm-mode.el (asm-font-lock-keywords): Allow arbitrary
