@@ -1,3 +1,8 @@
+2002-06-28  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Remove duplicate declaration of
+	code_convert_string_norecord.
+
 2002-06-27  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: (mode_line_string_list, mode_line_string_face)
