@@ -684,7 +684,9 @@ next_frame (frame, minibuf)
 	Lisp_Object f;
 
 	f = XCONS (tail)->car;
-	if (passed)
+
+	if (passed
+	    && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
 	  {
 	    /* Decide whether this frame is eligible to be returned.  */
 
@@ -763,38 +765,41 @@ prev_frame (frame, minibuf)
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
 
-      /* Decide whether this frame is eligible to be returned,
-	 according to minibuf.  */
-      if (NILP (minibuf))
+      if (FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
 	{
-	  if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
+	  /* Decide whether this frame is eligible to be returned,
+	     according to minibuf.  */
+	  if (NILP (minibuf))
+	    {
+	      if (! FRAME_MINIBUF_ONLY_P (XFRAME (f)))
+		prev = f;
+	    }
+	  else if (WINDOWP (minibuf))
+	    {
+	      if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
+		  /* Check that F either is, or has forwarded its focus to,
+		     MINIBUF's frame.  */
+		  && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
+		      || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
+			     FRAME_FOCUS_FRAME (XFRAME (f)))))
+		prev = f;
+	    }
+	  else if (EQ (minibuf, Qvisible))
+	    {
+	      FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+	      if (FRAME_VISIBLE_P (XFRAME (f)))
+		prev = f;
+	    }
+	  else if (XFASTINT (minibuf) == 0)
+	    {
+	      FRAME_SAMPLE_VISIBILITY (XFRAME (f));
+	      if (FRAME_VISIBLE_P (XFRAME (f))
+		  || FRAME_ICONIFIED_P (XFRAME (f)))
+		prev = f;
+	    }
+	  else
 	    prev = f;
 	}
-      else if (WINDOWP (minibuf))
-	{
-	  if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
-	      /* Check that F either is, or has forwarded its focus to,
-		 MINIBUF's frame.  */
-	      && (EQ (WINDOW_FRAME (XWINDOW (minibuf)), f)
-		  || EQ (WINDOW_FRAME (XWINDOW (minibuf)),
-			 FRAME_FOCUS_FRAME (XFRAME (f)))))
-	    prev = f;
-	}
-      else if (EQ (minibuf, Qvisible))
-	{
-	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-	  if (FRAME_VISIBLE_P (XFRAME (f)))
-	    prev = f;
-	}
-      else if (XFASTINT (minibuf) == 0)
-	{
-	  FRAME_SAMPLE_VISIBILITY (XFRAME (f));
-	  if (FRAME_VISIBLE_P (XFRAME (f))
-	      || FRAME_ICONIFIED_P (XFRAME (f)))
-	    prev = f;
-	}
-      else
-	prev = f;
     }
 
   /* We've scanned the entire list.  */
@@ -812,13 +817,14 @@ prev_frame (frame, minibuf)
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
+It considers only frames on the same terminal as FRAME.\n\
 By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIBUF is a window, include only its own frame\n\
+If MINIFRAME is a window, include only its own frame\n\
 and any frame now using that window as the minibuffer.\n\
 If MINIFRAME is `visible', include all visible frames.\n\
-If MINIBUF is 0, include all visible and iconified frames.\n\
+If MINIFRAME is 0, include all visible and iconified frames.\n\
 Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
@@ -835,13 +841,14 @@ Otherwise, include all frames.")
 
 DEFUN ("previous-frame", Fprevious_frame, Sprevious_frame, 0, 2, 0,
   "Return the previous frame in the frame list before FRAME.\n\
+It considers only frames on the same terminal as FRAME.\n\
 By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIBUF is a window, include only its own frame\n\
+If MINIFRAME is a window, include only its own frame\n\
 and any frame now using that window as the minibuffer.\n\
 If MINIFRAME is `visible', include all visible frames.\n\
-If MINIBUF is 0, include all visible and iconified frames.\n\
+If MINIFRAME is 0, include all visible and iconified frames.\n\
 Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
@@ -955,7 +962,24 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
   /* Don't let the frame remain selected.  */
   if (f == selected_frame)
-    do_switch_frame (next_frame (frame, Qt), Qnil, 0);
+    {
+      Lisp_Object tail, frame1;
+
+      /* Look for another visible frame on the same terminal.  */
+      frame1 = next_frame (frame, Qvisible);
+
+      /* If there is none, find *some* other frame.  */
+      if (NILP (frame1) || EQ (frame1, frame))
+	{
+	  FOR_EACH_FRAME (tail, frame1)
+	    {
+	      if (! EQ (frame, frame1))
+		break;
+	    }
+	}
+
+      do_switch_frame (frame1, Qnil, 0);
+    }
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, minibuf_window))
