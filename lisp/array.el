@@ -903,7 +903,7 @@ Entering array mode calls the function `array-mode-hook'."
   (setq major-mode 'array-mode)
   (setq mode-name "Array")
   (force-mode-line-update)
-  (make-variable-buffer-local 'truncate-lines)
+  (make-local-variable 'truncate-lines)
   (setq truncate-lines t)
   (setq overwrite-mode 'overwrite-mode-textual)
   (use-local-map array-mode-map)
