@@ -1246,7 +1246,7 @@ generating a buffered list of errors."
 With prefix ARG, turn Checkdoc minor mode on iff ARG is positive.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
-bound to \\<checkdoc-minor-mode-map> \\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
+bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"

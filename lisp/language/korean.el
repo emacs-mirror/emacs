@@ -38,6 +38,7 @@
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
+(define-coding-system-alias 'cp949 'korean-iso-8bit)
 
 (make-coding-system
  'iso-2022-kr 2 ?k

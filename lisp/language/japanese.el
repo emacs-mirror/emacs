@@ -67,6 +67,7 @@
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
+(define-coding-system-alias 'cp932 'japanese-shift-jis)
 
 (make-coding-system
  'japanese-iso-7bit-1978-irv 2 ?j

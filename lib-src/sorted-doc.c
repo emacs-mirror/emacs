@@ -75,7 +75,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -279,8 +279,10 @@ main ()
     printf ("@bye\n");
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 /* arch-tag: ce28f204-1e70-4b34-8210-3d54a5662071
    (do not change this comment) */
+
+/* sorted-doc.c ends here */

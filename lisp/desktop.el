@@ -289,16 +289,14 @@ DESKTOP-BUFFER-MISC.")
   (Info-mode . Info-restore-desktop-buffer))
   "Alist of major mode specific functions to restore a desktop buffer.
 Functions are called by `desktop-read'. List elements must have the form
-\(MAJOR-MODE . FUNCTION).
+\(MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
 
 Buffers with a major mode not specified here, are restored by the default
 handler `desktop-restore-file-buffer'.
 
-Handlers are called with parameters
+Handlers are called with argument list
 
-   desktop-buffer-file-name
-   desktop-buffer-name
-   desktop-buffer-misc
+   (DESKTOP-BUFFER-FILE-NAME DESKTOP-BUFFER-NAME DESKTOP-BUFFER-MISC)
 
 Furthermore, they may use the following variables:
 

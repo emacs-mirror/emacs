@@ -67,6 +67,111 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* process.c (Fstart_process): Fix docstring.
+
+	* charset.c (Fget_unused_iso_final_char): Fix typos in docstring.
+	(Fchar_bytes, Fchar_width, Fstring_width, Fchar_direction)
+	(Fsplit_char, Fchar_charset): Make argument names match their use
+	in docstring.
+
+2004-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_preprocess): Use being_printed, loop_count and
+	halftail to detect overdeep nesting and cyclic cdr chains.
+
+2004-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmake_symbolic_link.
+
+	* fileio.c (Frename_file): Remove extra argument in call to
+	Fmake_symbolic_link.
+
+2004-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_line_height_property): Use string position when
+	object is a string.
+
+2004-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (temp_output_buffer_setup): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* xfns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* w32fns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* fns.c (count_combining): Delete it.
+	(concat): Don't check combining bytes.
+
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
+	(globals_of_w32fns): Set it.
+
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+
+	* data.c (Fquo): Simplify.
+
+2004-05-08  Peter Whaite  <emacs@whaite.ca>  (tiny change)
+
+	* data.c (Fquo): If any argument is float, do the computation in
+	floating point.
+
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* process.c (Fwaiting_for_user_input_p, Fmake_network_process)
+	(Fset_process_query_on_exit_flag, Vprocess_adaptive_read_buffering):
+	Fix spelling of Emacs on docstring.
+	(Fset_process_coding_system, Fprocess_coding_system)
+	(Fset_process_filter_multibyte, Fprocess_filter_multibyte_p):
+	Make argument names match their use in docstring.
+	(Fprocess_id, Fprocess_query_on_exit_flag, Finterrupt_process):
+	Fix docstring.
+
+	* editfns.c (Finsert_buffer_substring): Make argument names match their
+	use in docstring.
+
+	* syntax.c (Fmodify_syntax_entry): Fix docstring.
+
+2004-05-07  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_check_for_quit_char): Adding BLOCK_INPUT
+	around call to ReceiveEvent to avoid certain crashes.
+
+2004-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	* macterm.c (mac_draw_line_to_pixmap, XCreatePixmapFromBitmapData)
+	(mac_fill_rectangle_to_pixmap, mac_draw_rectangle_to_pixmap)
+	(mac_copy_area_to_pixmap, mac_copy_area_with_mask_to_pixmap):
+	Save/restore the current graphics port and device handle when
+	drawing into an offscreen graphics world.
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel, image_load_qt_1)
+	(gif_load): Likewise.
+
+2004-05-07  Juanma Barranquero  <lektu@terra.es>
+
+	* window.c (Fset_window_buffer): Fix docstring.
+
+2004-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs.c (main) [VMS]: Fix var ref.
+
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* data.c (Fsetq_default): Fix docstring.
+
+2004-05-06  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (Display) [HAVE_NTGUI]: Redefine while loading xpm.h
+	to avoid name clash.
+
 2004-05-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* fileio.c (barf_or_query_if_file_exists): Use lstat.

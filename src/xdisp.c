@@ -18529,12 +18529,16 @@ calc_line_height_property (it, prop, font, boff, total)
      XFontStruct *font;
      int boff, *total;
 {
-  Lisp_Object val;
+  Lisp_Object position, val;
   Lisp_Object face_name = Qnil;
   int ascent, descent, height, override;
 
-  val = Fget_char_property (make_number (IT_CHARPOS (*it)),
-			    prop, it->object);
+  if (STRINGP (it->object))
+    position = make_number (IT_STRING_CHARPOS (*it));
+  else
+    position = make_number (IT_CHARPOS (*it));
+
+  val = Fget_char_property (position, prop, it->object);
 
   if (NILP (val))
     return val;

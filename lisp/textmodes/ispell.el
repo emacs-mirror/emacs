@@ -3274,7 +3274,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 		  (equal major-mode 'message-mode))   ;GNUS 5
 	      (concat "In article <" "\\|"
 		      "[^,;&+=\n]+ <[^,;&+=]+> writes:" "\\|"
-		      message-yank-prefix "\\|"
+                      message-cite-prefix-regexp "\\|"
 		      default-prefix))
 	     ((equal major-mode 'mh-letter-mode) ; mh mail message
 	      (concat "[^,;&+=\n]+ writes:" "\\|"

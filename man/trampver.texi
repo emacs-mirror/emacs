@@ -4,14 +4,15 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@macro trampver{}
-2.0.39
-@end macro
+@set trampver 2.0.40
 
 @c Other flags from configuration
 @set prefix /usr/local
 @set lispdir /usr/local/share/emacs/site-lisp
 @set infodir /usr/local/info
+
+@c Formatting of the tramp program name consistent.
+@set tramp @sc{tramp}
 
 @c Some flags which make the text independent on the (X)Emacs flavor.
 @c "emacs" resp "xemacs" are set in the Makefile.  Default is "emacs".
@@ -24,40 +25,35 @@
 
 @c Emacs values.
 @ifset emacs
-@set emacs-name               Emacs
-@set emacs-dir                emacs
-@set ftp-package-name         Ange-FTP
-@set tramp-prefix             /
-@set tramp-prefix-single-hop
-@set tramp-postfix            :
-@set tramp-postfix-single-hop :
-@set tramp-postfix-multi-hop  :
-@set japanese-manual          tramp_ja-emacs.html
+@set emacsname          Emacs
+@set emacsdir           emacs
+@set ftppackagename     Ange-FTP
+@set prefix             /
+@set prefixsinglehop
+@set postfix            :
+@set postfixsinglehop   :
+@set postfixmultihop    :
+@set emacsothername     XEmacs
+@set emacsotherdir      xemacs
+@set emacsotherfilename tramp-xemacs.html
+@set japanesemanual     tramp_ja-emacs.html
 @end ifset
 
 @c XEmacs counterparts.
 @ifset xemacs
-@set emacs-name               XEmacs
-@set emacs-dir                xemacs
-@set ftp-package-name         EFS
-@set tramp-prefix             /[
-@set tramp-prefix-single-hop  [
-@set tramp-postfix            ]
-@set tramp-postfix-single-hop /
-@set tramp-postfix-multi-hop  :
-@set japanese-manual          tramp_ja-xemacs.html
+@set emacsname          XEmacs
+@set emacsdir           xemacs
+@set ftppackagename     EFS
+@set prefix             /[
+@set prefixsinglehop    [
+@set postfix            ]
+@set postfixsinglehop   /
+@set postfixmultihop    :
+@set emacsothername     Emacs
+@set emacsotherdir      emacs
+@set emacsotherfilename tramp-emacs.html
+@set japanesemanual     tramp_ja-xemacs.html
 @end ifset
-
-@c Empty macro definitions in order to satisfy texi2dvi
-@macro otherflavor
-@end macro
-
-@macro installationchapter
-@end macro
-
-@c The installation chapter is needed only in case Tramp is installed
-@c standalone.  That's why it is included from `trampinst.texi'.
-@c Otherwise, '/dev/null/' is taken, which leaves this part empty.
 
 @ignore
    arch-tag: e0fe322c-e06b-46eb-bb5b-d091b521f41c

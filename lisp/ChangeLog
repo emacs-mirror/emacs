@@ -230,15 +230,341 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-05-11  Juanma Barranquero  <lektu@terra.es>
+
+	* custom.el (custom-initialize-default, defcustom): Fix typo in
+	docstring.
+
+2004-05-10  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compile): Add universal prefix arg.
+	(compilation-error-regexp-alist-alist): Add edg patterns.
+
+2004-05-10  Sam Steingold  <sds@gnu.org>
+
+	* textmodes/ispell.el (ispell-message): Use
+	`message-cite-prefix-regexp' instead of `message-yank-prefix'.
+
+2004-05-10  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (help-buffer): Autoload when compiling.
+	(python-after-info-look): Don't assume Info-goto-node returns non-nil.
+	(run-python): Prepend to any existing PYTHONPATH.
+
+2004-05-10  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-annotation-rules): Add nquery annotation
+	for pending breakpoints.
+
+2004-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/unrmail.el (unrmail): Mostly rewritten.  Parses the file
+	directly without calling any functions in Rmail.
+	(unrmail-unprune): Function deleted.
+
+2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (inferior-python-mode-map): Remove erroneous
+	C-c C-z binding.
+
+2004-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix previous change.  Don't make
+	a unibyte character to multibyte in the *Help* buffer.
+
+2004-05-10  Miles Bader  <miles@gnu.org>
+
+	* lisp/progmodes/gud.el (gud-common-init): Only consider an existing
+	buffer an error if the debugger process is actually running.
+
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Default to italic.
+	(help-highlight-arguments): Return always (usage . doc), even when
+	usage is nil.
+
+	* ibuf-macs.el (define-ibuffer-column, define-ibuffer-sorter)
+	(define-ibuffer-filter): Add usage info.
+	(define-ibuffer-op): Add usage info (but CL-style defaults for
+	keyword args are not shown).
+
+	* subr.el (remove-overlays, read-passwd): Fix docstring.
+	(start-process-shell-command): Fix docstring.  Put usage info in a
+	format usable by `describe-function'.
+	(open-network-stream, open-network-stream-nowait)
+	(open-network-stream-server): Fix docstring.
+
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* international/code-pages (cp932, cp936, cp949, c950): Remove.
+	Only define cp125* if windows-125* is already defined.
+
+	* language/korean.el (cp949): Add alias.
+
+	* language/chinese.el (cp936, cp950): Add aliases.
+
+	* language/japanese.el (cp932): Add alias.
+
+	* term/w32-win.el: Require code-pages.
+
+	* international/mule-cmds.el (set-locale-environment):
+	On MS-Windows use ansi code-page for default coding-systems.
+	Set up paper sizes for Windows 3 letter languages.
+
+	* international/code-pages.el (cp932, cp936, cp949, cp950):
+	Add aliases.  Also add cp125* if not already defined.
+
+2004-05-09  Juanma Barranquero  <lektu@terra.es>
+
+	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
+	Don't use CL-style default args.
+
+	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
+	(cvs-get-marked): Remove redundant arglist info.
+
+	* help-fns.el (help-highlight-arguments): Don't try to highlight
+	missing or autoloaded arglists.  Accept structured arguments, like
+	the first ones of `do' and `flet'.
+
+2004-05-08  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Doc fix.
+
+	* international/subst-ksc.el: Fix references to utf-translate-cjk
+	into utf-translate-cjk-mode.
+	* international/subst-big5.el: Likewise.
+	* international/subst-gb2312.el: Likewise.
+	* international/subst-jis.el: Likewise.
+	* international/utf-16.el: Likewise.
+	* international/utf-8.el: Likewise.
+
+2004-05-08  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-use-virtual-buffers): Add support for
+	"virtual buffers" (off by default), which makes it possible to
+	switch to the "virtual" buffers of recently visited files.  When a
+	buffer name search fails, and this option is on, iswitchb will
+	look at the list of recently visited files, and permit matching
+	against those names.  When the user hits RET on a match, it will
+	revisit that file.
+	(iswitchb-read-buffer): Add two optional arguments, which makes
+	isearchb.el possible.
+	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match)
+	(iswitchb-next-match): Add support for virtual buffers.
+
+	* isearchb.el: This module extends iswitchb to provide "as you
+	type" buffer selection.
+
+	* textmodes/flyspell.el (flyspell-highlight-incorrect-region):
+	Ignore the read-only property when flyspell highlighting is on.
+	Not ignoring it leads to a series of confusing errors.
+	(flyspell-highlight-duplicate-region): Ignore read-only, as above,
+	but also make sure to call flyspell-incorrect-hook.
+	(flyspell-maybe-correct-transposition): Perform transposition test
+	by bit twiddling a string, rather than using a temp buffer.
+	(flyspell-maybe-correct-doubling): Use a string rather than a temp
+	buffer.  This is also the original version of the code, which
+	could not be checked in before due to a previous lack of
+	assignment papers.  This version has seen heavy usage on my system
+	for several years now.
+
+	* calendar/cal-bahai.el: New file, which adds support for the
+	Baha'i calendar to Emacs.  This calendar is based on a solar year
+	of 19 months of 19 days, with 4 intercalary days.  Each year
+	begins on March 21, with the calendar starting in 1844.
+
+	* calendar/cal-menu.el, calendar/calendar.el,
+	calendar/diary-lib.el, calendar/holidays.el: Added support for
+	using cal-bahai.el.
+
+	* eshell/em-glob.el (eshell-glob-initialize): Move initialization
+	of `eshell-glob-chars-regexp' into `eshell-glob-regexp', so that
+	function can be used outside of eshell buffers.
+	(eshell-glob-regexp): Initialize `eshell-glob-chars-regexp' here.
+
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-do-arg-highlight): Temporarily set ?\- to be a
+	word constituent so FOO-ARG is not recognized as an arg.
+	(help-highlight-arguments): Don't skip lists in mandatory arguments.
+
+	* simple.el (next-error): Fix typo in docstring.
+	(open-line): Make argument names match their use in docstring.
+	(split-line): Fix docstring.
+
+	* emacs-lisp/cl-macs.el (do, do*): Put usage info in a format
+	usable by `describe-function'.
+	(gensym, gentemp, typep, ignore-errors): Make argument names match
+	their use in docstring.
+
+	* progmodes/python.el (python-describe-symbol): Pass INTERACTIVE-P
+	argument to `help-setup-xref'.
+
+2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+
+	Version 2.0.40 of Tramp released.
+
+	* net/tramp.el (tramp-completion-mode, tramp-md5-function):
+	Use symbol-function to invoke functions only known on some Emacs
+	flavors.  This avoids byte-compiler warnings.  Reported by Kevin
+	Scaldeferri <kevin@scaldeferri.com>.
+	(tramp-do-copy-or-rename-file-via-buffer): Rename from
+	tramp-do-copy-or-rename-via-buffer (without `file'), to make it
+	consistent with the other tramp-do-* functions.
+	(tramp-do-copy-or-rename-file): Calls adjusted.
+	(tramp-process-initial-commands): Avoid liveness check on shell --
+	we know that it must be alive since we're opening a connection at
+	this moment.
+	(tramp-last-cmd): New internal variable.
+	(tramp-process-echoes): New tunable.
+	(tramp-send-command): Set tramp-last-cmd.
+	(tramp-wait-for-output): Delete echo, if applicable.
+	(tramp-read-passwd): Construct the key for the password cache in a
+	way that works for multi methods, too.
+	(tramp-bug): Add backup-directory-alist and
+	bkup-backup-directory-info to bug reports, with Tramp counterparts.
+
+2004-05-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp*.el: Suppress byte-compiler warnings where possible.
+
+	* net/tramp.el (tramp-out-of-band-prompt-regexp)
+	(tramp-actions-copy-out-of-band): New defcustoms.
+	(tramp-do-copy-or-rename-file-out-of-band): Asynchronous process
+	used instead of a synchronous one.  Allows password entering.
+	(tramp-action-out-of-band): New defun.
+	(tramp-open-connection-rsh, tramp-method-out-of-band-p):
+	Remove restriction with password from doc string.
+	(tramp-bug): Add variables `tramp-terminal-prompt-regexp',
+	`tramp-out-of-band-prompt-regexp',
+	`tramp-actions-copy-out-of-band', `password-cache' and
+	`password-cache-expiry'.
+	(toplevel): Remove todo item wrt ssh-agent.  Obsolete due to
+	password caching.
+	(tramp-touch): FILE can be a local file, too.
+	(TODO): Remove items done.
+	(tramp-handle-insert-directory): Properly quote file name also if
+	not full-directory-p.  Handle wildcard case.  Reported by Andreas
+	Schwab <schwab@suse.de>.
+	(tramp-do-copy-or-rename-file-via-buffer): Set permissions of the
+	new file.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	The permissions of the temporary file are set if filename exists.
+	Reported by Ted Stern <stern@cray.com>.
+	(tramp-backup-directory-alist)
+	(tramp-bkup-backup-directory-info): New defcustoms.
+	(tramp-file-name-handler-alist): Add entry for `find-backup-file-name'.
+	(tramp-handle-find-backup-file-name): New function.
+	Implements Tramp's find-backup-file-name.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry
+	for `find-backup-file-name'.
+
+	* net/tramp-vc.el (tramp-vc-workfile-unchanged-p): Correct typo
+	("file" -> "filename").  Reported by Kim F. Storm <storm@cua.dk>.
+
+2004-05-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-mode-handlers): Fix docstring.
+
+2004-05-07  Juanma Barranquero  <lektu@terra.es>
+
+	* subr.el (lambda): Add arglist description to docstring.
+	(declare): Fix typo in docstring.
+	(open-network-stream): Fix docstring.
+	(process-kill-without-query): Fix docstring and add obsolescence info.
+	(last, butlast, nbutlast): Make arguments match their use in docstring.
+	(insert-buffer-substring-no-properties): Likewise.
+	(insert-buffer-substring-as-yank): Likewise.
+	(split-string): Fix docstring.
+
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Make argument names match their use in docstring.
+
+	* emacs-lisp/re-builder.el (reb-auto-update): Fix typo in docstring.
+
+2004-05-06  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el: Improve/extend documentation strings.
+	Fit first sentence on one line for apropos-command.
+
+2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Changes largely merged in from Dave Love's code.
+	* progmodes/python.el: Doc fixes.
+	(python-mode-map): Add python-complete-symbol.
+	(python-comment-line-p, python-beginning-of-string): Use syntax-ppss.
+	(python-comment-indent, python-complete-symbol)
+	(python-symbol-completions, python-partial-symbol)
+	(python-try-complete): New.
+	(python-indent-line): Remove optional arg.  Use python-block-end-p.
+	(python-check): Bind compilation-error-regexp-alist.
+	(inferior-python-mode): Use rx.  Move keybindings to top level.
+	Set comint-input-filter.
+	(python-preoutput-filter): Use rx.
+	(python-input-filter): Re-introduce.
+	(python-proc): Start new process if necessary.
+	Check python-buffer non-nil.
+	(view-return-to-alist): Defvar.
+	(python-send-receive): New.
+	(python-eldoc-function): Use it.
+	(python-mode-running): Don't defvar.
+	(python-mode): Set comment-indent-function.
+	Maybe update hippie-expand-try-functions-list.
+	(python-indentation-levels): Initialize differently.
+	(python-block-end-p): New.
+	(python-indent-line): Use it.
+	(python-compilation-regexp-alist): Augment.
+	(run-python): Import `emacs' module to Python rather than loading
+	code directly.  Set python-buffer differently.
+	(python-send-region): Use emacs.eexecfile.  Fix orig-start calculation.
+	Use python-proc.
+	(python-send-command): Go to end of comint buffer.
+	(python-load-file): Use python-proc, emacs.eimport.
+	(python-describe-symbol): Simplify interactive form.
+	Use emacs.help.  Do use temp-buffer-show-hook.
+	Call print-help-return-message.
+	(hippie-exp): Require when compiling.
+	(python-preoutput-continuation): Use rx.
+
+	* diff-mode.el (diff-make-unified): Fix regexp.
+
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* ibuffer.el (ibuffer-redisplay-engine): Do not remove folded
+	filter groups from the buffer when rebuilding the Ibuffer buffer
+	and `ibuffer-show-empty-filter-groups' is nil.
+
+2004-05-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-quote): Call ps-value-string.
+	(ps-setup): Call ps-comment-string.
+	(ps-value-string, ps-comment-string): New funs.
+
+2004-05-06  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-argument-name): Default to bold; don't inherit
+	from font-lock-variable-name-face.
+	(help-do-arg-highlight): Grok also ARGth occurrences in the docstring.
+
+	* ehelp.el (electric-help-command-loop): Check whether the last
+	character is visible, not (point-max).
+
+2004-05-05  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Copy the character with text
+	properties and overlays into the first line, and call
+	describe-text-properties on it.
+
 2004-05-05  Stephen Eglen  <stephen@anc.ed.ac.uk>
 
 	* iswitchb.el (iswitchb-global-map): Fix typo.
-	Removed unwanted ###autoloads from source file.
+	Remove unwanted ###autoloads from source file.
 
 2004-05-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* wdired.el (wdired-change-to-wdired-mode): Quote wdired-mode-hook
-	in run-hooks. Use substitute-command-keys in message.
+	in run-hooks.  Use substitute-command-keys in message.
 	(wdired-abort-changes): Add message.
 
 2004-05-03  Michael Mauger  <mmaug@yahoo.com>

@@ -1,5 +1,5 @@
 ;;; subst-ksc.el --- Unicode/KSC-5601 translation    -*-coding: euc-kr;-*-
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -22,7 +22,7 @@
 ;;; Commentary:
 
 ;; Provides translation tables between Unicode and korean-ksc5601 for
-;; use by the `utf-translate-cjk' option.  See subst-jis.el for the
+;; use by the `utf-translate-cjk-mode' option.  See subst-jis.el for the
 ;; method used.
 
 ;;; Code:

@@ -174,14 +174,19 @@ XPutPixel (ximage, x, y, pixel)
      int x, y;
      unsigned long pixel;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   RGBColor color;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximage, NULL);
 
   color.red = RED16_FROM_ULONG (pixel);
   color.green = GREEN16_FROM_ULONG (pixel);
   color.blue = BLUE16_FROM_ULONG (pixel);
   SetCPixel (x, y, &color);
+
+  SetGWorld (old_port, old_gdh);
 }
 
 static unsigned long
@@ -189,11 +194,16 @@ XGetPixel (ximage, x, y)
      XImagePtr ximage;
      int x, y;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   RGBColor color;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximage, NULL);
 
   GetCPixel (x, y, &color);
+
+  SetGWorld (old_port, old_gdh);
   return RGB_TO_ULONG (color.red >> 8, color.green >> 8, color.blue >> 8);
 }
 
@@ -2196,6 +2206,10 @@ image_load_qt_1 (f, img, type, fss, dh)
     goto error;
   if (draw_all_pixels != graphicsImporterDrawsAllPixels)
     {
+      CGrafPtr old_port;
+      GDHandle old_gdh;
+
+      GetGWorld (&old_port, &old_gdh);
       SetGWorld (ximg, NULL);
       bg_color.red = color.red;
       bg_color.green = color.green;
@@ -2207,6 +2221,7 @@ image_load_qt_1 (f, img, type, fss, dh)
 #else
       EraseRect (&(ximg->portRect));
 #endif
+      SetGWorld (old_port, old_gdh);
     }
   GraphicsImportSetGWorld (gi, ximg, NULL);
   GraphicsImportDraw (gi);
@@ -3179,13 +3194,16 @@ static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 /* Indicate to xpm.h that we don't have Xlib.  */
 #define FOR_MSW
 /* simx.h in xpm defines XColor and XImage differently than Emacs.  */
+/* It also defines Display the same way as Emacs, but gcc 3.3 still barfs.  */
 #define XColor xpm_XColor
 #define XImage xpm_XImage
+#define Display xpm_Display
 #define PIXEL_ALREADY_TYPEDEFED
 #include "X11/xpm.h"
 #undef FOR_MSW
 #undef XColor
 #undef XImage
+#undef Display
 #undef PIXEL_ALREADY_TYPEDEFED
 #else
 #include "X11/xpm.h"
@@ -6880,6 +6898,8 @@ gif_load (f, img)
   TimeValue time;
   struct gcpro gcpro1;
   int ino;
+  CGrafPtr old_port;
+  GDHandle old_gdh;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -6997,11 +7017,13 @@ gif_load (f, img)
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     goto error;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximg, NULL);
   bg_color.red = color.red;
   bg_color.green = color.green;
   bg_color.blue = color.blue;
   RGBBackColor (&bg_color);
+  SetGWorld (old_port, old_gdh);
   SetMovieActive (movie, TRUE);
   SetMovieGWorld (movie, ximg, NULL);
   SampleNumToMediaTime (media, ino + 1, &time, NULL);

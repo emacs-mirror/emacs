@@ -383,6 +383,10 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
+
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
 
   mac_set_colors (gc);
@@ -391,6 +395,8 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
   MoveTo (x1, y1);
   LineTo (x2, y2);
   UnlockPixels (GetGWorldPixMap (p));
+
+  SetGWorld (old_port, old_gdh);
 }
 
 /* Mac version of XClearArea.  */
@@ -620,11 +626,14 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 {
   Pixmap pixmap;
   BitMap bitmap;
+  CGrafPtr old_port;
+  GDHandle old_gdh;
 
   pixmap = XCreatePixmap (display, w, width, height, depth);
   if (pixmap == NULL)
     return NULL;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (pixmap, NULL);
   mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
   mac_set_forecolor (fg);
@@ -638,6 +647,7 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 	    &bitmap.bounds, &bitmap.bounds, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (pixmap));
+  SetGWorld (old_port, old_gdh);
   mac_free_bitmap (&bitmap);
 
   return pixmap;
@@ -677,8 +687,11 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   Rect r;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
   mac_set_colors (gc);
   SetRect (&r, x, y, x + width, y + height);
@@ -686,6 +699,8 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
   LockPixels (GetGWorldPixMap (p));
   PaintRect (&r); /* using foreground color of gc */
   UnlockPixels (GetGWorldPixMap (p));
+
+  SetGWorld (old_port, old_gdh);
 }
 
 
@@ -724,8 +739,11 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
      int x, y;
      unsigned int width, height;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   Rect r;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
   mac_set_colors (gc);
   SetRect (&r, x, y, x + width + 1, y + height + 1);
@@ -733,6 +751,8 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
   LockPixels (GetGWorldPixMap (p));
   FrameRect (&r); /* using foreground color of gc */
   UnlockPixels (GetGWorldPixMap (p));
+
+  SetGWorld (old_port, old_gdh);
 }
 
 
@@ -1003,8 +1023,11 @@ mac_copy_area_to_pixmap (display, src, dest, gc, src_x, src_y, width, height,
      unsigned int width, height;
      int dest_x, dest_y;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   Rect src_r, dest_r;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (dest, NULL);
   ForeColor (blackColor);
   BackColor (whiteColor);
@@ -1023,6 +1046,8 @@ mac_copy_area_to_pixmap (display, src, dest, gc, src_x, src_y, width, height,
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (dest));
   UnlockPixels (GetGWorldPixMap (src));
+
+  SetGWorld (old_port, old_gdh);
 }
 
 
@@ -1036,8 +1061,11 @@ mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
      unsigned int width, height;
      int dest_x, dest_y;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   Rect src_r, dest_r;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (dest, NULL);
   ForeColor (blackColor);
   BackColor (whiteColor);
@@ -1058,6 +1086,8 @@ mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
   UnlockPixels (GetGWorldPixMap (dest));
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
+
+  SetGWorld (old_port, old_gdh);
 }
 
 
@@ -8980,9 +9010,11 @@ mac_check_for_quit_char ()
   mac_determine_quit_char_modifiers ();
 
   /* Fill the queue with events */
+  BLOCK_INPUT;
   ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
   event = FindSpecificEventInQueue (GetMainEventQueue (), quit_char_comp,
 				    NULL);
+  UNBLOCK_INPUT;
   if (event)
     {
       struct input_event e;

@@ -26,6 +26,8 @@ user.  For related topics such as keymaps and syntax tables, see
 * Imenu::              How a mode can provide a menu
                          of definitions in the buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
+* Desktop Save Mode::  How modes can have buffer state saved between
+                         Emacs sessions.
 * Hooks::              How to use hooks; how to write code that provides hooks.
 @end menu
 
@@ -1452,11 +1454,12 @@ enabled separately in each buffer.
 @end defvar
 
 @defvar global-mode-string
-This variable holds a mode-line spec that appears in the mode line by
-default, just after the buffer name.  The command @code{display-time}
+This variable holds a mode-line spec that, by default, appears in the
+mode line just after the @code{which-func-mode} minor mode if set,
+else after @code{mode-line-modes}.  The command @code{display-time}
 sets @code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time and
-load information.
+@code{display-time-string}, which holds a string containing the time
+and load information.
 
 The @samp{%M} construct substitutes the value of
 @code{global-mode-string}, but that is obsolete, since the variable is
@@ -2423,6 +2426,59 @@ to have quote syntax, the element will only highlight single quotes of
 the form @samp{'@var{c}'} as strings syntactically.  Other forms, such
 as @samp{foo'bar} or @samp{'fubar'}, will not be highlighted as
 strings.
+
+@end defvar
+
+@node Desktop Save Mode
+@section Desktop Save Mode
+@cindex desktop save mode
+
+@dfn{Desktop Save Mode} is a feature to save the state of Emacs from
+one session to another.  The user-level commands for using Desktop
+Save Mode are described in the GNU Emacs Manual (@pxref{Saving Emacs
+Sessions,,, emacs, the GNU Emacs Manual}).  Modes whose buffers visit
+a file, don't have to do anything to use this feature.
+
+For buffers not visiting a file to have their state saved, the major
+mode must bind the buffer local variable @code{desktop-save-buffer} to
+a non-nil value.
+
+@defvar desktop-save-buffer
+If this buffer-local variable is non-@code{nil}, the buffer will have
+its state saved in the desktop file at desktop save.  If the value is
+a function, it is called at desktop save with argument
+@var{desktop-dirname}, and its value is saved in the desktop file along
+with the state of the buffer for which it was called.  When file names
+are returned as part of the auxiliary information, they should be
+formatted using the call
+
+@example
+(desktop-file-name @var{file-name} @var{desktop-dirname})
+@end example
+
+@end defvar
+
+For buffers not visiting a file to be restored, the major mode must
+define a function to do the job, and that function must be listed in
+the alist @code{desktop-buffer-mode-handlers}.
+
+@defvar desktop-buffer-mode-handlers
+Alist with elements
+
+@example
+(@var{major-mode} . @var{restore-buffer-function})
+@end example
+
+The function @var{restore-buffer-function} will be called with
+argument list
+
+@example
+(@var{buffer-file-name} @var{buffer-name} @var{desktop-buffer-misc})
+@end example
+
+and it should return the restored buffer.
+Here @var{desktop-buffer-misc} is the value returned by the function
+optionally bound to @code{desktop-save-buffer}.
 
 @end defvar
 

@@ -119,7 +119,7 @@ main (argc, argv)
     }
   fclose (mddf);
   fclose (mfilef);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 void
@@ -148,7 +148,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 void
@@ -157,7 +157,7 @@ sysfail (s)
 {
   fprintf (stderr, "cvtmail: ");
   perror (s);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 char *
@@ -183,3 +183,5 @@ xrealloc (ptr, size)
 
 /* arch-tag: b93c25a9-9012-44f1-b78b-9cc7aed44a7a
    (do not change this comment) */
+
+/* cvtmail.c ends here */

@@ -133,7 +133,7 @@ negative means move back to previous error messages.
 Just \\[universal-argument] as a prefix means reparse the error message buffer
 and start at the first error.
 
-The RESET argument specifies that we should restart from the beginning
+The RESET argument specifies that we should restart from the beginning.
 
 \\[next-error] normally uses the most recently started
 compilation, grep, or occur buffer.  It can also operate on any
@@ -294,7 +294,7 @@ than the value of `fill-column' and ARG is nil."
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
 
-(defun open-line (arg)
+(defun open-line (n)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
 if the line would have been blank.
@@ -305,23 +305,23 @@ With arg N, insert N newlines."
 	 (loc (point))
 	 ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
-    (newline arg)
+    (newline n)
     (goto-char loc)
-    (while (> arg 0)
+    (while (> n 0)
       (cond ((bolp)
 	     (if do-left-margin (indent-to (current-left-margin)))
 	     (if do-fill-prefix (insert-and-inherit fill-prefix))))
       (forward-line 1)
-      (setq arg (1- arg)))
+      (setq n (1- n)))
     (goto-char loc)
     (end-of-line)))
 
 (defun split-line (&optional arg)
   "Split current line, moving portion beyond point vertically down.
 If the current line starts with `fill-prefix', insert it on the new
-line as well.  With prefix arg, don't insert fill-prefix on new line.
+line as well.  With prefix ARG, don't insert fill-prefix on new line.
 
-When called from Lisp code, the arg may be a prefix string to copy."
+When called from Lisp code, ARG may be a prefix string to copy."
   (interactive "*P")
   (skip-chars-forward " \t")
   (let* ((col (current-column))

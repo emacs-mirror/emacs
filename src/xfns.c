@@ -4441,6 +4441,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);

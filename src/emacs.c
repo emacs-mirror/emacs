@@ -894,7 +894,7 @@ main (argc, argv
   /* If -map specified, map the data file in.  */
   {
     char *file;
-    if (argmatch (argv, argc, "-map", "--map-data", 3, &mapin_file, &skip_args))
+    if (argmatch (argv, argc, "-map", "--map-data", 3, &file, &skip_args))
       mapin_data (file);
   }
 

@@ -601,6 +601,8 @@ temp_output_buffer_setup (bufname)
   eassert (current_buffer->overlays_after == NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   XSETBUFFER (buf, current_buffer);
 
@@ -1278,6 +1280,26 @@ print_preprocess (obj)
 {
   int i;
   EMACS_INT size;
+  int loop_count = 0;
+  Lisp_Object halftail;
+
+  /* Avoid infinite recursion for circular nested structure
+     in the case where Vprint_circle is nil.  */
+  if (NILP (Vprint_circle))
+    {
+      for (i = 0; i < print_depth; i++)
+	if (EQ (obj, being_printed[i]))
+	  return;
+      being_printed[print_depth] = obj;
+    }
+
+  /* Give up if we go so deep that print_object will get an error.  */
+  /* See similar code in print_object.  */
+  if (print_depth >= PRINT_CIRCLE)
+    return;
+
+  print_depth++;
+  halftail = obj;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1338,8 +1360,15 @@ print_preprocess (obj)
 	  break;
 
 	case Lisp_Cons:
+	  /* Use HALFTAIL and LOOP_COUNT to detect circular lists,
+	     just as in print_object.  */
+	  if (loop_count && EQ (obj, halftail))
+	    break;
 	  print_preprocess (XCAR (obj));
 	  obj = XCDR (obj);
+	  loop_count++;
+	  if (!(loop_count & 1))
+	    halftail = XCDR (halftail);
 	  goto loop;
 
 	case Lisp_Vectorlike:
@@ -1354,6 +1383,7 @@ print_preprocess (obj)
 	  break;
 	}
     }
+  print_depth--;
 }
 
 static void
@@ -1424,6 +1454,7 @@ print_object (obj, printcharfun, escapeflag)
 
   print_depth++;
 
+  /* See similar code in print_preprocess.  */
   if (print_depth > PRINT_CIRCLE)
     error ("Apparently circular structure being printed");
 #ifdef MAX_PRINT_CHARS

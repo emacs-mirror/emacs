@@ -1,3 +1,34 @@
+2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* test-distrib.c (main): For failing cases, exit with `EXIT_FAILURE'.
+
+2004-05-08  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (lisp1, lisp2): Split lisp to avoid long
+	command-lines.
+
+2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* cvtmail.c: Throughout, replace 0 destined for `exit' arg
+	with `EXIT_SUCCESS'.  Likewise, replace 1 with `EXIT_FAILURE'.
+	(main): Use `EXIT_SUCCESS' or `EXIT_FAILURE' for return value.
+
+	* ebrowse.c, emacsclient.c, fakemail.c, hexl.c,
+	make-docfile.c, movemail.c, profile.c, sorted-doc.c,
+	test-distrib.c, update-game-score.c, yow.c: Likewise.
+
+2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in (emacsclient${EXEEXT}): Use makefile var `version'.
+
+2004-05-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* b2m.c (GOOD, BAD): Delete macros.  Throughout,
+	replace w/ `EXIT_SUCCESS' and `EXIT_FAILURE', respectively.
+	(main): Use `EXIT_SUCCESS' or `EXIT_FAILURE' for return value.
+
+	* etags.c: Likewise.
+
 2004-05-03  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.nt: Remove.

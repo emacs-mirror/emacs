@@ -1,3 +1,19 @@
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* modes.texi (Mode Line Variables): Fix description of
+	global-mode-string, which is now after which-func-mode, not the
+	buffer name.
+
+2004-05-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* modes.texi (Desktop Save Mode): Add.
+	(Modes): Add menu entry Desktop Save Mode.
+
+	* hooks.texi: Add desktop-after-read-hook,
+	desktop-no-desktop-file-hook and desktop-save-hook.
+
+	* locals.texi: Add desktop-save-buffer.
+
 2004-04-30  Jesper Harder  <harder@ifa.au.dk>
 
 	* display.texi: emacs -> Emacs.

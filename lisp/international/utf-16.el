@@ -1,6 +1,6 @@
 ;;; utf-16.el --- UTF-16 encoding/decoding
 
-;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: Unicode, UTF-16, i18n
@@ -351,7 +351,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
-		 utf-translate-cjk)))
+		 utf-translate-cjk-mode)))
 
   (make-coding-system
    'mule-utf-16be 4 ?u
@@ -372,7 +372,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
-		 utf-translate-cjk)))
+		 utf-translate-cjk-mode)))
 
   (make-coding-system
    'mule-utf-16le-with-signature 4 ?u
@@ -396,7 +396,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
-		 utf-translate-cjk)))
+		 utf-translate-cjk-mode)))
 
   (make-coding-system
    'mule-utf-16be-with-signature 4 ?u
@@ -419,7 +419,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
-		 utf-translate-cjk)))
+		 utf-translate-cjk-mode)))
 
   (make-coding-system
    'mule-utf-16 4 ?u
@@ -442,7 +442,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
 		 utf-fragment-on-decoding
-		 utf-translate-cjk)
+		 utf-translate-cjk-mode)
      (post-read-conversion . mule-utf-16-post-read-conversion)))
 )
 

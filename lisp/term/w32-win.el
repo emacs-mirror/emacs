@@ -77,6 +77,8 @@
 (require 'select)
 (require 'menu-bar)
 (require 'x-dnd)
+(require 'code-pages)
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))

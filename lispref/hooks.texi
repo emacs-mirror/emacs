@@ -58,6 +58,9 @@ however, we have renamed all of those.)
 @item comment-indent-function
 @item custom-define-hook
 @item deactivate-mark-hook
+@item desktop-after-read-hook
+@item desktop-no-desktop-file-hook
+@item desktop-save-hook
 @item diary-display-hook
 @item diary-hook
 @item dired-mode-hook

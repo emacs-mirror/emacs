@@ -93,7 +93,9 @@ Note that this macro expands into a `defun' for a function named
 ibuffer-make-column-NAME.  If INLINE is non-nil, then the form will be
 inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
-`ibuffer-recompile-formats'."
+`ibuffer-recompile-formats'.
+
+\(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)"
   (let* ((sym (intern (concat "ibuffer-make-column-"
 			      (symbol-name symbol))))
 	 (bod-1 `(with-current-buffer buffer
@@ -135,7 +137,9 @@ DESCRIPTION is a short string describing the sorting method.
 
 For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
-value if and only if `a' is \"less than\" `b'."
+value if and only if `a' is \"less than\" `b'.
+
+\(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)"
   `(progn
      (defun ,(intern (concat "ibuffer-do-sort-by-" (symbol-name name))) ()
        ,(or documentation "No :documentation specified for this sorting method.")
@@ -189,7 +193,9 @@ ACTIVE-OPSTRING is a string which will be displayed to the user in a
 confirmation message, in the form:
  \"Really ACTIVE-OPSTRING x buffers?\"
 COMPLEX means this function is special; see the source code of this
-macro for exactly what it does."
+macro for exactly what it does.
+
+\(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING COMPLEX) &rest BODY)"
   `(progn
     (defun ,(intern (concat (if (string-match "^ibuffer-do" (symbol-name op))
 				"" "ibuffer-do-") (symbol-name op)))
@@ -265,7 +271,9 @@ DESCRIPTION is a short string describing the filter.
 BODY should contain forms which will be evaluated to test whether or
 not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
-bound to the current value of the filter."
+bound to the current value of the filter.
+
+\(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)"
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
     `(progn
        (defun ,fn-name (qualifier)

@@ -45,10 +45,10 @@ If there's no tutorial in that language, `TUTORIAL' is selected.
 With ARG, you are asked to choose which language."
   (interactive "P")
   (let ((lang (if arg
-		    (let ((minibuffer-setup-hook minibuffer-setup-hook))
-		      (add-hook 'minibuffer-setup-hook
-				'minibuffer-completion-help)
-		      (read-language-name 'tutorial "Language: " "English"))
+                  (let ((minibuffer-setup-hook minibuffer-setup-hook))
+                    (add-hook 'minibuffer-setup-hook
+                              'minibuffer-completion-help)
+                    (read-language-name 'tutorial "Language: " "English"))
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
 		  "English")))
@@ -239,42 +239,45 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-(defface help-argument-name '((t (:inherit font-lock-variable-name-face)))
+(defface help-argument-name '((t (:slant italic)))
   "Face to highlight function arguments in docstrings.")
 
 (defun help-do-arg-highlight (doc args)
-  (while args
-    (let ((arg (prog1 (car args) (setq args (cdr args)))))
-      (setq doc (replace-regexp-in-string
-                 (concat "\\<\\(" arg "\\)\\(?:es\\|s\\)?\\>")
-                 (propertize arg 'face 'help-argument-name)
-                 doc t t 1))))
-  doc)
+  (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
+    (modify-syntax-entry ?\- "w")
+    (while args
+      (let ((arg (prog1 (car args) (setq args (cdr args)))))
+        (setq doc (replace-regexp-in-string
+                   (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
+                   (propertize arg 'face 'help-argument-name)
+                   doc t t 1))))
+    doc))
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when usage
-    (let ((case-fold-search nil)
-          (next (not args)))
-      ;; Make a list of all arguments
-      (with-temp-buffer
-        (insert usage)
-        (goto-char (point-min))
+    (with-temp-buffer
+      (insert usage)
+      (goto-char (point-min))
+      (let ((case-fold-search nil)
+            (next (not (or args (looking-at "\\["))))
+            (opt nil))
         ;; Make a list of all arguments
         (while next
-          (if (not (re-search-forward " \\([\\[(]?\\)\\([^] &)\.]+\\)" nil t))
+          (or opt (not (looking-at " &")) (setq opt t))
+          (if (not (re-search-forward " \\([\\[(]*\\)\\([^] &)\.]+\\)" nil t))
               (setq next nil)
             (setq args (cons (match-string 2) args))
-            (when (string= (match-string 1) "(")
+            (when (and opt (string= (match-string 1) "("))
               ;; A pesky CL-style optional argument with default value,
               ;; so let's skip over it
               (search-backward "(")
               (goto-char (scan-sexps (point) 1)))))
         ;; Highlight aguments in the USAGE string
-        (setq usage (help-do-arg-highlight (buffer-string) args)))
-      ;; Highlight arguments in the DOC string
-      (setq doc (and doc (help-do-arg-highlight doc args)))
-      ;; Return value is like the one from help-split-fundoc, but highlighted
-      (cons usage doc))))
+        (setq usage (help-do-arg-highlight (buffer-string) args))
+        ;; Highlight arguments in the DOC string
+        (setq doc (and doc (help-do-arg-highlight doc args))))))
+  ;; Return value is like the one from help-split-fundoc, but highlighted
+  (cons usage doc))
 
 ;;;###autoload
 (defun describe-function-1 (function)

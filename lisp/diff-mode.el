@@ -976,7 +976,7 @@ a diff with \\[diff-reverse-direction]."
   "Turn context diffs into unified diffs if applicable."
   (if (save-excursion
 	(goto-char (point-min))
-	(looking-at "\\*\\*\\* "))
+	(and (looking-at diff-hunk-header-re) (eq (char-after) ?*)))
       (let ((mod (buffer-modified-p)))
 	(unwind-protect
 	    (diff-context->unified (point-min) (point-max))

@@ -234,6 +234,9 @@ Lisp_Object Qw32_charset_mac;
 Lisp_Object Qw32_charset_unicode;
 #endif
 
+/* The ANSI codepage.  */
+Lisp_Object Vw32_ansi_code_page;
+
 /* Prefix for system colors.  */
 #define SYSTEM_COLOR_PREFIX "System"
 #define SYSTEM_COLOR_PREFIX_LEN (sizeof (SYSTEM_COLOR_PREFIX) - 1)
@@ -7112,6 +7115,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
@@ -8793,6 +8798,11 @@ void globals_of_w32fns ()
   /* ditto for GetClipboardSequenceNumber.  */
   clipboard_sequence_fn = (ClipboardSequence_Proc)
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
+
+  DEFVAR_INT ("w32-ansi-code-page",
+	      &Vw32_ansi_code_page,
+	      doc: /* The ANSI code page used by the system.  */);
+  XSETINT (Vw32_ansi_code_page, GetACP ());
 }
 
 #undef abort

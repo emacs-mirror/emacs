@@ -73,7 +73,7 @@ main (argc, argv)
   if ((fp = fopen(file, "r")) == NULL) {
     fprintf(stderr, "yow: ");
     perror(file);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* initialize random seed */
@@ -82,7 +82,7 @@ main (argc, argv)
   setup_yow(fp);
   yow(fp);
   fclose(fp);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static long len = -1;
@@ -113,7 +113,7 @@ setup_yow(fp)
 
   if (fseek(fp, 0L, 2) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   len = ftell(fp) - header_len;
 }
@@ -132,7 +132,7 @@ yow (fp)
   offset = rand() % len + header_len;
   if (fseek(fp, offset, 0) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* Read until SEP, read next line, print it.
@@ -180,3 +180,5 @@ yow (fp)
 
 /* arch-tag: e40fc0df-bafb-4001-af24-5c883d1c685e
    (do not change this comment) */
+
+/* yow.c ends here */

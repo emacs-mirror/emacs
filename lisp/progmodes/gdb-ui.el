@@ -220,6 +220,7 @@ speedbar."
   (select-window (get-buffer-window gud-comint-buffer 'visible)))
 
 (defun gdb-goto-info ()
+  "Go to Emacs info node: GDB Graphical Interface."
   (interactive)
   (select-frame (make-frame))
   (require 'info)
@@ -663,6 +664,7 @@ This filter may simply queue output for a later time."
     ("commands" gdb-subprompt)
     ("overload-choice" gdb-subprompt)
     ("query" gdb-subprompt)
+    ("nquery" gdb-subprompt)
     ("prompt-for-continue" gdb-subprompt)
     ("post-prompt" gdb-post-prompt)
     ("source" gdb-source)
@@ -1117,7 +1119,7 @@ static char *magick[] = {
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-toggle-breakpoint (event)
-  "Toggle breakpoint with mouse click in left margin."
+  "Toggle breakpoint in left fringe/margin with mouse click"
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1137,6 +1139,7 @@ static char *magick[] = {
     (concat "*breakpoints of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-breakpoints-buffer ()
+  "Display status of user-settable breakpoints."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
@@ -1149,6 +1152,7 @@ static char *magick[] = {
     (minibuffer . nil)))
 
 (defun gdb-frame-breakpoints-buffer ()
+  "Display status of user-settable breakpoints in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))
@@ -1205,8 +1209,7 @@ static char *magick[] = {
      (list (concat "server delete " (match-string 1) "\n") 'ignore))))
 
 (defun gdb-goto-breakpoint ()
-  "Display the file in the source buffer at the breakpoint specified on the
-current line."
+  "Display the breakpoint location specified at current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1225,7 +1228,7 @@ current line."
 		   (set-window-point window (point))))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
-  "Display the file in the source buffer at the selected breakpoint."
+  "Display the breakpoint location that you click on."
   (interactive "e")
   (mouse-set-point event)
   (gdb-goto-breakpoint))
@@ -1268,11 +1271,13 @@ current line."
     (concat "*stack frames of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-stack-buffer ()
+  "Display backtrace of current stack."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-stack-buffer)))
 
 (defun gdb-frame-stack-buffer ()
+  "Display backtrace of current stack in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-stack-buffer))
@@ -1303,16 +1308,14 @@ current line."
       n)))
 
 (defun gdb-frames-select ()
-  "Make the frame on the current line become the current frame and display the
-source in the source buffer."
+  "Select the frame and display the relevant source."
   (interactive)
   (gdb-enqueue-input
    (list (concat "server frame " (gdb-get-frame-number) "\n") 'ignore))
   (gud-display-frame))
 
 (defun gdb-frames-mouse-select (event)
-  "Make the selected frame become the current frame and display the source in
-the source buffer."
+  "Select the frame you click on and display the relevant source."
   (interactive "e")
   (mouse-set-point event)
   (gdb-frames-select))
@@ -1345,11 +1348,13 @@ the source buffer."
     (concat "*threads of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-threads-buffer ()
+  "Display IDs of currently known threads."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-threads-buffer)))
 
 (defun gdb-frame-threads-buffer ()
+  "Display IDs of currently known threads in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-threads-buffer))
@@ -1378,16 +1383,14 @@ the source buffer."
     (match-string-no-properties 1)))
 
 (defun gdb-threads-select ()
-  "Make the thread on the current line become the current thread and display the
-source in the source buffer."
+  "Select the thread and display the relevant source."
   (interactive)
   (gdb-enqueue-input
    (list (concat "thread " (gdb-get-thread-number) "\n") 'ignore))
   (gud-display-frame))
 
 (defun gdb-threads-mouse-select (event)
-  "Make the selected frame become the current frame and display the source in
-the source buffer."
+  "Select the thread you click on and display the relevant source."
   (interactive "e")
   (mouse-set-point event)
   (gdb-threads-select))
@@ -1427,11 +1430,13 @@ the source buffer."
     (concat "*registers of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-registers-buffer ()
+  "Display integer register contents."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-registers-buffer)))
 
 (defun gdb-frame-registers-buffer ()
+  "Display integer register contents in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-registers-buffer))
@@ -1499,11 +1504,13 @@ the source buffer."
     (concat "*locals of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-locals-buffer ()
+  "Display local variables of current stack and their values."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-locals-buffer)))
 
 (defun gdb-frame-locals-buffer ()
+  "Display local variables of current stack and their values in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-locals-buffer))
@@ -1603,12 +1610,14 @@ the source buffer."
 			  "Display locals, stack and breakpoint information")))
 
 (defun gdb-frame-gdb-buffer ()
+  "Display GUD buffer in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdba))
   (set-window-dedicated-p (selected-window) t))
 
 (defun gdb-display-gdb-buffer ()
+  "Display GUD buffer."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdba)))
@@ -1616,6 +1625,7 @@ the source buffer."
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
 (defun gdb-view-source-function ()
+  "Select source view."
   (interactive)
   (if gdb-view-source
       (gdb-display-buffer
@@ -1625,6 +1635,7 @@ the source buffer."
   (setq gdb-selected-view 'source))
 
 (defun gdb-view-assembler()
+  "Select disassembly view."
   (interactive)
   (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
   (gdb-invalidate-assembler)
@@ -1926,11 +1937,13 @@ BUFFER nil or omitted means use the current buffer."
     (concat "*Machine Code " (gdb-get-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
+  "Display disassembly view."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-assembler-buffer)))
 
 (defun gdb-frame-assembler-buffer ()
+  "Display disassembly view in a new frame."
   (interactive)
   (select-frame (make-frame gdb-frame-parameters))
   (switch-to-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))

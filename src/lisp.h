@@ -2748,6 +2748,7 @@ extern void syms_of_fileio P_ ((void));
 EXFUN (Fmake_temp_name, 1);
 extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
+EXFUN (Fmake_symbolic_link, 3);
 
 /* Defined in abbrev.c */
 

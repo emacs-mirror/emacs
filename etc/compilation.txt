@@ -91,6 +91,16 @@ symbol: comma
 "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
 
 
+* EDG C/C++
+
+symbol: edg-1 edg-2
+
+build/intel/debug/../../../struct.cpp(42): error: identifier "foo" is undefined
+build/intel/debug/../../../struct.cpp(44): warning #1011: missing return statement at end of ...
+build/intel/debug/../../../iptr.h(302): remark #981: operands are evaluated in unspecified order
+          detected during ... at line 62 of "build/intel/debug/../../../trace.h"
+
+
 * EPC F90 compiler
 
 symbol: epc
@@ -297,14 +307,6 @@ cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
 symbol: sun-ada
 
 /home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
-
-
-* Ultrix 3.0 f77 & Some SGI cc version
-
-symbol: ultrix
-
-fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
-cfe: Warning 835: foo.c, line 2: something
 
 
 * 4.3BSD grep, cc, lint

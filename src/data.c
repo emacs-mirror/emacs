@@ -1468,11 +1468,11 @@ The default value of a variable is seen in buffers
 that do not have their own values for the variable.
 
 More generally, you can use multiple variables and values, as in
-  (setq-default SYMBOL VALUE SYMBOL VALUE...)
-This sets each SYMBOL's default value to the corresponding VALUE.
-The VALUE for the Nth SYMBOL can refer to the new default values
-of previous SYMs.
-usage: (setq-default SYMBOL VALUE [SYMBOL VALUE...])  */)
+  (setq-default VAR VALUE VAR VALUE...)
+This sets each VAR's default value to the corresponding VALUE.
+The VALUE for the Nth VAR can refer to the new default values
+of previous VARs.
+usage: (setq-default VAR VALUE [VAR VALUE...])  */)
      (args)
      Lisp_Object args;
 {
@@ -2698,6 +2698,10 @@ usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
      int nargs;
      Lisp_Object *args;
 {
+  int argnum;
+  for (argnum = 2; argnum < nargs; argnum++)
+    if (FLOATP (args[argnum]))
+      return float_arith_driver (0, 0, Adiv, nargs, args);
   return arith_driver (Adiv, nargs, args);
 }
 
