@@ -1,6 +1,6 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName: MMsrc/!poolmfs.c(trunk.3)$
+ *  $HopeName: MMsrc/!poolmfs.c(trunk.4)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -130,7 +130,7 @@ Pool (PoolMFSPool)(PoolMFS poolMFS)
 
 
 Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
-                    size_t extendBy, size_t unitSize)
+                    Size extendBy, Size unitSize)
 {
   Error e;
   PoolMFS poolMFS;
@@ -155,15 +155,15 @@ Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
 
 static Error create(Pool *poolReturn, Space space, va_list arg)
 {
-  size_t extendBy, unitSize;
+  Size extendBy, unitSize;
   PoolMFS poolMFS;
   Error e;
 
   AVER(poolReturn != NULL);
   AVER(ISVALID(Space, space));
   
-  extendBy = va_arg(arg, size_t);
-  unitSize = va_arg(arg, size_t);
+  extendBy = va_arg(arg, Size);
+  unitSize = va_arg(arg, Size);
   
   e = PoolMFSCreate(&poolMFS, space, extendBy, unitSize);
   if(e != ErrSUCCESS) return(e);
@@ -190,8 +190,8 @@ static void destroy(Pool pool)
 }
 
 
-Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy,
-                  size_t unitSize)
+Error PoolMFSInit(PoolMFS poolMFS, Space space, Size extendBy,
+                  Size unitSize)
 {
   AVER(poolMFS != NULL);
   AVER(ISVALID(Space, space));
