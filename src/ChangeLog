@@ -1,5 +1,11 @@
 2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* buffer.c: Reindent DEFUNs and DEFVARs with doc: keywords.
+
+	* alloc.c: Reindent DEFUNs with doc: keywords.
+
+	* abbrev.c (Finsert_abbrev_table_description): Reindent.
+
 	* frame.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
 
