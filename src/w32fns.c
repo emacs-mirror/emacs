@@ -4779,6 +4779,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  KillTimer (hwnd, menu_free_timer);
 	  menu_free_timer = 0;
+	  f = x_window_to_frame (dpyinfo, hwnd);
 	  if (!f->output_data.w32->menu_command_in_progress)
 	    {
 	      /* Free memory used by owner-drawn and help-echo strings.  */
