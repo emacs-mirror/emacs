@@ -74,11 +74,13 @@ See the documentation of `kinsoku' for more information.")
 Filling expects lines to start with the fill prefix and
 reinserts the fill prefix in each resulting line."
   (interactive)
-  (setq fill-prefix (buffer-substring
-		     (save-excursion (move-to-left-margin) (point))
-		     (point)))
-  (if (equal fill-prefix "")
-      (setq fill-prefix nil))
+  (let ((left-margin-pos (save-excursion (move-to-left-margin) (point))))
+    (if (> (point) left-margin-pos)
+	(progn
+	  (setq fill-prefix (buffer-substring left-margin-pos (point)))
+	  (if (equal fill-prefix "")
+	      (setq fill-prefix nil)))
+      (setq fill-prefix nil)))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
     (message "fill-prefix cancelled")))
