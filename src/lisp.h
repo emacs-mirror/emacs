@@ -545,20 +545,6 @@ struct Lisp_Buffer_Cons
     int bufpos;
   };
 
-#if 0
-
-/* Nonzero if STR is a multibyte string.  */
-#define STRING_MULTIBYTE(STR)  \
-  (XSTRING (STR)->size_byte != XSTRING (STR)->size)
-
-/* Return the length in bytes of STR.  */
-#define STRING_BYTES(STR)  ((STR)->size_byte + 0)
-
-/* Set the length in bytes of STR.  */
-#define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
-
-#else
-
 /* Nonzero if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
   (XSTRING (STR)->size_byte >= 0)
@@ -569,8 +555,6 @@ struct Lisp_Buffer_Cons
 
 /* Set the length in bytes of STR.  */
 #define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
-
-#endif /* 0 */
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit */
 
