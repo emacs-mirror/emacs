@@ -4,6 +4,10 @@
 	(make_menu_item, create_menus, xg_update_menu_item): Don't call
 	..._with_mnemonic functions for menu items.
 
+2003-05-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eval.c (Funwind_protect): Use func=Fprogn rather than symbol=Qnil.
+
 2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eval.c (unbind_to): Don't handle symbol = Qnil any more.
