@@ -7727,12 +7727,14 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		  if (! char_matches)
 		    desc = Fsingle_key_description (event, Qnil);
 
+#if 0  /* It is redundant to list the equivalent key bindings because
+	  the prefix is what the user has already typed.  */
 		  tem
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
 		  if (!NILP (tem))
 		    /* Insert equivalent keybinding. */
 		    s = concat2 (s, tem);
-
+#endif
 		  tem
 		    = XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE];
 		  if (EQ (tem, QCradio) || EQ (tem, QCtoggle))
