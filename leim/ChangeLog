@@ -1,3 +1,7 @@
+2002-09-11  Dave Love  <fx@gnu.org>
+
+	* quail/latin-post.el ("slovenian"): New.
+
 2002-09-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/thai.el (thai-kesmanee): Fix the mapping of `"' and `}'.

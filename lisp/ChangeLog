@@ -1,3 +1,17 @@
+2002-09-11  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (non-standard-designations-alist) 
+	(ctext-pre-write-conversion): Don't generate invalid extended
+	segments for iso8859.
+
+	* language/cyrillic.el ("Ukrainian"): Fix nonascii-translation.
+	(cyrillic-alternativnyj-decode-table): Fix some entries.
+
+	* international/ucs-tables.el: Fix last change.
+
+	* international/utf-8.el (utf-8-fragment-on-decoding): Fix last
+	change.
+
 2002-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* edmacro.el (edit-kbd-macro): Recognize new C-x e binding,
