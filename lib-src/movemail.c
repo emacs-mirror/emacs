@@ -110,7 +110,6 @@ extern int lk_open (), lk_close ();
 extern int errno;
 #endif
 char *strerror ();
-char *malloc ();
 
 void fatal ();
 void error ();
