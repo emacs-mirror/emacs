@@ -6,6 +6,11 @@
 
 	* mail/reporter.el (reporter-submit-bug-report): Likewise.
 
+	* allout.el (outline-goto-prefix): Likewise.
+
+	* calendar/timeclock.el (timeclock-workday-remaining): Likewise.
+	(timeclock-workday-elapsed): Likewise.
+
 2002-07-02  Juanma Barranquero  <lektu@terra.es>
 
 	* mail/rmailsum.el (rmail-user-mail-address-regexp): Fix typo.
