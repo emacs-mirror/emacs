@@ -95,6 +95,10 @@ recognized as warnings or informational come in orange or green, instead of
 red.  Informational messages are by default skipped with `next-error'
 (controlled by `compilation-skip-threshold').
 
+Location data is collected on the fly as the *compilation* buffer changes.
+This means you could modify messages to make them point to different files.
+This also means you can not go to locations of messages you may have deleted.
+
 The variable `compilation-error-regexp-alist' has now become customizable.  If
 you had added your own regexps to this, you'll probably need to include a
 leading `^', otherwise they'll match anywhere on a line.  There is now also a
