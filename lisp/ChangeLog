@@ -1,3 +1,41 @@
+2004-12-17  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): New defcustom.
+	(mouse-on-link-p): New function.
+	(mouse-drag-region-1): Implement mouse-1-click-follows-link
+	functionality.  Map a mouse-1 click event into a mouse-2 (or
+	other) event when position is inside a link.
+
+	* tooltip.el (tooltip-show-help-function): Replace "mouse-2"
+	prefix in tooltip text with "mouse-1" when this is a link
+	recognized by mouse-1-click-follows-link functionality.
+
+	* help.el (describe-key): Report effective and original binding
+	for mouse-1 when clicked on a link.
+	(describe-mode): Add follow-link property to "minor-mode" button.
+
+	* help-fns.el (describe-variable): Add follow-link property to
+	"below" button.
+
+	* help-mode.el (help-xref): Add follow-link property.
+
+	* apropos.el (apropos-symbol, apropos-function, apropos-macro)
+	(apropos-command, apropos-variable, apropos-face, apropos-group)
+	(apropos-widget, apropos-plist): Add follow-link property.
+
+	* pcvs-defs.el (cvs-mode-map): Map follow-link to a function which
+	checks if position is in a filename, rather than some other
+	clickable item.  Function looks for cvs-filename-face at position.
+
+	* wid-edit.el (widget-specify-field, widget-specify-button):
+	Map a :follow-link keyword into a follow-link property.
+	(link): Add :follow-link keyword, map to RET binding.
+
+	* dired.el (dired-mode-map): Map follow-link to mouse-face.
+
+	* progmodes/compile.el (compilation-minor-mode-map)
+	(compilation-button-map, compilation-mode-map): Likewise.
+
 2004-12-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* play/zone.el (zone): Init `line-spacing' from orig buffer.
