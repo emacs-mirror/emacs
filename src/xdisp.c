@@ -9144,16 +9144,14 @@ try_cursor_movement (window, startp, scroll_step)
      not moved off the frame.  */
   if (/* Point may be in this window.  */
       PT >= CHARPOS (startp)
-      /* If we don't check this, we are called to move the cursor in a
-	 horizontally split window with a current matrix that doesn't
-	 fit the display.  */
-      && !windows_or_buffers_changed
       /* Selective display hasn't changed.  */
       && !current_buffer->clip_changed
-      /* If force-mode-line-update was called, really redisplay;
-	 that's how redisplay is forced after e.g. changing
-	 buffer-invisibility-spec.  */
-      && NILP (w->update_mode_line)
+      /* Function force-mode-line-update is used to force a thorough
+	 redisplay.  It sets either windows_or_buffers_changed or
+	 update_mode_lines.  So don't take a shortcut here for these
+	 cases.  */
+      && !update_mode_lines
+      && !windows_or_buffers_changed
       /* Can't use this case if highlighting a region.  When a 
          region exists, cursor movement has to do more than just
          set the cursor.  */
