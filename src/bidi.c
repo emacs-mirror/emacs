@@ -837,7 +837,12 @@ bidi_init_it (int pos, bidi_dir_t dir, struct bidi_it *bidi_it)
       bidi_it->ch_len = 1;	/* so that incrementing bytepos works */
     }
   else
-    bidi_it->bytepos = CHAR_TO_BYTE (pos);
+    {
+      bidi_it->bytepos = CHAR_TO_BYTE (pos);
+      bidi_it->ch_len
+	= MULTIBYTE_FORM_LENGTH (BYTE_POS_ADDR (bidi_it->bytepos),
+				 MAX_MULTIBYTE_LENGTH);
+    }
   bidi_it->ch = '\x1d';	 /* FIXME: should be U+2029 */
   bidi_it->type = NEUTRAL_B;
   bidi_it->orig_type = UNKNOWN_BT;
