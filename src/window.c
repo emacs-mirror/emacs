@@ -1852,6 +1852,7 @@ Returns the window displaying BUFFER.")
 	 ignore minibuffers and dedicated windows.
 	 This means they can return nil.  */
 
+#ifdef MULTI_FRAME
       /* If the frame we would try to split cannot be split,
 	 try other frames.  */
       if (FRAME_NO_SPLIT_P (NILP (frames) ? selected_frame
@@ -1866,6 +1867,7 @@ Returns the window displaying BUFFER.")
 	    window = Fget_largest_window (Qt);
 	}
       else
+#endif
 	window = Fget_largest_window (frames);
 
       /* If we got a tall enough full-width window, split it.  */
