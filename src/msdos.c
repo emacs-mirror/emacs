@@ -1272,11 +1272,13 @@ dos_set_keyboard (code, always)
      int always;
 {
   int i;
-  union REGS regs;
+  _go32_dpmi_registers regs;
 
-  /* See if Keyb.Com is installed (for international keyboard support).  */
+  /* See if Keyb.Com is installed (for international keyboard support).
+     Note: calling Int 2Fh via int86 wedges the DOS box on some versions
+     of Windows 9X!  So don't do that!  */
   regs.x.ax = 0xad80;
-  int86 (0x2f, &regs, &regs);
+  _go32_dpmi_simulate_int (0x2f, &regs);
   if (regs.h.al == 0xff)
     international_keyboard = 1;
 
@@ -3421,6 +3423,25 @@ sigblock (mask) int mask; { return 0; }
        && (long)(time).tv_usec <= 0))
 #endif
 
+/* This yields the rest of the current time slice to the task manager.
+   It should be called by any code which knows that it has nothing
+   useful to do except idle.
+
+   I don't use __dpmi_yield here, since versions of library before 2.02
+   called Int 2Fh/AX=1680h there in a way that would wedge the DOS box
+   on some versions of Windows 9X.  */
+
+void
+dos_yield_time_slice (void)
+{
+  _go32_dpmi_registers r;
+
+  r.x.ax = 0x1680;
+  r.x.ss = r.x.sp = r.x.flags = 0;
+  _go32_dpmi_simulate_int (0x2f, &r);
+  if (r.h.al == 0x80)
+    errno = ENOSYS;
+}
 
 /* Only event queue is checked.  */
 /* We don't have to call timer_check here
@@ -3454,9 +3475,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
     {
       while (!detect_input_pending ())
 	{
-#if __DJGPP__ >= 2
-	  __dpmi_yield ();
-#endif	  
+	  dos_yield_time_slice ();
 	}
     }
   else
@@ -3482,9 +3501,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
 	    return 0;
 	  cllast = clnow;
-#if __DJGPP__ >= 2
-	  __dpmi_yield ();
-#endif	  
+	  dos_yield_time_slice ();
 	}
     }
   
