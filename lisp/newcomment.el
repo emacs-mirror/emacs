@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.38 2001/11/13 20:17:26 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.39 2001/11/19 06:08:38 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -91,8 +91,7 @@ Major modes should set this variable.")
 Setting this variable automatically makes it local to the current buffer.
 Each mode establishes a different default value for this variable; you
 can set the value for a particular mode using that mode's hook."
-  :type 'integer
-  :group 'comment)
+  :type 'integer)
 (make-variable-buffer-local 'comment-column)
 
 ;;;###autoload
@@ -167,7 +166,6 @@ INDENT specifies that the `comment-start' markers should not be put at the
 (defcustom comment-style 'plain
   "*Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
-  :group 'comment
   :type (if (boundp 'comment-styles)
 	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
 	  'symbol))
@@ -179,14 +177,14 @@ Can also be an integer which will be automatically turned into a string
 of the corresponding number of spaces.
 
 Extra spacing between the comment characters and the comment text
-makes the comment easier to read.  Default is 1.  nil means 0.")
+makes the comment easier to read.  Default is 1.  nil means 0."
+  :type '(choice string integer (const nil)))
 
 ;;;###autoload
 (defcustom comment-multi-line nil
   "*Non-nil means \\[comment-indent-new-line] continues comments, with no new terminator or starter.
 This is obsolete because you might as well use \\[newline-and-indent]."
-  :type 'boolean
-  :group 'comment)
+  :type 'boolean)
 
 ;;;;
 ;;;; Helpers
@@ -923,8 +921,7 @@ Else, call `comment-indent'."
 (defcustom comment-auto-fill-only-comments nil
   "Non-nil means to only auto-fill inside comments.
 This has no effect in modes that do not define a comment syntax."
-  :type 'boolean
-  :group 'comment)
+  :type 'boolean)
 
 (defun comment-valid-prefix (prefix compos)
   (or
@@ -956,6 +953,7 @@ unless optional argument SOFT is non-nil."
     ;; don't do anything (unless no comment syntax is defined).
     (unless (and comment-start
 		 comment-auto-fill-only-comments
+		 (not (interactive-p))
 		 (not (save-excursion
 			(prog1 (setq compos (comment-beginning))
 			  (setq comin (point))))))
