@@ -1,3 +1,11 @@
+2002-08-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* select.el (xselect-convert-to-string): If TYPE is non-nil,
+	encode the selection data string.  Always return cons of type and
+	string.
+	(selection-converter-alist): Add (UTF8_STRING .
+	xselect-convert-to-string).
+
 2002-08-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-region): Force `lines' when `block' is set.

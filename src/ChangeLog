@@ -1,3 +1,21 @@
+2002-08-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* xselect.c (QUTF8_STRING): New variable.
+	(symbol_to_x_atom): Pay attention to QUTF8_STRING.
+	(x_atom_to_symbol): Likewise.
+	(x_get_local_selection): New argument local_request.  If it is
+	nonzero, call handler_fn with the second arg nil.
+	(x_handle_selection_request): Call x_get_local_selection with
+	local_request 0.
+	(lisp_data_to_selection_data): Don't encode the string here.
+	(Fx_get_selection_internal): Call x_get_local_selection with
+	local_request 1.
+	(syms_of_xselect): Intern and staticpro QUTF8_STRING.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->Xatom_UTF8_STRING.
+
+	* xterm.h (struct x_display_info): New member Xatom_UTF8_STRING.
+
 2002-08-13  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fminibufferp): New function.
