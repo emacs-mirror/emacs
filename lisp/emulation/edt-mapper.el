@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1994, 1995  Free Software Foundation, Inc.
 
-;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>
-;; Maintainer: Kevin Gallagher <kgallagh@spd.dsccc.com>
+;; Author: Kevin Gallagher <kevingal@onramp.net>
+;; Maintainer: Kevin Gallagher <kevingal@onramp.net>
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
