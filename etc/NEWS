@@ -134,7 +134,7 @@ automatically.  The game uses faces for better visual feedback.
 as a hollow box or a thin bar.
 
 +++
-** Emacs now supports ICCCM Extended Segments in X selections.
+** Emacs now supports compound-text Extended Segments in X selections.
 
 Some versions of X, notably XFree86, use Extended Segments to encode
 in X selections characters that belong to character sets which are not
