@@ -1,6 +1,6 @@
 /* impl.c.thw3i3: WIN32 THREAD MANAGER
  *
- * $HopeName: MMsrc!thw3i3.c(MM_dylan_salamander.2) $
+ * $HopeName: MMsrc!thw3i3.c(trunk.21) $
  * Copyright (C) 1995,1998.  Harlequin Group plc.  All rights reserved.
  *
  * Implements thread registration, suspension, and stack
@@ -33,6 +33,12 @@
  * .stack.full-descend:  assumes full descending stack.
  * i.e. stack pointer points to the last allocated location;
  * stack grows downwards.
+ *
+ * .stack.below-bottom: it's legal for the stack pointer to be at a 
+ * higher address than the registered bottom of stack. This might 
+ * happen if the stack of another thread doesn't contain any frames 
+ * belonging to the client language. In this case, the stack should
+ * not be scanned.
  *
  * .i3: assumes MPS_ARCH_I3
  * .i3.sp: The sp in the context is Esp
@@ -70,7 +76,7 @@
 
 #include "mpswin.h"
 
-SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.20) $");
+SRCID(thw3i3, "$HopeName: MMsrc!thw3i3.c(trunk.21) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -214,6 +220,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   if(id != thread->id) { /* .thread.id */
     CONTEXT context;
     BOOL success;
+    Addr *stackBase, *stackLimit;
 
     /* scan stack and register roots in other threads */
 
@@ -229,11 +236,15 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
       return ResOK;
     }
 
+    stackBase  = (Addr *)context.Esp;   /* .i3.sp */
+    stackLimit = (Addr *)stackBot;
+    if (stackBase >= stackLimit)
+      return ResOK;    /* .stack.below-bottom */
+
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, ((Addr *)context.Esp), /* .i3.sp */
-                        stackBot);
+    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
     if(res != ResOK)
       return res;
 
