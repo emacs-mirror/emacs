@@ -1,10 +1,15 @@
+2002-11-14  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/diary-lib.el (make-diary-entry): Allow for local variables at
+	end of diary file.
+
 2002-11-14  Kim F. Storm  <storm@cua.dk>
 
 	* files.el (mode-name): Mark it as risky-local-variable like the
 	other mode-line elements (moved from bindings.el).
 
 	* bindings.el (mode-name): Moved mark as risky-local-variable to
-	files.el. 
+	files.el.
 
 2002-11-14  Juanma Barranquero  <lektu@terra.es>
 
