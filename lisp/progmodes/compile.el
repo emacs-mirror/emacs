@@ -659,7 +659,7 @@ Does NOT find the source line like \\[next-error]."
       (set-buffer-modified-p nil)
       (if (< compilation-parsing-end (point-max))
 	  ;; compilation-error-list might be non-nil if we have a non-nil
-	  ;; LIMIT-SEARCH of FIND-AT-LEAST arg.  In that case its value
+	  ;; LIMIT-SEARCH or FIND-AT-LEAST arg.  In that case its value
 	  ;; records the current position in the error list, and we must
 	  ;; preserve that after reparsing.
 	  (let ((error-list-pos compilation-error-list))
