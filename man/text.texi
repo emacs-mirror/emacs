@@ -1823,10 +1823,10 @@ These are described in the sections that follow.  Some items run
 commands directly:
 
 @table @code
-@findex facemenu-remove-props
-@item Remove Properties
+@findex facemenu-remove-face-props
+@item Remove Face Properties
 Delete from the region all the text properties that the Text Properties
-menu works with (@code{facemenu-remove-props}).
+menu works with (@code{facemenu-remove-face-props}).
 
 @findex facemenu-remove-all
 @item Remove All
@@ -1839,10 +1839,10 @@ List all the text properties of the character following point
 (@code{list-text-properties-at}).
 
 @item Display Faces
-Display a list of all the defined faces.
+Display a list of all the defined faces (@code{list-faces-display}).
 
 @item Display Colors
-Display a list of all the defined colors.
+Display a list of all the defined colors (@code{list-colors-display}).
 @end table
             
 @node Format Faces
