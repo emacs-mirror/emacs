@@ -120,19 +120,19 @@ so you can edit or delete these lines.")
   (insert "To: ")
   (save-excursion
     (if to
-	(progn
+	;; Here removed code to extract names from within <...>
+	;; on the assumption that mail-strip-quoted-names
+	;; has been called and has done so.
+	(let ((fill-prefix "\t")
+	      (address-start (point)))
 	  (insert to "\n")
-	  ;;; Here removed code to extract names from within <...>
-	  ;;; on the assumption that mail-strip-quoted-names
-	  ;;; has been called and has done so.
-	  (let ((fill-prefix "\t"))
-	    (fill-region (point-min) (point-max))))
+	  (fill-region-as-paragraph address-start (point-max)))
       (newline))
     (if cc
-	(let ((opos (point))
-	      (fill-prefix "\t"))
-	  (insert "CC: " cc "\n")
-	  (fill-region-as-paragraph opos (point-max))))
+	(let ((fill-prefix "\t")
+	      (address-start (progn (insert "CC: ") (point))))
+	  (insert cc "\n")
+	  (fill-region-as-paragraph address-start (point-max))))
     (if in-reply-to
 	(insert "In-reply-to: " in-reply-to "\n"))
     (insert "Subject: " (or subject "") "\n")
