@@ -3240,9 +3240,15 @@ With prefix argument, make it a temporary breakpoint."
 
 
 (defun edebug-set-global-break-condition (expression)
-  (interactive (list (read-minibuffer
-		      "Global Condition: "
-		      (format "%s" edebug-global-break-condition))))
+  (interactive
+   (list
+    (let ((initial (and edebug-global-break-condition
+			(format "%s" edebug-global-break-condition))))
+      (read-from-minibuffer
+       "Global Condition: " initial read-expression-map t
+       (if (equal (car read-expression-history) initial)
+	   '(read-expression-history . 1)
+	 'read-expression-history)))))
   (setq edebug-global-break-condition expression))
 
 
@@ -4326,7 +4332,7 @@ With prefix argument, make it a temporary breakpoint."
   (interactive
    (list
     current-prefix-arg
-;; Read condition as follows; getting previous condition is cumbersome:
+    ;; Read condition as follows; getting previous condition is cumbersome:
     (let ((edebug-stop-point (edebug-find-stop-point)))
       (if edebug-stop-point
 	  (let* ((edebug-def-name (car edebug-stop-point))
@@ -4335,17 +4341,13 @@ With prefix argument, make it a temporary breakpoint."
 		 (edebug-breakpoints (car (cdr edebug-data)))
 		 (edebug-break-data (assq index edebug-breakpoints))
 		 (edebug-break-condition (car (cdr edebug-break-data)))
-		 (edebug-expression-history
-		  ;; Prepend the current condition, if any.
-		  (if edebug-break-condition
-		      (cons edebug-break-condition read-expression-history)
-		    read-expression-history)))
-	    (prog1
-		(read-from-minibuffer
-		 "Condition: " nil read-expression-map t
-		 'edebug-expression-history)
-	      (setq read-expression-history edebug-expression-history)
-	      ))))))
+		 (initial (and edebug-break-condition
+			       (format "%s" edebug-break-condition))))
+	    (read-from-minibuffer
+	     "Condition: " initial read-expression-map t
+	     (if (equal (car read-expression-history) initial)
+		 '(read-expression-history . 1)
+	       'read-expression-history)))))))
   (edebug-modify-breakpoint t condition arg))
 
 (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
