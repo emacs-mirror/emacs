@@ -1,3 +1,8 @@
+2004-06-29  David Kastrup  <dak@gnu.org>
+
+	* search.c (Fset_match_data): Allow buffer before end of list
+	which can happen if set-match-data is using a pre-consed list.
+
 2004-06-28  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
 	* macterm.c (XTread_socket): Correctly set the frame position

@@ -2808,9 +2808,16 @@ LIST should have been created by calling `match-data' previously.  */)
 	search_regs.num_regs = length;
       }
 
-    for (i = 0; i < length; i++)
+    for (i = 0;; i++)
       {
 	marker = Fcar (list);
+	if (BUFFERP(marker))
+	  {
+	    XSETBUFFER(last_thing_searched, marker);
+	    break;
+	  }
+	if (i >= length)
+	  break;
 	if (NILP (marker))
 	  {
 	    search_regs.start[i] = -1;
@@ -2845,10 +2852,6 @@ LIST should have been created by calling `match-data' previously.  */)
 
     for (; i < search_regs.num_regs; i++)
       search_regs.start[i] = -1;
-  }
-
-  if (CONSP(list) && BUFFERP(XCAR(list))) {
-    XSETBUFFER(last_thing_searched, XCAR(list));
   }
 
   return Qnil;
