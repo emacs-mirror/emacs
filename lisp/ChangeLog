@@ -1,3 +1,22 @@
+2000-04-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (normal-top-level): Put a condition-case around
+	the code loading subdirs.el.
+
+2000-04-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+	
+	* ps-print.el: Upside-down and face background color printing,
+	line number step, doc fix.
+	(ps-print-version): New version number (5.2).
+	(ps-setup, ps-prologue-file, ps-begin-file, ps-begin-job)
+	(ps-face-attribute-list, ps-plot-with-face): Code fix.
+	(ps-spool-config): Var fix.
+	(ps-printer-name-option): Const fix.
+	(ps-print-upside-down, ps-use-face-background)
+	(ps-line-number-step): New vars.
+	(ps-window-system, ps-lp-system): New consts.
+	(ps-face-background): New fun.
+
 2000-04-28  Richard Stallman  <rms@gnu.org>
 
 	* files.el (make-auto-save-file-name):

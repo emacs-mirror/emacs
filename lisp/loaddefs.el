@@ -3336,7 +3336,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;***
 
 ;;;### (autoloads (completing-read-multiple) "crm" "emacs-lisp/crm.el"
-;;;;;;  (14597 38419))
+;;;;;;  (14600 8203))
 ;;; Generated autoloads from emacs-lisp/crm.el
 
 (autoload (quote completing-read-multiple) "crm" "\
@@ -3377,7 +3377,7 @@ INHERIT-INPUT-METHOD." nil nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14587 2634))
+;;;;;;  (14599 11147))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -4110,7 +4110,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14563 8348))
+;;;;;;  "dired" "dired.el" (14600 27076))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -5534,8 +5534,8 @@ This function works by modifying `process-environment'." t nil)
 ;;;;;;  pop-tag-mark find-tag-regexp find-tag-other-frame find-tag-other-window
 ;;;;;;  find-tag find-tag-noselect tags-table-files visit-tags-table
 ;;;;;;  find-tag-default-function find-tag-hook tags-add-tables tags-table-list
-;;;;;;  tags-case-fold-search) "etags" "progmodes/etags.el" (14597
-;;;;;;  60154))
+;;;;;;  tags-case-fold-search) "etags" "progmodes/etags.el" (14600
+;;;;;;  21015))
 ;;; Generated autoloads from progmodes/etags.el
 
 (defvar tags-file-name nil "\
@@ -7310,7 +7310,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful." nil nil)
 ;;;***
 
 ;;;### (autoloads (jdb pdb perldb xdb dbx sdb gdb) "gud" "gud.el"
-;;;;;;  (14587 2634))
+;;;;;;  (14599 26515))
 ;;; Generated autoloads from gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -9883,7 +9883,7 @@ redisplayed as output is inserted." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-letter-mode mh-smail-other-window mh-smail-batch
-;;;;;;  mh-smail) "mh-comp" "mail/mh-comp.el" (14460 38678))
+;;;;;;  mh-smail) "mh-comp" "mail/mh-comp.el" (14600 36202))
 ;;; Generated autoloads from mail/mh-comp.el
 
 (autoload (quote mh-smail) "mh-comp" "\
@@ -11239,7 +11239,7 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-paper-type) "ps-print"
-;;;;;;  "ps-print.el" (14584 21532))
+;;;;;;  "ps-print.el" (14602 58229))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -11978,8 +11978,8 @@ variable." t nil)
 ;;;;;;  rmail-secondary-file-directory rmail-mail-new-frame rmail-primary-inbox-list
 ;;;;;;  rmail-delete-after-output rmail-highlight-face rmail-highlighted-headers
 ;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
-;;;;;;  rmail-dont-reply-to-names) "rmail" "mail/rmail.el" (14555
-;;;;;;  23001))
+;;;;;;  rmail-dont-reply-to-names) "rmail" "mail/rmail.el" (14599
+;;;;;;  11221))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -14088,7 +14088,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 ;;;***
 
 ;;;### (autoloads (texi2info texinfo-format-region texinfo-format-buffer)
-;;;;;;  "texinfmt" "textmodes/texinfmt.el" (14456 53455))
+;;;;;;  "texinfmt" "textmodes/texinfmt.el" (14600 18796))
 ;;; Generated autoloads from textmodes/texinfmt.el
 
 (autoload (quote texinfo-format-buffer) "texinfmt" "\
@@ -14413,7 +14413,7 @@ This runs the normal hook `display-time-hook' after each update." t nil)
 ;;;***
 
 ;;;### (autoloads (time-stamp-toggle-active time-stamp) "time-stamp"
-;;;;;;  "time-stamp.el" (14277 60981))
+;;;;;;  "time-stamp.el" (14599 11147))
 ;;; Generated autoloads from time-stamp.el
 
 (autoload (quote time-stamp) "time-stamp" "\

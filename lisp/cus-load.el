@@ -736,6 +736,8 @@
 (custom-put-if-not 'gametree 'group-documentation "Manage game analysis trees in Emacs.")
 (custom-put-if-not 'hscroll-global-mode 'custom-version "20.3")
 (custom-put-if-not 'hscroll-global-mode 'standard-value t)
+(custom-put-if-not 'auto-save-file-name-transforms 'custom-version "21.1")
+(custom-put-if-not 'auto-save-file-name-transforms 'standard-value t)
 (custom-put-if-not 'tags-apropos-verbose 'custom-version "21.1")
 (custom-put-if-not 'tags-apropos-verbose 'standard-value t)
 (custom-put-if-not 'dabbrev-ignored-regexps 'custom-version "21.1")
@@ -757,7 +759,7 @@
 (custom-put-if-not 'eval-expression-print-level 'custom-version "21.1")
 (custom-put-if-not 'eval-expression-print-level 'standard-value t)
 
-(defvar custom-versions-load-alist '(("20.3.3" "dos-vars") (21.1 "ange-ftp") ("20.4" "files" "sh-script" "help" "compile") ("21.1" "debug" "dabbrev" "paths" "sgml-mode" "fortran" "etags" "cus-edit" "frame" "add-log" "find-func" "simple") ("20.3" "desktop" "easymenu" "hscroll" "dabbrev" "ffap" "rmail" "paren" "mailabbrev" "frame" "uce" "mouse" "diary-lib" "sendmail" "debug" "hexl" "vcursor" "vc" "compile" "etags" "help" "browse-url" "add-log" "find-func" "vc-hooks" "cus-edit" "replace"))
+(defvar custom-versions-load-alist '(("20.3.3" "dos-vars") (21.1 "ange-ftp") ("20.4" "files" "sh-script" "help" "compile") ("21.1" "debug" "dabbrev" "files" "paths" "sgml-mode" "fortran" "etags" "cus-edit" "frame" "add-log" "find-func" "simple") ("20.3" "desktop" "easymenu" "hscroll" "dabbrev" "ffap" "rmail" "paren" "mailabbrev" "frame" "uce" "mouse" "diary-lib" "sendmail" "debug" "hexl" "vcursor" "vc" "compile" "etags" "help" "browse-url" "add-log" "find-func" "vc-hooks" "cus-edit" "replace"))
  "For internal use by custom.")
 
 (provide 'cus-load)

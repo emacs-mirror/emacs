@@ -1,3 +1,14 @@
+2000-04-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin0.ps: PostScript level 1 compatibility.
+
+	* ps-prin1.ps: PostScript level 1 compatibility, Upside-down
+	printing and line number step.
+	(BeginDoc, doLineNumber, SL, HL): Code fix.
+	(isLineStep, PSL): New funs.
+
+	* ps-prin3.ps: PostScript level 1 compatibility.
+
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* refcard.bit: Removed.
@@ -26,8 +37,8 @@
 
 2000-03-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 	
-	* ps-prin0.ps: Define packedarray operator for language level 1, adjust
-	setduplexmode and settumble definitions.
+	* ps-prin0.ps: Define packedarray operator for language level 1,
+	adjust setduplexmode and settumble definitions.
 	
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 

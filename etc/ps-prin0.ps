@@ -100,12 +100,22 @@
 }ifelse
 %%EndProcSet
 
-languagelevel 1 eq{ % operators for language level 2 only
- /<<{mark}bind def
- />>{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def
- /setpagedevice{pop}bind def
- /packedarray{array astore readonly}bind def
-}if
+
+% operators for language level 2 only
+
+(<<)cvn where			% << operator
+{pop/BMark(<<)cvn load def}
+{/BMark{mark}bind def}ifelse
+(>>)cvn where			% >> operator
+{pop/EMark(>>)cvn load def}
+{/EMark{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def}ifelse
+/setpagedevice where		% setpagedevice
+{pop}
+{/setpagedevice{pop}bind def}ifelse
+/packedarray where		% packedarray
+{pop}
+{/packedarray{array astore readonly}bind def}ifelse
+
 
 % device dependent operators
 
