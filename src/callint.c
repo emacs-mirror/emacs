@@ -80,7 +80,8 @@ e -- Parametrized event (i.e., one that's a list) that invoked this command.\n\
      This skips events that are integers or symbols.\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
-k -- Key sequence (string).\n\
+k -- Key sequence (downcase the last event if needed to get a definition).\n\
+K -- Key sequence to be redefined (do not downcase the last event).\n\
 m -- Value of mark as number.  Does not do I/O.\n\
 n -- Number read using minibuffer.\n\
 N -- Raw prefix arg, or if none, do like code `n'.\n\
