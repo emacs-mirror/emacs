@@ -124,7 +124,7 @@ Otherwise, `rmdir' is required."
 
 (defcustom eshell-du-prefer-over-ange nil
   "*Use Eshell's du in ange-ftp remote directories.
-Otherwise, Emacs will attempt to use rsh to invoke du the machine."
+Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   :type 'boolean
   :group 'eshell-unix)
 
