@@ -1,3 +1,8 @@
+2003-06-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (set-coding-priority): Re-written.
+	(make-translation-table): Re-written.
+
 2003-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* font-lock.el
