@@ -7608,15 +7608,13 @@ static Lisp_Object
 x_catch_errors_unwind (old_val)
      Lisp_Object old_val;
 {
-  Lisp_Object first;
-
-  first = XCAR (old_val);
-
-#if 0  /* XXX This has dumped core on me several times when my X
-          server crashed.  If this call is important, maybe we should
-          check that the display is still alive. -- lorentey */
-  XSync (XSAVE_VALUE (first)->pointer, False);
-#endif
+  Lisp_Object first = XCAR (old_val);
+  Display *dpy = XSAVE_VALUE (first)->pointer;
+  
+  /* The display may have been closed before this function is called.
+     Check if it is still open before calling XSync.  */
+  if (x_display_info_for_display (dpy) != 0)
+    XSync (dpy, False);
 
   x_error_message_string = XCDR (old_val);
   return Qnil;

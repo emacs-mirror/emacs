@@ -293,6 +293,8 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -341,6 +343,8 @@ x_any_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f, *found;
   struct x_output *x;
+
+  if (wdesc == None) return NULL;
 
   found = NULL;
   for (tail = Vframe_list; GC_CONSP (tail) && !found; tail = XCDR (tail))
@@ -396,6 +400,8 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -442,6 +448,8 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -486,6 +494,8 @@ x_top_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
   struct x_output *x;
+
+  if (wdesc == None) return 0;
 
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
