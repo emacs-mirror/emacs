@@ -704,25 +704,45 @@ If DIR is positive skip forward; if negative, skip backward."
     (if (numberp (posn-point posn))
 	(push-mark (posn-point posn) t t))))
 
+(defun mouse-undouble-last-event (events)
+  (let* ((index (1- (length events)))
+	 (last (nthcdr index events))
+	 (event (car last))
+	 (basic (event-basic-type event))
+	 (modifiers (delq 'double (delq 'triple (copy-sequence (event-modifiers event)))))
+	 (new
+	  (if (consp event)
+	      (cons (event-convert-list (nreverse (cons basic modifiers)))
+		    (cdr event))
+	    event)))
+    (setcar last new)
+    (if (key-binding (apply 'vector events))
+	t
+      (setcar last event)
+      nil)))
+
 ;; Momentarily show where the mark is, if highlighting doesn't show it. 
 (defun mouse-show-mark ()
-  (or transient-mark-mode
+  (if transient-mark-mode
       (if window-system
-	  (let ((inhibit-quit t)
-		(echo-keystrokes 0)
-		event events)
-	    (move-overlay mouse-drag-overlay (point) (mark t))
-	    (while (progn (setq event (read-event))
-			  (setq events (append events (list event)))
-			  (and (memq 'down (event-modifiers event))
-			       (not (key-binding (apply 'vector events))))))
-	    (setq unread-command-events
-		  (nconc events unread-command-events))
-	    (setq quit-flag nil)
-	    (delete-overlay mouse-drag-overlay))
-	(save-excursion
-	 (goto-char (mark t))
-	 (sit-for 1)))))
+	  (delete-overlay mouse-drag-overlay))
+    (if window-system
+	(let ((inhibit-quit t)
+	      (echo-keystrokes 0)
+	      event events)
+	  (move-overlay mouse-drag-overlay (point) (mark t))
+	  (while (progn (setq event (read-event))
+			(setq events (append events (list event)))
+			(and (memq 'down (event-modifiers event))
+			     (not (key-binding (apply 'vector events)))
+			     (not (mouse-undouble-last-event events)))))
+	  (setq unread-command-events
+		(nconc events unread-command-events))
+	  (setq quit-flag nil)
+	  (delete-overlay mouse-drag-overlay))
+      (save-excursion
+       (goto-char (mark t))
+       (sit-for 1)))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
