@@ -641,7 +641,7 @@ Emacs treats a sequence of word constituent characters as a single\n\
 word (i.e. finds no word boundary between them) iff they belongs to\n\
 the same charset.  But, exceptions are allowed in the following cases.\n\
 \n\
-(1) The case that characters are in different charsets is controlled\n\
+\(1) The case that characters are in different charsets is controlled\n\
 by the variable `word-combining-categories'.\n\
 \n\
 Emacs finds no word boundary between characters of different charsets\n\
@@ -655,7 +655,7 @@ For instance, to tell that ASCII characters and Latin-1 characters can\n\
 form a single word, the element `(?l . ?l)' should be in this list\n\
 because both characters have the category `l' (Latin characters).\n\
 \n\
-(2) The case that character are in the same charset is controlled by\n\
+\(2) The case that character are in the same charset is controlled by\n\
 the variable `word-separating-categories'.\n\
 \n\
 Emacs find a word boundary between characters of the same charset\n\
