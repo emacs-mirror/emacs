@@ -1,10 +1,10 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 3.2
+;; Version: 4.0
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -23,13 +23,15 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;; TPU-edt is based on tpu.el by Jeff Kowalski and Bob Covey.
+
 ;;; Code:
 
 
 ;;;
-;;;  Revision and Version Information
+;;;  Version Information
 ;;;
-(defconst tpu-version "3.2" "TPU-edt version number.")
+(defconst tpu-version "4.0" "TPU-edt version number.")
 
 
 ;;;
@@ -196,8 +198,10 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 			     (purecopy "  ")
 			     'tpu-mark-flag
 			     (purecopy " %[(")
-			     'mode-name 'mode-line-process 'minor-mode-alist "%n"
-			     (purecopy ")%]----")
+			     'mode-name 'mode-line-process 'minor-mode-alist
+			     (purecopy "%n")
+			     (purecopy ")%]--")
+			     (purecopy '(line-number-mode "L%l--"))
 			     (purecopy '(-3 . "%p"))
 			     (purecopy "-%-")))
 	 (or (assq 'tpu-newline-and-indent-p minor-mode-alist)
@@ -799,14 +803,19 @@ kills modified buffers without asking."
   (switch-to-buffer (car (reverse (buffer-list)))))
 
 (defun tpu-next-file-buffer nil
-  "Go to next buffer in ring that is visiting a file."
+  "Go to next buffer in ring that is visiting a file or directory."
   (interactive)
-  (let ((starting-buffer (buffer-name)))
-    (switch-to-buffer (car (reverse (buffer-list))))
-    (while (and (not (equal (buffer-name) starting-buffer))
-		(not (buffer-file-name)))
-      (switch-to-buffer (car (reverse (buffer-list)))))
-    (if (equal (buffer-name) starting-buffer) (error "No other buffers."))))
+  (let ((list (tpu-make-file-buffer-list (buffer-list))))
+    (setq list (delq (current-buffer) list))
+    (if (not list) (error "No other buffers."))
+    (switch-to-buffer (car (reverse list)))))
+
+(defun tpu-make-file-buffer-list (buffer-list)
+  "Returns names from BUFFER-LIST excluding those beginning with a space or star."
+  (delq nil (mapcar '(lambda (b)
+                       (if (or (= (aref (buffer-name b) 0) ? )
+                               (= (aref (buffer-name b) 0) ?*)) nil b))
+                    buffer-list)))
 
 (defun tpu-next-window nil
   "Move to the next window."
@@ -875,10 +884,11 @@ The search is performed in the current direction."
 ;;  to ensure that the next search will be in the current direction.  It is
 ;;  called from:
 
-;;       tpu-advance              tpu-backup
-;;       tpu-toggle-regexp        tpu-toggle-search-direction (t)
-;;       tpu-search               tpu-lm-replace
-;;       tpu-search-forward (t)   tpu-search-reverse (t)
+;;       tpu-advance                   tpu-backup
+;;       tpu-toggle-regexp             tpu-toggle-search-direction (t)
+;;       tpu-search                    tpu-lm-replace
+;;       tpu-search-forward (t)        tpu-search-reverse (t)
+;;       tpu-search-forward-exit (t)   tpu-search-backward-exit (t)
 
 (defun tpu-set-search (&optional arg)
   "Set the search functions and set the search direction to the current
@@ -951,6 +961,20 @@ Used for reversing a search in progress."
        (message "Searching %sward."
 		(if tpu-searching-forward "for" "back"))))
 
+(defun tpu-search-forward-exit nil
+  "Set search direction forward and exit minibuffer."
+  (interactive)
+  (setq tpu-searching-forward t)
+  (tpu-set-search t)
+  (exit-minibuffer))
+
+(defun tpu-search-backward-exit nil
+  "Set search direction backward and exit minibuffer."
+  (interactive)
+  (setq tpu-searching-forward nil)
+  (tpu-set-search t)
+  (exit-minibuffer))
+
 
 ;;;
 ;;;  Select / Unselect
@@ -993,7 +1017,7 @@ corners of a rectangle."
   (let ((mc (current-column))
 	(pc (progn (exchange-point-and-mark) (current-column))))
 
-    (cond ((> (point) (tpu-mark))                      ; point on lower line
+    (cond ((> (point) (tpu-mark))                  ; point on lower line
 	   (cond ((> pc mc)                        ; point @  lower-right
 		  (exchange-point-and-mark))       ; point -> upper-left
 
@@ -1960,6 +1984,13 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 
 
 ;;;
+;;;  Minibuffer map additions to set search direction
+;;;
+(define-key minibuffer-local-map "\eOt" 'tpu-search-forward-exit)
+(define-key minibuffer-local-map "\eOu" 'tpu-search-backward-exit)
+
+
+;;;
 ;;;  Map control keys
 ;;;
 (define-key global-map "\C-\\" 'quoted-insert)                ; ^\
@@ -2140,6 +2171,7 @@ If FILE is nil, try to load a default file.  The default file names are
     (setq-default page-delimiter "^\f")
     (setq-default truncate-lines nil)
     (setq scroll-step 0)
+    (setq global-map (copy-keymap tpu-original-global-map))
     (use-global-map global-map)
     (setq tpu-edt-mode nil))))
 
