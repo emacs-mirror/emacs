@@ -2090,7 +2090,7 @@ See `same-window-buffer-names' and `same-window-regexps'.")
 }
 
 DEFUN ("display-buffer", Fdisplay_buffer, Sdisplay_buffer, 1, 2,
-       "bDisplay buffer: \nP",
+     "BDisplay buffer: \nP",   /* Use B so the default is (other-buffer).  */
   "Make BUFFER appear in some window but don't select it.\n\
 BUFFER can be a buffer or a buffer name.\n\
 If BUFFER is shown already in some window, just use that one,\n\
