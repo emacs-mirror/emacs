@@ -146,30 +146,42 @@ Set it to nil if you don't want limits here."
 
 
 (defface reb-match-0
-  '((((class color))
-     (:background "lightblue"))
-    (t (:inverse-video t)))
+  '((((class color) (background light))
+     :background "lightblue")
+    (((class color) (background dark))
+     :background "steelblue4")
+    (t
+     :inverse-video t))
   "Used for displaying the whole match."
   :group 're-builder)
 
 (defface reb-match-1
-  '((((class color))
-     (:background "aquamarine"))
-    (t (:inverse-video t)))
+  '((((class color) (background light))
+     :background "aquamarine")
+    (((class color) (background dark))
+     :background "blue3")
+    (t
+     :inverse-video t))
   "Used for displaying the first matching subexpression."
   :group 're-builder)
 
 (defface reb-match-2
-  '((((class color))
-     (:background "springgreen"))
-    (t (:inverse-video t)))
+  '((((class color) (background light))
+     :background "springgreen")
+    (((class color) (background dark))
+     :background "chartreuse4")
+    (t
+     :inverse-video t))
   "Used for displaying the second matching subexpression."
   :group 're-builder)
 
 (defface reb-match-3
-  '((((class color))
-     (:background "yellow"))
-    (t (:inverse-video t)))
+  '((((class color) (background light))
+     :background "yellow")
+    (((class color) (background dark))
+     :background "sienna4")
+    (t
+     :inverse-video t))
   "Used for displaying the third matching subexpression."
   :group 're-builder)
 
