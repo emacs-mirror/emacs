@@ -806,10 +806,10 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   (setq filename (directory-file-name filename))
   ;; Entry is always for files, even if they happen to also be directories
   (let* ((opoint (point))
-	(cur-dir (dired-current-directory))
-	(orig-file-name filename)
-	(directory (if relative cur-dir (file-name-directory filename)))
-	reason)
+	 (cur-dir (dired-current-directory))
+	 (orig-file-name filename)
+	 (directory (if relative cur-dir (file-name-directory filename)))
+	 reason)
     (setq filename
 	  (if relative
 	      (file-relative-name filename directory)
@@ -822,14 +822,14 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		  (if (eq (following-char) ?\r)
 		      (dired-unhide-subdir))
 		  ;; We are already where we should be, except when
-		  ;; point is before the subdir line or its total line.
+		 ;; point is before the subdir line or its total line.
 		  (let ((p (dired-after-subdir-garbage cur-dir)))
 		    (if (< (point) p)
 			(goto-char p))))
 	      ;; else try to find correct place to insert
 	      (if (dired-goto-subdir directory)
-		  (progn;; unhide if necessary
-		    (if (looking-at "\r");; point is at end of subdir line
+		  (progn ;; unhide if necessary
+		    (if (looking-at "\r") ;; point is at end of subdir line
 			(dired-unhide-subdir))
 		    ;; found - skip subdir and `total' line
 		    ;; and uninteresting files like . and ..
@@ -841,7 +841,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      (beginning-of-line)
 	      (setq opoint (point))
 	      (dired-add-entry-do-indentation marker-char)
-	      ;; don't expand `.'.  Show just the file name within directory.
+       ;; don't expand `.'.  Show just the file name within directory.
 	      (let ((default-directory directory))
 		(insert-directory filename
 				  (concat dired-actual-switches "d")))
@@ -850,7 +850,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      ;; the relative one.  That may be hard to fix since it
 	      ;; is probably controlled by something in ftp.
 	      (goto-char opoint)	
-	      (let ((inserted-name (dired-get-filename 'no-dir)))
+	      (let ((inserted-name (dired-get-filename)))
 		(if (file-name-directory inserted-name)
 		    (progn
 		      (end-of-line)
@@ -858,11 +858,11 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		      (insert filename)
 		      (forward-char 1))
 		  (forward-line 1)))
-	      ;; Give each line a text property recording info about it.
+	    ;; Give each line a text property recording info about it.
 	      (dired-insert-set-properties opoint (point))
 	      (forward-line -1)
-	      (if dired-after-readin-hook;; the subdir-alist is not affected...
-		  (save-excursion;; ...so we can run it right now:
+	      (if dired-after-readin-hook ;; the subdir-alist is not affected...
+		  (save-excursion ;; ...so we can run it right now:
 		    (save-restriction
 		      (beginning-of-line)
 		      (narrow-to-region (point) (save-excursion
@@ -871,9 +871,9 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      (dired-move-to-filename))
 	    ;; return nil if all went well
 	    nil))
-    (if reason				; don't move away on failure
+    (if reason	; don't move away on failure
 	(goto-char opoint))
-    (not reason)))			; return t on success, nil else
+    (not reason))) ; return t on success, nil else
 
 ;; This is a separate function for the sake of nested dired format.
 (defun dired-add-entry-do-indentation (marker-char)
