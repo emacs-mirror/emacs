@@ -1376,7 +1376,10 @@ created."
 (defface bitmap-area
   '((((class color))
      (:background "grey95"))
-    (t (:background "gray")))
+    (((class mono))
+     (:background "white"))
+    (t
+     (:background "gray")))
   "Basic face for bitmap areas under X."
   :group 'basic-faces)
 
