@@ -300,8 +300,6 @@ extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 
-extern Lisp_Object map_prompt P_ ((Lisp_Object));
-
 
 extern int parse_menu_item P_ ((Lisp_Object, int, int));
 
