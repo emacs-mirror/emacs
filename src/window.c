@@ -267,13 +267,13 @@ DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
      Lisp_Object window;
 {
   register struct window *w = decode_window (window);
-  register int width = w->width;
+  register int width = XFASTINT (w->width);
 
   /* If this window does not end at the right margin,
      must deduct one column for the border */
-  if ((width + w->left) == FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
-    return width;
-  return width - 1;
+  if ((width + XFASTINT (w->left)) == FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
+    return make_number (width);
+  return make_number (width - 1);
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -297,7 +297,7 @@ NCOL should be zero or positive.")
   if (XFASTINT (ncol) >= (1 << (SHORTBITS - 1)))
     args_out_of_range (ncol, Qnil);
   w = decode_window (window);
-  if (w->hscroll != ncol)
+  if (XINT (w->hscroll) != XINT (ncol))
     clip_changed = 1;		/* Prevent redisplay shortcuts */
   w->hscroll = ncol;
   return ncol;
@@ -649,7 +649,7 @@ replace_window (old, replacement)
   /* If OLD is its frame's root_window, then replacement is the new
      root_window for that frame.  */
 
-  if (old == FRAME_ROOT_WINDOW (XFRAME (o->frame)))
+  if (EQ (old, FRAME_ROOT_WINDOW (XFRAME (o->frame))))
     FRAME_ROOT_WINDOW (XFRAME (o->frame)) = replacement;
 
   p->left = o->left;
@@ -762,8 +762,8 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 	 set_window_{height,width} will re-position the sibling's
 	 children.  */
       sib = p->next;
-      XFASTINT (XWINDOW (sib)->top) = p->top;
-      XFASTINT (XWINDOW (sib)->left) = p->left;
+      XWINDOW (sib)->top = p->top;
+      XWINDOW (sib)->left = p->left;
     }
 
   /* Stretch that sibling.  */
@@ -891,7 +891,7 @@ above.  If neither nil nor t, restrict to WINDOW's frame.")
      we've come all the way around and we're back at the original window.  */
   while (MINI_WINDOW_P (XWINDOW (window))
 	 && ! EQ (minibuf, Qt)
-	 && window != start_window);
+	 && ! EQ (window, start_window));
 
   return window;
 }
@@ -989,7 +989,7 @@ above.  If neither nil nor t, restrict to WINDOW's frame.")
      we've come all the way around and we're back at the original window.  */
   while (MINI_WINDOW_P (XWINDOW (window))
 	 && !EQ (minibuf, Qt)
-	 && window != start_window);
+	 && !EQ (window, start_window));
 
   return window;
 }
