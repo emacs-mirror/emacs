@@ -125,7 +125,7 @@
 # define SYNTAX_ENTRY_VIA_PROPERTY
 
 # include "syntax.h"
-# include "charset.h"
+# include "character.h"
 # include "category.h"
 
 # ifdef malloc
@@ -246,6 +246,8 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 # define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2) \
   (c = ((p) == (str2) ? *((end1) - 1) : *((p) - 1)))
 # define MAKE_CHAR(charset, c1, c2) (c1)
+# define BYTE8_TO_CHAR(c) (c)
+# define CHAR_BYTE8_P(c) (0)
 #endif /* not emacs */
 
 #ifndef RE_TRANSLATE
@@ -2609,27 +2611,22 @@ regex_compile (pattern, size, syntax, bufp)
 		    /* Fetch the character which ends the range. */
 		    PATFETCH (c1);
 
-		    if (SINGLE_BYTE_CHAR_P (c))
+		    if (SINGLE_BYTE_CHAR_P (c)
+			&& ! SINGLE_BYTE_CHAR_P (c1))
 		      {
-			if (! SINGLE_BYTE_CHAR_P (c1))
-			  {
-			    /* Handle a range starting with a
-			       character of less than 256, and ending
-			       with a character of not less than 256.
-			       Split that into two ranges, the low one
-			       ending at 0377, and the high one
-			       starting at the smallest character in
-			       the charset of C1 and ending at C1.  */
-			    int charset = CHAR_CHARSET (c1);
-			    int c2 = MAKE_CHAR (charset, 0, 0);
-			    
-			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
-						       c2, c1);
-			    c1 = 0377;
-			  }
+			/* Handle a range starting with a character
+			   fitting in a bitmap to a character not
+			   fitting in a bitmap (thus require range
+			   table).  We use both a bitmap (for the
+			   range from C to 255) and a range table (for
+			   the remaining range).  Here, we setup only
+			   a range table.  A bitmap is setup later.  */
+			re_wchar_t c2
+			  = CHAR_BYTE8_P (c1) ? BYTE8_TO_CHAR (0x80) : 256;
+
+			SET_RANGE_TABLE_WORK_AREA (range_table_work, c2, c1);
+			c1 = 255;
 		      }
-		    else if (!SAME_CHARSET_P (c, c1))
-		      FREE_STACK_RETURN (REG_ERANGE);
 		  }
 		else
 		  /* Range from C to C. */
@@ -3555,7 +3552,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	    set_fastmap_for_multibyte_characters:
 	      if (match_any_multibyte_characters == false)
 		{
-		  for (j = 0x80; j < 0xA0; j++)	/* XXX */
+		  for (j = 0x80; j < 0x100; j++) /* XXX */
 		    if (BASE_LEADING_CODE_P (j))
 		      fastmap[j] = 1;
 		  match_any_multibyte_characters = true;
@@ -3565,9 +3562,11 @@ analyse_first (p, pend, fastmap, multibyte)
 	  else if (!not && CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
 		   && match_any_multibyte_characters == false)
 	    {
-	      /* Set fastmap[I] 1 where I is a base leading code of each
-		 multibyte character in the range table. */
+	      /* Set fastmap[I] to 1 where I is a base leading code of each
+		 multibyte characer in the range table. */
 	      int c, count;
+	      unsigned char buf1[MAX_MULTIBYTE_LENGTH];
+	      unsigned char buf2[MAX_MULTIBYTE_LENGTH];
 
 	      /* Make P points the range table.  `+ 2' is to skip flag
 		 bits for a character class.  */
@@ -3577,10 +3576,14 @@ analyse_first (p, pend, fastmap, multibyte)
 	      EXTRACT_NUMBER_AND_INCR (count, p);
 	      for (; count > 0; count--, p += 2 * 3) /* XXX */
 		{
-		  /* Extract the start of each range.  */
+		  /* Extract the start and end of each range.  */
 		  EXTRACT_CHARACTER (c, p);
-		  j = CHAR_CHARSET (c);
-		  fastmap[CHARSET_LEADING_CODE_BASE (j)] = 1;
+		  CHAR_STRING (c, buf1);
+		  p += 3;
+		  EXTRACT_CHARACTER (c, p);
+		  CHAR_STRING (c, buf2);
+		  for (j = buf1[0]; j <= buf2[0]; j++)
+		    fastmap[j] = 1;
 		}
 	    }
 	  break;
