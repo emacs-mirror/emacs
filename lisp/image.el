@@ -111,19 +111,20 @@ Value is the image created, or nil if images of type TYPE are not supported."
 
 
 ;;;###autoload
-(defun put-image (image pos string &optional area)
+(defun put-image (image pos &optional string area)
   "Put image IMAGE in front of POS in the current buffer.
 IMAGE must be an image created with `create-image' or `defimage'.
 IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is the
-image.
+image.  STRING is defaulted if you omit it.
 POS may be an integer or marker.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area."
+  (unless string (setq string "x"))
   (let ((buffer (current-buffer)))
-    (unless (eq (car image) 'image)
+    (unless (eq (car-safe image) 'image)
       (error "Not an image: %s" image))
     (unless (or (null area) (memq area '(left-margin right-margin)))
       (error "Invalid area %s" area))
@@ -136,15 +137,17 @@ means display it in the right marginal area."
 
 
 ;;;###autoload
-(defun insert-image (image string &optional area)
+(defun insert-image (image &optional string area)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.
+with a `display' property whose value is the image.  STRING is
+defaulted if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area."
-  (unless (eq (car image) 'image)
+  (unless string (setq string "x"))
+  (unless (eq (car-safe image) 'image)
     (error "Not an image: %s" image))
   (unless (or (null area) (memq area '(left-margin right-margin)))
     (error "Invalid area %s" area))
@@ -179,17 +182,19 @@ BUFFER nil or omitted means use the current buffer."
 (defun find-image (specs)
   "Find an image, choosing one of a list of image specifications.
 
-SPECS is a list of image specifications.  DOC is an optional
-documentation string.
+SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
 least contain the properties `:type TYPE' and either `:file FILE' or
 `:data DATA', where TYPE is a symbol specifying the image type,
 e.g. `xbm', FILE is the file to load the image from, and DATA is a
-string containing the actual image data.  The first image
-specification whose TYPE is supported, and FILE exists, is used to
-define SYMBOL."
+string containing the actual image data.  The specification whose TYPE
+is supported, and FILE exists, is used to construct the image
+specification to be returned.  Return nil if no specification is
+satisfied.
+
+The image is looked for first on `load-path' and then in `data-directory'."
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
@@ -206,8 +211,12 @@ define SYMBOL."
 			 (setq found try-file)))
 		     (setq path (cdr path)))
 		   (unless found
-		     (setq found (expand-file-name file data-directory)))
-		   (setq image (cons 'image (plist-put spec :file found)))))
+		     (let ((try-file (expand-file-name file data-directory)))
+		       (if (file-readable-p try-file)
+			   (setq found try-file))))
+		   (if found
+		       (setq image
+			     (cons 'image (plist-put spec :file found))))))
 		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
