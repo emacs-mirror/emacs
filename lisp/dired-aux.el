@@ -707,7 +707,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 (defun dired-fun-in-all-buffers (directory fun &rest args)
   ;; In all buffers dired'ing DIRECTORY, run FUN with ARGS.
   ;; Return list of buffers where FUN succeeded (i.e., returned non-nil).
-  (let ((buf-list (dired-buffers-for-dir directory))
+  (let ((buf-list (dired-buffers-for-dir (expand-file-name directory)))
 	(obuf (current-buffer))
 	buf success-list)
     (while buf-list
@@ -891,12 +891,13 @@ Special value `always' suppresses confirmation.")
   (dired-fun-in-all-buffers from-dir
 			    (function dired-rename-subdir-1) from-dir to-dir)
   ;; Update visited file name of all affected buffers
-  (let ((blist (buffer-list)))
+  (let ((expanded-from-dir (expand-file-name from-dir))
+	(blist (buffer-list)))
     (while blist
       (save-excursion
-        (set-buffer (car blist))
+	(set-buffer (car blist))
 	(if (and buffer-file-name
-		 (dired-in-this-tree buffer-file-name from-dir))
+		 (dired-in-this-tree buffer-file-name expanded-from-dir))
 	    (let ((modflag (buffer-modified-p))
 		  (to-file (dired-replace-in-string
 			    (concat "^" (regexp-quote from-dir))
@@ -909,12 +910,13 @@ Special value `always' suppresses confirmation.")
 (defun dired-rename-subdir-1 (dir to)
   ;; Rename DIR to TO in headerlines and dired-subdir-alist, if DIR or
   ;; one of its subdirectories is expanded in this buffer.
-  (let ((alist dired-subdir-alist)
+  (let ((expanded-dir (expand-file-name dir))
+	(alist dired-subdir-alist)
 	(elt nil))
     (while alist
       (setq elt (car alist)
 	    alist (cdr alist))
-      (if (dired-in-this-tree (car elt) dir)
+      (if (dired-in-this-tree (car elt) expanded-dir)
 	  ;; ELT's subdir is affected by the rename
 	  (dired-rename-subdir-2 elt dir to)))
     (if (equal dir default-directory)
@@ -1530,6 +1532,7 @@ This function takes some pains to conform to `ls -lR' output."
   ;;"Kill all proper subdirs of DIRNAME, excluding DIRNAME itself.
   ;; With optional arg REMEMBER-MARKS, return an alist of marked files."
   (interactive "DKill tree below directory: ")
+  (setq dirname (expand-file-name dirname))
   (let ((s-alist dired-subdir-alist) dir m-alist)
     (while s-alist
       (setq dir (car (car s-alist))
