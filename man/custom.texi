@@ -1621,6 +1621,15 @@ string, you can use the Emacs Lisp escape sequences, @samp{\t},
 (global-set-key "\C-x\t" 'indent-rigidly)
 @end example
 
+  These examples show how to write some other special ASCII characters
+in strings for key bindings:
+
+@example
+(global-set-key "\r" 'newline)               ;; @key{RET}
+(global-set-key "\d" 'delete-backward-char)  ;; @key{DEL}
+(global-set-key "\C-x\e\e" 'repeat-complex-command)  ;; @key{ESC}
+@end example
+
   When the key sequence includes function keys or mouse button events,
 or non-ASCII characters such as @code{C-=} or @code{H-a}, you must use
 the more general method of rebinding, which uses a vector to specify the
@@ -1647,14 +1656,23 @@ keyboard-modified mouse button):
 (global-set-key [C-mouse-1] 'make-symbolic-link)
 @end example
 
-  You can use a vector for the simple cases too.  Here's how to rewrite
-the first three examples, above, using vectors:
+  You can use a vector for the simple cases too.  Here's how to
+rewrite the first three examples above, using vectors to bind
+@kbd{C-z}, @kbd{C-x l}, and @kbd{C-x @key{TAB}}:
 
 @example
 (global-set-key [?\C-z] 'shell)
 (global-set-key [?\C-x ?l] 'make-symbolic-link)
 (global-set-key [?\C-x ?\t] 'indent-rigidly)
+(global-set-key [?\r] 'newline)
+(global-set-key [?\d] 'delete-backward-char)
+(global-set-key [?\C-x ?\e ?\e] 'repeat-complex-command)
 @end example
+
+@noindent
+As you see, you represent a multi-character key sequence with a vector
+by listing each of the characters within the square brackets that
+delimit the vector.
 
 @node Function Keys
 @subsection Rebinding Function Keys
