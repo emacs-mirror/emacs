@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.13) $
+ * $HopeName: MMsrc!event.h(trunk.14) $
  *
  * READERSHIP
  *
@@ -78,21 +78,23 @@ extern char *EventNext, *EventLimit;
 extern Word EventKindControl;
 
 #define EVENT_BEGIN(type) \
-  if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) BEGIN \
-    size_t _length; \
+  BEGIN \
+    if(BS_IS_MEMBER(EventKindControl, ((Index)Event##type##Kind))) { \
+      size_t _length;
 
 #define EVENT_END(type, format, length) \
-    AVER(EventFormat##format == Event##type##Format); \
-    /* @@@@ As an interim measure, send the old event codes */ \
-    EventMould.any.code = Event##type; \
-    EventMould.any.clock = mps_clock(); \
-    AVER(EventNext <= EventLimit); \
-    _length = size_tAlignUp(length, sizeof(Word)); \
-    if(_length > (size_t)(EventLimit - EventNext)) \
-      EventFlush(); /* @@@@ should pass length */ \
-    AVER(_length <= (size_t)(EventLimit - EventNext)); \
-    mps_lib_memcpy(EventNext, &EventMould, _length); \
-    EventNext += _length; \
+      AVER(EventFormat##format == Event##type##Format); \
+      /* @@@@ As an interim measure, send the old event codes */ \
+      EventMould.any.code = Event##type; \
+      EventMould.any.clock = mps_clock(); \
+      AVER(EventNext <= EventLimit); \
+      _length = size_tAlignUp(length, sizeof(Word)); \
+      if(_length > (size_t)(EventLimit - EventNext)) \
+        EventFlush(); /* @@@@ should pass length */ \
+      AVER(_length <= (size_t)(EventLimit - EventNext)); \
+      mps_lib_memcpy(EventNext, &EventMould, _length); \
+      EventNext += _length; \
+    } \
   END
 
 

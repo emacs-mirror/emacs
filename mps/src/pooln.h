@@ -1,57 +1,40 @@
-/*  impl.h.pooln
+/* impl.h.pooln: NULL POOL
  *
- *                          NULL POOL
+ * $HopeName$
+ * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
- *  $HopeName: MMsrc!pooln.h(MMdevel_restr2.2) $
+ * .purpose: The null pool class is here for pedagogical purposes.  It
+ * is a skeleton of a pool class.  The class exhibits all the generic
+ * pool functions; none of them have non-trivial implementations.
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- *  The null pool class is here for pedagogical purposes.  It is a
- *  skeleton of a pool class.  The class exhibits all the generic pool
- *  functions; none of them have non-trivial implementations.
- *
- *  The generic create method for this class takes no extra parameters.
+ * .create: The generic create method for this class takes no extra
+ * parameters.
  */
 
 
 #ifndef pooln_h
 #define pooln_h
 
+#include "mpmtypes.h"
 
-#include "mpm.h"
 
+/* PoolN -- instance type  */
 
-/*  Instance Type  */
 typedef struct PoolNStruct *PoolN;
 
 
-#include "mpm.h"
-
-
-/*  PoolClass
- *
- *  Returns the PoolClass for the null pool class
- */
+/* PoolClassN -- returns the PoolClass for the null pool class */
 
 extern PoolClass PoolClassN(void);
 
 
-/*  Validation
+/* PoolNCheck -- check a pool of class N
  *
- *  Validates a PoolN object.  This function conforms to the validation
- *  protocol defined in impl.h.valid
+ * Validates a PoolN object.  This function conforms to the validation
+ * protocol defined in design.mps.check.
  */
 
 extern Bool PoolNCheck(PoolN poolN);
-
-
-/*  Conversion
- *
- *  Converts a PoolN object into a generic Pool object (so that you can
- *  apply generic pool methods).
- */
-
-extern Pool (PoolNPool)(PoolN poolN);
 
 
 #endif /* pooln_h */

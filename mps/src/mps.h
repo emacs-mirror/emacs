@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.56) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!mps.h(trunk.57) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -110,6 +110,36 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_bool_t enabled;           /* lightweight frame status */
   mps_bool_t lwpoppending;      /* lightweight pop pending? */
 } mps_ap_s;
+
+
+/* Segregated-fit Allocation Caches */
+/* .sac: Keep in sync with impl.h.sac. */
+
+typedef struct mps_sac_s *mps_sac_t;
+
+#define MPS_SAC_CLASS_LIMIT ((size_t)8)
+
+typedef struct mps_sac_freelist_block_s {
+  size_t mps_size;
+  size_t mps_count;
+  size_t mps_count_max;
+  mps_addr_t mps_blocks;
+} mps_sac_freelist_block_s;
+
+typedef struct mps_sac_s {
+  size_t mps_middle;
+  mps_bool_t mps_trapped;
+  mps_sac_freelist_block_s mps_freelists[2 * MPS_SAC_CLASS_LIMIT];
+} mps_sac_s;
+
+/* .sacc: Keep in sync with impl.h.sac. */
+typedef struct mps_sac_classes_s {
+  size_t mps_block_size;
+  size_t mps_cached_count;
+  unsigned mps_frequency;
+} mps_sac_classes_s;
+
+typedef mps_sac_classes_s mps_sac_classes_t[MPS_SAC_CLASS_LIMIT];
 
 
 /* Location Dependency */
@@ -275,6 +305,67 @@ extern mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void);
 extern mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t, mps_alloc_pattern_t);
 extern mps_res_t mps_ap_alloc_pattern_end(mps_ap_t, mps_alloc_pattern_t);
 extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
+
+
+/* Segregated-fit Allocation Caches */
+
+extern mps_res_t mps_sac_create(mps_sac_t *, mps_pool_t, size_t,
+                                mps_sac_classes_t);
+extern void mps_sac_destroy(mps_sac_t);
+extern mps_res_t mps_sac_alloc(mps_addr_t *, mps_sac_t, size_t, mps_bool_t);
+extern void mps_sac_free(mps_sac_t, mps_addr_t, size_t);
+extern void mps_sac_flush(mps_sac_t);
+
+/* Direct access to mps_sac_fill and mps_sac_empty is not supported. */
+extern mps_res_t mps_sac_fill(mps_addr_t *, mps_sac_t, size_t, mps_bool_t);
+extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
+
+#define MPS_SAC_ALLOC(res_o, p_o, sac, size, has_reservoir_permit) \
+  MPS_BEGIN \
+    size_t _mps_i, _mps_s; \
+    \
+    _mps_s = (size); \
+    if (_mps_s > (sac)->mps_middle) { \
+      _mps_i = 0; \
+      while (_mps_s > (sac)->mps_freelists[_mps_i].mps_size) \
+        _mps_i += 2; \
+    } else { \
+      _mps_i = 1; \
+      while (_mps_s <= (sac)->mps_freelists[_mps_i].mps_size) \
+        _mps_i += 2; \
+    } \
+    if ((sac)->mps_freelists[_mps_i].mps_count != 0) { \
+      (p_o) = (sac)->mps_freelists[_mps_i].mps_blocks; \
+      (sac)->mps_freelists[_mps_i].mps_blocks = *(mps_addr_t *)(p_o); \
+      --(sac)->mps_freelists[_mps_i].mps_count; \
+      (res_o) = MPS_RES_OK; \
+    } else \
+      (res_o) = mps_sac_fill(&(p_o), sac, _mps_s, \
+                             has_reservoir_permit); \
+  MPS_END
+
+#define MPS_SAC_FREE(sac, _p, size) \
+  MPS_BEGIN \
+    size_t _mps_i, _mps_s; \
+    \
+    _mps_s = (size); \
+    if (_mps_s > (sac)->mps_middle) { \
+      _mps_i = 0; \
+      while (_mps_s > (sac)->mps_freelists[_mps_i].mps_size) \
+        _mps_i += 2; \
+    } else { \
+      _mps_i = 1; \
+      while (_mps_s <= (sac)->mps_freelists[_mps_i].mps_size) \
+        _mps_i += 2; \
+    } \
+    if ((sac)->mps_freelists[_mps_i].mps_count \
+        < (sac)->mps_freelists[_mps_i].mps_count_max) { \
+       *(mps_addr_t *)(_p) = (sac)->mps_freelists[_mps_i].mps_blocks; \
+      (sac)->mps_freelists[_mps_i].mps_blocks = (_p); \
+      ++(sac)->mps_freelists[_mps_i].mps_count; \
+    } else \
+      mps_sac_empty(sac, _p, _mps_s); \
+  MPS_END
 
 
 /* Low memory reservoir */

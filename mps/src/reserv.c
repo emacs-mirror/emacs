@@ -1,23 +1,19 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
- * $HopeName: MMsrc!reserv.c(MMdevel_tony_sunset.3) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * .readership: Any MPS developer
+ * $HopeName: MMsrc!reserv.c(trunk.2) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * IMPROVEMENTS
  *
- * .improve.contiguous: there should be a means of grouping
- * contiguous tracts together so that there's a likelihood
- * of being able to meet requests for regions larger than the 
- * arena alignment. 
- *
+ * .improve.contiguous: There should be a means of grouping contiguous
+ * tracts together so that there's a likelihood of being able to meet
+ * requests for regions larger than the arena alignment.
  */
 
 
 #include "mpm.h"
 
-SRCID(reserv, "$HopeName: MMsrc!reserv.c(MMdevel_tony_sunset.3) $");
+SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.2) $");
 
 
 /* The reservoir pool is defined here. See design.mps.reservoir */
@@ -44,8 +40,10 @@ SRCID(reserv, "$HopeName: MMsrc!reserv.c(MMdevel_tony_sunset.3) $");
 
 static Res ResPoolInit(Pool pool, va_list arg)
 {
-  UNUSED(arg);
   AVER(pool != NULL);
+  UNUSED(arg);
+  /* Caller will set sig and AVERT. */
+  EVENT_PPP(PoolInit, pool, PoolArena(pool), ClassOfPool(pool));
   return ResOK;
 }
 
@@ -357,6 +355,8 @@ void ReservoirSetLimit(Reservoir reservoir, Size size)
   }
 
   AVER(SizeIsAligned(needed, ArenaAlign(arena)));
+  /* Emit event now, so subsequent change can be ascribed to it. */
+  EVENT_PW(ReservoirLimitSet, arena, size);
 
   if (needed > reservoir->reservoirSize) {
     /* Try to grow the reservoir */

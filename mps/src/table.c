@@ -1,7 +1,10 @@
 /* impl.h.table: A dictionary mapping a Word to a void*
- * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!table.c(trunk.1) $
+ * $HopeName$
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ *
+ * .note.good-hash: As is common in hash table implementations, we
+ * assume that the hash function is good.
  */
 
 #include "table.h"
@@ -20,9 +23,9 @@
 typedef unsigned long ulong;
 
 
-#define TABLE_UNUSED	((Word)0x2AB7E040)
-#define TABLE_DELETED   ((Word)0x2AB7EDE7)
-#define TABLE_ACTIVE    ((Word)0x2AB7EAC2)
+#define tableUNUSED	((Word)0x2AB7E040)
+#define tableDELETED   ((Word)0x2AB7EDE7)
+#define tableACTIVE    ((Word)0x2AB7EAC2)
 
 
 typedef struct TableEntryStruct *TableEntry;
@@ -36,42 +39,65 @@ typedef struct TableEntryStruct {
 typedef struct TableStruct {
   size_t length;
   size_t count;
+  size_t limit;
   TableEntry array;
 } TableStruct;
 
 
-static ulong TableHash(Word key)
+
+/* sizeFloorLog2 -- logarithm base 2 */
+
+static size_t sizeFloorLog2(size_t size)
 {
-  return key;
+  size_t l = 0;
+
+  assert(size != 0);
+  while(size > 1) {
+    ++l;
+    size >>= 1;
+  }
+  return l;
 }
 
 
-/* TableFind -- finds the entry for this key, or NULL */
+/* TableHash -- table hashing function */
+
+static ulong TableHash(Word key)
+{
+  /* Shift some randomness into the low bits. */
+  return (key >> 10) + key;
+}
+
+
+/* TableFind -- finds the entry for this key, or NULL
+ *
+ * .worst: In the worst case, this looks at every slot before giving up,
+ * but that's what you have to do in a closed hash table, to make sure
+ * that all the items still fit in after growing the table.
+ */
 
 static TableEntry TableFind(Table table, Word key, int skip_deleted)
 {
   ulong hash;
-  size_t i;
+  size_t i, mask = table->length - 1;
   
-  hash = TableHash(key) & (table->length - 1);
+  hash = TableHash(key) & mask;
   i = hash;
   do {
     switch (table->array[i].status) {
-    case TABLE_ACTIVE:
+    case tableACTIVE:
       if (table->array[i].key == key)
 	return &table->array[i];
       break;
-    case TABLE_DELETED:
+    case tableDELETED:
       if (!skip_deleted)
 	return &table->array[i];
       break;
-    case TABLE_UNUSED:
+    case tableUNUSED:
       return &table->array[i];
       break;
-    default:
-      assert(0);
     }
-    i = (i + (hash | 1)) & (table->length - 1);
+    i = (i + 1) & mask;
   } while(i != hash);
 
   return NULL;
@@ -87,27 +113,30 @@ static Res TableGrow(Table table)
 
   oldLength = table->length;
   oldArray = table->array;
-  newLength = table->length * 2;
+  newLength = oldLength * 2;
   newArray = malloc(sizeof(TableEntryStruct) * newLength);
   if(newArray == NULL) return ResMEMORY;
 
   for(i = 0; i < newLength; ++i) {
     newArray[i].key = 0;
     newArray[i].value = NULL;
-    newArray[i].status = TABLE_UNUSED;
+    newArray[i].status = tableUNUSED;
   }
   
   table->length = newLength;
   table->array = newArray;
+  table->limit *= 2;
 
   for(i = 0; i < oldLength; ++i) {
-    TableEntry entry;
-    assert(oldArray[i].status == TABLE_ACTIVE); /* should be full */
-    entry = TableFind(table, oldArray[i].key, 0 /* none deleted */);
-    assert(entry->status == TABLE_UNUSED); /* shouldn't be defined yet */
-    entry->key = oldArray[i].key;
-    entry->value = oldArray[i].value;
-    entry->status = TABLE_ACTIVE;
+    if (oldArray[i].status == tableACTIVE) {
+      TableEntry entry;
+      entry = TableFind(table, oldArray[i].key, 0 /* none deleted */);
+      assert(entry != NULL);
+      assert(entry->status == tableUNUSED);
+      entry->key = oldArray[i].key;
+      entry->value = oldArray[i].value;
+      entry->status = tableACTIVE;
+    }
   }
   free(oldArray);
 
@@ -126,13 +155,17 @@ extern Res TableCreate(Table *tableReturn, size_t length)
 
   table = malloc(sizeof(TableStruct));
   if(table == NULL) goto failMallocTable;
-  table->length = length; table->count = 0;
+  if (length < 2) length = 2;
+  /* Table size is length rounded up to the next power of 2. */
+  table->length = 1 << (sizeFloorLog2(length-1) + 1);
+  table->count = 0;
+  table->limit = (size_t)(.5 * length);
   table->array = malloc(sizeof(TableEntryStruct) * length);
   if(table->array == NULL) goto failMallocArray;
   for(i = 0; i < length; ++i) {
     table->array[i].key = 0;
     table->array[i].value = NULL;
-    table->array[i].status = TABLE_UNUSED;
+    table->array[i].status = tableUNUSED;
   }
   
   *tableReturn = table;
@@ -144,6 +177,8 @@ failMallocTable:
   return ResMEMORY;
 }
 
+
+/* TableDestroy -- destroy a table */
 
 extern void TableDestroy(Table table)
 {
@@ -159,7 +194,7 @@ extern Bool TableLookup(void **valueReturn, Table table, Word key)
 {
   TableEntry entry = TableFind(table, key, 1 /* skip deleted */);
 
-  if(entry == NULL || entry->status != TABLE_ACTIVE)
+  if(entry == NULL || entry->status != tableACTIVE)
     return FALSE;
   *valueReturn = entry->value;
   return TRUE;
@@ -170,24 +205,25 @@ extern Bool TableLookup(void **valueReturn, Table table, Word key)
 
 extern Res TableDefine(Table table, Word key, void *value)
 {
-  TableEntry entry = TableFind(table, key, 1 /* skip deleted */);
+  TableEntry entry;
 
-  if (entry != NULL && entry->status == TABLE_ACTIVE)
-    return ResFAIL;
-
-  if (entry == NULL) {
-    Res res;
-    entry = TableFind(table, key, 0 /* do not skip deletions */);
-    if (entry == NULL) {
-      /* table is full.  Must grow the table to make room. */
-      res = TableGrow(table);
-      if(res != ResOK) return res;
-      entry = TableFind(table, key, 0 /* do not skip deletions */);
-    }
+  if (table->count >= table->limit) {
+    Res res = TableGrow(table);
+    if(res != ResOK) return res;
+    entry = TableFind(table, key, 0 /* no deletions yet */);
+    assert(entry != NULL);
+    if (entry->status == tableACTIVE)
+      return ResFAIL;
+  } else {
+    entry = TableFind(table, key, 1 /* skip deleted */);
+    if (entry != NULL && entry->status == tableACTIVE)
+      return ResFAIL;
+    /* Search again to find the best slot, deletions included. */
+    entry = TableFind(table, key, 0 /* don't skip deleted */);
+    assert(entry != NULL);
   }
-  assert(entry != NULL && entry->status != TABLE_ACTIVE);
 
-  entry->status = TABLE_ACTIVE;
+  entry->status = tableACTIVE;
   entry->key = key;
   entry->value = value;
   ++table->count;
@@ -202,7 +238,7 @@ extern Res TableRedefine(Table table, Word key, void *value)
 {
   TableEntry entry = TableFind(table, key, 1 /* skip deletions */);
   
-  if (entry == NULL || entry->status != TABLE_ACTIVE)
+  if (entry == NULL || entry->status != tableACTIVE)
     return ResFAIL;
   assert(entry->key == key);
   entry->value = value;
@@ -216,9 +252,9 @@ extern Res TableRemove(Table table, Word key)
 {
   TableEntry entry = TableFind(table, key, 1);
 
-  if (entry == NULL || entry->status != TABLE_ACTIVE)
+  if (entry == NULL || entry->status != tableACTIVE)
     return ResFAIL;
-  entry->status = TABLE_DELETED;
+  entry->status = tableDELETED;
   --table->count;
   return ResOK;
 }
@@ -230,7 +266,7 @@ extern void TableMap(Table table, void(*fun)(Word key, void*value))
 {
   size_t i;
   for (i = 0; i < table->length; i++)
-    if (table->array[i].status == TABLE_ACTIVE)
+    if (table->array[i].status == tableACTIVE)
       (*fun)(table->array[i].key, table->array[i].value);
 }
 

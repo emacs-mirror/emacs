@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.33) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.34) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.33) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.34) $");
 
 
 /* ROUND -- Round up
@@ -106,7 +106,7 @@ static Res MFSInit(Pool pool, va_list arg)
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
-
+  EVENT_PPP(PoolInit, pool, arena, ClassOfPool(pool));
   return ResOK;
 }
 

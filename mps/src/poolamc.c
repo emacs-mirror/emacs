@@ -1,7 +1,7 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.30) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolamc.c(trunk.31) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
  */
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.30) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.31) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -268,8 +268,8 @@ static Bool AMCNailBoardCheck(AMCNailBoard board)
   /* We know that shift corresponds to pool->align */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift ==
-         AMCPool(board->gen->amc)->alignment);
+  CHECKL(1uL << board->markShift
+         == AMCPool(board->gen->amc)->alignment);
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
   return TRUE;
@@ -361,9 +361,13 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
   if (res != ResOK)
     return res;
 
-  /* Set up the buffer to be allocating in the nursery. */
   amcbuf = BufferAMCBuf(buffer);
-  amcbuf->gen = amc->nursery;
+  if (BufferIsMutator(buffer)) {
+    /* Set up the buffer to be allocating in the nursery. */
+    amcbuf->gen = amc->nursery;
+  } else {
+    amcbuf->gen = NULL; /* no gen yet -- see design.mps.poolamc.forward.gen */
+  }
   amcbuf->sig = AMCBufSig;
   AVERT(AMCBuf, amcbuf);
 
@@ -429,7 +433,6 @@ static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
   res = BufferCreate(&buffer, EnsureAMCBufClass(), pool, FALSE);
   if(res != ResOK)
     goto failBufferCreate;
-  AMCBufSetGen(buffer, NULL); /* design.mps.poolamc.gen.forward */
 
   RingInit(&gen->amcRing);
   ActionInit(&gen->actionStruct, pool);
@@ -448,7 +451,6 @@ static Res AMCGenCreate(AMCGen *genReturn, AMC amc, Serial genNum)
   RingAppend(&amc->genRing, &gen->amcRing);
 
   EVENT_PP(AMCGenCreate, amc, gen);
-
   *genReturn = gen;
   return ResOK;
 
@@ -717,6 +719,10 @@ static Res AMCInitComm(Pool pool, RankSet rankSet, va_list arg)
 
   AVERT(AMC, amc);
   EVENT_PP(AMCInit, pool, amc);
+  if (rankSet == RankSetEMPTY)
+    EVENT_PP(PoolInitAMCZ, pool, format);
+  else
+    EVENT_PP(PoolInitAMC, pool, format);
   return ResOK;
 }
 

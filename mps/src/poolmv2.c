@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.12) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.13) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.12) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.13) $");
 
 
 /* Signatures */
@@ -331,6 +331,8 @@ static Res MV2Init(Pool pool, va_list arg)
   mv2->sig = MV2Sig;
 
   AVERT(MV2, mv2);
+  EVENT_PWWWWW(PoolInitMV2, pool, minSize, meanSize, maxSize,
+               reserveDepth, fragLimit);
   return ResOK;
 
 failABQ:

@@ -1,7 +1,7 @@
 /* impl.h.eventpro: Interface for event processing routines
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventpro.h(trunk.2) $
+ * $HopeName: MMsrc!eventpro.h(trunk.3) $
  */
 
 #ifndef eventpro_h
@@ -13,9 +13,6 @@
 
 #include "eventcom.h"
 #include "mpmtypes.h"
-
-
-typedef EventUnion *Event;
 
 
 typedef struct EventProcStruct *EventProc;
@@ -36,9 +33,9 @@ extern void EventDestroy(EventProc proc, Event event);
 
 extern Res EventRecord(EventProc proc, Event event, Word etime);
 
-extern Res EventProcInit(EventProc *procReturn, Bool partial,
-                          EventProcReader reader, void *readerP);
-extern void EventProcFinish(EventProc proc);
+extern Res EventProcCreate(EventProc *procReturn, Bool partial,
+                           EventProcReader reader, void *readerP);
+extern void EventProcDestroy(EventProc proc);
 
 
 #endif /* eventpro_h */

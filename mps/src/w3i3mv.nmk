@@ -1,8 +1,8 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.63) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.64) $
 #
-# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+# Copyright (C) 1999 Harlequin Limited.  All rights reserved.
 #
 
 PFM = w3i3mv

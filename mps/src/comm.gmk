@@ -1,7 +1,7 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.57) $
-# Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
+# $HopeName: MMsrc!comm.gmk(trunk.58) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -100,10 +100,18 @@ else
 ifeq ($(TARGET),epvmss)
 CFLAGSTARGET = -DCONFIG_PROD_EPCORE
 else
+ifeq ($(TARGET),replaysw)
+CFLAGSTARGET = -DCONFIG_PROD_EPCORE
+else
 ifeq ($(TARGET),mmdw.a)
 CFLAGSTARGET = -DCONFIG_PROD_DYLAN
 else
+ifeq ($(TARGET),replay)
+CFLAGSTARGET = -DCONFIG_PROD_DYLAN
+else
 CFLAGSTARGET = -DCONFIG_PROD_MPS
+endif
+endif
 endif
 endif
 endif
@@ -179,7 +187,6 @@ FMTDY = fmtdy.c
 FMTDYTST = fmtdy.c fmtdytst.c
 FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
-EVENT = event.c
 EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = assert.c mpsi.c mpm.c arenavm.c arenacl.c arena.c \
             tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
@@ -243,8 +250,6 @@ FMTPSOBJ = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.o)
 FMTPSDEP = $(FMTPS:%.c=$(PFM)/$(VARIETY)/%.d)
 PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
-EVENTOBJ = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.o)
-EVENTDEP = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
 EVENTPROCDEP = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
@@ -281,7 +286,7 @@ testrunep: epvmss
 
 mpmss apss amcss amcssth amsss segsmss awlut awlutth mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
-  abqtest cbstest btcv mv2eptst mv2test eventcnv messtest \
+  abqtest cbstest btcv mv2eptst mv2test messtest eventcnv replay replaysw \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
@@ -368,7 +373,7 @@ $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
-        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
+        $(FMTPSOBJ) $(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ)
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
@@ -406,10 +411,20 @@ $(PFM)/$(VARIETY)/messtest: $(PFM)/$(VARIETY)/messtest.o \
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
   $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
 
-$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ)
+$(PFM)/$(VARIETY)/replay: $(PFM)/$(VARIETY)/replay.o \
+  $(PFM)/$(VARIETY)/eventrep.o \
+  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
+  $(MPMOBJ) $(AWLOBJ) $(AMSOBJ) $(POOLNOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
+
+$(PFM)/$(VARIETY)/replaysw: $(PFM)/$(VARIETY)/replay.o \
+  $(PFM)/$(VARIETY)/eventrep.o \
+  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o \
+  $(FMTPSOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mpsliban.o $(SWOBJ)
+
+$(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(SNCOBJ) $(MVFFOBJ)
 
 $(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ) \
-$(FMTDYOBJ) $(AWLOBJ)
+  $(FMTDYOBJ) $(AWLOBJ)
 
 $(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
 
@@ -488,7 +503,7 @@ ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) $(ARENAANDEP) \
   $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
-  $(PLINTHDEP) $(EVENTDEP) $(EVENTPROCDEP)
+  $(PLINTHDEP) $(EVENTPROCDEP)
 endif
 endif
 

@@ -1,7 +1,7 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.22) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!eventdef.h(trunk.23) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers.
  * .source: design.mps.telemetry
@@ -63,11 +63,9 @@ RELATION(AMCGenCreate                    , 0x0001, TRUE, Pool, PP)
 RELATION(AMCGenDestroy                   , 0x0002, TRUE, Pool, P)
 RELATION(AMCInit                         , 0x0003, TRUE, Pool, PP)
 RELATION(AMCFinish                       , 0x0004, TRUE, Pool, P)
-#if 0 /* Not in use */
-RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
-RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
-#endif
-RELATION(ArenaWriteFaults                , 0x0007, TRUE, Seg, PW)
+RELATION(ArenaCreateVM                   , 0x0005, TRUE, Arena, PWW)
+RELATION(ArenaCreateVMNZ                 , 0x0006, TRUE, Arena, PWW)
+RELATION(ArenaWriteFaults                , 0x0007, TRUE, Trace, PW)
 RELATION(MeterInit                       , 0x0008, TRUE, Pool, PP)
 RELATION(MeterValues                     , 0x0009, TRUE, Pool, PDDWWW)
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Seg, PPP)
@@ -77,7 +75,7 @@ RELATION(AMCFixInPlace                   , 0x000d, TRUE, Ref, 0)
 RELATION(AMCFixForward                   , 0x000e, TRUE, Ref, A)
 RELATION(AMCReclaim                      , 0x000f, TRUE, Seg, PPP)
 RELATION(AMCTraceEnd                     , 0x0010, TRUE, Trace, PPP)
-RELATION(ArenaCreate                     , 0x0011, TRUE, Arena, PP)
+RELATION(ArenaCreateCL                   , 0x0011, TRUE, Arena, PWA)
 RELATION(ArenaDestroy                    , 0x0012, TRUE, Arena, P)
 RELATION(SegAlloc                        , 0x0013, TRUE, Seg, PPAWP)
 RELATION(SegFree                         , 0x0014, TRUE, Seg, PP)
@@ -136,8 +134,35 @@ RELATION(TraceStatCondemn                , 0x003E, TRUE, Trace, PWWWWDD)
 RELATION(TraceStatScan                   , 0x003F, TRUE, Trace, PWWWWWWWWWWWW)
 RELATION(TraceStatFix                    , 0x0040, TRUE, Trace, PWWWWWWWWW)
 RELATION(TraceStatReclaim                , 0x0041, TRUE, Trace, PWW)
-RELATION(ArenaAlloc                      , 0x0042, TRUE, Arena, PPAWP)
-RELATION(ArenaFree                       , 0x0043, TRUE, Arena, PAW)
-RELATION(ArenaAllocFail                  , 0x0044, TRUE, Arena, PWP)
-RELATION(SegMerge                        , 0x0045, TRUE, Seg, PPP)
-RELATION(SegSplit                        , 0x0046, TRUE, Seg, PPPA)
+
+RELATION(PoolInitMVFF                    , 0x0042, TRUE, Pool, PPWWWUUU)
+RELATION(PoolInitMV                      , 0x0043, TRUE, Pool, PPWWW)
+RELATION(PoolInitMFS                     , 0x0044, TRUE, Pool, PPWW)
+RELATION(PoolInitEPVM                    , 0x0045, TRUE, Pool, PPPUU)
+RELATION(PoolInitEPDL                    , 0x0046, TRUE, Pool, PPUWWW)
+RELATION(PoolInitAMS                     , 0x0047, TRUE, Pool, PPP)
+RELATION(PoolInitAMC                     , 0x0048, TRUE, Pool, PP)
+RELATION(PoolInitAMCZ                    , 0x0049, TRUE, Pool, PP)
+RELATION(PoolInitAWL                     , 0x004A, TRUE, Pool, PP)
+RELATION(PoolInitLO                      , 0x004B, TRUE, Pool, PP)
+RELATION(PoolInitSNC                     , 0x004C, TRUE, Pool, PP)
+RELATION(PoolInitMV2                     , 0x004D, TRUE, Pool, PWWWWW)
+
+RELATION(BufferInitEPVM                  , 0x0050, TRUE, Pool, PPU)
+RELATION(BufferInitSeg                   , 0x0051, TRUE, Pool, PPU)
+RELATION(BufferInitRank                  , 0x0052, TRUE, Pool, PPUU)
+
+/* PoolPush/Pop go under Object, because they're user ops. */
+RELATION(PoolPush                        , 0x0060, TRUE, Object, P)
+RELATION(PoolPop                         , 0x0061, TRUE, Object, PU)
+RELATION(ReservoirLimitSet               , 0x0062, TRUE, Arena, PW)
+RELATION(CommitLimitSet                  , 0x0063, TRUE, Arena, PWU)
+RELATION(SpareCommitLimitSet             , 0x0064, TRUE, Arena, PW)
+
+RELATION(ArenaAlloc                      , 0x0065, TRUE, Arena, PPAWP)
+RELATION(ArenaFree                       , 0x0066, TRUE, Arena, PAW)
+RELATION(ArenaAllocFail                  , 0x0067, TRUE, Arena, PWP)
+RELATION(SegMerge                        , 0x0068, TRUE, Seg, PPP)
+RELATION(SegSplit                        , 0x0069, TRUE, Seg, PPPA)
+
+/* Remember to update EventNameMAX and EventCodeMAX in eventcom.h! */
