@@ -95,6 +95,18 @@ happen in process filter functions and sentinels.  Therefore, these
 errors also can invoke the debugger.  @xref{Processes}.
 @end defopt
 
+@defopt debug-ignored-errors
+This variable specifies certain kinds of errors that should not enter
+the debugger.  Its value is a list of error condition symbols and/or
+regular expressions.  If the error has any of those condition symbols,
+or if the error message matches any of the regular expressions, then
+that error does not enter the debugger, regardless of the value of
+@code{debug-on-error}.
+
+The normal value of this variable lists several errors that happen often
+during editing but rarely result from bugs in Lisp programs.
+@end defopt
+
   To debug an error that happens during loading of the @file{.emacs}
 file, use the option @samp{-debug-init}, which binds
 @code{debug-on-error} to @code{t} while @file{.emacs} is loaded and

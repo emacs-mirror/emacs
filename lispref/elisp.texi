@@ -6,16 +6,16 @@
 @c %**end of header
 
 @ifinfo
-This version is the edition 2.4 of the GNU Emacs Lisp
-Reference Manual.  It corresponds to Emacs Version 19.29.
+This version is the edition 2.4a of the GNU Emacs Lisp
+Reference Manual.  It corresponds to Emacs Version 19.32.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
 Published by the Free Software Foundation
-675 Massachusetts Avenue
-Cambridge, MA 02139 USA
+59 Temple Place, Suite 330
+Boston, MA  02111-1307  USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc. 
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -68,25 +68,25 @@ instead of in the original English.
 @subtitle for Unix Users
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.4, June 1995
+@subtitle Revision 2.4a, July 1996
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.4 @*
-Revised for Emacs Version 19.29,@*
-June, 1995.@*
+Edition 2.4a @*
+Revised for Emacs Version 19.32,@*
+July 1996.@*
 @sp 2
 ISBN 1-882114-71-X
 
 @sp 2
 Published by the Free Software Foundation @*
-675 Massachusetts Avenue @*
-Cambridge, MA 02139 USA
+59 Temple Place, Suite 330@*
+Boston, MA  02111-1307  USA
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -112,8 +112,8 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.4 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 19.29.
+This Info file contains edition 2.4a of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version 19.32.
 @end ifinfo
 
 @menu
@@ -643,6 +643,7 @@ Windows
 * Window Start::            The display-start position controls which text
                               is on-screen in the window. 
 * Vertical Scrolling::      Moving text up and down in the window.
+* Scrolling Hooks::         Hooks that run when you scroll a window.
 * Horizontal Scrolling::    Moving text sideways on the window.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
@@ -720,9 +721,12 @@ Text
 * Indentation::             Functions to insert or adjust indentation.
 * Columns::                 Computing horizontal positions, and using them.
 * Case Changes::            Case conversion of parts of the buffer.
+* Text Properties::         Assigning Lisp property lists to text characters.
 * Substitution::            Replacing a given character wherever it appears.
+* Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Change Hooks::            Supplying functions to be run when text is changed.
                               
 The Kill Ring
 
@@ -740,6 +744,22 @@ Indentation
 * Relative Indent::         Indent the current line based on previous lines.
 * Indent Tabs::             Adjustable, typewriter-like tab stops.
 * Motion by Indent::        Move to first non-blank character.
+
+Text Properties
+
+* Examining Properties::    Looking at the properties of one character.
+* Changing Properties::	    Setting the properties of a range of text.
+* Property Search::	    Searching for where a property changes value.
+* Special Properties::	    Particular properties with special meanings.
+* Format Properties::       Properties for representing formatting of text.
+* Sticky Properties::       How inserted text gets properties from
+                              neighboring text.
+* Saving Properties::       Saving text properties in files, and reading
+                              them back.
+* Lazy Properties::         Computing text properties in a lazy fashion
+                              only when text is examined.
+* Not Intervals::	    Why text properties do not use
+			      Lisp-visible text intervals.
 
 Searching and Matching
 

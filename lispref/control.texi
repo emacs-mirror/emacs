@@ -878,23 +878,31 @@ After executing the body of the handler, the @code{condition-case}
 returns normally, using the value of the last form in the handler body
 as the overall value.
 
+@cindex error description
 The argument @var{var} is a variable.  @code{condition-case} does not
 bind this variable when executing the @var{protected-form}, only when it
-handles an error.  At that time, it binds @var{var} locally to a list of
-the form @code{(@var{error-symbol} . @var{data})}, giving the
-particulars of the error.  The handler can refer to this list to decide
-what to do.  For example, if the error is for failure opening a file,
-the file name is the second element of @var{data}---the third element of
-@var{var}.
+handles an error.  At that time, it binds @var{var} locally to an
+@dfn{error description}, which is a list giving the particulars of the
+error.  The error description has the form @code{(@var{error-symbol}
+. @var{data})}.  The handler can refer to this list to decide what to
+do.  For example, if the error is for failure opening a file, the file
+name is the second element of @var{data}---the third element of the
+error description.
 
 If @var{var} is @code{nil}, that means no variable is bound.  Then the
 error symbol and associated data are not available to the handler.
 @end defspec
 
+@defun error-message-string error-description
+This function returns the error message string for a given error
+descriptor.  It is useful if you want to handle an error by printing the
+usual error message for that error.
+@end defun
+
 @cindex @code{arith-error} example
 Here is an example of using @code{condition-case} to handle the error
-that results from dividing by zero.  The handler prints out a warning
-message and returns a very large number.
+that results from dividing by zero.  The handler displays the error
+message (but without a beep), then returns a very large number.
 
 @smallexample
 @group
@@ -904,7 +912,8 @@ message and returns a very large number.
       (/ dividend divisor)              
     ;; @r{The handler.}
     (arith-error                        ; @r{Condition.}
-     (princ (format "Arithmetic error: %s" err))
+     ;; @r{Display the usual message for this error.}
+     (message "%s" (error-message-string err))
      1000000)))
 @result{} safe-divide
 @end group
