@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.121) $
+ * $HopeName: MMsrc!mpm.h(trunk.122) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -47,6 +47,8 @@ extern Bool RootVarCheck(RootVar rootVar);
 
 /* Address/Size Interface -- see impl.c.mpm */
 
+extern Bool AlignCheck(Align align);
+
 extern Bool (WordIsAligned)(Word word, Align align);
 #define WordIsAligned(w, a)     (((w) & ((a) - 1)) == 0)
 
@@ -60,7 +62,7 @@ extern Word (WordRoundUp)(Word word, Size round);
 extern Word (WordAlignDown)(Word word, Align align);
 #define WordAlignDown(w, a)     ((w) & ~((Word)(a) - 1))
 
-extern Bool AlignCheck(Align align);
+#define size_tAlignUp(s, a) ((size_t)WordAlignUp((Word)(s), a))
 
 extern void *(PointerAdd)(void *p, size_t s);
 #define PointerAdd(p, s) ((void *)((char *)(p) + (s)))
@@ -69,7 +71,8 @@ extern void *(PointerSub)(void *p, size_t s);
 #define PointerSub(p, s) ((void *)((char *)(p) - (s)))
 
 extern size_t (PointerOffset)(void *base, void *limit);
-#define PointerOffset(base, limit) ((char *)(limit) - (char *)(base))
+#define PointerOffset(base, limit) \
+  ((size_t)((char *)(limit) - (char *)(base)))
 
 extern void *(PointerAlignUp)(void *p, size_t s);
 #define PointerAlignUp(p, s) \
