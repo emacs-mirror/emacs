@@ -435,7 +435,7 @@ init_float ()
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  XFASTINT (ptr->type) = (EMACS_INT) float_free_list;
+  XSETFASTINT (ptr->type, (EMACS_INT) float_free_list);
   float_free_list = ptr;
 }
 
@@ -463,7 +463,7 @@ make_float (float_value)
       XSETFLOAT (val, &float_block->floats[float_block_index++]);
     }
   XFLOAT (val)->data = float_value;
-  XFASTINT (XFLOAT (val)->type) = 0;	/* bug chasing -wsr */
+  XSETFASTINT (XFLOAT (val)->type, 0);	/* bug chasing -wsr */
   consing_since_gc += sizeof (struct Lisp_Float);
   return val;
 }
@@ -508,7 +508,7 @@ init_cons ()
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  XFASTINT (ptr->car) = (EMACS_INT) cons_free_list;
+  XSETFASTINT (ptr->car, (EMACS_INT) cons_free_list);
   cons_free_list = ptr;
 }
 
@@ -551,7 +551,7 @@ Any number of arguments, even zero arguments, are allowed.")
 {
   register Lisp_Object len, val, val_tail;
 
-  XFASTINT (len) = nargs;
+  XSETFASTINT (len, nargs);
   val = Fmake_list (len, Qnil);
   val_tail = val;
   while (!NILP (val_tail))
@@ -625,7 +625,7 @@ Any number of arguments, even zero arguments, are allowed.")
   register int index;
   register struct Lisp_Vector *p;
 
-  XFASTINT (len) = nargs;
+  XSETFASTINT (len, nargs);
   val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
   for (index = 0; index < nargs; index++)
@@ -647,7 +647,7 @@ significance.")
   register int index;
   register struct Lisp_Vector *p;
 
-  XFASTINT (len) = nargs;
+  XSETFASTINT (len, nargs);
   if (!NILP (Vpurify_flag))
     val = make_pure_vector (len);
   else
@@ -1080,7 +1080,7 @@ make_pure_float (num)
   XSETFLOAT (new, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Float);
   XFLOAT (new)->data = num;
-  XFASTINT (XFLOAT (new)->type) = 0;	/* bug chasing -wsr */
+  XSETFASTINT (XFLOAT (new)->type, 0);	/* bug chasing -wsr */
   return new;
 }
 
@@ -1500,11 +1500,11 @@ mark_object (objptr)
 
 	    if (XMARKBIT (*objptr))
 	      {
-		XFASTINT (*objptr) = ptr->size;
+		XSETFASTINT (*objptr, ptr->size);
 		XMARK (*objptr);
 	      }
 	    else
-	      XFASTINT (*objptr) = ptr->size;
+	      XSETFASTINT (*objptr, ptr->size);
 	    if ((EMACS_INT) objptr & 1) abort ();
 	    ptr->size = (EMACS_INT) objptr & ~MARKBIT;
 	    if ((EMACS_INT) objptr & MARKBIT)
@@ -1731,7 +1731,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (cblk->conses[i].car))
 	    {
-	      XFASTINT (cblk->conses[i].car) = (EMACS_INT) cons_free_list;
+	      XSETFASTINT (cblk->conses[i].car, (EMACS_INT) cons_free_list);
 	      num_free++;
 	      cons_free_list = &cblk->conses[i];
 	    }
@@ -1761,7 +1761,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (fblk->floats[i].type))
 	    {
-	      XFASTINT (fblk->floats[i].type) = (EMACS_INT) float_free_list;
+	      XSETFASTINT (fblk->floats[i].type, (EMACS_INT) float_free_list);
 	      num_free++;
 	      float_free_list = &fblk->floats[i];
 	    }
@@ -1825,7 +1825,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (sblk->symbols[i].plist))
 	    {
-	      XFASTINT (sblk->symbols[i].value) = (EMACS_INT) symbol_free_list;
+	      XSETFASTINT (sblk->symbols[i].value, (EMACS_INT) symbol_free_list);
 	      symbol_free_list = &sblk->symbols[i];
 	      num_free++;
 	    }
@@ -1863,7 +1863,7 @@ gc_sweep ()
 	      tem1 = &mblk->markers[i];  /* tem1 avoids Sun compiler bug */
 	      XSETMARKER (tem, tem1);
 	      unchain_marker (tem);
-	      XFASTINT (mblk->markers[i].chain) = (EMACS_INT) marker_free_list;
+	      XSETFASTINT (mblk->markers[i].chain, (EMACS_INT) marker_free_list);
 	      marker_free_list = &mblk->markers[i];
 	      num_free++;
 	    }
