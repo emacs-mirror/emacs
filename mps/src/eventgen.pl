@@ -2,7 +2,7 @@
 # impl.pl.eventgen: GENERATOR FOR impl.h.eventgen
 #
 # Copyright (C) 1998, 1999, Harlequin Group plc.  All rights reserved.
-# $HopeName: MMsrc!eventgen.pl(trunk.9) $
+# $HopeName: MMsrc!eventgen.pl(trunk.10) $
 #
 # .how: Invoke this script in the src directory.  It works by scanning
 # eventdef.h and then creating a file eventgen.h that includes the
@@ -11,7 +11,7 @@
 # You will need to have eventgen.h claimed, and you should
 # remember to check it in afterwards.
 
-$HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.9) $';
+$HopeName = '$HopeName: MMsrc!eventgen.pl(trunk.10) $';
 
 %Formats = ();
 
@@ -104,7 +104,7 @@ foreach $format ("", sort(keys(%Formats))) {
   for($i = 0; $i < length($format); $i++) {
     $c = substr($format, $i, 1);
     if($c eq "S") {
-      print H ", _s$i";
+      print H ", _l$i, _s$i";
     } else {
       print H ", _\l$c$i";
     }
@@ -114,28 +114,27 @@ foreach $format ("", sort(keys(%Formats))) {
   print H "  EVENT_BEGIN(type) \\\n";
 
   if(($i = index($format, "S")) != -1) {
-    print H "    const char *_s; \\\n";
-    print H "    size_t _string_length; \\\n";
+    print H "    size_t _string_len; \\\n";
   }
 
   for($i = 0; $i < length($format); $i++) {
     $c = substr($format, $i, 1);
     if($c eq "S") {
-      print H "    _s = (_s$i); \\\n";
-      print H "    _string_length = StringLength(_s); \\\n";
-      print H "    AVER(_string_length < EventStringLengthMAX); \\\n";
-      print H "    EventMould.\L$fmt.s$i.len = _string_length; \\\n";
-      print H "    mps_lib_memcpy(EventMould.\L$fmt.s$i.str, _s, "
-                               . "_string_length); \\\n";
+      print H "    _string_len = (_l$i); \\\n";
+      print H "    AVER(_string_len < EventStringLengthMAX); \\\n";
+      print H "    EventMould.\L$fmt.s$i.len = "
+                 . "(EventStringLen)_string_len; \\\n";
+      print H "    mps_lib_memcpy(EventMould.\L$fmt.s$i.str, "
+                               . "_s$i, _string_len); \\\n";
     } else {
       print H "    EventMould.\L$fmt.$c$i = (_$c$i); \\\n";
     }
   }
 
   if(($i = index($format, "S")) != -1) {
-    print H "  EVENT_END(type, $fmt, \\\n";
-    print H "            offsetof(Event${fmt}Struct, s$i.str) "
-                      . "+ _string_length)\n\n";
+    print H "  EVENT_END(type, $fmt, "
+                      . "offsetof(Event${fmt}Struct, s$i.str) "
+                      . "+ _string_len)\n\n";
   } else {
     print H "  EVENT_END(type, $fmt, "
                       . "sizeof(Event${fmt}Struct))\n\n";
@@ -165,6 +164,9 @@ foreach $format (sort(keys(%Formats))) {
   print H "#define EVENT_$format(type";
   for($i = 0; $i < length($format); $i++) {
     print H ", p$i";
+  }
+  if(($i = index($format, "S")) != -1) {
+    print H ", l$i";
   }
   print H ") NOOP\n";
 }
