@@ -591,8 +591,8 @@ Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
 	(let ((location (point)))
-	  (cond ((functionp add-log-current-defun-function)
-		 (funcall add-log-current-defun-function))
+	  (cond ((and (functionp add-log-current-defun-function)
+		      (funcall add-log-current-defun-function)))
 		((memq major-mode add-log-lisp-like-modes)
 		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
