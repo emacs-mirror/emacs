@@ -1406,8 +1406,6 @@ Exporting of diary files into iCalendar files should work correctly for
 most diary entries.  Please note that @file{icalendar.el} is work in
 progress, so usage may evolve in future.
 
-  To activate the package, use @code{(require 'icalendar)}.
-
 @findex icalendar-import-buffer
   The command @code{icalendar-import-buffer} extracts
 iCalendar data from the current buffer and adds it to your (default)
