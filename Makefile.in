@@ -220,7 +220,10 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC.src.paths.h
 	@${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
 src:	lib-src FRC.src
-lib-src: FRC.lib-src src/paths.h
+
+# Depend on src so that src gets done first
+# and emacs is available for running blessmail.
+lib-src: FRC.lib-src src/paths.h src
 
 .RECURSIVE: ${SUBDIR}
 
