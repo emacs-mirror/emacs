@@ -1,4 +1,4 @@
-2002-06-26  Juanma Barranquero  <jbarranquero@peoplecall.com>
+2002-06-26  Juanma Barranquero  <lektu@terra.es>
 
 	* info.el (info-menu-5): Fix documentation.
 	(Info-fontify-maximum-menu-size): Remove reference to
