@@ -1,3 +1,13 @@
+2003-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (split-line): If present, copy fill-prefix from
+	current line to new line.  Don't copy if prefix arg.
+	From Lisp, arg may be an alternative prefix string to copy.
+	Inspired by Ehud Karni <ehud@unix.mvs.co.il>.
+
+	* mail/sendmail.el (mail-split-line): New function.
+	(mail-mode-map): remap split-line to mail-split-line.
+
 2003-01-03  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (sort-coding-systems): Adjust

@@ -1,3 +1,8 @@
+2003-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* message.el (message-split-line): New function.
+	(message-mode-map): Remap split-line to message-split-line.
+
 2002-11-29  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* smiley-ems.el (gnus-smiley-display): Typo.
