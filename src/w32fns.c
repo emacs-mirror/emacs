@@ -176,6 +176,9 @@ static unsigned mouse_button_timer;	/* non-zero when timer is active */
 static W32Msg saved_mouse_move_msg;
 static unsigned mouse_move_timer;
 
+/* W95 mousewheel handler */
+unsigned int msh_mousewheel = 0;	
+
 #define MOUSE_BUTTON_ID	1
 #define MOUSE_MOVE_ID	2
 
@@ -3123,6 +3126,8 @@ static void
 w32_msg_pump (deferred_msg * msg_buf)
 {
   MSG msg;
+
+  msh_mousewheel = RegisterWindowMessage (MSH_MOUSEWHEEL);
   
   while (GetMessage (&msg, NULL, 0, 0))
     {
@@ -3908,6 +3913,14 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       }
 
     default:
+      /* Check for messages registered at runtime. */
+      if (msg == msh_mousewheel)
+	{
+	  wmsg.dwModifiers = w32_get_modifiers ();
+	  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	  return 0;
+	}
+      
     dflt:
       return DefWindowProc (hwnd, msg, wParam, lParam);
     }
