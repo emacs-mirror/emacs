@@ -225,7 +225,7 @@
             (let ((date (calendar-cursor-to-date)))
               (if date
                   (define-key calendar-mode-map [menu-bar Holidays 1-day]
-                    `(,(format "For Date %s"
+                    `(,(format "For Cursor Date (%s)"
                                (calendar-date-string date t t))
                       . calendar-cursor-holidays))))))
     ;; Try to avoid entering infinite beep mode in case of errors.
