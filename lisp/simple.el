@@ -156,8 +156,10 @@ With arg N, insert N newlines."
     (indent-to col 0)
     (goto-char pos)))
 
-(defvar quoted-insert-character-offset 2048
-  "Offset added by \\[quoted-insert] to character codes 0200 and above.")
+(defcustom quoted-insert-character-offset (- (make-char 'latin-iso8859-1) 128)
+  "*Offset added by \\[quoted-insert] to character codes 0200 and above."
+  :tag 'integer
+  :group 'i18n)
 
 (defun quoted-insert (arg)
   "Read next input character and insert it.
@@ -182,6 +184,7 @@ this function useful in editing binary files."
     ;; to Emacs characters.
     (and enable-multibyte-characters
 	 (>= char ?\200)
+	 (<= char ?\377)
 	 (setq char (+ quoted-insert-character-offset char)))
     (if (> arg 0)
 	(if (eq overwrite-mode 'overwrite-mode-binary)
@@ -1152,13 +1155,74 @@ when given no argument at the beginning of a line."
 	       ;; the value of point from before the command was run.
 	       (progn
 		 (if arg
-		     (forward-line (prefix-numeric-value arg))
+		     (forward-visible-line (prefix-numeric-value arg))
 		   (if (eobp)
 		       (signal 'end-of-buffer nil))
 		   (if (or (looking-at "[ \t]*$") (and kill-whole-line (bolp)))
-		       (forward-line 1)
-		     (end-of-line)))
+		       (forward-visible-line 1)
+		     (end-of-visible-line)))
 		 (point))))
+
+(defun forward-visible-line (arg)
+  "Move forward by ARG lines, ignoring currently invisible newlines only."
+  (condition-case nil
+      (progn
+	(while (> arg 0)
+	  (or (zerop (forward-line 1))
+	      (signal 'end-of-buffer nil))
+	  ;; If the following character is currently invisible,
+	  ;; skip all characters with that same `invisible' property value,
+	  ;; then find the next newline.
+	  (while (and (not (eobp))
+		      (let ((prop
+			     (get-char-property (point) 'invisible)))
+			(if (eq buffer-invisibility-spec t)
+			    prop
+			  (or (memq prop buffer-invisibility-spec)
+			      (assq prop buffer-invisibility-spec)))))
+	    (if (get-text-property (point) 'invisible)
+		(goto-char (next-single-property-change (point) 'invisible))
+	      (goto-char (next-overlay-change (point))))
+	    (or (zerop (forward-line 1))
+		(signal 'end-of-buffer nil)))
+	  (setq arg (1- arg)))
+	(while (< arg 0)
+	  (or (zerop (vertical-motion -1))
+	      (signal 'beginning-of-buffer nil))
+	  (while (and (not (bobp))
+		      (let ((prop
+			     (get-char-property (1- (point)) 'invisible)))
+			(if (eq buffer-invisibility-spec t)
+			    prop
+			  (or (memq prop buffer-invisibility-spec)
+			      (assq prop buffer-invisibility-spec)))))
+	    (if (get-text-property (1- (point)) 'invisible)
+		(goto-char (previous-single-property-change (point) 'invisible))
+	      (goto-char (previous-overlay-change (point))))
+	    (or (zerop (vertical-motion -1))
+		(signal 'beginning-of-buffer nil)))
+	  (setq arg (1+ arg))))
+    ((beginning-of-buffer end-of-buffer)
+     nil)))
+
+(defun end-of-visible-line ()
+  "Move to end of current visible line."
+  (end-of-line)
+  ;; If the following character is currently invisible,
+  ;; skip all characters with that same `invisible' property value,
+  ;; then find the next newline.
+  (while (and (not (eobp))
+	      (let ((prop
+		     (get-char-property (point) 'invisible)))
+		(if (eq buffer-invisibility-spec t)
+		    prop
+		  (or (memq prop buffer-invisibility-spec)
+		      (assq prop buffer-invisibility-spec)))))
+    (if (get-text-property (point) 'invisible)
+	(goto-char (next-single-property-change (point) 'invisible))
+      (goto-char (next-overlay-change (point))))
+    (forward-char 1)
+    (end-of-line)))
 
 ;;;; Window system cut and paste hooks.
 
@@ -3026,6 +3090,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 
 (defun assoc-ignore-case (key alist)
   "Like `assoc', but assumes KEY is a string and ignores case when comparing."
+  (setq key (downcase key))
   (let (element)
     (while (and alist (not element))
       (if (equal key (downcase (car (car alist))))
