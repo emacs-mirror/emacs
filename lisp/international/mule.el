@@ -64,7 +64,7 @@ Return t if file exists."
 	    (message "Loading %s (source)..." file)
 	  (message "Loading %s..." file)))
       (when purify-flag
-	(setq preloaded-file-list (cons file preloaded-file-list)))
+	(push file preloaded-file-list))
       (unwind-protect
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
