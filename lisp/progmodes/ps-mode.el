@@ -1125,7 +1125,7 @@ grestore
     (unless ps-run-tmp-dir
       (setq ps-run-tmp-dir "/tmp"))
     (setq ps-mode-tmp-file
-	  (make-temp-name
+	  (make-temp-file
 	   (concat
 	    (if ps-run-tmp-dir
 		(file-name-as-directory ps-run-tmp-dir)
