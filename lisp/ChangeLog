@@ -1,3 +1,8 @@
+2003-05-13  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-open-stream): Don't hard code
+	starttls-program.
+
 2003-05-13  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-global-mode): Add :link entry
