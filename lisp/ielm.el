@@ -103,6 +103,9 @@ such as `edebug-defun' to work with such inputs."
 (defvar *** nil
   "Third-most-recent value evaluated in IELM.")
 
+(defvar ielm-match-data nil
+  "Match data saved at the end of last command.")
+
 ;;; System variables
 
 (defvar ielm-working-buffer nil
@@ -313,6 +316,7 @@ simply inserts a newline."
 		  (let ((*save *)
 			(**save **)
 			(***save ***))
+		    (set-match-data ielm-match-data)
 		    (save-excursion
 		      (set-buffer ielm-working-buffer)
 		      (condition-case err
@@ -330,7 +334,8 @@ simply inserts a newline."
 			(error (setq ielm-result (ielm-format-error err))
 			       (setq ielm-error-type "Eval error"))
 			(quit (setq ielm-result "Quit during evaluation")
-			      (setq ielm-error-type "Eval error")))))
+			      (setq ielm-error-type "Eval error"))))
+		    (setq ielm-match-data (match-data)))
 		(setq ielm-error-type "IELM error")
 		(setq ielm-result "More than one sexp in input"))))
 
@@ -451,6 +456,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (make-local-variable '**)
   (setq *** nil)
   (make-local-variable '***)
+  (set (make-local-variable 'ielm-match-data) nil)
 
   ;; font-lock support
   (make-local-variable 'font-lock-defaults)
