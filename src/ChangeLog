@@ -1,3 +1,10 @@
+1999-11-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* editfns.c (Fdelete_field): Renamed from Ferase_field.
+
+	* minibuf.c (do_completion, Fminibuffer_complete_word): Use
+	Ferase_field instead of Fdelete_field.
+
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (Finternal_show_cursor): Change it to set the
