@@ -274,8 +274,24 @@ adjust_markers (from, to, amount)
 	     but then this range contains no markers.  */
 	  if (mpos > from + amount && mpos <= from)
 	    {
-	      record_marker_adjustment (marker, from + amount - mpos);
-	      mpos = from + amount;
+	      int before = mpos;
+	      int after = from + amount;
+
+	      mpos = after;
+
+	      /* Compute the before and after positions
+		 as buffer positions.  */
+	      if (before > GPT + GAP_SIZE)
+		before -= GAP_SIZE;
+	      else if (before > GPT)
+		before = GPT;
+
+	      if (after > GPT + GAP_SIZE)
+		after -= GAP_SIZE;
+	      else if (after > GPT)
+		after = GPT;
+
+	      record_marker_adjustment (marker, after - before);
 	    }
 	}
       if (mpos > from && mpos <= to)
