@@ -1,3 +1,1529 @@
+2000-09-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* vc.el (toplevel): Require `dired' at run-time for dired-mode-map.
+
+	* Makefile.in (DONTCOMPILE): Fix typo in file name.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-sccs.el (vc-sccs-latest-on-branch-p): Always return t; we
+	don't support anything else under SCCS yet.
+
+	* vc-hooks.el: Minor doc fixes.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Do not visit the file if it's
+	not necessary.  If verbose in state `needs-patch', do the same as
+	under `up-to-date'.  When NOT verbose and `needs-patch', check out
+	latest version instead of `merge-news'.
+	(vc-next-action-dired): Don't mess with default-directory here; it
+	breaks other parts of dired.  It is the job of the
+	backend-specific functions to adjust it temporarily if they need
+	it.
+	(vc-next-action): Remove a special CVS case.
+	(vc-clear-headers): New optional arg FILE.
+	(vc-checkin, vc-checkout): Set properties vc-state and
+	vc-checkout-time properly.
+	(vc-finish-steal): Call steal-lock, not steal, which doesn't
+	exist.
+	(vc-print-log): Use new backend function `show-log-entry'.
+	(vc-cancel-version): Do the checks in a different order.  Added a
+	FIXME concerning RCS-only code.
+
+	* vc-rcs.el (vc-rcs-show-log-entry): New function.
+	(vc-rcs-checkin, vc-rcs-checkout): Don't set all properties.
+
+	* vc-cvs.el (vc-cvs-show-log-entry): New function.
+
+	* vc-hooks.el (vc-default-mode-line-string): Show state 
+	`needs-patch' as a `-' too.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-responsible-backend): New optional arg REGISTER.
+	(vc-default-could-register): New function.
+	(vc-dired-buffers-for-dir, vc-dired-resynch-file): New functions.
+	(vc-resynch-buffer): Call vc-dired-resynch-file.
+	(vc-start-entry, vc-finish-logentry, vc-revert-buffer): Use
+	vc-resynch-buffer instead of vc-resynch-window.
+	(vc-next-action-dired): Don't redisplay here, that gets done as a
+	result of the individual file operations.
+	(vc-retrieve-snapshot): Corrected prompt order.
+
+	* vc-hooks.el (vc-after-save): Call vc-dired-resynch-file.
+	
+	* vc-cvs.el (vc-cvs-stay-local): Allow it to be a hostname regexp
+	as well.
+	(vc-cvs-remote-p): Renamed to vc-cvs-stay-local-p.  Handle
+	hostname regexps.  Updated all callers.
+	(vc-cvs-responsible-p): Handle directories as well.
+	(vc-cvs-could-register): New function.
+	(vc-cvs-retrieve-snapshot): Parse "cvs update" output, keep file
+	properties up-to-date.
+	
+	* vc-rcs.el (vc-rcs-register): If there is no RCS subdir, ask the
+	user whether to create one.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-file-not-found-hook): Ask the user whether to
+	check out a non-existing file.
+
+	* vc-cvs.el (vc-cvs-checkout): Do the right thing when the
+	workfile does not exist.
+
+	* vc.el (vc-version-diff): Use `require' to check for existence of
+	diff-mode.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-registered): Use new function
+	vc-cvs-parse-entry to do the actual work.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-find-backend-function): If function doesn't
+	exist, return nil instead of error.
+	(vc-call-backend): Doc fix.
+
+	* vc.el (vc-do-command): Doc fix.
+	(vc-finish-logentry): When checking in from vc-dired, choose the
+	right backend for logentry check.
+	(vc-dired-mode-map): Inherit from dired-mode-map.
+	(vc-dired-mode): Local value of dired-move-to-filename-regexp
+	simplified.
+	(vc-dired-state-info): Removed, updated caller.
+	(vc-default-dired-state-info): Use parentheses instead of hyphens.
+	(vc-dired-hook): Use vc-BACKEND-dir-state, if available.
+	(vc-dired-listing-switches): New variable.
+	(vc-directory): Use it, instead of dired-listing-switches.
+
+	* vc-cvs.el (vc-cvs-remote-p): Allow FILE to be a directory, too.
+	(vc-cvs-dir-state): New function.
+	(vc-cvs-dir-state-heuristic): New function, subroutine of the
+	above.
+	(vc-cvs-parse-entry): New function, also to be used in
+	vc-cvs-registered.
+	
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-revert-buffer): Hide the frame for dedicated windows
+	*or* single-window-frames.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-update-changelog): Split into generic part and default
+	implementation.  Doc string adapted.
+	(vc-default-update-changelog): New function.  Call the `rcs2log'
+	script in exec-directory, to fix a long-standing nuisance.
+
+	* vc-sccs.el (vc-sccs-update-changelog): Dummy implementation that
+	simply signals an error.
+	
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-checkout): Slight restructuring to make the
+	control-flow more clear and to avoid running `cvs' twice.
+
+	* vc.el (vc-next-action-on-file): Doc fix.
+	(vc-maybe-resolve-conflicts): Don't just toggle smerge-mode.
+	(vc-print-log): Eval `file' before constructing the continuation.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Corrected several messages.
+	(vc-merge): Add prefix arg `merge-news'; handle it.
+
+	* vc-cvs.el (vc-cvs-workfile-version): Removed comment that this
+	is not reached.  It is.
+	(vc-cvs-merge): Set state to 'edited after merge.
+	(vc-cvs-merge-news): Set workfile version to nil if not known.
+	(vc-cvs-latest-on-branch-p): Recommented.  Candidate for removal.
+
+	* vc-*.el (vc-*-checkout): Switch off coding systems for checkout
+	via stdout. (Merge from main line.)
+	
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-finish-logentry): Thinko in the "same comment"
+	detection.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-parent-buffer, vc-parent-buffer-name): Protect them
+	against kill-all-local-variables.
+	(vc-log-edit): Don't save vc-parent-buffer any more.
+	(vc-last-comment-match): Initialize to an empty string.
+	(vc-post-command-functions): New hook.
+	(vc-do-command): Run it.
+	(vc-next-action-on-file): Remove unnecessary pop-to-buffer.
+	(vc-finish-logentry): Only add the comment to the ring if it's
+	different from the last comment entered.
+	(vc-new-comment-index): New function.
+	(vc-previous-comment): Use it.  Make the minibuffer message
+	slightly less terse.
+	(vc-comment-search-reverse): Make it work forward as well.  Don't
+	set vc-comment-ring-index if no match is found.  Use
+	vc-new-comment-index.
+	(vc-comment-search-forward): Use vc-comment-search-reverse.
+	(vc-dired-mode-map): Don't inherit from dired-mode-map since
+	define-derived-mode will do it for us.  Bind `v' to a keymap that
+	inherits from vc-prefix-map so that we can bind `vt' without
+	binding C-x v t.
+	(vc-retrieve-snapshot): Parenthesis typo.
+
+	* vc-cvs.el (vc-cvs-checkin): Raise the max-correct status from 0
+	to 1.  Make sure to switch to *vc* before looking for an error
+	message.  Use vc-parse-buffer.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-create-snapshot, vc-default-create-snapshot): Swap DIR
+	and NAME.
+	(vc-retrieve-snapshot): Split into two parts.
+	(vc-default-retrieve-snapshot): New function.
+
+	* vc-cvs.el ((vc-cvs-create-snapshot): Swap DIR and NAME.
+	(vc-cvs-retrieve-snapshot): New function (untested).
+	(vc-cvs-stay-local): Default to t.
+	(vc-cvs-remote-p): New function and property.
+	(vc-cvs-state): Stay local only if the above is t.
+	(vc-handle-cvs): Removed.
+	(vc-cvs-registered): Don't check vc-handle-cvs -- it should all be
+	done via vc-handled-backends now.
+	(vc-cvs-header): Escape Id.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-do-command): Remove unused commands.
+	(vc-version-diff): Make sure default-directory ends with a slash.
+	Move the window commands into a vc-exec-after.
+	(vc-print-log): Move more of the code into the `vc-exec-after'.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-exec-after): Fix disassembly of previous sentinel.
+	(vc-print-log): Search current revision from beginning of buffer.
+	(vc-revert-buffer): Clear echo area after the diff is finished.
+	(vc-prefix-map): Removed definition of "t" for terse display in vc
+	dired.
+	(vc-dired-mode-map): Inherit from dired-mode-map.  Added
+	definition of "vt" for terse display.
+	(vc-dired-mode): Fix dired-move-to-filename-regexp.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-exec-after): Avoid caddr.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-exec-after): New function.
+	(vc-do-command): Use it to add a termination message for async
+	procs.
+	(vc-checkout): Try to handle a missing-backend situation.
+	(vc-version-diff): Use vc-exec-after to fix the behavior for diffs
+	of a directory with a backend using async diffs.
+	(vc-print-log): Use vc-exec-after and use log-view-goto-rev if
+	present.
+
+	* vc-sccs.el (vc-sccs-state-heuristic): Use
+	file-ownership-preserved-p.
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Use
+	file-ownership-preserved-p.
+	(vc-rcs-checkout): Remove the error-handling for missing-rcs.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-sccs.el (vc-sccs-workfile-unchanged-p): Fix call to
+	vc-do-command.
+
+	* vc.el (vc-next-action-on-file): Use vc-revert-buffer to revert
+	when there are no changes.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-sccs.el (vc-sccs-state-heuristic): Don't use file-writable-p.
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Don't use file-writable-p.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-prefix-map): Move the autoload from vc.el.
+
+	* vc.el (vc-prefix-map): Move the autoload to vc-hooks.el and move
+	the `fset' outside of the defvar so that it works even if
+	vc-prefix-map was already defined.
+	(vc-setup-buffer): New function, split out of vc-do-command.
+	(vc-do-command): Allow BUFFER to be t to mean `just use the
+	current buffer without any fuss'.
+	(vc-version-diff): Change the `diff' backend operation to just put
+	the diff in the current buffer without erasing it.  Always use
+	*vc-diff* even for directory-diffs.  Use vc-setup-buffer.  Protect
+	shrink-window-if-larger-than-buffer.
+	(vc-print-log): Change the `print-log' backend operation to just
+	put the log in the current buffer without erasing it.  Protect
+	shrink-window-if-larger-than-buffer.
+	(vc-update-change-log): Fix setd typo.
+
+	* vc-sccs.el (vc-sccs-workfile-unchanged-p): Fix parenthesis.
+	(vc-sccs-print-log, vc-sccs-diff): Insert in the current buffer.
+
+	* vc-rcs.el (vc-rcs-print-log): Insert in the current buffer.
+	(vc-rcs-diff): Insert in the current buffer and remove unused arg
+	CMP.
+
+	* vc-cvs.el (vc-cvs-state, vc-cvs-fetch-status): Use
+	with-temp-file.  Use the new BUFFER=t argument to vc-do-command.
+	(vc-cvs-print-log, vc-cvs-diff): Insert in the current buffer.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-workfile-unchanged-p): If checkout-time comparison is
+	not possible, use vc-BACKEND-workfile-unchanged-p.
+	(vc-default-workfile-unchanged-p): New function.  Delegates to a
+	full vc-BACKEND-diff.
+
+	* vc-hooks.el (vc-simple-command): Removed.
+
+	* vc-rcs.el (vc-rcs-workfile-unchanged-p): Use vc-do-command
+	instead of vc-simple-command.
+	(vc-rcs-fetch-master-state): Removed check for unlocked-changes to
+	avoid doing a diff when opening a file.
+	(vc-rcs-state): Added check for unlocked-changes.
+	(vc-rcs-header): Escape Id.
+	(vc-rcs-workfile-unchanged-p): Remove optional arg VERSION.
+	(vc-rcs-state): Call vc-workfile-unchanged-p, not the RCS-specific
+	version.
+
+	* vc-sccs.el (vc-sccs-workfile-unchanged-p): Rewritten.
+	(vc-sccs-diff): Remove optional arg CMP.
+	(vc-sccs-state): Call vc-workfile-unchanged-p, not the
+	SCCS-specific function.
+
+	* vc-cvs.el (vc-cvs-state): Use vc-do-command instead of
+	vc-simple-command.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-editable-p): Renamed from vc-writable-p.
+	(with-vc-file, vc-merge): Use vc-editable-p.
+	(vc-do-command): Remove unused var vc-file and fix the
+	doubly-defined `status' var.  Add a user message when starting an
+	async command.
+	(vc-restore-buffer-context, vc-resynch-buffer, vc-start-entry)
+	(vc-finish-steal, vc-checkin, vc-finish-logentry, vc-rename-file):
+	Use with-current-buffer.
+	(vc-buffer-sync): Use unless.
+	(vc-next-action-on-file): If the file is 'edited by read-only,
+	make it read-write instead of trying to commit.
+	(vc-version-diff, vc-update-change-log): Use `setq
+	default-directory' rather than `cd'.
+	(vc-log-edit): Don't forget to set default-directory in the
+	buffer.
+
+	* vc-sccs.el (vc-sccs-state): Fix obviously wrong parenthesis.
+	(vc-sccs-state-heuristic): Use file-writable-p instead of
+	comparing userids.
+	(vc-sccs-checkout): Use `unless'.
+
+	* vc-rcs.el (vc-rcs-state-heuristic): Use file-writable-p instead
+	of comparing userids.
+	(vc-rcs-fetch-master-state): Handle the case where rcs is missing.
+	Simplify the logic by eliminating unreachable code.
+	(vc-rcs-diff): Only pass `2' to vc-do-command if necessary and
+	just do a recursive call if we need to retry.
+	(vc-rcs-checkout): Handle the case where rcs is missing by making
+	the buffer read-write if requested and re-signalling the error.
+
+	* vc-cvs.el (vc-cvs-diff): Remove unused and unsupported argument CMP.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-handled-backends): Docstring change.
+	(vc-ignore-vc-files): Mark obsolete.
+	(vc-registered): Check vc-ignore-vc-files.
+	(vc-find-file-hook, vc-file-not-found-hook): Don't check
+	vc-ignore-vc-files.
+
+	* vc-cvs.el (vc-cvs-registered): Obey vc-handle-cvs.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-checkout): Don't do anything special for ange-ftp
+	files since ange-ftp already has vc-registered return nil.
+
+	* vc-sccs.el (vc-sccs-state): Use with-temp-buffer.
+	(vc-sccs-workfile-version): Use with-temp-buffer and new
+	vc-parse-buffer and don't bother setting the property.
+	(vc-sccs-add-triple): Use with-current-buffer and
+	find-file-noselect.
+	(vc-sccs-lookup-triple): New vc-parse-buffer and turn cond -> if.
+
+	* vc-rcs.el (vc-rcs-find-most-recent-rev): New function.  The code
+	derives from the old vc-parse-buffer but uses the revision number
+	rather than the date (much easier to compare robustly).
+	(vc-rcs-fetch-master-state): Use `with-temp-buffer'.  Adapt to the
+	new vc-parse-buffer (and vc-rcs-find-most-recent-rev).  Find the
+	locking-user more directly.  Check strict locking and set
+	checkout-model appropriately.
+	(vc-rcs-parse-locks): Remove.
+	(vc-rcs-latest-on-branch-p): Use with-temp-buffer and adapt to the
+	new vc-parse-buffer (and vc-rcs-find-most-recent-rev).
+	(vc-rcs-system-release): Use with-current-buffer and
+	vc-parse-buffer.
+	(vc-rcs-register, vc-rcs-checkout): Use with-current-buffer.
+
+	* vc-hooks.el (vc-parse-buffer): Lobotomize the monster.
+	(vc-simple-command): Docstring fix.
+	(vc-registered): Align the way the file-handler is called with the
+	way the function itself works.
+	(vc-file-owner): Remove.
+
+	* vc-cvs.el (vc-cvs-registered): Use with-temp-buffer.  Reorder
+	extraction of fields and call to file-attributes because of a
+	temporary bug in rcp.el.
+	(vc-cvs-fetch-status): Use with-current-buffer.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-do-command): Use file-relative-name.
+	(vc-responsible-backend): Use vc-backend if possible.
+	(vc-create-snapshot): Improve the `interactive' spec. Add support
+	for branches and dispatch to backend-specific `create-snapshot'.
+	(vc-default-create-snapshot): New function, containing the bulk of
+	the old vc-create-snapshot.
+	(vc-retrieve-snapshot): Improve the interactive spec.
+
+	* vc-hooks.el (vc-header-alist): Move the dummy def from vc.el.
+	(vc-backend-hook-functions): Remove.
+	(vc-find-backend-function): Don't try to load vc-X-hooks anymore.
+	(vc-backend): Reintroduce the test for `file = nil' now that I
+	know why it was there (and added a comment to better remember).
+
+	* vc-sccs-hooks.el: Merge into vc-sccs.el * vc-sccs.el: Merge in
+	code from vc-sccs-hooks.el.
+	(vc-sccs-release, vc-sccs-system-release): Remove.  Don't require
+	'vc anymore.
+	(vc-sccs-responsible-p): Use expand-file-name instead of concat
+	and file-directory-p instead of file-exists-p.
+	(vc-sccs-check-headers): Simplify the regexp.
+
+	* vc-rcs-hooks.el: Merge into vc-rcs.el * vc-rcs.el: Merge in code
+	from vc-rcs-hooks.el.  Don't require 'vc anymore.
+	(vc-rcs-responsible-p): Use expand-file-name instead of concat and
+	file-directory-p instead of file-exists-p.
+
+	* vc-cvs-hooks.el: Merge into vc-cvs.el * vc-cvs.el: Merge in code
+	from vc-cvs-hooks.el.
+	(proto vc-cvs-registered): Require 'vc-cvs instead of
+	'vc-cvs-hooks.  Don't require 'vc anymore.
+	(vc-cvs-responsible-p): Use expand-file-name instead of concat and
+	file-directory-p instead of file-exists-p.
+	(vc-cvs-create-snapshot): New function, replacing
+	vc-cvs-assign-name.
+	(vc-cvs-assign-name): Remove.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-header): New var.
+
+	* vc-rcs.el (vc-rcs-exists): Remove.
+	(vc-rcs-header): New var.
+
+	* vc-sccs.el (vc-sccs-responsible-p, vc-sccs-register): Use
+	`vc-sccs-search-project-dir' instead of `vc-sccs-project-dir'.
+	(vc-sccs-header): New var.
+
+	* vc.el (vc-do-command): Get rid of the `last' argument.
+	(vc-header-alist): Remove, replaced by vc-X-header.
+	(vc-insert-headers): Use vc-X-header instead of vc-header-alist.
+	(vc-dired-hook): Use expand-file-name instead of concat.
+	(vc-directory): Use file-name-as-directory.
+	(vc-snapshot-precondition, vc-create-snapshot)
+	(vc-retrieve-snapshot): Allow the command to operate on any
+	directory.
+
+	* vc-{rcs,sccs,cvs}.el: Update calls to vc-do-command by either
+	just removing the 'WORKFILE argument or by removing the 'MASTER
+	argument and replacing `file' with (vc-name file).
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el: Update Copyright and add a crude list of backend funs.
+	(vc-writable-p): New function.
+	(with-vc-file): Use vc-writable-p.
+	(vc-next-action-on-file): Update call to vc-steal-lock and
+	cleanup.
+	(vc-register): Avoid vc-name.
+	(vc-locking-user): Remove.
+	(vc-steal-lock): Make the `owner' arg non-optional.
+	(vc-merge): Use vc-writable-p instead of vc-locking-user and
+	vc-checkout-model.
+	(vc-default-dired-state-info): Use vc-state instead of
+	vc-locking-user and return special strings for special states.
+	(vc-dired-hook): Use vc-up-to-date-p instead of vc-locking-user
+	and get rid of one of the special CVS cases.
+	(vc-cancel-version): prettify error message with \\[...].
+	(vc-rename-master): New function.
+	(vc-rename-file): Use vc-BACKEND-rename-file (which might in turn
+	use vc-rename-master) instead of vc-BACKEND-record-rename.  Make
+	the CVS special case generic.
+	(vc-default-record-rename): Remove.
+	(vc-file-tree-walk-internal): Only call FUNC for files that are
+	under control of some VC backend and replace `concat' with
+	expand-file-name.
+	(vc-file-tree-walk): Update docstring.
+	(vc-version-diff, vc-snapshot-precondition, vc-create-snapshot)
+	(vc-retrieve-snapshot): Update call to vc-file-tree-walk.
+
+	* vc-sccs.el (vc-sccs-rename-file): Renamed from
+	vc-sccs-record-rename.  Use `find-file-noselect' rather than
+	`find-file' and call `vc-rename-master' to do the actual move.
+	(vc-sccs-diff): Remove unused `backend' variable.
+
+	* vc-sccs-hooks.el (vc-sccs-registered): Preloaded trivial version
+	to delay loading of vc-sccs until it is really used.
+	(vc-sccs-master-templates): Preload.
+	(vc-sccs-state): Update call to vc-sccs-parse-locks.
+	(vc-sccs-project-dir): Remove (merged into
+	vc-sccs-search-project-dir).
+	(vc-sccs-search-project-dir): Rewrite using file name handling ops
+	rather than `concat', make sure it is preloaded and don't bother
+	to check that the file actually exists.
+	(vc-sccs-parse-locks): Remove unused `file' argument, remove
+	`locks' argument (use buffer's content instead) and eliminate n^2
+	behavior.
+
+	* vc-rcs.el: Update Copyright.
+	(vc-rcs-rename-file): New function.
+	(vc-rcs-diff): Remove unused `backend' variable.
+
+	* vc-hooks.el: Update Copyright.
+	(vc-backend): Don't accept a nil argument any more.
+	(vc-up-to-date-p): Turn into a defsubst.
+	(vc-possible-master): New function.
+	(vc-check-master-templates): Use `vc-possible-master' and allow
+	funs in vc-X-master-templates to return a non-existent file.
+
+	* vc-cvs.el: Update Copyright.
+	(vc-cvs-diff): Remove unused `backend' variable.
+	(vc-cvs-checkout): Only toggle read-only if the buffer is setup
+	right.
+
+	* vc-cvs-hooks.el: Preload a proto vc-cvs-registered.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-rcs-hooks.el (vc-rcs-registered): Provide a trivial version
+	since it can be called from vc-rcs.el.
+	(vc-rcs-parse-locks): Cleanup to remove an n^2 behavior.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-version-diff): Expand file name read from the
+	minibuffer.  Handle the case when a previous version number can't
+	be guessed.  Give suitable messages when there were no differences
+	found.
+	(vc-clear-headers): Call backend-specific implementation, if one
+	exists.
+	(vc-cancel-version): Made error checks generic.  When done, clear
+	headers generically, too.
+
+	* vc-rcs.el (vc-rcs-clear-headers): New function; code moved here
+	from vc-clear-headers in vc.el.
+
+	* vc-rcs-hooks.el (vc-rcs-fetch-master-state): Use vc-parse-buffer
+	correctly.
+	(vc-rcs-latest-on-branch-p): Made second argument VERSION
+	optional.  Handle the case when it's not there.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-locking-user): Moved from vc-hooks.el.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-loadup): Remove.
+	(vc-find-backend-function): Use `require'.  Also, handle the case
+	where vc-BACKEND-hooks.el doesn't exist.
+	(vc-call-backend): Cleanup.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-rcs-hooks.el (vc-rcs-templates-grabbed,
+	vc-rcs-grab-templates)
+	(vc-rcs-registered): Remove.  The default function works as well.
+	* vc-sccs-hooks.el (vc-sccs-templates-grabbed,
+	vc-sccs-grab-templates)
+	(vc-sccs-registered): Remove.  The default function works as well.
+
+	* vc.el (vc-version-diff): Left out a vc- in call to
+	vc-call-backend.
+	(vc-default-dired-state-info, vc-default-record-rename)
+	(vc-default-merge-news): Update for the new backend argument.
+
+	* vc-hooks.el (vc-find-backend-function): Return a cons cell if
+	using the default function.
+	(vc-call-backend): If calling the default function, pass it the
+	backend as first argument.  Update the docstring accordingly.
+	(vc-default-state-heuristic, vc-default-mode-line-string): Update
+	for the new backend argument.
+	(vc-make-backend-sym): Renamed from vc-make-backend-function.
+	(vc-find-backend-function): Use the new name.
+	(vc-default-registered): New function.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-merge): Use vc-find-backend-function.
+
+	* vc-hooks.el (vc-backend-functions): Remove.
+	(vc-loadup): Don't setup 'vc-functions.
+	(vc-find-backend-function): New function.
+	(vc-call-backend): Use above fun and populate 'vc-functions
+	lazily.
+	(vc-backend-defines): Remove.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-register): Put a FIXME note for a newly found bug.
+	Call vc-call-backend without the leading vc-.
+	(vc-responsible-backend, vc-finish-logentry, vc-annotate)
+	(vc-check-headers): Call vc-call-backend without the leading vc-.
+	(vc-annotate-time-span): Replace confusing use of `cond' with
+	`or'.
+	(vc-annotate-display): Replace confusing use of `cond' with `or'.
+	Call vc-call-backend without the leading vc-.
+
+	* vc-cvs.el (tail): Provide vc-cvs.
+	* vc-sccs.el (tail): Provide vc-sccs.
+	* vc-rcs.el (tail): Provide vc-rcs and remove vc-rcs-logentry-check.
+
+	* vc-hooks.el (vc-backend-hook-functions, vc-backend-functions)
+	(vc-make-backend-function, vc-call): Pass names without leading
+	`vc-' to vc-call-backend so we can blindly prefix them with
+	vc-BACKEND.
+	(vc-loadup): Don't load vc-X-hooks if vc-X is requested.
+	(vc-call-backend): Always try to load vc-X-hooks.
+	(vc-registered): Remove vc- in call to vc-call-backend.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-process-filter): New function.
+	(vc-do-command): Setup `vc-process-filter' for the async process.
+	(vc-maybe-resolve-conflicts): New function to reduce
+	code-duplication.  Additionally, it puts the buffer in
+	`smerge-mode' if applicable.
+	(vc-next-action-on-file): Use `vc-maybe-resolve-conflicts' after
+	calling `merge-news'.
+	(vc-merge): Use `vc-maybe-resolve-conflicts' after calling
+	`merge'.
+	(vc-log-edit): New function.  Replacement for `vc-log-mode' by
+	interfacing to log-edit.el.
+	(vc-start-entry): Call `vc-log-edit' instead of `vc-log-mode' if
+	log-edit is available.
+	(vc-resolve-conflicts): Delegate to `smerge-ediff' if available.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-register): Remove `vc-buffer-backend' setup.
+	(vc-log-mode-map): New name for vc-log-entry-mode and merge the
+	defvar and the initialization.
+	(vc-log-mode): Minor docstring fix and use vc-log-mode-map.
+
+	* vc-hooks.el (vc-default-back-end, vc-buffer-backend): Remove.
+	(vc-kill-buffer-hook): Remove `vc-buffer-backend' handling.
+
+	* vc-cvs-hooks.el (vc-handle-cvs): Make it a defvar and add a
+	FIXME.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-file-clear-masterprops): Removed.
+	(vc-checkin, vc-revert-buffer): Removed calls to the above.
+	(vc-version-diff): Use buffer-size without argument.
+	(vc-register): Heed vc-initial-comment.
+
+	* vc-rcs-hooks.el (vc-rcs-fetch-master-state): Fix regexp for
+	default branch.
+
+	* vc-rcs.el (vc-rcs-register): Parse command output to find master
+	file name and workfile version.
+	(vc-rcs-checkout): Removed call to vc-file-clear-masterprops.
+
+	* vc-cvs.el (vc-cvs-merge-news, vc-cvs-checkout): Removed call to
+	vc-file-clear-masterprops.
+
+	* vc-sccs.el (vc-sccs-checkout): Removed call to
+	vc-file-clear-masterprops.  If writable, set vc-state to 'edited
+	rather than user login name.
+
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-workfile-unchanged-p): Remove unused argument
+	`want-differences-if-changed' and simplify.
+	(vc-next-action-on-file) [needs-merge]: Resynch the buffer.
+	(vc-revert-buffer): Use `unchanged-p' rather than vc-diff's status
+	output (which is invalid for async vc-diff) to decide whether to
+	do the revert silently or not.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-loadup): Load files quietly.
+	(vc-call-backend): Oops, brain fart.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-state): Typo.
+	(vc-cvs-merge-news): Return the status code rather than the error
+	msg.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (with-vc-file, vc-next-action, vc-version-diff)
+	(vc-dired-mark-locked): Replaced usage of vc-locking-user with
+	vc-state or vc-up-to-date-p.
+	(vc-merge): Use vc-backend-defines to check whether merging is
+	possible.  Set state to 'edited after successful merge.
+
+	* vc-hooks.el (vc-locking-user): If locked by the calling user,
+	return that name.  Redocumented.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-recompute-state, vc-next-action-on-file): Update to
+	new `vc-state' semantics.
+	(vc-finish-steal): Set 'vc-state to 'edited rather than setting
+	'vc-locking-user to the current user.
+	(vc-merge): Inline vc-backend-merge.  Comment out code that I
+	don't understand and hence can't adapt to the new `vc-state' and
+	`vc-locking-user' semantics.
+	(vc-backend-merge): Remove.
+
+	* vc-{sc,r}cs.el (vc-{sc,r}cs-check{in,out}): Update 'vc-state
+	rather than 'vc-locking-user.
+
+	* vc-rcs-hooks.el (vc-rcs-consult-headers): Adapt to new `vc-state'.
+
+	* vc-hooks.el (vc-user-login-name): Simplify the code a tiny bit.
+	(vc-state): Don't use 'reserved any more.  Just use the same
+	convention as the one used for vc-<backend>-state where the
+	locking user (as a string) is returned.
+	(vc-locking-user): Update, based on the above convention. The
+	'vc-locking-user property has disappeared.
+	(vc-mode-line, vc-default-mode-line-string): Adapt to new
+	`vc-state'.
+
+	* vc-cvs.el (vc-cvs-state): Don't overwrite a non-heuristic state
+	with a heuristic one.
+	(vc-cvs-merge-news): Just use 'edited for the case with conflicts.
+	(vc-cvs-checkin): Do a trivial parse to set the state in case of
+	error.  That allows us to get to 'needs-merge even in the
+	stay-local case.  There's still no way to detect 'needs-patch in
+	such a setup (or to force an update for that matter).
+	(vc-cvs-logentry-check): Remove, the default works as well.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Run cvs
+	asynchronously.
+
+	* vc.el (vc-do-command): kill-all-local-variables, to reset any
+	major-mode in which the buffer might have been put earlier.  Use
+	`remove' and `when'.  Allow `okstatus' to be `async' and use
+	`start-process' in this case.
+	(vc-version-diff): Handle the case where the diff looks empty
+	because of the use of an async process.
+
+2000-09-04  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Removed optional parameter
+	`simple'.  Recompute state unconditionally.
+	(vc-default-toggle-read-only): Removed.
+
+	* vc-hooks.el (vc-backend-functions): Removed vc-toggle-read-only.
+	(vc-toggle-read-only): Undid prev change.
+
+	* vc-cvs.el (vc-cvs-stay-local): Renamed from
+	vc-cvs-simple-toggle.  Redocumented.
+	(vc-cvs-state): If locality is wanted, use vc-cvs-state-heuristic.
+	(vc-cvs-toggle-read-only): Removed.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-backend-dispatch, vc-annotate-mode-syntax-table):
+	Remove.
+	(vc-prefix-map): Move from vc-hooks.el and make autoloaded.
+	(vc-release-greater-or-equal-p): Move to vc-rcs.el.
+	(vc-file-clear-masterprops): Braindead "fix".  It was a nop and
+	still is. So maybe it should be removed.
+	(vc-head-version, vc-find-binary): Remove.
+	(vc-recompute-state): Move from vc-hooks.el.
+	(vc-next-action-on-file): Add a `simple' argument to allow
+	avoiding the `recompute' step (use for vc-cvs-simple-toggle).
+	(vc-default-toggle-read-only, vc-default-record-rename): New
+	functions.
+	(vc-next-action, vc-dired-hook): Use vc-state instead of
+	vc-cvs-status.
+	(vc-dired-mode-map): Properly defvar it.
+	(vc-print-log): Call log-view-mode if available.
+	(small-temporary-file-directory): defvar instead of use boundp.
+	(vc-merge-news): Moved to vc-cvs.el.
+	(vc-default-merge-news): New function.
+
+	* vc-sccs.el: Require 'vc and 'vc-sccs-hooks.
+	(vc-sccs-register-switches): New var, copied off of vc-rcs-hooks.
+	(vc-sccs-latest-on-branch-p): Add a `FIXME' for a call to the
+	unknown `vc-latest-version' function.  It should probably refer to
+	vc-workfile-version or somesuch, but it's very unclear to me and I
+	don't have SCCS to test things.
+
+	* vc-sccs-hooks.el: Provide 'vc-sccs-hooks.
+	(vc-sccs-state-heuristic): Fix typo.
+	(vc-sccs-workfile-unchanged-p): Add missing argument.
+
+	* vc-rcs.el: Require vc and vc-rcs-hooks.
+	(vc-rcs-trunk-p, vc-rcs-branch-part): Move to vc-rcs-hooks.
+	(vc-rcs-backend-release-p): Remove (use vc-rcs-release-p).
+	(vc-release-greater-or-equal-p): Move from vc.
+	(vc-rcs-trunk-p, vc-rcs-branch-p, vc-rcs-branch-part,
+	vc-rcs-minor-part, vc-rcs-previous-version): Remove duplicates.
+	(vc-rcs-checkout): Add a missing `new-version' argument in the
+	call to vc-rcs-latest-on-branch-p.  Hopefully that was the right
+	one.
+
+	* vc-rcs-hooks.el: Provide 'vc-rcs-hooks.
+	(vc-rcs-trunk-p, vc-rcs-branch-part): Moved from vc-rcs.el.
+	(vc-rcs-latest-on-branch-p): Use the `version' argument rather
+	than the apparently unbound `workfile-version'.
+
+	* vc-hooks.el (vc-master-templates): Def the obsolete var.
+	(vc-file-prop-obarray): Use `make-vector'.
+	(vc-backend-functions): Add new hookable functions
+	vc-toggle-read-only, vc-record-rename and vc-merge-news.
+	(vc-loadup): If neither backend nor default functions exist, use
+	the backend function rather than nil.
+	(vc-call-backend): If the function if not bound yet, try to load
+	the non-hook file to see if it provides it.
+	(vc-call): New macro plus use it wherever possible.
+	(vc-backend-subdirectory-name): Use neither `vc-default-back-end'
+	nor `vc-find-binary' since it's only called from
+	vc-mistrust-permission which is only used once the backend is
+	known.
+	(vc-checkout-model): Fix parenthesis.
+	(vc-recompute-state, vc-prefix-map): Move to vc.el.
+
+	* vc-cvs.el: Require 'vc and 'vc-cvs-hooks (for compiler
+	warnings).
+	(vc-cvs-release, vc-cvs-system-release): Remove.
+	(vc-cvs-use-edit, vc-cvs-simple-toggle): New config variables.
+	(vc-cvs-dired-state-info): Use `cvs-state' and slightly different
+	status symbols.
+	(vc-cvs-parse-status, vc-cvs-state): Move from vc-cvs-hooks.el.
+	(vc-cvs-toggle-read-only): First cut at a function to allow a
+	cvs-status-free vc-toggle-read-only.
+	(vc-cvs-merge-news): Move from cvs-merge-news in vc.el.
+	(vc-cvs-checkin): Use vc-recompute-state+vc-state instead of
+	vc-cvs-status.  Also set vc-state rather than vc-locking-user.
+	(vc-cvs-checkout): Modify access rights directly if the user
+	requested not to use `cvs edit'.  And refresh the mode line.
+
+	* vc-cvs-hooks.el: Provide 'vc-cvs-hooks.
+	(vc-cvs-state, vc-cvs-parse-status): Move to vc-cvs.el.
+
+2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-cvs.el (vc-cvs-checkout): Docstring fix.  Added a `(if
+	workfile' that got lost when the code was extracted from vc.el.
+	And merged the tail with the rest of the code (not possible in the
+	old vc.el where the tail was shared among all backends).  And
+	explicitly set the state to 'edited if `writable' is set.
+
+	* vc-cvs-hooks.el (vc-cvs-registered): Use expand-file-name.
+	(vc-cvs-state): Be careful to return the value from
+	vc-cvs-parse-state.
+	(vc-cvs-parse-status): Use expand-file-name.  Don't set 'vc-state
+	property but return it instead.  Also be careful to handle a nil
+	or "" `rev' when workfile is non-nil (it was handled properly when
+	workfile was nil).
+
+	* vc.el: Removed those pesky unnecessary `(function' quotes.
+	(vc-annotate-mode-map, vc-annotate-mode-syntax-table): Initialize
+	directly in the defvar.
+	(vc-do-command): Bind inhibit-read-only so as to properly handle
+	the case where the destination buffer has been made read-only.
+	(vc-diff): Delegate to vc-version-diff in all cases.
+	(vc-version-diff): Setup the *vc-diff* buffer as was done in
+	vc-diff.
+	(vc-annotate-mode-variables): Removed (code moved partly to
+	defvars and partly to vc-annotate-add-menu).
+	(vc-annotate-mode): Turned into a derived-mode.
+	(vc-annotate-add-menu): Moved in code in
+	vc-annotate-mode-variables.
+	(vc-update-change-log): Use make-temp-file if available.
+
+2000-09-04  Martin Lorentzson  <martinl@delysid.gnu.org>
+
+	* vc-cvs.el (vc-cvs-revert,vc-cvs-checkout): References to
+	`vc-checkout-model' updated to `vc-cvs-update-model'.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc.el (vc-next-action-on-file): Added handling of state
+	`unlocked-changes'.
+	(vc-checkout-carefully): Is now practically obsolete, unless the
+	above is too slow to be enabled unconditionally.
+	(vc-update-change-log): Fixed typo.
+
+	* vc-sccs.el (vc-sccs-steal-lock): Renamed from `vc-sccs-steal'.
+
+	* vc-sccs-hooks.el (vc-sccs-state): Somewhat rewritten.  Now
+	handles state `unlocked-changes'.
+	(vc-sccs-workfile-unchanged-p): New function, to support the
+	above.
+
+	* vc-rcs.el (vc-rcs-steal-lock): Renamed from `vc-rcs-steal'.
+
+	* vc-rcs-hooks.el (vc-rcs-state): Fixed typo.
+	(vc-rcs-fetch-master-state): Bug fixes.  Recognize state
+	`unlocked-changes'.
+	(vc-rcs-workfile-unchanged-p): Renamed from
+	`vc-rcs-workfile-unchanged'.  This is not a real backend-specific
+	function yet, but supposed to become one soon.
+
+	* vc-hooks.el (vc-backend-functions): Renamed `vc-steal' to
+	`vc-steal-lock'.
+	(vc-call-backend): Changed error message.
+	(vc-state): Added description of state `unlocked-changes'.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-cvs-hooks.el (vc-cvs-registered): Fixed bug that caused it to
+	always return t in CVS-controlled directories.
+
+	* vc.el (vc-responsible-backend): New function.
+	(vc-register): Largely rewritten.
+	(vc-admin): Removed (implementation moved into vc-register).
+	(vc-checkin): Redocumented.
+	(vc-finish-logentry): If no backend defined yet (because we are in
+	the process of registering), use the responsible backend.
+
+	* vc-hooks.el (vc-backend-hook-functions, vc-backend-functions):
+	Updated function lists.
+	(vc-call-backend): Fixed typo.
+
+	* vc-sccs.el, vc-rcs.el, vc-cvs.el (vc-BACKEND-responsible-p): New
+	functions.
+	(vc-BACKEND-register): Renamed from `vc-BACKEND-admin'.  Removed
+	query option.  Redocumented.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs.el, vc-cvs.el: Updated everything to use `vc-checkout-model'.
+
+	* vc.el: Updated callers of `vc-checkout-required' to use
+	`vc-checkout-model'.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-rcs.el (vc-rcs-backend-release-p): function added.  other
+	stuff updated to reference this function instead of the old
+	`vc-backend-release-p'.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-sccs-hooks.el (vc-uses-locking): Renamed to
+	vc-checkout-model.  Return appropriate values.  Updated callers.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el (vc-backend-release, vc-backend-release-p): Functions
+	moved into vc-rcs.el
+	(vc-backend-revert): Function moved into `vc-revert';
+	`vc-next-action' must be updated to accomodate this change.
+	(vc-backend-steal): Function moved into `vc-finish-steal'.
+	(vc-backend-logentry-check): Function moved into
+	`vc-finish-logentry'.
+	(vc-backend-printlog): Function moved into `vc-print-log'.
+	(vc-backend-uncheck): Function moved into `vc-cancel-version'.
+	(vc-backend-assign-name): Function moved into
+	`vc-create-snapshot'.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs-hooks.el, vc-cvs-hooks.el (vc-uses-locking):
+	Renamed to vc-checkout-model.  Return appropriate
+	values.  Updated callers.
+
+	* vc-hooks.el (vc-backend-hook-functions): Renamed vc-uses-locking
+	to vc-checkout-model.
+	(vc-checkout-required): Renamed to vc-checkout-model.
+	Re-implemented and re-commented.
+	(vc-after-save): Use vc-checkout-model.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el (vc-workfile-unchanged-p,vc-diff,vc-version-diff): Updated
+	to use the vc-BACKEND-diff functions instead; `vc-diff' is now
+	working.
+
+	* vc-rcs.el (vc-rcs-logentry-check): Function added.
+
+	* vc-cvs.el (vc-cvs-logentry-check): Function added.
+
+	* vc-sccs.el (vc-sccs-diff): Function changed name from
+	`vc-backend-diff'.  This makes `vc-diff' work.
+
+	* vc-hooks.el (vc-backend-functions): Added `vc-diff' to the list
+	of functions possibly implemented in a vc-BACKEND library.
+	(vc-checkout-required): Bug fixed that caused an error to be
+	signaled during `vc-after-save'.
+
+	* vc.el: Typo fixed.  This checkin is made with our new VC code
+	base for the very first time.  A simple `(vc-checkin
+	(buffer-file-name))' was used to perform it.
+
+	* vc-cvs.el (vc-cvs-revert,vc-cvs-checkout): Function calls to
+	`vc-checkout-required' updated to `vc-cvs-uses-locking'.
+
+	* vc-hooks.el (vc-backend-hook-functions): `vc-checkout-required'
+	updated to `vc-uses-locking'.
+	(vc-checkout-required): Call to backend function
+	`vc-checkout-required' updated to `vc-uses-locking' instead.
+
+	* vc-rcs-hooks.el (vc-rcs-fetch-master-state): Function calls to
+	`vc-checkout-required' updated to `vc-rcs-uses-locking'.
+
+	* vc.el (vc-checkin): Merged with `vc-backend-checkin' and updated
+	to match the split into various backends.
+	(vc-backend-checkin): Removed.  Merged with `vc-checkin'.
+	(vc-retrieve-snapshot): Bug fix.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-sccs.el (vc-sccs-release): Doc fix.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el (vc-next-action-on-file): Bug found and fixed.
+	(vc-checkout, vc-version-other-window, vc-retrieve-snapshot)
+	(vc-cancel-version): Handle of vc-BACKEND-checkout updated.
+
+	* vc-rcs.el (vc-rcs-checkin, vc-rcs-previous-version)
+	(vc-rcs-checkout): Name space cleaned up.  No more revision number
+	crunching function names that are not prefixed with vc-rcs.
+	(vc-rcs-checkout-model): Function added.  References to
+	`vc-checkout-model' replaced.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc.el (vc-next-action-on-file): Rewritten for the new state model.
+	(vc-backend-merge-news): Renamed to `vc-merge-news'.  (Specific parts
+	still need to be split, and implemented for RCS).
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-sccs-hooks.el (vc-sccs-state-heuristic): Bug found and fixed.
+
+	* vc-sccs.el (vc-sccs-admin): Added the query-only option as
+	required by the vc.el file.
+
+	* vc-rcs.el (vc-rcs-admin): Added the query-only option as
+	required by the vc.el file.
+	(vc-rcs-exists): Function added.
+
+	* vc-cvs.el (vc-cvs-admin): Added the query-only option as
+	required by the vc.el file.
+
+	* vc.el (vc-admin): Updated to handle selection of appropriate
+	backend.  Current implementation is crufty and need re-thinking.
+
+	* vc-hooks.el (vc-parse-buffer): Bug found and fixed.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-cvs.el (vc-cvs-annotate-difference): Updated to handle
+	beginning of annotate buffers correctly.
+
+	* vc.el (vc-annotate-get-backend, vc-annotate-display-default)
+	(vc-annotate-add-menu, vc-annotate, vc-annotate-display): Annotate
+	functionality updated quite a lot to support multiple backends.
+	Variables `vc-annotate-mode', `vc-annotate-buffers',
+	`vc-annotate-backend' added.
+
+	* vc-hooks.el (vc-backend-functions): `vc-annotate-command',
+	`vc-annotate-difference' added to supported backend functions.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs.el, vc-sccs.el, vc-cvs.el (vc-*-checkout):
+	Use with-temp-file instead of /bin/sh.  Merged from mainline
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-sccs-hooks.el (vc-sccs-registered): Updated.
+
+	* vc-rcs-hooks.el (vc-rcs-registered): Updated.
+
+	* vc-cvs-hooks.el (vc-cvs-registered): Updated.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-hooks.el: vc-state-heuristic added to
+	vc-backend-hook-functions.
+
+	* vc-sccs-hooks.el (vc-sccs-registered): Bug fix.
+
+	* vc-rcs-hooks.el (vc-rcs-registered): Bug fix.
+
+	* vc.el, vc-sccs-hooks.el, vc-rcs-hooks.el, vc-hooks.el: Renamed
+	`vc-uses-locking' to `vc-checkout-required'.  Renamed the `locked'
+	state to `reserved'.
+
+	* vc-cvs.el, vc-cvs-hooks.el: Rename `vc-uses-locking' to
+	`vc-checkout-required'.  Rename the `locked' state to `reserved'.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs-hooks.el: Implemented new state model.  Hardly anything
+	untouched.
+
+	* vc-rcs.el (vc-rcs-latest-on-branch-p): Moved to vc-rcs-hooks.el.
+
+	* vc.el (vc-update-change-log): Use small-temporary-file-directory, 
+	if defined.  (Merged from main line, slightly adapted.)
+
+	* vc-cvs.el (vc-cvs-annotate-difference): Handle possible
+	millenium problem (merged from mainline).
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-cvs.el: Split the annotate feature into a BACKEND-specific
+	part and moved the non-BACKEND stuff to vc.el.
+
+	* vc.el: Split the annotate feature into a BACKEND specific part
+	and moved it from the vc-cvs.el file to this one.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-hooks.el: Implemented new state model.
+	(vc-state, vc-state-heuristic, vc-default-state-heuristic): New
+	functions.
+	(vc-locking-user): Simplified.  Now only needed if the file is
+	locked by somebody else.
+	(vc-lock-from-permissions): Removed.  Functionality is in
+	vc-sccs-hooks.el and vc-rcs-hooks.el now.
+	(vc-mode-line-string): New name for former vc-status.  Adapted.
+	(vc-mode-line): Adapted to use the above.  Removed optional
+	parameter.
+
+	* vc-cvs-hooks.el (vc-cvs-state, vc-cvs-state-heuristic): New
+	functions.  Various simplifications and adaptations all over the
+	place.
+
+	* vc-sccs-hooks.el (vc-sccs-state, vc-sccs-state-heuristic): New
+	functions.  Simplified and adapted the rest.
+
+	* vc.el (vc-resynch-window): Added TODO comment: check for
+	interaction with view mode according to recent RCS change.
+	(vc-backend-merge-news): Merged "CMUP" patch from mainline.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el: Converted the remaining function comments to
+	documentation strings.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el (vc-backend-release, vc-release-greater-or-equal)
+	(vc-backend-release-p, vc-trunk-p, vc-branch-p, vc-branch-part)
+	(vc-minor-part, vc-previous-version): Functions that operate and
+	compare revision numbers got proper documentation.  Comments added
+	about their possible removal.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc.el (vc-latest-on-branch-p): Function removed and replaced in
+	the vc-backend.el files.
+
+	* vc-sccs.el (vc-sccs-latest-on-branch-p): Function added.
+
+	* vc-rcs.el (vc-rcs-latest-on-branch-p, vc-rcs-trunk-p)
+	(vc-rcs-branch-p, vc-rcs-branch-part, vc-rcs-minor-part)
+	(vc-rcs-previous-version): Functions added.
+
+	* vc-cvs.el (vc-cvs-latest-on-branch-p): Function added.
+
+	* vc-rcs-hooks.el (vc-rcs-master-templates): Extra `)' removed.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-hooks.el (vc-master-templates): Is really obsolete.
+	Commented out the definition for now.  What is the right procedure
+	to get rid of it?
+	(vc-registered, vc-backend, vc-buffer-backend, vc-name): Largely
+	rewritten.
+	(vc-default-registered): Removed.
+	(vc-check-master-templates): New function; does mostly what the
+	above did before.
+	(vc-locking-user): Don't rely on the backend to set the property.
+
+	* vc-rcs-hooks.el (vc-rcs-master-templates): Use simpler values.
+	Rewrote documentation.
+	(vc-rcs-templates-grabbed): New variable.
+	(vc-rcs-grab-templates): New function.
+	(vc-rcs-registered): Rewritten to use above mechanism.
+
+	* vc-sccs-hooks.el (vc-sccs-master-templates): Use simpler values.
+	Rewrote documentation.
+	(vc-sccs-templates-grabbed): New variable.
+	(vc-sccs-grab-templates): New function.
+	(vc-sccs-registered): Rewritten to use above mechanism.
+	(vc-sccs-search-project-dir): Renamed from
+	vc-search-sccs-project-dir.  Don't throw the result, simply 
+	return it.
+
+	* vc-cvs-hooks.el (vc-cvs-master-templates): Variable removed.
+	(vc-cvs-find-master): Removed.  Code is now in vc-cvs-registered.
+	(vc-cvs-registered): Does the check itself now.  Simplified.
+
+	* vc-cvs.el (vc-cvs-revert): Merged and adapted "unedit" patch
+	from main line.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-cvs.el (vc-cvs-diff): Function added.
+
+	* vc-sccs.el (vc-sccs-diff): Function added.
+
+	* vc-rcs.el (vc-rcs-diff): Function added.
+	(vc-rcs-checkout) Bug (typo) found and fixed.
+	(vc-rcs-register-switches) Variable `vc-rcs-register-switches' added.
+
+	* vc.el (vc-backend-diff): Function removed and placed in the
+	backend files.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-cvs.el (vc-cvs-checkout): Function `vc-cvs-checkout' added.
+
+	* vc.el (vc-backend-checkout): Function removed and replaced in
+	the vc-backend.el files.
+
+	* vc-sccs.el (vc-sccs-checkout): Added function `vc-sccs-checkout'.
+
+	* vc.el (vc-backend-admin): Removed and replaced in the
+	vc-backend.el files.
+
+	* vc.el (Martin): Removed all the annotate functionality since it
+	is CVS backend specific.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* spec.txt: Added specification of vc-state.
+
+	* vc-sccs-hooks.el (vc-sccs-master-properties):
+	Removed handling of vc-latest-version and
+	vc-your-latest-version.  What used to be vc-latest-version, is now
+	returned as vc-workfile-version.
+	(vc-sccs-workfile-version): Adapted.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc.el: [Merged from mainline.]
+	(vc-dired-mode): Make the dired-move-to-filename-regexp
+	regexp match the date, to avoid treating date as file size.
+	Add YYYY S option to WESTERN/
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc.el: Require `compile' when compiling.
+	(vc-logentry-check-hook): New option.
+	(vc-steal-lock): Use compose-mail.
+	(vc-dired-mode-map): Defvar when compiling.
+	(vc-add-triple, vc-record-rename, vc-lookup-triple): Moved to
+	vc-sccs.el and renamed.  Callers changed.
+	(vc-backend-checkout, vc-backend-logentry-check)
+	(vc-backend-merge-news): Doc fix.
+	(vc-default-logentry-check): New function.
+	(vc-backend-checkin, vc-backend-revert, vc-backend-steal)
+	(vc-backend-uncheck, vc-backend-print-log, vc-backend-assign-name)
+	(vc-backend-merge): Doc fix.  Use backend functions.
+	(vc-check-headers): Use backend functions.
+
+	* vc-cvs.el: Require vc when compiling.
+	(vc-cvs-register-switches): Doc fix.
+	(vc-annotate-color-map, vc-annotate-menu-elements): Fix custom type.
+	(vc-cvs-print-log, vc-cvs-assign-name, vc-cvs-merge)
+	(vc-cvs-check-headers, vc-cvs-steal, vc-cvs-revert, vc-cvs-checkin):
+	New functions (code from vc.el).
+	(vc-annotate-display-default): Fix interactive spec.
+	(vc-annotate-time-span): Doc fix.
+
+	* vc-rcs.el: Require vc when compiling.
+	(vc-rcs-print-log, vc-rcs-assign-name, vc-rcs-merge)
+	(vc-rcs-check-headers, vc-rcs-steal, vc-rcs-uncheck, vc-rcs-revert)
+	(vc-rcs-checkin): New functions (code from vc.el).
+	(vc-rcs-previous-version, vc-rcs-system-release, vc-rcs-checkout):
+	Doc fix.
+	(vc-rcs-release): Deleted.  (Duplicated vc-rcs-system-release).
+
+	* vc-sccs.el: Require vc when compiling.
+	(vc-sccs-print-log, vc-sccs-assign-name, vc-sccs-merge)
+	(vc-sccs-check-headers, vc-sccs-steal, vc-sccs-uncheck)
+	(vc-sccs-revert)
+	(vc-sccs-checkin, vc-sccs-logentry-check): New functions (code
+	from vc.el).
+	(vc-sccs-add-triple, vc-sccs-record-rename)
+	(vc-sccs-lookup-triple): Moved from vc.el and renamed.
+	(vc-sccs-admin): Doc fix.
+
+2000-09-04  Martin Lorentzson  <martinl@gnu.org>
+
+	* vc-rcs.el (vc-rcs-trunk-p, vc-rcs-branch-p, vc-rcs-branch-part)
+	(vc-rcs-minor-part, vc-rcs-previous-version, vc-rcs-release)
+	(vc-rcs-release-p, vc-rcs-admin, vc-rcs-checkout): New functions
+	from vc.el.
+
+	* vc-sccs.el (vc-admin-sccs): Added from vc.el
+
+	* vc-cvs.el: Moved the annotate functionality from vc.el.
+	(vc-cvs-admin, vc-cvs-fetch-status): Added from vc.el.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc.el (vc-backend-release): Call vc-system-release.
+
+	* vc-sccs.el (vc-sccs-system-release):
+	Renamed from vc-sccs-backend-release.
+
+	* vc-rcs.el (vc-rcs-system-release):
+	Renamed from vc-rcs-backend-release.
+
+	* vc-cvs.el (vc-cvs-system-release):
+	Renamed from vc-cvs-backend-release.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc.el (vc-rcs-release, vc-cvs-release, vc-sccs-release): Moved to
+	backend files.
+	(vc-backend-release): Dispatch to backend functions.
+	(vc-backend-release-p): Don't mention CVS, RCS.  [The SCCS case
+	probably needs attention.]
+
+	* vc-sccs.el, vc-rcs.el (vc-sccs-release): Moved from vc.el.
+	(vc-sccs-backend-release): New function.
+
+	* vc-cvs.el (vc-cvs-release): Moved from vc.el.
+	(vc-cvs-backend-release): New function.
+
+	* vc.el (vc-dired-mode, vc-dired-reformat-line, vc-dired-purge):
+	Doc fix.
+	(vc-fetch-cvs-status): Moved to vc-cvs.el and renamed.
+	(vc-default-dired-state-info): New function.
+	(vc-dired-state-info): Dispatch to backends.
+	(vc-dired-hook): Doc fix.  Simplify, pending removal of CVS specifics.
+
+	* vc-cvs.el (vc-cvs-dired-state-info, vc-cvs-fetch-status): Moved
+	from vc.el and renamed.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc.el (vc-file-clear-masterprops, vc-latest-on-branch-p)
+	(vc-version-other-window, vc-backend-assign-name): Removed
+	references to vc-latest-version; sometimes changed into
+	vc-workfile-version.
+
+	* vc-rcs-hooks.el (vc-master-workfile-version): Renamed to
+	vc-rcs-master-workfile-version.
+	(vc-rcs-workfile-version): Use the above.  Don't call
+	vc-latest-version (that was unreachable code, anyway).
+	(vc-rcs-fetch-master-properties): Doc fix.
+
+	* vc-hooks.el (vc-latest-version, vc-your-latest-version): Removed.
+	(vc-backend-hook-functions): Removed them from this list, too.
+	(vc-fetch-properties): Removed.
+	(vc-workfile-version): Doc fix.
+
+	* vc-rcs-hooks.el (vc-rcs-consult-headers): New function.
+	(vc-rcs-workfile-version, vc-rcs-locking-user)
+	(vc-rcs-uses-locking): Use it.
+
+	* vc-hooks.el (vc-consult-rcs-headers):
+	Moved into vc-rcs-hooks.el, under the name
+	vc-rcs-consult-headers.
+
+	* vc-cvs-hooks.el (vc-cvs-workfile-version): Don't consult RCS
+	headers.
+	(vc-cvs-find-master): Use this name only; correct different
+	versions of the name.
+
+	* vc-sccs-hooks.el (vc-sccs-master-locks, vc-sccs-master-locking-user):
+	New functions.
+	(vc-sccs-locking-user): Use the latter.
+
+	* vc-rcs-hooks.el (vc-rcs-master-locks, vc-rcs-master-locking-user):
+	New functions.
+
+	* vc-hooks.el (vc-master-locks, vc-master-locking-user):
+	Moved into both
+	vc-rcs-hooks.el and vc-sccs-hooks.el.  These properties and access
+	functions are implementation details of those two backends.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs-hooks.el (vc-rcs-fetch-master-properties)
+	(vc-rcs-parse-locks): RCS-specific code moved here from vc-hooks.
+
+	* vc-sccs-hooks.el (vc-sccs-fetch-master-properties)
+	(vc-sccs-parse-locks): SCCS-specific code moved here from
+	vc-hooks.
+
+	* vc-cvs-hooks.el (vc-cvs-fetch-master-properties): CVS-specific
+	code moved here from vc-hooks.
+
+	* vc-hooks.el (vc-parse-locks, vc-fetch-master-properties): Split
+	into back-end specific parts and removed.  Callers not updated
+	yet; because I guess these callers will disappear into back-end
+	specific files anyway.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc.el (with-vc-file, vc-next-action-on-file, vc-merge)
+	(vc-backend-checkout): Changed calls to `vc-checkout-model' to
+	`vc-uses-locking'.
+
+	* vc-hooks.el (vc-checkout-model): Renamed to vc-uses-locking.
+	Store yes/no in the property, and return t/nil.  Updated all
+	callers.
+
+	* vc-sccs-hooks.el (vc-sccs-checkout-model): Renamed to
+	vc-sccs-uses-locking.  Don't set property.
+	(vc-sccs-locking-user): Don't set property.
+
+	* vc-cvs-hooks.el (vc-cvs-checkout-model): Renamed to
+	vc-cvs-uses-locking.  Don't set property here; leave that to
+	vc-hooks.
+	(vc-cvs-locking-user): Reflect above change.  Streamlined.
+
+	* vc-rcs-hooks.el (vc-rcs-checkout-model): Renamed to
+	vc-rcs-uses-locking.
+	(vc-rcs-locking-user): Reflect above change.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc-sccs-hooks.el (vc-sccs-checkout-model): New function.
+
+	* vc-rcs-hooks.el (vc-rcs-checkout-model): New function.
+
+	* vc-hooks.el (vc-checkout-model): Punt to backends.
+
+	* vc-cvs-hooks.el (vc-cvs-checkout-model): New function.
+
+	* vc.el (vc-fetch-cvs-status): Use renamed vc-cvs-parse-status.
+
+	* vc-rcs-hooks.el (vc-rcs-workfile-version, vc-rcs-locking-user):
+	New functions.
+
+	* vc-sccs-hooks.el (vc-sccs-workfile-version, vc-sccs-locking-user):
+	New functions.
+
+	* vc-cvs-hooks.el (vc-handle-cvs): Doc fix.
+	(vc-cvs-workfile-version, vc-cvs-locking-user): New functions.
+
+	* vc-hooks.el (vc-default-locking-user): New function.
+	(vc-locking-user, vc-workfile-version): Punt to backends.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc-hooks.el (vc-rcsdiff-knows-brief, vc-rcs-lock-from-diff)
+	(vc-master-workfile-version): Moved from vc-hooks.
+
+	* vc-rcs-hooks.el: Fix duplicate code in last change.
+
+	* vc-rcs-hooks.el: Require vc-hooks when compiling.
+	(vc-rcs-master-templates): Improve :type.
+	(vc-rcsdiff-knows-brief, vc-rcs-lock-from-diff,
+	vc-master-workfile-version): Moved from vc-hooks.
+
+	* vc-sccs-hooks.el: Require vc-hooks when compiling.
+	(vc-sccs-master-templates): Improve :type.
+	(vc-sccs-lock-file): Moved/renamed from vc-hooks.el vc-lock-file.
+
+	* vc-hooks.el (vc-lock-file): Moved to vc-sccs-hooks and renamed.
+
+	* vc-cvs-hooks.el: Require vc-hooks when compiling.
+	(vc-cvs-master-templates): Improve :type.  Use
+	vc-cvs-find-cvs-master.
+	(vc-handle-cvs, vc-cvs-parse-status, vc-cvs-status): Moved here
+	from vc-hooks.
+	(vc-vc-find-cvs-master): Renamed to vc-cvs-find-cvs-master.
+
+	* vc-hooks.el (vc-handle-cvs, vc-cvs-parse-status, vc-cvs-status):
+	Moved to vc-cvs-hooks.
+
+	* vc-hooks.el: Add doc strings in various places.  Simplify the
+	minor mode setup.
+	(vc-handled-backends): New user variable.
+	(vc-parse-buffer, vc-insert-file, vc-default-registered): Minor
+	simplification.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc.el: Some doc fixes for autoloaded and interactive functions.
+	Fix compilation warnings from ediff stuff.
+	(vc-rcs-release, vc-cvs-release, vc-sccs-release): Custom fix.
+
+	* vc-sccs-hooks.el (vc-sccs-master-templates): Add :version.
+
+	* vc-cvs-hooks.el (vc-cvs-master-templates): Add :version.
+
+	* vc-rcs-hooks.el (vc-rcs-master-templates): Add :version.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc-hooks.el (vc-backend-hook-functions, vc-backend-functions):
+	New variable.
+	(vc-make-backend-function, vc-loadup, vc-call-backend)
+	(vc-backend-defines): New functions.
+
+	* vc-hooks.el: Various doc fixes.
+	(vc-default-back-end, vc-follow-symlinks): Custom fix.
+	(vc-match-substring): Function removed.  Callers changed to use
+	match-string.
+	(vc-lock-file, vc-consult-rcs-headers, vc-kill-buffer-hook):
+	Simplify.
+
+2000-09-04  Dave Love  <fx@gnu.org>
+
+	* vc-sccs-hooks.el (vc-sccs-master-templates): Fix doc, custom
+	type.
+	(vc-sccs-project-dir, vc-search-sccs-project-dir)
+	(vc-sccs-registered): Doc fix.
+
+	* vc-cvs-hooks.el (vc-cvs-master-templates): Fix doc, custom type.
+	(vc-cvs-registered): Doc fix.
+
+	* vc-rcs-hooks.el (vc-rcs-master-templates): Fix doc, custom type.
+	(vc-rcs-registered): Doc fix.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-rcs-hooks.el, vc-cvs-hooks.el, vc-sccs-hooks.el: New file.
+
+	* vc-hooks.el: vc-registered has been renamed
+	vc-default-registered.  Some functions have been moved to the
+	backend specific files.  they all support the
+	vc-BACKEND-registered functions.
+
+2000-09-04  Andre Spiegel  <spiegel@inf.fu-berlin.de>
+
+	* vc-hooks.el: This is 1.113 from the emacs sources
+
+	* vc.el: This is 1.244 from the emacs sources
+
 2000-09-04  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-sexp-validate): Fix garbled code.
