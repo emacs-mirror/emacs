@@ -22,7 +22,12 @@
 #						  9-6-94
 !include makefile.def
 
-ALL		= $(BLD)\addpm.exe
+ALL		= $(BLD)\addpm.exe $(BLD)\runemacs.exe
+!if $(MSVCNT11)
+TRES		= $(BLD)\emacs.res
+!else
+TRES		= $(BLD)\emacs.rbj
+!endif
 
 .c{$(BLD)}.obj:
 		  $(CC) $(CFLAGS) -Fo$@ $<
@@ -31,6 +36,22 @@ addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
 		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
+
+#
+# The resource file.  NT 3.10 requires the use of cvtres; even though
+# it is not necessary on later versions, it is still ok to use it.
+#
+$(TRES):	emacs.rc
+		$(RC) -Fo$(BLD)\emacs.res $**
+!if !$(MSVCNT11)
+		$(CVTRES) -r -$(ARCH) -o $@ $(BLD)\emacs.res
+!endif
+
+runemacs:	  $(BLD) $(BLD)\runemacs.exe
+$(BLD)\runemacs.obj: runemacs.c
+$(BLD)\runemacs.exe: $(BLD)\runemacs.obj $(TRES)
+		  $(LINK) -out:$@ -subsystem:windows -entry:WinMainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
 
 # Since Windows 95 does not support multiple commands on one command line
@@ -71,6 +92,8 @@ install:	all emacs.bat
 		$(INSTALL_CMD)
 		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
 		- $(ADDPM) $(INSTALL_DIR)
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
@@ -88,6 +111,8 @@ fast_install:
 		$(CP) ..\lib-src\DOC $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\bin
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
