@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.15) $
+ * $HopeName: MMsrc!arenavm.c(trunk.16) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.15) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.16) $");
 
 
 /* Space Arena Projection
@@ -93,8 +93,8 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
    *
    * .improve.table.zone-zero: It would be better to make sure that the
    * page tables are in zone zero, since that zone is least useful for
-   * GC. (but it would change how SegAlloc avoids allocating over the
-   * tables, see .alloc.skip)
+   * GC. (but it would change how SegAllocWithRefSet avoids allocating
+   * over the tables, see .alloc.skip)
    *
    * There are two tables, the free table which is a bool array, and the
    * page table which is a PageStruct array.  Both tables are allocated
@@ -120,11 +120,12 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
 
   /* .tablepages: pages whose page index is < tablePages are recorded as
    * free but never allocated as alloc starts searching after the tables
-   * (see .alloc.skip)
+   * (see .alloc.skip).  SegOfAddr uses the fact that these pages are
+   * marked as free in order to detect "references" to these pages as
+   * being bogus see .addr.free.
    */
   arena->tablePages = arena->tablesSize >> arena->pageShift;
-  BTResRange(arena->freeTable, 0, arena->tablePages);
-  BTSetRange(arena->freeTable, arena->tablePages, arena->pages);
+  BTSetRange(arena->freeTable, 0, arena->pages);
 
   /* Set the zone shift to divide the arena into the same number of
    * zones as will fit into a reference set (the number of bits in a
@@ -277,7 +278,7 @@ static Index IndexOfAddr(Arena arena, Addr addr)
 }
 
 
-/* SegAllocWithRefSet -- try to allocate a segment in an area
+/* SegAllocInArea -- try to allocate a segment in an area
  *
  * Search for a free run of pages in the free table, but between
  * base and limit.
@@ -286,7 +287,8 @@ static Index IndexOfAddr(Arena arena, Addr addr)
  * optimised by twiddling the bit table.
  */
 
-static Bool SegAllocInArea(Index *baseReturn, Space space, Size size, Addr base, Addr limit)
+static Bool SegAllocInArea(Index *baseReturn,
+			   Space space, Size size, Addr base, Addr limit)
 {
   Arena arena;
   Word pages;				/* number of pages equiv. to size */
@@ -328,20 +330,23 @@ static Bool SegAllocInArea(Index *baseReturn, Space space, Size size, Addr base,
 }
 
 
-/* SegAllocWithRefSet -- try to allocate a segment with a particular RefSet
- *
- * This function finds the intersection of refSet and the set of free pages
- * and tries to allocate a segment in the resulting set of areas.
+/* SegAllocWithRefSet
+ *   -- try to allocate a segment with a particular RefSet
+ * 
+ * This function finds the intersection of refSet and the set of free
+ * pages and tries to allocate a segment in the resulting set of
+ * areas.
  */
 
-static Bool SegAllocWithRefSet(Index *baseReturn, Space space, Size size, RefSet refSet)
+static Bool SegAllocWithRefSet(Index *baseReturn,
+			       Space space, Size size, RefSet refSet)
 {
   Arena arena = SpaceArena(space);
   Addr arenaBase, base, limit;
   Size zoneSize = (Size)1 << space->zoneShift;
 
-  /* This is the first address available for segments, just after the */
-  /* arena tables. */
+  /* .alloc.skip: The first address available for segments, */
+  /* is just after the arena tables. */
   arenaBase = PageBase(arena, arena->tablePages);
 
   base = arenaBase;
@@ -601,8 +606,12 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
   arena = SpaceArena(space);
   if(arena->base <= addr && addr < arena->limit) {
     Index i = IndexOfAddr(arena, addr);
+    /* .addr.free: If the page is recorded as being free then */
+    /* either the page is free or it is */
+    /* part of the arena tables (see .tablepages) */
     if(!BTGet(arena->freeTable, i)) {
       Page page = &arena->pageTable[i];
+
       if(page->the.head.pool != NULL)
         *segReturn = &page->the.head;
       else
