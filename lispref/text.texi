@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
@@ -2550,16 +2550,37 @@ position less than or equal to @var{pos}; it equals @var{pos} only if
 @var{limit} equals @var{pos}.
 @end defun
 
-@defun next-char-property-change position &optional limit
+@defun next-char-property-change pos &optional limit
 This is like @code{next-property-change} except that it considers
-overlay properties as well as text properties.  There is no @var{object}
-operand because this function operates only on the current buffer.  It
-returns the next address at which either kind of property changes.
+overlay properties as well as text properties, and if no change is
+found before the end of the buffer, it returns the maximum buffer
+position rather than @code{nil} (in this sense, it resembles the
+corresponding overlay function @code{next-overlay-change}, rather than
+@code{next-property-change}).  There is no @var{object} operand
+because this function operates only on the current buffer.  It returns
+the next address at which either kind of property changes.
 @end defun
 
-@defun previous-char-property-change position &optional limit
+@defun previous-char-property-change pos &optional limit
 This is like @code{next-char-property-change}, but scans back from
-@var{position} instead of forward.
+@var{pos} instead of forward, and returns the minimum buffer
+position if no change is found.
+@end defun
+
+@defun next-single-char-property-change pos prop &optional object limit
+This is like @code{next-single-property-change} except that it
+considers overlay properties as well as text properties, and if no
+change is found before the end of the @var{object}, it returns the
+maximum valid position in @var{object} rather than @code{nil}.  Unlike
+@code{next-char-property-change}, this function @emph{does} have an
+@var{object} operand; if @var{object} is not a buffer, only
+text-properties are considered.
+@end defun
+
+@defun previous-single-char-property-change pos prop &optional object limit
+This is like @code{next-single-char-property-change}, but scans back
+from @var{pos} instead of forward, and returns the minimum valid
+position in @var{object} if no change is found.
 @end defun
 
 @defun text-property-any start end prop value &optional object
