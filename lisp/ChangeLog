@@ -1,3 +1,7 @@
+2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* apropos.el (apropos-next-label-button): Doc fix.
+
 2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* comint.el (comint-mode): Simplify.
