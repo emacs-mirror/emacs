@@ -681,25 +681,12 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 			 (t (assoc* key sym ':test test))))
 	  sym str)))
 
-(defvar cl-builtin-gethash
-  (if (and (fboundp 'gethash) (subrp (symbol-function 'gethash)))
-      (symbol-function 'gethash) 'cl-not-hash-table))
-(defvar cl-builtin-remhash
-  (if (and (fboundp 'remhash) (subrp (symbol-function 'remhash)))
-      (symbol-function 'remhash) 'cl-not-hash-table))
-(defvar cl-builtin-clrhash
-  (if (and (fboundp 'clrhash) (subrp (symbol-function 'clrhash)))
-      (symbol-function 'clrhash) 'cl-not-hash-table))
-(defvar cl-builtin-maphash
-  (if (and (fboundp 'maphash) (subrp (symbol-function 'maphash)))
-      (symbol-function 'maphash) 'cl-not-hash-table))
-
 (defun cl-gethash (key table &optional def)
   "Look up KEY in HASH-TABLE; return corresponding value, or DEFAULT."
   (if (consp table)
       (let ((found (cl-hash-lookup key table)))
 	(if (car found) (cdr (car found)) def))
-    (funcall cl-builtin-gethash key table def)))
+    (gethash key table def)))
 
 (defun cl-puthash (key val table)
   (if (consp table)
@@ -730,8 +717,8 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 	       (setcar (cdr (cdr (cdr table))) (1- (nth 3 table)))
 	       (if (nth 2 found) (set (intern (nth 2 found) (nth 2 table)) del)
 		 (set (nth 2 table) del)) t)))
-    (prog1 (not (eq (funcall cl-builtin-gethash key table '--cl--) '--cl--))
-      (funcall cl-builtin-remhash key table))))
+    (prog1 (not (eq (gethash key table '--cl--) '--cl--))
+      (remhash key table))))
 
 (defun cl-clrhash (table)
   "Clear HASH-TABLE."
@@ -741,7 +728,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 	(if (symbolp (nth 2 table)) (set (nth 2 table) nil)
 	  (setcar (cdr (cdr table)) (make-vector (length (nth 2 table)) 0)))
 	(setcar (cdr (cdr (cdr table))) 0))
-    (funcall cl-builtin-clrhash table))
+    (clrhash table))
   nil)
 
 (defun cl-maphash (cl-func cl-table)
@@ -756,7 +743,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 			      (setq cl-x (cdr cl-x)))))
 		(if (symbolp (nth 2 cl-table))
 		    (vector (nth 2 cl-table)) (nth 2 cl-table)))
-    (funcall cl-builtin-maphash cl-func cl-table)))
+    (maphash cl-func cl-table)))
 
 (defun cl-hash-table-count (table)
   "Return the number of entries in HASH-TABLE."
