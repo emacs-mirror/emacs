@@ -771,7 +771,7 @@ See also `multi-occur'."
 			;; Generate the string to insert for this match
 			(let* ((out-line
 				(concat
-				 (apply #'propertize (format "%-6d:" l)
+				 (apply #'propertize (format "%6d:" l)
 					(append
 					 (when prefix-face
 					   `(face prefix-face))
