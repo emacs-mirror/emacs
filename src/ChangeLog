@@ -1,3 +1,8 @@
+2001-05-14  Dave Love  <fx@gnu.org>
+
+	* process.c (read_process_output): Don't call signal_after_change
+	and update_compositions after insert_from_string_before_markers.
+
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (split_font_name): Use the right field when
