@@ -1,3 +1,7 @@
+2005-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-checkout): Prompt for cvsroot as well.
+
 2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* filesets.el (filesets-set-default): Doc fix.
@@ -7,7 +11,7 @@
 	* generic.el (define-generic-mode): Add argument to specify
 	keywords for defcustom.
 	(default-generic-mode): Specify :group.
-	
+
 	* generic-x.el: Specify :group for all generic modes.
 
 	* desktop.el (desktop-no-desktop-file-hook)
@@ -7425,8 +7429,7 @@
 
 2004-09-21  Kenichi Handa  <handa@m17n.org>
 
-	* descr-text.el (describe-char): Checking of quail activation
-	fixed.
+	* descr-text.el (describe-char): Checking of quail activation fixed.
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 
