@@ -4,24 +4,22 @@
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 
-;; This file is part of Emacs.
+;; This file is part of GNU Emacs.
 
-;; XEmacs is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; XEmacs is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with XEmacs; see the file COPYING.  If not, write to the 
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
-;;; Synched up with: Not synched.
 
 ;;; Commentary:
 
@@ -37,13 +35,11 @@
 ;; To enable this code, simply put this at the top of your .emacs
 ;; file:
 ;;
-;; (autoload 'mwheel-install "mwheel" "Enable mouse wheel support.")
 ;; (mwheel-install)
 
 ;;; Code:
 
 (require 'custom)
-(require 'cl)
 
 (defcustom mwheel-scroll-amount '(5 . 1)
   "Amount to scroll windows by when spinning the mouse wheel.
@@ -92,10 +88,10 @@ This can be slightly disconcerting, but some people may prefer it."
 		 (cdr mwheel-scroll-amount)
 	       (car mwheel-scroll-amount))))
     (unwind-protect
-	(case (mwheel-event-button event)
-	  (4 (scroll-down amt))
-	  (5 (scroll-up amt))
-	  (otherwise (error "Bad binding in mwheel-scroll")))
+	(let ((button (mwheel-event-button event)))
+	  (cond ((= button 4) (scroll-down amt))
+		((= button 5) (scroll-up amt))
+		(t (error "Bad binding in mwheel-scroll"))))
       (if curwin (select-window curwin)))))
 
 ;;;###autoload
