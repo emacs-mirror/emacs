@@ -313,7 +313,7 @@ If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
    (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
 The `posn-' functions access elements of such lists."
-  (nth (1- (length event)) event))
+  (nth (if (consp (nth 2 event)) 2 1) event))
 
 (defsubst posn-window (position)
   "Return the window in POSITION.
