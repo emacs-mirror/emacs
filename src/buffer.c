@@ -1551,7 +1551,9 @@ buffer.")
   (overlay, beg, end, buffer)
      Lisp_Object overlay, beg, end, buffer;
 {
-  struct buffer *b;
+  struct buffer *b, *ob;
+  Lisp_Object obuffer;
+  int count = specpdl_ptr - specpdl;
 
   CHECK_OVERLAY (overlay, 0);
   if (NILP (buffer))
@@ -1570,16 +1572,20 @@ buffer.")
   CHECK_NUMBER_COERCE_MARKER (beg, 1);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
 
+  specbind (Qinhibit_quit, Qt);
+
   if (XINT (beg) > XINT (end))
     {
       Lisp_Object temp = beg;
       beg = end; end = temp;
     }
 
+  obuffer = Fmarker_buffer (OVERLAY_START (overlay));
   b = XBUFFER (buffer);
+  ob = XBUFFER (obuffer);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
-  if (b != XMARKER (OVERLAY_START (overlay))->buffer)
+  if (!EQ (buffer, obuffer))
     windows_or_buffers_changed = 1;
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
@@ -1603,8 +1609,11 @@ buffer.")
 	}
     }
 
-  b->overlays_before = Fdelq (overlay, b->overlays_before);
-  b->overlays_after  = Fdelq (overlay, b->overlays_after);
+  if (!NILP (obuffer))
+    {
+      ob->overlays_before = Fdelq (overlay, ob->overlays_before);
+      ob->overlays_after  = Fdelq (overlay, ob->overlays_after);
+    }
 
   Fset_marker (OVERLAY_START (overlay), beg, buffer);
   Fset_marker (OVERLAY_END   (overlay), end, buffer);
@@ -1619,7 +1628,7 @@ buffer.")
   /* This puts it in the right list, and in the right order.  */
   recenter_overlay_lists (b, XINT (b->overlay_center));
 
-  return overlay;
+  return unbind_to (count, overlay);
 }
 
 DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
@@ -1627,11 +1636,19 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   (overlay)
      Lisp_Object overlay;
 {
+  Lisp_Object buffer;
   struct buffer *b;
+  int count = specpdl_ptr - specpdl;
 
   CHECK_OVERLAY (overlay, 0);
 
-  b = XBUFFER (Fmarker_buffer (OVERLAY_START (overlay)));
+  buffer = Fmarker_buffer (OVERLAY_START (overlay));
+  if (NILP (buffer))
+    return Qnil;
+
+  b = XBUFFER (buffer);
+
+  specbind (Qinhibit_quit, Qt);
 
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
@@ -1643,7 +1660,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
   Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
 
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 /* Overlay dissection functions.  */
@@ -2319,7 +2336,7 @@ Automatically local in all buffers.");
     "*Non-nil means deactivate the mark when the buffer contents change.");
   Vtransient_mark_mode = Qnil;
 
-  DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only
+  DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
     "*Non-nil means disregard read-only status of buffers or characters.\n\
 If the value is t, disregard `buffer-read-only' and all `read-only'\n\
 text properties.  If the value is a list, disregard `buffer-read-only'\n\
