@@ -351,7 +351,7 @@ Key translation rules are:
  "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ?,A_(B
+ \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ,A_(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
