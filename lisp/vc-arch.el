@@ -272,7 +272,7 @@ Return non-nil if FILE is unchanged."
 		;; Buh?  Unexpected format.
 		'edited
 	      (let ((ats (file-attributes file)))
-		(if (and (= (nth 7 ats) (string-to-number (match-string 2)))
+		(if (and (eq (nth 7 ats) (string-to-number (match-string 2)))
 			 (equal (format-time-string "%s" (nth 5 ats))
 				(match-string 1)))
 		    'up-to-date
