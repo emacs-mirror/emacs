@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.73) $
+ * $HopeName: MMsrc!pool.c(trunk.74) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -27,12 +27,11 @@
  * central types for this module, are defined in impl.h.mpmst, the
  * corresponding abstract types in impl.h.mpmtypes.  Declarations and
  * prototypes are in impl.h.mpm.  Several functions have macro versions
- * defined in impl.h.mpm.
- */
+ * defined in impl.h.mpm.  */
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.73) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.74) $");
 
 
 /* PoolClassCheck -- check a pool class */
@@ -76,7 +75,7 @@ Bool PoolCheck(Pool pool)
   /* Checks ordered as per struct decl in impl.h.mpmst.pool */
   CHECKS(Pool, pool);
   /* Break modularity for checking efficiency */
-  CHECKL(pool->serial < pool->arena->poolSerial);
+  CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
   CHECKD(PoolClass, pool->class);
   CHECKU(Arena, pool->arena);
   CHECKL(RingCheck(&pool->arenaRing));
@@ -86,7 +85,7 @@ Bool PoolCheck(Pool pool)
   CHECKL(AlignCheck(pool->alignment));
   /* normally pool->format iff pool->class->attr&AttrFMT, but not */
   /* during pool initialization */
-  if(pool->format != NULL) {
+  if (pool->format != NULL) {
     CHECKL((pool->class->attr & AttrFMT) != 0);
   }
   CHECKL(pool->fillMutatorSize >= 0.0);
@@ -99,9 +98,8 @@ Bool PoolCheck(Pool pool)
 
 /* PoolInit, PoolInitV -- initialize a pool
  *
- * Initialize the generic fields of the pool and calls class-specific init. 
- * See design.mps.pool.align
- */
+ * Initialize the generic fields of the pool and calls class-specific
+ * init.  See design.mps.pool.align.  */
 
 Res PoolInit(Pool pool, Arena arena, PoolClass class, ...)
 {
@@ -113,19 +111,20 @@ Res PoolInit(Pool pool, Arena arena, PoolClass class, ...)
   return res;
 }
 
-Res PoolInitV(Pool pool, Arena arena,
-              PoolClass class, va_list args)
+Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args)
 {
   Res res;
   Word classId;
+  Globals globals;
 
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(PoolClass, class);
+  globals = ArenaGlobals(arena);
 
   pool->class = class;
   /* label the pool class with its name */
-  if(!class->labelled) {
+  if (!class->labelled) {
     /* We could still get multiple labelling if multiple instances of */
     /* the pool class get created simultaneously, but it's not worth */
     /* putting another lock in the code. */
@@ -150,18 +149,18 @@ Res PoolInitV(Pool pool, Arena arena,
 
   /* Initialise signature last; see design.mps.sig */
   pool->sig = PoolSig;
-  pool->serial = arena->poolSerial;
-  ++(arena->poolSerial);
+  pool->serial = globals->poolSerial;
+  ++(globals->poolSerial);
 
   AVERT(Pool, pool);
 
   /* Do class-specific initialization. */
   res = (*class->init)(pool, args);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failInit;
 
   /* Add initialized pool to list of pools in arena. */
-  RingAppend(ArenaPoolRing(arena), &pool->arenaRing);
+  RingAppend(&globals->poolRing, &pool->arenaRing);
 
   return ResOK;
 
@@ -202,7 +201,7 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
   /* requested  in the pool class.  See .space.free */
   res = ControlAlloc(&base, arena, class->size, 
                      /* withReservoirPermit */ FALSE); 
-  if(res != ResOK)
+  if (res != ResOK)
     goto failControlAlloc;
 
   /* base is the address of the class-specific pool structure. */
@@ -212,7 +211,7 @@ Res PoolCreateV(Pool *poolReturn, Arena arena,
 
   /* Initialize the pool. */  
   res = PoolInitV(pool, arena, class, args);
-  if(res != ResOK) 
+  if (res != ResOK) 
     goto failPoolInit;
   
   *poolReturn = pool;  
@@ -291,7 +290,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
   AVER(BoolCheck(withReservoirPermit));
 
   res = (*pool->class->alloc)(pReturn, pool, size, withReservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */
   /* .hasaddr.critical: The PoolHasAddr check is expensive, and in */
@@ -383,8 +382,6 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* The segment must belong to the pool. */
   AVER(pool == SegPool(seg));
 
-  /* Should only scan for a rank for which there are references */
-  /* in the segment.  (not true) */
   /* We actually want to check that the rank we are scanning at */
   /* (ss->rank) is at least as big as all the ranks in */
   /* the segment (SegRankSet(seg)).  It is tricky to check that, */
@@ -402,8 +399,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* PoolFix* -- fix a reference to an object in this pool
  *
- * See impl.h.mpm for macro version; see design.mps.pool.req.fix,
- */
+ * See impl.h.mpm for macro version; see design.mps.pool.req.fix. */
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {
@@ -477,8 +473,8 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   Ring node, nextNode;
 
-  AVERT(Pool, pool);
-  AVER(stream != NULL);
+  if (!CHECKT(Pool, pool)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
   
   res = WriteF(stream,
                "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
@@ -488,12 +484,10 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
                NULL);
-  if(res != ResOK)
-    return res;
-  if(NULL != pool->format) {
+  if (res != ResOK) return res;
+  if (NULL != pool->format) {
     res = FormatDescribe(pool->format, stream);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
   res = WriteF(stream,
                "  fillMutatorSize $UKb\n",
@@ -505,58 +499,40 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                "  emptyInternalSize $UKb\n",
                  (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   res = (*pool->class->describe)(pool, stream);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   RING_FOR(node, &pool->bufferRing, nextNode) {
     Buffer buffer = RING_ELT(Buffer, poolRing, node);
     res = BufferDescribe(buffer, stream);
-    if(res != ResOK)
-      return res;
+    if (res != ResOK) return res;
   }
 
   res = WriteF(stream,
                "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
-  if(res != ResOK)
-    return res;
+  if (res != ResOK) return res;
 
   return ResOK;
 }
 
 
-/* PoolArena -- get the arena of this pool
- *
- * .pool.space: Thread-safe; see design.mps.interface.c.thread-safety 
- * See impl.h.mpm for macro version.
- */
-
-Arena (PoolArena)(Pool pool)
-{
-  /* Can't check pool as that would not be thread-safe. */
-  return pool->arena;
-}
-
-
 /* PoolFormat
  *
- * Returns the format of the pool (the format of objects in the
- * pool).  If the pool is unformatted or doesn't declare a format
- * then this function returns FALSE and does not update *formatReturn.
- * Otherwise this function returns TRUE and *formatReturn is updated
- * to be the pool's format.
- */
+ * Returns the format of the pool (the format of objects in the pool).
+ * If the pool is unformatted or doesn't declare a format then this
+ * function returns FALSE and does not update *formatReturn.  Otherwise
+ * this function returns TRUE and *formatReturn is updated to be the
+ * pool's format.  */
 
 Bool PoolFormat(Format *formatReturn, Pool pool)
 {
   AVER(formatReturn != NULL);
   AVERT(Pool, pool);
 
-  if(pool->format) {
+  if (pool->format) {
     *formatReturn = pool->format;
     return TRUE;
   }
@@ -571,7 +547,7 @@ Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
   AVER(poolReturn != NULL);
   AVERT(Arena, arena);
 
-  if(TractOfAddr(&tract, arena, addr)) {
+  if (TractOfAddr(&tract, arena, addr)) {
     *poolReturn = TractPool(tract);
     return TRUE;
   }
@@ -591,14 +567,6 @@ Bool PoolHasAddr(Pool pool, Addr addr)
   arena = PoolArena(pool);
   managed = PoolOfAddr(&addrPool, arena, addr);
   return (managed && addrPool == pool);
-}
-
-
-/* See impl.h.mpm for macro version */
-Align (PoolAlignment)(Pool pool)
-{
-  AVERT(Pool, pool);
-  return pool->alignment;
 }
 
 
