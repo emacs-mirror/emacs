@@ -343,6 +343,12 @@ This command does not delete or overwrite any existing text."
   (insert string))
 
 ;;;###autoload
+(defun replace-rectangle (start end string)
+  "Like `string-rectangle', but replace the original region."
+  (interactive "*r\nsString rectangle: ")
+  (apply-on-rectangle 'string-rectangle-line start end string t))
+
+;;;###autoload
 (defun clear-rectangle (start end &optional fill)
   "Blank out the region-rectangle.
 The text previously in the region is overwritten with blanks.
