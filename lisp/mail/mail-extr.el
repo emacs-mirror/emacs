@@ -226,7 +226,7 @@ we will assume that \"John Q. Smith\" is the fellow's name."
   :type 'boolean
   :group 'mail-extr)
 
-(defcustom mail-extr-ignore-single-names t
+(defcustom mail-extr-ignore-single-names nil
   "*Whether to ignore a name that is just a single word.
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
 we will act as though we couldn't find a full name in the address."
@@ -710,7 +710,8 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 (defun mail-extract-address-components (address &optional all)
   "Given an RFC-822 address ADDRESS, extract full name and canonical address.
 Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
-If no name can be extracted, FULL-NAME will be nil.
+If no name can be extracted, FULL-NAME will be nil.  Also see
+`mail-extr-ignore-single-names'.
 
 If the optional argument ALL is non-nil, then ADDRESS can contain zero
 or more recipients, separated by commas, and we return a list of
@@ -719,9 +720,9 @@ each recipient.  If ALL is nil, then if ADDRESS contains more than
 one recipients, all but the first is ignored.
 
 ADDRESS may be a string or a buffer.  If it is a buffer, the visible
- (narrowed) portion of the buffer will be interpreted as the address.
- (This feature exists so that the clever caller might be able to avoid
- consing a string.)"
+\(narrowed) portion of the buffer will be interpreted as the address.
+\(This feature exists so that the clever caller might be able to avoid
+consing a string.)"
   (let ((canonicalization-buffer (get-buffer-create " *canonical address*"))
 	(extraction-buffer (get-buffer-create " *extract address components*"))
 	value-list)
