@@ -86,6 +86,8 @@ extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
 extern Lisp_Object Qmouse_click, Qevent_kind;
 
+extern Lisp_Object Vdefine_key_rebound_commands;
+
 #ifdef USE_X_TOOLKIT
 extern void process_expose_from_menu ();
 extern XtAppContext Xt_app_con;
@@ -381,9 +383,13 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
          check if the original command matches the cached command.  */
       && !(SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
            && EQ (def1, XSYMBOL (def)->function))
-      /* If something had no key binding before, don't recheck it--
-	 doing that takes too much time and makes menus too slow.  */
-      && !(!NILP (cachelist) && NILP (savedkey)))
+      /* If something had no key binding before, don't recheck it
+	 because that is too slow--except if we have a list of rebound
+	 commands in Vdefine_key_rebound_commands, do recheck any command
+	 that appears in that list.  */
+      && (NILP (cachelist) || !NILP (savedkey)
+	  || (! EQ (Qt, Vdefine_key_rebound_commands)
+	      && !NILP (Fmemq (def, Vdefine_key_rebound_commands)))))
     {
       changed = 1;
       descrip = Qnil;
