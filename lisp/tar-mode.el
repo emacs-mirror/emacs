@@ -562,10 +562,10 @@ save your changes to disk."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
-  (or (assq 'tar-subfile-mode minor-mode-alist)
-      (setq minor-mode-alist (append minor-mode-alist
-				     (list '(tar-subfile-mode
-					     " TarFile")))))
+;;; Don't do this, because it is redundant and wastes mode line space.
+;;;  (or (assq 'tar-subfile-mode minor-mode-alist)
+;;;      (setq minor-mode-alist (append minor-mode-alist
+;;;				     (list '(tar-subfile-mode " TarFile")))))
   (make-local-variable 'tar-subfile-mode)
   (setq tar-subfile-mode
 	(if (null p)
@@ -650,9 +650,10 @@ save your changes to disk."
 	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
+	   (tarname (file-name-nondirectory (buffer-file-name)))
 	   (bufname (concat (file-name-nondirectory name)
-			    " (" name " in "
-			    (file-name-nondirectory (buffer-file-name))
+			    " ("
+			    tarname
 			    ")"))
 	   (read-only-p (or buffer-read-only view-p))
 	   (buffer (get-buffer bufname))
@@ -677,6 +678,12 @@ save your changes to disk."
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
+
+		;; Since the "real" file name is not in buffer-file-name,
+		;; put it here for list-buffers.
+		(make-local-variable 'list-buffers-directory)
+		(setq list-buffers-directory name)
+
 		(tar-subfile-mode 1)
 		
 		(setq buffer-read-only read-only-p)
