@@ -260,22 +260,6 @@ simply inserts a newline."
   "Return non-nil if STRING is all whitespace."
   (or (string= string "") (string-match "\\`[ \t\n]+\\'" string)))
 
-(defun ielm-format-errors (errlist)
-  (let ((result ""))
-    (while errlist
-      (setq result (concat result (prin1-to-string (car errlist)) ", "))
-      (setq errlist (cdr errlist)))
-    (substring result 0 -2)))
-
-
-(defun ielm-format-error (err)
-  ;; Return a string form of the error ERR.
-  (format "%s%s"
-	  (or (get (car err) 'error-message) "Peculiar error")
-	  (if (cdr err)
-	      (format ": %s" (ielm-format-errors (cdr err)))
-	    "")))
-
 ;;; Evaluation
 
 (defun ielm-eval-input (ielm-string)
@@ -306,7 +290,7 @@ simply inserts a newline."
 		(setq rout (read-from-string ielm-string))
 		(setq ielm-form (car rout))
 		(setq ielm-pos (cdr rout)))
-	    (error (setq ielm-result (ielm-format-error err))
+	    (error (setq ielm-result (error-message-string err))
 		   (setq ielm-error-type "Read error")))
 	  (if ielm-error-type nil
 	    ;; Make sure working buffer has not been killed
@@ -335,7 +319,7 @@ simply inserts a newline."
 			    ;; in let.  Don't want to use save-excursion
 			    ;; because we want to allow changes in point.
 			    (set-buffer ielm-obuf))
-			(error (setq ielm-result (ielm-format-error err))
+			(error (setq ielm-result (error-message-string err))
 			       (setq ielm-error-type "Eval error"))
 			(quit (setq ielm-result "Quit during evaluation")
 			      (setq ielm-error-type "Eval error"))))
