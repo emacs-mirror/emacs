@@ -1,6 +1,7 @@
 /* Header for multibyte character handler.
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -531,6 +532,16 @@ extern int iso_charset_table[2][2][128];
       : (*(str) = LEADING_CODE_8_BIT_CONTROL, *((str)+ 1) = c + 0x20, 2)) \
    : char_to_string (c, (unsigned char *) str))
 
+/* Like CHAR_STRING but don't signal an error if C is invalid.
+   Value is -1 in this case.  */
+
+#define CHAR_STRING_NO_SIGNAL(c, str)					  \
+  (SINGLE_BYTE_CHAR_P (c)						  \
+   ? ((ASCII_BYTE_P (c) || c >= 0xA0)					  \
+      ? (*(str) = (unsigned char)(c), 1)				  \
+      : (*(str) = LEADING_CODE_8_BIT_CONTROL, *((str)+ 1) = c + 0x20, 2)) \
+   : char_to_string_1 (c, (unsigned char *) str))
+
 /* Return a character code of the character of which multi-byte form
    is at STR and the length is LEN.  If STR doesn't contain valid
    multi-byte form, only the first byte in STR is returned.  */
@@ -775,6 +786,7 @@ extern int translate_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_string P_ ((const unsigned char *, int, int *,
 				       unsigned char *, unsigned char *));
 extern int char_to_string P_ ((int, unsigned char *));
+extern int char_to_string_1 P_ ((int, unsigned char *));
 extern int string_to_char P_ ((const unsigned char *, int, int *));
 extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
