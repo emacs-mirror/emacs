@@ -830,7 +830,7 @@ which will run faster and probably do exactly what you want."
 		 (if (= replace-count 1) "" "s")))
     (and keep-going stack)))
 
-(defcustom query-replace-highlight nil
+(defcustom query-replace-highlight t
   "*Non-nil means to highlight words during query replacement."
   :type 'boolean
   :group 'matching)
