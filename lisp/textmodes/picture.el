@@ -414,7 +414,7 @@ Leaves the region surrounding the rectangle."
     (let ((i ?\ ))
       (setq picture-mode-map (make-keymap))
       (while (< i ?\177)
-        (aset picture-mode-map i 'picture-self-insert)
+	(define-key picture-mode-map (make-string 1 i) 'picture-self-insert)
 	(setq i (1+ i)))
       (define-key picture-mode-map "\C-f" 'picture-forward-column)
       (define-key picture-mode-map "\C-b" 'picture-backward-column)
@@ -451,6 +451,10 @@ Leaves the region surrounding the rectangle."
 (defvar edit-picture-hook nil
   "If non-nil, it's value is called on entry to Picture mode.
 Picture mode is invoked by the command \\[edit-picture].")
+
+(defvar picture-mode-old-local-map)
+(defvar picture-mode-old-mode-name)
+(defvar picture-mode-old-major-mode)
 
 ;;;###autoload
 (defun edit-picture ()
