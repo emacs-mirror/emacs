@@ -3932,7 +3932,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      {
 			/* Assume we have a menubar button press. A bad
 			   assumption should behave benignly. */
-			popup_get_selection (&event);
+			popup_get_selection (&event, dpyinfo);
 			break;
 		      }
 #endif /* USE_X_TOOLKIT */
