@@ -129,10 +129,10 @@ system, `read-file-name-electric-shadow-properties' is used instead."
 	 ;; This horrible regexp considers the following patterns as
 	 ;; starting an absolute pathname, when following a `/' or an `\':
 	 ;;   L:  /  //  ~  $  \\  \\\\
-	 "\\(.*[^/]+/+?\\|/*?\\|\\)\\([$~]\\|[][\\^a-z]:\\|//?\\([^][\\^a-z/$~]\\|[^/$~][^:]\\|[^/$~]?\\'\\)\\)")
+	 "\\(.*[^/]+/+?\\|/*?\\|\\)\\(~\\|$[^$]\\|$\\'\\|[][\\^a-z]:\\|//?\\([^][\\^a-z/$~]\\|[^/$~][^:]\\|[^/$~]?\\'\\)\\)")
 	(t
 	 ;; default is for unix-style filenames
-	 "\\(.*/\\)[/$~]"))
+	 "\\(.*/\\)\\([/~]\\|$[^$]\\|$\\'\\)"))
   "Regular expression used to match shadowed filenames.
 There should be at least one regexp group; the end of the first one
 is used as the end of the shadowed portion of the filename.")
