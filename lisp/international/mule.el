@@ -1928,17 +1928,17 @@ This function is intended to be added to `auto-coding-functions'."
   (when (re-search-forward "\\`[[:space:]\n]*<\\?xml")
     (let ((end (save-excursion
 		 ;; This is a hack.
-		 (search-forward "\"\\s-*?>" size t))))
+		 (re-search-forward "\"\\s-*\\?>" size t))))
       (when end
 	(if (re-search-forward "encoding=\"\\(.+?\\)\"" end t)
 	    (let ((match (downcase (match-string 1))))
-	      ;; FIXME: what other encodings are valid, and how can we
-	      ;; translate them to the names of coding systems?
-	      (cond ((string= match "utf-8")
-		     'utf-8)
+	      (cond ((member match '("utf-8" "iso-2022-jp"
+				     "euc-jp" "shift_jis"))
+		     (intern match))
 		    ((string-match "iso-8859-[[:digit:]]+" match)
 		     (intern match))
-		    (t nil)))
+		    (t (message "Warning: unknown XML encoding %s" match)
+		       nil)))
 	  'utf-8)))))
 
 ;;;
