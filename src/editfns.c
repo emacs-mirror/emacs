@@ -1800,10 +1800,9 @@ Use %% to put a single % into the output.")
 
 	/* Process a numeric arg and skip it.  */
 	minlen = atoi (format);
-	if (minlen > 0)
-	  total += minlen;
-	else
-	  total -= minlen;
+	if (minlen < 0)
+	  minlen = - minlen;
+
 	while ((*format >= '0' && *format <= '9')
 	       || *format == '-' || *format == ' ' || *format == '.')
 	  format++;
@@ -1811,7 +1810,7 @@ Use %% to put a single % into the output.")
 	if (*format == '%')
 	  format++;
 	else if (++n >= nargs)
-	  error ("not enough arguments for format string");
+	  error ("Not enough arguments for format string");
 	else if (*format == 'S')
 	  {
 	    /* For `S', prin1 the argument and then treat like a string.  */
@@ -1831,6 +1830,10 @@ Use %% to put a single % into the output.")
 	    if (*format != 's' && *format != 'S')
 	      error ("format specifier doesn't match argument type");
 	    total += XSTRING (args[n])->size;
+	    /* We have to put an arbitrary limit on minlen
+	       since otherwise it could make alloca fail.  */
+	    if (minlen < XSTRING (args[n])->size + 1000)
+	      total += minlen;
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
@@ -1844,6 +1847,10 @@ Use %% to put a single % into the output.")
 	      args[n] = Ffloat (args[n]);
 #endif
 	    total += 30;
+	    /* We have to put an arbitrary limit on minlen
+	       since otherwise it could make alloca fail.  */
+	    if (minlen < 1000)
+	      total += minlen;
 	  }
 #ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]) && *format != 's')
@@ -1851,6 +1858,10 @@ Use %% to put a single % into the output.")
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n]);
 	    total += 30;
+	    /* We have to put an arbitrary limit on minlen
+	       since otherwise it could make alloca fail.  */
+	    if (minlen < 1000)
+	      total += minlen;
 	  }
 #endif
 	else
