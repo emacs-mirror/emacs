@@ -155,7 +155,10 @@ the parent, and then sets the variable `case-fold-search' to nil:
     (setq case-fold-search nil))
 
 Note that if the documentation string had been left out, it would have
-been generated automatically, with a reference to the keymap."
+been generated automatically, with a reference to the keymap.
+
+The new mode runs the hook constructed by the function
+`derived-mode-hook-name'."
   (declare (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body)))
 
@@ -187,6 +190,7 @@ been generated automatically, with a reference to the keymap."
 		     parent child docstring syntax abbrev))
 
     `(progn
+       (defvar ,hook nil ,(format "Hook run when entering %s mode." name))
        (defvar ,map (make-sparse-keymap))
        ,(if declare-syntax
 	    `(defvar ,syntax (make-syntax-table)))
