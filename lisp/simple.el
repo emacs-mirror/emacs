@@ -2562,18 +2562,21 @@ Outline mode sets this."
 	  (if (and (not (integerp selective-display))
 		   (not line-move-ignore-invisible))
 	      ;; Use just newline characters.
+	      ;; Set ARG to 0 if we move as many lines as requested.
 	      (or (if (> arg 0)
 		      (progn (if (> arg 1) (forward-line (1- arg)))
 			     ;; This way of moving forward ARG lines
 			     ;; verifies that we have a newline after the last one.
 			     ;; It doesn't get confused by intangible text.
 			     (end-of-line)
-			     (zerop (forward-line 1)))
+			     (if (zerop (forward-line 1))
+				 (setq arg 0)))
 		    (and (zerop (forward-line arg))
-			 (bolp)))
+			 (bolp)
+			 (setq arg 0)))
 		  (signal (if (< arg 0)
 			      'beginning-of-buffer
-a			    'end-of-buffer)
+			    'end-of-buffer)
 			  nil))
 	    ;; Move by arg lines, but ignore invisible ones.
 	    (while (> arg 0)
@@ -2594,7 +2597,16 @@ a			    'end-of-buffer)
 	      (while (and (not (bobp)) (line-move-invisible (1- (point))))
 		(goto-char (previous-char-property-change (point)))))))
 
-      (line-move-finish (or goal-column temporary-goal-column) opoint)))
+      (cond ((> arg 0)
+	     ;; If we did not move down as far as desired,
+	     ;; at least go to end of line.
+	     (end-of-line))
+	    ((< arg 0)
+	     ;; If we did not move down as far as desired,
+	     ;; at least go to end of line.
+	     (beginning-of-line))
+	    (t
+	     (line-move-finish (or goal-column temporary-goal-column) opoint)))))
   nil)
 
 (defun line-move-finish (column opoint)
