@@ -5514,7 +5514,7 @@ make_lispy_event (event)
 	}
       }
 #endif /* WINDOWSNT */
-#if defined(WINDOWSNT) || defined(MAC_OSX)
+#if defined(MAC_OSX)
     case MOUSE_WHEEL_EVENT:
       {
 	enum window_part part;
@@ -5587,7 +5587,7 @@ make_lispy_event (event)
 					     Qnil))));
 	}
       }
-#endif /* WINDOWSNT || MAC_OSX */
+#endif /* MAC_OSX */
 
     case DRAG_N_DROP_EVENT:
       {
