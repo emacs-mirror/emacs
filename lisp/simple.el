@@ -2350,7 +2350,7 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
     (goto-char position)
     (switch-to-buffer buffer)))
 
-(defcustom next-line-add-newlines t
+(defcustom next-line-add-newlines nil
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
   :type 'boolean
   :group 'editing-basics)
