@@ -1,3 +1,111 @@
+2002-09-03  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes (and some of 2002-08-20 changes of mine) are
+	for handling syntax, category, and case conversion for unibyte
+	characters by converting them to multibyte on the fly.  With these
+	changes, we don't have to setup syntax and case tables for unibyte
+	characters in each language environment.
+
+	* abbrev.c (Fexpand_abbrev): Convert a unibyte character to
+	multibyte if necessary.
+
+	* bytecode.c (Fbyte_code): Likewise.
+
+	* character.h (LEADING_CODE_LATIN_1_MIN) 
+	(LEADING_CODE_LATIN_1_MAX): New macros.
+	(unibyte_to_multibyte_table): Extern it.
+	(unibyte_char_to_multibyte): New macro.
+	(MAKE_CHAR_MULTIBYTE): Use unibyte_to_multibyte_table.
+	(CHAR_LEADING_CODE): New macro.
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): New macro.
+
+	* character.c (unibyte_to_multibyte_table): New variable.
+	(unibyte_char_to_multibyte): Move to character.h and defined as
+	macro.
+	(multibyte_char_to_unibyte): If C is an eight-bit character,
+	convert it to the corresponding byte value.
+
+	* charset.c (Fset_unibyte_charset): If the dimension of CHARSET is
+	not 1, singals an error.  Update the elements of
+	unibyte_to_multibyte_table.
+	(init_charset_once): Initialize unibyte_to_multibyte_table.
+	(syms_of_charset): Define the charset `iso-8859-1'.
+
+	* casefiddle.c (casify_object): Fix previous change.
+
+	* cmds.c (internal_self_insert): In a multibyte buffer, insert C
+	as is without converting it to unibyte.  In a unibyte buffer,
+	convert C to multibyte before checking the syntax.
+
+	* lisp.h (unibyte_char_to_multibyte): Extern deleted.
+
+	* minibuf.c (Fminibuffer_complete_word): Use the macro
+	FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE.
+
+	* regex.h (struct re_pattern_buffer): New member target_multibyte.
+
+	* regex.c (RE_TARGET_MULTIBYTE_P): New macro.
+	(GET_CHAR_BEFORE_2): Check target_multibyte, not multibyte.  If
+	that is zero, convert an eight-bit char to multibyte.
+	(MAKE_CHAR_MULTIBYTE, CHAR_LEADING_CODE): New dummy new macros for
+	non-emacs case.
+	(PATFETCH): Convert an eight-bit char to multibyte.
+	(HANDLE_UNIBYTE_RANGE): New macro.
+	(regex_compile): Setup the compiled pattern for multibyte chars
+	even if the given regex string is unibyte.  Use PATFETCH_RAW
+	instead of PATFETCH in many places.  To handle `charset'
+	specification of unibyte, call HANDLE_UNIBYTE_RANGE.   Use bitmap
+	only for ASCII chars.
+	(analyse_first) <exactn>: Simplified because the compiled pattern
+	is multibyte.
+	<charset_not>: Setup fastmap from bitmap only for ASCII chars.
+	<charset>: Use CHAR_LEADING_CODE to get leading codes.
+	<categoryspec>: If multibyte, setup fastmap only for ASCII chars
+	here.
+	(re_compile_fastmap) [emacs]: Call analyse_first with the arg
+	multibyte always 1.
+	(re_search_2) In emacs, set the locale variable multibyte to 1,
+	otherwise to 0.  New local variable target_multibyte.  Check it
+	to decide the multibyteness of STR1 and STR2.  If
+	target_multibyte is zero, convert unibyte chars to multibyte
+	before translating and checking fastmap.
+	(TARGET_CHAR_AND_LENGTH): New macro.
+	(re_match_2_internal): In emacs, set the locale variable multibyte
+	to 1, otherwise to 0.  New local variable target_multibyte.  Check
+	it to decide the multibyteness of STR1 and STR2.  Use
+	TARGET_CHAR_AND_LENGTH to fetch a character from D.
+	<charset, charset_not>: If multibyte is nonzero, check fastmap
+	only for ASCII chars.   Call bcmp_translate with
+	target_multibyte, not with multibyte.
+	<begline>: Declare the local variable C as `unsigned'.
+	(bcmp_translate): Change the last arg name to target_multibyte.
+
+	* search.c (compile_pattern_1): Don't adjust the multibyteness of
+	the regexp pattern and the matching target.  Set cp->buf.multibyte
+	to the multibyteness of the regexp pattern.  Set
+	cp->but.target_multibyte to the multibyteness of the matching
+	target.
+	(wordify): Use FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE instead of
+	FETCH_STRING_CHAR_ADVANCE.
+	(Freplace_match): Convert unibyte chars to multibyte.
+
+	* syntax.c (char_quoted): Use FETCH_CHAR_AS_MULTIBYTE to convert
+	unibyte chars to multibyte.
+	(back_comment): Likewise.
+	(scan_words): Likewise.
+	(skip_chars): The arg syntaxp is deleted, and the code for
+	handling syntaxes is moved to skip_syntaxes.  Callers changed.
+	Fix the case that the multibyteness of STRING and the current
+	buffer doesn't match.
+	(skip_syntaxes): New function.
+	(SYNTAX_WITH_MULTIBYTE_CHECK): Check C by ASCII_CHAR_P, not by
+	SINGLE_BYTE_CHAR_P.
+	(Fforward_comment): Use FETCH_CHAR_AS_MULTIBYTE to convert unibyte
+	chars to multibyte.
+	(scan_lists): Likewise.
+	(Fbackward_prefix_chars): Likewise.
+	(scan_sexps_forward): Likewise.
+
 2002-08-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (QCfontset): New variable.
