@@ -1,3 +1,13 @@
+2000-05-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el: New version from Francis J. Wright
+	<F.J.Wright@Maths.QMW.ac.uk>.
+	(woman-parse-colon-path): Support Cygwin-style //d/foo/bar file
+	names in environment variables regardless of the path separator.
+	(woman-topic-all-completions-1): Don't call file-name-directory-p
+	on all files, since woman-file-regexp already filters out any
+	directories.
+
 2000-05-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-start-translation): Don't change
