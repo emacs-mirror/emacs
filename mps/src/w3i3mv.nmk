@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.1)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.2)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -9,14 +9,16 @@ PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
-      <poolmv> <root> <fix> <format> <buffer> <locknt>
+      <poolmv> <root> <format> <buffer> <locknt> \
+      <collect> <ref> <trace>
+AMC = <amc> <amcgroup>
 TESTLIB = <testlib>
 
 #!INCLUDE mv.nmk
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.1)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.2)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -37,6 +39,7 @@ TESTLIB = <testlib>
 #            platform.  Each source is stripped of its .c extension
 #            and surrounded in angle brackets (<>)
 #   MPM      as above for the "mpm" part
+#   AMC      as above for the "amc" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -55,7 +58,7 @@ TESTLIB = <testlib>
 # [These only test if the symbol is defined; there is opportunity to be more
 #  comprehensive]
 #
-# %%PART: Add checks for the parameter eith the sources for the new part.
+# %%PART: Add checks for the parameter with the sources for the new part.
 
 !IFNDEF PFM
 !ERROR mv.nmk: PFM not defined
@@ -68,6 +71,9 @@ TESTLIB = <testlib>
 !ENDIF
 !IFNDEF MPM
 !ERROR mv.nmk: MPM not defined
+!ENDIF
+!IFNDEF AMC
+!ERROR mv.nmk: AMC not defined
 !ENDIF
 !IFNDEF TESTLIB
 !ERROR mv.nmk: TESTLIB not defined
@@ -90,7 +96,8 @@ ECHO = echo
 
 # All compilations
 # [Sadly /W4 causes <windows.h> to emit thousands of warnings]
-CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) 
+# /MT means compile for multi-threaded environment.
+CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) /MT
 
 # "debug" variety flags
 # [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
@@ -104,13 +111,17 @@ CFRELEASE = /DVALID_NONE /O2
 # "devel" variety flags
 CFDEVEL = /DDEBUG /DVALID_ALL /Z7
 
+# "cover" variety flags
+CFCOVER = /DDEBUG /DVALID_NONESTED /Z7
+
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
 LINKFLAGSCOMMON = /nologo
-LFDEBUG = /PROFILE /DEBUG:full /DEBUGTYPE:cv
+LFDEBUG = /DEBUG:full /DEBUGTYPE:cv
 LFRELEASE = /RELEASE
 LFDEVEL = $(LFDEBUG)
+LFCOVER = /PROFILE /DEBUG:full /DEBUGTYPE:cv
 
 # Library manager
 # %%VARIETY: define a macro containing the flags for the new variety
@@ -119,6 +130,7 @@ LIBFLAGSCOMMON = /nologo
 LIBFLAGSDEB = 
 LIBFLAGSREL = 
 LIBFLAGSDEV =
+LIBFLAGSCOV =
 
 # Browser database manager [not used at present]
 #BSC = bscmake
@@ -142,6 +154,8 @@ STDOBJ0 = $(STD:<=nti3mv\debug\)
 STDOBJ = $(STDOBJ0:>=.obj)
 MPMOBJ0 = $(MPM:<=nti3mv\debug\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=nti3mv\debug\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\debug\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -153,6 +167,8 @@ STDOBJ0 = $(STD:<=nti3mv\release\)
 STDOBJ = $(STDOBJ0:>=.obj)
 MPMOBJ0 = $(MPM:<=nti3mv\release\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=nti3mv\release\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\release\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
@@ -164,7 +180,22 @@ STDOBJ0 = $(STD:<=nti3mv\devel\)
 STDOBJ = $(STDOBJ0:>=.obj)
 MPMOBJ0 = $(MPM:<=nti3mv\devel\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=nti3mv\devel\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\devel\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+
+!ELSEIF "$(VARIETY)" == "cover"
+CFLAGS=$(CFLAGSCOMMON) $(CFCOVER)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCOVER)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCOV)
+STDOBJ0 = $(STD:<=nti3mv\cover\)
+STDOBJ = $(STDOBJ0:>=.obj)
+MPMOBJ0 = $(MPM:<=nti3mv\cover\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=nti3mv\cover\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\cover\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 !ENDIF
 
@@ -174,20 +205,23 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib
+all: amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
+amcdev.exe lockutnt.exe lockcov.exe stdcover.exe mpmstres.exe std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
+
+amcdev.cov:
+	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cover variety
 
 # "clean" removes the directory containing the build results for the platform
 
 clean:
 	$(ECHO) $(PFM): $@
-        -echo y | rmdir/s $(PFM)
-        -deltree /Y $(PFM)
+	-echo y | rmdir/s $(PFM)
+	-deltree /Y $(PFM)
 
 # target target
 # %%VARIETY: Add a recusive make call for the new variety
@@ -232,10 +266,15 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
 	$(MPMOBJ) $(STDOBJ)
 
+$(PFM)\$(VARIETY)\amcdev.exe:  $(PFM)\$(VARIETY)\amcdev.obj $(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
+	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
+
+$(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
@@ -248,17 +287,26 @@ $(PFM)\$(VARIETY)\mpm.lib: $(STDOBJ) $(MPMOBJ)
 {}.c{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
-        @if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-        cl /c $(CFLAGS) /MT /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
-#                   %%mt ^^
+	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
+	cl /c $(CFLAGS) /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+
+# Coverage files
+{$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
+	$(ECHO) $@
+ 	cd $(PFM)\$(VARIETY)
+	prep /nologo /lv  $(<F)
+	profile /nologo $(<B)
+	prep /nologo /m $(<B)
+	plist /nologo /D ..\.. $(<B) > $(@F)
+
 
 # Depenencies
 # [we can't build these at the moment]
 
 # Executables
+# libcmt.lib is the library needed for multi-threaded programs.
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
 	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libcmt.lib
-#                                        %%mt^^^^^^
 #!INCLUDE depend.mak
