@@ -237,6 +237,7 @@ static int pagemask;
 #endif
 
 #ifdef emacs
+#include "lisp.h"
 
 static
 report_error (file, fd)
@@ -245,7 +246,7 @@ report_error (file, fd)
 {
   if (fd)
     close (fd);
-  error ("Failure operating on %s", file);
+  report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
 #endif /* emacs */
 
