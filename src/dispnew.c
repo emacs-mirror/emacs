@@ -809,10 +809,6 @@ enable_glyph_matrix_rows (matrix, start, end, enabled_p)
      int start, end;
      int enabled_p;
 {
-  xassert (start <= end);
-  xassert (start >= 0 && start < matrix->nrows);
-  xassert (end >= 0 && end <= matrix->nrows);
-  
   for (; start < end; ++start)
     matrix->rows[start].enabled_p = enabled_p != 0;
 }
