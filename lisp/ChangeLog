@@ -1,3 +1,7 @@
+2003-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (process-put, process-get): New functions.
+
 2003-01-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-dep.el (custom-make-dependencies):  Don't set standard-value
