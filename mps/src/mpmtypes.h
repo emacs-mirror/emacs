@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpmtypes.h(trunk.81) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -286,20 +286,34 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
                          AttrPM_NO_WRITE | AttrALLOC | AttrFREE | \
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB | AttrMOVINGGC)
-#define FormatVarietyA  ((FormatVariety)0)
-#define FormatVarietyB  ((FormatVariety)1)
-#define FormatVarietyAutoHeader ((FormatVariety)2)
-#define SegPrefHigh     ((SegPrefKind)0)
-#define SegPrefLow      ((SegPrefKind)1)
-#define SegPrefRefSet   ((SegPrefKind)2)
-#define SegPrefGen      ((SegPrefKind)3)
-#define SegPrefCollected  ((SegPrefKind)4)
+
+
+/* Format varieties */
+enum {
+ FormatVarietyA,
+ FormatVarietyB,
+ FormatVarietyAutoHeader,
+ FormatVarietyLIMIT
+};
+
+
+/* Segment preferences */
+enum {
+  SegPrefHigh,
+  SegPrefLow,  
+  SegPrefRefSet,
+  SegPrefGen,
+  SegPrefCollected,
+  SegPrefLIMIT
+};
+
 
 /* Buffer modes */
 #define BufferModeATTACHED      ((BufferMode)(1<<0))
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
 #define BufferModeTRANSITION    ((BufferMode)(1<<3))
+
 
 /* Buffer frame states. See design.mps.alloc-frame.lw-frame.states */
 enum {
@@ -343,7 +357,8 @@ enum {
   RootTABLE,
   RootTABLE_MASKED,
   RootREG,
-  RootFMT
+  RootFMT,
+  RootLIMIT
 };
 
 
@@ -376,12 +391,6 @@ enum {
   TraceFINISHED
 };
 
-/* CheckLevel's --- Used to control check method behaviour */
-enum {
-  CheckNONE = 0,
-  CheckSHALLOW = 1,
-  CheckDEEP = 2
-};
 
 /* MessageTypes -- see design.mps.message */
 /* .message.types: Keep in sync with impl.h.mps.message.types */
