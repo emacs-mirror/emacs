@@ -2,7 +2,7 @@
 
 	* textmodes/artist.el (artist-butlast): Deleted.
 	(artist-ellipse-mirror-quadrant): Use butlast instead of
-	artist-last.
+	artist-butlast.
 
 	* subr.el (butlast, nbutlast): Moved from cl.el to here.
 
