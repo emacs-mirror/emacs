@@ -301,7 +301,6 @@ detailed meanings of these arguments."
 	(setq min (aref range 0)
 	      max (aref range 1))
 	(if (= dim 1)
-	    ;; Fixme: get iso 1-dim codes right
 	    (list-block-of-chars charset 0 min max)
 	  (setq min2 (aref range 2)
 		max2 (aref range 3))
@@ -320,42 +319,58 @@ detailed meanings of these arguments."
   (help-setup-xref (list #'describe-character-set charset) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
-      (insert "Character set: " (symbol-name charset) ?\n)
-      (insert (charset-description charset) "\n\n")
-      (if (plist-get (charset-plist charset) :ascii-compatible-p)
-	  (insert "ASCII compatible.\n"))
+      (insert "Character set: " (symbol-name charset))
+      (let ((name (get-charset-property charset :name)))
+	(if (not (eq name charset))
+	    (insert " (alias of " (symbol-name name) ?\))))
+      (insert "\n\n" (charset-description charset) "\n\n")
       (insert "Number of contained characters: "
 	      (if (= (charset-dimension charset) 1)
 		  (format "%d\n" (charset-chars charset))
 		(format "%dx%d\n" (charset-chars charset)
 			(charset-chars charset))))
-      (insert "Final char of ISO2022 designation sequence: ")
-      (if (> (charset-iso-final-char charset) 0)
-	  (insert (format "`%c'\n" (charset-iso-final-char charset)))
-	(insert "not assigned\n"))
+      (let ((char (charset-iso-final-char charset)))
+	(when (> char 0)
+	  (insert "Final char of ISO2022 designation sequence: ")
+	  (insert (format "`%c'\n" char))))
       (insert (format "Width (how many columns on screen): %d\n"
 		      (aref char-width-table (make-char charset))))
-      (let ((map (plist-get (charset-plist charset) :map)))
-	(if (stringp map)
-	    (insert "Loaded from map file " map ?\n)))
-      (let ((invalid (plist-get (charset-plist charset) :invalid-code)))
-	(if invalid
-	    (insert (format "Invalid character: %c (code %d)\n"
-			    invalid invalid))))
-      (let ((id (plist-get (charset-plist charset) :emacs-mule-id)))
-	(if id
-	    (insert "Id in emacs-mule coding system: "
-		    (number-to-string id) ?\n)))
-;; Fixme: junk this?
-;;       (let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
-;; 	(when coding
-;; 	  (insert (format "Preferred coding system: %s\n" coding))
-;; 	  (search-backward (symbol-name coding))
-;; 	  (help-xref-button 0 'help-coding-system coding)))
-
-      ;; Fixme: parents, code-space, iso-revision-number,
-      ;; supplementary-p, code-offset, unify-map?
-      )))
+      (let (aliases)
+	(dolist (c charset-list)
+	  (if (and (not (eq c charset))
+		   (eq charset (get-charset-property c :name)))
+	      (push c aliases)))
+	(if aliases
+	    (insert "Aliases: " (mapconcat #'symbol-name aliases ", ") ?\n)))
+      
+      (dolist (elt `((:ascii-compatible-p "ASCII compatible." nil)
+		     (:map "Map file: " identity)
+		     (:unify-map "Unification map file: " identity)
+		     (:invalid-code
+		      nil
+		      ,(lambda (c)
+			 (format "Invalid character: %c (code %d)" c c)))
+		     (:emacs-mule-id "Id in emacs-mule coding system: "
+				     number-to-string)
+		     (:parents "Parents: "
+			       (lambda (parents)
+				 (mapconcat ,(lambda (elt)
+					       (format "%s" elt))
+					    parents
+					    ", ")))
+		     (:code-space "Code space: " ,(lambda (c)
+						    (format "%s" c)))
+		     (:code-offset "Code offset: " number-to-string)
+		     (:iso-revision-number "ISO revision number: "
+					   number-to-string)
+		     (:supplementary-p
+		      "Used only as a parent of some other charset." nil)))
+	(let ((val (get-charset-property charset (car elt))))
+	  (when val
+	    (if (cadr elt) (insert (cadr elt)))
+	    (if (nth 2 elt)
+		(insert (funcall (nth 2 elt) val)))
+	    (insert ?\n)))))))
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
@@ -432,6 +447,7 @@ which font is being used for displaying the character."
 		   (if encoded
 		       (list (encoded-string-description encoded coding)
 			     (format "(encoded by coding system %S)" coding))
+		     ;; Fixme: this is wrong e.g. for chars in HELLO
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
 	      ,@(if (or (memq 'mule-utf-8
@@ -762,8 +778,9 @@ Priority order for recognizing coding systems when reading files:\n")
 	    (lambda (x)
 	      (if (and (not (eq x coding-system))
 		       (coding-system-get x 'no-initial-designation)
-		       (let ((flags (coding-system-flags x)))
-			 (not (or (aref flags 10) (aref flags 11)))))
+		       (let ((flags (coding-system-get :flags)))
+			 (not (or (memq 'use-roman flags)
+				  (memq 'use-oldjis flags)))))
 		  (setq codings (cons x codings)))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
@@ -810,7 +827,7 @@ Priority order for recognizing coding systems when reading files:\n")
   "Print detailed information on CODING-SYSTEM."
   (let ((type (coding-system-type coding-system))
 	(eol-type (coding-system-eol-type coding-system))
-	(flags (coding-system-flags coding-system))
+	(flags (coding-system-get coding-system :flags))
 	(aliases (coding-system-get coding-system 'alias-coding-systems)))
     (if (not (eq (car aliases) coding-system))
 	(princ (format "%s (alias of %s)\n" coding-system (car aliases)))
@@ -824,7 +841,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		     type
 		     (coding-system-mnemonic coding-system)
 		     (if (integerp eol-type) eol-type 3)))
-      (cond ((eq type 2)		; ISO-2022
+      (cond ((eq type 'iso2022)
 	     (let ((idx 0)
 		   charset)
 	       (while (< idx 4)
@@ -851,7 +868,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		 (princ ",")
 		 (setq idx (1+ idx)))
 	       (princ (if (aref flags idx) 1 0))))
-	    ((eq type 4)		; CCL
+	    ((eq type 'ccl)
 	     (let (i len)
 	       (if (symbolp (car flags))
 		   (princ (format " %s" (car flags)))
@@ -1014,18 +1031,26 @@ the current buffer."
 				 (if (= (charset-chars charset) 94) 126 127))))
 	    (insert to))))
       (indent-to 24)
-      (if (stringp font-spec)
-	  (insert font-spec)
-	(if (car font-spec)
-	    (if (string-match "-" (car font-spec))
-		(insert "-" (car font-spec) "-*-")
-	      (insert "-*-" (car font-spec) "-*-"))
-	  (insert "-*-"))
-	(if (cdr font-spec)
-	    (if (string-match "-" (cdr font-spec))
-		(insert (cdr font-spec))
-	      (insert (cdr font-spec) "-*"))
-	  (insert "*")))
+      (cond ((stringp font-spec)
+	     (insert font-spec))
+	    ((vectorp font-spec)
+	     (insert "*-" (or (aref font-spec 0) ?*) ; family
+		     ?- (or (aref font-spec 1) ?*) ; weight
+		     ?- (or (aref font-spec 2) ?*) ; slant
+		     "-*-" (or (aref font-spec 3) ?*) ; width
+		     "-*-" (or (aref font-spec 4) ?*) ; adstyle
+		     "-*-*-*-*-*-*-" (aref font-spec 5))) ; registry
+	    (t
+	     (if (car font-spec)
+		 (if (string-match "-" (car font-spec))
+		     (insert "-" (car font-spec) "-*-")
+		   (insert "-*-" (car font-spec) "-*-"))
+	       (insert "-*-"))
+	     (if (cdr font-spec)
+		 (if (string-match "-" (cdr font-spec))
+		     (insert (cdr font-spec))
+		   (insert (cdr font-spec) "-*"))
+	       (insert "*"))))
       (insert "\n")
       (when print-fonts
 	(while opened
