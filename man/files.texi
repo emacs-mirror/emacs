@@ -1225,7 +1225,7 @@ RCS normally use locking; CVS normally does not use locking.
 @menu
 * VC with Locking::     RCS in its default mode, SCCS, and optionally CVS.
 * Without Locking::     Without locking: default mode for CVS.
-* Extended C-x C-q::    Advanced features available with a prefix argument.
+* Advanced C-x C-q::    Advanced features available with a prefix argument.
 * Log Buffer::          Features available in log entry buffers.
 @end menu
                
