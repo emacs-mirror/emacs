@@ -242,9 +242,9 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 	(setq visible (or arg ''nil)))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
-      (if (and visible (not (easy-menu-always-true visible)))
+      (if (and visible (not (easy-menu-always-true-p visible)))
 	  (setq prop (cons :visible (cons visible prop))))
-      (if (and enable (not (easy-menu-always-true enable)))
+      (if (and enable (not (easy-menu-always-true-p enable)))
 	  (setq prop (cons :enable (cons enable prop))))
       (if filter (setq prop (cons :filter (cons filter prop))))
       (if help (setq prop (cons :help (cons help prop))))
@@ -363,12 +363,12 @@ ITEM defines an item as in `easy-menu-define'."
 				  (cons cmd keys))))
 		   (setq cache-specified nil))
 		 (if keys (setq prop (cons :keys (cons keys prop)))))
-	      (if (and visible (not (easy-menu-always-true visible)))
+	      (if (and visible (not (easy-menu-always-true-p visible)))
 		  (if (equal visible ''nil)
 		      ;; Invisible menu item. Don't insert into keymap.
 		      (setq remove t)
 		    (setq prop (cons :visible (cons visible prop)))))))
-	(if (and active (not (easy-menu-always-true active)))
+	(if (and active (not (easy-menu-always-true-p active)))
 	    (setq prop (cons :enable (cons active prop))))
 	(if (and (or no-name cache-specified)
 		 (or (null cache) (stringp cache) (vectorp cache)))
@@ -426,7 +426,8 @@ KEY does not have to be a symbol, and comparison is done with equal."
 
 (defun easy-menu-name-match (name item)
   "Return t if NAME is the name of menu item ITEM.
-NAME can be either a string, or a symbol."
+NAME can be either a string, or a symbol.
+ITEM should be a keymap binding of the form (KEY . MENU-ITEM)."
   (if (consp item)
       (if (symbolp name)
 	  (eq (car-safe item) name)
@@ -439,7 +440,7 @@ NAME can be either a string, or a symbol."
 		(eq (car-safe item) (intern name))
 		(eq (car-safe item) (easy-menu-intern name)))))))
 
-(defun easy-menu-always-true (x)
+(defun easy-menu-always-true-p (x)
   "Return true if form X never evaluates to nil."
   (if (consp x) (and (eq (car x) 'quote) (cadr x))
     (or (eq x t) (not (symbolp x)))))
@@ -591,10 +592,24 @@ If item is an old format item, a new format item is returned."
       (cons name item))			; Keymap or new menu format
      )))
 
-(defun easy-menu-get-map-look-for-name (name submap)
-  (while (and submap (not (easy-menu-name-match name (car submap))))
-    (setq submap (cdr submap)))
-  submap)
+(defun easy-menu-lookup-name (map name)
+  "Lookup menu item NAME in keymap MAP.
+Like `lookup-key' except that NAME is not an array but just a single key
+and that NAME can be a string representing the menu item's name."
+  (or (lookup-key map (vector (easy-menu-intern name)))
+      (when (stringp name)
+	;; `lookup-key' failed and we have a menu item name: look at the
+	;; actual menu entries's names.
+	(catch 'found
+	  (map-keymap (lambda (key item)
+			(if (condition-case nil (member name item)
+			      (error nil))
+			    ;; Found it!!  Look for it again with
+			    ;; `lookup-key' so as to handle inheritance and
+			    ;; to extract the actual command/keymap bound to
+			    ;; `name' from the item (via get_keyelt).
+			    (throw 'found (lookup-key map (vector key)))))
+		      map)))))
 
 (defun easy-menu-get-map (map path &optional to-modify)
   "Return a sparse keymap in which to add or remove an item.
@@ -605,34 +620,34 @@ wants to modify in the map that we return.
 In some cases we use that to select between the local and global maps."
   (setq map
 	(catch 'found
-	  (let* ((key (vconcat (unless map '(menu-bar))
-			       (mapcar 'easy-menu-intern path)))
-		 (maps (mapcar (lambda (map)
-				 (setq map (lookup-key map key))
-				 (while (and (symbolp map) (keymapp map))
-				   (setq map (symbol-function map)))
-				 map)
-			       (if map
-				   (list (if (and (symbolp map)
-						  (not (keymapp map)))
-					     (symbol-value map) map))
-				 (current-active-maps)))))
+	  (if (and map (symbolp map) (not (keymapp map)))
+	      (setq map (symbol-value map)))
+	  (let ((maps (or map (current-active-maps))))
+	    ;; Look for PATH in each map.
+	    (unless map (push 'menu-bar path))
+	    (dolist (name path)
+	      (setq maps
+		    (delq nil (mapcar (lambda (map)
+					(setq map (easy-menu-lookup-name
+						   map name))
+					(and (keymapp map) map))
+				      maps))))
+
 	    ;; Prefer a map that already contains the to-be-modified entry.
 	    (when to-modify
 	      (dolist (map maps)
-		(when (and (keymapp map)
-			   (easy-menu-get-map-look-for-name to-modify map))
+		(when (easy-menu-lookup-name map to-modify)
 		  (throw 'found map))))
 	    ;; Use the first valid map.
-	    (dolist (map maps)
-	      (when (keymapp map)
-		(throw 'found map)))
+	    (when maps (throw 'found (car maps)))
+
 	    ;; Otherwise, make one up.
 	    ;; Hardcoding current-local-map is lame, but it's difficult
 	    ;; to know what the caller intended for us to do ;-(
 	    (let* ((name (if path (format "%s" (car (reverse path)))))
 		   (newmap (make-sparse-keymap name)))
-	      (define-key (or map (current-local-map)) key
+	      (define-key (or map (current-local-map))
+		(apply 'vector (mapcar 'easy-menu-intern path))
 		(if name (cons name newmap) newmap))
 	      newmap))))
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))
@@ -640,5 +655,5 @@ In some cases we use that to select between the local and global maps."
 
 (provide 'easymenu)
 
-;;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
+;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
 ;;; easymenu.el ends here
