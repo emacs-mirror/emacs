@@ -497,6 +497,23 @@ This returns ARGS with the arguments that have been processed removed."
 (put 'clear 'ascii-character 12)
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
+
+(setq vendor-key-syms
+      '(
+	;; These are some HP keys.
+	(65388 . reset)
+	(65389 . system)
+	(65390 . user)
+	(65391 . clearline)
+	(65392 . insertline)
+	(65393 . deleteline)
+	(65394 . insertchar)
+	(65395 . deletechar)
+	(65396 . backtab)
+	(65397 . kp-backtab)
+	;; This is used on some system or other.
+	(0 . remove)
+	))
 
 ;;;; Selections and cut buffers
 
