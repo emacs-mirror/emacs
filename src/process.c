@@ -1080,8 +1080,6 @@ Remaining arguments are strings to give program as arguments.")
 #else /* not VMS */
   new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
 
-  program = Fexpand_file_name (program, Qnil);
-
   /* If program file name is not absolute, search our path for it */
   if (!IS_DIRECTORY_SEP (XSTRING (program)->data[0])
       && !(XSTRING (program)->size > 1
@@ -1095,6 +1093,7 @@ Remaining arguments are strings to give program as arguments.")
       UNGCPRO;
       if (NILP (tem))
 	report_file_error ("Searching for program", Fcons (program, Qnil));
+      tem = Fexpand_file_name (tem, Qnil);
       new_argv[0] = XSTRING (tem)->data;
     }
   else
