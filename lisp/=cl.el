@@ -1804,7 +1804,7 @@ DIVISOR defaults to 1.  The remainder is produced as a second value."
 ;;; These two functions access the implementation-dependent representation of
 ;;; the multiple value returns.
 
-(defun mod (number divisor)
+(defun cl-mod (number divisor)
   "Return remainder of X by Y (rounding quotient toward minus infinity).
 That is, the remainder goes with the quotient produced by `cl-floor'.
 Emacs Lisp hint:
