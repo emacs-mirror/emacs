@@ -216,6 +216,8 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
 				   "$\\|^[ \t]*[-_][-_][-_]+$\\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'mail-mode-hook))
+
+;;; Set up keymap.
 
 (if mail-mode-map
     nil
@@ -233,6 +235,48 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (define-key mail-mode-map "\C-c\C-v" 'mail-sent-via)
   (define-key mail-mode-map "\C-c\C-c" 'mail-send-and-exit)
   (define-key mail-mode-map "\C-c\C-s" 'mail-send))
+
+(define-key mail-mode-map [menu-bar mail]
+  (cons "Mail" (make-sparse-keymap "Mail")))
+
+(define-key mail-mode-map [menu-bar mail fill]
+  '("Fill Citation" . mail-fill-yanked-message))
+
+(define-key mail-mode-map [menu-bar mail yank]
+  '("Cite Original" . mail-yank-original))
+
+(define-key mail-mode-map [menu-bar mail signature]
+  '("Insert Signature" . mail-signature))
+
+(define-key mail-mode-map [menu-bar mail send-stay]
+  '("Send, Keep Editing" . mail-send))
+
+(define-key mail-mode-map [menu-bar mail send]
+  '("Send Message" . mail-send-and-exit))
+
+(define-key mail-mode-map [menu-bar headers]
+  (cons "Headers" (make-sparse-keymap "Headers")))
+
+(define-key mail-mode-map [menu-bar headers sent-via]
+  '("Sent Via" . mail-sent-via))
+
+(define-key mail-mode-map [menu-bar headers text]
+  '("Text" . mail-text))
+
+(define-key mail-mode-map [menu-bar headers bcc]
+  '("Bcc" . mail-bcc))
+
+(define-key mail-mode-map [menu-bar headers fcc]
+  '("Fcc" . mail-fcc))
+
+(define-key mail-mode-map [menu-bar headers cc]
+  '("Cc" . mail-cc))
+
+(define-key mail-mode-map [menu-bar headers subject]
+  '("Subject" . mail-subject))
+
+(define-key mail-mode-map [menu-bar headers to]
+  '("To" . mail-to))
 
 (defun mail-send-and-exit (arg)
   "Send message like `mail-send', then, if no errors, exit from mail buffer.
