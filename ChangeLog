@@ -1,3 +1,8 @@
+2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (SOURCES): Replace GETTING.GNU.SOFTWARE with FTP.
+	From Eric S. Raymond <esr@golux.thyrsus.com>.
+
 2001-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in (s390-*-linux-gnu): New system.  From Adam Thornton

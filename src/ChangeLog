@@ -256,6 +256,10 @@
 
 	* frame.c (Fframe_parameter): Fix last change.
 
+	* fileio.c: Revert last change (which removed old commented-out
+	version of expand-file-name).  Add a comment that explains why
+	this old version should not be removed.
+
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (Fframe_parameter): Fix a bug whereby some
