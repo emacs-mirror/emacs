@@ -20,10 +20,6 @@
 	Link Leim files to ${tempdir}/leim, not to real-leim.  Don't move
 	Leim files out of the Emacs tree.  Don't prepare a separate tarball
 	for Leim.
-	
-2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* configure: Regenerated.
 
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
@@ -87,8 +83,6 @@
 
 	* configure.in (AC_OUTPUT): Add lispintro/Makefile.
 
-	* configure: Regenerated.
-
 	* Makefile.in (SUBDIR_MAKEFILES): Add lispintro.
 	(lispintro/Makefile): New target.
 	(mostlyclean, clean, distclean, maintainer-clean): Add lispintro.
@@ -116,13 +110,9 @@
 
 	* configure.in: Add coff.h to the list in AC_CHECK_HEADERS.
 
-	* configure: Regenerated.
-
 2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Fix previous change.
-
-	* configure: Regenerated.
 
 	* configure.in, Makefile.in: Add support for --program-prefix,
 	--program-suffix and --program-transform-name options.
@@ -147,8 +137,6 @@
 
 	* configure.in: AC_OUTPUT lispref/Makefile.
 
-	* configure: Regenerated.
-
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	The following changes add the ELisp reference manual to the
@@ -172,18 +160,11 @@
 
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* AUTHORS: Regenerate.
-
 	* make-dist (tempdir): Copy AUTHORS as well.
 
 2001-11-06  Sam Steingold  <sds@gnu.org>
 
 	* configure.in: Added a check for <nlist.h>
-	* configure: Regenerated.
-
-2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* configure: Regenerated.
 
 2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -238,7 +219,6 @@
 	* configure.in: Make ready for autoconf 2.5x.
 	(AC_PREREQ): Require autoconf 2.50.
 	* aclocal.m4: Removed.
-	* configure: Regenerated.
 	* Makefile.in (${srcdir}/configure): Don't depend on aclocal.m4.
 
 2001-10-13  Eli Zaretskii  <eliz@is.elta.co.il>

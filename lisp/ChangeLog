@@ -1220,8 +1220,6 @@
 
 2001-11-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* loaddefs.el: Regenerated.
-
 	* international/mule-diag.el: Require help-fns instead of
 	help-funs.
 
@@ -2158,8 +2156,6 @@
 	Allow nil as value, and make nil the default.
 
 2001-11-11  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* subdirs.el: Regenerated.
 
 	* menu-bar.el (menu-bar-edit-menu): Don't use x-selection-exists-p if
 	it is not fboundp.
