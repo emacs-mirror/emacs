@@ -1,3 +1,36 @@
+2001-12-15  Dave Love  <fx@gnu.org>
+
+	* language/georgian.el: New file.
+
+	* international/mule-cmds.el (locale-language-names): Add various
+	entries.  Remove utf-8 special case.
+	(locale-charset-language-names, locale-preferred-coding-systems):
+	Add utf-8 case.
+	(set-language-environment): Process required-features earlier.
+
+	* international/quail.el (quail-keyboard-layout-alist): Add
+	pc105-uk.
+	(quail-keyboard-layout-type): Fix :type.
+	(quail-choose-completion-string): Simplify.
+	(quail-update-leim-list-file): Don't get fooled by commented-out
+	code.
+	(quail-input-string-to-events): Run events through
+	translation-table-for-input.
+
+	* international/mule-conf.el (translation-table-for-input): New
+	variable.
+	(latin-iso8859-14): Amend description.
+	(file-coding-system-alist): Add entry for utf-8.
+
+	* language/utf-8-lang.el: New file.
+
+	* international/code-pages.el: New file.
+
+	* language/hebrew.el ("Windows-1255"): New language.
+
+	* language/european.el ("Welsh", "Latin-7", "Lithuanian") 
+	("Latvian"): New languages.
+
 2001-12-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* select.el (xselect-convert-to-class, xselect-convert-to-name):
@@ -75,8 +108,6 @@
 
 	* international/characters.el (Unicode): Comment out
 	the specifications for kelvin and angstrom signs.
-
-2001-12-12  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (make-translation-table-from-vector):
 	Allow null elements in VEC.
