@@ -70,6 +70,22 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
     ;; for several related directories.
     (setq file-name
 	  (expand-file-name (or (file-symlink-p file-name) file-name)))
+    ;; Move up in the dir hierarchy till we find a change log file.
+    (let ((file1 file-name)
+	  parent-dir)
+      (while (and (not (file-exists-p file1))
+		  (progn (setq parent-dir
+			       (file-name-directory
+				(directory-file-name
+				 (file-name-directory file1))))
+			 ;; Give up if we are already at the root dir.
+			 (not (string= (file-name-directory file1) parent-dir))))
+	;; Move up to the parent dir and try again.
+	(setq file1 (expand-file-name (change-log-name) parent-dir)))
+      ;; If we found a change log in a parent, use that.
+      (if (file-exists-p file1)
+	  (setq file-name file1)))
+
     (set (make-local-variable 'change-log-default-name) file-name)
 
     ;; Set ENTRY to the file name to use in the new entry.
