@@ -565,7 +565,7 @@ static
 IT_reset_terminal_modes (void)
 {
   if (termscript)
-    fprintf(termscript, "\n<RESET_TERM>");
+    fprintf (termscript, "\n<RESET_TERM>");
 
   highlight = 0;
 
@@ -665,7 +665,7 @@ internal_terminal_init ()
     = (!noninteractive) && term && !strcmp (term, "internal");
 
   if (getenv ("EMACSTEST"))
-    termscript = fopen(getenv ("EMACSTEST"), "wt");
+    termscript = fopen (getenv ("EMACSTEST"), "wt");
   
 #ifndef HAVE_X_WINDOWS
   if (!internal_terminal || inhibit_window_system)
@@ -680,7 +680,7 @@ internal_terminal_init ()
   bzero (&the_only_x_display, sizeof the_only_x_display);
   the_only_x_display.background_pixel = 7; /* White */
   the_only_x_display.foreground_pixel = 0; /* Black */
-  colors = getenv("EMACSCOLORS");
+  colors = getenv ("EMACSCOLORS");
   if (colors && strlen (colors) >= 2)
     {
       the_only_x_display.foreground_pixel = colors[0] & 0x07;
@@ -726,6 +726,7 @@ dos_get_saved_screen (screen, rows, cols)
 }
 
 
+
 /* ----------------------- Keyboard control ----------------------
  *
  * Keymaps reflect the following keyboard layout:
@@ -780,10 +781,11 @@ static struct keyboard_layout_list
 {
   int country_code;
   struct dos_keyboard_map *keyboard_map;
-} keyboard_layout_list[] = {
-    1, &us_keyboard,
-   33, &fr_keyboard,
-   45, &dk_keyboard
+} keyboard_layout_list[] =
+{
+  1, &us_keyboard,
+  33, &fr_keyboard,
+  45, &dk_keyboard
 };
 
 static struct dos_keyboard_map *keyboard;
@@ -805,7 +807,7 @@ dos_set_keyboard (code, always)
       }
   return 0;
 }
-
+
 #define Ignore	0x0000
 #define Normal	0x0000	/* normal key - alt changes scan-code */
 #define FctKey	0x1000	/* func key if c == 0, else c */
@@ -1043,7 +1045,7 @@ ibmpc_translate_map[] =
   Alt | FctKey | 0x09,		/* (Alt) Tab */
   Alt | Grey | 4		/* (Alt) Keypad Enter */
 };
-
+
 /* These bit-positions corresponds to values returned by BIOS */
 #define SHIFT_P		0x0003	/* two bits! */
 #define CTRL_P		0x0004
@@ -1138,7 +1140,7 @@ dos_rawgetc ()
   union REGS regs;
   
 #ifndef HAVE_X_WINDOWS
-  SCREEN_SET_CURSOR();
+  SCREEN_SET_CURSOR ();
   if (!mouse_visible) mouse_on ();
 #endif
     
@@ -1158,10 +1160,10 @@ dos_rawgetc ()
       c = regs.h.al;
       sc = regs.h.ah;
 
-      modifiers = dos_get_modifiers( &mask );
+      modifiers = dos_get_modifiers (&mask);
       
 #ifndef HAVE_X_WINDOWS
-      if (!NILP(Vdos_display_scancodes))
+      if (!NILP (Vdos_display_scancodes))
 	{
 	  char buf[10];
 	  sprintf (buf, "%02x:%02x*%04x",
@@ -1247,15 +1249,15 @@ dos_rawgetc ()
 	  
 	  if (mask & SHIFT_P)
 	    {
-	      code = keyboard->shifted[ code ];
+	      code = keyboard->shifted[code];
 	      mask -= SHIFT_P;
 	      modifiers &= ~shift_modifier;
 	    }
 	  else
-	    if ((mask & ALT_GR_P) && keyboard->alt_gr && keyboard->alt_gr[ code ] != ' ')
-	      code = keyboard->alt_gr[ code ];
+	    if ((mask & ALT_GR_P) && keyboard->alt_gr && keyboard->alt_gr[code] != ' ')
+	      code = keyboard->alt_gr[code];
 	    else
-	      code = keyboard->unshifted[ code ];
+	      code = keyboard->unshifted[code];
 	  break;
 
 	case KeyPad:
@@ -1273,19 +1275,19 @@ dos_rawgetc ()
 	    case 0:
 	      if (code == 10 && dos_decimal_point)
 		return dos_decimal_point;
-	      return keypad_translate_map[ code ].char_code;
+	      return keypad_translate_map[code].char_code;
 
 	    case 1:
-	      code = 0xff00 | keypad_translate_map[ code ].keypad_code;
+	      code = 0xff00 | keypad_translate_map[code].keypad_code;
 	      break;
 
 	    case 2:
-	      code = keypad_translate_map[ code ].meta_code;
+	      code = keypad_translate_map[code].meta_code;
 	      modifiers = meta_modifier;
 	      break;
 	      
 	    case 3:
-	      code = 0xff00 | keypad_translate_map[ code ].editkey_code;
+	      code = 0xff00 | keypad_translate_map[code].editkey_code;
 	      break;
 	    }
 	  break;
@@ -1294,9 +1296,9 @@ dos_rawgetc ()
 	  code &= 0xff;
 	  kp_mode = ((mask & (NUMLOCK_P|CTRL_P|SHIFT_P|ALT_P)) == NUMLOCK_P) ? 0x04 : 0x40;
 	  if (dos_keypad_mode & kp_mode)
-	    code = 0xff00 | grey_key_translate_map[ code ].keypad_code;
+	    code = 0xff00 | grey_key_translate_map[code].keypad_code;
 	  else
-	    code = grey_key_translate_map[ code ].char_code;
+	    code = grey_key_translate_map[code].char_code;
 	  break;
 	}
       
@@ -1925,7 +1927,7 @@ init_environment (argc, argv, skip_args)
   /* Time zone determined from country code.  To make this possible, the
      country code may not span more than one time zone.  In other words,
      in the USA, you lose.  */
-  if (!getenv("TZ"))
+  if (!getenv ("TZ"))
     switch (dos_country_code)
       {
       case 31:			/* Belgium */
@@ -2182,7 +2184,7 @@ run_msdos_command (argv, dir, tempin, tempout)
   close (outbak);
   close (errbak);
 
-  dos_ttraw();
+  dos_ttraw ();
   if (have_mouse > 0)
     {
       mouse_init ();
