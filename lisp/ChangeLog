@@ -1,3 +1,9 @@
+2005-01-15  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (c-mode/symbol): Add ^` to prefix, and change
+	suffix to space, $ or '$, to correctly position point when going
+	to @table style constants like DBL_MAX.
+
 2005-01-15  Jorgen Schaefer  <forcer@forcix.cx>  (tiny change)
 
 	* type-break.el (type-break-mode, type-break-file-time)
