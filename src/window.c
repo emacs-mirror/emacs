@@ -305,7 +305,8 @@ used by that frame.  */)
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
-       doc: /* Returns non-nil if WINDOW is a minibuffer window.  */)
+       doc: /* Returns non-nil if WINDOW is a minibuffer window.
+WINDOW defaults to the selected window.  */)
      (window)
      Lisp_Object window;
 {
