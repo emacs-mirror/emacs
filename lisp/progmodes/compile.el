@@ -133,24 +133,24 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\n\
+    ("\
 \\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\\([) \t]\\|\
 :\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 1 2 5)
 
     ;; Microsoft C/C++:
     ;;  keyboard.c(537) : warning C4005: 'min' : macro redefinition
     ;;  d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
-    ("\n\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 3)
+    ("\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 3)
 
     ;; Borland C++:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
-    ("\n\\(Error\\|Warning\\) \\([a-zA-Z]?:?[^:( \t\n]+\\)\
+    ("\\(Error\\|Warning\\) \\([a-zA-Z]?:?[^:( \t\n]+\\)\
  \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
-    ("[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
+    (".*[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
      1 2)
 
     ;; 4.3BSD lint pass 3
@@ -158,26 +158,26 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; This used to be
     ;; ("[ \t(]+\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
     ;; which is regexp Impressionism - it matches almost anything!
-    ("([ \t]*\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
+    (".*([ \t]*\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
 
     ;; MIPS lint pass<n>; looks good for SunPro lint also
     ;;  TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
-    ("\n[^\n ]+ (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
+    ("[^\n ]+ (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
     ;;  name defined but never used: LinInt in cmap_calc.c(199)
-    ("in \\([^(\n]+\\)(\\([0-9]+\\))$" 1 2)
+    (".*in \\([^(\n]+\\)(\\([0-9]+\\))$" 1 2)
 
     ;; Ultrix 3.0 f77:
     ;;  fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
     ;; Some SGI cc version:
     ;;  cfe: Warning 835: foo.c, line 2: something
-    ("\n\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
+    ("\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofle undefined
     ;; Absoft FORTRAN 77 Compiler 3.1.3
     ;;  error on line 19 of fplot.f: spelling error?
     ;;  warning on line 17 of fplot.f: data type is undefined for variable d
-    ("\\(\n\\|on \\)[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
+    ("\\(\\|.* on \\)[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
 
     ;; Apollo cc, 4.3BSD fc:
@@ -192,46 +192,46 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;;  "foo.adb", line 2(11): warning: file name does not match ...
     ;; IBM AIX xlc compiler:
     ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
-    ("\"\\([^,\" \n\t]+\\)\", lines? \
+    (".*\"\\([^,\" \n\t]+\\)\", lines? \
 \\([0-9]+\\)\\([\(.]\\([0-9]+\\)\)?\\)?[:., (-]" 1 2 4)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
     ;; DEC AXP OSF/1 cc
     ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah
-    ("rror: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
+    (".*rror: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
-    ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
+    (".*in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
 
     ;; Lucid Compiler, lcc 3.x
     ;; E, file.cc(35,52) Illegal operation on pointers
-    ("\n[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
+    ("[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
     ;; GNU messages with program name and optional column number.
-    ("\n[a-zA-Z]?:?[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+    ("[a-zA-Z]?:?[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; GNU messages with program name and optional column number
     ;; and a severity letter after that.  nsgmls makes them.
-    ("\n[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
+    ("[^0-9 \n\t:]+:[ \t]*\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\(\\([0-9]+\\):\\)?[A-Za-z]:" 1 2 4)
 
     ;; Cray C compiler error messages
-    ("\n\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \\([^,\n]+\\), Line = \\([0-9]+\\)" 4 5)
+    ("\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \\([^,\n]+\\), Line = \\([0-9]+\\)" 4 5)
 
     ;; IBM C/C++ Tools 2.01:
     ;;  foo.c(2:0) : informational EDC0804: Function foo is not referenced.
     ;;  foo.c(3:8) : warning EDC0833: Implicit return statement encountered.
     ;;  foo.c(5:5) : error EDC0350: Syntax error.
-    ("\n\\([^( \n\t]+\\)(\\([0-9]+\\):\\([0-9]+\\)) : " 1 2 3)
+    ("\\([^( \n\t]+\\)(\\([0-9]+\\):\\([0-9]+\\)) : " 1 2 3)
 
     ;; Sun ada (VADS, Solaris):
     ;;  /home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
-    ("\n\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
+    ("\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
@@ -1371,10 +1371,16 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			   (expand-file-name "../" orig-expanded)))
 
     (while (and (not found-desired)
-		;; We don't just pass LIMIT-SEARCH to re-search-forward
-		;; because we want to find matches containing LIMIT-SEARCH
-		;; but which extend past it.
-		(re-search-forward regexp nil t))
+		;; Instead of using re-search-forward,
+		;; we use this loop which tries only at each line.
+		(progn
+		  (while (and (not (eobp))
+			      (not (looking-at regexp)))
+		    (forward-line 1))
+		  (not (eobp))))
+
+      ;; Move to the end of the match we just found.
+      (goto-char (match-end 0))
 
       ;; Figure out which constituent regexp matched.
       (cond ((match-beginning enter-group)
