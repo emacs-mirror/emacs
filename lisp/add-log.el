@@ -1,4 +1,4 @@
-;; add-log.el --- change log maintenance commands for Emacs
+;;; add-log.el --- change log maintenance commands for Emacs
 
 ;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998 Free Software Foundation, Inc.
 

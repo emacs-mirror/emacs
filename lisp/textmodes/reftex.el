@@ -1,4 +1,4 @@
-;; reftex.el --- Minor mode for doing \label, \ref and \cite in LaTeX
+;;; reftex.el --- Minor mode for doing \label, \ref and \cite in LaTeX
 ;; Copyright (c) 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>

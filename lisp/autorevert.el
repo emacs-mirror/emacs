@@ -1,4 +1,4 @@
-;;; autorevert --- Revert buffers when files on disk change.
+;;; autorevert --- revert buffers when files on disk change
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 

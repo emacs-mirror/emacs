@@ -1,4 +1,4 @@
-;;; patcomp.el --- Used by patch files to update Emacs releases.
+;;; patcomp.el --- used by patch files to update Emacs releases
 
 (defun batch-byte-recompile-emacs ()
   "Recompile the Emacs `lisp' directory.

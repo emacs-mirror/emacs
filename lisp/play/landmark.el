@@ -1,4 +1,4 @@
-;;;_ landmark.el --- neural-network robot that learns landmarks
+;;; landmark.el --- neural-network robot that learns landmarks
 
 ;; Copyright (c) 1996, 1997 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;; scroll-all.el -- scroll all buffers together minor mode
+;;; scroll-all.el -- scroll all buffers together minor mode
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
