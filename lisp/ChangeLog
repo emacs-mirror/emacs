@@ -1,3 +1,11 @@
+2001-07-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu) 
+	(tool-bar-add-item): Don't call image-related primitives if the
+	display doesn't support images.
+
+	* frame.el (display-images-p): New function.
+
 2001-07-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* server.el (server-visit-files): Handle the case the specified
