@@ -2,7 +2,7 @@
 ;; Copyright (C) 1993, 1994, 1995 by Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
-;; Version: 2.0d
+;; Version: 2.0e
 ;; Maintainer: FSF
 ;; Keywords: languages, unix
 
@@ -32,12 +32,7 @@
 
 ;;; Known Bugs:
 
-;; - Since GNU Emacs' syntax can't handle the context-sensitive meanings of
-;;   the variable/number base/comment symbol `#', that has to be fontified by
-;;   regexp.  This alas means that a quote `'' or `"' in a comment will
-;;   fontify VERY badly.  The alternative is to have these frequent constructs
-;;   with `#' fontify as comments.  Or maybe we intoduce a 'syntax text-
-;;   property?
+;; - In Bourne the keyword `in' is not anchored to case, for, select ...
 ;; - Variables in `"' strings aren't fontified because there's no way of
 ;;   syntactically distinguishing those from `'' strings.
 
@@ -222,7 +217,8 @@ actually defined as the table for the like of \\[edit-abbrevs].")
 
 
 (defvar sh-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Insert")))
     (define-key map "\C-c(" 'sh-function)
     (define-key map "\C-c\C-w" 'sh-while)
     (define-key map "\C-c\C-u" 'sh-until)
@@ -263,28 +259,19 @@ actually defined as the table for the like of \\[edit-abbrevs].")
 			       map (current-global-map))
     (substitute-key-definition 'forward-sentence 'sh-end-of-command
 			       map (current-global-map))
-    (define-key map [menu-bar insert] 
-      (cons "Insert" (make-sparse-keymap "Insert")))
-    (define-key map [menu-bar insert sh-while] 
-      '("While loop" . sh-while))
-    (define-key map [menu-bar insert sh-until] 
-      '("Until loop" . sh-until))
-    (define-key map [menu-bar insert sh-tmp-file] 
-      '("Temporary file" . sh-tmp-file))
-    (define-key map [menu-bar insert sh-select] 
-      '("Select statement" . sh-select))
-    (define-key map [menu-bar insert sh-repeat] 
-      '("Repeat loop" . sh-repeat))
-    (define-key map [menu-bar insert sh-while-getopts] 
-      '("Options loop" . sh-while-getopts))
-    (define-key map [menu-bar insert sh-indexed-loop] 
-      '("Indexed loop" . sh-indexed-loop))
-    (define-key map [menu-bar insert sh-if] 
-      '("If statement" . sh-if))
-    (define-key map [menu-bar insert sh-for] 
-      '("For loop" . sh-for))
-    (define-key map [menu-bar insert sh-case] 
-      '("Case statement" . sh-case))
+    (define-key map [menu-bar insert] (cons "Insert" menu-map))
+    (define-key menu-map [sh-while]	'("While Loop" . sh-while))
+    (define-key menu-map [sh-until]	'("Until Loop" . sh-until))
+    (define-key menu-map [sh-tmp-file]	'("Temporary File" . sh-tmp-file))
+    (define-key menu-map [sh-select]	'("Select Statement" . sh-select))
+    (define-key menu-map [sh-repeat]	'("Repeat Loop" . sh-repeat))
+    (define-key menu-map [sh-while-getopts]
+					'("Options Loop" . sh-while-getopts))
+    (define-key menu-map [sh-indexed-loop]
+					'("Indexed Loop" . sh-indexed-loop))
+    (define-key menu-map [sh-if]	'("If Statement" . sh-if))
+    (define-key menu-map [sh-for]	'("For Loop" . sh-for))
+    (define-key menu-map [sh-case]	'("Case Statement" . sh-case))
     map)
   "Keymap used in Shell-Script mode.")
 
@@ -565,12 +552,18 @@ See `sh-feature'.")
   "*Rules for highlighting shell scripts.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-1
-  '((sh "[ \t]in[ \t]"))
+  '((sh "[ \t]in\\>"))
   "*Additional rules for highlighting shell scripts.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-2 ()
   "*Yet more rules for highlighting shell scripts.  See `sh-feature'.")
 
+(defvar sh-font-lock-keywords-only t
+  "*Value of `font-lock-keywords-only' for highlighting shell scripts.
+Default value is `t' because Emacs' syntax is not expressive enough to
+detect that $# does not start a comment.  Thus comments are fontified by
+regexp which means that a single apostrophe in a comment turns everything
+upto the next one or end of buffer into a string.")
 
 ;; mode-command and utility functions
 
@@ -656,17 +649,18 @@ with your script for an edit-interpret-debug cycle."
 				   (indent-rigidly b (point) sh-indentation)))
 	skeleton-end-hook (lambda ()
 			    (or (eolp) (newline) (indent-relative)))
- 	paragraph-start (concat page-delimiter "\\|$")
+	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
 	font-lock-defaults
-	  '((sh-font-lock-keywords
+	  `((sh-font-lock-keywords
 	     sh-font-lock-keywords-1
 	     sh-font-lock-keywords-2)
-	    nil nil
+	    ,sh-font-lock-keywords-only
+	    nil
 	    ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")))
 	skeleton-pair-alist '((?` _ ?`))
 	skeleton-pair-filter 'sh-quoted-p
