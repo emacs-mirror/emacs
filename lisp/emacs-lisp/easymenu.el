@@ -104,6 +104,20 @@ is a list of menu items, as above."
       (setq menu-items (cdr menu-items)))
     menu))
 
+(defun easy-menu-change (path name items)
+  "Change menu found at PATH as item NAME to contain ITEMS.
+PATH is a list of strings for locating the menu containing NAME in the
+menu bar.  ITEMS is a list of menu items, as in `easy-menu-define'.
+These items entirely replace the previous items in that map.
+
+Call this from `activate-menubar-hook' to implement dynamic menus."
+  (let ((map (key-binding (apply 'vector
+				 'menu-bar
+				 (mapcar 'intern (append path (list name)))))))
+    (if (keymapp map)
+	(setcdr map (cdr (easy-menu-create-keymaps name items)))
+      (error "Malformed menu in `easy-menu-change'"))))
+
 (defmacro easy-menu-remove (menu))
 
 (defmacro easy-menu-add (menu &optional map))
