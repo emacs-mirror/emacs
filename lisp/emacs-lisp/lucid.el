@@ -130,7 +130,7 @@ This function exists for compatibility with XEmacs."
 
 (defun buffer-syntactic-context (&optional buffer)
   "Syntactic context at point in BUFFER.
-Either of `string', `comment' or `nil'.
+Either of `string', `comment' or nil.
 This is an XEmacs compatibility function."
   (with-current-buffer (or buffer (current-buffer))
     (let ((state (syntax-ppss (point))))
