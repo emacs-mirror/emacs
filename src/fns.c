@@ -1220,7 +1220,6 @@ and can edit it until it as been confirmed.")
       message ("Please answer yes or no.");
       Fsleep_for (make_number (2), Qnil);
     }
-  UNGCPRO;
 }
 
 DEFUN ("load-average", Fload_average, Sload_average, 0, 0, 0,
