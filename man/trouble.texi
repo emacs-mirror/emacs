@@ -819,11 +819,8 @@ That file also includes instructions for investigating problems
 whereby Emacs stops responding (many people assume that Emacs is
 ``hung,'' whereas in fact it might be in an infinite loop).
 
-In an installed Emacs, the file @file{etc/DEBUG} is in the same
-directory where the Emacs on-line documentation file @file{DOC},
-typically in the @file{/usr/local/share/emacs/@var{version}/etc/}
-directory.  The directory for your installation is stored in the
-variable @code{data-directory}.
+To find the file @file{etc/DEBUG} in your Emacs installation, use the
+directory name stored in the variable @code{data-directory}.
 @end itemize
 
 Here are some things that are not necessary in a bug report:
@@ -838,9 +835,11 @@ which changes to the input file will make the bug go away and which
 changes will not affect it.
 
 This is often time-consuming and not very useful, because the way we
-will find the bug is by running a single example under the debugger with
-breakpoints, not by pure deduction from a series of examples.  You might
-as well save time by not searching for additional examples.
+will find the bug is by running a single example under the debugger
+with breakpoints, not by pure deduction from a series of examples.
+You might as well save time by not searching for additional examples.
+It is better to send the bug report right away, go back to editing,
+and find another bug to report.
 
 Of course, if you can find a simpler example to report @emph{instead} of
 the original one, that is a convenience.  Errors in the output will be
