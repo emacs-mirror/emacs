@@ -783,29 +783,29 @@ if it isn't already recorded.")
       && ! (! NILP (w->window_end_valid)
 	    && XFASTINT (w->last_modified) >= MODIFF))
     {
-      int opoint = PT, opoint_byte = PT_BYTE;
+      struct text_pos startp;
+      struct it it;
 
       /* In case W->start is out of the range, use something
          reasonable.  This situation occured when loading a file with
          `-l' containing a call to `rmail' with subsequent other
          commands.  At the end, W->start happened to be BEG, while
-         rmail had already narrowed the buffer.  This leads to an
-         abort in temp_set_pt_both.  */
+         rmail had already narrowed the buffer.  */
       if (XMARKER (w->start)->charpos < BEGV)
-	TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
+	SET_TEXT_POS (startp, BEGV, BEGV_BYTE);
       else if (XMARKER (w->start)->charpos > ZV)
-	TEMP_SET_PT_BOTH (ZV, ZV_BYTE);
+	SET_TEXT_POS (startp, ZV, ZV_BYTE);
       else
-	TEMP_SET_PT_BOTH (XMARKER (w->start)->charpos,
-			  XMARKER (w->start)->bytepos);
-      
-      Fvertical_motion (make_number (window_internal_height (w)), Qnil);
-      XSETINT (value, PT);
-      TEMP_SET_PT_BOTH (opoint, opoint_byte);
+	SET_TEXT_POS_FROM_MARKER (startp, w->start);
+
+      /* Cannot use Fvertical_motion because that function doesn't
+	 cope with variable-height lines.  */
+      start_display (&it, w, startp);
+      move_it_vertically (&it, window_box_height (w));
+      value = make_number (IT_CHARPOS (it));
     }
   else
-    XSETINT (value,
-	     BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+    XSETINT (value, BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
 
   return value;
 }
