@@ -1017,7 +1017,7 @@ OEE -> OE
  )
 
 (quail-define-package
- "french-alt-postfix" "Latin-1" "FR<" t
+ "french-alt-postfix" "French" "FR<" t
  "French (Fran,Ag(Bais) input method with postfix modifiers
 
 ` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tr,Ai(Bma.
@@ -1092,7 +1092,7 @@ Par exemple: e'' -> e'
  )
 
 (quail-define-package
- "german-alt-postfix" "Latin-1" "DE<" t
+ "german-alt-postfix" "German" "DE<" t
  "German (Deutsch) input method
 
 ae  -> ,Ad(B
@@ -1330,7 +1330,7 @@ aee -> ae   o\"\" -> o\"   etc.
  )
 
 (quail-define-package
- "spanish-alt-postfix" "Latin-1" "ES<" t
+ "spanish-alt-postfix" "Spanish" "ES<" t
  "Spanish (Espa,Aq(Bol) input method with postfix modifiers
 
 A' -> ,AA(B
@@ -1406,8 +1406,8 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  )
 
 (quail-define-package
- "turkish-latin-3-alt-postfix" "Latin-3" "TR3<<" t
- "Turkish (T,C|(Brk,Cg(Be) input method with postfix modifiers.
+ "turkish-latin-3-alt-postfix" "Turkish" "TR3<<" t
+ "Turkish (T,A|(Brk,Ag(Be) input method with postfix modifiers.
 
 This is for those who use Latin-3 (ISO-8859-3) for Turkish.  If you
 use Latin-5 (ISO-8859-9), you should use \"turkish-alt-postfix\" instead.
@@ -1468,8 +1468,8 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  )
 
 (quail-define-package
- "turkish-alt-postfix" "Latin-5" "TR,M+(B" t
- "Turkish (T,M|(Brk,Mg(Be) input method with postfix modifiers.
+ "turkish-alt-postfix" "Turkish" "TR,A+(B" t
+ "Turkish (T,A|(Brk,Ag(Be) input method with postfix modifiers.
 
 This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
 use Latin-3 (ISO-8859-3), you should use
@@ -1533,7 +1533,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 ;; Dutch Quail input method derived from the one in Yudit by Roman
 ;; Czyborra.
 (quail-define-package
- "dutch" "Latin" "NL" t
+ "dutch" "Dutch" "NL" t
  "Dutch character mixfix input method.
 Uses the `mule-unicode-0100-24ff' charset to supplement Latin-1.
 
@@ -1557,67 +1557,161 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
- ("fl." "$,1!R(B") ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
- ("eur." "$,1tL(B") ;; EURO SIGN
+ ("fl." ?$,1!R(B) ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
+ ("eur." ?$,1tL(B) ;; EURO SIGN
  ;; $,1r|(BThe 25th letter of the Dutch alphabet.$,1r}(B
- ("ij" "$,1 S(B") ;; LATIN SMALL LIGATURE IJ   
- ("IJ" "$,1 R(B") ;; LATIN CAPITAL LIGATURE IJ   
+ ("ij" ?$,1 S(B) ;; LATIN SMALL LIGATURE IJ   
+ ("IJ" ?$,1 R(B) ;; LATIN CAPITAL LIGATURE IJ   
  ;; $,1r|(BTrema on the second letter of vowel pair.$,1r}(B  Yudit uses `:', not `"'.
- ("\"a" ",Ad(B") ;; LATIN SMALL LETTER A WITH DIAERESIS 
- ("\"e" ",Ak(B") ;; LATIN SMALL LETTER E WITH DIAERESIS 
- ("\"i" ",Ao(B") ;; LATIN SMALL LETTER I WITH DIAERESIS 
- ("\"o" ",Av(B") ;; LATIN SMALL LETTER O WITH DIAERESIS 
- ("\"u" ",A|(B") ;; LATIN SMALL LETTER U WITH DIAERESIS 
- ("\"A" ",AD(B") ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
- ("\"E" ",AK(B") ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
- ("\"I" ",AO(B") ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
- ("\"O" ",AV(B") ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
- ("\"U" ",A\(B") ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
+ ("\"a" ?,Ad(B) ;; LATIN SMALL LETTER A WITH DIAERESIS 
+ ("\"e" ?,Ak(B) ;; LATIN SMALL LETTER E WITH DIAERESIS 
+ ("\"i" ?,Ao(B) ;; LATIN SMALL LETTER I WITH DIAERESIS 
+ ("\"o" ?,Av(B) ;; LATIN SMALL LETTER O WITH DIAERESIS 
+ ("\"u" ?,A|(B) ;; LATIN SMALL LETTER U WITH DIAERESIS 
+ ("\"A" ?,AD(B) ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
+ ("\"E" ?,AK(B) ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
+ ("\"I" ?,AO(B) ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
+ ("\"O" ?,AV(B) ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
+ ("\"U" ?,A\(B) ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
  ;; $,1r|(BAcute, marking emphasis on long vowels$,1r}(B:
- ("a'" ",Aa(B") ;; LATIN SMALL LETTER A WITH ACUTE 
- ("e'" ",Ai(B") ;; LATIN SMALL LETTER E WITH ACUTE 
- ("i'" ",Am(B") ;; LATIN SMALL LETTER I WITH ACUTE 
- ("o'" ",As(B") ;; LATIN SMALL LETTER O WITH ACUTE 
- ("u'" ",Az(B") ;; LATIN SMALL LETTER U WITH ACUTE 
- ("A'" ",AA(B") ;; LATIN CAPITAL LETTER A WITH ACUTE 
- ("E'" ",AI(B") ;; LATIN CAPITAL LETTER E WITH ACUTE 
- ("I'" ",AM(B") ;; LATIN CAPITAL LETTER I WITH ACUTE 
- ("O'" ",AS(B") ;; LATIN CAPITAL LETTER O WITH ACUTE 
- ("U'" ",AZ(B") ;; LATIN CAPITAL LETTER U WITH ACUTE 
+ ("a'" ?,Aa(B) ;; LATIN SMALL LETTER A WITH ACUTE 
+ ("e'" ?,Ai(B) ;; LATIN SMALL LETTER E WITH ACUTE 
+ ("i'" ?,Am(B) ;; LATIN SMALL LETTER I WITH ACUTE 
+ ("o'" ?,As(B) ;; LATIN SMALL LETTER O WITH ACUTE 
+ ("u'" ?,Az(B) ;; LATIN SMALL LETTER U WITH ACUTE 
+ ("A'" ?,AA(B) ;; LATIN CAPITAL LETTER A WITH ACUTE 
+ ("E'" ?,AI(B) ;; LATIN CAPITAL LETTER E WITH ACUTE 
+ ("I'" ?,AM(B) ;; LATIN CAPITAL LETTER I WITH ACUTE 
+ ("O'" ?,AS(B) ;; LATIN CAPITAL LETTER O WITH ACUTE 
+ ("U'" ?,AZ(B) ;; LATIN CAPITAL LETTER U WITH ACUTE 
  ;; $,1r|(BGrave, marking emphasis on short vowels$,1r}(B:
- ("a`" ",A`(B") ;; LATIN SMALL LETTER A WITH GRAVE
- ("e`" ",Ah(B") ;; LATIN SMALL LETTER E WITH GRAVE 
- ("i`" ",Al(B") ;; LATIN SMALL LETTER I WITH GRAVE 
- ("o`" ",Ar(B") ;; LATIN SMALL LETTER O WITH GRAVE 
- ("u`" ",Ay(B") ;; LATIN SMALL LETTER U WITH GRAVE 
- ("A`" ",A@(B") ;; LATIN CAPITAL LETTER A WITH GRAVE 
- ("E`" ",AH(B") ;; LATIN CAPITAL LETTER E WITH GRAVE 
- ("I`" ",AL(B") ;; LATIN CAPITAL LETTER I WITH GRAVE 
- ("O`" ",AR(B") ;; LATIN CAPITAL LETTER O WITH GRAVE 
- ("U`" ",AY(B") ;; LATIN CAPITAL LETTER U WITH GRAVE
+ ("a`" ?,A`(B) ;; LATIN SMALL LETTER A WITH GRAVE
+ ("e`" ?,Ah(B) ;; LATIN SMALL LETTER E WITH GRAVE 
+ ("i`" ?,Al(B) ;; LATIN SMALL LETTER I WITH GRAVE 
+ ("o`" ?,Ar(B) ;; LATIN SMALL LETTER O WITH GRAVE 
+ ("u`" ?,Ay(B) ;; LATIN SMALL LETTER U WITH GRAVE 
+ ("A`" ?,A@(B) ;; LATIN CAPITAL LETTER A WITH GRAVE 
+ ("E`" ?,AH(B) ;; LATIN CAPITAL LETTER E WITH GRAVE 
+ ("I`" ?,AL(B) ;; LATIN CAPITAL LETTER I WITH GRAVE 
+ ("O`" ?,AR(B) ;; LATIN CAPITAL LETTER O WITH GRAVE 
+ ("U`" ?,AY(B) ;; LATIN CAPITAL LETTER U WITH GRAVE
  ;; $,1r|(BCater for the use of many French words and use of the circumflex
  ;; in Frisian.$,1r}(B  Yudit used `;' for cedilla.
- ("c," ",Ag(B") ;; LATIN SMALL LETTER C WITH CEDILLA 
- ("C," ",AG(B") ;; LATIN CAPITAL LETTER C WITH CEDILLA 
- ("a^" ",Ab(B") ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
- ("e^" ",Aj(B") ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
- ("i^" ",An(B") ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
- ("o^" ",At(B") ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
- ("u^" ",A{(B") ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
- ("A^" ",AB(B") ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
- ("E^" ",AJ(B") ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
- ("I^" ",AN(B") ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
- ("O^" ",AT(B") ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
- ("U^" ",A[(B") ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
+ ("c," ?,Ag(B) ;; LATIN SMALL LETTER C WITH CEDILLA 
+ ("C," ?,AG(B) ;; LATIN CAPITAL LETTER C WITH CEDILLA 
+ ("a^" ?,Ab(B) ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
+ ("e^" ?,Aj(B) ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
+ ("i^" ?,An(B) ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
+ ("o^" ?,At(B) ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
+ ("u^" ?,A{(B) ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
+ ("A^" ?,AB(B) ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
+ ("E^" ?,AJ(B) ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
+ ("I^" ?,AN(B) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
+ ("O^" ?,AT(B) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
+ ("U^" ?,A[(B) ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
  ;; $,1r|(BFollow the example of the Dutch POSIX locale, using ISO-8859-9 to
  ;; cater to the many Turks in Dutch society.$,1r}(B  Perhaps German methods
  ;; should do so too.  Follow turkish-alt-postfix here.
- ("i/" "$,1 Q(B") ;; LATIN SMALL LETTER I WITH NO DOT
- ("s," "$,1 (B") ;; LATIN SMALL LETTER S WITH CEDILLA 
- ("g^" "$,1 ?(B") ;; LATIN SMALL LETTER G WITH BREVE 
- ("I/" "$,1 P(B") ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
- ("S," "$,1 ~(B") ;; LATIN CAPITAL LETTER S WITH CEDILLA 
- ("G^" "$,1 >(B") ;; LATIN CAPITAL LETTER G WITH BREVE 
+ ("i/" ?$,1 Q(B) ;; LATIN SMALL LETTER I WITH NO DOT
+ ("s," ?$,1 (B) ;; LATIN SMALL LETTER S WITH CEDILLA 
+ ("g^" ?$,1 ?(B) ;; LATIN SMALL LETTER G WITH BREVE 
+ ("I/" ?$,1 P(B) ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
+ ("S," ?$,1 ~(B) ;; LATIN CAPITAL LETTER S WITH CEDILLA 
+ ("G^" ?$,1 >(B) ;; LATIN CAPITAL LETTER G WITH BREVE 
  )
+
+;; Originally from Yudit, discussed with Albertas Agejevas
+;; <alga@uosis.mif.vu.lt>
+(quail-define-package
+ "lithuanian-numeric" "Lithuanian" "LtN" t
+ "Lithuanian numeric input method.
+" nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ (?1 ?$,1 %(B)
+ (?2 ?$,1 -(B)
+ (?3 ?$,1 9(B)
+ (?4 ?$,1 7(B)
+ (?5 ?$,1 O(B)
+ (?6 ?$,1!!(B)
+ (?7 ?$,1!3(B)
+ (?8 ?$,1!+(B)
+ (?9 ?$,1r~(B)
+ (?0 ?$,1r|(B)
+ (?= ?$,1!>(B)
+ (?! ?$,1 $(B)
+ (?@ ?$,1 ,(B)
+ (?# ?$,1 8(B)
+ (?$ ?$,1 6(B)
+ (?% ?$,1 N(B)
+ (?^ ?$,1! (B)
+ (?& ?$,1!2(B)
+ (?* ?$,1!*(B)
+ (?+ ?$,1!=(B))
+
+
+;; From XFree 4.1 /usr/X11R6/lib/X11/xkb/symbols/lt, suggested by
+;; Albertas Agejevas <alga@uosis.mif.vu.lt>
+(quail-define-package
+ "lithuanian-keyboard" "Lithuanian" "Lt" t
+ "Lithuanian standard keyboard input method.
+" nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ (?1 ?$,1 %(B)
+ (?! ?$,1 $(B)
+ (?2 ?$,1 -(B)
+ (?@ ?$,1 ,(B)
+ (?# ?$,1 8(B)
+ (?4 ?$,1 7(B)
+ (?$ ?$,1 6(B)
+ (?5 ?$,1 O(B)
+ (?% ?$,1 N(B)
+ (?6 ?$,1!!(B)
+ (?^ ?$,1! (B)
+ (?7 ?$,1!3(B)
+ (?& ?$,1!2(B)
+ (?9 ?$,1r~(B)
+ (?0 ?$,1r|(B)
+ (?= ?$,1!>(B)
+ (?+ ?$,1!=(B))
+
+;; From XFree 4.1 /usr/X11R6/lib/X11/xkb/symbols/lv
+(quail-define-package
+ "latvian-keyboard" "Latvian" "Lv" t
+ "Latvian standard keyboard input method.
+" nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ (?4 ?$,1tL(B)
+ (?$ ?,A"(B)
+ (?e ?$,1 3(B)
+ (?E ?$,1 2(B)
+ (?r ?$,1 w(B)
+ (?R ?$,1 v(B)
+ (?u ?$,1!+(B)
+ (?U ?$,1!*(B)
+ (?i ?$,1 K(B)
+ (?I ?$,1 J(B)
+ (?o ?$,1 m(B)
+ (?O ?$,1 l(B)
+ (?a ?$,1 !(B)
+ (?A ?$,1  (B)
+ (?s ?$,1!!(B)
+ (?S ?$,1! (B)
+ (?g ?$,1 C(B)
+ (?G ?$,1 B(B)
+ (?k ?$,1 W(B)
+ (?K ?$,1 V(B)
+ (?l ?$,1 \(B)
+ (?L ?$,1 [(B)
+ (?\' ?$,1r|(B)
+ (?\" ?$,1r~(B)
+ (?z ?$,1!>(B)
+ (?Z ?$,1!=(B)
+ (?c ?$,1 -(B)
+ (?C ?$,1 ,(B)
+ (?n ?$,1 f(B)
+ (?N ?$,1 e(B))
 
 ;;; latin-alt.el ends here
