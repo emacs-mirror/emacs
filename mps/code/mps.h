@@ -65,17 +65,20 @@ enum {
   MPS_RES_PARAM                 /* illegal user parameter value */
 };
 
-/* .message.types: Keep in sync with <code/mpmtypes.h#message.types> */
+/* <a id="message.types"> Keep in sync with
+ * <code/mpmtypes.h#message.types> */
 /* Not meant to be used by clients, they should use the macros below. */
 enum {
   MPS_MESSAGE_TYPE_FINALIZATION,
-  MPS_MESSAGE_TYPE_GC
+  MPS_MESSAGE_TYPE_GC,
+  MPS_MESSAGE_TYPE_GC_START
 };
 
 /* Message Types
  * This is what clients should use. */
 #define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
 #define mps_message_type_gc() MPS_MESSAGE_TYPE_GC
+#define mps_message_type_gc_start() MPS_MESSAGE_TYPE_GC_START
 
 
 /* Reference Ranks

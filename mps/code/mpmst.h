@@ -200,8 +200,19 @@ typedef struct MessageClassStruct {
 
   /* methods specific to MessageTypeGC */
   MessageGCLiveSizeMethod gcLiveSize;
+  
+  /* methods specific to MessageTypeGC and MessageTypeGCGen */
   MessageGCCondemnedSizeMethod gcCondemnedSize;
   MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
+
+  /* methods specific to MessageTypeGCStart */
+  MessageGCStartWhyMethod gcStartWhy;
+
+  /* methods specific to MessageTypeGCGen */
+#if 0 /* @@@@ */
+  MessageGCGenNameMethod gcGenName;
+  MessageGCGenForwardMethod gcGenForward;
+#endif
 
   Sig endSig;                   /* <design/message/#class.sig.double> */
 } MessageClassStruct;
@@ -442,6 +453,20 @@ typedef struct LDStruct {
   RefSet rs;            /* RefSet of Add'ed references */
 } LDStruct;
 
+/* TraceStartMessage
+ *
+ * See <design/message-gc/>.
+ *
+ * Embedded in TraceStruct. */
+
+#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
+
+typedef struct TraceStartMessageStruct {
+  Sig sig;
+  char why[TRACE_START_MESSAGE_WHY_LEN];
+  MessageStruct messageStruct;
+} TraceStartMessageStruct;
+
 
 /* ScanState
  *
@@ -525,6 +550,9 @@ typedef struct TraceStruct {
   Size preservedInPlaceSize;    /* bytes preserved in place */
   STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
   STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
+  /* Always allocated message structure.  Implements
+     mps_message_type_gc_start().  See <design/message-gc/> */
+  TraceStartMessageStruct startMessage;
 } TraceStruct;
 
 

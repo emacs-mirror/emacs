@@ -90,6 +90,17 @@ typedef const struct SrcIdStruct {
 #define STR_(x) #x
 #define STR(x) STR_(x)
 
+/* NELEMS -- counts number of elements in an array
+ *
+ * NELEMS(a) expands into an expression that is the number
+ * of elements in the array a.
+ *
+ * WARNING: expands a more than once (you'd have to write obviously
+ * perverse code for this to matter though).
+ */
+
+#define NELEMS(a) (sizeof(a)/sizeof((a)[0]))
+
 
 /* DISCARD -- discards an expression, but checks syntax
  *
