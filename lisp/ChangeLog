@@ -1,3 +1,8 @@
+2001-02-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* which-func.el (which-func-mode): Invert which-func-mode-global.
+	Fix from Juanma Barranquero <lektu@uol.com.br>.
+
 2001-02-08  Dave Love  <fx@gnu.org>
 
 	* textmodes/paragraphs.el (sentence-end): Doc fix.
@@ -5,24 +10,24 @@
 	* eshell/em-rebind.el (eshell-cannot-leave-input-list): Remove
 	`backward-line'.
 
-	* play/pong.el (pong-blank-color, pong-bat-color) 
-	(pong-ball-color, pong-border-color, pong-left-key) 
-	(pong-right-key, pong-up-key, pong-down-key, pong-quit-key) 
-	(pong-pause-key, pong-resume-key, pong-timer-delay): 
-	* mail/mh-comp.el (mh-compose-letter-function): 
-	* eshell/esh-mode.el (eshell-skip-prompt-function): 
-	* emulation/viper-ex.el (ex-unix-type-shell-options): 
-	* recentf.el (recentf-menu-filter): 
-	* ps-print.el (ps-print-region-function): 
-	* lpr.el (print-region-function): 
-	* forms.el (forms-mode-hooks): 
-	* dirtrack.el (dirtrack-directory-change-hook): 
-	* cus-start.el (temp-buffer-show-function, display-buffer-function): 
-	* textmodes/spell.el (spell-filter): 
-	* textmodes/fill.el (adaptive-fill-function): 
-	* textmodes/bibtex.el (bibtex-autokey-before-presentation-function): 
-	* progmodes/etags.el (find-tag-default-function): 
-	* progmodes/dcl-mode.el (dcl-calc-command-indent-function): 
+	* play/pong.el (pong-blank-color, pong-bat-color)
+	(pong-ball-color, pong-border-color, pong-left-key)
+	(pong-right-key, pong-up-key, pong-down-key, pong-quit-key)
+	(pong-pause-key, pong-resume-key, pong-timer-delay):
+	* mail/mh-comp.el (mh-compose-letter-function):
+	* eshell/esh-mode.el (eshell-skip-prompt-function):
+	* emulation/viper-ex.el (ex-unix-type-shell-options):
+	* recentf.el (recentf-menu-filter):
+	* ps-print.el (ps-print-region-function):
+	* lpr.el (print-region-function):
+	* forms.el (forms-mode-hooks):
+	* dirtrack.el (dirtrack-directory-change-hook):
+	* cus-start.el (temp-buffer-show-function, display-buffer-function):
+	* textmodes/spell.el (spell-filter):
+	* textmodes/fill.el (adaptive-fill-function):
+	* textmodes/bibtex.el (bibtex-autokey-before-presentation-function):
+	* progmodes/etags.el (find-tag-default-function):
+	* progmodes/dcl-mode.el (dcl-calc-command-indent-function):
 	* progmodes/ada-mode.el (ada-popup-key): Fix :type.
 
 2001-02-07  Eli Zaretskii  <eliz@is.elta.co.il>
