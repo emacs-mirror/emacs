@@ -1456,9 +1456,6 @@ If it matches, mode MODE is selected.")
 When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
 
-(defvar user-init-file nil
-  "File name, including directory, of user's initialization file.")
-
 (defun set-auto-mode (&optional just-from-file-name)
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text,
