@@ -1547,7 +1547,7 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 	  (set-marker (cdr next-error) nil)))
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
   (setq compilation-error-list nil
-	compilation-directory-stack nil
+	compilation-directory-stack (list default-directory)
 	compilation-parsing-end 1)
   ;; Remove the highlighting added by compile-reinitialize-errors:
   (let ((inhibit-read-only t))
@@ -1598,6 +1598,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
   (if (null compilation-error-regexp-alist)
       (error "compilation-error-regexp-alist is empty!"))
   (let* ((compilation-regexps nil) ; Variable set by compile-collect-regexps.
+	 (default-directory default-directory)
 	 (found-desired nil)
 	 (compilation-num-errors-found 0)
 	 ;; Set up now the expanded, abbreviated directory variables
