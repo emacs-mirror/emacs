@@ -858,19 +858,29 @@ are shown; the contents of those subgroups are initially hidden."
 ;;;###autoload
 (defun customize-changed-options (since-version)
   "Customize all user option variables whose default values changed recently.
-This means, in other words, variables defined with a `:version' option."
+This means, in other words, variables and groups defined with a `:version' 
+option."
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
       (setq since-version nil))
   (let ((found nil))
     (mapatoms (lambda (symbol)
-		(and (boundp symbol)
+		(and (or (boundp symbol)
+			 ;; For groups the previous test fails, this one
+			 ;; could be used to determine if symbol is a
+			 ;; group. Is there a better way for this?
+			 (get symbol 'group-documentation))
 		     (let ((version (get symbol 'custom-version)))
 		       (and version
 			    (or (null since-version)
 				(customize-version-lessp since-version version))))
 		     (setq found
-			   (cons (list symbol 'custom-variable) found)))))
+			   ;; We have to set the right thing here,
+			   ;; depending if we have a group or a
+			   ;; variable. 
+			   (if (get  symbol 'group-documentation)
+			       (cons (list symbol 'custom-group) found)
+			     (cons (list symbol 'custom-variable) found))))))
     (if (not found)
 	(error "No user options have changed defaults in recent Emacs versions")
       (custom-buffer-create (custom-sort-items found t nil)
