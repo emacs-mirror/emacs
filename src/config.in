@@ -112,6 +112,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_LIBXBSD
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING
+#undef HAVE_XSCREENNUMBEROFSCREEN
 
 #undef HAVE_MKDIR
 #undef HAVE_RMDIR
