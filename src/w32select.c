@@ -194,7 +194,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
-	bufsize = encoding_buffer_size (&coding, nbytes) + nlines;
+	bufsize = encoding_buffer_size (&coding, nbytes);
 	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, bufsize)) == NULL)
 	  goto error;
 	if ((dst = (unsigned char *) GlobalLock (htext)) == NULL)
