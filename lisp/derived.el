@@ -225,8 +225,12 @@ been generated automatically, with a reference to the keymap."
 					; Splice in the body (if any).
 	  ,@body
 	  )
-					; Run the hooks, if any.
-	 (run-mode-hooks ',hook)))))
+	 ;; Run the hooks, if any.
+	 ;; Make the generated code work in older Emacs versions
+	 ;; that do not yet have run-mode-hooks.
+	 (if (fboundp 'run-mode-hooks)
+	     (run-mode-hooks ',hook)
+	   (run-hooks ',hook))))))
 
 ;; PUBLIC: find the ultimate class of a derived mode.
 
