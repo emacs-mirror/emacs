@@ -377,18 +377,15 @@ C-w. Eso elimina todo el texto entre las dos posiciones.
 >> Teclee C-w. Esto eliminará el texto que comienza desde la T, y 
    termina justo antes de la x.
 
-Cuando usted borra más de un caracter a la vez, Emacs salva el texto
-borrado de manera que usted lo puede recuperar. Recuperar el texto se
-llamará "yanking". Usted puede recuperar el texto eliminado en el 
-lugar donde fue eliminado, o en otro lugar en el texto. Usted puede
-recuperar el texto varias veces para hacer múltiples copias de este. El 
-comando para recuperar es C-y.
+La diferencia entre "eliminar" y "borrar" es que el texto "eliminado"
+puede ser reinsertado, mientras que las cosas "borradas" no pueden
+ser reinsertados.
 
-Note la diferencia entre "Eliminar" y "Borrar" las cosas que "elimina"
-pueden ser recuperadas y las que "borra" no. Generalmente,
-los comandos que pueden remover mucho texto lo salvan, mientras los 
-comandos que borran sólo un caracter, o líneas y espacios, no salvan el 
-texto borrado.
+La reinserción de texto eliminado es llamada "yanking".  Generalmente,
+los comandos que pueden remover mucho texto lo eliminan (configurados de
+esta forma para poder recuperarlo), mientras que los comandos que 
+remueven un solo caracter, o solamente líneas en blanco o espacios, 
+hacen un borrado (sin que usted pueda recuperar dicho texto).
 
 >> Mueva el cursor al comienzo de una línea  que no esté desocupada. Luego
    digite C-k para eliminar el texto de esa línea.
@@ -402,14 +399,20 @@ Elimina ese número de líneas y sus contenidos. Esto no es una simple
 repetición. C-u 2 C-k elimina dos líneas y sus nuevas líneas, tecleando 
 C-k dos veces no hace esto.
 
-Para recuperar el último texto eliminado y ponerlo donde el cursor 
-actualmente está, oprima C-y
+Recuperar texto eliminado es llamado "yanking". (Piense en esto como si 
+estuviera recuperando, reinsertando, algún texto que fue eliminado). 
+Puede recuperar el texto eliminado o bien en el mismo sitio de dónde fue 
+eliminado o en otro lugar en el buffer, o inclus en un archivo diferente.
+Puede reinsertar el texto varias veces, lo que hace múltiples copias del
+mismo.
+
+El comando para recuperar es C-y. Este reinserta el  último texto 
+eliminado, en la posición actual del cursor. 
 
 >>Inténtelo; oprima C-y para recuperar el texto.
 
-Piense en C-y como si estuviera recuperando algo que alguien le quitó. Note
-que si usted hace varias C-k seguidas, todo lo que ha sido eliminado del
-texto se salva junto, de manera que un C-y recuperará todas las líneas.
+Si usted tecleea muchos C-k s seguidos, todo el texto eliminado es salvado
+junto, de forma tal que un C-y lo recuperará todo de una sola vez.
 
 >>Haga esto ahora, oprima C-k varias veces.
 
@@ -464,6 +467,10 @@ proveemos C-x u también. En algunas terminales, usted puede oprimir C-_
 al digitar / mientras oprime CONTROL.
 
 Un argumento numérico para C-_ o C-x u actúa como un factor de repetición.
+
+Usted puede deshacer el borrado de texto de la misma forma que si lo 
+hubiera eliminado. La diferencia entre eliminar algo y borrarlo se hace
+visible cuando lo recupera con C-y; no hay diferencia para deshacer.
 
 
 * ARCHIVOS
@@ -1007,6 +1014,11 @@ Aquí hay algunas otras opciones útiles de C-h:
    Esto imprime toda la información que Emacs tiene sobre la función que 
    implementa el comando C-p
 
+De forma similar el comando C-h v imprime la documentación de variables
+cuyos valores pueden ser especificados para configurar el comportamiento
+de Emacs. Necesita teclear el nombre de la variable cuando Emacs lo
+pregunte.
+
    C-h a 	Comando Apropos. Digite una palabra y Emacs hará una 
 		lista de todos los comandos que contengan la palabra 
 		digitada. Todos Estos comandos pueden ser invocados con 
@@ -1025,6 +1037,17 @@ tales como find-file.
    veces.
 
 >> Digite C-x 1 para borrar la ventana de ayuda.
+
+   C-h i        Leer manuales en línea (a.k.a. Info). Este comando lo
+		lleva a un buffer especial llamado '*info*' en el cual
+		puede leer manuales en línea de los paquetes instalados 
+		en su sistema.  Teclee m emacs <Return> para leer el 
+		manual de Emacs.  Si usted nunca ha usado Info antes, 
+		teclee ? y Emacs lo llevara a un tour guiado de las 
+		facilidades del modo Info.  Una vez que haya finalizado
+		este tutorial, debería consultar el manual Info de Emacs
+		como su primera fuente de documentación.
+
 
 * CONCLUSIÓN
 ------------

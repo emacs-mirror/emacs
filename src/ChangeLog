@@ -1,3 +1,9 @@
+2001-11-04  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (current_column_1, Fmove_to_column): Separate the code
+	for display-table glyphs from the code buffer text, to fix
+	bugs in the former.
+
 2001-11-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (Fx_create_frame): Doc fix.
