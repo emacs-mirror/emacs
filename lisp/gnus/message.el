@@ -1,5 +1,5 @@
 ;;; message.el --- composing mail and news messages  -*- coding: iso-latin-1 -*-
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1975,7 +1975,8 @@ prefix, and don't delete any headers."
 	       message-cite-function)
       (delete-windows-on message-reply-buffer t)
       (insert-buffer message-reply-buffer)
-      (funcall message-cite-function)
+      (unless arg
+	(funcall message-cite-function))
       (message-exchange-point-and-mark)
       (unless (bolp)
 	(insert ?\n))
@@ -2019,7 +2020,10 @@ prefix, and don't delete any headers."
       (while (looking-at "^[ \t]*$")
 	(forward-line -1))
       (forward-line 1)
-      (delete-region (point) end))
+      (delete-region (point) end)
+      (unless (search-backward "\n\n" start t)
+	;; Insert a blank line if it is peeled off.
+	(insert "\n")))
     (goto-char start)
     (while functions
       (funcall (pop functions)))
@@ -2373,10 +2377,13 @@ It should typically alter the sending method in some way or other."
 		(and news
 		     (or (message-fetch-field "cc")
 			 (message-fetch-field "to"))
-		     (string= "text/plain"
-			      (car
-			       (mail-header-parse-content-type
-				(message-fetch-field "content-type"))))))
+		     (let ((content-type (message-fetch-field "content-type")))
+		       (or
+			(not content-type)
+			(string= "text/plain"
+				 (car
+				  (mail-header-parse-content-type
+				   content-type)))))))
 	    (message-insert-courtesy-copy))
 	  (if (or (not message-send-mail-partially-limit)
 		  (< (point-max) message-send-mail-partially-limit)
@@ -4208,24 +4215,18 @@ Optional DIGEST will use digest to forward."
 	      (insert-buffer-substring cur)
 	    (mml-insert-buffer cur))
 	(if message-forward-show-mml
-	    (let ((target (current-buffer)) tmp)
-	      (with-temp-buffer
-		(mm-disable-multibyte) ;; Must copy buffer in unibyte mode
-		(setq tmp (current-buffer))
-		(set-buffer cur)
-		(mm-with-unibyte-current-buffer
-		  (set-buffer tmp)
-		  (insert-buffer-substring cur)
-		  (set-buffer cur))
-		(set-buffer tmp)
-		(mm-enable-multibyte)
-		(mime-to-mml)
-		(goto-char (point-min))
-		(when (looking-at "From ")
-		  (replace-match "X-From-Line: "))
-		(set-buffer target)
-		(insert-buffer-substring tmp)
-		(set-buffer tmp)))
+	    (insert
+	     (with-temp-buffer
+	       (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode
+	       (insert
+		(with-current-buffer cur
+		  (mm-string-as-unibyte (buffer-string))))
+	       (mm-enable-multibyte-mule4)
+	       (mime-to-mml)
+	       (goto-char (point-min))
+	       (when (looking-at "From ")
+		 (replace-match "X-From-Line: "))
+	       (buffer-string)))
 	  (save-restriction
 	    (narrow-to-region (point) (point))
 	    (mml-insert-buffer cur)

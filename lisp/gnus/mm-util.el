@@ -108,7 +108,9 @@
 	    prompt
 	    (mapcar (lambda (e) (list (symbol-name (car e))))
 		    mm-mime-mule-charset-alist)
-	    nil t)))))))
+	    nil t))))
+     (string-as-unibyte . identity)
+      )))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p

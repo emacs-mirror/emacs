@@ -106,6 +106,28 @@ Used for APOP authentication.")
     )
   t)
 
+(defun pop3-get-message-count ()
+  "Return the number of messages in the maildrop."
+  (let* ((process (pop3-open-server pop3-mailhost pop3-port))
+	 message-count
+	 (pop3-password pop3-password)
+	 )
+    ;; for debugging only
+    (if pop3-debug (switch-to-buffer (process-buffer process)))
+    ;; query for password
+    (if (and pop3-password-required (not pop3-password))
+	(setq pop3-password
+	      (pop3-read-passwd (format "Password for %s: " pop3-maildrop))))
+    (cond ((equal 'apop pop3-authentication-scheme)
+	   (pop3-apop process pop3-maildrop))
+	  ((equal 'pass pop3-authentication-scheme)
+	   (pop3-user process pop3-maildrop)
+	   (pop3-pass process))
+	  (t (error "Invalid POP3 authentication scheme.")))
+    (setq message-count (car (pop3-stat process)))
+    (pop3-quit process)
+    message-count))
+
 (defun pop3-open-server (mailhost port)
   "Open TCP connection to MAILHOST on PORT.
 Returns the process associated with the connection."

@@ -304,7 +304,9 @@ The buffer may be narrowed."
 	  (goto-char (or break qword-break))
 	  (setq break nil
 		qword-break nil)
-	  (insert "\n ")
+	  (if (looking-at " \t")
+	      (insert "\n")
+	    (insert "\n "))
 	  (setq bol (1- (point)))
 	  ;; Don't break before the first non-LWSP characters.
 	  (skip-chars-forward " \t")
@@ -336,7 +338,9 @@ The buffer may be narrowed."
 	(goto-char (or break qword-break))
 	(setq break nil
 	      qword-break nil)
-	(insert "\n ")
+	  (if (looking-at " \t")
+	      (insert "\n")
+	    (insert "\n "))
 	(setq bol (1- (point)))
 	;; Don't break before the first non-LWSP characters.
 	(skip-chars-forward " \t")

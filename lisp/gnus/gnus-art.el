@@ -3015,6 +3015,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
   (interactive)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
+    (push (setq data (copy-sequence data)) gnus-article-mime-handles)
     (mm-interactively-view-part data)))
 
 (defun gnus-mime-view-part-as-type-internal ()
@@ -3050,7 +3051,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
   (interactive)
   (gnus-article-check-buffer)
   (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 (contents (mm-get-part handle))|
+	 (contents (mm-get-part handle))
 	 (base (file-name-nondirectory
 		(or
 		 (mail-content-type-get (mm-handle-type handle) 'name)

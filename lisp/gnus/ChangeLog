@@ -1,3 +1,30 @@
+2001-01-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-forward): Use mule4.
+	* mm-util.el (mm-string-as-unibyte): New.
+	* message.el (message-forward): Use it.
+	* message.el (message-cite-original-without-signature): Don't peel
+	off the blank line.
+	(message-get-reply-headers): Add Cc if it is not in follow-to.
+	* message.el (message-send-mail): Content-Type may not be there.
+	By Alberto Lusiani.
+	* gnus-art.el (article-display-x-face): Insert X-Face if there is
+	not.
+	* rfc2047.el (rfc2047-fold-region): Don't insert LWSP if there is
+	one.
+	* gnus-win.el (gnus-configure-windows): switch-to-buffer in XEmacs.
+	(gnus-remove-some-windows): Ditto.
+	* mm-decode.el (mm-interactively-view-part): Don't copy-sequence
+	handle.
+	* gnus-art.el (gnus-mime-view-part): Copy it.
+	(gnus-mime-view-part-as-type): Add into gnus-article-mime-handles.
+	* nnmail.el (nnmail-get-new-mail): Find group only if file is not
+	orig-file. Use ',source.
+	* nnslashdot.el (nnslashdot-request-list): Get the right year. By
+	Lars Magne Ingebrigtsen.
+	* pop3.el (pop3-get-message-count): Andrew Innes
+	<andrewi@gnu.org>'s patch of 1999-12-01 was not fully committed.
+
 2001-01-08  Dave Love  <fx@gnu.org>
 
 	* mm-encode.el (mm-qp-or-base64): Don't base64 for the sake of a

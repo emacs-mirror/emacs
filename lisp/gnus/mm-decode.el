@@ -730,7 +730,7 @@ external if displayed external."
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method)
 	(setq method (concat method " %s")))
-    (mm-display-external (copy-sequence handle) method)))
+    (mm-display-external handle method)))
 
 (defun mm-preferred-alternative (handles &optional preferred)
   "Say which of HANDLES are preferred."

@@ -1572,7 +1572,9 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 			(nnmail-split-incoming
 			 file ',(intern (format "%s-save-mail" method))
 			 ',spool-func
-			 (nnmail-get-split-group orig-file source)
+			 (if (equal file orig-file)
+			     nil
+			   (nnmail-get-split-group orig-file ',source))
 			 ',(intern (format "%s-active-number" method))))))
 	  (incf total new)
 	  (incf i)))
