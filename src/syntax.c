@@ -467,8 +467,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      OFROM[I] is position of the earliest comment-starter seen
      which is I+2X quotes from the comment-end.
      PARITY is current parity of quotes from the comment end.  */
-  int parity = 0;
-  int my_stringend = 0;
+  int string_style = -1;	/* Presumed outside of any string. */
   int string_lossage = 0;
   int comment_end = from;
   int comment_end_byte = from_byte;
@@ -476,7 +475,6 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
   int comstart_byte;
   /* Value that PARITY had, when we reached the position
      in COMSTART_POS.  */
-  int comstart_parity = 0;
   int scanstart = from - 1;
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
@@ -530,34 +528,33 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	continue;
 
       /* Track parity of quotes.  */
-      if (code == Sstring)
+      switch (code)
 	{
-	  parity ^= 1;
-	  if (my_stringend == 0)
-	    my_stringend = c;
-	  /* If we have two kinds of string delimiters.
-	     There's no way to grok this scanning backwards.  */
-	  else if (my_stringend != c)
+	case Sstring_fence:
+	case Scomment_fence:
+	  c = (code == Sstring_fence ? ST_STRING_STYLE : ST_COMMENT_STYLE);
+	case Sstring:
+	  /* Track parity of quotes.  */
+	  if (string_style == -1)
+	    /* Entering a string.  */
+	    string_style = c;
+	  else if (string_style == c)
+	    /* Leaving the string.  */
+	    string_style = -1;
+	  else
+	    /* If we have two kinds of string delimiters.
+	       There's no way to grok this scanning backwards.  */
 	    string_lossage = 1;
-	}
+	  break;
+	  
+	case Scomment:
+	  /* We've already checked that it is the relevant comstyle.  */
+	  if (string_style != -1 || string_lossage)
+	    /* There are odd string quotes involved, so let's be careful.
+	       Test case in Pascal: " { " a { " } */
+	    goto lossage;
 
-      if (code == Sstring_fence || code == Scomment_fence)
-	{
-	  parity ^= 1;
-	  if (my_stringend == 0)
-	    my_stringend
-	      = code == Sstring_fence ? ST_STRING_STYLE : ST_COMMENT_STYLE;
-	  /* If we have two kinds of string delimiters.
-	     There's no way to grok this scanning backwards.  */
-	  else if (my_stringend != (code == Sstring_fence 
-				    ? ST_STRING_STYLE : ST_COMMENT_STYLE))
-	    string_lossage = 1;
-	}
-
-      if (code == Scomment)
-	/* We've already checked that it is the relevant comstyle.  */
-	{
-	  if (comnested && --nesting <= 0 && parity == 0 && !string_lossage)
+	  if (comnested && --nesting <= 0)
 	    /* nested comments have to be balanced, so we don't need to
 	       keep looking for earlier ones.  We use here the same (slightly
 	       incorrect) reasoning as below:  since it is followed by uniform
@@ -567,9 +564,12 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 
 	  /* Record comment-starters according to that
 	     quote-parity to the comment-end.  */
-	  comstart_parity = parity;
 	  comstart_pos = from;
 	  comstart_byte = from_byte;
+	  break;
+
+	default:
+	  ;
 	}
 
       /* If we find another earlier comment-ender,
@@ -607,7 +607,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      we know it can't be inside a string
      since if it were then the comment ender would be inside one.
      So it does start a comment.  Skip back to it.  */
-  else if (!comnested && comstart_parity == 0 && !string_lossage) 
+  else if (!comnested)
     {
       from = comstart_pos;
       from_byte = comstart_byte;
@@ -615,12 +615,13 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
     }
   else
     {
+      struct lisp_parse_state state;
+    lossage:
       /* We had two kinds of string delimiters mixed up
 	 together.  Decode this going forwards.
 	 Scan fwd from the previous comment ender
 	 to the one in question; this records where we
 	 last passed a comment starter.  */
-      struct lisp_parse_state state;
       /* If we did not already find the defun start, find it now.  */
       if (defun_start == 0)
 	{
