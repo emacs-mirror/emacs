@@ -86,15 +86,6 @@ extern char **environ;
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-#ifdef DOS_NT
-/* When we are starting external processes we need to know whether they
-   take binary input (no conversion) or text input (\n is converted to
-   \r\n).  Similar for output: if newlines are written as \r\n then it's
-   text process output, otherwise it's binary.  */
-Lisp_Object Vbinary_process_input;
-Lisp_Object Vbinary_process_output;
-#endif /* DOS_NT */
-
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory;
 Lisp_Object Vtemp_file_name_pattern;
@@ -304,30 +295,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      val = Qnil;
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &process_coding);
-#ifdef MSDOS
-	/* On MSDOS, if the user did not ask for binary, treat it as
-	   "text" which means doing CRLF conversion.  Otherwise, leave
-	   the EOLs alone.
-
-	   Note that ``binary'' here only means whether EOLs should or
-	   should not be converted, since that's what Vbinary_process_XXXput
-	   meant in the days before the coding systems were introduced.
-
-	   For other conversions, the caller should set coding-system
-	   variables explicitly, or rely on auto-detection.  */
-
-	/* FIXME: this probably should be moved into the guts of
-	   `Ffind_operation_coding_system' for the case of `call-process'.  */
-	if (NILP (Vbinary_process_output))
-	  {
-	    process_coding.eol_type = CODING_EOL_CRLF;
-	    if (process_coding.type == coding_type_no_conversion)
-	      /* FIXME: should we set type to undecided?  */
-	      process_coding.type = coding_type_emacs_mule;
-	  }
-	else
-	  process_coding.eol_type = CODING_EOL_LF;
-#endif
       }
   }
 
@@ -849,11 +816,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   start = args[0];
   end = args[1];
   /* Decide coding-system of the contents of the temporary file.  */
-#ifdef DOS_NT
-  /* This is to cause find-buffer-file-type-coding-system (see
-     dos-w32.el) to choose correct EOL translation for write-region.  */
-  specbind (Qbuffer_file_type, Vbinary_process_input);
-#endif
   if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
   else if (NILP (current_buffer->enable_multibyte_characters))
@@ -871,30 +833,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       else
 	val = Qnil;
     }
-
-#ifdef DOS_NT
-  /* binary-process-input tells whether the buffer needs to be
-     written with EOL conversions, but it doesn't say anything
-     about the rest of text encoding.  It takes effect whenever
-     the coding system doesn't otherwise specify what to do for
-     eol conversion.  */
-  if (NILP (val))
-    {
-      if (! NILP (Vbinary_process_input))
-	val = intern ("undecided-unix");
-      else
-	val = intern ("undecided-dos");
-    }
-  else if (SYMBOLP (val) && NILP (Vcoding_system_for_write))
-    {
-      Lisp_Object eolval;
-      eolval = Fget (val, Qeol_type);
-      if (VECTORP (eolval) && XVECTOR (eolval)->size > 1)
-	/* Use element 1 (CRLF conversion) for "text",
-	   and element 0 (LF conversion) for "binary".  */
-	val = XVECTOR (eolval)->contents[NILP (Vbinary_process_input)];
-    }
-#endif
 
   specbind (intern ("coding-system-for-write"), val);
   Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
@@ -1366,14 +1304,6 @@ syms_of_callproc ()
 #ifdef DOS_NT
   Qbuffer_file_type = intern ("buffer-file-type");
   staticpro (&Qbuffer_file_type);
-
-  DEFVAR_LISP ("binary-process-input", &Vbinary_process_input,
-    "*If non-nil then new subprocesses are assumed to take binary input.");
-  Vbinary_process_input = Qnil;
-
-  DEFVAR_LISP ("binary-process-output", &Vbinary_process_output,
-    "*If non-nil then new subprocesses are assumed to produce binary output.");
-  Vbinary_process_output = Qnil;
 #endif /* DOS_NT */
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
