@@ -1,9 +1,13 @@
+2002-03-12  Juanma Barranquero  <lektu@terra.es>
+
+	* editfns.c (syms_of_editfns): Fix typo.
+
 2002-03-09  Jason Rumney  <jasonr@gnu.org>
 
 	* fileio.c (Fcopy_file) [WINDOWS_NT]: Ensure file is not
 	read-only when setting modified time.
 
-2002-03-08  Juanma Barranquero  <jbarranquero@peoplecall.com>
+2002-03-08  Juanma Barranquero  <lektu@terra.es>
 
 	* w32fns.c (Fx_display_color_cells): Force 24+ bit color depths to
 	24-bit.
