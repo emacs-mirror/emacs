@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -190,8 +190,8 @@ void print_interval ();
 
 #define PRINTDECLARE							\
    struct buffer *old = current_buffer;					\
-   int old_point = -1, start_point;					\
-   int old_point_byte, start_point_byte;				\
+   int old_point = -1, start_point = -1;				\
+   int old_point_byte = -1, start_point_byte = -1;			\
    int specpdl_count = specpdl_ptr - specpdl;				\
    int free_print_buffer = 0;						\
    int multibyte = !NILP (current_buffer->enable_multibyte_characters);	\
@@ -291,6 +291,7 @@ print_unwind (saved_text)
      Lisp_Object saved_text;
 {
   bcopy (XSTRING (saved_text)->data, print_buffer, XSTRING (saved_text)->size);
+  return Qnil;
 }
 
 
@@ -1186,6 +1187,10 @@ print_preprocess (obj)
 	  size = XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
+	  break;
+
+	default:
+	  break;
 	}
     }
 }
