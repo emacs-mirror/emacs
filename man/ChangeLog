@@ -1,3 +1,10 @@
+2005-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Input Methods): Refer to the command C-u C-x =.
+
+	* basic.texi (Position Info): Update the description about the
+	command C-u C-x =.
+
 2005-03-28  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Use @section for the detailed node listing.
