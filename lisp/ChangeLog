@@ -1,3 +1,8 @@
+2002-11-14  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
+
+	* progmodes/etags.el (find-tag-default): Copy text at point without
+	properties.
+
 2002-11-14  Kenichi Handa  <handa@m17n.org>
 
 	* progmodes/cc-vars.el: Don't cc-bytecomp-defun char-table-p.
@@ -13,7 +18,7 @@
 	When done, go back through those markers and fill each mangled
 	paragraph with `fill-nobreak-invisible' let-bound to t.
 	Don't use `display' property; insert "see" directly in buffer.
-	
+
 2002-11-13  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-registered): Improve comment.
