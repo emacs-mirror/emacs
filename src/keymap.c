@@ -2295,6 +2295,7 @@ describe_vector (vector, elt_prefix, elt_describer,
   Lisp_Object suppress;
   Lisp_Object kludge;
   int first = 1;
+  int size;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   definition = Qnil;
@@ -2308,7 +2309,10 @@ describe_vector (vector, elt_prefix, elt_describer,
   if (partial)
     suppress = intern ("suppress-keymap");
 
-  for (i = 0; i < XVECTOR (vector)->size; i++)
+  /* This does the right thing for char-tables as well as ordinary vectors.  */
+  size = XFASTINT (Flength (vector));
+
+  for (i = 0; i < size; i++)
     {
       QUIT;
       definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
