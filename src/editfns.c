@@ -49,7 +49,10 @@ Boston, MA 02111-1307, USA.  */
 #define NULL 0
 #endif
 
+#ifndef USE_CRT_DLL
 extern char **environ;
+#endif
+
 extern Lisp_Object make_time P_ ((time_t));
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));

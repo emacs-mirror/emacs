@@ -65,7 +65,9 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 
 #ifndef vax11c
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 #endif
 
 #ifdef APOLLO
