@@ -1,3 +1,8 @@
+2000-01-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (gif_load): Avoid sign extension and thus out of bounds
+	color indices when accessing raster pixels.
+
 1999-12-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c: New image functions adapted to Emacs conventions.
