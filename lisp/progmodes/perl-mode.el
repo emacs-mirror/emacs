@@ -330,30 +330,34 @@ The expansion is entirely correct because it uses the C preprocessor."
 				      nil nil state 'syntax-table)))
 	    ;; The open/close chars are matched like () [] {} and <>.
 	    (let ((parse-sexp-lookup-properties nil))
-	      (ignore-errors
-		(with-syntax-table st
-		  (goto-char (nth 8 state)) (forward-sexp 1))
-		(when twoargs
-		  (save-excursion
-		    ;; Skip whitespace and make sure that font-lock will
-		    ;; refontify the second part in the proper context.
-		    (put-text-property
-		     (point) (progn (forward-comment (point-max)) (point))
-		     'font-lock-multiline t)
-		    ;;
-		    (unless
-			(save-excursion
-			  (let* ((char2 (char-after))
-				 (st2 (perl-quote-syntax-table char2)))
-			    (with-syntax-table st2 (forward-sexp 1))
-			    (put-text-property pos (line-end-position)
-					       'jit-lock-defer-multiline t)
-			    (looking-at "\\s-*\\sw*e")))
-		      (put-text-property (point) (1+ (point))
-					 'syntax-table
-					 (if (assoc (char-after)
-						    perl-quote-like-pairs)
-					     '(15) '(7)))))))))
+	      (condition-case err
+		  (progn
+		    (with-syntax-table st
+		      (goto-char (nth 8 state)) (forward-sexp 1))
+		    (when twoargs
+		      (save-excursion
+			;; Skip whitespace and make sure that font-lock will
+			;; refontify the second part in the proper context.
+			(put-text-property
+			 (point) (progn (forward-comment (point-max)) (point))
+			 'font-lock-multiline t)
+			;;
+			(unless
+			    (save-excursion
+			      (with-syntax-table
+				  (perl-quote-syntax-table (char-after))
+				(forward-sexp 1))
+			      (put-text-property pos (line-end-position)
+						 'jit-lock-defer-multiline t)
+			      (looking-at "\\s-*\\sw*e"))
+			  (put-text-property (point) (1+ (point))
+					     'syntax-table
+					     (if (assoc (char-after)
+							perl-quote-like-pairs)
+						 '(15) '(7)))))))
+		;; The arg(s) is not terminated, so it extends until EOB.
+		(scan-error (goto-char (point-max))))))
+	  ;; Point is now right after the arg(s).
 	  ;; Erase any syntactic marks within the quoted text.
 	  (put-text-property pos (1- (point)) 'syntax-table nil)
 	  (when (eq (char-before (1- (point))) ?$)
