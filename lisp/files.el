@@ -2355,7 +2355,7 @@ the old visited file has been renamed to the new name FILENAME."
 	(progn
 	  (setq buffer-file-truename (abbreviate-file-name truename))
 	  (if find-file-visit-truename
-	      (setq buffer-file-name buffer-file-truename))))
+	      (setq buffer-file-name truename))))
     (setq buffer-file-number
 	  (if filename
 	      (nthcdr 10 (file-attributes buffer-file-name))
