@@ -209,10 +209,19 @@ fire repeatedly that many seconds apart."
 ;; middle of a key sequence being entered are still handled correctly.
 (define-key special-event-map [timer-event] 'timer-event-handler)
 
+;; Record the last few events, for debugging.
+(defvar timer-event-last-2 nil)
+(defvar timer-event-last-1 nil)
+(defvar timer-event-last nil)
+
 (defun timer-event-handler (event)
   "Call the handler for the timer in the event EVENT."
   (interactive "e")
-  (let ((timer (car-safe (cdr-safe event))))
+  (setq timer-event-last-2 timer-event-last-1)
+  (setq timer-event-last-1 timer-event-last)
+  (setq timer-event-last event)
+  (let ((inhibit-quit t)
+	(timer (car-safe (cdr-safe event))))
     (if (timerp timer)
 	(progn
 	  ;; Delete from queue.
