@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.35 $
+;; Version: $Revision: 1.36 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/06/27 20:12:00 $|$Revision: 1.35 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/09 01:07:57 $|$Revision: 1.36 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.36  1995/07/09  01:07:57  tromey
+;; (tcl-imenu-create-index-function): Work with imenu from Emacs 19.29
+;;
 ;; Revision 1.35  1995/06/27  20:12:00  tromey
 ;; (tcl-type-alist): More itcl changes.
 ;;
@@ -316,7 +319,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.35 $")
+(defconst tcl-version "$Revision: 1.36 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1649,8 +1652,8 @@ of comment."
 
 (defun tcl-do-auto-fill ()
   "Auto-fill function for Tcl mode.  Only auto-fills in a comment."
-  (let (in-comment
-	col)
+  (let ((fill-prefix "# ")
+	in-comment col)
     (save-excursion
       (setq in-comment (tcl-in-comment))
       (if in-comment
