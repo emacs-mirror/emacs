@@ -1355,22 +1355,24 @@ Obeying it means displaying in another window the specified file and line."
 	    (or (eq (current-buffer) gud-comint-buffer)
 		(set-buffer gud-comint-buffer))
 	    (gud-find-file true-file)))
-	 (window (display-buffer buffer))
+	 (window (and buffer (display-buffer buffer)))
 	 (pos))
-    (save-excursion
-      (set-buffer buffer)
-      (save-restriction
-	(widen)
-	(goto-line line)
-	(setq pos (point))
-	(setq overlay-arrow-string "=>")
-	(or overlay-arrow-position
-	    (setq overlay-arrow-position (make-marker)))
-	(set-marker overlay-arrow-position (point) (current-buffer)))
-      (cond ((or (< pos (point-min)) (> pos (point-max)))
-	     (widen)
-	     (goto-char pos))))
-    (set-window-point window overlay-arrow-position)))
+    (if buffer
+	(progn
+	  (save-excursion
+	    (set-buffer buffer)
+	    (save-restriction
+	      (widen)
+	      (goto-line line)
+	      (setq pos (point))
+	      (setq overlay-arrow-string "=>")
+	      (or overlay-arrow-position
+		  (setq overlay-arrow-position (make-marker)))
+	      (set-marker overlay-arrow-position (point) (current-buffer)))
+	    (cond ((or (< pos (point-min)) (> pos (point-max)))
+		   (widen)
+		   (goto-char pos))))
+	  (set-window-point window overlay-arrow-position)))))
 
 ;;; The gud-call function must do the right thing whether its invoking
 ;;; keystroke is from the GUD buffer itself (via major-mode binding)
