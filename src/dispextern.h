@@ -2201,7 +2201,19 @@ extern EMACS_INT tool_bar_button_relief;
 
 
 /***********************************************************************
-			 Function Prototypes
+			 Terminal Capabilities
+ ***********************************************************************/
+
+#define TTY_CAP_INVERSE		0x01
+#define TTY_CAP_UNDERLINE	0x02
+#define TTY_CAP_BOLD		0x04
+#define TTY_CAP_DIM		0x08
+#define TTY_CAP_BLINK		0x10
+#define TTY_CAP_ALT_CHARSET	0x20
+
+
+/***********************************************************************
+			  Function Prototypes
  ***********************************************************************/
 
 /* Defined in xdisp.c */
@@ -2443,6 +2455,7 @@ extern void tty_setup_colors P_ ((int));
 extern void term_init P_ ((char *));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
+extern int tty_capable_p P_ ((struct frame *, unsigned, unsigned long, unsigned long));
 
 /* Defined in scroll.c */
 
