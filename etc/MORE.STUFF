@@ -1,52 +1,185 @@
-More Neat Stuff for your Emacs			-*-Outline-*-
+More Neat Stuff for your Emacs         -*-mode: text; outline-minor-mode: t-*-
 
 This file describes GNU Emacs programs and resources that are maintained
-by other people.  Some of these may become part of the Emacs distribution
-in the future.
+by other people.  Some of these may become part of the Emacs
+distribution in the future.  Also included are sites where development
+versions of some packages distributed with Emacs may be found.
+
+You might also look at the Emacs web page
+<URL:http://www.gnu.org/software/emacs/emacs.html>.  If you use the
+Windows-32 version of Emacs, see the NTEmacs sites listed in the FAQ.
+
+Please submit a but report if you find that any of the addresses
+listed here fail.
 
 * The LCD archive
 
 There is a large collection of Emacs Lisp code available for FTP at
-archive.cis.ohio-state.edu; it is actively maintained by Dave Brennan
-<brennan@hal.com> and Dave Sill <de5@ornl.gov>.
+ftp.cis.ohio-state.edu and various mirrors.  Unfortunately it isn't
+currently actively maintained; a volunteer to take it over would be
+welcome.
 
 To get started using this archive, do:
 
-	ftp archive.cis.ohio-state.edu
+	ftp ftp.cis.ohio-state.edu
 
 Once you're in FTP, do
 
-	cd pub/gnu/emacs/elisp-archive
+	cd pub/emacs-lisp
 	bin
 	get lispdir.el.Z
 	get LCD-datafile.Z
 
 and exit.  Then do:
 
-	compress -d *.Z
+	gunzip *.Z
 
 The lispdir.el package will help you search for useful packages in the
 LCD-datafile, which is a list of the archive constants.  It will even
 fetch them for you on command.
 
-* Eric Ludlam's etalk system
+* Maintenace versions of some packages distributed with Emacs
 
-Eric Ludlam has written a C program and Emacs Lisp code to do Internet talk
-through an Emacs window.  The package also includes Emacs Lisp code which
-assists you in using talk to play a number of different interactive games.
+You might find bug-fixes or enhancements in these places.
 
-This system seems to be quite nicely put together and is well documented
-with a texinfo file that you can integrate into Emacs's own on-line help.
-It's too large and specialized to include in the Emacs distribution, though.
+ * Autorevert:
+   <URL:ftp://ftp.csd.uu.se/pub/users/andersl/emacs/autorevert.el>
 
-Sources of this system are available for FTP at
+ * Battery and Info Look: <URL:ftp://ftp.ul.bawue.de/pub/purple/emacs>
 
-	nic.umass.edu		128.119.166.14
+ * BibTeX:
+   <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
 
-Look under pub/contrib.  As of March 23 1993, there are two relevant files:
+ * CC Mode, ELP, Reporter, Supercite: <URL:http://www.python.org/emacs/>
+   Also home of Python Mode and possibly other good hacks.
 
-	pub/contrib/etalk0.6B.tar.Z	--- sources of the talk system
-	pub/contrib/egames0.6B.tar.Z	--- more game-support files
+ * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
 
-We don't know whether this can use the additional features in GNU talk.
+ * Crisp mode, Scroll Lock mode:
+   <URL:http://members.home.net/foz/elisp/>
 
+ * Ediff and Viper: <URL:ftp://ftp.ca.sunysb.edu/pub/techreports/kifer/>
+
+ * Eldoc, Rlogin and Rsz-mini:
+   <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
+
+ * Elint: <URL:http://www.lysator.liu.se/%7Epetli/elisp/elint.tar.gz>
+
+ * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
+
+ * Etags: <URL:ftp://fly.cnuce.cnr.it/pub/>
+
+ * Find Func:
+   <URL:http://www.kurims.kyoto-u.ac.jp/%7Epetersen/emacs/find-func.el>
+
+ * Flyspell: <URL:http://kaolin.unice.fr/%7Eserrano/emacs/flyspell>
+
+ * Gnus home page: <URL:http://www.gnus.org/>
+   Native MIME support is in development at the time of writing.
+
+ * Ffap: <URL:http://www.mathcs.emory.edu/%7Emic/ftp/emacs/>
+   (And some addons for it.)
+
+ * Follow: <URL:http://meryl.csd.uu.se/%7eandersl/follow.shtml>
+
+ * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
+
+ * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
+
+ * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
+
+ * Speedbar, Checkdoc etc: <URL:ftp://www.ultranet.com/pub/zappo/>
+
+ * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
+
+ * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
+
+* Packages and add-ons not bundled with Emacs
+
+Various major packages or useful additions aren't distributed as part of
+Emacs for various reasons, sometimes because their authors haven't made
+a copyright assignment to the FSF.  Some of them may be integrated in
+the future.
+
+ * AUCTeX: fancy (La)TeX support: <URL:http://sunsite.auc.dk/auctex/>
+   There's an AUCTeX mail list/newsgroup:
+   <URL:news://sunsite.auc.dk/emacs.auctex>.
+
+ * BBDB: personal Info Rolodex integrated with mail/news:
+   <URL:http://pw2.netcom.com/%7Esimmonmt/bbdb/index.html>
+
+ * Calc: computer algebra and numerical calculations:
+   <URL:http:www.gnu.org/software/calc/calc.html>
+   From GNU distribution mirrors.
+
+ * Dismal: spreadsheet:
+   <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
+   dismal.html>
+	  
+ * EDB: database: <URL:ftp://theory.lcs.mit.edu/pub/emacs/edb>
+   No longer maintained?
+
+ * EIEIO (object system), ETalk (interface to Internet talk):
+   <URL:ftp://www.ultranet.com/pub/zappo/>
+
+ * EFS: enhanced version of ange-ftp:
+   <URL:http://www-uk.hpl.hp.com/people/ange/efs>
+   Version 1.16 is said not to work properly with Emacs 20.
+
+ * Elib library: <URL:/software/elib/elib.html>
+   From GNU distribution mirrors.
+
+ * Emacspeak -- A Speech Output Subsystem For Emacs:
+   <URL:http://simon.cs.cornell.edu/info/people/raman/emacspeak/emacspeak.html>
+
+ * Erik Naggum's hacks: <URL:ftp://ftp.naggum.no/emacs/>
+
+ * Gnuserv:
+   <URL:ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz>
+   Enhanced emacsclient/emacsserver.  See also
+   <URL:http://www.splode.com/users/friedman/software/emacs-lisp/> for
+   other Friedman Emacs hacks.
+
+ * hm--html-menus:
+   <URL:ftp://ftp.tnt.uni-hannover.de/pub/editors/xemacs/contrib>
+   HTML-specific editing.  Can work with PSGML.
+
+ * ILISP: <URL:http://www.cs.cmu.edu/%7Ecampbell/ilisp/index.html>
+   Provides an interactive environment for manipulating an inferior
+   process running some form of Lisp.  Reported to have a problem with
+   Emacs 20.
+
+ * JDE: <URL:http://sunsite.auc.dk/jde/>
+   Wrapper around Java development tools.
+
+ * Mailcrypt:
+   <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
+   PGP and GPG support.  PGP isn't free software, but GPG, the GNU
+   Privacy Guard, is under development as a free replacement.
+
+ * Pointers to MIME packages:
+   <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
+
+ * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
+   DTD-aware serious SGML/XML editing.  The 1.1 series (still in the
+   ALPHA directory at the time of writing) fixes a bug which causes
+   problems with Emacs 20.3 and later.
+
+ * Todo mode:
+   <URL:http://www.cl.cam.ac.uk/users/os10000/stuff/todo.html>
+   Todo list maintenance, interfacing to Diary mode.
+
+ * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
+   mail reader.  Apparently not currently supported under Emacs 20.
+   There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
+
+ * W3: <URL:http://www.cs.indiana.edu/elisp/w3/docs.html>
+   Web browser.  There's a W3 mail list/newsgroup
+   <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
+   list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
+
+* Unpacked Emacs sources
+
+Erik Naggum maintains an unpacked copy of the Emacs distribution
+<URL:ftp://ftp.uio.no/pub/emacs/>, which may be useful for checking
+something in a later release without downloading the whole distribution.
