@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000
+   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -56,10 +56,12 @@ Boston, MA 02111-1307, USA.  */
 #include "composite.h"
 #include "coding.h"
 
-#undef min
-#undef max
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-#define max(x, y) (((x) > (y)) ? (x) : (y))
+#ifndef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#endif
 
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
@@ -339,7 +341,6 @@ static void set_output_cursor P_ ((struct cursor_pos *));
 static struct glyph *x_y_to_hpos_vpos P_ ((struct window *, int, int,
 					   int *, int *, int *));
 static void note_mode_line_highlight P_ ((struct window *, int, int));
-static void x_check_font P_ ((struct frame *, XFontStruct *));
 static void note_mouse_highlight P_ ((struct frame *, int, int));
 static void note_tool_bar_highlight P_ ((struct frame *f, int, int));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
@@ -395,11 +396,11 @@ void x_display_cursor P_ ((struct window *w, int, int, int, int, int));
 void x_display_and_set_cursor P_ ((struct window *, int, int, int, int, int));
 static void w32_draw_bitmap P_ ((struct window *, HDC hdc, struct glyph_row *, 
                                  enum bitmap_type));
+static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
+                                 HDC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, RECT *));
 static void x_draw_row_bitmaps P_ ((struct window *, struct glyph_row *));
 static void note_overwritten_text_cursor P_ ((struct window *, int, int));
-static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
-                               HDC, int));
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -690,6 +691,7 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 	x_display_and_set_cursor (w, 1, output_cursor.hpos,
 				  output_cursor.vpos,
 				  output_cursor.x, output_cursor.y);
+      
       x_draw_vertical_border (w);
       UNBLOCK_INPUT;
     }
@@ -1006,6 +1008,7 @@ w32_reassert_line_highlight (new, vpos)
   abort ();
 }
 
+
 /* Call this when about to modify line at position VPOS and change
    whether it is highlighted. Not used for W32 frames.  Aborts when
    called.  */
@@ -1026,6 +1029,7 @@ x_change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
 
   abort ();
 }
+
 
 /* This is called when starting Emacs and when restarting after
    suspend.  When starting Emacs, no window is mapped.  And nothing
@@ -1831,7 +1835,10 @@ x_produce_stretch_glyph (it)
      struct it *it;
 {
   /* (space :width WIDTH :height HEIGHT.  */
-  extern Lisp_Object QCwidth, QCheight, QCascent, Qspace;
+#if GLYPH_DEBUG
+  extern Lisp_Object Qspace;
+#endif
+  extern Lisp_Object QCwidth, QCheight, QCascent;
   extern Lisp_Object QCrelative_width, QCrelative_height;
   extern Lisp_Object QCalign_to;
   Lisp_Object prop, plist;
@@ -2203,7 +2210,6 @@ x_produce_glyphs (it)
           it->nglyphs = 1;
           it->ascent = FONT_BASE (font) + boff;
           it->descent = FONT_DESCENT (font) - boff;
-
 	  if (face->box != FACE_NO_BOX)
 	    {
 	      int thick = face->box_line_width;
@@ -2513,8 +2519,9 @@ x_produce_glyphs (it)
   else if (it->what == IT_STRETCH)
     x_produce_stretch_glyph (it);
 
-  /* Accumulate dimensions.  */
-  xassert (it->ascent >= 0 && it->descent > 0);
+  /* Accumulate dimensions.  Note: can't assume that it->descent > 0
+     because this isn't true for images with `:ascent 100'.  */
+  xassert (it->ascent >= 0 && it->descent >= 0);
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
 
@@ -2548,14 +2555,12 @@ x_estimate_mode_line_height (f, face_id)
               height = FONT_HEIGHT (face->font);
             height += 2 * face->box_line_width;
           }
-        
       }
   
   return height;
 }
 
 
-
 /***********************************************************************
 			    Glyph display
  ***********************************************************************/
@@ -2737,13 +2742,13 @@ static int x_left_overwritten P_ ((struct glyph_string *));
 static int x_left_overwriting P_ ((struct glyph_string *));
 static int x_right_overwritten P_ ((struct glyph_string *));
 static int x_right_overwriting P_ ((struct glyph_string *));
-static int x_fill_glyph_string P_ ((struct glyph_string *, int, int,
-                                    int, int));
+static int x_fill_glyph_string P_ ((struct glyph_string *, int, int, int,
+                                    int));
 static void w32_init_glyph_string P_ ((struct glyph_string *, HDC hdc,
-                                     wchar_t *, struct window *,
-                                     struct glyph_row *,
-                                     enum glyph_row_area, int, 
-                                     enum draw_glyphs_face));
+                                       wchar_t *, struct window *,
+                                       struct glyph_row *,
+                                       enum glyph_row_area, int, 
+                                       enum draw_glyphs_face));
 static int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
 			      enum glyph_row_area, int, int,
 			      enum draw_glyphs_face, int *, int *, int));
@@ -2780,6 +2785,13 @@ static void w32_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, RECT *));
 static void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 					enum glyph_row_area));
+static int x_fill_stretch_glyph_string P_ ((struct glyph_string *,
+					    struct glyph_row *,
+					    enum glyph_row_area, int, int));
+
+#if GLYPH_DEBUG
+static void x_check_font P_ ((struct frame *, XFontStruct *));
+#endif
 
      
 /* Append the list of glyph strings with head H and tail T to the list
@@ -2898,10 +2910,16 @@ x_set_mouse_face_gc (s)
   int face_id;
   struct face *face;
 
-  /* What face has to be used for the mouse face?  */
+  /* What face has to be used last for the mouse face?  */
   face_id = FRAME_W32_DISPLAY_INFO (s->f)->mouse_face_face_id;
   face = FACE_FROM_ID (s->f, face_id);
-  face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+  if (face == NULL)
+    face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+  
+  if (s->first_glyph->type == CHAR_GLYPH)
+    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+  else
+    face_id = FACE_FOR_CHAR (s->f, face, 0);
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
@@ -4088,8 +4106,8 @@ x_draw_image_glyph_string (s)
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
   if (height > s->img->height
-      || s->img->vmargin
       || s->img->hmargin
+      || s->img->vmargin
 #if 0 /* TODO: image mask */
       || s->img->mask
 #endif
@@ -4105,9 +4123,9 @@ x_draw_image_glyph_string (s)
 #if 0 /* TODO: image mask */
       if (s->img->mask)
 	{
-	  /* Create a pixmap as large as the glyph string Fill it with
-	     the background color.  Copy the image to it, using its
-	     mask.  Copy the temporary pixmap to the display.  */
+	  /* Create a pixmap as large as the glyph string.  Fill it
+	     with the background color.  Copy the image to it, using
+	     its mask.  Copy the temporary pixmap to the display.  */
 	  Screen *screen = FRAME_X_SCREEN (s->f);
 	  int depth = DefaultDepthOfScreen (screen);
 
@@ -4363,11 +4381,12 @@ static int x_fill_composite_glyph_string P_ ((struct glyph_string *,
 					      struct face **, int));
 
 
-/* Load glyph string S with a composition components specified by S->cmp.
+/* Fill glyph string S with composition components specified by S->cmp.
+   
    FACES is an array of faces for all components of this composition.
    S->gidx is the index of the first component for S.
    OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its lines physical height for clipping.
+   use its physical height for clipping.
 
    Value is the index of a component not in S.  */
 
@@ -4421,11 +4440,12 @@ x_fill_composite_glyph_string (s, faces, overlaps_p)
 }
 
 
-/* Load glyph string S with a sequence of characters.
+/* Fill glyph string S from a sequence of character glyphs.
+   
    FACE_ID is the face id of the string.  START is the index of the
    first glyph to consider, END is the index of the last + 1.
    OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its lines physical height for clipping.
+   use its physical height for clipping.
 
    Value is the index of the first glyph not in S.  */
 
@@ -4847,7 +4867,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
   end = min (end, row->used[area]);
   start = max (0, start);
   start = min (end, start);
-
   if (real_start)
     *real_start = start;
   if (real_end)
@@ -5544,20 +5563,9 @@ expose_area (w, row, r, area)
   struct glyph *last;
   int first_x, start_x, x;
 
-  /* Set x to the window-relative start position for drawing glyphs of
-     AREA.  The first glyph of the text area can be partially visible.
-     The first glyphs of other areas cannot.  */
-  if (area == LEFT_MARGIN_AREA)
-    x = 0;
-  else if (area == TEXT_AREA)
-    x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
-  else
-    x = (window_box_width (w, LEFT_MARGIN_AREA)
-	 + window_box_width (w, TEXT_AREA));
-
   if (area == TEXT_AREA && row->fill_line_p)
     /* If row extends face to end of line write the whole line.  */
-    x_draw_glyphs (w, x, row, area,
+    x_draw_glyphs (w, 0, row, area,
 		   0, row->used[area],
 		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
 		   NULL, NULL, 0);
@@ -6158,7 +6166,6 @@ note_mouse_movement (frame, msg)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
-
       note_mouse_highlight (frame, LOWORD (msg->lParam), HIWORD (msg->lParam));
     }
 }
@@ -6283,7 +6290,7 @@ frame_to_window_pixel_xy (w, x, y)
 }
 
 
-/* Take proper action when mouse has moved to the mode or top line of
+/* Take proper action when mouse has moved to the mode or header line of
    window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
    mode line.  X is relative to the start of the text display area of
    W, so the width of bitmap areas and scroll bars must be subtracted
@@ -6315,6 +6322,7 @@ note_mode_line_highlight (w, x, mode_line_p)
       end = glyph + row->used[TEXT_AREA];
       x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
 	      + FRAME_X_LEFT_FLAGS_AREA_WIDTH (f));
+      
       while (glyph < end
 	     && x >= x0 + glyph->pixel_width)
 	{
@@ -6346,6 +6354,13 @@ note_mode_line_highlight (w, x, mode_line_p)
 				    Qlocal_map, glyph->object);
 	  if (KEYMAPP (map))
 	    cursor = f->output_data.w32->nontext_cursor;
+	  else
+	    {
+	      map = Fget_text_property (make_number (glyph->charpos),
+					Qkeymap, glyph->object);
+	      if (KEYMAPP (map))
+		cursor = f->output_data.w32->nontext_cursor;
+	    }
 	}
     }
 
@@ -6600,7 +6615,7 @@ note_mouse_highlight (f, x, y)
           Lisp_Object help, overlay;
 
 	  /* Check overlays first.  */
-	  help = Qnil;
+	  help = overlay = Qnil;
 	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
             {
               overlay = overlay_vec[i];
@@ -7073,8 +7088,11 @@ void
 clear_mouse_face (dpyinfo)
      struct w32_display_info *dpyinfo;
 {
+#if 0 /* This prevents redrawing tool bar items when changing from one
+	 to another while a tooltip is open, so don't do it.  */
   if (!NILP (tip_frame))
     return;
+#endif
 
   if (! NILP (dpyinfo->mouse_face_window))
     show_mouse_face (dpyinfo, DRAW_NORMAL_TEXT);
@@ -7674,13 +7692,16 @@ w32_condemn_scroll_bars (frame)
     }
 }
 
+
 /* Un-mark WINDOW's scroll bar for deletion in this judgment cycle.
    Note that WINDOW isn't necessarily condemned at all.  */
+
 static void
 w32_redeem_scroll_bar (window)
      struct window *window;
 {
   struct scroll_bar *bar;
+  struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
@@ -7689,36 +7710,33 @@ w32_redeem_scroll_bar (window)
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
   /* Unlink it from the condemned list.  */
-  {
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+  f = XFRAME (WINDOW_FRAME (window));
+  if (NILP (bar->prev))
+    {
+      /* If the prev pointer is nil, it must be the first in one of
+         the lists.  */
+      if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
+        /* It's not condemned.  Everything's fine.  */
+        return;
+      else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+                   window->vertical_scroll_bar))
+        FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+      else
+        /* If its prev pointer is nil, it must be at the front of
+           one or the other!  */
+        abort ();
+    }
+  else
+    XSCROLL_BAR (bar->prev)->next = bar->next;
 
-    if (NILP (bar->prev))
-      {
-	/* If the prev pointer is nil, it must be the first in one of
-           the lists.  */
-	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
-	  /* It's not condemned.  Everything's fine.  */
-	  return;
-	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-		     window->vertical_scroll_bar))
-	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
-	else
-	  /* If its prev pointer is nil, it must be at the front of
-             one or the other!  */
-	  abort ();
-      }
-    else
-      XSCROLL_BAR (bar->prev)->next = bar->next;
+  if (! NILP (bar->next))
+    XSCROLL_BAR (bar->next)->prev = bar->prev;
 
-    if (! NILP (bar->next))
-      XSCROLL_BAR (bar->next)->prev = bar->prev;
-
-    bar->next = FRAME_SCROLL_BARS (f);
-    bar->prev = Qnil;
-    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
-    if (! NILP (bar->next))
-      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
-  }
+  bar->next = FRAME_SCROLL_BARS (f);
+  bar->prev = Qnil;
+  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  if (! NILP (bar->next))
+    XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
@@ -7757,7 +7775,7 @@ w32_judge_scroll_bars (f)
    mark bits.  */
 
 static int
-x_scroll_bar_handle_click (bar, msg, emacs_event)
+w32_scroll_bar_handle_click (bar, msg, emacs_event)
      struct scroll_bar *bar;
      W32Msg *msg;
      struct input_event *emacs_event;
@@ -7974,20 +7992,6 @@ x_scroll_bar_clear (f)
 
         ReleaseDC (window, hdc);
       }
-}
-
-show_scroll_bars (f, how)
-     FRAME_PTR f;
-     int how;
-{
-  Lisp_Object bar;
-
-  for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
-       bar = XSCROLL_BAR (bar)->next)
-    {
-      HWND window = SCROLL_BAR_W32_WINDOW (XSCROLL_BAR (bar));
-      my_show_window (f, window, how);
-    }
 }
 
 
@@ -8348,7 +8352,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 	      
 	    if (bar && numchars >= 1)
 	      {
-		if (x_scroll_bar_handle_click (bar, &msg, bufp))
+		if (w32_scroll_bar_handle_click (bar, &msg, bufp))
 		  {
 		    bufp++;
 		    count++;
@@ -8514,8 +8518,6 @@ w32_read_socket (sd, bufp, numchars, expected)
 
           if (f)
             {
-              Lisp_Object frame;
-
               if (f == dpyinfo->w32_focus_event_frame)
                 dpyinfo->w32_focus_event_frame = 0;
 
@@ -8536,11 +8538,13 @@ w32_read_socket (sd, bufp, numchars, expected)
                  the mouse leaves the frame.  */
               if (any_help_event_p)
                 {
+                  Lisp_Object frame;
                   int n;
 
                   XSETFRAME (frame, f);
-                  n = gen_help_event (bufp, numchars, Qnil, frame,
-				      Qnil, Qnil, 0);
+                  help_echo = Qnil;
+                  n = gen_help_event (bufp, numchars,
+                                      Qnil, frame, Qnil, Qnil, 0);
                   bufp += n, count += n, numchars -=n;
                 }
             }
@@ -8831,45 +8835,41 @@ x_draw_bar_cursor (w, row, width)
      struct glyph_row *row;
      int width;
 {
-  /* If cursor hpos is out of bounds, don't draw garbage.  This can
-     happen in mini-buffer windows when switching between echo area
-     glyphs and mini-buffer.  */
-  if (w->phys_cursor.hpos < row->used[TEXT_AREA])
+  struct frame *f = XFRAME (w->frame);
+  struct glyph *cursor_glyph;
+  int x;
+  HDC hdc;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
+  cursor_glyph = get_phys_cursor_glyph (w);
+  if (cursor_glyph == NULL)
+    return;
+
+  /* If on an image, draw like a normal cursor.  That's usually better
+     visible than drawing a bar, esp. if the image is large so that
+     the bar might not be in the window.  */
+  if (cursor_glyph->type == IMAGE_GLYPH)
     {
-      struct frame *f = XFRAME (w->frame);
-      struct glyph *cursor_glyph;
-      int x;
-      HDC hdc;
+      struct glyph_row *row;
+      row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      x_draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+    }
+  else
+    {
+      if (width < 0)
+        width = f->output_data.w32->cursor_width;
 
-      cursor_glyph = get_phys_cursor_glyph (w);
-      if (cursor_glyph == NULL)
-	return;
-
-      /* If on an image, draw like a normal cursor.  That's usually better
-         visible than drawing a bar, esp. if the image is large so that
-         the bar might not be in the window.  */
-      if (cursor_glyph->type == IMAGE_GLYPH)
-        {
-          struct glyph_row *row;
-          row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
-          x_draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
-        }
-      else
-        {
-
-          x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-
-          if (width < 0)
-            width = f->output_data.w32->cursor_width;
-
-          hdc = get_frame_dc (f);
-          w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
-                         x,
-                         WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-                         min (cursor_glyph->pixel_width, width),
-                         row->height);
-          release_frame_dc (f, hdc);
-        }
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      hdc = get_frame_dc (f);
+      w32_clip_to_row (w, row, hdc, 0);
+      w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
+                     x,
+                     WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+                     min (cursor_glyph->pixel_width, width),
+                     row->height);
+      release_frame_dc (f, hdc);
     }
 }
 
@@ -8964,7 +8964,8 @@ x_erase_phys_cursor (w)
 	 
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
-  if (w == XWINDOW (dpyinfo->mouse_face_window)
+  if (! NILP (dpyinfo->mouse_face_window)
+      && w == XWINDOW (dpyinfo->mouse_face_window)
       && (vpos > dpyinfo->mouse_face_beg_row
 	  || (vpos == dpyinfo->mouse_face_beg_row
 	      && hpos >= dpyinfo->mouse_face_beg_col))
@@ -9277,6 +9278,30 @@ x_bitmap_icon (f, icon)
 }
 
 
+/************************************************************************
+			  Handling X errors
+ ************************************************************************/
+
+/* Display Error Handling functions not used on W32. Listing them here
+   helps diff stay in step when comparing w32term.c with xterm.c.
+
+x_error_catcher (display, error)
+x_catch_errors (dpy)
+x_catch_errors_unwind (old_val)
+x_check_errors (dpy, format)
+x_had_errors_p (dpy)
+x_clear_errors (dpy)
+x_uncatch_errors (dpy, count)
+x_trace_wire ()
+x_connection_signal (signalnum)
+x_connection_closed (dpy, error_message)
+x_error_quitter (display, error)
+x_error_handler (display, error)
+x_io_error_quitter (display)
+
+ */
+
+
 /* Changing the font of the frame.  */
 
 /* Give frame F the font named FONTNAME as its default font, and
@@ -9358,92 +9383,20 @@ x_new_fontset (f, fontsetname)
   return build_string (fontsetname);
 }
 
+
+/***********************************************************************
+	TODO: W32 Input Methods
+ ***********************************************************************/
+/* Listing missing functions from xterm.c helps diff stay in step.
 
-#if GLYPH_DEBUG
+xim_destroy_callback (xim, client_data, call_data)
+xim_open_dpy (dpyinfo, resource_name)
+struct xim_inst_t
+xim_instantiate_callback (display, client_data, call_data)
+xim_initialize (dpyinfo, resource_name)
+xim_close_dpy (dpyinfo)
 
-/* Check that FONT is valid on frame F.  It is if it can be found in F's
-   font table.  */
-
-static void
-x_check_font (f, font)
-     struct frame *f;
-     XFontStruct *font;
-{
-  int i;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-
-  xassert (font != NULL);
-
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name 
-	&& font == dpyinfo->font_table[i].font)
-      break;
-
-  xassert (i < dpyinfo->n_fonts);
-}
-
-#endif /* GLYPH_DEBUG != 0 */
-
-/* Set *W to the minimum width, *H to the minimum font height of FONT.
-   Note: There are (broken) X fonts out there with invalid XFontStruct
-   min_bounds contents.  For example, handa@etl.go.jp reports that
-   "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1" fonts
-   have font->min_bounds.width == 0.  */
-
-static INLINE void
-x_font_min_bounds (font, w, h)
-     XFontStruct *font;
-     int *w, *h;
-{
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
-  *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
-}
-
-
-/* Compute the smallest character width and smallest font height over
-   all fonts available on frame F.  Set the members smallest_char_width
-   and smallest_font_height in F's x_display_info structure to
-   the values computed.  Value is non-zero if smallest_font_height or
-   smallest_char_width become smaller than they were before.  */
-
-int
-x_compute_min_glyph_bounds (f)
-     struct frame *f;
-{
-  int i;
-  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
-  XFontStruct *font;
-  int old_width = dpyinfo->smallest_char_width;
-  int old_height = dpyinfo->smallest_font_height;
-  
-  dpyinfo->smallest_font_height = 100000;
-  dpyinfo->smallest_char_width = 100000;
-  
-  for (i = 0; i < dpyinfo->n_fonts; ++i)
-    if (dpyinfo->font_table[i].name)
-      {
-	struct font_info *fontp = dpyinfo->font_table + i;
-	int w, h;
-	
-	font = (XFontStruct *) fontp->font;
-	xassert (font != (XFontStruct *) ~0);
-	x_font_min_bounds (font, &w, &h);
-	
-	dpyinfo->smallest_font_height = min (dpyinfo->smallest_font_height, h);
-	dpyinfo->smallest_char_width = min (dpyinfo->smallest_char_width, w);
-      }
-
-  xassert (dpyinfo->smallest_char_width > 0
-	   && dpyinfo->smallest_font_height > 0);
-
-  return (dpyinfo->n_fonts == 1
-	  || dpyinfo->smallest_char_width < old_width
-	  || dpyinfo->smallest_font_height < old_height);
-}
+ */
 
 
 /* Calculate the absolute position in frame F
@@ -9459,7 +9412,8 @@ x_calc_absolute_position (f)
   pt.x = pt.y = 0;
 
   /* Find the position of the outside upper-left corner of
-     the inner window, with respect to the outer window.  */
+     the inner window, with respect to the outer window.
+     But do this only if we will need the results.  */
   if (f->output_data.w32->parent_desc != FRAME_W32_DISPLAY_INFO (f)->root_window)
     {
       BLOCK_INPUT;
@@ -9546,6 +9500,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
    If CHANGE_GRAVITY is 1, we change to top-left-corner window gravity
    for this size change and subsequent size changes.
    Otherwise we leave the window gravity unchanged.  */
+
 void
 x_set_window_size (f, change_gravity, cols, rows)
      struct frame *f;
@@ -9910,6 +9865,7 @@ x_iconify_frame (f)
 
   UNBLOCK_INPUT;
 }
+
 
 /* Free X resources of frame F.  */
 
@@ -9932,7 +9888,11 @@ x_free_frame_resources (f)
   unload_color (f, f->output_data.w32->cursor_foreground_pixel);
   unload_color (f, f->output_data.w32->border_pixel);
   unload_color (f, f->output_data.w32->mouse_pixel);
-      
+  if (f->output_data.w32->white_relief.allocated_p)
+    unload_color (f, f->output_data.w32->white_relief.pixel);
+  if (f->output_data.w32->black_relief.allocated_p)
+    unload_color (f, f->output_data.w32->black_relief.pixel);
+
   if (FRAME_FACE_CACHE (f))
     free_frame_faces (f);
       
@@ -9972,6 +9932,7 @@ x_destroy_window (f)
 
   dpyinfo->reference_count--;
 }
+
 
 /* Setting window manager hints.  */
 
@@ -10014,7 +9975,113 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 #endif
 }
 
+
+/***********************************************************************
+				Fonts
+ ***********************************************************************/
 
+/* The following functions are listed here to help diff stay in step
+   with xterm.c.  See w32fns.c for definitions.
+
+x_get_font_info (f, font_idx)
+x_list_fonts (f, pattern, size, maxnames)
+
+ */
+
+#if GLYPH_DEBUG
+
+/* Check that FONT is valid on frame F.  It is if it can be found in F's
+   font table.  */
+
+static void
+x_check_font (f, font)
+     struct frame *f;
+     XFontStruct *font;
+{
+  int i;
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+
+  xassert (font != NULL);
+
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name 
+	&& font == dpyinfo->font_table[i].font)
+      break;
+
+  xassert (i < dpyinfo->n_fonts);
+}
+
+#endif /* GLYPH_DEBUG != 0 */
+
+/* Set *W to the minimum width, *H to the minimum font height of FONT.
+   Note: There are (broken) X fonts out there with invalid XFontStruct
+   min_bounds contents.  For example, handa@etl.go.jp reports that
+   "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1" fonts
+   have font->min_bounds.width == 0.  */
+
+static INLINE void
+x_font_min_bounds (font, w, h)
+     XFontStruct *font;
+     int *w, *h;
+{
+  /*
+   * TODO: Windows does not appear to offer min bound, only
+   * average and maximum width, and maximum height.
+   */
+  *h = FONT_HEIGHT (font);
+  *w = FONT_WIDTH (font);
+}
+
+
+/* Compute the smallest character width and smallest font height over
+   all fonts available on frame F.  Set the members smallest_char_width
+   and smallest_font_height in F's x_display_info structure to
+   the values computed.  Value is non-zero if smallest_font_height or
+   smallest_char_width become smaller than they were before.  */
+
+int
+x_compute_min_glyph_bounds (f)
+     struct frame *f;
+{
+  int i;
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  XFontStruct *font;
+  int old_width = dpyinfo->smallest_char_width;
+  int old_height = dpyinfo->smallest_font_height;
+  
+  dpyinfo->smallest_font_height = 100000;
+  dpyinfo->smallest_char_width = 100000;
+  
+  for (i = 0; i < dpyinfo->n_fonts; ++i)
+    if (dpyinfo->font_table[i].name)
+      {
+	struct font_info *fontp = dpyinfo->font_table + i;
+	int w, h;
+	
+	font = (XFontStruct *) fontp->font;
+	xassert (font != (XFontStruct *) ~0);
+	x_font_min_bounds (font, &w, &h);
+	
+	dpyinfo->smallest_font_height = min (dpyinfo->smallest_font_height, h);
+	dpyinfo->smallest_char_width = min (dpyinfo->smallest_char_width, w);
+      }
+
+  xassert (dpyinfo->smallest_char_width > 0
+	   && dpyinfo->smallest_font_height > 0);
+
+  return (dpyinfo->n_fonts == 1
+	  || dpyinfo->smallest_char_width < old_width
+	  || dpyinfo->smallest_font_height < old_height);
+}
+
+/* The following functions are listed here to help diff stay in step
+   with xterm.c.  See w32fns.c for definitions.
+
+x_load_font (f, fontname, size)
+x_query_font (f, fontname)
+x_find_ccl_program (fontp)
+
+*/
 
 /***********************************************************************
 			    Initialization
