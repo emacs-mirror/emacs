@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- Major mode for ANTLR grammar files
 
-;; Copyright (C) 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
 ;; Version: $Id: antlr-mode.el,v 1.2 1999/12/16 19:30:34 wedler Exp $
@@ -47,7 +47,7 @@
 ;; in the rule body).  By default, this package uses TABs for a basic offset of
 ;; 4 to be consistent to both ANTLR's conventions (TABs usage) and the
 ;; `c-indentation-style' "java" which sets `c-basic-offset' to 4, see
-;; `antlr-tab-offset-alist'.
+;; `antlr-tab-offset-alist'.  You might want to set this variable to nil.
 
 ;; SYNTAX COLORING comes in three phases.  First, comments and strings are
 ;; highlighted.  Second, the grammar code is highlighted according to
@@ -77,15 +77,23 @@
 ;;   (autoload 'antlr-set-tabs "antlr-mode")
 ;;   (add-hook 'java-mode-hook 'antlr-set-tabs)
 
+;; I strongly recommend to use font-lock with a support mode like fast-lock,
+;; lazy-lock or better jit-lock (Emacs-21.1+) / lazy-shot (XEmacs).
+
 ;; To customize, use `M-x customize-group RET antlr RET' or the custom browser
 ;; (Emacs->Programming->Languages->Antlr).
 
 ;;; Code:
 
 (provide 'antlr-mode)
-(eval-when-compile (require 'cl))
-(require 'easymenu)			; Emacs
 (eval-when-compile (require 'cc-mode))	; shut up most warnings
+(require 'easymenu)			; Emacs
+(eval-when-compile			; optional libraries
+  (defvar outline-level) (defvar imenu-use-markers))
+(eval-when-compile			; Emacs: cl, XEmacs vars
+  (require 'cl))
+(eval-when-compile			; XEmacs: Emacs vars
+  (defvar inhibit-point-motion-hooks) (defvar deactivate-mark))
 
 (eval-and-compile
   (if (string-match "XEmacs" emacs-version)
@@ -113,7 +121,7 @@
   :link '(url-link "http://www.fmi.uni-passau.de/~wedler/antlr-mode/")
   :prefix "antlr-")
 
-(defconst antlr-version "1.2"
+(defconst antlr-version "1.3"
   "ANTLR major mode version number.")
 
 
@@ -162,6 +170,12 @@ the buffer to LIMIT to set the language according to
 ;;;===========================================================================
 ;;;  Indent/Tabs
 ;;;===========================================================================
+
+(defcustom antlr-tiny-action-length 3
+  "Maximal number of characters in actions never to hide.
+See command `antlr-hide-actions'."
+  :group 'antlr
+  :type 'integer)
 
 (defcustom antlr-indent-comment 'tab
   "*Non-nil, if the indentation should touch lines in block comments.
@@ -219,6 +233,7 @@ imenu."
     (define-key map "\C-c\C-f" 'c-forward-into-nomenclature)
     (define-key map "\C-c\C-b" 'c-backward-into-nomenclature)
     (define-key map "\C-c\C-c" 'comment-region)
+    (define-key map "\C-c\C-v" 'antlr-hide-actions)
     ;; I'm too lazy to define my own:
     (define-key map "\ea" 'c-beginning-of-statement)
     (define-key map "\ee" 'c-end-of-statement)
@@ -251,7 +266,11 @@ imenu."
 		    ["Backward Statement" c-beginning-of-statement t]
 		    ["Forward Statement" c-end-of-statement t]
 		    ["Backward Into Nomencl." c-backward-into-nomenclature t]
-		    ["Forward Into Nomencl." c-forward-into-nomenclature t]))
+		    ["Forward Into Nomencl." c-forward-into-nomenclature t]
+		    "---"
+		    ["Hide Actions (incl. Args)" antlr-hide-actions t]
+		    ["Hide Actions (excl. Args)" (antlr-hide-actions 2) t]
+		    ["Unhide All Actions" (antlr-hide-actions 0) t]))
 
 
 ;;;===========================================================================
@@ -349,7 +368,9 @@ in the grammar's actions and semantic predicates, see
     ;; the tokens are already fontified as string/docstrings:
     (,(lambda (limit)
 	(antlr-re-search-forward "\"\\(\\sw\\(\\sw\\|-\\)*\\)\"" limit))
-     (1 antlr-font-lock-literal-face t))
+     (1 antlr-font-lock-literal-face t)
+     ,@(and (string-match "XEmacs" emacs-version)
+	    '((0 nil))))		; XEmacs bug workaround
     (,(lambda (limit)
 	(antlr-re-search-forward
 	 "^\\(class\\)[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]+\\(extends\\)[ \t]+\\([A-Z\300-\326\330-\337]\\sw*\\)[ \t]*;" limit))
@@ -502,7 +523,9 @@ and `replace-match'."
   (let ((continue t))
     (while (and (re-search-forward regexp bound 'limit)
 		(save-match-data
-		  (if (eq (antlr-syntactic-context) 0) (setq continue nil) t))))
+		  (if (eq (antlr-syntactic-context) 0)
+		      (setq continue nil)
+		    t))))
     (if continue nil (point))))
 
 (defun antlr-search-forward (string)
@@ -780,6 +803,69 @@ prefix arg MSG, move to `:'."
 
 
 ;;;===========================================================================
+;;;  Literal normalization, Hide Actions
+;;;===========================================================================
+
+(defun antlr-downcase-literals (&optional transform)
+  "Convert all literals in buffer to lower case.
+If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
+  (interactive)
+  (or transform (setq transform 'downcase-region))
+  (let ((literals 0))
+    (save-excursion
+      (goto-char (point-min))
+      (antlr-with-syntax-table antlr-action-syntax-table
+	(antlr-invalidate-context-cache)
+	(while (antlr-re-search-forward "\"\\(\\sw\\(\\sw\\|-\\)*\\)\"" nil)
+	  (funcall transform (match-beginning 0) (match-end 0))
+	  (incf literals))))
+    (message "Transformed %d literals" literals)))
+
+(defun antlr-upcase-literals ()
+  "Convert all literals in buffer to upper case."
+  (interactive)
+  (antlr-downcase-literals 'upcase-region))
+
+(defun antlr-hide-actions (arg &optional silent)
+  "Hide or unhide all actions in buffer.
+Hide all actions including arguments in brackets if ARG is 1 or if
+called interactively without prefix argument.  Hide all actions
+excluding arguments in brackets if ARG is 2 or higher.  Unhide all
+actions if ARG is 0 or negative.  Never hide actions whose character
+length is shorter or equal to `antlr-tiny-action-length'."
+  (interactive "p")
+  ;; from Emacs/lazy-lock: `save-buffer-state'
+  (let ((modified (buffer-modified-p))
+	(buffer-undo-list t) (inhibit-read-only t)
+	(inhibit-point-motion-hooks t) deactivate-mark ; Emacs only
+	before-change-functions after-change-functions
+	buffer-file-name buffer-file-truename)
+    (if (> arg 0)
+	(let ((regexp (if (= arg 1) "[]}]" "}"))
+	      (diff (+ (max antlr-tiny-action-length 0) 2)))
+	  (antlr-hide-actions 0 t)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (antlr-with-syntax-table antlr-action-syntax-table
+	      (antlr-invalidate-context-cache)
+	      (while (antlr-re-search-forward regexp nil)
+		(let* ((end (point))
+		       (beg (antlr-scan-sexps (point) -1 nil t)))
+		  (and beg (> end (+ beg diff))
+		       (add-text-properties (1+ beg) (1- end)
+					    '(invisible t intangible t)))))))
+	  (or silent
+	      (message "Hide all actions (%s arguments)...done"
+		       (if (= arg 1) "including" "excluding"))))
+      (remove-text-properties (point-min) (point-max)
+			      '(invisible nil intangible nil))
+      (or silent
+	  (message "Unhide all actions (including arguments)...done")))
+    (and (not modified) (buffer-modified-p)
+	 (set-buffer-modified-p nil))))
+
+
+;;;===========================================================================
 ;;;  Indentation
 ;;;===========================================================================
 
@@ -805,6 +891,9 @@ Lines inside block comments are not changed or indented by
       (antlr-invalidate-context-cache)
       (cond ((symbolp (setq syntax (antlr-syntactic-context)))
 	     (setq indent nil))		; block-comments, strings, (comments)
+	    ((eq (char-after) ?#)	; cpp directive
+	     (setq syntax 'cpp)
+	     (setq indent 0))		; indentation at 0
 	    ((progn
 	       (antlr-next-rule -1 t)
 	       (if (antlr-search-forward ":") (< boi (1- (point))) t))
@@ -824,10 +913,11 @@ Lines inside block comments are not changed or indented by
 	       (c-indent-line)))
       ;; do it ourselves
       (goto-char boi)
-      (antlr-invalidate-context-cache)
-      (incf indent (antlr-syntactic-context))
-      (and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
-      (setq indent (* indent c-basic-offset))
+      (unless (symbolp syntax)		; direct indentation
+	(antlr-invalidate-context-cache)
+	(incf indent (antlr-syntactic-context))
+	(and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
+	(setq indent (* indent c-basic-offset)))
       ;; the usual major-mode indent stuff:
       (setq orig (- (point-max) orig))
       (unless (= (current-column) indent)
@@ -951,7 +1041,7 @@ Otherwise, indent the current line with `antlr-indent-line'."
 		     (antlr-language-for-option nil))))))
   (if (stringp (cadr (assq antlr-language antlr-language-alist)))
       (setq mode-name
-	    (concat "Antlr/"
+	    (concat "Antlr."
 		    (cadr (assq antlr-language antlr-language-alist)))))
   ;; indentation, for the C engine -------------------------------------------
   (antlr-c-common-init)
@@ -990,6 +1080,11 @@ Otherwise, indent the current line with `antlr-indent-line'."
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
   (antlr-set-tabs)
   (run-hooks 'antlr-mode-hook))
+
+;; In XEmacs, a smarter version of `buffers-menu-grouping-function' could use
+;; the following property.  The header of the submenu would be "Antlr" instead
+;; of "Antlr/C++" or "Antlr/Java" (depending on the buffer ordering).
+(put 'antlr-mode 'mode-name "Antlr")
 
 ;;;###autoload
 (defun antlr-set-tabs ()
