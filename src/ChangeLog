@@ -1,3 +1,10 @@
+2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
+
+	* Makefile.in (msdos.o): Depend on intervals.h.
+
+	* msdos.c: Include intervals.h, since STRING_INTERVALS requires
+	that.
+
 2003-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_display_info): New fields: client_leader_window
