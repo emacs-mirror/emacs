@@ -36,12 +36,13 @@ record_insert (beg, length)
 {
   Lisp_Object lbeg, lend;
 
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
 
-  if (EQ (current_buffer->undo_list, Qt))
-    return;
   if (MODIFF <= current_buffer->save_modified)
     record_first_change ();
 
@@ -75,12 +76,13 @@ record_delete (beg, length)
 {
   Lisp_Object lbeg, lend, sbeg;
 
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSET (last_undo_buffer, Lisp_Buffer, current_buffer);
 
-  if (EQ (current_buffer->undo_list, Qt))
-    return;
   if (MODIFF <= current_buffer->save_modified)
     record_first_change ();
 
@@ -135,12 +137,12 @@ record_property_change (beg, length, prop, value, buffer)
   struct buffer *obuf = current_buffer;
   int boundary = 0;
 
+  if (EQ (current_buffer->undo_list, Qt))
+    return;
+
   if (!EQ (buffer, last_undo_buffer))
     boundary = 1;
   last_undo_buffer = buffer;
-
-  if (EQ (current_buffer->undo_list, Qt))
-    return;
 
   /* Switch temporarily to the buffer that was changed.  */
   current_buffer = XBUFFER (buffer);
