@@ -311,7 +311,7 @@ bootstrap-prepare:
 	  fi							\
 	fi
 
-maintainer-clean:
+maintainer-clean: distclean
 	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
 bootstrap-clean:

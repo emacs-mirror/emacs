@@ -10,6 +10,8 @@
 
 2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* Makefile.in (maintainer-clean): Depend on distclean.
+
 	* help-fns.el (help-C-file-name): File name must be in build-files
 	to be returned.
 
