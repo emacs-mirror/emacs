@@ -1,3 +1,12 @@
+2004-11-21  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (IT_EXPAND_MATRIX_WIDTH): New macro.  Do not
+	expand matrix width for overflow in zero-width area.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Use it to avoid loop in redisplay.
+	(note_mode_line_or_margin_highlight): Don't let help-echo from
+	string override help-echo from image map.
+
 2004-11-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fyes_or_no_p): Call Fread_from_minibuffer with extra
