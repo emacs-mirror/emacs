@@ -35,60 +35,108 @@
 
 ;; ;;;;;;;;;;;;; customization variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-use-glyphs t
-  "Non-nil means use glyphs when available.")
+(defgroup tetris nil
+  "Play a game of tetris."
+  :prefix "tetris-"
+  :group 'games)
 
-(defvar tetris-use-color t
-  "Non-nil means use color when available.")
+(defcustom tetris-use-glyphs t
+  "*Non-nil means use glyphs when available."
+  :group 'tetris
+  :type 'boolean)
 
-(defvar tetris-draw-border-with-glyphs t
-  "Non-nil means draw a border even when using glyphs.")
+(defcustom tetris-use-color t
+  "*Non-nil means use color when available."
+  :group 'tetris
+  :type 'boolean)
 
-(defvar tetris-default-tick-period 0.3
-  "The default time taken for a shape to drop one row.")
+(defcustom tetris-draw-border-with-glyphs t
+  "*Non-nil means draw a border even when using glyphs."
+  :group 'tetris
+  :type 'boolean)
 
-(defvar tetris-update-speed-function
+(defcustom tetris-default-tick-period 0.3
+  "*The default time taken for a shape to drop one row."
+  :group 'tetris
+  :type 'number)
+
+(defcustom tetris-update-speed-function
   'tetris-default-update-speed-function
   "Function run whenever the Tetris score changes
 Called with two arguments: (SHAPES ROWS)
 SHAPES is the number of shapes which have been dropped
 ROWS is the number of rows which have been completed
 
-If the return value is a number, it is used as the timer period.")
+If the return value is a number, it is used as the timer period."
+  :group 'tetris
+  :type 'function)
 
-(defvar tetris-mode-hook nil
-  "Hook run upon starting Tetris.")
+(defcustom tetris-mode-hook nil
+  "Hook run upon starting Tetris."
+  :group 'tetris
+  :type 'hook)
 
-(defvar tetris-tty-colors
+(defcustom tetris-tty-colors
   [nil "blue" "white" "yellow" "magenta" "cyan" "green" "red"]
   "Vector of colors of the various shapes in text mode
-Element 0 is ignored.")
+Element 0 is ignored."
+  :group 'tetris
+  :type (let ((names `("Shape 1" "Shape 2" "Shape 3"
+		       "Shape 4" "Shape 5" "Shape 6" "Shape 7"))
+	      (result `(vector (const nil))))
+	  (while names
+	    (add-to-list 'result 
+			 (cons 'choice 
+			       (cons :tag 
+				     (cons (car names) 
+					   (mapcar (lambda (color)
+						     (list 'const color))
+						   (defined-colors)))))
+			 t)
+	    (setq names (cdr names)))
+	  result))
 
-(defvar tetris-x-colors
+(defcustom tetris-x-colors
   [nil [0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]
   "Vector of colors of the various shapes
-Element 0 is ignored.")
+Element 0 is ignored."
+  :group 'tetris
+  :type 'sexp)
 
-(defvar tetris-buffer-name "*Tetris*"
-  "Name used for Tetris buffer.")
+(defcustom tetris-buffer-name "*Tetris*"
+  "Name used for Tetris buffer."
+  :group 'tetris
+  :type 'string)
 
-(defvar tetris-buffer-width 30
-  "Width of used portion of buffer.")
+(defcustom tetris-buffer-width 30
+  "Width of used portion of buffer."
+  :group 'tetris
+  :type 'number)
 
-(defvar tetris-buffer-height 22
-  "Height of used portion of buffer.")
+(defcustom tetris-buffer-height 22
+  "Height of used portion of buffer."
+  :group 'tetris
+  :type 'number)
 
-(defvar tetris-width 10
-  "Width of playing area.")
+(defcustom tetris-width 10
+  "Width of playing area."
+  :group 'tetris
+  :type 'number)
 
-(defvar tetris-height 20
-  "Height of playing area.")
+(defcustom tetris-height 20
+  "Height of playing area."
+  :group 'tetris
+  :type 'number)
 
-(defvar tetris-top-left-x 3
-  "X position of top left of playing area.")
+(defcustom tetris-top-left-x 3
+  "X position of top left of playing area."
+  :group 'tetris
+  :type 'number)
 
-(defvar tetris-top-left-y 1
-  "Y position of top left of playing area.")
+(defcustom tetris-top-left-y 1
+  "Y position of top left of playing area."
+  :group 'tetris
+  :type 'number)
 
 (defvar tetris-next-x (+ (* 2 tetris-top-left-x) tetris-width)
   "X position of next shape.")
