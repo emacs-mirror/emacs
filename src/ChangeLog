@@ -1,3 +1,7 @@
+2003-10-26  Luc Teirlinck  <teirllm@auburn.edu>>
+
+	* data.c (Fsetplist): Doc fix.
+
 2003-10-14  Lute Kamstra  <lute@gnu.org>
 
 	* window.c (Fset_window_fringes): Clarify docstring.
