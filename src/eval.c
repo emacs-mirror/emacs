@@ -145,9 +145,9 @@ Lisp_Object Vsignal_hook_function;
    is handled by the command loop's error handler. */
 int debug_on_quit;
 
-/* The value of num_nonmacro_input_chars as of the last time we
+/* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
-   again when this is still equal to num_nonmacro_input_chars, then we
+   again when this is still equal to num_nonmacro_input_events, then we
    know that the debugger itself has an error, and we should just
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
@@ -182,7 +182,7 @@ init_eval ()
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
-  /* This is less than the initial value of num_nonmacro_input_chars.  */
+  /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
 }
 
@@ -195,7 +195,7 @@ call_debugger (arg)
   if (specpdl_size + 40 > max_specpdl_size)
     max_specpdl_size = specpdl_size + 40;
   debug_on_next_call = 0;
-  when_entered_debugger = num_nonmacro_input_chars;
+  when_entered_debugger = num_nonmacro_input_events;
   return apply1 (Vdebugger, arg);
 }
 
@@ -1371,7 +1371,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	   ? debug_on_quit
 	   : wants_debugger (Vdebug_on_error, conditions))
 	  && ! skip_debugger (conditions, Fcons (sig, data))
-	  && when_entered_debugger < num_nonmacro_input_chars)
+	  && when_entered_debugger < num_nonmacro_input_events)
 	{
 	  specbind (Qdebug_on_error, Qnil);
 	  *debugger_value_ptr
