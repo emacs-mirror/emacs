@@ -1538,9 +1538,9 @@ This variable is permanent-local.")
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
 	    (unless (and (bolp) (null comint-last-prompt-overlay))
-	      ;; Need to create or move the prompt overlay (in the
-	      ;; case where's no prompt ((bolp) == t), we still do
-	      ;; this if there's already an existing overlay.
+	      ;; Need to create or move the prompt overlay (in the case
+	      ;; where there is no prompt ((bolp) == t), we still do
+	      ;; this if there's already an existing overlay).
 	      (let ((prompt-start (save-excursion (forward-line 0) (point))))
 		(if comint-last-prompt-overlay
 		    ;; Just move an existing overlay
@@ -1554,9 +1554,6 @@ This variable is permanent-local.")
 		  (overlay-put comint-last-prompt-overlay
 			       'face 'comint-highlight-prompt-face)))))
 
-	  ;; Don't insert initial prompt outside the top of the window.
-	  (if (= (window-start (selected-window)) (point))
-	      (set-window-start (selected-window) (- (point) (length string))))
 	  (if (and comint-last-input-end
 		   (marker-buffer comint-last-input-end)
 		   (= (point) comint-last-input-end))
