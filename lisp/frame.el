@@ -393,6 +393,12 @@ These supersede the values given in `default-frame-alist'.")
 				  (> (minibuffer-depth) 0)
 				  t)))
 
+(defun make-frame-on-display (display &optional parameters)
+  "Make a frame on display DISPLAY.
+The optional second argument PARAMETERS specifies additional frame parameters."
+  (interactive "sMake frame on display: ")
+  (make-frame (cons (cons 'display display) parameters)))
+
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
 (defun make-frame (&optional parameters)
