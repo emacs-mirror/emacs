@@ -1,3 +1,16 @@
+2002-12-17  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdba-marker-filter, gdb-output-burst): Merge and
+	rename gud-gdba-marker-filter.
+	(gdb-append-to-inferior-io): Only pop up IO buffer if there is
+	output.
+	(gdb-make-instance): Remove (put into gdba). Use
+	gdb-instance-enqueue-input instead of
+	gdb-instance-enqueue-idle-input for user functions.
+	(gdb-instance-target-string): Simplify.
+	(in-gdb-instance-context): Remove.
+	Expand Commentary.
+
 2002-12-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (set-file-name-coding-system): New
