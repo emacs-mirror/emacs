@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989,94,1995,2001,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1989,94,1995,2001,02,03,04,2005  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -322,13 +322,13 @@ Value is a list of offsets of the words into the string."
 
 (defun apropos-score-doc (doc)
   "Return apropos score for documentation string DOC."
-  (if doc
-      (let ((score 0)
-	    (l (length doc))
-	    i)
-	(dolist (s (apropos-calc-scores doc apropos-all-words) score)
-	  (setq score (+ score 50 (/ (* (- l s) 50) l)))))
-      0))
+  (let ((l (length doc)))
+    (if (> l 0)
+	(let ((score 0)
+	      i)
+	  (dolist (s (apropos-calc-scores doc apropos-all-words) score)
+	    (setq score (+ score 50 (/ (* (- l s) 50) l)))))
+      0)))
 
 (defun apropos-score-symbol (symbol &optional weight)
   "Return apropos score for SYMBOL."
