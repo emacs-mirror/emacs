@@ -149,7 +149,7 @@ Each element should be of the form:
 where HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
 
 For highlighting single items, typically only MATCH-HIGHLIGHT is required.
-However, if an item or (typically) items is to be hightlighted following the
+However, if an item or (typically) items are to be highlighted following the
 instance of another item (the anchor) then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
@@ -166,7 +166,7 @@ OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification may
 be overwritten.  If `keep', only parts not already fontified are highlighted.
 If `prepend' or `append', existing fontification is merged with the new, in
 which the new or existing fontification, respectively, takes precedence.
-If LAXMATCH is non-nil, no error is signalled if there is no MATCH in MATCHER.
+If LAXMATCH is non-nil, no error is signaled if there is no MATCH in MATCHER.
 
 For example, an element of the form highlights (if not already highlighted):
 
