@@ -289,7 +289,7 @@ Returns the new status of Auto-insert mode (non-nil means on).
 
 When Auto-insert mode is enabled, when new files are created you can
 insert a template for the file depending on the mode of the buffer."
-  nil nil nil :global t :group 'auto-insert
+  :global t :group 'auto-insert
   (if auto-insert-mode
       (add-hook 'find-file-hooks 'auto-insert)
     (remove-hook 'find-file-hooks 'auto-insert)))
