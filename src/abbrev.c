@@ -364,7 +364,20 @@ Returns the abbrev symbol, if expansion took place.")
 
   hook = XSYMBOL (sym)->function;
   if (!NILP (hook))
-    call0 (hook);
+    {
+      Lisp_Object expanded, prop;
+
+      /* If expanding an abbrev which has only a hook, and the hook
+	 has a non-nil `no-self-insert' property, let the return value
+	 of the hook specify whether an expansion took place.  If it
+	 returns nil, no expansion has been done.  */
+      expanded = call0 (hook);
+      if (SYMBOLP (hook)
+	  && NILP (expanded)
+	  && (prop = Fget (hook, intern ("no-self-insert")),
+	      !NILP (prop)))
+	value = Qnil;
+    }
 
   return value;
 }
