@@ -1131,7 +1131,7 @@ enum
 };
 
 #ifdef HAVE_GTK_FILE_BOTH
-static int use_old_gtk_file_dialog;
+int use_old_gtk_file_dialog;
 #endif
 
 
@@ -3554,14 +3554,6 @@ xg_initialize ()
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
-
-#ifdef HAVE_GTK_FILE_BOTH
-  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
-    doc: /* *Non-nil means that the old GTK file selection dialog is used.
-            If nil the new GTK file chooser is used instead.  To turn off
-            all file dialogs set the variable `use-file-dialog'.  */);
-  use_old_gtk_file_dialog = 0;
-#endif
 }
 
 #endif /* USE_GTK */

@@ -1,5 +1,11 @@
 2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.h: Declare use_old_gtk_file_dialog.
+
+	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
+	(xg_initialize): Moved DEFVAR_BOOL for use_old_gtk_file_dialog ...
+	* xfns.c (syms_of_xfns): ... to here.
+
 	* gtkutil.c (xg_get_file_with_chooser): Expand DEFAULT_FILENAME if
 	it doesn't start with /.
 
