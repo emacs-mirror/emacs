@@ -301,7 +301,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef emacs
 
-/* IO calls that are emulated or shadowed */
+/* calls that are emulated or shadowed */
 #undef access
 #define access  sys_access
 #undef chdir
@@ -331,6 +331,7 @@ Boston, MA 02111-1307, USA.  */
 #define rmdir   sys_rmdir
 #define select  sys_select
 #define sleep   sys_sleep
+#define strerror sys_strerror
 #undef unlink
 #define unlink  sys_unlink
 #undef write
