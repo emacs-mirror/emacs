@@ -735,6 +735,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			  (get (car error) 'error-message)
 			  (if (cdr error) ": " "")
 			  (mapconcat 'prin1-to-string (cdr error) ", "))
+		 (pop-to-buffer "*Messages*")
 		 (setq init-file-had-error t))))
       ;; If we can tell that the init file altered debug-on-error,
       ;; arrange to preserve the value that it set up.
