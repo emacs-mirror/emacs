@@ -720,7 +720,7 @@ If DOCSTRING starts with *, this variable is identified as a user option.
  This means that M-x set-variable recognizes it.
  See also `user-variable-p'.
 If INITVALUE is missing, SYMBOL's value is not set.
-usage: (defvar SYMBOL [INITVALUE DOCSTRING])  */)
+usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
      (args)
      Lisp_Object args;
 {
@@ -3105,46 +3105,6 @@ unbind_to (count, value)
   UNGCPRO;
   return value;
 }
-
-#if 0
-
-/* Get the value of symbol's global binding, even if that binding
- is not now dynamically visible.  */
-
-Lisp_Object
-top_level_value (symbol)
-     Lisp_Object symbol;
-{
-  register struct specbinding *ptr = specpdl;
-
-  CHECK_SYMBOL (symbol);
-  for (; ptr != specpdl_ptr; ptr++)
-    {
-      if (EQ (ptr->symbol, symbol))
-	return ptr->old_value;
-    }
-  return Fsymbol_value (symbol);
-}
-
-Lisp_Object
-top_level_set (symbol, newval)
-     Lisp_Object symbol, newval;
-{
-  register struct specbinding *ptr = specpdl;
-
-  CHECK_SYMBOL (symbol);
-  for (; ptr != specpdl_ptr; ptr++)
-    {
-      if (EQ (ptr->symbol, symbol))
-	{
-	  ptr->old_value = newval;
-	  return newval;
-	}
-    }
-  return Fset (symbol, newval);
-}  
-
-#endif /* 0 */
 
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
