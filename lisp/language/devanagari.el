@@ -38,10 +38,10 @@
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
-(put 'devanagari
-     'post-read-conversion 'in-is13194-devanagari-post-read-conversion)
-(put 'devanagari
-     'pre-write-conversion 'in-is13194-devanagari-pre-write-conversion)
+(coding-system-put 'devanagari 'post-read-conversion
+		   'in-is13194-devanagari-post-read-conversion)
+(coding-system-put 'devanagari 'pre-write-conversion
+		   'in-is13194-devanagari-pre-write-conversion)
 
 (set-language-info-alist
  "Devanagari" '((setup-function . (setup-devanagari-environment
