@@ -61,25 +61,33 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
-Returns nil if FORM is not a `defun', `define-skeleton', `define-derived-mode',
-`defmacro' or `defcustom'."
+Returns nil if FORM is not a `defun', `define-skeleton',
+`define-derived-mode', `define-generic-mode', `defmacro', `defcustom'
+or `easy-mmode-define-minor-mode'."
   (let ((car (car-safe form)))
-    (if (memq car '(defun define-skeleton defmacro define-derived-mode))
+    (if (memq car '(defun define-skeleton defmacro define-derived-mode 
+		     define-generic-mode easy-mmode-define-minor-mode))
 	(let ((macrop (eq car 'defmacro))
 	      name doc)
 	  (setq form (cdr form)
 		name (car form)
 		;; Ignore the arguments.
 		form (cdr (cond 
-			   ((eq car 'define-skeleton) form)
+			   ((memq car '(define-skeleton 
+					 easy-mmode-define-minor-mode)) form)
 			   ((eq car 'define-derived-mode) (cdr (cdr form)))
+			   ((eq car 'define-generic-mode) 
+			    (cdr (cdr (cdr (cdr (cdr form))))))
 			   (t (cdr form))))
 		doc (car form))
 	  (if (stringp doc)
 	      (setq form (cdr form))
 	    (setq doc nil))
-	  (list 'autoload (list 'quote name) file doc
+	  ;; `define-generic-mode' quotes the name, so take care of that
+	  (list 'autoload (if (listp name) name (list 'quote name)) file doc
 		(or (eq car 'define-skeleton) (eq car 'define-derived-mode)
+		    (eq car 'define-generic-mode) 
+		    (eq car 'easy-mmode-define-minor-mode)
 		    (eq (car-safe (car form)) 'interactive))
 		(if macrop (list 'quote 'macro) nil)))
       ;; Convert defcustom to a simpler (and less space-consuming) defvar,
@@ -98,8 +106,6 @@ Returns nil if FORM is not a `defun', `define-skeleton', `define-derived-mode',
 		 (custom-add-load ',varname
 				  ,(plist-get rest :require)))))
 	nil))))
-
-(put 'define-skeleton 'doc-string-elt 3)
 
 ;;; Forms which have doc-strings which should be printed specially.
 ;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
@@ -125,7 +131,10 @@ Returns nil if FORM is not a `defun', `define-skeleton', `define-derived-mode',
 (put 'defcustom 'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
+(put 'define-skeleton 'doc-string-elt 3)
 (put 'define-derived-mode 'doc-string-elt 4)
+(put 'easy-mmode-define-minor-mode 'doc-string-elt 3)
+(put 'define-generic-mode 'doc-string-elt 3)
 
 
 (defun autoload-trim-file-name (file)
