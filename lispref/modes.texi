@@ -153,11 +153,30 @@ a variable named @code{@var{modename}-mode-syntax-table}.  @xref{Syntax
 Tables}.
 
 @item
+If the mode handles a language that has a syntax for comments, it should
+set the variables that define the comment syntax.  @xref{Options for
+Comments,, Options Controlling Comments, emacs, The GNU Emacs Manual}.
+
+@item
 @cindex abbrev tables in modes
 The mode may have its own abbrev table or may share one with other
 related modes.  If it has its own abbrev table, it should store this in
 a variable named @code{@var{modename}-mode-abbrev-table}.  @xref{Abbrev
 Tables}.
+
+@item
+@vindex font-lock-defaults
+The mode should specify how to do highlighting for Font Lock mode, by
+setting up a buffer-local value for the variable
+@code{font-lock-defaults}.
+
+@item
+@vindex imenu-generic-expression
+@vindex imenu-create-index-function
+The mode should specify how Imenu should find the definitions or
+sections of a buffer, by setting up a buffer-local value for the
+variable @code{imenu-generic-expression} or
+@code{imenu-create-index-function}.
 
 @item
 Use @code{defvar} to set mode-related variables, so that they are not
