@@ -1,3 +1,8 @@
+2001-10-15  Miles Bader  <miles@gnu.org>
+
+	* simple.el (display-message-or-buffer): Pass the correct buffer
+	to `display-buffer'.
+
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/executable.el (executable-binary-suffixes): Make varalias.
