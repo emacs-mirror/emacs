@@ -180,7 +180,7 @@ get_boot_time ()
 
       sprintf (cmd_string, "%s.%d", WTMP_FILE, counter);
       tempname = build_string (cmd_string);
-      if (! NILP (Ffile_exists_p (filename)))
+      if (! NILP (Ffile_exists_p (tempname)))
 	filename = tempname;
       else
 	{
