@@ -860,12 +860,8 @@ Return 0 if current buffer is not a mini-buffer."
 (defun minibuffer-prompt-end ()
   "Return the buffer position of the end of the minibuffer prompt.
 Return 0 if current buffer is not a mini-buffer."
-  ;; Return the width of everything before the field at the end of
-  ;; the buffer; this should be 0 for normal buffers.
-  ;; XXX This definition doesn't seem very useful; why does one care
-  ;; about the last character of the prompt?  The beginning of the
-  ;; user-text seems more useful (e.g., this value + 1).
-  (1- (field-beginning (point-max))))
+  (field-beginning (point-max)))
+
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
