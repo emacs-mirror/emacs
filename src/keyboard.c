@@ -5550,7 +5550,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  Lisp_Object head;
 
 	  head = EVENT_HEAD (key);
-	  if (help_char_p (head))
+	  if (help_char_p (head) && t > 0)
 	    {
 	      read_key_sequence_cmd = Vprefix_help_command;
 	      keybuf[t++] = key;
