@@ -959,7 +959,7 @@ ENCODING is the coding system to be used to encode output to the process.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
   (interactive
-   "zCoding-system for process input: \nzCoding-system for process output: ")
+   "zCoding-system for output from the process: \nzCoding-system for input to the process: ")
   (let ((proc (get-buffer-process (current-buffer))))
     (if (null proc)
 	(error "no process")
