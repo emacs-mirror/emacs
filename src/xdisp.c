@@ -11656,6 +11656,7 @@ try_window_id (w)
       w->window_end_vpos
 	= make_number (MATRIX_ROW_VPOS (row, w->current_matrix));
       xassert (w->window_end_bytepos >= 0);
+      IF_DEBUG (debug_method_add (w, "A"));
     }
   else if (last_text_row_at_end)
     {
@@ -11666,6 +11667,7 @@ try_window_id (w)
       w->window_end_vpos
 	= make_number (MATRIX_ROW_VPOS (last_text_row_at_end, desired_matrix));
       xassert (w->window_end_bytepos >= 0);
+      IF_DEBUG (debug_method_add (w, "B"));
     }
   else if (last_text_row)
     {
@@ -11686,21 +11688,30 @@ try_window_id (w)
     {
       /* Displayed to end of window, but no line containing text was
 	 displayed.  Lines were deleted at the end of the window.  */
-      int vpos;
-      int header_line_p = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
+      int first_vpos = WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0;
+      int vpos = XFASTINT (w->window_end_vpos);
+      struct glyph_row *current_row = current_matrix->rows + vpos;
+      struct glyph_row *desired_row = desired_matrix->rows + vpos;
 
-      for (vpos = XFASTINT (w->window_end_vpos); vpos > 0; --vpos)
-	if ((w->desired_matrix->rows[vpos + header_line_p].enabled_p
-	     && w->desired_matrix->rows[vpos + header_line_p].displays_text_p)
-	    || (!w->desired_matrix->rows[vpos + header_line_p].enabled_p
-		&& w->current_matrix->rows[vpos + header_line_p].displays_text_p))
-	  break;
+      for (row = NULL;
+	   row == NULL && vpos >= first_vpos;
+	   --vpos, --current_row, --desired_row)
+	{
+	  if (desired_row->enabled_p)
+	    {
+	      if (desired_row->displays_text_p)
+		row = desired_row;
+	    }
+	  else if (current_row->displays_text_p)
+	    row  = current_row;
+	}
 
+      xassert (row != NULL);
       w->window_end_vpos = make_number (vpos);
-      row = MATRIX_ROW (w->desired_matrix, vpos);
       w->window_end_pos = make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       xassert (w->window_end_bytepos >= 0);
+      IF_DEBUG (debug_method_add (w, "C"));
     }
   else
     abort ();
