@@ -1100,6 +1100,8 @@ DEFUN ("use-global-map", Fuse_global_map, Suse_global_map, 1, 1, 0,
 {
   keymap = get_keymap (keymap);
   current_global_map = keymap;
+  record_asynch_buffer_change ();
+
   return Qnil;
 }
 
@@ -1113,6 +1115,7 @@ If KEYMAP is nil, that means no local keymap.")
     keymap = get_keymap (keymap);
 
   current_buffer->keymap = keymap;
+  record_asynch_buffer_change ();
 
   return Qnil;
 }
