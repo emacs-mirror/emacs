@@ -43,6 +43,20 @@
 	* w32fns.c:
 	* xfaces.c: Remove definition of XColor.
 
+2002-10-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfns.c (x_set_name, x_set_title): `icon.value' has unsigned char.
+
+	* window.c (window_loop): For GET_LRU_WINDOW and GET_LARGEST_WINDOW>,
+	Only ignore truly dedicated windows.  For UNSHOW_BUFFER, delete the
+	window if it is dedicated.
+	(Fshrink_window): Add preserve_before as was done for enlarge_window.
+	(Vspecial_display_function): Update docstring.
+
+	* buffer.c (assoc_ignore_text_properties, Fother_buffer, Fkill_buffer)
+	(call_overlay_mod_hooks): Use CONSP and XCAR/XCDR.
+	(Fget_buffer_create, advance_to_char_boundary): Use BEG and BEG_BYTE;
+
 2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* casefiddle.c (casify_region): Don't treat a prefix char as part

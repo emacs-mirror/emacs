@@ -1,3 +1,8 @@
+2002-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-next-heading): Make sure the match-data
+	is really correct where returning.
+
 2002-10-24  Juanma Barranquero  <lektu@terra.es>
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
@@ -21,6 +26,18 @@
 	multiple redirection can work.
 
 2002-10-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ielm.el (inferior-emacs-lisp-mode): If hexl not found, use cat.
+	Don't hardcode point-min == 1.
+
+	* hexl.el (hexl-mode-old-write-contents-hooks): Remove.
+	(hexl-mode, hexl-current-address, hexl-address-to-marker)
+	(hexl-insert-char): Don't hardcode point-min == 1.
+	(hexl-isearch-search-function): New fun.
+	(hexl-mode-old-isearch-search-fun-function): New var.
+	(hexl-mode): Use them.
+	(hexl-mode, hexl-mode-exit, hexl-maybe-dehexlify-buffer):
+	Use write-contents-functions rather then write-contents-hooks.
 
 	* textmodes/text-mode.el (text-mode-syntax-table): Make ' a prefix.
 	(paragraph-indent-text-mode-abbrev-table)
