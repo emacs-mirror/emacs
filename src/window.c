@@ -48,21 +48,6 @@ Boston, MA 02111-1307, USA.  */
 #include "macterm.h"
 #endif
 
-/* Values returned from coordinates_in_window.  */
-
-enum window_part
-{
-  ON_NOTHING,
-  ON_TEXT,
-  ON_MODE_LINE,
-  ON_VERTICAL_BORDER,
-  ON_HEADER_LINE,
-  ON_LEFT_FRINGE,
-  ON_RIGHT_FRINGE,
-  ON_LEFT_MARGIN,
-  ON_RIGHT_MARGIN
-};
-
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_size_fixed;
@@ -507,19 +492,21 @@ and BOTTOM is one more than the bottommost row used by WINDOW
 }
 
 /* Test if the character at column *X, row *Y is within window W.
-   If it is not, return 0;
+   If it is not, return ON_NOTHING;
    if it is in the window's text area,
       set *x and *y to its location relative to the upper left corner
          of the window, and
-      return 1;
-   if it is on the window's modeline, return 2;
+      return ON_TEXT;
+   if it is on the window's modeline, return ON_MODE_LINE;
    if it is on the border between the window and its right sibling,
-      return 3.
-   if it is on the window's top line, return 4;
+      return ON_VERTICAL_BORDER.
+   if it is on the window's top line, return ON_HEADER_LINE;
    if it is in left or right fringe of the window,
-   return 5 or 6, and convert *X and *Y to window-relative coordinates;
+      return ON_LEFT_FRINGE or ON_RIGHT_FRINGE, and convert *X and *Y
+      to window-relative coordinates;
    if it is in the marginal area to the left/right of the window,
-   return 7 or 8, and convert *X and *Y to window-relative coordinates.
+      return ON_LEFT_MARGIN or ON_RIGHT_MARGIN, and convert *X and *Y
+      to window-relative coordinates.
 
    X and Y are frame relative pixel coordinates.  */
 
@@ -786,7 +773,8 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
 struct check_window_data
 {
   Lisp_Object *window;
-  int *x, *y, *part;
+  int *x, *y;
+  enum window_part *part;
 };
 
 static int
@@ -801,7 +789,7 @@ check_window_containing (w, user_data)
   found = coordinates_in_window (w, cw->x, cw->y);
   if (found != ON_NOTHING)
     {
-      *cw->part = found - 1;
+      *cw->part = found;
       XSETWINDOW (*cw->window, w);
       continue_p = 0;
     }
@@ -811,10 +799,9 @@ check_window_containing (w, user_data)
 
 
 /* Find the window containing frame-relative pixel position X/Y and
-   return it as a Lisp_Object.  If X, Y is on the window's modeline,
-   set *PART to 1; if it is on the separating line between the window
-   and its right sibling, set it to 2; otherwise set it to 0.  If
-   there is no window under X, Y return nil and leave *PART
+   return it as a Lisp_Object.  If X, Y is on one of the window's 
+   special `window_part' elements, set *PART to the id of that element.
+   If there is no window under X, Y return nil and leave *PART
    unmodified.  TOOL_BAR_P non-zero means detect tool-bar windows.
 
    This function was previously implemented with a loop cycling over
@@ -830,11 +817,15 @@ Lisp_Object
 window_from_coordinates (f, x, y, part, tool_bar_p)
      struct frame *f;
      int x, y;
-     int *part;
+     enum window_part *part;
      int tool_bar_p;
 {
   Lisp_Object window;
   struct check_window_data cw;
+  enum window_part dummy;
+
+  if (part == 0)
+    part = &dummy;
 
   window = Qnil;
   cw.window = &window, cw.x = &x, cw.y = &y; cw.part = part;
@@ -849,7 +840,7 @@ window_from_coordinates (f, x, y, part, tool_bar_p)
       && (coordinates_in_window (XWINDOW (f->tool_bar_window), &x, &y)
 	  != ON_NOTHING))
     {
-      *part = 0;
+      *part = ON_TEXT;
       window = f->tool_bar_window;
     }
 
@@ -864,7 +855,6 @@ column 0.  */)
      (x, y, frame)
      Lisp_Object x, y, frame;
 {
-  int part;
   struct frame *f;
 
   if (NILP (frame))
@@ -879,7 +869,7 @@ column 0.  */)
   return window_from_coordinates (f,
 				  PIXEL_X_FROM_CANON_X (f, x),
 				  PIXEL_Y_FROM_CANON_Y (f, y),
-				  &part, 0);
+				  0, 0);
 }
 
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
