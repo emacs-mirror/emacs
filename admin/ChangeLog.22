@@ -1,3 +1,19 @@
+2005-01-30  Kenichi Handa  <handa@m17n.org>
+
+	Sub-directory `unidata' is for codes to generate charprop.el and
+	many other uni-*.el files from `UnicodeData.txt'.
+
+	* Unidata/README: New file.
+
+	* unidata/Makefile: New file.
+
+	* unidata/unidata-gen.el: New file.
+
+	* unidata/UnicodeData.txt: New file.  Copied from
+	http://www.unicode.org on 2005-01-29.
+
+	* unidata/.cvsignore: New file.
+
 2004-02-12  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/.cvsignore: New file.

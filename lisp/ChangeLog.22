@@ -1,5 +1,7 @@
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
+	* Makefile.in (DONTCOMPILE): Include charprop.el and uni-*.el.
+
 	* international/fontset.el (font-encoding-alist): Add an entry for
 	microsoft-cp1251.
 	(setup-default-fontset): Add entries for microsoft-cp1251 and

@@ -1,5 +1,8 @@
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (Fset_fontset_font): Check family element of a given
+	vector.
+
 	* Makefile.in (lisp): Include charprop.el.
 
 2005-01-17  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
