@@ -37,7 +37,7 @@
   (require 'ibuf-macs)
   (require 'dired))
 
-(require 'font-lock)
+(require 'font-core)
 
 (defgroup ibuffer nil
   "An advanced replacement for `buffer-menu'.
