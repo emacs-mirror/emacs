@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.26) $
+ * $HopeName$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -29,7 +29,7 @@
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.26) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.27) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -298,15 +298,6 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
-/* SegSummary -- return the summary of a segment */
-
-RefSet SegSummary(Seg seg)
-{
-  AVERT_CRITICAL(Seg, seg);  /* .seg.critical */
-  return seg->class->summary(seg);
-}
-
-
 /* SegSetSummary -- change the summary on a segment */
 
 void SegSetSummary(Seg seg, RefSet summary)
@@ -316,7 +307,7 @@ void SegSetSummary(Seg seg, RefSet summary)
 }
 
 
-/* SegSetRankAndSummary -- set the rank set and summary together */
+/* SegSetRankAndSummary -- set both the rank set and the summary */
 
 void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
@@ -742,16 +733,6 @@ static void segNoSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
-/* segNoSummary -- non-method to return the summary of a segment */
-
-static RefSet segNoSummary(Seg seg)
-{
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return RefSetEMPTY;
-}
-
-
 /* segNoSetSummary -- non-method to set the summary of a segment */
 
 static void segNoSetSummary(Seg seg, RefSet summary)
@@ -982,21 +963,21 @@ static Res segTrivDescribe(Seg seg, mps_lib_FILE *stream)
                "  protection mode:",
                NULL);
   if (res != ResOK) return res;
-  if (AccessSetIsMember(seg->pm, AccessREAD)) {
+  if (SegPM(seg) & AccessREAD) {
      res = WriteF(stream, " read", NULL);
      if (res != ResOK) return res;
   }
-  if (AccessSetIsMember(seg->pm, AccessWRITE)) {
+  if (SegPM(seg) & AccessWRITE) {
      res = WriteF(stream, " write", NULL);
      if (res != ResOK) return res;
   }
   res = WriteF(stream, "\n  shield mode:", NULL);
   if (res != ResOK) return res;
-  if (AccessSetIsMember(seg->sm, AccessREAD)) {
+  if (SegSM(seg) & AccessREAD) {
      res = WriteF(stream, " read", NULL);
      if (res != ResOK) return res;
   }
-  if (AccessSetIsMember(seg->sm, AccessWRITE)) {
+  if (SegSM(seg) & AccessWRITE) {
      res = WriteF(stream, " write", NULL);
      if (res != ResOK) return res;
   }
@@ -1309,21 +1290,6 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 }
 
 
-/* gcSegSummary -- GCSeg method to return the summary of a segment */
-
-static RefSet gcSegSummary(Seg seg)
-{
-  GCSeg gcseg;
-
-  AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);             /* .seg.method.check */
-  AVER_CRITICAL(&gcseg->segStruct == seg);  /* .seg.method.check */
-
-  return gcseg->summary;
-}
-
-
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
@@ -1361,9 +1327,7 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 }
 
 
-/* gcSegSetRankSummary -- GCSeg method to set the rank set 
- * and summary together 
- */
+/* gcSegSetRankSummary -- GCSeg method to set both rank set and summary */
 
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
@@ -1598,15 +1562,15 @@ static Res gcSegDescribe(Seg seg, mps_lib_FILE *stream)
 }
 
 
+/* SegClassCheck -- check a segment class */
 
 Bool SegClassCheck(SegClass class)
 {
   CHECKL(ProtocolClassCheck(&class->protocol));
-  CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
+  CHECKL(class->name != NULL); /* Should be <= 6 char C identifier */
   CHECKL(class->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->summary));
   CHECKL(FUNCHECK(class->setGrey));
   CHECKL(FUNCHECK(class->setWhite));
   CHECKL(FUNCHECK(class->setRankSet));
@@ -1628,7 +1592,6 @@ DEFINE_CLASS(SegClass, class)
   class->size = sizeof(SegStruct);
   class->init = segTrivInit;
   class->finish = segTrivFinish;
-  class->summary = segNoSummary;  
   class->setSummary = segNoSetSummary;  
   class->buffer = segNoBuffer;  
   class->setBuffer = segNoSetBuffer;  
@@ -1654,7 +1617,6 @@ DEFINE_CLASS(GCSegClass, class)
   class->size = sizeof(GCSegStruct);
   class->init = gcSegInit;
   class->finish = gcSegFinish;
-  class->summary = gcSegSummary;  
   class->setSummary = gcSegSetSummary;  
   class->buffer = gcSegBuffer;  
   class->setBuffer = gcSegSetBuffer;  
