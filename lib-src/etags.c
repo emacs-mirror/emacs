@@ -1249,7 +1249,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
   np->lno = lno;
   /* Our char numbers are 0-base, because of C language tradition?
      ctags compatibility?  old versions compatibility?   I don't know.
-     Anyway, since emacs's are 1-base we espect etags.el to take care
+     Anyway, since emacs's are 1-base we expect etags.el to take care
      of the difference.  If we wanted to have 1-based numbers, we would
      uncomment the +1 below. */
   np->cno = cno /* + 1 */ ;
@@ -1653,7 +1653,7 @@ enum
 
  /*
   * typedefs are recognized using a simple finite automaton.
-  * typeddef is its state variable.
+  * typdef is its state variable.
   */
 enum
 {
@@ -1970,7 +1970,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
 	  /* Memory leakage here: the string pointed by objtag is
 	     never released, because many tests would be needed to
 	     avoid breaking on incorrect input code.  The amount of
-	     memory leaked here is the sum of the lenghts of the
+	     memory leaked here is the sum of the lengths of the
 	     class tags.
 	  free (objtag); */
 	  objdef = onone;
@@ -2577,7 +2577,7 @@ C_entries (c_ext, inf)
 	      /* Memory leakage here: the string pointed by structtag is
 	         never released, because I fear to miss something and
 	         break things while freeing the area.  The amount of
-	         memory leaked here is the sum of the lenghts of the
+	         memory leaked here is the sum of the lengths of the
 	         struct tags.
 	      if (structdef == sinbody)
 		free (structtag); */
@@ -3552,7 +3552,7 @@ skip_comment (plb, inf, plineno, plinecharno)
 #ifdef ETAGS_REGEXPS
 /* Take a string like "/blah/" and turn it into "blah", making sure
    that the first and last characters are the same, and handling
-   quoted separator characters.  Actually, stops on the occurence of
+   quoted separator characters.  Actually, stops on the occurrence of
    an unquoted separator.  Also turns "\t" into a Tab character.
    Returns pointer to terminating separator.  Works in place.  Null
    terminates name string. */
@@ -3674,7 +3674,7 @@ substitute (in, out, regs)
 	  ++t;
 	  if (!*t)
 	    {
-	      fprintf (stderr, "%s: pattern subtitution ends prematurely\n",
+	      fprintf (stderr, "%s: pattern substitution ends prematurely\n",
 		       progname);
 	      return NULL;
 	    }
