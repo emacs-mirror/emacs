@@ -94,7 +94,6 @@
 ;;; m-c-b   shell-backward-command          Backward a shell command
 ;;; 	    dirs    			    Resync the buffer's dir stack
 ;;; 	    dirtrack-toggle                 Turn dir tracking on/off
-;;; 	    shell-strip-ctrl-m              Remove trailing ^Ms from output
 ;;;
 ;;; The shell mode hook is shell-mode-hook
 ;;; comint-prompt-regexp is initialised to shell-prompt-pattern, for backwards
@@ -808,19 +807,6 @@ Returns t if successful."
 		 (replace-match (file-name-as-directory (nth index stack)) t t)
 		 (message "Directory item: %d" index)
 		 t))))))
-
-(defun shell-strip-ctrl-m (&optional string)
-  "Strip trailing `^M' characters from the current output group.
-
-This function could be in the list `comint-output-filter-functions' or bound to
-a key."
-  (interactive)
-  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-    (save-excursion
-      (goto-char
-       (if (interactive-p) comint-last-input-end comint-last-output-start))
-      (while (re-search-forward "\r+$" pmark t)
-	(replace-match "" t t)))))
 
 (provide 'shell)
 
