@@ -34,6 +34,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awlu
      finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
+     exposet0.exe \
      replay.exe replaysw.exe eventcnv.exe \
      mmdw.lib mmsw.lib mps.lib mpsplan.lib:
 !IFDEF VARIETY
@@ -225,6 +226,10 @@ $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)	
+
+$(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
 	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
 	$(TESTLIBOBJ)	
 
