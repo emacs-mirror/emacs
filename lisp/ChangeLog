@@ -1,3 +1,7 @@
+2005-03-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el: Bind `font-lock-fontify-block' to M-o M-o.
+
 2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (window-buffer-height): Use count-screen-lines.
