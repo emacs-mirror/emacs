@@ -1228,9 +1228,6 @@ frequently editing existing scripts with different styles.")
 ;; mode-command and utility functions
 
 ;;;###autoload
-(put 'sh-mode 'mode-class 'special)
-
-;;;###autoload
 (defun sh-mode ()
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
