@@ -1241,7 +1241,6 @@ with SIGHUP.")
   if (EQ (tem, XWINDOW (minibuf_window)->buffer))
     {
       tem = Fother_buffer (buf, Qnil, Qnil);
-      Fset_buffer (tem);
       if (EQ (buf, tem))
 	return Qnil;
     }
