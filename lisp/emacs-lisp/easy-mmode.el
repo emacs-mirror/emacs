@@ -57,6 +57,7 @@ MODE is the so defined function that toggles the mode.
 optional DOC is its associated documentation.
 BODY is executed after the toggling and before running MODE-hook."
   (let* ((mode-name (symbol-name mode))
+	 (pretty-name (easy-mmode-derive-name mode-name))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
@@ -64,7 +65,7 @@ BODY is executed after the toggling and before running MODE-hook."
 			 (format "With no argument, toggle %s.
 With universal prefix ARG turn mode on.
 With zero or negative ARG turn mode off.
-\\{%s}" mode-name (concat mode-name "-map")))))
+\\{%s}" pretty-name (concat mode-name "-map")))))
     `(progn
        (defcustom ,hook  nil
 	 ,(format "Hook called at the end of function `%s'." mode-name)
@@ -82,12 +83,13 @@ With zero or negative ARG turn mode off.
 	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
 	 ;; Return the new setting.
 	 (if (interactive-p)
-	     (message ,(format "%s %%sabled"
-			       (replace-regexp-in-string
-				"-Mode" " mode"
-				(capitalize (symbol-name mode)) t))
+	     (message ,(format "%s %%sabled" pretty-name)
 		      (if ,mode "en" "dis")))
 	 ,mode))))
+
+(defun easy-mmode-derive-name (mode)
+  (replace-regexp-in-string
+   "-Mode" " mode" (capitalize (symbol-name mode)) t))
 
 ;;;###autoload
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
@@ -118,9 +120,11 @@ It will be executed after any toggling but before running the hooks."
     `(progn
        ;; Define the variable to enable or disable the mode.
        ,(if globalp
-	    `(defcustom ,mode ,init-value ,(format "Toggle %s.
+	    `(defcustom ,mode ,init-value
+	       ,(format "Toggle %s.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `%s'." mode mode)
+use either \\[customize] or the function `%s'."
+			(easy-mmode-derive-name mode) mode)
 	       :set (lambda (symbol value) (funcall symbol (or value 0)))
 	       :initialize 'custom-initialize-default
 	       :type 'boolean)
@@ -166,9 +170,9 @@ Use the function `%s' to change this variable." mode))
 (defun easy-mmode-define-keymap (bs &optional name m args)
   "Return a keymap built from bindings BS.
 BS must be a list of (KEY . BINDING) where
-KEY and BINDINGS are suited as for define-key.
-optional NAME is passed to `make-sparse-keymap'.
-optional map M can be used to modify an existing map.
+KEY and BINDINGS are suitable for `define-key'.
+Optional NAME is passed to `make-sparse-keymap'.
+Optional map M can be used to modify an existing map.
 ARGS is a list of additional arguments."
   (let (inherit dense suppress)
     (while args
@@ -273,6 +277,8 @@ been generated automatically, with a reference to the keymap."
 	 (abbrev (intern (concat child-name "-abbrev-table")))
 	 (hook (intern (concat child-name "-hook"))))
 	 
+    (unless parent (setq parent 'fundamental-mode))
+
     (when (and docstring (not (stringp docstring)))
       ;; DOCSTRING is really the first command and there's no docstring
       (push docstring body)
@@ -311,6 +317,7 @@ which more-or-less shadow %s's corresponding tables."
        (defvar ,map (make-sparse-keymap))
        (defvar ,syntax (make-char-table 'syntax-table nil))
        (defvar ,abbrev (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+       (put ',child 'derived-mode-parent ',parent)
      
        (defun ,child ()
 	 ,docstring
@@ -345,6 +352,15 @@ which more-or-less shadow %s's corresponding tables."
 	  ,@body)
 					; Run the hooks, if any.
 	 (run-hooks ',hook)))))
+
+;; Inspired from derived-mode-class in derived.el
+(defun easy-mmode-derived-mode-p (mode)
+  "Non-nil if the current major mode is derived from MODE.
+Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (let ((parent major-mode))
+    (while (and (not (eq parent mode))
+		(setq parent (get parent 'derived-mode-parent))))
+    parent))
 
 
 ;;;
