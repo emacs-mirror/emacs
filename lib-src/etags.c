@@ -1864,15 +1864,17 @@ make_tag (name, namelen, is_func, linestart, linelen, lno, cno)
      int lno;			/* line number */
      long cno;			/* character number */
 {
-  register char *cp;
-  bool named;
+  bool named = TRUE;
 
-  named = TRUE;
   if (!CTAGS)
     {
-      for (cp = name; !notinname (*cp); cp++)
-	continue;
-      if (*cp == '\0')				/* rule #1 */
+      int i;
+      register char *cp = name;
+
+      for (i = 0; i < namelen; i++)
+	if (notinname (*cp++))
+	  break;
+      if (i == namelen)				/* rule #1 */
 	{
 	  cp = linestart + linelen - namelen;
 	  if (notinname (linestart[linelen-1]))
