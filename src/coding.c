@@ -4223,6 +4223,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
     }
 
   if (coding->result == CODING_FINISH_INSUFFICIENT_SRC
+      && coding->mode & CODING_MODE_LAST_BLOCK
       && coding->consumed == src_bytes)
     coding->result = CODING_FINISH_NORMAL;
 
