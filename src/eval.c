@@ -2692,7 +2692,7 @@ specbind (symbol, value)
 
 void
 record_unwind_protect (function, arg)
-     Lisp_Object (*function)();
+     Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object arg;
 {
   if (specpdl_ptr == specpdl + specpdl_size)
