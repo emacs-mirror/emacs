@@ -108,6 +108,24 @@ symbol: epc
 Error 24 at (2:progran.f90) : syntax error
 
 
+* Fortran checker
+
+symbols: ftnchek-file ftnchek-line-file ftnchek-line
+
+File average.f:
+
+Warning in module COMPAV: Variables may be used before set:
+    SUM used at line 14
+    SUM set at line 14
+
+Warning near line 16 col 20: integer quotient expr I/J  converted to real
+
+    Dummy arg W in module SUBA line 8 file arrayclash.f is array
+    L4 used at line 55 file test/assign.f; never set
+Warning near line 10 file arrayclash.f: Module contains no executable
+Nonportable usage near line 31 col 9 file assign.f: mixed default and explicit
+
+
 * IAR Systems C Compiler
 
 symbol: iar
@@ -125,7 +143,7 @@ foo.c(3:8) : warning EDC0833: Implicit return statement encountered.
 foo.c(5:5) : error EDC0350: Syntax error.
 
 
-* Ultrix MIPS RISC CC & DEC AXP OSF/1 cc & IRIX 5.2
+* Ultrix MIPS RISC CC, DEC AXP OSF/1 cc, IRIX 5.2 & NAG Fortran
 
 symbol: irix
 
