@@ -55,7 +55,7 @@
     (device-type (selected-device))))
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun vip-window-display-p ()
-  (and (vip-device-type) (not (memq (vip-device-type) '(tty stream)))))
+  (and (vip-device-type) (not (memq (vip-device-type) '(tty stream pc)))))
 
 (defvar vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
   "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95.")
