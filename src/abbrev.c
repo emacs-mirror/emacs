@@ -377,7 +377,7 @@ write_abbrev (sym, stream)
   if (NILP (XSYMBOL (sym)->value))
     return;
   insert ("    (", 5);
-  XSET (name, Lisp_String, XSYMBOL (sym)->name);
+  XSETSTRING (name, XSYMBOL (sym)->name);
   Fprin1 (name, stream);
   insert (" ", 1);
   Fprin1 (XSYMBOL (sym)->value, stream);
@@ -429,7 +429,7 @@ define the abbrev table NAME exactly as it is currently defined.")
   table = Fsymbol_value (name);
   CHECK_VECTOR (table, 0);
 
-  XSET (stream, Lisp_Buffer, current_buffer);
+  XSETBUFFER (stream, current_buffer);
 
   if (!NILP (readable))
     {
