@@ -1,3 +1,22 @@
+2003-05-23  Richard M. Stallman  <rms@gnu.org>
+
+	* forms.el (forms--mode-commands1): Bind \t, not `tab'.
+	(forms--mode-commands): Don't bind \t in the maps where
+	we call forms--mode-commands1.
+
+2003-05-23  Taro Kawagishi <tarok@acm.org>
+
+	* arc-mode.el (archive-lzh-summarize): Calculate correct total
+	header size for LZH level 1 header.
+
+2003-05-23  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/paragraphs.el (repunctuate-sentences): Add doc string.
+
+2003-05-23  Daniel Ortmann  <dortmann@lsil.com>  (tiny change)
+
+	* textmodes/paragraphs.el (repunctuate-sentences): New function.
+
 2003-05-23  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* emacs-lisp/lisp-mnt.el: Make the description of the library more
