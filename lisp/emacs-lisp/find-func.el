@@ -352,7 +352,7 @@ See `find-variable' for more details."
 Point is saved if FUNCTION is in the current buffer."
   (interactive "kFind function on key: ")
   (save-excursion
-    (let* ((event (aref key 0))
+    (let* ((event (and (eventp key) (aref key 0))) ; Null event OK below.
 	   (start (event-start event))
 	   (modifiers (event-modifiers event))
 	   (window (and (or (memq 'click modifiers) (memq 'down modifiers)
