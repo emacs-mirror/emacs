@@ -53,6 +53,7 @@
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
 (define-key mule-keymap "p" 'set-current-process-coding-system)
 (define-key mule-keymap "i" 'select-input-method)
+(define-key mule-keymap "\C-\\" 'select-input-method)
 
 (define-key help-map "\C-L" 'describe-language-support)
 (define-key help-map "\C-\\" 'describe-input-method)
