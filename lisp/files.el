@@ -1934,6 +1934,12 @@ is specified, returning t if it is specified."
 (put 'unread-command-events 'risky-local-variable t)
 (put 'max-lisp-eval-depth 'risky-local-variable t)
 (put 'max-specpdl-size 'risky-local-variable t)
+(put 'mode-line-format 'risky-local-variable t)
+(put 'mode-line-modified 'risky-local-variable t)
+(put 'mode-line-mule-info 'risky-local-variable t)
+(put 'mode-line-buffer-identification 'risky-local-variable t)
+(put 'mode-line-modes 'risky-local-variable t)
+(put 'mode-line-position 'risky-local-variable t)
 
 ;; This one is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable t)
@@ -1957,7 +1963,7 @@ is considered risky."
 	;; Likewise for setting hook variables.
 	((or (get var 'risky-local-variable)
 	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$\\|^mode-line"
+	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
 			    (symbol-name var))
 	      (not (get var 'safe-local-variable))))
 	 ;; Permit evalling a put of a harmless property.
