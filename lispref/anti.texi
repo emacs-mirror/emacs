@@ -5,7 +5,7 @@
 
 @c This node must have no pointers.
 
-@c @node Antinews, GNU Free Documentation License, System Interface, Top
+@node Antinews, GNU Free Documentation License, System Interface, Top
 @appendix Emacs 20 Antinews
 
 For those users who live backwards in time, here is information about
