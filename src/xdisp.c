@@ -582,6 +582,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static void ensure_echo_area_buffers P_ ((void));
 static struct glyph_row *row_containing_pos P_ ((struct window *, int,
 						 struct glyph_row *,
 						 struct glyph_row *));
@@ -5162,6 +5163,25 @@ update_echo_area ()
 }
 
 
+/* Make sure echo area buffers in echo_buffers[] are life.  If they
+   aren't, make new ones.  */
+
+static void
+ensure_echo_area_buffers ()
+{
+  int i;
+
+  for (i = 0; i < 2; ++i)
+    if (!BUFFERP (echo_buffer[i])
+	|| NILP (XBUFFER (echo_buffer[i])->name))
+      {
+	char name[30];
+	sprintf (name, " *Echo Area %d*", i);
+	echo_buffer[i] = Fget_buffer_create (build_string (name));
+      }
+}
+
+
 /* Call FN with args A1..A5 with either the current or last displayed
    echo_area_buffer as current buffer.
 
@@ -5190,14 +5210,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
   int count = specpdl_ptr - specpdl;
 
   /* If buffers aren't life, make new ones.  */
-  for (i = 0; i < 2; ++i)
-    if (!BUFFERP (echo_buffer[i])
-	|| NILP (XBUFFER (echo_buffer[i])->name))
-      {
-	char name[30];
-	sprintf (name, " *Echo Area %d*", i);
-	echo_buffer[i] = Fget_buffer_create (build_string (name));
-      }
+  ensure_echo_area_buffers ();
 
   clear_buffer_p = 0;
   
@@ -5349,6 +5362,8 @@ void
 setup_echo_area_for_printing (multibyte_p)
      int multibyte_p;
 {
+  ensure_echo_area_buffers ();
+
   if (!message_buf_print)
     {
       /* A message has been output since the last time we printed.
