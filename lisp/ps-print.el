@@ -1012,7 +1012,7 @@ values, the value should be a string to be inserted into the array.
 In either case, function or variable, the string value has PostScript
 string delimiters added to it."
   :type '(repeat (choice string symbol))
-  :group ps-print-header)
+  :group 'ps-print-header)
 (make-variable-buffer-local 'ps-left-header)
 
 (defcustom ps-right-header
@@ -1023,7 +1023,7 @@ This applies to generating Postscript.
 See the variable `ps-left-header' for a description of the format of
 this variable."
   :type '(repeat (choice string symbol))
-  :group ps-print-header)
+  :group 'ps-print-header)
 (make-variable-buffer-local 'ps-right-header)
 
 (defcustom ps-razzle-dazzle t
