@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate May  6, 1999
+@set lastupdate May 19, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -189,6 +189,9 @@ Reference manuals for C++, Objective C, Pascal, Fortran 77, and Java.
 
 @item
 A tutorial manual for the C++ STL (standard template library).
+
+@item
+Reference and introductory manuals for Gforth.
 
 @item
 GNU Objective-C Runtime Library Manual; this would be a reference manual
