@@ -2214,7 +2214,7 @@ static struct
   GtkWidget **widgets;
   int max_size;
   int used;
-} id_to_widget = { 0, 0, 0 };
+} id_to_widget;
 
 /* Grow this much every time we need to allocate more  */
 #define ID_TO_WIDGET_INCR  32
@@ -2883,12 +2883,22 @@ xg_initialize ()
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 
+  id_to_widget.max_size = id_to_widget.used = 0;
+  id_to_widget.widgets = 0;
+
   /* Remove F10 as a menu accelerator, it does not mix well with Emacs key
      bindings.  It doesn't seem to be any way to remove properties,
      so we set it to VoidSymbol which in X means "no key".  */
   gtk_settings_set_string_property (gtk_settings_get_default (),
                                     "gtk-menu-bar-accel",
                                     "VoidSymbol",
+                                    EMACS_CLASS);
+
+  /* Make GTK text input widgets use Emacs style keybindings.  This is
+     Emacs after all.  */
+  gtk_settings_set_string_property (gtk_settings_get_default (),
+                                    "gtk-key-theme-name",
+                                    "Emacs",
                                     EMACS_CLASS);
 }
 
