@@ -3803,6 +3803,9 @@ This does code conversion according to the value of\n\
 			       PT + inserted_byte, PT_BYTE + inserted_byte,
 			       inserted);
 	}
+      else
+	adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
+			     inserted);
 
 #ifdef DOS_NT
       /* Use the conversion type to determine buffer-file-type
