@@ -81,6 +81,8 @@
 		      (and (null show-paren-mismatch-face)
 			   (x-display-color-p)
 			   (progn
+			     (add-to-list 'facemenu-unlisted-faces 
+					  'paren-mismatch)
 			     (make-face 'paren-mismatch)
 			     (or (face-nontrivial-p 'paren-mismatch t)
 				 (progn
