@@ -3122,31 +3122,40 @@ Leave point at the location of the call, or after the last expression."
   "Save all customized variables in `custom-file'."
   (save-excursion
     (custom-save-delete 'custom-set-variables)
-    (let ((standard-output (current-buffer)))
+    (let ((standard-output (current-buffer))
+	  (saved-list (make-list 1 0))
+	  sort-fold-case)
+      ;; First create a sorted list of saved variables.
+      (mapatoms
+       (lambda (symbol)
+	 (if (get symbol 'saved-value)
+	     (nconc saved-list (list symbol)))))
+      (setq saved-list (sort (cdr saved-list) 'string<))
       (unless (bolp)
 	(princ "\n"))
       (princ "(custom-set-variables")
-      (mapatoms (lambda (symbol)
-		  (let ((value (get symbol 'saved-value))
-			(requests (get symbol 'custom-requests))
-			(now (not (or (get symbol 'standard-value)
-				      (and (not (boundp symbol))
-					   (not (get symbol 'force-value)))))))
-		    (when value
-		      (princ "\n '(")
-		      (princ symbol)
-		      (princ " ")
-		      (prin1 (car value))
-		      (cond (requests
-			     (if now
-				 (princ " t ")
-			       (princ " nil "))
-			     (prin1 requests)
-			     (princ ")"))
-			    (now
-			     (princ " t)"))
-			    (t
-			     (princ ")")))))))
+      (mapcar
+       (lambda (symbol)
+	 (let ((value (get symbol 'saved-value))
+	       (requests (get symbol 'custom-requests))
+	       (now (not (or (get symbol 'standard-value)
+			     (and (not (boundp symbol))
+				  (not (get symbol 'force-value)))))))
+	   (princ "\n '(")
+	   (princ symbol)
+	   (princ " ")
+	   (prin1 (car value))
+	   (cond (requests
+		  (if now
+		      (princ " t ")
+		    (princ " nil "))
+		  (prin1 requests)
+		  (princ ")"))
+		 (now
+		  (princ " t)"))
+		 (t
+		  (princ ")")))))
+       saved-list)
       (princ ")")
       (unless (looking-at "\n")
 	(princ "\n")))))
@@ -3155,34 +3164,36 @@ Leave point at the location of the call, or after the last expression."
   "Save all customized faces in `custom-file'."
   (save-excursion
     (custom-save-delete 'custom-set-faces)
-    (let ((standard-output (current-buffer)))
+    (let ((standard-output (current-buffer))
+	  (saved-list (make-list 1 0))
+	  sort-fold-case)
+      ;; First create a sorted list of saved faces.
+      (mapatoms
+       (lambda (symbol)
+	 (if (get symbol 'saved-face)
+	     (nconc saved-list (list symbol)))))
+      (setq saved-list (sort (cdr saved-list) 'string<))
+      ;; The default face must be first, since it affects the others.
+      (if (memq 'default saved-list)
+	  (setq saved-list (cons 'default (delq 'default saved-list))))
       (unless (bolp)
 	(princ "\n"))
       (princ "(custom-set-faces")
-      (let ((value (get 'default 'saved-face)))
-	;; The default face must be first, since it affects the others.
-	(when value
-	  (princ "\n '(default ")
-	  (prin1 value)
-	  (if (or (get 'default 'face-defface-spec)
-		  (and (not (custom-facep 'default))
-		       (not (get 'default 'force-face))))
-	      (princ ")")
-	    (princ " t)"))))
-      (mapatoms (lambda (symbol)
-		  (let ((value (get symbol 'saved-face)))
-		    (when (and (not (eq symbol 'default))
-			       ;; Don't print default face here.
-			       value)
-		      (princ "\n '(")
-		      (princ symbol)
-		      (princ " ")
-		      (prin1 value)
-		      (if (or (get symbol 'face-defface-spec)
-			      (and (not (custom-facep symbol))
-				   (not (get symbol 'force-face))))
-			  (princ ")")
-			(princ " t)"))))))
+      (mapcar
+       (lambda (symbol)
+	 (let ((value (get symbol 'saved-face)))
+	   (unless (eq symbol 'default))
+	   ;; Don't print default face here.
+	   (princ "\n '(")
+	   (princ symbol)
+	   (princ " ")
+	   (prin1 value)
+	   (if (or (get symbol 'face-defface-spec)
+		   (and (not (custom-facep symbol))
+			(not (get symbol 'force-face))))
+	       (princ ")")
+	     (princ " t)"))))
+       saved-list)
       (princ ")")
       (unless (looking-at "\n")
 	(princ "\n")))))
