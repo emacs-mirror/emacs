@@ -2054,25 +2054,22 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title)
+      if (wv->title || wv->call_data == 0)
 	{
 #if 0  /* no GC while popup menu is active */
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
 	  strcpy (out_string, wv->name);
 #endif
-          /* TODO: Why has owner-draw stopped working? */
-	  fuFlags |= /*MF_OWNERDRAW |*/ MF_DISABLED;
+	  fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	}
-
       /* Draw radio buttons and tickboxes. */
-      {
-      if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
+      else if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
                            wv->button_type == BUTTON_TYPE_RADIO))
-        fuFlags |= MF_CHECKED;
+	fuFlags |= MF_CHECKED;
       else
-        fuFlags |= MF_UNCHECKED;
-      }
+	fuFlags |= MF_UNCHECKED;
     }
+
   if (item != NULL)
     fuFlags = MF_POPUP;
 
@@ -2083,35 +2080,36 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                 out_string );
 
   /* This must be done after the menu item is created.  */
-  {
-    HMODULE user32 = GetModuleHandle ("user32.dll");
-    FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
+  if ((fuFlags & MF_STRING) != 0)
+    {
+      HMODULE user32 = GetModuleHandle ("user32.dll");
+      FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
 
-    if (set_menu_item_info)
-      {
-        MENUITEMINFO info;
-        bzero (&info, sizeof (info));
-        info.cbSize = sizeof (info);
-        info.fMask = MIIM_DATA;
+      if (set_menu_item_info)
+	{
+	  MENUITEMINFO info;
+	  bzero (&info, sizeof (info));
+	  info.cbSize = sizeof (info);
+	  info.fMask = MIIM_DATA;
 
-        /* Set help string for menu item.  */
-        info.dwItemData = (DWORD)wv->help;
+	  /* Set help string for menu item.  */
+	  info.dwItemData = (DWORD)wv->help;
 
-        if (wv->button_type == BUTTON_TYPE_RADIO)
-          {
-            /* CheckMenuRadioItem allows us to differentiate TOGGLE and
-               RADIO items, but is not available on NT 3.51 and earlier.  */
-            info.fMask |= MIIM_TYPE | MIIM_STATE;
-            info.fType = MFT_RADIOCHECK | MFT_STRING;
-            info.dwTypeData = out_string;
-            info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
-          }
+	  if (wv->button_type == BUTTON_TYPE_RADIO)
+	    {
+	      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
+		 RADIO items, but is not available on NT 3.51 and earlier.  */
+	      info.fMask |= MIIM_TYPE | MIIM_STATE;
+	      info.fType = MFT_RADIOCHECK | MFT_STRING;
+	      info.dwTypeData = out_string;
+	      info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
+	    }
 
-        set_menu_item_info (menu,
-                            item != NULL ? (UINT) item : (UINT) wv->call_data,
-                            FALSE, &info);
-      }
-  }
+	  set_menu_item_info (menu,
+			      item != NULL ? (UINT) item : (UINT) wv->call_data,
+			      FALSE, &info);
+	}
+    }
   return return_value;
 }
 
