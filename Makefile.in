@@ -381,7 +381,8 @@ do-install: mkdir
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
 mkdir: FRC
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
-	  ${bindir} ${datadir} ${libdir} ${sitelisp}
+	  ${bindir} ${datadir} ${libdir} \
+	  `echo ${locallisppath} | sed 's/:/ /'`
 	chmod 777 ${COPYDESTS} ${lockdir}
 
 FRC:
