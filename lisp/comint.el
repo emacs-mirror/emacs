@@ -935,7 +935,7 @@ If N is negative, search backwards for the -Nth previous match."
   (comint-previous-matching-input-from-input (- arg)))
 
 
-(defun comint-replace-by-expanded-history (&optional silent)
+(defun comint-replace-by-expanded-history (&optional silent start)
   "Expand input command history references before point.
 Expansion is dependent on the value of `comint-input-autoexpand'.
 
@@ -949,6 +949,10 @@ it cannot expand absolute input line number references.
 If the optional argument SILENT is non-nil, never complain
 even if history reference seems erroneous.
 
+If the optional argument START is non-nil, that specifies the
+start of the text to scan for history references, rather
+than the logical beginning of line.
+
 See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 
 Returns t if successful."
@@ -959,17 +963,20 @@ Returns t if successful."
 			   (looking-at comint-prompt-regexp)))
       ;; Looks like there might be history references in the command.
       (let ((previous-modified-tick (buffer-modified-tick)))
-	(message "Expanding history references...")
-	(comint-replace-by-expanded-history-before-point silent)
+	(comint-replace-by-expanded-history-before-point silent start)
 	(/= previous-modified-tick (buffer-modified-tick)))))
 
 
-(defun comint-replace-by-expanded-history-before-point (silent)
+(defun comint-replace-by-expanded-history-before-point (silent &optional start)
   "Expand directory stack reference before point.
-See `comint-replace-by-expanded-history'.  Returns t if successful."
+See `comint-replace-by-expanded-history'.  Returns t if successful.
+
+If the optional argument START is non-nil, that specifies the
+start of the text to scan for history references, rather
+than the logical beginning of line."
   (save-excursion
     (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
-	  (start (progn (comint-bol nil) (point))))
+	  (start (or start (progn (comint-bol nil) (point)))))
       (while (progn
 	       (skip-chars-forward "^!^"
 				   (save-excursion
@@ -1223,14 +1230,14 @@ Similarly for Soar, Scheme, etc."
 			  ;; Just whatever's already there
 			  intxt
 			;; Expand and leave it visible in buffer
-			(comint-replace-by-expanded-history t)
+			(comint-replace-by-expanded-history t pmark)
 			(buffer-substring pmark (point))))
 	       (history (if (not (eq comint-input-autoexpand 'history))
 			    input
 			  ;; This is messy 'cos ultimately the original
 			  ;; functions used do insertion, rather than return
 			  ;; strings.  We have to expand, then insert back.
-			  (comint-replace-by-expanded-history t)
+			  (comint-replace-by-expanded-history t pmark)
 			  (let ((copy (buffer-substring pmark (point)))
 				(start (point)))
 			    (insert input)
