@@ -667,6 +667,33 @@ and the result should be a form to be evaluated instead of the original.")
   return fn_name;
 }
 
+
+DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 2, 0,
+  "Make SYMBOL a variable alias for symbol ALIASED.\n\
+Setting the value of SYMBOL will subsequently set the value of ALIASED,\n\
+and getting the value of SYMBOL will return the value ALIASED has.\n\
+ALIASED nil means remove the alias; SYMBOL is unbound after that.")
+  (symbol, aliased)
+     Lisp_Object symbol, aliased;
+{
+  struct Lisp_Symbol *sym;
+  
+  CHECK_SYMBOL (symbol, 0);
+  CHECK_SYMBOL (aliased, 1);
+
+  if (SYMBOL_CONSTANT_P (symbol))
+    error ("Cannot make a constant an alias");
+
+  sym = XSYMBOL (symbol);
+  sym->indirect_variable = 1;
+  sym->value = aliased;
+  sym->constant = SYMBOL_CONSTANT_P (aliased);
+  LOADHIST_ATTACH (symbol);
+  
+  return aliased;
+}
+
+
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
   "Define SYMBOL as a variable.\n\
 You are not required to define a variable in order to use it,\n\
@@ -2901,25 +2928,22 @@ specbind (symbol, value)
      Lisp_Object symbol, value;
 {
   Lisp_Object ovalue;
+  Lisp_Object valcontents;
 
   CHECK_SYMBOL (symbol, 0);
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
 
-  /* The most common case is that a non-constant symbol with a trivial
-     value.  Make that as fast as we can.  */
-  if (!MISCP (XSYMBOL (symbol)->value)
-      && !EQ (symbol, Qnil)
-      && !EQ (symbol, Qt)
-      && !(XSYMBOL (symbol)->name->data[0] == ':'
-	   && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
-	   && !EQ (value, symbol)))
+  /* The most common case is that of a non-constant symbol with a
+     trivial value.  Make that as fast as we can.  */
+  valcontents = SYMBOL_VALUE (symbol);
+  if (!MISCP (valcontents) && !SYMBOL_CONSTANT_P (symbol))
     {
       specpdl_ptr->symbol = symbol;
-      specpdl_ptr->old_value = XSYMBOL (symbol)->value;
+      specpdl_ptr->old_value = valcontents;
       specpdl_ptr->func = NULL;
       ++specpdl_ptr;
-      XSYMBOL (symbol)->value = value;
+      SET_SYMBOL_VALUE (symbol, value);
     }
   else
     {
@@ -2927,9 +2951,9 @@ specbind (symbol, value)
       specpdl_ptr->func = 0;
       specpdl_ptr->old_value = ovalue;
 
-      if (BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-	  || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-	  || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+      if (BUFFER_LOCAL_VALUEP (valcontents)
+	  || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+	  || BUFFER_OBJFWDP (valcontents))
 	{
 	  Lisp_Object current_buffer, binding_buffer;
 	  
@@ -2951,7 +2975,7 @@ specbind (symbol, value)
 	     having their own value.  This is consistent with what
 	     happens with other buffer-local variables.  */
 	  if (NILP (binding_buffer)
-	      && BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+	      && BUFFER_OBJFWDP (valcontents))
 	    {
 	      ++specpdl_ptr;
 	      Fset_default (symbol, value);
@@ -3026,8 +3050,8 @@ unbind_to (count, value)
 	  /* If variable has a trivial value (no forwarding), we can
 	     just set it.  No need to check for constant symbols here,
 	     since that was already done by specbind.  */
-	  if (!MISCP (XSYMBOL (specpdl_ptr->symbol)->value))
-	    XSYMBOL (specpdl_ptr->symbol)->value = specpdl_ptr->old_value;
+	  if (!MISCP (SYMBOL_VALUE (specpdl_ptr->symbol)))
+	    SET_SYMBOL_VALUE (specpdl_ptr->symbol, specpdl_ptr->old_value);
 	  else
 	    set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
 	}
@@ -3346,6 +3370,7 @@ still determine whether to handle the particular condition.");
   defsubr (&Sdefun);
   defsubr (&Sdefmacro);
   defsubr (&Sdefvar);
+  defsubr (&Sdefvaralias);
   defsubr (&Sdefconst);
   defsubr (&Suser_variable_p);
   defsubr (&Slet);
