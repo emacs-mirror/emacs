@@ -2091,6 +2091,8 @@ getdefdir (drive, dst)
 {
   union REGS regs;
 
+  *dst++ = (drive) ? drive + 'A' - 1 : getdisk () + 'A';
+  *dst++ = ':'
   *dst++ = '/';
   regs.h.dl = drive;
 #if __DJGPP__ > 1
