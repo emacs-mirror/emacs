@@ -3915,7 +3915,7 @@ window_internal_width (w)
  ***********************************************************************/
 
 /* Scroll contents of window WINDOW up.  If WHOLE is non-zero, scroll
-   one screen-full, which is defined as the height of the window minus
+   N screen-fulls, which is defined as the height of the window minus
    next_screen_context_lines.  If WHOLE is zero, scroll up N lines
    instead.  Negative values of N mean scroll down.  NOERROR non-zero
    means don't signal an error if we try to move over BEGV or ZV,
@@ -4004,8 +4004,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
     {
       int screen_full = (window_box_height (w)
 			 - next_screen_context_lines * CANON_Y_UNIT (it.f));
-      int direction = n < 0 ? -1 : 1;
-      int dy = direction * screen_full;
+      int dy = n * screen_full;
 
       /* Note that move_it_vertically always moves the iterator to the
          start of a line.  So, if the last line doesn't have a newline,
@@ -4149,6 +4148,11 @@ window_scroll_line_based (window, n, whole, noerror)
   struct position posit;
   int original_vpos;
 
+  /* If scrolling screen-fulls, compute the number of lines to
+     scroll from the window's height.  */
+  if (whole)
+    n *= max (1, ht - next_screen_context_lines);
+
   startpos = marker_position (w->start);
 
   posit = *compute_motion (startpos, 0, 0, 0,
@@ -4280,8 +4284,7 @@ scroll_command (n, direction)
      Lisp_Object n;
      int direction;
 {
-  register int defalt;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
 
   xassert (abs (direction) == 1);
 
@@ -4296,14 +4299,10 @@ scroll_command (n, direction)
       ++windows_or_buffers_changed;
     }
 
-  defalt = (window_internal_height (XWINDOW (selected_window))
-	    - next_screen_context_lines);
-  defalt = direction * (defalt < 1 ? 1 : defalt);
-
   if (NILP (n))
-    window_scroll (selected_window, defalt, 1, 0);
+    window_scroll (selected_window, direction, 1, 0);
   else if (EQ (n, Qminus))
-    window_scroll (selected_window, - defalt, 1, 0);
+    window_scroll (selected_window, -direction, 1, 0);
   else
     {
       n = Fprefix_numeric_value (n);
@@ -4395,18 +4394,14 @@ specifies the window to scroll.\n\
 If `other-window-scroll-buffer' is non-nil, scroll the window\n\
 showing that buffer, popping the buffer up if necessary.")
   (arg)
-     register Lisp_Object arg;
+     Lisp_Object arg;
 {
-  register Lisp_Object window;
-  register int defalt;
-  register struct window *w;
-  register int count = specpdl_ptr - specpdl;
+  Lisp_Object window;
+  struct window *w;
+  int count = BINDING_STACK_SIZE ();
 
   window = Fother_window_for_scrolling ();
-
   w = XWINDOW (window);
-  defalt = window_internal_height (w) - next_screen_context_lines;
-  if (defalt < 1) defalt = 1;
 
   /* Don't screw up if window_scroll gets an error.  */
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
@@ -4416,9 +4411,9 @@ showing that buffer, popping the buffer up if necessary.")
   SET_PT (marker_position (w->pointm));
 
   if (NILP (arg))
-    window_scroll (window, defalt, 1, 1);
+    window_scroll (window, 1, 1, 1);
   else if (EQ (arg, Qminus))
-    window_scroll (window, -defalt, 1, 1);
+    window_scroll (window, -1, 1, 1);
   else
     {
       if (CONSP (arg))
