@@ -1,3 +1,10 @@
+2003-09-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* calendar/parse-time.el (parse-time-string): Add autoload cookie.
+
+	* vc-cvs.el (vc-cvs-parse-entry): Don't require parse-time,
+	because it's autoloaded now.
+
 2003-09-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/sh-script.el (sh-builtins): Add bash `shopt' builtin.
