@@ -13,6 +13,9 @@ typedef struct _window_state
   Dimension	width;
   Dimension	height;
   Dimension	label_width;
+
+  /* Width of toggle buttons or radio buttons.  */
+  Dimension     button_width;
 } window_state;
 
 
