@@ -2630,8 +2630,8 @@ extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
-extern void adjust_overlays_for_insert P_ ((int, int));
-extern void adjust_overlays_for_delete P_ ((int, int));
+extern void adjust_overlays_for_insert P_ ((EMACS_INT, EMACS_INT));
+extern void adjust_overlays_for_delete P_ ((EMACS_INT, EMACS_INT));
 extern void fix_overlays_in_range P_ ((int, int));
 extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
