@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992,94,99,2000,2001  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -87,8 +87,6 @@
 
 
 ;;; Code:
-
-(provide 'make-mode)
 
 ;; Sadly we need this for a macro.
 (eval-when-compile
@@ -1522,5 +1520,7 @@ If it isn't in one, return nil."
 	(or found
 	    (forward-line -1)))
       (if (stringp found) found))))
+
+(provide 'make-mode)
 
 ;;; make-mode.el ends here
