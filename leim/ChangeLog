@@ -1,3 +1,20 @@
+2004-02-28  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (all): Depends on ${WORLD} instead of ${TIT} and
+	${MISC-DIC}.
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
+	* makefile.nt (all): Depends on $(WORLD) instead of $(TIT) and
+	$(MISC-DIC).
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
+	* makefile.w32-in (all): Depends on $(WORLD) instead of $(TIT) and
+	$(MISC-DIC).
+	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
+	(maintainer-clean): Delete files that are not in CVS repository.
+
 2004-02-16  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
 
 	* Makefile.in (distclean maintainer-clean): Depend on clean.
