@@ -80,6 +80,14 @@ MAKE = MAKE_COMMAND
 CC = C_COMPILER
 #endif
 
+/* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
+   Linux is an exception because it uses a funny variant of GNU libc.  */
+#ifdef __GNU_LIBRARY__
+#ifndef LINUX
+#define ORDINARY_LINK
+#endif
+#endif
+
 /* Some machines don't find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD
@@ -499,7 +507,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef MULTI_FRAME
-#define FRAME_SUPPORT ${lispdir}frame.elc ${lispdir}mouse.elc ${lispdir}select.elc ${lispdir}scroll-bar.elc
+#define FRAME_SUPPORT ${lispdir}frame.elc ${lispdir}menu-bar.elc \
+  ${lispdir}mouse.elc ${lispdir}select.elc ${lispdir}scroll-bar.elc
 #else
 #define FRAME_SUPPORT
 #endif
