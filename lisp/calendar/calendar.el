@@ -1329,7 +1329,7 @@ characters on the line."
    (goto-char (point-min))
    (calendar-insert-indented
     (calendar-string-spread
-     (list "" (format "%s %d" (calendar-month-name month) year) "") ?  20)
+     (list (format "%s %d" (calendar-month-name month) year)) ?  20)
     indent t)
    (calendar-insert-indented "" indent);; Go to proper spot
    (calendar-for-loop i from 0 to 6 do
@@ -1536,16 +1536,18 @@ For a complete description, type \
   (make-local-variable 'displayed-year));;  Year in middle of window.
 
 (defun calendar-string-spread (strings char length)
-  "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH
-There must be at least 2 strings.  The effect is like mapconcat but the
-separating pieces are as balanced as possible.  Each item of STRINGS is
-evaluated before concatenation so it can actually be an expression that
-evaluates to a string.  If LENGTH is too short, the STRINGS are just
-concatenated and the result truncated."
+  "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
+The effect is like mapconcat but the separating pieces are as balanced as
+possible.  Each item of STRINGS is evaluated before concatenation so it can
+actually be an expression that evaluates to a string.  If LENGTH is too short,
+the STRINGS are just concatenated and the result truncated."
 ;; The algorithm is based on equation (3.25) on page 85 of Concrete
 ;; Mathematics by Ronald L. Graham, Donald E. Knuth, and Oren Patashnik,
 ;; Addison-Wesley, Reading, MA, 1989
-  (let* ((strings (mapcar 'eval strings))
+  (let* ((strings (mapcar 'eval
+                          (if (< (length strings) 2)
+                              (append (list "") strings (list ""))
+                            strings)))
          (n (- length (length (apply 'concat strings))))
          (m (1- (length strings)))
          (s (car strings))
@@ -2798,7 +2800,7 @@ Driven by the variable `calendar-date-display-form'."
 (defun calendar-set-mode-line (str)
   "Set mode line to STR, centered, surrounded by dashes."
   (setq mode-line-format
-        (calendar-string-spread (list "" str "") ?- (frame-width))))
+        (calendar-string-spread (list str) ?- (frame-width))))
 
 ;;;###autoload
 (defun list-yahrzeit-dates (death-date start-year end-year)
