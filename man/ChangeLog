@@ -1,3 +1,8 @@
+2004-06-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* programs.texi (Info Lookup): Fix keybinding for
+	info-lookup-symbol.
+
 2004-06-16  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, EMACSSOURCES):
