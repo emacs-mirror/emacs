@@ -1,3 +1,17 @@
+2002-03-29  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer-mark-interactive): Use
+	`ibuffer-forward-line' instead of `forward-line'.
+	(ibuffer-forward-line): Be sure to skip over special properties
+	before moving, too.
+
+	* calc/calc.el (calc-was-split): Var deleted.
+	(calc): Remove reference to it.
+	(calc): Ditto.
+	(calc-quit): Ditto.
+
+	* calc/calc-misc.el (calc-delete-windows-keep): Function deleted.
+
 2002-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (auto-save-file-name-transforms): Don't run "\\2" via
