@@ -654,9 +654,11 @@ Instead, these commands are available:
   (rmail-expunge-and-save)
   ;; Don't switch to the summary buffer even if it was recently visible.
   (if rmail-summary-buffer
-      (bury-buffer rmail-summary-buffer))
+      (progn
+	(replace-buffer-in-windows rmail-summary-buffer)
+	(bury-buffer rmail-summary-buffer)))
   (let ((obuf (current-buffer)))
-    (switch-to-buffer (other-buffer))
+    (replace-buffer-in-windows obuf)
     (bury-buffer obuf)))
 
 ;;;###autoload
