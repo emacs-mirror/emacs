@@ -1,3 +1,8 @@
+2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* misc.texi (Shell Mode): Document `comint-write-output', name
+	change to `comint-delete-output'.
+
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* display.texi (Display Vars): Fix description of the role of

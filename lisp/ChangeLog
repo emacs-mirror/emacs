@@ -1,8 +1,7 @@
 2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
 
-	* comint.el (comint-write-output, comint-append-output-to-file):
-	New functions.
-	(comint-mode-map): Add them to the menu.
+	* comint.el (comint-write-output): New function.
+	(comint-mode-map): Add it to the menu.
 	Bind `C-c C-s' to comint-write-output.
 
 2000-10-18  Gerd Moellmann  <gerd@gnu.org>
