@@ -1,3 +1,16 @@
+2001-01-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (reset-language-environment): Make
+	the priority of coding-category-utf-8 higher than
+	coding-category-binary.
+
+	* international/mule-conf.el (coding-category-utf-8): Initialize
+	to mule-utf-8.
+
+	* loadup.el: Preload international/utf-8. 
+
+	* international/utf-8.el: New file.
+
 2001-01-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-mode): Disable preliminary support for `compile'.
