@@ -1,3 +1,10 @@
+2003-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_window, try_window_reusing_current_matrix):
+	When at end of window, set window_end_pos to Z-ZV.
+
+	* buffer.c (Foverlay_recenter): Doc fix.
+
 2003-04-14  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (mac_check_for_quit_char): Don't check more often than

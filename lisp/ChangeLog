@@ -1,3 +1,8 @@
+2003-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* man.el (Man-follow-manual-reference): Don't require match
+	when calling completing-read.
+
 2003-04-15  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el: Whitespace changes, some re-ordering of

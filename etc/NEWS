@@ -1184,7 +1184,12 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
-** `sit-for' understands XEmacs args (SECONDS &optional NODISP).
+** `minor-mode-list' now holds a list of minor mode commands.
+
+** The new command `modify-all-frames-parameters' modifies parameters
+for all (existing and future) frames.
+
+** `sit-for' can now be called with args (SECONDS &optional NODISP).
 
 ** New standard font-lock face `font-lock-preprocessor-face'.
 
@@ -1864,15 +1869,10 @@ over minor mode keymaps.
 ** A hex escape in a string forces the string to be multibyte.
 An octal escape makes it unibyte.
 
-** The code that forced point to move out of images and composition
-has been generalized to apply to overlays as well and to invisible text.
-This makes it generally unnecessary to mark invisible text as intangible,
-which is particularly good due to the fact that the intangible property
-can often have unexpected side-effects because the property applies
-to everything (including `goto-char', ...) whereas this new code is
-only run after post-command-hook and thus does not care about intermediate
-states.
-	
+** At the end of a command, point moves out from within invisible
+text, in the same way it moves out from within text covered by an
+image or composition property.
+
 ** Only one of the beginning or end of an invisible, intangible region is
 considered an acceptable value for point; which one is determined by
 examining how the invisible/intangible properties are inherited when new

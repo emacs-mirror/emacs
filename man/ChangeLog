@@ -1,3 +1,7 @@
+2003-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexps): Ref to Lisp manual for more regexp features.
+
 2003-04-08  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* tramp.texi: Version 2.0.33 released.

@@ -1,3 +1,7 @@
+2003-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Misc): Document fn minibuffer-message.
+
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Kinds of Files): Correct return value of file-symlink-p.
