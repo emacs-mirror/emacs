@@ -1,3 +1,11 @@
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-mime-charset-pattern):
+	Don't include semicolon in the charset value.
+
+	* replace.el (occur-next-error): Call set-window-point.
+	(occur-engine): Handle negative NLINES.
+
 2004-07-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frame.el (modify-all-frames-parameters): Minor doc fix.

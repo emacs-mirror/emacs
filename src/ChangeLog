@@ -7,6 +7,15 @@
 
 2004-07-24  Richard M. Stallman  <rms@gnu.org>
 
+	* keyboard.h (not_single_kboard_state): Declared.
+
+	* fileio.c (Fwrite_region): Doc fix.
+
+	* window.c (Fwindow_at): Take account of FRAME_INTERNAL_BORDER_WIDTH.
+
+	* abbrev.c (Fexpand_abbrev): Run Qpre_abbrev_expand_hook
+	only when a real abbrev is present.
+
 	* xfns.c (x_icon_verify): New function.
 	(Fx_create_frame): Use it.
 
