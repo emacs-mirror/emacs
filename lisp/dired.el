@@ -654,6 +654,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	      file-list (cdr dired-directory))
       (setq dir dired-directory
 	    file-list nil))
+    (setq dir (expand-file-name dir))
     (if (and (equal "" (file-name-nondirectory dir))
 	     (not file-list))
 	;; If we are reading a whole single directory...
