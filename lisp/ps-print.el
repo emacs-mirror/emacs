@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2001/05/30 17:44:36 vinicius>
-;; Version:	6.5.2
+;; Time-stamp:	<2001/06/19 11:01:09 vinicius>
+;; Version:	6.5.3
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.2"
-  "ps-print.el, v 6.5.2 <2001/05/30 vinicius>
+(defconst ps-print-version "6.5.3"
+  "ps-print.el, v 6.5.3 <2001/06/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1211,6 +1211,12 @@ Please send all bug fixes and enhancements to
 ;; ---------------------
 ;;
 ;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;;    20010619
+;;	 `ps-time-stamp-locale-default'
+;;
+;;    20010530
+;;	 Handle before-string and after-string overlay properties.
 ;;
 ;;    20010407
 ;;	 `ps-line-number-color', `ps-print-footer', `ps-footer-offset',
@@ -2956,12 +2962,24 @@ variable, the string value has PostScript string delimiters added to it."
 
 (defcustom ps-right-header
   (list "/pagenumberstring load"
-	'ps-time-stamp-mon-dd-yyyy 'ps-time-stamp-hh:mm:ss)
+	'ps-time-stamp-locale-default 'ps-time-stamp-hh:mm:ss)
   "*The items to display (each on a line) on the right part of the page header.
 This applies to generating PostScript.
 
 See the variable `ps-left-header' for a description of the format of this
-variable."
+variable.
+
+There are the following basic functions implemented:
+
+   `ps-time-stamp-locale-default'	Return the locale's \"preferred\" date
+					as, for example, \"06/18/01\".
+
+   `ps-time-stamp-hh:mm:ss'		Return time as \"17:28:31\".
+
+   `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
+
+You can also create your own time stamp function by using `format-time-string'
+(which see)."
   :type '(repeat (choice :menu-tag "Right Header"
 			 :tag "Right Header"
 			 string symbol))
@@ -2991,12 +3009,24 @@ variable, the string value has PostScript string delimiters added to it."
 
 (defcustom ps-right-footer
   (list "/pagenumberstring load"
-	'ps-time-stamp-mon-dd-yyyy 'ps-time-stamp-hh:mm:ss)
+	'ps-time-stamp-locale-default 'ps-time-stamp-hh:mm:ss)
   "*The items to display (each on a line) on the right part of the page footer.
 This applies to generating PostScript.
 
 See the variable `ps-left-footer' for a description of the format of this
-variable."
+variable.
+
+There are the following basic functions implemented:
+
+   `ps-time-stamp-locale-default'	Return the locale's \"preferred\" date
+					as, for example, \"06/18/01\".
+
+   `ps-time-stamp-hh:mm:ss'		Return time as \"17:28:31\".
+
+   `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
+
+You can also create your own time stamp function by using `format-time-string'
+(which see)."
   :version "21.1"
   :type '(repeat (choice :menu-tag "Right Footer"
 			 :tag "Right Footer"
@@ -3486,11 +3516,18 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (symbol-value alist-sym))
 
 
+(defun ps-time-stamp-locale-default ()
+  "Return the locale's \"preferred\" date as, for example, \"06/18/01\"."
+  (format-time-string "%x"))
+
+
 (defun ps-time-stamp-mon-dd-yyyy ()
+  "Return date as \"Jun 18 2001\"."
   (format-time-string "%b %d %Y"))
 
 
 (defun ps-time-stamp-hh:mm:ss ()
+  "Return time as \"17:28:31\"."
   (format-time-string "%T"))
 
 
