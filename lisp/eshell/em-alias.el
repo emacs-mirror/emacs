@@ -147,10 +147,8 @@ command, which will automatically write them to the file named by
 (defun eshell-alias-initialize ()
   "Initialize the alias handling code."
   (make-local-variable 'eshell-failed-commands-alist)
-  (make-local-hook 'eshell-alternate-command-hook)
   (add-hook 'eshell-alternate-command-hook 'eshell-fix-bad-commands t t)
   (eshell-read-aliases-list)
-  (make-local-hook 'eshell-named-command-hook)
   (add-hook 'eshell-named-command-hook 'eshell-maybe-replace-by-alias t t)
   (make-local-variable 'eshell-complex-commands)
   (add-to-list 'eshell-complex-commands 'eshell-command-aliased-p))
