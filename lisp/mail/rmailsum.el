@@ -109,6 +109,22 @@ SUBJECT is a string of regexps separated by commas."
     (goto-char (point-min))
     (if whole-message (re-search-forward subject nil t)
       (string-match subject (or (mail-fetch-field "Subject") "")) )))
+
+(defun rmail-summary-by-senders (senders)
+  "Display a summary of all messages with the given SENDERS.
+SENDERS is a string of names separated by commas."
+  (interactive "sSenders to summarize by: ")
+  (rmail-new-summary
+   (concat "senders " senders)
+   'rmail-message-senders-p
+   (mail-comma-list-regexp senders)))
+
+(defun rmail-message-senders-p (msg senders)
+  (save-restriction
+    (goto-char (rmail-msgbeg msg))
+    (search-forward "\n*** EOOH ***\n")
+    (narrow-to-region (point) (progn (search-forward "\n\n") (point)))
+    (string-match senders (or (mail-fetch-field "From") ""))))
 
 ;; General making of a summary buffer.
 
