@@ -5484,7 +5484,7 @@ canonicalize_filename (fn)
 {
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (islower (fn[0]))
+  if (fn[0] && fn[1] == ':' && islower (fn[0]))
     fn[0] = toupper (fn[0]);
   /* Convert backslashes to slashes.  */
   for (; *fn != '\0'; fn++)
