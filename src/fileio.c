@@ -2076,7 +2076,10 @@ This happens for interactive use with M-x.")
 	{
 	  unlink (XSTRING (linkname)->data);
 	  if (0 <= symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
-	    return Qnil;
+	    {
+	      UNGCPRO;
+	      return Qnil;
+	    }
 	}
 
 #ifdef NO_ARG_ARRAY
@@ -2380,6 +2383,8 @@ searchable directory.")
      Lisp_Object filename;
 {
   Lisp_Object handler;
+  int tem;
+  struct gcpro gcpro1;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2387,11 +2392,13 @@ searchable directory.")
   if (!NILP (handler))
     return call2 (handler, Qfile_accessible_directory_p, filename);
 
-  if (NILP (Ffile_directory_p (filename))
-      || NILP (Ffile_executable_p (filename)))
-    return Qnil;
-  else
-    return Qt;
+  /* Need to gcpro in case the first function call has a handler that
+     causes filename to be relocated.  */
+  GCPRO1 (filename);
+  tem = (NILP (Ffile_directory_p (filename))
+	 || NILP (Ffile_executable_p (filename)));
+  UNGCPRO;
+  return tem ? Qnil : Qt;
 }
 
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
@@ -2591,7 +2598,7 @@ and (2) it puts less data in the undo list.")
   register int inserted = 0;
   register int how_much;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
@@ -2599,7 +2606,7 @@ and (2) it puts less data in the undo list.")
   val = Qnil;
   p = Qnil;
 
-  GCPRO2 (filename, p);
+  GCPRO3 (filename, val, p);
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only();
 
@@ -3006,11 +3013,13 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
+  GCPRO2 (filename, visit);
   filename = Fexpand_file_name (filename, Qnil);
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
   else
     visit_file = filename;
+  UNGCPRO;
 
   visiting = (EQ (visit, Qt) || STRINGP (visit));
   quietly = !NILP (visit);
@@ -3263,7 +3272,9 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* Discard the unwind protect for close_file_unwind.  */
   specpdl_ptr = specpdl + count1;
   /* Restore the original current buffer.  */
+  GCPRO1 (visit_file);
   unbind_to (count);
+  UNGCPRO;
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -3336,7 +3347,6 @@ build_annotations (start, end)
 	 been dealt with by this function.  */
       if (current_buffer != given_buffer)
 	{
-	  Lisp_Object tem;
 	  start = BEGV;
 	  end = ZV;
 	  annotations = Qnil;
@@ -3527,14 +3537,12 @@ An argument specifies the modification time value to use\n\
 Lisp_Object
 auto_save_error ()
 {
-  unsigned char *name = XSTRING (current_buffer->name)->data;
-
   ring_bell ();
-  message ("Autosaving...error for %s", name);
+  message ("Autosaving...error for %s", XSTRING (current_buffer->name)->data);
   Fsleep_for (make_number (1), Qnil);
-  message ("Autosaving...error!for %s", name);
+  message ("Autosaving...error!for %s", XSTRING (current_buffer->name)->data);
   Fsleep_for (make_number (1), Qnil);
-  message ("Autosaving...error for %s", name);
+  message ("Autosaving...error for %s", XSTRING (current_buffer->name)->data);
   Fsleep_for (make_number (1), Qnil);
   return Qnil;
 }
@@ -3588,7 +3596,6 @@ Non-nil second argument means save only current buffer.")
   int do_handled_files;
   Lisp_Object oquit;
   int listdesc;
-  Lisp_Object lispstream;
   int count = specpdl_ptr - specpdl;
   int *ptr;
 
