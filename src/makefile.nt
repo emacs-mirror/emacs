@@ -1,4 +1,4 @@
-#  Makefile for GNU Emacs on Windows NT
+#  Makefile for GNU Emacs on the Microsoft W32 API.
 #  Copyright (c) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 #   Tim Fleehart (apollo@online.com)            17-Apr-92
 #   Geoff Voelker (voelker@cs.washington.edu)   11-20-93
@@ -1042,7 +1042,7 @@ $(BLD)\w32faces.obj: \
 	$(SRC)\w32faces.c \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\buffer.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\frame.h \
@@ -1057,7 +1057,7 @@ $(BLD)\w32fns.obj: \
 	$(SRC)\w32fns.c \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\frame.h \
   	$(SRC)\window.h \
 	$(SRC)\buffer.h \
@@ -1089,7 +1089,7 @@ $(BLD)\w32term.obj: \
 	$(SRC)\lisp.h \
 	$(SRC)\blockinput.h \
 	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\systty.h \
 	$(SRC)\systime.h \
 	$(SRC)\frame.h \
@@ -1111,7 +1111,7 @@ $(BLD)\w32select.obj: \
 	$(SRC)\w32select.c \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\dispextern.h \
 	$(SRC)\frame.h \
 	$(SRC)\blockinput.h
@@ -1123,5 +1123,5 @@ $(BLD)\w32reg.obj: \
 	$(SRC)\w32reg.c \
 	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
+	$(SRC)\w32gui.h \
 	$(SRC)\blockinput.h

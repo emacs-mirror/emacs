@@ -20,7 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Added by Kevin Gallo */
 
-#include <win32.h>
+#include <w32gui.h>
 
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
