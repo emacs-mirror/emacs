@@ -1,5 +1,8 @@
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 
+	* mail/rmail.el (rmail-convert-to-babyl-format): Make the code
+	cleaner (suggested by Richard Stallman).
+
 	* progmodes/gud.el (gud-tool-bar-map): Modify names of icon files
 	for gud-next, gud-nexti, gud-step and gud-stepi to prevent
 	file-name clashes on 8+3 DOS filesystems.
