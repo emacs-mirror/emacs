@@ -207,8 +207,10 @@ New clients have no properties."
     (setq server-clients (cons (cons proc nil)
 			       server-clients))))
 
-(defun server-delete-client (client)
-  "Delete CLIENT, including its buffers, displays and frames."
+(defun server-delete-client (client &optional noframe)
+  "Delete CLIENT, including its buffers, displays and frames.
+If NOFRAME is non-nil, let the frames live.  (To be used from
+`delete-frame-functions'."
   ;; Force a new lookup of client (prevents infinite recursion).
   (setq client (server-client
 		(if (listp client) (car client) client)))
@@ -235,10 +237,11 @@ New clients have no properties."
 	  (delete-tty tty)))
 
       ;; Delete the client's frames.
-      (dolist (frame (frame-list))
-	(if (and (frame-live-p frame)
-		 (equal (car client) (frame-parameter frame 'client)))
-	    (delete-frame frame)))
+      (unless noframe
+	(dolist (frame (frame-list))
+	  (if (and (frame-live-p frame)
+		   (equal (car client) (frame-parameter frame 'client)))
+	      (delete-frame frame))))
 
       ;; Delete the client's process.
       (if (eq (process-status (car client)) 'open)
@@ -285,7 +288,7 @@ New clients have no properties."
       ;; (Closing a terminal frame must not trigger a delete;
       ;; we must wait for delete-tty-after-functions.)
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
-      (server-delete-client proc))))
+      (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
 (defun server-handle-suspend-tty (tty)
   "Notify the emacsclient process to suspend itself when its tty device is suspended."
