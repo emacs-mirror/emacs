@@ -21,6 +21,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+
+;;; Commentary:
+
+;;; Code:
+
 (require 'url)
 (require 'url-dav)
 
@@ -175,4 +180,5 @@ It should return a status of either 0 (no differences found), or
 
 (provide 'vc-dav)
 
-;;; arch-tag: 0a0fb9fe-8190-4c0a-a179-5c291d3a467e
+;; arch-tag: 0a0fb9fe-8190-4c0a-a179-5c291d3a467e
+;;; vc-dav.el ends here
