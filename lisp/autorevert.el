@@ -237,7 +237,8 @@ Use `global-auto-revert-mode' to automatically revert all buffers."
   (auto-revert-set-timer)
   (when auto-revert-mode
     (auto-revert-buffers)
-    (run-hooks 'auto-revert-mode-hook)))
+    (run-hooks 'auto-revert-mode-hook))
+  auto-revert-mode)
 
 
 ;;;###autoload
