@@ -1,3 +1,8 @@
+1999-11-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* fileio.c (Finsert_file_contents): Set buffer-file-coding-system
+	of the current buffer via Fset.
+
 1999-11-24  Dave Love  <fx@gnu.org>
 
 	* xfns.c: Don't duplicate Qdisplay definition done elsewhere.
