@@ -162,8 +162,8 @@ char *relative_filename (), *absolute_filename (), *absolute_dirname ();
 char *xmalloc (), *xrealloc ();
 int total_size_of_entries ();
 int string_numeric_p ();
-int substr ();
-int prestr ();
+logical substr ();
+logical prestr ();
 long readline ();
 
 void Asm_labels ();
@@ -1392,7 +1392,7 @@ consider_token (c, tokp, c_ext, cblev, is_func)
      register TOKEN *tokp;	/* IN: token pointer */
      int c_ext;			/* IN: C extensions mask */
      int cblev;			/* IN: curly brace level */
-     logical *is_func;		/* OUT */
+     logical *is_func;		/* OUT: function found */
 {
   enum sym_type toktype = C_symtype(tokp->p, tokp->len, c_ext);
 
@@ -1518,28 +1518,28 @@ consider_token (c, tokp, c_ext, cblev, is_func)
       return (FALSE);
     }
 
-  /* Detect GNUmacs's function-defining macros. */
+  /* Detect GNU macros. */
   if (definedef == dnone)
-    {
-      if (strneq (tokp->p, "DEF", 3)
-	  || strneq (tokp->p, "ENTRY", 5)
-	  || strneq (tokp->p, "SYSCALL", 7)
-	  || strneq (tokp->p, "PSEUDO", 6))
-	{
-	  next_token_is_func = TRUE;
-	  return (FALSE);
-	}
-      if (strneq (tokp->p, "EXFUN", 5))
-	{
-	  next_token_is_func = FALSE;
-	  return (FALSE);
-	}
-    }
+    if (strneq (tokp->p, "DEFUN", 5) /* Used in emacs */
+#if FALSE	
+	   These are defined inside C functions, so currently they
+	   are not met anyway.
+	|| strneq (tokp->p, "EXFUN", 5) /* Used in glibc */
+	|| strneq (tokp->p, "DEFVAR_", 7) /* Used in emacs */
+#endif
+	|| strneq (tokp->p, "SYSCALL", 7) /* Used in glibc (mach) */
+	|| strneq (tokp->p, "ENTRY", 5) /* Used in glibc */
+	|| strneq (tokp->p, "PSEUDO", 6)) /* Used in glibc */
+
+      {
+	next_token_is_func = TRUE;
+	return (FALSE);
+      }
   if (next_token_is_func)
     {
       next_token_is_func = FALSE;
-      funcdef = fnone;
-      *is_func = TRUE;		/* to force search string in ctags */
+      funcdef = fignore;
+      *is_func = TRUE;
       return (TRUE);
     }
 
@@ -1826,7 +1826,8 @@ C_entries (c_ext, inf)
 
 			  if (structdef == stagseen
 			      || typdef == tend
-			      || (definedef == dignorerest && is_func))
+			      || (is_func
+				  && definedef == dignorerest)) /* macro */
 			    tok.named = TRUE;
 
 			  if (definedef == dnone
@@ -1874,8 +1875,8 @@ C_entries (c_ext, inf)
 		  /* Take a quick peek ahead for a define directive,
 		     so we can avoid saving the token when not absolutely
 		     necessary. [This is a speed hack.] */
-		  if (c == 'd' && strneq(lp, "efine", 5)
-		      && iswhite(*(lp + 5)))
+		  if (c == 'd' && strneq (lp, "efine", 5)
+		      && iswhite (*(lp + 5)))
 		    {
 		      SAVE_TOKEN;
 		      definedef = ddefineseen;
@@ -2036,9 +2037,9 @@ C_entries (c_ext, inf)
 	      funcdef = fnone;
 	      break;
 	    case fnone:
-	      /* Neutralize `extern "C" {' grot.
+	      /* Neutralize `extern "C" {' grot and look inside structs. */
 	      if (cblev == 0 && structdef == snone && typdef == tnone)
-		cblev--; */;
+		cblev = -1;
 	    }
 	  cblev++;
 	  break;
@@ -2989,7 +2990,7 @@ skip_comment (plb, inf, plineno, plinecharno)
 
 /* Return TRUE if 'sub' exists somewhere in 's'. */
 
-int
+logical
 substr (sub, s)
      char *sub;
      char *s;
@@ -3004,7 +3005,7 @@ substr (sub, s)
 
 /* Return TRUE if 'pre' is prefix of string 's'. */
 
-int
+logical
 prestr (pre, s)
      char *pre;
      char *s;
