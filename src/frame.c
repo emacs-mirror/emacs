@@ -2074,8 +2074,9 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 }
 
 DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 1, 0,
-  "Return number of lines available for display on FRAME.\n\
-If FRAME is omitted, describe the currently selected frame.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
     Lisp_Object frame;
 {
@@ -2083,8 +2084,9 @@ If FRAME is omitted, describe the currently selected frame.")
 }
 
 DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 1, 0,
-  "Return number of columns available for display on FRAME.\n\
-If FRAME is omitted, describe the currently selected frame.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
     Lisp_Object frame;
 {
@@ -2139,9 +2141,9 @@ DEFUN ("frame-pixel-width", Fframe_pixel_width,
 /* These are for backward compatibility with Emacs 18.  */
 
 DEFUN ("set-screen-height", Fset_screen_height, Sset_screen_height, 1, 2, 0,
-  "Tell redisplay that the screen has LINES lines.\n\
-Optional second arg non-nil means that redisplay should use LINES lines\n\
-but that the idea of the actual height of the screen should not be changed.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (lines, pretend)
      Lisp_Object lines, pretend;
 {
@@ -2152,9 +2154,9 @@ but that the idea of the actual height of the screen should not be changed.")
 }
 
 DEFUN ("set-screen-width", Fset_screen_width, Sset_screen_width, 1, 2, 0,
-  "Tell redisplay that the screen has COLS columns.\n\
-Optional second arg non-nil means that redisplay should use COLS columns\n\
-but that the idea of the actual width of the screen should not be changed.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (cols, pretend)
      Lisp_Object cols, pretend;
 {
@@ -2304,7 +2306,9 @@ syms_of_frame ()
   staticpro (&Qwidth);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
-    "The initial frame-object, which represents Emacs's stdout.");
+  /* Don't confuse make-docfile by having two doc strings for this variable.
+     make-docfile does not pay attention to #if, for good reason!  */
+	       0);
   XSETFASTINT (Vterminal_frame, 0);
 
   defsubr (&Sselected_frame);
