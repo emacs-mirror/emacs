@@ -1,3 +1,11 @@
+2002-10-31  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-follow-reference, Info-next-reference)
+	(Info-prev-reference, Info-try-follow-nearest-node): Bind
+	inhibit-point-motion-hooks to t while parsing reference.
+	(Info-fontify-node): When font-lock-mode is enabled, display
+	*note and * menu references in a more user friendly format.
+
 2002-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (fill-move-to-break-point): Skip white space
