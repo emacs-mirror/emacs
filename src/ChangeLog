@@ -1,5 +1,9 @@
 1999-11-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* term.c (term_init): If "op" isn't available, don't support color
+	because we can't switch back to the default foreground and
+	background.
+
 	* doc.c (Fdocumentation_property): Remove GCPRO because
 	Fsubstitute_command_keys gcpro's the string.
 
