@@ -1438,6 +1438,14 @@ typedef unsigned char UCHAR;
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 #endif
 
+/* Non-zero if OBJ is a Lisp function.  */
+
+#define FUNCTIONP(OBJ)					\
+     ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
+      || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
+      || COMPILEDP (OBJ)				\
+      || SUBRP (OBJ))
+     
 /* defsubr (Sname);
  is how we define the symbol for function `name' at start-up time.  */
 extern void defsubr P_ ((struct Lisp_Subr *));
@@ -2310,6 +2318,7 @@ extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int));
 extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern Lisp_Object internal_condition_case P_ ((Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern Lisp_Object internal_condition_case_1 P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
+extern Lisp_Object internal_condition_case_2 P_ ((Lisp_Object (*) (int, Lisp_Object *), int, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern void specbind P_ ((Lisp_Object, Lisp_Object));
 extern void record_unwind_protect P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern Lisp_Object unbind_to P_ ((int, Lisp_Object));
@@ -2318,6 +2327,7 @@ extern void do_autoload P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object un_autoload P_ ((Lisp_Object));
 EXFUN (Ffetch_bytecode, 1);
 extern void init_eval_once P_ ((void));
+extern Lisp_Object call_function P_ ((int, Lisp_Object *));
 extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
