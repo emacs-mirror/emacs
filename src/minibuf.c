@@ -220,7 +220,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
   Fselect_window (minibuf_window);
-  XFASTINT (XWINDOW (minibuf_window)->hscroll) = 0;
+  XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
 
   Ferase_buffer ();
   minibuf_level++;
@@ -318,7 +318,7 @@ get_minibuffer (depth)
   char name[24];
   extern Lisp_Object nconc2 ();
 
-  XFASTINT (num) = depth;
+  XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);
   if (NILP (tail))
     {
@@ -381,7 +381,7 @@ read_minibuf_unwind (data)
   minibuf_level--;
   /* Make sure minibuffer window is erased, not ignored */
   windows_or_buffers_changed++;
-  XFASTINT (XWINDOW (minibuf_window)->last_modified) = 0;
+  XSETFASTINT (XWINDOW (minibuf_window)->last_modified, 0);
 
   /* Restore prompt, etc from outer minibuffer */
   minibuf_prompt = Fcar (minibuf_save_list);
@@ -468,7 +468,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (histvar))
     histvar = Qminibuffer_history;
   if (NILP (histpos))
-    XFASTINT (histpos) = 0;
+    XSETFASTINT (histpos, 0);
 
   return read_minibuf (keymap, initial_contents, prompt,
 		       make_number (pos), !NILP (read), histvar, histpos);
@@ -656,7 +656,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	      if (XSYMBOL (bucket)->next)
 		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
 	      else
-		XFASTINT (bucket) = 0;
+		XSETFASTINT (bucket, 0);
 	    }
 	  else if (++index >= obsize)
 	    break;
@@ -677,7 +677,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	  /* Yes. */
 	  Lisp_Object regexps;
 	  Lisp_Object zero;
-	  XFASTINT (zero) = 0;
+	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
@@ -764,8 +764,8 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 		bestmatchsize))
     return Qt;
 
-  XFASTINT (zero) = 0;		/* Else extract the part in which */
-  XFASTINT (end) = bestmatchsize;	     /* all completions agree */
+  XSETFASTINT (zero, 0);		/* Else extract the part in which */
+  XSETFASTINT (end, bestmatchsize);	/* all completions agree */
   return Fsubstring (bestmatch, zero, end);
 }
 
@@ -862,7 +862,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	      if (XSYMBOL (bucket)->next)
 		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
 	      else
-		XFASTINT (bucket) = 0;
+		XSETFASTINT (bucket, 0);
 	    }
 	  else if (++index >= obsize)
 	    break;
@@ -887,7 +887,7 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 	  /* Yes. */
 	  Lisp_Object regexps;
 	  Lisp_Object zero;
-	  XFASTINT (zero) = 0;
+	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  for (regexps = Vcompletion_regexp_list; CONSP (regexps);
@@ -1004,7 +1004,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   if (NILP (histvar))
     histvar = Qminibuffer_history;
   if (NILP (histpos))
-    XFASTINT (histpos) = 0;
+    XSETFASTINT (histpos, 0);
 
   val = read_minibuf (NILP (require_match)
 		      ? Vminibuffer_local_completion_map
@@ -1568,7 +1568,7 @@ DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
   ()
 {
   Lisp_Object width;
-  XFASTINT (width) = minibuf_prompt_width;
+  XSETFASTINT (width, minibuf_prompt_width);
   return width;
 }
 
@@ -1671,7 +1671,7 @@ t means to return a list of all possible completions of STRING.\n\
 Each minibuffer output is added with\n\
   (set minibuffer-history-variable\n\
        (cons STRING (symbol-value minibuffer-history-variable)))");
-  XFASTINT (Vminibuffer_history_variable) = 0;
+  XSETFASTINT (Vminibuffer_history_variable, 0);
 
   DEFVAR_LISP ("minibuffer-history-position", &Vminibuffer_history_position,
     "Current position of redoing in the history list.");
