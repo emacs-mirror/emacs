@@ -116,6 +116,13 @@ this variable."
   :type 'boolean
   :group 'change-log)
 
+(defcustom add-log-buffer-file-name-function nil
+  "*If non-nil, function to call to identify the full filename of a buffer.
+This function is called with no argument.  If this is nil, the default is to
+use `buffer-file-name'."
+  :type 'function
+  :group 'change-log)
+
 (defcustom add-log-file-name-function nil
   "*If non-nil, function to call to identify the filename for a ChangeLog entry.
 This function is called with one argument, the value of variable
@@ -303,8 +310,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 	      (/ size 10)
 	    size))
 	 version)
-    (or (and buffer-file-name
-	     (vc-workfile-version buffer-file-name))
+    (or (and buffer-file-name (vc-workfile-version buffer-file-name))
 	(save-restriction
 	  (widen)
 	  (let ((regexps change-log-version-number-regexp-list))
@@ -317,7 +323,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 
 
 ;;;###autoload
-(defun find-change-log (&optional file-name)
+(defun find-change-log (&optional file-name buffer-file)
   "Find a change log file for \\[add-change-log-entry] and return the name.
 
 Optional arg FILE-NAME specifies the file to use.
@@ -330,7 +336,8 @@ simply find it in the current directory.  Otherwise, search in the current
 directory and its successive parents for a file so named.
 
 Once a file is found, `change-log-default-name' is set locally in the
-current buffer to the complete file name."
+current buffer to the complete file name.
+Optional arg BUFFER-FILE overrides `buffer-file-name'."
   ;; If user specified a file name or if this buffer knows which one to use,
   ;; just use that.
   (or file-name
@@ -340,9 +347,10 @@ current buffer to the complete file name."
       (progn
 	;; Chase links in the source file
 	;; and use the change log in the dir where it points.
-	(setq file-name (or (and buffer-file-name
+	(setq file-name (or (and (or buffer-file buffer-file-name)
 				 (file-name-directory
-				  (file-chase-links buffer-file-name)))
+				  (file-chase-links
+				   (or buffer-file buffer-file-name))))
 			    default-directory))
 	(if (file-directory-p file-name)
 	    (setq file-name (expand-file-name (change-log-name) file-name)))
@@ -376,18 +384,20 @@ current buffer to the complete file name."
 (defun add-log-file-name (buffer-file log-file)
   ;; Never want to add a change log entry for the ChangeLog file itself.
   (unless (or (null buffer-file) (string= buffer-file log-file))
-    (setq buffer-file
-	  (if (string-match
-	       (concat "^" (regexp-quote (file-name-directory log-file)))
-	       buffer-file)
-	      (substring buffer-file (match-end 0))
-	    (file-name-nondirectory buffer-file)))
-    ;; If we have a backup file, it's presumably because we're
-    ;; comparing old and new versions (e.g. for deleted
-    ;; functions) and we'll want to use the original name.
-    (if (backup-file-name-p buffer-file)
-	(file-name-sans-versions buffer-file)
-      buffer-file)))
+    (if add-log-file-name-function
+	(funcall add-log-file-name-function buffer-file)
+      (setq buffer-file
+	    (if (string-match
+		 (concat "^" (regexp-quote (file-name-directory log-file)))
+		 buffer-file)
+		(substring buffer-file (match-end 0))
+	      (file-name-nondirectory buffer-file)))
+      ;; If we have a backup file, it's presumably because we're
+      ;; comparing old and new versions (e.g. for deleted
+      ;; functions) and we'll want to use the original name.
+      (if (backup-file-name-p buffer-file)
+	  (file-name-sans-versions buffer-file)
+	buffer-file))))
 
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
@@ -419,17 +429,18 @@ non-nil, otherwise in local time."
 	(setq add-log-mailing-address
 	      (read-input "Mailing address: " add-log-mailing-address))))
 
-  (setq file-name (expand-file-name (or file-name (find-change-log file-name))))
-  
-  (let ((defun (add-log-current-defun))
-	(version (and change-log-version-info-enabled
-		      (change-log-version-number-search)))
-	;; Set ENTRY to the file name to use in the new entry.
-	(entry (if buffer-file-name
-		   (add-log-file-name buffer-file-name file-name)
-		 (if add-log-file-name-function
-		     (funcall add-log-file-name-function file-name))))
-	bound)
+  (let* ((defun (add-log-current-defun))
+	 (version (and change-log-version-info-enabled
+		       (change-log-version-number-search)))
+	 (buffer-file
+	  (expand-file-name (if add-log-buffer-file-name-function
+				(funcall add-log-buffer-file-name-function)
+			      buffer-file-name)))
+	 (file-name (expand-file-name
+		     (or file-name (find-change-log file-name buffer-file))))
+	 ;; Set ENTRY to the file name to use in the new entry.
+	 (entry (add-log-file-name buffer-file file-name))
+	 bound)
 
     (if (or (and other-window (not (equal file-name buffer-file-name)))
 	    (window-dedicated-p (selected-window)))
