@@ -136,7 +136,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "--"))
 
 (define-key menu-bar-file-menu [recover-session]
-  '(menu-item "Recover Crashed Session..." recover-session
+  '(menu-item "Recover Crashed Session" recover-session
 	      :enable (and auto-save-list-file-prefix
 			   (file-directory-p
                             (file-name-directory auto-save-list-file-prefix))
@@ -298,7 +298,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Continue Tags Search" tags-loop-continue
 	      :help "Continue last tags search operation"))
 (define-key menu-bar-search-menu [tags-srch]
-  '(menu-item "Search tagged files" tags-search
+  '(menu-item "Search tagged files..." tags-search
 	      :help "Search for a regexp in all tagged files"))
 (define-key menu-bar-search-menu [separator-tag-search]
   '(menu-item "--"))
@@ -342,7 +342,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Continue Replace" tags-loop-continue
 	      :help "Continue last tags replace operation"))
 (define-key menu-bar-replace-menu [tags-repl]
-  '(menu-item "Replace in tagged files" tags-query-replace
+  '(menu-item "Replace in tagged files..." tags-query-replace
 	      :help "Interactively replace a regexp in all tagged files"))
 (define-key menu-bar-replace-menu [separator-replace-tags]
   '(menu-item "--"))
@@ -377,14 +377,14 @@ A large number or nil slows down menu responsiveness."
 (defvar menu-bar-goto-menu (make-sparse-keymap "Go To"))
 
 (define-key menu-bar-goto-menu [set-tags-name]
-  '(menu-item "Set Tags File Name" visit-tags-table
+  '(menu-item "Set Tags File Name..." visit-tags-table
 	      :help "Tell Tags commands which tag table file to use"))
 
 (define-key menu-bar-goto-menu [separator-tag-file]
   '(menu-item "--"))
 
 (define-key menu-bar-goto-menu [apropos-tags]
-  '(menu-item "Tags Apropos" tags-apropos
+  '(menu-item "Tags Apropos..." tags-apropos
 	      :help "Find function/variables whose names match regexp"))
 (define-key menu-bar-goto-menu [next-tag-otherw]
   '(menu-item "Next Tag in Other Window"
@@ -673,7 +673,7 @@ by \"Save Options\" in Custom buffers.")
   '("--"))
 
 (define-key menu-bar-options-menu [mouse-set-font]
-  '(menu-item "Set Font/Fontset" mouse-set-font
+  '(menu-item "Set Font/Fontset..." mouse-set-font
 	       :visible (display-multi-font-p)
 	       :help "Select a font from list of known fonts/fontsets"))
 
@@ -1332,10 +1332,10 @@ key (or menu-item)"))
 (define-key menu-bar-manuals-menu [sep3]
   '("--"))
 (define-key menu-bar-manuals-menu [command]
-  '(menu-item "Find Command in Manual" Info-goto-emacs-command-node
+  '(menu-item "Find Command in Manual..." Info-goto-emacs-command-node
 	      :help "Display manual section that describes a command"))
 (define-key menu-bar-manuals-menu [key]
-  '(menu-item "Find Key in Manual" Info-goto-emacs-key-command-node
+  '(menu-item "Find Key in Manual..." Info-goto-emacs-key-command-node
 	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
@@ -1369,7 +1369,7 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [finder-by-keyword]
-  '(menu-item "Find Emacs Packages..." finder-by-keyword
+  '(menu-item "Find Emacs Packages" finder-by-keyword
 	      :help "Find packages and features by keyword"))
 (define-key menu-bar-help-menu [manuals]
   (list 'menu-item "More Manuals" menu-bar-manuals-menu
