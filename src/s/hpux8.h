@@ -54,3 +54,6 @@
    in X11R5.  Maybe things will work if we just don't call it.  */
 #define NO_XRM_SET_DATABASE
 #endif
+
+/* Enable a special hack in XTread_socket.  */
+#define X_IO_BUG
