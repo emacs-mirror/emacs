@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1997, 2003 Free Software Foundation, Inc.
 
-;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
+;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    FSF
 ;; Created:       February 1993
 ;; Last Modified: 1993/09/22 18:58:46
