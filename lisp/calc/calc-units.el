@@ -1241,6 +1241,45 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	      (eq (nth 1 (nth 2 rad)) 'rad)
 	      (list 'calcFunc-tan (nth 1 rad))))))
 
+(math-defsimplify calcFunc-sec
+  (and math-simplifying-units
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (let ((rad (math-simplify-units
+		   (math-evaluate-expr
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+	     (calc-angle-mode 'rad))
+	 (and (eq (car-safe rad) '*)
+	      (math-realp (nth 1 rad))
+	      (eq (car-safe (nth 2 rad)) 'var)
+	      (eq (nth 1 (nth 2 rad)) 'rad)
+	      (list 'calcFunc-sec (nth 1 rad))))))
+
+(math-defsimplify calcFunc-csc
+  (and math-simplifying-units
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (let ((rad (math-simplify-units
+		   (math-evaluate-expr
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+	     (calc-angle-mode 'rad))
+	 (and (eq (car-safe rad) '*)
+	      (math-realp (nth 1 rad))
+	      (eq (car-safe (nth 2 rad)) 'var)
+	      (eq (nth 1 (nth 2 rad)) 'rad)
+	      (list 'calcFunc-csc (nth 1 rad))))))
+
+(math-defsimplify calcFunc-cot
+  (and math-simplifying-units
+       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (let ((rad (math-simplify-units
+		   (math-evaluate-expr
+		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+	     (calc-angle-mode 'rad))
+	 (and (eq (car-safe rad) '*)
+	      (math-realp (nth 1 rad))
+	      (eq (car-safe (nth 2 rad)) 'var)
+	      (eq (nth 1 (nth 2 rad)) 'rad)
+	      (list 'calcFunc-cot (nth 1 rad))))))
+
 
 (defun math-remove-units (expr)
   (if (math-check-unit-name expr)
