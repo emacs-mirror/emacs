@@ -151,7 +151,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 	     (nonascii-translation . latin-iso8859-4)
 	     (unibyte-syntax . "latin-4")
 	     (unibyte-display . iso-8859-4)
-	     (input-method . "latin-4-prefix")
+	     (input-method . "latin-4-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
@@ -179,7 +179,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
 	     (unibyte-display . iso-latin-5)
-	     (input-method . "latin-5-prefix")
+	     (input-method . "latin-5-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set:
 Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
