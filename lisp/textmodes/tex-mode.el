@@ -1,6 +1,7 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 1997
+;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tex
@@ -30,44 +31,76 @@
 (require 'shell)
 (require 'compile)
 
-;;;###autoload
-(defvar tex-shell-file-name nil
-  "*If non-nil, the shell file name to run in the subshell used to run TeX.")
+(defgroup tex-file nil
+  "TeX files and directories"
+  :prefix "tex-"
+  :group 'tex)
+
+(defgroup tex-run nil
+  "Running external commands from TeX mode"
+  :prefix "tex-"
+  :group 'tex)
+
+(defgroup tex-view nil
+  "Viewing and printing TeX files"
+  :prefix "tex-"
+  :group 'tex)
 
 ;;;###autoload
-(defvar tex-directory "."
+(defcustom tex-shell-file-name nil
+  "*If non-nil, the shell file name to run in the subshell used to run TeX."
+  :type '(choice (const :tag "None" nil)
+		 string)
+  :group 'tex-run)
+
+;;;###autoload
+(defcustom tex-directory "."
   "*Directory in which temporary files are written.
 You can make this `/tmp' if your TEXINPUTS has no relative directories in it
 and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
-`\\input' commands with relative directories.")
+`\\input' commands with relative directories."
+  :type 'directory
+  :group 'tex-file)
 
 ;;;###autoload
-(defvar tex-first-line-header-regexp nil
+(defcustom tex-first-line-header-regexp nil
   "Regexp for matching a first line which `tex-region' should include.
 If this is non-nil, it should be a regular expression string;
 if it matches the first line of the file,
-`tex-region' always includes the first line in the TeX run.")
+`tex-region' always includes the first line in the TeX run."
+  :type '(choice (const :tag "None" nil)
+                 regexp)
+  :group 'tex-file)
 
 ;;;###autoload
-(defvar tex-main-file nil
+(defcustom tex-main-file nil
   "*The main TeX source file which includes this buffer's file.
-The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil.")
+The command `tex-buffer' runs TeX on `tex-main-file'if that is non-nil."
+  :type '(choice (const :tag "None" nil)
+                 file)
+  :group 'tex-file)
 
 ;;;###autoload
-(defvar tex-offer-save t
-  "*If non-nil, ask about saving modified buffers before \\[tex-file] is run.")
+(defcustom tex-offer-save t
+  "*If non-nil, ask about saving modified buffers before \\[tex-file] is run."
+  :type 'boolean
+  :group 'tex-file)
 
 ;;;###autoload
-(defvar tex-run-command "tex"
+(defcustom tex-run-command "tex"
   "*Command used to run TeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.")
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-run)
 
 ;;;###autoload
-(defvar latex-run-command "latex"
+(defcustom latex-run-command "latex"
   "*Command used to run LaTeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.")
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-run)
 
 (defvar standard-latex-block-names
       '("abstract"         "array"            "center"       "description"
@@ -82,30 +115,38 @@ otherwise, the file name, preceded by blank, is added at the end.")
   "Standard LaTeX block names.")
 
 ;;;###autoload
-(defvar latex-block-names nil
+(defcustom latex-block-names nil
   "*User defined LaTeX block names.
-Combined with `standard-latex-block-names' for minibuffer completion.")
+Combined with `standard-latex-block-names' for minibuffer completion."
+  :type '(repeat string)
+  :group 'tex-run)
 
 ;;;###autoload
-(defvar slitex-run-command "slitex"
+(defcustom slitex-run-command "slitex"
   "*Command used to run SliTeX subjob.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.")
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-run)
 
 ;;;###autoload
-(defvar tex-bibtex-command "bibtex"
+(defcustom tex-bibtex-command "bibtex"
   "*Command used by `tex-bibtex-file' to gather bibliographic data.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.")
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-run)
 
 ;;;###autoload
-(defvar tex-dvi-print-command "lpr -d"
+(defcustom tex-dvi-print-command "lpr -d"
   "*Command used by \\[tex-print] to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.")
+otherwise, the file name, preceded by blank, is added at the end."
+  :type 'string
+  :group 'tex-view)
 
 ;;;###autoload
-(defvar tex-alt-dvi-print-command "lpr -d"
+(defcustom tex-alt-dvi-print-command "lpr -d"
   "*Command used by \\[tex-print] with a prefix arg to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end.
@@ -118,10 +159,13 @@ for example,
          '(format \"lpr -P%s\" (read-string \"Use printer: \")))
 
 would tell \\[tex-print] with a prefix argument to ask you which printer to
-use.")
+use."
+  :type '(choice (string :tag "Command")
+		 (sexp :tag "Expression"))
+  :group 'tex-view)
 
 ;;;###autoload
-(defvar tex-dvi-view-command nil
+(defcustom tex-dvi-view-command nil
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end.
@@ -133,27 +177,37 @@ window system being used.  For example,
           (if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\"))
 
 would tell \\[tex-view] to use xdvi under X windows and to use dvi2tty
-otherwise.")
+otherwise."
+  :type '(choice (const nil) string)
+  :group 'tex-view)
 
 ;;;###autoload
-(defvar tex-show-queue-command "lpq"
+(defcustom tex-show-queue-command "lpq"
   "*Command used by \\[tex-show-print-queue] to show the print queue.
-Should show the queue(s) that \\[tex-print] puts jobs on.")
+Should show the queue(s) that \\[tex-print] puts jobs on."
+  :type 'string
+  :group 'tex-view)
 
 ;;;###autoload
-(defvar tex-default-mode 'plain-tex-mode
+(defcustom tex-default-mode 'plain-tex-mode
   "*Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
-Normally set to either `plain-tex-mode' or `latex-mode'.")
+Normally set to either `plain-tex-mode' or `latex-mode'."
+  :type 'function
+  :group 'tex)
 
 ;;;###autoload
-(defvar tex-open-quote "``"
-  "*String inserted by typing \\[tex-insert-quote] to open a quotation.")
+(defcustom tex-open-quote "``"
+  "*String inserted by typing \\[tex-insert-quote] to open a quotation."
+  :type 'string
+  :group 'tex)
 
 ;;;###autoload
-(defvar tex-close-quote "''"
-  "*String inserted by typing \\[tex-insert-quote] to close a quotation.")
+(defcustom tex-close-quote "''"
+  "*String inserted by typing \\[tex-insert-quote] to close a quotation."
+  :type 'string
+  :group 'tex)
 
 (defvar tex-last-temp-file nil
   "Latest temporary file generated by \\[tex-region] and \\[tex-buffer].
