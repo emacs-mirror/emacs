@@ -629,9 +629,15 @@ Returns nil if line starts inside a string, t if in a comment."
 		     ;; The first following code counts
 		     ;; if it is before the line we want to indent.
 		     (and (< (point) indent-point)
-			  (if (> colon-line-end (point))
-			      (- (current-indentation) c-label-offset)
-			    (current-column)))))
+			  (- 
+			   (if (> colon-line-end (point))
+			       (- (current-indentation) c-label-offset)
+			     (current-column))
+			   ;; If prev stmt starts with open-brace, that
+			   ;; open brace was offset by c-brace-offset.
+			   ;; Compensate to get the column where
+			   ;; an ordinary statement would start.
+			   (if (= (following-char) ?\{) c-brace-offset 0)))))
 		 ;; If no previous statement,
 		 ;; indent it relative to line brace is on.
 		 ;; For open brace in column zero, don't let statement
