@@ -133,14 +133,14 @@ SYS_LDFLAGS	= -release -incremental:no -version:3.10
 
 INC             = -I.
 !if "$(BUILD_TYPE)" == "spd"
-CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH)
+CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH) -Fd$(BLD)\vc.pdb
 !else
-CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH) -DEMACSDEBUG
+CFLAGS_COMMON	= -nologo $(INC) $(ARCH_CFLAGS) $(LOCAL_FLAGS) -DWIN32_LEAN_AND_MEAN -D$(ARCH) -Fd$(BLD)\vc.pdb -DEMACSDEBUG
 !endif
 !if $(MSVCNT11)
 CFLAGS          = $(CFLAGS_COMMON) -D_CRTAPI1=_cdecl
 !else
-CFLAGS          = $(CFLAGS_COMMON) 
+CFLAGS          = $(CFLAGS_COMMON) -D_CRTAPI1=_cdecl
 !endif
 !ifdef NTGUI
 CFLAGS          = $(CFLAGS) -DHAVE_NTGUI=1
