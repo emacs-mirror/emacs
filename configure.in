@@ -49,7 +49,7 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    use an X toolkit (KIT = yes/lucid/athena/motif)],
+[  --with-x-toolkit=KIT    use an X toolkit (KIT = yes/lucid/athena/motif/no)],
 [	  case "${withval}" in
 	    y | ye | yes )	val=athena ;;
 	    n | no )		val=no  ;;
@@ -691,7 +691,7 @@ case "${canonical}" in
       m68* )		machine=sun3 ;;
       i[345]86-sun-sunos[34]* )	machine=sun386 ;;
       i[345]86-*-* )     machine=intel386 ;;
-      powerpc* | rs6000* )  machine=rs6000 ;;
+      powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
     esac
@@ -1320,17 +1320,34 @@ fail;
    [AC_MSG_RESULT(before 6)])
 fi
 
-if test x"${USE_X_TOOLKIT}" = xmaybe; then
+if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 5)
   AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 5
 fail;
 #endif
-], [AC_MSG_RESULT(5 or newer; use toolkit by default)
-    USE_X_TOOLKIT=LUCID
+], [AC_MSG_RESULT(5 or newer)
+    HAVE_X11R5=yes
     AC_DEFINE(HAVE_X11R5)],
-   [AC_MSG_RESULT(before 5; do not use toolkit by default)
-    USE_X_TOOLKIT=none])
+   [
+    HAVE_X11R5=no
+    AC_MSG_RESULT(before 5)])
+fi
+
+if test x"${USE_X_TOOLKIT}" = xmaybe; then
+  if test x"${HAVE_X11R5}" = xyes; then
+    AC_MSG_CHECKING(X11 version 5 with Xaw)
+    AC_TRY_LINK([
+	  #include <X11/Intrinsic.h>
+	  #include <X11/Xaw/Simple.h>],
+      [],
+      [AC_MSG_RESULT(5 or newer, with Xaw; use toolkit by default)
+       USE_X_TOOLKIT=LUCID],
+      [AC_MSG_RESULT(before 5 or no Xaw; do not use toolkit by default)
+       USE_X_TOOLKIT=none])
+  else
+    USE_X_TOOLKIT=none
+  fi
 fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
