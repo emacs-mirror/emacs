@@ -1100,7 +1100,6 @@ static void x_append_glyph P_ ((struct it *));
 static void x_append_stretch_glyph P_ ((struct it *it, Lisp_Object,
 					int, int, double));
 static void x_produce_glyphs P_ ((struct it *));
-static void x_produce_special_glyphs P_ ((struct it *, enum display_element_type));
 static void x_produce_image_glyph P_ ((struct it *it));
      
 
@@ -1726,9 +1725,7 @@ x_produce_glyphs (it)
       XFontStruct *font;
       struct face *face;
       XCharStruct *pcm;
-      struct it ci;
       int font_not_found_p;
-      int c;
 
       /* Maybe translate single-byte characters to multibyte.  */
       it->char_to_display = it->c;
@@ -2096,7 +2093,7 @@ struct glyph_string
 };
 
 
-#if GLYPH_DEBUG
+#if 0
 
 static void
 x_dump_glyph_string (s)
@@ -2150,7 +2147,6 @@ static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
 						int));
 static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
-static void x_draw_glyph_string_underline P_ ((struct glyph_string *));
 static void x_draw_glyph_string_box P_ ((struct glyph_string *));
 static void x_draw_glyph_string  P_ ((struct glyph_string *));
 static void x_compute_glyph_string_overhangs P_ ((struct glyph_string *));
@@ -2957,8 +2953,7 @@ x_alloc_nearest_color_for_widget (widget, cmap, color)
 {
   struct frame *f;
   struct x_display_info *dpyinfo;
-  Lisp_Object tail, frame;
-  Widget parent;
+  Lisp_Object tail;
 
   dpyinfo = x_display_info_for_display (XtDisplay (widget));
   
@@ -6505,11 +6500,11 @@ note_tool_bar_highlight (f, x, y)
   int hpos, vpos;
   struct glyph *glyph;
   struct glyph_row *row;
-  int i, j, area;
+  int i;
   Lisp_Object enabled_p;
   int prop_idx;
   enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
-  int on_highlight_p, mouse_down_p, rc;
+  int mouse_down_p, rc;
 
   /* Function note_mouse_highlight is called with negative x(y
      values when mouse moves outside of the frame.  */
@@ -7557,7 +7552,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      int portion, position, whole;
 {
   float top, shown;
-  Arg av[2];
   Widget widget = SCROLL_BAR_X_WIDGET (bar);
 
   if (whole == 0)
@@ -7685,11 +7679,6 @@ x_scroll_bar_create (w, top, left, width, height)
      int top, left, width, height;
 {
   struct frame *f = XFRAME (w->frame);
-#ifdef USE_X_TOOLKIT
-  Arg av[10];
-#endif
-  int ac = 0;
-  Window window;
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
 
@@ -7701,6 +7690,7 @@ x_scroll_bar_create (w, top, left, width, height)
   {
     XSetWindowAttributes a;
     unsigned long mask;
+    Window window;
 
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
@@ -7783,13 +7773,14 @@ x_scroll_bar_create (w, top, left, width, height)
    the bar's top is as far down as it goes; otherwise, there's no way
    to move to the very end of the buffer.  */
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
+
 static void
 x_scroll_bar_set_handle (bar, start, end, rebuild)
      struct scroll_bar *bar;
      int start, end;
      int rebuild;
 {
-#ifndef USE_TOOLKIT_SCROLL_BARS
   int dragging = ! NILP (bar->dragging);
   Window w = SCROLL_BAR_X_WINDOW (bar);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
@@ -7881,9 +7872,9 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   }
 
   UNBLOCK_INPUT;
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
 /* Destroy scroll bar BAR, and set its Emacs window's scroll bar to
    nil.  */
@@ -7892,14 +7883,15 @@ static void
 x_scroll_bar_remove (bar)
      struct scroll_bar *bar;
 {
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
-
   BLOCK_INPUT;
 
 #if USE_TOOLKIT_SCROLL_BARS
   XtDestroyWidget (SCROLL_BAR_X_WIDGET (bar));
 #else /* not USE_TOOLKIT_SCROLL_BARS */
-  XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+  {
+    FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
+    XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+  }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
   
   /* Disassociate this scroll bar from its window.  */
@@ -8213,6 +8205,8 @@ x_scroll_bar_expose (bar, event)
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
+
 static void
 x_scroll_bar_handle_click (bar, event, emacs_event)
      struct scroll_bar *bar;
@@ -8322,6 +8316,8 @@ x_scroll_bar_note_movement (bar, event)
 	}
     }
 }
+
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
 /* Return information to the user about the current position of the mouse
    on the scroll bar.  */
@@ -8833,7 +8829,6 @@ XTread_socket (sd, bufp, numchars, expected)
 		       reply with "Next" if we received "Page", but we
 		       currently never do because we are interested in
 		       images, only, which should have 1 page.  */
-		    Window gs_window = (Window) event.xclient.data.l[0];
 		    Pixmap pixmap = (Pixmap) event.xclient.data.l[1];
 		    struct frame *f
 		      = x_window_to_frame (dpyinfo, event.xclient.window);
@@ -9467,10 +9462,10 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
 	      if (f)
 		{
+#ifndef USE_X_TOOLKIT
 		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
 		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
-
-#ifndef USE_X_TOOLKIT
+		  
 		  /* In the toolkit version, change_frame_size
 		     is called by the code that handles resizing
 		     of the EmacsFrame widget.  */
