@@ -270,7 +270,8 @@ echo "Making links to \`lib-src'."
 echo "Making links to \`nt'."
 (cd nt
  ln emacs.ico emacs.rc config.nt config.w95 [a-z]*.in [a-z]*.c ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.h makefile.* todo ChangeLog install readme ../${tempdir}/nt)
+ ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
+ ln todo ChangeLog install readme ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'."
 (cd nt/inc
