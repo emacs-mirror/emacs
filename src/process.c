@@ -470,8 +470,8 @@ make_process (name)
   XSETTYPE (val, Lisp_Process);
 
   p = XPROCESS (val);
-  XSET (p->infd, Lisp_Int, -1);
-  XSET (p->outfd, Lisp_Int, -1);
+  XSETINT (p->infd, -1);
+  XSETINT (p->outfd, -1);
   XFASTINT (p->pid) = 0;
   XFASTINT (p->tick) = 0;
   XFASTINT (p->update_tick) = 0;
@@ -1249,8 +1249,8 @@ create_process (process, new_argv, current_dir)
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
   chan_process[inchannel] = process;
-  XSET (XPROCESS (process)->infd, Lisp_Int, inchannel);
-  XSET (XPROCESS (process)->outfd, Lisp_Int, outchannel);
+  XSETINT (XPROCESS (process)->infd, inchannel);
+  XSETINT (XPROCESS (process)->outfd, outchannel);
   /* Record the tty descriptor used in the subprocess.  */
   if (forkin < 0)
     XPROCESS (process)->subtty = Qnil;
@@ -1659,8 +1659,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Qnil;
   XPROCESS (proc)->pid = Qnil;
-  XSET (XPROCESS (proc)->infd, Lisp_Int, s);
-  XSET (XPROCESS (proc)->outfd, Lisp_Int, outch);
+  XSETINT (XPROCESS (proc)->infd, s);
+  XSETINT (XPROCESS (proc)->outfd, outch);
   XPROCESS (proc)->status = Qrun;
   FD_SET (inch, &input_wait_mask);
   if (inch > max_process_desc)
@@ -1698,8 +1698,8 @@ deactivate_process (proc)
  	close (outchannel);
 #endif
 
-      XSET (p->infd, Lisp_Int, -1);
-      XSET (p->outfd, Lisp_Int, -1);
+      XSETINT (p->infd, -1);
+      XSETINT (p->outfd, -1);
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
       if (inchannel == max_process_desc)
@@ -1759,7 +1759,7 @@ Return non-nil iff we received any output before the timeout expired.")
       CHECK_NUMBER (timeout_msecs, 2);
       useconds = XINT (timeout_msecs);
       if (!INTEGERP (timeout))
-	XSET (timeout, Lisp_Int, 0);
+	XSETINT (timeout, 0);
 
       {
 	int carry = useconds / 1000000;
@@ -2919,7 +2919,7 @@ text to PROCESS after you call this function.")
   else
     {
       close (XINT (XPROCESS (proc)->outfd));
-      XSET (XPROCESS (proc)->outfd, Lisp_Int, open (NULL_DEVICE, O_WRONLY));
+      XSETINT (XPROCESS (proc)->outfd, open (NULL_DEVICE, O_WRONLY));
     }
 #endif /* VMS */
   return process;
