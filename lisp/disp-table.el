@@ -72,6 +72,17 @@
     (setq l (1+ l))))
 
 ;;;###autoload
+(defun standard-display-default (l h)
+  "Display characters in the range L to H using the default notation."
+  (while (<= l h)
+    (if (and (>= l ?\ ) (< l 127))
+	(if standard-display-table (aset standard-display-table l nil))
+      (or standard-display-table
+	  (setq standard-display-table (make-vector 261 nil)))
+      (aset standard-display-table l nil))
+    (setq l (1+ l))))
+
+;;;###autoload
 (defun standard-display-ascii (c s)
   "Display character C using string S."
   (or standard-display-table
@@ -109,6 +120,15 @@
       (error "No free glyph codes remain"))
   (setq glyph-table (vconcat glyph-table (list string)))
   (1- (length glyph-table)))
+
+(defun standard-display-european (arg)
+  "Arrange to display European characters encoded with ISO 8859.
+This means that characters in the range of 160 to 255 display not
+as octal escapes, but as accented characters."
+  (interactive "P")
+  (if arg (standard-display-default 160 255)
+    (standard-display-8bit 160 255)))
+  
 
 (provide 'disp-table)
 
