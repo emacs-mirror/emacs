@@ -1,3 +1,7 @@
+2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* dispnew.c (Fsleep_for): Fix typo in a doc string.
+
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyph_string): Restore clipping after
