@@ -1,3 +1,8 @@
+2002-09-21  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* net/eudc.el (eudc-install-menu): Use `define-key' and
+	`easy-menu-create-menu' to avoid duplication of menu.
+
 2002-09-20  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-step-edit-query): Use RET to execute rest of
