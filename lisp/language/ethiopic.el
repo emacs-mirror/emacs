@@ -50,7 +50,9 @@
 
 (set-language-info-alist
  "Ethiopic" '((setup-function . setup-ethiopic-environment)
-	      (charset . (ethiopic))
+	      (charset ethiopic)
+	      (coding-system iso-2022-7bit)
+	      (coding-priority iso-2022-7bit)
 	      (sample-text . "$(3$O#U!.(B")
 	      (documentation . t)))
 

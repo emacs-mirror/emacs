@@ -44,6 +44,7 @@ The default status is as follows.
   bound to each category are as follows
 	coding category			coding system
 	--------------------------------------------------
+	coding-category-iso-7-tight	iso-2022-jp
 	coding-category-iso-7		iso-2022-7bit
 	coding-category-iso-8-1		iso-latin-1
 	coding-category-iso-8-2		iso-latin-1
@@ -58,7 +59,8 @@ The default status is as follows.
   (interactive)
   (setq-default enable-multibyte-characters t)
 
-  (setq coding-category-iso-7		'iso-2022-7bit
+  (setq coding-category-iso-7-tight	'iso-2022-jp
+	coding-category-iso-7		'iso-2022-7bit
 	coding-category-iso-8-1		'iso-latin-1
 	coding-category-iso-8-2		'iso-latin-1
 	coding-category-iso-7-else	'iso-2022-7bit-lock
@@ -70,7 +72,8 @@ The default status is as follows.
 	coding-category-binary		'no-conversion)
 
   (set-coding-priority
-   '(coding-category-iso-7
+   '(coding-category-iso-7-tight
+     coding-category-iso-7
      coding-category-iso-8-2
      coding-category-iso-8-1
      coding-category-iso-7-else
@@ -93,7 +96,16 @@ The default status is as follows.
 (set-language-info-alist
  "English" '((setup-function . setup-english-environment)
 	     (tutorial . "TUTORIAL")
-	     (charset . (ascii))
+	     (charset ascii)
+	     (coding-priority iso-2022-7bit
+			      iso-latin-1
+			      iso-2022-7bit-lock
+			      iso-2022-8bit-ss2
+			      emacs-mule
+			      raw-text
+			      japanese-shift-jis
+			      chinese-big5
+			      no-conversion)
 	     (sample-text . "Hello!, Hi!, How are you?")
 	     (documentation . "\
 Nothing special is needed to handle English.")
