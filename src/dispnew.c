@@ -6175,7 +6175,7 @@ sit_for (sec, usec, reading, display, initial_display)
 
   swallow_events (display);
 
-  if (detect_input_pending_run_timers (display))
+  if (detect_input_pending_run_timers (display) || !NILP (Vexecuting_macro))
     return Qnil;
 
   if (initial_display)
