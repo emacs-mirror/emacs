@@ -442,6 +442,9 @@ EOF
     9000/8??:4.3bsd:*:*)
 	echo hppa1.0-hp-bsd
 	exit 0 ;;
+    *9??*:MPE*:*:*)
+	echo hppa1.0-hp-mpeix
+	exit 0 ;;
     hp7??:OSF1:*:* | hp8?[79]:OSF1:*:* )
 	echo hppa1.1-hp-osf
 	exit 0 ;;
