@@ -1068,6 +1068,16 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+*** The buffer-local variable cursor-type can be used to specify the
+cursor to use in windows displaying a buffer.  Values are interpreted
+as follows:
+
+  t 		use the cursor specified for the frame (default)
+  nil		don't display a cursor
+  `bar'		display a bar cursor with default width
+  (bar . WIDTH)	display a bar cursor with width WIDTH
+  others	display a box cursor.
+
 ** The variable open-paren-in-column-0-is-defun-start controls whether
 an open parenthesis in column 0 is considered to be the start of a
 defun.  If set, the default, it is considered a defun start.  If not

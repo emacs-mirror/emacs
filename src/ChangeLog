@@ -1,5 +1,14 @@
 2000-03-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_display_and_set_cursor): Choose cursor depending
+	on buffer-local value of cursor_type.
+	(x_draw_bar_cursor): Add parameter WIDTH.
+
+	* buffer.c (reset_buffer): Initialize buffer's cursor_type.
+	(init_buffer_once): Set default cursor_type value to t.
+	Mark cursor_type as local everywhere.
+	(syms_of_buffer): New per-buffer variable cursor-type.
+
 	* buffer.h (struct buffer): Remove member local_var_flags,
 	add local_flags.
 	(MAX_BUFFER_LOCAL_VARS): New macro.
