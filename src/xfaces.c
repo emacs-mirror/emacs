@@ -321,21 +321,6 @@ x_free_gc (f, gc)
 
 #define FACE_CACHE_BUCKETS_SIZE 1001
 
-/* A definition of XColor for non-X frames.  */
-
-#ifndef HAVE_X_WINDOWS
-
-typedef struct
-{
-  unsigned long pixel;
-  unsigned short red, green, blue;
-  char flags;
-  char pad;
-}
-XColor;
-
-#endif /* not HAVE_X_WINDOWS */
-
 /* Keyword symbols used for face attribute names.  */
 
 Lisp_Object QCfamily, QCheight, QCweight, QCslant, QCunderline;
@@ -532,7 +517,7 @@ static int font_list_1 P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, struct font_name **));
 static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			  Lisp_Object, struct font_name **));
-static int try_font_list P_ ((struct frame *, Lisp_Object *, 
+static int try_font_list P_ ((struct frame *, Lisp_Object *,
 			      Lisp_Object, Lisp_Object, struct font_name **));
 static int try_alternative_families P_ ((struct frame *f, Lisp_Object,
 					 Lisp_Object, struct font_name **));
@@ -980,13 +965,13 @@ clear_face_cache (clear_fonts_p)
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
     {
       struct x_display_info *dpyinfo;
-      
+
       /* Fonts are common for frames on one display, i.e. on
 	 one X screen.  */
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
 	if (dpyinfo->n_fonts > CLEAR_FONT_TABLE_NFONTS)
 	  clear_font_table (dpyinfo);
-      
+
       /* From time to time see if we can unload some fonts.  This also
 	 frees all realized faces on all frames.  Fonts needed by
 	 faces will be loaded again when faces are realized again.  */
@@ -2174,7 +2159,7 @@ xlfd_point_size (f, font)
     }
   else
     pixel = atoi (pixel_field);
-  
+
   if (pixel == 0)
     real_pt = 0;
   else
@@ -2242,7 +2227,7 @@ split_font_name (f, font, numeric_p)
 	    {
 	      char *start, *end;
 	      int j;
-	      
+
 	      for (++p; *p && *p != ']'; ++p)
 		if (*p == '~')
 		  *p = '-';
@@ -2625,7 +2610,7 @@ concat_font_list (fonts1, nfonts1, fonts2, nfonts2)
 
    If REGISTRY is non-nil, return fonts with that registry and the
    alternative registries from Vface_alternative_font_registry_alist.
-   
+
    If REGISTRY is nil return fonts of any registry.
 
    Set *FONTS to a vector of font_name structures allocated from the
@@ -2639,7 +2624,7 @@ font_list (f, pattern, family, registry, fonts)
      struct font_name **fonts;
 {
   int nfonts = font_list_1 (f, pattern, family, registry, fonts);
-  
+
   if (!NILP (registry)
       && CONSP (Vface_alternative_font_registry_alist))
     {
@@ -3103,7 +3088,7 @@ lface_fully_specified_p (attrs)
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
 	&& i != LFACE_AVGWIDTH_INDEX)
-      if (UNSPECIFIEDP (attrs[i])) 
+      if (UNSPECIFIEDP (attrs[i]))
         break;
 
   return i == LFACE_VECTOR_SIZE;
@@ -4231,7 +4216,7 @@ set_font_frame_param (frame, lface)
     {
       Lisp_Object font_name;
       char *font;
-      
+
       if (STRINGP (LFACE_FONT (lface)))
 	font_name = LFACE_FONT (lface);
       else
@@ -4245,7 +4230,7 @@ set_font_frame_param (frame, lface)
 	  font_name = build_string (font);
 	  xfree (font);
 	}
-  
+
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
     }
 }
@@ -4439,7 +4424,7 @@ x_update_menu_appearance (f)
 #else
       const char *popup_path = "menu.popup";
 #endif
-      
+
       if (STRINGP (LFACE_FOREGROUND (lface)))
 	{
 	  sprintf (line, "%s.%s*foreground: %s",
@@ -4463,7 +4448,7 @@ x_update_menu_appearance (f)
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
-	  
+
       if (face->font_name
 	  && (!UNSPECIFIEDP (LFACE_FAMILY (lface))
 	      || !UNSPECIFIEDP (LFACE_SWIDTH (lface))
@@ -5887,7 +5872,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
    REGISTRY, if a string, specifies a font registry and encoding to
    match.  A value of nil means include fonts of any registry and
    encoding.
-   
+
    Return in *FONTS a pointer to a vector of font_name structures for
    the fonts matched.  Value is the number of fonts found.  */
 
@@ -5915,7 +5900,7 @@ try_alternative_families (f, family, registry, fonts)
 		nfonts = font_list (f, Qnil, XCAR (alter), registry, fonts);
 	    }
 	}
-      
+
       /* Try scalable fonts before giving up.  */
       if (nfonts == 0 && NILP (Vscalable_fonts_allowed))
 	{
@@ -5938,7 +5923,7 @@ try_alternative_families (f, family, registry, fonts)
    REGISTRY, if a string, specifies a font registry and encoding to
    match.  A value of nil means include fonts of any registry and
    encoding.
-   
+
    Return in *FONTS a pointer to a vector of font_name structures for
    the fonts matched.  Value is the number of fonts found.  */
 
@@ -5968,7 +5953,7 @@ try_font_list (f, attrs, family, registry, fonts)
 	family = build_string ("fixed");
       nfonts = font_list (f, Qnil, family, registry, fonts);
     }
-      
+
   /* Try any family with the given registry.  */
   if (nfonts == 0)
     nfonts = font_list (f, Qnil, Qnil, registry, fonts);
@@ -6022,7 +6007,7 @@ choose_face_font (f, attrs, fontset, c)
       xassert (!SINGLE_BYTE_CHAR_P (c));
       return NULL;
     }
-  
+
   /* If what we got is a name pattern, return it.  */
   if (STRINGP (pattern))
     return xstrdup (XSTRING (pattern)->data);
@@ -6081,7 +6066,7 @@ realize_basic_faces (f)
 	  x_update_menu_appearance (f);
 #endif
 	}
-      
+
       success_p = 1;
     }
 
@@ -6535,10 +6520,10 @@ map_tty_color (f, face, idx, defaulted)
       pixel = default_pixel = FACE_TTY_DEFAULT_BG_COLOR;
       default_other_pixel = FACE_TTY_DEFAULT_FG_COLOR;
     }
-  
+
   XSETFRAME (frame, f);
   color = face->lface[idx];
-  
+
   if (STRINGP (color)
       && XSTRING (color)->size
       && CONSP (Vtty_defined_color_alist)
@@ -6633,7 +6618,7 @@ realize_tty_face (cache, attrs, c)
   /* Map color names to color indices.  */
   map_tty_color (f, face, LFACE_FOREGROUND_INDEX, &face_colors_defaulted);
   map_tty_color (f, face, LFACE_BACKGROUND_INDEX, &face_colors_defaulted);
-  
+
   /* Swap colors if face is inverse-video.  If the colors are taken
      from the frame colors, they are already inverted, since the
      frame-creation function calls x-handle-reverse-video.  */
