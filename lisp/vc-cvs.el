@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.59 2003/05/08 20:44:50 monnier Exp $
+;; $Id: vc-cvs.el,v 1.60 2003/05/09 14:32:01 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -428,11 +428,14 @@ REV is the revision to check out into WORKFILE."
                                        'implicit)))
                           "-w")
                      "update"
-                     ;; default for verbose checkout: clear the sticky tag so
-                     ;; that the actual update will get the head of the trunk
-                     (if (or (not rev) (eq rev t) (string= rev ""))
-                         "-A"
-                       (concat "-r" rev))
+                     (when rev
+                       (unless (eq rev t)
+                         ;; default for verbose checkout: clear the
+                         ;; sticky tag so that the actual update will
+                         ;; get the head of the trunk
+                         (if (string= rev "")
+                             "-A"
+                           (concat "-r" rev))))
                      switches))))
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
