@@ -1549,6 +1549,7 @@ This function takes some pains to conform to `ls -lR' output."
     ;; insert message so that the user sees the `Mark set' message.
     (push-mark opoint)))
 
+;;;###autoload
 (defun dired-insert-subdir (dirname &optional switches no-error-if-not-dir-p)
   "Insert this subdirectory into the same dired buffer.
 If it is already present, overwrites previous entry,
