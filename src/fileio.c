@@ -3150,7 +3150,7 @@ This does code conversion according to the value of\n\
     else
       {
 	if (SYMBOLP (Vauto_file_coding_system_function)
-	    && Fboundp (Vauto_file_coding_system_function))
+	    && !NILP (Fboundp (Vauto_file_coding_system_function)))
 	  {
 	    /* Find a coding system specified in a few lines at the
 	       head of the file.  We assume that the fist 1K bytes is
