@@ -1,3 +1,24 @@
+2000-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (CP_8BIT, CP_UNICODE, CP_INVALID): New pseudo-codepages.
+
+	* w32term.c (w32_encode_char): Handle CP_UNICODE specially.
+	(w32_use_unicode_for_codepage): Use new pseudo-codepages.
+
+	* w32fns.c (Qw32_charset_hangeul): Rename to match w32 headers.
+	(Qw32_charset_vietnamese): New symbol.
+	(xlfd_charset_of_font): New function.
+	(w32_load_system_font): Use it.
+	(x_to_w32_charset): Use Fassoc to find charset info. Special case
+	when Vw32_charset_info_alist is nil to ensure default face always
+	has font. Use Fcar and Fcdr for safety.
+	(w32_to_x_charset): Use Vw32_charset_info_alist for mappings.
+	(w32_codepage_for_font): Use xlfd_charset_of_font.  Use new
+	pseudo-codepages for special cases.
+	(w32_to_x_font): New parameter to allow charset portion to be
+	specified where there is many to one mapping.  Callers changed.
+	(w32_list_fonts): Avoid listing fonts that won't display.
+
 2000-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (Vface_alternative_font_registry_alist): New variable.

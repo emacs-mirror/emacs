@@ -1,3 +1,8 @@
+2000-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-add-charset-info): New function.
+	(w32-charset-info-alist): Use it.
+
 2000-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-font-registry-alternatives): New user-option.
