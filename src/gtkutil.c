@@ -584,14 +584,14 @@ xg_resize_widgets (f, pixelwidth, pixelheight)
 {
   int mbheight = FRAME_MENUBAR_HEIGHT (f);
   int tbheight = FRAME_TOOLBAR_HEIGHT (f);
-  int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, (pixelheight 
+  int rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, (pixelheight
 						   - mbheight - tbheight));
   int columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
 
   if (FRAME_GTK_WIDGET (f)
-      && (columns != FRAME_COLS (f) 
+      && (columns != FRAME_COLS (f)
 	  || rows != FRAME_LINES (f)
-          || pixelwidth != FRAME_PIXEL_WIDTH (f) 
+          || pixelwidth != FRAME_PIXEL_WIDTH (f)
 	  || pixelheight != FRAME_PIXEL_HEIGHT (f)))
     {
       struct x_output *x = f->output_data.x;
@@ -719,6 +719,7 @@ xg_create_frame_widgets (f)
       if (wvbox) gtk_widget_destroy (wvbox);
       if (wfixed) gtk_widget_destroy (wfixed);
 
+      UNBLOCK_INPUT;
       return 0;
     }
 
@@ -2881,7 +2882,7 @@ scroll_bar_button_cb (widget, event, user_data)
       if (xg_timer) xg_stop_timer ();
       bar->dragging = Qnil;
     }
-  
+
   return FALSE;
 }
 
@@ -2945,7 +2946,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
      event box window.  */
   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
   gtk_container_add (GTK_CONTAINER (webox), wscroll);
-  
+
 
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
@@ -3270,10 +3271,10 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
 
   event->area.x = max (0, event->area.x);
   event->area.y = max (0, event->area.y);
-  
+
   event->area.width = max (width, event->area.width);
   event->area.height = max (height, event->area.height);
-  
+
   return FALSE;
 }
 
@@ -3394,7 +3395,7 @@ update_frame_tool_bar (f)
      DEFAULT_TOOL_BAR_BUTTON_MARGIN has no effect.  */
   hmargin = max (0, hmargin - DEFAULT_TOOL_BAR_BUTTON_MARGIN);
   vmargin = max (0, vmargin - DEFAULT_TOOL_BAR_BUTTON_MARGIN);
-  
+
   if (! x->toolbar_widget)
     xg_create_tool_bar (f);
 

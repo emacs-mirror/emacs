@@ -6314,7 +6314,11 @@ move_it_vertically_backward (it, dy)
 	 value of nlines is > 0 if continuation lines were involved.  */
       if (nlines > 0)
 	move_it_by_lines (it, nlines, 1);
+#if 0
+      /* I think this assert is bogus if buffer contains
+	 invisible text or images.  KFS.  */
       xassert (IT_CHARPOS (*it) <= start_pos);
+#endif
     }
   else
     {
@@ -6363,7 +6367,11 @@ move_it_vertically_backward (it, dy)
 	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
 	    }
 
+#if 0
+	  /* I think this assert is bogus if buffer contains
+	     invisible text or images.  KFS.  */
 	  xassert (IT_CHARPOS (*it) >= BEGV);
+#endif
 	}
     }
 }

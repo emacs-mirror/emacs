@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003, 2004
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1327,35 +1327,11 @@ The function `blink-cursor-start' is called when the timer fires.")
 This timer calls `blink-cursor-timer-function' every
 `blink-cursor-interval' seconds.")
 
-;; The strange sequence below is meant to set both the right temporary
-;; value and the right "standard expression" , according to Custom,
-;; for blink-cursor-mode.  We do not know the standard _evaluated_
-;; value yet, because the standard expression uses values that are not
-;; yet set.  Evaluating it now would yield an error, but we make sure
-;; that it is not evaluated, by ensuring that blink-cursor-mode is set
-;; before the defcustom is evaluated and by using the right :initialize
-;; function.  The correct evaluated standard value will be installed
-;; in startup.el using exactly the same expression as in the defcustom.
-(defvar blink-cursor-mode)
-(unless (boundp 'blink-cursor-mode) (setq blink-cursor-mode nil))
-(defcustom blink-cursor-mode
-  (not (or noninteractive
-	   emacs-quick-startup
-	   (eq system-type 'ms-dos)
-	   (not (memq initial-window-system '(x w32)))))
-  "*Non-nil means Blinking Cursor mode is active."
-  :group 'cursor
-  :tag "Blinking cursor"
-  :type 'boolean
-  :initialize 'custom-initialize-set
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (blink-cursor-mode (or value 0))))
-
-(defvaralias 'blink-cursor 'blink-cursor-mode)
-(make-obsolete-variable 'blink-cursor 'blink-cursor-mode "22.1")
-
-(defun blink-cursor-mode (arg)
+;; We do not know the standard _evaluated_ value yet, because the standard
+;; expression uses values that are not yet set.  The correct evaluated
+;; standard value will be installed in startup.el using exactly the same
+;; expression as in the defcustom.
+(define-minor-mode blink-cursor-mode
   "Toggle blinking cursor mode.
 With a numeric argument, turn blinking cursor mode on iff ARG is positive.
 When blinking cursor mode is enabled, the cursor of the selected
@@ -1364,27 +1340,27 @@ window blinks.
 Note that this command is effective only when Emacs
 displays through a window system, because then Emacs does its own
 cursor display.  On a text-only terminal, this is not implemented."
-  (interactive "P")
-  (let ((on-p (if (null arg)
-		  (not blink-cursor-mode)
-		(> (prefix-numeric-value arg) 0))))
-    (if blink-cursor-idle-timer
-	(cancel-timer blink-cursor-idle-timer))
-    (if blink-cursor-timer
-	(cancel-timer blink-cursor-timer))
-    (setq blink-cursor-idle-timer nil
-	  blink-cursor-timer nil
-	  blink-cursor-mode nil)
-    (if on-p
-	(progn
-	  ;; Hide the cursor.
-	  ;(internal-show-cursor nil nil)
-	  (setq blink-cursor-idle-timer
-		(run-with-idle-timer blink-cursor-delay
-				     blink-cursor-delay
-				     'blink-cursor-start))
-	  (setq blink-cursor-mode t))
-      (internal-show-cursor nil t))))
+  :init-value (not (or noninteractive
+		       emacs-quick-startup
+		       (eq system-type 'ms-dos)
+		       (not (memq initial-window-system '(x w32)))))
+  :global t
+  (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
+  (if blink-cursor-timer (cancel-timer blink-cursor-timer))
+  (setq blink-cursor-idle-timer nil
+	blink-cursor-timer nil)
+  (if blink-cursor-mode
+      (progn
+	;; Hide the cursor.
+	;;(internal-show-cursor nil nil)
+	(setq blink-cursor-idle-timer
+	      (run-with-idle-timer blink-cursor-delay
+				   blink-cursor-delay
+				   'blink-cursor-start)))
+    (internal-show-cursor nil t)))
+
+(defvaralias 'blink-cursor 'blink-cursor-mode)
+(make-obsolete-variable 'blink-cursor 'blink-cursor-mode "22.1")
 
 (defun blink-cursor-start ()
   "Timer function called from the timer `blink-cursor-idle-timer'.
@@ -1452,5 +1428,5 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
-;;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
+;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

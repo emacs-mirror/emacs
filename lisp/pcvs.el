@@ -1,7 +1,7 @@
 ;;; pcvs.el --- a front-end to CVS
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2002, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -1687,8 +1687,7 @@ Signal an error if there is no backup file."
 	  (message "Retrieving revision %s..." rev)
 	  ;; Discard stderr output to work around the CVS+SSH+libc
 	  ;; problem when stdout and stderr are the same.
-	  ;; FIXME: this doesn't seem to make any difference :-(
-	  (let ((res (apply 'call-process cvs-program nil '(t . nil) nil
+	  (let ((res (apply 'call-process cvs-program nil '(t nil) nil
 			    "-q" "update" "-p"
 			    ;; If `rev' is HEAD, don't pass it at all:
 			    ;; the default behavior is to get the head

@@ -1467,18 +1467,20 @@ If FROM is a string, or if the current buffer is not the one set up for us
 by encode-coding-string, generate a new temp buffer, insert the
 text, and convert it in the temporary buffer.  Otherwise, convert in-place."
   (save-match-data
-    ;; Setup a working buffer if necessary.
-    (cond ((stringp from)
-	   (let ((buf (current-buffer)))
-	     (set-buffer (generate-new-buffer " *temp"))
+    (let ((workbuf (get-buffer-create " *code-conversion-work*")))
+      ;; Setup a working buffer if necessary.
+      (cond ((stringp from)
+	     (set-buffer workbuf)
+	     (erase-buffer)
 	     (set-buffer-multibyte (multibyte-string-p from))
-	     (insert from)))
-	  ((not (string= (buffer-name) " *code-converting-work*"))
-	   (let ((buf (current-buffer))
-		 (multibyte enable-multibyte-characters))
-	     (set-buffer (generate-new-buffer " *temp"))
-	     (set-buffer-multibyte multibyte)
-	     (insert-buffer-substring buf from to))))
+	     (insert from))
+	    ((not (eq (current-buffer) workbuf))
+	     (let ((buf (current-buffer))
+		   (multibyte enable-multibyte-characters))
+	       (set-buffer workbuf)
+	       (erase-buffer)
+	       (set-buffer-multibyte multibyte)
+	       (insert-buffer-substring buf from to)))))
 
     ;; Now we can encode the whole buffer.
     (let ((encoding-table (ctext-non-standard-encodings-table))
