@@ -1323,13 +1323,16 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	}
 
       XtDispatchEvent (&event);
-      queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
-
-      if (queue_tmp != NULL) 
+      if (XtWindowToWidget(event.xany.window) != menu)
 	{
-	  queue_tmp->event = event;
-	  queue_tmp->next = queue;
-	  queue = queue_tmp;
+	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
+
+	  if (queue_tmp != NULL) 
+	    {
+	      queue_tmp->event = event;
+	      queue_tmp->next = queue;
+	      queue = queue_tmp;
+	    }
 	}
     }
 
