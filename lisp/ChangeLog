@@ -1,5 +1,9 @@
 2001-10-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* bindings.el (completion-ignored-extensions) [ms-dos, windows-nt]:
+	Add .ico, .pif, .lnk, .dll, .drv, .vxd, and .386.
+	Add .so to the Unix and GNU branch.
+
 	* international/latin-1.el: 
 	* international/latin-2.el: 
 	* international/latin-3.el: 
