@@ -1,3 +1,12 @@
+2003-06-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (phys_cursor_in_rect_p): Fix 2003-05-24 change.
+	Adjust phys_cursor.x to be relative to window box, rather than
+	text area before checking -- to ensure cursor is redrawn when
+	exposing window.
+	Note: This also fixes a similar (older) bug if display margins
+	are present.
+
 2003-06-06  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encoding_buffer_size): If coding->type is
