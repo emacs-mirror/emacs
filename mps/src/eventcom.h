@@ -1,7 +1,7 @@
-/* impl.h.eventcom -- Event Logging Common Types
+/* impl.h.eventcom -- Event Logging Common Definitions
  *
- * Copyright (C) 1997, 1998, 1999 Harlequin Group, all rights reserved.
- * $HopeName$
+ * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!eventcom.h(trunk.13) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -9,6 +9,7 @@
 
 #ifndef eventcom_h
 #define eventcom_h
+
 
 #define EventMaxStringLength ((size_t)256) /* Including NUL */
 
@@ -38,9 +39,6 @@ typedef Word EventType;
 #define EventAMCGenDestroy  ((EventType)0xEFA3C94D) /* AMC GeN Destroy */
 #define EventAMCInit        ((EventType)0xEFA3C141) /* AMC INIt */
 #define EventAMCFinish      ((EventType)0xEFA3CF14) /* AMC FINish */
-#define EventAMCBufferInit  ((EventType)0xEFA3CBF1) /* AMC BuFfer Init */
-#define EventAMCBufferFill  ((EventType)0xEFA3CBFF) /* AMC BuFfer Fill */
-#define EventAMCBufferEmpty ((EventType)0xEFA3CBFE) /* AMC BuFfer Empty */
 #define EventAMCTraceBegin  ((EventType)0xEFA3C26B) /* AMC TRace Begin */
 #define EventAMCCondemn     ((EventType)0xEFA3CC04) /* AMC CONdemn */
 #define EventAMCScanBegin   ((EventType)0xEFA3C5CB) /* AMC SCan Begin */
@@ -90,5 +88,6 @@ typedef Word EventType;
 #define EventMeterInit      ((EventType)0xEF3E2141) /* METer INIt */
 #define EventMeterValues    ((EventType)0xEF3E2FA7) /* METer VALues */
 #define EventCBSInit        ((EventType)0xEFCB5141) /* CBS INIt */
+
 
 #endif /* eventcom_h */
