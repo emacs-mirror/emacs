@@ -22,7 +22,7 @@
 #						  9-6-94
 !include makefile.def
 
-ALL		= $(BLD)\addpm.exe $(BLD)\runemacs.exe
+ALL		= $(BLD)\addpm.exe $(BLD)\runemacs.exe $(BLD)\cmdproxy.exe
 !if $(MSVCNT11)
 TRES		= $(BLD)\emacs.res
 !else
@@ -37,6 +37,12 @@ $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
 		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) $(ADVAPI32) user32.lib
+
+cmdproxy:	  $(BLD) $(BLD)\cmdproxy.exe
+$(BLD)\cmdproxy.obj: cmdproxy.c
+$(BLD)\cmdproxy.exe: $(BLD)\cmdproxy.obj
+		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
@@ -93,6 +99,7 @@ install:	all emacs.bat
 		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\cmdproxy.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
 		- $(ADDPM) $(INSTALL_DIR)
 		- $(DEL) ..\same-dir.tst
