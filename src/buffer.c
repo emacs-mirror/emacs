@@ -890,26 +890,29 @@ This does not change the name of the visited file (if any).")
   return current_buffer->name;
 }
 
-DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 2, 0,
+DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
   "Return most recently selected buffer other than BUFFER.\n\
 Buffers not visible in windows are preferred to visible buffers,\n\
 unless optional second argument VISIBLE-OK is non-nil.\n\
 If no other buffer exists, the buffer `*scratch*' is returned.\n\
 If BUFFER is omitted or nil, some interesting buffer is returned.")
-  (buffer, visible_ok)
-     register Lisp_Object buffer, visible_ok;
+  (buffer, visible_ok, frame)
+     register Lisp_Object buffer, visible_ok, frame;
 {
   Lisp_Object Fset_buffer_major_mode ();
   register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
   notsogood = Qnil;
 
+  if (NILP (frame))
+    frame = Fselected_frame ();
+
   tail = Vbuffer_alist;
-  pred = frame_buffer_predicate ();
+  pred = frame_buffer_predicate (frame);
 
   /* Consider buffers that have been seen in the selected frame
      before other buffers.  */
     
-  tem = frame_buffer_list ();
+  tem = frame_buffer_list (frame);
   add_ons = Qnil;
   while (CONSP (tem))
     {
@@ -1111,7 +1114,7 @@ with SIGHUP.")
      and give up if so.  */
   if (b == current_buffer)
     {
-      tem = Fother_buffer (buf, Qnil);
+      tem = Fother_buffer (buf, Qnil, Qnil);
       Fset_buffer (tem);
       if (b == current_buffer)
 	return Qnil;
@@ -1219,6 +1222,8 @@ record_buffer (buf)
      Lisp_Object buf;
 {
   register Lisp_Object link, prev;
+  Lisp_Object frame;
+  frame = Fselected_frame ();
 
   prev = Qnil;
   for (link = Vbuffer_alist; CONSP (link); link = XCONS (link)->cdr)
@@ -1242,7 +1247,8 @@ record_buffer (buf)
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
-  for (link = frame_buffer_list (); CONSP (link); link = XCONS (link)->cdr)
+  for (link = frame_buffer_list (frame); CONSP (link);
+       link = XCONS (link)->cdr)
     {
       if (EQ (XCONS (link)->car, buf))
 	break;
@@ -1254,15 +1260,16 @@ record_buffer (buf)
   if (CONSP (link))
     {
       if (NILP (prev))
-	set_frame_buffer_list (XCONS (frame_buffer_list ())->cdr);
+	set_frame_buffer_list (frame,
+			       XCONS (frame_buffer_list (frame))->cdr);
       else
 	XCONS (prev)->cdr = XCONS (XCONS (prev)->cdr)->cdr;
 	
-      XCONS (link)->cdr = frame_buffer_list ();
-      set_frame_buffer_list (link);
+      XCONS (link)->cdr = frame_buffer_list (frame);
+      set_frame_buffer_list (frame, link);
     }
   else
-    set_frame_buffer_list (Fcons (buf, frame_buffer_list ()));
+    set_frame_buffer_list (frame, Fcons (buf, frame_buffer_list (frame)));
 }
 
 DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
@@ -1317,7 +1324,7 @@ the window-buffer correspondences.")
     error ("Cannot switch buffers in a dedicated window");
 
   if (NILP (buffer))
-    buf = Fother_buffer (Fcurrent_buffer (), Qnil);
+    buf = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
   else
     {
       buf = Fget_buffer (buffer);
@@ -1355,7 +1362,7 @@ do not put this buffer at the front of the list of recently selected ones.")
 {
   register Lisp_Object buf;
   if (NILP (buffer))
-    buf = Fother_buffer (Fcurrent_buffer (), Qnil);
+    buf = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
   else
     {
       buf = Fget_buffer (buffer);
@@ -1621,7 +1628,7 @@ selected window if it is displayed there.")
       XSETBUFFER (buffer, current_buffer);
 
       /* If we're burying the current buffer, unshow it.  */
-      Fswitch_to_buffer (Fother_buffer (buffer, Qnil), Qnil);
+      Fswitch_to_buffer (Fother_buffer (buffer, Qnil, Qnil), Qnil);
     }
   else
     {
