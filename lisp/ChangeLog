@@ -1,3 +1,7 @@
+2002-12-02  Andreas Schwab  <schwab@suse.de>
+
+	* paren.el (show-paren-mismatch-face): Fix face spec.
+
 2002-11-30  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-many-windows): Define as a minor mode.
