@@ -763,7 +763,7 @@ Note:   This is the header of an rmail file.
 Note:   If you are seeing it in rmail,
 Note:    it means the file has no messages in it.\n\^_")))
 
-;; Decode Babyl formated part at the head of current buffer by
+;; Decode Babyl formatted part at the head of current buffer by
 ;; rmail-file-coding-system, or if it is nil, do auto conversion.
 
 (defun rmail-decode-babyl-format ()
