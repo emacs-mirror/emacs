@@ -1117,7 +1117,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 
 Setting this variable makes it local to the current buffer."
   :tag "Highlight trailing whitespace."
-  :set #'(lambda (symbol value) (set-default symbol value))
   :type 'boolean
   :group 'font-lock)
 

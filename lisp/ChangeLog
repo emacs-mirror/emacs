@@ -1,3 +1,8 @@
+2001-11-26  Sam Steingold  <sds@gnu.org>
+
+	* frame.el (show-trailing-whitespace): Remove :set argument (the
+	value was essentially identical to the defalt).
+
 2001-11-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* hexl.el (hexl-mode, hexl-follow-ascii): Remove make-local-hook.
@@ -53,7 +58,7 @@
 
 	* language/devan-util.el (dev-char-glyph): Escape `"' in
 	string literals.
-	(dev-glyph-glyph, dev-glyph-glyph-2) 
+	(dev-glyph-glyph, dev-glyph-glyph-2)
 	(devanagari-compose-syllable-region): Likewise.
 
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
