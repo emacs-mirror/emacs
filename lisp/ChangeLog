@@ -1,8 +1,19 @@
+2003-06-13  Ilya N. Golubev  <gin@mo.msk.ru>  (tiny change)
+
+	* shell.el (shell-command-separator-regexp): New variable.
+	(shell-directory-tracker): Make regexp used for skipping to next
+	command correspond to one used for command itself.
+
+2003-06-13  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* textmodes/texinfmt.el (texinfo-format-scan): Silence
+	`whitespace-cleanup'.
+
 2003-06-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/timeclock.el (display-time-hook)
 	(timeclock-modeline-display): Define for byte-compiler.
-	(timeclock-time-to-date, timeclock-workday-remaining) 
+	(timeclock-time-to-date, timeclock-workday-remaining)
 	(timeclock-time-to-seconds, timeclock-seconds-to-time): Move
 	earlier in the file so defined before used.
 	(timeclock-status-string): No need for `let*' so use `let'.
