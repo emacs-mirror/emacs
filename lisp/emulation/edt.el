@@ -1185,7 +1185,7 @@ Accepts a positive prefix argument for the number times to duplicate the line."
   "Display the current time."
   (interactive)
   (set 'time-string (current-time-string))
-  (message time-string))
+  (message "%s" time-string))
 
 ;;;
 ;;; LEARN
@@ -1408,7 +1408,7 @@ and the cursor is left to rest at the beginning of that word."
   "Prompt for a y or n answer with positive default.
 Optional second argument NOT-YES changes default to negative.
 Like emacs y-or-n-p, also accepts space as y and DEL as n."
-  (message (format "%s[%s]" prompt (if not-yes "n" "y")))
+  (message "%s[%s]" prompt (if not-yes "n" "y"))
   (let ((doit t))
     (while doit
       (setq doit nil)
@@ -1420,8 +1420,8 @@ Like emacs y-or-n-p, also accepts space as y and DEL as n."
 	      ((= ans ?\r) (setq edt-last-answer (not not-yes)))
 	      (t
 	       (setq doit t) (beep)
-	       (message (format "Please answer y or n.  %s[%s]"
-				prompt (if not-yes "n" "y"))))))))
+	       (message "Please answer y or n.  %s[%s]"
+			prompt (if not-yes "n" "y")))))))
   edt-last-answer)
 
 (defun edt-load-xkeys (file)
