@@ -164,7 +164,7 @@ this:
 
   When a program loops infinitely and fails to return, your first
 problem is to stop the loop.  On most operating systems, you can do this
-with @kbd{C-g}, which causes quit.
+with @kbd{C-g}, which causes a @dfn{quit}.
 
   Ordinary quitting gives no information about why the program was
 looping.  To get more information, you can set the variable

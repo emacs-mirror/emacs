@@ -161,7 +161,7 @@ that context.
 
 @item
 Anything which acts like a temporary mode or state which the user can
-enter and leave should define @kbd{@key{ESC} @key{ESC}} of
+enter and leave should define @kbd{@key{ESC} @key{ESC}} or
 @kbd{@key{ESC} @key{ESC} @key{ESC}} as a way to escape.
 
 For a state which accepts ordinary Emacs commands, or more generally any

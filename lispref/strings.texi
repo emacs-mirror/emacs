@@ -13,8 +13,8 @@
 
   A string in Emacs Lisp is an array that contains an ordered sequence
 of characters.  Strings are used as names of symbols, buffers, and
-files, to send messages to users, to hold text being copied between
-buffers, and for many other purposes.  Because strings are so important,
+files; to send messages to users; to hold text being copied between
+buffers; and for many other purposes.  Because strings are so important,
 Emacs Lisp has many functions expressly for manipulating them.  Emacs
 Lisp programs use strings more often than individual characters.
 
@@ -36,8 +36,7 @@ keyboard character events.
 @node String Basics
 @section String and Character Basics
 
-  Strings in Emacs Lisp are arrays that contain an ordered sequence of
-characters.  Characters are represented in Emacs Lisp as integers;
+  Characters are represented in Emacs Lisp as integers;
 whether an integer is a character or not is determined only by how it is
 used.  Thus, strings really contain integers.
 
@@ -55,9 +54,9 @@ and @code{aset} (@pxref{Array Functions}).
   There are two text representations for non-@sc{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
 Representations}).  @sc{ASCII} characters always occupy one byte in a
-string; in fact, there is no real difference between the two
-representation for a string which is all @sc{ASCII}.  For most Lisp
-programming, you don't need to be concerned with these two
+string; in fact, when a string is all @sc{ASCII}, there is no real
+difference between the unibyte and multibyte representations.
+For most Lisp programming, you don't need to be concerned with these two
 representations.
 
   Sometimes key sequences are represented as strings.  When a string is
@@ -88,7 +87,7 @@ strings also copy the properties of the characters being copied.
 copy them into buffers.  @xref{Character Type}, and @ref{String Type},
 for information about the syntax of characters and strings.
 @xref{Non-ASCII Characters}, for functions to convert between text
-representations and encode and decode character codes.
+representations and to encode and decode character codes.
 
 @node Predicates for Strings
 @section The Predicates for Strings
@@ -275,8 +274,9 @@ Lists}.
 Split @var{string} into substrings in between matches for the regular
 expression @var{separators}.  Each match for @var{separators} defines a
 splitting point; the substrings between the splitting points are made
-into a list, which is the value.  If @var{separators} is @code{nil} (or
-omitted), the default is @code{"[ \f\t\n\r\v]+"}.
+into a list, which is the value returned by @code{split-string}.
+If @var{separators} is @code{nil} (or omitted),
+the default is @code{"[ \f\t\n\r\v]+"}.
 
 For example,
 
@@ -326,7 +326,7 @@ may be either a character or a (smaller) string.
 
 Since it is impossible to change the length of an existing string, it is
 an error if @var{obj} doesn't fit within @var{string}'s actual length,
-of if any new character requires a different number of bytes from the
+or if any new character requires a different number of bytes from the
 character currently present at that point in @var{string}.
 @end defun
 
@@ -351,7 +351,8 @@ in case if @code{case-fold-search} is non-@code{nil}.
 
 @defun string= string1 string2
 This function returns @code{t} if the characters of the two strings
-match exactly; case is significant.
+match exactly.
+Case is always significant, regardless of @code{case-fold-search}.
 
 @example
 (string= "abc" "abc")
@@ -520,7 +521,7 @@ enough to retain.
 @defun number-to-string number
 @cindex integer to string
 @cindex integer to decimal
-This function returns a string consisting of the printed
+This function returns a string consisting of the printed base-ten
 representation of @var{number}, which may be an integer or a floating
 point number.  The value starts with a sign if the argument is
 negative.
@@ -592,8 +593,8 @@ Functions}.
 @cindex strings, formatting them
 
   @dfn{Formatting} means constructing a string by substitution of
-computed values at various places in a constant string.  This string
-controls how the other values are printed as well as where they appear;
+computed values at various places in a constant string.  This constant string
+controls how the other values are printed, as well as where they appear;
 it is called a @dfn{format string}.
 
   Formatting is often useful for computing messages to be displayed.  In
@@ -624,7 +625,7 @@ For example:
 @end example
 
   If @var{string} contains more than one format specification, the
-format specifications correspond with successive values from
+format specifications correspond to successive values from
 @var{objects}.  Thus, the first format specification in @var{string}
 uses the first such value, the second format specification uses the
 second such value, and so on.  Any extra format specifications (those
@@ -686,7 +687,7 @@ using either exponential notation or decimal-point notation, whichever
 is shorter.
 
 @item %%
-A single @samp{%} is placed in the string.  This format specification is
+Replace the specification with a single @samp{%}.  This format specification is
 unusual in that it does not use a value.  For example, @code{(format "%%
 %d" 30)} returns @code{"% 30"}.
 @end table
@@ -855,10 +856,10 @@ has the same result as @code{upcase}.
 @end defun
 
 @defun upcase-initials string
-This function capitalizes the initials of the words in @var{string}.
+This function capitalizes the initials of the words in @var{string},
 without altering any letters other than the initials.  It returns a new
 string whose contents are a copy of @var{string}, in which each word has
-been converted to upper case.
+had its initial letter converted to upper case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax

@@ -653,8 +653,8 @@ the entries by the dates they apply to.
 
   As with simple diary display, you can print a hard copy of the buffer
 with @code{print-diary-entries}.  To print a hard copy of a day-by-day
-diary for a week by positioning point on Sunday of that week, type
-@kbd{7 d} and then do @kbd{M-x print-diary-entries}.  As usual, the
+diary for a week, position point on Sunday of that week, type
+@kbd{7 d}, and then do @kbd{M-x print-diary-entries}.  As usual, the
 inclusion of the holidays slows down the display slightly; you can speed
 things up by setting the variable @code{holidays-in-diary-buffer} to
 @code{nil}.
