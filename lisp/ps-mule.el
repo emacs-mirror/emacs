@@ -300,7 +300,7 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (chinese-big5-2
      (normal bdf "taipei24.bdf" chinese-big5 2))
     (chinese-sisheng
-     (normal bdf ("sish24-etl.bdf" "etl24-sisheng.bdf") ps-mule-encode-8bit 1))
+     (normal bdf ("sish24-etl.bdf" "etl24-sisheng.bdf") ps-mule-encode-7bit 1))
     (ipa
      (normal bdf ("ipa24-etl.bdf" "etl24-ipa.bdf") ps-mule-encode-8bit 1))
     (vietnamese-viscii-lower
