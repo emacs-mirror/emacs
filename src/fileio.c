@@ -3106,15 +3106,18 @@ Otherwise returns nil.")
       
       errno = 0;
       valsize = readlink (XSTRING (filename)->data, buf, bufsize);
-      if (valsize == -1
+      if (valsize == -1)
+	{
 #ifdef ERANGE
 	  /* HP-UX reports ERANGE if buffer is too small.  */
-	  && errno != ERANGE
+	  if (errno == ERANGE)
+	    valsize = bufsize;
+	  else
 #endif
-	  )
-	{
-	  xfree (buf);
-	  return Qnil;
+	    {
+	      xfree (buf);
+	      return Qnil;
+	    }
 	}
     }
   while (valsize >= bufsize);
