@@ -245,14 +245,17 @@ Do the same for the keys of the same name."
 		    pending-undo-list)
 	     buffer-undo-list)))
 
-(defvar yank-menu-length 100
+(defvar yank-menu-length 20
   "*Maximum length to display in the yank-menu.")
 
 (defun menu-bar-update-yank-menu (string old)
   (let ((front (car (cdr yank-menu)))
 	(menu-string (if (<= (length string) yank-menu-length)
 			 string
-		       (substring string 0 yank-menu-length))))
+		       (concat
+			(substring string 0 (/ yank-menu-length 2))
+			"..."
+			(substring string (- (/ yank-menu-length 2)))))))
     ;; If we're supposed to be extending an existing string, and that
     ;; string really is at the front of the menu, then update it in place.
     (if (and old (or (eq old (car front))
