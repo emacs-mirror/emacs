@@ -504,7 +504,7 @@ The pretty-printer that for EWOC will be called for all NODES."
 Don't move if we are at the first element, or if EWOC is empty.
 Returns the node we moved to."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((node (ewoc-locate ewoc (point) (ewoc--last-node ewoc))))
+      ((node (ewoc-locate ewoc (point))))
     (when node
       ;; If we were past the last element, first jump to it.
       (when (>= (point) (ewoc--node-start-marker (ewoc--node-right node)))
@@ -521,7 +521,7 @@ Returns the node we moved to."
   "Move point to the ARGth next element.
 Returns the node (or nil if we just passed the last node)."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((node (ewoc-locate ewoc (point) (ewoc--last-node ewoc))))
+      ((node (ewoc-locate ewoc (point))))
     (while (and node (> arg 0))
       (setq arg (1- arg))
       (setq node (ewoc--node-next dll node)))
@@ -578,7 +578,7 @@ remaining arguments will be passed to PREDICATE."
       (if (apply predicate (ewoc--node-data node) args)
 	  (push (ewoc--node-data node) result))
       (setq node (ewoc--node-prev dll node)))
-    result))
+    (nreverse result)))
 
 (defun ewoc-buffer (ewoc)
   "Return the buffer that is associated with EWOC.
