@@ -100,6 +100,7 @@ struct buffer buffer_local_types;
 
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
+void set_buffer_internal_1 ();
 static void call_overlay_mod_hooks ();
 static void swap_out_buffer_local_variables ();
 
@@ -1181,7 +1182,7 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
   return buf;
 }
 
-/* Set the current buffer to b */
+/* Set the current buffer to B.  */
 
 void
 set_buffer_internal (b)
@@ -1195,6 +1196,23 @@ set_buffer_internal (b)
     return;
 
   windows_or_buffers_changed = 1;
+  set_buffer_internal_1 (b);
+}
+
+/* Set the current buffer to B, and do not set windows_or_buffers_changed.
+   This is used by redisplay.  */
+
+void
+set_buffer_internal_1 (b)
+     register struct buffer *b;
+{
+  register struct buffer *old_buf;
+  register Lisp_Object tail, valcontents;
+  Lisp_Object tem;
+
+  if (current_buffer == b)
+    return;
+
   old_buf = current_buffer;
   current_buffer = b;
   last_known_column_point = -1;   /* invalidate indentation cache */
@@ -2429,9 +2447,6 @@ buffer.")
 
       /* Redisplay where the overlay is going to be.  */
       redisplay_region (b, XINT (beg), XINT (end));
-
-      /* Don't limit redisplay to the selected window.  */
-      windows_or_buffers_changed = 1;
     }
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
