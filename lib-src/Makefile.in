@@ -83,6 +83,8 @@ archlibdir=@archlibdir@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+# By default, we uphold the dignity of our programs.
+INSTALL_STRIP =
 
 # ========================== Lists of Files ===========================
 
@@ -179,18 +181,24 @@ MOVE_FLAGS=
 #define BLESSMAIL
 #endif
 
-#if defined (KERBEROS) && defined (HAVE_LIBKRB) && defined (HAVE_LIBDES)
-MOVE_LIBS= -lkrb -ldes -lcom_err
-/* For KERBEROS + KRB5
-    MOVE_LIBS= -lkrb5 -lcrypto -lisode -lcom_err
-    Add "-lhesiod" if HESIOD is defined.  */
-#else
-#if defined (KERBEROS) && defined (HAVE_LIBKRB)
-MOVE_LIBS= -lkrb -lcom_err
-#else
-MOVE_LIBS=
+#ifdef KERBEROS
+#ifdef HAVE_LIBKRB
+  /* For krb5, use -lkrb5 */
+  KRBLIB=-lkrb
 #endif
+#ifdef HAVE_LIBDES
+  /* For krb4, use -lcrypto */
+  DESLIB=-ldes
 #endif
+#ifdef HAVE_LIBCOM_ERR
+  COM_ERRLIB=-lcom_err
+#endif
+#endif /* KERBEROS */
+
+/* If HESIOD is defined, set this to "-lhesiod". */
+HESIODLIB=
+
+MOVE_LIBS=$(KRBLIB) $(DESLIB) $(COM_ERRLIB) $(HESIODLIB)
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
 
@@ -246,7 +254,7 @@ ${archlibdir}: all
 	$(top_srcdir)/mkinstalldirs ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
-	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
+	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file ${archlibdir}/$$file ; \
 	  done ; \
         fi
         if [ `(cd ${archlibdir} && /bin/pwd)` \
