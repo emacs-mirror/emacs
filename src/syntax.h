@@ -51,95 +51,91 @@ enum syntaxcode
     Smax	 /* Upper bound on codes that are meaningful */
   };
 
-/* Fetch the syntax entry for char C from table TABLE.
-   This returns the whole entry (normally a cons cell)
-   and does not do any kind of inheritance.  */
-
-#if 1
-#define RAW_SYNTAX_ENTRY(table, c)				\
-  (XCHAR_TABLE (table)->contents[(unsigned char) (c)])
+/* Set the syntax entry VAL for char C in table TABLE.  */
 
 #define SET_RAW_SYNTAX_ENTRY(table, c, val)			\
-  (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))
-#else
-#define RAW_SYNTAX_ENTRY(table, c)				\
-  ((c) >= 128							\
-   ? raw_syntax_table_lookup (table, c)				\
-   : XCHAR_TABLE (table)->contents[(unsigned char) (c)])
+  ((unsigned)(c) < 128						\
+   ? (XCHAR_TABLE (table)->contents[(unsigned) (c)] = (val))	\
+   : Faset ((table), (unsigned) (c), (val)))
 
-#define SET_RAW_SYNTAX_ENTRY(table, c, val)			\
-  ((c) >= 128							\
-   ? set_raw_syntax_table_lookup (table, c, (val))		\
-   : XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))
-#endif
-
-/* Extract the information from the entry for character C
-   in syntax table TABLE.  Do inheritance.  */
+/* Fetch the syntax entry for char C in syntax table TABLE.
+   This macro is called only when C is less than CHAR_TABLE_ORDINARY_SLOTS.
+   Do inheritance.  */
 
 #ifdef __GNUC__
-#define SYNTAX_ENTRY(c)							\
-  ({ Lisp_Object temp, table;						\
-     unsigned char cc = (c);						\
-     table = current_buffer->syntax_table;				\
-     while (!NILP (table))						\
-       {								\
-	 temp = RAW_SYNTAX_ENTRY (table, cc);				\
-	 if (!NILP (temp))						\
-	   break;							\
-	 table = XCHAR_TABLE (table)->parent;				\
-       }								\
+#define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)			\
+  ({ Lisp_Object tbl = table;					\
+     Lisp_Object temp = XCHAR_TABLE (tbl)->contents[(c)];	\
+     while (NILP (temp))					\
+       {							\
+	 tbl = XCHAR_TABLE (tbl)->parent;			\
+	 if (NILP (tbl))					\
+	   break;						\
+	 temp = XCHAR_TABLE (tbl)->contents[(c)];		\
+       }							\
      temp; })
+#else
+extern Lisp_Object syntax_temp;
+extern Lisp_Object syntax_parent_lookup ();
 
+#define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)	    	\
+  (syntax_temp = XCHAR_TABLE (table)->contents[(c)],	\
+   (NILP (syntax_temp)				    	\
+    ? syntax_parent_lookup (table, (c))		    	\
+    : syntax_temp))
+#endif
+
+/* Fetch the syntax entry for char C in the current syntax table.
+   This returns the whole entry (normally a cons cell).
+   Do Inheritance.  */
+
+#define SYNTAX_ENTRY(c)							      \
+  ((unsigned) (c) < CHAR_TABLE_ORDINARY_SLOTS				      \
+   ? SYNTAX_ENTRY_FOLLOW_PARENT (current_buffer->syntax_table, (unsigned) (c))\
+   : Faref (current_buffer->syntax_table, make_number (c)))
+
+/* Extract the information from the entry for character C
+   in the current syntax table.  */
+
+#ifdef __GNUC__
 #define SYNTAX(c)							\
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
       ? (enum syntaxcode) (XINT (XCONS (temp)->car) & 0xff)		\
-      : wrong_type_argument (Qconsp, temp)); })
+      : Swhitespace); })
 
 #define SYNTAX_WITH_FLAGS(c)						\
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
       ? XINT (XCONS (temp)->car)					\
-      : wrong_type_argument (Qconsp, temp)); })
+      : (int) Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
       ? XINT (XCONS (temp)->cdr)					\
-      : wrong_type_argument (Qconsp, temp)); })
+      : Qnil); })
 #else
-extern Lisp_Object syntax_temp;
-extern Lisp_Object syntax_parent_lookup ();
-
-#define SYNTAX_ENTRY(c)							\
-  (syntax_temp								\
-     = RAW_SYNTAX_ENTRY (current_buffer->syntax_table, (c)),		\
-   (NILP (syntax_temp)							\
-    ? (syntax_temp							\
-       = syntax_parent_lookup (current_buffer->syntax_table,		\
-			       (unsigned char) (c)))			\
-    : syntax_temp))
-
 #define SYNTAX(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? (enum syntaxcode) (XINT (XCONS (syntax_temp)->car) & 0xff)	\
-    : wrong_type_argument (Qconsp, syntax_temp)))
+    : Swhitespace))
 
 #define SYNTAX_WITH_FLAGS(c)						\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? XINT (XCONS (syntax_temp)->car)					\
-    : wrong_type_argument (Qconsp, syntax_temp)))
+    : (int) Swhitespace))
 
 #define SYNTAX_MATCH(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
     ? XINT (XCONS (syntax_temp)->cdr)					\
-    : wrong_type_argument (Qconsp, syntax_temp)))
+    : Qnil))
 #endif
 
 /* Then there are six single-bit flags that have the following meanings:
