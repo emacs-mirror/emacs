@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 extern char *index ();
 
-Lisp_Object Vprefix_arg, Vcurrent_prefix_arg, Qminus, Qplus;
+Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
@@ -198,7 +198,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   /* Save this now, since use of minibuffer will clobber it. */
-  prefix_arg = Vcurrent_prefix_arg;
+  prefix_arg = current_perdisplay->Vcurrent_prefix_arg;
 
  retry:
 
@@ -655,7 +655,7 @@ syms_of_callint ()
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
 
-  DEFVAR_LISP ("prefix-arg", &Vprefix_arg,
+  DEFVAR_DISPLAY ("prefix-arg", Vprefix_arg,
     "The value of the prefix argument for the next editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
 or a list whose car is a number for just one or more C-U's\n\
@@ -665,15 +665,15 @@ You cannot examine this variable to find the argument for this command\n\
 since it has been set to nil by the time you can look.\n\
 Instead, you should use the variable `current-prefix-arg', although\n\
 normally commands can get this prefix argument with (interactive \"P\").");
-  Vprefix_arg = Qnil;
+  the_only_perdisplay.Vprefix_arg = Qnil;
 
-  DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
+  DEFVAR_DISPLAY ("current-prefix-arg", Vcurrent_prefix_arg,
     "The value of the prefix argument for this editing command.\n\
 It may be a number, or the symbol `-' for just a minus sign as arg,\n\
 or a list whose car is a number for just one or more C-U's\n\
 or nil if no argument has been specified.\n\
 This is what `(interactive \"P\")' returns.");
-  Vcurrent_prefix_arg = Qnil;
+  the_only_perdisplay.Vcurrent_prefix_arg = Qnil;
 
   DEFVAR_LISP ("command-history", &Vcommand_history,
     "List of recent commands that read arguments from terminal.\n\
