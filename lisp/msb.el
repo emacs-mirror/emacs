@@ -3,8 +3,6 @@
 ;;
 ;; Author: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 8 Oct 1993
-;; $Revision: 3.21 $
-;; $Date: 1994/12/22 07:58:27 $
 ;; Keywords: mouse buffer menu 
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -21,11 +19,6 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; LCD Archive Entry:
-;; msb|Lars Lindberg|Lars.Lindberg@sypro.cap.se|
-;; Choose buffer with the mouse.
-;; $Date: 1994/12/22 07:58:27 $|$Revision: 3.21 $|~/packages/msb.el.Z|
-
 ;;; Commentary:
 ;;
 ;; Purpose of this package:
@@ -37,26 +30,25 @@
 ;;   (require 'msb)
 ;;   Note! You now use msb instead of mouse-buffer-menu.
 ;;
-;;   Now try c-mouse-down-1 (Press <CTRL> and mouse button 1 at the
-;;   same time).
+;;   Now try the menu bar Buffers menu.
 ;;
 ;; Customization:
-;;   Look at the variable 'msb-menu-cond' for deciding what menus you
-;;   want. It's not that hard to customize, despite my not-so-good
-;;   doc-string. Feel free to send me a better doc-string.
+;;   Look at the variable `msb-menu-cond' for deciding what menus you
+;;   want.  It's not that hard to customize, despite my not-so-good
+;;   doc-string.  Feel free to send me a better doc-string.
 ;;   There are some constants for you to try here:
 ;;   msb--few-menus
 ;;   msb--very-many-menus (default)
 ;;   
-;;   Look at the variable 'msb-item-handling-function' for customization
-;;   of the appearance of every menu item. Try for instance setting
-;;   it to 'msb-alon-item-handler.
+;;   Look at the variable `msb-item-handling-function' for customization
+;;   of the appearance of every menu item.  Try for instance setting
+;;   it to `msb-alon-item-handler'.
 ;;   
-;;   Look at the variable 'msb-item-sort-function' for customization
-;;   of sorting the menus. Set it to t for instance, which means no
+;;   Look at the variable `msb-item-sort-function' for customization
+;;   of sorting the menus.  Set it to t for instance, which means no
 ;;   sorting - you will get latest used buffer first.
 ;;
-;;   Also check out the variable 'msb-display-invisible-buffers-p'
+;;   Also check out the variable `msb-display-invisible-buffers-p'.
 
 ;; Known bugs:
 ;; - `msb' does not work on a non-X-toolkit Emacs.
@@ -68,54 +60,6 @@
 ;;   be done by a user-defined function a lot of cases would be
 ;;   solved.
 ;; - [Jim] suggested that the Frame menu became a part of the buffer menu.
-
-;;; Change Log
-;; 3.21 22/12-94
-;;	Fixed bug that occured in non X-toolkit versions of Emacs.
-;;	[Chalupsky] pointed out that a global `save-match-data' is
-;;	necessary.
-;;	Bug found.  Thanks [kifer].
-;; 3.16 20/12-94
-;;	Added separators to the menu.  New variable `msb-separator-diff'.
-;;	New variable `msb-files-by-directory-sort-key'.
-;;	Removed `msb--many-menus.'
-;;	Fixed bugs.
-;; 3.13 20/12-94
-;;	Menu fix for non-X-toolkit Emacsen and new "process"
-;;	menu. Thanks [jim].
-;;      Bug for 'files-by-type'.
-;;	Restored the call to `msb-after-load-hooks'.  Thanks [larry].
-;;      Major fixes by [Ake].
-;;      Menu-bar buffer-menu now has menu-toggle at top level.
-;;  3.6 16/12-94
-;;	Added variable `msb-max-file-menu-items'.
-;;	Removed a large part of the change log.
-;;	Found bug.
-;;  3.3 16/12-94
-;;      Found bugs.
-;;  3.1 16/12-94
-;;      Now has two types of menus - "files by directory" and "files
-;;      by type".
-;;      Added variable `msb-files-by-directory'.
-;;      Fixed a number of bugs for older versions.
-;;  2.11 16/12-94
-;;      Added 'no-multi to msb-menu-cond.
-;;      Added possibility to shift the menu leftwards. Thanks [kifer].
-;;  2.8 15/12-94
-;;      Now aware of earlier versions of Emacs that doesn't have the
-;;      function `frame-or-buffer-changed-p' or the variable
-;;      `menu-bar-update-hook'.  Thanks [will].
-;;  2.7 14/12-94
-;;	Better installation.
-;;  2.6 14/12-94
-;;	Now only makes up the menu when necessary.
-;;	Added menu-bar support.
-;;	Now handles errors in msb-menu-cond better. Thanks [jaalto].
-;;      Added MH-awareness. Thanks [kifer].
-;;      Added autoload statements.
-;;  2.3 8/12-94
-;;  	Now uses RCS version numbering for msb.el version number.
-;;  	Submitted this to LCD.
 
 ;;; Thanks goes to
 ;;  [msb] - Mark Brader <msb@sq.com>
@@ -138,9 +82,9 @@
 (require 'cl)
 
 ;;;
-;;; Some example constants to be used for 'msb-menu-cond'. See that
-;;; variable for more information. Please note that if the condition
-;;; returns 'multi, then the buffer can appear in several menus.
+;;; Some example constants to be used for `msb-menu-cond'.  See that
+;;; variable for more information.  Please note that if the condition
+;;; returns `multi', then the buffer can appear in several menus.
 ;;;
 (defconst msb--few-menus
   '(((and (boundp 'server-buffer-clients)
@@ -276,7 +220,7 @@ Nil means no limit.")
 (defvar msb-max-file-menu-items 10
   "*The maximum number of items from different directories.
 
-When the menu is of type 'file by directory', this is the maximum
+When the menu is of type `file by directory', this is the maximum
 number of buffers that are clumped togehter from different
 directories.
 
@@ -306,17 +250,17 @@ names that starts with a space character.")
   "*The appearance of a buffer menu.
 
 The default function to call for handling the appearance of a menu
-item. It should take to arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,
+item.  It should take to arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,
 where the latter is the max length of all buffer names.
 When the function is called, BUFFER is the current buffer.
-This function is called for items in the variable 'msb-menu-cond' that
-have nil as ITEM-HANDLING-FUNCTION. See 'msb-menu-cond' for more
+This function is called for items in the variable `msb-menu-cond' that
+have nil as ITEM-HANDLING-FUNCTION.  See `msb-menu-cond' for more
 information.")
 
 (defvar msb-item-sort-function 'msb-sort-by-name
   "*The order of items in a buffer menu.
 The default function to call for handling the order of items in a menu
-item. This function is called like a sort function. The items
+item.  This function is called like a sort function.  The items
 look like (ITEM-NAME . BUFFER).
 ITEM-NAME is the name of the item that will appear in the menu.
 BUFFER is the buffer, this is not necessarily the current buffer.
@@ -337,29 +281,29 @@ CONDITION, just like a lisp cond: When hitting a true condition, the
 other criterias are *not* tested and the buffer name will appear in
 the menu with the menu-title corresponding to the true condition.
 
-If the condition returns the symbol 'multi, then the buffer will be
+If the condition returns the symbol `multi', then the buffer will be
 added to this menu *and* tested for other menus too.  If it returns
-'no-multi, then the buffer will only be added if it hasn't been added
+`no-multi', then the buffer will only be added if it hasn't been added
 to any other menu.
 
 During this test, the buffer in question is the current buffer, and
 the test is surrounded by calls to `save-excursion' and
-`save-match-data'
+`save-match-data'.
 
-The categories are sorted by MENU-SORT-KEY. Smaller keys are on
-top. nil means don't display this menu.
+The categories are sorted by MENU-SORT-KEY.  Smaller keys are on
+top.  nil means don't display this menu.
 
-MENU-TITLE is really a format. If you add %d in it, the %d is replaced
+MENU-TITLE is really a format.  If you add %d in it, the %d is replaced
 with the number of items in that menu.
 
-ITEM-HANDLING-FN, is optional. If it is supplied and is a
+ITEM-HANDLING-FN, is optional.  If it is supplied and is a
 function, than it is used for displaying the items in that particular
 buffer menu, otherwise the function pointed out by
-'msb-item-handling-function' is used.
+`msb-item-handling-function' is used.
 
 ITEM-SORT-FN, is also optional.
 If it is not supplied, the function pointed out by
-'msb-item-sort-function' is used.
+`msb-item-sort-function' is used.
 If it is nil, then no sort takes place and the buffers are presented
 in least-recently-used order.
 If it is t, then no sort takes place and the buffers are presented in
@@ -367,8 +311,8 @@ most-recently-used order.
 If it is supplied and non-nil and not t than it is used for sorting
 the items in that particular buffer menu.
 
-Note1: There should always be a 'catch-all' as last element,
-in this list. That is an element like (t TITLE ITEM-HANDLING-FUNCTION).
+Note1: There should always be a `catch-all' as last element,
+in this list.  That is an element like (t TITLE ITEM-HANDLING-FUNCTION).
 Note2: A buffer menu appears only if it has at least one buffer in it.
 Note3: If you have a CONDITION that can't be evaluated you will get an
 error every time you do \\[msb].")
@@ -387,14 +331,14 @@ error every time you do \\[msb].")
 (defvar msb--error nil)
 
 ;;;
-;;; Some example function to be used for 'msb-item-sort-function'.
+;;; Some example function to be used for `msb-item-sort-function'.
 ;;;
 (defun msb-item-handler (buffer &optional maxbuf)
   "Create one string item, concerning BUFFER, for the buffer menu.
 The item looks like:
 *% <buffer-name>
-The '*' appears only if the buffer is marked as modified.
-The '%' appears only if the buffer is read-only.
+The `*' appears only if the buffer is marked as modified.
+The `%' appears only if the buffer is read-only.
 Optional second argument MAXBUF is completely ignored."
   (let ((name (buffer-name))
 	(modified (if (buffer-modified-p) "*" " "))
@@ -404,23 +348,23 @@ Optional second argument MAXBUF is completely ignored."
 
 (eval-when-compile (require 'dired))
 
-;; 'dired' can be called with a list of the form (directory file1 file2 ...)
-;; which causes 'dired-directory' to be in the same form.
+;; `dired' can be called with a list of the form (directory file1 file2 ...)
+;; which causes `dired-directory' to be in the same form.
 (defun msb--dired-directory ()
   (cond ((stringp dired-directory)
 	 (abbreviate-file-name (expand-file-name dired-directory)))
 	((consp dired-directory)
 	 (abbreviate-file-name (expand-file-name (car dired-directory))))
 	(t
-	 (error "Unknown type of 'dired-directory' in buffer %s"
+	 (error "Unknown type of `dired-directory' in buffer %s"
 		(buffer-name)))))
 
 (defun msb-dired-item-handler (buffer &optional maxbuf)
   "Create one string item, concerning a dired BUFFER, for the buffer menu.
 The item looks like:
 *% <buffer-name>
-The '*' appears only if the buffer is marked as modified.
-The '%' appears only if the buffer is read-only.
+The `*' appears only if the buffer is marked as modified.
+The `%' appears only if the buffer is read-only.
 Optional second argument MAXBUF is completely ignored."
   (let ((name (msb--dired-directory))
 	(modified (if (buffer-modified-p) "*" " "))
@@ -431,9 +375,9 @@ Optional second argument MAXBUF is completely ignored."
   "Create one string item for the buffer menu.
 The item looks like:
 <buffer-name> *%# <file-name>
-The '*' appears only if the buffer is marked as modified.
-The '%' appears only if the buffer is read-only.
-The '#' appears only version control file (SCCS/RCS)."
+The `*' appears only if the buffer is marked as modified.
+The `%' appears only if the buffer is read-only.
+The `#' appears only version control file (SCCS/RCS)."
   (format (format "%%%ds  %%s%%s%%s  %%s" maxbuf)
           (buffer-name buffer)
           (if (buffer-modified-p) "*" " ")
@@ -442,7 +386,7 @@ The '#' appears only version control file (SCCS/RCS)."
           (or buffer-file-name "")))
 
 ;;;
-;;; Some example function to be used for 'msb-item-handling-function'.
+;;; Some example function to be used for `msb-item-handling-function'.
 ;;;
 (defun msb-sort-by-name (item1 item2)
   "Sorts the items depending on their buffer-name
@@ -452,7 +396,7 @@ An item look like (NAME . BUFFER)."
 
 
 (defun msb-sort-by-directory (item1 item2)
-  "Sorts the items depending on their directory. Made for dired.
+  "Sorts the items depending on their directory.  Made for dired.
 An item look like (NAME . BUFFER)."
   (string-lessp (save-excursion (set-buffer (cdr item1)) (msb--dired-directory))
 		(save-excursion (set-buffer (cdr item2)) (msb--dired-directory))))
@@ -468,8 +412,8 @@ An item look like (NAME . BUFFER)."
 This command switches buffers in the window that you clicked on, and
 selects that window.
 
-See the function 'mouse-select-buffer' and the variable
-'msb-menu-cond' for more information about how the menus are split."
+See the function `mouse-select-buffer' and the variable
+`msb-menu-cond' for more information about how the menus are split."
   (interactive "e")
   (let ((buffer (mouse-select-buffer event))
 	(window (posn-window (event-start event))))
@@ -497,7 +441,7 @@ If the argument is left out or nil, then the current buffer is considered."
 
 ;; Create an alist with all buffers from LIST that lies under the same
 ;; directory will be in the same item as the directory string as
-;;'((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) ...)
+;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) ...)
 (defun msb--init-file-alist (list)
   (let ((buffer-alist
 	 (sort (mapcan
@@ -510,7 +454,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	       (function (lambda (item1 item2)
 			   (string< (car item1) (car item2)))))))
     ;; Make alist that looks like
-    ;;'((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K)) ...)
+    ;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K)) ...)
     (let ((path nil)
 	  (buffers nil)
 	  (result nil))
@@ -608,8 +552,8 @@ If the argument is left out or nil, then the current buffer is considered."
 
 ;; Create a vector as:
 ;; [BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER)
-;; from an element in 'msb-menu-cond'. See that variable for a
-;; description of it's elements.
+;; from an element in `msb-menu-cond'.  See that variable for a
+;; description of its elements.
 (defun msb--create-function-info (menu-cond-elt)
   (let* ((list-symbol (make-symbol "-msb-buffer-list"))
 	 (tmp-ih (and (> (length menu-cond-elt) 3)
@@ -622,7 +566,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		  msb-item-sort-function))
 	 (sorter (if (or (fboundp tmp-s)
 			 (null tmp-s)
-			 (eq tmp-s 't))
+			 (eq tmp-s t))
 		    tmp-s
 		   msb-item-sort-function)))
     (when (< (length menu-cond-elt) 3)
@@ -633,9 +577,9 @@ If the argument is left out or nil, then the current buffer is considered."
     (when (and (> (length menu-cond-elt) 4)
 	       tmp-s
 	       (not (fboundp tmp-s))
-	       (not (eq tmp-s 't)))
+	       (not (eq tmp-s t)))
       (signal 'invalid-function (list tmp-s)))
-    (set list-symbol '())
+    (set list-symbol ())
     (vector list-symbol			;BUFFER-LIST-VARIABLE
 	    (nth 0 menu-cond-elt)	;CONDITION
 	    (nth 1 menu-cond-elt)	;SORT-KEY
@@ -645,7 +589,7 @@ If the argument is left out or nil, then the current buffer is considered."
     ))
 
 ;; This defsubst is only used in `msb--choose-menu' below.  It was
-;; pulled out merely to make the code somewhat clearer. The indention
+;; pulled out merely to make the code somewhat clearer.  The indention
 ;; level was too big.
 (defsubst msb--collect (function-info-vector)
   (let ((result nil)
@@ -673,7 +617,7 @@ If the argument is left out or nil, then the current buffer is considered."
     function-info-list))
 
 ;; Adds BUFFER to the menu depicted by FUNCTION-INFO
-;; All side-effects.  Adds an element of type '(BUFFER-TITLE . BUFFER)
+;; All side-effects.  Adds an element of form (BUFFER-TITLE . BUFFER)
 ;; to the buffer-list variable in function-info.
 (defun msb--add-to-menu (buffer function-info max-buffer-name-length)
   (let ((list-symbol (aref function-info 0))) ;BUFFER-LIST-VARIABLE
@@ -694,7 +638,7 @@ If the argument is left out or nil, then the current buffer is considered."
     (condition-case nil
 	(save-excursion
 	  (set-buffer buffer)
-	  ;; Menu found. Add to this menu
+	  ;; Menu found.  Add to this menu
 	  (mapc (function
 		 (lambda (function-info)
 		   (msb--add-to-menu buffer function-info max-buffer-name-length)))
@@ -702,7 +646,7 @@ If the argument is left out or nil, then the current buffer is considered."
       (error (unless msb--error
 	       (setq msb--error
 		     (format
-		      "Variable `msb-menu-cond': Error for buffer \"%s\"."
+		      "In msb-menu-cond, error for buffer `%s'."
 		      (buffer-name buffer)))
 	       (error msb--error))))))
 
@@ -720,7 +664,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		      (cond
 		       ((null sorter)
 			buffer-list)
-		       ((eq sorter 't)
+		       ((eq sorter t)
 			(nreverse buffer-list))
 		       (t
 			(sort buffer-list sorter))))))))))
@@ -785,7 +729,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		 (mapcar (function msb--create-function-info)
 			 msb-menu-cond)))
     ;; Split the buffer-list into several lists; one list for each
-    ;; criteria. This is the most critical part with respect to time.
+    ;; criteria.  This is the most critical part with respect to time.
     (mapc (function (lambda (buffer)
 		      (cond ((and msb-files-by-directory
 				  (buffer-file-name buffer))
@@ -868,7 +812,7 @@ If the argument is left out or nil, then the current buffer is considered."
 Returns the selected buffer or nil if no buffer is selected.
 
 The way the buffers are splitted is conveniently handled with the
-variable 'msb-menu-cond'."
+variable `msb-menu-cond'."
   ;; Popup the menu and return the selected buffer.
   (when (or msb--error
 	    (not msb--last-buffer-menu)
@@ -1007,3 +951,4 @@ variable 'msb-menu-cond'."
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
 ;;; msb.el ends here
+
