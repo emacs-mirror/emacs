@@ -715,8 +715,6 @@ To get the frame's current default font, use `frame-parameters'."
 			       (x-list-fonts "*" nil (selected-frame)))))))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name)))
-  ;; Update faces that want a bold or italic version of the default font.
-  (frame-update-faces (selected-frame))
   (run-hooks 'after-setting-font-hooks))
 
 (defun set-background-color (color-name)
@@ -725,8 +723,7 @@ When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
   (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'background-color color-name)))
-  (frame-update-face-colors (selected-frame)))
+			   (list (cons 'background-color color-name))))
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR-NAME.
@@ -734,8 +731,7 @@ When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
   (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'foreground-color color-name)))
-  (frame-update-face-colors (selected-frame)))
+			   (list (cons 'foreground-color color-name))))
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR-NAME.
