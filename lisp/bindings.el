@@ -240,7 +240,6 @@ is okay.  See `mode-line-format'.")
 	"^This command makes sense only when merging with an ancestor$"
 	"^At end of the difference list$"
 	"^At beginning of the difference list$"
-	"^Quit$"
 	"^Nothing saved for diff .* in buffer "
 	"^Buffer is out of sync for file "
 	"^Buffer out of sync for file "
