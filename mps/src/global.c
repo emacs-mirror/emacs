@@ -1,6 +1,6 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.10) $
+ * $HopeName: MMsrc!global.c(trunk.11) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
@@ -10,15 +10,15 @@
  * TRANSGRESSIONS
  *
  * .static: Static data is used in ArenaAccess (in order to find the
- * appropriate arena) and ArenaCreate.  See design.mps.arena.static.
+ * appropriate arena) and GlobalsInit.  It's checked in GlobalsCheck.
+ * See design.mps.arena.static.
  *
- * .non-mod: The Arena structure has many fields which properly belong
- * to other modules (see impl.h.mpmst); ArenaCreate contains code which
+ * .non-mod: The Globals structure has many fields which properly belong
+ * to other modules (see impl.h.mpmst); GlobalsInit contains code which
  * breaks the usual module abstractions.  Such instances are documented
  * with a tag to the relevant module implementation.  Most of the
  * functions should be in some other module, they just ended up here by
- * confusion over naming.
- */
+ * confusion over naming.  */
 
 #include "dongle.h"
 #include "poolmrg.h"
@@ -27,7 +27,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.10) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.11) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -44,8 +44,7 @@ static RingStruct arenaRing;       /* design.mps.arena.static.ring */
 
 /* arenaClaimRingLock, arenaReleaseRingLock -- lock/release the arena ring
  *
- * See design.mps.arena.static.ring.lock.
- */
+ * See design.mps.arena.static.ring.lock.  */
 
 static void arenaClaimRingLock(void)
 {
@@ -61,8 +60,8 @@ static void arenaReleaseRingLock(void)
 /* arenaAnnounce -- add a new arena into the global ring of arenas
  *
  * On entry, the arena must not be locked (there should be no need,
- * because other threads can't know about it).  On exit, it will be.
- */
+ * because other threads can't know about it).  On exit, it will be.  */
+
 static void arenaAnnounce(Arena arena)
 {
   Globals arenaGlobals;
@@ -83,8 +82,8 @@ static void arenaAnnounce(Arena arena)
  * After this, no other thread can access the arena through ArenaAccess.
  * On entry, the arena should be locked.  On exit, it will still be, but
  * the lock has been released and reacquired in the meantime, so callers
- * should not assume anything about the state of the arena.
- */
+ * should not assume anything about the state of the arena.  */
+
 static void arenaDenounce(Arena arena)
 {
   Globals arenaGlobals;
@@ -130,8 +129,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(BoolCheck(arenaGlobals->insidePoll));
 
   CHECKL(BoolCheck(arenaGlobals->bufferLogging));
-  CHECKL(RingCheck(&arena->poolRing));
-  CHECKL(RingCheck(&arena->rootRing));
+  CHECKL(RingCheck(&arenaGlobals->poolRing));
+  CHECKL(RingCheck(&arenaGlobals->rootRing));
   CHECKL(RingCheck(&arena->formatRing));
   CHECKL(RingCheck(&arena->messageRing));
   /* Don't check enabledMessageTypes */
@@ -236,13 +235,12 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->insidePoll = FALSE;
 
   arenaGlobals->mpsVersionString = MPSVersion();
-
   arenaGlobals->bufferLogging = FALSE;
+  RingInit(&arenaGlobals->poolRing);
+  arenaGlobals->poolSerial = (Serial)0;
+  RingInit(&arenaGlobals->rootRing);
+  arenaGlobals->rootSerial = (Serial)0;
 
-  RingInit(&arena->poolRing);
-  arena->poolSerial = (Serial)0;
-  RingInit(&arena->rootRing);
-  arena->rootSerial = (Serial)0;
   RingInit(&arena->threadRing);
   arena->threadSerial = (Serial)0;
   RingInit(&arena->formatRing);
@@ -284,9 +282,9 @@ Res GlobalsInit(Globals arenaGlobals)
 
 /* GlobalsCompleteCreate -- complete creating the globals of the arena
  *
- * This is like the final initializations in a Create method, except there's
- * no separate GlobalsCreate.
- */
+ * This is like the final initializations in a Create method, except
+ * there's no separate GlobalsCreate.  */
+
 Res GlobalsCompleteCreate(Globals arenaGlobals)
 {
   Arena arena;
@@ -336,22 +334,22 @@ void GlobalsFinish(Globals arenaGlobals)
 
   arenaGlobals->sig = SigInvalid;
 
-  RingFinish(&arena->poolRing);
   RingFinish(&arena->formatRing);
   RingFinish(&arena->messageRing);
-  RingFinish(&arena->rootRing);
   RingFinish(&arena->threadRing);
-  RingFinish(&arenaGlobals->globalRing);
   for(rank = 0; rank < RankLIMIT; ++rank)
     RingFinish(&arena->greyRing[rank]);
+  RingFinish(&arenaGlobals->rootRing);
+  RingFinish(&arenaGlobals->poolRing);
+  RingFinish(&arenaGlobals->globalRing);
 }
 
 
 /* GlobalsPrepareToDestroy -- prepare to destroy the globals of the arena
  *
- * This is like the final initializations in a Destroy method, except there's
- * no separate GlobalsDestroy.
- */
+ * This is like the final initializations in a Destroy method, except
+ * there's no separate GlobalsDestroy.  */
+
 void GlobalsPrepareToDestroy(Globals arenaGlobals)
 {
   Arena arena;
@@ -440,17 +438,17 @@ void ArenaLeave(Arena arena)
  *
  * This is a hack to make exception info easier to find in a release
  * version.  The format is platform-specific.  We won't necessarily
- * publish this.
- */
+ * publish this.  */
+
 MutatorFaultContext mps_exception_info = NULL;
 
 
 /* ArenaAccess -- deal with an access fault
  *
  * This is called when a protected address is accessed.  The mode
- * corresponds to which mode flags need to be cleared in order
- * for the access to continue.
- */
+ * corresponds to which mode flags need to be cleared in order for the
+ * access to continue.  */
+
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
   Seg seg;
@@ -474,11 +472,9 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     if (SegOfAddr(&seg, arena, addr)) {
       mps_exception_info = NULL;
       arenaReleaseRingLock();
-      /* An access in a different thread may have already caused
-       * the protection to be cleared.  This avoids calling
-       * TraceAccess on protection that has already been cleared on
-       * a separate thread.
-       */
+      /* An access in a different thread may have already caused the
+       * protection to be cleared.  This avoids calling TraceAccess on
+       * protection that has already been cleared on a separate thread.  */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
@@ -508,20 +504,18 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 /* ArenaPoll -- trigger periodic actions
  *
  * Poll all background activities to see if they need to do anything.
- * ArenaPoll does nothing if the amount of committed memory is less
- * than the arena poll threshold.  This means that actions are taken
- * as the memory demands increase.
+ * ArenaPoll does nothing if the amount of committed memory is less than
+ * the arena poll threshold.  This means that actions are taken as the
+ * memory demands increase.
  * 
  * @@@@ This is where time is "stolen" from the mutator in addition
  * to doing what it asks and servicing accesses.  This is where the
  * amount of time should be controlled, perhaps by passing time
  * limits to the various other activities.
  *
- * @@@@ Perhaps this should be based on a process table rather than
- * a series of manual steps for looking around.  This might be
- * worthwhile if we introduce background activities other than
- * tracing.
- */
+ * @@@@ Perhaps this should be based on a process table rather than a
+ * series of manual steps for looking around.  This might be worthwhile
+ * if we introduce background activities other than tracing.  */
 
 #ifdef MPS_PROD_EPCORE
 void (ArenaPoll)(Arena arena)
@@ -566,8 +560,7 @@ void ArenaPoll(Arena arena)
 
 /* ArenaFinalize -- registers an object for finalization
  *
- * See design.mps.finalize.
- */
+ * See design.mps.finalize.  */
 
 Res ArenaFinalize(Arena arena, Ref obj)
 {
@@ -668,8 +661,7 @@ void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref)
 /* ArenaRead -- read a single reference, possibly through a barrier
  *
  * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.
- */
+ * to single references in segments.  */
 
 Ref ArenaRead(Arena arena, Addr addr)
 {
@@ -718,8 +710,8 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                "  pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
                arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
-               "  poolSerial $U\n", (WriteFU)arena->poolSerial,
-               "  rootSerial $U\n", (WriteFU)arena->rootSerial,
+               "  poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
+               "  rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "  formatSerial $U\n", (WriteFU)arena->formatSerial,
                "  threadSerial $U\n", (WriteFU)arena->threadSerial,
                arena->insideShield ? "inside shield\n" : "outside shield\n",
@@ -751,13 +743,10 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
                NULL);
   if (res != ResOK) return res;
 
-  RING_FOR(node, &arena->rootRing, nextNode) {
-    Root root = RING_ELT(Root, arenaRing, node);
-    res = RootDescribe(root, stream);
-    if (res != ResOK) return res;
-  }
+  res = RootsDescribe(arenaGlobals, stream);
+  if (res != ResOK) return res;
 
-  RING_FOR(node, &arena->poolRing, nextNode) {
+  RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
     res = PoolDescribe(pool, stream);
     if (res != ResOK) return res;

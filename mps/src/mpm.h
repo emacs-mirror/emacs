@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.144) $
+ * $HopeName: MMsrc!mpm.h(trunk.145) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -119,7 +119,7 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
 #define AddrComp(a, b, size) \
   mps_lib_memcmp(a, b, size)
 
-#define AlignIsAligned(a1, a2)  WordIsAligned(AlignWord(a1), (a2))
+#define AlignIsAligned(a1, a2) WordIsAligned(AlignWord(a1), a2)
 
 
 /* ADDR_PTR -- turns an Addr into a pointer to the given type */
@@ -141,8 +141,8 @@ extern Bool ResIsAllocFailure(Res res);
  * power of 2.
  * 
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
- * size can be any positive non-zero value.
- */
+ * size can be any positive non-zero value.  */
+
 extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
 extern Shift SizeFloorLog2(Size size);
@@ -160,8 +160,8 @@ extern size_t StringLength(const char *s);
 
 /* Version Determination
  *
- * See design.mps.version-library.
- */
+ * See design.mps.version-library.  */
+
 extern char *MPSVersion(void);
 
 
@@ -201,26 +201,20 @@ extern Bool BTIsSetRange(BT bt, Index base, Index limit);
 extern void BTResRange(BT bt, Index base, Index limit);
 extern Bool BTIsResRange(BT bt, Index base, Index limit);
 extern Bool BTFindShortResRange(Index *baseReturn, Index *limitReturn,
-                                BT bt,
-                                Index searchBase, Index searchLimit,
+                                BT bt, Index searchBase, Index searchLimit,
                                 unsigned long length);
 extern Bool BTFindShortResRangeHigh(Index *baseReturn, Index *limitReturn,
-                                    BT bt,
-                                    Index searchBase, Index searchLimit,
+                                    BT bt, Index searchBase, Index searchLimit,
                                     unsigned long length);
 extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
-                               BT bt,
-                               Index searchBase, Index searchLimit,
+                               BT bt, Index searchBase, Index searchLimit,
                                unsigned long length);
 extern Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
-                                   BT bt,
-                                   Index searchBase, Index searchLimit,
+                                   BT bt, Index searchBase, Index searchLimit,
                                    unsigned long length);
 extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
-extern void BTCopyInvertRange(BT fromBT, BT toBT,
-                              Index base, Index limit);
-extern void BTCopyRange(BT fromBT, BT toBT,
-                        Index base, Index limit);
+extern void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit);
+extern void BTCopyRange(BT fromBT, BT toBT, Index base, Index limit);
 extern void BTCopyOffsetRange(BT fromBT, BT toBT,
                               Index fromBase, Index fromLimit,
                               Index toBase, Index toLimit);
@@ -235,26 +229,20 @@ extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
 extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 
-extern Arena (PoolArena)(Pool pool);
 #define PoolArena(pool)         ((pool)->arena)
+#define PoolAlignment(pool)     ((pool)->alignment)
+#define PoolSegRing(pool)       (&(pool)->segRing)
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
-extern Align (PoolAlignment)(Pool pool);
-#define PoolAlignment(pool)     ((pool)->alignment)
-
 extern double PoolMutatorAllocSize(Pool pool);
-
-extern Ring (PoolSegRing)(Pool pool);
-#define PoolSegRing(pool)       (&(pool)->segRing)
 
 extern Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr);
 extern Bool PoolHasAddr(Pool pool, Addr addr);
 
-extern Res PoolCreate(Pool *poolReturn, Arena arena, 
-                      PoolClass class, ...);
-extern Res PoolCreateV(Pool *poolReturn, Arena arena,
-                       PoolClass class, va_list arg);
+extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass class, ...);
+extern Res PoolCreateV(Pool *poolReturn, Arena arena, PoolClass class,
+                       va_list arg);
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size, 
@@ -314,17 +302,13 @@ extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
 extern void PoolTrivRampEnd(Pool pool, Buffer buf);
-extern Res PoolNoFramePush(AllocFrame *frameReturn,
-                           Pool pool, Buffer buf);
-extern Res PoolTrivFramePush(AllocFrame *frameReturn,
-                             Pool pool, Buffer buf);
+extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
+extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoFramePopPending(Pool pool, Buffer buf,
-                                  AllocFrame frame);
-extern void PoolNoWalk(Pool pool, Seg seg,
-                       FormattedObjectsStepMethod,
-		       void *, unsigned long);
+extern void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame);
+extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsStepMethod step,
+		       void *p, unsigned long s);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 
@@ -347,8 +331,8 @@ extern AbstractScanPoolClass AbstractScanPoolClassGet(void);
 extern AbstractCollectPoolClass AbstractCollectPoolClassGet(void);
 
 /* DEFINE_POOL_CLASS
- * convenience macro -- see design.mps.protocol.int.define-special 
- */
+ *
+ * Convenience macro -- see design.mps.protocol.int.define-special. */
 
 #define DEFINE_POOL_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, PoolClass, var)
@@ -492,8 +476,8 @@ extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
 
 /* DEFINE_ARENA_CLASS
  *
- * convenience macro -- see design.mps.protocol.int.define-special 
- */
+ * Convenience macro -- see design.mps.protocol.int.define-special. */
+
 #define DEFINE_ARENA_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, ArenaClass, var)
 
@@ -523,6 +507,16 @@ extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream);
 #define ArenaGlobals(arena) (&(arena)->globals)
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
+#define ArenaRootRing(arena)    (&(arena)->rootRing)
+#define ArenaTraceRing(arena)   (&(arena)->traceRing)
+#define ArenaThreadRing(arena)  (&(arena)->threadRing)
+#define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
+#define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
+#define ArenaZoneShift(arena)   ((arena)->zoneShift)
+#define ArenaAlign(arena)       ((arena)->alignment)
+#define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
+
+
 extern void (ArenaEnter)(Arena arena);
 extern void (ArenaLeave)(Arena arena);
 
@@ -531,12 +525,14 @@ extern void (ArenaLeave)(Arena arena);
 #define ArenaLeave(arena)  UNUSED(arena)
 #endif
 
+
 extern void (ArenaPoll)(Arena arena);
 #ifdef MPS_PROD_EPCORE
 #define ArenaPoll(arena)  UNUSED(arena)
 #endif
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
+
 
 extern void ArenaClamp(Arena arena);
 extern void ArenaRelease(Arena arena);
@@ -576,21 +572,10 @@ extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
  * invariant (hence performing any scanning or color manipulation
  * necessary).
  *
- * Only Read provided right now.
- */
+ * Only Read provided right now.  */
 
 Ref ArenaRead(Arena arena, Addr addr);
 
-
-#define ArenaPoolRing(arena)    (&(arena)->poolRing)
-#define ArenaRootRing(arena)    (&(arena)->rootRing)
-#define ArenaTraceRing(arena)   (&(arena)->traceRing)
-#define ArenaThreadRing(arena)  (&(arena)->threadRing)
-#define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
-#define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
-#define ArenaZoneShift(arena)   ((arena)->zoneShift)
-#define ArenaAlign(arena)       ((arena)->alignment)
-#define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 
 extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
@@ -670,10 +655,8 @@ extern SegClass GCSegClassGet(void);
 extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
-/* DEFINE_SEG_CLASS -- define a segment class
- *
- * convenience macro -- see design.mps.protocol.int.define-special 
- */
+/* DEFINE_SEG_CLASS -- define a segment class */
+
 #define DEFINE_SEG_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, SegClass, var)
 
@@ -721,8 +704,7 @@ extern Bool SegBufCheck(SegBuf segbuf);
 extern Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream);
 extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
                          Bool withReservoirPermit);
-/* macro equivalent for BufferReserve, keep in sync with 
- * impl.c.buffer */
+/* macro equivalent for BufferReserve, keep in sync with impl.c.buffer */
 #define BUFFER_RESERVE(pReturn, buffer, size, withReservoirPermit) \
   (AddrAdd(BufferAlloc(buffer), size) > BufferAlloc(buffer) && \
    AddrAdd(BufferAlloc(buffer), size) <= BufferAP(buffer)->limit ? \
@@ -734,8 +716,7 @@ extern Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
 extern Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
                       Bool withReservoirPermit);
 extern Bool BufferCommit(Buffer buffer, Addr p, Size size);
-/* macro equivalent for BufferCommit, keep in sync with
- * impl.c.buffer */
+/* macro equivalent for BufferCommit, keep in sync with impl.c.buffer */
 #define BUFFER_COMMIT(buffer, p, size) \
   (BufferAP(buffer)->init = BufferAlloc(buffer), \
    BufferAP(buffer)->limit != 0 || BufferTrip(buffer, p, size))
@@ -781,10 +762,8 @@ extern FrameState BufferFrameState(Buffer buffer);
 extern void BufferFrameSetState(Buffer buffer, FrameState state);
 
 
-/* DEFINE_BUFFER_CLASS -- define a buffer class
- *
- * convenience macro -- see design.mps.protocol.int.define-special 
- */
+/* DEFINE_BUFFER_CLASS -- define a buffer class */
+
 #define DEFINE_BUFFER_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, BufferClass, var)
 
@@ -942,13 +921,17 @@ extern void RootDestroy(Root root);
 extern Bool RootModeCheck(RootMode mode);
 extern Bool RootCheck(Root root);
 extern Res RootDescribe(Root root, mps_lib_FILE *stream);
+extern Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream);
 extern Rank RootRank(Root root);
+extern AccessSet RootPM(Root root);
+extern RefSet RootSummary(Root root);
 extern void RootGrey(Root root, Trace trace);
 extern Res RootScan(ScanState ss, Root root);
 extern Arena RootArena(Root root);
 extern Bool RootOfAddr(Root *root, Arena arena, Addr addr);
 extern void RootAccess(Root root, AccessSet mode);
-extern AccessSet RootPM(Root root);
+typedef Res (*RootIterateFn)(Root root, void *p);
+extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 
 
 /* VM Interface -- see impl.c.vm* */
@@ -981,12 +964,12 @@ extern void StackProbe(Size depth);
  * STATISTIC_WRITE is inserted in WriteF arguments to output the values
  * of diagnostic fields.
  *
- * .statistic.whitehot: The implementation of STATISTIC for 
+ * .statistic.whitehot: The implementation of STATISTIC for
  * non-statistical varieties passes the parameter to DISCARD to ensure
- * the parameter is syntactically an expression.  The parameter is 
+ * the parameter is syntactically an expression.  The parameter is
  * passed as part of a comma-expression so that its type is not
- * important.  This permits an expression of type void.
- */
+ * important.  This permits an expression of type void.  */
+
 #if defined(DIAGNOSTICS)
 
 #define STATISTIC(gather) BEGIN (gather); END
