@@ -187,14 +187,13 @@ Echo Persian date unless NOECHO is t."
                    (calendar-absolute-from-gregorian today))))))
          (completion-ignore-case t)
          (month (cdr (assoc
-                      (capitalize
                        (completing-read
                         "Persian calendar month name: "
                         (mapcar 'list
                                 (append persian-calendar-month-name-array nil))
-                        nil t))
+                        nil t)
                       (calendar-make-alist persian-calendar-month-name-array
-                                           1 'capitalize))))
+                                           1))))
          (last (persian-calendar-last-day-of-month month year))
          (day (calendar-read
                (format "Persian calendar day (1-%d): " last)
