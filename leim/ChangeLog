@@ -1,3 +1,8 @@
+2003-07-21  KAWABATA, Taichi  <kawabata@m17n.org>
+
+	* quail/indian.el (quail-indian-update-translation): Adjusted the
+	behaviour according to the change of quail-translate-key.
+
 2003-05-22  Kenichi Handa  <handa@m17n.org>
 
 	* quail/pypunct-b5.el ("chinese-py-punct-b5"): Change the title

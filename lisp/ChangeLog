@@ -1,4 +1,4 @@
-2003-07-30  Kenichi Handa  <handa@etlken2>
+2003-07-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (setup-default-fontset): Change
 	registry names of Akurti fonts.
