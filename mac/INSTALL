@@ -38,12 +38,12 @@ makefile.mpw.  I.e., execute the commands
   Emacs.MakeScript
 
 To build Emacs using CodeWarrior, start up the CodeWarrior IDE, choose
-File->Import Project...  and select the file emacs-cw5.mcp.xml or
-emacs-cw6.mcp.xml, depending on which verison of CodeWarrior used.
-When prompted to save the project, navigate to same directory as the
-file emacs-cw[56].mcp.xml, name it emacs-cw5.mcp or emacs-cw6.mcp, and
-save it there.  Then choose Project->Make.  Note that this does not
-build the DOC file.  To do so, use MPW and build the target "Doc" in
+File->Import Project...  and select the file cw5-mcp.xml or
+cw6-mcp.xml, depending on which verison of CodeWarrior used.  When
+prompted to save the project, navigate to same directory as the file
+cw[56]-mcp.xml, name it emacs-cw5.mcp or emacs-cw6.mcp, and save it
+there.  Then choose Project->Make.  Note that this does not build the
+DOC file.  To do so, use MPW and build the target "Doc" in
 makefile.MPW.
 
 Once built, the Emacs application (Emacs CW or Emacs MPW) can be
