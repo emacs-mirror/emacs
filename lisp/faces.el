@@ -109,11 +109,14 @@ in that frame; otherwise change each frame."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background"))
-  (if (and frame (member color '("gray" "gray1" "gray3"))
+  ;; For a specific frame, use gray stipple instead of gray color
+  ;; if the display does not support a gray color.
+  (if (and frame (not (eq frame t))
+	   (member color '("gray" "gray1" "gray3"))
 	   (not (x-display-color-p frame))
 	   (not (x-display-grayscale-p frame)))
-      (set-face-stipple face color frame))
-  (internal-set-face-1 face 'background color 5 frame))
+      (set-face-stipple face color frame)
+    (internal-set-face-1 face 'background color 5 frame)))
 
 (defsubst set-face-stipple (face name &optional frame)
   "Change the stipple pixmap of face FACE to PIXMAP.
