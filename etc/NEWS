@@ -19,7 +19,11 @@ installed programs.
 * Changes in Emacs 21.3
 
 ** jit-lock can now be delayed with `jit-lock-defer-time'.
-If it is set to 0.5, fontification will only happen after 0.5s of idle time.
+
+If this variable is non-nil, its value should be the amount of Emacs
+idle time inseconds to wait before starting fontification.  For
+example, if you set `jit-lock-defer-time' to 0.25, fontification will
+only happen after 0.25s of idle time.
 
 ** If you hit M-C-SPC (mark-sexp) repeatedly, the marked region
 will now be extended each time, so you can mark the next two sexps with
