@@ -1,3 +1,7 @@
+2003-10-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tramp.texi (Inline methods): Small grammar fix.
+
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
 
 	* xresources.texi (GTK resources): Clean up previous change.
