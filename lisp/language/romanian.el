@@ -46,10 +46,10 @@ An environment for generic Latin-10 encoding is also available."))
   "ISO 2022 based 8-bit encoding for Latin-10."
   :coding-type 'charset
   :mnemonic ?*
-  :charset-list '(iso-885916)
-  :mime-charset 'iso-885916)
+  :charset-list '(iso-8859-16)
+  :mime-charset 'iso-8859-16)
 
-(define-coding-system-alias 'iso-885916 'iso-latin-10)
+(define-coding-system-alias 'iso-8859-16 'iso-latin-10)
 (define-coding-system-alias 'latin-10 'iso-latin-10)
 
 (provide 'romanian)
