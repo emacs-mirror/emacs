@@ -1,3 +1,10 @@
+2002-05-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-previous-block, f90-next-block): New names,
+	and slightly changed behaviour, for `f90-previous-block-start' and
+	`f90-next-block-end'.
+	(f90-beginning-of-subprogram, f90-end-of-subprogram): Simplify.
+
 2002-05-26  Simon Josefsson  <jas@extundo.com>
 
 	* fringe.el (set-fringe-mode): Work when updating
