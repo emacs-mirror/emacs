@@ -630,8 +630,36 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   return buf;
 }
 
+void
+delete_all_overlays (b)
+     struct buffer *b;
+{
+  Lisp_Object overlay;
+
+  /* `reset_buffer' blindly sets the list of overlays to NULL, so we
+     have to empty the list, otherwise we end up with overlays that
+     think they belong to this buffer while the buffer doesn't know about
+     them any more.  */
+  while (b->overlays_before)
+    {
+      XSETMISC (overlay, b->overlays_before);
+      Fdelete_overlay (overlay);
+    }
+  while (b->overlays_after)
+    {
+      XSETMISC (overlay, b->overlays_after);
+      Fdelete_overlay (overlay);
+    }
+  eassert (b->overlays_before == NULL);
+  eassert (b->overlays_after == NULL);
+}
+
 /* Reinitialize everything about a buffer except its name and contents
-   and local variables.  */
+   and local variables. 
+   If called on an already-initialized buffer, the list of overlays
+   should be deleted before calling this function, otherwise we end up
+   with overlays that claim to belong to the buffer but the buffer
+   claims it doesn't belong to it.  */
 
 void
 reset_buffer (b)
