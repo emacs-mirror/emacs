@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
