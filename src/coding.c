@@ -1007,6 +1007,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     unification_table = Vstandard_character_unification_table_for_decode;
 
   coding->produced_char = 0;
+  coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
 			   : (dst < src - 6)))
@@ -1046,21 +1047,12 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	case ISO_0xA0_or_0xFF:
 	  if (charset1 < 0 || CHARSET_CHARS (charset1) == 94
 	      || coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
-	    {
-	      /* Invalid code.  */
-	      *dst++ = c1;
-	      coding->produced_char++;
-	      break;
-	    }
+	    goto label_invalid_code;
 	  /* This is a graphic character, we fall down ... */
 
 	case ISO_graphic_plane_1:
 	  if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)
-	    {
-	      /* Invalid code.  */
-	      *dst++ = c1;
-	      coding->produced_char++;
-	    }
+	    goto label_invalid_code;
 	  else
 	    DECODE_ISO_CHARACTER (charset1, c1);
 	  break;
@@ -1310,9 +1302,9 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	  break;
 
 	label_invalid_code:
-	  coding->produced_char += src - src_base;
 	  while (src_base < src)
 	    *dst++ = *src_base++;
+	  coding->fake_multibyte = 1;
 	}
       continue;
 
@@ -1323,19 +1315,26 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       break;
     }
 
-  if (result == CODING_FINISH_NORMAL
-      && src < src_end)
-    result = CODING_FINISH_INSUFFICIENT_DST;
-
-  /* If this is the last block of the text to be decoded, we had
-     better just flush out all remaining codes in the text although
-     they are not valid characters.  */
-  if (coding->mode & CODING_MODE_LAST_BLOCK)
+  if (src < src_end)
     {
-      bcopy (src, dst, src_end - src);
-      dst += (src_end - src);
-      src = src_end;
+      if (result == CODING_FINISH_NORMAL)
+	result = CODING_FINISH_INSUFFICIENT_DST;
+      else if (result != CODING_FINISH_INCONSISTENT_EOL
+	       && coding->mode & CODING_MODE_LAST_BLOCK)
+	{
+	  /* This is the last block of the text to be decoded.  We had
+	     better just flush out all remaining codes in the text
+	     although they are not valid characters.  */
+	  src_bytes = src_end - src;
+	  if (dst_bytes && (dst_end - dst < src_bytes))
+	    src_bytes = dst_end - dst;
+	  bcopy (src, dst, src_bytes);
+	  dst += src_bytes;
+	  src += src_bytes;
+	  coding->fake_multibyte = 1;
+	}
     }
+
   coding->consumed = coding->consumed_char = src - source;
   coding->produced = dst - destination;
   return result;
@@ -1413,16 +1412,22 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)	\
       *dst++ = ISO_CODE_ESC, *dst++ = 'N';		\
     else						\
-      *dst++ = ISO_CODE_SS2;				\
+      {							\
+	*dst++ = ISO_CODE_SS2;				\
+	coding->fake_multibyte = 1;			\
+      }							\
     CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 1;	\
   } while (0)
 
-#define ENCODE_SINGLE_SHIFT_3			   	\
-  do {						   	\
+#define ENCODE_SINGLE_SHIFT_3				\
+  do {							\
     if (coding->flags & CODING_FLAG_ISO_SEVEN_BITS)	\
-      *dst++ = ISO_CODE_ESC, *dst++ = 'O';	   	\
-    else					   	\
-      *dst++ = ISO_CODE_SS3;			   	\
+      *dst++ = ISO_CODE_ESC, *dst++ = 'O';		\
+    else						\
+      {							\
+	*dst++ = ISO_CODE_SS3;				\
+	coding->fake_multibyte = 1;			\
+      }							\
     CODING_SPEC_ISO_SINGLE_SHIFTING (coding) = 1;	\
   } while (0)
 
@@ -1746,6 +1751,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     unification_table = Vstandard_character_unification_table_for_encode;
 
   coding->consumed_char = 0;
+  coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
 			   : (dst < src - 19)))
@@ -1933,15 +1939,17 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       break;
     }
 
-  if (result == CODING_FINISH_NORMAL
-      && src < src_end)
-    result = CODING_FINISH_INSUFFICIENT_DST;
-
-  /* If this is the last block of the text to be encoded, we must
-     reset graphic planes and registers to the initial state, and
-     flush out the carryover if any.  */
-  if (coding->mode & CODING_MODE_LAST_BLOCK)
-    ENCODE_RESET_PLANE_AND_REGISTER;
+  if (src < src_end)
+    {
+      if (result == CODING_FINISH_NORMAL)
+	result = CODING_FINISH_INSUFFICIENT_DST;
+      else
+	/* If this is the last block of the text to be encoded, we
+	   must reset graphic planes and registers to the initial
+	   state, and flush out the carryover if any.  */
+	if (coding->mode & CODING_MODE_LAST_BLOCK)
+	  ENCODE_RESET_PLANE_AND_REGISTER;
+    }
 
   coding->consumed = src - source;
   coding->produced = coding->produced_char = dst - destination;
@@ -2054,7 +2062,10 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	if (sjis_p && charset_alt == charset_katakana_jisx0201)		  \
 	  *dst++ = c1;							  \
 	else								  \
-	  *dst++ = charset_alt, *dst++ = c1;				  \
+	  {								  \
+	    *dst++ = charset_alt, *dst++ = c1;				  \
+	    coding->fake_multibyte = 1;					  \
+	  }								  \
       }									  \
     else								  \
       {									  \
@@ -2062,21 +2073,25 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	if (sjis_p && charset_alt == charset_jisx0208)			  \
 	  {								  \
 	    unsigned char s1, s2;					  \
-									  \
+	    								  \
 	    ENCODE_SJIS (c1, c2, s1, s2);				  \
 	    *dst++ = s1, *dst++ = s2;					  \
+	    coding->fake_multibyte = 1;					  \
 	  }								  \
 	else if (!sjis_p						  \
 		 && (charset_alt == charset_big5_1			  \
 		     || charset_alt == charset_big5_2))			  \
 	  {								  \
 	    unsigned char b1, b2;					  \
-									  \
+	    								  \
 	    ENCODE_BIG5 (charset_alt, c1, c2, b1, b2);			  \
 	    *dst++ = b1, *dst++ = b2;					  \
 	  }								  \
 	else								  \
-	  *dst++ = charset_alt, *dst++ = c1, *dst++ = c2;		  \
+	  {								  \
+	    *dst++ = charset_alt, *dst++ = c1, *dst++ = c2;		  \
+	    coding->fake_multibyte = 1;					  \
+	  }								  \
       }									  \
     coding->consumed_char++;						  \
   } while (0);
@@ -2155,6 +2170,7 @@ decode_coding_sjis_big5 (coding, source, destination,
     unification_table = Vstandard_character_unification_table_for_decode;
 
   coding->produced_char = 0;
+  coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
 			   : (dst < src - 3)))
@@ -2203,30 +2219,24 @@ decode_coding_sjis_big5 (coding, source, destination,
 	}
       else if (c1 < 0x80)
 	DECODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
-      else if (c1 < 0xA0 || c1 >= 0xE0)
+      else if (c1 < 0xA0)
 	{
-	  /* SJIS -> JISX0208, BIG5 -> Big5 (only if 0xE0 <= c1 < 0xFF) */
+	  /* SJIS -> JISX0208 */
 	  if (sjis_p)
 	    {
 	      ONE_MORE_BYTE (c2);
-	      DECODE_SJIS (c1, c2, c3, c4);
-	      DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
+	      if (c2 >= 0x40)
+		{
+		  DECODE_SJIS (c1, c2, c3, c4);
+		  DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
+		}
+	      else
+		goto label_invalid_code_2;
 	    }
-	  else if (c1 >= 0xE0 && c1 < 0xFF)
-	    {
-	      int charset;
-
-	      ONE_MORE_BYTE (c2);
-	      DECODE_BIG5 (c1, c2, charset, c3, c4);
-	      DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
-	    }
-	  else			/* Invalid code */
-	    {
-	      *dst++ = c1;
-	      coding->produced_char++;
-	    }
+	  else
+	    goto label_invalid_code_1;
 	}
-      else
+      else if (c1 < 0xE0)
 	{
 	  /* SJIS -> JISX0201-Kana, BIG5 -> Big5 */
 	  if (sjis_p)
@@ -2237,10 +2247,55 @@ decode_coding_sjis_big5 (coding, source, destination,
 	      int charset;
 
 	      ONE_MORE_BYTE (c2);
-	      DECODE_BIG5 (c1, c2, charset, c3, c4);
-	      DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
+	      if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0xA1 && c2 <= 0xFE))
+		{
+		  DECODE_BIG5 (c1, c2, charset, c3, c4);
+		  DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
+		}
+	      else
+		goto label_invalid_code_2;
 	    }
 	}
+      else			/* C1 >= 0xE0 */
+	{
+	  /* SJIS -> JISX0208, BIG5 -> Big5 */
+	  if (sjis_p)
+	    {
+	      ONE_MORE_BYTE (c2);
+	      if (c2 >= 0x40)
+		{
+		  DECODE_SJIS (c1, c2, c3, c4);
+		  DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
+		}
+	      else
+		goto label_invalid_code_2;
+	    }
+	  else
+	    {
+	      int charset;
+
+	      ONE_MORE_BYTE (c2);
+	      if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0xA1 && c2 <= 0xFE))
+		{
+		  DECODE_BIG5 (c1, c2, charset, c3, c4);
+		  DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
+		}
+	      else
+		goto label_invalid_code_2;
+	    }
+	}
+      continue;
+
+    label_invalid_code_1:
+      *dst++ = c1;
+      coding->produced_char++;
+      coding->fake_multibyte = 1;
+      continue;
+
+    label_invalid_code_2:
+      *dst++ = c1; *dst++= c2;
+      coding->produced_char += 2;
+      coding->fake_multibyte = 1;
       continue;
 
     label_end_of_loop:
@@ -2250,9 +2305,22 @@ decode_coding_sjis_big5 (coding, source, destination,
       break;
     }
 
-  if (result == CODING_FINISH_NORMAL
-      && src < src_end)
-    result = CODING_FINISH_INSUFFICIENT_DST;
+  if (src < src_end)
+    {
+      if (result == CODING_FINISH_NORMAL)
+	result = CODING_FINISH_INSUFFICIENT_DST;
+      else if (result != CODING_FINISH_INCONSISTENT_EOL
+	       && coding->mode & CODING_MODE_LAST_BLOCK)
+	{
+	  src_bytes = src_end - src;
+	  if (dst_bytes && (dst_end - dst < src_bytes))
+	    src_bytes = dst_end - dst;
+	  bcopy (dst, src, src_bytes);
+	  src += src_bytes;
+	  dst += src_bytes;
+	  coding->fake_multibyte = 1;
+	}
+    }
 
   coding->consumed = coding->consumed_char = src - source;
   coding->produced = dst - destination;
@@ -2291,6 +2359,7 @@ encode_coding_sjis_big5 (coding, source, destination,
     unification_table = Vstandard_character_unification_table_for_encode;
 
   coding->consumed_char = 0;
+  coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
 			   : (dst < src - 1)))
@@ -2402,7 +2471,10 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
   unsigned char *src_end = source + src_bytes;
   unsigned char *dst = destination;
   unsigned char *dst_end = destination + dst_bytes;
+  unsigned char c;
   int result = CODING_FINISH_NORMAL;
+
+  coding->fake_multibyte = 0;
 
   if (src_bytes <= 0)
     return result;
@@ -2421,7 +2493,8 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 				 : (dst < src - 1)))
 	  {
 	    unsigned char *src_base = src;
-	    unsigned char c = *src++;
+
+	    c = *src++;
 	    if (c == '\r')
 	      {
 		ONE_MORE_BYTE (c);
@@ -2433,6 +2506,8 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 			goto label_end_of_loop_2;
 		      }
 		    *dst++ = '\r';
+		    if (BASE_LEADING_CODE_P (c))
+		      coding->fake_multibyte = 1;
 		  }
 		*dst++ = c;
 	      }
@@ -2443,7 +2518,11 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 		goto label_end_of_loop_2;
 	      }
 	    else
-	      *dst++ = c;
+	      {
+		*dst++ = c;
+		if (BASE_LEADING_CODE_P (c))
+		  coding->fake_multibyte = 1;
+	      }
 	    continue;
 
 	  label_end_of_loop:
@@ -2461,7 +2540,13 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
     case CODING_EOL_CR:
       if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
 	{
-	  while (src < src_end) if (*src++ == '\n') break;
+	  while (src < src_end)
+	    {
+	      if ((c = *src++) == '\n')
+		break;
+	      if (BASE_LEADING_CODE_P (c))
+		coding->fake_multibyte = 1;
+	    }
 	  if (*--src == '\n')
 	    {
 	      src_bytes = src - source;
@@ -2493,6 +2578,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 	safe_bcopy (source, destination, src_bytes);
       src += src_bytes;
       dst += dst_bytes;
+      coding->fake_multibyte = 1;
       break;
     }
 
@@ -2515,6 +2601,8 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
   unsigned char *dst = destination;
   int result = CODING_FINISH_NORMAL;
 
+  coding->fake_multibyte = 0;
+
   if (coding->eol_type == CODING_EOL_CRLF)
     {
       unsigned char c;
@@ -2534,13 +2622,19 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 	      || (c == '\r' && (coding->mode & CODING_MODE_SELECTIVE_DISPLAY)))
 	    *dst++ = '\r', *dst++ = '\n';
 	  else
-	    *dst++ = c;
+	    {
+	      *dst++ = c;
+	      if (BASE_LEADING_CODE_P (c))
+		coding->fake_multibyte = 1;
+	    }
 	}
       if (src < src_end)
 	result = CODING_FINISH_INSUFFICIENT_DST;
     }
   else
     {
+      unsigned char c;
+
       if (dst_bytes && src_bytes > dst_bytes)
 	{
 	  src_bytes = dst_bytes;
@@ -2549,19 +2643,31 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
       if (dst_bytes)
 	bcopy (source, destination, src_bytes);
       else
-	safe_bcopy (source, destination, src_bytes);
+	{
+	  safe_bcopy (source, destination, src_bytes);
+	  dst_bytes = src_bytes;
+	}
       if (coding->eol_type == CODING_EOL_CRLF)
 	{
 	  while (src_bytes--)
-	    if (*dst++ == '\n') dst[-1] = '\r';
+	    {
+	      if ((c = *dst++) == '\n')
+		dst[-1] = '\r';
+	      else if (BASE_LEADING_CODE_P (c))
+		  coding->fake_multibyte = 1;
+	    }
 	}
-      else if (coding->mode & CODING_MODE_SELECTIVE_DISPLAY)
+      else
 	{
-	  while (src_bytes--)
-	    if (*dst++ == '\r') dst[-1] = '\n';
+	  if (coding->mode & CODING_MODE_SELECTIVE_DISPLAY)
+	    {
+	      while (src_bytes--)
+		if (*dst++ == '\r') dst[-1] = '\n';
+	    }
+	  coding->fake_multibyte = 1;
 	}
-      src += src_bytes;
-      dst += src_bytes;
+      src = source + dst_bytes;
+      dst = destination + dst_bytes;
     }
 
   coding->consumed = coding->consumed_char = src - source;
@@ -3458,6 +3564,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
     {
       coding->produced = coding->produced_char = 0;
       coding->consumed = coding->consumed_char = 0;
+      coding->fake_multibyte = 0;
       return CODING_FINISH_NORMAL;
     }
 
@@ -3514,6 +3621,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
 	bcopy (source, destination, coding->produced);
       else
 	safe_bcopy (source, destination, coding->produced);
+      coding->fake_multibyte = 1;
       coding->consumed
 	= coding->consumed_char = coding->produced_char = coding->produced;
       break;
@@ -3536,6 +3644,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
     {
       coding->produced = coding->produced_char = 0;
       coding->consumed = coding->consumed_char = 0;
+      coding->fake_multibyte = 0;
       return CODING_FINISH_NORMAL;
     }
 
@@ -3592,6 +3701,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
 	  while (p < pend)
 	    if (*p++ == '\015') p[-1] = '\n';
 	}
+      coding->fake_multibyte = 1;
       coding->consumed
 	= coding->consumed_char = coding->produced_char = coding->produced;
       break;
@@ -3600,10 +3710,11 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
   return result;
 }
 
-/* Scan text in the region between *BEG and *END, skip characters
-   which we don't have to decode by coding system CODING at the head
-   and tail, then set *BEG and *END to the region of the text we
-   actually have to convert.
+/* Scan text in the region between *BEG and *END (byte positions),
+   skip characters which we don't have to decode by coding system
+   CODING at the head and tail, then set *BEG and *END to the region
+   of the text we actually have to convert.  The caller should move
+   the gap out of the region in advance.
 
    If STR is not NULL, *BEG and *END are indices into STR.  */
 
@@ -3613,7 +3724,7 @@ shrink_decoding_region (beg, end, coding, str)
      struct coding_system *coding;
      unsigned char *str;
 {
-  unsigned char *begp_orig, *begp, *endp_orig, *endp;
+  unsigned char *begp_orig, *begp, *endp_orig, *endp, c;
   int eol_conversion;
 
   if (coding->type == coding_type_ccl
@@ -3625,8 +3736,8 @@ shrink_decoding_region (beg, end, coding, str)
     }
   else if (coding->type == coding_type_no_conversion)
     {
-      /* We need no conversion.  */
-      *beg = *end;
+      /* We need no conversion, but don't have to skip any data here.
+         Decoding routine handles them effectively anyway.  */
       return;
     }
 
@@ -3642,8 +3753,7 @@ shrink_decoding_region (beg, end, coding, str)
     }
   else
     {
-      move_gap (*beg);
-      begp_orig = begp = GAP_END_ADDR;
+      begp_orig = begp = BYTE_POS_ADDR (*beg);
       endp_orig = endp = begp + *end - *beg;
     }
 
@@ -3656,8 +3766,9 @@ shrink_decoding_region (beg, end, coding, str)
       if (eol_conversion)
 	{
 	  if (coding->heading_ascii < 0)
-	    while (begp < endp && *begp != '\r') begp++;
-	  while (begp < endp && *(endp - 1) != '\r') endp--;
+	    while (begp < endp && *begp != '\r' && *begp < 0x80) begp++;
+	  while (begp < endp && *(endp - 1) != '\r' && *(endp - 1) < 0x80)
+	    endp--;
 	}
       else
 	begp = endp;
@@ -3686,8 +3797,6 @@ shrink_decoding_region (beg, end, coding, str)
     default:		/* i.e. case coding_type_iso2022: */
       if (coding->heading_ascii < 0)
 	{
-	  unsigned char c;
-
 	  /* We can skip all ASCII characters at the head except for a
 	     few control codes.  */
 	  while (begp < endp && (c = *begp) < 0x80
@@ -3702,7 +3811,7 @@ shrink_decoding_region (beg, end, coding, str)
 	case CODING_CATEGORY_IDX_ISO_8_2:
 	  /* We can skip all ASCII characters at the tail.  */
 	  if (eol_conversion)
-	    while (begp < endp && endp[-1] < 0x80 && endp[-1] != '\n') endp--;
+	    while (begp < endp && (c = endp[-1]) < 0x80 && c != '\n') endp--;
 	  else
 	    while (begp < endp && endp[-1] < 0x80) endp--;
 	  break;
@@ -3712,10 +3821,12 @@ shrink_decoding_region (beg, end, coding, str)
 	  /* We can skip all charactes at the tail except for ESC and
              the following 2-byte at the tail.  */
 	  if (eol_conversion)
-	    while (begp < endp && endp[-1] != ISO_CODE_ESC && endp[-1] != '\n')
+	    while (begp < endp
+		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC && c != '\n')
 	      endp--;
 	  else
-	    while (begp < endp && endp[-1] != ISO_CODE_ESC)
+	    while (begp < endp
+		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC)
 	      endp--;
 	  if (begp < endp && endp[-1] == ISO_CODE_ESC)
 	    {
@@ -3762,8 +3873,7 @@ shrink_encoding_region (beg, end, coding, str)
     }
   else
     {
-      move_gap (*beg);
-      begp_orig = begp = GAP_END_ADDR;
+      begp_orig = begp = BYTE_POS_ADDR (*beg);
       endp_orig = endp = begp + *end - *beg;
     }
 
@@ -3821,8 +3931,13 @@ shrink_encoding_region (beg, end, coding, str)
 }
 
 /* Decode (if ENCODEP is zero) or encode (if ENCODEP is nonzero) the
-   text from FROM to TO by coding system CODING, and return number of
-   characters in the resulting text.
+   text from FROM to TO (byte positions are FROM_BYTE and TO_BYTE) by
+   coding system CODING, and return the status code of code conversion
+   (currently, this value has no meaning).
+
+   How many characters (and bytes) are converted to how many
+   characters (and bytes) are recorded in members of the structure
+   CODING.
 
    If ADJUST is nonzero, we do various things as if the original text
    is deleted and a new text is inserted.  See the comments in
@@ -3832,22 +3947,34 @@ shrink_encoding_region (beg, end, coding, str)
    pre-write-conversion functions (if any) should be processed.  */
 
 int
-code_convert_region (from, to, coding, encodep, adjust)
-     int from, to, encodep, adjust;
+code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
+     int from, from_byte, to, to_byte, encodep, adjust;
      struct coding_system *coding;
 {
-  int len = to - from, require, inserted, inserted_byte;
-  int from_byte, to_byte, len_byte;
+  int len = to - from, len_byte = to_byte - from_byte;
+  int require, inserted, inserted_byte;
   int from_byte_orig, to_byte_orig;
   Lisp_Object saved_coding_symbol = Qnil;
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int first = 1;
+  int fake_multibyte = 0;
+  unsigned char *src, *dst;
 
   if (adjust)
     {
+      int saved_from = from;
+
       prepare_to_modify_buffer (from, to, &from);
-      to = from + len;
+      if (saved_from != from)
+	{
+	  to = from + len;
+	  if (multibyte)
+	    from_byte = CHAR_TO_BYTE (from), to_byte = CHAR_TO_BYTE (to);
+	  else
+	    from_byte = from, to_byte = to;
+	  len_byte = to_byte - from_byte;
+	}
     }
-  from_byte = CHAR_TO_BYTE (from); to_byte = CHAR_TO_BYTE (to);
-  len_byte = to_byte - from_byte;
 
   if (! encodep && CODING_REQUIRE_DETECTION (coding))
     {
@@ -3860,7 +3987,7 @@ code_convert_region (from, to, coding, encodep, adjust)
 	move_gap_both (from, from_byte);
       if (coding->type == coding_type_undecided)
 	{
-	  detect_coding (coding, BYTE_POS_ADDR (from), len);
+	  detect_coding (coding, BYTE_POS_ADDR (from_byte), len_byte);
 	  if (coding->type == coding_type_undecided)
 	    coding->type = coding_type_emacs_mule;
 	}
@@ -3876,10 +4003,35 @@ code_convert_region (from, to, coding, encodep, adjust)
 	}
     }
 
+  coding->consumed_char = len, coding->consumed = len_byte;
+
   if (encodep
       ? ! CODING_REQUIRE_ENCODING (coding)
       : ! CODING_REQUIRE_DECODING (coding))
-    return len;
+    {
+      coding->produced = len_byte;
+      if (multibyte)
+	{
+	  if (GPT < from || GPT > to)
+	    move_gap_both (from, from_byte);
+	  coding->produced_char
+	    = multibyte_chars_in_text (BYTE_POS_ADDR (from_byte), len_byte);
+	  if (coding->produced_char != len)
+	    {
+	      int diff = coding->produced_char - len;
+
+	      if (adjust)
+		adjust_before_replace (from, from_byte, to, to_byte);
+	      ZV += diff; Z += diff; GPT += diff;
+	      if (adjust)
+		adjust_after_replace (from, from_byte, to, to_byte,
+				      diff, 0);
+	    }
+	}
+      else
+	coding->produced_char = len_byte;
+      return 0;
+    }
 
   /* Now we convert the text.  */
 
@@ -3900,33 +4052,40 @@ code_convert_region (from, to, coding, encodep, adjust)
 	  len = ZV - BEGV;
 	  new = current_buffer;
 	  set_buffer_internal_1 (prev);
-	  del_range (from, to);
+	  del_range_2 (from, to, from_byte, to_byte);
 	  insert_from_buffer (new, BEG, len, 0);
 	  to = from + len;
-	  to_byte = CHAR_TO_BYTE (to);
+	  to_byte = multibyte ? CHAR_TO_BYTE (to) : to;
 	  len_byte = to_byte - from_byte;
 	}
     }
 
   /* Try to skip the heading and tailing ASCIIs.  */
   from_byte_orig = from_byte; to_byte_orig = to_byte;
+  if (from < GPT && GPT < to)
+    move_gap (from);
   if (encodep)
     shrink_encoding_region (&from_byte, &to_byte, coding, NULL);
   else
     shrink_decoding_region (&from_byte, &to_byte, coding, NULL);
   if (from_byte == to_byte)
-    return len;
+    {
+      coding->produced = len_byte;
+      coding->produced_char = multibyte ? len : len_byte;
+      return 0;
+    }
+
   /* Here, the excluded region by shrinking contains only ASCIIs.  */
   from += (from_byte - from_byte_orig);
   to += (to_byte - to_byte_orig);
   len = to - from;
   len_byte = to_byte - from_byte;
 
-  /* For converion, we must put the gap before the text to be decoded
-     in addition to make the gap larger for efficient decoding.  The
-     required gap size starts from 2000 which is the magic number used
-     in make_gap.  But, after one batch of conversion, it will be
-     incremented if we find that it is not enough .  */
+  /* For converion, we must put the gap before the text in addition to
+     making the gap larger for efficient decoding.  The required gap
+     size starts from 2000 which is the magic number used in make_gap.
+     But, after one batch of conversion, it will be incremented if we
+     find that it is not enough .  */
   require = 2000;
 
   if (GAP_SIZE  < require)
@@ -3942,38 +4101,44 @@ code_convert_region (from, to, coding, encodep, adjust)
     end_unchanged = Z - GPT;
 
   inserted = inserted_byte = 0;
+  src = GAP_END_ADDR, dst = GPT_ADDR;
+
+  GAP_SIZE += len_byte;
+  ZV -= len;
+  Z -= len;
+  ZV_BYTE -= len_byte;
+  Z_BYTE -= len_byte;
+
   for (;;)
     {
-      int result, diff_char, diff_byte;
+      int result;
 
       /* The buffer memory is changed from:
-	 +--------+converted-text+------------+-----original-text-----+---+
-	 |<-from->|<--inserted-->|<-GAP_SIZE->|<---------len--------->|---|  */
-
+	 +--------+converted-text+---------+-------original-text------+---+
+	 |<-from->|<--inserted-->|---------|<-----------len---------->|---|
+		  |<------------------- GAP_SIZE -------------------->|  */
       if (encodep)
-	result = encode_coding (coding, GAP_END_ADDR, GPT_ADDR, len_byte, 0);
+	result = encode_coding (coding, src, dst, len_byte, 0);
       else
-	result = decode_coding (coding, GAP_END_ADDR, GPT_ADDR, len_byte, 0);
+	result = decode_coding (coding, src, dst, len_byte, 0);
       /* to:
 	 +--------+-------converted-text--------+--+---original-text--+---+
-	 |<-from->|<----(inserted+produced)---->|--|<-(len-consumed)->|---|  */
+	 |<-from->|<--inserted-->|<--produced-->|--|<-(len-consumed)->|---|
+		  |<------------------- GAP_SIZE -------------------->|  */
+      if (coding->fake_multibyte)
+	fake_multibyte = 1;
 
-      diff_char = coding->produced_char - coding->consumed_char;
-      diff_byte = coding->produced - coding->consumed;
-
-      GAP_SIZE -= diff_byte;
-      ZV += diff_char; ZV_BYTE += diff_byte;
-      Z += diff_char; Z_BYTE += diff_byte;
-      GPT += coding->produced_char; GPT_BYTE += coding->produced;
-
+      if (!encodep && !multibyte)
+	coding->produced_char = coding->produced;
       inserted += coding->produced_char;
       inserted_byte += coding->produced;
-      len -= coding->consumed_char;
       len_byte -= coding->consumed;
+      src += coding->consumed;
+      dst += inserted_byte;
 
       if (! encodep && result == CODING_FINISH_INCONSISTENT_EOL)
 	{
-	  unsigned char *p = GPT_ADDR - inserted_byte, *pend = GPT_ADDR;
+	  unsigned char *pend = dst, *p = pend - inserted_byte;
 
 	  /* Encode LFs back to the original eol format (CR or CRLF).  */
 	  if (coding->eol_type == CODING_EOL_CR)
@@ -3982,24 +4147,39 @@ code_convert_region (from, to, coding, encodep, adjust)
 	    }
 	  else
 	    {
-	      unsigned char *p2 = p;
 	      int count = 0;
 
-	      while (p2 < pend) if (*p2++ == '\n') count++;
-	      if (GAP_SIZE < count)
-		make_gap (count - GAP_SIZE);
-	      p2 = GPT_ADDR + count;
-	      while (p < pend)
+	      while (p < pend) if (*p++ == '\n') count++;
+	      if (src - dst < count)
 		{
-		  *--p2 = *--pend;
-		  if (*pend == '\n') *--p2 = '\r';
+		  /* We don't have sufficient room for putting LFs
+		     back to CRLF.  We must record converted and
+		     not-yet-converted text back to the buffer
+		     content, enlarge the gap, then record them out of
+		     the buffer contents again.  */
+		  int add = len_byte + inserted_byte;
+
+		  GAP_SIZE -= add;
+		  ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
+		  GPT += inserted_byte; GPT_BYTE += inserted_byte;
+		  make_gap (count - GAP_SIZE);
+		  GAP_SIZE += add;
+		  ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
+		  GPT -= inserted_byte; GPT_BYTE -= inserted_byte;
+		  /* Don't forget to update SRC, DST, and PEND.  */
+		  src = GAP_END_ADDR - len_byte;
+		  dst = GPT_ADDR + inserted_byte;
+		  pend = dst;
 		}
-	      GPT += count; GAP_SIZE -= count; ZV += count; Z += count;
-	      ZV_BYTE += count; Z_BYTE += count;
-	      coding->produced += count;
-	      coding->produced_char += count;
 	      inserted += count;
 	      inserted_byte += count;
+	      coding->produced += count;
+	      p = dst = pend + count;
+	      while (count)
+		{
+		  *--p = *--pend;
+		  if (*p == '\n') count--, *--p = '\r';
+		}
 	    }
 
 	  /* Suppress eol-format conversion in the further conversion.  */
@@ -4007,6 +4187,8 @@ code_convert_region (from, to, coding, encodep, adjust)
 
 	  /* Restore the original symbol.  */
 	  coding->symbol = saved_coding_symbol;
+	  
+	  continue;
 	}
       if (len_byte <= 0)
 	break;
@@ -4014,26 +4196,56 @@ code_convert_region (from, to, coding, encodep, adjust)
 	{
 	  /* The source text ends in invalid codes.  Let's just
 	     make them valid buffer contents, and finish conversion.  */
-	  inserted += len;
+	  inserted += len_byte;
 	  inserted_byte += len_byte;
+	  while (len_byte--)
+	    *src++ = *dst++;
+	  fake_multibyte = 1;
 	  break;
 	}
-      if (inserted == coding->produced_char)
-	/* We have just done the first batch of conversion.  Let's
-	   reconsider the required gap size now.
+      if (first)
+	{
+	  /* We have just done the first batch of conversion which was
+	     stoped because of insufficient gap.  Let's reconsider the
+	     required gap size (i.e. SRT - DST) now.
 
-	   We have converted CONSUMED bytes into PRODUCED bytes.  To
-	   convert the remaining LEN bytes, we may need REQUIRE bytes
-	   of gap, where:
-	       REQUIRE + LEN = (LEN * PRODUCED / CONSUMED)
-	       REQUIRE = LEN * (PRODUCED - CONSUMED) / CONSUMED
-		       = LEN * DIFF / CONSUMED
-	   Here, we are sure that DIFF is positive.  */
-	require = len_byte * diff_byte / coding->consumed;
-      if (GAP_SIZE  < require)
-	make_gap (require - GAP_SIZE);
+	     We have converted ORIG bytes (== coding->consumed) into
+	     NEW bytes (coding->produced).  To convert the remaining
+	     LEN bytes, we may need REQUIRE bytes of gap, where:
+		REQUIRE + LEN_BYTE = LEN_BYTE * (NEW / ORIG)
+		REQUIRE = LEN_BYTE * (NEW - ORIG) / ORIG
+	     Here, we are sure that NEW >= ORIG.  */
+	  require = (len_byte * (coding->produced - coding->consumed)
+		     / coding->consumed);
+	  first = 0;
+	}
+      if ((src - dst) < (require + 2000))
+	{
+	  /* See the comment above the previous call of make_gap.  */
+	  int add = len_byte + inserted_byte;
+
+	  GAP_SIZE -= add;
+	  ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
+	  GPT += inserted_byte; GPT_BYTE += inserted_byte;
+	  make_gap (require + 2000);
+	  GAP_SIZE += add;
+	  ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
+	  GPT -= inserted_byte; GPT_BYTE -= inserted_byte;
+	  /* Don't forget to update SRC, DST.  */
+	  src = GAP_END_ADDR - len_byte;
+	  dst = GPT_ADDR + inserted_byte;
+	}
     }
-  if (GAP_SIZE > 0) *GPT_ADDR = 0; /* Put an anchor.  */
+  if (src - dst > 0) *dst = 0; /* Put an anchor.  */
+
+  if (multibyte && (fake_multibyte || !encodep && (to - from) != (to_byte - from_byte)))
+    inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
+
+  /* Update various buffer positions for the new text.  */
+  GAP_SIZE -= inserted_byte;
+  ZV += inserted; Z+= inserted;
+  ZV_BYTE += inserted_byte; Z_BYTE += inserted_byte;
+  GPT += inserted; GPT_BYTE += inserted_byte;
 
   if (adjust)
     {
@@ -4055,9 +4267,18 @@ code_convert_region (from, to, coding, encodep, adjust)
 	  if (pos >= from + orig_inserted)
 	    temp_set_point (current_buffer, pos + (inserted - orig_inserted));
 	}
+      signal_after_change (from, to - from, inserted);
     }
 
-  return ((from_byte - from_byte_orig) + inserted + (to_byte_orig - to_byte));
+  {
+    int skip = (to_byte_orig - to_byte) + (from_byte - from_byte_orig);
+
+    coding->consumed = to_byte_orig - from_byte_orig;
+    coding->consumed_char = skip + (to - from);
+    coding->produced = skip + inserted_byte;
+    coding->produced_char = skip + inserted;
+  }
+  return 0;
 }
 
 Lisp_Object
@@ -4095,7 +4316,7 @@ code_convert_string (str, coding, encodep, nocopy)
 	  insert_from_string (str, 0, 0, to_byte, to_byte, 0);
 	  current_buffer->enable_multibyte_characters = Qt;
 	}
-      code_convert_region (BEGV, ZV, coding, encodep, 1);
+      code_convert_region (BEGV, BEGV_BYTE, ZV, ZV_BYTE, coding, encodep, 1);
       if (encodep)
 	/* We must return the buffer contents as unibyte string.  */
 	current_buffer->enable_multibyte_characters = Qnil;
@@ -4377,8 +4598,9 @@ code_convert_region1 (start, end, coding_system, encodep)
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
-  len = code_convert_region (from, to, &coding, encodep, 1);
-  return make_number (len);
+  code_convert_region (from, CHAR_TO_BYTE (from), to, CHAR_TO_BYTE (to),
+		       &coding, encodep, 1);
+  return make_number (coding.produced_char);
 }
 
 DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
