@@ -156,10 +156,6 @@ This mirrors the optional behavior of tcsh.
 
 Detecting executability of files may slow command completion considerably.")
 
-(defvar shell-buffer-maximum-size 1024
-  "*The maximum size in lines for shell buffers.
-Shell buffers are truncated from the top to be no greater than this number.")
-
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
 
@@ -265,7 +261,7 @@ If you want to make multiple shell buffers, rename the `*shell*' buffer
 using \\[rename-buffer] or \\[rename-uniquely] and start a new shell.
 
 If you want to make shell buffers limited in length, add the function
-`shell-truncate-buffer' to `comint-output-filter-functions'.
+`comint-truncate-buffer' to `comint-output-filter-functions'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -630,14 +626,6 @@ command again."
 	(setq msg (concat msg (directory-file-name dir) " "))
 	(setq ds (cdr ds))))
     (message msg)))
-
-(defun shell-truncate-buffer (string)
-  "Truncate the buffer to `shell-buffer-maximum-size'."
-  (save-excursion
-    (goto-char (point-max))
-    (forward-line (- shell-buffer-maximum-size))
-    (beginning-of-line)
-    (delete-region (point-min) (point))))
 
 (defun shell-forward-command (&optional arg)
   "Move forward across ARG shell command(s).  Does not cross lines.
