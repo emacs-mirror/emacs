@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; This code defines a ring data structure. A ring is a 
-;;     (hd-index length . vector) 
+;; This code defines a ring data structure. A ring is a
+;;     (hd-index length . vector)
 ;; list.  You can insert to, remove from, and rotate a ring.  When the ring
 ;; fills up, insertions cause the oldest elts to be quietly dropped.
 ;;
@@ -35,17 +35,29 @@
 ;;
 ;; hd-index = vector index of the oldest ring item.
 ;;         Newer items follow this item; at the end of the vector,
-;;	   they wrap around to the start of the vector.
+;;         they wrap around to the start of the vector.
 ;; length = number of items currently in the ring.
-;;	   This never exceeds the length of the vector itself.
+;;         This never exceeds the length of the vector itself.
 ;;
 ;; These functions are used by the input history mechanism, but they can
 ;; be used for other purposes as well.
 
+;;; Change Log:
+
+;;  Sun Aug 22 12:58:54 1999  Kevin Blake <kblake@ticnet.com>
+;;   * Added the `ring-size' and `ring-copy' functions.  Added documentation
+to
+;;     the `ring-empty-p' and `ring-index' functions.  Enhanced the
+documentation
+;;     of several functions.  Added comments to the layout of this module to
+;;     make things more obvious.
+
 ;;; Code:
 
+;;; User Functions:
+
 ;;;###autoload
-(defun ring-p (x) 
+(defun ring-p (x)
   "Returns t if X is a ring; nil otherwise."
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (car (cdr x)))
@@ -58,48 +70,66 @@
 
 (defun ring-insert-at-beginning (ring item)
   "Add to RING the item ITEM.  Add it at the front, as the oldest item."
-  (let* ((vec (cdr (cdr ring))) 
-	 (veclen (length vec))
-	 (hd (car ring))
-	 (ln (car (cdr ring))))
+  (let* ((vec (cdr (cdr ring)))
+         (veclen (length vec))
+         (hd (car ring))
+         (ln (car (cdr ring))))
     (setq ln (min veclen (1+ ln))
-	  hd (ring-minus1 hd veclen))
+          hd (ring-minus1 hd veclen))
     (aset vec hd item)
     (setcar ring hd)
     (setcar (cdr ring) ln)))
 
 (defun ring-plus1 (index veclen)
-  "INDEX+1, with wraparound."
+  "Returns INDEX+1, with wraparound."
   (let ((new-index (+ index 1)))
     (if (= new-index veclen) 0 new-index)))
 
 (defun ring-minus1 (index veclen)
-  "INDEX-1, with wraparound."
+  "Returns INDEX-1, with wraparound."
   (- (if (= 0 index) veclen index) 1))
 
 (defun ring-length (ring)
-  "Number of elements in the ring RING."
+  "Returns the number of elements in the RING."
   (car (cdr ring)))
 
-(defun ring-empty-p (ring)
-  (= 0 (car (cdr ring))))
-
 (defun ring-index (index head ringlen veclen)
+  "Converts nominal ring index INDEX to an internal index.
+The internal index refers to the items ordered from newest to oldest.
+HEAD is the index of the oldest element in the ring.
+RINGLEN is the number of elements currently in the ring.
+VECLEN is the size of the vector in the ring."
   (setq index (mod index ringlen))
   (mod (1- (+ head (- ringlen index))) veclen))
 
+(defun ring-empty-p (ring)
+  "Returns t if RING is empty; nil otherwise."
+  (= 0 (car (cdr ring))))
+
+(defun ring-size (ring)
+  "Returns the size of RING, the maximum number of elements it can contain."
+  (length (cdr (cdr ring))))
+
+(defun ring-copy (ring)
+  "Returns a copy of RING."
+  (let*
+      ((vec (cdr (cdr ring)))
+       (hd  (car ring))
+       (ln  (car (cdr ring))))
+    (cons hd (cons ln (copy-sequence vec)))))
+
 (defun ring-insert (ring item)
   "Insert onto ring RING the item ITEM, as the newest (last) item.
-If the ring is full, dump the oldest item to make room."       
-  (let* ((vec (cdr (cdr ring))) 
-	 (veclen (length vec))
-	 (hd (car ring))
-	 (ln (car (cdr ring))))
+If the ring is full, dump the oldest item to make room."
+  (let* ((vec (cdr (cdr ring)))
+         (veclen (length vec))
+         (hd (car ring))
+         (ln (car (cdr ring))))
     (prog1
-	(aset vec (mod (+ hd ln) veclen) item)
+        (aset vec (mod (+ hd ln) veclen) item)
       (if (= ln veclen)
-	  (setcar ring (ring-plus1 hd veclen))
-	(setcar (cdr ring) (1+ ln))))))
+          (setcar ring (ring-plus1 hd veclen))
+        (setcar (cdr ring) (1+ ln))))))
 
 (defun ring-remove (ring &optional index)
   "Remove an item from the RING.  Return the removed item.
@@ -108,18 +138,18 @@ numeric, remove the element indexed."
   (if (ring-empty-p ring)
       (error "Ring empty")
     (let* ((hd (car ring))
-	  (ln (car (cdr ring)))
-	  (vec (cdr (cdr ring)))
-	  (veclen (length vec))
-	  (tl (mod (1- (+ hd ln)) veclen))
-	  oldelt)
+           (ln (car (cdr ring)))
+           (vec (cdr (cdr ring)))
+           (veclen (length vec))
+           (tl (mod (1- (+ hd ln)) veclen))
+           oldelt)
       (if (null index)
-	  (setq index (1- ln)))
+          (setq index (1- ln)))
       (setq index (ring-index index hd ln veclen))
       (setq oldelt (aref vec index))
       (while (/= index tl)
-	(aset vec index (aref vec (ring-plus1 index veclen)))
-	(setq index (ring-plus1 index veclen)))
+        (aset vec index (aref vec (ring-plus1 index veclen)))
+        (setq index (ring-plus1 index veclen)))
       (aset vec tl nil)
       (setcar (cdr ring) (1- ln))
       oldelt)))
@@ -134,6 +164,8 @@ will be performed."
       (error "Accessing an empty ring")
     (let* ((hd (car ring))  (ln (car (cdr ring)))  (vec (cdr (cdr ring))))
       (aref vec (ring-index index hd ln (length vec))))))
+
+;;; provide ourself:
 
 (provide 'ring)
 
