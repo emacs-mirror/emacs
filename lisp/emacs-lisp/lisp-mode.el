@@ -132,7 +132,9 @@
 (put 'define-generic-mode 'doc-string-elt 7)
 ;; define-global-mode has no explicit docstring.
 (put 'easy-mmode-define-global-mode 'doc-string-elt 0)
-
+(put 'define-ibuffer-filter 'doc-string-elt 3)
+(put 'define-ibuffer-op 'doc-string-elt 3)
+(put 'define-ibuffer-sorter 'doc-string-elt 3)
 
 (defun lisp-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
