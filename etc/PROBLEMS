@@ -3,6 +3,9 @@ in compiling, installing and running GNU Emacs.
 
 * Emacs crashes on Mac OS X (Carbon) after system software upgrade.
 
+This problem seems to be now solved by Steven Tamm's patch to
+unexmacosx.c on Nov 24, 2002.
+
 Between Mac OS X release 10.2.1 and 10.2.2 there was an incompatible
 change in the memory allocator that causes a EXC_BAD_ACCESS error near
 xrealloc().  Relinking the application (by deleting src/temacs and
