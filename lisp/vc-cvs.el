@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.28 2001/11/30 13:47:39 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.17 2002/01/06 22:11:39 martin Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -83,6 +83,52 @@ of a repository; then VC only stays local for hosts that match it."
   :version "21.1"
   :group 'vc)
 
+(defcustom vc-cvs-sticky-date-format-string "%c"
+  "*Format string for mode-line display of sticky date.
+Format is according to `format-time-string'.  Only used if
+`vc-cvs-sticky-tag-display' is t."
+  :type '(string)
+  :version "21.3"
+  :group 'vc)
+
+(defcustom vc-cvs-sticky-tag-display t
+  "*Specify the mode-line display of sticky tags.
+Value t means default display, nil means no display at all.  If the
+value is a function or macro, it is called with the sticky tag and
+its' type as parameters, in that order.  TYPE can have three different
+values: `symbolic-name' (TAG is a string), `revision-number' (TAG is a
+string) and `date' (TAG is a date as returned by `encode-time').  The
+return value of the function or macro will be displayed as a string.
+
+Here's an example that will display the formatted date for sticky
+dates and the word \"Sticky\" for sticky tag names and revisions.
+
+  (lambda (tag type)
+    (cond ((eq type 'date) (format-time-string 
+                              vc-cvs-sticky-date-format-string tag))
+          ((eq type 'revision-number) \"Sticky\")
+          ((eq type 'symbolic-name) \"Sticky\")))
+
+Here's an example that will abbreviate to the first character only,
+any text before the first occurence of `-' for sticky symbolic tags.
+If the sticky tag is a revision number, the word \"Sticky\" is
+displayed.  Date and time is displayed for sticky dates.
+
+   (lambda (tag type)
+     (cond ((eq type 'date) (format-time-string \"%Y%m%d %H:%M\" tag))
+           ((eq type 'revision-number) \"Sticky\")
+           ((eq type 'symbolic-name) 
+            (condition-case nil
+                (progn
+                  (string-match \"\\\\([^-]*\\\\)\\\\(.*\\\\)\" tag)
+                  (concat (substring (match-string 1 tag) 0 1) \":\" 
+                          (substring (match-string 2 tag) 1 nil)))
+              (error tag)))))       ; Fall-back to given tag name.
+
+See also variable `vc-cvs-sticky-date-format-string'."
+  :type '(choice boolean function)
+  :version "21.3"
+  :group 'vc)
 
 ;;;
 ;;; Internal variables
@@ -187,23 +233,28 @@ of a repository; then VC only stays local for hosts that match it."
 
 (defun vc-cvs-mode-line-string (file)
   "Return string for placement into the modeline for FILE.
-Compared to the default implementation, this function handles the
-special case of a CVS file that is added but not yet committed."
-  (let ((state   (vc-state file))
-	(rev     (vc-workfile-version file)))
+Compared to the default implementation, this function does two things:
+Handle the special case of a CVS file that is added but not yet
+committed and support display of sticky tags."
+  (let* ((state   (vc-state file))
+	 (rev     (vc-workfile-version file))
+	 (sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
+ 	 (sticky-tag-printable (and sticky-tag
+				    (not (string= sticky-tag ""))
+ 				    (concat "(" sticky-tag ")"))))
     (cond ((string= rev "0")
 	   ;; A file that is added but not yet committed.
 	   "CVS @@")
 	  ((or (eq state 'up-to-date)
 	       (eq state 'needs-patch))
-	   (concat "CVS-" rev))
+	   (concat "CVS-" rev sticky-tag-printable))
           ((stringp state)
-	   (concat "CVS:" state ":" rev))
+	   (concat "CVS:" state ":" rev sticky-tag-printable))
           (t
            ;; Not just for the 'edited state, but also a fallback
            ;; for all other states.  Think about different symbols
            ;; for 'needs-patch and 'needs-merge.
-           (concat "CVS:" rev)))))
+           (concat "CVS:" rev sticky-tag-printable)))))
 
 (defun vc-cvs-dired-state-info (file)
   "CVS-specific version of `vc-dired-state-info'."
@@ -260,16 +311,22 @@ This is only possible if CVS is responsible for FILE's directory."
 		      (list vc-checkin-switches)
 		    vc-checkin-switches))
 	status)
-    ;; explicit check-in to the trunk requires a double check-in (first
-    ;; unexplicit) (CVS-1.3)
-    (if (and rev (vc-trunk-p rev))
-	(apply 'vc-do-command nil 1 "cvs" file
-	       "ci" "-m" "intermediate"
-	       switches))
-    (setq status (apply 'vc-do-command nil 1 "cvs" file
-			"ci" (if rev (concat "-r" rev))
-			(concat "-m" comment)
-			switches))
+    (if (not rev)
+        (setq status (apply 'vc-do-command nil 1 "cvs" file
+                            "ci" (if rev (concat "-r" rev))
+                            (concat "-m" comment)
+                            switches))
+      (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
+          (error "%s is not a valid symbolic tag name")
+        ;; If the input revison is a valid symbolic tag name, we create it
+        ;; as a branch, commit and switch to it.       
+        (apply 'vc-do-command nil 0 "cvs" file "tag" "-b" (list rev))
+        (apply 'vc-do-command nil 0 "cvs" file "update" "-r" (list rev))
+        (setq status (apply 'vc-do-command nil 1 "cvs" file
+                            "ci" 
+                            (concat "-m" comment)
+                            switches))
+        (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (when (not (zerop status))
@@ -294,8 +351,11 @@ This is only possible if CVS is responsible for FILE's directory."
     ;; tell it from the permissions of the file (see
     ;; vc-cvs-checkout-model).
     (vc-file-setprop file 'vc-checkout-model nil)
-    ;; if this was an explicit check-in, remove the sticky tag
-    (if rev (vc-do-command nil 0 "cvs" file "update" "-A"))))
+
+    ;; if this was an explicit check-in (does not include creation of
+    ;; a branch), remove the sticky tag.
+    (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
+	(vc-do-command nil 0 "cvs" file "update" "-A"))))
 
 (defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
@@ -602,11 +662,13 @@ workspace is immediately moved to that new branch)."
 NAME is the name of the snapshot; if it is empty, do a `cvs update'.
 If UPDATE is non-nil, then update (resynch) any affected buffers."
   (with-current-buffer (get-buffer-create "*vc*")
-    (let ((default-directory dir))
+    (let ((default-directory dir)
+	  (sticky-tag))
       (erase-buffer)
       (if (or (not name) (string= name ""))
 	  (vc-do-command t 0 "cvs" nil "update")
-	(vc-do-command t 0 "cvs" nil "update" "-r" name))
+	(vc-do-command t 0 "cvs" nil "update" "-r" name)
+	(setq sticky-tag name))
       (when update
 	(goto-char (point-min))
 	(while (not (eobp))
@@ -627,6 +689,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		    (vc-file-setprop file 'vc-state 'edited)
 		    (vc-file-setprop file 'vc-workfile-version nil)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
+		  (vc-file-setprop file 'vc-cvs-sticky-tag sticky-tag)
 		  (vc-resynch-buffer file t t))))
 	  (forward-line 1))))))
 
@@ -721,6 +784,67 @@ essential information."
 	    (vc-cvs-parse-entry file t))))
       (forward-line 1))))
 
+
+(defun vc-cvs-valid-symbolic-tag-name-p (tag)
+  "Return non-nil if TAG is a valid symbolic tag name."
+  ;; According to the CVS manual, a valid symbolic tag must start with
+  ;; an uppercase or lowercase letter and can contain uppercase and
+  ;; lowercase letters, digits, `-', and `_'.
+  (and (string-match "^[a-zA-Z]" tag)
+       (not (string-match "[^a-z0-9A-Z-_]" tag))))
+      
+
+(defun vc-cvs-parse-sticky-tag (match-type match-tag)
+  "Parse and return the sticky tag as a string.  
+`match-data' is protected."
+  (let ((data (match-data))
+	(tag)
+	(type (cond ((string= match-type "D") 'date)
+		    ((string= match-type "T")
+		     (if (vc-cvs-valid-symbolic-tag-name-p match-tag)
+			 'symbolic-name
+		       'revision-number))
+		    (t nil))))
+    (unwind-protect
+	(progn
+	  (cond 
+	   ;; Sticky Date tag.  Convert to to a proper date value (`encode-time')
+	   ((eq type 'date)
+	    (string-match 
+	     "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" 
+	     match-tag)
+	    (let* ((year-tmp (string-to-number (match-string 1 match-tag)))
+		   (month    (string-to-number (match-string 2 match-tag)))
+		   (day      (string-to-number (match-string 3 match-tag)))
+		   (hour     (string-to-number (match-string 4 match-tag)))
+		   (min      (string-to-number (match-string 5 match-tag)))
+		   (sec      (string-to-number (match-string 6 match-tag)))
+		   ;; Years 0..68 are 2000..2068.
+		   ;; Years 69..99 are 1969..1999.
+		   (year (+ (cond ((> 69 year-tmp) 2000)
+				  ((> 100 year-tmp) 1900)
+				  (t 0))
+			    year-tmp)))
+	      (setq tag (encode-time sec min hour day month year))))
+	   ;; Sticky Tag name or revision number
+	   ((eq type 'symbolic-name) (setq tag match-tag))
+	   ((eq type 'revision-number) (setq tag match-tag))
+	   ;; Default is no sticky tag at all
+	   (t nil))
+	  (cond ((eq vc-cvs-sticky-tag-display nil) nil)
+		((eq vc-cvs-sticky-tag-display t)
+		 (cond ((eq type 'date) (format-time-string 
+					 vc-cvs-sticky-date-format-string
+					 tag))
+		       ((eq type 'symbolic-name) tag)
+		       ((eq type 'revision-number) tag)
+		       (t nil)))
+		((functionp vc-cvs-sticky-tag-display) 
+		 (funcall vc-cvs-sticky-tag-display tag type))
+		(t nil)))
+
+      (set-match-data data))))
+
 (defun vc-cvs-parse-entry (file &optional set-state)
   "Parse a line from CVS/Entries.
 Compare modification time to that of the FILE, set file properties
@@ -738,8 +862,17 @@ is non-nil."
 	     ;; revision
 	     "/\\([^/]*\\)"
 	     ;; timestamp
-	     "/\\([^/]*\\)"))
+	     "/\\([^/]*\\)"
+	     ;; optional conflict field
+	     "\\(+[^/]*\\)?/"
+	     ;; options
+	     "\\([^/]*\\)/"
+	     ;; sticky tag
+	     "\\(.\\|\\)" ;Sticky tag type (date or tag name, could be empty)
+	     "\\(.*\\)"))		;Sticky tag
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
+    (vc-file-setprop file 'vc-cvs-sticky-tag 
+		     (vc-cvs-parse-sticky-tag (match-string 5) (match-string 6)))
     ;; compare checkout time and modification time
     (let ((mtime (nth 5 (file-attributes file)))
 	  (system-time-locale "C"))
