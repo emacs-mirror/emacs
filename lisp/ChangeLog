@@ -1,3 +1,7 @@
+2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* files.el (display-time-string): Fix last change.
+
 2002-04-07  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (set-default-coding-systems)
@@ -39,8 +43,8 @@
 
 2002-04-04  Richard M. Stallman  <rms@gnu.org>
 
-	* files.el (mode-line-format, mode-line-modified) 
-	(mode-line-mule-info, mode-line-buffer-identification) 
+	* files.el (mode-line-format, mode-line-modified)
+	(mode-line-mule-info, mode-line-buffer-identification)
 	(mode-line-modes, mode-line-position): Explicitly mark as risky.
 	(hack-one-local-variable): Don't recognize "mode-line-..." as risky.
 
@@ -49,7 +53,7 @@
 	* mail/mailabbrev.el (mail-abbrev-make-syntax-table):
 	Use (syntax-table), not old-syntax-table.
 
-	* enriched.el (enriched-decode-foreground) 
+	* enriched.el (enriched-decode-foreground)
 	(enriched-decode-background): Don't call facemenu-get-face.
 
 2002-04-04  Mike Williams  <mdub@bigfoot.com>
