@@ -50,8 +50,7 @@
   (setq default-terminal-coding-system 'chinese-iso-8bit)
   (setq default-keyboard-coding-system 'chinese-iso-8bit)
 
-  (setq default-input-method  "chinese-py-punct")
-  (setq-default default-input-method "chinese-py-punct"))
+  (setq default-input-method  "chinese-py-punct"))
 
 ;;;###autoload
 (defun setup-chinese-big5-environment ()
@@ -78,8 +77,7 @@
   (setq default-terminal-coding-system 'chinese-big5)
   (setq default-keyboard-coding-system 'chinese-big5)
 
-  (setq default-input-method "chinese-py-punct-b5")
-  (setq-default default-input-method "chinese-py-punct-b5"))
+  (setq default-input-method "chinese-py-punct-b5"))
 
 ;;;###autoload
 (defun setup-chinese-cns-environment ()
@@ -105,8 +103,7 @@
   (setq default-terminal-coding-system 'chinese-iso-7bit)
   (setq default-keyboard-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method "chinese-quick-cns")
-  (setq-default default-input-method "chinese-quick-cns"))
+  (setq default-input-method "chinese-quick-cns"))
 
 ;; Hz/ZW encoding stuffs
 
