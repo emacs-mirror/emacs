@@ -1439,6 +1439,7 @@ the syntax class of the preceding character.  Set
 this.
 
 @findex check-parens
+@cindex unbalanced parentheses
 You can use @kbd{M-x check-parens} to find any unbalanced parentheses in
 a buffer.
 
