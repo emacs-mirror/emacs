@@ -4,14 +4,17 @@ in compiling, installing and running GNU Emacs.
 * Building Emacs with GCC 2.9x fails in the `src' directory.
 
 This may happen if you use a development version of GNU `cpp' from one
-of the GCC snapshots around Oct 2000 and later, or from a released
-version of GCC newer than 2.95.2.  The preprocessor in those versions
-expands ".." into ". .", which breaks relative file names that
-reference the parent directory.
+of the GCC snapshots between Oct 2000 and Feb 2001, or from a released
+version of GCC newer than 2.95.2 which was prepared around those
+dates.  The preprocessor in those versions expands ".." into ". .",
+which breaks relative file names that reference the parent directory.
 
 The solution is to make sure the preprocessor is run with the
 `-traditional' option.  (The `configure' script should do that
 automatically with Emacs 21 and later.)
+
+Versions of the GNU preprocessor after Feb 1 2001 reportedly don't
+have this problem, so upgrading should solve this.
 
 Note that this problem does not pertain to the MS-Windows port of
 Emacs, since it doesn't use the preprocessor to generate Makefile's.
