@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate January 12, 1999
+@set lastupdate January 13, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -385,6 +385,23 @@ A program for graphic morphing of scanned photographs.
 Software for designing and printing business cards.
 @end itemize
 
+@node Network Projects
+@chapter Network Projects
+
+@itemize @bullet
+@item
+A web-based front end for @code{mon}, so that it can do the
+job of Big Brother (which is not free software).
+
+@item
+A teleconferencing program which does the job of CU-SeeMe (which is,
+alas, not free software).
+
+@item
+A free ICQ-compatible server program.  (The ICQ server itself is not
+free software.)
+@end itemize
+
 @node Encryption Projects
 @chapter Encryption Projects
 
@@ -447,14 +464,6 @@ An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
 @item
 A general ledger program, including support for accounts payable, 
 account receivables, payroll, inventory control, order processing, etc.
-
-@item
-A teleconferencing program which does the job of CU-SeeMe (which is,
-alas, not free software).
-
-@item
-A free ICQ-compatible server program.  (The ICQ server itself is not
-free software.)
 
 @item
 A free replacement for Glimpse, which is not free software.
@@ -523,14 +532,16 @@ Programs to handle audio in RTSP format.
 @item
 An MPEG III audio encoder/decoder (but it is necessary to check, first,
 whether patents make this impossible).
-@end ignore
 
+@c Chris Hofstader is working on this.
 @item
 Speech-generation programs (there is a program from Brown U that you
 could improve).
 
+@c We have a project now.
 @item
 Speech-recognition programs (single-speaker, disconnected speech is sufficient).
+@end ignore
 
 @item
 A braille translation and formatting system which can convert marked up
