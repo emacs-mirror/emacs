@@ -2,19 +2,18 @@
 
 	Added context menu support in smerge mode.
 	Most of the part is written by Stefan Monnier.
-	
-	* smerge-mode.el (smerge-context-menu-map, smerge-context-menu): New
-	keyman and menu.
+
+	* smerge-mode.el (smerge-context-menu-map, smerge-context-menu):
+	New keymap and menu.
 	(smerge-text-properties): New function.
 	(smerge-remove-props): New function.
 	(smerge-popup-context-menu): New function.
 	(smerge-resolve): Call `smerge-remove-props'.
-	(smerge-keep-base, smerge-keep-other, smerge-keep-mine):
-	Ditto.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine): Ditto.
 	(smerge-keep-current): Ditto.
 	(smerge-kill-current): New function.
-	(smerge-match-conflict): Detect the file as `a same-diff conflict'
-	if the filename is "ANCESTOR". Put text properties.
+	(smerge-match-conflict): Put text properties.
+	Detect the file as `same-diff conflict' if the filename is "ANCESTOR".
 
 2004-03-15  David Ponce  <david@dponce.com>
 
@@ -22,8 +21,8 @@
 	(ruler-mode-right-fringe-cols, ruler-mode-left-scroll-bar-cols)
 	(ruler-mode-right-scroll-bar-cols): Remove.
 	(ruler-mode-window-col, ruler-mode-mouse-set-left-margin)
-	(ruler-mode-mouse-set-right-margin, ruler-mode-ruler): Use
-	fringe-columns and scroll-bar-columns.
+	(ruler-mode-mouse-set-right-margin, ruler-mode-ruler):
+	Use fringe-columns and scroll-bar-columns.
 
 2004-03-15  Masatake YAMATO  <jet@gyve.org>
 
@@ -32,11 +31,8 @@
 	(global-hl-line-highlight): Use `hl-line-move'.
 	(hl-line-highlight): Ditto.
 
-	* scroll-bar.el (scroll-bar-columns): New function derived from
-	ruler-mode.el.
-
-	* fringe.el (fringe-columns): New function derived from
-	ruler-mode.el.
+	* scroll-bar.el (scroll-bar-columns):
+	* fringe.el (fringe-columns): New function derived from ruler-mode.el.
 
 	* ruler-mode.el (top-level): Require scroll-bar and fringe.
 	(ruler-mode-left-fringe-cols)
@@ -49,12 +45,20 @@
 
 	* hexl.el (hexl-mode-hook): Make the hook customizable.
 	(hexl-address-area, hexl-ascii-area): New customize variables.
-	(hexlify-buffer): Put font-lock-faces on the address area and 
+	(hexlify-buffer): Put font-lock-faces on the address area and
 	the ascii area.
 	(hexl-activate-ruler): New function.
 	(hexl-follow-line): New function.
 	(hexl-highlight-line-range): New function.
 	(hexl-mode-ruler): New function.
+
+2004-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-handled-backends): Add Arch.  Move MCVS down.
+	(vc-default-find-file-hook): New fun.
+	(vc-find-file-hook): Call new find-file-hook operation.
+
+	* vc-arch.el: New file.
 
 2004-03-12  Jesper Harder  <harder@ifa.au.dk>
 
@@ -185,6 +189,11 @@
 	handling of remote directories.
 
 2004-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-use-global-state): New var.
+	(comment-search-forward): Use it.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Set it.
 
 	* cus-edit.el (fill) <defgroup>: Move to fill.el.
 
