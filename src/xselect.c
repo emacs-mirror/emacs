@@ -1902,8 +1902,6 @@ and t is the same as `SECONDARY'.)")
 
 #ifdef CUT_BUFFER_SUPPORT
 
-static int cut_buffers_initialized; /* Whether we're sure they all exist */
-
 /* Ensure that all 8 cut buffers exist.  ICCCM says we gotta...  */
 static void
 initialize_cut_buffers (display, window)
@@ -1924,7 +1922,6 @@ initialize_cut_buffers (display, window)
   FROB (XA_CUT_BUFFER7);
 #undef FROB
   UNBLOCK_INPUT;
-  cut_buffers_initialized = 1;
 }
 
 
@@ -2009,7 +2006,11 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   bytes = XSTRING (string)->size;
   bytes_remaining = bytes;
 
-  if (! cut_buffers_initialized) initialize_cut_buffers (display, window);
+  if (! FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized)
+    {
+      initialize_cut_buffers (display, window);
+      FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized = 1;
+    }
 
   BLOCK_INPUT;
 
@@ -2052,8 +2053,11 @@ positive means move values forward, negative means backward.")
   CHECK_NUMBER (n, 0);
   if (XINT (n) == 0)
     return n;
-  if (! cut_buffers_initialized)
-    initialize_cut_buffers (display, window);
+  if (! FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized)
+    {
+      initialize_cut_buffers (display, window);
+      FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized = 1;
+    }
 
   props[0] = XA_CUT_BUFFER0;
   props[1] = XA_CUT_BUFFER1;
@@ -2084,7 +2088,6 @@ syms_of_xselect ()
   defsubr (&Sx_get_cut_buffer_internal);
   defsubr (&Sx_store_cut_buffer_internal);
   defsubr (&Sx_rotate_cut_buffers_internal);
-  cut_buffers_initialized = 0;
 #endif
 
   reading_selection_reply = Fcons (Qnil, Qnil);
