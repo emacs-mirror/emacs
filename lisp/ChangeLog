@@ -1,3 +1,8 @@
+2005-01-15  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>  (tiny change)
+
+	* woman.el (woman-dired-define-key-maybe): If KEY is undefined,
+	lookup-key might return nil; handle that.
+
 2005-01-15  Alan Mackenzie  <acm@muc.de>
 
 	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
