@@ -1,7 +1,7 @@
 ;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, or dbx under Emacs
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 1.1
+;; Version: 1.2
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
@@ -33,23 +33,6 @@
 ;; This code will not work under Emacs 18.  It relies on Emacs 19's
 ;; minor-mode-keymap support and the find-tag-noselect entry point of etags.
 
-;;; Change Log:
-
-;; Version 1.1:		ESR	6 Apr 1993
-;;   * Facility to accept and parse command-line switches other than the
-;;     filename added.
-;;   * System V Release 4 support added.
-;;   * Can now set temporary breakpoints in sdb.
-;;   * A GUD minor mode using the 19 minor-mode-keymap facilities is now
-;;     enabled in visited C buffers.
-;;   * Command bindings are now automatically the same in gud-minor-mode
-;;     as they are in the GUD buffer itself, and use ^XX as a common
-;;     prefix (for compatibility with electric-debug).
-;;   * There is a new command for printing the C expression around point.
-
-;; Version 1.0:		ESR
-;;   * Created.
-
 ;;; Code:
 
 (require 'comint)
@@ -58,7 +41,7 @@
 ;; ======================================================================
 ;; minor-mode machinery for C buffers visited by GUD
 
-(defvar gud-key-prefix "\C-xX"
+(defvar gud-key-prefix "\C-x\C-a"
   "Prefix of all GUD minor-mode commands valid in C buffers.")
 
 (defvar gud-minor-mode nil)
@@ -421,6 +404,8 @@ or step operation:
 GUD buffer, the current file and line are those of the last breakpoint or
 step.  In a source buffer, they are the buffer's file and current line.
 
+\\[gud-remove] removes breakpoints on the current file and line.
+
 \\[gud-refresh] displays in the source window the last line referred to
 in the gud buffer.
 
@@ -444,6 +429,9 @@ frame.  \\[gud-down] drops back down through one.
 If you are using gdb, \\[gdb-finish] runs execution to the return from
 the current function and stops.
 
+All the keystrokes above have synonyms (in the GUD buffer only) with
+a prefix of C-c (this is for backward compatibility with old gdb.el).
+
 All pre-defined functions for which the concept make sense repeat
 themselves the appropriate number of times if you give a prefix
 argument.
@@ -461,6 +449,8 @@ comint mode, which see."
   (use-local-map (copy-keymap comint-mode-map))
   (define-key (current-local-map)
     gud-key-prefix (lookup-key gud-mode-map gud-key-prefix))
+  (define-key (current-local-map)
+    "\C-c" (lookup-key gud-mode-map gud-key-prefix))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
