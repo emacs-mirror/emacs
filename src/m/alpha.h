@@ -139,6 +139,21 @@ NOTE-END
 /* #define NO_SOCK_SIGIO */
 
 
+#ifdef __ELF__
+/* With ELF, make sure that all common symbols get allocated to in the
+   data section.  Otherwise, the dump of temacs may miss variables in
+   the shared library that have been initialized.  For example, with
+   GNU libc, __malloc_initialized would normally be resolved to the
+   shared library's .bss section, which is fatal.  */
+# ifdef __GNUC__
+#  define C_SWITCH_MACHINE	-fno-common
+# else
+#  error What gives?  Fix me if DEC Unix supports ELF now.
+# endif
+#endif
+
+#ifndef __ELF__
+
 /* Describe layout of the address space in an executing process.  */
 
 #define TEXT_START    0x120000000
@@ -148,6 +163,12 @@ NOTE-END
    the correct value */
 
 #define DATA_SEG_BITS 0x140000000
+
+/* The program to be used for unexec. */
+
+#define UNEXEC unexalpha.o
+
+#endif /* notdef __ELF__ */
 
 #ifdef OSF1
 #define ORDINARY_LINK
@@ -175,14 +196,10 @@ NOTE-END
 #define START_FILES pre-crt0.o
 #endif
 
-#ifdef LINUX
+#if defined (LINUX) && __GNU_LIBRARY__ - 0 < 6
 /* This controls a conditional in main.  */
 #define LINUX_SBRK_BUG
 #endif
-
-/* The program to be used for unexec. */
-
-#define UNEXEC unexalpha.o
 
 
 #define PNTR_COMPARISON_TYPE unsigned long
@@ -273,12 +290,14 @@ extern void r_alloc_free ();
   while (0)
 #endif
 
-#ifdef linux
-#define COFF
-/* Linux/Alpha doesn't like it if termio.h and termios.h get included
-   simultaneously.  */
+/* On the Alpha it's best to avoid including TERMIO since struct
+   termio and struct termios are mutually incompatible.  */
 #define NO_TERMIO
 
-#define TEXT_END ({ extern int _etext; &_etext; })
-#define DATA_END ({ extern int _EDATA; &_EDATA; })
+#ifdef LINUX
+# define TEXT_END ({ extern int _etext; &_etext; })
+# ifndef __ELF__
+#  define COFF
+#  define DATA_END ({ extern int _EDATA; &_EDATA; })
+# endif /* notdef __ELF__ */
 #endif
