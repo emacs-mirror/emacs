@@ -136,34 +136,31 @@ Conditions are:
   (and (window-minibuffer-p (selected-window))
        (not executing-macro)
        (not (symbolp minibuffer-completion-table))))
+
 ;;;_ > icomplete-minibuffer-setup ()
 ;;;###autoload
 (defun icomplete-minibuffer-setup ()
-
   "Run in minibuffer on activation to establish incremental completion.
-
-Usually run by inclusion in minibuffer-setup-hook."
-
+Usually run by inclusion in `minibuffer-setup-hook'."
   (cond ((and icomplete-mode (icomplete-simple-completing-p))
-	 (make-local-variable 'pre-command-hook)
-	 (setq pre-command-hook (copy-sequence pre-command-hook))
+	 (make-local-hook 'pre-command-hook)
 	 (add-hook 'pre-command-hook
 		   (function (lambda ()
-			       (run-hooks 'icomplete-pre-command-hook))))
-	 (make-local-variable 'post-command-hook)
-	 (setq post-command-hook (copy-sequence post-command-hook))
+			       (run-hooks 'icomplete-pre-command-hook)))
+		   nil t)
+	 (make-local-hook 'post-command-hook)
 	 (add-hook 'post-command-hook
 		   (function (lambda ()
-			       (run-hooks 'icomplete-post-command-hook))))
+			       (run-hooks 'icomplete-post-command-hook)))
+		   nil t)
 	 (run-hooks 'icomplete-minibuffer-setup-hook))))
-
+
 ;;;_* Completion
 
 ;;;_ > icomplete-tidy ()
 (defun icomplete-tidy ()
   "Remove completions display \(if any) prior to new user input.
-
-Should be run in on the minibuffer pre-command-hook.  See `icomplete-mode'
+Should be run in on the minibuffer `pre-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
   (if (icomplete-simple-completing-p)
       (if (and (boundp 'icomplete-eoinput)
@@ -178,11 +175,11 @@ and `minibuffer-setup-hook'."
 	;; Reestablish the local variable 'cause minibuffer-setup is weird:
 	(make-local-variable 'icomplete-eoinput)
 	(setq icomplete-eoinput 1))))
+
 ;;;_ > icomplete-exhibit ()
 (defun icomplete-exhibit ()
   "Insert icomplete completions display.
-
-Should be run via minibuffer post-command-hook.  See `icomplete-mode'
+Should be run via minibuffer `post-command-hook'.  See `icomplete-mode'
 and `minibuffer-setup-hook'."
   (if (icomplete-simple-completing-p)
       (let ((contents (buffer-substring (point-min)(point-max)))
@@ -204,6 +201,7 @@ and `minibuffer-setup-hook'."
 				      minibuffer-completion-predicate
 				      (not
 				       minibuffer-completion-confirm))))))))
+
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)
   "Identify prospective candidates for minibuffer completion.
@@ -219,8 +217,8 @@ one of \(), \[], or \{} pairs.  The choice of brackets is as follows:
   \{...} - multiple prospects, separated by commas, are indicated, and
           further input is required to distingish a single one.
 
-The displays for disambiguous matches have \" [Matched]\" appended
-\(whether complete or not), or \" \[No matches]\", if no eligible
+The displays for disambiguous matches have ` [Matched]' appended
+\(whether complete or not), or ` \[No matches]', if no eligible
 matches exist."
 
   (let ((comps (all-completions name candidates predicate))
