@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation
 
-;; Author: Thien-Thi Nguyen <ttn@netcom.com>
+;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.11
+;; Maintainer-Version: 5.22
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -33,13 +33,12 @@
 ;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
-;;   hs-hide-block                      C-c h
-;;   hs-show-block                      C-c s
-;;   hs-hide-all                        C-c H
-;;   hs-show-all                        C-c S
-;;   hs-show-region                     C-c R
-;;   hs-hide-level                      C-c L
-;;   hs-toggle-hiding
+;;   hs-hide-block                      C-c C-h
+;;   hs-show-block                      C-c C-s
+;;   hs-hide-all                        C-c C-M-h
+;;   hs-show-all                        C-c C-M-s
+;;   hs-hide-level                      C-c C-l
+;;   hs-toggle-hiding                   C-c C-c
 ;;   hs-mouse-toggle-hiding             [(shift button-2)]
 ;;   hs-hide-initial-comment-block
 ;;
@@ -55,9 +54,24 @@
 ;;
 ;; You can use `M-x customize-variable' on the following variables:
 ;;
-;;   hs-hide-comments-when-hiding-all -- self-explanatory!
-;;   hs-isearch-open                  -- what kind of hidden blocks to
+;; - hs-hide-comments-when-hiding-all -- self-explanatory!
+;; - hs-hide-all-non-comment-function -- if non-nil, when doing a
+;;                                       `hs-hide-all', this function
+;;                                       is called w/ no arguments
+;; - hs-isearch-open                  -- what kind of hidden blocks to
 ;;                                       open when doing isearch
+;;
+;; Some languages (e.g., Java) are deeply nested, so the normal behavior
+;; of `hs-hide-all' (hiding all but top-level blocks) results in very
+;; little information shown, which is not very useful.  You can use the
+;; variable `hs-hide-all-non-comment-function' to implement your idea of
+;; what is more useful.  For example, the following code shows the next
+;; nested level in addition to the top-level:
+;;
+;;   (defun ttn-hs-hide-level-1 ()
+;;     (hs-hide-level 1)
+;;     (forward-sexp 1))
+;;   (setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
 ;;
 ;; Hideshow works w/ incremental search (isearch) by setting the variable
 ;; `hs-headline', which is the line of text at the beginning of a hidden
@@ -74,10 +88,12 @@
 ;; Hooks are run after some commands:
 ;;
 ;;   hs-hide-hook     in      hs-hide-block, hs-hide-all, hs-hide-level
-;;   hs-show-hook             hs-show-block, hs-show-all, hs-show-region
+;;   hs-show-hook             hs-show-block, hs-show-all
 ;;
-;; All hooks are run w/ `run-hooks'.  See docs for each variable or hook
-;; for more info.
+;; One of `hs-hide-hook' or `hs-show-hook' is run for the toggling
+;; commands when the result of the toggle is to hide or show blocks,
+;; respectively.  All hooks are run w/ `run-hooks'.  See docs for each
+;; variable or hook for more info.
 ;;
 ;; Normally, hideshow tries to determine appropriate values for block
 ;; and comment definitions by examining the buffer's major mode.  If
@@ -102,7 +118,8 @@
 ;; Then, add the following to your ~/.emacs:
 ;;
 ;; (load-library "hideshow")
-;; (add-hook 'X-mode-hook 'hs-minor-mode)   ; other modes similarly
+;; (add-hook 'X-mode-hook               ; other modes similarly
+;;           '(lambda () (hs-minor-mode 1)))
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
@@ -121,37 +138,39 @@
 ;; (3) Hideshow 5.x is developed and tested on GNU Emacs 20.4.
 ;;     XEmacs compatibility may have bitrotted since 4.29.
 ;;
+;; (4) Some buffers can't be `byte-compile-file'd properly.  This is because
+;;     `byte-compile-file' inserts the file to be compiled in a temporary
+;;     buffer and switches `normal-mode' on.  In the case where you have
+;;     `hs-hide-initial-comment-block' in `hs-minor-mode-hook', the hiding of
+;;     the initial comment sometimes hides parts of the first statement (seems
+;;     to be only in `normal-mode'), so there are unbalanced "(" and ")".
+;;
+;;     The workaround is to clear `hs-minor-mode-hook' when byte-compiling:
+;;
+;;     (defadvice byte-compile-file (around
+;;                                   byte-compile-file-hideshow-off
+;;                                   act)
+;;       (let ((hs-minor-mode-hook nil))
+;;         ad-do-it))
+
 ;; Correspondance welcome; please indicate version number.  Send bug
-;; reports and inquiries to <ttn@netcom.com>.
+;; reports and inquiries to <ttn@gnu.org>.
 
 ;; * Thanks
 ;;
 ;; Thanks go to the following people for valuable ideas, code and
 ;; bug reports.
 ;;
-;;     adahome@ix.netcom.com                 Dean Andrews
-;;     alfh@ifi.uio.no                       Alf-Ivar Holm
-;;     bauer@itsm.uni-stuttgart.de           Holger Bauer
-;;     christoph.conrad@post.rwth-aachen.de  Christoph Conrad
-;;     d.love@dl.ac.uk                       Dave Love
-;;     dirk@ida.ing.tu-bs.de                 Dirk Herrmann
-;;     gael@gnlab030.grenoble.hp.com         Gael Marziou
-;;     jan.djarv@sa.erisoft.se               Jan Djarv
-;;     leray@dev-lme.pcc.philips.com         Guillaume Leray
-;;     moody@mwt.net                         Moody Ahmad
-;;     preston.f.crow@dartmouth.edu          Preston F. Crow
-;;     qhslali@aom.ericsson.se               Lars Lindberg
-;;     reto@synopsys.com                     Reto Zimmermann
-;;     sheff@edcsgw2.cr.usgs.gov             Keith Sheffield
-;;     smes@post1.com                        Chew Meng Kuan
-;;     tonyl@eng.sun.com                     Tony Lam
-;;     ware@cis.ohio-state.edu               Pete Ware
+;;     Dean Andrews, Alf-Ivar Holm, Holger Bauer, Christoph Conrad, Dave
+;;     Love, Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray,
+;;     Moody Ahmad, Preston F. Crow, Lars Lindberg, Reto Zimmermann,
+;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François Pinard
 ;;
-;; Special thanks go to Dan Nicolaescu <dann@ics.uci.edu>, who reimplemented
-;; hideshow using overlays (rather than selective display), added isearch
-;; magic, folded in custom.el compatibility, generalized comment handling,
-;; incorporated mouse support, and maintained the code in general.  Version
-;; 4.0 is largely due to his efforts.
+;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using
+;; overlays (rather than selective display), added isearch magic, folded
+;; in custom.el compatibility, generalized comment handling, incorporated
+;; mouse support, and maintained the code in general.  Version 4.0 is
+;; largely due to his efforts.
 
 ;; * History
 ;;
@@ -236,13 +255,18 @@ If any of the elements is left nil or omitted, hideshow tries to guess
 appropriate values.  The regexps should not contain leading or trailing
 whitespace.  Case does not matter.")
 
+(defvar hs-hide-all-non-comment-function nil
+  "*Function called if non-nil when doing `hs-hide-all' for non-comments.")
+
 (defvar hs-hide-hook nil
   "*Hook called (with `run-hooks') at the end of commands to hide text.
-These commands include `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
+These commands include the toggling commands (when the result is to hide
+a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 
 (defvar hs-show-hook nil
   "*Hook called (with `run-hooks') at the end of commands to show text.
-These commands include `hs-show-all', `hs-show-block' and `hs-show-region'.")
+These commands include the toggling commands (when the result is to show
+a block), `hs-show-all' and `hs-show-block'..")
 
 ;;---------------------------------------------------------------------------
 ;; internal variables
@@ -637,39 +661,34 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
    (save-excursion
      (hs-flag-region (point-min) (point-max) nil) ; eliminate weirdness
      (goto-char (point-min))
-     (if hs-hide-comments-when-hiding-all
-         (let ((c-reg nil)
-               (count 0)
-               (block-and-comment-re
-                (concat "\\("
-                        hs-block-start-regexp
-                        "\\)\\|\\("
-                        hs-c-start-regexp
-                        "\\)")))
-           (while (re-search-forward block-and-comment-re (point-max) t)
-             (if (match-beginning 1) ;; we have found a block beginning
-                 (progn
-                   (goto-char (match-beginning 1))
-                   (hs-hide-block-at-point t)
-                   (message "Hiding ... %d" (setq count (1+ count))))
-               ;;found a comment
-               (setq c-reg (hs-inside-comment-p))
-               (if (and c-reg (car c-reg))
-                   (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
-                       (progn
-                         (hs-hide-block-at-point t c-reg)
-                         (message "Hiding ... %d" (setq count (1+ count))))
-                     (goto-char (nth 1 c-reg)))))))
-       (let ((count 0)
-             (buf-size (buffer-size)))
-         (while
+     (let ((count 0)
+           (re (concat "\\("
+                       hs-block-start-regexp
+                       "\\)"
+                       (if hs-hide-comments-when-hiding-all
+                           (concat "\\|\\("
+                                   hs-c-start-regexp
+                                   "\\)")
+                         ""))))
+       (while (progn
+                (unless hs-hide-comments-when-hiding-all
+                  (forward-comment (point-max)))
+                (re-search-forward re (point-max) t))
+         (if (match-beginning 1)
+             ;; we have found a block beginning
              (progn
-               (forward-comment buf-size)
-               (re-search-forward hs-block-start-regexp (point-max) t))
-           (goto-char (match-beginning 0))
-           (hs-hide-block-at-point t)
-           (message "Hiding ... %d" (setq count (1+ count))))))
-   (hs-safety-is-job-n))
+               (goto-char (match-beginning 1))
+               (if hs-hide-all-non-comment-function
+                   (funcall hs-hide-all-non-comment-function)
+                 (hs-hide-block-at-point t)))
+           ;; found a comment, probably
+           (let ((c-reg (hs-inside-comment-p)))         ; blech!
+             (when (and c-reg (car c-reg))
+               (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
+                   (hs-hide-block-at-point t c-reg)
+                 (goto-char (nth 1 c-reg))))))
+         (message "Hiding ... %d" (setq count (1+ count)))))
+     (hs-safety-is-job-n))
    (beginning-of-line)
    (message "Hiding all blocks ... done")
    (run-hooks 'hs-hide-hook)))
@@ -741,18 +760,6 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
     (hs-safety-is-job-n)
     (run-hooks 'hs-show-hook))))
 
-(defun hs-show-region (beg end)
-  "Show all lines from BEG to END, without doing any block analysis.
-Note: `hs-show-region' is intended for use when `hs-show-block' signals
-\"unbalanced parentheses\" and so is an emergency measure only.  You may
-become very confused if you use this command indiscriminately.
-The hook `hs-show-hook' is run; see `run-hooks'."
-  (interactive "r")
-  (hs-life-goes-on
-   (hs-flag-region beg end nil)
-   (hs-safety-is-job-n)
-   (run-hooks 'hs-show-hook)))
-
 (defun hs-hide-level (arg)
   "Hide all blocks ARG levels below this block.
 The hook `hs-hide-hook' is run; see `run-hooks'."
@@ -808,7 +815,7 @@ commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
 
 The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
-`hs-show-block', `hs-hide-level' and `hs-show-region'.  There is also
+`hs-show-block', `hs-hide-level' and `hs-toggle-hiding'.  There is also
 `hs-hide-initial-comment-block' and `hs-mouse-toggle-hiding'.
 
 Turning hideshow minor mode off reverts the menu bar and the
@@ -853,14 +860,14 @@ Key bindings:
            (lambda (ent)
              (define-key hs-minor-mode-map (aref ent 2) (aref ent 1))
              (if (aref ent 0) ent "-----"))
-           ;; I believe there is nothing bound on these keys.
+           ;; These bindings roughly imitate those used by Outline mode.
            ;; menu entry      command                key
-           '(["Hide Block"    hs-hide-block          "\C-ch"]
-             ["Show Block"    hs-show-block          "\C-cs"]
-             ["Hide All"      hs-hide-all            "\C-cH"]
-             ["Show All"      hs-show-all            "\C-cS"]
-             ["Hide Level"    hs-hide-level          "\C-cL"]
-             ["Show Region"   hs-show-region         "\C-cR"]
+           '(["Hide Block"    hs-hide-block          "\C-c\C-h"]
+             ["Show Block"    hs-show-block          "\C-c\C-s"]
+             ["Hide All"      hs-hide-all            "\C-c\C-\M-h"]
+             ["Show All"      hs-show-all            "\C-c\C-\M-s"]
+             ["Hide Level"    hs-hide-level          "\C-c\C-l"]
+             ["Toggle Hiding" hs-toggle-hiding       "\C-c\C-c"]
              [nil             hs-mouse-toggle-hiding [(shift button2)]]
              )))))
 
