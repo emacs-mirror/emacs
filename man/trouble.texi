@@ -16,8 +16,8 @@ also considered.
 
 @table @kbd
 @item C-g
-@itemx C-@key{BREAK} (MS-DOS)
-Quit.  Cancel running or partially typed command.
+@itemx C-@key{BREAK}@r{ (MS-DOS only)}
+Quit (@code{keyboard-quit})}: cancel running or partially typed command.
 @item C-]
 Abort innermost recursive editing level and cancel the command which
 invoked it (@code{abort-recursive-edit}).
@@ -37,6 +37,7 @@ editing level and cancels the command that invoked the recursive edit.
 (@xref{Recursive Edit}.)
 
 @cindex quitting
+@findex keyboard-quit
 @kindex C-g
   Quitting with @kbd{C-g} is used for getting rid of a partially typed
 command, or a numeric argument that you don't want.  It also stops a
