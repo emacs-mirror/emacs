@@ -75,6 +75,23 @@
 	  (cons '(vc-parent-buffer vc-parent-buffer-name)
 		minor-mode-alist)))
 
+;; To implement support for a new version-control system, add another
+;; branch to the vc-backend-dispatch macro and fill it in in each
+;; call.  The variable vc-master-templates in vc-hooks.el will also
+;; have to change.
+
+(defmacro vc-backend-dispatch (f s r c)
+  "Execute FORM1, FORM2 or FORM3 for SCCS, RCS or CVS respectively.
+If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
+\(CVS shares some code with RCS)."
+  (list 'let (list (list 'type (list 'vc-backend f)))
+	(list 'cond
+	      (list (list 'eq 'type (quote 'SCCS)) s)	;; SCCS
+	      (list (list 'eq 'type (quote 'RCS)) r)	;; RCS
+	      (list (list 'eq 'type (quote 'CVS)) 	;; CVS
+		    (if (eq c 'RCS) r c))
+	      )))
+
 ;; General customization
 
 (defvar vc-suppress-confirm nil
@@ -298,23 +315,6 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
     (set-buffer obuf)
     status)
   )
-
-;; Everything eventually funnels through these functions.  To implement
-;; support for a new version-control system, add another branch to the
-;; vc-backend-dispatch macro and fill it in in each call.  The variable
-;; vc-master-templates in vc-hooks.el will also have to change.
-
-(defmacro vc-backend-dispatch (f s r c)
-  "Execute FORM1, FORM2 or FORM3 depending whether we're using SCCS, RCS or CVS.
-If FORM3 is RCS, use FORM2 even if we are using CVS.  (CVS shares some code 
-with RCS)."
-  (list 'let (list (list 'type (list 'vc-backend f)))
-	(list 'cond
-	      (list (list 'eq 'type (quote 'SCCS)) s)	;; SCCS
-	      (list (list 'eq 'type (quote 'RCS)) r)	;; RCS
-	      (list (list 'eq 'type (quote 'CVS)) 	;; CVS
-		    (if (eq c 'RCS) r c))
-	      )))
 
 ;;; Save a bit of the text around POSN in the current buffer, to help
 ;;; us find the corresponding position again later.  This works even
