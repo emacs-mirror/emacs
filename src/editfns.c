@@ -2190,7 +2190,7 @@ Use %% to put a single % into the output.")
      register Lisp_Object *args;
 {
   register int n;		/* The number of the next arg to substitute */
-  register int total = 5;	/* An estimate of the final length */
+  register int total;		/* An estimate of the final length */
   char *buf, *p;
   register unsigned char *format, *end;
   int length, nchars;
@@ -2198,7 +2198,7 @@ Use %% to put a single % into the output.")
      which is true if any of the inputs is one.  */
   int multibyte = 0;
   unsigned char *this_format;
-  int longest_format = 0;
+  int longest_format;
   Lisp_Object val;
 
   extern char *index ();
@@ -2206,16 +2206,26 @@ Use %% to put a single % into the output.")
   /* It should not be necessary to GCPRO ARGS, because
      the caller in the interpreter should take care of that.  */
 
+  /* Try to determine whether the result should be multibyte.
+     This is not always right; sometimes the result needs to be multibyte
+     because of an object that we will pass through prin1,
+     and in that case, we won't know it here.  */
   for (n = 0; n < nargs; n++)
     if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
       multibyte = 1;
 
   CHECK_STRING (args[0], 0);
+
+  /* If we start out planning a unibyte result,
+     and later find it has to be multibyte, we jump back to retry.  */
+ retry:
+
   format = XSTRING (args[0])->data;
   end = format + XSTRING (args[0])->size_byte;
+  longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
-  total += CONVERTED_BYTE_SIZE (multibyte, args[0]);
+  total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]);
 
   /* Add to TOTAL enough space to hold the converted arguments.  */
 
@@ -2247,8 +2257,11 @@ Use %% to put a single % into the output.")
 	    /* For `S', prin1 the argument and then treat like a string.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qnil);
-	    if (STRING_MULTIBYTE (tem))
-	      multibyte = 1;
+	    if (STRING_MULTIBYTE (tem) && ! multibyte)
+	      {
+		multibyte = 1;
+		goto retry;
+	      }
 	    args[n] = tem;
 	    goto string;
 	  }
@@ -2291,7 +2304,10 @@ Use %% to put a single % into the output.")
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qt);
 	    if (STRING_MULTIBYTE (tem))
-	      multibyte = 1;
+	      {
+		multibyte = 1;
+		goto retry;
+	      }
 	    args[n] = tem;
 	    goto string;
 	  }
@@ -2301,6 +2317,9 @@ Use %% to put a single % into the output.")
 
 	total += thissize + 4;
       }
+
+  /* Now we can no longer jump to retry.
+     TOTAL and LONGEST_FORMAT are known for certain.  */
 
   this_format = (unsigned char *) alloca (longest_format + 1);
 
