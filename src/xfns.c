@@ -4458,7 +4458,7 @@ DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
 If ON is nil, allow buffering of requests.\n\
 Turning on synchronization prohibits the Xlib routines from buffering\n\
 requests and seriously degrades performance, but makes debugging much\n\
-easier.
+easier.\n\
 The optional second argument DISPLAY specifies which display to act on.\n\
 DISPLAY should be either a frame or a display name (a string).\n\
 If DISPLAY is omitted or nil, that stands for the selected frame's display.")
