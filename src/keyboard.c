@@ -2919,10 +2919,6 @@ Lisp_Object Vdouble_click_time;
 
 int double_click_count;
 
-#ifdef USE_X_TOOLKIT
-extern Lisp_Object map_event_to_object ();
-#endif /* USE_X_TOOLKIT  */
-
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
