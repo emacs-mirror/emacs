@@ -1,3 +1,9 @@
+2001-10-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* buff-menu.el (list-buffers-noselect): If the buffer's name
+	starts with a blank, but it visits a file, do show it (for files
+	whose names start with a blank).
+
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/fill.el (sentence-end-double-space)
