@@ -44,7 +44,7 @@
 ;; Based on FSF code dating back to 1985.
 
 ;;; Code:
- 
+
 ;;;Trying to preserve the old window configuration works well in
 ;;;simple scenarios, when you enter the buffer menu, use it, and exit it.
 ;;;But it does strange things when you switch back to the buffer list buffer
@@ -322,7 +322,7 @@ This command deletes and replaces all the previously existing windows
 in the selected frame."
   (interactive)
   (let ((buff (Buffer-menu-buffer t))
-	(menu (current-buffer))	      
+	(menu (current-buffer))
 	(others ())
 	tem)
     (goto-char (point-min))
@@ -494,87 +494,75 @@ The R column contains a % for buffers that are read-only."
 ")
       ;; Record the column where buffer names start.
       (setq Buffer-menu-buffer-column 4)
-      (let ((bl (buffer-list)))
-	(while bl
-	  (let* ((buffer (car bl))
-		 (name (buffer-name buffer))
-		 (file (buffer-file-name buffer))
-		 this-buffer-line-start
-		 this-buffer-read-only
-		 this-buffer-size
-		 this-buffer-mode-name
-		 this-buffer-directory)
-	    (save-excursion
-	      (set-buffer buffer)
-	      (setq this-buffer-read-only buffer-read-only)
-	      (setq this-buffer-size (buffer-size))
-	      (setq this-buffer-mode-name
-		    (if (eq buffer standard-output)
-			"Buffer Menu" mode-name))
-	      (or file
-		  ;; No visited file.  Check local value of
-		  ;; list-buffers-directory.
-		  (if (and (boundp 'list-buffers-directory)
-			   list-buffers-directory)
-		      (setq this-buffer-directory list-buffers-directory))))
-	    (cond
-	     ;; Don't mention internal buffers.
-	     ((string= (substring name 0 1) " "))
-	     ;; Maybe don't mention buffers without files.
-	     ((and files-only (not file)))
-             ((string= name "*Buffer List*"))
-	     ;; Otherwise output info.
-	     (t
-	      (setq this-buffer-line-start (point))
-	      ;; Identify current buffer.
-	      (if (eq buffer old-buffer)
-		  (progn
-		    (setq desired-point (point))
-		    (princ "."))
-		(princ " "))
-	      ;; Identify modified buffers.
-	      (princ (if (buffer-modified-p buffer) "*" " "))
-	      ;; Handle readonly status.  The output buffer is special
-	      ;; cased to appear readonly; it is actually made so at a later
-	      ;; date.
-	      (princ (if (or (eq buffer standard-output)
-			     this-buffer-read-only)
-			 "% "
-		       "  "))
-	      (princ name)
-	      ;; Put the buffer name into a text property
-	      ;; so we don't have to extract it from the text.
-	      ;; This way we avoid problems with unusual buffer names.
-	      (setq this-buffer-line-start
-		    (+ this-buffer-line-start Buffer-menu-buffer-column))
-	      (let ((name-end (point)))
-		(indent-to 17 2)
-		(put-text-property this-buffer-line-start name-end
-				   'buffer-name name)
-		(put-text-property this-buffer-line-start (point)
-				   'buffer buffer)
-		(put-text-property this-buffer-line-start name-end
-				   'mouse-face 'highlight))
-	      (let (size
-		    mode
-		    (excess (- (current-column) 17)))
-		(setq size (format "%8d" this-buffer-size))
-		;; Ack -- if looking at the *Buffer List* buffer,
-		;; always use "Buffer Menu" mode.  Otherwise the
-		;; first time the buffer is created, the mode will be wrong.
-		(setq mode this-buffer-mode-name)
-		(while (and (> excess 0) (= (aref size 0) ?\ ))
-		  (setq size (substring size 1))
-		  (setq excess (1- excess)))
-		(princ size)
-		(indent-to 27 1)
-		(princ mode))
-	      (indent-to 40 1)
-	      (or file (setq file this-buffer-directory))
-	      (if file
-		  (princ (abbreviate-file-name file)))
-	      (princ "\n"))))
-	  (setq bl (cdr bl))))
+      (dolist (buffer (buffer-list))
+        (let ((name (buffer-name buffer))
+              (file (buffer-file-name buffer))
+              this-buffer-line-start
+              this-buffer-read-only
+              (this-buffer-size (buffer-size buffer))
+              this-buffer-mode-name
+              this-buffer-directory)
+          (with-current-buffer buffer
+            (setq this-buffer-read-only buffer-read-only
+                  this-buffer-mode-name mode-name)
+            (unless file
+              ;; No visited file.  Check local value of
+              ;; list-buffers-directory.
+              (when (and (boundp 'list-buffers-directory)
+                         list-buffers-directory)
+                (setq this-buffer-directory list-buffers-directory))))
+          (cond
+            ;; Don't mention internal buffers.
+            ((string= (substring name 0 1) " "))
+            ;; Maybe don't mention buffers without files.
+            ((and files-only (not file)))
+            ((string= name "*Buffer List*"))
+            ;; Otherwise output info.
+            (t
+             (setq this-buffer-line-start (point))
+             ;; Identify current buffer.
+             (if (eq buffer old-buffer)
+                 (progn
+                   (setq desired-point (point))
+                   (princ "."))
+               (princ " "))
+             ;; Identify modified buffers.
+             (princ (if (buffer-modified-p buffer) "*" " "))
+             ;; Handle readonly status.  The output buffer is special
+             ;; cased to appear readonly; it is actually made so at a
+             ;; later date.
+             (princ (if (or (eq buffer standard-output)
+                            this-buffer-read-only)
+                        "% "
+                      "  "))
+             (princ name)
+             ;; Put the buffer name into a text property
+             ;; so we don't have to extract it from the text.
+             ;; This way we avoid problems with unusual buffer names.
+             (setq this-buffer-line-start
+                   (+ this-buffer-line-start Buffer-menu-buffer-column))
+             (let ((name-end (point)))
+               (indent-to 17 2)
+               (put-text-property this-buffer-line-start name-end
+                                  'buffer-name name)
+               (put-text-property this-buffer-line-start (point)
+                                  'buffer buffer)
+               (put-text-property this-buffer-line-start name-end
+                                  'mouse-face 'highlight))
+             (let ((size (format "%8d" this-buffer-size))
+                   (mode this-buffer-mode-name)
+                   (excess (- (current-column) 17)))
+               (while (and (> excess 0) (= (aref size 0) ?\ ))
+                 (setq size (substring size 1)
+                       excess (1- excess)))
+               (princ size)
+               (indent-to 27 1)
+               (princ mode))
+             (indent-to 40 1)
+             (or file (setq file this-buffer-directory))
+             (when file
+               (princ (abbreviate-file-name file)))
+             (princ "\n")))))
       (Buffer-menu-mode)
       ;; DESIRED-POINT doesn't have to be set; it is not when the
       ;; current buffer is not displayed for some reason.

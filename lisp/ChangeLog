@@ -1,3 +1,9 @@
+2000-08-16  Sam Steingold  <sds@gnu.org>
+
+	* buff-menu.el (list-buffers-noselect): Use `dolist' instead of
+	`while'; use `with-current-buffer' instead of `save-excursion'.
+	Removed unnecessary kludges now that "*Buffer List*" is excluded.
+
 2000-08-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ccl.el (declare-ccl-program): Docstring modified.
@@ -17,7 +23,7 @@
 	(Buffer-menu-execute): When deleting, test `(and buf (buffer-name
 	buf))', instead of `(Buffer-menu-buffer nil)', to see if buffer
 	wasn't killed.
-	
+
 	* buff-menu.el (list-buffers-noselect): Don't display the
 	*Buffer List* buffer.
 
@@ -25,7 +31,7 @@
 	`Loading jit-lock' message.
 
 	* emacs-lisp/cust-print.el, emacs-lisp/cl-specs.el
-	* emacs-lisp/edebug.el, progmodes/hideif.el: Change authors' 
+	* emacs-lisp/edebug.el, progmodes/hideif.el: Change authors'
 	mail address.
 
 2000-08-15  Miles Bader  <miles@gnu.org>
@@ -104,7 +110,7 @@
 	* paren.el (show-paren-priority): New user option.
 	(show-paren-function): Set overlay priorities to
 	show-paren-priority.
-	
+
 2000-08-14  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-bol): Use `forward-line 0' instead of calling
@@ -124,9 +130,9 @@
 
 	* xml.el (xml-parse-tag, xml-parse-attlist): Do not downcase
         identifiers, since XML is case sensitive
-	
+
 2000-08-12  Miles Bader  <miles@gnu.org>
-	
+
 	* comint.el (comint-output-filter): Don't bother frobbing
 	window-start, it doesn't seem to be necessary.
 
