@@ -251,7 +251,8 @@ fast_string_match (regexp, string)
    If COUNT is negative, search backwards.
 
    If we find COUNT instances, set *SHORTAGE to zero, and return the
-   position of the COUNTth character.
+   position after the COUNTth match.  Note that for reverse motion
+   this is not the same as the usual convention for Emacs motion commands.
 
    If we don't find COUNT instances before reaching the end of the
    buffer (or the beginning, if scanning backwards), set *SHORTAGE to
