@@ -63,14 +63,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    It would have Emacs fork off a separate process
    to read the input and send it to the true Emacs process
    through a pipe.
+
+NOTE: On DGUX, there is a problem using INTERRUPT_INPUT: When invoked
+under X11 using a job control shell (csh, ksh) in the background,
+emacs will stop on tty output.  I suspect this is a kernel problem and
+have reported it and a sample program to DGC.  Meanwhile, a workaround
+is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
+
+-pmr@rock.concert.net
 */
 
-#define INTERRUPT_INPUT
-
-/* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
-#define FIRST_PTY_LETTER 'p'
+#define BROKEN_FIONREAD
+/* #define INTERRUPT_INPUT */
 
 /*
  *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
@@ -89,7 +93,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Define HAVE_SETSID if the system supports POSIX disassociate
  *      terminal.
  */
+
 #define HAVE_SETSID
+
 /*
  *	Define HAVE_SOCKETS if the system supports sockets.
  */
@@ -100,12 +106,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Define HAVE_UNIX_DOMAIN if the system supports Unix
  *      domain sockets.
  */
+
 #define HAVE_UNIX_DOMAIN
+
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
  */
 
 #define HAVE_PTYS
+
+/* (Assume) we do have vfork.  */
+
+#define HAVE_VFORK
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -228,10 +240,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /*
  *	Define HAVE_TERMIOS since this is POSIX,
- *	for terminal control.
+ *	for terminal control.  Prevent redundant inclusion of termio.h.
  */
 
 #define HAVE_TERMIOS
+#define NO_TERMIO
 
 /*
  *	Use a Berkeley style sys/wait.h.
@@ -285,9 +298,8 @@ CC=gcc
 #endif /* not THIS_IS_YMAKEFILE */
 
 #define LD_SWITCH_SYSTEM
-/* Cannot depend on /lib/crt0.o because make does not understand an elink(1) */
 #define START_FILES pre-crt0.o
-#define LIBS_SYSTEM -ldgc /lib/crt0.o
+#define LIBS_SYSTEM -ldgc
 #define LIB_GCC /usr/lib/gcc/libgcc.a
 
 #ifdef _M88KBCS_TARGET
@@ -299,41 +311,51 @@ CC=gcc
 
 /* definitions for xmakefile production */
 #ifdef COFF
- 
+
+/* Define the following to use all of the available pty's. */
+
+#define PTY_ITERATION 						\
+  for (c = 'p'; c < 't'; c++)					\
+    for (i = 0; (((c == 'p') && (i < 64)) || ((c != 'p') && (i < 16))); i++)
+
+#define PTY_NAME_SPRINTF					\
+      if (c == 'p')						\
+        sprintf (pty_name, "/dev/pty%c%d", c, i);		\
+      else							\
+        sprintf (pty_name, "/dev/pty%c%x", c, i);
+
+#define PTY_TTY_NAME_SPRINTF					\
+      if (c == 'p')						\
+        sprintf (pty_name, "/dev/tty%c%d", c, i);		\
+      else							\
+        sprintf (pty_name, "/dev/tty%c%x", c, i);
+
 #define C_COMPILER \
   TARGET_BINARY_INTERFACE=m88kdguxcoff gcc -traditional
  
 #define LINKER \
-  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc -nostdlib
+  TARGET_BINARY_INTERFACE=m88kdguxcoff gcc
 
 #define MAKE_COMMAND \
   TARGET_BINARY_INTERFACE=m88kdguxcoff make
 
-#define C_DEBUG_SWITCH
+#define C_DEBUG_SWITCH -g
+
 #else /* not COFF */
 
 #define C_COMPILER \
   TARGET_BINARY_INTERFACE=m88kdguxelf gcc -traditional
  
 #define LINKER \
-  TARGET_BINARY_INTERFACE=m88kdguxelf gcc -nostdlib
+  TARGET_BINARY_INTERFACE=m88kdguxelf gcc
 
 #define MAKE_COMMAND \
   TARGET_BINARY_INTERFACE=m88kdguxelf make
 
 #define C_DEBUG_SWITCH -g -V2 -mversion-03.00 -mstandard
 #endif /* COFF */
-/* Define switches affecting x/ymakefile */
-#define C_OPTIMIZE_SWITCH
 
-/* Paul M Reilly <pmr@rock.concert.net> writes:
-   On some systems (DGUX comes to mind real fast) FASYNC causes
-   background writes to the terminal to stop all processes in the
-   process group when invoked under the csh (and probably any shell
-   with job control). This stops Emacs dead in its tracks when coming
-   up under X11. */
-#define BROKEN_FASYNC
+/* Extra stuff which probably should be someplace else but is here out
+   of expediency. */
 
-/* (Assume) we do have vfork.  */
-
-#define HAVE_VFORK
+#define LIB_X11_LIB -lX11
