@@ -986,6 +986,7 @@ redisplay_internal (preserve_echo_area)
   if (!all_windows && tlbufpos > 0 && NILP (w->update_mode_line)
       && !current_buffer->clip_changed
       && FRAME_VISIBLE_P (XFRAME (w->frame))
+      && !FRAME_OBSCURED_P (XFRAME (w->frame))
       /* Make sure recorded data applies to current buffer, etc */
       && this_line_buffer == current_buffer
       && current_buffer == XBUFFER (w->buffer)
@@ -1167,7 +1168,7 @@ redisplay_internal (preserve_echo_area)
 	      if (condemn_scroll_bars_hook)
 		(*condemn_scroll_bars_hook) (f);
 
-	      if (FRAME_VISIBLE_P (f))
+	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		redisplay_windows (FRAME_ROOT_WINDOW (f), preserve_echo_area);
 
 	      /* Any scroll bars which redisplay_windows should have nuked
@@ -1177,7 +1178,7 @@ redisplay_internal (preserve_echo_area)
 	    }
 	}
     }
-  else if (FRAME_VISIBLE_P (selected_frame))
+  else if (FRAME_VISIBLE_P (selected_frame) && !FRAME_OBSCURED_P (selected_frame))
     {
       redisplay_window (selected_window, 1, preserve_echo_area);
       if (!WINDOW_FULL_WIDTH_P (w))
@@ -1208,7 +1209,7 @@ update:
 	  f = XFRAME (XCONS (tail)->car);
 
 	  if ((FRAME_WINDOW_P (f) || f == selected_frame)
-	      && FRAME_VISIBLE_P (f))
+	      && FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 	    {
 	      pause |= update_frame (f, 0, 0);
 	      if (!pause)
@@ -1222,7 +1223,7 @@ update:
     }
   else
     {
-      if (FRAME_VISIBLE_P (selected_frame))
+      if (FRAME_VISIBLE_P (selected_frame) && !FRAME_OBSCURED_P (selected_frame))
 	pause = update_frame (selected_frame, 0, 0);
       else
 	pause = 0;
