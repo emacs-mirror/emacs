@@ -1,3 +1,8 @@
+2003-05-03  Dave Love  <fx@gnu.org>
+
+	* configure.in: When we have -llockfile, define HAVE_LIBMAIL, not
+	LIBMAIL.
+
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in: Put #include of jpeglib.h at start of line.
