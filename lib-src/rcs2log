@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.29 1996/08/24 21:11:14 erik Exp eggert $
+# $Id: rcs2log,v 1.30 1996/08/26 21:20:48 eggert Exp eggert $
 
 # Copyright 1992, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
@@ -153,12 +153,6 @@ case $rlog_options in
 	datearg="-d>$date"
 esac
 
-# Use rlog's -zLT option, if rlog supports it.
-case `rlog -zLT 2>&1` in
-*'unknown option'*) ;;
-*) rlog_options=-zLT$nl$rlog_options
-esac
-
 # Use TZ specified by ChangeLog local variable, if any.
 if test -s "$changelog"
 then
@@ -202,6 +196,12 @@ else
 		fi
 	esac
 fi
+
+# Use $rlog's -zLT option, if $rlog supports it.
+case `$rlog -zLT 2>&1` in
+*'unknown option'*) ;;
+*) rlog_options=-zLT$nl$rlog_options
+esac
 
 # With no arguments, examine all files under the RCS directory.
 case $# in
