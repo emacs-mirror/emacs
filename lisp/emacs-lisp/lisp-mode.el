@@ -69,7 +69,15 @@
       (modify-syntax-entry ?\( "()  " emacs-lisp-mode-syntax-table)
       (modify-syntax-entry ?\) ")(  " emacs-lisp-mode-syntax-table)
       (modify-syntax-entry ?\[ "(]  " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\] ")[  " emacs-lisp-mode-syntax-table)))
+      (modify-syntax-entry ?\] ")[  " emacs-lisp-mode-syntax-table)
+      ;; All non-word multibyte characters should be `symbol'.
+      (map-char-table
+       (function (lambda (key val) 
+		   (and (>= key 256)
+			(/= (char-syntax key) ?w)
+			(modify-syntax-entry key "_   " 
+					     emacs-lisp-mode-syntax-table))))
+       (standard-syntax-table))))
 
 (if (not lisp-mode-syntax-table)
     (progn (setq lisp-mode-syntax-table
