@@ -550,6 +550,7 @@ case "${configuration}" in
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2 )		opsys=isc2-2 ;;
       *-isc* )			opsys=isc3-0 ;;
+      *-esix5* )		opsys=esix5r4 ;;
       *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
       *-linux* )		opsys=linux ;;
