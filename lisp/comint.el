@@ -425,14 +425,14 @@ buffer.  The hook comint-exec-hook is run after each exec."
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive
-   (let ((minibuffer-history-sexp-flag nil)
-	 ;; Don't clobber this.
-	 (last-command last-command)
-	 (regexp (read-from-minibuffer "Previous input matching (regexp): "
-				       nil
-				       minibuffer-local-map
-				       nil
-				       'minibuffer-history-search-history)))
+   (let* ((minibuffer-history-sexp-flag nil)
+	  ;; Don't clobber this.
+	  (last-command last-command)
+	  (regexp (read-from-minibuffer "Previous input matching (regexp): "
+					nil
+					minibuffer-local-map
+					nil
+					'minibuffer-history-search-history)))
      (list (if (string= regexp "")
 	       (setcar minibuffer-history-search-history
 		       (nth 1 minibuffer-history-search-history))
