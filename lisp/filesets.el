@@ -21,7 +21,7 @@
 ;; program's author or from the Free Software Foundation, Inc., 675 Mass
 ;; Ave, Cambridge, MA 02139, USA.
 
-(defvar filesets-version "1.8.1")
+(defvar filesets-version "1.8.4")
 (defvar filesets-homepage
   "http://members.a1.net/t.link/CompEmacsFilesets.html")
 
@@ -150,6 +150,38 @@ COND-FN takes one argument: the current element."
     (dolist (elt lst rv)
       (when (funcall cond-fn elt)
 	(setq rv (append rv (list elt)))))))
+
+(defun filesets-ormap (fsom-pred lst)
+  "Return the the tail of FSOM-LST for the head of which FSOM-PRED is non-nil."
+  (let ((fsom-lst lst)
+	(fsom-rv nil))
+    (while (and (not (null fsom-lst))
+		(null fsom-rv))
+      (if (funcall fsom-pred (car fsom-lst))
+	  (setq fsom-rv fsom-lst)
+	(setq fsom-lst (cdr fsom-lst))))
+    fsom-rv))
+
+(defun filesets-some (fss-pred fss-lst)
+  "Return non-nil if FSS-PRED is non-nil for any element of FSS-LST. 
+Like `some', return the first value of FSS-PRED that is non-nil."
+  (catch 'exit
+    (dolist (fss-this fss-lst nil)
+      (let ((fss-rv (funcall fss-pred fss-this)))
+	(when fss-rv
+	  (throw 'exit fss-rv))))))
+;(fset 'filesets-some 'some) ;; or use the cl function
+
+(defun filesets-member (fsm-item fsm-lst &rest fsm-keys)
+  "Find the first occurrence of FSM-ITEM in FSM-LST.
+It is supposed to work like cl's `member*'. At the moment only the :test
+key is supported."
+  (let ((fsm-test (or (plist-get fsm-keys ':test)
+		      (function equal))))
+    (filesets-ormap (lambda (fsm-this)
+		      (funcall fsm-test fsm-item fsm-this)) 
+		    fsm-lst)))
+;(fset 'filesets-member 'member*) ;; or use the cl function
 
 (defun filesets-sublist (lst beg &optional end)
   "Get the sublist of LST from BEG to END - 1."
@@ -611,7 +643,7 @@ i.e. on open-all-files-events or when running commands
 
 :constraintp FUNCTION ... use this viewer only if FUNCTION returns non-nil
 
-:constraint-flag SYMBOL ... use this viewer only if SYMBOL is non-nil
+:constraint-flag SEXP ... use this viewer only if SEXP evaluates to non-nil
 
 :open-hook HOOK ... run hooks after spawning the viewer -- mainly useful
 in conjunction with :capture-output
@@ -659,7 +691,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 				      :value (:constraint-flag)
 				      (const :format ""
 					     :value :constraint-flag)
-				      (symbol :tag "Symbol"))
+				      (sexp :tag "Symbol"))
 				(list :tag ":ignore-on-open-all"
 				      :value (:ignore-on-open-all t)
 				      (const  :format ""
@@ -1171,17 +1203,18 @@ non-nil."
 		   filename)))
     (if (file-exists-p f)
 	f
-      (some (lambda (dir)
-	      (let ((dir (file-name-as-directory dir))
-		    (files (if (file-exists-p dir)
-			       (filesets-directory-files dir nil ':files)
-			     nil)))
-		(some (lambda (file)
-			(if (equal filename (file-name-nondirectory file))
-			    (concat dir file)
-			  nil))
-		      files)))
-	    path-list))))
+      (filesets-some
+       (lambda (dir)
+	 (let ((dir (file-name-as-directory dir))
+	       (files (if (file-exists-p dir)
+			  (filesets-directory-files dir nil ':files)
+			nil)))
+	   (filesets-some (lambda (file)
+			    (if (equal filename (file-name-nondirectory file))
+				(concat dir file)
+			      nil))
+			  files)))
+       path-list))))
 
 
 (defun filesets-eviewer-get-props (entry)
@@ -1203,7 +1236,7 @@ non-nil."
 (defun filesets-get-external-viewer (file)
   "Find an external viewer for FILE."
   (let ((filename (file-name-nondirectory file)))
-    (some
+    (filesets-some
      (lambda (entry)
        (when (and (string-match (nth 0 entry) filename)
 		  (filesets-eviewer-constraint-p entry))
@@ -1213,7 +1246,7 @@ non-nil."
 (defun filesets-get-external-viewer-by-name (name)
   "Get the external viewer definition called NAME."
   (when name
-    (some
+    (filesets-some
      (lambda (entry)
        (when (and (string-equal (nth 1 entry) name)
 		  (filesets-eviewer-constraint-p entry))
@@ -1414,10 +1447,11 @@ Return DEFAULT if not found.  Return (car VALUE) if CARP is non-nil."
   "Return fileset ENTRY's mode: :files, :file, :tree, :pattern, or :ingroup.
 See `filesets-data'."
   (let ((data (filesets-data-get-data entry)))
-    (some (lambda (x)
-	    (if (assoc x data)
-		x))
-	  '(:files :tree :pattern :ingroup :file))))
+    (filesets-some
+     (lambda (x)
+       (if (assoc x data)
+	   x))
+     '(:files :tree :pattern :ingroup :file))))
 
 (defun filesets-entry-get-open-fn (fileset-name &optional fileset-entry)
   "Get the open-function for FILESET-NAME.
@@ -1757,7 +1791,8 @@ User will be queried, if no fileset name is provided."
     (if entry
 	(let* ((files  (filesets-entry-get-files entry))
 	       (this   (buffer-file-name buffer))
-	       (inlist (member* this files :test 'filesets-files-equalp)))
+	       (inlist (filesets-member this files
+					:test 'filesets-files-equalp)))
 	  (cond
 	   (inlist
 	    (message "Filesets: '%s' is already in '%s'" this name))
@@ -1782,7 +1817,8 @@ User will be queried, if no fileset name is provided."
     (if entry
 	(let* ((files  (filesets-entry-get-files entry))
 	       (this   (buffer-file-name buffer))
-	       (inlist (member* this files :test 'filesets-files-equalp)))
+	       (inlist (filesets-member this files
+					:test 'filesets-files-equalp)))
 	  ;;(message "%s %s %s" files this inlist)
 	  (if (and files this inlist)
 	      (let ((new (list (cons ':files (delete (car inlist) files)))))
@@ -1946,11 +1982,11 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 		      (and (stringp a)
 			   (stringp b)
 			   (string-match a b))))))
-    (some (lambda (x)
-	    (if (funcall fn (car x) masterfile)
-		(nth pos x)
-	      nil))
-	  filesets-ingroup-patterns)))
+    (filesets-some (lambda (x)
+		     (if (funcall fn (car x) masterfile)
+			 (nth pos x)
+		       nil))
+		   filesets-ingroup-patterns)))
 
 (defun filesets-ingroup-get-pattern (master)
   "Access to `filesets-ingroup-patterns'.  Extract patterns."
@@ -2026,7 +2062,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 		      (when (and f
 				 (not (member f flist))
 				 (or (not remdupl-flag)
-				     (not (member*
+				     (not (filesets-member
 					   f filesets-ingroup-files
 					   :test 'filesets-files-equalp))))
 			(let ((no-stub-flag
