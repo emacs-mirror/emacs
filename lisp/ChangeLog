@@ -1,3 +1,8 @@
+2004-02-01  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/executable.el (executable-command-find-posix-p): Doc
+	fix.
+
 2004-02-01  Stephen Eglen  <stephen@gnu.org>
 
 	* info-look.el: Add support for maxima-mode.  Update commentary
