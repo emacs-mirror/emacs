@@ -7,7 +7,7 @@
 	(try_window_reusing_current_matrix): Test cursor_type_changed
 	along with windows_or_buffers_changed.
 
-	* window.h (cursor_type_changed): Hew variable.
+	* window.h (cursor_type_changed): New variable.
 
 	* xfns.c (x_set_cursor_type): Set cursor_type_changed,
 	not update_mode_lines, and always set it to 1.
@@ -17,7 +17,7 @@
 
 2002-03-17  Kim F. Storm  <storm@cua.dk>
 
-	The following changes adds support for network server processes,
+	The following changes add support for network server processes,
 	datagram connections, and local (unix) sockets.
 
 	* process.h (struct Lisp_Process): New member log.
