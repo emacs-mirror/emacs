@@ -1056,21 +1056,6 @@ chars_in_text (ptr, nbytes)
   return chars;
 }
 
-DEFUN ("char-boundary-p", Fchar_boundary_p, Schar_boundary_p, 1, 1, 0,
-  "Return non-nil value if POS is at character boundary of multibyte form.\n\
-When the value is non-nil, it contains some additional information:\n\
- 0 if POS is at an ASCII character or at the end of range,\n\
- 1 if POS is before a 2-byte length multi-byte form,\n\
- 2 if POS is before a 3-byte length multi-byte form,\n\
- 3 if POS is before a 4-byte length multi-byte form,\n\
- 4 if POS is before a composite character.\n\
-If POS is out of range or not at character boundary, return NIL.")
-  (pos)
-     Lisp_Object pos;
-{
-  return make_number (0);
-}
-
 DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
   "Concatenate all the argument characters and make the result a string.")
   (n, args)
@@ -1643,7 +1628,6 @@ syms_of_charset ()
   defsubr (&Schar_direction);
   defsubr (&Schars_in_string);
   defsubr (&Schars_in_region);
-  defsubr (&Schar_boundary_p);
   defsubr (&Sconcat_chars);
   defsubr (&Scmpcharp);
   defsubr (&Scmpchar_component);
