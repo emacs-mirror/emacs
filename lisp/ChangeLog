@@ -1,10 +1,69 @@
+2003-05-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-after-kill-buffer-p): Fix misleading docstring.
+	(uniquify-make-item): Make `proposed' optional.
+	(uniquify-rationalize-file-buffer-names): Don't compute the
+	initial proposed name.
+	(uniquify-buffer-file-name): Remove dead code.
+	(uniquify-strip-common-suffix): New var.
+	(uniquify-rationalize): Always recompute initial proposed name.
+	Strip common suffix if requested.
+
+	* vc-rcs.el (vc-rcs-register, vc-rcs-checkin, vc-rcs-checkout)
+	(vc-rcs-find-version, vc-rcs-diff): Use vc-switches.
+
+	* vc-sccs.el (vc-sccs-register, vc-sccs-find-version)
+	(vc-sccs-checkin, vc-sccs-checkout, vc-sccs-diff): Use vc-switches.
+	(vc-sccs-register): Remove unused var `|'.
+
+	* vc-mcvs.el (vc-mcvs-read): Don't require `file' to exist.
+	(vc-mcvs-diff): Don't return 0 for newly added empty files.
+	(vc-mcvs-register, vc-mcvs-checkin, vc-mcvs-find-version)
+	(vc-mcvs-checkout, vc-mcvs-diff, vc-mcvs-diff-tree): Use vc-switches.
+
+	* vc-cvs.el (vc-cvs-dired-state-info): Use `added' for added files and
+	don't use `concat' unnecessarily.  Remove impossible cases.
+	(vc-cvs-diff): Don't return 0 for newly added empty files.
+	(vc-cvs-stay-local-p): Simplify.
+	(vc-cvs-register, vc-cvs-checkin, vc-cvs-find-version, vc-cvs-diff)
+	(vc-cvs-diff-tree, vc-cvs-checkout): Use vc-switches.
+
+	* vc-svn.el (vc-svn-dired-state-info): Use `added' for added files and
+	don't use `concat' unnecessarily.  Remove impossible cases.
+	(vc-svn-register, vc-svn-find-version, vc-svn-diff-tree):
+	Use vc-switches.
+	(vc-svn-checkin): Use vc-switches.  Fix up regexp.
+	(vc-svn-diff): Use vc-switches.
+	Don't return 0 for newly added empty files.
+	Don't use svn's return status.
+	(vc-svn-parse-status): Recognize copied files as well.
+	Use the last-modified revision for workfile-version.
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Pass nil
+	rather than (vc-workfile-version file) to diff.
+
+	* vc.el (with-vc-properties, with-vc-file, edit-vc-file):
+	Add `declare's for debugging and indentation.
+	(vc-do-command): Use `remq'.
+	(vc-buffer-context): Remove unused var `curbuf'.
+	(vc-next-action-dired): Remove unused var `dired-dir'.
+	(vc-switches): New fun.
+	(vc-diff-switches-list): Use it.
+	(vc-dired-hook): Remove unused var `cvs-dir'.
+	(vc-dired-purge): Remove unused var `subdir'.
+	(vc-cancel-version): Remove unused var `config'.
+	(vc-rename-master): Use dolist iso mapcar.
+	(vc-rename-file): Remove redundant tests.
+	Clear the properties of the old file name.
+	(vc-annotate): Pass the complete filename to `annotate-command'.
+	(vc-annotate-lines): Remove unused var `overlay'.
+
 2003-05-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-pull-attrs): Make `ret-attr',
 	`attr' local.
 	(list-diary-entries): Make `temp' local.
-	(fancy-diary-display): Make `marks', `temp-face', `faceinfo'
-	local.
+	(fancy-diary-display): Make `marks', `temp-face', `faceinfo' local.
 	(diary-mail-entries): There is no fancy-diary-buffer if there are
 	no diary entries.  Use call-interactively.
 	(mark-diary-entries): Make `temp' local.
@@ -23,9 +82,18 @@
 
 2003-05-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Don't uniquify if there is no filename.
+
+	* vc-hooks.el: Use buffer-file-name variable rather than function.
+	(vc-handled-backends): Add SVN and MCVS.
+	(vc-mode-line): Call vc-backend only once.
+	(find-file-hook, find-file-not-found-hook): Use the new
+	names rather than ...-hooks.
+
 	* uniquify.el (uniquify-item, uniquify-get-proposed-name)
 	(uniquify-rationalize-conflicting-sublist): Rename filename -> dirname.
-	(uniquify-rationalize): New fun.  Store the fix-list in uniquify-managed.
+	(uniquify-rationalize): New fun.  Set uniquify-managed to the fix-list.
 	(uniquify-rationalize-file-buffer-names): Use it and make the args
 	non-optional (i.e. don't support "re-rationalize all" any more).
 	(uniquify-rerationalize-w/o-cb): New fun.
@@ -147,13 +215,8 @@
 
 2003-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
-<<<<<<< ChangeLog
 	* dired.el (dired-find-file): Bind find-file-run-dired around
 	the call to find-file.
-=======
-        * dired.el (dired-find-file): Bind find-file-run-dired around
-        the call to find-file.
->>>>>>> 1.5094
 
 2003-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 
