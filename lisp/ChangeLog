@@ -1,3 +1,11 @@
+2002-05-07 Thomas Link <t.link@gmx.at>
+
+	* filesets.el: 
+	(filesets-external-viewers): Fix customization problem.
+	(filesets-some): Replaces cl's `some'.  Calls changed.
+	(filesets-member): Replaces cl's `member*'.  Calls changed.
+	(filesets-ormap): New function.
+
 2002-05-07  John Paul Wallington <jpw@shootybangbang.com>
 
 	* ibuffer.el (toplevel): Specialize `ibuffer-mode-groups-popup'
