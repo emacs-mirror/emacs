@@ -99,7 +99,7 @@
 (defcustom uniquify-buffer-name-style nil
   "*If non-nil, buffer names are uniquified with parts of directory name.
 The value determines the buffer name style and is one of `forward',
-`reverse', `post-forward' (the default), or `post-forward-angle-brackets'.
+`reverse', `post-forward', or `post-forward-angle-brackets'.
 For example, files `/foo/bar/mumble/name' and `/baz/quux/mumble/name'
 would have the following buffer names in the various styles:
   forward        bar/mumble/name  quux/mumble/name

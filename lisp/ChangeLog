@@ -1,3 +1,7 @@
+2001-02-17  Richard M. Stallman  <rms@psilocin.ai.mit.edu>
+
+	* uniquify.el (uniquify-buffer-name-style): Doc fix.
+
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse.el (mouse-save-then-kill): If the distance from the new
