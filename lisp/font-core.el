@@ -220,6 +220,18 @@ your own function which is called when `font-lock-mode' is toggled via
 (defun font-lock-change-mode ()
   (font-lock-mode -1))
 
+(defun font-lock-defontify ()
+  "Clear out all `font-lock-face' properties in current buffer.
+A major mode that uses `font-lock-face' properties should put
+this function onto `change-major-mode-hook'."
+  (let ((modp (buffer-modified-p))
+	(inhibit-read-only t))
+    (save-restriction
+      (widen)
+      (remove-list-of-text-properties (point-min) (point-max)
+				      '(font-lock-face)))
+    (set-buffer-modified-p modp)))
+
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
   (when mode
