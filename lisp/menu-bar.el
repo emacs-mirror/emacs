@@ -537,7 +537,7 @@ Do the same for the keys of the same name."
 			       (default-value 'uniquify-buffer-name-style))))
 
 (define-key menu-bar-options-menu [save]
-  '(menu-item "Save options" menu-bar-options-save
+  '(menu-item "Save Options" menu-bar-options-save
 	      :help "Save options set from the menu above"))
 
 (define-key menu-bar-options-menu [custom-separator]
