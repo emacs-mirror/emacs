@@ -332,7 +332,7 @@ LIBXMENU=
 LIBW= -lXaw
 #endif
 #ifdef MOTIF
-#ifdef HAVE_MOTIF_2_1
+#if defined (HAVE_MOTIF_2_1) && defined (HAVE_LIBXP)
 #define LIB_MOTIF_EXTRA -lXp
 #else
 #define LIB_MOTIF_EXTRA
