@@ -216,7 +216,7 @@ and `time-stamp-end' control finding the template."
 	(ts-end time-stamp-end))
     (if (stringp time-stamp-pattern)
 	(progn
-	  (string-match "^\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(.*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?$" time-stamp-pattern)
+	  (string-match "\\`\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(\\(.\\|\n\\)*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?\\'" time-stamp-pattern)
 	  (and (match-beginning 2)
 	       (setq line-limit
 		     (string-to-int (match-string 2 time-stamp-pattern))))
@@ -225,8 +225,8 @@ and `time-stamp-end' control finding the template."
 	  (and (match-beginning 4)
 	       (not (string-equal (match-string 4 time-stamp-pattern) "%%"))
 	       (setq ts-format (match-string 4 time-stamp-pattern)))
-	  (and (match-beginning 5)
-	       (setq ts-end (match-string 5 time-stamp-pattern)))))
+	  (and (match-beginning 6)
+	       (setq ts-end (match-string 6 time-stamp-pattern)))))
     (cond ((not (integerp line-limit))
 	   (setq line-limit 8)
 	   (message "time-stamp-line-limit is not an integer")
@@ -319,7 +319,6 @@ With arg, turn time stamping on if and only if arg is positive."
 	cur-char
 	(prev-char nil)
 	(result "")
-	field-index
 	field-width
 	field-result
 	alt-form change-case require-padding
@@ -332,7 +331,7 @@ With arg, turn time stamping on if and only if arg is positive."
       (cond
        ((eq cur-char ?%)
 	;; eat any additional args to allow for future expansion
-	(setq alt-form nil change-case nil require-padding nil)
+	(setq alt-form nil change-case nil require-padding nil field-width "")
 	(while (progn
 		 (setq ind (1+ ind))
 		 (setq cur-char (if (< ind fmt-len)
@@ -350,23 +349,25 @@ With arg, turn time stamping on if and only if arg is positive."
 			      (> paren-level 0))
 			 (setq paren-level (1- paren-level))
 		       (and (> paren-level 0)
-			    (< ind fmt-len)))))
+			    (< ind fmt-len)))
+		     (if (and (<= ?0 cur-char) (>= ?9 cur-char))
+			 ;; get format width
+			 (let ((field-index ind))
+			   (while (progn
+				    (setq ind (1+ ind))
+				    (setq cur-char (if (< ind fmt-len)
+						       (aref format ind)
+						     ?\0))
+				    (and (<= ?0 cur-char) (>= ?9 cur-char))))
+			   (setq field-width (substring format field-index ind))
+			   (setq ind (1- ind))
+			   t))))
 	  (setq prev-char cur-char)
 	  ;; some characters we actually use
 	  (cond ((eq cur-char ?:)
 		 (setq alt-form t))
 		((eq cur-char ?#)
 		 (setq change-case t))))
-	;; get format width
-	(setq field-index ind)
-	(setq ind (1- ind))
-	(while (progn
-		 (setq ind (1+ ind))
-		 (setq cur-char (if (< ind fmt-len)
-				    (aref format ind)
-				  ?\0))
-		 (and (<= ?0 cur-char) (>= ?9 cur-char))))
-	(setq field-width (substring format field-index ind))
 	(setq field-result
 	(cond
 	 ((eq cur-char ?%)
