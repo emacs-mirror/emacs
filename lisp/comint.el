@@ -1850,7 +1850,7 @@ This just sends STRING plus a newline. To override this,
 set the hook `comint-input-sender'."
   (comint-send-string proc string)
   (if comint-input-sender-no-newline
-      (if (not (string-equal input ""))
+      (if (not (string-equal string ""))
 	  (process-send-eof))
     (comint-send-string proc "\n")))
 
