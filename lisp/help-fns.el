@@ -45,15 +45,27 @@ If there's no tutorial in that language, `TUTORIAL' is selected.
 With arg, you are asked to choose which language."
   (interactive "P")
   (let ((lang (if arg
-		  (progn
+		  (let (completion-buffer)
 		    ;; Display a completion list right away
 		    ;; to guide the user.
 		    (with-output-to-temp-buffer "*Completions*"
 		      (display-completion-list
 		       (all-completions "" language-info-alist
 					(lambda (elm)
-					  (and (listp elm) (assq 'tutorial elm))))))
-		    (read-language-name 'tutorial "Language: " "English"))
+					  (and (listp elm) (assq 'tutorial elm)))))
+		      (setq completion-buffer standard-output))
+		    ;; Arrange to set completion-reference-buffer
+		    ;; in *Completions* to point to the minibuffer,
+		    ;; after entering the minibuffer.
+		    (let ((minibuffer-setup-hook minibuffer-setup-hook))
+		      (add-hook 'minibuffer-setup-hook
+				(lambda ()
+				  (let ((mini (current-buffer)))
+				    (with-current-buffer completion-buffer
+				      (make-local-variable 'completion-reference-buffer)
+				      (setq completion-reference-buffer 
+					    mini)))))
+		      (read-language-name 'tutorial "Language: " "English")))
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
 		  "English")))
