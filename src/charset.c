@@ -1080,7 +1080,7 @@ DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
     }
 
   if (c1 < 0 || c1 > 0xFF || c2 < 0 || c2 > 0xFF)
-    error ("Invalid code points: %d %d", c1, c2);
+    error ("Invalid code points for charset ID %d: %d %d", charset_id, c1, c2);
   c1 &= 0x7F;
   c2 &= 0x7F;
   if (c1 == 0
@@ -1088,7 +1088,7 @@ DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
       : (c2 == 0
 	 ? !CHAR_COMPONENTS_VALID_P (charset, c1, 0x20)
 	 : !CHAR_COMPONENTS_VALID_P (charset, c1, c2)))
-    error ("Invalid code points: %d %d", c1, c2);
+    error ("Invalid code points for charset ID %d: %d %d", charset_id, c1, c2);
 
   return make_number (MAKE_CHAR (charset_id, c1, c2));
 }
