@@ -79,6 +79,7 @@
 ;; multilingual text.
 (load "international/mule-cmds")
 (load "case-table")
+(load "composite")
 (load "international/characters")
 
 ;; Load language-specific files.
