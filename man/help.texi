@@ -44,15 +44,19 @@ command or option, we recommend the following procedure:
 
 @table @kbd
 @item C-h a @var{topic} @key{RET}
-This searches the built-in short documentation of each command for
-strings which match @var{topic}.  @var{topic} can be a regular
-expression (@pxref{Regexps}).  Browse the buffer popped up by Emacs, to
-find what you are looking for.
+This searches for commands whose names match @var{topic}.  @var{topic}
+is a regular expression (@pxref{Regexps}).  Browse the buffer popped up
+by Emacs, to find what you are looking for.  @xref{Apropos}.
 
 @item M-x apropos @var{topic} @key{RET}
-This works like @kbd{C-h a}, but it also searches the documentation of
-user options and other variables, in case the feature you are looking
-for is controlled by an option, not a command.
+This works like @kbd{C-h a}, but it also searches for user options and
+other variables, in case the feature you are looking for is controlled
+by an option, not a command.  @xref{Apropos}.
+
+@item M-x apropos-documentation @var{topic} @key{RET}
+This searches the @emph{documentation strings} of all variables and
+functions (not their names) for a match for @var{topic}, a regular
+expression.  @xref{Apropos}.
 
 @item C-h i emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
@@ -67,9 +71,9 @@ rather than in its indices.
 This brings up the Emacs FAQ, where you can use the usual search
 commands (@pxref{Search}) to find the information.
 
-@item M-x finder-by-keyword
+@item C-h p
 Finally, you can try looking up a suitable package using keywords
-pertinent to the feature you need.
+pertinent to the feature you need.  @xref{Library Keywords}.
 @end table
 
 @menu
