@@ -3939,7 +3939,7 @@ option followed by a colon `:' if the option accepts an argument."
 	 (while (search-backward ":" v1 t)
 	   (replace-match " ARG] [+-" t t)))
       (if (eq (preceding-char) ?-) -5)
-      (if (length v1) "] ")
+      (if (and (sequencep v1) (length v1)) "] " "} ")
       "[--] ARGS...\"" \n
       "exit 2"  > \n
         "esac" >
