@@ -2687,6 +2687,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			      backup-by-copying
 			      ;; Don't rename a suid or sgid file.
 			      (and modes (< 0 (logand modes #o6000)))
+			      (not (file-writable-p (file-name-directory real-file-name)))
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
 			      (and (or backup-by-copying-when-mismatch
