@@ -537,7 +537,10 @@ Lisp_Object Vccl_program_table;
    At first, VAL0 is set to reg[rrr], and it is translated by the
    first map to VAL1.  Then, VAL1 is translated by the next map to
    VAL2.  This mapping is iterated until the last map is used.  The
-   result of the mapping is the last value of VAL?.
+   result of the mapping is the last value of VAL?.  When the mapping
+   process reached to the end of the map set, it moves to the next
+   map set.  If the next does not exit, the mapping process terminates,
+   and regard the last value as a result.
 
    But, when VALm is mapped to VALn and VALn is not a number, the
    mapping proceed as below:
@@ -548,8 +551,12 @@ Lisp_Object Vccl_program_table;
    In VALn is t, VALm is reverted to reg[rrr] and the mapping of VALm
    proceed to the next map.
 
-   If VALn is lambda, the whole mapping process terminates, and VALm
-   is the result of this mapping.
+   If VALn is lambda, move to the next map set like reaching to the
+   end of the current map set.
+
+   If VALn is a symbol, call the CCL program refered by it.
+   Then, use reg[rrr] as a mapped value except for -1, -2 and -3.
+   Such special values are regarded as nil, t, and lambda respectively.
 
    Each map is a Lisp vector of the following format (a) or (b):
 	(a)......[STARTPOINT VAL1 VAL2 ...]
@@ -577,7 +584,7 @@ Lisp_Object Vccl_program_table;
 					 N:SEPARATOR_z (< 0)
 				      */
 
-#define MAX_MAP_SET_LEVEL 20
+#define MAX_MAP_SET_LEVEL 30
 
 typedef struct
 {
@@ -588,19 +595,44 @@ typedef struct
 static tr_stack mapping_stack[MAX_MAP_SET_LEVEL];
 static tr_stack *mapping_stack_pointer;
 
-#define PUSH_MAPPING_STACK(restlen, orig)                 \
-{                                                           \
-  mapping_stack_pointer->rest_length = (restlen);         \
-  mapping_stack_pointer->orig_val = (orig);               \
-  mapping_stack_pointer++;                                \
-}
+/* If this variable is non-zero, it indicates the stack_idx
+   of immediately called by CCL_MapMultiple. */
+static int stack_idx_of_map_multiple = 0;
 
-#define POP_MAPPING_STACK(restlen, orig)                  \
-{                                                           \
-  mapping_stack_pointer--;                                \
-  (restlen) = mapping_stack_pointer->rest_length;         \
-  (orig) = mapping_stack_pointer->orig_val;               \
-}                                                           \
+#define PUSH_MAPPING_STACK(restlen, orig)		\
+  do {							\
+    mapping_stack_pointer->rest_length = (restlen);	\
+    mapping_stack_pointer->orig_val = (orig);		\
+    mapping_stack_pointer++;				\
+  } while (0)
+
+#define POP_MAPPING_STACK(restlen, orig)		\
+  do {							\
+    mapping_stack_pointer--;				\
+    (restlen) = mapping_stack_pointer->rest_length;	\
+    (orig) = mapping_stack_pointer->orig_val;		\
+  } while (0)
+
+#define CCL_CALL_FOR_MAP_INSTRUCTION(symbol, ret_ic)		\
+  do {								\
+    struct ccl_program called_ccl;				\
+    if (stack_idx >= 256					\
+	|| (setup_ccl_program (&called_ccl, (symbol)) != 0))	\
+      {								\
+	if (stack_idx > 0)					\
+	  {							\
+	    ccl_prog = ccl_prog_stack_struct[0].ccl_prog;	\
+	    ic = ccl_prog_stack_struct[0].ic;			\
+	  }							\
+	CCL_INVALID_CMD;					\
+      }								\
+    ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;	\
+    ccl_prog_stack_struct[stack_idx].ic = (ret_ic);		\
+    stack_idx++;						\
+    ccl_prog = called_ccl.prog;					\
+    ic = CCL_HEADER_MAIN;					\
+    goto ccl_repeat;						\
+  } while (0)
 
 #define CCL_MapSingle		0x12 /* Map by single code conversion map
 					1:ExtendedCOMMNDXXXRRRrrrXXXXX
@@ -807,6 +839,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
   if (ccl->buf_magnification ==0) /* We can't produce any bytes.  */
     dst = NULL;
+
+  /* Set mapping stack pointer. */
+  mapping_stack_pointer = mapping_stack;
 
 #ifdef CCL_DEBUG
   ccl_backtrace_idx = 0;
@@ -1371,6 +1406,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			reg[rrr] = XUINT (value);
 			break;
 		      }
+		    else if (SYMBOLP (content))
+		      CCL_CALL_FOR_MAP_INSTRUCTION (content, fin_ic);
+		    else
+		      CCL_INVALID_CMD;
 		  }
 		if (i == j)
 		  reg[RRR] = -1;
@@ -1383,10 +1422,27 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		Lisp_Object map, content, attrib, value;
 		int point, size, map_vector_size;
 		int map_set_rest_length, fin_ic;
+		int current_ic = this_ic;
+
+		/* inhibit recursive call on MapMultiple. */
+		if (stack_idx_of_map_multiple > 0)
+		  {
+		    if (stack_idx_of_map_multiple <= stack_idx)
+		      {
+			stack_idx_of_map_multiple = 0;
+			mapping_stack_pointer = mapping_stack;
+			CCL_INVALID_CMD;
+		      }
+		  }
+		else
+		  mapping_stack_pointer = mapping_stack;
+		stack_idx_of_map_multiple = 0;
 
 		map_set_rest_length =
 		  XINT (ccl_prog[ic++]); /* number of maps and separators. */
 		fin_ic = ic + map_set_rest_length;
+		op = reg[rrr];
+
 		if ((map_set_rest_length > reg[RRR]) && (reg[RRR] >= 0))
 		  {
 		    ic += reg[RRR];
@@ -1397,101 +1453,165 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  {
 		    ic = fin_ic;
 		    reg[RRR] = -1;
+		    mapping_stack_pointer = mapping_stack;
 		    break;
 		  }
-		mapping_stack_pointer = mapping_stack;
-		op = reg[rrr];
-		PUSH_MAPPING_STACK (0, op);
-		reg[RRR] = -1;
-		map_vector_size = XVECTOR (Vcode_conversion_map_vector)->size;
-		for (;map_set_rest_length > 0;i++, map_set_rest_length--)
+
+		if (mapping_stack_pointer <= (mapping_stack + 1))
 		  {
-		    point = XINT(ccl_prog[ic++]);
-		    if (point < 0)
-		      {
-			point = -point;
-			if (mapping_stack_pointer
-			    >= &mapping_stack[MAX_MAP_SET_LEVEL])
-			  {
-			    CCL_INVALID_CMD;
-			  }
-			PUSH_MAPPING_STACK (map_set_rest_length - point,
-					    reg[rrr]);
-			map_set_rest_length = point + 1;
-			reg[rrr] = op;
-			continue;
-		      }
+		    /* Set up initial state. */
+		    mapping_stack_pointer = mapping_stack;
+		    PUSH_MAPPING_STACK (0, op);
+		    reg[RRR] = -1;
+		  }
+		else
+		  {
+		    /* Recover after calling other ccl program. */
+		    int orig_op;
 
-		    if (point >= map_vector_size) continue;
-		    map = (XVECTOR (Vcode_conversion_map_vector)
-			   ->contents[point]);
-
-		    /* Check map varidity.  */
-		    if (!CONSP (map)) continue;
-		    map = XCDR (map);
-		    if (!VECTORP (map)) continue;
-		    size = XVECTOR (map)->size;
-		    if (size <= 1) continue;
-
-		    content = XVECTOR (map)->contents[0];
-
-		    /* check map type,
-		       [STARTPOINT VAL1 VAL2 ...] or
-		       [t ELEMENT STARTPOINT ENDPOINT]  */
-		    if (NUMBERP (content))
+		    POP_MAPPING_STACK (map_set_rest_length, orig_op);
+		    POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+		    switch (op)
 		      {
-			point = XUINT (content);
-			point = op - point + 1;
-			if (!((point >= 1) && (point < size))) continue;
-			content = XVECTOR (map)->contents[point];
-		      }
-		    else if (EQ (content, Qt))
-		      {
-			if (size != 4) continue;
-			if ((op >= XUINT (XVECTOR (map)->contents[2])) &&
-			    (op < XUINT (XVECTOR (map)->contents[3])))
-			  content = XVECTOR (map)->contents[1];
-			else
-			  continue;
-		      }
-		    else 
-		      continue;
-
-		    if (NILP (content))
-		      continue;
-		    else if (NUMBERP (content))
-		      {
-			op = XINT (content);
-			reg[RRR] = i;
-			i += map_set_rest_length;
-			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
-		      }
-		    else if (CONSP (content))
-		      {
-			attrib = XCAR (content);
-			value = XCDR (content);
-			if (!NUMBERP (attrib) || !NUMBERP (value))
-			  continue;
-			reg[RRR] = i;
-			op = XUINT (value);
-			i += map_set_rest_length;
-			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
-		      }
-		    else if (EQ (content, Qt))
-		      {
-			reg[RRR] = i;
+		      case -1:
+			/* Regard it as Qnil. */
+			op = orig_op;
+			i++;
+			ic++;
+			map_set_rest_length--;
+			break;
+		      case -2:
+			/* Regard it as Qt. */
 			op = reg[rrr];
+			i++;
+			ic++;
+			map_set_rest_length--;
+			break;
+		      case -3:
+			/* Regard it as Qlambda. */
+			op = orig_op;
 			i += map_set_rest_length;
+			ic += map_set_rest_length;
+			map_set_rest_length = 0;
+			break;
+		      default:
+			/* Regard it as normal mapping. */
+			i += map_set_rest_length;
+			ic += map_set_rest_length;
 			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
-		      }
-		    else if (EQ (content, Qlambda))
-		      {
-			reg[RRR] = i;
 			break;
 		      }
-		    else
-		      CCL_INVALID_CMD;
 		  }
+		map_vector_size = XVECTOR (Vcode_conversion_map_vector)->size;
+		
+		do {
+		  for (;map_set_rest_length > 0;i++, ic++, map_set_rest_length--)
+		    {
+		      point = XINT(ccl_prog[ic]);
+		      if (point < 0)
+			{
+			  /* +1 is for including separator. */
+			  point = -point + 1;
+			  if (mapping_stack_pointer
+			      >= &mapping_stack[MAX_MAP_SET_LEVEL])
+			    CCL_INVALID_CMD;
+			  PUSH_MAPPING_STACK (map_set_rest_length - point,
+					      reg[rrr]);
+			  map_set_rest_length = point;
+			  reg[rrr] = op;
+			  continue;
+			}
+
+		      if (point >= map_vector_size) continue;
+		      map = (XVECTOR (Vcode_conversion_map_vector)
+			     ->contents[point]);
+
+		      /* Check map varidity.  */
+		      if (!CONSP (map)) continue;
+		      map = XCDR (map);
+		      if (!VECTORP (map)) continue;
+		      size = XVECTOR (map)->size;
+		      if (size <= 1) continue;
+
+		      content = XVECTOR (map)->contents[0];
+
+		      /* check map type,
+			 [STARTPOINT VAL1 VAL2 ...] or
+			 [t ELEMENT STARTPOINT ENDPOINT]  */
+		      if (NUMBERP (content))
+			{
+			  point = XUINT (content);
+			  point = op - point + 1;
+			  if (!((point >= 1) && (point < size))) continue;
+			  content = XVECTOR (map)->contents[point];
+			}
+		      else if (EQ (content, Qt))
+			{
+			  if (size != 4) continue;
+			  if ((op >= XUINT (XVECTOR (map)->contents[2])) &&
+			      (op < XUINT (XVECTOR (map)->contents[3])))
+			    content = XVECTOR (map)->contents[1];
+			  else
+			    continue;
+			}
+		      else 
+			continue;
+
+		      if (NILP (content))
+			continue;
+
+		      reg[RRR] = i;
+		      if (NUMBERP (content))
+			{
+			  op = XINT (content);
+			  i += map_set_rest_length - 1;
+			  ic += map_set_rest_length - 1;
+			  POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+			  map_set_rest_length++;
+			}
+		      else if (CONSP (content))
+			{
+			  attrib = XCAR (content);
+			  value = XCDR (content);
+			  if (!NUMBERP (attrib) || !NUMBERP (value))
+			    continue;
+			  op = XUINT (value);
+			  i += map_set_rest_length - 1;
+			  ic += map_set_rest_length - 1;
+			  POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+			  map_set_rest_length++;
+			}
+		      else if (EQ (content, Qt))
+			{
+			  op = reg[rrr];
+			}
+		      else if (EQ (content, Qlambda))
+			{
+			  i += map_set_rest_length;
+			  ic += map_set_rest_length;
+			  break;
+			}
+		      else if (SYMBOLP (content))
+			{
+			  if (mapping_stack_pointer
+			      >= &mapping_stack[MAX_MAP_SET_LEVEL])
+			    CCL_INVALID_CMD;
+			  PUSH_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+			  PUSH_MAPPING_STACK (map_set_rest_length, op);
+			  stack_idx_of_map_multiple = stack_idx + 1;
+			  CCL_CALL_FOR_MAP_INSTRUCTION (content, current_ic);
+			}
+		      else
+			CCL_INVALID_CMD;
+		    }
+		  if (mapping_stack_pointer <= (mapping_stack + 1))
+		    break;
+		  POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+		  i += map_set_rest_length;
+		  ic += map_set_rest_length;
+		  POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
+		} while (1);
+
 		ic = fin_ic;
 	      }
 	      reg[rrr] = op;
@@ -1545,6 +1665,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			reg[rrr] = XUINT(value);
 			break;
 		      }
+		    else if (SYMBOLP (content))
+		      CCL_CALL_FOR_MAP_INSTRUCTION (content, ic);
 		    else
 		      reg[RRR] = -1;
 		  }
