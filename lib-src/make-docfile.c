@@ -1,5 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -300,10 +301,12 @@ write_c_args (out, func, buf, minargs, maxargs)
 	}
 
       /* Print the C argument list as it would appear in lisp:
-	 print underscores as hyphens, and print commas as spaces.
-	 Collapse adjacent spaces into one.  */
-      if (c == '_') c = '-';
-      if (c == ',') c = ' ';
+	 print underscores as hyphens, and print commas and newlines
+	 as spaces.  Collapse adjacent spaces into one.  */
+      if (c == '_')
+	c = '-';
+      else if (c == ',' || c == '\n')
+	c = ' ';
 
       /* In C code, `default' is a reserved word, so we spell it
 	 `defalt'; unmangle that here.  */
@@ -319,7 +322,7 @@ write_c_args (out, func, buf, minargs, maxargs)
 	  in_ident = 0;
 	  just_spaced = 0;
 	}
-      else if (c != ' ' || ! just_spaced)
+      else if (c != ' ' || !just_spaced)
 	{
 	  if (c >= 'a' && c <= 'z')
 	    /* Upcase the letter.  */
@@ -327,7 +330,7 @@ write_c_args (out, func, buf, minargs, maxargs)
 	  putc (c, out);
 	}
 
-      just_spaced = (c == ' ');
+      just_spaced = c == ' ';
       need_space = 0;
     }
 }
