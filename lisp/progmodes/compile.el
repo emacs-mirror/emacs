@@ -185,7 +185,7 @@ The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
   (interactive (list (read-from-minibuffer "Compile command: "
-					   compile-command nil
+					   compile-command nil nil
 					   '(compile-history . 1))))
   (setq compile-command command)
   (save-some-buffers nil nil)
