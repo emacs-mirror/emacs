@@ -249,7 +249,7 @@ read_score(FILE *f, struct score_entry *score)
   ungetc(c, f);
 #ifdef HAVE_GETDELIM
   {
-    int count = 0;
+    size_t count = 0;
     if (getdelim(&score->username, &count, ' ', f) < 1
 	|| score->username == NULL)
       return -1;
@@ -279,9 +279,9 @@ read_score(FILE *f, struct score_entry *score)
 #endif
 #ifdef HAVE_GETLINE
   score->data = NULL;
-  errno = ESUCCES;
+  errno = 0;
   {
-    int len;
+    size_t len;
     if (getline(&score->data, &len, f) < 0)
       return -1;
     score->data[strlen(score->data)-1] = '\0';
