@@ -48,6 +48,24 @@
 
 2002-09-13  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* diff-mode.el (diff-mode): Turn on compilation-minor-mode
+	support again, but more carefully this time.
+
+	* progmodes/perl-mode.el (perl-mode-syntax-table): Mark $, % and @
+	such that backward-sexp correctly skips them.
+	(perl-font-lock-keywords-2): Use regexp-opt.
+	(perl-font-lock-syntactic-keywords)
+	(perl-font-lock-syntactic-face-function): Better handle PODs.
+	Handle package names with ' in them and ($$) in `sub' declarations.
+	Handle format staements.  Handle regexp and quote-like ops.
+	(perl-empty-syntax-table): New var.
+	(perl-quote-syntax-table): New fun.
+
+	* pcvs.el (cvs-mode-find-file): Work even if point is at beg-of-line.
+	(cvs-do-removal): Bind inhibit-read-only while modifying the buffer.
+
+	* newcomment.el (comment-with-narrowing): Use the `declare' thingy.
+
 	* derived.el (define-derived-mode): Properly ignore unknown args.
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Add a :require arg.
@@ -199,8 +217,6 @@
 	* loadup.el ("simple.el"): Move to after loaddefs.el.
 
 	* subr.el (define-mail-user-agent): Moved from simple.el.
-
-	* newcomment.el (comment-with-narrowing): Use the `declare' thingy.
 
 2002-09-10  Richard M. Stallman  <rms@gnu.org>
 
