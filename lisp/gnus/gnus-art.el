@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1996, 97, 98, 1999, 2000, 01, 02, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1142,7 +1142,7 @@ Initialized from `text-mode-syntax-table.")
   (unless gnus-inhibit-hiding
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      (case-fold-search t)
 	      (max (1+ (length gnus-sorted-header-list)))
 	      (ignored (when (not gnus-visible-headers)
@@ -1200,7 +1200,7 @@ always hide."
 	     (not gnus-show-all-headers))
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      (list gnus-boring-article-headers)
 	      (inhibit-point-motion-hooks t)
 	      elem)
@@ -1303,7 +1303,7 @@ always hide."
 (defun article-normalize-headers ()
   "Make all header lines 40 characters long."
   (interactive)
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	column)
     (save-excursion
       (save-restriction
@@ -1346,7 +1346,7 @@ FROM is a string of characters to translate from; to is a string of
 characters to translate to."
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    (x (make-string 225 ?x))
 	    (i -1))
 	(while (< (incf i) (length x))
@@ -1362,7 +1362,7 @@ characters to translate to."
 MAP is an alist where the elements are on the form (\"from\" \"to\")."
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    elem)
 	(while (setq elem (pop map))
 	  (save-excursion
@@ -1374,7 +1374,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   (interactive)
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(while (search-forward "\b" nil t)
 	  (let ((next (char-after))
 		(previous (char-after (- (point) 2))))
@@ -1399,7 +1399,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   "Fill lines that are wider than the window width."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (width (window-width (get-buffer-window (current-buffer)))))
       (save-restriction
 	(article-goto-body)
@@ -1417,7 +1417,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   "Capitalize the first word in each sentence."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (paragraph-start "^[\n\^L]"))
       (article-goto-body)
       (while (not (eobp))
@@ -1428,7 +1428,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   "Remove trailing CRs and then translate remaining CRs into LFs."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-min))
       (while (re-search-forward "\r+$" nil t)
 	(replace-match "" t t))
@@ -1440,7 +1440,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   "Remove all trailing blank lines from the article."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-max))
       (delete-region
        (point)
@@ -1583,7 +1583,7 @@ If FORCE, decode the article whether it is marked as quoted-printable
 or not."
   (interactive (list 'force))
   (save-excursion
-    (let ((buffer-read-only nil) type charset)
+    (let ((inhibit-read-only t) type charset)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
 	    (setq type
@@ -1610,7 +1610,7 @@ or not."
 If FORCE, decode the article whether it is marked as base64 not."
   (interactive (list 'force))
   (save-excursion
-    (let ((buffer-read-only nil) type charset)
+    (let ((inhibit-read-only t) type charset)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
 	    (setq type
@@ -1643,14 +1643,14 @@ If FORCE, decode the article whether it is marked as base64 not."
   (interactive)
   (require 'rfc1843)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (rfc1843-decode-region (point-min) (point-max)))))
 
 (defun article-wash-html ()
   "Format an html article."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  charset)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
@@ -1794,7 +1794,7 @@ always hide."
   (save-excursion
     (set-buffer gnus-article-buffer)
     (when (article-goto-body)
-      (let* ((buffer-read-only nil)
+      (let* ((inhibit-read-only t)
 	     (start (point))
 	     (end (point-max))
 	     (orig (buffer-substring start end))
@@ -1812,7 +1812,7 @@ always hide."
   (unless (gnus-article-check-hidden-text 'signature arg)
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (when (gnus-article-narrow-to-signature)
 	    (gnus-article-hide-text-type
 	     (point-min) (point-max) 'signature)))))))
@@ -2001,7 +2001,7 @@ means show, 0 means toggle."
 (defun gnus-article-show-hidden-text (type &optional dummy)
   "Show all hidden text of type TYPE.
 Originally it is hide instead of DUMMY."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(inhibit-point-motion-hooks t))
     (gnus-remove-text-properties-when
      'article-type type
@@ -2054,7 +2054,7 @@ should replace the \"Date:\" one, or should be added below it."
 	  (forward-line 1))
 	(when (and date (not (string= date "")))
 	  (goto-char (point-min))
-	  (let ((buffer-read-only nil))
+	  (let ((inhibit-read-only t))
  	    ;; Delete any old Date headers.
  	    (while (re-search-forward date-regexp nil t)
 	      (if pos
@@ -2238,7 +2238,7 @@ This format is defined by the `gnus-article-time-format' variable."
   "Show all hidden text in the article buffer."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (gnus-article-unhide-text (point-min) (point-max)))))
 
 (defun article-emphasize (&optional arg)
@@ -2252,7 +2252,7 @@ This format is defined by the `gnus-article-time-format' variable."
 			  gnus-article-emphasis-alist)
 		      (error))
 		    gnus-emphasis-alist))
-	    (buffer-read-only nil)
+	    (inhibit-read-only t)
 	    (props (append '(article-type emphasis)
 			   gnus-hidden-properties))
 	    regexp elem beg invisible visible face)
@@ -2837,7 +2837,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	(when (and (boundp 'transient-mark-mode)
 		   transient-mark-mode)
 	  (setq mark-active nil))
-	(if (not (setq result (let ((buffer-read-only nil))
+	(if (not (setq result (let ((inhibit-read-only t))
 				(gnus-request-article-this-buffer
 				 article group))))
 	    ;; There is no such article.
@@ -3671,7 +3671,7 @@ If given a numerical ARG, move forward ARG pages."
     (widen)
     ;; Remove any old next/prev buttons.
     (when (gnus-visual-p 'page-marker)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(gnus-remove-text-with-property 'gnus-prev)
 	(gnus-remove-text-with-property 'gnus-next)))
     (when
@@ -3686,12 +3686,12 @@ If given a numerical ARG, move forward ARG pages."
 	 (match-beginning 0)
        (point)))
     (when (and (gnus-visual-p 'page-marker)
-	       (not (= (point-min) 1)))
+	       (> (point-min) (save-restriction (widen) (point-min))))
       (save-excursion
 	(goto-char (point-min))
 	(gnus-insert-prev-page-button)))
     (when (and (gnus-visual-p 'page-marker)
-	       (< (+ (point-max) 2) (buffer-size)))
+	       (< (point-max) (save-restriction (widen) (point-max))))
       (save-excursion
 	(goto-char (point-max))
 	(gnus-insert-next-page-button)))))
@@ -4044,7 +4044,7 @@ If given a prefix, show the hidden text instead."
 		  (methods (and (stringp article)
 				gnus-refer-article-method))
 		  result
-		  (buffer-read-only nil))
+		  (inhibit-read-only t))
 	      (if (or (not (listp methods))
 		      (and (symbolp (car methods))
 			   (assq (car methods) nnoo-definition-alist)))
@@ -4140,7 +4140,7 @@ If given a prefix, show the hidden text instead."
 		     "\C-c\C-w" gnus-article-edit-mode-map)
     "f" gnus-article-edit-full-stops))
 
-(define-derived-mode gnus-article-edit-mode text-mode "Article Edit"
+(define-derived-mode gnus-article-edit-mode message-mode "Article Edit"
   "Major mode for editing articles.
 This is an extended text-mode.
 
@@ -4212,7 +4212,7 @@ groups."
     (gnus-article-edit-exit)
     (save-excursion
       (set-buffer buf)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(funcall func arg))
       ;; The cache and backlog have to be flushed somewhat.
       (when gnus-keep-backlog
@@ -4289,6 +4289,9 @@ groups."
     ("\\bmailto:\\([^ \n\t]+\\)" 0 t gnus-url-mailto 1)
     ;; This is how URLs _should_ be embedded in text...
     ("<URL: *\\([^<>]*\\)>" 0 t gnus-button-embedded-url 1)
+    ;; Info manual references.
+    ("(\\(info\\|Info-goto-node\\)[ \n\t]+\"\\(([^)\"\n]+)[^\"\n]+\\)\")"
+     0 t Info-goto-node 2)
     ;; Raw URLs.
     (,gnus-button-url-regexp 0 t browse-url 0))
   "*Alist of regexps matching buttons in article bodies.
@@ -4296,7 +4299,7 @@ groups."
 Each entry has the form (REGEXP BUTTON FORM CALLBACK PAR...), where
 REGEXP: is the string matching text around the button,
 BUTTON: is the number of the regexp grouping actually matching the button,
-FORM: is a lisp expression which must eval to true for the button to
+FORM: is a Lisp expression which must eval to true for the button to
 be added,
 CALLBACK: is the function to call when the user push this button, and each
 PAR: is a number of a regexp grouping whose text will be passed to CALLBACK.
@@ -4405,7 +4408,7 @@ do the highlighting.  See the documentation for those functions."
     (set-buffer gnus-article-buffer)
     (save-restriction
       (let ((alist gnus-header-face-alist)
-	    (buffer-read-only nil)
+	    (inhibit-read-only t)
 	    (case-fold-search t)
 	    (inhibit-point-motion-hooks t)
 	    entry regexp header-face field-face from hpoints fpoints)
@@ -4444,7 +4447,7 @@ It does this by highlighting everything after
   (interactive)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t))
       (save-restriction
 	(when (and gnus-signature-face
@@ -4469,7 +4472,7 @@ specified by `gnus-button-alist'."
   (interactive (list 'force))
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t)
 	  (case-fold-search t)
 	  (alist gnus-button-alist)
@@ -4514,7 +4517,7 @@ specified by `gnus-button-alist'."
   (save-excursion
     (set-buffer gnus-article-buffer)
     (save-restriction
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    (inhibit-point-motion-hooks t)
 	    (case-fold-search t)
 	    (alist gnus-header-button-alist)
@@ -4572,7 +4575,7 @@ specified by `gnus-button-alist'."
 (defun gnus-signature-toggle (end)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t))
       (if (text-property-any end (point-max) 'article-type 'signature)
 	  (gnus-remove-text-properties-when
@@ -4737,7 +4740,7 @@ forbidden in URL encoding."
   (define-key gnus-prev-page-map "\r" 'gnus-button-prev-page))
 
 (defun gnus-insert-prev-page-button ()
-  (let ((buffer-read-only nil))
+  (let ((inhibit-read-only t))
     (gnus-eval-format
      gnus-prev-page-line-format nil
      `(gnus-prev t local-map ,gnus-prev-page-map
@@ -4768,7 +4771,7 @@ forbidden in URL encoding."
     (select-window win)))
 
 (defun gnus-insert-next-page-button ()
-  (let ((buffer-read-only nil))
+  (let ((inhibit-read-only t))
     (gnus-eval-format gnus-next-page-line-format nil
 		      `(gnus-next
 			t local-map ,gnus-next-page-map
@@ -4796,8 +4799,8 @@ forbidden in URL encoding."
   "List of methods used to decode headers.
 
 This variable is a list of FUNCTION or (REGEXP . FUNCTION).  If item
-is FUNCTION, FUNCTION will be apply to all newsgroups.  If item is a
-\(REGEXP . FUNCTION), FUNCTION will be only apply to these newsgroups
+is FUNCTION, FUNCTION will be applied to all newsgroups.  If item is a
+\(REGEXP . FUNCTION), FUNCTION will be only applied to these newsgroups
 whose names match REGEXP.
 
 For example:
