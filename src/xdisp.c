@@ -954,9 +954,9 @@ pos_visible_p (w, charpos, fully)
       int line_height;
 
       if (it.max_ascent == 0 && it.max_descent == 0)
-	line_height = it.current_y + last_height;
+	line_height = last_height;
       else
-	line_height = it.current_y + it.max_ascent + it.max_descent;
+	line_height = it.max_ascent + it.max_descent;
       
       *fully = it.current_y + line_height <= it.last_visible_y;
       visible_p = 1;
