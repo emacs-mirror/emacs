@@ -82,7 +82,7 @@ name of the field, second element = comment to appear in the echo area).")
 That means they are ignored when determining ordering of the buffer
 (e.g. sorting, locating alphabetical position for new entries, etc.).")
 
-(defvar bibtex-maintain-sorted-entries t
+(defvar bibtex-maintain-sorted-entries nil
   "*If true, bibtex-mode maintains all BibTeX entries in sorted order.
 Setting this variable to nil will strip off some comfort (e.g. TAB
 completion for reference keys) from bibtex-mode.")
