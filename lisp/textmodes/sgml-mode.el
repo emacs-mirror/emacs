@@ -1283,6 +1283,8 @@ To work around that, do:
              nil t)
         (set (make-local-variable 'html-xhtml)
              (string= "X" (match-string 1))))))
+  (when html-xhtml
+    (setq mode-name "XHTML"))
   ;; It's for the user to decide if it defeats it or not  -stef
   ;; (make-local-variable 'imenu-sort-function)
   ;; (setq imenu-sort-function nil) ; sorting the menu defeats the purpose

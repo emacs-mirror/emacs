@@ -1,7 +1,7 @@
 2001-10-26  Sam Steingold  <sds@gnu.org>
 
 	* textmodes/sgml-mode.el (html-mode): Set `html-xhtml' from the
-	DOCTYPE.
+	DOCTYPE; set `mode-name' based on it.
 	(html-tag-alist): Use `html-xhtml' for "li", "dt" and "dd".
 	(sgml-tag): Close empty tags in XHTML.
 
