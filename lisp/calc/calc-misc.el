@@ -231,6 +231,9 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 
 ;;;; Stack and buffer management.
 
+;; The variable calc-last-why-command is set in calc-do-handly-whys
+;; and used in calc-why (in calc-stuff.el).
+(defvar calc-last-why-command)
 
 (defun calc-do-handle-whys ()
   (setq calc-why (sort calc-next-why
