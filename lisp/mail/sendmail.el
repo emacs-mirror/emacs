@@ -209,19 +209,20 @@ actually occur.")
      (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
 
 (defvar mail-font-lock-keywords
-  (let* ((cite-prefix "A-Za-z") (cite-suffix (concat cite-prefix "0-9_.@-")))
-    (list '("^To:" . font-lock-function-name-face)
-	  '("^B?CC:\\|^Reply-To:" . font-lock-keyword-face)
-	  '("^\\(Subject:\\)[ \t]*\\(.+\\)?"
-	    (1 font-lock-comment-face) (2 font-lock-type-face nil t))
-	  (list (concat "^\\(" (regexp-quote mail-header-separator) "\\)$")
-		1 'font-lock-comment-face)
-	  (cons (concat "^[ \t]*"
-			"\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-			"[>|}].*")
-		'font-lock-reference-face)
-	  '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
-	    . font-lock-string-face)))
+  (eval-when-compile
+    (let* ((cite-prefix "A-Za-z") (cite-suffix (concat cite-prefix "0-9_.@-")))
+      (list '("^To:" . font-lock-function-name-face)
+	    '("^B?CC:\\|^Reply-to:" . font-lock-keyword-face)
+	    '("^\\(Subject:\\)[ \t]*\\(.+\\)?"
+	      (1 font-lock-comment-face) (2 font-lock-type-face nil t))
+	    '(eval cons (concat "^" (regexp-quote mail-header-separator) "$")
+		   'font-lock-comment-face)
+	    (cons (concat "^[ \t]*"
+			  "\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			  "[>|}].*")
+		  'font-lock-reference-face)
+	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
+	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
 (defvar mail-send-hook nil
