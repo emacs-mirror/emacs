@@ -1230,9 +1230,10 @@ START and END specify the portion of the current buffer to be copied."
 	(insert-buffer-substring oldbuf start end)))))
 
 (defun mark (&optional force)
-  "Return this buffer's mark value as integer, or nil if no active mark now.
+  "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
-even if the mark is not currently active.
+even if the mark is not currently active, and return nil
+if there is no mark at all.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
