@@ -201,11 +201,11 @@ all:	paths-force ${SUBDIR}
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Note that sed is not in /bin on 386bsd.
-src/paths.h: Makefile ${srcdir}/src/paths.h.in
-	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
+src/paths.h: Makefile ${srcdir}/src/paths.in
+	@echo "Producing \`src/paths.h' from \`src/paths.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	  sed < ${srcdir}/src/paths.h.in > paths.h.tmp$$$$		\
+	  sed < ${srcdir}/src/paths.in > paths.h.tmp$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
@@ -227,10 +227,10 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in
 # that rule and this one, in a parallel make.
 # It is possible for paths.h to be updated twice--but that would happen anyway.
 paths-force: FRC src/paths.h
-	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
+	@echo "Producing \`src/paths.h' from \`src/paths.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	  sed < ${srcdir}/src/paths.h.in > paths.h.tmp$$$$		\
+	  sed < ${srcdir}/src/paths.in > paths.h.tmp$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
@@ -263,7 +263,7 @@ blessmail: ${SUBDIR_MAKEFILES} src FRC
 Makefile: Makefile.in config.status
 	./config.status
 
-src/Makefile: src/Makefile.in.in config.status
+src/Makefile: src/Makefile.in config.status
 	./config.status
 
 lib-src/Makefile: lib-src/Makefile.in config.status
