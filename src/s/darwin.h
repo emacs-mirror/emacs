@@ -40,7 +40,9 @@ Boston, MA 02111-1307, USA.  */
 /* MAC_OS is used to conditionally compile code common to both MAC_OS8
    and MAC_OSX.  */
 #ifdef MAC_OSX
+#ifdef HAVE_CARBON
 #define MAC_OS
+#endif
 #endif
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
@@ -222,7 +224,9 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_SOCKETS
 
 /* Extra initialization calls in main for Mac OS X system type.  */
+#ifdef HAVE_CARBON
 #define SYMS_SYSTEM syms_of_mac()
+#endif
 
 /* Definitions for how to dump.  Copied from nextstep.h.  */
 
@@ -271,7 +275,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Tell src/Makefile.in to create files in the Mac OS X application
    bundle mac/Emacs.app.  */
+#ifdef HAVE_CARBON
 #define OTHER_FILES macosx-app
+#endif
 
 
 /* Define the following so emacs symbols will not conflict with those

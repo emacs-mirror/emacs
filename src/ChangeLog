@@ -1,3 +1,8 @@
+2002-07-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* s/darwin.h: Define MAC_OS, SYMS_SYSTEM, and OTHER_FILES only if
+	HAVE_CARBON is defined.
+
 2002-07-31  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c (set_frame_menubar): First parse all submenus,

@@ -25,9 +25,6 @@ un-tarred.
 
 The last step must be performed as root.
 
-If you have X Window installed, you need to type `./configure
---without-x' instead of `./configure'.
-
 You can type `make bootstrap' instead of `make' to rebuild everything,
 including byte-compiling the Lisp files.
 
@@ -42,6 +39,17 @@ terminal (make sure your path contains /usr/local/bin) or by
 double-clicking on mac/Emacs.app in the Finder.  At present,
 command-line options cannot be passed to Emacs running under the Aqua
 GUI.  This should soon be fixed.
+
+If you are building Emacs to run on Mac OS X and X Window, you need to
+create a directory containing statically-linked X libraries.
+
+  sudo mkdir /usr/X11R6/libstatic
+  cd /usr/X11R6/libstatic
+  sudo ln -s ../lib/lib*.a ../lib/X11 .
+
+Instead of typing `./configure' above, type
+
+  ./configure --without-carbon --with-x --x-libraries=/usr/X11R6/libstatic
 
 To use colors in a terminal, put the following lines in the file
 ~/.termcap and log in again.
