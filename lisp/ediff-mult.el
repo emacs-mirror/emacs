@@ -1,4 +1,4 @@
-;;; ediff-meta.el --- support for multi-file/multi-buffer processing in Ediff
+;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 ;;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
@@ -1409,7 +1409,7 @@ If this is a session registry buffer then just bury it."
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
 ;;; End:
 
-(provide 'ediff-meta)
+(provide 'ediff-mult)
 (require 'ediff-util)
 
-;;; ediff-meta.el ends here
+;;; ediff-mult.el ends here
