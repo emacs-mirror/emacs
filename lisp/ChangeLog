@@ -1,3 +1,7 @@
+2003-07-23  John Paul Wallington  <jpw@gnu.org>
+
+	* tooltip.el (defface tooltip): Inherit from variable-pitch.
+
 2003-07-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* emacs-lisp/derived.el (define-derived-mode): Mention hook in doc
