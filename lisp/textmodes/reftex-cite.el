@@ -957,7 +957,7 @@ While entering the regexp, completion on knows citation keys is possible.
 		item t))
 	 (reftex-default-bibliography
 	  (setq bibfile-list (reftex-default-bibliography)))
-	 (t (ding) (throw 'exit))))
+	 (t (ding) (throw 'exit nil))))
 
       (when no-revisit
 	(setq bibfile-list (reftex-visited-files bibfile-list)))
