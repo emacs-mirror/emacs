@@ -1174,6 +1174,9 @@ VOLUME must be an integer in the range 0..100 or a float in the range
 Other properties are ignored.
 
 ** `multimedia' is a new Finder keyword and Custom group.
+
+** keywordp is a new predicate to test efficiently for an object being
+a keyword symbol.
 
 * New Lisp-level Display features in Emacs 21.1
 
