@@ -777,7 +777,7 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
     (while args
       (let ((entry (car args)))
 	(if (listp entry)
-	    (let* ((symbol (nth 0 entry))
+	    (let* ((symbol (indirect-variable (nth 0 entry)))
 		   (value (nth 1 entry))
 		   (now (nth 2 entry))
 		   (requests (nth 3 entry))
@@ -809,7 +809,7 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	  (message "Warning: old format `custom-set-variables'")
 	  (ding)
 	  (sit-for 2)
-	  (let ((symbol (nth 0 args))
+	  (let ((symbol (indirect-variable (nth 0 args)))
 		(value (nth 1 args)))
 	    (put symbol 'saved-value (list value))
             (custom-push-theme 'theme-value symbol theme 'set value))
