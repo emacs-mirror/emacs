@@ -1363,7 +1363,7 @@ From now on the default value will apply in this buffer.")
     if (current_buffer == XBUFFER (*pvalbuf))
       {
 	*pvalbuf = Qnil;
-	Fsymbol_value(variable);
+	find_symbol_value (variable);
       }
   }
 
