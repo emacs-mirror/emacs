@@ -135,16 +135,18 @@ This variable is relevant only if `backup-by-copying' and
 
 (defvar backup-enable-predicate
   (lambda (name)
-     (and (let ((comp (compare-strings temporary-file-directory 0 nil
-				       name 0 nil)))
-	    (and (not (eq comp t))
-		 (< comp -1)))
-	  (if small-temporary-file-directory
-	      (let ((comp (compare-strings small-temporary-file-directory 0 nil
-					   name 0 nil)))
-		(and (not (eq comp t))
-		     (< comp -1)))
-	    t)))
+    (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+				      name 0 nil)))
+	       ;; Directory is under temporary-file-directory.
+	       (and (not (eq comp t))
+		    (< comp -1)))
+	     (if small-temporary-file-directory
+		 (let ((comp (compare-strings small-temporary-file-directory
+					      0 nil
+					      name 0 nil)))
+		   ;; Directory is under small-temporary-file-directory.
+		   (and (not (eq comp t))
+			(< comp -1)))))))
   "Predicate that looks at a file name and decides whether to make backups.
 Called with an absolute file name as argument, it returns t to enable backup.
 The default version checks for files in `temporary-file-directory' or
@@ -276,6 +278,23 @@ nil means don't add newlines."
 Normally auto-save files are written under other names."
   :type 'boolean
   :group 'auto-save)
+
+(defcustom auto-save-file-name-transforms
+  '(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)" "/tmp/\\2"))
+  "*Transforms to apply to buffer file name before making auto-save file name.
+Each transform is a list (REGEXP REPLACEMENT):
+REGEXP is a regular expression to match against the file name.
+If it matches, `replace-match' is used to replace the
+matching part with REPLACEMENT.
+All the transforms in the list are tried, in the order they are listed.
+When one transform applies, its result is final;
+no further transforms are tried.
+
+The default value is set up to put the auto-save file into `/tmp'
+for editing a remote file."
+  :group 'auto-save
+  :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")))
+  :version "21.1")
 
 (defcustom save-abbrevs nil
   "*Non-nil means save word abbrevs too when files are saved.
@@ -3141,17 +3160,29 @@ Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
   (if buffer-file-name
-      (if (and (eq system-type 'ms-dos)
-	       (not (msdos-long-file-names)))
-	  (let ((fn (file-name-nondirectory buffer-file-name)))
-	    (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
-	    (concat (file-name-directory buffer-file-name)
-		    "#" (match-string 1 fn)
-		    "." (match-string 3 fn) "#"))
-	(concat (file-name-directory buffer-file-name)
-		"#"
-		(file-name-nondirectory buffer-file-name)
-		"#"))
+      (let ((list auto-save-file-name-transforms)
+	    (filename buffer-file-name)
+	    result)
+	;; Apply user-specified translations
+	;; to the file name.
+	(while (and list (not result))
+	  (if (string-match (car (car list)) filename)
+	      (setq result (replace-match (cadr (car list)) t nil
+					  filename)))
+	  (setq list (cdr list)))
+	(if result (setq filename result))
+
+	(if (and (eq system-type 'ms-dos)
+		 (not (msdos-long-file-names)))
+	    (let ((fn (file-name-nondirectory buffer-file-name)))
+	      (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
+	      (concat (file-name-directory buffer-file-name)
+		      "#" (match-string 1 fn) 
+		      "." (match-string 3 fn) "#"))
+	  (concat (file-name-directory filename)
+		  "#"
+		  (file-name-nondirectory filename)
+		  "#")))
 
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)
