@@ -189,6 +189,9 @@ extern struct event_queue x_mouse_queue;
 
 extern Display *x_current_display;
 
+/* This checks to make sure we have a display.  */
+extern void check_x ();
+
 extern struct frame *x_window_to_frame ();
 
 #ifdef USE_X_TOOLKIT
