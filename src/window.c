@@ -1534,7 +1534,7 @@ set_window_width (window, width, nodelete)
   int left, pos, lastright, opos, lastoright;
   Lisp_Object child;
 
-  if (!nodelete && width < window_min_width)
+  if (!nodelete && width < window_min_width && !NILP (w->parent))
     {
       Fdelete_window (window);
       return;
