@@ -202,8 +202,10 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 $(DONTCOMPILE:.el=.elc):
 	-rm -f $@
 
-# Compile all Lisp files, except those from DONTCOMPILE.  This
-# compiles files unconditionally.  All .elc files are made writable
+# Compile all Lisp files, except those from DONTCOMPILE,
+# but don't recompile those that are up to date.
+
+# All .elc files are made writable
 # before compilation in case we checked out read-only (CVS option -r).
 # Files MUST be compiled one by one.  If we compile several files in a
 # row we can't make sure that the compilation environment is clean.
@@ -211,7 +213,21 @@ $(DONTCOMPILE:.el=.elc):
 # current directory and its subdirectories, to make sure require's and
 # load's in the files being compiled find the right files.
 
-compile-files: subdirs.el doit
+compile: subdirs.el doit
+	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
+	wd=$(lisp); $(setwins);	\
+	elpat=`echo $$wins | tr ' 	' '\012\012' | \
+		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
+	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
+		tr '	 ' '\012\012' | sort | uniq -u`; \
+	for el in $(COMPILE_FIRST) $$els; do \
+	  echo Compiling $$el; \
+	  $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	done
+
+# Compile all Lisp files, except those from DONTCOMPILE.  This
+# is like `compile' but compiles files unconditionally.
+compile-always: subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
@@ -238,7 +254,7 @@ backup-compiled-files:
 
 # Compile Lisp files, but save old compiled files first.
 
-compile: backup-compiled-files compile-files
+compile-after-backup: backup-compiled-files compile-always
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
@@ -259,7 +275,7 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: autoloads compile-files custom-deps
+bootstrap: autoloads compile-always custom-deps
 
 distclean:
 	-rm -f ./Makefile
