@@ -759,7 +759,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
 	  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
 #ifdef LISP_FLOAT_TYPE
-	  if (FLOATP (num1) || FLOATP (num2))
+	  if (FLOATP (v1) || FLOATP (v2))
 	    {
 	      double f1, f2;
 
