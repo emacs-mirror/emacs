@@ -1,5 +1,21 @@
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (gen_help_event): Add parameter SIZE.
+	(kbd_buffer_events_waiting): Slightly rewritten.
+	(clear_event): New function.
+	(kbd_buffer_get_event): Use it, and clear the input_events of
+	HELP_EVENTs.
+	(init_keyboard): Remove duplicate creation of kbd_buffer_gcpro and
+	don't fill the newly created array with nils.
+	(toplevel): Convert some old-style function forward declarations
+	to prototypes.
+
+	* keyboard.h (gen_help_event): Change prototype.
+
+	* xterm.c (XTread_socket): Change calls to gen_help_event.
+
+	* w32term.c (w32_read_socket): Change calls to gen_help_event.
+
 	* eval.c (Fmacroexpand): Doc fix.
 
 2000-08-20  Jason Rumney  <jasonr@gnu.org>
