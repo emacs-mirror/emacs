@@ -1823,9 +1823,7 @@ C_entries (c_ext, inf)
 
 			  if (structdef == stagseen
 			      || typdef == tend
-			      /* Better not to name the #define's in
-				 order to reduce the TAGS file size.
-			      || definedef == dignorerest */ )
+			      || (definedef == dignorerest && is_func))
 			    tok.named = TRUE;
 
 			  if (definedef == dnone
