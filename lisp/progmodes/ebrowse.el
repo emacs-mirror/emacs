@@ -3818,7 +3818,7 @@ With prefix arg, process files of marked classes only."
   (setq ebrowse-tags-loop-form
 	(list 'and (list 'save-excursion
 			 (list 're-search-forward from nil t))
-	      (list 'not (list 'perform-replace from to t t nil))))
+	      (list 'not (list 'perform-replace from to nil nil t t nil))))
   (ebrowse-tags-loop-continue 'first-time))
 
 
