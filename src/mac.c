@@ -2754,9 +2754,7 @@ syms_of_mac ()
   
   defsubr (&Smac_paste_function);
   defsubr (&Smac_cut_function);
-#if 0
   defsubr (&Sx_selection_exists_p);
-#endif /* 0 */
 
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);
