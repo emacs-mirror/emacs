@@ -289,7 +289,7 @@ tells @code{locate-library} to display the file name in the echo area.
 @defvar load-suffixes
 This variable is a list of suffixes (strings) that @code{load} should
 try adding to the specified file name.  The default value is
-@code{(".el" ".elc")}.  There is no need to include the null suffix.
+@code{(".elc" ".el")}.  There is no need to include the null suffix.
 @end defvar
 
 @node Loading Non-ASCII
@@ -669,7 +669,7 @@ features
 @end smallexample
 
 When a file is loaded to satisfy an autoload, and it stops due to an
-error in the evaluating its contents, any function definitions or
+error in the evaluation of its contents, any function definitions or
 @code{provide} calls that occurred during the load are undone.
 @xref{Autoload}.
 @end defun
