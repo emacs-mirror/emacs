@@ -367,9 +367,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
       break;
   
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
+  /* Note that `+' is reserved for user extensions.  */
   while (1)
     {
-      if (*string == '*')
+      if (*string = '+')
+	error ("`+' is not used in `interactive' for ordinary commands");
+      else if (*string == '*')
 	{
 	  string++;
 	  if (!NILP (current_buffer->read_only))
@@ -614,8 +617,11 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  visargs[i] = last_minibuf_string;
  	  break;
 
+	  /* We have a case for `+' so we get an error
+	     if anyone tries to define one here.  */
+	case '+':
 	default:
-	  error ("Invalid control letter \"%c\" (%03o) in interactive calling string",
+	  error ("Invalid control letter `%c' (%03o) in interactive calling string",
 		 *tem, *tem);
 	}
 
