@@ -1,3 +1,19 @@
+2000-03-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types)
+	(byte-compile-warnings): New warning `noruntime'.
+	(byte-compile-constants, byte-compile-variables): Fix docstring.
+	(byte-compile-initial-macro-environment): Use `byte-compile-eval' to
+	execute `eval-whenc-compile's body.
+	(byte-compile-unresolved-functions): Fix docstring.
+	(byte-compile-eval): New function.
+	(byte-compile-callargs-warn): Check if the function will be available
+	at runtime (via property `byte-compile-noruntime').
+	(byte-compile-print-syms): New function.
+	(byte-compile-warn-about-unresolved-functions): Also warn about
+	`noruntime' functions (and use `byte-compile-print-syms').
+	(byte-compile-file): Capitalize the message.
+
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/rmail.el (rmail-confirm-expunge): New user-option.
