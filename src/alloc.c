@@ -3114,7 +3114,8 @@ live_string_p (m, p)
 
       /* P must point to the start of a Lisp_String structure, and it
 	 must not be on the free-list.  */
-      return (offset % sizeof b->strings[0] == 0
+      return (offset >= 0
+	      && offset % sizeof b->strings[0] == 0
 	      && ((struct Lisp_String *) p)->data != NULL);
     }
   else
@@ -3138,7 +3139,8 @@ live_cons_p (m, p)
       /* P must point to the start of a Lisp_Cons, not be
 	 one of the unused cells in the current cons block,
 	 and not be on the free-list.  */
-      return (offset % sizeof b->conses[0] == 0
+      return (offset >= 0
+	      && offset % sizeof b->conses[0] == 0
 	      && (b != cons_block
 		  || offset / sizeof b->conses[0] < cons_block_index)
 	      && !EQ (((struct Lisp_Cons *) p)->car, Vdead));
@@ -3164,7 +3166,8 @@ live_symbol_p (m, p)
       /* P must point to the start of a Lisp_Symbol, not be
 	 one of the unused cells in the current symbol block,
 	 and not be on the free-list.  */
-      return (offset % sizeof b->symbols[0] == 0
+      return (offset >= 0
+	      && offset % sizeof b->symbols[0] == 0
 	      && (b != symbol_block
 		  || offset / sizeof b->symbols[0] < symbol_block_index)
 	      && !EQ (((struct Lisp_Symbol *) p)->function, Vdead));
@@ -3190,7 +3193,8 @@ live_float_p (m, p)
       /* P must point to the start of a Lisp_Float, not be
 	 one of the unused cells in the current float block,
 	 and not be on the free-list.  */
-      return (offset % sizeof b->floats[0] == 0
+      return (offset >= 0
+	      && offset % sizeof b->floats[0] == 0
 	      && (b != float_block
 		  || offset / sizeof b->floats[0] < float_block_index)
 	      && !EQ (((struct Lisp_Float *) p)->type, Vdead));
@@ -3216,7 +3220,8 @@ live_misc_p (m, p)
       /* P must point to the start of a Lisp_Misc, not be
 	 one of the unused cells in the current misc block,
 	 and not be on the free-list.  */
-      return (offset % sizeof b->markers[0] == 0
+      return (offset >= 0
+	      && offset % sizeof b->markers[0] == 0
 	      && (b != marker_block
 		  || offset / sizeof b->markers[0] < marker_block_index)
 	      && ((union Lisp_Misc *) p)->u_marker.type != Lisp_Misc_Free);
