@@ -36,6 +36,8 @@
     ("darkgoldenrod"  . "brown")
     ("goldenrod"      . "yellow")
     ("grey40"         . "darkgray")
+    ("dark gray"      .	"darkgray")
+    ("light gray"     . "lightgray")
     ("rosybrown"      . "brown")
     ("blue"	      .	"lightblue")  ;; from here: for Enriched Text
     ("darkslategray"  .	"darkgray")
@@ -54,24 +56,10 @@
 (defun msdos-color-translate (name)
   (setq name (downcase name))
   (let* ((len (length name))
-	 (val (cdr (assoc name
-			 '(("black" . 0)
-			   ("blue" . 1)
-			   ("green" . 2)
-			   ("cyan" . 3)
-			   ("red" . 4)
-			   ("magenta" . 5)
-			   ("brown" . 6)
-			   ("lightgray" . 7) ("light gray" . 7)
-			   ("darkgray" . 8) ("dark gray" . 8)
-			   ("lightblue" . 9)
-			   ("lightgreen" . 10)
-			   ("lightcyan" . 11)
-			   ("lightred" . 12)
-			   ("lightmagenta" . 13)
-			   ("yellow" . 14)
-			   ("white" . 15)))))
+	 (val (- (length x-colors)
+		 (length (member name x-colors))))
 	 (try))
+    (if (or (< val 0) (>= val (length x-colors))) (setq val nil))
     (or val
 	(and (setq try (cdr (assoc name msdos-color-aliases)))
 	     (msdos-color-translate try))
@@ -143,7 +131,29 @@
 ;; From lisp/term/x-win.el
 (setq x-display-name "pc")
 (setq split-window-keep-point t)
-
+(defvar x-colors '("black"
+		   "blue"
+		   "green"
+		   "cyan"
+		   "red"
+		   "magenta"
+		   "brown"
+		   "lightgray"
+		   "darkgray"
+		   "lightblue"
+		   "lightgreen"
+		   "lightcyan"
+		   "lightred"
+		   "lightmagenta"
+		   "yellow"
+		   "white")
+  "The list of colors available on a PC display under MS-DOS.")
+(defun x-defined-colors (&optional frame)
+  "Return a list of colors supported for a particular frame.
+The argument FRAME specifies which frame to try.
+The value may be different for frames on different X displays."
+  x-colors)
+;
 ;; From lisp/select.el
 (defun x-get-selection (&rest rest) "")
 (fset 'x-set-selection 'ignore)
