@@ -191,29 +191,30 @@ Lisp_Object Vpurify_flag;
 EMACS_INT pure[PURESIZE / sizeof (EMACS_INT)] = {0,};
 #define PUREBEG (char *) pure
 
-#else /* not HAVE_SHM */
+#else /* HAVE_SHM */
 
 #define pure PURE_SEG_BITS   /* Use shared memory segment */
 #define PUREBEG (char *)PURE_SEG_BITS
 
-/* This variable is used only by the XPNTR macro when HAVE_SHM is
-   defined.  If we used the PURESIZE macro directly there, that would
-   make most of Emacs dependent on puresize.h, which we don't want -
-   you should be able to change that without too much recompilation.
-   So map_in_data initializes pure_size, and the dependencies work
-   out.  */
+#endif /* HAVE_SHM */
 
-EMACS_INT pure_size;
+/* Pointer to the pure area, and its size.  */
 
-#endif /* not HAVE_SHM */
+static char *purebeg;
+static size_t pure_size;
+
+/* Number of bytes of pure storage used before pure storage overflowed.
+   If this is non-zero, this implies that an overflow occurred.  */
+
+static size_t pure_bytes_used_before_overflow;
 
 /* Value is non-zero if P points into pure space.  */
 
 #define PURE_POINTER_P(P)					\
      (((PNTR_COMPARISON_TYPE) (P)				\
-       < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE))	\
+       < (PNTR_COMPARISON_TYPE) ((char *) purebeg + pure_size))	\
       && ((PNTR_COMPARISON_TYPE) (P)				\
-	  >= (PNTR_COMPARISON_TYPE) pure))
+	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
 /* Index in pure at which next pure object will be allocated.. */
 
@@ -3797,7 +3798,7 @@ pure_alloc (size, type)
 {
   size_t nbytes;
   POINTER_TYPE *result;
-  char *beg = PUREBEG;
+  char *beg = purebeg;
 
   /* Give Lisp_Floats an extra alignment.  */
   if (type == Lisp_Float)
@@ -3812,12 +3813,29 @@ pure_alloc (size, type)
     }
     
   nbytes = ALIGN (size, sizeof (EMACS_INT));
-  if (pure_bytes_used + nbytes > PURESIZE)
-    error ("Pure Lisp storage exhausted");
+  
+  if (pure_bytes_used + nbytes > pure_size)
+    {
+      beg = purebeg = (char *) xmalloc (PURESIZE);
+      pure_size = PURESIZE;
+      pure_bytes_used_before_overflow += pure_bytes_used;
+      pure_bytes_used = 0;
+    }
 
   result = (POINTER_TYPE *) (beg + pure_bytes_used);
   pure_bytes_used += nbytes;
   return result;
+}
+
+
+/* Signal an error if PURESIZE is too small.  */
+
+void
+check_pure_size ()
+{
+  if (pure_bytes_used_before_overflow)
+    error ("Pure Lisp storage overflow (approx. %d bytes needed)",
+	   (int) (pure_bytes_used + pure_bytes_used_before_overflow));
 }
 
 
@@ -4026,6 +4044,11 @@ Garbage collection happens automatically if you cons more than\n\
   int message_p;
   Lisp_Object total[8];
   int count = BINDING_STACK_SIZE ();
+
+  /* Can't GC if pure storage overflowed because we can't determine
+     if something is a pure object or not.  */
+  if (pure_bytes_used_before_overflow)
+    return Qnil;
 
   /* In case user calls debug_print during GC,
      don't let that cause a recursive GC.  */
@@ -5370,14 +5393,16 @@ void
 init_alloc_once ()
 {
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
+  purebeg = PUREBEG;
+  pure_size = PURESIZE;
   pure_bytes_used = 0;
+  pure_bytes_used_before_overflow = 0;
+
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
   mem_init ();
   Vdead = make_pure_string ("DEAD", 4, 4, 0);
 #endif
-#ifdef HAVE_SHM
-  pure_size = PURESIZE;
-#endif
+
   all_vectors = 0;
   ignore_warnings = 1;
 #ifdef DOUG_LEA_MALLOC
