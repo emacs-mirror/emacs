@@ -1,3 +1,11 @@
+2004-04-25  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Display working buffer on the
+	mode line.  Bind `inhibit-read-only' to t before modifying
+	properties of text in the buffer.
+	(ielm): Force point to the end of buffer, even when running ielm
+	from inside itself.
+
 2004-04-25  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.el (info-apropos): Reset Info-complete-cache.
