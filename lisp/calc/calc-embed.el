@@ -1010,7 +1010,7 @@ The command \\[yank] can retrieve it from there."
 	      (t
 	       (set (car (car calc-embed-prev-modes)) 
                     (cdr (car calc-embed-prev-modes)))))
-	(setq calc-embed-prev-modes (cdr prev-modes))))))
+	(setq calc-embed-prev-modes (cdr calc-embed-prev-modes))))))
 
 
 
