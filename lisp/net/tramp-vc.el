@@ -217,6 +217,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 ;; Daniel Pittman <daniel@danann.net>
 ;;-(if (fboundp 'vc-call-backend)
 ;;-    () ;; This is the new VC for which we don't have an appropriate advice yet
+(unless (fboundp 'process-file)
 (if (fboundp 'vc-call-backend)
     (defadvice vc-do-command
       (around tramp-advice-vc-do-command
@@ -242,7 +243,7 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
           (setq ad-return-value
                 (apply 'tramp-vc-do-command buffer okstatus command 
                        (or file (buffer-file-name)) last flags))
-        ad-do-it))))
+        ad-do-it)))))
 ;;-)
 
 

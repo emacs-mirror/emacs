@@ -1879,6 +1879,39 @@ specifies the value of ERROR-BUFFER."
     (with-current-buffer
       standard-output
       (call-process shell-file-name nil t nil shell-command-switch command))))
+
+(defun process-file (program &optional infile buffer display &rest args)
+  "Process files synchronously in a separate process.
+Similar to `call-process', but may invoke a file handler based on
+`default-directory'.  The current working directory of the
+subprocess is `default-directory'.
+
+File names in INFILE and BUFFER are handled normally, but file
+names in ARGS should be relative to `default-directory', as they
+are passed to the process verbatim.  \(This is a difference to
+`call-process' which does not support file handlers for INFILE
+and BUFFER.\)
+
+Some file handlers might not support all variants, for example
+they might behave as if DISPLAY was nil, regardless of the actual
+value passed."
+  (let ((fh (find-file-name-handler default-directory 'process-file))
+        lc stderr-file)
+    (unwind-protect
+        (if fh (apply fh 'process-file program infile buffer display args)
+          (setq lc (file-local-copy infile))
+          (setq stderr-file (when (and (consp buffer) (stringp (cadr buffer)))
+                              (make-temp-file "emacs"))))
+      (prog1
+          (apply 'call-process program
+                 (or lc infile)
+                 (if stderr-file (list (car buffer) stderr-file) buffer)
+                 display args)
+        (when stderr-file (copy-file stderr-file (cadr buffer))))
+      (when stderr-file (delete-file stderr-file))
+      (when lc (delete-file lc)))))
+
+
 
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))

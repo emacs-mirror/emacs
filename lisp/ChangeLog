@@ -1,3 +1,15 @@
+2004-10-23  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* simple.el (process-file): New function, similar to call-process
+	but supports file handlers.
+	* vc.el (vc-do-command): Use it, instead of call-process.
+	* net/tramp-vc.el (vc-do-command): Do not advise it if
+	process-file is fboundp.
+	* net/tramp.el (tramp-file-name-handler-alist): Add entry for
+	process-file.
+	(tramp-handle-process-file): New function.
+	(tramp-file-name-for-operation): Support process-file.
+
 2004-10-23  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--weekday-array): New constant.
