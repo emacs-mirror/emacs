@@ -639,6 +639,13 @@ Do the same for the keys of the same name."
 
 ;; The "Tools" menu items
 
+(defun read-mail-item-name ()
+  (let* ((known-rmail-commands '((rmail . "RMAIL")
+				 (mh-rmail . "MH")
+				 (gnus . "Gnus")))
+	 (known (assq read-mail-command known-rmail-commands)))
+    (if known (cdr known) (symbol-name read-mail-command))))
+
 (defvar menu-bar-games-menu (make-sparse-keymap "Games"))
 
 (define-key menu-bar-tools-menu [games]
@@ -693,12 +700,14 @@ Do the same for the keys of the same name."
   '(menu-item "Send Mail" compose-mail
 	      :help "Send a mail message"))
 (define-key menu-bar-tools-menu [rmail]
-  '(menu-item "Read Mail" (lambda ()
-			    (interactive)
-			    (call-interactively read-mail-command))
-	      :help "Read your mail and reply to it"))
+  (list
+   'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
+   (lambda ()
+     (interactive)
+     (call-interactively read-mail-command))
+   :help "Read your mail and reply to it"))
 (define-key menu-bar-tools-menu [gnus]
-  '(menu-item "Read Net News" gnus
+  '(menu-item "Read Net News (Gnus)" gnus
 	      :help "Read network news groups"))
 
 (define-key menu-bar-tools-menu [separator-vc]
@@ -739,7 +748,7 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-tools-menu [gdb]
   '(menu-item "Debugger (GUD)..." gdb
-	      :help "Debug a program from withing Emacs"))
+	      :help "Debug a program from within Emacs"))
 (define-key menu-bar-tools-menu [shell-on-region]
   '(menu-item "Shell Command on Region..." shell-command-on-region
 	      :enable mark-active
