@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -489,8 +489,8 @@ typedef struct interval *INTERVAL;
 /* All of the per-display objects, packaged together in a struct.  */
 typedef struct
   {
-    Lisp_Object prefix_arg;
-    Lisp_Object current_prefix_arg;
+    Lisp_Object Vprefix_arg;
+    Lisp_Object Vcurrent_prefix_arg;
     Lisp_Object this_command_keys;
     Lisp_Object internal_last_event_frame;
 
@@ -562,9 +562,14 @@ typedef struct
     char echobuf[ECHOBUFSIZE];
   } PERDISPLAY;
 #ifdef MULTI_PERDISPLAY
+/* The perdisplay object associated with a particular frame.  */
 extern PERDISPLAY *get_perdisplay ();
+
+/* The perdisplay object associated with the currently executing command.  */
+extern PERDISPLAY *current_perdisplay;
 #else
 extern PERDISPLAY the_only_perdisplay;
+#define current_perdisplay (&the_only_perdisplay)
 #define get_perdisplay(f) (&the_only_perdisplay)
 #endif
 
@@ -1155,7 +1160,7 @@ extern void defvar_int ();
  defvar_per_buffer (lname, vname, type, 0)
 #define DEFVAR_DISPLAY(lname, vname, doc) \
  defvar_display (lname, \
-		 (int)((char *)(get_perdisplay (selected_frame)->vname) \
+		 (int)((char *)(&get_perdisplay (selected_frame)->vname) \
 		       - (char *)get_perdisplay (selected_frame)))
 
 /* Structure for recording Lisp call stack for backtrace purposes.  */
@@ -1594,7 +1599,7 @@ extern Lisp_Object Fread_no_blanks_input ();
 
 /* Defined in callint.c */
 
-extern Lisp_Object Vprefix_arg, Qminus, Qplus, Vcurrent_prefix_arg;
+extern Lisp_Object Qminus, Qplus;
 extern Lisp_Object Vcommand_history;
 extern Lisp_Object Qcall_interactively;
 extern Lisp_Object Fcall_interactively ();
