@@ -102,7 +102,7 @@ that's how we tell where the answer ends."
 	  (pop-to-buffer buf nil)
 	  (error (concat "Spurious communication from process "
 			 (process-name (tq-process tq))
-			 ", see buffer *spurious*.")))
+			 ", see buffer " (buffer-name buf) ".")))
       (goto-char (point-min))
       (if (re-search-forward (tq-queue-head-regexp tq) nil t)
 	  (let ((answer (buffer-substring (point-min) (point))))
