@@ -1847,8 +1847,7 @@ verify_interval_modification (buf, start, end)
 			error ("Attempt to insert within read-only text");
 		    }
 		}
-	      else
-		after = Qnil;
+
 	      if (! NULL_INTERVAL_P (prev))
 		{
 		  before = textget (prev->plist, Qread_only);
@@ -1868,18 +1867,30 @@ verify_interval_modification (buf, start, end)
 			error ("Attempt to insert within read-only text");
 		    }
 		}
-	      else
-		before = Qnil;
 	    }
 	  else if (! NULL_INTERVAL_P (i))
-	    before = after = textget (i->plist, Qread_only);
-	  if (! NULL_INTERVAL_P (i) && ! NULL_INTERVAL_P (prev))
 	    {
-	      /* If I and PREV differ, neither of them has a sticky
-		 read-only property. It only remains to check, whether
-		 they have a common read-only property.  */
-	      if (! NILP (before) && EQ (before, after))
-		error ("Attempt to insert within read-only text");
+	      after = textget (i->plist, Qread_only);
+		  
+	      /* If interval I is read-only and read-only is
+		 front-sticky, inhibit insertion.
+		 Check for read-only as well as category.  */
+	      if (! NILP (after) && NILP (Fmemq (after, Vinhibit_read_only)))
+		{
+		  Lisp_Object tem;
+
+		  tem = textget (i->plist, Qfront_sticky);
+		  if (TMEM (Qread_only, tem)
+		      || (NILP (textget_direct (i->plist, Qread_only))
+			  && TMEM (Qcategory, tem)))
+		    error ("Attempt to insert within read-only text");
+
+		  tem = textget (prev->plist, Qrear_nonsticky);
+		  if (! TMEM (Qread_only, tem)
+		      && (! NILP (textget_direct (prev->plist, Qread_only))
+			  || ! TMEM (Qcategory, tem)))
+		    error ("Attempt to insert within read-only text");
+		}
 	    }
 	}
 
