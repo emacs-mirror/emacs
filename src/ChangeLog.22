@@ -1,3 +1,7 @@
+2004-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (CHARSET_OFFSET): New macro.
+
 2004-02-13  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_get_font_repertory): Fix for non-Unicode-bmp charset.
