@@ -3417,6 +3417,12 @@ direct_output_for_insert (g)
       || (!window_redisplay_p && !WINDOW_FULL_WIDTH_P (w)))
     return 0;
 
+  /* If we can't insert glyphs, we can use this method only
+     at the end of a line.  */
+  if (!char_ins_del_ok)
+    if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
+      return 0;
+
   /* Set up a display iterator structure for W.  Glyphs will be
      produced in scratch_glyph_row.  Current position is W's cursor
      position.  */
