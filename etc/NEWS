@@ -588,6 +588,11 @@ The command M-x comint-redirect-send-command-to-process acts like
 M-x comint-redirect-send-command but additionally reads the name of
 the buffer whose process should be used from the mini-buffer.
 
+Packages based on comint.el like shell-mode, and
+scheme-interaction-mode now highlight user input, and support choosing
+previous input with mouse-2.  To control this feature, see the
+user-option `comint-highlight-input'.
+
 ** Changes to Rmail mode
 
 *** The new user-option rmail-rmail-user-mail-address-regexp can be
@@ -1028,6 +1033,9 @@ expression from that list, are not checked.
 
 ** New modes and packages
 
+*** The new package xml.el provides a simple but generic XML
+parser. It doesn't parse the DTDs however.
+
 *** The comment operations are now provided by the newcomment.el
 package which allows different styles of comment-region and should
 be more robust while offering the same functionality.
@@ -1210,18 +1218,23 @@ delim-col has the following commands:
    delimit-columns-rectangle	Prettify all columns in a text rectangle.
 
 *** The package recentf.el maintains a menu for visiting files that
-were operated on recently.  When enabled, a new "Open Recent" submenu
-is displayed in the "Files" menu.
+were operated on recently.
 
-The recent files list is automatically saved across Emacs sessions.
+M-x recentf-mode RET toggles recentf mode.
 
-To enable/disable recentf use M-x recentf-mode.
+M-x customize-variable RET recentf-mode RET can be used to enable
+recentf at Emacs startup.
 
-To enable recentf at Emacs startup use
-M-x customize-variable RET recentf-mode RET.
+M-x customize-variable RET recentf-menu-filter RET to specify a menu
+filter function to change the menu appearance. For example, the recent
+file list can be displayed:
 
-To change the number of recent files displayed and others options use
-M-x customize-group RET recentf RET.
+- organized by major modes, directories or user defined rules.
+- sorted by file pathes, file names, ascending or descending.
+- showing pathes relative to the current default-directory
+
+The `recentf-filter-changer' menu filter function allows to
+dynamically change the menu appearance.
 
 *** elide-head.el provides a mechanism for eliding boilerplate header
 text.
