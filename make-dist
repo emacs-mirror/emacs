@@ -128,7 +128,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-install.in configure configure.in ${tempdir}
-ln make-dist ${tempdir}
+ln make-dist vpath.sed ${tempdir}
 ### Copy config.guess and config.sub; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
