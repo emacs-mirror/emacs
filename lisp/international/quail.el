@@ -2130,6 +2130,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  (while (< i len)
 	    (aset newkey i (aref key i))
 	    (setq i (1+ i)))
+	  (setq l (reverse l))
 	  (while l			; L = ((CHAR . DEFN) ....) ;
 	    (aset newkey len (car (car l)))
 	    (quail-completion-1 newkey (cdr (car l)) indent)
