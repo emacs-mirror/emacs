@@ -948,6 +948,7 @@ run `normal-mode' explicitly."
     ("\\.pm\\'" . perl-mode)
     ("\\.cc\\'" . c++-mode)
     ("\\.hh\\'" . c++-mode)
+    ("\\.hpp\\'" . c++-mode)
     ("\\.C\\'" . c++-mode)
     ("\\.H\\'" . c++-mode)
     ("\\.cpp\\'" . c++-mode)
