@@ -50,6 +50,8 @@ in paths.el.")
 (defvar Info-fontify t
   "*Non-nil enables highlighting and fonts in Info nodes.")
 
+(defvar Info-fontify-maximum-menu-size 30000
+  "*Maximum size of menu to fontify if `Info-fontify' is non-nil.")
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
 	(sep (if (eq system-type 'ms-dos) ";" ":"))
@@ -1611,7 +1613,7 @@ The command is found by looking up in Emacs manual's Command Index."
       (if (and (search-forward "\n* Menu:" nil t)
 	       (not (string-match "\\<Index\\>" Info-current-node))
 	       ;; Don't take time to annotate huge menus
-	       (< (- (point-max) (point)) 30000))
+	       (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
 	  (let ((n 0))
 	    (while (re-search-forward "^\\* \\([^:\t\n]*\\):" nil t)
 	      (setq n (1+ n))
