@@ -36,6 +36,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <pwd.h>
 #endif
 
+#ifdef MSDOS
+#include "msdos.h"
+#include <sys/param.h>
+#endif
+
 #include <ctype.h>
 
 #ifdef VMS
@@ -237,6 +242,9 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_name_directory, file);
 
+#ifdef FILE_SYSTEM_CASE
+  file = FILE_SYSTEM_CASE (file);
+#endif
   beg = XSTRING (file)->data;
   p = beg + XSTRING (file)->size;
 
@@ -244,10 +252,31 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
+#ifdef MSDOS
+	 && p[-1] != ':'
+#endif
 	 ) p--;
 
   if (p == beg)
     return Qnil;
+#ifdef MSDOS
+  /* Expansion of "c:" to drive and default directory.  */
+  if (p == beg + 2 && beg[1] == ':')
+    {
+      int drive = (*beg) - 'a';
+      /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
+      unsigned char *res = alloca (MAXPATHLEN + 5);
+      if (getdefdir (drive + 1, res + 2)) 
+	{
+	  res[0] = drive + 'a';
+	  res[1] = ':';
+	  if (res[strlen (res) - 1] != '/')
+	    strcat (res, "/");
+	  beg = res;
+	  p = beg + strlen (beg);
+	}
+    }
+#endif
   return make_string (beg, p - beg);
 }
 
@@ -278,6 +307,9 @@ or the entire name if it contains no slash.")
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
+#ifdef MSDOS
+	 && p[-1] != ':'
+#endif
 	 ) p--;
 
   return make_string (p, end - p);
@@ -373,7 +405,11 @@ file_name_as_directory (out, in)
     }
 #else /* not VMS */
   /* For Unix syntax, Append a slash if necessary */
+#ifdef MSDOS
+  if (out[size] != ':' && out[size] != '/')
+#else
   if (out[size] != '/')
+#endif
     strcat (out, "/");
 #endif /* not VMS */
   return out;
@@ -549,7 +585,12 @@ directory_file_name (src, dst)
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
-  if (slen > 1 && dst[slen - 1] == '/')
+  if (slen > 1 
+      && dst[slen - 1] == '/'
+#ifdef MSDOS
+      && dst[slen - 2] != ':'
+#endif
+      )
     dst[slen - 1] = 0;
   return 1;
 }
@@ -634,6 +675,11 @@ See also the function `substitute-in-file-name'.")
   int lbrack = 0, rbrack = 0;
   int dots = 0;
 #endif /* VMS */
+#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+  int drive = -1;
+  int relpath = 0;
+  unsigned char *tmp, *defdir;
+#endif
   Lisp_Object handler;
   
   CHECK_STRING (name, 0);
@@ -674,9 +720,32 @@ See also the function `substitute-in-file-name'.")
   /* Filenames on VMS are always upper case.  */
   name = Fupcase (name);
 #endif
+#ifdef FILE_SYSTEM_CASE
+  name = FILE_SYSTEM_CASE (name);
+#endif
 
   nm = XSTRING (name)->data;
   
+#ifdef MSDOS
+  /* firstly, strip drive name. */
+  {
+    unsigned char *colon = rindex (nm, ':');
+    if (colon)
+      if (nm == colon)
+	nm++;
+      else
+	{
+	  drive = tolower (colon[-1]) - 'a';
+	  nm = colon + 1;
+	  if (*nm != '/')
+	    {
+	      defdir = alloca (MAXPATHLEN + 1);
+	      relpath = getdefdir (drive + 1, defdir);
+	    }
+	}	
+  }
+#endif
+
   /* If nm is absolute, flush ...// and detect /./ and /../.
      If no /./ or /../ we can return right away. */
   if (
@@ -803,9 +872,11 @@ See also the function `substitute-in-file-name'.")
 	  if (index (nm, '/'))
 	    return build_string (sys_translate_unix (nm));
 #endif /* VMS */
+#ifndef MSDOS
 	  if (nm == XSTRING (name)->data)
 	    return name;
 	  return build_string (nm);
+#endif
 	}
     }
 
@@ -823,6 +894,9 @@ See also the function `substitute-in-file-name'.")
 	{
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
+#ifdef MSDOS
+	  dostounix_filename (newdir);
+#endif
 	  nm++;
 #ifdef VMS
 	  nm++;			/* Don't leave the slash in nm.  */
@@ -859,11 +933,18 @@ See also the function `substitute-in-file-name'.")
 #ifdef VMS
       && !index (nm, ':')
 #endif /* not VMS */
+#ifdef MSDOS
+      && drive == -1
+#endif
       && !newdir)
     {
       newdir = XSTRING (defalt)->data;
     }
 
+#ifdef MSDOS
+  if (newdir == 0 && relpath)
+    newdir = defdir; 
+#endif
   if (newdir != 0)
     {
       /* Get rid of any slash at the end of newdir.  */
@@ -871,6 +952,9 @@ See also the function `substitute-in-file-name'.")
       /* Adding `length > 1 &&' makes ~ expand into / when homedir
 	 is the root dir.  People disagree about whether that is right.
 	 Anyway, we can't take the risk of this change now.  */
+#ifdef MSDOS
+      if (newdir[1] != ':' && length > 1)
+#endif
       if (newdir[length - 1] == '/')
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
@@ -885,7 +969,12 @@ See also the function `substitute-in-file-name'.")
 
   /* Now concatenate the directory and name to new space in the stack frame */
   tlen += strlen (nm) + 1;
+#ifdef MSDOS
+  /* Add reserved space for drive name.  */
+  target = (unsigned char *) alloca (tlen + 2) + 2;
+#else
   target = (unsigned char *) alloca (tlen);
+#endif
   *target = 0;
 
   if (newdir)
@@ -1000,6 +1089,16 @@ See also the function `substitute-in-file-name'.")
 	}
 #endif /* not VMS */
     }
+
+#ifdef MSDOS
+  /* at last, set drive name. */
+  if (target[1] != ':')
+    {
+      target -= 2;
+      target[0] = (drive < 0 ? getdisk () : drive) + 'a';
+      target[1] = ':';
+    }
+#endif
 
   return make_string (target, o - target);
 }
@@ -1377,6 +1476,13 @@ duplicates what `expand-file-name' does.")
 	  nm = p;
 	  substituted = 1;
 	}
+#ifdef MSDOS
+      if (p[0] && p[1] == ':')
+	{
+	  nm = p;
+	  substituted = 1;
+	}
+#endif /* MSDOS */
     }
 
 #ifdef VMS
@@ -1420,6 +1526,9 @@ duplicates what `expand-file-name' does.")
 	target = (unsigned char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
+#ifdef MSDOS
+	strupr (target); /* $home == $HOME etc.  */
+#endif
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
@@ -1475,6 +1584,9 @@ duplicates what `expand-file-name' does.")
 	target = (unsigned char *) alloca (s - o + 1);
 	strncpy (target, o, s - o);
 	target[s - o] = 0;
+#ifdef MSDOS
+	strupr (target); /* $home == $HOME etc.  */
+#endif
 
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
@@ -1507,6 +1619,10 @@ duplicates what `expand-file-name' does.")
 	 )
 	&& p != nm && p[-1] == '/')
       xnm = p;
+#ifdef MSDOS
+    else if (p[0] && p[1] == ':')
+	xnm = p;
+#endif
 
   return make_string (xnm, x - xnm);
 
@@ -1645,7 +1761,12 @@ A prefix arg makes KEEP-TIME non-nil.")
   /* Create the copy file with the same record format as the input file */
   ofd = sys_creat (XSTRING (newname)->data, 0666, ifd);
 #else
+#ifdef MSDOS
+  /* System's default file type was set to binary by _fmode in emacs.c.  */
+  ofd = creat (XSTRING (newname)->data, S_IREAD | S_IWRITE);
+#else /* not MSDOS */
   ofd = creat (XSTRING (newname)->data, 0666);
+#endif /* not MSDOS */
 #endif /* VMS */
   if (ofd < 0)
       report_file_error ("Opening output file", Fcons (newname, Qnil));
@@ -1992,6 +2113,9 @@ On Unix, this is a name starting with a `/' or a `~'.")
       || (*ptr == '[' && (ptr[1] != '-' || (ptr[2] != '.' && ptr[2] != ']'))
 	  && ptr[1] != '.')
 #endif /* VMS */
+#ifdef MSDOS
+      || (*ptr != 0 && ptr[1] == ':' && ptr[2] == '/')
+#endif
       )
     return Qt;
   else
@@ -2161,6 +2285,10 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   if (!NILP (dir))
     dir = Fdirectory_file_name (dir);
 #endif /* VMS */
+#ifdef MSDOS
+  if (!NILP (dir))
+    dir = Fdirectory_file_name (dir);
+#endif /* MSDOS */
   return ((access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
 	   && ! ro_fsys ((char *) XSTRING (dir)->data))
 	  ? Qt : Qnil);
@@ -2371,6 +2499,10 @@ otherwise, if FILE2 does not exist, the answer is t.")
   return (mtime1 > st.st_mtime) ? Qt : Qnil;
 }
 
+#ifdef MSDOS
+Lisp_Object Qfind_buffer_file_type;
+#endif
+
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 4, 0,
   "Insert contents of file FILENAME after point.\n\
@@ -2514,6 +2646,31 @@ If VISIT is non-nil, BEG and END must be nil.")
       inserted += this;
     }
 
+#ifdef MSDOS
+  /* Demacs 1.1.1 91/10/16 HIRANO Satoshi, MW July 1993 */
+  /* Determine file type from name and remove LFs from CR-LFs if the file
+     is deemed to be a text file.  */
+  {
+    struct gcpro gcpro1;
+    Lisp_Object code = Qnil;
+    GCPRO1 (filename);
+    code = call1 (Qfind_buffer_file_type, filename);
+    UNGCPRO;
+    if (XTYPE (code) == Lisp_Int) 
+      XFASTINT (current_buffer->buffer_file_type) = XFASTINT (code);
+    if (XFASTINT (current_buffer->buffer_file_type) == 0)
+      {
+	int reduced_size = 
+	  inserted - crlf_to_lf (inserted, &FETCH_CHAR (point - 1) + 1);
+	ZV -= reduced_size;
+	Z -= reduced_size;
+	GPT -= reduced_size;
+	GAP_SIZE += reduced_size;
+	inserted -= reduced_size;
+      }
+  }
+#endif
+
   if (inserted > 0)
     {
       record_insert (point, inserted);
@@ -2627,6 +2784,10 @@ to the file, instead of any buffer contents, and END is ignored.")
   Lisp_Object annotations;
   int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+#ifdef MSDOS
+  int buffer_file_type
+    = NILP (current_buffer->buffer_file_type) ? O_TEXT : O_BINARY;
+#endif
 
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
@@ -2681,7 +2842,11 @@ to the file, instead of any buffer contents, and END is ignored.")
   fn = XSTRING (filename)->data;
   desc = -1;
   if (!NILP (append))
+#ifdef MSDOS
+    desc = open (fn, O_WRONLY | buffer_file_type);
+#else
     desc = open (fn, O_WRONLY);
+#endif
 
   if (desc < 0)
 #ifdef VMS
@@ -2730,7 +2895,13 @@ to the file, instead of any buffer contents, and END is ignored.")
 	  desc = creat (fn, 0666);
       }
 #else /* not VMS */
+#ifdef MSDOS
+  desc = open (fn, 
+	       O_WRONLY | O_TRUNC | O_CREAT | buffer_file_type, 
+	       S_IREAD | S_IWRITE);
+#else /* not MSDOS */
   desc = creat (fn, auto_saving ? auto_save_mode_bits : 0666);
+#endif /* not MSDOS */
 #endif /* not VMS */
 
   UNGCPRO;
@@ -3575,6 +3746,11 @@ syms_of_fileio ()
   staticpro (&Qfile_error);
   Qfile_already_exists = intern("file-already-exists");
   staticpro (&Qfile_already_exists);
+
+#ifdef MSDOS
+  Qfind_buffer_file_type = intern ("find-buffer-file-type");
+  staticpro (&Qfind_buffer_file_type);
+#endif
 
   Qcar_less_than_car = intern ("car-less-than-car");
   staticpro (&Qcar_less_than_car);
