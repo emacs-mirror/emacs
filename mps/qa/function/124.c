@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!124.c(trunk.2) $
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o
@@ -13,6 +13,12 @@ END_HEADER
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
+
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 #define ARENALIMIT (200)
 
@@ -31,6 +37,7 @@ END_HEADER
 #define COLLECT_WORLD
 */
 
+
 void *stackpointer;
 
 mps_space_t arena;
@@ -43,7 +50,9 @@ mps_ap_t apamc;
 
 static mps_addr_t objtab[TABSIZE];
 
-static void alloc_back(void) {
+
+static void alloc_back(void)
+{
  long int i, j;
 
  for (j = 0; j < BACKITER; j++) {
@@ -53,42 +62,41 @@ static void alloc_back(void) {
 }
 
 
-static void test(void) {
+static void test(void)
+{
+ mps_chain_t chain;
  long int i;
- long int rsize;
-
+ long int rsize = 0;
  int inramp;
-
  mycell *r, *s;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
-   (size_t) 1024*1024*ARENALIMIT),
-  "create space");
+                       (size_t) 1024*1024*ARENALIMIT),
+      "create space");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
-
  cdie(
   mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
+                      mps_stack_scan_ambig, stackpointer, 0),
   "create root");
 
  cdie(
   mps_root_create_table(&root1, arena, MPS_RANK_EXACT, 0, &objtab[0], TABSIZE),
   "create root table");
 
- cdie(
-  mps_fmt_create_A(&format, arena, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(
-  mps_pool_create(&poolamc, arena, mps_class_amc(), format),
-  "create pool");
+ die(mmqa_pool_create_chain(&poolamc, arena, mps_class_amc(), format, chain),
+     "create pool(amc)");
 
  cdie(
   mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
   "create ap");
 
  inramp = 0;
+ r = NULL; /* r is always initialized, because inramp=0 at the start, but */
+           /* the compiler doesn't know this. */
 
  for (i = 0; i < ITERATIONS; i++) {
   if (i % 10000 == 0) {
@@ -130,21 +138,12 @@ static void test(void) {
  }
 
  mps_ap_destroy(apamc);
- comment("Destroyed ap.");
-
  mps_pool_destroy(poolamc);
- comment("Destroyed pool.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_root_destroy(root1);
  mps_root_destroy(root);
- comment("Destroyed roots.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed space.");
 }
