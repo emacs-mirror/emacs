@@ -1,3 +1,7 @@
+2000-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp: Define HAVE_STRUCT_TIMEZONE in src/config.h.
+
 2000-06-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed1v2.inp: Set GETLOADAVG_LIBS to getloadavg.o in src/Makefile.
