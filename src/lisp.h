@@ -234,7 +234,7 @@ enum pvec_type
   PVEC_WINDOW_CONFIGURATION = 0x2000,
   PVEC_SUBR = 0x4000,
   PVEC_TYPE_MASK = 0x7f00,
-  PVEC_FLAG = PSEUDOVECTOR_FLAG,
+  PVEC_FLAG = PSEUDOVECTOR_FLAG
 };
 
 /* For convenience, we also store the number of elements in these bits.  */
