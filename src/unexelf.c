@@ -427,7 +427,12 @@ Filesz      Memsz       Flags       Align
 #if defined (__sony_news) && defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
 #include <sym.h>
+#define HAS_SBSS_SECTION
 #endif /* __sony_news && _SYSTYPE_SYSV */
+
+#if defined (__NetBSD__) && defined (__powerpc__)
+#define HAS_SBSS_SECTION
+#endif
 
 #if defined (__alpha__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
 /* Declare COFF debugging symbol table.  This used to be in
@@ -620,9 +625,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   ElfW(Addr) new_data2_addr;
 
   int n, nn, old_bss_index, old_data_index, new_data2_index;
-#if defined ( __sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
   int old_sbss_index, old_mdebug_index;
-#endif /* __sony_news && _SYSTYPE_SYSV */
+#endif /* HAS_SBSS_SECTION */
   struct stat stat_buf;
 
   /* Open the old file & map it into the address space. */
@@ -672,7 +677,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_bss_index == old_file_h->e_shnum)
     fatal ("Can't find .bss in %s.\n", old_name, 0);
 
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
   for (old_sbss_index = 1; old_sbss_index < (int) old_file_h->e_shnum;
        old_sbss_index++)
     {
@@ -713,10 +718,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     }
     if (old_mdebug_index == old_file_h->e_shnum)
 	old_mdebug_index = 0;
-#else /* not (__sony_news && _SYSTYPE_SYSV) */	    
+#else /* not HAS_SBSS_SECTION */	    
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
-#endif /* not (__sony_news && _SYSTYPE_SYSV) */	    
+#endif /* not HAS_SBSS_SECTION */	    
 #if defined (emacs) || !defined (DEBUG)
   new_bss_addr = (ElfW(Addr)) sbrk (0);
 #else
@@ -724,9 +729,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
   new_data2_addr = old_bss_addr;
   new_data2_size = new_bss_addr - old_bss_addr;
-#if !defined (__sony_news) || !defined (_SYSTYPE_SYSV)
+#if !defined (HAS_SBSS_SECTION)
   new_data2_offset = OLD_SECTION_H (old_bss_index).sh_offset;
-#endif /*  not (__sony_news && _SYSTYPE_SYSV) */
+#endif /* not HAS_SBSS_SECTION */
 
 #ifdef DEBUG
   fprintf (stderr, "old_bss_index %d\n", old_bss_index);
@@ -811,14 +816,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
 	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
 
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
       if (NEW_PROGRAM_H (n).p_vaddr + NEW_PROGRAM_H (n).p_filesz
 	  > round_up (old_bss_addr, alignment))
 	fatal ("Program segment above .bss in %s\n", old_name, 0);
-#else /* not (__sony_news && _SYSTYPE_SYSV) */
+#else /* not HAS_SBSS_SECTION */
       if (NEW_PROGRAM_H (n).p_vaddr + NEW_PROGRAM_H (n).p_filesz > old_bss_addr)
 	fatal ("Program segment above .bss in %s\n", old_name, 0);
-#endif /* not (__sony_news && _SYSTYPE_SYSV) */
+#endif /* not HAS_SBSS_SECTION */
 
       if (NEW_PROGRAM_H (n).p_type == PT_LOAD
 	  && (round_up ((NEW_PROGRAM_H (n)).p_vaddr
@@ -867,15 +872,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     {
       caddr_t src;
       int temp_index;
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
       /* If it is (s)bss section, insert the new data2 section before it.  */
       /* new_data2_index is the index of either old_sbss or old_bss, that was
 	 chosen as a section for new_data2.   */
       temp_index = new_data2_index;
-#else /* not (__sony_news && _SYSTYPE_SYSV) */
+#else /* not HAS_SBSS_SECTION */
       /* If it is bss section, insert the new data2 section before it.  */
       temp_index = old_bss_index;
-#endif /* not (__sony_news && _SYSTYPE_SYSV) */
+#endif /* not HAS_SBSS_SECTION */
       if (n == temp_index)
 	{
 	  /* Steal the data section header for this data2 section. */
@@ -901,11 +906,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      old_file_h->e_shentsize);
       
       if (n == old_bss_index
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
 	  /* The new bss and sbss section's size is zero, and its file offset
 	     and virtual address should be off by NEW_DATA2_SIZE.  */
 	  || n == old_sbss_index
-#endif /* __sony_news and _SYSTYPE_SYSV */
+#endif /* HAS_SBSS_SECTION */
 	  )
 	{
 	  /* NN should be `old_bss_index + 1' at this point. */
@@ -970,14 +975,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  || !strcmp ((old_section_names + NEW_SECTION_H(n).sh_name),
 		      ".sdata")
 #endif
-#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#if defined (HAS_SBSS_SECTION)
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit4")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
-#endif /* __sony_news && _SYSTYPE_SYSV */
+#endif /* HAS_SBSS_SECTION */
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".data1"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
