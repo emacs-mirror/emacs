@@ -668,6 +668,5 @@ See documentation for variable `ebnf-ebx-lex'."
 
 (provide 'ebnf-ebx)
 
-
-;;; arch-tag:
+;;; arch-tag: bfe2f95b-66bc-4dc6-8b7e-b7831e68f5fb
 ;;; ebnf-ebx.el ends here
