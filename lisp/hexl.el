@@ -65,25 +65,8 @@ and \"-de\" when dehexlifying a buffer."
   :group 'hexl)
 
 (defcustom hexl-options (format "-hex %s" hexl-iso)
-  "Options to `hexl-program' that suit your needs."
-  :type 'string
-  :group 'hexl)
-
-(defcustom hexlify-command
-  (format "%s %s"
-	  (shell-quote-argument
-	   (expand-file-name hexl-program exec-directory))
-	  hexl-options)
-  "The command to use to hexlify a buffer."
-  :type 'string
-  :group 'hexl)
-
-(defcustom dehexlify-command
-  (format "%s -de %s"
-	  (shell-quote-argument
-	   (expand-file-name hexl-program exec-directory))
-	  hexl-options)
-  "The command to use to unhexlify a buffer."
+  "Space separated options to `hexl-program' that suit your needs.
+Quoting cannot be used, so the arguments cannot themselves contain spaces."
   :type 'string
   :group 'hexl)
 
@@ -627,7 +610,9 @@ This discards the buffer's undo information."
   (let ((coding-system-for-read 'raw-text)
 	(coding-system-for-write buffer-file-coding-system)
 	(buffer-undo-list t))
-    (shell-command-on-region (point-min) (point-max) hexlify-command t)
+    (apply 'call-process-region (point-min) (point-max)
+	   (expand-file-name hexl-program exec-directory)
+	   t t nil (split-string hexl-options))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))
 
@@ -642,7 +627,9 @@ This discards the buffer's undo information."
   (let ((coding-system-for-write 'raw-text)
 	(coding-system-for-read buffer-file-coding-system)
 	(buffer-undo-list t))
-    (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
+    (apply 'call-process-region (point-min) (point-max)
+	   (expand-file-name hexl-program exec-directory)
+	   t t nil "-de" (split-string hexl-options))))
 
 (defun hexl-char-after-point ()
   "Return char for ASCII hex digits at point."
