@@ -37,7 +37,3 @@
 
 /* khera@cs.duke.edu says this is needed.  */
 #define memmove(to, from, size) bcopy (from, to, size)
-
-/* brett@kirk.es.go.dlr.de reported this was needed in sunos4-1-3.h,
-   so probably it is needed in this configuration too.  */
-#define X_IO_BUG
