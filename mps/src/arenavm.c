@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.32) $
+ * $HopeName: MMsrc!arenavm.c(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.32) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.33) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -719,7 +719,7 @@ static void VMSegFree(Seg seg)
   EVENT_PP(SegFree, vmArena, seg);
 }
 
-/* .seg.crirical: These Seg functions are low-level and are on 
+/* .seg.critical: These Seg functions are low-level and are on 
  * the critical path in various ways.  The more common therefore 
  * use AVER_CRITICAL
  */
