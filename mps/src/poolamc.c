@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName$
+ * $HopeName: MMsrc!poolamc.c(trunk.34) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.33) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.34) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -498,8 +498,7 @@ static Res AMCSegCreateNailBoard(Seg seg, Pool pool)
 
   arena = PoolArena(pool);
 
-  res = ControlAlloc(&p, arena, sizeof(AMCNailBoardStruct), 
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(AMCNailBoardStruct), FALSE);
   if(res != ResOK)
     goto failAllocNailBoard;
   board = p;
@@ -509,9 +508,9 @@ static Res AMCSegCreateNailBoard(Seg seg, Pool pool)
   board->distinctNails = (Count)0;
   board->newMarks = FALSE;
   board->markShift = SizeLog2((Size)pool->alignment);
-  bits = SegSize(seg) >> board->markShift;
-  res = ControlAlloc(&p, arena, BTSize(bits), 
-                     /* withReservoirPermit */ FALSE);
+  /* See d.m.p.nailboard.size. */
+  bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
+  res = ControlAlloc(&p, arena, BTSize(bits), FALSE);
   if(res != ResOK)
     goto failMarkTable;
   board->mark = p;
