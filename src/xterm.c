@@ -2018,6 +2018,7 @@ fast_find_position (window, pos, columnp, rowp)
   int width = window_internal_width (w);
   int *charstarts;
   int lastcol;
+  int maybe_next_line = 0;
 
   /* Find the right row.  */
   for (i = 0;
@@ -2027,6 +2028,13 @@ fast_find_position (window, pos, columnp, rowp)
       int linestart = FRAME_CURRENT_GLYPHS (f)->charstarts[top + i][left];
       if (linestart > pos)
 	break;
+      /* If the position sought is the end of the buffer,
+	 don't include the blank lines at the bottom of the window.  */
+      if (linestart == pos && pos == BUF_ZV (XBUFFER (w->buffer)))
+	{
+	  maybe_next_line = 1;
+	  break;
+	}
       if (linestart > 0)
 	row = i;
     }
@@ -2046,6 +2054,15 @@ fast_find_position (window, pos, columnp, rowp)
 	break;
       else if (charstarts[left + i] > 0)
 	lastcol = left + i;
+    }
+
+  /* If we're looking for the end of the buffer,
+     and we didn't find it in the line we scanned,
+     use the start of the following line.  */
+  if (maybe_next_line)
+    {
+      row++;
+      i = 0;
     }
 
   *rowp = row + top;
