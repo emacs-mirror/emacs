@@ -257,9 +257,11 @@ install: ${archlibdir}
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
 	  $(INSTALL_PROGRAM) $${file} ${bindir}/$${file} ; \
+	  chmod a+rx ${bindir}/$${file}; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
 	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
+	  chmod a+rx ${bindir}/$${file}; \
 	done
 
 uninstall:
