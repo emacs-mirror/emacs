@@ -1,3 +1,7 @@
+1999-12-03  Dave Love  <fx@gnu.org>
+
+	* editfns.c (Fmessage_or_box): Use use_dialog_box.
+
 1999-12-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/usg5-4.h (LIBS_SYSTEM): Add -lgen because that's needed
