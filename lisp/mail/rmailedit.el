@@ -23,7 +23,7 @@
 (defvar rmail-edit-map nil)
 (if rmail-edit-map
     nil
-  (setq rmail-edit-map (nconc (make-sparse-keymap) text-mode-map))
+  (setq rmail-edit-map (nconc (make-sparse-keymap) (cdr text-mode-map)))
   (define-key rmail-edit-map "\C-c\C-c" 'rmail-cease-edit)
   (define-key rmail-edit-map "\C-c\C-]" 'rmail-abort-edit))
 

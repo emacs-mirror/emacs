@@ -211,7 +211,10 @@ message (m, a1, a2, a3)
       fprintf (stderr, "\n");
       fflush (stderr);
     }
-  else if (INTERACTIVE)
+  /* A null message buffer means that the screen hasn't really been
+     initialized yet.  Error messages get trapped by the condition-case
+     in command-line, so this must be just an informative message; toss it.  */
+  else if (INTERACTIVE && SCREEN_MESSAGE_BUF (selected_screen))
     {
 #ifdef NO_ARG_ARRAY
       int a[3];
@@ -224,7 +227,7 @@ message (m, a1, a2, a3)
 #else
       doprnt (SCREEN_MESSAGE_BUF (selected_screen),
 	      SCREEN_WIDTH (selected_screen), m, 0, 3, &a1);
-#endif /* NO_ARG_ARRAY */
+#endif				/* NO_ARG_ARRAY */
 
       echo_area_glyphs = SCREEN_MESSAGE_BUF (selected_screen);
 
@@ -244,6 +247,9 @@ void
 message1 (m)
      char *m;
 {
+  /* A null message buffer means that the screen hasn't really been
+     initialized yet; write the error message on the standard error
+     as if we were non-interactive.  */
   if (noninteractive)
     {
       if (noninteractive_need_newline)
@@ -252,7 +258,10 @@ message1 (m)
       fprintf (stderr, "%s\n", m);
       fflush (stderr);
     }
-  else if (INTERACTIVE)
+  /* A null message buffer means that the screen hasn't really been
+     initialized yet.  Error messages get trapped by the condition-case
+     in command-line, so this must be just an informative message; toss it.  */
+  else if (INTERACTIVE && SCREEN_MESSAGE_BUF (selected_screen))
     {
       echo_area_glyphs = m;
       do_pending_window_change ();
@@ -341,6 +350,10 @@ redisplay ()
       screen_garbaged = 0;
     }
 
+  /* Normally the message* functions will have already displayed and
+     updated the echo area, but the screen may have been trashed, or
+     the update may have been preempted, so display the echo area
+     again here.  */
   if (echo_area_glyphs || previous_echo_glyphs)
     {
       echo_area_display ();
@@ -362,10 +375,6 @@ redisplay ()
   SCREEN_SCROLL_BOTTOM_VPOS (XSCREEN (w->screen)) = -1;
 
   all_windows = update_mode_lines || buffer_shared > 1;
-#ifdef MULTI_SCREEN
-  all_windows |= (XTYPE (Vglobal_minibuffer_screen) == Lisp_Screen
-		  && selected_screen != XSCREEN (Vglobal_minibuffer_screen));
-#endif	/* MULTI_SCREEN */
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
@@ -533,8 +542,25 @@ update:
     }
   else
 #endif /* MULTI_SCREEN */
-    if (SCREEN_VISIBLE_P (selected_screen))
-      pause = update_screen (selected_screen, 0, 0);
+    {
+      if (SCREEN_VISIBLE_P (selected_screen))
+	pause = update_screen (selected_screen, 0, 0);
+#ifdef MULTI_SCREEN
+
+      /* We called echo_area_display at the top of this function.  If
+	 the echo area is on another screen, that may have put text on
+	 a screen other than the selected one, so the above call to
+	 update_screen would not have caught it.  Catch it here.  */
+      if (echo_area_glyphs || previous_echo_glyphs)
+	{
+	  SCREEN_PTR mini_screen =
+	    XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)));
+
+	  if (mini_screen != selected_screen)
+	    pause |= update_screen (mini_screen, 0, 0);
+	}
+#endif
+    }
 
   /* If screen does not match, prevent doing single-line-update next time.
      Also, don't forget to check every line to update the arrow.  */
@@ -1013,7 +1039,19 @@ try_window_id (window)
 			beg_unchanged + 1, 10000, 10000, width, hscroll,
 			pos_tab_offset (w, start));
   if (bp.vpos >= height)
-    return point < bp.bufpos && !bp.contin;
+    {
+      if (point < bp.bufpos && !bp.contin)
+	{
+	  /* All changes are below the screen, and point is on the screen.
+	     We don't need to change the screen at all.
+	     But we need to update window_end_pos to account for
+	     any change in buffer size.  */
+	  XFASTINT (w->window_end_vpos) = height;
+	  XFASTINT (w->window_end_pos) = Z - bp.bufpos;
+	  return 1;
+	}
+      return 0;
+    }
 
   vpos = bp.vpos;
 
@@ -1496,7 +1534,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  while ((p1 - startp + taboffset + hscroll - (hscroll > 0))
 		 % tab_width);
 	}
-      else if (c == Ctl('M') && selective == -1)
+      else if (c == Ctl ('M') && selective == -1)
 	{
 	  pos = find_next_newline (pos, 1);
 	  if (FETCH_CHAR (pos - 1) == '\n')
@@ -1521,7 +1559,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    *p1 = (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
 		   ? XINT (DISP_CTRL_GLYPH (dp)) : '^');
 	  p1++;
-	  if (p1 >= startp)
+	  if (p1 >= startp && p1 < endp)
 	    *p1 = c ^ 0100;
 	  p1++;
 	}
@@ -1531,13 +1569,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    *p1 = (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
 		   ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\');
 	  p1++;
-	  if (p1 >= startp)
+	  if (p1 >= startp && p1 < endp)
 	    *p1 = (c >> 6) + '0';
 	  p1++;
-	  if (p1 >= startp)
+	  if (p1 >= startp && p1 < endp)
 	    *p1 = (7 & (c >> 3)) + '0';
 	  p1++;
-	  if (p1 >= startp)
+	  if (p1 >= startp && p1 < endp)
 	    *p1 = (7 & c) + '0';
 	  p1++;
 	}
@@ -2170,7 +2208,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	    *p1 = (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
 		   ? XINT (DISP_CTRL_GLYPH (dp)) : '^');
 	  p1++;
-	  if (p1 >= start)
+	  if (p1 >= start && p1 < end)
 	    *p1 = c ^ 0100;
 	  p1++;
 	}
@@ -2180,13 +2218,13 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	    *p1 = (dp && XTYPE (DISP_ESCAPE_GLYPH (dp)) == Lisp_Int
 		   ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\');
 	  p1++;
-	  if (p1 >= start)
+	  if (p1 >= start && p1 < end)
 	    *p1 = (c >> 6) + '0';
 	  p1++;
-	  if (p1 >= start)
+	  if (p1 >= start && p1 < end)
 	    *p1 = (7 & (c >> 3)) + '0';
 	  p1++;
-	  if (p1 >= start)
+	  if (p1 >= start && p1 < end)
 	    *p1 = (7 & c) + '0';
 	  p1++;
 	}

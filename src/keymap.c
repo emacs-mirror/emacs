@@ -401,7 +401,10 @@ DEF is anything that can be a key's definition:\n\
     or another symbol whose function definition is used, etc.\n\
  a cons (STRING . DEFN), meaning that DEFN is the definition\n\
     (DEFN should be a valid definition in its own right),\n\
- or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.")
+ or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.\n\
+\n\
+If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at\n\
+the front of KEYMAP.")
   (keymap, key, def)
      register Lisp_Object keymap;
      Lisp_Object key;
