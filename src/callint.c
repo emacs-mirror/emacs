@@ -311,7 +311,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	(XVECTOR (this_command_keys)->contents[next_event]))
       break;
   
-  /* Handle special starting chars `*' and `@'.  */
+  /* Handle special starting chars `*' and `@'.  Also `-'.  */
   while (1)
     {
       if (*string == '*')
@@ -320,6 +320,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  if (!NILP (current_buffer->read_only))
 	    Fbarf_if_buffer_read_only ();
 	}
+      /* Ignore this for semi-compatibility with Lucid.  */
+      else if (*string == '-')
+	string++;
       else if (*string == '@')
 	{
 	  Lisp_Object event;
@@ -331,8 +334,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	      && XTYPE (event = XCONS (event)->car) == Lisp_Window)
 	    {
 	      if (MINI_WINDOW_P (XWINDOW (event))
-		  && NILP (call1 (intern ("minibuffer-window-active-p"),
-				  event)))
+		  && ! (minibuf_level > 0 && EQ (event, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 	      Fselect_window (event);
 	    }
