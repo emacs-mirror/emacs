@@ -49,7 +49,7 @@ Don't rebind TAB unless you really need to.")
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
-  or in the line's indentation, otherwise it insert a `real' tab character."
+  or in the line's indentation, otherwise it insert a \"real\" tab character."
   :group 'indent
   :type '(choice (const nil) (const t) (const always)))
 
@@ -87,7 +87,8 @@ The function actually called to indent is determined by the value of
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
 	(and (not tab-always-indent)
-	     (> (current-column) (current-indentation))))
+	     (or (> (current-column) (current-indentation))
+		 (eq this-command last-command))))
     (insert-tab arg))
    ;; Those functions are meant specifically for tabbing and not for
    ;; indenting, so we can't pass them to indent-according-to-mode.
@@ -172,7 +173,7 @@ interactively or with optional argument FORCE, it will be fixed."
 	  ((and force (< cc lm))
 	   (indent-to-left-margin)))))
 
-;; This is the default indent-line-function,
+;; This used to be the default indent-line-function,
 ;; used in Fundamental Mode, Text Mode, etc.
 (defun indent-to-left-margin ()
   "Indent current line to the column given by `current-left-margin'."
