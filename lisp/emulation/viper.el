@@ -469,6 +469,7 @@ it better fits your working style.")
 
 (if (vip-window-display-p)
     (progn
+      (add-to-list 'facemenu-unlisted-faces 'vip-replace-overlay-face)
       (make-face 'vip-replace-overlay-face)
       (or (face-differs-from-default-p 'vip-replace-overlay-face)
 	  (progn
@@ -2388,6 +2389,7 @@ Undo previous insertion and inserts new."
       ()
     (defvar vip-search-face
       (progn
+	(add-to-list 'facemenu-unlisted-faces 'vip-search-face)
 	(make-face 'vip-search-face)
 	(or (face-differs-from-default-p 'vip-search-face)
 	    ;; face wasn't set in .vip or .Xdefaults
@@ -2407,6 +2409,7 @@ Undo previous insertion and inserts new."
       ()
     (defvar vip-minibuffer-emacs-face
       (progn
+	(add-to-list 'facemenu-unlisted-faces 'vip-minibuffer-emacs-face)
 	(make-face 'vip-minibuffer-emacs-face)
 	(or (face-differs-from-default-p 'vip-minibuffer-emacs-face)
 	    ;; face wasn't set in .vip or .Xdefaults
@@ -2432,6 +2435,7 @@ Undo previous insertion and inserts new."
     
     (defvar vip-minibuffer-insert-face
       (progn
+	(add-to-list 'facemenu-unlisted-faces 'vip-minibuffer-insert-face)
 	(make-face 'vip-minibuffer-insert-face)
 	(or (face-differs-from-default-p 'vip-minibuffer-insert-face)
 	    (if vip-vi-style-in-minibuffer
@@ -2455,6 +2459,7 @@ Undo previous insertion and inserts new."
     
     (defvar vip-minibuffer-vi-face
       (progn
+	(add-to-list 'facemenu-unlisted-faces 'vip-minibuffer-vi-face)
 	(make-face 'vip-minibuffer-vi-face)
 	(or (face-differs-from-default-p 'vip-minibuffer-vi-face)
 	    (if vip-vi-style-in-minibuffer
