@@ -207,6 +207,9 @@ enum glyph_type
   /* Glyph describes a character.  */
   CHAR_GLYPH, 	
 
+  /* Glyph describes a composition sequence.  */
+  COMPOSITE_GLYPH,
+
   /* Glyph describes an image.  */
   IMAGE_GLYPH,
 
@@ -280,6 +283,16 @@ struct glyph
     }
     ch;
 
+    /* Sub-struct for composition (type == COMPOSITION_GLYPH)  */
+    struct
+    {
+      /* Composition identification number.  */
+      unsigned id : 21;
+
+      /* This composition's face.  */
+      unsigned face_id : 11;
+    }
+    cmp;
     /* Sub-structure for image glyphs (type == IMAGE_GLYPH).  */
     struct
     {
@@ -1175,8 +1188,8 @@ struct face
   int font_info_id;
 
   /* Fontset ID if this face uses a fontset, or -1.  This is only >= 0
-     if the face was realized for CHARSET_COMPOSITION.  For all other
-     charsets, a specific font is loaded from the set of fonts
+     if the face was realized for a composition sequence.
+     Otherwise, a specific font is loaded from the set of fonts
      specified by the fontset given by the family attribute of the face.  */
   int fontset;
   
@@ -1206,10 +1219,10 @@ struct face
   unsigned hash;
 
   /* The charset for which this face was realized if it was realized
-     for use in multibyte text.  If fontset >= 0, this is
-     CHARSET_COMPOSITION.  A value of charset < 0 means the face was
-     realized for use in unibyte text where the idea of Emacs
-     charsets isn't applicable.  */
+     for use in multibyte text.  If fontset >= 0, this is the charset
+     of the first character of the composition sequence.  A value of
+     charset < 0 means the face was realized for use in unibyte text
+     where the idea of Emacs charsets isn't applicable.  */
   int charset;
 
   /* Non-zero if text in this face should be underlined, overlined,
@@ -1403,6 +1416,9 @@ enum display_element_type
   /* A normal character.  */
   IT_CHARACTER,
 
+  /* A composition sequence.  */
+  IT_COMPOSITION,
+
   /* An image.  */
   IT_IMAGE,
 
@@ -1431,6 +1447,7 @@ enum prop_idx
   FACE_PROP_IDX,
   INVISIBLE_PROP_IDX,
   DISPLAY_PROP_IDX,
+  COMPOSITION_PROP_IDX,
 
   /* Not a property.  Used to indicate changes in overlays.  */
   OVERLAY_PROP_IDX,
@@ -1596,8 +1613,15 @@ struct it
   /* If what == IT_CHARACTER, character and length in bytes.  This is
      a character from a buffer or string.  It may be different from
      the character displayed in case that
-     unibyte_display_via_language_environment is set.  */
+     unibyte_display_via_language_environment is set.
+
+     If what == IT_COMPOSITION, the first component of a composition
+     and length in bytes of the composition.  */
   int c, len;
+
+  /* If what == IT_COMPOSITION, identification number and length in
+     chars of a composition.  */
+  int cmp_id, cmp_len;
 
   /* The character to display, possibly translated to multibyte
      if unibyte_display_via_language_environment is set.  This
