@@ -1083,6 +1083,22 @@ the buffer, just like for the local files.
 
 ** New modes and packages
 
+*** THe new package hi-lock.el, text matching interactively entered
+regexp's can be highlighted.  For example, 
+
+  M-x highlight-regexp RET clearly RET RET 
+
+will highlight all occurrences of `clearly' using a yellow background
+face.  New occurrences of `clearly' will be highlighted as they are
+typed.  `M-x unhighlight-regexp RET' will remove the highlighting.
+Any existing face can be used for highlighting and a set of
+appropriate faces is provided.  The regexps can be written into the
+current buffer in a form that will be recognized the next time the
+corresponding file is read.
+
+*** The new package zone.el plays games with Emacs' display when 
+Emacs is idle.
+
 *** The new package xml.el provides a simple but generic XML
 parser. It doesn't parse the DTDs however.
 
