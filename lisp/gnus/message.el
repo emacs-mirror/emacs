@@ -583,6 +583,7 @@ actually occur."
   :group 'message-sending
   :type 'sexp)
 
+;;;###autoload
 (ignore-errors
   (define-mail-user-agent 'message-user-agent
     'message-mail 'message-send-and-exit
