@@ -264,7 +264,7 @@ If 4th arg LIST is non-nil, return a list of all such fields."
       (skip-chars-forward "^,")
       (skip-chars-backward " ")
       (setq accumulated
-	    (cons (buffer-substring beg (point))
+	    (cons (buffer-substring-no-properties beg (point))
 		  accumulated))
       (skip-chars-forward "^,")
       (skip-chars-forward ", "))
