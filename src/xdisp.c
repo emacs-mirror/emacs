@@ -987,7 +987,7 @@ redisplay_internal (preserve_echo_area)
 	  overlay_arrow_seen = 0;
 	  zv_strings_seen = 0;
 	  display_text_line (w, tlbufpos, this_line_vpos, this_line_start_hpos,
-			     pos_tab_offset (w, tlbufpos));
+			     pos_tab_offset (w, tlbufpos), 0);
 	  /* If line contains point, is not continued,
 		 and ends at same distance from eob as before, we win */
 	  if (cursor_vpos >= 0 && this_line_bufpos
@@ -1930,10 +1930,12 @@ try_window (window, pos)
   overlay_arrow_seen = 0;
   zv_strings_seen = 0;
   val.hpos = XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0;
+  val.ovstring_chars_done = 0;
 
   while (--height >= 0)
     {
-      val = *display_text_line (w, pos, vpos, val.hpos, tab_offset);
+      val = *display_text_line (w, pos, vpos, val.hpos, tab_offset,
+				val.ovstring_chars_done);
       tab_offset += width;
       /* For the first line displayed, display_text_line
 	 subtracts the prompt width from the tab offset.
@@ -2259,7 +2261,8 @@ try_window_id (window)
   old_tick = MODIFF;
   while (vpos < stop_vpos)
     {
-      val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset);
+      val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset,
+				val.ovstring_chars_done);
       /* If display_text_line ran a hook and changed some text,
 	 redisplay all the way to bottom of buffer
 	 So that we show the changes.  */
@@ -2315,7 +2318,8 @@ try_window_id (window)
 
       while (vpos < height)
 	{
-	  val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset);
+	  val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset,
+				    val.ovstring_chars_done);
 	  tab_offset += width;
 	  if (val.vpos) tab_offset = 0;
 	  pos = val.bufpos;
@@ -2473,6 +2477,9 @@ fix_glyph (f, glyph, cface)
 
    TABOFFSET is an offset for ostensible hpos, used in tab stop calculations.
 
+   OVSTR_DONE is the number of chars of overlay before/after strings
+   at this position which have already been processed.
+
    Display on position VPOS on the frame.  It is origin 0, relative to
    the top of the frame, not W.
 
@@ -2483,12 +2490,13 @@ fix_glyph (f, glyph, cface)
 struct position val_display_text_line;
 
 static struct position *
-display_text_line (w, start, vpos, hpos, taboffset)
+display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
      struct window *w;
      int start;
      int vpos;
      int hpos;
      int taboffset;
+     int ovstr_done;
 {
   register int pos = start;
   register int c;
@@ -2685,11 +2693,26 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		  int ovlen;
 		  unsigned char *ovstr;
 		  ovlen = overlay_strings (pos, w, &ovstr);
-		  for (; ovlen; ovlen--, ovstr++)
+
+		  if (ovlen > 0)
 		    {
-		      if (p1 >= leftmargin && p1 < endp)
-			*p1 = MAKE_GLYPH (f, *ovstr, current_face);
-		      p1++;
+		      /* Skip the ones we did in a previous line.  */
+		      ovstr += ovstr_done;
+		      ovlen -= ovstr_done;
+
+		      /* Start outputting.  */
+		      for (; ovlen; ovlen--, ovstr++)
+			{
+			  if (p1 >= leftmargin && p1 < endp)
+			    *p1 = MAKE_GLYPH (f, *ovstr, current_face);
+			  p1++;
+			  ovstr_done++;
+			}
+		      /* If we did all the overlay strings
+			 and we have room for text, clear ovstr_done
+			 just for neatness' sake.  */
+		      if (ovlen == 0 && p1 < endp)
+			ovstr_done = 0;
 		    }
 		}
 
@@ -3208,6 +3231,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
     }
 
   val.bufpos = pos;
+  val.ovstring_chars_done = ovstr_done;
   val_display_text_line = val;
   return &val_display_text_line;
 }
