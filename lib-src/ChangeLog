@@ -1,3 +1,7 @@
+2001-01-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-docfile.c (write_c_args): Print newlines as spaces.
+
 2001-01-06  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (clean): Delete $(COMPILER_TEMP_FILES) instead
