@@ -55,7 +55,7 @@ as @kbd{display foo} and @kbd{print bar}.  As these commands use
 explicit words, their meaning is more self-evident.
 
 @item
-Colors are not available on character terminals.  If you @emph{must}
+Colors are not available on text-only terminals.  If you @emph{must}
 have colors, but cannot afford running X, you can now use the MS-DOG
 version of Emacs inside a DOS emulator.
 
