@@ -7,8 +7,8 @@
 ;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.12 $" 11 -2)
-  "$Id: find-dired.el,v 1.12 1993/04/23 06:51:38 eric Exp roland $")
+(defconst find-dired-version (substring "$Revision: 1.13 $" 11 -2)
+  "$Id: find-dired.el,v 1.13 1993/05/28 00:58:08 roland Exp rms $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1993/04/23 06:51:38 $|$Revision: 1.12 $|
+;;    |$Date: 1993/05/28 00:58:08 $|$Revision: 1.13 $|
 
 ;; INSTALLATION ======================================================
 
@@ -229,7 +229,7 @@ BUFFER is the buffer or (buffer-name) to associate with the process.
  with any buffer
 Third arg is command name, the name of a shell command.
 Remaining arguments are the arguments for the command.
-Wildcards and redirection are handle as usual in the shell."
+Wildcards and redirection are handled as usual in the shell."
   (if (eq system-type 'vax-vms)
       (apply 'start-process name buffer args)
     (start-process name buffer shell-file-name "-c"

@@ -630,7 +630,7 @@ BUFFER is the buffer or (buffer-name) to associate with the process.
  with any buffer
 Third arg is command name, the name of a shell command.
 Remaining arguments are the arguments for the command.
-Wildcards and redirection are handle as usual in the shell."
+Wildcards and redirection are handled as usual in the shell."
   (if (eq system-type 'vax-vms)
       (apply 'start-process name buffer args)
     (start-process name buffer shell-file-name "-c"
