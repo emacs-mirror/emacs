@@ -1,9 +1,9 @@
-;;; ibuf-ext.el --- extensions for ibuffer 
+;;; ibuf-ext.el --- extensions for ibuffer
 
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
-;; Maintainer: John Paul Wallington <jpw@shootybangbang.com>
+;; Maintainer: John Paul Wallington <jpw@gnu.org>
 ;; Created: 2 Dec 2001
 ;; Keywords: buffer, convenience
 
@@ -62,7 +62,7 @@
   (let ((hip-crowd nil)
 	(lamers nil))
     (dolist (ibuffer-split-list-elt ibuffer-split-list-elts)
-      (if (funcall ibuffer-split-list-fn ibuffer-split-list-elt) 
+      (if (funcall ibuffer-split-list-fn ibuffer-split-list-elt)
 	  (push ibuffer-split-list-elt hip-crowd)
 	(push ibuffer-split-list-elt lamers)))
     ;; Too bad Emacs Lisp doesn't have multiple values.
@@ -103,13 +103,13 @@ Do not set this variable directly!  Use the function
 				    ((or (mode . message-mode)
 					 (mode . mail-mode)
 					 (mode . gnus-group-mode)
-					 (mode . gnus-summary-mode) 
+					 (mode . gnus-summary-mode)
 					 (mode . gnus-article-mode))))
 				   ("programming"
 				    ((or (mode . emacs-lisp-mode)
 					 (mode . cperl-mode)
 					 (mode . c-mode)
-					 (mode . java-mode) 
+					 (mode . java-mode)
 					 (mode . idl-mode)
 					 (mode . lisp-mode)))))
 				  
@@ -156,7 +156,7 @@ to this variable."
   :group 'ibuffer)
 
 (defvar ibuffer-cached-filter-formats nil)
-(defvar ibuffer-compiled-filter-formats nil)  
+(defvar ibuffer-compiled-filter-formats nil)
 
 (defvar ibuffer-filter-groups nil
   "A list like ((\"NAME\" ((SYMBOL . QUALIFIER) ...) ...) which groups buffers.
@@ -216,7 +216,7 @@ Currently, this only applies to `ibuffer-saved-filters' and
 	    (not
 	     (ibuffer-buf-matches-predicates buf ibuffer-maybe-show-predicates)))
 	(or ibuffer-view-ibuffer
-	    (and ibuffer-buf 
+	    (and ibuffer-buf
 		 (not (eq ibuffer-buf buf))))
 	(or
 	 (ibuffer-included-in-filters-p buf ibuffer-filtering-qualifiers)
@@ -268,7 +268,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
     (if (assq 'mode ibuffer-filtering-qualifiers)
 	(setq ibuffer-filtering-qualifiers
 	      (ibuffer-delete-alist 'mode ibuffer-filtering-qualifiers))
-      (ibuffer-push-filter (cons 'mode 
+      (ibuffer-push-filter (cons 'mode
 				(with-current-buffer buf
 				  major-mode)))))
   (ibuffer-update nil t))
@@ -284,10 +284,10 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 ;;;###autoload
 (defun ibuffer-toggle-filter-group ()
   "Toggle the display status of the filter group on this line."
-  (interactive) 
+  (interactive)
   (ibuffer-toggle-filter-group-1 (point)))
 
-(defun ibuffer-toggle-filter-group-1 (posn)	
+(defun ibuffer-toggle-filter-group-1 (posn)
   (let ((name (get-text-property posn 'ibuffer-filter-group-name)))
     (unless (stringp name)
       (error "No filtering group name present"))
@@ -700,7 +700,7 @@ See also `ibuffer-kill-filter-group'."
   (ibuffer-update nil t))
 
 ;;;###autoload
-(defun ibuffer-save-filter-groups (name groups) 
+(defun ibuffer-save-filter-groups (name groups)
   "Save all active filter groups GROUPS as NAME.
 They are added to `ibuffer-saved-filter-groups'.  Interactively,
 prompt for NAME, and use the current filters."
@@ -776,7 +776,7 @@ be a complex filter like (OR [name: foo] [mode: bar-mode]), will be
 turned into two separate filters [name: foo] and [mode: bar-mode]."
   (interactive)
   (when (null ibuffer-filtering-qualifiers)
-    (error "No filters in effect"))  
+    (error "No filters in effect"))
   (let ((lim (pop ibuffer-filtering-qualifiers)))
     (case (car lim)
       (or
@@ -949,22 +949,22 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
 	(modes)
 	(this-mode))
     (while bufs
-      (setq this-mode 
-	    (with-current-buffer 
+      (setq this-mode
+	    (with-current-buffer
 		(car bufs)
 	      major-mode)
 	    bufs (cdr bufs))
-      (add-to-list 
+      (add-to-list
        'modes
-       `(,(symbol-name this-mode) . 
+       `(,(symbol-name this-mode) .
 	 ,this-mode)))
-    modes)) 
+    modes))
 
 
 ;;; Extra operation definitions
 
 ;;;###autoload (autoload 'ibuffer-filter-by-mode "ibuf-ext.el")
-(define-ibuffer-filter mode 
+(define-ibuffer-filter mode
   "Toggle current view to buffers with major mode QUALIFIER."
   (:description "major mode"
    :reader
@@ -982,14 +982,14 @@ The list returned will be of the form (\"MODE-NAME\" . MODE-SYMBOL)."
   (eq qualifier (with-current-buffer buf major-mode)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext.el")
-(define-ibuffer-filter used-mode 
+(define-ibuffer-filter used-mode
   "Toggle current view to buffers with major mode QUALIFIER.
 Called interactively, this function allows selection of modes
 currently used by buffers."
   (:description "major mode in use"
 		:reader
-		(intern 
-		 (completing-read "Filter by major mode: " 
+		(intern
+		 (completing-read "Filter by major mode: "
 				  (ibuffer-list-buffer-modes)
 				  nil
 				  t
@@ -1001,7 +1001,7 @@ currently used by buffers."
   (eq qualifier (with-current-buffer buf major-mode)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext.el")
-(define-ibuffer-filter name 
+(define-ibuffer-filter name
   "Toggle current view to buffers with name matching QUALIFIER."
   (:description "buffer name"
    :reader (read-from-minibuffer "Filter by name (regexp): "))
@@ -1016,7 +1016,7 @@ currently used by buffers."
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext.el")
-(define-ibuffer-filter size-gt 
+(define-ibuffer-filter size-gt
   "Toggle current view to buffers with size greater than QUALIFIER."
   (:description "size greater than"
    :reader
@@ -1025,7 +1025,7 @@ currently used by buffers."
      qualifier))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-lt  "ibuf-ext.el")
-(define-ibuffer-filter size-lt 
+(define-ibuffer-filter size-lt
    "Toggle current view to buffers with size less than QUALIFIER."
   (:description "size less than"
    :reader
@@ -1248,24 +1248,24 @@ This requires the external program \"diff\" to be in your `exec-path'."
 ;;;###autoload
 (defun ibuffer-copy-filename-as-kill (&optional arg)
   "Copy filenames of marked buffers into the kill ring.
+
 The names are separated by a space.
 If a buffer has no filename, it is ignored.
-With a zero prefix arg, use the complete pathname of each marked file.
 
-You can then feed the file name(s) to other commands with C-y.
+With no prefix arg, use the filename sans its directory of each marked file.
+With a zero prefix arg, use the complete filename of each marked file.
+With \\[universal-argument], use the filename of each marked file relative
+to `ibuffer-default-directory' iff non-nil, otherwise `default-directory'.
 
- [ This docstring shamelessly stolen from the
- `dired-copy-filename-as-kill' in \"dired-x\". ]"
-  ;; Add to docstring later:
-  ;; With C-u, use the relative pathname of each marked file.
-  (interactive "P")
-  (if (= (ibuffer-count-marked-lines) 0)
+You can then feed the file name(s) to other commands with \\[yank]."
+  (interactive "p")
+  (if (zerop (ibuffer-count-marked-lines))
       (message "No buffers marked; use 'm' to mark a buffer")
     (let ((ibuffer-copy-filename-as-kill-result "")
-	  (type (cond ((eql arg 0)
+	  (type (cond ((zerop arg)
 		       'full)
-		      ;; ((eql arg 4)
-		      ;;  'relative)
+		      ((= arg 4)
+		       'relative)
 		      (t
 		       'name))))
       (ibuffer-map-marked-lines
@@ -1277,11 +1277,15 @@ You can then feed the file name(s) to other commands with C-y.
 			       (case type
 				 (full
 				  name)
+				 (relative
+				  (file-relative-name
+				   name (or ibuffer-default-directory
+					    default-directory)))
 				 (t
 				  (file-name-nondirectory name)))
 			     ""))
 			 " "))))
-      (push ibuffer-copy-filename-as-kill-result kill-ring))))
+      (kill-new ibuffer-copy-filename-as-kill-result))))
 
 (defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
