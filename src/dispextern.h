@@ -2801,6 +2801,10 @@ extern void delete_tty P_ ((struct display *));
 extern void fatal P_ ((/* char *, ... */));
 extern void cursor_to P_ ((int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
+extern void tty_set_terminal_modes P_ ((struct display *));
+extern void tty_reset_terminal_modes P_ ((struct display *));
+extern void create_tty_output P_ ((struct frame *));
+
 
 /* Defined in scroll.c */
 
