@@ -105,13 +105,14 @@ byte_char_debug_check (b, charpos, bytepos)
 
   if (bytepos > BUF_GPT_BYTE (b))
     {
-      nchars = chars_in_text (BUF_BEG_ADDR (b),
-			      BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
-      nchars += chars_in_text (BUF_GAP_END_ADDR (b),
-			       bytepos - BUF_GPT_BYTE (b));
+      nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+					BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b));
+      nchars += multibyte_chars_in_text (BUF_GAP_END_ADDR (b),
+					 bytepos - BUF_GPT_BYTE (b));
     }
   else
-    nchars = chars_in_text (BUF_BEG_ADDR (b), bytepos - BUF_BEG_BYTE (b));
+    nchars = multibyte_chars_in_text (BUF_BEG_ADDR (b),
+				      bytepos - BUF_BEG_BYTE (b));
 
   if (charpos - 1 != nchars)
     abort ();
