@@ -1,3 +1,8 @@
+2002-04-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* iswitchb.el: Update commentary to include new function
+	iswitchb-exclude-nonmatching.
+
 2002-04-12  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-ext.el (eshell-script-interpreter): Fix for CRLF
@@ -15,7 +20,7 @@
 
 2002-04-12  Francesco Potorti`  <pot@gnu.org>
 
-	* comint.el (comint-password-prompt-regexp): Match" SMB password".
+	* comint.el (comint-password-prompt-regexp): Match " SMB password".
 
 2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
 
