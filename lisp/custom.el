@@ -481,6 +481,17 @@ LOAD should be either a library file name, or a feature name."
     (unless (member load loads)
       (put symbol 'custom-loads (cons (purecopy load) loads)))))
 
+(defun custom-autoload (symbol load)
+  "Mark SYMBOL as autoloaded custom variable and add dependency LOAD."
+  (put symbol 'custom-autoload t)
+  (custom-add-load symbol load))
+
+;; This test is also in the C code of `user-variable-p'.
+(defun custom-variable-p (variable)
+  "Return non-nil if VARIABLE is a custom variable."
+  (or (get variable 'standard-value)
+      (get variable 'custom-autoload)))
+
 ;;; Loading files needed to customize a symbol.
 ;;; This is in custom.el because menu-bar.el needs it for toggle cmds.
 
