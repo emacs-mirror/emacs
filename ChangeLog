@@ -1,5 +1,7 @@
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* AUTHORS: Regenerate.
+
 	* make-dist (tempdir): Copy AUTHORS as well.
 
 2001-11-06  Sam Steingold  <sds@gnu.org>
