@@ -1,6 +1,8 @@
-/* test allocate 100 items, throw away and repeat
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = allocate 100 items, throw away and repeat
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 /* you have to type in the size (in hex) of the items allocated */

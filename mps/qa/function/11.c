@@ -1,6 +1,8 @@
-/* test lots of allocation to provoke mmap error in sunos
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = lots of allocation to provoke mmap error in sunos
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 /* this is same as test 3.c, with input of 0x4000

@@ -1,6 +1,8 @@
-/* test (regression test) Allocate a big object (>64M, perhaps up to 1G) in an AMC pool
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = (regression test) Allocate a big object (>64M, perhaps up to 1G) in an AMC pool
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

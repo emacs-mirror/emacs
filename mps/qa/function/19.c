@@ -1,6 +1,8 @@
-/* test create lots of aps at once (and cause to run out of memory)
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = create lots of aps at once (and cause to run out of memory)
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test regression test for scan of invalid obj after I=A
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = regression test for scan of invalid obj after I=A
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"
