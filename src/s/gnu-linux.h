@@ -335,4 +335,5 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined __i386__ || defined __sparc__ || defined __m68k__ || defined __alpha__
 #define GC_SETJMP_WORKS 1
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #endif
