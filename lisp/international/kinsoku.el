@@ -46,6 +46,22 @@ The value 0 means there's no limitation.")
 	(concat
 	 ;; ASCII
 	 "!)-_~}]:;',.?"
+	 ;; Latin JISX0201
+	 ;; Instead of putting Latin JISX0201 string directyly, we
+	 ;; generate the string as below to avoid character
+	 ;; unification problem.
+	 (let* ((str1 "!)-_~}]:;',.?")
+		(len (length str1))
+		(idx 0)
+		(str2 "")
+		ch)
+	   (while (< idx len)
+	     (setq ch (make-char 'latin-jisx0201 (aref str1 idx))
+		   str2 (concat str2 (char-to-string ch))
+		   idx (1+ idx)))
+	   str2)
+	 ;; Katakana JISX0201
+	 "(I!#'()*+,-./0^_(B"
 	 ;; Japanese JISX0208
 	 "$B!"!#!$!%!&!'!(!)!*!+!,!-!.!/!0!1!2!3!4!5!6!7!8!9!:!;!<!=!>(B\
 $B!?!@!A!B!C!D!E!G!I!K!M!O!Q!S!U!W!Y![!k!l!m!n(B\
@@ -72,6 +88,20 @@ The value 0 means there's no limitation.")
 	(concat
 	 ;; ASCII
 	 "({[`"
+	 ;; Latin JISX0201
+	 ;; See the comment above.
+	 (let* ((str1 "({[`")
+		(len (length str1))
+		(idx 0)
+		(str2 "")
+		ch)
+	   (while (< idx len)
+	     (setq ch (make-char 'latin-jisx0201 (aref str1 idx))
+		   str2 (concat str2 (char-to-string ch))
+		   idx (1+ idx)))
+	   str2)
+	 ;; JISX0201 Katakana
+	 "(I"(B"
 	 ;; Japanese JISX0208
 	 "$B!F!H!J!L!N!P!R!T!V!X!Z!k!l!m!n!w!x(B\
 $A!.!0#"#(!2!4!6!8!:!<!>!c!d!e#@!f!l(B"
@@ -101,7 +131,7 @@ The value 0 means there's no limitation.")
 	(goto-char (car pos-and-column)))))
 
 ;; Try to resolve `kinsoku' restriction by making the current line shorter.
-;; The line can't be broken before the buffer position LINEBEG."
+;; The line can't be broken before the buffer position LINEBEG.
 (defun kinsoku-shorter (linebeg)
   (let ((pos (save-excursion
 	       (forward-char -1)
