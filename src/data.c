@@ -1041,10 +1041,17 @@ for this variable.")
 }
 
 DEFUN ("setq-default", Fsetq_default, Ssetq_default, 2, UNEVALLED, 0,
-       "\
-\(setq-default SYM VAL SYM VAL...): set each SYM's default value to its VAL.\n\
-VAL is evaluated; SYM is not.  The default value is seen in buffers that do\n\
-not have their own values for this variable.")
+       "Set the default value of variable VAR to VALUE.\n\
+VAR, the variable name, is literal (not evaluated);\n\
+VALUE is an expression and it is evaluated.\n\
+The default value of a variable is seen in buffers\n\
+that do not have their own values for the variable.\n\
+\n\
+More generally, you can use multiple variables and values, as in\n\
+  (setq-default SYM VALUE SYM VALUE...)\n\
+This sets each SYM's default value to the corresponding VALUE.\n\
+The VALUE for the Nth SYM can refer to the new default values\n\
+of previous SYMs.")
   (args)
      Lisp_Object args;
 {
