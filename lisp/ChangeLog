@@ -1,5 +1,8 @@
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-screens): Don't bind show-help-function
+	to nil.
+
 	* tooltip.el (tooltip-frame-parameters): Remove colors.
 	(tooltip): New face
 	(tooltip-set-param): New function.

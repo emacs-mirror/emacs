@@ -1,5 +1,8 @@
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_create_tip_frame): Call face-set-after-frame-default,
+	like in Fx_create_frame.
+
 	* xfaces.c (set_font_frame_param): Don't do anything for
 	non-graphical frames.
 
