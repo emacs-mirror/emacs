@@ -1,6 +1,6 @@
 /* Session management module for systems which understand the X Session
    management protocol.
-   Copyright (C) 2002, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -167,7 +167,7 @@ smc_interact_CB (smcConn, clientData)
   emacs_event.kind = SAVE_SESSION_EVENT;
 }
 
-/* This is called when the session manager tells us to save ourself.
+/* This is called when the session manager tells us to save ourselves.
    We set the required properties so the session manager can restart us,
    plus the current working directory property (not mandatory) so we
    are started in the correct directory.
@@ -312,7 +312,7 @@ smc_shutdown_cancelled_CB (smcConn, clientData)
   /* Empty */
 }
 
-/* Error handlers for SM and ICE.  We don't wan't to exit Emacs just
+/* Error handlers for SM and ICE.  We don't want to exit Emacs just
    because there is some error in the session management. */
 static void
 smc_error_handler (smcConn,
@@ -443,7 +443,7 @@ x_session_initialize ()
   IceAddConnectionWatch (ice_conn_watch_CB, 0);
 
   /* Open the connection to the session manager.  A failure is not
-     critical, it usualy means that no session manager is running.
+     critical, it usually means that no session manager is running.
      The errorstring is here for debugging. */
   smc_conn = SmcOpenConnection (NULL, NULL, 1, 0,
                                 (SmcSaveYourselfProcMask|
