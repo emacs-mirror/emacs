@@ -282,7 +282,7 @@ This map is activated while translation region is active.")
       (define-key map [escape] meta-map))
     map)
   "Keymap used while processing translation in simple Quail modes.
-A few especially complex input methods use `quail--translation-keymap' instead.
+A few especially complex input methods use `quail-translation-keymap' instead.
 This map is activated while translation region is active.")
 
 (defconst quail-conversion-keymap
@@ -917,9 +917,10 @@ The returned value is a Quail map specific to KEY."
 	      ;; Let's return the event(s) to the caller.
 	      (setq generated-events events
 		    quail-translating nil))))
-	(setq generated-events
-	      (append (quail-overlay-region-events quail-overlay)
-		      generated-events))
+	(if (overlay-start quail-overlay)
+	    (setq generated-events
+		  (append (quail-overlay-region-events quail-overlay)
+			  generated-events)))
 	generated-events)
 
     ;; Since KEY doesn't start any translation, just return it.
@@ -964,9 +965,10 @@ The returned value is a Quail map specific to KEY."
 	      ;; Let's return the event(s) to the caller.
 	      (setq generated-events events
 		    quail-converting nil))))
-	(setq generated-events
-	      (append (quail-overlay-region-events quail-conv-overlay)
-		      generated-events))
+	(if (overlay-start quail-conv-overlay)
+	    (setq generated-events
+		  (append (quail-overlay-region-events quail-conv-overlay)
+			  generated-events)))
 	generated-events)
 
     ;; Since KEY doesn't start any translation, just return it.
