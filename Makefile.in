@@ -696,7 +696,7 @@ maybe_bootstrap:
 	  $(MAKE) $(MFLAGS) bootstrap; \
 	fi
 
-bootstrap: boostrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean all info
+bootstrap: boostrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
 
 bootstrap-lisp-1:
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
