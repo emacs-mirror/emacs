@@ -7,7 +7,8 @@ AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
 lispdir='${datadir}/emacs/${version}/lisp'
-locallisppath='${datadir}/emacs/site-lisp:${datadir}/emacs/${version}/site-lisp"
+locallisppath='${datadir}/emacs/site-lisp:'\
+'${datadir}/emacs/${version}/site-lisp'
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${sharedstatedir}/emacs/lock'
@@ -177,7 +178,7 @@ case "${canonical}" in
   m68*-altos-sysv* )
     machine=altos opsys=usg5-2
   ;;
-    
+
   ## Amdahl UTS
   580-amdahl-sysv* )
     machine=amdahl opsys=usg5-2-2
@@ -285,7 +286,7 @@ case "${canonical}" in
       if test -s /etc/167config
       then CC="gnucc -m68040"
       else CC="gnucc -m68881"
-      fi 
+      fi
     else
       if test -z "`type gcc | grep 'not found'`"
       then CC=gcc
@@ -442,13 +443,13 @@ case "${canonical}" in
   ;;
   romp-ibm-bsd4.3* )
     machine=ibmrt opsys=bsd4-3
-  ;;	
+  ;;
   romp-ibm-bsd4.2* )
     machine=ibmrt opsys=bsd4-2
   ;;
   romp-ibm-aos4.3* )
     machine=ibmrt opsys=bsd4-3
-  ;;	
+  ;;
   romp-ibm-aos4.2* )
     machine=ibmrt opsys=bsd4-2
   ;;
@@ -750,7 +751,7 @@ case "${canonical}" in
   titan-titan-sysv* )
     machine=titan opsys=usg5-3
   ;;
-  
+
   ## Ustation E30 (SS5E)
   m68*-unisys-uniplus* )
     machine=ustation opsystem=unipl5-2
@@ -901,12 +902,12 @@ fi
 if test x$GCC = xyes && test "x$GCC_TEST_OPTIONS" != x
 then
   CC="$CC $GCC_TEST_OPTIONS"
-fi  
+fi
 
 if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
 then
   CC="$CC $NON_GCC_TEST_OPTIONS"
-fi  
+fi
 
 #### Some other nice autoconf tests.  If you add a test here which
 #### should make an entry in src/config.h, don't forget to add an
@@ -1017,9 +1018,9 @@ case "${window_system}" in
     HAVE_X_WINDOWS=yes
     HAVE_X11=yes
     case "${with_x_toolkit}" in
-      athena | lucid ) USE_X_TOOLKIT=LUCID ;;	
-      motif ) USE_X_TOOLKIT=MOTIF ;;	
-dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;	
+      athena | lucid ) USE_X_TOOLKIT=LUCID ;;
+      motif ) USE_X_TOOLKIT=MOTIF ;;
+dnl      open-look ) USE_X_TOOLKIT=OPEN_LOOK ;;
       * ) USE_X_TOOLKIT=none ;;
     esac
   ;;
