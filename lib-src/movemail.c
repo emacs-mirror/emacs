@@ -789,7 +789,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       mbx_delimit_begin (mbf);
       if (pop_retr (server, i, mbf) != OK)
 	{
-	  error (Errmsg, 0, 0);
+	  error ("%s", Errmsg, 0);
 	  close (mbfi);
 	  return EXIT_FAILURE;
 	}
