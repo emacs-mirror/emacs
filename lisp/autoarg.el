@@ -121,7 +121,7 @@ This is similar to \\[autoarg-mode] but rebinds the keypad keys `kp-1'
 &c to supply digit arguments.
 
 \\{autoarg-kp-mode-map}"
-  nil " Aakp" autoarg-kp-mode-map :global t
+  nil " Aakp" autoarg-kp-mode-map :global t :group 'keyboard
   (if autoarg-kp-mode
       (dotimes (i 10)
 	(let ((sym (intern (format "kp-%d" i))))
