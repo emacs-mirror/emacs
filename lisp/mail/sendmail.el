@@ -1237,10 +1237,19 @@ The seventh argument ACTIONS is a list of actions to take
 ;  (set-visited-file-name nil)
   (let (initialized)
     (and (not noerase)
-	 (or (not (buffer-modified-p))
-	     (if buffer-file-name
-		 (y-or-n-p "Buffer is modified; erase it and reinitialize? ")
-	       (y-or-n-p "Unsent message being composed; erase it? ")))
+	 (if buffer-file-name
+	     (if (buffer-modified-p)
+		 (when (y-or-n-p "Buffer has unsaved changes; reinitialize it and discard them? ")
+		   (if (y-or-n-p "Disconnect buffer from visited file? ")
+		       (set-visited-file-name nil))
+		   t)
+	       (when (y-or-n-p "Reinitialize buffer, and disconnect it from the visited file? ")
+		 (set-visited-file-name nil)
+		 t))
+	   ;; A non-file-visiting buffer.
+	   (if (buffer-modified-p)
+	       (y-or-n-p "Unsent message being composed; erase it? ")
+	     t))
 	 (let ((inhibit-read-only t))
 	   (erase-buffer)
 	   (mail-setup to subject in-reply-to cc replybuffer actions)
