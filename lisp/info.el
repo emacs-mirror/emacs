@@ -1536,14 +1536,14 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	  (error "No cross-reference named %s" footnotename))
       (goto-char (+ (match-beginning 0) 5))
       (setq target
-	    (Info-extract-menu-node-name "Bad format cross reference" t)))
+	    (Info-extract-menu-node-name t)))
     (while (setq i (string-match "[ \t\n]+" target i))
       (setq target (concat (substring target 0 i) " "
 			   (substring target (match-end 0))))
       (setq i (+ i 1)))
     (Info-goto-node target)))
 
-(defun Info-extract-menu-node-name (&optional errmessage multi-line)
+(defun Info-extract-menu-node-name (&optional multi-line)
   (skip-chars-forward " \t\n")
   (let ((beg (point))
 	str)
@@ -1567,6 +1567,9 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 (defvar Info-complete-next-re nil)
 (defvar Info-complete-cache nil)
 
+(defconst Info-node-spec-re "[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.]"
+  "Regexp to match the text after a : until the terminating `.'.")
+
 (defun Info-complete-menu-item (string predicate action)
   ;; This uses two dynamically bound variables:
   ;; - `Info-complete-menu-buffer' which contains the buffer in which
@@ -1587,7 +1590,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 	   (concat "\n\\* +" (regexp-quote string) ":") nil t)
 	(let ((pattern (concat "\n\\* +\\("
 			       (regexp-quote string)
-			       "[^\t\n]*\\):"))
+			       "[^\t\n]*?\\):" Info-node-spec-re))
 	      completions)
 	  ;; Check the cache.
 	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
@@ -2867,7 +2870,7 @@ the variable `Info-file-list-for-emacs'."
 		(setq other-tag
 		      (cond
 		       ((memq (char-before) '(nil ?\. ?! ))
-			"See "
+			"See ")
 		       ((memq (char-before) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
 			"see ")))
 		(goto-char next))
@@ -2911,7 +2914,10 @@ the variable `Info-file-list-for-emacs'."
 		   (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
 	  (let ((n 0)
 		cont)
-	    (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:.]\\([ \t]*\\)\\)" nil t)
+	    (while (re-search-forward (concat "^\\* +\\([^:\t\n]*\\)\\(:"
+					      Info-node-spec-re
+					      "\\([ \t]*\\)\\)")
+				      nil t)
 	      (setq n (1+ n))
 	      (if (zerop (% n 3))	; visual aids to help with 1-9 keys
 		  (put-text-property (match-beginning 0)
@@ -3129,6 +3135,7 @@ Optional THISFILE represends the filename of"
       (nreverse completions))))
 
 ;;; Info mode node listing
+;; FIXME: Seems not to be used.  -stef
 (defun Info-speedbar-buttons (buffer)
   "Create a speedbar display to help navigation in an Info file.
 BUFFER is the buffer speedbar is requesting buttons for."
