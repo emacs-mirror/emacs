@@ -19,6 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
+#include "lisp.h"
 
 /* Define these variables that serve as global parameters to termcap,
    so that we do not need to conditionalize the places in Emacs
@@ -57,7 +58,7 @@ tparam (string, outstring, len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, 
 
   temp = tparm (string, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
   if (outstring == 0)
-    outstring = ((char *) (malloc ((strlen (temp)) + 1)));
+    outstring = ((char *) (xmalloc ((strlen (temp)) + 1)));
   strcpy (outstring, temp);
   return outstring;
 }
