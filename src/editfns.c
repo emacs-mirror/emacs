@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "charset.h"
 #include "window.h"
 
 #include "systime.h"
@@ -114,33 +115,61 @@ init_editfns ()
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
-  "Convert arg CHARACTER to a one-character string containing that character.")
+  "Convert arg CHAR to a string containing multi-byte form of that character.")
   (character)
      Lisp_Object character;
 {
-  char c;
+  int len;
+  char workbuf[4], *str;
+
   CHECK_NUMBER (character, 0);
 
-  c = XINT (character);
-  return make_string (&c, 1);
+  len = CHAR_STRING (XFASTINT (character), workbuf, str);
+  return make_string (str, len);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-  "Convert arg STRING to a character, the first character of that string.")
+  "Convert arg STRING to a character, the first character of that string.\n\
+A multibyte character is handled correctly.")
   (string)
      register Lisp_Object string;
 {
   register Lisp_Object val;
   register struct Lisp_String *p;
   CHECK_STRING (string, 0);
-
   p = XSTRING (string);
   if (p->size)
-    XSETFASTINT (val, ((unsigned char *) p->data)[0]);
+    XSETFASTINT (val, STRING_CHAR (p->data, p->size));
   else
     XSETFASTINT (val, 0);
   return val;
 }
+
+DEFUN ("sref", Fsref, Ssref, 2, 2, 0,
+  "Return the character in STRING at INDEX.  INDEX starts at 0.\n\
+A multibyte character is handled correctly.\n\
+INDEX not pointing at character boundary is an error.")
+  (str, idx)
+     Lisp_Object str, idx;
+{
+  register int idxval, len;
+  register unsigned char *p;
+  register Lisp_Object val;
+
+  CHECK_STRING (str, 0);
+  CHECK_NUMBER (idx, 1);
+  idxval = XINT (idx);
+  if (idxval < 0 || idxval >= (len = XVECTOR (str)->size))
+    args_out_of_range (str, idx);
+  p = XSTRING (str)->data + idxval;
+  if (!CHAR_HEAD_P (p))
+    error ("Not character boundary");
+
+  len = XSTRING (str)->size - idxval;
+  XSETFASTINT (val, STRING_CHAR (p, len));
+  return val;
+}
+
 
 static Lisp_Object
 buildmark (val)
@@ -183,13 +212,41 @@ clip_to_bounds (lower, num, upper)
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
   "Set point to POSITION, a number or marker.\n\
-Beginning of buffer is position (point-min), end is (point-max).")
+Beginning of buffer is position (point-min), end is (point-max).\n\
+If the position is in the middle of a multibyte form,\n\
+the actual point is set at the head of the multibyte form\n\
+except in the case that `enable-multibyte-characters' is nil.")
   (position)
      register Lisp_Object position;
 {
+  int pos;
+  unsigned char *p;
+
   CHECK_NUMBER_COERCE_MARKER (position, 0);
 
-  SET_PT (clip_to_bounds (BEGV, XINT (position), ZV));
+  pos = clip_to_bounds (BEGV, XINT (position), ZV);
+  /* If POS is in a middle of multi-byte form (i.e. *P >= 0xA0), we
+     must decrement POS until it points the head of the multi-byte
+     form.  */
+  if (!NILP (current_buffer->enable_multibyte_characters)
+      && *(p = POS_ADDR (pos)) >= 0xA0
+      && pos > BEGV)
+    {
+      /* Since a multi-byte form does not contain the gap, POS should
+         not stride over the gap while it is being decreased.  So, we
+         set the limit as below.  */
+      unsigned char *p_min = pos < GPT ? BEG_ADDR : GAP_END_ADDR;
+      unsigned int saved_pos = pos;
+
+      do {
+	p--, pos--;
+      } while (p > p_min && *p >= 0xA0);
+      if (*p < 0x80)
+	/* This was an invalid multi-byte form.  */
+	pos = saved_pos;
+      XSETFASTINT (position, pos);
+    }
+  SET_PT (pos);
   return position;
 }
 
@@ -426,7 +483,10 @@ is in effect, in which case it is less.")
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
   "Return the character following point, as a number.\n\
-At the end of the buffer or accessible region, return 0.")
+At the end of the buffer or accessible region, return 0.\n\
+If `enable-multibyte-characters' is nil or point is not\n\
+ at character boundary,  multibyte form is ignored,\n\
+ and only one byte following point is returned as a character.")
   ()
 {
   Lisp_Object temp;
@@ -439,14 +499,23 @@ At the end of the buffer or accessible region, return 0.")
 
 DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
   "Return the character preceding point, as a number.\n\
-At the beginning of the buffer or accessible region, return 0.")
+At the beginning of the buffer or accessible region, return 0.\n\
+If `enable-multibyte-characters' is nil or point is not\n\
+ at character boundary, multi-byte form is ignored,\n\
+ and only one byte preceding point is returned as a character.")
   ()
 {
   Lisp_Object temp;
   if (PT <= BEGV)
     XSETFASTINT (temp, 0);
+  else if (!NILP (current_buffer->enable_multibyte_characters))
+    {
+      int pos = PT;
+      DEC_POS (pos);
+      XSETFASTINT (temp, FETCH_CHAR (pos));
+    }
   else
-    XSETFASTINT (temp, FETCH_CHAR (PT - 1));
+    XSETFASTINT (temp, FETCH_BYTE (point - 1));
   return temp;
 }
 
@@ -474,7 +543,7 @@ DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
   "Return T if point is at the beginning of a line.")
   ()
 {
-  if (PT == BEGV || FETCH_CHAR (PT - 1) == '\n')
+  if (PT == BEGV || FETCH_BYTE (PT - 1) == '\n')
     return Qt;
   return Qnil;
 }
@@ -484,7 +553,7 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 `End of a line' includes point being at the end of the buffer.")
   ()
 {
-  if (PT == ZV || FETCH_CHAR (PT) == '\n')
+  if (PT == ZV || FETCH_BYTE (PT) == '\n')
     return Qt;
   return Qnil;
 }
@@ -492,7 +561,10 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 DEFUN ("char-after", Fchar_after, Schar_after, 1, 1, 0,
   "Return character in current buffer at position POS.\n\
 POS is an integer or a buffer pointer.\n\
-If POS is out of range, the value is nil.")
+If POS is out of range, the value is nil.\n\
+If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
+ multi-byte form is ignored, and only one byte at POS\n\
+ is returned as a character.")
   (pos)
      Lisp_Object pos;
 {
@@ -506,6 +578,37 @@ If POS is out of range, the value is nil.")
 
   XSETFASTINT (val, FETCH_CHAR (n));
   return val;
+}
+
+DEFUN ("char-before", Fchar_before, Schar_before, 1, 1, 0,
+  "Return character in current buffer preceding position POS.\n\
+POS is an integer or a buffer pointer.\n\
+If POS is out of range, the value is nil.\n\
+If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
+multi-byte form is ignored, and only one byte preceding POS\n\
+is returned as a character.")
+  (pos)
+     Lisp_Object pos;
+{
+  register Lisp_Object val;
+  register int n;
+
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  n = XINT (pos);
+  if (n <= BEGV || n > ZV) return Qnil;
+
+  if (!NILP (current_buffer->enable_multibyte_characters))
+    {
+      DEC_POS (pos);
+      XSETFASTINT (val, FETCH_CHAR (pos));
+    }
+  else
+    {
+      pos--;
+      XSETFASTINT (val, FETCH_BYTE (pos));
+    }
+   return val;
 }
 
 DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
@@ -1114,6 +1217,47 @@ set_time_zone_rule (tzstring)
 #endif
 }
 
+/* Insert NARGS Lisp objects in the array ARGS by calling INSERT_FUNC
+   (if a type of object is Lisp_Int) or INSERT_FROM_STRING_FUNC (if a
+   type of object is Lisp_String).  INHERIT is passed to
+   INSERT_FROM_STRING_FUNC as the last argument.  */
+
+general_insert_function (insert_func, insert_from_string_func,
+			 inherit, nargs, args)
+     int (*insert_func)(), (*insert_from_string_func)();
+     int inherit, nargs;
+     register Lisp_Object *args;
+{
+  register int argnum;
+  register Lisp_Object val;
+
+  for (argnum = 0; argnum < nargs; argnum++)
+    {
+      val = args[argnum];
+    retry:
+      if (INTEGERP (val))
+	{
+	  char workbuf[4], *str;
+	  int len;
+
+	  if (!NILP (current_buffer->enable_multibyte_characters))
+	    len = CHAR_STRING (XFASTINT (val), workbuf, str);
+	  else
+	    workbuf[0] = XINT (val), str = workbuf, len = 1;
+	  (*insert_func) (str, len);
+	}
+      else if (STRINGP (val))
+	{
+	  (*insert_from_string_func) (val, 0, XSTRING (val)->size, inherit);
+	}
+      else
+	{
+	  val = wrong_type_argument (Qchar_or_string_p, val);
+	  goto retry;
+	}
+    }
+}
+
 void
 insert1 (arg)
      Lisp_Object arg;
@@ -1129,107 +1273,44 @@ insert1 (arg)
 
 DEFUN ("insert", Finsert, Sinsert, 0, MANY, 0,
   "Insert the arguments, either strings or characters, at point.\n\
-Point moves forward so that it ends up after the inserted text.\n\
+Point and before-insertion-markers move forward so that it ends up\n\
+ after the inserted text.\n\
 Any other markers at the point of insertion remain before the text.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
-  register int argnum;
-  register Lisp_Object tem;
-  char str[1];
-
-  for (argnum = 0; argnum < nargs; argnum++)
-    {
-      tem = args[argnum];
-    retry:
-      if (INTEGERP (tem))
-	{
-	  str[0] = XINT (tem);
-	  insert (str, 1);
-	}
-      else if (STRINGP (tem))
-	{
-	  insert_from_string (tem, 0, XSTRING (tem)->size, 0);
-	}
-      else
-	{
-	  tem = wrong_type_argument (Qchar_or_string_p, tem);
-	  goto retry;
-	}
-    }
-
+  general_insert_function (insert, insert_from_string, 0, nargs, args);
   return Qnil;
 }
 
 DEFUN ("insert-and-inherit", Finsert_and_inherit, Sinsert_and_inherit,
    0, MANY, 0,
   "Insert the arguments at point, inheriting properties from adjoining text.\n\
-Point moves forward so that it ends up after the inserted text.\n\
+Point and before-insertion-markers move forward so that it ends up\n\
+ after the inserted text.\n\
 Any other markers at the point of insertion remain before the text.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
-  register int argnum;
-  register Lisp_Object tem;
-  char str[1];
-
-  for (argnum = 0; argnum < nargs; argnum++)
-    {
-      tem = args[argnum];
-    retry:
-      if (INTEGERP (tem))
-	{
-	  str[0] = XINT (tem);
-	  insert_and_inherit (str, 1);
-	}
-      else if (STRINGP (tem))
-	{
-	  insert_from_string (tem, 0, XSTRING (tem)->size, 1);
-	}
-      else
-	{
-	  tem = wrong_type_argument (Qchar_or_string_p, tem);
-	  goto retry;
-	}
-    }
-
+  general_insert_function (insert_and_inherit, insert_from_string, 1,
+			   nargs, args);
   return Qnil;
 }
 
 DEFUN ("insert-before-markers", Finsert_before_markers, Sinsert_before_markers, 0, MANY, 0,
   "Insert strings or characters at point, relocating markers after the text.\n\
-Point moves forward so that it ends up after the inserted text.\n\
+Point and before-insertion-markers move forward so that it ends up\n\
+ after the inserted text.\n\
 Any other markers at the point of insertion also end up after the text.")
   (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
-  register int argnum;
-  register Lisp_Object tem;
-  char str[1];
-
-  for (argnum = 0; argnum < nargs; argnum++)
-    {
-      tem = args[argnum];
-    retry:
-      if (INTEGERP (tem))
-	{
-	  str[0] = XINT (tem);
-	  insert_before_markers (str, 1);
-	}
-      else if (STRINGP (tem))
-	{
-	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 0);
-	}
-      else
-	{
-	  tem = wrong_type_argument (Qchar_or_string_p, tem);
-	  goto retry;
-	}
-    }
-
+  general_insert_function (insert_before_markers,
+			   insert_from_string_before_markers, 0,
+			   nargs, args);
   return Qnil;
 }
 
@@ -1242,36 +1323,15 @@ Any other markers at the point of insertion also end up after the text.")
      int nargs;
      register Lisp_Object *args;
 {
-  register int argnum;
-  register Lisp_Object tem;
-  char str[1];
-
-  for (argnum = 0; argnum < nargs; argnum++)
-    {
-      tem = args[argnum];
-    retry:
-      if (INTEGERP (tem))
-	{
-	  str[0] = XINT (tem);
-	  insert_before_markers_and_inherit (str, 1);
-	}
-      else if (STRINGP (tem))
-	{
-	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 1);
-	}
-      else
-	{
-	  tem = wrong_type_argument (Qchar_or_string_p, tem);
-	  goto retry;
-	}
-    }
-
+  general_insert_function (insert_before_markers_and_inherit,
+			   insert_from_string_before_markers, 1,
+			   nargs, args);
   return Qnil;
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
   "Insert COUNT (second arg) copies of CHARACTER (first arg).\n\
-Point and all markers are affected as in the function `insert'.\n\
+Point and before-insertion-markers are affected as in the function `insert'.\n\
 Both arguments are required.\n\
 The optional third arg INHERIT, if non-nil, says to inherit text properties\n\
 from adjoining text, if those properties are sticky.")
@@ -1281,17 +1341,23 @@ from adjoining text, if those properties are sticky.")
   register unsigned char *string;
   register int strlen;
   register int i, n;
+  int len;
+  unsigned char workbuf[4], *str;
 
   CHECK_NUMBER (character, 0);
   CHECK_NUMBER (count, 1);
 
-  n = XINT (count);
+  if (!NILP (current_buffer->enable_multibyte_characters))
+    len = CHAR_STRING (XFASTINT (character), workbuf, str);
+  else
+    workbuf[0] = XFASTINT (character), str = workbuf, len = 1;
+  n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
-  strlen = min (n, 256);
+  strlen = min (n, 256 * len);
   string = (unsigned char *) alloca (strlen);
   for (i = 0; i < strlen; i++)
-    string[i] = XFASTINT (character);
+    string[i] = str[i % len];
   while (n >= strlen)
     {
       if (!NILP (inherit))
@@ -1337,7 +1403,7 @@ make_buffer_string (start, end, props)
     move_gap (start);
 
   result = make_uninit_string (end - start);
-  bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
+  bcopy (POS_ADDR (start), XSTRING (result)->data, end - start);
 
   /* If desired, update and copy the text properties.  */
 #ifdef USE_TEXT_PROPERTIES
@@ -1627,21 +1693,35 @@ DEFUN ("subst-char-in-region", Fsubst_char_in_region,
   Ssubst_char_in_region, 4, 5, 0,
   "From START to END, replace FROMCHAR with TOCHAR each time it occurs.\n\
 If optional arg NOUNDO is non-nil, don't record this change for undo\n\
-and don't mark the buffer as really changed.")
+and don't mark the buffer as really changed.\n\
+Both characters must have the same length of multi-byte form.")
   (start, end, fromchar, tochar, noundo)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
-  register int pos, stop, look;
+  register int pos, stop, i, len;
   int changed = 0;
+  unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
   int count = specpdl_ptr - specpdl;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
   CHECK_NUMBER (tochar, 3);
 
+  if (! NILP (current_buffer->enable_multibyte_characters))
+    {
+      len = CHAR_STRING (XFASTINT (fromchar), fromwork, fromstr);
+      if (CHAR_STRING (XFASTINT (tochar), towork, tostr) != len)
+	error ("Characters in subst-char-in-region have different byte-lengths");
+    }
+  else
+    {
+      len = 1;
+      fromwork[0] = XFASTINT (fromchar), fromstr = fromwork;
+      towork[0] = XFASTINT (tochar), tostr = towork;
+    }
+
   pos = XINT (start);
   stop = XINT (end);
-  look = XINT (fromchar);
 
   /* If we don't want undo, turn off putting stuff on the list.
      That's faster than getting rid of things,
@@ -1658,13 +1738,26 @@ and don't mark the buffer as really changed.")
       current_buffer->filename = Qnil;
     }
 
-  while (pos < stop)
+  if (pos < GPT)
+    stop = min(stop, GPT);
+  p = POS_ADDR (pos);
+  while (1)
     {
-      if (FETCH_CHAR (pos) == look)
+      if (pos >= stop)
+	{
+	  if (pos >= XINT (end)) break;
+	  stop = XINT (end);
+	  p = POS_ADDR (pos);
+	}
+      if (p[0] == fromstr[0]
+	  && (len == 1
+	      || (p[1] == fromstr[1]
+		  && (len == 2 || (p[2] == fromstr[2]
+				 && (len == 3 || p[3] == fromstr[3]))))))
 	{
 	  if (! changed)
 	    {
-	      modify_region (current_buffer, XINT (start), stop);
+	      modify_region (current_buffer, XINT (start), XINT (end));
 
 	      if (! NILP (noundo))
 		{
@@ -1674,14 +1767,16 @@ and don't mark the buffer as really changed.")
 		    current_buffer->auto_save_modified++;
 		}
 
- 	      changed = 1;
+	      changed = 1;
 	    }
 
 	  if (NILP (noundo))
-	    record_change (pos, 1);
-	  FETCH_CHAR (pos) = XINT (tochar);
+	    record_change (pos, len);
+	  for (i = 0; i < len; i++) *p++ = tostr[i];
+	  pos += len;
 	}
-      pos++;
+      else
+	pos++, p++;
     }
 
   if (changed)
@@ -1722,14 +1817,14 @@ for the character with code N.  Returns the number of characters changed.")
   cnt = 0;
   for (; pos < stop; ++pos)
     {
-      oc = FETCH_CHAR (pos);
+      oc = FETCH_BYTE (pos);
       if (oc < size)
 	{
 	  nc = tt[oc];
 	  if (nc != oc)
 	    {
 	      record_change (pos, 1);
-	      FETCH_CHAR (pos) = nc;
+	      *(POS_ADDR (pos)) = nc;
 	      signal_after_change (pos, 1, 1);
 	      ++cnt;
 	    }
@@ -2200,7 +2295,10 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
   CHECK_NUMBER (c1, 0);
   CHECK_NUMBER (c2, 1);
 
-  if (!NILP (current_buffer->case_fold_search)
+  if ((!NILP (current_buffer->case_fold_search)
+       && SINGLE_BYTE_CHAR_P (c1) /* For the moment, downcase table is */
+       && SINGLE_BYTE_CHAR_P (c2) /* implemented only for ASCII characters.  */
+       )
       ? ((XINT (downcase[0xff & XFASTINT (c1)])
 	  == XINT (downcase[0xff & XFASTINT (c2)]))
 	 && (XFASTINT (c1) & ~0xff) == (XFASTINT (c2) & ~0xff))
@@ -2591,6 +2689,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
   defsubr (&Schar_to_string);
+  defsubr (&Ssref);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);
@@ -2621,6 +2720,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Sfollowing_char);
   defsubr (&Sprevious_char);
   defsubr (&Schar_after);
+  defsubr (&Schar_before);
   defsubr (&Sinsert);
   defsubr (&Sinsert_before_markers);
   defsubr (&Sinsert_and_inherit);
