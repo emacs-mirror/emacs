@@ -123,9 +123,6 @@
 (define-key menu-bar-files-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-files-menu [open-file] '("Open File..." . find-file))
 
-;; This is just one element of the ediff menu--the first.
-(define-key menu-bar-ediff-menu [window]
-  '("This Window And Next Window" . compare-windows))
 
 (defun nonincremental-search-forward (string)
   "Read a string and search for it nonincrementally."
