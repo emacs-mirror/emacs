@@ -41,13 +41,13 @@ Boston, MA 02111-1307, USA.  */
    it is safe to use SIGIO.  */
 #ifndef NOT_C_CODE
 #ifdef emacs
-#ifdef HAVE_VERSION_H
+#ifdef HAVE_LINUX_VERSION_H
 #include <linux/version.h>
 
 #if LINUX_VERSION_CODE > 0x10200
 #define LINUX_SIGIO_DOES_WORK
 #endif /* LINUX_VERSION_CODE > 0x10200 */
-#endif /* HAVE_VERSION_H */
+#endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
 #endif /* NOT_C_CODE */
 
