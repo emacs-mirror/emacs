@@ -1,3 +1,7 @@
+2000-09-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* keymap.c: Remove the line "#undef NULL".
+
 2000-09-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_make_frame_visible): Try harder to make the frame
