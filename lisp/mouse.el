@@ -743,7 +743,7 @@ remains active.  Otherwise, it remains until the next input event."
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)
 		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
-      
+
       ;; In case we did not get a mouse-motion event
       ;; for the final move of the mouse before a drag event
       ;; pretend that we did get one.
@@ -1860,7 +1860,7 @@ and selects that window."
 ;;;!! ;;	       (abs-x (car pos))
 ;;;!! ;;	       (abs-y (cdr pos))
 ;;;!! ;;	       (relative-coordinate
-;;;!! ;;		(coordinates-in-window-p (` ((, abs-x) (, abs-y)))
+;;;!! ;;		(coordinates-in-window-p `(,abs-x ,abs-y)
 ;;;!! ;;					 (selected-window)))
 ;;;!! ;;	       (begin-reg nil)
 ;;;!! ;;	       (end-reg nil)
