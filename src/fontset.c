@@ -1234,7 +1234,7 @@ The value is a list:\n\
 where,\n\
   FONTSET-NAME is a full name of the fontset.\n\
   CHARSET-OR-RANGE is a charset, a character (may be a generic character)\n\ 
-    or a cons of two characters specifying the range of characters.\n\ 
+    or a cons of two characters specifying the range of characters.\n\
   FONT-SPEC is a fontname pattern string or a cons (FAMILY . REGISTRY),\n\
     where FAMILY is a `FAMILY' field of a XLFD font name,\n\
     REGISTRY is a `CHARSET_REGISTRY' field of a XLDF font name.\n\
