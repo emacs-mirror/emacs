@@ -209,11 +209,13 @@ Default value, nil, means edit the string instead."
     (let* ((i 0)
 	   (map (make-keymap)))
       (or (vectorp (nth 1 map))
+	  (char-table-p (nth 1 map))
 	  (error "The initialization of isearch-mode-map must be updated"))
-      ;; Give this map a vector 256 long, for dense binding
-      ;; of a larger range of ordinary characters.
-      (setcar (cdr map) (make-vector 256 nil))
-
+      ;; Make Latin-1, Latin-2 and Latin-3 characters
+      ;; search for themselves.
+      (set-char-table-range (nth 1 map) [129] 'isearch-printing-char)
+      (set-char-table-range (nth 1 map) [130] 'isearch-printing-char)
+      (set-char-table-range (nth 1 map) [131] 'isearch-printing-char)
       ;; Make function keys, etc, exit the search.
       (define-key map [t] 'isearch-other-control-char)
       ;; Control chars, by default, end isearch mode transparently.
