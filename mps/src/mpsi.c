@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.41) $
+ * $HopeName: MMsrc!mpsi.c(trunk.42) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.41) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.42) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -346,12 +346,51 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
   res = FormatCreate(&format,
                      arena,
                      (Align)mps_fmt_A->align,
+		     FormatVarietyA,
                      (FormatScanMethod)mps_fmt_A->scan,
                      (FormatSkipMethod)mps_fmt_A->skip,
                      (FormatMoveMethod)mps_fmt_A->fwd,
                      (FormatIsMovedMethod)mps_fmt_A->isfwd,
                      (FormatCopyMethod)mps_fmt_A->copy,
-                     (FormatPadMethod)mps_fmt_A->pad);
+                     (FormatPadMethod)mps_fmt_A->pad,
+		     NULL);
+
+  ArenaLeave(arena);
+
+  if(res != ResOK) return res;
+  *mps_fmt_o = (mps_fmt_t)format;
+  return MPS_RES_OK;
+}
+
+/* mps_fmt_create_B -- create an object format of variant B
+ *
+ * .fmt.create.B.purpose: This function converts an object format
+ * spec of variant "B" into an MPM Format object. 
+ */ 
+
+mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
+                           mps_arena_t mps_arena,
+                           mps_fmt_B_t mps_fmt_B)
+{
+  Arena arena = (Arena)mps_arena;
+  Format format;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_fmt_B != NULL);
+
+  res = FormatCreate(&format,
+                     arena,
+		     FormatVarietyB,
+                     (Align)mps_fmt_B->align,
+                     (FormatScanMethod)mps_fmt_B->scan,
+                     (FormatSkipMethod)mps_fmt_B->skip,
+                     (FormatMoveMethod)mps_fmt_B->fwd,
+                     (FormatIsMovedMethod)mps_fmt_B->isfwd,
+                     (FormatCopyMethod)mps_fmt_B->copy,
+                     (FormatPadMethod)mps_fmt_B->pad,
+		     (FormatClassMethod)mps_fmt_B->class);
 
   ArenaLeave(arena);
 

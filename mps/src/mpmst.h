@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.46) $
+ * $HopeName: MMsrc!mpmst.h(trunk.47) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -318,6 +318,7 @@ typedef struct BufferStruct {
 typedef struct FormatStruct {
   Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from arena->formatSerial */
+  FormatVariety variety;        /* format variety (e.g. A) */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* formats are attached to the arena */
   Align alignment;              /* alignment of formatted objects */
@@ -327,6 +328,7 @@ typedef struct FormatStruct {
   FormatIsMovedMethod isMoved;
   FormatCopyMethod copy;
   FormatPadMethod pad;
+  FormatClassMethod class;      /* pointer indicating class */
 } FormatStruct;
 
 

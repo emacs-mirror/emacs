@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.33) $
+ * $HopeName: MMsrc!mps.h(trunk.34) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -116,6 +116,7 @@ typedef void (*mps_fmt_copy_t)(mps_addr_t, mps_addr_t);
 typedef void (*mps_fmt_fwd_t)(mps_addr_t, mps_addr_t);
 typedef mps_addr_t (*mps_fmt_isfwd_t)(mps_addr_t);
 typedef void (*mps_fmt_pad_t)(mps_addr_t, size_t);
+typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 
 
 /* Scan State */
@@ -139,6 +140,18 @@ typedef struct mps_fmt_A_s {
   mps_fmt_isfwd_t isfwd;
   mps_fmt_pad_t   pad;
 } mps_fmt_A_s;
+
+typedef struct mps_fmt_B_s *mps_fmt_B_t;
+typedef struct mps_fmt_B_s {
+  mps_align_t     align;
+  mps_fmt_scan_t  scan;
+  mps_fmt_skip_t  skip;
+  mps_fmt_copy_t  copy;
+  mps_fmt_fwd_t   fwd;
+  mps_fmt_isfwd_t isfwd;
+  mps_fmt_pad_t   pad;
+  mps_fmt_class_t class;
+} mps_fmt_B_s;
 
 
 /* Internal Definitions */
@@ -196,6 +209,8 @@ extern mps_res_t mps_arena_retract(mps_arena_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_A_t);
+extern mps_res_t mps_fmt_create_B(mps_fmt_t *, mps_arena_t,
+                                  mps_fmt_B_t);
 extern void mps_fmt_destroy(mps_fmt_t);
 
 
