@@ -1,5 +1,8 @@
 2000-10-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* files.el (set-auto-mode): Ignore unknown -*- mode -*- rather than
+	raise an error.  This way it can still defaults to a sane value.
+
 	* startup.el (fancy-splash-screens): Use local rather than global map.
 	Don't use `update-menu-bindings' any more.
 	Get rid of assumptions about keymap representation.
@@ -38,8 +41,8 @@
 	(tex-font-lock-keywords-1): Remove.
 	(font-lock-turn-on-thing-lock): Use jit-lock-register.
 	(font-lock-turn-off-thing-lock): Use jit-lock-unregister.
-	(font-lock-default-fontify-region): Expand beg..end correctly
-	when just following a multiline region.
+	(font-lock-default-fontify-region):
+	Expand beg..end correctly when just following a multiline region.
 	(font-lock-fontify-anchored-keywords):
 	Include the anchor text as part of the multiline.
 
