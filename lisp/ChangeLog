@@ -1,3 +1,12 @@
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-settings-file): Change default value.
+	Suggested by cgw in a comment in calc-mode.el.
+
+	* calc/calc-mode.el (calc-settings-file-name):
+	Compare calc-settings-file to user-init-file instead of ~/.emacs.
+	Replace ~/.emacs in a prompt by calc-settings-file.
+
 2005-01-07  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-restore-eager, desktop-lazy-verbose,
