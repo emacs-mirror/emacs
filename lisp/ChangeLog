@@ -1,3 +1,39 @@
+2001-11-14  Colin Walters  <walters@verbum.org>
+
+	* calc/calc-alg.el (calcFunc-esimplify, calcFunc-simplify)
+	(calcFunc-subst): Use `defalias' instead of `fset' and
+	`symbol-function'.
+
+	* calc/calc-arith.el (calcFunc-abs, calcFunc-float)
+	(calcFunc-ceil, calcFunc-round): Ditto.
+
+	* calc/calc-bin.el (calcFunc-clip): Ditto.
+	
+	* calc/calc-ext.el (calcFunc-evalv): Ditto.
+	
+	* calc/calc-math.el (calcFunc-sqrt, calcFunc-hypot): Ditto.
+	
+	* calc/calc-misc.el (math-fixnump, math-fixnatnump)
+	(calcFunc-trunc, calcFunc-floor, calc-report-bug): Ditto.
+
+	* calc/calc-units.el (calcFunc-unsimplify): Ditto.
+	
+	* calc-aent.el, calc-ext.el, calc-incom.el, calc-misc.el
+	* calc-sel.el, calc-vec.el, calc-alg.el, calc-fin.el
+	* calc-keypd.el, calc-mode.el, calc-stat.el, calc-yank.el
+	* calc-arith.el, calc-forms.el, calc-lang.el, calc-mtx.el
+	* calc-store.el, calc.el, calc-bin.el, calc-frac.el, calc-macs.el
+	* calc-poly.el, calc-stuff.el, calcalg2.el, calc-comb.el
+	* calc-funcs.el, calc-maint.el, calc-prog.el, calc-trail.el
+	* calcalg3.el, calc-cplx.el, calc-graph.el, calc-map.el
+	* calc-rewr.el, calc-undo.el, calccomp.el, calc-embed.el
+	* calc-help.el, calc-math.el, calc-rules.el, calc-units.el
+	* calcsel2.el: Style cleanup; don't put closing parens on their
+	own line, add "foo.el ends here" to each file, and update
+	copyright date.
+
+	* README: Update maintainer.
+
 2001-11-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse.el (mouse-drag-region): Don't run the up-event 
