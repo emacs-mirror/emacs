@@ -4082,21 +4082,21 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
    event type as a number or a symbol.  */
 
 DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
-  "Convert the event description LIST to an event type.\n\
-LIST should contain one base event type (a character or symbol)\n\
+  "Convert the event description list EVENT-DESC to an event type.\n\
+EVENT-DESC should contain one base event type (a character or symbol)\n\
 and zero or more modifier names (control, meta, hyper, super, shift, alt,\n\
 drag, down, double or triple).\n\
 The return value is an event type (a character or symbol) which\n\
 has the same base event type and all the specified modifiers.")
-  (event)
-     Lisp_Object event;
+  (event_desc)
+     Lisp_Object event_desc;
 {
   Lisp_Object base;
   int modifiers = 0;
   Lisp_Object rest;
 
   base = Qnil;
-  rest = event;
+  rest = event_desc;
   while (CONSP (rest))
     {
       Lisp_Object elt;
@@ -6375,8 +6375,8 @@ means unconditionally put this command in `command-history'.\n\
 Otherwise, that is done only if an arg is read using the minibuffer.\n\
 The argument KEYS specifies the value to use instead of (this-command-keys)\n\
 when reading the arguments; if it is nil, (this_command_key_count) is used.")
-     (cmd, record, keys)
-     Lisp_Object cmd, record, keys;
+     (cmd, record_flag, keys)
+     Lisp_Object cmd, record_flag, keys;
 {
   register Lisp_Object final;
   register Lisp_Object tem;
@@ -6415,7 +6415,7 @@ when reading the arguments; if it is nil, (this_command_key_count) is used.")
       /* If requested, place the macro in the command history.  For
 	 other sorts of commands, call-interactively takes care of
 	 this.  */
-      if (!NILP (record))
+      if (!NILP (record_flag))
 	Vcommand_history
 	  = Fcons (Fcons (Qexecute_kbd_macro,
 			  Fcons (final, Fcons (prefixarg, Qnil))),
@@ -6432,7 +6432,7 @@ when reading the arguments; if it is nil, (this_command_key_count) is used.")
       backtrace.nargs = 1;
       backtrace.evalargs = 0;
 
-      tem = Fcall_interactively (cmd, record, keys);
+      tem = Fcall_interactively (cmd, record_flag, keys);
 
       backtrace_list = backtrace.next;
       return tem;
