@@ -1701,9 +1701,12 @@ IDX starts at 0.")
 		array = val;
 	      else
 		/* VAL is a leaf.  Create a sub char table with the
-		   default value VAL here and look into it.  */
+		   default value VAL or XCHAR_TABLE (array)->defalt
+		   and look into it.  */
 		array = (XCHAR_TABLE (array)->contents[code[i]]
-			 = make_sub_char_table (val));
+			 = make_sub_char_table (NILP (val)
+						? XCHAR_TABLE (array)->defalt
+						: val));
 	    }
 	  XCHAR_TABLE (array)->contents[code[i]] = newelt;
 	}
