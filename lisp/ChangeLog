@@ -1,3 +1,13 @@
+2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tar-mode.el (tar-extract): Call generate-new-buffer-name to
+	create a buffer for extracted file, in case there's more than one
+	file by that name in an archive, possibly in different
+	directories.  From Kevin Rodgers <kevinr@ihs.com>.
+
+	* format.el (format-alist): Doc fix.  Suggested by Alex Schroeder
+	<alex@gnu.org>.
+
 2001-06-15  Miles Bader  <miles@gnu.org>
 
 	* textmodes/texinfmt.el (texinfo-format-syntax-table): Revert
