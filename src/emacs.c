@@ -255,6 +255,7 @@ Display options:\n\
 --iconic			start Emacs in iconified state\n\
 --icon-type, -i			use picture of gnu for Emacs icon\n\
 --internal-border, -ib WIDTH	width between text and main border\n\
+--line-spacing, -lsp PIXELS	additional space to put between lines\n\
 --mouse-color, -ms COLOR 	mouse cursor color in Emacs window\n\
 --name NAME			title of main Emacs window\n\
 --reverse-video, -r, -rv	switch foreground and background\n\
