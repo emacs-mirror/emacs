@@ -118,6 +118,12 @@ Add an entry in this list if you need to override the normal comment-start
 and comment-end variables.  This will only be necessary if the mode language
 is sensitive to blank lines.")
 
+;; Default is to be extra careful for super-user.
+(defvar vc-checkout-carefully (= (user-uid) 0)
+  "*Non-nil means be extra-careful in checkout.
+Verify that the file really is not locked
+and that its contents match what the master file says.")
+
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
@@ -327,12 +333,12 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 
 (defun vc-buffer-sync ()
   ;; Make sure the current buffer and its working file are in sync
-  (if (and (buffer-modified-p)
-	   (or
-	    vc-suppress-confirm
-	    (y-or-n-p (format "%s has been modified.  Write it out? "
-			      (buffer-name)))))
-      (save-buffer)))
+  (if (buffer-modified-p)
+      (progn
+	(or vc-suppress-confirm
+	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name)))
+	    (error "Aborted"))
+	(save-buffer))))
 
 (defun vc-workfile-unchanged-p (file)
   ;; Has the given workfile changed since last checkout?
@@ -365,7 +371,26 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 
      ;; if there is no lock on the file, assert one and get it
      ((not (setq owner (vc-locking-user file)))
-      (vc-checkout-writable-buffer file))
+      (if (and vc-checkout-carefully
+	       (not (vc-workfile-unchanged-p file))
+	       (not (zerop (vc-backend-diff file nil))))
+	  (if (save-window-excursion
+		(pop-to-buffer "*vc*")
+		(goto-char (point-min))
+		(insert-string (format "Changes to %s since last lock:\n\n"
+				       file))
+		(not (beep))
+		(yes-or-no-p
+		      (concat "File has unlocked changes, "
+		       "claim lock retaining changes? ")))
+	      (progn (vc-backend-steal file)
+		     (vc-mode-line file))
+	    (if (not (yes-or-no-p "Revert to checked-in version, instead? "))
+		(error "Checkout aborted.")
+	      (vc-revert-buffer1 t t)
+	      (vc-checkout-writable-buffer file))
+	    )
+	(vc-checkout-writable-buffer file)))
 
      ;; a checked-out version exists, but the user may not own the lock
      ((not (string-equal owner (user-login-name)))
@@ -441,7 +466,9 @@ it will operate on the file in the current line.
 files are marked, it will accept a log message and then operate on
 each one.  The log message will be used as a comment for any register
 or checkin operations, but ignored when doing checkouts.  Attempted
-lock steals will raise an error."
+lock steals will raise an error.
+
+   For checkin, a prefix argument lets you specify the version number to use."
   (interactive "P")
   (catch 'nogo
     (if vc-dired-mode
