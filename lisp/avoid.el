@@ -95,6 +95,7 @@ Only applies in mouse-avoidance-modes `animate' and `jump'.")
 (defvar mouse-avoidance-state nil)
 (defvar mouse-avoidance-pointer-shapes nil)
 (defvar mouse-avoidance-n-pointer-shapes 0)
+(defvar mouse-avoidance-old-pointer-shape nil)
 
 ;;; Functions:
 
@@ -323,6 +324,12 @@ definition of \"random distance\".)"
   (remove-hook 'post-command-idle-hook 'mouse-avoidance-banish-hook)
   (remove-hook 'post-command-idle-hook 'mouse-avoidance-exile-hook)
   (remove-hook 'post-command-idle-hook 'mouse-avoidance-fancy-hook)
+
+  ;; Restore pointer shape if necessary
+  (if (eq mouse-avoidance-mode 'proteus)
+      (mouse-avoidance-set-pointer-shape mouse-avoidance-old-pointer-shape))
+
+  ;; Do additional setup depending on version of mode requested
   (cond	((eq mode 'none)
 	 (setq mouse-avoidance-mode nil))
 	((or (eq mode 'jump)
@@ -330,7 +337,8 @@ definition of \"random distance\".)"
 	     (eq mode 'proteus))
 	 (add-hook 'post-command-idle-hook 'mouse-avoidance-fancy-hook)
 	 (setq mouse-avoidance-mode mode
-	       mouse-avoidance-state (cons 0 0)))
+	       mouse-avoidance-state (cons 0 0)
+	       mouse-avoidance-old-pointer-shape x-pointer-shape))
 	((eq mode 'exile)
 	 (add-hook 'post-command-idle-hook 'mouse-avoidance-exile-hook)
 	 (setq mouse-avoidance-mode mode
