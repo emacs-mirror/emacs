@@ -1139,8 +1139,7 @@ is treated as a character."
   "Support for all Emacs characters (including non-Unicode characters)."
   :coding-type 'utf-8
   :mnemonic ?U
-  :charset-list '(emacs)
-  :mime-charset 'utf-8)
+  :charset-list '(emacs))
 
 (define-coding-system 'utf-16
   "UTF-16"
