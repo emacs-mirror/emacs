@@ -251,13 +251,14 @@ preserving the comment indentation or line-starting decorations."
 	    ;; t if we enter a comment between start of function and this line.
 	    (eq (calculate-c-indent) t)
 	    ;; t if this line contains a comment starter.
-	    (save-excursion (beginning-of-line)
-			    (prog1
-				(re-search-forward comment-start-skip
-						   (save-excursion (end-of-line)
-								   (point))
-						   t)
-			      (setq comment-start-place (point)))))
+	    (setq first-line
+		  (save-excursion (beginning-of-line)
+				  (prog1
+				      (re-search-forward comment-start-skip
+							 (save-excursion (end-of-line)
+									 (point))
+							 t)
+				    (setq comment-start-place (point))))))
 	;; Inside a comment: fill one comment paragraph.
 	(let ((fill-prefix
 	       ;; The prefix for each line of this paragraph
@@ -282,26 +283,39 @@ preserving the comment indentation or line-starting decorations."
 		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]"))
 	      (paragraph-separate
 	       (concat paragraph-separate
-		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]")))
+		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]"))
+	      (chars-to-delete 0))
 	  (save-restriction
 	    ;; Don't fill the comment together with the code following it.
 	    ;; So temporarily exclude everything before the comment start,
 	    ;; and everything after the line where the comment ends.
 	    ;; If comment-start-place is non-nil, the comment starter is there.
 	    ;; Otherwise, point is inside the comment.
-	    (narrow-to-region (or comment-start-place
-				  (save-excursion
-				    (search-backward "/*")
-				    (beginning-of-line)
-				    (point)))
+	    (narrow-to-region (save-excursion
+				(if comment-start-place
+				    (goto-char comment-start-place)
+				  (search-backward "/*"))
+				;; Protect text before the comment start 
+				;; by excluding it.  Add spaces to bring back 
+				;; proper indentation of that point.
+				(let ((column (current-column)))
+				  (prog1 (point)
+				    (setq chars-to-delete column)
+				    (insert-char ?\  column))))
 			      (save-excursion
 				(if comment-start-place
 				    (goto-char (+ comment-start-place 2)))
 				(search-forward "*/" nil 'move)
 				(forward-line 1)
 				(point)))
+	    
 	    (fill-paragraph arg)
 	    (save-excursion
+	      ;; Delete the chars we inserted to avoid clobbering
+	      ;; the stuff before the comment start.
+	      (goto-char (point-min))
+	      (if (> chars-to-delete 0)
+		  (delete-region (point) (+ (point) chars-to-delete)))
 	      ;; Find the comment ender (should be on last line of buffer,
 	      ;; given the narrowing) and don't leave it on its own line.
 	      (goto-char (point-max))
