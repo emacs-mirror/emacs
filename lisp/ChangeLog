@@ -1,3 +1,8 @@
+1999-11-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* buff-menu.el (list-buffers-noselect): Use abbreviate-file-name
+	to display file names.
+
 1999-11-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* mwheel.el: Fix copyright notice, don't require 'cl at run time.
