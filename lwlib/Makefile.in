@@ -73,5 +73,5 @@ clean: mostlyclean
 distclean: clean
 maintainer-clean: distclean
 
-tags::
-	$(TAGS) -t *.[ch]
+TAGS:
+	../lib-src/etags -t *.[ch]
