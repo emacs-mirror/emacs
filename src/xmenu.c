@@ -2461,6 +2461,12 @@ xdialog_show (f, keymaps, title, error)
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	      i += MENU_ITEMS_PANE_LENGTH;
 	    }
+	  else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	    {
+	      /* This is the boundary between left-side elts and
+		 right-side elts.  */
+	      ++i;
+	    }
 	  else
 	    {
 	      entry
