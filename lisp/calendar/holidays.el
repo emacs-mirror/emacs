@@ -407,9 +407,9 @@ STRING is used purely for display purposes.  The return value has
 the form ((MONTH DAY YEAR) STRING), where the date is that of the
 Nth day before or after advent.
 
-For backwards compatability, if this function is called with no
+For backwards compatibility, if this function is called with no
 arguments, then it returns the value appropriate for advent itself."
-  ;; Backwards compatability layer.
+  ;; Backwards compatibility layer.
   (if (not n)
       (holiday-advent 0 "Advent")
     (let ((year displayed-year)
@@ -431,11 +431,11 @@ STRING is used purely for display purposes.  The return value has
 the form ((MONTH DAY YEAR) STRING), where the date is that of the
 Nth day before or after Easter.
 
-For backwards compatability, if this function is called with no
+For backwards compatibility, if this function is called with no
 arguments, then it returns a list of \"standard\" Easter-related
 holidays (with more entries if `all-christian-calendar-holidays'
 is non-nil)."
-  ;; Backwards compatability layer.
+  ;; Backwards compatibility layer.
   (if (not n)
       (let (res-list res)
         (dolist (elem (append
