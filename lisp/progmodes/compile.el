@@ -47,7 +47,12 @@ is the number of the line the message is about.  Or its cdr may be nil
 if that error is not interesting.
 
 The value may be t instead of a list; this means that the buffer of
-error messages should be reparsed the next time the list of errors is wanted.")
+error messages should be reparsed the next time the list of errors is wanted.
+
+Some other commands (like `diff') use this list to control the error
+message tracking facilites; if you change its structure, you should make
+sure you also change those packages.  Perhaps it is better not to change
+it at all.")
 
 (defvar compilation-old-error-list nil
   "Value of `compilation-error-list' after errors were parsed.")
