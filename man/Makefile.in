@@ -16,7 +16,7 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
-		../info/faq ../info/ada-mode
+		../info/emacs-faq.info ../info/ada-mode
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
@@ -163,7 +163,7 @@ viper.dvi: viper.texi
 widget.dvi: widget.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
 
-../info/faq: faq.texi
+../info/emacs-faq.info: faq.texi
 	cd $(srcdir); $(MAKEINFO) faq.texi
 faq.dvi: faq.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi

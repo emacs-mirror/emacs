@@ -1,3 +1,8 @@
+1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (faq): use ../info/emacs-faq.info (as specified in the
+	  faq.texi file) rather than ../info/faq.
+
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ada-mode.
