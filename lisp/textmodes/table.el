@@ -647,6 +647,10 @@ See `table-insert' for examples about how to use."
   :group 'paragraphs
   :group 'fill)
 
+(defgroup table-hooks nil
+  "Hooks for table manipulation utilities"
+  :group 'table)
+
 (defcustom table-time-before-update 0.2
   "*Time in seconds before updating the cell contents after typing.
 Updating the cell contents on the screen takes place only after this
@@ -797,7 +801,7 @@ the cell contents dynamically."
 User can modify `table-cell-map' by adding custom functions here."
   :tag "Cell Keymap Hooks"
   :type 'hook
-  :group 'table-hook)
+  :group 'table-hooks)
 
 (defcustom table-disable-incompatibility-warning nil
   "*Disable compatibility warning notice.
