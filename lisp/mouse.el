@@ -177,13 +177,13 @@ Upon exit, point is at the far edge of the newly visible text."
 		     (goto-char (window-start window)))
 		   (if overlay
 		       (move-overlay overlay start (point)))
+		   (setq eobp (eobp))
 		   ;; Now that we have scrolled WINDOW properly,
 		   ;; put point back where it was for the redisplay
 		   ;; so that we don't mess up the selected window.
 		   (or (eq window (selected-window))
 		       (goto-char opoint))
-		   (if (not (eobp))
-		       (sit-for mouse-scroll-delay))))))
+		   (sit-for mouse-scroll-delay)))))
     (or (eq window (selected-window))
 	(goto-char opoint))))
 
@@ -247,8 +247,7 @@ release the mouse button.  Otherwise, it does not."
 		 ((< mouse-row top)
 		  (mouse-scroll-subr start-window (- mouse-row top)
 				     mouse-drag-overlay start-point))
-		 ((and (not (eobp))
-		       (>= mouse-row bottom))
+		 ((>= mouse-row bottom)
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)))))))))
       (if (consp event)
@@ -643,8 +642,7 @@ This must be bound to a button-down mouse event."
                    ((< mouse-row top)
                     (mouse-scroll-subr start-window (- mouse-row top)
 				       mouse-secondary-overlay start-point))
-                   ((and (not (eobp))
-                         (>= mouse-row bottom))
+                   ((>= mouse-row bottom)
                     (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
                                        mouse-secondary-overlay start-point)))))))))
 
