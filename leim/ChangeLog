@@ -722,7 +722,7 @@
 	translation.
 
 	* quail/japanese.el ("japanese"): Delete the key sequence for
-	Roman transliteration from the docstring because it's now shonw
+	Roman transliteration from the docstring because it's now shown
 	automatically.
 	("japanese-ascii", "japanese-zenkaku")
 	("japanese-hankaku-kana", "japanese-hiragana")
