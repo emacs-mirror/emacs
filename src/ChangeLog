@@ -1,3 +1,49 @@
+2000-08-16  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are mainly to fix bugs of
+	encode/decode-coding-string failing if encoding/decoding return
+	CODING_FINISH_INSUFFICIENT_DST.  In addition, delete the global
+	variable conversion_buffer.
+
+	* ccl.c (CCL_WRITE_CHAR): If CH is eight-bit-control char,
+	decrement dst_end to avoid buffer overflow in the later call of
+	string_as_multibyte
+
+	* coding.h (conversion_buffer_size, conversion_buffer)
+	(get_conversion_buffer): Extern deleted.
+
+	* coding.c (MINIMUM_CONVERSION_BUFFER_SIZE): Macro deleted.
+	(conversion_buffer, conversion_buffer_size): Variables deleted.
+	(get_conversion_buffer): Function deleted.
+	(struct conversion_buffer): New structure.
+	(MAX_ALLOCA): New macro.
+	(allocate_conversion_buffer): New macro.
+	(extend_conversion_buffer, free_conversion_buffer): New functions.
+	(ccl_coding_driver): Set coding->result.
+	(decode_coding): Set coding->result to CODING_FINISH_NORMAL if
+	this is the last block of source.
+	(encode_coding): Likewise.  Handle the source block as the last
+	one only when the whole source text is consumed.
+	(decode_coding_string): Handle the case that the output buffer is
+	too small to decode the whole source text.  Use
+	allocate_conversion_buffer, extend_conversion_buffer and
+	free_conversion_buffer, not get_conversion_buffer.
+	(encode_coding_string): Likewise.
+	(init_coding): Function deleted.
+	(init_coding_once): Delete code to initialize
+	conversion_buffer_size.
+
+	* emacs.c (main): Don't call init_coding.
+
+	* msdos.c (IT_write_glyphs): Use a locally declared
+	conversion_buffer.
+
+	* term.c (write_glyphs): Use a locally declared conversion_buffer.
+	(insert_glyphs): Likewise.
+
+	* w32console.c (write_glyphs): Use a locally declared
+	conversion_buffer.
+
 2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_update_begin): Don't crash if mouse_face_mouse_frame
