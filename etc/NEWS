@@ -915,9 +915,9 @@ of the numeric keypad which is available on most keyboards.
 *** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
 
-Basically, it uses two function keys (default F7 and F8) like this:
-F7 starts a macro, F8 ends the macro, and pressing F8 again executes
-the last macro.  While defining the macro, F7 inserts a counter value
+Basically, it uses two function keys (default F3 and F4) like this:
+F3 starts a macro, F4 ends the macro, and pressing F4 again executes
+the last macro.  While defining the macro, F3 inserts a counter value
 which automatically increments every time the macro is executed.
 
 There is now a keyboard macro ring which stores the most recently
@@ -932,6 +932,14 @@ for more commands.
 
 The normal macro bindings C-x (, C-x ), and C-x e now interfaces to
 the keyboard macro ring.
+
+The C-x e command now terminates the current macro rather than
+signalling an error if used while defining a macro.
+
+In addition, when ending or calling a macro with C-x e, the macro can
+be repeated immediately by typing just the `e'.  You can customize
+this behaviour via the variable kmacro-call-repeat-key and
+kmacro-call-repeat-with-arg.
 
 +++
 *** Calc is now part of the Emacs distribution.
