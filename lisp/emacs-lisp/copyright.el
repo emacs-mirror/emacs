@@ -45,7 +45,7 @@
 (defcustom copyright-regexp
   "\\([\251Å©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
 \\|[Cc]opyright\\s *:?\\s *[\251Å©]\\)\
-\\s *\\([1-9][-0-9, ']*[0-9]+\\)"
+\\s *\\([1-9][-0-9, ';\n\t]*[0-9]+\\)"
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
