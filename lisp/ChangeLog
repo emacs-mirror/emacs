@@ -1,3 +1,15 @@
+2005-03-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Preserve point.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+	(calendar-week-start-day): Move after definition of
+	redraw-calendar.  Delete buffer test, since redraw-calendar has
+	that now.
+
+	* calendar/diary-lib.el (mark-diary-entries): Only call
+	redraw-calendar in the first of any recursive calls.
+	Reported by Alan Shutko <ats@acm.org>.
+
 2005-03-08  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/sgml-mode.el (sgml-tag, html-tag-alist)
