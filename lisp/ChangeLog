@@ -1,3 +1,9 @@
+2003-03-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-mode.el (c-parse-state): Added kludge to avoid
+	an infinite loop when Emacs' open-paren-in-column-zero rule
+	kicks in and causes the sexp functions to misbehave.
+
 2003-03-22  Peter Breton  <pbreton@cs.umb.edu>
 
 	* filecache.el (file-cache-add-directory-recursively)
@@ -1264,13 +1270,13 @@
 	* language/ind-util.el (indian-itrans-v5-table): Add entries for
 	"E" and "O".
 
-2003-02-10  Martin Stjernholm  <mast@lysator.liu.se>
+2003-02-10  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-styles.el (c-set-offset): Don't find a default
 	syntactic element through syntactic analysis if called outside
 	a CC Mode buffer.
 
-2003-02-09  Martin Stjernholm  <mast@lysator.liu.se>
+2003-02-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el (c-basic-common-init):
 	Install `c-fill-paragraph' on `fill-paragraph-function'.
@@ -11293,7 +11299,7 @@
 	(buffers-menu-show-status): New variables.
 	(menu-bar-update-buffers-1): Use them.
 
-2002-04-24  Martin Stjernholm  <mast@lysator.liu.se>
+2002-04-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el (c-mask-comment): More fixes when used
 	from `c-do-auto-fill' and point is at or near the limit of the
@@ -11376,7 +11382,7 @@
 	* dired.el (dired-mouse-find-file-other-window):
 	Handle events that move out of the window.
 
-2002-04-23  Martin Stjernholm  <mast@lysator.liu.se>
+2002-04-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el (c-mask-comment): Fixed bug where point
 	was moved to the following line when it was at the first line
