@@ -1,3 +1,12 @@
+2000-04-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Check for line-beginning-position definition.
+	
+	* ps-print.el: Fix counting lines in a region.
+	(ps-print-version): New version number (5.1.5).
+	(ps-spool-without-faces, ps-spool-with-faces): Adjust code.
+	(ps-printing-region): Fun code fix.
+
 2000-04-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* gud.el (gud-jdb-build-source-files-list): Change file-exists-p
