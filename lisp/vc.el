@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.280 2000/10/10 01:25:40 ttn Exp $
+;; $Id: vc.el,v 1.281 2000/10/22 15:37:51 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1570,15 +1570,16 @@ If the current buffer is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, it is used instead of being re-created."
   (interactive "sVersion to visit (default is workfile version): ")
   (vc-ensure-vc-buffer)
-  (let* ((version (if (string-equal rev "")
-		      (vc-workfile-version buffer-file-name)
+  (let* ((file buffer-file-name)
+	 (version (if (string-equal rev "")
+		      (vc-workfile-version file)
 		    rev))
 	 (automatic-backup (vc-version-backup-file-name file version))
          (manual-backup (vc-version-backup-file-name file version 'manual)))
     (unless (file-exists-p manual-backup)
       (if (file-exists-p automatic-backup)
           (copy-file automatic-backup manual-backup nil 'keep-date)
-        (vc-call checkout buffer-file-name nil version manual-backup)))
+        (vc-call checkout file nil version manual-backup)))
     (find-file-other-window manual-backup)))
 
 ;; Header-insertion code
