@@ -253,6 +253,7 @@ Lisp_Object Qbuffer_file_coding_system;
 Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcoding_system_history;
+Lisp_Object Qsafe_charsets;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -705,6 +706,13 @@ detect_coding_iso2022 (src, src_end)
 	  {
 	    int newmask = CODING_CATEGORY_MASK_ISO_8_ELSE;
 
+	    if (c != ISO_CODE_CSI)
+	      {
+		if (coding_iso_8_1.flags & CODING_FLAG_ISO_SINGLE_SHIFT)
+		  newmask |= CODING_CATEGORY_MASK_ISO_8_1;
+		if (coding_iso_8_2.flags & CODING_FLAG_ISO_SINGLE_SHIFT)
+		  newmask |= CODING_CATEGORY_MASK_ISO_8_2;
+	      }
 	    if (VECTORP (Vlatin_extra_code_table)
 		&& !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
 	      {
@@ -774,7 +782,15 @@ detect_coding_iso2022 (src, src_end)
     if ((charset) >= 0)							\
       {									\
 	if (CHARSET_DIMENSION (charset) == 2)				\
-	  ONE_MORE_BYTE (c2);						\
+	  {								\
+	    ONE_MORE_BYTE (c2);						\
+	    if (iso_code_class[(c2) & 0x7F] != ISO_0x20_or_0x7F		\
+		&& iso_code_class[(c2) & 0x7F] != ISO_graphic_plane_0)	\
+	      {								\
+		src--;							\
+		c2 = ' ';						\
+	      }								\
+	  }								\
 	if (!NILP (unification_table)					\
 	    && ((c_alt = unify_char (unification_table,			\
 				     -1, (charset), c1, c2)) >= 0))	\
@@ -1131,13 +1147,12 @@ decode_coding_iso2022 (coding, source, destination,
     unsigned char final_char = CHARSET_ISO_FINAL_CHAR (charset);	\
     char *intermediate_char_94 = "()*+";				\
     char *intermediate_char_96 = ",-./";				\
-    Lisp_Object temp							\
-      = Fassq (make_number (charset), Vcharset_revision_alist);		\
-    if (! NILP (temp))							\
-	{								\
+    int revision = CODING_SPEC_ISO_REVISION_NUMBER(coding, charset);	\
+    if (revision < 255)							\
+      {									\
 	*dst++ = ISO_CODE_ESC;						\
 	*dst++ = '&';							\
-	*dst++ = XINT (XCONS (temp)->cdr) + '@';			\
+	*dst++ = '@' + revision;					\
       }									\
     *dst++ = ISO_CODE_ESC;				       		\
     if (CHARSET_DIMENSION (charset) == 1)				\
@@ -1241,7 +1256,7 @@ decode_coding_iso2022 (coding, source, destination,
 	break;								\
       }									\
     else if (coding->flags & CODING_FLAG_ISO_SAFE			\
-	     && !CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset])	\
+	     && !coding->safe_charsets[charset])			\
       {									\
 	/* We should not encode this character, instead produce one or	\
 	   two `?'s.  */						\
@@ -1284,7 +1299,7 @@ decode_coding_iso2022 (coding, source, destination,
 	break;								\
       }									\
     else if (coding->flags & CODING_FLAG_ISO_SAFE			\
-	     && !CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset])	\
+	     && !coding->safe_charsets[charset])			\
       {									\
 	/* We should not encode this character, instead produce one or	\
 	   two `?'s.  */						\
@@ -1450,7 +1465,7 @@ encode_designation_at_bol (coding, table, src, src_end, dstp)
 	}
 
       reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
-      if (r[reg] == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)
+      if (r[reg] < 0)
 	{
 	  found++;
 	  r[reg] = charset;
@@ -2302,6 +2317,7 @@ setup_coding_system (coding_system, coding)
 {
   Lisp_Object coding_spec, plist, type, eol_type;
   Lisp_Object val;
+  int i;
 
   /* At first, set several fields to default values.  */
   coding->require_flushing = 0;
@@ -2344,6 +2360,23 @@ setup_coding_system (coding_system, coding)
   coding->character_unification_table_for_encode
     = CHAR_TABLE_P (val) ? val : Qnil;
   
+  val = Fplist_get (plist, Qsafe_charsets);
+  if (EQ (val, Qt))
+    {
+      for (i = 0; i <= MAX_CHARSET; i++)
+	coding->safe_charsets[i] = 1;
+    }
+  else
+    {
+      bzero (coding->safe_charsets, MAX_CHARSET + 1);
+      while (CONSP (val))
+	{
+	  if ((i = get_charset_id (XCONS (val)->car)) >= 0)
+	    coding->safe_charsets[i] = 1;
+	  val = XCONS (val)->cdr;
+	}
+    }
+
   if (VECTORP (eol_type))
     coding->eol_type = CODING_EOL_UNDECIDED;
   else if (XFASTINT (eol_type) == 1)
@@ -2367,7 +2400,7 @@ setup_coding_system (coding_system, coding)
     case 2:
       coding->type = coding_type_iso2022;
       {
-	Lisp_Object val;
+	Lisp_Object val, temp;
 	Lisp_Object *flags;
 	int i, charset, default_reg_bits = 0;
 
@@ -2403,6 +2436,19 @@ setup_coding_system (coding_system, coding)
 	/* Beginning of buffer should also be regarded as bol. */
 	CODING_SPEC_ISO_BOL (coding) = 1;
 
+	for (charset = 0; charset <= MAX_CHARSET; charset++)
+	  CODING_SPEC_ISO_REVISION_NUMBER (coding, charset) = 255;
+	val = Vcharset_revision_alist;
+	while (CONSP (val))
+	  {
+	    charset = get_charset_id (Fcar_safe (XCONS (val)->car));
+	    if (charset >= 0
+		&& (temp = Fcdr_safe (XCONS (val)->car), INTEGERP (temp))
+		&& (i = XINT (temp), (i >= 0 && (i + '@') < 128)))
+	      CODING_SPEC_ISO_REVISION_NUMBER (coding, charset) = i;
+	    val = XCONS (val)->cdr;
+	  }
+
 	/* Checks FLAGS[REG] (REG = 0, 1, 2 3) and decide designations.
 	   FLAGS[REG] can be one of below:
 		integer CHARSET: CHARSET occupies register I,
@@ -2416,7 +2462,6 @@ setup_coding_system (coding_system, coding)
 	for (charset = 0; charset <= MAX_CHARSET; charset++)
 	  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 	    = CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION;
-	bzero (CODING_SPEC_ISO_EXPECTED_CHARSETS (coding), MAX_CHARSET + 1);
 	for (i = 0; i < 4; i++)
 	  {
 	    if (INTEGERP (flags[i])
@@ -2425,7 +2470,6 @@ setup_coding_system (coding_system, coding)
 	      {
 		CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) = i;
-		CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset] = 1;
 	      }
 	    else if (EQ (flags[i], Qt))
 	      {
@@ -2443,7 +2487,6 @@ setup_coding_system (coding_system, coding)
 		  {
 		    CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = charset;
 		    CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) =i;
-		    CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset] = 1;
 		  }
 		else
 		  CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = -1;
@@ -2454,12 +2497,8 @@ setup_coding_system (coding_system, coding)
 			&& (charset = XINT (XCONS (tail)->car),
 			    CHARSET_VALID_P (charset))
 			|| (charset = get_charset_id (XCONS (tail)->car)) >= 0)
-		      {
-			CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-			  = i;
-			CODING_SPEC_ISO_EXPECTED_CHARSETS (coding)[charset]
-			  = 1;
-		      }
+		      CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+			= i;
 		    else if (EQ (XCONS (tail)->car, Qt))
 		      default_reg_bits |= 1 << i;
 		    tail = XCONS (tail)->cdr;
@@ -3394,6 +3433,11 @@ code_convert_region (b, e, coding, encodep)
       TEMP_SET_PT (beg);
       insval = call1 (coding->post_read_conversion, make_number (len));
       CHECK_NUMBER (insval, 0);
+      if (pos >= beg + len)
+	pos = beg + XINT (insval);
+      else if (pos > beg)
+	pos = beg;
+      TEMP_SET_PT (pos);
       len = XINT (insval);
     }
 
@@ -3643,7 +3687,7 @@ DEFUN ("set-terminal-coding-system-internal",
 {
   CHECK_SYMBOL (coding_system, 0);
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
-  /* We had better not send unexpected characters to terminal.  */
+  /* We had better not send unsafe characters to terminal.  */
   terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
 
   return Qnil;
@@ -3936,6 +3980,9 @@ syms_of_coding ()
   Qcharacter_unification_table_for_encode
     = intern ("character-unification-table-for-encode");
   staticpro (&Qcharacter_unification_table_for_encode);
+
+  Qsafe_charsets = intern ("safe-charsets");
+  staticpro (&Qsafe_charsets);
 
   Qemacs_mule = intern ("emacs-mule");
   staticpro (&Qemacs_mule);
