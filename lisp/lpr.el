@@ -38,15 +38,12 @@
 
 ;;;###autoload
 (defvar lpr-command
-  (if (and (memq system-type '(usg-unix-v dgux hpux irix))
-	   (not (string-match "^[^-]*-[^-]*-solaris" system-configuration)))
+  (if (memq system-type '(usg-unix-v dgux hpux irix))
       "lp" "lpr")
   "*Shell command for printing a file")
 
 (defvar lpr-headers-switches
-  (if (and (memq system-type '(usg-unix-v hpux))
-	   (not (string-match "^[^-]*-[^-]*-solaris" system-configuration)))
-      nil "-p")
+  (if (memq system-type '(usg-unix-v hpux)) nil "-p")
   "*List of strings to use as options for `lpr' to request page headings.")
 
 (defvar print-region-function nil
