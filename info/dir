@@ -38,6 +38,7 @@ Emacs
 * CC mode: (ccmode).	Emacs mode for editing C, C++, Objective-C,
 			  Java, Pike, and IDL code.
 * Ebrowse: (ebrowse).	A C++ class browser for Emacs.
+* Flymake: (flymake).   An on-the-fly syntax checker for Emacs.
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 
 * Gnus: (gnus).		The news reader Gnus.
