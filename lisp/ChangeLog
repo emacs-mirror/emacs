@@ -676,6 +676,14 @@
 	* info.el (info-initialize): Don't test existence of ALTERNATIVE
 	if we know for some other reason it should not be used.
 
+	* emacs-lisp/edebug.el (edebug-outside-current-prefix-arg):
+	New variable.
+	(edebug-recursive-edit): Save current-prefix-arg there,
+	bind it, and set it back at the end.
+	(edebug-outside-excursion): Restore and update the outside
+	value of current-prefix-arg.
+	(edebug-emacs-version-specific): Delete support for Epoch.
+
 1999-09-24  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex-parse.el (reftex-parse-from-file): Scan for
