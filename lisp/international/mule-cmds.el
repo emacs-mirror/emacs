@@ -398,9 +398,18 @@ non-nil, it is used to sort CODINGS differently from the above recipe."
 		    (let ((base (coding-system-base x)))
 		      (+ (if (eq base most-preferred) 64 0)
 			 (let ((mime (coding-system-get base 'mime-charset)))
+			   ;; Prefer coding systems corresponding to a
+			   ;; MIME charset.
 			   (if mime
-			       (if (string-match "^x-" (symbol-name mime))
-				   16 32)
+			       ;; Lower utf-16 priority so that we
+			       ;; normally prefer utf-8 to it, and put
+			       ;; x-ctext below that.
+			       (cond ((string-match "^utf-16"
+						    (symbol-name mime))
+				      16)
+				     ((string-match "^x-" (symbol-name mime))
+				      8)
+				     (t 32))
 			     0))
 			 (if (memq base lang-preferred) 8 0)
 			 (if (string-match "-with-esc$" (symbol-name base))
