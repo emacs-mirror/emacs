@@ -2,16 +2,13 @@
  *
  *                    THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(trunk.2) $
+ *  $HopeName: MMsrc!th.h(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
- *  Provides stack scanning and thread suspension facilities.
- *  See design.mps.thread-manager
- * 
- *  This provides facilities for suspending/resuming mutator threads;
- *  scanning of the mutator's stacks.  Each thread has to be individually
- *  registered and deregistered with a space.
+ *  Provides thread suspension facilities to the shield.
+ *  See design.mps.thread-manager.  Each thread has to be
+ *  individually registered and deregistered with a space.
  */
 
 #ifndef th_h
@@ -40,15 +37,13 @@ extern Bool ThreadIsValid(Thread thread, ValidationType validParam);
 /*  == Register/Deregister ==
  * 
  *  Explicitly register/deregister a thread on the space threadDeque.
- *  stackBot explicitly records the bottom of stack for this 
- *  thread.  Register returns a "Thread" value which needs to be used
+ *  Register returns a "Thread" value which needs to be used
  *  for deregistration.
  *
  *  Threads must not be multiply registered in the same space.
  */
 
-extern Error ThreadRegister(Thread *threadReturn,
-                            Space space, Addr *stackBot);
+extern Error ThreadRegister(Thread *threadReturn, Space space);
 
 extern void ThreadDeregister(Thread thread, Space space);
 
@@ -64,28 +59,9 @@ extern void ThreadDequeSuspend(Deque threadDeque);
 extern void ThreadDequeResume(Deque threadDeque);
 
 
-/*  == ThreadDequeScan ==
- *
- *  This function has the type of a root scanning function.
- *
- *  It must be called with the closure variable p set to
- *  (void *)threadDeque, where threadDeque is
- *  a deque of threads.
- *
- *  This ambiguously scans the stacks of the threads on the
- *  deque between the stack level defined on registration
- *  and the thread's current stack level.  It also fixes
- *  their root registers.
- *
- *  The scan is inclusive/exclusive of stackBot if the stack
- *  is by convention empty/full.
- */
-
-extern Error ThreadDequeScan(void *p, int i, Trace trace);
-
-/*  == ThreadSpace == */
-
 extern Space ThreadSpace(Thread thread);
+
+extern Error ThreadScan(ScanState ss, Thread thread, void *stackBot);
 
 
 #endif /* th_h */

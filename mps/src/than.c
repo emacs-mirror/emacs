@@ -2,12 +2,12 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.3) $
+ *  $HopeName: MMsrc!than.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  This is a single-threaded implementation of the threads manager.
- *  It implements stack scanning, and has stubs for thread suspension.
+ *  Has stubs for thread suspension.
  *  See design.mps.thread-manager.
  *
  *  .single: We only expect at most one thread on the deque.
@@ -29,7 +29,6 @@ typedef struct ThreadStruct
   Sig sig;
 #endif
   DequeNodeStruct spaceDeque;  /* attaches to space */
-  Addr *stackBot;   /* The bottom (most hidden) word of stack. */
 } ThreadStruct;
 
 
@@ -45,28 +44,25 @@ Bool ThreadIsValid(Thread thread, ValidationType validParam)
   AVER(ISVALIDNESTED(Sig, &ThreadSigStruct));
   AVER(thread->sig == &ThreadSigStruct);
 #endif
-  AVER(thread->stackBot != NULL);
   return TRUE;
 }
 
 #endif /* DEBUG_ASSERT */
 
 
-Error ThreadRegister(Thread *threadReturn, Space space, Addr *stackBot)
+Error ThreadRegister(Thread *threadReturn, Space space)
 {
   Error e;
   Thread thread;
   Deque deque;
 
   AVER(threadReturn != NULL);
-  AVER(stackBot != NULL);
 
   e = PoolAlloc((Addr *)&thread, SpaceControlPool(space),
                 sizeof(ThreadStruct));
   if(e != ErrSUCCESS)
     goto return_e;
 
-  thread->stackBot = stackBot;
   DequeNodeInit(&thread->spaceDeque);
 
 #ifdef DEBUG_SIGN
@@ -117,38 +113,13 @@ void ThreadDequeResume(Deque threadDeque)
 }
 
 
-/*  Scan this thread's stack, if the thread is registered (.single) */
-/*  p should be a deque containing the thread */
-
-Error ThreadDequeScan(void *p, int i, Trace trace)
-{
-  Deque deque;   /* of threads */
-  DequeNode node;
-  Thread thread;
-  Error e;
-
-  UNUSED(i);
-
-  deque = (Deque)p;
-  AVER(ISVALID(Deque, deque));
-
-  if(DequeIsEmpty(deque))  /* May have no registered threads */
-    return ErrSUCCESS;
-
-  node = DequeFirst(deque);
-  thread = DEQUENODEELEMENT(Thread, spaceDeque, node);
-  AVER(ISVALID(Thread, thread));
-
-  /* at most one thread (.single) */
-  AVER(DequeNodeNext(node) == DequeSentinel(deque)); 
-
-  e = StackScan(thread->stackBot, trace, RefRankAMBIG);
-
-  return e;
-}
-
 /* thread safe */
 Space ThreadSpace(Thread thread)
 {
   return PARENT(SpaceStruct, threadDeque, &thread->spaceDeque);
+}
+
+Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
+{
+  return StackScan(ss, stackBot);
 }
