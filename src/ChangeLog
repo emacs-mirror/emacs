@@ -1,5 +1,9 @@
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* fileio.c (Fsubstitute_in_file_name): If the file name includes
+	~user, and there's no such user, don't discard everything before
+	~user.
+
 	* floatfns.c (Fround): Doc fix.
 
 2002-02-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
