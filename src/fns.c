@@ -2427,6 +2427,41 @@ The key is always a possible IDX argument to `aref'.")
   map_char_table (NULL, function, char_table, char_table, 0, indices);
   return Qnil;
 }
+
+/* Return a value for character C in char-table TABLE.  Store the
+   actual index for that value in *IDX.  Ignore the default value of
+   TABLE.  */
+
+Lisp_Object
+char_table_ref_and_index (table, c, idx)
+     Lisp_Object table;
+     int c, *idx;
+{
+  int charset, c1, c2;
+  Lisp_Object elt;
+
+  if (SINGLE_BYTE_CHAR_P (c))
+    {
+      *idx = c;
+      return XCHAR_TABLE (table)->contents[c];
+    }
+  SPLIT_CHAR (c, charset, c1, c2);
+  elt = XCHAR_TABLE (table)->contents[charset + 128];
+  *idx = MAKE_CHAR (charset, 0, 0);
+  if (!SUB_CHAR_TABLE_P (elt))
+    return elt;
+  if (c1 < 32 || NILP (XCHAR_TABLE (elt)->contents[c1]))
+    return XCHAR_TABLE (elt)->defalt;
+  elt = XCHAR_TABLE (elt)->contents[c1];
+  *idx = MAKE_CHAR (charset, c1, 0);
+  if (!SUB_CHAR_TABLE_P (elt))
+    return elt;
+  if (c2 < 32 || NILP (XCHAR_TABLE (elt)->contents[c2]))
+    return XCHAR_TABLE (elt)->defalt;
+  *idx = c;
+  return XCHAR_TABLE (elt)->contents[c2];
+}
+
 
 /* ARGSUSED */
 Lisp_Object
