@@ -3427,13 +3427,12 @@ to the file, instead of any buffer contents, and END is ignored.")
 	  nwritten += XINT (end) - tem;
 	  save_errno = errno;
 	}
-
-      if (nwritten == 0)
-	{
-	  /* If file was empty, still need to write the annotations */
-	  failure = 0 > a_write (desc, "", 0, XINT (start), &annotations);
-	  save_errno = errno;
-	}
+    }
+  else
+    {
+      /* If file was empty, still need to write the annotations */
+      failure = 0 > a_write (desc, "", 0, XINT (start), &annotations);
+      save_errno = errno;
     }
 
   immediate_quit = 0;
