@@ -498,7 +498,7 @@ update_compositions (from, to, check_mask)
 	  run_composition_function (start, end, prop);
 	  from = end;
 	}
-      else if (from < end
+      else if (from < to
 	       && find_composition (from, -1, &start, &from, &prop, Qnil))
 	run_composition_function (start, from, prop);
     }
