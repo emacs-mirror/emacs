@@ -2055,7 +2055,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	}
       startpos = OVERLAY_POSITION (start);
       /* This one ends at or after POS
-	 so its start counts for NEXT_PTR if it's before POS.  */
+	 so its start counts for PREV_PTR if it's before POS.  */
       if (prev < startpos && startpos < pos)
 	prev = startpos;
       if (endpos == pos)
@@ -3432,38 +3432,9 @@ If there are no more overlay boundaries before POS, return (point-min).")
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
-     prevpos gets the position of an overlay end.  */
+     prevpos gets the position of the previous change.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
 			   (int *) 0, &prevpos);
-
-  /* If any of these overlays starts after prevpos,
-     maybe use its starting point instead.  */
-  for (i = 0; i < noverlays; i++)
-    {
-      Lisp_Object ostart;
-      int ostartpos;
-
-      ostart = OVERLAY_START (overlay_vec[i]);
-      ostartpos = OVERLAY_POSITION (ostart);
-      if (ostartpos > prevpos && ostartpos < XINT (pos))
-	prevpos = ostartpos;
-    }
-
-  /* If any overlay ends at pos, consider its starting point too.  */
-  for (tail = current_buffer->overlays_before;
-       GC_CONSP (tail);
-       tail = XCONS (tail)->cdr)
-    {
-      Lisp_Object overlay, ostart;
-      int ostartpos;
-
-      overlay = XCONS (tail)->car;
-
-      ostart = OVERLAY_START (overlay);
-      ostartpos = OVERLAY_POSITION (ostart);
-      if (ostartpos > prevpos && ostartpos < XINT (pos))
-	prevpos = ostartpos;
-    }
 
   xfree (overlay_vec);
   return make_number (prevpos);
