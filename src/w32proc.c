@@ -2176,7 +2176,10 @@ process temporarily).  A value of zero disables waiting entirely.");
 
   DEFVAR_LISP ("w32-downcase-file-names", &Vw32_downcase_file_names,
     "Non-nil means convert all-upper case file names to lower case.\n\
-This applies when performing completions and file name expansion.");
+This applies when performing completions and file name expansion.\n\
+Note that the value of this setting also affects remote file names,\n\
+so you probably don't want to set to non-nil if you use case-sensitive\n\
+filesystems via ange-ftp."); 
   Vw32_downcase_file_names = Qnil;
 
 #if 0
