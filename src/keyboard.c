@@ -281,7 +281,7 @@ Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
 Lisp_Object Qundefined;
-Lisp_Object Quniversal_argument, Qdigit_argument, Qnegative_argument;
+Lisp_Object Qdigit_argument, Qnegative_argument;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
@@ -972,43 +972,6 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   error ("No recursive edit is in progress");
 }
 
-void
-clear_prefix_arg ()
-{
-  if (!current_perdisplay)
-    abort ();
-  current_perdisplay->prefix_factor = Qnil;
-  current_perdisplay->prefix_value = Qnil;
-  current_perdisplay->prefix_sign = 1;
-  current_perdisplay->prefix_partial = 0;
-  Vprefix_arg = Qnil;
-}
-
-static void
-finalize_prefix_arg ()
-{
-  if (!NILP (current_perdisplay->prefix_factor))
-    Vprefix_arg = Fcons (current_perdisplay->prefix_factor, Qnil);
-  else if (NILP (current_perdisplay->prefix_value))
-    Vprefix_arg = (current_perdisplay->prefix_sign > 0 ? Qnil : Qminus);
-  else if (current_perdisplay->prefix_sign > 0)
-    Vprefix_arg = current_perdisplay->prefix_value;
-  else
-    XSETINT (Vprefix_arg, -XINT (current_perdisplay->prefix_value));
-  current_perdisplay->prefix_partial = 0;
-}
-
-static void
-describe_prefix_arg ()
-{
-  if (INTEGERP (Vprefix_arg))
-    message ("Arg: %d", Vprefix_arg);
-  else if (CONSP (Vprefix_arg))
-    message ("Arg: [%d]", XCONS (Vprefix_arg)->car);
-  else if (EQ (Vprefix_arg, Qminus))
-    message ("Arg: -");
-}
-
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
@@ -1191,48 +1154,7 @@ command_loop_1 ()
 	}
       else
 	{
-	  if (EQ (cmd, Quniversal_argument))
-	    {
-	      if (!current_perdisplay->prefix_partial)
-		{
-		  /* First C-u */
-		  XSETFASTINT (current_perdisplay->prefix_factor, 4);
-		  current_perdisplay->prefix_value = Qnil;
-		  current_perdisplay->prefix_sign = 1;
-		  current_perdisplay->prefix_partial = 1;
-		}
-	      else if (!NILP (current_perdisplay->prefix_factor))
-		{
-		  /* Subsequent C-u */
-		  XSETINT (current_perdisplay->prefix_factor,
-			   XINT (current_perdisplay->prefix_factor) * 4);
-		}
-	      else
-		{
-		  /* Terminating C-u */
-		  finalize_prefix_arg ();
-		  describe_prefix_arg ();
-		}
-	      goto directly_done;
-	    }
-	  else if (EQ (cmd, Qnegative_argument))
-	    {
-	      current_perdisplay->prefix_factor = Qnil;
-	      current_perdisplay->prefix_sign *= -1;
-	      current_perdisplay->prefix_partial = 1;
-	      goto directly_done;
-	    }
-	  else if (EQ (cmd, Qdigit_argument) && INTEGERP (keybuf[0]))
-	    {
-	      current_perdisplay->prefix_factor = Qnil;
-	      if (NILP (current_perdisplay->prefix_value))
-		XSETFASTINT (current_perdisplay->prefix_value, 0);
-	      XSETINT (current_perdisplay->prefix_value,
-		       (XINT (current_perdisplay->prefix_value) * 10
-			+ (XINT (keybuf[0]) & 0177) - '0'));
-	      current_perdisplay->prefix_partial = 1;
-	      goto directly_done;
-	    }
+	  current_prefix_partial = current_perdisplay->prefix_partial;
 	  if (current_perdisplay->prefix_partial)
 	    finalize_prefix_arg ();
 
@@ -6571,9 +6493,6 @@ syms_of_keyboard ()
 
   Qundefined = intern ("undefined");
   staticpro (&Qundefined);
-
-  Quniversal_argument = intern ("universal-argument");
-  staticpro (&Quniversal_argument);
 
   Qdigit_argument = intern ("digit-argument");
   staticpro (&Qdigit_argument);
