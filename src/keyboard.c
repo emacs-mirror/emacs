@@ -4218,23 +4218,16 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
    CURRENT with non-prefix bindings for meta-prefix-char become nil in
    NEXT.
 
-   When KEY is not defined in any of the keymaps, if it is an upper
-   case letter and there are bindings for the corresponding lower-case
-   letter, return the bindings for the lower-case letter.
-   We store 1 in *CASE_CONVERTED in this case.
-   Otherwise, we don't change *CASE_CONVERTED.
-
    If KEY has no bindings in any of the CURRENT maps, NEXT is left
    unmodified.
 
    NEXT may == CURRENT.  */
 
 static int
-follow_key (key, nmaps, current, defs, next, case_converted)
+follow_key (key, nmaps, current, defs, next)
      Lisp_Object key;
      Lisp_Object *current, *defs, *next;
      int nmaps;
-     int *case_converted;
 {
   int i, first_binding;
 
@@ -4271,38 +4264,6 @@ follow_key (key, nmaps, current, defs, next, case_converted)
 	}
       else
 	defs[i] = Qnil;
-    }
-
-  /* When KEY is not defined in any of the keymaps, if it is an upper
-     case letter and there are bindings for the corresponding
-     lower-case letter, return the bindings for the lower-case letter.  */
-  if (first_binding == nmaps
-      && XTYPE (key) == Lisp_Int
-      && ((((XINT (key) & 0x3ffff)
-	    < XSTRING (current_buffer->downcase_table)->size)
-	   && UPPERCASEP (XINT (key) & 0x3ffff))
-	  || (XINT (key) & shift_modifier)))
-    {
-      if (XINT (key) & shift_modifier)
-	XSETINT (key, XINT (key) & ~shift_modifier);
-      else
-	XSETINT (key, (DOWNCASE (XINT (key) & 0x3ffff)
-		       | (XINT (key) & ~0x3ffff)));
-
-      first_binding = nmaps;
-      for (i = nmaps - 1; i >= 0; i--)
-	{
-	  if (! NILP (current[i]))
-	    {
-	      defs[i] = get_keyelt (access_keymap (current[i], key, 1, 0));
-	      if (! NILP (defs[i]))
-		first_binding = i;
-	    }
-	  else
-	    defs[i] = Qnil;
-	}
-      if (first_binding  != nmaps)
-	*case_converted = 1;
     }
 
   /* Given the set of bindings we've found, produce the next set of maps.  */
@@ -4422,10 +4383,6 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   struct buffer *starting_buffer;
 
-  /* Nonzero if we found the binding for one of the chars
-     in this key sequence by downcasing it.  */
-  int case_converted = 0;
-
   /* Nonzero if we seem to have got the beginning of a binding
      in function_key_map.  */
   int function_key_possible = 0;
@@ -4479,7 +4436,6 @@ read_key_sequence (keybuf, bufsize, prompt)
  replay_sequence:
 
   starting_buffer = current_buffer;
-  case_converted = 0;
   function_key_possible = 0;
 
   /* Build our list of keymaps.
@@ -4551,7 +4507,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    Thus, if ESC O a has a function-key-map translation
 	    and ESC o has a binding, don't return after ESC O,
 	    so that we can translate ESC O plus the next character.  */
-	 || (function_key_possible && case_converted))
+	 )
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -4781,8 +4737,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 				   nmaps   - first_binding,
 				   submaps + first_binding,
 				   defs    + first_binding,
-				   submaps + first_binding,
-				   &case_converted)
+				   submaps + first_binding)
 		       + first_binding);
 
       /* If KEY wasn't bound, we'll try some fallbacks.  */
@@ -4884,8 +4839,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 				       nmaps   - local_first_binding,
 				       submaps + local_first_binding,
 				       defs    + local_first_binding,
-				       submaps + local_first_binding,
-				       &case_converted)
+				       submaps + local_first_binding)
 			   + local_first_binding);
 
 		      /* If that click is bound, go for it.  */
@@ -4912,7 +4866,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 off the end of it.  We only want to scan real keyboard input
 	 for function key sequences, so if mock_input says that we're
 	 re-reading old events, don't examine it.  */
-      if ((first_binding >= nmaps || case_converted)
+      if (first_binding >= nmaps
 	  && t >= mock_input)
 	{
 	  Lisp_Object fkey_next;
@@ -5111,6 +5065,28 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      }
 	  }
       }
+
+      /* If KEY is not defined in any of the keymaps,
+	 and cannot be part of a function key or translation,
+	 and is an upper case letter
+	 use the corresponding lower-case letter instead.  */
+      if (first_binding == nmaps && ! function_key_possible
+	  && XTYPE (key) == Lisp_Int
+	  && ((((XINT (key) & 0x3ffff)
+		< XSTRING (current_buffer->downcase_table)->size)
+	       && UPPERCASEP (XINT (key) & 0x3ffff))
+	      || (XINT (key) & shift_modifier)))
+	{
+	  if (XINT (key) & shift_modifier)
+	    XSETINT (key, XINT (key) & ~shift_modifier);
+	  else
+	    XSETINT (key, (DOWNCASE (XINT (key) & 0x3ffff)
+			   | (XINT (key) & ~0x3ffff)));
+
+	  keybuf[t - 1] = key;
+	  mock_input = t;
+	  goto replay_sequence;
+	}
     }
 
   read_key_sequence_cmd = (first_binding < nmaps
