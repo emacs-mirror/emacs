@@ -1,3 +1,39 @@
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (unwind_to_catch): Clear immediate_quit.
+
+	* xdisp.c (get_next_display_element): Display codes 8a0 and 8ad
+	specially as `\ ' and `\-'.
+
+	* keyboard.c (kbd_buffer_store_event_hold):
+	In the code for while-no-input, handle immediate_quit.
+
+	* alloc.c (Fgarbage_collect): Update call to truncate_undo_list.
+	Call that at the very start.
+	(undo_limit, undo_strong_limit, undo_outer_limit): Moved to undo.c.
+	(syms_of_alloc): Don't define undo-limit,
+	undo-strong-limit and undo-outer-limit here.
+
+	* undo.c (truncate_undo_list): Return void.
+	Take just one argument, the buffer.
+	Make it current, and inhibit recursive GC.
+	Access and update the undo list directly; return void.
+	Refer to the undo...limit variables directly.
+	Test undo_outer_limit only after counting the whole current command.
+	When it's exceeded, call the function in undo-outer-limit-function.
+	(undo_limit, undo_strong_limit, undo_outer_limit): From alloc.c.
+	(Vundo_outer_limit_function): New variable.
+	(syms_of_undo): Define undo-limit, undo-strong-limit
+	and undo-outer-limit here, and undo-outer-limit-function.
+	Doc fixes.
+
+	* lisp.h (truncate_undo_list): Update decl.
+
+2004-12-21  Piet van Oostrum  <piet@cs.uu.nl>
+
+	* fileio.c (Fread_file_name): Delete duplicates in
+	file-name-history when history_delete_duplicates is true.
+
 2004-12-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_do_list_fonts): Fix memory leak

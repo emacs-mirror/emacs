@@ -1,3 +1,27 @@
+2004-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (escape-glyph): Use blue against light foreground.
+
+	* simple.el (undo-outer-limit-truncate): New function.
+	(undo-outer-limit-function): Use undo-outer-limit-truncate.
+
+2004-12-21  Eli Barzilay  <eli@barzilay.org>
+	
+	* calculator.el: (calculator-radix-grouping-mode)
+	(calculator-radix-grouping-digits)
+	(calculator-radix-grouping-separator):
+	New defcustoms for the new radix grouping mode functionality.
+	(calculator-mode-hook): Now used in electric mode too.
+	(calculator-mode-map): Some new keys.
+	(calculator-message): New function.  Some new calls.
+	(calculator-string-to-number): New function,
+	(calculator-curnum-value): Use it.
+	(calculator-rotate-displayer, calculator-rotate-displayer-back)
+	(calculator-displayer-prev, calculator-displayer-next):
+	Change digit group size when in radix mode.
+	(calculator-number-to-string): Renamed from calculator-num-to-string.
+	Now deals with digit grouping in radix mode.
+
 2004-12-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (view-other-diary-entries): Add autoload.
