@@ -40,7 +40,7 @@ order to display international characters.  If you see a non-ASCII
 character appear as a hollow box, that means you don't have a font for
 it.  You might find a font in the intlfonts distribution.  If some
 characters don't look right, or appear improperly aligned, a font
-fron the intlfonts distribution might look better.
+from the intlfonts distribution might look better.
 
 The intlfonts distribution contains its own installation instructions,
 in the intlfonts/README file.
