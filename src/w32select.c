@@ -168,6 +168,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	  }
     
 	GlobalUnlock (htext);
+
+	Vlast_coding_system_used = Qraw_text;
       }
     else
       {
@@ -188,6 +190,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	if ((dst = (unsigned char *) GlobalLock (htext)) == NULL)
 	  goto error;
 	encode_coding (&coding, src, dst, nbytes, bufsize);
+	Vlast_coding_system_used = coding.symbol;
 	GlobalUnlock (htext);
 	/* Shrink data block to actual size.  */
 	htext2 = GlobalReAlloc (htext, coding.produced, GMEM_MOVEABLE | GMEM_DDESHARE);
@@ -257,6 +260,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	bufsize = decoding_buffer_size (&coding, nbytes);
 	buf = (unsigned char *) xmalloc (bufsize);
 	decode_coding (&coding, src, buf, nbytes, bufsize);
+	Vlast_coding_system_used = coding.symbol;
 	truelen = (coding.fake_multibyte
 		   ? multibyte_chars_in_text (buf, coding.produced)
 		   : coding.produced_char);
@@ -301,6 +305,8 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	      /* copied remaining partial line -> now finished */
 	      break;
 	  }
+
+	Vlast_coding_system_used = Qraw_text;
       }
 
     GlobalUnlock (htext);
