@@ -92,9 +92,9 @@
 
 ;;; Code:
 
-(provide 'gnus)
 (require 'nntp)
 (require 'mail-utils)
+(require 'timezone)
 
 (defvar gnus-default-nntp-server nil
   "*Specify default NNTP server.
@@ -1244,7 +1244,6 @@ Various hooks for customization:
   "Read network news.
 If optional argument CONFIRM is non-nil, ask NNTP server."
   (interactive "P")
-  (require 'timezone)
   (unwind-protect
       (progn
 	(switch-to-buffer (get-buffer-create gnus-group-buffer))
@@ -7172,6 +7171,8 @@ otherwise, if FILE2 does not exist, the answer is t."
 	      ))))
 
 
+(provide 'gnus)
+
 ;;Local variables:
 ;;eval: (put 'gnus-eval-in-buffer-window 'lisp-indent-hook 1)
 ;;end:
