@@ -341,7 +341,7 @@ Each function is called with one arg, LEIM directory name.")
 
 (defvar current-input-method nil
   "The current input method for multilingual text.
-If nil, it means no input method is activated now.")
+If nil, that means no input method is activated now.")
 (make-variable-buffer-local 'current-input-method)
 (put 'current-input-method 'permanent-local t)
 
@@ -443,8 +443,8 @@ If INHIBIT-NULL is non-nil, null input signals an error."
 
 (defun select-input-method (input-method)
   "Select and activate INPUT-METHOD.
-Both the default and local values of default-input-method are
-set to the selected input method.
+This sets both the default and local values of `default-input-method'
+to the input method you specify.
 See also the function `register-input-method'."
   (interactive
    (let* ((default (or previous-input-method default-input-method))
@@ -459,7 +459,7 @@ See also the function `register-input-method'."
   "Turn on or off a multilingual text input method for the current buffer.
 With arg, read an input method from minibuffer and turn it on.
 Without arg, if some input method is currently activated, turn it off,
-else turn on default-input-method (which see).
+else turn on the default input method (see `default-input-method').
 In the latter case, if default-input-method is nil, select an input method
 interactively."
   (interactive "P")
@@ -468,7 +468,7 @@ interactively."
     (if (and current-input-method (not arg))
 	(inactivate-input-method)
       (if (not enable-multibyte-characters)
-	  (error "Can't activate any input method while enable-multibyte-characters is nil"))
+	  (error "Can't activate any input method while multibyte characters are disabled"))
       (activate-input-method
        (if (or arg (not default-input-method))
 	   (read-input-method-name "Input method: " initial t)  
@@ -487,7 +487,7 @@ interactively."
 		       input-method (nth 3 elt) (nth 1 elt) (nth 4 elt)))))))
 
 (defun describe-current-input-method ()
-  "Describe the input method currently turned on."
+  "Describe the input method currently in use."
   (if current-input-method
       (if (and (symbolp describe-current-input-method-function)
 	       (fboundp describe-current-input-method-function))
@@ -573,7 +573,7 @@ and sometimes other things."
 ;;   [menu-bar mule describe-language-environment LANGUAGE]
 ;; and should not run it by `M-x describe-current-input-method-function'.
 (defun describe-specified-language-support ()
-  "Describe how Emacs supports the specified langugage."
+  "Describe how Emacs supports the specified language environment."
   (interactive)
   (let (language-name)
     (if (not (and (symbolp last-command-event)
@@ -634,7 +634,7 @@ and sometimes other things."
 (defsubst get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
 This is the last value stored with
-`(put-charset-property CHARSET PROPNAME VALUE)'."
+ (put-charset-property CHARSET PROPNAME VALUE)."
   (plist-get (charset-plist charset) propname))
 
 (defsubst put-charset-property (charset propname value)
@@ -651,7 +651,7 @@ It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   "Char-table containing a property list of each character code.
 
 See also the documentation of `get-char-code-property' and
-`put-char-code-property'")
+`put-char-code-property'.")
 
 (defun get-char-code-property (char propname)
   "Return the value of CHAR's PROPNAME property in `char-code-property-table'."
