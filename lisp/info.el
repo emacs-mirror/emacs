@@ -78,7 +78,7 @@ The Lisp code is executed when the node is selected.")
   "Face for Info cross-references."
   :group 'info)
 
-(defcustom Info-fontify-maximum-menu-size 30000
+(defcustom Info-fontify-maximum-menu-size 100000
   "*Maximum size of menu to fontify if `Info-fontify' is non-nil."
   :type 'integer
   :group 'info)
