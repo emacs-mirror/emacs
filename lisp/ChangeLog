@@ -1,3 +1,9 @@
+2000-10-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/isearch-x.el (isearch-with-input-method): Call
+	input-method-function with the first event in
+	unread-command-events.
+
 2000-10-24  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* faces.el (face-default-spec, face-user-default-spec): Make
