@@ -104,6 +104,9 @@ const unsigned short int __mon_yday[2][13] =
     { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
   };
 
+static struct tm *ranged_convert __P ((struct tm *(*) __P ((const time_t *,
+							    struct tm *)),
+				       time_t *, struct tm *));
 static time_t ydhms_tm_diff __P ((int, int, int, int, int, const struct tm *));
 time_t __mktime_internal __P ((struct tm *,
 			       struct tm *(*) (const time_t *, struct tm *),
@@ -136,30 +139,36 @@ localtime_r (t, tp)
    measured in seconds, ignoring leap seconds.
    YEAR uses the same numbering as TM->tm_year.
    All values are in range, except possibly YEAR.
+   If TP is null, return a nonzero value.
    If overflow occurs, yield the low order bits of the correct answer.  */
 static time_t
 ydhms_tm_diff (year, yday, hour, min, sec, tp)
      int year, yday, hour, min, sec;
      const struct tm *tp;
 {
-  /* Compute intervening leap days correctly even if year is negative.
-     Take care to avoid int overflow.  time_t overflow is OK, since
-     only the low order bits of the correct time_t answer are needed.
-     Don't convert to time_t until after all divisions are done, since
-     time_t might be unsigned.  */
-  int a4 = (year >> 2) + (TM_YEAR_BASE >> 2) - ! (year & 3);
-  int b4 = (tp->tm_year >> 2) + (TM_YEAR_BASE >> 2) - ! (tp->tm_year & 3);
-  int a100 = a4 / 25 - (a4 % 25 < 0);
-  int b100 = b4 / 25 - (b4 % 25 < 0);
-  int a400 = a100 >> 2;
-  int b400 = b100 >> 2;
-  int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);
-  time_t years = year - (time_t) tp->tm_year;
-  time_t days = (365 * years + intervening_leap_days
-		 + (yday - tp->tm_yday));
-  return (60 * (60 * (24 * days + (hour - tp->tm_hour))
-		+ (min - tp->tm_min))
-	  + (sec - tp->tm_sec));
+  if (!tp)
+    return 1;
+  else
+    {
+      /* Compute intervening leap days correctly even if year is negative.
+	 Take care to avoid int overflow.  time_t overflow is OK, since
+	 only the low order bits of the correct time_t answer are needed.
+	 Don't convert to time_t until after all divisions are done, since
+	 time_t might be unsigned.  */
+      int a4 = (year >> 2) + (TM_YEAR_BASE >> 2) - ! (year & 3);
+      int b4 = (tp->tm_year >> 2) + (TM_YEAR_BASE >> 2) - ! (tp->tm_year & 3);
+      int a100 = a4 / 25 - (a4 % 25 < 0);
+      int b100 = b4 / 25 - (b4 % 25 < 0);
+      int a400 = a100 >> 2;
+      int b400 = b100 >> 2;
+      int intervening_leap_days = (a4 - b4) - (a100 - b100) + (a400 - b400);
+      time_t years = year - (time_t) tp->tm_year;
+      time_t days = (365 * years + intervening_leap_days
+		     + (yday - tp->tm_yday));
+      return (60 * (60 * (24 * days + (hour - tp->tm_hour))
+		    + (min - tp->tm_min))
+	      + (sec - tp->tm_sec));
+    }
 }
 
 
@@ -179,6 +188,54 @@ mktime (tp)
 
   return __mktime_internal (tp, localtime_r, &localtime_offset);
 }
+
+/* Use CONVERT to convert *T to a broken down time in *TP.
+   If *T is out of range for conversion, adjust it so that
+   it is the nearest in-range value and then convert that.  */
+static struct tm *
+ranged_convert (convert, t, tp)
+     struct tm *(*convert) __P ((const time_t *, struct tm *));
+     time_t *t;
+     struct tm *tp;
+{
+  struct tm *r;
+
+  if (! (r = (*convert) (t, tp)) && *t)
+    {
+      time_t bad = *t;
+      time_t ok = 0;
+      struct tm tm;
+
+      /* BAD is a known unconvertible time_t, and OK is a known good one.
+	 Use binary search to narrow the range between BAD and OK until
+	 they differ by 1.  */
+      while (bad != ok + (bad < 0 ? -1 : 1))
+	{
+	  time_t mid = *t = (bad < 0
+			     ? bad + ((ok - bad) >> 1)
+			     : ok + ((bad - ok) >> 1));
+	  if ((r = (*convert) (t, tp)))
+	    {
+	      tm = *r;
+	      ok = mid;
+	    }
+	  else
+	    bad = mid;
+	}
+
+      if (!r && ok)
+	{
+	  /* The last conversion attempt failed;
+	     revert to the most recent successful attempt.  */
+	  *t = ok;
+	  *tp = tm;
+	  r = tp;
+	}
+    }
+
+  return r;
+}
+
 
 /* Convert *TP to a time_t value, inverting
    the monotonic and mostly-unit-linear conversion function CONVERT.
@@ -245,7 +302,8 @@ __mktime_internal (tp, convert, offset)
   t0 = ydhms_tm_diff (year, yday, hour, min, sec, &tm);
 
   for (t = t0 + *offset;
-       (dt = ydhms_tm_diff (year, yday, hour, min, sec, (*convert) (&t, &tm)));
+       (dt = ydhms_tm_diff (year, yday, hour, min, sec,
+			    ranged_convert (convert, &t, &tm)));
        t += dt)
     if (--remaining_probes == 0)
       return -1;
@@ -265,7 +323,7 @@ __mktime_internal (tp, convert, offset)
 	    {
 	      struct tm otm;
 	      if (! (dt = ydhms_tm_diff (year, yday, hour, min, sec,
-					 (*convert) (&ot, &otm))))
+					 ranged_convert (convert, &ot, &otm))))
 		{
 		  t = ot;
 		  tm = otm;
@@ -285,7 +343,8 @@ __mktime_internal (tp, convert, offset)
       /* Adjust time to reflect the tm_sec requested, not the normalized value.
 	 Also, repair any damage from a false match due to a leap second.  */
       t += sec_requested - sec + (sec == 0 && tm.tm_sec == 60);
-      (*convert) (&t, &tm);
+      if (! (*convert) (&t, &tm))
+	return -1;
     }
 #endif
 
@@ -335,25 +394,28 @@ static void
 print_tm (tp)
      struct tm *tp;
 {
-  printf ("%04d-%02d-%02d %02d:%02d:%02d yday %03d wday %d isdst %d",
-	  tp->tm_year + TM_YEAR_BASE, tp->tm_mon + 1, tp->tm_mday,
-	  tp->tm_hour, tp->tm_min, tp->tm_sec,
-	  tp->tm_yday, tp->tm_wday, tp->tm_isdst);
+  if (tp)
+    printf ("%04d-%02d-%02d %02d:%02d:%02d yday %03d wday %d isdst %d",
+	    tp->tm_year + TM_YEAR_BASE, tp->tm_mon + 1, tp->tm_mday,
+	    tp->tm_hour, tp->tm_min, tp->tm_sec,
+	    tp->tm_yday, tp->tm_wday, tp->tm_isdst);
+  else
+    printf ("0");
 }
 
 static int
-check_result (tk, tmk, tl, tml)
+check_result (tk, tmk, tl, lt)
      time_t tk;
      struct tm tmk;
      time_t tl;
-     struct tm tml;
+     struct tm *lt;
 {
-  if (tk != tl || not_equal_tm (&tmk, &tml))
+  if (tk != tl || !lt || not_equal_tm (&tmk, lt))
     {
       printf ("mktime (");
       print_tm (&tmk);
       printf (")\nyields (");
-      print_tm (&tml);
+      print_tm (lt);
       printf (") == %ld, should be %ld\n", (long) tl, (long) tk);
       return 1;
     }
@@ -368,6 +430,7 @@ main (argc, argv)
 {
   int status = 0;
   struct tm tm, tmk, tml;
+  struct tm *lt;
   time_t tk, tl;
   char trailer;
 
@@ -384,11 +447,16 @@ main (argc, argv)
       tm.tm_isdst = argc == 3 ? -1 : atoi (argv[3]);
       tmk = tm;
       tl = mktime (&tmk);
-      tml = *localtime (&tl);
+      lt = localtime (&tl);
+      if (lt)
+	{
+	  tml = *lt;
+	  lt = &tml;
+	}
       printf ("mktime returns %ld == ", (long) tl);
       print_tm (&tmk);
       printf ("\n");
-      status = check_result (tl, tmk, tl, tml);
+      status = check_result (tl, tmk, tl, lt);
     }
   else if (argc == 4 || (argc == 5 && strcmp (argv[4], "-") == 0))
     {
@@ -399,19 +467,35 @@ main (argc, argv)
       if (argc == 4)
 	for (tl = from; tl <= to; tl += by)
 	  {
-	    tml = *localtime (&tl);
-	    tmk = tml;
-	    tk = mktime (&tmk);
-	    status |= check_result (tk, tmk, tl, tml);
+	    lt = localtime (&tl);
+	    if (lt)
+	      {
+		tmk = tml = *lt;
+		tk = mktime (&tmk);
+		status |= check_result (tk, tmk, tl, tml);
+	      }
+	    else
+	      {
+		printf ("localtime (%ld) yields 0\n", (long) tl);
+		status = 1;
+	      }
 	  }
       else
 	for (tl = from; tl <= to; tl += by)
 	  {
 	    /* Null benchmark.  */
-	    tml = *localtime (&tl);
-	    tmk = tml;
-	    tk = tl;
-	    status |= check_result (tk, tmk, tl, tml);
+	    lt = localtime (&tl);
+	    if (lt)
+	      {
+		tmk = tml = *lt;
+		tk = tl;
+		status |= check_result (tk, tmk, tl, tml);
+	      }
+	    else
+	      {
+		printf ("localtime (%ld) yields 0\n", (long) tl);
+		status = 1;
+	      }
 	  }
     }
   else
@@ -428,6 +512,6 @@ main (argc, argv)
 
 /*
 Local Variables:
-compile-command: "gcc -DDEBUG=1 -Wall -O -g mktime.c -o mktime"
+compile-command: "gcc -DDEBUG -D__EXTENSIONS__ -DHAVE_LIMITS_H -DHAVE_LOCALTIME_R -DSTDC_HEADERS -Wall -W -O -g mktime.c -o mktime"
 End:
 */

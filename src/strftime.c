@@ -184,7 +184,7 @@ localtime_r (t, tp)
   return tp;
 }
 # endif /* ! HAVE_LOCALTIME_R */
-#endif /* ! defined (_LIBC) */
+#endif /* ! defined _LIBC */
 
 
 #if !defined memset && !defined HAVE_MEMSET && !defined _LIBC
@@ -204,7 +204,7 @@ static const char zeroes[16] = /* "0000000000000000" */
     do									      \
       {									      \
 	int _this = _len > 16 ? 16 : _len;				      \
-	(P) = mempcpy ((P), spaces, _this);				      \
+	(P) = MEMPCPY ((P), spaces, _this);				      \
 	_len -= _this;							      \
       }									      \
     while (_len > 0);							      \
@@ -217,7 +217,7 @@ static const char zeroes[16] = /* "0000000000000000" */
     do									      \
       {									      \
 	int _this = _len > 16 ? 16 : _len;				      \
-	(P) = mempcpy ((P), zeroes, _this);				      \
+	(P) = MEMPCPY ((P), zeroes, _this);				      \
 	_len -= _this;							      \
       }									      \
     while (_len > 0);							      \
