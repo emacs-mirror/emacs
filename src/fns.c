@@ -4175,14 +4175,17 @@ sweep_weak_table (h, remove_entries_p)
 	  int remove_p;
 	  int i = XFASTINT (idx);
 	  Lisp_Object next;
+	  int key_known_to_survive_p, value_known_to_survive_p;
 
+	  key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
+	  value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
+	  
 	  if (EQ (h->weak, Qkey))
-	    remove_p = !survives_gc_p (HASH_KEY (h, i));
+	    remove_p = !key_known_to_survive_p;
 	  else if (EQ (h->weak, Qvalue))
-	    remove_p = !survives_gc_p (HASH_VALUE (h, i));
+	    remove_p = !value_known_to_survive_p;
 	  else if (EQ (h->weak, Qt))
-	    remove_p = (!survives_gc_p (HASH_KEY (h, i))
-			|| !survives_gc_p (HASH_VALUE (h, i)));
+	    remove_p = !key_known_to_survive_p || !value_known_to_survive_p;
 	  else
 	    abort ();
 		      
@@ -4214,9 +4217,17 @@ sweep_weak_table (h, remove_entries_p)
 	      if (!remove_p)
 		{
 		  /* Make sure key and value survive.  */
-		  mark_object (&HASH_KEY (h, i));
-		  mark_object (&HASH_VALUE (h, i));
-		  marked = 1;
+		  if (!key_known_to_survive_p)
+		    {
+		      mark_object (&HASH_KEY (h, i));
+		      marked = 1;
+		    }
+
+		  if (!value_known_to_survive_p)
+		    {
+		      mark_object (&HASH_VALUE (h, i));
+		      marked = 1;
+		    }
 		}
 	    }
 
