@@ -150,9 +150,7 @@ and then returns."
 			 (setq unread-command-events
 			       (cons char unread-command-events)
 			       config nil)
-		       (let ((defn
-			       (let ((overriding-local-map local-map))
-				 (key-binding key))))
+		       (let ((defn (lookup-key local-map key)))
 			 (if defn
 			     (progn
 			       (if config
