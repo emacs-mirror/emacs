@@ -741,15 +741,15 @@ This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
 to the current time zone and daylight savings time if not specified; if\n\
 specified, it can be either a list (as from `current-time-zone') or an\n\
 integer (as from `decode-time'), and is applied without consideration for\n\
-daylight savings time.  If YEAR is less than 100, values in the range 0 to\n\
-37 are interpreted as in the 21st century, all other values are in the 20th\n\
-century.")
+daylight savings time.\n\
+If YEAR is less than 100, values in the range 0 through 69 are treated\n\
+as 2000 through 2069; values 70 through 99 are treated as 1970...1999.")
   (sec, min, hour, day, month, year, zone)
      Lisp_Object sec, min, hour, day, month, year, zone;
 {
-  double universal;
-  int fullyear, mon;
-  static char days[11] = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
+  time_t time;
+  int fullyear, mon, days, seconds, tz = 0;
+  static char days_per_month[11] = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
 
   CHECK_NATNUM (sec, 0);
   CHECK_NATNUM (min, 1);
@@ -761,62 +761,79 @@ century.")
   fullyear = XINT (year);
   if (fullyear < 100)
     {
-      if (fullyear < 38)		/* end of time: 2038-01-19 03:14:08 */
+      if (fullyear < 70)		/* Epoch is 1970.  */
 	fullyear += 2000;
       else
 	fullyear += 1900;
     }
 
-  if (NILP (zone))
-    zone = Fcurrent_time_zone (Qnil);
-  if (CONSP (zone))
-    zone = Fcar (zone);
-
-  CHECK_NUMBER (zone, 6);
-
-  /* all of these should evaluate to compile-time constants. */
-#define MIN 60.0				/*          60 */
-#define HOUR (60*MIN)				/*        3600 */
-#define DAY (24*HOUR)				/*       86400 */
-#define YEAR (365*DAY)				/*    31536000 */
-#define YEAR4 (4*YEAR+DAY)			/*   126230400 */
-#define YEAR100 (25*YEAR4-DAY)			/*  3155673600 */
-#define YEAR400 (4*YEAR100+DAY)			/* 12622780800 */
-#define YEAR1900 (4*YEAR400+3*YEAR100)		/* 59958144000 */
-#define YEAR1970 (YEAR1900+17*YEAR4+2*YEAR)	/* 62167132800 */
-#define LEAPBIAS (59*DAY)			/*     5097600 */
-
-  mon = XINT (month) - 1;
-  fullyear--;
-  mon += 10;
-  fullyear += mon/12;
+  /* Adjust incoming datespec to epoch = March 1, year 0.  */
+  mon = XINT (month) - 1 + 10;
+  fullyear += mon/12 - 1;
   mon %= 12;
 
-  universal = XINT (sec) + XINT (min) * MIN + XINT (hour) * HOUR;
-  while (mon-- > 0)
-    universal += days[mon] * DAY;
-  universal += (XINT (day) - 1) * DAY;
-  universal += YEAR400 * (fullyear/400);
+  days = XINT (day) - 1;		/* day of month */
+  while (mon-- > 0)			/* day of year */
+    days += days_per_month[mon];
+  days += 146097 * (fullyear/400);	/* 400 years = 146097 days */
   fullyear %= 400;
-  universal += YEAR100 * (fullyear/100);
+  days += 36524 * (fullyear/100);	/* 100 years = 36524 days */
   fullyear %= 100;
-  universal += YEAR4 * (fullyear/4);
+  days += 1461 * (fullyear/4);		/* 4 years = 1461 days */
   fullyear %= 4;
-  universal += YEAR * fullyear;
-  universal -= YEAR1970 - LEAPBIAS;
+  days += 365 * fullyear;		/* 1 year = 365 days */
 
-  return make_time ((int)(universal - XINT (zone)));
+  /* Adjust computed datespec to epoch = January 1, 1970.  */
+  days += 59;				/* March 1 is 59th day.  */
+  days -= 719527;			/* 1970 years = 719527 days */
 
-#undef MIN
-#undef HOUR
-#undef DAY
-#undef YEAR
-#undef YEAR4
-#undef YEAR100
-#undef YEAR400
-#undef YEAR1900
-#undef YEAR1970
-#undef LEAPBIAS
+  seconds = XINT (sec) + 60 * XINT (min) + 3600 * XINT (hour);
+
+  if (sizeof (time_t) == 4
+      && ((days+(seconds/86400) > 24854) || (days+(seconds/86400) < -24854)))
+    error ("the specified time is outside the representable range");
+
+  time = days * 86400 + seconds;
+
+  /* We have the correct value for UTC.  Adjust for timezones.  */
+  if (NILP (zone))
+    {
+      struct tm gmt, *t;
+      time_t adjusted_time;
+      int adjusted_tz;
+      /* If the system does not use timezones, gmtime returns 0, and we
+	 already have the correct value, by definition.  */
+      if ((t = gmtime (&time)) != 0)
+	{
+	  gmt = *t;
+	  t = localtime (&time);
+	  tz = difftm (t, &gmt);
+	  /* The timezone returned is that at the specified Universal Time,
+	     not the local time, which is what we want.  Adjust, repeat.  */
+	  adjusted_time = time - tz;
+	  gmt = *gmtime (&adjusted_time); /* this is safe now */
+	  t = localtime (&adjusted_time);
+	  adjusted_tz = difftm (t, &gmt);
+	  /* In case of discrepancy, adjust again for extra accuracy.  */
+	  if (adjusted_tz != tz)
+	    {
+	      adjusted_time = time - adjusted_tz;
+	      gmt = *gmtime (&adjusted_time);
+	      t = localtime (&adjusted_time);
+	      adjusted_tz = difftm (t, &gmt);
+	    }
+	  tz = adjusted_tz;
+	}
+    }
+  else 
+    {
+      if (CONSP (zone))
+	zone = Fcar (zone);
+      CHECK_NUMBER (zone, 6);
+      tz = XINT (zone);
+    }
+
+  return make_time (time - tz);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
