@@ -654,6 +654,8 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static int single_display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
+static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int cursor_row_p P_ ((struct window *, struct glyph_row *));
 static int redisplay_mode_lines P_ ((Lisp_Object, int));
 static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
@@ -2994,6 +2996,132 @@ display_prop_intangible_p (prop)
 
   return 0;
 }
+
+
+/* Return 1 if PROP is a display sub-property value containing STRING.  */
+
+static int
+single_display_prop_string_p (prop, string)
+     Lisp_Object prop, string;
+{
+  extern Lisp_Object Qwhen, Qmargin;
+
+  if (EQ (string, prop))
+    return 1;
+  
+  /* Skip over `when FORM'.  */
+  if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
+    {
+      prop = XCDR (prop);
+      if (!CONSP (prop))
+	return 0;
+      prop = XCDR (prop);
+    }
+
+  if (CONSP (prop))
+    /* Skip over `margin LOCATION'.  */
+    if (EQ (XCAR (prop), Qmargin))
+      {
+	prop = XCDR (prop);
+	if (!CONSP (prop))
+	  return 0;
+
+	prop = XCDR (prop);
+	if (!CONSP (prop))
+	  return 0;
+      }
+  
+  return CONSP (prop) && EQ (XCAR (prop), string);
+}
+
+
+/* Return 1 if STRING appears in the `display' property PROP.  */
+
+static int
+display_prop_string_p (prop, string)
+     Lisp_Object prop, string;
+{
+  extern Lisp_Object Qwhen, Qmargin;
+  
+  if (CONSP (prop)
+      && CONSP (XCAR (prop))
+      && !EQ (Qmargin, XCAR (XCAR (prop))))
+    {
+      /* A list of sub-properties.  */
+      while (CONSP (prop))
+	{
+	  if (single_display_prop_string_p (XCAR (prop), string))
+	    return 1;
+	  prop = XCDR (prop);
+	}
+    }
+  else if (VECTORP (prop))
+    {
+      /* A vector of sub-properties.  */
+      int i;
+      for (i = 0; i < ASIZE (prop); ++i)
+	if (single_display_prop_string_p (AREF (prop, i), string))
+	  return 1;
+    }
+  else
+    return single_display_prop_string_p (prop, string);
+
+  return 0;
+}
+
+
+/* Determine from which buffer position in W's buffer STRING comes
+   from.  AROUND_CHARPOS is an approximate position where it could
+   be from.  Value is the buffer position or 0 if it couldn't be
+   determined.
+
+   W's buffer must be current.
+
+   This function is necessary because we don't record buffer positions
+   in glyphs generated from strings (to keep struct glyph small).
+   This function may only use code that doesn't eval because it is
+   called asynchronously from note_mouse_highlight.  */
+
+int
+string_buffer_position (w, string, around_charpos)
+     struct window *w;
+     Lisp_Object string;
+     int around_charpos;
+{
+  Lisp_Object around = make_number (around_charpos);
+  Lisp_Object limit, prop, pos;
+  const int MAX_DISTANCE = 1000;
+  int found = 0;
+
+  pos = around_charpos;
+  limit = make_number (min (XINT (pos) + MAX_DISTANCE, ZV));
+  while (!found && !EQ (pos, limit))
+    {
+      prop = Fget_char_property (pos, Qdisplay, Qnil);
+      if (!NILP (prop) && display_prop_string_p (prop, string))
+	found = 1;
+      else
+	pos = Fnext_single_property_change (pos, Qdisplay, Qnil, limit);
+    }
+
+  if (!found)
+    {
+      pos = around_charpos;
+      limit = make_number (max (XINT (pos) - MAX_DISTANCE, BEGV));
+      while (!found && !EQ (pos, limit))
+	{
+	  prop = Fget_char_property (pos, Qdisplay, Qnil);
+	  if (!NILP (prop) && display_prop_string_p (prop, string))
+	    found = 1;
+	  else
+	    pos = Fprevious_single_property_change (pos, Qdisplay, Qnil,
+						    limit);
+	}
+    }
+
+  return found ? XINT (pos) : 0;
+}
+
 
 
 /***********************************************************************
