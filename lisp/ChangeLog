@@ -1,3 +1,8 @@
+2002-07-08  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-dynamic-list-completions): Sort COMPLETIONS
+	before first use.
+
 2002-07-08  Kim F. Storm  <storm@cua.dk>
 
 	* files.el (after-find-file): Don't check for read-only status
