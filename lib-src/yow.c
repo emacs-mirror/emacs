@@ -18,6 +18,18 @@
 #define YOW_FILE "yow.lines"
 #endif
 
+#ifdef MSDOS
+#define rootrelativepath(rel) \
+({\
+    static char res[BUFSIZE], *p;\
+    strcpy (res, argv[0]);\
+    p = res + strlen (res);\
+    while (p != res && *p != '/' && *p != '\\' && *p != ':') p--;\
+    strcpy (p + 1, "../");\
+    strcpy (p + 4, rel);\
+    &res;})
+#endif
+
 main (argc, argv)
      int argc;
      char *argv[];
