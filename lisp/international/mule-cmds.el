@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2003
@@ -1839,12 +1839,14 @@ Setting this variable directly does not take effect.  See
   ;; different there.
   (or (and (eq window-system 'pc) (not default-enable-multibyte-characters))
       (progn
-	;; Make non-line-break space display as a plain space.
-	;; Most X fonts do the wrong thing for code 160.
-	(aset standard-display-table 160 [32])
-	;; With luck, non-Latin-1 fonts are more recent and so don't
-	;; have this bug.
-	(aset standard-display-table (make-char 'latin-iso8859-1 160) [32])
+	;; Most X fonts used to do the wrong thing for latin-1 code 160.
+	(unless (and (eq window-system 'x)
+		     ;; XFree86 4 has fixed the fonts.
+		     (string= "The XFree86 Project, Inc" (x-server-vendor))
+		     (> (aref (number-to-string (nth 2 (x-server-version))) 0)
+			?3))
+	  ;; Make non-line-break space display as a plain space.
+	  (aset standard-display-table 160 [32]))
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1852,23 +1854,7 @@ Setting this variable directly does not take effect.  See
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39])
-	;; XFree86 4 has changed most of the fonts from their designed
-	;; versions such that `' no longer appears as balanced quotes.
-	;; Assume it has iso10646 fonts installed, so we can display
-	;; balanced quotes.
-	(when (and (eq window-system 'x)
-		   (string= "The XFree86 Project, Inc" (x-server-vendor))
-		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
-		      ?3))
-	  ;; We suppress these setting for the moment because the
-	  ;; above assumption is wrong.
-	  ;; (aset standard-display-table ?' [?,F"(B])
-	  ;; (aset standard-display-table ?` [?,F!(B])
-	  ;; The fonts don't have the relevant bug.
-	  (aset standard-display-table 160 nil)
-	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
-		nil)))))
+	(aset standard-display-table 146 [39]))))
 
 (defun set-language-environment-coding-systems (language-name
 						&optional eol-type)
@@ -1924,8 +1910,7 @@ of `buffer-file-coding-system' set by this function."
       (setq language-name (symbol-name language-name)))
   (dolist (feature (get-language-info language-name 'features))
     (require feature))
-  (let ((doc (get-language-info language-name 'documentation))
-	pos)
+  (let ((doc (get-language-info language-name 'documentation)))
     (help-setup-xref (list #'describe-language-environment language-name)
 		     (interactive-p))
     (with-output-to-temp-buffer (help-buffer)

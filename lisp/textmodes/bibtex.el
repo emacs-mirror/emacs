@@ -173,7 +173,7 @@ See also `bibtex-sort-ignore-string-entries'."
 If value of `bibtex-maintain-sorted-entries' is `entry-class'
 entries are ordered according to the classes they belong to.  Each
 class contains a list of entry names.  An entry `catch-all' applies
-to all entries not explicitely mentioned."
+to all entries not explicitly mentioned."
   :group 'BibTeX
   :type '(repeat (choice :tag "Class"
                          (const :tag "catch-all" (catch-all))
@@ -654,7 +654,7 @@ See `bibtex-generate-autokey' for details."
   '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
     "[^A-Z].*" ".*[^A-Z0-9].*")
   "Determines words from the title that are not to be used in the key.
-Each item of the list is a regexp.  If a word of the title matchs a
+Each item of the list is a regexp.  If a word of the title matches a
 regexp from that list, it is not included in the title part of the key.
 See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
@@ -730,7 +730,7 @@ and must return a string (the key to use)."
 
 (defcustom bibtex-entry-offset 0
   "Offset for BibTeX entries.
-Added to the value of all other variables which determine colums."
+Added to the value of all other variables which determine columns."
   :group 'bibtex
   :type 'integer)
 
@@ -1115,9 +1115,8 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
                       t))
   "Regexp matching the name of any valid BibTeX entry (including string).")
 
-
-(defconst bibtex-empty-field-re "\"\"\\|{}"
-  "Regexp matching an empty field.")
+(defconst bibtex-empty-field-re "\\`\\(\"\"\\|{}\\)\\'"
+  "Regexp matching the text part (as a string) of an empty field.")
 
 (defconst bibtex-font-lock-syntactic-keywords
   `((,(concat "^[ \t]*\\(" (substring bibtex-comment-start 0 1) "\\)"
@@ -1179,7 +1178,7 @@ ARG is ignored."
   "Parse a string of the format <left-hand-side = right-hand-side>.
 The functions PARSE-LHS and PARSE-RHS are used to parse the corresponding
 substrings.  These functions are expected to return nil if parsing is not
-successfull.  If both functions return non-nil, a pair containing the returned
+successful.  If both functions return non-nil, a pair containing the returned
 values of the functions PARSE-LHS and PARSE-RHS is returned."
   (save-match-data
     (save-excursion
@@ -1196,7 +1195,7 @@ values of the functions PARSE-LHS and PARSE-RHS is returned."
 If the field name is found, return a triple consisting of the position of the
 very first character of the match, the actual starting position of the name
 part and end position of the match.  Move point to end of field name.
-If `bibtex-autoadd-commas' is non-nil add missing comma at end of preceeding
+If `bibtex-autoadd-commas' is non-nil add missing comma at end of preceding
 BibTeX field as necessary."
   (cond ((looking-at ",[ \t\n]*")
          (let ((start (point)))
@@ -1875,7 +1874,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                               (if opt-alt (+ beg-name 3) beg-name) end-name))
                  (empty-field (string-match bibtex-empty-field-re
                                             (buffer-substring-no-properties
-                                             beg-field end-field)))
+                                             beg-text end-text)))
                  deleted)
 
             ;; We have more elegant high-level functions for several
@@ -2824,7 +2823,7 @@ and `bibtex-user-optional-fields'."
   (let ((e (assoc-string entry-type bibtex-entry-field-alist t))
         required optional)
     (unless e
-      (error "Bibtex entry type %s not defined" entry-type))
+      (error "BibTeX entry type %s not defined" entry-type))
     (if (and (member-ignore-case entry-type bibtex-include-OPTcrossref)
              (nth 2 e))
         (setq required (nth 0 (nth 2 e))
@@ -2960,9 +2959,13 @@ entry (for example, the year parts of the keys)."
 	(while (setq bounds (bibtex-parse-field bibtex-field-name))
 	  (let ((text (assoc-string (bibtex-name-in-field bounds t)
                                     other t)))
-	    (goto-char (bibtex-start-of-text-in-field bounds))
-	    (if (not (and (looking-at bibtex-empty-field-re) text))
+	    (if (not (and text
+                          (string-match bibtex-empty-field-re
+                                        (buffer-substring-no-properties
+                                         (bibtex-start-of-text-in-field bounds)
+                                         (bibtex-end-of-text-in-field bounds)))))
 		(goto-char (bibtex-end-of-field bounds))
+              (goto-char (bibtex-start-of-text-in-field bounds))
 	      (delete-region (point) (bibtex-end-of-text-in-field bounds))
 	      (insert (cdr text)))))
 	;; Finally try to update the text based on the difference between
@@ -3269,7 +3272,7 @@ entry and SPLIT is t."
            (bibtex-reposition-window)
            (beginning-of-line)
            (if (and eqb (> pnt pos))
-               (error "The referencing entry must preceed the crossrefed entry!")))
+               (error "The referencing entry must precede the crossrefed entry!")))
           ;; `bibtex-find-crossref' is called noninteractively during
           ;; clean-up of an entry.  Then it is not possible to check
           ;; whether the current entry and the crossrefed entry have

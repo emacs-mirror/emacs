@@ -1,5 +1,5 @@
 ;;; mml.el --- A package for parsing and validating MML documents
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -471,7 +471,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (mm-with-unibyte-buffer
 	      (cond
 	       ((cdr (assq 'buffer cont))
-		(insert-buffer-substring (cdr (assq 'buffer cont))))
+		(insert (with-current-buffer (cdr (assq 'buffer cont))
+			  (mm-with-unibyte-current-buffer
+			    (buffer-string)))))
 	       ((and (setq filename (cdr (assq 'filename cont)))
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))

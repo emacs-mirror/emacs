@@ -2640,6 +2640,8 @@ extern void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 extern void draw_phys_cursor_glyph P_ ((struct window *,
 					  struct glyph_row *,
 					  enum draw_glyphs_face));
+extern int get_phys_cursor_geometry P_ ((struct window *, struct glyph_row *,
+					 struct glyph *, int *));
 extern void erase_phys_cursor P_ ((struct window *));
 extern void display_and_set_cursor P_ ((struct window *,
 					  int, int, int, int, int));

@@ -1840,7 +1840,7 @@ get_glyph_string_clip_rect (s, nr)
   if (s->hl == DRAW_CURSOR)
     {
       struct glyph *glyph = s->first_glyph;
-      int height;
+      int height, max_y;
 
       if (s->x > r.x)
 	{
@@ -1849,13 +1849,26 @@ get_glyph_string_clip_rect (s, nr)
 	}
       r.width = min (r.width, glyph->pixel_width);
 
-      /* Don't draw cursor glyph taller than our actual glyph.  */
-      height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
-      if (height < r.height)
+      /* If r.y is below window bottom, ensure that we still see a cursor.  */
+      height = min (glyph->ascent + glyph->descent,
+		    min (FRAME_LINE_HEIGHT (s->f), s->row->visible_height));
+      max_y = window_text_bottom_y (s->w) - height;
+      max_y = WINDOW_TO_FRAME_PIXEL_Y (s->w, max_y);
+      if (s->ybase - glyph->ascent > max_y)
 	{
-	  int max_y = r.y + r.height;
-	  r.y = min (max_y, s->ybase + glyph->descent - height);
-	  r.height = min (max_y - r.y, height);
+	  r.y = max_y;
+	  r.height = height;
+	}
+      else
+	{
+	  /* Don't draw cursor glyph taller than our actual glyph.  */
+	  height = max (FRAME_LINE_HEIGHT (s->f), glyph->ascent + glyph->descent);
+	  if (height < r.height)
+	    {
+	      max_y = r.y + r.height;
+	      r.y = min (max_y, max (r.y, s->ybase + glyph->descent - height));
+	      r.height = min (max_y - r.y, height);
+	    }
 	}
     }
 
@@ -1865,6 +1878,64 @@ get_glyph_string_clip_rect (s, nr)
   *nr = r;
 #endif
 }
+
+
+/* EXPORT:
+   Return the position and height of the phys cursor in window W.
+   Set w->phys_cursor_width to width of phys cursor.
+*/
+
+int
+get_phys_cursor_geometry (w, row, glyph, heightp)
+     struct window *w;
+     struct glyph_row *row;
+     struct glyph *glyph;
+     int *heightp;
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  int x, y, wd, h, h0, y0;
+
+  /* Compute the width of the rectangle to draw.  If on a stretch
+     glyph, and `x-stretch-block-cursor' is nil, don't draw a
+     rectangle as wide as the glyph, but use a canonical character
+     width instead.  */
+  wd = glyph->pixel_width - 1;
+#ifdef HAVE_NTGUI
+  wd++; /* Why? */
+#endif
+  if (glyph->type == STRETCH_GLYPH
+      && !x_stretch_cursor_p)
+    wd = min (FRAME_COLUMN_WIDTH (f), wd);
+  w->phys_cursor_width = wd;
+
+  y = w->phys_cursor.y + row->ascent - glyph->ascent;
+
+  /* If y is below window bottom, ensure that we still see a cursor.  */
+  h0 = min (FRAME_LINE_HEIGHT (f), row->visible_height);
+
+  h = max (h0, glyph->ascent + glyph->descent);
+  h0 = min (h0, glyph->ascent + glyph->descent);
+
+  y0 = WINDOW_HEADER_LINE_HEIGHT (w);
+  if (y < y0)
+    {
+      h = max (h - (y0 - y) + 1, h0);
+      y = y0 - 1;
+    }
+  else
+    {
+      y0 = window_text_bottom_y (w) - h0;
+      if (y > y0)
+	{
+	  h += y - y0;
+	  y = y0;
+	}
+    }
+
+  *heightp = h - 1;
+  return WINDOW_TO_FRAME_PIXEL_Y (w, y);
+}
+
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

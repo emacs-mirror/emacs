@@ -1,3 +1,65 @@
+2005-01-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
+	(gdb-goto-breakpoint): Make breakpoint handling work on template
+	functions in C++. Reported by Martin Reed <mjreed@essex.ac.uk>
+
+2005-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* descr-text.el: Add more keywords.
+
+2005-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* speedbar.el: Avoid unnecessary use of locate-library.
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Don't fiddle with latin-1 non-break space any more since it's now
+	special cased in the C code.
+	Don't "do&undo" setting for 160 (especially, don't undo incorrectly).
+
+2005-01-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Add `undo-outer-limit'.
+
+2005-01-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry):
+	Use `bibtex-empty-field-re' only on the text of fields, not on entire
+	field lines.
+	(bibtex-autofill-entry): Use `bibtex-empty-field-re' on a string,
+	not on part of a buffer.
+
+2005-01-25  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-empty-field-re): Don't match
+	nonempty field text strings like "{letters\\macro{}more letters}".
+	Clarify docstring.
+	(bibtex-sort-entry-class, bibtex-autokey-titleword-ignore)
+	(bibtex-entry-offset, bibtex-parse-association)
+	(bibtex-parse-field-name): Fix typos in docstrings.
+	(bibtex-field-list, bibtex-find-crossref): Fix typos in error messages.
+
+2005-01-24  Carsten Dominik <dominik@science.uva.nl>
+
+	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
+	(reftex-isearch-pop-state-function, reftex-isearch-isearch-search)
+	(reftex-isearch-switch-to-next-file, reftex-isearch-turn-off)
+	(reftex-isearch-turn-on, reftex-isearch-minor-mode): New functions.
+
+	* textmodes/reftex.el (reftex-mode-menu): Add entry for reftex
+	isearch minor mode.
+
+2005-01-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-at-pt.el (help-at-pt-display-when-idle): Add autoload cookie.
+
+2005-01-24  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-alist-4): Rewrite the
+	CASECHARS and NOT-CASECHARS regular expressions of the
+	"nederlands" and "nederlands8" dictionaries to prevent a "Range
+	striding over charsets" error.
+
 2005-01-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calc-declare-variable): Use calc-var-name to
@@ -76,7 +138,7 @@
 
 2005-01-20  Steven Tamm  <steventamm@mac.com>
 
-	* term/mac-win.el (process-connection-type): Removed.
+	* term/mac-win.el (process-connection-type): Remove.
 	Controlled now by s/darwin.h:PTY_ITERATION.
 
 2005-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>

@@ -146,6 +146,7 @@ This is done by setting a timer, if none is currently active."
 	  (run-with-idle-timer
 	   help-at-pt-timer-delay t #'help-at-pt-maybe-display))))
 
+;;;###autoload
 (defcustom help-at-pt-display-when-idle 'never
   "*Automatically show local help on point-over.
 If the value is t, the string obtained from any `kbd-help' or

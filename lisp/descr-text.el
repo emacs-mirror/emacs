@@ -1,10 +1,10 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2003, 2004
+;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
-;; Keywords: faces
+;; Keywords: faces, i18n, Unicode, multilingual
 
 ;; This file is part of GNU Emacs.
 
@@ -217,7 +217,7 @@ otherwise."
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
 This is the UnicodeData.txt file from the Unicode consortium, used for
-diagnostics.  If it is non-nil `describe-char-after' will print data
+diagnostics.  If it is non-nil `describe-char' will print data
 looked up from it.  This facility is mostly of use to people doing
 multilingual development.
 

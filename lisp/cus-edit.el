@@ -1,6 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -898,8 +899,6 @@ then prompt for the MODE to customize."
 	(let (
 	      ;; Copied from `custom-buffer-create-other-window'.
 	      (pop-up-windows t)
-	      (special-display-buffer-names nil)
-	      (special-display-regexps nil)
 	      (same-window-buffer-names nil)
 	      (same-window-regexps nil))
 	  (pop-to-buffer name))
@@ -1246,8 +1245,6 @@ SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
   (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
     (pop-to-buffer (custom-get-fresh-buffer name))
@@ -4072,23 +4069,23 @@ The format is suitable for use with `easy-menu-define'."
 
 ;;; The Custom Mode.
 
-(defvar custom-mode-map nil
-  "Keymap for `custom-mode'.")
-
-(unless custom-mode-map
+(defvar custom-mode-map
   ;; This keymap should be dense, but a dense keymap would prevent inheriting
   ;; "\r" bindings from the parent map.
-  (setq custom-mode-map (make-sparse-keymap))
-  (set-keymap-parent custom-mode-map widget-keymap)
-  (suppress-keymap custom-mode-map)
-  (define-key custom-mode-map " " 'scroll-up)
-  (define-key custom-mode-map "\177" 'scroll-down)
-  (define-key custom-mode-map "\C-x\C-s" 'Custom-save)
-  (define-key custom-mode-map "q" 'Custom-buffer-done)
-  (define-key custom-mode-map "u" 'Custom-goto-parent)
-  (define-key custom-mode-map "n" 'widget-forward)
-  (define-key custom-mode-map "p" 'widget-backward)
-  (define-key custom-mode-map [mouse-1] 'Custom-move-and-invoke))
+  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (suppress-keymap map)
+    (define-key map " " 'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "q" 'Custom-buffer-done)
+    (define-key map "u" 'Custom-goto-parent)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    (define-key map [mouse-1] 'Custom-move-and-invoke)
+    map)
+  "Keymap for `custom-mode'.")
 
 (defun Custom-move-and-invoke (event)
   "Move to where you click, and if it is an active field, invoke it."
@@ -4187,5 +4184,5 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
-;;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
+;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here

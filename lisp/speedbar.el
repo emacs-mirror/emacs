@@ -1,6 +1,7 @@
 ;;; speedbar.el --- quick access to files and tags in a frame
 
-;;; Copyright (C) 1996, 97, 98, 99, 2000, 01 Free Software Foundation
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2005
+;;           Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.11a
@@ -170,6 +171,8 @@
 ;; - More functions to create buttons and options
 ;; - Timeout directories we haven't visited in a while.
 
+;;; Code:
+
 (require 'assoc)
 (require 'easymenu)
 
@@ -201,7 +204,6 @@
   :prefix "speedbar-"
   :group 'speedbar)
 
-;;; Code:
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
      speedbar-buffer-buttons)
@@ -373,7 +375,7 @@ is attached to."
 			(symbol :tag "Property")
 			(sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (stringp (locate-library "imenu"))
+(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
   "*Non-nil means use imenu for file parsing.  nil to use etags.
 XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
 use etags instead.  Etags support is not as robust as imenu support."
@@ -3749,7 +3751,7 @@ functions to do caching and flushing if appropriate."
 
     nil
 
-(eval-when-compile (if (locate-library "imenu") (require 'imenu)))
+(eval-when-compile (condition-case nil (require 'imenu) (error nil)))
 
 (defun speedbar-fetch-dynamic-imenu (file)
   "Load FILE into a buffer, and generate tags using Imenu.
@@ -4359,5 +4361,5 @@ If we have an image associated with it, use that image."
 ;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
 
-;;; arch-tag: 4477e6d1-f78c-48b9-a503-387d3c9767d5
+;; arch-tag: 4477e6d1-f78c-48b9-a503-387d3c9767d5
 ;;; speedbar.el ends here
