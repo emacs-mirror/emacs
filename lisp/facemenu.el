@@ -26,13 +26,7 @@
 
 ;; This file defines a menu of faces (bold, italic, etc) which allows you to
 ;; set the face used for a region of the buffer.  Some faces also have
-;; keybindings, which are shown in the menu.  Faces with names beginning with
-;; "fg:" or "bg:", as in "fg:red", are treated specially.
-;; Such faces are assumed to consist only of a foreground (if "fg:") or
-;; background (if "bg:") color.  They are thus put into the color submenus
-;; rather than the general Face submenu.  These faces can also be
-;; automatically created by selecting the "Other..." menu items in the
-;; "Foreground" and "Background" submenus.
+;; keybindings, which are shown in the menu.
 ;;
 ;; The menu also contains submenus for indentation and justification-changing
 ;; commands.
@@ -350,7 +344,7 @@ typing a character to insert cancels the specification."
 ;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
   "Set the foreground COLOR of the region or next character typed.
-The color is prompted for.  A face named `fg:color' is used \(or created).
+This command reads the color in the minibuffer.
 
 If the region is active (normally true except in Transient Mark mode)
 and there is no prefix argument, this command sets the region to the
@@ -374,7 +368,7 @@ typing a character to insert cancels the specification."
 ;;;###autoload
 (defun facemenu-set-background (color &optional start end)
   "Set the background COLOR of the region or next character typed.
-Reads the color in the minibuffer.
+This command reads the color in the minibuffer.
 
 If the region is active (normally true except in Transient Mark mode)
 and there is no prefix argument, this command sets the region to the
@@ -723,7 +717,7 @@ If START is nil or START to END is empty, add FACE to next typed character
 instead.  For each section of that region that has a different face property,
 FACE will be consed onto it, and other faces that are completely hidden by
 that will be removed from the list.
-If `facemenu-add-face-function' and maybe `facemenu-end-add-face' are non-`nil'
+If `facemenu-add-face-function' and maybe `facemenu-end-add-face' are non-nil,
 they are used to set the face information.
 
 As a special case, if FACE is `default', then the region is left with NO face
@@ -859,7 +853,12 @@ This is called whenever you create a new face."
 		 `(lambda ()
 		    ,docstring
 		    (interactive)
-		    (facemenu-set-face (quote ,symbol))))
+		    (facemenu-set-face
+		     (quote ,symbol)
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end)))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ((facemenu-iterate ; check if equivalent face is already in the menu
