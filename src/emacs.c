@@ -896,6 +896,9 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #ifdef VMS
       syms_of_vmsproc ();
 #endif /* VMS */
+#ifdef WINDOWSNT
+      syms_of_ntproc ();
+#endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_X_WINDOWS
