@@ -448,7 +448,7 @@ This is a good function to put in `comint-output-filter-functions'." nil nil)
 ;;;***
 
 ;;;### (autoloads (antlr-set-tabs antlr-mode antlr-show-makefile-rules)
-;;;;;;  "antlr-mode" "progmodes/antlr-mode.el" (15611 31358))
+;;;;;;  "antlr-mode" "progmodes/antlr-mode.el" (15853 63299))
 ;;; Generated autoloads from progmodes/antlr-mode.el
 
 (autoload (quote antlr-show-makefile-rules) "antlr-mode" "\
@@ -1658,7 +1658,7 @@ corresponding bookmark function from Lisp (the one without the
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-generic-program
 ;;;;;;  browse-url-save-file browse-url-netscape-display browse-url-new-window-flag
 ;;;;;;  browse-url-browser-function) "browse-url" "net/browse-url.el"
-;;;;;;  (15735 20647))
+;;;;;;  (15853 63299))
 ;;; Generated autoloads from net/browse-url.el
 
 (defvar browse-url-browser-function (if (memq system-type (quote (windows-nt ms-dos))) (quote browse-url-default-windows-browser) (quote browse-url-netscape)) "\
@@ -2606,7 +2606,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (c-set-offset c-add-style c-set-style) "cc-styles"
-;;;;;;  "progmodes/cc-styles.el" (15611 31358))
+;;;;;;  "progmodes/cc-styles.el" (15832 54465))
 ;;; Generated autoloads from progmodes/cc-styles.el
 
 (autoload (quote c-set-style) "cc-styles" "\
@@ -3166,7 +3166,7 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 
 ;;;### (autoloads (codepage-setup cp-supported-codepages cp-offset-for-codepage
 ;;;;;;  cp-language-for-codepage cp-charset-for-codepage cp-make-coding-systems-for-codepage)
-;;;;;;  "codepage" "international/codepage.el" (15611 31355))
+;;;;;;  "codepage" "international/codepage.el" (15853 63299))
 ;;; Generated autoloads from international/codepage.el
 
 (autoload (quote cp-make-coding-systems-for-codepage) "codepage" "\
@@ -3213,7 +3213,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal." t nil)
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (15735 20643))
+;;;;;;  (15805 3849))
 ;;; Generated autoloads from comint.el
 
 (autoload (quote make-comint-in-buffer) "comint" "\
@@ -3293,7 +3293,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (15799 61614))
+;;;;;;  "compile" "progmodes/compile.el" (15827 41472))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -4624,7 +4624,7 @@ Decompose Devanagari characters in the region to IS 13194 characters." t nil)
 ;;;***
 
 ;;;### (autoloads (diary-mail-entries diary) "diary-lib" "calendar/diary-lib.el"
-;;;;;;  (15797 2280))
+;;;;;;  (15853 63299))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -4806,7 +4806,7 @@ Like `dired' but returns the dired buffer as value, does not select it." nil nil
 ;;;;;;  dired-do-compress dired-compress-file dired-do-kill-lines
 ;;;;;;  dired-do-shell-command dired-do-print dired-do-chown dired-do-chgrp
 ;;;;;;  dired-do-chmod dired-backup-diff dired-diff) "dired-aux"
-;;;;;;  "dired-aux.el" (15611 31343))
+;;;;;;  "dired-aux.el" (15827 41471))
 ;;; Generated autoloads from dired-aux.el
 
 (autoload (quote dired-diff) "dired-aux" "\
@@ -6219,7 +6219,7 @@ Please include any configuration details that might be involved." t nil)
 ;;;;;;  find-tag find-tag-noselect tags-table-files visit-tags-table
 ;;;;;;  find-tag-default-function find-tag-hook tags-add-tables tags-compression-info-list
 ;;;;;;  tags-table-list tags-case-fold-search) "etags" "progmodes/etags.el"
-;;;;;;  (15611 31359))
+;;;;;;  (15827 41472))
 ;;; Generated autoloads from progmodes/etags.el
 
 (defvar tags-file-name nil "\
@@ -7320,7 +7320,7 @@ Change the filter on a find-lisp-find-dired buffer to REGEXP." t nil)
 ;;;***
 
 ;;;### (autoloads (finder-by-keyword finder-commentary finder-list-keywords)
-;;;;;;  "finder" "finder.el" (15611 31344))
+;;;;;;  "finder" "finder.el" (15853 63299))
 ;;; Generated autoloads from finder.el
 
 (autoload (quote finder-list-keywords) "finder" "\
@@ -8912,7 +8912,7 @@ with no args, if that value is non-nil." t nil)
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (15761 38863))
+;;;;;;  (15853 63299))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload (quote idlwave-shell) "idlw-shell" "\
@@ -10438,7 +10438,7 @@ for further customization of the printer command." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "ls-lisp" "ls-lisp.el" (15611 31351))
+;;;### (autoloads nil "ls-lisp" "ls-lisp.el" (15853 63299))
 ;;; Generated autoloads from ls-lisp.el
 
 (defgroup ls-lisp nil "Emulate the ls program completely in Emacs Lisp." :version "21.1" :group (quote dired))
@@ -14571,7 +14571,7 @@ Like `mail' command, but display mail buffer in another frame." t nil)
 
 ;;;***
 
-;;;### (autoloads (server-start) "server" "server.el" (15611 31351))
+;;;### (autoloads (server-start) "server" "server.el" (15853 63299))
 ;;; Generated autoloads from server.el
 
 (autoload (quote server-start) "server" "\
@@ -15019,11 +15019,14 @@ which smileys to operate on and which images to use for them." t nil)
 
 ;;;***
 
-;;;### (autoloads (smtpmail-send-it) "smtpmail" "mail/smtpmail.el"
-;;;;;;  (15611 31356))
+;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
+;;;;;;  "mail/smtpmail.el" (15853 63299))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload (quote smtpmail-send-it) "smtpmail" nil nil nil)
+
+(autoload (quote smtpmail-send-queued-mail) "smtpmail" "\
+Send mail that was queued as a result of setting `smtpmail-queue-mail'." t nil)
 
 ;;;***
 
@@ -17279,7 +17282,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME." t nil)
 ;;;;;;  vc-resolve-conflicts vc-merge vc-insert-headers vc-version-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
-;;;;;;  "vc" "vc.el" (15792 45958))
+;;;;;;  "vc" "vc.el" (15827 41471))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
