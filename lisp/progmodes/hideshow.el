@@ -280,8 +280,9 @@ defined as text surrounded by START and END.
 As a special case, START may be a list of the form (COMPLEX-START
 MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
 MDATA-SELECTOR an integer that specifies which sub-match is the proper
-place to adjust point, before calling `hs-forward-sexp-func'.  For
-example, see the `hs-special-modes-alist' entry for `bibtex-mode'.
+place to adjust point, before calling `hs-forward-sexp-func'.  Point
+is adjusted to the beginning of the specified match.  For example,
+see the `hs-special-modes-alist' entry for `bibtex-mode'.
 
 For some major modes, `forward-sexp' does not work properly.  In those
 cases, FORWARD-SEXP-FUNC specifies another function to use instead.
