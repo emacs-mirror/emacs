@@ -1,3 +1,8 @@
+2004-03-06  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-assembler-mode, gdb-assembler-custom): Set up
+	overlay arrow string properly for the assembler buffer.
+
 2004-03-05  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-assembler-mode): Create a second overlay arrow
