@@ -1,3 +1,8 @@
+2002-07-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-util.el (detect-coding-with-priority): Fix
+	the place of using `,' marker in backguote form.
+
 2002-07-12  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (mule-unicode-e000-ffff): Set
