@@ -727,7 +727,8 @@ save_excursion_save ()
   return Fcons (Fpoint_marker (),
 		Fcons (Fcopy_marker (current_buffer->mark, Qnil),
 		       Fcons (visible ? Qt : Qnil,
-			      current_buffer->mark_active)));
+			      Fcons (current_buffer->mark_active,
+				     selected_window))));
 }
 
 Lisp_Object
@@ -736,8 +737,9 @@ save_excursion_restore (info)
 {
   Lisp_Object tem, tem1, omark, nmark;
   struct gcpro gcpro1, gcpro2, gcpro3;
+  int visible_p;
 
-  tem = Fmarker_buffer (Fcar (info));
+  tem = Fmarker_buffer (XCAR (info));
   /* If buffer being returned to is now deleted, avoid error */
   /* Otherwise could get error here while unwinding to top level
      and crash */
@@ -749,15 +751,24 @@ save_excursion_restore (info)
   GCPRO3 (info, omark, nmark);
 
   Fset_buffer (tem);
-  tem = Fcar (info);
+
+  /* Point marker.  */
+  tem = XCAR (info);
   Fgoto_char (tem);
   unchain_marker (tem);
-  tem = Fcar (Fcdr (info));
+
+  /* Mark marker.  */
+  info = XCDR (info);
+  tem = XCAR (info);
   omark = Fmarker_position (current_buffer->mark);
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   nmark = Fmarker_position (tem);
   unchain_marker (tem);
-  tem = Fcdr (Fcdr (info));
+
+  /* visible */
+  info = XCDR (info);
+  visible_p = !NILP (XCAR (info));
+  
 #if 0 /* We used to make the current buffer visible in the selected window
 	 if that was true previously.  That avoids some anomalies.
 	 But it creates others, and it wasn't documented, and it is simpler
@@ -768,8 +779,12 @@ save_excursion_restore (info)
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
 #endif /* 0 */
 
+  /* Mark active */
+  info = XCDR (info);
+  tem = XCAR (info);
   tem1 = current_buffer->mark_active;
-  current_buffer->mark_active = Fcdr (tem);
+  current_buffer->mark_active = tem;
+
   if (!NILP (Vrun_hooks))
     {
       /* If mark is active now, and either was not active
@@ -783,6 +798,16 @@ save_excursion_restore (info)
       else if (! NILP (tem1))
 	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
     }
+
+  /* If buffer was visible in a window, and a different window was
+     selected, and the old selected window is still live, restore
+     point in that window.  */
+  tem = XCDR (info);
+  if (visible_p
+      && !EQ (tem, selected_window)
+      && !NILP (Fwindow_live_p (tem)))
+    Fset_window_point (tem, make_number (PT));
+
   UNGCPRO;
   return Qnil;
 }
@@ -2404,7 +2429,7 @@ Both characters must have the same length of multi-byte form.")
 #define COMBINING_AFTER  2
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
-  int last_changed;
+  int last_changed = 0;
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&start, &end);
