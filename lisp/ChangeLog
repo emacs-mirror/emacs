@@ -1,3 +1,10 @@
+2001-05-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-edit): New Custom group.
+
+	* mail/rmailedit.el (rmail-edit-mode): Doc fix.
+	(rmail-edit-mode-hook): New user-option.
+
 2001-05-05  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (help-xref-symbol-regexp): Recognize "source of"
