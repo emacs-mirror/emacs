@@ -1442,11 +1442,17 @@ extern Lisp_Object Vinhibit_quit, Qinhibit_quit, Vquit_flag;
 extern Lisp_Object Vmocklisp_arguments, Qmocklisp, Qmocklisp_arguments;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vdebug_on_error;
-/* To run a normal hook, do
+/* To run a normal hook, use the appropriate function from the list below.
+   The calling convention:
+
    if (!NILP (Vrun_hooks))
-     call1 (Vrun_hooks, Qmy_funny_hook);  */
+     call1 (Vrun_hooks, Qmy_funny_hook);
+
+   should no longer be used.  */
 extern Lisp_Object Vrun_hooks;
-extern Lisp_Object Frun_hooks_with_args ();
+extern Lisp_Object Frun_hooks (), Frun_hook_with_args ();
+extern Lisp_Object Frun_hook_with_args_until_success ();
+extern Lisp_Object Frun_hook_with_args_until_failure ();
 extern Lisp_Object Fand (), For (), Fif (), Fprogn (), Fprog1 (), Fprog2 ();
 extern Lisp_Object Fsetq (), Fquote ();
 extern Lisp_Object Fuser_variable_p (), Finteractive_p ();
