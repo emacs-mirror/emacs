@@ -1,3 +1,11 @@
+2005-03-19  Juri Linkov  <juri@jurta.org>
+
+	* files.el (auto-mode-alist): Add comment.  Optimize jar/ear/war.
+
+	* international/mule.el (auto-coding-alist): Sync with
+	`auto-mode-alist' by adding upper case archive file extensions
+	and adding ear/war to jar extension.
+
 2005-03-19  David Casperson  <casper@unbc.ca>  (tiny change)
 
 	* textmodes/tex-mode.el (tex-view): If tex-shell process is not
