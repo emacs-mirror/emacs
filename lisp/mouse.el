@@ -161,7 +161,7 @@ This must be bound to a button-down mouse event."
 	(push-mark newmark t t)
       ;; Turn off the old mark when we set up an empty region.
       (setq deactivate-mark t))))
-
+
 ;; Subroutine: set the mark where CLICK happened,
 ;; but don't do anything else.
 (defun mouse-set-mark-fast (click)
@@ -252,7 +252,109 @@ which prepares for a second click to delete the text."
       (mouse-show-mark)
       (setq mouse-save-then-kill-posn
 	    (list (car kill-ring) (point) click-posn)))))
+
+(global-set-key [M-mouse-1] 'mouse-start-secondary)
+(global-set-key [M-drag-mouse-1] 'mouse-set-secondary)
+(global-set-key [M-down-mouse-1] 'mouse-drag-secondary)
+(global-set-key [M-mouse-3] 'mouse-secondary-save-then-kill)
+(global-set-key [M-mouse-2] 'mouse-kill-secondary)
 
+;; An overlay which records the current secondary selection
+;; or else is deleted when there is no secondary selection.
+;; May be nil.
+(defvar mouse-secondary-overlay nil)
+
+;; A marker which records the specified first end for a secondary selection.
+;; May be nil.
+(defvar mouse-secondary-start nil)
+
+(defun mouse-start-secondary (click)
+  "Set one end of the secondary selection to the position clicked on.
+Use \\[mouse-secondary-save-then-kill] to set the other end
+and complete the secondary selection."
+  (interactive "e")
+  (let ((posn (event-start click)))
+    (select-window (posn-window posn))
+    ;; Cancel any preexisting secondary selection.
+    (if mouse-secondary-overlay
+	(delete-overlay mouse-secondary-overlay))
+    (if (numberp (posn-point posn))
+	(progn
+	  (or mouse-secondary-start
+	      (setq mouse-secondary-start (make-marker)))
+	  (move-marker mouse-secondary-start (posn-point posn))))))
+
+(defun mouse-set-secondary (click)
+  "Set the secondary selection to the text that the mouse is dragged over.
+This must be bound to a mouse drag event."
+  (interactive "e")
+  (let ((posn (event-start click))
+	beg
+	(end (event-end click)))
+    (select-window (posn-window posn))
+    (if (numberp (posn-point posn))
+	(setq beg (posn-point posn)))
+    (if mouse-secondary-overlay
+	(move-overlay mouse-secondary-overlay beg (posn-point end))
+      (setq mouse-secondary-overlay (make-overlay beg (posn-point end))))
+    (overlay-put mouse-secondary-overlay 'face 'secondary-selection)))
+
+(defun mouse-drag-secondary (click)
+  "Set the secondary selection to the text that the mouse is dragged over.
+This must be bound to a button-down mouse event."
+  (interactive "e")
+  (let ((posn (event-start click)))
+    (select-window (posn-window posn))
+    ;; Set point temporarily, so user sees where it is.
+    (if (numberp (posn-point posn))
+	(goto-char (posn-point posn)))))
+
+(defun mouse-kill-secondary ()
+  "Kill the text in the secondary selection."
+  (interactive "*")
+  (kill-region (overlay-start mouse-secondary-overlay)
+	       (overlay-end mouse-secondary-overlay))
+  (delete-overlay mouse-secondary-overlay)
+  (setq mouse-secondary-overlay nil))
+
+(defun mouse-secondary-save-then-kill (click)
+  "Save text to secondary start point in kill ring; if twice, kill it.
+If the text between secondary start point and the mouse is the same as what's
+at the front of the kill ring, this deletes the text.
+Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
+which prepares for a second click to delete the text."
+  (interactive "e")
+  (let ((click-posn (posn-point (event-start click)))
+	(start (+ 0 mouse-secondary-start))
+	;; Don't let a subsequent kill command append to this one:
+	;; prevent setting this-command to kill-region.
+	(this-command this-command))
+    (if (and (eq last-command 'mouse-secondary-save-then-kill)
+	     mouse-save-then-kill-posn
+	     (eq (car mouse-save-then-kill-posn) (car kill-ring))
+	     (equal (cdr mouse-save-then-kill-posn)
+		    (list start click-posn)))
+	;; If this is the second time we've called
+	;; mouse-save-then-kill, delete the text from the buffer.
+	(progn
+	  (let ((buffer-undo-list t))
+	    (delete-overlay mouse-secondary-overlay)
+	    (delete-region start click-posn))
+	  ;; Make the undo list by hand so it is shared.
+	  (if (not (eq buffer-undo-list t))
+	      (setq buffer-undo-list
+		    (cons (cons (car kill-ring) start)
+			  buffer-undo-list))))
+      ;; Otherwise, save this region.
+      (select-window (posn-window (event-start click)))
+      (kill-ring-save start click-posn)
+      (if mouse-secondary-overlay
+	  (move-overlay mouse-secondary-overlay start click-posn)
+	(setq mouse-secondary-overlay (make-overlay start click-posn)))
+      (overlay-put mouse-secondary-overlay 'face 'secondary-selection)
+      (setq mouse-save-then-kill-posn
+	    (list (car kill-ring) start click-posn)))))
+
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
 This switches buffers in the window that you clicked on,
