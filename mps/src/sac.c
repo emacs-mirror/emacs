@@ -1,13 +1,13 @@
 /* impl.c.sac: SEGREGATED ALLOCATION CACHES
  *
- * $HopeName: MMsrc!sac.c(trunk.2) $
+ * $HopeName: MMsrc!sac.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "sac.h"
 
-SRCID(sac, "$HopeName: MMsrc!sac.c(trunk.2) $");
+SRCID(sac, "$HopeName: MMsrc!sac.c(trunk.3) $");
 
 
 /* SACCheck -- check function for SACs */
@@ -120,6 +120,7 @@ Res SACCreate(SAC *sacReturn, Pool pool, Count classesCount,
     unsigned oldFreq = totalFreq;
     totalFreq += classes[i].frequency;
     AVER(oldFreq <= totalFreq); /* check for overflow */
+    UNUSED(oldFreq); /* impl.c.mpm.check.unused */
   }
 
   /* Find middle one */

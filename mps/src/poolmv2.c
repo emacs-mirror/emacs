@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.16) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.17) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A manual-variable pool designed to take advantage of
@@ -16,7 +16,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.16) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.17) $");
 
 
 /* Signatures */
@@ -480,8 +480,9 @@ found:
     {
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
+      UNUSED(b); /* impl.c.mpm.check.unused */
     }
-    /* Only pass out segments --- may not be the best long-term policy. */
+    /* Only pass out segments - may not be the best long-term policy. */
     {
       Addr segLimit = SegLimit(seg);
 
@@ -498,6 +499,7 @@ found:
         {
           Bool b = SegOfAddr(&seg, arena, base);
           AVER(b);
+          UNUSED(b); /* impl.c.mpm.check.unused */
         }
         segLimit = SegLimit(seg);
         if (limit > segLimit)
@@ -508,6 +510,7 @@ found:
     {
       Res r = CBSDelete(MVTCBS(mvt), base, limit);
       AVER(r == ResOK);
+      UNUSED(r); /* impl.c.mpm.check.unused */
     }
     goto done;
   }
@@ -524,11 +527,9 @@ found:
   /* Try contingency */
   METER_ACC(mvt->emergencyContingencies, minSize);
   res = MVTContingencySearch(&block, MVTCBS(mvt), minSize);
-  if (res == ResOK){
+  if (res == ResOK)
     goto found;
-  }
 
-  /* --- ask other pools to free reserve and retry */
   METER_ACC(mvt->failures, minSize);
   AVER(res != ResOK);
   return res;
@@ -561,6 +562,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
 {
   MVT mvt;
   Size size;
+  Res res;
 
   AVERT(Pool, pool);
   mvt = Pool2MVT(pool);
@@ -586,7 +588,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
 
   /* design.mps.poolmvt:arch.ap.no-fit.splinter */
   if (size < mvt->minSize) {
-    Res res = CBSInsert(MVTCBS(mvt), base, limit);
+    res = CBSInsert(MVTCBS(mvt), base, limit);
     AVER(res == ResOK);
     METER_ACC(mvt->sawdust, size);
     return;
@@ -599,14 +601,13 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
 
     /* Old better, drop new */
     if (size < oldSize) {
-      Res res = CBSInsert(MVTCBS(mvt), base, limit);
+      res = CBSInsert(MVTCBS(mvt), base, limit);
       AVER(res == ResOK);
       METER_ACC(mvt->splintersDropped, size);
       return;
     } else {
       /* New better, drop old */
-      Res res = CBSInsert(MVTCBS(mvt), mvt->splinterBase,
-			  mvt->splinterLimit);
+      res = CBSInsert(MVTCBS(mvt), mvt->splinterBase, mvt->splinterLimit);
       AVER(res == ResOK);
       METER_ACC(mvt->splintersDropped, oldSize);
     }
@@ -642,8 +643,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   METER_ACC(mvt->poolFrees, size);
   mvt->available += size;
   mvt->allocated -= size;
-  AVER(mvt->size == mvt->allocated + mvt->available +
-       mvt->unavailable);
+  AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
   METER_ACC(mvt->poolUtilization, mvt->allocated * 100 / mvt->size);
   METER_ACC(mvt->poolUnavailable, mvt->unavailable);
   METER_ACC(mvt->poolAvailable, mvt->available);
@@ -657,6 +657,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
     {
       Bool b = SegOfAddr(&seg, PoolArena(pool), base);
       AVER(b);
+      UNUSED(b); /* impl.c.mpm.check.unused */
     }
     AVER(base == SegBase(seg));
     AVER(limit <= SegLimit(seg));
@@ -674,6 +675,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   {
     Res res = CBSInsert(MVTCBS(mvt), base, limit);
     AVER(res == ResOK);
+    UNUSED(res); /* impl.c.mpm.check.unused */
   }
 }
 
@@ -908,12 +910,15 @@ static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena)
     {
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
+      UNUSED(b); /* impl.c.mpm.check.unused */
     }
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
     if (base <= segBase && limit >= segLimit) {
       Res r = CBSDelete(MVTCBS(mvt), segBase, segLimit);
+
       AVER(r == ResOK);
+      UNUSED(r); /* impl.c.mpm.check.unused */
       MVTSegFree(mvt, seg);
       success = TRUE;
     }
@@ -944,10 +949,8 @@ static void MVTNoteNew(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
   if (res != ResOK) {
     Arena arena = PoolArena(MVT2Pool(mvt));
     CBSBlock oldBlock;
-    {
-      Res r = ABQPeek(MVTABQ(mvt), &oldBlock);
-      AVER(r == ResOK);
-    }
+    res = ABQPeek(MVTABQ(mvt), &oldBlock);
+    AVER(res == ResOK);
     /* --- This should always succeed */
     (void)MVTReturnBlockSegs(mvt, oldBlock, arena);
     res = ABQPush(MVTABQ(CBSMVT(cbs)), block);
@@ -961,11 +964,12 @@ static void MVTNoteNew(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
 }
 
 
-/* MVTNoteDelete -- callback invoked when a block on the CBS <=
- * reuseSize
- */
+/* MVTNoteDelete -- callback invoked when a block on the CBS <= reuseSize */
+
 static void MVTNoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
 {
+  Res res;
+
   AVERT(CBS, cbs);
   AVERT(MVT, CBSMVT(cbs));
   AVERT(CBSBlock, block);
@@ -973,10 +977,9 @@ static void MVTNoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
   UNUSED(oldSize);
   UNUSED(newSize);
   
-  {
-    Res res = ABQDelete(MVTABQ(CBSMVT(cbs)), block);
-    AVER(res == ResOK || CBSMVT(cbs)->abqOverflow);
-  }
+  res = ABQDelete(MVTABQ(CBSMVT(cbs)), block);
+  AVER(res == ResOK || CBSMVT(cbs)->abqOverflow);
+  UNUSED(res); /* impl.c.mpm.check.unused */
 }
 
 
@@ -1116,9 +1119,11 @@ static Bool MVTCheckFit(CBSBlock block, Size min, Arena arena)
   Addr limit = CBSBlockLimit(block);
   Seg seg;
   Addr segLimit;
+
   {
     Bool b = SegOfAddr(&seg, arena, base);
     AVER(b);
+    UNUSED(b); /* impl.c.mpm.check.unused */
   }
   segLimit = SegLimit(seg);
 
@@ -1134,6 +1139,7 @@ static Bool MVTCheckFit(CBSBlock block, Size min, Arena arena)
   {
     Bool b = SegOfAddr(&seg, arena, base);
     AVER(b);
+    UNUSED(b); /* impl.c.mpm.check.unused */
   }
   segLimit = SegLimit(seg);
 

@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.99) $
+ * $HopeName: MMsrc!trace.c(trunk.100) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include "mpm.h"
 #include <limits.h> /* for LONG_MAX */
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.99) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.100) $");
 
 
 /* Types
@@ -818,6 +818,7 @@ static void traceReclaim(Trace trace)
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
           AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
                           && TraceSetIsMember(SegWhite(nonWhiteSeg), trace)));
+          UNUSED(nonWhiteSeg); /* impl.c.mpm.check.unused */
         }
       }
     } while(SegNext(&seg, arena, base));
