@@ -1840,7 +1840,7 @@ init_from_display_pos (it, w, pos)
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
 
   for (i = 0; i < it->n_overlay_strings; ++i)
-    if (index (XSTRING (it->overlay_strings[i])->data, '\n') != NULL)
+    if (index (XSTRING (it->overlay_strings[i])->data, '\n'))
       {
 	overlay_strings_with_newlines = 1;
 	break;
