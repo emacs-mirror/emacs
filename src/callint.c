@@ -288,8 +288,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (XSTRING (specs)->size + 1);
-      bcopy (XSTRING (specs)->data, string, XSTRING (specs)->size + 1);
+      string = (unsigned char *) alloca (XSTRING (specs)->size_byte + 1);
+      bcopy (XSTRING (specs)->data, string, XSTRING (specs)->size_byte + 1);
     }
   else if (string == 0)
     {
@@ -487,10 +487,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
         case 'c':		/* Character */
-	  /* Use message_nolog rather than message1_nolog here,
+	  /* Use message_with_string rather than message1_nolog here,
 	     so that nothing bad happens if callint_message is changed
 	     within Fread_char (by a timer, for example).  */
-	  message_nolog ("%s", callint_message);
+	  message_with_string ("%s", build_string (callint_message), 0);
 	  args[i] = Fread_char ();
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
