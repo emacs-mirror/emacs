@@ -1,3 +1,10 @@
+2003-01-08  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (server_accept_connection): Fixed recording of new
+	connection's local address in :local property of contact info.
+	(Fmake_network_process): Record local network address for new
+	client processes in :local property of contact info.
+
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* minibuf.c (Fread_variable): Doc fix.

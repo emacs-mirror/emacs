@@ -1,3 +1,8 @@
+2003-01-08  Kim F. Storm  <storm@cua.dk>
+
+	* mail/undigest.el (unforward-rmail-message): Don't use global
+	variable `n'.
+
 2003-01-08  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Simplified.  No
