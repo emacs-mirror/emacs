@@ -831,7 +831,7 @@ Recommended as a parent keymap for modes using widgets.")
   "Keymap used inside a text field.")
 
 (defun widget-field-activate (pos &optional event)
-  "Invoke the ediable field at point."
+  "Invoke the editable field at point."
   (interactive "@d")
   (let ((field (widget-field-at pos)))
     (if field
