@@ -728,10 +728,10 @@ Returns the documentation as a string, also."
           (help-setup-xref (list #'describe-variable variable) (interactive-p))
 
 	  ;; Make a link to customize if this variable can be customized.
-	  ;; Note, it is not reliable to test for a custom-type property
+	  ;; Note, it is not reliable to test only for a custom-type property
 	  ;; because those are only present after the var's definition
 	  ;; has been loaded.
-	  (if (user-variable-p variable)
+	  (if (or (user-variable-p variable) (get variable 'custom-type))
 	      (let ((customize-label "customize"))
 		(terpri)
 		(terpri)
