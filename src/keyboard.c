@@ -153,7 +153,7 @@ static int echoing;
 
 /* True means we can start echoing at the next input pause
    even though there is something in the echo area.  */
-static int ok_to_echo_at_next_pause;
+static char *ok_to_echo_at_next_pause;
 
 /* Nonzero means disregard local maps for the menu bar.  */
 static int inhibit_local_menu_bar_menus;
@@ -873,8 +873,8 @@ cmd_error (data)
   /* Avoid unquittable loop if data contains a circular list.  */
   old_level = Vprint_level;
   old_length = Vprint_length;
-  XSETFASTINT(Vprint_level, 10);
-  XSETFASTINT(Vprint_length, 10);
+  XSETFASTINT (Vprint_level, 10);
+  XSETFASTINT (Vprint_length, 10);
   cmd_error_internal (data, NULL);
   Vprint_level = old_level;
   Vprint_length = old_length;
@@ -1764,7 +1764,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Message turns off echoing unless more keystrokes turn it on again. */
   if (echo_area_glyphs && *echo_area_glyphs
       && echo_area_glyphs != current_kboard->echobuf
-      && ! ok_to_echo_at_next_pause)
+      && ok_to_echo_at_next_pause != echo_area_glyphs)
     cancel_echoing ();
   else
     /* If already echoing, continue.  */
@@ -1840,7 +1840,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && ! noninteractive
       && echo_keystrokes > 0
       && (echo_area_glyphs == 0 || *echo_area_glyphs == 0
-	  || ok_to_echo_at_next_pause))
+	  || ok_to_echo_at_next_pause == echo_area_glyphs))
     {
       Lisp_Object tem0;
 
@@ -2139,7 +2139,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo_char (also_record);
       /* Once we reread a character, echoing can happen
 	 the next time we pause to read a new one.  */
-      ok_to_echo_at_next_pause = 1;
+      ok_to_echo_at_next_pause = echo_area_glyphs;
     }
 
   /* Record this character as part of the current key.  */
@@ -4276,7 +4276,7 @@ read_avail_input (expected)
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
-#if defined(USG) || defined(DGUX)
+#if defined (USG) || defined (DGUX)
       /* Read some input if available, but don't wait.  */
       n_to_read = sizeof cbuf;
       fcntl (input_fd, F_SETFL, O_NDELAY);
@@ -4292,7 +4292,7 @@ read_avail_input (expected)
       do
 	{
 #ifdef MSDOS
-	  cbuf[0] = dos_keyread();
+	  cbuf[0] = dos_keyread ();
 	  nread = 1;
 #else
 	  nread = read (input_fd, cbuf, n_to_read);
