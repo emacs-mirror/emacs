@@ -908,7 +908,7 @@
 		       (setq func (substring func 0 (- n)))
 		       (while (>= (setq n (1- n)) 0)
 			 (setq func (concat func " prime")))))
-		 (cond ((and (eq calc-language '(tex latex))
+		 (cond ((and (memq calc-language '(tex latex))
 			     (or (> (length a) 2)
 				 (not (math-tex-expr-is-flat (nth 1 a)))))
 			(setq left "\\left( "
