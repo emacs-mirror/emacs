@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
-;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
+;; Author: Daniel LaLiberte <liberte@hypernews.org>
 ;; Maintainer: FSF
 ;; Keywords: c, outlines
 
@@ -76,7 +76,7 @@
 ;;	 (hide-ifdef-use-define-alist 'list2) ; use list2 by default
 ;;	 ))
 ;;
-;; You can call hide-ifdef-use-define-alist (C-c @ u) at any time to specify
+;; You can call hide-ifdef-use-define-alist (C-c @ U) at any time to specify
 ;; another list to use.
 ;;
 ;; To cause ifdefs to be hidden as soon as hide-ifdef-mode is called,
