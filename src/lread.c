@@ -201,7 +201,7 @@ int load_dangerous_libraries;
 static Lisp_Object Vbytecomp_version_regexp;
 
 static void to_multibyte P_ ((char **, char **, int *));
-static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
+static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object,
 			      Lisp_Object (*) (), int,
 			      Lisp_Object, Lisp_Object));
 static Lisp_Object load_unwind P_ ((Lisp_Object));
