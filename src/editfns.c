@@ -607,8 +607,7 @@ FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
 %A is replaced by the full name of the day of week.\n\
 %b is replaced by the abbreviated name of the month.\n\
 %B is replaced by the full name of the month.\n\
-%c is a synonym for \"%x %X\".\n\
-%C is a locale-specific synonym, which defaults to \"%A, %B %e, %Y\" in the C locale.\n\
+%c stands for the preferred date/time format of the C locale.\n\
 %d is replaced by the day of month, zero-padded.\n\
 %D is a synonym for \"%m/%d/%y\".\n\
 %e is replaced by the day of month, blank-padded.\n\
