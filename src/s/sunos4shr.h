@@ -50,10 +50,14 @@
 /* With X11R5 it was reported that linking -lXmu dynamically
    did not work.  With X11R6, it does work; and since normally
    only the dynamic libraries are available, we should use them.  */
+#ifdef CANNOT_DUMP
+#define LIBXMU -lXmu
+#else
 #ifdef __GNUC__
 #define LIBXMU -Xlinker -Bstatic -lXmu -Xlinker -Bdynamic
 #else
 #define LIBXMU -Bstatic -lXmu -Bdynamic
 #endif
+#endif /* CANNOT_DUMP */
 
 #endif  /* not HAVE_X11R6 */
