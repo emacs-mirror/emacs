@@ -1,3 +1,9 @@
+1999-11-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (enum pvec_type): Put PVEC_FLAG in #if 0.
+
+	* emacs.c (PVEC_FLAG): New variable.
+
 1999-11-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* unexaix.c (unexec): Use unsigned instead of uintptr_t because
