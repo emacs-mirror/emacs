@@ -923,6 +923,30 @@ Please send all bug fixes and enhancements to
   :group 'faces)
 
 
+(defcustom ps-printer-name printer-name
+  "*The name of a local printer for printing PostScript files.
+
+On Unix-like systems, a string value should be a name understood by
+lpr's -P option; otherwise the value should be nil.
+
+On MS-DOS and MS-Windows systems, if the value is a string, then it is
+taken as the name of the device to which PostScript files are written.
+By default it is the same as `printer-name'; typical non-default
+settings would be \"LPT1\" to \"LPT3\" for parallel printers, or
+\"COM1\" to \"COM4\" or \"AUX\" for serial printers, or
+\"//hostname/printer\" for a shared network printer.  You can also set
+it to a name of a file, in which case the output gets appended to that
+file.  \(Note that `ps-print' package already has facilities for
+printing to a file, so you might as well use them instead of changing
+the setting of this variable.\) If you want to silently discard the
+printed output, set this to \"NUL\".
+
+On DOS/Windows, if the value is anything but a string, PostScript files
+will be piped to the program given by `ps-lpr-command', with switches
+given by `ps-lpr-switches', which see."
+  :type '(choice file (other :tag "Pipe to ps-lpr-command" pipe))
+  :group 'ps-print)
+
 (defcustom ps-lpr-command lpr-command
   "*The shell command for printing a PostScript file."
   :type 'string
@@ -3981,11 +4005,22 @@ If FACE is not a valid face name, it is used default face."
       (and ps-razzle-dazzle (message "Printing..."))
       (save-excursion
 	(set-buffer ps-spool-buffer)
-	(let ((coding-system-for-write 'raw-text-unix))
-	  (if (and (eq system-type 'ms-dos)
-		   (stringp (symbol-value 'dos-ps-printer)))
+	(let ((coding-system-for-write 'raw-text-unix)
+	      (ps-lpr-switches
+	       (append
+		(and (stringp ps-printer-name)
+		     (list (concat "-P" ps-printer-name)))
+		ps-lpr-switches)))
+	  (if (and (memq system-type '(ms-dos windows-nt))
+		   (or (and (boundp 'dos-ps-printer)
+			    (stringp (symbol-value 'dos-ps-printer)))
+		       (stringp (symbol-value 'ps-printer-name))))
 	      (write-region (point-min) (point-max)
-			    (symbol-value 'dos-ps-printer) t 0)
+			    (or (and (boundp 'dos-ps-printer)
+				     (stringp (symbol-value 'dos-ps-printer))
+				     (symbol-value 'dos-ps-printer))
+				(symbol-value 'ps-printer-name))
+			    t 0)
 	    (apply 'call-process-region
 		   (point-min) (point-max) ps-lpr-command nil
 		   (and (fboundp 'start-process) 0)
