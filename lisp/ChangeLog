@@ -1,3 +1,8 @@
+2003-05-30  Mark A. Hershberger  <mah@everybody.org>  (tiny change)
+
+	* xml.el (xml-parse-tag): Fix bug: Handle both styles
+	of empty elements in the same way.
+
 2003-05-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/edebug.el (edebug-storing-offsets): Move indent
