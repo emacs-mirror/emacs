@@ -386,23 +386,27 @@ that."
 		(goto-char (point-min))
                 ;; Find a header and the column at which the command
                 ;; name will be found.
+
+		;; If the keymap substitution isn't the last thing in
+		;; the doc string, and if there is anything on the
+		;; same line after it, this code won't recognize the end of it.
                 (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n"
                                           nil t)
                   (let ((col (- (match-end 1) (match-beginning 1))))
                     (while
-                        ;; Ignore single blank lines in table, but not
-                        ;; double ones, which should terminate it.
-                        (and (not (looking-at "\n\\s-*\n"))
-                             (progn
-			       (and (eolp) (forward-line))
-			       (end-of-line)
-			       (skip-chars-backward "^\t\n")
-                               (if (and (>= (current-column) col)
-					(looking-at "\\(\\sw\\|-\\)+$"))
-                                   (let ((sym (intern-soft (match-string 0))))
-                                     (if (fboundp sym)
-                                         (help-xref-button 0 'help-function sym))))
-			       (zerop (forward-line)))))))))
+                        (and (not (eobp))
+			     ;; Stop at a pair of blank lines.
+			     (not (looking-at "\n\\s-*\n")))
+		      ;; Skip a single blank line.
+		      (and (eolp) (forward-line))
+		      (end-of-line)
+		      (skip-chars-backward "^\t\n")
+		      (if (and (>= (current-column) col)
+			       (looking-at "\\(\\sw\\|-\\)+$"))
+			  (let ((sym (intern-soft (match-string 0))))
+			    (if (fboundp sym)
+				(help-xref-button 0 'help-function sym))))
+		      (forward-line)))))))
           (set-syntax-table stab))
 	;; Delete extraneous newlines at the end of the docstring
 	(goto-char (point-max))
