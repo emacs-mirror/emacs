@@ -161,7 +161,7 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
 
     ;; Lucid Compiler, lcc 3.x
     ;; E, file.cc(35,52) Illegal operation on pointers
-    ("[A-Z], \\([^(]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
+    ("\n[EW], \\([^(\n]*\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)" 1 2 3)
 
     )
   "Alist that specifies how to match errors in compiler output.
