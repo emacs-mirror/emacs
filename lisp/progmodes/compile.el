@@ -957,6 +957,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'compilation-parsing-end) (copy-marker 1))
   (set (make-local-variable 'compilation-directory-stack)
        (list default-directory))
+  (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer)))
 
 (defvar compilation-shell-minor-mode nil
