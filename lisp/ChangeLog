@@ -1,7 +1,40 @@
-2000-06-30  Gerd Moellmann  <gerd@gnu.org>
+2000-07-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/refer.el (refer-find-entry-internal): Use some-window
+	instead of cycling through windows with next-window.
+
+	* term/sup-mouse.el (sup-pos-to-window): Use some-window instead
+	of cycling through windows with next-window.
+
+	* term/bg-mouse.el (bg-window-from-x-y): Use some-window instead
+	of cycling through windows with next-window.
+
+	* emacs-lisp/edebug.el (edebug-window-live-p, edebug-window-list)
+	(edebug-get-displayed-buffer-points): Use walk-windows/some-window
+	instead of cycling through windows with next-window.
+
+	* calendar/appt.el (appt-select-lowest-window): Use walk-windows
+	instead of cycling through windows with next-window.
+
+	* dabbrev.el (dabbrev--find-expansion): Use walk-windows instead
+	of cycling through windows with next-window.
+
+	* terminal.el (te-process-output): Use walk-windows instead of
+	cycling through windows with next-window.
+
+	* server.el (server-switch-buffer): Use some-window instead of
+	cycling through windows with next-window.
+
+	* window.el (some-window): New function.
+	(walk-windows): Remove reference to walk-windows-start.
 
 	* hilit19.el (hilit-lookup-face-create): Don't set face colors
 	to nil.
+
+2000-07-03  Richard Stallman  <rms@caffeine.ai.mit.edu>
+
+	* window.el (walk-windows): Guarantee termination by keeping a list
+	of all the windows already handled.
 
 2000-06-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
