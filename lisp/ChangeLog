@@ -1,3 +1,8 @@
+2005-02-03  Lute Kamstra  <lute@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Make sure that users cannot
+	remove the entire text of the tutorial by means of `undo'.
+
 2005-02-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/ispell.el (ispell-internal-change-dictionary): Fix problem
