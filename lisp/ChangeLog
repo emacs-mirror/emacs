@@ -1,3 +1,18 @@
+1999-11-08  Markus Rost  <rost@ias.edu>
+
+	* wid-edit.el (widget-button-click): Wrap with save-excursion 
+	to restore track-mouse in the correct buffer.
+
+1999-11-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mh-e.el: Changed maintainer to billcurtis@hotmail.com.
+
+1999-11-08  Peter Kleiweg  <kleiweg@let.rug.nl>
+
+	* progmodes/ps-mode.el (ps-mode-print-function): Changed default
+	lpr-command to "lp" for some system-types. (copied from lpr.el
+	Emacs version 20.2.1).
+	
 1999-11-04  Markus Rost  <rost@ias.edu>
 
 	* simple.el (comment-region): Strip off white space at end of
