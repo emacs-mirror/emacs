@@ -1897,6 +1897,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       count1 = specpdl_ptr - specpdl;
       
       emacs_close (s);
+      s = -1;
     }
 
   freeaddrinfo (res);
