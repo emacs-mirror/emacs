@@ -1632,7 +1632,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
   (or Info-enable-edit
       (error "Editing info nodes is not enabled"))
   (Info-edit-mode)
-  (message (substitute-command-keys
+  (message "%s" (substitute-command-keys
 	    "Editing: Type \\<Info-edit-map>\\[Info-cease-edit] to return to info")))
 
 (defun Info-cease-edit ()
@@ -1730,10 +1730,10 @@ the variable `Info-file-list-for-emacs'."
 		;; Info-history.  Put the other nodes that were found on
 		;; the history.
 		(setq Info-history (nconc (cdr where) Info-history))
-		(message (substitute-command-keys
-			  "Found %d other entr%s.  Use \\[Info-last] to see %s.")
+		(message "Found %d other entr%s.  Use %s to see %s."
 			 (1- num-matches)
 			 (if (> num-matches 2) "ies" "y")
+			 (substitute-command-keys "\\[Info-last]")
 			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s." command))))
 
