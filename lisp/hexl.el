@@ -172,6 +172,9 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
 
     (make-local-variable 'hexl-max-address)
 
+    (make-local-variable 'change-major-mode-hook)
+    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer)
+
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
 	  (original-point (1- (point))))
@@ -241,9 +244,19 @@ With arg, don't unhexlify buffer."
   (setq mode-name hexl-mode-old-mode-name)
   (use-local-map hexl-mode-old-local-map)
   (setq major-mode hexl-mode-old-major-mode)
-;; Kludge to update mode-line
-  (switch-to-buffer (current-buffer))
-)
+  (force-mode-line-update))
+
+(defun hexl-maybe-dehexlify-buffer ()
+  "Convert a hexl format buffer to binary.
+Ask the user for confirmation."
+  (if (y-or-n-p "Convert contents back to binary format? ")
+      (let ((modified (buffer-modified-p))
+	    (inhibit-read-only t)
+	    (original-point (1+ (hexl-current-address))))
+	(dehexlify-buffer)
+	(remove-hook 'write-contents-hook 'hexl-save-buffer)
+	(set-buffer-modified-p modified)
+	(goto-char original-point))))
 
 (defun hexl-current-address ()
   "Return current hexl-address."
@@ -498,7 +511,7 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 ;;;###autoload
 (defun hexlify-buffer ()
-  "Convert a binary buffer to hexl format"
+  "Convert a binary buffer to hexl format."
   (interactive)
   (let ((binary-process-output nil) ; for Ms-Dos
 	(binary-process-input t))
