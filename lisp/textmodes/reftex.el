@@ -162,10 +162,10 @@
 ;; developing it with their reports.  In particular thanks to
 ;;
 ;;    F. Burstall, Alastair Burt, Soren Dayton, Stephen Eglen,
-;;    Karl Eichwalder, Peter Galbraith, Dieter Kraft, Adrian Lanz,
-;;    Rory Molinari, Laurent Mugnier, Sudeep Kumar Palat, Daniel Polani,
-;;    Robin Socha, Richard Stanton, Allan Strand, Jan Vroonhof,
-;;    Christoph Wedler, Alan Williams.
+;;    Karl Eichwalder, Peter Galbraith, Dieter Kraft, Kai Grossjohann,
+;;    Adrian Lanz, Rory Molinari, Laurent Mugnier, Sudeep Kumar Palat,
+;;    Daniel Polani, Robin Socha, Richard Stanton, Allan Strand,
+;;    Jan Vroonhof, Christoph Wedler, Alan Williams.
 ;;
 ;; Finally thanks to Uwe Bolick who first got me (some years ago) into
 ;; supporting LaTeX labels and references with an Editor (which was
@@ -799,14 +799,6 @@ string to insert into the buffer."
   "Support for referencing bibliographic data with BibTeX."
   :group 'reftex)
 
-(defcustom reftex-bibpath-environment-variables '("BIBINPUTS" "TEXBIB")
-  "*List of env vars which might contain the path to BibTeX database files.
-Directories ending in `//' or `!!' will be expanded recursively when necessary
-to find files."
-  :group 'reftex-citation-support
-  :set 'reftex-set-dirty
-  :type '(repeat (string :tag "Environment variable")))
-
 (defvar reftex-bibfile-ignore-list nil) ; compatibility
 (defcustom reftex-bibfile-ignore-regexps nil
   "*List of regular expressions to exclude files in \\bibliography{..}.
@@ -1019,6 +1011,77 @@ for X-Symbol, but may have other uses as well."
   :group 'reftex-viewing-cross-references-and-citations
   :group 'reftex-referencing-labels
   :type 'hook)
+
+;; Finding Files --------------------------------------------------------
+
+(defgroup reftex-finding-files nil
+  "Displaying cross references and citations."
+  :group 'reftex)
+
+(defcustom reftex-texpath-environment-variables '("TEXINPUTS")
+  "*List of specifications how to retrieve the search path for TeX files.
+Several entries are possible.
+- If an element is the name of an environment variable, its content is used.
+- If an element starts with an exclamation mark, it is used as a command
+  to retrieve the path.  A typical command with the kpathsearch library would
+  be `!kpsewhich -show-path=.tex'. 
+- Otherwise the element itself is interpreted as a path.
+Multiple directories can be separated by the system dependent `path-separator'.
+Directories ending in `//' or `!!' will be expanded recursively.
+See also `reftex-use-external-file-finders'."
+  :group 'reftex-finding-files
+  :set 'reftex-set-dirty
+  :type '(repeat (string :tag "Specification")))
+
+(defcustom reftex-bibpath-environment-variables '("BIBINPUTS" "TEXBIB")
+  "*List of specifications how to retrieve search path for .bib database files.
+Several entries are possible.
+- If an element is the name of an environment variable, its content is used.
+- If an element starts with an exclamation mark, it is used as a command
+  to retrieve the path.  A typical command with the kpathsearch library would
+  be `!kpsewhich -show-path=.bib'. 
+- Otherwise the element itself is interpreted as a path.
+Multiple directories can be separated by the system dependent `path-separator'.
+Directories ending in `//' or `!!' will be expanded recursively.
+See also `reftex-use-external-file-finders'."
+  :group 'reftex-citation-support
+  :group 'reftex-finding-files
+  :set 'reftex-set-dirty
+  :type '(repeat (string :tag "Specification")))
+
+(defcustom reftex-search-unrecursed-path-first t
+  "*Non-nil means, search all specified directories before trying recursion.
+Thus, in a path \".//:/tex/\", search first \"./\", then \"/tex/\" and then
+all subdirectories of \"./\".  If this option is nil, the subdirectories of
+\"./\" are searched before \"/tex/\". This is mainly for speed - most of the
+time the recursive path is for the system files and not for the user files.
+Set this to nil if the default makes RefTeX finding files with equal names
+in wrong sequence."
+  :group 'reftex-finding-files
+  :type 'boolean)
+
+(defcustom reftex-use-external-file-finders nil
+  "*Non-nil means, use external programs to find files.
+Normally, RefTeX searches the paths given in the environment variables
+TEXINPUTS and BIBINPUTS to find TeX files and BibTeX database files.
+With this option turned on, it calls an external program specified in the
+option `reftex-external-file-finders' instead.  As a side effect,
+the variables `reftex-texpath-environment-variables' and
+`reftex-bibpath-environment-variables' will be ignored."
+  :group 'reftex-finding-files
+  :type 'boolean)
+
+(defcustom reftex-external-file-finders '(("tex" . "kpsewhich -format=.tex %f")
+					  ("bib" . "kpsewhich -format=.bib %f"))
+  "*Association list with external programs to call for finding files.
+Each entry is a cons cell (TYPE . PROGRAM).
+Type is either \"tex\" or \"bib\".  PROGRAM is the external program to use with
+any arguments.  %f will be replaced by the name of the file to be found.
+Note that these commands will be executed directly, not via a shell.
+Only relevant when `reftex-use-external-file-finders' is non-nil."
+  :group 'reftex-finding-files
+  :type '(repeat (cons (string :tag "File type")
+		       (string :tag "Program  "))))
 
 ;; Tuning the parser ----------------------------------------------------
 
@@ -1295,7 +1358,7 @@ construct:  \\bbb [xxx] {aaa}."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 3.38"
+(defconst reftex-version "RefTeX version 3.41"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1535,16 +1598,6 @@ on the menu bar.
   "No follow-mode into unvisited file.  Press SPC to visit it.")
 (defconst reftex-no-info-message
   "%s: info not available, use `\\[reftex-view-crossref]' to get it.")
-
-;; The regular expression used to abbreviate words.
-(defconst reftex-abbrev-regexp
-  (concat
-   "\\`\\("
-   (make-string (nth 0 reftex-abbrev-parameters) ?.)
-   "[" (nth 2 reftex-abbrev-parameters) "]*"
-   "\\)"
-   "[" (nth 3 reftex-abbrev-parameters) "]"
-   (make-string (1- (nth 1 reftex-abbrev-parameters)) ?.)))
 
 ;; Global variables used for communication between functions.
 (defvar reftex-default-context-position nil)
@@ -2657,6 +2710,13 @@ IGNORE-WORDS List of words which should be removed from the string."
 
   (let* ((words0 (split-string string (or split-re "[ \t\n\r]")))
 	 (reftex-label-illegal-re (or illegal-re "\000"))
+	 (abbrev-re (concat
+		     "\\`\\("
+		     (make-string (nth 0 reftex-abbrev-parameters) ?.)
+		     "[" (nth 2 reftex-abbrev-parameters) "]*"
+		     "\\)"
+		     "[" (nth 3 reftex-abbrev-parameters) "]"
+		     (make-string (1- (nth 1 reftex-abbrev-parameters)) ?.)))
          words word)
 
     ;; Remove words from the ignore list or with funny characters
@@ -2687,7 +2747,7 @@ IGNORE-WORDS List of words which should be removed from the string."
         (setq words
               (mapcar
 	       (function
-		(lambda (w) (if (string-match reftex-abbrev-regexp w)
+		(lambda (w) (if (string-match abbrev-re w)
 				(if dot
 				    (concat (match-string 1 w) ".")
 				  (match-string 1 w))
@@ -5195,6 +5255,8 @@ will display info in the echo area."
 		nil)
 	    (run-with-idle-timer
 	     reftex-idle-time t 'reftex-view-crossref-when-idle)))
+    (unless reftex-auto-view-crossref
+      (setq reftex-auto-view-crossref t))
     (message "Automatic display of crossref information was turned on")))
 
 (defun reftex-start-itimer-once ()
@@ -5315,11 +5377,17 @@ will display info in the echo area."
 (defun reftex-find-tex-file (file master-dir &optional die)
   ;; Find FILE in MASTER-DIR or on reftex-tex-path.
   ;; FILE may be given with or without the .tex extension.
-  (let ((rec-values '(nil t)) path file1 old-path)
-    (if (file-name-absolute-p file)
-	(if (file-regular-p (concat file ".tex"))
-	    (setq file1 (concat file ".tex"))
-	  (if (file-regular-p file) (setq file1 file)))
+  (let ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
+	path file1 old-path)
+    (cond
+     ((file-name-absolute-p file)
+      (if (file-regular-p (concat file ".tex"))
+	  (setq file1 (concat file ".tex"))
+	(if (file-regular-p file) (setq file1 file))))
+     ((and reftex-use-external-file-finders
+	   (assoc "tex" reftex-external-file-finders))
+      (setq file1 (reftex-find-file-externally file "tex" master-dir)))
+     (t
       (while (and (null file1) rec-values)
 	(setq path (reftex-access-search-path
 		    "tex" (pop rec-values) master-dir file))
@@ -5329,16 +5397,23 @@ will display info in the echo area."
 		  path (cons master-dir path)
 		  file1 (or (reftex-find-file-on-path 
 			     (concat file ".tex") path master-dir)
-			    (reftex-find-file-on-path file path master-dir))))))
+			    (reftex-find-file-on-path file path master-dir)))))))
     (cond (file1 file1)
 	  (die (error "No such file: %s" file) nil)
 	  (t (message "No such file: %s (ignored)" file) nil))))
 
 (defun reftex-find-bib-file (file master-dir &optional die)
-  ;; Find FILE in MASTER-DIR or on reftex-bib-path
-  (let ((rec-values '(nil t)) path file1 old-path)
-    (if (file-name-absolute-p file)
-	(if (file-regular-p file) (setq file1 file))
+  ;; Find FILE in MASTER-DIR or on reftex-bib-path.
+  ;; File must be given already with the .bib extension.
+  (let ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
+	path file1 old-path)
+    (cond
+     ((file-name-absolute-p file)
+      (if (file-regular-p file) (setq file1 file)))
+     ((and reftex-use-external-file-finders
+	   (assoc "bib" reftex-external-file-finders))
+      (setq file1 (reftex-find-file-externally file "bib" master-dir)))
+     (t
       (while (and (null file1) rec-values)
 	(setq path (reftex-access-search-path 
 		    "bib" (pop rec-values) master-dir file))
@@ -5346,10 +5421,33 @@ will display info in the echo area."
 		(not (eq old-path path)))
 	    (setq old-path path
 		  path (cons master-dir path)
-		  file1 (reftex-find-file-on-path file path master-dir)))))
+		  file1 (reftex-find-file-on-path file path master-dir))))))
     (cond (file1 file1)
 	  (die (error "No such file: %s" file) nil)
 	  (t (message "No such file: %s (ignored)" file) nil))))
+
+(defun reftex-find-file-externally (file type &optional master-dir)
+  ;; Use external program to find FILE.
+  ;; The program is the association of TYPE in `reftex-external-file-finders'.
+  ;; Interprete relative path definitions starting from MASTER-DIR.
+  (let ((default-directory (or master-dir default-directory))
+	(prg (cdr (assoc type reftex-external-file-finders)))
+	out)
+    (if (string-match "%f" prg)
+	(setq prg (replace-match file t t prg)))
+    (setq out (apply 'reftex-process-string (split-string prg)))
+    (if (string-match "[ \t\n]+\\'" out)
+	(setq out (replace-match "" nil nil out)))
+    (cond ((equal out "") nil)
+	  ((file-regular-p out) out)
+	  (t nil))))
+
+(defun reftex-process-string (program &rest args)
+  "Execute PROGRAM with arguments ARGS and return its STDOUT as a string."
+  (with-output-to-string
+    (with-current-buffer
+      standard-output
+      (apply 'call-process program nil '(t nil) nil args))))
 
 (defun reftex-access-search-path (which &optional recurse master-dir file)
   ;; Access path from environment variables.  WHICH is either "tex" or "bib".
@@ -5362,11 +5460,18 @@ will display info in the echo area."
   (let* ((pathvar (intern (concat "reftex-" which "-path"))))
     (when (null (get pathvar 'status))
       ;; Get basic path from environment
-      (let ((env-vars (if (equal which "tex") (list "TEXINPUTS")
+      (let ((env-vars (if (equal which "tex")
+			  reftex-texpath-environment-variables
 			reftex-bibpath-environment-variables)))
-	(set pathvar (reftex-parse-colon-path
-		      (mapconcat (lambda(x) (or (getenv x) ""))
-				 env-vars path-separator))))
+	(set pathvar 
+	     (reftex-parse-colon-path
+	      (mapconcat
+	       (lambda(x) 
+		 (if (string-match "^!" x)
+		     (apply 'reftex-process-string
+			    (split-string (substring x 1)))
+		   (or (getenv x) x)))
+	       env-vars path-separator))))
       (put pathvar 'status 'split)
       ;; Check if we have recursive elements
       (let ((path (symbol-value pathvar)) dir rec)
