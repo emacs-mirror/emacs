@@ -1471,4 +1471,69 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 	    (nconc plist (list propname value))))
       (aset char-code-property-table char (list propname value)))))
 
+
+;; Pretty description of encoded string
+
+;; Alist of ISO 2022 control code vs the corresponding mnemonic string.
+(defvar iso-2022-control-alist
+  '((?\x1b . "ESC")
+    (?\x0e . "SO")
+    (?\x0f . "SI")
+    (?\x8e . "SS2")
+    (?\x8f . "SS3")
+    (?\x9b . "CSI")))
+
+(defun encoded-string-description (str coding-system)
+  "Return a pretty description of STR that is encoded by CODING-SYSTEM."
+  (setq str (string-as-unibyte str))
+  (let ((char (aref str 0))
+	desc)
+    (when (< char 128)
+      (setq desc (or (cdr (assq char iso-2022-control-alist))
+		     (char-to-string char)))
+      (let ((i 1)
+	    (len (length str))) 
+	(while (< i len)
+	  (setq char (aref str i))
+	  (if (>= char 128)
+	      (setq desc nil i len)
+	    (setq desc (concat desc " "
+			       (or (cdr (assq char iso-2022-control-alist))
+				   (char-to-string char)))
+		  i (1+ i))))))
+    (or desc
+	(mapconcat (function (lambda (x) (format "0x%02x" x))) str " "))))
+
+(defun encode-coding-char (char coding-system)
+  "Encode CHAR by CODING-SYSTEM and return the resulting string.
+If CODING-SYSTEM can't safely encode CHAR, return nil."
+  (if (cmpcharp char)
+      (setq char (car (decompose-composite-char char 'list))))
+  (let ((str1 (char-to-string char))
+	(str2 (make-string 2 char))
+	(safe-charsets (and coding-system
+			    (coding-system-get coding-system 'safe-charsets)))
+	enc1 enc2 i1 i2)
+    (when (or (eq safe-charsets t)
+	      (memq (char-charset char) safe-charsets))
+      ;; We must find the encoded string of CHAR.  But, just encoding
+      ;; CHAR will put extra control sequences (usually to designate
+      ;; ASCII charaset) at the tail if type of CODING is ISO 2022.
+      ;; To exclude such tailing bytes, we at first encode one-char
+      ;; string and two-char string, then check how many bytes at the
+      ;; tail of both encoded strings are the same.
+
+      (setq enc1 (string-as-unibyte (encode-coding-string str1 coding-system))
+	    i1 (length enc1)
+	    enc2 (string-as-unibyte (encode-coding-string str2 coding-system))
+	    i2 (length enc2))
+      (while (and (> i1 0) (= (aref enc1 (1- i1)) (aref enc2 (1- i2))))
+	(setq i1 (1- i1) i2 (1- i2)))
+
+      ;; Now (substring enc1 i1) and (substring enc2 i2) are the same,
+      ;; and they are the extra control sequences at the tail to
+      ;; exclude.
+      (substring enc2 0 i2))))
+
+
 ;;; mule-cmds.el ends here
