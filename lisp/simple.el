@@ -415,9 +415,9 @@ Whilst editing the command, the following commands are available:
 (defun previous-history-element (n)
   "Inserts the previous element of `command-history' into the minibuffer."
   (interactive "p")
-  (if repeat-complex-command-flag
-      (next-complex-command (- n))
-    (repeat-complex-command 1)))
+;;  (if repeat-complex-command-flag
+  (next-history-element (- n)))
+;;    (repeat-complex-command 1)))
 
 (defun goto-line (arg)
   "Goto line ARG, counting from line 1 at beginning of buffer."
