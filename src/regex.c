@@ -260,7 +260,7 @@ char *alloca ();
 
 /* Define how to allocate the failure stack.  */
 
-#if defined (REL_ALLOC) && !defined (REGEX_MALLOC)
+#if defined (REL_ALLOC) && defined (REGEX_MALLOC)
 
 #define REGEX_ALLOCATE_STACK(size)				\
   r_alloc (&failure_stack_ptr, (size))
