@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(trunk.2) $
+ *  $HopeName: MMsrc!locknt.c(trunk.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -28,8 +28,8 @@
 #include "lock.h"
 #include "lockst.h"
 
-#ifndef MPS_OS_NT
-#error "locknt.c is specific to Win32 but MPS_OS_NT not defined"
+#ifndef MPS_OS_W3
+#error "locknt.c is specific to Win32 but MPS_OS_W3 not defined"
 #endif
 
 #include <windows.h>
