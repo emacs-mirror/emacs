@@ -571,14 +571,14 @@ in *Help* buffer.  See also the command `describe-char-after'."
 
 (defcustom eval-expression-print-level 4
   "*Value to use for `print-level' when printing value in `eval-expression'.
-Nil means no limit."
+A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
   "*Value to use for `print-length' when printing value in `eval-expression'.
-Nil means no limit."
+A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
