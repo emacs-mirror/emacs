@@ -1,6 +1,6 @@
 /* Hooks by which low level terminal operations
    can be made to call other routines.
-   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,93,94,2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -370,6 +370,8 @@ struct input_event
      HELP_EVENTs and avoids calling Fcons during signal handling.  */
   Lisp_Object arg;
 };
+
+#define EVENT_INIT(event) bzero (&(event), sizeof (struct input_event))
 
 /* Called to read input events.  */
 extern int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
