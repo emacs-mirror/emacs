@@ -1,10 +1,7 @@
-;;; diff.el --- "DIFF" mode for handling output from unix diff utility.
+;;; diff.el --- Run `diff' in compilation-mode.
 
-;; Copyright (C) 1990 Free Software Foundation, Inc.
+;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; Author: Frank P. Bresz <fpb@ittc.wec.com>
-;; Maintainer: FSF
-;; Created: 27 Jan 1989
 ;; Keyword: unix, tools
 
 ;; This file is part of GNU Emacs.
@@ -23,84 +20,180 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Commentary:
-
-;; todo: diff-switches flexibility:
-;; (defconst diff-switches-function
-;;   '(lambda (file)
-;;     (if (string-match "\\.el$" file)
-;; 	 "-c -F\"^(\""
-;;       "-p"))
-;;  "Function to return switches to pass to the `diff' utility, in \\[diff].
-;; This function is called with one arg, a file name, and returns a string
-;; containing 0 or more arguments which are passed on to `diff'.
-;; NOTE: This is not an ordinary hook; it may not be a list of functions.")
-
-;;  - fpb@ittc.wec.com - Sep 25, 1990
-;; Added code to support sccs diffing.
-;; also fixed one minor glitch in the
-;; search for the pattern.  If you only 1 addition you won't find the end
-;; of the pattern (minor)
-
 ;;; Code:
 
+(require 'compile)
+
 (defvar diff-switches nil
-  "*A list of switches to pass to the diff program.")
+  "*A string or list of strings specifying switches to be be passed to diff.")
 
-(defvar diff-search-pattern "^\\([0-9]\\|\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\)"
-  "Regular expression that delineates difference regions in diffs.")
+(defvar diff-regexp-alist
+  '(
+    ;; -u format: @@ -OLDSTART,OLDEND +NEWSTART,NEWEND @@
+    ("^@@ -\\([0-9]+\\),[0-9]+ \\+\\([0-9]+\\),[0-9]+ @@$" 1 2)
+  
+    ;; -c format: *** OLDSTART,OLDEND ****
+    ("^\\*\\*\\* \\([0-9]+\\),[0-9]+ \\*\\*\\*\\*$" 1 nil)
+    ;;            --- NEWSTART,NEWEND ----
+    ("^--- \\([0-9]+\\),[0-9]+ ----$" nil 1)
 
-(defvar diff-rcs-extension ",v"
-  "*Extension to find RCS file, some systems do not use ,v")
+    ;; plain diff format: OLDSTART[,OLDEND]{a,d,c}NEWSTART[,NEWEND]
+    ("^\\([0-9]+\\)\\(,[0-9]+\\)?[adc]\\([0-9]+\\)\\(,[0-9]+\\)?$" 1 3)
 
-;; Initialize the keymap if it isn't already
-(if (boundp 'diff-mode-map)
-    nil
-  (setq diff-mode-map (make-keymap))
-  (suppress-keymap diff-mode-map)
-  (define-key diff-mode-map "?" 'describe-mode)
-  (define-key diff-mode-map "." 'diff-beginning-of-diff)
-  (define-key diff-mode-map " " 'scroll-up)
-  (define-key diff-mode-map "\177" 'scroll-down)
-  (define-key diff-mode-map "n" 'diff-next-difference)
-  (define-key diff-mode-map "p" 'diff-previous-difference)
-  (define-key diff-mode-map "j" 'diff-show-difference))
+    ;; -e (ed) format: OLDSTART[,OLDEND]{a,d,c}
+    ("^\\([0-9]+\\)\\(,[0-9]+\\)?[adc]$" 1)
+
+    ;; -f format: {a,d,c}OLDSTART[ OLDEND]
+    ;; -n format: {a,d,c}OLDSTART LINES-CHANGED
+    ("^[adc]\\([0-9]+\\)\\( [0-9]+\\)?$" 1)
+    )
+  "Alist (REGEXP OLD-IDX NEW-IDX) of regular expressions to match difference 
+sections in \\[diff] output.  If REGEXP matches, the OLD-IDX'th
+subexpression gives the line number in the old file, and NEW-IDX'th
+subexpression gives the line number in the new file.  If OLD-IDX or NEW-IDX
+is nil, REGEXP matches only half a section.")
+
+;; See compilation-parse-errors-function (compile.el).
+(defun diff-parse-differences (limit-search)
+  (setq compilation-error-list nil)
+  (message "Parsing differences...")
+
+  ;; Don't reparse diffs already seen at last parse.
+  (goto-char compilation-parsing-end)
+
+  ;; Construct in REGEXP a regexp composed of all those in dired-regexp-alist.
+  (let ((regexp (mapconcat (lambda (elt)
+			     (concat "\\(" (car elt) "\\)"))
+			   diff-regexp-alist
+			   "\\|"))
+	;; (GROUP-IDX OLD-IDX NEW-IDX)
+	(groups (let ((subexpr 1))
+		  (mapcar (lambda (elt)
+			    (prog1
+				(cons subexpr
+				      (mapcar (lambda (n)
+						(and n
+						     (+ subexpr n)))
+					      (cdr elt)))
+			      (setq subexpr (+ subexpr 1
+					       (count-regexp-groupings
+						(car elt))))))
+			  diff-regexp-alist)))
+
+	(new-error
+	 (function (lambda (file subexpr)
+		     (setq compilation-error-list
+			   (cons
+			    (cons (set-marker (make-marker)
+					      (match-beginning subexpr)
+					      (current-buffer))
+				  (let ((line (string-to-int
+					       (buffer-substring
+						(match-beginning subexpr)
+						(match-end subexpr)))))
+				    (save-excursion
+				      (set-buffer (find-file-noselect file))
+				      (save-excursion
+					(goto-line line)
+					(point-marker)))))
+			    compilation-error-list)))))
+
+	(found-desired nil)
+	g)
+
+    (while (and (not found-desired)
+		;; We don't just pass LIMIT-SEARCH to re-search-forward
+		;; because we want to find matches containing LIMIT-SEARCH
+		;; but which extend past it.
+		(re-search-forward regexp nil t))
+
+      ;; Find which individual regexp matched.
+      (setq g groups)
+      (while (and g (null (match-beginning (car (car g)))))
+	(setq g (cdr g)))
+      (setq g (car g))
+
+      (if (nth 1 g)			;OLD-IDX
+	  (funcall new-error diff-old-file (nth 1 g)))
+      (if (nth 2 g)			;NEW-IDX
+	  (funcall new-error diff-new-file (nth 2 g)))
+
+      (and limit-search (>= (point) limit-search)
+	   ;; The user wanted a specific diff, and we're past it.
+	   (setq found-desired t)))
+    (if found-desired
+	(setq compilation-parsing-end (point))
+      ;; Set to point-max, not point, so we don't perpetually
+      ;; parse the last bit of text when it isn't a diff header.
+      (setq compilation-parsing-end (point-max))
+      (message "Parsing differences...done")))
+  (setq compilation-error-list (nreverse compilation-error-list)))
 
 ;;;###autoload
-(defun diff (old new)
+(defun diff (old new &optional switches)
   "Find and display the differences between OLD and NEW files.
 Interactively the current buffer's file name is the default for for NEW
-and a backup file for NEW is the default for OLD."
+and a backup file for NEW is the default for OLD.
+With prefix arg, prompt for diff switches."
   (interactive
-   (let (oldf newf)
-     (reverse
-      (list
-       (setq newf (buffer-file-name)
-	     newf (if (and newf (file-exists-p newf))
-			  (read-file-name
-			   (concat "Diff new file: ("
-				   (file-name-nondirectory newf) ") ")
-			   nil newf t)
-			(read-file-name "Diff new file: " nil nil t)))
-       (setq oldf (file-newest-backup newf)
-	     oldf (if (and oldf (file-exists-p oldf))
-			  (read-file-name
-			   (concat "Diff original file: ("
-				   (file-name-nondirectory oldf) ") ")
-			   (file-name-directory oldf) oldf t)
-			(read-file-name "Diff original file: "
-					(file-name-directory newf) nil t)))))))
+   (nconc
+    (let (oldf newf)
+      (nreverse
+       (list
+	(setq newf (buffer-file-name)
+	      newf (if (and newf (file-exists-p newf))
+		       (read-file-name
+			(concat "Diff new file: ("
+				(file-name-nondirectory newf) ") ")
+			nil newf t)
+		     (read-file-name "Diff new file: " nil nil t)))
+	(setq oldf (file-newest-backup newf)
+	      oldf (if (and oldf (file-exists-p oldf))
+		       (read-file-name
+			(concat "Diff original file: ("
+				(file-name-nondirectory oldf) ") ")
+			(file-name-directory oldf) oldf t)
+		     (read-file-name "Diff original file: "
+				     (file-name-directory newf) nil t))))))
+    (if current-prefix-arg
+	(list (read-string "Diff switches: "
+			   (if (stringp diff-switches)
+			       diff-switches
+			     (mapconcat 'identity diff-switches " "))))
+      nil)))
   (message "Comparing files %s %s..." new old)
   (setq new (expand-file-name new)
 	old (expand-file-name old))
-  (diff-internal-diff "diff" (append diff-switches (list new old)) nil))
+  (let ((buf (compile-internal (mapconcat 'identity
+					  (append '("diff")
+						  (if (consp diff-switches)
+						      diff-switches
+						    (list diff-switches))
+						  (list old)
+						  (list new))
+					  " ")
+			       "No more differences" "Diff"
+			       'diff-parse-differences)))
+    (save-excursion
+      (set-buffer buf)
+      (set (make-local-variable 'diff-old-file) old)
+      (set (make-local-variable 'diff-new-file) new))
+    buf))
 
-(defun diff-backup (file)
+;;;###autoload
+(defun diff-backup (file &optional switches)
   "Diff this file with its backup file or vice versa.
 Uses the latest backup, if there are several numerical backups.
 If this file is a backup, diff it with its original.
 The backup file is the first file given to `diff'."
-  (interactive "fDiff (file with backup): ")
+  (interactive (list (read-file-name "Diff (file with backup): ")
+		     (if current-prefix-arg
+			 (read-string "Diff switches: "
+				      (if (stringp diff-switches)
+					  diff-switches
+					(mapconcat 'identity
+						   diff-switches " ")))
+		       nil)))
   (let (bak ori)
     (if (backup-file-name-p file)
 	(setq bak file
@@ -108,7 +201,7 @@ The backup file is the first file given to `diff'."
       (setq bak (or (diff-latest-backup-file file)
 		    (error "No backup found for %s" file))
 	    ori file))
-    (diff bak ori)))
+    (diff bak ori switches)))
 
 (defun diff-latest-backup-file (fn)	; actually belongs into files.el
   "Return the latest existing backup of FILE, or nil."
@@ -132,139 +225,5 @@ The backup file is the first file given to `diff'."
 		    (lambda (fn1 fn2)
 		      (> (backup-extract-version fn1)
 			 (backup-extract-version fn2))))))))))
-
-(defun diff-internal-diff (diff-command sw strip)
-  (let ((buffer-read-only nil))
-    (with-output-to-temp-buffer "*Diff Output*"
-      (buffer-disable-undo standard-output)
-      (save-excursion
-	(set-buffer standard-output)
-	(erase-buffer)
-	(apply 'call-process diff-command nil t nil sw)))
-    (set-buffer "*Diff Output*")
-    (goto-char (point-min))
-    (while sw
-      (if (string= (car sw) "-c")
-	  ;; strip leading filenames from context diffs
-	  (progn (forward-line 2) (delete-region (point-min) (point))))
-      (if (and (string= (car sw) "-C") (string= "sccs" diff-command))
-	  ;; strip stuff from SCCS context diffs
-	  (progn (forward-line 2) (delete-region (point-min) (point))))
-      (setq sw (cdr sw)))
-    (if strip
-	;; strip stuff from SCCS context diffs
-	(progn (forward-line strip) (delete-region (point-min) (point)))))
-  (diff-mode)
-  (if (string= "0" diff-total-differences)
-      (let ((buffer-read-only nil))
-	(insert (message "There are no differences.")))
-    (narrow-to-region (point) (progn
-				(forward-line 1)
-				(if (re-search-forward diff-search-pattern
-						       nil t)
-				    (goto-char (match-beginning 0))
-				  (goto-char (point-max)))))
-    (setq diff-current-difference "1")))
-
-;; Take a buffer full of Unix diff output and go into a mode to easily
-;; see the next and previous difference
-(defun diff-mode ()
-  "Diff Mode is used by \\[diff] for perusing the output from the diff program.
-All normal editing commands are turned off.  Instead, these are available:
-\\<diff-mode-map>
-\\[diff-beginning-of-diff]	Move point to start of this difference.
-\\[scroll-up]	Scroll to next screen of this difference.
-\\[scroll-down]	Scroll to previous screen of this difference.
-\\[diff-next-difference]	Move to Next Difference.
-\\[diff-previous-difference]	Move to Previous Difference.
-\\[diff-show-difference]	Jump to difference specified by numeric position.
-"
-  (interactive)
-  (use-local-map diff-mode-map)
-  (setq buffer-read-only t
-	major-mode 'diff-mode
-	mode-name "Diff"
-	mode-line-modified "--- "
-	mode-line-process
-	'(" " diff-current-difference "/" diff-total-differences))
-  (make-local-variable 'diff-current-difference)
-  (set (make-local-variable 'diff-total-differences)
-       (int-to-string (diff-count-differences))))
-
-(defun diff-next-difference (n)
-  "Go to the beginning of the next difference.
-Differences are delimited by `diff-search-pattern'."
-  (interactive "p")
-  (if (< n 0) (diff-previous-difference (- n))
-    (if (zerop n) ()
-      (goto-char (point-min))
-      (forward-line 1) ; to get past the match for the start of this diff
-      (widen)
-      (if (re-search-forward diff-search-pattern nil 'move n)
-	  (let ((start (goto-char (match-beginning 0))))
-	    (forward-line 1)
-	    (if (re-search-forward diff-search-pattern nil 'move)
-		(goto-char (match-beginning 0)))
-	    (narrow-to-region start (point))
-	    (setq diff-current-difference
-		  (int-to-string (+ n (string-to-int
-				       diff-current-difference)))))
-	(re-search-backward diff-search-pattern nil)
-	(narrow-to-region (point) (point-max))
-	(message "No following differences.")
-	(setq diff-current-difference diff-total-differences))
-      (goto-char (point-min)))))
-
-(defun diff-previous-difference (n)
-  "Go the the beginning of the previous difference.
-Differences are delimited by `diff-search-pattern'."
-  (interactive "p")
-  (if (< n 0) (diff-next-difference (- n))
-    (if (zerop n) ()
-      (goto-char (point-min))
-      (widen)
-      (if (re-search-backward diff-search-pattern nil 'move n)
-	  (setq diff-current-difference
-		(int-to-string (- (string-to-int diff-current-difference) n)))
-	(message "No previous differences.")
-	(setq diff-current-difference "1"))
-      (narrow-to-region (point) (progn
-				  (forward-line 1)
-				  (re-search-forward diff-search-pattern nil)
-				  (goto-char (match-beginning 0))))
-      (goto-char (point-min)))))
-
-(defun diff-show-difference (n)
-  "Show difference number N (prefix argument)."
-  (interactive "p")
-  (let ((cur (string-to-int diff-current-difference)))
-    (cond ((or (= n cur)
-	       (zerop n)
-	       (not (natnump n))) ; should signal an error perhaps.
-	   ;; just redisplay.
-	   (goto-char (point-min)))
-	  ((< n cur)
-	   (diff-previous-difference (- cur n)))
-	  ((> n cur)
-	   (diff-next-difference (- n cur))))))
-
-(defun diff-beginning-of-diff ()
-  "Go to beginning of current difference."
-  (interactive)
-  (goto-char (point-min)))
-
-;; This function counts up the number of differences in the buffer.
-(defun diff-count-differences ()
-  "Count number of differences in the current buffer."
-  (message "Counting differences...")
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      (let ((cnt 0))
-	(while (re-search-forward diff-search-pattern nil t)
-	  (setq cnt (1+ cnt)))
-	(message "Counting differences...done (%d)" cnt)
-	cnt))))
 
 ;;; diff.el ends here

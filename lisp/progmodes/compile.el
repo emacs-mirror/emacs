@@ -6,8 +6,6 @@
 ;; Maintainer: FSF
 ;; Keyword: tools, processes
 
-;;;!!! dup removal is broken.
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -36,12 +34,12 @@
 
 (defvar compilation-error-list nil
   "List of error message descriptors for visiting erring functions.
-Each error descriptor is a cons (or nil).
-Its car is a marker pointing to an error message.
-If its cdr is a marker, it points to the text of the line the message is about.
-If its cdr is a cons, that cons's car is a cons (DIRECTORY . FILE), specifying
-file the message is about, and its cdr is the number of the line the message
-is about.  Or its cdr may be nil if that error is not interesting.
+Each error descriptor is a cons (or nil).  Its car is a marker pointing to
+an error message.  If its cdr is a marker, it points to the text of the
+line the message is about.  If its cdr is a cons, that cons's car is a cons
+\(DIRECTORY . FILE\), specifying the file the message is about, and its cdr
+is the number of the line the message is about.  Or its cdr may be nil if
+that error is not interesting.
 
 The value may be t instead of a list; this means that the buffer of
 error messages should be reparsed the next time the list of errors is wanted.")
@@ -219,7 +217,9 @@ arg REGEXP-ALIST is the error message regexp alist to use (nil means the
 default).  Sixth arg NAME-FUNCTION is a function called to name the buffer (nil
 means the default).  The defaults for these variables are the global values of
 \`compilation-parse-errors-function', `compilation-error-regexp-alist', and
-\`compilation-buffer-name-function', respectively."
+\`compilation-buffer-name-function', respectively.
+
+Returns the compilation buffer created."
   (let (outbuf)
     (save-excursion
       (or name-of-mode
@@ -303,6 +303,10 @@ means the default).  The defaults for these variables are the global values of
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
+    (define-key map " " 'scroll-up)
+    (define-key map "\^?" 'scroll-down)
+    (define-key map "\M-n" 'compilation-next-error)
+    (define-key map "\M-p" 'compilation-previous-error)
     map)
   "Keymap for compilation log buffers.")
 
@@ -374,6 +378,67 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 	  (setq compilation-in-progress (delq proc compilation-in-progress))
 	  ))))
 
+
+(defun compilation-next-error (n)
+  "Move point to the next error in the compilation buffer.
+Does NOT find the source line like \\[next-error]."
+  (interactive "p")
+  (or (compilation-buffer-p (current-buffer))
+      (error "Not in a compilation buffer."))
+  (setq compilation-last-buffer (current-buffer))
+  (let ((p (point))
+	(errors nil)
+	(first t))
+
+    (save-excursion			;save point in case of later error
+      (while (and (if (< n 0)
+		      (null errors)
+		    (< (length errors) n))
+		  (or first (< compilation-parsing-end (point-max))))
+	(setq first nil)
+
+	(if (< compilation-parsing-end (point-max))
+	    (progn
+	      ;; Move forward a bit and parse.
+	      ;; Hopefully we will parse enough to find the one we want.
+	      (forward-line n)
+	      (compile-reinitialize-errors nil (point))))
+	(setq errors compilation-old-error-list)
+
+	;; Look for the error containing P (the original point).
+	(if (< n 0)
+	    (while (and errors
+			(> p (car (car errors))))
+	      (setq errors (cdr errors)))
+	  (while (and errors
+		      (>= p (car (car errors))))
+	    (setq errors (cdr errors))))
+	(ignore))
+
+      ;; Move to the error after the one containing point.
+      (setq p (car (if (< n 0)
+			  (let ((i 0)
+				(e compilation-old-error-list))
+			    ;; See how many cdrs away ERRORS is from the start.
+			    (while (not (eq e errors))
+			      (setq i (1+ i)
+				    e (cdr e)))
+			    (if (> (- n) i)
+				(error "Moved back past first error")
+			      (nth (+ i n) compilation-old-error-list)))
+			(if errors
+			    (nth (1- n) errors)
+			  (error "Moved past last error"))))))
+
+    (goto-char p)))
+
+(defun compilation-previous-error (n)
+  "Move point to the previous error in the compilation buffer.
+Does NOT find the source line like \\[next-error]."
+  (interactive "p")
+  (compilation-next-error (- n)))
+
+
 (defun kill-compilation ()
   "Kill the process made by the \\[compile] command."
   (interactive)
@@ -394,7 +459,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 	    (consp argp))
 	(progn (compilation-forget-errors)
 	       (setq compilation-parsing-end 1)))
-    (if compilation-error-list
+    (if (and compilation-error-list (not limit-search))
 	;; Since compilation-error-list is non-nil, it points to a specific
 	;; error the user wanted.  So don't move it around.
 	nil
@@ -419,24 +484,23 @@ other kinds of prefix arguments are ignored."
       (error "Not in a compilation buffer."))
   (setq compilation-last-buffer (current-buffer))
   (compile-reinitialize-errors argp (point))
-  (save-excursion
-    (beginning-of-line)
-    ;; Move compilation-error-list to the elt of
-    ;; compilation-old-error-list whose car is the error we want.
-    (setq compilation-error-list
-	  (memq (let (elt)
-		  (while (not (or (setq elt (assoc (point-marker)
-						   compilation-old-error-list))
-				  (eobp)))
-		    ;; This line doesn't contain an error.
-		    ;; Move forward a line and look again.
-		    (forward-line 1))
-		  elt)
-		compilation-old-error-list)))
+
+  ;; Move compilation-error-list to the elt of compilation-old-error-list
+  ;; whose cadr is the error we want.
+  (setq compilation-error-list compilation-old-error-list)
+  (while (and (cdr compilation-error-list)
+	      (> (point) (car (car (cdr compilation-error-list)))))
+    (setq compilation-error-list (cdr compilation-error-list)))
+
   ;; Move to another window, so that next-error's window changes
   ;; result in the desired setup.
   (or (one-window-p)
-      (other-window -1))
+      (progn
+	(other-window -1)
+	;; other-window changed the selected buffer,
+	;; but we didn't want to do that.
+	(set-buffer compilation-last-buffer)))
+
   (next-error 1))
 
 (defun compilation-buffer-p (buffer)
@@ -505,11 +569,10 @@ See variables `compilation-parse-errors-function' and
   (let (next-errors next-error)
     (save-excursion
       (set-buffer compilation-last-buffer)
-      (setq next-errors (nthcdr (+ (- (length compilation-old-error-list)
-				      (length compilation-error-list)
-				      1)
-				   (prefix-numeric-value argp))
-				compilation-old-error-list)
+      ;; This code used to do something bizarre and incomprehensible.
+      ;; Was there a reason I wrote it like that?  --roland
+      (setq next-errors (nthcdr (prefix-numeric-value argp)
+				compilation-error-list)
 	    next-error (car next-errors))
       (while
 	  (progn
@@ -650,7 +713,7 @@ See variables `compilation-parse-errors-function' and
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
 ;; This would happen anyway at the next garbage collection, but it is better to
-;; do it the right away.
+;; do it right away.
 (defun compilation-forget-errors ()
   (while compilation-old-error-list
     (let ((next-error (car compilation-old-error-list)))
@@ -741,11 +804,11 @@ See variable `compilation-parse-errors-function' for the interface it uses."
       (setq subexpr (+ subexpr 1 (count-regexp-groupings (car (car alist)))))
       (setq alist (cdr alist)))
 
-    (while (and (re-search-forward regexp nil t)
+    (while (and (not found-desired)
 		;; We don't just pass LIMIT-SEARCH to re-search-forward
 		;; because we want to find matches containing LIMIT-SEARCH
 		;; but which extend past it.
-		(not found-desired))
+		(re-search-forward regexp nil t))
       ;; Figure out which constituent regexp matched.
       (cond ((match-beginning enter-group)
 	     ;; The match was the enter-directory regexp.
@@ -813,16 +876,13 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				   (cons filename linenum))
 			     compilation-error-list)))))
 	    (t
-	     (error "Impossible regexp match!")))
+	     (error "compilation-parse-errors: impossible regexp match!")))
       (and limit-search (>= (point) limit-search)
 	   ;; The user wanted a specific error, and we're past it.
 	   (setq found-desired t)))
-    (if desired-found
-	(progn
-	  (setq compilation-parsing-end (point))
-	  (message "Desired error message found."))
-      ;; Set to point-max, not point, so we don't perpetually
-      ;; parse the last bit of text when it isn't an error message.
+    (if found-desired
+	(setq compilation-parsing-end (point))
+      ;; We have searched the whole buffer.
       (setq compilation-parsing-end (point-max))
       (message "Parsing error messages...done")))
   (setq compilation-error-list (nreverse compilation-error-list)))
