@@ -44,7 +44,7 @@
 #undef FD_ISSET
 #undef FD_ZERO
 #undef fd_set
-#include "nt.h"
+#include "w32.h"
 
 #ifdef HAVE_TIMEVAL
 #undef timeval
