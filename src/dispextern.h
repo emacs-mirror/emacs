@@ -934,13 +934,12 @@ extern struct glyph_row scratch_glyph_row;
    which is compared against Vminibuf_scroll_window (if MBW matches).  */
 
 #define CURRENT_MODE_LINE_FACE_ID_3(SELW, MBW, SCRW)		\
-     ((NILP (Vmode_line_in_non_selected_windows)		\
+     ((!mode_line_in_non_selected_windows			\
        || (SELW) == XWINDOW (selected_window)			\
-       || (EQ (Vmode_line_in_non_selected_windows, Qt)		\
-	   && !NILP (Vminibuf_scroll_window)			\
-	   && minibuf_level					\
-	   && (MBW) == XWINDOW (minibuf_window)			\
-	   && (SCRW) == XWINDOW (Vminibuf_scroll_window)))	\
+       || (minibuf_level > 0					\
+           && !NILP (Vminibuf_scroll_window)			\
+           && (MBW) == XWINDOW (minibuf_window)			\
+           && (SCRW) == XWINDOW (Vminibuf_scroll_window)))	\
       ? MODE_LINE_FACE_ID					\
       : MODE_LINE_INACTIVE_FACE_ID)
 
@@ -2246,7 +2245,7 @@ void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
-extern Lisp_Object Vmode_line_in_non_selected_windows;
+extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
 extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
