@@ -1,5 +1,7 @@
 2000-09-17  Dave Love  <fx@gnu.org>
 
+	* international/latin1-disp.el: New file.
+
 	* calendar/cal-move.el (scroll-calendar-left)
 	(scroll-calendar-right): Make arg optional (for active mode line).
 
