@@ -1848,10 +1848,15 @@ inside of a \"[...]\" (see `skip-chars-forward')."
     (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
       (while (and (re-search-backward non-word-chars nil 'move)
 		  ;(memq (char-after (point)) shell-file-name-quote-list)
-		  (not (bolp)) (eq (char-after (1- (point))) ?\\))
+		  (eq (preceding-char) ?\\))
 	(backward-char 1))
-      (forward-char 1)
-      (and (< (point) here) (buffer-substring (point) here)))))
+      ;; Don't go forward over a word-char (this can happen if we're at bob).
+      (if (or (not (bobp)) (looking-at non-word-chars))
+	  (forward-char 1))
+      ;; Set match-data to match the entire string.
+      (if (< (point) here)
+	  (progn (store-match-data (list (point) here))
+		 (match-string 0))))))
 
 
 (defun comint-match-partial-filename ()
