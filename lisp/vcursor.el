@@ -3,7 +3,7 @@
 ;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
-;; Keywords: virtual cursor, display, copying
+;; Keywords: virtual cursor, convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -324,7 +324,7 @@
 (defgroup vcursor nil
   "Manipulate an alternative (\"virtual\") cursor."
   :prefix "vcursor-"
-  :group 'display)
+  :group 'editing)
 
 (defface vcursor
   '((((class color)) (:foreground "blue" :background "cyan" :underline t))
