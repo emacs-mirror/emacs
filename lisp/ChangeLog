@@ -1,3 +1,42 @@
+2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
+
+	* textfile/reftex-ref.el (reftex-goto-label): New command.
+
+	* textfile/reftex-vars.el (reftex-part-resets-chapter): New
+	option.
+
+	* textfile/reftex-parse.el (reftex-roman-number): New function.
+	(reftex-section-number): Better handling of parts: No chapter
+	counter resets.
+
+	* textfile/reftex.el (reftex-highlight-overlays): Added a third
+	overlay.
+	(reftex-mode-menu): Added entry for `reftex-toc-recenter.  Also
+	moved `reftex-reset-mode' to top level.
+
+	* textfile/reftex-toc.el (reftex-toc-recenter): New command.
+	(reftex-toc-pre-command-hook): Don't remove highlight overlay.
+	(reftex-toc-post-command-hook): Use overlay no 2 for highlighting.
+
+	* textfile/reftex-sel.el (reftex-get-offset): get offset of
+	document pointer *before* position, not after.
+	(reftex-insert-docstruct): get offset of document pointer *before*
+	position, not after.
+
+	* textfiles/reftex-parse.el (reftex-where-am-I): prefer marker
+	match over section title match.
+
+	* textfiles/reftex-cite.el (reftex-bib-or-thebib): New function
+	which determines on a per-file-basis if BibTeX is being used
+	locally for citations.
+	(reftex-offer-bib-menu): Use `reftex-bib-or-thebib' for better
+	cooperation with chapterbib.
+	(reftex-bibtex-selection-callback): Use `reftex-bib-or-thebib' for
+	better cooperation with chapterbib.
+
+	* textfiles/reftex-dcr.el (reftex-view-cr-cite): Use
+	`reftex-bib-or-thebib' for better cooperation with chapterbib.
+
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (suppress-keymap): Use command remapping instead of
