@@ -11,8 +11,9 @@ the same version of GCC, and telling us whether that fixes the problem.
 * On Solaris 7, Emacs gets a segmentation fault when starting up using X.
 
 This results from Sun patch 107058-01 (SunOS 5.7: Patch for
-assembler), if you use GCC (version 2.7 or 2.8, at least).  To work
-around it, either uninstall the patch, or install the GNU Binutils.
+assembler) if you use GCC version 2.7 or later.
+To work around it, either install patch 106950-03 or later,
+or uninstall patch 107058-01, or install the GNU Binutils.
 Then recompile Emacs, and it should work.
 
 * With X11R6.4, public-patch-3, Emacs crashes at startup.
@@ -52,14 +53,6 @@ Reportedly this patch in X fixes the problem.
 	 }
 	 return ret;
 
-
-* On Solaris 2.7, the Compose key does not work *except* when the
-system is quite heavily loaded.
-
-This is a bug in Motif in Solaris.  Supposedly it has been fixed for
-the next major release of Solaris.  However, if someone with Sun
-support complains to Sun about the bug, they may release a patch for
-Solaris 2.7.  If you do this, mention Sun bug #4188711.
 
 * Emacs crashes on Irix 6.5 on the SGI R10K, when compiled with GCC.
   
@@ -349,7 +342,12 @@ On Solaris 2.6, Emacs is said to work with Motif when Solaris patch
 105284-12 is installed, but fail when 105284-15 is installed.
 105284-18 might fix it again.
 
-* On Solaris 2.6, the Compose key does not work.
+* On Solaris 2.6 and 7, the Compose key does not work.
+
+This is a bug in Motif in Solaris.  Supposedly it has been fixed for
+the next major release of Solaris.  However, if someone with Sun
+support complains to Sun about the bug, they may release a patch.
+If you do this, mention Sun bug #4188711.
 
 One workaround is to use a locale that allows non-ASCII characters.
 For example, before invoking emacs, set the LC_ALL environment
@@ -357,11 +355,9 @@ variable to "en_US" (American English).  The directory /usr/lib/locale
 lists the supported locales; any locale other than "C" or "POSIX"
 should do.
 
-pen@lysator.liu.se says (Feb 1998) that this is a bug in the Solaris
-2.6 X libraries, and that the Compose key does work if you link with
-the MIT X11 libraries instead.
-
-Sun has accepted this as a bug; see Sun bug 4188711.
+pen@lysator.liu.se says (Feb 1998) that the Compose key does work
+if you link with the MIT X11 libraries instead of the Solaris X11
+libraries.
 
 * Emacs does not know your host's fully-qualified domain name.
 
