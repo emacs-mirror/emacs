@@ -176,7 +176,8 @@ If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
 
 ;; XML [5]
 ;; Note that [:alpha:] matches all multibyte chars with word syntax.
-(defconst xml-name-regexp "[[:alpha:]_:][[:alnum:]._:-]*")
+(eval-and-compile
+  (defconst xml-name-regexp "[[:alpha:]_:][[:alnum:]._:-]*"))
 
 ;; Fixme:  This needs re-writing to deal with the XML grammar properly, i.e.
 ;;   document    ::=    prolog element Misc*
