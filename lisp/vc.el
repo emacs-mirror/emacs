@@ -266,7 +266,7 @@ and that its contents match what the master file says.")
 	       (kill-buffer (get-buffer "*vc-info*")))
 	   (string= tip-version workfile-version))))
      ;; CVS
-     (error "vc-latest-on-branch-p is not defined for CVS files")))
+     (string= (vc-workfile-version file) (vc-latest-version file))))
 
 (defun vc-registration-error (file)
   (if file
@@ -503,9 +503,31 @@ to an optional list of FLAGS."
 		'vc-checkout-writable-buffer-hook)
 	(vc-checkout-writable-buffer file)))
 
+     ;; CVS: changes to the master file need to be 
+     ;; merged back into the working file
+     ((and (eq vc-type 'CVS)
+	   (or (eq (vc-cvs-status file) 'needs-checkout)
+	       (eq (vc-cvs-status file) 'needs-merge)))
+      (vc-buffer-sync)
+      (if (yes-or-no-p (format "%s is not up-to-date.  Merge in changes now? "
+			       (buffer-name)))
+	  (progn
+	    (if (and (buffer-modified-p)
+		     (not (yes-or-no-p 
+			   "Buffer %s modified; merge file on disc anyhow? " 
+			   (buffer-name))))
+		(error "Merge aborted"))
+	    (if (not (zerop (vc-backend-merge-news file)))
+		;; Overlaps detected - what now?  Should use some
+		;; fancy RCS conflict resolving package, or maybe
+		;; emerge, but for now, simply warn the user with a
+		;; message.
+		(message "Conflicts detected!"))
+	    (vc-resynch-window file t (not (buffer-modified-p))))
+	(error "%s needs update" (buffer-name))))
+
      ;; if there is no lock on the file, assert one and get it
-     ((and (not (eq vc-type 'CVS))	;There are no locks in CVS.
-	   (not (setq owner (vc-locking-user file))))
+     ((not (setq owner (vc-locking-user file)))
       (if (and vc-checkout-carefully
 	       (not (vc-workfile-unchanged-p file t)))
 	  (if (save-window-excursion
@@ -540,7 +562,7 @@ to an optional list of FLAGS."
 	  )))
 
      ;; a checked-out version exists, but the user may not own the lock
-     ((and (not (eq vc-type 'CVS))	;There are no locks in CVS.
+     ((and (not (eq vc-type 'CVS))
 	   (not (string-equal owner (user-login-name))))
       (if comment
 	  (error "Sorry, you can't steal the lock on %s this way" file))
@@ -549,49 +571,6 @@ to an optional list of FLAGS."
        (if verbose (read-string "Version to steal: ")
 	 (vc-workfile-version file))
        owner))
-
-     ;; CVS: changes to the master file need to be 
-     ;; merged back into the working file
-     ((and (eq vc-type 'CVS)
-	   ;; "0" means "added, but not yet committed"
-	   (not (string= (vc-workfile-version file) "0"))
-	   (not (string= (vc-workfile-version file)
-			 (vc-latest-version file))))
-      (vc-buffer-sync)
-      (if (yes-or-no-p (format "%s is not up-to-date.  Merge in changes now? "
-			       (buffer-name)))
-	  (progn
-	    (if (and (buffer-modified-p)
-		     (not (yes-or-no-p 
-			   "Buffer %s modified; merge file on disc anyhow? " 
-			   (buffer-name))))
-		(error "Merge aborted"))
-	    (if (not (zerop (vc-backend-merge-news file)))
-		;; Overlaps detected - what now?  Should use some
-		;; fancy RCS conflict resolving package, or maybe
-		;; emerge, but for now, simply warn the user with a
-		;; message.
-		(message "Conflicts detected!"))
-	    (vc-resynch-window file t (not (buffer-modified-p))))
-
-	(error "%s needs update" (buffer-name))))
-
-     ;; CVS: Buffer is read-only. Make the file "locked", i.e.
-     ;; make the buffer writable, and assert the user to be the locker
-     ((and (eq vc-type 'CVS) buffer-read-only)
-      (if verbose
-	  (let ((rev (read-string "Trunk version to move to: ")))
-	    (if (not (string= rev ""))
-		(vc-checkout file nil rev)
-	      (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A")
-	      (vc-checkout file)))
-	(setq buffer-read-only nil)
-	(vc-file-setprop file 'vc-locking-user (user-login-name))
-	(vc-mode-line file)
-	;; Sites who make link farms to a read-only gold tree (or
-	;; something similar) can use the hook below to break the
-	;; sym-link.
-	(run-hooks 'vc-make-buffer-writable-hook)))
 
      ;; OK, user owns the lock on the file
      (t
@@ -670,8 +649,6 @@ For CVS files:
    If the file is not already registered, this registers it for version
 control.  This does a \"cvs add\", but no \"cvs commit\".
    If the file is added but not committed, it is committed.
-   If the file has not been changed, neither in your working area or
-in the repository, a message is printed and nothing is done.
    If your working file is changed, but the repository file is
 unchanged, this pops up a buffer for entry of a log message; when the
 message has been entered, it checks in the resulting changes along
@@ -923,21 +900,24 @@ If nil, uses `change-log-default-name'."
     (set-buffer vc-parent-buffer)
     (or vc-dired-mode
 	(vc-buffer-sync)))
-  ;; OK, do it to it
-  (if vc-log-operation
-      (save-excursion
-	(funcall vc-log-operation 
-		 vc-log-file
-		 vc-log-version
-		 (buffer-string)))
-    (error "No log operation is pending"))
-  ;; save the vc-log-after-operation-hook of log buffer
-  (let ((after-hook vc-log-after-operation-hook))
+  (if (not vc-log-operation) (error "No log operation is pending"))
+  ;; save the parameters held in buffer-local variables
+  (let ((log-operation vc-log-operation)
+	(log-file vc-log-file)
+	(log-version vc-log-version)
+	(log-entry (buffer-string))
+	(after-hook vc-log-after-operation-hook))
     ;; Return to "parent" buffer of this checkin and remove checkin window
     (pop-to-buffer vc-parent-buffer)
     (let ((logbuf (get-buffer "*VC-log*")))
       (delete-windows-on logbuf)
       (kill-buffer logbuf))
+    ;; OK, do it to it
+    (save-excursion
+      (funcall log-operation 
+	       log-file
+	       log-version
+	       log-entry))
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
@@ -1768,6 +1748,11 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   vc-checkout-switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
+	  ;; default for verbose checkout: clear the sticky tag
+	  ;; so that the actual update will go to the head of the trunk
+	  (and rev (string= rev "")
+	       (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A")
+	       (setq rev nil))
 	  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
 		 "update"
 		 (and rev (concat "-r" rev))
@@ -1812,6 +1797,10 @@ From a program, any arguments are passed to the `rcs2log' script."
   (save-excursion
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
+    ;; Clear the master-properties.  Do that here, not at the
+    ;; end, because if the check-in fails we want them to get
+    ;; re-computed before the next try.
+    (vc-file-clear-masterprops file)
     (vc-backend-dispatch file
       ;; SCCS
       (progn
@@ -1862,14 +1851,20 @@ From a program, any arguments are passed to the `rcs2log' script."
       (progn
 	;; explicit check-in to the trunk requires a 
         ;; double check-in (first unexplicit) (CVS-1.3)
-	(if (and rev (vc-trunk-p rev))
-	    (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-		   "ci" "-m" "intermediate"
-		   vc-checkin-switches))
-	(apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-	       "ci" (if rev (concat "-r" rev))
-	       (concat "-m" comment)
-	       vc-checkin-switches)
+	(condition-case nil
+	    (progn
+	      (if (and rev (vc-trunk-p rev))
+		  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+			 "ci" "-m" "intermediate"
+			 vc-checkin-switches))
+	      (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+		     "ci" (if rev (concat "-r" rev))
+		     (concat "-m" comment)
+		     vc-checkin-switches))
+	  (error (if (eq (vc-cvs-status file) 'needs-merge)
+		     ;; The CVS output will be on top of this message.
+		     (error "Type C-x 0 C-x C-q to merge in changes.")
+		   (error "Check in FAILED."))))
 	;; determine and store the new workfile version
 	(set-buffer "*vc*")
 	(goto-char (point-min))
@@ -1885,13 +1880,13 @@ From a program, any arguments are passed to the `rcs2log' script."
 	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-checkout-time 
 			 (nth 5 (file-attributes file))))))
-  (vc-file-clear-masterprops file)
   (message "Checking in %s...done" file))
 
 (defun vc-backend-revert (file)
   ;; Revert file to latest checked-in version.
   ;; (for RCS, to workfile version)
   (message "Reverting %s..." file)
+  (vc-file-clear-masterprops file)
   (vc-backend-dispatch
    file
    ;; SCCS
@@ -2011,16 +2006,27 @@ From a program, any arguments are passed to the `rcs2log' script."
 
 (defun vc-backend-merge-news (file)
   ;; Merge in any new changes made to FILE.
-  (vc-backend-dispatch 
-   file
-   (error "vc-backend-merge-news not meaningful for SCCS files") ;SCCS
-   (error "vc-backend-merge-news not meaningful for RCS files")	;RCS
-   (progn  ; CVS
-     (vc-file-clear-masterprops file)
-     (vc-file-setprop file 'vc-workfile-version nil)
-     (vc-file-setprop file 'vc-locking-user nil)
-     (vc-do-command nil 1 "cvs" file 'WORKFILE "update"))
-   ))
+  (message "Merging changes into %s..." file)
+  (prog1
+      (vc-backend-dispatch 
+       file
+       (error "vc-backend-merge-news not meaningful for SCCS files") ;SCCS
+       (error "vc-backend-merge-news not meaningful for RCS files")	;RCS
+       (save-excursion  ; CVS
+	 (vc-file-clear-masterprops file)
+	 (vc-file-setprop file 'vc-workfile-version nil)
+	 (vc-file-setprop file 'vc-locking-user nil)
+	 (vc-do-command nil 0 "cvs" file 'WORKFILE "update")
+	 ;; CVS doesn't return an error code if conflicts are detected.
+	 ;; Since we want to warn the user about it (and possibly start
+	 ;; emerge later), scan the output and see if this occurred.
+	 (set-buffer (get-buffer "*vc*"))
+	 (goto-char (point-min))
+	 (if (re-search-forward "^cvs update: conflicts found in .*" nil t)
+	     1  ;; error code for caller
+	   0  ;; no conflict detected
+	   )))
+    (message "Merging changes into %s...done" file)))
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
