@@ -636,7 +636,10 @@ draw_fringe_bitmap (w, row, left_p)
   draw_fringe_bitmap_1 (w, row, left_p, overlay, NO_FRINGE_BITMAP);
 
   if (left_p && row->overlay_arrow_p)
-    draw_fringe_bitmap_1 (w, row, 1, 1, OVERLAY_ARROW_BITMAP);
+    draw_fringe_bitmap_1 (w, row, 1, 1,
+			  (w->overlay_arrow_bitmap
+			   ? w->overlay_arrow_bitmap
+			   : OVERLAY_ARROW_BITMAP));
 }
 
 
@@ -799,10 +802,6 @@ update_window_fringes (w, force_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
-#if 0  /* this is now done via an overlay */
-      else if (row->overlay_arrow_p)
-	left = OVERLAY_ARROW_BITMAP;
-#endif
       else if (row->indicate_bob_p && boundary_pos <= 0)
 	left = ((row->indicate_eob_p && boundary_pos < 0)
 		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
