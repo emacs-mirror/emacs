@@ -203,7 +203,7 @@ Runs `change-log-mode-hook'."
   (run-hooks 'change-log-mode-hook))
 
 (defvar add-log-current-defun-header-regexp
-  "^\\([A-Z][A-Z_ ]+\\|[a-z_---A-Z]+\\)[ \t]*[:=]"
+  "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[a-z_---A-Z]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes.")
 
 (defun add-log-current-defun ()
@@ -253,6 +253,7 @@ Has a preference of looking backwards."
 	     (buffer-substring (point)
 			       (progn (forward-sexp 1) (point))))
 	    ((memq major-mode '(c-mode 'c++-mode))
+	     (beginning-of-line)
 	     ;; See if we are in the beginning part of a function,
 	     ;; before the open brace.  If so, advance forward.
 	     (while (not (looking-at "{\\|\\(\\s *$\\)"))
@@ -340,6 +341,7 @@ Has a preference of looking backwards."
 	    (t
 	     ;; If all else fails, try heuristics
 	     (let (case-fold-search)
+	       (end-of-line)
 	       (if (re-search-backward add-log-current-defun-header-regexp
 				       (- (point) 10000)
 				       t)
