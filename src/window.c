@@ -1661,7 +1661,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
     window = Fnext_window (window, Qnil, all_frames);
   for (; i < 0; ++i)
     window = Fprevious_window (window, Qnil, all_frames);
-  
+
   Fselect_window (window);
   return Qnil;
 }
@@ -2734,9 +2734,7 @@ select_window_1 (window, recordflag)
   CHECK_LIVE_WINDOW (window, 0);
 
   w = XWINDOW (window);
-
-  if (NILP (w->buffer))
-    error ("Trying to select deleted window or non-leaf window");
+  w->frozen_window_start_p = 0;
 
   XSETFASTINT (w->use_time, ++window_select_count);
   if (EQ (window, selected_window))

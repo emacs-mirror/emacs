@@ -1,5 +1,8 @@
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (select_window_1): Unfreeze window start.  Remove a
+	doubled test for WINDOW being live.
+
 	* xterm.c (x_draw_glyph_string): Restore clipping after
 	drawing box.
 
