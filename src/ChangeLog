@@ -1,5 +1,7 @@
 2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* indent.c (skip_invisible): Use new retval of TEXT_PROP_MEANS_INVISIBLE.
+
 	* keymap.c (access_keymap): Unify handling of `t' and generic-char.
 	If a parent is reached and noinherit is set, exit immediately.
 	Use AREF and ASIZE macros.  Call get_keyelt before checking KEYMAPP.
@@ -12,12 +14,14 @@
 	(decode_suffixes): Remove.
 
 	* intervals.h (TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS)
-	(TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS): Use invisible_p's new return vals.
-	(invisible_ellipsis_p, invisible_noellipsis_p): Remove.
+	(TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS, invisible_noellipsis_p)
+	(invisible_ellipsis_p): Remove.
 
 	* xdisp.c (DOLIST, LOOP_PROPVAL): Remove.
 	(invisible_p): Return 1 or 2 depending on whether an ellipsis is used.
 	(invisible_ellipsis_p, invisible_noellipsis_p): Remove.
+	(in_ellipses_for_invisible_text_p, handle_invisible_prop):
+	Use new retval of TEXT_PROP_MEANS_INVISIBLE.
 
 2001-10-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
