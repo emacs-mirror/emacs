@@ -41,7 +41,7 @@
 	    (charset . (ascii latin-iso8859-2))
 	    (coding-system . (iso-8859-2))
 	    (coding-priority . (iso-8859-2))
-	    (tutorial . "TUTORIAL.sl")
+	    (tutorial . "TUTORIAL.sk")
 	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
 	    (documentation . t)))
 
