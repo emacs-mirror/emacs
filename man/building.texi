@@ -631,8 +631,7 @@ to know GDB commands.
 @menu
 * Breakpoints Buffer::   A breakpoint control panel.
 * Stack Buffer::         Select a frame from the call stack. 
-* Data Display::         Display and update expressions in their own buffer.
-* Display Buffer::       Control the displayed expressions.
+* Watch Expressions::    Watch expressions and their values in the speedbar.
 * Other Buffers::        Input/output, locals, registers and assembler buffers.
 * Layout::               Control the number of displayed buffers.
 @end menu
@@ -681,59 +680,23 @@ associated source in the source buffer.  Alternatively, click
 locals buffer is displayed then its contents update to display the
 variables that are local to the new frame.
 
-@node Data Display
-@subsubsection Data Display
-@cindex displaying expressions in GDB
+@node Watch Expressions
+@subsubsection Watch Expressions
+@cindex Watching expressions in GDB
 
 If you want to see how a variable changes each time your program stops
-then place the cursor over the variable name and click on the display
-icon in the toolbar (@code{gud-display}).
+then place the cursor over the variable name and click on the watch
+icon in the toolbar (@code{gud-watch}).
 
-Each displayed expression has its own frame on a graphical display and
-its own buffer on a text-only terminal.  Arrays and structures have
-their own display formats.  To display an array as a slice, at the top
-of the display window, click @kbd{Mouse-2} on the array index that you
-want to restrict and you will be prompted in the mini-buffer for a
-start and a stop value. Click @kbd{Mouse-2} on a pointer to
-dereference it in the same frame/buffer.  Click @kbd{S-Mouse-2} there
-to do the same thing but in a new frame/buffer.  There are two special
-commands for these buffers:
+Each watch expression is displayed in the speedbar. To expand or contract
+an array or structure, click @kbd{Mouse-2} on the tag to the left of the
+expression.
 
-@table @kbd
-@item @kbd{v}
-@kindex v @r{(GDB data buffer)}
-@findex gdb-array-visualise
-Visualise an array using the graph program from plotutils if this is
-installed. This only works for one dimensional arrays
-(@code{gdb-array-visualise}).
-
-@item @kbd{q}
-@kindex q @r{(GDB data buffer)}
-@findex gdb-delete-expression
-Delete the displayed expression and the associated frame
-(@code{gdb-delete-expression}).
-@end table
-
-@node Display Buffer
-@subsubsection Display Buffer
-
-The display buffer shows the list of displayed expressions
-(@pxref{Auto Display,,, gdb, The GNU debugger}).  As with the
-breakpoints, you can enable/disable or delete the displayed
-expressions:
-
-@table @kbd
-@item @key{SPC}
-@kindex SPC @r{(GDB display buffer)}
-@findex gdb-toggle-display
-Enable/disable the display at the current line
-(@code{gdb-toggle-display}).
-
-@item @kbd{d}
-@kindex d @r{(GDB display buffer)}
-@findex gdb-delete-display
-Delete the display at the current line (@code{gdb-delete-display}).
-@end table
+@kindex RET @r{(GDB speedbar)}
+@findex gdb-var-delete
+With the cursor over a root expression i.e not an array index or
+structure component, type @key{RET} or click @kbd{Mouse-2} to delete
+it from the speedbar (@code{gdb-var-delete}).
 
 @node Other Buffers
 @subsubsection Other Buffers
@@ -750,7 +713,7 @@ current frame for simple data types (@pxref{Frame Info,,, gdb, The GNU
 debugger}).
 
 Arrays and structures display their type only.  You must display them
-separately to examine their values.  @ref{Data Display}.
+separately to examine their values.  @ref{Watch Expressions}.
 
 @item Registers Buffer
 The registers buffer displays the values held by the registers
