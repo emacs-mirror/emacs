@@ -45,15 +45,17 @@ It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
 found.  See that variable for more info.")
 
+;;;###autoload
 (defvar compilation-buffer-name-function nil
-  "Function to call with one argument, the name of the major mode of the
+  "*Function to call with one argument, the name of the major mode of the
 compilation buffer, to give the buffer a name.  It should return a string.
 If nil, the name \"*compilation*\" is used for compilation buffers,
 and the name \"*grep*\" is used for grep buffers.
-\(Actually, the name (concat "*" (downcase major-mode) "*") is used.)")
+\(Actually, the name (concat \"*\" (downcase major-mode) \"*\") is used.)")
 
+;;;###autoload
 (defvar compilation-finish-function nil
-  "Function to call when a compilation process finishes.
+  "*Function to call when a compilation process finishes.
 It is called with two arguments: the compilation buffer, and a string
 describing how the process finished.")
 
@@ -279,8 +281,9 @@ means the default).  The defaults for these variables are the global values of
 				      (window-height))))
 	       (select-window w))))
       ;; Start the compilation.
-      (start-process-shell-command (downcase mode-name) outbuf command)
-      (set-process-sentinel (get-buffer-process outbuf)
+      (set-process-sentinel (start-process-shell-command (downcase mode-name)
+							 outbuf
+							 command)
 			    'compilation-sentinel))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))

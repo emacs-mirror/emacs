@@ -27,8 +27,9 @@
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
   "Address of site maintaining mailing list for GNU Emacs bugs.")
 
+;;;###autoload
 (defun report-emacs-bug (topic)
-  "Report a bug in Gnu emacs.
+  "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
   (mail nil bug-gnu-emacs topic)

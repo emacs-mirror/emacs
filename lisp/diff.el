@@ -29,11 +29,21 @@
 ;; containing 0 or more arguments which are passed on to `diff'.
 ;; NOTE: This is not an ordinary hook; it may not be a list of functions.")
 
+;;  - fpb@ittc.wec.com - Sep 25, 1990
+;; Added code to support sccs diffing.
+;; also fixed one minor glitch in the
+;; search for the pattern.  If you only 1 addition you won't find the end
+;; of the pattern (minor)
+
+;;
 (defvar diff-switches nil
   "*A list of switches to pass to the diff program.")
 
 (defvar diff-search-pattern "^\\([0-9]\\|\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\)"
   "Regular expression that delineates difference regions in diffs.")
+
+(defvar diff-rcs-extension ",v"
+  "*Extension to find RCS file, some systems do not use ,v")
 
 ;; Initialize the keymap if it isn't already
 (if (boundp 'diff-mode-map)
@@ -75,22 +85,78 @@ and what appears to be it's backup for OLD."
   (message "Comparing files %s %s..." new old)
   (setq new (expand-file-name new)
 	old (expand-file-name old))
-  (let ((buffer-read-only nil)
-	(sw diff-switches))
+  (diff-internal-diff "diff" (append diff-switches (list new old)) nil))
+
+(defun diff-sccs (new)
+  "Find and display the differences between OLD and SCCS files."
+  (interactive
+   (let (newf)
+      (list
+       (setq newf (buffer-file-name)
+	     newf (if (and newf (file-exists-p newf))
+			  (read-file-name
+			   (concat "Diff new file: ("
+				   (file-name-nondirectory newf) ") ")
+			   nil newf t)
+			(read-file-name "Diff new file: " nil nil t))))))
+
+  (message "Comparing SCCS file %s..." new)
+  (setq new (expand-file-name new))
+  (if (file-exists-p (concat
+		      (file-name-directory new)
+		      "SCCS/s."
+		      (file-name-nondirectory new)))
+      (diff-internal-diff "sccs"
+			  (append '("diffs") diff-switches (list new))
+			  2)
+    (error "%s does not exist"
+	   (concat (file-name-directory new) "SCCS/s."
+		   (file-name-nondirectory new)))))
+
+(defun diff-rcs (new)
+  "Find and display the differences between OLD and RCS files."
+  (interactive
+   (let (newf)
+      (list
+       (setq newf (buffer-file-name)
+	     newf (if (and newf (file-exists-p newf))
+			  (read-file-name
+			   (concat "Diff new file: ("
+				   (file-name-nondirectory newf) ") ")
+			   nil newf t)
+			(read-file-name "Diff new file: " nil nil t))))))
+
+  (message "Comparing RCS file %s..." new)
+  (let* ((fullname (expand-file-name new))
+       (rcsfile (concat (file-name-directory fullname)
+                       "RCS/"
+                       (file-name-nondirectory fullname)
+                       diff-rcs-extension)))
+    (if (file-exists-p rcsfile)
+      (diff-internal-diff "rcsdiff" (append diff-switches (list fullname)) 4)
+      (error "%s does not exist" rcsfile))))
+
+(defun diff-internal-diff (diff-command sw strip)
+  (let ((buffer-read-only nil))
     (with-output-to-temp-buffer "*Diff Output*"
       (buffer-disable-undo standard-output)
       (save-excursion
 	(set-buffer standard-output)
 	(erase-buffer)
-	(apply 'call-process "diff" nil t nil
-	       (append diff-switches (list old new)))))
+	(apply 'call-process diff-command nil t nil sw)))
     (set-buffer "*Diff Output*")
     (goto-char (point-min))
     (while sw
       (if (string= (car sw) "-c")
 	  ;; strip leading filenames from context diffs
 	  (progn (forward-line 2) (delete-region (point-min) (point))))
-      (setq sw (cdr sw))))
+      (if (and (string= (car sw) "-C") (string= "sccs" diff-command))
+	  ;; strip stuff from SCCS context diffs
+	  (progn (forward-line 2) (delete-region (point-min) (point))))
+      (setq sw (cdr sw)))
+    (if strip
+	;; strip stuff from SCCS context diffs
+	(progn (forward-line strip) (delete-region (point-min) (point)))))
   (diff-mode)
   (if (string= "0" diff-total-differences)
       (let ((buffer-read-only nil))
@@ -103,7 +169,7 @@ and what appears to be it's backup for OLD."
 				  (goto-char (point-max)))))
     (setq diff-current-difference "1")))
 
-;; Take a buffer full of Unix diff output and go into a mode to easily 
+;; Take a buffer full of Unix diff output and go into a mode to easily
 ;; see the next and previous difference
 (defun diff-mode ()
   "Diff Mode is used by \\[diff] for perusing the output from the diff program.
@@ -129,8 +195,8 @@ All normal editing commands are turned off.  Instead, these are available:
        (int-to-string (diff-count-differences))))
 
 (defun diff-next-difference (n)
-  "In diff mode, go to the beginning of the next difference as delimited
-by `diff-search-pattern'."
+  "Go to the beginning of the next difference.
+Differences are delimited by `diff-search-pattern'."
   (interactive "p")
   (if (< n 0) (diff-previous-difference (- n))
     (if (zerop n) ()
@@ -153,8 +219,8 @@ by `diff-search-pattern'."
       (goto-char (point-min)))))
 
 (defun diff-previous-difference (n)
-  "In diff mode, go the the beginning of the previous difference as delimited
-by `diff-search-pattern'."
+  "Go the the beginning of the previous difference.
+Differences are delimited by `diff-search-pattern'."
   (interactive "p")
   (if (< n 0) (diff-next-difference (- n))
     (if (zerop n) ()
@@ -172,7 +238,7 @@ by `diff-search-pattern'."
       (goto-char (point-min)))))
 
 (defun diff-show-difference (n)
-  "Show difference number N (prefix arg)."
+  "Show difference number N (prefix argument)."
   (interactive "p")
   (let ((cur (string-to-int diff-current-difference)))
     (cond ((or (= n cur)

@@ -136,6 +136,16 @@ where SECTION is the desired section of the manual, as in \"tty(4)\"."
   (while (re-search-forward "\e[789]" nil t)
     (replace-match ""))
 
+  ;; Convert o^H+ into o.
+  (goto-char (point-min))
+  (while (re-search-forward "o\010\\+" nil t)
+    (replace-match "o"))
+
+  ;; Nuke the dumb reformatting message
+  (goto-char (point-min))
+  (while (re-search-forward "Reformatting page.  Wait... done\n\n" nil t)
+    (replace-match ""))
+
   ;; Crunch blank lines
   (goto-char (point-min))
   (while (re-search-forward "\n\n\n\n*" nil t)

@@ -63,27 +63,27 @@ ESC or q to exit (skip all following objects); . (period) to act on the
 current object and then exit; or \\[help-command] to get help.
 
 Returns the number of actions taken."
-  (let ((old-help-form help-form)
-	(help-form (cons 'map-y-or-n-p-help
-			 (or help '("object" "objects" "act on"))))
-	(actions 0)
-	prompt
-	char
-	elt
-	(next (if (or (symbolp list)
-		      (subrp list)
-		      (compiled-function-p list)
-		      (and (consp list)
-			   (eq (car list) 'lambda)))
-		  (function (lambda ()
-			      (setq elt (funcall list))))
-		(function (lambda ()
-			    (if list
-				(progn
-				  (setq elt (car list)
-					list (cdr list))
-				  t)
-			      nil))))))
+  (let* ((old-help-form help-form)
+	 (help-form (cons 'map-y-or-n-p-help
+			  (or help '("object" "objects" "act on"))))
+	 (actions 0)
+	 prompt
+	 char
+	 elt
+	 (next (if (or (symbolp list)
+		       (subrp list)
+		       (compiled-function-p list)
+		       (and (consp list)
+			    (eq (car list) 'lambda)))
+		   (function (lambda ()
+			       (setq elt (funcall list))))
+		 (function (lambda ()
+			     (if list
+				 (progn
+				   (setq elt (car list)
+					 list (cdr list))
+				   t)
+			       nil))))))
     (if (stringp prompter)
 	(setq prompter (` (lambda (object)
 			    (format (, prompter) object)))))
@@ -122,7 +122,7 @@ Returns the number of actions taken."
 		       (progn
 			 (funcall actor elt)
 			 (setq actions (1+ actions))))
-		   (while (setq elt (funcall next))
+		   (while (funcall next)
 		     (if (eval (funcall prompter elt))
 			 (progn
 			   (funcall actor elt)

@@ -1,7 +1,8 @@
-;;; find-dired.el -- Run a `find' command and dired the result.
+;;; find-dired.el -- Run a `find' command and dired the output
 ;;; Copyright (C) 1991 Roland McGrath
 
-(defconst find-dired-version "$Id: find-dired.el,v 1.7 1991/06/20 08:50:20 sk RelBeta $")
+(defconst find-dired-version (substring "$Revision: 1.9 $" 11 -2)
+  "$Id: find-dired.el,v 1.9 1991/11/11 13:24:31 sk Exp $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -18,43 +19,67 @@
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
 ;;;
-;;; Send bug reports to roland@gnu.ai.mit.edu.
+;; LISPDIR ENTRY for the Elisp Archive ===============================
+;;    LCD Archive Entry:
+;;    find-dired|Roland McGrath, Sebastian Kremer
+;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
+;;    |Run a `find' command and dired the output
+;;    |$Date: 1991/11/11 13:24:31 $|$Revision: 1.9 $|
 
-;;; To use this file, byte-compile it, install it somewhere
-;;; in your load-path, and put:
-;;;   (autoload 'find-dired "find-dired" nil t)
-;;;   (autoload 'lookfor-dired "find-dired" nil t)
-;;; in your .emacs, or site-init.el, etc.
-;;; To bind it to a key, put, e.g.:
-;;;   (global-set-key "\C-cf" 'find-dired)
-;;;   (global-set-key "\C-cl" 'lookfor-dired)
-;;; in your .emacs.
+;; INSTALLATION ======================================================
+
+;; To use this file, byte-compile it, install it somewhere in your
+;; load-path, and put:
+
+;;   (autoload 'find-dired "find-dired" nil t)
+;;   (autoload 'find-name-dired "find-dired" nil t)
+;;   (autoload 'find-grep-dired "find-dired" nil t)
+
+;; in your ~/.emacs, or site-init.el, etc.
+
+;; To bind it to a key, put, e.g.:
+;;
+;;   (global-set-key "\C-cf" 'find-dired)
+;;   (global-set-key "\C-cn" 'find-name-dired)
+;;   (global-set-key "\C-cl" 'find-grep-dired)
+;;
+;; in your ~/.emacs.
 
 (require 'dired)
+(provide 'find-dired)
+
+;;;###autoload
+(defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
+			 "-exec ls -ldi {} \\;")
+  "*Option to `find' to produce an `ls -l'-type listing.")
+
+;;;###autoload
+(defvar find-grep-options (if (eq system-type 'berkeley-unix) "-s" "-l")
+  "*Option to grep to be as silent as possible.
+On Berkeley systems, this is `-s', for others it seems impossible to
+suppress all output, so `-l' is used to print nothing more than the
+file name.")
 
 (defvar find-args nil
   "Last arguments given to `find' by \\[find-dired].")
 
-(defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
-			 "-exec ls -ldi {} \\;")
-  "Option to `find' to produce an `ls -l'-type listing.")
-
 ;;;###autoload
 (defun find-dired (dir args)
   "Run `find' and go into dired-mode on a buffer of the output.
-The command run is \"find . \\( ARGS \\) -ls\" (after changing into DIR)."
+The command run (after changing into DIR) is
+
+    find . \\( ARGS \\) -ls"
   (interactive (list (read-file-name "Run find in directory: " nil "" t)
 		     (if (featurep 'gmhist)
 			 (read-with-history-in 'find-args-history
 					       "Run find (with args): ")
 		       (read-string "Run find (with args): " find-args))))
-  (if (equal dir "")
-      (setq dir default-directory))
-  ;; Expand DIR, and make sure it has a trailing slash.
+  ;; Expand DIR ("" means default-directory), and make sure it has a
+  ;; trailing slash.
   (setq dir (file-name-as-directory (expand-file-name dir)))
   ;; Check that it's really a directory.
   (or (file-directory-p dir)
-      (error "%s is not a directory!" dir))
+      (error "find-dired needs a directory: %s" dir))
   (switch-to-buffer (get-buffer-create "*Find*"))
   (widen)
   (kill-all-local-variables)
@@ -64,25 +89,63 @@ The command run is \"find . \\( ARGS \\) -ls\" (after changing into DIR)."
 	find-args args
 	args (concat "find . " (if (string= args "") ""
 				 (concat "\\( " args " \\) ")) find-ls-option))
-  (insert "  " args "\n"
-	  "  " dir ":\n")
+  (dired-mode dir "-gils");; find(1)'s -ls corresponds to `ls -gilds'
+			  ;; (but we don't want -d, of course)
+  ;; Set subdir-alist so that Tree Dired will work (but STILL NOT with
+  ;; dired-nstd.el):
+  (set (make-local-variable 'dired-subdir-alist)
+       (list (cons default-directory (point-marker)))) ; we are at point-min
+  (setq buffer-read-only nil)
+  ;; Subdir headlerline must come first because the first marker in
+  ;; subdir-alist points there.
+  (insert "  " dir ":\n")
+  ;; Make second line a ``find'' line in analogy to the ``total'' or
+  ;; ``wildcard'' line. 
+  (insert "  " args "\n")
+  ;; Start the find process
   (set-process-filter (start-process-shell-command "find"
 						   (current-buffer) args)
-		      'find-dired-filter)
+		      (function find-dired-filter))
   (set-process-sentinel (get-buffer-process (current-buffer))
-			'find-dired-sentinel)
-  (dired-mode)
+			(function find-dired-sentinel))
   (setq mode-line-process '(": %s")))
 
 ;;;###autoload
 (defun find-name-dired (dir pattern)
   "Search DIR recursively for files matching the globbing pattern PATTERN,
-and run dired on those files."
-  (interactive "DSearch directory: \nsSearch directory %s for: ")
+and run dired on those files.
+PATTERN is a shell wildcard (not an Emacs regexp) and need not be quoted.
+The command run (after changing into DIR) is
+
+    find . -name 'PATTERN' -ls"
+  (interactive
+   "DFind-name (directory): \nsFind-name (filename wildcard): ")
   (find-dired dir (concat "-name '" pattern "'")))
+
+;; This functionality suggested by
+;; From: oblanc@watcgl.waterloo.edu (Olivier Blanc)
+;; Subject: find-dired, lookfor-dired
+;; Date: 10 May 91 17:50:00 GMT
+;; Organization: University of Waterloo
+
+(fset 'lookfor-dired 'find-grep-dired)
+;;;###autoload
+(defun find-grep-dired (dir args)
+  "Find files in DIR containing a regexp ARG and start Dired on output.
+The command run (after changing into DIR) is
+
+    find . -exec grep -s ARG {} \\\; -ls
+
+Thus ARG can also contain additional grep options."
+  (interactive "DFind-grep (directory): \nsFind-grep (grep args): ")
+  ;; find -exec doesn't allow shell i/o redirections in the command,
+  ;; or we could use `grep -l >/dev/null'
+  (find-dired dir
+	      (concat "-exec grep " find-grep-options " " args " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
+  (dired-log "``%s''\n" string)
   (let ((buf (process-buffer proc)))
     (if (buffer-name buf)		; not killed?
 	(save-excursion
@@ -99,7 +162,13 @@ and run dired on those files."
 		    (forward-line 1))
 		(while (looking-at "^")
 		  (insert "  ")
-		  (forward-line 1))))))
+		  (forward-line 1))
+		;; Convert ` ./FILE' to ` FILE'
+		;; This would lose if the current chunk of output
+		;; starts or ends within the ` ./', so backup up a bit:
+		(goto-char (- end 3))	; no error if < 0
+		(while (search-forward " ./" nil t)
+		  (delete-region (point) (- (point) 2)))))))
       ;; The buffer has been killed.
       (delete-process proc))))
 
@@ -129,51 +198,5 @@ Wildcards and redirection are handle as usual in the shell."
       (if (eq system-type 'vax-vms)
 	  (apply 'start-process name buffer args)
 	(start-process name buffer shell-file-name "-c"
-		       (concat "exec " (mapconcat 'identity args " ")))))
-    )
+		       (concat "exec " (mapconcat 'identity args " "))))))
 
-;; From: oblanc@watcgl.waterloo.edu (Olivier Blanc)
-;; Subject: find-dired, lookfor-dired
-;; Date: 10 May 91 17:50:00 GMT
-;; Organization: University of Waterloo
-
-;; I added a functiopn to the find-dired.el file:
-;; The function is a lookfor-dired and is used to search a string
-;; a subtree:
-
-;;;###autoload
-(defun lookfor-dired (dir args)
-  "Find files in DIR containing a regexp ARG and go into dired-mode on the output.
-The command run is
-
-    \"find . -exec grep -l ARG {} \\\; -ls\"
-
-\(after changing into DIR)."
-  (interactive (list (read-file-name "Run find in directory: " nil "" t)
-		     (read-string "Run find (with args): " find-args)))
-  (if (equal dir "")
-      (setq dir default-directory))
-  ;; Expand DIR, and make sure it has a trailing slash.
-  (setq dir (file-name-as-directory (expand-file-name dir)))
-  ;; Check that it's really a directory.
-  (or (file-directory-p dir)
-      (error "%s is not a directory!" dir))
-  (switch-to-buffer (get-buffer-create "*Find*"))
-  (widen)
-  (kill-all-local-variables)
-  (setq buffer-read-only nil)
-  (erase-buffer)
-  (setq default-directory dir
-	find-args args
-	args (concat "find . -exec grep -l " args " {} \\\; -ls"))
-  (insert "  " args "\n"
-	  "  " dir ":\n")
-  (set-process-filter (start-process-shell-command "find"
-						   (current-buffer) args)
-		      'find-dired-filter)
-  (set-process-sentinel (get-buffer-process (current-buffer))
-			'find-dired-sentinel)
-  (dired-mode)
-  (setq mode-line-process '(": %s")))
-
-(provide 'find-dired)

@@ -136,49 +136,67 @@ File names returned are absolute."
 	      default
 	    spec))))
 
+(defun tags-tag-match (tagname exact)
+  "Search for a match to the given tagname."
+  (if (not exact)
+      (search-forward tagname nil t)
+    (not (error-occurred
+	  (while
+	      (progn
+		(search-forward tagname)
+		(let ((before (char-syntax (char-after (1- (match-beginning 1)))))
+		      (after (char-syntax (char-after (match-end 1)))))
+		  (not (or (= before ?w) (= before ?_))
+			   (= after ?w) (= after ?_)))
+		))))
+    )
+  )
+
 (defun find-tag-noselect (tagname exact &optional next)
   "Find a tag and return its buffer, but don't select or display it."
-  (let (buffer file linebeg startpos)
-    (save-excursion
-      (visit-tags-table-buffer)
-      (if (not next)
-	  (goto-char (point-min))
-	(setq tagname last-tag))
-      (setq last-tag tagname)
-      (while (progn
-	       (if (not (if exact
-			    (re-search-forward (concat "\\W" tagname "\\W") nil t)
-			  (search-forward tagname nil t)))
-		   (error "No %sentries containing %s"
-			  (if next "more " "") tagname))
-	       (not (looking-at "[^\n\177]*\177"))))
-      (search-forward "\177")
-      (setq file (expand-file-name (file-of-tag)
-				   (file-name-directory tags-file-name)))
-      (setq linebeg
-	    (buffer-substring (1- (point))
-			      (save-excursion (beginning-of-line) (point))))
-      (search-forward ",")
-      (setq startpos (read (current-buffer)))
-      (prog1
-	  (set-buffer (find-file-noselect file))
-	(widen)
-	(push-mark)
-	(let ((offset 1000)
-	      found
-	      (pat (concat "^" (regexp-quote linebeg))))
-	  (or startpos (setq startpos (point-min)))
-	  (while (and (not found)
-		      (progn
-			(goto-char (- startpos offset))
-			(not (bobp))))
-	    (setq found
-		  (re-search-forward pat (startpos offset) t))
-	    (setq offset (* 3 offset)))
-	  (or found
-	      (re-search-forward pat nil t)
-	      (error "%s not found in %s" pat file)))
-	(beginning-of-line)))
+  (let (buffer file linebeg startpos (obuf (current-buffer)))
+    ;; save-excursion will do the wrong thing if the buffer containing the
+    ;; tag being searched for is current-buffer
+    (unwind-protect
+	(progn
+	  (visit-tags-table-buffer)
+	  (if (not next)
+	      (goto-char (point-min))
+	    (setq tagname last-tag))
+	  (setq last-tag tagname)
+	  (while (progn
+		   (if (not (tags-tag-match tagname exact))
+		       (error "No %sentries matching %s"
+			      (if next "more " "") tagname))
+		   (not (looking-at "[^\n\177]*\177"))))
+	  (search-forward "\177")
+	  (setq file (expand-file-name (file-of-tag)
+				       (file-name-directory tags-file-name)))
+	  (setq linebeg
+		(buffer-substring (1- (point))
+				  (save-excursion (beginning-of-line) (point))))
+	  (search-forward ",")
+	  (setq startpos (read (current-buffer)))
+	  (prog1
+	      (set-buffer (find-file-noselect file))
+	    (widen)
+	    (push-mark)
+	    (let ((offset 1000)
+		  found
+		  (pat (concat "^" (regexp-quote linebeg))))
+	      (or startpos (setq startpos (point-min)))
+	      (while (and (not found)
+			  (progn
+			    (goto-char (- startpos offset))
+			    (not (bobp))))
+		(setq found
+		      (re-search-forward pat (+ startpos offset) t))
+		(setq offset (* 3 offset)))
+	      (or found
+		  (re-search-forward pat nil t)
+		  (error "%s not found in %s" pat file)))
+	    (beginning-of-line)))
+      (set-buffer obuf))
     ))
 
 ;;;###autoload
@@ -334,3 +352,5 @@ unless it has one in the tag table."
 				       (point))))
        (terpri)
        (forward-line 1)))))
+
+;; etags.el ends here

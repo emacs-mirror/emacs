@@ -50,11 +50,6 @@ The headers are be delimited by a line which is mail-header-separator.")
 *Name of file to write all outgoing messages in, or nil for none.
 Do not use an rmail file here!  Instead, use its inbox file.")
 
-;;;###autoload
-(defvar mail-aliases t "\
-Alias of mail address aliases,
-or t meaning should be initialized from .mailrc.")
-
 (defvar mail-default-reply-to nil
   "*Address to insert as default Reply-to field of outgoing messages.")
 
@@ -92,22 +87,9 @@ so you can edit or delete these lines.")
      (setq mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table))
      (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
 
-(autoload 'build-mail-aliases "mailalias"
-  "Read mail aliases from ~/.mailrc and set mail-aliases."
-  nil)
-
-(autoload 'expand-mail-aliases "mailalias"
-  "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are To, CC and BCC."
-  nil)
-
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
   (setq mail-send-actions actions)
-  (if (eq mail-aliases t)
-      (progn
-	(setq mail-aliases nil)
-	(if (file-exists-p "~/.mailrc")
-	    (build-mail-aliases))))
+  (mail-aliases-setup)
   (setq mail-reply-buffer replybuffer)
   (goto-char (point-min))
   (insert "To: ")
@@ -258,8 +240,6 @@ the user from the mailer."
 	  (replace-match "\n")
 	  (backward-char 1)
 	  (setq delimline (point-marker))
-	  (if mail-aliases
-	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
 	  ;; ignore any blank lines in the header
 	  (while (and (re-search-forward "\n\n\n*" delimline t)

@@ -1,5 +1,5 @@
 ;; "RMAIL" mail reader for Emacs.
-;; Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1988, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -638,7 +638,7 @@ argument causes us to read a file name and use that file as the inbox."
 		    (concat "^[\^_]?\\("
 			    "From [^ \n]*\\(\\|\".*\"[^ \n]*\\)  ?[^ \n]* [^ \n]* *"
 			    "[0-9]* [0-9:]*\\( ?[A-Z]?[A-Z][A-Z]T\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) " ; EDT, -0500
-			    "19[0-9]* *\\(remote from [^\n]*\\)?$\\|"
+			    "[0-9]+ *\\(remote from [^\n]*\\)?$\\|"
 			    mmdf-delim1 "\\|"
 			    "^BABYL OPTIONS:\\|"
 			    "\^L\n[01],\\)") nil t)
@@ -684,7 +684,7 @@ argument causes us to read a file name and use that file as the inbox."
 	  (goto-char start))
 	(let ((case-fold-search nil))
 	  (if (re-search-forward
-	       "^From \\([^ ]*\\(\\|\".*\"[^ ]*\\)\\)  ?\\([^ ]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) 19\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n" nil t)
+	       "^From \\([^ ]*\\(\\|\".*\"[^ ]*\\)\\)  ?\\([^ ]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n" nil t)
 	      (replace-match
 		(concat
 		  "Mail-from: \\&"

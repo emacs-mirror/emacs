@@ -120,11 +120,12 @@
 
 ;; originally defined in sendmail.el - used to be an alist, now is a table.
 (defvar mail-aliases nil
-  "Word-abbrev table of mail address aliases.
+  "Abbrev table of mail address aliases.
 If this is nil, it means the aliases have not yet been initialized and
 should be read from the .mailrc file.  (This is distinct from there being
 no aliases, which is represented by this being a table with no entries.)")
 
+;;;###autoload
 (defun mail-aliases-setup ()
   (if (and (not (vectorp mail-aliases))
 	   (file-exists-p (mail-abbrev-mailrc-file)))
@@ -217,6 +218,7 @@ also want something like \",\\n    \" to get each address on its own line.")
 ;; originally defined in mailalias.el ; build-mail-aliases calls this with
 ;; stuff parsed from the .mailrc file.
 ;;
+;;;###autoload
 (defun define-mail-alias (name definition &optional from-mailrc-file)
   "Define NAME as a mail-alias that translates to DEFINITION.
 If DEFINITION contains multiple addresses, seperate them with commas."
@@ -295,10 +297,9 @@ If DEFINITION contains multiple addresses, seperate them with commas."
 
 
 (defun mail-abbrev-expand-hook ()
-  "For use as the fourth arg to define-abbrev.
-  After expanding a mail-abbrev, if fill-mode is on and we're past the 
-fill-column, break the line at the previous comma, and indent the next
-line."
+  "For use as the fourth arg to `define-abbrev'.
+After expanding a mail alias, if Auto Fill mode is on and we're past the 
+fill column, break the line at the previous comma, and indent the next line."
   (save-excursion
     (let ((p (point))
 	  bol)
@@ -337,7 +338,7 @@ This should be set to match those mail fields in which you want abbreviations
 turned on.")
 
 (defvar mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table)
-  "The syntax table which is current in send-mail mode.")
+  "The syntax table which is current in mail mode.")
 
 (defvar mail-mode-header-syntax-table
   (let ((tab (copy-syntax-table text-mode-syntax-table)))
@@ -362,7 +363,9 @@ turned on.")
   "The syntax table used when the cursor is in a mail-address header.
 mail-mode-syntax-table is used when the cursor is not in an address header.")
 
-
+;; This hook is run before trying to expand an abbrev in a mail buffer.
+;; It determines whether point is in the header, and chooses which
+;; abbrev table accordingly.
 (defun sendmail-pre-abbrev-expand-hook ()
   (if mail-abbrev-aliases-need-to-be-resolved
       (mail-resolve-all-aliases))
@@ -425,17 +428,5 @@ mail-mode-syntax-table is used when the cursor is not in an address header.")
   (setq mail-aliases nil)
   (build-mail-aliases file))
   
-
-;;; Patching it in:
-;;; Remove the entire file mailalias.el
-;;; Remove the definition of mail-aliases from sendmail.el
-;;; Add a call to mail-aliases-setup to mail-setup in sendmail.el
-;;; Remove the call to expand-mail-aliases from sendmail-send-it in sendmail.el
-;;; Remove the autoload of expand-mail-aliases from sendmail.el
-;;; Remove the autoload of build-mail-aliases from sendmail.el
-;;; Add an autoload of define-mail-alias
-
-(fmakunbound 'expand-mail-aliases)
-
 (provide 'mail-abbrevs)
 

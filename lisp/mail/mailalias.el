@@ -142,17 +142,27 @@ DEFINITION can be one or more mail addresses separated by commas."
 	(setq mail-aliases nil)
 	(if (file-exists-p "~/.mailrc")
 	    (build-mail-aliases))))
-  (let (tem)
-    ;; ~/.mailrc contains addresses separated by spaces.
-    ;; mailers should expect addresses separated by commas.
-    (while (setq tem (string-match "[^ \t,][ \t,]+" definition tem))
-      (if (= (match-end 0) (length definition))
-	  (setq definition (substring definition 0 (1+ tem)))
-	(setq definition (concat (substring definition
-					    0 (1+ tem))
-				 ", "
-				 (substring definition (match-end 0))))
-	(setq tem (+ 3 tem))))
+  ;; Strip leading and trailing blanks.
+  (if (string-match "^[ \t]+" definition)
+      (setq definition (substring definition (match-end 0))))
+  (if (string-match "[ \t]+$" definition)
+      (setq definition (substring definition 0 (match-beginning 0))))
+  (let ((first (aref definition 0))
+	(last (aref definition (1- (length definition))))
+	tem)
+    (if (and (= first last) (memq first '(?\' ?\")))
+	;; Strip quotation marks.
+	(setq definition (substring definition 1 (1- (length definition))))
+      ;; ~/.mailrc contains addresses separated by spaces.
+      ;; mailers should expect addresses separated by commas.
+      (while (setq tem (string-match "[^ \t,][ \t,]+" definition tem))
+	(if (= (match-end 0) (length definition))
+	    (setq definition (substring definition 0 (1+ tem)))
+	  (setq definition (concat (substring definition
+					      0 (1+ tem))
+				   ", "
+				   (substring definition (match-end 0))))
+	  (setq tem (+ 3 tem)))))
     (setq tem (assoc name mail-aliases))
     (if tem
 	(rplacd tem definition)

@@ -224,23 +224,40 @@ Optional third and fourth arguments JUSTIFY-FLAG and MAIL-FLAG:
 JUSTIFY-FLAG to justify paragraphs (prefix arg),
 MAIL-FLAG for a mail message, i. e. don't fill header lines."
   (interactive "r\nP")
-  (let (fill-prefix)
-    (save-restriction
-      (save-excursion
-	(goto-char min)
-	(if mailp 
-	    (while (looking-at "[^ \t\n]*:")
-	      (forward-line 1)))
-	(narrow-to-region (point) max)
-	(while (progn
-		 (skip-chars-forward " \t\n")
-		 (not (eobp)))
-	  (setq fill-prefix
-		(buffer-substring (point) (progn (beginning-of-line) (point))))
-	  (let ((fin (save-excursion (forward-paragraph) (point)))
-		(start (point)))
-	    (fill-region-as-paragraph (point) fin justifyp)
-	    (goto-char start)
-	    (forward-paragraph)))))))
-
-
+  (save-restriction
+    (save-excursion
+      (goto-char min)
+      (beginning-of-line)
+      (if mailp 
+	  (while (looking-at "[^ \t\n]*:")
+	    (forward-line 1)))
+      (narrow-to-region (point) max)
+      ;; Loop over paragraphs.
+      (while (progn (skip-chars-forward " \t\n") (not (eobp)))
+	(beginning-of-line)
+	(let ((start (point))
+	      fill-prefix fill-prefix-regexp)
+	  ;; Find end of paragraph, and compute the smallest fill-prefix
+	  ;; that fits all the lines in this paragraph.
+	  (while (progn
+		   ;; Update the fill-prefix on the first line
+		   ;; and whenever the prefix good so far is too long.
+		   (if (not (and fill-prefix
+				 (looking-at fill-prefix-regexp)))
+		       (setq fill-prefix
+			     (buffer-substring (point)
+					       (save-excursion (skip-chars-forward " \t") (point)))
+			     fill-prefix-regexp
+			     (regexp-quote fill-prefix)))
+		   (forward-line 1)
+		   ;; Now stop the loop if end of paragraph.
+		   (and (not (eobp))
+			(not (looking-at paragraph-separate))
+			(save-excursion
+			  (not (and (looking-at fill-prefix-regexp)
+				    (progn (forward-char (length fill-prefix))
+					   (looking-at paragraph-separate))))))))
+	  ;; Fill this paragraph, but don't add a newline at the end.
+	  (let ((had-newline (bolp)))
+	    (fill-region-as-paragraph start (point) justifyp)
+	    (or had-newline (delete-char -1))))))))
