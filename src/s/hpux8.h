@@ -6,6 +6,8 @@
 
 #include "hpux.h"
 
+#define HPUX8
+
 #define LIB_X11_LIB -L/usr/lib/X11R4 -lX11
 #define C_SWITCH_SYSTEM -I/usr/include/X11R4
 

@@ -1,9 +1,9 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990 Free Software Foundation.
+   Copyright (C) 1990, 1992 Free Software Foundation.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -146,7 +146,10 @@ magic_searchpath_decoder (incantation_string, file, return_path)
 {
   register char *s = incantation_string;
   register char *p;
-  register char string[MAXPATHLEN];
+
+  /* Must be big enough for "%N%S".  */
+  register int string_size = MAXPATHLEN;
+  register char *string = (char *) alloca (string_size * sizeof (*string));
 
   while (*s)
     {
@@ -157,6 +160,7 @@ magic_searchpath_decoder (incantation_string, file, return_path)
 
       if (*p == ':' && *(p + 1) == ':')
 	{
+	  /* We know string is big enough for this.  */
 	  bcopy ("%N%S", string, 5);
 	  if (decode_magic (string, file, return_path))
 	    return 1;
@@ -169,6 +173,11 @@ magic_searchpath_decoder (incantation_string, file, return_path)
 	{
 	  int len = p - s;
 
+	  if (string_size < len+1)
+	    {
+	      string_size = 2 * len;
+	      string = (char *) alloca (string_size * sizeof (*string));
+	    }
 	  bcopy (s, string, len);
 	  string[len + 1] = '\0';
 	  if (decode_magic (string, file, return_path))

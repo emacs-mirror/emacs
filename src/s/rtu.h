@@ -165,8 +165,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \
-            sprintf (ptyname, "/dev/ttyp%x", i);
+            sprintf (pty_name, "/dev/ttyp%x", i);
 
 /* This is how to get the device name of the control end of a pty.  */
 #define PTY_NAME_SPRINTF \
-	sprintf (ptyname, "/dev/pty%x", i);
+	sprintf (pty_name, "/dev/pty%x", i);
