@@ -54,7 +54,7 @@ with_x=no
 comp_diskimage=yes
 self_contained=no
 app_symlink=no
-full_dist=no
+full_dist=yes
 keep_directory=no
 
 ac_prev=
@@ -83,8 +83,8 @@ do
     -with-x | --with-x)
        with_x=yes
        with_app=no ;;
-    --with-full-dist | -with-full-dist | -full-dist | -full)
-       full_dist=yes ;;
+    --without-full-dist | -without-full-dist | -no-full-dist | -no-full)
+       full_dist=no ;;
     -self-contained | --with-self-contained-app | -sc)
        self_contained=yes ;;
     -app-symlink | --app-symlink | -symlink | --symlink | --asl)
@@ -126,8 +126,8 @@ Options:
       --with-x            Setup the install to use X Windows for its 
                           windowed display, instead of carbon.  Implies
                           --without-app.
-      --with-full-dist    Include all the .el files in the distribution.
-                          Default is to include only .elc files 
+      --without-full-dist Do not include all the .el files in the distribution.
+                          This is discouraged except if disk space is critical.
       --app-symlink       Have the Emacs.app executable be a symlink
                           to the install in [prefix]/bin/emacs and have
                           the emacs executable link to emacs-${version}

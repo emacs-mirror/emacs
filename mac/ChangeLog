@@ -1,3 +1,8 @@
+2002-12-02  Steven Tamm  <steventamm@mac.com>
+
+	* make-package (installprefix): Switched copying of .el files
+	to be on by default.  Removed symlink for emacs -> emacs-version.
+
 2002-11-30  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Now compresses .pax file instead of entire disk
