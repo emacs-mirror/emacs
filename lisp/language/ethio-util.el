@@ -1915,6 +1915,8 @@ Otherwise, [0-9A-F]."
   (interactive)
   (setq ethio-prefer-ascii-space
 	(not ethio-prefer-ascii-space))
+  (if (equal current-input-method "ethipic")
+      (setq current-input-method-title (quail-title)))
   (force-mode-line-update))
 
 (defun ethio-insert-space (arg)
@@ -1970,6 +1972,8 @@ With ARG, insert that many delimiters."
       (quail-defrule (car keys) (car puncs) "ethiopic")
       (setq keys (cdr keys)
 	    puncs (cdr puncs)))
+    (if (equal current-input-method "ethipic")
+	(setq current-input-method-title (quail-title)))
     (force-mode-line-update)))
 
 ;;
