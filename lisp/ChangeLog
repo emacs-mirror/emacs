@@ -1,3 +1,9 @@
+2004-11-15  John Paul Wallington  <jpw@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Insert the user's name in
+	copyright notice, rather than Free Software Foundation, for the
+	Emacs Lisp header case too.
+
 2004-11-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el (pr-ps-file-print, pr-toggle-duplex): Fix typos.
