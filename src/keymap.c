@@ -537,7 +537,9 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 		return get_keyelt (val, autoload);
 	      }
 	    else if (INTEGERP (idx)
+		     && (XINT (idx) & CHAR_MODIFIER_MASK) == 0
 		     && INTEGERP (key)
+		     && (XINT (key) & CHAR_MODIFIER_MASK) == 0
 		     && !SINGLE_BYTE_CHAR_P (XINT (idx))
 		     && !SINGLE_BYTE_CHAR_P (XINT (key))
 		     && CHAR_VALID_P (XINT (key), 1)
@@ -571,9 +573,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	       are not included in a char-table.
 	       All character codes without modifiers are included.  */
 	    if (NATNUMP (idx)
-		&& ! (XFASTINT (idx)
-		      & (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
-			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
+		&& (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
 	      {
 		val = Faref (binding, idx);
 		if (noprefix && KEYMAPP (val))
