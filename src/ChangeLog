@@ -1,3 +1,10 @@
+2003-10-14  Lute Kamstra  <lute@gnu.org>
+
+	* window.c (Fset_window_fringes): Clarify docstring.
+
+2003-10-14  Kim F. Storm  <storm@cua.dk>
+	* window.c (Fset_window_margins): Simplify arg checking.
+
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
 
 	* regex.c (MAX_BUF_SIZE): Reduce to 2**15.

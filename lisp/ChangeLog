@@ -1,3 +1,8 @@
+2003-10-14  Lute Kamstra  <lute@gnu.org>
+
+	* fringe.el (fringe-mode): Use active voice in docstring.
+	(set-fringe-style): Ditto.
+
 2003-10-13  Lute Kamstra  <lute@gnu.org>
 
 	* fringe.el (fringe-mode): Fix docstring.

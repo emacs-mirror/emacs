@@ -139,21 +139,21 @@ frame parameter is used."
 
 ;;;###autoload
 (defun fringe-mode (&optional mode)
-  "Set default appearance of fringes on all frames.
+  "Set the default appearance of fringes on all frames.
 
-When called interactively, the user is queried for MODE.  Valid
-values for MODE include `none', `default', `left-only',
-`right-only', `minimal' and `half'.
+When called interactively, query the user for MODE.  Valid values
+for MODE include `none', `default', `left-only', `right-only',
+`minimal' and `half'.
 
 When used in a Lisp program, MODE can be a cons cell where the
 integer in car specifies the left fringe width and the integer in
 cdr specifies the right fringe width.  MODE can also be a single
 integer that specifies both the left and the right fringe width.
-When nil is used instead of an integer, that means to use the
-default fringe width (8 pixels).  These width specifications may
-be rounded up to ensure that their sum is a multiple of the
-character width of a frame.  A fringe width of 0 is never rounded
-up.
+If a fringe width specification is nil, that means to use the
+default width (8 pixels).  This command may round up the left and
+right width specifications to ensure that their sum is a multiple
+of the character width of a frame.  It never rounds up a fringe
+width of 0.
 
 Fringe widths set by `set-window-fringes' override the default
 fringe widths set by this command.  This command applies to all
@@ -165,21 +165,21 @@ frame only, see the command `set-fringe-style'."
 
 ;;;###autoload
 (defun set-fringe-style (&optional mode)
-  "Set default appearance of fringes on selected frame.
+  "Set the default appearance of fringes on the selected frame.
 
-When called interactively, the user is queried for MODE.  Valid
-values for MODE include `none', `default', `left-only',
-`right-only', `minimal' and `half'.
+When called interactively, query the user for MODE.  Valid values
+for MODE include `none', `default', `left-only', `right-only',
+`minimal' and `half'.
 
 When used in a Lisp program, MODE can be a cons cell where the
 integer in car specifies the left fringe width and the integer in
 cdr specifies the right fringe width.  MODE can also be a single
 integer that specifies both the left and the right fringe width.
-When nil is used instead of an integer, that means to use the
-default fringe width (8 pixels).  These width specifications may
-be rounded up to ensure that their sum is a multiple of the
-character width of the frame.  A fringe width of 0 is never
-rounded up.
+If a fringe width specification is nil, that means to use the
+default width (8 pixels).  This command may round up the left and
+right width specifications to ensure that their sum is a multiple
+of the character width of a frame.  It never rounds up a fringe
+width of 0.
 
 Fringe widths set by `set-window-fringes' override the default
 fringe widths set by this command.  If you want to set the
