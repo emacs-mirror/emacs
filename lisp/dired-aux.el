@@ -1227,12 +1227,14 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
 	 (rfn-list (mapcar (function dired-make-relative) fn-list))
 	 (dired-one-file	; fluid variable inside dired-create-files
 	  (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
+	 (target-dir (dired-dwim-target-directory))
+	 (default (and dired-one-file
+		       (expand-file-name (file-name-nondirectory (car fn-list))
+					 target-dir)))
 	 (target (expand-file-name ; fluid variable inside dired-create-files
 		   (dired-mark-read-file-name
 		    (concat (if dired-one-file op1 operation) " %s to: ")
-		    (dired-dwim-target-directory)
-		    op-symbol arg rfn-list
-		    (and dired-one-file (car fn-list)))))
+		    target-dir op-symbol arg rfn-list default)))
 	 (into-dir (cond ((null how-to)
 			  ;; Allow DOS/Windows users to change the letter
 			  ;; case of a directory.  If we don't test these
