@@ -49,7 +49,7 @@
   "*Command used to run `makeinfo' subjob.
 The name of the file is appended to this string, separated by a space.")
 
-(defvar makeinfo-options "+fill-column=70"
+(defvar makeinfo-options "--fill-column=70"
   "*String containing options for running `makeinfo'.  
 Do not include `--footnote-style' or `--paragraph-indent';
 the proper way to specify those is with the Texinfo commands
