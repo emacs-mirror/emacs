@@ -7,8 +7,9 @@
 	(make_number): Define as a function if it's not defined as a
 	macro.
 
-	* editfns.c (text_property_stickiness, Fmessage_or_box): Use NILP
-	to test Lisp_Object boolean value.
+	* editfns.c (text_property_stickiness): Use NILP to test
+	Lisp_Object boolean value.
+	(Fmessage_or_box): Don't use NILP to test int variable.
 	(Fformat): Use a temporary variable to avoid ENABLE_CHECKING
 	problems reading from and changing the same lisp value in an
 	XSETSTRING call.
