@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 2002
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4343,6 +4343,18 @@ static int mmap_initialized_p;
 
 #define MEM_ALIGN	sizeof (double)
 
+/* Predicate returning true if part of the address range [START ..
+   END[ is currently mapped.  Used to prevent overwriting an existing
+   memory mapping.
+
+   Default is to conservativly assume the address range is occupied by
+   something else.  This can be overridden by system configuration
+   files if system-specific means to determine this exists.  */
+
+#ifndef MMAP_ALLOCATED_P
+#define MMAP_ALLOCATED_P(start, end) 1
+#endif
+
 /* Function prototypes.  */
 
 static int mmap_free_1 P_ ((struct mmap_region *));
@@ -4435,16 +4447,13 @@ mmap_enlarge (r, npages)
     }
   else if (npages > 0)
     {
-      struct mmap_region *r2;
-      
       nbytes = npages * mmap_page_size;
       
       /* Try to map additional pages at the end of the region.  We
 	 cannot do this if the address range is already occupied by
 	 something else because mmap deletes any previous mapping.
 	 I'm not sure this is worth doing, let's see.  */
-      r2 = mmap_find (region_end, region_end + nbytes);
-      if (r2 == NULL)
+      if (!MMAP_ALLOCATED_P (region_end, region_end + nbytes))
 	{
 	  POINTER_TYPE *p;
       
