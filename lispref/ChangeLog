@@ -1,5 +1,7 @@
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (distclean): Add.
+
 	The following changes make ELisp manual part of the Emacs
 	distribution:
 
