@@ -435,7 +435,7 @@ a system-dependent default device name is used.")
 
   args[0] = Qplay_sound_functions;
   args[1] = sound;
-  Frun_hook_with_args (make_number (2), args);
+  Frun_hook_with_args (2, args);
 
   /* There is only one type of device we currently support, the VOX
      sound driver.  Set up the device interface functions for that

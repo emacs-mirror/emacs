@@ -1,3 +1,25 @@
+2000-06-18  Ken Raeburn  <raeburn@gnu.org>
+
+	* charset.c (update_charset_table): Use XINT on "iso_final_char"
+	when treating it as an integer.
+
+	* coding.h (encode_coding_string): Declare.
+
+	* keyboard.c (read_key_sequence): Use XINT on "pos" when treating
+	it as an integer.
+
+	* keymap.c (Fwhere_is_internal): Rename argument "keymap" to
+	"xkeymap" to avoid shadowing the "enum map_type" value that needs
+	to be passed to get_local_map.
+
+	* sound.c (Fplay_sound): Don't call make_number on
+	Frun_hook_with_args count argument.
+
+	* xterm.c (x_send_scroll_bar_event): Fudge lisp object/integer
+	for lisp objects in X event structure data field, when lisp
+	objects are represented with unions.
+	(x_scroll_bar_to_input_event): Ditto.
+
 2000-06-16  Ken Raeburn  <raeburn@gnu.org>
 
 	* xdisp.c (decode_mode_spec): In "no_value" case, do NUL

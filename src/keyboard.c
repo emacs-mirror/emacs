@@ -7974,7 +7974,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		      string = POSN_STRING (EVENT_START (key));
 		      pos = XCDR (string);
 		      string = XCAR (string);
-                      if (pos >= 0 && pos < XSTRING (string)->size)
+                      if (XINT (pos) >= 0
+			  && XINT (pos) < XSTRING (string)->size)
                         {
                           map = Fget_text_property (pos, Qlocal_map, string);
                           if (!NILP (map))

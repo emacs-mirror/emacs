@@ -562,7 +562,7 @@ update_charset_table (charset_id, dimension, chars, width, direction,
     }
 
   /* Update table iso_charset_table.  */
-  if (iso_final_char >= 0
+  if (XINT (iso_final_char) >= 0
       && ISO_CHARSET_TABLE (dimension, chars, iso_final_char) < 0)
     ISO_CHARSET_TABLE (dimension, chars, iso_final_char) = charset;
 }

@@ -7445,7 +7445,7 @@ x_send_scroll_bar_event (window, part, portion, whole)
   ev->display = FRAME_X_DISPLAY (f);
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
-  ev->data.l[0] = (long) window;
+  ev->data.l[0] = (long) XFASTINT (window);
   ev->data.l[1] = (long) part;
   ev->data.l[2] = (long) 0;
   ev->data.l[3] = (long) portion;
@@ -7472,8 +7472,11 @@ x_scroll_bar_to_input_event (event, ievent)
      struct input_event *ievent;
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
-  Lisp_Object window = (Lisp_Object) ev->data.l[0];
-  struct frame *f = XFRAME (XWINDOW (window)->frame);
+  Lisp_Object window;
+  struct frame *f;
+
+  XSETFASTINT (window, ev->data.l[0]);
+  f = XFRAME (XWINDOW (window)->frame);
   
   ievent->kind = scroll_bar_click;
   ievent->frame_or_window = window;
