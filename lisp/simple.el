@@ -3609,10 +3609,12 @@ select the completion near point.\n\n"))
   ;; Make sure we have a completions window.
   (or (get-buffer-window "*Completions*")
       (minibuffer-completion-help))
-  (select-window (get-buffer-window "*Completions*"))
-  (goto-char (point-min))
-  (search-forward "\n\n")
-  (forward-line 1))
+  (let ((window (get-buffer-window "*Completions*")))
+    (when window
+      (select-window window)
+      (goto-char (point-min))
+      (search-forward "\n\n")
+      (forward-line 1))))
 
 ;; Support keyboard commands to turn on various modifiers.
 
