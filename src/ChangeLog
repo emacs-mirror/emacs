@@ -1,3 +1,9 @@
+2002-11-25  Dave Love  <fx@gnu.org>
+
+	* unexalpha.c (update_dynamic_symbols): Cast arg of fatal_unexec.
+
+	* Makefile.in (TEMACS_LDFLAGS): Update last change.
+
 2002-11-25  Andreas Schwab  <schwab@suse.de>
 
 	* m/ia64.h: Restore `#ifndef NOT_C_CODE' deleted by last change.
