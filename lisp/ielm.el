@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -452,18 +452,24 @@ Customised bindings may be defined in `ielm-map', which currently contains:
 	'(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
 
   ;; A dummy process to keep comint happy. It will never get any input
-  (if (comint-check-proc (current-buffer)) nil
+  (unless (comint-check-proc (current-buffer))
     ;; Was cat, but on non-Unix platforms that might not exist, so
     ;; use hexl instead, which is part of the Emacs distribution.
     (start-process "ielm" (current-buffer) "hexl")
     (process-kill-without-query (ielm-process))
     (goto-char (point-max))
+    
+    ;; Lisp output can include raw characters that confuse comint's
+    ;; carriage control code.
+    (set (make-local-variable 'comint-inhibit-carriage-motion) t)
+
     ;; Add a silly header
     (insert ielm-header)
     (ielm-set-pm (point-max))
     (comint-output-filter (ielm-process) ielm-prompt)
     (set-marker comint-last-input-start (ielm-pm))
     (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter))
+
   (run-hooks 'ielm-mode-hook))
 
 (defun ielm-get-old-input nil
