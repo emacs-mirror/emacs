@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.22) $
+# $HopeName: MMsrc!comm.gmk(trunk.23) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -113,6 +113,7 @@ ifeq ($(TARGET),mmdw.a)
 CFLAGSTARGET = -DCONFIG_PROD_DYLAN
 else
 CFLAGSTARGET = -DCONFIG_PROD_MPS
+endif
 endif
 endif
 endif
