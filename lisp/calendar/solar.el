@@ -73,8 +73,8 @@
   "*The pseudo-pattern that governs the way a time of day is formatted.
 
 A pseudo-pattern is a list of expressions that can involve the keywords
-`12-hours', `24-hours', and `minutes',  all numbers in string form,
-and `am-pm' and `time-zone',  both alphabetic strings.
+`12-hours', `24-hours', and `minutes', all numbers in string form,
+and `am-pm' and `time-zone', both alphabetic strings.
 
 For example, the form
 
