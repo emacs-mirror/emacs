@@ -279,7 +279,7 @@ the following lines anywhere in the buffer:
   :group 'org-startup
   :type 'boolean)
 
-(defcustom org-insert-mode-line-in-empty-file t
+(defcustom org-insert-mode-line-in-empty-file nil
   "Non-nil means insert the first line setting Org-mode in empty files.
 When the function `org-mode' is called interactively in an empty, this
 normally means that the file name does not automatically trigger Org-mode.
@@ -3477,7 +3477,7 @@ date."
 (defun org-diary-default-entry ()
   "Add a dummy entry to the diary.
 Needed to avoid empty dates which mess up holiday display."
-  (add-to-diary-list original-date "Org-mode dummy" ""))
+  (add-to-diary-list original-date "Org-mode dummy" "" nil))
 
 (defun org-add-file (&optional file)
   "Add current file to the list of files in variable `org-agenda-files'.
