@@ -798,6 +798,8 @@ case "${canonical}" in
   ## Intel 860
   i860-*-sysv4* )
     machine=i860 opsys=usg5-4
+    NON_GNU_CC="/bin/cc" # Ie, not the one in /usr/ucb/cc.
+    NON_GNU_CPP="/usr/ccs/lib/cpp" # cc -E tokenizes macro expansion.
   ;;
 
   ## Masscomp machines
