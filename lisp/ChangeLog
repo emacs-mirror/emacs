@@ -1,3 +1,8 @@
+2001-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/quail.el (quail-input-string-to-events): Fix last
+	change.
+
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (temp-buffer-show-hook, temp-buffer-setup-hook): Add defvars.
