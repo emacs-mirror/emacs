@@ -1,3 +1,8 @@
+2000-05-25  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-diff.el (ediff-exec-process): delete --binary option from
+	non-buffer ediff jobs.
+	
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hilit-chg.el (highlight-changes-mode): Ask about color or
