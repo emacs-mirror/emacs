@@ -1481,6 +1481,15 @@ function.  @xref{Buffer File Name}.
 The title (only on a window system) or the name of the selected frame.
 @xref{Window Frame Parameters}.
 
+@item %i
+The size of the accessible part of the current buffer; basically
+@code{(- (point-max) (point-min))}.
+
+@item %I
+Like @samp{%i}, but the size is printed in a more readable way by using
+@samp{k} for 10^3, @samp{M} for 10^6, @samp{G} for 10^9, etc., to
+abbreviate.
+
 @item %l
 The current line number of point, counting within the accessible portion
 of the buffer.
