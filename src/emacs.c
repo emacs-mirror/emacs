@@ -234,7 +234,7 @@ Initialization options:\n\
 --no-init-file, -q	    load neither ~/.emacs nor default.el\n\
 --no-shared-memory, -nl	    do not use shared memory\n\
 --no-site-file		    do not load site-start.el\n\
---no-windows, -nw	    don't communicate with X, ignoring $DISPLAY\n\
+--no-window-system, -nw	    don't communicate with X, ignoring $DISPLAY\n\
 --terminal, -t DEVICE	    use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
 --user, -u USER		load ~USER/.emacs instead of your own\n\
@@ -722,9 +722,10 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 /* This function is used to determine an address to which bug report should
    be sent.  */
 
-char *bug_reporting_address ()
+char *
+bug_reporting_address ()
 {
-  int count=0;
+  int count = 0;
   Lisp_Object temp;
   char *string;
 
@@ -736,14 +737,17 @@ char *bug_reporting_address ()
 
   string = XSTRING (temp)->data;
 
-  do {
-    if (*string=='.')
-      count++;
-  } while (string++,*string);
+  /* Count dots in `emacs-version'.  */
+  while (*string)
+    {
+      if (*string == '.')
+	count++;
+      string++;
+    }
 
   /* When `emacs-version' has at least three dots, it is development or
      pretest version of Emacs.  */
-  return (count>=3) ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
+  return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
 
@@ -999,7 +1003,10 @@ main (argc, argv, envp)
 	break;
     }
 
-  if (argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
+  /* Command line option --no-windows is deprecated and thus not mentioned
+     in the manual and usage informations.  */
+  if (argmatch (argv, argc, "-nw", "--no-window-system", 6, NULL, &skip_args)
+      || argmatch (argv, argc, "-nw", "--no-windows", 6, NULL, &skip_args))
     inhibit_window_system = 1;
 
   /* Handle the -batch switch, which means don't do interactive display.  */
@@ -1012,7 +1019,7 @@ main (argc, argv, envp)
     {
       printf (USAGE1, argv[0]);
       printf (USAGE2);
-      printf (USAGE3, bug_reporting_address());
+      printf (USAGE3, bug_reporting_address ());
       exit (0);
     }
 
@@ -1620,6 +1627,7 @@ struct standard_args standard_args[] =
   { "-map", "--map-data", 130, 0 },
 #endif
   { "-t", "--terminal", 120, 1 },
+  { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },
   { "-batch", "--batch", 100, 0 },
   { "-help", "--help", 90, 0 },
