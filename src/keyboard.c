@@ -450,7 +450,8 @@ void (*keyboard_init_hook) ();
 static int read_avail_input ();
 static void get_input_pending ();
 static int readable_events ();
-static Lisp_Object read_char_menu_prompt ();
+static Lisp_Object read_char_x_menu_prompt ();
+static Lisp_Object read_char_minibuf_menu_prompt ();
 static Lisp_Object make_lispy_event ();
 static Lisp_Object make_lispy_movement ();
 static Lisp_Object modify_event_symbol ();
@@ -1460,6 +1461,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     /* If already echoing, continue.  */
     echo_dash ();
 
+  /* Try reading a character via menu prompting in the minibuf.
+     Try this before the sit-for, because the sit-for
+     would do the wrong thing if we are supposed to do
+     menu prompting. If EVENT_HAS_PARAMETERS then we are reading
+     after a mouse event so don't try a minibuf menu. */
+  c = Qnil;
+  if (nmaps > 0 && INTERACTIVE && 
+      !NILP (prev_event) && ! EVENT_HAS_PARAMETERS (prev_event))
+    {
+      c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+      if ( ! NILP(c) ) return c ;
+    }
+
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
   if (minibuf_level == 0 && !immediate_echo && this_command_key_count > 0
@@ -1495,13 +1509,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       restore_getcjmp (temp);
     }
 
-  /* Try reading a character via menu prompting.
-     Try this before the sit-for, because the sit-for
-     would do the wrong thing if we are supposed to do
-     menu prompting.  */
-  c = Qnil;
-  if (INTERACTIVE && !NILP (prev_event))
-    c = read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
+  /* Try reading using an X menu.
+     This is never confused with reading using the minibuf because the recursive
+     call of read_char in read_char_minibuf_menu_prompt does not pass on
+     any keys maps */
+  if (nmaps > 0 && INTERACTIVE &&
+      !NILP (prev_event) && EVENT_HAS_PARAMETERS (prev_event))
+    c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
   /* Slow down auto saves logarithmically in size of current buffer,
      and garbage collect while we're at it.  */
@@ -3573,10 +3587,16 @@ menu_bar_item (key, item_string, def, result)
    USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
 
    The prompting is done based on the prompt-string of the map
-   and the strings associated with various map elements.  */
+   and the strings associated with various map elements.  
+
+   This can be done with X menus or with menus put in the minibuf.
+   These are done in different ways, depending on how the input will be read.
+   Menus using X are done after auto-saving in read-char, getting the input
+   event from Fx_popup_menu; menus using the minibuf use read_char recursively
+   and do auto-saving in the inner call of read_char. */
 
 static Lisp_Object
-read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
+read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
      int nmaps;
      Lisp_Object *maps;
      Lisp_Object prev_event;
@@ -3584,10 +3604,6 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 {
   int mapno;
   register Lisp_Object name;
-  int nlength;
-  int width = FRAME_WIDTH (selected_frame) - 4;
-  char *menu = (char *) alloca (width + 4);
-  int idx = -1;
   Lisp_Object rest, vector;
 
   if (used_mouse_menu)
@@ -3645,6 +3661,38 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
     }
 #endif /* HAVE_X_MENU */
 #endif /* HAVE_X_WINDOWS */
+  return Qnil ;
+}
+
+static Lisp_Object
+read_char_minibuf_menu_prompt(commandflag, nmaps, maps)
+     int commandflag ;
+     int nmaps;
+     Lisp_Object *maps;
+{
+  int mapno;
+  register Lisp_Object name;
+  int nlength;
+  int width = FRAME_WIDTH (selected_frame) - 4;
+  char *menu = (char *) alloca (width + 4);
+  int idx = -1;
+  int nobindings ;
+  Lisp_Object rest, vector;
+
+  if (! menu_prompting)
+    return Qnil;
+
+  /* Get the menu name from the first map that has one (a prompt string).  */
+  for (mapno = 0; mapno < nmaps; mapno++)
+    {
+      name = map_prompt (maps[mapno]);
+      if (!NILP (name))
+	break;
+    }
+
+  /* If we don't have any menus, just read a character normally.  */
+  if (mapno >= nmaps)
+    return Qnil;
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
@@ -3664,6 +3712,7 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       int i = nlength;
       Lisp_Object obj;
       int ch;
+      int orig_defn_macro ;
 
       /* Loop over elements of map.  */
       while (i < width)
@@ -3678,10 +3727,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 		 or end this line if already have something on it.  */
 	      if (mapno == nmaps)
 		{
-		  if (notfirst)
-		    break;
-		  else
-		    mapno = 0;
+		  mapno = 0;
+		  if ( notfirst || nobindings ) break;
 		}
 	      rest = maps[mapno];
 	    }
@@ -3703,13 +3750,16 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	  else
 	    {
 	      /* An ordinary element.  */
-	      s = Fcar_safe (Fcdr_safe (elt));
+	      if ( idx < 0 )
+		s = Fcar_safe (Fcdr_safe (elt));	/* alist */
+	      else
+		s = Fcar_safe(elt);			/* vector */
 	      if (XTYPE (s) != Lisp_String)
 		/* Ignore the element if it has no prompt string.  */
 		;
 	      /* If we have room for the prompt string, add it to this line.
 		 If this is the first on the line, always add it.  */
-	      else if (XSTRING (s)->size + i < width
+	      else if (XSTRING (s)->size + i + 2 < width
 		       || !notfirst)
 		{
 		  int thiswidth;
@@ -3721,6 +3771,7 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 		      i += 2;
 		    }
 		  notfirst = 1;
+		  nobindings = 0 ;
 
 		  /* Add as much of string as fits.  */
 		  thiswidth = XSTRING (s)->size;
@@ -3728,6 +3779,7 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 		    thiswidth = width - i;
 		  bcopy (XSTRING (s)->data, menu + i, thiswidth);
 		  i += thiswidth;
+		  menu[i] = 0;
 		}
 	      else
 		{
@@ -3738,7 +3790,7 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 		}
 
 	      /* Move past this element.  */
-	      if (idx >= 0 && idx + 1 >= XVECTOR (rest)->size)
+	      if (idx >= 0 && idx + 1 >= XVECTOR (vector)->size)
 		/* Handle reaching end of dense table.  */
 		idx = -1;
 	      if (idx >= 0)
@@ -3750,7 +3802,15 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 
       /* Prompt with that and read response.  */
       message1 (menu);
-      obj = read_char (1, 0, 0, Qnil, 0);
+
+      /* Make believe its not a keyboard macro in case the help char 
+	 is pressed.  Help characters are not recorded because menu prompting
+	 is not used on replay.
+	 */
+      orig_defn_macro = defining_kbd_macro ;
+      defining_kbd_macro = 0 ;
+      obj = read_char (commandflag, 0, 0, Qnil, 0);
+      defining_kbd_macro = orig_defn_macro ;
 
       if (XTYPE (obj) != Lisp_Int)
 	return obj;
@@ -3760,7 +3820,12 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       if (! EQ (obj, menu_prompt_more_char)
 	  && (XTYPE (menu_prompt_more_char) != Lisp_Int
 	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
-	return obj;
+	{
+	  if ( defining_kbd_macro )
+	    store_kbd_macro_char(obj) ;
+	  return obj;
+	}
+      /* Help char - go round again */
     }
 }
 
