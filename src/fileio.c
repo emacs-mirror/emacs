@@ -22,6 +22,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#if !defined (S_ISLNK) && defined (S_IFLNK)
+#  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
+#endif
+
+#if !defined (S_ISREG) && defined (S_IFREG)
+#  define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+
 #ifdef VMS
 #include "vms-pwd.h"
 #else
@@ -1586,6 +1594,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   struct gcpro gcpro1, gcpro2;
   int count = specpdl_ptr - specpdl;
   Lisp_Object args[6];
+  int input_file_statable_p;
 
   GCPRO2 (filename, newname);
   CHECK_STRING (filename, 0);
@@ -1614,6 +1623,24 @@ A prefix arg makes KEEP-TIME non-nil.")
 
   record_unwind_protect (close_file_unwind, make_number (ifd));
 
+  /* We can only copy regular files and symbolic links.  Other files are not
+     copyable by us. */
+  input_file_statable_p = (fstat (ifd, &st) >= 0);
+
+#if defined (S_ISREG) && defined (S_ISLNK)
+  if (input_file_statable_p)
+    {
+      if (!(S_ISREG (st.st_mode)) && !(S_ISLNK (st.st_mode)))
+	{
+#if defined (EISDIR)
+	  /* Get a better looking error message. */
+	  errno = EISDIR;
+#endif /* EISDIR */
+	report_file_error ("Non-regular file", Fcons (filename, Qnil));
+	}
+    }
+#endif /* S_ISREG && S_ISLNK */
+
 #ifdef VMS
   /* Create the copy file with the same record format as the input file */
   ofd = sys_creat (XSTRING (newname)->data, 0666, ifd);
@@ -1632,7 +1659,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 	report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
-  if (fstat (ifd, &st) >= 0)
+  if (input_file_statable_p)
     {
       if (!NILP (keep_date))
 	{
