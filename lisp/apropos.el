@@ -134,12 +134,9 @@ for the regexp; the part that matches gets displayed in this font."
 
 (define-button-type 'apropos-symbol
   'face apropos-symbol-face
-  'help-echo "mouse-2, RET: Display more help on this symbol."
-  'action #'apropos-symbol-button-display-help)
-
-(define-button-type 'apropos-label
-  'help-echo "mouse-2, RET: Display more help on this symbol."
-  'action #'apropos-label-button-display-help)
+  'help-echo "mouse-2, RET: Display more help on this symbol"
+  'action #'apropos-symbol-button-display-help
+  'skip t)
 
 (defun apropos-symbol-button-display-help (button)
   "Display further help for the `apropos-symbol' button BUTTON."
@@ -147,10 +144,57 @@ for the regexp; the part that matches gets displayed in this font."
    (or (apropos-next-label-button (button-start button))
        (error "There is nothing to follow for `%s'" (button-label button)))))
 
-(defun apropos-label-button-display-help (button)
-  "Display further help for the `apropos-label' button BUTTON."
-  (funcall (button-get button 'apropos-action)
-	   (button-get button 'apropos-symbol)))
+(define-button-type 'apropos-function
+  'apropos-label "Function"
+  'action (lambda (button)
+	    (describe-function (button-get button 'apropos-symbol)))
+  'help-echo "mouse-2, RET: Display more help on this function")
+(define-button-type 'apropos-macro
+  'apropos-label "Macro"
+  'action (lambda (button)
+	    (describe-function (button-get button 'apropos-symbol)))
+  'help-echo "mouse-2, RET: Display more help on this macro")
+(define-button-type 'apropos-command
+  'apropos-label "Command"
+  'action (lambda (button)
+	    (describe-function (button-get button 'apropos-symbol)))
+  'help-echo "mouse-2, RET: Display more help on this command")
+  
+;; We used to use `customize-variable-other-window' instead for a
+;; customizable variable, but that is slow.  It is better to show an
+;; ordinary help buffer and let the user click on the customization
+;; button in that buffer, if he wants to.
+;; Likewise for `customize-face-other-window'.
+(define-button-type 'apropos-variable
+  'apropos-label "Variable"
+  'help-echo "mouse-2, RET: Display more help on this variable"
+  'action (lambda (button)
+	    (describe-variable (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-face
+  'apropos-label "Face"
+  'help-echo "mouse-2, RET: Display more help on this face"
+  'action (lambda (button)
+	    (describe-face (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-group
+  'apropos-label "Group"
+  'help-echo "mouse-2, RET: Display more help on this group"
+  'action (lambda (button)
+	    (customize-variable-other-window
+	     (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-widget
+  'apropos-label "Widget"
+  'help-echo "mouse-2, RET: Display more help on this widget"
+  'action (lambda (button)
+	    (widget-browse-other-window (button-get button 'apropos-symbol))))
+
+(define-button-type 'apropos-plist
+  'apropos-label "Plist"
+  'help-echo "mouse-2, RET: Display more help on this plist"
+  'action (lambda (button)
+	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 
 (defun apropos-next-label-button (pos)
   "Returns the next `apropos-label' button after POS, or nil if there's none.
@@ -532,11 +576,6 @@ Will return nil instead."
     function))
 
 
-
-(defvar apropos-label-properties nil
-  "List of face properties to use for a label.
-Bound by `apropos-print' for use by `apropos-print-doc'.")
-
 (defun apropos-print (do-keys spacing)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
@@ -619,25 +658,18 @@ alphabetically by symbol name; but this function also sets
 		 (put-text-property (- (point) 3) (point)
 				    'face apropos-keybinding-face)))
 	  (terpri)
-	  (apropos-print-doc 'describe-function 1
+	  (apropos-print-doc 1
 			     (if (commandp symbol)
-				 "Command"
+				 'apropos-command
 			       (if (apropos-macrop symbol)
-				   "Macro"
-				 "Function"))
+				   'apropos-macro
+				 'apropos-function))
 			     t)
-	  ;; We used to use `customize-variable-other-window' instead
-	  ;; for a customizable variable, but that is slow.
-	  ;; It is better to show an ordinary help buffer
-	  ;; and let the user click on the customization button
-	  ;; in that buffer, if he wants to.
-	  ;; Likewise for `customize-face-other-window'.
-	  (apropos-print-doc 'describe-variable 2 "Variable" t)
-	  (apropos-print-doc 'customize-group-other-window 6 "Group" t)
-	  (apropos-print-doc 'describe-face 5 "Face" t)
-	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" t)
-	  (apropos-print-doc 'apropos-describe-plist 3
-			     "Plist" nil))
+	  (apropos-print-doc 2 'apropos-variable t)
+	  (apropos-print-doc 6 'apropos-group t)
+	  (apropos-print-doc 5 'apropos-face t)
+	  (apropos-print-doc 4 'apropos-widget t)
+	  (apropos-print-doc 3 'apropos-plist nil))
 	(setq buffer-read-only t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
@@ -654,19 +686,17 @@ alphabetically by symbol name; but this function also sets
 		     '(macro t))))))
 
 
-(defun apropos-print-doc (action i str do-keys)
+(defun apropos-print-doc (i type do-keys)
   (if (stringp (setq i (nth i apropos-item)))
       (progn
 	(insert "  ")
-	(insert-text-button str
-			    'type 'apropos-label
+	(insert-text-button (button-type-get type 'apropos-label)
+			    'type type
 			    ;; Can't use the default button face, since
 			    ;; user may have changed the variable!
 			    ;; Just say `no' to variables containing faces!
 			    'face apropos-label-face
-			    'apropos-symbol (car apropos-item)
-			    'apropos-action action
-			    str)
+			    'apropos-symbol (car apropos-item))
 	(insert ": ")
 	(insert (if do-keys (substitute-command-keys i) i))
 	(or (bolp) (terpri)))))
