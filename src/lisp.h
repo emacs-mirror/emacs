@@ -235,7 +235,11 @@ LISP_MAKE_RVALUE (Lisp_Object o)
     return o;
 }
 #else
-#define LISP_MAKE_RVALUE(o) (o) /* XXX - keeps arg as rvalue.  */
+/* This isn't quite right - it keeps the argument as an lvalue.
+   Making it const via casting would help avoid code actually
+   modifying the location in question, but the casting could cover
+   other type-related bugs.  */
+#define LISP_MAKE_RVALUE(o) (o)
 #endif
 
 #endif /* NO_UNION_TYPE */
