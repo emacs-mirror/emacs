@@ -988,10 +988,54 @@ sys_mkdir (const char * path)
   return _mkdir (map_win32_filename (path, NULL));
 }
 
+/* Because of long name mapping issues, we need to implement this
+   ourselves.  Also, MSVC's _mktemp returns NULL when it can't generate
+   a unique name, instead of setting the input template to an empty
+   string.
+
+   Standard algorithm seems to be use pid or tid with a letter on the
+   front (in place of the 6 X's) and cycle through the letters to find a
+   unique name.  We extend that to allow any reasonable character as the
+   first of the 6 X's.  */
 char *
 sys_mktemp (char * template)
 {
-  return (char *) map_win32_filename ((const char *) _mktemp (template), NULL);
+  char * p;
+  int i;
+  unsigned uid = GetCurrentThreadId ();
+  static char first_char[] = "abcdefghijklmnopqrstuvwyz0123456789!%-_@#";
+
+  if (template == NULL)
+    return NULL;
+  p = template + strlen (template);
+  i = 5;
+  /* replace up to the last 5 X's with uid in decimal */
+  while (--p >= template && p[0] == 'X' && --i >= 0)
+    {
+      p[0] = '0' + uid % 10;
+      uid /= 10;
+    }
+
+  if (i < 0 && p[0] == 'X')
+    {
+      i = 0;
+      do
+	{
+	  int save_errno = errno;
+	  p[0] = first_char[i];
+	  if (sys_access (template, 0) < 0)
+	    {
+	      errno = save_errno;
+	      return template;
+	    }
+	}
+      while (++i < sizeof (first_char));
+    }
+
+  /* Template is badly formed or else we can't generate a unique name,
+     so return empty string */
+  template[0] = 0;
+  return template;
 }
 
 int
