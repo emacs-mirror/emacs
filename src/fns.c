@@ -28,10 +28,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "commands.h"
 
-#ifdef MULTI_SCREEN
-#include "screen.h"
-#endif
-
 #include "buffer.h"
 
 Lisp_Object Qstring_lessp;

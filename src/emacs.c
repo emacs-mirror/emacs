@@ -425,7 +425,7 @@ main (argc, argv, envp)
   if (!noninteractive)
     {
 #ifdef VMS
-      init_vms_input ();/* init_display calls get_screen_size, that needs this */
+      init_vms_input ();/* init_display calls get_frame_size, that needs this */
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  init_sys_modes uses results */
     }
@@ -494,8 +494,8 @@ main (argc, argv, envp)
       syms_of_mocklisp ();
       syms_of_process ();
       syms_of_search ();
-#ifdef MULTI_SCREEN
-      syms_of_screen ();
+#ifdef MULTI_FRAME
+      syms_of_frame ();
 #endif
       syms_of_syntax ();
       syms_of_undo ();
