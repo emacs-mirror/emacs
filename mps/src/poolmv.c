@@ -1,6 +1,6 @@
 /*  ==== MANUAL VARIABLE POOL ====
  *
- *  $HopeName: MMsrc/!poolmv.c(trunk.3)$
+ *  $HopeName: MMsrc/!poolmv.c(trunk.4)$
  *
  *  Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
@@ -582,7 +582,7 @@ static void free_(Pool pool, Addr old, Size size)
 
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassMVStruct);
-  AVER(old != NULL);
+  AVER(old != (Addr)0);
   AVER(size > 0);
 
   arena = SpaceArena(PoolSpace(pool));
