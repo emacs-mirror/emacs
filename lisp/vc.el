@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.223 1998/04/15 10:13:07 spiegel Exp done $
+;; $Id: vc.el,v 1.224 1998/04/20 01:51:37 done Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1644,7 +1644,9 @@ There is a special command, `*l', to mark all files currently locked."
 
 (defun vc-fetch-cvs-status (dir)
   (let ((default-directory dir))
-    (vc-do-command "*vc-info*" 0 "cvs" nil nil "status" dir)
+    ;; Don't specify DIR in this command, the default-directory is
+    ;; enough.  Otherwise it might fail with remote repositories.
+    (vc-do-command "*vc-info*" 0 "cvs" nil nil "status")
     (save-excursion
       (set-buffer (get-buffer "*vc-info*"))
       (goto-char (point-min))
@@ -1699,14 +1701,17 @@ There is a special command, `*l', to mark all files currently locked."
   ;; Called by dired after any portion of a vc-dired buffer has been read in.
   ;; Reformat the listing according to version control.
   (message "Getting version information... ")
-  (let (subdir filename (buffer-read-only nil))
+  (let (subdir filename (buffer-read-only nil) cvs-dir)
     (goto-char (point-min))
     (while (not (eq (point) (point-max)))
       (cond 
        ;; subdir header line
        ((setq subdir (dired-get-subdir))
         (if (file-directory-p (concat subdir "/CVS"))
-            (vc-fetch-cvs-status (file-name-as-directory subdir)))
+            (progn
+              (vc-fetch-cvs-status (file-name-as-directory subdir))
+              (setq cvs-dir t))
+          (setq cvs-dir nil))
         (forward-line 1)
         ;; erase (but don't remove) the "total" line
         (let ((start (point)))
@@ -1723,7 +1728,9 @@ There is a special command, `*l', to mark all files currently locked."
               (dired-kill-line)
             (vc-dired-reformat-line nil)
             (forward-line 1)))
-         ((vc-backend filename)
+         ((if cvs-dir
+              (eq (vc-file-getprop filename 'vc-backend) 'CVS)
+            (vc-backend filename))
           (vc-dired-reformat-line (vc-dired-state-info filename))
           (forward-line 1))
          (t 
