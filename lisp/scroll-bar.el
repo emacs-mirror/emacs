@@ -48,9 +48,6 @@ that scroll bar position."
 
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
-;;; This is not documented because you can't change the 
-;;; mode properly by setting it.
-(defvar scroll-bar-mode t)
 
 (defun scroll-bar-mode (flag)
   "Toggle display of vertical scroll bars on each frame.
@@ -59,25 +56,36 @@ created in the future.
 With a numeric argument, if the argument is negative,
 turn off scroll bars; otherwise, turn on scroll bars."
   (interactive "P")
-  (setq scroll-bar-mode (if (null flag) (not scroll-bar-mode)
-			  (or (not (numberp flag)) (>= flag 0))))
-  (mapcar
-   (function
-    (lambda (param-name)
-      (let ((parameter (assq param-name default-frame-alist)))
-	(if (consp parameter)
-	    (setcdr parameter scroll-bar-mode)
-	  (setq default-frame-alist
-		(cons (cons param-name scroll-bar-mode)
-		      default-frame-alist))))))
-   '(vertical-scroll-bars horizontal-scroll-bars))
-  (let ((frames (frame-list)))
-    (while frames
-      (modify-frame-parameters
-       (car frames)
-       (list (cons 'vertical-scroll-bars scroll-bar-mode)
-	     (cons 'horizontal-scroll-bars scroll-bar-mode)))
-      (setq frames (cdr frames)))))
+
+  ;; Obtain the current setting by looking at default-frame-alist.
+  (let ((scroll-bar-mode
+	 (let ((assq (assq 'vertical-scroll-bars default-frame-alist)))
+	   (if assq (cdr assq) t))))
+
+    ;; Tweedle it according to the argument.
+    (setq scroll-bar-mode (if (null flag) (not scroll-bar-mode)
+			    (or (not (numberp flag)) (>= flag 0))))
+
+    ;; Apply it to default-frame-alist.
+    (mapcar
+     (function
+      (lambda (param-name)
+	(let ((parameter (assq param-name default-frame-alist)))
+	  (if (consp parameter)
+	      (setcdr parameter scroll-bar-mode)
+	    (setq default-frame-alist
+		  (cons (cons param-name scroll-bar-mode)
+			default-frame-alist))))))
+     '(vertical-scroll-bars horizontal-scroll-bars))
+
+    ;; Apply it to existing frames.
+    (let ((frames (frame-list)))
+      (while frames
+	(modify-frame-parameters
+	 (car frames)
+	 (list (cons 'vertical-scroll-bars scroll-bar-mode)
+	       (cons 'horizontal-scroll-bars scroll-bar-mode)))
+	(setq frames (cdr frames))))))
 
 ;;;; Buffer navigation using the scroll bar.
 
