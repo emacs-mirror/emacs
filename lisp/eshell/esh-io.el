@@ -169,14 +169,11 @@ not be added to this variable."
 
 (defun eshell-io-initialize ()
   "Initialize the I/O subsystem code."
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-redirection nil t)
   (make-local-variable 'eshell-current-redirections)
-  (make-local-hook 'eshell-pre-rewrite-command-hook)
   (add-hook 'eshell-pre-rewrite-command-hook
 	    'eshell-strip-redirections nil t)
-  (make-local-hook 'eshell-post-rewrite-command-hook)
   (add-hook 'eshell-post-rewrite-command-hook
 	    'eshell-apply-redirections nil t))
 
