@@ -1,10 +1,11 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000,2002
+;; 		 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.10 2001/09/24 16:39:23 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.11 2002/03/17 20:48:14 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -354,7 +355,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; just a note
        (cvs-match "use '.+ commit' to \\sw+ th\\sw+ files? permanently$")
        ;; [add,status] followed by a more complete status description anyway
-       (cvs-match "nothing known about .*$")
+       (and (cvs-match "nothing known about \\(.*\\)$" (path 1))
+	    (cvs-parsed-fileinfo 'DEAD path 'trust))
        ;; [update] problem with patch
        (cvs-match "checksum failure after patch to .*; will refetch$")
        (cvs-match "refetching unpatchable files$")
