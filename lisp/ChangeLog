@@ -1,3 +1,25 @@
+2002-07-11  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el (tramp-default-method): New default method "sm"
+	which I guess to be good for most people.
+	(tramp-default-method-alist): Use "ftp" method (ie, forwarding to
+	Ange-FTP) for some user/host combinations.
+	(tramp-file-name-structure, tramp-file-name-regexp) 
+	(tramp-make-tramp-file-format) 
+	(tramp-make-tramp-file-user-nil-format) 
+	(tramp-multi-file-name-structure) 
+	(tramp-multi-file-name-hop-structure) 
+	(tramp-make-multi-tramp-file-format): New default value which
+	unifies the filename syntax between Tramp and Ange-FTP.  The new
+	syntax is "/method:user@host:path".  Note the colon after the
+	method.
+	(tramp-handle-file-name-directory): Don't return "/" when
+	completing a remote root directory (where the filename looks like
+	"/method:user@host:/").
+	(tramp-handle-ange-ftp): Deleted.
+	(tramp-disable-ange-ftp): New function, called at toplevel,
+	deletes Ange-FTP from file-name-handler-alist.
+
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
 	* ido.el (ido-enter-single-matching-directory): Delete leftover comment.
