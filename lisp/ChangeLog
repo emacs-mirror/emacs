@@ -1,3 +1,10 @@
+2001-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mail-extr.el (mail-extr-voodoo): Treat a number as a word
+	if it doesn't make sense as anything else.
+	Don't recognize a "telephone number" at the beginning of the name.
+	(mail-extr-leading-garbage): Match non-word characters only.
+
 2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emulation/viper.el: Fix typo.
