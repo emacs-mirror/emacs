@@ -3347,7 +3347,7 @@ read_avail_input (expected)
 #else
 	  nread = read (fileno (stdin), cbuf, n_to_read);
 #endif
-#ifdef AIX
+#if defined (AIX) && ! defined (aix386)
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
 	     This looks incorrect, but it isn't, because _BSD causes
 	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
