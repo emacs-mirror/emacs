@@ -1,5 +1,25 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* imenu.el (imenu--generic-function):
+	Ensure we keep moving backward even if BEG isn't further back.
+
+	* replace.el (query-replace-read-to, query-replace-read-from): 
+	Specify t for KEEP-ALL in read-from-minibuffer.
+
+	* progmodes/python.el (python-switch-to-python):
+	If Python isn't running, start it.
+	Don't alter debug-ignored-errors.
+
+	* progmodes/cperl-mode.el (cperl-indent-region):
+	Don't mind imenu-scanning-message.
+
+	* bindings.el (global-map): Bind C-e to move-end-of-line.
+
+	* simple.el (line-move-finish): New arg FORWARD.
+	Ignore invisible newlines, not intangible ones.
+	Conditions for acceptable stopping positions depend on FORWARD.
+	(line-move): Pass FORWARD arg to line-move-finish.
+
 	* buff-menu.el (list-buffers-noselect): Eliminate space at the start
 	of HEADER.  Compensate for this change in the code to add display
 	properties.  Don't make the first line intangible.
