@@ -1101,7 +1101,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
       message ("%s(y or n) ", XSTRING (xprompt)->data);
       cursor_in_echo_area = 1;
 
-      obj = read_char (0);
+      obj = read_char (0, 0, 0, Qnil, 0);
       if (XTYPE (obj) == Lisp_Int)
 	ans = XINT (obj);
       else
