@@ -1,5 +1,9 @@
 2000-01-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* net/eudc-bob.el, net/eudc-export.el, net/eudc-hotlist.el,
+	net/eudc-vars.el, net/eudc.el, net/eudcb-bbdb.el,
+	net/eudcb-ldap.el, net/eudcb-ph.el, net/ldap.el: New files.
+	
 	* add-log.el (add-change-log-entry): Fix error trying an `(insert
 	nil)'.
 

@@ -1,0 +1,329 @@
+;;; eudc-bob.el --- Binary Objects Support for EUDC
+
+;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+
+;; Author: Oscar Figueiredo <oscar@xemacs.org>
+;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
+;; Keywords: help
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Usage:
+;;    See the corresponding info file
+
+;;; Code:
+
+(require 'eudc)
+
+(defvar eudc-bob-generic-keymap nil
+  "Keymap for multimedia objects.")
+
+(defvar eudc-bob-image-keymap nil
+  "Keymap for inline images.")
+
+(defvar eudc-bob-sound-keymap nil
+  "Keymap for inline images.")
+
+(defvar eudc-bob-url-keymap nil
+  "Keymap for inline images.")
+
+(defconst eudc-bob-generic-menu
+  '("EUDC Binary Object Menu"
+    ["---" nil nil]
+    ["Pipe to external program" eudc-bob-pipe-object-to-external-program t]
+    ["Save object" eudc-bob-save-object t]))
+
+(defconst eudc-bob-image-menu
+  `("EUDC Image Menu"
+    ["---" nil nil]
+    ["Toggle inline display" eudc-bob-toggle-inline-display
+     (eudc-bob-can-display-inline-images)]
+    ,@(cdr (cdr eudc-bob-generic-menu))))
+ 
+(defconst eudc-bob-sound-menu
+  `("EUDC Sound Menu"
+    ["---" nil nil]
+    ["Play sound" eudc-bob-play-sound-at-point 
+     (fboundp 'play-sound)]
+    ,@(cdr (cdr eudc-bob-generic-menu))))
+ 
+(defun eudc-jump-to-event (event)
+  "Jump to the window and point where EVENT occurred."
+  (if eudc-xemacs-p
+      (goto-char (event-closest-point event))
+    (set-buffer (window-buffer (posn-window (event-start event))))
+    (goto-char (posn-point (event-start event)))))
+
+(defun eudc-bob-get-overlay-prop (prop)
+  "Get property PROP from one of the overlays around."
+  (let ((overlays (append (overlays-at (1- (point)))
+			  (overlays-at (point))))
+	overlay value
+	(notfound t))
+    (while (and notfound
+		(setq overlay (car overlays)))
+      (if (setq value (overlay-get overlay prop))
+	  (setq notfound nil))
+      (setq overlays (cdr overlays)))
+    value))
+
+(defun eudc-bob-can-display-inline-images ()
+  "Return non-nil if we can display images inline."
+  (and eudc-xemacs-p
+       (memq (console-type) 
+	     '(x mswindows))
+       (fboundp 'make-glyph)))
+
+(defun eudc-bob-make-button (label keymap &optional menu plist)
+  "Create a button with LABEL.
+Attach KEYMAP, MENU and properties from PLIST to a new overlay covering 
+LABEL."
+  (let (overlay
+	(p (point))
+	prop val)
+    (insert label)
+    (put-text-property p (point) 'face 'bold)    
+    (setq overlay (make-overlay p (point)))
+    (overlay-put overlay 'mouse-face 'highlight)
+    (overlay-put overlay 'keymap keymap)
+    (overlay-put overlay 'local-map keymap)
+    (overlay-put overlay 'menu menu)
+    (while plist
+      (setq prop (car plist)
+	    plist (cdr plist)
+	    val (car plist)
+	    plist (cdr plist))
+      (overlay-put overlay prop val))))
+
+(defun eudc-bob-display-jpeg (data inline)
+  "Display the JPEG DATA at point.
+if INLINE is non-nil, try to inline the image otherwise simply 
+display a button."
+  (let ((glyph (if (eudc-bob-can-display-inline-images)
+		   (make-glyph (list (vector 'jpeg :data data) 
+				     [string :data "[JPEG Picture]"])))))
+    (eudc-bob-make-button "[JPEG Picture]"
+			  eudc-bob-image-keymap
+			  eudc-bob-image-menu
+			  (list 'glyph glyph
+				'end-glyph (if inline glyph)
+				'duplicable t
+				'invisible inline
+				'start-open t
+				'end-open t
+				'object-data data))))
+
+(defun eudc-bob-toggle-inline-display ()
+  "Toggle inline display of an image."
+  (interactive)
+  (if (eudc-bob-can-display-inline-images)
+      (let ((overlays (append (overlays-at (1- (point)))
+			      (overlays-at (point))))
+	    overlay glyph)
+	(setq overlay (car overlays))
+	(while (and overlay
+		    (not (setq glyph (overlay-get overlay 'glyph))))
+	  (setq overlays (cdr overlays))
+	  (setq overlay (car overlays)))
+	(if overlay
+	    (if (overlay-get overlay 'end-glyph)
+		(progn
+		  (overlay-put overlay 'end-glyph nil)
+		  (overlay-put overlay 'invisible nil))
+	      (overlay-put overlay 'end-glyph glyph)
+	      (overlay-put overlay 'invisible t))))))
+
+(defun eudc-bob-display-audio (data)
+  "Display a button for audio DATA."
+  (eudc-bob-make-button "[Audio Sound]"
+			eudc-bob-sound-keymap
+			eudc-bob-sound-menu
+			(list 'duplicable t
+			      'start-open t
+			      'end-open t
+			      'object-data data)))
+
+
+(defun eudc-bob-display-generic-binary (data)
+  "Display a button for unidentified binary DATA."
+  (eudc-bob-make-button "[Binary Data]"
+			eudc-bob-generic-keymap
+			eudc-bob-generic-menu
+			(list 'duplicable t
+			      'start-open t
+			      'end-open t
+			      'object-data data)))
+
+(defun eudc-bob-play-sound-at-point ()
+  "Play the sound data contained in the button at point."
+  (interactive)
+  (let (sound)
+    (if (null (setq sound (eudc-bob-get-overlay-prop 'object-data)))
+	(error "No sound data available here")
+      (if (not (and (boundp 'sound-alist)
+		    sound-alist))
+	  (error "Don't know how to play sound on this Emacs version")
+	(setq sound-alist 
+	      (cons (list 'eudc-sound 
+			  :sound sound)
+		    sound-alist))
+	(condition-case nil
+	    (play-sound 'eudc-sound)
+	  (t 
+	   (setq sound-alist (cdr sound-alist))))))))
+  
+
+(defun eudc-bob-play-sound-at-mouse (event)
+  "Play the sound data contained in the button where EVENT occurred."
+  (interactive "e")
+  (save-excursion
+    (eudc-jump-to-event event)
+    (eudc-bob-play-sound-at-point)))
+  
+
+(defun eudc-bob-save-object ()
+  "Save the object data of the button at point."
+  (interactive)
+  (let ((data (eudc-bob-get-overlay-prop 'object-data))
+	(buffer (generate-new-buffer "*eudc-tmp*")))
+    (save-excursion
+      (if (fboundp 'set-buffer-file-coding-system)
+	  (set-buffer-file-coding-system 'binary))
+      (set-buffer buffer)
+      (insert data)
+      (save-buffer))
+    (kill-buffer buffer)))
+
+(defun eudc-bob-pipe-object-to-external-program ()
+  "Pipe the object data of the button at point to an external program."
+  (interactive)
+  (let ((data (eudc-bob-get-overlay-prop 'object-data))
+	(buffer (generate-new-buffer "*eudc-tmp*"))
+	program
+	viewer)
+    (condition-case nil
+	(save-excursion
+	  (if (fboundp 'set-buffer-file-coding-system)
+	      (set-buffer-file-coding-system 'binary))
+	  (set-buffer buffer)
+	  (insert data)
+	  (setq program (completing-read "Viewer: " eudc-external-viewers))
+	  (if (setq viewer (assoc program eudc-external-viewers))
+	      (call-process-region (point-min) (point-max) 
+				   (car (cdr viewer)) 
+				   (cdr (cdr viewer)))
+	    (call-process-region (point-min) (point-max) program)))
+      (t
+       (kill-buffer buffer)))))
+
+(defun eudc-bob-menu ()
+  "Retrieve the menu attached to a binary object."
+  (eudc-bob-get-overlay-prop 'menu))
+  
+(defun eudc-bob-popup-menu (event)
+  "Pop-up a menu of EUDC multimedia commands."
+  (interactive "@e")
+  (run-hooks 'activate-menubar-hook)
+  (eudc-jump-to-event event)
+  (if eudc-xemacs-p
+      (progn 
+	(run-hooks 'activate-popup-menu-hook)
+	(popup-menu (eudc-bob-menu)))
+    (let ((result (x-popup-menu t (eudc-bob-menu)))
+	  command)
+      (if result
+	  (progn
+	    (setq command (lookup-key (eudc-bob-menu)
+				      (apply 'vector result)))
+	    (command-execute command))))))
+
+(setq eudc-bob-generic-keymap
+      (let ((map (make-sparse-keymap)))
+	(define-key map "s" 'eudc-bob-save-object)
+	(define-key map (if eudc-xemacs-p
+			    [button3]
+			  [down-mouse-3]) 'eudc-bob-popup-menu)
+	map))
+
+(setq eudc-bob-image-keymap
+      (let ((map (make-sparse-keymap)))
+	(define-key map "t" 'eudc-bob-toggle-inline-display)
+	map))
+
+(setq eudc-bob-sound-keymap
+      (let ((map (make-sparse-keymap)))
+	(define-key map [return] 'eudc-bob-play-sound-at-point)
+	(define-key map (if eudc-xemacs-p
+			    [button2]
+			  [down-mouse-2]) 'eudc-bob-play-sound-at-mouse)
+	map))
+
+(setq eudc-bob-url-keymap
+      (let ((map (make-sparse-keymap)))
+	(define-key map [return] 'browse-url-at-point)
+	(define-key map (if eudc-xemacs-p
+			    [button2]
+			  [down-mouse-2]) 'browse-url-at-mouse)
+	map))
+
+(set-keymap-parent eudc-bob-image-keymap eudc-bob-generic-keymap)
+(set-keymap-parent eudc-bob-sound-keymap eudc-bob-generic-keymap)
+
+    
+(if eudc-emacs-p
+    (progn
+      (easy-menu-define eudc-bob-generic-menu 
+			eudc-bob-generic-keymap
+			""
+			eudc-bob-generic-menu)
+      (easy-menu-define eudc-bob-image-menu 
+			eudc-bob-image-keymap
+			""
+			eudc-bob-image-menu)
+      (easy-menu-define eudc-bob-sound-menu 
+			eudc-bob-sound-keymap
+			""
+			eudc-bob-sound-menu)))
+
+;;;###autoload
+(defun eudc-display-generic-binary (data)
+  "Display a button for unidentified binary DATA."
+  (eudc-bob-display-generic-binary data))
+
+;;;###autoload
+(defun eudc-display-url (url)
+  "Display URL and make it clickable."
+  (require 'browse-url)
+  (eudc-bob-make-button url eudc-bob-url-keymap))
+
+;;;###autoload
+(defun eudc-display-sound (data)
+  "Display a button to play the sound DATA."
+  (eudc-bob-display-audio data))
+
+;;;###autoload
+(defun eudc-display-jpeg-inline (data)
+  "Display the JPEG DATA inline at point if possible."
+  (eudc-bob-display-jpeg data (eudc-bob-can-display-inline-images)))
+
+;;;###autoload
+(defun eudc-display-jpeg-as-button (data)
+  "Display a button for the JPEG DATA."
+  (eudc-bob-display-jpeg data nil))
+    
+;;; eudc-bob.el ends here
