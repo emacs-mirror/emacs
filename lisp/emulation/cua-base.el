@@ -814,10 +814,14 @@ Activates the mark if a prefix argument is given."
   "Repeat replacing text of highlighted region with typed text.
 Searches for the next streach of text identical to the region last
 replaced by typing text over it and replaces it with the same streach
-of text.  Note: Works reliable only when repeated immediately after
-typing the last character."
+of text.  
+Note: Works only when used immediately after typing the last character.
+After that, it can be repeated (fairly) reliable until a buffer is
+modified in any other way than repeating this command."
   (interactive "P")
-  (unless (eq this-command last-command)
+  (unless (or (eq this-command last-command)
+	      (not cua--repeat-replace-text)
+	      (not (eq last-command 'self-insert-command)))
     (setq cua--repeat-replace-text
 	  (and (mark t)
 	       (/= (point) (mark t))
@@ -846,21 +850,20 @@ With argument, jump to mark, and pop a new position for mark off the ring;
 then it jumps to the next mark off the ring if repeated with no argument, or
 sets the mark at the new position if repeated with argument."
   (interactive "P")
-  (if (and (eq this-command last-command)
-	   last-prefix-arg)
-      (setq arg (if arg nil last-prefix-arg)
-	    current-prefix-arg arg))
   (cond
+   ((eq last-command 'pop-to-mark-command)
+    (if (and (consp arg) (> (prefix-numeric-value arg) 4))
+	(push-mark-command nil)
+      (setq this-command 'pop-to-mark-command)
+      (pop-to-mark-command)))
    (arg
-    (if (null (mark t))
-	(error "No mark set in this buffer")
-      (goto-char (mark t))
-      (pop-mark)))
+    (setq this-command 'pop-to-mark-command)
+    (pop-to-mark-command))
    (mark-active
     (cua--deactivate)
     (message "Mark Cleared"))
    (t
-    (push-mark nil nil t)
+    (push-mark-command nil nil)
     (setq cua--explicit-region-start t)
     (setq cua--last-region-shifted nil)
     (if cua-enable-region-auto-help
@@ -923,12 +926,12 @@ Extra commands should be added to `cua-user-movement-commands'")
 	    (cond
 	     ((memq 'shift (event-modifiers (aref (this-single-command-raw-keys) 0)))
 	      (unless mark-active
-		(push-mark nil t t))
+		(push-mark-command nil t))
 	      (setq cua--last-region-shifted t)
 	      (setq cua--explicit-region-start nil))
 	     ((or cua--explicit-region-start cua--rectangle)
 	      (unless mark-active
-		(push-mark nil nil t)))
+		(push-mark-command nil nil)))
 	     (t
 	      ;; If we set mark-active to nil here, the region highlight will not be 
 	      ;; removed by the direct_output_ commands.
