@@ -68,7 +68,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
 #ifndef VMS
+#ifndef MSDOS
 #include <sgtty.h>
+#endif
 #else /* VMS */
 #include <descrip.h>
 static struct iosb
@@ -352,7 +354,11 @@ struct emacs_tty {
 #ifdef VMS
   struct sensemode main;
 #else
+#ifdef MSDOS
+  int main;
+#else
   struct sgttyb main;
+#endif
 #endif
 #endif
 #endif
@@ -399,7 +405,11 @@ struct emacs_tty {
 
 #else
 
+#ifdef MSDOS
+#define EMACS_TTY_TABS_OK(p) 0
+#else /* not MSDOS */
 #define EMACS_TTY_TABS_OK(p) (((p)->main.sg_flags & XTABS) != XTABS)
+#endif /* not MSDOS */
 
 #endif /* not def VMS */
 #endif /* not def HAVE_TERMIO */
