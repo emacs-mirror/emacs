@@ -1565,6 +1565,12 @@ See ``cvs-mode-diff'' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons "-rHEAD" flags)))
 
+(defun-cvs-mode (cvs-mode-diff-repository . SIMPLE) (flags)
+  "Diff the files for changes in the repository since last co/update/commit.
+See ``cvs-mode-diff'' for more info."
+  (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
+  (cvs-mode-diff-1 (cons "-rBASE" (cons "-rHEAD" flags))))
+
 (defun-cvs-mode (cvs-mode-diff-yesterday . SIMPLE) (flags)
   "Diff the selected files against yesterday's head of the current branch.
 See ``cvs-mode-diff'' for more info."
