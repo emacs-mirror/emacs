@@ -232,10 +232,15 @@ Called with region narrowed to the message, including headers.")
      ;;		From: Joe User
      ;;			<joe@y.z>
      ;; can yield `From Joe User Fri Mar 22 08:11:15 1996'.
+     ;; The mailbox can be removed or be replaced by white space, e.g.
+     ;;		From: "Joe User"{space}{tab}
+     ;;			<joe@y.z>
+     ;; can yield `From {space}{tab} Fri Mar 22 08:11:15 1996',
+     ;; where {space} and {tab} represent the Ascii space and tab characters.
      ;; We want to match the results of any of these manglings.
      ;; The following regexp rejects names whose first characters are
      ;; obviously bogus, but after that anything goes.
-     "\\([^\0-\r \^?].*\\)? "
+     "\\([^\0-\b\n-\r\^?].*\\)? "
 
      ;; The time the message was sent.
      "\\([^\0-\r \^?]+\\) +"				; day of the week
