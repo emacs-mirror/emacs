@@ -1823,7 +1823,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
   while (1)
     {
-      int c1, c2;
+      int c1, c2 = 0;
 
       src_base = src;
       ONE_MORE_BYTE (c1);
@@ -3050,7 +3050,7 @@ decode_coding_sjis_big5 (coding, source, destination,
   coding->produced_char = 0;
   while (1)
     {
-      int c, charset, c1, c2;
+      int c, charset, c1, c2 = 0;
 
       src_base = src;
       ONE_MORE_BYTE (c1);
