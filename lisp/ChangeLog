@@ -109,7 +109,7 @@
 	* eshell/esh-arg.el (eshell-parse-double-quote): Moved a call to
 	`forward-char', so that null strings are parsed correctly.
 
-2000-09-10  John Wiegley  <johnw@gnu.org>
+2000-09-13  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-pred.el (eshell-pred-file-type,
 	eshell-pred-file-links, eshell-pred-file-size): Use
@@ -125,7 +125,7 @@
 	the command line is a special file (not a regular file, directory
 	or symlink), always attempt to call the external version of cat.
 
-2000-09-06  John Wiegley  <johnw@gnu.org>
+2000-09-13  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-mode.el (eshell-find-tag): Corrections to the
 	Eshell-friendly version of find-tag.
