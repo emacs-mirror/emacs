@@ -117,8 +117,8 @@
 ;;;     comint-last-input-match - string           ...
 ;;;     comint-dynamic-complete-functions - hook   For the completion mechanism
 ;;;     comint-get-old-input    - function     Hooks for specific 
-;;;     comint-input-sentinel-functions - hook     process-in-a-buffer
-;;;     comint-output-sentinel-functions - hook    function modes.
+;;;     comint-input-filter-functions - hook     process-in-a-buffer
+;;;     comint-output-filter-functions - hook    function modes.
 ;;;     comint-input-filter     - function         ...
 ;;;     comint-input-send	- function         ...
 ;;;     comint-eol-on-send	- boolean          ...
@@ -239,13 +239,13 @@ This is a good thing to set in mode hooks.")
 Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
-(defvar comint-input-sentinel-functions '()
+(defvar comint-input-filter-functions '()
   "Functions to call before input is sent to the process.
 These functions get one argument, a string containing the text to send.
 
 This variable is buffer-local.")
 
-(defvar comint-output-sentinel-functions '(comint-postoutput-scroll-to-bottom) 
+(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom) 
   "Functions to call after output is inserted into the buffer.
 One possible function is `comint-postoutput-scroll-to-bottom'.
 These functions get one argument, a string containing the text just inserted.
@@ -291,8 +291,8 @@ This is to work around a bug in Emacs process signalling.")
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
-(put 'comint-input-sentinel-functions 'permanent-local t)
-(put 'comint-output-sentinel-functions 'permanent-local t)
+(put 'comint-input-filter-functions 'permanent-local t)
+(put 'comint-output-filter-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
@@ -308,7 +308,7 @@ before submitting new input.
 
 This mode is customised to create major modes such as Inferior Lisp
 mode, Shell mode, etc.  This can be done by setting the hooks
-`comint-input-sentinel-functions', `comint-input-filter', `comint-input-sender'
+`comint-input-filter-functions', `comint-input-filter', `comint-input-sender'
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
@@ -324,7 +324,7 @@ Commands with no default key bindings include `send-invisible',
 `comint-magic-space'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
-the end of the buffer.  See variables `comint-output-sentinel-functions',
+the end of the buffer.  See variables `comint-output-filter-functions',
 `comint-scroll-to-bottom-on-input', and `comint-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
@@ -361,7 +361,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-delimiter-argument-list)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-get-old-input)
-  (make-local-variable 'comint-input-sentinel-functions)
+  (make-local-variable 'comint-input-filter-functions)
   (make-local-variable 'comint-input-filter)
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
@@ -370,7 +370,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-show-maximum-output)
   (make-local-variable 'pre-command-hook)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom)
-  (make-local-variable 'comint-output-sentinel-functions)
+  (make-local-variable 'comint-output-filter-functions)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
@@ -878,7 +878,8 @@ See `comint-replace-by-expanded-history'.  Returns t if successful."
 		     (progn
 		       (replace-match
 			(comint-args (comint-previous-input-string number)
-				     (match-beginning 2) (match-end 2)) t t)
+				     (match-beginning 2) (match-end 2))
+			t t)
 		       (setq comint-input-ring-index number)
 		       (message "History item: %d" (1+ number)))
 		   (goto-char (match-end 0))
@@ -887,7 +888,8 @@ See `comint-replace-by-expanded-history'.  Returns t if successful."
 	       ;; Just a number of args from the previous input line.
 	       (replace-match
 		(comint-args (comint-previous-input-string 0)
-			     (match-beginning 1) (match-end 1)) t t)
+			     (match-beginning 1) (match-end 1))
+		t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
@@ -908,7 +910,8 @@ See `comint-replace-by-expanded-history'.  Returns t if successful."
 		   (setq comint-input-ring-index pos)
 		   (replace-match
 		    (comint-args (ring-ref comint-input-ring pos)
-				 (match-beginning 4) (match-end 4)) t t)
+				 (match-beginning 4) (match-end 4))
+		    t t)
 		   (message "History item: %d" (1+ pos)))))
 	      ((looking-at "\\^\\([^^]+\\)\\^?\\([^^]*\\)\\^?")
 	       ;; Quick substitution on the previous input line.
@@ -1030,28 +1033,28 @@ since it is assumed the remote process will re-echo it).
 
 Any history reference may be expanded depending on the value of the variable
 `comint-input-autoexpand'.  The list of function names contained in the value
-of `comint-input-sentinel-functions' is called on the input before sending it.
+of `comint-input-filter-functions' is called on the input before sending it.
 The input is entered into the input history ring, if the value of variable
 `comint-input-filter' returns non-nil when called on the input.
 
 If variable `comint-eol-on-send' is non-nil, then point is moved to the
 end of line before sending the input.
 
-The values of `comint-get-old-input', `comint-input-sentinel-functions', and
+The values of `comint-get-old-input', `comint-input-filter-functions', and
 `comint-input-filter' are chosen according to the command interpreter running
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
     comint-get-old-input is the default: take the current line, discard any
         initial string matching regexp comint-prompt-regexp.
-    comint-input-sentinel-functions monitors input for \"cd\", \"pushd\", and
+    comint-input-filter-functions monitors input for \"cd\", \"pushd\", and
         \"popd\" commands. When it sees one, it cd's the buffer.
     comint-input-filter is the default: returns t if the input isn't all white
 	space.
 
 If the comint is Lucid Common Lisp, 
     comint-get-old-input snarfs the sexp ending at point.
-    comint-input-sentinel-functions does nothing.
+    comint-input-filter-functions does nothing.
     comint-input-filter returns nil if the input matches input-filter-regexp,
         which matches (1) all whitespace (2) :a, :c, etc.
 
@@ -1094,7 +1097,7 @@ Similarly for Soar, Scheme, etc."
 		       (not (string-equal (ring-ref comint-input-ring 0)
 					  history))))
 	      (ring-insert comint-input-ring history))
-	  (let ((functions comint-input-sentinel-functions))
+	  (let ((functions comint-input-filter-functions))
 	    (while functions
 	      (funcall (car functions) (concat input "\n"))
 	      (setq functions (cdr functions))))
@@ -1106,7 +1109,7 @@ Similarly for Soar, Scheme, etc."
 	  ;; A kludge to prevent the delay between insert and process output
 	  ;; affecting the display.  A case for a comint-send-input-hook?
 	  (if (eq (process-filter proc) 'comint-output-filter)
-	      (let ((functions comint-output-sentinel-functions))
+	      (let ((functions comint-output-filter-functions))
 		(while functions
 		  (funcall (car functions) (concat input "\n"))
 		  (setq functions (cdr functions)))))))))
@@ -1151,7 +1154,7 @@ Similarly for Soar, Scheme, etc."
 
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
-	  (let ((functions comint-output-sentinel-functions))
+	  (let ((functions comint-output-filter-functions))
 	    (while functions
 	      (funcall (car functions) string)
 	      (setq functions (cdr functions))))
@@ -1191,7 +1194,7 @@ Does not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-scroll-to-bottom-on-output' and
 `comint-scroll-show-maximum-output'.
 
-This function should be in the list `comint-output-sentinel-functions'."
+This function should be in the list `comint-output-filter-functions'."
   (let* ((selected (selected-window))
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
@@ -1968,7 +1971,7 @@ Typing SPC flushes the help buffer."
 ;;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
 ;;;
 ;;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
-;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-sentinel-functions.
+;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-filter-functions.
 ;;; Comint mode does not provide functionality equivalent to
 ;;; shell-set-directory-error-hook; it is gone.
 ;;;
@@ -1985,7 +1988,7 @@ Typing SPC flushes the help buffer."
 ;;; necessary comint-specific local variables. Then create the
 ;;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
 ;;; be foo-mode-map, and its mode to be foo-mode.  Set the comint-mode hooks
-;;; (comint-{prompt-regexp, input-filter, input-sentinel-functions,
+;;; (comint-{prompt-regexp, input-filter, input-filter-functions,
 ;;; get-old-input) that need to be different from the defaults.  Call
 ;;; foo-mode-hook, and you're done. Don't run the comint-mode hook yourself;
 ;;; comint-mode will take care of it. The following example, from shell.el,
@@ -2009,7 +2012,7 @@ Typing SPC flushes the help buffer."
 ;;;   (use-local-map shell-mode-map)
 ;;;   (make-local-variable 'shell-directory-stack)
 ;;;   (setq shell-directory-stack nil)
-;;;   (add-hook 'comint-input-sentinel-functions 'shell-directory-tracker)
+;;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
 ;;;   (run-hooks 'shell-mode-hook))
 ;;;
 ;;;
