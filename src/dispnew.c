@@ -5375,7 +5375,7 @@ buffer_posn_from_coords (w, x, y)
 Lisp_Object
 mode_line_string (w, x, y, mode_line_p, charpos)
      struct window *w;
-     int x, y;
+     int x, y, mode_line_p;
      int *charpos;
 {
   struct glyph_row *row;
