@@ -87,6 +87,8 @@ Lisp_Object Qx;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
+
+extern Lisp_Object Vlast_event_frame;
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
   "Return non-nil if OBJECT is a frame.\n\
@@ -390,6 +392,14 @@ Changing the selected frame can change focus redirections.  See\n\
 #endif
   choose_minibuf_frame ();
 
+  /* We want to make sure that the next event generates a frame-switch
+     event to the appropriate frame.  This seems kludgey to me, but
+     before you take it out, make sure that evaluating something like
+     (select-window (frame-root-window (new-frame))) doesn't end up
+     with your typing being interpreted in the new frame instead of
+     the one you're actually typing in.  */
+  Vlast_event_frame = Qnil;
+
   return frame;
 }
 
@@ -602,7 +612,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
     }
 
   if (! FRAME_LIVE_P (f))
-    return;
+    return Qnil;
 
   /* Are there any other frames besides this one?  */
   if (f == selected_frame && EQ (next_frame (frame, Qt), frame))
