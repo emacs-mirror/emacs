@@ -1054,12 +1054,11 @@ clear_font_table (dpyinfo)
       if (font_info->name == NULL)
 	continue;
 
-      /* Don't free a default font of some frame on this display.  */
+      /* Don't free a default font of some frame.  */
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f)
-	      && FRAME_X_DISPLAY_INFO (f) == dpyinfo
 	      && font_info->font == FRAME_FONT (f))
 	    break;
 	}
@@ -4052,7 +4051,7 @@ FRAME 0 means change the face on all frames, and change the default
   else if (EQ (attr, QCfont))
     {
 #ifdef HAVE_WINDOW_SYSTEM
-      if (FRAME_WINDOW_P (XFRAME (frame)))
+      if (EQ (frame, Qt) || FRAME_WINDOW_P (XFRAME (frame)))
 	{
 	  /* Set font-related attributes of the Lisp face from an XLFD
 	     font name.  */
