@@ -39,6 +39,61 @@
 (defvar mouse-yank-at-point nil
   "*If non-nil, mouse yank commands yank at point instead of at click.")
 
+;; Provide a mode-specific menu on a mouse button.
+
+(defun mouse-major-mode-menu (event)
+  "Pop up a mode-specific menu of mouse commands."
+  ;; Switch to the window clicked on, because otherwise
+  ;; the mode's commands may not make sense.
+  (interactive "@e")
+  (let ((newmap (make-sparse-keymap))
+	(unread-command-events (list event)))
+    ;; Make a keymap in which our last command leads to a menu
+    (define-key newmap (vector (car event))
+      (nconc (make-sparse-keymap "Menu")
+	     (mouse-major-mode-menu-1
+	      (lookup-key (current-local-map) [menu-bar]))))
+    (mouse-major-mode-menu-compute-equiv-keys newmap)
+    (command-execute
+     ;; Make NEWMAP override the usual definition
+     ;; of the mouse button that got us here.
+     ;; Then read the user's menu choice.
+     (let ((minor-mode-map-alist
+	    (cons (cons t newmap) minor-mode-map-alist)))
+       (lookup-key newmap (read-key-sequence ""))))))
+
+;; Compute and cache the equivalent keys in MENU and all its submenus.
+(defun mouse-major-mode-menu-compute-equiv-keys (menu)
+  (and (eq (car menu) 'keymap)
+       (x-popup-menu nil menu))
+  (while menu
+    (and (consp (car menu))
+	 (consp (cdr (car menu)))
+	 (let ((tail (cdr (car menu))))
+	   (while (and (consp tail)
+		       (not (eq (car tail) 'keymap)))
+	     (setq tail (cdr tail)))
+	   (if (consp tail)
+	       (mouse-major-mode-menu-compute-equiv-keys tail))))
+    (setq menu (cdr menu))))
+
+;; Given a mode's menu bar keymap,
+;; if it defines exactly one menu bar menu,
+;; return just that menu.
+;; Otherwise return a menu for all of them.
+(defun mouse-major-mode-menu-1 (menubar)
+  (if menubar
+      (let ((tail menubar)
+	    submap)
+	(while tail
+	  (if (consp (car tail))
+	      (if submap
+		  (setq submap t)
+		(setq submap (cdr (car tail)))))
+	  (setq tail (cdr tail)))
+	(if (eq submap t) menubar
+	  submap))))
+
 ;; Commands that operate on windows.
 
 (defun mouse-minibuffer-check (event)
@@ -1437,8 +1492,10 @@ and selects that window."
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.
-(global-set-key [C-down-mouse-1]	'mouse-buffer-menu)
-(global-set-key [C-down-mouse-3]	'mouse-set-font)
+(global-set-key [C-down-mouse-1] 'mouse-buffer-menu)
+(global-set-key [C-down-mouse-2] 'mouse-set-font)
+(global-set-key [C-down-mouse-3] 'mouse-major-mode-menu)
+
 
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
