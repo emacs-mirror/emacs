@@ -2854,7 +2854,7 @@ extern void syms_of_mocklisp P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
-extern void fatal ();
+extern void fatal () NO_RETURN;
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in fontset.c */
