@@ -284,16 +284,75 @@ EVENT should be a scroll bar click."
 	(setq point-before-scroll before-scroll)))))
 
 
+;;; Tookit scroll bars.
+
+;; Due to its event handling, Emacs is currently not able to handle Xt
+;; timeouts which toolkit scroll bars use to implement auto-repeat.
+;; As a workaround, we start a timer whenever a scroll bar action
+;; occurs, and remove it again when are notified that the user no
+;; longer interacts with the scroll bar.  The timer function gives Xt
+;; the chance to call Xt timeout functions.
+
+(defvar scroll-bar-timer nil
+  "Timer running while scroll bar is active.")
+
+(defun scroll-bar-toolkit-scroll (event)
+  (interactive "e")
+  (let* ((end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (part (nth 4 end-position))
+	 before-scroll)
+    (cond ((eq part 'end-scroll)
+	   (when scroll-bar-timer
+	     (cancel-timer scroll-bar-timer)
+	     (setq scroll-bar-timer nil)))
+	  (t
+	   (with-current-buffer (window-buffer window)
+	     (setq before-scroll point-before-scroll))
+	   (save-selected-window
+	     (select-window window)
+	     (setq before-scroll (or before-scroll (point)))
+	     (cond ((eq part 'above-handle)
+		    (scroll-up '-))
+		   ((eq part 'below-handle)
+		    (scroll-up nil))
+		   ((eq part 'up)
+		    (scroll-up -1))
+		   ((eq part 'down)
+		    (scroll-up 1))
+		   ((eq part 'top)
+		    (set-window-start window (point-min)))
+		   ((eq part 'bottom)
+		    (goto-char (point-max))
+		    (recenter))
+		   ((eq part 'handle)
+		    (scroll-bar-drag-1 event))))
+	   (sit-for 0)
+	   (unless scroll-bar-timer
+	     (setq scroll-bar-timer
+		   (run-with-timer 0.1 0.1 'xt-process-timeouts)))
+	   (with-current-buffer (window-buffer window)
+	     (setq point-before-scroll before-scroll))))))
+
+
+
 ;;;; Bindings.
 
 ;;; For now, we'll set things up to work like xterm.
-(global-set-key [vertical-scroll-bar mouse-1] 'scroll-bar-scroll-up)
-(global-set-key [vertical-scroll-bar drag-mouse-1] 'scroll-bar-scroll-up)
-
-(global-set-key [vertical-scroll-bar down-mouse-2] 'scroll-bar-drag)
-
-(global-set-key [vertical-scroll-bar mouse-3] 'scroll-bar-scroll-down)
-(global-set-key [vertical-scroll-bar drag-mouse-3] 'scroll-bar-scroll-down)
+(cond (x-toolkit-scroll-bars-p
+       (global-set-key [vertical-scroll-bar mouse-1]
+		       'scroll-bar-toolkit-scroll))
+      (t
+       (global-set-key [vertical-scroll-bar mouse-1]
+		       'scroll-bar-scroll-up)
+       (global-set-key [vertical-scroll-bar drag-mouse-1]
+		       'scroll-bar-scroll-up)
+       (global-set-key [vertical-scroll-bar down-mouse-2]
+		       'scroll-bar-drag)
+       (global-set-key [vertical-scroll-bar mouse-3]
+		       'scroll-bar-scroll-down)
+       (global-set-key [vertical-scroll-bar drag-mouse-3]
+		       'scroll-bar-scroll-down)))
 
 
 (provide 'scroll-bar)
