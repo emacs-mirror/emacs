@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.62) $
+ * $HopeName: MMsrc!pool.c(trunk.63) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,12 +37,12 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.62) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.63) $");
 
 
 Bool PoolClassCheck(PoolClass class)
 {
-  CHECKS(PoolClass, class);
+  CHECKL(ProtocolClassCheck(&class->protocol));
   CHECKL(class->name != NULL); /* Should be <=6 char C identifier */
   CHECKL(class->size >= sizeof(PoolStruct));
   /* Offset of generic Pool within class-specific instance cannot be */
@@ -67,7 +67,7 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->act));
   CHECKL(FUNCHECK(class->walk));
   CHECKL(FUNCHECK(class->describe));
-  CHECKL(class->endSig == PoolClassSig);
+  CHECKS(PoolClass, class);
   return TRUE;
 }
 
@@ -616,6 +616,13 @@ void PoolTrivFinish(Pool pool)
 {
   AVERT(Pool, pool);
   NOOP;
+}
+
+Res PoolTrivInit(Pool pool, va_list args)
+{
+  AVERT(Pool, pool);
+  UNUSED(args);
+  return ResOK;
 }
 
 Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,

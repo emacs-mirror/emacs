@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.22) $
+ * $HopeName: MMsrc!poolamc.c(trunk.23) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.22) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.23) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -24,8 +24,7 @@ typedef struct AMCStruct *AMC;
 /* forward declarations */
 
 static Bool AMCCheck(AMC amc);
-static PoolClassStruct PoolClassAMCStruct;
-static PoolClassStruct PoolClassAMCZStruct;
+static PoolClass EnsureAMCPoolClass(void);
 
 
 /* AMCGenStruct -- pool AMC generation descriptor */
@@ -1661,8 +1660,7 @@ static void AMCWalkAll(Pool pool,
   AVERT(Pool, pool);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures, hence can't be checked */
-  AVER(pool->class == &PoolClassAMCStruct ||
-       pool->class == &PoolClassAMCZStruct);
+  AVER(IsSubclass(pool->class, EnsureAMCPoolClass()));
 
   arena = PoolArena(pool);
 
@@ -1732,94 +1730,60 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
 }
 
 
-/* PoolClassAMCStruct -- the class descriptor */
+/* AMCPoolClass -- the class definition */
 
-static PoolClassStruct PoolClassAMCStruct = {
-  PoolClassSig,
-  "AMC",                                /* name */
-  sizeof(AMCStruct),                    /* size */
-  offsetof(AMCStruct, poolStruct),      /* offset */
-  NULL,                                 /* super */
-  AttrFMT | AttrSCAN | AttrBUF | AttrBUF_RESERVE |
-    AttrGC | AttrMOVINGGC | AttrINCR_RB,
-  AMCInit,                              /* init */
-  AMCFinish,                            /* finish */
-  PoolNoAlloc,                          /* alloc */
-  PoolNoFree,                           /* free */
-  AMCBufferInit,                        /* bufferInit */
-  AMCBufferFill,                        /* bufferFill */
-  AMCBufferEmpty,                       /* bufferEmpty */
-  PoolTrivBufferFinish,                 /* bufferFinish */
-  PoolTrivTraceBegin,                   /* traceBegin */
-  PoolSegAccess,                        /* access */
-  AMCWhiten,                            /* whiten */
-  PoolTrivGrey,                         /* grey */
-  PoolTrivBlacken,                      /* blacken */
-  AMCScan,                              /* scan */
-  AMCFix,                               /* fix */
-  AMCFixEmergency,                      /* emergency fix */
-  AMCReclaim,                           /* reclaim */
-  AMCBenefit,                           /* benefit */
-  AMCAct,                               /* act */
-  AMCRampBegin,
-  AMCRampEnd,
-  AMCWalk,                              /* walk */
-  AMCDescribe,                          /* describe */
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpm.class.end-sig */
-};
+DEFINE_POOL_CLASS(AMCPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractCollectPoolClass);
+  PoolClassMixInFormat(this);
+  this->name = "AMC";
+  this->size = sizeof(AMCStruct);
+  this->offset = offsetof(AMCStruct, poolStruct);
+  this->attr |= AttrMOVINGGC;
+  this->init = AMCInit;
+  this->finish = AMCFinish;
+  this->bufferInit = AMCBufferInit;
+  this->bufferFill = AMCBufferFill;
+  this->bufferEmpty = AMCBufferEmpty;
+  this->whiten = AMCWhiten;
+  this->scan = AMCScan;
+  this->fix = AMCFix;
+  this->fixEmergency = AMCFixEmergency;
+  this->reclaim = AMCReclaim;
+  this->benefit = AMCBenefit;
+  this->act = AMCAct;
+  this->rampBegin = AMCRampBegin;
+  this->rampEnd = AMCRampEnd;
+  this->walk = AMCWalk;
+  this->describe = AMCDescribe;
+}
 
 
-/* PoolClassAMCZStruct -- the class descriptor */
+/* AMCZPoolClass -- the class definition */
 
-static PoolClassStruct PoolClassAMCZStruct = {
-  PoolClassSig,
-  "AMCZ",                               /* name */
-  sizeof(AMCStruct),                    /* size */
-  offsetof(AMCStruct, poolStruct),      /* offset */
-  NULL,                                 /* super */
-  AttrFMT | AttrBUF | AttrBUF_RESERVE |
-    AttrGC | AttrMOVINGGC,
-  AMCZInit,                             /* init */
-  AMCFinish,                            /* finish */
-  PoolNoAlloc,                          /* alloc */
-  PoolNoFree,                           /* free */
-  AMCBufferInit,                        /* bufferInit */
-  AMCBufferFill,                        /* bufferFill */
-  AMCBufferEmpty,                       /* bufferEmpty */
-  PoolTrivBufferFinish,                 /* bufferFinish */
-  PoolTrivTraceBegin,                   /* traceBegin */
-  PoolSegAccess,                        /* access */
-  AMCWhiten,                            /* whiten */
-  PoolNoGrey,                           /* grey */
-  PoolTrivBlacken,                      /* blacken */
-  PoolNoScan,                           /* scan */
-  AMCFix,                               /* fix */
-  AMCFixEmergency,                      /* emergency fix */
-  AMCReclaim,                           /* reclaim */
-  AMCBenefit,                           /* benefit */
-  AMCAct,                               /* act */
-  AMCRampBegin,
-  AMCRampEnd,
-  AMCWalk,                              /* walk */
-  AMCDescribe,                          /* describe */
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpm.class.end-sig */
-};
-
+DEFINE_POOL_CLASS(AMCZPoolClass, this)
+{
+  INHERIT_CLASS(this, AMCPoolClass);
+  this->name = "AMCZ";
+  this->attr &= ~(AttrSCAN | AttrINCR_RB);
+  this->init = AMCZInit;
+  this->grey = PoolNoGrey;
+  this->scan = PoolNoScan;
+}
+  
 
 /* mps_class_amc -- return the pool class descriptor to the client */
 
 mps_class_t mps_class_amc(void)
 {
-  return (mps_class_t)(&PoolClassAMCStruct);
+  return (mps_class_t)(EnsureAMCPoolClass());
 }
 
 /* mps_class_amcz -- return the pool class descriptor to the client */
 
 mps_class_t mps_class_amcz(void)
 {
-  return (mps_class_t)(&PoolClassAMCZStruct);
+  return (mps_class_t)(EnsureAMCZPoolClass());
 }
 
 
@@ -1882,8 +1846,7 @@ static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
   CHECKD(Pool, &amc->poolStruct);
-  CHECKL(amc->poolStruct.class == &PoolClassAMCStruct ||
-         amc->poolStruct.class == &PoolClassAMCZStruct);
+  CHECKL(IsSubclass(amc->poolStruct.class, EnsureAMCPoolClass()));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKL(RingCheck(&amc->genRing));
   CHECKL(BoolCheck(amc->gensBooted));

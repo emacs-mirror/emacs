@@ -2,7 +2,7 @@
  *
  *                  ANSI RECURSIVE LOCKS
  *
- *  $HopeName: MMsrc!lockan.c(trunk.5) $
+ *  $HopeName: MMsrc!lockan.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.5) $");
+SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.6) $");
 
 Bool LockCheck(Lock lock)
 {
@@ -69,3 +69,25 @@ void LockReleaseRecursive(Lock lock)
   AVER(lock->claims > 0);
   --lock->claims;
 }
+
+
+/* Global locking is performed by a normal lock. */
+
+static LockStruct globalLockStruct = {
+  LockSig,
+  0
+};
+
+static Lock globalLock = &globalLockStruct;
+
+void LockClaimGlobalRecursive()
+{
+  LockClaimRecursive(globalLock);
+}
+
+void LockReleaseGlobalRecursive()
+{
+  LockReleaseRecursive(globalLock);
+}
+
+

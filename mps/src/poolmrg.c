@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.31) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.32) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.31) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.32) $");
 
 
 /* Types */
@@ -695,42 +695,24 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-static PoolClassStruct PoolClassMRGStruct = {
-  PoolClassSig,
-  "MRG",                                /* name */
-  sizeof(MRGStruct),                    /* size */
-  offsetof(MRGStruct, poolStruct),      /* offset */
-  NULL,                                 /* super */
-  AttrSCAN | AttrFREE | AttrINCR_RB,
-  MRGInit,
-  MRGFinish,
-  PoolNoAlloc,
-  MRGFree,
-  PoolNoBufferInit,
-  PoolNoBufferFill,
-  PoolNoBufferEmpty,
-  PoolNoBufferFinish,
-  PoolNoTraceBegin,
-  PoolNoAccess,
-  PoolNoWhiten,
-  PoolTrivGrey,
-  PoolTrivBlacken,
-  MRGScan,
-  PoolNoFix,
-  PoolNoFix,
-  PoolNoReclaim,
-  PoolNoBenefit,
-  PoolNoAct,
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,
-  MRGDescribe,
-  PoolNoDebugMixin,
-  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
-};
+DEFINE_POOL_CLASS(MRGPoolClass, this)
+{
+  INHERIT_CLASS(this, AbstractPoolClass);
+  this->name = "MRG";
+  this->size = sizeof(MRGStruct);
+  this->offset = offsetof(MRGStruct, poolStruct);
+  this->attr |= (AttrSCAN | AttrFREE | AttrINCR_RB);
+  this->init = MRGInit;
+  this->finish = MRGFinish;
+  this->free = MRGFree;
+  this->grey = PoolTrivGrey;
+  this->blacken = PoolTrivBlacken;
+  this->scan = MRGScan;
+  this->describe = MRGDescribe;
+}
 
 
 PoolClass PoolClassMRG(void)
 {
-  return &PoolClassMRGStruct;
+  return EnsureMRGPoolClass();
 }

@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.5) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -17,7 +17,7 @@
 #include "abq.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.5) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.6) $");
 
 
 /* Signatures */
@@ -140,42 +140,20 @@ typedef struct MV2Struct
 } MV2Struct;
 
 
-static PoolClassStruct PoolClassMV2Struct =
+DEFINE_POOL_CLASS(MV2PoolClass, this)
 {
-  PoolClassSig,
-  "MV2",                        /* name */
-  sizeof(MV2Struct),            /* size */
-  offsetof(MV2Struct, poolStruct), /* offset */
-  NULL,                         /* super */
-  /* --- should we implement AttrALLOC? */
-  AttrFREE | AttrBUF | AttrBUF_RESERVE,/* attr */
-  MV2Init,                      /* init */
-  MV2Finish,                    /* finish */
-  PoolNoAlloc,                  /* alloc */
-  MV2Free,                      /* free */
-  PoolTrivBufferInit,           /* bufferInit */
-  MV2BufferFill,                /* bufferFill */
-  MV2BufferEmpty,               /* bufferEmpty */
-  PoolTrivBufferFinish,         /* bufferFinish */
-  PoolNoTraceBegin,             /* traceBegin */
-  PoolNoAccess,                 /* access */
-  PoolNoWhiten,                 /* whiten */
-  PoolNoGrey,                   /* mark */
-  PoolNoBlacken,                /* blacken */
-  PoolNoScan,                   /* scan */
-  PoolNoFix,                    /* fix */
-  PoolNoFix,                    /* emergency fix */
-  PoolNoReclaim,                /* relcaim */
-  PoolNoBenefit,                /* benefit */
-  PoolNoAct,                    /* act */
-  PoolNoRampBegin,
-  PoolNoRampEnd,
-  PoolNoWalk,                   /* walk */
-  MV2Describe,                  /* describe */
-  PoolNoDebugMixin,
-  PoolClassSig                  /* impl.h.mpmst.class.end-sig */
-};
-
+  INHERIT_CLASS(this, AbstractBufferPoolClass);
+  this->name = "MV2";
+  this->size = sizeof(MV2Struct);
+  this->offset = offsetof(MV2Struct, poolStruct);
+  this->attr |= AttrFREE;
+  this->init = MV2Init;
+  this->finish = MV2Finish;
+  this->free = MV2Free;
+  this->bufferFill = MV2BufferFill;
+  this->bufferEmpty = MV2BufferEmpty;
+  this->describe = MV2Describe;
+}
 
 /* Macros */
 
@@ -367,7 +345,7 @@ static Bool MV2Check(MV2 mv2)
 {
   CHECKS(MV2, mv2);
   CHECKD(Pool, &mv2->poolStruct);
-  CHECKL(mv2->poolStruct.class == &PoolClassMV2Struct);
+  CHECKL(mv2->poolStruct.class == EnsureMV2PoolClass());
   CHECKD(CBS, &mv2->cbsStruct);
   /* CHECKL(CBSCheck(MV2CBS(mv2))); */
   CHECKD(ABQ, &mv2->abqStruct);
@@ -819,7 +797,7 @@ static Res MV2Describe(Pool pool, mps_lib_FILE *stream)
  */
 PoolClass PoolClassMV2(void)
 {
-  return &PoolClassMV2Struct;
+  return EnsureMV2PoolClass();
 }
 
 

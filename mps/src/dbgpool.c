@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.5) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -122,7 +122,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
 
-  res = (pool->class->super->init)(pool, args);
+  res = SuperclassOfPool(pool)->init(pool, args);
   if (res != ResOK)
     return res;
 
@@ -167,7 +167,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
 
 tagFail:
 alignFail:
-  (pool->class->super->finish)(pool);
+  SuperclassOfPool(pool)->finish(pool);
   return res;
 }
 
@@ -187,7 +187,7 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  (pool->class->super->finish)(pool);
+  SuperclassOfPool(pool)->finish(pool);
 }
 
 
@@ -221,9 +221,9 @@ static Res FenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
   AVERT(Bool, withReservoir);
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  res = (pool->class->super->alloc)(&new, pool,
-                                    alignedSize + 2*debug->fenceSize,
-                                    withReservoir);
+  res = SuperclassOfPool(pool)->alloc(&new, pool,
+                                      alignedSize + 2*debug->fenceSize,
+                                      withReservoir);
   if (res != ResOK)
     return res;
   clientNew = AddrAdd(new, debug->fenceSize);
@@ -279,8 +279,8 @@ static void FenceFree(PoolDebugMixin debug,
   AVER(FenceCheck(debug, pool, old, size));
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  (pool->class->super->free)(pool, AddrSub(old, debug->fenceSize),
-                             alignedSize + 2*debug->fenceSize);
+  SuperclassOfPool(pool)->free(pool, AddrSub(old, debug->fenceSize),
+                               alignedSize + 2*debug->fenceSize);
 }
 
 
@@ -450,12 +450,11 @@ static void DebugPoolCheckFences(Pool pool)
 }
 
 
-/* EnsureDebugClass -- make a debug subclass of the given class */
+/* PoolClassMixInDebug -- mix in the debug support for class init */
 
-void EnsureDebugClass(PoolClassStruct *class, PoolClass super)
+void PoolClassMixInDebug(PoolClass class)
 {
-  *class = *super;  /* @@@@ this doesn't work multi-threaded! */
-  class->super = super;
+  /* Can't check class because it's not initialized yet */
   class->init = DebugPoolInit;
   class->finish = DebugPoolFinish;
   class->alloc = DebugPoolAlloc;
