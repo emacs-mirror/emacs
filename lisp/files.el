@@ -1232,7 +1232,8 @@ if you wish to pass an empty string as the argument."
 	      (rename-buffer new-name t))))
     (setq buffer-backed-up nil)
     (clear-visited-file-modtime)
-    (setq buffer-file-truename (abbreviate-file-name truename))
+    (if truename
+	(setq buffer-file-truename (abbreviate-file-name truename)))
     (setq buffer-file-number
 	  (if filename
 	      (nth 10 (file-attributes buffer-file-name))
