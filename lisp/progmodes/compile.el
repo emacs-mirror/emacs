@@ -557,9 +557,10 @@ to a function that generates a unique name."
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
-While grep runs asynchronously, you can use \\[next-error] \
-or \\<compilation-minor-mode-map>\\[compile-goto-error]
-to go to the lines where grep found matches.
+While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
+or \\<compilation-minor-mode-map>\\[compile-goto-error] in the grep \
+output buffer, to go to the lines
+where grep found matches.
 
 This command uses a special history list for its arguments, so you can
 easily repeat a grep command.
@@ -1345,21 +1346,25 @@ other kinds of prefix arguments are ignored."
 ;;;###autoload
 (defun next-error (&optional argp)
   "Visit next compilation error message and corresponding source code.
-This operates on the output from the \\[compile] and \\[grep] commands.
-If all preparsed error messages have been processed,
-the error message buffer is checked for new ones.
+
+If all the error messages parsed so far have been processed already,
+the message buffer is checked for new ones.
 
 A prefix arg specifies how many error messages to move;
 negative means move back to previous error messages.
 Just C-u as a prefix means reparse the error message buffer
 and start at the first error.
 
-\\[next-error] normally applies to the most recent compilation started,
-but as long as you are in the middle of parsing errors from one compilation
-output buffer, you stay with that compilation output buffer.
+\\[next-error] normally uses the most recently started compilation or
+grep buffer.  However, it can operate on any buffer with output from
+the \\[compile] and \\[grep] commands, or, more generally, on any
+buffer in Compilation mode or with Compilation Minor mode enabled.  To
+specify use of a particular buffer for error messages, type
+\\[next-error] in that buffer.
 
-Use \\[next-error] in a compilation output buffer to switch to
-processing errors from that compilation.
+Once \\[next-error] has chosen the buffer for error messages,
+it stays with that buffer until you use it in some other buffer which
+uses Compilation mode or Compilation Minor mode.
 
 See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
