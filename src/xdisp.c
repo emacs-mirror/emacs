@@ -22090,7 +22090,9 @@ expose_window (w, fr)
 	      || (r.y >= y0 && r.y < y1)
 	      || (r.y + r.height > y0 && r.y + r.height < y1))
 	    {
-	      if (row->overlapping_p)
+	      /* A header line may be overlapping, but there is no need
+		 to fix overlapping areas for them.  KFS 2005-02-12 */
+	      if (row->overlapping_p && !row->mode_line_p)
 		{
 		  if (first_overlapping_row == NULL)
 		    first_overlapping_row = row;
