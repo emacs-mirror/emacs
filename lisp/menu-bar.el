@@ -311,7 +311,7 @@ A large number or nil slows down menu responsiveness."
      '(or (x-selection-exists-p) (x-selection-exists-p 'CLIPBOARD)))
 
 (defun clipboard-yank ()
-  "Reinsert the last stretch of killed text, or the clipboard contents."
+  "Insert the clipboard contents, or the last stretch of killed text."
   (interactive)
   (let ((x-select-enable-clipboard t))
     (yank)))
