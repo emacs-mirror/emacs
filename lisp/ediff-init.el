@@ -1204,19 +1204,9 @@ Instead, C-h would jump to previous difference."
   :group 'ediff)
   
 (defcustom ediff-temp-file-prefix
-  (let ((env (or (getenv "TMPDIR")
-		 (getenv "TMP")
-		 (getenv "TEMP")))
-	d)
-    (setq d (if (and env (> (length env) 0))
-		env
-	      (cond ((memq system-type '(vax-vms axp-vms)) "SYS$SCRATCH:")
- 		    ((eq system-type 'ms-dos) "c:/")
- 		    (t "/tmp"))))
-    ;; The following is to make sure we get something to which we can
-    ;; add directory levels under VMS.
-    (setq d (file-name-as-directory (directory-file-name d)))
-    )
+  ;; The following is to make sure we get something to which we can
+  ;; add directory levels under VMS.
+  (file-name-as-directory system-tmp-directory)
   "*Prefix to put on Ediff temporary file names.
 Do not start with `~/' or `~user-name/'."
   :type 'string
