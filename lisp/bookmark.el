@@ -82,7 +82,7 @@
 
 (require 'pp)
 
-(defconst bookmark-version "2.6.20"
+(defconst bookmark-version "2.6.3"
   "Version number of bookmark.el.  This is not related to the version
 of Emacs bookmark comes with; it is used solely by bookmark's
 maintainers to avoid version confusion.")
@@ -450,7 +450,11 @@ That is, all information but the name."
     (if cell
         (setcdr cell node)
       (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'info-node node))))))
+             (list (cons 'info-node node)))))
+
+  (message "%S" (assq 'info-node (bookmark-get-bookmark-record bookmark)))
+  (sit-for 4)
+  )
   
 
 (defvar bookmark-history nil
@@ -490,11 +494,13 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
       (setq bookmark-history (cons (, string) bookmark-history)))))
 
 
-(defun bookmark-make (name &optional annotation overwrite)
+(defun bookmark-make (name &optional annotation overwrite info-node)
   "Make a bookmark named NAME.
 Optional second arg ANNOTATION gives it an annotation.
 Optional third arg OVERWRITE means replace any existing bookmarks with
-this name."
+this name.
+Optional fourth arg INFO-NODE means this bookmark is at info node
+INFO-NODE, so record this fact in the bookmark's entry."
   (bookmark-maybe-load-default-file)
   (let ((stripped-name (copy-sequence name)))
     (or bookmark-xemacsp
@@ -505,7 +511,7 @@ this name."
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
-                (list (bookmark-make-cell annotation)))
+                (list (bookmark-make-cell annotation info-node)))
       
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
@@ -514,7 +520,7 @@ this name."
       (setq bookmark-alist
             (cons
              (list stripped-name 
-                   (bookmark-make-cell annotation))
+                   (bookmark-make-cell annotation info-node))
              bookmark-alist)))
     
     ;; Added by db
@@ -525,25 +531,38 @@ this name."
         (bookmark-save))))
 
 
-(defun bookmark-make-cell (annotation)
+(defun bookmark-make-cell (annotation &optional info-node)
   "Return the record part of a new bookmark, given ANNOTATION.
 Must be at the correct position in the buffer in which the bookmark is
-being set.  This will change soon."
-  (` ((filename . (, (bookmark-buffer-file-name)))
-      (front-context-string
-       . (, (if (>= (- (point-max) (point)) bookmark-search-size)
-                (buffer-substring-no-properties
-                 (point)
-                 (+ (point) bookmark-search-size))
-              nil)))
-      (rear-context-string
-       . (, (if (>= (- (point) (point-min)) bookmark-search-size)
-                (buffer-substring-no-properties
-                 (point)
-                 (- (point) bookmark-search-size))
-              nil)))
-      (position . (, (point)))
-      (annotation . (, annotation)))))
+being set.  This might change someday.
+Optional second arg INFO-NODE means this bookmark is at info node
+INFO-NODE, so record this fact in the bookmark's entry."
+  (let ((the-record
+         (` ((filename . (, (bookmark-buffer-file-name)))
+             (front-context-string
+              . (, (if (>= (- (point-max) (point)) bookmark-search-size)
+                       (buffer-substring-no-properties
+                        (point)
+                        (+ (point) bookmark-search-size))
+                     nil)))
+             (rear-context-string
+              . (, (if (>= (- (point) (point-min)) bookmark-search-size)
+                       (buffer-substring-no-properties
+                        (point)
+                        (- (point) bookmark-search-size))
+                     nil)))
+             (position . (, (point)))
+             ))))
+
+    ;; Now fill in the optional parts:
+    (if annotation
+        (nconc the-record (list (cons 'annotation annotation))))
+    (if info-node
+        (nconc the-record (list (cons 'info-node info-node))))
+
+    ;; Finally, return the completed record.
+    the-record))
+    
   
 
 ;;; File format stuff
@@ -590,11 +609,9 @@ being set.  This will change soon."
 ;; bookmark-jump will search for STRING-BEHIND and STRING-IN-FRONT in
 ;; case the file has changed since the bookmark was set.  It will
 ;; attempt to place the user before the changes, if there were any.
-;; annotation is the annotation for the bookmark; it may not exist
+;; ANNOTATION is the annotation for the bookmark; it may not exist
 ;; (for backward compatibility), be nil (no annotation), or be a
 ;; string.
-;;
-;; ANNOTATION is an annotation for the bookmark.
 
 
 (defconst bookmark-file-format-version 1
@@ -760,13 +777,16 @@ the list of bookmarks.\)"
     (if bookmark-use-annotations
 	(bookmark-read-annotation parg str)
       (progn
-	(bookmark-make str annotation parg)
-        ;; In Info, there's a little more information to record:
-        (if (eq major-mode 'Info-mode)
-            (bookmark-set-info-node str Info-current-node))
+	(bookmark-make str annotation parg (bookmark-info-current-node))
 	(setq bookmark-current-bookmark str)
 	(bookmark-bmenu-surreptitiously-rebuild-list)
 	(goto-char bookmark-current-point)))))
+
+
+(defun bookmark-info-current-node ()
+  "If in Info-mode, return current node name (a string), else nil."
+  (if (eq major-mode 'Info-mode)
+      Info-current-node))
 
 
 (defun bookmark-kill-line (&optional newline-too)
@@ -812,7 +832,7 @@ the bookmark (and file, and point) specified in buffer local variables."
     (save-excursion 
       (pop-to-buffer buf)
       (goto-char pt)
-      (bookmark-make bookmark annotation parg)
+      (bookmark-make bookmark annotation parg (bookmark-info-current-node))
       (setq bookmark-current-bookmark bookmark))
     (bookmark-bmenu-surreptitiously-rebuild-list)
     (goto-char bookmark-current-point))
@@ -1147,6 +1167,8 @@ minibuffer history list `bookmark-history'."
   (or no-history (bookmark-maybe-historicize-string bookmark))
   (insert (bookmark-location bookmark)))
 
+;;; old name for above:
+(defalias 'bookmark-locate 'bookmark-insert-location)
 
 (defun bookmark-location (bookmark)
   "Return the name of the file associated with BOOKMARK."
