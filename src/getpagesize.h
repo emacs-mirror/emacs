@@ -27,6 +27,10 @@
 #else /* no NBPG */
 #ifdef NBPC
 #define getpagesize() NBPC
+#else /* no NBPC */
+#ifdef PAGESIZE
+#define getpagesize() PAGESIZE
+#endif
 #endif /* NBPC */
 #endif /* no NBPG */
 #endif /* no EXEC_PAGESIZE */
