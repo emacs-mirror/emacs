@@ -1,5 +1,5 @@
 /* machine description file For the powerpc Macintosh.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,4 +96,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LINUX
 #define LINKER $(CC) -nostdlib
 #define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
+#endif
+
+/* GCC 2.95 on GNU/Linux PPC changed the load address to 0x10000000.  */
+#if defined(__linux__) && __GNUC__ == 2 && __GNUC_MINOR__ >= 95
+#define DATA_SEG_BITS  0x10000000
 #endif
