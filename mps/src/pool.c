@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.63) $
+ * $HopeName: MMsrc!pool.c(trunk.64) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.63) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.64) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -65,6 +65,11 @@ Bool PoolClassCheck(PoolClass class)
   CHECKL(FUNCHECK(class->reclaim));
   CHECKL(FUNCHECK(class->benefit));
   CHECKL(FUNCHECK(class->act));
+  CHECKL(FUNCHECK(class->rampBegin));
+  CHECKL(FUNCHECK(class->rampEnd));
+  CHECKL(FUNCHECK(class->framePush));
+  CHECKL(FUNCHECK(class->framePop));
+  CHECKL(FUNCHECK(class->framePopPending));
   CHECKL(FUNCHECK(class->walk));
   CHECKL(FUNCHECK(class->describe));
   CHECKS(PoolClass, class);
@@ -1096,6 +1101,58 @@ void PoolTrivRampEnd(Pool pool, Buffer buf)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
+}
+
+
+Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
+{
+  AVER(frameReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  NOTREACHED;
+  return ResUNIMPL;
+
+}
+
+
+Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  /* frame is of a abstract type & can't be checked */
+  UNUSED(frame);
+  NOTREACHED;
+  return ResUNIMPL;
+
+}
+
+
+void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  /* frame is of a abstract type & can't be checked */
+  UNUSED(frame);
+  NOTREACHED;
+}
+
+
+Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
+{
+  AVER(frameReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  return ResOK;
+}
+
+
+Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  /* frame is of a abstract type & can't be checked */
+  UNUSED(frame);
+  return ResOK;
 }
 
 
