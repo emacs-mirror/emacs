@@ -595,6 +595,7 @@ Get previous element of history which is a completion of minibuffer contents."
 (defun goto-line (arg)
   "Goto line ARG, counting from line 1 at beginning of buffer."
   (interactive "NGoto line: ")
+  (setq arg (prefix-numeric-value arg))
   (save-restriction
     (widen)
     (goto-char 1)
