@@ -1,3 +1,8 @@
+2000-09-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* search.c (compile_pattern): Check the multibyteness of cached
+	string and PATTERN.
+
 2000-09-08  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (default_face_vector): Function removed.
