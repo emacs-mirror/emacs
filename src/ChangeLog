@@ -1,3 +1,9 @@
+2000-11-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (show_help_echo): Call message3_nolog with number of
+	bytes in the help string as 2nd parameter, instead of the number
+	of characters.
+
 2000-11-13  Miles Bader  <miles@gnu.org>
 
 	* lread.c (openp): Return -2 instead of 0 for the `remote file' case.
