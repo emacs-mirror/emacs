@@ -1,3 +1,27 @@
+2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lisp.el (mark-sexp): Mark more if repeated.
+
+	* progmodes/cc-engine.el (c-parse-state): Typo. From Martin Stjernholm.
+
+	* mwheel.el (mouse-wheel-scroll-amount): Allow float values.
+	(mouse-wheel-progessive-speed): New var.
+	(mwheel-scroll): Use it and handle float values.
+
+	* lazy-lock.el (lazy-lock-install-hooks): Remove make-local-hook.
+
+	* iswitchb.el (iswitchb-mode): Use define-minor-mode.
+	(iswitchb): Fix the case where the result was selected with the mouse.
+	(iswitchb-completion-help): Use the normal *Completions* now that
+	mouse selection works.
+	(iswitchb-minibuffer-setup): Simplify.
+
+	* newcomment.el (comment-column, comment-style, comment-multi-line)
+	(comment-auto-fill-only-comments): Remove :group arg.
+	(comment-padding): Add :type.
+	(comment-indent-new-line): Ignore comment-auto-fill-only-comments
+	if called interactively.
+
 2001-11-19  Colin Walters  <walters@verbum.org>
 
 	* calc/calc.el (toplevel): Add comment and version header.
@@ -13,7 +37,7 @@
 	(browse-url-default-browser): New function.
 	(browse-url-process-environment): Use browse-url-browser-display.
 	(browse-url-browser-display): Renamed from browse-url-netscape-display.
-	(browse-url-mozilla-startup-arguments, browse-url-galeon-program) 
+	(browse-url-mozilla-startup-arguments, browse-url-galeon-program)
 	(browse-url-galeon-arguments, browse-url-galeon-startup-arguments)
 	(browse-url-mozilla-program, browse-url-mozilla-arguments): New vars.
 	(browse-url-browser-function): New default, new options.

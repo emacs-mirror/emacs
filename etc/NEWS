@@ -18,10 +18,17 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** If you hit M-C-SPC (mark-sexp) repeatedly, the marked region
+will now be extended each time, so you can mark the next two sexps with
+M-C-SPC M-C-SPC, for example.
+
+** mouse-wheels can now scroll a specific fraction of the window
+(rather than a fixed number of lines) and the scrolling is `progressive'.
+
 ** The keyboard-coding-system is now automatically set based on
 your current locale settings.  If it turns out that your terminal
-does not support the encoding implied by your locale, you will
-need to add
+does not support the encoding implied by your locale (for example,
+it inserts non-ASCII chars if you hit M-i), you will need to add
 
 	(set-keyboard-coding-system nil)
 
@@ -158,6 +165,9 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.3
+
+** describe-vector now takes a second argument `describer' which is
+called to print the entries' values.  It default to `princ'.
 
 ** defcustom and other custom declarations now use a default group
 (the last group defined in the same file) when no :group was given.

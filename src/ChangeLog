@@ -1,5 +1,8 @@
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* fileio.c (Fwrite_region): Move choose_write_coding_system to
+	after build_annotations.
+
 	* syntax.c (describe_syntax): Add dummy arg.
 	(describe_syntax_1): Update call to describe_vector.
 
