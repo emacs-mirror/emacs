@@ -276,7 +276,9 @@ Returns list of symbols and documentation found."
 	(and (symbolp command)
 	     (if regexp (string-match regexp (symbol-name command)))
 	     (setq item (assq command alist))
-	     (setq key (concat sequence (char-to-string key)))
+	     (if (or (vectorp sequence) (not (integerp key)))
+		 (setq key (vconcat sequence (vector key)))
+	       (setq key (concat sequence (char-to-string key))))
 	     ;; checking if shadowed by local binding.
 	     ;; either no local map, no local binding, or runs off the
 	     ;; binding tree (number), or is the same binding
