@@ -92,7 +92,8 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	 (group
 	  (list 'quote
 		(intern (replace-regexp-in-string "-mode\\'" "" mode-name))))
-	 (keymap-sym (intern (concat mode-name "-map")))
+	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
+		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook"))))
@@ -126,21 +127,31 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 Use the function `%s' to change this variable." pretty-name mode))
 	       (make-variable-buffer-local ',mode))
 
-	  `(defcustom ,mode ,init-value
-	     ,(format "Toggle %s.
+	  (let ((curfile (or (and (boundp 'byte-compile-current-file)
+				  byte-compile-current-file)
+			     load-file-name)))
+	    `(defcustom ,mode ,init-value
+	       ,(format "Toggle %s.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
-		      pretty-name mode)
-	     :set (lambda (symbol value) (funcall symbol (or value 0)))
-	     :initialize 'custom-initialize-default
-	     :group ,group
-	     :type 'boolean))
+			pretty-name mode)
+	       :set (lambda (symbol value) (funcall symbol (or value 0)))
+	       :initialize 'custom-initialize-default
+	       :group ,group
+	       :type 'boolean
+	       ,@(when curfile
+		   (list
+		    :require
+		    (list 'quote
+			  (intern (file-name-nondirectory
+				   (file-name-sans-extension curfile)))))))))
 
-       ;; The toggle's hook.
-       (defcustom ,hook  nil
-	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 :group ,group
-	 :type 'hook)
+       ;; The toggle's hook.  Wrapped in `progn' to prevent autoloading.
+       (progn
+	 (defcustom ,hook  nil
+	   ,(format "Hook run at the end of function `%s'." mode-name)
+	   :group ,group
+	   :type 'hook))
 
        ;; The actual function.
        (defun ,mode (&optional arg)
@@ -163,16 +174,22 @@ With zero or negative ARG turn mode off.
 		      (if ,mode "en" "dis")))
 	 ,mode)
 
+       ;; Autoloading an easy-mmode-define-minor-mode autoloads
+       ;; everything up-to-here.
+       :autoload-end
+
        ;; Define the minor-mode keymap.
-       ,(when keymap
+       ,(unless (symbolp keymap)	;nil is also a symbol.
 	  `(defvar ,keymap-sym
-	     (cond ((keymapp ,keymap) ,keymap)
-		   ((listp ,keymap) (easy-mmode-define-keymap ,keymap))
-		   (t (error "Invalid keymap %S" ,keymap)))
+	     (let ((m ,keymap))
+	       (cond ((keymapp m) m)
+		     ((listp m) (easy-mmode-define-keymap m))
+		     (t (error "Invalid keymap %S" ,keymap))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
        (add-minor-mode ',mode ',lighter
-		       (if (boundp ',keymap-sym) (symbol-value ',keymap-sym)))
+		       ,(if keymap keymap-sym
+			  `(if (boundp ',keymap-sym) ,keymap-sym)))
        
        ;; If the mode is global, call the function according to the default.
        ,(if globalp `(if ,mode (,mode 1))))))
@@ -228,6 +245,10 @@ in which `%s' turns it on."
 	 (dolist (buf (buffer-list))
 	   (with-current-buffer buf
 	     (if ,global-mode (,turn-on) (,mode -1)))))
+
+       ;; Autoloading easy-mmode-define-global-mode
+       ;; autoloads everything up-to-here.
+       :autoload-end
 
        ;; List of buffers left to process.
        (defvar ,buffers nil)
@@ -410,7 +431,8 @@ which more-or-less shadow %s's corresponding tables."
     `(progn
        (defvar ,map (make-sparse-keymap))
        (defvar ,syntax (make-char-table 'syntax-table nil))
-       (defvar ,abbrev (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+       (defvar ,abbrev)
+       (define-abbrev-table ',abbrev nil)
        (put ',child 'derived-mode-parent ',parent)
      
        (defun ,child ()
