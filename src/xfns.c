@@ -3338,7 +3338,7 @@ This function is an internal primitive--use `make-frame' instead.")
   x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
 		       "internalBorderWidth", "internalBorderWidth", number);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
-		       "verticalScrollBars", "ScrollBars", boolean);
+		       "verticalScrollBars", "ScrollBars", symbol);
 
   /* Also do the stuff which must be set before the window exists.  */
   x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
