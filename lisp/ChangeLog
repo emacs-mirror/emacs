@@ -1,3 +1,7 @@
+2000-06-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* man.el (man): Doc fix.
+
 2000-06-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (set-language-info-alist): Docstring
