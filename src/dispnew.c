@@ -747,7 +747,8 @@ preserve_other_columns (w)
 	      int len;
 
 	      bcopy (current_frame->glyphs[vpos],
-		     desired_frame->glyphs[vpos], start);
+		     desired_frame->glyphs[vpos],
+		     start * sizeof (current_frame->glyphs[vpos]));
 	      len = min (start, current_frame->used[vpos]);
 	      if (desired_frame->used[vpos] < len)
 		desired_frame->used[vpos] = len;
@@ -760,7 +761,8 @@ preserve_other_columns (w)
 		  = SPACEGLYPH;
 	      bcopy (current_frame->glyphs[vpos] + end,
 		     desired_frame->glyphs[vpos] + end,
-		     current_frame->used[vpos] - end);
+		     ((current_frame->used[vpos] - end)
+		      * sizeof (current_frame->glyphs[vpos])));
 	      desired_frame->used[vpos] = current_frame->used[vpos];
 	    }
 	}
