@@ -874,6 +874,9 @@ displays the entire font @samp{6x13}.
 parts of the Emacs display.  To find out what colors are available on
 your system, type @kbd{M-x list-colors-display}, or press
 @kbd{C-Mouse-2} and select @samp{Display Colors} from the pop-up menu.
+(A particular window system might support many more colors, but the
+list displayed by @code{list-colors-display} shows their portable
+subset that can be safely used on any display supported by Emacs.)
 If you do not specify colors, on windowed displays the default for the
 background is white and the default for all other colors is black.  On a
 monochrome display, the foreground is black, the background is white,
@@ -947,7 +950,9 @@ specified by the ANSI escape sequences for the 8 standard colors.
 Use color mode for @var{num} colors.  If @var{num} is -1, turn off
 color support (equivalent to @samp{never}); if it is 0, use the
 default color support for this terminal (equivalent to @samp{auto});
-otherwise use an appropriate standard mode for @var{num} colors.  If
+otherwise use an appropriate standard mode for @var{num} colors.
+Depending on your terminal's capabilities, Emacs might be able to turn
+on a color mode for 8, 16, 88, or 256 as the value of @var{num}.  If
 there is no mode that supports @var{num} colors, Emacs acts as if
 @var{num} were 0, i.e.@: it uses the terminal's default color support
 mode.
