@@ -66,23 +66,18 @@ This string is shown at mode line when users are in KKC mode.")
 ;; Sequence of characters to be used for indexes for shown list.  The
 ;; Nth character is for the Nth conversion in the list currently shown.
 (defvar kkc-show-conversion-list-index-chars
-  "1234567890abcdefghijklmnopqrsuvwxyz")
+  "1234567890")
 
-(defvar kkc-mode-map
+(defvar kkc-keymap
   (let ((map (make-keymap))
+	(len (length kkc-show-conversion-list-index-chars))
 	(i 0))
-    (while (< i 128)
-      (define-key map (char-to-string i) 'kkc-non-kkc-command)
+    (while (< i len)
+      (define-key map
+	(char-to-string (aref kkc-show-conversion-list-index-chars i))
+	'kkc-select-from-list)
       (setq i (1+ i)))
-    (setq i 0)
-    (let ((len (length kkc-show-conversion-list-index-chars)))
-      (while (< i len)
-	(define-key map
-	  (char-to-string (aref kkc-show-conversion-list-index-chars i))
-	  'kkc-select-from-list)
-	(setq i (1+ i))))
     (define-key map " " 'kkc-next)
-    (define-key map (char-to-string help-char) 'help-command)
     (define-key map "\r" 'kkc-terminate)
     (define-key map "\C-@" 'kkc-first-char-only)
     (define-key map "\C-n" 'kkc-next)
@@ -99,23 +94,8 @@ This string is shown at mode line when users are in KKC mode.")
     (define-key map [?\C- ] 'kkc-first-char-only)
     (define-key map [delete] 'kkc-cancel)
     (define-key map [return] 'kkc-terminate)
-    (let ((meta-map (make-sparse-keymap)))
-      (define-key map (char-to-string meta-prefix-char) meta-map)
-      (define-key map [escape] meta-map))
-    (define-key map (vector meta-prefix-char t) 'kkc-non-kkc-command)
-    ;; At last, define default key binding.
-    (define-key map [t] 'kkc-non-kkc-command)
     map)
-  "Keymap for KKC (Kana Kanji Conversion) mode.")
-
-(defun kkc-mode ()
-  "Major mode for converting Kana string to Kanji-Kana mixed string.
-Commands:
-\\{kkc-mode-map}"
-  (setq major-mode 'kkc-mode)
-  (setq mode-name "KKC")
-  (use-local-map kkc-mode-map)
-  (run-hooks 'kkc-mode-hook))
+  "Keymap for KKC (Kana Kanji Converter).")
 
 ;;; Internal variables used in KKC.
 
@@ -143,7 +123,7 @@ Commands:
   "Count of successive `kkc-next' or `kkc-prev' to show conversion list.")
 
 ;; Provided that `kkc-current-key' is [A B C D E F G H I], the current
-;; conversion target is [A B C D E F], the sequence of which
+;; conversion target is [A B C D E F], and the sequence of which
 ;; conversion is found is [A B C D]:
 ;;
 ;;                                A B C D E F G H I
@@ -159,11 +139,6 @@ Commands:
 
 ;; Cursor type (`box' or `bar') of the current frame.
 (defvar kkc-cursor-type nil)
-
-;; Flag to tell if the current conversion is canceled.  If non-nil,
-;; the value is a buffer position of the head of currently active
-;; conversion region.
-(defvar kkc-canceled nil)
 
 ;; Lookup SKK dictionary to set list of conversions in
 ;; kkc-current-conversions for key sequence kkc-current-key of length
@@ -204,12 +179,16 @@ Commands:
 		  kkc-current-conversions-width nil
 		  kkc-current-conversions (cons 0 nil)))))))
 
+(defvar kkc-converting nil)
+
 ;;;###autoload
-(defun kkc-region (from to &optional kkc-mode-exit-function)
+(defun kkc-region (from to)
   "Convert Kana string in the current region to Kanji-Kana mixed string.
-After one candidate of conversion is shown in the region, users are
-put in KKC major mode to select a desirable conversion.
-Optional arg KKC-MODE-EXIT-FUNCTION if non-nil is called on exiting KKC mode."
+Users can select a desirable conversion interactively.
+When called from a program, expects two arguments,
+positions FROM and TO (integers or markers) specifying the target region.
+When it returns, the point is at the tail of the selected conversion,
+and the return value is the length of the conversion."
   (interactive "r")
   (setq kkc-original-kana (buffer-substring from to))
   (goto-char from)
@@ -224,57 +203,52 @@ Optional arg KKC-MODE-EXIT-FUNCTION if non-nil is called on exiting KKC mode."
     (setq kkc-overlay-tail (make-overlay to to nil nil t))
     (overlay-put kkc-overlay-tail 'face 'underline))
 
-  ;; After updating the conversion region with the first candidate of
-  ;; conversion, jump into a recursive editing environment with KKC
-  ;; mode.
-  (let ((overriding-local-map nil)
-	(previous-local-map (current-local-map))
-	(minor-mode-alist nil)
-	(minor-mode-map-alist nil)
-	(current-input-method-title kkc-input-method-title)
-	major-mode mode-name)
-    (unwind-protect
-	(let (len)
-	  (setq kkc-canceled nil)
-	  (setq kkc-current-key (string-to-vector kkc-original-kana))
-	  (setq kkc-length-head (length kkc-current-key))
-	  (setq len kkc-length-head)
-	  (setq kkc-length-converted 0)
-	  (while (not (kkc-lookup-key kkc-length-head nil
-				      (< kkc-length-head len)))
-	    (setq kkc-length-head (1- kkc-length-head)))
-	  (goto-char to)
-	  (kkc-update-conversion 'all)
-	  (kkc-mode)
-	  (recursive-edit))
-      (goto-char (overlay-end kkc-overlay-tail))
-      (delete-overlay kkc-overlay-head)
-      (delete-overlay kkc-overlay-tail)
-      (use-local-map previous-local-map)
-      (if (and kkc-mode-exit-function
-	       (fboundp kkc-mode-exit-function))
-	  (funcall kkc-mode-exit-function (if kkc-canceled
-					      (cons kkc-canceled (point))))))))
+  (setq kkc-current-key (string-to-vector kkc-original-kana))
+  (setq kkc-length-head (length kkc-current-key))
+  (setq kkc-length-converted 0)
+
+  ;; At first convert the region to the first candidate.
+  (let ((first t))
+    (while (not (kkc-lookup-key kkc-length-head nil first))
+      (setq kkc-length-head (1- kkc-length-head)
+	    first nil))
+    (goto-char to)
+    (kkc-update-conversion 'all))
+
+  ;; Then, ask users to selecte a desirable conversoin.
+  (let ((current-input-method-title kkc-input-method-title)
+	(input-method-function nil))
+    (force-mode-line-update)
+    (setq kkc-converting t)
+    (while kkc-converting
+      (let* ((echo-keystrokes 0)
+	     (keyseq (read-key-sequence nil))
+	     (cmd (lookup-key kkc-keymap keyseq)))
+	(if (commandp cmd)
+	    (condition-case err
+		(call-interactively cmd)
+	      (kkc-error (message "%s" (cdr err)) (beep)))
+	  ;; KEYSEQ is not defined in KKC keymap.
+	  ;; Let's put the event back.
+	  (setq unread-input-method-events
+		(append (string-to-list keyseq) unread-input-method-events))
+	  (setq kkc-converting nil)))))
+
+  (force-mode-line-update)
+  (goto-char (overlay-end kkc-overlay-tail))
+  (prog1 (- (overlay-start kkc-overlay-head) from)
+    (delete-overlay kkc-overlay-head)
+    (delete-overlay kkc-overlay-tail)))
 
 (defun kkc-terminate ()
   "Exit from KKC mode by fixing the current conversion."
   (interactive)
-  (throw 'exit nil))
-
-(defun kkc-non-kkc-command ()
-  "Exit from KKC mode by fixing the current conversion.
-After that, handle the event which invoked this command."
-  (interactive)
-  (let* ((key (this-command-keys))
-	 (keylist (listify-key-sequence key)))
-    (setq unread-command-events (append keylist unread-command-events)))
-  (kkc-terminate))
+  (setq kkc-converting nil))
 
 (defun kkc-cancel ()
   "Exit from KKC mode by canceling any conversions."
   (interactive)
-  (setq kkc-canceled (overlay-start kkc-overlay-head))
-  (goto-char kkc-canceled)
+  (goto-char (overlay-start kkc-overlay-head))
   (delete-region (overlay-start kkc-overlay-head)
 		 (overlay-end kkc-overlay-tail))
   (insert kkc-original-kana)
@@ -349,7 +323,7 @@ After that, handle the event which invoked this command."
 	      (setq len maxlen))
 	  (while (< i len)
 	    (if (= (aref kkc-show-conversion-list-index-chars i)
-		   last-input-char)
+		   last-input-event)
 		(setq idx i i len)
 	      (setq i (1+ i))))))
     (if idx
@@ -358,7 +332,8 @@ After that, handle the event which invoked this command."
 		  (+ (aref (aref kkc-current-conversions-width 0) 0) idx))
 	  (kkc-show-conversion-list-update)
 	  (kkc-update-conversion))
-      (setq unread-command-events (list last-input-event))
+      (setq unread-input-method-events
+	    (cons last-input-event unread-input-method-events))
       (kkc-terminate))))
 
 (defun kkc-katakana ()
