@@ -716,10 +716,11 @@ appear on disk when you save the tar-file's buffer."
 		;; We need to mimic the parts of insert-file-contents
 		;; which determine the coding-system and decode the text.
 		(let ((coding
-		       (and set-auto-coding-function
-			    (save-excursion
-			      (funcall set-auto-coding-function
-				       name (- (point-max) (point))))))
+		       (or coding-system-for-read
+			   (and set-auto-coding-function
+				(save-excursion
+				  (funcall set-auto-coding-function
+					   name (- (point-max) (point)))))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
 				 1 (min 16384 (point-max)) t)))
