@@ -1003,7 +1003,8 @@ When called interactively, prompt for REGEXP."
 	(if (looking-at gnus-uu-binhex-begin-line)
 	    (progn
 	      (setq state (list 'begin))
-	      (write-region 1 1 gnus-uu-binhex-article-name))
+	      (write-region (point-min) (point-min)
+			    gnus-uu-binhex-article-name))
 	  (setq state (list 'middle)))
 	(goto-char (point-max))
 	(re-search-backward (concat gnus-uu-binhex-body-line "\\|"
@@ -1115,7 +1116,7 @@ When called interactively, prompt for REGEXP."
     (while (re-search-forward "[ \t]+" nil t)
       (replace-match "[ \t]+" t t))
 
-    (buffer-substring 1 (point-max))))
+    (buffer-substring (point-min) (point-max))))
 
 (defun gnus-uu-get-list-of-articles (n)
   ;; If N is non-nil, the article numbers of the N next articles
@@ -1211,7 +1212,7 @@ When called interactively, prompt for REGEXP."
 	   (format "%06d"
 		   (string-to-int (buffer-substring
 				   (match-beginning 0) (match-end 0))))))
-	(setq string (buffer-substring 1 (point-max)))
+	(setq string (buffer-substring (point-min) (point-max)))
 	(setcar (car string-list) string)
 	(setq string-list (cdr string-list))))
     out-list))
@@ -1949,7 +1950,7 @@ The user will be asked for a file name."
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
     (forward-line -1)
-    (narrow-to-region 1 (point))
+    (narrow-to-region (point-min) (point))
     (unless (mail-fetch-field "mime-version")
       (widen)
       (insert "MIME-Version: 1.0\n"))
@@ -2039,7 +2040,7 @@ If no file has been included, the user will be asked for a file."
       (erase-buffer)
       (insert-buffer-substring post-buf beg-binary end-binary)
       (goto-char (point-min))
-      (setq length (count-lines 1 (point-max)))
+      (setq length (count-lines (point-min) (point-max)))
       (setq parts (/ length gnus-uu-post-length))
       (unless (< (% length gnus-uu-post-length) 4)
 	(incf parts)))
@@ -2052,7 +2053,7 @@ If no file has been included, the user will be asked for a file."
     (re-search-forward
      (concat "^" (regexp-quote mail-header-separator) "$") nil t)
     (beginning-of-line)
-    (setq header (buffer-substring 1 (point)))
+    (setq header (buffer-substring (point-min) (point)))
 
     (goto-char (point-min))
     (when gnus-uu-post-separate-description
