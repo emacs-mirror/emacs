@@ -17,6 +17,9 @@
 	(show-tabs-tab-face, show-tabs-space-face): Specify background,
 	not foreground.
 
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Recognize define-generic-mode.
+
 2005-03-23  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
