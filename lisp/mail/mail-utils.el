@@ -227,9 +227,15 @@ the comma-separated list.  The pruned list is returned."
                       "")
                     (if (and user-mail-address
                              (not (equal user-mail-address user-login-name)))
-                        (concat (regexp-quote user-mail-address) "\\|")
+			;; Anchor the login name and email address so
+			;; that we don't match substrings: if the
+			;; login name is "foo", we shouldn't match
+			;; "barfoo@baz.com".
+                        (concat "\\`"
+				(regexp-quote user-mail-address)
+				"\\'\\|")
                       "")
-                    (concat (regexp-quote user-login-name) "\\>"))))
+                    (concat "\\`" (regexp-quote user-login-name) "@"))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
