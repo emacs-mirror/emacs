@@ -85,15 +85,25 @@ corresponding to the mode line clicked."
   `(""
     (current-input-method
      (:eval
-      (propertize current-input-method-title
-		  'help-echo (concat ,(purecopy "Input method: ")
-				     current-input-method
-				     ,(purecopy ".  mouse-2 disables, \
-mouse-3 describes"))
-		  'local-map mode-line-input-method-map)))
-    ,(propertize "%Z"
-		 'help-echo (purecopy "Coding system information: \
-see M-x describe-coding-system")))
+      ,(purecopy
+	'(propertize current-input-method-title
+		     'help-echo (concat
+				 "Input method: "
+				 current-input-method
+				 ".  mouse-2 disables, mouse-3 describes")
+		     'local-map mode-line-input-method-map))))
+    ,(propertize
+      "%Z"
+      'help-echo 
+      (purecopy (lambda (window object point)
+		  (save-window-excursion
+		    (select-window window)
+		    (if enable-multibyte-characters
+			(concat (symbol-name buffer-file-coding-system)
+				" buffer; see M-x describe-coding-system")
+		      (concat "Unibyte "
+			      (symbol-name buffer-file-coding-system)
+			      " buffer")))))))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
@@ -125,9 +135,29 @@ Normally nil in most modes, since there is no process to display.")
 
 (defvar mode-line-modified
   (list (propertize
-	 "%1*%1+"
-	 'help-echo (purecopy "Read-only status: mouse-2 toggles it")
-	 'local-map (purecopy (make-mode-line-mouse2-map #'toggle-read-only))))
+	 "%1*"
+	 'help-echo (purecopy (lambda (window object point)
+ 				(format "%sead-only: mouse-2 toggles"
+					(save-selected-window
+					  (select-window window)
+					  (if buffer-read-only
+					      "R"
+					    "Not r")))))
+	 'local-map (purecopy (make-mode-line-mouse2-map #'toggle-read-only)))
+	(propertize
+	 "%1+"
+	 'help-echo  (purecopy (lambda (window object point)
+				 (format "%sodified: mouse-2 toggles flag"
+					 (save-selected-window
+					   (select-window window)
+					   (if (buffer-modified-p)
+					     "M"
+					   "Not m")))))
+	 'local-map (purecopy (make-mode-line-mouse2-map
+			       (lambda ()
+				 (interactive)
+				 (set-buffer-modified-p
+				  (not (buffer-modified-p))))))))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
