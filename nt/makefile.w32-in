@@ -150,6 +150,7 @@ install: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
 	- mkdir "$(INSTALL_DIR)/data"
 	- mkdir "$(INSTALL_DIR)/site-lisp"
 	- mkdir "$(INSTALL_DIR)/etc/icons"
+	$(IFNOTSAMEDIR) $(CP) ../site-lisp/subdirs.el $(INSTALL_DIR)/site-lisp $(ENDIF)
 	$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR) $(ENDIF)
 	- $(CP_DIR) icons $(INSTALL_DIR)/etc
 	$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR) $(ENDIF)
