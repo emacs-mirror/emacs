@@ -237,6 +237,7 @@ struct w32_display_info
 };
 
 /* This is a chain of structures for all the displays currently in use.  */
+extern struct w32_display_info *x_display_list;
 extern struct w32_display_info one_w32_display_info;
 
 /* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
