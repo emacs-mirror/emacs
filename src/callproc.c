@@ -730,7 +730,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     saved_coding = process_coding;
     if (process_coding.composing != COMPOSITION_DISABLED)
       coding_allocate_composition_data (&process_coding, PT);
-
     while (1)
       {
 	/* Repeatedly read until we've filled as much as possible
@@ -773,6 +772,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      repeat_decoding:
 		size = decoding_buffer_size (&process_coding, nread);
 		decoding_buf = (char *) xmalloc (size);
+		if (process_coding.cmp_data)
+		  process_coding.cmp_data->char_offset = PT;
 		decode_coding (&process_coding, bufptr, decoding_buf,
 			       nread, size);
 		if (display_on_the_fly
@@ -790,13 +791,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		    continue;
 		  }
 		if (process_coding.produced > 0)
-		  {
-		    insert_1_both (decoding_buf, process_coding.produced_char,
-				   process_coding.produced, 0, 1, 0);
-		    if (process_coding.cmp_data)
-		      coding_restore_composition (&process_coding,
-						  Fcurrent_buffer ());
-		  }
+		  insert_1_both (decoding_buf, process_coding.produced_char,
+				 process_coding.produced, 0, 1, 0);
 		xfree (decoding_buf);
 		nread -= process_coding.consumed;
 		carryover = nread;
@@ -810,7 +806,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		    /* The decoding ended because of insufficient data
 		       area to record information about composition.
 		       We must try decoding with additional data area
-		       before reading process output.  */
+		       before reading more output for the process.  */
 		    coding_allocate_composition_data (&process_coding, PT);
 		    goto repeat_decoding;
 		  }
@@ -840,8 +836,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       }
   give_up: ;
 
-    if (process_coding.cmp_data)
-      coding_free_composition_data (&process_coding);
+    if (!NILP (buffer)
+	&& process_coding.cmp_data)
+      {
+	coding_restore_composition (&process_coding, Fcurrent_buffer ());
+	coding_free_composition_data (&process_coding);
+      }
 
     Vlast_coding_system_used = process_coding.symbol;
 
