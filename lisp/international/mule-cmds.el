@@ -463,7 +463,9 @@ checked at first.  If omitted, buffer-file-coding-system of the
 current buffer is used.
 
 If the text can be encoded safely by DEFAULT-CODING-SYSTEM, it is
-returned without any user interaction.
+returned without any user interaction.  DEFAULT-CODING-SYSTEM may also
+be a list, from which the first coding system that can safely encode the
+text is chosen, if any can.
 
 Kludgy feature: if FROM is a string, the string is the target text,
 and TO is ignored."
@@ -471,15 +473,38 @@ and TO is ignored."
       (setq default-coding-system buffer-file-coding-system))
   (let* ((charsets (if (stringp from) (find-charset-string from)
 		     (find-charset-region from to)))
-	 (safe-coding-systems (find-coding-systems-for-charsets charsets)))
+	 (safe-coding-systems (find-coding-systems-for-charsets charsets))
+	 (coding-system t)		; t means not yet decided.
+	 eol-type)
     (if (or (not enable-multibyte-characters)
-	    (eq (car safe-coding-systems) 'undecided)
-	    (eq default-coding-system 'no-conversion)
+	    (eq (car safe-coding-systems) 'undecided))
+	;; As the text doesn't contain a multibyte character, we can
+	;; use any coding system.
+	(setq coding-system default-coding-system)
+
+      ;; Try the default.  If the default is nil or undecided, try the
+      ;; most prefered one or one of its subsidiaries that converts
+      ;; EOL as the same way as the default.
+      (if (or (not default-coding-system)
+	      (eq (coding-system-base default-coding-system) 'undecided))
+	  (progn
+	    (setq eol-type
+		  (and default-coding-system
+		       (coding-system-eol-type default-coding-system)))
+	    (setq default-coding-system
+		  (symbol-value (car coding-category-list)))
+	    (or (not eol-type)
+		(vectorp eol-type)
+		(setq default-coding-system
+		      (coding-system-change-eol-conversion
+		       default-coding-system eol-type)))))
+      (if (or (eq default-coding-system 'no-conversion)
 	    (and default-coding-system
 		 (memq (coding-system-base default-coding-system)
 		       safe-coding-systems)))
-	default-coding-system
+	  (setq coding-system default-coding-system)))
 
+    (when (eq coding-system t)
       ;; At first, change each coding system to the corresponding
       ;; mime-charset name if it is also a coding system.
       (let ((l safe-coding-systems)
@@ -565,17 +590,17 @@ Please select one from the following safe coding systems:\n"
 				      (car safe-coding-systems))
 			      safe-names nil t nil nil
 			      (car (car safe-names)))))
-		  (setq last-coding-system-specified (intern name))
-		  (if (integerp (coding-system-eol-type default-coding-system))
-		      (setq last-coding-system-specified
-			    (coding-system-change-eol-conversion
-			     last-coding-system-specified
-			     (coding-system-eol-type default-coding-system))))
-		  last-coding-system-specified))
+		  (setq last-coding-system-specified (intern name)
+			coding-system last-coding-system-specified)
+		  (or (not eol-type)
+		      (vectorp eol-type)
+		      (setq coding-system (coding-system-change-eol-conversion
+					   coding-system eol-type)))))
 	    (kill-buffer "*Warning*")
 	    (while overlays
 	      (delete-overlay (car overlays))
-	      (setq overlays (cdr overlays)))))))))
+	      (setq overlays (cdr overlays)))))))
+    coding-system))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
