@@ -633,11 +633,7 @@ If argument is nil or an empty string, cancel for all functions."
   (interactive
    (list (let ((name
 		(completing-read "Cancel debug on entry (to function): "
-				 ;; Make an "alist" of the functions
-				 ;; that now have debug on entry.
-				 (mapcar 'list
-					 (mapcar 'symbol-name
-						 debug-function-list))
+				 (mapcar 'symbol-name debug-function-list)
 				 nil t nil)))
 	   (if name (intern name)))))
   (debugger-reenable)
