@@ -1,3 +1,9 @@
+2002-05-13  Colin Walters  <walters@gnu.org>
+
+	* add-log.el (add-log-mailing-address): Can be a list, too.
+	(add-change-log-entry): If `add-log-mailing-address' is a list,
+	then handle it.
+
 2002-05-12  Colin Walters  <walters@debian.org>
 
 	* replace.el (occur-1): New optional argument `buf-name'. 
