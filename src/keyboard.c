@@ -7528,7 +7528,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* If we don't have any menus, just read a character normally.  */
-  if (mapno >= nmaps)
+  if (!STRINGP (name))
     return Qnil;
 
 #ifdef HAVE_MENUS
@@ -7639,7 +7639,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
     }
 
   /* If we don't have any menus, just read a character normally.  */
-  if (!STRINGP (name));
+  if (!STRINGP (name))
     return Qnil;
 
   /* Prompt string always starts with map's prompt, and a space.  */
