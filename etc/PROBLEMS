@@ -1,6 +1,14 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
+
+A symptom of this bug is that double-clicks insert a control sequence
+into the buffer.  The reason this happens is an apparent
+incompatibility of the Gnome terminal with Xterm, which also affects
+other programs using the Xterm mouse interface.  A problem report has
+been filed.
+
 * Emacs pauses for several seconds when changing the default font
 
 This has been reported for fvwm 2.2.5 and the window manager of KDE

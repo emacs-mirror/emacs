@@ -1,5 +1,9 @@
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/find-func.el (find-function-regexp): Add
+	easy-mmode-define-global-mode to the regexp.  Allow newlines
+	in front of the function name.
+
 	* isearch.el (isearch-other-meta-char): Fix last change.
 	
 	* isearch.el (isearch-other-meta-char): Don't modify mode-line and
