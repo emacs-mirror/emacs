@@ -12179,7 +12179,9 @@ x_catch_errors (dpy)
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
 
-  record_unwind_protect (x_catch_errors_unwind, x_error_message_string);
+  record_unwind_protect (x_catch_errors_unwind,
+			 Fcons (make_save_value (dpy, 0),
+				x_error_message_string));
 
   x_error_message_string = make_uninit_string (X_ERROR_MESSAGE_SIZE);
   SSET (x_error_message_string, 0, 0);
@@ -12193,7 +12195,13 @@ static Lisp_Object
 x_catch_errors_unwind (old_val)
      Lisp_Object old_val;
 {
-  x_error_message_string = old_val;
+  Lisp_Object first;
+
+  first = XCAR (old_val);
+
+  XSync (XSAVE_VALUE (first)->pointer, False);
+
+  x_error_message_string = XCDR (old_val);
   return Qnil;
 }
 
