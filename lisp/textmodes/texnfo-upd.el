@@ -149,6 +149,11 @@
  
 ;;; Code:
 
+(defvar texinfo-master-menu-header
+  " --- The Detailed Node Listing ---\n"
+  "String inserted before lower level entries in Texinfo master menu.
+It comes after the chapter-level menu entries.")
+
 (defun texinfo-make-menu (&optional beginning end)
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
@@ -229,7 +234,7 @@ nodes in the buffer before updating the menus."
       (goto-char (point-min))
       (message "Checking for a master menu in %s ... "(buffer-name))
       (save-excursion
-        (if (re-search-forward texinfo-master-menu-header nil t)
+        (if (search-forward texinfo-master-menu-header nil t)
             (progn
               ;; Check if @detailmenu kludge is used;
               ;; if so, leave point before @detailmenu.
@@ -728,11 +733,6 @@ second and subsequent lines of a multi-line description."
 
 ;;; Making the master menu
 
-(defvar texinfo-master-menu-header
-  " --- The Detailed Node Listing ---\n"
-  "String inserted before lower level entries in Texinfo master menu.
-It comes after the chapter-level menu entries.")
-
 (defun texinfo-master-menu (update-all-nodes-menus-p)
   "Make a master menu for a whole Texinfo file.
 Non-nil argument (prefix, if interactive) means first update all
@@ -780,7 +780,7 @@ title of the section containing the menu."
              (or (re-search-forward "^@node" nil t)
                  (error "Too few nodes for a master menu!"))
              (point))))
-      (if (re-search-forward texinfo-master-menu-header first-chapter t)
+      (if (search-forward texinfo-master-menu-header first-chapter t)
           (progn
             ;; Check if @detailmenu kludge is used;
             ;; if so, leave point before @detailmenu.
@@ -819,7 +819,7 @@ title of the section containing the menu."
     (save-excursion
       (goto-char (point-min))
       
-      (if (re-search-forward texinfo-master-menu-header nil t)
+      (if (search-forward texinfo-master-menu-header nil t)
           (progn
             (goto-char (match-beginning 0))
             ;; Check if @detailmenu kludge is used;
@@ -2018,7 +2018,7 @@ chapter."
       (progn
         ;; First, removing detailed part of any pre-existing master menu
         (goto-char (point-min))
-        (if (re-search-forward texinfo-master-menu-header nil t)
+        (if (search-forward texinfo-master-menu-header nil t)
             (progn
               (goto-char (match-beginning 0))
 	      ;; Check if @detailmenu kludge is used;
