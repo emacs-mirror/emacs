@@ -1,3 +1,7 @@
+2001-12-29  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL: <CONFIGURATION BY HAND> Now requires autoconf 2.51.
+
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in: Test for mbsinit.
