@@ -1,4 +1,4 @@
-2003-05-30  Kenichi Handa  <handa@etlken2>
+2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ccl_coding_driver): Set ccl->eight_bit_control
 	properly before calling ccl_driver.
