@@ -1790,6 +1790,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The default value of `sentence-end' is now defined using the new
+variable `sentence-end-without-space' which contains such characters
+that ends a sentecen without following spaces.
+
 +++
 ** The flags, width, and precision options for %-specifications in function
 `format' are now documented.  Some flags that were accepted but not
