@@ -397,8 +397,10 @@ Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
+;; Note: the character class after the optional drive letter does not
+;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
-  '(("\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("\\([a-zA-Z]?:?[^:(\t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-program
