@@ -176,6 +176,10 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
+static void alloc_buffer_text P_ ((struct buffer *, size_t));
+static void free_buffer_text P_ ((struct buffer *b));
+
+
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
@@ -347,7 +351,7 @@ The value is never nil.")
   BLOCK_INPUT;
   /* We allocate extra 1-byte at the tail and keep it always '\0' for
      anchoring a search.  */
-  BUFFER_ALLOC (BUF_BEG_ADDR (b), (BUF_GAP_SIZE (b) + 1));
+  alloc_buffer_text (b, BUF_GAP_SIZE (b) + 1);
   UNBLOCK_INPUT;
   if (! BUF_BEG_ADDR (b))
     buffer_memory_full ();
@@ -1301,7 +1305,7 @@ with SIGHUP.")
 
   BLOCK_INPUT;
   if (! b->base_buffer)
-    BUFFER_FREE (BUF_BEG_ADDR (b));
+    free_buffer_text (b);
 
   if (b->newline_cache)
     {
@@ -1548,16 +1552,10 @@ set_buffer_internal_1 (b)
   register Lisp_Object tail, valcontents;
   Lisp_Object tem;
 
-#ifdef REL_ALLOC_MMAP
+#ifdef USE_MMAP_FOR_BUFFERS
   if (b->text->beg == NULL)
-    {
-      BLOCK_INPUT;
-      BUFFER_REALLOC (BUF_BEG_ADDR (b),
-		      (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b)
-		       + BUF_GAP_SIZE (b) + 1));
-      UNBLOCK_INPUT;
-    }
-#endif /* REL_ALLOC_MMAP */
+    enlarge_buffer_text (b, 0);
+#endif /* USE_MMAP_FOR_BUFFERS */
   
   if (current_buffer == b)
     return;
@@ -4061,6 +4059,543 @@ buffer_slot_type_mismatch (offset)
 }
 
 
+/***********************************************************************
+			 Allocation with mmap
+ ***********************************************************************/
+
+#ifdef USE_MMAP_FOR_BUFFERS
+
+#include <sys/types.h>
+#include <sys/mman.h>
+
+#ifndef MAP_ANON
+#ifdef MAP_ANONYMOUS
+#define MAP_ANON MAP_ANONYMOUS
+#else
+#define MAP_ANON 0
+#endif
+#endif
+
+#include <stdio.h>
+#include <errno.h>
+
+#if MAP_ANON == 0
+#include <fcntl.h>
+#endif
+
+#include "coding.h"
+
+
+/* Memory is allocated in regions which are mapped using mmap(2).
+   The current implementation lets the system select mapped
+   addresses;  we're not using MAP_FIXED in general, except when
+   trying to enlarge regions.
+
+   Each mapped region starts with a mmap_region structure, the user
+   area starts after that structure, aligned to MEM_ALIGN.
+
+	+-----------------------+
+	| struct mmap_info +	|
+	| padding		|
+	+-----------------------+
+	| user data		|
+	|			|
+	|			|
+	+-----------------------+  */
+
+struct mmap_region
+{
+  /* User-specified size.  */
+  size_t nbytes_specified;
+  
+  /* Number of bytes mapped */
+  size_t nbytes_mapped;
+
+  /* Pointer to the location holding the address of the memory
+     allocated with the mmap'd block.  The variable actually points
+     after this structure.  */
+  POINTER_TYPE **var;
+
+  /* Next and previous in list of all mmap'd regions.  */
+  struct mmap_region *next, *prev;
+};
+
+/* Doubly-linked list of mmap'd regions.  */
+
+static struct mmap_region *mmap_regions;
+
+/* File descriptor for mmap.  If we don't have anonymous mapping,
+   /dev/zero will be opened on it.  */
+
+static int mmap_fd;
+
+/* Temporary storage for mmap_set_vars, see there.  */
+
+static struct mmap_region *mmap_regions_1;
+static int mmap_fd_1;
+
+/* Page size on this system.  */
+
+static int mmap_page_size;
+
+/* 1 means mmap has been intialized.  */
+
+static int mmap_initialized_p;
+
+/* Value is X rounded up to the next multiple of N.  */
+
+#define ROUND(X, N)	(((X) + (N) - 1) / (N) * (N))
+
+/* Size of mmap_region structure plus padding.  */
+
+#define MMAP_REGION_STRUCT_SIZE	\
+     ROUND (sizeof (struct mmap_region), MEM_ALIGN)
+
+/* Given a pointer P to the start of the user-visible part of a mapped
+   region, return a pointer to the start of the region.  */
+
+#define MMAP_REGION(P) \
+     ((struct mmap_region *) ((char *) (P) - MMAP_REGION_STRUCT_SIZE))
+
+/* Given a pointer P to the start of a mapped region, return a pointer
+   to the start of the user-visible part of the region.  */
+
+#define MMAP_USER_AREA(P) \
+     ((POINTER_TYPE *) ((char *) (P) + MMAP_REGION_STRUCT_SIZE))
+
+#define MEM_ALIGN	sizeof (double)
+
+/* Function prototypes.  */
+
+static int mmap_free_1 P_ ((struct mmap_region *));
+static int mmap_enlarge P_ ((struct mmap_region *, int));
+static struct mmap_region *mmap_find P_ ((POINTER_TYPE *, POINTER_TYPE *));
+static POINTER_TYPE *mmap_alloc P_ ((POINTER_TYPE **, size_t));
+static POINTER_TYPE *mmap_realloc P_ ((POINTER_TYPE **, size_t));
+static void mmap_free P_ ((POINTER_TYPE **ptr));
+static void mmap_init P_ ((void));
+
+
+/* Return a region overlapping address range START...END, or null if
+   none.  END is not including, i.e. the last byte in the range
+   is at END - 1.  */
+
+static struct mmap_region *
+mmap_find (start, end)
+     POINTER_TYPE *start, *end;
+{
+  struct mmap_region *r;
+  char *s = (char *) start, *e = (char *) end;
+  
+  for (r = mmap_regions; r; r = r->next)
+    {
+      char *rstart = (char *) r;
+      char *rend   = rstart + r->nbytes_mapped;
+
+      if (/* First byte of range, i.e. START, in this region?  */
+	  (s >= rstart && s < rend)
+	  /* Last byte of range, i.e. END - 1, in this region?  */
+	  || (e > rstart && e <= rend)
+	  /* First byte of this region in the range?  */
+	  || (rstart >= s && rstart < e)
+	  /* Last byte of this region in the range?  */
+	  || (rend > s && rend <= e))
+	break;
+    }
+
+  return r;
+}
+
+
+/* Unmap a region.  P is a pointer to the start of the user-araa of
+   the region.  Value is non-zero if successful.  */
+
+static int
+mmap_free_1 (r)
+     struct mmap_region *r;
+{
+  if (r->next)
+    r->next->prev = r->prev;
+  if (r->prev)
+    r->prev->next = r->next;
+  else
+    mmap_regions = r->next;
+  
+  if (munmap (r, r->nbytes_mapped) == -1)
+    {
+      fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+      return 0;
+    }
+
+  return 1;
+}
+
+
+/* Enlarge region R by NPAGES pages.  NPAGES < 0 means shrink R.
+   Value is non-zero if successful.  */
+
+static int
+mmap_enlarge (r, npages)
+     struct mmap_region *r;
+     int npages;
+{
+  char *region_end = (char *) r + r->nbytes_mapped;
+  size_t nbytes;
+  int success = 0;
+
+  if (npages < 0)
+    {
+      /* Unmap pages at the end of the region.  */
+      nbytes = - npages * mmap_page_size;
+      if (munmap (region_end - nbytes, nbytes) == -1)
+	fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+      else
+	{
+	  r->nbytes_mapped -= nbytes;
+	  success = 1;
+	}
+    }
+  else if (npages > 0)
+    {
+      struct mmap_region *r2;
+      
+      nbytes = npages * mmap_page_size;
+      
+      /* Try to map additional pages at the end of the region.  We
+	 cannot do this if the address range is already occupied by
+	 something else because mmap deletes any previous mapping.
+	 I'm not sure this is worth doing, let's see.  */
+      r2 = mmap_find (region_end, region_end + nbytes);
+      if (r2 == NULL)
+	{
+	  POINTER_TYPE *p;
+      
+	  p = mmap (region_end, nbytes, PROT_READ | PROT_WRITE,
+		    MAP_ANON | MAP_PRIVATE | MAP_FIXED, mmap_fd, 0);
+	  if (p == MAP_FAILED)
+	    fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
+	  else if (p != (POINTER_TYPE *) region_end)
+	    {
+	      /* Kernels are free to choose a different address.  In
+		 that case, unmap what we've mapped above; we have
+		 no use for it.  */
+	      if (munmap (p, nbytes) == -1)
+		fprintf (stderr, "munmap: %s\n", emacs_strerror (errno));
+	    }
+	  else
+	    {
+	      r->nbytes_mapped += nbytes;
+	      success = 1;
+	    }
+	}
+    }
+
+  return success;
+}
+
+
+/* Set or reset variables holding references to mapped regions.  If
+   RESTORE_P is zero, set all variables to null.  If RESTORE_P is
+   non-zero, set all variables to the start of the user-areas
+   of mapped regions.
+
+   This function is called from Fdump_emacs to ensure that the dumped
+   Emacs doesn't contain references to memory that won't be mapped
+   when Emacs starts.  */
+
+void
+mmap_set_vars (restore_p)
+     int restore_p;
+{
+  struct mmap_region *r;
+
+  if (restore_p)
+    {
+      mmap_regions = mmap_regions_1;
+      mmap_fd = mmap_fd_1;
+      for (r = mmap_regions; r; r = r->next)
+	*r->var = MMAP_USER_AREA (r);
+    }
+  else
+    {
+      for (r = mmap_regions; r; r = r->next)
+	*r->var = NULL;
+      mmap_regions_1 = mmap_regions;
+      mmap_regions = NULL;
+      mmap_fd_1 = mmap_fd;
+      mmap_fd = -1;
+    }
+}
+
+
+/* Allocate a block of storage large enough to hold NBYTES bytes of
+   data.  A pointer to the data is returned in *VAR.  VAR is thus the
+   address of some variable which will use the data area.
+
+   The allocation of 0 bytes is valid.
+
+   If we can't allocate the necessary memory, set *VAR to null, and
+   return null.  */
+
+static POINTER_TYPE *
+mmap_alloc (var, nbytes)
+     POINTER_TYPE **var;
+     size_t nbytes;
+{
+  void *p;
+  size_t map;
+
+  mmap_init ();
+
+  map = ROUND (nbytes + MMAP_REGION_STRUCT_SIZE, mmap_page_size);
+  p = mmap (NULL, map, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE,
+	    mmap_fd, 0);
+  
+  if (p == MAP_FAILED)
+    {
+      if (errno != ENOMEM)
+	fprintf (stderr, "mmap: %s\n", emacs_strerror (errno));
+      p = NULL;
+    }
+  else
+    {
+      struct mmap_region *r = (struct mmap_region *) p;
+      
+      r->nbytes_specified = nbytes;
+      r->nbytes_mapped = map;
+      r->var = var;
+      r->prev = NULL;
+      r->next = mmap_regions;
+      if (r->next)
+	r->next->prev = r;
+      mmap_regions = r;
+      
+      p = MMAP_USER_AREA (p);
+    }
+  
+  return *var = p;
+}
+
+
+/* Given a pointer at address VAR to data allocated with mmap_alloc,
+   resize it to size NBYTES.  Change *VAR to reflect the new block,
+   and return this value.  If more memory cannot be allocated, then
+   leave *VAR unchanged, and return null.  */
+
+static POINTER_TYPE *
+mmap_realloc (var, nbytes)
+     POINTER_TYPE **var;
+     size_t nbytes;
+{
+  POINTER_TYPE *result;
+  
+  mmap_init ();
+
+  if (*var == NULL)
+    result = mmap_alloc (var, nbytes);
+  else if (nbytes == 0) 
+    {
+      mmap_free (var);
+      result = mmap_alloc (var, nbytes);
+    }
+  else
+    {
+      struct mmap_region *r = MMAP_REGION (*var);
+      size_t room = r->nbytes_mapped - MMAP_REGION_STRUCT_SIZE;
+      
+      if (room < nbytes)
+	{
+	  /* Must enlarge.  */
+	  POINTER_TYPE *old_ptr = *var;
+
+	  /* Try to map additional pages at the end of the region.
+	     If that fails, allocate a new region,  copy data
+	     from the old region, then free it.  */
+	  if (mmap_enlarge (r, (ROUND (nbytes - room, mmap_page_size)
+				/ mmap_page_size)))
+	    {
+	      r->nbytes_specified = nbytes;
+	      *var = result = old_ptr;
+	    }
+	  else if (mmap_alloc (var, nbytes))
+	    {
+	      bcopy (old_ptr, *var, r->nbytes_specified);
+	      mmap_free_1 (MMAP_REGION (old_ptr));
+	      result = *var;
+	      r = MMAP_REGION (result);
+	      r->nbytes_specified = nbytes;
+	    }
+	  else
+	    {
+	      *var = old_ptr;
+	      result = NULL;
+	    }
+	}
+      else if (room - nbytes >= mmap_page_size)
+	{
+	  /* Shrinking by at least a page.  Let's give some
+	     memory back to the system.  */
+	  mmap_enlarge (r, - (room - nbytes) / mmap_page_size);
+	  result = *var;
+	  r->nbytes_specified = nbytes;
+	}
+      else
+	{
+	  /* Leave it alone.  */
+	  result = *var;
+	  r->nbytes_specified = nbytes;
+	}
+    }
+
+  return result;
+}
+
+
+/* Free a block of relocatable storage whose data is pointed to by
+   PTR.  Store 0 in *PTR to show there's no block allocated.  */
+
+static void
+mmap_free (var)
+     POINTER_TYPE **var;
+{
+  mmap_init ();
+  
+  if (*var)
+    {
+      mmap_free_1 (MMAP_REGION (*var));
+      *var = NULL;
+    }
+}
+
+
+/* Perform necessary intializations for the use of mmap.  */
+
+static void
+mmap_init ()
+{
+#if MAP_ANON == 0
+  /* The value of mmap_fd is initially 0 in temacs, and -1
+     in a dumped Emacs.  */
+  if (mmap_fd <= 0)
+    {
+      /* No anonymous mmap -- we need the file descriptor.  */
+      mmap_fd = open ("/dev/zero", O_RDONLY);
+      if (mmap_fd == -1)
+	fatal ("Cannot open /dev/zero: %s", emacs_strerror (errno));
+    }
+#endif /* MAP_ANON == 0 */
+
+  if (mmap_initialized_p)
+    return;
+  mmap_initialized_p = 1;
+  
+#if MAP_ANON != 0
+  mmap_fd = -1;
+#endif
+  
+  mmap_page_size = getpagesize ();
+}
+
+#endif /* USE_MMAP_FOR_BUFFERS */
+
+
+
+/***********************************************************************
+			    Buffer-text Allocation
+ ***********************************************************************/
+
+#ifdef REL_ALLOC
+extern POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
+extern POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
+extern void r_alloc_free P_ ((POINTER_TYPE **ptr));
+#endif /* REL_ALLOC */
+
+
+/* Allocate NBYTES bytes for buffer B's text buffer.  */
+
+static void
+alloc_buffer_text (b, nbytes)
+     struct buffer *b;
+     size_t nbytes;
+{
+  POINTER_TYPE *p;
+  
+  BLOCK_INPUT;
+#if defined USE_MMAP_FOR_BUFFERS
+  p = mmap_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+#elif defined REL_ALLOC
+  p = r_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+#else
+  p = xmalloc (b->text->beg, nbytes);
+#endif
+  
+  if (p == NULL)
+    {
+      UNBLOCK_INPUT;
+      memory_full ();
+    }
+
+  b->text->beg = (unsigned char *) p;
+  UNBLOCK_INPUT;
+}
+
+/* Enlarge buffer B's text buffer by DELTA bytes.  DELTA < 0 means
+   shrink it.  */
+
+void
+enlarge_buffer_text (b, delta)
+     struct buffer *b;
+     int delta;
+{
+  POINTER_TYPE *p;
+  size_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
+		   + delta);
+  BLOCK_INPUT;
+#if defined USE_MMAP_FOR_BUFFERS
+  p = mmap_realloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+#elif defined REL_ALLOC
+  p = r_re_alloc ((POINTER_TYPE **) &b->text->beg, nbytes);
+#else
+  p = xrealloc (b->text->beg, nbytes);
+#endif
+  
+  if (p == NULL)
+    {
+      UNBLOCK_INPUT;
+      memory_full ();
+    }
+
+  BUF_BEG_ADDR (b) = (unsigned char *) p;
+  UNBLOCK_INPUT;
+}
+
+
+/* Free buffer B's text buffer.  */
+
+static void
+free_buffer_text (b)
+     struct buffer *b;
+{
+  BLOCK_INPUT;
+
+#if defined USE_MMAP_FOR_BUFFERS
+  mmap_free ((POINTER_TYPE **) &b->text->beg);
+#elif defined REL_ALLOC
+  r_alloc_free ((POINTER_TYPE **) &b->text->beg);
+#else
+  xfree (b->text->beg);
+#endif
+  
+  BUF_BEG_ADDR (b) = NULL;
+  UNBLOCK_INPUT;
+}
+
+
+
+/***********************************************************************
+			    Initialization
+ ***********************************************************************/
+
 void
 init_buffer_once ()
 {
@@ -4234,22 +4769,18 @@ init_buffer ()
   Lisp_Object temp;
   int rc;
 
-#ifdef REL_ALLOC_MMAP
+#ifdef USE_MMAP_FOR_BUFFERS
  {
    /* When using the ralloc implementation based on mmap(2), buffer
       text pointers will have been set to null in the dumped Emacs.
       Map new memory.  */
    struct buffer *b;
    
-   BLOCK_INPUT;
    for (b = all_buffers; b; b = b->next)
      if (b->text->beg == NULL)
-       BUFFER_REALLOC (BUF_BEG_ADDR (b),
-		       (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b)
-			+ BUF_GAP_SIZE (b) + 1));
-   UNBLOCK_INPUT;
+       enlarge_buffer_text (b, 0);
  }
-#endif /* REL_ALLOC_MMAP */
+#endif /* USE_MMAP_FOR_BUFFERS */
   
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
   if (NILP (buffer_defaults.enable_multibyte_characters))
