@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.12) $
+ *  $HopeName: MMsrc!format.c(trunk.13) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.12) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.13) $");
 
 
 Bool FormatCheck(Format format)
@@ -100,7 +100,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream)
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,
                "  skip $F\n", (WriteFF)format->skip,
-               "  move $F\n", (WriteFP)format->move,
+               "  move $F\n", (WriteFF)format->move,
                "  isMoved $F\n", (WriteFF)format->isMoved,
                "  copy $F\n", (WriteFF)format->copy,
                "  pad $F\n", (WriteFF)format->pad,
