@@ -2580,6 +2580,34 @@ the variable `Info-file-list-for-emacs'."
 	(put-text-property (match-beginning 1) (match-end 1)
 			   'font-lock-face 'info-menu-header)))))
 
+(defvar Info-next-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-next)
+    (define-key keymap [header-line mouse-2] 'Info-next)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-next)
+    keymap)
+  "Keymap to put on the Next link in the text or the header line.")
+
+(defvar Info-prev-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-prev)
+    (define-key keymap [header-line mouse-2] 'Info-prev)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-prev)
+    keymap)
+  "Keymap to put on the Prev link in the text or the header line.")
+
+
+(defvar Info-up-link-keymap
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap [header-line mouse-1] 'Info-up)
+    (define-key keymap [header-line mouse-2] 'Info-up)
+    (define-key keymap [header-line down-mouse-1] 'ignore)
+    (define-key keymap [mouse-2] 'Info-up)
+    keymap)
+  "Keymap to put on the Up link in the text or the header line.")
+
 (defun Info-fontify-node ()
   ;; Only fontify the node if it hasn't already been done.  [We pass in
   ;; LIMIT arg to `next-property-change' because it seems to search past
@@ -2607,33 +2635,44 @@ the variable `Info-file-list-for-emacs'."
 				   (concat "Go to node "
 					   (buffer-substring nbeg nend)))
 		;; Always set up the text property keymap.
-		;; It will be used either in the buffer
+		;; It will either be used in the buffer
 		;; or copied in the header line.
-		(let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
-					     ("Next" . Info-next)
-					     ("Up" . Info-up))))))
-		  (when fun
-		    (let ((keymap (make-sparse-keymap)))
-		      (define-key keymap [header-line mouse-1] fun)
-		      (define-key keymap [header-line mouse-2] fun)
-		      (define-key keymap [header-line down-mouse-1] 'ignore)
-		      (define-key keymap [mouse-2] fun)
-		      (put-text-property tbeg nend 'keymap keymap))))
-		  )))
+		(cond ((equal tag "Prev")
+		       (put-text-property tbeg nend 'keymap
+					  Info-prev-link-keymap))
+		      ((equal tag "Next")
+		       (put-text-property tbeg nend 'keymap
+					  Info-next-link-keymap))
+		      ((equal tag "Up")
+		       (put-text-property tbeg nend 'keymap
+					  Info-up-link-keymap))))))
 	  (goto-char (point-min))
-	  (let* ((header-end (save-excursion (end-of-line) (point)))
-		 ;; If we find neither Next: nor Prev: link, show the entire
-		 ;; node header.  Otherwise, don't show the File: and Node:
-		 ;; parts, to avoid wasting precious space on information that
-		 ;; is available in the mode line.
-		 (header-beg (if (re-search-forward
-				  "\\(next\\|prev[ious]*\\): "
-				  header-end t)
-				 (match-beginning 1)
-			       (point))))
+	  (let ((header-end (save-excursion (end-of-line) (point)))
+		header)
+	    ;; If we find neither Next: nor Prev: link, show the entire
+	    ;; node header.  Otherwise, don't show the File: and Node:
+	    ;; parts, to avoid wasting precious space on information that
+	    ;; is available in the mode line.
+	    (if (re-search-forward
+		 "\\(next\\|up\\|prev[ious]*\\): "
+		 header-end t)
+		(progn
+		  (goto-char (match-beginning 1))
+		  (setq header (buffer-substring (point) header-end)))
+	      (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" nil t)
+		  (setq header
+			(concat "No next, prev or up links  --  "
+				(buffer-substring (point) header-end)))
+		(setq header (buffer-substring (point) header-end))))
+
 	    (put-text-property (point-min) (1+ (point-min))
-			       'header-line
-			       (buffer-substring header-beg header-end))))
+			       'header-line header)
+	    ;; Hide the part of the first line
+	    ;; that is in the header, if it is just part.
+	    (unless (bobp)
+	      ;; Hide the punctuation at the end, too.
+	      (skip-chars-backward " \t,")
+	      (put-text-property (point) header-end 'invisible t))))
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
