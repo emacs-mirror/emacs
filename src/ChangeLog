@@ -1,3 +1,15 @@
+2004-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Freplace_match): Handle nonexistent
+	back-references properly.
+
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (decode_any_window): New function.
+	(Fwindow_height, Fwindow_width, Fwindow_edges)
+	(Fwindow_pixel_edges, Fwindow_inside_edges)
+	(Fwindow_inside_pixel_edges): Use decode_any_window.
+
 2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* process.h: synch_process_termsig new variable.
