@@ -1,3 +1,8 @@
+2000-04-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* gud.el (gud-jdb-build-source-files-list): Check that directory
+	exists before calling directory-files.
+
 2000-04-13  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/trace.el: Change maintainer.  Use new backquote

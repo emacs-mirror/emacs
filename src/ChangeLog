@@ -1,3 +1,9 @@
+2000-04-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* filelock.c (MAKE_LOCK_NAME): Allocate 2 more bytes.
+	(fill_in_lock_file_name): Avoid existing files that aren't
+	links.
+
 2000-04-14  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (LIBS, IBOBJS): New variable.
