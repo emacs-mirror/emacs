@@ -45,8 +45,9 @@
 # make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
-#      everything deleted by distclean, plus more: C source files
-#      produced by Bison, tags tables, info files, and so on.
+#      everything deleted by distclean, plus more: .elc files,
+#      C source files produced by Bison, tags tables, info files,
+#      and so on.
 #
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
