@@ -1242,7 +1242,7 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
 (defalias 'set-clipboard-coding-system 'set-selection-coding-system)
 
 (defun set-selection-coding-system (coding-system)
-  "Make CODING-SYSTEM used for communicating with other X clients .
+  "Make CODING-SYSTEM used for communicating with other X clients.
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by CODING-SYSTEM."
   (interactive "zCoding system for X selection: ")
