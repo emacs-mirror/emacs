@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -879,67 +879,89 @@ internal_equal (o1, o2, depth)
 {
   if (depth > 200)
     error ("Stack overflow in equal");
+
  tail_recurse:
   QUIT;
-  if (EQ (o1, o2)) return 1;
+  if (EQ (o1, o2))
+    return 1;
+  if (XTYPE (o1) != XTYPE (o2))
+    return 0;
+
+  switch (XTYPE (o1))
+    {
 #ifdef LISP_FLOAT_TYPE
-  if (FLOATP (o1) && FLOATP (o2))
-    return (extract_float (o1) == extract_float (o2));
+    case Lisp_Float:
+      return (extract_float (o1) == extract_float (o2));
 #endif
-  if (XTYPE (o1) != XTYPE (o2)) return 0;
-  if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type) return 0;
-  if (CONSP (o1))
-    {
-      if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
+
+    case Lisp_Cons:
+      {
+	if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
+	  return 0;
+	o1 = XCONS (o1)->cdr;
+	o2 = XCONS (o2)->cdr;
+	goto tail_recurse;
+      }
+
+    case Lisp_Misc:
+      if (MISCP (o1) && XMISC (o1)->type != XMISC (o2)->type)
 	return 0;
-      o1 = XCONS (o1)->cdr;
-      o2 = XCONS (o2)->cdr;
-      goto tail_recurse;
-    }
-  if (OVERLAYP (o1))
-    {
-      if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o1), depth + 1)
-	  || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o1), depth + 1))
-	return 0;
-      o1 = XOVERLAY (o1)->plist;
-      o2 = XOVERLAY (o2)->plist;
-      goto tail_recurse;
-    }
-  if (MARKERP (o1))
-    {
-      return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
-	      && (XMARKER (o1)->buffer == 0
-		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos));
-    }
-  if (VECTORP (o1) || COMPILEDP (o1))
-    {
-      register int index;
-      if (XVECTOR (o1)->size != XVECTOR (o2)->size)
-	return 0;
-      for (index = 0; index < XVECTOR (o1)->size; index++)
+      if (OVERLAYP (o1))
 	{
-	  Lisp_Object v1, v2;
-	  v1 = XVECTOR (o1)->contents [index];
-	  v2 = XVECTOR (o2)->contents [index];
-	  if (!internal_equal (v1, v2, depth + 1))
+	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o1),
+			       depth + 1)
+	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o1),
+				  depth + 1))
 	    return 0;
+	  o1 = XOVERLAY (o1)->plist;
+	  o2 = XOVERLAY (o2)->plist;
+	  goto tail_recurse;
 	}
-      return 1;
-    }
-  if (STRINGP (o1))
-    {
-      if (XSTRING (o1)->size != XSTRING (o2)->size)
-	return 0;
-      if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data, XSTRING (o1)->size))
-	return 0;
+      if (MARKERP (o1))
+	{
+	  return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
+		  && (XMARKER (o1)->buffer == 0
+		      || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos));
+	}
+      break;
+
+    case Lisp_Vectorlike:
+      if ((VECTORP (o1) && VECTORP (o2))
+	  ||
+	  (COMPILEDP (o1) && COMPILEDP (o2)))
+	{
+	  register int index;
+	  if (XVECTOR (o1)->size != XVECTOR (o2)->size)
+	    return 0;
+	  for (index = 0; index < XVECTOR (o1)->size; index++)
+	    {
+	      Lisp_Object v1, v2;
+	      v1 = XVECTOR (o1)->contents [index];
+	      v2 = XVECTOR (o2)->contents [index];
+	      if (!internal_equal (v1, v2, depth + 1))
+		return 0;
+	    }
+	  return 1;
+	}
+      break;
+
+    case Lisp_String:
+      if (STRINGP (o1))
+	{
+	  if (XSTRING (o1)->size != XSTRING (o2)->size)
+	    return 0;
+	  if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
+		    XSTRING (o1)->size))
+	    return 0;
 #ifdef USE_TEXT_PROPERTIES
-      /* If the strings have intervals, verify they match;
-	 if not, they are unequal.  */
-      if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
-	  && ! compare_string_intervals (o1, o2))
-	return 0;
+	  /* If the strings have intervals, verify they match;
+	     if not, they are unequal.  */
+	  if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
+	      && ! compare_string_intervals (o1, o2))
+	    return 0;
 #endif
-      return 1;
+	  return 1;
+	}
     }
   return 0;
 }
