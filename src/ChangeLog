@@ -1,3 +1,9 @@
+2002-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (decode_coding) <coding_type_ccl>: If a lone CR
+	characters is carried over from the previous block of text, adjust
+	coding->produced to account for the extra character.
+
 2002-05-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Don't use DBCS raster fonts.
