@@ -437,8 +437,6 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	   (message "Warning: no color specified for <x-color>"))
 	  ((internal-find-face face))
 	  ((and window-system (facemenu-get-face face)))
-	  (window-system
-	   (message "Warning: color `%s' is not defined" color))
 	  ((make-face face)
 	   (message "Warning: color `%s' can't be displayed" color)))
     (list from to 'face face)))
@@ -449,8 +447,6 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	   (message "Warning: no color specified for <x-bg-color>"))
 	  ((internal-find-face face))
 	  ((and window-system (facemenu-get-face face)))
-	  (window-system
-	   (message "Warning: color `%s' is not defined" color))
 	  ((make-face face)
 	   (message "Warning: color `%s' can't be displayed" color)))
     (list from to 'face face)))
