@@ -1187,7 +1187,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
 	    {
 	      struct font_info *fontp;
 	      
-	      if (!(fontp = fs_load_font (f, FRAME_X_FONT_TABLE (f),
+	      if (!(fontp = FS_LOAD_FONT (f, FRAME_X_FONT_TABLE (f),
 					  CHARSET_ASCII, NULL, fontset)))
 		Fsignal (Qerror,
 			 Fcons (build_string ("ASCII font can't be loaded"),
