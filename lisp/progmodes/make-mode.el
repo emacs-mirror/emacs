@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992,94,99,2000,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1992,94,99,2000,2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -1011,12 +1011,30 @@ definition and conveniently use this command."
     (beginning-of-line)
     (cond
      ((looking-at "^#+ ")
-      ;; Found a comment.  Set the fill prefix and then fill.
+      ;; Found a comment.  Set the fill prefix, and find the paragraph
+      ;; boundaries by searching for lines that look like comment-only
+      ;; lines.
       (let ((fill-prefix (buffer-substring-no-properties (match-beginning 0)
 							 (match-end 0)))
 	    (fill-paragraph-function nil))
-	(fill-paragraph nil)
-	t))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region
+	     ;; Search backwards.
+	     (save-excursion
+	       (while (and (zerop (forward-line -1))
+			   (looking-at "^#")))
+	       ;; We may have gone too far.  Go forward again.
+	       (or (looking-at "^#")
+		   (forward-line 1))
+	       (point))
+	     ;; Search forwards.
+	     (save-excursion
+	       (while (looking-at "^#")
+		 (forward-line))
+	       (point)))
+	    (fill-paragraph nil)
+	    t))))
 
      ;; Must look for backslashed-region before looking for variable
      ;; assignment.
