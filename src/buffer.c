@@ -1737,6 +1737,24 @@ but the contents viewed as characters do change.")
     }
   else
     {
+      /* Be sure not to have a multibyte sequence striding over the GAP.
+	 Ex: We change this: "...abc\201\241\241 _GAP_ \241\241\241..."
+	     to: "...abc _GAP_ \201\241\241\241\241\241..."  */
+
+      if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
+	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
+	{
+	  unsigned char *p = GPT_ADDR - 1;
+
+	  while (! CHAR_HEAD_P (*p) && p > BEG_ADDR) p--;
+	  if (BASE_LEADING_CODE_P (*p))
+	    {
+	      int new_gpt = GPT_BYTE - (GPT_ADDR - p);
+
+	      move_gap_both (new_gpt, new_gpt);
+	    }
+	}
+
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
       current_buffer->enable_multibyte_characters = Qt;
@@ -1744,17 +1762,17 @@ but the contents viewed as characters do change.")
       GPT_BYTE = advance_to_char_boundary (GPT_BYTE);
       GPT = chars_in_text (BEG_ADDR, GPT_BYTE - BEG_BYTE) + BEG;
 
-      Z = chars_in_text (GPT_ADDR, Z_BYTE - GPT_BYTE) + GPT;
+      Z = chars_in_text (GAP_END_ADDR, Z_BYTE - GPT_BYTE) + GPT;
 
       BEGV_BYTE = advance_to_char_boundary (BEGV_BYTE);
       if (BEGV_BYTE > GPT_BYTE)
-	BEGV = chars_in_text (GPT_ADDR, BEGV_BYTE - GPT_BYTE) + GPT;
+	BEGV = chars_in_text (GAP_END_ADDR, BEGV_BYTE - GPT_BYTE) + GPT;
       else
 	BEGV = chars_in_text (BEG_ADDR, BEGV_BYTE - BEG_BYTE) + BEG;
 
       ZV_BYTE = advance_to_char_boundary (ZV_BYTE);
       if (ZV_BYTE > GPT_BYTE)
-	ZV = chars_in_text (GPT_ADDR, ZV_BYTE - GPT_BYTE) + GPT;
+	ZV = chars_in_text (GAP_END_ADDR, ZV_BYTE - GPT_BYTE) + GPT;
       else
 	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
 
@@ -1763,7 +1781,7 @@ but the contents viewed as characters do change.")
 	int pt;
 
 	if (pt_byte > GPT_BYTE)
-	  pt = chars_in_text (GPT_ADDR, pt_byte - GPT_BYTE) + GPT;
+	  pt = chars_in_text (GAP_END_ADDR, pt_byte - GPT_BYTE) + GPT;
 	else
 	  pt = chars_in_text (BEG_ADDR, pt_byte - BEG_BYTE) + BEG;
 	TEMP_SET_PT_BOTH (pt, pt_byte);
