@@ -1,3 +1,8 @@
+2000-11-02  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* info.el (Info-insert-dir): Don't include blank lines at
+	beginning of additional dir files (one is added automatically).
+
 2000-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode):
