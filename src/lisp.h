@@ -2651,6 +2651,7 @@ extern void syms_of_indent P_ ((void));
 
 /* defined in window.c */
 extern Lisp_Object Qwindowp, Qwindow_live_p;
+extern Lisp_Object Vwindow_list;
 EXFUN (Fwindow_end, 2);
 EXFUN (Fselected_window, 0);
 EXFUN (Fnext_window, 3);
