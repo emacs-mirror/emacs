@@ -1,3 +1,9 @@
+2002-07-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (detect_coding_iso2022): While checking a byte sequence
+	for CODING_CATEGORY_MASK_ISO_8_2, if we read one extra byte, check
+	it in the normal loop.
+
 2002-07-24  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xterm.c (expose_overlaps): New function.
