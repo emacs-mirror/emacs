@@ -134,7 +134,7 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
- whatever what matched the Nth `\\(...\\)' in REGEXP."
+ whatever what matched the Nth `\\(...\\)' in REGEXP.
 
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
