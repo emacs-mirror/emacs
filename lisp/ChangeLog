@@ -1,7 +1,30 @@
+2003-05-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-svn.el: New file.
+
 2003-05-05  John Paul Wallington  <jpw@gnu.org>
 
-	* emacs-lisp/autoload.el (batch-update-autoloads): Call
-	`update-directory-autoloads'.
+	* emacs-lisp/autoload.el (batch-update-autoloads):
+	Call `update-directory-autoloads'.
+
+2003-05-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el: Move provide to end of file.
+	(uniquify-ref-base, uniquify-ref-filename, uniquify-ref-buffer)
+	(uniquify-ref-proposed, uniquify-set-proposed): Remove.
+	(uniquify-item): New struct.  Update users of uniquify-ref-*.
+	(uniquify-get-proposed-name, uniquify-rationalize-a-list):
+	Make `depth' optional.
+	(uniquify-non-file-buffer-names): Remove.
+	(uniquify-rationalize-file-buffer-names): Don't set it up.
+	Use uniquify-make-item and don't pass the now-optional depth.
+	(uniquify-rationalize-conflicting-sublist): Check the new buffer
+	name directly instead of relying on uniquify-non-file-buffer-names.
+	(uniquify-rename-buffer): Use with-current-buffer and pass
+	the `unique' arg to rename-buffer.
+
+	* vc-mcvs.el (vc-mcvs-mode-line-string): Fix thinko.
+	(vc-mcvs-rename-file): New function.
 
 2003-05-04  Emmanuel Briot  <briot@gnat.com>
 
@@ -20,6 +43,20 @@
 	toolbar/gud-next.pbm, toolbar/gud-print.pbm, toolbar/gud-remove.pbm,
 	toolbar/gud-run.pbm, toolbar/gud-step.pbm, toolbar/gud-up.pbm:
 	Correct size for cleaner bitmaps.
+
+2003-05-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/cl-extra.el (cl-map-keymap): Redefine as alias.
+	(cl-map-keymap-recursively): Use map-keymap.
+	(cl-macroexpand-all): Don't quote functions.
+
+	* emacs-lisp/lucid.el (cl-map-keymap): Be careful with aliases.
+
+	* emacs-lisp/advice.el (ad-get-enabled-advices, ad-special-forms)
+	(ad-arglist, ad-subr-arglist): Use push and match-string.
+	(ad-make-advised-docstring): Extract & reinsert the usage info.
+
+	* help-fns.el (help-add-fundoc-usage): Allow arglist to be a string.
 
 2003-05-03  Nick Roberts  <nick@nick.uklinux.net>
 
@@ -61,6 +98,13 @@
 	(ls-lisp-format): Use it.
 
 2003-04-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-vc-command-advice): Don't parse "cvs update -p" output.
+	(cvs-mode-find-file): Don't complain if bound to a non-mouse event.
+
+	* textmodes/fill.el (text-property-default-nonsticky): Add fill-space.
+	(fill-delete-newlines): Respect the new property.
+	(fill-newline): Use the property instead of leaving "spurious" spaces.
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map): Correctly handle
 	non-submap bindings.
