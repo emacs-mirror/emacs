@@ -53,8 +53,7 @@
 
 (define-key menu-bar-tools-menu [calendar] '("Display Calendar" . calendar))
 (define-key menu-bar-tools-menu [rmail] '("Read Mail" . rmail))
-(if (fboundp 'open-network-stream)
-    (define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus)))
+(define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus))
 
 (define-key menu-bar-tools-menu [separator-vc]
   '("--"))
