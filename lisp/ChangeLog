@@ -1,6 +1,7 @@
 2005-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (idle-update-delay): Move definition up.
+	(set-mark): Doc fix.
 
 2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
