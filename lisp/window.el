@@ -1,4 +1,4 @@
-;;; windows.el --- GNU Emacs window commands aside from those written in C.
+;;; window.el --- GNU Emacs window commands aside from those written in C.
 
 ;;; Copyright (C) 1985, 1989, 1992 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 Optional arg NO-MINI non-nil means don't count the minibuffer
 even if it is active."
    (let ((count 0))
-     (walk-windows (function (lambda ()
+     (walk-windows (function (lambda (w)
 			       (setq count (+ count 1))))
 		   minibuf)
      count))
