@@ -103,19 +103,25 @@ is okay.  See `mode-line-format'.")
 ;; are ignored in completion,
 ;; making it more likely you will get a unique match.
 (setq completion-ignored-extensions
-      (cond ((or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-	     '(".o" ".elc" "~" ".bin" ".bak" ".obj" ".map"
-	       ".dvi" ".toc" ".log" ".aux" ".a" ".ln"
-	       ".lof" ".blg" ".bbl" ".glo" ".idx" ".lot" ".fmt"))
-	    ((eq system-type 'vax-vms)
-	     '(".obj" ".elc" ".exe" ".bin" ".lbin" ".sbin"
-	       ".dvi" ".toc" ".log" ".aux"
-	       ".lof" ".brn" ".rnt" ".mem" ".lni" ".lis"
-	       ".olb" ".tlb" ".mlb" ".hlb" ".glo" ".idx" ".lot" ".fmt"))
-	    (t
-	     '(".o" ".elc" "~" ".bin" ".lbin" ".fasl"
-	       ".dvi" ".toc" ".log" ".aux" ".a" ".ln"
-	       ".lof" ".blg" ".bbl" ".glo" ".idx" ".lot" ".fmt"))))
+      (append
+       (cond ((or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
+	      '(".o" "~" ".bin" ".bak" ".obj" ".map"
+		".a" ".ln" ".blg" ".bbl"))
+	     ((eq system-type 'vax-vms)
+	      '(".obj" ".exe" ".bin" ".lbin" ".sbin"
+		".brn" ".rnt" ".mem" ".lni" ".lis"
+		".olb" ".tlb" ".mlb" ".hlb"))
+	     (t
+	      '(".o" "~" ".bin" ".lbin" ".fasl"
+		".a" ".ln" ".blg" ".bbl")))
+       '(".elc" ".lof"
+	 ".glo" ".idx" ".lot"
+	 ;; TeX-related
+	 ".dvi" ".fmt"
+	 ;; Texinfo-related
+	 ".toc" ".log" ".aux"
+	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
+	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
 (setq debug-ignored-errors
       '(beginning-of-line beginning-of-buffer end-of-line
