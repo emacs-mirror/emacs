@@ -76,7 +76,7 @@
 
 (defcustom which-func-modes
   '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode makefile-mode
-		    sh-mode fortran-mode f90-mode)
+		    sh-mode fortran-mode f90-mode ada-mode)
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
@@ -206,20 +206,37 @@ and off otherwise."
 (defvar which-function-imenu-failed nil
   "Locally t in a buffer if `imenu--make-index-alist' found nothing there.")
 
+(defvar which-func-functions nil
+  "List of functions for `which-function' to call with no arguments.
+It calls them sequentially, and if any returns non-nil,
+`which-function' uses that name and stops looking for the name.")
+
 (defun which-function ()
   "Return current function name based on point.
-Uses `imenu--index-alist' or `add-log-current-defun-function'.
+Uses `which-function-functions', `imenu--index-alist'
+or `add-log-current-defun-function'.
 If no function name is found, return nil."
   (let (name)
+    ;; Try the which-function-functions functions first.
+    (let ((hooks which-func-functions))
+      (while hooks
+	(let ((value (funcall (car hooks))))
+	  (when value
+	    (setq name value
+		  hooks nil)))
+	(setq hooks (cdr hooks))))
+
     ;; If Imenu is loaded, try to make an index alist with it.
-    (when (and (boundp 'imenu--index-alist) (null imenu--index-alist)
+    (when (and (null name)
+	       (boundp 'imenu--index-alist) (null imenu--index-alist)
 	       (null which-function-imenu-failed))
       (imenu--make-index-alist)
       (unless imenu--index-alist
 	(make-local-variable 'which-function-imenu-failed)
 	(setq which-function-imenu-failed t)))
     ;; If we have an index alist, use it.
-    (when (and (boundp 'imenu--index-alist) imenu--index-alist)
+    (when (and (null name)
+	       (boundp 'imenu--index-alist) imenu--index-alist)
       (let ((alist imenu--index-alist)
             (minoffset (point-max))
             offset elem pair mark)
