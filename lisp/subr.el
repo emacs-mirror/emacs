@@ -804,6 +804,9 @@ It does nothing if FORM is already on the list for FILE.
 FILE must match exactly.  Normally FILE is the name of a library,
 with no directory or extension specified, since that is how `load'
 is normally called."
+  ;; Make sure `load-history' contains the files dumped with Emacs
+  ;; for the case that FILE is one of the files dumped with Emacs.
+  (load-symbol-file-load-history)
   ;; Make sure there is an element for FILE.
   (or (assoc file after-load-alist)
       (setq after-load-alist (cons (list file) after-load-alist)))
