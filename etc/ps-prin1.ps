@@ -301,10 +301,14 @@ StandardEncoding 46 82 getinterval aload pop
 % stack:  -- |- boolean
 /isLineStep{
   SyncLineZebra
-  {PrintLineStep 1 gt
-   {/PrintLineStep PrintLineStep 1 sub def false}	% or inside zebra
-   {/PrintLineStep ZebraHeight def true}ifelse}		% or 1st zebra line
-  {LineNumber 1 sub PrintLineStep mod 0 eq}ifelse	% or line step
+  {PLScounter 0 gt						% or zebra
+   {/PLScounter PLScounter 1 sub def PLScounter 0 eq}
+   {false}ifelse
+   PrintLineStep 1 gt
+   {/PrintLineStep PrintLineStep 1 sub def}
+   {/PrintLineStep ZebraHeight def
+    /PLScounter PrintLineStart def}ifelse}
+  {LineNumber PrintLineStart sub PrintLineStep mod 0 eq}ifelse	% or line step
 }def
 
 % stack:  --
@@ -417,55 +421,15 @@ StandardEncoding 46 82 getinterval aload pop
   /docState save def
   % ---- [andrewi] set PageSize based on chosen dimensions
   UseSetpagedevice{
-    BMark /PageSize [PageWidth LandscapePageHeight] EMark setpagedevice
-  }{
-    LandscapeMode{
-      % ---- translate to bottom-right corner of Portrait page
-      LandscapePageHeight 0 translate
-      90 rotate
-    }if
-  }ifelse
-  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
-  /JackGhostscript where{pop 1 27.7 29.7 div scale}if
-  UpsideDown{PageWidth LandscapePageHeight translate 180 rotate}if
-  % ---- N-Up printing
-  N-Up 1 gt{
-    % ---- landscape
-    N-Up-Landscape{
-      PageWidth 0 translate
-      90 rotate
-    }if
-    N-Up-Margin dup translate
-    % ---- scale
-    LandscapeMode{
-      /HH PageWidth def
-      /WW LandscapePageHeight def
-    }{
-      /HH LandscapePageHeight def
-      /WW PageWidth def
-    }ifelse
-    WW N-Up-Margin sub N-Up-Margin sub
-    N-Up-Landscape
-     {N-Up-Lines div HH}{N-Up-Columns N-Up-Missing add div WW}ifelse
-    div dup scale
-    0 N-Up-Repeat 1 sub LandscapePageHeight mul translate
-    % ---- go to start position in page matrix
-    N-Up-XStart N-Up-Missing 0.5 mul
-    LandscapeMode{
-      LandscapePageHeight mul N-Up-YStart add
-    }{
-      PageWidth mul add N-Up-YStart
-    }ifelse
-    translate
+    BMark/PageSize[PageWidth LandscapePageHeight LandscapeMode{exch}if]EMark setpagedevice
   }if
   /ColumnWidth PrintWidth InterColumn add def
-  % ---- translate to lower left corner of TEXT
-  LeftMargin BottomMargin translate
   % ---- define where  printing will start
   /f0 F					% this installs Ascent
   /PrintStartY PrintHeight Ascent sub def
   /ColumnIndex 1 def
   /N-Up-Counter N-Up-End 1 sub def
+  /PLScounter PrintLineStart def
 }def
 
 /EndDoc{
@@ -536,6 +500,46 @@ StandardEncoding 46 82 getinterval aload pop
 /BeginSheet{
   /sheetState save def
   /pages-per-sheet exch def
+
+  % ---- translate to bottom-right corner of Portrait page
+  LandscapeMode{
+    LandscapePageHeight 0 translate
+    90 rotate
+  }if
+  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
+  /JackGhostscript where{pop 1 27.7 29.7 div scale}if
+  UpsideDown{PageWidth LandscapePageHeight translate 180 rotate}if
+  % ---- N-Up printing
+  N-Up 1 gt{
+    % ---- landscape
+    N-Up-Landscape{
+      PageWidth 0 translate
+      90 rotate
+    }if
+    N-Up-Margin dup translate
+    % ---- scale
+    LandscapeMode{
+      /HH PageWidth def
+      /WW LandscapePageHeight def
+    }{
+      /HH LandscapePageHeight def
+      /WW PageWidth def
+    }ifelse
+    WW N-Up-Margin sub N-Up-Margin sub
+    N-Up-Landscape
+     {N-Up-Lines div HH}{N-Up-Columns N-Up-Missing add div WW}ifelse
+    div dup scale
+    0 N-Up-Repeat 1 sub LandscapePageHeight mul translate
+    % ---- go to start position in page matrix
+    N-Up-XStart N-Up-Missing 0.5 mul
+    LandscapeMode
+    {LandscapePageHeight mul N-Up-YStart add}
+    {PageWidth mul add N-Up-YStart}ifelse
+    translate
+  }if
+  % ---- translate to lower left corner of TEXT
+  LeftMargin BottomMargin translate
+
   % ---- N-up printing
   N-Up 1 gt N-Up-Border and pages-per-sheet 0 gt and{
     % ---- page border
