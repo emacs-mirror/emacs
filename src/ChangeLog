@@ -1,8 +1,40 @@
+2002-07-12  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_error_message): Don't handle Vsignaling_function here.
+
+	* keyboard.c (cmd_error_internal): Handle Vsignaling_function here.
+	(command_loop_1): Avoid certain actions after memory-full error.
+
+	* eval.c (Fsignal): Don't call cancel_hourglass.
+	For a memory-full error, don't call Vsignal_hook_function
+	and don't set Vsignaling_function.
+
+	* process.c (process_send_signal): Add abort call.
+
 2002-07-11  Markus Rost  <rost@math.ohio-state.edu>
 
 	* keymap.c (Fkey_binding): Fix typo.
 
 2002-07-11  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (Vmemory_full): New variable.
+	(Vmemory_signal_data): Renamed from memory_signal_data.
+	Uses changed.
+	(syms_of_alloc): Defvar them.
+	(memory_full, buffer_memory_full): Set Vmemory_full.
+	
+	* lisp.h (Vmemory_full): Add declaration.
+	(current_column, indented_beyond_p): Change declaration.
+
+	* indent.c (last_known_column): Declare as double, not float.
+	(current_column, current_column_1, string_display_width)
+	(position_indentation): Return `double'.
+	(indented_beyond_p): Arg `column' is `double'.  Callers changed.
+	
+	* xdisp.c (message_dolog): Do nothing if Vmemory_full is non-nil.
+	(back_to_previous_visible_line_start) 
+	(reseat_at_next_visible_line_start, next_element_from_buffer): 
+	Use `double', not `float', when calling indented_beyond_p.
 
 	* s/hpux11.h (BROKEN_SA_RESTART): Defined.
 
