@@ -16,6 +16,8 @@
 #ifndef __GNUC__
 /* Make room for enough symbols, so dispnew.c does not fail.  */
 #define C_SWITCH_SYSTEM -Wp,-H200000 -D_BSD
+#else
+#define C_SWITCH_SYSTEM -D_BSD
 #endif
 
 #if 0 /* These definitions run into a bug in hpux
