@@ -32,7 +32,8 @@
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.  Shane Hartman <shane@spr.com>
 ;; added support for xdb (HPUX debugger).  Rick Sladkey <jrs@world.std.com>
-;; wrote the GDB command completion code.
+;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
+;; added the IRIX kluge and re-implemented the Mips-ish variant.
 
 ;;; Code:
 
@@ -164,50 +165,51 @@ we're in the GUD buffer)."
 ;; receive a chunk of text which looks like it might contain the
 ;; beginning of a marker, we save it here between calls to the
 ;; filter.
-(defvar gud-gdb-marker-acc "")
+(make-local-variable 'gud-marker-acc)
+(defvar gud-marker-acc "")
 
 (defun gud-gdb-marker-filter (string)
   (save-match-data
-    (setq gud-gdb-marker-acc (concat gud-gdb-marker-acc string))
+    (setq gud-marker-acc (concat gud-marker-acc string))
     (let ((output ""))
 
       ;; Process all the complete markers in this chunk.
       (while (string-match "^\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-			   gud-gdb-marker-acc)
+			   gud-marker-acc)
 	(setq
 
 	 ;; Extract the frame position from the marker.
 	 gud-last-frame
-	 (cons (substring gud-gdb-marker-acc (match-beginning 1) (match-end 1))
-	       (string-to-int (substring gud-gdb-marker-acc
+	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	       (string-to-int (substring gud-marker-acc
 					 (match-beginning 2)
 					 (match-end 2))))
 
 	 ;; Append any text before the marker to the output we're going
 	 ;; to return - we don't include the marker in this text.
 	 output (concat output
-			(substring gud-gdb-marker-acc 0 (match-beginning 0)))
+			(substring gud-marker-acc 0 (match-beginning 0)))
 
 	 ;; Set the accumulator to the remaining text.
-	 gud-gdb-marker-acc (substring gud-gdb-marker-acc (match-end 0))))
+	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
       ;; Does the remaining text look like it might end with the
       ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-gdb-marker-acc until we receive the rest of it.  Since we
+      ;; gud-marker-acc until we receive the rest of it.  Since we
       ;; know the full marker regexp above failed, it's pretty simple to
       ;; test for marker starts.
-      (if (string-match "^\032.*\\'" gud-gdb-marker-acc)
+      (if (string-match "^\032.*\\'" gud-marker-acc)
 	  (progn
 	    ;; Everything before the potential marker start can be output.
-	    (setq output (concat output (substring gud-gdb-marker-acc
+	    (setq output (concat output (substring gud-marker-acc
 						   0 (match-beginning 0))))
 
 	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-gdb-marker-acc
-		  (substring gud-gdb-marker-acc (match-beginning 0))))
+	    (setq gud-marker-acc
+		  (substring gud-marker-acc (match-beginning 0))))
 
-	(setq output (concat output gud-gdb-marker-acc)
-	      gud-gdb-marker-acc ""))
+	(setq output (concat output gud-marker-acc)
+	      gud-marker-acc ""))
 
       output)))
 
@@ -448,69 +450,142 @@ and source-file directory for your debugger."
 	      (substring string (match-beginning 1) (match-end 1))))))
   string)
 
-;; Functions for dbx on Mips/Ultrix.
-;; This is very similar to the code for gdb. The trick is to start dbx
-;; with the (undocumented) option `-emacs'.
-
-;; Are we running on a Mips system under Ultrix?
-(defvar gud-dbx-mips-p (file-exists-p "/usr/include/mips"))
+;; Functions for Mips-style dbx.  Given the option `-emacs', documented in
+;; OSF1, not necessarily elsewhere, it produces markers similar to gdb's.
+(defvar gud-mips-p
+  (or (string-match "^mips-[^-]*-ultrix" system-configuration)
+      ;; We haven't tested gud on this system:
+      (string-match "^mips-[^-]*-riscos" system-configuration)
+      ;; It's documented on OSF/1.3
+      (string-match "^mips-[^-]*-osf1" system-configuration))
+  "Non-nil to assume the MIPS/OSF dbx conventions (argument `-emacs').")
 
 (defun gud-mipsdbx-massage-args (file args)
   (cons "-emacs" (cons file args)))
 
-;; There's no guarantee that Emacs will hand the filter the entire
-;; marker at once; it could be broken up across several strings.  We
-;; might even receive a big chunk with several markers in it.  If we
-;; receive a chunk of text which looks like it might contain the
-;; beginning of a marker, we save it here between calls to the
-;; filter.
-(defvar gud-mipsdbx-marker-acc "")
-
+;; This is just like the gdb one except for the regexps since we need to cope
+;; with an optional breakpoint number in [] before the ^Z^Z
 (defun gud-mipsdbx-marker-filter (string)
   (save-match-data
-    (setq gud-mipsdbx-marker-acc (concat gud-mipsdbx-marker-acc string))
+    (setq gud-marker-acc (concat gud-marker-acc string))
     (let ((output ""))
 
       ;; Process all the complete markers in this chunk.
       (while (string-match
-	      "^[] [0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-	      gud-mipsdbx-marker-acc)
+	      ;; This is like th gdb marker but with an optional
+	      ;; leading break point number like `[1] '
+	      "^[][ 0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+	      gud-marker-acc)
 	(setq
 
 	 ;; Extract the frame position from the marker.
-	 gud-last-frame (cons
-			 (substring gud-mipsdbx-marker-acc
-				    (match-beginning 1) (match-end 1))
-			 (string-to-int
-			  (substring gud-mipsdbx-marker-acc
-				     (match-beginning 2) (match-end 2))))
+	 gud-last-frame
+	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	       (string-to-int (substring gud-marker-acc
+					 (match-beginning 2)
+					 (match-end 2))))
 
 	 ;; Append any text before the marker to the output we're going
 	 ;; to return - we don't include the marker in this text.
-	 output (concat output (substring gud-mipsdbx-marker-acc
-					  0 (match-beginning 0)))
+	 output (concat output
+			(substring gud-marker-acc 0 (match-beginning 0)))
 
 	 ;; Set the accumulator to the remaining text.
-	 gud-mipsdbx-marker-acc (substring gud-mipsdbx-marker-acc
-					   (match-end 0))))
+	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
       ;; Does the remaining text look like it might end with the
       ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-mipsdbx-marker-acc until we receive the rest of it.
-      ;; Since we know the full marker regexp above failed, it's pretty
-      ;; simple to test for marker starts.
-      (if (string-match "^[] [0-9]*\032.*\\'" gud-mipsdbx-marker-acc)
-	  (setq
-	   ;; Everything before the potential marker start can be output.
-	   output (concat output (substring gud-mipsdbx-marker-acc
-					    0 (match-beginning 0)))
-	   ;; Everything after, we save, to combine with later input.
-	   gud-mipsdbx-marker-acc (substring gud-mipsdbx-marker-acc
-					     (match-beginning 0)))
-	(setq output (concat output gud-mipsdbx-marker-acc)
-	      gud-mipsdbx-marker-acc ""))
+      ;; gud-marker-acc until we receive the rest of it.  Since we
+      ;; know the full marker regexp above failed, it's pretty simple to
+      ;; test for marker starts.
+      (if (string-match "^[][ 0-9]*\032.*\\'" gud-marker-acc)
+	  (progn
+	    ;; Everything before the potential marker start can be output.
+	    (setq output (concat output (substring gud-marker-acc
+						   0 (match-beginning 0))))
+
+	    ;; Everything after, we save, to combine with later input.
+	    (setq gud-marker-acc
+		  (substring gud-marker-acc (match-beginning 0))))
+
+	(setq output (concat output gud-marker-acc)
+	      gud-marker-acc ""))
 
       output)))
+
+;; The dbx in IRIX is a pain.  It doesn't print the file name when
+;; stopping at a breakpoint (but you do get it from the `up' and
+;; `down' commands...).  The only way to extract the information seems
+;; to be with a `file' command, although the current line number is
+;; available in $curline.  Thus we have to look for output which
+;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
+;; to output the information we want with a combination of the
+;; `printf' and `file' commands as a pseudo marker which we can
+;; recognise next time through the marker-filter.  This would be like
+;; the gdb marker but you can't get the file name without a newline...
+;; Note that gud-remove won't work since Irix dbx expects a breakpoint
+;; number rather than a line number etc.  Maybe this could be made to
+;; work by listing all the breakpoints and picking the one(s) with the
+;; correct line number, but life's too short.
+;;   d.love@dl.ac.uk (Dave Love) can be blamed for this
+
+(defvar gud-irix-p (string-match "^mips-[^-]*-irix" system-configuration)
+  "Non-nil to assume the interface appropriate for IRIX dbx.
+This works in IRIX 4 and probably IRIX 5.")
+;; (It's been tested in IRIX 4 and the output from dbx on IRIX 5 looks
+;; the same.)
+
+;; this filter is influenced by the xdb one rather than the gdb one
+(defun gud-irixdbx-marker-filter (string)
+  (save-match-data
+    (let (result (case-fold-search nil))
+      (if (or (string-match comint-prompt-regexp string)
+              (string-match ".*\012" string))
+          (setq result (concat gud-marker-acc string)
+                gud-marker-acc "")
+        (setq gud-marker-acc (concat gud-marker-acc string)))
+      (if result
+          (cond
+           ;; look for breakpoint or signal indication e.g.:
+           ;; [2] Process  1267 (pplot) stopped at [params:338 ,0x400ec0]
+           ;; Process  1281 (pplot) stopped at [params:339 ,0x400ec8]
+           ;; Process  1270 (pplot) Floating point exception [._read._read:16 ,0x452188]
+           ((string-match
+             "^\\(\\[[0-9]+] \\)?Process +[0-9]+ ([^)]*) [^[]+\\[[^]\n]*]\n" 
+             result)
+	    ;; prod dbx into printing out the line number and file
+	    ;; name in a form we can grok as below
+            (process-send-string (get-buffer-process gud-comint-buffer)
+				 "printf \"\032\032%1d:\",$curline;file\n"))
+           ;; look for result of, say, "up" e.g.:
+           ;; .pplot.pplot(0x800) ["src/pplot.f":261, 0x400c7c]
+	   ;; (this will also catch one of the lines printed by "where")
+           ((string-match
+             "^[^ ][^[]*\\[\"\\([^\"]+\\)\":\\([0-9]+\\), [^]]+]\n"
+             result)
+            (let ((file (substring result (match-beginning 1)
+                                   (match-end 1))))
+              (if (file-exists-p file)
+                  (setq gud-last-frame
+                        (cons
+                         (substring
+                          result (match-beginning 1) (match-end 1))
+                         (string-to-int 
+                          (substring
+                           result (match-beginning 2) (match-end 2)))))))
+            result)
+           ((string-match               ; kluged-up marker as above
+             "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
+            (let ((file (substring result (match-beginning 2) (match-end 2))))
+              (if (file-exists-p file)
+                  (setq gud-last-frame
+                        (cons
+                         file
+                         (string-to-int 
+                          (substring
+                           result (match-beginning 1) (match-end 1)))))))
+            (setq result (substring result 0 (match-beginning 0))))))
+      (or result ""))))
 
 (defun gud-dbx-find-file (f)
   (find-file-noselect f))
@@ -530,9 +605,13 @@ and source-file directory for your debugger."
 
   (gud-overload-functions
    (cond
-    (gud-dbx-mips-p
+    (gud-mips-p
      '((gud-massage-args . gud-mipsdbx-massage-args)
        (gud-marker-filter . gud-mipsdbx-marker-filter)
+       (gud-find-file . gud-dbx-find-file)))
+    (gud-irix-p
+     '((gud-massage-args . gud-dbx-massage-args)
+       (gud-marker-filter . gud-irixdbx-marker-filter)
        (gud-find-file . gud-dbx-find-file)))
     (t
      '((gud-massage-args . gud-dbx-massage-args)
@@ -542,10 +621,25 @@ and source-file directory for your debugger."
   (gud-common-init command-line)
 
   (cond
-   (gud-dbx-mips-p
+   (gud-mips-p
     (gud-def gud-break "stop at \"%f\":%l"
 				  "\C-b" "Set breakpoint at current line.")
     (gud-def gud-finish "return"  "\C-f" "Finish executing current function."))
+   (gud-irix-p
+    (gud-def gud-break "stop at \"%d%f\":%l"
+				  "\C-b" "Set breakpoint at current line.")
+    (gud-def gud-finish "return"  "\C-f" "Finish executing current function.")
+    ;; Make dbx give out the source location info that we need.
+    (process-send-string (get-buffer-process gud-comint-buffer)
+			 "printf \"\032\032%1d:\",$curline;file\n"))
+   ((or (string-match "-sunos" (symbol-name system-type))
+	(string-match "-solaris" (symbol-name system-type)))
+    ;; The following works for both the UCB and SunPro 2.0.1 versions
+    ;; of dbx.  The `stop' is lost using the `\n' separator as in the
+    ;; default case.  Is there a dbx where the newline is actually
+    ;; necessary?  (d.love@dl.ac.uk)
+    (gud-def gud-break "file \"%d%f\";stop at %l"
+				  "\C-b" "Set breakpoint at current line."))
    (t
     (gud-def gud-break "file \"%d%f\"\nstop at %l"
 				  "\C-b" "Set breakpoint at current line.")))
@@ -602,15 +696,13 @@ containing the executable being debugged.")
     result))
 
 ;; xdb does not print the lines all at once, so we have to accumulate them
-(defvar gud-xdb-accumulation "")
-
 (defun gud-xdb-marker-filter (string)
   (let (result)
     (if (or (string-match comint-prompt-regexp string)
             (string-match ".*\012" string))
-        (setq result (concat gud-xdb-accumulation string)
-              gud-xdb-accumulation "")
-      (setq gud-xdb-accumulation (concat gud-xdb-accumulation string)))
+        (setq result (concat gud-marker-acc string)
+              gud-marker-acc "")
+      (setq gud-marker-acc (concat gud-marker-acc string)))
     (if result
         (if (or (string-match "\\([^\n \t:]+\\): [^:]+: \\([0-9]+\\):" result)
                 (string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
@@ -662,8 +754,6 @@ directories if your program contains sources from more than one directory."
 
   (setq comint-prompt-regexp  "^>")
   (setq paragraph-start comint-prompt-regexp)
-  (make-local-variable 'gud-xdb-accumulation)
-  (setq gud-xdb-accumulation "")
   (run-hooks 'xdb-mode-hook))
 
 ;; ======================================================================
@@ -685,46 +775,46 @@ directories if your program contains sources from more than one directory."
 
 (defun gud-perldb-marker-filter (string)
   (save-match-data
-    (setq gud-perldb-marker-acc (concat gud-perldb-marker-acc string))
+    (setq gud-marker-acc (concat gud-marker-acc string))
     (let ((output ""))
 
       ;; Process all the complete markers in this chunk.
       (while (string-match "^\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-			   gud-perldb-marker-acc)
+			   gud-marker-acc)
 	(setq
 
 	 ;; Extract the frame position from the marker.
 	 gud-last-frame
-	 (cons (substring gud-perldb-marker-acc (match-beginning 1) (match-end 1))
-	       (string-to-int (substring gud-perldb-marker-acc
+	 (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
+	       (string-to-int (substring gud-marker-acc
 					 (match-beginning 2)
 					 (match-end 2))))
 
 	 ;; Append any text before the marker to the output we're going
 	 ;; to return - we don't include the marker in this text.
 	 output (concat output
-			(substring gud-perldb-marker-acc 0 (match-beginning 0)))
+			(substring gud-marker-acc 0 (match-beginning 0)))
 
 	 ;; Set the accumulator to the remaining text.
-	 gud-perldb-marker-acc (substring gud-perldb-marker-acc (match-end 0))))
+	 gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
       ;; Does the remaining text look like it might end with the
       ;; beginning of another marker?  If it does, then keep it in
-      ;; gud-perldb-marker-acc until we receive the rest of it.  Since we
+      ;; gud-marker-acc until we receive the rest of it.  Since we
       ;; know the full marker regexp above failed, it's pretty simple to
       ;; test for marker starts.
-      (if (string-match "^\032.*\\'" gud-perldb-marker-acc)
+      (if (string-match "^\032.*\\'" gud-marker-acc)
 	  (progn
 	    ;; Everything before the potential marker start can be output.
-	    (setq output (concat output (substring gud-perldb-marker-acc
+	    (setq output (concat output (substring gud-marker-acc
 						   0 (match-beginning 0))))
 
 	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-perldb-marker-acc
-		  (substring gud-perldb-marker-acc (match-beginning 0))))
+	    (setq gud-marker-acc
+		  (substring gud-marker-acc (match-beginning 0))))
 
-	(setq output (concat output gud-perldb-marker-acc)
-	      gud-perldb-marker-acc ""))
+	(setq output (concat output gud-marker-acc)
+	      gud-marker-acc ""))
 
       output)))
 
