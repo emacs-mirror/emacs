@@ -28,7 +28,7 @@
 *List of strings to pass as extra switch args to lpr when it is invoked.")
 
 ;;;###autoload
-(defconst lpr-command (if (eq system-type 'usg-unix-v) "lp" "lpr") "\
+(defconst lpr-command (if (memq system-type '(usg-unix-v hpux silicon-graphics-unix)) "lp" "lpr") "\
 *Shell command for printing a file")
 
 (defvar print-region-function nil
