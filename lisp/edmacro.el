@@ -69,7 +69,8 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile
+ (require 'cl))
 
 ;;; The user-level commands for editing macros.
 
@@ -221,7 +222,7 @@ or nil, use a compact 80-column format."
 		    (let ((str (buffer-substring (match-beginning 1)
 						 (match-end 1))))
 		      (unless (equal str "")
-			(setq cmd (and (not (equalp str "none"))
+			(setq cmd (and (not (equal str "none"))
 				       (intern str)))
 			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
 			     (not (y-or-n-p
@@ -236,7 +237,7 @@ or nil, use a compact 80-column format."
 				(buffer-substring (match-beginning 1)
 						  (match-end 1)))))
 		      (unless (equal key "")
-			(if (equalp key "none")
+			(if (equal key "none")
 			    (setq no-keys t)
 			  (push key keys)
 			  (let ((b (key-binding key)))
@@ -405,14 +406,14 @@ doubt, use whitespace."
       (let* ((prefix
 	      (or (and (integerp (aref rest-mac 0))
 		       (memq (aref rest-mac 0) mdigs)
-		       (memq (key-binding (subseq rest-mac 0 1))
+		       (memq (key-binding (edmacro-subseq rest-mac 0 1))
 			     '(digit-argument negative-argument))
 		       (let ((i 1))
 			 (while (memq (aref rest-mac i) (cdr mdigs))
 			   (incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (concat "M-" (subseq rest-mac 0 i) " ")
-				(callf subseq rest-mac i)))))
+			      (prog1 (concat "M-" (edmacro-subseq rest-mac 0 i) " ")
+				(callf edmacro-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
@@ -420,7 +421,7 @@ doubt, use whitespace."
 			   (incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
 			      (prog1 (loop repeat i concat "C-u ")
-				(callf subseq rest-mac i)))))
+				(callf edmacro-subseq rest-mac i)))))
 		  (and (eq (aref rest-mac 0) ?\C-u)
 		       (eq (key-binding [?\C-u]) 'universal-argument)
 		       (let ((i 1))
@@ -430,18 +431,18 @@ doubt, use whitespace."
 				      '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
 			   (incf i))
 			 (and (not (memq (aref rest-mac i) pkeys))
-			      (prog1 (concat "C-u " (subseq rest-mac 1 i) " ")
-				(callf subseq rest-mac i)))))))
+			      (prog1 (concat "C-u " (edmacro-subseq rest-mac 1 i) " ")
+				(callf edmacro-subseq rest-mac i)))))))
 	     (bind-len (apply 'max 1
 			      (loop for map in maps
 				    for b = (lookup-key map rest-mac)
 				    when b collect b)))
-	     (key (subseq rest-mac 0 bind-len))
+	     (key (edmacro-subseq rest-mac 0 bind-len))
 	     (fkey nil) tlen tkey
 	     (bind (or (loop for map in maps for b = (lookup-key map key)
 			     thereis (and (not (integerp b)) b))
 		       (and (setq fkey (lookup-key function-key-map rest-mac))
-			    (setq tlen fkey tkey (subseq rest-mac 0 tlen)
+			    (setq tlen fkey tkey (edmacro-subseq rest-mac 0 tlen)
 				  fkey (lookup-key function-key-map tkey))
 			    (loop for map in maps
 				  for b = (lookup-key map fkey)
@@ -467,7 +468,7 @@ doubt, use whitespace."
 		    (> first 32) (<= first maxkey) (/= first 92)
 		    (progn
 		      (if (> text 30) (setq text 30))
-		      (setq desc (concat (subseq rest-mac 0 text)))
+		      (setq desc (concat (edmacro-subseq rest-mac 0 text)))
 		      (when (string-match "^[ACHMsS]-." desc)
 			(setq text 2)
 			(callf substring desc 0 2))
@@ -484,7 +485,7 @@ doubt, use whitespace."
 		    (> text bind-len)
 		    (memq (aref rest-mac text) '(return 13))
 		    (progn
-		      (setq desc (concat (subseq rest-mac bind-len text)))
+		      (setq desc (concat (edmacro-subseq rest-mac bind-len text)))
 		      (commandp (intern-soft desc))))
 	       (if (commandp (intern-soft desc)) (setq bind desc))
 	       (setq desc (format "<<%s>>" desc))
@@ -521,15 +522,14 @@ doubt, use whitespace."
 	(if prefix (setq desc (concat prefix desc)))
 	(unless (string-match " " desc)
 	  (let ((times 1) (pos bind-len))
-	    (while (not (mismatch rest-mac rest-mac
-				  :end1 bind-len :start2 pos
-				  :end2 (+ bind-len pos)))
+	    (while (not (edmacro-mismatch rest-mac rest-mac
+					  0 bind-len pos (+ bind-len pos)))
 	      (incf times)
 	      (incf pos bind-len))
 	    (when (> times 1)
 	      (setq desc (format "%d*%s" times desc))
 	      (setq bind-len (* bind-len times)))))
-	(setq rest-mac (subseq rest-mac bind-len))
+	(setq rest-mac (edmacro-subseq rest-mac bind-len))
 	(if verbose
 	    (progn
 	      (unless (equal res "") (callf concat res "\n"))
@@ -550,15 +550,67 @@ doubt, use whitespace."
 	  (incf len (length desc)))))
     res))
 
+(defun edmacro-mismatch (cl-seq1 cl-seq2 cl-start1 cl-end1 cl-start2 cl-end2)
+  "Compare SEQ1 with SEQ2, return index of first mismatching element.
+Return nil if the sequences match.  If one sequence is a prefix of the
+other, the return value indicates the end of the shorted sequence."
+  (let (cl-test cl-test-not cl-key cl-from-end)
+    (or cl-end1 (setq cl-end1 (length cl-seq1)))
+    (or cl-end2 (setq cl-end2 (length cl-seq2)))
+    (if cl-from-end
+	(progn
+	  (while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
+		      (cl-check-match (elt cl-seq1 (1- cl-end1))
+				      (elt cl-seq2 (1- cl-end2))))
+	    (setq cl-end1 (1- cl-end1) cl-end2 (1- cl-end2)))
+	  (and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
+	       (1- cl-end1)))
+      (let ((cl-p1 (and (listp cl-seq1) (nthcdr cl-start1 cl-seq1)))
+	    (cl-p2 (and (listp cl-seq2) (nthcdr cl-start2 cl-seq2))))
+	(while (and (< cl-start1 cl-end1) (< cl-start2 cl-end2)
+		    (cl-check-match (if cl-p1 (car cl-p1)
+				      (aref cl-seq1 cl-start1))
+				    (if cl-p2 (car cl-p2)
+				      (aref cl-seq2 cl-start2))))
+	  (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2)
+		cl-start1 (1+ cl-start1) cl-start2 (1+ cl-start2)))
+	(and (or (< cl-start1 cl-end1) (< cl-start2 cl-end2))
+	     cl-start1)))))
+
+(defun edmacro-subseq (seq start &optional end)
+  "Return the subsequence of SEQ from START to END.
+If END is omitted, it defaults to the length of the sequence.
+If START or END is negative, it counts from the end."
+  (if (stringp seq) (substring seq start end)
+    (let (len)
+      (and end (< end 0) (setq end (+ end (setq len (length seq)))))
+      (if (< start 0) (setq start (+ start (or len (setq len (length seq))))))
+      (cond ((listp seq)
+	     (if (> start 0) (setq seq (nthcdr start seq)))
+	     (if end
+		 (let ((res nil))
+		   (while (>= (setq end (1- end)) start)
+		     (cl-push (cl-pop seq) res))
+		   (nreverse res))
+	       (copy-sequence seq)))
+	    (t
+	     (or end (setq end (or len (length seq))))
+	     (let ((res (make-vector (max (- end start) 0) nil))
+		   (i 0))
+	       (while (< start end)
+		 (aset res i (aref seq start))
+		 (setq i (1+ i) start (1+ start)))
+	       res))))))
+
 (defun edmacro-fix-menu-commands (macro)
   (when (vectorp macro)
     (let ((i 0) ev)
       (while (< i (length macro))
 	(when (consp (setq ev (aref macro i)))
 	  (cond ((equal (cadadr ev) '(menu-bar))
-		 (setq macro (vconcat (subseq macro 0 i)
+		 (setq macro (vconcat (edmacro-subseq macro 0 i)
 				      (vector 'menu-bar (car ev))
-				      (subseq macro (1+ i))))
+				      (edmacro-subseq macro (1+ i))))
 		 (incf i))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
@@ -647,7 +699,7 @@ doubt, use whitespace."
 	       (eq (aref res 1) ?\()
 	       (eq (aref res (- (length res) 2)) ?\C-x)
 	       (eq (aref res (- (length res) 1)) ?\)))
-      (setq res (subseq res 2 -2)))
+      (setq res (edmacro-subseq res 2 -2)))
     (if (and (not need-vector)
 	     (loop for ch across res
 		   always (and (integerp ch)
