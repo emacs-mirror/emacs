@@ -53,7 +53,7 @@ char *realloc ();
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef _POSIX_VERSION
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
 
