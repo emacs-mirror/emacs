@@ -1788,7 +1788,7 @@ digest_single_submenu (start, end, top_level_items)
   return first_wv;
 }
 
-/* Walk through thw widget_value tree starting at FIRST_WV and update
+/* Walk through the widget_value tree starting at FIRST_WV and update
    the char * pointers from the corresponding lisp values.
    We do this after building the whole tree, since GC may happen while the
    tree is constructed, and small strings are relocated.  So we must wait
