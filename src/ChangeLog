@@ -1,3 +1,7 @@
+2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* fileio.c (Fcopy_file): Doc fix: copies file modes, too.
+
 2003-06-12  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Fwrite_region): Save and restore restriction.
