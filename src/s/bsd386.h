@@ -13,3 +13,5 @@
 #define LIBS_SYSTEM -lutil -lkvm -lcompat
 
 #define HAVE_GETLOADAVG
+
+#undef BSD_PGRPS
