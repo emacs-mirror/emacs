@@ -396,7 +396,7 @@ struct gcpro *gcprolist;
 
 /* Addresses of staticpro'd variables.  */
 
-#define NSTATICS 1024
+#define NSTATICS 1026
 Lisp_Object *staticvec[NSTATICS] = {0};
 
 /* Index of next unused slot in staticvec.  */

@@ -1,3 +1,12 @@
+2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* xterm.c (Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym)
+	(Vx_super_keysym): New variables.
+	(syms_of_xterm): DEFVAR_LISP them.
+	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Use the
+	variables to determine which keys to use for the various
+	modifiers.
+
 2002-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (Vmode_line_in_non_selected_windows): Removed.
@@ -94,7 +103,7 @@
 
 	* floatfns.c (Fround): Doc fix.
 
-2002-02-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
 

@@ -396,6 +396,14 @@ The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
 pass them to Windows to be handled with system-wide functions.
 
+** Under X11, it is possible to swap Alt and Meta (and Super and Hyper).
+The new variables `x-alt-keysym', `x-hyper-keysym', `x-meta-keysym',
+and `x-super-keysym' can be used to choose which keysyms Emacs should
+use for the modifiers.  For example, the following two lines swap
+Meta and Alt:
+    (setq x-alt-keysym 'meta)
+    (setq x-meta-keysym 'alt)
+
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
