@@ -52,6 +52,10 @@ struct frame
      and `namebuf'.  */
   Lisp_Object name;
 
+  /* The name to use for the icon, the last time
+     it was refreshed.  nil means not explicitly specified.  */
+  Lisp_Object icon_name;
+
   /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
      usually nil, but if the frame is minibufferless, we can use this
