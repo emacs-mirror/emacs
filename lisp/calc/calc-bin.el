@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-bin () nil)
-
 
 ;;; b-prefix binary commands.
 
@@ -804,6 +801,7 @@
 						       calc-number-radix))))))
 			       math-radix-float-cache))))))))
 
+(provide 'calc-bin)
 
 ;;; arch-tag: f6dba7bc-53b2-41ae-919c-c266ab0ca8b3
 ;;; calc-bin.el ends here
