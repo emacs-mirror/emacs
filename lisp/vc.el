@@ -1897,7 +1897,11 @@ From a program, any arguments are passed to the `rcs2log' script."
    file
    (error "vc-backend-merge-news not meaningful for SCCS files") ;SCCS
    (error "vc-backend-merge-news not meaningful for RCS files")	;RCS
-   (vc-do-command 1 "cvs" file 'WORKFILE "update") ;CVS
+   (progn  ; CVS
+     (vc-file-clear-masterprops file)
+     (vc-file-setprop file 'vc-workfile-version nil)
+     (vc-file-setprop file 'vc-locking-user nil)
+     (vc-do-command 1 "cvs" file 'WORKFILE "update"))
    ))
 
 (defun vc-check-headers ()
