@@ -390,7 +390,7 @@ This can take a while for large buffers."
 	(font-lock-verbose (or font-lock-verbose (interactive-p))))
     (if font-lock-verbose (message "Fontifying %s..." (buffer-name)))
     ;; Turn it on to run hooks and get the right font-lock-keywords.
-    (or was-on (font-lock-mode 1))
+    (or was-on (font-lock-set-defaults))
     (font-lock-unfontify-region (point-min) (point-max))
     (if font-lock-verbose (message "Fontifying %s... (syntactically...)"
 				   (buffer-name)))
@@ -400,7 +400,6 @@ This can take a while for large buffers."
       (if font-lock-verbose (message "Fontifying %s... (regexps...)"
 				     (buffer-name)))
       (font-lock-hack-keywords (point-min) (point-max) font-lock-verbose))
-    (or was-on (font-lock-mode 0)) ; turn it off if it was off.
     (set (make-local-variable 'font-lock-fontified) t)
     (if font-lock-verbose (message "Fontifying %s... done." (buffer-name)))
     ))
