@@ -1189,7 +1189,7 @@ If within a string or comment, move by sentences instead of statements."
       (while (and (bolp) (not (eolp)))
 	;; Indent one line as with TAB.
 	(let ((shift-amt (c-indent-line))
-	      nextline sexpend)
+	      nextline sexpbeg sexpend)
 	  (save-excursion
 	    ;; Find beginning of following line.
 	    (save-excursion
@@ -1203,10 +1203,16 @@ If within a string or comment, move by sentences instead of statements."
 		    (setq sexpend (point-marker)))
 		(error (setq sexpend nil)
 		       (goto-char nextline)))
-	      (skip-chars-forward " \t\n")))
+	      (skip-chars-forward " \t\n"))
+	    ;; Make sure the sexp we found really starts on the
+	    ;; current line and extends past it.
+	    (goto-char sexpend)
+	    (backward-sexp 1)
+	    (setq sexpbeg (point)))
 	  ;; If that sexp ends within the region,
 	  ;; indent it all at once, fast.
-	  (if (and sexpend (> sexpend nextline) (<= sexpend endmark))
+	  (if (and sexpend (> sexpend nextline) (<= sexpend endmark)
+		   (< sexpbeg nextline))
 	      (progn
 		(indent-c-exp)
 		(goto-char sexpend)))
