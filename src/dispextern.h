@@ -2672,12 +2672,19 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern Lisp_Object mode_line_string P_ ((struct window *, int *, int *,
-					 int *, int *,
-					 enum window_part, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int *, int *,
-					     int *, int *,
-					     enum window_part, int *));
+extern Lisp_Object buffer_posn_from_coords P_ ((struct window *,
+						int *, int *,
+						struct display_pos *,
+						Lisp_Object *, 
+						int *, int *, int *, int *));
+extern Lisp_Object mode_line_string P_ ((struct window *, enum window_part,
+					 int *, int *, int *,
+					 Lisp_Object *,
+					 int *, int *, int *, int *));
+extern Lisp_Object marginal_area_string P_ ((struct window *, enum window_part,
+					     int *, int *, int *,
+					     Lisp_Object *,
+					     int *, int *, int *, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
@@ -2718,9 +2725,6 @@ int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
-void buffer_posn_from_coords P_ ((struct window *, int *, int *,
-				  int *, int *,
-				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));
