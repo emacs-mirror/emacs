@@ -121,6 +121,16 @@ control structures to Emacs Lisp.  While not a 100% complete
 implementation of Common Lisp, @dfn{CL} adds enough functionality
 to make Emacs Lisp programming significantly more convenient.
 
+@strong{Please note:} the @dfn{CL} functions are not standard parts of
+the Emacs Lisp name space, so it is legitimate for users to define
+them with other, conflicting meanings.  To avoid conflicting with
+those user activities, we have a policy that packages installed in
+Emacs must not load @dfn{CL} at run time.  (It is ok for them to load
+@dfn{CL} at compile time only, with @code{eval-when-compile}, and use
+the macros it provides.)  If you are writing packages that you plan to
+distribute and invite widespread use for, you might want to observe
+the same rule.
+
 Some Common Lisp features have been omitted from this package
 for various reasons:
 
