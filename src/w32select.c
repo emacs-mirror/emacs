@@ -130,9 +130,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
       {
 	/* No multibyte character in OBJ.  We need not encode it.  */
 
-	/* need to know final size after '\r' chars are inserted (the
+	/* Need to know final size after CR chars are inserted (the
 	   standard CF_TEXT clipboard format uses CRLF line endings,
-	   while Emacs uses just LF internally) */
+	   while Emacs uses just LF internally).  */
 
 	truelen = nbytes;
 	dst = src;
@@ -249,7 +249,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
     unsigned char *dst;
     int nbytes;
     int truelen;
-    int require_encoding = 0;
+    int require_decoding = 0;
     
     if ((src = (unsigned char *) GlobalLock (htext)) == NULL)
       goto closeclip;
@@ -264,7 +264,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 #endif
 	)
       {
-	/* If the clipboard data contains any 8-bit Latin-1 code, we
+	/* If the clipboard data contains any non-ascii code, we
 	   need to decode it.  */
 	int i;
 
@@ -272,13 +272,13 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	  {
 	    if (src[i] >= 0x80)
 	      {
-		require_encoding = 1;
+		require_decoding = 1;
 		break;
 	      }
 	  }
       }
     
-    if (require_encoding)
+    if (require_decoding)
       {
 	int bufsize;
 	unsigned char *buf;
@@ -302,23 +302,25 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
       }
     else
       {
-	/* need to know final size after '\r' chars are removed because
-	   we can't change the string size manually, and doing an extra
-	   copy is silly */
+	/* Need to know final size after CR chars are removed because we
+	   can't change the string size manually, and doing an extra
+	   copy is silly.  Note that we only remove CR when it appears
+	   as part of CRLF.  */
 
 	truelen = nbytes;
 	dst = src;
 	/* avoid using strchr because it recomputes the length everytime */
 	while ((dst = memchr (dst, '\r', nbytes - (dst - src))) != NULL)
 	  {
-	    truelen--;
+	    if (dst[1] == '\n')	/* safe because of trailing '\0' */
+	      truelen--;
 	    dst++;
 	  }
 
 	ret = make_uninit_string (truelen);
 
-	/* convert CRLF line endings (the standard CF_TEXT clipboard
-	   format) to LF endings as used internally by Emacs */
+	/* Convert CRLF line endings (the standard CF_TEXT clipboard
+	   format) to LF endings as used internally by Emacs.  */
 
 	dst = XSTRING (ret)->data;
 	while (1)
@@ -331,9 +333,11 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 		/* copied one line ending with '\r' */
 		int copied = next - dst;
 		nbytes -= copied;
-		dst += copied - 1;		/* overwrite '\r' */
+		dst += copied;
 		src += copied;
-	      }	    
+		if (*src == '\n')
+		  dst--;	/* overwrite '\r' with '\n' */
+	      }
 	    else
 	      /* copied remaining partial line -> now finished */
 	      break;
