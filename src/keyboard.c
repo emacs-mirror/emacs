@@ -1838,7 +1838,7 @@ adjust_point_for_property (last_pt)
 	      beg < PT)
 	  && (tmp = Fnext_single_char_property_change
 	                (make_number (PT), Qinvisible, Qnil, Qnil),
-	      end = NILP (tmp) ? BEGV : XFASTINT (tmp),
+	      end = NILP (tmp) ? ZV : XFASTINT (tmp),
 	      (last_pt <= beg || last_pt >= end)))
 	{
 	  SET_PT (PT < last_pt ? beg : end);
