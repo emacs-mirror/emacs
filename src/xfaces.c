@@ -1528,8 +1528,11 @@ If FRAME is nil or omitted, use the selected frame.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   return face_color_gray_p (f, SDATA (color)) ? Qt : Qnil;
 }
@@ -1546,8 +1549,11 @@ COLOR must be a valid color name.  */)
 {
   struct frame *f;
 
-  CHECK_FRAME (frame);
   CHECK_STRING (color);
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame);
   f = XFRAME (frame);
   if (face_color_supported_p (f, SDATA (color), !NILP (background_p)))
     return Qt;
@@ -2254,7 +2260,7 @@ static double
 font_rescale_ratio (name)
      char *name;
 {
-  Lisp_Object tail, elt;  
+  Lisp_Object tail, elt;
 
   for (tail = Vface_font_rescale_alist; CONSP (tail); tail = XCDR (tail))
     {
@@ -2467,7 +2473,7 @@ x_face_list_fonts (f, pattern, pfonts, nfonts, try_alternatives_p)
 
   if (nfonts < 0 && CONSP (lfonts))
     num_fonts = XFASTINT (Flength (lfonts));
-  
+
   /* Make a copy of the font names we got from X, and
      split them into fields.  */
   n = nignored = 0;
@@ -3182,7 +3188,13 @@ lface_fully_specified_p (attrs)
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
 	&& i != LFACE_AVGWIDTH_INDEX)
-      if (UNSPECIFIEDP (attrs[i]))
+      if (UNSPECIFIEDP (attrs[i])
+#ifdef MAC_OS
+        /* MAC_TODO: No stipple support on Mac OS yet, this index is
+           always unspecified.  */
+          && i != LFACE_STIPPLE_INDEX
+#endif
+          )
         break;
 
   return i == LFACE_VECTOR_SIZE;

@@ -465,9 +465,17 @@ Support for Russian using koi8-r and the russian-computer input method.")
 
 (define-coding-system-alias 'cp1251 'windows-1251)
 
+(let ((elt `("microsoft-cp1251" windows-1251 1
+	     ,(get 'encode-windows-1251 'translation-table)))
+      (slot (assoc "microsoft-cp1251" ctext-non-standard-encodings-alist)))
+  (if slot
+      (setcdr slot (cdr elt))
+    (push elt ctext-non-standard-encodings-alist)))
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
-		  (coding-priority windows-1251)
+	       (coding-priority windows-1251)
+	       (ctext-non-standard-encodings "microsoft-cp1251")
 	       (nonascii-translation
 		. ,(get 'decode-windows-1251 'translation-table))
 	       (input-method . "bulgarian-bds")
@@ -479,6 +487,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 (set-language-info-alist
  "Belarusian" `((coding-system windows-1251)
 		(coding-priority windows-1251)
+		(ctext-non-standard-encodings "microsoft-cp1251")
 		(nonascii-translation
 		 . ,(get 'decode-windows-1251 'translation-table))
 		(input-method . "belarusian")

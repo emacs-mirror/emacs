@@ -398,7 +398,10 @@ commands of Shell mode are available (@pxref{Shell Mode}).  GUD mode
 also provides commands for setting and clearing breakpoints, for
 selecting stack frames, and for stepping through the program.  These
 commands are available both in the GUD buffer and globally, but with
-different key bindings.
+different key bindings.  It also has its own toolbar from which you
+can invoke the more common commands by clicking on the appropriate
+icon.  This is particularly useful for repetitive commands like
+gud-next and gud-step and allows the user to hide the GUD buffer.
 
   The breakpoint commands are normally used in source file buffers,
 because that is the easiest way to specify where to set or clear the
@@ -535,6 +538,12 @@ be bizarre.  See the GDB manual entry regarding @code{jump} for
 details.
 @end table
 
+If you started GDB with the command @code{gdba}, you can click
+@kbd{Mouse-1} on a line of the source buffer, in the fringe or display
+margin, to set a breakpoint there.  If a breakpoint already exists on
+that line, this action will remove it.
+(@code{gdb-mouse-toggle-breakpoint}).
+
   These commands interpret a numeric argument as a repeat count, when
 that makes sense.
 
@@ -631,7 +640,7 @@ to know GDB commands.
 @menu
 * Breakpoints Buffer::   A breakpoint control panel.
 * Stack Buffer::         Select a frame from the call stack. 
-* Watch Expressions::    Watch expressions and their values in the speedbar.
+* Watch Expressions::    Monitor variable values in the speedbar.
 * Other Buffers::        Input/output, locals, registers and assembler buffers.
 * Layout::               Control the number of displayed buffers.
 @end menu
@@ -688,15 +697,30 @@ If you want to see how a variable changes each time your program stops
 then place the cursor over the variable name and click on the watch
 icon in the toolbar (@code{gud-watch}).
 
-Each watch expression is displayed in the speedbar. To expand or contract
-an array or structure, click @kbd{Mouse-2} on the tag to the left of the
-expression.
+Each watch expression is displayed in the speedbar.  Complex data
+types, such as arrays, structures and unions are represented in a tree
+format.  To expand or contract a complex data type, click @kbd{Mouse-2}
+on the tag to the left of the expression.
 
 @kindex RET @r{(GDB speedbar)}
 @findex gdb-var-delete
-With the cursor over a root expression i.e not an array index or
-structure component, type @key{RET} or click @kbd{Mouse-2} to delete
-it from the speedbar (@code{gdb-var-delete}).
+With the cursor over the root expression of a complex data type, type
+@key{RET} or click @kbd{Mouse-2} to delete it from the speedbar
+(@code{gdb-var-delete}).
+
+@findex gdb-edit-value
+With the cursor over a simple data type or an element of a complex
+data type which holds a value, type @key{RET} or click @kbd{Mouse-2} to edit
+its value.  A prompt for a new value appears in the mini-buffer
+(@code{gdb-edit-value}).
+
+If you set the variable @code{gdb-show-changed-values} to a
+non-@code{nil} value, then Emacs will use font-lock-warning-face to
+display values that have recently changed in the speedbar.
+
+If you set the variable @code{gdb-use-colon-colon-notation} to a
+non-@code{nil} value, then, in C, Emacs will use the
+FUNCTION::VARIABLE format to display variables in the speedbar.
 
 @node Other Buffers
 @subsubsection Other Buffers
@@ -724,18 +748,21 @@ The assembler buffer displays the current frame as machine code.  An
 overlay arrow points to the current instruction and you can set and
 remove breakpoints as with the source buffer.  Breakpoints also
 appear in the margin.
+
+@item Threads Buffer
+
+The threads buffer displays a summary of all threads currently in your
+program.(@pxref{Threads,,, gdb, The GNU debugger}).  Move point to
+any thread in the list and type @key{RET} to make it become the
+current thread (@code{gdb-threads-select}) and display the associated
+source in the source buffer.  Alternatively, click @kbd{Mouse-2} to
+make the selected thread become the current one.
+
 @end table
 
 @node Layout
 @subsubsection Layout
 @cindex GDB User Interface layout
-You may choose to display the additional buffers described previously
-either in the same frame or a different one.  Select GDB-windows or
-GDB-Frames from the menu-bar under the heading GUD.  If the menu-bar
-is unavailable, type @code{M-x
-gdb-display-@var{buffertype}-buffer} or @code{M-x
-gdb-frame-@var{buffertype}-buffer} respectively, where @var{buffertype}
-is the relevant buffer type e.g breakpoints.
 
 @findex gdb-many-windows
 @vindex gdb-many-windows
@@ -762,6 +789,14 @@ To toggle this layout, do @kbd{M-x gdb-many-windows}.
 If you change the window layout, for example, while editing and
 re-compiling your program, then you can restore it with
 @code{gdb-restore-windows}.
+
+You may also choose which additional buffers you want to display,
+either in the same frame or a different one.  Select GDB-windows or
+GDB-Frames from the menu-bar under the heading GUD.  If the menu-bar
+is unavailable, type @code{M-x
+gdb-display-@var{buffertype}-buffer} or @code{M-x
+gdb-frame-@var{buffertype}-buffer} respectively, where @var{buffertype}
+is the relevant buffer type e.g breakpoints.
 
 @node Executing Lisp
 @section Executing Lisp Expressions

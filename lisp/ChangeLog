@@ -3,6 +3,88 @@
 	* dired.el (dired-between-files): Always use dired-move-to-filename,
 	which is more robust in non-english locales.
 
+2003-12-25  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* vc.el (vc-dired-purge): Avoid error from `kill-line'.
+
+2003-12-24  Andreas Schwab  <schwab@suse.de>
+
+	* shell.el (shell-file-name-quote-list): Add backslash.
+
+	* comint.el (comint-quote-filename): Correctly handle backslash
+	in comint-file-name-quote-list.
+
+2003-12-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Call
+	ucs-set-table-for-input for all buffers that don't have local
+	value of buffer-file-coding-system.
+
+	* international/ucs-tables.el (ucs-set-table-for-input): If
+	translation-table-for-encode is a symbol, get its
+	translation-table property.
+
+2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ffap.el (ffap-read-file-or-url): Eliminate reliance of the call
+	to `completing-read' on a recently fixed bug.
+
+	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt,
+	instead of SPACE, to get the list of possible fringe modes.  SPACE
+	only works if both `partial-completion-mode' and
+	`completion-auto-help' are nil.
+
+	* complete.el (PC-is-complete-p): delete.
+	(PC-do-completion): Replace all calls to `PC-is-complete-p' with
+	calls to `test-completion'.
+
+2003-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use speed-bar-edit-line
+	to edit values when there are no children.
+
+	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
+	a mode called "Assembler" already exists.
+	(gdb-use-colon-colon-notation, gdb-show-changed-values): New
+	options.
+	(gud-watch): Use format option. Remove font properties from
+	string.
+	(gdb-var-create-handler, gdb-var-list-children-handler): Don't
+	bother about properties as there are none.
+	(gdb-var-create-handler, gdb-var-list-children-handler)
+	(gdb-var-update-handler): Call gdb-var-evaluate-expression-handler
+	with two arguments.
+	(gdb-var-evaluate-expression-handler, gdb-post-prompt): Let
+	speedbar show value changes with a different font.
+	(gdb-edit-value): New defun.
+	(gdb-clear-partial-output, gdb-clear-inferior-io)
+	(def-gdb-auto-update-handler): Use erase-buffer.
+	(gdb-frame-handler): Display watch expressions in
+	FUNCTION::VARIABLE format if required.
+
+2003-12-23  John Paul Wallington  <jpw@gnu.org>
+
+	* info.el (Info-unescape-quotes, Info-split-parameter-string)
+	(Info-goto-emacs-command-node): Doc fixes.
+
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Register "microsoft-cp1251" in
+	ctext-non-standard-encodings-alist.
+	("Bulgarian"): Add ctext-non-standard-encodings.
+	("Belarusian"): Likewise.
+
+	* international/mule-conf.el (compound-text-with-extensions):
+	Change the type to 2 (iso-2022 base).
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Change the format.
+	(ctext-non-standard-encodings): New variable.
+	(ctext-post-read-conversion): Fully re-written.
+	(ctext-non-standard-designations-alist): Delete it.
+	(ctext-non-standard-encodings-table): New function.
+	(ctext-pre-write-conversion): Fully re-written.
+
 2003-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-add-parent-links): Add documentation links

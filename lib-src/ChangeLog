@@ -1,3 +1,8 @@
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* make-docfile.c (main): For return code, no longer special-case VMS.
+	Instead, use `EXIT_SUCCESS' and `EXIT_FAILURE' from stdlib.h.
+
 2003-09-28  Andreas B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
 
 	* emacsclient.c (quote_file_name): Print the result instead of

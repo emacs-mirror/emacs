@@ -1,3 +1,41 @@
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.
+
+	* xfaces.c (lface_fully_specified_p): Take into account that
+	MAC OS always have unspecified stipple.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tparam.c (tparam1): Add handling for `%pN', which
+	means use param N for the next substitution.
+
+2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xfaces.c (Fcolor_gray_p): Fix omission bug:
+	In case `frame' is nil, consult the selected frame.
+	(Fcolor_supported_p): Likewise.
+
+2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Frandom, Fstring_make_multibyte, Fset_char_table_range):
+	Doc fixes.
+
+	* minibuf.c (read_minibuf): Allow INITIAL to be a cons of a string
+	and an integer.  Adapt the introductory comment accordingly.
+	(Fread_from_minibuffer): Delete code moved into read_minibuf.
+	Doc fix.
+	(Fread_minibuffer, Fread_no_blanks_input): Adapt to changes in
+	read_minibuf.
+	(Fcompleting_read): Delete code moved into read_minibuf.
+	(Ftest_completion): Make it handle obarrays and hash tables
+	correctly.
+
+2003-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_iso2022): Fix for preserving UTF-8
+	encoding sequence.
+
 2003-12-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (syms_of_composite): Don't make the compostion hash

@@ -1124,6 +1124,10 @@ from the Free Software Foundation.  We also have free software to
 replace SCCS, known as CSSC; if you are using SCCS and don't want to
 make the incompatible change to RCS or CVS, you can switch to CSSC.
 
+  VC is enabled by default in Emacs.  To disable it, set the
+customizable variable @code{vc-handled-backends} to @code{nil}
+(@pxref{Customizing VC}).
+
 @menu
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
@@ -2494,7 +2498,8 @@ The variable @code{vc-handled-backends} determines which version
 control systems VC should handle.  The default value is @code{(RCS CVS
 SCCS)}, so it contains all three version systems that are currently
 supported.  If you want VC to ignore one or more of these systems,
-exclude its name from the list.
+exclude its name from the list.  To disable VC entirely, set this
+variable to @code{nil}.
 
 The order of systems in the list is significant: when you visit a file
 registered in more than one system (@pxref{Local Version Control}),

@@ -515,7 +515,7 @@ xg_frame_set_char_size (f, cols, rows)
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      pixelwidth, pixelheight);
   xg_resize_widgets (f, pixelwidth, pixelheight);
-
+  x_wm_set_size_hint (f, 0, 0);
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
 }

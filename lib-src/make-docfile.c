@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
  of GNU Emacs.  .elc and .el and .c files are allowed.
  A .o file can also be specified; the .c file it was made from is used.
  This helps the makefile pass the correct list of files.
+ Option -d DIR means change to DIR before looking for files.
 
  The results, which go to standard output or to a file
  specified with -a or -o (-a to append, -o to start from nothing),
@@ -174,10 +175,7 @@ main (argc, argv)
       if (j == i)
 	err_count += scan_file (argv[i]);
     }
-#ifndef VMS
-  exit (err_count > 0);
-#endif /* VMS */
-  return err_count > 0;
+  return (err_count > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 /* Read file FILENAME and output its doc strings to outfile.  */
