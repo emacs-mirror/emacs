@@ -1853,6 +1853,62 @@ temp_set_point (position, buffer)
   BUF_PT (buffer) = position;
 }
 
+/* Move point to POSITION, unless POSITION is inside an intangible
+   segment that reaches all the way to point.  */
+
+void
+move_if_not_intangible (position)
+     int position;
+{
+  Lisp_Object pos;
+  Lisp_Object intangible_propval;
+
+  XSETINT (pos, position);
+
+  if (! NILP (Vinhibit_point_motion_hooks))
+    /* If intangible is inhibited, always move point to POSITION.  */
+    ;
+  else if (PT < position)
+    {
+      /* We want to move forward, so check the text before POSITION.  */
+
+      intangible_propval = Fget_char_property (pos,
+					       Qintangible, Qnil);
+
+      /* If following char is intangible,
+	 skip back over all chars with matching intangible property.  */
+      if (! NILP (intangible_propval))
+	while (XINT (pos) > BEGV
+	       && EQ (Fget_char_property (make_number (XINT (pos) - 1),
+					  Qintangible, Qnil),
+		      intangible_propval))
+	  pos = Fprevious_char_property_change (pos, Qnil);
+    }
+  else
+    {
+      /* We want to move backward, so check the text after POSITION.  */
+
+      intangible_propval = Fget_char_property (make_number (XINT (pos) - 1),
+					       Qintangible, Qnil);
+
+      /* If following char is intangible,
+	 skip back over all chars with matching intangible property.  */
+      if (! NILP (intangible_propval))
+	while (XINT (pos) < ZV
+	       && EQ (Fget_char_property (pos, Qintangible, Qnil),
+		      intangible_propval))
+	  pos = Fnext_char_property_change (pos, Qnil);
+
+    }
+
+  /* If the whole stretch between PT and POSITION isn't intangible, 
+     try moving to POSITION (which means we actually move farther
+     if POSITION is inside of intangible text).  */
+
+  if (XINT (pos) != PT)
+    SET_PT (position);
+}
+
 /* Return the proper local map for position POSITION in BUFFER.
    Use the map specified by the local-map property, if any.
    Otherwise, use BUFFER's local map.  */
