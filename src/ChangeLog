@@ -1,3 +1,8 @@
+2001-02-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (get_next_display_element): Fix case of empty
+	display table entry.
+
 2001-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* editfns.c (Fconstrain_to_field): Doc fix.
