@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9905
+;; Version: 1.9908
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -54,7 +54,11 @@
       "Character position of the end of event if that exists, or nil."
       (posn-point (event-end event))))
 
-;; The following should go away when bundled with Emacs.
+(defalias 'widget-read-event (if (string-match "XEmacs" emacs-version)
+				   'next-event
+				 'read-event))
+
+  ;; The following should go away when bundled with Emacs.
   (condition-case ()
       (require 'custom)
     (error nil))
@@ -121,16 +125,6 @@ is the string or buffer containing the text."
   :group 'extensions
   :group 'faces
   :group 'hypermedia)
-
-(defface widget-documentation-face '((((class color)
-				       (background dark))
-				      (:foreground "lime green"))
-				     (((class color)
-				       (background light))
-				      (:foreground "dark green"))
-				     (t nil))
-  "Face used for documentation text."
-  :group 'widgets)
 
 (defface widget-button-face '((t (:bold t)))
   "Face used for widget buttons."
@@ -262,10 +256,17 @@ minibuffer."
 (defun widget-specify-field (widget from to)
   "Specify editable button for WIDGET between FROM and TO."
   (put-text-property from to 'read-only nil)
+  ;; Terminating space is not part of the field, but necessary in
+  ;; order for local-map to work.  Remove next sexp if local-map works
+  ;; at the end of the overlay.
+  (save-excursion
+    (goto-char to)
+    (insert-and-inherit " ")
+    (setq to (point)))
+  (add-text-properties (1- to) to ;to (1+ to) 
+  		       '(front-sticky nil start-open t read-only to))
   (add-text-properties (1- from) from 
 		       '(rear-nonsticky t end-open t read-only from))
-  (add-text-properties to (1+ to) 
-		       '(front-sticky nil start-open t read-only to))
   (let ((map (widget-get widget :keymap))
 	(face (or (widget-get widget :value-face) 'widget-field-face))
 	(help-echo (widget-get widget :help-echo))
@@ -353,6 +354,7 @@ minibuffer."
   (unless (widget-get widget :inactive)
     (let ((overlay (make-overlay from to nil t nil)))
       (overlay-put overlay 'face 'widget-inactive-face)
+      (overlay-put overlay 'mouse-face 'widget-inactive-face)
       (overlay-put overlay 'evaporate t)
       (overlay-put overlay 'priority 100)
       (overlay-put overlay (if (string-match "XEmacs" emacs-version)
@@ -522,22 +524,25 @@ extension (xpm, xbm, gif, jpg, or png) located in
 		(formats widget-image-conversion)
 		file)
 	   (while (and formats (not file))
-	     (if (valid-image-instantiator-format-p (car (car formats)))
-		 (setq file (locate-file image dirlist
-					 (mapconcat 'identity
-						    (cdr (car formats))
-						    ":")))
+	     (when (valid-image-instantiator-format-p (car (car formats)))
+	       (setq file (locate-file image dirlist
+				       (mapconcat 'identity
+						  (cdr (car formats))
+						  ":"))))
+	     (unless file
 	       (setq formats (cdr formats))))
-	   ;; We create a glyph with the file as the default image
-	   ;; instantiator, and the TAG fallback
-	   (make-glyph (if file
-			   (list (vector (car (car formats)) ':file file)
-				 (vector 'string ':data tag))
-			 (vector 'string ':data tag)))))
+	   (and file
+		;; We create a glyph with the file as the default image
+		;; instantiator, and the TAG fallback
+		(make-glyph (list (vector (car (car formats)) ':file file)
+				  (vector 'string ':data tag))))))
 	((valid-instantiator-p image 'image)
 	 ;; A valid image instantiator (e.g. [gif :file "somefile"] etc.)
 	 (make-glyph (list image
 			   (vector 'string ':data tag))))
+	((consp image)
+	 ;; This could be virtually anything.  Let `make-glyph' sort it out.
+	 (make-glyph image))
 	(t
 	 ;; Oh well.
 	 nil)))
@@ -554,7 +559,11 @@ glyph is pressed or inactive, respectively.
 WARNING: If you call this with a glyph, and you want the user to be
 able to invoke the glyph, make sure it is unique.  If you use the
 same glyph for multiple widgets, invoking any of the glyphs will
-cause the last created widget to be invoked."
+cause the last created widget to be invoked.
+
+Instead of an instantiator, you can also use a list of instantiators,
+or whatever `make-glyph' will accept.  However, in that case you must
+provide the fallback TAG as a part of the instantiator yourself."
   (let ((glyph (widget-glyph-find image tag)))
     (if glyph 
 	(widget-glyph-insert-glyph widget 
@@ -719,9 +728,7 @@ Recommended as a parent keymap for modes using widgets.")
 
 (unless widget-keymap 
   (setq widget-keymap (make-sparse-keymap))
-  (define-key widget-keymap "\C-k" 'widget-kill-line)
   (define-key widget-keymap "\t" 'widget-forward)
-  (define-key widget-keymap "\M-\t" 'widget-backward)
   (define-key widget-keymap [(shift tab)] 'widget-backward)
   (define-key widget-keymap [backtab] 'widget-backward)
   (if (string-match "XEmacs" emacs-version)
@@ -743,6 +750,8 @@ Recommended as a parent keymap for modes using widgets.")
   (setq widget-field-keymap (copy-keymap widget-keymap))
   (unless (string-match "XEmacs" (emacs-version))
     (define-key widget-field-keymap [menu-bar] 'nil))
+  (define-key widget-field-keymap "\C-k" 'widget-kill-line)
+  (define-key widget-field-keymap "\M-\t" 'widget-complete)
   (define-key widget-field-keymap "\C-m" 'widget-field-activate)
   (define-key widget-field-keymap "\C-a" 'widget-beginning-of-line)
   (define-key widget-field-keymap "\C-e" 'widget-end-of-line)
@@ -788,7 +797,7 @@ Recommended as a parent keymap for modes using widgets.")
 	   (if button
 	       (let* ((overlay (widget-get button :button-overlay))
 		      (face (overlay-get overlay 'face))
-		      (mouse-face (overlay-get overlay 'face)))
+		      (mouse-face (overlay-get overlay 'mouse-face)))
 		 (unwind-protect
 		     (let ((track-mouse t))
 		       (overlay-put overlay
@@ -797,9 +806,7 @@ Recommended as a parent keymap for modes using widgets.")
 				    'mouse-face 'widget-button-pressed-face)
 		       (unless (widget-apply button :mouse-down-action event)
 			 (while (not (button-release-event-p event))
-			   (setq event (if (fboundp 'read-event)
-					   (read-event)
-					 (next-event))
+			   (setq event (widget-read-event)
 				 pos (widget-event-point event))
 			   (if (and pos
 				    (eq (get-char-property pos 'button)
@@ -818,10 +825,25 @@ Recommended as a parent keymap for modes using widgets.")
 			 (widget-apply-action button event)))
 		   (overlay-put overlay 'face face)
 		   (overlay-put overlay 'mouse-face mouse-face)))
-	     (call-interactively 
-	      (or (lookup-key widget-global-map [ button2 ])
-		  (lookup-key widget-global-map [ down-mouse-2 ])
-		  (lookup-key widget-global-map [ mouse-2]))))))
+	     (let (command up)
+	       ;; Find the global command to run, and check whether it
+	       ;; is bound to an up event.
+	       (cond ((setq command	;down event
+			    (lookup-key widget-global-map [ button2 ])))
+		     ((setq command	;down event
+			    (lookup-key widget-global-map [ down-mouse-2 ])))
+		     ((setq command	;up event
+			    (lookup-key widget-global-map [ button2up ]))
+		      (setq up t))
+		     ((setq command	;up event
+			    (lookup-key widget-global-map [ mouse-2]))
+		      (setq up t)))
+	       (when command
+		 ;; Don't execute up events twice.
+		 (when up
+		   (while (not (button-release-event-p event))
+		     (setq event (widget-read-event))))
+		 (call-interactively command))))))
 	(t
 	 (message "You clicked somewhere weird."))))
 
@@ -874,7 +896,7 @@ Recommended as a parent keymap for modes using widgets.")
   "Move point to the ARG next field or button.
 ARG may be negative to move backward."
   (or (bobp) (> arg 0) (backward-char))
-  (let ((pos)
+  (let ((pos (point))
 	(number arg)
 	(old (or (get-char-property (point) 'button)
 		 (get-char-property (point) 'field)))
@@ -913,7 +935,9 @@ ARG may be negative to move backward."
     (while  (or (get-char-property (point) 'button)
 		(get-char-property (point) 'field))
       (backward-char))
-    (forward-char)))
+    (forward-char))
+  (widget-echo-help (point))
+  (run-hooks 'widget-move-hook))
 
 (defun widget-forward (arg)
   "Move point to the next field or button.
@@ -932,26 +956,45 @@ With optional ARG, move across that many fields."
 (defun widget-beginning-of-line ()
   "Go to beginning of field or beginning of line, whichever is first."
   (interactive)
-  (let ((bol (save-excursion (beginning-of-line) (point)))
-	(prev (previous-single-property-change (point) 'field)))
-    (goto-char (max bol (or prev bol)))))
+  (let* ((field (widget-field-find (point)))
+	 (start (and field (widget-field-start field))))
+    (if (and start (not (eq start (point))))
+	(goto-char start)
+      (call-interactively 'beginning-of-line))))
 
 (defun widget-end-of-line ()
   "Go to end of field or end of line, whichever is first."
   (interactive)
-  (let ((bol (save-excursion (end-of-line) (point)))
-	(prev (next-single-property-change (point) 'field)))
-    (goto-char (min bol (or prev bol)))))
+  (let* ((field (widget-field-find (point)))
+	 (end (and field (widget-field-end field))))
+    (if (and end (not (eq end (point))))
+	(goto-char end)
+      (call-interactively 'end-of-line))))
 
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
   (interactive)
-  (let ((field (get-char-property (point) 'field))
-	(newline (save-excursion (forward-line 1)))
-	(next (next-single-property-change (point) 'field)))
-    (if (and field (> newline next))
-	(kill-region (point) next)
+  (let* ((field (widget-field-find (point)))
+	 (newline (save-excursion (forward-line 1) (point)))
+	 (end (and field (widget-field-end field))))
+    (if (and field (> newline end))
+	(kill-region (point) end)
       (call-interactively 'kill-line))))
+
+(defcustom widget-complete-field (lookup-key global-map "\M-\t")
+  "Default function to call for completion inside fields."
+  :options '(ispell-complete-word complete-tag lisp-complete-symbol)
+  :type 'function
+  :group 'widgets)
+
+(defun widget-complete ()
+  "Complete content of editable field from point.
+When not inside a field, move to the previous button or field."
+  (interactive)
+  (let ((field (widget-field-find (point))))
+    (if field
+	(widget-apply field :complete)
+      (error "Not in an editable field"))))
 
 ;;; Setting up the buffer.
 
@@ -1002,7 +1045,8 @@ With optional ARG, move across that many fields."
 
 (defun widget-field-end (widget)
   "Return the end of WIDGET's editing field."
-  (overlay-end (widget-get widget :field-overlay)))
+  ;; Don't subtract one if local-map works at the end of the overlay.
+  (1- (overlay-end (widget-get widget :field-overlay))))
 
 (defun widget-field-find (pos)
   "Return the field at POS.
@@ -1107,6 +1151,7 @@ Optional EVENT is the event that triggered the action."
   :value-to-external (lambda (widget value) value)
   :button-prefix 'widget-button-prefix
   :button-suffix 'widget-button-suffix
+  :complete 'widget-default-complete				       
   :create 'widget-default-create
   :indent nil
   :offset 0
@@ -1125,6 +1170,12 @@ Optional EVENT is the event that triggered the action."
   :action 'widget-default-action
   :notify 'widget-default-notify
   :prompt-value 'widget-default-prompt-value)
+
+(defun widget-default-complete (widget)
+  "Call the value of the :complete-function property of WIDGET.
+If that does not exists, call the value of `widget-complete-field'."
+  (let ((fun (widget-get widget :complete-function)))
+    (call-interactively (or fun widget-complete-field))))
 
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
@@ -2417,6 +2468,16 @@ when he invoked the menu."
 
 ;;; The `documentation-string' Widget.
 
+(defface widget-documentation-face '((((class color)
+				       (background dark))
+				      (:foreground "lime green"))
+				     (((class color)
+				       (background light))
+				      (:foreground "dark green"))
+				     (t nil))
+  "Face used for documentation text."
+  :group 'widgets)
+
 (define-widget 'documentation-string 'item
   "A documentation string."
   :format "%v"
@@ -2431,8 +2492,10 @@ when he invoked the menu."
     (if (string-match "\n" doc)
 	(let ((before (substring doc 0 (match-beginning 0)))
 	      (after (substring doc (match-beginning 0)))
+	      (start (point))
 	      buttons)
 	  (insert before " ")
+	  (widget-specify-doc widget start (point))
 	  (push (widget-create-child-and-convert
 		 widget 'visibility
 		 :off nil
@@ -2440,7 +2503,9 @@ when he invoked the menu."
 		 shown)
 		buttons)
 	  (when shown
-	    (insert after))
+	    (setq start (point))
+	    (insert after)
+	    (widget-specify-doc widget start (point)))
 	  (widget-put widget :buttons buttons))
       (insert doc)))
   (insert "\n"))
@@ -2484,6 +2549,7 @@ when he invoked the menu."
   "A string"
   :tag "String"
   :format "%{%t%}: %v"
+  :complete-function 'ispell-complete-word
   :prompt-history 'widget-string-prompt-value-history)
 
 (define-widget 'regexp 'string
@@ -2582,6 +2648,7 @@ It will read a directory name from the minibuffer when invoked."
 
 (define-widget 'function 'sexp
   "A lisp function."
+  :complete-function 'lisp-complete-symbol
   :prompt-value 'widget-field-prompt-value
   :prompt-internal 'widget-symbol-prompt-internal
   :prompt-match 'fboundp
