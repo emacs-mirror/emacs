@@ -6463,7 +6463,7 @@ x_detect_focus_change (dpyinfo, event, bufp, numchars)
   struct frame *frame;
   int nr_events = 0;
 
-  frame = x_top_window_to_frame (dpyinfo, event->xany.window);
+  frame = x_any_window_to_frame (dpyinfo, event->xany.window);
   if (! frame) return nr_events;
 
   switch (event->type)
