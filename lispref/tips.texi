@@ -211,7 +211,7 @@ standard names instead.
 
 @item
 If a package needs to define an alias or a new function for
-compatibility with some other version of Emacs, name if with the package
+compatibility with some other version of Emacs, name it with the package
 prefix, not with the raw name with which it occurs in the other version.
 Here is an example from Gnus, which provides many examples of such
 compatibility issues.
