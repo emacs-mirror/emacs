@@ -1,3 +1,7 @@
+2002-01-22  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+
+	* xfns.c (x_set_frame_parameters): Typo in previous fix corrected.
+
 2002-01-21  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
 	* xfns.c (x_set_frame_parameters): Just call x_fullscreen_adjust

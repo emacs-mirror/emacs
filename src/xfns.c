@@ -945,7 +945,7 @@ x_set_frame_parameters (f, alist)
 	  register Lisp_Object param_index, old_value;
 
 	  old_value = get_frame_param (f, prop);
- 	  fullscreen_is_being_set = EQ (prop, Qfullscreen);
+ 	  fullscreen_is_being_set |= EQ (prop, Qfullscreen);
 	  
 	  if (NILP (Fequal (val, old_value)))
 	    {
