@@ -16,7 +16,7 @@ German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott
 Greek (,FEkkgmij\(B)	,FCei\(B ,Fsar(B
 Hebrew			,Hylem(B
-Hindi			$(6!F!L4"Wv#!Bv%!a0"W!B!a1(B, $(6!F!L4"Wv#$(5!3v#$(6!Z0"W$(5!3$(6!Z1!O(B $(6!j(B
+Hindi			$(5!F!L4"Wv#!Bv%!a0"W!B!a1(B, $(5!F!L4"Wv#!3v#!Z0"W!3!Z1!O(B $(5!j(B
 Italian (Italiano)	Ciao, Buon giorno
 Lao((1>RJRERG(B)            (1JP:R-04U1(B, 0(1"m1c0Ki1b*!04U1(B
 Maltese (Malti)		Bon,Cu(Bu, Sa,C11(Ba
@@ -46,3 +46,11 @@ Difference among chinese characters in GB, JIS, KSC, BIG5:
 	BIG5 -- $(0&x86(B  $(0DeBv(B
 
 Just for a test of JISX0212: $BqV$(DiQ(B (the second character is of JISX0212)
+
+A short test for Unicode characters:
+Czech ($,1 -(Besky)		Dobr,A}(B den
+Esperanto		Saluton (E$,1 E(Bo$,1 }(Ban$,1 =(Bo $,1 )(Biu$,1 U(Ba$,1!-(Bde)
+Greek (,FE$,1';';'7'='9(Bk$,1',(B)	$,1&s'5'9',(B $,1'C'1'C(B
+Hebrew			$,1-),|,u,}(B
+Russian ($,1(@(c(a(a(Z(X(Y(B)	$,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
+Maltese (Malti)		Bon$,1 A(Bu, Sa$,1 G G(Ba
