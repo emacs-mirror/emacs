@@ -1339,20 +1339,45 @@ From now on the default value will apply in this buffer.")
 }
 
 DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
-  1, 1, 0,
-  "Non-nil if VARIABLE has a local binding in the current buffer.")
-  (sym)
-     register Lisp_Object sym;
+  1, 2, 0,
+  "Non-nil if VARIABLE has a local binding in buffer BUFFER.\n\
+BUFFER defaults to the current buffer.")
+  (sym, buffer)
+     register Lisp_Object sym, buffer;
 {
   Lisp_Object valcontents;
+  register struct buffer *buf;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer, 0);
+      buf = XBUFFER (buffer);
+    }
 
   CHECK_SYMBOL (sym, 0);
 
   valcontents = XSYMBOL (sym)->value;
-  return ((BUFFER_LOCAL_VALUEP (valcontents)
-	   || SOME_BUFFER_LOCAL_VALUEP (valcontents)
-	   || BUFFER_OBJFWDP (valcontents))
-	  ? Qt : Qnil);
+  if (BUFFER_LOCAL_VALUEP (valcontents)
+      && SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    {
+      Lisp_Object tail, elt;
+      for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+	{
+	  elt = XCONS (tail)->car;
+	  if (EQ (sym, XCONS (elt)->car))
+	    return Qt;
+	}
+    }
+  if (BUFFER_OBJFWDP (valcontents))
+    {
+      int offset = XBUFFER_OBJFWD (valcontents)->offset;
+      int mask = XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_flags));
+      if (mask == -1 || (buf->local_var_flags & mask))
+	return Qt;
+    }
+  return Qnil;
 }
 
 /* Find the function at the end of a chain of symbol function indirections.  */
