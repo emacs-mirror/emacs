@@ -1,3 +1,8 @@
+2002-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (x_set_name): Encode by Qcompound_text unconditionally.
+	(x_set_title): Likewise.
+
 2002-10-25  Juanma Barranquero  <lektu@terra.es>
 
 	* macgui.h:
