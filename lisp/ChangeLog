@@ -1,3 +1,8 @@
+2001-07-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-do-arglist): Revert change of
+	2000-10-15.
+
 2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* allout.el: Fix the header line, so that finder.el recognizes it.
