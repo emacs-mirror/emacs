@@ -518,7 +518,9 @@ If the optional argument ONLY-IN-LINE is non-nil and constraining\n\
 NEW-POS would move it to a different line, NEW-POS is returned\n\
 unconstrained.  This useful for commands that move by line, like\n\
 \\[next-line] or \\[beginning-of-line], which should generally respect field boundaries\n\
-only in the case where they can still move to the right line.")
+only in the case where they can still move to the right line.\n\
+\n\
+Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.")
   (new_pos, old_pos, escape_from_edge, only_in_line)
      Lisp_Object new_pos, old_pos, escape_from_edge, only_in_line;
 {
@@ -532,7 +534,9 @@ only in the case where they can still move to the right line.")
       XSETFASTINT (new_pos, PT);
     }
 
-  if (!EQ (new_pos, old_pos) && !text_property_eq (Qfield, new_pos, old_pos))
+  if (NILP (Vinhibit_field_text_motion)
+      && !EQ (new_pos, old_pos)
+      && !text_property_eq (Qfield, new_pos, old_pos))
     /* NEW_POS is not within the same field as OLD_POS; try to
        move NEW_POS so that it is.  */
     {
@@ -580,8 +584,10 @@ DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_posi
 With argument N not nil or 1, move forward N - 1 lines first.\n\
 If scan reaches end of buffer, return that position.\n\
 The scan does not cross a field boundary unless it would move\n\
-beyond there to a different line.  And if N is nil or 1,\n\
-and scan starts at a field boundary, the scan stops as soon as it starts.\n\n\
+beyond there to a different line.  Field boundaries are not noticed if\n\
+`inhibit-field-text-motion' is non-nil. .And if N is nil or 1,\n\
+and scan starts at a field boundary, the scan stops as soon as it starts.\n\
+\n\
 This function does not move point.")
   (n)
      Lisp_Object n;
@@ -601,11 +607,9 @@ This function does not move point.")
   SET_PT_BOTH (orig, orig_byte);
 
   /* Return END constrained to the current input field.  */
-  if (NILP (Vinhibit_field_text_motion))
-    end = Fconstrain_to_field (make_number (end), make_number (orig),
-				XINT (n) != 1 ? Qt : Qnil,
-				Qt);
-  return end;
+  return Fconstrain_to_field (make_number (end), make_number (orig),
+			      XINT (n) != 1 ? Qt : Qnil,
+			      Qt);
 }
 
 DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
@@ -628,10 +632,8 @@ This function does not move point.")
   end_pos = find_before_next_newline (orig, 0, XINT (n) - (XINT (n) <= 0));
 
   /* Return END_POS constrained to the current input field.  */
-  if (NILP (Vinhibit_field_text_motion))
-    end_pos = Fconstrain_to_field (make_number (end_pos), make_number (orig),
-				   Qnil, Qt);
-  return end_pos;
+  return Fconstrain_to_field (make_number (end_pos), make_number (orig),
+			      Qnil, Qt);
 }
 
 Lisp_Object
