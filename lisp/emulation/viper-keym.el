@@ -25,6 +25,18 @@
 
 ;;; Variables
 
+(defvar vip-toggle-key "\C-z"
+  "The key used to change states from emacs to Vi and back.
+In insert mode, this key also functions as Meta. 
+Must be set in .vip file or prior to loading Viper.
+This setting cannot be changed interactively.")
+
+(defvar vip-ESC-key "\e" 
+  "Key used to ESC. 
+Must be set in .vip file or prior to loading Viper.
+This setting cannot be changed interactively.")
+
+
 ;;; Keymaps
 
 ;; Keymaps for vital things like \e and C-z.
@@ -177,6 +189,8 @@ vip-insert-basic-map. Not recommended, except for novice users.")
   (if vip-xemacs-p [(shift tab)] [S-tab]) 'vip-insert-tab)
 (define-key vip-insert-basic-map "\C-v" 'quoted-insert)
 (define-key vip-insert-basic-map "\C-?" 'vip-del-backward-char-in-insert)
+(define-key vip-insert-basic-map "\C-\\" 'vip-alternate-Meta-key)
+(define-key vip-insert-basic-map vip-toggle-key 'vip-escape-to-vi)
 (define-key vip-insert-basic-map "\C-c\M-p"
   'vip-insert-prev-from-insertion-ring)
 (define-key vip-insert-basic-map "\C-c\M-n"
@@ -195,16 +209,15 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 
 (define-key vip-vi-basic-map "\C-^" 
   (function (lambda () (interactive) (vip-ex "e#"))))
-(define-key vip-vi-basic-map "\C-b" 'vip-scroll-back)
+(define-key vip-vi-basic-map "\C-b" 'vip-scroll-screen-back)
 (define-key vip-vi-basic-map "\C-d" 'vip-scroll-up)
 (define-key vip-vi-basic-map "\C-e" 'vip-scroll-up-one)
-(define-key vip-vi-basic-map "\C-f" 'vip-scroll)
+(define-key vip-vi-basic-map "\C-f" 'vip-scroll-screen)
 (define-key vip-vi-basic-map "\C-m" 'vip-next-line-at-bol)
 (define-key vip-vi-basic-map "\C-u" 'vip-scroll-down)
 (define-key vip-vi-basic-map "\C-y" 'vip-scroll-down-one)
 (define-key vip-vi-basic-map "\C-s" 'vip-isearch-forward)
 (define-key vip-vi-basic-map "\C-r" 'vip-isearch-backward)
-;(define-key vip-vi-basic-map "\C-\\" 'universal-argument)
 (define-key vip-vi-basic-map "\C-c/" 'vip-toggle-search-style)
 (define-key vip-vi-basic-map "\C-cg" 'vip-info-on-file)
 
@@ -279,7 +292,7 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 (define-key vip-vi-basic-map "\\" 'vip-escape-to-emacs)
 (define-key vip-vi-basic-map "[" 'vip-brac-function)
 (define-key vip-vi-basic-map "]" 'vip-ket-function)
-(define-key vip-vi-basic-map "_" 'vip-alternate-ESC)
+(define-key vip-vi-basic-map "\C-\\" 'vip-alternate-Meta-key)
 (define-key vip-vi-basic-map "^" 'vip-bol-and-skip-white)
 (define-key vip-vi-basic-map "`" 'vip-goto-mark)
 
@@ -321,9 +334,10 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 (define-key vip-vi-basic-map "}" 'vip-forward-paragraph)
 (define-key vip-vi-basic-map "~" 'vip-toggle-case)
 (define-key vip-vi-basic-map "\C-?" 'vip-backward-char)
+(define-key vip-vi-basic-map "_" 'vip-nil)
   
 ;;; Escape from Emacs to Vi for one command
-(global-set-key "\M-\C-z" 'vip-escape-to-vi)  ;; in emacs-state
+(global-set-key "\C-c\\" 'vip-escape-to-vi)  ; everywhere
 
 ;;; This is vip-vi-diehard-map. Used when vip-vi-diehard-minor-mode is on.
 
@@ -343,10 +357,11 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 (define-key vip-vi-diehard-map "\C-v" 'vip-nil)
 (define-key vip-vi-diehard-map "\C-w" 'vip-nil)
 (define-key vip-vi-diehard-map "@" 'vip-nil)
+(define-key vip-vi-diehard-map "_" 'vip-nil)
 (define-key vip-vi-diehard-map "*" 'vip-nil)
 (define-key vip-vi-diehard-map "#" 'vip-nil)
 (define-key vip-vi-diehard-map "\C-_" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-]" 'vip-nil);; This is actually tags.
+(define-key vip-vi-diehard-map "\C-]" 'vip-nil) ; This is actually tags.
 
 
 ;;; Minibuffer keymap
@@ -368,8 +383,23 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 (define-key ex-read-filename-map " " 'vip-complete-filename-or-exit)
 (define-key ex-read-filename-map "!" 'vip-handle-!)
 
+;; Some other maps
+(defvar vip-slash-and-colon-map (make-sparse-keymap)
+  "This map redefines `/' and `:' to behave as in Vi.
+Useful in some modes, such as Gnus, MH, etc.")
+(define-key vip-slash-and-colon-map ":" 'vip-ex)
+(define-key vip-slash-and-colon-map "/" 'vip-search-forward)
 
-	  
+(defvar vip-comint-mode-modifier-map (make-sparse-keymap)
+  "This map modifies comint mode.")
+(define-key vip-comint-mode-modifier-map "\C-m" 'comint-send-input)
+(define-key vip-comint-mode-modifier-map "\C-d" 'comint-delchar-or-maybe-eof)
+
+(defvar vip-dired-modifier-map (make-sparse-keymap)
+  "This map modifies Dired behavior.")
+(define-key vip-dired-modifier-map ":" 'vip-ex)
+
+
 
 ;;; Code
 
@@ -411,8 +441,8 @@ Usage:
 (defun vip-zap-local-keys ()
   "Unconditionally reset Viper vip-*-local-user-map's.
 Rarely useful, but if u made a mistake by switching to a mode that adds
-undesirable local keys, e.g., comint-mode, then this function can return
-you to sanity."
+undesirable local keys, e.g., comint-mode, then this function can restore
+sanity."
   (interactive)
   (setq vip-vi-local-user-map (make-sparse-keymap)
 	vip-need-new-vi-local-map nil

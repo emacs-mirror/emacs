@@ -203,6 +203,15 @@ that Viper doesn't know about.")
       (cdr (assoc 'cursor-color (frame-parameters)))
     (color-instance-name (frame-property (selected-frame) 'cursor-color))))
   
+(defun vip-set-face-pixmap (face pixmap)
+  "Set face pixmap on a monochrome display."
+  (if (and (vip-window-display-p) (not (vip-color-display-p)))
+      (condition-case nil
+	  (set-face-background-pixmap face pixmap)
+	(error
+	 (message "Pixmap not found for %S: %s" (face-name face) pixmap)
+	 (sit-for 1)))))
+
   
 ;; OS/2
 (cond ((eq (vip-device-type) 'pm)
@@ -426,11 +435,11 @@ appropriately."
 	 ;; using cond in anticipation of further additions
 	 (cond (ex-unix-type-shell-options)
 	       ))
-	(command (cond (vip-ms-style-os-p (format "\"ls -1 %s\"" filespec))
-		       (t (format "ls -1 %s" filespec))))
-	file-list)
+	(command (cond (vip-ms-style-os-p (format "\"ls -1 -d %s\"" filespec))
+		       (t (format "ls -1 -d %s" filespec))))
+	file-list status)
     (save-excursion 
-      (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+      (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
       (erase-buffer)
       (setq status
 	    (if gshell-options
@@ -470,7 +479,7 @@ The users of Unix-type shells should be able to use
 `ex-nontrivial-find-file-function'. If this doesn't work, the user may have
 to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
   (save-excursion 
-    (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+    (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
     (erase-buffer)
     (insert filespec)
     (goto-char (point-min))
@@ -508,7 +517,7 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 ;; convert MS-DOS wildcards to regexp
 (defun vip-wildcard-to-regexp (wcard)
   (save-excursion
-    (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+    (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
     (erase-buffer)
     (insert wcard)
     (goto-char (point-min))
@@ -743,6 +752,7 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 	(vip-overlay-put vip-search-overlay 'face vip-search-face)
 	(sit-for 2)
 	(vip-overlay-put vip-search-overlay 'face nil))))
+
 
 ;; Replace state
 
@@ -1136,9 +1146,8 @@ Vi.")
 Usually contains ` ', linefeed, TAB or formfeed.")
 
 (defun vip-update-alphanumeric-class ()
-  "Set the syntactic class of Viper alphanumeric symbols according to
-the variable `vip-ALPHA-char-class'. Should be called in order for changes to
-`vip-ALPHA-char-class' to take effect."
+  "Set the syntax class of Viper alphanumerals according to `vip-syntax-preference'.
+Must be called in order for changes to `vip-syntax-preference' to take effect."
   (interactive)
   (setq-default
    vip-ALPHA-char-class

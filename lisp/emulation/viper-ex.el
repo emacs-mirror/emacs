@@ -285,6 +285,7 @@ reversed.")
 ;; A token has a type, \(command, address, end-mark\), and a value
 (defun vip-get-ex-token ()
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t|")
     (cond ((looking-at "#")
@@ -420,6 +421,7 @@ reversed.")
 		     "!*")))
 	
     (save-window-excursion ;; put cursor at the end of the Ex working buffer
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (goto-char (point-max)))
     (cond ((vip-looking-back quit-regex1) (exit-minibuffer))
@@ -497,8 +499,7 @@ reversed.")
 			      map)))
     (save-window-excursion
       ;; just a precaution
-      (or (vip-buffer-live-p vip-ex-work-buf)
-	  (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)))
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (delete-region (point-min) (point-max))
       (insert com-str "\n")
@@ -518,6 +519,8 @@ reversed.")
 		   (t
 		    (vip-execute-ex-command)
 		    (save-window-excursion
+		      (setq vip-ex-work-buf
+			    (get-buffer-create vip-ex-work-buf-name))
 		      (set-buffer vip-ex-work-buf)
 		      (skip-chars-forward " \t")
 		      (cond ((looking-at "|")
@@ -554,6 +557,7 @@ reversed.")
 ;; Get a regular expression and set `ex-variant', if found
 (defun vip-get-ex-pat ()
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "!")
@@ -590,6 +594,7 @@ reversed.")
 ;; get an ex command
 (defun vip-get-ex-command ()
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (if (looking-at "/") (forward-char 1))
     (skip-chars-forward " \t")
@@ -605,6 +610,7 @@ reversed.")
 ;; Get an Ex option g or c
 (defun vip-get-ex-opt-gc (c)
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (if (looking-at (format "%c" c)) (forward-char 1))
     (skip-chars-forward " \t")
@@ -716,6 +722,7 @@ reversed.")
   (setq ex-count nil)
   (setq ex-flag nil)
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "[a-zA-Z]")
@@ -741,6 +748,7 @@ reversed.")
 	ex-count nil
 	ex-flag nil)
   (save-window-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "!")
@@ -802,6 +810,7 @@ reversed.")
 	  ex-cmdfile nil)
     (save-excursion
       (save-window-excursion
+	(setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
 	(set-buffer vip-ex-work-buf)
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
@@ -1167,12 +1176,14 @@ reversed.")
   (if (null (setq file (get-file-buffer ex-file)))
       (progn 
 	(ex-find-file ex-file)
-	(vip-change-state-to-vi)
+	(or (eq major-mode 'dired-mode)
+	    (vip-change-state-to-vi))
 	(goto-char (point-min)))
     (switch-to-buffer file))
   (if ex-offset
       (progn
 	(save-window-excursion
+	  (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
 	  (set-buffer vip-ex-work-buf)
 	  (delete-region (point-min) (point-max))
 	  (insert ex-offset "\n")
@@ -1181,13 +1192,16 @@ reversed.")
 	(beginning-of-line)))
   (ex-fixup-history vip-last-ex-prompt ex-file))
 
-;; Splits the string FILESPEC into substrings separated by newlines.
+;; Find-file FILESPEC if it appears to specify a single file.
+;; Otherwise, assume that FILES{EC is a wildcard.
+;; In this case, split it into substrings separated by newlines.
 ;; Each line is assumed to be a file name. find-file's each file thus obtained.
 (defun ex-find-file (filespec)
-  (let ((nonstandard-filename-chars "[^a-zA-Z0-9_.-/,\\]"))
-    (if (string-match nonstandard-filename-chars  filespec)
-	(funcall ex-nontrivial-find-file-function filespec)
-      (find-file filespec))
+  (let ((nonstandard-filename-chars "[^-a-zA-Z0-9_./,~$\\]"))
+    (cond ((file-exists-p filespec) (find-file filespec))
+	  ((string-match nonstandard-filename-chars  filespec)
+	   (funcall ex-nontrivial-find-file-function filespec))
+	  (t (find-file filespec)))
     ))
 
 
@@ -1241,6 +1255,7 @@ reversed.")
 	    (forward-line -1)
 	    (end-of-line)))))
     (save-window-excursion
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
     (while marks
@@ -1312,6 +1327,7 @@ reversed.")
 	(setq ex-addresses
 	      (cons (point) nil)))
     (save-window-excursion
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (skip-chars-forward " \t")
       (if (looking-at "[a-z]")
@@ -1446,6 +1462,7 @@ reversed.")
 (defun ex-quit ()
   ;; skip "!", if it is q!. In Viper q!, w!, etc., behave as q, w, etc.
   (save-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (if (looking-at "!") (forward-char 1)))
   (if (< vip-expert-level 3)
@@ -1679,6 +1696,7 @@ reversed.")
 ;; special meaning
 (defun ex-get-inline-cmd-args (regex-forw &optional chars-back replace-str)
   (save-excursion
+    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (goto-char (point-min))
     (re-search-forward regex-forw nil t)
@@ -1812,6 +1830,7 @@ Please contact your system administrator. "
 (defun ex-tag ()
   (let (tag)
     (save-window-excursion
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (skip-chars-forward " \t")
       (set-mark (point))
@@ -1945,6 +1964,7 @@ Please contact your system administrator. "
 (defun ex-command ()
   (let (command)
     (save-window-excursion
+      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
       (set-buffer vip-ex-work-buf)
       (skip-chars-forward " \t")
       (setq command (buffer-substring (point) (point-max)))
