@@ -1,5 +1,11 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* fileio.c (Fread_file_name): Doc fix.
+
+	* editfns.c (Fmessage_or_box): Doc fix.
+
+	* fns.c (Fy_or_n_p, Fyes_or_no_p): Doc fix.
+
 	* xfns.c (xbm_scan): Allow C-style comments.
 	
 	* xfns.c (xpm_init_color_cache) [ALLOC_XPM_COLORS]: If color

@@ -1,5 +1,10 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (frame-notice-user-settings): Add a last parameter nil
+	to a call to `append', because the last list passed to `append' is
+	not copied, and so subsequent calls to assq-delete-all will modify
+	default-frame-alist.
+
 	* startup.el (fancy-splash-image): Change :type.
 	(fancy-splash-head): Use an XBM image if appropriate.
 	(command-line-1): Show splash screens in more cases.
