@@ -41,6 +41,14 @@
   :group 'matching)
 
 
+(defun fundamental-mode ()
+  "Major mode not specialized for anything in particular.
+Other major modes are defined by comparison with this one."
+  (interactive)
+  (kill-all-local-variables))
+
+;; Making and deleting lines.
+
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
 The newline is marked with the text-property `hard'.
@@ -125,7 +133,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
     (if (and (listp sticky) (not (memq 'hard sticky)))
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
-
+
 (defun open-line (arg)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
@@ -156,44 +164,6 @@ With arg N, insert N newlines."
     (indent-to col 0)
     (goto-char pos)))
 
-(defun quoted-insert (arg)
-  "Read next input character and insert it.
-This is useful for inserting control characters.
-
-If the first character you type after this command is an octal digit,
-you should type a sequence of octal digits which specify a character code.
-Any nondigit terminates the sequence.  If the terminator is a RET,
-it is discarded; any other terminator is used itself as input.
-The variable `read-quoted-char-radix' specifies the radix for this feature;
-set it to 10 or 16 to use decimal or hex instead of octal.
-
-In overwrite mode, this function inserts the character anyway, and
-does not handle octal digits specially.  This means that if you use
-overwrite as your normal editing mode, you can use this function to
-insert characters when necessary.
-
-In binary overwrite mode, this function does overwrite, and octal
-digits are interpreted as a character code.  This is intended to be
-useful for editing binary files."
-  (interactive "*p")
-  (let ((char (if (or (not overwrite-mode)
-		      (eq overwrite-mode 'overwrite-mode-binary))
-		  (read-quoted-char)
-		(read-char))))
-    ;; Assume character codes 0240 - 0377 stand for characters in some
-    ;; single-byte character set, and convert them to Emacs
-    ;; characters.
-    (if (and enable-multibyte-characters
-	     (>= char ?\240)
-	     (<= char ?\377))
-	(setq char (unibyte-char-to-multibyte char)))
-    (if (> arg 0)
-	(if (eq overwrite-mode 'overwrite-mode-binary)
-	    (delete-char arg)))
-    (while (> arg 0)
-      (insert-and-inherit char)
-      (setq arg (1- arg)))))
-
 (defun delete-indentation (&optional arg)
   "Join this line to previous and fix up whitespace at join.
 If there is a fill prefix, delete it from the beginning of this line.
@@ -215,34 +185,7 @@ With argument, join this line to following line."
 	(fixup-whitespace))))
 
 (defalias 'join-line #'delete-indentation) ; easier to find
-
-(defun fixup-whitespace ()
-  "Fixup white space between objects around point.
-Leave one space or none, according to the context."
-  (interactive "*")
-  (save-excursion
-    (delete-horizontal-space)
-    (if (or (looking-at "^\\|\\s)")
-	    (save-excursion (forward-char -1)
-			    (looking-at "$\\|\\s(\\|\\s'")))
-	nil
-      (insert ?\ ))))
-
-(defun delete-horizontal-space ()
-  "Delete all spaces and tabs around point."
-  (interactive "*")
-  (skip-chars-backward " \t")
-  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
-
-(defun just-one-space ()
-  "Delete all spaces and tabs around point, leaving one space."
-  (interactive "*")
-  (skip-chars-backward " \t")
-  (if (= (following-char) ? )
-      (forward-char 1)
-    (insert ? ))
-  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
-
+
 (defun delete-blank-lines ()
   "On blank line, delete all surrounding blank lines, leaving just one.
 On isolated blank line, delete that one.
@@ -283,12 +226,6 @@ On nonblank line, delete any immediately following blank lines."
     (if (looking-at "^[ \t]*\n\\'")
 	(delete-region (point) (point-max)))))
 
-(defun back-to-indentation ()
-  "Move point to the first non-whitespace character on this line."
-  (interactive)
-  (beginning-of-line 1)
-  (skip-chars-forward " \t"))
-
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
 Indentation is done using the value of `indent-line-function'.
@@ -313,64 +250,91 @@ column specified by the function `current-left-margin'."
     (indent-according-to-mode))
   (newline)
   (indent-according-to-mode))
+
+(defun quoted-insert (arg)
+  "Read next input character and insert it.
+This is useful for inserting control characters.
 
-;; Internal subroutine of delete-char
-(defun kill-forward-chars (arg)
-  (if (listp arg) (setq arg (car arg)))
-  (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point arg)))
+If the first character you type after this command is an octal digit,
+you should type a sequence of octal digits which specify a character code.
+Any nondigit terminates the sequence.  If the terminator is a RET,
+it is discarded; any other terminator is used itself as input.
+The variable `read-quoted-char-radix' specifies the radix for this feature;
+set it to 10 or 16 to use decimal or hex instead of octal.
 
-;; Internal subroutine of backward-delete-char
-(defun kill-backward-chars (arg)
-  (if (listp arg) (setq arg (car arg)))
-  (if (eq arg '-) (setq arg -1))
-  (kill-region (point) (forward-point (- arg))))
+In overwrite mode, this function inserts the character anyway, and
+does not handle octal digits specially.  This means that if you use
+overwrite as your normal editing mode, you can use this function to
+insert characters when necessary.
 
-(defcustom backward-delete-char-untabify-method 'untabify
-  "*The method for untabifying when deleting backward.
-Can be `untabify' -- turn a tab to many spaces, then delete one space.
-       `hungry' -- delete all whitespace, both tabs and spaces.
-       nil -- just delete one character."
-  :type '(choice (const untabify) (const hungry) (const nil))
-  :group 'killing)
+In binary overwrite mode, this function does overwrite, and octal
+digits are interpreted as a character code.  This is intended to be
+useful for editing binary files."
+  (interactive "*p")
+  (let ((char (if (or (not overwrite-mode)
+		      (eq overwrite-mode 'overwrite-mode-binary))
+		  (read-quoted-char)
+		(read-char))))
+    ;; Assume character codes 0240 - 0377 stand for characters in some
+    ;; single-byte character set, and convert them to Emacs
+    ;; characters.
+    (if (and enable-multibyte-characters
+	     (>= char ?\240)
+	     (<= char ?\377))
+	(setq char (unibyte-char-to-multibyte char)))
+    (if (> arg 0)
+	(if (eq overwrite-mode 'overwrite-mode-binary)
+	    (delete-char arg)))
+    (while (> arg 0)
+      (insert-and-inherit char)
+      (setq arg (1- arg)))))
+
+(defun forward-to-indentation (arg)
+  "Move forward ARG lines and position at first nonblank character."
+  (interactive "p")
+  (forward-line arg)
+  (skip-chars-forward " \t"))
 
-(defun backward-delete-char-untabify (arg &optional killp)
-  "Delete characters backward, changing tabs into spaces.
-The exact behavior depends on `backward-delete-char-untabify-method'.
-Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
-Interactively, ARG is the prefix arg (default 1)
-and KILLP is t if a prefix arg was specified."
-  (interactive "*p\nP")
-  (when (eq backward-delete-char-untabify-method 'untabify)
-    (let ((count arg))
-      (save-excursion
-	(while (and (> count 0) (not (bobp)))
-	  (if (= (preceding-char) ?\t)
-	      (let ((col (current-column)))
-		(forward-char -1)
-		(setq col (- col (current-column)))
-		(insert-char ?\ col)
-		(delete-char 1)))
-	  (forward-char -1)
-	  (setq count (1- count))))))
-  (delete-backward-char
-   (if (eq backward-delete-char-untabify-method 'hungry)
-       (let ((wh (- (point) (save-excursion (skip-chars-backward " \t")
-					    (point)))))
-	 (+ arg (if (zerop wh) 0 (1- wh))))
-     arg)
-   killp))
+(defun backward-to-indentation (arg)
+  "Move backward ARG lines and position at first nonblank character."
+  (interactive "p")
+  (forward-line (- arg))
+  (skip-chars-forward " \t"))
 
-(defun zap-to-char (arg char)
-  "Kill up to and including ARG'th occurrence of CHAR.
-Case is ignored if `case-fold-search' is non-nil in the current buffer.
-Goes backward if ARG is negative; error if CHAR not found."
-  (interactive "*p\ncZap to char: ")
-  (kill-region (point) (progn
-			 (search-forward (char-to-string char) nil nil arg)
-;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
-			 (point))))
+(defun back-to-indentation ()
+  "Move point to the first non-whitespace character on this line."
+  (interactive)
+  (beginning-of-line 1)
+  (skip-chars-forward " \t"))
 
+(defun fixup-whitespace ()
+  "Fixup white space between objects around point.
+Leave one space or none, according to the context."
+  (interactive "*")
+  (save-excursion
+    (delete-horizontal-space)
+    (if (or (looking-at "^\\|\\s)")
+	    (save-excursion (forward-char -1)
+			    (looking-at "$\\|\\s(\\|\\s'")))
+	nil
+      (insert ?\ ))))
+
+(defun delete-horizontal-space ()
+  "Delete all spaces and tabs around point."
+  (interactive "*")
+  (skip-chars-backward " \t")
+  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
+
+(defun just-one-space ()
+  "Delete all spaces and tabs around point, leaving one space."
+  (interactive "*")
+  (skip-chars-backward " \t")
+  (if (= (following-char) ? )
+      (forward-char 1)
+    (insert ? ))
+  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
+
+
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With arg N, put point N/10 of the way from the beginning.
@@ -436,6 +400,19 @@ that uses or sets the mark."
   (push-mark (point))
   (push-mark (point-max) nil t)
   (goto-char (point-min)))
+
+;; Counting lines, one way or another.
+
+(defun goto-line (arg)
+  "Goto line ARG, counting from line 1 at beginning of buffer."
+  (interactive "NGoto line: ")
+  (setq arg (prefix-numeric-value arg))
+  (save-restriction
+    (widen)
+    (goto-char 1)
+    (if (eq selective-display t)
+	(re-search-forward "[\n\C-m]" nil 'end (1- arg))
+      (forward-line (1- arg)))))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
@@ -461,7 +438,6 @@ that uses or sets the mark."
 		     (1+ (count-lines start (point))))
 	  (message "Line %d" (1+ (count-lines 1 (point)))))))))
 
-
 (defun count-lines (start end)
   "Return number of lines between START and END.
 This is usually the number of newlines between them,
@@ -484,7 +460,7 @@ and the greater of them is not at the start of a line."
 		  (1+ done)
 		done)))
 	(- (buffer-size) (forward-line (buffer-size)))))))
-
+
 (defun what-cursor-position (&optional detail)
   "Print info on cursor position (on screen and within buffer).
 Also describe the character after point, and give its character code
@@ -566,13 +542,7 @@ addition, the encoding is fully shown."
 			 (single-key-description char)
 		       (buffer-substring (point) (1+ (point))))
 		     encoding-msg pos total percent col hscroll)))))))
-
-(defun fundamental-mode ()
-  "Major mode not specialized for anything in particular.
-Other major modes are defined by comparison with this one."
-  (interactive)
-  (kill-all-local-variables))
-
+
 (defvar read-expression-map (cons 'keymap minibuffer-local-map)
   "Minibuffer keymap used for reading Lisp expressions.")
 (define-key read-expression-map "\M-\t" 'lisp-complete-symbol)
@@ -850,17 +820,6 @@ Get previous element of history which is a completion of minibuffer contents."
   (interactive "p")
   (next-complete-history-element (- n)))
 
-(defun goto-line (arg)
-  "Goto line ARG, counting from line 1 at beginning of buffer."
-  (interactive "NGoto line: ")
-  (setq arg (prefix-numeric-value arg))
-  (save-restriction
-    (widen)
-    (goto-char 1)
-    (if (eq selective-display t)
-	(re-search-forward "[\n\C-m]" nil 'end (1- arg))
-      (forward-line (1- arg)))))
-
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
 
@@ -1485,125 +1444,6 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
 
-(defun forward-to-indentation (arg)
-  "Move forward ARG lines and position at first nonblank character."
-  (interactive "p")
-  (forward-line arg)
-  (skip-chars-forward " \t"))
-
-(defun backward-to-indentation (arg)
-  "Move backward ARG lines and position at first nonblank character."
-  (interactive "p")
-  (forward-line (- arg))
-  (skip-chars-forward " \t"))
-
-(defcustom kill-whole-line nil
-  "*If non-nil, `kill-line' with no arg at beg of line kills the whole line."
-  :type 'boolean
-  :group 'killing)
-
-(defun kill-line (&optional arg)
-  "Kill the rest of the current line; if no nonblanks there, kill thru newline.
-With prefix argument, kill that many lines from point.
-Negative arguments kill lines backward.
-
-When calling from a program, nil means \"no arg\",
-a number counts as a prefix arg.
-
-To kill a whole line, when point is not at the beginning, type \
-\\[beginning-of-line] \\[kill-line] \\[kill-line].
-
-If `kill-whole-line' is non-nil, then this command kills the whole line
-including its terminating newline, when used at the beginning of a line
-with no argument.  As a consequence, you can always kill a whole line
-by typing \\[beginning-of-line] \\[kill-line]."
-  (interactive "*P")
-  (kill-region (point)
-	       ;; It is better to move point to the other end of the kill
-	       ;; before killing.  That way, in a read-only buffer, point
-	       ;; moves across the text that is copied to the kill ring.
-	       ;; The choice has no effect on undo now that undo records
-	       ;; the value of point from before the command was run.
-	       (progn
-		 (if arg
-		     (forward-visible-line (prefix-numeric-value arg))
-		   (if (eobp)
-		       (signal 'end-of-buffer nil))
-		   (if (or (looking-at "[ \t]*$") (and kill-whole-line (bolp)))
-		       (forward-visible-line 1)
-		     (end-of-visible-line)))
-		 (point))))
-
-(defun forward-visible-line (arg)
-  "Move forward by ARG lines, ignoring currently invisible newlines only.
-If ARG is negative, move backward -ARG lines.
-If ARG is zero, move to the beginning of the current line."
-  (condition-case nil
-      (if (> arg 0)
-	  (while (> arg 0)
-	    (or (zerop (forward-line 1))
-		(signal 'end-of-buffer nil))
-	    ;; If the following character is currently invisible,
-	    ;; skip all characters with that same `invisible' property value,
-	    ;; then find the next newline.
-	    (while (and (not (eobp))
-			(let ((prop
-			       (get-char-property (point) 'invisible)))
-			  (if (eq buffer-invisibility-spec t)
-			      prop
-			    (or (memq prop buffer-invisibility-spec)
-				(assq prop buffer-invisibility-spec)))))
-	      (goto-char
-	       (if (get-text-property (point) 'invisible)
-		   (or (next-single-property-change (point) 'invisible)
-		       (point-max))
-		 (next-overlay-change (point))))
-	      (or (zerop (forward-line 1))
-		  (signal 'end-of-buffer nil)))
-	    (setq arg (1- arg)))
-	(let ((first t))
-	  (while (or first (< arg 0))
-	    (if (zerop arg)
-		(beginning-of-line)
-	      (or (zerop (forward-line -1))
-		  (signal 'beginning-of-buffer nil)))
-	    (while (and (not (bobp))
-			(let ((prop
-			       (get-char-property (1- (point)) 'invisible)))
-			  (if (eq buffer-invisibility-spec t)
-			      prop
-			    (or (memq prop buffer-invisibility-spec)
-				(assq prop buffer-invisibility-spec)))))
-	      (goto-char
-	       (if (get-text-property (1- (point)) 'invisible)
-		   (or (previous-single-property-change (point) 'invisible)
-		       (point-min))
-		 (previous-overlay-change (point))))
-	      (or (zerop (forward-line -1))
-		  (signal 'beginning-of-buffer nil)))
-	    (setq first nil)
-	    (setq arg (1+ arg)))))
-    ((beginning-of-buffer end-of-buffer)
-     nil)))
-
-(defun end-of-visible-line ()
-  "Move to end of current visible line."
-  (end-of-line)
-  ;; If the following character is currently invisible,
-  ;; skip all characters with that same `invisible' property value,
-  ;; then find the next newline.
-  (while (and (not (eobp))
-	      (let ((prop
-		     (get-char-property (point) 'invisible)))
-		(if (eq buffer-invisibility-spec t)
-		    prop
-		  (or (memq prop buffer-invisibility-spec)
-		      (assq prop buffer-invisibility-spec)))))
-    (if (get-text-property (point) 'invisible)
-	(goto-char (next-single-property-change (point) 'invisible))
-      (goto-char (next-overlay-change (point))))
-    (end-of-line)))
-
 ;;;; Window system cut and paste hooks.
 
 (defvar interprogram-cut-function nil
@@ -1852,6 +1692,8 @@ The argument is used for internal purposes; do not supply one."
 	(setq this-command 'kill-region)
 	(message "If the next command is a kill, it will append"))
     (setq last-command 'kill-region)))
+
+;; Yanking.
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -1921,7 +1763,174 @@ See also the command \\[yank-pop]."
 With argument, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
+
+;; Some kill commands.
 
+;; Internal subroutine of delete-char
+(defun kill-forward-chars (arg)
+  (if (listp arg) (setq arg (car arg)))
+  (if (eq arg '-) (setq arg -1))
+  (kill-region (point) (forward-point arg)))
+
+;; Internal subroutine of backward-delete-char
+(defun kill-backward-chars (arg)
+  (if (listp arg) (setq arg (car arg)))
+  (if (eq arg '-) (setq arg -1))
+  (kill-region (point) (forward-point (- arg))))
+
+(defcustom backward-delete-char-untabify-method 'untabify
+  "*The method for untabifying when deleting backward.
+Can be `untabify' -- turn a tab to many spaces, then delete one space.
+       `hungry' -- delete all whitespace, both tabs and spaces.
+       nil -- just delete one character."
+  :type '(choice (const untabify) (const hungry) (const nil))
+  :group 'killing)
+
+(defun backward-delete-char-untabify (arg &optional killp)
+  "Delete characters backward, changing tabs into spaces.
+The exact behavior depends on `backward-delete-char-untabify-method'.
+Delete ARG chars, and kill (save in kill ring) if KILLP is non-nil.
+Interactively, ARG is the prefix arg (default 1)
+and KILLP is t if a prefix arg was specified."
+  (interactive "*p\nP")
+  (when (eq backward-delete-char-untabify-method 'untabify)
+    (let ((count arg))
+      (save-excursion
+	(while (and (> count 0) (not (bobp)))
+	  (if (= (preceding-char) ?\t)
+	      (let ((col (current-column)))
+		(forward-char -1)
+		(setq col (- col (current-column)))
+		(insert-char ?\ col)
+		(delete-char 1)))
+	  (forward-char -1)
+	  (setq count (1- count))))))
+  (delete-backward-char
+   (if (eq backward-delete-char-untabify-method 'hungry)
+       (let ((wh (- (point) (save-excursion (skip-chars-backward " \t")
+					    (point)))))
+	 (+ arg (if (zerop wh) 0 (1- wh))))
+     arg)
+   killp))
+
+(defun zap-to-char (arg char)
+  "Kill up to and including ARG'th occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Goes backward if ARG is negative; error if CHAR not found."
+  (interactive "*p\ncZap to char: ")
+  (kill-region (point) (progn
+			 (search-forward (char-to-string char) nil nil arg)
+;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
+			 (point))))
+
+;; kill-line and its subroutines.
+
+(defcustom kill-whole-line nil
+  "*If non-nil, `kill-line' with no arg at beg of line kills the whole line."
+  :type 'boolean
+  :group 'killing)
+
+(defun kill-line (&optional arg)
+  "Kill the rest of the current line; if no nonblanks there, kill thru newline.
+With prefix argument, kill that many lines from point.
+Negative arguments kill lines backward.
+
+When calling from a program, nil means \"no arg\",
+a number counts as a prefix arg.
+
+To kill a whole line, when point is not at the beginning, type \
+\\[beginning-of-line] \\[kill-line] \\[kill-line].
+
+If `kill-whole-line' is non-nil, then this command kills the whole line
+including its terminating newline, when used at the beginning of a line
+with no argument.  As a consequence, you can always kill a whole line
+by typing \\[beginning-of-line] \\[kill-line]."
+  (interactive "*P")
+  (kill-region (point)
+	       ;; It is better to move point to the other end of the kill
+	       ;; before killing.  That way, in a read-only buffer, point
+	       ;; moves across the text that is copied to the kill ring.
+	       ;; The choice has no effect on undo now that undo records
+	       ;; the value of point from before the command was run.
+	       (progn
+		 (if arg
+		     (forward-visible-line (prefix-numeric-value arg))
+		   (if (eobp)
+		       (signal 'end-of-buffer nil))
+		   (if (or (looking-at "[ \t]*$") (and kill-whole-line (bolp)))
+		       (forward-visible-line 1)
+		     (end-of-visible-line)))
+		 (point))))
+
+(defun forward-visible-line (arg)
+  "Move forward by ARG lines, ignoring currently invisible newlines only.
+If ARG is negative, move backward -ARG lines.
+If ARG is zero, move to the beginning of the current line."
+  (condition-case nil
+      (if (> arg 0)
+	  (while (> arg 0)
+	    (or (zerop (forward-line 1))
+		(signal 'end-of-buffer nil))
+	    ;; If the following character is currently invisible,
+	    ;; skip all characters with that same `invisible' property value,
+	    ;; then find the next newline.
+	    (while (and (not (eobp))
+			(let ((prop
+			       (get-char-property (point) 'invisible)))
+			  (if (eq buffer-invisibility-spec t)
+			      prop
+			    (or (memq prop buffer-invisibility-spec)
+				(assq prop buffer-invisibility-spec)))))
+	      (goto-char
+	       (if (get-text-property (point) 'invisible)
+		   (or (next-single-property-change (point) 'invisible)
+		       (point-max))
+		 (next-overlay-change (point))))
+	      (or (zerop (forward-line 1))
+		  (signal 'end-of-buffer nil)))
+	    (setq arg (1- arg)))
+	(let ((first t))
+	  (while (or first (< arg 0))
+	    (if (zerop arg)
+		(beginning-of-line)
+	      (or (zerop (forward-line -1))
+		  (signal 'beginning-of-buffer nil)))
+	    (while (and (not (bobp))
+			(let ((prop
+			       (get-char-property (1- (point)) 'invisible)))
+			  (if (eq buffer-invisibility-spec t)
+			      prop
+			    (or (memq prop buffer-invisibility-spec)
+				(assq prop buffer-invisibility-spec)))))
+	      (goto-char
+	       (if (get-text-property (1- (point)) 'invisible)
+		   (or (previous-single-property-change (point) 'invisible)
+		       (point-min))
+		 (previous-overlay-change (point))))
+	      (or (zerop (forward-line -1))
+		  (signal 'beginning-of-buffer nil)))
+	    (setq first nil)
+	    (setq arg (1+ arg)))))
+    ((beginning-of-buffer end-of-buffer)
+     nil)))
+
+(defun end-of-visible-line ()
+  "Move to end of current visible line."
+  (end-of-line)
+  ;; If the following character is currently invisible,
+  ;; skip all characters with that same `invisible' property value,
+  ;; then find the next newline.
+  (while (and (not (eobp))
+	      (let ((prop
+		     (get-char-property (point) 'invisible)))
+		(if (eq buffer-invisibility-spec t)
+		    prop
+		  (or (memq prop buffer-invisibility-spec)
+		      (assq prop buffer-invisibility-spec)))))
+    (if (get-text-property (point) 'invisible)
+	(goto-char (next-single-property-change (point) 'invisible))
+      (goto-char (next-overlay-change (point))))
+    (end-of-line)))
 
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
@@ -2251,7 +2260,7 @@ to use and more reliable (no dependence on goal column, etc.)."
 	((beginning-of-buffer end-of-buffer) (ding)))
     (line-move (- arg)))
   nil)
-
+
 (defcustom track-eol nil
   "*Non-nil means vertical motion starting at end of line keeps to ends of lines.
 This means moving to the end of each line moved onto.
