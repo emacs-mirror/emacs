@@ -1730,6 +1730,8 @@ Garbage collection happens automatically if you cons more than\n\
   if (garbage_collection_messages)
     message1_nolog ("Garbage collecting...");
 
+  BLOCK_INPUT;
+
   shrink_regexp_cache ();
 
   /* Don't keep undo information around forever.  */
@@ -1872,6 +1874,8 @@ Garbage collection happens automatically if you cons more than\n\
     }  
   XUNMARK (buffer_defaults.name);
   XUNMARK (buffer_local_symbols.name);
+
+  UNBLOCK_INPUT;
 
   /* clear_marks (); */
   gc_in_progress = 0;
