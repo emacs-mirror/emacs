@@ -213,7 +213,7 @@ arbitrarily by Custom for instance.}  Users will request the feature by
 invoking the command, which will often be constructed as a minor mode.
 
 @cindex unloading packages
-If your package contains functions which do modify oridinary Emacs
+If your package contains functions which do modify ordinary Emacs
 behavior, for instance by adding functions to hooks, define a function
 @code{@var{feature}-unload-hook} where @var{feature} is the name of
 the feature the package provides.  This function should undo any such
