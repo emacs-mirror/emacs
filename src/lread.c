@@ -1564,7 +1564,9 @@ read_list (flag, readcharfun)
   Lisp_Object val, tail;
   register Lisp_Object elt, tem;
   struct gcpro gcpro1, gcpro2;
-  int cancel = 0;
+  /* 0 is the normal case.
+     1 means this list is a doc reference; replace it with the number 0.  */ 
+  int doc_reference = 0;
 
   /* Initialize this to 1 if we are reading a list.  */
   int first_in_list = flag <= 0;
@@ -1581,13 +1583,25 @@ read_list (flag, readcharfun)
 
       first_in_list = 0;
 
-	/* If purifying, and the list starts with #$,
-	   return 0 instead.  This is a doc string reference
-	   and it will be replaced anyway by Snarf-documentation,
-	   so don't waste pure space with it.  */
+      /* While building, if the list starts with #$, treat it specially.  */
       if (EQ (elt, Vload_file_name)
-	  && !NILP (Vpurify_flag) && NILP (Vdoc_file_name))
-	cancel = 1;
+	  && !NILP (Vpurify_flag))
+	{
+	  if (NILP (Vdoc_file_name))
+	    /* We have not yet called Snarf-documentation, so assume
+	       this file is described in the DOC-MM.NN file
+	       and Snarf-documentation will fill in the right value later.
+	       For now, replace the whole list with 0.  */
+	    doc_reference = 1;
+	  else
+	    /* We have already called Snarf-documentation, so make a relative
+	       file name for this file, so it can be found properly
+	       in the installed Lisp directory.
+	       We don't use Fexpand_file_name because that would make
+	       the directory absolute now.  */
+	    elt = concat2 (build_string ("../lisp/"),
+			   Ffile_name_nondirectory (elt));
+	}
 
       if (ch)
 	{
@@ -1595,7 +1609,8 @@ read_list (flag, readcharfun)
 	    {
 	      if (ch == ']')
 		return val;
-	      Fsignal (Qinvalid_read_syntax, Fcons (make_string (") or . in a vector", 18), Qnil));
+	      Fsignal (Qinvalid_read_syntax,
+		       Fcons (make_string (") or . in a vector", 18), Qnil));
 	    }
 	  if (ch == ')')
 	    return val;
@@ -1609,7 +1624,11 @@ read_list (flag, readcharfun)
 	      read1 (readcharfun, &ch, 0);
 	      UNGCPRO;
 	      if (ch == ')')
-		return (cancel ? make_number (0) : val);
+		{
+		  if (doc_reference == 1)
+		    return make_number (0);
+		  return val;
+		}
 	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (". in wrong context", 18), Qnil));
 	    }
 	  return Fsignal (Qinvalid_read_syntax, Fcons (make_string ("] in a list", 11), Qnil));
