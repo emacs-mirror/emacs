@@ -1,3 +1,9 @@
+2003-01-09  John Wiegley  <johnw@gnu.org>
+
+	* pcomplete.el (pcomplete-termination-string): Added a variable
+	for modifying the string which is inserted after a completion or
+	expansion using pcomplete.
+
 2003-01-09  Karl Berry  <karl@gnu.org>
 
 	* sort.el (sort-regexp-fields): pass noerror to re-search-forward,
