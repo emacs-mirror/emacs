@@ -168,10 +168,21 @@ static int baud_convert[] =
 extern short ospeed;
 
 /* The file descriptor for Emacs's input terminal.
-   Under Unix, this is always left zero;
+   Under Unix, this is normaly zero except when using X;
    under VMS, we place the input channel number here.
    This allows us to write more code that works for both VMS and Unix.  */
 static int input_fd;
+
+/* Specify a different file descriptor for further input operations.  */
+
+void
+change_input_fd (fd)
+     int fd;
+{
+  input_fd = fd;
+}
+
+/* Discard pending input on descriptor input_fd.  */
 
 discard_tty_input ()
 {
@@ -194,7 +205,7 @@ discard_tty_input ()
 #ifdef APOLLO
   {
     int zero = 0;
-    ioctl (0, TIOCFLUSH, &zero);
+    ioctl (input_fd, TIOCFLUSH, &zero);
   }
 #else /* not Apollo */
   EMACS_GET_TTY (input_fd, &buf);
@@ -205,19 +216,22 @@ discard_tty_input ()
 
 #ifdef SIGTSTP
 
+/* Arrange for character C to be read as the next input from
+   the terminal.  */
+
 stuff_char (c)
      char c;
 {
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
-  ioctl (0, TIOCSTI, &c);
+  ioctl (input_fd, TIOCSTI, &c);
 #else /* no TIOCSTI */
   error ("Cannot stuff terminal input characters in this version of Unix.");
 #endif /* no TIOCSTI */
 }
 
 #endif /* SIGTSTP */
-
+
 init_baud_rate ()
 {
   if (noninteractive)
@@ -235,7 +249,7 @@ init_baud_rate ()
       struct termios sg;
 
       sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
-      tcgetattr (0, &sg);
+      tcgetattr (input_fd, &sg);
       ospeed = cfgetospeed (&sg);
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
@@ -243,7 +257,7 @@ init_baud_rate ()
 
       sg.c_cflag = (sg.c_cflag & ~CBAUD) | B9600;
 #ifdef HAVE_TCATTR
-      tcgetattr (0, &sg);
+      tcgetattr (input_fd, &sg);
 #else
       ioctl (input_fd, TCGETA, &sg);
 #endif
@@ -252,7 +266,7 @@ init_baud_rate ()
       struct sgttyb sg;
       
       sg.sg_ospeed = B9600;
-      if (ioctl (0, TIOCGETP, &sg) < 0)
+      if (ioctl (input_fd, TIOCGETP, &sg) < 0)
 	abort ();
       ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
@@ -275,7 +289,7 @@ set_exclusive_use (fd)
 #endif
   /* Ok to do nothing if this feature does not exist */
 }
-
+
 #ifndef subprocesses
 
 wait_without_blocking ()
@@ -408,7 +422,7 @@ flush_pending_output (channel)
 #endif
 #endif
 }
-
+
 #ifndef VMS
 /*  Set up the terminal at the other end of a pseudo-terminal that
     we will be controlling an inferior through.
@@ -509,7 +523,7 @@ setpgrp_of_tty (pid)
 {
   EMACS_SET_TTY_PGRP (input_fd, &pid);
 }
-
+
 /* Record a signal code and the handler for it.  */
 struct save_signal
 {
@@ -686,7 +700,7 @@ int old_fcntl_flags;
 init_sigio ()
 {
 #ifdef FASYNC
-  old_fcntl_flags = fcntl (0, F_GETFL, 0) & ~FASYNC;
+  old_fcntl_flags = fcntl (input_fd, F_GETFL, 0) & ~FASYNC;
 #endif
   request_sigio ();
 }
@@ -703,7 +717,7 @@ request_sigio ()
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
 #endif
-  fcntl (0, F_SETFL, old_fcntl_flags | FASYNC);
+  fcntl (input_fd, F_SETFL, old_fcntl_flags | FASYNC);
 
   interrupts_deferred = 0;
 }
@@ -713,7 +727,7 @@ unrequest_sigio ()
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif
-  fcntl (0, F_SETFL, old_fcntl_flags);
+  fcntl (input_fd, F_SETFL, old_fcntl_flags);
   interrupts_deferred = 1;
 }
 
@@ -723,7 +737,7 @@ unrequest_sigio ()
 request_sigio ()
 {
   int on = 1;
-  ioctl (0, FIOASYNC, &on);
+  ioctl (input_fd, FIOASYNC, &on);
   interrupts_deferred = 0;
 }
 
@@ -731,7 +745,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  ioctl (0, FIOASYNC, &off);
+  ioctl (input_fd, FIOASYNC, &off);
   interrupts_deferred = 1;
 }
 
@@ -785,7 +799,7 @@ narrow_foreground_group ()
 
   setpgrp (0, inherited_pgroup);
   if (inherited_pgroup != me)
-    EMACS_SET_TTY_PGRP (0, &me);
+    EMACS_SET_TTY_PGRP (input_fd, &me);
   setpgrp (0, me);
 }
 
@@ -793,7 +807,7 @@ narrow_foreground_group ()
 widen_foreground_group ()
 {
   if (inherited_pgroup != getpid ())
-    EMACS_SET_TTY_PGRP (0, &inherited_pgroup);
+    EMACS_SET_TTY_PGRP (input_fd, &inherited_pgroup);
   setpgrp (0, inherited_pgroup);
 }
 
@@ -1189,11 +1203,11 @@ init_sys_modes ()
 	 we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
-      if (!flow_control) ioctl (0, TCXONC, 1);
+      if (!flow_control) ioctl (input_fd, TCXONC, 1);
 #endif
 #ifndef APOLLO
 #ifdef TIOCSTART
-      if (!flow_control) ioctl (0, TIOCSTART, 0);
+      if (!flow_control) ioctl (input_fd, TIOCSTART, 0);
 #endif
 #endif
 
@@ -1225,8 +1239,8 @@ init_sys_modes ()
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input)
     {
-      old_fcntl_owner = fcntl (0, F_GETOWN, 0);
-      fcntl (0, F_SETOWN, getpid ());
+      old_fcntl_owner = fcntl (input_fd, F_GETOWN, 0);
+      fcntl (input_fd, F_SETOWN, getpid ());
       init_sigio ();
     }
 #endif /* F_GETOWN */
@@ -1377,7 +1391,7 @@ reset_sys_modes ()
   if (interrupt_input)
     {
       reset_sigio ();
-      fcntl (0, F_SETOWN, old_fcntl_owner);
+      fcntl (input_fd, F_SETOWN, old_fcntl_owner);
     }
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
