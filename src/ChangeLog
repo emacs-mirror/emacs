@@ -37,7 +37,7 @@
 
 	* lisp.h (pos_visible_p): Fix prototype.
 
-	* macterm.c (x_draw_relief_rect):  Add top_p and bot_p args.
+	* macterm.c (x_draw_relief_rect): Add top_p and bot_p args.
 	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
 	(x_draw_image_foreground, x_draw_image_relief)
 	(x_draw_image_foreground_1, x_draw_image_glyph_string):
@@ -8334,12 +8334,11 @@
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
-	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
-	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
-
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
 
 	* fileio.c (syms_of_fileio): Likewise.
+	(Ffile_name_as_directory): Fix argument name in docstring.
+	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
 
 2002-07-18  Richard M. Stallman  <rms@gnu.org>
 
@@ -11989,9 +11988,9 @@
 
 	* abbrev.c (Fexpand_abbrev): Use Frun_hooks instead of Vrun_hooks.
 
-	* buffer.c (Fkill_buffer): Use Frun_hooks, not Vrun_hooks.
+	* buffer.c (Fkill_buffer): Likewise.
 
-	* print.c (temp_output_buffer_setup): Use Frun_hooks, not Vrun_hooks.
+	* print.c (temp_output_buffer_setup): Likewise.
 
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -1,3 +1,11 @@
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Fix docstring.
+
+	* pcomplete.el (pcomplete-opt, pcomplete-actual-arg)
+	(pcomplete-match-string, pcomplete-comint-setup, pcomplete-here)
+	(pcomplete--help, pcomplete--here): Doc fixes.
+
 2004-04-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-default-workfile-unchanged-p): Fix code that
