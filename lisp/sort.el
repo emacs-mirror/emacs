@@ -28,7 +28,7 @@
   "General text sorting routine to divide buffer into records and sort them.
 Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
 
-We consider this portion of the buffer to be divided into disjoint pieces
+We divide the accessible portion of the buffer into disjoint pieces
 called sort records.  A portion of each sort record (perhaps all of it)
 is designated as the sort key.  The records are rearranged in the buffer
 in order by their sort keys.  The records may or may not be contiguous.
@@ -50,49 +50,51 @@ It should move point to the end of the record.
 
 STARTKEYFUN may moves from the start of the record to the start of the key.
 It may return either return a non-nil value to be used as the key, or
-else the key will be the substring between the values of point after
+else the key is the substring between the values of point after
 STARTKEYFUN and ENDKEYFUN are called.  If STARTKEYFUN is nil, the key
 starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
 same as ENDRECFUN."
-  (save-excursion
-    (message "Finding sort keys...")
-    (let* ((sort-lists (sort-build-lists nextrecfun endrecfun
-					 startkeyfun endkeyfun))
-	   (old (reverse sort-lists)))
-      (if (null sort-lists)
-	  ()
-	(or reverse (setq sort-lists (nreverse sort-lists)))
-	(message "Sorting records...")
-	(setq sort-lists
-	      (if (fboundp 'sortcar)
-		  (sortcar sort-lists
-			   (cond ((numberp (car (car sort-lists)))
-				  ;; This handles both ints and floats.
-				  '<)
-				 ((consp (car (car sort-lists)))
-				  'buffer-substring-lessp)
-				 (t
-				  'string<)))
-		  (sort sort-lists
-			(cond ((numberp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (< (car a) (car b)))))
-			      ((consp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (buffer-substring-lessp (car a) (car b)))))
-			      (t
-			       (function
-				(lambda (a b)
-				  (string< (car a) (car b)))))))))
-	(if reverse (setq sort-lists (nreverse sort-lists)))
-	(message "Reordering buffer...")
-	(sort-reorder-buffer sort-lists old)))
-    (message "Reordering buffer... Done"))
+  ;; Heuristically try to avoid messages if sorting a small amt of text.
+  (let ((messages (> (- (point-max) (point-min)) 50000)))
+    (save-excursion
+      (if messages (message "Finding sort keys..."))
+      (let* ((sort-lists (sort-build-lists nextrecfun endrecfun
+					   startkeyfun endkeyfun))
+	     (old (reverse sort-lists)))
+	(if (null sort-lists)
+	    ()
+	  (or reverse (setq sort-lists (nreverse sort-lists)))
+	  (if messages (message "Sorting records..."))
+	  (setq sort-lists
+		(if (fboundp 'sortcar)
+		    (sortcar sort-lists
+			     (cond ((numberp (car (car sort-lists)))
+				    ;; This handles both ints and floats.
+				    '<)
+				   ((consp (car (car sort-lists)))
+				    'buffer-substring-lessp)
+				   (t
+				    'string<)))
+		    (sort sort-lists
+			  (cond ((numberp (car (car sort-lists)))
+				 (function
+				  (lambda (a b)
+				    (< (car a) (car b)))))
+				((consp (car (car sort-lists)))
+				 (function
+				  (lambda (a b)
+				    (buffer-substring-lessp (car a) (car b)))))
+				(t
+				 (function
+				  (lambda (a b)
+				    (string< (car a) (car b)))))))))
+	  (if reverse (setq sort-lists (nreverse sort-lists)))
+	  (if messages (message "Reordering buffer..."))
+	  (sort-reorder-buffer sort-lists old)))
+      (if messages (message "Reordering buffer... Done"))))
   nil)
 
 ;; Parse buffer into records using the arguments as Lisp expressions;
