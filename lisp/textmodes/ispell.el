@@ -1991,7 +1991,12 @@ you can bind this to the key C-c i in GNUS or mail by adding to
 	;; Skip across text cited from other messages.
 	(while (and (looking-at cite-regexp-start)
 		    (< (point) limit))
-	  (forward-line 1))
+	  (let ((point1 (point)))
+	    (forward-line 1)
+	    ;; If there's no next line, go to the end of this one
+	    ;; so that the loop stops looping.
+	    (if (eq point1 (point))
+		(end-of-line))))
 	(if (< (point) limit)
 	    ;; Check the next batch of lines that *aren't* cited.
 	    (let ((end (save-excursion
