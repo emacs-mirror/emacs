@@ -3334,6 +3334,8 @@ actually used.")
     {
       val = call6 (handler, Qinsert_file_contents, filename,
 		   visit, beg, end, replace);
+      if (CONSP (val) && CONSP (XCONS (val)->cdr))
+	inserted = XINT (XCONS (XCONS (val)->cdr)->cdr);
       goto handled;
     }
 
