@@ -2,7 +2,7 @@
 #
 # Build the MMsrc compound at tip of branch MM_epcore_brisling, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_epcore_brisling(trunk.3) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_epcore_brisling(trunk.4) $
 
 
 script="`basename $0`"
@@ -30,12 +30,17 @@ mkdir MMQA_epcore_brisling &&
 cd MMQA_epcore_brisling ||
   die "Unable to get to Builds/MMQA_epcore_brisling directory"
 
+build=`pwd`
+mmsrc=$build/src
+mmqa=$build/mmqa
+
+
 hope co -compound MMsrc -branch MM_epcore_brisling -recursive \
-  -writable-files quit -missing-dir create -extra-files skip ||
+        -missing-dir create ||
   die "Unable to check out MMsrc(MM_epcore_brisling) from HOPE"
 
-mmsrc=`pwd`/src
-
+hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
+  die "Unable to check out MMQA(trunk) from HOPE"
 
 
 ## Build a library
@@ -68,27 +73,16 @@ mmqa_tests () {
 }
 
 
-cd $HOME/Builds &&
-rm -rf MMQA &&
-mkdir MMQA &&
-cd MMQA ||
-  die "Unable to get to Builds/MMQA directory"
-
-hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
-  die "Unable to check out MMQA(trunk) from HOPE"
-
-
 cd $mmsrc
 build_lib mmsw.a
 build_lib mpsplan.a
 
 
-cd $HOME/Builds/MMQA &&
+cd $mmqa &&
 mmqa_tests testsets/dailysw &&
 mmqa_tests testsets/dailyswa we
 
 
 # If the tests succeeded, delete the junk
 cd $HOME/Builds &&
-rm -rf MMQA_epcore_brisling &&
-rm -rf MMQA
+rm -rf MMQA_epcore_brisling
