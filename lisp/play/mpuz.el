@@ -31,7 +31,7 @@
   "*Set this to T if you don't want dings on inputs.")
 
 (defun mpuz-ding ()
-  "Dings, unless global variable MPUZ-SILENT forbids it."
+  "Dings, unless global variable `mpuz-silent' forbids it."
   (or mpuz-silent (ding t)))
 
 
@@ -77,15 +77,15 @@
 (defun mpuz-mode ()
   "Multiplication puzzle with GNU Emacs.
 
-You have to guess which letters stand for which digits
-in the mulplication displayed inside the *Mult Puzzle* buffer.
+You have to guess which letters stand for which digits in the
+multiplication displayed inside the *Mult Puzzle* buffer.
 
 You may enter a proposal (e.g. A=3) by hitting first the letter A,
 then the digit 3, on your keyboard.
 
-At any time, you may leave the game to do other editing work :-)
+At any time you may leave the game to do other editing work. :-)
 Then you may resume the game with M-x mult-puzzle.
-You may abort a game by hitting Control G."
+You may abort a game by hitting \\[keyboard-quit]."
   (interactive)
   (setq major-mode 'mpuz-mode
 	mode-name  "Mult Puzzle")
@@ -96,10 +96,10 @@ You may abort a game by hitting Control G."
 ;; Some variables for statistics
 ;;------------------------------
 (defvar mpuz-nb-errors 0
-  "Number of errors already made in current game.")
+  "Number of errors made in current game.")
 
 (defvar mpuz-nb-completed-games 0
-  "Number of games already completed.")
+  "Number of games completed.")
 
 (defvar mpuz-nb-cumulated-errors 0
   "Number of errors made in previous games.")

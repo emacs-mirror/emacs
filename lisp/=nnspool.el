@@ -261,8 +261,7 @@ If the stream is opened, return T, otherwise return NIL."
     (nnspool-find-file nnspool-active-file)))
 
 (defun nnspool-request-last ()
-  "Set current article pointer to the previous article
-in the current news group."
+  "Set current article pointer to the previous article in the current news group."
   (error "NNSPOOL: LAST is not implemented."))
 
 (defun nnspool-request-next ()
@@ -326,7 +325,7 @@ in the current news group."
   (setq nntp-server-process nil))
 
 (defun nnspool-find-article-by-message-id (id)
-  "Return full pathname of an artilce identified by message-ID."
+  "Return full pathname of an article identified by message-ID."
   (save-excursion
     (let ((buffer (get-file-buffer nnspool-history-file)))
       (if buffer

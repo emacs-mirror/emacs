@@ -408,8 +408,7 @@ If the stream is opened, return T, otherwise return NIL."
     ))
 
 (defun nntp-request-last ()
-  "Set current article pointer to the previous article
-in the current news group."
+  "Set current article pointer to the previous article in the current news group."
   (nntp-send-command "^[23].*\r$" "LAST"))
 
 (defun nntp-request-next ()
