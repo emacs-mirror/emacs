@@ -614,15 +614,17 @@ If nil, uses `change-log-default-name'."
 	(while (< (point) end)
 	  (forward-line 1)
 	  (indent-to indentation))
-	;; Canonicalize the white space at the end of the entry so it is
-	;; separated from the next entry by a single blank line.
-	(delete-char (- (skip-syntax-backward " ")))
-	(or (eobp) (looking-at "\n\n")
-	    (insert "\n"))))
+	(setq end (point))))
     ;; Fill the inserted text, preserving open-parens at bol.
     (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
 	  (paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
-      (fill-region (point) end))))
+      (fill-region (point) end))
+    ;; Canonicalize the white space at the end of the entry so it is
+    ;; separated from the next entry by a single blank line.
+    (skip-syntax-forward " " end)
+    (delete-char (- (skip-syntax-backward " ")))
+    (or (eobp) (looking-at "\n\n")
+	(insert "\n"))))
 
 
 (defun vc-finish-logentry (&optional nocomment)
