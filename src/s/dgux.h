@@ -351,7 +351,9 @@ CC=gcc
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
 
+#ifdef __GNUC__
 #define C_DEBUG_SWITCH -g -V2 -mversion-03.00 -mstandard
+#endif
 
 #endif /* ELF */
 
