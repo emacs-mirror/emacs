@@ -251,7 +251,7 @@ speedbar."
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-"name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
+"name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -266,9 +266,9 @@ speedbar."
 		 (let ((varchild (list (match-string 2)
 				       (match-string 1)
 				       (match-string 3)
-				       (match-string 5)
-				       (match-string 4)
-				       nil)))
+				       nil nil nil)))
+		   (if (looking-at ",type=\"\\(.*?\\)\"")
+		       (setcar (nthcdr 3 varchild) (match-string 1)))
 		   (dolist (var1 gdb-var-list)
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
