@@ -6426,7 +6426,7 @@ mac_do_list_fonts (pattern, maxnames)
 	{
 	  font_list = Fcons (fontname, font_list);
 	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
-	    return font_list;
+	    break;
 	}
       else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
 	       && (ptr = strstr (font_name_table[i], "-0-0-75-75-m-0-")))
@@ -6446,7 +6446,7 @@ mac_do_list_fonts (pattern, maxnames)
 	    {
 	      font_list = Fcons (fontname, font_list);
 	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
-		return font_list;
+		break;
 	    }
 	}
     }
