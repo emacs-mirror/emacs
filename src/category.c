@@ -394,7 +394,7 @@ If optional fourth argument RESET is non-nil,\n\
       return Qnil;
     }
 
-  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  SPLIT_CHAR (c, charset, c1, c2);
 
   /* The top level table.  */
   val = XCHAR_TABLE (table)->contents[charset + 128];
