@@ -744,7 +744,7 @@ It can also be nil, if the definition is not associated with any file."
 			      (name (progn
 				      (string-match " \\([^ ]+\\)>$" rep)
 				      (match-string 1 rep))))
-			 (if (looking-at (format "(%s[ )]" name))
+			 (if (looking-at (format "(%s[ )]" (regexp-quote name)))
 			     (let ((start (point-marker)))
 			       (goto-char (point-min))
 			       (forward-paragraph)
