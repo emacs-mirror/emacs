@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.70) $
+ * $HopeName: MMsrc!mpm.h(trunk.71) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -321,6 +321,11 @@ extern Res PoolNoScan(ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolNoBenefit(Pool pool, Action action);
+extern Res PoolNoAct(Pool pool, Action action);
+extern void PoolNoWalk(Pool pool, Seg seg,
+                       FormattedObjectsStepMethod,
+		       void *, unsigned long);
+extern Res PoolCollectAct(Pool pool, Action action);
 
 
 /* Message Interface -- see design.mps.message */
@@ -349,12 +354,6 @@ extern void MessageFinalizationRef(Ref *refReturn,
                                    Arena arena, Message message);
 extern void MessageNoFinalizationRef(Ref *refReturn,
                                      Arena arena, Message message);
-
-extern Res PoolNoAct(Pool pool, Action action);
-extern void PoolNoWalk(Pool pool, Seg seg,
-                       void (*f)(Addr, Format, void *, unsigned long),
-		       void *, unsigned long);
-extern Res PoolCollectAct(Pool pool, Action action);
 
 
 /* Trace Interface -- see impl.c.trace */

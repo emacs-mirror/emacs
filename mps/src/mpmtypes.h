@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.40) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -99,9 +99,11 @@ typedef unsigned MessageType;           /* design.mps.message */
 typedef struct MessageStruct *Message;  /* design.mps.message */
 typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
 
-/* used in heap walker */
-typedef void (*FormattedObjectsStepMethod)(Addr, Format,
-                                           void *, unsigned long);
+/* Heap Walker */
+
+/* This type is used by the PoolClass method Walk */
+typedef void (*FormattedObjectsStepMethod)(Addr, Format, Pool,
+                                           void *, Size);
 
 /* Pool*Method -- see design.mps.class-interface */
 
