@@ -34,7 +34,7 @@
 ;;; The variable byte-code-vector is defined by the new bytecomp.el.
 ;;; The function byte-decompile-lapcode is defined in byte-opt.el.
 ;;; Since we don't use byte-decompile-lapcode, let's try not loading byte-opt.
-(require 'byte-compile)
+(require 'byte-compile "bytecomp")
 
 (defvar disassemble-column-1-indent 5 "*")
 (defvar disassemble-column-2-indent 10 "*")
