@@ -21,7 +21,10 @@
 
 /* TODO:
    - detect nasty infinite loops like "\\(\\)+?ab" when matching "ac".
-   - use `keep_string' more often than just .*\n.
+   - use analyze_first to optimize non-empty loops
+   - reduce code duplication
+   - optimize succeed_n and jump_n away when possible
+   - clean up multibyte issues
    - structure the opcode space into opcode+flag.
    - merge with glic's regex.[ch]
 
@@ -130,7 +133,7 @@ char *realloc ();
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
-/* This must be nonzero for the wordchar and notwordchar pattern
+/* This must be nonzero for the wordchar pattern
    commands in re_match_2.  */
 #ifndef Sword
 #define Sword 1
@@ -184,6 +187,8 @@ init_syntax_once ()
 
 /* Dummy macros for non-Emacs environments.  */
 #define BASE_LEADING_CODE_P(c) (0)
+#define CHAR_CHARSET(c) 0
+#define CHARSET_LEADING_CODE_BASE(c) 0
 #define WORD_BOUNDARY_P(c1, c2) (0)
 #define CHAR_HEAD_P(p) (1)
 #define SINGLE_BYTE_CHAR_P(c) (1)
@@ -552,26 +557,23 @@ typedef enum
 	   bytes of number.  */
   set_number_at,
 
-  wordchar,	/* Matches any word-constituent character.  */
-  notwordchar,	/* Matches any char that is not a word-constituent.  */
-
   wordbeg,	/* Succeeds if at word beginning.  */
   wordend,	/* Succeeds if at word end.  */
 
   wordbound,	/* Succeeds if at a word boundary.  */
-  notwordbound	/* Succeeds if not at a word boundary.	*/
-
-#ifdef emacs
-  ,before_dot,	/* Succeeds if before point.  */
-  at_dot,	/* Succeeds if at point.  */
-  after_dot,	/* Succeeds if after point.  */
+  notwordbound,	/* Succeeds if not at a word boundary.	*/
 
 	/* Matches any character whose syntax is specified.  Followed by
 	   a byte which contains a syntax code, e.g., Sword.  */
   syntaxspec,
 
 	/* Matches any character whose syntax is not that specified.  */
-  notsyntaxspec,
+  notsyntaxspec
+
+#ifdef emacs
+  ,before_dot,	/* Succeeds if before point.  */
+  at_dot,	/* Succeeds if at point.  */
+  after_dot,	/* Succeeds if after point.  */
 
   /* Matches any character whose category-set contains the specified
      category.	The operator is followed by a byte which contains a
@@ -992,6 +994,18 @@ print_partial_compiled_pattern (start, end)
 	case wordend:
 	  printf ("/wordend");
 
+	case syntaxspec:
+	  printf ("/syntaxspec");
+	  mcnt = *p++;
+	  printf ("/%d", mcnt);
+	  break;
+
+	case notsyntaxspec:
+	  printf ("/notsyntaxspec");
+	  mcnt = *p++;
+	  printf ("/%d", mcnt);
+	  break;
+
 #ifdef emacs
 	case before_dot:
 	  printf ("/before_dot");
@@ -1005,26 +1019,18 @@ print_partial_compiled_pattern (start, end)
 	  printf ("/after_dot");
 	  break;
 
-	case syntaxspec:
-	  printf ("/syntaxspec");
+	case categoryspec:
+	  printf ("/categoryspec");
 	  mcnt = *p++;
 	  printf ("/%d", mcnt);
 	  break;
 
-	case notsyntaxspec:
-	  printf ("/notsyntaxspec");
+	case notcategoryspec:
+	  printf ("/notcategoryspec");
 	  mcnt = *p++;
 	  printf ("/%d", mcnt);
 	  break;
 #endif /* emacs */
-
-	case wordchar:
-	  printf ("/wordchar");
-	  break;
-
-	case notwordchar:
-	  printf ("/notwordchar");
-	  break;
 
 	case begbuf:
 	  printf ("/begbuf");
@@ -2932,13 +2938,13 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    case 'w':
 	      laststart = b;
-	      BUF_PUSH (wordchar);
+	      BUF_PUSH_2 (syntaxspec, Sword);
 	      break;
 
 
 	    case 'W':
 	      laststart = b;
-	      BUF_PUSH (notwordchar);
+	      BUF_PUSH_2 (notsyntaxspec, Sword);
 	      break;
 
 
@@ -3273,6 +3279,7 @@ re_compile_fastmap (bufp)
      struct re_pattern_buffer *bufp;
 {
   int j, k;
+  boolean not;
 #ifdef MATCH_MAY_ALLOCATE
   fail_stack_type fail_stack;
 #endif
@@ -3285,6 +3292,7 @@ re_compile_fastmap (bufp)
   unsigned long size = bufp->used;
   unsigned char *p = pattern;
   register unsigned char *pend = pattern + size;
+  const boolean multibyte = bufp->multibyte;
 
 #if defined (REL_ALLOC) && defined (REGEX_MALLOC)
   /* This holds the pointer to the failure stack, when
@@ -3304,9 +3312,6 @@ re_compile_fastmap (bufp)
   /* If all elements for base leading-codes in fastmap is set, this
      flag is set true.	*/
   boolean match_any_multibyte_characters = false;
-
-  /* Maximum code of simple (single byte) character. */
-  int simple_char_max;
 
   assert (fastmap != NULL && p != NULL);
 
@@ -3384,67 +3389,59 @@ re_compile_fastmap (bufp)
 	  break;
 
 
-#ifndef emacs
-	case charset:
-	  {
-	    int length = (*p & 0x7f);;
-	    p++;
+	case anychar:
+	  /* We could put all the chars except for \n (and maybe \0)
+	     but we don't bother since it is generally not worth it.  */
+	  bufp->can_be_null = 1;
+	  continue;
 
-	    for (j = length * BYTEWIDTH - 1; j >= 0; j--)
-	      if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
-		fastmap[j] = 1;
-	  }
-	  break;
 
 	case charset_not:
-	  /* Chars beyond end of map must be allowed.  */
-	  {
-	    int length = (*p & 0x7f);;
-	    p++;
-
-	    for (j = length * BYTEWIDTH; j < (1 << BYTEWIDTH); j++)
-	      fastmap[j] = 1;
-
-	    for (j = length * BYTEWIDTH - 1; j >= 0; j--)
-	      if (!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))))
-		fastmap[j] = 1;
-	  }
-	  break;
-
-	case wordchar:
-	  for (j = 0; j < (1 << BYTEWIDTH); j++)
-	    if (SYNTAX (j) == Sword)
-	      fastmap[j] = 1;
-	  break;
-
-
-	case notwordchar:
-	  for (j = 0; j < (1 << BYTEWIDTH); j++)
-	    if (SYNTAX (j) != Sword)
-	      fastmap[j] = 1;
-	  break;
-#else  /* emacs */
+	  /* Chars beyond end of bitmap are possible matches.
+	     All the single-byte codes can occur in multibyte buffers.
+	     So any that are not listed in the charset
+	     are possible matches, even in multibyte buffers.  */
+	  if (!fastmap) break;
+	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
+	       j < (1 << BYTEWIDTH); j++)
+	    fastmap[j] = 1;
+	  /* Fallthrough */
 	case charset:
+	  if (!fastmap) break;
+	  not = (re_opcode_t) *(p - 1) == charset_not;
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH - 1, p++;
 	       j >= 0; j--)
-	    if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
+	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
 	      fastmap[j] = 1;
 
-	  /* If we can match a character class, we can match
-	     any character set.  */
-	  if (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
-	      && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0)
-	    goto set_fastmap_for_multibyte_characters;
+	  if ((not && multibyte)
+	      /* Any character set can possibly contain a character
+		 which doesn't match the specified set of characters.  */
+	      || (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+		  && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0))
+	    /* If we can match a character class, we can match
+	       any character set.  */
+	    {
+	    set_fastmap_for_multibyte_characters:
+	      if (match_any_multibyte_characters == false)
+		{
+		  for (j = 0x80; j < 0xA0; j++)	/* XXX */
+		    if (BASE_LEADING_CODE_P (j))
+		      fastmap[j] = 1;
+		  match_any_multibyte_characters = true;
+		}
+	    }
 
-	  if (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
-	      && match_any_multibyte_characters == false)
+	  else if (!not && CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
+		   && match_any_multibyte_characters == false)
 	    {
 	      /* Set fastmap[I] 1 where I is a base leading code of each
 		 multibyte character in the range table. */
 	      int c, count;
 
-	      /* Make P points the range table. */
-	      p += CHARSET_BITMAP_SIZE (&p[-2]);
+	      /* Make P points the range table.  `+ 2' is to skip flag
+                 bits for a character class.  */
+	      p += CHARSET_BITMAP_SIZE (&p[-2]) + 2;
 
 	      /* Extract the number of ranges in range table into COUNT.  */
 	      EXTRACT_NUMBER_AND_INCR (count, p);
@@ -3458,178 +3455,53 @@ re_compile_fastmap (bufp)
 	    }
 	  break;
 
-
-	case charset_not:
-	  /* Chars beyond end of bitmap are possible matches.
-	     All the single-byte codes can occur in multibyte buffers.
-	     So any that are not listed in the charset
-	     are possible matches, even in multibyte buffers.  */
-	  simple_char_max = (1 << BYTEWIDTH);
-	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
-	       j < simple_char_max; j++)
-	    fastmap[j] = 1;
-
-	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH - 1, p++;
-	       j >= 0; j--)
-	    if (!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))))
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       which doesn't match the specified set of characters.  */
-	    {
-	    set_fastmap_for_multibyte_characters:
-	      if (match_any_multibyte_characters == false)
-		{
-		  for (j = 0x80; j < 0xA0; j++)	/* XXX */
-		    if (BASE_LEADING_CODE_P (j))
-		      fastmap[j] = 1;
-		  match_any_multibyte_characters = true;
-		}
-	    }
-	  break;
-
-
-	case wordchar:
-	  /* All the single-byte codes can occur in multibyte buffers,
-	     and they may have word syntax.  So do consider them.  */
-	  simple_char_max = (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (SYNTAX (j) == Sword)
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       whose syntax is `Sword'.	 */
-	    goto set_fastmap_for_multibyte_characters;
-	  break;
-
-
-	case notwordchar:
-	  /* All the single-byte codes can occur in multibyte buffers,
-	     and they may not have word syntax.  So do consider them.  */
-	  simple_char_max = (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (SYNTAX (j) != Sword)
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       whose syntax is not `Sword'.  */
-	    goto set_fastmap_for_multibyte_characters;
-	  break;
-#endif
-
-	case anychar:
-	  {
-	    int fastmap_newline = fastmap['\n'];
-
-	    /* `.' matches anything, except perhaps newline.
-	       Even in a multibyte buffer, it should match any
-	       conceivable byte value for the fastmap.  */
-	    if (bufp->multibyte)
-	      match_any_multibyte_characters = true;
-
-	    simple_char_max = (1 << BYTEWIDTH);
-	    for (j = 0; j < simple_char_max; j++)
-	      fastmap[j] = 1;
-
-	    /* ... except perhaps newline.  */
-	    if (!(bufp->syntax & RE_DOT_NEWLINE))
-	      fastmap['\n'] = fastmap_newline;
-
-	    /* Otherwise, have to check alternative paths.  */
-	    break;
-	  }
-
-#ifdef emacs
-	case wordbound:
-	case notwordbound:
-	case wordbeg:
-	case wordend:
-	case notsyntaxspec:
 	case syntaxspec:
+	case notsyntaxspec:
+	  if (!fastmap) break;
+#ifndef emacs
+	  not = (re_opcode_t)p[-1] == notsyntaxspec;
+	  k = *p++;
+	  for (j = 0; j < (1 << BYTEWIDTH); j++)
+	    if ((SYNTAX (j) == (enum syntaxcode) k) ^ not)
+	      fastmap[j] = 1;
+	  break;
+#else  /* emacs */
 	  /* This match depends on text properties.  These end with
 	     aborting optimizations.  */
 	  bufp->can_be_null = 1;
 	  continue;
-#if 0
-	  k = *p++;
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (SYNTAX (j) == (enum syntaxcode) k)
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       whose syntax is K.  */
-	    goto set_fastmap_for_multibyte_characters;
-	  break;
-
-	case notsyntaxspec:
-	  k = *p++;
-	  simple_char_max = bufp->multibyte ? 0x80 : (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (SYNTAX (j) != (enum syntaxcode) k)
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       whose syntax is not K.  */
-	    goto set_fastmap_for_multibyte_characters;
-	  break;
-#endif
-
 
 	case categoryspec:
-	  k = *p++;
-	  simple_char_max = (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (CHAR_HAS_CATEGORY (j, k))
-	      fastmap[j] = 1;
-
-	  if (bufp->multibyte)
-	    /* Any character set can possibly contain a character
-	       whose category is K.  */
-	    goto set_fastmap_for_multibyte_characters;
-	  break;
-
-
 	case notcategoryspec:
+	  if (!fastmap) break;
+	  not = (re_opcode_t)p[-1] == notcategoryspec;
 	  k = *p++;
-	  simple_char_max = (1 << BYTEWIDTH);
-	  for (j = 0; j < simple_char_max; j++)
-	    if (!CHAR_HAS_CATEGORY (j, k))
+	  for (j = 0; j < (1 << BYTEWIDTH); j++)
+	    if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
 	      fastmap[j] = 1;
 
-	  if (bufp->multibyte)
+	  if (multibyte)
 	    /* Any character set can possibly contain a character
-	       whose category is not K.	 */
+	       whose category is K (or not).  */
 	    goto set_fastmap_for_multibyte_characters;
 	  break;
 
       /* All cases after this match the empty string.  These end with
 	 `continue'.  */
 
-
 	case before_dot:
 	case at_dot:
 	case after_dot:
-	  continue;
-#endif /* emacs */
-
-
+#endif /* !emacs */
 	case no_op:
 	case begline:
 	case endline:
 	case begbuf:
 	case endbuf:
-#ifndef emacs
 	case wordbound:
 	case notwordbound:
 	case wordbeg:
 	case wordend:
-#endif
 	  continue;
 
 
@@ -4159,9 +4031,9 @@ skip_one_char (p)
 	p += 1 + CHARSET_BITMAP_SIZE (p - 1);
       break;
       
-#ifdef emacs
     case syntaxspec:
     case notsyntaxspec:
+#ifdef emacs
     case categoryspec:
     case notcategoryspec:
 #endif /* emacs */
@@ -4357,7 +4229,6 @@ mutually_exclusive_p (bufp, p1, p2)
 	  }
       }
       
-#ifdef emacs
     case wordend:
     case notsyntaxspec:
       return ((re_opcode_t) *p1 == syntaxspec
@@ -4373,6 +4244,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	       || (re_opcode_t) *p1 == syntaxspec)
 	      && p1[1] == Sword);
 
+#ifdef emacs
     case categoryspec:
       return ((re_opcode_t) *p1 == notcategoryspec && p1[1] == p2[1]);
     case notcategoryspec:
@@ -4490,7 +4362,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   RE_TRANSLATE_TYPE translate = bufp->translate;
 
   /* Nonzero if we have to concern multibyte character.	 */
-  int multibyte = bufp->multibyte;
+  const boolean multibyte = bufp->multibyte;
 
   /* Failure point stack.  Each place that can handle a failure further
      down the line pushes a failure point on this stack.  It consists of
@@ -5468,6 +5340,35 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    }
 	  break;
 
+	case syntaxspec:
+	case notsyntaxspec:
+	  not = (re_opcode_t) *(p - 1) == notsyntaxspec;
+	  mcnt = *p++;
+	  DEBUG_PRINT3 ("EXECUTING %ssyntaxspec %d.\n", not?"not":"", mcnt);
+	  PREFETCH ();
+#ifdef emacs
+	  {
+	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (PTR_TO_OFFSET (d));
+	    UPDATE_SYNTAX_TABLE (pos1);
+	  }
+#endif
+	  {
+	    int c, len;
+
+	    if (multibyte)
+	      /* we must concern about multibyte form, ... */
+	      c = STRING_CHAR_AND_LENGTH (d, dend - d, len);
+	    else
+	      /* everything should be handled as ASCII, even though it
+		 looks like multibyte form.  */
+	      c = *d, len = 1;
+
+	    if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
+	      goto fail;
+	    d += len;
+	  }
+	  break;
+
 #ifdef emacs
 	case before_dot:
 	  DEBUG_PRINT1 ("EXECUTING before_dot.\n");
@@ -5487,90 +5388,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    goto fail;
 	  break;
 
-	case syntaxspec:
-	  DEBUG_PRINT2 ("EXECUTING syntaxspec %d.\n", mcnt);
-	  mcnt = *p++;
-	  goto matchsyntax;
-
-	case wordchar:
-	  DEBUG_PRINT1 ("EXECUTING Emacs wordchar.\n");
-	  mcnt = (int) Sword;
-	matchsyntax:
-	  PREFETCH ();
-#ifdef emacs
-	  {
-	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (PTR_TO_OFFSET (d));
-	    UPDATE_SYNTAX_TABLE (pos1);
-	  }
-#endif
-	  {
-	    int c, len;
-
-	    if (multibyte)
-	      /* we must concern about multibyte form, ... */
-	      c = STRING_CHAR_AND_LENGTH (d, dend - d, len);
-	    else
-	      /* everything should be handled as ASCII, even though it
-		 looks like multibyte form.  */
-	      c = *d, len = 1;
-
-	    if (SYNTAX (c) != (enum syntaxcode) mcnt)
-	    goto fail;
-	    d += len;
-	  }
-	  break;
-
-	case notsyntaxspec:
-	  DEBUG_PRINT2 ("EXECUTING notsyntaxspec %d.\n", mcnt);
-	  mcnt = *p++;
-	  goto matchnotsyntax;
-
-	case notwordchar:
-	  DEBUG_PRINT1 ("EXECUTING Emacs notwordchar.\n");
-	  mcnt = (int) Sword;
-	matchnotsyntax:
-	  PREFETCH ();
-#ifdef emacs
-	  {
-	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (PTR_TO_OFFSET (d));
-	    UPDATE_SYNTAX_TABLE (pos1);
-	  }
-#endif
-	  {
-	    int c, len;
-
-	    if (multibyte)
-	      c = STRING_CHAR_AND_LENGTH (d, dend - d, len);
-	    else
-	      c = *d, len = 1;
-
-	    if (SYNTAX (c) == (enum syntaxcode) mcnt)
-	    goto fail;
-	    d += len;
-	  }
-	  break;
-
 	case categoryspec:
-	  DEBUG_PRINT2 ("EXECUTING categoryspec %d.\n", *p);
-	  mcnt = *p++;
-	  PREFETCH ();
-	  {
-	    int c, len;
-
-	    if (multibyte)
-	      c = STRING_CHAR_AND_LENGTH (d, dend - d, len);
-	    else
-	      c = *d, len = 1;
-
-	    if (!CHAR_HAS_CATEGORY (c, mcnt))
-	      goto fail;
-	    d += len;
-	  }
-	  break;
-
 	case notcategoryspec:
-	  DEBUG_PRINT2 ("EXECUTING notcategoryspec %d.\n", *p);
+	  not = (re_opcode_t) *(p - 1) == notcategoryspec;
 	  mcnt = *p++;
+	  DEBUG_PRINT3 ("EXECUTING %scategoryspec %d.\n", not?"not":"", mcnt);
 	  PREFETCH ();
 	  {
 	    int c, len;
@@ -5580,29 +5402,13 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    else
 	      c = *d, len = 1;
 
-	    if (CHAR_HAS_CATEGORY (c, mcnt))
+	    if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
 	      goto fail;
 	    d += len;
 	  }
-          break;
-
-#else /* not emacs */
-	case wordchar:
-          DEBUG_PRINT1 ("EXECUTING non-Emacs wordchar.\n");
-	  PREFETCH ();
-          if (!WORDCHAR_P (d))
-            goto fail;
-          d++;
 	  break;
 
-	case notwordchar:
-          DEBUG_PRINT1 ("EXECUTING non-Emacs notwordchar.\n");
-	  PREFETCH ();
-	  if (WORDCHAR_P (d))
-            goto fail;
-          d++;
-	  break;
-#endif /* not emacs */
+#endif /* emacs */
 
         default:
           abort ();
