@@ -1,3 +1,10 @@
+2004-09-12  Stefan  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-generate-url-list): Change format.
+	Provide a sample complex default.
+	(bibtex-url, bibtex-font-lock-url): Adapt to new format.
+	(bibtex-entry): Use mapc.
+
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (choose-completion-string): Set buffer before running
