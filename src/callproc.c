@@ -120,7 +120,7 @@ int synch_process_retcode;
 
 extern Lisp_Object Vdoc_file_name;
 
-extern Lisp_Object Vfile_name_coding_system;
+extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.
@@ -552,8 +552,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 				  Qnil));
       }
 
-    current_dir
-      = Fencode_coding_string (current_dir, Vfile_name_coding_system, Qt);
+    current_dir = ENCODE_FILE (current_dir);
 
 #ifdef MSDOS /* MW, July 1993 */
     /* ??? Someone who knows MSDOG needs to check whether this properly
