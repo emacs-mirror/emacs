@@ -234,7 +234,7 @@ for SIMULA mode to function correctly.")
     (cond
      ((= major 18) (setq major 'v18))	;Emacs 18
      ((= major 4)  (setq major 'v18))	;Epoch 4
-     ((= major 19) (setq major 'v19	;Emacs 19
+     ((>= major 19) (setq major 'v19	;Emacs 19 or 20
 			 flavor (if (string-match "Lucid" emacs-version)
 				    'Lucid 'FSF)))
      ;; I don't know
