@@ -75,6 +75,7 @@ of the textual entity that was found."
   (let ((orig (point)))
     (condition-case nil
 	(save-excursion
+	  ;; Try moving forward, then back.
 	  (let ((end (progn 
 		       (funcall 
 			(or (get thing 'end-op) 
@@ -85,9 +86,20 @@ of the textual entity that was found."
 			(or (get thing 'beginning-op) 
 			    (function (lambda () (forward-thing thing -1)))))
 		       (point))))
-	    (if (and beg end (<= beg orig) (<= orig end))
-		(cons beg end)
-	      ;; Try a second time, moving backward first and forward after,
+	    (if (not (and beg (> beg orig)))
+		;; If that brings us all the way back to ORIG,
+		;; it worked.  But END may not be the real end.
+		;; So find the real end that corresponds to BEG.
+		(let ((real-end
+		       (progn 
+			 (funcall 
+			  (or (get thing 'end-op) 
+			      (function (lambda () (forward-thing thing 1)))))
+			 (point))))
+		  (if (and beg real-end (<= beg orig) (<= orig real-end))
+		      (cons beg real-end)))
+	      (goto-char orig)
+	      ;; Try a second time, moving backward first and then forward,
 	      ;; so that we can find a thing that ends at ORIG.
 	      (let ((beg (progn 
 			   (funcall 
@@ -98,9 +110,15 @@ of the textual entity that was found."
 			   (funcall 
 			    (or (get thing 'end-op) 
 				(function (lambda () (forward-thing thing 1)))))
-			   (point))))
-		(if (and beg end (<= beg orig) (<= orig end))
-		    (cons beg end))))))
+			   (point)))
+		    (real-beg
+		     (progn 
+		       (funcall 
+			(or (get thing 'end-op) 
+			    (function (lambda () (forward-thing thing -1)))))
+		       (point))))
+		(if (and real-beg end (<= real-beg orig) (<= orig end))
+		    (cons real-beg end))))))
       (error nil))))
 
 ;;;###autoload
@@ -189,9 +207,9 @@ a symbol as a valid THING."
 (defun forward-whitespace (arg)
   (interactive "p")
   (if (natnump arg) 
-      (re-search-forward "[ \t]+\\|\n" nil nil arg)
+      (re-search-forward "[ \t]+\\|\n" nil 'move arg)
     (while (< arg 0)
-      (if (re-search-backward "[ \t]+\\|\n" nil nil)
+      (if (re-search-backward "[ \t]+\\|\n" nil 'move)
 	  (or (eq (char-after (match-beginning 0)) 10)
 	      (skip-chars-backward " \t")))
       (setq arg (1+ arg)))))
@@ -206,9 +224,9 @@ a symbol as a valid THING."
 (defun forward-symbol (arg)
   (interactive "p")
   (if (natnump arg) 
-      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil nil arg)
+      (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
     (while (< arg 0)
-      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil nil)
+      (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
 	  (skip-syntax-backward "w_"))
       (setq arg (1+ arg)))))
 
