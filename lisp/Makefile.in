@@ -148,9 +148,7 @@ custom-deps: cus-load.el doit
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
 
-finder-inf.el:
-	echo "(provide 'finder-inf)" >> $@
-finder-data: finder-inf.el doit
+finder-data: doit
 	wd=$(lisp); $(finder_setwins); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
@@ -212,12 +210,16 @@ $(DONTCOMPILE:.el=.elc):
 # current directory and its subdirectories, to make sure require's and
 # load's in the files being compiled find the right files.
 
+# NOTE about DONTCOMPILE: in the `echo <foo> | sort | uniq -u' we pass
+# $(DONTCOMPILE) twice.  This is in case one of the files in DONTCOMPILE
+# is absent.  -stef
+
 compile: subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
+	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
@@ -231,7 +233,7 @@ compile-always: subdirs.el doit
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) $(COMPILE_FIRST) | \
+	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  echo Compiling $$el; \
@@ -269,12 +271,12 @@ recompile: doit
 # bootstrap-emacs will be built from sources only.
 
 bootstrap-clean:
-	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
 	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: subdirs.el autoloads compile-always custom-deps
+bootstrap: update-subdirs autoloads compile finder-data custom-deps
 
 distclean:
 	-rm -f ./Makefile
