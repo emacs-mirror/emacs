@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPDL allocation test (with new alignment)
  language = c
  link = testlib.o

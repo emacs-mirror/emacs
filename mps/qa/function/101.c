@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = MV functional tests  allocate and free in manual variable pool
  language = c
  link = testlib.o

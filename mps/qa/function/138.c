@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!103.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test running out of memory while scanning roots
  language = c
  link = testlib.o rankfmt.o

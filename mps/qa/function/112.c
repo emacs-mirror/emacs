@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = AMCZ pool should get collected
  language = c
  link = testlib.o rankfmt.o

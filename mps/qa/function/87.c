@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPVM make sure objects are left intact
  language = c
  link = testlib.o epvmfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = SNC scanning test
  language = c
  link = testlib.o rankfmt.o

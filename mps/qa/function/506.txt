@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!506.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = SW performance no worse than last release
  language = english
 END_HEADER

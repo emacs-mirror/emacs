@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = try to allocate as large an object as will succeed
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPVM save, alloc, restore (singly) in one pool
  language = c
  link = testlib.o epvmfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = string twiddling with an LO pool
  language = c
  link = lofmt.o testlib.o

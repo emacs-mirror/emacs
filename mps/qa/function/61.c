@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = loops between two AMC pools
  language = c
  link = testlib.o awlfmt.o

@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!500.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = compare MM and boehm performance in Dylan
  language = english
 END_HEADER
