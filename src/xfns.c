@@ -1398,10 +1398,14 @@ x_set_tool_bar_lines (f, value, oldval)
       int width = FRAME_PIXEL_WIDTH (f);
       int y = nlines * FRAME_LINE_HEIGHT (f);
 
-      BLOCK_INPUT;
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    0, y, width, height, False);
-      UNBLOCK_INPUT;
+      /* height can be zero here. */
+      if (height > 0 && width > 0)
+	{
+          BLOCK_INPUT;
+          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                        0, y, width, height, False);
+          UNBLOCK_INPUT;
+        }
 
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
