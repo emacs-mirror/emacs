@@ -1,3 +1,8 @@
+2002-06-28  Dave Love  <fx@gnu.org>
+
+	* international/mule-util.el (detect-coding-with-priority):
+	Rewritten.
+
 2002-06-27  Dave Love  <fx@gnu.org>
 
 	* composite.el (compose-string): Doc fix.
