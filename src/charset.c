@@ -1272,7 +1272,7 @@ strwidth (str, len)
 int
 c_string_width (str, len, precision, nchars, nbytes)
      const unsigned char *str;
-     int precision, *nchars, *nbytes;
+     int len, precision, *nchars, *nbytes;
 {
   int i = 0, i_byte = 0;
   int width = 0;
