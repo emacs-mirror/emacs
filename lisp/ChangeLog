@@ -1,3 +1,7 @@
+2001-06-11  Dave Love  <fx@gnu.org>
+
+	* language/european.el ("Dutch"): Add input-method (`dutch').
+
 2001-06-06  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (describe-input-method): Set up

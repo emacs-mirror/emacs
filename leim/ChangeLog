@@ -1,3 +1,11 @@
+2001-06-11  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (MISC): Augment.
+
+	* quail/uni-input.el: New file.
+
+	* quail/latin-alt.el ("dutch"): New method.
+
 2001-06-06  Dave Love  <fx@gnu.org>
 
 	* quail/rfc1345.el, quail/sgml-input.el: New file.
