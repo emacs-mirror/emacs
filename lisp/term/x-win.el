@@ -234,6 +234,74 @@ This function returns ARGS minus the arguments that have been processed."
 	    (funcall handler this-switch))
 	(setq args (cons orig-this-switch args)))))
   (nconc (nreverse args) x-invocation-args))
+
+;; Handle the --smid switch.  This is used by the session manager
+;; to give us back our session id we had on the previous run.
+(defun x-handle-smid (switch)
+  (or (consp x-invocation-args)
+      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+  (setq x-session-previous-id (car x-invocation-args)
+	x-invocation-args (cdr x-invocation-args)))
+
+(defvar emacs-save-session-functions nil
+  "Functions to run when a save-session event occurs.
+The functions does not get any argument.
+Functions can return non-nil to inform the session manager that the
+window system shutdown should be aborted.
+
+See also `emacs-session-save'.")
+
+(defun emacs-session-filename (session-id)
+  "Construct a filename to save the session in based on SESSION-ID.
+If the directory ~/.emacs.d exists, we make a filename in there, otherwise
+a file in the home directory."
+  (let ((basename (concat "session." session-id))
+	(emacs-dir "~/.emacs.d/"))
+    (expand-file-name (if (file-directory-p emacs-dir)
+			  (concat emacs-dir basename)
+			(concat "~/.emacs-" basename)))))
+	
+(defun emacs-session-save ()
+  "This function is called when the window system is shutting down.
+If this function returns non-nil, the window system shutdown is cancelled.
+
+When a session manager tells Emacs that the window system is shutting
+down, this function is called.  It calls the functions in the hook
+`emacs-save-session-functions'.  Functions are called with the current
+buffer set to a temporary buffer.  Functions should use `insert' to insert
+lisp code to save the session state.  The buffer is saved
+in a file in the home directory of the user running Emacs.  The file
+is evaluated when Emacs is restarted by the session manager.
+
+If any of the functions returns non-nil, no more functions are called
+and this function returns non-nil.  This will inform the session manager
+that it should abort the window system shutdown."
+  (let ((filename (emacs-session-filename x-session-id))
+	(buf (get-buffer-create (concat " *SES " x-session-id))))
+    (when (file-exists-p filename)
+      (delete-file filename))
+    (with-current-buffer buf
+      (let ((cancel-shutdown (condition-case nil
+				 (run-hook-with-args-until-success 
+				  'emacs-save-session-functions)
+			       (error t))))
+	(unless cancel-shutdown
+	  (write-file filename))
+	(kill-buffer buf)
+	cancel-shutdown))))
+
+(defun emacs-session-restore ()
+  "Restore the Emacs session if started by a session manager.
+The file saved by `emacs-session-save' is evaluated and deleted if it
+exists."
+  (let ((filename (emacs-session-filename x-session-previous-id)))
+    (when (file-exists-p filename)
+      (load-file filename)
+      (delete-file filename)
+      (message "Restored session data"))))
+
+ 
+  
 
 ;;
 ;; Standard X cursor shapes, courtesy of Mr. Fox, who wanted ALL of them.
