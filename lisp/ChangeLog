@@ -1,6 +1,22 @@
 2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* net/eudc-export.el: New maintainer.  Change author's address.
+	* net/eudc.el: New maintainer.  Change author's address.
+	(eudc-pre-select-window-configuration, eudc-insertion-marker):
+	Variables removed.
+	(eudc-insert-selected): Function removed.
+	(eudc-select): Reimplemented.
+	(eudc-expand-inline): Delete the strings only after its expansion
+	is chosen not before.
+
+	* net/eudcb-ph.el (eudc-ph-open-session): Remove XEmacs case.
+	Minor coding style fixes.
+
+	* net/eudcb-ldap.el: New maintainer.  Change author's address.
+	(eudc-attribute-display-method-alist): Display mail with
+	eudc-display-mail.
+
+	* net/eudcb-bbdb.el, net/eudc-export.el, net/eudc-hotlist.el,
+	* net/eudc-vars.el: New maintainer.  Change author's address.
 
 	* net/eudc-bob.el: New maintainer.  Change author's address.
 	(eudc-bob-mail-keymap): New keymap for e-mail addresses.
