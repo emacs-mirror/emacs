@@ -2008,6 +2008,12 @@ kbd_buffer_get_event ()
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
+      else if (event->kind == menu_bar_event)
+	{
+	  /* The event value is in the frame_or_window slot.  */
+	  obj = event->frame_or_window;
+	  kbd_fetch_ptr = event + 1;
+	}
       else if (event->kind == buffer_switch_event)
 	{
 	  /* The value doesn't matter here; only the type is tested.  */
@@ -3507,7 +3513,7 @@ static Lisp_Object menu_bar_items_index;
 
 /* Return a vector of menu items for a menu bar, appropriate
    to the current buffer.  Each item has three elements in the vector:
-   KEY STRING nil.
+   KEY STRING MAPLIST.
 
    OLD is an old vector we can optionally reuse, or nil.  */
 
@@ -3645,9 +3651,7 @@ menu_bar_items (old)
 }
 
 /* Scan one map KEYMAP, accumulating any menu items it defines
-   that have not yet been seen in RESULT.  Return the updated RESULT.
-   *OLD is the frame's old menu bar list; we swipe elts from that
-   to avoid consing.  */
+   in menu_bar_items_vector.  */
 
 static void
 menu_bar_one_keymap (keymap)
@@ -3704,6 +3708,9 @@ menu_bar_item_1 (arg)
   return Qnil;
 }
 
+/* Add one item to menu_bar_items_vector, for KEY, ITEM_STRING and DEF.
+   If there's already an item for KEY, add this DEF to it.  */
+
 static void
 menu_bar_item (key, item_string, def)
      Lisp_Object key, item_string, def;
@@ -3714,7 +3721,7 @@ menu_bar_item (key, item_string, def)
 
   if (EQ (def, Qundefined))
     {
-      /* If a map has an explicit nil as definition,
+      /* If a map has an explicit `undefined' as definition,
 	 discard any previously made menu bar item.  */
 
       for (i = 0; i < menu_bar_items_index; i += 3)
@@ -3748,12 +3755,12 @@ menu_bar_item (key, item_string, def)
   if (NILP (enabled))
     return;
 
-  /* If there's already such an item, don't make another.  */
+  /* Find any existing item for this KEY.  */
   for (i = 0; i < menu_bar_items_index; i += 3)
     if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
       break;
 
-  /* If we did not find this item, add it at the end.  */
+  /* If we did not find this KEY, add it at the end.  */
   if (i == menu_bar_items_index)
     {
       /* If vector is too small, get a bigger one.  */
@@ -3769,8 +3776,15 @@ menu_bar_item (key, item_string, def)
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
       XVECTOR (menu_bar_items_vector)->contents[i++] = item_string;
-      XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
+      XVECTOR (menu_bar_items_vector)->contents[i++] = Fcons (def, Qnil);
       menu_bar_items_index = i;
+    }
+  /* We did find an item for this KEY.  Add DEF to its list of maps.  */
+  else
+    {
+      Lisp_Object old;
+      old = XVECTOR (menu_bar_items_vector)->contents[i + 2];
+      XVECTOR (menu_bar_items_vector)->contents[i + 2] = Fcons (def, old);
     }
 }
 
