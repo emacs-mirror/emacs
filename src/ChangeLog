@@ -1,5 +1,8 @@
 2001-03-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_relief_rect): Extend left shadow to the 
+	bottom; change bottom shadow accordingly.
+	
 	* xterm.c (expose_window_tree, expose_frame): Don't compute 
 	intersections here.
 	(expose_window): Do it here instead.
