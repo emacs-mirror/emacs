@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!arenacv.c(trunk.9) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers
@@ -163,6 +163,7 @@ int main(void)
   void *block;
 
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
+  testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);
 
   testPageTable((ArenaClass)mps_arena_class_an(), TEST_ARENA_SIZE);
 
