@@ -2742,7 +2742,7 @@ usage: (nconc &rest LISTS)  */)
       while (CONSP (tem))
 	{
 	  tail = tem;
-	  tem = Fcdr (tail);
+	  tem = XCDR (tail);
 	  QUIT;
 	}
 
@@ -3206,8 +3206,8 @@ particular subfeatures supported in this version of FEATURE.  */)
 
   /* Run any load-hooks for this file.  */
   tem = Fassq (feature, Vafter_load_alist);
-  if (!NILP (tem))
-    Fprogn (Fcdr (tem));
+  if (CONSP (tem))
+    Fprogn (XCDR (tem));
 
   return feature;
 }
@@ -3895,32 +3895,6 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
    key_and_value vector of the hash table.  This could be done
    if a `:linear-search t' argument is given to make-hash-table.  */
 
-
-/* Value is the key part of entry IDX in hash table H.  */
-
-#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
-
-/* Value is the value part of entry IDX in hash table H.  */
-
-#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
-
-/* Value is the index of the next entry following the one at IDX
-   in hash table H.  */
-
-#define HASH_NEXT(H, IDX)  AREF ((H)->next, (IDX))
-
-/* Value is the hash code computed for entry IDX in hash table H.  */
-
-#define HASH_HASH(H, IDX)  AREF ((H)->hash, (IDX))
-
-/* Value is the index of the element in hash table H that is the
-   start of the collision list at index IDX in the index vector of H.  */
-
-#define HASH_INDEX(H, IDX)  AREF ((H)->index, (IDX))
-
-/* Value is the size of hash table H.  */
-
-#define HASH_TABLE_SIZE(H) XVECTOR ((H)->next)->size
 
 /* The list of all weak hash tables.  Don't staticpro this one.  */
 
@@ -4929,8 +4903,10 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
-  size = i < 0 ? make_number (DEFAULT_HASH_SIZE) : args[i];
-  if (!INTEGERP (size) || XINT (size) < 0)
+  size = i < 0 ? Qnil : args[i];
+  if (NILP (size))
+    size = make_number (DEFAULT_HASH_SIZE);
+  else if (!INTEGERP (size) || XINT (size) < 0)
     Fsignal (Qerror,
 	     list2 (build_string ("Invalid hash table size"),
 		    size));
@@ -4985,22 +4961,6 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
      Lisp_Object table;
 {
   return copy_hash_table (check_hash_table (table));
-}
-
-
-DEFUN ("makehash", Fmakehash, Smakehash, 0, 1, 0,
-       doc: /* Create a new hash table.
-	  
-Optional first argument TEST specifies how to compare keys in the
-table.  Predefined tests are `eq', `eql', and `equal'.  Default is
-`eql'.  New tests can be defined with `define-hash-table-test'.  */)
-     (test)
-     Lisp_Object test;
-{
-  Lisp_Object args[2];
-  args[0] = QCtest;
-  args[1] = NILP (test) ? Qeql : test;
-  return Fmake_hash_table (2, args);
 }
 
 
@@ -5427,7 +5387,6 @@ syms_of_fns ()
   defsubr (&Ssxhash);
   defsubr (&Smake_hash_table);
   defsubr (&Scopy_hash_table);
-  defsubr (&Smakehash);
   defsubr (&Shash_table_count);
   defsubr (&Shash_table_rehash_size);
   defsubr (&Shash_table_rehash_threshold);
