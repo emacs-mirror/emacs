@@ -165,11 +165,16 @@ struct input_event {
 
    The modifiers applied to mouse clicks are rather ornate.  The
    window-system-specific code should store mouse clicks with
-   up_modifier or down_modifier set; the window-system independent
-   code turns all up_modifier events into either drag_modifier or
-   click_modifier.  The click_modifier has no written representation
-   in the names of the symbols used as event heads, but it does appear
-   in the Qevent_symbol_components property of the event heads.  */
+   up_modifier or down_modifier set.  Having an explicit down modifier
+   simplifies some of window-system-independent code; without it, the
+   code would have to recognize down events by checking if the event
+   is a mouse click lacking the click and drag modifiers.
+
+   The window-system independent code turns all up_modifier events
+   bits into either drag_modifier or click_modifier events.  The
+   click_modifier has no written representation in the names of the
+   symbols used as event heads, but it does appear in the
+   Qevent_symbol_components property of the event heads.  */
 enum {
   up_modifier	=   1,		/* Only used on mouse buttons - always
 				   turned into a click or a drag modifier
