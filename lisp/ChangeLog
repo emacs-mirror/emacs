@@ -1,3 +1,13 @@
+2003-06-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/timeclock.el (display-time-hook)
+	(timeclock-modeline-display): Define for byte-compiler.
+	(timeclock-time-to-date, timeclock-workday-remaining) 
+	(timeclock-time-to-seconds, timeclock-seconds-to-time): Move
+	earlier in the file so defined before used.
+	(timeclock-status-string): No need for `let*' so use `let'.
+	(timeclock-query-out): Always return a non-nil value.
+
 2003-06-10  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-version): Bump to 3.3
