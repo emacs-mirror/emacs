@@ -1616,10 +1616,12 @@ buffer.")
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
-      Lisp_Object o_beg = OVERLAY_START (overlay);
-      Lisp_Object o_end = OVERLAY_END   (overlay);
+      Lisp_Object o_beg;
+      Lisp_Object o_end;
       int change_beg, change_end;
 
+      o_beg = OVERLAY_START (overlay);
+      o_end = OVERLAY_END   (overlay);
       o_beg = OVERLAY_POSITION (o_beg);
       o_end = OVERLAY_POSITION (o_end);
 
@@ -1903,7 +1905,7 @@ verify_overlay_modification (start, end)
        tail = XCONS (tail)->cdr)
     {
       int startpos, endpos;
-      int ostart, oend;
+      Lisp_Object ostart, oend;
 
       overlay = XCONS (tail)->car;
 
@@ -1937,7 +1939,7 @@ verify_overlay_modification (start, end)
        tail = XCONS (tail)->cdr)
     {
       int startpos, endpos;
-      int ostart, oend;
+      Lisp_Object ostart, oend;
 
       overlay = XCONS (tail)->car;
 
