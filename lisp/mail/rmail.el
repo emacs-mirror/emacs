@@ -137,12 +137,12 @@ that file, but does not copy any new mail into the file."
 	(progn
 	  ;; Don't be confused by apparent local-variables spec
 	  ;; in the last message in the RMAIL file.
-	  (let ((inhibit-local-variables t))
+	  (let ((enable-local-variables nil))
 	    (find-file file-name))
 	  (if (verify-visited-file-modtime existed)
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (let ((inhibit-local-variables t))
+      (let ((enable-local-variables nil))
 	(find-file file-name)))
     (if (and existed (> (buffer-size) 0))
 	;; Buffer not new and not empty; ensure in proper mode, but that's all.

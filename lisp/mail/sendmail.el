@@ -123,10 +123,12 @@ so you can edit or delete these lines.")
 	(insert "BCC: " (user-login-name) "\n"))
     (if mail-archive-file-name
 	(insert "FCC: " mail-archive-file-name "\n"))
-    (insert mail-header-separator "\n\n")
+    (insert mail-header-separator "\n")
     ;; Read the .signature file.
-    (if mail-signature-file
-	(insert-file-contents (expand-file-name mail-signature-file)))
+    (and mail-signature-file
+	 (file-exists-p mail-signature-file)
+	 (progn (insert "\n")
+		(insert-file-contents (expand-file-name mail-signature-file))))
     (goto-char (point-max))
     (or (bolp) (newline)))
   (if to (goto-char (point-max)))
