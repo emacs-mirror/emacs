@@ -1338,7 +1338,8 @@ purposes.  See the documentation of `set-mark' for more information."
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
-Also push LOCATION on the global mark ring.
+If the last global mark pushed was not in the current buffer,
+also push LOCATION on the global mark ring.
 Display `Mark set' unless the optional second arg NOMSG is non-nil.
 In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil.
 
@@ -1355,12 +1356,17 @@ In Transient Mark mode, this does not activate the mark."
 	  (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil))))
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   ;; Now push the mark on the global mark ring.
-  (setq global-mark-ring (cons (copy-marker (mark-marker)) global-mark-ring))
+  (if (and global-mark-ring
+	   (eq (marker-buffer (car global-mark-ring) (current-buffer))))
+      ;; The last global mark pushed was in this same buffer.
+      ;; Don't push another one.
+      nil
+    (setq global-mark-ring (cons (copy-marker (mark-marker)) global-mark-ring))
     (if (> (length global-mark-ring) global-mark-ring-max)
 	(progn
 	  (move-marker (car (nthcdr global-mark-ring-max global-mark-ring))
 		       nil)
-	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil)))
+	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil))))
   (or nomsg executing-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   (if (or activate (not transient-mark-mode))
