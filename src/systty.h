@@ -177,6 +177,7 @@ static struct sensemode {
 #define CDISABLE _POSIX_VDISABLE
 #else /* not _POSIX_VDISABLE */
 #ifdef CDEL
+#undef CDISABLE
 #define CDISABLE CDEL
 #else /* not CDEL */
 #define CDISABLE 255
