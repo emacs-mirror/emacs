@@ -1524,7 +1524,10 @@ mark_object (objptr)
 
     case Lisp_Vectorlike:
       if (GC_BUFFERP (obj))
-	mark_buffer (obj);
+	{
+	  if (!XMARKBIT (XBUFFER (obj)->name))
+	    mark_buffer (obj);
+	}
       else if (GC_SUBRP (obj))
 	break;
       else if (GC_COMPILEDP (obj))
@@ -1753,7 +1756,7 @@ mark_buffer (buf)
     mark_object (ptr);
 
   /* If this is an indirect buffer, mark its base buffer.  */
-  if (buffer->base_buffer)
+  if (buffer->base_buffer && !XMARKBIT (buffer->base_buffer->name))
     {
       XSETBUFFER (base_buffer, buffer->base_buffer); 
       mark_buffer (base_buffer);
