@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992,94,95,96,97,98,1999,2003,2004
+;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2003, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -61,13 +61,13 @@
   :type 'hook)
 
 (defcustom bibtex-field-delimiters 'braces
-  "*Type of field delimiters. Allowed values are `braces' or `double-quotes'."
+  "*Type of field delimiters.  Allowed values are `braces' or `double-quotes'."
   :group 'bibtex
   :type '(choice (const braces)
                  (const double-quotes)))
 
 (defcustom bibtex-entry-delimiters 'braces
-  "*Type of entry delimiters. Allowed values are `braces' or `parentheses'."
+  "*Type of entry delimiters.  Allowed values are `braces' or `parentheses'."
   :group 'bibtex
   :type '(choice (const braces)
                  (const parentheses)))
@@ -154,10 +154,10 @@ narrowed to just the entry."
 Allowed non-nil values are:
 plain        All entries are sorted alphabetically.
 crossref     All entries are sorted alphabetically unless an entry has a
-             crossref field. These crossrefed entries are placed in
+             crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
 entry-class  The entries are divided into classes according to their
-             entry name, see `bibtex-sort-entry-class'. Within each class
+             entry name, see `bibtex-sort-entry-class'.  Within each class
              the entries are sorted alphabetically.
 See also `bibtex-sort-ignore-string-entries'."
   :group 'bibtex
@@ -172,8 +172,8 @@ See also `bibtex-sort-ignore-string-entries'."
     ("Book" "Proceedings"))
   "*List of classes of BibTeX entry names, used for sorting entries.
 If value of `bibtex-maintain-sorted-entries' is `entry-class'
-entries are ordered according to the classes they belong to. Each
-class contains a list of entry names. An entry `catch-all' applies
+entries are ordered according to the classes they belong to.  Each
+class contains a list of entry names.  An entry `catch-all' applies
 to all entries not explicitely mentioned.")
 
 (defcustom bibtex-sort-ignore-string-entries t
@@ -763,45 +763,46 @@ If non-nil, the column for the equal sign is the value of
   :type '(repeat string))
 
 (defcustom bibtex-generate-url-list
-  '((("url" . t) ("url" t)))
+  '((("url" . ".*:.*"))
+    ;; Example of a complex setup.
+    (("journal" . "\\<\\(PR[ABCDEL]?\\|RMP\\)\\>")
+     "http://publish.aps.org/abstract/"
+     ("journal" ".*" downcase)
+     "/v"
+     ("volume" ".*" 0)
+     "/p"
+     ("pages" "\\`\\([0-9]+\\)" 1)))
   "List of schemes for generating the URL of a BibTeX entry.
 These schemes are used by `bibtex-url'.
 
-Each scheme is of the form ((FIELD . REGEXP) STEPS).
+Each scheme is of the form ((FIELD . REGEXP) STEP...).
 
 FIELD is a field name as returned by `bibtex-parse-entry'.
-REGEXP is matched against the text of FIELD. 
-If the match succeeds, the list STEPS is used to generate the URL.
-If REGEXP is t, always generate the URL if FIELD is present.
+REGEXP is matched against the text of FIELD.  If the match succeed, then
+this scheme will be used.  If no STEPS are specified the matched text is used
+as the URL, otherwise the URL is built by concatenating the STEPS.
 
-If an element of STEPS is a list (FIELD MATCH FILTER),
-the text of FIELD is matched against MATCH. 
-If MATCH is t, the text of FIELD is accepted as is. 
-If MATCH is a cons cell (REGEXP . REPLACE), the text is matched against REGEXP. 
-If REPLACE is a string, the text is replaced with REPLACE. If REPLACE is a 
-number, it specifies which parenthesized expression in the match is taken. 
-The optional element FILTER is a function for piping the match through it.
-The text strings are then concatenated to generate the URL.
+A STEP can be a string or a list (FIELD REGEXP REPLACE) in which case
+the text of FIELD is matched against REGEXP, and is replaced with REPLACE.
+REPLACE can be a string, or a number (which selects the corresponding submatch)
+or a function called with the field's text as argument and with the
+`match-data' properly set.
 
-If an element of STEPS is a string, it is simply added to the URL.
-
-Case is always ignored. Always remove the field delimiters."
+Case is always ignored.  Always remove the field delimiters."
   :group 'bibtex
   :type '(repeat
-          (list :tag "Scheme" 
+          (list :tag "Scheme"
                 (cons :tag "Matcher" :extra-offset 4
                       (string :tag "BibTeX field")
-                      (choice (regexp :tag "Regexp")
-                              (const :tag "Accept as is" t)))
+		      (regexp :tag "Regexp"))
                 (repeat :tag "Steps to generate URL" :inline t
                         (choice
                          (string :tag "Literal text")
                          (list (string :tag "BibTeX field")
-                               (choice (const :tag "Accept as is" t)
-                                       (cons (string :tag "Field")
-                                             (choice (regexp :tag "Regexp")
-                                                     (integer :tag "Matched parenthesis"))))
-                               (option (function :tag "Filter" :value ignore))))))))
+			       (regexp :tag "Regexp")
+                               (choice (string :tag "Replacement")
+				       (integer :tag "Sub-match")
+				       (function :tag "Filter"))))))))
 
 ;; bibtex-font-lock-keywords is a user option as well, but since the
 ;; patterns used to define this variable are defined in a later
@@ -1000,8 +1001,7 @@ Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
 (make-variable-buffer-local 'bibtex-reference-keys)
 
 (defvar bibtex-buffer-last-parsed-tick nil
-  "Last value returned by `buffer-modified-tick' when buffer
-was parsed for keys the last time.")
+  "Value of `buffer-modified-tick' last time buffer was parsed for keys.")
 
 (defvar bibtex-parse-idle-timer nil
   "Stores if timer is already installed.")
@@ -1103,7 +1103,7 @@ was parsed for keys the last time.")
     (,(concat "^[ \t]*\\(" bibtex-field-name "\\)[ \t]*=")
      1 font-lock-variable-name-face)
     ;; url
-    (bibtex-font-lock-url 0 '(face nil mouse-face highlight 
+    (bibtex-font-lock-url 0 '(face nil mouse-face highlight
                                    keymap bibtex-url-map)))
   "*Default expressions to highlight in BibTeX mode.")
 
@@ -1113,8 +1113,8 @@ was parsed for keys the last time.")
   "Regexp for `bibtex-font-lock-url'.")
 
 (defvar bibtex-field-name-for-parsing nil
-  "Temporary variable storing the name string to be parsed by the callback
-function `bibtex-parse-field-name'.")
+  "Regexp of field name to be parsed by function `bibtex-parse-field-name'.
+Passed by dynamic scoping.")
 
 (defvar bibtex-sort-entry-class-alist
   (let ((i -1) alist)
@@ -1123,8 +1123,9 @@ function `bibtex-parse-field-name'.")
       (dolist (entry class)
         ;; all entry names should be downcase (for ease of comparison)
         (push (cons (if (stringp entry) (downcase entry) entry) i) alist))))
-  "Alist for the classes of the entry types if the value of
-`bibtex-maintain-sorted-entries' is `entry-class'.")
+  "Alist mapping entry types to their sorting index.
+Auto-generated from `bibtex-sort-entry-class'.
+Used when `bibtex-maintain-sorted-entries' is `entry-class'.")
 
 
 ;; Special support taking care of variants
@@ -1149,15 +1150,11 @@ function `bibtex-parse-field-name'.")
 
 ;; Support for hideshow minor mode
 (defun bibtex-hs-forward-sexp (arg)
-  "Replacement for `forward-sexp' to be used by `hs-minor-mode'."
-  (if (< arg 0)
-      (backward-sexp 1)
-    (if (looking-at "@\\S(*\\s(")
-        (progn
-          (goto-char (match-end 0))
-          (forward-char -1)
-          (forward-sexp 1))
-      (forward-sexp 1))))
+  "Replacement for `forward-sexp' to be used by `hs-minor-mode'.
+ARG is ignored."
+  (if (looking-at "@\\S(*\\s(")
+    (goto-char (1- (match-end 0))))
+  (forward-sexp 1))
 
 (add-to-list
  'hs-special-modes-alist
@@ -1184,7 +1181,7 @@ values of the functions PARSE-LHS and PARSE-RHS is returned."
   "Parse the field name stored in `bibtex-field-name-for-parsing'.
 If the field name is found, return a triple consisting of the position of the
 very first character of the match, the actual starting position of the name
-part and end position of the match. Move point to end of field name.
+part and end position of the match.  Move point to end of field name.
 If `bibtex-autoadd-commas' is non-nil add missing comma at end of preceeding
 BibTeX field as necessary."
   (cond ((looking-at ",[ \t\n]*")
@@ -1246,7 +1243,7 @@ end position of the field string is returned, nil otherwise."
 The text part is either a string, or an empty string, or a constant followed
 by one or more <# (string|constant)> pairs.  If a syntactically correct text
 is found, a pair containing the start and end position of the text is
-returned, nil otherwise. Move point to end of field text."
+returned, nil otherwise.  Move point to end of field text."
   (let ((starting-point (point))
         end-point failure boundaries)
     (while (not (or end-point failure))
@@ -1274,8 +1271,8 @@ the name and text parts of the field is returned."
   "Search forward to find a field of name NAME.
 If a syntactically correct field is found, a pair containing the boundaries of
 the name and text parts of the field is returned.  The search is limited by
-optional arg BOUND. If BOUND is t the search is limited by the end of the current
-entry. Do not move point."
+optional arg BOUND.  If BOUND is t the search is limited by the end of the
+current entry.  Do not move point."
   (save-match-data
     (save-excursion
       (unless (integer-or-marker-p bound)
@@ -1301,8 +1298,8 @@ entry. Do not move point."
   "Search backward to find a field of name NAME.
 If a syntactically correct field is found, a pair containing the boundaries of
 the name and text parts of the field is returned.  The search is limited by
-optional arg BOUND. If BOUND is t the search is limited by the beginning of the
-current entry. Do not move point."
+optional arg BOUND.  If BOUND is t the search is limited by the beginning of the
+current entry.  Do not move point."
   (save-match-data
     (save-excursion
       (unless (integer-or-marker-p bound)
@@ -1356,7 +1353,7 @@ if present."
       content)))
 
 (defun bibtex-text-in-field (field &optional follow-crossref)
-  "Get content of field FIELD of current BibTeX entry. Return nil if not found.
+  "Get content of field FIELD of current BibTeX entry.  Return nil if not found.
 If optional arg FOLLOW-CROSSREF is non-nil, follow crossref."
   (save-excursion
     (save-restriction
@@ -1396,7 +1393,7 @@ reference key and the end position of the match."
   "Parse the postfix part of a BibTeX string entry, including the text.
 If the string postfix is found, return a triple consisting of the position of
 the actual starting and ending position of the text and the very last
-character of the string entry. Move point past BibTeX string entry."
+character of the string entry.  Move point past BibTeX string entry."
   (let* ((case-fold-search t)
          (bounds (bibtex-parse-field-text)))
     (when bounds
@@ -1418,7 +1415,7 @@ Move point past BibTeX string entry."
 (defun bibtex-search-forward-string ()
   "Search forward to find a BibTeX string entry.
 If a syntactically correct entry is found, a pair containing the boundaries of
-the reference key and text parts of the string is returned. Do not move point."
+the reference key and text parts of the string is returned.  Do not move point."
   (save-excursion
     (save-match-data
       (let ((case-fold-search t)
@@ -1434,7 +1431,7 @@ the reference key and text parts of the string is returned. Do not move point."
 (defun bibtex-search-backward-string ()
   "Search backward to find a BibTeX string entry.
 If a syntactically correct entry is found, a pair containing the boundaries of
-the reference key and text parts of the field is returned. Do not move point."
+the reference key and text parts of the field is returned.  Do not move point."
   (save-excursion
     (save-match-data
       (let ((case-fold-search t)
@@ -1475,7 +1472,7 @@ delimiters if present."
                                   (match-end bibtex-type-in-head)))
 
 (defun bibtex-key-in-head (&optional empty)
-  "Extract BibTeX key in head. Return optional arg EMPTY if key is empty."
+  "Extract BibTeX key in head.  Return optional arg EMPTY if key is empty."
   (if (match-beginning bibtex-key-in-head)
       (buffer-substring-no-properties (match-beginning bibtex-key-in-head)
                                       (match-end bibtex-key-in-head))
@@ -1484,7 +1481,7 @@ delimiters if present."
 ;; Helper Functions
 
 (defsubst bibtex-string= (str1 str2)
-  "Return t if two strings are equal, ignoring case."
+  "Return t if STR1 and STR2 are equal, ignoring case."
   (eq t (compare-strings str1 0 nil str2 0 nil t)))
 
 (defun bibtex-delete-whitespace ()
@@ -1498,12 +1495,13 @@ delimiters if present."
      (if (equal (current-column) 0) 1 0)))
 
 (defun bibtex-skip-to-valid-entry (&optional backward)
-  "Unless at beginning of a valid BibTeX entry, move point to beginning of the
-next valid one. With optional argument BACKWARD non-nil, move backward to
-beginning of previous valid one. A valid entry is a syntactical correct one
+  "Move point to beginning of the next valid BibTeX entry.
+Do not move if we are already at beginning of a valid BibTeX entry.
+With optional argument BACKWARD non-nil, move backward to
+beginning of previous valid one.  A valid entry is a syntactical correct one
 with type contained in `bibtex-entry-field-alist' or, if
 `bibtex-sort-ignore-string-entries' is nil, a syntactical correct string
-entry. Return buffer position of beginning and ending of entry if a valid
+entry.  Return buffer position of beginning and ending of entry if a valid
 entry is found, nil otherwise."
   (interactive "P")
   (let ((case-fold-search t)
@@ -1528,9 +1526,9 @@ entry is found, nil otherwise."
 
 (defun bibtex-map-entries (fun)
   "Call FUN for each BibTeX entry starting with the current.
-Do this to the end of the file. FUN is called with three arguments, the key of
+Do this to the end of the file.  FUN is called with three arguments, the key of
 the entry and the buffer positions (marker) of beginning and end of entry.
-Point is inside the entry. If `bibtex-sort-ignore-string-entries' is non-nil,
+Point is inside the entry.  If `bibtex-sort-ignore-string-entries' is non-nil,
 FUN will not be called for @String entries."
   (let ((case-fold-search t))
     (bibtex-beginning-of-entry)
@@ -1596,8 +1594,8 @@ If FLAG is nil, a message is echoed if point was incremented at least
 
 (defun bibtex-search-entry (empty-head &optional bound noerror backward)
   "Search for a BibTeX entry (maybe without reference key if EMPTY-HEAD is t).
-BOUND and NOERROR are exactly as in `re-search-forward'. If BACKWARD
-is non-nil, search is done in reverse direction. Point is moved past the
+BOUND and NOERROR are exactly as in `re-search-forward'.  If BACKWARD
+is non-nil, search is done in reverse direction.  Point is moved past the
 closing delimiter (at the beginning of entry if BACKWARD is non-nil).
 Return a cons pair with buffer positions of beginning and end of entry.
 After call to this function MATCH-BEGINNING and MATCH-END functions
@@ -1700,7 +1698,7 @@ are defined, but only for the head part of the entry
     (skip-chars-forward " \t\n")))
 
 (defun bibtex-beginning-of-first-entry ()
-  "Go to the beginning of the first BibTeX entry in buffer. Return point."
+  "Go to the beginning of the first BibTeX entry in buffer.  Return point."
   (goto-char (point-min))
   (if (re-search-forward "^[ \t]*@" nil 'move)
       (beginning-of-line))
@@ -1725,9 +1723,9 @@ are defined, but only for the head part of the entry
 
 (defun bibtex-enclosing-field (&optional noerr)
   "Search for BibTeX field enclosing point.
-Use `match-beginning' and `match-end' to parse the field. If NOERR is non-nil,
-no error is signalled. In this case, bounds are returned on success,
-nil otherwise. Does not move point."
+Use `match-beginning' and `match-end' to parse the field.  If NOERR is non-nil,
+no error is signalled.  In this case, bounds are returned on success,
+nil otherwise.  Does not move point."
   (let ((bounds (bibtex-search-backward-field bibtex-field-name t)))
     (if (and bounds
              (<= (bibtex-start-of-field bounds) (point))
@@ -1737,7 +1735,7 @@ nil otherwise. Does not move point."
         (error "Can't find enclosing BibTeX field")))))
 
 (defun bibtex-enclosing-entry-maybe-empty-head ()
-  "Search for BibTeX entry enclosing point. Move point to end of entry.
+  "Search for BibTeX entry enclosing point.  Move point to end of entry.
 Beginning (but not end) of entry is given by (`match-beginning' 0)."
   (let ((case-fold-search t)
         (old-point (point)))
@@ -2016,8 +2014,8 @@ Formats current entry according to variable `bibtex-entry-format'."
 (defun bibtex-autokey-abbrev (string len)
   "Return an abbreviation of STRING with at least LEN characters.
 If LEN is positive the abbreviation is terminated only after a consonant
-or at the word end. If LEN is negative the abbreviation is strictly
-enforced using abs (LEN) characters. If LEN is not a number, STRING
+or at the word end.  If LEN is negative the abbreviation is strictly
+enforced using abs (LEN) characters.  If LEN is not a number, STRING
 is returned unchanged."
   (cond ((or (not (numberp len))
              (<= (length string) (abs len)))
@@ -2033,9 +2031,9 @@ is returned unchanged."
                string)))))
 
 (defun bibtex-autokey-get-field (field &optional change-list)
-  "Get content of BibTeX field FIELD. Return empty string if not found.
+  "Get content of BibTeX field FIELD.  Return empty string if not found.
 Optional arg CHANGE-LIST is a list of substitution patterns that is
-applied to the content of FIELD. It is an alist with pairs
+applied to the content of FIELD.  It is an alist with pairs
 \(OLD-REGEXP . NEW-STRING\)."
   (let ((content (bibtex-text-in-field field bibtex-autokey-use-crossref))
         case-fold-search)
@@ -2058,7 +2056,7 @@ and return results as a list."
               (split-string names "[ \t\n]+and[ \t\n]+")))))
 
 (defun bibtex-autokey-demangle-name (fullname)
-  "Get the last part from a well-formed name and perform abbreviations."
+  "Get the last part from a well-formed FULLNAME and perform abbreviations."
   (let* (case-fold-search
          (name (cond ((string-match "\\([A-Z][^, ]*\\)[^,]*," fullname)
                       ;; Name is of the form "von Last, First" or
@@ -2150,7 +2148,7 @@ The generation algorithm works as follows:
     `bibtex-autokey-name-change-strings' to the corresponding new
     one (see documentation of this variable for further detail).
  4. For every of at least first `bibtex-autokey-names' names in
-    the name field, determine the last name. If there are maximal
+    the name field, determine the last name.  If there are maximal
     `bibtex-autokey-names' + `bibtex-autokey-names-stretch'
     names, all names are used.
  5. From every last name, take at least `bibtex-autokey-name-length'
@@ -2159,12 +2157,12 @@ The generation algorithm works as follows:
     `bibtex-autokey-name-case-convert'.
  7. Build the name part of the key by concatenating all
     abbreviated last names with the string
-    `bibtex-autokey-name-separator' between any two. If there are
+    `bibtex-autokey-name-separator' between any two.  If there are
     more names than are used in the name part, prepend the string
     contained in `bibtex-autokey-additional-names'.
  8. Build the year part of the key by truncating the contents of
     the year field to the rightmost `bibtex-autokey-year-length'
-    digits (useful values are 2 and 4). If the year field (or any
+    digits (useful values are 2 and 4).  If the year field (or any
     other field required to generate the key) is absent, but the entry
     has a valid crossref field and the variable
     `bibtex-autokey-use-crossref' is non-nil, use the field of the
@@ -2180,7 +2178,7 @@ The generation algorithm works as follows:
     appear in `bibtex-autokey-titleword-ignore'.
     Build the title part of the key by using at least the first
     `bibtex-autokey-titlewords' words from this
-    abbreviated title. If the abbreviated title ends after
+    abbreviated title.  If the abbreviated title ends after
     maximal `bibtex-autokey-titlewords' +
     `bibtex-autokey-titlewords-stretch' words, all
     words from the abbreviated title are used.
@@ -2201,13 +2199,13 @@ The generation algorithm works as follows:
     and the title part with `bibtex-autokey-name-year-separator'
     between the name part and the year part if both are non-empty
     and `bibtex-autokey-year-title-separator' between the year
-    part and the title part if both are non-empty. If the year
+    part and the title part if both are non-empty.  If the year
     part is empty, but not the other two parts,
     `bibtex-autokey-year-title-separator' is used as well.
 16. If the value of `bibtex-autokey-before-presentation-function'
-    is non-nil, it must be a function taking one argument. This
+    is non-nil, it must be a function taking one argument.  This
     function is then called with the generated key as the
-    argument. The return value of this function (a string) is
+    argument.  The return value of this function (a string) is
     used as the key.
 17. If the value of `bibtex-autokey-edit-before-use' is non-nil,
     the key is then presented in the minibuffer to the user,
@@ -2261,9 +2259,9 @@ The generation algorithm works as follows:
 The buffer might possibly be restricted.
 Find both entry keys and crossref entries.
 If ADD is non-nil add the new keys to `bibtex-reference-keys' instead of
-simply resetting it. If ADD is an alist of keys, also add ADD to
-`bibtex-reference-keys'. If ABORTABLE is non-nil abort on user
-input. If VERBOSE is non-nil gives messages about progress.
+simply resetting it.  If ADD is an alist of keys, also add ADD to
+`bibtex-reference-keys'.  If ABORTABLE is non-nil abort on user
+input.  If VERBOSE is non-nil gives messages about progress.
 Return alist of keys if parsing was completed, `aborted' otherwise."
   (let ((reference-keys (if (and add
                                  (listp bibtex-reference-keys))
@@ -2327,8 +2325,8 @@ Return alist of keys if parsing was completed, `aborted' otherwise."
   "Set `bibtex-strings' to the string definitions in the whole buffer.
 The buffer might possibly be restricted.
 If ADD is non-nil add the new strings to `bibtex-strings' instead of
-simply resetting it. If ADD is an alist of strings, also add ADD to
-`bibtex-strings'. If ABORTABLE is non-nil abort on user input.
+simply resetting it.  If ADD is an alist of strings, also add ADD to
+`bibtex-strings'.  If ABORTABLE is non-nil abort on user input.
 Return alist of strings if parsing was completed, `aborted' otherwise."
   (save-excursion
     (save-match-data
@@ -2388,7 +2386,8 @@ Use `bibtex-predefined-strings' and bib files `bibtex-string-files'."
       (append bibtex-predefined-strings (nreverse compl)))))
 
 (defun bibtex-parse-buffers-stealthily ()
-  "Called by `bibtex-run-with-idle-timer'. Whenever emacs has been idle
+  "Parse buffer in the background during idle time.
+Called by `bibtex-run-with-idle-timer'.  Whenever Emacs has been idle
 for `bibtex-parse-keys-timeout' seconds, all BibTeX buffers (starting
 with the current) are parsed."
   (save-excursion
@@ -2412,9 +2411,9 @@ with the current) are parsed."
         (setq buffers (cdr buffers))))))
 
 (defun bibtex-complete-internal (completions)
-  "Complete word fragment before point to longest prefix of one
-string defined in list COMPLETIONS.  If point is not after the part
-of a word, all strings are listed. Return completion."
+  "Complete word fragment before point to longest prefix of COMPLETIONS.
+COMPLETIONS should be a list of strings.  If point is not after the part
+of a word, all strings are listed.  Return completion."
   (let* ((case-fold-search t)
          (beg (save-excursion
                 (re-search-backward "[ \t{\"]")
@@ -2514,7 +2513,8 @@ expansion of STR using expansion list STRINGS-ALIST."
     (set-window-point window (point))))
 
 (defun bibtex-pop (arg direction)
-  "Generic function used by `bibtex-pop-previous' and `bibtex-pop-next'."
+  "Fill current field from the ARG'th same field's text in DIRECTION.
+Generic function used by `bibtex-pop-previous' and `bibtex-pop-next'."
   (let (bibtex-help-message)
     (bibtex-find-text nil))
   (save-excursion
@@ -2577,15 +2577,15 @@ expansion of STR using expansion list STRINGS-ALIST."
 General information on working with BibTeX mode:
 
 You should use commands such as \\[bibtex-Book] to get a template for a
-specific entry. You should then fill in all desired fields using
-\\[bibtex-next-field] to jump from field to field. After having filled
+specific entry.  You should then fill in all desired fields using
+\\[bibtex-next-field] to jump from field to field.  After having filled
 in all desired fields in the entry, you should clean the new entry
 with the command \\[bibtex-clean-entry].
 
 Some features of BibTeX mode are available only by setting the variable
-`bibtex-maintain-sorted-entries' to non-nil. However, then BibTeX mode will
+`bibtex-maintain-sorted-entries' to non-nil.  However, then BibTeX mode will
 work only with buffers containing valid (syntactical correct) entries
-and with entries being sorted. This is usually the case, if you have
+and with entries being sorted.  This is usually the case, if you have
 created a buffer completely with BibTeX mode and finished every new
 entry with \\[bibtex-clean-entry].
 
@@ -2736,7 +2736,7 @@ names for ENTRY-TYPE according to `bibtex-entry-field-alist'."
     (cons required optional)))
 
 (defun bibtex-entry (entry-type)
-  "Insert a new BibTeX entry.
+  "Insert a new BibTeX entry of type ENTRY-TYPE.
 After insertion it calls the functions in `bibtex-add-entry-hook'."
   (interactive (let* ((completion-ignore-case t)
                       (e-t (completing-read
@@ -2753,8 +2753,8 @@ After insertion it calls the functions in `bibtex-add-entry-hook'."
     (insert "@" entry-type (bibtex-entry-left-delimiter))
     (if key (insert key))
     (save-excursion
-      (mapcar 'bibtex-make-field (car field-list))
-      (mapcar 'bibtex-make-optional-field (cdr field-list))
+      (mapc 'bibtex-make-field (car field-list))
+      (mapc 'bibtex-make-optional-field (cdr field-list))
       (if bibtex-comma-after-last-field
           (insert ","))
       (insert "\n")
@@ -2887,7 +2887,8 @@ Move point to the end of the last field."
   "Make a field named FIELD in current BibTeX entry.
 FIELD is either a string or a list of the form
 \(FIELD-NAME COMMENT-STRING INIT ALTERNATIVE-FLAG) as in
-`bibtex-entry-field-alist'."
+`bibtex-entry-field-alist'.
+If CALLED-BY-YANK is non-nil, don't insert delimiters."
   (interactive
    (list (let ((completion-ignore-case t)
                (field-list (bibtex-field-list
@@ -2929,8 +2930,8 @@ FIELD is either a string or a list of the form
 (defun bibtex-beginning-of-entry ()
   "Move to beginning of BibTeX entry (beginning of line).
 If inside an entry, move to the beginning of it, otherwise move to the
-beginning of the previous entry. If point is ahead of all BibTeX entries
-move point to the beginning of buffer. Return the new location of point."
+beginning of the previous entry.  If point is ahead of all BibTeX entries
+move point to the beginning of buffer.  Return the new location of point."
   (interactive)
   (skip-chars-forward " \t")
   (if (looking-at "@")
@@ -2941,7 +2942,7 @@ move point to the beginning of buffer. Return the new location of point."
 (defun bibtex-end-of-entry ()
   "Move to end of BibTeX entry (past the closing brace).
 If inside an entry, move to the end of it, otherwise move to the end
-of the previous entry. Do not move if ahead of first entry.
+of the previous entry.  Do not move if ahead of first entry.
 Return the new location of point."
   (interactive)
   (let ((case-fold-search t)
@@ -3041,9 +3042,9 @@ If mark is active it counts entries in region, if not in whole buffer."
                       (bibtex-end-of-entry))))
 
 (defun bibtex-entry-index ()
-  "Return the index of the BibTeX entry at point. Move point.
+  "Return the index of the BibTeX entry at point.  Move point.
 The index is a list (KEY CROSSREF-KEY ENTRY-NAME) that is used for sorting
-the entries of the BibTeX buffer. Return nil if no entry found."
+the entries of the BibTeX buffer.  Return nil if no entry found."
   (let ((case-fold-search t))
     (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
         (let ((key (bibtex-key-in-head))
@@ -3093,8 +3094,8 @@ If its value is nil use plain sorting."
 (defun bibtex-sort-buffer ()
   "Sort BibTeX buffer alphabetically by key.
 The predicate for sorting is defined via `bibtex-maintain-sorted-entries'.
-If its value is nil use plain sorting. Text outside of BibTeX entries is not
-affected. If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
+If its value is nil use plain sorting.  Text outside of BibTeX entries is not
+affected.  If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
 will be ignored."
   (interactive)
   (save-restriction
@@ -3156,7 +3157,7 @@ With prefix arg, the value of START is position of point."
 INDEX is a list (KEY CROSSREF-KEY ENTRY-NAME).
 Move point where the entry KEY should be placed.
 If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
-search to look for place for KEY. This will fail if buffer is not in
+search to look for place for KEY.  This will fail if buffer is not in
 sorted order, see \\[bibtex-validate].)
 Return t if preparation was successful or nil if entry KEY already exists."
   (let ((key (nth 0 index))
@@ -3562,7 +3563,7 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
 Check that no required fields are empty and formats entry dependent
 on the value of `bibtex-entry-format'.
 If the reference key of the entry is empty or a prefix argument is given,
-calculate a new reference key. (Note: this will only work if fields in entry
+calculate a new reference key.  (Note: this will only work if fields in entry
 begin on separate lines prior to calling `bibtex-clean-entry' or if
 'realign is contained in `bibtex-entry-format'.)
 Don't call `bibtex-clean-entry' on @Preamble entries.
@@ -3962,7 +3963,7 @@ signaled if point is outside key or BibTeX field."
 (defun bibtex-url (&optional event)
   "Browse a URL for the BibTeX entry at position PNT.
 The URL is generated using the schemes defined in `bibtex-generate-url-list'
-\(see there\). Then the URL is passed to `browse-url'."
+\(see there\).  Then the URL is passed to `browse-url'."
   (interactive (list last-input-event))
   (save-excursion
     (if event (posn-set-point (event-end event)))
@@ -3972,39 +3973,40 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
           (lst bibtex-generate-url-list)
           field url scheme)
       (while (setq scheme (car lst))
-        (when (and (setq field (assoc-string (caar scheme) fields-alist t))
-                   (or (eq t (cdar scheme))
-                       (string-match (cdar scheme) (cdr field))))
-          (setq lst nil)
+        (when (and (setq field (cdr (assoc-string (caar scheme)
+						  fields-alist t)))
+		   (progn
+		     (if (string-match "\\`[{\"]\\(.*\\)[}\"]\\'" field)
+			 (setq field (match-string 1 field)))
+		     (string-match (cdar scheme) field)))
+	  (setq lst nil)
+	  (if (null (cdr scheme))
+	      (setq url (match-string 0 field)))
           (dolist (step (cdr scheme))
-            (cond ((stringp step)
-                   (setq url (concat url step)))
-                  ((setq field (assoc-string (car step) fields-alist t))
-                   ;; always remove field delimiters
-                   (let* ((text (if (string-match "\\`[{\"]\\(.*\\)[}\"]\\'" 
-                                                  (cdr field))
-                                    (match-string 1 (cdr field))
-                                  (cdr field)))
-                          (str (cond ((eq t (nth 1 step))
-                                      text)
-                                     ((and (consp (nth 1 step))
-                                           (string-match (car (nth 1 step))
-                                                         text))
-                                      (if (numberp (cdr (nth 1 step)))
-                                          (match-string (cdr (nth 1 step))
-                                                        text)
-                                        (replace-match (cdr (nth 1 step))
-                                                       nil nil text)))
-                                     ;; If the scheme is set up correctly,
-                                     ;; we should never reach this point
-                                     (t (error "Match failed: %s" text)))))
-                     (setq url (concat url (if (fboundp (nth 2 step))
-                                               (funcall (nth 2 step) str)
-                                             str)))))
-                  ;; If the scheme is set up correctly,
-                  ;; we should never reach this point
-                  (t (error "Step failed: %s" step))))
-          (message "%s" url)
+	    (cond ((stringp step)
+		   (setq url (concat url step)))
+		  ((setq field (assoc-string (car step) fields-alist t))
+		   ;; always remove field delimiters
+		   (let* ((text (if (string-match "\\`[{\"]\\(.*\\)[}\"]\\'" 
+						  (cdr field))
+				    (match-string 1 (cdr field))
+				  (cdr field)))
+			  (str (if (string-match (nth 1 step) text)
+				   (cond
+				    ((functionp (nth 2 step))
+				     (funcall (nth 2 step) text))
+				    ((numberp (nth 2 step))
+				     (match-string (nth 2 step) text))
+				    (t
+				     (replace-match (nth 2 step) nil nil text)))
+				 ;; If the scheme is set up correctly,
+				 ;; we should never reach this point
+				 (error "Match failed: %s" text))))
+                     (setq url (concat url str))))
+		  ;; If the scheme is set up correctly,
+		  ;; we should never reach this point
+		  (t (error "Step failed: %s" step))))
+	  (message "%s" url)
           (browse-url url))
         (setq lst (cdr lst)))
     (unless url (message "No URL known.")))))
@@ -4014,29 +4016,23 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
   (let ((case-fold-search t)
         (bounds (bibtex-enclosing-field t))
         (pnt (point))
-        found url)
+	found field)
     ;; We use start-of-field as syntax-begin
     (goto-char (if bounds (bibtex-start-of-field bounds) pnt))
     (while (and (not found)
-                (search-forward-regexp bibtex-font-lock-url-regexp bound t)
-                (save-match-data (setq bounds (bibtex-parse-field-text)))
-                (>= bound (car bounds)))
-      (let ((field (match-string-no-properties 1))
-            (lst bibtex-generate-url-list))
-        (while (and (not found)
-                    (setq url (caar lst)))
-          (when (bibtex-string= field (car url))
-            (if (eq t (cdr url))
-                (progn
-                  (goto-char (min bound (cdr bounds)))
-                  (set-match-data (list (car bounds) (point)))
-                  (setq found t))
-              (goto-char (car bounds))
-              (setq found (search-forward-regexp (cdr url) 
-                                                 (min bound (cdr bounds)) t)))
-            (if (< (match-beginning 0) pnt)
-                (setq found nil)))
-          (setq lst (cdr lst)))))
+		(prog1 (re-search-forward bibtex-font-lock-url-regexp bound t)
+		  (setq field (match-string-no-properties 1)))
+		(setq bounds (bibtex-parse-field-text))
+		(>= bound (car bounds))
+		(>= (car bounds) pnt))
+      (let ((lst bibtex-generate-url-list) url)
+	(goto-char (car bounds))
+	(while (and (not found)
+		    (setq url (caar lst)))
+	  (when (bibtex-string= field (car url))
+	    (setq found (re-search-forward (cdr url) (cdr bounds) t)))
+	  (setq lst (cdr lst))))
+      (goto-char (cdr bounds)))
     found))
 
 
