@@ -133,10 +133,10 @@
 	   nil nil nil nil nil nil t nil
 	   'quail-indian-update-translation)
   (maphash
-   '(lambda (key val)
-      (quail-defrule key (if (= (length val) 1)
-			     (string-to-char val)
-			   (vector val))))
+   (lambda (key val)
+     (quail-defrule key (if (= (length val) 1)
+			    (string-to-char val)
+			  (vector val))))
    (cdr hashtbls)))
 
 ;;
@@ -173,15 +173,13 @@
   (setq key-table (quail-indian-flatten-list key-table))
   (funcall 'quail-define-package pkgname lang title nil docstring
 	   nil nil nil nil nil nil nil nil
-	   'quail-indian-update-translation
-	   )
-  (mapcar*
-   '(lambda (key val)
-      (and key val
-	   (quail-defrule
+	   'quail-indian-update-translation)
+  (dolist (key key-table)
+    (let ((val (pop char-table)))
+      (if (and key val)
+	  (quail-defrule
 	    (if (char-valid-p key) (char-to-string key) key)
-	    (if (stringp val) (vector val) val))))
-   key-table char-table))
+	    (if (stringp val) (vector val) val))))))
 
 ;;
 
