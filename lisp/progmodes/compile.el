@@ -1782,8 +1782,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
     (compile-collect-regexps 'leave compilation-leave-directory-regexp-alist)
     (compile-collect-regexps 'enter compilation-enter-directory-regexp-alist)
     (compile-collect-regexps 'file compilation-file-regexp-alist)
-    (compile-collect-regexps 'nomessage compilation-nomessage-regexp-alist)
     (compile-collect-regexps 'error compilation-error-regexp-alist)
+    (compile-collect-regexps 'nomessage compilation-nomessage-regexp-alist)
 
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
