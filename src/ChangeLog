@@ -1,3 +1,22 @@
+2004-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* window.h (struct glyph_matrix): New members nrows_scale_factor
+	and ncols_scale_factor.
+
+	* window.c (make_window): Initialize nrows_scale_factor and
+	ncols_scale_factor members.
+
+	* dispnew.c (margin_glyphs_to_reserve): Apply ncols_scale_factor.
+	(allocate_matrices_for_frame_redisplay): Fix left/right margin mix-up.
+	(required_matrix_height): Apply nrows_scale_factor.
+	(required_matrix_width): Apply ncols_scale_factor.
+
+	* xdisp.c (display_line): Increment nrows_scale_factor and set
+	fonts_changed_p if past last allocated row.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Increment ncols_scale_factor and set
+	fonts_changed_p if current area is full.
+
 2004-07-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* widget.c (EmacsFrameDestroy): Don't abort if normal_gc is 0.
