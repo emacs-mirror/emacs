@@ -597,7 +597,8 @@ Get previous element of history which is a completion of minibuffer contents."
 Repeat this command to undo more changes.
 A numeric argument serves as a repeat count."
   (interactive "*p")
-  (let ((modified (buffer-modified-p)))
+  (let ((modified (buffer-modified-p))
+	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
 	(message "Undo!"))
     (or (eq last-command 'undo)
@@ -606,7 +607,7 @@ A numeric argument serves as a repeat count."
     (setq this-command 'undo)
     (undo-more (or arg 1))
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary))))
+	 (delete-auto-save-file-if-necessary recent-save))))
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
