@@ -563,3 +563,7 @@ To get complete usage, invoke:
 (provide 'ja-dic-cnv)
 
 ;; ja-dic-cnv.el ends here
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
