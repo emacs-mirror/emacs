@@ -1,3 +1,9 @@
+2004-10-24  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (describe-mode): Fix 2004-10-13 change.
+	Copy pure "Auto Fill" string so it can be propertized later
+	without causing a read-only error.
+
 2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info.el (Info-find-emacs-command-nodes): Adapt to Texinfo-4.7
