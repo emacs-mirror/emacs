@@ -73,7 +73,10 @@ Boston, MA 02111-1307, USA.  */
 /* Link this program just by running cc.  */
 #define ORDINARY_LINK
 
+#ifndef __NeXT   /* This is defined by standard GCC
+		    but not by NeXT's compiler.  */
 #define LD_SWITCH_SYSTEM -X -noseglinkedit
+#endif /* __NeXT */
 
 /* Don't use -lc on the NeXT.  */
 #define LIB_STANDARD -lsys_s
