@@ -122,6 +122,13 @@ document xbufobjfwd
 Print $ as a buffer-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
 end
 
+define xdispobjfwd
+print (struct Lisp_Display_Objfwd *) (($ & 0x0fffffff) | $data_seg_bits)
+end
+document xdispobjfwd
+Print $ as a display-local object forwarding pointer, assuming it is an Emacs Lisp Misc value.
+end
+
 define xbuflocal
 print (struct Lisp_Buffer_Local_Value *) (($ & 0x0fffffff) | $data_seg_bits)
 end
