@@ -717,12 +717,12 @@ compose_chars_in_text (start, end, string)
 
 DEFUN ("compose-region-internal", Fcompose_region_internal,
        Scompose_region_internal, 2, 4, 0,
-  "Internal use only.\n\
-\n\
-Compose text in the region between START and END.\n\
-Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC\n\
-for the composition.   See `compose-region' for more detial.")
-  (start, end, components, mod_func)
+       doc: /* Internal use only.
+
+Compose text in the region between START and END.
+Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
+for the composition.   See `compose-region' for more detial. */)
+     (start, end, components, mod_func)
      Lisp_Object start, end, components, mod_func;
 {
   validate_region (&start, &end);
@@ -738,12 +738,12 @@ for the composition.   See `compose-region' for more detial.")
 
 DEFUN ("compose-string-internal", Fcompose_string_internal,
        Scompose_string_internal, 3, 5, 0,
-  "Internal use only.\n\
-\n\
-Compose text between indices START and END of STRING.\n\
-Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC\n\
-for the composition.   See `compose-string' for more detial.")
-  (string, start, end, components, mod_func)
+       doc: /* Internal use only.
+
+Compose text between indices START and END of STRING.
+Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
+for the composition.   See `compose-string' for more detial.  */)
+     (string, start, end, components, mod_func)
      Lisp_Object string, start, end, components, mod_func;
 {
   CHECK_STRING (string);
@@ -761,11 +761,11 @@ for the composition.   See `compose-string' for more detial.")
 
 DEFUN ("find-composition-internal", Ffind_composition_internal,
        Sfind_composition_internal, 4, 4, 0, 
-  "Internal use only.\n\
-\n\
-Return information about composition at or nearest to position POS.\n\
-See `find-composition' for more detail.")
-  (pos, limit, string, detail_p)
+       doc: /* Internal use only.
+
+Return information about composition at or nearest to position POS.
+See `find-composition' for more detail.  */)
+     (pos, limit, string, detail_p)
      Lisp_Object pos, limit, string, detail_p;
 {
   Lisp_Object prop, tail;
@@ -861,17 +861,17 @@ syms_of_composite ()
     = Fcons (Fcons (Qcomposition, Qt), Vtext_property_default_nonsticky);
 
   DEFVAR_LISP ("compose-chars-after-function", &Vcompose_chars_after_function,
-    "Function to adjust composition of buffer text.\n\
-\n\
-The function is called with three arguments FROM, TO, and OBJECT.\n\
-FROM and TO specify the range of text of which composition should be\n\
-adjusted.  OBJECT, if non-nil, is a string that contains the text.\n\
-\n\
-This function is called after a text with `composition' property is\n\
-inserted or deleted to keep `composition' property of buffer text\n\
-valid.\n\
-\n\
-The default value is the function `compose-chars-after'.");
+	       doc: /* Function to adjust composition of buffer text.
+
+The function is called with three arguments FROM, TO, and OBJECT.
+FROM and TO specify the range of text of which composition should be
+adjusted.  OBJECT, if non-nil, is a string that contains the text.
+
+This function is called after a text with `composition' property is
+inserted or deleted to keep `composition' property of buffer text
+valid.
+
+The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern ("compose-chars-after");
 
   Qcomposition_function_table = intern ("composition-function-table");
@@ -885,16 +885,16 @@ The default value is the function `compose-chars-after'.");
   Fput (Qcomposition_function_table, Qchar_table_extra_slots, make_number (0));
 
   DEFVAR_LISP ("composition-function-table", &Vcomposition_function_table,
-    "Char table of patterns and functions to make a composition.\n\
-\n\
-Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs\n\
-are regular expressions and FUNCs are functions.  FUNC is responsible\n\
-for composing text matching the corresponding PATTERN.  FUNC is called\n\
-with three arguments FROM, TO, and PATTERN.  See the function\n\
-`compose-chars-after' for more detail.\n\
-\n\
-This table is looked up by the first character of a composition when\n\
-the composition gets invalid after a change in a buffer.");
+	       doc: /* Char table of patterns and functions to make a composition.
+
+Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs
+are regular expressions and FUNCs are functions.  FUNC is responsible
+for composing text matching the corresponding PATTERN.  FUNC is called
+with three arguments FROM, TO, and PATTERN.  See the function
+`compose-chars-after' for more detail.
+
+This table is looked up by the first character of a composition when
+the composition gets invalid after a change in a buffer.  */);
   Vcomposition_function_table
     = Fmake_char_table (Qcomposition_function_table, Qnil);
 

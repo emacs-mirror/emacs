@@ -802,12 +802,12 @@ fs_query_fontset (name, regexpp)
 
 
 DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
-  "Return the name of a fontset that matches PATTERN.\n\
-The value is nil if there is no matching fontset.\n\
-PATTERN can contain `*' or `?' as a wildcard\n\
-just as X font name matching algorithm allows.\n\
-If REGEXPP is non-nil, PATTERN is a regular expression.")
-  (pattern, regexpp)
+       doc: /* Return the name of a fontset that matches PATTERN.
+The value is nil if there is no matching fontset.
+PATTERN can contain `*' or `?' as a wildcard
+just as X font name matching algorithm allows.
+If REGEXPP is non-nil, PATTERN is a regular expression.  */)
+     (pattern, regexpp)
      Lisp_Object pattern, regexpp;
 {
   Lisp_Object fontset;
@@ -877,9 +877,9 @@ list_fontsets (f, pattern, size)
 }
 
 DEFUN ("new-fontset", Fnew_fontset, Snew_fontset, 2, 2, 0,
-  "Create a new fontset NAME that contains font information in FONTLIST.\n\
-FONTLIST is an alist of charsets vs corresponding font name patterns.")
-  (name, fontlist)
+       doc: /* Create a new fontset NAME that contains font information in FONTLIST.
+FONTLIST is an alist of charsets vs corresponding font name patterns.  */)
+     (name, fontlist)
      Lisp_Object name, fontlist;
 {
   Lisp_Object fontset, elements, ascii_font;
@@ -976,17 +976,17 @@ check_fontset_name (name)
 }
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
-  "Modify fontset NAME to use FONTNAME for CHARACTER.\n\
-\n\
-CHARACTER may be a cons; (FROM . TO), where FROM and TO are\n\
-non-generic characters.  In that case, use FONTNAME\n\
-for all characters in the range FROM and TO (inclusive).\n\
-CHARACTER may be a charset.   In that case, use FONTNAME\n\
-for all character in the charsets.\n\
-\n\
-FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family\n\
-name of a font, REGSITRY is a registry name of a font.")
-  (name, character, fontname, frame)
+       doc: /* Modify fontset NAME to use FONTNAME for CHARACTER.
+
+CHARACTER may be a cons; (FROM . TO), where FROM and TO are
+non-generic characters.  In that case, use FONTNAME
+for all characters in the range FROM and TO (inclusive).
+CHARACTER may be a charset.   In that case, use FONTNAME
+for all character in the charsets.
+
+FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family
+name of a font, REGSITRY is a registry name of a font.  */)
+     (name, character, fontname, frame)
      Lisp_Object name, character, fontname, frame;
 {
   Lisp_Object fontset, elt;
@@ -1090,20 +1090,20 @@ name of a font, REGSITRY is a registry name of a font.")
 }
 
 DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
-  "Return information about a font named NAME on frame FRAME.\n\
-If FRAME is omitted or nil, use the selected frame.\n\
-The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,\n\
-  HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,\n\
-where\n\
-  OPENED-NAME is the name used for opening the font,\n\
-  FULL-NAME is the full name of the font,\n\
-  SIZE is the maximum bound width of the font,\n\
-  HEIGHT is the height of the font,\n\
-  BASELINE-OFFSET is the upward offset pixels from ASCII baseline,\n\
-  RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling\n\
-    how to compose characters.\n\
-If the named font is not yet loaded, return nil.")
-  (name, frame)
+       doc: /* Return information about a font named NAME on frame FRAME.
+If FRAME is omitted or nil, use the selected frame.
+The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,
+  HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,
+where
+  OPENED-NAME is the name used for opening the font,
+  FULL-NAME is the full name of the font,
+  SIZE is the maximum bound width of the font,
+  HEIGHT is the height of the font,
+  BASELINE-OFFSET is the upward offset pixels from ASCII baseline,
+  RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
+    how to compose characters.
+If the named font is not yet loaded, return nil.  */)
+     (name, frame)
      Lisp_Object name, frame;
 {
   FRAME_PTR f;
@@ -1157,8 +1157,8 @@ If the named font is not yet loaded, return nil.")
 
 
 DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
-  "For internal use only.")
-  (position)
+       doc: /* For internal use only.  */)
+     (position)
      Lisp_Object position;
 {
   int pos, pos_byte, dummy;
@@ -1239,23 +1239,23 @@ accumulate_font_info (arg, character, elt)
 
 
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
-  "Return information about a fontset named NAME on frame FRAME.\n\
-The value is a vector:\n\
-  [ SIZE HEIGHT ((CHARSET-OR-RANGE FONT-SPEC OPENED ...) ...) ],\n\
-where,\n\
-  SIZE is the maximum bound width of ASCII font in the fontset,\n\
-  HEIGHT is the maximum bound height of ASCII font in the fontset,\n\
-  CHARSET-OR-RANGE is a charset, a character (may be a generic character)\n\
-    or a cons of two characters specifying the range of characters.\n\
-  FONT-SPEC is a fontname pattern string or a cons (FAMILY . REGISTRY),\n\
-    where FAMILY is a `FAMILY' field of a XLFD font name,\n\
-    REGISTRY is a `CHARSET_REGISTRY' field of a XLDF font name.\n\
-    FAMILY may contain a `FOUNDARY' field at the head.\n\
-    REGISTRY may contain a `CHARSET_ENCODING' field at the tail.\n\
-  OPENEDs are names of fonts actually opened.\n\
-If the ASCII font is not yet opened, SIZE and HEIGHT are 0.\n\
-If FRAME is omitted, it defaults to the currently selected frame.")
-  (name, frame)
+       doc: /* Return information about a fontset named NAME on frame FRAME.
+The value is a vector:
+  [ SIZE HEIGHT ((CHARSET-OR-RANGE FONT-SPEC OPENED ...) ...) ],
+where,
+  SIZE is the maximum bound width of ASCII font in the fontset,
+  HEIGHT is the maximum bound height of ASCII font in the fontset,
+  CHARSET-OR-RANGE is a charset, a character (may be a generic character)
+    or a cons of two characters specifying the range of characters.
+  FONT-SPEC is a fontname pattern string or a cons (FAMILY . REGISTRY),
+    where FAMILY is a `FAMILY' field of a XLFD font name,
+    REGISTRY is a `CHARSET_REGISTRY' field of a XLDF font name.
+    FAMILY may contain a `FOUNDARY' field at the head.
+    REGISTRY may contain a `CHARSET_ENCODING' field at the tail.
+  OPENEDs are names of fonts actually opened.
+If the ASCII font is not yet opened, SIZE and HEIGHT are 0.
+If FRAME is omitted, it defaults to the currently selected frame.  */)
+     (name, frame)
      Lisp_Object name, frame;
 {
   Lisp_Object fontset;
@@ -1349,9 +1349,9 @@ If FRAME is omitted, it defaults to the currently selected frame.")
 }
 
 DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
-  "Return a font name pattern for character CH in fontset NAME.\n\
-If NAME is t, find a font name pattern in the default fontset.")
-  (name, ch)
+       doc: /* Return a font name pattern for character CH in fontset NAME.
+If NAME is t, find a font name pattern in the default fontset.  */)
+     (name, ch)
      Lisp_Object name, ch;
 {
   int c;
@@ -1373,8 +1373,8 @@ If NAME is t, find a font name pattern in the default fontset.")
   
 
 DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
-  "Return a list of all defined fontset names.")
-  ()
+       doc: /* Return a list of all defined fontset names.  */)
+     ()
 {
   Lisp_Object fontset, list;
   int i;
@@ -1430,58 +1430,58 @@ syms_of_fontset ()
   next_fontset_id = 1;
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
-    "Alist of fontname patterns vs corresponding encoding info.\n\
-Each element looks like (REGEXP . ENCODING-INFO),\n\
- where ENCODING-INFO is an alist of CHARSET vs ENCODING.\n\
-ENCODING is one of the following integer values:\n\
-	0: code points 0x20..0x7F or 0x2020..0x7F7F are used,\n\
-	1: code points 0xA0..0xFF or 0xA0A0..0xFFFF are used,\n\
-	2: code points 0x20A0..0x7FFF are used,\n\
-	3: code points 0xA020..0xFF7F are used.");
+	       doc: /* Alist of fontname patterns vs corresponding encoding info.
+Each element looks like (REGEXP . ENCODING-INFO),
+ where ENCODING-INFO is an alist of CHARSET vs ENCODING.
+ENCODING is one of the following integer values:
+	0: code points 0x20..0x7F or 0x2020..0x7F7F are used,
+	1: code points 0xA0..0xFF or 0xA0A0..0xFFFF are used,
+	2: code points 0x20A0..0x7FFF are used,
+	3: code points 0xA020..0xFF7F are used.  */);
   Vfont_encoding_alist = Qnil;
 
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
-     "Char table of characters whose ascent values should be ignored.\n\
-If an entry for a character is non-nil, the ascent value of the glyph\n\
-is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.\n\
-\n\
-This affects how a composite character which contains\n\
-such a character is displayed on screen.");
+	       doc: /* Char table of characters whose ascent values should be ignored.
+If an entry for a character is non-nil, the ascent value of the glyph
+is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.
+
+This affects how a composite character which contains
+such a character is displayed on screen.  */);
   Vuse_default_ascent = Qnil;
 
   DEFVAR_LISP ("ignore-relative-composition", &Vignore_relative_composition,
-     "Char table of characters which is not composed relatively.\n\
-If an entry for a character is non-nil, a composition sequence\n\
-which contains that character is displayed so that\n\
-the glyph of that character is put without considering\n\
-an ascent and descent value of a previous character.");
+	       doc: /* Char table of characters which is not composed relatively.
+If an entry for a character is non-nil, a composition sequence
+which contains that character is displayed so that
+the glyph of that character is put without considering
+an ascent and descent value of a previous character.  */);
   Vignore_relative_composition = Qnil;
 
   DEFVAR_LISP ("alternate-fontname-alist", &Valternate_fontname_alist,
-     "Alist of fontname vs list of the alternate fontnames.\n\
-When a specified font name is not found, the corresponding\n\
-alternate fontnames (if any) are tried instead.");
+	       doc: /* Alist of fontname vs list of the alternate fontnames.
+When a specified font name is not found, the corresponding
+alternate fontnames (if any) are tried instead.  */);
   Valternate_fontname_alist = Qnil;
 
   DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
-     "Alist of fontset names vs the aliases.");
+	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
 				       build_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
-     "*This variable is obsolete.");
+	       doc: /* *This variable is obsolete.  */);
   Vhighlight_wrong_size_font = Qnil;
 
   DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
-     "*This variable is obsolete.");
+	       doc: /* *This variable is obsolete.  */);
   Vclip_large_size_font = Qt;
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
 	       &Vvertical_centering_font_regexp,
-    "*Regexp matching font names that require vertical centering on display.\n\
-When a character is displayed with such fonts, the character is displayed\n\
-at the vertival center of lines.");
+	       doc: /* *Regexp matching font names that require vertical centering on display.
+When a character is displayed with such fonts, the character is displayed
+at the vertival center of lines.  */);
   Vvertical_centering_font_regexp = Qnil;
 
   defsubr (&Squery_fontset);

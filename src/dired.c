@@ -332,14 +332,14 @@ directory_files_internal (directory, full, match, nosort, attrs)
 
 
 DEFUN ("directory-files", Fdirectory_files, Sdirectory_files, 1, 4, 0,
-  "Return a list of names of files in DIRECTORY.\n\
-There are three optional arguments:\n\
-If FULL is non-nil, return absolute file names.  Otherwise return names\n\
- that are relative to the specified directory.\n\
-If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
-If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
- NOSORT is useful if you plan to sort the result yourself.")
-  (directory, full, match, nosort)
+       doc: /* Return a list of names of files in DIRECTORY.
+There are three optional arguments:
+If FULL is non-nil, return absolute file names.  Otherwise return names
+ that are relative to the specified directory.
+If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
+ NOSORT is useful if you plan to sort the result yourself.  */)
+     (directory, full, match, nosort)
      Lisp_Object directory, full, match, nosort;
 {
   Lisp_Object handler;
@@ -363,15 +363,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   return directory_files_internal (directory, full, match, nosort, 0);
 }
 
-DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes, Sdirectory_files_and_attributes, 1, 4, 0,
-  "Return a list of names of files and their attributes in DIRECTORY.\n\
-There are three optional arguments:\n\
-If FULL is non-nil, return absolute file names.  Otherwise return names\n\
- that are relative to the specified directory.\n\
-If MATCH is non-nil, mention only file names that match the regexp MATCH.\n\
-If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
- NOSORT is useful if you plan to sort the result yourself.")
-  (directory, full, match, nosort)
+DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
+       Sdirectory_files_and_attributes, 1, 4, 0,
+       doc: /* Return a list of names of files and their attributes in DIRECTORY.
+There are three optional arguments:
+If FULL is non-nil, return absolute file names.  Otherwise return names
+ that are relative to the specified directory.
+If MATCH is non-nil, mention only file names that match the regexp MATCH.
+If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
+ NOSORT is useful if you plan to sort the result yourself.  */)
+     (directory, full, match, nosort)
      Lisp_Object directory, full, match, nosort;
 {
   Lisp_Object handler;
@@ -399,16 +400,16 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 Lisp_Object file_name_completion ();
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
-  2, 2, 0,
-  "Complete file name FILE in directory DIRECTORY.\n\
-Returns the longest string\n\
-common to all file names in DIRECTORY that start with FILE.\n\
-If there is only one and FILE matches it exactly, returns t.\n\
-Returns nil if DIR contains no name starting with FILE.\n\
-\n\
-This function ignores some of the possible completions as\n\
-determined by the variable `completion-ignored-extensions', which see.")
-  (file, directory)
+       2, 2, 0,
+       doc: /* Complete file name FILE in directory DIRECTORY.
+Returns the longest string
+common to all file names in DIRECTORY that start with FILE.
+If there is only one and FILE matches it exactly, returns t.
+Returns nil if DIR contains no name starting with FILE.
+
+This function ignores some of the possible completions as
+determined by the variable `completion-ignored-extensions', which see.  */)
+     (file, directory)
      Lisp_Object file, directory;
 {
   Lisp_Object handler;
@@ -429,10 +430,10 @@ determined by the variable `completion-ignored-extensions', which see.")
 }
 
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
-  Sfile_name_all_completions, 2, 2, 0,
-  "Return a list of all completions of file name FILE in directory DIRECTORY.\n\
-These are all file names in directory DIRECTORY which begin with FILE.")
-  (file, directory)
+       Sfile_name_all_completions, 2, 2, 0,
+       doc: /* Return a list of all completions of file name FILE in directory DIRECTORY.
+These are all file names in directory DIRECTORY which begin with FILE.  */)
+     (file, directory)
      Lisp_Object file, directory;
 {
   Lisp_Object handler;
@@ -787,18 +788,18 @@ file_name_completion_stat (dirname, dp, st_addr)
 #ifdef VMS
 
 DEFUN ("file-name-all-versions", Ffile_name_all_versions,
-  Sfile_name_all_versions, 2, 2, 0,
-  "Return a list of all versions of file name FILE in directory DIRECTORY.")
-  (file, directory)
+       Sfile_name_all_versions, 2, 2, 0,
+       doc: /* Return a list of all versions of file name FILE in directory DIRECTORY.  */)
+     (file, directory)
      Lisp_Object file, directory;
 {
   return file_name_completion (file, directory, 1, 1);
 }
 
 DEFUN ("file-version-limit", Ffile_version_limit, Sfile_version_limit, 1, 1, 0,
-  "Return the maximum number of versions allowed for FILE.\n\
-Returns nil if the file cannot be opened or if there is no version limit.")
-  (filename)
+       doc: /* Return the maximum number of versions allowed for FILE.
+Returns nil if the file cannot be opened or if there is no version limit.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object retval;
@@ -834,29 +835,29 @@ make_time (time)
 }
 
 DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 1, 0,
-  "Return a list of attributes of file FILENAME.\n\
-Value is nil if specified file cannot be opened.\n\
-Otherwise, list elements are:\n\
- 0. t for directory, string (name linked to) for symbolic link, or nil.\n\
- 1. Number of links to file.\n\
- 2. File uid.\n\
- 3. File gid.\n\
- 4. Last access time, as a list of two integers.\n\
-  First integer has high-order 16 bits of time, second has low 16 bits.\n\
- 5. Last modification time, likewise.\n\
- 6. Last status change time, likewise.\n\
- 7. Size in bytes.\n\
-  This is a floating point number if the size is too large for an integer.\n\
- 8. File modes, as a string of ten letters or dashes as in ls -l.\n\
- 9. t iff file's gid would change if file were deleted and recreated.\n\
-10. inode number.  If inode number is larger than the Emacs integer,\n\
-  this is a cons cell containing two integers: first the high part,\n\
-  then the low 16 bits.\n\
-11. Device number.  If it is larger than the Emacs integer, this is\n\
-  a cons cell, similar to the inode number.\n\
-\n\
-If file does not exist, returns nil.")
-  (filename)
+       doc: /* Return a list of attributes of file FILENAME.
+Value is nil if specified file cannot be opened.
+Otherwise, list elements are:
+ 0. t for directory, string (name linked to) for symbolic link, or nil.
+ 1. Number of links to file.
+ 2. File uid.
+ 3. File gid.
+ 4. Last access time, as a list of two integers.
+  First integer has high-order 16 bits of time, second has low 16 bits.
+ 5. Last modification time, likewise.
+ 6. Last status change time, likewise.
+ 7. Size in bytes.
+  This is a floating point number if the size is too large for an integer.
+ 8. File modes, as a string of ten letters or dashes as in ls -l.
+ 9. t iff file's gid would change if file were deleted and recreated.
+10. inode number.  If inode number is larger than the Emacs integer,
+  this is a cons cell containing two integers: first the high part,
+  then the low 16 bits.
+11. Device number.  If it is larger than the Emacs integer, this is
+  a cons cell, similar to the inode number.
+
+If file does not exist, returns nil.  */)
+     (filename)
      Lisp_Object filename;
 {
   Lisp_Object values[12];
@@ -937,9 +938,9 @@ If file does not exist, returns nil.")
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
-  "Return t if first arg file attributes list is less than second.\n\
-Comparison is in lexicographic order and case is significant.")
-  (f1, f2)
+       doc: /* Return t if first arg file attributes list is less than second.
+Comparison is in lexicographic order and case is significant.  */)
+     (f1, f2)
      Lisp_Object f1, f2;
 {
   return Fstring_lessp (Fcar (f1), Fcar (f2));
@@ -979,10 +980,10 @@ syms_of_dired ()
 #endif /* VMS */
 
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
-    "*Completion ignores filenames ending in any string in this list.\n\
-Directories are ignored if they match any string in this list which\n\
-ends in a slash.\n\
-This variable does not affect lists of possible completions,\n\
-but does affect the commands that actually do completions.");
+	       doc: /* *Completion ignores filenames ending in any string in this list.
+Directories are ignored if they match any string in this list which
+ends in a slash.
+This variable does not affect lists of possible completions,
+but does affect the commands that actually do completions.  */);
   Vcompletion_ignored_extensions = Qnil;
 }

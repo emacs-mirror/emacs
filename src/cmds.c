@@ -44,8 +44,8 @@ Lisp_Object Vself_insert_face_command;
 extern Lisp_Object Qface;
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
-  "Return buffer position N characters after (before if N negative) point.")
-  (n)
+       doc: /* Return buffer position N characters after (before if N negative) point.  */)
+     (n)
      Lisp_Object n;
 {
   CHECK_NUMBER (n);
@@ -54,9 +54,9 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
 }
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
-  "Move point right N characters (left if N is negative).\n\
-On reaching end of buffer, stop and signal error.")
-  (n)
+       doc: /* Move point right N characters (left if N is negative).
+On reaching end of buffer, stop and signal error.  */)
+     (n)
      Lisp_Object n;
 {
   if (NILP (n))
@@ -90,9 +90,9 @@ On reaching end of buffer, stop and signal error.")
 }
 
 DEFUN ("backward-char", Fbackward_char, Sbackward_char, 0, 1, "p",
-  "Move point left N characters (right if N is negative).\n\
-On attempt to pass beginning or end of buffer, stop and signal error.")
-  (n)
+       doc: /* Move point left N characters (right if N is negative).
+On attempt to pass beginning or end of buffer, stop and signal error.  */)
+     (n)
      Lisp_Object n;
 {
   if (NILP (n))
@@ -105,14 +105,14 @@ On attempt to pass beginning or end of buffer, stop and signal error.")
 }
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "p",
-  "Move N lines forward (backward if N is negative).\n\
-Precisely, if point is on line I, move to the start of line I + N.\n\
-If there isn't room, go as far as possible (no error).\n\
-Returns the count of lines left to move.  If moving forward,\n\
-that is N - number of lines moved; if backward, N + number moved.\n\
-With positive N, a non-empty line at the end counts as one line\n\
-  successfully moved (for the return value).")
-  (n)
+       doc: /* Move N lines forward (backward if N is negative).
+Precisely, if point is on line I, move to the start of line I + N.
+If there isn't room, go as far as possible (no error).
+Returns the count of lines left to move.  If moving forward,
+that is N - number of lines moved; if backward, N + number moved.
+With positive N, a non-empty line at the end counts as one line
+  successfully moved (for the return value).  */)
+     (n)
      Lisp_Object n;
 {
   int opoint = PT, opoint_byte = PT_BYTE;
@@ -198,11 +198,11 @@ boundaries bind `inhibit-field-text-motion' to t.  */)
 }
 
 DEFUN ("delete-char", Fdelete_char, Sdelete_char, 1, 2, "p\nP",
-  "Delete the following N characters (previous if N is negative).\n\
-Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).\n\
-Interactively, N is the prefix arg, and KILLFLAG is set if\n\
-N was explicitly specified.")
-  (n, killflag)
+       doc: /* Delete the following N characters (previous if N is negative).
+Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
+Interactively, N is the prefix arg, and KILLFLAG is set if
+N was explicitly specified.  */)
+     (n, killflag)
      Lisp_Object n, killflag;
 {
   int pos;
@@ -235,12 +235,12 @@ N was explicitly specified.")
 }
 
 DEFUN ("delete-backward-char", Fdelete_backward_char, Sdelete_backward_char,
-  1, 2, "p\nP",
-  "Delete the previous N characters (following if N is negative).\n\
-Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).\n\
-Interactively, N is the prefix arg, and KILLFLAG is set if\n\
-N was explicitly specified.")
-  (n, killflag)
+       1, 2, "p\nP",
+       doc: /* Delete the previous N characters (following if N is negative).
+Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
+Interactively, N is the prefix arg, and KILLFLAG is set if
+N was explicitly specified.  */)
+     (n, killflag)
      Lisp_Object n, killflag;
 {
   Lisp_Object value;
@@ -287,9 +287,9 @@ N was explicitly specified.")
 }
 
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
-  "Insert the character you type.\n\
-Whichever character you type to run this command is inserted.")
-  (n)
+       doc: /* Insert the character you type.
+Whichever character you type to run this command is inserted.  */)
+     (n)
      Lisp_Object n;
 {
   int character = XINT (last_command_char);
@@ -534,18 +534,18 @@ syms_of_cmds ()
   staticpro (&Qoverwrite_mode_binary);
 
   DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
-    "If non-nil, set the face of the next self-inserting character to this.\n\
-See also `self-insert-face-command'.");
+	       doc: /* If non-nil, set the face of the next self-inserting character to this.
+See also `self-insert-face-command'.  */);
   Vself_insert_face = Qnil;
 
   DEFVAR_LISP ("self-insert-face-command", &Vself_insert_face_command,
-    "This is the command that set up `self-insert-face'.\n\
-If `last-command' does not equal this value, we ignore `self-insert-face'.");
+	       doc: /* This is the command that set up `self-insert-face'.
+If `last-command' does not equal this value, we ignore `self-insert-face'.  */);
   Vself_insert_face_command = Qnil;
 
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
-    "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
-More precisely, a char with closeparen syntax is self-inserted.");
+	       doc: /* Function called, if non-nil, whenever a close parenthesis is inserted.
+More precisely, a char with closeparen syntax is self-inserted.  */);
   Vblink_paren_function = Qnil;
 
   defsubr (&Sforward_point);

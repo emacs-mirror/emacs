@@ -673,11 +673,11 @@ unlock_all_files ()
 }
 
 DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
-  0, 1, 0,
-  "Lock FILE, if current buffer is modified.\n\
-FILE defaults to current buffer's visited file,\n\
-or else nothing is done if current buffer isn't visiting a file.")
-  (file)
+       0, 1, 0,
+       doc: /* Lock FILE, if current buffer is modified.
+FILE defaults to current buffer's visited file,
+or else nothing is done if current buffer isn't visiting a file.  */)
+     (file)
      Lisp_Object file;
 {
   if (NILP (file))
@@ -691,10 +691,10 @@ or else nothing is done if current buffer isn't visiting a file.")
 }
 
 DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
-  0, 0, 0,
- "Unlock the file visited in the current buffer,\n\
-if it should normally be locked.")
-  ()
+       0, 0, 0,
+       doc: /* Unlock the file visited in the current buffer,
+if it should normally be locked.  */)
+     ()
 {
   if (SAVE_MODIFF < MODIFF
       && STRINGP (current_buffer->file_truename))
@@ -714,10 +714,10 @@ unlock_buffer (buffer)
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
-  "Return nil if the FILENAME is not locked,\n\
-t if it is locked by you, else a string of the name of the locker.")
-  (filename)
-  Lisp_Object filename;
+       doc: /* Return nil if the FILENAME is not locked,
+t if it is locked by you, else a string of the name of the locker.  */)
+     (filename)
+     Lisp_Object filename;
 {
   Lisp_Object ret;
   register char *lfname;
@@ -755,7 +755,7 @@ void
 syms_of_filelock ()
 {
   DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
-    "The directory for writing temporary files.");
+	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 
   defsubr (&Sunlock_buffer);

@@ -116,14 +116,15 @@ static void describe_map P_ ((Lisp_Object, Lisp_Object,
 /* Keymap object support - constructors and predicates.			*/
 
 DEFUN ("make-keymap", Fmake_keymap, Smake_keymap, 0, 1, 0,
-  "Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).\n\
-CHARTABLE is a char-table that holds the bindings for the ASCII\n\
-characters.  ALIST is an assoc-list which holds bindings for function keys,\n\
-mouse events, and any other things that appear in the input stream.\n\
-All entries in it are initially nil, meaning \"command undefined\".\n\n\
-The optional arg STRING supplies a menu name for the keymap\n\
-in case you use it as a menu with `x-popup-menu'.")
-  (string)
+       doc: /* Construct and return a new keymap, of the form (keymap CHARTABLE . ALIST).
+CHARTABLE is a char-table that holds the bindings for the ASCII
+characters.  ALIST is an assoc-list which holds bindings for function keys,
+mouse events, and any other things that appear in the input stream.
+All entries in it are initially nil, meaning "command undefined".
+
+The optional arg STRING supplies a menu name for the keymap
+in case you use it as a menu with `x-popup-menu'.  */)
+     (string)
      Lisp_Object string;
 {
   Lisp_Object tail;
@@ -136,14 +137,15 @@ in case you use it as a menu with `x-popup-menu'.")
 }
 
 DEFUN ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 1, 0,
-  "Construct and return a new sparse keymap.\n\
-Its car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),\n\
-which binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),\n\
-which binds the function key or mouse event SYMBOL to DEFINITION.\n\
-Initially the alist is nil.\n\n\
-The optional arg STRING supplies a menu name for the keymap\n\
-in case you use it as a menu with `x-popup-menu'.")
-  (string)
+       doc: /* Construct and return a new sparse keymap.
+Its car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),
+which binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),
+which binds the function key or mouse event SYMBOL to DEFINITION.
+Initially the alist is nil.
+
+The optional arg STRING supplies a menu name for the keymap
+in case you use it as a menu with `x-popup-menu'.  */)
+     (string)
      Lisp_Object string;
 {
   if (!NILP (string))
@@ -177,24 +179,24 @@ initial_define_lispy_key (keymap, keyname, defname)
 }
 
 DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
-  "Return t if OBJECT is a keymap.\n\
-\n\
-A keymap is a list (keymap . ALIST),\n\
-or a symbol whose function definition is itself a keymap.\n\
-ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);\n\
-a vector of densely packed bindings for small character codes\n\
-is also allowed as an element.")
-  (object)
+       doc: /* Return t if OBJECT is a keymap.
+
+A keymap is a list (keymap . ALIST),
+or a symbol whose function definition is itself a keymap.
+ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);
+a vector of densely packed bindings for small character codes
+is also allowed as an element.  */)
+     (object)
      Lisp_Object object;
 {
   return (KEYMAPP (object) ? Qt : Qnil);
 }
 
 DEFUN ("keymap-prompt", Fkeymap_prompt, Skeymap_prompt, 1, 1, 0,
-  "Return the prompt-string of a keymap MAP.\n\
-If non-nil, the prompt is shown in the echo-area\n\
-when reading a key-sequence to be looked-up in this keymap.")
-  (map)
+       doc: /* Return the prompt-string of a keymap MAP.
+If non-nil, the prompt is shown in the echo-area
+when reading a key-sequence to be looked-up in this keymap.  */)
+     (map)
      Lisp_Object map;
 {
   while (CONSP (map))
@@ -284,8 +286,8 @@ get_keymap (object, error, autoload)
    We assume that MAP is a valid keymap.  */
 
 DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
-  "Return the parent keymap of KEYMAP.")
-  (keymap)
+       doc: /* Return the parent keymap of KEYMAP.  */)
+     (keymap)
      Lisp_Object keymap;
 {
   Lisp_Object list;
@@ -319,9 +321,9 @@ keymap_memberp (map, maps)
 /* Set the parent keymap of MAP to PARENT.  */
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
-  "Modify KEYMAP to set its parent map to PARENT.\n\
-PARENT should be nil or another keymap.")
-  (keymap, parent)
+       doc: /* Modify KEYMAP to set its parent map to PARENT.
+PARENT should be nil or another keymap.  */)
+     (keymap, parent)
      Lisp_Object keymap, parent;
 {
   Lisp_Object list, prev;
@@ -813,13 +815,13 @@ copy_keymap_1 (chartable, idx, elt)
 }
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
-  "Return a copy of the keymap KEYMAP.\n\
-The copy starts out with the same definitions of KEYMAP,\n\
-but changing either the copy or KEYMAP does not affect the other.\n\
-Any key definitions that are subkeymaps are recursively copied.\n\
-However, a key definition which is a symbol whose definition is a keymap\n\
-is not copied.")
-  (keymap)
+       doc: /* Return a copy of the keymap KEYMAP.
+The copy starts out with the same definitions of KEYMAP,
+but changing either the copy or KEYMAP does not affect the other.
+Any key definitions that are subkeymaps are recursively copied.
+However, a key definition which is a symbol whose definition is a keymap
+is not copied.  */)
+     (keymap)
      Lisp_Object keymap;
 {
   /* FIXME: This doesn't properly copy menu-items in vectors.  */
@@ -936,26 +938,26 @@ is not copied.")
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
-  "Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.\n\
-KEYMAP is a keymap.  KEY is a string or a vector of symbols and characters\n\
-meaning a sequence of keystrokes and events.\n\
-Non-ASCII characters with codes above 127 (such as ISO Latin-1)\n\
-can be included if you use a vector.\n\
-DEF is anything that can be a key's definition:\n\
- nil (means key is undefined in this keymap),\n\
- a command (a Lisp function suitable for interactive calling)\n\
- a string (treated as a keyboard macro),\n\
- a keymap (to define a prefix key),\n\
- a symbol.  When the key is looked up, the symbol will stand for its\n\
-    function definition, which should at that time be one of the above,\n\
-    or another symbol whose function definition is used, etc.\n\
- a cons (STRING . DEFN), meaning that DEFN is the definition\n\
-    (DEFN should be a valid definition in its own right),\n\
- or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.\n\
-\n\
-If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at\n\
-the front of KEYMAP.")
-  (keymap, key, def)
+       doc: /* Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.
+KEYMAP is a keymap.  KEY is a string or a vector of symbols and characters
+meaning a sequence of keystrokes and events.
+Non-ASCII characters with codes above 127 (such as ISO Latin-1)
+can be included if you use a vector.
+DEF is anything that can be a key's definition:
+ nil (means key is undefined in this keymap),
+ a command (a Lisp function suitable for interactive calling)
+ a string (treated as a keyboard macro),
+ a keymap (to define a prefix key),
+ a symbol.  When the key is looked up, the symbol will stand for its
+    function definition, which should at that time be one of the above,
+    or another symbol whose function definition is used, etc.
+ a cons (STRING . DEFN), meaning that DEFN is the definition
+    (DEFN should be a valid definition in its own right),
+ or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
+
+If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at
+the front of KEYMAP.  */)
+     (keymap, key, def)
      Lisp_Object keymap;
      Lisp_Object key;
      Lisp_Object def;
@@ -1036,21 +1038,21 @@ the front of KEYMAP.")
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
-  "In keymap KEYMAP, look up key sequence KEY.  Return the definition.\n\
-nil means undefined.  See doc of `define-key' for kinds of definitions.\n\
-\n\
-A number as value means KEY is \"too long\";\n\
-that is, characters or symbols in it except for the last one\n\
-fail to be a valid sequence of prefix characters in KEYMAP.\n\
-The number is how many characters at the front of KEY\n\
-it takes to reach a non-prefix command.\n\
-\n\
-Normally, `lookup-key' ignores bindings for t, which act as default\n\
-bindings, used when nothing else in the keymap applies; this makes it\n\
-usable as a general function for probing keymaps.  However, if the\n\
-third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will\n\
-recognize the default bindings, just as `read-key-sequence' does.")
-  (keymap, key, accept_default)
+       doc: /* In keymap KEYMAP, look up key sequence KEY.  Return the definition.
+nil means undefined.  See doc of `define-key' for kinds of definitions.
+
+A number as value means KEY is "too long";
+that is, characters or symbols in it except for the last one
+fail to be a valid sequence of prefix characters in KEYMAP.
+The number is how many characters at the front of KEY
+it takes to reach a non-prefix command.
+
+Normally, `lookup-key' ignores bindings for t, which act as default
+bindings, used when nothing else in the keymap applies; this makes it
+usable as a general function for probing keymaps.  However, if the
+third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
+recognize the default bindings, just as `read-key-sequence' does.  */)
+     (keymap, key, accept_default)
      register Lisp_Object keymap;
      Lisp_Object key;
      Lisp_Object accept_default;
@@ -1252,10 +1254,10 @@ current_minor_maps (modeptr, mapptr)
 }
 
 DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
-  0, 1, 0,
-  "Return a list of the currently active keymaps.\n\
-OLP if non-nil indicates that we should obey `overriding-local-map' and\n\
-`overriding-terminal-local-map'.")
+       0, 1, 0,
+       doc: /* Return a list of the currently active keymaps.
+OLP if non-nil indicates that we should obey `overriding-local-map' and
+`overriding-terminal-local-map'.  */)
      (olp)
      Lisp_Object olp;
 {
@@ -1295,16 +1297,16 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and\n\
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 2, 0,
-  "Return the binding for command KEY in current keymaps.\n\
-KEY is a string or vector, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.\n\
-\n\
-Normally, `key-binding' ignores bindings for t, which act as default\n\
-bindings, used when nothing else in the keymap applies; this makes it\n\
-usable as a general function for probing keymaps.  However, if the\n\
-optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does\n\
-recognize the default bindings, just as `read-key-sequence' does.")
-  (key, accept_default)
+       doc: /* Return the binding for command KEY in current keymaps.
+KEY is a string or vector, a sequence of keystrokes.
+The binding is probably a symbol with a function definition.
+
+Normally, `key-binding' ignores bindings for t, which act as default
+bindings, used when nothing else in the keymap applies; this makes it
+usable as a general function for probing keymaps.  However, if the
+optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does
+recognize the default bindings, just as `read-key-sequence' does.  */)
+     (key, accept_default)
      Lisp_Object key, accept_default;
 {
   Lisp_Object *maps, value;
@@ -1371,13 +1373,13 @@ recognize the default bindings, just as `read-key-sequence' does.")
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
-  "Return the binding for command KEYS in current local keymap only.\n\
-KEYS is a string, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.\n\
-\n\
-If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
-bindings; see the description of `lookup-key' for more details about this.")
-  (keys, accept_default)
+       doc: /* Return the binding for command KEYS in current local keymap only.
+KEYS is a string, a sequence of keystrokes.
+The binding is probably a symbol with a function definition.
+
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default
+bindings; see the description of `lookup-key' for more details about this.  */)
+     (keys, accept_default)
      Lisp_Object keys, accept_default;
 {
   register Lisp_Object map;
@@ -1390,15 +1392,15 @@ bindings; see the description of `lookup-key' for more details about this.")
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
-  "Return the binding for command KEYS in current global keymap only.\n\
-KEYS is a string, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.\n\
-This function's return values are the same as those of lookup-key\n\
-\(which see).\n\
-\n\
-If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
-bindings; see the description of `lookup-key' for more details about this.")
-  (keys, accept_default)
+       doc: /* Return the binding for command KEYS in current global keymap only.
+KEYS is a string, a sequence of keystrokes.
+The binding is probably a symbol with a function definition.
+This function's return values are the same as those of lookup-key
+\(which see).
+
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default
+bindings; see the description of `lookup-key' for more details about this.  */)
+     (keys, accept_default)
      Lisp_Object keys, accept_default;
 {
   return Flookup_key (current_global_map, keys, accept_default);
@@ -1407,18 +1409,18 @@ bindings; see the description of `lookup-key' for more details about this.")
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
-  "Find the visible minor mode bindings of KEY.\n\
-Return an alist of pairs (MODENAME . BINDING), where MODENAME is the\n\
-the symbol which names the minor mode binding KEY, and BINDING is\n\
-KEY's definition in that mode.  In particular, if KEY has no\n\
-minor-mode bindings, return nil.  If the first binding is a\n\
-non-prefix, all subsequent bindings will be omitted, since they would\n\
-be ignored.  Similarly, the list doesn't include non-prefix bindings\n\
-that come after prefix bindings.\n\
-\n\
-If optional argument ACCEPT-DEFAULT is non-nil, recognize default\n\
-bindings; see the description of `lookup-key' for more details about this.")
-  (key, accept_default)
+       doc: /* Find the visible minor mode bindings of KEY.
+Return an alist of pairs (MODENAME . BINDING), where MODENAME is the
+the symbol which names the minor mode binding KEY, and BINDING is
+KEY's definition in that mode.  In particular, if KEY has no
+minor-mode bindings, return nil.  If the first binding is a
+non-prefix, all subsequent bindings will be omitted, since they would
+be ignored.  Similarly, the list doesn't include non-prefix bindings
+that come after prefix bindings.
+
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default
+bindings; see the description of `lookup-key' for more details about this.  */)
+     (key, accept_default)
      Lisp_Object key, accept_default;
 {
   Lisp_Object *modes, *maps;
@@ -1450,14 +1452,14 @@ bindings; see the description of `lookup-key' for more details about this.")
 }
 
 DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 3, 0,
-  "Define COMMAND as a prefix command.  COMMAND should be a symbol.\n\
-A new sparse keymap is stored as COMMAND's function definition and its value.\n\
-If a second optional argument MAPVAR is given, the map is stored as\n\
-its value instead of as COMMAND's value; but COMMAND is still defined\n\
-as a function.\n\
-The third optional argument NAME, if given, supplies a menu name\n\
-string for the map.  This is required to use the keymap as a menu.")
-  (command, mapvar, name)
+       doc: /* Define COMMAND as a prefix command.  COMMAND should be a symbol.
+A new sparse keymap is stored as COMMAND's function definition and its value.
+If a second optional argument MAPVAR is given, the map is stored as
+its value instead of as COMMAND's value; but COMMAND is still defined
+as a function.
+The third optional argument NAME, if given, supplies a menu name
+string for the map.  This is required to use the keymap as a menu.  */)
+     (command, mapvar, name)
      Lisp_Object command, mapvar, name;
 {
   Lisp_Object map;
@@ -1471,8 +1473,8 @@ string for the map.  This is required to use the keymap as a menu.")
 }
 
 DEFUN ("use-global-map", Fuse_global_map, Suse_global_map, 1, 1, 0,
-  "Select KEYMAP as the global keymap.")
-  (keymap)
+       doc: /* Select KEYMAP as the global keymap.  */)
+     (keymap)
      Lisp_Object keymap;
 {
   keymap = get_keymap (keymap, 1, 1);
@@ -1482,9 +1484,9 @@ DEFUN ("use-global-map", Fuse_global_map, Suse_global_map, 1, 1, 0,
 }
 
 DEFUN ("use-local-map", Fuse_local_map, Suse_local_map, 1, 1, 0,
-  "Select KEYMAP as the local keymap.\n\
-If KEYMAP is nil, that means no local keymap.")
-  (keymap)
+       doc: /* Select KEYMAP as the local keymap.
+If KEYMAP is nil, that means no local keymap.  */)
+     (keymap)
      Lisp_Object keymap;
 {
   if (!NILP (keymap))
@@ -1496,22 +1498,22 @@ If KEYMAP is nil, that means no local keymap.")
 }
 
 DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
-  "Return current buffer's local keymap, or nil if it has none.")
-  ()
+       doc: /* Return current buffer's local keymap, or nil if it has none.  */)
+     ()
 {
   return current_buffer->keymap;
 }
 
 DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
-  "Return the current global keymap.")
-  ()
+       doc: /* Return the current global keymap.  */)
+     ()
 {
   return current_global_map;
 }
 
 DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_maps, 0, 0, 0,
-  "Return a list of keymaps for the minor modes of the current buffer.")
-  ()
+       doc: /* Return a list of keymaps for the minor modes of the current buffer.  */)
+     ()
 {
   Lisp_Object *maps;
   int nmaps = current_minor_maps (0, &maps);
@@ -1583,14 +1585,14 @@ accessible_keymaps_char_table (args, index, cmd)
 /* This function cannot GC.  */
 
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
-  1, 2, 0,
-  "Find all keymaps accessible via prefix characters from KEYMAP.\n\
-Returns a list of elements of the form (KEYS . MAP), where the sequence\n\
-KEYS starting from KEYMAP gets you to MAP.  These elements are ordered\n\
-so that the KEYS increase in length.  The first element is ([] . KEYMAP).\n\
-An optional argument PREFIX, if non-nil, should be a key sequence;\n\
-then the value includes only maps for prefixes that start with PREFIX.")
-  (keymap, prefix)
+       1, 2, 0,
+       doc: /* Find all keymaps accessible via prefix characters from KEYMAP.
+Returns a list of elements of the form (KEYS . MAP), where the sequence
+KEYS starting from KEYMAP gets you to MAP.  These elements are ordered
+so that the KEYS increase in length.  The first element is ([] . KEYMAP).
+An optional argument PREFIX, if non-nil, should be a key sequence;
+then the value includes only maps for prefixes that start with PREFIX.  */)
+     (keymap, prefix)
      Lisp_Object keymap, prefix;
 {
   Lisp_Object maps, good_maps, tail;
@@ -1735,10 +1737,10 @@ Lisp_Object Qsingle_key_description, Qkey_description;
 /* This function cannot GC.  */
 
 DEFUN ("key-description", Fkey_description, Skey_description, 1, 1, 0,
-  "Return a pretty description of key-sequence KEYS.\n\
-Control characters turn into \"C-foo\" sequences, meta into \"M-foo\"\n\
-spaces are put between sequence elements, etc.")
-  (keys)
+       doc: /* Return a pretty description of key-sequence KEYS.
+Control characters turn into "C-foo" sequences, meta into "M-foo"
+spaces are put between sequence elements, etc.  */)
+     (keys)
      Lisp_Object keys;
 {
   int len = 0;
@@ -1937,11 +1939,11 @@ push_key_description (c, p, force_multibyte)
 
 DEFUN ("single-key-description", Fsingle_key_description,
        Ssingle_key_description, 1, 2, 0,
-  "Return a pretty description of command character KEY.\n\
-Control characters turn into C-whatever, etc.\n\
-Optional argument NO-ANGLES non-nil means don't put angle brackets\n\
-around function keys and event symbols.")
-  (key, no_angles)
+       doc: /* Return a pretty description of command character KEY.
+Control characters turn into C-whatever, etc.
+Optional argument NO-ANGLES non-nil means don't put angle brackets
+around function keys and event symbols.  */)
+     (key, no_angles)
      Lisp_Object key, no_angles;
 {
   if (CONSP (key) && lucid_event_type_list_p (key))
@@ -2037,9 +2039,9 @@ push_text_char_description (c, p)
 /* This function cannot GC.  */
 
 DEFUN ("text-char-description", Ftext_char_description, Stext_char_description, 1, 1, 0,
-  "Return a pretty description of file-character CHARACTER.\n\
-Control characters turn into \"^char\", etc.")
-  (character)
+       doc: /* Return a pretty description of file-character CHARACTER.
+Control characters turn into "^char", etc.  */)
+     (character)
      Lisp_Object character;
 {
   /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
@@ -2276,22 +2278,22 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 }
 
 DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 4, 0,
-  "Return list of keys that invoke DEFINITION.\n\
-If KEYMAP is non-nil, search only KEYMAP and the global keymap.\n\
-If KEYMAP is nil, search all the currently active keymaps.\n\
-If KEYMAP is a list of keymaps, search only those keymaps.\n\
-\n\
-If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n\
-rather than a list of all possible key sequences.\n\
-If FIRSTONLY is the symbol `non-ascii', return the first binding found,\n\
-no matter what it is.\n\
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,\n\
-and entirely reject menu bindings.\n\
-\n\
-If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
-to other keymaps or slots.  This makes it possible to search for an\n\
-indirect definition itself.")
-  (definition, keymap, firstonly, noindirect)
+       doc: /* Return list of keys that invoke DEFINITION.
+If KEYMAP is non-nil, search only KEYMAP and the global keymap.
+If KEYMAP is nil, search all the currently active keymaps.
+If KEYMAP is a list of keymaps, search only those keymaps.
+
+If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,
+rather than a list of all possible key sequences.
+If FIRSTONLY is the symbol `non-ascii', return the first binding found,
+no matter what it is.
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,
+and entirely reject menu bindings.
+
+If optional 4th arg NOINDIRECT is non-nil, don't follow indirections
+to other keymaps or slots.  This makes it possible to search for an
+indirect definition itself.  */)
+     (definition, keymap, firstonly, noindirect)
      Lisp_Object definition, keymap;
      Lisp_Object firstonly, noindirect;
 {
@@ -2456,14 +2458,14 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
 
 DEFUN ("describe-buffer-bindings", Fdescribe_buffer_bindings, Sdescribe_buffer_bindings, 1, 3, 0,
-  "Insert the list of all defined keys and their definitions.\n\
-The list is inserted in the current buffer, while the bindings are\n\
-looked up in BUFFER.\n\
-The optional argument PREFIX, if non-nil, should be a key sequence;\n\
-then we display only bindings that start with that prefix.\n\
-The optional argument MENUS, if non-nil, says to mention menu bindings.\n\
-\(Ordinarily these are omitted from the output.)")
- (buffer, prefix, menus)
+       doc: /* Insert the list of all defined keys and their definitions.
+The list is inserted in the current buffer, while the bindings are
+looked up in BUFFER.
+The optional argument PREFIX, if non-nil, should be a key sequence;
+then we display only bindings that start with that prefix.
+The optional argument MENUS, if non-nil, says to mention menu bindings.
+\(Ordinarily these are omitted from the output.)  */)
+     (buffer, prefix, menus)
      Lisp_Object buffer, prefix, menus;
 {
   Lisp_Object outbuf, shadow;
@@ -2942,9 +2944,9 @@ describe_vector_princ (elt)
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 1, 0,
-  "Insert a description of contents of VECTOR.\n\
-This is text showing the elements of vector matched against indices.")
-  (vector)
+       doc: /* Insert a description of contents of VECTOR.
+This is text showing the elements of vector matched against indices.  */)
+     (vector)
      Lisp_Object vector;
 {
   int count = specpdl_ptr - specpdl;
@@ -3307,11 +3309,11 @@ apropos_accum (symbol, string)
 }
 
 DEFUN ("apropos-internal", Fapropos_internal, Sapropos_internal, 1, 2, 0, 
-  "Show all symbols whose names contain match for REGEXP.\n\
-If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done\n\
-for each symbol and a symbol is mentioned only if that returns non-nil.\n\
-Return list of symbols found.")
-  (regexp, predicate)
+       doc: /* Show all symbols whose names contain match for REGEXP.
+If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
+for each symbol and a symbol is mentioned only if that returns non-nil.
+Return list of symbols found.  */)
+     (regexp, predicate)
      Lisp_Object regexp, predicate;
 {
   struct gcpro gcpro1, gcpro2;
@@ -3355,71 +3357,71 @@ syms_of_keymap ()
   Ffset (intern ("Control-X-prefix"), control_x_map);
 
   DEFVAR_LISP ("define-key-rebound-commands", &Vdefine_key_rebound_commands,
-    "List of commands given new key bindings recently.\n\
-This is used for internal purposes during Emacs startup;\n\
-don't alter it yourself.");
+	       doc: /* List of commands given new key bindings recently.
+This is used for internal purposes during Emacs startup;
+don't alter it yourself.  */);
   Vdefine_key_rebound_commands = Qt;
 
   DEFVAR_LISP ("minibuffer-local-map", &Vminibuffer_local_map,
-    "Default keymap to use when reading from the minibuffer.");
+	       doc: /* Default keymap to use when reading from the minibuffer.  */);
   Vminibuffer_local_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("minibuffer-local-ns-map", &Vminibuffer_local_ns_map,
-    "Local keymap for the minibuffer when spaces are not allowed.");
+	       doc: /* Local keymap for the minibuffer when spaces are not allowed.  */);
   Vminibuffer_local_ns_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_ns_map, Vminibuffer_local_map);
 
   DEFVAR_LISP ("minibuffer-local-completion-map", &Vminibuffer_local_completion_map,
-    "Local keymap for minibuffer input with completion.");
+	       doc: /* Local keymap for minibuffer input with completion.  */);
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
-    "Local keymap for minibuffer input with completion, for exact match.");
+	       doc: /* Local keymap for minibuffer input with completion, for exact match.  */);
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
-    "Alist of keymaps to use for minor modes.\n\
-Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read\n\
-key sequences and look up bindings iff VARIABLE's value is non-nil.\n\
-If two active keymaps bind the same key, the keymap appearing earlier\n\
-in the list takes precedence.");
+	       doc: /* Alist of keymaps to use for minor modes.
+Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read
+key sequences and look up bindings iff VARIABLE's value is non-nil.
+If two active keymaps bind the same key, the keymap appearing earlier
+in the list takes precedence.  */);
   Vminor_mode_map_alist = Qnil;
 
   DEFVAR_LISP ("minor-mode-overriding-map-alist", &Vminor_mode_overriding_map_alist,
-    "Alist of keymaps to use for minor modes, in current major mode.\n\
-This variable is a alist just like `minor-mode-map-alist', and it is\n\
-used the same way (and before `minor-mode-map-alist'); however,\n\
-it is provided for major modes to bind locally.");
+	       doc: /* Alist of keymaps to use for minor modes, in current major mode.
+This variable is a alist just like `minor-mode-map-alist', and it is
+used the same way (and before `minor-mode-map-alist'); however,
+it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
-  "Keymap mapping ASCII function key sequences onto their preferred forms.\n\
-This allows Emacs to recognize function keys sent from ASCII\n\
-terminals at any point in a key sequence.\n\
-\n\
-The `read-key-sequence' function replaces any subsequence bound by\n\
-`function-key-map' with its binding.  More precisely, when the active\n\
-keymaps have no binding for the current key sequence but\n\
-`function-key-map' binds a suffix of the sequence to a vector or string,\n\
-`read-key-sequence' replaces the matching suffix with its binding, and\n\
-continues with the new sequence.\n\
-\n\
-The events that come from bindings in `function-key-map' are not\n\
-themselves looked up in `function-key-map'.\n\
-\n\
-For example, suppose `function-key-map' binds `ESC O P' to [f1].\n\
-Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing\n\
-`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix\n\
-key, typing `ESC O P x' would return [f1 x].");
+	       doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
+This allows Emacs to recognize function keys sent from ASCII
+terminals at any point in a key sequence.
+
+The `read-key-sequence' function replaces any subsequence bound by
+`function-key-map' with its binding.  More precisely, when the active
+keymaps have no binding for the current key sequence but
+`function-key-map' binds a suffix of the sequence to a vector or string,
+`read-key-sequence' replaces the matching suffix with its binding, and
+continues with the new sequence.
+
+The events that come from bindings in `function-key-map' are not
+themselves looked up in `function-key-map'.
+
+For example, suppose `function-key-map' binds `ESC O P' to [f1].
+Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
+`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix
+key, typing `ESC O P x' would return [f1 x].  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
-    "Keymap of key translations that can override keymaps.\n\
-This keymap works like `function-key-map', but comes after that,\n\
-and applies even for keys that have ordinary bindings.");
+	       doc: /* Keymap of key translations that can override keymaps.
+This keymap works like `function-key-map', but comes after that,
+and applies even for keys that have ordinary bindings.  */);
   Vkey_translation_map = Qnil;
 
   Qsingle_key_description = intern ("single-key-description");

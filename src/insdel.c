@@ -2064,9 +2064,9 @@ Fcombine_after_change_execute_1 (val)
 }
 
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
-  Scombine_after_change_execute, 0, 0, 0,
-  "This function is for use internally in `combine-after-change-calls'.")
-  ()
+       Scombine_after_change_execute, 0, 0, 0,
+       doc: /* This function is for use internally in `combine-after-change-calls'.  */)
+     ()
 {
   int count = specpdl_ptr - specpdl;
   int beg, end, change;
@@ -2145,16 +2145,16 @@ syms_of_insdel ()
   combine_after_change_buffer = Qnil;
 
   DEFVAR_BOOL ("check-markers-debug-flag", &check_markers_debug_flag,
-    "Non-nil means enable debugging checks for invalid marker positions.");
+	       doc: /* Non-nil means enable debugging checks for invalid marker positions.  */);
   check_markers_debug_flag = 0;
   DEFVAR_LISP ("combine-after-change-calls", &Vcombine_after_change_calls,
-    "Used internally by the `combine-after-change-calls' macro.");
+	       doc: /* Used internally by the `combine-after-change-calls' macro.  */);
   Vcombine_after_change_calls = Qnil;
 
   DEFVAR_BOOL ("inhibit-modification-hooks", &inhibit_modification_hooks,
-    "Non-nil means don't run any of the hooks that respond to buffer changes.\n\
-This affects `before-change-functions' and `after-change-functions',\n\
-as well as hooks attached to text properties and overlays.");
+	       doc: /* Non-nil means don't run any of the hooks that respond to buffer changes.
+This affects `before-change-functions' and `after-change-functions',
+as well as hooks attached to text properties and overlays.  */);
   inhibit_modification_hooks = 0;
   Qinhibit_modification_hooks = intern ("inhibit-modification-hooks");
   staticpro (&Qinhibit_modification_hooks);

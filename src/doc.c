@@ -304,10 +304,10 @@ read_doc_string (filepos)
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
-  "Return the documentation string of FUNCTION.\n\
-Unless a non-nil second argument RAW is given, the\n\
-string is passed through `substitute-command-keys'.")
-  (function, raw)
+       doc: /* Return the documentation string of FUNCTION.
+Unless a non-nil second argument RAW is given, the
+string is passed through `substitute-command-keys'.  */)
+     (function, raw)
      Lisp_Object function, raw;
 {
   Lisp_Object fun;
@@ -391,13 +391,13 @@ string is passed through `substitute-command-keys'.")
 
 DEFUN ("documentation-property", Fdocumentation_property,
        Sdocumentation_property, 2, 3, 0,
-  "Return the documentation string that is SYMBOL's PROP property.\n\
-Third argument RAW omitted or nil means pass the result through\n\
-`substitute-command-keys' if it is a string.\n\
-\n\
-This differs from `get' in that it can refer to strings stored in the\n\
-`etc/DOC' file; and that it evaluates documentation properties that\n\
-aren't strings.")
+       doc: /* Return the documentation string that is SYMBOL's PROP property.
+Third argument RAW omitted or nil means pass the result through
+`substitute-command-keys' if it is a string.
+
+This differs from `get' in that it can refer to strings stored in the
+`etc/DOC' file; and that it evaluates documentation properties that
+aren't strings.  */)
   (symbol, prop, raw)
      Lisp_Object symbol, prop, raw;
 {
@@ -461,14 +461,14 @@ store_function_docstring (fun, offset)
 
 
 DEFUN ("Snarf-documentation", Fsnarf_documentation, Ssnarf_documentation,
-  1, 1, 0,
-  "Used during Emacs initialization, before dumping runnable Emacs,\n\
-to find pointers to doc strings stored in `etc/DOC...' and\n\
-record them in function definitions.\n\
-One arg, FILENAME, a string which does not include a directory.\n\
-The file is found in `../etc' now; found in the `data-directory'\n\
-when doc strings are referred to later in the dumped Emacs.")
-  (filename)
+       1, 1, 0,
+       doc: /* Used during Emacs initialization, before dumping runnable Emacs,
+to find pointers to doc strings stored in `etc/DOC...' and
+record them in function definitions.
+One arg, FILENAME, a string which does not include a directory.
+The file is found in `../etc' now; found in the `data-directory'
+when doc strings are referred to later in the dumped Emacs.  */)
+     (filename)
      Lisp_Object filename;
 {
   int fd;
@@ -568,18 +568,18 @@ when doc strings are referred to later in the dumped Emacs.")
 }
 
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
-  Ssubstitute_command_keys, 1, 1, 0,
-  "Substitute key descriptions for command names in STRING.\n\
-Return a new string which is STRING with substrings of the form \\=\\[COMMAND]\n\
-replaced by either:  a keystroke sequence that will invoke COMMAND,\n\
-or \"M-x COMMAND\" if COMMAND is not on any keys.\n\
-Substrings of the form \\=\\{MAPVAR} are replaced by summaries\n\
-\(made by describe-bindings) of the value of MAPVAR, taken as a keymap.\n\
-Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR\n\
-as the keymap for future \\=\\[COMMAND] substrings.\n\
-\\=\\= quotes the following character and is discarded;\n\
-thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.")
-  (string)
+       Ssubstitute_command_keys, 1, 1, 0,
+       doc: /* Substitute key descriptions for command names in STRING.
+Return a new string which is STRING with substrings of the form \\=\\[COMMAND]
+replaced by either:  a keystroke sequence that will invoke COMMAND,
+or "M-x COMMAND" if COMMAND is not on any keys.
+Substrings of the form \\=\\{MAPVAR} are replaced by summaries
+\(made by describe-bindings) of the value of MAPVAR, taken as a keymap.
+Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
+as the keymap for future \\=\\[COMMAND] substrings.
+\\=\\= quotes the following character and is discarded;
+thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.  */)
+     (string)
      Lisp_Object string;
 {
   unsigned char *buf;
@@ -815,7 +815,7 @@ syms_of_doc ()
   staticpro (&Qfunction_documentation);
   
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
-    "Name of file containing documentation strings of built-in symbols.");
+	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
 
   defsubr (&Sdocumentation);
