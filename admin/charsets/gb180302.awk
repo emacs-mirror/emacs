@@ -78,3 +78,5 @@ END {
     printf "0x%04X-0x%04X 0x%04X\n",
       index_to_gb(from_gb), index_to_gb(to_gb), from_unicode;
 }
+
+# arch-tag: d7dbad89-a512-41a4-8ee0-ba1a4505b8c1

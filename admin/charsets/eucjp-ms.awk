@@ -81,3 +81,5 @@ END {
   print "	map)";
   print "  (define-translation-table 'eucjp-ms-encode map))";
 }
+
+# arch-tag: d9cc7af7-2d6e-48cd-8eed-a6d25226de7c

@@ -121,3 +121,5 @@ END {
 	printf "0x%04X-0x%04X 0x%04X\n", from_code, to_code, from_unicode;
     }
 }
+
+# arch-tag: 7e6f57c3-8e62-4af3-8916-ca67bca3a0ce

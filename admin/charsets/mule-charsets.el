@@ -56,3 +56,5 @@
 (with-temp-buffer
   (map-charset-chars 'func charset)
   (write-file file))
+
+;;; arch-tag: 515989d7-2e2d-41cc-9163-05ad472fede4

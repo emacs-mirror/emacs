@@ -55,3 +55,5 @@ END {
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
 }
+
+# arch-tag: bbae996b-2d1c-4e85-bb55-ac30146d7504

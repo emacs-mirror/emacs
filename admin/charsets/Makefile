@@ -345,3 +345,5 @@ install:
 # Clear files that are automatically generated.
 clean:
 	rm -f ${CHARSETS} ${TRANS_TABLE}
+
+# arch-tag: 90b3bf30-1fef-45bf-b30c-665c30c22310
