@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.12) $
+ * $HopeName: MMsrc!shield.c(trunk.13) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.12) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.13) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -179,21 +179,23 @@ static void cache(Arena arena, Seg seg)
 
 void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
 {
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
+  /* .seg.broken: Seg's shield invariants may not be true at */
+  /* this point (this function is called to enforce them) so we */
+  /* can't check seg. Nor can we check arena as that checks the */
+  /* segs in the cache. */
 
   AVER((SegSM(seg) & mode) == AccessSetEMPTY);
   SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
 
   /* ensure inv.unsynced.suspended & inv.unsynced.depth */
   cache(arena, seg);
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
 }
 
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
+  /* Don't check seg or arena, see .seg.broken */
   AVER((SegSM(seg) & mode) == mode);
   /* synced(seg) is not changed by the following
    * preserving inv.unsynced.suspended
@@ -201,6 +203,8 @@ void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
    */
   SegSetSM(seg, SegSM(seg) & ~mode);
   protLower(arena, seg, mode);
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
 }
 
 void (ShieldEnter)(Arena arena)
