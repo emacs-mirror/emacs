@@ -1,3 +1,7 @@
+2004-09-02  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Regexp Replace): Add missing backslash to \footnote.
+
 2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* kmacro.texi (Basic Keyboard Macro):
