@@ -1,5 +1,8 @@
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/life.el (life): Rearrange code so that all calls to
+	life-display-generation are in a catch-form.
+
 	* progmodes/etags.el (tags-loop-continue): Don't change point in a
 	file that isn't interesting.  In an interesting file, push the old
 	value of point on the mark ring.
