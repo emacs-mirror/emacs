@@ -1,3 +1,17 @@
+2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el: Delete obsolete autoload's and defvar's.
+	(auto-revert-check-vc-info): New variable.
+	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
+	(auto-revert-handler-vc): Delete.
+	(auto-revert-handler): Treat return value `fast' of
+	buffer-stale-function specially.  Check `auto-revert-check-vc-info'.
+
+	* buff-menu.el (Buffer-menu-mode): Make the buffer-stale-function
+	return `fast'.
+
+	* files.el (buffer-stale-function): Doc change.
+
 2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
