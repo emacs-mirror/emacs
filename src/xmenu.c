@@ -246,8 +246,7 @@ init_menu_items ()
   menu_items_submenu_depth = 0;
 }
 
-/* Call at the end of generating the data in menu_items.
-   This fills in the number of items in the last pane.  */
+/* Call at the end of generating the data in menu_items.  */
 
 static void
 finish_menu_items ()
@@ -1186,7 +1185,7 @@ menu_highlight_callback (widget, id, call_data)
   struct frame *f;
   Lisp_Object frame, help;
 
-  help = wv && wv->help ? build_string (wv->help) : Qnil;
+  help = wv ? wv->help : Qnil;
   
   /* Determine the frame for the help event.  */
   f = menubar_id_to_frame (id);
@@ -1535,10 +1534,10 @@ single_submenu (item_key, item_name, maps)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-	  if (STRINGP (help))
-	    wv->help = (char *) XSTRING (help)->data;
-          else
-            wv->help = NULL;
+	  if (! STRINGP (help))
+	    help = Qnil;
+
+	  wv->help = help;
 
 	  prev_wv = wv;
 
@@ -2133,10 +2132,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 	  wv->selected = !NILP (selected);
 
-          if (STRINGP (help))
-            wv->help = (char *) XSTRING (help)->data;
-          else
-            wv->help = NULL;
+          if (! STRINGP (help))
+	    help = Qnil;
+
+	  wv->help = help;
 
 	  prev_wv = wv;
 
