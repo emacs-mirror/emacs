@@ -1,3 +1,13 @@
+2000-03-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (Fset_buffer_modified_p): Set update_mode_lines
+	only if buffer is displayed in some window.
+
+	* xdisp.c (handle_single_display_prop): Initialize local `value'.
+	(try_window_reusing_current_matrix): Don't call scroll run
+	function if run's current and desired position are the same;
+	this prevents cursor flickering.
+
 2000-03-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.h (RE_TRANSLATE. RE_TRANSLATE_P): Moved to regex.c.

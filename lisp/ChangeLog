@@ -1,3 +1,8 @@
+2000-03-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* jit-lock.el (with-buffer-prepared-for-font-lock): Add comment
+	about behavior of set-buffer-modified-p wrt redisplay.
+
 2000-03-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* view.el (view-mode-disable): Kill local binding of view-read-only.
@@ -12,11 +17,11 @@
 
 	* ange-ftp.el (ange-ftp-try-passive-mode): New user-option.
 	(ange-ftp-get-process): If ange-ftp-try-passive-mode is set,
-	try to use poassive ftp mode.
+	try to use passive ftp mode.
 
 2000-03-17  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/awk-mode.el (awk-font-lock-keywords): All `else'.
+	* progmodes/awk-mode.el (awk-font-lock-keywords): Add `else'.
 
 	* simple.el (append-to-buffer): Update point of windows after
 	insertion.
