@@ -1449,6 +1449,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
   register Lisp_Object tem, valcontents, newval;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1502,6 +1503,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   register Lisp_Object tem, valcontents;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
@@ -1581,6 +1583,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
   register Lisp_Object tem, valcontents;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
@@ -1645,6 +1648,7 @@ See `modify-frame-parameters' for how to set frame parameters.  */)
   register Lisp_Object tem, valcontents, newval;
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
@@ -1694,6 +1698,7 @@ BUFFER defaults to the current buffer.  */)
     }
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
   if (BUFFER_LOCAL_VALUEP (valcontents)
@@ -1738,6 +1743,7 @@ BUFFER defaults to the current buffer.  */)
     }
 
   CHECK_SYMBOL (variable);
+  variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
 
