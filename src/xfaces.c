@@ -3360,7 +3360,12 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
       LFACE_FONTSET (lface) = fontset_name (fontset);
     }
   else
-    LFACE_FONT (lface) = fontname;
+    {
+      LFACE_FONT (lface) = fontname;
+      fontset
+	= new_fontset_from_font_name (build_string (font_info->full_name));
+      LFACE_FONTSET (lface) = fontset_name (fontset);
+    }
   return 1;
 }
 
