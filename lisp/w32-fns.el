@@ -248,6 +248,22 @@ with a definition that really does change some file names."
   (or type (setq type 'PRIMARY))
   (get 'x-selections type))
 
+(defun set-w32-system-coding-system (coding-system)
+  "Set the coding system used by the Windows System to CODING-SYSTEM.
+This is used for things like passing font names with non-ASCII
+characters in them to the system. For a list of possible values of
+CODING-SYSTEM, use \\[list-coding-systems]."
+  (interactive
+   (list (let ((default w32-system-coding-system))
+           (read-coding-system
+            (format "Coding system for system calls (default, %s): "
+                    default)
+            default))))
+  (check-coding-system coding-system)
+  (setq w32-system-coding-system coding-system))
+;; Set system coding system initially to iso-latin-1
+(set-w32-system-coding-system 'iso-latin-1)
+
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep nil)
 
