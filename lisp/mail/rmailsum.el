@@ -219,6 +219,7 @@ nil for FUNCTION means all messages."
 		  (delete-other-windows)))
 	  (pop-to-buffer sumbuf)))
     (rmail-summary-goto-msg mesg t t)
+    (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
 
 ;; Low levels of generating a summary.
