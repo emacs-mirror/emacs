@@ -456,15 +456,11 @@ dumpglyphs (f, left, top, gp, n, hl)
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	FONT_TYPE *font = FACE_FONT (face);
 	GC gc = FACE_GC (face);
+	int defaulted = 1;
+	int gc_temporary = 0;
 
-	/* Cursor display take full precidence.  */
-	if (hl == 2)
-	  {
-	    gc   = (f->display.x->cursor_gc);
-	  }
-
-	/* Then comes faces of the text itself.  */
-	else if (cf != 0)
+	/* First look at the face of the text itself.  */
+	if (cf != 0)
 	  {
 	    /* The face codes on the glyphs must be valid indices into the
 	       frame's face table.  */
@@ -477,6 +473,7 @@ dumpglyphs (f, left, top, gp, n, hl)
 	      face = intern_face (f, FRAME_FACES (f) [cf]);
 	    font = FACE_FONT (face);
 	    gc = FACE_GC (face);
+	    defaulted = 0;
 	  }
 
 	/* Then comes the distinction between modeline and normal text.  */
@@ -487,10 +484,42 @@ dumpglyphs (f, left, top, gp, n, hl)
 	    face = FRAME_MODE_LINE_FACE (f);
 	    font = FACE_FONT (face);
 	    gc   = FACE_GC   (face);
+	    defaulted = 0;
+	  }
+
+#define FACE_DEFAULT (~0)
+
+	/* Now override that if the cursor's on this character.  */
+	if (hl == 2 && (defaulted
+			|| !(face->font && (int) face->font != FACE_DEFAULT)))
+	  {
+	    gc = f->display.x->cursor_gc;
+	  }
+	/* Cursor on non-default face: must merge.  */
+	else if (hl == 2)
+	  {
+	    XGCValues xgcv;
+	    unsigned long mask;
+
+	    xgcv.background = f->display.x->cursor_pixel;
+	    xgcv.foreground = f->display.x->cursor_foreground_pixel;
+	    xgcv.font = face->font->fid;
+	    xgcv.graphics_exposures = 0;
+	    mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
+	    gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+			    mask, &xgcv);
+#if 0
+	    if (face->stipple && face->stipple != FACE_DEFAULT)
+	      XSetStipple (x_current_display, gc, face->stipple);
+#endif
+	    gc_temporary = 1;
 	  }
 
 	XDrawImageString (x_current_display, window, gc,
 			  left, top + FONT_BASE (font), buf, len);
+
+	if (gc_temporary)
+	  XFreeGC (x_current_display, gc);
 
 	/* We should probably check for XA_UNDERLINE_POSITION and
 	   XA_UNDERLINE_THICKNESS properties on the font, but let's
