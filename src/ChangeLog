@@ -1,5 +1,7 @@
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (safe_eval_handler): Call add_to_log.
+
 	* xfaces.c (resolve_face_name): Handle case that FACE_NAME
 	is not a symbol or string.
 
