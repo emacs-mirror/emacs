@@ -117,7 +117,8 @@ For example, the form
 would give mode line times like `94/12/30 21:07:48 (UTC)'.")
 
 (defun display-time-filter (proc string)
-  (let* ((time (current-time-string))
+  (let* ((now (current-time))
+	 (time (current-time-string now))
          (load (condition-case ()
                    (if (zerop (car (load-average))) ""
                      (let ((str (format " %03d" (car (load-average)))))
@@ -149,7 +150,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
-         (time-zone (car (cdr (current-time-zone))))
+         (time-zone (car (cdr (current-time-zone now))))
          (day (substring time 8 10))
          (year (substring time 20 24))
          (monthname (substring time 4 7))
