@@ -1436,7 +1436,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
       /* Find the glyph under X.  */
       glyph = (row->glyphs[TEXT_AREA]
 	       + x
-	       /* Does MS-DOG really support scroll-bars??  ++KFS */
+	       /* in case someone implements scroll bars some day... */
 	       - WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w));
       end = glyph + row->used[TEXT_AREA];
       if (glyph < end
