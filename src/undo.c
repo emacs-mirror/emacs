@@ -42,7 +42,7 @@ Lisp_Object pending_boundary;
    because we don't need to record the contents.)  */
 
 record_insert (beg, length)
-     Lisp_Object beg, length;
+     int beg, length;
 {
   Lisp_Object lbeg, lend;
 
@@ -69,15 +69,15 @@ record_insert (beg, length)
       if (CONSP (elt)
 	  && INTEGERP (XCONS (elt)->car)
 	  && INTEGERP (XCONS (elt)->cdr)
-	  && XINT (XCONS (elt)->cdr) == XINT (beg))
+	  && XINT (XCONS (elt)->cdr) == beg)
 	{
-	  XSETINT (XCONS (elt)->cdr, XINT (beg) + XINT (length));
+	  XSETINT (XCONS (elt)->cdr, beg + length);
 	  return;
 	}
     }
 
-  lbeg = beg;
-  XSETINT (lend, XINT (beg) + XINT (length));
+  XSETFASTINT (lbeg, beg);
+  XSETINT (lend, beg + length);
   current_buffer->undo_list = Fcons (Fcons (lbeg, lend),
                                      current_buffer->undo_list);
 }
