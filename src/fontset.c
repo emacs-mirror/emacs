@@ -244,6 +244,8 @@ static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object));
 static Lisp_Object find_font_encoding P_ ((char *));
 
+static void set_fontset_font P_ ((Lisp_Object, Lisp_Object));
+
 #ifdef FONTSET_DEBUG
 
 /* Return 1 if ID is a valid fontset id, else return 0.  */
@@ -1191,6 +1193,19 @@ generate_ascii_font_name (name, ascii_spec)
   return build_font_name_from_vector (vec);
 }
 
+static void
+set_fontset_font (range, arg)
+     Lisp_Object range, arg;
+{
+  Lisp_Object fontset, font_def, add;
+
+  fontset = XCAR (arg);
+  font_def = XCAR (XCDR (arg));
+  add = XCAR (XCDR (XCDR (arg)));
+  FONTSET_ADD (fontset, range, font_def, add);
+  free_realized_fontsets (fontset);
+}
+
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 5, 0,
        doc: /*
@@ -1338,17 +1353,22 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  struct charset *charset;
 
 	  CHECK_CHARSET_GET_CHARSET (character, charset);
-	  if (CHARSET_METHOD (charset) == CHARSET_METHOD_OFFSET)
-	    range_list
-	      = Fcons (Fcons (make_number (CHARSET_MIN_CHAR (charset)),
-			      make_number (CHARSET_MAX_CHAR (charset))),
-		       range_list);
 	  if (EQ (character, Qascii))
 	    {
 	      if (VECTORP (font_spec))
 		font_spec = generate_ascii_font_name (FONTSET_NAME (fontset),
 						      font_spec);
 	      FONTSET_ASCII (fontset) = font_spec;
+	      range_list = Fcons (Fcons (make_number (0), make_number (127)),
+				  Qnil);
+	    }
+	  else
+	    {
+	      map_charset_chars (set_fontset_font, Qnil,
+				 list3 (fontset, font_def, add), charset,
+				 CHARSET_MIN_CODE (charset),
+				 CHARSET_MAX_CODE (charset));
+	      return Qnil;
 	    }
 	}
 
