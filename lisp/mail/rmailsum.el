@@ -203,102 +203,83 @@ nil for FUNCTION means all messages."
         (new-summary-line-count 0)
         (msgnum 1)
         current-message sumbuf was-in-summary)
-
-    ;; Go to the Rmail buffer.
-    (if (eq major-mode 'rmail-summary-mode)
-        (progn
-          (setq was-in-summary t)
-          (set-buffer rmail-buffer)))
-
-    ;; Find its summary buffer, or make one.
-    (setq current-message rmail-current-message
-          sumbuf
-          (if (and rmail-summary-buffer
-                   (buffer-name rmail-summary-buffer))
-              rmail-summary-buffer
-            (generate-new-buffer (concat (buffer-name) "-summary"))))
-
-    ;; Collect the message summaries based on the filtering
-    ;; argument (FUNCTION).
-    (while (>= rmail-total-messages msgnum)
-      (if (or (null function)
-              (apply function (cons msgnum args)))
-          (setq summary-msgs
-                (cons (cons msgnum (rmail-summary-get-summary msgnum))
-                      summary-msgs)))
-      (setq msgnum (1+ msgnum)))
-    (setq summary-msgs (nreverse summary-msgs))
-
-    ;; Place the collected summaries into the summary buffer.
-    (setq rmail-summary-buffer nil)
     (save-excursion
-      (let ((rbuf (current-buffer))
-            (vbuf rmail-view-buffer)
-            (total rmail-total-messages))
-        (set-buffer sumbuf)
-        ;; Set up the summary buffer's contents.
-        (let ((buffer-read-only nil))
-          (erase-buffer)
-          (while summary-msgs
-            (princ (cdr (car summary-msgs)) sumbuf)
-            (setq summary-msgs (cdr summary-msgs)))
-          (goto-char (point-min)))
-        ;; Set up the rest of its state and local variables.
-        (setq buffer-read-only t)
-        (rmail-summary-mode)
-        (make-local-variable 'minor-mode-alist)
-        (setq minor-mode-alist (list (list t (concat ": " description))))
-        (setq rmail-buffer rbuf
-              rmail-view-buffer vbuf
-              rmail-summary-redo redo-form
-              rmail-total-messages total
-              rmail-current-message current-message)))
-    (setq rmail-summary-buffer sumbuf)
 
-    (set-buffer rmail-summary-buffer)
-    (rmail-summary-goto-msg current-message nil t)
-    (rmail-summary-construct-io-menu)
+      ;; Go to the Rmail buffer.
+      (if (eq major-mode 'rmail-summary-mode)
+	  (setq was-in-summary t))
+      (set-buffer rmail-buffer)
+
+      ;; Find its summary buffer, or make one.
+      (setq current-message rmail-current-message
+	    sumbuf
+	    (if (and rmail-summary-buffer
+		     (buffer-name rmail-summary-buffer))
+		rmail-summary-buffer
+	      (generate-new-buffer (concat (buffer-name) "-summary"))))
+
+      ;; Collect the message summaries based on the filtering
+      ;; argument (FUNCTION).
+      (while (>= rmail-total-messages msgnum)
+	(if (or (null function)
+		(apply function (cons msgnum args)))
+	    (setq summary-msgs
+		  (cons (cons msgnum (rmail-summary-get-summary msgnum))
+			summary-msgs)))
+	(setq msgnum (1+ msgnum)))
+      (setq summary-msgs (nreverse summary-msgs))
+
+      ;; Place the collected summaries into the summary buffer.
+      (setq rmail-summary-buffer nil)
+      (save-excursion
+	(let ((rbuf (current-buffer))
+	      (vbuf rmail-view-buffer)
+	      (total rmail-total-messages))
+	  (set-buffer sumbuf)
+	  ;; Set up the summary buffer's contents.
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (while summary-msgs
+	      (princ (cdr (car summary-msgs)) sumbuf)
+	      (setq summary-msgs (cdr summary-msgs)))
+	    (goto-char (point-min)))
+	  ;; Set up the rest of its state and local variables.
+	  (setq buffer-read-only t)
+	  (rmail-summary-mode)
+	  (make-local-variable 'minor-mode-alist)
+	  (setq minor-mode-alist (list (list t (concat ": " description))))
+	  (setq rmail-buffer rbuf
+		rmail-view-buffer vbuf
+		rmail-summary-redo redo-form
+		rmail-total-messages total
+		rmail-current-message current-message)))
+      (setq rmail-summary-buffer sumbuf))
 
     ;; Now display the summary buffer and go to the right place in it.
     (or was-in-summary
-        (progn
-          (if (and (one-window-p)
-                   pop-up-windows (not pop-up-frames))
-              ;; If there is just one window, put the summary on the top.
-              (progn
-                (split-window (selected-window) rmail-summary-window-size)
-                (select-window (next-window (frame-first-window)))
-                (pop-to-buffer sumbuf)
-                ;; If pop-to-buffer did not use that window, delete that
-                ;; window.  (This can happen if it uses another frame.)
-                (if (not (eq sumbuf (window-buffer (frame-first-window))))
-                    (delete-other-windows))))
-            ;;(pop-to-buffer sumbuf))
-          (set-buffer rmail-buffer)
-          ;; This is how rmail makes the summary buffer reappear.
-          ;; We do this here to make the window the proper size.
-          (rmail-select-summary nil)))
+	(progn
+	  (if (and (one-window-p)
+		   pop-up-windows (not pop-up-frames))
+	      ;; If there is just one window, put the summary on the top.
+	      (progn
+		(split-window (selected-window) rmail-summary-window-size)
+		(select-window (next-window (frame-first-window)))
+		(pop-to-buffer sumbuf)
+		;; If pop-to-buffer did not use that window, delete that
+		;; window.  (This can happen if it uses another frame.)
+		(if (not (eq sumbuf (window-buffer (frame-first-window))))
+		    (delete-other-windows)))
+	    (pop-to-buffer sumbuf))
+	  (set-buffer rmail-buffer)
+	  ;; This is how rmail makes the summary buffer reappear.
+	  ;; We do this here to make the window the proper size.
+	  (rmail-select-summary nil)))
+
+    (rmail-summary-goto-msg current-message nil t)
+    (rmail-summary-construct-io-menu)
     (message "Computing summary lines...done")))
 
 ;;;; Low levels of generating a summary.
-
-;;; mbox: deprecated
-(defun rmail-make-summary-line (msg)
-  (let* ((new-summary-line-count 0)
-         (line (or (aref rmail-summary-vector (1- msg))
-                   (progn
-                     (setq new-summary-line-count
-                           (1+ new-summary-line-count))
-                     (if (zerop (% new-summary-line-count 10))
-                         (message "Computing summary lines...%d"
-                                  new-summary-line-count))
-                     (rmail-make-summary-line-1 msg)))))
-    ;; Fix up the part of the summary that says "deleted" or "unseen".
-    (aset line 5
-	  (if (rmail-message-deleted-p msg) ?\D
-	    (if (= ?0 (char-after (+ 3 (rmail-msgbeg msg))))
-		?\- ?\ )))
-    line))
 
 ;;;###autoload
 (defcustom rmail-summary-line-decoder (function identity)
@@ -1672,14 +1653,15 @@ KEYWORDS is a comma-separated list of labels."
 
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
-  (format "%4s%s%6s %25s %s %s\n"
-          n
-          (rmail-summary-get-summary-attributes n)
-          (concat (rmail-desc-get-day-number n) "-"
-                  (rmail-desc-get-month n))
-          (rmail-desc-get-sender n)
-          (rmail-summary-get-line-count n)
-          (rmail-desc-get-subject n)))
+  (funcall rmail-summary-line-decoder
+	   (format "%4s%s%6s %25s %s %s\n"
+		   n
+		   (rmail-summary-get-summary-attributes n)
+		   (concat (rmail-desc-get-day-number n) "-"
+			   (rmail-desc-get-month n))
+		   (rmail-desc-get-sender n)
+		   (rmail-summary-get-line-count n)
+		   (rmail-desc-get-subject n))))
 
 (defun rmail-summary-update-attribute (attr-index n)
   "Update the attribute denoted by ATTR-INDEX in message N."
