@@ -2436,6 +2436,17 @@ coding system.
 * New modes and packages in Emacs 22.1
 
 +++
+** The new package longlines.el provides a minor mode for editing text
+files composed of long lines, based on the `use-hard-newlines'
+mechanism.  The long lines are broken up by inserting soft newlines,
+which are automatically removed when saving the file to disk or
+copying into the kill ring, clipboard, etc.  By default, Longlines
+mode inserts soft newlines automatically during editing, a behavior
+referred to as "soft word wrap" in other text editors.  This is
+similar to Refill mode, but more reliable.  To turn the word wrap
+feature off, set `longlines-auto-wrap' to nil.
+
++++
 ** The new package conf-mode.el handles thousands of configuration files, with
 varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
 var : value, var value or keyword var value) and sections ([section] or
@@ -2710,6 +2721,17 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `risky-local-variable' property is nil.
 
 * Lisp Changes in Emacs 22.1
+
++++
+** The new function `filter-buffer-substring' extracts a buffer
+substring, passes it through a set of filter functions, and returns
+the filtered substring.  It is used instead of `buffer-substring' or
+`delete-and-extract-region' when copying text into a user-accessible
+data structure, like the kill-ring, X clipboard, or a register.  The
+list of filter function is specified by the new variable
+`buffer-substring-filters'.  For example, Longlines mode uses
+`buffer-substring-filters' to remove soft newlines from the copied
+text.
 
 +++
 ** An element of buffer-undo-list can now have the form (apply FUNNAME

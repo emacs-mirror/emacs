@@ -1,4 +1,4 @@
-2005-03-29  Richard M. Stallman  <rms@gnu.org>
+2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Buffer Contents): Add filter-buffer-substring and
 	buffer-substring-filters.

@@ -1,3 +1,10 @@
+2005-03-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Refill): Refer to Long Lines Mode.
+	(Longlines): New node.
+	(Auto Fill): Don't index "word wrap" here.
+	(Filling): Add Longlines to menu.
+	
 2005-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xresources.texi: Minor fixes.
