@@ -1,4 +1,8 @@
-2003-06-26  Kenichi Handa  <handa@etlken2>
+2003-07-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_sjis): Check bytes more rigidly.
+
+2003-06-26  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (choose_write_coding_system): Return a decided coding
 	system.
