@@ -1586,24 +1586,31 @@ in the buffer, and returns a widget object.
 Function to delete a widget.  The function takes one argument, a widget,
 and should remove all traces of the widget from the buffer.
 
+The default value is:
+
+@defun widget-default-delete widget
+Remove @var{widget} from the buffer.
+Delete all @code{:children} and @code{:buttons} in @var{widget}.
+@end defun
+
+In most cases you should not change this value, but instead use
+@code{:value-delete} to make any additional cleanup.
+
 @vindex value-create@r{ keyword}
 @item :value-create
 Function to expand the @samp{%v} escape in the format string.  It will
 be called with the widget as its argument and should insert a
 representation of the widget's value in the buffer.
 
+Nested widgets should be listed in @code{:children} or @code{:buttons}
+to make sure they are automatically deleted.
+
 @vindex value-delete@r{ keyword}
 @item :value-delete
 Should remove the representation of the widget's value from the buffer.
 It will be called with the widget as its argument.  It doesn't have to
 remove the text, but it should release markers and delete nested widgets
-if such have been used.
-
-The following predefined function can be used here:
-
-@defun widget-children-value-delete widget
-Delete all @code{:children} and @code{:buttons} in @var{widget}.
-@end defun
+if these are not listed in @code{:children} or @code{:buttons}.
 
 @vindex value-get@r{ keyword}
 @item :value-get
