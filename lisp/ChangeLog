@@ -1,3 +1,14 @@
+2000-12-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (delete-key-deletes-forward-mode): Treat ms-dos and
+	windows-nt as windowed environments, even under -nw.
+
+	* startup.el (command-line): Don't call x-backspace-delete-keys-p
+	if not fboundp.  Switch delete-forward mode for the <delete> key
+	on all PC platforms, even under -nw.
+
+	* term/internal.el ([M-delete]): Remap to M-d.
+
 2000-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el: Change maintainer to FSF.
