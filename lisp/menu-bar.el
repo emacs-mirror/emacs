@@ -297,7 +297,7 @@ Do the same for the keys of the same name."
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
-  '("Send Bug Report" . report-emacs-bug))
+  '("Send Bug Report..." . report-emacs-bug))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
 (define-key menu-bar-help-menu [man] '("Man..." . manual-entry))
