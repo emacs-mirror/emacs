@@ -67,8 +67,11 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (make-local-variable 'text-mode-variant)
   (setq text-mode-variant t)
+  (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
 
+(defvar paragraph-indent-text-mode-abbrev-table text-mode-abbrev-table)
+(defvar paragraph-indent-text-mode-syntax-table text-mode-syntax-table)
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
   "Major mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs
