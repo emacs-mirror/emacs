@@ -78,10 +78,6 @@ Lisp_Object Quser_variable_p;
 
 extern int minibuf_prompt_width;
 
-#ifdef MULTI_SCREEN
-
-extern Lisp_Object Vglobal_minibuffer_screen;
-#endif
 
 /* Actual minibuffer invocation. */
 
