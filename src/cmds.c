@@ -39,6 +39,9 @@ Lisp_Object Vself_insert_face;
 /* This is the command that set up Vself_insert_face.  */
 Lisp_Object Vself_insert_face_command;
 
+/* Offset to add to a non-ASCII value when inserting it.  */
+int nonascii_insert_offset;
+
 extern Lisp_Object Qface;
 
 /* Return buffer position which is N characters after `point'.  */
@@ -297,6 +300,8 @@ Whichever character you type to run this command is inserted.")
   (n)
      Lisp_Object n;
 {
+  int character = XINT (last_command_char);
+
   CHECK_NUMBER (n, 0);
 
   /* Barf if the key that invoked this was not a character.  */
@@ -304,22 +309,30 @@ Whichever character you type to run this command is inserted.")
     bitch_at_user ();
   else if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
     {
+      int modified_char = character;
+      /* Add the offset to the character, for Finsert_char.
+	 We pass internal_self_insert the unmodified character
+	 because it itself does this offsetting.  */
+      if (modified_char >= 0200 && modified_char <= 0377
+	  && ! NILP (current_buffer->enable_multibyte_characters))
+	modified_char += nonascii_insert_offset;
+
       XSETFASTINT (n, XFASTINT (n) - 2);
       /* The first one might want to expand an abbrev.  */
-      internal_self_insert (XINT (last_command_char), 1);
+      internal_self_insert (character, 1);
       /* The bulk of the copies of this char can be inserted simply.
 	 We don't have to handle a user-specified face specially
 	 because it will get inherited from the first char inserted.  */
-      Finsert_char (last_command_char, n, Qt);
+      Finsert_char (make_number (modified_char), n, Qt);
       /* The last one might want to auto-fill.  */
-      internal_self_insert (XINT (last_command_char), 0);
+      internal_self_insert (character, 0);
     }
   else
     while (XINT (n) > 0)
       {
 	/* Ok since old and new vals both nonneg */
 	XSETFASTINT (n, XFASTINT (n) - 1);
-	internal_self_insert (XINT (last_command_char), XFASTINT (n) != 0);
+	internal_self_insert (character, XFASTINT (n) != 0);
       }
 
   return Qnil;
@@ -345,6 +358,10 @@ internal_self_insert (c, noautofill)
   int len;
   /* Working buffer and pointer for multi-byte form of C.  */
   unsigned char workbuf[4], *str;
+
+  if (c >= 0200 && c <= 0377
+      && ! NILP (current_buffer->enable_multibyte_characters))
+    c += nonascii_insert_offset;
 
   overwrite = current_buffer->overwrite_mode;
   if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function)
@@ -513,6 +530,13 @@ If `last-command' does not equal this value, we ignore `self-insert-face'.");
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
 More precisely, a char with closeparen syntax is self-inserted.");
   Vblink_paren_function = Qnil;
+
+  DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
+    "Offset to add to a non-ascii code 0200...0377 when inserting it.\n\
+This applies only when multibyte characters are enabled, and it serves\n\
+to convert a Latin-1 or similar 8-bit character code to the corresponding\n\
+Emacs character code.");
+  nonascii_insert_offset = 0;
 
   defsubr (&Sforward_point);
   defsubr (&Sforward_char);
