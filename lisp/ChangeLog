@@ -1,3 +1,8 @@
+2004-07-25  Lars Hansen  <larsh@math.ku.dk>
+
+	* wdired.el (wdired-finish-edit): Require dired-aux before locally
+	binding dired-backup-overwrite.
+
 2004-07-25  John Paul Wallington  <jpw@gnu.org>
 
 	* subr.el (butlast, event-modifiers, event-basic-type): Doc fixes.
