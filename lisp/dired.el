@@ -827,6 +827,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "*@" 'dired-mark-symlinks)
     (define-key map "*%" 'dired-mark-files-regexp)
     (define-key map "*c" 'dired-change-marks)
+    (define-key map "*s" 'dired-mark-subdir-files)
     (define-key map "*m" 'dired-mark)
     (define-key map "*u" 'dired-unmark)
     (define-key map "*?" 'dired-unmark-all-files)
