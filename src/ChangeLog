@@ -1,5 +1,8 @@
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fset_buffer_major_mode): Use initial-major-mode for
+	*scratch*.
+
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
 	Handle :box so that it is possible to specify sexprs.
 
