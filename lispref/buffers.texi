@@ -203,11 +203,11 @@ existing buffer.
 @end defun
 
 @defspec save-current-buffer body...
-The @code{save-current-buffer} macro saves the identity of the current
-buffer, evaluates the @var{body} forms, and finally restores that buffer
-as current.  The return value is the value of the last form in
-@var{body}.  The current buffer is restored even in case of an abnormal
-exit via @code{throw} or error (@pxref{Nonlocal Exits}).
+The @code{save-current-buffer} special form saves the identity of the
+current buffer, evaluates the @var{body} forms, and finally restores
+that buffer as current.  The return value is the value of the last
+form in @var{body}.  The current buffer is restored even in case of an
+abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 
 If the buffer that used to be current has been killed by the time of
 exit from @code{save-current-buffer}, then it is not made current again,
