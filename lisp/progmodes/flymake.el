@@ -357,31 +357,14 @@ Return t if so, nil if not."
   (equal (flymake-fix-file-name file-name-one)
 	 (flymake-fix-file-name file-name-two)))
 
-(defun flymake-ensure-ends-with-slash (filename)
-  ;; Should this really be file-name-as-directory?
-  (if (not (= (elt filename (1- (length filename))) (string-to-char "/")))
-      (concat filename "/")
-    filename))
-
 (defun flymake-get-common-file-prefix (string-one string-two)
   "Return common prefix for two file names STRING-ONE and STRING-TWO."
-  (when (and string-one string-two)
-    (let* ((slash-pos-one  -1)
-	   (slash-pos-two  -1)
-	   (done           nil)
-	   (prefix         nil))
-      (setq string-one (flymake-ensure-ends-with-slash string-one))
-      (setq string-two (flymake-ensure-ends-with-slash string-two))
-      (while (not done)
-	(setq slash-pos-one (string-match "/" string-one (1+ slash-pos-one)))
-	(setq slash-pos-two (string-match "/" string-two (1+ slash-pos-two)))
-	(if (and slash-pos-one slash-pos-two
-		 (= slash-pos-one slash-pos-two)
-		 (string= (substring string-one 0 slash-pos-one) (substring string-two 0 slash-pos-two)))
-	    (progn
-	      (setq prefix (substring string-one 0 (1+ slash-pos-one))))
-	  (setq done t)))
-      prefix)))
+  (setq string-one (file-name-as-directory string-one))
+  (setq string-two (file-name-as-directory string-two))
+  (let ((n (compare-strings string-one nil nil string-two nil nil)))
+    (if (eq n t) string-one
+      (setq n (abs (1+ n)))
+      (file-name-directory (substring string-one 0 n)))))
 
 (defun flymake-build-relative-filename (from-dir to-dir)
   "Return rel: FROM-DIR/rel == TO-DIR."
@@ -389,8 +372,8 @@ Return t if so, nil if not."
   (if (not (equal (elt from-dir 0) (elt to-dir 0)))
       (error "First chars in file names %s, %s must be equal (same drive)"
 	     from-dir to-dir)
-    (let* ((from (flymake-ensure-ends-with-slash (flymake-fix-file-name from-dir)))
-	   (to   (flymake-ensure-ends-with-slash (flymake-fix-file-name to-dir)))
+    (let* ((from (file-name-as-directory (flymake-fix-file-name from-dir)))
+	   (to   (file-name-as-directory (flymake-fix-file-name to-dir)))
 	   (prefix      (flymake-get-common-file-prefix from to))
 	   (from-suffix (substring from (length prefix)))
 	   (up-count    (length (flymake-split-string from-suffix "[/]")))
@@ -513,7 +496,7 @@ instead of reading master file from disk."
 		    ;;  replace-match is not used here as it fails in
 		    ;; XEmacs with 'last match not a buffer' error as
 		    ;; check-includes calls replace-in-string
-		    (flymake-replace-region (current-buffer) match-beg match-end
+		    (flymake-replace-region match-beg match-end
 					    (file-name-nondirectory patched-source-file-name))))
 		(forward-line 1)))
 	    (when found
@@ -525,12 +508,13 @@ instead of reading master file from disk."
       (flymake-log 2 "found master file %s" master-file-name))
     found))
 
-(defun flymake-replace-region (buffer beg end rep)
+(defun flymake-replace-region (beg end rep)
   "Replace text in BUFFER in region (BEG END) with REP."
   (save-excursion
-    (delete-region beg end)
-    (goto-char beg)
-    (insert rep)))
+    (goto-char end)
+    ;; Insert before deleting, so as to better preserve markers's positions.
+    (insert rep)
+    (delete-region beg end)))
 
 (defun flymake-read-file-to-temp-buffer (file-name)
   "Insert contents of FILE-NAME into newly created temp buffer."
@@ -1103,8 +1087,7 @@ Return its components if so, nil if no."
 
 (defun flymake-add-err-info (err-info-list line-err-info)
   "Add error info (file line type text) to err info list preserving sort order."
-  (let* ((count               (length err-info-list))
-	 (line-no             (if (flymake-ler-get-file line-err-info) 1 (flymake-ler-get-line line-err-info)))
+  (let* ((line-no             (if (flymake-ler-get-file line-err-info) 1 (flymake-ler-get-line line-err-info)))
 	 (info-and-pos        (flymake-find-err-info err-info-list line-no))
 	 (exists              (car info-and-pos))
 	 (pos                 (nth 1 info-and-pos))
@@ -1462,12 +1445,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
       (goto-line line))))
 
 ;; flymake minor mode declarations
-(defvar flymake-mode nil)
-
-(make-variable-buffer-local 'flymake-mode)
-
-(defvar flymake-mode-line nil
-  "")
+(defvar flymake-mode-line nil)
 
 (make-variable-buffer-local 'flymake-mode-line)
 
@@ -1532,33 +1510,21 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
 		 (buffer-name buffer) status warning)))
 
-(defun flymake-mode (&optional arg)
-  "Toggle flymake mode on/off."
-  (interactive)
-  (let ((old-flymake-mode flymake-mode)
-	(turn-on nil))
-
-    (setq turn-on
-	  (if (null arg)
-	      (not flymake-mode)
-					;else
-	    (> (prefix-numeric-value arg) 0)))
-
-    (if turn-on
-	(if (flymake-can-syntax-check-file (buffer-file-name))
-	    (flymake-mode-on)
-	  (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
-      (flymake-mode-off))
-    (force-mode-line-update)))
+(define-minor-mode flymake-mode
+  "Minor mode to do on-the-fly syntax checking.
+When called interactively, toggles the minor mode.
+With arg, turn Flymake mode on if and only if arg is positive."
+  :lighter flymake-mode-line
+  (if flymake-mode
+      (if (flymake-can-syntax-check-file (buffer-file-name))
+	  (flymake-mode-on)
+	(flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
+    (flymake-mode-off)))
 
 (defcustom flymake-start-syntax-check-on-find-file t
   "Start syntax check on find file."
   :group 'flymake
   :type 'boolean)
-
-;;;###autoload
-(unless (assq 'flymake-mode minor-mode-alist)
-  (setq minor-mode-alist (cons '(flymake-mode flymake-mode-line) minor-mode-alist)))
 
 ;;;###autoload
 (defun flymake-mode-on ()
@@ -1719,9 +1685,9 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
   (let* ((dir       (file-name-directory file-name))
 	 (slash-pos (string-match "/" dir))
-	 (temp-dir  (concat (flymake-ensure-ends-with-slash (flymake-get-temp-dir)) (substring dir (1+ slash-pos)))))
+	 (temp-dir  (concat (file-name-as-directory (flymake-get-temp-dir)) (substring dir (1+ slash-pos)))))
 
-    (file-truename (concat (flymake-ensure-ends-with-slash temp-dir)
+    (file-truename (concat (file-name-as-directory temp-dir)
 			   (file-name-nondirectory file-name)))))
 
 (defun flymake-strrchr (str ch)
@@ -1741,7 +1707,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
     (while (> (length suffix) 0)
       ;;+(flymake-log 0 "suffix=%s" suffix)
-      (flymake-safe-delete-directory (file-truename (concat (flymake-ensure-ends-with-slash temp-dir) suffix)))
+      (flymake-safe-delete-directory (file-truename (concat (file-name-as-directory temp-dir) suffix)))
       (setq slash-pos (flymake-strrchr suffix (string-to-char "/")))
       (if slash-pos
 	  (setq suffix (substring suffix 0 slash-pos))
@@ -1957,9 +1923,11 @@ Use CREATE-TEMP-F for creating temp copy."
 
 ;;;; perl-specific init-cleanup routines
 (defun flymake-perl-init (buffer)
-  (let* ((temp-file   (flymake-init-create-temp-buffer-copy buffer 'flymake-create-temp-inplace))
-	 (local-file  (concat (flymake-build-relative-filename (file-name-directory (buffer-file-name (current-buffer)))
-							   (file-name-directory temp-file))
+  (let* ((temp-file   (flymake-init-create-temp-buffer-copy
+		       buffer 'flymake-create-temp-inplace))
+	 (local-file  (concat (flymake-build-relative-filename
+			       (file-name-directory buffer-file-name)
+			       (file-name-directory temp-file))
 			      (file-name-nondirectory temp-file))))
     (list "perl" (list "-wc " local-file))))
 
@@ -1983,7 +1951,7 @@ Use CREATE-TEMP-F for creating temp copy."
   '("."))
 
 ;;;; xml-specific init-cleanup routines
-(defun flymake-xml-init(buffer)
+(defun flymake-xml-init (buffer)
   (list "xml" (list "val" (flymake-init-create-temp-buffer-copy buffer 'flymake-create-temp-inplace))))
 
 (provide 'flymake)
