@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 CRITICAL_SECTION critsect;
 extern HANDLE keyboard_handle;
 HANDLE input_available = NULL;
+HANDLE interrupt_handle = NULL;
 
 void 
 init_crit ()
@@ -42,6 +43,14 @@ init_crit ()
   /* For safety, input_available should only be reset by get_next_msg
      when the input queue is empty, so make it a manual reset event. */
   keyboard_handle = input_available = CreateEvent (NULL, TRUE, FALSE, NULL);
+
+  /* interrupt_handle is signalled when quit (C-g) is detected, so that
+     blocking system calls can be interrupted.  We make it a manual
+     reset event, so that if we should ever have multiple threads
+     performing system calls, they will all be interrupted (I'm guessing
+     that would the right response).  Note that we use PulseEvent to
+     signal this event, so that it never remains signalled.  */
+  interrupt_handle = CreateEvent (NULL, TRUE, FALSE, NULL);
 }
 
 void 
@@ -54,6 +63,19 @@ delete_crit ()
       CloseHandle (input_available);
       input_available = NULL;
     }
+  if (interrupt_handle)
+    {
+      CloseHandle (interrupt_handle);
+      interrupt_handle = NULL;
+    }
+}
+
+void
+signal_quit ()
+{
+  /* Make sure this event never remains signalled; if the main thread
+     isn't in a blocking call, then this should do nothing.  */
+  PulseEvent (interrupt_handle);
 }
 
 void
