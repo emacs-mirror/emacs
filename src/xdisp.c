@@ -995,13 +995,15 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
 	{
 	  if (last_height)
 	    line_height = last_height;
-	  else
+	  else if (charpos < ZV)
 	    {
 	      move_it_by_lines (&it, 1, 1);
 	      line_height = (it.max_ascent || it.max_descent
 			     ? it.max_ascent + it.max_descent
 			     : last_height);
 	    }
+	  else 
+	    line_height = FONT_HEIGHT (FRAME_FONT (XFRAME (w->frame)));
 	}
       line_bottom_y = line_top_y + line_height;
 
