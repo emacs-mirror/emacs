@@ -1,3 +1,7 @@
+2004-12-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Mention C-cC-c as the way to finish editing throughout.
+
 2004-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (File Variables): Clarify previous change.
@@ -20,7 +24,7 @@
 
 2004-12-20  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Types Tutorial): Emphasized that you can't divide by
+	* calc.texi (Types Tutorial): Emphasize that you can't divide by
 	zero.
 
 2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>

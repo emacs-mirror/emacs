@@ -1,5 +1,12 @@
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
+	* calc/calc-graph.el (calc-graph-show-dumb): Mention C-cC-c as the
+	way to return to Calc.
+
+	* calc/calc-yank.el (calc-edit-mode): Mention C-cC-c as the way to
+	finish, C-xk as the way to cancel the edit.  Add cancel routine to
+	kill-buffer-hook.
+
 	* calc/calc.el (calc-same-interface, calc-quit): Remove obsolete
 	MacEdit code.
 
