@@ -78,6 +78,11 @@ Lisp_Object Vcharset_list;
    ID of a translation table is used to index this vector.  */
 Lisp_Object Vtranslation_table_vector;
 
+/* A char-table for characters which may invoke auto-filling.  */
+Lisp_Object Vauto_fill_chars;
+
+Lisp_Object Qauto_fill_chars;
+
 /* Tables used by macros BYTES_BY_CHAR_HEAD and WIDTH_BY_CHAR_HEAD.  */
 int bytes_by_char_head[256];
 int width_by_char_head[256];
@@ -1870,6 +1875,10 @@ syms_of_charset ()
   staticpro (&Qcomposition);
   CHARSET_SYMBOL (CHARSET_COMPOSITION) = Qcomposition;
 
+  Qauto_fill_chars = intern ("auto-fill-chars");
+  staticpro (&Qauto_fill_chars);
+  Fput (Qauto_fill_chars, Qchar_table_extra_slots, make_number (0));
+
   defsubr (&Sdefine_charset);
   defsubr (&Sgeneric_character_list);
   defsubr (&Sget_unused_iso_final_char);
@@ -1952,6 +1961,13 @@ See also the docstring of `make-translation-table'.");
   DEFVAR_INT ("min-composite-char", &min_composite_char,
     "Minimum character code of a composite character.");
   min_composite_char = MIN_CHAR_COMPOSITION;
+
+  DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
+    "A char-table for characters which invoke auto-filling.\n\
+Such characters has value t in this table.");
+  Vauto_fill_chars = Fmake_char_table (Qauto_fill_chars, Qnil);
+  CHAR_TABLE_SET (Vauto_fill_chars, ' ', Qt);
+  CHAR_TABLE_SET (Vauto_fill_chars, '\n', Qt);
 }
 
 #endif /* emacs */
