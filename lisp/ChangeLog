@@ -1,3 +1,8 @@
+2004-05-19  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Avoid mixing standard error
+	output messages into the search result.
+
 2004-05-19  Masatake YAMATO  <jet@gyve.org>
 
 	* wid-edit.el (widget-radio-button-notify): Revert my last 
