@@ -1,3 +1,10 @@
+2000-03-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (check_lface_attrs) [GLYPH_DEBUG]: Fix syntax error.
+	(lface_fully_specified_p): Don't check contents of
+	LFACE_FONT_INDEX because that attribute is optional.
+	(realize_x_face): Remove now unwarranted xassert.
+
 2000-03-21  Kenichi HANDA  <handa@etl.go.jp>
 
 	The following changes are to make font selection based on
