@@ -98,7 +98,10 @@ Boston, MA 02111-1307, USA.  */
 #define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
 #endif
 
-/* GCC 2.95 on GNU/Linux PPC changed the load address to 0x10000000.  */
-#if defined(__linux__) && __GNUC__ == 2 && __GNUC_MINOR__ >= 95
+/* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
+   0x10000000.  */
+#if defined __linux__
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
 #define DATA_SEG_BITS  0x10000000
+#endif
 #endif
