@@ -1386,7 +1386,6 @@
 	`verbatim' so that we don't inadvertently delete a non-existant
 	directory name.
 
->>>>>>> 1.1768
 2000-11-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Specify cases and syntaxes for
