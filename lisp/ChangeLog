@@ -1,5 +1,13 @@
 2002-04-17  Francesco Potorti`  <pot@gnu.org>
 
+	* dired-aux.el (dired-star-subst-regexp,
+	dired-quark-subst-regexp): New constants.
+	(dired-do-shell-command, dired-shell-stuff-it): Use them.
+	(dired-do-shell-command): Raise an error if both `*' and `?'
+	substitution marks are used in the same command.
+	(dired-shell-stuff-it): Substitute all instances of `*' and `?'
+	in a command given via dired-do-shell-command.
+
 	* comint.el (comint-password-prompt-regexp): Match "Repeat passphrase".
 
 2002-04-16  Jason Rumney  <jasonr@gnu.org>
