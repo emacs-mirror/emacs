@@ -1,3 +1,18 @@
+2000-12-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-parent-buffer): New var.
+	(log-edit): Set it.  Add BUFFER argument.
+	(log-edit-done): Use char-before.
+	Don't bother checking validity of vc-comment-ring.
+	Only bury the buffer if log-edit popped it up.
+
+	* pcvs.el: Update references to CVS-Edit (now Log-Edit).
+	(cvs-mode-diff-help): Remove.
+	(cvs-mode-commit): Use the new `log-edit' BUFFER argument.
+
+	* pcvs-defs.el (cvs-mode-diff-map): Use minibuffer menu prompt.
+	Remove binding for ? now made unnecessary.
+
 2000-12-10  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
 	* textmodes/reftex.el (reftex-scanning-info-available-p): New
