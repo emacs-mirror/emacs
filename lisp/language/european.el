@@ -500,7 +500,8 @@ but it selects the Dutch tutorial."))
   "Adobe `standard' encoding for PostScript"
   :coding-type 'charset
   :mnemonic ?*
-  :charset-list '(adobe-standard-encoding) 'adobe-standard-encoding)
+  :charset-list '(adobe-standard-encoding)
+  :mime-charset 'adobe-standard-encoding)
 
 (defconst diacritic-composition-pattern "\\C^\\c^+")
 
