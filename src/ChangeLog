@@ -1,5 +1,7 @@
 2001-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lisp.h (make_fixnum_or_float): Coerce double to int explicitly.
+
 	* editfns.c (text_property_stickiness): Fix Lisp_Object used as boolean.
 
 2001-10-25  Miles Bader  <miles@gnu.org>

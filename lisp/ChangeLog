@@ -1,3 +1,40 @@
+2001-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/checkdoc.el (checkdoc-eval-defun): Call eval-defun
+	interactively so that C-u M-C-x still does edebug.
+	(checkdoc-sentencespace-region-engine): Don't force a double-space
+	after `.' if it doesn't look like an end-of-sentence.
+	(debug-ignored-errors): Add `disambiguate ...'.
+
+2001-10-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texinfo.el (texinfo-environments)
+	(texinfo-environment-regexp): Hoisted.
+	(texinfo-font-lock-keywords): Use `italic' and `bold' faces.
+	Only highlight the menu name in menu items.
+	Setup `@foo ... @end foo' as text clones.
+	(texinfo-clone-environment): New function.
+	(texinfo-mode): Simplify auto-fill-inhibit-regexp.
+	(texinfo-insert-block): Simplify.
+	(texinfo-insert-quote): Insert a plain " if preceded by \ or if
+	the command is repeated.
+	(texinfo-last-unended-begin, texinfo-next-unmatched-end): New funs.
+	(texinfo-insert-@end): Simplify.
+
+	* textmodes/texnfo-upd.el (texinfo-section-types-regexp)
+	(texinfo-section-level-regexp, texinfo-subsection-level-regexp)
+	(texinfo-subsubsection-level-regexp)
+	(texinfo-update-menu-same-level-regexps)
+	(texinfo-update-menu-higher-regexps)
+	(texinfo-update-menu-lower-regexps): Hoisted to eliminate warnings.
+
+	* derived.el (define-derived-mode): Use {delay,run}-mode-hooks.
+	(derived-mode-p): Autoload.
+
+	* subr.el (delay-mode-hooks, delayed-mode-hooks, run-mode-hooks):
+	New vars and functions.
+	(text-clone-maintain, text-clone-create): New functions.
+
 2001-10-25  Miles Bader  <miles@gnu.org>
 
 	* facemenu.el (facemenu-add-new-face): Fix variable names.
