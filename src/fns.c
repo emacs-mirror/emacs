@@ -554,7 +554,7 @@ concat (nargs, args, target_type, last_special)
   register Lisp_Object tail;
   register Lisp_Object this;
   int toindex;
-  int toindex_byte;
+  int toindex_byte = 0;
   register int result_len;
   register int result_len_byte;
   register int argnum;
@@ -566,9 +566,11 @@ concat (nargs, args, target_type, last_special)
      string can't be decided until we finish the whole concatination.
      So, we record strings that have text properties to be copied
      here, and copy the text properties after the concatination.  */
-  struct textprop_rec  *textprops;
+  struct textprop_rec  *textprops = NULL;
   /* Number of elments in textprops.  */
   int num_textprops = 0;
+
+  tail = Qnil;
 
   /* In append, the last arg isn't treated like the others */
   if (last_special && nargs > 0)
@@ -681,7 +683,7 @@ concat (nargs, args, target_type, last_special)
   for (argnum = 0; argnum < nargs; argnum++)
     {
       Lisp_Object thislen;
-      int thisleni;
+      int thisleni = 0;
       register unsigned int thisindex = 0;
       register unsigned int thisindex_byte = 0;
 
@@ -1173,9 +1175,9 @@ This function allows vectors as well as strings.")
 {
   Lisp_Object res;
   int size;
-  int size_byte;
+  int size_byte = 0;
   int from_char, to_char;
-  int from_byte, to_byte;
+  int from_byte = 0, to_byte = 0;
 
   if (! (STRINGP (string) || VECTORP (string)))
     wrong_type_argument (Qarrayp, string);
@@ -2044,7 +2046,13 @@ internal_equal (o1, o2, depth)
 		STRING_BYTES (XSTRING (o1))))
 	return 0;
       return 1;
+
+    case Lisp_Int:
+    case Lisp_Symbol:
+    case Lisp_Type_Limit:
+      break;
     }
+  
   return 0;
 }
 
@@ -2577,7 +2585,7 @@ Only the last argument is not altered, and need not be a list.")
   register int argnum;
   register Lisp_Object tail, tem, val;
 
-  val = Qnil;
+  val = tail = Qnil;
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -3050,7 +3058,9 @@ Normally the return value is FEATURE.")
   register Lisp_Object tem;
   CHECK_SYMBOL (feature, 0);
   tem = Fmemq (feature, Vfeatures);
+
   LOADHIST_ATTACH (Fcons (Qrequire, feature));
+  
   if (NILP (tem))
     {
       int count = specpdl_ptr - specpdl;
