@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.6) $
+ * $HopeName: MMsrc!amcss.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -88,8 +88,8 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %u, %lu objects.\n",
              c, (unsigned long)i);
-      for(i=0; i<NR_EXACT_ROOTS; ++i)
-        assert(dylan_check(exact_roots[i]));
+      for(r=0; r<NR_EXACT_ROOTS; ++r)
+        assert(dylan_check(exact_roots[r]));
     }
 
     if(rnd() & 1)
