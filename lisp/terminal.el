@@ -514,7 +514,8 @@ together with a command \\<terminal-edit-map>to return to terminal emulation: \\
   ;; Make mode line update.
   (if (eq (key-binding "\C-c\C-c") 'terminal-cease-edit)
       (message "Editing: Type C-c C-c to return to Terminal")
-    (message (substitute-command-keys
+    (message "%s"
+	     (substitute-command-keys
 	       "Editing: Type \\[terminal-cease-edit] to return to Terminal"))))
 
 (defun terminal-cease-edit ()
