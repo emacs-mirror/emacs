@@ -249,10 +249,10 @@ assoc_ignore_text_properties (key, list)
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       tem = Fstring_equal (Fcar (elt), key);
       if (!NILP (tem))
 	return elt;
@@ -363,16 +363,16 @@ The value is never nil.  */)
   if (! BUF_BEG_ADDR (b))
     buffer_memory_full ();
 
-  BUF_PT (b) = 1;
-  BUF_GPT (b) = 1;
-  BUF_BEGV (b) = 1;
-  BUF_ZV (b) = 1;
-  BUF_Z (b) = 1;
-  BUF_PT_BYTE (b) = 1;
-  BUF_GPT_BYTE (b) = 1;
-  BUF_BEGV_BYTE (b) = 1;
-  BUF_ZV_BYTE (b) = 1;
-  BUF_Z_BYTE (b) = 1;
+  BUF_PT (b) = BEG;
+  BUF_GPT (b) = BEG;
+  BUF_BEGV (b) = BEG;
+  BUF_ZV (b) = BEG;
+  BUF_Z (b) = BEG;
+  BUF_PT_BYTE (b) = BEG_BYTE;
+  BUF_GPT_BYTE (b) = BEG_BYTE;
+  BUF_BEGV_BYTE (b) = BEG_BYTE;
+  BUF_ZV_BYTE (b) = BEG_BYTE;
+  BUF_Z_BYTE (b) = BEG_BYTE;
   BUF_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
@@ -1155,9 +1155,9 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
     }
   tail = nconc2 (Fnreverse (add_ons), tail);
 
-  for (; !NILP (tail); tail = Fcdr (tail))
+  for (; CONSP (tail); tail = XCDR (tail))
     {
-      buf = Fcdr (Fcar (tail));
+      buf = Fcdr (XCAR (tail));
       if (EQ (buf, buffer))
 	continue;
       if (SREF (XBUFFER (buf)->name, 0) == ' ')
@@ -1302,9 +1302,9 @@ with SIGHUP.  */)
 
     /* First run the query functions; if any query is answered no,
        don't kill the buffer.  */
-    for (list = Vkill_buffer_query_functions; !NILP (list); list = Fcdr (list))
+    for (list = Vkill_buffer_query_functions; CONSP (list); list = XCDR (list))
       {
-	tem = call0 (Fcar (list));
+	tem = call0 (XCAR (list));
 	if (NILP (tem))
 	  return unbind_to (count, Qnil);
       }
@@ -2004,7 +2004,7 @@ advance_to_char_boundary (byte_pos)
 
   if (byte_pos == BEG)
     /* Beginning of buffer is always a character boundary.  */
-    return 1;
+    return BEG;
 
   c = FETCH_BYTE (byte_pos);
   if (! CHAR_HEAD_P (c))
@@ -4209,13 +4209,13 @@ call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
   if (! after)
     add_overlay_mod_hooklist (list, overlay);
 
-  while (!NILP (list))
+  while (CONSP (list))
     {
       if (NILP (arg3))
-	call4 (Fcar (list), overlay, after ? Qt : Qnil, arg1, arg2);
+	call4 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2);
       else
-	call5 (Fcar (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
-      list = Fcdr (list);
+	call5 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
+      list = XCDR (list);
     }
   UNGCPRO;
 }
