@@ -4389,11 +4389,10 @@ xm_apply_resources (w, p)
 
 
 /* Set X resources of menu-widget WIDGET on frame F from face `menu'.
-   This is the LessTif/Motif version.  As of LessTif 0.88 it has the
-   following problems:
+   This is the LessTif/Motif version.
 
-   1. Setting the XmNfontList resource leads to an infinite loop
-   somewhere in LessTif.  */
+   As of 2001-03-13, setting the XmNfontList resource with LessTif
+   leads to an infinite loop somewhere in LessTif.  */
 
 static void
 xm_set_menu_resources_from_menu_face (f, widget)
@@ -4430,7 +4429,8 @@ xm_set_menu_resources_from_menu_face (f, widget)
 	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
     {
-#if 0 /* Setting the font leads to an infinite loop somewhere
+#ifndef LESSTIF_VERSION
+      /* Setting the font leads to an infinite loop somewhere
 	 in LessTif during geometry computation.  */
       XmFontListEntry fe;
       fe = XmFontListEntryCreate ("menu_font", XmFONT_IS_FONT, face->font);
