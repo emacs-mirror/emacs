@@ -1,3 +1,7 @@
+2001-11-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* fns.c (copy_hash_table): Remove unused variable `v'.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* m/news-risc.h (BROKEN_PROTOTYPES): Defined.
