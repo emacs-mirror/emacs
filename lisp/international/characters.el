@@ -1065,12 +1065,12 @@
   ;; general punctuation
   (setq c #x2000)
   (while (<= c #x200b)
-    (set-case-syntax c " " tbl)
-    (setq c (1+ c)))
+    (set-case-syntax (decode-char 'ucs c) " " tbl)
+    (setq c (decode-char 'ucs (1+ c))))
   (setq c #x2010)
   (while (<= c #x2027)
-    (set-case-syntax c "_" tbl)
-    (setq c (1+ c)))
+    (set-case-syntax (decode-char 'ucs c) "_" tbl)
+    (setq c (decode-char 'ucs (1+ c))))
 
   ;; Roman numerals
   (setq c #x2160)
@@ -1096,12 +1096,6 @@
     (modify-category-entry (decode-char 'ucs c) ?l)
     (modify-category-entry (decode-char 'ucs (+ c #x20)) ?l)
     (setq c (1+ c)))
-
-  ;; Ohm, Kelvin, Angstrom
-  (set-case-syntax-pair ?$,1uf(B ?$,1'I(B tbl)
-;;;  These mess up the case conversion of k and ,Ae(B.
-;;;  (set-case-syntax-pair ?$,1uj(B ?k tbl)
-;;;  (set-case-syntax-pair ?$,1uk(B ?,Ae(B tbl)
 
   ;; Combining diacritics
   (setq c #x300)
