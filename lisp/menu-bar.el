@@ -847,7 +847,8 @@ key (or menu-item)"))
   (list 'menu-item "Describe" menu-bar-describe-menu
 	:help "Describe commands, variables, keys"))
 (define-key menu-bar-help-menu [manuals]
-  (list 'menu-item "Manuals" menu-bar-manuals-menu))
+  (list 'menu-item "Manuals" menu-bar-manuals-menu
+	:help "Lookup commands and keys in docs, read manuals"))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
 (define-key menu-bar-help-menu [report-emacs-bug]
