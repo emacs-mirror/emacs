@@ -160,6 +160,9 @@ main (argc, argv)
   mmdf_init (argv[0]);
 #endif
 
+  if (*outname == 0)
+    fatal ("Destination file name is empty", 0);
+
   /* Check access to output file.  */
   if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
     pfatal_with_name (outname);
@@ -238,8 +241,9 @@ main (argc, argv)
       desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (desc < 0)
 	{
-	  char *message = (char *) malloc (strlen (tempname) + 50);
-	  sprintf (message, "%s--see source file lib-src/movemail.c");
+	  char *message = (char *) xmalloc (strlen (tempname) + 50);
+	  sprintf (message, "%s--see source file lib-src/movemail.c",
+		   tempname);
 	  pfatal_with_name (message);
 	}
       close (desc);
