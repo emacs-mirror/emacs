@@ -172,7 +172,14 @@ static int popup_activated_flag;
 
 static int next_menubar_widget_id;
 
-static int pending_menu_activation = 1;
+/* This is set nonzero after the user activates the menu bar, and set
+   to zero again after the menu bars are redisplayed by prepare_menu_bar.
+   While it is nonzero, all calls to set_frame_menubar go deep.
+
+   I don't understand why this is needed, but it does seem to be
+   needed on Motif, according to Marcus Daniels <marcus@sysc.pdx.edu>.  */
+
+int pending_menu_activation;
 
 #ifdef USE_X_TOOLKIT
 
@@ -1007,6 +1014,8 @@ on the left of the dialog box and all following items on the right.\n\
     }
   else if (WINDOWP (position) || FRAMEP (position))
     window = position;
+  else
+    window = Qnil;
 
   /* Decode where to put the menu.  */
 
@@ -1184,13 +1193,14 @@ x_activate_menubar (f)
   if (!f->output_data.x->saved_menu_event->type)
     return;
 
-  if (f->output_data.x->saved_menu_event->type != ButtonRelease)
-    set_frame_menubar (f, 0, 1);
+  set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
   XtDispatchEvent ((XEvent *) f->output_data.x->saved_menu_event);
   UNBLOCK_INPUT;
+#ifdef USE_MOTIF
   if (f->output_data.x->saved_menu_event->type == ButtonRelease)
     pending_menu_activation = 1;
+#endif
   
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
@@ -1607,9 +1617,13 @@ set_frame_menubar (f, first_time, deep_p)
   if (! menubar_widget)
     deep_p = 1;
   else if (pending_menu_activation && !deep_p)
+    deep_p = 1;
+  /* Make the first call for any given frame always go deep.  */
+  else if (!f->output_data.x->saved_menu_event && !deep_p)
     {
       deep_p = 1;
-      pending_menu_activation = 0;
+      f->output_data.x->saved_menu_event = (XEvent*)xmalloc (sizeof (XEvent));
+      f->output_data.x->saved_menu_event->type = 0;
     }
 
   wv = xmalloc_widget_value ();
