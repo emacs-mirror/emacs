@@ -546,7 +546,7 @@ This follows the rule [28] in the XML specifications."
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (assoc element dtd)
 		(error "XML: element declarations must be unique in a DTD (<%s>)"
-		       element)
+		       element))
 
 	    ;;  Store the element in the DTD
 	    (push (list element type) dtd)
@@ -559,7 +559,7 @@ This follows the rule [28] in the XML specifications."
 
 	  ;;  Skip the end of the DTD
 	  (search-forward ">"))))
-    (nreverse dtd))))
+    (nreverse dtd)))
 
 (defun xml-parse-elem-type (string)
   "Convert element type STRING into a Lisp structure."
