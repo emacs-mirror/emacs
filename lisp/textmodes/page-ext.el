@@ -480,7 +480,8 @@ contain matches to the regexp.\)")
   (setq pages-directory-map (make-sparse-keymap))
   (define-key pages-directory-map "\C-c\C-c"
     'pages-directory-goto)
-  (define-key pages-directory-map "\C-c\C-p\C-a" 'add-new-page))
+  (define-key pages-directory-map "\C-c\C-p\C-a" 'add-new-page)
+  (define-key pages-directory-map [mouse-2] 'pages-directory-goto-with-mouse))
 
 (defvar original-page-delimiter "^\f"
   "Default page delimiter.")
@@ -666,13 +667,18 @@ Used by `pages-directory' function."
       (setq position (make-marker))
       (set-marker position (point))
       (let ((start (point))
-            (end (save-excursion (end-of-line) (point))))
+            (end (save-excursion (end-of-line) (point)))
+	    inserted-at)
         ;; change to directory buffer
         (set-buffer standard-output)
         ;; record page position 
         (setq pages-pos-list (cons position pages-pos-list))
         ;; insert page header
-        (insert-buffer-substring target-buffer start end))
+	(setq inserted-at (point))
+	(insert-buffer-substring target-buffer start end)
+	(put-text-property inserted-at (point) 
+			   'mouse-face 'highlight)
+	(put-text-property inserted-at (point) 'rear-nonsticky 'highlight)))
       
       (if count-lines-p
           (save-excursion
@@ -720,6 +726,14 @@ to the same line in the pages buffer."
       (goto-char (marker-position pos)))
     (if narrowing-p (narrow-to-page))))
 
+(defun pages-directory-goto-with-mouse  (event)
+  "Go to the corresponding line under the mouse pointer in the pages buffer."
+  (interactive "e")
+  (save-excursion
+    (set-buffer (window-buffer (posn-window (event-end event))))
+    (save-excursion
+      (goto-char (posn-point (event-end event)))
+      (pages-directory-goto))))
 
 ;;; The `pages-directory-for-addresses' function and ancillary code
 
