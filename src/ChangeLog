@@ -1,3 +1,39 @@
+2000-04-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (init_iterator): Set iterator's extra_line_spacing
+	from buffer or frame.
+	(automatic_hscrolling_p): New variable.
+	(hscroll_windows): Scroll windows horizontally only if automatic
+	hscrolling is allowed.
+	(syms_of_xdisp): New variable `automatic-hscrolling'.
+
+	* frame.h (struct frame): Add member extra_line_spacing.
+
+	* xfns.c (x_set_line_spacing): New function.
+	(Fx_create_frame): Set line spacing from resources.
+	(Qline_spacing): New variable.
+	(syms_of_xfns): Initialize Qline_spacing.
+	
+	* emacs.c (USAGE2): Add `--line-spacing' and `-lsp'.
+
+	* buffer.c (init_buffer_once): Handle extra_line_spacing.
+	(syms_of_buffer): Add `default-line-spacing' and `line-spacing'.
+	(reset_buffer): Don't initialize extra2 and extra3.  Intialize
+	extra_line_spacing from default value.
+	(init_buffer_once): Initialize default value of extra_line_spacing.
+
+	* buffer.h (struct buffer): Add extra_line_spacing, remove extra2
+	and extra3.
+
+	* xterm.c (x_produce_glyphs): Remove reference to struct it's
+	prompt_width.  Add extra line spacing.
+
+	* term.c (produce_glyphs): Remove reference to struct it's
+	prompt_width.
+
+	* dispextern.h (struct it): Remove member prompt_width, add
+	extra_line_spacing.
+
 2000-04-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_frame_line): When writing a whole line, make

@@ -1,3 +1,11 @@
+2000-04-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (scrolling): New group.
+	(automatic-hscrolling): New user-option.
+
+	* startup.el (command-line-x-option-alist): Add `-lsp' and
+	`--line-spacing'.
+
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-extra.el (cl-old-mapc): Fix definition.

@@ -16,6 +16,21 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** On window-systems, additional space can be put between text lines
+on the display using several methods
+
+- By setting frame parameter `line-spacing' to PIXELS.  PIXELS must be
+a positive integer, and specifies that PIXELS number of pixels should
+be put below text lines on the affected frame or frames.
+
+- By setting X resource `lineSpacing', class `LineSpacing'.  This is
+equivalent ot specifying the frame parameter.
+
+- By specifying `--line-spaceing=N' or `-lsp N' on the command line.
+
+- By setting buffer-local variable `line-spacing'.  The meaning is
+the same, but applies to the a particular buffer only.
+
 ** The new command `clone-buffer-indirectly' can be used to create
 an indirect buffer that is a twin copy of the current buffer.  The
 command `clone-buffer-indirectly-other-window', bound to C-x 4 c,
@@ -315,7 +330,9 @@ LessTif and Motif.
 
 ** Hscrolling in C code.
 
-Horizontal scrolling now happens automatically.
+Horizontal scrolling now happens automatically if
+`automatic-hscrolling' is set (the default).  This setting can be
+customized.
 
 ** Tool bar support.
 
