@@ -139,6 +139,8 @@ NOTE-END
 /* #define NO_SOCK_SIGIO */
 
 
+#ifndef __ELF__
+
 /* Describe layout of the address space in an executing process.  */
 
 #define TEXT_START    0x120000000
@@ -148,6 +150,12 @@ NOTE-END
    the correct value */
 
 #define DATA_SEG_BITS 0x140000000
+
+/* The program to be used for unexec. */
+
+#define UNEXEC unexalpha.o
+
+#endif /* ! __ELF__ */
 
 #ifdef OSF1
 #define ORDINARY_LINK
@@ -175,14 +183,10 @@ NOTE-END
 #define START_FILES pre-crt0.o
 #endif
 
-#ifdef LINUX
+#if defined(LINUX) && __GNU_LIBRARY__ - 0 < 6
 /* This controls a conditional in main.  */
 #define LINUX_SBRK_BUG
 #endif
-
-/* The program to be used for unexec. */
-
-#define UNEXEC unexalpha.o
 
 
 #define PNTR_COMPARISON_TYPE unsigned long
@@ -280,5 +284,7 @@ extern void r_alloc_free ();
 #define NO_TERMIO
 
 #define TEXT_END ({ extern int _etext; &_etext; })
-#define DATA_END ({ extern int _EDATA; &_EDATA; })
+#ifndef __ELF__
+# define DATA_END ({ extern int _EDATA; &_EDATA; })
+#endif /* notdef __ELF__ */
 #endif
