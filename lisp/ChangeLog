@@ -1,3 +1,8 @@
+2001-12-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/smtpmail.el (smtpmail-send-queued-mail): Insert the
+	enqueued messages literally.
+
 2001-12-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.el (tab-to-tab-stop): Use delete-horizontal-space.
