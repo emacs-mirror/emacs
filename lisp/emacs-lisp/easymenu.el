@@ -30,10 +30,8 @@
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
-The arguments SYMBOL and DOC are ignored; they are present for
-compatibility only.  SYMBOL is not evaluated.  In other Emacs versions
-these arguments may be used as a variable to hold the menu data, and a
-doc string for that variable.
+SYMBOL is used as a variable to hold the menu data.  It is not evaluated.
+DOC is a doc string for that variable.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 The rest of the elements are menu items.
