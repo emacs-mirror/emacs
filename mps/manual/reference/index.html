@@ -2520,7 +2520,8 @@ href="#mps_ap_alloc_pattern_begin">mps_ap_alloc_pattern_begin</a></code></p>
 
 <h4>Summary</h4>
 
-<p><code><a href="#mps_amc_apply">mps_amc_apply</a></code> is used to inspect objects in an AMC pool. You may only call it when thearena is parked (for example, after <code><a href="#mps_arena_collect">mps_arena_collect</a></code>).</p>
+<p><code><a href="#mps_amc_apply">mps_amc_apply</a></code> is used to inspect objects in an AMC pool. You may only call it when the
+arena is parked (for example, after <code><a href="#mps_arena_collect">mps_arena_collect</a></code>).</p>
 
 
 <h4>Associated Protocols</h4>
@@ -3889,7 +3890,21 @@ extern void mps_arena_formatted_objects_walk(mps_arena_t,
 
 <p><code><a href="#mps_arena">mps_arena</a></code> in an MPS arena object.</p>
 
-<p><code>stepper</code> is a client-supplied function (pointer) of the right type (see <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code>). This function is applied to every object in allformatted pools. This function should take the argument list <code>(mps_addr_t object, mps_fmt_t format,mps_pool_t pool, void *p, size_t s)</code>. <code>object</code> is the object to which the function is being applied. <code>format</code> is the format (an MPS format object) of the object, <code>pool</code> is the pool in which the object resides, <code>p</code> and <code>s</code> are copies of the corresponding values that the client passed into <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code> originally.</p>
+<p><code>stepper</code> is a client-supplied function (pointer) of
+the right type (see <code><a
+href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code>).
+This function is applied to every object in all formatted pools.
+This function should take the argument list <code>(mps_addr_t object,
+mps_fmt_t format,mps_pool_t pool, void *p, size_t s)</code> and return
+<code>void</code>.
+<code>object</code> is the object to which the function is being
+applied.
+<code>format</code> is the format (an MPS format object)
+of the object. <code>pool</code> is the pool in which the object
+resides. <code>p</code> and <code>s</code> are copies of the
+corresponding values that the client passed into <code><a
+href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>
+originally.</p>
 
 <p><code>p</code> and <code>s</code> are passed into the function specified by the stepper argument whenever the MPS calls that function. See <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code>.</p>
 
@@ -3906,10 +3921,24 @@ extern void mps_arena_formatted_objects_walk(mps_arena_t,
 
 <h4>Description</h4>
 
-<p><code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code> is used to iterate over all formatted objects in the MPSheap. A client-supplied function is called for every object in all formatted pools; the object, theformat, and the pool are passed to the user supplied function, as well as some closure variables.</p>
+<p><code><a
+href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>
+is used to iterate over all formatted objects in the MPS heap. A
+client-supplied function is called for every object in all formatted
+pools; the object, the format, and the pool are passed to the user
+supplied function, as well as user supplied closure variables.</p>
 
-<p>Applies stepper function to a pool-class-specific collection of objects (that is, the poolclass determines which objects in its instances get walked). Typically pool classes will arrangethat all validly formatted objects are walked. During a trace this will in general be only the blackobjects, though the leaf pool class (LO), for example, will walk all objects since they are validlyformatted whether they are black or white. Padding objects may be walked at the pool classesdiscretion, the client should handle this case.</p>
+<p>Applies stepper function to a pool-class-specific collection of
+objects (that is, the pool class determines which objects in its
+instances get walked). Typically pool classes will arrange that all
+validly formatted objects are walked. During a trace this will in
+general be only the blackobjects, though the leaf pool class (LO),
+for example, will walk all objects since they are validly formatted
+whether they are black or white. Padding objects may be walked at
+the pool classes discretion, the client should handle this case.</p>
 
+<p>The user supplied stepper function is called in a restricted context.
+It may not in general call any MPS function.</p>
 
 <h4>Example</h4>
 
@@ -3933,6 +3962,92 @@ href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></cod
 
 
 <h4>Notes</h4>
+
+
+<h3>function <code><a id="mps_arena_has_addr" name="mps_arena_park">mps_arena_park</a></code></h3>
+
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_arena_has_addr">mps_arena_has_addr</a></code></p>
+
+
+<h4>Summary</h4>
+
+<p><code><a href="#mps_arena_has_addr">mps_arena_has_addr</a></code> tests
+whether an address is managed by a particular arena.
+</p>
+
+
+<h4>Associated Protocols</h4>
+
+<p>Arena.</p>
+
+
+<h4>Syntax</h4>
+
+<p><code>extern mps_bool_t mps_arena_has_addr(mps_arena_t arena,
+mps_addr_t addr); </code></p>
+
+
+<h4>Arguments</h4>
+
+<p><code>arena</code> an arena</p>
+
+<p><code>addr</code> an address</p>
+
+
+<h4>Returned Values</h4>
+
+<p>A boolean.  Returns true if the address is managed by the arena,
+false otherwise.
+
+
+<h4>Resources</h4>
+
+<p>mps.h</p>
+
+
+<h4>Description</h4>
+
+<p>
+<code><a href="#mps_arena_has_addr">mps_arena_has_addr</a></code> determines
+whether a particular address is managed by a particular arena.  An arena
+manages a portion of total address space available on the hardware
+architecture.  No two arenas overlap so for any particular address this
+function will return true for at most one arena.  In general not all the
+architecture addresses are managed by some arena; some addreses will not
+be managed by any arena.  This is what allows the MPS to cooperate with
+other memory managers, shared object loaders, memory mapped file I/O,
+and such like - it does not steal the whole address space.
+</p>
+<p>
+The results from this function are true only for the instant at which
+the function returned.  In some circumstances the results may
+immediately become invalidated (for example, a garbage collection may
+occur, the address in question may become free, the arena may choose to
+unmap the address and return storage to the operating system); for
+reliable results call this function whilst the arena is parked.
+</p>
+
+<h4>Example</h4>
+
+
+<h4>Error Handling</h4>
+
+<p>Can't fail.</p>
+
+
+<h4>See Also</h4>
+
+<p>
+
+<code><a href="#mps_arena_clamp">mps_arena_park</a> used to park an
+arena</code>,
+
+<h4>Notes</h4>
+
+<p>None.</p>
 
 
 <h3>function <code><a id="mps_arena_park" name="mps_arena_park">mps_arena_park</a></code></h3>
@@ -6434,12 +6549,12 @@ void go(mps_space_t space)
 
 <h4>Summary</h4>
 
-<p>Type of the client supplied heap walker component.</p>
+<p>Type of the client supplied heap walker function.</p>
 
 
 <h4>Associated Protocols</h4>
 
-<p>None.</p>
+<p>Heap walking.</p>
 
 
 <h4>Type</h4>
@@ -6449,7 +6564,11 @@ void go(mps_space_t space)
 
 <h4>Arguments</h4>
 
-<p>The function pointed to by an object of type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> takes thefollowing argument list:</p>
+<p><code><a
+href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper</a></code>
+is a type not a function so it doesn't take any arguments; however the
+function pointed to by an object of this type does.  Such functions
+take the following argument list:</p>
 
 <p><code>(mps_addr_t object, mps_fmt_t format, mps_pool_t pool, void *p, size_t s)</code></p>
 
@@ -6459,12 +6578,14 @@ void go(mps_space_t space)
 
 <p><code>pool</code> in the MPS pool in which the client object resides.</p>
 
-<p><code>p</code> and <code>s</code> are two closure values which are copies of the corresponding values which the clientpassed into <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>.</p>
+<p><code>p</code> and <code>s</code> are two closure values which are copies of the corresponding values which the client
+passed into the heap walking function, <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>.</p>
 
 
 <h4>Returned Values</h4>
 
-<p>The function pointed to by an object of type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> returns noarguments.</p>
+<p>The function pointed to by an object of type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> returns no
+arguments.</p>
 
 
 <h4>Resources</h4>
@@ -6474,7 +6595,15 @@ void go(mps_space_t space)
 
 <h4>Description</h4>
 
-<p>A pointer to a function is passed into the function <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>; the pointer has this type. The heap walker arranges to apply this function to all objects on the heap.</p>
+<p>This symbol describe the type of pointers passed into the heap
+walking function
+<code><a
+href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>.
+The heap walker arranges to apply this
+function to all objects on the heap, see
+<code><a
+href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code>
+for details.
 
 
 <h4>Example</h4>
@@ -6484,7 +6613,8 @@ void go(mps_space_t space)
 
 <h4>Error Handling</h4>
 
-<p>The function pointed to by an object of type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> have no way toreturn an error code to the caller.</p>
+<p>The function pointed to by an object of type <code><a href="#mps_formatted_objects_stepper_t">mps_formatted_objects_stepper_t</a></code> have no way to
+return an error code to the caller.</p>
 
 
 <h4>See Also</h4>
