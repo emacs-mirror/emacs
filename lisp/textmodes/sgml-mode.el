@@ -436,7 +436,7 @@ or M-- for a soft hyphen."
   (interactive "*")
   (insert ?&)
   (or char
-      (setq char (read-quoted-char)))
+      (setq char (read-quoted-char "Enter char or octal number")))
   (delete-backward-char 1)
   (insert char)
   (undo-boundary)
