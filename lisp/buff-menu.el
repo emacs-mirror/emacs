@@ -31,6 +31,9 @@
 
 ;;; Change Log:
 
+;; Buffer-menu-view: New function
+;; Buffer-menu-view-other-window: New function
+
 ;; Merged by esr with recent mods to Emacs 19 buff-menu, 23 Mar 1993
 ;;
 ;; Modified by Bob Weiner, Motorola, Inc., 4/14/89
@@ -94,6 +97,7 @@
   (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
   (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
   (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
+  (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
 
@@ -109,6 +113,9 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-this-window] -- select current line's buffer in place of the buffer menu.
 \\[Buffer-menu-other-window] -- select that buffer in another window,
   so the buffer menu buffer remains visible in its window.
+\\[Buffer-menu-view] -- select current line's buffer, but in view-mode.
+\\[Buffer-menu-view-other-window] -- select that buffer in
+  another window, in view-mode.
 \\[Buffer-menu-switch-other-window] -- make another window display that buffer.
 \\[Buffer-menu-mark] -- mark current line's buffer to be displayed.
 \\[Buffer-menu-select] -- select current line's buffer.
@@ -435,6 +442,18 @@ The current window remains selected."
         (goto-char (point-max))
         (insert line))
       (message "Buried buffer moved to the end"))))
+
+
+(defun Buffer-menu-view ()
+  "View this line's buffer in View mode."
+  (interactive)
+  (view-buffer (Buffer-menu-buffer t)))
+
+
+(defun Buffer-menu-view-other-window ()
+  "View this line's buffer in View mode in another window."
+  (interactive)
+  (view-buffer-other-window (Buffer-menu-buffer t)))
 
 
 (define-key ctl-x-map "\C-b" 'list-buffers)
