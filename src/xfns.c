@@ -1757,7 +1757,7 @@ be shared by the new frame.")
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
-      font = x_new_font (f, XSTRING (tem)->data);
+      font = x_new_font (f, XSTRING (font)->data);
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
       font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-120-*-*-c-*-iso8859-1");
