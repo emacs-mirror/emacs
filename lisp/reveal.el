@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point
 
-;; Copyright (C) 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: outlines
@@ -59,6 +59,9 @@
 (defvar reveal-open-spots nil)
 (make-variable-buffer-local 'reveal-open-spots)
 
+(defvar reveal-last-tick nil)
+(make-variable-buffer-local 'reveal-last-tick)
+
 ;; Actual code
 
 (defun reveal-post-command ()
@@ -90,16 +93,16 @@
 			  (overlays-at (point))))
 	 (push (cons (selected-window) ol) reveal-open-spots)
 	 (setq old-ols (delq ol old-ols))
-	 (let ((open (overlay-get ol 'reveal-toggle-invisible)))
+	 (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
 	   (when (or open
-		     (let ((inv (overlay-get ol 'invisible)))
-		       (and inv (symbolp inv)
-			    (or (setq open (or (get inv 'reveal-toggle-invisible)
-					       (overlay-get ol 'isearch-open-invisible-temporary)))
-				(overlay-get ol 'isearch-open-invisible)
-				(and (consp buffer-invisibility-spec)
-				     (assq inv buffer-invisibility-spec)))
-			    (overlay-put ol 'reveal-invisible inv))))
+		     (and (setq inv (overlay-get ol 'invisible))
+			  (symbolp inv)
+			  (or (setq open (or (get inv 'reveal-toggle-invisible)
+					     (overlay-get ol 'isearch-open-invisible-temporary)))
+			      (overlay-get ol 'isearch-open-invisible)
+			      (and (consp buffer-invisibility-spec)
+				   (assq inv buffer-invisibility-spec)))
+			  (overlay-put ol 'reveal-invisible inv)))
 	     (if (null open)
 		 (overlay-put ol 'invisible nil)
 	       ;; Use the provided opening function and repeat (since the
@@ -113,27 +116,39 @@
 			(setq repeat nil)
 			(overlay-put ol 'invisible nil))))))))
      ;; Close old overlays.
-     (dolist (ol old-ols)
-       (when (and (eq (current-buffer) (overlay-buffer ol))
-		  (not (rassq ol reveal-open-spots)))
-	 (if (and (>= (point) (save-excursion
-				(goto-char (overlay-start ol))
-				(line-beginning-position 1)))
-		  (<= (point) (save-excursion
-				(goto-char (overlay-end ol))
-				(line-beginning-position 2))))
-	     ;; Still near the overlay: keep it open.
-	     (push (cons (selected-window) ol) reveal-open-spots)
-	   ;; Really close it.
-	   (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
-	     (if (or open
-		     (and (setq inv (overlay-get ol 'reveal-invisible))
-			  (setq open (or (get inv 'reveal-toggle-invisible)
-					 (overlay-get ol 'isearch-open-invisible-temporary)))))
-		 (condition-case err
-		     (funcall open ol t)
-		   (error (message "!!Reveal-hide: %s !!" err)))
-	       (overlay-put ol 'invisible inv)))))))
+     (if (not (eq reveal-last-tick
+		  (setq reveal-last-tick (buffer-modified-tick))))
+	 ;; The buffer was modified since last command: let's refrain from
+	 ;; closing any overlay because it tends to behave poorly when
+	 ;; inserting text at the end of an overlay (basically the overlay
+	 ;; should be rear-advance when it's open, but things like
+	 ;; outline-minor-mode make it non-rear-advance because it's
+	 ;; a better choice when it's closed).
+	 (dolist (ol old-ols)
+	   (push (cons (selected-window) ol) reveal-open-spots))
+       ;; The last command was only a point motion or some such
+       ;; non-buffer-modifying command.  Let's close whatever can be closed.
+       (dolist (ol old-ols)
+	 (when (and (eq (current-buffer) (overlay-buffer ol))
+		    (not (rassq ol reveal-open-spots)))
+	   (if (and (>= (point) (save-excursion
+				  (goto-char (overlay-start ol))
+				  (line-beginning-position 1)))
+		    (<= (point) (save-excursion
+				  (goto-char (overlay-end ol))
+				  (line-beginning-position 2))))
+	       ;; Still near the overlay: keep it open.
+	       (push (cons (selected-window) ol) reveal-open-spots)
+	     ;; Really close it.
+	     (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
+	       (if (or open
+		       (and (setq inv (overlay-get ol 'reveal-invisible))
+			    (setq open (or (get inv 'reveal-toggle-invisible)
+					   (overlay-get ol 'isearch-open-invisible-temporary)))))
+		   (condition-case err
+		       (funcall open ol t)
+		     (error (message "!!Reveal-hide: %s !!" err)))
+		 (overlay-put ol 'invisible inv))))))))
    (error (message "Reveal: %s" err)))))
 
 ;;;###autoload
@@ -171,5 +186,5 @@ With zero or negative ARG turn mode off."
 
 (provide 'reveal)
 
-;;; arch-tag: 96ba0242-2274-4ed7-8e10-26bc0707b4d8
+;; arch-tag: 96ba0242-2274-4ed7-8e10-26bc0707b4d8
 ;;; reveal.el ends here
