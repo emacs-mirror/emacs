@@ -1,5 +1,9 @@
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_connection_closed): Catch X errors around all
+	statements that call X.  Save away the error message in a local
+	copy.
+	
 	* xterm.c (x_connection_closed): Set handling_signal to 0 at
 	the start.
 
