@@ -1,3 +1,21 @@
+2001-02-24  Andrew Innes  <andrewi@gnu.org>
+
+	* inc/sys/socket.h: Add copyright notice.
+
+	* paths.h: Add copyright notice.
+
+	* makefile.nt: Update copyright notice.
+
+	* makefile.def: Update copyright notice.
+
+	* configure.bat: Update copyright notice.
+
+	* nmake.defs: Add copyright notice.
+
+	* gmake.defs: Add copyright notice.
+
+	* makefile.w32-in: Add copyright notice.
+
 2001-02-05  Andrew Innes  <andrewi@gnu.org>
 
 	* nmake.defs (THISDIR): New definition.
