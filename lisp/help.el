@@ -710,13 +710,16 @@ It can also be nil, if the definition is not associated with any file."
 	  (with-current-buffer "*Help*"
 	    (save-excursion
 	      (re-search-backward "`\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'(lambda (arg)
-				      (let ((location
-					     (find-function-noselect arg)))
-					(pop-to-buffer (car location))
-					(goto-char (cdr location))))
-				function
-				"mouse-2, RET: find function's definition")))))
+	      (help-xref-button 
+	       1 
+	       #'(lambda (arg)
+		   (require 'find-func)
+		   (let* ((location (find-function-search-for-symbol
+				     arg nil (symbol-file arg))))
+		     (pop-to-buffer (car location))
+		     (goto-char (cdr location))))
+	       function
+	       "mouse-2, RET: find function's definition")))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
