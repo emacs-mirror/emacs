@@ -274,7 +274,7 @@ actually occur.")
     (if mail-default-reply-to
 	(insert "Reply-to: " mail-default-reply-to "\n"))
     (if mail-self-blind
-	(insert "BCC: " (user-login-name) "\n"))
+	(insert "BCC: " user-mail-address "\n"))
     (if mail-archive-file-name
 	(insert "FCC: " mail-archive-file-name "\n"))
     (put-text-property (point)
