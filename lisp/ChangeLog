@@ -1,3 +1,7 @@
+2000-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (remove-hook): Don't turn the hook's value into a list.
+
 2000-05-21  Dave Love  <fx@gnu.org>
 
 	* edmacro.el (edmacro-parse-keys): Return vector if any elements
