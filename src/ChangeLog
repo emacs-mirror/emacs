@@ -1,3 +1,7 @@
+2002-08-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (get_next_display_element): Fix previous change.
+
 2002-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* sysdep.c [!VMS]: Include sys/file.h.
