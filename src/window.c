@@ -43,7 +43,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qfixed_window_size, Qleft_bitmap_area, Qright_bitmap_area;
+Lisp_Object Qwindow_size_fixed, Qleft_bitmap_area, Qright_bitmap_area;
 extern Lisp_Object Qheight, Qwidth;
 
 static struct window *decode_window P_ ((Lisp_Object));
@@ -1974,7 +1974,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
       struct buffer *old = current_buffer;
 
       current_buffer = XBUFFER (w->buffer);
-      val = find_symbol_value (Qfixed_window_size);
+      val = find_symbol_value (Qwindow_size_fixed);
       current_buffer = old;
 
       fixed_p = 0;
@@ -4900,8 +4900,8 @@ syms_of_window ()
   Qright_bitmap_area = intern ("right-bitmap-area");
   staticpro (&Qright_bitmap_area);
   
-  Qfixed_window_size = intern ("fixed-window-size");
-  staticpro (&Qfixed_window_size);
+  Qwindow_size_fixed = intern ("window-size-fixed");
+  staticpro (&Qwindow_size_fixed);
   
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
