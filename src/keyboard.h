@@ -340,3 +340,4 @@ extern int gen_help_event P_ ((struct input_event *, Lisp_Object,
 			       Lisp_Object, Lisp_Object, Lisp_Object, int));
 extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
+extern int  kbd_buffer_events_waiting P_ ((int));
