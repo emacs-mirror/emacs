@@ -32,6 +32,9 @@
 ;; Use ";" instead of ":" as a path separator (from files.el).
 (setq path-separator ";")
 
+(setq minibuffer-history-case-insensitive-variables
+      (cons 'file-name-history minibuffer-history-case-insensitive-variables))
+
 ;; Set the null device (for compile.el).
 (setq grep-null-device "NUL")
 
