@@ -50,8 +50,15 @@
 		(features devan-util)
 		(documentation . "\
 Such languages using Devanagari script as Hindi and Marathi
-are supported in this language environment."))
- '("Indian"))
+are supported in this language environment.
+
+But, the current implementation is very imcomplete.  Although we have
+already implemented a better Indic scripts support, it is not yet
+included in this Emacs because this version is only for bug fixing.
+
+The web page <http://www.m17n.org/emacs-indian/> describes how to use
+that new Indic scripts support.  Please visit that page."))
+'("Indian"))
 
 ;;
 ;; Devanagari Glyph List
