@@ -8,6 +8,10 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef __GNU_LIBRARY__
+# include <string.h>
+#endif
+
 extern char *malloc ();
 char *xmalloc ();
 

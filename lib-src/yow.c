@@ -14,6 +14,10 @@
 #include <ctype.h>
 #include <../src/paths.h>      /* For PATH_DATA.  */
 
+#ifdef __GNU_LIBRARY__
+# include <string.h>
+#endif
+
 #define BUFSIZE  80
 #define SEP      '\0'
 

@@ -36,6 +36,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 
+#ifdef __GNU_LIBRARY__
+# include <string.h>
+#endif
+
 char *malloc ();
 char *realloc ();
 char *getenv ();
