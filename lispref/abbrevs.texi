@@ -111,8 +111,9 @@ is currently defined.
 
   These functions define an abbrev in a specified abbrev table.
 @code{define-abbrev} is the low-level basic function, while
-@code{add-abbrev} is used by commands that ask for information from the
-user.
+@code{add-abbrev} is used by commands that ask for information from
+the user.  When major modes predefine standard abbrevs, they should
+call @code{define-abbrev} and specify @code{t} for @var{system-flag}.
 
 @defun add-abbrev table type arg
 This function adds an abbreviation to abbrev table @var{table} based on
@@ -156,12 +157,14 @@ of the character.  By contrast, if @var{hook} returns @code{nil},
 @code{expand-abbrev} also returns @code{nil}, as if expansion had not
 really occurred.
 
+If @var{system-flag} is non-@code{nil}, that marks the abbrev as a
+``system'' abbrev with the @code{system-type} property.
+
 Normally the function @code{define-abbrev} sets the variable
-@code{abbrevs-changed} to @code{t}.  But if @var{system-flag} is
-non-@code{nil}, that says the abbrev is a ``system'' abbrev.  In that
-case, @code{define-abbrev} does not alter @code{abbrevs-changed}.
-Instead it marks the abbrev as a ``system'' abbrev with the
-@code{system-type} property.
+@code{abbrevs-changed} to @code{t}, if it actually changes the abbrev.
+(This is so that some commands will offer to save the abbrevs.)  It
+does not do this for a ``system'' abbrev, since those won't be saved
+anyway.
 @end defun
 
 @defopt only-global-abbrevs
