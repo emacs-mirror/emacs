@@ -347,10 +347,6 @@ which can be the value of the `face' text property."
 	 (list (list "x-bg-color" (cadr face))))
 	((listp face)
 	 (apply 'append (mapcar 'enriched-face-ans face)))
-	((string-match "^fg:" (symbol-name face))
-	 (list (list "x-color" (substring (symbol-name face) 3))))
-	((string-match "^bg:" (symbol-name face))
-	 (list (list "x-bg-color" (substring (symbol-name face) 3))))
 	((let* ((fg (face-attribute face :foreground))
 		(bg (face-attribute face :background))
 		(props (face-font face t))
@@ -436,28 +432,20 @@ Return value is \(begin end name positive-p), or nil if none was found."
       (delete-char 1)))
 
 (defun enriched-decode-foreground (from to &optional color)
-  (let ((face (intern (concat "fg:" color))))
-    (cond ((null color)
-	   (message "Warning: no color specified for <x-color>"))
-	  ((facep face))
-	  ((and (display-color-p) (facemenu-get-face face))
-	   (set-face-foreground face color))
-	  ((make-face face)
-	   (message "Warning: color `%s' can't be displayed" color)))
-    (list from to 'face face)))
+  (if (and color (display-color-p) (facemenu-get-face face))
+      (list from to 'face (cons ':foreground color))
+    (if (null color)
+	(message "Warning: no color specified for <x-color>")
+      (message "Warning: color `%s' can't be displayed" color))
+    nil))
 
 (defun enriched-decode-background (from to &optional color)
-  (let ((face (intern (concat "bg:" color))))
-    (cond ((null color)
-	   (message "Warning: no color specified for <x-bg-color>"))
-	  ((facep face))
-	  ((and (display-color-p) (facemenu-get-face face))
-	   (set-face-background face color))
-	  ((make-face face)
-	   (message "Warning: color `%s' can't be displayed" color)))
-    (list from to 'face face)))
-
-
+  (if (and color (display-color-p) (facemenu-get-face face))
+      (list from to 'face (cons ':background color))
+    (if (null color)
+	(message "Warning: no color specified for <x-bg-color>")
+      (message "Warning: color `%s' can't be displayed" color))
+    nil))
 
 ;;; Handling the `display' property.
 
