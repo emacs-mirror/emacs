@@ -50,20 +50,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define NO_REMAP
 
-/* The rest of the file certainly needs updating for Emacs 19.29!  */
+/* This needs verification!  */
 
-/* Define sizes of portions of a Lisp_Object.  */
-#define VALBITS 24
-
-#define VALAMASK (((1<<VALBITS) - 1)| 0xF0000000L)
-
-#define XTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-#define XSETTYPE(a, b) ((a)  =  ((a) & VALAMASK)  +  ((int)(b) << VALBITS))
-
-#define XPNTR(a) ((a) & VALAMASK)
-
-#define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + ((int) (ptr) & VALAMASK))
-
-/* Move some garbage-collector flag bits to different bit positions.  */
-#define ARRAY_MARK_FLAG (1 << 27)
+#define DATA_SEG_BITS 0xF0000000L
