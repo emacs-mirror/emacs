@@ -89,7 +89,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.6 $" 11 -2)
+   (substring "$Revision: 1.7 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -111,7 +111,6 @@ This variable is buffer-local.")
   ;; These bindings are from shared-lisp-mode-map -- can you inherit
   ;; from more than one keymap??
   (define-key ielm-map "\e\C-q" 'indent-sexp)      
-  (define-key ielm-map "\eq" 'lisp-fill-paragraph) 
   (define-key ielm-map "\177" 'backward-delete-char-untabify)
   ;; Some convenience bindings for setting the working buffer
   (define-key ielm-map "\C-c\C-b" 'ielm-change-working-buffer)
@@ -416,6 +415,8 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (make-local-variable 'ielm-working-buffer)
   (setq ielm-working-buffer (current-buffer))
   (setq indent-line-function 'ielm-indent-line)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'lisp-fill-paragraph)
 
   ;; Value holders
   (setq : nil)
