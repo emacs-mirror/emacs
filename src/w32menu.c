@@ -45,7 +45,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include "dispextern.h"
 
-#undef HAVE_MULTILINGUAL_MENU
 #undef HAVE_DIALOGS /* TODO: Implement native dialogs.  */
 
 /******************************************************************/
@@ -66,10 +65,12 @@ enum button_type
 typedef struct _widget_value
 {
   /* name of widget */
+  Lisp_Object   lname;
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */
+  Lisp_Object   lkey;
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -136,17 +137,21 @@ typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
     IN HMENU,
     IN UINT,
     IN BOOL,
-    IN OUT LPMENUITEMINFOA
-    );
+    IN OUT LPMENUITEMINFOA);
 typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
     IN HMENU,
     IN UINT,
     IN BOOL,
-    IN LPCMENUITEMINFOA
-    );
+    IN LPCMENUITEMINFOA);
+typedef BOOL (WINAPI * AppendMenuW_Proc) (
+    IN HMENU,
+    IN UINT,
+    IN UINT_PTR,
+    IN LPCWSTR);
 
-GetMenuItemInfoA_Proc get_menu_item_info=NULL;
-SetMenuItemInfoA_Proc set_menu_item_info=NULL;
+GetMenuItemInfoA_Proc get_menu_item_info = NULL;
+SetMenuItemInfoA_Proc set_menu_item_info = NULL;
+AppendMenuW_Proc unicode_append_menu = NULL;
 
 Lisp_Object Vmenu_updating_frame;
 
@@ -1235,13 +1240,17 @@ digest_single_submenu (start, end, top_level_items)
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 
-#ifndef HAVE_MULTILINGUAL_MENU
-	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
+	  if (STRINGP (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      if (unicode_append_menu)
+		/* Encode as UTF-8 for now.  */
+		pane_name = ENCODE_UTF_8 (pane_name);
+	      else if (STRING_MULTIBYTE (pane_name))
+		pane_name = ENCODE_SYSTEM (pane_name);
+
 	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
-#endif
+
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
@@ -1259,12 +1268,9 @@ digest_single_submenu (start, end, top_level_items)
 		save_wv->next = wv;
 	      else
 		first_wv->contents = wv;
-	      wv->name = pane_string;
-	      /* Ignore the @ that means "separate pane".
-		 This is a kludge, but this isn't worth more time.  */
-	      if (!NILP (prefix) && wv->name[0] == '@')
-		wv->name++;
-	      wv->value = 0;
+	      wv->lname = pane_name;
+	      /* Set value to 1 so update_submenu_strings can handle '@'  */
+	      wv->value = (char *) 1;
 	      wv->enabled = 1;
 	      wv->button_type = BUTTON_TYPE_NONE;
 	      wv->help = Qnil;
@@ -1287,10 +1293,13 @@ digest_single_submenu (start, end, top_level_items)
 	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
-#ifndef HAVE_MULTILINGUAL_MENU
-	  if (STRING_MULTIBYTE (item_name))
+	  if (STRINGP (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      if (unicode_append_menu)
+		item_name = ENCODE_UTF_8 (item_name);
+	      else if (STRING_MULTIBYTE (item_name))
+		item_name = ENCODE_SYSTEM (item_name);
+
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
 
@@ -1299,7 +1308,6 @@ digest_single_submenu (start, end, top_level_items)
 	      descrip = ENCODE_SYSTEM (descrip);
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
-#endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv)
@@ -1307,9 +1315,9 @@ digest_single_submenu (start, end, top_level_items)
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) SDATA (item_name);
+	  wv->lname = item_name;
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->lkey = descrip;
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1348,6 +1356,43 @@ digest_single_submenu (start, end, top_level_items)
 
   return first_wv;
 }
+
+
+/* Walk through the widget_value tree starting at FIRST_WV and update
+   the char * pointers from the corresponding lisp values.
+   We do this after building the whole tree, since GC may happen while the
+   tree is constructed, and small strings are relocated.  So we must wait
+   until no GC can happen before storing pointers into lisp values.  */
+static void
+update_submenu_strings (first_wv)
+     widget_value *first_wv;
+{
+  widget_value *wv;
+
+  for (wv = first_wv; wv; wv = wv->next)
+    {
+      if (wv->lname && ! NILP (wv->lname))
+        {
+          wv->name = SDATA (wv->lname);
+
+          /* Ignore the @ that means "separate pane".
+             This is a kludge, but this isn't worth more time.  */
+          if (wv->value == (char *)1)
+            {
+              if (wv->name[0] == '@')
+		wv->name++;
+              wv->value = 0;
+            }
+        }
+
+      if (wv->lkey && ! NILP (wv->lkey))
+        wv->key = SDATA (wv->lkey);
+
+      if (wv->contents)
+        update_submenu_strings (wv->contents);
+    }
+}
+
 
 /* Set the contents of the menubar widgets of frame F.
    The argument FIRST_TIME is currently ignored;
@@ -1516,6 +1561,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 	  wv->name = (char *) SDATA (string);
+	  update_submenu_strings (wv->contents);
 	  wv = wv->next;
 	}
 
@@ -1729,13 +1775,17 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  char *pane_string;
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-#ifndef HAVE_MULTILINGUAL_MENU
-	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
+
+	  if (STRINGP (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      if (unicode_append_menu)
+		pane_name = ENCODE_UTF_8 (pane_name);
+	      else if (STRING_MULTIBYTE (pane_name))
+		pane_name = ENCODE_SYSTEM (pane_name);
+
 	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
-#endif
+
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
@@ -1784,18 +1834,21 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  selected = AREF (menu_items, i + MENU_ITEMS_ITEM_SELECTED);
           help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
-#ifndef HAVE_MULTILINGUAL_MENU
-          if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
+          if (STRINGP (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      if (unicode_append_menu)
+		item_name = ENCODE_UTF_8 (item_name);
+	      else if (STRING_MULTIBYTE (item_name))
+		item_name = ENCODE_SYSTEM (item_name);
+
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
-          if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
+
+	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             {
 	      descrip = ENCODE_SYSTEM (descrip);
 	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
-#endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv)
@@ -1844,10 +1897,11 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       wv_sep->next = first_wv->contents;
       wv_sep->help = Qnil;
 
-#ifndef HAVE_MULTILINGUAL_MENU
-      if (STRING_MULTIBYTE (title))
+      if (unicode_append_menu)
+	title = ENCODE_UTF_8 (title);
+      else if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
-#endif
+
       wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
@@ -2150,6 +2204,46 @@ add_left_right_boundary (HMENU menu)
   return AppendMenu (menu, MF_MENUBARBREAK, 0, NULL);
 }
 
+/* UTF8: 0xxxxxxx, 110xxxxx 10xxxxxx, 1110xxxx, 10xxxxxx, 10xxxxxx */
+static void
+utf8to16 (unsigned char * src, int len, WCHAR * dest)
+{
+  while (len > 0)
+    {
+      int utf16;
+      if (*src < 0x80)
+	{
+	  *dest = (WCHAR) *src;
+	  dest++; src++; len--;
+	}
+      /* Since we might get >3 byte sequences which we don't handle, ignore the extra parts.  */
+      else if (*src < 0xC0)
+	{
+	  src++; len--;
+	}
+      /* 2 char UTF-8 sequence.  */
+      else if (*src <  0xE0)
+	{
+	  *dest = (WCHAR) (((*src & 0x1f) << 6)
+			   | (*(src + 1) & 0x3f));
+	  src += 2; len -= 2; dest++;
+	}
+      else if (*src < 0xF0)
+	{
+	  *dest = (WCHAR) (((*src & 0x0f) << 12)
+			   | ((*(src + 1) & 0x3f) << 6)
+			   | (*(src + 2) & 0x3f));
+	  src += 3; len -= 3; dest++;
+	}
+      else /* Not encodable. Insert Unicode Substitution char.  */
+	{
+	  *dest = (WCHAR) 0xfffd;
+	  src++; len--; dest++;
+	}
+    }
+  *dest = 0;
+}
+
 static int
 add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 {
@@ -2206,11 +2300,32 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	fuFlags |= MF_UNCHECKED;
     }
 
-  return_value =
-    AppendMenu (menu,
-                fuFlags,
-                item != NULL ? (UINT) item : (UINT) wv->call_data,
-                out_string );
+  if (unicode_append_menu && out_string)
+    {
+      /* Convert out_string from UTF-8 to UTF-16-LE.  */
+      int utf8_len = strlen (out_string);
+      WCHAR * utf16_string;
+      if (fuFlags & MF_OWNERDRAW)
+	utf16_string = local_alloc ((utf8_len + 1) * sizeof (WCHAR));
+      else
+	utf16_string = alloca ((utf8_len + 1) * sizeof (WCHAR));
+
+      utf8to16 (out_string, utf8_len, utf16_string);
+      return_value = unicode_append_menu (menu, fuFlags,
+					  item != NULL ? (UINT) item
+					    : (UINT) wv->call_data,
+					  utf16_string);
+      if (fuFlags & MF_OWNERDRAW)
+	local_free (out_string);
+    }
+  else
+    {
+      return_value =
+	AppendMenu (menu,
+		    fuFlags,
+		    item != NULL ? (UINT) item : (UINT) wv->call_data,
+		    out_string );
+    }
 
   /* This must be done after the menu item is created.  */
   if (!wv->title && wv->call_data != 0)
@@ -2298,7 +2413,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
       Lisp_Object frame, help;
 
-      // No help echo on owner-draw menu items.
+      /* No help echo on owner-draw menu items.  */
       if (flags & MF_OWNERDRAW || flags & MF_POPUP)
 	help = Qnil;
       else
@@ -2422,6 +2537,7 @@ void globals_of_w32menu ()
   HMODULE user32 = GetModuleHandle ("user32.dll");
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
+  unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
 }
 
 /* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
