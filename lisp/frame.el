@@ -136,29 +136,7 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; It would be wrong to reapply them then,
 	      ;; because that would override explicit user resizing.
 	      (setq initial-frame-alist
-		    (frame-remove-geometry-params initial-frame-alist))
-	      ;; Handle `reverse' as a parameter.
-	      (if (cdr (or (assq 'reverse initial-frame-alist)
-			   (assq 'reverse default-frame-alist)
-			   (cons nil
-				 (member (x-get-resource "reverseVideo" "ReverseVideo")
-					 '("on" "true")))))
-		  (let ((params (frame-parameters frame-initial-frame)))
-		    (modify-frame-parameters
-		     frame-initial-frame
-		     ;; Must set cursor-color after background color.
-		     ;; So put it first.
-		     (list (cons 'cursor-color
-				 (cdr (assq 'background-color params)))
-			   (cons 'foreground-color
-				 (cdr (assq 'background-color params)))
-			   (cons 'background-color
-				 (cdr (assq 'foreground-color params)))
-			   (cons 'mouse-color
-				 (cdr (assq 'background-color params)))
-			   (cons 'border-color
-				 (cdr (assq 'background-color params)))))))))
-
+		    (frame-remove-geometry-params initial-frame-alist))))
 	;; At this point, we know that we have a frame open, so we 
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
