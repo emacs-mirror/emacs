@@ -1122,10 +1122,6 @@ work with `terminfo' we will try to use it."
 	  (setq te-process
 		(start-process "terminal-emulator" (current-buffer)
 			       "/bin/sh" "-c"
-			       ;; Yuck!!! Start a shell to set some terminal
-			       ;; control characteristics.  Then start the
-			       ;; "env" program to setup the terminal type
-			       ;; Then finally start the program we wanted.
 			       (format "%s; exec %s"
 				       te-stty-string
 				       (mapconcat 'te-quote-arg-for-sh
