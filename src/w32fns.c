@@ -7548,6 +7548,11 @@ terminate Emacs if we can't open the connection.")
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
 
+  /* If initialization has already been done, return now to avoid
+     overwriting critical parts of one_w32_display_info.  */
+  if (w32_in_use)
+    return Qnil;
+
   CHECK_STRING (display, 0);
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
