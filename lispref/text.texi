@@ -928,10 +928,10 @@ This kind of element indicates how to delete text that was inserted.
 Upon insertion, the text occupied the range @var{beg}--@var{end} in the 
 buffer.
 
-@item (@var{pos} . @var{deleted})
+@item (@var{text} . @var{position})
 This kind of element indicates how to reinsert text that was deleted.
-The deleted text itself is the string @var{deleted}.  The place to
-reinsert it is @var{pos}.
+The deleted text itself is the string @var{text}.  The place to
+reinsert it is @code{(abs @var{position})}.
 
 @item (t @var{high} . @var{low})
 This kind of element indicates that an unmodified buffer became
@@ -948,6 +948,10 @@ Here's how you might undo the change:
 @example
 (put-text-property @var{beg} @var{end} @var{property} @var{value})
 @end example
+
+@item @var{position}
+This element indicates where point was at an earlier time.
+Undoing this element sets point to @var{position}.
 
 @item nil
 This element is a boundary.  The elements between two boundaries are
