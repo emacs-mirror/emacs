@@ -23,7 +23,9 @@ lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
 lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
-# Files which should not be compiled.
+# Files which should not be compiled.  If you change the name `DONTCOMPILE'
+# to something different, you'll have to change make-dist as well.
+#
 # - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
 #   no point compiling it, although it doesn't hurt.
 
