@@ -1191,7 +1191,7 @@ Indented lines will align with either:
 * the second word on the command line
   $ set default -
         [-]
-* the word after an asignment
+* the word after an assignment
   $ a = b + -
         d
 * the third word if it's a qualifier
