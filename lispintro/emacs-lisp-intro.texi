@@ -9853,7 +9853,7 @@ the value of @code{count} is equal to or is greater than the
 @code{desired-number}.  The expression that increments the count can be
 a simple @code{setq} such as @code{(setq count (1+ count))}, where
 @code{1+} is a built-in function in Emacs Lisp that adds 1 to its
-argument.  (The expression @code{(1+ count)} has the same result as
+argument.  (The expression @w{@code{(1+ count)}} has the same result as
 @code{(+ count 1)}, but is easier for a human to read.)
 
 @need 1250
