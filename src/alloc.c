@@ -947,6 +947,7 @@ make_interval ()
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
   RESET_INTERVAL (val);
+  val->gcmarkbit = 0;
   return val;
 }
 
@@ -958,10 +959,9 @@ mark_interval (i, dummy)
      register INTERVAL i;
      Lisp_Object dummy;
 {
-  if (XMARKBIT (i->plist))
-    abort ();
+  eassert (!i->gcmarkbit);		/* Intervals are never shared.  */
+  i->gcmarkbit = 1;
   mark_object (&i->plist);
-  XMARK (i->plist);
 }
 
 
@@ -976,10 +976,6 @@ mark_interval_tree (tree)
      function is always called through the MARK_INTERVAL_TREE macro,
      which takes care of that.  */
 
-  /* XMARK expands to an assignment; the LHS of an assignment can't be
-     a cast.  */
-  XMARK (tree->up.obj);
-
   traverse_intervals_noorder (tree, mark_interval, Qnil);
 }
 
@@ -988,23 +984,15 @@ mark_interval_tree (tree)
 
 #define MARK_INTERVAL_TREE(i)				\
   do {							\
-    if (!NULL_INTERVAL_P (i)				\
-	&& ! XMARKBIT (i->up.obj))			\
+    if (!NULL_INTERVAL_P (i) && !i->gcmarkbit)		\
       mark_interval_tree (i);				\
   } while (0)
 
 
-/* The oddity in the call to XUNMARK is necessary because XUNMARK
-   expands to an assignment to its argument, and most C compilers
-   don't support casts on the left operand of `='.  */
-
 #define UNMARK_BALANCE_INTERVALS(i)			\
   do {							\
    if (! NULL_INTERVAL_P (i))				\
-     {							\
-       XUNMARK ((i)->up.obj);				\
-       (i) = balance_intervals (i);			\
-     }							\
+     (i) = balance_intervals (i);			\
   } while (0)
 
 
@@ -2568,6 +2556,7 @@ Its value and function definition are void, and its property list is nil.  */)
   p->value = Qunbound;
   p->function = Qunbound;
   p->next = NULL;
+  p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
   p->indirect_variable = 0;
@@ -2644,6 +2633,7 @@ allocate_misc ()
 
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
+  XMARKER (val)->gcmarkbit = 0;
   return val;
 }
 
@@ -3302,7 +3292,7 @@ live_vector_p (m, p)
 }
 
 
-/* Value is non-zero of P is a pointer to a live buffer.  M is a
+/* Value is non-zero if P is a pointer to a live buffer.  M is a
    pointer to the mem_block for P.  */
 
 static INLINE int
@@ -3397,8 +3387,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Symbol:
-	  mark_p = (live_symbol_p (m, po)
-		    && !XMARKBIT (XSYMBOL (obj)->plist));
+	  mark_p = (live_symbol_p (m, po) && !XSYMBOL (obj)->gcmarkbit);
 	  break;
 
 	case Lisp_Float:
@@ -3418,24 +3407,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Misc:
-	  if (live_misc_p (m, po))
-	    {
-	      switch (XMISCTYPE (obj))
-		{
-		case Lisp_Misc_Marker:
-		  mark_p = !XMARKBIT (XMARKER (obj)->chain);
-		  break;
-
-		case Lisp_Misc_Buffer_Local_Value:
-		case Lisp_Misc_Some_Buffer_Local_Value:
-		  mark_p = !XMARKBIT (XBUFFER_LOCAL_VALUE (obj)->realvalue);
-		  break;
-
-		case Lisp_Misc_Overlay:
-		  mark_p = !XMARKBIT (XOVERLAY (obj)->plist);
-		  break;
-		}
-	    }
+	  mark_p = (live_misc_p (m, po) && !XMARKER (obj)->gcmarkbit);
 	  break;
 
 	case Lisp_Int:
@@ -3500,35 +3472,12 @@ mark_maybe_pointer (p)
 	  break;
 
 	case MEM_TYPE_MISC:
-	  if (live_misc_p (m, p))
-	    {
-	      Lisp_Object tem;
-	      XSETMISC (tem, p);
-
-	      switch (XMISCTYPE (tem))
-		{
-		case Lisp_Misc_Marker:
-		  if (!XMARKBIT (XMARKER (tem)->chain))
-		    obj = tem;
-		  break;
-
-		case Lisp_Misc_Buffer_Local_Value:
-		case Lisp_Misc_Some_Buffer_Local_Value:
-		  if (!XMARKBIT (XBUFFER_LOCAL_VALUE (tem)->realvalue))
-		    obj = tem;
-		  break;
-
-		case Lisp_Misc_Overlay:
-		  if (!XMARKBIT (XOVERLAY (tem)->plist))
-		    obj = tem;
-		  break;
-		}
-	    }
+	  if (live_misc_p (m, p) && !((struct Lisp_Free *) p)->gcmarkbit)
+	    XSETMISC (obj, p);
 	  break;
 
 	case MEM_TYPE_SYMBOL:
-	  if (live_symbol_p (m, p)
-	      && !XMARKBIT (((struct Lisp_Symbol *) p)->plist))
+	  if (live_symbol_p (m, p) && !((struct Lisp_Symbol *) p)->gcmarkbit)
 	    XSETSYMBOL (obj, p);
 	  break;
 
@@ -4278,7 +4227,7 @@ Garbage collection happens automatically if you cons more than
 	      {
 		if (GC_CONSP (XCAR (tail))
 		    && GC_MARKERP (XCAR (XCAR (tail)))
-		    && ! XMARKBIT (XMARKER (XCAR (XCAR (tail)))->chain))
+		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
 		      nextb->undo_list = tail = XCDR (tail);
@@ -4774,9 +4723,9 @@ mark_object (argptr)
 	register struct Lisp_Symbol *ptr = XSYMBOL (obj);
 	struct Lisp_Symbol *ptrx;
 
-	if (XMARKBIT (ptr->plist)) break;
+	if (ptr->gcmarkbit) break;
 	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
-	XMARK (ptr->plist);
+	ptr->gcmarkbit = 1;
 	mark_object ((Lisp_Object *) &ptr->value);
 	mark_object (&ptr->function);
 	mark_object (&ptr->plist);
@@ -4804,22 +4753,16 @@ mark_object (argptr)
 
     case Lisp_Misc:
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
+      if (XMARKER (obj)->gcmarkbit)
+	break;
+      XMARKER (obj)->gcmarkbit = 1;
       switch (XMISCTYPE (obj))
 	{
-	case Lisp_Misc_Marker:
-	  XMARK (XMARKER (obj)->chain);
-	  /* DO NOT mark thru the marker's chain.
-	     The buffer's markers chain does not preserve markers from gc;
-	     instead, markers are removed from the chain when freed by gc.  */
-	  break;
-
 	case Lisp_Misc_Buffer_Local_Value:
 	case Lisp_Misc_Some_Buffer_Local_Value:
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
-	    if (XMARKBIT (ptr->realvalue)) break;
-	    XMARK (ptr->realvalue);
 	    /* If the cdr is nil, avoid recursion for the car.  */
 	    if (EQ (ptr->cdr, Qnil))
 	      {
@@ -4833,6 +4776,10 @@ mark_object (argptr)
 	    goto loop;
 	  }
 
+	case Lisp_Misc_Marker:
+	  /* DO NOT mark thru the marker's chain.
+	     The buffer's markers chain does not preserve markers from gc;
+	     instead, markers are removed from the chain when freed by gc.  */
 	case Lisp_Misc_Intfwd:
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
@@ -4847,14 +4794,10 @@ mark_object (argptr)
 	case Lisp_Misc_Overlay:
 	  {
 	    struct Lisp_Overlay *ptr = XOVERLAY (obj);
-	    if (!XMARKBIT (ptr->plist))
-	      {
-		XMARK (ptr->plist);
-		mark_object (&ptr->start);
-		mark_object (&ptr->end);
-		objptr = &ptr->plist;
-		goto loop;
-	      }
+	    mark_object (&ptr->start);
+	    mark_object (&ptr->end);
+	    objptr = &ptr->plist;
+	    goto loop;
 	  }
 	  break;
 
@@ -4922,6 +4865,9 @@ mark_buffer (buf)
       Lisp_Object tail;
       tail = buffer->undo_list;
 
+      /* We mark the undo list specially because
+	 its pointers to markers should be weak.  */
+
       while (CONSP (tail))
 	{
 	  register struct Lisp_Cons *ptr = XCONS (tail);
@@ -4980,19 +4926,20 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Symbol:
-      survives_p = XMARKBIT (XSYMBOL (obj)->plist);
+      survives_p = XSYMBOL (obj)->gcmarkbit;
       break;
 
     case Lisp_Misc:
+      /* FIXME: Maybe we should just use obj->mark for all?  */
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Marker:
-	  survives_p = XMARKBIT (obj);
+	  survives_p = XMARKER (obj)->gcmarkbit;
 	  break;
 
 	case Lisp_Misc_Buffer_Local_Value:
 	case Lisp_Misc_Some_Buffer_Local_Value:
-	  survives_p = XMARKBIT (XBUFFER_LOCAL_VALUE (obj)->realvalue);
+	  survives_p = XBUFFER_LOCAL_VALUE (obj)->gcmarkbit;
 	  break;
 
 	case Lisp_Misc_Intfwd:
@@ -5004,7 +4951,7 @@ survives_gc_p (obj)
 	  break;
 
 	case Lisp_Misc_Overlay:
-	  survives_p = XMARKBIT (XOVERLAY (obj)->plist);
+	  survives_p = XOVERLAY (obj)->gcmarkbit;
 	  break;
 
 	default:
@@ -5176,7 +5123,7 @@ gc_sweep ()
 
 	for (i = 0; i < lim; i++)
 	  {
-	    if (! XMARKBIT (iblk->intervals[i].plist))
+	    if (!iblk->intervals[i].gcmarkbit)
 	      {
 		SET_INTERVAL_PARENT (&iblk->intervals[i], interval_free_list);
 		interval_free_list = &iblk->intervals[i];
@@ -5185,7 +5132,7 @@ gc_sweep ()
 	    else
 	      {
 		num_used++;
-		XUNMARK (iblk->intervals[i].plist);
+		iblk->intervals[i].gcmarkbit = 0;
 	      }
 	  }
 	lim = INTERVAL_BLOCK_SIZE;
@@ -5232,7 +5179,7 @@ gc_sweep ()
 	       so we conservatively assume that it is live.  */
 	    int pure_p = PURE_POINTER_P (XSTRING (sym->xname));
 
-	    if (!XMARKBIT (sym->plist) && !pure_p)
+	    if (!sym->gcmarkbit && !pure_p)
 	      {
 		*(struct Lisp_Symbol **) &sym->value = symbol_free_list;
 		symbol_free_list = sym;
@@ -5246,7 +5193,7 @@ gc_sweep ()
 		++num_used;
 		if (!pure_p)
 		  UNMARK_STRING (XSTRING (sym->xname));
-		XUNMARK (sym->plist);
+		sym->gcmarkbit = 0;
 	      }
 	  }
 
@@ -5286,33 +5233,10 @@ gc_sweep ()
       {
 	register int i;
 	int this_free = 0;
-	EMACS_INT already_free = -1;
 
 	for (i = 0; i < lim; i++)
 	  {
-	    Lisp_Object *markword;
-	    switch (mblk->markers[i].u_marker.type)
-	      {
-	      case Lisp_Misc_Marker:
-		markword = &mblk->markers[i].u_marker.chain;
-		break;
-	      case Lisp_Misc_Buffer_Local_Value:
-	      case Lisp_Misc_Some_Buffer_Local_Value:
-		markword = &mblk->markers[i].u_buffer_local_value.realvalue;
-		break;
-	      case Lisp_Misc_Overlay:
-		markword = &mblk->markers[i].u_overlay.plist;
-		break;
-	      case Lisp_Misc_Free:
-		/* If the object was already free, keep it
-		   on the free list.  */
-		markword = (Lisp_Object *) &already_free;
-		break;
-	      default:
-		markword = 0;
-		break;
-	      }
-	    if (markword && !XMARKBIT (*markword))
+	    if (!mblk->markers[i].u_marker.gcmarkbit)
 	      {
 		Lisp_Object tem;
 		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
@@ -5333,8 +5257,7 @@ gc_sweep ()
 	    else
 	      {
 		num_used++;
-		if (markword)
-		  XUNMARK (*markword);
+		mblk->markers[i].u_marker.gcmarkbit = 0;
 	      }
 	  }
 	lim = MARKER_BLOCK_SIZE;
