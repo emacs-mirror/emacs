@@ -1405,6 +1405,8 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "\e<"   'calendar-beginning-of-year)
   (define-key calendar-mode-map "\e>"   'calendar-end-of-year)
   (define-key calendar-mode-map "\C-@"  'calendar-set-mark)
+  ;; Many people are used to typing C-SPC and getting C-@.
+  (define-key calendar-mode-map [?\C-\ ] 'calendar-set-mark)
   (define-key calendar-mode-map "\C-x\C-x" 'calendar-exchange-point-and-mark)
   (define-key calendar-mode-map "\e=" 'calendar-count-days-region)
   (define-key calendar-mode-map "gd"  'calendar-goto-date)
