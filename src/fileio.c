@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000, 2001
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,2003
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3844,8 +3844,8 @@ actually used.  */)
 		  buf->read_only = Qnil;
 		  buf->filename = Qnil;
 		  buf->undo_list = Qt;
-		  buf->overlays_before = Qnil;
-		  buf->overlays_after = Qnil;
+		  buf->overlays_before = NULL;
+		  buf->overlays_after = NULL;
 
 		  set_buffer_internal (buf);
 		  Ferase_buffer ();
