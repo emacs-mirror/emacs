@@ -1,3 +1,10 @@
+2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* speedbar.el (speedbar-file-regexp): Give it a phony defvar
+	before and a real defvar after
+	`speedbar-supported-extension-expressions'.  This is to silence
+	the compiler without breaking bootstrapping.
+
 2004-08-22  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-word): Use
@@ -30,9 +37,9 @@
 	* ps-mule.el: Delete compatibility code for old Emacses.
 	(ps-mule-find-wrappoint): Don't use chars-in-region.
 
-	* frame.el (display-mouse-p, display-selections-p): 
+	* frame.el (display-mouse-p, display-selections-p):
 	Use with-no-warnings.
-	
+
 	* font-lock.el (font-lock-set-defaults): Use with-no-warnings.
 
 2004-08-22  David Kastrup  <dak@gnu.org>
