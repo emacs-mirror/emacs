@@ -24,6 +24,7 @@
   #pragma alloca
 #endif
 
+#undef	_GNU_SOURCE
 #define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
@@ -999,7 +1000,7 @@ static const char *re_error_msgid[] =
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.  */
 #if defined (MATCH_MAY_ALLOCATE)
-int re_max_failures = 200000;
+int re_max_failures = 20000;
 #else
 int re_max_failures = 2000;
 #endif
@@ -1155,7 +1156,7 @@ typedef struct
     /* Push the info, starting with the registers.  */			\
     DEBUG_PRINT1 ("\n");						\
 									\
-    if (!(RE_NO_POSIX_BACKTRACKING & bufp->syntax))			\
+    if (1)								\
       for (this_reg = lowest_active_reg; this_reg <= highest_active_reg; \
 	   this_reg++)							\
 	{								\
@@ -1216,7 +1217,7 @@ typedef struct
 
 /* We actually push this many items.  */
 #define NUM_FAILURE_ITEMS				\
-  (((RE_NO_POSIX_BACKTRACKING & bufp->syntax		\
+  (((0							\
      ? 0 : highest_active_reg - lowest_active_reg + 1)	\
     * NUM_REG_ITEMS)					\
    + NUM_NONREG_ITEMS)
@@ -1277,7 +1278,7 @@ typedef struct
   low_reg = (unsigned) POP_FAILURE_INT ();				\
   DEBUG_PRINT2 ("  Popping  low active reg: %d\n", low_reg);		\
 									\
-  if (!(RE_NO_POSIX_BACKTRACKING & bufp->syntax))			\
+  if (1)								\
     for (this_reg = high_reg; this_reg >= low_reg; this_reg--)		\
       {									\
 	DEBUG_PRINT2 ("    Popping reg: %d\n", this_reg);		\
