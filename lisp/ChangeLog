@@ -4,6 +4,7 @@
 	`invalid'.
 	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
 	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
+	* emulation/vip.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986, 1987, 1988, 1992, 1993, 1998
+;; Copyright (C) 1986, 1987, 1988, 1992, 1993, 1998, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -2253,7 +2253,7 @@ a token has type \(command, address, end-mark\) and value."
 	   (setq ex-token-type "end-mark")
 	   (setq ex-token "goto"))
 	  (t
-	   (error "illegal token")))))
+	   (error "invalid token")))))
 
 (defun vip-ex (&optional string)
   "ex commands within VIP."
@@ -2478,7 +2478,7 @@ a token has type \(command, address, end-mark\) and value."
 	  (setq ex-flag t)
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
-	(error "Illegal extra characters"))))
+	(error "Invalid extra characters"))))
 
 (defun vip-get-ex-count ()
   (setq ex-variant nil
@@ -2503,7 +2503,7 @@ a token has type \(command, address, end-mark\) and value."
 	  (setq ex-flag t)
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
-	(error "Illegal extra characters"))))
+	(error "Invalid extra characters"))))
 
 (defun vip-get-ex-file ()
   "get a file name and set ex-variant, ex-append and ex-offset if found"
