@@ -1,3 +1,23 @@
+2001-10-22  Miles Bader  <miles@gnu.org>
+
+	* doc.c (Vhelp_manyarg_func_alist): Variable removed.
+	(Fdocumentation): Don't use it.
+	(syms_of_doc): Don't initialize it.
+
+	* keyboard.c (Ftrack_mouse): Add usage: string to doc string.
+	* print.c (Fwith_output_to_temp_buffer): Likewise.
+	* window.c (Fsave_window_excursion): Likewise.
+	* editfns.c (Fsave_excursion, Fsave_current_buffer) 
+	(Fsave_restriction): Likewise.
+	* eval.c (Frun_hooks, Frun_hook_with_args) 
+	(Frun_hook_with_args_until_failure) 
+	(Frun_hook_with_args_until_success, Ffuncall, For, Fand, Fif) 
+	(Fcond, Fprogn, Fprog1, Fprog2, Fsetq, Fquote, Ffunction, Fdefun) 
+	(Fdefmacro, Fdefvar, Fdefconst, FletX, Flet, Fwhile, Fcatch) 
+	(Funwind_protect, Fcondition_case): Likewise.
+	* coding.c (Ffind_operation_coding_system): Likewise.
+	* keyboard.c (Ftrack_mouse): Likewise.
+
 2001-10-21  Miles Bader  <miles@gnu.org>
 
 	* fns.c (Fappend, Fconcat, Fvconcat, Fnconc, Fwidget_apply) 
