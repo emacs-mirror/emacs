@@ -830,6 +830,25 @@ selected frame."
 	(modify-frame-parameters frame (list visibility-spec)))
       frame)))
 
+;; Update a frame's faces when we change its default font.
+(defun frame-update-faces (frame)
+  (let* ((faces global-face-data)
+	 (rest faces))
+    (while rest
+      (let* ((face (car (car rest)))
+	     (font (face-font face t)))
+	(if (listp font)
+	    (let ((bold (memq 'bold font))
+		  (italic (memq 'italic font)))
+	      (cond ((and bold italic)
+		     (make-face-bold-italic face frame t))
+		    (bold
+		     (make-face-bold face frame t))
+		    (italic
+		     (make-face-italic face frame t)))))
+      (setq rest (cdr rest)))
+    frame)))
+
 ;; Fill in the face FACE from frame-independent face data DATA.
 ;; DATA should be the non-frame-specific ("global") face vector
 ;; for the face.  FACE should be a face name or face object.
