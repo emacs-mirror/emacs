@@ -1,3 +1,9 @@
+2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2v2.inp: New file.
+
+	* sed2.inp: Remove DJGPP v2.x stuff.
+
 2002-03-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sedlisp.inp <bootstrap-clean>: Make sure all *.el files have

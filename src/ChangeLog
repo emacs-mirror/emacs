@@ -1,3 +1,10 @@
+2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* puresize.h (BASE_PURESIZE): Increase to 830000, since we now
+	store load-history in pure space.
+
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Reduce to 50000.
+
 2002-04-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (Qlatin_1, Qutf_8): New vars.
