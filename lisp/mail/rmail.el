@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 2001
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 01, 2004
 ;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -139,9 +139,9 @@ plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "info-" "\
-A regular expression specifying part of the value of the default value of
-the variable `rmail-dont-reply-to-names', for when the user does not set
+(defvar rmail-default-dont-reply-to-names "\\`info-" "\
+A regular expression specifying part of the default value of the
+variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
 value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
@@ -1364,6 +1364,7 @@ It returns t if it got any new messages."
 	  (while all-files
 	    (let ((opoint (point))
 		  (new-messages 0)
+		  (rsf-number-of-spam 0)
 		  (delete-files ())
 		  ;; If buffer has not changed yet, and has not been saved yet,
 		  ;; don't replace the old backup file now.
@@ -1446,11 +1447,62 @@ It returns t if it got any new messages."
 		  (progn (goto-char opoint)
 			 (if (or file-name rmail-inbox-list)
 			     (message "(No new mail has arrived)")))
-		(if (rmail-summary-exists)
+		;; check new messages to see if any of them is spam:
+		(if (and (featurep 'rmail-spam-filter)
+			 rmail-use-spam-filter)
+		    (let*
+			((old-messages (- rmail-total-messages new-messages))
+                         (rsf-scanned-message-number (1+ old-messages))
+                         ;; save deletion flags of old messages: vector starts
+                         ;; at zero (is one longer that no of messages),
+                         ;; therefore take 1+ old-messages
+                         (save-deleted
+                          (substring rmail-deleted-vector 0 (1+
+                          old-messages))))
+                      ;; set all messages to undeleted
+                      (setq rmail-deleted-vector
+                            (make-string (1+ rmail-total-messages) ?\ ))
+		      (while (<= rsf-scanned-message-number
+		      rmail-total-messages)
+			(progn
+			  (if (not (rmail-spam-filter rsf-scanned-message-number))
+			      (progn (setq rsf-number-of-spam (1+ rsf-number-of-spam)))
+			    )
+			  (setq rsf-scanned-message-number (1+ rsf-scanned-message-number))
+			  ))
+		      (if (> rsf-number-of-spam 0)
+			  (progn
+			    (when (rmail-expunge-confirmed)
+                              (rmail-only-expunge t))
+                            ))
+                      (setq rmail-deleted-vector
+                            (concat
+                             save-deleted
+                             (make-string (- rmail-total-messages old-messages)
+                                          ?\ )))
+		      ))
+ 		(if (rmail-summary-exists)
 		    (rmail-select-summary
 		     (rmail-update-summary)))
-		(message "%d new message%s read"
-			 new-messages (if (= 1 new-messages) "" "s"))
+		(message "%d new message%s read%s"
+			 new-messages (if (= 1 new-messages) "" "s")
+			 ;; print out a message on number of spam messages found:
+			 (if (and (featurep 'rmail-spam-filter)
+				  rmail-use-spam-filter
+				  (> rsf-number-of-spam 0))
+			     (if (= 1 new-messages)
+				 ", and found to be a spam message"
+			       (if (> rsf-number-of-spam 1)
+				   (format ", %d of which found to be spam messages"
+					   rsf-number-of-spam)
+				 ", one of which found to be a spam message"))
+			   ""))
+		(if (and (featurep 'rmail-spam-filter)
+			 rmail-use-spam-filter
+			 (> rsf-number-of-spam 0))
+		    (progn (if rmail-spam-filter-beep (beep t))
+			   (sleep-for rmail-spam-sleep-after-message)))
+
 		;; Move to the first new message
 		;; unless we have other unseen messages before it.
 		(rmail-show-message (rmail-first-unseen-message))
@@ -1652,12 +1704,73 @@ It returns t if it got any new messages."
 			      (save-excursion
 				(skip-chars-forward " \t\n")
 				(point)))
-	       (setq last-coding-system-used nil)
-	       (or rmail-enable-mime
-		   (not rmail-enable-multibyte)
-		   (decode-coding-region start (point)
-					 (or rmail-file-coding-system
-					     'undecided)))
+	       (save-excursion
+		 (let* ((header-end
+			 (progn
+			   (save-excursion
+			     (goto-char start)
+			     (forward-line 1)
+			     (if (looking-at "0")
+				 (forward-line 1)
+			       (forward-line 2))
+			     (save-restriction
+			       (narrow-to-region (point) (point-max))
+			       (rfc822-goto-eoh)
+			       (point)))))
+			(case-fold-search t)
+			(quoted-printable-header-field-end
+			 (save-excursion
+			   (goto-char start)
+			   (re-search-forward
+			    "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+			    header-end t)))
+			(base64-header-field-end
+			 (save-excursion
+			   (goto-char start)
+			   (re-search-forward
+			    "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
+			    header-end t))))
+		   (if quoted-printable-header-field-end
+		       (save-excursion
+			 (unless
+			     (mail-unquote-printable-region header-end (point) nil t)
+			   (message "Malformed MIME quoted-printable message"))
+			 ;; Change "quoted-printable" to "8bit",
+			 ;; to reflect the decoding we just did.
+			 (goto-char quoted-printable-header-field-end)
+			 (delete-region (point) (search-backward ":"))
+			 (insert ": 8bit")))
+		   (if base64-header-field-end
+		       (save-excursion
+			 (when
+			     (condition-case nil
+				 (progn
+				   (base64-decode-region (1+ header-end)
+							 (- (point) 2))
+				   t)
+			       (error nil))
+			   ;; Change "base64" to "8bit", to reflect the
+			   ;; decoding we just did.
+			   (goto-char (1+ header-end))
+			   (while (search-forward "\r\n" (point-max) t)
+			     (replace-match "\n"))
+			   (goto-char base64-header-field-end)
+			   (delete-region (point) (search-backward ":"))
+			   (insert ": 8bit"))))
+		   (setq last-coding-system-used nil)
+		   (or rmail-enable-mime
+		       (not rmail-enable-multibyte)
+		       (let ((mime-charset
+			      (if (and rmail-decode-mime-charset
+				       (save-excursion
+					 (goto-char start)
+					 (search-forward "\n\n" nil t)
+					 (let ((case-fold-search t))
+					   (re-search-backward
+					    rmail-mime-charset-pattern
+					    start t))))
+				  (intern (downcase (match-string 1))))))
+			 (rmail-decode-region start (point) mime-charset)))))
 	       ;; Add an X-Coding-System: header if we don't have one.
 	       (save-excursion
 		 (goto-char start)
@@ -1673,7 +1786,9 @@ It returns t if it got any new messages."
 		     (insert "X-Coding-System: "
 			     (symbol-name last-coding-system-used)
 			     "\n")))
-	       (narrow-to-region (point) (point-max)))
+	       (narrow-to-region (point) (point-max))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl format...%d" count)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
 		 (looking-at rmail-mmdf-delim1))
@@ -1698,7 +1813,9 @@ It returns t if it got any new messages."
 			 (symbol-name last-coding-system-used)
 			 "\n"))
 	       (narrow-to-region (point) (point-max))
-	       (setq count (1+ count)))
+	       (setq count (1+ count))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl format...%d" count)))
 	      ;;*** Mail format
 	      ((looking-at "^From ")
 	       (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
@@ -1713,6 +1830,11 @@ It returns t if it got any new messages."
 		       (save-excursion
 			 (re-search-forward
 			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+			  header-end t)))
+		      (base64-header-field-end
+		       (save-excursion
+			 (re-search-forward
+			  "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
 			  header-end t)))
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
@@ -1757,12 +1879,37 @@ It returns t if it got any new messages."
 		 (setq count (1+ count))
 		 (if quoted-printable-header-field-end
 		     (save-excursion
-		       (rmail-decode-quoted-printable header-end (point))
+		       (unless
+			   (mail-unquote-printable-region header-end (point) nil t)
+			 
+			 (message "Malformed MIME quoted-printable message"))
 		       ;; Change "quoted-printable" to "8bit",
 		       ;; to reflect the decoding we just did.
 		       (goto-char quoted-printable-header-field-end)
 		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit"))))
+		       (insert ": 8bit")))
+		 (if base64-header-field-end
+		     (save-excursion
+		       (when
+			   (condition-case nil
+			       (progn
+				 (base64-decode-region
+				  (1+ header-end)
+				  (save-excursion
+				    ;; Prevent base64-decode-region
+				    ;; from removing newline characters.
+				    (skip-chars-backward "\n\t ")
+				    (point)))
+				 t)
+			     (error nil))
+			 (goto-char header-end)
+			 (while (search-forward "\r\n" (point-max) t)
+			   (replace-match "\n"))
+			 ;; Change "base64" to "8bit", to reflect the
+			 ;; decoding we just did.
+			 (goto-char base64-header-field-end)
+			 (delete-region (point) (search-backward ":"))
+			 (insert ": 8bit")))))
 
 	       (save-excursion
 		 (save-restriction
@@ -1770,6 +1917,7 @@ It returns t if it got any new messages."
 		   (goto-char (point-min))
 		   (while (search-forward "\n\^_" nil t); single char
 		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+	       (or (bolp) (newline)) ; in case we lost the final newline.
 	       (insert ?\^_)
 	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
@@ -1791,7 +1939,9 @@ It returns t if it got any new messages."
 		 (insert "X-Coding-System: "
 			 (symbol-name last-coding-system-used)
 			 "\n"))
-	       (narrow-to-region (point) (point-max)))
+	       (narrow-to-region (point) (point-max))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl format...%d" count)))
 	      ;;
 	      ;; This kludge is because some versions of sendmail.el
 	      ;; insert an extra newline at the beginning that shouldn't
@@ -1800,45 +1950,6 @@ It returns t if it got any new messages."
 	      ((eolp) (delete-char 1))
 	      (t (error "Cannot convert to babyl format")))))
     count))
-
-(defun rmail-hex-char-to-integer (character)
-  "Return CHARACTER's value interpreted as a hex digit."
-  (if (and (>= character ?0) (<= character ?9))
-      (- character ?0)
-    (let ((ch (logior character 32)))
-      (if (and (>= ch ?a) (<= ch ?f))
-	  (- ch (- ?a 10))
-	(error "Invalid hex digit `%c'" ch)))))
-
-(defun rmail-hex-string-to-integer (hex-string)
-  "Return decimal integer for HEX-STRING."
-  (let ((hex-num 0)
-	(index 0))
-    (while (< index (length hex-string))
-      (setq hex-num (+ (* hex-num 16)
-		       (rmail-hex-char-to-integer (aref hex-string index))))
-      (setq index (1+ index)))
-    hex-num))
-
-(defun rmail-decode-quoted-printable (from to)
-  "Decode Quoted-Printable in the region between FROM and TO."
-  (interactive "r")
-  (goto-char from)
-  (or (markerp to)
-      (setq to (copy-marker to)))
-  (while (search-forward "=" to t)
-    (cond ((eq (following-char) ?\n)
-	   (delete-char -1)
-	   (delete-char 1))
-	  ((looking-at "[0-9A-F][0-9A-F]")
-	   (let ((byte (rmail-hex-string-to-integer
-			(buffer-substring (point) (+ 2 (point))))))
-	     (delete-region (1- (point)) (+ 2 (point)))
-	     (insert byte)))
-	  ((looking-at "=")
-	   (delete-char 1))
-	  (t
-	   (message "Malformed MIME quoted-printable message")))))
 
 ;; Delete the "From ..." line, creating various other headers with
 ;; information from it if they don't already exist.  Now puts the
@@ -2947,7 +3058,7 @@ See also user-option `rmail-confirm-expunge'."
       (funcall rmail-confirm-expunge
 	       "Erase deleted messages from Rmail file? ")))
 
-(defun rmail-only-expunge ()
+(defun rmail-only-expunge (&optional dont-show)
   "Actually erase all deleted messages in the file."
   (interactive)
   (set-buffer rmail-buffer)
@@ -3026,11 +3137,12 @@ See also user-option `rmail-confirm-expunge'."
       (message "Expunging deleted messages...done")
       (if (not win)
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
-      (rmail-show-message
-       (if (zerop rmail-current-message) 1 nil))
-      (if rmail-enable-mime
-	  (goto-char (+ (point-min) opoint))
-	(goto-char (+ (point) opoint))))))
+      (if (not dont-show)
+	  (rmail-show-message
+	   (if (zerop rmail-current-message) 1 nil)
+	(if rmail-enable-mime
+	    (goto-char (+ (point-min) opoint))
+	  (goto-char (+ (point) opoint))))))))
 
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."
@@ -3755,4 +3867,5 @@ encoded string (and the same mask) will decode the string."
 
 (provide 'rmail)
 
+;;; arch-tag: cff0a950-57fe-4f73-a86e-91ff75afd06c
 ;;; rmail.el ends here
