@@ -322,7 +322,7 @@ See `sh-feature'."
   :group 'sh-script)
 
 
-(defcustom sh-assignment-prefix
+(defcustom sh-assignment-regexp
   '((csh . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
     (ksh88 . "\\<\\([a-zA-Z0-9_]+\\)\\(\\[.+\\]\\)?[ \t]*\\([-+*/%&|~^]\\|<<\\|>>\\)?=")
@@ -1001,56 +1001,46 @@ region, clear header."
 ;; You are welcome to add the syntax or even completely new statements as
 ;; appropriate for your favorite shell.
 
-;; This defun is the same as what define-skeleton does,
-;; but by putting the data in a variable named sh-case,
-;; we make it possible to use that variable in the menu-enable property.
-(defun sh-case (&optional str arg)
-  (interactive "*P\nP")
-  (skeleton-proxy-new sh-case str arg))
-(put 'sh-case 'menu-enable '(sh-feature sh-case))
-
-(defvar sh-case
-  '((csh "expression: "
-	 "switch( " str " )" \n
-	 > "case " (read-string "pattern: ") ?: \n
-	 > _ \n
-	 "breaksw" \n
-	 ( "other pattern, %s: "
-	   < "case " str ?: \n
-	   > _ \n
-	   "breaksw" \n)
-	 < "default:" \n
-	 > _ \n
-	 resume:
-	 < < "endsw")
-    (es)
-    (rc "expression: "
-	"switch( " str " ) {" \n
-	> "case " (read-string "pattern: ") \n
+(define-skeleton sh-case
+  "Insert a case/switch statement.  See `sh-feature'."
+  ((csh "expression: "
+	"switch( " str " )" \n
+	> "case " (read-string "pattern: ") ?: \n
 	> _ \n
+	"breaksw" \n
 	( "other pattern, %s: "
-	  < "case " str \n
-	  > _ \n)
-	< "case *" \n
-	> _ \n
-	resume:
-	< < ?})
-    (sh "expression: "
-	"case " str " in" \n
-	> (read-string "pattern: ") ?\) \n
-	> _ \n
-	";;" \n
-	( "other pattern, %s: "
-	  < str ?\) \n
+	  < "case " str ?: \n
 	  > _ \n
-	  ";;" \n)
-	< "*)" \n
+	  "breaksw" \n)
+	< "default:" \n
 	> _ \n
 	resume:
-	< < "esac"))
-  "Insert a case/switch statement.  See `sh-feature'.")
-
-
+	< < "endsw")
+   (es)
+   (rc "expression: "
+       "switch( " str " ) {" \n
+       > "case " (read-string "pattern: ") \n
+       > _ \n
+       ( "other pattern, %s: "
+	 < "case " str \n
+	 > _ \n)
+       < "case *" \n
+       > _ \n
+       resume:
+       < < ?})
+   (sh "expression: "
+       "case " str " in" \n
+       > (read-string "pattern: ") ?\) \n
+       > _ \n
+       ";;" \n
+       ( "other pattern, %s: "
+	 < str ?\) \n
+	 > _ \n
+	 ";;" \n)
+       < "*)" \n
+       > _ \n
+       resume:
+       < < "esac")))
 
 (define-skeleton sh-for
   "Insert a for loop.  See `sh-feature'."
