@@ -4404,7 +4404,11 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.");
+accomplishing an equivalent result by using other variables.\n\
+\n\
+If an unhandled error happens in running these functions,\n\
+the variable's value remains nil.  That prevents the error\n\
+from happening repeatedly and making Emacs nonfunctional.");
   Vbefore_change_functions = Qnil;
 
   DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
@@ -4421,8 +4425,11 @@ don't call any before-change or after-change functions.\n\
 That's because these variables are temporarily set to nil.\n\
 As a result, a hook function cannot straightforwardly alter the value of\n\
 these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.");
-
+accomplishing an equivalent result by using other variables.\n\
+\n\
+If an unhandled error happens in running these functions,\n\
+the variable's value remains nil.  That prevents the error\n\
+from happening repeatedly and making Emacs nonfunctional.");
   Vafter_change_functions = Qnil;
 
   DEFVAR_LISP ("first-change-hook", &Vfirst_change_hook,
