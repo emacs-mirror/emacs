@@ -956,7 +956,8 @@ Otherwise, construct a buffer name from MODE-NAME."
 				 &optional name-of-mode parser
 				 error-regexp-alist name-function
 				 enter-regexp-alist leave-regexp-alist
-				 file-regexp-alist nomessage-regexp-alist)
+				 file-regexp-alist nomessage-regexp-alist
+				 no-async)
   "Run compilation command COMMAND (low level interface).
 ERROR-MESSAGE is a string to print if the user asks to see another error
 and there are no more errors.  The rest of the arguments, 3-10 are optional.
@@ -975,7 +976,11 @@ NOMESSAGE-REGEXP-ALIST is the nomessage regexp alist to use.
 \ and `compilation-nomessage-regexp-alist', respectively.
 For arg 7-10 a value `t' means an empty alist.
 
+If NO-ASYNC is non-nil, start the compilation process synchronously.
+
 Returns the compilation buffer created."
+  (unless no-async
+    (setq no-async (not (fboundp 'start-process))))
   (let (outbuf)
     (save-excursion
       (or name-of-mode
@@ -1068,7 +1073,7 @@ Returns the compilation buffer created."
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
-	(if (fboundp 'start-process)
+	(if (not no-async)
  	    (let* ((process-environment
 		    (append
 		     (if (and (boundp 'system-uses-terminfo)
