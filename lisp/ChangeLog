@@ -1,3 +1,8 @@
+2003-04-11  Kenichi Handa  <handa@etlken2>
+
+	* international/mule-cmds.el (sort-coding-systems): Lower the
+	priorities of all utf-16 base coding systems.
+
 2003-04-10  Juanma Barranquero  <lektu@terra.es>
 
 	* frame.el (modify-all-frames-parameters): Deleted.
