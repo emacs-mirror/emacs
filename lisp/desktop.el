@@ -606,8 +606,10 @@ to provide correct modes for autoloaded files."
       (set-buffer result)
       (if (not (equal (buffer-name) desktop-buffer-name))
 	  (rename-buffer desktop-buffer-name))
-      (auto-fill-mode (if (nth 0 mim) 1 0))
-      (mapcar #'(lambda (minor-mode) (funcall minor-mode 1)) mim)
+      (cond ((equal '(t) mim)   (auto-fill-mode 1))	; backwards compatible
+	    ((equal '(nil) mim) (auto-fill-mode 0))
+	    (t (mapcar #'(lambda (minor-mode) (funcall minor-mode 1)) mim)))
+      (goto-char pt)
       (if (consp mk)
 	  (progn
 	    (set-mark (car mk))
