@@ -1847,8 +1847,9 @@ process if STRING contains a password prompt defined by
 `comint-password-prompt-regexp'.
 
 This function could be in the list `comint-output-filter-functions'."
-  (if (string-match comint-password-prompt-regexp string)
-      (send-invisible nil)))
+  (when (string-match comint-password-prompt-regexp string)
+    (let ((pw (comint-read-noecho string t)))
+      (send-invisible pw))))
 
 ;; Low-level process communication
 
