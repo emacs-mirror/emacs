@@ -181,8 +181,9 @@ Boston, MA 02111-1307, USA.  */
 #define BUF_COMPUTE_UNCHANGED(buf, start, end)				\
   do									\
     {									\
-      if (BUF_UNCHANGED_MODIFIED (buf) == MODIFF			\
-	  && BUF_OVERLAY_UNCHANGED_MODIFIED (buf) == OVERLAY_MODIFF)	\
+      if (BUF_UNCHANGED_MODIFIED (buf) == BUF_MODIFF (buf)		\
+	  && (BUF_OVERLAY_UNCHANGED_MODIFIED (buf)			\
+	      == BUF_OVERLAY_MODIFF (buf)))				\
 	{								\
 	  BUF_BEG_UNCHANGED (buf) = (start) - BUF_BEG (buf);		\
 	  BUF_END_UNCHANGED (buf) = BUF_Z (buf) - (end);		\
