@@ -1,9 +1,9 @@
 ;;; tildify.el --- adding hard spaces into texts
 
-;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
-;; Version:    4.4
+;; Version:    4.5
 ;; Keywords:   text, TeX, SGML, wp
 
 ;; This file is part of GNU Emacs.
@@ -86,6 +86,7 @@ mode, the item for the mode SYMBOL is looked up in the alist instead."
     (tex-mode . latex-mode)
     (plain-tex-mode . latex-mode)
     (sgml-mode . "&nbsp;")
+    (xml-mode . sgml-mode)
     (html-mode . sgml-mode)
     (t . " "))
   "Alist specifying what is a hard space in the current major mode.
