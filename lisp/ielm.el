@@ -62,7 +62,7 @@ Interrupting the IELM process with \\<ielm-map>\\[comint-interrupt-subjob],
 and then restarting it using \\[ielm], makes the then current
 default value affect _new_ prompts.  However, executing \\[ielm]
 does not have this effect on *ielm* buffers with a running process.
-For IELM buffers that are not called *ielm*, you can execute
+For IELM buffers that are not called `*ielm*', you can execute
 \\[inferior-emacs-lisp-mode] in that IELM buffer to update the value,
 for new prompts.  This works even if the buffer has a running process."
   :type 'boolean
@@ -83,7 +83,7 @@ _default_ value affect _new_ prompts.  Unless the new prompt
 differs only in text properties from the old one, IELM will no
 longer recognize the old prompts.  However, executing \\[ielm]
 does not update the prompt of an *ielm* buffer with a running process.
-For IELM buffers that are not called *ielm*, you can execute
+For IELM buffers that are not called `*ielm*', you can execute
 \\[inferior-emacs-lisp-mode] in that IELM buffer to update the value,
 for new prompts.  This works even if the buffer has a running process."
   :type 'string
