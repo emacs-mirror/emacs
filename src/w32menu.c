@@ -642,7 +642,8 @@ cached information about equivalent key sequences.")
 
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt)
-	  || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
+	  || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+                                   || EQ (XCAR (position), Qtool_bar))))
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = SELECTED_FRAME ();
@@ -840,7 +841,8 @@ on the left of the dialog box and all following items on the right.\n\
 
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
-      || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
+      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+                               || EQ (XCAR (position), Qtool_bar))))
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
@@ -1569,7 +1571,6 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
   int first_pane;
-  int next_release_must_exit = 0;
 
   *error = NULL;
 
@@ -2064,7 +2065,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
 	  strcpy (out_string, wv->name);
 #endif
-	  fuFlags = MF_OWNERDRAW | MF_DISABLED;
+          /* NTEMACS_TODO: Why has owner drawing stopped working? */
+	  fuFlags = /*MF_OWNERDRAW |*/ MF_DISABLED;
 	}
 
       /* Draw radio buttons and tickboxes. */
@@ -2096,7 +2098,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
         bzero (&info, sizeof (info));
         info.cbSize = sizeof (info);
         info.fMask = MIIM_DATA;
-        /* Set help string for menu item. */
+
+        /* Set help string for menu item.  */
         info.dwItemData = (DWORD)wv->help;
 
         if (wv->button_type == BUTTON_TYPE_RADIO)
