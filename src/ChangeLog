@@ -1,3 +1,96 @@
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* editfns.c: Doc fix.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Fconstrain_to_field): Make sure we don't violate the
+	argument preconditions of find_before_next_newline in the case
+	where both ONLY_IN_LINE and ESCAPE_FROM_EDGE are set and OLD_POS
+	was indeed at the edge.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* minibuf.c (Fminibuffer_complete_and_exit): Supply value for new
+	ESCAPE_FROM_EDGE parameter to Ffield_beginning.
+
+	* editfns.c (text_property_eq, text_property_stickiness): Don't
+	use initializers for auto variables of type Lisp_Object.
+	(find_field): Likewise.  Use braces around nested ifs.
+	(Fline_end_position): Store the raw eol in a variable, so that the
+	final expression doesn't look so ugly.
+	(Fconstrain_to_field): Doc fix.
+	(preceding_pos): Renamed from `preceeding_pos'.
+	(text_property_stickiness, find_field): Call preceding_pos,
+	not preceeding_pos.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Ffield_string_no_properties): New function.
+	(text_property_stickiness, preceeding_pos): New functions.
+	(Ffield_string): Remove PROPS parameter.
+	(find_field): Add MERGE_AT_BOUNDARY parameter.
+	Rewrite to use stickiness of `field' property to resolve
+	ambiguous cases.
+	(Ffield_beginning, Ffield_end): Add ESCAPE_FROM_EDGE parameter.
+	(Fconstrain_to_field): Likewise.
+	(syms_of_editfns): Init Sfield_string_no_properties.
+	(Ffield_string, Ferase_field, Ffield_end): 
+	Supply new MERGE_AT_BOUNDARY argument to find_field.
+	(Fline_beginning_position, Fline_end_position): Supply new
+	ESCAPE_FROM_EDGE parameter to Fconstrain_to_field.
+	Pass a value of Qt for the ONLY_IN_LINE argument to
+	Fconstrain_to_field (only matters if N != 1).
+	* syntax.c (Fforward_word): Supply new ESCAPE_FROM_EDGE parameter
+	to Fconstrain_to_field.
+
+	* minibuf.c (Fminibuffer_complete_word): Use
+	Ffield_beginning to find the prompt end.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Fconstrain_to_field): Add get/set-current-point
+	behavior when NEW_POS is nil.
+	(find_field): Use XSETFASTINT instead of make_number.
+	* minibuf.c (Fminibuffer_complete_and_exit): Test for an empty
+	input string by seeing where the field begins, instead of
+	looking at text-properties.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Qfield): New variable.
+	(find_field, Ferase_field, Ffield_string,
+	Ffield_beginning, Ffield_end, Fconstrain_to_field): New functions.
+	(Fline_beginning_position, Fline_end_position): Constrain to any field.
+	(make_buffer_string_both): Remove minibuffer-prompt hack.
+	(syms_of_editfns): Initialize Qfield, and subr entries for
+	field functions above.
+	* minibuf.c (read_minibuf): Don't save minibuffer prompt length on
+	minibuf_save_list.
+	Don't initialize minibuffer prompt length.
+	Wrap prompt text-properties around the entire prompt.
+	Add 'prompt text-property to prompt.
+	Get final value with Ffield_string instead of make_buffer_string.
+	(read_minibuf_unwind): Don't restore minibuffer prompt length from
+	minibuf_save_list.
+	(do_completion): Get minibuffer input with Ffield_string
+	instead of Fbuffer_string.
+	Erase minibuffer input with Ferase_field instead of erase_buffer.
+	(Fminibuffer_complete_and_exit): Likewise.
+	Test whether buffer is empty by looking for the 'prompt text
+	property at the end.
+	Set prompt length by looking for the end of the prompt text property,
+	and save prompt length for later use (since there is no longer a
+	buffer variable to get it from).
+	(Fminibuffer_prompt_width, Fminibuffer_prompt_end): Functions removed.
+	(syms_of_minibuf): Remove initializations of
+	Sminibuffer_prompt_width and Sminibuffer_prompt_end.
+	* buffer.h (struct buffer): Remove prompt_end_charpos field.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer, Fkill_buffer): 
+	Don't initialize prompt_end_charpos field.
+	* syntax.c (Fforward_word): Likewise.
+	Constrain to any field.
+
 1999-10-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (enum save_restore_action): New.

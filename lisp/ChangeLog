@@ -1,3 +1,51 @@
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* simple.el: Doc fixes.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* simple.el (previous-matching-history-element, next-history-element): 
+	Change to work correctly even if the point is in the prompt.
+	(choose-completion-string): Likewise.
+	(minibuffer-prompt-width): New function (compatibility with old subr).
+
+	* textmodes/paragraphs.el (forward-sentence, forward-paragraph): 
+	When constraining the final position to the current field,
+	don't use the ONLY-IN-LINE mode of constrain-to-field.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* simple.el (line-move): Supply new ESCAPE-FROM-EDGE argument to
+	constrain-to-field.
+	* textmodes/paragraphs.el (forward-sentence): Likewise.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* simple.el (line-move): Use constrain-to-field to avoid
+	moving into a prompt.
+	(previous-complete-history-element): Clarify doc string.
+	(next-complete-history-element): Likewise.
+	Use field-beginning instead of point-min.
+	(next-matching-history-element): Use field-beginning and
+	erase-field instead of point-min and erase-buffer.
+	* textmodes/paragraphs.el
+	(forward-paragraph, forward-sentence): Likewise.
+	(backward-kill-paragraph, backward-kill-sentence): Remove code to
+	constrain the kill to an field, as the movement commands now
+	do this.
+
+1999-10-17  Miles Bader  <miles@gnu.org>
+
+	* simple.el (previous-matching-history-element): Get the
+	minibuffer input with field-string instead of buffer-string.
+	(choose-completion-string): Likewise.
+	(next-history-element): Likewise.
+	Erase the minibuffer input with erase-field, not erase-buffer.
+	Use field-beginning to find the beginning of the input.
+	* textmodes/paragraphs.el (backward-kill-sentence): 
+	Remove minibuffer-prompt hack.
+	Constrain to any input field.
+
 1999-10-17  Sam Steingold  <sds@ksp.com>
 
 	* bindings.el (completion-ignored-extensions): Added ".sparcf"
