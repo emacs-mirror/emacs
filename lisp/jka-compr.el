@@ -394,6 +394,10 @@ There should be no more than seven characters after the final `/'."
 	 (info (jka-compr-get-compression-info visit-file))
 	 (magic (and info (jka-compr-info-file-magic-bytes info))))
 
+    ;; If START is nil, use the whole buffer.
+    (if (null start)
+	(setq start 1 end (1+ (buffer-size))))
+
     ;; If we uncompressed this file when visiting it,
     ;; then recompress it when writing it
     ;; even if the contents look compressed already.
