@@ -426,7 +426,8 @@ automatically, and you are prompted to fill in the variable parts.")))
 	((eq element '>)
 	 (if (and skeleton-regions
 		  (eq (nth 1 skeleton) '_))
-	     (indent-region (point) (car skeleton-regions) nil)
+	     (indent-region (line-beginning-position)
+			    (car skeleton-regions) nil)
 	   (indent-according-to-mode)))
 	((eq element '_)
 	 (if skeleton-regions
