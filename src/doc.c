@@ -50,13 +50,13 @@ get_doc_string (filepos)
   register int count;
   extern char *index ();
 
-  if (XTYPE (Vdata_directory) != Lisp_String
+  if (XTYPE (Vdoc_directory) != Lisp_String
       || XTYPE (Vdoc_file_name) != Lisp_String)
     return Qnil;
 
-  name = (char *) alloca (XSTRING (Vdata_directory)->size
+  name = (char *) alloca (XSTRING (Vdoc_directory)->size
 			  + XSTRING (Vdoc_file_name)->size + 8);
-  strcpy (name, XSTRING (Vdata_directory)->data);
+  strcpy (name, XSTRING (Vdoc_directory)->data);
   strcat (name, XSTRING (Vdoc_file_name)->data);
 #ifdef VMS
 #ifndef VMS4_4
@@ -280,10 +280,10 @@ when doc strings are referred to later in the dumped Emacs.")
   name = (char *) alloca (XSTRING (filename)->size + 14);
   strcpy (name, "../etc/");
 #else /* CANNOT_DUMP */
-  CHECK_STRING (Vdata_directory, 0);
+  CHECK_STRING (Vdoc_directory, 0);
   name = (char *) alloca (XSTRING (filename)->size +
-			  XSTRING (Vdata_directory)->size + 1);
-  strcpy (name, XSTRING (Vdata_directory)->data);
+			  XSTRING (Vdoc_directory)->size + 1);
+  strcpy (name, XSTRING (Vdoc_directory)->data);
 #endif /* CANNOT_DUMP */
   strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
 #ifdef VMS
