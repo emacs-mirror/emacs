@@ -4787,8 +4787,7 @@ read_avail_input (expected)
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE,
-				 expected, expected);
+    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE, expected);
   else
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
