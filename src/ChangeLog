@@ -1,3 +1,10 @@
+2000-10-23  Miles Bader  <miles@gnu.org>
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Pass nil for FULLY argument to Fpos_visible_in_window_p to
+	maintain old behavior.
+	* minibuf.c (Fminibuffer_complete): Likewise.
+
 2000-10-23  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* xterm.c (VCENTER_BASELINE_OFFSET): Bias the division by two, so
