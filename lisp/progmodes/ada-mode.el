@@ -108,11 +108,11 @@
 ;;; LCD Archive Entry:
 ;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
 ;;; |Major-mode for Ada
-;;; |$Date: 1995/04/04 03:00:59 $|$Revision: 1.4 $|
+;;; |$Date: 1995/04/07 00:14:59 $|$Revision: 1.5 $|
 
 
-(defconst ada-mode-version (substring "$Revision: 1.4 $" 11 -2)
-  "$Id: ada-mode.el,v 1.4 1995/04/04 03:00:59 kwzh Exp kwzh $
+(defconst ada-mode-version (substring "$Revision: 1.5 $" 11 -2)
+  "$Id: ada-mode.el,v 1.5 1995/04/07 00:14:59 kwzh Exp kwzh $
 
 Report bugs to: Rolf Ebert <ebert@inf.enst.fr>")
 
@@ -3436,7 +3436,7 @@ Searches through former 'with' statements for possible completions."
 
 (defun ada-add-ada-menu ()
   "Adds the menu 'Ada' to the menu-bar in Ada Mode."
-  (easy-menu-define t ada-mode-map t
+  (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode."
                     '("Ada"
                       ["next package" ada-next-package t]
                       ["previous package" ada-previous-package t]
