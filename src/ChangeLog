@@ -1,3 +1,13 @@
+2001-10-21  Miles Bader  <miles@gnu.org>
+
+	* fns.c (Fappend, Fconcat, Fvconcat, Fnconc, Fwidget_apply) 
+	(Fmake_hash_table): Add usage: string to doc string.
+	* editfns.c (Finsert, Finsert_and_inherit, Finsert_before_markers)
+	(Fmessage, Fmessage_box, Fmessage_or_box, Fpropertize, Fformat) 
+	(Fencode_time, Finsert_and_inherit_before_markers): Likewise.
+	* mocklisp.c (Finsert_string, Fml_if, Fml_provide_prefix_argument)
+	(Fml_prefix_argument_loop): Likewise.
+
 2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fileio.c (Finsert_file_contents): Remove unused variable

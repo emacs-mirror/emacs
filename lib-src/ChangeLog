@@ -1,7 +1,12 @@
 2001-10-21  Miles Bader  <miles@gnu.org>
 
-	* make-docfile.c (read_c_string_or_comment): Add SAW_USAGE
+	* make-docfile.c (struct rcsoc_state): New type.
+	(read_c_string_or_comment): Add SAW_USAGE
 	parameter, and implement scanning for a `usage:' keyword.
+	Use a variable of type `rcsoc_state' to hold most of our state.
+	(put_char): Add STATE parameter, and remove all other parameters
+	except CH.  Use STATE to get access to all needed state.
+	(scan_keyword_or_put_char): New function.
 	(scan_c_file): Pass SAW_USAGE argument to read_c_string_or_comment.
 	Don't output a usage-string if there was one in the doc-string.
 
