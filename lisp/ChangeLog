@@ -1,5 +1,11 @@
-2002-06-12  Colin Walters  <walters@debian.org>
+2002-06-12  Colin Walters  <walters@gnu.org>
 
+	* calc/calc.el: Use `when', `unless'.
+	(calc-trail-mode): Use an italic `font-lock-face'.
+	(calc-refresh): Ditto.
+
+2002-06-12  Colin Walters  <walters@debian.org>
+	
 	* font-core.el (font-lock-core-only): Variable deleted.  All uses
 	removed.
 	(font-lock-set-defaults): Variable alist settings moved back into
