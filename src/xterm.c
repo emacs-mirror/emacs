@@ -10632,6 +10632,14 @@ XTread_socket (sd, bufp, numchars, expected)
 				|| ((unsigned)(orig_keysym) == XK_Num_Lock)
 #endif
 #endif /* not HAVE_X11R5 */
+				/* The symbols from XK_ISO_Lock to
+				   XK_ISO_Last_Group_Lock doesn't have real
+				   modifiers but should be treated similarly
+				   to Mode_switch by Emacs. */
+#if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
+				|| ((unsigned)(orig_keysym) >=  XK_ISO_Lock
+				    && (unsigned)(orig_keysym) <= XK_ISO_Last_Group_Lock)
+#endif
 				))
 			{
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
