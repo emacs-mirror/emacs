@@ -63,7 +63,7 @@ Lisp_Object Vcharset_hash_table;
 struct charset *charset_table;
 
 static int charset_table_size;
-int charset_table_used;
+static int charset_table_used;
 
 Lisp_Object Qcharsetp;
 
@@ -583,7 +583,7 @@ map_charset_chars (c_function, function, arg,
 
       range = Fcons (make_number (from_c), make_number (to_c));
       if (NILP (function))
-	(*c_function) (range, arg);
+	(*c_function) (arg, range);
       else
 	call2 (function, range, arg);
     }
@@ -598,7 +598,7 @@ map_charset_chars (c_function, function, arg,
 	    XSETCAR (range, make_number (127));
 
 	  if (NILP (function))
-	    (*c_function) (range, arg);
+	    (*c_function) (arg, range);
 	  else
 	    call2 (function, range, arg);
 	}
