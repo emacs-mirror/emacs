@@ -1149,7 +1149,7 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
       p += len;
     }
 
-  val = make_multibyte_string (buf, n, p - buf);
+  val = make_string_from_bytes (buf, n, p - buf);
   return val;
 }
 
@@ -1565,7 +1565,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
     /* STR contains only one character, which can't be composed.  */
     error ("Too short string to be composed: %s", XSTRING (str)->data);
 
-  return make_multibyte_string (buf, 1, i);
+  return make_string_from_bytes (buf, 1, i);
 }
 
 
