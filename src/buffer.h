@@ -226,6 +226,9 @@ struct buffer
        the last time this buffer was displayed.  */
     int last_window_start;
 
+    /* Set nonzero whenever the narrowing is changed in this buffer.  */
+    int clip_changed;
+
     /* If the long line scan cache is enabled (i.e. the buffer-local
        variable cache-long-line-scans is non-nil), newline_cache
        points to the newline cache, and width_run_cache points to the
