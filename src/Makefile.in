@@ -537,6 +537,12 @@ widgetobj=
    should not be told about.  */
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
+#ifdef HAVE_FACES
+#define FACE_SUPPORT ${lispdir}faces.elc ${lispdir}facemenu.elc
+#else
+#define FACE_SUPPORT
+#endif
+
 #ifdef LISP_FLOAT_TYPE
 #define FLOAT_SUPPORT ${lispdir}float-sup.elc
 #else
@@ -544,11 +550,16 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef MULTI_FRAME
-#define FRAME_SUPPORT ${lispdir}frame.elc ${lispdir}menu-bar.elc \
-  ${lispdir}mouse.elc ${lispdir}select.elc ${lispdir}scroll-bar.elc \
-  ${lispdir}faces.elc
+#define FRAME_SUPPORT ${lispdir}frame.elc
 #else
 #define FRAME_SUPPORT
+#endif
+
+#ifdef HAVE_MOUSE
+#define MOUSE_SUPPORT ${lispdir}menu-bar.elc ${lispdir}mouse.elc \
+  ${lispdir}select.elc ${lispdir}scroll-bar.elc
+#else
+#define MOUSE_SUPPORT
 #endif
 
 #ifdef HAVE_X_WINDOWS
@@ -564,9 +575,15 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef MSDOS
-#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc ${lispdir}mouse.elc ${lispdir}faces.elc
+#define MSDOS_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}disp-tab.elc ${lispdir}dos-fns.elc
 #else
 #define MSDOS_SUPPORT
+#endif
+
+#ifdef WINDOWSNT
+#define WINNT_SUPPORT ${lispdir}ls-lisp.elc ${lispdir}winnt.elc
+#else
+#define WINNT_SUPPORT
 #endif
 
 /* List of Lisp files loaded into the dumped Emacs.  It's arranged
@@ -583,6 +600,9 @@ lisp= \
 	${lispdir}c-mode.elc \
 	${lispdir}files.elc \
 	${lispdir}fill.elc \
+	${lispdir}format.elc \
+	FACE_SUPPORT \
+	MOUSE_SUPPORT \
 	FLOAT_SUPPORT \
 	FRAME_SUPPORT \
 	X_WINDOWS_SUPPORT \
@@ -605,6 +625,7 @@ lisp= \
 	${lispdir}vc-hooks.elc \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
+	WINNT_SUPPORT \
 	${lispdir}window.elc \
 	${lispdir}version.el
 
