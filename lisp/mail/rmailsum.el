@@ -105,7 +105,7 @@ SUBJECT is a string of regexps separated by commas."
     (search-forward "\n*** EOOH ***\n")
     (narrow-to-region
      (point)
-     (progn (search-forward (if whole-message "" "\n\n")) (point)))
+     (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
     (goto-char (point-min))
     (if whole-message (re-search-forward subject nil t)
       (string-match subject (or (mail-fetch-field "Subject") "")) )))
