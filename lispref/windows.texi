@@ -897,6 +897,7 @@ beneath another existing window.  If @code{even-window-heights} is
 @code{t}, the default, window heights will be evened out.  If
 @code{even-window-heights} is @code{nil}, the orginal window heights
 will be left alone.
+@end defopt
 
 @c Emacs 19 feature
 @defopt pop-up-frames
