@@ -1935,48 +1935,20 @@ DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
 }
 
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
-  "Return the parameters-alist of frame FRAME.\n\
-It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame.\n\
-If FRAME is omitted, return information on the currently selected frame.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
-  Lisp_Object alist;
-  struct frame *f;
-
-  if (EQ (frame, Qnil))
-    f = selected_frame;
-  else
-    {
-      CHECK_FRAME (frame, 0);
-      f = XFRAME (frame);
-    }
-
-  if (f->display.nothing == 0)
-    return Qnil;
-
-  alist = Fcopy_alist (f->param_alist);
-  store_in_alist (&alist, Qname, f->name);
-  store_in_alist (&alist, Qheight, make_number (f->height));
-  store_in_alist (&alist, Qwidth, make_number (f->width));
-  store_in_alist (&alist, Qmodeline, (f->wants_modeline ? Qt : Qnil));
-  store_in_alist (&alist, Qminibuffer,
-		  (! FRAME_HAS_MINIBUF_P (f) ? Qnil
-		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
-                   : FRAME_MINIBUF_WINDOW (f))));
-  store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
-  store_in_alist (&alist, Qmenu_bar_lines, (FRAME_MENU_BAR_LINES (f)));
-
-  return alist;
+  return Qnil;
 }
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
        Smodify_frame_parameters, 2, 2, 0,
-  "Modify the parameters of frame FRAME according to ALIST.\n\
-ALIST is an alist of parameters to change and their new values.\n\
-Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame, alist)
      Lisp_Object frame, alist;
 {
