@@ -66,7 +66,7 @@ struct catchtag
 struct catchtag *catchlist;
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
-Lisp_Object Vquit_flag, Vinhibit_quit;
+Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qmocklisp_arguments, Vmocklisp_arguments, Qmocklisp;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
@@ -2247,6 +2247,9 @@ so a quit will be signalled as soon as `inhibit-quit' is nil.\n\
 To prevent this happening, set `quit-flag' to nil\n\
 before making `inhibit-quit' nil.");
   Vinhibit_quit = Qnil;
+
+  Qinhibit_quit = intern ("inhibit-quit");
+  staticpro (&Qinhibit_quit);
 
   Qautoload = intern ("autoload");
   staticpro (&Qautoload);
