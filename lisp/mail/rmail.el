@@ -46,7 +46,7 @@
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
 ;  "This is the name of the directory used by the system mailer for\n\
-;delivering new mail.  It's name should end with a slash.")
+;delivering new mail.  Its name should end with a slash.")
 ;(defvar rmail-file-name
 ;  (expand-file-name "~/RMAIL")
 ;  "")
@@ -306,7 +306,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
-	 (existed (get-file-buffer file-name)))
+	 (existed (get-file-buffer file-name))
+	 run-mail-hook)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
     (if (and existed (not (verify-visited-file-modtime existed)))
@@ -326,7 +327,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     (if (and existed (> (buffer-size) 0))
 	;; Buffer not new and not empty; ensure in proper mode, but that's all.
 	(or (eq major-mode 'rmail-mode)
-	    (rmail-mode-2))
+	    (progn (rmail-mode-2)
+		   (setq run-mail-hook t)))
+      (setq run-mail-hook t)
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file)
@@ -339,7 +342,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	     (rmail-get-new-mail))
 	(rmail-show-message (rmail-first-unseen-message)))
     (if rmail-display-summary (rmail-summary))
-    (rmail-construct-io-menu)))
+    (rmail-construct-io-menu)
+    (if run-mail-hook
+	(run-hooks 'rmail-mode-hook))))
 
 ;; Given the value of MAILPATH, return a list of inbox file names.
 ;; This is turned off because it is not clear that the user wants
@@ -639,13 +644,13 @@ Instead, these commands are available:
   (interactive)
   (rmail-mode-2)
   (rmail-set-message-counters)
-  (rmail-show-message rmail-total-messages))
+  (rmail-show-message rmail-total-messages)
+  (run-hooks 'rmail-mode-hook))
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
   (rmail-mode-1)
-  (rmail-variables)
-  (run-hooks 'rmail-mode-hook))
+  (rmail-variables))
 
 (defun rmail-mode-1 ()
   (setq major-mode 'rmail-mode)
