@@ -890,7 +890,11 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	      (setq isearch-string (or (car (if isearch-regexp
 						regexp-search-ring
 					      search-ring))
-				       ""))
+				       "")
+
+		    isearch-message
+		    (mapconcat 'isearch-text-char-description
+			       isearch-string ""))
 	    ;; This used to set the last search string,
 	    ;; but I think it is not right to do that here.
 	    ;; Only the string actually used should be saved.
