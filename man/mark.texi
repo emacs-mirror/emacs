@@ -14,16 +14,23 @@ end.  The text between point and the mark is called @dfn{the region}.
 Emacs highlights the region whenever there is one, if you enable
 Transient Mark mode (@pxref{Transient Mark}).
 
-  You can move point or the mark to adjust the boundaries of the region.
-It doesn't matter which one is set first chronologically, or which one
-comes earlier in the text.  Once the mark has been set, it remains where
-you put it until you set it again at another place.  Each Emacs buffer
-has its own mark, so that when you return to a buffer that had been
-selected previously, it has the same mark it had before.
+  Certain Emacs commands set the mark; other editing commands do not
+affect it, so the mark remains where you set it last.  Each Emacs
+buffer has its own mark, and setting the mark in one buffer has no
+effect on other buffers' marks.  When you return to a buffer that had
+been selected previously, its mark is at the same place as before.
+
+  The ends of the region are always point and the mark.  It doesn't
+matter which of them was put in its current place first, or which one
+comes earlier in the text---the region starts from point or the mark
+(whichever comes first), and ends at point or the mark (whichever
+comes last).  Every time you move point, or set the mark in a new
+place, the region changes.
 
   Many commands that insert text, such as @kbd{C-y} (@code{yank}) and
-@kbd{M-x insert-buffer}, position point and the mark at opposite ends of
-the inserted text, so that the region contains the text just inserted.
+@kbd{M-x insert-buffer}, position point and the mark at opposite ends
+of the inserted text, so that the region consists of the text just
+inserted.
 
   Aside from delimiting the region, the mark is also useful for
 remembering a spot that you may want to go back to.  To make this
