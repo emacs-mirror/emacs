@@ -19,3 +19,7 @@
 #ifndef SYSTEM_MALLOC
 #define MEMMOVE_MISSING
 #endif
+
+/* brett@kirk.es.go.dlr.de reported that, without this definition,
+   Emacs would loop when olvwm exits.  */
+#define X_IO_BUG
