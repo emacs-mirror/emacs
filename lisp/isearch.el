@@ -298,6 +298,7 @@ Default value, nil, means edit the string instead.")
 (defvar isearch-other-end nil)	; Start (end) of match if forward (backward).
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
 (defvar isearch-barrier 0)
+(defvar isearch-just-started nil)
 
 ; case-fold-search while searching.
 ;   either nil, t, or 'yes.  'yes means the same as t except that mixed
@@ -463,10 +464,12 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 					   (* 4 search-slow-window-lines)))
 	isearch-other-end nil
 	isearch-small-window nil
+	isearch-just-started t
 
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
 	regexp-search-ring-yank-pointer nil)
+  (looking-at "")
   (setq isearch-window-configuration
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
 
@@ -817,7 +820,8 @@ Use `isearch-exit' to quit without signalling."
 
   (if (equal isearch-string "")
       (setq isearch-success t)
-    (if (and isearch-success (equal (match-end 0) (match-beginning 0)))
+    (if (and isearch-success (equal (match-end 0) (match-beginning 0))
+	     (not isearch-just-started))
 	;; If repeating a search that found
 	;; an empty string, ensure we advance.
 	(if (if isearch-forward (eobp) (bobp))
@@ -938,8 +942,9 @@ If no previous match was done, just beep."
     ;; long as the match does not extend past search origin.
     (if (and (not isearch-forward) (not isearch-adjusted)
 	     (condition-case ()
-		 (looking-at (if isearch-regexp isearch-string
-			       (regexp-quote isearch-string)))
+		 (let ((case-fold-search isearch-case-fold-search))
+		   (looking-at (if isearch-regexp isearch-string
+				 (regexp-quote isearch-string))))
 	       (error nil))
 	       (or isearch-yank-flag
 		   (<= (match-end 0) 
@@ -1361,6 +1366,7 @@ If there is no completion possible, say so and continue searching."
 		     (t
 		      (if isearch-forward 'search-forward 'search-backward)))
 	       isearch-string nil t))
+	(setq isearch-just-started nil)
 	(if isearch-success
 	    (setq isearch-other-end
 		  (if isearch-forward (match-beginning 0) (match-end 0)))))
@@ -1438,7 +1444,9 @@ since they have special meaning in a regexp."
     (isearch-char-to-string c)))
 
 ;; General function to unread characters or events.
+;; Also insert them in a keyboard macro being defined.
 (defun isearch-unread (&rest char-or-events)
+  (mapcar 'store-kbd-macro-event char-or-events)
   (setq unread-command-events
 	(append char-or-events unread-command-events)))
 
