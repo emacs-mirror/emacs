@@ -62,7 +62,7 @@ the action arguments in the order they are written.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
 * Font X::	        Choosing a font for text, under X.
-* Colors X::	        Choosing colors, under X.
+* Colors::	        Choosing display colors.
 * Window Size X::       Start-up window size, under X.
 * Borders X::	        Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
@@ -707,7 +707,7 @@ displays the entire font @samp{6x13}.
 (@pxref{Frame Parameters}) or for a specific kind of text
 (@pxref{Faces}).
 
-@node Colors X
+@node Colors
 @appendixsec Window Color Options
 @cindex color of window
 @cindex text colors, from command line
@@ -767,6 +767,36 @@ Specify the color for the mouse cursor when the mouse is in the Emacs window.
 @opindex --reverse-video
 @cindex reverse video, command-line argument
 Reverse video---swap the foreground and background colors.
+@item --color=@var{mode}
+@opindex --color
+@cindex standard colors on a character terminal
+For a character terminal only, specify the mode of color support.  The
+parameter @var{mode} can be one of the following:
+@table @samp
+@item never
+@itemx no
+Don't use colors even if the terminal's capabilities specify color
+support.
+@item default
+@itemx auto
+Same as when @option{--color} is not used at all: Emacs detects at
+startup whether the terminal supports colors, and if it does, turns on
+colored display.
+@item always
+@itemx yes
+@itemx ansi8
+Turn on the color support unconditionally, and use color commands
+specified by the ANSI escape sequences for the 8 standard colors.
+@item @var{num}
+Use color mode for @var{num} colors.  If @var{num} is -1, turn off
+color support (equivalent to @samp{never}); if it is 0, use the
+default color support for this terminal (equivalent to @samp{auto});
+otherwise use an appropriate standard mode for @var{num} colors.  If
+there is no mode that supports @var{num} colors, Emacs acts as if
+@var{num} were 0, i.e.@: it uses the terminal's default color support
+mode.
+@end table
+If @var{mode} is omitted, it defaults to @var{ansi8}.
 @end table
 
   For example, to use a coral mouse cursor and a slate blue text cursor,
