@@ -754,8 +754,8 @@ A default value is `iso-latin-1-dos'.  */);
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other X clients.
 Usually, `selection-coding-system' is used for communicating with
-other X clients.   But, if this variable is set, it is used for the
-next communication only.   After the communication, this variable is
+other X clients.  But, if this variable is set, it is used for the
+next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
