@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "fontset.h"
 #include "blockinput.h"
 
+#include "w32heap.h"
 #include "w32term.h"
 #include <shellapi.h>
 
@@ -880,17 +881,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 	  }
 
-        /* Convert x_2byte_buffer into a buffer of single byte
-           characters - possibly containing MBCS runs.  */
-        bp = x_1byte_buffer;
-        for (i = 0; i < len; i++)
-          {
-            if (BYTE1 (*(x_2byte_buffer + i)))
-              *bp++ = BYTE1 (*(x_2byte_buffer + i));
-            *bp++ = BYTE2 (*(x_2byte_buffer + i));
-          }
-        n_chars = bp - x_1byte_buffer;
-
 	fg = face->foreground;
 	bg = face->background;
 
@@ -972,10 +962,54 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	SetBkColor (hdc, bg);
         SetTextAlign (hdc, TA_BASELINE | TA_LEFT);
 
-        if (print_via_unicode)
-          n_chars = MultiByteToWideChar
-            (codepage, 0, x_1byte_buffer, n_chars,
-             x_2byte_buffer, FRAME_WINDOW_WIDTH (f));
+	/* On NT, where conversion to Unicode has to happen sometime
+           when using the normal ExtTextOut facility, we might as well
+           take advantage of x_2byte_buffer which is already allocated,
+           to avoid the allocation overhead for implicit conversion.  */
+
+	if (!print_via_unicode
+	    && codepage == CP_DEFAULT
+	    && w32_enable_unicode_output
+	    && os_subtype == OS_NT
+	    && font && !font->bdf)
+	  {
+	    print_via_unicode = TRUE;
+	  }
+
+	/* Note that we can special-case the conversion to Unicode when
+	   the charset is CHARSET_ASCII (an important case) or Latin-1,
+	   because x_2byte_buffer in fact already contains the unicode
+	   characters.  So avoid setting up x_1byte_buffer in that case.  */
+        if (!print_via_unicode
+	    || (charset != CHARSET_ASCII && charset != charset_latin_iso8859_1))
+	  {
+	    /* Convert x_2byte_buffer into a buffer of single byte
+	       characters - possibly containing MBCS runs.  */
+	    bp = x_1byte_buffer;
+	    for (i = 0; i < len; i++)
+	      {
+		if (BYTE1 (*(x_2byte_buffer + i)))
+		  *bp++ = BYTE1 (*(x_2byte_buffer + i));
+		*bp++ = BYTE2 (*(x_2byte_buffer + i));
+	      }
+	    n_chars = bp - x_1byte_buffer;
+	  }
+	else
+	  n_chars = len;
+
+        if (print_via_unicode
+	    && charset != CHARSET_ASCII && charset != charset_latin_iso8859_1)
+	  {
+	    i = MultiByteToWideChar
+	      (codepage, 0, x_1byte_buffer, n_chars,
+	       x_2byte_buffer, FRAME_WINDOW_WIDTH (f));
+
+	    /* Make sure we don't display nothing if conversion fails.  */
+	    if (i == 0)
+	      print_via_unicode = FALSE;
+	    else
+	      n_chars = i;
+	  }
 
 	if (font)
 	  {
@@ -1282,7 +1316,7 @@ w32_write_glyphs (start, len)
   if (curs_y == f->phys_cursor_y
       && curs_x <= f->phys_cursor_x
       && curs_x + len > f->phys_cursor_x)
-    f->phys_cursor_x = -1;
+    f->phys_cursor_on = 0;
 
   if (updating_frame == 0)
     {
@@ -1328,7 +1362,7 @@ w32_clear_end_of_line (first_unused)
   if (curs_y == f->phys_cursor_y
       && curs_x <= f->phys_cursor_x
       && f->phys_cursor_x < first_unused)
-    f->phys_cursor_x = -1;
+    f->phys_cursor_on = 0;
 
   w32_clear_area (f, NULL,
 		    CHAR_TO_PIXEL_COL (f, curs_x),
@@ -1347,7 +1381,7 @@ w32_clear_frame ()
   if (f == 0)
     f = selected_frame;
 
-  f->phys_cursor_x = -1;        /* Cursor not visible.  */
+  f->phys_cursor_on = 0;        /* Cursor not visible.  */
   curs_x = 0;                   /* Nominal cursor position is top left.  */
   curs_y = 0;
 
@@ -1507,7 +1541,7 @@ do_line_dance ()
     abort ();
 
   ht = f->height;
-  intborder = f->output_data.w32->internal_border_width;
+  intborder = CHAR_TO_PIXEL_COL (f, FRAME_LEFT_SCROLL_BAR_WIDTH (f));
 
   x_display_cursor (updating_frame, 0);
 
@@ -1521,8 +1555,8 @@ do_line_dance ()
 	/* Copy [i,j) upward from [i+distance, j+distance) */
 	BitBlt (hdc, 
 		intborder, CHAR_TO_PIXEL_ROW (f, i+distance),
-		f->width * FONT_WIDTH (f->output_data.w32->font),
-		(j-i) * f->output_data.w32->line_height, 
+		FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (FRAME_FONT (f)),
+		(j-i) * FRAME_LINE_HEIGHT (f), 
 		hdc,
 		intborder, CHAR_TO_PIXEL_ROW (f, i),
 		SRCCOPY);
@@ -1537,8 +1571,8 @@ do_line_dance ()
 	/* Copy (j, i] downward from (j+distance, i+distance] */
 	BitBlt (hdc,
 		intborder, CHAR_TO_PIXEL_ROW (f, j+1+distance),
-		f->width * FONT_WIDTH (f->output_data.w32->font),
-		(i-j) * f->output_data.w32->line_height, 
+		FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (FRAME_FONT (f)),
+		(i-j) * FRAME_LINE_HEIGHT (f), 
 		hdc,
 		intborder, CHAR_TO_PIXEL_ROW (f, j+1),
 		SRCCOPY);
@@ -1553,8 +1587,8 @@ do_line_dance ()
 	w32_clear_area (f, hdc,
 			  intborder, 
 			  CHAR_TO_PIXEL_ROW (f, i),
-			  f->width * FONT_WIDTH (f->output_data.w32->font),
-			  (j-i) * f->output_data.w32->line_height);
+			  FRAME_WINDOW_WIDTH (f) * FONT_WIDTH (FRAME_FONT (f)),
+			  (j-i) * FRAME_LINE_HEIGHT (f));
 	i = j-1;
       }
   line_dance_in_progress = 0;
@@ -1598,12 +1632,12 @@ dumprectangle (f, left, top, cols, rows)
   right = PIXEL_TO_CHAR_COL (f, right);
 
   /* Clip the rectangle to what can be visible.  */
-  if (left < 0)
-    left = 0;
+  if (left < FRAME_LEFT_SCROLL_BAR_WIDTH (f))
+    left = FRAME_LEFT_SCROLL_BAR_WIDTH (f);
   if (top < 0)
     top = 0;
-  if (right > f->width)
-    right = f->width;
+  if (right > f->width + FRAME_LEFT_SCROLL_BAR_WIDTH (f))
+    right = f->width + FRAME_LEFT_SCROLL_BAR_WIDTH (f);
   if (bottom > f->height)
     bottom = f->height;
 
@@ -1975,9 +2009,12 @@ construct_drag_n_drop (result, msg, f)
   hdrop = (HDROP) msg->msg.wParam;
   DragQueryPoint (hdrop, &p);
 
+#if 0
   p.x = LOWORD (msg->msg.lParam);
   p.y = HIWORD (msg->msg.lParam);
   ScreenToClient (msg->msg.hwnd, &p);
+#endif
+
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
 
@@ -3911,11 +3948,11 @@ clear_cursor (f)
      struct frame *f;
 {
   if (! FRAME_VISIBLE_P (f)
-      || f->phys_cursor_x < 0)
+      || !f->phys_cursor_on)
     return;
 
   x_display_cursor (f, 0);
-  f->phys_cursor_x = -1;
+  f->phys_cursor_on = 0;
 }
 
 /* Redraw the glyph at ROW, COLUMN on frame F, in the style
@@ -3948,11 +3985,11 @@ x_display_bar_cursor (f, on)
   if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
-  if (! on && f->phys_cursor_x < 0)
+  if (! on && ! f->phys_cursor_on)
     return;
 
   /* If there is anything wrong with the current cursor state, remove it.  */
-  if (f->phys_cursor_x >= 0
+  if (f->phys_cursor_on
       && (!on
 	  || f->phys_cursor_x != curs_x
 	  || f->phys_cursor_y != curs_y
@@ -3962,12 +3999,12 @@ x_display_bar_cursor (f, on)
       x_draw_single_glyph (f, f->phys_cursor_y, f->phys_cursor_x,
 			   f->phys_cursor_glyph,
 			   current_glyphs->highlight[f->phys_cursor_y]);
-      f->phys_cursor_x = -1;
+      f->phys_cursor_on = 0;
     }
 
   /* If we now need a cursor in the new place or in the new form, do it so.  */
   if (on
-      && (f->phys_cursor_x < 0
+      && (! f->phys_cursor_on
 	  || (f->output_data.w32->current_cursor != bar_cursor)))
     {
       f->phys_cursor_glyph
@@ -3983,6 +4020,7 @@ x_display_bar_cursor (f, on)
 
       f->phys_cursor_x = curs_x;
       f->phys_cursor_y = curs_y;
+      f->phys_cursor_on = 1;
 
       f->output_data.w32->current_cursor = bar_cursor;
     }
@@ -4007,14 +4045,14 @@ x_display_box_cursor (f, on)
     return;
 
   /* If cursor is off and we want it off, return quickly.  */
-  if (!on && f->phys_cursor_x < 0)
+  if (!on && ! f->phys_cursor_on)
     return;
 
   /* If cursor is currently being shown and we don't want it to be
      or it is in the wrong place,
      or we want a hollow box and it's not so, (pout!)
      erase it.  */
-  if (f->phys_cursor_x >= 0
+  if (f->phys_cursor_on
       && (!on
 	  || f->phys_cursor_x != curs_x
 	  || f->phys_cursor_y != curs_y
@@ -4053,14 +4091,14 @@ x_display_box_cursor (f, on)
 			   (mouse_face_here
 			    ? 3
 			    : current_glyphs->highlight[f->phys_cursor_y]));
-      f->phys_cursor_x = -1;
+      f->phys_cursor_on = 0;
     }
 
   /* If we want to show a cursor,
      or we want a box cursor and it's not so,
      write it in the right place.  */
   if (on
-      && (f->phys_cursor_x < 0
+      && (! f->phys_cursor_on
 	  || (f->output_data.w32->current_cursor != filled_box_cursor
 	      && f == FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame)))
     {
@@ -4083,6 +4121,7 @@ x_display_box_cursor (f, on)
 
       f->phys_cursor_x = curs_x;
       f->phys_cursor_y = curs_y;
+      f->phys_cursor_on = 1;
     }
 }
 
@@ -4388,8 +4427,9 @@ x_set_window_size (f, change_gravity, cols, rows)
   if (f->phys_cursor_y >= rows
       || f->phys_cursor_x >= cols)
     {
-      f->phys_cursor_x = -1;
-      f->phys_cursor_y = -1;
+      f->phys_cursor_x = 0;
+      f->phys_cursor_y = 0;
+      f->phys_cursor_on = 0;
     }
 
   /* Clear out any recollection of where the mouse highlighting was,
