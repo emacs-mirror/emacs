@@ -132,7 +132,7 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 ;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode minibuffer-electric-default-mode
-  "Toggle Minibuffer Electric Default mode
+  "Toggle Minibuffer Electric Default mode.
 When active, minibuffer prompts that show a default value only show the
 default when it's applicable -- that is, when hitting RET would yield
 the default value.  If the user modifies the input such that hitting RET
