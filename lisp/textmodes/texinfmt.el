@@ -467,6 +467,7 @@ Info-split to do these manually."
   (concat
    "^@"
    "\\("
+   "direntry\\|"
    "example\\|"
    "smallexample\\|"
    "lisp\\|"
@@ -2369,6 +2370,29 @@ If used within a line, follow `@bullet' with braces."
     (end-of-line)
     (insert "\n     ")))
 
+
+;; @direntry and @dircategory
+
+(put 'direntry 'texinfo-format 'texinfo-format-direntry)
+(defun texinfo-format-direntry ()
+  (texinfo-push-stack 'direntry nil)
+  (texinfo-discard-line)
+  (insert "START-INFO-DIR-ENTRY\n\n"))
+
+(put 'direntry 'texinfo-end 'texinfo-end-direntry)
+(defun texinfo-end-direntry ()
+  (texinfo-discard-command)
+  (insert "END-INFO-DIR-ENTRY\n")
+  (texinfo-pop-stack 'direntry))
+
+(put 'dircategory 'texinfo-format 'texinfo-format-dircategory)
+(defun texinfo-format-dircategory ()
+  (texinfo-discard-command)
+  (delete-region (point)
+                 (progn
+                  (skip-chars-forward " ")
+                  (point)))
+  (insert "INFO-DIR-SECTION "))
 
 ;;; @cartouche 
 
