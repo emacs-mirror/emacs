@@ -1410,7 +1410,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
      Lisp_Object name, target, font_spec, frame, add;
 {
   Lisp_Object fontset;
-  Lisp_Object font_def, registry;
+  Lisp_Object font_def, registry, family;
   Lisp_Object encoding, repertory;
   Lisp_Object range_list;
   struct charset *charset = NULL;
@@ -1449,8 +1449,6 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     }
   else if (CONSP (font_spec))
     {
-      Lisp_Object family;
-
       family = XCAR (font_spec);
       registry = XCDR (font_spec);
 
@@ -1474,7 +1472,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   if (STRINGP (font_spec))
     encoding = find_font_encoding (font_spec);
   else
-    encoding = find_font_encoding (registry);
+    encoding = find_font_encoding (concat2 (family, registry));
   if (SYMBOLP (encoding))
     {
       CHECK_CHARSET (encoding);
