@@ -257,8 +257,10 @@ Whether the frame has scroll bars for horizontal scrolling
 implemented.)
 
 @item icon-type
-The type of icon to use for this frame when it is iconified.
-Non-@code{nil} specifies a bitmap icon, @code{nil} a text icon.
+The type of icon to use for this frame when it is iconified.  If the
+value is a string, that specifies a file containing a bitmap to use.
+Any other non-@code{nil} value specifies the default bitmap icon (a
+picture of a gnu); @code{nil} specifies a text icon.
 
 @item foreground-color
 The color to use for the image of a character.  This is a string; the X
