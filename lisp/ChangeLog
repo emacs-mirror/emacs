@@ -1,3 +1,8 @@
+2000-06-15  Dave Love  <fx@gnu.org>
+
+	* net/goto-addr.el (goto-address-fontify): Use keymap property,
+	not local-map.
+
 2000-06-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): Almost
