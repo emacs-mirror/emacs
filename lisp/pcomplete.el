@@ -3,7 +3,7 @@
 ;; Copyright (C) 1999, 2000 Free Sofware Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
-;; Keywords: processes
+;; Keywords: processes abbrev
 
 ;; This file is part of GNU Emacs.
 
@@ -124,6 +124,7 @@
 
 (defgroup pcomplete nil
   "Programmable completion."
+  :version "21.1"
   :group 'processes)
 
 ;;; User Variables:
