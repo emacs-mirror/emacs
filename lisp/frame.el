@@ -722,6 +722,8 @@ that is beyond the control of Emacs and this command has no effect on it."
       (setq arg
 	    (if (cdr (assq 'auto-raise (frame-parameters (selected-frame))))
 		-1 1)))
+  (if (> arg 0)
+      (raise-frame (selected-frame)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-raise (> arg 0)))))
 
