@@ -27,6 +27,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   zero-length intervals if they are implemented.  This could be done
   inside next_interval and previous_interval.
 
+  set_properties needs to deal with the interval property cache.
+
   It is assumed that for any interval plist, a property appears
   only once on the list.  Although some code i.e., remove_properties (),
   handles the more general case, the uniqueness of properties is
@@ -324,7 +326,6 @@ erase_properties (i)
   return 1;
 }
 
-
 DEFUN ("text-properties-at", Ftext_properties_at,
        Stext_properties_at, 1, 2, 0,
   "Return the list of properties held by the character at POSITION\n\
@@ -370,9 +371,34 @@ Returns nil if unsuccessful.")
   return next->position;
 }
 
+DEFUN ("next-single-property-change", Fnext_single_property_change,
+       Snext_single_property_change, 3, 3, 0,
+       "Return the position after POSITION in OBJECT which has a different\n\
+value for PROPERTY than the text at POSITION.  OBJECT may be a string or\n\
+buffer.  Returns nil if unsuccessful.")
+     (pos, object, prop)
+{
+  register INTERVAL i, next;
+  register Lisp_Object here_val;
+
+  i = validate_interval_range (object, &pos, &pos, soft);
+  if (NULL_INTERVAL_P (i))
+    return Qnil;
+
+  here_val = Fget (prop, i->plist);
+  next = next_interval (i);
+  while (! NULL_INTERVAL_P (next) && EQ (here_val, Fget (prop, next->plist)))
+    next = next_interval (next);
+
+  if (NULL_INTERVAL_P (next))
+    return Qnil;
+
+  return next->position;
+}
+
 DEFUN ("previous-property-change", Fprevious_property_change,
        Sprevious_property_change, 2, 2, 0,
-  "Return the position before POSITION in OBJECT which has properties\n\
+  "Return the position preceding POSITION in OBJECT which has properties\n\
 different from those at POSITION.  OBJECT may be a string or buffer.\n\
 Returns nil if unsuccessful.")
   (pos, object)
@@ -386,6 +412,31 @@ Returns nil if unsuccessful.")
 
   previous = previous_interval (i);
   while (! NULL_INTERVAL_P (previous) && intervals_equal (previous, i))
+    previous = previous_interval (previous);
+  if (NULL_INTERVAL_P (previous))
+    return Qnil;
+
+  return previous->position + LENGTH (previous) - 1;
+}
+
+DEFUN ("previous-single-property-change", Fprevious_single_property_change,
+       Sprevious_single_property_change, 3, 3, 0,
+       "Return the position preceding POSITION in OBJECT which has a\n\
+different value for PROPERTY than the text at POSITION.  OBJECT may be
+a string or buffer.  Returns nil if unsuccessful.")
+     (pos, object, prop)
+{
+  register INTERVAL i, previous;
+  register Lisp_Object here_val;
+
+  i = validate_interval_range (object, &pos, &pos, soft);
+  if (NULL_INTERVAL_P (i))
+    return Qnil;
+
+  here_val = Fget (prop, i->plist);
+  previous = previous_interval (i);
+  while (! NULL_INTERVAL_P (previous)
+	 && EQ (here_val, Fget (prop, previous->plist)))
     previous = previous_interval (previous);
   if (NULL_INTERVAL_P (previous))
     return Qnil;
@@ -487,6 +538,7 @@ Otherwise return nil.")
      Lisp_Object object, start, end, properties;
 {
   register INTERVAL i, unchanged;
+  register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
 
   properties = validate_plist (properties);
@@ -504,15 +556,18 @@ Otherwise return nil.")
     {
       unchanged = i;
       i = split_interval_right (unchanged, s - unchanged->position + 1);
-      copy_properties (unchanged, i);
+      set_properties (properties, i);
       if (LENGTH (i) > len)
 	{
-	  i = split_interval_left (i, len);
-	  set_properties (properties, i);
+	  i = split_interval_right (i, len);
+	  copy_properties (unchanged, i);
 	  return Qt;
 	}
 
-      set_properties (properties, i);
+      if (LENGTH (i) == len)
+	return Qt;
+
+      prev_changed = i;
       len -= LENGTH (i);
       i = next_interval (i);
     }
@@ -523,17 +578,30 @@ Otherwise return nil.")
 	{
 	  if (LENGTH (i) == len)
 	    {
-	      set_properties (properties, i);
+	      if (NULL_INTERVAL_P (prev_changed))
+		set_properties (properties, i);
+	      else
+		merge_interval_left (i);
 	      return Qt;
 	    }
 
 	  i = split_interval_left (i, len + 1);
-	  set_properties (properties, i);
+	  if (NULL_INTERVAL_P (prev_changed))
+	    set_properties (properties, i);
+	  else
+	    merge_interval_left (i);
 	  return Qt;
 	}
 
       len -= LENGTH (i);
-      set_properties (properties, i);
+      if (NULL_INTERVAL_P (prev_changed))
+	{
+	  set_properties (properties, i);
+	  prev_changed = i;
+	}
+      else
+	prev_changed = i = merge_interval_left (i);
+
       i = next_interval (i);
     }
 
@@ -557,6 +625,7 @@ was made, nil otherwise.")
 
   s = XINT (start);
   len = XINT (end) - s;
+
   if (i->position != s)
     {
       /* No properties on this first interval -- return if
@@ -719,7 +788,9 @@ percentage by which the left interval tree should not differ from the right.");
 
   defsubr (&Stext_properties_at);
   defsubr (&Snext_property_change);
+  defsubr (&Snext_single_property_change);
   defsubr (&Sprevious_property_change);
+  defsubr (&Sprevious_single_property_change);
   defsubr (&Sadd_text_properties);
   defsubr (&Sset_text_properties);
   defsubr (&Sremove_text_properties);

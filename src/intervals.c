@@ -368,9 +368,6 @@ split_interval_right (interval, offset)
 
   new->position = position + offset - 1;
   new->parent = interval;
-#if 0
-  copy_properties (interval, new);
-#endif
 
   if (LEAF_INTERVAL_P (interval) || NULL_RIGHT_CHILD (interval))
     {
@@ -411,12 +408,7 @@ split_interval_left (interval, offset)
   int position = interval->position;
   int new_length = offset - 1;
 
-#if 0
-  copy_properties (interval, new);
-#endif
-
   new->position = interval->position;
-
   interval->position = interval->position + offset - 1;
   new->parent = interval;
 
@@ -674,92 +666,6 @@ adjust_intervals_for_insertion (tree, position, length)
   return tree;
 }
 
-/* Merge interval I with its lexicographic successor. Note that
-   this does not deal with the properties, or delete I. */
-
-INTERVAL
-merge_interval_right (i)
-     register INTERVAL i;
-{
-  register int absorb = LENGTH (i);
-
-  /* Zero out this interval. */
-  i->total_length -= absorb;
-
-  /* Find the succeeding interval. */
-  if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
-				      as we descend. */
-    {
-      i = i->right;
-      while (! NULL_LEFT_CHILD (i))
-	{
-	  i->total_length += absorb;
-	  i = i->left;
-	}
-
-      i->total_length += absorb;
-      return i;
-    }
-
-  while (! NULL_PARENT (i))	   /* It's above us.  Subtract as
-				      we ascend. */
-    {
-      if (AM_LEFT_CHILD (i))
-	{
-	  i = i->parent;
-	  return i;
-	}
-
-      i = i->parent;
-      i->total_length -= absorb;
-    }
-
-  return NULL_INTERVAL;
-}
-
-/* Merge interval I with its lexicographic predecessor. Note that
-   this does not deal with the properties, or delete I.*/
-
-INTERVAL
-merge_interval_left (i)
-     register INTERVAL i;
-{
-  register int absorb = LENGTH (i);
-
-  /* Zero out this interval. */
-  i->total_length -= absorb;
-
-  /* Find the preceding interval. */
-  if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
-				   adding ABSORB as we go. */
-    {
-      i = i->left;
-      while (! NULL_RIGHT_CHILD (i))
-	{
-	  i->total_length += absorb;
-	  i = i->right;
-	}
-
-      i->total_length += absorb;
-      return i;
-    }
-
-  while (! NULL_PARENT (i))	/* It's above us.  Go up,
-				   subtracting ABSORB. */
-    {
-      if (AM_RIGHT_CHILD (i))
-	{
-	  i = i->parent;
-	  return i;
-	}
-
-      i = i->parent;
-      i->total_length -= absorb;
-    }
-
-  return NULL_INTERVAL;
-}
-
 /* Delete an node I from its interval tree by merging its subtrees
    into one subtree which is then returned.  Caller is responsible for
    storing the resulting subtree into its parent. */
@@ -992,7 +898,115 @@ offset_intervals (buffer, start, length)
   else
     adjust_intervals_for_deletion (buffer, start, -length);
 }
+
+/* Merge interval I with its lexicographic successor. The resulting
+   interval is returned, and has the properties of the original
+   successor.  The properties of I are lost.  I is removed from the
+   interval tree.
 
+   IMPORTANT:
+   The caller must verify that this is not the last (rightmost)
+   interval. */
+
+INTERVAL
+merge_interval_right (i)
+     register INTERVAL i;
+{
+  register int absorb = LENGTH (i);
+  register INTERVAL successor;
+
+  /* Zero out this interval. */
+  i->total_length -= absorb;
+
+  /* Find the succeeding interval. */
+  if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
+				      as we descend. */
+    {
+      successor = i->right;
+      while (! NULL_LEFT_CHILD (successor))
+	{
+	  successor->total_length += absorb;
+	  successor = successor->left;
+	}
+
+      successor->total_length += absorb;
+      delete_interval (i);
+      return successor;
+    }
+
+  successor = i;
+  while (! NULL_PARENT (successor))	   /* It's above us.  Subtract as
+					      we ascend. */
+    {
+      if (AM_LEFT_CHILD (successor))
+	{
+	  successor = successor->parent;
+	  delete_interval (i);
+	  return successor;
+	}
+
+      successor = successor->parent;
+      successor->total_length -= absorb;
+    }
+
+  /* This must be the rightmost or last interval and cannot
+     be merged right.  The caller should have known. */
+  abort ();
+}
+
+/* Merge interval I with its lexicographic predecessor. The resulting
+   interval is returned, and has the properties of the original predecessor.
+   The properties of I are lost.  Interval node I is removed from the tree.
+
+   IMPORTANT:
+   The caller must verify that this is not the first (leftmost) interval. */
+
+INTERVAL
+merge_interval_left (i)
+     register INTERVAL i;
+{
+  register int absorb = LENGTH (i);
+  register INTERVAL predecessor;
+
+  /* Zero out this interval. */
+  i->total_length -= absorb;
+
+  /* Find the preceding interval. */
+  if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
+				   adding ABSORB as we go. */
+    {
+      predecessor = i->left;
+      while (! NULL_RIGHT_CHILD (predecessor))
+	{
+	  predecessor->total_length += absorb;
+	  predecessor = predecessor->right;
+	}
+
+      predecessor->total_length += absorb;
+      delete_interval (i);
+      return predecessor;
+    }
+
+  predecessor = i;
+  while (! NULL_PARENT (predecessor))	/* It's above us.  Go up,
+				   subtracting ABSORB. */
+    {
+      if (AM_RIGHT_CHILD (predecessor))
+	{
+	  predecessor = predecessor->parent;
+	  delete_interval (i);
+	  return predecessor;
+	}
+
+      predecessor = predecessor->parent;
+      predecessor->total_length -= absorb;
+    }
+
+  /* This must be the leftmost or first interval and cannot
+     be merged left.  The caller should have known. */
+  abort ();
+}
+
 /* Make an exact copy of interval tree SOURCE which descends from
    PARENT.  This is done by recursing through SOURCE, copying
    the current interval and its properties, and then adjusting
@@ -1056,33 +1070,10 @@ make_new_interval (intervals, start, length)
   return slot;
 }
 
-void
-map_intervals (source, destination, position)
-     INTERVAL source, destination;
-     int position;
-{
-  register INTERVAL i, t;
-
-  if (NULL_INTERVAL_P (source))
-    return;
-  i = find_interval (destination, position);
-  if (NULL_INTERVAL_P (i))
-    return;
-
-  t = find_interval (source, 1);
-  while (! NULL_INTERVAL_P (t))
-    {
-      i = make_new_interval (destination, position, LENGTH (t));
-      position += LENGTH (t);
-      copy_properties (t, i);
-      t = next_interval (t);
-    }
-}
-
-/* Insert the intervals of NEW_TREE into BUFFER at POSITION.
+/* Insert the intervals of SOURCE into BUFFER at POSITION.
 
    This is used in insdel.c when inserting Lisp_Strings into
-   the buffer.  The text corresponding to NEW_TREE is already in
+   the buffer.  The text corresponding to SOURCE is already in
    the buffer when this is called.  The intervals of new tree are
    those belonging to the string being inserted;  a copy is not made.
 
@@ -1111,17 +1102,17 @@ map_intervals (source, destination, position)
    text... */
 
 void
-graft_intervals_into_buffer (new_tree, position, b)
-     INTERVAL new_tree;
+graft_intervals_into_buffer (source, position, buffer)
+     INTERVAL source;
      int position;
-     struct buffer *b;
+     struct buffer *buffer;
 {
   register INTERVAL under, over, this;
-  register INTERVAL tree = b->intervals;
+  register INTERVAL tree = buffer->intervals;
 
   /* If the new text has no properties, it becomes part of whatever
     interval it was inserted into. */
-  if (NULL_INTERVAL_P (new_tree))
+  if (NULL_INTERVAL_P (source))
     return;
 
   /* Paranoia -- the text has already been added, so this buffer
@@ -1133,9 +1124,9 @@ graft_intervals_into_buffer (new_tree, position, b)
     {
       /* The inserted text constitutes the whole buffer, so
 	 simply copy over the interval structure. */
-      if (BUF_Z (b) == TOTAL_LENGTH (new_tree))
+      if (BUF_Z (b) == TOTAL_LENGTH (source))
 	{
-	  b->intervals = reproduce_tree (new_tree, tree->parent);
+	  buffer->intervals = reproduce_tree (source, tree->parent);
 	  /* Explicitly free the old tree here. */
 
 	  return;
@@ -1150,14 +1141,14 @@ graft_intervals_into_buffer (new_tree, position, b)
       }
     }
   else
-    if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (new_tree))
+    if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
 
     /* If the buffer contains only the new string, but
        there was already some interval tree there, then it may be
        some zero length intervals.  Eventually, do something clever
        about inserting properly.  For now, just waste the old intervals. */
     {
-      b->intervals = reproduce_tree (new_tree, tree->parent);
+      buffer->intervals = reproduce_tree (source, tree->parent);
       /* Explicitly free the old tree here. */
 
       return;
@@ -1166,7 +1157,7 @@ graft_intervals_into_buffer (new_tree, position, b)
   this = under = find_interval (tree, position);
   if (NULL_INTERVAL_P (under))	/* Paranoia */
     abort ();
-  over = find_interval (new_tree, 1);
+  over = find_interval (source, 1);
 
   /* Insertion between intervals */
   if (position == under->position)
@@ -1184,7 +1175,8 @@ graft_intervals_into_buffer (new_tree, position, b)
 	      over = next_interval (over);
 	    }
 	  else
-	    /* This string sticks to under */
+	    /* This string "sticks" to the first interval, `under',
+	       which means it gets those properties. */
 	    while (! NULL_INTERVAL_P (over))
 	    {
 	      position = LENGTH (over) + 1;
@@ -1229,7 +1221,8 @@ graft_intervals_into_buffer (new_tree, position, b)
 	  else
 	    {
 	      if (FRONT_STICKY (under))
-		/* The intervals stick to under */
+		/* The inserted text "sticks" to the interval `under',
+		   which means it gets those properties. */
 		while (! NULL_INTERVAL_P (over))
 		  {
 		    position = LENGTH (over) + 1;
@@ -1251,16 +1244,16 @@ graft_intervals_into_buffer (new_tree, position, b)
 	    }
 	}
 
-      b->intervals = balance_intervals (b->intervals);
+      buffer->intervals = balance_intervals (buffer->intervals);
       return;
     }
 
   /* Here for insertion in the middle of an interval. */
 
-  if (TOTAL_LENGTH (new_tree) < LENGTH (this))
+  if (TOTAL_LENGTH (source) < LENGTH (this))
     {
       INTERVAL end_unchanged
-	= split_interval_right (this, TOTAL_LENGTH (new_tree) + 1);
+	= split_interval_right (this, TOTAL_LENGTH (source) + 1);
       copy_properties (under, end_unchanged);
     }
 
@@ -1276,37 +1269,8 @@ graft_intervals_into_buffer (new_tree, position, b)
       over = next_interval (over);
     }
 
-  b->intervals = balance_intervals (b->intervals);
+  buffer->intervals = balance_intervals (buffer->intervals);
   return;
-}
-
-/* Intervals can have properties which are hooks to call.  Look for
-   the property HOOK on interval I, and if found, call its value as
-   a function.*/
-
-void
-run_hooks (i, hook)
-     INTERVAL i;
-     Lisp_Object hook;
-{
-  register Lisp_Object tail = i->plist;
-  register Lisp_Object sym, val;
-
-  while (! NILP (tail))
-    {
-      sym = Fcar (tail);
-      if (EQ (sym, hook))
-	{
-	  Lisp_Object begin, end;
-	  XFASTINT (begin) = i->position;
-	  XFASTINT (end) = i->position + LENGTH (i) - 1;
-	  val = Fcar (Fcdr (tail));
-	  call2 (val, begin, end);
-	  return;
-	}
-
-      tail = Fcdr (Fcdr (tail));
-    }
 }
 
 /* Set point in BUFFER to POSITION.  If the target position is in
@@ -1327,6 +1291,7 @@ set_point (position, buffer)
   int buffer_point;
   register Lisp_Object obj;
   int backwards = (position < BUF_PT (buffer)) ? 1 : 0;
+  int old_position = buffer->text.pt;
 
   if (position == buffer->text.pt)
     return;
@@ -1349,7 +1314,10 @@ set_point (position, buffer)
   buffer_point =(BUF_PT (buffer) == BUF_Z (buffer)
 		 ? BUF_Z (buffer) - 1
 		 : BUF_PT (buffer));
+
+  /* We could cache this and save time. */
   from = find_interval (buffer->intervals, buffer_point);
+
   if (NULL_INTERVAL_P (to) || NULL_INTERVAL_P (from))
     abort ();			/* Paranoia */
 
@@ -1386,14 +1354,36 @@ set_point (position, buffer)
 
   /* We should run point-left and point-entered hooks here, iff the
      two intervals are not equivalent. */
+  if (! intervals_equal (from, to))
+    {
+      Lisp_Object val;
+
+      val = Fget (Qpoint_left, from->plist);
+      if (! NILP (val))
+	call2 (val, old_position, position);
+
+      val = Fget (Qpoint_entered, to->plist);
+      if (! NILP (val))
+	call2 (val, old_position, position);
+    }
 }
 
-/* Check for read-only intervals.  Call the modification hooks if any.
-   Check for the range START up to (but not including) TO.
+/* Set point temporarily, without checking any text properties. */
 
-   First all intervals of the region are checked that they are
-   modifiable, then all the modification hooks are called in
-   lexicographic order. */
+INLINE void
+temp_set_point (position, buffer)
+     int position;
+     struct buffer *buffer;
+{
+  buffer->text.pt = position;
+}
+
+/* Check for read-only intervals and signal an error if we find one.
+   Then check for any modification hooks in the range START up to
+   (but not including) TO.  Create a list of all these hooks in
+   lexicographic order, eliminating consecutive extra copies of the
+   same hook.  Then call those hooks in order, with START and END - 1
+   as arguments. */
 
 void
 verify_interval_modification (buf, start, end)
@@ -1403,6 +1393,9 @@ verify_interval_modification (buf, start, end)
   register INTERVAL intervals = buf->intervals;
   register INTERVAL i;
   register Lisp_Object hooks = Qnil;
+  register prev_mod_hook = Qnil;
+  register Lisp_Object mod_hook;
+  struct gcpro gcpro1;
 
   if (NULL_INTERVAL_P (intervals))
     return;
@@ -1416,6 +1409,7 @@ verify_interval_modification (buf, start, end)
 
   if (start == BUF_Z (buf))
     {
+      /* This should not be getting called on empty buffers. */
       if (BUF_Z (buf) == 1)
 	abort ();
 
@@ -1428,19 +1422,28 @@ verify_interval_modification (buf, start, end)
 
   do
     {
-      register Lisp_Object mod_hook;
       if (! INTERVAL_WRITABLE_P (i))
-	error ("Attempt to write in a protected interval");
+	error ("Attempt to modify read-only text");
+
       mod_hook = Fget (Qmodification, i->plist);
-      if (! EQ (mod_hook, Qnil))
-	hooks = Fcons (mod_hook, hooks);
+      if (! NILP (mod_hook) && ! EQ (mod_hook, prev_mod_hook))
+	{
+	  hooks = Fcons (mod_hook, hooks);
+	  prev_mod_hook = mod_hook;
+	}
+
       i = next_interval (i);
     }
   while (! NULL_INTERVAL_P (i) && i->position <= end);
 
+  GCPRO1 (hooks);
   hooks = Fnreverse (hooks);
   while (! EQ (hooks, Qnil))
-    call2 (Fcar (hooks), i->position, i->position + LENGTH (i) - 1);
+    {
+      call2 (Fcar (hooks), start, end - 1);
+      hooks = Fcdr (hooks);
+    }
+  UNGCPRO;
 }
 
 /* Balance an interval node if the amount of text in its left and right
@@ -1500,7 +1503,7 @@ balance_intervals (tree)
   return new_tree;
 }
 
-/* Produce an interval tree reflecting the interval structure in
+/* Produce an interval tree reflecting the intervals in
    TREE from START to START + LENGTH. */
 
 static INTERVAL
@@ -1526,19 +1529,14 @@ copy_intervals (tree, start, length)
   new = make_interval ();
   new->position = 1;
   got = (LENGTH (i) - (start - i->position));
-  new->total_length = got;
+  new->total_length = length;
   copy_properties (i, new);
 
   t = new;
   while (got < length)
     {
       i = next_interval (i);
-      t->right = make_interval ();
-      t->right->parent = t;
-      t->right->position = t->position + got - 1;
-
-      t = t->right;
-      t->total_length = length - got;
+      t = split_interval_right (t, got + 1);
       copy_properties (i, t);
       got += LENGTH (i);
     }
@@ -1547,21 +1545,6 @@ copy_intervals (tree, start, length)
     t->total_length -= (got - length);
 
   return balance_intervals (new);
-}
-
-/* Give buffer SINK the properties of buffer SOURCE from POSITION
-   to END.  The properties are attached to SINK starting at position AT.
-
-   No range checking is done. */
-
-void
-insert_interval_copy (source, position, end, sink, at)
-     struct buffer *source, *sink;
-     register int position, end, at;
-{
-  INTERVAL interval_copy = copy_intervals (source->intervals,
-					   position, end - position);
-  graft_intervals_into_buffer (interval_copy, at, sink);
 }
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH. */
@@ -1578,38 +1561,4 @@ copy_intervals_to_string (string, buffer, position, length)
 
   interval_copy->parent = (INTERVAL) string;
   XSTRING (string)->intervals = interval_copy;
-}
-
-INTERVAL
-make_string_interval (string, start, length)
-     struct Lisp_String *string;
-     int start, length;
-{
-  if (start < 1 || start > string->size)
-    error ("Interval index out of range");
-  if (length < 1 || length > string->size - start + 1)
-    error ("Interval won't fit");
-
-  if (length == 0)
-    return NULL_INTERVAL;
-
-  return make_new_interval (string->intervals, start, length);
-}
-
-/* Create an interval of length LENGTH in buffer BUF at position START.  */
-
-INTERVAL
-make_buffer_interval (buf, start, length)
-     struct buffer *buf;
-     int start, length;
-{
-  if (start < BUF_BEG (buf) || start > BUF_Z (buf))
-    error ("Interval index out of range");
-  if (length < 1 || length > BUF_Z (buf) - start)
-    error ("Interval won't fit");
-
-  if (length == 0)
-    return NULL_INTERVAL;
-
-  return make_new_interval (buf->intervals, start, length);
 }

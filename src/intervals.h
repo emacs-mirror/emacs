@@ -167,15 +167,11 @@ extern INTERVAL find_interval (), next_interval (), previous_interval ();
 extern INTERVAL merge_interval_left (), merge_interval_right ();
 extern void delete_interval ();
 extern INLINE void offset_intervals ();
-extern void map_intervals ();
 extern void graft_intervals_into_buffer ();
 extern void set_point ();
 extern void verify_interval_modification ();
 extern INTERVAL balance_intervals ();
-extern void insert_interval_copy();
 extern void copy_intervals_to_string ();
-extern INTERVAL make_string_interval ();
-extern INTERVAL make_buffer_interval ();
 
 /* Declared in textprop.c */
 
@@ -189,8 +185,6 @@ extern Lisp_Object Qmodification;
 /* Visual properties text (including strings) may have. */
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qread_only;
-
-extern void run_hooks ();
 
 extern Lisp_Object Ftext_properties_at ();
 extern Lisp_Object Fnext_property_change (), Fprevious_property_change ();
