@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.17) $
+ * $HopeName: MMsrc!config.h(trunk.18) $
  *
  * .readership: MPS developers.
  */
@@ -37,6 +37,21 @@
 #else /* _MSC_VER */
 #error "Expected _MSC_VER to be defined for builder.mv"
 #endif /* _MSC_VER */
+
+/* In white-hot versions, absolutely no checking is done.  This leads to
+ * many spurious warnings because parameters are suddenly unused, etc.
+ * We aren't interested in these.
+ */
+
+#if defined(CONFIG_VAR_WI)
+
+/* "unreferenced formal parameter" */
+#pragma warning(disable: 4100)
+
+/* "unreferenced local function has been removed" */
+#pragma warning(disable: 4505)
+
+#endif
 
 #endif /* MPS_BUILD_MV */
 
