@@ -86,7 +86,7 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref-visited
-  '((t :inherit info-xref)
+  '((default :inherit info-xref)
     (((class color) (background light)) :foreground "magenta4")
     (((class color) (background dark)) :foreground "magenta3")) ;"violet"?
   "Face for visited Info cross-references."
@@ -2834,8 +2834,7 @@ if point is in a menu item description, follow that menu item."
   "Follow a node reference near point.  Return non-nil if successful."
   (let (node)
     (cond
-     ((and (Info-get-token (point) "[hf]t?tp://" "[hf]t?tp://\\([^ \t\n\"`({<>})']+\\)")
-           (or (featurep 'browse-url) (require 'browse-url nil t)))
+     ((Info-get-token (point) "[hf]t?tp://" "[hf]t?tp://\\([^ \t\n\"`({<>})']+\\)")
       (setq node t)
       (browse-url (browse-url-url-at-point)))
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
