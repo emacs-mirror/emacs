@@ -1,3 +1,7 @@
+2003-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (compute_fringe_widths): Doc fix.
+
 2003-10-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fcoding_system_p): Return t for auto-loading coding
