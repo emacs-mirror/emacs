@@ -1018,7 +1018,7 @@ Valid values are:
 
 Any other value is treated as nil."
   :type '(choice (const 8-bit) (const control-8-bit)
-		 (const control) (const nil))
+		 (const control) (other :tag "nil" nil))
   :group 'ps-print)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
