@@ -27,6 +27,7 @@
 /^#undef HAVE_FTIME *$/s/undef/define/
 /^#undef HAVE_STRERROR *$/s/undef/define/
 /^#undef HAVE_MKTIME *$/s/undef/define/
+/^#define MULTI_FRAME *$/s/define/undef/
 s/^#define USER_FULL_NAME .*$/#define USER_FULL_NAME (getenv ("NAME"))/
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-unknown-msdos"/
