@@ -341,20 +341,8 @@ If the third argument is incorrect, Emacs may crash.")
 	  else
 	    {
 	      v2 = XSYMBOL (v1)->value;
-#ifdef SWITCH_ENUM_BUG
-	      switch ((int) XTYPE (v2))
-#else
-	      switch (XTYPE (v2))
-#endif
-		{
-		case Lisp_Symbol:
-		  if (!EQ (v2, Qunbound))
-		    break;
-		case Lisp_Misc:
-		case Lisp_Buffer_Local_Value:
-		case Lisp_Some_Buffer_Local_Value:
-		  v2 = Fsymbol_value (v1);
-		}
+	      if (MISCP (v2) || EQ (v2, Qunbound))
+		v2 = Fsymbol_value (v1);
 	    }
 	  PUSH (v2);
 	  break;
