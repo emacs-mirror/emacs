@@ -52,7 +52,7 @@ TESTLIB = <testlib>
 
 
 # Source to object file mappings and CFLAGS amalgamation
-# %%VARIETY %%PART: Add new macros which expand to the files included 
+# %%VARIETY %%PART: Add new macros which expand to the files included
 # in the part for each variety
 # %%VARIETY: Add a CFLAGS macro which expands to the flags that that variety
 # should use when compiling C.  And a LINKFLAGS macro which expands to the

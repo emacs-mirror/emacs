@@ -16,8 +16,8 @@
 #include "mpm.h"
 
 
-/* CheckLevel -- Control check level 
- * This controls the behaviour of Check methods unless MPS_HOT_RED 
+/* CheckLevel -- Control check level
+ * This controls the behaviour of Check methods unless MPS_HOT_RED
  * is defined, when it is effectively stuck at "CheckNONE".
  * See impl.h.mpm for extern declaration.
  */

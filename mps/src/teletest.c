@@ -23,7 +23,7 @@
 SRCID(teletest, "$HopeName: !teletest.c(trunk.4) $");
 
 
-static mps_arena_t arena; 
+static mps_arena_t arena;
 
 
 #define MAX_ARGS 3
@@ -50,7 +50,7 @@ static void callControl(mps_word_t reset, mps_word_t flip)
   (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
 }
 
-static void doControl(void) 
+static void doControl(void)
 {
   callControl(args[0], args[1]);
 }
@@ -59,35 +59,35 @@ static void doRead(void)
 {
   mps_word_t old;
   old = mps_telemetry_control((mps_word_t)0, (mps_word_t)0);
-       
+      
   (void)printf(WORD_FORMAT "\n", old);
 }
 
 
-static void doSet(void) 
+static void doSet(void)
 {
   callControl(args[0], args[0]);
 }
 
-static void doReset(void) 
+static void doReset(void)
 {
   callControl(args[0], (mps_word_t)0);
 }
 
-static void doFlip(void) 
+static void doFlip(void)
 {
   callControl((mps_word_t)0, args[0]);
 }
- 
-static void doIntern(void) 
+
+static void doIntern(void)
 {
   mps_word_t id;
 
   id = mps_telemetry_intern(stringArg);
   (void)printf(WORD_FORMAT "\n", id);
 }
- 
-static void doLabel(void) 
+
+static void doLabel(void)
 {
   mps_telemetry_label((mps_addr_t)args[0], args[1]);
 }
@@ -96,7 +96,7 @@ static void doFlush(void)
 {
   mps_telemetry_flush();
 }
- 
+
 static void doQuit(void)
 {
   mps_arena_destroy(arena);
@@ -193,13 +193,13 @@ static void obeyCommand(char *command)
   printf("command not understood\n> %s\n", command);
   doHelp();
 }
-      
+     
 
 extern int main(int argc, char *argv[])
 {
   mps_res_t res;
 
-  testlib_unused(argc); 
+  testlib_unused(argc);
   testlib_unused(argv);
 
   res = mps_arena_create(&arena,

@@ -40,7 +40,7 @@ Bool ProtocolInstCheck(ProtocolInst inst)
  *
  * A predicate for testing subclass relationships.
  * A protocol class is always a subclass of itself.
- * This is implemented via the coerceClass method 
+ * This is implemented via the coerceClass method
  * proivided by each class.
  */
 
@@ -67,7 +67,7 @@ Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
  */
 
 
-static Bool ProtocolCoerceClass(ProtocolClass *coerceResult, 
+static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
                                 ProtocolClass proClass,
                                 ProtocolClass super)
 {
@@ -95,7 +95,7 @@ static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
  * which does not perform a multiple inheritance.
  */
 
-static Bool ProtocolCoerceInst(ProtocolInst *coerceResult, 
+static Bool ProtocolCoerceInst(ProtocolInst *coerceResult,
                                ProtocolInst proInst,
                                ProtocolClass super)
 {
@@ -119,7 +119,7 @@ static Bool ProtocolCoerceInst(ProtocolInst *coerceResult,
 
 /* The class definition for the root of the hierarchy */
 
-DEFINE_CLASS(ProtocolClass, theClass) 
+DEFINE_CLASS(ProtocolClass, theClass)
 {
   theClass->sig = ProtocolClassSig;
   theClass->superclass = theClass;

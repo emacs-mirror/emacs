@@ -110,7 +110,7 @@ static Bool MVBlockCheck(MVBlock block)
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
   Sig sig;                      /* design.mps.sig */
-  RingStruct spans;             /* all the spans */ 
+  RingStruct spans;             /* all the spans */
   MV mv;                        /* owning MV pool */
   Tract tract;                  /* first tract of the span */
   Size size;                    /* size of the span */
@@ -212,15 +212,15 @@ static Res MVInit(Pool pool, va_list arg)
     blockExtendBy = sizeof(MVBlockStruct);
   }
 
-  res = PoolInit(&mv->blockPoolStruct.poolStruct, 
-                 arena, PoolClassMFS(), 
+  res = PoolInit(&mv->blockPoolStruct.poolStruct,
+                 arena, PoolClassMFS(),
                  blockExtendBy, sizeof(MVBlockStruct));
   if(res != ResOK)
     return res;
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
-  res = PoolInit(&mv->spanPoolStruct.poolStruct, 
+  res = PoolInit(&mv->spanPoolStruct.poolStruct,
                  arena, PoolClassMFS(),
                  spanExtendBy, sizeof(MVSpanStruct));
   if(res != ResOK)
@@ -230,7 +230,7 @@ static Res MVInit(Pool pool, va_list arg)
   mv->avgSize  = avgSize;
   mv->maxSize  = maxSize;
   RingInit(&mv->spans);
-    
+   
   mv->space = 0;
   mv->lost = 0;
 
@@ -398,7 +398,7 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
         AVER(block->next != NULL); /* should at least be a sentinel */
         freeAreaSize = AddrOffset(base, block->next->base);
         block->limit = base;
-      } else { 
+      } else {
         /* cases 2, 7, and 8: making a new fragment */
         Res res;
         MVBlock new;
@@ -602,7 +602,7 @@ static void MVFree(Pool pool, Addr old, Size size)
     mv->lost += size;
   else
     mv->space += size;
-  
+ 
   /* free space should be less than total space */
   AVER(span->space <= SpanInsideSentinels(span));
   if(span->space == SpanSize(span)) { /* the whole span is free */
@@ -658,7 +658,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
                "  maxSize   $W\n",  (WriteFW)mv->maxSize,
                "  space     $P\n",  (WriteFP)mv->space,
                NULL);
-  if(res != ResOK) return res;               
+  if(res != ResOK) return res;              
 
   res = WriteF(stream, "  Spans\n", NULL);
   if(res != ResOK) return res;
@@ -681,7 +681,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
       res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
     else
       res = WriteF(stream, "unknown\n", NULL);
-    
+   
     if(res != ResOK) return res;
   }
 
@@ -773,7 +773,7 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
 }
 
 
-/* class functions 
+/* class functions
  *
  * Note this is an MPS interface extension
  */

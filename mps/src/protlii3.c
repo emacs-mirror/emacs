@@ -5,7 +5,7 @@
  *
  * SOURCES
  *
- * .source.i486: Intel486 Microprocessor Family Programmer's 
+ * .source.i486: Intel486 Microprocessor Family Programmer's
  * Reference Manual
  *
  * .source.linux.kernel: Linux kernel source files.
@@ -33,7 +33,7 @@ SRCID(protlii3, "$HopeName: !protlii3.c(trunk.4) $");
 
 /* Useful stuff that doesn't appear to be in any header files. */
 
-/* Interrupt number 14 is Page Fault. */ 
+/* Interrupt number 14 is Page Fault. */
 #define TRAPNO_PAGE_FAULT 14
 
 /* Bits in err field of sigcontext for interrupt 14 (page fault) */
@@ -76,7 +76,7 @@ typedef void (*__real_lii3_sighandler_t)(int, struct sigcontext);
  *  .sigh.addr: We assume that the OS decodes the address to something
  *  sensible
  */
- 
+
 static void sigHandle(int sig, struct sigcontext context)  /* .sigh.args */
 {
   AVER(sig == SIGSEGV);

@@ -1,20 +1,20 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
- * 
+ *
  * $HopeName: !poolmrg.c(trunk.39) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
- * 
+ *
  * DESIGN
- * 
+ *
  * .design: See design.mps.poolmrg.
  *
  * NOTES
- * 
+ *
  * .improve.rank: At the moment, the pool is a guardian for the final
  * rank.  It could be generalized to be a guardian for an arbitrary
  * rank (a guardian for RankEXACT would tell you if the object was
  * ambiguously referenced, for example).  The code that would need to be
  * modified bears this tag.
- * 
+ *
  * TRANSGRESSIONS
  *
  * .addr.void-star: Breaks design.mps.type.addr.use all over the place,
@@ -62,7 +62,7 @@ typedef struct LinkStruct {
   PARENT(LinkStruct, the.linkRing, (ring))
 
 
-/* RefPart -- Protectable part of guardian 
+/* RefPart -- Protectable part of guardian
  *
  * This is trivial, but provides a useful abstraction
  * at no performance cost.
@@ -74,7 +74,7 @@ typedef struct RefPartStruct {
 } RefPartStruct;
 
 
-/* MRGRefPartRef,MRGRefPartSetRef -- Peek and poke the reference 
+/* MRGRefPartRef,MRGRefPartSetRef -- Peek and poke the reference
  *
  * Might be more efficient to take a seg, rather than calculate it
  * every time.
@@ -178,11 +178,11 @@ extern SegClass EnsureMRGLinkSegClass(void);
 extern SegClass EnsureMRGRefSegClass(void);
 
 
-/* MRGLinkSegCheck -- check a link segment 
+/* MRGLinkSegCheck -- check a link segment
  *
- * .link.nullref: During initialization of a link segment the 
+ * .link.nullref: During initialization of a link segment the
  * refSeg field will be NULL. This will be initialized when
- * the reference segment is initialized. 
+ * the reference segment is initialized.
  * See design.mps.poolmrg.mrgseg.link.refseg.
  */
 
@@ -216,7 +216,7 @@ static Bool MRGRefSegCheck(MRGRefSeg refseg)
 
 /* MRGLinkSegInit -- initialise a link segment */
 
-static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
                           Bool reservoirPermit, va_list args)
 {
   SegClass super;
@@ -245,15 +245,15 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
-/* MRGRefSegInit -- initialise a ref segment  
+/* MRGRefSegInit -- initialise a ref segment 
  *
  * .ref.initarg: The paired link segment is passed as an additional
- * (vararg) parameter when creating the ref segment. Initially the 
+ * (vararg) parameter when creating the ref segment. Initially the
  * refSeg field of the link segment is NULL (see .link.nullref).
  * It's initialized here to the newly initialized ref segment.
  */
 
-static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
                          Bool reservoirPermit, va_list args)
 {
   MRGLinkSeg linkseg = va_arg(args, MRGLinkSeg);  /* .ref.initarg */
@@ -278,7 +278,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
     return res;
 
   /* design.mps.seg.field.rankset.start, .improve.rank */
-  SegSetRankSet(seg, RankSetSingle(RankFINAL)); 
+  SegSetRankSet(seg, RankSetSingle(RankFINAL));
 
   RingInit(&refseg->mrgRing);
   RingAppend(&mrg->refRing, &refseg->mrgRing);
@@ -353,7 +353,7 @@ static RefPart MRGRefPartOfLink(Link link, Arena arena)
   AVERT(MRGLinkSeg, linkseg);
   linkBase = (Link)SegBase(seg);
   AVER(link >= linkBase);
-  index = link - linkBase; 
+  index = link - linkBase;
   AVER(index < MRGGuardiansPerSeg(PoolPoolMRG(SegPool(seg))));
 
   return refPartOfIndex(linkseg->refSeg, index);
@@ -380,16 +380,16 @@ static Link MRGLinkOfRefPart(RefPart refPart, Arena arena)
   AVERT(MRGRefSeg, refseg);
   refPartBase = (RefPart)SegBase(seg);
   AVER(refPart >= refPartBase);
-  index = refPart - refPartBase; 
+  index = refPart - refPartBase;
   AVER(index < MRGGuardiansPerSeg(PoolPoolMRG(SegPool(seg))));
 
   return linkOfIndex(refseg->linkSeg, index);
 }
 
 
-/* MRGGuardianInit -- Initialises both parts of a guardian */ 
+/* MRGGuardianInit -- Initialises both parts of a guardian */
 
-static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart) 
+static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
 {
   AVERT(MRG, mrg);
   AVER(link != NULL);
@@ -399,7 +399,7 @@ static void MRGGuardianInit(MRG mrg, Link link, RefPart refPart)
   link->state = MRGGuardianFREE;
   RingAppend(&mrg->freeRing, &link->the.linkRing);
   /* design.mps.poolmrg.free.overwrite */
-  MRGRefPartSetRef(PoolArena(&mrg->poolStruct), refPart, 0); 
+  MRGRefPartSetRef(PoolArena(&mrg->poolStruct), refPart, 0);
 }
 
 
@@ -421,7 +421,7 @@ static void MRGMessageDelete(Message message)
   /* Calculate pool */
   {
     Bool b;
-    Seg seg; 
+    Seg seg;
     b = SegOfAddr(&seg, arena, (Addr)message);
     AVER(b);
 
@@ -471,7 +471,7 @@ static MessageClassStruct MRGMessageClassStruct = {
   "MRGFinal",                  /* name */
   MRGMessageDelete,            /* Delete */
   MRGMessageFinalizationRef,   /* FinalizationRef */
-  MessageNoGCLiveSize,         /* GCLiveSize */    
+  MessageNoGCLiveSize,         /* GCLiveSize */   
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
   MessageClassSig              /* design.mps.message.class.sig.double */
@@ -528,7 +528,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   pool = MRGPool(mrg);
   arena = PoolArena(pool);
 
-  nGuardians = MRGGuardiansPerSeg(mrg); 
+  nGuardians = MRGGuardiansPerSeg(mrg);
   linkSegSize = nGuardians * sizeof(LinkStruct);
   linkSegSize = SizeAlignUp(linkSegSize, ArenaAlign(arena));
 
@@ -541,7 +541,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
 
   res = SegAlloc(&segRefPart, EnsureMRGRefSegClass(),
                  SegPrefDefault(), mrg->extendBy, pool,
-                 withReservoirPermit, 
+                 withReservoirPermit,
                  linkseg); /* .ref.initarg */
   if(res != ResOK)
     goto failRefPartSegAlloc;
@@ -550,7 +550,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   linkBase = (Link)SegBase(segLink);
   refPartBase = (RefPart)SegBase(segRefPart);
 
-  for(i = 0; i < nGuardians; ++i) 
+  for(i = 0; i < nGuardians; ++i)
     MRGGuardianInit(mrg, linkBase + i, refPartBase + i);
   AVER((Addr)(&linkBase[i]) <= SegLimit(segLink));
   AVER((Addr)(&refPartBase[i]) <= SegLimit(segRefPart));
@@ -586,7 +586,7 @@ static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index index)
     RingFinish(&link->the.linkRing);
     link->state = MRGGuardianFINAL;
     message = &link->the.messageStruct;
-    MessageInit(arena, message, &MRGMessageClassStruct, 
+    MessageInit(arena, message, &MRGMessageClassStruct,
                 MessageTypeFinalization);
     MessagePost(arena, message);
   }
@@ -610,7 +610,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
   arena = PoolArena(MRGPool(mrg));
   linkseg = refseg->linkSeg;
 
-  nGuardians = MRGGuardiansPerSeg(mrg); 
+  nGuardians = MRGGuardiansPerSeg(mrg);
   AVER(nGuardians > 0);
   TRACE_SCAN_BEGIN(ss) {
     for(i=0; i < nGuardians; ++i) {
@@ -623,7 +623,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 	/* because we are in a scan and the shield is exposed. */
 	if(TRACE_FIX1(ss, refPart->ref)) {
 	  res = TRACE_FIX2(ss, &(refPart->ref));
-	  if(res != ResOK) 
+	  if(res != ResOK)
 	    return res;
 	
 	  if(ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
@@ -643,10 +643,10 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
 static Res MRGInit(Pool pool, va_list args)
 {
   MRG mrg;
-  
+ 
   AVER(pool != NULL); /* Can't check more; see pool contract @@@@ */
   UNUSED(args);
-  
+ 
   mrg = PoolPoolMRG(pool);
 
   RingInit(&mrg->entryRing);
@@ -729,8 +729,8 @@ Res MRGRegister(Pool pool, Ref ref)
   if(RingIsSingle(&mrg->freeRing)) {
     /* .refseg.useless: refseg isn't used */
     /* @@@@ Should the client be able to use the reservoir for this? */
-    res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);   
-    if(res != ResOK) 
+    res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);  
+    if(res != ResOK)
       return res;
   }
   AVER(!RingIsSingle(&mrg->freeRing));

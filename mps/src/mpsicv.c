@@ -187,7 +187,7 @@ static void *test(void *arg, size_t s)
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");
-  
+ 
   pool_create_v_test(arena, format); /* creates amc pool */
 
   ap_create_v_test(amcpool);

@@ -15,7 +15,7 @@
  * .purpose.class.seg-gc: Class GCSeg is a concrete class support all
  * all current GC features, and providing full backwards compatibility
  * with "old-style" segments. It may be subclassed by clients of the
- *  module. 
+ *  module.
  *
  * TRANSGRESSIONS
  *
@@ -53,7 +53,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 
 /* SegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref, 
+Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
              Size size, Pool pool,
              Bool withReservoirPermit, ...)
 {
@@ -193,7 +193,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
   if(res != ResOK) {
     goto failInit;
   }
-    
+   
   AVERT(Seg, seg);
   RingAppend(&pool->segRing, SegPoolRing(seg));
   return ResOK;
@@ -254,7 +254,7 @@ static void SegFinish(Seg seg)
   /* fund are not protected) */
   AVER(seg->sm == AccessSetEMPTY);
   AVER(seg->pm == AccessSetEMPTY);
-  
+ 
 }
 
 
@@ -312,7 +312,7 @@ void SegSetSummary(Seg seg, RefSet summary)
 
 void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
-  AVERT(Seg, seg);  
+  AVERT(Seg, seg); 
   AVER(RankSetCheck(rankSet));
   seg->class->setRankSummary(seg, rankSet, summary);
 }
@@ -353,7 +353,7 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
   res = WriteF(stream,
                "Segment $P [$A,$A) {\n", (WriteFP)seg,
                (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
-               "  class $P (\"$S\")\n", 
+               "  class $P (\"$S\")\n",
                (WriteFP)seg->class, seg->class->name,
                "  pool $P ($U)\n",
                (WriteFP)pool, (WriteFU)pool->serial,
@@ -369,8 +369,8 @@ Res SegDescribe(Seg seg, mps_lib_FILE *stream)
 }
 
 
-/* .seg.critical: These seg functions are low-level and used 
- * through-out. They are therefore on the critical path and their 
+/* .seg.critical: These seg functions are low-level and used
+ * through-out. They are therefore on the critical path and their
  * AVERs are so-marked.
  */
 
@@ -399,7 +399,7 @@ Size SegSize(Seg seg)
   AVERT_CRITICAL(Seg, seg);
   return AddrOffset(SegBase(seg), SegLimit(seg));
 }
- 
+
 
 /* SegOfAddr -- return the seg the given address is in, if any */
 
@@ -433,9 +433,9 @@ Bool SegFirst(Seg *segReturn, Arena arena)
       if (TRACT_SEG(&seg, tract)) {
         *segReturn = seg;
         return TRUE;
-      } 
+      }
     } while (TractNext(&tract, arena, TractBase(tract)));
-  } 
+  }
   return FALSE;
 }
 
@@ -475,7 +475,7 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
     } else {
       base = TractBase(tract);
     }
-  } 
+  }
   return FALSE;
 }
 
@@ -512,7 +512,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
 
   /* Invoke class-specific methods to do the merge */
   va_start(args, withReservoirPermit);
-  res = class->merge(segLo, segHi, base, mid, limit, 
+  res = class->merge(segLo, segHi, base, mid, limit,
                      withReservoirPermit, args);
   va_end(args);
   if (ResOK != res)
@@ -571,7 +571,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
 
   /* Invoke class-specific methods to do the split */
   va_start(args, withReservoirPermit);
-  res = class->split(seg, segNew, base, at, limit, 
+  res = class->split(seg, segNew, base, at, limit,
                      withReservoirPermit, args);
   va_end(args);
   if (ResOK != res)
@@ -594,10 +594,10 @@ failControl:
 
 /* Class Seg -- The most basic segment class
  *
- * .seg.method.check: Many seg methods are lightweight and used 
+ * .seg.method.check: Many seg methods are lightweight and used
  * frequently. Their parameters are checked by the corresponding
- * dispatching function, and so the their parameter AVERs are 
- * marked as critical. 
+ * dispatching function, and so the their parameter AVERs are
+ * marked as critical.
  */
 
 
@@ -610,7 +610,7 @@ Bool SegCheck(Seg seg)
   Pool pool;
   Addr addr;
   Size align;
-  
+ 
   CHECKS(Seg, seg);
   CHECKL(TraceSetCheck(seg->white));
 
@@ -642,7 +642,7 @@ Bool SegCheck(Seg seg)
   /*  CHECKL(RingNext(&seg->poolRing) != &seg->poolRing); */
 
   CHECKL(RingCheck(&seg->poolRing));
-    
+   
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
   CHECKL(RankSetCheck(seg->rankSet));
   if(seg->rankSet == RankSetEMPTY) {
@@ -669,7 +669,7 @@ Bool SegCheck(Seg seg)
 
 /* segTrivInit -- method to initialize the base fields of a segment */
 
-static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size, 
+static Res segTrivInit(Seg seg, Pool pool, Addr base, Size size,
                        Bool reservoirPermit, va_list args)
 {
   /* all the initialization happens in SegInit so checks are safe */
@@ -776,7 +776,7 @@ static void segNoSetBuffer(Seg seg, Buffer buffer)
 
 /* segNoMerge -- merge method for segs which don't support merge */
 
-static Res segNoMerge(Seg seg, Seg segHi, 
+static Res segNoMerge(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit,
                       Bool withReservoirPermit, va_list args)
 {
@@ -793,13 +793,13 @@ static Res segNoMerge(Seg seg, Seg segHi,
 }
 
 
-/* segTrivMerge -- Basic Seg merge method 
+/* segTrivMerge -- Basic Seg merge method
  *
- * .similar: Segments must be "sufficiently similar". 
- * See design.mps.seg.merge.inv.similar 
+ * .similar: Segments must be "sufficiently similar".
+ * See design.mps.seg.merge.inv.similar
  */
 
-static Res segTrivMerge(Seg seg, Seg segHi, 
+static Res segTrivMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit, va_list args)
 {
@@ -859,7 +859,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
 
 /* segNoSplit -- split method for segs which don't support splitting */
 
-static Res segNoSplit(Seg seg, Seg segHi, 
+static Res segNoSplit(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit,
                       Bool withReservoirPermit, va_list args)
 {
@@ -879,7 +879,7 @@ static Res segNoSplit(Seg seg, Seg segHi,
 
 /* segTrivSplit -- Basic Seg split method */
 
-static Res segTrivSplit(Seg seg, Seg segHi, 
+static Res segTrivSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit,
                         Bool withReservoirPermit, va_list args)
 {
@@ -907,7 +907,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   /* Segment may not be exposed, or in the shield cache */
   /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
   AVER(seg->depth == 0);
-  
+ 
   /* Full initialization for segHi. Just modify seg. */
   seg->limit = mid;
   segHi->limit = limit;
@@ -1030,7 +1030,7 @@ Bool GCSegCheck(GCSeg gcseg)
   if(seg->rankSet == RankSetEMPTY) {
     /* design.mps.seg.field.rankSet.empty */
     CHECKL(gcseg->summary == RefSetEMPTY);
-  } 
+  }
 
   return TRUE;
 }
@@ -1117,7 +1117,7 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
   GCSeg gcseg;
   Arena arena;
   Rank rank;
-  
+ 
   /* Internal method. Parameters are checked by caller */
   gcseg = SegGCSeg(seg);
   arena = PoolArena(SegPool(seg));
@@ -1174,7 +1174,7 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
   GCSeg gcseg;
   TraceSet oldGrey, flippedTraces;
   Arena arena;
-  
+ 
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
   AVER_CRITICAL(TraceSetCheck(grey));  /* .seg.method.check */
   AVER(seg->rankSet != RankSetEMPTY);
@@ -1284,9 +1284,9 @@ static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
  * In fact, we only need to raise the write barrier if the
- * segment contains references, and its summary is strictly smaller 
+ * segment contains references, and its summary is strictly smaller
  * than the summary of the unprotectable data (i.e. the mutator).
- * We don't maintain such a summary, assuming that the mutator can 
+ * We don't maintain such a summary, assuming that the mutator can
  * access all references, so its summary is RefSetUNIV.
  */
 
@@ -1328,7 +1328,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
   AVER_CRITICAL(RankSetCheck(rankSet));        /* .seg.method.check */
-  AVER_CRITICAL(rankSet == RankSetEMPTY || 
+  AVER_CRITICAL(rankSet == RankSetEMPTY ||
                 RankSetIsSingle(rankSet));     /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
@@ -1395,13 +1395,13 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
 }
 
 
-/* gcSegMerge -- GCSeg merge method 
+/* gcSegMerge -- GCSeg merge method
  *
  * .buffer: Can't merge two segments both with buffers.
  * See design.mps.seg.merge.inv.buffer.
  */
 
-static Res gcSegMerge(Seg seg, Seg segHi, 
+static Res gcSegMerge(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit,
                       Bool withReservoirPermit, va_list args)
 {
@@ -1433,7 +1433,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
 
   /* Merge the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->merge(seg, segHi, base, mid, limit, 
+  res = super->merge(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   if(res != ResOK)
     goto failSuper;
@@ -1471,7 +1471,7 @@ failSuper:
 
 /* gcSegSplit -- GCSeg split method */
 
-static Res gcSegSplit(Seg seg, Seg segHi, 
+static Res gcSegSplit(Seg seg, Seg segHi,
                       Addr base, Addr mid, Addr limit,
                       Bool withReservoirPermit, va_list args)
 {
@@ -1491,7 +1491,7 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   AVER(SegBase(seg) == base);
   AVER(SegLimit(seg) == limit);
   AVER(BoolCheck(withReservoirPermit));
-  
+ 
   grey = SegGrey(seg);
   buf = gcseg->buffer; /* Look for buffer to reassign to segHi */
   if (buf != NULL) {
@@ -1501,11 +1501,11 @@ static Res gcSegSplit(Seg seg, Seg segHi,
     } else {
       buf = NULL; /* buffer lies below split and is unaffected */
     }
-  }    
+  }   
 
   /* Split the superclass fields via next-method call */
   super = SEG_SUPERCLASS(GCSegClass);
-  res = super->split(seg, segHi, base, mid, limit, 
+  res = super->split(seg, segHi, base, mid, limit,
                      withReservoirPermit, args);
   if(res != ResOK)
     goto failSuper;
@@ -1581,7 +1581,7 @@ Bool SegClassCheck(SegClass class)
   CHECKL(FUNCHECK(class->describe));
   CHECKS(SegClass, class);
   return TRUE;
-} 
+}
 
 
 /* SegClass -- the vanilla segment class definition */
@@ -1593,9 +1593,9 @@ DEFINE_CLASS(SegClass, class)
   class->size = sizeof(SegStruct);
   class->init = segTrivInit;
   class->finish = segTrivFinish;
-  class->setSummary = segNoSetSummary;  
-  class->buffer = segNoBuffer;  
-  class->setBuffer = segNoSetBuffer;  
+  class->setSummary = segNoSetSummary; 
+  class->buffer = segNoBuffer; 
+  class->setBuffer = segNoSetBuffer; 
   class->setGrey = segNoSetGrey;
   class->setWhite = segNoSetWhite;
   class->setRankSet = segNoSetRankSet;
@@ -1608,7 +1608,7 @@ DEFINE_CLASS(SegClass, class)
 
 
 /* GCSegClass -- GC-supporting segment class definition */
- 
+
 typedef SegClassStruct GCSegClassStruct;
 
 DEFINE_CLASS(GCSegClass, class)
@@ -1618,9 +1618,9 @@ DEFINE_CLASS(GCSegClass, class)
   class->size = sizeof(GCSegStruct);
   class->init = gcSegInit;
   class->finish = gcSegFinish;
-  class->setSummary = gcSegSetSummary;  
-  class->buffer = gcSegBuffer;  
-  class->setBuffer = gcSegSetBuffer;  
+  class->setSummary = gcSegSetSummary; 
+  class->buffer = gcSegBuffer; 
+  class->setBuffer = gcSegSetBuffer; 
   class->setGrey = gcSegSetGrey;
   class->setWhite = gcSegSetWhite;
   class->setRankSet = gcSegSetRankSet;

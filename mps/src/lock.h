@@ -71,7 +71,7 @@
  *
  *  LockClaimGlobalRecursive & LockReleaseGlobalRecursive are
  *  similar to LockClaimRecursive & LockReleaseRecursive
- *  except that they lock an implicit global lock. This may be 
+ *  except that they lock an implicit global lock. This may be
  *  used for locking access to data structures which are global,
  *  such as class objects.
  */
@@ -82,7 +82,7 @@
 #include "mpm.h"
 
 
-#define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */ 
+#define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */
 
 
 #if defined(THREAD_MULTI)
@@ -158,8 +158,8 @@ extern Bool LockCheck(Lock lock);
 
 /*  LockClaimGlobalRecursive
  *
- *  This is called to increase the number of claims on the recursive 
- *  global lock.  LockClaimRecursive will wait until the lock is not 
+ *  This is called to increase the number of claims on the recursive
+ *  global lock.  LockClaimRecursive will wait until the lock is not
  *  owned by another thread and return with the lock owned.
  *  This can be called recursively.
  */
@@ -169,9 +169,9 @@ extern void LockClaimGlobalRecursive(void);
 
 /*  LockReleaseGlobalRecursive
  *
- *  This is called to reduce the number of claims on the recursive 
- *  global lock. If the number of claims drops to zero, ownership 
- *  is relinquished. This must not be called without possession of 
+ *  This is called to reduce the number of claims on the recursive
+ *  global lock. If the number of claims drops to zero, ownership
+ *  is relinquished. This must not be called without possession of
  *  the lock.
  */
 

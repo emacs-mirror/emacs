@@ -82,7 +82,7 @@ Bool BufferCheck(Buffer buffer)
     /* Nothing reliable to check for lightweight frame state */
     CHECKL(buffer->poolLimit == (Addr)0);
   } else {
-    Addr aplimit; 
+    Addr aplimit;
 
     /* The buffer is attached to a region of memory.   */
     /* Check consistency. */
@@ -151,15 +151,15 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
   Res res;
 
-  if(!CHECKT(Buffer, buffer)) 
+  if(!CHECKT(Buffer, buffer))
     return ResFAIL;
-  if(stream == NULL) 
+  if(stream == NULL)
     return ResFAIL;
 
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
                (WriteFP)buffer, (WriteFU)buffer->serial,
-               "  class $P (\"$S\")\n", 
+               "  class $P (\"$S\")\n",
                (WriteFP)buffer->class, buffer->class->name,
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
@@ -205,7 +205,7 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   AVERT(Pool, pool);
   /* The PoolClass should support buffer protocols */
   AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
-  
+ 
   arena = PoolArena(pool);
   /* Initialize the buffer.  See impl.h.mpmst for a definition of */
   /* the structure.  sig and serial comes later .init.sig-serial */
@@ -265,7 +265,7 @@ failInit:
  * See design.mps.buffer.method.create.
  */
 
-Res BufferCreate(Buffer *bufferReturn, BufferClass class, 
+Res BufferCreate(Buffer *bufferReturn, BufferClass class,
                  Pool pool, Bool isMutator, ...)
 {
   Res res;
@@ -283,7 +283,7 @@ Res BufferCreate(Buffer *bufferReturn, BufferClass class,
  * See design.mps.buffer.method.create.
  */
 
-Res BufferCreateV(Buffer *bufferReturn, BufferClass class, 
+Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
                   Pool pool, Bool isMutator, va_list args)
 {
   Res res;
@@ -298,7 +298,7 @@ Res BufferCreateV(Buffer *bufferReturn, BufferClass class,
   arena = PoolArena(pool);
 
   /* Allocate memory for the buffer descriptor structure. */
-  res = ControlAlloc(&p, arena, class->size, 
+  res = ControlAlloc(&p, arena, class->size,
                      /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     goto failAlloc;
@@ -417,7 +417,7 @@ void BufferFinish(Buffer buffer)
   /* Detach the buffer from its owning pool and unsig it. */
   RingRemove(&buffer->poolRing);
   buffer->sig = SigInvalid;
-  
+ 
   /* Finish off the generic buffer fields. */
   RingFinish(&buffer->poolRing);
 
@@ -598,7 +598,7 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
     if(buffer->mode & BufferModeFLIPPED) {
       BufferSetUnflipped(buffer);
     }
-  
+ 
     /* check for PopPending */
     if (BufferIsTrappedByMutator(buffer)) {
       BufferFrameNotifyPopPending(buffer);
@@ -621,7 +621,7 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
   /* frame is of an abstract type & can't be checked */
   pool = BufferPool(buffer);
   return (*pool->class->framePop)(pool, buffer, frame);
-  
+ 
 }
 
 
@@ -664,7 +664,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
  * or because of a Pop operation on a lightweight frame.
  */
 
-void BufferAttach(Buffer buffer, Addr base, Addr limit, 
+void BufferAttach(Buffer buffer, Addr base, Addr limit,
                   Addr init, Size size)
 {
   Size filled;
@@ -1171,7 +1171,7 @@ void BufferRampReset(Buffer buffer)
 
 
 
-/* BufferClass -- support for the basic Buffer class 
+/* BufferClass -- support for the basic Buffer class
  */
 
 
@@ -1201,7 +1201,7 @@ static void bufferTrivFinish (Buffer buffer)
 
 /* bufferTrivAttach -- basic buffer attach method */
 
-static void bufferTrivAttach(Buffer buffer, Addr base, Addr limit, 
+static void bufferTrivAttach(Buffer buffer, Addr base, Addr limit,
                              Addr init, Size size)
 {
   /* No special attach method for simple buffers */
@@ -1225,9 +1225,9 @@ static void bufferTrivDetach(Buffer buffer)
 }
 
 
-/* bufferNoSeg -- basic buffer BufferSeg accessor method 
+/* bufferNoSeg -- basic buffer BufferSeg accessor method
  *
- * .noseg: basic buffers don't support segments, so this 
+ * .noseg: basic buffers don't support segments, so this
  * method should not be called.
  */
 
@@ -1250,9 +1250,9 @@ static RankSet bufferTrivRankSet (Buffer buffer)
 }
 
 
-/* bufferNoSetRankSet -- basic BufferSetRankSet setter method 
+/* bufferNoSetRankSet -- basic BufferSetRankSet setter method
  *
- * .norank: basic buffers don't support ranksets, so this 
+ * .norank: basic buffers don't support ranksets, so this
  * method should not be called.
  */
 
@@ -1264,9 +1264,9 @@ static void bufferNoSetRankSet (Buffer buffer, RankSet rankset)
 }
 
 
-/* bufferNoReassignSeg -- basic BufferReassignSeg method 
+/* bufferNoReassignSeg -- basic BufferReassignSeg method
  *
- * .noseg: basic buffers don't support attachment to sements, 
+ * .noseg: basic buffers don't support attachment to sements,
  * so this method should not be called.
  */
 
@@ -1282,9 +1282,9 @@ static void bufferNoReassignSeg (Buffer buffer, Seg seg)
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
-  if(!CHECKT(Buffer, buffer)) 
+  if(!CHECKT(Buffer, buffer))
     return ResFAIL;
-  if(stream == NULL) 
+  if(stream == NULL)
     return ResFAIL;
   /* dispatching function does it all */
   return ResOK;
@@ -1309,10 +1309,10 @@ Bool BufferClassCheck(BufferClass class)
   CHECKL(FUNCHECK(class->describe));
   CHECKS(BufferClass, class);
   return TRUE;
-} 
+}
 
 
-/* BufferClass -- the vanilla buffer class definition 
+/* BufferClass -- the vanilla buffer class definition
  *
  * See design.mps.buffer.class.hierarchy.buffer.
  */
@@ -1336,7 +1336,7 @@ DEFINE_CLASS(BufferClass, class)
 
 
 
-/* SegBufClass -- support for the SegBuf subclass 
+/* SegBufClass -- support for the SegBuf subclass
  */
 
 
@@ -1366,7 +1366,7 @@ Bool SegBufCheck(SegBuf segbuf)
     CHECKL(SegCheck(segbuf->seg));
     /* To avoid recursive checking, leave it to SegCheck to make */
     /* sure the buffer and segment fields tally. */
-    
+   
     if(buffer->mode & BufferModeFLIPPED) {
       /* Only buffers that allocate pointers get flipped. */
       CHECKL(segbuf->rankSet != RankSetEMPTY);
@@ -1427,7 +1427,7 @@ static void segBufFinish (Buffer buffer)
 
 /* segBufAttach -- SegBuf attach method */
 
-static void segBufAttach(Buffer buffer, Addr base, Addr limit, 
+static void segBufAttach(Buffer buffer, Addr base, Addr limit,
                          Addr init, Size size)
 {
   SegBuf segbuf;
@@ -1520,7 +1520,7 @@ static void segBufSetRankSet (Buffer buffer, RankSet rankset)
  * Used to support segment merging and splitting.
  *
  * .invseg: On entry the buffer is attached to an invalid segment,
- * which can't be checked. The method is called to make the 
+ * which can't be checked. The method is called to make the
  * attachment valid.
  */
 
@@ -1547,12 +1547,12 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
   BufferClass super;
   Res res;
 
-  if(!CHECKT(Buffer, buffer)) 
+  if(!CHECKT(Buffer, buffer))
     return ResFAIL;
-  if(stream == NULL) 
+  if(stream == NULL)
     return ResFAIL;
   segbuf = BufferSegBuf(buffer);
-  if(!CHECKT(SegBuf, segbuf)) 
+  if(!CHECKT(SegBuf, segbuf))
     return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
@@ -1570,12 +1570,12 @@ static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 }
 
 
-/* SegBufClass -- SegBuf class definition 
+/* SegBufClass -- SegBuf class definition
  *
  * Supports an association with a single segment when attached.
  * See design.mps.buffer.class.hierarchy.segbuf.
  */
- 
+
 typedef BufferClassStruct SegBufClassStruct;
 
 DEFINE_CLASS(SegBufClass, class)
@@ -1595,7 +1595,7 @@ DEFINE_CLASS(SegBufClass, class)
 }
 
 
-/* RankBufClass -- support for the RankBufClass subclass 
+/* RankBufClass -- support for the RankBufClass subclass
  */
 
 
@@ -1627,13 +1627,13 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
 }
 
 
-/* RankBufClass -- RankBufClass class definition 
+/* RankBufClass -- RankBufClass class definition
  *
  * A subclass of SegBufClass, sharing structure for instances.
  *
  * Supports initialization to a rank supplied at creation time.
  */
- 
+
 typedef BufferClassStruct RankBufClassStruct;
 
 DEFINE_CLASS(RankBufClass, class)
