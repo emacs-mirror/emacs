@@ -481,7 +481,7 @@ or M-- for a soft hyphen."
   "Toggle insertion of 8 bit characters."
   (interactive)
   (setq sgml-name-8bit-mode (not sgml-name-8bit-mode))
-  (message "sgml name 8 bit mode  is now %"
+  (message "sgml name 8 bit mode  is now %s"
 	   (if sgml-name-8bit-mode "ON" "OFF")))
 
 
@@ -1144,7 +1144,7 @@ This takes effect when first loading the library.")
 ;;;###autoload
 (defun html-mode ()
   "Major mode based on SGML mode for editing HTML documents.
-This allows inserting skeleton costructs used in hypertext documents with
+This allows inserting skeleton constructs used in hypertext documents with
 completion.  See below for an introduction to HTML.  Use
 \\[browse-url-of-buffer] to see how this comes out.  See also `sgml-mode' on
 which this is based.
