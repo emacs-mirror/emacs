@@ -1122,15 +1122,6 @@ end of that region; it limits the search."
   "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
   "Regexp matching chapter, section, other headings (but not the top node).")
 
-(defun texinfo-filter (section list)
-  (let (res)
-    (dolist (x list) (if (eq section (cadr x)) (push (car x) res)))
-    res))
-
-(defvar texinfo-chapter-level-regexp
-  (regexp-opt (texinfo-filter 2 texinfo-section-list))
-  "Regular expression matching just the Texinfo chapter level headings.")
-
 (defvar texinfo-section-level-regexp
   (regexp-opt (texinfo-filter 3 texinfo-section-list))
   "Regular expression matching just the Texinfo section level headings.")
