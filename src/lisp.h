@@ -550,6 +550,9 @@ extern Lisp_Object make_number ();
 #define STRING_SET_CHARS(string, newsize) \
     (XSTRING (string)->size = (newsize))
 
+#define STRING_COPYIN(string, index, new, count) \
+    bcopy (new, XSTRING (string)->data + index, count)
+
 
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
 
@@ -2161,7 +2164,8 @@ EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fupdate_coding_systems_internal, 0);
 EXFUN (Fencode_coding_string, 3);
 EXFUN (Fdecode_coding_string, 3);
-extern Lisp_Object detect_coding_system P_ ((unsigned char *, int, int, int));
+extern Lisp_Object detect_coding_system P_ ((const unsigned char *, int, int,
+					     int));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
 extern void syms_of_coding P_ ((void));
@@ -2347,7 +2351,7 @@ EXFUN (Fsit_for, 3);
 extern Lisp_Object sit_for P_ ((int, int, int, int, int));
 extern void init_display P_ ((void));
 extern void syms_of_display P_ ((void));
-extern void safe_bcopy P_ ((char *, char *, int));
+extern void safe_bcopy P_ ((const char *, char *, int));
 
 /* Defined in xdisp.c */
 extern Lisp_Object Qinhibit_point_motion_hooks;
@@ -2465,14 +2469,14 @@ EXFUN (Fprint, 2);
 EXFUN (Ferror_message_string, 1);
 extern Lisp_Object Vstandard_output, Qstandard_output;
 extern Lisp_Object Qexternal_debugging_output;
-extern void temp_output_buffer_setup P_ ((char *));
+extern void temp_output_buffer_setup P_ ((const char *));
 extern int print_level, print_escape_newlines;
 extern Lisp_Object Qprint_escape_newlines;
 extern void write_string P_ ((char *, int));
 extern void write_string_1 P_ ((char *, int, Lisp_Object));
 extern void print_error_message P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object internal_with_output_to_temp_buffer
-	P_ ((char *, Lisp_Object (*) (Lisp_Object), Lisp_Object));
+	P_ ((const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern void float_to_string P_ ((unsigned char *, double));
 extern void syms_of_print P_ ((void));
 
@@ -3062,7 +3066,7 @@ extern void init_baud_rate P_ ((void));
 extern int emacs_open P_ ((const char *, int, int));
 extern int emacs_close P_ ((int));
 extern int emacs_read P_ ((int, char *, unsigned int));
-extern int emacs_write P_ ((int, char *, unsigned int));
+extern int emacs_write P_ ((int, const char *, unsigned int));
 
 /* defined in filelock.c */
 EXFUN (Funlock_buffer, 0);
