@@ -210,6 +210,8 @@ top/final node depending on search direction."
   :type 'boolean
   :group 'info)
 
+(defvar Info-isearch-initial-node nil)
+
 (defcustom Info-mode-hook
   ;; Try to obey obsolete Info-fontify settings.
   (unless (and (boundp 'Info-fontify) (null Info-fontify))
@@ -1514,6 +1516,14 @@ If DIRECTION is `backward', search in the reverse direction."
 		  (setq found (point) beg-found (if backward (match-end 0)
 						  (match-beginning 0)))
 		(setq give-up t))))))
+
+      (when (and isearch-mode Info-isearch-search
+		 (not Info-isearch-initial-node)
+		 (not bound)
+		 (or give-up (and found (not (and (> found opoint-min)
+						  (< found opoint-max))))))
+	(signal 'search-failed (list regexp "initial node")))
+
       ;; If no subfiles, give error now.
       (if give-up
 	  (if (null Info-current-subfile)
@@ -1522,6 +1532,9 @@ If DIRECTION is `backward', search in the reverse direction."
 		    (re-search-backward regexp)
 		  (re-search-forward regexp)))
 	    (setq found nil)))
+
+      (if (and bound (not found))
+	  (signal 'search-failed (list regexp)))
 
       (unless (or found bound)
 	(unwind-protect
@@ -1650,25 +1663,28 @@ If DIRECTION is `backward', search in the reverse direction."
 (defun Info-isearch-search ()
   (if Info-isearch-search
       (lambda (string &optional bound noerror count)
-	(condition-case nil
-	    (if isearch-word
-		(Info-search (concat "\\b" (replace-regexp-in-string
-					    "\\W+" "\\\\W+"
-					    (replace-regexp-in-string
-					     "^\\W+\\|\\W+$" "" string)) "\\b")
-			     bound noerror count
-			     (unless isearch-forward 'backward))
-	      (Info-search (if isearch-regexp string (regexp-quote string))
-			   bound noerror count
-			   (unless isearch-forward 'backward))
-	      (point))
-	  (error nil)))
+	(if isearch-word
+	    (Info-search (concat "\\b" (replace-regexp-in-string
+					"\\W+" "\\\\W+"
+					(replace-regexp-in-string
+					 "^\\W+\\|\\W+$" "" string)) "\\b")
+			 bound noerror count
+			 (unless isearch-forward 'backward))
+	  (Info-search (if isearch-regexp string (regexp-quote string))
+		       bound noerror count
+		       (unless isearch-forward 'backward))
+	  (point)))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
 
 (defun Info-isearch-wrap ()
-  (when Info-isearch-search
-    (if isearch-forward (Info-top-node) (Info-final-node))
+  (if Info-isearch-search
+      (if Info-isearch-initial-node
+	  (progn
+	    (if isearch-forward (Info-top-node) (Info-final-node))
+	    (goto-char (if isearch-forward (point-min) (point-max))))
+	(setq Info-isearch-initial-node Info-current-node)
+	(setq isearch-wrapped nil))
     (goto-char (if isearch-forward (point-min) (point-max)))))
 
 (defun Info-isearch-push-state ()
@@ -1680,6 +1696,8 @@ If DIRECTION is `backward', search in the reverse direction."
            (string= Info-current-node node))
       (progn (Info-find-node file node) (sit-for 0))))
 
+(defun Info-isearch-start ()
+  (setq Info-isearch-initial-node nil))
 
 (defun Info-extract-pointer (name &optional errorname)
   "Extract the value of the node-pointer named NAME.
@@ -3217,6 +3235,7 @@ Advanced commands:
   (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
   (set (make-local-variable 'isearch-search-fun-function)
        'Info-isearch-search)
   (set (make-local-variable 'isearch-wrap-function)
