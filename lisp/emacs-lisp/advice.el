@@ -2474,11 +2474,11 @@ will clear the cache."
 (defvar ad-special-forms
   (mapcar 'symbol-function
 	  '(and catch cond condition-case defconst defmacro
-			       defun defvar function if interactive let let*
-			       or prog1 prog2 progn quote save-excursion
-                               save-restriction save-window-excursion setq
-			       setq-default unwind-protect while
-			       with-output-to-temp-buffer)))
+		defun defvar function if interactive let let*
+		or prog1 prog2 progn quote save-current-buffer
+		save-excursion save-restriction save-window-excursion
+		setq setq-default track-mouse unwind-protect while
+		with-output-to-temp-buffer)))
 
 (defmacro ad-special-form-p (definition)
   ;;"non-nil if DEFINITION is a special form."
