@@ -50,7 +50,7 @@
 ;;; Code:
 
 (defgroup hl-line nil
-  "Highliight the current line."
+  "Highlight the current line."
   :version "21.1"
   :group 'editing)
 
