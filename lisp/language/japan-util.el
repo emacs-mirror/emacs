@@ -297,9 +297,6 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
 			    "Japanese" "quail-ja-hiragana"))
 
 ;;
-(provide 'language/japan-util)
+(provide 'japan-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; japan-util.el ends here

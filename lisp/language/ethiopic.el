@@ -48,9 +48,6 @@
 (setq font-ccl-encoder-alist
       (cons (cons "ethiopic" ccl-encode-ethio-font) font-ccl-encoder-alist))
 
-(register-input-method
- "Ethiopic" '("quail-ethio" quail-use-package "quail/ethiopic"))
-
 (set-language-info-alist
  "Ethiopic" '((setup-function . setup-ethiopic-environment)
 	      (charset . (ethiopic))

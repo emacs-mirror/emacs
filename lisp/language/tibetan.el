@@ -97,11 +97,6 @@
 (put 'tibetan 'post-read-conversion 'tibetan-post-read-conversion)
 (put 'tibetan 'pre-write-conversion 'tibetan-pre-write-conversion)
 
-(register-input-method
- "Tibetan" '("quail-tibetan-wylie" quail-use-package "quail/tibetan"))
-(register-input-method
- "Tibetan" '("quail-tibetan-tibkey" quail-use-package "quail/tibetan"))
-
 (set-language-info-alist
  "Tibetan" '((setup-function . setup-tibetan-environment)
 	     (charset . (tibetan tibetan-1-column))

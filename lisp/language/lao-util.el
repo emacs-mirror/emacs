@@ -135,9 +135,6 @@
     (setq l (cdr l))))
 
 ;;
-(provide 'language/lao-util)
+(provide 'lao-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; lao-util.el ends here

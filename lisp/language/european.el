@@ -76,9 +76,6 @@
 (define-coding-system-alias 'iso-latin-1 'iso-8859-1)
 (define-coding-system-alias 'iso-latin-1 'ctext)
 
-(register-input-method "Latin-1"
-		       '("quail-latin-1" quail-use-package "quail/latin"))
-
 (defun setup-latin1-environment ()
   "Set up multilingual environment (MULE) for European Latin-1 users."
   (interactive)
@@ -109,9 +106,6 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 
 (define-coding-system-alias 'iso-latin-2 'iso-8859-2)
 
-(register-input-method "Latin-2"
-		       '("quail-latin-2" quail-use-package "quail/latin"))
-
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
   (interactive)
@@ -139,9 +133,6 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (define-coding-system-alias 'iso-latin-3 'iso-8859-3)
-
-(register-input-method "Latin-3"
-		       '("quail-latin-3" quail-use-package "quail/latin"))
 
 (defun setup-latin3-environment ()
   "Set up multilingual environment (MULE) for European Latin-3 users."
@@ -171,9 +162,6 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 
 (define-coding-system-alias 'iso-latin-4 'iso-8859-4)
 
-(register-input-method "Latin-4"
-		       '("quail-latin-4" quail-use-package "quail/latin"))
-
 (defun setup-latin4-environment ()
   "Set up multilingual environment (MULE) for European Latin-4 users."
   (interactive)
@@ -202,9 +190,6 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 
 (define-coding-system-alias 'iso-latin-5 'iso-8859-9)
 
-(register-input-method "Latin-5"
-		       '("quail-latin-5" quail-use-package "quail/latin"))
-
 (defun setup-latin5-environment ()
   "Set up multilingual environment (MULE) for European Latin-5 users."
   (interactive)
@@ -220,13 +205,5 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 These languages are supported with the Latin-5 (ISO-8859-9) character set.
 " . describe-european-environment-map))
 	     ))
-
-(let ((languages '("French" "German" "Spanish" "Italian"
-		   ;; We have to list much more European languages here.
-		   ))
-      (val '("quail-latin-1" quail-use-package "quail/latin")))
-  (while languages
-    (register-input-method (car languages) val)
-    (setq languages (cdr languages))))
 
 ;;; european.el ends here

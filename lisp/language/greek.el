@@ -36,9 +36,6 @@
 
 (define-coding-system-alias 'greek-iso-8bit 'iso-8859-7)
 
-(register-input-method
- "Greek" '("quail-greek" quail-use-package "quail/greek"))
-
 (defun setup-greek-environment ()
   "Setup multilingual environment (MULE) for Greek."
   (interactive)

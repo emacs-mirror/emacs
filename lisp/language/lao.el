@@ -30,12 +30,6 @@
  '((ascii t) (lao t) nil nil
    nil ascii-eol))
 
-(register-input-method
- "Lao" '("quail-lao" quail-use-package "quail/lao"))
-
-(register-input-method
- "Lao" '("quail-lrt" quail-use-package "quail/lrt"))
-
 (set-language-info-alist
  "Lao" '((setup-function . setup-lao-environment)
 	 (charset . (lao))

@@ -229,9 +229,6 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (setq font-ccl-encoder-alist
       (cons (cons "vscii" ccl-encode-vscii-font) font-ccl-encoder-alist))
 
-(register-input-method
- "Vietnamese" '("quail-viqr" quail-use-package "quail/viqr"))
-
 (set-language-info-alist
  "Vietnamese" '((setup-function . setup-vietnamese-environment)
 		(charset . (vietnamese-viscii-lower

@@ -43,22 +43,6 @@
 (put 'devanagari
      'pre-write-conversion 'in-is13194-devanagari-pre-write-conversion)
 
-(register-input-method
- "Devanagari" '("quail-devanagari-transliteration" quail-use-package
-		"quail/devanagari"))
-
-(register-input-method
- "Devanagari" '("quail-devanagari-keyboard-a" quail-use-package
-		"quail/devanagari"))
-
-(register-input-method
- "Devanagari" '("quail-devanagari-itrans" quail-use-package
-		"quail/devanagari"))
-
-(register-input-method
- "Devanagari" '("quail-devanagari-hindi-transliteration" quail-use-package
-		"quail/devanagari"))
-
 (set-language-info-alist
  "Devanagari" '((setup-function . (setup-devanagari-environment
 				   . setup-indian-environment-map))

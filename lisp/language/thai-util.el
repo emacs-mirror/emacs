@@ -179,9 +179,6 @@ positions (integers or markers) specifying the region."
     nil))
 
 ;;
-(provide 'language/thai-util)
+(provide 'thai-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; thai-util.el ends here

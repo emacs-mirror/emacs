@@ -46,17 +46,6 @@
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
-(register-input-method
- "Korean" '("quail-hangul" quail-use-package "quail/hangul"))
-(register-input-method
- "Korean" '("quail-hangul3" quail-use-package "quail/hangul3"))
-(register-input-method
- "Korean" '("quail-hanja" quail-use-package "quail/hanja"))
-(register-input-method
- "Korean" '("quail-symbol-ksc" quail-use-package "quail/symbol-ksc"))
-(register-input-method
- "Korean" '("quail-hanja-jis" quail-use-package "quail/hanja-jis"))
-
 (defun setup-korean-environment ()
   "Setup multilingual environment (MULE) for Korean."
   (interactive)

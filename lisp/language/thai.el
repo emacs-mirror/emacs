@@ -39,9 +39,6 @@
 (define-coding-system-alias 'thai-tis620 'th-tis620)
 (define-coding-system-alias 'thai-tis620 'tis620)
 
-(register-input-method
- "Thai" '("quail-thai" quail-use-package "quail/thai"))
-
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)

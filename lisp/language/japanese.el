@@ -58,11 +58,6 @@
 (define-coding-system-alias 'japanese-iso-8bit 'euc-japan)
 (define-coding-system-alias 'japanese-iso-8bit 'euc-jp)
 
-(register-input-method
- "Japanese" '("quail-ja-hiragana" quail-use-package "quail/japanese"))
-(register-input-method
- "Japanese" '("quail-ja" quail-use-package "quail/japanese"))
-
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
 	      (tutorial . "TUTORIAL.jp")

@@ -289,9 +289,6 @@ positions (integers or markers) specifying the stretch of the region."
     nil))
 
 ;;;
-(provide 'language/viet-util)
+(provide 'viet-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; viet-util.el ends here

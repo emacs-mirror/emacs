@@ -95,23 +95,6 @@
     (encode-hz-region 1 (point-max))
     nil))
 
-(register-input-method
- "Chinese-GB" '("quail-ccdospy" quail-use-package "quail/ccdospy"))
-(register-input-method
- "Chinese-GB" '("quail-ctlau" quail-use-package "quail/ctlau"))
-(register-input-method
- "Chinese-GB" '("quail-punct" quail-use-package "quail/punct"))
-(register-input-method
- "Chinese-GB" '("quail-qj" quail-use-package "quail/qj"))
-(register-input-method
- "Chinese-GB" '("quail-sw" quail-use-package "quail/sw"))
-(register-input-method
- "Chinese-GB" '("quail-ziranma" quail-use-package "quail/ziranma"))
-(register-input-method
- "Chinese-GB" '("quail-tonepy" quail-use-package "quail/tonepy"))
-(register-input-method
- "Chinese-GB" '("quail-py" quail-use-package "quail/py"))
-
 (set-language-info-alist
  "Chinese-GB" '((setup-function . (setup-chinese-gb-environment
 				   . setup-chinese-environment-map))
@@ -151,27 +134,6 @@
 (setq font-ccl-encoder-alist
       (cons (cons "big5" ccl-encode-big5-font) font-ccl-encoder-alist))
 
-(register-input-method
- "Chinese-BIG5" '("quail-qj-b5" quail-use-package "quail/qj-b5"))
-(register-input-method
- "Chinese-BIG5" '("quail-zozy" quail-use-package "quail/zozy"))
-(register-input-method
- "Chinese-BIG5" '("quail-tsangchi-b5" quail-use-package "quail/tsangchi-b5"))
-(register-input-method
- "Chinese-BIG5" '("quail-py-b5" quail-use-package "quail/py-b5"))
-(register-input-method
- "Chinese-BIG5" '("quail-quick-b5" quail-use-package "quail/quick-bt"))
-(register-input-method
- "Chinese-BIG5" '("quail-etzy" quail-use-package "quail/etzy"))
-(register-input-method
- "Chinese-BIG5" '("quail-ecdict" quail-use-package "quail/ecdict"))
-(register-input-method
- "Chinese-BIG5" '("quail-ctlaub" quail-use-package "quail/ctlaub"))
-(register-input-method
- "Chinese-BIG5" '("quail-array30" quail-use-package "quail/array30"))
-(register-input-method
- "Chinese-BIG5" '("quail-4corner" quail-use-package "quail/4corner"))
-
 (set-language-info-alist
  "Chinese-BIG5" '((setup-function . (setup-chinese-big5-environment
 				     . setup-chinese-environment-map))
@@ -185,11 +147,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Chinese CNS11643 (traditional)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(register-input-method
- "Chinese-CNS" '("quail-quick-cns" quail-use-package "quail/quick-cns"))
-(register-input-method
- "Chinese-CNS" '("quail-tsangchi-cns" quail-use-package "quail/tsangchi-cns"))
 
 (set-language-info-alist
  "Chinese-CNS" '((setup-function . (setup-chinese-cns-environment

@@ -26,7 +26,4 @@
 ;;; IPA (International Phonetic Alphabet)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(register-input-method
- "IPA" '("quail-ipa" quail-use-package "quail/ipa"))
-
 ;;; misc-lang.el ends here

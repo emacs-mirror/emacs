@@ -94,7 +94,4 @@ The default status is as follows.
 Nothing special is needed to handle English.")
 	     ))
 
-(register-input-method "English"
-		       '("quail-dvorak" quail-use-package "quail/latin"))
-
 ;;; english.el ends here

@@ -1311,9 +1311,6 @@ basic Devanagari character string."
 ;; Test comment.
 
 ;;
-(provide 'language/devan-util)
+(provide 'devan-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; devan-util.el end here

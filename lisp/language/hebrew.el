@@ -36,9 +36,6 @@
 
 (define-coding-system-alias 'hebrew-iso-8bit 'iso-8859-8)
 
-(register-input-method
- "Hebrew" '("quail-hebrew" quail-use-package "quail/hebrew"))
-
 (defun setup-hebrew-environment ()
   "Setup multilingual environment (MULE) for Hebrew.
 But, please note that right-to-left writing is not yet supported."

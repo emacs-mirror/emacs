@@ -228,9 +228,6 @@ Return the length of resulting text."
   (encode-hz-region (point-min) (point-max)))
 
 ;;
-(provide 'language/china-util)
+(provide 'china-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; china-util.el ends here

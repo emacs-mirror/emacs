@@ -465,9 +465,6 @@ See also docstring of the function tibetan-compose-region."
     ;; Should return nil as annotations.
     nil))
 
-(provide 'language/tibet-util)
+(provide 'tibet-util)
 
-;;; Local Variables:
-;;; generated-autoload-file: "../loaddefs.el"
-;;; End:
 ;;; language/tibet-util.el ends here.
