@@ -1682,13 +1682,9 @@ Isearch mode."
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
     (if (and isearch-regexp (= char ?\ ))
-	(if (condition-case err
-		(progn
-		  (string-match isearch-string "")
-		  nil)
-	      (error (equal (cadr err) "Unmatched [ or [^")))
-	    (isearch-process-search-char char)
-	  (isearch-process-search-string "[ ]" " "))
+	(if (subregexp-context-p isearch-string pos)
+	    (isearch-process-search-string "[ ]" " ")
+	  (isearch-process-search-char char))
       (and enable-multibyte-characters
 	   (>= char ?\200)
 	   (<= char ?\377)
