@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 31 March 1995
+@set lastupdate 6 April 1995
 @c %**end of header
 
 @setchapternewpage off
@@ -173,7 +173,7 @@ cleaner.
 Work on the partially-implemented C interpreter project.
 
 @item
-Help with the development of GNUstep, a GNU implementation of the
+Help with the development of GNUStep, a GNU implementation of the
 OpenStep specification.
 
 @item
