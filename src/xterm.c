@@ -4949,6 +4949,7 @@ void
 syms_of_xterm ()
 {
   staticpro (&last_mouse_scroll_bar);
+  last_mouse_scroll_bar = Qnil;
 }
 #endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X_WINDOWS) */
