@@ -55,25 +55,25 @@ clear_prefix_arg ()
   Vprefix_arg = Qnil;
   if (!current_prefix_partial)
     {
-      current_perdisplay->prefix_factor = Qnil;
-      current_perdisplay->prefix_value = Qnil;
-      current_perdisplay->prefix_sign = 1;
-      current_perdisplay->prefix_partial = 0;
+      current_kboard->prefix_factor = Qnil;
+      current_kboard->prefix_value = Qnil;
+      current_kboard->prefix_sign = 1;
+      current_kboard->prefix_partial = 0;
     }
 }
 
 void
 finalize_prefix_arg ()
 {
-  if (!NILP (current_perdisplay->prefix_factor))
-    Vprefix_arg = Fcons (current_perdisplay->prefix_factor, Qnil);
-  else if (NILP (current_perdisplay->prefix_value))
-    Vprefix_arg = (current_perdisplay->prefix_sign > 0 ? Qnil : Qminus);
-  else if (current_perdisplay->prefix_sign > 0)
-    Vprefix_arg = current_perdisplay->prefix_value;
+  if (!NILP (current_kboard->prefix_factor))
+    Vprefix_arg = Fcons (current_kboard->prefix_factor, Qnil);
+  else if (NILP (current_kboard->prefix_value))
+    Vprefix_arg = (current_kboard->prefix_sign > 0 ? Qnil : Qminus);
+  else if (current_kboard->prefix_sign > 0)
+    Vprefix_arg = current_kboard->prefix_value;
   else
-    XSETINT (Vprefix_arg, -XINT (current_perdisplay->prefix_value));
-  current_perdisplay->prefix_partial = 0;
+    XSETINT (Vprefix_arg, -XINT (current_kboard->prefix_value));
+  current_kboard->prefix_partial = 0;
 }
 
 static void
@@ -296,8 +296,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     }
   else if (EQ (funcar, Qmocklisp))
     {
-#ifdef MULTI_PERDISPLAY
-      display_locked = 1;
+#ifdef MULTI_KBOARD
+      kboard_locked = 1;
 #endif
       return ml_apply (fun, Qinteractive);
     }
@@ -352,8 +352,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
 	}
-#ifdef MULTI_PERDISPLAY
-      display_locked = 1;
+#ifdef MULTI_KBOARD
+      kboard_locked = 1;
 #endif
       return apply1 (function, specs);
     }
@@ -655,8 +655,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
-#ifdef MULTI_PERDISPLAY
-  display_locked = 1;
+#ifdef MULTI_KBOARD
+  kboard_locked = 1;
 #endif
 
   {
@@ -705,17 +705,17 @@ Repeating \\[universal-argument] without digits or minus sign\n\
   if (!current_prefix_partial)
     {
       /* First C-u */
-      XSETFASTINT (current_perdisplay->prefix_factor, 4);
-      current_perdisplay->prefix_value = Qnil;
-      current_perdisplay->prefix_sign = 1;
-      current_perdisplay->prefix_partial = 1;
+      XSETFASTINT (current_kboard->prefix_factor, 4);
+      current_kboard->prefix_value = Qnil;
+      current_kboard->prefix_sign = 1;
+      current_kboard->prefix_partial = 1;
     }
-  else if (!NILP (current_perdisplay->prefix_factor))
+  else if (!NILP (current_kboard->prefix_factor))
     {
       /* Subsequent C-u */
-      XSETINT (current_perdisplay->prefix_factor,
-	       XINT (current_perdisplay->prefix_factor) * 4);
-      current_perdisplay->prefix_partial = 1;
+      XSETINT (current_kboard->prefix_factor,
+	       XINT (current_kboard->prefix_factor) * 4);
+      current_kboard->prefix_partial = 1;
     }
   else
     {
@@ -730,9 +730,9 @@ DEFUN ("negative-argument", Fnegative_argument, Snegative_argument, 0, 0, "",
 \\[universal-argument] following digits or minus sign ends the argument.")
   ()
 {
-  current_perdisplay->prefix_factor = Qnil;
-  current_perdisplay->prefix_sign *= -1;
-  current_perdisplay->prefix_partial = 1;
+  current_kboard->prefix_factor = Qnil;
+  current_kboard->prefix_sign *= -1;
+  current_kboard->prefix_partial = 1;
 }
 
 DEFUN ("digit-argument", Fdigit_argument, Sdigit_argument, 0, 0, "",
@@ -744,12 +744,12 @@ DEFUN ("digit-argument", Fdigit_argument, Sdigit_argument, 0, 0, "",
   if (!(INTEGERP (last_command_char)
 	&& (c = (XINT (last_command_char) & 0177)) >= '0' && c <= '9'))
     error("digit-argument must be bound to a digit key");
-  current_perdisplay->prefix_factor = Qnil;
-  if (NILP (current_perdisplay->prefix_value))
-    XSETFASTINT (current_perdisplay->prefix_value, 0);
-  XSETINT (current_perdisplay->prefix_value,
-	   XINT (current_perdisplay->prefix_value) * 10 + (c - '0'));
-  current_perdisplay->prefix_partial = 1;
+  current_kboard->prefix_factor = Qnil;
+  if (NILP (current_kboard->prefix_value))
+    XSETFASTINT (current_kboard->prefix_value, 0);
+  XSETINT (current_kboard->prefix_value,
+	   XINT (current_kboard->prefix_value) * 10 + (c - '0'));
+  current_kboard->prefix_partial = 1;
 }
 
 syms_of_callint ()

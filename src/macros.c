@@ -42,30 +42,30 @@ Non-nil arg (prefix arg) means append to last macro defined;\n\
   (append)
      Lisp_Object append;
 {
-  if (!NILP (current_perdisplay->defining_kbd_macro))
+  if (!NILP (current_kboard->defining_kbd_macro))
     error ("Already defining kbd macro");
 
-  if (!current_perdisplay->kbd_macro_buffer)
+  if (!current_kboard->kbd_macro_buffer)
     {
-      current_perdisplay->kbd_macro_bufsize = 30;
-      current_perdisplay->kbd_macro_buffer
+      current_kboard->kbd_macro_bufsize = 30;
+      current_kboard->kbd_macro_buffer
 	= (Lisp_Object *)malloc (30 * sizeof (Lisp_Object));
     }
   update_mode_lines++;
   if (NILP (append))
     {
-      current_perdisplay->kbd_macro_ptr = current_perdisplay->kbd_macro_buffer;
-      current_perdisplay->kbd_macro_end = current_perdisplay->kbd_macro_buffer;
+      current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
+      current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
       message("Defining kbd macro...");
     }
   else
     {
       message("Appending to kbd macro...");
-      current_perdisplay->kbd_macro_ptr = current_perdisplay->kbd_macro_end;
-      Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro,
+      current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
+      Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro,
 			  make_number (1));
     }
-  current_perdisplay->defining_kbd_macro = Qt;
+  current_kboard->defining_kbd_macro = Qt;
   
   return Qnil;
 }
@@ -83,32 +83,32 @@ An argument of zero means repeat until error.")
   (arg)
      Lisp_Object arg;
 {
-  if (NILP (current_perdisplay->defining_kbd_macro))
-      error ("Not defining kbd macro.");
+  if (NILP (current_kboard->defining_kbd_macro))
+    error ("Not defining kbd macro.");
 
   if (NILP (arg))
     XSETFASTINT (arg, 1);
   else
     CHECK_NUMBER (arg, 0);
 
-  if (!NILP (current_perdisplay->defining_kbd_macro))
+  if (!NILP (current_kboard->defining_kbd_macro))
     {
-      current_perdisplay->defining_kbd_macro = Qnil;
+      current_kboard->defining_kbd_macro = Qnil;
       update_mode_lines++;
-      current_perdisplay->Vlast_kbd_macro
-	= make_event_array ((current_perdisplay->kbd_macro_end
-			     - current_perdisplay->kbd_macro_buffer),
-			    current_perdisplay->kbd_macro_buffer);
+      current_kboard->Vlast_kbd_macro
+	= make_event_array ((current_kboard->kbd_macro_end
+			     - current_kboard->kbd_macro_buffer),
+			    current_kboard->kbd_macro_buffer);
       message("Keyboard macro defined");
     }
 
   if (XFASTINT (arg) == 0)
-    Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, arg);
+    Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, arg);
   else
     {
       XSETINT (arg, XINT (arg)-1);
       if (XINT (arg) > 0)
-	Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, arg);
+	Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, arg);
     }
   return Qnil;
 }
@@ -118,24 +118,24 @@ An argument of zero means repeat until error.")
 store_kbd_macro_char (c)
      Lisp_Object c;
 {
-  if (!NILP (current_perdisplay->defining_kbd_macro))
+  if (!NILP (current_kboard->defining_kbd_macro))
     {
-      if ((current_perdisplay->kbd_macro_ptr
-	   - current_perdisplay->kbd_macro_buffer)
-	  == current_perdisplay->kbd_macro_bufsize)
+      if ((current_kboard->kbd_macro_ptr
+	   - current_kboard->kbd_macro_buffer)
+	  == current_kboard->kbd_macro_bufsize)
 	{
 	  register Lisp_Object *new;
-	  current_perdisplay->kbd_macro_bufsize *= 2;
-	  new = (Lisp_Object *)xrealloc (current_perdisplay->kbd_macro_buffer,
-					 (current_perdisplay->kbd_macro_bufsize
+	  current_kboard->kbd_macro_bufsize *= 2;
+	  new = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
+					 (current_kboard->kbd_macro_bufsize
 					  * sizeof (Lisp_Object)));
-	  current_perdisplay->kbd_macro_ptr
-	    += new - current_perdisplay->kbd_macro_buffer;
-	  current_perdisplay->kbd_macro_end
-	    += new - current_perdisplay->kbd_macro_buffer;
-	  current_perdisplay->kbd_macro_buffer = new;
+	  current_kboard->kbd_macro_ptr
+	    += new - current_kboard->kbd_macro_buffer;
+	  current_kboard->kbd_macro_end
+	    += new - current_kboard->kbd_macro_buffer;
+	  current_kboard->kbd_macro_buffer = new;
 	}
-      *current_perdisplay->kbd_macro_ptr++ = c;
+      *current_kboard->kbd_macro_ptr++ = c;
     }
 }
 
@@ -144,7 +144,7 @@ store_kbd_macro_char (c)
 
 finalize_kbd_macro_chars ()
 {
-  current_perdisplay->kbd_macro_end = current_perdisplay->kbd_macro_ptr;
+  current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
 }
 
 DEFUN ("call-last-kbd-macro", Fcall_last_kbd_macro, Scall_last_kbd_macro,
@@ -158,12 +158,12 @@ defining others, use \\[name-last-kbd-macro].")
   (prefix)
      Lisp_Object prefix;
 {
-  if (! NILP (current_perdisplay->defining_kbd_macro))
+  if (! NILP (current_kboard->defining_kbd_macro))
     error ("Can't execute anonymous macro while defining one");
-  else if (NILP (current_perdisplay->Vlast_kbd_macro))
+  else if (NILP (current_kboard->Vlast_kbd_macro))
     error ("No kbd macro has been defined");
   else
-    Fexecute_kbd_macro (current_perdisplay->Vlast_kbd_macro, prefix);
+    Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, prefix);
   return Qnil;
 }
 
@@ -238,7 +238,7 @@ syms_of_macros ()
   defsubr (&Scall_last_kbd_macro);
   defsubr (&Sexecute_kbd_macro);
 
-  DEFVAR_DISPLAY ("defining-kbd-macro", defining_kbd_macro,
+  DEFVAR_KBOARD ("defining-kbd-macro", defining_kbd_macro,
     "Non-nil while a keyboard macro is being defined.  Don't set this!");
 
   DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
@@ -247,7 +247,7 @@ syms_of_macros ()
   DEFVAR_LISP_NOPRO ("executing-kbd-macro", &Vexecuting_macro,
     "Currently executing keyboard macro (string or vector); nil if none executing.");
 
-  DEFVAR_DISPLAY ("last-kbd-macro", Vlast_kbd_macro,
+  DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
     "Last kbd macro defined, as a string or vector; nil if none defined.");
 }
 
