@@ -116,7 +116,10 @@ GREEK=${srcdir}/quail/greek.el
 
 RUSSIAN=${srcdir}/quail/cyrillic.el ${srcdir}/quail/cyril-jis.el
 
-MISC=${srcdir}/quail/ethiopic.el ${srcdir}/quail/ipa.el
+MISC= \
+	${srcdir}/quail/ethiopic.el \
+	${srcdir}/quail/ipa.el \
+	${srcdir}/quail/hebrew.el
 
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
