@@ -15,30 +15,39 @@ problems with the unexec code and its interaction with libSystem.B.
 * Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
-minimal character repertoires (whereas the encoding is meant to be a
-reasonable indication of the repertoire).  Emacs may choose one of
-these to display characters from the mule-unicode charsets and then
-typically won't be able to find the glyphs to display many characters.
-(Check with C-u C-x = .)  To avoid this, you may need to use a fontset
-which sets the font for the mule-unicode sets explicitly.  E.g. to use
-GNU unifont, include in the fontset spec:
+minimal character repertoires (whereas the encoding part of the font
+name is meant to be a reasonable indication of the repertoire
+according to the XLFD spec).  Emacs may choose one of these to display
+characters from the mule-unicode charsets and then typically won't be
+able to find the glyphs to display many characters.  (Check with C-u
+C-x = .)  To avoid this, you may need to use a fontset which sets the
+font for the mule-unicode sets explicitly.  E.g. to use GNU unifont,
+include in the fontset spec:
 
 mule-unicode-2500-33ff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-e000-ffff:-gnu-unifont-*-iso10646-1,\
 mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
 
-* Encoding some characters as Unicode (UTF-8/16) is rejected by Emacs.
+* The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
 
-Emacs currently, by default, only supports the parts of the BMP whose
-codepoints are in the ranges 0000-33ff and e000-ffff.  This excludes
-CJK, Yi, Music, Maths, Private Use Area, Gothic, and Old Italic.
+Emacs by default only supports the parts of the Unicode BMP whose code
+points are in the ranges 0000-33ff and e000-ffff.  This excludes: most
+of CJK, Yi and Hangul, as well as everything outside the BMP.
 
-If you try to save a file containing characters with code points
-outside this range, Emacs will suggest other compatible coding
-systems.
+If you read UTF-8 data with code points outside these ranges, the
+characters appear in the buffer as raw bytes of the original UTF-8
+(composed into a single quasi-character) and they will be written back
+correctly as UTF-8, assuming you don't break the composed sequences.
+If you read such characters from UTF-16 or UTF-7 data, they are
+substituted with the Unicode `replacement character', and you lose
+information.
 
-By turning Utf-Translate-Cjk mode on, many more CJK characters are
-included in the support.
+To edit such UTF data, turn on Utf-Translate-Cjk mode, which makes
+many common CJK characters available for encoding and decoding and can
+be extended by updating the tables it uses.  This also allows you to
+save as UTF buffers containing characters decoded by the chinese-,
+japanese- and korean- coding systems, e.g. cut and pasted from
+elsewhere.
 
 * Problems with file dialogs in Emacs built with Open Motif.
 
