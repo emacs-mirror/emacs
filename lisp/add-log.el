@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992
+;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992, 1993
 ;;	Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -112,13 +112,9 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 		"  " full-name
 		"  (" login-name "@" site-name ")\n\n"))
 
-    ;; Search only within the first paragraph of the first page.
+    ;; Search only within the first paragraph.
     (forward-paragraph 1)
     (setq paragraph-end (point))
-    (goto-char (point-min))
-    (forward-page 1)
-    (if (< (point) paragraph-end)
-	(setq paragraph-end (point)))
     (goto-char (point-min))
 
     ;; Now insert the new line for this entry.
