@@ -247,7 +247,7 @@ emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
 mostlyclean:
-	rm -f *.log *.cp *.fn *.ky *.pg *.vr core gnustmp.*
+	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
 clean: mostlyclean
 	rm -f *.dvi
@@ -255,7 +255,7 @@ clean: mostlyclean
 distclean: clean
 
 maintainer-clean: distclean
-	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs
+	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
 # Don't delete these, because they are outside the current directory.
 #	for file in $(INFO_TARGETS); do rm -f $${file}*; done
 
