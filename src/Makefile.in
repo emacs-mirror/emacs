@@ -817,7 +817,10 @@ termcap.o : termcap.c $(config_h)
 terminfo.o : terminfo.c $(config_h)
 tparam.o : tparam.c $(config_h)
 undo.o : undo.c buffer.h commands.h $(config_h) 
-UNEXEC : UNEXEC_SRC $(config_h)
+/* This hack is to discard any space that cpp might put at the beginning
+   of UNEXEC when substituting it in.  */
+UNEXEC_ALIAS=UNEXEC
+$(UNEXEC_ALIAS) : UNEXEC_SRC $(config_h)
 widget.o : widget.c xterm.h frame.h dispextern.h widgetprv.h $(config_h)
 window.o : window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
