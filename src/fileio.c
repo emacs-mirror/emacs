@@ -5050,7 +5050,6 @@ e_write (desc, string, start, end, coding)
   register int nbytes;
   char buf[WRITE_BUF_SIZE];
   int return_val = 0;
-  int require_encoding_p;
 
   if (start >= end)
     coding->composing = COMPOSITION_DISABLED;
