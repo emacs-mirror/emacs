@@ -1434,7 +1434,7 @@ only return the directory part of FILE."
 		(setq buffer-file-name file)
 		(setq default-directory (file-name-directory file))
 		(normal-mode t)
-		(mapcar 'funcall find-file-hooks)
+		(run-hooks 'find-file-hook)
 		(setq buffer-file-name nil)
 		(goto-char (point-min))
 		(skip-chars-forward " \t\r\n")
@@ -2760,51 +2760,54 @@ The main reason for this alist is to deal with file versions in VMS.")
 ;; unquoting names obtained with the SysV b switch and the GNU Q
 ;; switch. See Sebastian's dired-get-filename.
 
-(defmacro ange-ftp-ls-parser ()
+(defun ange-ftp-ls-parser ()
   ;; Note that switches is dynamically bound.
   ;; Meant to be called by ange-ftp-parse-dired-listing
-  `(let ((tbl (ange-ftp-make-hashtable))
-         (used-F (and (stringp switches)
-                      (string-match "F" switches)))
-         file-type symlink directory file)
-     (while (setq file (ange-ftp-parse-filename))
-       (beginning-of-line)
-       (skip-chars-forward "\t 0-9")
-       (setq file-type (following-char)
-             directory (eq file-type ?d))
-       (if (eq file-type ?l)
-           (if (string-match " -> " file)
-               (setq symlink (substring file (match-end 0))
-                     file (substring file 0 (match-beginning 0)))
-             ;; Shouldn't happen
-	     (setq symlink ""))
-         (setq symlink nil))
-       ;; Only do a costly regexp search if the F switch was used.
-       (if (and used-F
-                (not (string-equal file ""))
-                (looking-at
-                 ".[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"))
-           (let ((socket (eq file-type ?s))
-                 (executable
-                  (and (not symlink) ; x bits don't mean a thing for symlinks
-                       (string-match
-                        "[xst]"
-                        (concat (buffer-substring
-                                 (match-beginning 1) (match-end 1))
-                                (buffer-substring
-                                 (match-beginning 2) (match-end 2))
-                                (buffer-substring
-                                 (match-beginning 3) (match-end 3)))))))
-             ;; Some ls's with the F switch mark symlinks with an @ (ULTRIX)
-             ;; and others don't. (sigh...) Beware, that some Unix's don't
-             ;; seem to believe in the F-switch
-             (if (or (and symlink (string-match "@$" file))
-                     (and directory (string-match "/$" file))
-                     (and executable (string-match "*$" file))
-                     (and socket (string-match "=$" file)))
-                 (setq file (substring file 0 -1)))))
-       (ange-ftp-put-hash-entry file (or symlink directory) tbl)
-       (forward-line 1))
+  (let ((tbl (ange-ftp-make-hashtable))
+	(used-F (and (stringp switches)
+		     (string-match "F" switches)))
+	file-type symlink directory file)
+    (while (setq file (ange-ftp-parse-filename))
+      (beginning-of-line)
+      (skip-chars-forward "\t 0-9")
+      (setq file-type (following-char)
+	    directory (eq file-type ?d))
+      (if (eq file-type ?l)
+	  (let ((end (string-match " -> " file)))
+	    (if end
+		;; Sometimes `ls' appends a @ at the end of the target.
+		(setq symlink (substring file (match-end 0)
+					 (string-match "@\\'" file))
+		      file (substring file 0 end))
+	      ;; Shouldn't happen
+	      (setq symlink "")))
+	(setq symlink nil))
+      ;; Only do a costly regexp search if the F switch was used.
+      (if (and used-F
+	       (not (string-equal file ""))
+	       (looking-at
+		".[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"))
+	  (let ((socket (eq file-type ?s))
+		(executable
+		 (and (not symlink) ; x bits don't mean a thing for symlinks
+		      (string-match
+		       "[xst]"
+		       (concat (buffer-substring
+				(match-beginning 1) (match-end 1))
+			       (buffer-substring
+				(match-beginning 2) (match-end 2))
+			       (buffer-substring
+				(match-beginning 3) (match-end 3)))))))
+	    ;; Some ls's with the F switch mark symlinks with an @ (ULTRIX)
+	    ;; and others don't. (sigh...) Beware, that some Unix's don't
+	    ;; seem to believe in the F-switch
+	    (if (or (and symlink (string-match "@$" file))
+		    (and directory (string-match "/$" file))
+		    (and executable (string-match "*$" file))
+		    (and socket (string-match "=$" file)))
+		(setq file (substring file 0 -1)))))
+      (ange-ftp-put-hash-entry file (or symlink directory) tbl)
+      (forward-line 1))
     (ange-ftp-put-hash-entry "." t tbl)
     (ange-ftp-put-hash-entry ".." t tbl)
     tbl))
@@ -2983,7 +2986,7 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 	       ;; error message.
 	       (ange-ftp-get-hash-entry "." ent))
 	  ;; Child lookup failed, so try the parent.
-	  (let ((table (ange-ftp-get-files dir)))
+	  (let ((table (ange-ftp-get-files dir 'no-error)))
 	    ;; If the dir doesn't exist, don't use it as a hash table.
 	    (and table
 		 (ange-ftp-hash-entry-exists-p file
@@ -4372,9 +4375,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;; if the user ever uses a file name with a colon in it.
 
 ;;; This sets the mode
-(or (memq 'ange-ftp-set-buffer-mode find-file-hooks)
-    (setq find-file-hooks
-	  (cons 'ange-ftp-set-buffer-mode find-file-hooks)))
+(add-hook 'find-file-hook 'ange-ftp-set-buffer-mode)
 
 ;;; Now say where to find the handlers for particular operations.
 
@@ -4517,7 +4518,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(if (and (not wildcard)
 		 (setq tem (file-symlink-p (directory-file-name file))))
 	    (ange-ftp-insert-directory
-	     (ange-ftp-replace-name-component file tem)
+	     (ange-ftp-expand-symlink
+	      tem (file-name-directory (directory-file-name file)))
 	     switches wildcard full)
 	  (insert
 	   (if wildcard
