@@ -1137,7 +1137,7 @@ that also updates its pointer shapes based on the current values of
 these variables.  @xref{X Frame Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
-defined in the file @file{lisp/x-win.el}.  Use @kbd{M-x apropos
+defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
 @key{RET} x-pointer @key{RET}} to see a list of them.
 
 @node X Selections
