@@ -615,15 +615,21 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
 }
 
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
-  "Returns the integer that is the base 2 log of ARG.\n\
+  "Returns the integer not greater than the base 2 log of the magnitude of ARG.\n\
 This is the same as the exponent of a float.")
      (arg)
      Lisp_Object arg;
 {
-  /* System V apparently doesn't have a `logb' function.  It might be
-     better to use it on systems that have it, but Ultrix (at least)
-     doesn't declare it properly in <math.h>; does anyone really care? */
-  return Flog (arg, make_number (2));
+#ifdef USG
+  error ("SYSV apparently doesn't have a logb function; what to do?");
+#else
+  Lisp_Object val;
+  double f = extract_float (num);
+
+  IN_FLOAT (val = logb (f), num);
+  XSET (val, Lisp_Int, val);
+  return val;
+#endif
 }
 
 /* the rounding functions  */
