@@ -230,6 +230,61 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-06-04  Miles Bader  <miles@gnu.org>
+
+	* faces.el (face-differs-from-default-p): Use a different
+	implementation, so we can really check whether FACE displays
+	differently or not.
+
+2004-06-04  Miles Bader  <miles@gnu.org>
+
+	* faces.el (display-supports-face-attributes-p): Implement a
+	`different from default' check for non-tty displays.
+
+2004-06-03  David Kastrup  <dak@gnu.org>
+
+	* woman.el (woman-mapcan): More concise code.
+	(woman-topic-all-completions, woman-topic-all-completions-1)
+	(woman-topic-all-completions-merge): Replace by a simpler and
+	much faster implementation based on O(n log n) sort/merge instead
+	of the old O(n^2) behavior.
+
+2004-06-03  Miles Bader  <miles@gnu.org>
+
+	* subr.el (read-number): Use canonical format for default in prompt.
+
+	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
+	regexp for " [...]" style defaults.
+
+2004-06-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-jump-to-buffer): Add support for filter
+	groups: if the user asks for a hidden buffer, open the
+	corresponding filter group to expose it.
+
+	* ibuffer.el (ibuffer-mode-map): Add key binding `M-g' to
+	`ibuffer-jump-to-buffer'.
+	(ibuffer-jump-offer-only-visible-buffers): New user option.
+
+2004-06-02  Juanma Barranquero  <lektu@terra.es>
+
+	* faces.el (frame-update-faces): Add empty docstring so the one
+	for `ignore' doesn't show through.
+
+	* subr.el (process-kill-without-query): Remove spurious "\n" on
+	obsolescence string.
+	(focus-frame, unfocus-frame): Add obsolescence declaration and
+	empty docstring.
+
+	* international/mule.el (register-char-codings): Make alias for
+	`ignore'.  Move docstring to obsolescence info and remove
+	redundancy.
+
+2004-06-02  Kim F. Storm  <storm@cua.dk>
+
+	* frame.el (blink-cursor-start): Turn cursor off initially so blink
+	starts after blink-cursor-delay rather than 2*blink-cursor-delay.
+
 2004-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-state): Don't assume the file exists.
@@ -456,8 +511,10 @@
 2004-05-28  Juanma Barranquero  <lektu@terra.es>
 
 	* cus-edit.el (customize-face, customize-face-other-window)
-	(custom-face-edit-delete): Make arguments match their use in docstring.
-	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Docstring typo.
+	(custom-face-edit-delete): Make arguments match their use in
+	docstring.
+	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Fix typo in
+	docstring.
 
 	* cvs-status.el (cvs-tree-merge, cvs-tags->tree): Use `butlast',
 	not `cvs-butlast'.
@@ -932,7 +989,8 @@
 
 2004-05-11  Juanma Barranquero  <lektu@terra.es>
 
-	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
+	* custom.el (custom-initialize-default, defcustom):
+	Fix typo in docstring.
 
 	* files.el (set-visited-file-name, file-expand-wildcards):
 	Fix docstring.

@@ -67,6 +67,26 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-06-03  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (Fx_display_grayscale_p, Fw32_send_sys_command)
+	(Vw32_color_map): Fix typo in docstring.
+	(Fx_create_frame, Fw32_find_bdf_fonts, Fx_show_tip)
+	(Fw32_unregister_hot_key, Fw32_reconstruct_hot_key):
+	Make argument names match their use in docstring.
+
+2004-06-02  Juanma Barranquero  <lektu@terra.es>
+
+	Work around bugs/problems with MinGW builds of graphics libraries
+	called from MSVC builds of Emacs.
+
+	* image.c (lookup_image): Make pointer to img static.
+	(png_read_from_memory): Disable "global" optimization.
+
+2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mem-limits.h (EXCEEDS_LISP_PTR) [USE_LSB_TAG]: Never true.
+
 2004-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c: Don't include ccl.h.
@@ -82,7 +102,7 @@
 	(x_create_tip_frame, Fx_show_tip, Fx_hide_tip): Sync with xfns.c.
 	(syms_of_macfns): Initialize Qcancel_timer, Vx_max_tooltip_size,
 	and last_show_tip_args.
-	
+
 	* macgui.h [!MAC_OSX]: Include Gestalt.h.
 	(Cursor, No_Cursor): New defines.
 	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility
@@ -8689,7 +8709,7 @@
 
 2002-08-19  Kim F. Storm  <storm@cua.dk>
 
-	* keyboard.c (Fclear_this_command_keys): Added optional arg
+	* keyboard.c (Fclear_this_command_keys): Add optional arg
 	KEEP-RECORD to avoid clearing lossage when we just want to clear
 	the current key sequence (kmacro needs this).
 

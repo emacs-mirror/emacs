@@ -3032,6 +3032,10 @@ A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
 defined with defface.
 
+** The function face-differs-from-default-p now truly checks whether the
+given face displays differently from the default face or not (previously
+it did only a very cursory check).
+
 +++
 ** face-attribute, face-foreground, face-background, and face-stipple now
 accept a new optional argument, INHERIT, which controls how face

@@ -1,7 +1,7 @@
 		      Building and Installing Emacs
-		on Windows NT/2000 and Windows 95/98/ME
+		on Windows NT/2K/XP and Windows 95/98/ME
 
-  Copyright (c) 2001 Free Software Foundation, Inc.
+  Copyright (c) 2001,2004 Free Software Foundation, Inc.
   See the end of the file for copying permissions.
 
   If you used WinZip to unpack the distribution, we suggest to
@@ -31,7 +31,7 @@
   like this, we recommend the use of the supported compilers mentioned
   in the previous paragraph.
 
-  If you build Emacs on Windows 9X or ME, not on Windows 2000 or
+  If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
   Windows NT, we suggest to install the Cygwin port of Bash.
 
   Please see http://www.mingw.org for pointers to GCC/Mingw binaries.
@@ -90,22 +90,35 @@
 
 * Optional image library support
 
-  To build Emacs with support for PNG images, the libpng and zlib
-  headers must be in the include path when the configure script is
-  run.  This can be setup using environment variables, or by
-  specifying --cflags -I...  options on the command-line to
-  configure.bat.  Similarly, the jpeg-6b, libXpm, tiff and libungif
-  headers need to be in the include path for support for those image
-  formats to work. The configure script will report whether it was
+  In addition to its "native" image formats (pbm and xbm), Emacs can
+  handle other image types: xpm, tiff, gif, png and jpeg (postscript is
+  currently unsupported on Windows).  To build Emacs with support for
+  them, the corresponding headers must be in the include path when the
+  configure script is run.  This can be setup using environment
+  variables, or by specifying --cflags -I... options on the command-line
+  to configure.bat.  The configure script will report whether it was
   able to detect the headers.
 
-  To use the PNG support, zlib.dll (or zlibd.dll) and libpng.dll (or
-  libpng13.dll, or libpng13d.dll) must be on the PATH or in the same
-  directory as emacs.exe when Emacs is started. Similar instructions
-  apply for other image libraries. Note that tiff support depends on
-  the jpeg library. If you did not compile the libraries yourself, you
-  must make sure that the jpeg library you install is the same one
-  that the tiff library was compiled against.
+  To use the external image support, the DLLs implementing the
+  functionality must be found when Emacs is started, either on the PATH,
+  or in the same directory as emacs.exe.  Failure to find a library is
+  not an error; the associated image format will simply be unavailable.
+
+  Some image libraries have dependencies on one another, or on zlib.
+  For example, tiff support depends on the jpeg library.  If you did not
+  compile the libraries yourself, you must make sure that any dependency
+  is in the PATH or otherwise accesible and that the binaries are
+  compatible (for example, that they were built with the same compiler).
+
+  Binaries for the image libraries (among many others) can be found at
+  GnuWin32 (http://gnuwin32.sourceforge.net).  These are built with
+  MinGW and work better with GCC/MinGW builds of Emacs, like the
+  official binary tarballs for Windows.  Compatibility with MSVC is
+  still weak and should not be trusted in production environments; if
+  you really need an MSVC-compiled Emacs with image support, you should
+  try to build the required libraries with the same compiler (though it
+  can be extremely non-trivial, and we'll be interested on hearing of
+  any such effort).
 
 * Building
 

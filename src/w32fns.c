@@ -1,5 +1,5 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 1999, 2000, 01, 2004
+   Copyright (C) 1989, 1992, 93, 94, 95, 96, 97, 98, 99, 2000, 01, 04
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4045,15 +4045,15 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new window, which is called a \"frame\" in Emacs terms.
 Returns an Emacs frame object.
-ALIST is an alist of frame parameters.
+PARAMETERS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
-  (parms)
-     Lisp_Object parms;
+  (parameters)
+     Lisp_Object parameters;
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -4074,7 +4074,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = w32_get_arg (parms, Qdisplay, 0, 0, RES_TYPE_STRING);
+  display = w32_get_arg (parameters, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
@@ -4084,7 +4084,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   kb = &the_only_kboard;
 #endif
 
-  name = w32_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
+  name = w32_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -4094,7 +4094,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     Vx_resource_name = name;
 
   /* See if parent window is specified.  */
-  parent = w32_get_arg (parms, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
+  parent = w32_get_arg (parameters, Qparent_id, NULL, NULL, RES_TYPE_NUMBER);
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
@@ -4104,8 +4104,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* No need to protect DISPLAY because that's not used after passing
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
-  GCPRO4 (parms, parent, name, frame);
-  tem = w32_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer",
+  GCPRO4 (parameters, parent, name, frame);
+  tem = w32_get_arg (parameters, Qminibuffer, "minibuffer", "Minibuffer",
                      RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
@@ -4135,7 +4135,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
-    = w32_get_arg (parms, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
+    = w32_get_arg (parameters, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
@@ -4177,7 +4177,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   {
     Lisp_Object font;
 
-    font = w32_get_arg (parms, Qfont, "font", "Font", RES_TYPE_STRING);
+    font = w32_get_arg (parameters, Qfont, "font", "Font", RES_TYPE_STRING);
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
@@ -4201,49 +4201,49 @@ This function is an internal primitive--use `make-frame' instead.  */)
     if (! STRINGP (font))
       font = build_string ("Fixedsys");
 
-    x_default_parameter (f, parms, Qfont, font,
+    x_default_parameter (f, parameters, Qfont, font,
 			 "font", "Font", RES_TYPE_STRING);
   }
 
-  x_default_parameter (f, parms, Qborder_width, make_number (2),
+  x_default_parameter (f, parameters, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
   /* This defaults to 2 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
-  if (NILP (Fassq (Qinternal_border_width, parms)))
+  if (NILP (Fassq (Qinternal_border_width, parameters)))
     {
       Lisp_Object value;
 
-      value = w32_get_arg (parms, Qinternal_border_width,
-			 "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
+      value = w32_get_arg (parameters, Qinternal_border_width,
+                           "internalBorder", "InternalBorder", RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qinternal_border_width, value),
-		       parms);
+	parameters = Fcons (Fcons (Qinternal_border_width, value),
+                            parameters);
     }
   /* Default internalBorderWidth to 0 on Windows to match other programs.  */
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (0),
+  x_default_parameter (f, parameters, Qinternal_border_width, make_number (0),
 		       "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qvertical_scroll_bars, Qright,
+  x_default_parameter (f, parameters, Qvertical_scroll_bars, Qright,
 		       "verticalScrollBars", "ScrollBars", RES_TYPE_SYMBOL);
 
   /* Also do the stuff which must be set before the window exists.  */
-  x_default_parameter (f, parms, Qforeground_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qforeground_color, build_string ("black"),
 		       "foreground", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qbackground_color, build_string ("white"),
+  x_default_parameter (f, parameters, Qbackground_color, build_string ("white"),
 		       "background", "Background", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qmouse_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qmouse_color, build_string ("black"),
 		       "pointerColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qcursor_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qcursor_color, build_string ("black"),
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qborder_color, build_string ("black"),
+  x_default_parameter (f, parameters, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qscreen_gamma, Qnil,
+  x_default_parameter (f, parameters, Qscreen_gamma, Qnil,
 		       "screenGamma", "ScreenGamma", RES_TYPE_FLOAT);
-  x_default_parameter (f, parms, Qline_spacing, Qnil,
+  x_default_parameter (f, parameters, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qleft_fringe, Qnil,
+  x_default_parameter (f, parameters, Qleft_fringe, Qnil,
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qright_fringe, Qnil,
+  x_default_parameter (f, parameters, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
 
 
@@ -4255,16 +4255,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
+  x_default_parameter (f, parameters, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
+  x_default_parameter (f, parameters, Qtool_bar_lines, make_number (1),
                        "toolBar", "ToolBar", RES_TYPE_NUMBER);
 
-  x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
+  x_default_parameter (f, parameters, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qtitle, Qnil,
+  x_default_parameter (f, parameters, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qfullscreen, Qnil,
+  x_default_parameter (f, parameters, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
@@ -4277,13 +4277,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
 
-  window_prompting = x_figure_window_size (f, parms, 1);
+  window_prompting = x_figure_window_size (f, parameters, 1);
 
-  tem = w32_get_arg (parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
+  tem = w32_get_arg (parameters, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   w32_window (f, window_prompting, minibuffer_only);
-  x_icon (f, parms);
+  x_icon (f, parameters);
 
   x_make_gc (f);
 
@@ -4293,16 +4293,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* We need to do this after creating the window, so that the
      icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qnil,
+  x_default_parameter (f, parameters, Qicon_type, Qnil,
 		       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
 
-  x_default_parameter (f, parms, Qauto_raise, Qnil,
+  x_default_parameter (f, parameters, Qauto_raise, Qnil,
 		       "autoRaise", "AutoRaiseLower", RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qauto_lower, Qnil,
+  x_default_parameter (f, parameters, Qauto_lower, Qnil,
 		       "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
-  x_default_parameter (f, parms, Qcursor_type, Qbox,
+  x_default_parameter (f, parameters, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
-  x_default_parameter (f, parms, Qscroll_bar_width, Qnil,
+  x_default_parameter (f, parameters, Qscroll_bar_width, Qnil,
 		       "scrollBarWidth", "ScrollBarWidth", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
@@ -4340,7 +4340,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       Lisp_Object visibility;
 
-      visibility = w32_get_arg (parms, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
+      visibility = w32_get_arg (parameters, Qvisibility, 0, 0, RES_TYPE_SYMBOL);
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
@@ -6181,10 +6181,10 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
 
 DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
        1, 1, 0,
-       doc: /* Return a list of BDF fonts in DIR.
-The list is suitable for appending to w32-bdf-filename-alist.  Fonts
-which do not contain an xlfd description will not be included in the
-list. DIR may be a list of directories.  */)
+       doc: /* Return a list of BDF fonts in DIRECTORY.
+The list is suitable for appending to `w32-bdf-filename-alist'.
+Fonts which do not contain an xlfd description will not be included
+in the list.  DIRECTORY may be a list of directories.  */)
      (directory)
      Lisp_Object directory;
 {
@@ -6265,7 +6265,7 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
        Sx_display_grayscale_p, 0, 1, 0,
-       doc: /* Return t if the X display supports shades of gray.
+       doc: /* Return t if DISPLAY supports shades of gray.
 Note that color displays do support shades of gray.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -6338,9 +6338,9 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
   hdc = GetDC (dpyinfo->root_window);
   if (dpyinfo->has_palette)
-    cap = GetDeviceCaps (hdc,SIZEPALETTE);
+    cap = GetDeviceCaps (hdc, SIZEPALETTE);
   else
-    cap = GetDeviceCaps (hdc,NUMCOLORS);
+    cap = GetDeviceCaps (hdc, NUMCOLORS);
 
   /* We force 24+ bit depths to 24-bit, both to prevent an overflow
      and because probably is more meaningful on Windows anyway */
@@ -7394,7 +7394,7 @@ used to change the tooltip's appearance.
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARAMS contains a `left' parameter,
+If the list of frame parameters PARMS contains a `left' parameter,
 the tooltip is displayed at that x-position.  Otherwise it is
 displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame
@@ -7875,7 +7875,7 @@ Returns an X font string corresponding to the selection.  */)
 DEFUN ("w32-send-sys-command", Fw32_send_sys_command,
        Sw32_send_sys_command, 1, 2, 0,
        doc: /* Send frame a Windows WM_SYSCOMMAND message of type COMMAND.
-Some useful values for command are #xf030 to maximise frame (#xf020
+Some useful values for COMMAND are #xf030 to maximize frame (#xf020
 to minimize), #xf120 to restore frame to original size, and #xf100
 to activate the menubar for keyboard access.  #xf140 activates the
 screen saver if defined.
@@ -8070,7 +8070,7 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 
 DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
        Sw32_unregister_hot_key, 1, 1, 0,
-       doc: /* Unregister HOTKEY as a hot-key combination.  */)
+       doc: /* Unregister KEY as a hot-key combination.  */)
   (key)
      Lisp_Object key;
 {
@@ -8112,7 +8112,8 @@ DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys,
 
 DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key,
        Sw32_reconstruct_hot_key, 1, 1, 0,
-       doc: /* Convert hot-key ID to a lisp key combination.  */)
+       doc: /* Convert hot-key ID to a lisp key combination.
+usage: (w32-reconstruct-hot-key ID)  */)
   (hotkeyid)
      Lisp_Object hotkeyid;
 {
@@ -8351,7 +8352,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
 			    Initialization
  ***********************************************************************/
 
-/* Keep this list in the same order as frame_parms in frame.c. 
+/* Keep this list in the same order as frame_parms in frame.c.
    Use 0 for unsupported frame parameters.  */
 
 frame_parm_handler w32_frame_parm_handlers[] =
@@ -8436,7 +8437,7 @@ syms_of_w32fns ()
   w32_grabbed_keys = Qnil;
 
   DEFVAR_LISP ("w32-color-map", &Vw32_color_map,
-	       doc: /* An array of color name mappings for windows.  */);
+	       doc: /* An array of color name mappings for Windows.  */);
   Vw32_color_map = Qnil;
 
   DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,

@@ -240,27 +240,43 @@ If FRAME is omitted or nil, use the selected frame."
 
 
 (defun face-differs-from-default-p (face &optional frame)
-  "Non-nil if FACE displays differently from the default face.
+  "Return non-nil if FACE displays differently from the default face.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
-If FRAME is omitted or nil, use the selected frame.
-A face is considered to be ``the same'' as the default face if it is
-actually specified in the same way (equal attributes) or if it is
-fully-unspecified, and thus inherits the attributes of any face it
-is displayed on top of."
-  (cond ((eq frame t) (setq frame nil))
-	((null frame) (setq frame (selected-frame))))
-  (let* ((v1 (internal-lisp-face-p face frame))
-	 (n (if v1 (length v1) 0))
-	 (v2 (internal-lisp-face-p 'default frame))
-	 (i 1))
-    (unless v1
-      (error "Not a face: %S" face))
-    (while (and (< i n)
-		(or (eq 'unspecified (aref v1 i))
-		    (equal (aref v1 i) (aref v2 i))))
-      (setq i (1+ i)))
-    (< i n)))
+If FRAME is omitted or nil, use the selected frame."
+  (if (not (equal (face-font face frame) (face-font 'default frame)))
+      ;; The font is different from the default face's font, so clearly it
+      ;; differs.  This only really works on window-systems; on ttys, the
+      ;; "font" is a constant, with attributes layered on top of it.
+      :font
+    ;; General face attribute check.  On graphical displays
+    ;; `display-supports-face-attributes-p' just checks whether each
+    ;; attribute is different that the default face, so we just check to
+    ;; make sure each attribute of the merged face is not `unspecified';
+    ;; we already checked the font above, so font-related attributes are
+    ;; omitted for that reason.  On a tty,
+    ;; display-supports-face-attributes-p actually does do further
+    ;; checks, and correctly deals with the display's capabilities, so
+    ;; we use it to check all attributes.
+    (let ((attrs
+	   (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
+	       ;; Omit font-related attributes on a window-system
+	       '(:foreground :foreground :background :underline :overline
+		 :strike-through :box :inverse-video :stipple)
+	     ;; On a tty, check all attributes
+	     '(:family :width :height :weight :slant :foreground
+	       :foreground :background :underline :overline
+	       :strike-through :box :inverse-video :stipple)))
+	  (differs nil))
+      (while (and attrs (not differs))
+	(let* ((attr (pop attrs))
+	       (attr-val (face-attribute face attr frame t)))
+	  (when (and
+		 (not (eq attr-val 'unspecified))
+		 (display-supports-face-attributes-p (list attr attr-val)
+						     frame))
+	    (setq differs attr))))
+      differs)))
 
 
 (defun face-nontrivial-p (face &optional frame)
@@ -1510,11 +1526,25 @@ face for italic."
 	 (if (framep display)
 	     display
 	   (car (frames-on-display-list display)))))
-    ;; For now, we assume that non-tty displays can support everything.
-    ;; Later, we should add the ability to query about specific fonts,
-    ;; colors, etc.
-    (or (memq (framep frame) '(x w32 mac))
-	(tty-supports-face-attributes-p attributes frame))))
+    (if (not (memq (framep frame) '(x w32 mac)))
+	;; On ttys, `tty-supports-face-attributes-p' does all the work we need.
+	(tty-supports-face-attributes-p attributes frame)
+      ;; For now, we assume that non-tty displays can support everything,
+      ;; and so we just check to see if any of the specified attributes is
+      ;; different from the default -- though this probably isn't always
+      ;; accurate for font-related attributes.  Later, we should add the
+      ;; ability to query about specific fonts, colors, etc.
+      (while (and attributes
+		  (let* ((attr (car attributes))
+			 (val (cadr attributes))
+			 (default-val (face-attribute 'default attr frame)))
+		    (if (and (stringp val) (stringp default-val))
+			;; compare string attributes case-insensitively
+			(eq (compare-strings val nil nil default-val nil nil t)
+			    t)
+		      (equal val default-val))))
+	(setq attributes (cddr attributes)))
+      (not (null attributes)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1779,7 +1809,7 @@ created."
 
 ;; Update a frame's faces when we change its default font.
 
-(defalias 'frame-update-faces 'ignore)
+(defalias 'frame-update-faces 'ignore "")
 (make-obsolete 'frame-update-faces "no longer necessary." "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been

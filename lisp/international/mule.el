@@ -594,11 +594,9 @@ character code range.  Thus FUNC should iterate over [START, END]."
 		 (make-char charset (+ i start) start)
 		 (make-char charset (+ i start) (+ start chars -1)))))))
 
-(defun register-char-codings (coding-system safe-chars)
-  "This is an obsolete function.
-It exists just for backward compatibility, and it does nothing.")
+(defalias 'register-char-codings 'ignore "")
 (make-obsolete 'register-char-codings
-	       "Unnecessary function.  Calling it has no effect."
+               "it exists just for backward compatibility, and does nothing."
 	       "21.3")
 
 (defconst char-coding-system-table nil
@@ -1403,7 +1401,7 @@ Each element must be one of the names listed in the variable
 	      (let* ((M (char-after (+ pos 4)))
 		     (L (char-after (+ pos 5)))
 		     (encoding (match-string 2))
-		     (encoding-info (assoc-string 
+		     (encoding-info (assoc-string
 				     encoding
 				     ctext-non-standard-encodings-alist t))
 		     (coding (if encoding-info
@@ -1447,7 +1445,7 @@ Each element must be one of the names listed in the variable
 		   (dolist (elt charset)
 		     (aset table (make-char elt) slot)))
 		  ((char-table-p charset)
-		   (map-char-table #'(lambda (k v) 
+		   (map-char-table #'(lambda (k v)
 				   (if (and v (> k 128)) (aset table k slot)))
 				   charset))))))
     table))
@@ -1503,7 +1501,7 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 				    (- (point) last-pos)))
 		       (save-excursion
 			 (goto-char last-pos)
-			 (insert (string-to-multibyte 
+			 (insert (string-to-multibyte
 				  (format "\e%%/%d%c%c%s"
 					  noctets
 					  (+ (/ len 128) 128)
@@ -1670,7 +1668,7 @@ function by default."
 	  (goto-char tail-start)
 	  (re-search-forward "[\r\n]\^L" nil t)
 	  (if (re-search-forward
-	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]" 
+	       "[\r\n]\\([^[\r\n]*\\)[ \t]*Local Variables:[ \t]*\\([^\r\n]*\\)[\r\n]"
 	       tail-end t)
 	      ;; The prefix is what comes before "local variables:" in its
 	      ;; line.  The suffix is what comes after "local variables:"
@@ -1690,7 +1688,7 @@ function by default."
 		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
 		       suffix "[\r\n]"))
 		     (re-end
-		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix 
+		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix
 			      "[\r\n]?"))
 		     (pos (1- (point))))
 		(forward-char -1)	; skip back \r or \n.

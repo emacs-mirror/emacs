@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
@@ -402,6 +402,7 @@
 ;;   Alexander Hinds <ahinds@thegrid.net>
 ;;   Stefan Hornburg <sth@hacon.de>
 ;;   Theodore Jump <tjump@cais.com>
+;;   David Kastrup <dak@gnu.org>
 ;;   Paul Kinnucan <paulk@mathworks.com>
 ;;   Jonas Linde <jonas@init.se>
 ;;   Andrew McRae <andrewm@optimation.co.nz>
@@ -438,7 +439,8 @@
   "Return concatenated list of FN applied to successive `car' elements of X.
 FN must return a list, cons or nil.  Useful for splicing into a list."
   ;; Based on the Standard Lisp function MAPCAN but with args swapped!
-  (and x (nconc (funcall fn (car x)) (woman-mapcan fn (cdr x)))))
+  ;; More concise implementation than the recursive one.  -- dak
+  (apply #'nconc (mapcar fn x)))
 
 (defun woman-parse-colon-path (paths)
   "Explode search path string PATHS into a list of directory names.
@@ -1367,15 +1369,16 @@ The cdr of each alist element is the path-index / filename."
   ;; is re-processed by `woman-topic-all-completions-merge'.
   (let (dir files (path-index 0))	; indexing starts at zero
     (while path
-      (setq dir (car path)
-	    path (cdr path))
+      (setq dir (pop path))
       (if (woman-not-member dir path)	; use each directory only once!
-	  (setq files
-		(nconc files
-		       (woman-topic-all-completions-1 dir path-index))))
+	  (push (woman-topic-all-completions-1 dir path-index)
+		files))
       (setq path-index (1+ path-index)))
     ;; Uniquefy topics:
-    (woman-topic-all-completions-merge files)))
+    ;; Concate all lists with a single nconc call to
+    ;; avoid retraversing the first lists repeatedly  -- dak
+    (woman-topic-all-completions-merge
+     (apply #'nconc files))))
 
 (defun woman-topic-all-completions-1 (dir path-index)
   "Return an alist of the man topics in directory DIR with index PATH-INDEX.
@@ -1388,55 +1391,54 @@ of the first `woman-cache-level' elements from the following list:
   ;; unnecessary.  So let us assume that `woman-file-regexp' will
   ;; filter out any directories, which probably should not be there
   ;; anyway, i.e. it is a user error!
-  (mapcar
-   (lambda (file)
-     (cons
-      (file-name-sans-extension
-       (if (string-match woman-file-compression-regexp file)
-	   (file-name-sans-extension file)
-	 file))
-      (if (> woman-cache-level 1)
-	  (cons
-	   path-index
-	   (if (> woman-cache-level 2)
-	       (cons file nil))))))
-   (directory-files dir nil woman-file-regexp)))
+  ;;
+  ;; Don't sort files: we do that when merging, anyway.  -- dak
+  (let (newlst (lst (directory-files dir nil woman-file-regexp t))
+	       ;; Make an explicit regexp for stripping extension and
+	       ;; compression extension: file-name-sans-extension is a
+	       ;; far too costly function.  -- dak
+	       (ext (format "\\(\\.[^.\\/]*\\)?\\(%s\\)?\\'"
+			    woman-file-compression-regexp)))
+    ;; Use a loop instead of mapcar in order to avoid the speed
+    ;; penalty of binding function arguments.  -- dak
+      (dolist (file lst newlst)
+	(push
+	 (cons
+	  (if (string-match ext file)
+	      (substring file 0 (match-beginning 0))
+	    file)
+	  (and (> woman-cache-level 1)
+	       (cons
+		path-index
+		(and (> woman-cache-level 2)
+		     (list file)))))
+	 newlst))))
 
 (defun woman-topic-all-completions-merge (alist)
   "Merge the alist ALIST so that the keys are unique.
 Also make each path-info component into a list.
 \(Note that this function changes the value of ALIST.)"
-  ;; Intended to be fast by avoiding recursion and list copying.
-  (if (> woman-cache-level 1)
-      (let ((newalist alist))
-	(while newalist
-	  (let ((tail newalist) (topic (car (car newalist))))
-	    ;; Make the path-info into a list:
-	    (setcdr (car newalist) (list (cdr (car newalist))))
-	    (while tail
-	      (while (and tail (not (string= topic (car (car (cdr tail))))))
-		(setq tail (cdr tail)))
-	      (if tail			; merge path-info into (car newalist)
-		  (let ((path-info (cdr (car (cdr tail)))))
-		    (if (member path-info (cdr (car newalist)))
-			()
-		      ;; Make the path-info into a list:
-		      (nconc (car newalist) (list path-info)))
-		    (setcdr tail (cdr (cdr tail))))
-		))
-	    (setq newalist (cdr newalist))))
-	alist)
+  ;; Replaces unreadably "optimized" O(n^2) implementation.
+  ;; Instead we use sorting to merge stuff efficiently.  -- dak
+  (let (elt newalist)
+    ;; Sort list into reverse order
+    (setq alist (sort alist (lambda(x y) (string< (car y) (car x)))))
+    ;; merge duplicate keys.
+    (if (> woman-cache-level 1)
+	(while alist
+	  (setq elt (pop alist))
+	  (if (equal (car elt) (caar newalist))
+	      (unless (member (cdr elt) (cdar newalist))
+		(setcdr (car newalist) (cons (cdr elt)
+					     (cdar newalist))))
+	    (setcdr elt (list (cdr elt)))
+	    (push elt newalist)))
     ;; woman-cache-level = 1 => elements are single-element lists ...
-    (while (and alist (member (car alist) (cdr alist)))
-      (setq alist (cdr alist)))
-    (if alist
-	(let ((newalist alist) cdr_alist)
-	  (while (setq cdr_alist (cdr alist))
-	    (if (not (member (car cdr_alist) (cdr cdr_alist)))
-		(setq alist cdr_alist)
-	      (setcdr alist (cdr cdr_alist)))
-	    )
-	  newalist))))
+      (while alist
+	(setq elt (pop alist))
+	(unless (equal (car elt) (caar newalist))
+	  (push elt newalist))))
+    newalist))
 
 (defun woman-file-name-all-completions (topic)
   "Return an alist of the files in all man directories that match TOPIC."
