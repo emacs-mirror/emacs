@@ -51,15 +51,15 @@
 ;;     previous-page                    C-x C-p C-p
 ;;     search-pages                     C-x C-p C-s
 ;;     add-new-page                     C-x C-p C-a
-;;     sort-pages-buffer                C-x C-p s      
+;;     sort-pages-buffer                C-x C-p s
 ;;     set-page-delimiter               C-x C-p C-l
-;;     pages-directory                  C-x C-p C-d   
+;;     pages-directory                  C-x C-p C-d
 ;;     pages-directory-for-addresses    C-x C-p d
 ;;        pages-directory-goto          C-c C-c
 
 
 ;;; Using the page commands
- 
+
 ;; The page commands are helpful in several different contexts.  For
 ;; example, programmers often divide source files into sections using the
 ;; `page-delimiter'; you can use the `pages-directory' command to list
@@ -97,15 +97,15 @@
 ;; the `pages-directory' or `pages-directory-for-addresses' command.
 
 ;; Specifically:
-;; 
+;;
 ;;   1. Begin each entry with a `page-delimiter' (which is, by default,
 ;;      `^L' at the beginning of the line).
-;; 
+;;
 ;;   2. The first line of text in each entry is the `heading line'; it
 ;;      will appear in the pages-directory-buffer which is constructed
 ;;      using the `C-x C-p C-d' (pages-directory) command or the `C-x
 ;;      C-p d' (pages-directory-for-addresses) command.
-;; 
+;;
 ;;      The heading line may be on the same line as the page-delimiter
 ;;      or it may follow after.  It is the first non-blank line on the
 ;;      page.  Conventionally, the heading line is placed on the line
@@ -117,36 +117,36 @@
 ;;      line of the body.
 
 ;; For example, a file might look like this:
-;; 
+;;
 ;;     FSF
 ;;     Free Software Foundation
 ;;     59 Temple Place - Suite 330
 ;;     Boston, MA 02111-1307  USA.
 ;;     (617) 542-5942
 ;;     gnu@gnu.org
-;; 
+;;
 ;;     
 ;;     House Subcommittee on Intellectual Property,
 ;;     U.S. House of Representatives,
 ;;     Washington, DC  20515
-;;     
+;;
 ;;     Congressional committee concerned with permitting or preventing
 ;;     monopolistic restrictions on the use of software technology.
-;; 
+;;
 ;;     
 ;;     George Lakoff
 ;;     ``Women, Fire, and Dangerous Things:
 ;;     What Categories Reveal about the Mind''
 ;;     1987, Univ. of Chicago Press
-;; 
+;;
 ;;     About philosophy, Whorfian effects, and linguistics.
-;; 
-;;      
+;;
+;;     
 ;;     OBI   (On line text collection.)
 ;;     Open Book Initiative
 ;;     c/o Software Tool & Die
 ;;     1330 Beacon St, Brookline, MA 02146 USA
-;;     (617) 739-0202 
+;;     (617) 739-0202
 ;;     obi@world.std.com
 
 ;; In this example, the heading lines are:
@@ -223,10 +223,10 @@
 ;;   match the telephone area code of the first and fourth entries, so
 ;;   only the header lines of those two entries would appear in the
 ;;   pages-directory-buffer.
-;; 
+;;
 ;;   Called with a numeric argument, the `pages-directory' command
 ;;   lists the number of lines in each page.  This is helpful when you
-;;   are printing hardcopy.  
+;;   are printing hardcopy.
 
 ;;   Called with a negative numeric argument, the `pages-directory'
 ;;   command lists the lengths of pages whose contents match a regexp.
@@ -352,13 +352,13 @@ Narrow to new page if
   pages-directory-for-adding-page-narrowing-p variable
 is non-nil.
 
-Page begins with a `^L' as the default page-delimiter.  
+Page begins with a `^L' as the default page-delimiter.
 Use \\[set-page-delimiter] to change the page-delimiter.
 Point is left in the body of page."
   (interactive "sHeader line: ")
   (widen)
   ;; If in pages directory buffer
-  (if (eq major-mode 'pages-directory-mode) 
+  (if (eq major-mode 'pages-directory-mode)
       (progn
         ;; Add new page before or after current page?
         (if pages-directory-for-adding-new-page-before-current-page-p
@@ -378,11 +378,11 @@ Point is left in the body of page."
           (format "%s\n"
                   ;; Remove leading `^' from page-delimiter string
                   (if (eq '^ (car (read-from-string page-delimiter)))
-                      (substring page-delimiter 1))))         
+                      (substring page-delimiter 1))))
          (goto-char (point-min))))
   ;; Insert page delimiter at beginning of line.
   (if (not (looking-at "^."))   (forward-line 1))
-  (insert (format "%s\n%s\n\n\n" 
+  (insert (format "%s\n%s\n\n\n"
                   (if (eq '^ (car (read-from-string page-delimiter)))
                       (substring page-delimiter 1))
                   header-line))
@@ -411,7 +411,7 @@ Point is left in the body of page."
 (autoload 'sort-subr "sort" "Primary function for sorting." t nil)
 
 (defun sort-pages-in-region (reverse beg end)
-  "Sort pages in region alphabetically.  Prefix arg means reverse order.  
+  "Sort pages in region alphabetically.  Prefix arg means reverse order.
 
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort)."
@@ -446,7 +446,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
                              (goto-char (point-max))))))))
 
 (defun sort-pages-buffer (&optional reverse)
-  "Sort pages alphabetically in buffer.  Prefix arg means reverse order. 
+  "Sort pages alphabetically in buffer.  Prefix arg means reverse order.
 \(Non-nil arg if not interactive.\)"
 
   (interactive "P")
@@ -496,7 +496,7 @@ its original value.
 
 In a program, non-nil second arg causes first arg to be ignored and
 resets the page-delimiter to the original value."
-  
+
   (interactive
    (if current-prefix-arg
        (list original-page-delimiter "^\f")
@@ -544,11 +544,11 @@ arg is nil, optional third arg is regular expression.
 
 If the buffer is narrowed, the `pages-directory' command creates a
 directory for only the accessible portion of the buffer."
-  
+
   (interactive
    (cond ((not current-prefix-arg)
           (list t nil nil))
-         ((listp current-prefix-arg) 
+         ((listp current-prefix-arg)
           (list nil
                 nil
                 (read-string
@@ -556,28 +556,28 @@ directory for only the accessible portion of the buffer."
                          (or pages-directory-previous-regexp "regexp")))))
          ((> (prefix-numeric-value current-prefix-arg) 0)
           (list t t nil))
-         ((< (prefix-numeric-value current-prefix-arg) 0)          
+         ((< (prefix-numeric-value current-prefix-arg) 0)
           (list nil
                 t
                 (read-string
                  (format "Select according to `%s' (end with RET): "
                          (or pages-directory-previous-regexp "regexp")))))))
-  
+
   (if (equal regexp "")
       (setq regexp pages-directory-previous-regexp)
     (setq pages-directory-previous-regexp regexp))
-  
+
   (if (interactive-p)
       (message "Creating directory for: %s "
                (buffer-name)))
-  
+
   (let ((pages-target-buffer (current-buffer))
         (pages-directory-buffer
 	 (concat pages-directory-prefix " " (buffer-name)))
         (linenum 1)
         (pages-buffer-original-position (point))
         (pages-buffer-original-page 0))
-    
+
     ;; `with-output-to-temp-buffer' binds the value of the variable
     ;; `standard-output' to the buffer named as its first argument,
     ;; but does not switch to that buffer.
@@ -589,13 +589,13 @@ directory for only the accessible portion of the buffer."
          "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
         (setq pages-buffer pages-target-buffer)
         (setq pages-pos-list nil))
-      
+
       (if pages-list-all-headers-p
-          
+
           ;; 1. If no prefix argument, list all headers
           (save-excursion
             (goto-char (point-min))
-            
+
             ;; (a) Point is at beginning of buffer; but the first
             ;;     page may not begin with a page-delimiter
             (save-restriction
@@ -606,23 +606,23 @@ directory for only the accessible portion of the buffer."
                   (goto-char (match-end 0)))
               (narrow-to-page)
               (pages-copy-header-and-position count-lines-p))
-            
+
             ;; (b) Search within pages buffer for next page-delimiter
             (while (re-search-forward page-delimiter nil t)
               (pages-copy-header-and-position count-lines-p)))
-        
+
         ;; 2. Else list headers whose pages match regexp.
         (save-excursion
           ;; REMOVED  save-restriction  AND  widen  FROM HERE
           (goto-char (point-min))
-          
+
           ;; (a) Handle first page
           (save-restriction
             (narrow-to-page)
             ;; search for selection regexp
             (if (save-excursion (re-search-forward regexp nil t))
                 (pages-copy-header-and-position count-lines-p)))
-          
+
           ;; (b) Search for next page-delimiter
           (while (re-search-forward page-delimiter nil t)
             (save-restriction
@@ -631,7 +631,7 @@ directory for only the accessible portion of the buffer."
               (if (save-excursion (re-search-forward regexp nil t))
                   (pages-copy-header-and-position count-lines-p)
                 )))))
-      
+
       (set-buffer standard-output)
       ;; Put positions in increasing order to go with buffer.
       (setq pages-pos-list (nreverse pages-pos-list))
@@ -652,7 +652,7 @@ directory for only the accessible portion of the buffer."
   "Copy page header and its position to the Pages Directory.
 Only arg non-nil, count lines in page and insert before header.
 Used by `pages-directory' function."
-  
+
   (let (position line-count)
 
     (if count-lines-p
@@ -665,12 +665,12 @@ Used by `pages-directory' function."
     (if (<= (point) pages-buffer-original-position)
         (setq pages-buffer-original-page
               (1+ pages-buffer-original-page)))
-    
+
     (save-excursion
       ;; go to first non-blank char after the page-delimiter
-      (skip-chars-forward " \t\n")     
+      (skip-chars-forward " \t\n")
       ;; set the marker here; this the place to which the
-      ;; `pages-directory-goto' command will go 
+      ;; `pages-directory-goto' command will go
       (setq position (make-marker))
       (set-marker position (point))
       (let ((start (point))
@@ -678,21 +678,21 @@ Used by `pages-directory' function."
 	    inserted-at)
         ;; change to directory buffer
         (set-buffer standard-output)
-        ;; record page position 
+        ;; record page position
         (setq pages-pos-list (cons position pages-pos-list))
         ;; insert page header
 	(setq inserted-at (point))
 	(insert-buffer-substring pages-target-buffer start end)
-	(add-text-properties inserted-at (point) 
+	(add-text-properties inserted-at (point)
 			     '(mouse-face highlight
 			       help-echo "mouse-2: go to this page"))
 	(put-text-property inserted-at (point) 'rear-nonsticky 'highlight))
-      
+
       (if count-lines-p
           (save-excursion
             (beginning-of-line)
             (insert (format "%3d: " line-count))))
-      
+
       (terpri))
     (end-of-line 1)))
 
@@ -727,7 +727,7 @@ to the same line in the pages buffer."
 	 (pos (nth pages-number pages-pos-list))
          (end-of-directory-p (eobp))
          (narrowing-p  pages-directory-buffer-narrowing-p))
-    (pop-to-buffer pages-buffer)  
+    (pop-to-buffer pages-buffer)
     (widen)
     (if end-of-directory-p
         (goto-char (point-max))
@@ -759,7 +759,7 @@ If    pages-directory-for-addresses-goto-narrowing-p    is non-nil,
 `pages-directory-goto' narrows addresses buffer to entry.
 
 If    pages-directory-for-addresses-buffer-keep-windows-p     is nil,
-this command deletes other windows when it displays the addresses 
+this command deletes other windows when it displays the addresses
 directory."
 
   (interactive

@@ -191,11 +191,11 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 	     reftex-toc-include-context
 	     nil ; counter
 	     nil ; commented
-	     here-I-am 
+	     here-I-am
 	     ""     ; xr-prefix
 	     t      ; a toc buffer
 	     ))
-       
+
       (run-hooks 'reftex-display-copied-context-hook)
       (message "Building *toc* buffer...done.")
       (setq buffer-read-only t))
@@ -207,7 +207,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 				   t
 				   reftex-toc-include-index-entries
 				   reftex-toc-include-file-boundaries)
-		(reftex-last-assoc-before-elt 
+		(reftex-last-assoc-before-elt
 		 'toc here-I-am
 		 (symbol-value reftex-docstruct-symbol))))
       (put 'reftex-toc :reftex-line 3)
@@ -231,7 +231,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 	 (not (get-text-property (point) 'intangible))
 	 (memq reftex-highlight-selection '(cursor both))
 	 (reftex-highlight 2
-	   (or (previous-single-property-change 
+	   (or (previous-single-property-change
 		(min (point-max) (1+ (point))) :data)
 	       (point-min))
 	   (or (next-single-property-change (point) :data)
@@ -292,7 +292,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (interactive "p")
   (setq reftex-callback-fwd t)
   (or (eobp) (forward-char 1))
-  (goto-char (or (next-single-property-change (point) :data) 
+  (goto-char (or (next-single-property-change (point) :data)
 		 (point))))
 (defun reftex-toc-previous (&optional arg)
   "Move to previous selectable item."
@@ -326,7 +326,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 With prefix ARG, prompt for a label type and include only labels of
 that specific type."
   (interactive "P")
-  (setq reftex-toc-include-labels 
+  (setq reftex-toc-include-labels
 	(if arg (reftex-query-label-type)
 	  (not reftex-toc-include-labels)))
   (reftex-toc-revert))
@@ -416,7 +416,7 @@ With prefix arg 1, restrict index to the section at point."
 (defun reftex-toc-rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing file of section at point."
   (interactive)
-  (if (and reftex-enable-partial-scans 
+  (if (and reftex-enable-partial-scans
 	   (null current-prefix-arg))
       (let* ((data (get-text-property (point) :data))
 	     (what (car data))
@@ -494,9 +494,9 @@ Useful for large TOC's."
          show-window show-buffer match)
 
     (unless toc (error "Don't know which toc line to visit"))
-    
+
     (cond
-  
+
      ((eq (car toc) 'toc)
       ;; a toc entry
       (setq match (reftex-toc-find-section toc no-revisit)))
@@ -512,7 +512,7 @@ Useful for large TOC's."
 		  (file (nth 1 toc)))
 	      (if (or (not no-revisit) (reftex-get-buffer-visiting file))
 		  (progn
-		    (switch-to-buffer-other-window 
+		    (switch-to-buffer-other-window
 		     (reftex-get-file-buffer-force file nil))
 		    (goto-char (if (eq where 'bof) (point-min) (point-max))))
 		(message reftex-no-follow-message) nil))))
@@ -560,8 +560,8 @@ Useful for large TOC's."
 		(looking-at (reftex-make-desperate-section-regexp literal))
 		(looking-at (concat "\\\\"
 				    (regexp-quote
-				     (car 
-				      (rassq level 
+				     (car
+				      (rassq level
 					     reftex-section-levels-all)))
 				    "[[{]?"))))
 	   ((or (not no-revisit)
@@ -672,7 +672,7 @@ section."
       (define-key reftex-toc-map (vector (list key)) 'digit-argument))
 (define-key reftex-toc-map "-" 'negative-argument)
 
-(easy-menu-define 
+(easy-menu-define
  reftex-toc-menu reftex-toc-map
  "Menu for Table of Contents buffer"
  '("TOC"
@@ -699,7 +699,7 @@ section."
     ["Context" reftex-toc-toggle-context :style toggle
      :selected reftex-toc-include-context]
     "--"
-    ["Follow Mode" reftex-toc-toggle-follow :style toggle 
+    ["Follow Mode" reftex-toc-toggle-follow :style toggle
      :selected reftex-toc-follow-mode])
    "--"
    ["Help" reftex-toc-show-help t]))

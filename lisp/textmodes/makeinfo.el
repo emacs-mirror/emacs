@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1991, 1993, 2002 Free Software Foundation, Inc.
 
-;; Author: Robert J. Chassell      
+;; Author: Robert J. Chassell
 ;; Maintainer: FSF
 ;; Keywords: docs convenience
 
@@ -61,7 +61,7 @@ The name of the file is appended to this string, separated by a space."
   :group 'makeinfo)
 
 (defcustom makeinfo-options "--fill-column=70"
-  "*String containing options for running `makeinfo'.  
+  "*String containing options for running `makeinfo'.
 Do not include `--footnote-style' or `--paragraph-indent';
 the proper way to specify those is with the Texinfo commands
 `@footnotestyle` and `@paragraphindent'."
@@ -91,7 +91,7 @@ the proper way to specify those is with the Texinfo commands
 This command does not offer the `next-error' feature since it would
 apply to a temporary file, not the original; use the `makeinfo-buffer'
 command to gain use of `next-error'."
-  
+
   (interactive "r")
   (let (filename-or-header
         filename-or-header-beginning
@@ -104,11 +104,11 @@ command to gain use of `next-error'."
           (concat
            (make-temp-file
             (substring (buffer-file-name)
-                       0 
-                       (or (string-match "\\.tex" (buffer-file-name)) 
+                       0
+                       (or (string-match "\\.tex" (buffer-file-name))
                            (length (buffer-file-name)))))
            ".texinfo"))
-    
+
     (save-excursion
       (save-restriction
         (widen)
@@ -116,34 +116,34 @@ command to gain use of `next-error'."
         (let ((search-end (save-excursion (forward-line 100) (point))))
           ;; Find and record the Info filename,
           ;; or else explain that a filename is needed.
-          (if (re-search-forward 
+          (if (re-search-forward
                "^@setfilename[ \t]+\\([^ \t\n]+\\)[ \t]*"
                search-end t)
-              (setq makeinfo-output-file-name 
+              (setq makeinfo-output-file-name
                     (buffer-substring (match-beginning 1) (match-end 1)))
             (error
              "The texinfo file needs a line saying: @setfilename <name>"))
 
           ;; Find header and specify its beginning and end.
           (goto-char (point-min))
-          (if (and 
-               (prog1 
+          (if (and
+               (prog1
                    (search-forward tex-start-of-header search-end t)
                  (beginning-of-line)
                  ;; Mark beginning of header.
                  (setq filename-or-header-beginning (point)))
-               (prog1 
+               (prog1
                    (search-forward tex-end-of-header nil t)
                  (beginning-of-line)
                  ;; Mark end of header
                  (setq filename-or-header-end (point))))
-              
+
               ;; Insert the header into the temporary file.
               (write-region
                (min filename-or-header-beginning region-beginning)
                filename-or-header-end
                makeinfo-temp-file nil nil)
-            
+
             ;; Else no header; insert @filename line into temporary file.
             (goto-char (point-min))
             (search-forward "@setfilename" search-end t)
@@ -155,7 +155,7 @@ command to gain use of `next-error'."
              (min filename-or-header-beginning region-beginning)
              filename-or-header-end
              makeinfo-temp-file nil nil))
-          
+
           ;; Insert the region into the file.
           (write-region
            (max region-beginning filename-or-header-end)
@@ -168,7 +168,7 @@ command to gain use of `next-error'."
              (concat makeinfo-run-command
                      " "
                      makeinfo-options
-                     " " 
+                     " "
                      makeinfo-temp-file)
              "Use `makeinfo-buffer' to gain use of the `next-error' command"
 	     nil
@@ -220,31 +220,31 @@ command to gain use of `next-error'."
 (defun makeinfo-buffer ()
   "Make Info file from current buffer.
 
-Use the \\[next-error] command to move to the next error 
+Use the \\[next-error] command to move to the next error
 \(if there are errors\)."
- 
+
   (interactive)
   (cond ((null buffer-file-name)
          (error "Buffer not visiting any file"))
         ((buffer-modified-p)
          (if (y-or-n-p "Buffer modified; do you want to save it? ")
              (save-buffer))))
-  
+
   ;; Find and record the Info filename,
   ;; or else explain that a filename is needed.
   (save-excursion
     (goto-char (point-min))
     (let ((search-end (save-excursion (forward-line 100) (point))))
-      (if (re-search-forward 
+      (if (re-search-forward
            "^@setfilename[ \t]+\\([^ \t\n]+\\)[ \t]*"
            search-end t)
-          (setq makeinfo-output-file-name 
+          (setq makeinfo-output-file-name
                 (expand-file-name
                  (buffer-substring (match-beginning 1) (match-end 1))))
         (error
          "The texinfo file needs a line saying: @setfilename <name>"))))
   (setq makeinfo-output-node-name (makeinfo-current-node))
-  
+
   (save-excursion
     (makeinfo-compile
      (concat makeinfo-run-command " " makeinfo-options

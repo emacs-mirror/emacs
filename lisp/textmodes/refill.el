@@ -102,7 +102,7 @@ This is used to optimize refilling.")
       (if (<= (point) (overlay-start overlay))
 	  ;; Just get OVERLAY out of the way
 	  (move-overlay overlay 1 1)
-	;; Make overlay contain only the region 
+	;; Make overlay contain only the region
 	(move-overlay overlay (overlay-start overlay) (point))))))
 
 (defun refill-fill-paragraph-at (pos &optional arg)

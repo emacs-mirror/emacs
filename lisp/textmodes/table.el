@@ -1543,7 +1543,7 @@ width information to `table-insert'.
 
 Cell width(s): 14 6 32
 
-instead of 
+instead of
 
 Cell width(s): 5
 
@@ -3161,7 +3161,7 @@ CALS (DocBook DTD):
        ((eq language 'cals)
 	(insert "      </row>\n")
 	(unless (/= (table-get-source-info 'current-row) table-cals-thead-rows)
-	  (insert (format "    </%s>\n" (table-get-source-info 'row-type)))	  
+	  (insert (format "    </%s>\n" (table-get-source-info 'row-type)))
 	  (insert (format "    <%s valign=\"top\">\n" (table-put-source-info 'row-type "tbody")))))))
     (table-put-source-info 'current-row (1+ (table-get-source-info 'current-row)))
     (setq row-list (cdr row-list))))
@@ -3811,7 +3811,7 @@ companion command to `table-capture' this way.
     (unless (looking-at "\\s *$")
       (save-excursion
 	(insert ?\n)))
-    ;; insert the table 
+    ;; insert the table
     ;; insert the cell contents
     (if (null contents-list)
 	;; single cell
@@ -5230,7 +5230,7 @@ and the right cell border character."
 (defun table--put-cell-rear-nonsticky (beg end &optional object)
   "Put rear-nonsticky property."
   (put-text-property beg end 'rear-nonsticky t object))
-  
+
 (defun table--put-cell-point-entered/left-property (beg end &optional object)
   "Put point-entered/left property."
   (put-text-property beg end 'point-entered 'table--point-entered-cell-function object)

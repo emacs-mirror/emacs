@@ -181,15 +181,15 @@ support other types of selections."
   :group 'killing)
 
 (defun x-select-text (text &optional push)
-  (if x-select-enable-clipboard 
+  (if x-select-enable-clipboard
       (w16-set-clipboard-data text))
   (setq x-last-selected-text text))
-    
+
 ;;; Return the value of the current selection.
 ;;; Consult the selection, then the cut buffer.  Treat empty strings
 ;;; as if they were unset.
 (defun x-get-selection-value ()
-  (if x-select-enable-clipboard 
+  (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(condition-case c

@@ -397,7 +397,7 @@
 	* ido.el: Many doc fixes.
 	(ido-complete): Fix message.
 
-2003-01-25  Taro Kawagishi <tarok@transpulse.org>
+2003-01-25  Taro Kawagishi  <tarok@transpulse.org>
 
 	* arc-mode.el (archive-unixdate): Corrected the date field string.
 	(archive-lzh-summarize): Extended it to allow the LZH level 2 header

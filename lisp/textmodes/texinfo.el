@@ -317,7 +317,7 @@ chapter."
   "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
 
 (defconst texinfo-environments
-  '("cartouche" "copying" "defcv" "deffn" "defivar" "defmac" 
+  '("cartouche" "copying" "defcv" "deffn" "defivar" "defmac"
     "defmethod" "defop" "defopt" "defspec" "deftp" "deftypefn"
     "deftypefun" "deftypevar" "deftypevr" "defun" "defvar"
     "defvr" "description" "detailmenu" "direntry" "display"
@@ -634,7 +634,7 @@ value of `texinfo-mode-hook'."
 	 (if (null auto-fill-inhibit-regexp)
 	     prevent-filling
 	   (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
-		  
+
 
 
 ;;; Insert string commands
@@ -696,7 +696,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
        (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
 	   texinfo-open-quote
 	 texinfo-close-quote)))))
-	
+
 ;; The following texinfo-insert-@end command not only inserts a SPC
 ;; after the @end, but tries to find out what belongs there.  It is
 ;; not very smart: it does not understand nested lists.
@@ -877,7 +877,7 @@ with @-sign commands for @chapter, @section, and the like, and list
 
 Lines with structuring commands beginning in them are displayed in
 another buffer named `*Occur*'.  In that buffer, you can move point to
-one of those lines and then use 
+one of those lines and then use
 \\<occur-mode-map>\\[occur-mode-goto-occurrence],
 to jump to the corresponding spot in the Texinfo source file."
 
@@ -887,7 +887,7 @@ to jump to the corresponding spot in the Texinfo source file."
         current-location)
     (save-excursion
       (end-of-line)            ; so as to find section on current line
-      (if (re-search-backward 
+      (if (re-search-backward
            ;; do not require `texinfo-section-types-regexp' in texnfo-upd.el
            "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
            nil t)
@@ -918,7 +918,7 @@ to jump to the corresponding spot in the Texinfo source file."
           (indent-to-column (+ (current-column) (* 4 (- level 2))))
           (beginning-of-line))))
     ;; Third, go to line corresponding to location in source file
-    ;; potential bug: two exactly similar `current-location' lines ... 
+    ;; potential bug: two exactly similar `current-location' lines ...
     (goto-char (point-min))
     (re-search-forward current-location nil t)
     (beginning-of-line)

@@ -107,7 +107,7 @@ The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
   :group 'tildify
   :type '(repeat (cons symbol (choice string symbol))))
-     
+
 (defcustom tildify-ignored-environments-alist
   '((latex-mode
      ("\\\\\\\\" . "")		; do not remove this
@@ -226,7 +226,7 @@ This function performs no refilling of the changed text."
       ;; No ignored environments, tildify directly
       (tildify-tildify beg end ask)))
   (message (format "%d spaces replaced." tildify-count)))
-	      
+
 ;;;###autoload
 (defun tildify-buffer ()
   "Add hard spaces in the current buffer.
@@ -262,7 +262,7 @@ This function performs no refilling of the changed text."
 	     (symbolp alist))
 	(tildify-mode-alist mode-alist alist)
       alist)))
-  
+
 (defun tildify-find-env (regexp)
   "Find environment using REGEXP.
 Return regexp for the end of the environment or nil if no environment was

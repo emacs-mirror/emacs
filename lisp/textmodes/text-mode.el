@@ -95,7 +95,7 @@ Turning on Paragraph-Indent minor mode runs the normal hook
        (concat "[ \t\n\f]\\|" paragraph-start))
   (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
   (run-hooks 'paragraph-indent-text-mode-hook))
-      
+
 (defalias 'indented-text-mode 'text-mode)
 
 ;; This can be made a no-op once all modes that use text-mode-hook

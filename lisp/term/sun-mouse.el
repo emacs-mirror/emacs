@@ -31,7 +31,7 @@
 ;;     Modeled after the GNUEMACS keymap interface.
 ;;
 ;; User Functions:
-;;   make-mousemap, copy-mousemap, 
+;;   make-mousemap, copy-mousemap,
 ;;   define-mouse, global-set-mouse, local-set-mouse,
 ;;   use-global-mousemap, use-local-mousemap,
 ;;   mouse-lookup, describe-mouse-bindings
@@ -197,7 +197,7 @@ Just like the Common Lisp function of the same name."
 YESMINI says to include the minibuffer as a window.
 This is a macro, and does not evaluate its arguments."
   `(let ((OriginallySelectedWindow (selected-window)))
-    (unwind-protect 
+    (unwind-protect
          (while (progn
                   ,form
                   (not (eq OriginallySelectedWindow
@@ -232,9 +232,9 @@ Handles wrapped and horizontally scrolled lines correctly."
 
 (defun sun-mouse-handler (&optional hit)
   "Evaluates the function or list associated with a mouse hit.
-Expecting to read a hit, which is a list: (button x y delta).  
-A form bound to button by define-mouse is found by mouse-lookup. 
-The variables: *mouse-window*, *mouse-x*, *mouse-y* are bound.  
+Expecting to read a hit, which is a list: (button x y delta).
+A form bound to button by define-mouse is found by mouse-lookup.
+The variables: *mouse-window*, *mouse-x*, *mouse-y* are bound.
 If the form is a symbol (symbolp), it is funcall'ed with *mouse-window*,
 *mouse-x*, and *mouse-y* as arguments; if the form is a list (listp),
 the form is eval'ed; if the form is neither of these, it is an error.
@@ -250,8 +250,8 @@ Returns nil."
 		    (mouse-lookup mouse-code))))
 	(cond ((null form)
 	       (if (not (sm::hit-up-p hit))	; undefined up hits are ok.
-		   (error "Undefined mouse event: %s" 
-			  (prin1-to-string 
+		   (error "Undefined mouse event: %s"
+			  (prin1-to-string
 			   (mouse-code-to-mouse-list mouse-code)))))
 	      ((symbolp form)
 	       (setq this-command form)
@@ -276,9 +276,9 @@ Returns nil."
 	(let ((hit2 (mouse-second-hit extra-click-wait)))
 	  (if hit2	; we cons'd it, we can smash it.
 	      ; (setf (sm::hit-code hit1) (logior (sm::hit-code hit1) ...))
-	      (setcar hit1 (logior (sm::hit-code hit1) 
+	      (setcar hit1 (logior (sm::hit-code hit1)
 				   (sm::hit-code hit2)
-				   (if (= (sm::hit-button hit1) 
+				   (if (= (sm::hit-button hit1)
 					  (sm::hit-button hit2))
 				       sm::DoubleBits 0))))))
     hit1))
@@ -288,7 +288,7 @@ Returns nil."
 but that uses minibuffer, and mucks up last-command."
   (let ((char-list nil) (char nil))
     (while (not (equal 13		; Carriage return.
-		       (prog1 (setq char (read-char)) 
+		       (prog1 (setq char (read-char))
 			 (setq char-list (cons char char-list))))))
     (read (mapconcat 'char-to-string (nreverse char-list) ""))
     ))
@@ -339,7 +339,7 @@ but that uses minibuffer, and mucks up last-command."
 Returns list (window x y) where x and y are relative to window."
   (or
    (catch 'found
-     (eval-in-windows 
+     (eval-in-windows
       (let ((we (window-edges (selected-window))))
 	(let ((le (nth 0 we))
 	      (te (nth 1 we))
@@ -355,7 +355,7 @@ Returns list (window x y) where x and y are relative to window."
 
 	  (if (and (>= x le) (< x re)
 		   (>= y te) (< y be))
-	      (throw 'found 
+	      (throw 'found
 		     (list (selected-window) (- x le) (- y te))))))
       t))				; include minibuffer in eval-in-windows
    ;;If x,y from a real mouse click, we shouldn't get here.
@@ -390,7 +390,7 @@ Returns one of (text scrollbar modeline minibuffer)"
 ;;; The encoding of mouse events into a mousemap.
 ;;; These values must agree with coding in emacstool:
 ;;;
-(defconst sm::keyword-alist 
+(defconst sm::keyword-alist
   '((left . 1) (middle . 2) (right . 4)
     (shift . 8) (control . 16) (meta . 32) (double . 64) (up . 128)
     (text . 256) (scrollbar . 512) (modeline . 1024) (minibuffer . 2048)
@@ -592,7 +592,7 @@ of MENU.  MENU (or its symbol-value) should be a menu defined by defmenu.
 the FORM associated with the selected STRING is evaluated,
 and the resulting value is returned.  Generally these FORMs are
 evaluated for their side-effects rather than their values.
-  If the selected form is a menu or a symbol whose value is a menu, 
+  If the selected form is a menu or a symbol whose value is a menu,
 then it is displayed and evaluated as a pullright menu item.
   If the FORM of the first ITEM is nil, the STRING of the item
 is used as a label for the menu, i.e. it's inverted and not selectable."
@@ -603,7 +603,7 @@ is used as a label for the menu, i.e. it's inverted and not selectable."
 (defun sun-get-frame-data (code)
   "Sends the tty-sub-window escape sequence CODE to terminal,
 and returns a cons of the two numbers in returned escape sequence.
-That is it returns (cons <car> <cdr>) from \"\\E[n;<car>;<cdr>t\". 
+That is it returns (cons <car> <cdr>) from \"\\E[n;<car>;<cdr>t\".
 CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
   (send-string-to-terminal (concat "\033[" (int-to-string code) "t"))
   (let (char str x y)
@@ -623,9 +623,9 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
 	(chr (sun-get-frame-data 18)))	; returns size in chars
     (cons (/ (car pix) (car chr)) (/ (cdr pix) (cdr chr)))))
 
-(defvar sm::menu-kludge-x nil 
+(defvar sm::menu-kludge-x nil
   "Cached frame-to-window X-Offset for sm::menu-kludge")
-(defvar sm::menu-kludge-y nil 
+(defvar sm::menu-kludge-y nil
   "Cached frame-to-window Y-Offset for sm::menu-kludge")
 
 (defun sm::menu-kludge ()
@@ -661,7 +661,7 @@ Insert contents into the current buffer at point."
 (defun suspend-emacstool (&optional stuffstring)
   "Suspend emacstool.
 If running under as a detached process emacstool,
-you don't want to suspend  (there is no way to resume), 
+you don't want to suspend  (there is no way to resume),
 just close the window, and wait for reopening."
   (interactive)
   (run-hooks 'suspend-hook)

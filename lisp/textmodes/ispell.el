@@ -1082,7 +1082,7 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 
 ;;; *** Buffer Local Definitions ***
 
-(defconst ispell-words-keyword "LocalWords: "                                 
+(defconst ispell-words-keyword "LocalWords: "
   "The keyword for local oddly-spelled words to accept.
 The keyword will be followed by any number of local word spellings.
 There can be multiple of these keywords in the file.")

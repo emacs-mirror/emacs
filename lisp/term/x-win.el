@@ -68,7 +68,7 @@
 
 (if (not (eq window-system 'x))
     (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
-	 
+
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
@@ -259,7 +259,7 @@ a file in the home directory."
     (expand-file-name (if (file-directory-p emacs-dir)
 			  (concat emacs-dir basename)
 			(concat "~/.emacs-" basename)))))
-	
+
 (defun emacs-session-save ()
   "This function is called when the window system is shutting down.
 If this function returns non-nil, the window system shutdown is cancelled.
@@ -282,7 +282,7 @@ that it should abort the window system shutdown."
     (with-current-buffer buf
       (let ((cancel-shutdown (condition-case nil
 				 ;; A return of t means cancel the shutdown.
-				 (run-hook-with-args-until-success 
+				 (run-hook-with-args-until-success
 				  'emacs-save-session-functions)
 			       (error t))))
 	(unless cancel-shutdown
@@ -300,8 +300,8 @@ exists."
       (delete-file filename)
       (message "Restored session data"))))
 
- 
-  
+
+
 
 ;;
 ;; Standard X cursor shapes, courtesy of Mr. Fox, who wanted ALL of them.
@@ -2127,7 +2127,7 @@ This is in addition to, but in preference to, the primary selection."
   (cond ((>= (length text) x-cut-buffer-max)
 	 (x-set-cut-buffer "" push)
 	 (setq x-last-selected-text-cut ""))
-	(t 
+	(t
       (x-set-cut-buffer text push)
 	 (setq x-last-selected-text-cut text)))
   (x-set-selection 'PRIMARY text)
@@ -2147,11 +2147,11 @@ This is in addition to, but in preference to, the primary selection."
   (let (clip-text primary-text cut-text)
     (when x-select-enable-clipboard
       ;; Don't die if x-get-selection signals an error.
-      (if (null clip-text) 
+      (if (null clip-text)
 	  (condition-case c
 	      (setq clip-text (x-get-selection 'CLIPBOARD 'COMPOUND_TEXT))
 	    (error nil)))
-      (if (null clip-text) 
+      (if (null clip-text)
 	  (condition-case c
 	      (setq clip-text (x-get-selection 'CLIPBOARD 'STRING))
 	    (error nil)))
@@ -2160,13 +2160,13 @@ This is in addition to, but in preference to, the primary selection."
       ;; Check the CLIPBOARD selection for 'newness', is it different
       ;; from what we remebered them to be last time we did a
       ;; cut/paste operation.
-      (setq clip-text 
+      (setq clip-text
 	    (cond;; check clipboard
 	     ((or (not clip-text) (string= clip-text ""))
 	      (setq x-last-selected-text-clipboard nil))
 	     ((eq      clip-text x-last-selected-text-clipboard) nil)
 	     ((string= clip-text x-last-selected-text-clipboard)
-	      ;; Record the newer string, 
+	      ;; Record the newer string,
 	      ;; so subsequent calls can use the `eq' test.
 	      (setq x-last-selected-text-clipboard clip-text)
 	      nil)
@@ -2175,24 +2175,24 @@ This is in addition to, but in preference to, the primary selection."
       )
 
     ;; Don't die if x-get-selection signals an error.
-    (if (null primary-text) 
+    (if (null primary-text)
 	(condition-case c
 	    (setq primary-text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
 	  (error nil)))
-    (if (null primary-text) 
+    (if (null primary-text)
 	(condition-case c
 	    (setq primary-text (x-get-selection 'PRIMARY 'STRING))
 	  (error nil)))
     ;; Check the PRIMARY selection for 'newness', is it different
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
-    (setq primary-text 
+    (setq primary-text
 	  (cond;; check primary selection
 	   ((or (not primary-text) (string= primary-text ""))
 	    (setq x-last-selected-text-primary nil))
 	   ((eq      primary-text x-last-selected-text-primary) nil)
 	   ((string= primary-text x-last-selected-text-primary)
-	    ;; Record the newer string, 
+	    ;; Record the newer string,
 	    ;; so subsequent calls can use the `eq' test.
 	    (setq x-last-selected-text-primary primary-text)
 	    nil)
@@ -2204,13 +2204,13 @@ This is in addition to, but in preference to, the primary selection."
     ;; Check the x cut buffer for 'newness', is it different
     ;; from what we remebered them to be last time we did a
     ;; cut/paste operation.
-    (setq cut-text 
+    (setq cut-text
 	  (cond;; check primary selection
 	   ((or (not cut-text) (string= cut-text ""))
 	    (setq x-last-selected-text-cut nil))
 	   ((eq      cut-text x-last-selected-text-cut) nil)
 	   ((string= cut-text x-last-selected-text-cut)
-	    ;; Record the newer string, 
+	    ;; Record the newer string,
 	    ;; so subsequent calls can use the `eq' test.
 	    (setq x-last-selected-text-cut cut-text)
       nil)
@@ -2231,7 +2231,7 @@ This is in addition to, but in preference to, the primary selection."
     ;; timestamps there is no way to know what the 'correct' value to
     ;; return is.  The nice thing to do would be to tell the user we
     ;; saw multiple possible selections and ask the user which was the
-    ;; one they wanted.  
+    ;; one they wanted.
     ;; This code is still a big improvement because now the user can
     ;; futz with the current selection and get emacs to pay attention
     ;; to the cut buffer again (previously as soon as clipboard or

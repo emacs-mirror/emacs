@@ -69,7 +69,7 @@
 
 (if (not (eq window-system 'w32))
     (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
-	 
+
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)

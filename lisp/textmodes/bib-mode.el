@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;;   GNU Emacs code to help maintain databases compatible with (troff)
-;;   refer and lookbib.  The file bib-file should be set to your 
+;;   refer and lookbib.  The file bib-file should be set to your
 ;;   bibliography file.  Keys are automagically inserted as you type,
 ;;   and appropriate keys are presented for various kinds of entries.
 
@@ -53,22 +53,22 @@
 (define-key bib-mode-map "\e`" 'abbrev-mode)
 
 (defun addbib ()
-   "Set up editor to add to troff bibliography file specified 
+   "Set up editor to add to troff bibliography file specified
 by global variable `bib-file'.  See description of `bib-mode'."
    (interactive)
    (find-file bib-file)
    (goto-char (point-max))
    (bib-mode)
    )
-   
+
 (define-derived-mode bib-mode text-mode "Bib"
-   "Mode for editing `lookbib' style bibliographies.  
+   "Mode for editing `lookbib' style bibliographies.
 Hit RETURN to get next % field key.
 If you want to ignore this field, just hit RETURN again.
 Use `text-mode' to turn this feature off.
 
  journal papers:                    A* T D J V N P K W X
- articles in books & proceedings:   A* T D B E* I C P K W X 
+ articles in books & proceedings:   A* T D B E* I C P K W X
  tech reports:                      A* T D R I C K W X
  books:                             A* T D I C K W X
 
@@ -78,7 +78,7 @@ A uthor		T itle		D ate  		J ournal
 V olume		N umber		P age		K eywords
 B in book or proceedings	E ditor		C ity & state
 I nstitution, school, or publisher
-R eport number or 'phd thesis' or 'masters thesis' or 'draft' or 
+R eport number or 'phd thesis' or 'masters thesis' or 'draft' or
      'unnumbered' or 'unpublished'
 W here can be found locally (login name, or ailib, etc.)
 X comments (not used in indexing)

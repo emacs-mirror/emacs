@@ -240,7 +240,7 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; Make suspend-emacs [C-z] collapse the current frame
 (substitute-key-definition 'suspend-emacs 'iconify-frame
 			   global-map)
- 
+
 ;; Support mouse-wheel scrolling
 (autoload 'mwheel-scroll "mwheel")
 (global-set-key [mouse-wheel] 'mwheel-scroll)

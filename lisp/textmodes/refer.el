@@ -332,7 +332,7 @@ found on the last refer-find-entry or refer-find-next-entry."
             (list refer-bib-directory))))
          (files
            (cond
-            ((null refer-bib-files) 
+            ((null refer-bib-files)
              (list (expand-file-name
                     (if (eq major-mode 'bibtex-mode)
                         (read-file-name

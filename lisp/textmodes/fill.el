@@ -197,7 +197,7 @@ Remove indentation from each line."
       (setq cmp (1- (abs cmp)))
       (unless (zerop cmp)
 	(substring s1 0 cmp)))))
-    
+
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
 This uses the variables `adaptive-fill-regexp' and `adaptive-fill-function'
@@ -592,7 +592,7 @@ space does not end a sentence, so don't break a line there."
 
     (beginning-of-line)
     (setq from (point))
-  
+
     ;; Delete all but one soft newline at end of region.
     ;; And leave TO before that one.
     (goto-char to)
@@ -649,7 +649,7 @@ space does not end a sentence, so don't break a line there."
 	  ;; Delete the fill-prefix from every line.
 	  (fill-delete-prefix from to fill-prefix)
 	  (setq from (point))
-	  
+
 	  ;; FROM, and point, are now before the text to fill,
 	  ;; but after any fill prefix on the first line.
 
@@ -778,7 +778,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	(setq comin (point))
 	(goto-char comstart) (skip-chars-backward " \t")
 	(setq has-code-and-comment (not (bolp)))))
-	 
+
     (if (not comstart)
 	;; Return nil, so the normal filling will take place.
 	nil
@@ -942,9 +942,9 @@ The `justification' text-property can locally override this variable."
 This returns the value of the text-property `justification',
 or the variable `default-justification' if there is no text-property.
 However, it returns nil rather than `none' to mean \"don't justify\"."
-  (let ((j (or (get-text-property 
+  (let ((j (or (get-text-property
 		;; Make sure we're looking at paragraph body.
-		(save-excursion (skip-chars-forward " \t") 
+		(save-excursion (skip-chars-forward " \t")
 				(if (and (eobp) (not (bobp)))
 				    (1- (point)) (point)))
 		'justification)
@@ -982,7 +982,7 @@ extended to include entire paragraphs as in the interactive command."
     (save-restriction
       (if whole-par
 	  (let ((paragraph-start (if use-hard-newlines "." paragraph-start))
-		(paragraph-ignore-fill-prefix (if use-hard-newlines t 
+		(paragraph-ignore-fill-prefix (if use-hard-newlines t
 						paragraph-ignore-fill-prefix)))
 	    (goto-char begin)
 	    (while (and (bolp) (not (eobp))) (forward-char 1))
@@ -1039,7 +1039,7 @@ If the mark is not active, this applies to the current paragraph."
 
 ;; A line has up to six parts:
 ;;
-;;           >>>                    hello.  		       
+;;           >>>                    hello.
 ;; [Indent-1][FP][    Indent-2     ][text][trailing whitespace][newline]
 ;;
 ;; "Indent-1" is the left-margin indentation; normally it ends at column
@@ -1051,7 +1051,7 @@ If the mark is not active, this applies to the current paragraph."
 ;; Trailing whitespace is not counted as part of the line length when
 ;; center- or right-justifying.
 ;;
-;; All parts of the line are optional, although the final newline can 
+;; All parts of the line are optional, although the final newline can
 ;;     only be missing on the last line of the buffer.
 
 (defun justify-current-line (&optional how eop nosqueeze)
@@ -1059,7 +1059,7 @@ If the mark is not active, this applies to the current paragraph."
 Normally does full justification: adds spaces to the line to make it end at
 the column given by `current-fill-column'.
 Optional first argument HOW specifies alternate type of justification:
-it can be `left', `right', `full', `center', or `none'.  
+it can be `left', `right', `full', `center', or `none'.
 If HOW is t, will justify however the `current-justification' function says to.
 If HOW is nil or missing, full justification is done by default.
 Second arg EOP non-nil means that this is the last line of the paragraph, so
@@ -1088,7 +1088,7 @@ otherwise it is made canonical."
 	    count)
 	(end-of-line)
 	;; Check if this is the last line of the paragraph.
-	(if (and use-hard-newlines (null eop) 
+	(if (and use-hard-newlines (null eop)
 		 (get-text-property (point) 'hard))
 	    (setq eop t))
 	(skip-chars-backward " \t")
@@ -1102,14 +1102,14 @@ otherwise it is made canonical."
 	  (beginning-of-line)
 	  (skip-chars-forward " \t")
 	  ;; Skip over fill-prefix.
-	  (if (and fill-prefix 
+	  (if (and fill-prefix
 		   (not (string-equal fill-prefix ""))
 		   (equal fill-prefix
-			  (buffer-substring 
+			  (buffer-substring
 			   (point) (min (point-max) (+ (length fill-prefix)
 						       (point))))))
 	      (forward-char (length fill-prefix))
-	    (if (and adaptive-fill-mode 
+	    (if (and adaptive-fill-mode
 		     (looking-at adaptive-fill-regexp))
 		(goto-char (match-end 0))))
 	  (setq fp-end (point))
@@ -1121,11 +1121,11 @@ otherwise it is made canonical."
 	  (setq endcol (current-column))
 
 	  ;; HOW can't be null or left--we would have exited already
-	  (cond ((eq 'right how) 
+	  (cond ((eq 'right how)
 		 (setq ncols (- fc endcol))
 		 (if (< ncols 0)
 		     ;; Need to remove some indentation
-		     (delete-region 
+		     (delete-region
 		      (progn (goto-char fp-end)
 			     (if (< (current-column) (+ indent ncols))
 				 (move-to-column (+ indent ncols) t))
@@ -1135,7 +1135,7 @@ otherwise it is made canonical."
 		   (goto-char beg)
 		   (indent-to (+ indent ncols))
 		   ;; If point was at beginning of text, keep it there.
-		   (if (= beg pos) 
+		   (if (= beg pos)
 		       (move-marker pos (point)))))
 
 		((eq 'center how)
@@ -1204,10 +1204,10 @@ extra spaces between words.  It does nothing in other justification modes."
 	   (save-excursion
 	     (move-to-left-margin nil t)
 	     ;; Position ourselves after any fill-prefix.
-	     (if (and fill-prefix 
+	     (if (and fill-prefix
 		      (not (string-equal fill-prefix ""))
 		      (equal fill-prefix
-			     (buffer-substring 
+			     (buffer-substring
 			      (point) (min (point-max) (+ (length fill-prefix)
 							  (point))))))
 		 (forward-char (length fill-prefix)))
@@ -1217,7 +1217,7 @@ extra spaces between words.  It does nothing in other justification modes."
 (defun unjustify-region (&optional begin end)
   "Remove justification whitespace from region.
 For centered or right-justified regions, this function removes any indentation
-past the left margin from each line.  For full-justified lines, it removes 
+past the left margin from each line.  For full-justified lines, it removes
 extra spaces between words.  It does nothing in other justification modes.
 Arguments BEGIN and END are optional; default is the whole buffer."
   (save-excursion
@@ -1253,7 +1253,7 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 
 (defun fill-individual-paragraphs (min max &optional justify citation-regexp)
   "Fill paragraphs of uniform indentation within the region.
-This command divides the region into \"paragraphs\", 
+This command divides the region into \"paragraphs\",
 treating every change in indentation level or prefix as a paragraph boundary,
 then fills each paragraph using its indentation level as the fill prefix.
 
@@ -1325,7 +1325,7 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 			(if fill-individual-varying-indent
 			    ;; If this line is a separator line, with or
 			    ;; without prefix, end the paragraph.
-			    (and 
+			    (and
 			     (not (looking-at paragraph-separate))
 			     (save-excursion
 			       (not (and (looking-at fill-prefix-regexp)
@@ -1339,9 +1339,9 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 			       ;; If fill prefix is shorter than a new
 			       ;; fill prefix computed here, end paragraph.
  			       (let ((this-line-fill-prefix
-				      (fill-individual-paragraphs-prefix 
+				      (fill-individual-paragraphs-prefix
 				       citation-regexp)))
- 				 (>= (length fill-prefix) 
+ 				 (>= (length fill-prefix)
  				     (length this-line-fill-prefix)))
 			       (save-excursion
 				 (not (progn (forward-char

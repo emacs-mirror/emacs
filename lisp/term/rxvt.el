@@ -78,7 +78,7 @@
   (define-key map "\eOc" [C-right])
   (define-key map "\eOa" [C-up])
   (define-key map "\eOb" [C-down])
- 
+
   (define-key map "\e[5$" [S-prior])
   (define-key map "\e[6$" [S-next])
   (define-key map "\e[8$" [S-end])

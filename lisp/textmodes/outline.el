@@ -139,7 +139,7 @@ in the file it applies to."
 					 (cons '(--- "---") (cdr x))))
 				   outline-mode-menu-bar-map))))))
     map))
-	      
+
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
@@ -401,7 +401,7 @@ If prefix argument CHILDREN is given, promote also all the children."
 			(save-match-data
 			  (outline-up-heading 1 t)
 			  (match-string 0))))))
-    
+
     (unless (rassoc level outline-heading-alist)
       (push (cons head level) outline-heading-alist))
 
@@ -446,7 +446,7 @@ If prefix argument CHILDREN is given, demote also all the children."
 
     (unless (rassoc level outline-heading-alist)
       (push (cons head level) outline-heading-alist))
-    
+
     (replace-match down-head nil t)
     (when children
       (outline-map-tree 'outline-demote level))))
@@ -533,7 +533,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	;; reveal do the rest, by simply doing:
 	;; (remove-overlays (overlay-start o) (overlay-end o)
 	;;                  'invisible 'outline)
-	;; 
+	;;
 	;; That works fine as long as everything is in sync, but if the
 	;; structure of the document is changed while revealing parts of it,
 	;; the resulting behavior can be ugly.  I.e. we need to make
