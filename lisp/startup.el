@@ -1481,9 +1481,10 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
-      ;; Stop any "Loading image..." message hiding echo-area-message.
-      (use-fancy-splash-screens-p)
-      (display-startup-echo-area-message))
+      (progn
+        ;; Stop any "Loading image..." message hiding echo-area-message.
+        (use-fancy-splash-screens-p)
+        (display-startup-echo-area-message)))
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.
