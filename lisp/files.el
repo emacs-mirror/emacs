@@ -929,10 +929,11 @@ If `enable-local-variables' is nil, this function does not check for a
       (and enable-local-variables
 	   ;; Don't look for -*- if this file name matches any
 	   ;; of the regexps in inhibit-first-line-modes-regexps.
-	   (let ((temp inhibit-first-line-modes-regexps))
+	   (let ((temp inhibit-first-line-modes-regexps)
+		 (name (file-name-sans-versions buffer-file-name)))
 	     (while (and temp
 			 (not (string-match (car temp)
-					    buffer-file-name)))
+					    name)))
 	       (setq temp (cdr temp)))
 	     (not temp))
 	   (search-forward "-*-" (save-excursion
