@@ -560,9 +560,13 @@ to a function that generates a unique name."
 	  (format "%s -n " grep-program)))
   (unless grep-find-use-xargs
     (setq grep-find-use-xargs
-	  (if (equal (call-process "find" nil nil nil
-				   null-device "-print0")
-		     0)
+	  (if (and
+               (equal (call-process "find" nil nil nil
+                                    null-device "-print0")
+                      0)
+               (equal (call-process "xargs" nil nil nil
+                                    "-0" "-e" "echo")
+		     0))
 	      'gnu)))
   (setq grep-find-command
 	(cond ((eq grep-find-use-xargs 'gnu)
