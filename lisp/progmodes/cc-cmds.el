@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.18
+;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -757,7 +757,8 @@ comment."
 ;; for proposed new variable comment-line-break-function
 (defun c-comment-line-break-function (&optional soft)
   ;; we currently don't do anything with soft line breaks
-  (let ((literal (c-in-literal)))
+  (let ((literal (c-in-literal))
+	at-comment-col)
     (cond
      ((eq literal 'string))
      ((or (not c-comment-continuation-stars)
@@ -766,6 +767,12 @@ comment."
      (t (let ((here (point))
 	      (leader c-comment-continuation-stars))
 	  (back-to-indentation)
+	  ;; comment could be hanging
+	  (if (not (c-in-literal))
+	      (progn
+		(forward-line 1)
+		(forward-comment -1)
+		(setq at-comment-col (= (current-column) comment-column))))
 	  ;; are we looking at a block or lines style comment?
 	  (if (and (looking-at (concat "\\(" c-comment-start-regexp
 				       "\\)[ \t]+"))
@@ -779,6 +786,8 @@ comment."
 	  ;; to avoid having an anchored comment that c-indent-line will
 	  ;; trip up on
 	  (insert " " leader)
+	  (if at-comment-col
+	      (indent-for-comment))
 	  (c-indent-line))))))
 
 ;; advice for indent-new-comment-line for older Emacsen
@@ -1133,22 +1142,25 @@ Optional SHUTUP-P if non-nil, inhibits message printing and error checking."
 (defvar c-progress-info nil)
 
 (defun c-progress-init (start end context)
-  ;; start the progress update messages.  if this emacs doesn't have a
-  ;; built-in timer, just be dumb about it
-  (if (not (fboundp 'current-time))
-      (message "indenting region... (this may take a while)")
-    ;; if progress has already been initialized, do nothing. otherwise
-    ;; initialize the counter with a vector of:
-    ;; [start end lastsec context]
-    (if c-progress-info
-	()
-      (setq c-progress-info (vector start
+  (cond
+   ;; Be silent
+   ((not c-progress-interval))
+   ;; Start the progress update messages.  If this Emacs doesn't have
+   ;; a built-in timer, just be dumb about it.
+   ((not (fboundp 'current-time))
+    (message "indenting region... (this may take a while)"))
+   ;; If progress has already been initialized, do nothing. otherwise
+   ;; initialize the counter with a vector of:
+   ;;     [start end lastsec context]
+   (c-progress-info)
+   (t (setq c-progress-info (vector start
 				    (save-excursion
 				      (goto-char end)
 				      (point-marker))
 				    (nth 1 (current-time))
 				    context))
-      (message "indenting region..."))))
+      (message "indenting region..."))
+   ))
 
 (defun c-progress-update ()
   ;; update progress
@@ -1169,12 +1181,14 @@ Optional SHUTUP-P if non-nil, inhibits message printing and error checking."
 
 (defun c-progress-fini (context)
   ;; finished
-  (if (or (eq context (aref c-progress-info 3))
-	  (eq context t))
-      (progn
-	(set-marker (aref c-progress-info 1) nil)
-	(setq c-progress-info nil)
-	(message "indenting region...done"))))
+  (if (not c-progress-interval)
+      nil
+    (if (or (eq context (aref c-progress-info 3))
+	    (eq context t))
+	(progn
+	  (set-marker (aref c-progress-info 1) nil)
+	  (setq c-progress-info nil)
+	  (message "indenting region...done")))))
 
 
 
