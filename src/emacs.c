@@ -103,6 +103,9 @@ void *malloc_state_ptr;
 extern void *malloc_get_state ();
 /* From glibc, a routine that overwrites the malloc internal state.  */
 extern void malloc_set_state ();
+/* Non-zero if the MALLOC_CHECK_ enviroment variable was set while
+   dumping.  Used to work around a bug in glibc's malloc.  */
+int malloc_using_checking;
 #endif
 
 /* Variable whose value is symbol giving operating system type.  */
@@ -565,9 +568,16 @@ main (argc, argv, envp)
 #ifdef DOUG_LEA_MALLOC
   if (initialized)
     {
+      if (!malloc_using_checking)
+	/* Work around a bug in glibc's malloc.  MALLOC_CHECK_ must be
+	   ignored if the heap to be restored was constructed without
+	   malloc checking.  */
+	unsetenv ("MALLOC_CHECK_");
       malloc_set_state (malloc_state_ptr);
       free (malloc_state_ptr);
     }
+  else
+    malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
 #endif
 
 #ifdef RUN_TIME_REMAP
