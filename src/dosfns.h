@@ -1,6 +1,9 @@
 /* MS-DOS specific Lisp utilities interface.
    Coded by Manabu Higashida, 1991.
-   Copyright (C) 1991 Free Software Foundation, Inc.
+   Modified by Morten Welinder, 1993-1994.
+
+   Copyright (C) 1991, 1994, 1995, 1997, 1999
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

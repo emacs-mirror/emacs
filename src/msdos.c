@@ -1,5 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1993, 94, 95, 96, 97, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
