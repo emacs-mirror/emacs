@@ -1179,6 +1179,13 @@ A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
 defined with defface.
 
+** face-attribute, face-foreground, face-background, and face-stipple now
+accept a new optional argument, INHERIT, which controls how face
+inheritance is used when determining the value of a face attribute.
+
+** New functions face-attribute-relative-p and merge-face-attribute
+help with handling relative face attributes.
+
 ** Enhanced networking support.
 
 *** There is a new `make-network-process' function which supports
@@ -1420,10 +1427,6 @@ refontification of `bar' whenever the `e' is added/removed.
 
 ** describe-vector now takes a second argument `describer' which is
 called to print the entries' values.  It defaults to `princ'.
-
-** face-attribute, face-foreground, face-background, and face-stipple now
-accept a new optional argument, INHERIT, which controls how face
-inheritance is used when determining the value of a face attribute.
 
 ** defcustom and other custom declarations now use a default group
 (the last group defined in the same file) when no :group was given.
