@@ -227,6 +227,24 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		    (cdr (assq 'tags-file-name (buffer-local-variables))))
 		  (and default-tags-table-function
 		       (funcall default-tags-table-function))
+		  ;; Look for a tags table that contains
+		  ;; tags for the current buffer's file.
+		  (let ((tables tags-table-list)
+			(this-file (buffer-file-name))
+			(found nil))
+		    (save-excursion
+		      (while tables
+			(if (assoc this-file
+				   (let ((tags-file-name (car tables)))
+				     (visit-tags-file nil)
+				     (or tags-table-files
+					 (setq tags-table-files
+					       (funcall
+						tags-table-files-function)))))
+			    (setq found (car tables)
+				  tables nil)
+			  (setq tables (cdr tables)))))
+		    found)
 		  (car tags-table-list-pointer)
 		  tags-file-name
 		  (expand-file-name
@@ -420,6 +438,9 @@ File names returned are absolute."
 	      (or default (error "There is no default tag"))
 	    spec))))
 
+(defvar last-tag nil
+  "Last tag found by \\[find-tag].")
+
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
   "Find tag (in current tags table) whose name contains TAGNAME.
@@ -438,21 +459,24 @@ See documentation of variable `tags-file-name'."
 		   '(nil t)
 		 (find-tag-tag "Find tag: ")))
   (let ((local-find-tag-hook find-tag-hook))
-    (if (not next-p)
-	(visit-tags-table-buffer 'reset))
-    (find-tag-in-order tagname
-		       (if regexp-p
-			   find-tag-regexp-search-function
-			 find-tag-search-function)
-		       (if regexp-p
-			   find-tag-regexp-tag-order
-			 find-tag-tag-order)
-		       (if regexp-p
-			   find-tag-regexp-next-line-after-failure-p
-			 find-tag-next-line-after-failure-p)
-		       (if regexp-p "matching" "containing")
-		       (not next-p))
-    (run-hooks 'local-find-tag-hook)))
+    (if next-p
+	nil
+      (setq last-tag tagname)
+      (visit-tags-table-buffer 'reset))
+    (prog1
+	(find-tag-in-order (if next-p last-tag tagname)
+			   (if regexp-p
+			       find-tag-regexp-search-function
+			     find-tag-search-function)
+			   (if regexp-p
+			       find-tag-regexp-tag-order
+			     find-tag-tag-order)
+			   (if regexp-p
+			       find-tag-regexp-next-line-after-failure-p
+			     find-tag-next-line-after-failure-p)
+			   (if regexp-p "matching" "containing")
+			   (not next-p))
+      (run-hooks 'local-find-tag-hook))))
 
 ;;;###autoload
 (defun find-tag (tagname &optional next-p)
