@@ -57,7 +57,12 @@ typedef unsigned long SIZE;
    overlap.  */
 extern void safe_bcopy ();
 
+#ifdef DOUG_LEA_MALLOC
+#define M_TOP_PAD           -2 
+extern int mallopt ();
+#else
 extern int __malloc_extra_blocks;
+#endif
 
 #else /* not emacs */
 
@@ -1119,9 +1124,13 @@ r_alloc_init ()
   page_size = PAGE;
   extra_bytes = ROUNDUP (50000);
 
+#ifdef DOUG_LEA_MALLOC
+    mallopt (M_TOP_PAD, 64 * 4096);
+#else
   /* Give GNU malloc's morecore some hysteresis
      so that we move all the relocatable blocks much less often.  */
   __malloc_extra_blocks = 64;
+#endif
 
   first_heap->end = (POINTER) ROUNDUP (first_heap->start);
 
