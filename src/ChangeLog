@@ -1,3 +1,7 @@
+2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (make_lispy_event): Apply modifiers to multibyte chars.
+
 2003-05-03  Dave Love  <fx@gnu.org>
 
 	* config.in: Add HAVE_LIBLOCKFILE.
@@ -34,8 +38,8 @@
 2003-02-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* process.c (emacs_get_tty_pgrp): New function.
-	(Fprocess_running_child_p, process_send_signal): Call
-        emacs_get_tty_pgrp instead of ioctl.
+	(Fprocess_running_child_p, process_send_signal):
+	Call emacs_get_tty_pgrp instead of ioctl.
 	(process_send_signal): Call EMACS_KILLPG if ioctl TIOCSIGSEND fails.
 
 2003-02-19  Juanma Barranquero  <lektu@terra.es>

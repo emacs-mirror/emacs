@@ -1,5 +1,5 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 2001
+   Copyright (C) 1985,86,87,88,89,93,94,95,96,97,99, 2000, 01, 2003
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4662,8 +4662,16 @@ make_lispy_event (event)
     case multibyte_char_keystroke:
       {
 	Lisp_Object lispy_c;
+	int c = event->code;
 
-	XSETFASTINT (lispy_c, event->code);
+	/* Add in the other modifier bits.  We took care of ctrl_modifier
+	   just above, and the shift key was taken care of by the X code,
+	   and applied to control characters by make_ctrl_char.  */
+	c |= (event->modifiers
+	      & (meta_modifier | alt_modifier
+		 | hyper_modifier | super_modifier | ctrl_modifier));
+
+	XSETFASTINT (lispy_c, c);
 	return lispy_c;
       }
 
@@ -4680,21 +4688,6 @@ make_lispy_event (event)
 				      lispy_accent_keys, &accent_key_syms,
 				      (sizeof (lispy_accent_keys)
 				       / sizeof (lispy_accent_keys[0])));
-
-      /* Handle system-specific keysyms.  */
-      if (event->code & (1 << 28))
-	{
-	  /* We need to use an alist rather than a vector as the cache
-	     since we can't make a vector long enuf.  */
-	  if (NILP (current_kboard->system_key_syms))
-	    current_kboard->system_key_syms = Fcons (Qnil, Qnil);
-	  return modify_event_symbol (event->code,
-				      event->modifiers,
-				      Qfunction_key,
-				      current_kboard->Vsystem_key_alist,
-				      0, &current_kboard->system_key_syms,
-				      (unsigned)-1);
-	}
 
 #ifdef XK_kana_A
       if (event->code >= 0x400 && event->code < 0x500)
@@ -4715,14 +4708,33 @@ make_lispy_event (event)
 				    iso_lispy_function_keys, &func_key_syms,
 				    (sizeof (iso_lispy_function_keys)
 				     / sizeof (iso_lispy_function_keys[0])));
-      else
 #endif
-	return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
-				    event->modifiers,
-				    Qfunction_key, Qnil,
-				    lispy_function_keys, &func_key_syms,
-				    (sizeof (lispy_function_keys)
-				     / sizeof (lispy_function_keys[0])));
+
+      /* Handle system-specific or unknown keysyms.  */
+      if (event->code & (1 << 28)
+	  || event->code - FUNCTION_KEY_OFFSET < 0
+	  || (event->code - FUNCTION_KEY_OFFSET
+	      >= sizeof lispy_function_keys / sizeof *lispy_function_keys)
+	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
+	{
+	  /* We need to use an alist rather than a vector as the cache
+	     since we can't make a vector long enuf.  */
+	  if (NILP (current_kboard->system_key_syms))
+	    current_kboard->system_key_syms = Fcons (Qnil, Qnil);
+	  return modify_event_symbol (event->code,
+				      event->modifiers,
+				      Qfunction_key,
+				      current_kboard->Vsystem_key_alist,
+				      0, &current_kboard->system_key_syms,
+				      (unsigned) -1);
+	}
+
+      return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
+				  event->modifiers,
+				  Qfunction_key, Qnil,
+				  lispy_function_keys, &func_key_syms,
+				  (sizeof (lispy_function_keys)
+				   / sizeof (lispy_function_keys[0])));
 
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
