@@ -1147,6 +1147,16 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function `add-minor-mode' simplifies the definition of minor
+modes.
+
+- Function: add-minor-mode SYMBOL NAME MAP
+
+Register a new minor mode.  SYMBOL is the name of a buffer-local
+variable that is toggled on or off to say whether the minor mode is
+active or not.  NAME is the string that will appear in the mode line
+when the minor mode is active.  MAP is the keymap for the minor mode.
+
 ** The function `shell-command' now sets the default directory of the
 `*Shell Command Output*' buffer to the default directory of the buffer
 from which the command was issued.
@@ -3803,8 +3813,13 @@ reminder about upcoming diary entries.  See the documentation string
 for a sample shell script for calling this function automatically
 every night.
 
-** All you need to do, to enable use of the Desktop package, is to set
+** Desktop changes
+
+*** All you need to do to enable use of the Desktop package, is to set
 the variable desktop-enable to t with Custom.
+
+*** Minor modes are now restored.  Which minor modes are restored
+and how modes are restored is controlled by `desktop-minor-mode-table'.
 
 ** There is no need to do anything special, now, to enable Gnus to
 read and post multi-lingual articles.

@@ -1,3 +1,21 @@
+2000-04-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* desktop.el (desktop-save): Save list of minor modes.
+	(desktop-create-buffer): Restore minor modes.
+	(desktop-minor-mode-table): New user-option.
+
+	* subr.el (add-minor-mode): New function.
+
+	* image.el (find-image): New function.
+	(defimage): Rewritten to find image at load time.
+
+	* startup.el (normal-top-level-add-to-load-path): Handle
+	case that the default directory is not in load-path.
+
+	* help.el: Old patch from Stefan Monnier.
+	(help-xref-on-pp): New function.
+	(describe-variable): Use it to display xrefs in a symbol's value.
+
 2000-04-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* cus-edit.el (custom-face): Fix parenthesis.

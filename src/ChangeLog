@@ -1,3 +1,9 @@
+2000-04-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_line): If lines are continued, restore
+	iterator's ascent/descent information to the values before the
+	first glyph not fitting on the line.
+
 2000-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_id) <all changes above window start>: Adjust

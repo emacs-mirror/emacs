@@ -3953,7 +3953,7 @@ the first time the mode is used." nil nil)
 ;;;***
 
 ;;;### (autoloads (desktop-load-default desktop-read) "desktop" "desktop.el"
-;;;;;;  (14495 17963))
+;;;;;;  (14598 57772))
 ;;; Generated autoloads from desktop.el
 
 (autoload (quote desktop-read) "desktop" "\
@@ -8017,9 +8017,9 @@ Switches to the buffer `*ielm*', or creates it if it does not exist." t nil)
 
 ;;;***
 
-;;;### (autoloads (defimage remove-images insert-image put-image
-;;;;;;  create-image image-type-available-p image-type-from-file-header
-;;;;;;  image-type-from-data) "image" "image.el" (14524 62778))
+;;;### (autoloads (defimage find-image remove-images insert-image
+;;;;;;  put-image create-image image-type-available-p image-type-from-file-header
+;;;;;;  image-type-from-data) "image" "image.el" (14598 54652))
 ;;; Generated autoloads from image.el
 
 (autoload (quote image-type-from-data) "image" "\
@@ -8073,6 +8073,21 @@ means display it in the right marginal area." nil nil)
 Remove images between START and END in BUFFER.
 Remove only images that were put in BUFFER with calls to `put-image'.
 BUFFER nil or omitted means use the current buffer." nil nil)
+
+(autoload (quote find-image) "image" "\
+Find an image, choosing one of a list of image specifications.
+
+SPECS is a list of image specifications.  DOC is an optional
+documentation string.
+
+Each image specification in SPECS is a property list.  The contents of
+a specification are image type dependent.  All specifications must at
+least contain the properties `:type TYPE' and either `:file FILE' or
+`:data DATA', where TYPE is a symbol specifying the image type,
+e.g. `xbm', FILE is the file to load the image from, and DATA is a
+string containing the actual image data.  The first image
+specification whose TYPE is supported, and FILE exists, is used to
+define SYMBOL." nil nil)
 
 (autoload (quote defimage) "image" "\
 Define SYMBOL as an image.
@@ -13361,7 +13376,7 @@ From a program takes two point or marker arguments, BEG and END." t nil)
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (14597 45194))
+;;;;;;  "speedbar.el" (14598 31838))
 ;;; Generated autoloads from speedbar.el
 
 (defalias (quote speedbar) (quote speedbar-frame-mode))
