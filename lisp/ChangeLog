@@ -1,3 +1,7 @@
+2002-06-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/bibtex.el: Change the maintainer to "none".
+
 2002-06-12  Juanma Barranquero  <lektu@terra>
 
 	* term/w32-win.el (x-handle-switch): Fix handling of
