@@ -5,7 +5,12 @@
 
 2001-12-17  Richard M. Stallman  <rms@gnu.org>
 
-	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)
+	* coding.c (code_convert_region): Update coding->cmp_data->char_offset
+	before calling decode_coding.
+
+	* charset.c (Fdefine_charset): Call Fupdate_coding_systems_internal.
+
+	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING_P (coding)
 	instead of only for COMPOSITION_DISABLED.
 
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
