@@ -255,13 +255,15 @@ and that its contents match what the master file says.")
 	 exec-path)
 	nil)))
 
-(defun vc-do-command (okstatus command file last &rest flags)
+(defun vc-do-command (buffer okstatus command file last &rest flags)
   "Execute a version-control command, notifying user and checking for errors.
+Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil.  
 The command is successful if its exit status does not exceed OKSTATUS.
-Output from COMMAND goes to buffer *vc*.  The last argument of the command is
-the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
-'WORKFILE; this is appended to an optional list of FLAGS."
+The last argument of the command is the master name of FILE if LAST is 
+`MASTER', or the workfile of FILE if LAST is `WORKFILE'; this is appended 
+to an optional list of FLAGS."
   (setq file (expand-file-name file))
+  (if (not buffer) (setq buffer "*vc*"))
   (if vc-command-messages
       (message "Running %s on %s..." command file))
   (let ((obuf (current-buffer)) (camefrom (current-buffer))
@@ -269,7 +271,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 	(vc-file (and file (vc-name file)))
 	(olddir default-directory)
 	status)
-    (set-buffer (get-buffer-create "*vc*"))
+    (set-buffer (get-buffer-create buffer))
     (set (make-local-variable 'vc-parent-buffer) camefrom)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name camefrom)))
@@ -302,7 +304,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
     (forward-line -1)
     (if (or (not (integerp status)) (< okstatus status))
 	(progn
-	  (pop-to-buffer "*vc*")
+	  (pop-to-buffer buffer)
 	  (goto-char (point-min))
 	  (shrink-window-if-larger-than-buffer)
 	  (error "Running %s...FAILED (%s)" command
@@ -458,7 +460,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
       (if (and vc-checkout-carefully
 	       (not (vc-workfile-unchanged-p file t)))
 	  (if (save-window-excursion
-		(pop-to-buffer "*vc*")
+		(pop-to-buffer "*vc-diff*")
 		(goto-char (point-min))
 		(insert-string (format "Changes to %s since last lock:\n\n"
 				       file))
@@ -477,7 +479,8 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 	    (if (not (eq vc-type 'SCCS))
 		(let ((rev (read-string "Branch or version to move to: ")))
 		  (if (eq vc-type 'RCS)
-		      (vc-do-command 0 "rcs" file 'MASTER (concat "-b" rev)))
+		      (vc-do-command nil 0 "rcs" file 'MASTER 
+				     (concat "-b" rev)))
 		  (vc-checkout file nil rev))
 	      (error "Sorry, this is not implemented for SCCS."))
 	  (vc-checkout-writable-buffer file))))
@@ -526,7 +529,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 	  (let ((rev (read-string "Trunk version to move to: ")))
 	    (if (not (string= rev ""))
 		(vc-checkout file nil rev)
-	      (vc-do-command 0 "cvs" file 'WORKFILE "update" "-A")
+	      (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A")
 	      (vc-checkout file)))
 	(setq buffer-read-only nil)
 	(vc-file-setprop file 'vc-locking-user (user-login-name))
@@ -975,7 +978,7 @@ and two version designators specifying which versions to compare."
 	;; problem is that the `old' file doesn't exist to be
 	;; visited.  This plays hell with numerous assumptions in
 	;; the diff.el and compile.el machinery.
-	(pop-to-buffer "*vc*")
+	(pop-to-buffer "*vc-diff*")
 	(setq default-directory (file-name-directory file))
 	(if (= 0 (buffer-size))
 	    (progn
@@ -1004,7 +1007,7 @@ files in or below it."
 		" and "
 		(or rel2 "current workfile(s)")
 		":\n\n")
-	(set-buffer (get-buffer-create "*vc*"))
+	(set-buffer (get-buffer-create "*vc-diff*"))
 	(cd file)
 	(vc-file-tree-walk
 	 (function (lambda (f)
@@ -1022,7 +1025,7 @@ files in or below it."
 	)
     (if (zerop (vc-backend-diff file rel1 rel2))
 	(message "No changes to %s between %s and %s." file rel1 rel2)
-      (pop-to-buffer "*vc*"))))
+      (pop-to-buffer "*vc-diff*"))))
 
 ;;;###autoload
 (defun vc-version-other-window (rev)
@@ -1525,7 +1528,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  ((file-exists-p "CVS") 'CVS)
 	  (t vc-default-back-end))))
     (cond ((eq backend 'SCCS)
-	   (vc-do-command 0 "admin" file 'MASTER	;; SCCS
+	   (vc-do-command nil 0 "admin" file 'MASTER	;; SCCS
 			  (and rev (concat "-r" rev))
 			  "-fb"
 			  (concat "-i" file)
@@ -1536,14 +1539,14 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   (file-name-nondirectory file)))
 	   (delete-file file)
 	   (if vc-keep-workfiles
-	       (vc-do-command 0 "get" file 'MASTER)))
+	       (vc-do-command nil 0 "get" file 'MASTER)))
 	  ((eq backend 'RCS)
-	   (vc-do-command 0 "ci" file 'MASTER	;; RCS
+	   (vc-do-command nil 0 "ci" file 'MASTER	;; RCS
 			  (concat (if vc-keep-workfiles "-u" "-r") rev)
 			  (and comment (concat "-t-" comment))
 			  file))
 	  ((eq backend 'CVS)
-	   (vc-do-command 0 "cvs" file 'WORKFILE ;; CVS
+	   (vc-do-command nil 0 "cvs" file 'WORKFILE ;; CVS
 			  "add"
 			  (and comment (string-match "[^\t\n ]" comment)
 			       (concat "-m" comment)))
@@ -1570,7 +1573,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	      (unwind-protect
 		  (progn
 		    (apply 'vc-do-command
-			   0 "/bin/sh" file 'MASTER "-c"
+			   nil 0 "/bin/sh" file 'MASTER "-c"
 			   ;; Some shells make the "" dummy argument into $0
 			   ;; while others use the shell's name as $0 and
 			   ;; use the "" as $1.  The if-statement
@@ -1588,12 +1591,12 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   vc-checkout-switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
-	  (apply 'vc-do-command 0 "get" file 'MASTER;; SCCS
+	  (apply 'vc-do-command nil 0 "get" file 'MASTER   ;; SCCS
 		 (if writable "-e")
 		 (and rev (concat "-r" (vc-lookup-triple file rev)))
 		 vc-checkout-switches)
 	  (vc-file-setprop file 'vc-workfile-version nil))
-	(if workfile;; RCS
+	(if workfile  ;; RCS
 	    ;; RCS doesn't let us check out into arbitrary file names directly.
 	    ;; Use `co -p' and make stdout point to the correct file.
 	    (let ((vc-modes (logior (file-modes (vc-name file))
@@ -1602,7 +1605,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	      (unwind-protect
 		  (progn
 		    (apply 'vc-do-command
-			   0 "/bin/sh" file 'MASTER "-c"
+			   nil 0 "/bin/sh" file 'MASTER "-c"
 			   ;; See the SCCS case, above, regarding the
 			   ;; if-statement.
 			   (format "if [ x\"$1\" = x ]; then shift; fi; \
@@ -1619,7 +1622,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		(and failed (file-exists-p filename) (delete-file filename))))
        (progn
 	 (apply 'vc-do-command
-		0 "co" file 'MASTER
+		nil 0 "co" file 'MASTER
 		(if writable "-l")
 		(if rev (concat "-r" rev)
 		  ;; if no explicit revision was specified,
@@ -1642,7 +1645,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	      (unwind-protect
 		  (progn
 		    (apply 'vc-do-command
-			   0 "/bin/sh" file 'WORKFILE "-c"
+			   nil 0 "/bin/sh" file 'WORKFILE "-c"
 			   "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
 			   ""		; dummy argument for shell's $0
 			   workfile
@@ -1651,7 +1654,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   vc-checkout-switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
-	  (apply 'vc-do-command 0 "cvs" file 'WORKFILE 
+	  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
 		 "update"
 		 (and rev (concat "-r" rev))
 		 vc-checkout-switches)
@@ -1697,18 +1700,18 @@ From a program, any arguments are passed to the `rcs2log' script."
     (vc-backend-dispatch file
       ;; SCCS
       (progn
-	(apply 'vc-do-command 0 "delta" file 'MASTER
+	(apply 'vc-do-command nil 0 "delta" file 'MASTER
 	       (if rev (concat "-r" rev))
 	       (concat "-y" comment)
 	       vc-checkin-switches)
 	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-workfile-version nil)
 	(if vc-keep-workfiles
-	    (vc-do-command 0 "get" file 'MASTER))
+	    (vc-do-command nil 0 "get" file 'MASTER))
 	)
       ;; RCS
       (let ((old-version (vc-workfile-version file)) new-version)
-	(apply 'vc-do-command 0 "ci" file 'MASTER
+	(apply 'vc-do-command nil 0 "ci" file 'MASTER
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
 	       (concat "-m" comment)
 	       vc-checkin-switches)
@@ -1733,22 +1736,22 @@ From a program, any arguments are passed to the `rcs2log' script."
 	 ((and old-version new-version
 	       (not (string= (vc-branch-part old-version)
 			     (vc-branch-part new-version))))
-	  (vc-do-command 0 "rcs" file 'MASTER 
+	  (vc-do-command nil 0 "rcs" file 'MASTER 
 			 (if (vc-trunk-p new-version) "-b"
 			   (concat "-b" (vc-branch-part new-version))))
 	  ;; exit status of 1 is also accepted.
 	  ;; It means that the lock was removed before.
-	  (vc-do-command 1 "rcs" file 'MASTER 
+	  (vc-do-command nil 1 "rcs" file 'MASTER 
 			 (concat "-u" old-version)))))
       ;; CVS
       (progn
 	;; explicit check-in to the trunk requires a 
         ;; double check-in (first unexplicit) (CVS-1.3)
 	(if (and rev (vc-trunk-p rev))
-	    (apply 'vc-do-command 0 "cvs" file 'WORKFILE 
+	    (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
 		   "ci" "-m" "intermediate"
 		   vc-checkin-switches))
-	(apply 'vc-do-command 0 "cvs" file 'WORKFILE 
+	(apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
 	       "ci" (if rev (concat "-r" rev))
 	       (concat "-m" comment)
 	       vc-checkin-switches)
@@ -1763,7 +1766,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (vc-file-setprop file 'vc-workfile-version nil))
 	;; if this was an explicit check-in, remove the sticky tag
 	(if rev
-	    (vc-do-command 0 "cvs" file 'WORKFILE "update" "-A"))
+	    (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
 	(vc-file-setprop file 'vc-locking-user 'none)
 	(vc-file-setprop file 'vc-checkout-time 
 			 (nth 5 (file-attributes file))))))
@@ -1778,15 +1781,15 @@ From a program, any arguments are passed to the `rcs2log' script."
    file
    ;; SCCS
    (progn
-     (vc-do-command 0 "unget" file 'MASTER nil)
-     (vc-do-command 0 "get" file 'MASTER nil))
+     (vc-do-command nil 0 "unget" file 'MASTER nil)
+     (vc-do-command nil 0 "get" file 'MASTER nil))
    ;; RCS
-   (vc-do-command 0 "co" file 'MASTER
+   (vc-do-command nil 0 "co" file 'MASTER
 		  "-f" (concat "-u" (vc-workfile-version file)))
    ;; CVS
    (progn
      (delete-file file)
-     (vc-do-command 0 "cvs" file 'WORKFILE "update")))
+     (vc-do-command nil 0 "cvs" file 'WORKFILE "update")))
   (vc-file-setprop file 'vc-locking-user 'none)
   (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
   (message "Reverting %s...done" file)
@@ -1797,10 +1800,10 @@ From a program, any arguments are passed to the `rcs2log' script."
   (message "Stealing lock on %s..." file)
   (vc-backend-dispatch file
    (progn				;SCCS
-     (vc-do-command 0 "unget" file 'MASTER "-n" (if rev (concat "-r" rev)))
-     (vc-do-command 0 "get" file 'MASTER "-g" (if rev (concat "-r" rev)))
+     (vc-do-command nil 0 "unget" file 'MASTER "-n" (if rev (concat "-r" rev)))
+     (vc-do-command nil 0 "get" file 'MASTER "-g" (if rev (concat "-r" rev)))
      )
-   (vc-do-command 0 "rcs" file 'MASTER	;RCS
+   (vc-do-command nil 0 "rcs" file 'MASTER	;RCS
 		  "-M" (concat "-u" rev) (concat "-l" rev))
    (error "You cannot steal a CVS lock; there are no CVS locks to steal.") ;CVS
    )
@@ -1813,27 +1816,27 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; smarter when we support multiple branches.
   (message "Removing last change from %s..." file)
   (vc-backend-dispatch file
-   (vc-do-command 0 "rmdel" file 'MASTER (concat "-r" target))
-   (vc-do-command 0 "rcs" file 'MASTER (concat "-o" target))
+   (vc-do-command nil 0 "rmdel" file 'MASTER (concat "-r" target))
+   (vc-do-command nil 0 "rcs" file 'MASTER (concat "-o" target))
    nil  ;; this is never reached under CVS
    )
   (message "Removing last change from %s...done" file)
   )
 
 (defun vc-backend-print-log (file)
-  ;; Print change log associated with FILE to buffer *vc*.
+  ;; Get change log associated with FILE.
   (vc-backend-dispatch 
    file
-   (vc-do-command 0 "prs" file 'MASTER)
-   (vc-do-command 0 "rlog" file 'MASTER)
-   (vc-do-command 0 "cvs" file 'WORKFILE "rlog")))
+   (vc-do-command nil 0 "prs" file 'MASTER)
+   (vc-do-command nil 0 "rlog" file 'MASTER)
+   (vc-do-command nil 0 "cvs" file 'WORKFILE "rlog")))
 
 (defun vc-backend-assign-name (file name)
   ;; Assign to a FILE's latest version a given NAME.
   (vc-backend-dispatch file
-   (vc-add-triple name file (vc-latest-version file))   	;; SCCS
-   (vc-do-command 0 "rcs" file 'MASTER (concat "-n" name ":"))	;; RCS
-   (vc-do-command 0 "cvs" file 'WORKFILE "tag" name)	        ;; CVS
+   (vc-add-triple name file (vc-latest-version file))              ;; SCCS
+   (vc-do-command nil 0 "rcs" file 'MASTER (concat "-n" name ":")) ;; RCS
+   (vc-do-command nil 0 "cvs" file 'WORKFILE "tag" name)	   ;; CVS
    )
   )
 
@@ -1862,10 +1865,11 @@ From a program, any arguments are passed to the `rcs2log' script."
 				   (if (listp diff-switches)
 				       diff-switches
 				     (list diff-switches)))))
-	     (status (apply 'vc-do-command 2 command file mode options)))
+	     (status (apply 'vc-do-command "*vc-diff*" 2 
+			    command file mode options)))
 	;; Some RCS versions don't understand "--brief"; work around this.
 	(if (eq status 2)
-	    (apply 'vc-do-command 1 command file 'WORKFILE
+	    (apply 'vc-do-command "*vc-diff*" 1 command file 'WORKFILE
 		   (if cmp (cdr options) options))
 	  status)))
      ;; CVS is different.  
@@ -1877,12 +1881,12 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (if (or oldvers newvers)
 	      (error "No revisions of %s exists" file)
 	    (apply 'vc-do-command
-		   1 "diff" file 'WORKFILE "/dev/null"
+		   "*vc-diff*" 1 "diff" file 'WORKFILE "/dev/null"
 		   (if (listp diff-switches)
 		       diff-switches
 		     (list diff-switches))))
 	(apply 'vc-do-command
-	       1 "cvs" file 'WORKFILE "diff"
+	       "*vc-diff*" 1 "cvs" file 'WORKFILE "diff"
 	       (and oldvers (concat "-r" oldvers))
 	       (and newvers (concat "-r" newvers))
 	       (if (listp diff-switches)
@@ -1901,7 +1905,7 @@ From a program, any arguments are passed to the `rcs2log' script."
      (vc-file-clear-masterprops file)
      (vc-file-setprop file 'vc-workfile-version nil)
      (vc-file-setprop file 'vc-locking-user nil)
-     (vc-do-command 1 "cvs" file 'WORKFILE "update"))
+     (vc-do-command nil 1 "cvs" file 'WORKFILE "update"))
    ))
 
 (defun vc-check-headers ()
