@@ -77,6 +77,9 @@ extern void cache_system_info (void);
 extern unsigned char *round_to_next (unsigned char *address, 
 				     unsigned long align);
 
+/* Report a fatal error during dumped heap management.  */
+void w32_fatal_reload_error (char *step);
+
 /* ----------------------------------------------------------------- */
 /* Useful routines for manipulating memory-mapped files. */
 
