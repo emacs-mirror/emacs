@@ -1,3 +1,12 @@
+2003-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (decode-coding-inserted-region): Renamed
+	from decode-coding-region-as-inserted-from-file to make it fit
+	well in the Lisp manual.
+
+	* jka-compr.el (jka-compr-insert-file-contents): Call
+	docode-coding-inserted-region.
+
 2003-01-24  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-window-list): Remove.
