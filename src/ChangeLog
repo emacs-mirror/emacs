@@ -1,5 +1,8 @@
 2001-04-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (delete_kboard): Prevent a dangling reference
+	from current_kboard to KB, which is freed.
+
 	* process.c (wait_reading_process_input): Call
 	record_asynch_buffer_change after running timers, to make
 	read_key_sequence aware of buffer changes from under it.
