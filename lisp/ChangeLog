@@ -1,5 +1,8 @@
 2003-11-07  Andreas Schwab  <schwab@suse.de>
 
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Also
+	highlight AH_*.
+
 	* xml.el (xml-parse-dtd): Fix misplaced paren.
 
 2003-11-07  Kenichi Handa  <handa@m17n.org>
