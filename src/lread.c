@@ -2135,13 +2135,10 @@ read1 (readcharfun, pch, first_in_list)
 
     case '.':
       {
-	/* If a period is followed by a number, then we should read it
-	   as a floating point number.  Otherwise, it denotes a dotted
-	   pair.  */
 	int next_char = READCHAR;
 	UNREAD (next_char);
 
-	if (! (next_char >= '0' && next_char <= '9'))
+	if (next_char <= 040)
 	  {
 	    *pch = c;
 	    return Qnil;
