@@ -1,13 +1,14 @@
 /*  impl.c.btss: BIT TABLE COVERAGE TEST
  *
- *  $HopeName: MMsrc!btcv.c(trunk.1) $
- * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
+ *  $HopeName: MMsrc!btcv.c(trunk.2) $
+ * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
  *
  * .readership: MPS developers
  *
  * .coverage: Direct coverage of BTFind*ResRange*, BTRangesSame,
- * BTISResRange, BTIsSetRange. Reasonable coverage of BTCopyInvertRange,
- * BTResRange, BTSetRange, BTRes, BTSet, BTCreate, BTDestroy.
+ * BTISResRange, BTIsSetRange, BTCopyRange, BTCopyOffsetRange. 
+ * Reasonable coverage of BTCopyInvertRange, BTResRange, 
+ * BTSetRange, BTRes, BTSet, BTCreate, BTDestroy.
  */
 
 
@@ -19,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.1) $");
+SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.2) $");
 
 
 static void die_bool(Bool res, Bool expected, const char *s)
@@ -447,6 +448,70 @@ static void btIsRangeTests(BT bt1, BT bt2, Count btSize,
 }
 
 
+/* btCopyTests -- Test BTCopyRange & BTCopyOffsetRange
+ *
+ * Test copying ranges which are all reset or set apart from
+ * single bits near to the base and limit (both inside and outside
+ * the range).
+ *
+ */
+
+static void btCopyTests(BT bt1, BT bt2, Count btSize, 
+                        Index base, Index limit)
+{
+  Index minBase, maxLimit, b, l;
+
+  if (base > 0) {
+    minBase = base - 1;
+  } else {
+    minBase = 0;
+  }
+
+  if (limit < btSize) {
+    maxLimit = limit + 1;
+  } else {
+    maxLimit = btSize;
+  }
+
+  for (b = minBase; b <= base+1; b++) {
+    for (l = maxLimit; l >= limit-1; l--) {
+      /* initialize a table which is all reset apart from a set bit */
+      /* near each of the base and limit of the range in question */
+
+      BTResRange(bt1, 0, btSize);
+      BTSet(bt1, b);
+      BTSet(bt1, l - 1);
+
+      /* check copying the region to the bottom of the other table */
+      BTCopyOffsetRange(bt1, bt2, b, l, 0, l - b);
+      die_bool(BTGet(bt2, 0), TRUE, "BTGet");
+      die_bool(BTGet(bt2, l - b - 1), TRUE, "BTGet");
+      BTRes(bt2, 0);
+      BTRes(bt2, l - b - 1);
+      die_bool(BTIsResRange(bt2, 0, l - b), TRUE, "BTIsResRange");
+
+      /* check copying the region to the top of the other table */
+      BTCopyOffsetRange(bt1, bt2, b, l, btSize + b - l, btSize);
+      die_bool(BTGet(bt2, btSize - 1), TRUE, "BTGet");
+      die_bool(BTGet(bt2, btSize + b - l), TRUE, "BTGet");
+      BTRes(bt2, btSize - 1);
+      BTRes(bt2, btSize + b - l);
+      die_bool(BTIsResRange(bt2, btSize + b - l, btSize), TRUE, 
+               "BTIsResRange");
+
+      /* copy the whole table and check its the same */
+      BTCopyRange(bt1, bt2, 0, btSize);
+      die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
+
+      /* invert the table, then copy it all and check it again */
+      BTCopyInvertRange(bt2, bt1, 0, btSize);
+      BTCopyRange(bt1, bt2, 0, btSize);
+      die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
+    }
+  }
+}
+
+
 
 /* btTests --  Do all the tests 
  */
@@ -460,6 +525,9 @@ static void btTests(BT btlo, BT bthi, Count btSize)
     for (limit = btSize; limit > (btSize-MPS_WORD_WIDTH); limit--) {
       /* Perform Is*Range tests over those subranges */
       btIsRangeTests(btlo, bthi, btSize, base, limit);
+
+      /* Perform Copy*Range tests over those subranges */
+      btCopyTests(btlo, bthi, btSize, base, limit);
 
       /* Perform FindResRange tests with different lengths */
       btFindRangeTests(btlo, bthi, btSize, base, limit, 1);
