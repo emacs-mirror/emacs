@@ -141,14 +141,21 @@ DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
   return selected_window;
 }
 
-DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 0, 0,
-  "Return the window used now for minibuffers.")
-  ()
+DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
+  "Return the window used now for minibuffers.\n\
+If the optional argument FRAME is specified, return the minibuffer window\n\
+used by that frame.")
+  (frame)
+    Lisp_Object frame;
 {
 #ifdef MULTI_FRAME
-  choose_minibuf_frame ();
-#endif /* MULTI_FRAME */
-  return minibuf_window;
+  if (NILP (frame))
+    XSET (frame, Lisp_Frame, selected_frame);
+  else
+    CHECK_LIVE_FRAME (frame, 0);
+#endif
+
+  return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 1, 1, 0,
@@ -2346,6 +2353,11 @@ by `current-window-configuration' (which see).")
   int k;
   FRAME_PTR f;
 
+  /* Save screen height here so we can go back to it at the end.  */
+  int previous_frame_height;
+  int previous_frame_width;
+  int frame_size_change;
+
   while (XTYPE (configuration) != Lisp_Window_Configuration)
     {
       configuration = wrong_type_argument (intern ("window-configuration-p"),
@@ -2360,12 +2372,14 @@ by `current-window-configuration' (which see).")
   if (XFASTINT (data->frame_height) != FRAME_HEIGHT (f)
       || XFASTINT (data->frame_width) != FRAME_WIDTH (f))
     {
-      /* Presumably something clever could be done.
-	 However, it doesn't seem worth the effort */
-      error ("Frame size %dx%d in saved window configuration mismatches frame.",
-	     XFASTINT (data->frame_height),
-	     XFASTINT (data->frame_width));
+      previous_frame_height = FRAME_HEIGHT (f);
+      previous_frame_width =  FRAME_WIDTH  (f);
+      frame_size_change = 1;
+
+      change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
     }
+  else
+    frame_size_change = 0;
 
   windows_or_buffers_changed++;
   new_current_buffer = data->current_buffer;
@@ -2467,6 +2481,10 @@ by `current-window-configuration' (which see).")
   if (f != selected_frame && ! FRAME_TERMCAP_P (f))
     Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
 #endif
+
+  /* Set the screen height to the value it had before this function.  */
+  if (frame_size_change)
+    change_frame_size (f, previous_frame_height, previous_frame_width, 0, 0);
 
   if (f == selected_frame)
     {
