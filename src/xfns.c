@@ -10298,9 +10298,9 @@ hide_busy_cursor ()
 static Lisp_Object x_create_tip_frame P_ ((struct x_display_info *,
 					   Lisp_Object));
      
-/* The frame of a currently visible tooltip, or null.  */
+/* The frame of a currently visible tooltip.  */
 
-struct frame *tip_frame;
+Lisp_Object tip_frame;
 
 /* If non-nil, a timer started that hides the last tooltip when it
    fires.  */
@@ -10347,7 +10347,7 @@ x_create_tip_frame (dpyinfo, parms)
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
-  tip_frame = f = make_frame (1);
+  f = make_frame (1);
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
 
@@ -10560,6 +10560,7 @@ x_create_tip_frame (dpyinfo, parms)
      below.  And the frame needs to be on Vframe_list or making it
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
+  tip_frame = frame;
 
   /* Now that the frame is official, it counts as a reference to
      its display.  */
@@ -10644,7 +10645,7 @@ DY added (default is -10).")
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
   frame = x_create_tip_frame (FRAME_X_DISPLAY_INFO (f), parms);
-  tip_frame = f = XFRAME (frame);
+  f = XFRAME (frame);
 
   /* Set up the frame's root window.  Currently we use a size of 80
      columns x 40 lines.  If someone wants to show a larger tip, he
@@ -10749,25 +10750,35 @@ DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
 Value is t is tooltip was open, nil otherwise.")
   ()
 {
-  int count = specpdl_ptr - specpdl;
-  int deleted_p = 0;
+  int count;
+  Lisp_Object deleted;
+
+  /* Return quickly if nothing to do.  */
+  if (NILP (tip_timer) && !FRAMEP (tip_frame))
+    return Qnil;
   
+  count = BINDING_STACK_SIZE ();
+  deleted = Qnil;
   specbind (Qinhibit_redisplay, Qt);
+  specbind (Qinhibit_quit, Qt);
   
   if (!NILP (tip_timer))
     {
-      call1 (intern ("cancel-timer"), tip_timer);
+      Lisp_Object tem = tip_timer;
       tip_timer = Qnil;
+      call1 (intern ("cancel-timer"), tem);
     }
 
-  if (tip_frame)
+  if (FRAMEP (tip_frame))
     {
       Lisp_Object frame;
-	
-      XSETFRAME (frame, tip_frame);
-      Fdelete_frame (frame, Qt);
-      tip_frame = NULL;
-      deleted_p = 1;
+      struct gcpro gcpro1;
+
+      frame = tip_frame;
+      GCPRO1 (frame);
+      tip_frame = Qnil;
+      Fdelete_frame (frame, Qnil);
+      deleted = Qt;
 
 #ifdef USE_LUCID
       /* Bloodcurdling hack alert: The Lucid menu bar widget's
@@ -10789,7 +10800,7 @@ Value is t is tooltip was open, nil otherwise.")
 #endif /* USE_LUCID */
     }
 
-  return unbind_to (count, deleted_p ? Qt : Qnil);
+  return unbind_to (count, deleted);
 }
 
 
@@ -11330,8 +11341,10 @@ meaning don't clear the cache.");
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
-  staticpro (&tip_timer);
   tip_timer = Qnil;
+  staticpro (&tip_timer);
+  tip_frame = Qnil;
+  staticpro (&tip_frame);
 
 #ifdef USE_MOTIF
   defsubr (&Sx_file_dialog);
