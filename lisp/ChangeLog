@@ -1,5 +1,10 @@
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rmailedit.el (rmail-edit-mode-hook): Add :version.
+
+	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): Add
+	:version.
+	
 	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): New
 	option.
 	(smtpmail-via-smtp): Print warnings about unknown SMTP extensions
