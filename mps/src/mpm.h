@@ -1,10 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
-<<<<<<< fleece:trunk:src:mpm.h
- * $HopeName: MMsrc!mpm.h(trunk.25) $
-=======
- * $HopeName: MMsrc!mpm.h(MMdevel_bufferscan.2) $
->>>>>>> 1.25.2.2
+ * $HopeName: MMsrc!mpm.h(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -195,7 +191,7 @@ extern Ring (RingNext)(Ring ring);
       var = RingNext(var))
 
 
-/* Bit Table Interface -- see design.mps.bt for the interface doc */
+/* Bit Table Interface -- see design.mps.bt.if.* for the interface doc */
 
 /* design.mps.bt.if.size */
 Size BTSize(unsigned long);
@@ -223,7 +219,7 @@ void (BTRes)(BT, Index);
 
 void BTSetRange(BT, Index, Index);
 void BTResRange(BT, Index, Index);
-Bool BTFindResRange(Index *, unsigned long *,
+Bool BTFindResRange(Index *, Index *,
                     BT, unsigned long, unsigned long);
 
 
