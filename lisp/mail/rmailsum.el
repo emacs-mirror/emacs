@@ -1210,7 +1210,7 @@ move to the previous message."
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (when (rmail-confirm-expunge)
+    (when (rmail-expunge-confirmed)
       (rmail-only-expunge)))
   (rmail-update-summary))
 
@@ -1219,7 +1219,7 @@ move to the previous message."
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (when (rmail-confirm-expunge)
+    (when (rmail-expunge-confirmed)
       (rmail-only-expunge)))
   (rmail-update-summary)
   (save-excursion
