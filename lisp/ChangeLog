@@ -1,5 +1,7 @@
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* net/ldap.el (ldap-search-internal): Handle <file://...> in results.
+
 	* simple.el (line-move-invisible): New subroutine.
 	(line-move-to-column): New subroutine--smarter about advancing over
 	invisible parts of a line, or lines, but only as long as hpos grows.
