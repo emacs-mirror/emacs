@@ -1,3 +1,7 @@
+2001-05-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (GLYPH_CHAR_VALID_P): Use CHAR_VALID_P.
+
 2001-05-09  Dave Love  <fx@gnu.org>
 
 	* xdisp.c (GIVE_UP): Fix for K&R C.
