@@ -189,6 +189,7 @@ read_score(FILE *f, struct score_entry *score)
     ;
   if (c == EOF)
     return -1;
+  ungetc(c, f);
 #ifdef HAVE_GETDELIM
   {
     int count = 0;
@@ -200,7 +201,9 @@ read_score(FILE *f, struct score_entry *score)
   {
     int unameread = 0;
     int unamelen = 30;
-    char *username;
+    char *username = malloc(unamelen);
+    if (!username)
+      return -1;
     
     while ((c = getc(f)) != EOF
 	   && !isspace(c))
@@ -213,6 +216,9 @@ read_score(FILE *f, struct score_entry *score)
 	username[unameread] = c;
 	unameread++;
       }
+    if (c == EOF)    
+      return -1;
+    username[unameread] = '\0';
     score->username = username;
   }
 #endif
@@ -231,7 +237,8 @@ read_score(FILE *f, struct score_entry *score)
     char *buf = malloc(len);
     if (!buf)
       return -1;
-    while ((c = getc(f)) != EOF)
+    while ((c = getc(f)) != EOF
+	   && c != '\n')
       {
 	if (cur >= len-1)
 	  {
@@ -242,7 +249,6 @@ read_score(FILE *f, struct score_entry *score)
 	cur++;
       }
     score->data = buf;
-    score->data[cur+1] = '\0';
   }
 #endif
   /* Trim the newline */
