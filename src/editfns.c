@@ -39,6 +39,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 extern void insert_from_buffer ();
+static long difftm ();
 
 /* Some static data, and a function to initialize it for each run */
 
@@ -703,6 +704,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
      Lisp_Object specified_time;
 {
   time_t time_spec;
+  struct tm save_tm;
   struct tm *decoded_time;
   Lisp_Object list_args[9];
   
@@ -710,15 +712,22 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
     error ("Invalid time specification");
 
   decoded_time = localtime (&time_spec);
-  list_args[0] = XFASTINT (decoded_time->tm_sec);
-  list_args[1] = XFASTINT (decoded_time->tm_min);
-  list_args[2] = XFASTINT (decoded_time->tm_hour);
-  list_args[3] = XFASTINT (decoded_time->tm_mday);
-  list_args[4] = XFASTINT (decoded_time->tm_mon + 1);
-  list_args[5] = XFASTINT (decoded_time->tm_year + 1900);
-  list_args[6] = XFASTINT (decoded_time->tm_wday);
+  XSETFASTINT (list_args[0], decoded_time->tm_sec);
+  XSETFASTINT (list_args[1], decoded_time->tm_min);
+  XSETFASTINT (list_args[2], decoded_time->tm_hour);
+  XSETFASTINT (list_args[3], decoded_time->tm_mday);
+  XSETFASTINT (list_args[4], decoded_time->tm_mon + 1);
+  XSETFASTINT (list_args[5], decoded_time->tm_year + 1900);
+  XSETFASTINT (list_args[6], decoded_time->tm_wday);
   list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
-  list_args[8] = XINT (decoded_time->tm_gmtoff);
+
+  /* Make a copy, in case gmtime modifies the struct.  */
+  save_tm = *decoded_time;
+  decoded_time = gmtime (&time_spec);
+  if (decoded_time == 0)
+    list_args[8] = Qnil;
+  else
+    XSETINT (list_args[8], difftm (&save_tm, decoded_time));
   return Flist (9, list_args);
 }
 
