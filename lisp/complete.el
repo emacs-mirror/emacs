@@ -370,7 +370,7 @@ The function takes no arguments, and typically looks at the value
 of `minibuffer-completion-table' and the minibuffer contents.")
 
 (defun PC-do-completion (&optional mode beg end)
-  (or beg (setq beg (point-min)))
+  (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
   (let* ((table minibuffer-completion-table)
 	 (pred minibuffer-completion-predicate)
@@ -646,7 +646,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 		  ;; We changed it... enough to be complete?
 		  (and (eq mode 'exit)
-		       (PC-is-complete-p (buffer-string) table pred))
+		       (PC-is-complete-p (field-string) table pred))
 
 		;; If totally ambiguous, display a list of completions
 		(if (or completion-auto-help
