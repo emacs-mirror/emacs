@@ -1,3 +1,7 @@
+2003-09-19  Dave Love  <fx@gnu.org>
+
+	* alloc.c (GC_MALLOC_CHECK): Move conditional undef after lisp.h.
+
 2003-09-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_set_offset): Take window manager decorations
@@ -16,6 +20,8 @@
 	(Flocal_variable_p): Delete duplicate call to indirect_variable.
 
 2003-09-18  Dave Love  <fx@gnu.org>
+
+	* alloc.c (GC_MALLOC_CHECK): Move conditional undef after lisp.h.
 
 	* process.c (Fnetwork_interface_info): Fix type error.
 	(Fnetwork_interface_list): Doc fix.
