@@ -38,12 +38,14 @@ Function to indent current line.")
   (interactive)
   (funcall indent-line-function))
 
-(defun indent-for-tab-command ()
+(defun indent-for-tab-command (&optional prefix-arg)
   "Indent line in proper way for current major mode."
-  (interactive)
+  (interactive "P")
   (if (eq indent-line-function 'indent-to-left-margin)
       (insert-tab)
-    (funcall indent-line-function)))
+    (if prefix-arg
+	(funcall indent-line-function prefix-arg)
+      (funcall indent-line-function))))
 
 (defun insert-tab ()
   (if abbrev-mode
