@@ -1,3 +1,35 @@
+2003-06-02  Dave Love  <fx@gnu.org>
+
+	* callproc.c: Use HAVE_FCNTL_H, not USG5.
+	(syms_of_callproc) <process-environment>: Doc fix.
+
+	* doc.c: Use HAVE_FCNTL_H, not USG5.
+
+	* xfaces.c (font_rescale_ratio): Fix for K&R.
+
+	* termcap.c: Use HAVE_FCNTL_H, not _POSIX_VERSION.
+
+	* mem-limits.h: Use HAVE_SYS_RESOURCE_H, HAVE_SYS_VLIMIT_H.
+
+	* lread.c [HAVE_FCNTL_H]: Include fcntl.h.
+
+	* gtkutil.c: Include keyboard.h, charset.h, coding.h.
+	(xg_create_frame_widgets): Use ENCODE_UTF_8.
+
+	* xterm.c (Qutf_8): Moved to coding.c
+
+	* xmenu.c (ENCODE_MENU_STRING): New.
+	(list_of_panes, list_of_items, digest_single_submenu, xmenu_show):
+	Use it.
+
+	* coding.h (ENCODE_UTF_8): New.
+	(Qutf_8): Declare.
+
+	* coding.c (Qutf_8): New.
+	(syms_of_coding): Intern it.
+
+	* fns.c: Doc fixes.
+
 2003-06-02  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Fset_buffer_multibyte): Fix previous change.
