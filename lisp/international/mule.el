@@ -962,8 +962,9 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 
 	(setq found-eol (coding-system-eol-type coding))
 	(if (null (numberp found-eol))
-	    ;; But eol-type is not found.
-	    (setq found-eol nil))
+  	    ;; But eol-type is not found.
+	    ;; If EOL conversions are inhibited, force unix eol-type.
+	    (setq found-eol (if inhibit-eol-conversion 0)))
 	(if (eq (coding-system-type coding) t)
 	    (setq found-coding 'undecided)
 	  (setq found-coding (coding-system-base coding)))
