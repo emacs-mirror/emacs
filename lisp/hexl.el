@@ -251,6 +251,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
   (run-hooks 'hexl-mode-hook))
 
 (defun hexl-after-revert-hook ()
+  (setq hexl-max-address (1- (buffer-size)))
   (hexlify-buffer)
   (set-buffer-modified-p nil))
 
@@ -349,7 +350,7 @@ Ask the user for confirmation."
     hexl-address))
 
 (defun hexl-address-to-marker (address)
-  "Return marker for ADDRESS."
+  "Return buffer position for ADDRESS."
   (interactive "nAddress: ")
   (+ (* (/ address 16) 68) 11 (/ (* (% address 16) 5) 2)))
 
@@ -611,7 +612,9 @@ This discards the buffer's undo information."
 		  'raw-text-unix)
 		 (t 'no-conversion))))
 	(buffer-undo-list t))
-    (shell-command-on-region (point-min) (point-max) hexlify-command t)))
+    (shell-command-on-region (point-min) (point-max) hexlify-command t)
+    (if (> (point) (hexl-address-to-marker hexl-max-address))
+	(hexl-goto-address hexl-max-address))))
 
 (defun dehexlify-buffer ()
   "Convert a hexl format buffer to binary.
