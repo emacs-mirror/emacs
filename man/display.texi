@@ -888,6 +888,12 @@ or off, customize the group @code{cursor}.  You can also control the
 amount of time Emacs must remain busy before the busy indicator is
 displayed, by setting the variable @code{hourglass-delay}.
 
+@findex tty-suppress-bold-inverse-default-colors
+  On some text-only terminals, bold face and inverse video together
+result in text that is hard to read.  Call the function
+@code{tty-suppress-bold-inverse-default-colors} with a non-@code{nil}
+argument to suppress the effect of bold-face in this case.
+
 @node Cursor Display
 @section Displaying the Cursor
 
