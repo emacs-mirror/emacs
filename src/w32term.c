@@ -1238,18 +1238,22 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 
       if (retval)
 	{
+#if 0
+	  /* Disabled until we can find a way to get the right results
+	     on all versions of Windows.  */
+
 	  /* Don't trust the ABC widths.  For synthesized fonts they are
 	     wrong, and so is the result of GetCharWidth()!  */
 	  int real_width;
 	  GetCharWidth (hdc, *char2b, *char2b, &real_width);
-
+#endif
 	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
-
+#if 0
 	  /* As far as I can tell, this is the best way to determine what
 	     ExtTextOut will do with the broken font.  */
 	  if (pcm->width != real_width)
 	    pcm->width = (pcm->width + real_width) / 2;
-
+#endif
 	  pcm->lbearing = char_widths.abcA;
 	  pcm->rbearing = pcm->width - char_widths.abcC;
 	  pcm->ascent = FONT_BASE (font);

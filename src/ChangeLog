@@ -1,3 +1,7 @@
+2002-02-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_native_per_char_metric):  Disable 2002-01-20 change.
+
 2002-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* charset.c (get_charset_id): Use if-else instead of ?:.
