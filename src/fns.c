@@ -2418,7 +2418,7 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
       elt = XCHAR_TABLE (table)->contents[i];
       if (!SUB_CHAR_TABLE_P (elt))
 	continue;
-      dim = CHARSET_DIMENSION (i);
+      dim = CHARSET_DIMENSION (i - 128);
       if (dim == 2)
 	for (j = 32; j < SUB_CHAR_TABLE_ORDINARY_SLOTS; j++)
 	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, dim);
