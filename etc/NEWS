@@ -918,6 +918,9 @@ roughly imitating those of Outline minor mode.  Notably, the prefix
 for all bindings is now `C-c @'.  For details, see the documentation
 for `hs-minor-mode'.
 
+*** The variable `hs-show-hidden-short-form' has been removed, and
+hideshow.el now always behaves as if this variable were set to t.
+
 ** Changes to Change Log mode and Add-Log functions
 
 +++
