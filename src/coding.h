@@ -138,9 +138,13 @@ enum iso_code_class_type
 /* If set, do not encode unexpected charactes on output.  */
 #define CODING_FLAG_ISO_SAFE		0x0800
 
+/* If set, extra latin codes (128..159) are accepted as a valid code
+   on input.  */
+#define CODING_FLAG_ISO_LATIN_EXTRA	0x1000
+
 /* A character to be produced on output if encoding of the original
    character is prohibited by CODING_FLAG_ISO_SAFE.  */
-#define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* `?' */
+#define CODING_INHIBIT_CHARACTER_SUBSTITUTION  077 /* 077 == `?' */
 
 /* Structure of the field `spec.iso2022' in the structure `coding_system'.  */
 struct iso2022_spec
