@@ -1454,6 +1454,7 @@ See also the function `condition-case'.  */)
   struct backtrace *bp;
 
   immediate_quit = handling_signal = 0;
+  abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
     abort ();
 
