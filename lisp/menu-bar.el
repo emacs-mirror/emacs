@@ -413,35 +413,62 @@ Do the same for the keys of the same name."
 			    (or font-lock-support-mode
 				(setq font-lock-support-mode 'lazy-lock-mode)))
 			(global-font-lock-mode)))
+
+(defvar menu-bar-describe-menu (make-sparse-keymap "Describe"))
+
+(define-key menu-bar-describe-menu [describe-variable]
+  '("Describe Variable..." . describe-variable))
+(define-key menu-bar-describe-menu [describe-function]
+  '("Describe Function..." . describe-function))
+(define-key menu-bar-describe-menu [describe-key]
+  '("Describe Key..." . describe-key))
+(define-key menu-bar-describe-menu [list-keybindings]
+  '("List Key Bindings" . describe-bindings))
+(define-key menu-bar-describe-menu [command-apropos]
+  '("Apropos Variables..." . apropos-variable))
+(define-key menu-bar-describe-menu [command-apropos]
+  '("Apropos Commands..." . command-apropos))
+(define-key menu-bar-describe-menu [describe-mode]
+  '("Describe Buffer Modes" . describe-mode))
+
+(defvar menu-bar-manuals-menu (make-sparse-keymap "Manuals"))
+
+(define-key menu-bar-manuals-menu [man]
+  '("Read Man Page..." . manual-entry))
+(define-key menu-bar-manuals-menu [sep2]
+  '("--"))
+(define-key menu-bar-manuals-menu [key]
+  '("Find Key in Manual" . Info-goto-emacs-key-command-node))
+(define-key menu-bar-manuals-menu [command]
+  '("Find Command in Manual" . Info-goto-emacs-command-node))
+(define-key menu-bar-manuals-menu [info]
+  '("Browse Manuals with Info" . info))
+(define-key menu-bar-manuals-menu [sep1]
+  '("--"))
+(define-key menu-bar-manuals-menu [emacs-faq]
+  '("Emacs FAQ" . view-emacs-FAQ))
+(define-key menu-bar-manuals-menu [emacs-news]
+  '("Emacs News" . view-emacs-news))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
   '("Send Bug Report..." . report-emacs-bug))
+(define-key menu-bar-help-menu [sep2]
+  '("--"))
 (define-key menu-bar-help-menu [finder-by-keyword]
-  '("Find Lisp Packages..." . finder-by-keyword))
+  '("Find Emacs Packages..." . finder-by-keyword))
+(define-key menu-bar-help-menu [describe]
+  (cons "Describe" menu-bar-describe-menu))
+(define-key menu-bar-help-menu [manuals]
+  (cons "Manuals" menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
-(define-key menu-bar-help-menu [man]
-  '("Man..." . manual-entry))
-(define-key menu-bar-help-menu [describe-variable]
-  '("Describe Variable..." . describe-variable))
-(define-key menu-bar-help-menu [describe-function]
-  '("Describe Function..." . describe-function))
-(define-key menu-bar-help-menu [describe-key]
-  '("Describe Key..." . describe-key))
-(define-key menu-bar-help-menu [list-keybindings]
-  '("List Keybindings" . describe-bindings))
-(define-key menu-bar-help-menu [command-apropos]
-  '("Command Apropos..." . command-apropos))
-(define-key menu-bar-help-menu [describe-mode]
-  '("Describe Mode" . describe-mode))
-(define-key menu-bar-help-menu [info] '("Info (Browse Manuals)" . info))
-(define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
-(define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
-(define-key menu-bar-help-menu [options-menu]
+(define-key menu-bar-help-menu [sep1]
+  '("--"))
+(define-key menu-bar-help-menu [options]
   (cons "Options" menu-bar-options-menu))
-(define-key menu-bar-help-menu [customize-menu]
+(define-key menu-bar-help-menu [customize]
   (cons "Customize" menu-bar-custom-menu))
 
 (defun kill-this-buffer ()	; for the menubar
