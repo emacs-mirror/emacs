@@ -284,20 +284,25 @@ case "${srcdir}" in
 
   ## If it's not specified, see if  `.' or `..' might work.
   "" )
-    if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
-      srcdir=`pwd`
+    confdir=`echo $0 | sed 's|//|/|' | sed 's|/[^/]*$||'`
+    if [ -f $confdir/src/lisp.h -a -f $confdir/lisp/version.el ]; then
+      srcdir=$confdir
     else
-      if [ -f "../src/lisp.h" -a -f "../lisp/version.el" ]; then
-	srcdir=`(cd .. ; pwd)`
+      if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
+        srcdir=`pwd`
       else
-	(echo "\
+        if [ -f "../src/lisp.h" -a -f "../lisp/version.el" ]; then
+	  srcdir=`(cd .. ; pwd)`
+        else
+	  (echo "\
 ${progname}: Neither the current directory nor its parent seem to
 contain the Emacs sources.  If you do not want to build Emacs in its
 source tree, you should run \`${progname}' in the directory in which
 you wish to build Emacs, using its \`--srcdir' option to say where the
 sources may be found."
-	 echo "${short_usage}") >&2
-	exit 1
+	    echo "${short_usage}") >&2
+	  exit 1
+        fi
       fi
     fi
   ;;
