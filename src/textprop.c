@@ -349,10 +349,10 @@ defaults to the current buffer.")
 }
 
 DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
-  "Return the value of position POS's property PROP, in OBJECT.
+  "Return the value of position POS's property PROP, in OBJECT.\n\
 OBJECT is optional and defaults to the current buffer.")
   (pos, prop, object)
-     Lisp_Object sym, object;
+     Lisp_Object pos, object;
      register Lisp_Object prop;
 {
   register INTERVAL i;
