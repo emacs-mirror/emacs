@@ -1,3 +1,7 @@
+2001-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* paren.el: Update the Commentary with installation instructions.
+
 2001-10-15  John Wiegley  <johnw@gnu.org>
 
 	* eshell/em-unix.el (eshell/cat): Do a quick test if something is
