@@ -1,5 +1,10 @@
 2000-12-15  Miles Bader  <miles@gnu.org>
 
+	* faces.el (read-face-attribute): If there's no entry for the
+	user's input in VALID, just use it as-is (this will often result
+	in an error, but it may be OK for e.g. colors using hexadecimal
+	notation, and at least will yield a better error message).
+
 	* window.el (mode-line-window-height-fudge): Function removed.
 	(height-affecting-face-attributes, mode-line-window-height-fudge): 
 	Variables removed.
