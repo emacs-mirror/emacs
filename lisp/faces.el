@@ -985,14 +985,16 @@ The sample text is a string that comes from the variable
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
-	      (help-xref-button 0 #'customize-face face-name)))
+	      (help-xref-button 0 #'customize-face face-name
+				"mouse-2: customize this face")))
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
 	    ;; Hyperlink to a help buffer for the face.
 	    (save-excursion
 	      (save-match-data
 		(search-backward list-faces-sample-text)
-		(help-xref-button 0 #'describe-face face)))
+		(help-xref-button 0 #'describe-face face
+				  "mouse-2: describe this face")))
 	    (insert "\n")
 	    (put-text-property beg (1- (point)) 'face face)
 	    ;; If the sample text has multiple lines, line up all of them.
