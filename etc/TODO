@@ -1,4 +1,4 @@
-                                                                -*-text-*-
+                                                                -*-outline-*-
 
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
@@ -7,51 +7,48 @@ it best.  Since Emacs is an FSF-copyrighted package, please be
 prepared to sign legal papers to transfer the copyright on your work
 to the FSF.
 
-Small but important fixes needed in existing features:
+* Small but important fixes needed in existing features:
 
-* Make compile.el record the markers that point to error loci
-  on text properties in the error message lines.
-
-* Fix the kill/yank treatment of invisible text. At the moment,
+** Fix the kill/yank treatment of invisible text. At the moment,
   invisible text is placed in the kill-ring, so that the contents of
   the ring may not correspond to the text as displayed to the user. It
   ought to be possible to omit text which is invisible (due to a
   text-property, overlay, or selective display) from the kill-ring.
 
-Important features:
+* Important features:
 
-* Provide user-friendly ways to list all available font families,
+** Provide user-friendly ways to list all available font families,
   display a font as a sample, etc.  [fx is looking at multilingual
   font selection for Emacs 22.]
 
-* Program Enriched mode to read and save in RTF.  [Is there actually a
+** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
   http://latex2rtf.sourceforge.net/.]
 
-* Implement something better than the current Refill mode.  This
+** Implement something better than the current Refill mode.  This
   probably needs some primitive support.
 
-* Implement primitive and higher-level functions to allow filling
+** Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
 
-* Implement a smoother vertical scroll facility, one that allows
+** Implement a smoother vertical scroll facility, one that allows
   C-v to scroll through a tall image.
 
-* Implement other text formatting properties.
-** Footnotes that can appear either in place or at the end of the page.
-** text property that says "don't break line in middle of this".
+** Implement other text formatting properties.
+*** Footnotes that can appear either in place or at the end of the page.
+*** text property that says "don't break line in middle of this".
    Don't break the line between two characters that have the
    same value of this property.
-** Discretionary hyphens that are not visible when they are at end of line.
+*** Discretionary hyphens that are not visible when they are at end of line.
 
-* Make movemail work with IMAP.
+** Make movemail work with IMAP.
 
-* Internationalize Emacs's messages.  [Note that this is of limited
+** Internationalize Emacs's messages.  [Note that this is of limited
   use until the menus can display multilingual text.  It also doesn't
   address important issues like using the names of symbols essentially
   as documentation, e.g. in command names and Custom.  -- fx]
 
-* Make the Lucid menu widget display multilingual text.  [This
+** Make the Lucid menu widget display multilingual text.  [This
   probably needs to be done from actual Emacs buffers, either directly
   in the menu or by rendering in an unmapped window and copying the
   pixels.  Note that the relevant Xlib functions assume a specific
@@ -60,48 +57,63 @@ Important features:
   port now displays multilingual text in menus, but only insofar as
   Emacs can encode it as utf-8 and gtk can display the result.]
 
-* Remove the limitation that window and frame widths and heights can
+** Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
 
-Other features we would like:
+* Other features we would like:
 
-* Have a command suggestion help system that recognizes patterns
+** Ability to map a key, including all modified-combinations.
+   E.g map mouse-4 to wheel-up as well as M-mouse-4 -> M-wheel-up
+   M-C-mouse-4 -> M-C-wheel-up, H-S-C-M-s-double-mouse-4 ->
+   H-S-C-M-s-double-wheel-up, ...
+
+** Beefed-up syntax-tables.
+*** recognize multi-character syntactic entities like `begin' and `end'.
+*** nested string-delimiters (for Postscript's (foo(bar)baz) strings).
+*** support for infix operators (with precedence).
+*** support for the $ (paired delimiter) in parse-partial-sexp.
+*** support for hook-chars whose effect on the parsing-state is specified
+	by elisp code.  Thus a char could both close a string and open a comment
+	at the same time and do it in a context-sensitive way.
+*** ability to add mode-specific data to the partial-parse-state.
+
+** Have a command suggestion help system that recognizes patterns
   of commands which could be replaced with a simpler common command.
   It should not make more than one suggestion per 10 minutes.
 
-* Add a way to define input methods by computing them (when first used)
+** Add a way to define input methods by computing them (when first used)
   from other input methods.  Then redefine C-x 8 to use a
   user-selected input method, with the default being the union of
   latin-1-prefix and latin-1-postfix.
 
-* Implement a clean way to use different major modes for
+** Implement a clean way to use different major modes for
   different parts of a buffer.
 
-* Give start-process the ability to direct standard-error
+** Give start-process the ability to direct standard-error
   output to a different filter.
 
-* Make desktop.el save the "frame configuration" of Emacs (in some
+** Make desktop.el save the "frame configuration" of Emacs (in some
   useful sense).
 
-* Give desktop.el a feature to switch between different named
+** Give desktop.el a feature to switch between different named
   desktops.
 
-* Replace finder.el with something that generates an Info file
+** Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
   Love started on this.]
 
-* Implement a variant of uncompress.el or jka-compr.el that works with
+** Implement a variant of uncompress.el or jka-compr.el that works with
   GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
   See the Gnus development sources for assigned code concerning GPG
   use with mail, which is probably a good start.]
 
-* Save undo information in files, and reload it when needed
+** Save undo information in files, and reload it when needed
   for undoing.
 
-* Merge the Emacs regex.c with the Glibc regex.c.
+** Merge the Emacs regex.c with the Glibc regex.c.
   They split off a few years ago through negligence.
 
-* Change the Windows NT menu code
+** Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
   regenerating the whole menu bar menu tree except
   when the user tries to use the menubar.
@@ -111,84 +123,84 @@ Other features we would like:
   thread has processed the MENU_BAR_ACTIVATE_EVENT and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
 
-* Get some major packages installed: W3/url (development version needs
+** Get some major packages installed: W3 (development version needs
   significant work), PSGML.  Check the assignments file for other
   packages which might go in and have been missed.
 
-* Make keymaps a first-class Lisp object (this means a rewrite of
+** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
   what else ?
 
-* Provide real menus on ttys.  The MS-DOS implementation can serve as
+** Provide real menus on ttys.  The MS-DOS implementation can serve as
   an example how to do part of this.
 
-* Implement popular parts of the rest of the CL functions as compiler
+** Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.
 
-* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
+** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-* Support simultaneous tty and X frames.
+** Support simultaneous tty and X frames.
 
-* Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
+** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
   this and can say where some of the problems are.]
 
-* Eliminate the storm of warnings concerning char/unsigned char
+** Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with proprietary compilers on various systems.
   They make it difficult to spot the important warnings.
 
-* Fix anything necessary to use `long long' EMACS_INTs with GCC.
+** Fix anything necessary to use `long long' EMACS_INTs with GCC.
 
-* Split out parts of lisp.h and generate Makefile dependencies
+** Split out parts of lisp.h and generate Makefile dependencies
   automatically.
 
-* Update the FAQ.
+** Update the FAQ.
 
-* Allow auto-compression-mode to use zlib calls if zlib is available.
+** Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
 
-* Add a --pristine startup flag which does -q --no-site-file plus
+** Add a --pristine startup flag which does -q --no-site-file plus
   ignoring X resources (Doze equivalents?) and most of the
   environment.  What should not be ignored needs consideration.
 
-* Investigate using the language environment (or locale?) to set up
+** Investigate using the language environment (or locale?) to set up
   more things, such as the default Ispell dictionary, calendar
   holidays, quoting characters?,...
 
-* Improve the GC (generational, incremental).  (We may be able to use
+** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
   this.]
 
-* Check what hooks would help Emacspeak -- see the defadvising in W3.
+** Check what hooks would help Emacspeak -- see the defadvising in W3.
 
-* Add horizontal scroll bars.
+** Add horizontal scroll bars.
 
-* Provide an optional feature which computes a scroll bar slider's
+** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-* Make the Custom themes support do useful things.
+** Make the Custom themes support do useful things.
 
-* Investigate using GNU Lightning or similar system for incremental
+** Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
   programs to native code is probably the first thing to try, though.
 
-* Add support for SVG (Scalable Vector Graphics) rendering to
+** Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
 
-* Allow unknown image types to be rendered via an external program
+** Allow unknown image types to be rendered via an external program
   converting them to, say, PBM (in the same way as PostScript?).
 
-* Allow displaying an X window from an external program in a buffer,
+** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
   thought this was feasible.]
 
-* Allow images (not just text) in the margin to be mouse-sensitive.
+** Allow images (not just text) in the margin to be mouse-sensitive.
   (Requires recursing through display properties).  Provide some way
   to simulate mouse-clicks on marginal text without a mouse.
 
-* Implement Lisp functions to determine properly whether a character
+** Implement Lisp functions to determine properly whether a character
   is displayable (particularly needed in XFree 4, sigh).  Use it to
   define useful glyphs that may be displayed as images or unicodes
   (with ASCIIfied fallback via latin1-disp).  Examples include
@@ -196,40 +208,33 @@ Other features we would like:
   tree displays generally, mode-line mail indicator.  [See work done
   already for Emacs 22 and consult fx.]
 
-* Do something to make rms happy with fx's dynamic loading, and use it
+** Do something to make rms happy with fx's dynamic loading, and use it
   to implement things like auto-loaded buffer parsers and database
   access in cases which need more than Lisp.
 
-* Extend ps-print to deal with multiple font sizes, images, and extra
+** Extend ps-print to deal with multiple font sizes, images, and extra
   encodings.
 
-* Provide portable undumping using mmap (per gerd design).
+** Provide portable undumping using mmap (per gerd design).
 
-* Replace gmalloc.c with the modified Doug Lea code from the current
-  GNU libc so that the special mmapping of buffers can be removed --
-  that apparently loses under Solaris, at least.  [fx has mostly done
-  this.]
+** Use the XIE X extension, if available, for image display.
 
-* Use the XIE X extension, if available, for image display.
-
-* Make monochrome images display using the foreground and background
+** Make monochrome images display using the foreground and background
   colors of the applicable faces.
 
-* Add support for rendering antialiased text, probably using
+** Add support for rendering antialiased text, probably using
   XRender/Freetype.
 
-* Rewrite make-docfile to be clean and maintainable.
-
-* Port the conservative stack marking code of Emacs' garbage collector
+** Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.
 
-* Reorder defcustom's in each package so that the more important
+** Reorder defcustom's in each package so that the more important
   options come first in the Customize buffers.  This could be done by
   either rearranging the file (since options are shown in the order
   they appear in the *.el files), or by adding a few :set-after
   attributes.
 
-* Maybe document the features of libraries missing from the manual (or
+** Maybe document the features of libraries missing from the manual (or
   ancillary manuals, including the Lisp manual in some cases).
   This is not worth doing for all of these packages and we need not
   aim for completeness, but some may be worth documenting.
@@ -250,26 +255,40 @@ Other features we would like:
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
 
-* Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
+** Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
   the XPMs so that the colour versions work generally.  (Requires care
   with the colour used for the transparent regions.)
 
-* Convenient access to the `values' variable.  It would be nice to have an
+** Convenient access to the `values' variable.  It would be nice to have an
   interface that would show you the printed reps of the elements of the
   list in a menu, let you select one of the values, and put it into some
   other variable, without changing the value of `values'.
 
-* Fix skip-chars-{for,back}ward to allow character classes.
+** Fix skip-chars-{for,back}ward to allow character classes.
 
-* (Controlled by a flag) make open and close syntax match exactly,
+** (Controlled by a flag) make open and close syntax match exactly,
   i.e. `(' doesn't match `]'.
 
-* Specify parameter ID-FORMAT in all calls to `file-attributes' and
+** Specify parameter ID-FORMAT in all calls to `file-attributes' and
   `directory-files-and-attributes' where attributes UID or GID are used.
   Whenever possible, use value 'string.
   When done, change meaning of default value from 'integer to 'string.
   If value 'integer is used nowhere, remove the parameter ID-FORMAT from
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
+
+* Internal changes
+
+** Replace gmalloc.c with the modified Doug Lea code from the current
+  GNU libc so that the special mmapping of buffers can be removed --
+  that apparently loses under Solaris, at least.  [fx has mostly done
+  this.]
+
+** Rewrite make-docfile to be clean and maintainable.
+
+** Add an inferior-comint-minor-mode to capture the common set of operations
+   offered by major modes that offer an associated inferior
+   comint-derived mode.  I.e. basically make cmuscheme.el generic.
+   For use by sml-mode, python-mode, tex-mode, scheme-mode, ...
 
 ;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036
