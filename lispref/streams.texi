@@ -361,7 +361,9 @@ The output characters are inserted into the buffer that @var{marker}
 points into, at the marker position.  The marker position advances as
 characters are inserted.  The value of point in the buffer has no effect
 on printing when the stream is a marker, and this kind of printing
-does not move point.
+does not move point (except that if the marker points at or before the
+position of point, point advances with the surrounding text, as
+usual).
 
 @item @var{function}
 @cindex function output stream
