@@ -864,7 +864,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   ;; Make all self-inserting keys go through hexl-self-insert-command,
   ;; because we need to convert them to unibyte characters before
   ;; inserting them into the buffer.
-  (define-key hexl-mode-map [remap 'self-insert-command] 'hexl-self-insert-command)
+  (define-key hexl-mode-map [remap self-insert-command] 'hexl-self-insert-command)
 
   (define-key hexl-mode-map [left] 'hexl-backward-char)
   (define-key hexl-mode-map [right] 'hexl-forward-char)
