@@ -1,5 +1,10 @@
 2000-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* woman.el: New file
+	(from Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>).
+
+2000-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* term/internal.el (IT-character-translations): Update ASCII
 	simulations for greek-iso8859-7, add latin-iso8859-14 and
 	latin-iso8859-15.
