@@ -1510,8 +1510,46 @@ This variable is permanent-local.")
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
-	    (insert string)
+	    ;; insert-before-markers is a bad thing. XXX
+	    ;;
+	    ;; It is used here to force window-point markers (used to
+	    ;; store the value of point in non-selected windows) to
+	    ;; advance, but it also screws up any other markers that we
+	    ;; don't _want_ to advance, such as the start-marker of some
+	    ;; of the overlays we create.
+	    ;;
+	    ;; We work around the problem with the overlays by
+	    ;; explicitly adjusting them after we do the insertion, but
+	    ;; in the future this problem should be solved correctly, by
+	    ;; using `insert', and making the insertion-type of
+	    ;; window-point markers settable (via a buffer-local
+	    ;; variable).  In comint buffers, this variable would be set
+	    ;; to `t', to cause point in non-select windows to advance.
+	    (insert-before-markers string)
+	    ;; Fixup markers and overlays that got screwed up because we
+	    ;; used `insert-before-markers'.
+	    (let ((old-point (- (point) (length string))))
+	      ;; comint-last-output-start marker
+	      (set-marker comint-last-output-start old-point)
+	      ;; No overlays we create are set to advance upon insertion
+	      ;; (at the start/end), so we assume that any overlay which
+	      ;; is at the current point was incorrectly advanced by
+	      ;; insert-before-markers.  First fixup overlays that might
+	      ;; start at point:
+	      (dolist (over (overlays-at (point)))
+		(when (= (overlay-start over) (point))
+		  (let ((end (overlay-end over)))
+		    (move-overlay over
+				  old-point
+				  (if (= end (point)) old-point end)))))
+	      ;; Then do overlays that might end at point:
+	      (dolist (over (overlays-at (1- (point))))
+		(when (= (overlay-end over) (point))
+		  (move-overlay over
+				(min (overlay-start over) old-point)
+				old-point))))
 
+	    ;; Advance process-mark
 	    (set-marker (process-mark process) (point))
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
@@ -1528,8 +1566,9 @@ This variable is permanent-local.")
 		;; Create a new overlay
 		(let ((over (make-overlay comint-last-output-start (point))))
 		  (overlay-put over 'field 'output)
-		  (overlay-put over 'rear-nonsticky t)
 		  (overlay-put over 'inhibit-line-move-field-capture t)
+		  (overlay-put over 'front-sticky t)
+		  (overlay-put over 'rear-nonsticky t)
 		  (overlay-put over 'evaporate t)
 		  (setq comint-last-output-overlay over))))
 
@@ -1546,12 +1585,11 @@ This variable is permanent-local.")
 		      (move-overlay comint-last-prompt-overlay
 				    prompt-start (point))
 		    ;; Need to create the overlay
-		    (setq comint-last-prompt-overlay
-			  (make-overlay prompt-start (point)))
-		    (overlay-put comint-last-prompt-overlay
-				 'rear-nonsticky t)
-		    (overlay-put comint-last-prompt-overlay
-				 'face 'comint-highlight-prompt-face)))))
+		    (let ((over (make-overlay prompt-start (point))))
+		      (overlay-put over 'face 'comint-highlight-prompt-face)
+		      (overlay-put over 'front-sticky t)
+		      (overlay-put over 'rear-nonsticky t)
+		      (setq comint-last-prompt-overlay over))))))
 
 	    ;;(force-mode-line-update)
 
