@@ -1179,7 +1179,7 @@ do it on all frames.  See `defface' for information about SPEC."
 
 
 (defun face-attr-match-p (face attrs &optional frame)
-  "Value is non-nil if attributes of FACE match values in plist ATTRS.
+  "Return t if attributes of FACE match values in plist ATTRS.
 Optional parameter FRAME is the frame whose definition of FACE
 is used.  If nil or omitted, use the selected frame."
   (unless frame
@@ -1188,13 +1188,14 @@ is used.  If nil or omitted, use the selected frame."
 	(match t))
     (while (and match (not (null list)))
       (let* ((attr (car (car list)))
-	     (specified-value (plist-get attrs attr))
+	     (specified-value
+	      (if (plist-member attrs attr)
+		  (plist-get attrs attr)
+		'unspecified))
 	     (value-now (face-attribute face attr frame)))
-	(when specified-value
-	  (setq match (equal specified-value value-now)))
+	(setq match (equal specified-value value-now))
 	(setq list (cdr list))))
     match))
-
 
 (defun face-spec-match-p (face spec &optional frame)
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
