@@ -611,8 +611,11 @@ lisp_malloc (nbytes, type)
 struct buffer *
 allocate_buffer ()
 {
-  return (struct buffer *) lisp_malloc (sizeof (struct buffer),
-					MEM_TYPE_BUFFER);
+  struct buffer *b 
+    = (struct buffer *) lisp_malloc (sizeof (struct buffer),
+				     MEM_TYPE_BUFFER);
+  VALIDATE_LISP_STORAGE (b, sizeof *b);
+  return b;
 }
 
 
