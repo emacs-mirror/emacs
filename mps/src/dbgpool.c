@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.11) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.12) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -366,6 +366,7 @@ static Res DebugPoolAlloc(Addr *aReturn,
   res = FenceAlloc(&new, debug, pool, size, withReservoir);
   if (res != ResOK)
     return res;
+  /* Allocate object first, so it fits even when the tag doesn't. */
   res = TagAlloc(debug, pool, new, size, withReservoir);
   if (res != ResOK)
     goto tagFail;
@@ -392,8 +393,9 @@ static void DebugPoolFree(Pool pool, Addr old, Size size)
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
-  TagFree(debug, pool, old, size);
   FenceFree(debug, pool, old, size);
+  /* Free the object first, to get fences checked before tag. */
+  TagFree(debug, pool, old, size);
 }
 
 
