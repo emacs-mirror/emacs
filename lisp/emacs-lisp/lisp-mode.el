@@ -271,6 +271,7 @@ or to switch back to an existing one.
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
   (lisp-mode-variables t)
+  (make-local-variable 'font-lock-keywords-case-fold-search)
   (setq font-lock-keywords-case-fold-search t)
   (setq imenu-case-fold-search t))
 
