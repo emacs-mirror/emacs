@@ -670,8 +670,20 @@ extern void defvar_int ();
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
  defvar_per_buffer (lname, vname, type, 0)
 
-/* Structure for recording Lisp call stack for backtrace purposes */
+/* Structure for recording Lisp call stack for backtrace purposes.  */
 
+/* The special binding stack holds the outer values of variables while
+   they are bound by a function application or a let form, stores the
+   code to be executed for Lisp unwind-protect forms, and stores the C
+   functions to be called for record_unwind_protect.
+
+   If func is non-zero, undoing this binding applies func to old_value;
+      This implements record_unwind_protect.
+   If func is zero and symbol is nil, undoing this binding evaluates
+      the list of forms in old_value; this implements Lisp's unwind-protect
+      form.
+   Otherwise, undoing this binding stores old_value as symbol's value; this
+      undoes the bindings made by a let form or function call.  */
 struct specbinding
   {
     Lisp_Object symbol, old_value;
@@ -683,13 +695,17 @@ extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
+/* Everything needed to describe an active condition case.  */
 struct handler
   {
+    /* The handler clauses and variable from the condition-case form.  */
     Lisp_Object handler;
     Lisp_Object var;
-    int poll_suppress_count;	/* No error should exit a piece of code
-				   in which polling is suppressed.  */
+
+    /* Used to effect the longjump out to the handler.  */
     struct catchtag *tag;
+
+    /* The next enclosing handler.  */
     struct handler *next;
   };
 
