@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create a space and see how much mem is taken
  language = c
  link = testlib.o

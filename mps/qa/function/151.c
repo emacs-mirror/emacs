@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!147.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = SNC pop-to-NULL test (request.dylan.170602)
  language = c
  link = testlib.o rankfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = allocate large promise, make it small, repeat interleaved
  language = c
  link = testlib.o

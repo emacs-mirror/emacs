@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!97.c(trunk.3) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test of mps_arena_formatted_objects_walk
  language = c
  link = testlib.o rankfmt.o

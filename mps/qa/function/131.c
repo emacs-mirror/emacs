@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!116.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = allocation shouldn't fail if there's garbage to collect (2)
  language = c
  link = testlib.o rankfmt.o

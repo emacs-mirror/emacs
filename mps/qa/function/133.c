@@ -1,5 +1,6 @@
-/* $HopeName:$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = low-memory reservoir tests with commit limit, part II
  language = c
  link = testlib.o rankfmt.o

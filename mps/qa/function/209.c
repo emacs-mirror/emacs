@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!209.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPDR allocate far too much test
  language = c
  link = testlib.o

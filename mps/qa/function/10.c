@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = Allocate but never look at objects
  language = c
  link = testlib.o

@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!505.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = SW memory leak detection
  language = english
 END_HEADER

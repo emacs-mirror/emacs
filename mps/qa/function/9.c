@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = (regression test) Allocate a big object (>64M, perhaps up to 1G) in an AMC pool
  language = c
  link = testlib.o newfmt.o

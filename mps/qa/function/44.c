@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = clamp and space_collect tests
  language = c
  link = testlib.o exfmt.o

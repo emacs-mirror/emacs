@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!102.c(trunk.3) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = new MV2 allocation test, extra shallow
  language = c
  link = testlib.o

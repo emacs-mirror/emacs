@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!84.c(trunk.2) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPVM save, alloc, restore in one pool
  language = c
  link = testlib.o epvmfmt.o

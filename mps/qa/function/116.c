@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = allocation shouldn't fail if there's garbage to collect
  language = c
  link = testlib.o rankfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create arenas at once until an error results!
  language = c
  link = testlib.o

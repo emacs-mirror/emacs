@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test for bug with segment summaries
  language = c
  link = testlib.o awlfmt.o

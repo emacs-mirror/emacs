@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!117.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create a VM arena with non-aligned size
  language = c
  link = testlib.o

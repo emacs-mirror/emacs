@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!219.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = MV2 from af_six measuring fragmentation
  language = c
  link = testlib.o

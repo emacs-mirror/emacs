@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o

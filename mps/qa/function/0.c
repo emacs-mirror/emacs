@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test that the mps header file is accepted by the compiler
  language = c
  link = testlib.o

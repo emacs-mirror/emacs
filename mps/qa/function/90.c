@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = various EPVM functional tests
  language = c
  link = testlib.o epvmfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!119.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = mps_arena_commit_limit tests
  language = c
  link = testlib.o

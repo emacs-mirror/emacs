@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPVM time allocations with checklevels
  language = c
  link = testlib.o epvmfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = keep calling arena_collect
  language = c
  link = testlib.o exfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = EPVM allocate and collect_world
  language = c
  link = testlib.o epvmfmt.o

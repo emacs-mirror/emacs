@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = weak refs to nailed amc objects are not splatted
  language = c
  link = testlib.o rankfmt.o

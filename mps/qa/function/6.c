@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = (regression test ) Keep resetting lds in managed memory while doing allocation. The idea is to force a collection so that the ld will be protected when you try to reset it.
  language = c
  link = testlib.o newfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = interleaved APs (like 12, but produce comments for debugging)
  language = c
  link = testlib.o newfmt.o

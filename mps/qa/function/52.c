@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = provoke mad behaviour by constant allocation
  language = c
  link = rankfmt.o testlib.o

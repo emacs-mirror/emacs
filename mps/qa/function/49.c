@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = finalization tests with AMC, AWL and LO
  language = c
  link = testlib.o rankfmt.o

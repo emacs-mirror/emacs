@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!501.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = MM works with Dylan
  language = english
 END_HEADER

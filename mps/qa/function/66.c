@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test of location dependencies
  language = c
  link = testlib.o rankfmt.o

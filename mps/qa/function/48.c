@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test awl and amc pools, checking ranks work properly
  language = c
  link = testlib.o rankfmt.o
