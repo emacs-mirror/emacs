@@ -317,14 +317,14 @@ The paragraph marked is the one that contains point or follows point."
   "Kill forward to end of paragraph.
 With arg N, kill forward to Nth end of paragraph;
 negative arg -N means kill backward to Nth start of paragraph."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (forward-paragraph arg) (point))))
 
 (defun backward-kill-paragraph (arg)
   "Kill back to start of paragraph.
 With arg N, kill back to Nth start of paragraph;
 negative arg -N means kill forward to Nth end of paragraph."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (backward-paragraph arg) (point))))
 
 (defun transpose-paragraphs (arg)
@@ -390,13 +390,13 @@ See `forward-sentence' for more information."
 (defun kill-sentence (&optional arg)
   "Kill from point to end of sentence.
 With arg, repeat; negative arg -N means kill back to Nth start of sentence."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (forward-sentence arg) (point))))
 
 (defun backward-kill-sentence (&optional arg)
   "Kill back from point to start of sentence.
 With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
