@@ -212,8 +212,8 @@ decode_coding_XXXX (coding)
      when there's no room in CHARBUF for a decoded character.  */
   unsigned char *src_base;
   /* A buffer to produce decoded characters.  */
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int multibytep = coding->src_multibyte;
 
   while (1)
@@ -1025,15 +1025,14 @@ alloc_destination (coding, nbytes, dst)
 
 /* Maximum length of annotation data (sum of annotations for
    composition and charset).  */
-#define MAX_ANNOTATION_LENGTH (5 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 + 5)
+#define MAX_ANNOTATION_LENGTH (4 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 + 4)
 
 /* An annotation data is stored in the array coding->charbuf in this
    format:
-     [ -LENGTH ANNOTATION_MASK FROM TO ... ]
+     [ -LENGTH ANNOTATION_MASK NCHARS ... ]
    LENGTH is the number of elements in the annotation.
    ANNOTATION_MASK is one of CODING_ANNOTATE_XXX_MASK.
-   FROM and TO specify the range of text annotated.  They are relative
-   to coding->src_pos (on encoding) or coding->dst_pos (on decoding).
+   NCHARS is the number of characters in the text annotated.
 
    The format of the following elements depend on ANNOTATION_MASK.
 
@@ -1047,26 +1046,25 @@ alloc_destination (coding, nbytes, dst)
    In the case of CODING_ANNOTATE_CHARSET_MASK, one element CHARSET-ID
    follows.  */
 
-#define ADD_ANNOTATION_DATA(buf, len, mask, from, to)	\
+#define ADD_ANNOTATION_DATA(buf, len, mask, nchars)	\
   do {							\
     *(buf)++ = -(len);					\
     *(buf)++ = (mask);					\
-    *(buf)++ = (from);					\
-    *(buf)++ = (to);					\
+    *(buf)++ = (nchars);				\
     coding->annotated = 1;				\
   } while (0);
 
-#define ADD_COMPOSITION_DATA(buf, from, to, method)			      \
-  do {									      \
-    ADD_ANNOTATION_DATA (buf, 5, CODING_ANNOTATE_COMPOSITION_MASK, from, to); \
-    *buf++ = method;							      \
+#define ADD_COMPOSITION_DATA(buf, nchars, method)			    \
+  do {									    \
+    ADD_ANNOTATION_DATA (buf, 4, CODING_ANNOTATE_COMPOSITION_MASK, nchars); \
+    *buf++ = method;							    \
   } while (0)
 
 
-#define ADD_CHARSET_DATA(buf, from, to, id)				  \
-  do {									  \
-    ADD_ANNOTATION_DATA (buf, 5, CODING_ANNOTATE_CHARSET_MASK, from, to); \
-    *buf++ = id;							  \
+#define ADD_CHARSET_DATA(buf, nchars, id)				\
+  do {									\
+    ADD_ANNOTATION_DATA (buf, 4, CODING_ANNOTATE_CHARSET_MASK, nchars);	\
+    *buf++ = id;							\
   } while (0)
 
 
@@ -1166,8 +1164,8 @@ decode_coding_utf_8 (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attr, charset_list;
@@ -1413,8 +1411,8 @@ decode_coding_utf_16 (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   enum utf_16_bom_type bom = CODING_UTF_16_BOM (coding);
@@ -1921,7 +1919,6 @@ detect_coding_emacs_mule (coding, detect_info)
        number of characters composed by this composition.  */		\
     enum composition_method method = c - 0xF2;				\
     int *charbuf_base = charbuf;					\
-    int from, to;							\
     int consumed_chars_limit;						\
     int nbytes, nchars;							\
 									\
@@ -1935,9 +1932,7 @@ detect_coding_emacs_mule (coding, detect_info)
     if (c < 0)								\
       goto invalid_code;						\
     nchars = c - 0xA0;							\
-    from = coding->produced + char_offset;				\
-    to = from + nchars;							\
-    ADD_COMPOSITION_DATA (charbuf, from, to, method);			\
+    ADD_COMPOSITION_DATA (charbuf, nchars, method);			\
     consumed_chars_limit = consumed_chars_base + nbytes;		\
     if (method != COMPOSITION_RELATIVE)					\
       {									\
@@ -1965,7 +1960,6 @@ detect_coding_emacs_mule (coding, detect_info)
     int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
     int *buf = components;					\
     int i, j;							\
-    int from, to;						\
 								\
     src = src_base;						\
     ONE_MORE_BYTE (c);		/* skip 0x80 */			\
@@ -1973,9 +1967,7 @@ detect_coding_emacs_mule (coding, detect_info)
       DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
     if (i < 2)							\
       goto invalid_code;					\
-    from = coding->produced_char + char_offset;			\
-    to = from + i;						\
-    ADD_COMPOSITION_DATA (charbuf, from, to, method);		\
+    ADD_COMPOSITION_DATA (charbuf, i, method);			\
     for (j = 0; j < i; j++)					\
       *charbuf++ = components[j];				\
   } while (0)
@@ -1989,7 +1981,6 @@ detect_coding_emacs_mule (coding, detect_info)
     int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
     int *buf = components;					\
     int i, j;							\
-    int from, to;						\
 								\
     DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
     for (i = 0; i < MAX_COMPOSITION_COMPONENTS; i++)		\
@@ -2001,9 +1992,7 @@ detect_coding_emacs_mule (coding, detect_info)
       goto invalid_code;					\
     if (charbuf + i + (i / 2) + 1 < charbuf_end)		\
       goto no_more_source;					\
-    from = coding->produced_char + char_offset;			\
-    to = from + i;						\
-    ADD_COMPOSITION_DATA (buf, from, to, method);		\
+    ADD_COMPOSITION_DATA (buf, i, method);			\
     for (j = 0; j < i; j++)					\
       *charbuf++ = components[j];				\
     for (j = 0; j < i; j += 2)					\
@@ -2018,8 +2007,9 @@ decode_coding_emacs_mule (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end
+    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list;
@@ -2082,7 +2072,7 @@ decode_coding_emacs_mule (coding)
 	  if (last_id != id)
 	    {
 	      if (last_id != charset_ascii)
-		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+		ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
 	      last_id = id;
 	      last_offset = char_offset;
 	    }
@@ -2104,7 +2094,7 @@ decode_coding_emacs_mule (coding)
 
  no_more_source:
   if (last_id != charset_ascii)
-    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -2810,10 +2800,8 @@ detect_coding_iso_2022 (coding, detect_info)
 		  : (component_idx + 1) / 2);				\
     int i;								\
     int *saved_charbuf = charbuf;					\
-    int from = char_offset;						\
-    int to = from + nchars;						\
 									\
-    ADD_COMPOSITION_DATA (charbuf, from, to, method);			\
+    ADD_COMPOSITION_DATA (charbuf, nchars, method);			\
     if (method != COMPOSITION_RELATIVE)					\
       {									\
 	if (component_len == 0)						\
@@ -2869,9 +2857,9 @@ decode_coding_iso_2022 (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end
-    = charbuf + coding->charbuf_size - 4 - MAX_ANNOTATION_LENGTH;
+    = coding->charbuf + coding->charbuf_size - 4 - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
@@ -3224,7 +3212,7 @@ decode_coding_iso_2022 (coding)
 	  && last_id != charset->id)
 	{
 	  if (last_id != charset_ascii)
-	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
 	  last_id = charset->id;
 	  last_offset = char_offset;
 	}
@@ -3293,7 +3281,7 @@ decode_coding_iso_2022 (coding)
 
  no_more_source:
   if (last_id != charset_ascii)
-    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -3995,8 +3983,9 @@ decode_coding_sjis (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end
+    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
@@ -4064,7 +4053,7 @@ decode_coding_sjis (coding)
 	  && last_id != charset->id)
 	{
 	  if (last_id != charset_ascii)
-	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
 	  last_id = charset->id;
 	  last_offset = char_offset;
 	}
@@ -4084,7 +4073,7 @@ decode_coding_sjis (coding)
 
  no_more_source:
   if (last_id != charset_ascii)
-    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -4097,8 +4086,9 @@ decode_coding_big5 (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end
+    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
@@ -4144,7 +4134,7 @@ decode_coding_big5 (coding)
 	  && last_id != charset->id)
 	{
 	  if (last_id != charset_ascii)
-	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
 	  last_id = charset->id;
 	  last_offset = char_offset;
 	}
@@ -4164,7 +4154,7 @@ decode_coding_big5 (coding)
 
  no_more_source:
   if (last_id != charset_ascii)
-    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -4396,8 +4386,8 @@ decode_coding_ccl (coding)
 {
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end = coding->charbuf + coding->charbuf_size;
   int consumed_chars = 0;
   int multibytep = coding->src_multibyte;
   struct ccl_program ccl;
@@ -4683,8 +4673,9 @@ decode_coding_charset (coding)
   const unsigned char *src = coding->source + coding->consumed;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   const unsigned char *src_base;
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
+  int *charbuf = coding->charbuf + coding->charbuf_used;
+  int *charbuf_end
+    = coding->charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, charset_list, valids;
@@ -4759,7 +4750,7 @@ decode_coding_charset (coding)
 	  && last_id != charset->id)
 	{
 	  if (last_id != charset_ascii)
-	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
 	  last_id = charset->id;
 	  last_offset = char_offset;
 	}
@@ -4779,7 +4770,7 @@ decode_coding_charset (coding)
 
  no_more_source:
   if (last_id != charset_ascii)
-    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+    ADD_CHARSET_DATA (charbuf, char_offset - last_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -5573,53 +5564,108 @@ translate_chars (coding, table)
     }
 }
 
+static Lisp_Object
+get_translation (val, buf, buf_end, last_block, from_nchars, to_nchars)
+     Lisp_Object val;
+     int *buf, *buf_end;
+     int last_block;
+     int *from_nchars, *to_nchars;
+{
+  /* VAL is TO-CHAR, [TO-CHAR ...], ([FROM-CHAR ...] .  TO-CHAR), or
+     ([FROM-CHAR ...] . [TO-CHAR ...]).  */
+  if (CONSP (val))
+    {
+      Lisp_Object from;
+      int i, len;
+
+      from = XCAR (val);
+      val = XCDR (val);
+      len = ASIZE (from);
+      for (i = 0; i < len; i++)
+	{
+	  if (buf + i == buf_end)
+	    return (last_block ? Qnil : Qt);
+	  if (XINT (AREF (from, i)) != buf[i])
+	    return Qnil;
+	}
+      *from_nchars = len;
+    }
+  if (VECTORP (val))
+    *buf = XINT (AREF (val, 0)), *to_nchars = ASIZE (val);
+  else
+    *buf = XINT (val);
+  return val;
+}
+
+
 static int
-produce_chars (coding)
+produce_chars (coding, translation_table, last_block)
      struct coding_system *coding;
+     Lisp_Object translation_table;
+     int last_block;
 {
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int produced;
   int produced_chars = 0;
+  int carryover = 0;
 
   if (! coding->chars_at_source)
     {
       /* Characters are in coding->charbuf.  */
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
-      unsigned char *adjusted_dst_end;
 
       if (BUFFERP (coding->src_object)
 	  && EQ (coding->src_object, coding->dst_object))
 	dst_end = ((unsigned char *) coding->source) + coding->consumed;
-      adjusted_dst_end = dst_end - MAX_MULTIBYTE_LENGTH;
 
       while (buf < buf_end)
 	{
-	  int c = *buf++;
+	  int c = *buf, i;
 
-	  if (dst >= adjusted_dst_end)
-	    {
-	      dst = alloc_destination (coding,
-				       buf_end - buf + MAX_MULTIBYTE_LENGTH,
-				       dst);
-	      dst_end = coding->destination + coding->dst_bytes;
-	      adjusted_dst_end = dst_end - MAX_MULTIBYTE_LENGTH;
-	    }
 	  if (c >= 0)
 	    {
-	      if (coding->dst_multibyte
-		  || ! CHAR_BYTE8_P (c))
-		CHAR_STRING_ADVANCE (c, dst);
-	      else
-		*dst++ = CHAR_TO_BYTE8 (c);
-	      produced_chars++;
+	      int from_nchars = 1, to_nchars = 1;
+	      Lisp_Object trans = Qnil;
+
+	      if (! NILP (translation_table)
+		  && ! NILP (trans = CHAR_TABLE_REF (translation_table, c)))
+		{
+		  trans = get_translation (trans, buf, buf_end, last_block,
+					   &from_nchars, &to_nchars);
+		  if (EQ (trans, Qt))
+		    break;
+		  c = *buf;
+		}
+
+	      if (dst + MAX_MULTIBYTE_LENGTH * to_nchars > dst_end)
+		{
+		  dst = alloc_destination (coding,
+					   buf_end - buf
+					   + MAX_MULTIBYTE_LENGTH * to_nchars,
+					   dst);
+		  dst_end = coding->destination + coding->dst_bytes;
+		}
+
+	      for (i = 0; i < to_nchars; i++, c = XINT (AREF (trans, i)))
+		{
+		  if (coding->dst_multibyte
+		      || ! CHAR_BYTE8_P (c))
+		    CHAR_STRING_ADVANCE (c, dst);
+		  else
+		    *dst++ = CHAR_TO_BYTE8 (c);
+		}
+	      produced_chars += to_nchars;
+	      *buf++ = to_nchars;
+	      while (--from_nchars > 0)
+		*buf++ = 0;
 	    }
 	  else
-	    /* This is an annotation datum.  (-C) is the length of
-	       it.  */
-	    buf += -c - 1;
+	    /* This is an annotation datum.  (-C) is the length.  */
+	    buf += -c;
 	}
+      carryover = buf_end - buf;
     }
   else
     {
@@ -5761,7 +5807,7 @@ produce_chars (coding)
     insert_from_gap (produced_chars, produced);
   coding->produced += produced;
   coding->produced_char += produced_chars;
-  return produced_chars;
+  return carryover;
 }
 
 /* Compose text in CODING->object according to the annotation data at
@@ -5770,19 +5816,19 @@ produce_chars (coding)
  */
 
 static INLINE void
-produce_composition (coding, charbuf)
+produce_composition (coding, charbuf, pos)
      struct coding_system *coding;
      int *charbuf;
+     EMACS_INT pos;
 {
   int len;
-  EMACS_INT from, to;
+  EMACS_INT to;
   enum composition_method method;
   Lisp_Object components;
 
   len = -charbuf[0];
-  from = coding->dst_pos + charbuf[2];
-  to = coding->dst_pos + charbuf[3];
-  method = (enum composition_method) (charbuf[4]);
+  to = pos + charbuf[2];
+  method = (enum composition_method) (charbuf[3]);
 
   if (method == COMPOSITION_RELATIVE)
     components = Qnil;
@@ -5791,32 +5837,32 @@ produce_composition (coding, charbuf)
       Lisp_Object args[MAX_COMPOSITION_COMPONENTS * 2 - 1];
       int i;
 
-      len -= 5;
-      charbuf += 5;
+      len -= 4;
+      charbuf += 4;
       for (i = 0; i < len; i++)
 	args[i] = make_number (charbuf[i]);
       components = (method == COMPOSITION_WITH_ALTCHARS
 		    ? Fstring (len, args) : Fvector (len, args));
     }
-  compose_text (from, to, components, Qnil, coding->dst_object);
+  compose_text (pos, to, components, Qnil, coding->dst_object);
 }
 
 
 /* Put `charset' property on text in CODING->object according to
    the annotation data at CHARBUF.  CHARBUF is an array:
-     [ -LENGTH ANNOTATION_MASK FROM TO CHARSET-ID ]
+     [ -LENGTH ANNOTATION_MASK NCHARS CHARSET-ID ]
  */
 
 static INLINE void
-produce_charset (coding, charbuf)
+produce_charset (coding, charbuf, pos)
      struct coding_system *coding;
      int *charbuf;
+     EMACS_INT pos;
 {
-  EMACS_INT from = coding->dst_pos + charbuf[2];
-  EMACS_INT to = coding->dst_pos + charbuf[3];
-  struct charset *charset = CHARSET_FROM_ID (charbuf[4]);
+  EMACS_INT from = pos - charbuf[2];
+  struct charset *charset = CHARSET_FROM_ID (charbuf[3]);
 
-  Fput_text_property (make_number (from), make_number (to),
+  Fput_text_property (make_number (from), make_number (pos),
 		      Qcharset, CHARSET_NAME (charset),
 		      coding->dst_object);
 }
@@ -5846,8 +5892,9 @@ produce_charset (coding, charbuf)
 
 
 static void
-produce_annotation (coding)
+produce_annotation (coding, pos)
      struct coding_system *coding;
+     EMACS_INT pos;
 {
   int *charbuf = coding->charbuf;
   int *charbuf_end = charbuf + coding->charbuf_used;
@@ -5858,17 +5905,17 @@ produce_annotation (coding)
   while (charbuf < charbuf_end)
     {
       if (*charbuf >= 0)
-	charbuf++;
+	pos += *charbuf++;
       else
 	{
 	  int len = -*charbuf;
 	  switch (charbuf[1])
 	    {
 	    case CODING_ANNOTATE_COMPOSITION_MASK:
-	      produce_composition (coding, charbuf);
+	      produce_composition (coding, charbuf, pos);
 	      break;
 	    case CODING_ANNOTATE_CHARSET_MASK:
-	      produce_charset (coding, charbuf);
+	      produce_charset (coding, charbuf, pos);
 	      break;
 	    default:
 	      abort ();
@@ -5908,6 +5955,8 @@ decode_coding (coding)
   Lisp_Object attrs;
   Lisp_Object undo_list;
   Lisp_Object translation_table;
+  int carryover;
+  int i;
 
   if (BUFFERP (coding->src_object)
       && coding->src_pos > 0
@@ -5937,20 +5986,32 @@ decode_coding (coding)
   attrs = CODING_ID_ATTRS (coding->id);
   translation_table = get_translation_table (attrs, 0);
 
+  carryover = 0;
   do
     {
+      EMACS_INT pos = coding->dst_pos + coding->produced_char;
+
       coding_set_source (coding);
       coding->annotated = 0;
+      coding->charbuf_used = carryover;
       (*(coding->decoder)) (coding);
-      if (!NILP (translation_table))
-	translate_chars (coding, translation_table);
       coding_set_destination (coding);
-      produce_chars (coding);
+      carryover = produce_chars (coding, translation_table, 0);
       if (coding->annotated)
-	produce_annotation (coding);
+	produce_annotation (coding, pos);
+      for (i = 0; i < carryover; i++)
+	coding->charbuf[i]
+	  = coding->charbuf[coding->charbuf_used - carryover + i];
     }
   while (coding->consumed < coding->src_bytes
 	 && ! coding->result);
+
+  if (carryover > 0)
+    {
+      coding_set_destination (coding);
+      coding->charbuf_used = carryover;
+      produce_chars (coding, translation_table, 1);
+    }
 
   coding->carryover_bytes = 0;
   if (coding->consumed < coding->src_bytes)
@@ -6036,7 +6097,7 @@ handle_composition_annotation (pos, limit, coding, buf, stop)
 	  enum composition_method method = COMPOSITION_METHOD (prop);
 	  int nchars = COMPOSITION_LENGTH (prop);
 
-	  ADD_COMPOSITION_DATA (buf, 0, nchars, method);
+	  ADD_COMPOSITION_DATA (buf, nchars, method);
 	  if (method != COMPOSITION_RELATIVE)
 	    {
 	      Lisp_Object components;
@@ -6111,7 +6172,7 @@ handle_charset_annotation (pos, limit, coding, buf, stop)
     id = XINT (CHARSET_SYMBOL_ID (val));
   else
     id = -1;
-  ADD_CHARSET_DATA (buf, 0, 0, id);
+  ADD_CHARSET_DATA (buf, 0, id);
   next = Fnext_single_property_change (make_number (pos), Qcharset,
 				       coding->src_object,
 				       make_number (limit));
