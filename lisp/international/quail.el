@@ -2687,7 +2687,8 @@ KEY BINDINGS FOR CONVERSION
     key-list))
 
 (defun quail-find-key (char)
-  "Return a list of keys to type to input CHAR in the current input method."
+  "Return a list of keys to type to input CHAR in the current input method.
+If CHAR is an ASCII character and can be input by typing itself, return t."
   (let ((decode-map (or (quail-decode-map)
 			(setcar (nthcdr 10 quail-current-package)
 				(quail-gen-decode-map))))
