@@ -865,15 +865,15 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
-#ifdef HAVE_X_MENU
-      syms_of_xmenu ();
-#endif /* HAVE_X_MENU */
 #endif /* HAVE_X_WINDOWS */
 
 #if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
       syms_of_xfaces ();
-      syms_of_xmenu ();
 #endif
+
+#ifdef HAVE_MENUS
+      syms_of_xmenu ();
+#endif /* HAVE_MENUS */
 
 #ifdef HAVE_NTGUI
       syms_of_win32term ();
