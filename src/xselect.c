@@ -2228,7 +2228,7 @@ syms_of_xselect ()
   staticpro (&Vselection_alist);
 
   DEFVAR_LISP ("selection-converter-alist", &Vselection_converter_alist,
-  "An alist associating X Windows selection-types with functions.\n\
+    "An alist associating X Windows selection-types with functions.\n\
 These functions are called to convert the selection, with three args:\n\
 the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
 a desired type to which the selection should be converted;\n\
@@ -2243,7 +2243,7 @@ and there is no meaningful selection value.");
   Vselection_converter_alist = Qnil;
 
   DEFVAR_LISP ("x-lost-selection-hooks", &Vx_lost_selection_hooks,
-  "A list of functions to be called when Emacs loses an X selection.\n\
+    "A list of functions to be called when Emacs loses an X selection.\n\
 \(This happens when some other X client makes its own selection\n\
 or when a Lisp program explicitly clears the selection.)\n\
 The functions are called with one argument, the selection type\n\
@@ -2251,7 +2251,7 @@ The functions are called with one argument, the selection type\n\
   Vx_lost_selection_hooks = Qnil;
 
   DEFVAR_LISP ("x-sent-selection-hooks", &Vx_sent_selection_hooks,
-  "A list of functions to be called when Emacs answers a selection request.\n\
+    "A list of functions to be called when Emacs answers a selection request.\n\
 The functions are called with four arguments:\n\
   - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');\n\
   - the selection-type which Emacs was asked to convert the\n\
@@ -2264,8 +2264,8 @@ This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
 
-  DEFVAR_LISP("clipboard-coding-system", &Vclipboard_coding_system,
-  "Coding system for communicating with other X clients.\n\
+  DEFVAR_LISP ("clipboard-coding-system", &Vclipboard_coding_system,
+    "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 A default value is `iso-latin-1'");
@@ -2273,7 +2273,7 @@ A default value is `iso-latin-1'");
   staticpro(&Vclipboard_coding_system);
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
-   "Number of milliseconds to wait for a selection reply.\n\
+    "Number of milliseconds to wait for a selection reply.\n\
 If the selection owner doesn't reply in this time, we give up.\n\
 A value of 0 means wait as long as necessary.  This is initialized from the\n\
 \"*selectionTimeout\" resource.");
