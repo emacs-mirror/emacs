@@ -11,6 +11,7 @@
 #define HAVE_RANDOM
 #endif
 /* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
+#undef HAVE_GETWD
 
 /* Info from fnf@cygnus.com suggests this is appropriate.  */
 #define POSIX_SIGNALS
@@ -55,5 +56,3 @@
 /* ryanr@ellingtn.ftc.nrcs.usda.gov (Richard Anthony Ryan) says -lXimp
    is needed in UNIX_SV ... 4.2 1.1.2.  */
 #define LIB_MOTIF -lXm -lXimp
-
-#define VFORK_RETURN_TYPE pid_t
