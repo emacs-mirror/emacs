@@ -117,7 +117,6 @@ extern void _XEditResCheckMessages ();
 #if defined USE_MOTIF
 #include <Xm/Xm.h>		/* for LESSTIF_VERSION */
 #include <Xm/ScrollBar.h>
-#include <Xm/ScrollBarP.h>
 #else /* !USE_MOTIF i.e. use Xaw */
 
 #ifdef HAVE_XAW3D
@@ -9953,10 +9952,10 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
-	      /* I couldn't find a way to prevent LessTif scroll bars
-	         from consuming key events.  */
 	      if (f == 0)
 		{
+		  /* Scroll bars consume key events, but we want
+		     the keys to go to the scroll bar's frame.  */
 		  Widget widget = XtWindowToWidget (dpyinfo->display,
 						    event.xkey.window);
 		  if (widget && XmIsScrollBar (widget))
