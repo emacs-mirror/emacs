@@ -1141,14 +1141,6 @@ and don't mark the buffer as really changed.")
   stop = XINT (end);
   look = XINT (fromchar);
 
-  if (! NILP (noundo))
-    {
-      if (MODIFF - 1 == current_buffer->save_modified)
-	current_buffer->save_modified++;
-      if (MODIFF - 1 == current_buffer->auto_save_modified)
-	current_buffer->auto_save_modified++;
-    }
-
   while (pos < stop)
     {
       if (FETCH_CHAR (pos) == look)
@@ -1156,7 +1148,16 @@ and don't mark the buffer as really changed.")
 	  if (! changed)
 	    {
 	      modify_region (current_buffer, XINT (start), stop);
-	      changed = 1;
+
+	      if (! NILP (noundo))
+		{
+		  if (MODIFF - 1 == current_buffer->save_modified)
+		    current_buffer->save_modified++;
+		  if (MODIFF - 1 == current_buffer->auto_save_modified)
+		    current_buffer->auto_save_modified++;
+		}
+
+ 	      changed = 1;
 	    }
 
 	  if (NILP (noundo))
@@ -1382,7 +1383,7 @@ minibuffer contents show.")
     {
       register Lisp_Object val;
       val = Fformat (nargs, args);
-      message ("%s", XSTRING (val)->data);
+      message2 (XSTRING (val)->data, XSTRING (val)->size);
       return val;
     }
 }
