@@ -33,11 +33,6 @@
 
 (random t)				; randomize
 
-(defun mpuz-random (n)
-  "Return a random integer between 0 and N - 1 inclusive."
-  (setq n (% (random) n))
-  (if (< n 0) (- n) n))
-
 (defvar mpuz-silent nil
   "*Set this to T if you don't want dings on inputs.")
 
@@ -142,7 +137,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	(index 10)
 	elem)
     (while letters
-      (setq elem    (nth (mpuz-random index) letters)
+      (setq elem    (nth (random index) letters)
 	    letters (delq elem letters)
 	    index   (1- index))
       (aset mpuz-digit-to-letter index elem)
@@ -185,8 +180,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
     ;; A,B,C,D & E, are the five rows of our multiplication.
     ;; Choose random values, discarding uninteresting cases.
     (while (progn
-	     (setq A (mpuz-random 1000)
-		   B (mpuz-random 100)
+	     (setq A (random 1000)
+		   B (random 100)
 		   C (* A (% B 10))
 		   D (* A (/ B 10))
 		   E (* A B))
