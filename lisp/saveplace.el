@@ -1,11 +1,11 @@
 ;;; saveplace.el --- automatically save place in files.
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Maintainer: FSF
 ;; Created: July, 1993
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords: bookmarks, placeholders
 
 ;; This file is part of GNU Emacs.
@@ -29,6 +29,9 @@
 ;; to the saved position, when the file is first found.  Uses the
 ;; value of buffer-local variable save-place to determine whether to
 ;; save position or not.
+;;
+;; Thanks to Stefan Schoef, who sent a patch with the
+;; `save-place-version-control' stuff in it.
 ;;
 ;; Don't autoload this, rather, load it, since it modifies
 ;; find-file-hooks and other hooks.
@@ -58,6 +61,13 @@ simply put this in your `~/.emacs' file:
 
 (defvar save-place-file "~/.emacs-places"
   "*Name of the file that records `save-place-alist' value.")
+
+(defvar save-place-version-control 'nospecial
+  "*Controls whether to make numbered backups of master save-place file.
+It can have four values: t, nil, `never', and `nospecial'.  The first
+three have the same meaning that they do for the variable
+`version-control', and the final value `nospecial' means just use the
+value of `version-control'.")
 
 (defvar save-place-loaded nil
   "Non-nil means that the `save-place-file' has been loaded.")
@@ -114,9 +124,16 @@ To save places automatically in all files, put this in your `.emacs' file:
       (delete-region (point-min) (point-max))
       (goto-char (point-min))
       (print save-place-alist (current-buffer))
-      (write-file file)
-      (kill-buffer (current-buffer))
-      (message (format "Saving places to %s... done." file)))))
+      (let ((version-control
+             (cond
+              ((null save-place-version-control) nil)
+              ((eq 'never save-place-version-control) 'never)
+              ((eq 'nospecial save-place-version-control) version-control)
+              (t
+               t))))
+        (write-file file)
+        (kill-buffer (current-buffer))
+        (message (format "Saving places to %s... done." file))))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -169,7 +186,8 @@ To save places automatically in all files, put this in your `.emacs' file:
 	  (progn
 	    (goto-char (cdr cell))
 	    ;; and make sure it will be saved again for later.
-	    (setq save-place t)))))))
+	    (setq save-place t))))))
+ t)
 
 (add-hook 'kill-emacs-hook
 	  (function
@@ -183,4 +201,3 @@ To save places automatically in all files, put this in your `.emacs' file:
 (provide 'saveplace) ; why not...
 
 ;;; saveplace.el ends here
-
