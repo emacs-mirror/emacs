@@ -120,49 +120,62 @@ text indented by a margin setting."
 This is relevant for filling.  See also `sentence-end-without-period'
 and `colon-double-space'.
 
-If you change this, you should also change `sentence-end'.  See Info
-node `Sentences'."
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, in case when the value of
+the variable `sentence-end' is nil.  See Info node `Sentences'."
   :type 'boolean
   :group 'fill)
 
 (defcustom sentence-end-without-period nil
   "*Non-nil means a sentence will end without a period.
 For example, a sentence in Thai text ends with double space but
-without a period."
+without a period.
+
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, in case when the value of
+the variable `sentence-end' is nil.  See Info node `Sentences'."
   :type 'boolean
   :group 'fill)
 
 (defcustom sentence-end-without-space
   "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
   "*String containing characters that end sentence without following spaces.
-If you change this, you should also change `sentence-end'.  See Info
-node `Sentences'."
+
+This value is used by the function `sentence-end' to construct the
+regexp describing the end of a sentence, in case when the value of
+the variable `sentence-end' is nil.  See Info node `Sentences'."
   :group 'paragraphs
   :type 'string)
 
-(defcustom sentence-end
-  (purecopy
-   ;; This is a bit stupid since it's not auto-updated when the
-   ;; other variables are changes, but it's still useful info.
-   (concat (if sentence-end-without-period "\\w  \\|")
-	   "\\([.?!][]\"')}]*"
-	   (if sentence-end-double-space
-	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
-	   "\\|[" sentence-end-without-space "]+\\)"
-	   "[ \t\n]*"))
+(defcustom sentence-end nil
   "*Regexp describing the end of a sentence.
 The value includes the whitespace following the sentence.
 All paragraph boundaries also end sentences, regardless.
 
-The default value specifies that in order to be recognized as the end
-of a sentence, the ending period, question mark, or exclamation point
-must be followed by two spaces, unless it's inside some sort of quotes
-or parenthesis.
-
-See also the variable `sentence-end-double-space', the variable
-`sentence-end-without-period' and Info node `Sentences'."
+The value nil means to use the default value defined by the
+function `sentence-end'.  You should always use this function
+to obtain the value of this variable."
   :group 'paragraphs
-  :type 'regexp)
+  :type '(choice regexp (const :tag "Use default value" nil)))
+
+(defun sentence-end ()
+  "Return the regexp describing the end of a sentence.
+
+This function returns either the value of the variable `sentence-end'
+if it is non-nil, or the default value constructed from the
+variables `sentence-end-double-space', `sentence-end-without-period'
+and `sentence-end-without-space'.  The default value specifies
+that in order to be recognized as the end of a sentence, the
+ending period, question mark, or exclamation point must be
+followed by two spaces, unless it's inside some sort of quotes or
+parenthesis.  See Info node `Sentences'."
+  (or sentence-end
+      (concat (if sentence-end-without-period "\\w  \\|")
+              "\\([.?!][]\"')}]*"
+              (if sentence-end-double-space
+                  "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
+              "\\|[" sentence-end-without-space "]+\\)"
+              "[ \t\n]*")))
 
 (defcustom page-delimiter "^\014"
   "*Regexp describing line-beginnings that separate pages."
@@ -411,7 +424,8 @@ The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
   (interactive "p")
   (or arg (setq arg 1))
-  (let ((opoint (point)))
+  (let ((opoint (point))
+        (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
 	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
