@@ -56,6 +56,7 @@ Boston, MA 02111-1307, USA.  */
 struct mac_bitmap_record
 {
   char *bitmap_data;
+  char *file;
   int refcount;
   int height, width;
 };
