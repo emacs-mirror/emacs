@@ -765,3 +765,7 @@ It just kills all the active syntax check processes before calling
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 9f0db077-5598-49ab-90b9-8df9248a63ec
+@end ignore
