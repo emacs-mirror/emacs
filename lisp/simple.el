@@ -1234,10 +1234,6 @@ Return 0 if current buffer is not a mini-buffer."
 (defvar undo-no-redo nil
   "If t, `undo' doesn't go through redo entries.")
 
-(defvar undo-list-saved nil
-  "The value of `buffer-undo-list' saved by the last undo command.")
-(make-variable-buffer-local 'undo-list-saved)
-
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
@@ -1266,7 +1262,9 @@ as an argument limits undo to changes within the current region."
 		 (let ((list buffer-undo-list))
 		   (while (eq (car list) nil)
 		     (setq list (cdr list)))
-		   (eq undo-list-saved list)))
+		   ;; If the last undo record made was made by undo
+		   ;; it shows nothing else happened in between.
+		   (gethash list undo-equiv-table)))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1320,7 +1318,6 @@ as an argument limits undo to changes within the current region."
 	(setq prev tail tail (cdr tail))))
     ;; Record what the current undo list says,
     ;; so the next command can tell if the buffer was modified in between.
-    (setq undo-list-saved buffer-undo-list)
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save))))
 
@@ -1329,8 +1326,7 @@ as an argument limits undo to changes within the current region."
 No argument or nil as argument means do this for the current buffer."
   (interactive)
   (with-current-buffer (if buffer (get-buffer buffer) (current-buffer))
-    (setq buffer-undo-list t
-	  undo-list-saved nil)))
+    (setq buffer-undo-list t)))
 
 (defun undo-only (&optional arg)
   "Undo some previous changes.
