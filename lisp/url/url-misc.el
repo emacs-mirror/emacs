@@ -22,6 +22,7 @@
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(eval-when-compile (require 'cl))
 (require 'url-vars)
 (require 'url-parse)
 (autoload 'Info-goto-node "info" "" t)

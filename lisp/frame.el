@@ -153,7 +153,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	   ;; (set-window-dedicated-p window t)
 	   window))
        ;; If no window yet, make one in a new frame.
-       (let ((frame (make-frame (append args special-display-frame-alist))))
+       (let ((frame 
+	      (with-current-buffer buffer
+		(make-frame (append args special-display-frame-alist)))))
 	 (set-window-buffer (frame-selected-window frame) buffer)
 	 (set-window-dedicated-p (frame-selected-window frame) t)
 	 (frame-selected-window frame))))))

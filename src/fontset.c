@@ -655,7 +655,7 @@ fs_load_font (f, c, fontname, id, face)
      struct face *face;
 {
   Lisp_Object fontset;
-  Lisp_Object list, elt;
+  Lisp_Object list, elt, fullname;
   int size = 0;
   struct font_info *fontp;
   int charset = CHAR_CHARSET (c);
@@ -701,10 +701,11 @@ fs_load_font (f, c, fontname, id, face)
      font_info structure that are not set by (*load_font_func).  */
   fontp->charset = charset;
 
+  fullname = build_string (fontp->full_name);
   fontp->vertical_centering
     = (STRINGP (Vvertical_centering_font_regexp)
-       && (fast_c_string_match_ignore_case
-	   (Vvertical_centering_font_regexp, fontp->full_name) >= 0));
+       && (fast_string_match_ignore_case
+	   (Vvertical_centering_font_regexp, fullname) >= 0));
 
   if (fontp->encoding[1] != FONT_ENCODING_NOT_DECIDED)
     {
@@ -721,7 +722,6 @@ fs_load_font (f, c, fontname, id, face)
       /* The font itself doesn't have information about encoding.  */
       int i;
 
-      fontname = fontp->full_name;
       /* By default, encoding of ASCII chars is 0 (i.e. 0x00..0x7F),
 	 others is 1 (i.e. 0x80..0xFF).  */
       fontp->encoding[0] = 0;
@@ -733,8 +733,7 @@ fs_load_font (f, c, fontname, id, face)
 	  elt = XCAR (list);
 	  if (CONSP (elt)
 	      && STRINGP (XCAR (elt)) && CONSP (XCDR (elt))
-	      && (fast_c_string_match_ignore_case (XCAR (elt), fontname)
-		  >= 0))
+	      && (fast_string_match_ignore_case (XCAR (elt), fullname) >= 0))
 	    {
 	      Lisp_Object tmp;
 
@@ -848,18 +847,17 @@ fs_query_fontset (name, regexpp)
 
   for (i = 0; i < ASIZE (Vfontset_table); i++)
     {
-      Lisp_Object fontset;
-      const unsigned char *this_name;
+      Lisp_Object fontset, this_name;
 
       fontset = FONTSET_FROM_ID (i);
       if (NILP (fontset)
 	  || !BASE_FONTSET_P (fontset))
 	continue;
 
-      this_name = SDATA (FONTSET_NAME (fontset));
+      this_name = FONTSET_NAME (fontset);
       if (regexpp
-	  ? fast_c_string_match_ignore_case (name, this_name) >= 0
-	  : !strcmp (SDATA (name), this_name))
+	  ? fast_string_match (name, this_name) >= 0
+	  : !strcmp (SDATA (name), SDATA (this_name)))
 	return i;
     }
   return -1;
@@ -913,19 +911,18 @@ list_fontsets (f, pattern, size)
 
   for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
-      Lisp_Object fontset;
-      const unsigned char *name;
+      Lisp_Object fontset, name;
 
       fontset = FONTSET_FROM_ID (id);
       if (NILP (fontset)
 	  || !BASE_FONTSET_P (fontset)
 	  || !EQ (frame, FONTSET_FRAME (fontset)))
 	continue;
-      name = SDATA (FONTSET_NAME (fontset));
+      name = FONTSET_NAME (fontset);
 
       if (!NILP (regexp)
-	  ? (fast_c_string_match_ignore_case (regexp, name) < 0)
-	  : strcmp (SDATA (pattern), name))
+	  ? (fast_string_match (regexp, name) < 0)
+	  : strcmp (SDATA (pattern), SDATA (name)))
 	continue;
 
       if (size)

@@ -113,26 +113,6 @@ Emacs."
 				     noproxy "") "\\)"))
 		      url-proxy-services))))
 
-    ;; Set the password entry funtion based on user defaults or guess
-    ;; based on which remote-file-access package they are using.
-    (cond
-     (url-passwd-entry-func nil)	; Already been set
-     ((fboundp 'read-passwd)		; Use secure password if available
-      (setq url-passwd-entry-func 'read-passwd))
-     ((or (featurep 'efs)		; Using EFS
-	  (featurep 'efs-auto))		; or autoloading efs
-      (if (not (fboundp 'read-passwd))
-	  (autoload 'read-passwd "passwd" "Read in a password" nil))
-      (setq url-passwd-entry-func 'read-passwd))
-     ((or (featurep 'ange-ftp)		; Using ange-ftp
-	  (and (boundp 'file-name-handler-alist)
-	       (not (featurep 'xemacs)))) ; ??
-      (setq url-passwd-entry-func 'ange-ftp-read-passwd))
-     (t
-      (url-warn
-       'security
-       "(url-setup): Can't determine how to read passwords, winging it.")))
-  
     (url-setup-privacy-info)
     (run-hooks 'url-load-hook)
     (setq url-setup-done t)))

@@ -885,7 +885,7 @@ New Features
 * Red Gnus::                    Third time best---Gnus 5.4/5.5.
 * Quassia Gnus::                Two times two is four, or Gnus 5.6/5.7.
 * Pterodactyl Gnus::            Pentad also starts with P, AKA Gnus 5.8/5.9.
-* Oort Gnus::                   It's big.  It's far out.  Gnus 5.10.
+* Oort Gnus::                   It's big.  It's far out.  Gnus 5.10/5.11.
 
 Customization
 
@@ -13538,10 +13538,16 @@ and says what authentication scheme to use.  The default is
 
 @end table
 
+@vindex pop3-movemail
+@vindex pop3-leave-mail-on-server
 If the @code{:program} and @code{:function} keywords aren't specified,
 @code{pop3-movemail} will be used.  If the
 @code{pop3-leave-mail-on-server} is non-@code{nil} the mail is to be
-left on the POP server after fetching.
+left on the @acronym{POP} server after fetching when using
+@code{pop3-movemail}.  Note that POP servers maintain no state
+information between sessions, so what the client believes is there and
+what is actually there may not match up.  If they do not, then the whole
+thing can fall apart and leave you with a corrupt mailbox.
 
 Here are some examples.  Fetch from the default @acronym{POP} server,
 using the default user name, and default fetcher:
@@ -25050,7 +25056,7 @@ actually are people who are using Gnus.  Who'd'a thunk it!
 * Red Gnus::                    Third time best---Gnus 5.4/5.5.
 * Quassia Gnus::                Two times two is four, or Gnus 5.6/5.7.
 * Pterodactyl Gnus::            Pentad also starts with P, AKA Gnus 5.8/5.9.
-* Oort Gnus::                   It's big.  It's far out.  Gnus 5.10.
+* Oort Gnus::                   It's big.  It's far out.  Gnus 5.10/5.11.
 @end menu
 
 These lists are, of course, just @emph{short} overviews of the

@@ -186,7 +186,7 @@ linked Emacs under SunOS 4.x"
 	 proc (concat
 	       (or url-gateway-telnet-password
 		   (setq url-gateway-telnet-password
-			 (funcall url-passwd-entry-func "Password: ")))
+			 (read-passwd "Password: ")))
 	       "\n"))
 	(erase-buffer)
 	(url-wait-for-string url-gateway-prompt-pattern proc)

@@ -348,8 +348,7 @@ different regions.  With numeric argument ARG, behaves like
   (interactive "p")
   (scan-buf-move-to-region 'help-echo (- arg) 'scan-buf-move-hook))
 
-(defvar help-at-pt-unload-hook '(help-at-pt-cancel-timer)
-  "Normal hook run when `help-at-pt' is unloaded.")
+(add-hook 'help-at-pt-unload-hook 'help-at-pt-cancel-timer)
 
 (provide 'help-at-pt)
 

@@ -1,10 +1,164 @@
+2004-10-18  David Ponce  <david@dponce.com>
+
+	* mouse.el (mouse-drag-move-window-top): New function.
+	(mouse-drag-mode-line-1): Use it.
+
+2004-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* info.el (Info-fontify-node): For multiline refs,
+	arrange to unfontify newline and surrounding whitespace.
+
+2004-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-workfile-version): Don't burp if the patch-log
+	directory is missing.
+
+2004-10-17  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-default-display-maybe-show-predicates):
+	New customizable variable; whether to display buffers that match
+	`ibuffer-maybe-show-predicates' by default.
+	(ibuffer-maybe-show-predicates): Mention it in docstring.
+	(ibuffer-display-maybe-show-predicates): New variable.
+	(ibuffer-update): Prefix arg now toggles whether buffers that
+	match `ibuffer-maybe-show-predicates' should be displayed.
+	(ibuffer-mode): Set `ibuffer-display-maybe-show-predicates'
+	locally to heed `ibuffer-default-display-maybe-show-predicates'.
+	(ibuffer-redisplay-engine): Rename optional second arg to `ignore'.
+
+2004-10-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el: Redo sync with Tramp 2.0.45.  Last commit did not
+	work correctly.
+
+2004-10-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* buff-menu.el (Buffer-menu-revert-function): Emulate save-excursion.
+	(Buffer-menu-beginning): New helper function.
+	(Buffer-menu-execute): Use it.
+	(Buffer-menu-select): Use it.
+	(Buffer-menu-sort): Use it and also keep markers.
+
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (news-directory): Rename from news-path.  Old name alias.
+	(rmail-spool-directory): Use defvar.
+	(sendmail-program): Use defcustom.
+	(remote-shell-program): Use defcustom.
+	(term-file-prefix): Use defvar.
+	(abbrev-file-name): Use defvar.
+
+	* term.el: Add maintainer.
+
+	* subr.el (with-local-quit): Return nil if there's a quit.
+	(read-passwd): Use with-local-quit.  Doc fix.
+
+	* strokes.el (strokes-list-strokes): Don't try to delete char at eob.
+	(strokes-unload-hook): Set as a variable with add-hook.
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
+	* shadowfile.el (shadowfile-unload-hook): Set as variable w/ add-hook.
+
+	* server.el (server-unload-hook): Set as a variable with add-hook.
+
+	* help-at-pt.el (help-at-pt-unload-hook): Use add-hook; no defvar.
+
+	* frame.el (special-display-popup-frame):
+	Make the buffer current as its frame is created.
+
+	* delsel.el (delsel-unload-hook): Set as a variable.
+
+	* comint.el (comint-output-filter-functions):
+	Add comint-watch-for-password-prompt.
+	(comint-read-noecho): Function deleted.
+	(send-invisible): Use read-passwd.
+
+	* fringe.el (fringe-mode-initialize): New function.
+	(fringe-mode): Use fringe-mode-initialize as :initialize.
+
+2004-10-17  Kim F. Storm  <storm@cua.dk>
+
+	* language/indian.el (indian-script-language-alist): Swap value and doc.
+	(indian-font-char-index-table): Doc fix.
+
+2004-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-file-hook): Call vc-backend with absolute name.
+
+2004-10-16  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Move let-binding of
+	`process-environment' into `with-current-buffer' body.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs-util.el (cvs-bury-buffer):
+	Don't call get-buffer-window for effect.
+
+	* outline.el (hide-other): Call outline-up-heading with INVISIBLE-OK=t.
+
+	* newcomment.el (comment-auto-fill-only-comments): Add autoload.
+
+	* msb.el (msb-unload-hook): Set the variable.
+
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
+	Use * to err if buffer is readonly.
+
+	* subr.el (looking-back): Return only t or nil.
+
+	* whitespace.el (whitespace-unload-hook): Set the variable.
+
+	* view.el (view-mode-enable): Set view-page-size and
+	view-half-page-size to nil.
+	(view-set-half-page-size-default): view-half-page-size = nil
+	means the default.
+	(View-scroll-page-forward): Use view-page-size-default.
+	(View-scroll-page-backward): Likewise.
+	(view-page-size, view-half-page-size): Doc fixes.
+
+	* emacs-lisp/elp.el (elp-unload-hook): Set the variable.
+
+	* emacs-lisp/cl.el (cl-unload-hook): Don't defvar it, just set it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Don't process
+	"cl" like other files.  Instead, call byte-compile-find-cl-functions.
+	(byte-compile-log-1): Bind inhibit-read-only.
+	(byte-compile-warning-prefix, byte-compile-log-file): Likewise.
+	(byte-compile-log-warning): Likewise.
+	(byte-compile-file-form-require): Detect "cl" from the arg value.
+
+	* progmodes/compile.el (compilation-start): Assume compilation-mode
+	will make the buffer read-only.
+	(compilation-mode): Take arg name-of-mode.
+	(compilation-setup): Make buffer read-only.
+	(compilation-handle-exit): Bind inhibit-read-only.
+
+	* textmodes/ispell.el (ispell-command-loop): Use with-no-warnings.
+	(ispell-message): Likewise.
+	(ispell-show-choices): Don't call get-buffer-window uselessly.
+	(ispell-init-process): Use set-process-query-on-exit-flag.
+
+2004-10-16  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe-bitmaps): Only initialize when defined.
+
+	* pcvs.el (cvs-mode-view-file, cvs-mode-view-file-other-window): Add.
+	(cvs-mode-find-file): Add optional `view' arg to enter view mode.
+
+	* pcvs-defs.el (cvs-mode-map): Bind v to cvs-mode-view-file.
+
+2004-10-15  Simon Josefsson  <jas@extundo.com>
+
+	* net/password.el: Add.
+
 2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* button.el (button-activate): Allow a marker to display as an
-	action.
+	* button.el (button-activate): Allow a marker to display as an action.
 
-	* help-fns.el (describe-variable): Use it to make "below" a
-	hyperlink.
+	* help-fns.el (describe-variable): Use it to make "below" a hyperlink.
 
 	* help.el (describe-mode): Use it to make minor mode list into
 	hyperlinks.
@@ -24,6 +178,15 @@
 	(substitute-key-definition): Use it with map-keymap.
 	(event-modifiers): Use push.
 	(mouse-movement-p, with-temp-buffer): Simplify.
+
+2004-10-12  Richard M. Stallman  <rms@gnu.org>
+
+	* info-look.el (info-lookup-file): Add info-file property.
+	(info-lookup-symbol): Likewise.
+
+	* info.el (info-xref): Add underlining.
+	(info): Add info-file property.
+	(Info-find-emacs-command-nodes): Specify case-sensitive search.
 
 2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -201,7 +364,7 @@
 2004-10-05  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-done): Set mark after running hook.
-	Suggested by Drew Adams <drew.adams@oracle.com>.
+	Reported by Drew Adams <drew.adams@oracle.com>.
 
 	* info.el (Info-history, Info-toc): Fix Info headers.
 	(Info-toc): Narrow buffer before Info-fontify-node.

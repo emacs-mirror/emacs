@@ -117,12 +117,12 @@ functions that enable or disable view mode.")
 
 (defvar view-page-size nil
   "Default number of lines to scroll by View page commands.
-If nil then the local value of this is initially set to window size.")
+If nil that means use the window size.")
 (make-variable-buffer-local 'view-page-size)
 
 (defvar view-half-page-size nil
   "Default number of lines to scroll by View half page commands.
-If nil then the local value of this is initially set to half window size.")
+If nil that means use half the window size.")
 (make-variable-buffer-local 'view-half-page-size)
 
 (defvar view-last-regexp nil)
@@ -453,8 +453,8 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; This is to guarantee that the buffer-read-only variable is restored.
   (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
   (setq view-mode t
-	view-page-size (view-page-size-default view-page-size)
-	view-half-page-size (or view-half-page-size (/ (view-window-size) 2))
+	view-page-size nil
+	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
 	buffer-read-only t
 	view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
@@ -675,7 +675,8 @@ previous state and go to previous buffer or window."
 
 (defun view-set-half-page-size-default (lines)
   ;; Get and maybe set half page size.
-  (if (not lines) view-half-page-size
+  (if (not lines) (or view-half-page-size
+		      (/ (view-window-size) 2))
     (setq view-half-page-size
 	  (if (zerop (setq lines (prefix-numeric-value lines)))
 	      (/ (view-window-size) 2)
@@ -803,13 +804,13 @@ Exit if end of text is visible and `view-scroll-auto-exit' is non-nil.
 \\[View-scroll-page-backward-set-page-size].
 If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
-  (view-scroll-lines lines nil view-page-size nil))
+  (view-scroll-lines lines nil (view-page-size-default view-page-size) nil))
 
 (defun View-scroll-page-backward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines backward in View mode.
 See also `View-scroll-page-forward'."
   (interactive "P")
-  (view-scroll-lines lines t view-page-size nil))
+  (view-scroll-lines lines t (view-page-size-default view-page-size) nil))
 
 (defun View-scroll-page-forward-set-page-size (&optional lines)
   "Scroll forward LINES lines in View mode, setting the \"page size\".

@@ -866,20 +866,6 @@ Returns the compilation buffer created."
 	  (if (eq mode t)
 	      (prog1 "compilation" (require 'comint))
 	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
-	 (process-environment
-	  (append
-	   compilation-environment
-	   (if (if (boundp 'system-uses-terminfo) ; `if' for compiler warning
-		   system-uses-terminfo)
-	       (list "TERM=dumb" "TERMCAP="
-		     (format "COLUMNS=%d" (window-width)))
-	     (list "TERM=emacs"
-		   (format "TERMCAP=emacs:co#%d:tc=unknown:"
-			   (window-width))))
-	   ;; Set the EMACS variable, but
-	   ;; don't override users' setting of $EMACS.
-	   (unless (getenv "EMACS") '("EMACS=t"))
-	   (copy-sequence process-environment)))
 	 cd-path		 ; in case process-environment contains CDPATH
 	 (thisdir (if (string-match "^\\s *cd\\s +\\(.+?\\)\\s *[;&\n]" command)
 		      (substitute-in-file-name (match-string 1 command))
@@ -903,18 +889,18 @@ Returns the compilation buffer created."
 		  (error nil))
 	      (error "Cannot have two processes in `%s' at once"
 		     (buffer-name)))))
-      ;; Clear out the compilation buffer and make it writable.
-      ;; Change its default-directory to the directory where the compilation
-      ;; will happen, and insert a `default-directory' to indicate this.
-      (setq buffer-read-only nil)
       (buffer-disable-undo (current-buffer))
-      (erase-buffer)
-      (buffer-enable-undo (current-buffer))
-      (cd thisdir)
-      ;; output a mode setter, for saving and later reloading this buffer
-      (insert "-*- mode: " name-of-mode
-	      "; default-directory: " (prin1-to-string default-directory)
-	      " -*-\n" command "\n")
+      ;; Make compilation buffer read-only.  The filter can still write it.
+      ;; Clear out the compilation buffer.
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	;; Change its default-directory to the directory where the compilation
+	;; will happen, and insert a `cd' command to indicate this.
+	(setq default-directory thisdir)
+	;; output a mode setter, for saving and later reloading this buffer
+	(insert "-*- mode: " name-of-mode
+		"; default-directory: " (prin1-to-string default-directory)
+		" -*-\n" command "\n"))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.
@@ -923,70 +909,83 @@ Returns the compilation buffer created."
     ;; Pop up the compilation buffer.
     (setq outwin (display-buffer outbuf nil t))
     (with-current-buffer outbuf
-      (if (not (eq mode t))
-	  (funcall mode)
-	(with-no-warnings (comint-mode))
-	(compilation-shell-minor-mode))
-      ;; In what way is it non-ergonomic ?  -stef
-      ;; (toggle-read-only 1) ;;; Non-ergonomic.
-      (if highlight-regexp
-	  (set (make-local-variable 'compilation-highlight-regexp)
-	       highlight-regexp))
-      (set (make-local-variable 'compilation-arguments)
-	   (list command mode name-function highlight-regexp))
-      (set (make-local-variable 'revert-buffer-function)
-	   'compilation-revert-buffer)
-      (set-window-start outwin (point-min))
-      (or (eq outwin (selected-window))
-	  (set-window-point outwin (if compilation-scroll-output
-				       (point)
-				     (point-min))))
-      ;; The setup function is called before compilation-set-window-height
-      ;; so it can set the compilation-window-height buffer locally.
-      (if compilation-process-setup-function
-	  (funcall compilation-process-setup-function))
-      (compilation-set-window-height outwin)
-      ;; Start the compilation.
-      (if (fboundp 'start-process)
-	  (let ((proc (if (eq mode t)
-			  (get-buffer-process
-			   (with-no-warnings
-			    (comint-exec outbuf (downcase mode-name)
-					 shell-file-name nil `("-c" ,command))))
-			(start-process-shell-command (downcase mode-name)
-						     outbuf command))))
-	    ;; Make the buffer's mode line show process state.
-	    (setq mode-line-process '(":%s"))
-	    (set-process-sentinel proc 'compilation-sentinel)
-	    (set-process-filter proc 'compilation-filter)
-	    (set-marker (process-mark proc) (point) outbuf)
-	    (setq compilation-in-progress
-		  (cons proc compilation-in-progress)))
-	;; No asynchronous processes available.
-	(message "Executing `%s'..." command)
-	;; Fake modeline display as if `start-process' were run.
-	(setq mode-line-process ":run")
-	(force-mode-line-update)
-	(sit-for 0)			; Force redisplay
-	(let ((status (call-process shell-file-name nil outbuf nil "-c"
-				    command)))
-	  (cond ((numberp status)
-		 (compilation-handle-exit 'exit status
-					  (if (zerop status)
-					      "finished\n"
-					    (format "\
+      (let ((process-environment
+	     (append
+	      compilation-environment
+	      (if (if (boundp 'system-uses-terminfo) ; `if' for compiler warning
+		      system-uses-terminfo)
+		  (list "TERM=dumb" "TERMCAP="
+			(format "COLUMNS=%d" (window-width)))
+		(list "TERM=emacs"
+		      (format "TERMCAP=emacs:co#%d:tc=unknown:"
+			      (window-width))))
+	      ;; Set the EMACS variable, but
+	      ;; don't override users' setting of $EMACS.
+	      (unless (getenv "EMACS") '("EMACS=t"))
+	      (copy-sequence process-environment))))
+	(if (not (eq mode t))
+	    (funcall mode)
+	  (setq buffer-read-only nil)
+	  (with-no-warnings (comint-mode))
+	  (compilation-shell-minor-mode))
+	(if highlight-regexp
+	    (set (make-local-variable 'compilation-highlight-regexp)
+		 highlight-regexp))
+	(set (make-local-variable 'compilation-arguments)
+	     (list command mode name-function highlight-regexp))
+	(set (make-local-variable 'revert-buffer-function)
+	     'compilation-revert-buffer)
+	(set-window-start outwin (point-min))
+	(or (eq outwin (selected-window))
+	    (set-window-point outwin (if compilation-scroll-output
+					 (point)
+				       (point-min))))
+	;; The setup function is called before compilation-set-window-height
+	;; so it can set the compilation-window-height buffer locally.
+	(if compilation-process-setup-function
+	    (funcall compilation-process-setup-function))
+	(compilation-set-window-height outwin)
+	;; Start the compilation.
+	(if (fboundp 'start-process)
+	    (let ((proc (if (eq mode t)
+			    (get-buffer-process
+			     (with-no-warnings
+			      (comint-exec outbuf (downcase mode-name)
+					   shell-file-name nil `("-c" ,command))))
+			  (start-process-shell-command (downcase mode-name)
+						       outbuf command))))
+	      ;; Make the buffer's mode line show process state.
+	      (setq mode-line-process '(":%s"))
+	      (set-process-sentinel proc 'compilation-sentinel)
+	      (set-process-filter proc 'compilation-filter)
+	      (set-marker (process-mark proc) (point) outbuf)
+	      (setq compilation-in-progress
+		    (cons proc compilation-in-progress)))
+	  ;; No asynchronous processes available.
+	  (message "Executing `%s'..." command)
+	  ;; Fake modeline display as if `start-process' were run.
+	  (setq mode-line-process ":run")
+	  (force-mode-line-update)
+	  (sit-for 0)			; Force redisplay
+	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
+				      command)))
+	    (cond ((numberp status)
+		   (compilation-handle-exit 'exit status
+					    (if (zerop status)
+						"finished\n"
+					      (format "\
 exited abnormally with code %d\n"
-						    status))))
-		((stringp status)
-		 (compilation-handle-exit 'signal status
-					  (concat status "\n")))
-		(t
-		 (compilation-handle-exit 'bizarre status status))))
-	;; Without async subprocesses, the buffer is not yet
-	;; fontified, so fontify it now.
-	(let ((font-lock-verbose nil))	; shut up font-lock messages
-	  (font-lock-fontify-buffer))
-	(message "Executing `%s'...done" command)))
+						      status))))
+		  ((stringp status)
+		   (compilation-handle-exit 'signal status
+					    (concat status "\n")))
+		  (t
+		   (compilation-handle-exit 'bizarre status status))))
+	  ;; Without async subprocesses, the buffer is not yet
+	  ;; fontified, so fontify it now.
+	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
+	    (font-lock-fontify-buffer))
+	  (message "Executing `%s'...done" command))))
     (if (buffer-local-value 'compilation-scroll-output outbuf)
 	(save-selected-window
 	  (select-window outwin)
@@ -1108,7 +1107,7 @@ from a different message."
   :version "21.4")
 
 ;;;###autoload
-(defun compilation-mode ()
+(defun compilation-mode (&optional name-of-mode)
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
 move point to the error message line and type \\[compile-goto-error].
@@ -1121,7 +1120,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see).
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
   (setq major-mode 'compilation-mode
-	mode-name "Compilation")
+	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
@@ -1187,6 +1186,7 @@ If nil, use the beginning of buffer.")
   "Prepare the buffer for the compilation parsing commands to work.
 Optional argument MINOR indicates this is called from
 `compilation-minor-mode'."
+  (setq buffer-read-only t)
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
@@ -1248,7 +1248,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 
 (defun compilation-handle-exit (process-status exit-status msg)
   "Write MSG in the current buffer and hack its mode-line-process."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
 			     process-status exit-status msg)

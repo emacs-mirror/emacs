@@ -1,3 +1,33 @@
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* gnus-registry.el (gnus-registry-unload-hook): 
+	Set as a variable with add-hook.
+
+	* nnspool.el (nnspool-spool-directory): Use news-directory instead
+	of news-path.
+
+	* spam-stat.el (spam-stat-unload-hook): Set as a variable w/ add-hook.
+
+	* spam.el: Delete duplicate `provide'.
+	(spam-unload-hook): Set as a variable with add-hook.
+
+2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-leave-mail-on-server): Describe possible problems
+	in the doc string.
+
+	* message.el (message-ignored-news-headers)
+	(message-ignored-supersedes-headers)
+	(message-ignored-resent-headers)
+	(message-forward-ignored-headers): Improve custom type.
+
+2004-10-15  Simon Josefsson  <jas@extundo.com>
+
+	* pop3.el (top-level): Don't require nnheader.
+	(pop3-read-timeout): Add.
+	(pop3-accept-process-output): Add.
+	(pop3-read-response, pop3-retr): Use it.
+
 2004-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-tokenize-header): Fix 2004-09-06 change
@@ -8,6 +38,10 @@
 	* net/tls.el (tls-certtool-program): New variable.
 	(tls-certificate-information): New function, based on
 	ssl-certificate-information.
+
+2004-10-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-bury): Use `window-dedicated-p'.
 
 2004-10-10  Reiner Steib  <Reiner.Steib@gmx.de>
 

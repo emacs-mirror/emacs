@@ -21,8 +21,13 @@ Boston, MA 02111-1307, USA.  */
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
+
+/* Include Xutil.h after keysym.h to work around a bug that prevents
+   correct recognition of AltGr key in some X versions.  */
+
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
+
 #include <X11/Xatom.h>
 #include <X11/Xresource.h>
 

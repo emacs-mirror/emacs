@@ -1,3 +1,25 @@
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* url.el (url-do-setup): Don't set url-passwd-entry-func.
+
+	* url-vars.el (url-passwd-entry-func): Var deleted.
+	(mm-mime-mule-charset-alist): Remove compatibility code for old Gnus.
+	(url-weekday-alist): Renamed from weekday-alist.
+	(url-monthabbrev-alist): Renamed from monthabbrev-alist.
+	(url-vars-unload-hook): Initialize hook var to hold the function.
+
+	* url-util.el (url-get-normalized-date): Use
+	url-weekday-alist and url-monthabbrev-alist.
+
+	* url-misc.el: Load cl at compile time.
+
+	* url-mailto.el: Don't load cl.
+	(url-mailto): Fix call to `push'.
+
+	* url-gw.el (url-open-telnet): Use read-passwd.
+
+	* url-auth.el (url-basic-auth, url-digest-auth): Use read-passwd.
+
 2004-10-12  Simon Josefsson  <jas@extundo.com>
 
 	* url-vars.el (url-gateway-method): Add new method `tls'.
