@@ -36,7 +36,7 @@ when creating new masters.")
 
 (defvar vc-make-backup-files nil
   "*If non-nil, backups of registered files are made as with other files.
-If nil (the default), for files covered by version control don't get backups.")
+If nil (the default), files covered by version control don't get backups.")
 
 (defvar vc-rcs-status t
   "*If non-nil, revision and locks on RCS working file displayed in modeline.
