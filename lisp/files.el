@@ -1604,6 +1604,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
      ("\\.xml\\'" . sgml-mode)
+     ("\\.xsl\\'" . sgml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.idl\\'" . idl-mode)
