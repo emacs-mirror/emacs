@@ -1,3 +1,32 @@
+2001-11-14  Richard M. Stallman  <rms@gnu.org>
+
+	* dispextern.h (image_background, image_background_transparent):
+	Conditionalize on HAVE_X_WINDOWS.
+
+2001-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (Fprin1_to_string): Doc fix.
+
+	* sunfns.c (Fsun_change_cursor_icon): Doc fix.
+
+	* floatfns.c (Fceiling, Ffloor): Doc fixes.
+
+	* filelock.c (Funlock_buffer, Ffile_locked_p): Doc fixes.
+
+	* fileio.c (Ffile_accessible_directory_p): Doc fix.
+
+	* eval.c (syms_of_eval): Doc fix.
+
+	* coding.c (syms_of_coding): Doc fix.
+
+	* doc.c (Fsnarf_documentation): Doc fix.
+
+	* dispnew.c (syms_of_display): Doc fix.
+
+	* category.c (Fget_unused_category): Doc fix.
+
+	* buffer.c (syms_of_buffer): Doc fixes.
+
 2001-11-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* print.c (prin1, print): Doc fix.
