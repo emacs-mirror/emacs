@@ -50,16 +50,17 @@
 (require 'viper-init)
 
 
+;; A fix for NeXT Step
+;; Should go away, when NS people fix the design flaw, which leaves the
+;; two x-* functions undefined.
+(if (and (not (fboundp 'x-display-color-p)) (fboundp 'ns-display-color-p))
+    (fset 'x-display-color-p (symbol-function 'ns-display-color-p)))
+(if (and (not (fboundp 'x-color-defined-p)) (fboundp 'ns-color-defined-p))
+      (fset 'x-color-defined-p (symbol-function 'ns-color-defined-p)))
+
 
 ;;; XEmacs support
 
-;; A fix for NeXT Step
-;; Should probably be eliminated in later versions.
-(if (and (viper-window-display-p) (eq (viper-device-type) 'ns))
-    (progn
-      (fset 'x-display-color-p (symbol-function 'ns-display-color-p))
-      (fset 'x-color-defined-p (symbol-function 'ns-color-defined-p))
-      ))
 
 (if viper-xemacs-p
     (progn
@@ -108,14 +109,14 @@
       (cdr (assoc 'cursor-color (frame-parameters)))
     (color-instance-name (frame-property (selected-frame) 'cursor-color))))
   
-(defun viper-set-face-pixmap (face pixmap)
-  "Set face pixmap on a monochrome display."
-  (if (and (viper-window-display-p) (not (viper-color-display-p)))
-      (condition-case nil
-	  (set-face-background-pixmap face pixmap)
-	(error
-	 (message "Pixmap not found for %S: %s" (face-name face) pixmap)
-	 (sit-for 1)))))
+;;(defun viper-set-face-pixmap (face pixmap)
+;;  "Set face pixmap on a monochrome display."
+;;  (if (and (viper-window-display-p) (not (viper-color-display-p)))
+;;      (condition-case nil
+;;	  (set-face-background-pixmap face pixmap)
+;;	(error
+;;	 (message "Pixmap not found for %S: %s" (face-name face) pixmap)
+;;	 (sit-for 1)))))
 
   
 ;; OS/2
@@ -124,20 +125,16 @@
 	     (function (lambda (color) (assoc color pm-color-alist))))))
     
 ;; needed to smooth out the difference between Emacs and XEmacs
-(defsubst viper-italicize-face (face)
-  (if viper-xemacs-p
-      (make-face-italic face)
-    (make-face-italic face nil 'noerror)))
+;;(defsubst viper-italicize-face (face)
+;;  (if viper-xemacs-p
+;;      (make-face-italic face)
+;;    (make-face-italic face nil 'noerror)))
     
 ;; test if display is color and the colors are defined
-(defsubst viper-can-use-colors (&rest colors)
-  (if (viper-color-display-p)
-      (not (memq nil (mapcar 'viper-color-defined-p colors)))
-    ))
-
-(defun viper-hide-face (face)
-  (if (and (viper-has-face-support-p) viper-emacs-p)
-      (add-to-list 'facemenu-unlisted-faces face)))
+;;(defsubst viper-can-use-colors (&rest colors)
+;;  (if (viper-color-display-p)
+;;      (not (memq nil (mapcar 'viper-color-defined-p colors)))
+;;    ))
 
 ;; cursor colors
 (defun viper-change-cursor-color (new-color)
@@ -161,114 +158,6 @@
 (defsubst viper-restore-cursor-color-after-insert ()
   (viper-change-cursor-color viper-saved-cursor-color))
 	 
-
-;; Face-saving tricks
-
-(defvar viper-search-face
-  (if (viper-has-face-support-p)
-      (progn
-	(make-face 'viper-search-face)
-	(viper-hide-face 'viper-search-face)
-	(or (face-differs-from-default-p 'viper-search-face)
-	    ;; face wasn't set in .viper or .Xdefaults
-	    (if (viper-can-use-colors "Black" "khaki")
-		(progn
-		  (set-face-background 'viper-search-face "khaki")
-		  (set-face-foreground 'viper-search-face "Black"))
-	      (set-face-underline-p 'viper-search-face t)
-	      (viper-set-face-pixmap 'viper-search-face viper-search-face-pixmap)))
-	'viper-search-face))
-  "*Face used to flash out the search pattern.")
-  
-(defvar viper-replace-overlay-face
-  (if (viper-has-face-support-p)
-      (progn
-	(make-face 'viper-replace-overlay-face)
-	(viper-hide-face 'viper-replace-overlay-face)
-	(or (face-differs-from-default-p 'viper-replace-overlay-face)
-	    (progn
-	      (if (viper-can-use-colors "darkseagreen2" "Black")
-		  (progn
-		    (set-face-background
-		     'viper-replace-overlay-face "darkseagreen2")
-		    (set-face-foreground 'viper-replace-overlay-face "Black")))
-	      (set-face-underline-p 'viper-replace-overlay-face t)
-	      (viper-set-face-pixmap
-	       'viper-replace-overlay-face viper-replace-overlay-pixmap)))
-	'viper-replace-overlay-face))
-  "*Face for highlighting replace regions on a window display.")
-
-(defvar viper-minibuffer-emacs-face
-  (if (viper-has-face-support-p)
-      (progn
-	(make-face 'viper-minibuffer-emacs-face)
-	(viper-hide-face 'viper-minibuffer-emacs-face)
-	(or (face-differs-from-default-p 'viper-minibuffer-emacs-face)
-	    ;; face wasn't set in .viper or .Xdefaults
-	    (if viper-vi-style-in-minibuffer
-		;; emacs state is an exception in the minibuffer
-		(if (viper-can-use-colors "darkseagreen2" "Black")
-		    (progn
-		      (set-face-background
-		       'viper-minibuffer-emacs-face "darkseagreen2")
-		      (set-face-foreground
-		       'viper-minibuffer-emacs-face "Black"))
-		  (copy-face 'modeline 'viper-minibuffer-emacs-face))
-	      ;; emacs state is the main state in the minibuffer
-	      (if (viper-can-use-colors "Black" "pink")
-		  (progn
-		    (set-face-background 'viper-minibuffer-emacs-face "pink") 
-		    (set-face-foreground
-		     'viper-minibuffer-emacs-face "Black"))
-		(copy-face 'italic 'viper-minibuffer-emacs-face))
-	      ))
-	'viper-minibuffer-emacs-face))
-  "Face used in the Minibuffer when it is in Emacs state.")
-    
-(defvar viper-minibuffer-insert-face
-  (if (viper-has-face-support-p)
-      (progn
-	(make-face 'viper-minibuffer-insert-face)
-	(viper-hide-face 'viper-minibuffer-insert-face)
-	(or (face-differs-from-default-p 'viper-minibuffer-insert-face)
-	    (if viper-vi-style-in-minibuffer
-		(if (viper-can-use-colors "Black" "pink")
-		    (progn
-		      (set-face-background 'viper-minibuffer-insert-face "pink") 
-		      (set-face-foreground
-		       'viper-minibuffer-insert-face "Black"))
-		  (copy-face 'italic 'viper-minibuffer-insert-face))
-	      ;; If Insert state is an exception
-	      (if (viper-can-use-colors "darkseagreen2" "Black")
-		  (progn
-		    (set-face-background
-		     'viper-minibuffer-insert-face "darkseagreen2")
-		    (set-face-foreground
-		     'viper-minibuffer-insert-face "Black"))
-		(copy-face 'modeline 'viper-minibuffer-insert-face))
-	      (viper-italicize-face 'viper-minibuffer-insert-face)))
-	'viper-minibuffer-insert-face))
-  "Face used in the Minibuffer when it is in Insert state.")
-    
-(defvar viper-minibuffer-vi-face
-  (if (viper-has-face-support-p)
-      (progn
-	(make-face 'viper-minibuffer-vi-face)
-	(viper-hide-face 'viper-minibuffer-vi-face)
-	(or (face-differs-from-default-p 'viper-minibuffer-vi-face)
-	    (if viper-vi-style-in-minibuffer
-		(if (viper-can-use-colors "Black" "grey")
-		    (progn
-		      (set-face-background 'viper-minibuffer-vi-face "grey")
-		      (set-face-foreground 'viper-minibuffer-vi-face "Black"))
-		  (copy-face 'bold 'viper-minibuffer-vi-face))
-	      (copy-face 'bold 'viper-minibuffer-vi-face)
-	      (invert-face 'viper-minibuffer-vi-face)))
-	'viper-minibuffer-vi-face))
-  "Face used in the Minibuffer when it is in Vi state.")
-    
-;; the current face to be used in the minibuffer
-(viper-deflocalvar viper-minibuffer-current-face viper-minibuffer-emacs-face "")
    
 
 ;; Check the current version against the major and minor version numbers
@@ -979,10 +868,11 @@ to write a custom function, similar to `viper-ex-nontrivial-find-file-unix'."
 (defun viper-read-key () 
   (let ((overriding-local-map viper-overriding-map) 
 	(inhibit-quit t)
-        key) 
+	help-char key) 
     (use-global-map viper-overriding-map) 
-    (setq key (elt (read-key-sequence nil) 0)) 
-    (use-global-map global-map) 
+    (unwind-protect
+	(setq key (elt (read-key-sequence nil) 0)) 
+      (use-global-map global-map))
     key))
 
 

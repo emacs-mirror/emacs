@@ -325,16 +325,6 @@ delete the text being replaced, as in standard Vi."
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
 
-(defcustom viper-replace-overlay-pixmap "gray3"
-  "Pixmap to use for search face on non-color displays."
-  :type 'string
-  :group 'viper)
-(defcustom viper-search-face-pixmap "gray3"
-  "Pixmap to use for search face on non-color displays."
-  :type 'string
-  :group 'viper)
-
-
 (defcustom viper-replace-region-end-delimiter "$"
   "A string marking the end of replacement regions.
 It is used only with TTYs or if `viper-use-replace-region-delimiters'
@@ -699,6 +689,174 @@ Related buffers can be cycled through via :R and :P commands."
 ;; Last shell command executed with ! command.
 (defvar viper-last-shell-com nil)
 
+
+;;; Face-saving tricks
+
+(defcustom viper-replace-overlay-pixmap "gray3"
+  "Pixmap to use for search face on non-color displays."
+  :type 'string
+  :group 'viper)
+(defcustom viper-search-face-pixmap "gray3"
+  "Pixmap to use for search face on non-color displays."
+  :type 'string
+  :group 'viper)
+
+(defun viper-hide-face (face)
+  (if (and (viper-has-face-support-p) viper-emacs-p)
+      (add-to-list 'facemenu-unlisted-faces face)))
+
+
+(defgroup viper-highlighting nil
+  "Hilighting of replace region, search pattern, minibuffer, etc."
+  :prefix "viper-"
+  :group 'viper)
+
+;;(defvar viper-search-face
+;;  (if (viper-has-face-support-p)
+;;      (progn
+;;	(make-face 'viper-search-face)
+;;	(or (face-differs-from-default-p 'viper-search-face)
+;;	    ;; face wasn't set in .viper or .Xdefaults
+;;	    (if (viper-can-use-colors "Black" "khaki")
+;;		(progn
+;;		  (set-face-background 'viper-search-face "khaki")
+;;		  (set-face-foreground 'viper-search-face "Black"))
+;;	      (set-face-underline-p 'viper-search-face t)
+;;	      (viper-set-face-pixmap 'viper-search-face
+;;				     viper-search-face-pixmap))) 
+;;	'viper-search-face))
+;;  "*Face used to flash out the search pattern.")
+
+(defface viper-search-face
+  '((((class color)) (:foreground "Black" :background "khaki"))
+    (t (:underline t :stipple viper-search-face-pixmap)))
+  "*Face used to flash out the search pattern."
+  :group 'viper-highlighting)
+;; An internal variable. Viper takes the face from here.
+(defvar viper-search-face 'viper-search-face)
+(viper-hide-face 'viper-search-face)
+  
+;;(defvar viper-replace-overlay-face
+;;  (if (viper-has-face-support-p)
+;;      (progn
+;;	(make-face 'viper-replace-overlay-face)
+;;	(or (face-differs-from-default-p 'viper-replace-overlay-face)
+;;	    (progn
+;;	      (if (viper-can-use-colors "darkseagreen2" "Black")
+;;		  (progn
+;;		    (set-face-background
+;;		     'viper-replace-overlay-face "darkseagreen2")
+;;		    (set-face-foreground 'viper-replace-overlay-face "Black")))
+;;	      (set-face-underline-p 'viper-replace-overlay-face t)
+;;	      (viper-set-face-pixmap
+;;	       'viper-replace-overlay-face viper-replace-overlay-pixmap)))
+;;	'viper-replace-overlay-face))
+;;  "*Face for highlighting replace regions on a window display.")
+
+(defface viper-replace-overlay-face
+  '((((class color)) (:foreground "Black" :background "darkseagreen2"))
+    (t (:underline t :stipple viper-replace-overlay-face-pixmap)))
+  "*Face for highlighting replace regions on a window display."
+  :group 'viper-highlighting)
+;; An internal variable. Viper takes the face from here.
+(defvar viper-replace-overlay-face 'viper-replace-overlay-face)
+(viper-hide-face 'viper-replace-overlay-face)
+
+;;(defvar viper-minibuffer-emacs-face
+;;  (if (viper-has-face-support-p)
+;;      (progn
+;;	(make-face 'viper-minibuffer-emacs-face)
+;;	(or (face-differs-from-default-p 'viper-minibuffer-emacs-face)
+;;	    ;; face wasn't set in .viper or .Xdefaults
+;;	    (if viper-vi-style-in-minibuffer
+;;		;; emacs state is an exception in the minibuffer
+;;		(if (viper-can-use-colors "darkseagreen2" "Black")
+;;		    (progn
+;;		      (set-face-background
+;;		       'viper-minibuffer-emacs-face "darkseagreen2")
+;;		      (set-face-foreground
+;;		       'viper-minibuffer-emacs-face "Black"))
+;;		  (copy-face 'modeline 'viper-minibuffer-emacs-face))
+;;	      ;; emacs state is the main state in the minibuffer
+;;	      (if (viper-can-use-colors "Black" "pink")
+;;		  (progn
+;;		    (set-face-background 'viper-minibuffer-emacs-face "pink") 
+;;		    (set-face-foreground
+;;		     'viper-minibuffer-emacs-face "Black"))
+;;		(copy-face 'italic 'viper-minibuffer-emacs-face))
+;;	      ))
+;;	'viper-minibuffer-emacs-face))
+;;  "Face used in the Minibuffer when it is in Emacs state.")
+
+(defface viper-minibuffer-emacs-face
+  '((((class color)) (:foreground "Black" :background "darkseagreen2"))
+    (t (:bold t)))
+  "Face used in the Minibuffer when it is in Emacs state."
+  :group 'viper-highlighting)
+;; An internal variable. Viper takes the face from here.
+(defvar viper-minibuffer-emacs-face 'viper-minibuffer-emacs-face)
+(viper-hide-face 'viper-minibuffer-emacs-face)
+    
+;;(defvar viper-minibuffer-insert-face
+;;  (if (viper-has-face-support-p)
+;;      (progn
+;;	(make-face 'viper-minibuffer-insert-face)
+;;	(or (face-differs-from-default-p 'viper-minibuffer-insert-face)
+;;	    (if viper-vi-style-in-minibuffer
+;;		(if (viper-can-use-colors "Black" "pink")
+;;		    (progn
+;;		      (set-face-background 'viper-minibuffer-insert-face "pink") 
+;;		      (set-face-foreground
+;;		       'viper-minibuffer-insert-face "Black"))
+;;		  (copy-face 'italic 'viper-minibuffer-insert-face))
+;;	      ;; If Insert state is an exception
+;;	      (if (viper-can-use-colors "darkseagreen2" "Black")
+;;		  (progn
+;;		    (set-face-background
+;;		     'viper-minibuffer-insert-face "darkseagreen2")
+;;		    (set-face-foreground
+;;		     'viper-minibuffer-insert-face "Black"))
+;;		(copy-face 'modeline 'viper-minibuffer-insert-face))
+;;	      (viper-italicize-face 'viper-minibuffer-insert-face)))
+;;	'viper-minibuffer-insert-face))
+;;  "Face used in the Minibuffer when it is in Insert state.")
+
+(defface viper-minibuffer-insert-face
+  '((((class color)) (:foreground "Black" :background "pink"))
+    (t (:italic t)))
+  "Face used in the Minibuffer when it is in Insert state."
+  :group 'viper-highlighting)
+;; An internal variable. Viper takes the face from here.
+(defvar viper-minibuffer-insert-face 'viper-minibuffer-insert-face)
+(viper-hide-face 'viper-minibuffer-insert-face)
+    
+;;(defvar viper-minibuffer-vi-face
+;;  (if (viper-has-face-support-p)
+;;      (progn
+;;	(make-face 'viper-minibuffer-vi-face)
+;;	(or (face-differs-from-default-p 'viper-minibuffer-vi-face)
+;;	    (if viper-vi-style-in-minibuffer
+;;		(if (viper-can-use-colors "Black" "grey")
+;;		    (progn
+;;		      (set-face-background 'viper-minibuffer-vi-face "grey")
+;;		      (set-face-foreground 'viper-minibuffer-vi-face "Black"))
+;;		  (copy-face 'bold 'viper-minibuffer-vi-face))
+;;	      (copy-face 'bold 'viper-minibuffer-vi-face)
+;;	      (invert-face 'viper-minibuffer-vi-face)))
+;;	'viper-minibuffer-vi-face))
+;;  "Face used in the Minibuffer when it is in Vi state.")
+
+(defface viper-minibuffer-vi-face
+  '((((class color)) (:foreground "DarkGreen" :background "grey"))
+    (t (:inverse-video t)))
+  "Face used in the Minibuffer when it is in Vi state."
+  :group 'viper-highlighting)
+;; An internal variable. Viper takes the face from here.
+(defvar viper-minibuffer-vi-face 'viper-minibuffer-vi-face)
+(viper-hide-face 'viper-minibuffer-vi-face)
+    
+;; the current face to be used in the minibuffer
+(viper-deflocalvar viper-minibuffer-current-face viper-minibuffer-emacs-face "")
 
 
 ;;; Miscellaneous

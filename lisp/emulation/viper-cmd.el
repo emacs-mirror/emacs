@@ -362,12 +362,14 @@
 	       (cons 'viper-vi-global-user-minor-mode viper-vi-global-user-map)
 	       (cons 'viper-vi-state-modifier-minor-mode
 		     (if (keymapp
-			  (cdr (assoc major-mode viper-vi-state-modifier-alist)))
+			  (cdr (assoc major-mode
+				      viper-vi-state-modifier-alist))) 
 			 (cdr (assoc major-mode viper-vi-state-modifier-alist))
 		       viper-empty-keymap))
 	       (cons 'viper-vi-diehard-minor-mode  viper-vi-diehard-map)
 	       (cons 'viper-vi-basic-minor-mode     viper-vi-basic-map)
-	       (cons 'viper-insert-intercept-minor-mode viper-insert-intercept-map)
+	       (cons 'viper-insert-intercept-minor-mode
+		     viper-insert-intercept-map) 
 	       (cons 'viper-replace-minor-mode  viper-replace-map)
 	       ;; viper-insert-minibuffer-minor-mode must come after
 	       ;; viper-replace-minor-mode 
@@ -380,10 +382,10 @@
 		     viper-insert-global-user-map)
 	       (cons 'viper-insert-state-modifier-minor-mode
 		     (if (keymapp
-			  (cdr
-			   (assoc major-mode viper-insert-state-modifier-alist)))
-			 (cdr
-			  (assoc major-mode viper-insert-state-modifier-alist))
+			  (cdr (assoc major-mode
+				      viper-insert-state-modifier-alist))) 
+			 (cdr (assoc major-mode
+				     viper-insert-state-modifier-alist))
 		       viper-empty-keymap))
 	       (cons 'viper-insert-diehard-minor-mode viper-insert-diehard-map)
 	       (cons 'viper-insert-basic-minor-mode viper-insert-basic-map)
@@ -574,8 +576,7 @@
      
 (defsubst viper-downgrade-to-insert ()
  (setq viper-current-state 'insert-state
-       viper-replace-minor-mode nil)
- )
+       viper-replace-minor-mode nil))
 
     
   
@@ -3576,7 +3577,8 @@ To turn this feature off, set this variable to nil."
 	  (while (and (not found) (< count len))
 	    (setq suff (nth count viper-smart-suffix-list)
 		  count (1+ count))
-	    (if (file-exists-p (format "%s%s" file suff))
+	    (if (file-exists-p
+		 (format "%s%s" (substitute-in-file-name file) suff))
 		(progn
 		  (setq found t)
 		  (insert suff))))
@@ -3835,7 +3837,7 @@ cursor move past the beginning of line."
   (condition-case conds
       (if (or viper-allow-multiline-replace-regions
 	      (viper-same-line (viper-replace-start)
-			     (viper-replace-end)))
+			       (viper-replace-end)))
 	  (progn
 	    ;; tabs cause problems in replace, so untabify
 	    (goto-char (viper-replace-end))

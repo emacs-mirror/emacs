@@ -361,8 +361,11 @@ DO NOT set this variable interactively."
   :tag "Set Viper Mode on Loading"
   :group 'viper)
 
-(defcustom viper-non-vi-major-modes nil
-  "*A list of major modes that should never come up in vi command mode.
+(defcustom viper-non-vi-major-modes
+  '(custom-mode dired-mode efs-mode internal-ange-ftp-mode tar-mode
+		mh-folder-mode gnus-group-mode gnus-summary-mode Info-mode
+		Buffer-menu-mode view-mode vm-mode vm-summary-mode)
+  "*A list of major modes that should never come up in Vi command mode.
 Viper automatically augments this list with some obvious modes, such as
 `dired-mode', `tar-mode', etc. So, don't put modes on this list, unless 
 it comes up in a wrong Viper state."
@@ -599,7 +602,12 @@ remains buffer-local."
   ;; unbind Viper mouse bindings
   (viper-unbind-mouse-search-key)
   (viper-unbind-mouse-insert-key)
-  )
+  ;; In emacs, we have to advice handle-switch-frame
+  ;; This advice is undone earlier, when all advices matchine "viper-" are
+  ;; deactivated.
+  (if viper-xemacs-p
+      (remove-hook 'mouse-leave-frame-hook 'viper-remember-current-frame))
+  ) ; end viper-go-away
 
 
 
@@ -754,14 +762,10 @@ remains buffer-local."
   (viper-modify-major-mode 'dired-mode 'emacs-state viper-dired-modifier-map)
   (viper-set-emacs-state-searchstyle-macros nil 'dired-mode)
   (add-hook 'dired-mode-hook 'viper-change-state-to-emacs)
-  (setq viper-non-vi-major-modes
-	(append '(dired-mode efs-mode internal-ange-ftp-mode)
-		viper-non-vi-major-modes))
 
   ;; Tar
   (viper-modify-major-mode 'tar-mode 'emacs-state viper-slash-and-colon-map)
   (viper-set-emacs-state-searchstyle-macros nil 'tar-mode)
-  (setq viper-non-vi-major-modes (cons 'tar-mode viper-non-vi-major-modes))
 
   ;; MH-E
   (viper-modify-major-mode 
@@ -770,8 +774,6 @@ remains buffer-local."
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'mh-folder-mode-hook 'viper-change-state-to-emacs)
   (add-hook 'mh-show-mode-hook 'viper-mode)
-  (setq viper-non-vi-major-modes
-	(cons 'mh-folder-mode viper-non-vi-major-modes))
 
   ;; Gnus
   (viper-modify-major-mode
@@ -784,9 +786,6 @@ remains buffer-local."
   (add-hook 'gnus-group-mode-hook 'viper-change-state-to-emacs)
   (add-hook 'gnus-summary-mode-hook 'viper-change-state-to-emacs)
   (add-hook 'gnus-article-mode-hook 'viper-mode)
-  (setq viper-non-vi-major-modes
-	(append '(gnus-group-mode gnus-summary-mode)
-		viper-non-vi-major-modes))
 
   ;; Info
   (viper-modify-major-mode 'Info-mode 'emacs-state viper-slash-and-colon-map)
@@ -795,7 +794,6 @@ remains buffer-local."
   (defadvice Info-mode (after viper-Info-ad activate)
     "Switch to emacs mode."
     (viper-change-state-to-emacs))
-  (setq viper-non-vi-major-modes (cons 'Info-mode viper-non-vi-major-modes))
 
   ;; Buffer menu
   (viper-modify-major-mode 
@@ -805,15 +803,12 @@ remains buffer-local."
   (defadvice Buffer-menu-mode (after viper-Buffer-menu-ad activate)
     "Switch to emacs mode."
     (viper-change-state-to-emacs))
-  (setq viper-non-vi-major-modes
-	(cons 'Buffer-menu-mode viper-non-vi-major-modes))
 
   ;; View mode
   (defvar view-mode-hook)
   (defvar view-hook)
   (add-hook 'view-hook 'viper-change-state-to-emacs)
   (add-hook 'view-mode-hook 'viper-change-state-to-emacs)
-  (setq viper-non-vi-major-modes (cons 'view-mode viper-non-vi-major-modes))
   
   ;; For VM users.
   ;; Put summary and other VM buffers in Emacs state.
@@ -821,8 +816,6 @@ remains buffer-local."
   (defvar vm-summary-mode-hooks)
   (add-hook 'vm-mode-hooks   'viper-change-state-to-emacs)
   (add-hook 'vm-summary-mode-hooks   'viper-change-state-to-emacs)
-  (setq viper-non-vi-major-modes
-	(append '(vm-mode vm-summary-mode) viper-non-vi-major-modes))
   
   ;; For RMAIL users.
   ;; Put buf in Emacs state after edit.
@@ -970,14 +963,24 @@ remains buffer-local."
     (define-key viper-vi-intercept-map "\C-x)" nil)
     (define-key viper-insert-intercept-map "\C-x)" nil)
     (define-key viper-emacs-intercept-map "\C-x)" nil))
+
+  ;; catch frame switching event
+  (if (viper-window-display-p)
+      (if viper-xemacs-p
+	     (add-hook 'mouse-leave-frame-hook
+		       'viper-remember-current-frame)
+	   (defadvice handle-switch-frame (before viper-frame-advice activate)
+	     "Remember the selected frame before the switch-frame event." 
+	     (viper-remember-current-frame (selected-frame)))) )
+
   ) ; end viper-non-hook-settings
 
 
-(if (eq viper-mode 'ask)
-    (progn
-      (save-window-excursion
-	(with-output-to-temp-buffer " *viper-info*"
-	  (princ "
+;; Ask only if this-command/last-command are nil, i.e., when loading
+(cond ((and (eq viper-mode 'ask) (null this-command) (null last-command))
+       (save-window-excursion
+	 (with-output-to-temp-buffer " *viper-info*"
+	   (princ "
 You have loaded Viper, and are about to Viperize your emacs!
 
 Viper is a Package for Emacs Rebels and a venomous VI PERil,
@@ -995,11 +998,19 @@ These two lines must come in the order given.
 ** Viper users:
 	**** The startup file name has been changed from .vip to .viper
 	**** All vip-* style names have been converted to viper-* style."))
-	(if (y-or-n-p "Viperize? ")
-	    (setq viper-mode t)
-	  (setq viper-mode nil))
-	(message "")
-	(kill-buffer " *viper-info*"))))
+	 (if (y-or-n-p "Viperize? ")
+	     (setq viper-mode t)
+	   (setq viper-mode nil))
+	 (message "")
+	 (kill-buffer " *viper-info*")))
+
+      ;; If viper-mode is t, then just continue. Viper will kick in.
+      ((eq viper-mode t))
+      ;; Otherwise, it was asking mode and Viper was not loaded through .emacs
+      ;; In this case, it was either through M-x viper-mode or via something
+      ;; else, like the custom widget. If Viper was loaded through 
+      ;; M-x viper-mode, then viper will kick in anyway.
+      (t (setq viper-mode nil)))
 
 (defun viper-load-custom-file ()
   (if (and (file-exists-p viper-custom-file-name)

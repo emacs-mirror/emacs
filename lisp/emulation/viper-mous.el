@@ -424,7 +424,7 @@ this command."
   
 (defun viper-mouse-catch-frame-switch (event arg)
   "Catch the event of switching frame.
-Usually is bound to a 'down-mouse' event to work properly. See sample
+Usually is bound to a `down-mouse' event to work properly. See sample
 bindings in the Viper manual."
   (interactive "e\nP")
   (setq viper-frame-of-focus nil)
