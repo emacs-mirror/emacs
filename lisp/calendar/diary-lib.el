@@ -1033,7 +1033,7 @@ A number of built-in functions are available for this type of diary entry:
 
       %%(diary-omer)
                   Diary entries giving the omer count will be made every day
-                  from Passover to Shavuoth.  Note that since there is no text,
+                  from Passover to Shavuot.  Note that since there is no text,
                   it makes sense only if the fancy diary display is used.
 
 Marking these entries is *extremely* time consuming, so these entries are
