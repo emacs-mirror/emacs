@@ -1,3 +1,8 @@
+2002-03-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-forward): Use forward-comment to skip
+	over whitespace (or comments) even when comment-use-syntax is nil.
+
 2002-03-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/tildify.el (tildify-string-alist): Entry for xml-mode
