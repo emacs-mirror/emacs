@@ -1464,7 +1464,7 @@ examine the brightness for you."
 
 (defun frame-set-background-mode (frame)
   "Set up the `background-mode' and `display-type' frame parameters for FRAME."
-  (unless (memq (framep frame) '(t pc))
+  (unless (eq (framep frame) t)
     (let ((bg-resource (x-get-resource ".backgroundMode"
 				       "BackgroundMode"))
 	  (params (frame-parameters frame))
