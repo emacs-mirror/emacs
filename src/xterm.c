@@ -10111,6 +10111,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      int n;
 
 		      XSETFRAME (frame, f);
+		      help_echo = Qnil;
 		      n = gen_help_event (bufp, numchars,
 					  Qnil, frame, Qnil, Qnil, 0);
 		      bufp += n, count += n, numchars -= n;
