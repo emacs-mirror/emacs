@@ -73,13 +73,13 @@
 	   nil nil nil nil nil)
     (ibm   "IBM Code Page 850 (DOS)" 
 	   "1\\(^\\)"
-	   "recode ibm-pc:latin1" "recode latin1:ibm-pc" t nil)
+	   "recode -f ibm-pc:latin1" "recode -f latin1:ibm-pc" t nil)
     (mac   "Apple Macintosh" 
 	   "1\\(^\\)"
-	   "recode mac:latin1" "recode latin1:mac" t nil)
+	   "recode -f mac:latin1" "recode -f latin1:mac" t nil)
     (hp    "HP Roman8" 
 	   "1\\(^\\)"
-	   "recode roman8:latin1" "recode latin1:roman8" t nil)
+	   "recode -f roman8:latin1" "recode -f latin1:roman8" t nil)
     (TeX   "TeX (encoding)"  
 	   "1\\(^\\)"
 	   iso-tex2iso iso-iso2tex t nil)
@@ -88,7 +88,7 @@
 	   iso-gtex2iso iso-iso2gtex t nil)
     (html  "HTML (encoding)" 
 	   "1\\(^\\)"
-	   "recode html:latin1" "recode latin1:html" t nil)
+	   "recode -f html:latin1" "recode -f latin1:html" t nil)
     (rot13 "rot13" 
 	   "1\\(^\\)"
 	   "tr a-mn-z n-za-m" "tr a-mn-z n-za-m" t nil)
@@ -97,7 +97,7 @@
 	   "diac" iso-iso2duden t nil) 
     (de646 "German ASCII (ISO 646)" 
 	   "1\\(^\\)"
-	   "recode iso646-ge:latin1" "recode latin1:iso646-ge" t nil)
+	   "recode -f iso646-ge:latin1" "recode -f latin1:iso646-ge" t nil)
     (denet "net German" 
 	   "1\\(^\\)"
 	   iso-german iso-cvt-read-only t nil)
