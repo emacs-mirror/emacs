@@ -1025,8 +1025,12 @@ popup_get_selection (initial_event, dpyinfo, id)
       else if (event.type == KeyPress
 	       && dpyinfo->display == event.xbutton.display)
 	{
-	  popup_activated_flag = 0;
-	  break;
+	  KeySym keysym = XLookupKeysym (&event.xkey, 0);
+	  if (!IsModifierKey (keysym))
+	    {
+	      popup_activated_flag = 0;
+	      break;
+	    }
 	}
       /* Button presses outside the menu also pop it down.  */
       else if (event.type == ButtonPress
