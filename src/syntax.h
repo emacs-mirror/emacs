@@ -210,7 +210,7 @@ extern char syntax_code_spec[16];
    currently good for a position before POS.  */
 
 #define UPDATE_SYNTAX_TABLE_FORWARD(pos)			\
-  ((pos) >= gl_state.e_property - gl_state.offset		\
+  ((pos) >= gl_state.e_property					\
    ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -220,7 +220,7 @@ extern char syntax_code_spec[16];
    currently good for a position after POS.  */
 
 #define UPDATE_SYNTAX_TABLE_BACKWARD(pos)			\
-  ((pos) <= gl_state.b_property - gl_state.offset		\
+  ((pos) <= gl_state.b_property					\
    ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
@@ -229,11 +229,11 @@ extern char syntax_code_spec[16];
 /* Make syntax table good for POS.  */
 
 #define UPDATE_SYNTAX_TABLE(pos)				\
-  ((pos) <= gl_state.b_property - gl_state.offset		\
+  ((pos) <= gl_state.b_property					\
    ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
-   : ((pos) >= gl_state.e_property - gl_state.offset		\
+   : ((pos) >= gl_state.e_property				\
       ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
 			      gl_state.object),			\
 	 1)							\
@@ -272,14 +272,14 @@ if (1)									\
     if (BUFFERP (gl_state.object))					\
       {									\
 	struct buffer *buf = XBUFFER (gl_state.object);			\
-	gl_state.b_property = BUF_BEGV (buf) - 1;			\
-	gl_state.e_property = BUF_ZV (buf);				\
+	gl_state.b_property = 0;					\
+	gl_state.e_property = BUF_ZV (buf) - BUF_BEGV (buf) + 1;	\
 	gl_state.offset = BUF_BEGV (buf) - 1;				\
       }									\
     else if (NILP (gl_state.object))					\
       {									\
-	gl_state.b_property = BEGV - 1;					\
-	gl_state.e_property = ZV;					\
+	gl_state.b_property = 0;					\
+	gl_state.e_property = ZV - BEGV + 1;				\
 	gl_state.offset = BEGV - 1;					\
       }									\
     else if (EQ (gl_state.object, Qt))					\
