@@ -869,6 +869,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
   if (NILP (minibuf))
     minibuf = (minibuf_level ? Qt : Qlambda);
 
+#ifdef MULTI_FRAME
   /* all_frames == nil doesn't specify which frames to include.
      Decide which frames it includes.  */
   if (NILP (all_frames))
@@ -885,6 +886,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
   /* Now all_frames is t meaning search all frames,
      nil meaning search just current frame,
      or a window, meaning search the frame that window belongs to.  */
+#endif
 
   /* Do this loop at least once, to get the next window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -986,6 +988,7 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
   if (NILP (minibuf))
     minibuf = (minibuf_level ? Qt : Qlambda);
 
+#ifdef MULTI_FRAME
   /* all_frames == nil doesn't specify which frames to include.
      Decide which frames it includes.  */
   if (NILP (all_frames))
@@ -1002,6 +1005,7 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
   /* Now all_frames is t meaning search all frames,
      nil meaning search just current frame,
      or a window, meaning search the frame that window belongs to.  */
+#endif
 
   /* Do this loop at least once, to get the previous window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -1707,9 +1711,13 @@ Returns the window displaying BUFFER.")
       && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
     return selected_window;
 
+#ifdef MULTI_FRAME
   /* If pop_up_frames,
      look for a window showing BUFFER on any visible frame.  */
   window = Fget_buffer_window (buffer, pop_up_frames ? Qvisible : Qnil);
+#else
+  window = Fget_buffer_window (buffer, Qnil);
+#endif
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
     return window;
