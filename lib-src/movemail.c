@@ -61,8 +61,18 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 #include <stdio.h>
 #include <errno.h>
-#include <../src/syswait.h>
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif      
+#include "syswait.h"
 #include <getopt.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #ifdef MAIL_USE_POP
 #include "pop.h"
 #endif
@@ -98,16 +108,15 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #endif /* WINDOWSNT */
 
-#ifdef USG
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#include <unistd.h>
+#endif
 #ifndef F_OK
 #define F_OK 0
 #define X_OK 1
 #define W_OK 2
 #define R_OK 4
 #endif
-#endif /* USG */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -602,18 +611,24 @@ fatal (s1, s2)
 {
   if (delete_lockname)
     unlink (delete_lockname);
-  error (s1, s2);
+  error (s1, s2, 0);
   exit (1);
 }
 
-/* Print error message.  `s1' is printf control string, `s2' is arg for it. */
+/* Print error message.  `s1' is printf control string, `s2' and `s3'
+   are args for it or null. */
 
 void
 error (s1, s2, s3)
      char *s1, *s2, *s3;
 {
   fprintf (stderr, "movemail: ");
-  fprintf (stderr, s1, s2, s3);
+  if (s3)
+    fprintf (stderr, s1, s2, s3);
+  else if (s2)
+    fprintf (stderr, s1, s2);
+  else
+    fprintf (stderr, s1);
   fprintf (stderr, "\n");
 }
 
@@ -701,6 +716,7 @@ char Errmsg[200];		/* POP errors, at least, can exceed
  * null.
  */
 
+int
 popmail (mailbox, outfile, preserve, password, reverse_order)
      char *mailbox;
      char *outfile;
@@ -724,13 +740,13 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
   server = pop_open (hostname, user, password, POP_NO_GETPASS);
   if (! server)
     {
-      error ("Error connecting to POP server: %s", pop_error);
+      error ("Error connecting to POP server: %s", pop_error, 0);
       return (1);
     }
 
   if (pop_stat (server, &nmsgs, &nbytes))
     {
-      error ("Error getting message count from POP server: %s", pop_error);
+      error ("Error getting message count from POP server: %s", pop_error, 0);
       return (1);
     }
 
@@ -752,7 +768,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
   if ((mbf = fdopen (mbfi, "wb")) == NULL)
     {
       pop_close (server);
-      error ("Error in fdopen: %s", strerror (errno));
+      error ("Error in fdopen: %s", strerror (errno), 0);
       close (mbfi);
       unlink (outfile);
       return (1);
@@ -776,7 +792,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       mbx_delimit_begin (mbf);
       if (pop_retr (server, i, mbf) != OK)
 	{
-	  error (Errmsg);
+	  error (Errmsg, 0, 0);
 	  close (mbfi);
 	  return (1);
 	}
@@ -784,7 +800,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       fflush (mbf);
       if (ferror (mbf))
 	{
-	  error ("Error in fflush: %s", strerror (errno));
+	  error ("Error in fflush: %s", strerror (errno), 0);
 	  pop_close (server);
 	  close (mbfi);
 	  return (1);
@@ -807,7 +823,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 
   if (close (mbfi) == -1)
     {
-      error ("Error in close: %s", strerror (errno));
+      error ("Error in close: %s", strerror (errno), 0);
       return (1);
     }
 
@@ -816,7 +832,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       {
 	if (pop_delete (server, i))
 	  {
-	    error ("Error from POP server: %s", pop_error);
+	    error ("Error from POP server: %s", pop_error, 0);
 	    pop_close (server);
 	    return (1);
 	  }
@@ -824,7 +840,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 
   if (pop_quit (server))
     {
-      error ("Error from POP server: %s", pop_error);
+      error ("Error from POP server: %s", pop_error, 0);
       return (1);
     }
     
@@ -917,6 +933,7 @@ mbx_delimit_begin (mbf)
   return (OK);
 }
 
+int
 mbx_delimit_end (mbf)
      FILE *mbf;
 {
