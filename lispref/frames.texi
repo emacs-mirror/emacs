@@ -1306,7 +1306,7 @@ like the way successive kills in Emacs move down the kill ring.
 @tindex selection-coding-system
 This variable specifies the coding system to use when reading and
 writing a selections, the clipboard, or a cut buffer.  @xref{Coding
-Systems}.
+Systems}.  The default is @code{compound-text}.
 @end defvar
 
 @need 1500

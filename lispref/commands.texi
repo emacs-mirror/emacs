@@ -1908,6 +1908,38 @@ the echo area.
 @end example
 @end defun
 
+  @code{read-event} also invokes the current input method, if any.  If
+the value of @code{input-method-function} is non-@code{nil}, it should
+be a function; when @code{read-event} reads a printing character
+(including @key{SPC}) with no modifier bits, it calls that function,
+passing the event as an argument.
+
+@defvar input-method-function
+If this is non-@code{nil}, its value specifies the current input method
+function.
+@end defvar
+
+  The input method function should return a list of events which should
+be used as input.  (If the list is @code{nil}, that means there is no
+input, so @code{read-event} waits for another event.)  These events are
+processed before the events in @code{unread-command-events}.  Events
+returned by the input method function are not passed to the input method
+function again, even if they are printing characters with no modifier
+bits.
+
+  If the input method function calls @code{read-event} or
+@code{read-key-sequence}, it should bind @code{input-method-function} to
+@code{nil} first, to prevent recursion.
+
+  The input method function is not called when reading the second and
+subsequent event of a key sequence.  Thus, these characters are not
+subject to input method processing.  It is usually a good idea for the
+input method processing to test the values of
+@code{overriding-local-map} and @code{overriding-terminal-local-map}; if
+either of these variables is non-@code{nil}, the input method should put
+its argument into a list and return that list with no further
+processing.
+
 @node Quoted Character Input
 @subsection Quoted Character Input
 @cindex quoted character input

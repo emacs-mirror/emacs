@@ -179,6 +179,28 @@ Minibuffer depth is 0.
 @end example
 @end defun
 
+@defun message-or-box string &rest arguments
+This function displays a message like @code{message}, but may display it
+in a dialog box instead of the echo area.  If this function is called in
+a command that was invoked using the mouse---more precisely, if
+@code{last-nonmenu-event} (@pxref{Command Loop Info}) is either
+@code{nil} or a list---then it uses a dialog box or pop-up menu to
+display the message.  Otherwise, it uses the echo area.  (This is the
+same criterion that @code{y-or-n-p} uses to make a similar decision; see
+@ref{Yes-or-No Queries}.)
+
+You can force use of the mouse or of the echo area by binding
+@code{last-nonmenu-event} to a suitable value around the call.
+@end defun
+
+@defun message-box string &rest arguments
+This function displays a message like @code{message}, but uses a dialog
+box (or a pop-up menu) whenever that is possible.  If it is impossible
+to use a dialog box or pop-up menu, because the terminal does not
+support them, then @code{message-box} uses the echo area, like
+@code{message}.
+@end defun
+
 @defun current-message
 @tindex current-message
 This function returns the message currently being displayed in the
