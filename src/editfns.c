@@ -330,13 +330,13 @@ char_property_eq (prop, pos1, pos2)
   return EQ (pval1, pval2);
 }
 
-/* Return the direction from which the char-property PROP would be
+/* Return the direction from which the text-property PROP would be
    inherited by any new text inserted at POS: 1 if it would be
    inherited from the char after POS, -1 if it would be inherited from
    the char before POS, and 0 if from neither.  */
 
 static int
-char_property_stickiness (prop, pos)
+text_property_stickiness (prop, pos)
      Lisp_Object prop;
      Lisp_Object pos;
 {
@@ -348,7 +348,7 @@ char_property_stickiness (prop, pos)
       Lisp_Object prev_pos, rear_non_sticky;
 
       prev_pos = make_number (XINT (pos) - 1);
-      rear_non_sticky = Fget_char_property (prev_pos, Qrear_nonsticky, Qnil);
+      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
 
       if (EQ (rear_non_sticky, Qnil)
 	  || (CONSP (rear_non_sticky)
@@ -359,7 +359,7 @@ char_property_stickiness (prop, pos)
     }
 
   /* Consider following character.  */
-  front_sticky = Fget_char_property (pos, Qfront_sticky, Qnil);
+  front_sticky = Fget_text_property (pos, Qfront_sticky, Qnil);
 
   if (EQ (front_sticky, Qt)
       || (CONSP (front_sticky)
@@ -397,6 +397,9 @@ find_field (pos, merge_at_boundary, beg, end)
 {
   /* Fields right before and after the point.  */
   Lisp_Object before_field, after_field;
+  /* If the fields came from overlays, the associated overlays.
+     Qnil means they came from text-properties.  */
+  Lisp_Object before_overlay = Qnil, after_overlay = Qnil;
   /* 1 if POS counts as the start of a field.  */
   int at_field_start = 0;
   /* 1 if POS counts as the end of a field.  */
@@ -408,10 +411,12 @@ find_field (pos, merge_at_boundary, beg, end)
     CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
   after_field
-    = Fget_char_property (pos, Qfield, Qnil);
+    = get_char_property_and_overlay (pos, Qfield, Qnil, &after_overlay);
   before_field
     = (XFASTINT (pos) > BEGV
-       ? Fget_char_property (make_number (XINT (pos) - 1), Qfield, Qnil)
+       ? get_char_property_and_overlay (make_number (XINT (pos) - 1),
+					Qfield, Qnil,
+					&before_overlay)
        : Qnil);
 
   /* See if we need to handle the case where MERGE_AT_BOUNDARY is nil
@@ -424,7 +429,41 @@ find_field (pos, merge_at_boundary, beg, end)
     /* We are at a boundary, see which direction is inclusive.  We
        decide by seeing which field the `field' property sticks to.  */
     {
-      int stickiness = char_property_stickiness (Qfield, pos);
+      /* -1 means insertions go into before_field, 1 means they go
+	 into after_field, 0 means neither.  */
+      int stickiness;
+      /* Whether the before/after_field come from overlays.  */
+      int bop = !NILP (before_overlay);
+      int aop = !NILP (after_overlay);
+
+      if (bop && XMARKER (OVERLAY_END (before_overlay))->insertion_type == 1)
+	/* before_field is from an overlay, which expands upon
+	   end-insertions.  Note that it's possible for after_overlay to
+	   also eat insertions here, but then they will overlap, and
+	   there's not much we can do.  */
+	stickiness = -1;
+      else if (aop && XMARKER(OVERLAY_END(after_overlay))->insertion_type == 0)
+	/* after_field is from an overlay, which expand to contain
+	   start-insertions.  */
+	stickiness = 1;
+      else if (bop && aop)
+	/* Both fields come from overlays, but neither will contain any
+	   insertion here.  */
+	stickiness = 0;
+      else if (bop)
+	/* before_field is an overlay that won't eat any insertion, but
+	   after_field is from a text-property.  Assume that the
+	   text-property continues underneath the overlay, and so will
+	   be inherited by any insertion, regardless of any stickiness
+	   settings.  */
+	stickiness = 1;
+      else if (aop)
+	/* Similarly, when after_field is the overlay.  */
+	stickiness = -1;
+      else
+	/* Both fields come from text-properties.  Look for explicit
+	   stickiness properties.  */
+	stickiness = text_property_stickiness (Qfield, pos);
 
       if (stickiness > 0)
 	at_field_start = 1;
