@@ -224,10 +224,86 @@ Lisp_Object Qbytecode;
 
 #define Bconstant 0300
 #define CONSTANTLIM 0100
+
+/* Structure describing a value stack used during byte-code execution
+   in Fbyte_code.  */
+
+struct byte_stack
+{
+  /* Program counter.  This points into the byte_string below
+     and is relocated when that string is relocated.  */
+  unsigned char *pc;
+
+  /* Top and bottom of stack.  The bottom points to an area of memory
+     allocated with alloca in Fbyte_code.  */
+  Lisp_Object *top, *bottom;
+
+  /* The string containing the byte-code, and its current address.
+     Storing this here protects it from GC because mark_byte_stack
+     marks it.  */
+  Lisp_Object byte_string;
+  unsigned char *byte_string_start;
+
+  /* The vector of constants used during byte-code execution.  Storing
+     this here protects it from GC because mark_byte_stack marks it.  */
+  Lisp_Object constants;
+
+  /* Next entry in byte_stack_list.  */
+  struct byte_stack *next;
+};
+
+/* A list of currently active byte-code execution value stacks.
+   Fbyte_code adds an entry to the head of this list before it starts
+   processing byte-code, and it removed the entry again when it is
+   done.  Signalling an error truncates the list analoguous to
+   gcprolist.  */
+
+struct byte_stack *byte_stack_list;
+
+/* Mark objects on byte_stack_list.  Called during GC.  */
+
+void
+mark_byte_stack ()
+{
+  struct byte_stack *stack;
+  Lisp_Object *obj;
+
+  for (stack = byte_stack_list; stack; stack = stack->next)
+    {
+      if (!stack->top)
+	abort ();
+      
+      for (obj = stack->bottom; obj <= stack->top; ++obj)
+	mark_object (obj);
+
+      mark_object (&stack->byte_string);
+      mark_object (&stack->constants);
+    }
+}
+
+
+/* Relocate program counters in the stacks on byte_stack_list.  Called
+   when GC has completed.  */
+
+void 
+relocate_byte_pcs ()
+{
+  struct byte_stack *stack;
+
+  for (stack = byte_stack_list; stack; stack = stack->next)
+    if (stack->byte_string_start != XSTRING (stack->byte_string)->data)
+      {
+	int offset = stack->pc - stack->byte_string_start;
+	stack->byte_string_start = XSTRING (stack->byte_string)->data;
+	stack->pc = stack->byte_string_start + offset;
+      }
+}
+
+
 
 /* Fetch the next byte from the bytecode stream */
 
-#define FETCH *pc++
+#define FETCH *stack.pc++
 
 /* Fetch two bytes from the bytecode stream
  and make a 16-bit number out of them */
@@ -236,22 +312,30 @@ Lisp_Object Qbytecode;
 
 /* Push x onto the execution stack. */
 
-/* This used to be #define PUSH(x) (*++stackp = (x))
-   This oddity is necessary because Alliant can't be bothered to
-   compile the preincrement operator properly, as of 4/91.  -JimB  */
-#define PUSH(x) (stackp++, *stackp = (x))
+/* This used to be #define PUSH(x) (*++stackp = (x)) This oddity is
+   necessary because Alliant can't be bothered to compile the
+   preincrement operator properly, as of 4/91.  -JimB */
+
+#define PUSH(x) (top++, *top = (x))
 
 /* Pop a value off the execution stack.  */
 
-#define POP (*stackp--)
+#define POP (*top--)
 
 /* Discard n values from the execution stack.  */
 
-#define DISCARD(n) (stackp -= (n))
+#define DISCARD(n) (top -= (n))
 
-/* Get the value which is at the top of the execution stack, but don't pop it. */
+/* Get the value which is at the top of the execution stack, but don't
+   pop it. */
 
-#define TOP (*stackp)
+#define TOP (*top)
+
+/* Actions that must performed before and after calling a function
+   that might GC.  */
+
+#define BEFORE_POTENTIAL_GC()	stack.top = top
+#define AFTER_POTENTIAL_GC()	stack.top = NULL
 
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
@@ -259,23 +343,25 @@ Lisp_Object Qbytecode;
 #define MAYBE_GC()				\
   if (consing_since_gc > gc_cons_threshold)	\
     {						\
+      BEFORE_POTENTIAL_GC ();			\
       Fgarbage_collect ();			\
-      HANDLE_RELOCATION ();			\
+      AFTER_POTENTIAL_GC ();			\
     }						\
   else
 
-/* Relocate BYTESTR if there has been a GC recently.  */
-#define HANDLE_RELOCATION()						\
-  if (! EQ (string_saved, bytestr))					\
-    {									\
-      pc = pc - XSTRING (string_saved)->data + XSTRING (bytestr)->data;	\
-      string_saved = bytestr;						\
-    }									\
-  else
-
 /* Check for jumping out of range.  */
+
+#ifdef BYTE_CODE_SAFE
+
 #define CHECK_RANGE(ARG)			\
   if (ARG >= bytestr_length) abort ()
+
+#else
+
+#define CHECK_RANGE(ARG)
+
+#endif
+
 
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
   "Function used internally in byte-compiled code.\n\
@@ -286,60 +372,52 @@ If the third argument is incorrect, Emacs may crash.")
   (bytestr, vector, maxdepth)
      Lisp_Object bytestr, vector, maxdepth;
 {
-  struct gcpro gcpro1, gcpro2, gcpro3;
   int count = specpdl_ptr - specpdl;
 #ifdef BYTE_CODE_METER
   int this_op = 0;
   int prev_op;
 #endif
-  register int op;
-  unsigned char *pc;
-  Lisp_Object *stack;
-  register Lisp_Object *stackp;
-  Lisp_Object *stacke;
-  register Lisp_Object v1, v2;
-  register Lisp_Object *vectorp = XVECTOR (vector)->contents;
+  int op;
+  Lisp_Object v1, v2;
+  Lisp_Object *stackp;
+  Lisp_Object *vectorp = XVECTOR (vector)->contents;
 #ifdef BYTE_CODE_SAFE
-  register int const_length = XVECTOR (vector)->size;
+  int const_length = XVECTOR (vector)->size;
+  Lisp_Object *stacke;
 #endif
-  /* Copy of BYTESTR, saved so we can tell if BYTESTR was relocated.  */
-  Lisp_Object string_saved;
-  /* Cached address of beginning of string,
-     valid if BYTESTR equals STRING_SAVED.  */
-  register unsigned char *strbeg;
   int bytestr_length = STRING_BYTES (XSTRING (bytestr));
+  struct byte_stack stack;
+  Lisp_Object *top;
 
   CHECK_STRING (bytestr, 0);
   if (!VECTORP (vector))
     vector = wrong_type_argument (Qvectorp, vector);
   CHECK_NUMBER (maxdepth, 2);
 
-  stackp = (Lisp_Object *) alloca (XFASTINT (maxdepth) * sizeof (Lisp_Object));
-  bzero (stackp, XFASTINT (maxdepth) * sizeof (Lisp_Object));
-  GCPRO3 (bytestr, vector, *stackp);
-  gcpro3.nvars = XFASTINT (maxdepth);
+  stack.byte_string = bytestr;
+  stack.pc = stack.byte_string_start = XSTRING (bytestr)->data;
+  stack.constants = vector;
+  stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth) 
+                                         * sizeof (Lisp_Object));
+  top = stack.bottom - 1;
+  stack.top = NULL;
+  stack.next = byte_stack_list;
+  byte_stack_list = &stack;
 
-  --stackp;
-  stack = stackp;
-  stacke = stackp + XFASTINT (maxdepth);
-
-  /* Initialize the saved pc-pointer for fetching from the string.  */
-  string_saved = bytestr;
-  pc = XSTRING (string_saved)->data;
-
+#ifdef BYTE_CODE_SAFE
+  stacke = stack.bottom - 1 + XFASTINT (maxdepth);
+#endif
+  
   while (1)
     {
 #ifdef BYTE_CODE_SAFE
-      if (stackp > stacke)
+      if (top > stacks)
 	error ("Byte code stack overflow (byte compiler bug), pc %d, depth %d",
-	       pc - XSTRING (string_saved)->data, stacke - stackp);
-      if (stackp < stack)
+	       stack.pc - stack.byte_string_start, stacke - top);
+      else if (top < stack.bottom - 1)
 	error ("Byte code stack underflow (byte compiler bug), pc %d",
-	       pc - XSTRING (string_saved)->data);
+	       stack.pc - stack.byte_string_start);
 #endif
-
-      /* Update BYTESTR if we had a garbage collection.  */
-      HANDLE_RELOCATION ();
 
 #ifdef BYTE_CODE_METER
       prev_op = this_op;
@@ -430,7 +508,9 @@ If the third argument is incorrect, Emacs may crash.")
 		}
 	    }
 #endif
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Ffuncall (op + 1, &TOP);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bunbind+6:
@@ -445,13 +525,17 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bunbind+4: case Bunbind+5:
 	  op -= Bunbind;
 	dounbind:
+	  BEFORE_POTENTIAL_GC ();
 	  unbind_to (specpdl_ptr - specpdl - op, Qnil);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bunbind_all:
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.  */
+	  BEFORE_POTENTIAL_GC ();
 	  unbind_to (count, Qnil);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bgoto:
@@ -459,7 +543,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  QUIT;
 	  op = FETCH2;    /* pc = FETCH2 loses since FETCH2 contains pc++ */
 	  CHECK_RANGE (op);
-	  pc = XSTRING (string_saved)->data + op;
+	  stack.pc = stack.byte_string_start + op;
 	  break;
 
 	case Bgotoifnil:
@@ -469,7 +553,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      QUIT;
 	      CHECK_RANGE (op);
-	      pc = XSTRING (string_saved)->data + op;
+	      stack.pc = stack.byte_string_start + op;
 	    }
 	  break;
 
@@ -480,7 +564,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      QUIT;
 	      CHECK_RANGE (op);
-	      pc = XSTRING (string_saved)->data + op;
+	      stack.pc = stack.byte_string_start + op;
 	    }
 	  break;
 
@@ -491,7 +575,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      QUIT;
 	      CHECK_RANGE (op);
-	      pc = XSTRING (string_saved)->data + op;
+	      stack.pc = stack.byte_string_start + op;
 	    }
 	  else DISCARD (1);
 	  break;
@@ -503,7 +587,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      QUIT;
 	      CHECK_RANGE (op);
-	      pc = XSTRING (string_saved)->data + op;
+	      stack.pc = stack.byte_string_start + op;
 	    }
 	  else DISCARD (1);
 	  break;
@@ -511,7 +595,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case BRgoto:
 	  MAYBE_GC ();
 	  QUIT;
-	  pc += (int) *pc - 127;
+	  stack.pc += (int) *stack.pc - 127;
 	  break;
 
 	case BRgotoifnil:
@@ -519,9 +603,9 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (NILP (POP))
 	    {
 	      QUIT;
-	      pc += (int) *pc - 128;
+	      stack.pc += (int) *stack.pc - 128;
 	    }
-	  pc++;
+	  stack.pc++;
 	  break;
 
 	case BRgotoifnonnil:
@@ -529,29 +613,29 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (!NILP (POP))
 	    {
 	      QUIT;
-	      pc += (int) *pc - 128;
+	      stack.pc += (int) *stack.pc - 128;
 	    }
-	  pc++;
+	  stack.pc++;
 	  break;
 
 	case BRgotoifnilelsepop:
 	  MAYBE_GC ();
-	  op = *pc++;
+	  op = *stack.pc++;
 	  if (NILP (TOP))
 	    {
 	      QUIT;
-	      pc += op - 128;
+	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
 	  break;
 
 	case BRgotoifnonnilelsepop:
 	  MAYBE_GC ();
-	  op = *pc++;
+	  op = *stack.pc++;
 	  if (!NILP (TOP))
 	    {
 	      QUIT;
-	      pc += op - 128;
+	      stack.pc += op - 128;
 	    }
 	  else DISCARD (1);
 	  break;
@@ -603,7 +687,9 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcondition_case:
 	  v1 = POP;
 	  v1 = Fcons (POP, v1);
+	  BEFORE_POTENTIAL_GC ();
 	  TOP = Fcondition_case (Fcons (TOP, v1));
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Btemp_output_buffer_setup:
@@ -616,7 +702,9 @@ If the third argument is incorrect, Emacs may crash.")
 	  temp_output_buffer_show (TOP);
 	  TOP = v1;
 	  /* pop binding of standard-output */
+	  BEFORE_POTENTIAL_GC ();
 	  unbind_to (specpdl_ptr - specpdl - 1, Qnil);
+	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bnth:
@@ -1146,7 +1234,9 @@ If the third argument is incorrect, Emacs may crash.")
     }
 
  exit:
-  UNGCPRO;
+
+  byte_stack_list = byte_stack_list->next;
+
   /* Binds and unbinds are supposed to be compiled balanced.  */
   if (specpdl_ptr - specpdl != count)
 #ifdef BYTE_CODE_SAFE
@@ -1154,6 +1244,7 @@ If the third argument is incorrect, Emacs may crash.")
 #else
     abort ();
 #endif
+  
   return v1;
 }
 
