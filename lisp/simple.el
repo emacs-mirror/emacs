@@ -882,9 +882,23 @@ Return 0 if current buffer is not a mini-buffer."
 
 (defun minibuffer-prompt-end ()
   "Return the buffer position of the end of the minibuffer prompt.
-Return 0 if current buffer is not a mini-buffer."
+Return (point-min) if current buffer is not a mini-buffer."
   (field-beginning (point-max)))
 
+(defun minibuffer-contents ()
+  "Return the user input in a minbuffer as a string.
+The current buffer must be a minibuffer."
+  (field-string (point-max)))
+
+(defun minibuffer-contents-no-properties ()
+  "Return the user input in a minbuffer as a string, without text-properties.
+The current buffer must be a minibuffer."
+  (field-string-no-properties (point-max)))
+
+(defun delete-minibuffer-contents  ()
+  "Delete all user input in a minibuffer.
+The current buffer must be a minibuffer."
+  (delete-field (point-max)))
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
