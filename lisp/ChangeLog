@@ -1,3 +1,7 @@
+2001-02-13  David M. Koppelman <koppel@ee.lsu.edu>
+
+	* hi-lock.el (hi-lock-find-patterns): Don't activate font-lock-mode.
+
 2001-02-13  Miles Bader  <miles@gnu.org>
 
 	* faces.el (set-face-background, set-face-foreground) 
