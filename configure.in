@@ -1261,11 +1261,9 @@ changequote([, ])dnl
 AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.in, [
 
-### Make the necessary directories, if they don't exist.
-for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ./man ; do
-  if test ! -d ${dir}; then
-    mkdir ${dir}
-  fi
+### Make necessary directories, if they don't exist.
+for dir in cpp etc ; do
+  test -d ${dir} || mkdir ${dir}
 done
 
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
