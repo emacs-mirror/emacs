@@ -1,4 +1,4 @@
-;;; image-file.el --- Support for visiting image files
+;;; image-file.el --- support for visiting image files
 ;;
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ;;
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Defines a file-name-handler hook that transforms visited (or
-;; inserted) image files so that they are displayed by emacs as
+;; inserted) image files so that they are displayed by Emacs as
 ;; images.  This is done by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
