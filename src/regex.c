@@ -3462,7 +3462,7 @@ re_compile_fastmap (bufp)
 	  not = (re_opcode_t)p[-1] == notsyntaxspec;
 	  k = *p++;
 	  for (j = 0; j < (1 << BYTEWIDTH); j++)
-	    if ((SYNTAX (j) == (enum syntaxcode) k) ^ not)
+	    if ((SYNTAX (j) == (re_opcode_t) k) ^ not)
 	      fastmap[j] = 1;
 	  break;
 #else  /* emacs */
@@ -5363,7 +5363,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		 looks like multibyte form.  */
 	      c = *d, len = 1;
 
-	    if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
+	    if ((SYNTAX (c) != (re_opcode_t) mcnt) ^ not)
 	      goto fail;
 	    d += len;
 	  }
