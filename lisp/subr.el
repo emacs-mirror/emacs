@@ -1669,7 +1669,7 @@ Note that if KEY has a local binding in the current buffer,
 that local binding will continue to shadow any global binding
 that you make with this function."
   (interactive "KSet key globally: \nCSet key %s to command: ")
-  (or (vectorp key) (stringp key)
+  (or (vectorp key) (stringp key) (symbolp key)
       (signal 'wrong-type-argument (list 'arrayp key)))
   (define-key (current-global-map) key command))
 
@@ -1687,7 +1687,7 @@ which in most cases is shared with all other buffers in the same major mode."
   (let ((map (current-local-map)))
     (or map
 	(use-local-map (setq map (make-sparse-keymap))))
-    (or (vectorp key) (stringp key)
+    (or (vectorp key) (stringp key) (symbolp key)
 	(signal 'wrong-type-argument (list 'arrayp key)))
     (define-key map key command)))
 
