@@ -1046,6 +1046,36 @@ temp_echo_area_glyphs (m)
 
 Lisp_Object Fminibuffer_completion_help ();
 Lisp_Object assoc_for_completion ();
+/* A subroutine of Fintern_soft.  */
+extern Lisp_Object oblookup ();
+
+
+/* Test whether TXT is an exact completion.  */
+Lisp_Object
+test_completion (txt)
+     Lisp_Object txt;
+{
+  Lisp_Object tem;
+
+  if (CONSP (Vminibuffer_completion_table)
+      || NILP (Vminibuffer_completion_table))
+    return assoc_for_completion (txt, Vminibuffer_completion_table);
+  else if (VECTORP (Vminibuffer_completion_table))
+    {
+      /* Bypass intern-soft as that loses for nil */
+      tem = oblookup (Vminibuffer_completion_table,
+		      XSTRING (txt)->data, XSTRING (txt)->size);
+      if (SYMBOLP (tem))
+	return Qnil;
+      else if (!NILP (Vminibuffer_completion_predicate))
+	return call1 (Vminibuffer_completion_predicate, tem);
+      else
+	return Qt;
+    }
+  else
+    return call3 (Vminibuffer_completion_table, txt,
+		  Vminibuffer_completion_predicate, Qlambda);
+}
 
 /* returns:
  * 0 no possible completion
@@ -1093,32 +1123,7 @@ do_completion ()
     }
 
   /* It did find a match.  Do we match some possibility exactly now? */
-  if (CONSP (Vminibuffer_completion_table)
-      || NILP (Vminibuffer_completion_table))
-    tem = assoc_for_completion (Fbuffer_string (),
-				Vminibuffer_completion_table);
-  else if (VECTORP (Vminibuffer_completion_table))
-    {
-      /* the primitive used by Fintern_soft */
-      extern Lisp_Object oblookup ();
-
-      tem = Fbuffer_string ();
-      /* Bypass intern-soft as that loses for nil */
-      tem = oblookup (Vminibuffer_completion_table,
-		      XSTRING (tem)->data, XSTRING (tem)->size);
-      if (!SYMBOLP (tem))
-	tem = Qnil;
-      else if (!NILP (Vminibuffer_completion_predicate))
-	tem = call1 (Vminibuffer_completion_predicate, tem);
-      else
-	tem = Qt;
-    }
-  else
-    tem = call3 (Vminibuffer_completion_table,
-		 Fbuffer_string (),
-		 Vminibuffer_completion_predicate,
-		 Qlambda);
-
+  tem = test_completion (Fbuffer_string ());
   if (NILP (tem))
     {
       /* not an exact match */
@@ -1236,9 +1241,8 @@ scroll the window of possible completions.")
 
 DEFUN ("minibuffer-complete-and-exit", Fminibuffer_complete_and_exit,
         Sminibuffer_complete_and_exit, 0, 0, "",
-  "Complete the minibuffer contents, and maybe exit.\n\
-Exit if the name is valid with no completion needed.\n\
-If name was completed to a valid match,\n\
+  "If the minibuffer contents is a valid completion then exit.\n\
+Otherwise try to complete it.  If completion leads to a valid completion,\n\
 a repetition of this command will exit.")
   ()
 {
@@ -1246,6 +1250,9 @@ a repetition of this command will exit.")
 
   /* Allow user to specify null string */
   if (BEGV == ZV)
+    goto exit;
+
+  if (!NILP (test_completion (Fbuffer_string ())))
     goto exit;
 
   i = do_completion ();
