@@ -1,3 +1,9 @@
+2004-03-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-interval): Make new value take
+	effect immediately when set through Custom.
+	(auto-revert-set-timer): Add interactive declaration.
+
 2004-03-19  David Ponce  <david@dponce.com>
 
 	* ruler-mode.el (ruler-mode-header-line-format-old): Don't
