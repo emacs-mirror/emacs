@@ -95,6 +95,7 @@ point (where the PPSS is equivalent to nil).")
   (mapcar (lambda (x) (cons (car x) (truncate (/ (cdr x) (car x)))))
 	  syntax-ppss-stats))
 
+;;;###autoload
 (defun syntax-ppss (&optional pos)
   "Parse-Partial-Sexp State at POS.
 The returned value is the same as `parse-partial-sexp' except that
