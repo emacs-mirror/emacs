@@ -311,7 +311,7 @@ to an Emacs buffer named @samp{*shell*} or run a shell inside a terminal
 emulator window.
 
 There is a shell implemented entirely in Emacs, documented in a separate
-manual.  @xref{, ,Eshell , eshell, Eshell: The Emacs Shell}.
+manual.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
 
 @table @kbd
 @item M-! @var{cmd} @key{RET}
@@ -354,12 +354,13 @@ Start the Emacs shell.
   @kbd{M-!} (@code{shell-command}) reads a line of text using the
 minibuffer and executes it as a shell command in a subshell made just
 for that command.  Standard input for the command comes from the null
-device.  If the shell command produces any output, the output goes into
-an Emacs buffer named @samp{*Shell Command Output*}, which is displayed
-in another window but not selected.  A numeric argument, as in @kbd{M-1
-M-!}, directs this command to insert any output into the current buffer.
-In that case, point is left before the output and the mark is set after
-the output.
+device.  If the shell command produces any output, the output appears
+either in the echo area (if it is short), or in an Emacs buffer named
+@samp{*Shell Command Output*}, which is displayed in another window
+but not selected (if the output is long).  A numeric argument, as in
+@kbd{M-1 M-!}, directs this command to insert any output into the
+current buffer instead.  In that case, point is left before the output
+and the mark is set after the output.
 
   If the shell command line ends in @samp{&}, it runs asynchronously.
 For a synchronous shell command, @code{shell-command} returns the
@@ -477,9 +478,9 @@ of the special key bindings of Shell mode:
 @findex comint-send-input
 At end of buffer send line as input; otherwise, copy current line to
 end of buffer and send it (@code{comint-send-input}).  When a line is
-copied, any prompt at the beginning if the line (text output by
-programs preceding your input) is omitted.  See also
-@code{comint-use-prompt-regexp-instead-of-fields}).
+copied, any prompt at the beginning of the line (text output by
+programs preceding your input) is omitted.  (See also the variable
+@code{comint-use-prompt-regexp-instead-of-fields}.)
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
@@ -491,8 +492,9 @@ references (@pxref{History References}) and environment variable names.
 @vindex shell-completion-fignore
 @vindex comint-completion-fignore
 The variable @code{shell-completion-fignore} specifies a list of file
-name extensions to ignore in Shell mode completion.  The default setting
-ignores file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
+name extensions to ignore in Shell mode completion.  The default
+setting is @code{nil}, but some users prefer @code{("~" "#" "%")} to
+ignore file names ending in @samp{~}, @samp{#} or @samp{%}.  Other
 related Comint modes use the variable @code{comint-completion-fignore}
 instead.
 
@@ -513,13 +515,14 @@ position in the buffer, @kbd{C-d} deletes a character as usual.
 
 @item C-c C-a
 @kindex C-c C-a @r{(Shell mode)}
-@findex comint-bol
+@findex comint-bol-or-process-mark
 Move to the beginning of the line, but after the prompt if any
-(@code{comint-bol}).  If you repeat this command twice in a row, the
-second time it moves back to the process mark, which is the beginning of
-the input that you have not yet sent to the subshell.  (Normally that is
-the same place---the end of the prompt on this line---but after @kbd{C-c
-@key{SPC}} the process mark may be in a previous line.)
+(@code{comint-bol-or-process-mark}).  If you repeat this command twice
+in a row, the second time it moves back to the process mark, which is
+the beginning of the input that you have not yet sent to the subshell.
+(Normally that is the same place---the end of the prompt on this
+line---but after @kbd{C-c @key{SPC}} the process mark may be in a
+previous line.)
 
 @item C-c @key{SPC}
 Accumulate multiple lines of input, then send them together.  This
@@ -859,10 +862,12 @@ recognize commands with the meaning of @samp{popd} and @samp{cd}.
 These commands are recognized only at the beginning of a shell command
 line.
 
+@ignore  @c This seems to have been deleted long ago.
 @vindex shell-set-directory-error-hook
   If Emacs gets an error while trying to handle what it believes is a
 @samp{cd}, @samp{pushd} or @samp{popd} command, it runs the hook
 @code{shell-set-directory-error-hook} (@pxref{Hooks}).
+@end ignore
 
 @findex dirs
   If Emacs gets confused about changes in the current directory of the
@@ -920,16 +925,9 @@ algorithm cannot add even a single character.
 @code{comint-completion-autolist}, if non-@code{nil}, says to list all
 the possible completions whenever completion is not exact.
 
-@findex comint-dynamic-complete-variable
-  The command @code{comint-dynamic-complete-variable} does variable-name
-completion using the environment variables as set within Emacs.  The
-variables controlling file name completion apply to variable-name
-completion too.  This command is normally available through the menu
-bar.
-
-@vindex shell-command-execonly
+@vindex shell-completion-execonly
   Command completion normally considers only executable files.
-If you set @code{shell-command-execonly} to @code{nil},
+If you set @code{shell-completion-execonly} to @code{nil},
 it considers nonexecutable files as well.
 
 @findex shell-pushd-tohome
@@ -949,8 +947,8 @@ underlying shell, of course.
 
   To run a subshell in a terminal emulator, putting its typescript in
 an Emacs buffer, use @kbd{M-x term}.  This creates (or reuses) a
-buffer named @samp{*term*}, and runs a subshell with input coming from
-your keyboard, and output going to that buffer.
+buffer named @samp{*terminal*}, and runs a subshell with input coming
+from your keyboard, and output going to that buffer.
 
   The terminal emulator uses Term mode, which has two input modes.  In
 line mode, Term basically acts like Shell mode; see @ref{Shell Mode}.
@@ -974,7 +972,7 @@ You can actually run Emacs inside an Emacs Term window.
 
    The file name used to load the subshell is determined the same way
 as for Shell mode.  To make multiple terminal emulators, rename the
-buffer @samp{*term*} to something different using @kbd{M-x
+buffer @samp{*terminal*} to something different using @kbd{M-x
 rename-uniquely}, just as with Shell mode.
 
   Unlike Shell mode, Term mode does not track the current directory by
@@ -1169,8 +1167,8 @@ use @env{EDITOR} wait for the ``editor'' (actually, @code{emacsclient})
 to exit.  @kbd{C-x #} also checks for other pending external requests
 to edit various files, and selects the next such file.
 
-  You can switch to a server buffer manually if you wish; you don't have
-to arrive at it with @kbd{C-x #}.  But @kbd{C-x #} is the only way to
+  You can switch to a server buffer manually if you wish; you don't
+have to arrive at it with @kbd{C-x #}.  But @kbd{C-x #} is the way to
 say that you are ``finished'' with one.
 
 @vindex server-kill-new-buffers
@@ -1373,7 +1371,8 @@ it to the printer.
 @cindex handwriting
 @kbd{M-x handwrite} is more frivolous.  It generates a PostScript
 rendition of the current buffer as a cursive handwritten document.  It
-can be customized in group @code{handwrite}.
+can be customized in group @code{handwrite}.  This function only
+supports ISO 8859-1 characters.
 
 @ifinfo
   The following section describes variables for customizing these commands.
@@ -1814,8 +1813,9 @@ invoked @code{hexl-mode}.
 @end table
 
 @noindent
-Other Hexl commands let you insert strings (sequences) of binary bytes,
-move by short's or int's, etc.; type @kbd{C-h a hexl- RET} for details.
+Other Hexl commands let you insert strings (sequences) of binary
+bytes, move by short's or int's, etc.; type @kbd{C-h a hexl-
+@key{RET}} for details.
 
 
 @node Saving Emacs Sessions, Recursive Edit, Editing Binary Files, Top
@@ -2107,7 +2107,7 @@ fashion.
 @cindex URLs
 
 @table @kbd
-@item M-x browse-url @key{RET} @var{url} @key{ret}
+@item M-x browse-url @key{RET} @var{url} @key{RET}
 Load a URL into a Web browser.
 @end table
 
@@ -2220,7 +2220,7 @@ find the one you select (@code{ffap-menu}).
 
 @table @kbd
 @item M-x find-function @key{RET} @var{function} @key{RET}
-Find the definition @var{function} in its source file.
+Find the definition of @var{function} in its source file.
 @item M-x find-variable @key{RET} @var{variable} @key{RET}
 Find the definition of @var{variable} in its source file.
 @item M-x find-function-on-key @key{RET} @var{key}
