@@ -541,13 +541,14 @@ the users will view as each check is completed."
   "Display and update the status buffer for the current checkdoc mode.
 CHECK is a vector stating the current status of each test as an
 element is the status of that level of teset."
-  (with-output-to-temp-buffer " *Checkdoc Status*"
-    (princ-list
-     "Buffer comments and tags:  " (nth 0 check) "\n"
-     "Documentation style:       " (nth 1 check) "\n"
-     "Message/Query text style:  " (nth 2 check) "\n"
-     "Unwanted Spaces:           " (nth 3 check)
-     ))
+  (let (temp-buffer-setup-hook)
+    (with-output-to-temp-buffer " *Checkdoc Status*"
+      (princ-list
+       "Buffer comments and tags:  " (nth 0 check) "\n"
+       "Documentation style:       " (nth 1 check) "\n"
+       "Message/Query text style:  " (nth 2 check) "\n"
+       "Unwanted Spaces:           " (nth 3 check)
+       )))
   (shrink-window-if-larger-than-buffer
    (get-buffer-window " *Checkdoc Status*"))
   (message nil)
@@ -1311,7 +1312,8 @@ See the style guide in the Emacs Lisp manual for more details."
 	 ;; Sometimes old code has comments where the documentation should
 	 ;; be.  Let's see if we can find the comment, and offer to turn it
 	 ;; into documentation for them.
-	 (let ((have-comment nil))
+	 (let ((have-comment nil)
+	       (comment-start ";"))	; in case it's not default
 	   (condition-case nil
 	       (progn
 		 (forward-sexp -1)
