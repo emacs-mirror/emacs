@@ -2956,10 +2956,10 @@ resolve_face_name (face_name)
 
 
 /* Return the face definition of FACE_NAME on frame F.  F null means
-   return the global definition.  FACE_NAME may be a string or a
-   symbol (apparently Emacs 20.2 allows strings as face names in face
-   text properties; ediff uses that).  If FACE_NAME is an alias for
-   another face, return that face's definition.  If SIGNAL_P is
+   return the definition for new frames.  FACE_NAME may be a string or
+   a symbol (apparently Emacs 20.2 allowed strings as face names in
+   face text properties; Ediff uses that).  If FACE_NAME is an alias
+   for another face, return that face's definition.  If SIGNAL_P is
    non-zero, signal an error if FACE_NAME is not a valid face name.
    If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
    name.  */
