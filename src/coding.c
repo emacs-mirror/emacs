@@ -2693,6 +2693,7 @@ detect_coding_mask (src, src_bytes)
       if (mask == CODING_CATEGORY_MASK_ANY)
 	/* No valid ISO2022 code follows C.  Try again.  */
 	goto label_loop_detect_coding;
+      mask |= CODING_CATEGORY_MASK_RAW_TEXT;
     }
   else if (c < 0xA0)
     {
