@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.41 $
+;; Version: $Revision: 1.42 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/14 21:54:56 $|$Revision: 1.41 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/17 19:55:25 $|$Revision: 1.42 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.42  1995/07/17  19:55:25  tromey
+;; XEmacs currently must use tcl-internal-end-of-defun
+;;
 ;; Revision 1.41  1995/07/14  21:54:56  tromey
 ;; Changes to make menus work in XEmacs.
 ;; From Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
@@ -336,7 +339,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.41 $")
+(defconst tcl-version "$Revision: 1.42 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1548,7 +1551,9 @@ The following commands are available:
 					 ">")))
   (setq major-mode 'inferior-tcl-mode)
   (setq mode-name "Inferior Tcl")
-  (setq mode-line-process '(": %s"))
+  (if (boundp 'modeline-process)
+      (setq modeline-process '(": %s"))	; For XEmacs.
+    (setq mode-line-process '(": %s")))
   (use-local-map inferior-tcl-mode-map)
   (setq local-abbrev-table tcl-mode-abbrev-table)
   (set-syntax-table tcl-mode-syntax-table)
