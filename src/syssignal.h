@@ -58,13 +58,13 @@ extern sigset_t sys_sigmask ();
 
 /* Whether this is what all systems want or not, this is what
    appears to be assumed in the source, for example data.c:arith_error.  */
-typedef RETSIGTYPE (*signal_handler_t) (int);
+typedef RETSIGTYPE (*signal_handler_t) (/*int*/);
 
-signal_handler_t sys_signal (int signal_number, signal_handler_t action);
-int      sys_sigpause   (sigset_t new_mask);
-sigset_t sys_sigblock   (sigset_t new_mask);
-sigset_t sys_sigunblock (sigset_t new_mask);
-sigset_t sys_sigsetmask (sigset_t new_mask);
+signal_handler_t sys_signal (/*int signal_number, signal_handler_t action*/);
+int      sys_sigpause   (/*sigset_t new_mask*/);
+sigset_t sys_sigblock   (/*sigset_t new_mask*/);
+sigset_t sys_sigunblock (/*sigset_t new_mask*/);
+sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
 
