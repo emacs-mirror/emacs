@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.26 1997/10/28 21:14:51 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.27 1997/10/28 21:26:55 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -87,11 +87,16 @@
 ;;      entered by visiting the TODO file, and later by switching to
 ;;      its buffer).
 ;;
+;;      If you are an advanced user of this package, please consult
+;;      the whole source code for autoloads, because there are several
+;;      extensions that are not explicitly listed in the above quick
+;;      installation.
+;;
 ;;  Version
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.26 1997/10/28 21:14:51 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.27 1997/10/28 21:26:55 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -156,6 +161,17 @@
 ;;
 ;;	as the value of `todo-prefix'.  Please note that this may slow
 ;;	down the processing of your diary file some.
+;;
+;;      Carsten Dominik <dominik@strw.LeidenUniv.nl> suggested that
+;;
+;;          "&%%(todo-cp)"
+;;
+;;      might be nicer and to that effect a function has been declared
+;;      further down in the code.  You may wish to auto-load this.
+;;
+;;      Carsten also writes that that *changing* the prefix after the
+;;      todo list is already established is not as simple as changing
+;;      the variable - the todo files have to be changed by hand.
 ;;
 ;;  Variable todo-file-do
 ;;
@@ -249,6 +265,12 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.27  1997/10/28 21:26:55  os10000
+;; Patch from Paul Stodghill <stodghil@CS.Cornell.EDU>:
+;; The patch below fixes todo-insert-item so that it will
+;; insert the item in place, instead of at the top of the
+;; buffer, when invoked with a prefix argument.
+;;
 ;; Revision 1.26  1997/10/28 21:14:51  os10000
 ;; Improvements sent in by Dave Love <d.love@dl.ac.uk>:
 ;; todo-mode.el: Doc fixes.  Customization.
@@ -1102,6 +1124,14 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   (use-local-map todo-mode-map)
   (easy-menu-add todo-menu)
   (run-hooks 'todo-mode-hook))
+
+;; Read about this function in the setup instructions above!
+;;;### autoload
+(defun todo-cp ()
+  "Make a diary entry appear only in the current date's diary"
+  (if (equal (calendar-current-date) date)
+      entry
+    nil))
 
 (defun todo-edit-mode ()
   "Major mode for editing items in the TODO list\n\n\\{todo-edit-mode-map}"
