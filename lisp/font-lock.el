@@ -307,12 +307,12 @@ See `font-lock-make-face' and `list-faces-display'."
   ;; Now make the faces if we have to.
   (mapcar (function (lambda (face-attributes)
 	     (let ((face (nth 0 face-attributes)))
-	       (if (and (not override) (facep face))
-		   ;; The face exists.  Only set the variable if it's nil.
-		   (if (or (not (boundp face)) (symbol-value face))
-		       (set face face))
-		 ;; The face doesn't exist or we can stomp all over it anyway.
-		 (font-lock-make-face face-attributes)))))
+               (if override
+                   (font-lock-make-face face-attributes)
+                 (if (not (and (boundp face) (facep (symbol-value face))))
+                     (if (facep face)
+                         (set face face)
+                       (font-lock-make-face face-attributes)))))))
 	  font-lock-face-attributes))
 
 (defun font-lock-make-face (face-attributes)
