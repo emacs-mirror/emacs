@@ -8142,7 +8142,7 @@ update_tool_bar (f, save_match_data)
      int save_match_data;
 {
 #ifdef USE_GTK
-  int do_update = FRAME_EXTERNAL_TOOL_BAR(f);
+  int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
   int do_update = WINDOWP (f->tool_bar_window)
     && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)) > 0;
@@ -8539,7 +8539,7 @@ redisplay_tool_bar (f)
   int change_height_p = 0;
 
 #ifdef USE_GTK
-  if (FRAME_EXTERNAL_TOOL_BAR(f))
+  if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
 #endif

@@ -1,3 +1,55 @@
+2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
+	(x_top_window_to_frame): Add Display* argument to xg_win_to_widget.
+	(x_create_bitmap_mask, xg_set_icon, create_frame_xic)
+	(xic_set_statusarea, x_window, gif_load): Formatting adjustments.
+
+	* xterm.h (struct x_display_info): New field xg_cursor for GTK.
+
+	* xterm.c: Add Display * to x_window_to_scroll_bar declaration.
+	(XTmouse_position, handle_one_xevent): Pass Display* to
+	x_window_to_scroll_bar.
+	(x_window_to_scroll_bar): Take a Display* argument.
+	Check that display for frame is equal to Display* argument.
+	(event_handler_gdk): current_dpyinfo removed.  Get dpyinfo from
+	x_display_info_for_display instead.  Use Display in xev instead
+	of GDK_DISPLAY.
+	(x_dispatch_event): Call x_display_info_for_display.
+	(XTread_socket): Move GTK part out of loop. current_dpyinfo removed.
+	(x_connection_closed): Call xg_display_close for GTK.
+	(x_term_init): Call xg_display_open for additional displays.
+	Initiate dpyinfo->xg_cursor with call to xg_create_default_cursor
+	for GTK.
+
+	* xmenu.c (single_menu_item, mouse_position_for_popup)
+	(x_activate_menubar): Formatting adjustments.
+
+	* xdisp.c (update_tool_bar, redisplay_tool_bar): Formatting
+	adjustments.
+
+	* gtkutil.c (xg_get_gdk_display, xg_set_screen, xg_display_open)
+	(xg_display_close, xg_create_default_cursor)
+	(xg_get_gdk_pixmap_and_mask): New functions for multiple display
+	handling.
+	(xg_left_ptr_cursor): Removed.
+	(xg_set_cursor): cursor changed to GdkCursor*.  Do not create
+	cursor here.
+	(xg_win_to_widget): Take Display* argument, call
+	gdk_xid_table_lookup_for_display.
+	(xg_create_frame_widgets, xg_get_file_name, create_menus)
+	(xg_create_widget, xg_modify_menubar_widgets): Call xg_set_screen.
+	(xg_create_widget, xg_create_scroll_bar): Use xg_cursor
+	in FRAME_X_DISPLAY_INFO.
+	(xg_get_scroll_id_for_window): Take Display* argument.
+	(update_frame_tool_bar): Call xg_get_gdk_pixmap_and_mask.
+	(xg_initialize): xg_left_ptr_cursor removed.
+
+	* gtkutil.h: xg_get_scroll_id_for_window, xg_win_to_widget takes
+	Display* argument also.  Declare xg_display_open,
+	xg_display_close, xg_create_default_cursor.
+
 2003-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_detect_focus_change): Do not change focus frame for

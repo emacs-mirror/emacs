@@ -610,7 +610,7 @@ single_menu_item (key, item, dummy, skp_v)
 #endif /* not HAVE_BOXES */
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-  if (!NILP(map))
+  if (!NILP (map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
 #endif
@@ -696,7 +696,7 @@ list_of_items (pane)
    the scroll bar or the edit window.  Fx_popup_menu needs to be
    sure it is the edit window.  */
 static void
-mouse_position_for_popup(f, x, y)
+mouse_position_for_popup (f, x, y)
      FRAME_PTR f;
      int *x;
      int *y;
@@ -1217,7 +1217,8 @@ x_activate_menubar (f)
     return;
 
 #ifdef USE_GTK
-  if (! xg_win_to_widget (f->output_data.x->saved_menu_event->xany.window))
+  if (! xg_win_to_widget (FRAME_X_DISPLAY (f),
+                          f->output_data.x->saved_menu_event->xany.window))
     return;
 #endif
 
