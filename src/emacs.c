@@ -310,7 +310,7 @@ main (argc, argv, envp)
 
 #ifndef SYSTEM_MALLOC
   if (! initialized)
-    malloc_init (0, malloc_warning);
+    memory_warnings (0, malloc_warning);
 #endif	/* not SYSTEM_MALLOC */
 
 #ifdef PRIO_PROCESS
@@ -688,7 +688,7 @@ This function exists on systems that use HAVE_SHM.")
   /* Tell malloc where start of impure now is */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
-  malloc_init (&my_edata, malloc_warning);
+  memory_warnings (&my_edata, malloc_warning);
 #endif
   map_out_data (XSTRING (intoname)->data);
 
@@ -733,7 +733,7 @@ and announce itself normally when it is run.")
   /* Tell malloc where start of impure now is */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
-  malloc_init (&my_edata, malloc_warning);
+  memory_warnings (&my_edata, malloc_warning);
 #endif
   unexec (XSTRING (intoname)->data,
 	  !NILP (symname) ? XSTRING (symname)->data : 0, &my_edata, 0, 0);
