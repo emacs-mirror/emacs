@@ -6040,6 +6040,8 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   eassert (buf->overlays_after == NULL);
 
   set_buffer_internal (buf);
+  /* Don't let Ferase_buffer stumble due to text props.  */
+  specbind (Qinhibit_read_only, Qt);
   /* We must insert the contents of STR as is without
      unibyte<->multibyte conversion.  For that, we adjust the
      multibyteness of the working buffer to that of STR.  */
