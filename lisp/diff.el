@@ -68,11 +68,15 @@
     ;; -n format: {a,d,c}OLDSTART LINES-CHANGED
     ("^[adc]\\([0-9]+\\)\\( [0-9]+\\)?$" 1)
     )
-  "Alist (REGEXP OLD-IDX NEW-IDX) of regular expressions to match difference
-sections in \\[diff] output.  If REGEXP matches, the OLD-IDX'th
-subexpression gives the line number in the old file, and NEW-IDX'th
-subexpression gives the line number in the new file.  If OLD-IDX or NEW-IDX
-is nil, REGEXP matches only half a section.")
+  "Alist of regular expressions to match difference sections in \\[diff] output.
+Each element has the form (REGEXP OLD-IDX NEW-IDX).
+Any text that REGEXP matches identifies one difference hunk
+or the header of a hunk.
+
+The OLD-IDX'th subexpression of REGEXP gives the line number
+in the old file, and NEW-IDX'th subexpression gives the line number
+in the new file.  If OLD-IDX or NEW-IDX
+is nil, REGEXP matches only half a hunk.")
 
 (defvar diff-old-file nil
   "This is the old file name in the comparison in this buffer.")
