@@ -387,8 +387,9 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 
 (defun tmm-goto-completions ()
   (interactive)
-  (setq tmm-c-prompt (buffer-string))
-  (erase-buffer)
+  (let ((prompt-end (minibuffer-prompt-end)))
+    (setq tmm-c-prompt (buffer-substring prompt-end (point-max)))
+    (delete-region prompt-end (point-max)))
   (switch-to-buffer-other-window "*Completions*")
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
