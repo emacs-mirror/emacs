@@ -726,7 +726,9 @@ If DIR is positive skip forward; if negative, skip backward."
 	 (modifiers (delq 'double (delq 'triple (copy-sequence old-modifiers))))
 	 (new
 	  (if (consp event)
-	      (cons (event-convert-list (nreverse (cons basic old-modifiers)))
+	      ;; Use reverse, not nreverse, since event-modifiers
+	      ;; does not copy the list it returns.
+	      (cons (event-convert-list (reverse (cons basic old-modifiers)))
 		    (cdr event))
 	    event)))
     (setcar last new)
