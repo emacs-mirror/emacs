@@ -374,7 +374,7 @@ input."
 		   (ring-empty-p eshell-history-ring)
 		   (not (string-equal (eshell-get-history 0) input))))
 	  (eshell-put-history input))
-      (setq eshell-save-history-index eshell-history-ring)
+      (setq eshell-save-history-index eshell-history-index)
       (setq eshell-history-index nil))))
 
 (defun eshell-read-history (&optional filename silent)
