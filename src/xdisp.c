@@ -316,6 +316,7 @@ message_dolog (m, len, nlflag)
    Check to see if the most recent message looks a lot like the previous one.
    Return 0 if different, 1 if the new one should just replace it, or a
    value N > 1 if we should also append " [N times]".  */
+
 static int
 message_log_check_duplicate (prev_bol, this_bol)
      int prev_bol, this_bol;
@@ -323,8 +324,8 @@ message_log_check_duplicate (prev_bol, this_bol)
   int i;
   int len = Z - 1 - this_bol;
   int seen_dots = 0;
-  char *p1 = BUF_CHAR_ADDRESS (current_buffer, prev_bol);
-  char *p2 = BUF_CHAR_ADDRESS (current_buffer, this_bol);
+  unsigned char *p1 = BUF_CHAR_ADDRESS (current_buffer, prev_bol);
+  unsigned char *p2 = BUF_CHAR_ADDRESS (current_buffer, this_bol);
 
   for (i = 0; i < len; i++)
     {
@@ -654,29 +655,6 @@ prepare_menu_bars ()
   int all_windows;
   struct gcpro gcpro1, gcpro2;
 
-  if (noninteractive)
-    return;
-
-  /* Set the visible flags for all frames.
-     Do this before checking for resized or garbaged frames; they want
-     to know if their frames are visible.
-     See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
-  {
-    Lisp_Object tail, frame;
-
-    FOR_EACH_FRAME (tail, frame)
-      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
-  }
-
-  /* Notice any pending interrupt request to change frame size.  */
-  do_pending_window_change ();
-
-  if (frame_garbaged)
-    {
-      redraw_garbaged_frames ();
-      frame_garbaged = 0;
-    }
-
   all_windows = (update_mode_lines || buffer_shared > 1
 		 || clip_changed || windows_or_buffers_changed);
 
@@ -774,7 +752,13 @@ redisplay ()
     Lisp_Object tail, frame;
 
     FOR_EACH_FRAME (tail, frame)
-      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+      {
+	FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+
+	/* Clear out all the display lines in which we will generate the
+	   glyphs to display.  */
+	init_desired_glyphs (XFRAME (frame));
+      }
   }
 
   /* Notice any pending interrupt request to change frame size.  */
@@ -785,6 +769,8 @@ redisplay ()
       redraw_garbaged_frames ();
       frame_garbaged = 0;
     }
+
+  prepare_menu_bars ();
 
   if (clip_changed || windows_or_buffers_changed
       || (!NILP (w->column_number_displayed)
