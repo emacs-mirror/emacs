@@ -1,3 +1,15 @@
+2003-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* process.h (struct Lisp_Process): New member plist replaces old
+	member private_vars.  All uses changed.
+
+	* process.c: Reworked 2003-01-12 change -- call a plist a plist!
+	(QCplist): Renamed from QCvars.  All uses changed.
+	(Fprocess_plist): Replaces Fprocess_variable.  Simplified.
+	(Fset_process_plist): Replaces Fset_process_variable.  Simplified.
+	(syms_of_process): Intern, staticpro, defsubr these.
+	(Fmake_network_process): Describe :plist arg.  Removed :vars arg.
+
 2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* m/delta.h: Removed (obsolete).
@@ -27,7 +39,7 @@
 
 	* process.h (struct Lisp_Process): New member private_vars.
 
-	* process.c: (QCvars): New variable.
+	* process.c (QCvars): New variable.
 	(syms_of_process): Intern and staticpro it.
 	(Fset_process_contact): Removed function.
 	(Fprocess_variable, Fset_process_variable): New functions.

@@ -2,6 +2,8 @@
 
 	* subr.el (process-put, process-get): New functions.
 
+	* simple.el (clone-process): Copy process' plist to new process.
+
 2003-01-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-dep.el (custom-make-dependencies):  Don't set standard-value
