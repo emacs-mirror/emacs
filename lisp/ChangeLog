@@ -1,12 +1,16 @@
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
 	* emacs-lisp/bytecomp.el (dot, dot-max, dot-min, dot-marker)
-	(buffer-flush-undo, baud-rate, compiled-function-p, define-function):
-	Move obsolescence declarations to subr.el.
+	(buffer-flush-undo, baud-rate, compiled-function-p, define-function)
+	(unread-command-char, executing-macro, post-command-idle-hook)
+	(post-command-idle-delay): Move obsolescence declarations to subr.el.
 
 	* subr.el (dot, dot-max, dot-min, dot-marker, buffer-flush-undo)
-	(baud-rate, compiled-function-p, define-function): Move obsolescence
-	declarations from subr.el
+	(baud-rate, compiled-function-p, define-function, unread-command-char)
+	(executing-macro, post-command-idle-hook, post-command-idle-delay): Move
+	obsolescence declarations from subr.el.
+	(directory-sep-char, mode-line-inverse-video): Add obsolescence
+	declaration.
 
 2002-07-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
