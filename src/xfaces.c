@@ -567,7 +567,7 @@ init_frame_faces (f)
     
     result = Qnil;
     FOR_EACH_FRAME (tail, frame)
-      if (FRAME_X_P (XFRAME (frame))
+      if ((FRAME_MSDOS_P (XFRAME (frame)) || FRAME_X_P (XFRAME (frame)))
 	  && XFRAME (frame) != f)
 	{
 	  result = frame;
@@ -1121,7 +1121,7 @@ DEFUN ("make-face-internal", Fmake_face_internal, Smake_face_internal, 1, 1, 0,
 
   FOR_EACH_FRAME (rest, frame)
     {
-      if (FRAME_X_P (XFRAME (frame)))
+      if (FRAME_MSDOS_P (XFRAME (frame)) || FRAME_X_P (XFRAME (frame)))
 	ensure_face_ready (XFRAME (frame), id);
     }
   return Qnil;
@@ -1148,7 +1148,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id < 0 || id >= next_face_id)
     error ("Face id out of range");
 
-  if (! FRAME_X_P (f))
+  if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
     return Qnil;
 
   ensure_face_ready (f, id);
