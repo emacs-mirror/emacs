@@ -1,5 +1,9 @@
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_char): Don't clear current message for help
+	events; let the code handling help events handle this.  Change
+	code detecting help events that should be ignored.
+
 	* xdisp.c (handle_single_display_prop): Don't try to set PT if
 	we're interating over a string.
 
