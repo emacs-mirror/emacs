@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:compile(trunk.19) $
 #
 # provides subroutines to compile or compile and link
 # tests and test libraries.
@@ -33,6 +33,13 @@ sub compiler_settings {
   $cc_objandexe = 1;
   $obj_suffix = ".obj";
   $try_command = "";
+  if ($PLATFORM eq "nt_x86_cap") {
+   $cc_opts = "$cc_opts /Gh";
+   $cc_link = "$cc_link CAP.lib";
+   $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:mapped,partial";
+  } elsif ($PLATFORM eq "nt_x86_coff") {
+   $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:coff /debug:full";
+  }
  } elsif ($PLATFORM =~ "^so") {
   $dirsep = "/";
   $cc_link = "$obj_dir/platform.o -lm";
