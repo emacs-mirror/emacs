@@ -3147,7 +3147,8 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; since they can handle the names unstripped.
      ;; I don't know whether there are other mailers that still
      ;; need the names to be stripped.
-     (mail-strip-quoted-names reply-to)
+;;;     (mail-strip-quoted-names reply-to)
+     reply-to
      subject
      (rmail-make-in-reply-to-field from date message-id)
      (if just-sender
