@@ -1029,7 +1029,7 @@ This function is used for `comint-input-sender' if using `sql-oracle' on NT."
 		  t t string)))
   (comint-send-string proc string)
   (if comint-input-sender-no-newline
-      (if (not (string-equal input ""))
+      (if (not (string-equal string ""))
 	  (process-send-eof))
     (comint-send-string proc "\n")))
 
@@ -1050,7 +1050,7 @@ Every newline in STRING will be preceded with a space and a backslash."
     (setq result (concat result (substring string start)))
     (comint-send-string proc result)
     (if comint-input-sender-no-newline
-	(if (not (string-equal input ""))
+	(if (not (string-equal string ""))
 	    (process-send-eof))
       (comint-send-string proc "\n"))))
 
