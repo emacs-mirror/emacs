@@ -3131,7 +3131,10 @@ Use %% to put a single % into the output.")
 		  && !CHAR_HEAD_P (*((unsigned char *) p)))
 		maybe_combine_byte = 1;
 	      this_nchars = strlen (p);
-	      p += this_nchars;
+	      if (multibyte)
+		p += str_to_multibyte (p, buf + total - p, this_nchars);
+	      else
+		p += this_nchars;
 	      nchars += this_nchars;
 	    }
 	}
@@ -3359,8 +3362,6 @@ Transposing beyond buffer boundaries is an error.")
   int start1_byte, start2_byte, len1_byte, len2_byte;
   int gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
-  int combined_before_bytes_1, combined_after_bytes_1;
-  int combined_before_bytes_2, combined_after_bytes_2;
   struct gcpro gcpro1, gcpro2;
 
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2;
@@ -3431,61 +3432,31 @@ Transposing beyond buffer boundaries is an error.")
   len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
   len2_byte = CHAR_TO_BYTE (end2) - start2_byte;
 
+#ifdef BYTE_COMBINING_DEBUG
   if (end1 == start2)
     {
-      combined_before_bytes_2
-	= count_combining_before (BYTE_POS_ADDR (start2_byte),
-				  len2_byte, start1, start1_byte);
-      combined_before_bytes_1
-	= count_combining_before (BYTE_POS_ADDR (start1_byte),
-				  len1_byte, end2, start2_byte + len2_byte);
-      combined_after_bytes_1
-	= count_combining_after (BYTE_POS_ADDR (start1_byte),
-				 len1_byte, end2, start2_byte + len2_byte);
-      combined_after_bytes_2 = 0;
+      if (count_combining_before (BYTE_POS_ADDR (start2_byte),
+				  len2_byte, start1, start1_byte)
+	  || count_combining_before (BYTE_POS_ADDR (start1_byte),
+				     len1_byte, end2, start2_byte + len2_byte)
+	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
+				    len1_byte, end2, start2_byte + len2_byte))
+	abort ();
     }
   else
     {
-      combined_before_bytes_2
-	= count_combining_before (BYTE_POS_ADDR (start2_byte),
-				  len2_byte, start1, start1_byte);
-      combined_before_bytes_1
-	= count_combining_before (BYTE_POS_ADDR (start1_byte),
-				  len1_byte, start2, start2_byte);
-      combined_after_bytes_2
-	= count_combining_after (BYTE_POS_ADDR (start2_byte),
-				 len2_byte, end1, start1_byte + len1_byte);
-      combined_after_bytes_1
-	= count_combining_after (BYTE_POS_ADDR (start1_byte),
-				 len1_byte, end2, start2_byte + len2_byte);
+      if (count_combining_before (BYTE_POS_ADDR (start2_byte),
+				  len2_byte, start1, start1_byte)
+	  || count_combining_before (BYTE_POS_ADDR (start1_byte),
+				     len1_byte, start2, start2_byte)
+	  || count_combining_after (BYTE_POS_ADDR (start2_byte),
+				    len2_byte, end1, start1_byte + len1_byte)
+	  || count_combining_after (BYTE_POS_ADDR (start1_byte),
+				    len1_byte, end2, start2_byte + len2_byte))
+	abort ();
     }
+#endif
 
-  /* If any combining is going to happen, do this the stupid way,
-     because replace handles combining properly.  */
-  if (combined_before_bytes_1 || combined_before_bytes_2
-      || combined_after_bytes_1 || combined_after_bytes_2)
-    {
-      Lisp_Object text1, text2;
-
-      text1 = text2 = Qnil;
-      GCPRO2 (text1, text2);
-
-      text1 = make_buffer_string_both (start1, start1_byte,
-				       end1, start1_byte + len1_byte, 1);
-      text2 = make_buffer_string_both (start2, start2_byte,
-				       end2, start2_byte + len2_byte, 1);
-
-      transpose_markers (start1, end1, start2, end2,
-			 start1_byte, start1_byte + len1_byte,
-			 start2_byte, start2_byte + len2_byte);
-
-      replace_range (start2, end2, text1, 1, 0, 0);
-      replace_range (start1, end1, text2, 1, 0, 0);
-
-      UNGCPRO;
-      return Qnil;
-    }
-      
   /* Hmmm... how about checking to see if the gap is large
      enough to use as the temporary storage?  That would avoid an
      allocation... interesting.  Later, don't fool with it now.  */
