@@ -2513,7 +2513,7 @@ init_display ()
 #endif
 #if defined (LINUX) && defined (HAVE_LIBNCURSES)
       /* In some versions of ncurses,
-	 tparm crashes if we have not called tgetent.
+	 tputs crashes if we have not called tgetent.
 	 So call tgetent.  */
       { char b[2044]; tgetent (b, "xterm");}
 #endif
