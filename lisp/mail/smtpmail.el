@@ -345,8 +345,8 @@ don't define this value.")
 ;    (setq response-continue t)
 ;    (setq return-value '(nil ""))
 
-    (goto-char smtpmail-read-point)
     (while response-continue
+      (goto-char smtpmail-read-point)
       (while (not (search-forward "\r\n" nil t))
 	(accept-process-output process)
 	(goto-char smtpmail-read-point))
