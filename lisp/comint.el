@@ -1880,8 +1880,10 @@ Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
     (save-match-data
-      (while (string-match "\\\\\\(.\\)" filename)
-	(setq filename (replace-match "\\1" nil nil filename)))
+      (let ((i 0))
+	(while (string-match "\\\\\\(.\\)" filename i)
+	  (setq filename (replace-match "\\1" nil nil filename))
+	  (setq i (+ 1 (match-beginning 0)))))
       filename)))
 
 
@@ -1910,10 +1912,13 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 Returns t if successful."
   (interactive)
   (if (comint-match-partial-filename)
-      (prog2 (or (window-minibuffer-p (selected-window))
-		 (message "Completing file name..."))
-	  (comint-dynamic-complete-as-filename))))
-
+      (let ((directory-sep-char ?/))
+	(if (memq system-type '(ms-dos windows-nt))
+	    ; The default shells on these systems require backslashed names
+	    (setq directory-sep-char ?\\))
+	(prog2 (or (window-minibuffer-p (selected-window))
+		   (message "Completing file name..."))
+	    (comint-dynamic-complete-as-filename)))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
