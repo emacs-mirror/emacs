@@ -556,6 +556,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	    (if (marker-buffer Info-tag-table-marker)
 		(progn
 		  (set-buffer (marker-buffer Info-tag-table-marker))
+		  (widen)
 		  (goto-char Info-tag-table-marker)
 		  (while (re-search-forward "\nNode: \\(.*\\)\177" nil t)
 		    (setq compl
@@ -578,11 +579,13 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 (defun Info-restore-point (hl)
   "If this node has been visited, restore the point value when we left."
-  (if hl
-      (if (and (equal (nth 0 (car hl)) Info-current-file)
-	       (equal (nth 1 (car hl)) Info-current-node))
-	  (goto-char (nth 2 (car hl)))
-	(Info-restore-point (cdr hl)))))
+  (while hl
+    (if (and (equal (nth 0 (car hl)) Info-current-file)
+	     (equal (nth 1 (car hl)) Info-current-node))
+	(progn
+	  (setq hl nil)			;terminate the while at next iter
+	  (goto-char (nth 2 (car hl))))
+      (setq hl (cdr hl)))))
 
 (defvar Info-last-search nil
   "Default regexp for \\<Info-mode-map>\\[Info-search] command to search for.")
@@ -1461,10 +1464,10 @@ The command is found by looking up in Emacs manual's Command Index."
 		;; the history.
 		(setq Info-history (nconc (cdr where) Info-history))
 		(message (substitute-command-keys
-			  "Found %d other entr%.  Use \\[Info-last] to see %s."
-			(1- num-matches)
-			(if (> num-matches 2) "ies" "y")
-			(if (> num-matches 2) "them" "it"))))))
+			  "Found %d other entr%s.  Use \\[Info-last] to see %s.")
+			 (1- num-matches)
+			 (if (> num-matches 2) "ies" "y")
+			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s." command))))
 
 ;;;###autoload
