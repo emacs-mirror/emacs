@@ -1,5 +1,8 @@
 2001-03-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in, makefile.w32-in (COMPILE_FIRST): Add cc-mode.el
+	and cc-vars.el.
+
 	* mail/sendmail.el (sendmail-send-it): Don't parse Resent-*
 	headers.  Always invoke sendmail with option -t.
 
