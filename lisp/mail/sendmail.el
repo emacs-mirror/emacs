@@ -414,7 +414,9 @@ the user from the mailer."
 	  (if buffer
 	      ;; File is present in a buffer => append to that buffer.
 	      (let ((curbuf (current-buffer))
-		    (beg (point-min)) (end (point-max)))
+		    (beg (point-min)) (end (point-max))
+		    (beg2 (save-excursion (goto-char (point-min))
+					  (forward-line 2) (point))))
 		(save-excursion
 		  (set-buffer buffer)
 		  ;; Keep the end of the accessible portion at the same place
@@ -436,7 +438,8 @@ the user from the mailer."
 				(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
 					"From: " (user-login-name) "\n"
 					"Date: " (current-time-string) "\n")
-				(insert-buffer-substring curbuf beg end)
+				;; Omit the blank line and the Unix From line.
+				(insert-buffer-substring curbuf beg2 end)
 				(insert "\n\C-_")
 				(rmail-set-message-counters))
 			    (insert-buffer-substring curbuf beg end)))
