@@ -1693,7 +1693,138 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
     *prev_ptr = prev;
   return idx;
 }
+
+/* Find all the overlays in the current buffer that overlap the range BEG-END
+   plus empty overlays anywhere from BEG to END.
+   Return the number found, and store them in a vector in *VEC_PTR.  
+   Store in *LEN_PTR the size allocated for the vector.
+   Store in *NEXT_PTR the next position after POS where an overlay starts,
+     or ZV if there are no more overlays.
+   Store in *PREV_PTR the previous position before POS where an overlay ends,
+     or BEGV if there are no previous overlays.
+   NEXT_PTR and/or PREV_PTR may be 0, meaning don't store that info.
 
+   *VEC_PTR and *LEN_PTR should contain a valid vector and size
+   when this function is called.
+
+   If EXTEND is non-zero, we make the vector bigger if necessary.
+   If EXTEND is zero, we never extend the vector,
+   and we store only as many overlays as will fit.
+   But we still return the total number of overlays.  */
+
+int
+overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
+     int beg, end;
+     int extend;
+     Lisp_Object **vec_ptr;
+     int *len_ptr;
+     int *next_ptr;
+     int *prev_ptr;
+{
+  Lisp_Object tail, overlay, ostart, oend, result;
+  int idx = 0;
+  int len = *len_ptr;
+  Lisp_Object *vec = *vec_ptr;
+  int next = ZV;
+  int prev = BEGV;
+  int inhibit_storing = 0;
+
+  for (tail = current_buffer->overlays_before;
+       GC_CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int startpos, endpos;
+
+      overlay = XCONS (tail)->car;
+
+      ostart = OVERLAY_START (overlay);
+      oend = OVERLAY_END (overlay);
+      endpos = OVERLAY_POSITION (oend);
+      if (endpos < beg)
+	{
+	  if (prev < endpos)
+	    prev = endpos;
+	  break;
+	}
+      startpos = OVERLAY_POSITION (ostart);
+      /* Count an interval if it either overlaps the range
+	 or is empty at either end of the range.  */
+      if ((beg < endpos && startpos < end)
+	  || (startpos == endpos && beg == startpos)
+	  || (startpos == endpos && end == startpos))
+	{
+	  if (idx == len)
+	    {
+	      /* The supplied vector is full.
+		 Either make it bigger, or don't store any more in it.  */
+	      if (extend)
+		{
+		  *len_ptr = len *= 2;
+		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  *vec_ptr = vec;
+		}
+	      else
+		inhibit_storing = 1;
+	    }
+
+	  if (!inhibit_storing)
+	    vec[idx] = overlay;
+	  /* Keep counting overlays even if we can't return them all.  */
+	  idx++;
+	}
+      else if (startpos < next)
+	next = startpos;
+    }
+
+  for (tail = current_buffer->overlays_after;
+       GC_CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      int startpos, endpos;
+
+      overlay = XCONS (tail)->car;
+
+      ostart = OVERLAY_START (overlay);
+      oend = OVERLAY_END (overlay);
+      startpos = OVERLAY_POSITION (ostart);
+      if (end < startpos)
+	{
+	  if (startpos < next)
+	    next = startpos;
+	  break;
+	}
+      endpos = OVERLAY_POSITION (oend);
+      if ((beg < endpos && startpos < end)
+	  || (startpos == endpos && beg == startpos)
+	  || (startpos == endpos && end == startpos))
+	{
+	  if (idx == len)
+	    {
+	      if (extend)
+		{
+		  *len_ptr = len *= 2;
+		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  *vec_ptr = vec;
+		}
+	      else
+		inhibit_storing = 1;
+	    }
+
+	  if (!inhibit_storing)
+	    vec[idx] = overlay;
+	  idx++;
+	}
+      else if (endpos < beg && endpos > prev)
+	prev = endpos;
+    }
+
+  if (next_ptr)
+    *next_ptr = next;
+  if (prev_ptr)
+    *prev_ptr = prev;
+  return idx;
+}
+
 /* Fast function to just test if we're at an overlay boundary.  */
 int
 overlay_touches_p (pos)
@@ -1894,7 +2025,8 @@ overlay_strings (pos, w, pstr)
 		    {
 		      overlay_tails_len *= 2;
 		      overlay_tails = ((struct sortstr *)
-				       xrealloc ((overlay_tails_len
+				       xrealloc (overlay_tails,
+						 (overlay_tails_len
 						  * sizeof (struct sortstr))));
 		    }
 		}
@@ -1923,7 +2055,8 @@ overlay_strings (pos, w, pstr)
 		    {
 		      overlay_heads_len *= 2;
 		      overlay_heads = ((struct sortstr *)
-				       xrealloc ((overlay_heads_len
+				       xrealloc (overlay_heads,
+						 (overlay_heads_len
 						  * sizeof (struct sortstr))));
 		    }
 		}
@@ -1963,7 +2096,8 @@ overlay_strings (pos, w, pstr)
 		    {
 		      overlay_tails_len *= 2;
 		      overlay_tails = ((struct sortstr *)
-				       xrealloc ((overlay_tails_len
+				       xrealloc (overlay_tails,
+						 (overlay_tails_len
 						  * sizeof (struct sortstr))));
 		    }
 		}
@@ -1992,7 +2126,8 @@ overlay_strings (pos, w, pstr)
 		    {
 		      overlay_heads_len *= 2;
 		      overlay_heads = ((struct sortstr *)
-				       xrealloc ((overlay_heads_len
+				       xrealloc (overlay_heads,
+						 (overlay_heads_len
 						  * sizeof (struct sortstr))));
 		    }
 		}
@@ -2610,6 +2745,36 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+			   (int *) 0, (int *) 0);
+
+  /* Make a list of them all.  */
+  result = Flist (noverlays, overlay_vec);
+
+  xfree (overlay_vec);
+  return result;
+}
+
+DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
+  "Return a list of the overlays that overlap region BEG ... END.\n\
+This includes empty overlays at BEG or END (as well as empty overlays\n\
+within the range.")
+  (beg, end)
+     Lisp_Object beg, end;
+{
+  int noverlays;
+  Lisp_Object *overlay_vec;
+  int len;
+  Lisp_Object result;
+
+  CHECK_NUMBER_COERCE_MARKER (beg, 0);
+  CHECK_NUMBER_COERCE_MARKER (end, 0);
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+  /* Put all the overlays we want in a vector in overlay_vec.
+     Store the length in len.  */
+  noverlays = overlays_in (XINT (beg), XINT (end), 1, &overlay_vec, &len,
 			   (int *) 0, (int *) 0);
 
   /* Make a list of them all.  */
@@ -3713,6 +3878,7 @@ is a member of the list.");
   defsubr (&Soverlay_buffer);
   defsubr (&Soverlay_properties);
   defsubr (&Soverlays_at);
+  defsubr (&Soverlays_in);
   defsubr (&Snext_overlay_change);
   defsubr (&Sprevious_overlay_change);
   defsubr (&Soverlay_recenter);
