@@ -1,7 +1,14 @@
+2005-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): New var.
+	(debug): Use it.  Move the inhibit-trace earlier.
+	(debug-entry-code): New const.
+	(debug-on-entry-1): Use it.
+
 2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
 
-	* international/utf-16.el (ccl-encode-mule-utf-16le): Fix
-	BUFFER_MAGNIFICATION to 2.
+	* international/utf-16.el (ccl-encode-mule-utf-16le):
+	Fix BUFFER_MAGNIFICATION to 2.
 	(ccl-encode-mule-utf-16be): Likewise.
 
 2005-02-28  Kenichi Handa  <handa@m17n.org>
