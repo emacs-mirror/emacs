@@ -458,10 +458,12 @@ coordinates_in_window (w, x, y)
   int left_x, right_x, top_y, bottom_y;
   int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
 
+  /* In what's below, we subtract 1 when computing right_x because we
+     want the rightmost pixel, which is given by left_pixel+width-1.  */
   if (w->pseudo_window_p)
     {
       left_x = 0;
-      right_x = XFASTINT (w->width) * CANON_Y_UNIT (f);
+      right_x = XFASTINT (w->width) * CANON_Y_UNIT (f) - 1;
       top_y = WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
       bottom_y = WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y (w);
     }
@@ -469,7 +471,7 @@ coordinates_in_window (w, x, y)
     {
       left_x = (WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w)
 		- FRAME_INTERNAL_BORDER_WIDTH_SAFE (f));
-      right_x = WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X (w);
+      right_x = WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X (w) - 1;
       top_y = (WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w)
 	       - FRAME_INTERNAL_BORDER_WIDTH_SAFE (f));
       bottom_y = WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y (w);
