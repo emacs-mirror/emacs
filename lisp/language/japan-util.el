@@ -36,7 +36,8 @@
      coding-category-iso-8-2
      coding-category-sjis
      coding-category-iso-8-1
-     coding-category-iso-else
+     coding-category-iso-7-else
+     coding-category-iso-8-else
      coding-category-emacs-mule))
 
   (if (eq system-type 'ms-dos)
@@ -50,7 +51,7 @@
     (set-terminal-coding-system-internal 'iso-2022-7bit)
     (set-keyboard-coding-system-internal 'iso-2022-7bit))
 
-  (setq default-input-method '("Japanese" . "quail-ja"))
+  (setq default-input-method "japanese")
 
   (setq sendmail-coding-system 'iso-2022-jp
 	rmail-file-coding-system 'iso-2022-jp)
