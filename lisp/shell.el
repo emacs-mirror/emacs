@@ -127,6 +127,9 @@ Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
 This variable is used to initialise `comint-prompt-regexp' in the 
 shell buffer.
 
+This variable is only used if the variable
+`comint-use-prompt-regexp-instead-of-fields' is non-nil.
+
 The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
 on lines which don't start with a prompt.
@@ -814,8 +817,8 @@ See `shell-command-regexp'."
 See `shell-command-regexp'."
   (interactive "p")
   (let ((limit (save-excursion (comint-bol nil) (point))))
-    (if (> limit (point))
-	(save-excursion (beginning-of-line) (setq limit (point))))
+    (when (> limit (point))
+      (setq limit (line-beginning-position)))
     (skip-syntax-backward " " limit)
     (if (re-search-backward
 	 (format "[;&|]+[\t ]*\\(%s\\)" shell-command-regexp) limit 'move arg)
