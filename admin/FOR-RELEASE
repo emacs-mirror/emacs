@@ -108,39 +108,6 @@ interrupting I can get a backtrace, here's an example:
 Update: Maybe only reveals itself when compiled with GTK+
 
 
-** Clicking on partially visible lines fails
-
-From: David Kastrup <dak@gnu.org>
-Date: 27 Apr 2004 16:42:58 +0200
-
-I had gnus display a mouse-highlighted line (a URL from browse-url)
-partially at the bottom of its window.  If I click with middle mouse
-key on it, the window gets recentered while I hold the mouse key
-pressed.  If I release it, the window returns into its old position
-(cursor in top row) and nothing happens, presumably because the click
-was not registered on the line itself, but on the magically
-recentered version.
-
-That is a nuisance.  Recentering of even partially visible click
-targets should only happen if window-point moves there, but not at
-the time of the click.  From the moment I hold down a key until it
-gets released, the displayed window portion should not change, with
-the sole exception of scrolling when dragging at the edge of the
-screen.
-
-
-** Can't drag modeline when mouse-autoselect-window is set
-
-From: Klaus Zeitler <kzeitler@lucent.com>
-Date: Mon, 11 Oct 2004 11:14:49 +0200
-
-1. start emacs -q --no-site-file
-2. set variable mouse-autoselect-window to t
-3. split-window-vertically
-
-now I can drag the modeline only upwards but not downwards
-
-
 ** line-spacing and Electric-pop-up-window
 
 From: SAITO Takuya <tabmore@rivo.mediatti.net>
