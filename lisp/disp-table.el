@@ -1,8 +1,9 @@
 ;;; disp-table.el --- functions for dealing with char tables.
 
-;; Copyright (C) 1987, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994, 1995 Free Software Foundation, Inc.
 
-;; Author: Howard Gayle
+;; Author: Erik Naggum <erik@naggum.no>
+;; Based on a previous version by Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
 
@@ -24,24 +25,84 @@
 
 ;;; Code:
 
-(defconst display-table-len 262
-  "The proper length of a display table.")
+(defconst display-table-extras 6
+  "The number of extra slots in a display table.")
 
+;;;###autoload
+(defun make-display-table ()
+  "Return a new, empty display table."
+  (make-char-table display-table-extras nil))
+
+(or standard-display-table
+    (setq standard-display-table (make-display-table)))
+
+(defconst display-table-slot-name-alist
+  '((truncation		0 display-table-char-p)
+    (wrap		1 display-table-char-p)
+    (escape		2 display-table-char-p)
+    (control		3 display-table-char-p)
+    (selective-display	4 display-table-vector-p)
+    (vertical-border	5 display-table-char-p))
+  "Association list of display-table slot names.
+Each element contains the slot name, slot number, and a predicate
+function to test the validity of values for the setter function.")
+
+(defun display-table-char-p (c)
+  "Test whether c is a valid character for display-tables."
+  (and (integerp c) (<= 0 c) (<= c 256)))
+
+(defun display-table-vector-p (cv)
+  "Test whether CV is a valid character vector for display-tables."
+  (and (vectorp cv)
+       ;; (every 'display-table-char-p cv)
+       (let ((i (1- (length cv))))
+	 (while (and (<= 0 i) (display-table-char-p (aref cv i)))
+	   (setq i (1- i)))
+	 (> 0 i))))
+
+;;;###autoload
+(defun display-table-slot (display-table slot)
+  "Return the value of the extra slot in DISPLAY-TABLE named SLOT.
+SLOT may be a number from 0 to 5 inclusive, or a name (symbol).
+See `display-table-slot-name-alist' for the names and numbers."
+  (let ((slot-number
+	 (if (numberp slot) slot
+	   (or (car (cdr (assoc slot display-table-slot-name-alist)))
+	       (error "Invalid display-table slot name: %s" slot)))))
+    (char-table-extra-slot display-table slot-number)))
+
+;;;###autoload
+(defun set-display-table-slot (display-table slot value)
+  "Set the value of the extra slot in DISPLAY-TABLE named SLOT to VALUE.
+SLOT may be a number from 0 to 5 inclusive, or a name (symbol).
+See `display-table-slot-name-alist' for the names and numbers."
+  (let* ((slot-entry
+	  (or (if (numberp slot)
+		  (cdr (nth slot display-table-slot-name-alist))
+		(cdr (assoc slot display-table-slot-name-alist)))
+	      (error "Invalid display-table slot: %s" slot)))
+	 (slot-number (car slot-entry))
+	 (slot-predicate (car (cdr slot-entry))))
+    (if (funcall slot-predicate value)
+	(set-char-table-extra-slot display-table slot-number value)
+      (signal 'wrong-type-argument (list slot-predicate value)))))
+
+;;;###autoload
 (defun describe-display-table (dt)
   "Describe the display table DT in a help buffer."
   (with-output-to-temp-buffer "*Help*"
     (princ "\nTruncation glyph: ")
-    (prin1 (aref dt 256))
+    (prin1 (char-table-extra-slot dt 0)) ;direct access is faster
     (princ "\nWrap glyph: ")
-    (prin1 (aref dt 257))
+    (prin1 (char-table-extra-slot dt 1))
     (princ "\nEscape glyph: ")
-    (prin1 (aref dt 258))
+    (prin1 (char-table-extra-slot dt 2))
     (princ "\nCtrl glyph: ")
-    (prin1 (aref dt 259))
+    (prin1 (char-table-extra-slot dt 3))
     (princ "\nSelective display glyph sequence: ")
-    (prin1 (aref dt 260))
+    (prin1 (char-table-extra-slot dt 4))
     (princ "\nVertical window border glyph: ")
-    (prin1 (aref dt 261))
+    (prin1 (char-table-extra-slot dt 5))
     (princ "\nCharacter display glyph sequences:\n")
     (save-excursion
       (set-buffer standard-output)
@@ -58,27 +119,19 @@
 (defun describe-current-display-table ()
   "Describe the display table in use in the selected window and buffer."
   (interactive)
-  (let ((disptab
-	 (or (window-display-table (selected-window))
-	     buffer-display-table
-	     standard-display-table)))
+  (let ((disptab (or (window-display-table (selected-window))
+		     buffer-display-table
+		     standard-display-table)))
     (if disptab
 	(describe-display-table disptab)
       (message "No display table"))))
-
-;;;###autoload
-(defun make-display-table ()
-  "Return a new, empty display table."
-  (make-vector display-table-len nil))
 
 ;;;###autoload
 (defun standard-display-8bit (l h)
   "Display characters in the range L to H literally."
   (while (<= l h)
     (if (and (>= l ?\ ) (< l 127))
-	(if standard-display-table (aset standard-display-table l nil))
-      (or standard-display-table
-	  (setq standard-display-table (make-vector display-table-len nil)))
+	(aset standard-display-table l nil)
       (aset standard-display-table l (vector l)))
     (setq l (1+ l))))
 
@@ -87,21 +140,17 @@
   "Display characters in the range L to H using the default notation."
   (while (<= l h)
     (if (and (>= l ?\ ) (< l 127))
-	(if standard-display-table (aset standard-display-table l nil))
-      (or standard-display-table
-	  (setq standard-display-table (make-vector display-table-len nil)))
+	(aset standard-display-table l nil)
       (aset standard-display-table l nil))
     (setq l (1+ l))))
 
-;;;###autoload
 ;; This function does NOT take terminal-dependent escape sequences.
 ;; For that, you need to go through create-glyph.  Use one of the
 ;; other functions below, or roll your own.
+;;;###autoload
 (defun standard-display-ascii (c s)
   "Display character C using printable string S."
-  (or standard-display-table
-      (setq standard-display-table (make-vector display-table-len nil)))
-  (aset standard-display-table c (apply 'vector (append s nil))))
+  (aset standard-display-table c (vconcat s)))
 
 ;;;###autoload
 (defun standard-display-g1 (c sc)
@@ -110,8 +159,6 @@ This function assumes that your terminal uses the SO/SI characters;
 it is meaningless for an X frame."
   (if window-system
       (error "Cannot use string glyphs in a windowing system"))
-  (or standard-display-table
-      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
@@ -122,8 +169,6 @@ This function assumes VT100-compatible escapes; it is meaningless for an
 X frame."
   (if window-system
       (error "Cannot use string glyphs in a windowing system"))
-  (or standard-display-table
-      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
@@ -131,8 +176,6 @@ X frame."
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
   (if window-system (require 'faces))
-  (or standard-display-table
-      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector 
 	 (if window-system
@@ -159,8 +202,7 @@ With prefix argument, enable European character display iff arg is positive."
   (interactive "P")
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
-	       (vectorp standard-display-table)
-	       (>= (length standard-display-table) 161)
+	       (char-table-p standard-display-table)
 	       (equal (aref standard-display-table 160) [160])))
       (standard-display-default 160 255)
     (standard-display-8bit 160 255)))
