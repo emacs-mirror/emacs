@@ -195,12 +195,9 @@ Unibyte strings are converted to multibyte for comparison."
   "Like `member', but ignores differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison."
-  (let (element)
-    (while (and list (not element))
-      (if (eq t (compare-strings elt 0 nil (car list) 0 nil t))
-	  (setq element (car list)))
-      (setq list (cdr list)))
-      element))
+  (while (and list (not (eq t (compare-strings elt 0 nil (car list) 0 nil t))))
+    (setq list (cdr list)))
+  list)
 
 
 ;;;; Keymap support.
