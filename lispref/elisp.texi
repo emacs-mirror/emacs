@@ -140,6 +140,7 @@ Reference Manual, corresponding to GNU Emacs version 20.3.
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
+* Advising Functions::      Adding to the definition of a function.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -179,7 +180,8 @@ Appendices
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
 * Standard Errors::         List of all error symbols.
-* Standard Buffer-Local Variables::  List of variables local in all buffers.
+* Standard Buffer-Local Variables::
+                            List of variables buffer-local in all buffers.
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
 
@@ -395,7 +397,7 @@ Buffer-Local Variables
 * Intro to Buffer-Local::   Introduction and concepts.
 * Creating Buffer-Local::   Creating and destroying buffer-local bindings.
 * Default Value::           The default value is seen in buffers
-                              that don't have their own local values.
+                              that don't have their own buffer-local values.
 
 Functions
 
@@ -902,33 +904,34 @@ Object Internals
 @include customize.texi
 @include loading.texi
 @include compile.texi
-@include debugging.texi
+@include advice.texi
 
+@include debugging.texi
 @include streams.texi
 @include minibuf.texi
 @include commands.texi
-@include keymaps.texi
 
+@include keymaps.texi
 @include modes.texi
 @include help.texi
 @include files.texi
-@include backups.texi
 
+@include backups.texi
 @include buffers.texi
 @include windows.texi
 @include frames.texi
-@include positions.texi
 
+@include positions.texi
 @include markers.texi
 @include text.texi
 @include nonascii.texi
-@include searching.texi
 
+@include searching.texi
 @include syntax.texi
 @include abbrevs.texi
 @include processes.texi
-@include os.texi
 
+@include os.texi
 @include display.texi
 @include calendar.texi
 
@@ -950,7 +953,7 @@ Object Internals
 @node New Symbols, , Index, Top
 @chapter New Symbols Since the Previous Edition
 
-@include elisp.tps
+@printindex tp
 
 @c Print the tables of contents
 @summarycontents
