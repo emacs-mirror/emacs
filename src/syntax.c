@@ -234,7 +234,7 @@ DEFUN ("matching-paren", Fmatching_paren, Smatching_paren, 1, 1, 0,
   int code;
   CHECK_NUMBER (ch, 0);
   code = SYNTAX (XINT (ch));
-  if (code == Sopen && code == Sclose)
+  if (code == Sopen || code == Sclose)
     return make_number (SYNTAX_MATCH (XINT (ch)));
   return Qnil;
 }
