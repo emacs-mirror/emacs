@@ -687,6 +687,21 @@ library with @code{defun}, @code{defalias}, @code{defsubst},
 It then restores any autoloads formerly associated with those symbols.
 (Loading saves these in the @code{autoload} property of the symbol.)
 
+Before restoring the previous definitions, @code{unload-feature} runs
+@code{remove-hook} to remove functions in the library from certain
+hooks.  These hooks include variables whose names end in @samp{hook} or
+@samp{-hooks}, plus those listed in @code{loadhist-special-hooks}.  This
+is to prevent Emacs from ceasing to function because important hooks
+refer to functions that are no longer defined.
+
+@vindex @var{feature}-unload-hook
+If these measures are not sufficient to prevent malfunction, a library
+can define an explicit unload hook.  If @code{@var{feature}-unload-hook}
+is defined, it is run as a normal hook before restoring the previous
+definitions, @emph{instead of} the usual hook-removing actions.  The
+unload hook ought to undo all the global state changes made by the
+library that might cease to work once the library is unloaded.
+
 Ordinarily, @code{unload-feature} refuses to unload a library on which
 other loaded libraries depend.  (A library @var{a} depends on library
 @var{b} if @var{a} contains a @code{require} for @var{b}.)  If the
@@ -725,6 +740,14 @@ The value of @code{load-history} may have one element whose @sc{car} is
   The command @code{eval-region} updates @code{load-history}, but does so
 by adding the symbols defined to the element for the file being visited,
 rather than replacing that element.  @xref{Eval}.
+
+  Preloaded libraries don't contribute to @code{load-history}.
+
+@tindex loadhist-special-hooks
+@defvar loadhist-special-hooks
+This variable holds a list of hooks to be scanned before unloading a
+library, to remove functions defined in the library.
+@end defvar
 
 @node Hooks for Loading
 @section Hooks for Loading
