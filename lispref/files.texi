@@ -2192,7 +2192,7 @@ calling @var{handler}.
 
 The first argument given to @var{handler} is the name of the primitive;
 the remaining arguments are the arguments that were passed to that
-operation.  (The first of these arguments is typically the file name
+primitive.  (The first of these arguments is most often the file name
 itself.)  For example, if you do this:
 
 @example
@@ -2206,6 +2206,27 @@ called like this:
 @example
 (funcall @var{handler} 'file-exists-p @var{filename})
 @end example
+
+When a function takes two or more arguments that must be file names,
+it checks each of those names for a handler.  For example, if you do
+this:
+
+@example
+(expand-file-name @var{filename} @var{dirname})
+@end example
+
+@noindent
+then it checks for a handler for @var{filename} and then for a handler
+for @var{dirname}.  In either case, the @var{handler} is called like
+this:
+
+@example
+(funcall @var{handler} 'expand-file-name @var{filename} @var{dirname})
+@end example
+
+@noindent
+The @var{handler} then needs to figure out whether to handle
+@var{filename} or @var{dirname}.
 
 Here are the operations that a magic file name handler gets to handle:
 
