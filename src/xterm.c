@@ -17,14 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* Serious problems:
-
-   Kludge: dup2 is used to put the X-connection socket into desc # 0
-   so that wait_reading_process_input will wait for it in place of
-   actual terminal input.
-   
-*/
-
 /* Xt features made by Fred Pierresteguy.  */
 
 #define NEW_SELECTIONS
@@ -1991,7 +1983,7 @@ note_mouse_highlight (f, x, y)
 
   /* Are we in a window whose display is up to date?  */
   if (WINDOWP (window) && portion == 0
-      && EQ (w->window_end_valid, Qt))
+      && EQ (w->window_end_valid, w->buffer))
     {
       int *ptr = FRAME_CURRENT_GLYPHS (f)->charstarts[row];
       int i, pos;
@@ -2010,16 +2002,20 @@ note_mouse_highlight (f, x, y)
 	  Lisp_Object *overlay_vec;
 	  int len, noverlays, ignor1;
 	  struct buffer *obuf;
+	  int obegv, ozv;
 
-	  /* If we get an out-of-range value, return now;
-	     don't get an error.  */
-	  if (pos > BUF_ZV (XBUFFER (w->buffer)))
+	  /* If we get an out-of-range value, return now; avoid an error.  */
+	  if (pos > BUF_Z (XBUFFER (w->buffer)))
 	    return;
 
 	  /* Make the window's buffer temporarily current for
 	     overlays_at and compute_char_face.  */
 	  obuf = current_buffer;
 	  current_buffer = XBUFFER (w->buffer);
+	  obegv = BEGV;
+	  ozv = ZV;
+	  BEGV = BEG;
+	  ZV = Z;
 
 	  /* Yes.  Clear the display of the old active region, if any.  */
 	  clear_mouse_face ();
@@ -2101,6 +2097,8 @@ note_mouse_highlight (f, x, y)
 	      /* Display it as active.  */
 	      show_mouse_face (1);
 	    }
+	  BEGV = obegv;
+	  ZV = ozv;
 	  current_buffer = obuf;
 	}
       else if (pos <= 0)
