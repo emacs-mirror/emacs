@@ -1,3 +1,13 @@
+2004-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (japanese-ucs-cp932-to-jis-map): Renamed
+	from japanese-ucs-cp932-map.
+	(japanese-ucs-jis-to-cp932-map): Renamed from
+	japanese-ucs-jis-map.
+	(japanese-ucs-glibc-map): Delete this tranlastion table.
+	(japanese-ucs-glibc-to-jis-map): New tranlastion table.
+	(japanese-ucs-jis-to-glibc-map): New tranlastion table.
+
 2004-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* cus-start.el: Handle charset-map-path, not
