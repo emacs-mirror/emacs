@@ -1,5 +1,9 @@
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
+	* edmacro.el (edmacro-fix-menu-commands):
+	Discard `help-echo' events.  Handle (menu-bar) events.
+	Simplify by converting key sequence to a list and then back to vector.
+
 	* net/browse-url.el (browse-url-at-mouse): Don't pass an arg
 	to browse-url-at-point.
 
