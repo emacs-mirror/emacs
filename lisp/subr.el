@@ -316,7 +316,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 ;; The number is negative on most machines, but not on all!
 (defconst listify-key-sequence-1
    (lsh 1 7))
-(setq listify-key-sequence-1 (logior (lsh 1 23) listify-key-sequence-1))
+(setq listify-key-sequence-1 (logior (lsh 1 27) listify-key-sequence-1))
 
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
