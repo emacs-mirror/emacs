@@ -1,3 +1,7 @@
+2000-07-24  Andreas Schwab  <schwab@suse.de>
+
+	* fns.c (Fmakehash): Pass Qeql to Fmake_hash_table if TEST is nil.
+
 2000-07-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (with_echo_area_buffer): Take additional EMACS_INT
