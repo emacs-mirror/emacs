@@ -3,6 +3,9 @@
  * 
  * Print a quotation from Zippy the Pinhead.
  * Qux <Kaufman-David@Yale> March 6, 1986
+ *
+ * This file is in the public domain because the author published it
+ * with no copyright notice before the US signed the Bern Convention.
  * 
  * With dynamic memory allocation.
  */
