@@ -1,3 +1,9 @@
+2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): Doc
+	fix. Tweak regexp.
+	(f90-beginning-of-block): Push mark first.
+
 2005-03-29  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el: Update copyright date.
