@@ -1,6 +1,6 @@
 /*  impl.c.poolmv2ss: POOLMV2 STRESS TEST
  *
- * $HopeName: MMsrc!mv2test.c(trunk.2) $
+ * $HopeName: MMsrc!mv2test.c(trunk.3) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -8,24 +8,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "mpstd.h"
+#ifdef MPS_OS_IA
+struct itimerspec; /* stop complaints from time.h */
+#endif
 #include <time.h>
+
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
+
+#include "mpscmv2.h"
 
 #include "mps.h"
 
 typedef MPS_T_WORD mps_count_t;  /* machine word (target dep.) */
 
-#include "mpscmv2.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 
 /* --- to get to describe */
 #include "mpm.h"
 
 #include <math.h>
+
 
 /*
  * From <http://cfatab.harvard.edu/nr/bookcpdf/c7-1.pdf>
@@ -78,12 +85,13 @@ static float ran1(long *idum)
   iy=iv[j];                     /* Output previously stored value and
                                    refill the shuffle table. */
   iv[j] = *idum;
-  if ((temp=AM*iy) > RNMX)      /* Because users don't expect endpoint
-                                   values. */
+  if ((temp=AM*(float)iy) > RNMX) /* Because users don't expect endpoint
+                                     values. */
     return RNMX;
   else
     return temp;
 }
+
 
 /*
  * From <http://cfatab.harvard.edu/nr/bookcpdf/c7-2.pdf>
@@ -100,6 +108,7 @@ static float expdev(long *idum)
   while (dum == 0.0);
   return (float)-log(dum);
 }
+
 
 #ifdef ndef
 /*
@@ -140,6 +149,7 @@ accept:
 }
 #endif /* ndef */
 
+
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 static size_t min;
@@ -147,6 +157,7 @@ static size_t mean;
 static size_t max;
 static int verbose = 0;
 static mps_pool_t pool;
+
 
 extern void DescribeIt(void);
 
@@ -199,6 +210,7 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 
   return MPS_RES_OK;
 }
+
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
                         size_t (*size)(int i), ...)
@@ -281,6 +293,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   return MPS_RES_OK;
 }
 
+
 static void stress_with_arena_class(mps_arena_class_t aclass)
 {
   mps_arena_t arena;
@@ -305,6 +318,7 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
 
   return;
 }
+
 
 int main(void)
 {
