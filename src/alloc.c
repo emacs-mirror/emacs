@@ -2045,6 +2045,8 @@ gc_sweep ()
     for (mblk = marker_block; mblk; mblk = mblk->next)
       {
 	register int i;
+	int already_free = -1;
+
 	for (i = 0; i < lim; i++)
 	  {
 	    Lisp_Object *markword;
@@ -2060,6 +2062,11 @@ gc_sweep ()
 	      case Lisp_Misc_Overlay:
 		markword = &mblk->markers[i].u_overlay.plist;
 		break;
+	      case Lisp_Misc_Free:
+		/* If the object was already free, keep it
+		   on the free list.  */
+		markword = &already_free;
+		break;
 	      default:
 		markword = 0;
 		break;
@@ -2074,7 +2081,8 @@ gc_sweep ()
 		    XSETMARKER (tem, tem1);
 		    unchain_marker (tem);
 		  }
-		/* We could leave the type alone, since nobody checks it,
+		/* Set the type of the freed object to Lisp_Misc_Free.
+		   We could leave the type alone, since nobody checks it,
 		   but this might catch bugs faster.  */
 		mblk->markers[i].u_marker.type = Lisp_Misc_Free;
 		mblk->markers[i].u_free.chain = marker_free_list;
@@ -2154,7 +2162,10 @@ gc_sweep ()
       else
 	{
 	  vector->size &= ~ARRAY_MARK_FLAG;
-	  total_vector_size += vector->size;
+	  if (vector->size & PSEUDOVECTOR_FLAG)
+	    total_vector_size += (PSEUDOVECTOR_SIZE_MASK & vector->size);
+	  else
+	    total_vector_size += vector->size;
 	  prev = vector, vector = vector->next;
 	}
   }
