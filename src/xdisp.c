@@ -295,15 +295,23 @@ extern Lisp_Object Qface, Qinvisible, Qwidth;
 
 /* Symbols used in text property values.  */
 
+Lisp_Object Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
 Lisp_Object Qmargin;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
+extern Lisp_Object Qscroll_bar;
 
 /* Non-nil means highlight trailing whitespace.  */
 
 Lisp_Object Vshow_trailing_whitespace;
+
+/* Non-nil means show the text cursor in void text areas
+   i.e. in blank areas after eol and eob.  This used to be
+   the default in 21.3.  */
+
+Lisp_Object Vshow_text_cursor_in_void;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
@@ -1539,6 +1547,10 @@ glyph_to_pixel_coords (w, hpos, vpos, frame_x, frame_y)
 	      ++glyph;
 	    }
 
+	  /* If first glyph is partially visible, its first visible position is still 0.  */
+	  if (hpos < 0)
+	    hpos = 0;
+
 	  success_p = 1;
 	}
       else
@@ -1613,7 +1625,7 @@ x_y_to_hpos_vpos (w, x, y, hpos, vpos, area, buffer_only_p)
       else if (x < window_box_right_offset (w, TEXT_AREA))
 	{
 	  *area = TEXT_AREA;
-	  x0 = window_box_left_offset (w, TEXT_AREA);
+	  x0 = window_box_left_offset (w, TEXT_AREA) + min (row->x, 0);
 	}
       else
 	{
@@ -17818,20 +17830,19 @@ produce_image_glyph (it)
 
 /* Append a stretch glyph to IT->glyph_row.  OBJECT is the source
    of the glyph, WIDTH and HEIGHT are the width and height of the
-   stretch.  ASCENT is the percentage/100 of HEIGHT to use for the
-   ascent of the glyph (0 <= ASCENT <= 1).  */
+   stretch.  ASCENT is the ascent of the glyph (0 <= ASCENT <= HEIGHT).  */
 
 static void
 append_stretch_glyph (it, object, width, height, ascent)
      struct it *it;
      Lisp_Object object;
      int width, height;
-     double ascent;
+     int ascent;
 {
   struct glyph *glyph;
   enum glyph_row_area area = it->area;
 
-  xassert (ascent >= 0 && ascent <= 1);
+  xassert (ascent >= 0 && ascent <= height);
 
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
@@ -17848,13 +17859,216 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->padding_p = 0;
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
-      glyph->u.stretch.ascent = height * ascent;
+      glyph->u.stretch.ascent = ascent;
       glyph->u.stretch.height = height;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
 }
 
+
+/* Calculate a width or height in pixels from a specification using
+   the following elements:
+
+   SPEC ::= 
+     NUM      - a (fractional) multiple of the default font width/height
+     (NUM)    - specifies exactly NUM pixels
+     UNIT     - a fixed number of pixels, see below.
+     ELEMENT  - size of a display element in pixels, see below.
+     (NUM . SPEC) - equals NUM * SPEC
+     (+ SPEC SPEC ...)  - add pixel values
+     (- SPEC SPEC ...)  - subtract pixel values
+     (- SPEC)           - negate pixel value
+
+   NUM ::= 
+     INT or FLOAT   - a number constant
+     SYMBOL         - use symbol's (buffer local) variable binding.
+
+   UNIT ::=
+     in       - pixels per inch  *)
+     mm       - pixels per 1/1000 meter  *)
+     cm       - pixels per 1/100 meter   *)
+     width    - width of current font in pixels.
+     height   - height of current font in pixels.
+
+     *) using the ratio(s) defined in display-pixels-per-inch.
+
+   ELEMENT ::=
+
+     left-fringe         - left fringe width in pixels
+     (left-fringe . nil) - left fringe width if inside margins, else 0
+     (left-fringe . t)   - left fringe width if outside margins, else 0
+
+     right-fringe         - right fringe width in pixels
+     (right-fringe . nil) - right fringe width if inside margins, else 0
+     (right-fringe . t)   - right fringe width if outside margins, else 0
+
+     left-margin          - left margin width in pixels
+     right-margin         - right margin width in pixels
+
+     scroll-bar           - scroll-bar area width in pixels
+     (scroll-bar . left)  - scroll-bar width if on left, else 0
+     (scroll-bar . right) - scroll-bar width if on right, else 0
+
+   Examples:
+
+   Pixels corresponding to 5 inches:
+     (5 . in)     
+		
+   Total width of non-text areas on left side of window:
+     (+ left-fringe left-margin (scroll-bar . left))
+
+   Total width of fringes if inside display margins:
+     (+ (left-fringe) (right-fringe))
+
+   Width of left margin minus width of 1 character in the default font:
+     (- left-margin 1)
+
+   Width of left margin minus width of 2 characters in the current font:
+     (- left-margin (2 . width))
+
+   Width of left fringe plus left margin minus one pixel:
+     (- (+ left-fringe left-margin) (1))
+     (+ left-fringe left-margin (- (1)))
+     (+ left-fringe left-margin (-1))
+
+*/
+
+#define NUMVAL(X)				\
+     ((INTEGERP (X) || FLOATP (X))		\
+      ? XFLOATINT (X)				\
+      : - 1)
+
+static int
+calc_pixel_width_or_height (res, it, prop, font, width_p)
+     double *res;
+     struct it *it;
+     Lisp_Object prop;
+     XFontStruct *font;
+     int width_p;
+{
+  double pixels;
+
+#define OK_PIXELS(val) ((*res = (val)), 1)
+
+  if (SYMBOLP (prop))
+    {
+      if (SCHARS (SYMBOL_NAME (prop)) == 2)
+	{
+	  char *unit =  SDATA (SYMBOL_NAME (prop));
+
+	  if (unit[0] == 'i' && unit[1] == 'n')
+	    pixels = 1.0;
+	  else if (unit[0] == 'm' && unit[1] == 'm')
+	    pixels = 25.4;
+	  else if (unit[0] == 'c' && unit[1] == 'm')
+	    pixels = 2.54;
+	  else
+	    pixels = 0;
+	  if (pixels > 0)
+	    {
+	      double ppi;
+	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
+		  || (CONSP (Vdisplay_pixels_per_inch)
+		      && (ppi = (width_p
+				 ? NUMVAL (XCAR (Vdisplay_pixels_per_inch))
+				 : NUMVAL (XCDR (Vdisplay_pixels_per_inch))),
+			  ppi > 0)))
+		return OK_PIXELS (ppi / pixels);
+
+	      return 0;
+	    }
+	}
+
+      if (EQ (prop, Qheight))
+	return OK_PIXELS (font ? FONT_HEIGHT (font) : FRAME_LINE_HEIGHT (it->f));
+      if (EQ (prop, Qwidth))
+	return OK_PIXELS (font ? FONT_WIDTH (font) : FRAME_COLUMN_WIDTH (it->f));
+      if (EQ (prop, Qleft_fringe))
+	return OK_PIXELS (WINDOW_LEFT_FRINGE_WIDTH (it->w));
+      if (EQ (prop, Qright_fringe))
+	return OK_PIXELS (WINDOW_RIGHT_FRINGE_WIDTH (it->w));
+      if (EQ (prop, Qleft_margin))
+	return OK_PIXELS (WINDOW_LEFT_MARGIN_WIDTH (it->w));
+      if (EQ (prop, Qright_margin))
+	return OK_PIXELS (WINDOW_RIGHT_MARGIN_WIDTH (it->w));
+      if (EQ (prop, Qscroll_bar))
+	return OK_PIXELS (WINDOW_SCROLL_BAR_AREA_WIDTH (it->w));
+
+      prop = Fbuffer_local_value (prop, it->w->buffer);
+    }
+
+  if (INTEGERP (prop) || FLOATP (prop))
+    {
+      int base_unit = (width_p
+		       ? FRAME_COLUMN_WIDTH (it->f)
+		       : FRAME_LINE_HEIGHT (it->f));
+      return OK_PIXELS (XFLOATINT (prop) * base_unit);
+    }
+
+  if (CONSP (prop))
+    {
+      Lisp_Object car = XCAR (prop);
+      Lisp_Object cdr = XCDR (prop);
+
+      if (SYMBOLP (car))
+	{
+	  if (EQ (car, Qplus) || EQ (car, Qminus))
+	    {
+	      int first = 1;
+	      double px;
+
+	      pixels = 0;
+	      while (CONSP (cdr))
+		{
+		  if (!calc_pixel_width_or_height (&px, it, XCAR (cdr), font, width_p))
+		    return 0;
+		  if (first)
+		    pixels = (EQ (car, Qplus) ? px : -px), first = 0;
+		  else
+		    pixels += px;
+		  cdr = XCDR (cdr);
+		}
+	      if (EQ (car, Qminus))
+		pixels = -pixels;
+	      return OK_PIXELS (pixels);
+	    }
+
+	  if (EQ (car, Qleft_fringe))
+	    return OK_PIXELS ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
+			       == !NILP (cdr))
+			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
+			      : 0);
+	  if (EQ (car, Qright_fringe))
+	    return OK_PIXELS ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)
+			       == !NILP (cdr))
+			      ? WINDOW_RIGHT_FRINGE_WIDTH (it->w)
+			      : 0);
+	  if (EQ (car, Qscroll_bar))
+	    return OK_PIXELS ((WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (it->w)
+				== EQ (cdr, Qleft))
+			       ? WINDOW_SCROLL_BAR_AREA_WIDTH (it->w)
+			       : 0);
+
+	  car = Fbuffer_local_value (car, it->w->buffer);
+	}
+
+      if (INTEGERP (car) || FLOATP (car))
+	{
+	  double fact;
+	  pixels = XFLOATINT (car);
+	  if (NILP (cdr))
+	    return OK_PIXELS (pixels);
+	  if (calc_pixel_width_or_height (&fact, it, cdr, font, width_p))
+	    return OK_PIXELS (pixels * fact);
+	  return 0;
+	}
+
+      return 0;
+    }
+
+  return 0;
+}
 
 /* Produce a stretch glyph for iterator IT.  IT->object is the value
    of the glyph property displayed.  The value must be a list
@@ -17887,20 +18101,16 @@ append_stretch_glyph (it, object, width, height, ascent)
    of the stretch should be used for the ascent of the stretch.
    ASCENT must be in the range 0 <= ASCENT <= 100.  */
 
-#define NUMVAL(X)				\
-     ((INTEGERP (X) || FLOATP (X))		\
-      ? XFLOATINT (X)				\
-      : - 1)
-
-
 static void
 produce_stretch_glyph (it)
      struct it *it;
 {
-  /* (space :width WIDTH :height HEIGHT.  */
+  /* (space :width WIDTH :height HEIGHT ...)  */
   Lisp_Object prop, plist;
   int width = 0, height = 0;
-  double ascent = 0;
+  int zero_width_ok_p = 0, zero_height_ok_p = 0;
+  int ascent = 0;
+  double tem;
   struct face *face = FACE_FROM_ID (it->f, it->face_id);
   XFontStruct *font = face->font ? face->font : FRAME_FONT (it->f);
 
@@ -17911,10 +18121,13 @@ produce_stretch_glyph (it)
   plist = XCDR (it->object);
 
   /* Compute the width of the stretch.  */
-  if (prop = Fplist_get (plist, QCwidth),
-      NUMVAL (prop) > 0)
-    /* Absolute width `:width WIDTH' specified and valid.  */
-    width = NUMVAL (prop) * FRAME_COLUMN_WIDTH (it->f);
+  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
+      && calc_pixel_width_or_height (&tem, it, prop, font, 1))
+    {
+      /* Absolute width `:width WIDTH' specified and valid.  */
+      zero_width_ok_p = 1;
+      width = (int)tem;
+    }
   else if (prop = Fplist_get (plist, QCrelative_width),
 	   NUMVAL (prop) > 0)
     {
@@ -17939,38 +18152,48 @@ produce_stretch_glyph (it)
       x_produce_glyphs (&it2);
       width = NUMVAL (prop) * it2.pixel_width;
     }
-  else if (prop = Fplist_get (plist, QCalign_to),
-	   NUMVAL (prop) > 0)
-    width = NUMVAL (prop) * FRAME_COLUMN_WIDTH (it->f) - it->current_x;
+  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
+	   && calc_pixel_width_or_height (&tem, it, prop, font, 1))
+    {
+      width = max (0, (int)tem - it->current_x);
+      zero_width_ok_p = 1;
+    }
   else
     /* Nothing specified -> width defaults to canonical char width.  */
     width = FRAME_COLUMN_WIDTH (it->f);
 
+  if (width <= 0 && (width < 0 || !zero_width_ok_p))
+    width = 1;
+
   /* Compute height.  */
-  if (prop = Fplist_get (plist, QCheight),
-      NUMVAL (prop) > 0)
-    height = NUMVAL (prop) * FRAME_LINE_HEIGHT (it->f);
+  if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
+      && calc_pixel_width_or_height (&tem, it, prop, font, 0))
+    {
+      height = (int)tem;
+      zero_height_ok_p = 1;
+    }
   else if (prop = Fplist_get (plist, QCrelative_height),
 	   NUMVAL (prop) > 0)
     height = FONT_HEIGHT (font) * NUMVAL (prop);
   else
     height = FONT_HEIGHT (font);
 
+  if (height <= 0 && (height < 0 || !zero_height_ok_p))
+    height = 1;
+
   /* Compute percentage of height used for ascent.  If
      `:ascent ASCENT' is present and valid, use that.  Otherwise,
      derive the ascent from the font in use.  */
   if (prop = Fplist_get (plist, QCascent),
       NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
-    ascent = NUMVAL (prop) / 100.0;
+    ascent = height * NUMVAL (prop) / 100.0;
+  else if (!NILP (prop)
+	   && calc_pixel_width_or_height (&tem, it, prop, font, 0))
+    ascent = min (max (0, (int)tem), height);
   else
-    ascent = (double) FONT_BASE (font) / FONT_HEIGHT (font);
+    ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
 
-  if (width <= 0)
-    width = 1;
-  if (height <= 0)
-    height = 1;
-
-  if (it->glyph_row)
+  if (width > 0 && height > 0 && it->glyph_row)
     {
       Lisp_Object object = it->stack[it->sp - 1].string;
       if (!STRINGP (object))
@@ -17979,11 +18202,11 @@ produce_stretch_glyph (it)
     }
 
   it->pixel_width = width;
-  it->ascent = it->phys_ascent = height * ascent;
+  it->ascent = it->phys_ascent = ascent;
   it->descent = it->phys_descent = height - it->ascent;
-  it->nglyphs = 1;
+  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
 
-  if (face->box != FACE_NO_BOX)
+  if (width > 0 && height > 0 && face->box != FACE_NO_BOX)
     {
       if (face->box_line_width > 0)
 	{
@@ -18144,8 +18367,8 @@ x_produce_glyphs (it)
 		{
 		  /* Translate a space with a `space-width' property
 		     into a stretch glyph.  */
-		  double ascent = (double) FONT_BASE (font)
-                                / FONT_HEIGHT (font);
+		  int ascent = (((it->ascent + it->descent) * FONT_BASE (font))
+				/ FONT_HEIGHT (font));
 		  append_stretch_glyph (it, it->object, it->pixel_width,
 					it->ascent + it->descent, ascent);
 		}
@@ -18193,9 +18416,8 @@ x_produce_glyphs (it)
 
 	  if (it->glyph_row)
 	    {
-	      double ascent = (double) it->ascent / (it->ascent + it->descent);
 	      append_stretch_glyph (it, it->object, it->pixel_width,
-				    it->ascent + it->descent, ascent);
+				    it->ascent + it->descent, it->ascent);
 	    }
 	}
       else
@@ -18738,7 +18960,7 @@ x_clear_end_of_line (to_x)
    ARG.  If type is BAR_CURSOR, return in *WIDTH the specified width
    of the bar cursor.  */
 
-enum text_cursor_kinds
+static enum text_cursor_kinds
 get_specified_cursor_type (arg, width)
      Lisp_Object arg;
      int *width;
@@ -18829,9 +19051,10 @@ set_frame_cursor_types (f, arg)
    setting of cursor-type.  If explicitly marked off, draw no cursor.
    In all other cases, we want a hollow box cursor.  */
 
-enum text_cursor_kinds
-get_window_cursor_type (w, width, active_cursor)
+static enum text_cursor_kinds
+get_window_cursor_type (w, glyph, width, active_cursor)
      struct window *w;
+     struct glyph *glyph;
      int *width;
      int *active_cursor;
 {
@@ -18895,7 +19118,13 @@ get_window_cursor_type (w, width, active_cursor)
 
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
-    return cursor_type;
+    {
+      if (glyph->type == IMAGE_GLYPH) {
+	if (cursor_type == FILLED_BOX_CURSOR)
+	  cursor_type = HOLLOW_BOX_CURSOR;
+      }
+      return cursor_type;
+    }
 
   /* Cursor is blinked off, so determine how to "toggle" it.  */
 
@@ -19215,7 +19444,8 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
   xassert (interrupt_input_blocked);
 
   /* Set new_cursor_type to the cursor we want to be displayed.  */
-  new_cursor_type = get_window_cursor_type (w, &new_cursor_width, &active_cursor);
+  new_cursor_type = get_window_cursor_type (w, glyph,
+					    &new_cursor_width, &active_cursor);
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,
@@ -19729,14 +19959,14 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 {
   struct frame *f = XFRAME (w->frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Cursor cursor = dpyinfo->vertical_scroll_bar_cursor;
+  Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   int charpos;
   Lisp_Object string, help, map, pos;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
-    string = mode_line_string (w, &x, &y, area, &charpos);
+    string = mode_line_string (w, &x, &y, 0, 0, area, &charpos);
   else
-    string = marginal_area_string (w, &x, &y, area, &charpos);
+    string = marginal_area_string (w, &x, &y, 0, 0, area, &charpos);
 
   if (STRINGP (string))
     {
@@ -19755,11 +19985,14 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	}
 
      /* Change the mouse pointer according to what is under X/Y.  */
-      map = Fget_text_property (pos, Qlocal_map, string);
-      if (!KEYMAPP (map))
-	map = Fget_text_property (pos, Qkeymap, string);
-      if (KEYMAPP (map))
-	cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
+      if (area == ON_MODE_LINE)
+	{
+	  map = Fget_text_property (pos, Qlocal_map, string);
+	  if (!KEYMAPP (map))
+	    map = Fget_text_property (pos, Qkeymap, string);
+	  if (!KEYMAPP (map))
+	    cursor = dpyinfo->vertical_scroll_bar_cursor;
+	}
     }
 
   rif->define_frame_cursor (f, cursor);
@@ -19844,6 +20077,8 @@ note_mouse_highlight (f, x, y)
 
   if (part == ON_VERTICAL_BORDER)
     cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
+  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+    cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else
     cursor = FRAME_X_OUTPUT (f)->text_cursor;
 
@@ -19872,14 +20107,10 @@ note_mouse_highlight (f, x, y)
 	  || area != TEXT_AREA
 	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p)
 	{
-#if defined (HAVE_NTGUI)
-	  /* ++KFS: Why is this necessary on W32 ?  */
-	  clear_mouse_face (dpyinfo);
-	  cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
-#else
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
-#endif
+	  if (NILP (Vshow_text_cursor_in_void))
+	    cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
 	  goto set_cursor;
 	}
 
@@ -19891,6 +20122,9 @@ note_mouse_highlight (f, x, y)
       /* If we get an out-of-range value, return now; avoid an error.  */
       if (BUFFERP (object) && pos > BUF_Z (b))
 	goto set_cursor;
+
+      if (glyph->type == IMAGE_GLYPH)
+	cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
 
       /* Make the window's buffer temporarily current for
 	 overlays_at and compute_char_face.  */
@@ -20947,6 +21181,11 @@ wide as that tab on the display.  */);
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
+  DEFVAR_LISP ("show-text-cursor-in-void", &Vshow_text_cursor_in_void,
+    doc: /* Non-nil means show the text cursor in void text areas.
+The default is to show the non-text (typically arrow) cursor.  */);
+  Vshow_text_cursor_in_void = Qnil;
+
   DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
     doc: /* Non-nil means don't actually do any redisplay.
 This is used for internal purposes.  */);
@@ -20984,6 +21223,11 @@ in the window.  */);
 Recenter the window whenever point gets within this many lines
 of the top or bottom of the window.  */);
   scroll_margin = 0;
+
+  DEFVAR_LISP ("display-pixels-per-inch",  &Vdisplay_pixels_per_inch,
+    doc: /* Pixels per inch on current display.
+Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
+  Vdisplay_pixels_per_inch = make_float (72.0);
 
 #if GLYPH_DEBUG
   DEFVAR_INT ("debug-end-pos", &debug_end_pos, doc: /* Don't ask.  */);
@@ -21029,6 +21273,7 @@ This variable is not guaranteed to be accurate except while processing
 This variable has the same structure as `mode-line-format' (which see),
 and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
+
   DEFVAR_LISP ("icon-title-format", &Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
 \(Assuming the window manager supports this feature.)
