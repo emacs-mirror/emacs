@@ -680,15 +680,23 @@ This is in addition to the primary selection.")
 		      (or (funcall fn face (selected-frame))
 			  (funcall fn 'default (selected-frame)))))
 	 (fn-win (intern (concat (symbol-name window-system) "-select-" what)))
-	 (value 
-	  (if (fboundp fn-win)
-	      (funcall fn-win)
-	    (if bool
-		(y-or-n-p (concat "Should face " (symbol-name face)
-				  " be " bool "? "))
-	      (read-string (concat prompt " " (symbol-name face) " to: ")
-			   default)))))
-	 (list face (if (equal value "") nil value))))
+	 value)
+    (setq value
+	  (cond ((fboundp fn-win)
+		 (funcall fn-win))
+		((eq bool 'color)
+		 (completing-read (concat prompt " " (symbol-name face) " to: ")
+				  (mapcar (function (lambda (color)
+						      (cons color color)))
+					  x-colors)
+				  nil nil nil nil default))
+		(bool
+		 (y-or-n-p (concat "Should face " (symbol-name face)
+				   " be " bool "? ")))
+		(t
+		 (read-string (concat prompt " " (symbol-name face) " to: ")
+			      nil nil default))))
+    (list face (if (equal value "") nil value))))
 
 ;; Redefine the font selection to use the standard W32 dialog
 
