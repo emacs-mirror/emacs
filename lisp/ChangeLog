@@ -1,3 +1,9 @@
+2000-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): More elements for the
+	autotype, vip, ebrowse, cl, idlwave, reftex, widget, pcl-cvs,
+	and woman manuals.
+
 2000-08-10  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-send-input): Make the newline boundary overlay
