@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.3
+;; Version: 5.3 + CVS hacks by ceder@lysator.liu.se made in Jan-Feb 1994.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,8 @@
 
 (defvar vc-master-templates
   '(("%sRCS/%s,v" . RCS) ("%s%s,v" . RCS) ("%sRCS/%s" . RCS)
-    ("%sSCCS/s.%s" . SCCS) ("%ss.%s". SCCS))
+    ("%sSCCS/s.%s" . SCCS) ("%ss.%s". SCCS)
+    vc-find-cvs-master)
   "*Where to look for version-control master files.
 The first pair corresponding to a given back end is used as a template
 when creating new masters.")
@@ -82,22 +83,63 @@ Otherwise, not displayed.")
 	(catch 'found
 	  (mapcar
 	   (function (lambda (s)
-	      (let ((trial (format (car s) dirname basename)))
-		(if (and (file-exists-p trial)
-			 ;; Make sure the file we found with name
-			 ;; TRIAL is not the source file itself.
-			 ;; That can happen with RCS-style names
-			 ;; if the file name is truncated
-			 ;; (e.g. to 14 chars).  See if either
-			 ;; directory or attributes differ.
-			 (or (not (string= dirname
-					   (file-name-directory trial)))
-			     (not (equal
-				   (file-attributes file)
-				   (file-attributes trial)))))
-		    (throw 'found (cons trial (cdr s)))))))
+	      (if (atom s)
+		  (funcall s dirname basename)
+		(let ((trial (format (car s) dirname basename)))
+		  (if (and (file-exists-p trial)
+			   ;; Make sure the file we found with name
+			   ;; TRIAL is not the source file itself.
+			   ;; That can happen with RCS-style names
+			   ;; if the file name is truncated
+			   ;; (e.g. to 14 chars).  See if either
+			   ;; directory or attributes differ.
+			   (or (not (string= dirname
+					     (file-name-directory trial)))
+			       (not (equal
+				     (file-attributes file)
+				     (file-attributes trial)))))
+		      (throw 'found (cons trial (cdr s))))))))
 	   vc-master-templates)
 	  nil)))))
+
+(defun vc-find-cvs-master (dirname basename)
+  ;; Check if DIRNAME/BASENAME is handled by CVS.
+  ;; If it is, do a (throw 'found (cons MASTER 'CVS)).
+  ;; Note: If the file is ``cvs add''ed but not yet ``cvs commit''ed 
+  ;; the MASTER will not actually exist yet.  The other parts of VC
+  ;; checks for this condition.  This function returns something random if 
+  ;; DIRNAME/BASENAME is not handled by CVS.
+  (if (and (file-directory-p (concat dirname "CVS/"))
+	   (file-readable-p (concat dirname "CVS/Entries")))
+      (let ((bufs nil))
+	(unwind-protect
+	    (save-excursion
+	      (setq bufs (list
+			  (find-file-noselect (concat dirname "CVS/Entries"))))
+	      (set-buffer (car bufs))
+	      (goto-char (point-min))
+	      (cond
+	       ((re-search-forward
+		 (concat "^/" (regexp-quote basename) "/\\([^/]*\\)/")
+		 nil t)
+		;; We found it.  Store away version number, now
+		;; that we are anyhow so close to finding it.
+		(vc-file-setprop (concat dirname basename) 
+				 'vc-your-latest-version
+				 (buffer-substring (match-beginning 1)
+						   (match-end 1)))
+		(setq bufs (cons (find-file-noselect 
+				  (concat dirname "CVS/Repository"))
+				 bufs))
+		(set-buffer (car bufs))
+		(let ((master
+		       (concat (file-name-as-directory 
+				(buffer-substring (point-min)
+						  (1- (point-max))))
+			       basename
+			       ",v")))
+		  (throw 'found (cons master 'CVS))))))
+	  (mapcar (function kill-buffer) bufs)))))
 
 (defun vc-name (file)
   "Return the master name of a file, nil if it is not registered."
@@ -148,14 +190,15 @@ control system name."
 	     (not buffer-read-only)
 	     (zerop (user-uid))
 	     (require 'vc)
-	     (not (string-equal (user-login-name) (vc-locking-user file)))
+	     (not (equal (user-login-name) (vc-locking-user file)))
 	     (setq buffer-read-only t))
 	(and (null vc-type)
 	     (file-symlink-p file)
 	     (let ((link-type (vc-backend-deduce (file-symlink-p file))))
 	       (if link-type
-		   (message "Warning: symbolic link to %s-controlled source file"
-			    link-type))))
+		   (message
+		    "Warning: symbolic link to %s-controlled source file"
+		    link-type))))
 	(force-mode-line-update)
 	;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
 	vc-type)))
@@ -183,6 +226,9 @@ control system name."
   ;; SCCS: Check if the p-file exists.  If it does, read it and
   ;; extract the locks, giving them the right format.  Else use prs to
   ;; find the revision number.
+  ;;
+  ;; CVS: vc-find-cvs-master has already stored the current revision
+  ;; number.  Fetch it from the file property.
   
   ;; Limitations:
 
@@ -264,7 +310,14 @@ control system name."
 	      (while (looking-at "[^ ]+ \\([^ ]+\\) \\([^ ]+\\).*\n")
 		(replace-match " \\2:\\1"))
 	      (setq status (buffer-string))
-	      (aset status 0 ?:))))
+	      (aset status 0 ?:)))
+	   ;; CVS code.
+	   ((eq vc-type 'CVS)
+	    (let ((version (vc-file-getprop
+			    file 'vc-your-latest-version)))
+	      (setq status (concat ":" (if (string= "0" version)
+					   " @@" ;added, not yet committed.
+					 version))))))
 
 	  ;; Clean work buffer.
 	  (erase-buffer)
