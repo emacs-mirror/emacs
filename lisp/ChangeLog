@@ -1,3 +1,13 @@
+2000-11-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* window.el (fit-window-to-buffer): Don't check
+	window-text-height.  Assure that the last line is fully visible.
+
+	* international/quail.el (quail-show-guidance-buf): Call
+	fit-window-to-buffer to assure the enough height of the guidance
+	buffer.
+	(quail-update-guidance): Avoid making the guidance buffer shorter.
+
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Use `keep'
