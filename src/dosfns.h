@@ -33,6 +33,7 @@ extern int dos_timezone_offset;
 extern unsigned char dos_country_info[DOS_COUNTRY_INFO];
 
 extern Lisp_Object Vdos_version;
+extern Lisp_Object Vdos_windows_version;
 #ifndef HAVE_X_WINDOWS
 extern Lisp_Object Vdos_display_scancodes;
 extern Lisp_Object Qmsdos_color_translate;
