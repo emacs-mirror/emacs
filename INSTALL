@@ -504,7 +504,9 @@ problems sometimes encountered, and what to do about them.
 Installation on MSDOG (a.k.a. MSDOS)
 
 To install on MSDOG, you need to have the GNU C compiler for MSDOG
-(also known as djgpp), GNU Make, rm, mv, chmod, and sed.
+(also known as djgpp version 1), GNU Make, rm, mv, chmod, and sed.
+Version 2 of djgpp (to be released soon) is not yet supported.  See the
+remarks in config.bat for more information about locations and versions.
 
 Some users report that running Emacs 19.29 requires dpmi memory
 management.  We do not know why this is so, since 19.28 did not need
