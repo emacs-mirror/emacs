@@ -1,3 +1,14 @@
+2004-12-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* mouse.el (mouse-set-font): Handle the case where the command was
+	not invoked using the mouse.
+
+	* edmacro.el: `edit-kbd-macro' is now bound to `C-x C-k e'.
+	(edmacro-finish-edit): Further update for keyboard macros that are
+	lambda forms.
+	(edmacro-sanitize-for-string): Correctly remove Meta modifier
+	(as suggested by Kim Storm).
+
 2004-12-06  Stefan  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-unfontify-region): Save buffer state.

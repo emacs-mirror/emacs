@@ -1,3 +1,8 @@
+2004-12-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Scroll Bars): The option `scroll-bar-mode' has to
+	be set through Custom.  Otherwise, it has no effect.
+
 2004-12-07  Stefan  <monnier@iro.umontreal.ca>
 
 	* url.texi: New file.
