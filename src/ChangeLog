@@ -1,5 +1,8 @@
 2000-10-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_frame_line): Handle case where spaces in 
+	the default face are colored.
+
 	* xdisp.c (redisplay_tool_bar): Don't set fonts_changed_p if
 	window height hasn't changed.
 
