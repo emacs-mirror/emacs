@@ -48,13 +48,6 @@ except that the sections entitled ``The GNU Manifesto'',
 translation approved by the Free Software Foundation instead of in the
 original English.
 @end ifinfo
-@c
-@c comment out this line if you do NOT want to have indication that
-@c an index entry appears in the texinfo file near this line of text.
-@c this line should definitely be commented out for printing a master
-@c and for making the version to go on the floppy disk.
-@c
-@c @include /gd/gnu/doc/margins-comment-format.texi
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  the manual should go
