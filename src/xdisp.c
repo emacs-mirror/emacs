@@ -10124,7 +10124,7 @@ redisplay_window (window, just_this_one_p)
   /* Move backward half the height of the window.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
   it.current_y = it.last_visible_y;
-  move_it_vertically_backward (&it, it.last_visible_y / 2);
+  move_it_vertically_backward (&it, window_box_height (w) / 2);
   xassert (IT_CHARPOS (it) >= BEGV);
 
   /* The function move_it_vertically_backward may move over more
