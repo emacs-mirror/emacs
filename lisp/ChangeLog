@@ -1,3 +1,39 @@
+2000-09-15  Dave Love  <fx@gnu.org>
+
+	* strokes.el: Sync with maintainer's current version with changes
+	for Emacs, but avoid runtime cl and levents.
+	(toplevel):  Change autoloads and compilation requires.
+	(strokes-version, strokes-bug-address, strokes-lift): Values
+	changed.
+	(strokes-xpm-header, strokes-insinuated): New variable.
+	(strokes): Add :link.
+	(strokes-mode): Customized.
+	(strokes-while-inhibiting-garbage-collector): New macro.
+	(strokes-remassoc): Avoid remove-if.
+	(strokes-fix-button2-command): Don't use ad-do-it.
+	(strokes-insinuate): New function.
+	(strokes-button-press-event-p, strokes-button-release-event-p):
+	New functions, used instead of non-`strokes-' versions..
+	(strokes-mouse-event-p): Rewritten.
+	(strokes-event-closest-point): Avoid event-point.
+	(strokes-get-grid-position): Avoid cdadr, caadr
+	(strokes-read-stroke, strokes-read-complex-stroke): Avoid levents
+	functions.
+	(strokes-help): Use with-output-to-temp-buffer.
+	(strokes-window-configuration-changed-p): New function.
+	(strokes-update-window-configuration): Use buffer-live-p,
+	strokes-window-configuration-changed-p.
+	(strokes-mode): Use strokes-insinuate.  Alter mouse bindings.
+	(strokes-char-face): New face.
+	(strokes-char-table, strokes-base64-chars): New variable.
+	(strokes-xpm-for-stroke, strokes-list-strokes)
+	(strokes-xpm-char-on-p, strokes-xpm-char-bit-p)
+	(strokes-xpm-encode-length-as-string, strokes-xpm-decode-char)
+	(strokes-xpm-to-compressed-string, strokes-decode-buffer)
+	(strokes-encode-buffer, strokes-xpm-for-compressed-string)
+	(strokes-compose-complex-stroke, strokes-alphabetic-lessp): New
+	functions.
+
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* toolbar/toolbar.el (toolbar-add-item): Use image-mask-p.
