@@ -1,3 +1,12 @@
+2000-05-26  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-callargs-warn): Use
+	subr-arity to check primitives.
+	(byte-compile-flush-pending, byte-compile-file-form-progn)
+	(byte-compile-normal-call, byte-compile-list, byte-compile-concat)
+	(byte-compile-insert, byte-compile-funcall): Use mapc instead of
+	mapcar.
+
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el: Set family names of non-latin charsets
