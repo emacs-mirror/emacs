@@ -349,7 +349,8 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (indian-2-column
      (normal bdf ("ind24-mule.bdf" "mule-indian-24.bdf") ps-mule-encode-7bit 2))
     (tibetan
-     (normal bdf ("tib24-mule.bdf" "mule-tibmdx-24.bdf") ps-mule-encode-7bit 2)))
+     (normal bdf ("tib24p-mule.bdf" "tib24-mule.bdf" "mule-tibmdx-24.bdf")
+	     ps-mule-encode-7bit 2)))
   "Sample setting of the `ps-mule-font-info-database' to use BDF fonts.
 BDF (Bitmap Distribution Format) is a format used for distributing X's font
 source file.
