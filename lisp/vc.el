@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.370 2004/03/23 21:00:36 monnier Exp $
+;; $Id: vc.el,v 1.371 2004/03/25 15:39:03 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2334,19 +2334,12 @@ allowed and simply skipped)."
 If FOCUS-REV is non-nil, leave the point at that revision."
   (interactive)
   (vc-ensure-vc-buffer)
-  (let* ((file buffer-file-name)
-         (backend-function
-          (symbol-function
-           (vc-find-backend-function (vc-backend file) 'print-log)))
-         (print-log-args
-          (if (byte-code-function-p backend-function)
-              (aref backend-function 0)
-              (cadr backend-function))))
+  (let ((file buffer-file-name))
     (or focus-rev (setq focus-rev (vc-workfile-version file)))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
     ;; buffer can be accessed by the command.
-    (if (cdr print-log-args)
+    (if (> (length (vc-arg-list (vc-backend file) 'print-log)) 1)
         (progn
           (vc-call print-log file "*vc-change-log*")
           (set-buffer "*vc-change-log*"))
