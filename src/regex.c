@@ -55,6 +55,9 @@
 #include "buffer.h"
 #include "syntax.h"
 
+#define malloc xmalloc
+#define free xfree
+
 #else  /* not emacs */
 
 /* If we are not linking with Emacs proper,
