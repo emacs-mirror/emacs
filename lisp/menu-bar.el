@@ -482,6 +482,8 @@ Do the same for the keys of the same name."
   '("Browse Manuals with Info" . info))
 (define-key menu-bar-manuals-menu [sep1]
   '("--"))
+(define-key menu-bar-manuals-menu [emacs-problems]
+  '("Emacs Known Problems" . view-emacs-problems))
 (define-key menu-bar-manuals-menu [emacs-faq]
   '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-manuals-menu [emacs-news]
