@@ -1,3 +1,12 @@
+2001-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo): Always set this-command to `undo',
+	so that the next undo after an error will not begin redoing.
+
+	* simple.el (shell-command): Doc fix.
+	(shell-command-on-region): If there is output an an error,
+	add "...Shell command failed" to the output.
+
 2001-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* international/characters.el (Unicode): Comment out
