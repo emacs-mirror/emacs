@@ -490,8 +490,10 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (if old
 	  (save-excursion
 	    (setq buffer-undo-list (cons orig-point buffer-undo-list))
-	    (search-backward (substring old (length abbrev)))
-	    (delete-region (match-beginning 0) (match-end 0))))
+	    ;; Put back the original abbrev with its original case pattern.
+	    (search-backward old)
+	    (insert abbrev)
+	    (delete-region (point) (+ (point) (length old)))))
       (error "No%s dynamic expansion for `%s' found"
 	     (if old " further" "") abbrev))
      (t
