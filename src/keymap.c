@@ -1124,7 +1124,7 @@ DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
   "Find all keymaps accessible via prefix characters from KEYMAP.\n\
 Returns a list of elements of the form (KEYS . MAP), where the sequence\n\
 KEYS starting from KEYMAP gets you to MAP.  These elements are ordered\n\
-so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).\n\
+so that the KEYS increase in length.  The first element is ([] . KEYMAP).\n\
 An optional argument PREFIX, if non-nil, should be a key sequence;\n\
 then the value includes only maps for prefixes that start with PREFIX.")
   (keymap, prefix)
@@ -2081,13 +2081,30 @@ key             binding\n\
   UNGCPRO;
 }
 
+static int previous_description_column;
+
 static void
 describe_command (definition)
      Lisp_Object definition;
 {
   register Lisp_Object tem1;
+  int column = current_column ();
+  int description_column;
 
-  Findent_to (make_number (16), make_number (1));
+  /* If column 16 is no good, go to col 32;
+     but don't push beyond that--go to next line instead.  */
+  if (column > 30)
+    {
+      insert_char ('\n');
+      description_column = 32;
+    }
+  else if (column > 14 || (column > 10 && previous_description_column == 32))
+    description_column = 32;
+  else
+    description_column = 16;
+
+  Findent_to (make_number (description_column), make_number (1));
+  previous_description_column = description_column;
 
   if (SYMBOLP (definition))
     {
@@ -2241,6 +2258,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 
 	  if (first)
 	    {
+	      previous_description_column = 0;
 	      insert ("\n", 1);
 	      first = 0;
 	    }
