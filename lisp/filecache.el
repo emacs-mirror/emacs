@@ -1,9 +1,9 @@
 ;;; filecache.el --- Find files using a pre-loaded cache
 ;;
-;; Author:  Peter Breton <pbreton@i-kinetics.com>
+;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: 
-;; Time-stamp: <97/02/07 17:26:54 peter>
+;; Time-stamp: <1998-04-29 22:38:56 pbreton>
 ;;
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
@@ -70,7 +70,8 @@
 ;; about extra files in the cache.
 ;;
 ;; The most convenient way to initialize the cache is with an
-;; `eval-after-load' function, as noted in the INSTALLATION section.
+;; `eval-after-load' function, as noted in the ADDING FILES
+;; AUTOMATICALLY section.
 ;;
 ;; FINDING FILES USING THE CACHE:
 ;;
@@ -96,11 +97,7 @@
 ;;
 ;; It is much easier to simply try it than trying to explain it :)
 ;;
-;;; INSTALLATION
-;;
-;; Insert the following into your .emacs:
-;;
-;; (autoload 'file-cache-minibuffer-complete "filecache" nil t)
+;;; ADDING FILES AUTOMATICALLY
 ;;
 ;; For maximum utility, you should probably define an `eval-after-load'
 ;; form which loads your favorite files:
@@ -148,7 +145,7 @@
   :prefix "file-cache-")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Variables
+;; Customization Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; User-modifiable variables
@@ -225,20 +222,24 @@ do not use this variable."
   "Add DIRECTORY to the file cache.
 If the optional REGEXP argument is non-nil, only files which match it will 
 be added to the cache."
-  (interactive "DAdd files from directory: ") 
-  (let* ((dir       (expand-file-name directory))
-	 (dir-files (directory-files dir t regexp))
-	 )
-    ;; Filter out files we don't want to see
-    (mapcar
-     '(lambda (file)
+  (interactive "DAdd files from directory: ")
+  ;; Not an error, because otherwise we can't use load-paths that
+  ;; contain non-existent directories.
+  (if (not (file-accessible-directory-p directory))
+      (message "Directory %s does not exist" directory)
+    (let* ((dir       (expand-file-name directory))
+	   (dir-files (directory-files dir t regexp))
+	   )
+      ;; Filter out files we don't want to see
+      (mapcar
+       '(lambda (file)
 	(mapcar 
 	 '(lambda (regexp)
 	    (if (string-match regexp file)
 		(setq dir-files (delq file dir-files))))
 	 file-cache-filter-regexps))
-     dir-files)
-    (file-cache-add-file-list dir-files)))
+       dir-files)
+      (file-cache-add-file-list dir-files))))
 
 (defun file-cache-add-directory-list (directory-list &optional regexp)
   "Add DIRECTORY-LIST (a list of directory names) to the file cache.
@@ -259,25 +260,27 @@ in each directory, not to the directory list itself."
 (defun file-cache-add-file (file)
   "Add FILE to the file cache."
   (interactive "fAdd File: ")
-  (let* ((file-name (file-name-nondirectory file))
-	 (dir-name  (file-name-directory    file))
-	 (the-entry (assoc file-name file-cache-alist))
-	)
-    ;; Does the entry exist already?
-    (if the-entry
-	(if (or (and (stringp (cdr the-entry))
-		     (string= dir-name (cdr the-entry)))
-		(and (listp (cdr the-entry))
-		     (member dir-name (cdr the-entry))))
-	    nil
-	  (setcdr the-entry (append (list dir-name) (cdr the-entry)))
-	  )
-      ;; If not, add it to the cache
-      (setq file-cache-alist
-	    (cons (cons file-name (list dir-name)) 
-		  file-cache-alist)))
-    ))
-
+  (if (not (file-exists-p file))
+      (message "File %s does not exist" file)
+    (let* ((file-name (file-name-nondirectory file))
+	   (dir-name  (file-name-directory    file))
+	   (the-entry (assoc file-name file-cache-alist))
+	   )
+      ;; Does the entry exist already?
+      (if the-entry
+	  (if (or (and (stringp (cdr the-entry))
+		       (string= dir-name (cdr the-entry)))
+		  (and (listp (cdr the-entry))
+		       (member dir-name (cdr the-entry))))
+	      nil
+	    (setcdr the-entry (append (list dir-name) (cdr the-entry)))
+	    )
+	;; If not, add it to the cache
+	(setq file-cache-alist
+	      (cons (cons file-name (list dir-name)) 
+		    file-cache-alist)))
+      )))
+  
 (defun file-cache-add-directory-using-find (directory)
   "Use the `find' command to add files to the file cache.
 Find is run in DIRECTORY."
