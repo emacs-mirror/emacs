@@ -1211,11 +1211,13 @@ If within a string or comment, move by sentences instead of statements."
 		(error (setq sexpend nil)
 		       (goto-char nextline)))
 	      (skip-chars-forward " \t\n"))
-	    ;; Make sure the sexp we found really starts on the
-	    ;; current line and extends past it.
-	    (goto-char sexpend)
-	    (backward-sexp 1)
-	    (setq sexpbeg (point)))
+	    (if sexpend
+		(progn
+		  ;; Make sure the sexp we found really starts on the
+		  ;; current line and extends past it.
+		  (goto-char sexpend)
+		  (backward-sexp 1)
+		  (setq sexpbeg (point)))))
 	  ;; If that sexp ends within the region,
 	  ;; indent it all at once, fast.
 	  (if (and sexpend (> sexpend nextline) (<= sexpend endmark)
