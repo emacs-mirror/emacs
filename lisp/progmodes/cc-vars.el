@@ -426,5 +426,50 @@ as designated in the variable `c-file-style'.")
 
 
 
+;; Figure out what features this Emacs has
+;;;###autoload
+(defconst c-emacs-features
+  (let ((infodock-p (boundp 'infodock-version))
+	(comments
+	 ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
+	 ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
+	 ;; syntax tables differently to handle this.
+	 (let ((table (copy-syntax-table))
+	       entry)
+	   (modify-syntax-entry ?a ". 12345678" table)
+	   (cond
+	    ;; XEmacs 19, and beyond Emacs 19.34
+	    ((arrayp table)
+	     (setq entry (aref table ?a))
+	     ;; In Emacs, table entries are cons cells
+	     (if (consp entry) (setq entry (car entry))))
+	    ;; XEmacs 20
+	    ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
+	    ;; before and including Emacs 19.34
+	    ((and (fboundp 'char-table-p)
+		  (char-table-p table))
+	     (setq entry (car (char-table-range table [?a]))))
+	    ;; incompatible
+	    (t (error "CC Mode is incompatible with this version of Emacs")))
+	   (if (= (logand (lsh entry -16) 255) 255)
+	       '8-bit
+	     '1-bit))))
+    (if infodock-p
+	(list comments 'infodock)
+      (list comments)))
+  "A list of features extant in the Emacs you are using.
+There are many flavors of Emacs out there, each with different
+features supporting those needed by CC Mode.  Here's the current
+supported list, along with the values for this variable:
+
+ XEmacs 19:                  (8-bit)
+ XEmacs 20:                  (8-bit)
+ Emacs 19:                   (1-bit)
+
+Infodock (based on XEmacs) has an additional symbol on this list:
+'infodock.")
+
+
+
 (provide 'cc-vars)
 ;;; cc-vars.el ends here
