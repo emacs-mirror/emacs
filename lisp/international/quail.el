@@ -2448,7 +2448,7 @@ documentation of input methods including this one are based on the
 physical keyboard layout as specified with that variable.
 ")
 	    (help-insert-xref-button
-	     "[customize the keyboard layout]"
+	     "[customize keyboard layout]"
 	     #'customize-variable 'quail-keyboard-layout-type
 	     "mouse-2, RET: set keyboard layout type")
 	    (insert "\n"))
