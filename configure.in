@@ -1362,7 +1362,7 @@ AC_TYPE_SIGNAL
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
 AC_TRY_COMPILE([#include <termios.h>], [speed_t x = 1;],
-  emacs_cv_speed_t=yes))
+  emacs_cv_speed_t=yes, emacs_cv_speed_t=no))
 if test $emacs_cv_speed_t = yes; then
   AC_DEFINE(HAVE_SPEED_T)
 fi
