@@ -1426,7 +1426,7 @@ specifies the character set for the major languages of Western Europe."
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
-	(if (fboundp func) (funcall func))))
+	(if (functionp func) (funcall func))))
   (let ((default-eol-type (coding-system-eol-type
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
