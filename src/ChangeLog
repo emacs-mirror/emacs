@@ -1,5 +1,8 @@
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_relief_rect): Draw bottom relief 1 pixel more
+	to the left.  Some cleanup.
+
 	* xdisp.c (display_mode_element): One more case where a string's
 	multibyteness should be used for display.
 

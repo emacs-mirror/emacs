@@ -1,5 +1,8 @@
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/mule-diag.el (list-input-methods-1): Output 
+	something that's independent of Emacs' version.
+
 	* tar-mode.el (tar-mode-write-file): Don't signal an error by
 	calling byte-to-position with a nil tar-header-offset.
 
