@@ -1,3 +1,7 @@
+2003-07-22  Markus Rost  <rost@math.ohio-state.edu>
+
+	* internals.texi (Garbage Collection): Fix previous change.
+
 2003-07-22  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Truenames): Add LIMIT arg to file-chase-links.
