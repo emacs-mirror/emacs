@@ -1,3 +1,9 @@
+2000-06-16  Andrew Innes  <andrewi@gnu.org>
+
+	* time.el (display-time-mail-function): New variable, to allow
+	external packages to indicate when new mail is available.
+	(display-time-update): Use it.
+
 2000-06-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (mule-version): Change version name to
