@@ -1,6 +1,10 @@
+2002-02-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-end-of-hunk): Watch out for ambiguous headers.
+
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* progmodes/etags.el (find-tag-noselect, find-tag) 
+	* progmodes/etags.el (find-tag-noselect, find-tag)
 	(find-tag-other-window, find-tag-other-frame, find-tag-regexp):
 	Fix a typo in doc strings.
 
@@ -8,14 +12,14 @@
 
 	Support for ICCCM  Extended Segments in X selections:
 
-	* international/mule-conf.el (ctext-no-compositions) 
+	* international/mule-conf.el (ctext-no-compositions)
 	(compound-text-with-extensions): New coding systems.
 	(x-ctext-with-extensions, ctext-with-extensions): Aliases for
 	compound-text-with-extensions.
-	(non-standard-icccm-encodings-alist) 
+	(non-standard-icccm-encodings-alist)
 	(non-standard-designations-alist): New variables.
-	(ctext-post-read-conversion, ctext-pre-write-conversion): New
-	functions.
+	(ctext-post-read-conversion, ctext-pre-write-conversion):
+	New functions.
 
 2002-02-18  Andreas Schwab  <schwab@suse.de>
 
@@ -23,8 +27,8 @@
 
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
-	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Require
-	non-letter after specials.
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2):
+	Require non-letter after specials.
 
 2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -32,8 +36,8 @@
 	become dead while macro body was running, refrain from switching
 	to it.
 
-	* progmodes/pascal.el (pascal-imenu-generic-expression): Add
-	menu-title and fix parentheses.
+	* progmodes/pascal.el (pascal-imenu-generic-expression):
+	Add menu-title and fix parentheses.
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -44,7 +48,7 @@
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* net/ange-ftp.el (ange-ftp-process-handle-line) 
+	* net/ange-ftp.el (ange-ftp-process-handle-line)
 	(ange-ftp-set-xfer-size): If the file's size is a float, divide
 	by 1024 instead of using ash.
 
@@ -70,8 +74,7 @@
 
 	* play/pong.el (pong-height): Don't use height that exceeds the
 	frame height.
-	(pong-border-options): Make the border colors slightly more
-	bright.
+	(pong-border-options): Make the border colors slightly more bright.
 
 	* play/gamegrid.el (gamegrid-display-type): Treat any
 	color-capable display as color-x, if display-color-p is fboundp.

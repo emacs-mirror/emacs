@@ -313,7 +313,9 @@ when editing big diffs)."
 (defun diff-end-of-hunk (&optional style)
   (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
   (let ((end (and (re-search-forward (case style
-				       (unified "^[^-+# \\]")
+				       ;; A `unified' header is ambiguous.
+				       (unified (concat "^[^-+# \\]\\|"
+							diff-file-header-re))
 				       (context "^[^-+#! \\]")
 				       (normal "^[^<>#\\]")
 				       (t "^[^-+#!<> \\]"))
