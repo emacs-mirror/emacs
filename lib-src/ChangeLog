@@ -1,3 +1,14 @@
+2000-07-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (xrealloc, xmalloc): Renamed from yrealloc and
+	ymalloc.
+
+	* etags.c (xmalloc, xrealloc): Make externally visible, for use
+	by alloca.o.
+
+	* Makefile.in (alloca.o): Add -Demacs so that alloca will use
+	xmalloc.
+
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (yylex): Accept string literals with newlines in them.

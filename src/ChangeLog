@@ -14,6 +14,8 @@
 
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloca.c (malloc) [emacs]: Define as xmalloc.
+
 	* xfns.c (Fx_show_tip): If frame parameters contain a position,
 	use that instead of the mouse position.  Add parameters DX and DY.
 
