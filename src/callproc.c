@@ -465,7 +465,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     {
 #ifndef MSDOS
 #ifndef macintosh
-      pipe (fd);
+      errno = 0;
+      if (pipe (fd) == -1)
+	{
+	  emacs_close (filefd);
+	  report_file_error ("Creating process pipe", Qnil);
+	}
 #endif
 #endif
 #if 0
@@ -1306,10 +1311,6 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #endif /* USG */
   /* setpgrp_of_tty is incorrect here; it uses input_fd.  */
   EMACS_SET_TTY_PGRP (0, &pid);
-
-#ifdef vipc
-  something missing here;
-#endif /* vipc */
 
 #ifdef MSDOS
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
