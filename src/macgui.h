@@ -28,6 +28,8 @@ typedef int Bitmap;
 
 typedef int Display;  /* fix later */
 
+typedef char * XrmDatabase;  /* fix later */
+
 typedef unsigned long Time;
 
 #if MAC_OSX
