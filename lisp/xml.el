@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
-;; Maintainer: FSF
+;; Maintainer: Mark A. Hershberger <mah@everybody.org>
 ;; Keywords: xml, data
 
 ;; This file is part of GNU Emacs.
