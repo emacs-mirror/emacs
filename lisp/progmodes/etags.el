@@ -1618,7 +1618,7 @@ See documentation of variable `tags-file-name'."
     (tags-loop-continue (or file-list-form t))))
 
 ;;;###autoload
-(defun tags-query-replace (from to &optional delimited file-list-form)
+(defun tags-query-replace (from to &optional delimited start end file-list-form)
   "Query-replace-regexp FROM with TO through all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query-replace
@@ -1634,7 +1634,7 @@ See documentation of variable `tags-file-name'."
 				   ;; will see it.
 				   '(goto-char (match-beginning 0))))
 	tags-loop-operate (list 'perform-replace
-				(list 'quote from) (list 'quote to)
+				(list 'quote from) (list 'quote to) nil nil
 				t t (list 'quote delimited)))
   (tags-loop-continue (or file-list-form t)))
 
