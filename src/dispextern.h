@@ -1990,8 +1990,8 @@ struct image
   /* Relief to draw around the image.  */
   int relief;
 
-  /* Optional margin around the image.  This includes the relief.  */
-  int margin;
+  /* Optional margins around the image.  This includes the relief.  */
+  int hmargin, vmargin;
 
   /* Reference to the type of the image.  */
   struct image_type *type;
