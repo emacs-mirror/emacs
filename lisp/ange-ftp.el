@@ -3853,9 +3853,15 @@ system TYPE.")
 ;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
 ;;(define-key minibuffer-local-must-match-map "\C-r" 'ange-ftp-re-read-dir)
 
-;; Force a re-read of the directory DIR.  If DIR is omitted then it defaults
-;; to the directory part of the contents of the current buffer.
-(defun ange-ftp-re-read-dir (&optional dir)
+;; The autoload cookie is to make sure the doc is always available.
+;;;###autoload (defalias 'ange-ftp-re-read-dir ange-ftp-reread-dir)
+;;;###autoload
+(defun ange-ftp-reread-dir (&optional dir)
+  "Reread remote directory DIR to update the directory cache.
+The implementation of remote ftp file names caches directory contents
+for speed.  Therefore, when new remote files are created, Emacs
+may not know they exist.  You can use this command to reread a specific
+directory, so that Emacs will know its current contents."
   (interactive)
   (if dir
       (setq dir (expand-file-name dir))
