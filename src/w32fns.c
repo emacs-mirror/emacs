@@ -5430,6 +5430,7 @@ w32_load_system_font (f,fontname,size)
       return NULL;
 
     font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
+    bzero (font, sizeof (*font));
 
     /* Set bdf to NULL to indicate that this is a Windows font.  */
     font->bdf = NULL;
@@ -5464,6 +5465,8 @@ w32_load_system_font (f,fontname,size)
                                ? VARIABLE_PITCH : FIXED_PITCH);
         lf.lfOutPrecision = ((font->tm.tmPitchAndFamily & TMPF_VECTOR)
                              ? OUT_STROKE_PRECIS : OUT_STRING_PRECIS);
+
+	w32_cache_char_metrics (font);
       }
 
     UNBLOCK_INPUT;
@@ -5592,6 +5595,7 @@ w32_unload_font (dpyinfo, font)
 {
   if (font) 
     {
+      if (font->per_char) xfree (font->per_char);
       if (font->bdf) w32_free_bdf_font (font->bdf);
 
       if (font->hfont) DeleteObject(font->hfont);
