@@ -5438,9 +5438,17 @@ ensure_echo_area_buffers ()
 	|| NILP (XBUFFER (echo_buffer[i])->name))
       {
 	char name[30];
+	Lisp_Object old_buffer;
+	int j;
+
+	old_buffer = echo_buffer[i];
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
 	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
+
+	for (j = 0; j < 2; ++j)
+	  if (EQ (old_buffer, echo_area_buffer[j]))
+	    echo_area_buffer[j] = echo_buffer[i];
       }
 }
 
