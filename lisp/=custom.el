@@ -2463,8 +2463,9 @@ Face used for customization fields while they are being edited.")
 		     (not (string-match "XEmacs" emacs-version)))
 (custom-category-put 'custom-hidden-properties intangible t)
 
-(if (file-readable-p custom-file)
-    (load-file custom-file))
+(and init-file-user  ; Don't load any init file if -q was used.
+     (file-readable-p custom-file)
+     (load-file custom-file))
 
 (provide 'custom)
 
