@@ -1,3 +1,14 @@
+1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-on-current-buffer): new entry point.
+	(Info-find-node): split into two for Info-on-current-buffer to
+	  hook into it.
+	(Info-current-file, Info-set-mode-line, Info-up):
+	  Info-current-file can now be t.
+	(Info-clone-buffer-hook): new function for `clone-buffer'.
+	(Info-goto-node, Info-menu, Info-mode-map, Info-mode): make
+	  `clone-buffer' available in various ways to the user.
+
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* simple.el (shell-command, shell-command-on-region): use make-temp-file.

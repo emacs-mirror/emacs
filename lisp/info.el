@@ -102,7 +102,8 @@ These directories are not searched for merging the `dir' file."
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.
 This is the name that was specified in Info, not the actual file name.
-It doesn't contain directory names or file name extensions added by Info.")
+It doesn't contain directory names or file name extensions added by Info.
+Can also be t when using `Info-on-current-buffer'.")
 
 (defvar Info-current-subfile nil
   "Info subfile that is actually in the *info* buffer now,
@@ -365,7 +366,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (info-initialize)
   ;; Convert filename to lower case if not found as specified.
   ;; Expand it.
-  (if filename
+  (if (stringp filename)
       (let (temp temp-downcase found)
         (setq filename (substitute-in-file-name filename))
         (if (string= (downcase filename) "dir")
@@ -410,6 +411,22 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                   Info-history)))
   ;; Go into info buffer.
   (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+  (Info-find-node-2 filename nodename no-going-back))
+
+(defun Info-on-current-buffer (&optional nodename)
+  "Use the `Info-mode' to browse the current info buffer.
+If a prefix arg is provided, it queries for the NODENAME which
+else defaults to `Top'."
+  (interactive
+   (list (if current-prefix-arg
+	     (completing-read "Node name: " (Info-build-node-completions)
+			      nil t "Top")
+	   "Top")))
+  (Info-mode)
+  (set (make-local-variable 'Info-current-file) t)
+  (Info-find-node-2 nil nodename))
+
+(defun Info-find-node-2 (filename nodename &optional no-going-back)
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
@@ -868,7 +885,9 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(concat
 	 "  Info:  ("
 	 (if Info-current-file
-	     (file-name-nondirectory Info-current-file)
+	     (file-name-nondirectory (if (stringp Info-current-file)
+					 Info-current-file
+				       (or buffer-file-name "")))
 	   "")
 	 ")"
 	 (or Info-current-node ""))))
@@ -876,10 +895,15 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
 
-(defun Info-goto-node (nodename)
-  "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME."
-  (interactive (list (Info-read-node-name "Goto node: ")))
+(defun Info-goto-node (nodename &optional fork)
+  "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME.
+If FORK is non-nil, show the node in a new info buffer.
+If FORK is a string, it is the name to use for the new buffer."
+  (interactive (list (Info-read-node-name "Goto node: ") current-prefix-arg))
   (info-initialize)
+  (if fork
+    (set-buffer
+     (clone-buffer (concat "*info-" (if (stringp fork) fork nodename) "*") t)))
   (let (filename)
     (string-match "\\s *\\((\\s *\\([^\t)]*\\)\\s *)\\s *\\|\\)\\(.*\\)"
 		  nodename)
@@ -1092,7 +1116,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
   (let ((node (Info-extract-pointer "up")))
-    (and same-file
+    (and (or same-file (not (stringp Info-current-file)))
 	 (string-match "^(" node)
 	 (error "Up node is in another Info file"))
     (Info-goto-node node))
@@ -1276,7 +1300,7 @@ NAME may be an abbreviation of the reference name."
 				nil t))))))
 
 
-(defun Info-menu (menu-item)
+(defun Info-menu (menu-item &optional fork)
   "Go to node for menu item named (or abbreviated) NAME.
 Completion is allowed, and the menu item point is on is the default."
   (interactive
@@ -1316,10 +1340,10 @@ Completion is allowed, and the menu item point is on is the default."
 		 (setq item default)
 	         ;; ask again
 	         (setq item nil))))
-       (list item))))
+       (list item current-prefix-arg))))
   ;; there is a problem here in that if several menu items have the same
   ;; name you can only go to the node of the first with this command.
-  (Info-goto-node (Info-extract-menu-item menu-item)))
+  (Info-goto-node (Info-extract-menu-item menu-item) (if fork menu-item)))
   
 (defun Info-extract-menu-item (menu-item)
   (setq menu-item (regexp-quote menu-item))
@@ -1862,6 +1886,7 @@ If no reference to follow, moves to the next node, or up if none."
   (define-key Info-mode-map "s" 'Info-search)
   ;; For consistency with Rmail.
   (define-key Info-mode-map "\M-s" 'Info-search)
+  (define-key Info-mode-map "\M-n" 'clone-buffer)
   (define-key Info-mode-map "t" 'Info-top-node)
   (define-key Info-mode-map "u" 'Info-up)
   (define-key Info-mode-map "," 'Info-index-next)
@@ -2037,8 +2062,19 @@ Advanced commands:
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
+  (add-hook (make-local-hook 'clone-buffer-hook) 'Info-clone-buffer-hook nil t)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
+
+(defun Info-clone-buffer-hook ()
+  (when (bufferp Info-tag-table-buffer)
+    (setq Info-tag-table-buffer
+	  (with-current-buffer Info-tag-table-buffer (clone-buffer)))
+    (let ((m Info-tag-table-marker))
+      (when (and (markerp m) (marker-position m))
+	(setq Info-tag-table-marker
+	      (with-current-buffer Info-tag-table-buffer
+		(copy-marker (marker-position m))))))))
 
 (defvar Info-edit-map nil
   "Local keymap used within `e' command of Info.")
