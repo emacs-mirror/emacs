@@ -1,3 +1,9 @@
+2001-04-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired-aux.el (dired-do-create-files, dired-do-copy)
+	(dired-do-symlink, dired-do-hardlink, dired-do-rename): Mention
+	dired-dwim-target in the doc string.
+
 2001-04-28  Miles Bader  <miles@gnu.org>
 
 	* dabbrev.el (dabbrev--ignore-buffer-p): New function.
