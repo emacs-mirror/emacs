@@ -1,5 +1,8 @@
 2005-02-23  Lute Kamstra  <lute@gnu.org>
 
+	* modes.texi (Defining Minor Modes): define-minor-mode can be used
+	to define global minor modes as well.
+
 	* display.texi (Managing Overlays): overlay-buffer returns nil for
 	deleted overlays.
 
