@@ -2053,7 +2053,7 @@ See also `locale-charset-language-names', `locale-language-names',
 					    (langinfo 'codeset))
 	      (message "\
 Warning: Default coding system `%s' doesn't agree with
-the system code set `%s' for this locale." coding-system codeset))))))))))
+the system code set `%s' for this locale." coding-system codeset))))))))
 
 ;;; Character code property
 (put 'char-code-property-table 'char-table-extra-slots 0)
