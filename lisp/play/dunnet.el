@@ -1,6 +1,6 @@
 ;;; dunnet.el --- Text adventure for Emacs
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -58,7 +58,7 @@
   (make-local-variable 'scroll-step)
   (setq scroll-step 2)
   (use-local-map dungeon-mode-map)
-  (setq major-mode 'dungeon-mode)
+  (setq major-mode 'dun-mode)
   (setq mode-name "Dungeon"))
 
 (defun dun-parse (arg)
