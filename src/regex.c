@@ -2782,16 +2782,22 @@ re_compile_fastmap (bufp)
   bufp->fastmap_accurate = 1;	    /* It will be when we're done.  */
   bufp->can_be_null = 0;
       
-  while (p != pend || !FAIL_STACK_EMPTY ())
+  while (1)
     {
       if (p == pend || *p == succeed)
-        {
-          bufp->can_be_null |= path_can_be_null;
-          
-          /* Reset for next path.  */
-          path_can_be_null = true;
-          
-          p = fail_stack.stack[--fail_stack.avail];
+	{
+	  /* We have reached the (effective) end of pattern.  */
+	  if (!FAIL_STACK_EMPTY ())
+	    {
+	      bufp->can_be_null |= path_can_be_null;
+
+	      /* Reset for next path.  */
+	      path_can_be_null = true;
+
+	      p = fail_stack.stack[--fail_stack.avail];
+	    }
+	  else
+	    break;
 	}
 
       /* We should never be about to go beyond the end of the pattern.  */
