@@ -1263,7 +1263,7 @@ unless NOMODES is non-nil."
 		       (format "%s has auto save data; consider M-x recover-file"
 			       (file-name-nondirectory buffer-file-name))
 		     (setq not-serious t)
-		     (if error "(New file)" nil)))
+		     (if (and warn error) "(New file)" nil)))
 		  ((not error)
 		   (setq not-serious t)
 		   "Note: file is write protected")
