@@ -5,9 +5,12 @@ See the end for copying conditions.
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
 
-Temporary note: +++ indicates that the appropriate manual
-has already been updated.  --- means no change in the manuals
-is called for.
+Temporary note:
+ +++ indicates that the appropriate manual has already been updated.
+ --- means no change in the manuals is called for.
+When you add a new item, please add it without either +++ or ---
+so we will look at it
+
 
 * Installation Changes in Emacs 21.3
 
@@ -24,14 +27,20 @@ installed programs.
 
 The left and right fringe widths can now be controlled by setting the
 `left-fringe' and `right-fringe' frame parameters to an integer value
-specifying the width in pixels.  The default is 8 pixels.  Setting the
-width to 0 effectively removes the corresponding fringe.
+specifying the width in pixels.  Setting the width to 0 effectively
+removes the corresponding fringe.
+
 The actual fringe widths may deviate from the specified widths, since
 the combined fringe widths must match an integral number of columns.
 The extra width is distributed evenly between the left and right fringe.
 For force a specific fringe width, specify the width as a negative
 integer (if both widths are negative, only the left fringe gets the
 specified width). 
+
+Setting the width to nil (the default), restores the default fringe
+width which is the minimum number of pixels necessary to display any
+of the currently defined fringe bitmaps.  The width of the built-in
+fringe bitmaps is 8 pixels.
 
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
