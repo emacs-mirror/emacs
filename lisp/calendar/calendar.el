@@ -1505,7 +1505,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "M"   'calendar-phases-of-moon)
   (define-key calendar-mode-map " "   'scroll-other-window)
   (define-key calendar-mode-map "\C-c\C-l" 'redraw-calendar)
-  (define-key calendar-mode-map "."   'calendar-current-month)
+  (define-key calendar-mode-map "."   'calendar-goto-today)
   (define-key calendar-mode-map "o"   'calendar-other-month)
   (define-key calendar-mode-map "q"   'exit-calendar)
   (define-key calendar-mode-map "a"   'list-calendar-holidays)
@@ -1557,7 +1557,7 @@ the inserted text.  Value is always t."
   (list
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-left]")
    "Calendar"
-   (substitute-command-keys "\\<calendar-mode-map>\\[describe-calendar-mode] help/\\[calendar-other-month] other/\\[calendar-current-month] today")
+   (substitute-command-keys "\\<calendar-mode-map>\\[describe-calendar-mode] help/\\[calendar-other-month] other/\\[calendar-goto-today] today")
    '(calendar-date-string (calendar-current-date) t)
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-right]"))
   "The mode line of the calendar buffer.")
@@ -1601,7 +1601,7 @@ The commands for calendar movement are:
 
        \\[scroll-calendar-right]  scroll one month right \\[scroll-calendar-left]  scroll one month left
        \\[scroll-calendar-right-three-months]  scroll 3 months right    \\[scroll-calendar-left-three-months]  scroll 3 months left
-       \\[calendar-current-month]  display current month      \\[calendar-other-month]  display another month
+       \\[calendar-goto-today]  display current month      \\[calendar-other-month]  display another month
 
 Whenever it makes sense, the above commands take prefix arguments that
 multiply their affect.  For convenience, the digit keys and the minus sign
@@ -1854,7 +1854,7 @@ concatenated and the result truncated."
             (set-buffer-modified-p nil)
             (bury-buffer diary-buffer))))))
 
-(defun calendar-current-month ()
+(defun calendar-goto-today ()
   "Reposition the calendar window so the current date is visible."
   (interactive)
   (let ((today (calendar-current-date)));; The date might have changed.
