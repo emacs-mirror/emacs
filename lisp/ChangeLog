@@ -1,3 +1,18 @@
+2003-05-21  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-view-source, gdb-selected-view): New variables.
+	(gdba): Inhibit DOS window in MS Windows.
+	(gdb-inferior-io-mode): Use hexl instead of cat.
+	(gdb-info-breakpoints-custom, gdb-assembler-custom, gdb-reset):
+	Use text in margin for MS Windows as there is no image support.
+	(gdb-restore-windows, gdb-setup-windows): Restore/start with
+	assembler view if appropriate.
+	(gdb-assembler-custom): Assembler code should display at point.
+	Parse address correctly.
+	(gdb-frame-handler): Accommodate selection of display of source
+	or assembler.  
+	Add radio buttons to select display of source or assembler.
+
 2003-05-20  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el (desktop-save): Ensure parameter is expanded and ends
