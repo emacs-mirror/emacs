@@ -1,3 +1,10 @@
+2000-07-05  Dave Love  <fx@gnu.org>
+
+	* syswait.h: Use the autoconf recommended approach.  Old code
+	#if'd out in case we need to revert.
+
+	* config.in (HAVE_SYS_WAIT_H): Added. 
+
 2000-07-05  Andrew Innes  <andrewi@gnu.org>
 
 	* vm-limit.c (check_memory_limits) [REL_ALLOC]: Use real_morecore
