@@ -148,9 +148,9 @@ and don't delete any header fields."
   (run-hooks 'news-reply-header-hook))
 
 (defvar news-reply-header-hook
-  '(lambda ()
-	 (insert "In article " news-reply-yank-message-id
-			 " " news-reply-yank-from " writes:\n\n"))
+  (lambda ()
+    (insert "In article " news-reply-yank-message-id
+	    " " news-reply-yank-from " writes:\n\n"))
   "Hook for inserting a header at the top of a yanked message.")
 
 (defun news-reply-newsgroups ()
