@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.7) $
+ * $HopeName: MMsrc!mpm.c(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.7) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.8) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -129,6 +129,8 @@ Bool SizeIsP2(Size size)
 Shift SizeFloorLog2(Size size)
 {
   Shift l = 0;
+
+  AVER(size != 0);
 
   while(size > 1) {
     ++l;
