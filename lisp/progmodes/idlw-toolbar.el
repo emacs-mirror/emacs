@@ -4,7 +4,7 @@
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 3.11
-;; Date: $Date: 2000/01/03 14:23:13 $
+;; Date: $Date: 2000/01/03 14:26:03 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -860,6 +860,7 @@ static char * file[] = {
     (idlwave-toolbar-add-everywhere)))
 
 (provide 'idlw-toolbar)
+(provide 'idlwave-toolbar)
 
 ;;; idlw-toolbar.el ends here
 
