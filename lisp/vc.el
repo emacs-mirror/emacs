@@ -83,6 +83,10 @@ The value is only computed when needed to avoid an expensive search.")
   "*Don't assume that permissions and ownership track version-control status.")
 (defvar vc-checkin-switches nil
   "*Extra switches passed to the checkin program by \\[vc-checkin].")
+(defvar vc-path
+  (if (file-exists-p "/usr/sccs")
+      '("/usr/sccs") nil)
+  "*List of extra directories to search for version control commands.")
 
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
@@ -206,7 +210,8 @@ the master name of FILE; this is appended to an optional list of FLAGS."
      flags)
     (if vc-file
 	(setq squeezed (append squeezed (list vc-file))))
-    (let ((default-directory (file-name-directory (or file "./"))))
+    (let ((default-directory (file-name-directory (or file "./")))
+	  (exec-path (if vc-path (append exec-path vc-path) exec-path)))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
     (previous-line 1)
