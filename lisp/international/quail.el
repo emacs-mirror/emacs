@@ -884,8 +884,7 @@ keyboard type."
     (or layout
 	(error "Unknown keyboard type: %s" keyboard-type))
     (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
+      (with-current-buffer standard-output
 	(insert "Keyboard layout (keyboard type: "
 		keyboard-type
 		")\n")
@@ -1299,8 +1298,7 @@ Do so while interleaving with the following special events:
 		(quail-input-string-to-events input-string))))
 	(quail-delete-overlays)
 	(if (buffer-live-p quail-guidance-buf)
-	    (save-excursion
-	      (set-buffer quail-guidance-buf)
+	    (with-current-buffer quail-guidance-buf
 	      (erase-buffer)))
 	(quail-hide-guidance-buf)
 	(set-buffer-modified-p modified-p)
@@ -1460,8 +1458,7 @@ Return the input string."
   "Terminate the translation of the current key."
   (setq quail-translating nil)
   (if (buffer-live-p quail-guidance-buf)
-      (save-excursion
-	(set-buffer quail-guidance-buf)
+      (with-current-buffer quail-guidance-buf
 	(erase-buffer))))
 
 (defun quail-select-current ()
@@ -1854,8 +1851,7 @@ Remaining args are for FUNC."
   (unless (buffer-live-p quail-completion-buf)
     (let ((default-enable-multibyte-characters enable-multibyte-characters))
       (setq quail-completion-buf (get-buffer-create "*Quail Completions*")))
-    (save-excursion
-      (set-buffer quail-completion-buf)
+    (with-current-buffer quail-completion-buf
       (setq quail-overlay (make-overlay 1 1))
       (overlay-put quail-overlay 'face 'highlight))))
 
@@ -1883,8 +1879,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 	  (setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*"))))
     (let ((name (quail-name))
 	  (title (quail-title)))
-      (save-excursion
-	(set-buffer quail-guidance-buf)
+      (with-current-buffer quail-guidance-buf
 	;; To show the title of Quail package.
 	(setq current-input-method name
 	      current-input-method-title title)
@@ -1926,8 +1921,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 		;; which is what we wanted.
 		(setq win (split-window win (- height 2))))
 	      (set-window-buffer win quail-guidance-buf)
-	      (save-excursion
-		(set-buffer quail-guidance-buf)
+	      (with-current-buffer quail-guidance-buf
 		(fit-window-to-buffer win nil (window-height win)))))
 	(set-window-buffer win quail-guidance-buf)
 	(set-minibuffer-window win))
@@ -1976,8 +1970,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 	       (let ((key quail-current-key))
 		 (if (quail-kbd-translate)
 		     (setq key (quail-keyseq-translate key)))
-		 (save-excursion
-		   (set-buffer quail-guidance-buf)
+		 (with-current-buffer quail-guidance-buf
 		   (erase-buffer)
 		   (insert key)))))
 	;; Make sure the height of the guidance window is OK --
@@ -2030,8 +2023,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 	 (current-translations quail-current-translations))
     (if quail-current-translations
 	(quail-update-current-translations))
-    (save-excursion
-      (set-buffer quail-guidance-buf)
+    (with-current-buffer quail-guidance-buf
       (erase-buffer)
 
       ;; Show the current key.
@@ -2095,8 +2087,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	(key quail-current-key)
 	(map (quail-lookup-key quail-current-key))
 	(require-update nil))
-    (save-excursion
-      (set-buffer quail-completion-buf)
+    (with-current-buffer quail-completion-buf
       (if (and win
 	       (equal key quail-current-key)
 	       (eq last-command 'quail-completion))
@@ -2195,8 +2186,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   (let ((buffer (window-buffer))
         choice
 	base-size)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-start event))))
+    (with-current-buffer (window-buffer (posn-window (event-start event)))
       (if completion-reference-buffer
 	  (setq buffer completion-reference-buffer))
       (setq base-size completion-base-size)
@@ -2407,7 +2397,7 @@ should be made by `quail-build-decode-map' (which see)."
 
 (defun quail-help (&optional package)
   "Show brief description of the current Quail package.
-Optional 2nd arg PACKAGE specifies the name of alternative Quail
+Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
   (interactive)
   (if package
@@ -2416,14 +2406,13 @@ package to describe."
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
 	(default-enable-multibyte-characters enable-multibyte-characters))
     ;; At first, make sure that the help buffer has window.
-    (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
+    (help-setup-xref (list #'quail-help package) (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
 	(setq quail-current-package package)))
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the frame in which the buffer displayed.
-    (save-excursion
-      (set-buffer (get-buffer "*Help*"))
+    (with-current-buffer (help-buffer)
       (setq buffer-read-only nil)
       (insert "Input method: " (quail-name)
 	      " (mode line indicator:"
@@ -2511,8 +2500,6 @@ KEY BINDINGS FOR TRANSLATION
 	   "\
 KEY BINDINGS FOR CONVERSION
 ---------------------------\n"))
-      (help-setup-xref (list #'quail-help (quail-name))
-		       (interactive-p))
       (setq quail-current-package nil)
       ;; Resize the help window again, now that it has all its contents.
       (save-selected-window
@@ -2564,12 +2551,12 @@ KEY BINDINGS FOR CONVERSION
 			quail-current-key (quail-name))
 		keymap (quail-translation-keymap)))
 	(with-output-to-temp-buffer "*Help*"
-	  (save-excursion
-	    (set-buffer standard-output)
+	  (with-current-buffer standard-output
 	    (insert state-msg)
 	    (quail-help-insert-keymap-description
 	     keymap
 	     "-----------------------\n")
+	    ;; Isn't this redundant ?  -stef
 	    (help-mode)))))
   (let (scroll-help)
     (save-selected-window
@@ -2736,8 +2723,7 @@ of each directory."
     (setq list-buf (find-file-noselect leim-list))
 
     ;; At first, clean up the file.
-    (save-excursion
-      (set-buffer list-buf)
+    (with-current-buffer list-buf
       (goto-char 1)
 
       ;; Insert the correct header.
@@ -2796,8 +2782,7 @@ of each directory."
 	      (goto-char (match-beginning 0))
 	      (condition-case nil
 		  (let ((form (read (current-buffer))))
-		    (save-excursion
-		      (set-buffer list-buf)
+		    (with-current-buffer list-buf
 		      (insert
 		       (format "(register-input-method
  %S %S '%s
@@ -2821,8 +2806,7 @@ of each directory."
 	(setq quail-dirs (cdr quail-dirs) dirnames (cdr dirnames))))
 
     ;; At last, write out LEIM list file.
-    (save-excursion
-      (set-buffer list-buf)
+    (with-current-buffer list-buf
       (setq buffer-file-coding-system 'iso-2022-7bit)
       (save-buffer 0))
     (kill-buffer list-buf)
