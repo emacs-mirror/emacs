@@ -106,7 +106,7 @@ The variable `resize-minibuffer-window-exactly' determines whether the
 minibuffer window should ever be shrunk to make it no larger than needed to
 display its contents.
 
-When using a window system, it is possible for a minibuffer to tbe the sole
+When using a window system, it is possible for a minibuffer to be the sole
 window in a frame.  Since that window is already its maximum size, the only
 way to make more text visible at once is to increase the size of the frame.
 The variable `resize-minibuffer-frame' controls whether this should be
