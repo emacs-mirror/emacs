@@ -1,3 +1,8 @@
+2004-06-11  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (parse-colon-path, cd): Doc fixes (refer to
+	`path-separator', not colon).
+
 2004-06-10  Juanma Barranquero  <lektu@terra.es>
 
 	* newcomment.el (comment-search-forward)

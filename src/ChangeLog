@@ -1,3 +1,7 @@
+2004-06-11  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (Fposn_at_point): Doc fix.
+
 2004-06-11  David Kastrup  <dak@gnu.org>
 
 	* search.c (match_limit): Don't flag an error if match-data
