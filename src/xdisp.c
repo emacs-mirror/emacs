@@ -10356,13 +10356,7 @@ redisplay_window (window, just_this_one_p)
        && (WINDOW_WANTS_MODELINE_P (w)
 	   || WINDOW_WANTS_HEADER_LINE_P (w)))
     {
-      Lisp_Object old_selected_frame;
-      
-      old_selected_frame = selected_frame;
-      
-      XSETFRAME (selected_frame, f);
       display_mode_lines (w);
-      selected_frame = old_selected_frame;
 
       /* If mode line height has changed, arrange for a thorough
 	 immediate redisplay using the correct mode line height.  */
@@ -13221,7 +13215,6 @@ redisplay_mode_lines (window, force)
 	       || FRAME_GARBAGED_P (XFRAME (w->frame))
 	       || !MATRIX_MODE_LINE_ROW (w->current_matrix)->enabled_p)
 	{
-	  Lisp_Object old_selected_frame;
 	  struct text_pos lpoint;
 	  struct buffer *old = current_buffer;
 
@@ -13244,10 +13237,6 @@ redisplay_mode_lines (window, force)
 		TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
 	    }
 
-	  /* Temporarily set up the selected frame.  */
-      	  old_selected_frame = selected_frame;
-	  selected_frame = w->frame;
-
 	  /* Display mode lines.  */
 	  clear_glyph_matrix (w->desired_matrix);
 	  if (display_mode_lines (w))
@@ -13257,7 +13246,6 @@ redisplay_mode_lines (window, force)
 	    }
 
 	  /* Restore old settings.  */
-	  selected_frame = old_selected_frame;
 	  set_buffer_internal_1 (old);
 	  TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
 	}
@@ -13276,7 +13264,13 @@ static int
 display_mode_lines (w)
      struct window *w;
 {
+  Lisp_Object old_selected_window, old_selected_frame;
   int n = 0;
+
+  old_selected_frame = selected_frame;
+  selected_frame = w->frame;
+  old_selected_window = selected_window;
+  XSETWINDOW (selected_window, w);
   
   /* These will be set while the mode line specs are processed.  */
   line_number_displayed = 0;
@@ -13296,6 +13290,8 @@ display_mode_lines (w)
       ++n;
     }
 
+  selected_frame = old_selected_frame;
+  selected_window = old_selected_window;
   return n;
 }
 
