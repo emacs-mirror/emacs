@@ -1,5 +1,7 @@
 2002-12-07  Andreas Schwab  <schwab@suse.de>
 
+	* eshell/em-ls.el (eshell-ls-product-regexp): Fix typo.
+
 	* files.el (find-file-read-args): Reenable wildcard processing
 	unconditionally.
 
