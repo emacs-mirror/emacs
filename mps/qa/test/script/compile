@@ -21,8 +21,9 @@ $plat_link{"sol2.4_sparc"} = "-lm";
 sub compiler_settings {
  if ($PLATFORM =~ "^nt_") {
   $cc_command = "cl";
-  $cc_opts = "/DWIN32 /D_WINDOWS /W3 /Z7 /DMMQA_VERS_$INTERFACE_VERSION";
-  $cc_link = "$obj_dir/platform.o";
+  $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Z7 /DMMQA_VERS_$INTERFACE_VERSION";
+  $cc_link = "$obj_dir/platform.obj";
+  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT";
   $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
   $cc_conly = "/c";
   $cc_obj = "/Fo";
@@ -35,6 +36,7 @@ sub compiler_settings {
   } else {
    $cc_link = "$obj_dir/platform.o";
   }
+  $cc_link_opts = "";
   $cc_command = "gcc";
   $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
    "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
@@ -53,7 +55,12 @@ sub compiler_settings {
 
 sub log_settings {
  if ($PLATFORM =~ "^nt_") {
-  
+  $catcommand = "cat";
+  $comwrap = "\"";
+  $comwrapend = "\"";
+  $stdout_red = ">";
+  $err_red = "2>";
+  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  } elsif ($PLATFORM =~ "^(sun|sol)") {
   $catcommand = "cat";
   $comwrap = "sh -c \"ulimit -c 0; ";
@@ -68,6 +75,7 @@ sub log_settings {
 
 sub mysystem {
  local ($command) = @_;
+ $command =~ s/(\S)\//$1\\/g;
  &debug("SYSTEM >>$command<<");
  system($command);
 }
@@ -83,7 +91,7 @@ sub log_system {
 
  $time0 = time;
 
- if ($logfile) {
+ if ($logfile ne "no") {
   if ($output eq "no") {
    &mysystem("$comwrap$command$comwrapend $stdout_red $std_log $err_red $err_log");
   } else {
@@ -94,7 +102,7 @@ sub log_system {
   &mysystem("$catcommand $std_log $err_log $stdout_red $logfile");
  } else {
   if ($output eq "no") {
-   ERROR;
+   die "Silly attempt to run test and ignore results.\n";
   } else {
    &mysystem("$comwrap$command$comwrapend");
   }
@@ -127,34 +135,12 @@ sub compile_and_link {
  $linkfiles =~ s/\.o /$obj_suffix /g;
 
  $command = "$cc_command $cc_opts $cc_exe$exefile $srcfile ".
-  "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
+  "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
  
  if (&mysystem($command)) {
   return 0;
  } else {
   return 1;
  }
-}
-
-sub try_test {
- local ($exefile) = @_;
-
- $testlogfile = "$obj_dir/tmp_log.log";
- &log_system($exefile, "yes", $testlogfile);
-
- &read_results($testlogfile);
- &verdict;
- &describe_test("result");
-}
-
-sub run_test {
- local ($exefile) = @_;
-
- $testlogfile = "$obj_dir/tmp_log.log";
- &log_system($exefile, "no", $testlogfile);
-
- &read_results($testlogfile);
- &verdict;
- &describe_test("full");
 }
 
