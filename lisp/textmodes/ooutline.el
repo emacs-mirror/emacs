@@ -36,7 +36,7 @@ Any line whose beginning matches this regexp is considered to start a heading.
 The recommended way to set this is with a Local Variables: list
 in the file it applies to.  See also outline-heading-end-regexp.")
   
-(defvar outline-heading-end-regexp "[\n^M]"
+(defvar outline-heading-end-regexp "[\n\^M]"
   "*Regular expression to match the end of a heading line.
 You can assume that point is at the beginning of a heading when this
 regexp is searched for.  The heading ends at the end of the match.
@@ -122,7 +122,19 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 				   outline-regexp "\\)"))
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
-(defun outline-minor-mode (arg)
+(defvar outline-minor-mode-map nil)
+(if outline-minor-mode-map
+    nil
+  (setq outline-minor-mode-map (make-sparse-keymap))
+  (define-key outline-minor-mode-map "\C-c"
+    (lookup-key outline-mode-map "\C-c")))
+
+(or (assq 'outline-minor-mode minor-mode-map-alist)
+    (setq minor-mode-map-alist
+	  (cons (cons 'outline-minor-mode outline-minor-mode-map)
+		minor-mode-map-alist)))
+
+(defun outline-minor-mode (&optional arg)
   (interactive "P")
   (setq outline-minor-mode
 	(if (null arg) (not outline-minor-mode)
@@ -130,20 +142,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (if outline-minor-mode
       (progn
 	(setq selective-display t)
-	(make-local-variable 'outline-old-map)
-	(setq outline-old-map (current-local-map))
-	(let ((new-map (copy-keymap outline-old-map)))
-	  (define-key new-map "\C-c"
-	    (lookup-key outline-mode-map "\C-c"))
-	  (use-local-map new-map))
-	(make-local-variable 'outline-regexp)
-	(setq outline-regexp "[ \t]*/\\*")
-	(make-local-variable 'outline-heading-end-regexp)
-	(setq outline-heading-end-regexp "\\*/[^\n\^M]*[\n\^M]")
 	(run-hooks 'outline-minor-mode-hook))
-    (progn
-      (setq selective-display nil)
-      (use-local-map outline-old-map))))
+    (setq selective-display nil)))
 
 (defun outline-level ()
   "Return the depth to which a statement is nested in the outline.
@@ -406,5 +406,7 @@ and return that position or nil if it cannot be found."
     (if (< (outline-level) level)
 	nil
         (point))))
+
+(provide 'outline)
 
 ;;; outline.el ends here
