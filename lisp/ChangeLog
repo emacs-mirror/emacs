@@ -1,3 +1,10 @@
+2005-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hilit-chg.el (highlight-changes-mode): Don't autoload.
+
+	* bindings.el (mode-line-mode-menu): Use bound-and-true-p for all the
+	non-preloaded variables.
+
 2005-01-17  Steven Tamm  <steventamm@mac.com>
 
 	* textmodes/tex-mode.el (tex-start-shell): Adding -i to the
@@ -25,8 +32,8 @@
 	(tramp-do-copy-or-rename-file-via-buffer)
 	(tramp-do-copy-or-rename-file-out-of-band): Call `set-file-modes'
 	when appropriate.
-	(tramp-do-copy-or-rename-file-directly): Mask `cp -p' error.  Call
-	`set-file-modes' when appropriate.
+	(tramp-do-copy-or-rename-file-directly): Mask `cp -p' error.
+	Call `set-file-modes' when appropriate.
 	(tramp-action-out-of-band): Mask `scp -p' error.  Reported by Isak
 	Johnsson <isak@hypergene.com>
 	(tramp-get-buffer, tramp-get-debug-buffer): Discard the undo list
@@ -88,24 +95,22 @@
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mail/rmail.el: Updated to work with movemail from GNU Mailutils
-	(rmail-pop-password, rmail-pop-password-required): Moved to
+	(rmail-pop-password, rmail-pop-password-required): Move to
 	rmail-obsolete group.
-	(rmail-set-pop-password): Renamed to rmail-set-remote-password.
+	(rmail-set-pop-password): Rename to rmail-set-remote-password.
 	All callers updated.
-	(rmail-get-pop-password): Renamed to rmail-get-remote-password.
+	(rmail-get-pop-password): Rename to rmail-get-remote-password.
 	Take an argument specifying whether it is POP or IMAP mailbox we
 	are using.  All callers updated.
-	(rmail-pop-password-error): Renamed to
-	rmail-remote-password-error.  Added mailutils-specific error
-	message.
+	(rmail-pop-password-error): Rename to
+	rmail-remote-password-error.  Added mailutils-specific error message.
 	(rmail-movemail-search-path)
 	(rmail-movemail-variant-in-use): New variables.
-	(rmail-remote-password, rmail-remote-password-required): New
-	customization variables.
-	(rmail-probe,rmail-autodetect, rmail-movemail-variant-p): New
-	functions.
+	(rmail-remote-password, rmail-remote-password-required):
+	New customization variables.
+	(rmail-probe,rmail-autodetect, rmail-movemail-variant-p): New funs.
 	(rmail-parse-url): New function.
-	(rmail-get-new-mail, rmail-insert-inbox-text): Updated for use
+	(rmail-get-new-mail, rmail-insert-inbox-text): Update for use
 	with GNU mailutils movemail.
 
 2005-01-15  Kevin Ryde  <user42@zip.com.au>
@@ -117,8 +122,8 @@
 2005-01-15  Jorgen Schaefer  <forcer@forcix.cx>  (tiny change)
 
 	* type-break.el (type-break-mode, type-break-file-time)
-	(type-break-file-keystroke-count, type-break-choose-file): Don't
-	store data in or load data from the file if type-break-file-name
+	(type-break-file-keystroke-count, type-break-choose-file):
+	Don't store data in or load data from the file if type-break-file-name
 	is nil.
 	(type-break-file-name): Doc update as per the above.
 
@@ -130,8 +135,7 @@
 2005-01-15  Alan Mackenzie  <acm@muc.de>
 
 	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
-	rather than the element found, thus enabling the tree to be
-	setcar'd.
+	rather than the element found, thus enabling the tree to be setcar'd.
 
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -149,62 +153,59 @@
 	* textmodes/org.el (org-mode): `org-table-may-need-update' is now
 	a local variable in each org-mode buffer.
 
-	* textmodes/org.el (org-set-regexps-and-options): Renamed from
+	* textmodes/org.el (org-set-regexps-and-options): Rename from
 	`org-set-regexps'.  Added checking for STARTUP keyword.
-	(org-get-current-options): Added STARTUP options.
+	(org-get-current-options): Add STARTUP options.
 	(org-table-insert-row): Mode mode intelligent about when
 	realignment is needed.
-	(org-self-insert-command, org-delete-backward-char,
-	org-delete-char): New commands.
-	(org-enable-table-editor): new default value `optimized'.
+	(org-self-insert-command, org-delete-backward-char, org-delete-char):
+	New commands.
+	(org-enable-table-editor): New default value `optimized'.
 	(org-table-blank-field): Support blanking regions if active.
-
 
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-cite.el (reftex-bib-sort-year): Catch the case
 	if the year is not given.
 
-	* textmodes/reftex-ref.el (reftex-replace-prefix-escapes): Added
-	new escapes %m and %M, fixed bug with %F by adding
+	* textmodes/reftex-ref.el (reftex-replace-prefix-escapes):
+	Add new escapes %m and %M, fixed bug with %F by adding
 	save-match-data.
-	(reftex-reference): Removed ?. from list of spaces.
-	(reftex-label-info): Added automatic label prefix recognition
+	(reftex-reference): Remove ?. from list of spaces.
+	(reftex-label-info): Add automatic label prefix recognition.
 
-	* textmodes/reftex-index.el (reftex-index-next-phrase): Added
-	slave parameter to call of `reftex-index-this-phrase'
-	(reftex-index-this-phrase): New optional argument
-	(reftex-index-region-phrases): Added slave parameter to call of
-	`reftex-index-this-phrase'
-	(reftex-display-index): New argument redo
-	(reftex-index-rescan): Added 'redo to arguments of
-	`reftex-display-index'
+	* textmodes/reftex-index.el (reftex-index-next-phrase):
+	Add slave parameter to call of `reftex-index-this-phrase'.
+	(reftex-index-this-phrase): New optional argument.
+	(reftex-index-region-phrases): Add slave parameter to call of
+	`reftex-index-this-phrase'.
+	(reftex-display-index): New argument redo.
+	(reftex-index-rescan): Add 'redo to arguments of
+	`reftex-display-index'.
 	(reftex-index-Rescan, reftex-index-revert)
-	(reftex-index-switch-index-tag): Added 'redo to arguments of
-	`reftex-display-index'
-	(reftex-index-make-phrase-regexp): Fixed bug with case-sensitive
-	indexing.  Fixed bug with matching is there is a quote before or
+	(reftex-index-switch-index-tag): Add 'redo to arguments of
+	`reftex-display-index'.
+	(reftex-index-make-phrase-regexp): Fix bug with case-sensitive
+	indexing.  Fix bug with matching is there is a quote before or
 	after the word.
 
-	* textmodes/reftex-cite.el (reftex-all-used-citation-keys): Fix
-	bug when collecting citation keys in lines with comments.
+	* textmodes/reftex-cite.el (reftex-all-used-citation-keys):
+	Fix bug when collecting citation keys in lines with comments.
 	(reftex-citation): Prefix argument no longer rescans the document,
 	but forces prompting for optional arguments of cite macros.
-	(reftex-do-citation): Prompting for optional arguments
-	implemented.
+	(reftex-do-citation): Prompting for optional arguments implemented.
 
-	* textmodes/reftex-vars.el (reftex-cite-format-builtin): Added
-	optional arguments to most cite commands.
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin):
+	Add optional arguments to most cite commands.
 	(reftex-cite-cleanup-optional-args): New option
 	(reftex-cite-prompt-optional-args): New option.
-	(reftex-trust-label-prefix): New option
+	(reftex-trust-label-prefix): New option.
 
-	* textmodes/reftex-toc.el (reftex-toc-find-section): Added
-	push-mark before changing the position in the buffer.
+	* textmodes/reftex-toc.el (reftex-toc-find-section):
+	Add push-mark before changing the position in the buffer.
 
-	* textmodes/reftex.el (reftex-prefix-to-typekey-alist): New
-	variable
-	(reftex-compile-variables): Compute reftex-prefix-to-typekey-alist
+	* textmodes/reftex.el (reftex-prefix-to-typekey-alist): New variable.
+	(reftex-compile-variables): Compute reftex-prefix-to-typekey-alist.
 
 2005-01-14  Nick Roberts  <nickrob@snap.net.nz>
 

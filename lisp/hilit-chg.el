@@ -1,6 +1,6 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2005  Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -392,8 +392,6 @@ Otherwise, this list will be constructed when needed from
 
 ;; These shouldn't be changed!
 
-;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
-;;;###autoload
 (defvar highlight-changes-mode nil)
 (defvar hilit-chg-list nil)
 (defvar hilit-chg-string " ??")
@@ -1163,5 +1161,5 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 
 (provide 'hilit-chg)
 
-;;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
+;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
 ;;; hilit-chg.el ends here
