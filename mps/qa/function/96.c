@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!96.c(trunk.4) $
  summary = low memory tests with AMC (and using MV)
  language = c
  link = testlib.o rankfmt.o
@@ -13,10 +13,12 @@ END_HEADER
 #include "mpsavm.h"
 #include "rankfmt.h"
 
+
 void *stackpointer;
 
 mps_pool_t poolmv;
 mps_space_t space;
+
 
 static void fillup(void) {
  size_t size;
@@ -35,9 +37,11 @@ static void fillup(void) {
  }
 }
 
+
 static void empty(void) {
  mps_pool_destroy(poolmv);
 }
+
 
 static void test(void)
 {
@@ -49,12 +53,11 @@ static void test(void)
  mps_ap_t ap;
 
  mycell *a, *b;
- mps_addr_t addr;
 
  mps_res_t res;
  int j;
 
-/* create an arena that can't grow beyond 30 M */
+ /* create an arena that can't grow beyond 30 M */
 
  cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*30)),
   "create arena");
@@ -84,7 +87,7 @@ static void test(void)
   mps_ap_create(&ap, pool, MPS_RANK_EXACT),
   "create ap");
 
-/* allocate 16 M of (live) stuff */
+ /* allocate 16 M of (live) stuff */
 
  b = allocone(ap, 2, MPS_RANK_EXACT);
  for (j=0; j<160; j++) {
@@ -106,16 +109,7 @@ static void test(void)
 
  fillup();
 
- comment("finalizing...");
-
-/*
- addr = a;
- for (j=0; j<100; j++) {
-  comment(err_text(mps_finalize(space, addr)));
- }
-*/
-
- comment("try to make collectm by allocating another 1G...");
+ comment("try to make collect by allocating another 1G...");
  
  empty();
 
@@ -152,8 +146,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
