@@ -260,11 +260,11 @@ the Emacs session.  The supported language environments include:
 @cindex Euro sign
 @quotation
 Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
-Cyrillic-KOI8, Czech, Devanagari, English, Ethiopic, German, Greek,
-Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
-Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the Euro
-sign), Polish, Romanian, Slovak, Slovenian, Thai, Tibetan, Turkish, 
-Dutch, Spanish, and Vietnamese.
+Cyrillic-KOI8, Czech, Devanagari, Dutch, English, Ethiopic, German,
+Greek, Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3,
+Latin-4, Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the
+Euro sign), Polish, Romanian, Slovak, Slovenian, Spanish, Thai,
+Tibetan, Turkish, and Vietnamese.
 @end quotation
 
 @cindex fonts for various scripts
@@ -427,12 +427,13 @@ searching for what you have already entered.
 @vindex input-method-verbose-flag
 @vindex input-method-highlight-flag
   The variables @code{input-method-highlight-flag} and
-@code{input-method-verbose-flag} control how input methods explain what
-is happening.  If @code{input-method-highlight-flag} is non-@code{nil},
-the partial sequence is highlighted in the buffer.  If
-@code{input-method-verbose-flag} is non-@code{nil}, the list of possible
-characters to type next is displayed in the echo area (but not when you
-are in the minibuffer).
+@code{input-method-verbose-flag} control how input methods explain
+what is happening.  If @code{input-method-highlight-flag} is
+non-@code{nil}, the partial sequence is highlighted in the buffer (for
+most input methods---some disable this feature).  If
+@code{input-method-verbose-flag} is non-@code{nil}, the list of
+possible characters to type next is displayed in the echo area (but
+not when you are in the minibuffer).
 
 @cindex Leim package
   Input methods are implemented in the separate Leim package: they are
@@ -500,7 +501,7 @@ select it in the current buffer by typing @kbd{C-\}.  The variable
 methods, you might want to use an input method different from the
 default chosen by @code{set-language-environment}.  You can instruct
 Emacs to select a different default input method for a certain
-language environment if you by using
+language environment, if you wish, by using
 @code{set-language-environment-hook} (@pxref{Language Environments,
 set-language-environment-hook}).  For example:
 
