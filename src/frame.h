@@ -706,7 +706,15 @@ extern Lisp_Object selected_frame;
 
 /* Canonical y-unit on frame F.  This value currently equals the line
    height of the frame.  Terminal specific header files are expected
-   to define the macro FRAME_LINE_HEIGHT.  */
+   to define the macro FRAME_LINE_HEIGHT.  Buf if they do not, that's
+   fine, as well.  */
+
+#ifndef FRAME_LINE_HEIGHT
+#define FRAME_LINE_HEIGHT(x)  0
+#endif
+#ifndef FRAME_DEFAULT_FONT_WIDTH
+#define FRAME_DEFAULT_FONT_WIDTH(x)  0
+#endif
 
 #define CANON_Y_UNIT(F) \
      (FRAME_WINDOW_P (F) ? FRAME_LINE_HEIGHT (F) : 1)

@@ -1,3 +1,8 @@
+2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* frame.h (FRAME_LINE_HEIGHT, FRAME_DEFAULT_FONT_WIDTH):
+	Define if not defined.
+
 2005-03-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* s/vms.h: Define NO_HYPHENS_IN_FILENAMES.
