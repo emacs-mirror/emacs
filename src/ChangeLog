@@ -1,3 +1,26 @@
+2002-05-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (ONE_MORE_BYTE_NO_CHECK): Increment consumed_chars.
+	(emacs_mule_char): New arg src.  Delete arg `composition'.  Caller
+	changed.  Handle 2-byte and 3-byte charsets correctly.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Renamed from
+	DECODE_EMACS_MULE_COMPOSITION_RULE.  Caller changed.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_21): New macro.
+	(DECODE_EMACS_MULE_21_COMPOSITION): Call
+	DECODE_EMACS_MULE_COMPOSITION_RULE_21.  Produce correct annotation
+	sequence.
+	(decode_coding_emacs_mule): Handle composition correctly.  Rewind
+	`src' and `consumed_chars' correctly before calling
+	emacs_mule_char.
+	(DECODE_COMPOSITION_START): Correctly handle the case of altchar
+	and alt&rule composition.
+	(decode_coding_iso_2022): Handle composition correctly.
+	(init_coding_once): Setup emacs_mule_bytes for private charsets.
+	
+	* charset.c (Fdefine_charset_internal): Fix bug for the case of
+	re-defining a charset.  If the charset has :emacs-mule-id, setup
+	emacs_mule_bytes.
+
 2002-05-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_coding_iso_2022): If coding requires safe
