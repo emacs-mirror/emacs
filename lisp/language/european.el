@@ -126,7 +126,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 	     (documentation . ("\
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
- Serbo-Croatian, Slovak, Slovene, and Swedish.
+ Serbo-Croatian or Croatian, Slovak, Slovene, and Swedish.
 " . describe-european-environment-map))
 	     ))
 
