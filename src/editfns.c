@@ -2473,6 +2473,8 @@ determines whether case is significant or ignored.  */)
 	 characters, not just the bytes.  */
       int c1, c2;
 
+      QUIT;
+
       if (! NILP (bp1->enable_multibyte_characters))
 	{
 	  c1 = BUF_FETCH_MULTIBYTE_CHAR (bp1, i1_byte);
