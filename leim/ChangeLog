@@ -1,4 +1,4 @@
-2003-02-11  Kenichi Handa  <handa@m17n.org>
+2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* quail/indian.el (punjabi-itrans, gujarati-itrans, oriya-itrans)
 	(bengali-itrans, assamese-itrans, telugu-itrans kannada-itrans)

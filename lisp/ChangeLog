@@ -1,3 +1,7 @@
+2003-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: Load "language/malayalam" and "language/tamil".
+
 2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
 
 	* Makefile.in (DONTCOMPILE): Add malayalam.el and tamil.el.

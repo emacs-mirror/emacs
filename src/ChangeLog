@@ -1,3 +1,7 @@
+2003-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp, shortlisp): Add malayalam.el and tamil.el.
+
 2003-02-10  Kim F. Storm  <storm@cua.dk>
 
 	* process.c: Doc fixes.

@@ -88,6 +88,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** New language environments "malayalam" and "tamil".
+
+** New input methods "malayalam-itrans", "tamil-itrans",
+"malayalam-inscript", and "tamil-inscript".
+
 ** Init file changes
 
 You can now put the init files .emacs and .emacs_SHELL under
