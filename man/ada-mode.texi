@@ -73,8 +73,8 @@ license to the document, as described in section 6 of the license.
 
 @menu
 * Overview::
-* Installation::                  Installing the Ada mode on your system
-* Customization::                 Setting up the Ada mode to your taste
+* Installation::                  Installing Ada mode on your system
+* Customization::                 Setting up Ada mode to your taste
 * Project files::                 Describing the organization of your project
 * Syntax highlighting::           Using specific colors and fonts to highlight
                                     the structure of your files
@@ -109,39 +109,56 @@ standard Emacs features when programming in Ada.
 @section General features:
 
 @itemize @bullet
-@item full Integrated Development Environment :
+@item
+full Integrated Development Environment:
 @itemize @bullet
-@item support of 'project files' for the configuration (directories,
+@item
+support of ``project files'' for the configuration (directories,
 compilation options,...)
-@item compiling and stepping through error messages.
-@item running and debugging your applications within Emacs.
+@item
+compiling and stepping through error messages.
+@item
+running and debugging your applications within Emacs.
 @end itemize
-@item easy to use for beginners by pull-down menus,
-@item user configurable by many user-option variables.
+@item
+easy to use for beginners by pull-down menus,
+@item
+user configurable by many user-option variables.
 @end itemize
 
 @section Ada mode features that help understanding code:
 
 @itemize @bullet
-@item functions for easy and quick stepping through Ada code,
-@item getting cross reference information for identifiers (e.g. find the
+@item
+functions for easy and quick stepping through Ada code,
+@item
+getting cross reference information for identifiers (e.g. find the
 defining place by a keystroke),
-@item displaying an index menu of types and subprograms and move point to
+@item
+displaying an index menu of types and subprograms and move point to
 the chosen one,
-@item automatic color highlighting of the various entities in Ada code.
+@item
+automatic color highlighting of the various entities in Ada code.
 @end itemize
 
 @section Emacs support for writing Ada code:
 
 @itemize @bullet
-@item switching between spec and body files with eventually
+@item
+switching between spec and body files with eventually
 auto-generation of body files,
-@item automatic formating of subprograms parameter lists.
-@item automatic smart indentation according to Ada syntax,
-@item automatic completion of identifiers,
-@item automatic casing of identifiers, keywords, and attributes,
-@item insertion of statement templates,
-@item filling comment paragraphs like filling normal text,
+@item
+automatic formating of subprograms parameter lists.
+@item
+automatic smart indentation according to Ada syntax,
+@item
+automatic completion of identifiers,
+@item
+automatic casing of identifiers, keywords, and attributes,
+@item
+insertion of statement templates,
+@item
+filling comment paragraphs like filling normal text,
 @end itemize
 
 @c -----------------------------------------------------------------------
@@ -149,21 +166,21 @@ auto-generation of body files,
 @chapter Installation
 @c -----------------------------------------------------------------------
 
-If you  got the Ada mode as  a separate distribution, you  should have a
+If you  got Ada mode as  a separate distribution, you  should have a
 look at the  @file{README} file.  It explains the  basic steps necessary
 for a good installation of the emacs Ada mode.
 
 Installing the  Ada mode  is basically  just a matter  of copying  a few
 files into  the Emacs  library directories. Every  time you open  a file
 with  a  file  extension  of  @file{.ads}  or  @file{.adb},  Emacs  will
-automatically load and activate the Ada mode.
+automatically load and activate Ada mode.
 
-See the  section @ref{Using non-standard  file names}, if your  files do
+@xref{Using non-standard  file names}, if your  files do
 not use these extensions and if you want Emacs to automatically start the
 Ada mode every time you edit an Ada file.
 
-See also the Emacs documentation @ref{(emacs)}, for general usage
-variables that you might want to set.
+See also the Emacs Manual (@pxref{(Top,,,emacs, The Emacs Manual)}),
+for general usage variables that you might want to set.
 
 @c ---------------------------------------------------------------------
 @section Required files
@@ -173,16 +190,17 @@ This Ada  mode works best  with Emacs 20.3  or higher (the  easy editing
 features for the  project files won't work with  any older version), but
 most of the commands should work  with older versions too. Please try to
 install  the  most  recent  version  of  Emacs  on  your  system  before
-installing the Ada mode.
+installing Ada mode.
 
-Although part of the Ada mode is compiler independent, the most advanced
+Although part of Ada mode is compiler-independent, the most advanced
 features are specific to the Gnat compiler @url{http://www.gnat.com}.
 
 The following files are provided with the Ada mode distribution:
 
 @itemize @bullet
 
-@item @file{ada-mode.el}: The main file for the Ada mode.
+@item
+@file{ada-mode.el}: The main file for Ada mode.
 This  is the  only file  which does  not require  Gnat. It  contains the
 functions  for  indentation,  formatting  of parameter  lists,  stepping
 through  code, comment  handling and  automatic casing.   Emacs versions
@@ -190,25 +208,28 @@ through  code, comment  handling and  automatic casing.   Emacs versions
 version of this file  and should be replaced. Loading @file{ada-mode.el}
 from the current distribution supersedes the standard installation.
 
-@item @file{ada-stmt.el}: Contains the statement templates feature.
+@item
+@file{ada-stmt.el}: Contains the statement templates feature.
 
-@item @file{ada-xref.el}: This file provides the main support for Gnat.
+@item
+@file{ada-xref.el}: This file provides the main support for Gnat.
 This  is  where  the   functions  for  cross-references,  completion  of
 identifiers,  support   for  project  files  and   compilation  of  your
 application are defined.
 
-@item @file{ada-prj.el}: The functions to use for easy-edition of the
-project files.  This file is the only one which really requires Emacs at
-least 20.2. It uses the new widget features from Emacs.
+@item
+@file{ada-prj.el}: The functions to use for easy-edition of the
+project files.  This file is the only one which really requires Emacs
+at least 20.2. It uses the new widget features from Emacs.
 
 @end itemize
 
 @c --------------------------------------------------------------------
 @node Customization, Project files, Installation, Top
-@chapter Customizing the Ada mode
+@chapter Customizing Ada mode
 @c ---------------------------------------------------------------------
 
-The ada-mode is  fully customizable. Everything, from the  file names to
+Ada mode is  fully customizable. Everything, from the  file names to
 the automatic  indentation and  the automatic casing  can be  adapted to
 your own needs.
 
@@ -216,15 +237,15 @@ There  are   two  different  kinds   of  variables  that   control  this
 customization, both are easy to modify.
 
 The first set of variables are standard Emacs variables. Of course, some
-are defined  only for the Ada  mode, whereas others have  a more general
+are defined  only for Ada  mode, whereas others have  a more general
 meaning  in   Emacs.  Please  see  the  Emacs   documentation  for  more
 information on the latest. In this documentation, we will detail all the
-variables that are specific to the Ada mode, and a few others. The names
+variables that are specific to Ada mode, and a few others. The names
 will be given, as in @code{ada-case-identifier}.
 
 Emacs provides an easy way to modify them, through a special mode called
 customization.    To    access    this    mode,    select    the    menu
-@kbd{Ada->Customize}.  This will open a new buffer with some fields that
+@samp{Ada->Customize}.  This will open a new buffer with some fields that
 you can edit.  For instance, you will get something like:
 @example
 Put below the compiler switches.
@@ -241,8 +262,8 @@ with  the  middle mouse  button).  This will  save  the  values in  your
 same values.
 
 To modify a specific variable, you can directly call the function
-@code{customize-variable} from Emacs (just type @key{M-x
-customize-variable RET} and then type the variable name.
+@code{customize-variable} from Emacs (just type @kbd{M-x
+customize-variable @key{RET} @var{variable-name} @key{RET}}).
 
 Some users might prefer to modify the variables directly in their
 configuration file, @file{.emacs}. This file is coded in Emacs lisp, and
@@ -270,7 +291,7 @@ Ada programmers. That is to say, editing, compiling, executing and
 debugging can be performed within Emacs in a convenient and natural way.
 
 To take full advantage of this features, it is possible to create a file
-in  the main  directory of  your application,  with a  '.adp' extension.
+in  the main  directory of  your application,  with a  @samp{.adp} extension.
 This  file contain  all needed  information  dealing with  the way  your
 application is  organized between directories, the  commands to compile,
 run and debug it etc. Creating this file is not mandatory and convenient
@@ -283,9 +304,9 @@ menu. It  is also possible  to edit the  project file as a  regular text
 file.
 
 Once  in the  buffer for  editing the  project file,  you can  save your
-modification using  the '[OK]'  button at the  bottom of the  buffer, or
+modification using  the @samp{[OK]}  button at the  bottom of the  buffer, or
 simply   use  the  usual   @kbd{C-x  C-s}   binding.   To   cancel  your
-modifications, simply kill the buffer  or click on the '[CANCEL]' button
+modifications, simply kill the buffer  or click on the @samp{[CANCEL]} button
 at the button.
 
 Each buffer using Ada mode will be associated with one project file when
@@ -297,20 +318,25 @@ described in the next section, but you can force the project file you
 want to use by setting one or two variables in your @file{.emacs} file.
 
 @itemize @bullet
-@item To set up a default project file to use for any directory, anywhere
+@item
+To set up a default project file to use for any directory, anywhere
 on your system, set the variable @code{ada-prj-default-project-file} to
 the name of that file.
+
 @example
-  (set 'ada-prj-default-project-file "/dir1/dir2/file")
+(set 'ada-prj-default-project-file "/dir1/dir2/file")
 @end example
 
-@item For a finer controlled, you can set a per-directory project file.
+@item
+For finer control, you can set a per-directory project file.
 This is done through the variable @code{ada-xref-default-prj-file}.
+
 @example
   (set 'ada-xref-default-prj-file
        '(("/dir1/dir2" . "/dir3/file1")
          ("/dir4/dir5" . "/dir6/file2")))
 @end example
+
 Note: This has a higher priority than the first variable, so the first
 choice is to use this variable settings, and otherwise
 @code{ada-prj-default-project-file}.
@@ -318,15 +344,15 @@ choice is to use this variable settings, and otherwise
 
 
 @table @kbd
-@item C-c u   ada-customize   menu: Ada->Project->New/Edit
-Create or edit the project file for the current buffer.
-@item C-c c   ada-change-prj
-Change the project file associated with the current Ada buffer.
+@item C-c u
+Create or edit the project file for the current buffer (@code{ada-customize}).
+@item C-c c   
+Change the project file associated with the current Ada buffer (@code{ada-change-prj}).
 @item C-c d
 Change the  default project  file for the  current directory.  Every new
 file opened  from this  directory will be  associated with that  file by
 default.
-@item ada-set-default-project-file  menu: Ada->Project->Set Default
+@item ada-set-default-project-file
 Set the default  project file to use for *any*  Ada file opened anywhere
 on your system. This sets this file only for the current Emacs session.
 @end table
@@ -346,59 +372,59 @@ will be substituted.
 
 Here is the list of variables:
 
-@table @code
-@item src_dir          [default: "./"]
-This is  a list of directories where  the Ada mode will  look for source
+@table @asis
+@item @code{src_dir}          [default: @code{"./"}]
+This is  a list of directories where Ada mode will  look for source
 files. These directories are used mainly  in two cases, both as a switch
 for the compiler and for the cross-references.
 
-@item obj_dir             [default: "./"]
-This  is a  list of  directories where  to look  for object  and library
-files.  The library files are the  .ali files generated by Gnat and that
-contain cross-reference informations.
+@item @code{obj_dir}             [default: @code{"./"}]
+This is a list of directories where to look for object and library
+files.  The library files are the @samp{.ali} files generated by Gnat
+and that contain cross-reference informations.
 
-@item comp_opt            [default: ""]
+@item @code{comp_opt}            [default: @code{""}]
 Creates a  variable which can be  referred to subsequently  by using the
 @code{$@{comp_opt@}} notation.   This is  intended to store  the default
-switches given to `gnatmake' and `gcc'.
+switches given to @command{gnatmake} and @command{gcc}.
 
-@item bind_opt=SWITCHES   [default: ""]
+@item @code{bind_opt=@var{switches}}   [default: @code{""}]
 Creates a  variable which can be  referred to subsequently  by using the
 @code{$@{bind_opt@}} notation.   This is  intended to store  the default
-switches given to `gnatbind'.
+switches given to @command{gnatbind}.
 
-@item link_opt=SWITCHES   [default: ""]
+@item @code{link_opt=@var{switches}}   [default: @code{""}]
 Creates a  variable which can be  referred to subsequently  by using the
 @code{$@{link_opt@}} notation.   This is  intended to store  the default
-switches given to `gnatlink'.
+switches given to @command{gnatlink}.
 
-@item main=EXECUTABLE     [default: ""]
+@item @code{main=@var{executable}}     [default: @code{""}]
 Specifies the name of the  executable for the application. This variable
 can be referred to in  the following lines by using the @code{$@{main@}}
 notation.
 
-@item cross_prefix=PREFIX [default: ""]
+@item @code{cross_prefix=@var{prefix}} [default: @code{""}]
 This variable  should be set if  you are working  in a cross-compilation
 environment. This is the prefix used in front of the gnatmake commands.
 
-@item remote_machine=MACHINE [default: ""]
-This  is  the  name of  the  machine  to  log  into before  issuing  the
-compilation command. If this variable  is empty, the command will be run
-on the local  machine. This will not work on  Windows NT machines, since
-the Ada  mode will simply precede  the compilation command  with a 'rsh'
-command, unknown on Windows.
+@item @code{remote_machine=@var{machine}} [default: @code{""}]
+This is the name of the machine to log into before issuing the
+compilation command. If this variable is empty, the command will be
+run on the local machine. This will not work on Windows NT machines,
+since Ada mode will simply precede the compilation command with a
+@command{rsh} command, unknown on Windows.
 
-@item comp_cmd=COMMAND    [default: "$@{cross_prefix@}gcc -c -I$@{src_dir@} -g -gnatq"]
+@item @code{comp_cmd=@var{command}}    [default: @code{"$@{cross_prefix@}gcc -c -I$@{src_dir@} -g -gnatq"}]
 Specifies the command used to compile a single file in the application.
 The name of the file will be added at the end of this command.
 
-@item make_cmd=COMMAND    [default: "$@{cross_prefix@}gnatmake $@{main@} -aI$@{src_dir@} -aO$@{obj_dir@} -g -gnatq -cargs $@{comp_opt@} -bargs $@{bind_opt@} -largs $@{link_opt@}"]'
+@item @code{make_cmd=@var{command}}    [default: @code{"$@{cross_prefix@}gnatmake $@{main@} -aI$@{src_dir@} -aO$@{obj_dir@} -g -gnatq -cargs $@{comp_opt@} -bargs $@{bind_opt@} -largs $@{link_opt@}"]}'
 Specifies the command used to recompile the whole application.
 
-@item run_cmd=COMMAND     [default: "$@{main@}"]
+@item @code{run_cmd=@var{command}}     [default: @code{"$@{main@}"}]
 Specifies the command used to run the application.
 
-@item debug_cmd=COMMAND   [default: "$@{cross_prefix@}gdb $@{main@}"]
+@item @code{debug_cmd=@var{command}}   [default: @code{"$@{cross_prefix@}gdb $@{main@}"}]
 Specifies the command used to debug the application
 
 @end table
@@ -417,23 +443,30 @@ function is  used (goto declaration  for instance), the  following steps
 are taken:
 
 @itemize @bullet
-@item find the appropriate project file, open and parse it.
+@item
+find the appropriate project file, open and parse it.
 All  the fields  read  in the  project  file are  then  stored by  emacs
 locally.  Finding the project file requires a few steps:
 
 @itemize @minus
-@item if a file from the same directory was already associated with
+@item
+if a file from the same directory was already associated with
 a project file, use the same one. This is the variable
 @code{ada-xref-default-prj-file} described above.
-@item if the variable @code{ada-prj-default-project-file} is set,
+@item
+if the variable @code{ada-prj-default-project-file} is set,
 use the project file specified in this variable.
-@item if there is a project file whose name is the same as the source file
- except for the suffix, use this one.
-@item if  there's only one project file in the source directory, use
+@item
+if there is a project file whose name is the same as the source file
+except for the suffix, use this one.
+@item
+if  there's only one project file in the source directory, use
 that one.
-@item if there are more than one project file in the source directory,
+@item
+if there are more than one project file in the source directory,
 ask the user.
-@item if there are no project files in the source directory use standard
+@item
+if there are no project files in the source directory use standard
 default values.
 @end itemize
 
@@ -441,19 +474,22 @@ The first project file that is selected in a given directory becomes the
 default project file for this directory and is used implicitly for other
 sources unless specified otherwise by the user.
 
-@item  look for the corresponding .ali file in the @code{obj_dir} defined
+@item
+look for the corresponding .ali file in the @code{obj_dir} defined
 in the project  file.  If this file can not be  found, emacs proposes to
 compile the source using the @code{comp_cmd} defined in the project file
 in order to create the ali file.
 
-@item when cross referencing is requested, the .ali  file is parsed to
+@item
+when cross referencing is requested, the .ali  file is parsed to
 determine  the  file and  line  of  the  identifier definition.   It  is
 possible for  the .ali file to be  older than the source  file, in which
 case it will be recompiled if the variable @code{ada-xref-create-ali} is
 set, otherwise the  reference is searched in the  obsolete ali file with
 possible inaccurate results.
 
-@item look  for   the file containing the declaration using the source
+@item
+look  for   the file containing the declaration using the source
 path @code{src_dir} defined in the  project file.  Put the cursor at the
 correct position and display this new cursor.
 @end itemize
@@ -463,10 +499,10 @@ correct position and display this new cursor.
 @chapter Syntax highlighting
 @c -----------------------------------------------------------------------
 
-The Ada mode is made to help you understand the structure of your source
+Ada mode is made to help you understand the structure of your source
 files. Some  people like having  colors or different fonts  depending on
 the  context: commands  should be  displayed differently  than keywords,
-which should also be different from strings, ...
+which should also be different from strings, @dots{}
 
 Emacs is able to display in a different way the following syntactic
 entities:
@@ -485,13 +521,13 @@ activate it. This requires that you add a new line in your @file{.emacs}
 file (if this file does not exist, just create it).
 
 @example
-  (global-font-lock-mode t)
+(global-font-lock-mode t)
 @end example
 
 But  the default colors  might not  be the  ones you  like. Fortunately,
 there  is  a  very  easy  way  to change  them.  Just  select  the  menu
-@kbd{Help->Customize->Specific  Face...}  and  press @kbd{Return}.  This
-will display a buffer will all the "faces" (the colors) that Emacs knows
+@samp{Help->Customize->Specific  Face...}  and  press @key{RET}.  This
+will display a buffer will all the ``faces'' (the colors) that Emacs knows
 about. You can change any of them.
 
 
@@ -505,45 +541,50 @@ these functions are available through the Ada menu, and you can also use
 the following key bindings or the command names:
 
 @table @kbd
-@item M-C-e    ada-next-procedure
-Move to the next function/procedure/task, which ever comes next.
-@item M-C-a    ada-previous-procedure
-Move to previous function/procedure/task.
-@item          ada-next-package
+@item M-C-e
+Move to the next function/procedure/task, which ever comes next
+(@code{ada-next-procedure}).
+@item M-C-a
+Move to previous function/procedure/task
+(@code{ada-previous-procedure}).
+@item M-x ada-next-package
 Move to next package.
-@item          ada-prev-package
+@item M-x ada-prev-package
 Move to previous package.
-@item C-c C-a  ada-move-to-start
-Move  to matching start  of @code{end}.   If point  is at  the end  of a
-subprogram, this command jumps  to the corresponding @code{begin} if the
-user option  @code{ada-move-to-declaration} is @code{nil}  (default), it
-jumps to the subprogram declaration otherwise.
-@item C-c C-e  ada-move-to-end
-Move point to end of current block.
-@item C-c o    ff-find-other-file
-Switch between corresponding spec and body  file.  If the cursor is on a
-subprogram, switch between declaration and body.
+@item C-c C-a
+Move to matching start of @code{end} (@code{ada-move-to-start}).  If
+point is at the end of a subprogram, this command jumps to the
+corresponding @code{begin} if the user option
+@code{ada-move-to-declaration} is @code{nil} (default), it jumps to
+the subprogram declaration otherwise.
+@item C-c C-e
+Move point to end of current block (@code{ada-move-to-end}).
+@item C-c o
+Switch between corresponding spec and body file
+(@code{ff-find-other-file}).  If the cursor is on a subprogram, switch
+between declaration and body.
 @item C-c c-d
 Move  from   any  reference  to  its  declaration   and  switch  between
 declaration  and body  (for  procedures, tasks,  private and  incomplete
 types).
-@item C-c C-r  ada-find-references
-runs the  @file{gnatfind} command  to search for  all references  to the
-entity pointed  by the cursor. Use  'next-error' function, or  C-x `, to
-visit each reference (as for compilation errors).
+@item C-c C-r
+runs the @file{gnatfind} command to search for all references to the
+entity pointed by the cursor (@code{ada-find-references}).  Use
+@kbd{C-x `} (@code{next-error}) to visit each reference (as for
+compilation errors).
 @end table
 
 These  functions use  the  information in  the  output of  the Gnat  Ada
 compiler.   However,   if  your   application  was  compiled   with  the
-@code{-gnatx}  switch, these  functions will  not work,  since  no extra
+@samp{-gnatx}  switch, these  functions will  not work,  since  no extra
 information  is generated by  GNAT. See  GNAT documentation  for further
 information.
 
 Emacs will  try to  run    Gnat for  you whenever the    cross-reference
 informations  are     older   than your   source   file   (provided  the
-@code{ada-xref-create-ali} variable is  non nil).  Gnat  then produces a
+@code{ada-xref-create-ali} variable is  non-@code{nil}).  Gnat  then produces a
 file with the same name  as the current  Ada file but with the extension
-changed to @code{.ali}. This files are normally used  by the binder, but
+changed to @file{.ali}. This files are normally used  by the binder, but
 they will also contain additional cross-referencing information.
 
 @c -----------------------------------------------------------------------
@@ -555,24 +596,26 @@ they will also contain additional cross-referencing information.
 @section Overview
 @c -----------------------------------------------------------------------
 
-Emacs and  the Ada mode provide  two general ways for  the completion of
+Emacs and  Ada mode provide  two general ways for  the completion of
 identifiers. This is  an easy way to type faster: you  just have to type
 the first few  letters of an identifiers, and then  loop through all the
 possible completions.
 
 The  first method  is general  for  Emacs. It  will work  both with  Ada
-buffers, but also in C buffers,  Java buffers, ...  The idea is to parse
+buffers, but also in C buffers,  Java buffers, @enddots{}  The idea is to parse
 all the opened buffers for possible completions.
 
-For instance,  if the following words  are present in any  of the opened
-files: my_identifier, my_subprogam, then you will have this scenario:
-@example
+For instance, if the words @samp{my_identifier}, @samp{my_subprogram}
+are the only words starting with @samp{my} in any of the opened files,
+then you will have this scenario:
+
+@quotation
 You type:  my@key{M-/}
-Emacs will display:  my_identifier
-If you press @key{M-/} once again, Emacs will replace my_identifier with
-my_subprogram.
-Pressing @key{M-/} once more will bring you back to my_identifier.
-@end example
+Emacs inserts:  @samp{my_identifier}
+If you press @key{M-/} once again, Emacs replaces @samp{my_identifier} with
+@samp{my_subprogram}.
+Pressing @key{M-/} once more will bring you back to @samp{my_identifier}.
+@end quotation
 
 This is a very  fast way to do completion, and the  casing of words will
 also be respected.
@@ -583,7 +626,7 @@ files generated by Gnat for possible completions.
 
 The  main advantage  is  that  this completion  is  more accurate:  only
 existing identifier  will be  suggested, you don't  need to have  a file
-opened that already contains this identifiers,...
+opened that already contains this identifiers, @enddots{}
 
 On the other  hand, this completion is a little  bit slower and requires
 that you  have compiled your file  at least once since  you created that
@@ -594,10 +637,11 @@ identifier.
 @c -----------------------------------------------------------------------
 
 @table @kbd
-@item C-TAB  ada-complete-identifier
-complete accurately current identifier using information in .ali file
+@item C-@key{TAB}
+Complete accurately current identifier using information in @samp{.ali} file
+(@code{ada-complete-identifier}).
 @item M-/
-complete identifier using buffer information (not ada specific)
+Complete identifier using buffer information (not Ada-specific).
 @end table
 
 @c -----------------------------------------------------------------------
@@ -607,8 +651,8 @@ complete identifier using buffer information (not ada specific)
 
 You  can   display  a  choice  menu   with  all  procedure/function/task
 declarations in the file and choose an item by mouse click to get to its
-declaration.  This function is  accessible through  the 'Ada'  menu when
-editing a Ada file, or simply through the following key binding :
+declaration.  This function is  accessible through  the @samp{Ada} menu when
+editing a Ada file, or simply through the following key binding:
 
 @table @kbd
 @item C-S-Mouse-3
@@ -627,9 +671,9 @@ would with any file browser. The following commands are then available.
 
 You can click  on a directory name  or file name to open  it. The editor
 will  automatically  select  the  best  possible  mode  for  this  file,
-including of course the ada-mode for files written in Ada
+including of course Ada mode for files written in Ada.
 
-If you click on the [+] symbol near a file name, all the symbols (types,
+If you click on the @samp{[+]} symbol near a file name, all the symbols (types,
 variables and subprograms)  defined in that file will  be displayed, and
 you  can directly click  on them  to open  the right  file at  the right
 place.
@@ -642,7 +686,7 @@ following key binding
 (global-set-key [f7]  'speedbar-get-focus)
 @end example
 
-Every time you press @key{f7},  the mouse will automatically move to the
+Every time you press @key{F7},  the mouse will automatically move to the
 speedbar frame (which will be created if it does not exist).
 
 @c -----------------------------------------------------------------------
@@ -650,90 +694,93 @@ speedbar frame (which will be created if it does not exist).
 @chapter Automatic Smart Indentation
 @c -----------------------------------------------------------------------
 
-The Ada mode  comes with a full set of  rules for automatic indentation.
+Ada mode  comes with a full set of  rules for automatic indentation.
 You can of course configure the  indentation as you want, by setting the
 value of a few variables.
 
 As  always,  the  preferred  way  to  modify variables  is  to  use  the
-@code{Ada->Customize} menu  (don't forget  to save your  changes!). This
+@samp{Ada->Customize} menu  (don't forget  to save your  changes!). This
 will also show you some example of code where this variable is used, and
 hopefully make things clearer.
 
 The relevant variables are the following:
 
-@table @code
-@item ada-broken-indent           (default value: 2)
-Number of columns to indent the continuation of a broken line
+@table @asis
+@item @code{ada-broken-indent}           (default value: 2)
+Number of columns to indent the continuation of a broken line.
 
-@item ada-indent                  (default value: 3)
-Width of the default indentation
+@item @code{ada-indent}                  (default value: 3)
+Width of the default indentation.
 
-@item ada-indent-record-rel-type  (default value: 3)
-Indentation for 'record' relative to 'type' or 'use'
+@item @code{ada-indent-record-rel-type}  (default value: 3)
+Indentation for @code{record} relative to @code{type} or @code{use}.
 
-@item ada-indent-return           (default value: 0)
-Indentation for 'return' relative to 'function' (if ada-indent-return
-is greater than 0), or the open parenthesis (if ada-indent-return is
-negative or null). Note that in the second case, when there is no
-open parenthesis, the indentation is done relative to 'function' with
-the value of ada-broken-indent.
+@item @code{ada-indent-return}           (default value: 0)
+Indentation for @code{return} relative to @code{function} (if
+@code{ada-indent-return} is greater than 0), or the open parenthesis
+(if @code{ada-indent-return} is negative or null).  Note that in the second
+case, when there is no open parenthesis, the indentation is done
+relative to @code{function} with the value of @code{ada-broken-indent}.
 
-@item ada-label-indent            (default value: -4)
-Number of columns to indent a label
+@item @code{ada-label-indent}            (default value: -4)
+Number of columns to indent a label.
 
-@item ada-stmt-end-indent         (default value: 0)
-Number of columns to indent a statement 'end' keyword on a separate line
+@item @code{ada-stmt-end-indent}         (default value: 0)
+Number of columns to indent a statement @code{end} keyword on a separate line.
 
-@item ada-when-indent             (default value: 3)
-Indentation for 'when' relative to 'exception' or 'case'
+@item @code{ada-when-indent}             (default value: 3)
+Indentation for @code{when} relative to @code{exception} or @code{case}.
 
-@item ada-indent-is-separate      (default value: t)
-Non-nil means indent 'is separate' or 'is abstract' if on a single line
+@item @code{ada-indent-is-separate}      (default value: t)
+Non-@code{nil} means indent @code{is separate} or @code{is abstract} if on a single line.
 
-@item ada-indent-to-open-paren    (default value: t)
-Non-nil means indent according to the innermost open parenthesis
+@item @code{ada-indent-to-open-paren}    (default value: t)
+Non-@code{nil} means indent according to the innermost open parenthesis.
 
-@item ada-indent-after-return     (default  value: t)
-Non-nil  means that  the current  line will  also be  re-indented before
-inserting a newline, when you press @kbd{Return}.
-
+@item @code{ada-indent-after-return}     (default  value: t)
+Non-@code{nil}  means that  the current  line will  also be  re-indented before
+inserting a newline, when you press @key{RET}.
 @end table
 
 Most of the  time, the indentation will be automatic,  i.e when you will
-press @kbd{Return},  the cursor will move  to the correct  column on the
+press @key{RET},  the cursor will move  to the correct  column on the
 next line.
 
 However, you might want or  need sometimes to re-indent the current line
 or a set of  lines. For this, you can simply go  to that line, or select
-the lines,  and then press @kbd{TAB}. This  will automatically re-indent
+the lines,  and then press @key{TAB}. This  will automatically re-indent
 the lines.
 
-Another  mode  of indentation  exists  that helps  you  to  set up  your
-indentation scheme. If you press @kbd{C-c TAB}, the ada-mode will do the
-following:
+Another mode of indentation exists that helps you to set up your
+indentation scheme. If you press @kbd{C-c @key{TAB}}, Ada mode will do
+the following:
+
 @itemize @bullet
-@item Reindent the current line, as @kbd{TAB} would do
-@item Temporarily move the cursor to a reference line, i.e the line that
-  was used to calculate the current indentation
-@item Display at the bottom of the window the name of the variable that
-  provided the offset for the indentation
+@item
+Reindent the current line, as @key{TAB} would do.
+@item
+Temporarily move the cursor to a reference line, i.e., the line that
+was used to calculate the current indentation.
+@item
+Display at the bottom of the window the name of the variable that
+provided the offset for the indentation.
 @end itemize
 
 The exact indentation of the current line is the same as the one for the
 reference line, plus an offset given by the variable.
 
-Once you know the name of the variable, you can either modify it through
-the   usual   @key{Ada->Customize}   menu,   or   by   typing   @key{M-x
-customize-variable RET} in the Emacs window, and then give the name of
-the variable.
+Once you know the name of the variable, you can either modify it
+through the usual @samp{Ada->Customize} menu, or by typing @kbd{M-x
+customize-variable @key{RET}} in the Emacs window, and then give the
+name of the variable.
 
 @table @kbd
-@item TAB
-indent the current line or the current region.
+@item @key{TAB}
+Indent the current line or the current region.
 @item M-C-\
-indent lines in the current selected block.
-@item C-c TAB
-indent the current line and prints the name of the variable used for
+Indent lines in the current selected block.
+@item C-c @key{TAB}
+Indent the current line and prints the name of the variable used for
 indentation.
 @end table
 
@@ -744,15 +791,15 @@ indentation.
 @chapter Formatting Parameter Lists
 @c -----------------------------------------------------------------------
 
-To help you correctly align fields in a subprogram parameter list, Emacs
-provides  one function  that will  do  most of  the work  for you.  This
-function  will align  the  declarations on  the  colon (':')  separating
-argument names  and argument types, plus  align the 'in',  'out' and 'in
-out' keywords if required.
+To help you correctly align fields in a subprogram parameter list,
+Emacs provides one function that will do most of the work for you.
+This function will align the declarations on the colon (@samp{:})
+separating argument names and argument types, plus align the
+@code{in}, @code{out} and @code{in out} keywords if required.
 
 @table @kbd
-@item C-c C-f  ada-format-paramlist
-Format the parameter list.
+@item C-c C-f
+Format the parameter list (@code{ada-format-paramlist}).
 @end table
 
 @c -----------------------------------------------------------------------
@@ -772,7 +819,7 @@ attributes and  identifiers. The  relevant variables are  the following:
 
 All these variables can have one of the following values:
 
-@table @kbd
+@table @code
 @item downcase-word
 The  previous word  will simply  be in  all lower  cases.   For instance
 @code{My_vARIable} is converted to @code{my_variable}.
@@ -783,12 +830,12 @@ The previous word will be  fully converted to upper cases.  For instance
 
 @item ada-capitalize-word
 All letters, except the first one of the word and every letter after the
-'_'  character are  lower cased.  Other  letters are  upper cased.   For
+@samp{_}  character are  lower cased.  Other  letters are  upper cased.   For
 instance @code{My_vARIable} is converted to @code{My_Variable}.
 
 @item ada-loose-case-word
 No letters is  modified in the previous word, except  the ones after the
-'_' character that are  upper cased.  For instance @code{My_vARIable} is
+@samp{_} character that are  upper cased.  For instance @code{My_vARIable} is
 converted to @code{My_VARIable}.
 @end table
 
@@ -805,7 +852,7 @@ through the variable @code{ada-case-exception-file}.
 Note that  each line  in this file  must start  with the key  word whose
 casing  you want  to  specify. The  rest of  the  line can  be used  for
 comments  (explaining  for  instance  what  an  abbreviation  means,  as
-recommended in the Ada 95  Quality and Style, paragrpah 3.1.4).  Thus, a
+recommended in the Ada 95  Quality and Style, paragraph 3.1.4).  Thus, a
 good example for this file could be:
 
 @example
@@ -825,7 +872,7 @@ as you  would edit any  text file, and  add or suppress entries  in this
 file.  Remember that  you should  put one  entity per  line.  The other,
 easier way, is to position the cursor  over the word you want to add, in
 an Ada buffer.  This word should have the casing  you want.  Then simply
-select  the  menu @kbd{Ada->Edit->Create  Case  Exception},  or the  key
+select  the  menu @samp{Ada->Edit->Create  Case  Exception},  or the  key
 @kbd{C-c C-y}. The word will  automatically be added to the current list
 of exceptions and to the file.
 
@@ -842,6 +889,7 @@ only.  You  can not automatically add  an exception to one  of the other
 files, although you can of course edit the files by hand at any time.
 
 Automatic casing can be performed on port or whole buffer using:
+
 @table @kbd
 @item C-c C-b
 Adjust case in the whole buffer.
@@ -933,7 +981,7 @@ additional functions to handle comments:
 Start a comment in default column.
 @item M-j
 Continue comment on next line.
-@item C-c ;   comment-region
+@item C-c ;
 Comment the selected region (add -- at the beginning of lines).
 @item C-c :
 Uncomment the selected region
@@ -978,7 +1026,7 @@ customized with the variable @code{comp_opt} of the project file.
 Emacs  will  display  a new  buffer  that  contains  the result  of  the
 compilation.  Each line associated with an error will become active: you
 can simply click on it with the  middle button of the mouse, or move the
-cursor  on  it and  press  @kbd{Return}.  Emacs  will then  display  the
+cursor  on  it and  press  @key{RET}.  Emacs  will then  display  the
 relevant source file and put the cursor on the line and column the error
 was found at.
 
@@ -1041,23 +1089,23 @@ also set a breakpoint simply by right-clicking on a line.
 You  can easily use  Emacs as  the source  window when  you are  using a
 graphical  interface for the  debugger. The  interesting thing  is that,
 whereas  you still  have the  graphical nifties,  you can  also  you the
-cross-references  features that  the ada-mode  provides to  look  at the
-definition for the identifiers,...
+cross-references  features that  Ada mode  provides to  look  at the
+definition for the identifiers, @enddots{}
 
 Here is how you  can set up gdbtk and ddd for  use with Emacs (These are
 the commands you should setup in the project file):
 
 @itemize @bullet
 @item gdbtk
-should  be used  with  the  switch --emacs_gdbtk.   It  provides a  nice
+should  be used  with  the  switch @samp{--emacs_gdbtk}.   It  provides a  nice
 backtrace window, as well as a tasks window. You can click interactively
 on both of  them, and Emacs will display the source  file on the correct
 line.
 
 @item ddd (Data Display Debugger)
-should be used with the switches --tty and -fullname. Whenever you
-print a variable from Emacs, it will be displayed graphically in the
-data window.
+should be used with the switches @samp{--tty} and
+@samp{--fullname}. Whenever you print a variable from Emacs, it will
+be displayed graphically in the data window.
 
 @end itemize
 
@@ -1069,19 +1117,19 @@ data window.
 
 By default, Emacs is configured to  use the GNAT style file names, where
 file names are the package names,  and the extension for spec and bodies
-are respectively .ads and .adb.
+are respectively @samp{.ads} and @samp{.adb}.
 
 If you  want to  use other  types of file  names, you will need to modify
-your .emacs configuration file.
+your @file{.emacs} file.
 
-Adding new possible extensions is easy. Since the ada-mode needs to know
+Adding new possible extensions is easy. Since Ada mode needs to know
 how to  go from  the body  to the spec  (and back),  you always  have to
-specify  both. A  function  is provided  with  the ada-mode  to add  new
+specify  both. A  function  is provided  with  Ada mode  to add  new
 extensions.
 
-For  instance, if your  files are  called <unit>_s.ada  and <unit>_b.ada
-respectively for spec and bodies, you  need to add the following to your
-@file{.emacs} :
+For instance, if your spec and bodies files are called
+@file{@var{unit}_s.ada} and @file{@var{unit}_b.ada}, respectively, you
+need to add the following to your @file{.emacs} file:
 
 @example
 (ada-add-extensions "_s.ada" "_b.ada")
@@ -1100,10 +1148,10 @@ a file whose extension is  @file{.ads}, it will take the first available
 file  that ends  with  either @file{.adb}  (standard), @file{_b.ada}  or
 @file{.body}.
 
-If the  filename is  not the unit  name, then  things are a  little more
-complicated.     You    then    need    to    rewrite    the    function
-ada-make-filename-from-adaname (see  the file @file{ada-mode.el}  for an
-example).
+If the filename is not the unit name, then things are a little more
+complicated.  You then need to rewrite the function
+@code{ada-make-filename-from-adaname} (see the file @file{ada-mode.el}
+for an example).
 
 @c ---------------------------------------------------------------------
 @node Working Remotely, ,Using non-standard file names, Top
@@ -1126,14 +1174,15 @@ machine and the remote machine that stores your files. This is a special
 Emacs mode, called @code{ange-ftp}. To use it, you just have to use a
 slightly different syntax when you open a file.
 
-@example
-For instance, if you want to  open the file /work/foo.adb on the machine
+For instance, if you want to  open the file @file{/work/foo.adb} on the machine
 aleph.gnu.org, where you log in as qwe, you would simply do this:
 
-@key{C-x C-f} /qwe@@aleph.gnu.org:/work/foo.adb @key{Return}
-
-i.e put your name, the name of the machine and the name of the file.
+@example
+C-x C-f /qwe@@aleph.gnu.org:/work/foo.adb @key{RET}
 @end example
+
+@noindent
+i.e., use your name, the name of the machine and the name of the file.
 
 The first time, Emacs will ask  you for a password that it will remember
 until you  close the current Emacs.  Even if the ftp  session times out,
@@ -1150,7 +1199,7 @@ If the  machine you  want to  compile on is  not the  one your  Emacs is
 running  on,  you can  set  the  variable  @code{remote_machine} in  the
 project file for your application.
 
-This  will force  Emacs  to issue  a  rsh command  for the  compilation,
+This  will force  Emacs  to issue  a  @command{rsh} command  for the  compilation,
 instead of  running it on  the local machine. Unfortunately,  this won't
 work on Windows workstations, since this protocol is not supported.
 
@@ -1170,7 +1219,7 @@ compilation, you need to insert a call to the appropriate initialization
 script in the compilation command, for instance:
 
 @example
-build_cmd= initialization_script ; cd /work/ && gnatmake foo
+build_cmd= initialization_script; cd /work/ && gnatmake foo
 @end example
 
 @c ---------------------------------------------------------------------
@@ -1180,15 +1229,12 @@ build_cmd= initialization_script ; cd /work/ && gnatmake foo
 This feature is not completely implemented yet.
 
 However, most of the time, you will be able to run your application
-remotely simply by replacing it with a 'rsh' call on Unix.
+remotely simply by replacing it with a @command{rsh} call.
+For instance, if your command was @code{$@{main@}}, you could replace it with
+@code{rsh aleph.gnu.org $@{main@}}.
 
-@example
-For instance, if your command was '$@{main@}', you could replace it with
-'rsh aleph.gnu.org $@{main@}'.
-@end example
-
-However, this would not fully work for instance on vxworks, where rsh
-is not supported.
+However, this would not work on vxworks, for instance, where
+@command{rsh} is not supported.
 
 @contents
 @bye
