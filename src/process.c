@@ -1854,7 +1854,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 condition here; if a SIGIO arrives between now and the select
 	 and indicates that a frame is trashed, the select may block
 	 displaying a trashed screen.  */
-      if (frame_garbaged)
+      if (frame_garbaged && do_display)
 	redisplay_preserve_echo_area ();
 
       if (XINT (read_kbd) && detect_input_pending ())
@@ -3195,7 +3195,7 @@ extern int frame_garbaged;
      `subprocesses' isn't defined.
 
    do_display != 0 means redisplay should be done to show subprocess
-   output that arrives.  This version of the function ignores it.
+   output that arrives.
 
    Return true iff we received input from any process.  */
 
@@ -3262,7 +3262,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If a frame has been newly mapped and needs updating,
 	 reprocess its display stuff.  */
-      if (frame_garbaged)
+      if (frame_garbaged && do_display)
 	redisplay_preserve_echo_area ();
 
       if (XINT (read_kbd) && detect_input_pending ())
