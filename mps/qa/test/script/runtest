@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.7) $
+# $HopeName: MMQA_harness!script:runtest(trunk.8) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -60,7 +60,7 @@ sub clib {
 }
 
 sub run_test {
- local ($testfile, $interact, $report_type) = @_;
+ local ($testfile, $interact, $report_type, $logfile) = @_;
 
  &readheader($testfile, 1);
 
@@ -75,7 +75,10 @@ sub run_test {
    }
    $testlogfile = "$obj_dir/tmp_log.log";
    &run_exe($objfile, $interact, $stdin);
+   open(LOG_RESULTS, ">".$logfile);
    &describe_test($report_type);
+   &describe_test($report_type, LOG_RESULTS);
+   close(LOG_RESULTS);
    last;
   };
 
