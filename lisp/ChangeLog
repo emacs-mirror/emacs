@@ -1,3 +1,20 @@
+2002-04-28  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-accumulate-lines): Avoid incf and decf.
+	(occur-engine-add-prefix): New function.
+	(occur-engine): Avoid using macrolet, incf and decf.
+	Use occur-engine-add-prefix instead.
+	Rename `l' to `lines' and `c' to `matches'.
+
+	* replace.el (occur-engine, occur-mode-mouse-goto) 
+	(occur-mode-find-occurrence, occur-mode-goto-occurrence) 
+	(occur-mode-goto-occurrence-other-window) 
+	(occur-mode-display-occurrence): A position is just a marker,
+	not a list.
+
+	* replace.el (occur-revert-arguments):
+	Renamed from occur-revert-properties.  All uses changed.
+
 2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* recentf.el (recentf-menu-before): Use string to specify path in
