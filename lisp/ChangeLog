@@ -1,3 +1,8 @@
+2004-09-14  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* ibuf-ext.el (define-ibuffer-filter filename): If buffer has
+	no file name consider `dired-directory'.
+
 2004-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* faces.el (cursor): Add face-no-inherit property.  Doc fix.
