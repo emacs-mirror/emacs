@@ -264,11 +264,10 @@
 			     name)
 	  form)
       ;; else
-      (if (and (consp fn) (eq (car fn) 'autoload))
-	  (progn
-	    (load (nth 2 fn))
-	    (setq fn (or (cdr (assq name byte-compile-function-environment))
-			 (and (fboundp name) (symbol-function name))))))
+      (when (and (consp fn) (eq (car fn) 'autoload))
+	(load (nth 2 fn))
+	(setq fn (or (and (fboundp name) (symbol-function name))
+		     (cdr (assq name byte-compile-function-environment)))))
       (if (and (consp fn) (eq (car fn) 'autoload))
 	  (error "File `%s' didn't define `%s'" (nth 2 fn) name))
       (if (symbolp fn)
@@ -328,7 +327,7 @@
 				    bindings)
 		     values nil))
 	      ((and (not optionalp) (null values))
-	       (byte-compile-warn "attempt to open-code %s with too few arguments" name)
+	       (byte-compile-warn "Attempt to open-code `%s' with too few arguments" name)
 	       (setq arglist nil values 'too-few))
 	      (t
 	       (setq bindings (cons (list (car arglist) (car values))
@@ -339,7 +338,7 @@
 	  (progn
 	    (or (eq values 'too-few)
 		(byte-compile-warn
-		 "attempt to open-code %s with too many arguments" name))
+		 "Attempt to open-code `%s' with too many arguments" name))
 	    form)
 	(setq body (mapcar 'byte-optimize-form body))
 	(let ((newform 
@@ -370,7 +369,7 @@
 	     form))
 	  ((eq fn 'quote)
 	   (if (cdr (cdr form))
-	       (byte-compile-warn "malformed quote form: %s"
+	       (byte-compile-warn "Malformed quote form: `%s'"
 				  (prin1-to-string form)))
 	   ;; map (quote nil) to nil to simplify optimizer logic.
 	   ;; map quoted constants to nil if for-effect (just because).
@@ -390,7 +389,7 @@
 			 (if (symbolp binding)
 			     binding
 			   (if (cdr (cdr binding))
-			       (byte-compile-warn "malformed let binding: %s"
+			       (byte-compile-warn "Malformed let binding: `%s'"
 						  (prin1-to-string binding)))
 			   (list (car binding)
 				 (byte-optimize-form (nth 1 binding) nil))))
@@ -403,7 +402,7 @@
 				(cons
 				 (byte-optimize-form (car clause) nil)
 				 (byte-optimize-body (cdr clause) for-effect))
-			      (byte-compile-warn "malformed cond form: %s"
+			      (byte-compile-warn "Malformed cond form: `%s'"
 						 (prin1-to-string clause))
 			      clause))
 			 (cdr form))))
@@ -467,7 +466,7 @@
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
 	  ((eq fn 'interactive)
-	   (byte-compile-warn "misplaced interactive spec: %s"
+	   (byte-compile-warn "Misplaced interactive spec: `%s'"
 			      (prin1-to-string form))
 	   nil)
 	  
@@ -515,7 +514,7 @@
 	  
 	  ((not (symbolp fn))
 	   (or (eq 'mocklisp (car-safe fn)) ; ha!
-	       (byte-compile-warn "%s is a malformed function"
+	       (byte-compile-warn "`%s' is a malformed function"
 				  (prin1-to-string fn)))
 	   form)
 
@@ -523,7 +522,7 @@
 		(or byte-compile-delete-errors
 		    (eq tmp 'error-free)
 		    (progn
-		      (byte-compile-warn "%s called for effect"
+		      (byte-compile-warn "`%s' called for effect"
 					 (prin1-to-string form))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)
@@ -843,7 +842,7 @@
 (defun byte-optimize-identity (form)
   (if (and (cdr form) (null (cdr (cdr form))))
       (nth 1 form)
-    (byte-compile-warn "identity called with %d arg%s, but requires 1"
+    (byte-compile-warn "Identity called with %d arg%s, but requires 1"
 		       (length (cdr form))
 		       (if (= 1 (length (cdr form))) "" "s"))
     form))
@@ -1045,7 +1044,7 @@
 		  (nconc (list 'funcall fn) butlast
 			 (mapcar '(lambda (x) (list 'quote x)) (nth 1 last))))
 	      (byte-compile-warn
-	       "last arg to apply can't be a literal atom: %s"
+	       "Last arg to apply can't be a literal atom: `%s'"
 	       (prin1-to-string last))
 	      nil))
 	form)))
