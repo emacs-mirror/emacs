@@ -1,3 +1,8 @@
+2000-10-30  Dave Love  <fx@gnu.org>
+
+	* progmodes/cc-menus.el (imenu-generic-expression)
+	(imenu-progress-message): Only defvar when compiling.
+
 2000-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-confirm): Fix the default.
