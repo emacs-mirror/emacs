@@ -25,7 +25,15 @@
 
 ;;; Commentary:
 
-;;  Extension of gdba.el written by Jim Kingdon from gdb 5.0
+;;  This file is based on gdba.el written by Jim Kingdon from GDB 5.0 and uses
+;;  GDB's annotation interface. You don't need to know about annotations but
+;;  If you are interested developing this mode see the Annotations section in
+;;  the GDB info manual).
+;;
+;;  It has been extended to use features of Emacs 21 such as the display
+;;  margin for breakpoints and the toolbar. It also has new buffers and lots
+;;  of other new features such as formatted auto-display of arrays and
+;;  structures (see the GDB-UI in the Emacs info manual).
 
 ;;; Code:
 
@@ -94,7 +102,7 @@ The following interactive lisp functions help control operation :
   (gdb command-line)
 
   (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'gud-marker-filter) 'gdba-marker-filter)
+  (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
 
   (gud-def gud-break (if (not (string-equal mode-name "Assembler"))
 			 (gud-call "break %f:%l" arg)
@@ -120,12 +128,14 @@ The following interactive lisp functions help control operation :
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
 
-  (gdb-make-instance)
+  (mapc 'make-local-variable gdb-instance-variables)
+  (setq gdb-buffer-type 'gdba)
+
   (gdb-clear-inferior-io)
 
   ;; find source file and compilation directory here
-  (gdb-instance-enqueue-idle-input (list "server list\n" 'ignore))
-  (gdb-instance-enqueue-idle-input (list "server info source\n"
+  (gdb-instance-enqueue-input (list "server list\n" 'ignore))
+  (gdb-instance-enqueue-input (list "server info source\n"
 					 'gdb-source-info))
 
   (run-hooks 'gdba-mode-hook))
@@ -135,16 +145,16 @@ The following interactive lisp functions help control operation :
   (interactive)
   (save-excursion
     (let ((expr (gud-find-c-expr)))
-      (gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-input
        (list (concat "server whatis " expr "\n")
 	     `(lambda () (gud-display1 ,expr)))))))
 
 (defun gud-display1 (expr)
   (goto-char (point-min))
   (if (re-search-forward "\*" nil t)
-      (gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-input
        (list (concat "server display* " expr "\n") 'ignore))
-    (gdb-instance-enqueue-idle-input
+    (gdb-instance-enqueue-input
      (list (concat "server display " expr "\n") 'ignore))))
 
 
@@ -228,24 +238,11 @@ Possible values are these symbols:
   "A list of trigger functions that have run later than their output
 handlers.")
 
-(defun in-gdb-instance-context (form)
-  "Funcall FORM in the GUD buffer."
-  (with-current-buffer gud-comint-buffer
-    (funcall form)))
-
 ;; end of instance vars
 
-(defun gdb-make-instance ()
-  "Create a gdb instance object from the current buffer."
-  (mapc 'make-local-variable gdb-instance-variables)
-  (setq gdb-buffer-type 'gdba))
-
 (defun gdb-instance-target-string ()
-  "The apparent name of the program being debugged by a gdb instance.
-For sure this the root string used in smashing together the gdb
-buffer's name, even if that doesn't happen to be the name of a
-program."
-  (in-gdb-instance-context (lambda () gud-target-name)))
+  (with-current-buffer gud-comint-buffer
+    gud-target-name))
 
 
 ;;
@@ -501,10 +498,6 @@ This filter may simply queue output for a later time."
   "Default command to execute an executable under the GDB-UI debugger."
    :type 'string
    :group 'gud)
-
-(defun gdba-marker-filter (string)
-  "A gud marker filter for gdb."
-  (gdb-output-burst string))
 
 (defvar gdb-annotation-rules
   '(("frames-invalid" gdb-invalidate-frame-and-assembler)
@@ -803,7 +796,7 @@ output from the current command if that happens to be appropriate."
 (defun gdb-display-go-back ()
   ;; delete display so they don't accumulate and delete buffer
   (let ((number gdb-display-number))
-    (gdb-instance-enqueue-idle-input
+    (gdb-instance-enqueue-input
      (list (concat "server delete display " number "\n") 'ignore))
     (switch-to-buffer (concat "*display " gdb-dive-display-number "*"))
     (kill-buffer (get-buffer (concat "*display " number "*")))))
@@ -911,7 +904,7 @@ output from the current command if that happens to be appropriate."
 	  (setq gdb-full-expression (substring gdb-full-expression 1 nil)))
       (setq gdb-full-expression
 	    (concat gdb-full-expression gdb-part-expression "." gdb-last-field))
-      (gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-input
        (list (concat "server display" gdb-display-char
 		     " " gdb-full-expression "\n")
 	     'ignore)))))
@@ -1063,16 +1056,9 @@ output from the current command if that happens to be appropriate."
        (concat "\n     Slice : " array-slice "\n\nIndex\tValues\n\n"))))
   (setq buffer-read-only t))
 
-;; Handle a burst of output from a gdb instance.
-;; This function is (indirectly) used as a gud-marker-filter.
-;; It must return output (if any) to be inserted in the gdb
-;; buffer.
-
-(defun gdb-output-burst (string)
-  "Handle a burst of output from a gdb instance.
-This function is (indirectly) used as a gud-marker-filter.
-It must return output (if any) to be insterted in the gdb
-buffer."
+(defun gud-gdba-marker-filter (string)
+  "A gud marker filter for gdb. Handle a burst of output from a gdb instance.
+It must return output (if any) to be insterted in the gdb buffer."
   (save-match-data
     (let (
 	  ;; Recall the left over burst from last time
@@ -1164,8 +1150,9 @@ buffer."
      (gdb-get-create-instance-buffer 'gdb-inferior-io))
     (goto-char (point-max))
     (insert-before-markers string))
-  (gdb-display-buffer
-   (gdb-get-create-instance-buffer 'gdb-inferior-io)))
+  (if (not (string-equal string ""))
+      (gdb-display-buffer
+       (gdb-get-create-instance-buffer 'gdb-inferior-io))))
 
 (defun gdb-clear-inferior-io ()
   (save-excursion
@@ -1391,7 +1378,7 @@ buffer."
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
 	(error "Not recognized as break/watchpoint line")
-      (gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-input
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
@@ -1407,13 +1394,8 @@ buffer."
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
 	(error "Not recognized as break/watchpoint line")
-      (gdb-instance-enqueue-idle-input
-       (list
-	(concat
-	 "server delete "
-	 (match-string 1)
-	 "\n")
-	'ignore))))
+      (gdb-instance-enqueue-input
+       (list (concat "server delete " (match-string 1) "\n") 'ignore))))
 
 (defvar gdb-source-window nil)
 
@@ -1515,7 +1497,7 @@ display the source in the source buffer."
     (select-window (posn-window (event-end e)))
     (save-excursion
       (set-buffer gud-comint-buffer)
-  (gdb-instance-enqueue-idle-input
+  (gdb-instance-enqueue-input
    (list (gud-format-command "server frame %p\n" selection)
 	 'ignore))
   (gud-display-frame))))
@@ -1702,7 +1684,7 @@ display the source in the source buffer."
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
-      (gdb-instance-enqueue-idle-input
+      (gdb-instance-enqueue-input
        (list
 	(concat
 	 (if (eq ?y (char-after (match-beginning 2)))
@@ -1722,7 +1704,7 @@ display the source in the source buffer."
     (if (not (looking-at "\\([0-9]+\\):   \\([ny]\\)"))
 	(error "No expression on this line")
       (let ((number (match-string 1)))
-	(gdb-instance-enqueue-idle-input
+	(gdb-instance-enqueue-input
 	 (list (concat "server delete display " number "\n")
 	       'ignore))
 	(if (not (display-graphic-p))
@@ -2099,7 +2081,7 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-delete-display ()
   "Delete displayed expression and its frame."
   (interactive)
-  (gdb-instance-enqueue-idle-input
+  (gdb-instance-enqueue-input
    (list (concat "server delete display " gdb-display-number "\n")
 	 'ignore))
   (kill-buffer nil)
