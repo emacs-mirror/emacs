@@ -600,6 +600,16 @@ contains expressions rather than strings.")
    ("\er" . previous-matching-history-element)
    ("\es" . next-matching-history-element)))
 
+(defvar minibuffer-text-before-history nil
+  "Text that was in this minibuffer before any history commands.
+This is nil if there have not yet been any history commands
+in this use of the minibuffer.")
+
+(add-hook 'minibuffer-setup-hook 'minibuffer-history-initialize)
+
+(defun minibuffer-history-initialize ()
+  (setq minibuffer-text-before-history nil))
+
 (defun previous-matching-history-element (regexp n)
   "Find the previous history element that matches REGEXP.
 \(Previous history elements refer to earlier actions.)
@@ -620,6 +630,9 @@ If N is negative, find the next or Nth next match."
 		 (error "No previous history search regexp"))
 	     regexp)
 	   (prefix-numeric-value current-prefix-arg))))
+  (if (and (zerop minibuffer-history-position)
+	   (null minibuffer-text-before-history))
+      (setq minibuffer-text-before-history (buffer-string)))
   (let ((history (symbol-value minibuffer-history-variable))
 	prevpos
 	(pos minibuffer-history-position))
@@ -673,25 +686,31 @@ If N is negative, find the previous or Nth previous match."
   "Insert the next element of the minibuffer history into the minibuffer."
   (interactive "p")
   (or (zerop n)
-      (let ((narg (min (max 1 (- minibuffer-history-position n))
-		       (length (symbol-value minibuffer-history-variable)))))
-	    (if (or (zerop narg)
-		    (= minibuffer-history-position narg))
-		(error (if (if (zerop narg)
-			       (> n 0)
-			     (= minibuffer-history-position 1))
-		       "End of history; no next item"
-		     "Beginning of history; no preceding item"))
-	  (erase-buffer)
-	  (setq minibuffer-history-position narg)
-	  (let ((elt (nth (1- minibuffer-history-position)
-			  (symbol-value minibuffer-history-variable))))
-	    (insert
-	     (if minibuffer-history-sexp-flag
-		 (let ((print-level nil))
-		   (prin1-to-string elt))
-	       elt)))
-	  (goto-char (point-min))))))
+      (let ((narg (- minibuffer-history-position n))
+	    (minimum (if minibuffer-default -1 0))
+	    elt)
+	(if (and (zerop minibuffer-history-position)
+		 (null minibuffer-text-before-history))
+	    (setq minibuffer-text-before-history (buffer-string)))
+	(if (< narg minimum)
+	    (error "End of history; no next item"))
+	(if (> narg (length (symbol-value minibuffer-history-variable)))
+	    (error "Beginning of history; no preceding item"))
+	(erase-buffer)
+	(setq minibuffer-history-position narg)
+	(cond ((= narg -1)
+	       (setq elt minibuffer-default))
+	      ((= narg 0)
+	       (setq elt minibuffer-text-before-history)
+	       (setq minibuffer-text-before-history nil))
+	      (t (setq elt (nth (1- minibuffer-history-position)
+				(symbol-value minibuffer-history-variable)))))
+	(insert
+	 (if minibuffer-history-sexp-flag
+	     (let ((print-level nil))
+	       (prin1-to-string elt))
+	   elt))
+	(goto-char (point-min)))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
@@ -3044,36 +3063,6 @@ in the definition is used to check that VALUE is valid."
 	(error "Value `%S' does not match type %S of %S" 
 	       val (car type) var))))
   (set var val))
-
-
-(defun set-variable (var val)
-  "Set VARIABLE to VALUE.  VALUE is a Lisp object.
-When using this interactively, supply a Lisp expression for VALUE.
-If you want VALUE to be a string, you must surround it with doublequotes.
-
-If VARIABLE has a `variable-interactive' property, that is used as if
-it were the arg to `interactive' (which see) to interactively read the value."
-  (interactive
-   (let* ((v (variable-at-point))
-	  (enable-recursive-minibuffers t)
-	  (val (completing-read
-		(if (user-variable-p v)
-		    (format "Set variable (default %s): " v)
-		  "Set variable: ")
-		obarray 'user-variable-p t))
-	  (var (if (equal val "") v (intern val)))
-)
-     (list var
-	   (let ((prop (get var 'variable-interactive)))
-	     (if prop
-		 ;; Use VAR's `variable-interactive' property
-		 ;; as an interactive spec for prompting.
-		 (call-interactively (list 'lambda '(arg)
-					   (list 'interactive prop)
-					   'arg))
-	       (eval-minibuffer (format "Set %s to value: " var)))))))
-  (set var val))
-
 
 ;; Define the major mode for lists of completions.
 
