@@ -300,6 +300,8 @@ Must be greater than 1."
 	((file-exists-p "/usr/dict/words") "/usr/dict/words")
 	((file-exists-p "/usr/lib/dict/words") "/usr/lib/dict/words")
 	((file-exists-p "/usr/share/dict/words") "/usr/share/dict/words")
+	((file-exists-p "/usr/share/lib/dict/words")
+	 "/usr/share/lib/dict/words")
 	((file-exists-p "/sys/dict") "/sys/dict")
 	(t "/usr/dict/words"))
   "*Alternate dictionary for spelling help."
