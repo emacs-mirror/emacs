@@ -88,7 +88,7 @@ sufficient), + north, - south, such as 40.7 for New York City, or the value
 can be a vector [degrees minutes north/south] such as [40 50 north] for New
 York City.
 
-This variable should be set in site-local.el.")
+This variable should be set in `site-start'.el.")
 
 ;;;###autoload
 (defvar calendar-longitude nil
@@ -99,7 +99,7 @@ sufficient), + east, - west, such as -73.9 for New York City, or the value
 can be a vector [degrees minutes east/west] such as [73 55 west] for New
 York City.
 
-This variable should be set in site-start.el.")
+This variable should be set in `site-start'.el.")
 
 (defsubst calendar-latitude ()
   "Convert calendar-latitude to a signed decimal fraction, if needed."
@@ -143,7 +143,7 @@ This variable should be set in site-start.el.")
 For example, \"New York City\".  Default value is just the latitude, longitude
 pair.
 
-This variable should be set in site-start.el.")
+This variable should be set in `site-start'.el.")
 
 (defvar solar-error 0.5
 "*Tolerance (in minutes) for sunrise/sunset calculations.
@@ -276,7 +276,7 @@ Parameters are the midday TIME and the LATITUDE, LONGITUDE of the location.
 TIME is a pair with the first component being the number of Julian centuries
 elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
-(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
+\(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
 Coordinates are included because this function is called with latitude=10
@@ -364,7 +364,7 @@ Format used is given by `calendar-time-display-form'."
 The date may be different from the one asked for, but it will be the right
 local date.  The second component of date should be an integer."
   (let* ((nd date)
-         (ut (- 12.0 (/ calendar-longitude 15)))
+         (ut (- 12.0 (/ (calendar-longitude) 15)))
          (te (solar-time-equation date ut)))
     (setq ut (- ut te))
     (if (>= ut 24)
@@ -398,7 +398,7 @@ Corresponding value is nil if there is no sunrise/sunset."
                  (solar-sunrise-and-sunset 
                   (list t0 (car (cdr exact-local-noon)))
                   10.0
-                  calendar-longitude)))
+                  (calendar-longitude))))
          ; store the spring/summer information,
          ; compute sunrise and sunset (two first components of rise-set).
          ; length of day is the third component (it is only the difference
@@ -409,8 +409,8 @@ Corresponding value is nil if there is no sunrise/sunset."
                   (if (> (car (cdr (cdr equator-rise-set))) 12) 1 0))
             (solar-sunrise-and-sunset 
              (list t0 (car (cdr exact-local-noon)))
-             calendar-latitude
-             calendar-longitude)))
+             (calendar-latitude)
+             (calendar-longitude))))
          (rise (car rise-set))
          (adj-rise (if rise (dst-adjust-time date rise) nil))
          (set (car (cdr rise-set)))
@@ -509,7 +509,7 @@ The azimuth is given in degrees as well as the height (between -180 and 180)."
          (ec (solar-equatorial-coordinates time for-sunrise-sunset))
          (st (+ solar-sidereal-time-greenwich-midnight
                 (* ut 1.00273790935)))
-         (ah (- (* st 15) (* 15 (car ec)) (* -1 calendar-longitude)))
+         (ah (- (* st 15) (* 15 (car ec)) (* -1 (calendar-longitude))))
                        ; hour angle (in degrees)
          (de (car (cdr ec)))
          (azimuth (solar-atn2 (solar-sin-degrees ah)
