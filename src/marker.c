@@ -621,16 +621,7 @@ set_marker_both (marker, buffer, charpos, bytepos)
   register struct Lisp_Marker *m;
 
   CHECK_MARKER (marker, 0);
-  /* If position is nil or a marker that points nowhere,
-     make this marker point nowhere.  */
-  if (NILP (charpos)
-      || (MARKERP (charpos) && !XMARKER (charpos)->buffer))
-    {
-      unchain_marker (marker);
-      return marker;
-    }
 
-  CHECK_NUMBER_COERCE_MARKER (charpos, 1);
   if (NILP (buffer))
     b = current_buffer;
   else
