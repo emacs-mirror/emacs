@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+;;; The name of the program to run as the timer subprocess.  It should
+;;; be in exec-directory.
+(defconst timer-program "timer")
+
 (defvar timer-process nil)
 (defvar timer-alist ())
 (defvar timer-out "")
@@ -63,8 +67,12 @@ Relative times may be specified as a series of numbers followed by units:
   (cond ((or (not timer-process) 
              (memq (process-status timer-process) '(exit signal nil)))
          (if timer-process (delete-process timer-process))
-         (setq timer-process (let ((process-connection-type nil))
-			       (start-process "timer" nil "timer"))
+         (setq timer-process
+	       (let ((process-connection-type nil))
+		 ;; Don't search the exec path for the timer program;
+		 ;; we know exactly which one we want.
+		 (start-process (expand-file-name timer-program exec-directory)
+				nil "timer"))
                timer-alist nil)
          (set-process-filter   timer-process 'timer-process-filter)
          (set-process-sentinel timer-process 'timer-process-sentinel)
