@@ -384,7 +384,7 @@
    (composition . t)))
 
 (make-coding-system
- 'x-ctext 2 ?x
+ 'compound-text 2 ?x
  "Compound text based generic encoding for decoding unknown messages."
  '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
@@ -392,6 +392,9 @@
  '((safe-charsets . t)
    (mime-charset . x-ctext)
    (composition . t)))
+
+(define-coding-system-alias 'x-ctext 'compound-text)
+(define-coding-system-alias 'ctext 'compound-text)
 
 (make-coding-system
  'iso-safe 2 ?-
