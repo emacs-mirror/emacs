@@ -75,8 +75,6 @@ any selection."
   (if killp
       (kill-region (point) (mark))
     (delete-region (point) (mark)))
-  (setq mark-active nil)
-  (run-hooks 'deactivate-mark-hook)
   t)
 
 (defun delete-selection-pre-hook ()
