@@ -11525,13 +11525,18 @@ glyphs in short form, otherwise show glyphs in long form.")
 }
 
 
-DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 1, "",
-  "Dump glyph row ROW to stderr.")
-  (row)
-     Lisp_Object row;
+DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
+  "Dump glyph row ROW to stderr.\n\
+GLYPH 0 means don't dump glyphs.\n\
+GLYPH 1 means dump glyphs in short form.\n\
+GLYPH > 1 or omitted means dump glyphs on long form.")
+  (row, glyphs)
+     Lisp_Object row, glyphs;
 {
   CHECK_NUMBER (row, 0);
-  dump_glyph_row (XWINDOW (selected_window)->current_matrix, XINT (row), 1);
+  dump_glyph_row (XWINDOW (selected_window)->current_matrix,
+		  XINT (row),
+		  INTEGERP (glyphs) ? XINT (glyphs) : 2);
   return Qnil;
 }
 
