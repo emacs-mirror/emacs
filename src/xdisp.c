@@ -233,36 +233,50 @@ message (m, a1, a2, a3)
 	  fflush (stderr);
 	}
     }
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
-  else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
+  else if (INTERACTIVE)
     {
-      if (m)
-	{
-	  {
-#ifdef NO_ARG_ARRAY
-	    int a[3];
-	    a[0] = a1;
-	    a[1] = a2;
-	    a[2] = a3;
-
-	    doprnt (FRAME_MESSAGE_BUF (selected_frame),
-		    FRAME_WIDTH (selected_frame), m, 0, 3, a);
+      /* The frame whose minibuffer we're going to display the message on.
+	 It may be larger than the selected frame, so we need
+	 to use its buffer, not the selected frame's buffer.  */
+      FRAME_PTR echo_frame;
+#ifdef MULTI_FRAME
+      choose_minibuf_frame ();
+      echo_frame = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 #else
-	    doprnt (FRAME_MESSAGE_BUF (selected_frame),
-		    FRAME_WIDTH (selected_frame), m, 0, 3, &a1);
-#endif				/* NO_ARG_ARRAY */
-	  }
+      echo_frame = selected_frame;
+#endif
 
-	  message1 (FRAME_MESSAGE_BUF (selected_frame));
+      /* A null message buffer means that the frame hasn't really been
+	 initialized yet.  Error messages get reported properly by
+	 cmd_error, so this must be just an informative message; toss it.  */
+      if (FRAME_MESSAGE_BUF (echo_frame))
+	{
+	  if (m)
+	    {
+	      {
+#ifdef NO_ARG_ARRAY
+		int a[3];
+		a[0] = a1;
+		a[1] = a2;
+		a[2] = a3;
+
+		doprnt (FRAME_MESSAGE_BUF (echo_frame),
+			FRAME_WIDTH (echo_frame), m, 0, 3, a);
+#else
+		doprnt (FRAME_MESSAGE_BUF (echo_frame),
+			FRAME_WIDTH (echo_frame), m, 0, 3, &a1);
+#endif /* NO_ARG_ARRAY */
+	      }
+
+	      message1 (FRAME_MESSAGE_BUF (echo_frame));
+	    }
+	  else
+	    message1 (0);
+
+	  /* Print should start at the beginning of the message
+	     buffer next time.  */
+	  message_buf_print = 0;
 	}
-      else
-	message1 (0);
-
-      /* Print should start at the beginning of the message
-	 buffer next time.  */
-      message_buf_print = 0;
     }
 }
 
