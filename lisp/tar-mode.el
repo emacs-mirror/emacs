@@ -277,7 +277,7 @@ write-date, checksum, link-type, and link-name."
   (if (null start) (setq start 0))
   (if (null end) (setq end (length string)))
   (if (= (aref string start) 0)
-      [0 0]
+      (list 0 0)
     (let ((lo 0)
 	  (hi 0))
       (while (< start end)
