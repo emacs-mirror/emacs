@@ -161,23 +161,21 @@ Lisp_Object Qcursor_type;
 Lisp_Object Qfont;
 Lisp_Object Qforeground_color;
 Lisp_Object Qgeometry;
+Lisp_Object Qicon;
 Lisp_Object Qicon_left;
 Lisp_Object Qicon_top;
 Lisp_Object Qicon_type;
-Lisp_Object Qiconic_startup;
 Lisp_Object Qinternal_border_width;
 Lisp_Object Qleft;
 Lisp_Object Qmouse_color;
 Lisp_Object Qnone;
 Lisp_Object Qparent_id;
-Lisp_Object Qsuppress_icon;
-Lisp_Object Qsuppress_initial_map;
 Lisp_Object Qtop;
 Lisp_Object Qundefined_color;
 Lisp_Object Qvertical_scroll_bars;
+Lisp_Object Qvisibility;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
-Lisp_Object Qvisibility;
 
 /* The below are defined in frame.c. */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
@@ -857,10 +855,10 @@ x_set_visibility (f, value, oldval)
 
   if (NILP (value))
     Fmake_frame_invisible (frame);
-  else if (EQ (value, Qt))
-    Fmake_frame_visible (frame);
-  else
+  else if (EQ (value, Qicon))
     Ficonify_frame (frame);
+  else
+    Fmake_frame_visible (frame);
 }
 
 static void
@@ -1429,7 +1427,19 @@ x_get_arg (alist, param, attribute, class, type)
 	      return tem;
 
 	    case symbol:
-	      return intern (tem);
+	      /* As a special case, we map the values `true' and `on'
+		 to Qt, and `false' and `off' to Qnil.  */
+	      {
+		Lisp_Object lower = Fdowncase (tem);
+		if (!strcmp (XSTRING (tem)->data, "on")
+		    || !strcmp (XSTRING (tem)->data, "true"))
+		  return Qt;
+		else (!strcmp (XSTRING (tem)->data, "off")
+		      || !strcmp (XSTRING (tem)->data, "false"))
+		  return Qnil;
+		else
+		  return intern (tem);
+	      }
 
 	    default:
 	      abort ();
@@ -1703,12 +1713,10 @@ x_icon (f, parms)
     x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
 
   /* Start up iconic or window? */
-  x_wm_set_window_state (f,
-			 (EQ (x_get_arg (parms, Qiconic_startup,
-					 0, 0, boolean),
-			      Qt)
-			  ? IconicState
-			  : NormalState));
+  x_wm_set_window_state
+    (f, (EQ (x_get_arg (parms, Qvisibility, 0, 0, symbol), Qicon)
+	 ? IconicState
+	 : NormalState));
 
   UNBLOCK_INPUT;
 }
@@ -1911,16 +1919,20 @@ be shared by the new frame.")
 
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0, boolean), Qt))
-    {
-      tem = x_get_arg (parms, Qvisibility, 0, 0, boolean);
-      if (EQ (tem, Qicon))
-	x_iconify_frame (f);
-      /* Note that the default is Qunbound,
-	 so by default we do make visible.  */
-      else if (!EQ (tem, Qnil))
-	x_make_frame_visible (f);
-    }
+  {
+    Lisp_Object visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
+
+    if (EQ (visibility, Qunbound))
+      visibility = Qt;
+
+    if (EQ (visibility, Qicon))
+      x_iconify_frame (f);
+    else if (! NILP (visibility))
+      x_make_frame_visible (f);
+    else
+      /* Must have been Qnil.  */
+      ;
+  }
 
   return frame;
 #else /* X10 */
@@ -2122,14 +2134,11 @@ be shared by the new frame.")
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Do not create an icon window if the caller says not to */
-  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, 0, boolean), Qt)
-      || f->display.x->parent_desc != ROOT_WINDOW)
-    {
-      x_text_icon (f, iconidentity);
-      x_default_parameter (f, parms, Qicon_type, Qnil,
-			   "BitmapIcon", 0, symbol);
-    }
+  /* Do not create an icon window if the caller says not to.
+     I'm not sure that this code is right; how does X10 handle icons?  */
+  x_text_icon (f, iconidentity);
+  x_default_parameter (f, parms, Qicon_type, Qnil,
+		       "BitmapIcon", 0, symbol);
 
   /* Tell the X server the previously set values of the
      background, border and mouse colors; also create the mouse cursor.  */
@@ -2147,9 +2156,17 @@ be shared by the new frame.")
   Fmodify_frame_parameters (frame, parms);
 
   /* Make the window appear on the frame and enable display.  */
+  {
+    Lisp_Object visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
 
-  if (!EQ (x_get_arg (parms, Qsuppress_initial_map, 0, 0, boolean), Qt))
-    x_make_window_visible (f);
+    if (EQ (visibility, Qunbound))
+      visibility = Qt;
+
+    if (! EQ (visibility, Qicon)
+	&& ! NILP (visibility))
+      x_make_window_visible (f);
+  }
+
   SET_FRAME_GARBAGED (f);
 
   return frame;
@@ -3861,14 +3878,14 @@ syms_of_xfns ()
   staticpro (&Qforeground_color);
   Qgeometry = intern ("geometry");
   staticpro (&Qgeometry);
+  Qicon = intern ("icon");
+  staticpro (&Qicon);
   Qicon_left = intern ("icon-left");
   staticpro (&Qicon_left);
   Qicon_top = intern ("icon-top");
   staticpro (&Qicon_top);
   Qicon_type = intern ("icon-type");
   staticpro (&Qicon_type);
-  Qiconic_startup = intern ("iconic-startup");
-  staticpro (&Qiconic_startup);
   Qinternal_border_width = intern ("internal-border-width");
   staticpro (&Qinternal_border_width);
   Qleft = intern ("left");
@@ -3879,23 +3896,19 @@ syms_of_xfns ()
   staticpro (&Qnone);
   Qparent_id = intern ("parent-id");
   staticpro (&Qparent_id);
-  Qsuppress_icon = intern ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qsuppress_initial_map = intern ("suppress-initial-map");
-  staticpro (&Qsuppress_initial_map);
   Qtop = intern ("top");
   staticpro (&Qtop);
   Qundefined_color = intern ("undefined-color");
   staticpro (&Qundefined_color);
   Qvertical_scroll_bars = intern ("vertical-scroll-bars");
   staticpro (&Qvertical_scroll_bars);
+  Qvisibility = intern ("visibility");
+  staticpro (&Qvisibility);
   Qwindow_id = intern ("window-id");
   staticpro (&Qwindow_id);
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
   /* This is the end of symbol initialization.  */
-  Qvisibility = intern ("visibility");
-  staticpro (&Qvisibility);
 
   Fput (Qundefined_color, Qerror_conditions,
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
