@@ -77,6 +77,17 @@
 
 2003-04-02  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/refill.el (refill-fill-paragraph-at): Don't preserve
+	the trailing space since fill.el doesn't remove it anymore.
+	(refill-mode): Reset fill-paragraph-function even if it was nil.
+
+	* textmodes/fill.el (fill-region-as-paragraph):
+	Don't remove space at end of paragraph: it makes refill.el unusable.
+	Remove obsolete `save-restriction'.
+	(fill-paragraph, fill-comment-paragraph): Don't add newline at EOP.
+	(fill-delete-newlines): Don't add a trailing space.
+	(fill-newline): Don't leave markers before the prefix.
+
 	* progmodes/asm-mode.el (asm-calculate-indentation, asm-indent-line):
 	New functions.
 	(asm-mode): Use them in indent-line-function.
