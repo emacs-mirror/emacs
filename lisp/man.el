@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/10/06 10:28:26 $
-;; Version:		$Revision: 1.52 $
+;; Last-Modified:	$Date: 1994/10/20 10:04:17 $
+;; Version:		$Revision: 1.53 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -647,7 +647,7 @@ Same for the ANSI bold and normal escape sequences."
   (interactive)
   (message "Please wait: cleaning up the %s man page..."
 	   Man-arguments)
-  (or Man-sed-script
+  (if (or (interactive-p) (not Man-sed-script))
       (progn
 	(goto-char (point-min))
 	(while (search-forward "_\b" nil t) (backward-delete-char 2))
