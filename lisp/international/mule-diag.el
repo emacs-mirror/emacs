@@ -254,11 +254,8 @@ detailed meanings of these arguments."
       (setq ch (cond ((< i min)
 		      32)
 		     ((charsetp charset)
-		      (condition-case nil
-			  (if (= row 0)
-			      (make-char charset i)
-			    (make-char charset row i))
-			(error 32)))	; gap in mapping
+		      (or (decode-char charset (+ (* row 256) i))
+			  32))		; gap in mapping
 		     ((and (symbolp charset) (get charset 'translation-table))
 		      (aref (get charset 'translation-table) i))
 		     (t (funcall charset (+ (* row 256) i)))))
