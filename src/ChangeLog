@@ -1,3 +1,50 @@
+2004-02-15  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* w32select.c: Summary: Thorough rework to implement Unicode
+	clipboard operations and delayed rendering.
+
+	Drop last_clipboard_text and related code, keep track of
+	ownership via clipboard_owner instead.  Drop old #if0
+	sections.
+
+	(DEFAULT_LCID, ANSICP, OEMCP, QUNICODE, QANSICP, QOEMCP)
+	(clipboard_owner, modifying_clipboard, cfg_coding_system)
+	(cfg_codepage, cfg_lcid, cfg_clipboard_type, current_text)
+	(current_coding_system, current_requires_encoding)
+	(current_num_nls, current_clipboard_type, current_lcid): New
+	static variables.
+
+	(convert_to_handle_as_ascii, convert_to_handle_as_coded)
+	(render, render_all, run_protected, lisp_error_handler)
+	(owner_callback, create_owner, setup_config)
+	(enum_locale_callback, cp_from_locale, coding_from_cp): New
+	local functions.
+
+	(term_w32select, globals_of_w32select): New global functions.
+
+	(Fw32_set_clipboard_data): Ignore parameter FRAME, use
+	clipboard_owner instead.  Use delayed rendering and provide
+	all text formats.  Provide CF_LOCALE if necessary.
+
+	(Fw32_get_clipboard_data): Handle CF_UNICODETEXT and
+	CF_LOCALE.  Fall back to CF_TEXT, if CF_UNICODETEXT is not
+	available.  Force DOS line-ends for decoding.
+
+	(Fx_selection_exists_p): Handle CF_UNICODETEXT.
+
+	(syms_of_w32select): Init and register new variables.
+
+	* w32.h: Add prototypes for globals_of_w32select and
+	term_w32select.  Make the neighboring K&R declarations into
+	prototypes, too.
+
+	* emacs.c: Include w32.h to get function prototypes.
+	(main): Call globals_of_w32select.
+
+	* w32.c (term_ntproc): Call term_w32select. 
+
+	* s/ms-w32.h: Guard MSC-specific #pragmas with an #ifdef.
+
 2005-02-16  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (BUFFER_POS_REACHED_P): Return true if pos reached and

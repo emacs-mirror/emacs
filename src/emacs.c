@@ -42,6 +42,8 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
+#include <windows.h> /* just for w32.h */
+#include "w32.h"
 #endif
 
 #include "lisp.h"
@@ -1654,6 +1656,7 @@ main (argc, argv
 #ifdef HAVE_NTGUI
       globals_of_w32fns ();
       globals_of_w32menu ();
+      globals_of_w32select ();
 #endif  /* HAVE_NTGUI */
     }
 

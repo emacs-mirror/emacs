@@ -122,16 +122,18 @@ extern void reset_standard_handles (int in, int out,
 /* Return the string resource associated with KEY of type TYPE.  */
 extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 
-extern void init_ntproc ();
-extern void term_ntproc ();
-extern void globals_of_w32 ();
-extern void syms_of_w32term ();
-extern void syms_of_w32fns ();
-extern void globals_of_w32fns ();
-extern void syms_of_w32select ();
-extern void syms_of_w32menu ();
-extern void globals_of_w32menu ();
-extern void syms_of_fontset ();
+extern void init_ntproc (void);
+extern void term_ntproc (void);
+extern void globals_of_w32 (void);
+extern void syms_of_w32term (void);
+extern void syms_of_w32fns (void);
+extern void globals_of_w32fns (void);
+extern void syms_of_w32select (void);
+extern void globals_of_w32select (void);
+extern void term_w32select (void);
+extern void syms_of_w32menu (void);
+extern void globals_of_w32menu (void);
+extern void syms_of_fontset (void);
 
 #endif /* EMACS_W32_H */
 
