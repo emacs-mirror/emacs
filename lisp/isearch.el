@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/01/02 17:43:16 $|$Revision: 1.59 $
+;; |$Date: 1994/01/10 22:27:52 $|$Revision: 1.60 $
 
 ;; This file is part of GNU Emacs.
 
@@ -335,6 +335,7 @@ Default value, nil, means edit the string instead.")
 
 (defvar isearch-success t)		; Searching is currently successful.
 (defvar isearch-invalid-regexp nil)	; Regexp not well formed.
+(defvar isearch-within-brackets nil)	; Regexp has unclosed [.
 (defvar isearch-other-end nil)	; Start (end) of match if forward (backward).
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
 (defvar isearch-barrier 0)
@@ -492,6 +493,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-adjusted nil
 	isearch-yank-flag nil
 	isearch-invalid-regexp nil
+	isearch-within-brackets nil
 	;; Use (baud-rate) for now, for sake of other versions.
 	isearch-slow-terminal-mode (and (<= (baud-rate) search-slow-speed)
 					(> (window-height)
@@ -699,6 +701,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 	    (isearch-adjusted isearch-adjusted)
 	    (isearch-yank-flag isearch-yank-flag)
 	    (isearch-invalid-regexp isearch-invalid-regexp)
+	    (isearch-within-brackets isearch-within-brackets)
 	    (isearch-other-end isearch-other-end)
 	    (isearch-opoint isearch-opoint)
 	    (isearch-slow-terminal-mode isearch-slow-terminal-mode)
@@ -956,6 +959,7 @@ If no previous match was done, just beep."
 		       (min isearch-opoint isearch-barrier))))
 	(setq isearch-success t 
 	      isearch-invalid-regexp nil
+	      isearch-within-brackets nil
 	      isearch-other-end (match-end 0))
       ;; Not regexp, not reverse, or no match at point.
       (if (and isearch-other-end (not isearch-adjusted))
@@ -1068,7 +1072,7 @@ Obsolete."
 If you want to search for just a space, type C-q SPC."
   (interactive)
   (if isearch-regexp 
-      (if search-whitespace-regexp
+      (if (and search-whitespace-regexp (not isearch-within-brackets))
 	  (isearch-process-search-string search-whitespace-regexp " ")
 	(isearch-printing-char))
     (progn
@@ -1236,7 +1240,8 @@ If there is no completion possible, say so and continue searching."
 	  isearch-word (nth 6 cmd)
 	  isearch-invalid-regexp (nth 7 cmd)
 	  isearch-wrapped (nth 8 cmd)
-	  isearch-barrier (nth 9 cmd))
+	  isearch-barrier (nth 9 cmd)
+	  isearch-within-brackets (nth 10 cmd))
     (goto-char (car (cdr (cdr cmd))))))
 
 (defun isearch-pop-state ()
@@ -1249,7 +1254,8 @@ If there is no completion possible, say so and continue searching."
 	(cons (list isearch-string isearch-message (point)
 		    isearch-success isearch-forward isearch-other-end 
 		    isearch-word
-		    isearch-invalid-regexp isearch-wrapped isearch-barrier)
+		    isearch-invalid-regexp isearch-wrapped isearch-barrier
+		    isearch-within-brackets)
 	      isearch-cmds)))
 
 
@@ -1308,6 +1314,7 @@ If there is no completion possible, say so and continue searching."
       (let ((inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search))
 	(if isearch-regexp (setq isearch-invalid-regexp nil))
+	(setq isearch-within-brackets nil)
 	(setq isearch-success
 	      (funcall
 	       (cond (isearch-word
@@ -1328,6 +1335,8 @@ If there is no completion possible, say so and continue searching."
 
     (invalid-regexp 
      (setq isearch-invalid-regexp (car (cdr lossage)))
+     (setq isearch-within-brackets (string-match "\\`Unmatched \\["
+						 isearch-invalid-regexp))
      (if (string-match
 	  "\\`Premature \\|\\`Unmatched \\|\\`Invalid "
 	  isearch-invalid-regexp)
