@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2002, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -245,6 +245,11 @@ versions of xterm."
      (xterm-rxvt-set-background-mode))
 ;; This recomputes all the default faces given the colors we've just set up.
 (tty-set-up-initial-frame-faces)
+
+;; Mac OS X's Terminal.app sets TERM to "xterm-color" and by default uses
+;; utf-8 regardless of the locale.
+(when (equal (getenv "TERM_PROGRAM") "Apple_Terminal")
+  (set-terminal-coding-system 'utf-8))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here
