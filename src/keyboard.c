@@ -22,6 +22,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
 #include "termchar.h"
 #include "termopts.h"
 #include "lisp.h"
@@ -2732,9 +2735,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      /* If we have auto-saved and there is still no input
 		 available, garbage collect if there has been enough
 		 consing going on to make it worthwhile.  */
+#ifndef BOEHM_GC
 	      if (!detect_input_pending_run_timers (0)
 		  && consing_since_gc > gc_cons_threshold / 2)
 		Fgarbage_collect ();
+#else
+	      /* Fixme: move this out with its own (shorter) wait time
+		 (a second or two).  */
+	      while (!detect_input_pending_run_timers (0)
+		     && GC_collect_a_little ())
+		;
+	      extra_gc_work ();
+#endif
 
 	      redisplay ();
 	    }
@@ -10670,7 +10682,7 @@ wipe_kboard (kb)
      KBOARD *kb;
 {
   if (kb->kbd_macro_buffer)
-    xfree (kb->kbd_macro_buffer);
+    XGC_FREE (kb->kbd_macro_buffer);
 }
 
 #ifdef MULTI_KBOARD
@@ -10699,7 +10711,7 @@ delete_kboard (kb)
     }
 
   wipe_kboard (kb);
-  xfree (kb);
+  XGC_FREE (kb);
 }
 
 #endif /* MULTI_KBOARD */
