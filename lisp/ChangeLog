@@ -1,10 +1,16 @@
+2001-11-12  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/cl-indent.el (toplevel): Indent properly
+	`generic-flet', `generic-labels', `with-accessors',
+	`with-condition-restarts'.
+
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el: Many trivial doc fixes.
 	(dired-get-file-for-visit): New function.
 	(dired-find-alternate-file, dired-mouse-find-file-other-window):
-	(dired-view-file, dired-find-file-other-window, dired-display-file): 
-	(dired-find-file): Use dired-get-file-for-visit.	
+	(dired-view-file, dired-find-file-other-window, dired-display-file):
+	(dired-find-file): Use dired-get-file-for-visit.
 
 2001-11-12  Alex Schroeder  <kensanata@yahoo.com>
 
@@ -43,10 +49,10 @@
 	* calendar/solar.el (solar-sunrise-and-sunset):
 	Exchange the two extreme values of day-length.
 
-	* progmodes/sh-script.el (sh-must-be-shell-mode): 
+	* progmodes/sh-script.el (sh-must-be-shell-mode):
 	Allow modes derived from sh-mode.
 
-	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): 
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
 	Turn off error in some re-search-forward calls.
 
 	* replace.el (query-replace-skip-read-only): New variable.

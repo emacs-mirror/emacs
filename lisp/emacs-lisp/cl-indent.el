@@ -355,7 +355,7 @@ by `lisp-body-indent'."
                (&whole nil &rest 1))
              path state indent-point sexp-column normal-indent)))
 
-(defun lisp-indent-defmethod (path state indent-point sexp-column 
+(defun lisp-indent-defmethod (path state indent-point sexp-column
 				   normal-indent)
   "Indentation function defmethod."
   (lisp-indent-259 (if (save-excursion (goto-char (elt state 1))
@@ -419,6 +419,7 @@ by `lisp-body-indent'."
            (flet        ((&whole 4 &rest (&whole 1 &lambda &body)) &body))
            (labels . flet)
            (macrolet . flet)
+           (generic-flet . flet) (generic-labels . flet)
            (handler-case (4 &rest (&whole 2 &lambda &body)))
            (restart-case . handler-case)
            ;; `else-body' style
@@ -455,15 +456,16 @@ by `lisp-body-indent'."
            (unless 1)
            (unwind-protect (5 &body))
            (when 1)
+           (with-accessors . multiple-value-bind)
+           (with-condition-restarts . multiple-value-bind)
            (with-output-to-string (4 2))
            (with-slots . multiple-value-bind)
            (with-standard-io-syntax (2)))))
-  (while l
-    (put (caar l) 'common-lisp-indent-function
-         (if (symbolp (cdar l))
-             (get (cdar l) 'common-lisp-indent-function)
-             (car (cdar l))))
-    (setq l (cdr l))))
+  (dolist (el l)
+    (put (car el) 'common-lisp-indent-function
+         (if (symbolp (cdr el))
+             (get (cdr el) 'common-lisp-indent-function)
+             (car (cdr el))))))
 
 
 ;(defun foo (x)
