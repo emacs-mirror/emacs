@@ -1,3 +1,8 @@
+1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* make-dist (dontcompile): look for the DONTCOMPILE variable rather
+	  than the obsolete dontcompilefiles pseudo-rule in lisp/Makefile.
+
 1999-10-09  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (uninstall, install-arch-indep, install-arch-dep): 
