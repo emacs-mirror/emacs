@@ -1,3 +1,9 @@
+2004-02-21  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* vcursor.el (vcursor-modifiers): New defcustom.
+	(vcursor-cs-binding): Use vcursor-modifiers instead of a
+	hard-coded list.
+
 2004-02-21  Masatake YAMATO  <jet@gyve.org>
 
 	* play/animate.el (animate-birthday-present): Accept names other
