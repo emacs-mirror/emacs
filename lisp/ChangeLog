@@ -1,3 +1,8 @@
+2003-05-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-checkout): Don't leave the branch when
+	REV is t.  From Don Provan <dprovan@bivio.net>
+	
 2003-05-23  Richard M. Stallman  <rms@gnu.org>
 
 	* forms.el (forms--mode-commands1): Bind \t, not `tab'.
