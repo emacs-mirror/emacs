@@ -410,14 +410,16 @@ windows, see @ref{Split Window}.  See also @ref{Display,, Display,
 elisp, The Emacs Lisp Reference Manual}.
 
 @vindex baud-rate
-  The variable @code{baud-rate} holds the output speed of the
-terminal, as far as Emacs knows.  Setting this variable does not change
-the speed of actual data transmission, but the value is used for
-calculations such as padding.  It also affects decisions about whether
-to scroll part of the screen or redraw it instead---even when using a
-window system.  (We designed it this way, despite the fact that a window
-system has no true ``output speed,'' to give you a way to tune these
-decisions.)
+  The variable @code{baud-rate} holds the output speed of the terminal,
+as far as Emacs knows.  Setting this variable does not change the speed
+of actual data transmission, but the value is used for calculations such
+as padding.  On terminals, it also affects decisions about whether to
+scroll part of the screen or redraw it instead.
+
+On window-systems, @code{baud-rate} is only used to determine how
+frequently to look for pending input during display updating.  A higher
+value of @code{baud-rate} means that check for pending input will be
+done less frequently.
 
   You can customize the way any particular character code is displayed
 by means of a display table.  @xref{Display Tables,, Display Tables,
