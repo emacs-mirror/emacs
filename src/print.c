@@ -384,6 +384,25 @@ printchar (ch, fun)
 	}
 
       message_dolog (str, len, 0, len > 1);
+
+      /* Convert message to multibyte if we are now adding multibyte text.  */
+      if (! NILP (current_buffer->enable_multibyte_characters)
+	  && ! message_enable_multibyte
+	  && printbufidx > 0)
+	{
+	  int size = count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
+					      printbufidx);
+	  unsigned char *tembuf = (unsigned char *) alloca (size + 1);
+	  copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
+		     0, 1);
+	  printbufidx = size;
+	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
+	    printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
+	}
+      message_enable_multibyte
+	= ! NILP (current_buffer->enable_multibyte_characters);
+
       if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
 	bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len),
 	printbufidx += len;
