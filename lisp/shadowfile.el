@@ -1,4 +1,4 @@
-;;; shadowfile.el -- automatic file copying for Emacs 19
+;;; shadowfile.el --- automatic file copying for Emacs 19
 
 ;;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
 ;;; Keywords: comm
@@ -22,7 +22,7 @@
 ;;; LCD Archive Entry:
 ;;; shadowfile|Boris Goldowsky|boris@gnu.ai.mit.edu|
 ;;; Helps you keep identical copies of files in multiple places.|
-;;; $Date: 1994/05/03 22:57:18 $ |$Revision: 1.3 $|~/misc/shadowfile.el.Z|
+;;; $Date: 1995/06/05 20:41:03 $ |$Revision: 1.4 $|~/misc/shadowfile.el.Z|
 
 ;;; Commentary:
 ;;;

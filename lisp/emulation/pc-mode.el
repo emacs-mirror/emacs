@@ -1,5 +1,5 @@
-;;; enriched.el -- read and save files in text/enriched format
-;; Copyright (c) 1995 Free Software Foundation, Inc.
+;;; pc-mode.el emulate Windows/Mac/Motif selection keys
+;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 
