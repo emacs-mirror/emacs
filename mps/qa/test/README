@@ -1,5 +1,3 @@
 $HopeName: MMQA_harness!README(trunk.1) $
 
-This is the trunk of the MMQA test harness.
-If you want to run tests, please use the latest
-release, by checking out MMQA_harness!(MMQA_una).
+This is release dewey of the MMQA test harness.
