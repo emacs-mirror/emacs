@@ -44,11 +44,15 @@
   '(
     ("[:/].*config.sys$" . nil)		; config.sys text
     ("\\.elc$" . t)			; emacs stuff
-    ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\)$" . t)
+    ("\\.\\(obj\\|exe\\|com\\|lib\\|sym\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\|dos\\|class\\)$" . t)
 					; MS-Dos stuff
+    ("\\.\\(dll\\|drv\\|cpl\\|scr\\vbx\\|386\\|vxd\\|fon\\|fnt\\|fot\\|ttf\\|grp\\)$" . t)
+					; Windows stuff
+    ("\\.\\(hlp\\|bmp\\|wav\\|avi\\|mpg\\|jpg\\|tif\\mov\\au\\)" . t)
+					; known binary data files
     ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . t)
 					; Packers
-    ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\)$" . t)
+    ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\|jar\\)$" . t)
 					; Unix stuff
     ("\\.tp[ulpw]$" . t)
 					; Borland Pascal stuff
