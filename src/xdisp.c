@@ -187,6 +187,7 @@ Boston, MA 02111-1307, USA.  */
 #include "process.h"
 #include "region-cache.h"
 #include "fontset.h"
+#include "blockinput.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
