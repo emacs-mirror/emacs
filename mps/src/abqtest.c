@@ -1,23 +1,26 @@
 /* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
  *
- * $HopeName: MMsrc!abqtest.c(trunk.3) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!abqtest.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 #include "abq.h"
 #include "cbs.h"
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h"             /* ANSI arena for ABQCreate and ABQDestroy */
+#include "mpsavm.h"
 #include "testlib.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "mpstd.h"
+#ifdef MPS_OS_IA
+struct itimerspec; /* stop complaints from time.h */
+#endif
 #include <time.h>
 #include <math.h>
 
 
-SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.3) $");
+SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.4) $");
 
 
 static ABQStruct abq; /* the ABQ which we will use */
@@ -32,9 +35,11 @@ static unsigned long random(unsigned long n)
   return rnd()%n;
 }
 
+
 static int pushee = 1;
 static int popee = 1;
 static int deleted = 0;
+
 
 typedef struct TestStruct *Test;
 
@@ -44,6 +49,7 @@ typedef struct TestStruct
   int id;
   CBSBlockStruct cbsBlockStruct;
 } TestStruct;
+
 
 static CBSBlock TestCBSBlock(Test t) 
 {
@@ -55,12 +61,14 @@ static Test CBSBlockTest(CBSBlock c)
   return PARENT(TestStruct, cbsBlockStruct, c);
 }
 
+
 static Test testBlocks = NULL;
+
 
 static CBSBlock CreateCBSBlock(int no)
 {
   Test b = malloc(sizeof(TestStruct));
-  AVER(b != NULL);
+  cdie(b != NULL, "malloc");
 
   b->next = testBlocks;
   b->id = no;
@@ -117,7 +125,7 @@ static void step(void)
       	popee++;
         deleted = 0;
       }
-      AVER(CBSBlockTest(a)->id == popee);
+      cdie(CBSBlockTest(a)->id == popee, "pop");
       popee++;
       DestroyCBSBlock(a);
       break;
@@ -129,26 +137,28 @@ static void step(void)
         for (b = testBlocks; b != NULL; b = b->next)
           if (b->id == deleted)
             break;
-        AVER(b != NULL);
+        cdie(b != NULL, "found to delete");
         res = ABQDelete(&abq, TestCBSBlock(b));
-        AVER(res == ResOK);
+        cdie(res == ResOK, "ABQDelete");
       }
   }
 }
 
-extern int main(void)
+
+#define testArenaSIZE   (((size_t)4)<<20)
+
+extern int main(int argc, char *argv[])
 {
-  mps_res_t res;
+  Res res;
   mps_arena_t arena;
   int i;
 
+  randomize(argc, argv);
+
   abqSize = 0;
 
-  res = mps_arena_create(&arena, mps_arena_class_an());
-  if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
-    return 1;
-  }
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
 
   res = ABQInit((Arena)arena, &abq, NULL, ABQ_SIZE);
   if (res == ResOK) {
