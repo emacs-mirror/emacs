@@ -1,19 +1,24 @@
+1999-11-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* comint.el: Add redirection.from active comint buffers into
+	another buffer.  Written by Peter Breton.
+
 1999-11-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/autoload.el (make-autoload): Recognize the new
-	  `define-minor-mode'.
+	`define-minor-mode'.
 	(define-minor-mode): Specify `doc-string-elt'.
 
 	* emacs-lisp/easy-mmode.el: Changed maintainer.
 	(easy-mmode-define-toggle): New BODY arg; Never append `-mode';
-	  Use defcustom for the hooks; Improve the auto-generated docstrings.
+	Use defcustom for the hooks; Improve the auto-generated docstrings.
 	(easy-mmode-define-minor-mode): Renamed `define-minor-mode'.
 	(define-minor-mode): Add BODY arg; Only declare the keymap if
-	  provided; Improve the auto-generated docstrings.
+	provided; Improve the auto-generated docstrings.
 
 1999-11-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* textmodes/text-mode.el (text-mode): Contruct paragraph-start so
+	* textmodes/text-mode.el (text-mode): Construct paragraph-start so
 	that the leading `^' is at the start.  This is necessary because
 	paragraphs.el tries to remove anchors, but can find them only if
 	they are the first character.
