@@ -54,11 +54,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "dispextern.h"
 
-#ifdef HAVE_X11
 #include "../oldXMenu/XMenu.h"
-#else
-#include <X/XMenu.h>
-#endif
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Xlib.h>
@@ -77,11 +73,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
-#ifdef HAVE_X11
 extern Display *x_current_display;
-#else
-#define	ButtonReleaseMask ButtonReleased
-#endif /* not HAVE_X11 */
 
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
@@ -2080,7 +2072,6 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     }
 
   /* Adjust coordinates to relative to the outer (window manager) window.  */
-#ifdef HAVE_X11
   {
     Window child;
     int win_x = 0, win_y = 0;
@@ -2106,7 +2097,6 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	y += win_y;
       }
   }
-#endif /* HAVE_X11 */
 
   /* Adjust coordinates to be root-window-relative.  */
   x += f->display.x->left_pos;
