@@ -1,3 +1,8 @@
+2002-10-29  David Kastrup  <dak@lola.goethe.zz>
+
+	* calc/calc.el (calc-any-evaltos): Initialize to nil, since
+	calc-refresh-evaltos appears to need this.
+
 2002-10-28  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el (non-iso-charset-alist): Move to
