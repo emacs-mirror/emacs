@@ -1242,6 +1242,11 @@ This button will have a menu with all three reset operations."
   :type 'boolean
   :group 'custom-buffer)
 
+(defcustom custom-buffer-verbose-help t
+  "If non-nil, include explanatory text in the customization buffer."
+  :type 'boolean
+  :group 'custom-buffer)
+
 (defun Custom-buffer-done (&rest ignore)
   "Remove current buffer by calling `custom-buffer-done-function'."
   (interactive)
@@ -1258,10 +1263,12 @@ Otherwise use brackets."
 (defun custom-buffer-create-internal (options &optional description)
   (message "Creating customization buffer...")
   (custom-mode)
-  (widget-insert "This is a customization buffer")
-  (if description
-      (widget-insert description))
-  (widget-insert (format ".
+  (if custom-buffer-verbose-help
+      (progn
+	(widget-insert "This is a customization buffer")
+	(if description
+	    (widget-insert description))
+	(widget-insert (format ".
 %s show active fields; type RET or click mouse-1
 on an active field to invoke its action.  Editing an option value
 changes the text in the buffer; invoke the State button and
@@ -1269,13 +1276,14 @@ choose the Set operation to set the option value.
 Invoke " (if custom-raised-buttons
 	     "`Raised' buttons"
 	     "Square brackets")))
-  (widget-create 'info-link
-		 :tag "Help"
-		 :help-echo "Read the online help."
-		 "(emacs)Easy Customization")
-  (widget-insert " for more information.\n\n")
-  (message "Creating customization buttons...")
-  (widget-insert "Operate on everything in this buffer:\n ")
+	(widget-create 'info-link
+		       :tag "Help"
+		       :help-echo "Read the online help."
+		       "(emacs)Easy Customization")
+	(widget-insert " for more information.\n\n")
+	(message "Creating customization buttons...")
+	(widget-insert "Operate on everything in this buffer:\n "))
+    (widget-insert " "))
   (widget-create 'push-button
 		 :tag "Set for Current Session"
 		 :help-echo "\
@@ -1316,6 +1324,13 @@ Reset all values in this buffer to their saved settings."
 		   :help-echo "\
 Un-customize all values in this buffer.  They get their standard settings."
 		   :action 'Custom-reset-standard))
+  (if (not custom-buffer-verbose-help)
+      (progn
+	(widget-insert " ")
+	(widget-create 'info-link
+		       :tag "Help"
+		       :help-echo "Read the online help."
+		       "(emacs)Easy Customization")))
   (widget-insert "   ")
   (widget-create 'push-button
 		 :tag "Finish"
