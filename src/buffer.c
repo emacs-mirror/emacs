@@ -343,6 +343,11 @@ The value is never nil.")
   BUF_BEGV (b) = 1;
   BUF_ZV (b) = 1;
   BUF_Z (b) = 1;
+  BUF_PT_BYTE (b) = 1;
+  BUF_GPT_BYTE (b) = 1;
+  BUF_BEGV_BYTE (b) = 1;
+  BUF_ZV_BYTE (b) = 1;
+  BUF_Z_BYTE (b) = 1;
   BUF_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
@@ -423,6 +428,9 @@ NAME should be a string which is not the name of an existing buffer.")
   BUF_BEGV (b) = BUF_BEGV (b->base_buffer);
   BUF_ZV (b) = BUF_ZV (b->base_buffer);
   BUF_PT (b) = BUF_PT (b->base_buffer);
+  BUF_BEGV_BYTE (b) = BUF_BEGV_BYTE (b->base_buffer);
+  BUF_ZV_BYTE (b) = BUF_ZV_BYTE (b->base_buffer);
+  BUF_PT_BYTE (b) = BUF_PT_BYTE (b->base_buffer);
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -450,31 +458,33 @@ NAME should be a string which is not the name of an existing buffer.")
   if (NILP (b->base_buffer->pt_marker))
     {
       b->base_buffer->pt_marker = Fmake_marker ();
-      Fset_marker (b->base_buffer->pt_marker,
-		   make_number (BUF_PT (b->base_buffer)), base_buffer);
+      set_marker_both (b->base_buffer->pt_marker, base_buffer,
+		       BUF_PT (b->base_buffer),
+		       BUF_PT_BYTE (b->base_buffer));
     }
   if (NILP (b->base_buffer->begv_marker))
     {
       b->base_buffer->begv_marker = Fmake_marker ();
-      Fset_marker (b->base_buffer->begv_marker,
-		   make_number (BUF_BEGV (b->base_buffer)), base_buffer);
+      set_marker_both (b->base_buffer->begv_marker, base_buffer,
+		       BUF_BEGV (b->base_buffer),
+		       BUF_BEGV_BYTE (b->base_buffer));
     }
   if (NILP (b->base_buffer->zv_marker))
     {
       b->base_buffer->zv_marker = Fmake_marker ();
-      Fset_marker (b->base_buffer->zv_marker,
-		   make_number (BUF_ZV (b->base_buffer)), base_buffer);
+      set_marker_both (b->base_buffer->zv_marker, base_buffer,
+		       BUF_ZV (b->base_buffer),
+		       BUF_ZV_BYTE (b->base_buffer));
       XMARKER (b->base_buffer->zv_marker)->insertion_type = 1;
     }
 
   /* Give the indirect buffer markers for its narrowing.  */
   b->pt_marker = Fmake_marker ();
-  Fset_marker (b->pt_marker, make_number (BUF_PT (b)), buf);
+  set_marker_both (b->pt_marker, buf, BUF_PT (b), BUF_PT_BYTE (b));
   b->begv_marker = Fmake_marker ();
-  Fset_marker (b->begv_marker, make_number (BUF_BEGV (b)), buf);
+  set_marker_both (b->begv_marker, buf, BUF_BEGV (b), BUF_BEGV_BYTE (b));
   b->zv_marker = Fmake_marker ();
-  Fset_marker (b->zv_marker, make_number (BUF_ZV (b)), buf);
-
+  set_marker_both (b->zv_marker, buf, BUF_ZV (b), BUF_ZV_BYTE (b));
   XMARKER (b->zv_marker)->insertion_type = 1;
 
   return buf;
@@ -1408,22 +1418,22 @@ set_buffer_internal_1 (b)
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->pt_marker, make_number (BUF_PT (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->pt_marker, obuf,
+			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
 	}
       if (! NILP (old_buf->begv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->begv_marker, make_number (BUF_BEGV (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->begv_marker, obuf,
+			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
 	}
       if (! NILP (old_buf->zv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->zv_marker, make_number (BUF_ZV (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->zv_marker, obuf,
+			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
 	}
     }
 
@@ -1435,11 +1445,20 @@ set_buffer_internal_1 (b)
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
   if (! NILP (b->pt_marker))
-    BUF_PT (b) = marker_position (b->pt_marker);
+    {
+      BUF_PT (b) = marker_position (b->pt_marker);
+      BUF_PT_BYTE (b) = marker_byte_position (b->pt_marker);
+    }
   if (! NILP (b->begv_marker))
-    BUF_BEGV (b) = marker_position (b->begv_marker);
+    {
+      BUF_BEGV (b) = marker_position (b->begv_marker);
+      BUF_BEGV_BYTE (b) = marker_byte_position (b->begv_marker);
+    }
   if (! NILP (b->zv_marker))
-    BUF_ZV (b) = marker_position (b->zv_marker);
+    {
+      BUF_ZV (b) = marker_position (b->zv_marker);
+      BUF_ZV_BYTE (b) = marker_byte_position (b->zv_marker);
+    }
 
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
@@ -1495,33 +1514,42 @@ set_buffer_temp (b)
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->pt_marker, make_number (BUF_PT (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->pt_marker, obuf,
+			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
 	}
       if (! NILP (old_buf->begv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->begv_marker, make_number (BUF_BEGV (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->begv_marker, obuf,
+			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
 	}
       if (! NILP (old_buf->zv_marker))
 	{
 	  Lisp_Object obuf;
 	  XSETBUFFER (obuf, old_buf);
-	  Fset_marker (old_buf->zv_marker, make_number (BUF_ZV (old_buf)),
-		       obuf);
+	  set_marker_both (old_buf->zv_marker, obuf,
+			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
 	}
     }
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
   if (! NILP (b->pt_marker))
-    BUF_PT (b) = marker_position (b->pt_marker);
+    {
+      BUF_PT (b) = marker_position (b->pt_marker);
+      BUF_PT_BYTE (b) = marker_byte_position (b->pt_marker);
+    }
   if (! NILP (b->begv_marker))
-    BUF_BEGV (b) = marker_position (b->begv_marker);
+    {
+      BUF_BEGV (b) = marker_position (b->begv_marker);
+      BUF_BEGV_BYTE (b) = marker_byte_position (b->begv_marker);
+    }
   if (! NILP (b->zv_marker))
-    BUF_ZV (b) = marker_position (b->zv_marker);
+    {
+      BUF_ZV (b) = marker_position (b->zv_marker);
+      BUF_ZV_BYTE (b) = marker_byte_position (b->zv_marker);
+    }
 }
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
