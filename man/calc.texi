@@ -1,14 +1,14 @@
 \input texinfo                  @c -*-texinfo-*-
-@dircategory Emacs
-@direntry
-* Calc: (calc). 	Advanced desk calculator and mathematical tool.
-@end direntry
 @comment %**start of header (This is for running Texinfo on a region.)
 @c smallbook
 @setfilename ../info/calc
 @c [title]
 @settitle GNU Emacs Calc 2.02 Manual
 @setchapternewpage odd
+@dircategory Emacs
+@direntry
+* Calc: (calc). 	Advanced desk calculator and mathematical tool.
+@end direntry
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @tex
