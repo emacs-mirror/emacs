@@ -1,3 +1,7 @@
+2002-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (documentation): Add ad-define-subr-args call.
+
 2002-04-29  Richard M. Stallman  <rms@gnu.org>
 
 	* net/zone-mode.el (zone-mode): Add write-file-hooks hook locally.
