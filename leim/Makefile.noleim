@@ -1,7 +1,0 @@
-# This placeholder appears in the `leim' subdirectory in the Emacs
-# distribution.  It is is overwritten with a real makefile
-# when you actually extract LEIM into the directory.
-all install:
-
-# Avoid error when these targets are used.
-clean distclean mostlyclean maintainer-clean:
