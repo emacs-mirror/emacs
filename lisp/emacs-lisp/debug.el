@@ -51,15 +51,11 @@ the middle is discarded, and just the beginning and end are displayed."
   :group 'debugger
   :version "21.1")
 
-(defcustom debug-function-list nil
-  "List of functions currently set for debug on entry."
-  :type '(repeat function)
-  :group 'debugger)
+(defvar debug-function-list nil
+  "List of functions currently set for debug on entry.")
 
-(defcustom debugger-step-after-exit nil
-  "Non-nil means \"single-step\" after the debugger exits."
-  :type 'boolean
-  :group 'debugger)
+(defvar debugger-step-after-exit nil
+  "Non-nil means \"single-step\" after the debugger exits.")
 
 (defvar debugger-value nil
   "This is the value for the debugger to return, when it returns.")
