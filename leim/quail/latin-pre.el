@@ -702,7 +702,7 @@ Key translation rules are:
  "polish-slash" "Polish" "PL>" nil
  "Polish diacritics in Latin-2 encoding are input as `/[acelnosxzACELNOSXZ]'.
 For example, the character named `aogonek' is obtained by `/a'."
- nil t t t t nil nil nil nil nil t)
+ nil t t t nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("/a" ?,B1(B)
