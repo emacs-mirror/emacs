@@ -1223,6 +1223,9 @@ MESSAGE may be either a string or a buffer.
 A buffer is displayed using `display-buffer' if MESSAGE is too long for
 the maximum height of the echo area, as defined by `max-mini-window-height'.
 
+Returns either the string shown in the echo area, or when a pop-up
+buffer is used, the window used to display it.
+
 If MESSAGE is a string, then the optional argument BUFFER-NAME is the
 name of the buffer used to display it in the case where a pop-up buffer
 is used, defaulting to `*Message*'.  In the case where MESSAGE is a
