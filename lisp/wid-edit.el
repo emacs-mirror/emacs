@@ -790,13 +790,11 @@ button end points."
 Recommended as a parent keymap for modes using widgets.")
 
 (defvar widget-global-map global-map
-  "Keymap used for events the widget does not handle themselves.")
+  "Keymap used for events a widget does not handle itself.")
 (make-variable-buffer-local 'widget-global-map)
 
 (defvar widget-field-keymap
   (let ((map (copy-keymap widget-keymap)))
-    (define-key map [menu-bar] nil)
-    (define-key map [tool-bar] nil)
     (define-key map "\C-k" 'widget-kill-line)
     (define-key map "\M-\t" 'widget-complete)
     (define-key map "\C-m" 'widget-field-activate)
@@ -804,19 +802,15 @@ Recommended as a parent keymap for modes using widgets.")
     ;; ordinary beginning-of-line/end-of-line do the right thing.
     ;;  (define-key map "\C-a" 'widget-beginning-of-line)
     ;;  (define-key map "\C-e" 'widget-end-of-line)
-    (set-keymap-parent map global-map)
     map)
   "Keymap used inside an editable field.")
 
 (defvar widget-text-keymap
   (let ((map (copy-keymap widget-keymap)))
-    (define-key map [menu-bar] nil)
-    (define-key map [tool-bar] nil)
     ;; Since the widget code uses a `field' property to identify fields,
     ;; ordinary beginning-of-line/end-of-line do the right thing.
     ;;  (define-key map "\C-a" 'widget-beginning-of-line)
     ;;  (define-key map "\C-e" 'widget-end-of-line)
-    (set-keymap-parent map global-map)
     map)
   "Keymap used inside a text field.")
 
