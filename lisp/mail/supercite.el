@@ -522,9 +522,9 @@ string."
   "A list describing what version of Emacs we're running on.
 Known flavors are:
 
-All GNU18's: (v18 GNU)
-FSF19.x    : (v19 GNU)
-Lucid19.x  : (v19 Lucid)")
+Emacs 18        : (v18 GNU)
+Emacs 19 or 20  : (v19 GNU)
+Lucid 19 or 20  : (v19 Lucid)")
 
 
 (defvar sc-tmp-nested-regexp nil
@@ -716,7 +716,7 @@ the list should be unique."
 	      (setq event (read-char)))
 	     ((memq 'Lucid sc-emacs-features)
 	      (next-command-event event))
-	     (t				; must be FSF19
+	     (t				; must be Emacs 19
 	      (setq event (read-event))))
 	    (prog1 quit-flag (setq quit-flag nil)))
 	  (progn
@@ -2012,7 +2012,7 @@ before, and `sc-post-hook' is run after the guts of this function."
   ;; this function gets automatically called. we want point to be a
   ;; mark so any deleting before point works properly
   (let* ((zmacs-regions nil)		; for Lemacs
-	 (mark-active t)		; for FSFmacs
+	 (mark-active t)		; for Emacs
 	 (point (point-marker))
 	 (mark  (copy-marker (mark-marker))))
   
