@@ -674,7 +674,7 @@ get_keyelt (object, autoload)
     }
 }
 
-Lisp_Object
+static Lisp_Object
 store_in_keymap (keymap, idx, def)
      Lisp_Object keymap;
      register Lisp_Object idx;
