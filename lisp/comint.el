@@ -78,7 +78,7 @@
 ;;; c-c c-\ comint-quit-subjob	    	    ^\
 ;;; c-c c-o comint-kill-output		    Delete last batch of process output
 ;;; c-c c-r comint-show-output		    Show last batch of process output
-;;; c-c c-h comint-dynamic-list-input-ring  List input history
+;;; c-c c-l comint-dynamic-list-input-ring  List input history
 ;;;
 ;;; Not bound by default in comint-mode (some are in shell mode)
 ;;; comint-run				Run a program under comint-mode
