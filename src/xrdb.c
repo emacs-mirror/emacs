@@ -314,6 +314,15 @@ get_user_db (display)
       db = XrmGetFileDatabase (xdefault);
     }
 
+#ifdef XlibSpecificationRelease
+#if XlibSpecificationRelease >= 5
+  /* Get the screen-specific resources too.  */
+  xdefs = XScreenResourceString (DefaultScreenOfDisplay (display));
+  if (xdefs != NULL)
+    XrmMergeDatabases (XrmGetStringDatabase (xdefs), &db);
+#endif
+#endif
+
   return db;
 }
 
