@@ -2113,12 +2113,22 @@ At end of the node's text, moves to the next node, or up if none."
        (Info-next-preorder)))
 
 (defun Info-follow-nearest-node ()
-  "\\<Info-mode-map>Follow a node reference near point.
-Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where point is.
-If no reference to follow, moves to the next node, or up if none."
+  "Follow a node reference near point.
+If point is on a reference, follow that reference.  Otherwise,
+if point is in a menu item description, follow that menu item."
   (interactive)
   (or (Info-try-follow-nearest-node)
-      (Info-next-preorder)))
+      (when (save-excursion
+	      (search-backward "\n* menu:" nil t))
+	(save-excursion
+	  (beginning-of-line)
+	  (while (not (or (bobp) (looking-at "[^ \t]\\|[ \t]*$")))
+	    (beginning-of-line 0))
+	  (when (looking-at "\\* +\\([^\t\n]*\\):")
+	    (Info-goto-node
+	     (Info-extract-menu-item (match-string-no-properties 1)))
+	    t)))
+      (error "Point neither on reference nor in menu item description")))
 
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node ()
