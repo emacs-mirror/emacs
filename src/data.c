@@ -1413,7 +1413,7 @@ This function returns VARIABLE, and therefore\n\
 works.\n\
 \n\
 Do not use `make-local-variable' to make a hook variable buffer-local.\n\
-Use `make-local-hook' instead.")
+Instead, use `add-hook' and specify t for the LOCAL argument.")
   (variable)
      register Lisp_Object variable;
 {
