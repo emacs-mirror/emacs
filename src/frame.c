@@ -1620,7 +1620,9 @@ keys_of_frame ()
    set-frame-width doesn't help compatibility any, since they both
    want this as their first argument.  */
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
-  "Return the frame that is now selected.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   ()
 {
   Lisp_Object tem;
@@ -1628,10 +1630,9 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   return tem;
 }
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
-  "Return non-nil if OBJECT is a frame.\n\
-Value is t for a termcap frame (a character-only terminal),\n\
-`x' for an Emacs frame that is really an X window.\n\
-Also see `live-frame-p'.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (object)
      Lisp_Object object;
 {
@@ -1639,9 +1640,9 @@ Also see `live-frame-p'.")
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
-  "Specify that the frame FRAME has LINES lines.\n\
-Optional third arg non-nil means that redisplay should use LINES lines\n\
-but that the idea of the actual height of the frame should not be changed.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame, rows, pretend)
      Lisp_Object frame, rows, pretend;
 {
@@ -1652,9 +1653,9 @@ but that the idea of the actual height of the frame should not be changed.")
 }
 
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
-  "Specify that the frame FRAME has COLS columns.\n\
-Optional third arg non-nil means that redisplay should use COLS columns\n\
-but that the idea of the actual width of the frame should not be changed.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame, cols, pretend)
      Lisp_Object frame, cols, pretend;
 {
@@ -1665,7 +1666,9 @@ but that the idea of the actual width of the frame should not be changed.")
 }
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
-  "Sets size of FRAME to COLS by ROWS, measured in characters.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame, cols, rows)
      Lisp_Object frame, cols, rows;
 {
@@ -1697,9 +1700,9 @@ If FRAME is omitted, describe the currently selected frame.")
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
   0, 1, 0,
-  "Height in pixels of a line in the font in frame FRAME.\n\
-If FRAME is omitted, the selected frame is used.\n\
-For a terminal frame, the value is always 1.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
@@ -1709,11 +1712,9 @@ For a terminal frame, the value is always 1.")
 
 DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
   0, 1, 0,
-  "Width in pixels of characters in the font in frame FRAME.\n\
-If FRAME is omitted, the selected frame is used.\n\
-The width is the same for all characters, because\n\
-currently Emacs supports only fixed-width fonts.\n\
-For a terminal screen, the value is always 1.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
@@ -1722,9 +1723,9 @@ For a terminal screen, the value is always 1.")
 
 DEFUN ("frame-pixel-height", Fframe_pixel_height, 
        Sframe_pixel_height, 0, 1, 0,
-  "Return FRAME's height in pixels.\n\
-For a terminal frame, the result really gives the height in characters.\n\
-If FRAME is omitted, the selected frame is used.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
@@ -1733,9 +1734,9 @@ If FRAME is omitted, the selected frame is used.")
 
 DEFUN ("frame-pixel-width", Fframe_pixel_width, 
        Sframe_pixel_width, 0, 1, 0,
-  "Return FRAME's width in pixels.\n\
-For a terminal frame, the result really gives the width in characters.\n\
-If FRAME is omitted, the selected frame is used.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (frame)
      Lisp_Object frame;
 {
