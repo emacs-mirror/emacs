@@ -2,17 +2,39 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc/!vmnt.c(trunk.1)$
+ *  $HopeName: MMsrc/!vmnt.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
+ *  Design: design.mps.vm
+ *
  *  This is the implementation of the virtual memory mapping interface (vm.h)
  *  for Win32s.
+ *
+ *  The documentation for Win32 used is the "Win32 Programmer's Reference"
+ *  provided with Microsoft Visual C++ 2.0.
  *
  *  VirtualAlloc is used to reserve address space and to "commit" (map)
  *  address ranges onto storage.  VirtualFree is used to release and
  *  "decommit" (unmap) pages.  These functions are documented in the
  *  Win32 SDK help, under System Services/Memory Management.
+ *
+ *  .assume.free.success:  We assume that VirtualFree will never return
+ *    an error; this is because we always pass in legal parameters
+ *    (hopefully).
+ *
+ *  .assume.not-last:  We assume that VirtualAlloc will never return
+ *    a block of memory that occupies the last page in memory, so
+ *    that limit is representable and bigger than base.
+ *
+ *  .assume.dword-addr:  We assume that the windows type DWORD and
+ *    the MM type Addr are the same size.
+ *
+ *  .assume.lpvoid-addr:  We assume that the windows type LPVOID and
+ *    the MM type Addr are the same size.
+ *
+ *  .assume.sysgrain:  The assume that the page size on the system
+ *    is a power of two.
  *
  *  Notes
  *   1. GetSystemInfo returns a thing called szAllocationGranularity
@@ -52,11 +74,12 @@ Addr VMGrain(void)
   Addr grain;
   SYSTEM_INFO si;
 
+  /* See .assume.dword-addr */
   AVER(sizeof(DWORD) == sizeof(Addr));
 
   GetSystemInfo(&si);
   grain = (Addr)si.dwPageSize;
-  AVER(IsPoT(grain));
+  AVER(IsPoT(grain));    /* see .assume.sysgrain */
 
   return(grain);
 }
@@ -85,18 +108,21 @@ Bool VMIsValid(VM vm, ValidationType validParam)
 Error VMCreate(VM *vmReturn, Addr size)
 {
   LPVOID base;
-  Addr grain = VMGrain();
+  Addr grain;
   VM vm;
 
   AVER(vmReturn != NULL);
-  AVER(IsAligned(grain, size));
-  AVER(sizeof(LPVOID) == sizeof(Addr));
+  AVER(sizeof(LPVOID) == sizeof(Addr));  /* .assume.lpvoid-addr */
 
-  /* Allocate in a page to store the descriptor on. */
+  grain = VMGrain();
+  AVER(IsAligned(grain, size));
+
+  /* Allocate some store for the descriptor.
+   * This is likely to be wasteful see issue.vmnt.waste */
   base = VirtualAlloc(NULL, AlignUp(grain, sizeof(VMStruct)),
           MEM_COMMIT, PAGE_READWRITE);
   if(base == NULL)
-    return(ErrRESOURCE);
+    return(ErrRESMEM);
   vm = (VM)base;
 
   /* Allocate the address space. */
@@ -108,6 +134,7 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   vm->base = (Addr)base;
   vm->limit = (Addr)base + size;
+  AVER(vm->base < vm->limit);  /* .assume.not-last */
   
 #ifdef DEBUG_SIGN
   SigInit(&VMSigStruct, "VM");
@@ -124,12 +151,18 @@ Error VMCreate(VM *vmReturn, Addr size)
 void VMDestroy(VM vm)
 {
   BOOL b;
-  Addr grain = VMGrain();
+  Addr grain;
 
   AVER(ISVALID(VM, vm));
 
-  /* Note: There is no need to invalidate vm->sig since the page it's */
-  /* on is about to disappear from memory. */
+  grain = VMGrain();
+
+  /* This appears to be pretty pointless, since the vm descriptor page
+   * is about to vanish completely.  However, the VirtaulFree might
+   * fail and it would be nice to have a dead sig there. */
+#ifdef DEBUG_SIGN
+  vm->sig = SigInvalid;
+#endif
 
   b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
   AVER(b == TRUE);
@@ -162,12 +195,14 @@ Error VMMap(VM vm, Addr base, Addr limit)
   AVER(ISVALID(VM, vm));
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
+  AVER(vm->base <= base);
   AVER(base < limit);
-  AVER(base >= vm->base);
   AVER(limit <= vm->limit);
+  /* We could check that the pages we are about to map are unmapped
+   * using VirtualQuery.  We could, but we don't. */
 
   b = VirtualAlloc((LPVOID)base, (DWORD)(limit - base),
-       MEM_COMMIT, PAGE_READWRITE);
+       MEM_COMMIT, PAGE_EXECUTE_READWRITE);
   if(b == NULL)
     return(ErrRESMEM);
 
@@ -187,10 +222,12 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(ISVALID(VM, vm));
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
+  AVER(vm->base <= base);
   AVER(base < limit);
-  AVER(base >= vm->base);
   AVER(limit <= vm->limit);
+  /* Could check that the pages we are about to unmap are mapped
+   * using VirtualQuery.  We could but we don't. */
 
   b = VirtualFree((LPVOID)base, (DWORD)(limit - base), MEM_DECOMMIT);
-  AVER(b == TRUE);
+  AVER(b == TRUE);  /* .assume.free.success */
 }
