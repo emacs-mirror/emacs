@@ -2249,7 +2249,7 @@ read_process_output_error_handler (error)
   cmd_error_internal (error, "error in process filter: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
-  Fsleep_for (make_number (2));
+  Fsleep_for (make_number (2), Qnil);
 }
 
 /* Read pending output from the process channel,
@@ -3315,7 +3315,7 @@ exec_sentinel_error_handler (error)
   cmd_error_internal (error, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
-  Fsleep_for (make_number (2));
+  Fsleep_for (make_number (2), Qnil);
 }
 
 static void
