@@ -383,6 +383,12 @@ You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
 
+@defun memory-use-counts
+This returns a list of numbers that count the number of objects
+created in this Emacs session.  Each of these counters increments for
+a certain kind of object.  See the documentation string for details.
+@end defun
+
 @defvar gcs-done
 This variable contains the total number of garbage collections
 done so far in this Emacs session.
