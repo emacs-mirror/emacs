@@ -1,3 +1,11 @@
+1999-12-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL)
+	[!MSDOS && !WINDOWSNT && !macintosh]: Moved here from xterm.h.
+
+	* xterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Moved
+	to frame.h.
+
 1999-12-09  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (Qratio): New symbol.
