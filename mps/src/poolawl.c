@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.14) $
+ * $HopeName: MMsrc!poolawl.c(trunk.15) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.14) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.15) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -445,6 +445,14 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   base = SegBase(arena, seg);
   limit = SegLimit(arena, seg);
 
+  /* If the scanner isn't going to scan all the objects then the */
+  /* summary of the unscanned objects must be added into the scan */
+  /* state summary, so that it's a valid summary of the entire */
+  /* segment on return. */
+  if(SegWhite(seg) != RefSetEMPTY)
+    ScanStateSetSummary(ss, RefSetUnion(ScanStateSummary(ss),
+                                        SegSummary(seg)));
+
 notFinished:
   finished = TRUE;
   p = base;
@@ -500,7 +508,7 @@ notFinished:
   }
   if(!finished)
     goto notFinished;
-  
+
   return ResOK;
 }
 

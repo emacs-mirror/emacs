@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.41) $
+ * $HopeName: MMsrc!mpm.h(trunk.42) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -322,6 +322,8 @@ extern TraceSet (TraceSetUnion)(TraceSet ts1, TraceSet ts2);
 extern Bool (TraceSetIsMember)(TraceSet ts, TraceId id);
 
 extern Bool ScanStateCheck(ScanState ss);
+extern void ScanStateSetSummary(ScanState ss, RefSet summary);
+extern RefSet ScanStateSummary(ScanState ss);
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
@@ -340,7 +342,7 @@ extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
   BEGIN \
     Shift SCANzoneShift = (ss)->zoneShift; \
     RefSet SCANwhite = (ss)->white; \
-    RefSet SCANsummary = (ss)->summary; \
+    RefSet SCANsummary = (ss)->unfixedSummary; \
     Word SCANt; \
     {
 
@@ -366,7 +368,7 @@ extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 #define TRACE_SCAN_END(ss) \
    } \
-   (ss)->summary = SCANsummary; \
+   (ss)->unfixedSummary = SCANsummary; \
   END
 
 extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
