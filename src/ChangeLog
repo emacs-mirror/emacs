@@ -1,5 +1,5 @@
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
-	
+
 	* dired.c (Ffile_attributes): Parameter ID-FORMAT added and
 	included in call to file name handler. Numeric UID and GID
 	optionally translated to strings. Docstring updated.
@@ -15,8 +15,8 @@
 
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* fns.c (Freverse): Doc fix.
-	(Fnreverse): Doc fix.
+	* fns.c (Freverse, Fnreverse, Fassq, Fassoc, Frassq, Frassoc):
+	Doc fixes.
 
 2003-11-19  Kim F. Storm  <storm@cua.dk>
 
