@@ -143,7 +143,8 @@ even if it is inactive."
      count))
 
 (defun window-safely-shrinkable-p (&optional window)
-  "Non-nil if the WINDOW can be shrunk without shrinking other windows."
+  "Non-nil if the WINDOW can be shrunk without shrinking other windows.
+If WINDOW is nil or omitted, it defaults to the currently selected window."
   (save-selected-window
     (when window (select-window window))
     (or (and (not (eq window (frame-first-window)))
@@ -367,6 +368,7 @@ in some window."
 
 (defun fit-window-to-buffer (&optional window max-height min-height)
   "Make WINDOW the right size to display its contents exactly.
+If WINDOW is omitted or nil, it defaults to the selected window.
 If the optional argument MAX-HEIGHT is supplied, it is the maximum height
   the window is allowed to be, defaulting to the frame height.
 If the optional argument MIN-HEIGHT is supplied, it is the minimum
@@ -452,6 +454,7 @@ header-line."
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
+If WINDOW is omitted or nil, it defaults to the selected window.
 Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
