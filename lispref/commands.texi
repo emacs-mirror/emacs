@@ -420,7 +420,7 @@ the string.)  Other characters that normally terminate a symbol (e.g.,
 parentheses and brackets) do not do so here.  Prompt.
 
 @item U
-A key sequence or nil.  May be used after a @code{k} or @code{K}
+A key sequence or @code{nil}.  May be used after a @code{k} or @code{K}
 argument to get the up-event that was discarded in case the key
 sequence read for that argument was a down-event.  No I/O.
 
@@ -3023,9 +3023,10 @@ yourself.
 @defvar defining-kbd-macro
 This variable is non-@code{nil} if and only if a keyboard macro is
 being defined.  A command can test this variable so as to behave
-differently while a macro is being defined.  The commands
-@code{start-kbd-macro} and @code{end-kbd-macro} set this variable---do
-not set it yourself.
+differently while a macro is being defined.  The value is
+@code{append} while appending to the definition of an existing macro.
+The commands @code{start-kbd-macro}, @code{kmacro-start-macro} and
+@code{end-kbd-macro} set this variable---do not set it yourself.
 
 The variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
