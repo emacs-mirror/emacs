@@ -71,6 +71,8 @@ extern char *strerror ();
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 #include <paths.h>
 #include "process.h"
 #include "syssignal.h"
@@ -219,6 +221,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 #if 0
   int mask;
 #endif
+  struct coding_system process_coding; /* coding-system of process output */
+  struct coding_system argument_coding;	/* coding-system of arguments */
+
   CHECK_STRING (args[0], 0);
 
   error_file = Qt;
@@ -228,6 +233,50 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (nargs >= 3 && INTEGERP (args[2]))
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
+
+  /* Decide the coding-system for giving arguments and reading process
+     output.  */
+  {
+    Lisp_Object val, *args2;
+    /* Qt denotes that we have not yet called Ffind_coding_system.  */
+    Lisp_Object coding_systems = Qt;
+    int i;
+
+    /* If arguments are supplied, we may have to encode them.  */
+    if (nargs >= 5)
+      {
+	if (NILP (val = Vcoding_system_for_write))
+	  {
+	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	    args2[0] = Qcall_process;
+	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	    coding_systems = Ffind_coding_system (nargs + 1, args2);
+	    val = CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil;
+	  }
+	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
+      }
+
+    /* If BUFFER is nil, we must read process output once and then
+       discard it, so setup coding system but with nil.  If BUFFER is
+       an integer, we can discard it without reading.  */
+    if (nargs < 3 || NILP (args[2]))
+      setup_coding_system (Qnil, &process_coding);
+    else if (!INTEGERP (args[2]))
+      {
+	if (NILP (val = Vcoding_system_for_read))
+	  {
+	    if (!EQ (coding_systems, Qt))
+	      {
+		args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+		args2[0] = Qcall_process;
+		for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+		coding_systems = Ffind_coding_system (nargs + 1, args2);
+	      }
+	    val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
+	  }
+	setup_coding_system (Fcheck_coding_system (val), &process_coding);
+      }
+  }
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
@@ -328,7 +377,21 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     for (i = 4; i < nargs; i++)
       {
 	CHECK_STRING (args[i], i);
-	new_argv[i - 3] = XSTRING (args[i])->data;
+	if (argument_coding.type == coding_type_no_conversion)
+	  new_argv[i - 3] = XSTRING (args[i])->data;
+	else
+	  {
+	    /* We must encode the arguments.  */
+	    int size = encoding_buffer_size (&argument_coding,
+					     XSTRING (args[i])->size);
+	    int produced, dummy;
+
+	    new_argv[i - 3] = (unsigned char *) alloca (size);
+	    produced = encode_coding (&argument_coding,
+				      XSTRING (args[i])->data, new_argv[i - 3],
+				      XSTRING (args[i])->size, size, &dummy);
+	    new_argv[i - 3][produced] = 0;
+	  }
       }
     new_argv[i - 3] = 0;
   }
@@ -440,7 +503,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     if (fd_error != outfilefd)
       close (fd_error);
     fd1 = -1; /* No harm in closing that one!  */
-    fd[0] = open (tempfile, NILP (Vbinary_process_output) ? O_TEXT : O_BINARY);
+    /* Since CRLF is converted to LF within `decode_coding', we can
+       always open a file with binary mode.  */
+    fd[0] = open (tempfile, O_BINARY);
     if (fd[0] < 0)
       {
 	unlink (tempfile);
@@ -530,7 +595,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	   of the buffer size we have.  But don't read
 	   less than 1024--save that for the next bufferful.  */
 
-	nread = 0;
+	nread = process_coding.carryover_size; /* This value is initially 0. */
 	while (nread < bufsize - 1024)
 	  {
 	    int this_read
@@ -549,13 +614,32 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 	/* Now NREAD is the total amount of data in the buffer.  */
 	if (nread == 0)
-	  break;
+	  /* Here, just tell decode_coding that we are processing the
+             last block.  We break the loop after decoding.  */
+	  process_coding.last_block = 1;
 
 	immediate_quit = 0;
 	total_read += nread;
 	
 	if (!NILP (buffer))
-	  insert (bufptr, nread);
+	  {
+	    if (process_coding.type == coding_type_no_conversion)
+	      insert (bufptr, nread);
+	    else
+	      {			/* We have to decode the input.  */
+		int size = decoding_buffer_size (&process_coding, bufsize);
+		char *decoding_buf = get_conversion_buffer (size);
+		int dummy;
+
+		nread = decode_coding (&process_coding, bufptr, decoding_buf,
+				       nread, size, &dummy);
+		if (nread > 0)
+		  insert (decoding_buf, nread);
+	      }
+	  }
+
+	if (process_coding.last_block)
+	  break;
 
 	/* Make the buffer bigger as we continue to read more data,
 	   but not past 64k.  */
@@ -564,6 +648,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    bufsize *= 2;
 	    bufptr = (char *) alloca (bufsize);
 	  }
+
+	if (!NILP (buffer) && process_coding.carryover_size > 0)
+	  /* We have carryover in the last decoding.  It should be
+             processed again after reading more data.  */
+	  bcopy (process_coding.carryover, bufptr,
+		 process_coding.carryover_size);
 
 	if (!NILP (display) && INTERACTIVE)
 	  {
@@ -634,6 +724,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   Lisp_Object filename_string;
   register Lisp_Object start, end;
   int count = specpdl_ptr - specpdl;
+  /* Qt denotes that we have not yet called Ffind_coding_system.  */
+  Lisp_Object coding_systems = Qt;
+  Lisp_Object val, *args2;
+  int i;
 #ifdef DOS_NT
   char *tempfile;
   char *outf = '\0';
@@ -668,13 +762,41 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   GCPRO1 (filename_string);
   start = args[0];
   end = args[1];
+  /* Decide coding-system of the contents of the temporary file.  */
 #ifdef DOS_NT
   specbind (Qbuffer_file_type, Vbinary_process_input);
+  if (NILP (Vbinary_process_input))
+    val = Qnil;
+  else
+#endif
+    if (NILP (val = Vcoding_system_for_write))
+      {
+	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	args2[0] = Qcall_process_region;
+	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	coding_systems = Ffind_coding_system (nargs + 1, args2);
+	val = CONSP (coding_systems) ? XCONS (coding_systems)->cdr : Qnil;
+      }
+  specbind (intern ("coding-system-for-write"), val);
   Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
-  unbind_to (count, Qnil);
-#else  /* not DOS_NT */
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
-#endif /* not DOS_NT */
+
+#ifdef DOS_NT
+  if (NILP (Vbinary_process_input))
+    val = Qnil;
+  else
+#endif
+    if (NILP (val = Vcoding_system_for_read))
+      {
+	if (EQ (coding_systems, Qt))
+	  {
+	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	    args2[0] = Qcall_process_region;
+	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	    coding_systems = Ffind_coding_system (nargs + 1, args2);
+	  }
+	val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
+      }
+  specbind (intern ("coding-system-for-read"), val);
 
   record_unwind_protect (delete_temp_file, filename_string);
 
