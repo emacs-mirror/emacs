@@ -193,9 +193,41 @@ A large number or nil slows down menu responsiveness."
 
 
 ;; The "Edit" menu items
+
+;; The "Edit->Search" submenu
+(defvar menu-bar-last-search-type nil
+  "Type of last non-incremental search command called from the menu.")
+
+(defun nonincremental-repeat-search-forward ()
+  "Search forward for the previous search string or regexp."
+  (interactive)
+  (cond
+   ((and (eq menu-bar-last-search-type 'string)
+	 search-ring)
+    (search-forward (car search-ring)))
+   ((and (eq menu-bar-last-search-type 'regexp)
+	 regexp-search-ring)
+    (re-search-forward (car regexp-search-ring)))
+   (t
+    (error "No previous search"))))
+
+(defun nonincremental-repeat-search-backward ()
+  "Search backward for the previous search string or regexp."
+  (interactive)
+  (cond
+   ((and (eq menu-bar-last-search-type 'string)
+	 search-ring)
+    (search-backward (car search-ring)))
+   ((and (eq menu-bar-last-search-type 'regexp)
+	 regexp-search-ring)
+    (re-search-backward (car regexp-search-ring)))
+   (t
+    (error "No previous search"))))
+
 (defun nonincremental-search-forward (string)
   "Read a string and search for it nonincrementally."
   (interactive "sSearch for string: ")
+  (setq menu-bar-last-search-type 'string)
   (if (equal string "")
       (search-forward (car search-ring))
     (isearch-update-ring string nil)
@@ -204,6 +236,7 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-search-backward (string)
   "Read a string and search backward for it nonincrementally."
   (interactive "sSearch for string: ")
+  (setq menu-bar-last-search-type 'string)
   (if (equal string "")
       (search-backward (car search-ring))
     (isearch-update-ring string nil)
@@ -212,6 +245,7 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-re-search-forward (string)
   "Read a regular expression and search for it nonincrementally."
   (interactive "sSearch for regexp: ")
+  (setq menu-bar-last-search-type 'regexp)
   (if (equal string "")
       (re-search-forward (car regexp-search-ring))
     (isearch-update-ring string t)
@@ -220,105 +254,99 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-re-search-backward (string)
   "Read a regular expression and search backward for it nonincrementally."
   (interactive "sSearch for regexp: ")
+  (setq menu-bar-last-search-type 'regexp)
   (if (equal string "")
       (re-search-backward (car regexp-search-ring))
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-(defun nonincremental-repeat-search-forward ()
-  "Search forward for the previous search string."
-  (interactive)
-  (if (null search-ring)
-      (error "No previous search"))
-  (search-forward (car search-ring)))
-
-(defun nonincremental-repeat-search-backward ()
-  "Search backward for the previous search string."
-  (interactive)
-  (if (null search-ring)
-      (error "No previous search"))
-  (search-backward (car search-ring)))
-
-(defun nonincremental-repeat-re-search-forward ()
-  "Search forward for the previous regular expression."
-  (interactive)
-  (if (null regexp-search-ring)
-      (error "No previous search"))
-  (re-search-forward (car regexp-search-ring)))
-
-(defun nonincremental-repeat-re-search-backward ()
-  "Search backward for the previous regular expression."
-  (interactive)
-  (if (null regexp-search-ring)
-      (error "No previous search"))
-  (re-search-backward (car regexp-search-ring)))
-
 (defvar menu-bar-search-menu (make-sparse-keymap "Search"))
-(defvar menu-bar-adv-search-menu
-  (make-sparse-keymap "Advanced Search/Replace"))
 
-(define-key menu-bar-adv-search-menu [tags-continue]
-  '(menu-item "Continue Tags Search/Replace" tags-loop-continue
-	      :help "Continue last tags search/replace operation"))
-(define-key menu-bar-adv-search-menu [tags-repl]
-  '(menu-item "Replace in all tagged files" tags-query-replace
-	      :help "Interactively replace a regexp in all tagged files"))
-(define-key menu-bar-adv-search-menu [tags-srch]
-  '(menu-item "Search in all tagged files" tags-search
-	      :help "Search for a regexp in all tagged files"))
+;; The Edit->Search->Incremental Search menu
+(defvar menu-bar-i-search-menu
+  (make-sparse-keymap "Incremental Search"))
 
-(define-key menu-bar-adv-search-menu [separator-tag-search]
-  '(menu-item "--"))
-
-(define-key menu-bar-adv-search-menu [query-replace-regexp]
-  '(menu-item "Replace Regexp..." query-replace-regexp
-	      :enable (not buffer-read-only)
-	      :help "Replace regular expression, ask about each occurrence"))
-(define-key menu-bar-adv-search-menu [repeat-regexp-back]
-  '(menu-item "Repeat Regexp Backwards"
-	      nonincremental-repeat-re-search-backward
-	      :enable regexp-search-ring
-	      :help "Repeat last regular expression search backwards"))
-(define-key menu-bar-adv-search-menu [repeat-regexp-fwd]
-  '(menu-item "Repeat Regexp" nonincremental-repeat-re-search-forward
-	      :enable regexp-search-ring
-	      :help "Repeat last regular expression search forward"))
-(define-key menu-bar-adv-search-menu [re-search-backward]
-  '(menu-item "Search Regexp Backwards..." nonincremental-re-search-backward
-	      :help "Search backwards for a regular expression"))
-(define-key menu-bar-adv-search-menu [re-search-forward]
-  '(menu-item "Search Regexp..." nonincremental-re-search-forward
-	      :help "Search forward for a regular expression"))
-(define-key menu-bar-adv-search-menu [separator-tag-isearch]
-  '(menu-item "--"))
-(define-key menu-bar-adv-search-menu [isearch-backward]
-  '(menu-item "Incremental Search Backwards..." isearch-backward
+(define-key menu-bar-i-search-menu [isearch-backward-regexp]
+  '(menu-item "Backward Regexp..." isearch-backward-regexp
+	      :help "Search backwards for a regular expression as you type it"))
+(define-key menu-bar-i-search-menu [isearch-forward-regexp]
+  '(menu-item "Forward Regexp..." isearch-forward-regexp
+	      :help "Search forward for a regular expression as you type it"))
+(define-key menu-bar-i-search-menu [isearch-backward]
+  '(menu-item "Backward String..." isearch-backward
 	      :help "Search backwards for a string as you type it"))
-(define-key menu-bar-adv-search-menu [isearch-forward]
-  '(menu-item "Incremental Search..." isearch-forward
+(define-key menu-bar-i-search-menu [isearch-forward]
+  '(menu-item "Forward String..." isearch-forward
 	      :help "Search forward for a string as you type it"))
-(define-key menu-bar-search-menu [re-search]
-  (list 'menu-item "Advanced Search/Replace" menu-bar-adv-search-menu
-	      :help "Regexp and Tags search and replace"))
 
-(define-key menu-bar-search-menu [query-replace]
-  '(menu-item "Replace..." query-replace
-	      :enable (not buffer-read-only)
-	      :help "Replace string interactively, ask about each occurrence"))
+
+(define-key menu-bar-search-menu [i-search]
+  (list 'menu-item "Incremental Search" menu-bar-i-search-menu
+	      :help "Incremental Search"))
+(define-key menu-bar-search-menu [separator-tag-isearch]
+  '(menu-item "--"))
+
+(define-key menu-bar-search-menu [tags-continue]
+  '(menu-item "Continue Tags Search" tags-loop-continue
+	      :help "Continue last tags search operation"))
+(define-key menu-bar-search-menu [tags-srch]
+  '(menu-item "Search tagged files" tags-search
+	      :help "Search for a regexp in all tagged files"))
+(define-key menu-bar-search-menu [separator-tag-search]
+  '(menu-item "--"))
+
 (define-key menu-bar-search-menu [repeat-search-back]
   '(menu-item "Repeat Backwards" nonincremental-repeat-search-backward
-	      :enable search-ring
+	      :enable (or (and (eq menu-bar-last-search-type 'string)
+			       search-ring)
+			  (and (eq menu-bar-last-search-type 'regexp)
+			       regexp-search-ring))
 	      :help "Repeat last search backwards"))
 (define-key menu-bar-search-menu [repeat-search-fwd]
-  '(menu-item "Repeat Search" nonincremental-repeat-search-forward
-	      :enable search-ring
+  '(menu-item "Repeat Forward" nonincremental-repeat-search-forward
+	      :enable (or (and (eq menu-bar-last-search-type 'string)
+			       search-ring)
+			  (and (eq menu-bar-last-search-type 'regexp)
+			       regexp-search-ring))
 	      :help "Repeat last search forward"))
+(define-key menu-bar-search-menu [separator-repeat-search]
+  '(menu-item "--"))
+
+(define-key menu-bar-search-menu [re-search-backward]
+  '(menu-item "Regexp Backwards..." nonincremental-re-search-backward
+	      :help "Search backwards for a regular expression"))
+(define-key menu-bar-search-menu [re-search-forward]
+  '(menu-item "Regexp Forward..." nonincremental-re-search-forward
+	      :help "Search forward for a regular expression"))
+
 (define-key menu-bar-search-menu [search-backward]
-  '(menu-item "Search Backwards..." nonincremental-search-backward
+  '(menu-item "String Backwards..." nonincremental-search-backward
 	      :help "Search backwards for a string"))
 (define-key menu-bar-search-menu [search-forward]
-  '(menu-item "Search..." nonincremental-search-forward
+  '(menu-item "String Forward..." nonincremental-search-forward
 	      :help "Search forward for a string"))
+
+;; The Edit->Replace submenu
+
+(defvar menu-bar-replace-menu (make-sparse-keymap "Replace"))
+
+(define-key menu-bar-replace-menu [tags-repl-continue]
+  '(menu-item "Continue Replace" tags-loop-continue
+	      :help "Continue last tags replace operation"))
+(define-key menu-bar-replace-menu [tags-repl]
+  '(menu-item "Replace in tagged files" tags-query-replace
+	      :help "Interactively replace a regexp in all tagged files"))
+(define-key menu-bar-replace-menu [separator-replace-tags]
+  '(menu-item "--"))
+
+(define-key menu-bar-replace-menu [query-replace-regexp]
+  '(menu-item "Replace Regexp..." query-replace-regexp
+	      :enable (not buffer-read-only)
+	      :help "Replace regular expression interactively, ask about each occurrence"))
+(define-key menu-bar-replace-menu [query-replace]
+  '(menu-item "Replace String..." query-replace
+	      :enable (not buffer-read-only)
+	      :help "Replace string interactively, ask about each occurrence"))
 
 ;;; Assemble the top-level Edit menu items.
 (define-key menu-bar-edit-menu [props]
@@ -396,6 +424,9 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-edit-menu [goto]
   (list 'menu-item "Go To" menu-bar-goto-menu))
+
+(define-key menu-bar-edit-menu [replace]
+  (list 'menu-item "Replace" menu-bar-replace-menu))
 
 (define-key menu-bar-edit-menu [search]
   (list 'menu-item "Search" menu-bar-search-menu))
