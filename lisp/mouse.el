@@ -118,49 +118,140 @@ This must be bound to a mouse drag event."
     (if (numberp (posn-point end))
 	(goto-char (posn-point end)))))
 
-(defun mouse-drag-region (click)
-  "Set the region to the text that the mouse is dragged over.
-This must be bound to a button-down mouse event."
-  (interactive "e")
-  (let ((posn (event-start click))
-	done event (mark-active nil))
-    (select-window (posn-window posn))
-    ;; Set point temporarily, so user sees where it is.
-    (if (numberp (posn-point posn))
-	(goto-char (posn-point posn)))
-    ;; Turn off the old mark when we set up an empty region.
-    (setq deactivate-mark t)))
+(defvar mouse-scroll-delay 0.25
+  "*The pause between scroll steps caused by mouse drags, in seconds.
+If you drag the mouse beyond the edge of a window, Emacs scrolls the
+window to bring the text beyond that edge into view, with a delay of
+this many seconds between scroll steps.  Scrolling stops when you move
+the mouse back into the window, or release the button.
+This variable's value may be non-integral.
+Setting this to zero causes Emacs to scroll as fast as it can.")
 
-;;;Nice hack, but too slow, so not normally in use.
-(defun mouse-drag-region-1 (click)
+(defun mouse-scroll-subr (jump &optional overlay start)
+  "Scroll the selected window JUMP lines at a time, until new input arrives.
+If OVERLAY is an overlay, let it stretch from START to the far edge of
+the newly visible text.
+Upon exit, point is at the far edge of the newly visible text."
+  (while (progn
+	   (goto-char (window-start))
+	   (if (not (zerop (vertical-motion jump)))
+	       (progn
+		 (set-window-start (selected-window) (point))
+		 (if (natnump jump)
+		     (progn
+		       (goto-char (window-end (selected-window)))
+		       ;; window-end doesn't reflect the window's new
+		       ;; start position until the next redisplay.  Hurrah.
+		       (vertical-motion (1- jump)))
+		   (goto-char (window-start (selected-window))))
+		 (if overlay
+		     (move-overlay overlay start (point)))
+		 (if (not (eobp))
+		     (sit-for mouse-scroll-delay))))))
+  (point))
+
+(defvar mouse-drag-overlay (make-overlay 1 1))
+(overlay-put mouse-drag-overlay 'face 'region)
+
+(defun mouse-drag-region (start-event)
   "Set the region to the text that the mouse is dragged over.
+Highlight the drag area as the user moves the mouse.
 This must be bound to a button-down mouse event."
   (interactive "e")
-  (let (newmark)
-    (let ((posn (event-start click))
-	  done event omark (mark-active t))
-      (select-window (posn-window posn))
-      (setq omark (and mark-active (mark)))
-      (if (numberp (posn-point posn))
-	  (goto-char (posn-point posn)))
-      ;; Set mark temporarily, so highlighting does what we want.
-      (set-marker (mark-marker) (point))
+  (let* ((start-posn (event-start start-event))
+	 (start-point (posn-point start-posn))
+	 (start-window (posn-window start-posn))
+	 (bounds (window-edges start-window))
+	 (top (nth 1 bounds))
+	 (bottom (if (window-minibuffer-p start-window)
+		     (nth 3 bounds)
+		   ;; Don't count the mode line.
+		   (1- (nth 3 bounds)))))
+    (select-window start-window)
+    (goto-char start-point)
+    (move-overlay mouse-drag-overlay
+		  start-point start-point
+		  (window-buffer start-window))
+    (setq mark-active nil)
+    (let (event end end-point)
       (track-mouse
-	(while (not done)
-	  (setq event (read-event))
-	  (if (eq (car-safe event) 'mouse-movement)
-	      (goto-char (posn-point (event-start event)))
-	    ;; Exit when we get the drag event; ignore that event.
-	    (setq done t))))
-      (if (/= (mark) (point))
-	  (setq newmark (mark)))
-      ;; Restore previous mark status.
-      (if omark (set-marker (mark-marker) omark)))
-    ;; Now, if we dragged, set the mark at the proper place.
-    (if newmark
-	(push-mark newmark t t)
-      ;; Turn off the old mark when we set up an empty region.
-      (setq deactivate-mark t))))
+	(while (progn
+		 (setq event (read-event)
+		       end (event-end event)
+		       end-point (posn-point end))
+		 (mouse-movement-p event))
+	  ;; Is the mouse anywhere reasonable on the frame?
+	  (if (windowp (posn-window end))
+	      ;; If the mouse is outside the current window, scroll it.
+	      (if (or (not (eq (posn-window end) start-window))
+		      (not (integer-or-marker-p end-point)))
+		  ;; Which direction should we scroll the window?
+		  (let ((mouse-row
+			 (+ (nth 1 (window-edges (posn-window end)))
+			    (cdr (posn-col-row end)))))
+		    (cond
+		     ((< mouse-row top)
+		      (mouse-scroll-subr
+		       (- mouse-row top) mouse-drag-overlay start-point))
+		     ((and (not (eobp))
+			   (>= mouse-row bottom))
+		      (mouse-scroll-subr (1+ (- mouse-row bottom))
+					 mouse-drag-overlay start-point))))
+		(goto-char end-point)
+		(move-overlay mouse-drag-overlay
+			      start-point (point))))))
+      (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
+	       (eq (posn-window (event-end event)) start-window)
+	       (numberp (posn-point (event-end event))))
+	  (goto-char (posn-point (event-end event))))
+      (if (= (point) start-point)
+	  (setq mark-active nil)
+	(set-mark start-point))
+      (delete-overlay mouse-drag-overlay))))
+
+;;;! (defun mouse-drag-region (click)
+;;;!   "Set the region to the text that the mouse is dragged over.
+;;;! This must be bound to a button-down mouse event."
+;;;!   (interactive "e")
+;;;!   (let ((posn (event-start click))
+;;;! 	done event (mark-active nil))
+;;;!     (select-window (posn-window posn))
+;;;!     ;; Set point temporarily, so user sees where it is.
+;;;!     (if (numberp (posn-point posn))
+;;;! 	(goto-char (posn-point posn)))
+;;;!     ;; Turn off the old mark when we set up an empty region.
+;;;!     (setq deactivate-mark t)))
+;;;! 
+;;;! ;;;Nice hack, but too slow, so not normally in use.
+;;;! (defun mouse-drag-region-1 (click)
+;;;!   "Set the region to the text that the mouse is dragged over.
+;;;! This must be bound to a button-down mouse event."
+;;;!   (interactive "e")
+;;;!   (let (newmark)
+;;;!     (let ((posn (event-start click))
+;;;! 	  done event omark (mark-active t))
+;;;!       (select-window (posn-window posn))
+;;;!       (setq omark (and mark-active (mark)))
+;;;!       (if (numberp (posn-point posn))
+;;;! 	  (goto-char (posn-point posn)))
+;;;!       ;; Set mark temporarily, so highlighting does what we want.
+;;;!       (set-marker (mark-marker) (point))
+;;;!       (track-mouse
+;;;! 	(while (not done)
+;;;! 	  (setq event (read-event))
+;;;! 	  (if (eq (car-safe event) 'mouse-movement)
+;;;! 	      (goto-char (posn-point (event-start event)))
+;;;! 	    ;; Exit when we get the drag event; ignore that event.
+;;;! 	    (setq done t))))
+;;;!       (if (/= (mark) (point))
+;;;! 	  (setq newmark (mark)))
+;;;!       ;; Restore previous mark status.
+;;;!       (if omark (set-marker (mark-marker) omark)))
+;;;!     ;; Now, if we dragged, set the mark at the proper place.
+;;;!     (if newmark
+;;;! 	(push-mark newmark t t)
+;;;!       ;; Turn off the old mark when we set up an empty region.
+;;;!       (setq deactivate-mark t))))
 
 ;; Subroutine: set the mark where CLICK happened,
 ;; but don't do anything else.
