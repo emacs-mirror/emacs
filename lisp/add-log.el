@@ -667,7 +667,7 @@ Other modes are handled by a heuristic that looks in the 10K before
 point for uppercase headings starting in the first column or
 identifiers followed by `:' or `='.  See variables
 `add-log-current-defun-header-regexp' and
-`add-log-current-defun-function'
+`add-log-current-defun-function'.
 
 Has a preference of looking backwards."
   (condition-case nil
