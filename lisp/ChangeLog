@@ -1,6 +1,6 @@
 2001-10-28  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/lisp-mode.el: Doc fix.
+	* emacs-lisp/lisp-mode.el (eval-defun): Doc fix.
 
 2001-10-28  Miles Bader  <miles@gnu.org>
 
