@@ -1,3 +1,19 @@
+2002-12-16  Markus Rost  <rost@math.ohio-state.edu>
+
+	* allout.el: Avoid name conflicts with outline.el.  Replace
+	globally string "outline-" with string "allout-".  Replaced 1446
+	occurrences; there was no string "allout-" before the change and
+	there seems to be no dependency on outline.el.
+	Put `quotes' around many function and variable names.
+	Doc changes to adjust to the change to prefix "allout-".  Don't
+	provide 'outline.  Use " Allout" as mode line string, not " Outl".
+	Put group 'allout in group 'editing.  Update Copyright notice.
+	Autoload `allout-init'.
+	(allout-init): Give report also in case auto-activation was
+	inhibited.
+	(my-mark-marker): Test for feature 'xemacs instead of a string
+	parse.
+
 2002-12-15  David Kastrup  <David.Kastrup@t-online.de>
 
 	* emacs-lisp/autoload.el (autoload-ensure-default-file): insert
