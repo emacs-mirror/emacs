@@ -1,7 +1,8 @@
 ;;; forms.el -- Forms mode: edit a file as a form to fill in.
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
-;;; Author: Johan Vromans
+;; Author: Johan Vromans <jv@mh.nl>
+;; Version: 1.2.13
 
 ;; This file is part of GNU Emacs.
 
@@ -41,15 +42,15 @@
 ;;; separated by a newline, the fields are separated by a user-defined
 ;;; field separater (default: TAB).
 ;;; When shown, a record is transferred to an emacs buffer and
-;;; presented using a user-defined form. One record is shown at a
+;;; presented using a user-defined form.  One record is shown at a
 ;;; time.
 ;;;
-;;; Forms mode is a composite mode. It involves two files, and two
+;;; Forms mode is a composite mode.  It involves two files, and two
 ;;; buffers.
 ;;; The first file, called the control file, defines the name of the
-;;; data file and the forms format. This file buffer will be used to
+;;; data file and the forms format.  This file buffer will be used to
 ;;; present the forms.
-;;; The second file holds the actual data. The buffer of this file
+;;; The second file holds the actual data.  The buffer of this file
 ;;; will be buried, for it is never accessed directly.
 ;;;
 ;;; Forms mode is invoked using "forms-find-file control-file".
@@ -76,12 +77,12 @@
 ;;;
 ;;;  - a string, e.g. "hello" (which is inserted \"as is\"),
 ;;;
-;;;  - an integer, denoting a field number. The contents of the field
+;;;  - an integer, denoting a field number.  The contents of the field
 ;;;    are inserted at this point.
 ;;;    The first field has number one.
 ;;;
-;;;  - a function call, e.g. (insert "text"). This function call is 
-;;;    dynamically evaluated and should return a string. It should *NOT*
+;;;  - a function call, e.g. (insert "text").  This function call is 
+;;;    dynamically evaluated and should return a string.  It should *NOT*
 ;;;    have side-effects on the forms being constructed.
 ;;;    The current fields are available to the function in the variable
 ;;;    forms-fields, they should *NOT* be modified.
@@ -92,7 +93,7 @@
 ;;;
 ;;;	forms-field-sep				[string, default TAB]
 ;;;			The field separator used to separate the
-;;;			fields in the data file. It may be a string.
+;;;			fields in the data file.  It may be a string.
 ;;;
 ;;;	forms-read-only				[bool, default nil]
 ;;;			't' means that the data file is visited read-only.
@@ -104,9 +105,9 @@
 ;;;			contain fields which span multiple lines in
 ;;;			the form.
 ;;;			This variable denoted the separator character
-;;;			to be used for this purpose. Upon display, all
+;;;			to be used for this purpose.  Upon display, all
 ;;;			occurrencies of this character are translated
-;;;			to newlines. Upon storage they are translated
+;;;			to newlines.  Upon storage they are translated
 ;;;			back to the separator.
 ;;;
 ;;;	forms-forms-scroll			[bool, default t]
@@ -121,7 +122,7 @@
 ;;;	forms-new-record-filter			[symbol, no default]
 ;;;			If defined: this should be the name of a 
 ;;;			function that is called when a new
-;;;			record is created. It can be used to fill in
+;;;			record is created.  It can be used to fill in
 ;;;			the new record with default fields, for example.
 ;;;			Instead of the name of the function, it may
 ;;;			be the function itself.
@@ -129,8 +130,8 @@
 ;;;	forms-modified-record-filter		[symbol, no default]
 ;;;			If defined: this should be the name of a 
 ;;;			function that is called when a record has
-;;;			been modified. It is called after the fields
-;;;			are parsed. It can be used to register
+;;;			been modified.  It is called after the fields
+;;;			are parsed.  It can be used to register
 ;;;			modification dates, for example.
 ;;;			Instead of the name of the function, it may
 ;;;			be the function itself.
@@ -149,8 +150,8 @@
 ;;; the records.
 ;;;
 ;;; When a form is changed the record is updated as soon as this form
-;;; is left. The contents of the form are parsed using forms-format-list,
-;;; and the fields which are deduced from the form are modified. So,
+;;; is left.  The contents of the form are parsed using forms-format-list,
+;;; and the fields which are deduced from the form are modified.  So,
 ;;; fields not shown on the forms retain their origional values.
 ;;; The newly formed record and replaces the contents of the
 ;;; old record in forms--file-buffer.
@@ -158,7 +159,7 @@
 ;;; the records.
 ;;;
 ;;; Two exit functions exist: forms-exit (which saves) and forms-exit-no-save
-;;; (which doesn't). However, if forms-exit-no-save is executed and the file
+;;; (which doesn't).  However, if forms-exit-no-save is executed and the file
 ;;; buffer has been modified, emacs will ask questions.
 ;;;
 ;;; Other functions are:
@@ -204,7 +205,7 @@
 ;;; The bindings of standard functions scroll-up, scroll-down,
 ;;; beginning-of-buffer and end-of-buffer are locally replaced with
 ;;; forms mode functions next/prev record and first/last
-;;; record. Buffer-local variables forms-forms-scroll and
+;;; record.  Buffer-local variables forms-forms-scroll and
 ;;; forms-forms-jump (default: t) may be set to nil to inhibit
 ;;; rebinding.
 ;;;
@@ -222,7 +223,7 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version "1.2.11"
+(defconst forms-version "1.2.13"
   "Version of forms-mode implementation.")
 
 (defvar forms-mode-hooks nil
@@ -238,7 +239,6 @@
 
 (defvar forms-number-of-fields nil
   "Number of fields per record.")
-
 
 ;;; Optional variables with default values
 
@@ -249,7 +249,7 @@
   "Read-only mode (defaults to the write access on the data file).")
 
 (defvar forms-multi-line "\C-k"
-  "Character to separate multi-line fields (default C-k)")
+  "Character to separate multi-line fields (default C-k).")
 
 (defvar forms-forms-scroll t
   "*Non-nil means replace scroll-up/down commands in Forms mode.
@@ -305,7 +305,7 @@ The replacement commands performs forms-first/last-record.")
   "Internal - holds dynamic text to insert between fields.")
 
 (defvar forms-fields nil
-  "List with fields of the current forms. First field has number 1.")
+  "List with fields of the current forms.  First field has number 1.")
 
 (defvar forms-new-record-filter
   "The name of a function that is called when a new record is created.")
@@ -315,9 +315,9 @@ The replacement commands performs forms-first/last-record.")
 
 ;;; forms-mode
 ;;;
-;;; This is not a simple major mode, as usual. Therefore, forms-mode
+;;; This is not a simple major mode, as usual.  Therefore, forms-mode
 ;;; takes an optional argument 'primary' which is used for the initial
-;;; set-up. Normal use would leave 'primary' to nil.
+;;; set-up.  Normal use would leave 'primary' to nil.
 ;;;
 ;;; A global buffer-local variable 'forms--mode-setup' has the same effect
 ;;; but makes it possible to auto-invoke forms-mode using find-file.
@@ -325,12 +325,13 @@ The replacement commands performs forms-first/last-record.")
 ;;; Note: although it seems logical to have (make-local-variable) executed
 ;;; where the variable is first needed, I deliberately placed all calls
 ;;; in the forms-mode function.
- 
+
+;;;###autoload 
 (defun forms-mode (&optional primary)
   "Major mode to visit files in a field-structured manner using a form.
 
- Commands (prefix with C-c if not in read-only mode):
- \\{forms-mode-map}"
+Commands (prefix with C-c if not in read-only mode):
+\\{forms-mode-map}"
 
   (interactive)				; no - 'primary' is not prefix arg
 
@@ -417,7 +418,7 @@ The replacement commands performs forms-first/last-record.")
 	;; and clean it
 	(erase-buffer)))
 
-  ;; Make more local variables
+  ;; Make more local variables.
   (make-local-variable 'forms--file-buffer)
   (make-local-variable 'forms--total-records)
   (make-local-variable 'forms--current-record)
@@ -475,12 +476,10 @@ The replacement commands performs forms-first/last-record.")
 
   ;; initialization done
   (setq forms--mode-setup t))
-
 
 ;;; forms-process-format-list
 ;;;
 ;;; Validates forms-format-list.
-;;;
 ;;; Sets forms--number-of-markers and forms--markers.
 
 (defun forms--process-format-list ()
@@ -560,8 +559,6 @@ The replacement commands performs forms-first/last-record.")
 		'forms--number-of-markers)
 
   (setq forms--markers (make-vector forms--number-of-markers nil)))
-
-
 
 ;;; Build the format routine from forms-format-list.
 ;;;
@@ -589,12 +586,12 @@ The replacement commands performs forms-first/last-record.")
 ;;; 
 
 (defun forms--make-format ()
-  "Generate format function for forms"
+  "Generate format function for forms."
   (setq forms--format (forms--format-maker forms-format-list))
   (forms--debug 'forms--format))
 
 (defun forms--format-maker (the-format-list)
-  "Returns the parser function for forms"
+  "Returns the parser function for forms."
   (let ((the-marker 0))
     (` (lambda (arg)
 	 (setq forms--dynamic-text nil)
@@ -619,7 +616,7 @@ The replacement commands performs forms-first/last-record.")
 	   )))))
 
 (defun forms--concat-adjacent (the-list)
-  "Concatenate adjacent strings in the-list and return the resulting list"
+  "Concatenate adjacent strings in the-list and return the resulting list."
   (if (consp the-list)
       (let ((the-rest (forms--concat-adjacent (cdr the-list))))
 	(if (and (stringp (car the-list)) (stringp (car the-rest)))
@@ -663,12 +660,12 @@ The replacement commands performs forms-first/last-record.")
 ;;; 
 
 (defun forms--make-parser ()
-  "Generate parser function for forms"
+  "Generate parser function for forms."
   (setq forms--parser (forms--parser-maker forms-format-list))
   (forms--debug 'forms--parser))
 
 (defun forms--parser-maker (the-format-list)
-  "Returns the parser function for forms"
+  "Returns the parser function for forms."
   (let ((the-field nil)
 	(seen-text nil)
 	the--format-list)
@@ -726,7 +723,6 @@ The replacement commands performs forms-first/last-record.")
       (setq the-field nil)))
    ))
 
-
 (defun forms--set-minor-mode ()
   (setq minor-mode-alist
 	(if forms-read-only
@@ -743,7 +739,7 @@ The replacement commands performs forms-first/last-record.")
     (define-key (current-local-map) "\t"   'forms-next-field)))
 
 (defun forms--mode-commands (map)
-  "Fill map with all commands."
+  "Fill map with all Forms mode commands."
   (define-key map "\t" 'forms-next-field)
   (define-key map " " 'forms-next-record)
   (define-key map "d" 'forms-delete-record)
@@ -768,13 +764,9 @@ The replacement commands performs forms-first/last-record.")
   )
 
 ;;; Changed functions
-;;;
-;;; Emacs (as of 18.55) lacks the functionality of buffer-local
-;;; funtions. Therefore we save the original meaning of some handy
-;;; functions, and replace them with a wrapper.
 
 (defun forms--change-commands ()
-  "Localize some commands."
+  "Localize some commands for Forms mode."
   ;;
   ;; scroll-down -> forms-prev-record
   ;; scroll-up -> forms-next-record
@@ -809,7 +801,7 @@ The replacement commands performs forms-first/last-record.")
 	       t))))
 
 (defun forms--help ()
-  "Initial help."
+  "Initial help for Forms mode."
   ;; We should use
   ;;(message (substitute-command-keys (concat
   ;;"\\[forms-next-record]:next"
@@ -824,7 +816,7 @@ The replacement commands performs forms-first/last-record.")
     (message "C-c n:next   C-c p:prev   C-c <:first   C-c >:last   C-c ?:help   C-c q:exit")))
 
 (defun forms--trans (subj arg rep)
-  "Translate in SUBJ all chars ARG into char REP. ARG and REP should
+  "Translate in SUBJ all chars ARG into char REP.  ARG and REP should
  be single-char strings."
   (let ((i 0)
 	(x (length subj))
@@ -868,8 +860,7 @@ The replacement commands performs forms-first/last-record.")
      (goto-char here))))
 
 (defun forms--show-record (the-record)
-  "Format THE-RECORD according to forms-format-list,
- and display it in the current buffer."
+  "Format THE-RECORD and display it in the current buffer."
 
   ;; split the-record
   (let (the-result
@@ -920,7 +911,7 @@ The replacement commands performs forms-first/last-record.")
   ;; The contents of the form are parsed, and a new list of strings
   ;; is constructed.
   ;; A vector with the strings from the original record is 
-  ;; constructed, which is updated with the new contents. Therefore
+  ;; constructed, which is updated with the new contents.  Therefore
   ;; fields which were not in the form are not modified.
   ;; Finally, the vector is transformed into a list for further processing.
 
@@ -944,8 +935,9 @@ The replacement commands performs forms-first/last-record.")
       (append the-recordv nil))))
 
 (defun forms--update ()
-  "Update current record with contents of form. As a side effect: sets
-forms--the-record-list ."
+  "Update current record with contents of form.
+As a side effect: sets forms--the-record-list ."
+
   (if forms-read-only
       (progn
 	(message "Read-only buffer!")
@@ -969,8 +961,8 @@ forms--the-record-list ."
 
 	(save-excursion
 	  (set-buffer forms--file-buffer)
-	  ;; Insert something before kill-line is called. See kill-line
-	  ;; doc. Bugfix provided by Ignatios Souvatzis.
+	  ;; Insert something before kill-line is called.  See kill-line
+	  ;; doc.  Bugfix provided by Ignatios Souvatzis.
 	  (insert "*")
 	  (beginning-of-line)
 	  (kill-line nil)
@@ -984,32 +976,33 @@ forms--the-record-list ."
 	(forms--update)
 	(set-buffer-modified-p nil)
 	(goto-char here))))
-
 
 ;;; Start and exit
+
+;;;###autoload
 (defun forms-find-file (fn)
-  "Visit file FN in forms mode"
+  "Visit a file in Forms mode."
   (interactive "fForms file: ")
   (find-file-read-only fn)
   (or forms--mode-setup (forms-mode t)))
 
+;;;###autoload
 (defun forms-find-file-other-window (fn)
-  "Visit file FN in form mode in other window"
+  "Visit a file in Forms mode in other window."
   (interactive "fFbrowse file in other window: ")
   (find-file-other-window fn)
   (eval-current-buffer)
   (or forms--mode-setup (forms-mode t)))
 
 (defun forms-exit (query)
-  "Normal exit. Modified buffers are saved."
+  "Normal exit from Forms mode.  Modified buffers are saved."
   (interactive "P")
   (forms--exit query t))
 
 (defun forms-exit-no-save (query)
-  "Exit without saving buffers."
+  "Exit from Forms mode without saving buffers."
   (interactive "P")
   (forms--exit query nil))
-
 
 ;;; Navigating commands
 
@@ -1076,8 +1069,8 @@ forms--the-record-list ."
   (forms-jump-record 1))
 
 (defun forms-last-record ()
-  "Jump to last record. As a side effect: re-calculates the number
- of records in the data file."
+  "Jump to last record.
+As a side effect: re-calculates the number of records in the data file."
   (interactive)
   (let
       ((numrec 
@@ -1090,9 +1083,9 @@ forms--the-record-list ."
       (setq forms--total-records numrec)
       (message "Number of records reset to %d." forms--total-records)))
   (forms-jump-record forms--total-records))
-
 
 ;;; Other commands
+
 (defun forms-view-mode ()
   "Visit buffer read-only."
   (interactive)
@@ -1127,11 +1120,11 @@ forms--the-record-list ."
 ;; (setq forms-new-record-filter 'my-new-record-filter)
 
 (defun forms-insert-record (arg)
-  "Create a new record before the current one. With ARG: store the
- record after the current one.
- If a function forms-new-record-filter is defined, or forms-new-record-filter
- contains the name of a function, it is called to
- fill (some of) the fields with default values."
+  "Create a new record before the current one.
+With ARG: store the record after the current one.
+If a function forms-new-record-filter is defined, or 
+forms-new-record-filter contains the name of a function, 
+it is called to fill (some of) the fields with default values."
  ; The above doc is not true, but for documentary purposes only
 
   (interactive "P")
@@ -1167,7 +1160,7 @@ forms--the-record-list ."
   (forms-jump-record forms--current-record))
 
 (defun forms-delete-record (arg)
-  "Deletes a record. With ARG: don't ask."
+  "Deletes a record.  With a prefix argument: don't ask."
   (interactive "P")
   (forms--checkmod)
   (if (or arg
@@ -1254,8 +1247,9 @@ forms--the-record-list ."
 ;;; Special service
 ;;;
 (defun forms-enumerate (the-fields)
-  "Take a quoted list of symbols, and set their values to the numbers
-1, 2 and so on. Returns the higest number.
+  "Take a quoted list of symbols, and set their values to sequential numbers.
+The first symbol gets number 1, the second 2 and so on.
+It returns the higest number.
 
 Usage: (setq forms-number-of-fields
              (forms-enumerate
@@ -1270,12 +1264,12 @@ Usage: (setq forms-number-of-fields
     the-index))
 
 ;;; Debugging
-;;;
+
 (defvar forms--debug nil
   "*Enables forms-mode debugging if not nil.")
 
 (defun forms--debug (&rest args)
-  "Internal - debugging routine"
+  "Internal debugging routine."
   (if forms--debug
       (let ((ret nil))
 	(while args
