@@ -211,10 +211,12 @@ To save places automatically in all files, put this in your `.emacs' file:
           (setq save-place t)))))
 
 (defun save-place-kill-emacs-hook ()
+  ;; First update the alist.  This loads the old save-place-file if nec.
+  (save-places-to-alist)
+  ;; Now save the alist in the file, if we have ever loaded the file
+  ;; (including just now).
   (if save-place-loaded
-      (progn
-	(save-places-to-alist)
-	(save-place-alist-to-file))))
+      (save-place-alist-to-file)))
 
 (add-hook 'find-file-hooks 'save-place-find-file-hook t)
 
