@@ -743,7 +743,6 @@ language you are using."
 ;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
-(define-key global-map [S-backspace]    'kill-whole-line)
 (define-key global-map [home]		'beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
