@@ -81,7 +81,8 @@ which excludes \"invisible buffers\".")
 (defvar winner-modified-list nil)
 
 (defun winner-change-fun ()
-  (pushnew (selected-frame) winner-modified-list))
+  (or (memq (selected-frame) winner-modified-list)
+      (push (selected-frame) winner-modified-list)))
 
 (defun winner-save-new-configurations ()
   (while winner-modified-list
