@@ -1,3 +1,8 @@
+2002-12-12  Jonathan Kamens  <jik@kamens.brookline.ma.us>
+
+	* b2m.pl: Make sure every message ends with a blank line, because
+	some mbox parsers require a blank line before "From " lines.
+
 2002-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* getopt.c: Do include libintl.h if HAVE_LIBINTL_H.
