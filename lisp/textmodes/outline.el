@@ -363,15 +363,15 @@ If prefix argument CHILDREN is given, promote also all the children."
   (outline-back-to-heading)
   (let* ((head (match-string 0))
 	 (level (save-match-data (funcall outline-level)))
-	 (up-head (or (cdr (assoc head outline-level-headings))
-		      (cdr (assoc (1- level) outline-level-headings))
+	 (up-head (or (cdr (assoc head outline-level-heading))
+		      (cdr (assoc (1- level) outline-level-heading))
 		      (save-excursion
 			(save-match-data
 			  (outline-up-heading 1 t)
 			  (match-string 0))))))
     
-    (unless (assoc level outline-level-headings)
-      (push (cons level head) outline-level-headings))
+    (unless (assoc level outline-level-heading)
+      (push (cons level head) outline-level-heading))
 
     (replace-match up-head nil t)
     (when children
@@ -385,9 +385,9 @@ If prefix argument CHILDREN is given, demote also all the children."
   (let* ((head (match-string 0))
 	 (level (save-match-data (funcall outline-level)))
 	 (down-head
-	  (or (let ((x (car (rassoc head outline-level-headings))))
+	  (or (let ((x (car (rassoc head outline-level-heading))))
 		(if (stringp x) x))
-	      (cdr (assoc (1+ level) outline-level-headings))
+	      (cdr (assoc (1+ level) outline-level-heading))
 	      (save-excursion
 		(save-match-data
 		  (while (and (not (eobp))
@@ -412,8 +412,8 @@ If prefix argument CHILDREN is given, demote also all the children."
 		    ;; Didn't work: keep it as is so it's still a heading.
 		    head))))))
 
-    (unless (assoc level outline-level-headings)
-      (push (cons level head) outline-level-headings))
+    (unless (assoc level outline-level-heading)
+      (push (cons level head) outline-level-heading))
     
     (replace-match down-head nil t)
     (when children
