@@ -1018,7 +1018,9 @@ on a buffer attached to the file named in the current Dired buffer line."
   (save-excursion
     (find-file (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file))
     (goto-char (point-min))
-    (replace-regexp (concat ":" (regexp-quote file) "$") (concat ":" newname))
+    ;; (replace-regexp (concat ":" (regexp-quote file) "$") (concat ":" newname))
+    (while (re-search-forward (concat ":" (regexp-quote file) "$") nil t)
+      (replace-match (concat ":" newname) nil nil))
     (basic-save-buffer)
     (kill-buffer (current-buffer))
     ))
