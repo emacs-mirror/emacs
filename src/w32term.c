@@ -898,7 +898,7 @@ x_draw_row_bitmaps (w, row)
   enum bitmap_type bitmap;
   struct face *face;
   int header_line_height = -1;
-  HDC hdc = get_frame_dc (f);
+  HDC hdc;
 
   xassert (interrupt_input_blocked);
 
@@ -921,6 +921,8 @@ x_draw_row_bitmaps (w, row)
     bitmap = ZV_LINE_BITMAP;
   else
     bitmap = NO_BITMAP;
+
+  hdc = get_frame_dc (f);
 
   /* Clear flags area if no bitmap to draw or if bitmap doesn't fill
      the flags area.  */
