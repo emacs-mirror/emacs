@@ -61,6 +61,9 @@ libexecdir=@libexecdir@
 srcdir=@srcdir@
 VPATH=@srcdir@
 
+# The top-level source directory, also set by configure.
+top_srcdir=@top_srcdir@
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -92,7 +95,7 @@ INSTALLABLE_SCRIPTS = rcs-checkin
 UTILITIES= wakeup profile digest-doc \
 	sorted-doc movemail cvtmail fakemail yow emacsserver hexl timer
 
-DONT_INSTALL= test-distrib make-docfile make-path
+DONT_INSTALL= test-distrib make-docfile
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -220,7 +223,7 @@ maybe-blessmail: BLESSMAIL
 ${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	./make-path ${archlibdir}
+	$(top_srcdir)/mkinstalldirs ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    (cd ..; $(INSTALL_PROGRAM) lib-src/$$file ${archlibdir}/$$file) ; \
@@ -360,9 +363,6 @@ timer.o: ${srcdir}/timer.c ../src/config.h
 	$(CC) -c $(CPP_CFLAGS) ${srcdir}/timer.c
 timer: ${TIMEROBJS}
 	$(CC) $(LINK_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
-
-make-path: ${srcdir}/make-path.c ../src/config.h
-	$(CC) $(ALL_CFLAGS) ${srcdir}/make-path.c -o make-path
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.in.  */
