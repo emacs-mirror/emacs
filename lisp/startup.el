@@ -932,6 +932,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			      (sit-for 1))
 			    (setq user-init-file source))))
 		      
+		      (when (and (stringp custom-file)
+				 (not (assoc custom-file load-history)))
+			;; If the .emacs file has set `custom-file' but hasn't
+			;; loaded the file yet, let's load it.
+			(load custom-file t t))
+		      
 		      (or inhibit-default-init
 			  (let ((inhibit-startup-message nil))
 			    ;; Users are supposed to be told their rights.
@@ -1018,8 +1024,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
-      (save-excursion
-	(set-buffer "*scratch*")
+      (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
 	    (funcall initial-major-mode))))
   
