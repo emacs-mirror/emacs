@@ -292,8 +292,11 @@ char_quoted (charpos, bytepos)
 
   while (bytepos >= beg)
     {
+      int c;
+
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
-      code = SYNTAX (FETCH_CHAR (bytepos));
+      c = FETCH_CHAR (bytepos);
+      code = SYNTAX (c);
       if (! (code == Scharquote || code == Sescape))
 	break;
 
@@ -380,12 +383,16 @@ find_defun_start (pos, pos_byte)
   gl_state.use_global = 0;
   while (PT > BEGV)
     {
+      int c;
+
       /* Open-paren at start of line means we may have found our
 	 defun-start.  */
-      if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+      c = FETCH_CHAR (PT_BYTE);
+      if (SYNTAX (c) == Sopen)
 	{
 	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+	  c = FETCH_CHAR (PT_BYTE);
+	  if (SYNTAX (c) == Sopen)
 	    break;
 	  /* Now fallback to the default value.  */
 	  gl_state.current_syntax_table = current_buffer->syntax_table;
@@ -2124,7 +2131,7 @@ scan_lists (from, count, depth, sexpflag)
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  if (from < stop && comstart_first
-	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte))
+	      && (c = FETCH_CHAR (from_byte), SYNTAX_COMSTART_SECOND (c))
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we have encountered a comment start sequence and we
@@ -2449,7 +2456,7 @@ scan_lists (from, count, depth, sexpflag)
 	   Fcons (build_string ("Unbalanced parentheses"),
 		  Fcons (make_number (last_good),
 			 Fcons (make_number (from), Qnil))));
-
+  abort ();
   /* NOTREACHED */
 }
 
@@ -2588,8 +2595,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     prev_from_syntax				\
-       = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte)); \
+     temp = FETCH_CHAR (prev_from_byte);	\
+     prev_from_syntax = SYNTAX_WITH_FLAGS (temp); \
      INC_BOTH (from, from_byte);		\
      if (from < end)				\
        UPDATE_SYNTAX_TABLE_FORWARD (from);	\
@@ -2664,7 +2671,8 @@ do { prev_from = from;				\
   curlevel->last = -1;
 
   SETUP_SYNTAX_TABLE (prev_from, 1);
-  prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  temp = FETCH_CHAR (prev_from_byte);
+  prev_from_syntax = SYNTAX_WITH_FLAGS (temp);
   UPDATE_SYNTAX_TABLE_FORWARD (from);
 
   /* Enter the loop at a place appropriate for initial state.  */
@@ -2743,7 +2751,8 @@ do { prev_from = from;				\
 	  while (from < end)
 	    {
 	      /* Some compilers can't handle this inside the switch.  */
-	      temp = SYNTAX (FETCH_CHAR (from_byte));
+	      temp = FETCH_CHAR (from_byte);
+	      temp = SYNTAX (temp);
 	      switch (temp)
 		{
 		case Scharquote:
