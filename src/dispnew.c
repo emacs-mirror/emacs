@@ -2467,6 +2467,10 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
+	  
+#if GLYPH_DEBUG
+	  strcpy (w->current_matrix->method, w->desired_matrix->method);
+#endif
 	}
 
       /* Set number of used glyphs in the frame matrix.  Since we fill
@@ -2628,8 +2632,11 @@ mirror_make_current (w, frame_row)
 		= MATRIX_ROW (w->current_matrix, row);
 	      struct glyph_row *desired_row
 		= MATRIX_ROW (w->desired_matrix, row);
-	      
-	      assign_row (current_row, desired_row);
+
+	      if (desired_row->enabled_p)
+		assign_row (current_row, desired_row);
+	      else
+		swap_glyph_pointers (desired_row, current_row);
 	      current_row->enabled_p = 1;
 	    }
 	}
