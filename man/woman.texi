@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.1 2000/08/08 10:38:56 eliz Exp $
+@c $Id: woman.texi,v 1.2 2000/08/08 10:41:27 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
@@ -48,8 +48,6 @@ permission notice identical to this one.
 Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions.
 @end ifinfo
-
-@finalout
 
 @finalout
 
