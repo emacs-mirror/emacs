@@ -448,9 +448,11 @@ function @var{func} by conditionalizing the function call on a
 @end example
 
 @noindent
-The call to @var{func} must be in the @var{then-form} of the @code{if},
-and @var{func} must appear quoted in the call to @code{fboundp}.
-Likewise, you can suppress a compiler warning for an unbound variable
+The call to @var{func} must be in the @var{then-form} of the
+@code{if}, and @var{func} must appear quoted in the call to
+@code{fboundp}.  (This feature operates for @code{cond} as well.)
+
+  Likewise, you can suppress a compiler warning for an unbound variable
 @var{variable} by conditionalizing its use on a @code{boundp} test,
 like this:
 
