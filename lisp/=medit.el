@@ -47,7 +47,7 @@
 	(forward-mim-object 1)
 	(append-to-buffer medit-buffer start (point))
 	(goto-char start)
-	(message (buffer-substring start (progn (end-of-line) (point)))))))
+	(message "%s" (buffer-substring start (progn (end-of-line) (point)))))))
 
 (defun medit-save-region (start end)
   "Mark the current region to be sent to back to MDL."
