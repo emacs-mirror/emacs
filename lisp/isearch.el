@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/07/08 22:33:57 $|$Revision: 1.45 $
+;; |$Date: 1993/07/15 03:46:02 $|$Revision: 1.46 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -584,6 +584,11 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (if isearch-window-configuration
 	(set-window-configuration isearch-window-configuration))
 
+    (if isearch-small-window
+	(goto-char found-point)
+      ;; Exiting the save-window-excursion clobbers window-start; restore it.
+      (set-window-start (selected-window) found-start t)))
+
     ;; If there was movement, mark the starting position.
     ;; Maybe should test difference between and set mark iff > threshold.
     (if (/= (point) isearch-opoint)
@@ -594,10 +599,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	      (message "Mark saved where search started")))
       ;; (message "") why is this needed?
       )
-    (if isearch-small-window
-	(goto-char found-point)
-      ;; Exiting the save-window-excursion clobbers window-start; restore it.
-      (set-window-start (selected-window) found-start t)))
 
   (setq isearch-mode nil)
   (set-buffer-modified-p (buffer-modified-p))  ;; update modeline
