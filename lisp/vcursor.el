@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1996, 1998 Free Software Foundation, Inc.
 
-;; Author:   Peter Stephenson <pws@ifh.de>
+;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
 ;; Keywords: virtual cursor, display, copying
 
 ;; This file is part of GNU Emacs.
@@ -24,9 +24,21 @@
 
 ;;; Commentary:
 
-;; Latest changes (1.6)
-;; ====================
+;; Latest changes
+;; ==============
 ;;
+;; - *IMPORTANT* vcursor-key-bindings is now nil by default, to avoid
+;;   side-effects when the package is loaded.  This means no keys are
+;;   bound by default.  Use customize to change it to t to restore
+;;   the old behaviour.  (If you do it by hand in .emacs, it
+;;   must come before vcursor is loaded.)
+;; - You can alter the main variables and the vcursor face via
+;;   M-x customize: go to the Editing group and find Vcursor.
+;; - vcursor-auto-disable can now be 'copy (actually any value not nil
+;;   or t), which means that copying from the vcursor will be turned
+;;   off after any operation not involving the vcursor, but the
+;;   vcursor itself will be left alone.
+;; - should now work unmodified under XEmacs
 ;; - works on dumb terminals with Emacs 19.29 and later
 ;; - new keymap vcursor-map for binding to a prefix key
 ;; - vcursor-compare-windows substantially improved
@@ -46,10 +58,13 @@
 ;; for more information.
 ;;
 ;; This is much easier to use than the instructions are to read.
-;; I suggest you simply load it and play around with holding down Ctrl
-;; and Shift and pressing up, down, left, right, tab, return, and see
-;; what happens.  (Find a scratch buffer before using C-S-tab: that
-;; toggles copying.)
+;; First, you need to let vcursor define some keys: setting
+;; vcursor-key-bindings to t before loading, or by customize, will
+;; define various keys with the prefix C-S.  You'll have to read
+;; further if you don't want this.  Then I suggest you simply load it
+;; and play around with holding down Ctrl and Shift and pressing up,
+;; down, left, right, tab, return, and see what happens.  (Find a
+;; scratch buffer before using C-S-tab: that toggles copying.)
 ;;
 ;; Most of the functions described in this documentation are in
 ;; parentheses so that if you have the package loaded you can type C-h
@@ -157,12 +172,16 @@
 ;;
 ;; If you set the variable vcursor-auto-disable, then any command
 ;; which does not involve moving or copying from the virtual cursor
-;; causes the virtual cursor to be disabled.  If you don't intend to
-;; use this, you can comment out the `add-hook' line at the bottom of
-;; this file.  (This feature partially emulates the way the "copy" key
-;; on the BBC micro worked; actually, the copy cursor was homed when
-;; you hit return.  This was in keeping with the line-by-line way of
-;; entering BASIC, but is less appropriate here.)
+;; causes the virtual cursor to be disabled.  If you set it to non-nil
+;; but not t, then the vcursor itself will remain active, but copying
+;; will be turned off, so that the next time the vcursor is moved no
+;; text is copied over.  Experience shows that this setting is
+;; particularly useful.  If you don't intend to use this, you can
+;; comment out the `add-hook' line at the bottom of this file.  (This
+;; feature partially emulates the way the "copy" key on the BBC micro
+;; worked; actually, the copy cursor was homed when you hit return.
+;; This was in keeping with the line-by-line way of entering BASIC,
+;; but is less appropriate here.)
 ;;
 ;; vcursor-compare-windows is now a reliable adaption of
 ;; compare-windows, which compares between point in the current buffer
@@ -307,29 +326,149 @@
   :prefix "vcursor-"
   :group 'display)
 
-(or (memq 'vcursor (face-list))
-    (progn
-      (copy-face 'modeline 'vcursor)
-      (if (or (fboundp 'oemacs-version)
-	      (and (eq window-system 'x) (x-display-color-p)))
-	  (progn
-	    (set-face-foreground 'vcursor "blue")
-	    (set-face-background 'vcursor "cyan")))
-      (set-face-underline-p 'vcursor t)))
+(defface vcursor
+  '((((class color)) (:foreground "blue" :background "cyan" :underline t))
+    (t (:inverse-video t :underline t)))
+  "Face for the virtual cursor."
+  :group 'vcursor)
 
 (defcustom vcursor-auto-disable nil
   "*If non-nil, disable the virtual cursor after use.
-Any non-vcursor command will force `vcursor-disable' to be called."
-  :type 'boolean
+Any non-vcursor command will force `vcursor-disable' to be called.
+If non-nil but not t, just make sure copying is toggled off, but don't
+disable the vcursor."
+  :type '(choice (const t) (const nil) (const copy))
   :group 'vcursor)
 
-(defcustom vcursor-key-bindings t
+;; Needed for defcustom, must be up here
+(if (not (string-match "XEmacs" emacs-version))
+    (defun vcursor-cs-binding (base &optional meta)
+      (read (concat "[" (if meta "M-" "") "C-S-" base "]")))
+  (require 'overlay)
+  (defun vcursor-cs-binding (base &optional meta)
+    (read (concat "[(" (if meta "meta " "") "control shift "
+		  base ")]")))
+  )
+
+(defun vcursor-bind-keys (var value)
+  "Alter the value of the variable VAR to VALUE, binding keys as required.
+VAR is usually vcursor-key-bindings.  Normally this function is called
+on loading vcursor and from the customize package."
+  (set var value)
+  (cond
+   ((not value));; don't set any key bindings
+   ((or (eq value 'oemacs)
+	(and (eq value t) (fboundp 'oemacs-version)))
+    (global-set-key [C-f1] 'vcursor-toggle-copy)
+    (global-set-key [C-f2] 'vcursor-copy)
+    (global-set-key [C-f3] 'vcursor-copy-word)
+    (global-set-key [C-f4] 'vcursor-copy-line)
+
+    (global-set-key [S-f1] 'vcursor-disable)
+    (global-set-key [S-f2] 'vcursor-other-window)
+    (global-set-key [S-f3] 'vcursor-goto)
+    (global-set-key [S-f4] 'vcursor-swap-point)
+
+    (global-set-key [C-f5] 'vcursor-backward-char)
+    (global-set-key [C-f6] 'vcursor-previous-line)
+    (global-set-key [C-f7] 'vcursor-next-line)
+    (global-set-key [C-f8] 'vcursor-forward-char)
+
+    (global-set-key [M-f5] 'vcursor-beginning-of-line)
+    (global-set-key [M-f6] 'vcursor-backward-word)
+    (global-set-key [M-f6] 'vcursor-forward-word)
+    (global-set-key [M-f8] 'vcursor-end-of-line)
+
+    (global-set-key [S-f5] 'vcursor-beginning-of-buffer)
+    (global-set-key [S-f6] 'vcursor-scroll-down)
+    (global-set-key [S-f7] 'vcursor-scroll-up)
+    (global-set-key [S-f8] 'vcursor-end-of-buffer)
+
+    (global-set-key [C-f9] 'vcursor-isearch-forward)
+
+    (global-set-key [S-f9] 'vcursor-execute-key)
+    (global-set-key [S-f10] 'vcursor-execute-command)
+
+;;; Partial dictionary of Oemacs key sequences for you to roll your own,
+;;; e.g C-S-up: (global-set-key "\M-[\C-f\M-\C-m" 'vcursor-previous-line)
+;;;    Sequence:         Sends:
+;;; "\M-[\C-f\M-\C-m"   C-S-up
+;;; "\M-[\C-f\M-\C-q"   C-S-down
+;;; "\M-[\C-fs"         C-S-left
+;;; "\M-[\C-ft"         C-S-right
+;;;
+;;; "\M-[\C-fw"         C-S-home
+;;; "\M-[\C-b\C-o"      S-tab
+;;; "\M-[\C-f\M-\C-r"   C-S-insert
+;;; "\M-[\C-fu"         C-S-end
+;;; "\M-[\C-f\M-\C-s"   C-S-delete
+;;; "\M-[\C-f\M-\C-d"   C-S-prior
+;;; "\M-[\C-fv"         C-S-next
+;;;                      
+;;; "\M-[\C-f^"         C-S-f1
+;;; "\M-[\C-f_"         C-S-f2
+;;; "\M-[\C-f`"         C-S-f3
+;;; "\M-[\C-fa"         C-S-f4
+;;; "\M-[\C-fb"         C-S-f5
+;;; "\M-[\C-fc"         C-S-f6
+;;; "\M-[\C-fd"         C-S-f7
+;;; "\M-[\C-fe"         C-S-f8
+;;; "\M-[\C-ff"         C-S-f9
+;;; "\M-[\C-fg"         C-S-f10
+    )
+   (t
+    (global-set-key (vcursor-cs-binding "up") 'vcursor-previous-line)
+    (global-set-key (vcursor-cs-binding "down") 'vcursor-next-line)
+    (global-set-key (vcursor-cs-binding "left") 'vcursor-backward-char)
+    (global-set-key (vcursor-cs-binding "right") 'vcursor-forward-char)
+   
+    (global-set-key (vcursor-cs-binding "return") 'vcursor-disable)
+    (global-set-key (vcursor-cs-binding "insert")  'vcursor-copy)
+    (global-set-key (vcursor-cs-binding "delete") 'vcursor-copy-word)
+    (global-set-key (vcursor-cs-binding "remove") 'vcursor-copy-word)
+    (global-set-key (vcursor-cs-binding "tab") 'vcursor-toggle-copy)
+    (global-set-key (vcursor-cs-binding "backtab") 'vcursor-toggle-copy)
+    (global-set-key (vcursor-cs-binding "home") 'vcursor-beginning-of-buffer)
+    (global-set-key (vcursor-cs-binding "up" t) 'vcursor-beginning-of-buffer)
+    (global-set-key (vcursor-cs-binding "end") 'vcursor-end-of-buffer)
+    (global-set-key (vcursor-cs-binding "down" t) 'vcursor-end-of-buffer)
+    (global-set-key (vcursor-cs-binding "prior") 'vcursor-scroll-down)
+    (global-set-key (vcursor-cs-binding "next") 'vcursor-scroll-up)
+   
+    (global-set-key (vcursor-cs-binding "f6") 'vcursor-other-window)
+    (global-set-key (vcursor-cs-binding "f7") 'vcursor-goto)
+
+    (global-set-key (vcursor-cs-binding "select") 
+		    'vcursor-swap-point) ; DEC keyboards
+    (global-set-key (vcursor-cs-binding "tab" t) 'vcursor-swap-point)
+
+    (global-set-key (vcursor-cs-binding "find") 
+		    'vcursor-isearch-forward) ; DEC keyboards
+    (global-set-key (vcursor-cs-binding "f8") 'vcursor-isearch-forward)
+
+    (global-set-key (vcursor-cs-binding "left" t) 'vcursor-beginning-of-line)
+    (global-set-key (vcursor-cs-binding "right" t) 'vcursor-end-of-line)
+
+    (global-set-key (vcursor-cs-binding "prior" t) 'vcursor-backward-word)
+    (global-set-key (vcursor-cs-binding "next" t) 'vcursor-forward-word)
+
+    (global-set-key (vcursor-cs-binding "return" t) 'vcursor-copy-line)
+
+    (global-set-key (vcursor-cs-binding "f9") 'vcursor-execute-key)
+    (global-set-key (vcursor-cs-binding "f10") 'vcursor-execute-command)
+    )))
+
+(defcustom vcursor-key-bindings nil
   "*How to bind keys when vcursor is loaded.
-If t (the default), guess; if xterm, use bindings suitable for an
-X terminal; if oemacs, use bindings which work on a PC with Oemacs.
-If nil, don't define any key bindings."
-  :type '(choice (const t) (const xterm) (const oemacs) (const nil))
-  :group 'vcursor)
+If t, guess; if xterm, use bindings suitable for an X terminal; if
+oemacs, use bindings which work on a PC with Oemacs. If nil, don't
+define any key bindings.
+
+Default is nil."
+  :type '(choice (const t) (const nil) (const xterm) (const oemacs))
+  :group 'vcursor
+  :set 'vcursor-bind-keys
+  :version "20.3")
 
 (defcustom vcursor-interpret-input nil
   "*If non-nil, input from the vcursor is treated as interactive input.
@@ -406,105 +545,11 @@ See vcursor-toggle-vcursor-map.")
 (define-key vcursor-map "k" 'vcursor-execute-key)
 (define-key vcursor-map "\M-x" 'vcursor-execute-command)
 
-(cond
- ((not vcursor-key-bindings))  ;; don't set any key bindings
- ((or (eq vcursor-key-bindings 'oemacs)
-      (and (eq vcursor-key-bindings t) (fboundp 'oemacs-version)))
-  (global-set-key [C-f1] 'vcursor-toggle-copy)
-  (global-set-key [C-f2] 'vcursor-copy)
-  (global-set-key [C-f3] 'vcursor-copy-word)
-  (global-set-key [C-f4] 'vcursor-copy-line)
-
-  (global-set-key [S-f1] 'vcursor-disable)
-  (global-set-key [S-f2] 'vcursor-other-window)
-  (global-set-key [S-f3] 'vcursor-goto)
-  (global-set-key [S-f4] 'vcursor-swap-point)
-
-  (global-set-key [C-f5] 'vcursor-backward-char)
-  (global-set-key [C-f6] 'vcursor-previous-line)
-  (global-set-key [C-f7] 'vcursor-next-line)
-  (global-set-key [C-f8] 'vcursor-forward-char)
-
-  (global-set-key [M-f5] 'vcursor-beginning-of-line)
-  (global-set-key [M-f6] 'vcursor-backward-word)
-  (global-set-key [M-f6] 'vcursor-forward-word)
-  (global-set-key [M-f8] 'vcursor-end-of-line)
-
-  (global-set-key [S-f5] 'vcursor-beginning-of-buffer)
-  (global-set-key [S-f6] 'vcursor-scroll-down)
-  (global-set-key [S-f7] 'vcursor-scroll-up)
-  (global-set-key [S-f8] 'vcursor-end-of-buffer)
-
-  (global-set-key [C-f9] 'vcursor-isearch-forward)
-
-  (global-set-key [S-f9] 'vcursor-execute-key)
-  (global-set-key [S-f10] 'vcursor-execute-command)
-
-;;; Partial dictionary of Oemacs key sequences for you to roll your own,
-;;; e.g C-S-up: (global-set-key "\M-[\C-f\M-\C-m" 'vcursor-previous-line)
-;;;    Sequence:         Sends:
-;;; "\M-[\C-f\M-\C-m"   C-S-up
-;;; "\M-[\C-f\M-\C-q"   C-S-down
-;;; "\M-[\C-fs"         C-S-left
-;;; "\M-[\C-ft"         C-S-right
-;;;
-;;; "\M-[\C-fw"         C-S-home
-;;; "\M-[\C-b\C-o"      S-tab
-;;; "\M-[\C-f\M-\C-r"   C-S-insert
-;;; "\M-[\C-fu"         C-S-end
-;;; "\M-[\C-f\M-\C-s"   C-S-delete
-;;; "\M-[\C-f\M-\C-d"   C-S-prior
-;;; "\M-[\C-fv"         C-S-next
-;;;                      
-;;; "\M-[\C-f^"         C-S-f1
-;;; "\M-[\C-f_"         C-S-f2
-;;; "\M-[\C-f`"         C-S-f3
-;;; "\M-[\C-fa"         C-S-f4
-;;; "\M-[\C-fb"         C-S-f5
-;;; "\M-[\C-fc"         C-S-f6
-;;; "\M-[\C-fd"         C-S-f7
-;;; "\M-[\C-fe"         C-S-f8
-;;; "\M-[\C-ff"         C-S-f9
-;;; "\M-[\C-fg"         C-S-f10
-  )
- (t
-  (global-set-key [C-S-up] 'vcursor-previous-line)
-  (global-set-key [C-S-down] 'vcursor-next-line)
-  (global-set-key [C-S-left] 'vcursor-backward-char)
-  (global-set-key [C-S-right] 'vcursor-forward-char)
-   
-  (global-set-key [C-S-return] 'vcursor-disable)
-  (global-set-key [C-S-insert]  'vcursor-copy)
-  (global-set-key [C-S-delete] 'vcursor-copy-word)
-  (global-set-key [C-S-remove] 'vcursor-copy-word)
-  (global-set-key [C-S-tab] 'vcursor-toggle-copy)
-  (global-set-key [C-S-home] 'vcursor-beginning-of-buffer)
-  (global-set-key [M-C-S-up] 'vcursor-beginning-of-buffer)
-  (global-set-key [C-S-end] 'vcursor-end-of-buffer)
-  (global-set-key [M-C-S-down] 'vcursor-end-of-buffer)
-  (global-set-key [C-S-prior] 'vcursor-scroll-down)
-  (global-set-key [C-S-next] 'vcursor-scroll-up)
-   
-  (global-set-key [C-S-f6] 'vcursor-other-window)
-  (global-set-key [C-S-f7] 'vcursor-goto)
-
-  (global-set-key [C-S-select] 'vcursor-swap-point) ; DEC keyboards
-  (global-set-key [M-C-S-tab] 'vcursor-swap-point)
-
-  (global-set-key [C-S-find] 'vcursor-isearch-forward) ; DEC keyboards
-  (global-set-key [C-S-f8] 'vcursor-isearch-forward)
-
-  (global-set-key [M-C-S-left] 'vcursor-beginning-of-line)
-  (global-set-key [M-C-S-right] 'vcursor-end-of-line)
-
-  (global-set-key [M-C-S-prior] 'vcursor-backward-word)
-  (global-set-key [M-C-S-next] 'vcursor-forward-word)
-
-  (global-set-key [M-C-S-return] 'vcursor-copy-line)
-
-  (global-set-key [C-S-f9] 'vcursor-execute-key)
-  (global-set-key [C-S-f10] 'vcursor-execute-command)
-  ))
+;; If vcursor-key-bindings is already set on loading, bind the keys now.
+;; This hybrid way of doing it retains compatibility while allowing
+;; customize to work smoothly.
+(if vcursor-key-bindings 
+    (vcursor-bind-keys 'vcursor-key-bindings vcursor-key-bindings))
 
 (defun vcursor-locate ()
   "Go to the starting point of the virtual cursor.
@@ -515,6 +560,7 @@ If that's disabled, don't go anywhere but don't complain."
   (and (overlayp vcursor-overlay)
        (overlay-buffer vcursor-overlay)
        (set-buffer (overlay-buffer vcursor-overlay))
+       (overlay-start vcursor-overlay)	; needed for XEmacs
        (goto-char (overlay-start vcursor-overlay)))
   )
 
@@ -1105,7 +1151,10 @@ Disabling the vcursor automatically turns this off."
 
 (defun vcursor-post-command ()
   (and vcursor-auto-disable (not vcursor-last-command)
-       vcursor-overlay (vcursor-disable))
+       vcursor-overlay
+       (if (eq vcursor-auto-disable t)
+	   (vcursor-disable)
+	 (vcursor-toggle-copy -1 t)))
   (setq vcursor-last-command nil)
   )
 
