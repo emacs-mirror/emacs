@@ -1,3 +1,9 @@
+2001-09-02  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (current_column_1, Fmove_to_column): Separate the code
+	for display-table glyphs from the code for buffer text, to fix
+	bugs in the former.
+
 2002-08-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xdisp.c (get_next_display_element): Remove spurious extra open-paren.
