@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate January 17, 1999
+@set lastupdate February  1, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -281,6 +281,10 @@ machine specific parts should be kept well separated.
 @item
 An implementation of CIFS, the ``Common Internet File System,'' for the
 HURD.  This protocol is an offshoot of SMB.
+
+@item
+Support (in Linux?) for dumping the non-textual contents of an SVGA
+console.
 @end itemize
 
 @node Extensions, X Windows Projects, Kernel Projects, Top
@@ -391,8 +395,16 @@ Software for designing and printing business cards.
 
 @itemize @bullet
 @item
-A web-based front end for @code{mon}, so that it can do the
-job of Big Brother (which is not free software).
+A web-based front end for the system and network monitoring program 
+@code{mon}, so that it can do the job of Big Brother (which is not free 
+software).  Some other modifications to mon are probably necessary.
+@code{mon} is considered to be at least as good as Big Brother except
+for the lack of a good Web-based display to make it easy to scan the
+status at a glance.
+
+It might be good to add a few other features to @code{mon}, including
+``dialup'' hosts: systems that are monitored, but for which the lack of
+any reply is not considered a failure.
 
 @item
 A teleconferencing program which does the job of CU-SeeMe (which is,
@@ -439,6 +451,7 @@ If you think of others that should be added, please
 send them to @email{gnu@@gnu.org}.
 
 @itemize @bullet
+@ignore OpenBIOS is doing this
 @item
 A simple PC BIOS.  On most new PCs, the BIOS is stored in writable
 memory (misleadingly known as ``flash ROM'').  In order to have a wholly
@@ -451,6 +464,7 @@ it starts up.  Also, it is not absolutely necessary to do all the many
 diagnostics that an ordinary BIOS does (though it would be useful to do
 some of them).  However, there may be a need to configure certain data
 in the computer in a way that is specific to each model of computer.
+@end ignore
 
 @item
 A free program that can transfer files on a serial line
@@ -519,6 +533,9 @@ A free replacement for the semi-free Qt library.
 @item
 High-quality music compression software.
 (Talk with @email{phr@@netcom.com} for relevant suggestions.)
+Unfortunately we cannot implement the popular MP3 format
+due to patents, so this job includes working out some other
+non-patented format and compression method.
 
 @item
 A program to play sound distributed in ``Real Audio'' format.
