@@ -1,6 +1,6 @@
 /* impl.c.tract: PAGE TABLES
  *
- * $HopeName: MMsrc!tract.c(trunk.4) $
+ * $HopeName: MMsrc!tract.c(trunk.5) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .ullagepages: Pages whose page index is < allocBase are recorded as
@@ -13,7 +13,7 @@
 #include "boot.h"
 #include "mpm.h"
 
-SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.4) $");
+SRCID(tract, "$HopeName: MMsrc!tract.c(trunk.5) $");
 
 
 static void ChunkDecache(Arena arena, Chunk chunk);
@@ -123,17 +123,14 @@ Bool ChunkCheck(Chunk chunk)
   CHECKL(ChunkSizeToPages(chunk, AddrOffset(chunk->base, chunk->limit))
          == chunk->pages);
   /* check that the tables fit in the chunk */
-  CHECKL(chunk->ullagePages <= chunk->pages);
-  /* check that the two notions of ullage size are consistent */
-  CHECKL(chunk->ullageSize == ChunkPagesToSize(chunk, chunk->ullagePages));
-
+  CHECKL(chunk->allocBase <= chunk->pages);
   CHECKL(chunk->allocBase >= chunk->pageTablePages);
 
   CHECKL(chunk->allocTable != NULL);
-  /* check that allocTable is in the chunk ullage */
+  /* check that allocTable is in the chunk overhead */
   CHECKL((Addr)chunk->allocTable >= chunk->base);
   CHECKL(AddrAdd((Addr)chunk->allocTable, BTSize(chunk->pages))
-         <= AddrAdd(chunk->base, chunk->ullageSize));
+         <= PageIndexBase(chunk, chunk->allocBase));
 
   /* check they don't overlap (knowing the order) */
   CHECKL(AddrAdd((Addr)chunk->allocTable, BTSize(chunk->pages))
@@ -142,11 +139,10 @@ Bool ChunkCheck(Chunk chunk)
   CHECKL(chunk->pageTable != NULL);
   CHECKL((Addr)chunk->pageTable >= chunk->base);
   CHECKL((Addr)&chunk->pageTable[chunk->pageTablePages]
-         <= AddrAdd(chunk->base, chunk->ullageSize));
+         <= PageIndexBase(chunk, chunk->allocBase));
   /* check there's enough space in the page table */
   CHECKL(INDEX_OF_ADDR(chunk, (Addr)chunk->pageTable) >= 0);
-  CHECKL(INDEX_OF_ADDR(chunk, AddrSub(chunk->limit, 1))
-         < chunk->pages);
+  CHECKL(INDEX_OF_ADDR(chunk, AddrSub(chunk->limit, 1)) < chunk->pages);
   CHECKL(chunk->pageTablePages < chunk->pages);
 
   /* Could check the consistency of the tables, but not O(1). */
@@ -163,7 +159,7 @@ Res ChunkInit(Chunk chunk, Arena arena,
   Count pages;
   PageStruct *pageTable;
   Shift pageShift;
-  Size pageTableSize, ullageSize;
+  Size pageTableSize;
   void *p;
   Res res;
 
@@ -208,10 +204,8 @@ Res ChunkInit(Chunk chunk, Arena arena,
     goto failAllocPageTable;
   chunk->pageTable = pageTable = p;
 
-  ullageSize = BootAllocated(boot);
-  chunk->ullageSize = ullageSize;
-  chunk->ullagePages = ullageSize >> pageShift;
-  chunk->allocBase = (Index)(ullageSize >> pageShift);
+  /* @@@@ Is BootAllocated always right? */
+  chunk->allocBase = (Index)(BootAllocated(boot) >> pageShift);
 
   /* Init allocTable after class init, because it might be mapped there. */
   BTResRange(chunk->allocTable, 0, pages);
