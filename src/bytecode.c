@@ -412,12 +412,12 @@ unmark_byte_stack ()
 
 
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
-  "Function used internally in byte-compiled code.\n\
-The first argument, BYTESTR, is a string of byte code;\n\
-the second, VECTOR, a vector of constants;\n\
-the third, MAXDEPTH, the maximum stack depth used in this function.\n\
-If the third argument is incorrect, Emacs may crash.")
-  (bytestr, vector, maxdepth)
+       doc: /* Function used internally in byte-compiled code.
+The first argument, BYTESTR, is a string of byte code;
+the second, VECTOR, a vector of constants;
+the third, MAXDEPTH, the maximum stack depth used in this function.
+If the third argument is incorrect, Emacs may crash.  */)
+     (bytestr, vector, maxdepth)
      Lisp_Object bytestr, vector, maxdepth;
 {
   int count = specpdl_ptr - specpdl;
@@ -1746,18 +1746,18 @@ syms_of_bytecode ()
 #ifdef BYTE_CODE_METER
 
   DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
-   "A vector of vectors which holds a histogram of byte-code usage.\n\
-\(aref (aref byte-code-meter 0) CODE) indicates how many times the byte\n\
-opcode CODE has been executed.\n\
-\(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,\n\
-indicates how many times the byte opcodes CODE1 and CODE2 have been\n\
-executed in succession.");
+	       doc: /* A vector of vectors which holds a histogram of byte-code usage.
+\(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
+opcode CODE has been executed.
+\(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
+indicates how many times the byte opcodes CODE1 and CODE2 have been
+executed in succession.  */);
   
   DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
-   "If non-nil, keep profiling information on byte code usage.\n\
-The variable byte-code-meter indicates how often each byte opcode is used.\n\
-If a symbol has a property named `byte-code-meter' whose value is an\n\
-integer, it is incremented each time that symbol's function is called.");
+	       doc: /* If non-nil, keep profiling information on byte code usage.
+The variable byte-code-meter indicates how often each byte opcode is used.
+If a symbol has a property named `byte-code-meter' whose value is an
+integer, it is incremented each time that symbol's function is called.  */);
 
   byte_metering_on = 0;
   Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
