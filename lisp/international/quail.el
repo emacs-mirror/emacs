@@ -1600,11 +1600,13 @@ or in a newly created frame (if the selected frame has no other windows)."
 
       ;; Show followable keys.
       (if (cdr map)
-	  (let ((l (cdr map)))
+	  (let ((keys (mapcar (function (lambda (x) (car x)))
+			      (cdr map))))
+	    (setq keys (sort keys '<))
 	    (insert "[")
-	    (while l
-	      (insert (car (car l)))
-	      (setq l (cdr l)))
+	    (while keys
+	      (insert (car keys))
+	      (setq keys (cdr keys)))
 	    (insert "]")))
 
       ;; Show list of translations.
