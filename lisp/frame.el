@@ -99,9 +99,10 @@ These supercede the values given in default-screen-alist.")
     
     ;; No, we're not running a window system.  Arrange to cause errors.
     (setq screen-creation-function
-	  (lambda (parameters)
-	    (error
-	     "Can't create multiple screens without a window system.")))))
+	  (function
+	   (lambda (parameters)
+	     (error
+	      "Can't create multiple screens without a window system."))))))
 					
 ;;; startup.el calls this function after loading the user's init file.
 ;;; If we created a minibuffer before knowing if we had permission, we
