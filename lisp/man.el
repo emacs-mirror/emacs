@@ -397,7 +397,14 @@ that string instead of from the current buffer."
 
 (defsubst Man-build-man-command ()
   "Builds the entire background manpage and cleaning command."
-  (let ((command (concat manual-program " " Man-switches " %s 2>/dev/null"))
+  (let ((command (concat manual-program " " Man-switches
+			 ; Stock MS-DOS shells cannot redirect stderr;
+			 ; `call-process' below sends it to /dev/null,
+			 ; so we don't need `2>' even with DOS shells
+			 ; which do support stderr redirection.
+			 (if (not (fboundp 'start-process))
+			     " %s"
+			   " %s 2>/dev/null")))
 	(flist Man-filter-list))
     (while (and flist (car flist))
       (let ((pcom (car (car flist)))
@@ -534,10 +541,24 @@ If a buffer already exists for this man page, it will display immediately."
       (let ((process-environment (copy-sequence process-environment)))
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
-	(set-process-sentinel
-	 (start-process manual-program buffer "sh" "-c"
-			(format (Man-build-man-command) man-args))
-	 'Man-bgproc-sentinel)))))
+	(if (fboundp 'start-process)
+	    (set-process-sentinel
+	     (start-process manual-program buffer "sh" "-c"
+			    (format (Man-build-man-command) man-args))
+	     'Man-bgproc-sentinel)
+	  (progn
+	    (let ((exit-status
+		   (call-process shell-file-name nil (list buffer nil) nil "-c"
+				 (format (Man-build-man-command) man-args)))
+		  (msg ""))
+	      (or (and (numberp exit-status)
+		       (= exit-status 0))
+		  (and (numberp exit-status)
+		       (setq msg
+			     (format "exited abnormally with code %d"
+				     exit-status)))
+		  (setq msg exit-status))
+	      (Man-bgproc-sentinel bufname msg))))))))
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
@@ -647,13 +668,20 @@ Same for the ANSI bold and normal escape sequences."
   (message "%s man page cleaned up" Man-arguments))
 
 (defun Man-bgproc-sentinel (process msg)
-  "Manpage background process sentinel."
-  (let ((Man-buffer (process-buffer process))
+  "Manpage background process sentinel.
+When manpage command is run asynchronously, PROCESS is the process 
+object for the manpage command; when manpage command is run
+synchronously, PROCESS is the name of the buffer where the manpage
+command is run.  Second argument MSG is the exit message of the
+manpage command."
+  (let ((Man-buffer (if (stringp process) (get-buffer process)
+		      (process-buffer process)))
 	(delete-buff nil)
 	(err-mess nil))
 
     (if (null (buffer-name Man-buffer)) ;; deleted buffer
-	(set-process-buffer process nil)
+	(or (stringp process)
+	    (set-process-buffer process nil))
 
       (save-excursion
 	(set-buffer Man-buffer)
@@ -665,17 +693,20 @@ Same for the ANSI bold and normal escape sequences."
 						  (progn
 						    (end-of-line) (point)))
 		       delete-buff t))
-		((not (and (eq (process-status process) 'exit)
-			   (= (process-exit-status process) 0)))
-		 (setq err-mess
-		       (concat (buffer-name Man-buffer)
-			       ": process "
-			       (let ((eos (1- (length msg))))
-				 (if (= (aref msg eos) ?\n)
-				     (substring msg 0 eos) msg))))
-		 (goto-char (point-max))
-		 (insert (format "\nprocess %s" msg))
-		 )))
+		((or (stringp process)
+		     (not (and (eq (process-status process) 'exit)
+			       (= (process-exit-status process) 0))))
+		 (or (zerop (length msg))
+		     (progn
+		       (setq err-mess
+			     (concat (buffer-name Man-buffer)
+				     ": process "
+				     (let ((eos (1- (length msg))))
+				       (if (= (aref msg eos) ?\n)
+					   (substring msg 0 eos) msg))))
+		       (goto-char (point-max))
+		       (insert (format "\nprocess %s" msg))))
+		 ))
         (if delete-buff
             (kill-buffer Man-buffer)
           (if Man-fontify-manpage-flag
@@ -684,7 +715,7 @@ Same for the ANSI bold and normal escape sequences."
           (run-hooks 'Man-cooked-hook)
           (Man-mode)
           (set-buffer-modified-p nil)
-          )
+          ))
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
 
