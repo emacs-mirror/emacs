@@ -1194,6 +1194,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
       (let ((buffer-file-name filename)
+	    (default-major-mode 'emacs-lisp-mode)
 	    (enable-local-eval nil))
         (normal-mode)
         (setq filename buffer-file-name)))
