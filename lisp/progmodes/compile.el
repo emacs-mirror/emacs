@@ -1000,7 +1000,8 @@ The current buffer should be the desired compilation output buffer."
 			      (widen)
 			      (goto-line last-line)
 			      (if column
-				  (move-to-column column)
+				  ;; Columns in error msgs are 1-origin.
+				  (move-to-column (1- column))
 				(beginning-of-line))
 			      (setcdr next-error (point-marker))
 			      ;; Make all the other error messages referring
