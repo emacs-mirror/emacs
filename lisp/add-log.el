@@ -340,7 +340,8 @@ Has a preference of looking backwards."
 		 (or (eobp) (forward-char 1))
 		 (beginning-of-defun)
 		 ;; Make sure we are really inside the defun found, not after it.
-		 (if (and (progn (end-of-defun)
+		 (if (and (looking-at "\\s(")
+			  (progn (end-of-defun)
 				 (< location (point)))
 			  (progn (forward-sexp -1)
 				 (>= location (point))))
