@@ -371,7 +371,8 @@ reset_terminal_modes ()
 {
   if (! FRAME_TERMCAP_P (selected_frame))
     {
-      (*reset_terminal_modes_hook) ();
+      if (reset_terminal_modes_hook)
+	(*reset_terminal_modes_hook) ();
       return;
     }
   if (TN_standout_width < 0)
