@@ -1,3 +1,19 @@
+2002-11-17  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers): Add more headers.
+
+	* calendar/parse-time.el (parse-time-elt): Var renamed from `elt'.
+	(parse-time-val): Var renamed from `val'.  All uses changed.
+
+	* files.el (parse-time-rules): Mark it as risky.
+
+	* finder.el (finder-commentary): Use buffer *Finder-package*.
+
+	* menu-bar.el (menu-bar-options-menu): Improve tooltip string.
+
+	* simple.el (indicate-unused-lines) 
+	(default-indicate-unused-lines): New variable aliases.
+
 2002-11-18  Kenichi Handa  <handa@m17n.org>
 
 	* progmodes/cc-vars.el: Undo previous change.

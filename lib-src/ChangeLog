@@ -1,3 +1,7 @@
+2002-11-17  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (${archlibdir}): Ignore errors operating on $(gamedir).
+
 2002-11-14  Dave Love  <fx@gnu.org>
 
 	* movemail.c (pop_retr): Declare comment.
