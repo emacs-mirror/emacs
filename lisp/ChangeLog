@@ -1,5 +1,23 @@
 2004-10-27  Richard M. Stallman  <rms@gnu.org>
 
+	* add-log.el (add-change-log-entry): Set up mailing address
+	and full name later, and don't alter add-log-mailing-address
+	or add-log-full-name.
+
+	* elide-head.el (elide-head): Change error to message.
+	(elide-head-show): Likewise.
+
+	* apropos.el (apropos-macrop): Doc fix.
+
+	* mouse.el (mouse-show-mark): Do most processing the same
+	regardless of transient-mark-mode.
+
+	* shadowfile.el (shadow-copy-files): Use interactive-p
+	only to control whether to print a message.
+
+	* tar-mode.el (tar-mode): Use write-contents-functions,
+	not write-contents-hooks.
+
 	* eshell/em-unix.el (eshell-du-sum-directory): Don't use
 	directory-sep-char.
 
