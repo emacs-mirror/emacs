@@ -1153,10 +1153,13 @@ links: groups have links to subgroups."
 		(const links))
   :group 'custom-buffer)
 
+(defun custom-bury-buffer (buffer)
+  (bury-buffer))
+
 (defcustom custom-buffer-done-function 'bury-buffer
   "*Function called to remove a Custom buffer when the user is done with it.
 Called with one argument, the buffer to remove."
-  :type '(choice (function-item bury-buffer)
+  :type '(choice (function-item custom-bury-buffer)
 		 (function-item kill-buffer)
 		 (function :tag "Other"))
   :version "21.1"
