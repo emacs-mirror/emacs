@@ -1,3 +1,10 @@
+2000-10-18  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* comint.el (comint-output-filter): Fixup comint-last-input-end too.
+	Remove commented-out call to force-mode-line-update.
+	(comint-kill-output): Use `forward-line 0' instead of
+	beginning-of-line to make sure we get past the prompt.
+
 2000-10-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-header-face, diff-file-header-face):

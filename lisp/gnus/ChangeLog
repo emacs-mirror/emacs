@@ -1,3 +1,8 @@
+2000-10-16  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* gnus-nocem.el (gnus-nocem-check-article-limit): New variable.
+	(gnus-nocem-scan-groups): Obey `gnus-nocem-check-article-limit'.
+
 2000-10-15  Dave Love  <fx@gnu.org>
 
 	* qp.el: Require mm-util.
