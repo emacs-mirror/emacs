@@ -282,6 +282,7 @@ Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook, Qpost_command_hook;
 Lisp_Object Vpre_command_hook, Vpost_command_hook;
+Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 
 /* File in which we write all commands we read.  */
 FILE *dribble;
@@ -609,6 +610,7 @@ echo_truncate (len)
 {
   echobuf[len] = '\0';
   echoptr = echobuf + len;
+  truncate_echo_area (len);
 }
 
 
@@ -908,15 +910,14 @@ command_loop_1 ()
      throw to top level.  */
   if (!NILP (Vpost_command_hook))
     {
-      Lisp_Object tem;
       /* If we get an error during the post-command-hook,
 	 cause post-command-hook to be nil.  */
-      tem = Vpost_command_hook;
+      Vcommand_hook_internal = Vpost_command_hook;
       Vpost_command_hook = Qnil;
 
-      call1 (Vrun_hooks, Qpost_command_hook);
+      call1 (Vrun_hooks, Qcommand_hook_internal);
       
-      Vpost_command_hook = tem;
+      Vpost_command_hook = Vcommand_hook_internal;
     }
 
   while (1)
@@ -1050,7 +1051,10 @@ command_loop_1 ()
 	}
 
       /* Do redisplay processing after this command except in special
-	 cases identified below that set no_redisplay to 1.  */
+	 cases identified below that set no_redisplay to 1.
+	 (actually, there's currently no way to prevent the redisplay,
+	 and no_redisplay is ignored.
+	 Perhaps someday we will really implement it.  */
       no_redisplay = 0;
 
       prev_buffer = current_buffer;
@@ -1061,15 +1065,14 @@ command_loop_1 ()
       this_command = cmd;
       if (!NILP (Vpre_command_hook))
 	{
-	  Lisp_Object tem;
 	  /* If we get an error during the pre-command-hook,
 	     cause pre-command-hook to be nil.  */
-	  tem = Vpre_command_hook;
+	  Vcommand_hook_internal = Vpre_command_hook;
 	  Vpre_command_hook = Qnil;
 
-	  call1 (Vrun_hooks, Qpre_command_hook);
+	  call1 (Vrun_hooks, Qcommand_hook_internal);
 
-	  Vpre_command_hook = tem;
+	  Vpre_command_hook = Vcommand_hook_internal;
 	}
 
       if (NILP (this_command))
@@ -3760,7 +3763,7 @@ read_char_minibuf_menu_prompt(commandflag, nmaps, maps)
 	      if (mapno == nmaps)
 		{
 		  mapno = 0;
-		  if ( notfirst || nobindings ) break;
+		  if (notfirst || nobindings) break;
 		}
 	      rest = maps[mapno];
 	    }
@@ -4186,7 +4189,7 @@ read_key_sequence (keybuf, bufsize, prompt)
   /* These are no-ops the first time through, but if we restart, they
      revert the echo area and this_command_keys to their original state.  */
   this_command_key_count = keys_start;
-  if (INTERACTIVE)
+  if (INTERACTIVE && t < mock_input)
     echo_truncate (echo_start);
 
   /* If the best binding for the current key sequence is a keymap, or
@@ -4237,7 +4240,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 jumped back up to replay_key; in that case, these restore the
 	 variables to their original state, allowing us to replay the
 	 loop.  */
-      if (INTERACTIVE)
+      if (INTERACTIVE && t < mock_input)
 	echo_truncate (echo_local_start);
       this_command_key_count = keys_local_start;
       first_binding = local_first_binding;
@@ -4685,7 +4688,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		Lisp_Object tem;
 		tem = keytran_next;
 
-		GCPRO3 (keytran_map, keytran_map, delayed_switch_frame);
+		GCPRO3 (fkey_map, keytran_map, delayed_switch_frame);
 		keytran_next = call1 (keytran_next, prompt);
 		UNGCPRO;
 		/* If the function returned something invalid,
@@ -4693,7 +4696,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		   (To ignore it safely, we would need to gcpro a bunch of 
 		   other variables.)  */
 		if (! (VECTORP (keytran_next) || STRINGP (keytran_next)))
-		  error ("Function in function-key-map returns invalid key sequence");
+		  error ("Function in key-translation-map returns invalid key sequence");
 	      }
 
 	    /* If keybuf[keytran_start..keytran_end] is bound in the
@@ -5544,6 +5547,9 @@ syms_of_keyboard ()
 
   Qpost_command_hook = intern ("post-command-hook");
   staticpro (&Qpost_command_hook);
+
+  Qcommand_hook_internal = intern ("command-hook-internal");
+  staticpro (&Qcommand_hook_internal);
 
   Qfunction_key = intern ("function-key");
   staticpro (&Qfunction_key);
