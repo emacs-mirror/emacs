@@ -792,12 +792,12 @@ should use `set-frame-height' instead."
 ;;; Blinking cursor
 
 (defgroup cursor nil
-  "Cursor on frames."
+  "Displaying text cursors."
   :version "21.1"
   :group 'frames)
 
 (defcustom blink-cursor-delay 0.5
-  "*Seconds of Emacs idle time after which cursor starts to blink."
+  "*Seconds of idle time after which cursor starts to blink."
   :tag "Delay in seconds."
   :type 'number
   :group 'cursor)
@@ -809,12 +809,12 @@ should use `set-frame-height' instead."
   :group 'cursor)
 
 (defvar blink-cursor-idle-timer nil
-  "Timer started after blink-cursor-delay seconds of Emacs idle time.
-The function blink-cursor-start is called when the timer fires.")
+  "Timer started after `blink-cursor-delay' seconds of Emacs idle time.
+The function `blink-cursor-start' is called when the timer fires.")
 
 (defvar blink-cursor-timer nil
-  "Time started from blink-cursor-start.  This timer calls blink-cursor
-every blink-cursor-interval seconds.")
+  "Timer started from `blink-cursor-start'.
+This timer calls `blink-cursor' every `blink-cursor-interval' seconds.")
 
 (defvar blink-cursor-mode nil
   "Non-nil means blinking cursor is active.")
@@ -846,7 +846,7 @@ window blinks."
 	  (setq blink-cursor-mode t)))))
 
 (defcustom blink-cursor (not (eq system-type 'ms-dos))
-  "*Non-nil means blink-cursor-mode is active."
+  "*Non-nil means blinking cursor mode is active."
   :tag "Blinking cursor"
   :type 'boolean
   :group 'cursor
@@ -855,10 +855,10 @@ window blinks."
 	   (blink-cursor-mode (or value 0))))
 
 (defun blink-cursor-start ()
-  "Timer function called from timer blink-cursor-idle-timer.
-Starts the timer blink-cursor-timer which lets the cursor blink
-if the selected frame has a non-nil `cursor-blinking' frame parameter.
-Arranges to cancel that timer by installing a pre command hook."
+  "Timer function called from the timer `blink-cursor-idle-timer'.
+This starts the timer `blink-cursor-timer', which makes the cursor blink
+if appropriate.  It also arranges to cancel that timer when the next
+command starts, by installing a pre-command hook."
   (when (null blink-cursor-timer)
     (add-hook 'pre-command-hook 'blink-cursor-end)
     (setq blink-cursor-timer
@@ -867,8 +867,9 @@ Arranges to cancel that timer by installing a pre command hook."
 
 (defun blink-cursor-end ()
   "Stop cursor blinking.
-Installed as a pre-command hook by blink-cursor-start.  Cancels
-the timer blink-cursor-timer and removes itself from the hook."
+This is installed as a pre-command hook by `blink-cursor-start'.
+When run, it cancels the timer `blink-cursor-timer' and removes 
+itself as a pre-command hook."
   (remove-hook 'pre-command-hook 'blink-cursor-end)
   (internal-show-cursor 0)
   (cancel-timer blink-cursor-timer)
@@ -879,7 +880,7 @@ the timer blink-cursor-timer and removes itself from the hook."
 ;;; Busy-cursor.
 
 (defcustom busy-cursor t
-  "*Non-nil means show a busy-cursor when running under a window-system."
+  "*Non-nil means show a busy-cursor when running under a window system."
   :tag "Busy-cursor"
   :type 'boolean
   :group 'cursor
