@@ -37,7 +37,7 @@ the combined fringe widths must match an integral number of columns.
 The extra width is distributed evenly between the left and right fringe.
 For force a specific fringe width, specify the width as a negative
 integer (if both widths are negative, only the left fringe gets the
-specified width). 
+specified width).
 
 Setting the width to nil (the default), restores the default fringe
 width which is the minimum number of pixels necessary to display any
@@ -106,6 +106,13 @@ were changed.
 
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
+
+** Etags changes.
+
+*** In Prolog, etags creates tags for rules in addition to predicates.
+
+*** New language PHP: tags are function, classes and defines.  If
+the --members option is specified to etags, tags are vars also.
 
 +++
 ** The command line option --no-windows has been changed to
@@ -396,7 +403,7 @@ current syntactic context (as returned by parse-partial-sexp).
 
 *** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1 was not documented.
-	
+
 
 * Installation Changes in Emacs 21.1
 

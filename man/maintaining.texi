@@ -344,10 +344,15 @@ In Perl code, the tags are the procedures defined by the @code{sub},
 to tag global variables.
 
 @item
+In PHP code, tags are functions, classes and defines.  When using the
+@samp{--members} option, vars are tags too.
+
+@item
 In PostScript code, the tags are the functions.
 
 @item
-In Prolog code, a tag name appears at the left margin.
+In Prolog code, tags are predicates and rules at the beginning of
+line.
 
 @item
 In Python code, @code{def} or @code{class} at the beginning of a line
@@ -1226,4 +1231,3 @@ commands.
 @vindex emerge-startup-hook
   After setting up the merge, Emerge runs the hook
 @code{emerge-startup-hook} (@pxref{Hooks}).
-

@@ -50,7 +50,7 @@ format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
 the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang,
-LaTeX, Emacs Lisp/Common Lisp, makefiles, Pascal, Perl, Postscript,
+LaTeX, Emacs Lisp/Common Lisp, makefiles, Pascal, Perl, PHP, Postscript,
 Python, Prolog, Scheme and
 most assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
@@ -167,6 +167,7 @@ from shell interpretation.
 Tag the DEFVAR macros in the emacs source files:
 .br
 \fI\-\-regex\='/[ \\t]*DEFVAR_[A-Z_ \\t(]+"\\([^"]+\\)"\/'\fP
+.\"" This comment is to avoid confusion to Emacs syntax highlighting
 .br
 
 Tag VHDL files (this example is a single long line, broken here for

@@ -1,3 +1,19 @@
+2001-12-12  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (PHP_functions): New function by Diez B. Roggisch,
+	heavily adapted by me, for parsing PHP.
+	(LOOKING_AT): New macro.
+	(Perl_functions, Python_functions, PHP_functions)
+	(Scheme_functions, Texinfo_nodes): Use it.
+	(Perl_functions): Use strneq.
+	(prolog_pred): Renamed to prolog_pr.
+	(prolog_pr): Recognise Prolog rules (thanks to Geert Kloosterman)
+	in addition to predicates.
+	[ETAGS_REGEXPS] [!HAVE_CONFIG_H] [__CYGWIN__]: Prevent
+	unmodified compile, as Cygwin's regex.h is incompatible with us
+	(thanks to Markus Hoenicka).
+	[!HAVE_CONFIG_H] [!__STDC__]: #define const as the empty string.
+
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (clean): Don't delete ../etc/DOC*.
@@ -8,10 +24,10 @@
 
 2001-11-30  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (FACE_SUPPORT): 
-	(MOUSE_SUPPORT): 
-	(FLOAT_SUPPORT): 
-	(WINNT_SUPPORT): 
+	* makefile.w32-in (FACE_SUPPORT):
+	(MOUSE_SUPPORT):
+	(FLOAT_SUPPORT):
+	(WINNT_SUPPORT):
 	(lisp): Reference .el files instead of .elc files, to simplify
 	bootstrapping.
 	($(DOC)): Change dependency to just `make-docfile'.
