@@ -181,7 +181,7 @@ when they are created."
   (let ((map (make-sparse-keymap "Background Color")))
     (define-key map "o" (cons "Other..." 'facemenu-set-background))
     map)
-  "Menu keymap for background colors")
+  "Menu keymap for background colors.")
 ;;;###autoload
 (defalias 'facemenu-background-menu facemenu-background-menu)
 
@@ -276,7 +276,7 @@ requested in `facemenu-keybindings'.")
 
 
 (defcustom facemenu-add-face-function nil
-  "Function called at beginning of text to change or `nil'.
+  "Function called at beginning of text to change or nil.
 This function is passed the FACE to set and END of text to change, and must
 return a string which is inserted.  It may set `facemenu-end-add-face'."
   :type '(choice (const :tag "None" nil)
@@ -284,7 +284,7 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
   :group 'facemenu)
 
 (defcustom facemenu-end-add-face nil
-  "String to insert or function called at end of text to change or `nil'.
+  "String to insert or function called at end of text to change or nil.
 This function is passed the FACE to set, and must return a string which is
 inserted."
   :type '(choice (const :tag "None" nil)
@@ -295,7 +295,7 @@ inserted."
 (defcustom facemenu-remove-face-function nil
   "When non-nil, this is a function called to remove faces.
 This function is passed the START and END of text to change.
-May also be `t' meaning to use `facemenu-add-face-function'."
+May also be t meaning to use `facemenu-add-face-function'."
   :type '(choice (const :tag "None" nil)
 		 (const :tag "Use add-face" t)
 		 function)
@@ -343,7 +343,7 @@ typing a character to insert cancels the specification."
 
 ;;;###autoload
 (defun facemenu-set-foreground (color &optional start end)
-  "Set the foreground color of the region or next character typed.
+  "Set the foreground COLOR of the region or next character typed.
 The color is prompted for.  A face named `fg:color' is used \(or created).
 If the region is active, it will be set to the requested face.  If
 it is inactive \(even if mark-even-if-inactive is set) the next
@@ -358,7 +358,7 @@ typing a character cancels the request."
 
 ;;;###autoload
 (defun facemenu-set-background (color &optional start end)
-  "Set the background color of the region or next character typed.
+  "Set the background COLOR of the region or next character typed.
 The color is prompted for.  A face named `bg:color' is used \(or created).
 If the region is active, it will be set to the requested face.  If
 it is inactive \(even if mark-even-if-inactive is set) the next
@@ -373,7 +373,7 @@ typing a character cancels the request."
 
 ;;;###autoload
 (defun facemenu-set-face-from-menu (face start end)
-  "Set the face of the region or next character typed.
+  "Set the FACE of the region or next character typed.
 This function is designed to be called from a menu; the face to use
 is the menu item's name.
 
@@ -530,7 +530,7 @@ determine the correct answer."
 
 (defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.
-If START is `nil' or START to END is empty, add FACE to next typed character
+If START is nil or START to END is empty, add FACE to next typed character
 instead.  For each section of that region that has a different face property,
 FACE will be consed onto it, and other faces that are completely hidden by
 that will be removed from the list.
@@ -605,7 +605,7 @@ use the selected frame.  If t, then the global, non-frame faces are used."
 
 (defun facemenu-get-face (symbol)
   "Make sure FACE exists.
-If not, create it and add it to the appropriate menu.  Return the symbol.
+If not, create it and add it to the appropriate menu.  Return the SYMBOL.
 
 If a window system is in use, and this function creates a face named
 `fg:color', then it sets the foreground to that color.  Likewise, `bg:color'
@@ -613,7 +613,7 @@ means to set the background.  In either case, if the color is undefined,
 no color is set and a warning is issued."
   (let ((name (symbol-name symbol))
 	foreground)
-    (cond ((internal-find-face symbol))
+    (cond ((facep symbol))
 	  ((and (display-color-p)
 		(or (setq foreground (string-match "^fg:" name))
 		    (string-match "^bg:" name)))
@@ -702,12 +702,12 @@ order."
      (nreverse (face-list)))
     list))
 
-(defun facemenu-iterate (func iterate-list)
+(defun facemenu-iterate (func list)
   "Apply FUNC to each element of LIST until one returns non-nil.
 Returns the non-nil value it found, or nil if all were nil."
-  (while (and iterate-list (not (funcall func (car iterate-list))))
-    (setq iterate-list (cdr iterate-list)))
-  (car iterate-list))
+  (while (and list (not (funcall func (car list))))
+    (setq list (cdr list)))
+  (car list))
 
 (facemenu-update)
 
