@@ -930,8 +930,10 @@ It returns t if it got any new messages."
       ;; If getting from mail spool directory,
       ;; use movemail to move rather than just renaming,
       ;; so as to interlock with the mailer.
-      (setq movemail (string= (file-name-directory file)
-			      (file-truename rmail-spool-directory))
+      (setq movemail (string= file
+			      (file-truename
+			       (concat rmail-spool-directory
+				       (file-name-nondirectory file))))
 	    popmail (string-match "^po:" (file-name-nondirectory file)))
       (if popmail (setq file (file-name-nondirectory file)
 			renamep t))
