@@ -1867,7 +1867,9 @@ Prefix args ::
 	   ;; Don't accept completions
 	   (setq completion-to-accept nil)
 	   ;; print message
-	   (if (and print-status-p (cmpl19-sit-for 0))
+	   ;; This used to call cmpl19-sit-for, an undefined function.
+	   ;; I hope that sit-for does the right thing; I don't know -- rms.
+	   (if (and print-status-p (sit-for 0))
 	       (message "No %scompletions."
 			(if (eq this-command last-command) "more " "")))
 	   ;; statistics
