@@ -1,3 +1,9 @@
+2003-02-10  Martin Stjernholm  <mast@lysator.liu.se>
+
+	* progmodes/cc-styles.el (c-set-offset): Don't find a default
+	syntactic element through syntactic analysis if called outside
+	a CC Mode buffer.
+
 2003-02-09  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-mode.el (c-basic-common-init): Install
