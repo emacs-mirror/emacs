@@ -34,3 +34,6 @@
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
 #define PATH_INFO "/usr/local/info"
+
+/* Where Emacs should look for the application default file. */
+#define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
