@@ -514,12 +514,16 @@ which will run faster and probably do exactly what you want."
 		       (setq keep-going nil)
 		       (setq done t))
 		      ((eq def 'backup)
-		       (let ((elt (car stack)))
-			 (goto-char (car elt))
-			 (setq replaced (eq t (cdr elt)))
-			 (or replaced
-			     (store-match-data (cdr elt)))
-			 (setq stack (cdr stack))))		     
+		       (if stack
+			   (let ((elt (car stack)))
+			     (goto-char (car elt))
+			     (setq replaced (eq t (cdr elt)))
+			     (or replaced
+				 (store-match-data (cdr elt)))
+			     (setq stack (cdr stack)))
+			 (message "No previous match")
+			 (ding 'no-terminate)
+			 (sit-for 1)))
 		      ((eq def 'act)
 		       (or replaced
 			   (replace-match next-replacement nocasify literal))
