@@ -136,6 +136,33 @@ in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
 which can be used to unpack `.tar.gz' and `.zip' archives without
 mangling them.
 
+* Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
+
+With certain recent Linux kernels (like the one of Redhat Fedora Core
+1 and 2), the new "Exec-shield" functionality is enabled by default, which
+creates a different memory layout that breaks the emacs dumper.
+
+You can check the Exec-shield state like this:
+
+    cat /proc/sys/kernel/exec-shield
+
+It returns non-zero when Exec-shield is enabled, 0 otherwise.  Please
+read your system documentation for more details on Exec-shield and
+associated commands.  Exec-shield can be turned off with this command:
+
+    echo "0" > /proc/sys/kernel/exec-shield
+
+When Exec-shield is enabled, building Emacs will segfault during the
+execution of this command:
+
+    ./temacs --batch --load loadup [dump|bootstrap]
+
+To work around this problem, it is necessary to temporarily disable
+Exec-shield while building Emacs, or, on x86, by using the `setarch'
+command when running temacs like this:
+
+    setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
+
 * Emacs crashes when dumping itself on Mac PPC running Yellow Dog GNU/Linux.
 
 The crashes happen inside the function Fmake_symbol; here's a typical

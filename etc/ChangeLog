@@ -1,3 +1,8 @@
+2005-02-17  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* PROBLEMS: Document exec-shield Linux problem.  Do not mention
+	that configure can overcome it on i386: not sure for 21.4.
+
 2003-05-28  Dave Love  <fx@gnu.org>
 
 	* ORDERS.EUROPE, ORDERS.JAPAN: Removed.
