@@ -1,3 +1,12 @@
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/paragraphs.el (sentence-end-without-space): New variable.
+	(sentence-end): Define using sentence-end-without-space.
+
+	* textmodes/fill.el (fill-delete-newlines): Don't add a space if a
+	setence ends with one of a character in
+	sentence-end-without-space.
+
 2004-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock): Add jit-lock as explicit group member.
