@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.210 1998/03/08 10:03:50 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.211 1998/03/18 13:25:00 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -524,12 +524,16 @@ If nil, VC itself computes this value when it is first needed."
 
 (defun vc-do-command (buffer okstatus command file last &rest flags)
   "Execute a version-control command, notifying user and checking for errors.
-Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil.  
-The command is successful if its exit status does not exceed OKSTATUS.
- (If OKSTATUS is nil, that means to ignore errors.)
-The last argument of the command is the master name of FILE if LAST is 
-`MASTER', or the workfile of FILE if LAST is `WORKFILE'; this is appended 
-to an optional list of FLAGS."
+Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil.  The
+command is considered successful if its exit status does not exceed
+OKSTATUS (if OKSTATUS is nil, that means to ignore errors).  FILE is
+the name of the working file (may also be nil, to execute commands
+that don't expect a file name).  If FILE is non-nil, the argument LAST
+indicates what filename should actually be passed to the command: if
+it is `MASTER', the name of FILE's master file is used, if it is
+`WORKFILE', then FILE is passed through unchanged.  If an optional
+list of FLAGS is present, that is inserted into the command line
+before the filename."
   (and file (setq file (expand-file-name file)))
   (if (not buffer) (setq buffer "*vc*"))
   (if vc-command-messages
@@ -552,7 +556,7 @@ to an optional list of FLAGS."
      flags)
     (if (and vc-file (eq last 'MASTER))
 	(setq squeezed (append squeezed (list vc-file))))
-    (if (eq last 'WORKFILE)
+    (if (and file (eq last 'WORKFILE))
 	(progn
 	  (let* ((pwd (expand-file-name default-directory))
 		 (preflen (length pwd)))
@@ -855,8 +859,16 @@ to an optional list of FLAGS."
 	      (find-file-other-window file) 
 	    (find-file file))
 
-	  ;; give luser a chance to save before checking in.
-	  (vc-buffer-sync)
+	  ;; If the file on disk is newer, then the user just
+	  ;; said no to rereading it.  So the user probably wishes to
+	  ;; overwrite the file with the buffer's contents, and check 
+	  ;; that in.
+	  (if (not (verify-visited-file-modtime (current-buffer)))
+	      (if (yes-or-no-p "Replace file on disk with buffer contents? ")
+		  (write-file (buffer-file-name))
+		(error "Aborted"))
+	    ;; give luser a chance to save before checking in.
+	    (vc-buffer-sync))
 
 	  ;; Revert if file is unchanged and buffer is too.
 	  ;; If buffer is modified, that means the user just said no
@@ -1668,9 +1680,7 @@ in all these directories.  With a prefix argument, it lists all files."
   (save-excursion
     (find-file (expand-file-name
 		vc-name-assoc-file
-		(file-name-as-directory
-		 (expand-file-name (vc-backend-subdirectory-name file) 
-				   (file-name-directory file)))))
+                (file-name-directory (vc-name file))))
     (goto-char (point-max))
     (insert name "\t:\t" file "\t" rev "\n")
     (basic-save-buffer)
@@ -1682,9 +1692,7 @@ in all these directories.  With a prefix argument, it lists all files."
     (find-file
      (expand-file-name
       vc-name-assoc-file
-      (file-name-as-directory
-       (expand-file-name (vc-backend-subdirectory-name file) 
-			 (file-name-directory file)))))
+      (file-name-directory (vc-name file))))
     (goto-char (point-min))
     ;; (replace-regexp (concat ":" (regexp-quote file) "$") (concat ":" newname))
     (while (re-search-forward (concat ":" (regexp-quote file) "$") nil t)
@@ -1706,9 +1714,7 @@ in all these directories.  With a prefix argument, it lists all files."
 	   (vc-insert-file
 	    (expand-file-name
 	     vc-name-assoc-file
-	     (file-name-as-directory
-	      (expand-file-name (vc-backend-subdirectory-name file) 
-				(file-name-directory file)))))
+             (file-name-directory (vc-name file))))
 	   (prog1
 	       (car (vc-parse-buffer
 		     (list (list (concat name "\t:\t" file "\t\\(.+\\)") 1))))
@@ -1962,7 +1968,7 @@ A prefix argument means do not revert the buffer afterwards."
 	(error "Already editing new file name"))
     (if (file-exists-p new)
 	(error "New file already exists"))
-    (let ((oldmaster (vc-name old)))
+    (let ((oldmaster (vc-name old)) newmaster)
       (if oldmaster
 	  (progn
 	    (if (vc-locking-user old)
@@ -1971,23 +1977,32 @@ A prefix argument means do not revert the buffer afterwards."
 		    ;; This had FILE, I changed it to OLD. -- rms.
 		    (file-symlink-p (vc-backend-subdirectory-name old)))
 		(error "This is not a safe thing to do in the presence of symbolic links"))
-	    (rename-file
-	     oldmaster
-	     (let ((backend (vc-backend old))
-		   (newdir (or (file-name-directory new) ""))
-		   (newbase (file-name-nondirectory new)))
-	       (catch 'found
-		 (mapcar
-		  (function
-		   (lambda (s)
-		     (if (eq backend (cdr s))
-			 (let* ((newmaster (format (car s) newdir newbase))
-				(newmasterdir (file-name-directory newmaster)))
-			   (if (or (not newmasterdir)
-				   (file-directory-p newmasterdir))
-			       (throw 'found newmaster))))))
-		  vc-master-templates)
-		 (error "New file lacks a version control directory"))))))
+            (setq newmaster
+                  (let ((backend (vc-backend old))
+                        (newdir (or (file-name-directory new) ""))
+                        (newbase (file-name-nondirectory new)))
+                    (catch 'found
+                      (mapcar
+                       (function
+                        (lambda (s)
+                          (if (eq backend (cdr s))
+                              (let* ((newmaster (format (car s) newdir newbase))
+                                     (newmasterdir (file-name-directory newmaster)))
+                                (if (or (not newmasterdir)
+                                        (file-directory-p newmasterdir))
+                                    (throw 'found newmaster))))))
+                       vc-master-templates)
+                      (error "New file lacks a version control directory"))))
+            ;; Handle the SCCS PROJECTDIR feature.  It is odd that this 
+            ;; is a special case, but a more elegant solution would require
+            ;; significant changes in other parts of VC.
+            (if (eq (vc-backend old) 'SCCS)
+                (let ((project-dir (vc-sccs-project-dir)))
+                  (if project-dir
+                      (setq newmaster 
+                            (concat project-dir 
+                                    (file-name-nondirectory newmaster))))))
+            (rename-file oldmaster newmaster)))
       (if (or (not oldmaster) (file-exists-p old))
 	  (rename-file old new)))
 ; ?? Renaming a file might change its contents due to keyword expansion.
@@ -2289,31 +2304,34 @@ THRESHOLD, nil otherwise"
   (or vc-default-back-end
       (setq vc-default-back-end (if (vc-find-binary "rcs") 'RCS 'SCCS)))
   (message "Registering %s..." file)
-  (let ((switches
-         (if (stringp vc-register-switches)
-             (list vc-register-switches)
-           vc-register-switches))
-        (backend
-	 (cond
-	  ((file-exists-p (vc-backend-subdirectory-name)) vc-default-back-end)
-	  ((file-exists-p "RCS") 'RCS)
-	  ((file-exists-p "SCCS") 'SCCS)
-	  ((file-exists-p "CVS") 'CVS)
-	  (t vc-default-back-end))))
+  (let* ((switches
+          (if (stringp vc-register-switches)
+              (list vc-register-switches)
+            vc-register-switches))
+         (project-dir)
+         (backend
+          (cond
+           ((file-exists-p (vc-backend-subdirectory-name)) vc-default-back-end)
+           ((file-exists-p "RCS") 'RCS)
+           ((file-exists-p "CVS") 'CVS)
+           ((file-exists-p "SCCS") 'SCCS)
+           ((setq project-dir (vc-sccs-project-dir)) 'SCCS)
+           (t vc-default-back-end))))
     (cond ((eq backend 'SCCS)
-	   ;; If there is no SCCS subdirectory yet, create it.
-           ;; (SCCS could do without it, but VC requires it to be there.)
-           (if (not (file-exists-p "SCCS")) (make-directory "SCCS"))
-	   (apply 'vc-do-command nil 0 "admin" file 'MASTER	;; SCCS
-                                 (and rev (concat "-r" rev))
-                                 "-fb"
-                                 (concat "-i" file)
-                                 (and comment (concat "-y" comment))
-                                 (format
-                                  (car (rassq 'SCCS vc-master-templates))
-                                  (or (file-name-directory file) "")
-                                  (file-name-nondirectory file))
-                                 switches)
+           (let ((vc-name
+                  (if project-dir (concat project-dir 
+                                          "s." (file-name-nondirectory file))
+                    (format
+                     (car (rassq 'SCCS vc-master-templates))
+                     (or (file-name-directory file) "")
+                     (file-name-nondirectory file)))))
+             (apply 'vc-do-command nil 0 "admin" nil nil	;; SCCS
+                                   (and rev (concat "-r" rev))
+                                   "-fb"
+                                   (concat "-i" file)
+                                   (and comment (concat "-y" comment))
+                                   vc-name
+                                   switches))
 	   (delete-file file)
 	   (if vc-keep-workfiles
 	       (vc-do-command nil 0 "get" file 'MASTER)))
