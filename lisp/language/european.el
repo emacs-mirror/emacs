@@ -479,7 +479,7 @@ but default input method is set to \"german-postfix\"."))
       (read r1)
       (if (r1 < 128)  ;; ASCII
 	  (r0 = ,(charset-id 'ascii))
-	(if (r0 < 160)
+	(if (r1 < 160)
 	    (r0 = ,(charset-id 'eight-bit-control))
 	  (r0 = ,(charset-id 'eight-bit-graphic))))
       (translate-character mac-roman-decoder r0 r1)
