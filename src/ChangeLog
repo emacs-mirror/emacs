@@ -1,3 +1,9 @@
+2000-06-05  Dave Love  <fx@gnu.org>
+
+	* s/irix4-0.h: 
+	* s/irix5-0.h:
+	* s/netbsd.h: Don't define autoconfiscated MATHERR.
+
 2000-06-02  Dave Love  <fx@gnu.org>
 
 	* lread.c (_XOPEN_SOURCE, __EXTENSIONS__): Don't define.
