@@ -187,7 +187,10 @@ message1 (m)
       if (noninteractive_need_newline)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
-      fprintf (stderr, "%s\n", m);
+      if (cursor_in_echo_area != 0)
+	fprintf (stderr, "%s", m);
+      else
+	fprintf (stderr, "%s\n", m);
       fflush (stderr);
     }
   /* A null message buffer means that the frame hasn't really been
@@ -237,7 +240,8 @@ message (m, a1, a2, a3)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
 	  fprintf (stderr, m, a1, a2, a3);
-	  fprintf (stderr, "\n");
+	  if (cursor_in_echo_area == 0)
+	    fprintf (stderr, "\n");
 	  fflush (stderr);
 	}
     }
