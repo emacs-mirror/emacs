@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate March 26, 1999
+@set lastupdate April  9, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -394,9 +394,12 @@ Software for designing and printing business cards.
 @chapter Network Projects
 
 @itemize @bullet
+@ignore
+@c www.openh323.org is doing this. Craig Southeren <craigs@equival.com.au>
 @item
 A teleconferencing program which does the job of CU-SeeMe (which is,
 alas, not free software).
+@end ignore
 
 @item
 A free ICQ-compatible server program.  (The ICQ server itself is not
