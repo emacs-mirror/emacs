@@ -34,9 +34,16 @@
  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
  '(ascii indian-is13194 nil nil
    nil ascii-eol)
- '((safe-charsets ascii indian-is13194)
+ `((safe-chars . ,(let ((table (make-char-table 'safe-chars nil)))
+		    (set-char-table-range table 'indian-is13194 t)
+		    (dotimes (i 127)
+		      (aset table i t)
+		      (aset table (decode-char 'ucs (+ #x900 i)) t))
+		    table))
    (post-read-conversion . in-is13194-post-read-conversion)
    (pre-write-conversion . in-is13194-pre-write-conversion)))
+
+(define-coding-system-alias 'devanagari 'in-is13194)
 
 (defvar indian-script-table
   '[
