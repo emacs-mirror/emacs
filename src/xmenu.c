@@ -669,6 +669,56 @@ list_of_items (pane)
     }
 }
 
+#ifdef HAVE_X_WINDOWS
+/* Return the mouse position in *X and *Y.  The coordinates are window
+   relative for the edit window in frame F.
+   This is for Fx_popup_menu.  The mouse_position_hook can not
+   be used for X, as it returns window relative coordinates
+   for the window where the mouse is in.  This could be the menu bar,
+   the scroll bar or the edit window.  Fx_popup_menu needs to be
+   sure it is the edit window.  */
+static void
+mouse_position_for_popup(f, x, y)
+     FRAME_PTR f;
+     int *x;
+     int *y;
+{
+  Window root, dummy_window;
+  int dummy;
+
+  BLOCK_INPUT;
+          
+  XQueryPointer (FRAME_X_DISPLAY (f),
+                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+
+                 /* The root window which contains the pointer.  */
+                 &root,
+
+                 /* Window pointer is on, not used  */
+                 &dummy_window,
+
+                 /* The position on that root window.  */
+                 x, y,
+
+                 /* x/y in dummy_window coordinates, not used.  */
+                 &dummy, &dummy,
+
+                 /* Modifier keys and pointer buttons, about which
+                    we don't care.  */
+                 (unsigned int *) &dummy);
+
+  UNBLOCK_INPUT;
+
+  /* xmenu_show expects window coordinates, not root window
+     coordinates.  Translate.  */
+  *x -= f->output_data.x->left_pos
+    + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->output_data.x->top_pos
+    + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+}
+
+#endif /* HAVE_X_WINDOWS */
+
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
@@ -730,44 +780,38 @@ cached information about equivalent key sequences.  */)
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = SELECTED_FRAME ();
-          Window root, dummy_window;
-          int cur_x, cur_y, dummy;
+#ifdef HAVE_X_WINDOWS
+          /* Can't use mouse_position_hook for X since it returns
+             coordinates relative to the window the mouse is in,
+             we need coordinates relative to the edit widget always.  */
+          if (new_f != 0)
+            {
+              int cur_x, cur_y;
 
-          BLOCK_INPUT;
+              mouse_position_for_popup (new_f, &cur_x, &cur_y);
+              /* cur_x/y may be negative, so use make_number.  */
+              x = make_number (cur_x);
+              y = make_number (cur_y);
+            }
           
-          XQueryPointer (FRAME_X_DISPLAY (new_f),
-                         DefaultRootWindow (FRAME_X_DISPLAY (new_f)),
+#else /* not HAVE_X_WINDOWS */
+	  Lisp_Object bar_window;
+	  enum scroll_bar_part part;
+	  unsigned long time;
 
-                         /* The root window which contains the pointer.  */
-                         &root,
+	  if (mouse_position_hook)
+	    (*mouse_position_hook) (&new_f, 1, &bar_window,
+				    &part, &x, &y, &time);
+#endif /* not HAVE_X_WINDOWS */
 
-                         /* Window pointer is on, not used  */
-                         &dummy_window,
-
-                         /* The position on that root window.  */
-                         &cur_x, &cur_y,
-
-                         /* x/y in dummy_window coordinates, not used.  */
-                         &dummy, &dummy,
-
-                         /* Modifier keys and pointer buttons, about which
-                            we don't care.  */
-                         (unsigned int *) &dummy);
-
-          UNBLOCK_INPUT;
-
-          /* xmenu_show expects window coordinates, not root window
-             coordinates.  Translate.  */
-          cur_x -= new_f->output_data.x->left_pos
-            + FRAME_OUTER_TO_INNER_DIFF_X (new_f);
-          cur_y -= new_f->output_data.x->top_pos
-            + FRAME_OUTER_TO_INNER_DIFF_Y (new_f);
-
-          /* cur_x/y may be negative, so use make_number.  */
-          x = make_number (cur_x);
-          y = make_number (cur_y);
-
-          XSETFRAME (window, new_f);
+	  if (new_f != 0)
+	    XSETFRAME (window, new_f);
+	  else
+	    {
+	      window = selected_window;
+	      XSETFASTINT (x, 0);
+	      XSETFASTINT (y, 0);
+	    }
 	}
       else
 	{
