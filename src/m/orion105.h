@@ -78,13 +78,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Arguments to ignore before argc in crt0.c.  */
 #define DUMMIES dummy1, dummy2,
-
-/* dbx can't cope so what the heck - currently (July 88) eval.c causes
- * the compiler to go into an infinite loop - so compile it by hand
- *    cc -c -Demacs eval.c
- * before running make
- */
-#define C_DEBUG_SWITCH -O
-
-/* Since not debugging don't add dbx lib */
-#define LIBS_DEBUG 
