@@ -848,8 +848,11 @@ save_excursion_restore (info)
   tem = XCDR (info);
   if (visible_p
       && !EQ (tem, selected_window)
-      /* This also verifies that the window is still live.  */
-      && XBUFFER (XWINDOW (tem)->buffer) == current_buffer)
+      && (tem1 = XWINDOW (tem)->buffer,
+	  (/* Window is live...  */
+	   BUFFERP (tem1)
+	   /* ...and it shows the current buffer.  */
+	   && XBUFFER (tem1) == current_buffer)))
     Fset_window_point (tem, make_number (PT));
 
   UNGCPRO;
