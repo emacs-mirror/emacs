@@ -2,7 +2,7 @@
  *
  *                    REFERENCES
  *
- *  $HopeName: MMsrc!ref.c(trunk.1) $
+ *  $HopeName: MMsrc!ref.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -10,7 +10,7 @@
 #include "std.h"
 #include "ref.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 #ifdef DEBUG

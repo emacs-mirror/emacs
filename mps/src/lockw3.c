@@ -2,7 +2,7 @@
  *
  *                  RECURSIVE LOCKS IN WIN32
  *
- *  $HopeName: MMsrc!locknt.c(trunk.3) $
+ *  $HopeName: MMsrc!locknt.c(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -34,7 +34,7 @@
 
 #include <windows.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 static SigStruct LockSigStruct;
 

@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.6) $
+ *  $HopeName: MMsrc!than.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -22,7 +22,7 @@
 #include "th.h"
 #include "ss.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 typedef struct ThreadStruct

@@ -2,7 +2,7 @@
  *
  *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
  *
- *  $HopeName: MMsrc!vman.c(trunk.4) $
+ *  $HopeName: MMsrc!vman.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static SigStruct VMSigStruct;
