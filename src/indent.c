@@ -1097,7 +1097,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
        run cache, because that's based on the buffer's display table.  */
     width_table = 0;
 
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000)
+    tab_width = 8;
+
+  immediate_quit = 1;
+  QUIT;
 
   pos = prev_pos = from;
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
@@ -1540,6 +1544,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   /* Nonzero if have just continued a line */
   val_compute_motion.contin = (contin_hpos && prev_hpos == 0);
 
+  immediate_quit = 0;
   return &val_compute_motion;
 }
 
