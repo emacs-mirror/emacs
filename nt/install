@@ -11,6 +11,8 @@ Configuring:
     to reflect the compiler package that you are using.  You should no
     longer have to do this if you have defined the INCLUDE and LIB 
     environment variables, as is customary for use with Windows compilers.
+    (Unless you are using MSVCNT 1.1, in which case you will need
+    to set MSVCNT11 to be a non-zero value at the top of makefile.def.)
 
 (2) Choose the directory into which Emacs will be installed, and
     edit makefile.def to define INSTALL_DIR to be this directory.  
