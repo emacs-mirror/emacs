@@ -47,6 +47,7 @@
 
 (defgroup elide-head nil
   "Eliding copyright headers and the like in source files."
+  :version "21.1"
   :prefix "elide-head"
   :group 'tools)
 
