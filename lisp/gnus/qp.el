@@ -120,39 +120,30 @@ encode lines starting with \"From\"."
 	  (insert
 	   (prog1
 	       (format "=%02X" (char-after))
-	     (delete-char 1))))
-	;; Encode white space at the end of lines.
-	(goto-char (point-min))
-	(while (re-search-forward "[ \t]+$" nil t)
-	  (goto-char (match-beginning 0))
-	  (while (not (eolp))
-	    (insert
-	     (prog1
-		 (format "=%02X" (char-after))
-	       (delete-char 1)))))
-	(let ((mm-use-ultra-safe-encoding
-	       (and (boundp 'mm-use-ultra-safe-encoding)
-		    mm-use-ultra-safe-encoding)))
-	  (when (or fold mm-use-ultra-safe-encoding)
-	    (let ((tab-width 1))	; HTAB is one character.
-	      (goto-char (point-min))
-	      (while (not (eobp))
-		;; In ultra-safe mode, encode "From " at the beginning
-		;; of a line.
-		(when mm-use-ultra-safe-encoding
-		  (if (looking-at "From ")
-		      (replace-match "From=20" nil t)
-		    (if (looking-at "-")
-			(replace-match "=2D" nil t))))
-		(end-of-line)
-		;; Fold long lines.
-		(while (> (current-column) 76) ; tab-width must be 1.
-		  (beginning-of-line)
-		  (forward-char 75)	; 75 chars plus an "="
-		  (search-backward "=" (- (point) 2) t)
-		  (insert "=\n")
-		  (end-of-line))
-		(forward-line)))))))))
+	     (delete-char 1)))))
+      (let ((mm-use-ultra-safe-encoding
+	     (and (boundp 'mm-use-ultra-safe-encoding)
+		  mm-use-ultra-safe-encoding)))
+	(when (or fold mm-use-ultra-safe-encoding)
+	  (let ((tab-width 1))		; HTAB is one character.
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      ;; In ultra-safe mode, encode "From " at the beginning
+	      ;; of a line.
+	      (when mm-use-ultra-safe-encoding
+		(if (looking-at "From ")
+		    (replace-match "From=20" nil t)
+		  (if (looking-at "-")
+		      (replace-match "=2D" nil t))))
+	      (end-of-line)
+	      ;; Fold long lines.
+	      (while (> (current-column) 76) ; tab-width must be 1.
+		(beginning-of-line)
+		(forward-char 75)	; 75 chars plus an "="
+		(search-backward "=" (- (point) 2) t)
+		(insert "=\n")
+		(end-of-line))
+	      (forward-line))))))))
 
 (defun quoted-printable-encode-string (string)
   "Encode the STRING as quoted-printable and return the result."
