@@ -6,7 +6,7 @@
 @chapter File Handling
 @cindex files
 
-  The operating system stores data permanently in named @dfn{files}.  So
+  The operating system stores data permanently in named @dfn{files}, so
 most of the text you edit with Emacs comes from a file and is ultimately
 stored in a file.
 
@@ -56,7 +56,7 @@ this makes it easy to operate on that file with any of the Emacs file
 commands.
 
 @vindex default-directory
-  Each buffer has a default directory, normally the same as the
+  Each buffer has a default directory which is normally the same as the
 directory of the file visited in that buffer.  When you enter a file
 name without a directory, the default directory is used.  If you specify
 a directory in a relative fashion, with a name that does not start with
@@ -120,7 +120,7 @@ Variables}.)
 
   To access a file with @samp{$} in its name, type @samp{$$}.  This pair
 is converted to a single @samp{$} at the same time as variable
-substitution is performed for single @samp{$}.  Alternatively, quote the
+substitution is performed for a single @samp{$}.  Alternatively, quote the
 whole file name with @samp{/:} (@pxref{Quoted File Names}).  File names
 which begin with a literal @samp{~} should also be quoted with @samp{/:}.
 
@@ -166,7 +166,7 @@ to hold.  Emacs constructs the buffer name from the file name by
 throwing away the directory, keeping just the name proper.  For example,
 a file named @file{/usr/rms/emacs.tex} would get a buffer named
 @samp{emacs.tex}.  If there is already a buffer with that name, a unique
-name is constructed by appending @samp{<2>}, @samp{<3>}, or so on, using
+name is constructed by appending @samp{<2>}, @samp{<3>}, and so on, using
 the lowest number that makes a name that is not already in use.
 
   Each window's mode line shows the name of the buffer that is being displayed
@@ -218,7 +218,7 @@ message is printed.  @xref{Interlocking,,Simultaneous Editing}.
   Since Emacs reads the visited file in its entirety, files whose size
 is larger than the maximum Emacs buffer size (@pxref{Buffers}) cannot be
 visited; if you try, Emacs will print an error message saying that the
-maximum buffer size is exceeded.
+maximum buffer size has been exceeded.
 
 @cindex creating files
   What if you want to create a new file?  Just visit it.  Emacs prints
@@ -233,7 +233,7 @@ carriage-return (used on the Macintosh)---and automatically converts the
 contents to the normal Emacs convention, which is that the newline
 character separates lines.  This is a part of the general feature of
 coding system conversion (@pxref{Coding Systems}), and makes it possible
-to edit files imported from various different operating systems with
+to edit files imported from different operating systems with
 equal convenience.  If you change the text and save the file, Emacs
 performs the inverse conversion, changing newlines back into
 carriage-return linefeed or just carriage-return if appropriate.
@@ -253,12 +253,12 @@ Archives}, for more about these features.
 
 @cindex wildcard characters in file names
 @vindex find-file-wildcards
-  If the file name you specify contains shell-style wildcard
-characters, Emacs visits all the files that match it.  Wildcards
-comprise @samp{?}, @samp{*} and @samp{[@dots{}]} sequences.
-@xref{Quoted File Names}, for how to visit a file whose name actually
-contains wildcard characters.  You can disable the wildcard feature by
-customizing @code{find-file-wildcards}.
+  If the file name you specify contains shell-style wildcard characters,
+Emacs visits all the files that match it.  Wildcards comprise @samp{?},
+@samp{*} and @samp{[@dots{}]} sequences.  @xref{Quoted File Names}, for
+information on how to visit a file whose name actually contains wildcard
+characters.  You can disable the wildcard feature by customizing
+@code{find-file-wildcards}.
 
   If you visit a file that the operating system won't let you modify,
 Emacs makes the buffer read-only, so that you won't go ahead and make
@@ -278,10 +278,10 @@ the file with the command @kbd{C-x C-r} (@code{find-file-read-only}).
 wrong file name), use the @kbd{C-x C-v} command
 (@code{find-alternate-file}) to visit the file you really wanted.
 @kbd{C-x C-v} is similar to @kbd{C-x C-f}, but it kills the current
-buffer (after first offering to save it if it is modified).  When it
-reads the file name to visit, it inserts the entire default file name in
-the buffer, with point just after the directory part; this is convenient
-if you made a slight error in typing the name.
+buffer (after first offering to save it if it is modified).  When
+@kbd{C-x C-v} reads the file name to visit, it inserts the entire
+default file name in the buffer, with point just after the directory
+part; this is convenient if you made a slight error in typing the name.
 
   If you find a file which exists but cannot be read, @kbd{C-x C-f}
 signals an error.
@@ -488,7 +488,7 @@ value is @code{t}, so that Emacs does write backup files.
 
   For files managed by a version control system (@pxref{Version
 Control}), the variable @code{vc-make-backup-files} determines whether
-to make backup files.  By default, it is @code{nil}, since backup files
+to make backup files.  By default it is @code{nil}, since backup files
 are redundant when you store all the previous versions in a version
 control system.  @xref{General VC Options}.
 
@@ -516,7 +516,7 @@ the buffer with @kbd{C-u C-x C-s}, the version thus saved will be made
 into a backup file if you save the buffer again.  @kbd{C-u C-u C-x C-s}
 saves the buffer, but first makes the previous file contents into a new
 backup file.  @kbd{C-u C-u C-u C-x C-s} does both things: it makes a
-backup from the previous contents, and arranges to make another from the
+backup from the previous contents and arranges to make another from the
 newly saved contents, if you save again.
 
 @menu
@@ -605,7 +605,7 @@ time a new backup is made.
 @vindex kept-new-versions
   The two variables @code{kept-old-versions} and
 @code{kept-new-versions} control this deletion.  Their values are,
-respectively the number of oldest (lowest-numbered) backups to keep and
+respectively, the number of oldest (lowest-numbered) backups to keep and
 the number of newest (highest-numbered) ones to keep, each time a new
 backup is made.  Recall that these values are used just after a new
 backup version is made; that newly made backup is included in the count
@@ -660,7 +660,7 @@ change.  @code{backup-by-copying-when-mismatch} is @code{t} by default
 if you start Emacs as the superuser.  The fourth variable,
 @code{backup-by-copying-when-privileged-mismatch}, gives the highest
 numeric user-id for which @code{backup-by-copying-when-mismatch} will be
-forced on.  This is useful when low-numbered user-id are assigned to
+forced on.  This is useful when low-numbered user-ids are assigned to
 special system users, such as @code{root}, @code{bin}, @code{daemon},
 etc., which must maintain ownership of files.
 
@@ -805,7 +805,7 @@ shadow-define-cluster}.
 @cindex modification dates
 @cindex locale, date format
 
-You can arrange put a time stamp in a file, so that it will be updated
+You can arrange to put a time stamp in a file, so that it will be updated
 automatically each time you edit and save the file.  The time stamp
 has to be in the first eight lines of the file, and you should
 insert it like this:
@@ -1813,9 +1813,9 @@ This is the common way to pick up recent changes from the repository,
 regardless of whether you have already changed the file yourself.
 
   You can also enter a branch number or a pair of version numbers in
-the minibuffer.  Then it finds the changes from that branch, or between
-the two versions you specified, and merges them into the current version
-of the current file.
+the minibuffer.  Then @kbd{C-x v m} finds the changes from that branch,
+or between the two versions you specified, and merges them into the
+current version of the current file.
 
   As an example, suppose that you have finished a certain feature on
 branch 1.3.1.  In the meantime, development on the trunk has proceeded
@@ -1989,12 +1989,12 @@ prefix argument, and specify RCS as the back end.)
 You can do this at any time; it does not matter whether you have
 already modified the file with respect to the version in the CVS
 repository.  If possible, VC tries to make the RCS master start with
-the unmodified repository version, then checking in any local changes
+the unmodified repository version, then checks in any local changes
 as a new version.  This works if you have not made any changes yet, or
 if the unmodified repository version exists locally as a version
 backup (@pxref{Version Backups}).  If the unmodified version is not
 available locally, the RCS master starts with the modified version;
-the only drawback of this is that you cannot compare your changes
+the only drawback to this is that you cannot compare your changes
 locally to what is stored in the repository.
 
 The version number of the RCS master is derived from the current CVS
@@ -2137,7 +2137,7 @@ RCS and SCCS to explain how to update the snapshots by hand.
 
   Using @code{vc-rename-file} makes the snapshot remain valid for
 retrieval, but it does not solve all problems.  For example, some of the
-files in the program probably refer to others by name.  At the very
+files in your program probably refer to others by name.  At the very
 least, the makefile probably mentions the file that you renamed.  If you
 retrieve an old snapshot, the renamed file is retrieved under its new
 name, which is not the name that the makefile expects.  So the program
@@ -2206,7 +2206,7 @@ messages that start with `#'.}.  Then @kbd{C-x v a} visits
 @noindent
 You can then edit the new change log entry further as you wish.
 
-  Some of the new change log entry may duplicate what's already in
+  Some of the new change log entries may duplicate what's already in
 ChangeLog.  You will have to remove these duplicates by hand.
 
   Normally, the log entry for file @file{foo} is displayed as @samp{*
@@ -2767,8 +2767,8 @@ the old contents of the file @var{new}.
 
 @findex make-symbolic-link
   @kbd{M-x make-symbolic-link} reads two file names @var{target} and
-@var{linkname}, then creates a symbolic link named @var{linkname} and
-pointing at @var{target}.  The effect is that future attempts to open file
+@var{linkname}, then creates a symbolic link named @var{linkname}, which
+points at @var{target}.  The effect is that future attempts to open file
 @var{linkname} will refer to whatever file is named @var{target} at the
 time the opening is done, or will get an error if the name @var{target} is
 not in use at that time.  This command does not expand the argument
