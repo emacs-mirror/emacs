@@ -1,3 +1,8 @@
+2002-09-13  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (diff-buffer-with-file): Check whether associated file
+	exists.  Display message for 1 second.  Always return nil.
+
 2002-09-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* derived.el (define-derived-mode): Properly ignore unknown args.
@@ -81,8 +86,8 @@
 
 2002-09-11  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print.el: Adjust ps-print-color-p, ps-default-fg and ps-default-bg
-	setting.
+	* ps-print.el: Adjust ps-print-color-p, ps-default-fg and
+	ps-default-bg setting.
 	(ps-print-version): New version number (6.5.7).
 	(ps-mark-active-p): New fun.
 	(ps-print-preprint-region): Adjust code.
