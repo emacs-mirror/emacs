@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
-;; Copyright (C) 1986, 1987, 1992, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 87, 92, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -75,17 +75,29 @@
 
 ;;; Code:
 
-(defvar server-program (expand-file-name "emacsserver" exec-directory)
-  "*The program to use as the edit server.")
+(defgroup server nil
+  "Emacs running as a server process."
+  :group 'external)
 
-(defvar server-visit-hook nil
-  "*List of hooks to call when visiting a file for the Emacs server.")
+(defcustom server-program (expand-file-name "emacsserver" exec-directory)
+  "*The program to use as the edit server."
+  :group 'server
+  :type 'string)
 
-(defvar server-switch-hook nil
-  "*List of hooks to call when switching to a buffer for the Emacs server.")
+(defcustom server-visit-hook nil
+  "*List of hooks to call when visiting a file for the Emacs server."
+  :group 'server
+  :type '(repeat function))
 
-(defvar server-done-hook nil
-  "*List of hooks to call when done editing a buffer for the Emacs server.")
+(defcustom server-switch-hook nil
+  "*List of hooks to call when switching to a buffer for the Emacs server."
+  :group 'server
+  :type '(repeat function))
+
+(defcustom server-done-hook nil
+  "*List of hooks to call when done editing a buffer for the Emacs server."
+  :group 'server
+  :type '(repeat function))
 
 (defvar server-process nil 
   "the current server process")
@@ -109,10 +121,12 @@ When a buffer is marked as \"done\", it is removed from this list.")
 If nil, use the selected window.
 If it is a frame, use the frame's selected window.")
 
-(defvar server-temp-file-regexp "^/tmp/Re\\|/draft$"
+(defcustom server-temp-file-regexp "^/tmp/Re\\|/draft$"
   "*Regexp which should match filenames of temporary files
 which are deleted and reused after each edit
-by the programs that invoke the emacs server.")
+by the programs that invoke the emacs server."
+  :group 'server
+  :type 'regexp)
 
 (or (assq 'server-buffer-clients minor-mode-alist)
     (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))

@@ -30,8 +30,14 @@
 
 ;;; Code:
 
-(defvar sort-fold-case nil
-  "*Non-nil if the buffer sort functions should ignore case.")
+(defgroup sort nil
+  "Commands to sort text in an Emacs buffer."
+  :group 'data)
+
+(defcustom sort-fold-case nil
+  "*Non-nil if the buffer sort functions should ignore case."
+  :group 'sort
+  :type 'boolean)
 
 ;;;###autoload
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
