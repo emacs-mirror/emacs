@@ -388,8 +388,8 @@ static void x_clear_frame P_ ((void));
 static void x_clear_cursor P_ ((struct window *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
-static void w32_new_focus_frame P_ ((struct w32_display_info *,
-                                     struct frame *));
+static void x_new_focus_frame P_ ((struct w32_display_info *,
+				   struct frame *));
 static void w32_frame_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct w32_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -1210,9 +1210,20 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 
       if (retval)
 	{
+	  /* Don't trust the ABC widths.  For synthesized fonts they are
+	     wrong, and so is the result of GetCharWidth()!  */
+	  int real_width;
+	  GetCharWidth (hdc, *char2b, *char2b, &real_width);
+
 	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
+
+	  /* As far as I can tell, this is the best way to determine what
+	     ExtTextOut will do with the broken font.  */
+	  if (pcm->width != real_width)
+	    pcm->width = (pcm->width + real_width) / 2;
+
 	  pcm->lbearing = char_widths.abcA;
-	  pcm->rbearing = pcm->width - char_widths.abcC;
+	  pcm->rbearing = char_widths.abcA + char_widths.abcB;
 	  pcm->ascent = FONT_BASE (font);
 	  pcm->descent = FONT_DESCENT (font);
 	}
