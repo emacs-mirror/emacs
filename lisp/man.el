@@ -76,6 +76,9 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
 
+(defvar manual-program "man"
+  "The name of the program that produces man pages.")
+
 (defvar Man-notify 'friendly
   "*Selects the behavior when manpage is ready.
 This variable may have one of the following values:
@@ -468,7 +471,7 @@ start a background process even if a buffer already exists and
 	;; Prevent any attempt to use display terminal fanciness.
 	(setenv "TERM" "dumb")
 	(set-process-sentinel
-	 (start-process "man" buffer "sh" "-c"
+	 (start-process manual-program buffer "sh" "-c"
 			(format (Man-build-man-command) man-args))
 	 'Man-bgproc-sentinel))
     )))
