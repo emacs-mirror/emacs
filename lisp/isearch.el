@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/04/14 19:40:53 $|$Revision: 1.30 $
+;; |$Date: 1993/04/23 07:31:14 $|$Revision: 1.31 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.30 1993/04/14 19:40:53 rms Exp eric $
+;;; $Header: /home/fsf/rms/e19/lisp/RCS/isearch.el,v 1.31 1993/04/23 07:31:14 eric Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.31  1993/04/23  07:31:14  eric
+; Replaced all fsets with defaliases.
+;
 ; Revision 1.30  1993/04/14  19:40:53  rms
 ; Doc fixes.
 ;
@@ -326,7 +329,9 @@ Default value, nil, means edit the string instead.")
 
       ;; Printing chars extend the selection by default.
       (setq i ?\ )
-      (while (< i 128)
+      (or (vectorp (nth 1 map))
+	  (error "The initialization of isearch-mode-map must be updated"))
+      (while (< i (length (nth 1 map)))
 	(define-key map (make-string 1 i) 'isearch-printing-char)
 	(setq i (1+ i)))
 
@@ -1472,7 +1477,9 @@ have special meaning in a regexp."
 (defun isearch-char-to-string (c)
   (if (integerp c)
       (make-string 1 c)
-   (make-string 1 (event-to-character c))))
+    (if (and (symbolp c) (get c 'ascii-character))
+	(make-string 1 (get c 'ascii-character))
+      (make-string 1 (event-to-character c)))))
 
 (defun isearch-text-char-description (c)
   (isearch-char-to-string c))
