@@ -163,12 +163,12 @@
 
 (defcustom he-dabbrev-skip-space nil
   "Non-nil means tolerate trailing spaces in the abbreviation to expand."
-  :group hippie-expand
+  :group 'hippie-expand
   :type 'boolean)
 
 (defcustom he-dabbrev-as-symbol t
   "Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
-  :group hippie-expand
+  :group 'hippie-expand
   :type 'boolean)
 
 (defvar he-num -1)
