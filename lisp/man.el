@@ -72,7 +72,6 @@
 ;;; Code:
 
 (require 'assoc)
-(provide 'man)
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
@@ -196,6 +195,8 @@ This regular expression should start with a `^' character.")
 (defvar Man-reference-regexp "[-a-zA-Z0-9_.]+\\(([0-9][a-zA-Z+]*)\\)?"
   "*Regular expression describing a reference in the SEE ALSO section.")
 
+(defvar Man-switches ""
+  "*Switches passed to the man command, as a single string.")
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user variables
@@ -254,7 +255,7 @@ This regular expression should start with a `^' character.")
 
 (defun Man-build-man-command ()
   "Builds the entire background manpage and cleaning command."
-  (let ((command "man %s 2>&1 | ")
+  (let ((command (concat "man " Man-switches " %s 2>&1 | "))
 	(flist Man-filter-list))
     (while flist
       (let ((pcom (car (car flist)))
@@ -555,6 +556,7 @@ Man-see-also-regexp             Regexp for SEE ALSO section (or your equiv).
 Man-first-heading-regexp        Regexp for first heading on a manpage.
 Man-reference-regexp            Regexp matching a references in SEE ALSO.
 Man-version-number              Superman version number.
+Man-switches			Background `man' command switches.
 
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
@@ -776,5 +778,8 @@ the echo area."
   (if (consp arg)
       (insert "Using Superman version " Man-version-number ".")
     (message "Using Superman version %s." Man-version-number)))
+
+
+(provide 'man)
 
 ;;; man.el ends here
