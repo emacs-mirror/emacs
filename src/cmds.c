@@ -26,9 +26,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
+Lisp_Object Vuse_hard_newlines;
 
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
+
+#ifdef USE_TEXT_PROPERTIES 
+Lisp_Object Qhard;
+#endif
 
 
 DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "p",
@@ -230,7 +235,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   (arg1)
      Lisp_Object arg1;
 {
-  int flag;
+  int flag, i;
   Lisp_Object arg;
   char c1 = '\n';
 
@@ -266,15 +271,32 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   if (flag)
     SET_PT (point - 1);
 
-  while (XINT (arg) > 0)
+  for (i = XINT (arg); i > 0; i--)
     {
       if (flag)
 	insert_and_inherit (&c1, 1);
       else
 	internal_self_insert ('\n', !NILP (arg1));
-      /* Ok since old and new vals both nonneg */
-      XSETFASTINT (arg, XFASTINT (arg) - 1);
     }
+
+#ifdef USE_TEXT_PROPERTIES
+  if (Vuse_hard_newlines)
+    {
+      Lisp_Object from, to, sticky;
+      XSETFASTINT (from, PT - arg);
+      XSETFASTINT (to, PT);
+      Fput_text_property (from, to, Qhard, Qt, Qnil);
+      /* If rear_nonsticky is not "t", locally add Qhard to the list. */
+      sticky = Fget_text_property (from, Qrear_nonsticky, Qnil);
+      if (NILP (sticky)
+	  || (CONSP (sticky) && NILP (Fmemq (Qhard, sticky))))
+	{
+	  sticky = Fcons (Qhard, sticky);
+	  Fput_text_property (from, to, Qrear_nonsticky, sticky, Qnil);
+	}
+    }
+#endif
+
 
   if (flag)
     SET_PT (point + 1);
@@ -368,6 +390,19 @@ syms_of_cmds ()
   Qoverwrite_mode_binary = intern ("overwrite-mode-binary");
   staticpro (&Qoverwrite_mode_binary);
 
+  Qhard = intern ("hard");
+  staticpro (&Qhard);
+
+  DEFVAR_BOOL ("use-hard-newlines", &Vuse_hard_newlines,
+    "Non-nil means to distinguish hard and soft newlines.
+When this is non-nil, the functions `newline' and `open-line' add the
+text-property `hard' to newlines that they insert.  Also, a line is
+only considered as a candidate to match `paragraph-start' or
+`paragraph-separate' if it follows a hard newline.  Newlines not
+marked hard are called \"soft\", and are always internal to
+paragraphs.  The fill functions always insert soft newlines.");
+  Vuse_hard_newlines = 0;
+
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
     "Function called, if non-nil, whenever a close parenthesis is inserted.\n\
 More precisely, a char with closeparen syntax is self-inserted.");
@@ -390,8 +425,8 @@ keys_of_cmds ()
 {
   int n;
 
-  initial_define_key (global_map, Ctl('M'), "newline");
-  initial_define_key (global_map, Ctl('I'), "self-insert-command");
+  initial_define_key (global_map, Ctl ('M'), "newline");
+  initial_define_key (global_map, Ctl ('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");
 #ifdef MSDOS
