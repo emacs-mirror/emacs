@@ -301,7 +301,7 @@ with the original.")
 
       /* Calculate the number of extra slots.  */
       size = CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (arg));
-      copy = Fmake_char_table (make_number (size), Qnil);
+      copy = Fmake_char_table (XCHAR_TABLE (arg)->purpose, Qnil);
       /* Copy all the slots, including the extra ones.  */
       bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
 	     (XCHAR_TABLE (arg)->size & PSEUDOVECTOR_SIZE_MASK) * sizeof (Lisp_Object));
@@ -1201,11 +1201,15 @@ PARENT must be either nil or another char-table.")
   Lisp_Object temp;
 
   CHECK_CHAR_TABLE (chartable, 0);  
-  CHECK_CHAR_TABLE (parent, 0);  
 
-  for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
-    if (EQ (temp, chartable))
-      error ("Attempt to make a chartable be its own parent");
+  if (!NILP (parent))
+    {
+      CHECK_CHAR_TABLE (parent, 0);  
+
+      for (temp = parent; !NILP (temp); temp = XCHAR_TABLE (temp)->parent)
+	if (EQ (temp, chartable))
+	  error ("Attempt to make a chartable be its own parent");
+    }
 
   XCHAR_TABLE (chartable)->parent = parent;
 
@@ -1279,9 +1283,15 @@ or a character code.")
   return value;
 }
 
-static void
-map_char_table (function, chartable, depth, indices)
-     Lisp_Object function, chartable, depth, *indices;
+/* Map C_FUNCTION or FUNCTION over CHARTABLE, calling it for each
+   character or group of characters that share a value.
+   DEPTH is the current depth in the originally specified
+   chartable, and INDICES contains the vector indices
+   for the levels our callers have descended.  */
+
+void
+map_char_table (c_function, function, chartable, depth, indices)
+     Lisp_Object (*c_function) (), function, chartable, depth, *indices;
 {
   int i;
   int size = XCHAR_TABLE (chartable)->size;
@@ -1300,10 +1310,12 @@ map_char_table (function, chartable, depth, indices)
       Lisp_Object elt;
       indices[depth] = i;
       elt = XCHAR_TABLE (chartable)->contents[i];
-      if (!CHAR_TABLE_P (elt))
-	call2 (function, Fvector (depth + 1, indices), elt);
+      if (CHAR_TABLE_P (elt))
+	map_char_table (chartable, c_function, function, depth + 1, indices);
+      else if (c_function)
+	(*c_function) (depth + 1, indices, elt);
       else
-	map_char_table (chartable, function, depth + 1, indices);
+	call2 (function, Fvector (depth + 1, indices), elt);
     }
 }
 
@@ -1318,7 +1330,7 @@ The key is always a possible RANGE argument to `set-char-table-range'.")
   Lisp_Object keyvec;
   Lisp_Object *indices = (Lisp_Object *) alloca (10 * sizeof (Lisp_Object));
 
-  map_char_table (function, chartable, 0, indices);
+  map_char_table (function, NULL, chartable, 0, indices);
   return Qnil;
 }
 
