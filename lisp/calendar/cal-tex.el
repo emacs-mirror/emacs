@@ -212,7 +212,8 @@ This definition is the heart of the calendar!")
 
 (defun cal-tex-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
-  (let ((diary-display-hook nil))
+  (let ((diary-list-include-blanks nil)
+        (diary-display-hook nil))
     (list-diary-entries
      (calendar-gregorian-from-absolute d1)
      (1+ (- d2 d1)))))
