@@ -1762,7 +1762,8 @@ Both must be numbers or markers.")
 #else
       f1 = drem (f1, f2);
 #endif
-      if (f1 < 0)
+      /* If the "remainder" comes out with the wrong sign, fix it.  */
+      if ((f1 < 0) != (f2 < 0))
 	f1 += f2;
       return (make_float (f1));
     }
