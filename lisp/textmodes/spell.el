@@ -31,13 +31,22 @@
 
 ;;; Code:
 
-(defvar spell-command "spell"
-  "*Command to run the spell program.")
+(defgroup spell nil
+  "Interface to the UNIX spell(1) program."
+  :prefix "spell-"
+  :group 'applications)
 
-(defvar spell-filter nil
+(defcustom spell-command "spell"
+  "*Command to run the spell program."
+  :type 'string
+  :group 'spell)
+
+(defcustom spell-filter nil
   "*Filter function to process text before passing it to spell program.
 This function might remove text-processor commands.
-nil means don't alter the text before checking it.")
+nil means don't alter the text before checking it."
+  :type 'function
+  :group 'spell)
 
 ;;;###autoload
 (put 'spell-filter 'risky-local-variable t)

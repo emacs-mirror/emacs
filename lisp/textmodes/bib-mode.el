@@ -30,12 +30,20 @@
 ;;   and appropriate keys are presented for various kinds of entries.
 
 ;;; Code:
+(defgroup bib nil
+  "Major mode for editing bib files."
+  :prefix "bib-"
+  :group 'wp)
 
-(defvar bib-file "~/my-bibliography.bib" 
-   "Default name of file used by `addbib'.")
+(defcustom bib-file "~/my-bibliography.bib"
+  "Default name of file used by `addbib'."
+    :type 'file
+    :group 'bib)
 
-(defvar unread-bib-file "~/to-be-read.bib"
-   "Default name of file used by `unread-bib' in Bib mode.")
+(defcustom unread-bib-file "~/to-be-read.bib"
+   "Default name of file used by `unread-bib' in Bib mode."
+   :type 'file
+   :group 'bib)
 
 (defvar bib-mode-map (copy-keymap text-mode-map))
 (define-key bib-mode-map "\C-M" 'return-key-bib)
@@ -137,8 +145,10 @@ the car of an entry is followed by one beginning with the cdr.
       ))
 
 
-(defvar bib-auto-capitalize t 
-"*True to automatically capitalize appropriate fields in Bib mode.")
+(defcustom bib-auto-capitalize t
+  "*True to automatically capitalize appropriate fields in Bib mode."
+  :type 'boolean
+  :group 'bib)
 
 (defconst bib-capitalized-fields "%[AETCBIJR]")
 

@@ -30,21 +30,32 @@
 
 ;;; Code:
 
+(defgroup scribe nil
+  "Scribe mode."
+  :prefix "scribe-"
+  :group 'wp)
+
 (defvar scribe-mode-syntax-table nil
   "Syntax table used while in scribe mode.")
 
 (defvar scribe-mode-abbrev-table nil
   "Abbrev table used while in scribe mode.")
 
-(defvar scribe-fancy-paragraphs nil
-  "*Non-NIL makes Scribe mode use a different style of paragraph separation.")
+(defcustom scribe-fancy-paragraphs nil
+  "*Non-NIL makes Scribe mode use a different style of paragraph separation."
+  :type 'boolean
+  :group 'scribe)
 
-(defvar scribe-electric-quote nil
-  "*Non-NIL makes insert of double quote use `` or '' depending on context.")
+(defcustom scribe-electric-quote nil
+  "*Non-NIL makes insert of double quote use `` or '' depending on context."
+  :type 'boolean
+  :group 'scribe)
 
-(defvar scribe-electric-parenthesis nil
+(defcustom scribe-electric-parenthesis nil
   "*Non-NIL makes parenthesis char ( (]}> ) automatically insert its close
-if typed after an @Command form.")
+if typed after an @Command form."
+  :type 'boolean
+  :group 'scribe)
 
 (defconst scribe-open-parentheses "[({<"
   "Open parenthesis characters for Scribe.")

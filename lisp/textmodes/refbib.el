@@ -59,12 +59,20 @@
 ;**********************************************************
 ; User Parameters
 
-(defvar r2b-trace-on nil "*trace conversion")
+(defgroup refbib nil
+  "Convert refer-style references to ones usable by Latex bib."
+  :prefix "r2b-"
+  :group 'wp)
 
-(defvar r2b-journal-abbrevs
-   '(  
-       )
-   "  Abbreviation list for journal names.  
+(defcustom r2b-trace-on nil
+  "*Non-nil means trace conversion."
+  :type 'boolean
+  :group 'refbib)
+
+(defcustom r2b-journal-abbrevs
+  '(  
+    )
+  "Abbreviation list for journal names.  
 If the car of an element matches a journal name exactly, it is replaced by
 the cadr when output.  Braces must be included if replacement is a
 {string}, but not if replacement is a bibtex abbreviation.  The cadr
@@ -75,26 +83,31 @@ letter, even if it really doesn't.
   For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the 
-BibTeX macro \"ijcai7\".")
+BibTeX macro \"ijcai7\"."
+  :type '(repeat (list string string))
+  :group 'refbib)
 
-(defvar r2b-booktitle-abbrevs 
-   '(  
-       )
-   "  Abbreviation list for book and proceedings names.  If the car of
-an element matches a title or booktitle exactly, it is replaced by 
-the cadr when output.  Braces must be included if replacement is 
-a {string}, but not if replacement is a bibtex abbreviation.  The cadr 
-may be eliminated if is exactly the same as the car.  
+(defcustom r2b-booktitle-abbrevs 
+  '(  
+    )
+  "Abbreviation list for book and proceedings names.
+If the car of an element matches a title or booktitle exactly, it is
+replaced by the cadr when output.  Braces must be included if
+replacement is a {string}, but not if replacement is a bibtex
+abbreviation.  The cadr may be eliminated if is exactly the same as
+the car.
   Because titles are capitalized before matching, the abbreviated title
 should be listed as beginning with a capital letter, even if it doesn't.
   For example, a value of '((\"Aij\" \"{Artificial Intelligence}\")
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the 
-BibTeX macro \"ijcai7\".")
+BibTeX macro \"ijcai7\"."
+  :type '(repeat (list string string))
+  :group 'refbib)
 
-(defvar r2b-proceedings-list
-   '()
-   "  Assoc list of books or journals which are really conference proceedings,
+(defcustom r2b-proceedings-list
+  '()
+  "Assoc list of books or journals which are really conference proceedings,
 but whose name and whose abbrev expansion (as defined in `r2b-journal-abbrevs'
 and `r2b-booktitle-abbrevs') does not contain the words \"conference\" or
 \"proceedings\".  (Those cases are handled automatically.)
@@ -106,16 +119,19 @@ a conference, and its expansion is the BibTeX macro \"ijcai7\".  Then
 `r2b-proceedings-list' should be '((\"Ijcai81\") ...).  If instead its
 expansion were \"Proceedings of the Seventh International Conference
 on Artificial Intelligence\", then you would NOT need to include Ijcai81
-in `r2b-proceedings-list' (although it wouldn't cause an error).")
+in `r2b-proceedings-list' (although it wouldn't cause an error)."
+  :type '(repeat (list string string))
+  :group 'refbib)
 
 (defvar r2b-additional-stop-words
-	 "Some\\|What"
-   "Words not to be used to build the citation key.
+  "Some\\|What"
+  "Words not to be used to build the citation key.
 This is in addition to the `r2b-capitalize-title-stop-words'.")
 
-(defvar r2b-delimit-with-quote
-  t
-  "*If true, then use \" to delimit fields, otherwise use braces")
+(defcustom r2b-delimit-with-quote t
+  "*If true, then use \" to delimit fields, otherwise use braces."
+  :type 'boolean
+  :group 'refbib)
 
 ;**********************************************************
 ; Utility Functions
@@ -189,8 +205,16 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
    "Returns string matched in current buffer."
    (buffer-substring (match-beginning exp) (match-end exp)))
 
-(defvar r2b-out-buf-name "*Out*" "*output from refer-to-bibtex" )
-(defvar r2b-log-name "*Log*" "*logs errors from refer-to-bibtex" )
+(defcustom r2b-out-buf-name "*Out*"
+  "*Name of buffer for output from refer-to-bibtex."
+  :type 'string
+  :group 'refbib)
+
+(defcustom r2b-log-name "*Log*"
+  "*Name of buffer for logs errors from refer-to-bibtex."
+  :type 'string
+  :group 'refbib)
+
 (defvar r2b-in-buf nil)
 (defvar r2b-out-buf nil)
 (defvar r2b-log nil)
@@ -663,7 +687,10 @@ do \"M-x r2b-help\" for more info."
       r2b-out-buf-name r2b-log-name)
    )
 
-(defvar r2b-load-quietly nil "*Don't print help message when loaded")
+(defcustom r2b-load-quietly nil
+  "*Non-nil means don't print help message when loaded."
+  :type 'boolean
+  :group 'refbib)
 
 (defvar r2b-help-message
 "                   Refer to Bibtex Bibliography Conversion

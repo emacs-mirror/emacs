@@ -31,18 +31,36 @@
 
 ;;; Code:
 
-(defvar picture-rectangle-ctl ?+
-  "*Character picture-draw-rectangle uses for top left corners.")
-(defvar picture-rectangle-ctr ?+
-  "*Character picture-draw-rectangle uses for top right corners.")
-(defvar picture-rectangle-cbr ?+
-  "*Character picture-draw-rectangle uses for bottom right corners.")
-(defvar picture-rectangle-cbl ?+
-  "*Character picture-draw-rectangle uses for bottom left corners.")
-(defvar picture-rectangle-v   ?|
-  "*Character picture-draw-rectangle uses for vertical lines.")
-(defvar picture-rectangle-h   ?-
-  "*Character picture-draw-rectangle uses for horizontal lines.")
+(defgroup picture nil
+  "Picture mode  --- editing using quarter-plane screen model."
+  :prefix "picture-"
+  :group 'editing)
+
+(defcustom picture-rectangle-ctl ?+
+  "*Character `picture-draw-rectangle' uses for top left corners."
+  :type 'character
+  :group 'picture)
+(defcustom picture-rectangle-ctr ?+
+  "*Character `picture-draw-rectangle' uses for top right corners."
+  :type 'character
+  :group 'picture)
+(defcustom picture-rectangle-cbr ?+
+  "*Character `picture-draw-rectangle' uses for bottom right corners."
+  :type 'character
+  :group 'picture)
+(defcustom picture-rectangle-cbl ?+
+  "*Character `picture-draw-rectangle' uses for bottom left corners."
+  :type 'character
+  :group 'picture)
+(defcustom picture-rectangle-v   ?|
+  "*Character `picture-draw-rectangle' uses for vertical lines."
+  :type 'character
+  :group 'picture)
+(defcustom picture-rectangle-h   ?-
+  "*Character `picture-draw-rectangle' uses for horizontal lines."
+  :type 'character
+  :group 'picture)
+
 
 ;; Picture Movement Commands
 
@@ -290,8 +308,8 @@ With positive argument insert that many lines."
 
 ;; Picture Tabs
 
-(defvar picture-tab-chars "!-~"
-  "*A character set which controls behavior of commands
+(defcustom picture-tab-chars "!-~"
+  "*A character set which controls behavior of commands.
 \\[picture-set-tab-stops] and \\[picture-tab-search].  It is NOT a
 regular expression, any regexp special characters will be quoted.
 It defines a set of \"interesting characters\" to look for when setting
@@ -313,7 +331,9 @@ letters `A' through `Z' and the character `-').  If you want the
 character `\\' in the set it must be preceded by itself: \"\\\\\".
 
 The command \\[picture-tab-search] is defined to move beneath (or to) a
-character belonging to this set independent of the tab stops list.")
+character belonging to this set independent of the tab stops list."
+  :type 'string
+  :group 'picture)
 
 (defun picture-set-tab-stops (&optional arg)
   "Set value of `tab-stop-list' according to context of this line.
@@ -561,9 +581,11 @@ Leaves the region surrounding the rectangle."
       (define-key picture-mode-map "\C-c/" 'picture-movement-sw)
       (define-key picture-mode-map "\C-c\\" 'picture-movement-se)))
 
-(defvar picture-mode-hook nil
+(defcustom picture-mode-hook nil
   "If non-nil, its value is called on entry to Picture mode.
-Picture mode is invoked by the command \\[picture-mode].")
+Picture mode is invoked by the command \\[picture-mode]."
+  :type 'hook
+  :group 'picture)
 
 (defvar picture-mode-old-local-map)
 (defvar picture-mode-old-mode-name)

@@ -72,7 +72,12 @@
 
 (provide 'refer)
 
-(defvar refer-bib-directory nil
+(defgroup refer nil
+  "Look up references in bibliography files."
+  :prefix "refer-"
+  :group 'wp)
+
+(defcustom refer-bib-directory nil
   "Directory, or list of directories, to search for \\.bib files. Can
 be set to 'bibinputs or 'texinputs, in which case the environment
 variable BIBINPUTS or TEXINPUTS, respectively, is used to obtain a
@@ -87,10 +92,12 @@ Note that an empty directory is interpreted by BibTeX as indicating
 the default search path. Since Refer does not know that default path,
 it cannot search it. Include that path explicitly in your BIBINPUTS
 environment if you really want it searched (which is not likely to
-happen anyway).")
+happen anyway)."
+  :type '(choice (repeat directory) (const bibinputs) (const texinputs))
+  :group 'refer)
 
-(defvar refer-bib-files 'dir
-   "*List of \\.bib files to search for references,
+(defcustom refer-bib-files 'dir
+  "*List of \\.bib files to search for references,
 or one of the following special values:
 nil  = prompt for \\.bib file (if visiting a \\.bib file, use it as default)
 auto = read \\.bib file names from appropriate command in buffer (see
@@ -104,16 +111,20 @@ is automatically tried.
 If refer-bib-files is nil, auto or dir, it is setq'd to the appropriate
 list of files when it is first used if refer-cache-bib-files is t.  If
 refer-cache-bib-files is nil, the list of \\.bib files to use is re-read
-each time it is needed.")
+each time it is needed."
+  :type '(choice (repeat file) (const nil) (const auto) (const dir))
+  :group 'refer)
 
-(defvar refer-cache-bib-files t
-   "*Variable determining whether the value of refer-bib-files should be cached.
+(defcustom refer-cache-bib-files t
+  "*Variable determining whether the value of refer-bib-files should be cached.
 If t, initialize the value of refer-bib-files the first time it is used.  If
 nil, re-read the list of \\.bib files depending on the value of refer-bib-files
-each time it is needed.")
+each time it is needed."
+  :type 'boolean
+  :group 'refer)
 
-(defvar refer-bib-files-regexp "\\\\bibliography"
-   "*Regexp matching a bibliography file declaration.
+(defcustom refer-bib-files-regexp "\\\\bibliography"
+  "*Regexp matching a bibliography file declaration.
 The current buffer is expected to contain a line such as
 \\bibliography{file1,file2,file3}
 which is read to set up refer-bib-files.  The regexp must specify the command
@@ -121,7 +132,9 @@ which is read to set up refer-bib-files.  The regexp must specify the command
 command is expected to specify a file name, or a list of comma-separated file
 names, within curly braces.
 If a specified file doesn't exist and has no extension, a \\.bib extension
-is automatically tried.")
+is automatically tried."
+  :type 'regexp
+  :group 'refer)
 
 (make-variable-buffer-local 'refer-bib-files)
 (make-variable-buffer-local 'refer-cache-bib-files)
