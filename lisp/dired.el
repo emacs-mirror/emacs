@@ -217,8 +217,10 @@ directory name and the cdr is the actual files to list.")
 ;; "Regexp matching a marked line.
 ;; Important: the match ends just after the marker."
 (defvar dired-re-maybe-mark "^. ")
-(defvar dired-re-dir (concat dired-re-maybe-mark dired-re-inode-size "d"))
-(defvar dired-re-sym (concat dired-re-maybe-mark dired-re-inode-size "l"))
+;; The [^:] part after "d" and "l" is to avoid confusion with the
+;; DOS/Windows-style drive letters in directory names, like in "d:/foo".
+(defvar dired-re-dir (concat dired-re-maybe-mark dired-re-inode-size "d[^:]"))
+(defvar dired-re-sym (concat dired-re-maybe-mark dired-re-inode-size "l[^:]"))
 (defvar dired-re-exe;; match ls permission string of an executable file
   (mapconcat (function
 	      (lambda (x)
