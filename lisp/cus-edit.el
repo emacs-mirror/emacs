@@ -2940,10 +2940,9 @@ restoring it to the state of a face that has never been customized."
   ;; things like `find-file-hook' or even more basic ones, to avoid
   ;; chaos.
   :set (lambda (symbol value)
-	 (mapc (lambda (elt)
-		 (if (fboundp elt)
-		     (add-hook symbol elt)))
-	       value))
+	 (dolist (elt value)
+	   (if (fboundp elt)
+	       (add-hook symbol elt))))
   :convert-widget 'custom-hook-convert-widget
   :tag "Hook")
 
