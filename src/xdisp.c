@@ -8200,6 +8200,8 @@ update_tool_bar (f, save_match_data)
 	  /* Redisplay the tool-bar if we changed it.  */
 	  if (! NILP (Fequal (old_tool_bar, f->tool_bar_items)))
 	    w->update_mode_line = Qt;
+	  
+	  UNGCPRO;
 
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
