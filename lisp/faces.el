@@ -1302,7 +1302,6 @@ this won't have the expected effect."
   (let* ((bg-resource
 	  (and window-system
 	       (x-get-resource ".backgroundMode" "BackgroundMode")))
-	 (params (frame-parameters frame))
 	 (bg-mode (cond (frame-background-mode)
 			((null window-system)
 			 ;; No way to determine this automatically (?).
@@ -1310,8 +1309,7 @@ this won't have the expected effect."
 			(bg-resource
 			 (intern (downcase bg-resource)))
 			((< (apply '+ (x-color-values
-				       (cdr (assq 'background-color
-						  params))
+				       (frame-parameter frame 'background-color)
 				       frame))
 			    ;; Just looking at the screen, colors whose
 			    ;; values add up to .6 of the white total
