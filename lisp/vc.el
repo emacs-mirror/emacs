@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.14 1992/10/26 05:33:20 rms Exp rms $	
+;;	$Id: vc.el,v 1.15 1992/10/28 09:33:04 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -739,7 +739,7 @@ to that version."
   (let ((target (vc-your-latest-version (buffer-file-name))))
     (if (null target)
 	(error "You didn't check in the last change."))
-    (and (y-or-n-p (format "Remove version %s from master? " target))
+    (and (yes-or-no-p (format "Remove version %s from master? " target))
       (vc-backend-uncheck (buffer-file-name) target)))
     (if norevert
 	(vc-mode-line (buffer-file-name))
