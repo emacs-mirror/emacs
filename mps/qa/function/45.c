@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!45.c(trunk.3) $
  summary = arena_collect when lots of APs are in mid-cycle
  language = c
  link = testlib.o newfmt.o
@@ -41,6 +41,8 @@ static void test(void)
 
  int h,i,j,k,l;
  mycell *pobj;
+
+ mycell *ambig[NAPS];
 
  size_t size0, size1;
  long mdiff = 0;
@@ -145,6 +147,7 @@ cells = allocone(ap[0], NCELLS);
    break;
   case 2:
    commentif(BLAH, "%i: begin commit %li", i, p[i]->data.id);
+   ambig[i] = p[i];
    ap[i]->init = ap[i]->alloc;
    ap_state[i] = 3;
    break;
@@ -158,6 +161,7 @@ cells = allocone(ap[0], NCELLS);
     commentif(BLAH, "%i -> %i", i, l);
    }
    ap_state[i] = 0;
+   ambig[i] = NULL;
    break;
  }
  }
