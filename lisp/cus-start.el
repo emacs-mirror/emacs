@@ -26,6 +26,7 @@
       sexp
     (list 'quote sexp)))
 
+;; Add support for build in variables.
 (let ((all '(;; abbrev.c 
 	     (abbrev-all-caps abbrev-mode boolean)
 	     (pre-abbrev-expand-hook abbrev-mode hook)
@@ -194,5 +195,24 @@
       (custom-add-to-group group symbol 'custom-variable)
       ;; Set the type.
       (put symbol 'custom-type type))))
+
+;; Add support for build in faces.
+(let ((all '((bold "Use bold font.")
+	     (bold-italic "Use bold italic font.")
+	     (italic "Use italic font.")
+	     (underline "Undeline text.")
+	     (default "Used for text not covered by other faces.")
+	     (highlight "Highlight text in some way.")
+	     (modeline "Used for displaying the modeline.")
+	     (region "Used for displaying the region.")
+	     (secondary-selection
+	      "Used for displaying the secondary selection.")))
+      entry symbol doc)
+  (while all
+    (setq entry (car all)
+	  all (cdr all)
+	  symbol (nth 0 entry)
+	  doc (nth 1 entry))
+    (put symbol 'face-documentation doc)))
 
 ;;; cus-start.el ends here.
