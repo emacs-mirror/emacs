@@ -65,7 +65,7 @@
 ;; The package bs combines the advantages of the Emacs functions
 ;; `list-buffers' and `electric-buffer-list'.
 ;;
-;; Additioal features for Buffer Selection Menu:
+;; Additional features for Buffer Selection Menu:
 ;;  - configurable list of buffers (show only files etc.).
 ;;  - comfortable way to change displayed subset of all buffers.
 ;;  - show sorted list of buffers.
@@ -141,8 +141,8 @@
   :link '(url-link "http://home.netsurf.de/olaf.sylvester/emacs")
   :group 'convenience)
 
-(defgroup bs-appearence nil
-  "Buffer Selection appearence: Appearence of bs buffer menu."
+(defgroup bs-appearance nil
+  "Buffer Selection appearance: Appearance of bs buffer menu."
   :group 'bs)
 
 (defcustom bs-attributes-list
@@ -169,20 +169,19 @@ MAXIMUM-LENGTH : maximum width of column (number or name of function)
 ALIGNMENT      : alignment of column: (`left' `right' `middle')
 FUN-OR-STRING  : Name of a function for calculating the value or
 a string for a constant value.
-The function gets as parameter the buffer we have started
+The function gets as parameter the buffer where we have started
 buffer selection and the list of all buffers to show.  The function must
-return a string representing the columns value."
-  :group 'bs-appearence
+return a string representing the column's value."
+  :group 'bs-appearance
   :type '(repeat sexp))
 
 (defvar bs--running-in-xemacs (string-match "XEmacs" (emacs-version))
   "Non-nil when running under XEmacs.")
 
-
 (defun bs--make-header-match-string ()
   "Return a regexp matching the first line of a Buffer Selection Menu buffer."
   (let ((res "^\\(")
-	(ele  bs-attributes-list))
+	(ele bs-attributes-list))
     (while ele
       (setq res (concat res (car (car ele)) " *"))
       (setq ele (cdr ele)))
@@ -190,7 +189,7 @@ return a string representing the columns value."
 
 ;;; Font-Lock-Settings
 (defvar bs-mode-font-lock-keywords
-  (list;; header in font-lock-type-face
+  (list ;; header in font-lock-type-face
    (list (bs--make-header-match-string)
 	 '(1 font-lock-type-face append) '(1 'bold append))
    ;; Buffername embedded by *
@@ -208,7 +207,7 @@ return a string representing the columns value."
 
 (defcustom bs-max-window-height 20
   "*Maximal window height of Buffer Selection Menu."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'integer)
 
 (defvar bs-dont-show-regexp nil
@@ -243,7 +242,7 @@ The function gets one argument - the buffer to test.")
 
 (defvar bs-buffer-sort-function nil
   "Sort function to sort the buffers that appear in Buffer Selection Menu.
-The functions gets two arguments - the buffers to compare.")
+The function gets two arguments - the buffers to compare.")
 
 (defcustom bs-maximal-buffer-name-column 45
   "*Maximum column width for buffer names.
@@ -251,7 +250,7 @@ The column for buffer names has dynamic width.  The width depends on
 maximal and minimal length of names of buffers to show.  The maximal
 width is bounded by `bs-maximal-buffer-name-column'.
 See also `bs-minimal-buffer-name-column'."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'integer)
 
 (defcustom bs-minimal-buffer-name-column 15
@@ -260,7 +259,7 @@ The column for buffer names has dynamic width.  The width depends on
 maximal and minimal length of names of buffers to show.  The minimal
 width is bounded by `bs-minimal-buffer-name-column'.
 See also `bs-maximal-buffer-name-column'."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'integer)
 
 (defconst bs-header-lines-length 2
@@ -269,22 +268,22 @@ See also `bs-maximal-buffer-name-column'."
 (defcustom bs-configurations
   '(("all" nil nil nil nil nil)
     ("files" nil nil nil bs-visits-non-file bs-sort-buffer-interns-are-last)
-    ("files-and-scratch" "^\\*scratch\\*" nil nil bs-visits-non-file
+    ("files-and-scratch" "^\\*scratch\\*$" nil nil bs-visits-non-file
      bs-sort-buffer-interns-are-last)
     ("all-intern-last" nil nil nil nil bs-sort-buffer-interns-are-last))
   "*List of all configurations you can use in the Buffer Selection Menu.
 A configuration describes which buffers appear in Buffer Selection Menu
-and describes the order of buffers.  A configuration is a list with
+and also the order of buffers.  A configuration is a list with
 six elements.  The first element is a string and describes the configuration.
 The following five elements represent the values for Buffer Selection Menu
-configurations variables `bs-dont-show-regexp', `bs-dont-show-function',
-`bs-must-show-regexp', `bs-must-show-function' and `bs-buffer-sort-function'.
+configuration variables `bs-must-show-regexp', `bs-must-show-function',
+`bs-dont-show-regexp', `bs-dont-show-function' and `bs-buffer-sort-function'.
 By setting these variables you define a configuration."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type '(repeat sexp))
 
 (defcustom bs-default-configuration "files"
-  "*Name of default configuration used by in the Buffer Selection Menu.
+  "*Name of default configuration used by the Buffer Selection Menu.
 \\<bs-mode-map>
 Will be changed using key \\[bs-select-next-configuration].
 Must be a string used in `bs-configurations' for naming a configuration."
@@ -300,7 +299,7 @@ Must be a string used in `bs-configurations' for naming a configuration."
 
 (defvar bs-current-configuration bs-default-configuration
   "Name of current configuration.
-Must be a string found in `bs-configurations' for naming a configuration.")
+Must be a string used in `bs-configurations' for naming a configuration.")
 
 (defcustom bs-cycle-configuration-name nil
   "*Name of configuration used when cycling through the buffer list.
@@ -312,32 +311,32 @@ Must be a string used in `bs-configurations' for naming a configuration."
 
 (defcustom bs-string-show-always "+"
   "*String added in column 1 indicating a buffer will always be shown."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defcustom bs-string-show-never "-"
   "*String added in column 1 indicating a buffer will never be shown."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defcustom bs-string-current "."
   "*String added in column 1 indicating the current buffer."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defcustom bs-string-current-marked "#"
   "*String added in column 1 indicating the current buffer when it is marked."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defcustom bs-string-marked ">"
   "*String added in column 1 indicating a marked buffer."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defcustom bs-string-show-normally  " "
   "*String added in column 1 indicating a unmarked buffer."
-  :group 'bs-appearence
+  :group 'bs-appearance
   :type 'string)
 
 (defvar bs--name-entry-length 20
@@ -345,13 +344,13 @@ Must be a string used in `bs-configurations' for naming a configuration."
 Used internally, only.")
 
 ;; ----------------------------------------------------------------------
-;; Intern globals
+;; Internal globals
 ;; ----------------------------------------------------------------------
 
 (defvar bs-buffer-show-mark nil
   "Flag for the current mode for showing this buffer.
-A value of nil means buffer will be shown depending on the current on
-current configuration.
+A value of nil means buffer will be shown depending on the current
+configuration.
 A value of `never' means to never show the buffer.
 A value of `always' means to show buffer regardless of the configuration.")
 
@@ -361,7 +360,6 @@ A value of `always' means to show buffer regardless of the configuration.")
 (unless (facep 'region)
   (make-face 'region)
   (set-face-background 'region "gray75"))
-
 
 (defun bs--sort-by-name (b1 b2)
   "Compare buffers B1 and B2 by buffer name."
@@ -528,7 +526,7 @@ Used internally, only.")
 
 (defun bs-buffer-list (&optional list sort-description)
   "Return a list of buffers to be shown.
-LIST is a list of buffers to test for appearence in Buffer Selection Menu.
+LIST is a list of buffers to test for appearance in Buffer Selection Menu.
 The result list depends on the global variables `bs-dont-show-regexp',
 `bs-must-show-regexp', `bs-dont-show-function', `bs-must-show-function'
 and `bs-buffer-sort-function'.
@@ -652,10 +650,10 @@ apply selected configuration.
 \\[bs-select-next-configuration] -- select and apply next \
 available Buffer Selection Menu configuration.
 \\[bs-kill] -- leave Buffer Selection Menu without a selection.
-\\[bs-toggle-current-to-show] -- toggle status of appearence .
+\\[bs-toggle-current-to-show] -- toggle status of appearance.
 \\[bs-set-current-buffer-to-show-always] -- mark current line's buffer \
 to show always.
-\\[bs-visit-tags-table] -- call `visit-tags-table' on current line'w buffer.
+\\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
 \\[bs-help] -- display this help text."
   (interactive)
   (kill-all-local-variables)
@@ -717,7 +715,7 @@ Return nil if there is no such buffer."
 
 (defun bs--current-buffer ()
   "Return buffer on current line.
-Raise an error if not an a buffer line."
+Raise an error if not on a buffer line."
   (beginning-of-line)
   (let ((line (+ (- bs-header-lines-length)
 		 (count-lines 1 (point)))))
@@ -984,7 +982,7 @@ Default is `bs--current-sort-function'."
 
 (defun bs-toggle-readonly ()
   "Toggle read-only status for buffer on current line.
-Uses Function `vc-toggle-read-only'."
+Uses function `vc-toggle-read-only'."
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (save-excursion
@@ -1049,7 +1047,7 @@ A value of nil means BUFFER belongs to a file."
   (not (buffer-file-name buffer)))
 
 (defun bs-sort-buffer-interns-are-last (b1 b2)
-  "Function for sorting intern buffers B1 and B2 at the end of all buffers."
+  "Function for sorting internal buffers B1 and B2 at the end of all buffers."
   (string-match "^\\*" (buffer-name b2)))
 
 ;; ----------------------------------------------------------------------
@@ -1070,7 +1068,7 @@ These variables are `bs-dont-show-regexp', `bs-must-show-regexp',
 (defun bs-config--only-files ()
   "Define a configuration for showing only buffers visiting a file."
   (bs-config-clear)
-  (setq;; I want to see *-buffers at the end
+  (setq ;; I want to see *-buffers at the end
    bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
    ;; Don't show files who don't belong to a file
    bs-dont-show-function 'bs-visits-non-file))
@@ -1078,12 +1076,12 @@ These variables are `bs-dont-show-regexp', `bs-must-show-regexp',
 (defun bs-config--files-and-scratch ()
   "Define a configuration for showing buffer *scratch* and file buffers."
   (bs-config-clear)
-  (setq;; I want to see *-buffers at the end
+  (setq ;; I want to see *-buffers at the end
    bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
    ;; Don't show files who don't belong to a file
    bs-dont-show-function 'bs-visits-non-file
    ;; Show *scratch* buffer.
-   bs-must-show-regexp "^\\*scratch\\*"))
+   bs-must-show-regexp "^\\*scratch\\*$"))
 
 (defun bs-config--all ()
   "Define a configuration for showing all buffers.
@@ -1092,7 +1090,7 @@ Reset all according variables by `bs-config-clear'."
 
 (defun bs-config--all-intern-last ()
   "Define a configuration for showing all buffers.
-Intern buffers appear at end of all buffers."
+Internal buffers appear at end of all buffers."
   (bs-config-clear)
   ;; I want to see *-buffers at the end
   (setq bs-buffer-sort-function 'bs-sort-buffer-interns-are-last))
@@ -1154,7 +1152,7 @@ will be used."
     (setq bs-default-configuration bs-current-configuration)
     (bs--redisplay t)
     (bs--set-window-height)
-    (bs-message-without-log "Selected config: %s" (car config))))
+    (bs-message-without-log "Selected configuration: %s" (car config))))
 
 (defun bs-show-in-buffer (list)
   "Display buffer list LIST in buffer *buffer-selection*.
@@ -1219,7 +1217,7 @@ All arguments ARGS are transfered to function `message'."
     (apply 'message args)))
 
 (defvar bs--cycle-list nil
-  "Currentyl buffer list used for cycling.")
+  "Current buffer list used for cycling.")
 
 ;;;###autoload
 (defun bs-cycle-next ()
@@ -1300,7 +1298,7 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu.
 The result string is one of `bs-string-current', `bs-string-current-marked',
 `bs-string-marked', `bs-string-show-normally', `bs-string-show-never', or
 `bs-string-show-always'."
-  (cond;; current buffer is the buffer we started buffer selection.
+  (cond ;; current buffer is the buffer we started buffer selection.
    ((eq (current-buffer) start-buffer)
     (if (memq (current-buffer) bs--marked-buffers)
 	bs-string-current-marked	; buffer is marked
@@ -1349,7 +1347,6 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 		(make-string (- bs--name-entry-length (length name)) ? ))
       name)))
 
-
 (defun bs--get-mode-name (start-buffer all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
 START-BUFFER is the buffer where we started buffer selection.
@@ -1369,7 +1366,6 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 				 (or buffer-file-name "")))))
     (put-text-property 0 (length string) 'mouse-face 'highlight string)
     string))
-
 
 (defun bs--insert-one-entry (buffer)
   "Generate one entry for buffer BUFFER in Buffer Selection Menu.
@@ -1436,7 +1432,7 @@ ALIGN is one of the symbols `left', `middle', or `right'."
 		   "")))
 
 (defun bs--show-with-configuration (name &optional arg)
-  "Display buffer list of configuration with NAME name.
+  "Display buffer list of configuration with name NAME.
 Set configuration NAME and determine window for Buffer Selection Menu.
 Unless current buffer is buffer *buffer-selection* we have to save
 the buffer we started Buffer Selection Menu and the current window
@@ -1470,7 +1466,7 @@ for buffer selection."
 If PREFIX-ARG is nil return `bs-default-configuration'.
 If PREFIX-ARG is an integer return PREFIX-ARG element of `bs-configurations'.
 Otherwise return `bs-alternative-configuration'."
-  (cond;; usually activation
+  (cond ;; usually activation
    ((null prefix-arg)
     bs-default-configuration)
    ;; call with integer as prefix argument
