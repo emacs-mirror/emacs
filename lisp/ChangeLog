@@ -1,5 +1,26 @@
 2004-11-26  Lars Hansen  <larsh@math.ku.dk>
 
+	* tramp.el (tramp-handle-directory-files-and-attributes): New
+	function.
+	(tramp-perl-directory-files-and-attributes): New constant.
+	(tramp-file-name-handler-alist): Delete file-directory-files, add
+	directory-files-and-attributes.
+	(tramp-perl-file-attributes): Surround uid and gid by double
+	quotes. Change parameter id-format from nonnumeric.
+	(tramp-convert-file-attributes): New function.
+	(tramp-handle-file-attributes): Use it.
+	(tramp-maybe-send-perl-script): New function.
+	(tramp-handle-file-attributes-with-perl): Use it. Don't convert
+	file mode. Change parameter id-format from nonnumeric.
+	(tramp-handle-file-attributes-with-ls): Change parameter id-format
+	from nonnumeric.
+	(tramp-post-connection): Don't send tramp-perl-file-attributes
+	script. Reset connection property "perl-scripts".
+	(tramp-handle-insert-directory): Run real handler when ls-lisp is
+	in use.
+
+2004-11-26  Lars Hansen  <larsh@math.ku.dk>
+
 	* desktop.el (desktop-read): Replace mapcar with mapc.
 	(desktop-create-buffer): Replace mapcar with mapc. Remove
 	redundant piece of code.
