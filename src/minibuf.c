@@ -1578,10 +1578,13 @@ Completion ignores case if the ambient value of
      Lisp_Object prompt, table, predicate, require_match, initial_input;
      Lisp_Object hist, def, inherit_input_method;
 {
-  Lisp_Object val, histvar, histpos;
+  Lisp_Object val, histvar, histpos, position;
+  Lisp_Object init;
+  int pos = 0;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
+  init = initial_input;
   GCPRO1 (def);
 
   specbind (Qminibuffer_completion_table, table);
@@ -1589,6 +1592,23 @@ Completion ignores case if the ambient value of
   specbind (Qminibuffer_completion_confirm,
 	    EQ (require_match, Qt) ? Qnil : require_match);
   last_exact_completion = Qnil;
+
+  position = Qnil;
+  if (!NILP (init))
+    {
+      if (CONSP (init))
+	{
+	  position = Fcdr (init);
+	  init = Fcar (init);
+	}
+      CHECK_STRING (init);
+      if (!NILP (position))
+	{
+	  CHECK_NUMBER (position);
+	  /* Convert to distance from end of input.  */
+	  pos = XINT (position) - SCHARS (init);
+	}
+    }
 
   if (SYMBOLP (hist))
     {
@@ -1608,7 +1628,7 @@ Completion ignores case if the ambient value of
   val = read_minibuf (NILP (require_match)
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
-		      initial_input, prompt, Qnil, 0,
+		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method));
 
