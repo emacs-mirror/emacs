@@ -1516,7 +1516,7 @@ read_escape (readcharfun, stringp)
   switch (c)
     {
     case -1:
-      error ("End of file");
+      end_of_file_error ();
 
     case 'a':
       return '\007';
