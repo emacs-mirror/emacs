@@ -1888,23 +1888,35 @@ Returns the window displaying BUFFER.")
     {
       tem = Fmember (XBUFFER (buffer)->name, Vsame_window_buffer_names);
       if (!NILP (tem))
-	return Fswitch_to_buffer (buffer, Qnil);
+	{
+	  Fswitch_to_buffer (buffer, Qnil);
+	  return selected_window;
+	}
 
       tem = Fassoc (XBUFFER (buffer)->name, Vsame_window_buffer_names);
       if (!NILP (tem))
-	return Fswitch_to_buffer (buffer, Qnil);
+	{
+	  Fswitch_to_buffer (buffer, Qnil);
+	  return selected_window;
+	}
 
       for (tem = Vsame_window_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
 	{
 	  Lisp_Object car = XCONS (tem)->car;
 	  if (STRINGP (car)
 	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
-	    return Fswitch_to_buffer (buffer, Qnil);
+	    {
+	      Fswitch_to_buffer (buffer, Qnil);
+	      return selected_window;
+	    }
 	  else if (CONSP (car)
 		   && STRINGP (XCONS (car)->car)
 		   && fast_string_match (XCONS (car)->car,
 					 XBUFFER (buffer)->name) >= 0)
-	    return Fswitch_to_buffer (buffer, Qnil);
+	    {
+	      Fswitch_to_buffer (buffer, Qnil);
+	      return selected_window;
+	    }
 	}
     }
 
