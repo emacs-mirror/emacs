@@ -64,7 +64,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    with X11R3 or X11R4 by looking for the flag macros for R4 structure
    members that R3 doesn't have.  */
 #ifdef PBaseSize
+/* AIX 3.1's X is somewhere between X11R3 and X11R4.  It has
+   PBaseSize, but not XWithdrawWindow, XSetWMName, XSetWMNormalHints,
+   XSetWMIconName.  */
+#ifndef AIX
 #define HAVE_X11R4
+#endif
 #endif
 
 #ifdef XlibSpecificationRelease
