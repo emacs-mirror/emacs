@@ -510,7 +510,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 (defun cpp-edit-load ()
   "Load cpp configuration."
   (interactive)
-  (cond ((file-readable-p cpp-config-file)
+  (cond ((null init-file-user)
+	 ;; If -q was specified, don't load any init files.
+	 nil)
+	((file-readable-p cpp-config-file)
 	 (load-file cpp-config-file))
 	((file-readable-p (concat "~/" cpp-config-file))
 	 (load-file cpp-config-file)))
@@ -518,7 +521,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
       (cpp-edit-reset)))
 
 (defun cpp-edit-save ()
-  "Load cpp configuration."
+  "Save the current cpp configuration in a file."
   (interactive)
   (require 'pp)
   (save-excursion
