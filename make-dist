@@ -95,7 +95,8 @@ mkdir ${tempdir}
 # README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure config.sub ${tempdir}
+ln make-dist ${tempdir}
 
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
@@ -158,8 +159,9 @@ echo "Making links to \`src/s'."
 
 echo "Making links to \`lib-src'."
 (cd lib-src
- ln [a-zA-Z]*.c [a-zA-Z]*.h [a-zA-Z]*.y [a-zA-Z]*.lex ../${tempdir}/lib-src
+ ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex [a-zA-Z]*.com ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
+ ln emacs.csh ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
  rm -f getdate.c getdate.tab.c y.tab.c y.tab.h)
 
