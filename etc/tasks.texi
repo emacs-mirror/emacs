@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate July  2, 1999
+@set lastupdate July 26, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -586,6 +586,10 @@ Statistical tools.
 @item
 A scientific data collection and processing tool,
 perhaps something like Scientific Workbench and/or Khoros,
+
+@item
+A program to calculate properties of molecules by solving
+the Schroedinger equation.
 
 @item
 Software to replace card catalogues in libraries.
