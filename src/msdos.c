@@ -3242,7 +3242,8 @@ dos_rawgetc ()
 	  if (!NILP (help_echo) || !NILP (previous_help_echo))
 	    {
 	      event.kind = HELP_EVENT;
-	      event.frame_or_window = Fcons (selected_frame, help_echo);
+	      event.frame_or_window = selected_frame;
+	      event.arg = help_echo;
 	      event.timestamp = event_timestamp ();
 	      kbd_buffer_store_event (&event);
 	    }
