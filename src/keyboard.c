@@ -3044,7 +3044,7 @@ read_avail_input (expected)
       if (nread > sizeof cbuf)
 	nread = sizeof cbuf;
 #else /* no FIONREAD */
-#ifdef USG
+#if defined(USG) || defined(DGUX)
       /* Read some input if available, but don't wait.  */
       nread = sizeof cbuf;
       fcntl (fileno (stdin), F_SETFL, O_NDELAY);
