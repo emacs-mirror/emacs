@@ -1,24 +1,28 @@
 /* impl.c.mpsioan: HARLEQUIN MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
- * $HopeName: MMsrc!mpsioan.c(MMdevel_event.4) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpsioan.c(trunk.2) $
+ * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
  *
  * TRANSGRESSIONS (rule.impl.trans)
  *
- * There's no way this meets all the reqiurements yet.
+ * There's no way this meets all the requirements yet.
  */
 
 #include "mpsio.h"
 #include <stdio.h>
 
-#include "mpstd.h"		/* .sunos.warn */
+#include "mpstd.h"   /* .sunos.warn */
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
 
+#include "config.h"  /* to get platform configurations */
+
+
 static FILE *ioFile = NULL;
+
 
 mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
@@ -36,12 +40,14 @@ mps_res_t mps_io_create(mps_io_t *mps_io_r)
   return MPS_RES_OK;
 }
 
+
 void mps_io_destroy(mps_io_t mps_io)
 {
   FILE *f = (FILE *)mps_io;
   ioFile = NULL; /* Should check f == ioFile */
   (void)fclose(f);
 }
+
 
 mps_res_t mps_io_write(mps_io_t mps_io, void *mps_buf, size_t mps_size)
 {
@@ -54,6 +60,7 @@ mps_res_t mps_io_write(mps_io_t mps_io, void *mps_buf, size_t mps_size)
   
   return MPS_RES_OK;
 }
+
 
 mps_res_t mps_io_flush(mps_io_t mps_io)
 {
