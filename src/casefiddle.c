@@ -37,7 +37,6 @@ casify_object (flag, obj)
 {
   register int i, c, len;
   register int inword = flag == CASE_DOWN;
-  Lisp_Object tem;
 
   /* If the case table is flagged as modified, rescan it.  */
   if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
@@ -196,7 +195,6 @@ casify_region (flag, b, e)
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int start, end;
   int start_byte, end_byte;
-  Lisp_Object ch, downch, val;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
