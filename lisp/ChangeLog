@@ -2,6 +2,20 @@
 
 	* msb.el (msb-menu-cond): Add choice `user'.
 
+2000-05-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+	
+	* ps-print.el: Compatibility, customization and doc fix.
+	(ps-printer-name-option): Replace defconst by defvar.
+	(ps-postscript-code-directory): XEmacs compatibility.
+	(ps-header-sheet, ps-setup, ps-begin-file, ps-begin-job): Code
+	fix.
+	(ps-user-defined-prologue, ps-print-prologue-header)
+	(ps-xemacs-face-kind-p, ps-face-bold-p, ps-face-italic-p): XEmacs
+	compatibility and code fix.
+	(ps-print-background-image, ps-print-background-text):
+	Customization fix.
+	(ps-line-number-start, ps-n-up-on): New vars.
+
 2000-05-18  Espen Skoglund  <esk@ira.uka.de>
 
 	* pascal.el (pascal-indent-alist, pascal-indent-comment): Changed
@@ -51,7 +65,7 @@
 
 2000-05-16  Sam Steingold  <sds@gnu.org>
 
-	* info.el (debug-ignored-errors): more errors to ignore.
+	* info.el (debug-ignored-errors): More errors to ignore.
 
 2000-05-16  Dave Love  <fx@gnu.org>
 

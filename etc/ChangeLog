@@ -1,3 +1,10 @@
+2000-05-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin1.ps: PostScript code compatibility with other utilities
+	like mpage, psnup, etc.
+	(isLineStep): Code fix.
+	(BeginDoc, BeginSheet): Utility compatibility.
+
 2000-05-03  Dave Love  <fx@gnu.org>
 
 	* letter.xbm: New file.
