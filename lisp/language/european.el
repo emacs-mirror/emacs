@@ -393,7 +393,7 @@ but it selects the Dutch tutorial and input method."))
  '("European"))
 
 (set-language-info-alist
- "Swedish" '((tutorial . "TUTORIAL.se")
+ "Swedish" '((tutorial . "TUTORIAL.sv")
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
 	    (coding-priority iso-latin-1)
