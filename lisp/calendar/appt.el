@@ -455,7 +455,12 @@ The time should be in either 24 hour format or am/pm format."
     (while tmp-msg-list
       (let* ((element (car tmp-msg-list))
              (prompt-string (concat "Delete " 
-                                    (prin1-to-string (car (cdr element))) 
+				    ;; We want to quote any doublequotes
+				    ;; in the string, as well as put
+				    ;; doublequotes around it.
+                                    (prin1-to-string
+				     (substring-no-properties
+				      (car (cdr element)) 0)) 
                                     " from list? "))
              (test-input (y-or-n-p prompt-string)))
         (setq tmp-msg-list (cdr tmp-msg-list))
@@ -512,9 +517,7 @@ They specify the range of dates that the diary is being processed for."
 	      (while (and entry-list 
 			  (calendar-date-equal 
 			   (calendar-current-date) (car (car entry-list))))
-		(let ((time-string (substring (prin1-to-string 
-					       (cadr (car entry-list))) 1 -1)))
-
+		(let ((time-string (cadr (car entry-list))))
 		  (while (string-match
 			  "\\([0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\).*"
 			  time-string)
