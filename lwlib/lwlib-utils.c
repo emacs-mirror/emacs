@@ -29,6 +29,8 @@ Boston, MA 02111-1307, USA.  */
 #undef index
 #undef rindex
 
+#include "../src/lisp.h"
+
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>

@@ -22,6 +22,8 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
+#include "../src/lisp.h"
+
 #include "lwlib-Xlw.h"
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>

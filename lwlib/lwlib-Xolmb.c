@@ -18,6 +18,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+
+#include "../src/lisp.h"
+
 #include <X11/IntrinsicP.h>
 #include <X11/Intrinsic.h>
 #include <X11/CompositeP.h>

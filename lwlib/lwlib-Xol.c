@@ -1,3 +1,6 @@
+
+#include "../src/lisp.h"
+
 #include "lwlib-Xol.h"
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>

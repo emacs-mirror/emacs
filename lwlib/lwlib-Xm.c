@@ -31,6 +31,8 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/CoreP.h>
 #include <X11/CompositeP.h>
 
+#include "../src/lisp.h"
+
 #include "lwlib-Xm.h"
 #include "lwlib-utils.h"
 
