@@ -587,7 +587,11 @@ makefile-special-targets-list:
 
   ;; Font lock.
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(makefile-font-lock-keywords))
+  (setq font-lock-defaults
+	;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
+	;; near the end of a large buffer, due to parse-partial-sexp's
+	;; trying to parse all the way till the beginning of buffer.
+	'(makefile-font-lock-keywords nil nil nil backward-paragraph))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
