@@ -6396,7 +6396,7 @@ one end of the text below, then type @kbd{M-# m} at the other.
 @example
 @group
 Z ` 0 t 1
-    1 @key{TAB}
+    1 TAB
     Z (  & s + 1  1 Z )
     r 1
 Z '
