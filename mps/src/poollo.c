@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.18) $
+ * $HopeName: MMsrc!poollo.c(trunk.19) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -12,7 +12,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.18) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.19) $");
 
 
 #define LOGen ((Serial)1)
@@ -33,7 +33,7 @@ typedef struct LOStruct {
   Sig sig;
 } LOStruct;
 
-#define PoolPoolLO(pool)        PARENT(LOStruct, poolStruct, pool)
+#define PoolPoolLO(pool) PARENT(LOStruct, poolStruct, pool)
 #define LOPool(lo) (&(lo)->poolStruct)
 
 
@@ -518,6 +518,7 @@ static void LOFinish(Pool pool)
     LOSeg loseg = SegLOSeg(seg);
 
     AVERT(LOSeg, loseg);
+    UNUSED(loseg); /* impl.c.mpm.check.unused */
     SegFree(seg);
   }
   PoolGenFinish(&lo->pgen);
