@@ -147,7 +147,7 @@ ${TIT}:
 	    -f batch-byte-compile ${TIT}
 
 leim-list.el: ${SUBDIRS} ${WORLD}
-	if [ x`(cd ${srcdir}; /bin/pwd)` = x`(/bin/pwd)` ] ; then \
+	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
 	else \
@@ -156,11 +156,11 @@ leim-list.el: ${SUBDIRS} ${WORLD}
 	fi
 
 install: all
-	if [ x`(cd ${INSTALLDIR}; /bin/pwd)` != x`(/bin/pwd)` ] ; then \
+	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -rf ${INSTALLDIR}/leim-list.el; \
 	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/skk ; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
-	  if [ x`(cd ${srcdir}; /bin/pwd)` = x`(/bin/pwd)` ] ; then \
+	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	    tar -cf - leim-list.el quail skk \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  else \
