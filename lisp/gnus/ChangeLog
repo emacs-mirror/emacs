@@ -480,7 +480,7 @@
 	* message.el (message-setup-fill-variables): New variable.
 	(message-mode): Use it.
 
-2000-11-10 Alexandre Oliva <oliva@lsd.ic.unicamp.br>
+2000-11-10  Alexandre Oliva  <oliva@lsd.ic.unicamp.br>
 
 	* gnus-mlspl.el: Documentation tweaks.
 	
@@ -811,7 +811,7 @@
 
 	* gnus-art.el (gnus-read-save-file-name): Remove extraneous paren.
 
-2000-10-27 Christoph Conrad <christoph.conrad@gmx.de>
+2000-10-27  Christoph Conrad  <christoph.conrad@gmx.de>
 
 	* gnus-draft.el (gnus-draft-send-message): Typo.
 
@@ -1398,7 +1398,7 @@
 	(gnus-summary-save-parts-last-directory): New.
 	(gnus-summary-save-parts): Save history.
 
-2000-09-14 Ben Gertzfield <che@debian.org>
+2000-09-14  Ben Gertzfield  <che@debian.org>
 
 	* gnus-sum.el (gnus-summary-save-parts-default-mime): New
 	variable.
