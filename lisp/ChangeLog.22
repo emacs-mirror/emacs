@@ -1,3 +1,7 @@
+2004-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (chinese-cns11643-15): New charset.
+
 2004-02-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (font-encoding-alist): Add entries for
