@@ -342,6 +342,7 @@ fontset_ref_and_range (fontset, c, from, to)
 
 static void
 fontset_add (fontset, range, elt, add)
+     Lisp_Object fontset, range, elt, add;
 {
   int from, to, from1, to1;
   Lisp_Object elt1;
@@ -357,7 +358,7 @@ fontset_add (fontset, range, elt, add)
 	int i, i0 = 1, i1 = ASIZE (elt1) + 1;
 	Lisp_Object new;
 
-	new = Fmake_vector (i1, elt);
+	new = Fmake_vector (make_number (i1), elt);
 	if (EQ (add, Qappend))
 	  i0--, i1--;
 	for (i = 0; i0 < i1; i++, i0++)
@@ -732,9 +733,6 @@ face_for_char (f, face, c)
      int c;
 {
   Lisp_Object fontset;
-  Lisp_Object elt, vec;
-  int font_idx;
-  int i;
 
   if (ASCII_CHAR_P (c))
     return face->ascii_face->id;
@@ -1118,18 +1116,18 @@ range FROM and TO (inclusive).
 CHARACTER may be a script name symbol.  In that case, use FONT-SPEC
 for all characters that belong to the script.
 
-CHARACTER may be a charset who has :code-offset attribute and the
+CHARACTER may be a charset which has a :code-offset attribute and the
 attribute value is greater than the maximum Unicode character
 \(#x10FFFF).  In that case, use FONT-SPEC for all characters in the
 charset.
 
-FONT-SPEC is a vector; [ FAMILY WEIGHT SLANT ADSTYLE REGISTRY ].
-See the documentation of `set-face-attribute' for the detail of
-these vector elements.
-
-FONT-SPEC may be a cons; (FAMILY . REGISTRY).
-
-FONT-SPEC may be a font name string.
+FONT-SPEC may be:
+ * A vector [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ].
+   See the documentation of `set-face-attribute' for the detail of
+   these vector elements;
+* A cons (FAMILY . REGISTRY), where FAMILY is a font family name and
+   REGISTRY is a font registry name;
+ * A font name string.
 
 Optional 4th argument FRAME, if non-nil, is a frame.  This argument is
 kept for backward compatibility and has no meaning.
@@ -1142,9 +1140,8 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
      Lisp_Object name, character, font_spec, frame, add;
 {
   Lisp_Object fontset;
-  int i;
   Lisp_Object font_def, registry;
-  Lisp_Object val, encoding, repertory;
+  Lisp_Object encoding, repertory;
   Lisp_Object range_list;
 
   fontset = check_fontset_name (name);
@@ -1450,7 +1447,6 @@ OPENED-FONT is a name of a font actually opened.  */)
   FRAME_PTR f;
   Lisp_Object table, val, elt;
   Lisp_Object *realized;
-  struct font_info *fontp = NULL;
   int n_realized = 0;
   int c, i, j;
 
