@@ -312,7 +312,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
   minibuf_save_list
-    = Fcons (current_buffer->minibuffer_prompt_length,
+    = Fcons (current_buffer->prompt_end_charpos,
 	     minibuf_save_list);
 
   record_unwind_protect (read_minibuf_unwind, Qnil);
@@ -320,7 +320,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Now that we can restore all those variables, start changing them.  */
 
-  minibuf_prompt_width = 0;	/* xdisp.c puts in the right value.  */
+  minibuf_prompt_width = 0;
   minibuf_prompt = Fcopy_sequence (prompt);
   Vminibuffer_history_position = histpos;
   Vminibuffer_history_variable = histvar;
@@ -378,7 +378,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
-  XSETFASTINT (current_buffer->minibuffer_prompt_length, 0);
+  XSETFASTINT (current_buffer->prompt_end_charpos, 0);
 
   /* Erase the buffer.  */
   {
@@ -394,7 +394,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Insert the prompt, record where it ends.  */
   Finsert (1, &minibuf_prompt);
-  XSETFASTINT (current_buffer->minibuffer_prompt_length, PT);
+  XSETFASTINT (current_buffer->prompt_end_charpos, PT);
   if (PT > BEG)
     {
       Fput_text_property (make_number (BEG), make_number (PT),
@@ -404,6 +404,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       Fput_text_property (make_number (BEG), make_number (PT),
 			  Qread_only, Qt, Qnil);
     }
+  
+  minibuf_prompt_width = current_column ();
       
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
@@ -448,7 +450,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
-  val = make_buffer_string (1, Z, allow_props);
+  val = make_buffer_string (current_buffer->prompt_end_charpos,
+			    Z, allow_props);
 
   /* VAL is the string of minibuffer text.  */
 
@@ -601,7 +604,7 @@ read_minibuf_unwind (data)
   Fset_buffer (XWINDOW (window)->buffer);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
-  current_buffer->minibuffer_prompt_length = Fcar (minibuf_save_list);
+  current_buffer->prompt_end_charpos = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
 
   minibuf_prompt = Fcar (minibuf_save_list);
@@ -639,7 +642,7 @@ read_minibuf_unwind (data)
   /* When we get to the outmost level, make sure we resize the
      mini-window back to its normal size.  */
   if (minibuf_level == 0)
-    resize_mini_window (XWINDOW (window));
+    resize_mini_window (XWINDOW (window), 0);
 
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
@@ -1653,7 +1656,7 @@ a repetition of this command will exit.")
   Lisp_Object val;
 
   /* Allow user to specify null string */
-  if (XFASTINT (current_buffer->minibuffer_prompt_length) == ZV)
+  if (XFASTINT (current_buffer->prompt_end_charpos) == ZV)
     goto exit;
 
   if (!NILP (test_completion (Fbuffer_string ())))
@@ -1790,7 +1793,7 @@ Return nil if there is no valid completion, else t.")
   
   {
     int prompt_end_charpos, prompt_end_bytepos;
-    prompt_end_charpos = XFASTINT (current_buffer->minibuffer_prompt_length);
+    prompt_end_charpos = XFASTINT (current_buffer->prompt_end_charpos);
     prompt_end_bytepos = CHAR_TO_BYTE (prompt_end_charpos);
     i = ZV - prompt_end_charpos;
     i_byte = ZV_BYTE - prompt_end_bytepos;
@@ -1844,7 +1847,7 @@ Return nil if there is no valid completion, else t.")
 
   /* If got no characters, print help for user.  */
 
-  if (i == ZV - XFASTINT (current_buffer->minibuffer_prompt_length))
+  if (i == ZV - XFASTINT (current_buffer->prompt_end_charpos))
     {
       if (auto_help)
 	Fminibuffer_completion_help ();
@@ -2101,16 +2104,10 @@ If no minibuffer is active, return nil.")
 
 DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
   Sminibuffer_prompt_width, 0, 0, 0,
-  "Return the display width of the minibuffer prompt.\n\
-Return 0 if current buffer is not a mini-buffer.")
+  "Return the display width of the minibuffer prompt.")
   ()
 {
-  Lisp_Object width;
-  if (NILP (current_buffer->minibuffer_prompt_length))
-    width = make_number (0);
-  else
-    width = make_number (current_buffer->minibuffer_prompt_length);
-  return width;
+  return make_number (minibuf_prompt_width);
 }
 
 
@@ -2120,9 +2117,9 @@ DEFUN ("minibuffer-prompt-end", Fminibuffer_prompt_end,
 Value is 0 if current buffer is not a mini-buffer.")
      ()
 {
-  return (NILP (current_buffer->minibuffer_prompt_length)
+  return (NILP (current_buffer->prompt_end_charpos)
 	  ? make_number (0)
-	  : make_number (current_buffer->minibuffer_prompt_length));
+	  : make_number (current_buffer->prompt_end_charpos));
 }
 
 
