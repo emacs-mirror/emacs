@@ -1240,8 +1240,9 @@ and selects that window."
      ("6x13" "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*-1" "6x13")
      ("lucida 13"
       "-b&h-lucidatypewriter-medium-r-normal-sans-0-0-0-0-m-0-*-1")
-     ("7x13" "-misc-fixed-medium-r-normal--13-120-75-75-c-70-*-1" "7x13")
-     ("7x14" "-misc-fixed-medium-r-normal--14-130-75-75-c-70-*-1" "7x14")
+     ("7x13" "-misc-fixed-medium-r-normal--13-120-*-*-c-70-*-1" "7x13")
+     ("7x14" "-misc-fixed-medium-r-normal--14-130-*-*-c-70-*-1" "7x14")
+     ("8x13" "-misc-fixed-medium-r-normal--13-120-*-*-c-80-*-1" "8x13")
      ("9x15" "-misc-fixed-medium-r-normal--15-140-*-*-c-*-*-1" "9x15")
      ("")
      ("clean 8x8" "-schumacher-clean-medium-r-normal--*-80-*-*-c-*-*-1")
