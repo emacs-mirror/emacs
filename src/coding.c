@@ -4299,9 +4299,15 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   }
 
   /* The code conversion routine can not preserve text properties for
-     now.  So, we must remove all text properties in the region.  */
+     now.  So, we must remove all text properties in the region.
+     Here, we must suppress all modification hooks.  */
   if (replace)
-    Fset_text_properties (make_number (from), make_number (to), Qnil, Qnil);
+    {
+      int saved_inhibit_modification_hooks = inhibit_modification_hooks;
+      inhibit_modification_hooks = 1;
+      Fset_text_properties (make_number (from), make_number (to), Qnil, Qnil);
+      inhibit_modification_hooks = saved_inhibit_modification_hooks;
+    }
 
   /* For converion, we must put the gap before the text in addition to
      making the gap larger for efficient decoding.  The required gap
