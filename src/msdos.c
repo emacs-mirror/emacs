@@ -471,7 +471,7 @@ crlf_to_lf (n, buf)
 
   if (n == 0)
     return n;
-  while (buf < endp)
+  while (buf < endp - 1)
     {
       if (*buf == 0x0d)
 	{
@@ -481,6 +481,8 @@ crlf_to_lf (n, buf)
       else
 	*np++ = *buf++;
     }
+  if (buf < endp)
+    *np++ = *buf++;
   return np - startp;
 }
 
