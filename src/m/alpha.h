@@ -153,7 +153,7 @@ NOTE-END
 # endif
 #endif
 
-#ifdef __NetBSD__
+#if defined(__NetBSD__) || defined(__OpenBSD__)
 #define ORDINARY_LINK
 #endif
 
@@ -239,7 +239,7 @@ NOTE-END
 
 #ifndef NOT_C_CODE
 /* We need these because pointers are larger than the default ints.  */
-#ifndef __NetBSD__
+#if !defined(__NetBSD__) && !defined(__OpenBSD__)
 #include <alloca.h>
 #else
 #include <stdlib.h>
@@ -295,7 +295,7 @@ extern void r_alloc_free ();
     {							\
       int dummy;					\
       SIGMASKTYPE mask;					\
-      mask = sigblock (SIGCHLD);			\
+      mask = sigblock (sigmask (SIGCHLD));		\
       if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
 	fd = -1;					\
       sigsetmask (mask);				\
@@ -308,10 +308,14 @@ extern void r_alloc_free ();
    termio and struct termios are mutually incompatible.  */
 #define NO_TERMIO
 
-#ifdef LINUX
+#if defined (LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
 # define TEXT_END ({ extern int _etext; &_etext; })
 # ifndef __ELF__
 #  define COFF
 #  define DATA_END ({ extern int _EDATA; &_EDATA; })
 # endif /* notdef __ELF__ */
+#endif
+
+#if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
+#define HAVE_TEXT_START
 #endif
