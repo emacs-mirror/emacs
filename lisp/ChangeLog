@@ -1,4 +1,15 @@
-2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* progmodes/gud.el (gud-tool-bar-map): Modify names of icon files
+	for gud-next, gud-nexti, gud-step and gud-stepi to prevent
+	file-name clashes on 8+3 DOS filesystems.
+
+	* toolbar/gud-next.pbm, toolbar/gud-next.xpm
+	* toolbar/gud-nexti.pbm, toolbar/gud-nexti.xpm
+	* toolbar/gud-step.pbm, toolbar/gud-step.xpm
+	* toolbar/gud-stepi.pbm, toolbar/gud-stepi.xpm: Renamed to
+	gud-n.*, gud-ni.*, gud-s.*, and gud-si.*, respectively, to avoid
+	file-name clashes on 8+3 filesystems.
 
 	* emacs-lisp/tcover-unsafep.el, emacs-lisp/tcover-ses.el: Renamed
 	from testcover-unsafep.el and testcover-ses.el to avoid file-name
