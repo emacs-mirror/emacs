@@ -357,7 +357,8 @@ If at end-of-line, and not in a comment or a quote, correct the's indentation."
 	 (save-excursion
 	   (beginning-of-line)
 	   (and (not			; eliminate comments quickly
-		 (re-search-forward comment-start-skip insertpos t)) 
+		 (and comment-start-skip
+		      (re-search-forward comment-start-skip insertpos t)) )
 		(or (/= last-command-char ?:)
 		    ;; Colon is special only after a label ....
 		    (looking-at "\\s-*\\(\\w\\|\\s_\\)+$"))
@@ -432,7 +433,8 @@ possible action from the following list:
 		       (if (= oldpnt eol) ; no comment, create one?
 			   (indent-for-comment))
 		     (beginning-of-line)
-		     (if (re-search-forward comment-start-skip eol 'move)
+		     (if (and comment-start-skip
+			      (re-search-forward comment-start-skip eol 'move))
 			 (if (eolp)
 			     (progn	; kill existing comment
 			       (goto-char (match-beginning 0))
@@ -600,7 +602,8 @@ Returns (parse-state) if line starts inside a string."
     (while (not stop)
       (setq opoint (point))
       (beginning-of-line)
-      (if (re-search-forward comment-start-skip opoint 'move 1)
+      (if (and comment-start-skip
+	       (re-search-forward comment-start-skip opoint 'move 1))
 	  (progn (goto-char (match-end 1))
 		 (skip-chars-forward ";")))
       (skip-chars-backward " \t\f")
@@ -653,7 +656,8 @@ Returns (parse-state) if line starts inside a string."
 		      (listp delta)
 		      (and (/= 0 delta)
 			   (= (- (current-indentation) delta) comment-column)))
-		  (if (re-search-forward comment-start-skip eol t)
+		  (if (and comment-start-skip
+			   (re-search-forward comment-start-skip eol t))
 		      (indent-for-comment))))) ; indent existing comment
 	(forward-line 1))
       (goto-char (marker-position oldpnt))
