@@ -566,16 +566,16 @@ Berkeley BSD.
 Data General DGUX operating system.
 
 @item gnu
-A GNU system using the GNU HURD and Mach.
+A GNU system (using the GNU kernel, which consists of the HURD and Mach).
+
+@item gnu/linux
+A variant GNU system using the Linux kernel.
 
 @item hpux
 Hewlett-Packard HPUX operating system.
 
 @item irix
 Silicon Graphics Irix system.
-
-@item linux
-A GNU system using the Linux kernel.
 
 @item ms-dos
 Microsoft MS-DOS ``operating system.''
@@ -1023,7 +1023,7 @@ Note that Common Lisp has different meanings for @var{dow} and
 @var{zone}.
 @end defun
 
-@defun encode-time seconds minutes hour day month year &optional zone
+@defun encode-time seconds minutes hour day month year &optional @dots{}zone
 This function is the inverse of @code{decode-time}.  It converts seven
 items of calendrical data into a time value.  For the meanings of the
 arguments, see the table above under @code{decode-time}.
@@ -1037,12 +1037,31 @@ its daylight savings time rules.  If specified, it can be either a list
 (as you would get from @code{current-time-zone}) or an integer (as you
 would get from @code{decode-time}).  The specified zone is used without
 any further alteration for daylight savings time.
+
+If you pass more than seven arguments to @code{encode-time}, the first
+six are used as @var{seconds} through @var{year}, the last argument is
+used as @var{zone}, and the arguments in between are ignored.  This
+feature makes it possible to use the elements of a list returned by
+@code{decode-time} as the arguments to @code{encode-time}, like this:
+
+@example
+(apply 'encode-time (decode-time @dots{}))
+@end example
 @end defun
 
 @node Timers
 @section Timers for Delayed Execution
+@cindex timer
 
-You can set up a timer to call a function at a specified future time.
+  You can set up a @dfn{timer} to call a function at a specified future time or
+after a certain length of idleness.
+
+  Emacs cannot run a timer at any arbitrary point in a Lisp program; it
+can run them only when Emacs could accept output from a subprocess:
+namely, while waiting or inside certain primitive functions such as
+@code{sit-for} or @code{read-char} which @emph{can} wait.  Therefore, a
+timer's execution may be delayed if Emacs is busy.  However, the time of
+execution is very precise if Emacs is idle.
 
 @defun run-at-time time repeat function &rest args
 This function arranges to call @var{function} with arguments @var{args}
@@ -1050,7 +1069,7 @@ at time @var{time}.  The argument @var{function} is a function to call
 later, and @var{args} are the arguments to give it when it is called.
 The time @var{time} is specified as a string.
 
-Absolute times may be specified in a wide variety of formats; The form
+Absolute times may be specified in a variety of formats; The form
 @samp{@var{hour}:@var{min}:@var{sec} @var{timezone}
 @var{month}/@var{day}/@var{year}}, where all fields are numbers, works;
 the format that @code{current-time-string} returns is also allowed.
@@ -1067,26 +1086,85 @@ denotes 65 seconds from now.
 denotes exactly 103 months, 123 days, and 10862 seconds from now.
 @end table
 
-If @var{time} is an integer, that specifies a relative time measured in
-seconds.
+If @var{time} is a number (integer or floating point), that specifies a
+relative time measured in seconds.
 
 The argument @var{repeat} specifies how often to repeat the call.  If
 @var{repeat} is @code{nil}, there are no repetitions; @var{function} is
-called just once, at @var{time}.  If @var{repeat} is an integer, it
-specifies a repetition period measured in seconds.  In any case, @var{repeat}
-has no effect on when @emph{first} call takes place---@var{time} specifies
-that.
+called just once, at @var{time}.  If @var{repeat} is a number, it
+specifies a repetition period measured in seconds.  In any case,
+@var{repeat} has no effect on when @emph{first} call takes
+place---@var{time} alone specifies that.
 
 The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
-@code{cancel-timer}. 
+@code{cancel-timer} (see below).
 @end defun
+
+@defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
+Execute @var{body}, but give up after @var{seconds} seconds.  If
+@var{body} finishes before the time is up, @code{with-timeout} returns
+the value of the last form in @var{body}.  If, however, the execution of
+@var{body} is cut short by the timeout, then @code{with-timeout}
+executes all the @var{timeout-forms} and returns the value of the last
+of them.
+
+This macro works by set a timer to run after @var{seconds} seconds.  If
+@var{body} finishes before that time, it cancels the timer.  If the
+timer actually runs, it terminates execution of @var{body}, then
+executes @var{timeout-forms}.
+
+Since timers can run within a Lisp program only when the program calls a
+primitive that can wait, @code{with-timeout} cannot stop executing
+@var{body} while it is in the midst of a computation---only when it
+calls one of those primitives.  So use @code{with-timeout} only with a
+@var{body} that waits for input, not one that does a long computation.
+@end defmac
+
+  The function @code{y-or-n-p-with-timeout} provides a simple way to use
+a timer to avoid waiting too long for an answer.  @xref{Yes-or-No
+Queries}.
+
+@defun run-with-idle-timer secs repeat function &rest args
+Set up a timer which runs when Emacs has been idle for @var{secs}
+seconds.  The value of @var{secs} may be an integer or a floating point
+number.
+
+If @var{repeat} is @code{nil}, the timer runs just once, the first time
+Emacs remains idle for a long enough time.  More often @var{repeat} is
+non-@code{nil}, which means to run the timer @emph{each time} Emacs
+remains idle for @var{secs} seconds.
+
+The function @code{run-with-idle-timer} returns a timer value which you
+can use in calling @code{cancel-timer} (see below).
+@end defun
+
+@cindex idleness
+  Emacs becomes ``idle'' when it starts waiting for user input, and it
+remains idle until the user provides some input.  If a timer is set for
+five seconds of idleness, it runs approximately five seconds after Emacs
+first became idle.  Even if its @var{repeat} is true, this timer will
+not run again as long as Emacs remains idle, because the duration of
+idleness will continue to increase and will not go down to five seconds
+again.
+
+  Emacs can do various things while idle: garbage collect, autosave or
+handle data from a subprocess.  But these interludes during idleness
+have little effect on idle timers.  An idle timer set for 600 seconds
+will run when ten minutes have elapsed since the last user command was
+finished, even if subprocess output has been accepted thousands of times
+within those ten minutes, even if there have been garbage collections
+and autosaves.
+
+  When the user supplies input, Emacs becomes non-idle while executing the
+input.  Then it becomes idle again, and all the idle timers that are
+set up to repeat will subsequently run another time, one by one.
 
 @defun cancel-timer timer
 Cancel the requested action for @var{timer}, which should be a value
-previously returned by @code{run-at-time}.  This cancels the effect of
-that call to @code{run-at-time}; the arrival of the specified time will
-not cause anything special to happen.
+previously returned by @code{run-at-time} or @code{run-with-idle-timer}.
+This cancels the effect of that call to @code{run-at-time}; the arrival
+of the specified time will not cause anything special to happen.
 @end defun
 
 @node Terminal Input
@@ -1169,8 +1247,14 @@ is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 @subsection Translating Input Events
 @cindex translating input events
 
-  This section describes features for translating input events into other
-input events before they become part of key sequences.
+  This section describes features for translating input events into
+other input events before they become part of key sequences.  These
+features apply to each event in the order they are described here: each
+event is first modified according to @code{extra-keyboard-modifiers},
+then translated through @code{keyboard-translate-table} (if applicable).
+If it is being read as part of a key sequence, it is then added to the
+sequece being read; then subsequences containing it are checked first
+with @code{function-key-map} and then with @code{key-translation-map}.
 
 @c Emacs 19 feature
 @defvar extra-keyboard-modifiers
@@ -1250,11 +1334,15 @@ character code @var{from} into character code @var{to}.  It creates
 or enlarges the translate table if necessary.
 @end defun
 
+  The remaining translation features translate subsequences of key
+sequences being read.  They are implemented in @code{read-key-sequence}
+and have no effect on @code{read-char}.
+
 @defvar function-key-map
 This variable holds a keymap that describes the character sequences
 sent by function keys on an ordinary character terminal.  This keymap
 uses the same data structure as other keymaps, but is used differently: it
-specifies translations to make while reading events.
+specifies translations to make while reading event sequences.
 
 If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
 @var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
@@ -1299,7 +1387,10 @@ finished; it receives the results of translation by
 @code{function-key-map}.
 
 @item
-@code{key-translation-map} overrides actual key bindings.
+@code{key-translation-map} overrides actual key bindings.  For example,
+if @kbd{C-x f} has a binding in @code{key-translation-map}, that
+translation takes effect even though @kbd{C-x f} also has a key binding
+in the global map.
 @end itemize
 
 The intent of @code{key-translation-map} is for users to map one
