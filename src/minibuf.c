@@ -1833,12 +1833,12 @@ Return nil if there is no valid completion, else t.")
      i gets index in string of where to stop completing.  */
   {
     int len, c;
-
+    int bytes = STRING_BYTES (XSTRING (completion));
     completion_string = XSTRING (completion)->data;
     for (; i_byte < STRING_BYTES (XSTRING (completion)); i_byte += len, i++)
       {
 	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,
-				    XSTRING (completion)->size - i_byte,
+				    bytes - i_byte,
 				    len);
 	if (SYNTAX (c) != Sword)
 	  {
