@@ -49,7 +49,7 @@ specifying the face or faces to use for it.  The style of display used
 for any given character is determined by combining the attributes of
 all the applicable faces specified for that character.  Any attribute
 that isn't specified by these faces is taken from the default face,
-which embodies the default settings of the frame itself.
+whose attributes reflect the default settings of the frame itself.
 
   Enriched mode, the mode for editing formatted text, includes several
 commands and menus for specifying faces for text in the buffer.
@@ -82,7 +82,7 @@ issues in future Emacs versions.
   To see what faces are currently defined, and what they look like, type
 @kbd{M-x list-faces-display}.  It's possible for a given face to look
 different in different frames; this command shows the appearance in the
-frame in which you type it.  Here's a list of the standardly defined
+frame in which you type it.  Here's a list of the standard defined
 faces:
 
 @table @code
@@ -254,12 +254,13 @@ beyond which buffer fontification is suppressed.
 @vindex font-lock-beginning-of-syntax-function
   Comment and string fontification (or ``syntactic'' fontification)
 relies on analysis of the syntactic structure of the buffer text.  For
-the purposes of speed, some modes, including C mode and Lisp mode, rely on
-a special convention: an open-parenthesis in the leftmost column always
-defines the @w{beginning} of a defun, and is thus always outside any string
-or comment.  (@xref{Defuns}.)  If you don't follow this convention,
-then Font Lock mode can misfontify the text after an open-parenthesis in
-the leftmost column that is inside a string or comment.
+the purposes of speed, some modes, including C mode and Lisp mode,
+rely on a special convention: an open-parenthesis or open-brace in the
+leftmost column always defines the @w{beginning} of a defun, and is
+thus always outside any string or comment.  (@xref{Defuns}.)  If you
+don't follow this convention, then Font Lock mode can misfontify the
+text that follows an open-parenthesis or open-brace in the leftmost
+column that is inside a string or comment.
 
 @cindex slow display during scrolling
   The variable @code{font-lock-beginning-of-syntax-function} (always
@@ -327,7 +328,7 @@ parts of the text in different ways.
 @findex unhighlight-regexp
 Unhighlight @var{regexp} (@code{unhighlight-regexp}).  You must enter
 one of the regular expressions currently specified for highlighting.
-(You can use completion, or a menu, to enter one of them
+(You can use completion, or choose from a menu, to enter one of them
 conveniently.)
 
 @item C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
@@ -335,7 +336,7 @@ conveniently.)
 @findex highlight-lines-matching-regexp
 @cindex lines, highlighting
 @cindex highlighting lines of text
-Highlight lines containing a match for @var{regexp}, using face
+Highlight entire lines containing a match for @var{regexp}, using face
 @var{face} (@code{highlight-lines-matching-regexp}).
 
 @item C-x w b
@@ -417,10 +418,12 @@ point vertically within it (@code{recenter}).
 @item C-v
 Scroll forward (a windowful or a specified number of lines) (@code{scroll-up}).
 @item @key{NEXT}
+@itemx @key{PAGEDOWN}
 Likewise, scroll forward.
 @item M-v
 Scroll backward (@code{scroll-down}).
 @item @key{PRIOR}
+@itemx @key{PAGEUP}
 Likewise, scroll backward.
 @item @var{arg} C-l
 Scroll so point is on line @var{arg} (@code{recenter}).
@@ -440,30 +443,42 @@ down from the top of the window.
 @kindex M-v
 @kindex NEXT
 @kindex PRIOR
+@kindex PAGEDOWN
+@kindex PAGEUP
 @findex scroll-up
 @findex scroll-down
-  The scrolling commands @kbd{C-v} and @kbd{M-v} let you move all the text
-in the window up or down a few lines.  @kbd{C-v} (@code{scroll-up}) with an
-argument shows you that many more lines at the bottom of the window, moving
-the text and point up together as @kbd{C-l} might.  @kbd{C-v} with a
-negative argument shows you more lines at the top of the window.
-@kbd{M-v} (@code{scroll-down}) is like @kbd{C-v}, but moves in the
-opposite direction.  The function keys @key{NEXT} and @key{PRIOR} are
-equivalent to @kbd{C-v} and @kbd{M-v}.
-
-  The names of scroll commands are based on the direction that the text
-moves in the window.  Thus, the command to scroll forward is called
-@code{scroll-up} because it moves the text upward on the screen.
-
 @vindex next-screen-context-lines
-  To read the buffer a windowful at a time, use @kbd{C-v} with no argument.
-It takes the last two lines at the bottom of the window and puts them at
-the top, followed by nearly a whole windowful of lines not previously
-visible.  If point was in the text scrolled off the top, it moves to the
-new top of the window.  @kbd{M-v} with no argument moves backward with
-overlap similarly.  The number of lines of overlap across a @kbd{C-v} or
-@kbd{M-v} is controlled by the variable @code{next-screen-context-lines}; by
-default, it is 2.
+  To read the buffer a windowful at a time, use @kbd{C-v}
+(@code{scroll-up}) with no argument.  This scrolls forward by nearly
+the whole window height.  The effect is to take the two lines at the
+bottom of the window and put them at the top, followed by nearly a
+whole windowful of lines that were not previously visible.  If point
+was in the text that scrolled off the top, it ends up at the new top
+of the window.
+
+  @kbd{M-v} (@code{scroll-down}) with no argument scrolls backward
+similarly with overlap.  The number of lines of overlap across a
+@kbd{C-v} or @kbd{M-v} is controlled by the variable
+@code{next-screen-context-lines}; by default, it is 2.  The function
+keys @key{NEXT} and @key{PRIOR}, or @key{PAGEDOWN} and @key{PAGEUP},
+are equivalent to @kbd{C-v} and @kbd{M-v}.
+
+  The commands @kbd{C-v} and @kbd{M-v} with a numeric argument scroll
+the text in the selected window up or down a few lines.  @kbd{C-v}
+with an argument moves the text and point up, together, that many
+lines; it brings the same number of new lines into view at the bottom
+of the window.  @kbd{M-v} with numeric argument scrolls the text
+downward, bringing that many new lines into view at the top of the
+window.  @kbd{C-v} with a negative argument is like @kbd{M-v} and vice
+versa.
+
+  The names of scroll commands are based on the direction that the
+text moves in the window.  Thus, the command to scroll forward is
+called @code{scroll-up} because it moves the text upward on the
+screen.  The keys @key{PAGEDOWN} and @key{PAGEUP} derive their names
+and customary meanings from a different convention that developed
+elsewhere; hence the strange result that @key{PAGEDOWN} runs
+@code{scroll-up}.
 
 @vindex scroll-preserve-screen-position
   Some users like the full-screen scroll commands to keep point at the
@@ -483,8 +498,8 @@ point on the very top line.  Point does not move with respect to the text;
 rather, the text and point move rigidly on the screen.  @kbd{C-l} with a
 negative argument puts point that many lines from the bottom of the window.
 For example, @kbd{C-u - 1 C-l} puts point on the bottom line, and @kbd{C-u
-- 5 C-l} puts it five lines from the bottom.  Just @kbd{C-u} as argument,
-as in @kbd{C-u C-l}, scrolls point to the center of the selected window.
+- 5 C-l} puts it five lines from the bottom.  @kbd{C-u C-l} scrolls to put
+point at the center (vertically) of the selected window.
 
 @kindex C-M-l
 @findex reposition-window
@@ -494,13 +509,13 @@ the screen.  For example, in a Lisp file, this command tries to get the
 entire current defun onto the screen if possible.
 
 @vindex scroll-conservatively
-  Scrolling happens automatically if point has moved out of the visible
-portion of the text when it is time to display.  Normally, automatic
-scrolling centers point vertically within the window.  However, if you
-set @code{scroll-conservatively} to a small number @var{n}, then if you
-move point just a little off the screen---less than @var{n} lines---then
-Emacs scrolls the text just far enough to bring point back on screen.
-By default, @code{scroll-conservatively} is 0.
+  Scrolling happens automatically when point moves out of the visible
+portion of the text.  Normally, automatic scrolling centers point
+vertically within the window.  However, if you set
+@code{scroll-conservatively} to a small number @var{n}, then if you
+move point just a little off the screen---less than @var{n}
+lines---then Emacs scrolls the text just far enough to bring point
+back on screen.  By default, @code{scroll-conservatively} is 0.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -537,7 +552,7 @@ window, Emacs recenters the window.  By default, @code{scroll-margin} is
 
   @dfn{Horizontal scrolling} means shifting all the lines sideways
 within a window---so that some of the text near the left margin is not
-displayed at all.  Emacs does this automatically, in any window that
+displayed at all.  Emacs does this automatically in any window that
 uses line truncation rather than continuation: whenever point moves
 off the left or right edge of the screen, Emacs scrolls the buffer
 horizontally to make point visible.
@@ -700,25 +715,22 @@ indicator prominent.
 @cindex mode line, 3D appearence
 @cindex attributes of mode line, changing
 @cindex non-integral number of lines in a window
-  By default, the mode line is drawn on graphics displays as a 3D
-released button.  Depending on the font used for the mode line's text,
-this might make the mode line use more space than a text line in a
-window, and cause the last line of the window be partially obscured.
-That is, the window displays a non-integral number of text lines.  If
-you don't like this effect, you can disable the 3D appearence of the
-mode line by customizing the attributes of the @code{mode-line} face in
-your @file{.emacs} init file, like this:
+  By default, the mode line is drawn on graphics displays with
+3D-style highlighting, like that of a button when it is not being
+pressed.  If you don't like this effect, you can disable the 3D
+highlighting of the mode line, by customizing the attributes of the
+@code{mode-line} face in your @file{.emacs} init file, like this:
 
 @example
- (set-face-attribute 'mode-line nil :box nil)
+(set-face-attribute 'mode-line nil :box nil)
 @end example
 
 @noindent
-Alternatively, you could turn off the box attribute in your
+Alternatively, you can turn off the box attribute in your
 @file{.Xdefaults} file:
 
 @example
- Emacs.mode-line.AttributeBox: off
+Emacs.mode-line.AttributeBox: off
 @end example
 
 @node Text Display
@@ -742,7 +754,7 @@ control-A is displayed as @samp{^A}.
 octal escape sequences; thus, character code 0230 (octal) is displayed
 as @samp{\230}.  The display of character codes 0240 through 0377
 (octal) may be either as escape sequences or as graphics.  They do not
-normally occur in multibyte buffers but if they do, they are displayed
+normally occur in multibyte buffers, but if they do, they are displayed
 as Latin-1 graphics.  In unibyte mode, if you enable European display
 they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
