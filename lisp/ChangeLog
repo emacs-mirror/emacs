@@ -1,3 +1,10 @@
+2002-12-13  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el (encode-mac-roman): Fix last change.
+
+	* language/cyrillic.el (ccl-encode-koi8, ccl-encode-koi8-u)
+	(ccl-encode-alternativnyj): Fix last change.
+
 2002-12-13  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el: Improve documentation strings.
