@@ -54,7 +54,7 @@
 ;;
 ;; * Additional expressions to font-lock.  This should be a list of
 ;;   expressions, each of which should be of the same form
-;;   as those in `font-lock-defaults-alist'.
+;;   as those in `font-lock-keywords'.
 ;;
 ;; * List of regular expressions to be placed in auto-mode-alist.
 ;;
@@ -206,7 +206,7 @@ KEYWORD-LIST is a list of keywords to highlight with `font-lock-keyword-face'.
 Each keyword should be a string.
 
 FONT-LOCK-LIST is a list of additional expressions to highlight. Each entry
-in the list should have the same form as an entry in `font-lock-defaults-alist'
+in the list should have the same form as an entry in `font-lock-keywords'.
 
 AUTO-MODE-LIST is a list of regular expressions to add to `auto-mode-alist'.
 These regexps are added to `auto-mode-alist' as soon as `define-generic-mode'
