@@ -42,6 +42,10 @@ extern int errno;
 extern char *egetenv ();
 extern char *strcpy ();
 
+#ifndef (__386bsd__)
+extern struct passwd *getpwuid ();
+#endif
+
 #ifdef CLASH_DETECTION
   
 /* If system does not have symbolic links, it does not have lstat.
@@ -140,7 +144,6 @@ lock_file_owner_name (lfname)
 {
   struct stat s;
   struct passwd *the_pw;
-  extern struct passwd *getpwuid ();
 
   if (lstat (lfname, &s) == 0)
     the_pw = getpwuid (s.st_uid);
