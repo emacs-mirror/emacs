@@ -1,3 +1,8 @@
+2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
+
+	* fileio.c (Fdelete_file): Handle symlinks pointing to
+	directories.
+
 2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (apply_modifiers): Don't fill the other cache.
