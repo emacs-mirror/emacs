@@ -82,6 +82,8 @@ int last_abbrev_point;
 /* Hook to run before expanding any abbrev.  */
 
 Lisp_Object Vpre_abbrev_expand_hook, Qpre_abbrev_expand_hook;
+
+Lisp_Object Qsystem_type, Qcount;
 
 DEFUN ("make-abbrev-table", Fmake_abbrev_table, Smake_abbrev_table, 0, 0, 0,
        doc: /* Create a new, empty abbrev table object.  */)
@@ -105,7 +107,7 @@ DEFUN ("clear-abbrev-table", Fclear_abbrev_table, Sclear_abbrev_table, 1, 1, 0,
   return Qnil;
 }
 
-DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 5, 0,
+DEFUN ("define-abbrev", Fdefine_abbrev, Sdefine_abbrev, 3, 6, 0,
        doc: /* Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
 NAME must be a string.
 EXPANSION should usually be a string.
@@ -114,10 +116,15 @@ If HOOK is non-nil, it should be a function of no arguments;
 it is called after EXPANSION is inserted.
 If EXPANSION is not a string, the abbrev is a special one,
  which does not expand in the usual way but only runs HOOK.
-COUNT, if specified, initializes the abbrev's usage-count
-which is incremented each time the abbrev is used.  */)
-     (table, name, expansion, hook, count)
-     Lisp_Object table, name, expansion, hook, count;
+
+COUNT, if specified, gives the initial value for the abbrev's
+usage-count, which is incremented each time the abbrev is used.
+\(The default is zero.)
+
+SYSTEM-FLAG, if non-nil, says that this is a "system" abbreviation
+which should not be saved in the user's abbreviation file.  */)
+     (table, name, expansion, hook, count, system_flag)
+     Lisp_Object table, name, expansion, hook, count, system_flag;
 {
   Lisp_Object sym, oexp, ohook, tem;
   CHECK_VECTOR (table);
@@ -137,12 +144,17 @@ which is incremented each time the abbrev is used.  */)
 	     && (tem = Fstring_equal (oexp, expansion), !NILP (tem))))
 	&&
 	(EQ (ohook, hook)
-	 || (tem = Fequal (ohook, hook), !NILP (tem)))))
+	 || (tem = Fequal (ohook, hook), !NILP (tem))))
+      && NILP (system_flag))
     abbrevs_changed = 1;
 
   Fset (sym, expansion);
   Ffset (sym, hook);
-  Fsetplist (sym, count);
+
+  if (! NILP (system_flag))
+    Fsetplist (sym, list4 (Qcount, count, Qsystem_type, system_flag));
+  else
+    Fsetplist (sym, count);
 
   return name;
 }
@@ -154,7 +166,7 @@ DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 
      Lisp_Object abbrev, expansion;
 {
   Fdefine_abbrev (Vglobal_abbrev_table, Fdowncase (abbrev),
-		  expansion, Qnil, make_number (0));
+		  expansion, Qnil, make_number (0), Qnil);
   return abbrev;
 }
 
@@ -168,7 +180,7 @@ DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev, Sdefine_mode_abbrev, 2, 2,
     error ("Major mode has no abbrev table");
 
   Fdefine_abbrev (current_buffer->abbrev_table, Fdowncase (abbrev),
-		  expansion, Qnil, make_number (0));
+		  expansion, Qnil, make_number (0), Qnil);
   return abbrev;
 }
 
@@ -292,6 +304,7 @@ Returns the abbrev symbol, if expansion took place.  */)
 		    wordend - wordstart, wordend_byte - wordstart_byte);
   else
     XSETFASTINT (sym, 0);
+
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     sym = oblookup (Vglobal_abbrev_table, buffer,
 		    wordend - wordstart, wordend_byte - wordstart_byte);
@@ -314,9 +327,12 @@ Returns the abbrev symbol, if expansion took place.  */)
   value = sym;
   last_abbrev_point = wordstart;
 
+  /* Increment use count.  */
   if (INTEGERP (XSYMBOL (sym)->plist))
     XSETINT (XSYMBOL (sym)->plist,
-	     XINT (XSYMBOL (sym)->plist) + 1);	/* Increment use count */
+	     XINT (XSYMBOL (sym)->plist) + 1);
+  else if (tem = Fget (sym, Qcount))
+    Fput (sym, Qcount, make_number (XINT (tem) + 1));
 
   /* If this abbrev has an expansion, delete the abbrev
      and insert the expansion.  */
@@ -427,9 +443,22 @@ static void
 write_abbrev (sym, stream)
      Lisp_Object sym, stream;
 {
-  Lisp_Object name;
-  if (NILP (SYMBOL_VALUE (sym)))
+  Lisp_Object name, count, system_flag;
+
+  if (INTEGERP (XSYMBOL (sym)->plist))
+    {
+      count = XSYMBOL (sym)->plist;
+      system_flag = Qnil;
+    }
+  else
+    {
+      count = Fget (sym, Qcount);
+      system_flag = Fget (sym, Qsystem_type);
+    }
+
+  if (NILP (SYMBOL_VALUE (sym)) || ! NILP (system_flag))
     return;
+
   insert ("    (", 5);
   XSETSTRING (name, XSYMBOL (sym)->name);
   Fprin1 (name, stream);
@@ -438,7 +467,7 @@ write_abbrev (sym, stream)
   insert (" ", 1);
   Fprin1 (XSYMBOL (sym)->function, stream);
   insert (" ", 1);
-  Fprin1 (XSYMBOL (sym)->plist, stream);
+  Fprin1 (count, stream);
   insert (")\n", 2);
 }
 
@@ -446,14 +475,34 @@ static void
 describe_abbrev (sym, stream)
      Lisp_Object sym, stream;
 {
-  Lisp_Object one;
+  Lisp_Object one, count, system_flag;
+
+  if (INTEGERP (XSYMBOL (sym)->plist))
+    {
+      count = XSYMBOL (sym)->plist;
+      system_flag = Qnil;
+    }
+  else
+    {
+      count = Fget (sym, Qcount);
+      system_flag = Fget (sym, Qsystem_type);
+    }
 
   if (NILP (SYMBOL_VALUE (sym)))
     return;
+
   one = make_number (1);
   Fprin1 (Fsymbol_name (sym), stream);
-  Findent_to (make_number (15), one);
-  Fprin1 (XSYMBOL (sym)->plist, stream);
+
+  if (!NILP (system_flag))
+    {
+      insert_string (" (sys)");
+      Findent_to (make_number (20), one);
+    }
+  else
+    Findent_to (make_number (15), one);
+
+  Fprin1 (count, stream);
   Findent_to (make_number (20), one);
   Fprin1 (SYMBOL_VALUE (sym), stream);
   if (!NILP (XSYMBOL (sym)->function))
@@ -471,7 +520,9 @@ NAME is a symbol whose value is an abbrev table.
 If optional 2nd arg READABLE is non-nil, a human-readable description
 is inserted.  Otherwise the description is an expression,
 a call to `define-abbrev-table', which would
-define the abbrev table NAME exactly as it is currently defined.  */)
+define the abbrev table NAME exactly as it is currently defined.
+
+Abbrevs marked as "system abbrevs" are omitted.  */)
      (name, readable)
      Lisp_Object name, readable;
 {
@@ -508,12 +559,13 @@ DEFUN ("define-abbrev-table", Fdefine_abbrev_table, Sdefine_abbrev_table,
        2, 2, 0,
        doc: /* Define TABLENAME (a symbol) as an abbrev table name.
 Define abbrevs in it according to DEFINITIONS, which is a list of elements
-of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */)
+of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
+\(If the list is shorter than that, omitted elements default to nil).  */)
      (tablename, definitions)
      Lisp_Object tablename, definitions;
 {
   Lisp_Object name, exp, hook, count;
-  Lisp_Object table, elt;
+  Lisp_Object table, elt, sys;
 
   CHECK_SYMBOL (tablename);
   table = Fboundp (tablename);
@@ -531,8 +583,9 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */)
       name  = Fcar (elt);	elt = Fcdr (elt);
       exp   = Fcar (elt);	elt = Fcdr (elt);
       hook  = Fcar (elt);	elt = Fcdr (elt);
-      count = Fcar (elt);
-      Fdefine_abbrev (table, name, exp, hook, count);
+      count = Fcar (elt);	elt = Fcdr (elt);
+      sys   = Fcar (elt);
+      Fdefine_abbrev (table, name, exp, hook, count, sys);
     }
   return Qnil;
 }
@@ -540,6 +593,12 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).  */)
 void
 syms_of_abbrev ()
 {
+  Qsystem_type = intern ("system-type");
+  staticpro (&Qsystem_type);
+
+  Qcount = intern ("count");
+  staticpro (&Qcount);
+
   DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list,
 	       doc: /* List of symbols whose values are abbrev tables.  */);
   Vabbrev_table_name_list = Fcons (intern ("fundamental-mode-abbrev-table"),
