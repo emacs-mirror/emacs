@@ -2666,22 +2666,22 @@ and to indicate in the header that the printout is of a partial file.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal functions
 
-(defsubst ps-font-list (font-sym)
+(defsubst ps-font-alist (font-sym)
   (get font-sym 'fonts))
 
 (defun ps-font (font-sym font-type)
   "Font family name for text of `font-type', when generating PostScript."
-  (let* ((font-list (ps-font-list font-sym))
+  (let* ((font-list (ps-font-alist font-sym))
 	 (normal-font (cdr (assq 'normal font-list))))
     (while (and font-list (not (eq font-type (car (car font-list)))))
       (setq font-list (cdr font-list)))
     (or (cdr (car font-list)) normal-font)))
 
 (defun ps-fonts (font-sym)
-  (mapcar 'cdr (ps-font-list font-sym)))
+  (mapcar 'cdr (ps-font-alist font-sym)))
 
 (defun ps-font-number (font-sym font-type)
-  (or (ps-position font-type (ps-font-list font-sym))
+  (or (ps-alist-position font-type (ps-font-alist font-sym))
       0))
 
 (defsubst ps-line-height (font-sym)
@@ -3187,10 +3187,10 @@ page-height == bm + print-height + tm - ho - hh
 ;; Find the first occurrence of ITEM in LIST.
 ;; Return the index of the matching item, or nil if not found.
 ;; Elements are compared with `eq'.
-(defun ps-position (item list)
+(defun ps-alist-position (item list)
   (let ((tail list) (index 0) found)
     (while tail
-      (if (setq found (eq (car tail) item))
+      (if (setq found (eq (car (car tail)) item))
 	  (setq tail nil)
 	(setq index (1+ index)
 	      tail (cdr tail))))
@@ -3290,7 +3290,7 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output ps-print-prologue-2)
 
   ;; Text fonts
-  (let ((font (ps-font-list 'ps-font-for-text))
+  (let ((font (ps-font-alist 'ps-font-for-text))
 	(i 0))
     (while font
       (ps-output (format "/f%d %s /%s DefFont\n"
