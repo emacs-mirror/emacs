@@ -1,9 +1,12 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!144.c(trunk.1) $
  summary = MVFF fenceposting check
  language = c
  link = testlib.o
+OUTPUT_SPEC
+ assert = true
+ assertcond = fencepost check requested by client
 END_HEADER
 */
 
