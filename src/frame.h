@@ -511,7 +511,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WINDOW_WIDTH_ARG(f, width)	\
      ((width)					\
       + FRAME_SCROLL_BAR_WIDTH (f)		\
-      + 2 * FRAME_FLAGS_AREA_COLS (f))
+      + FRAME_FLAGS_AREA_COLS (f))
 
 /* Maximum + 1 legitimate value for FRAME_CURSOR_X.  */
 #define FRAME_CURSOR_X_LIMIT(f) \
@@ -660,17 +660,18 @@ extern Lisp_Object Vterminal_frame;
      (FRAME_WINDOW_P (F) ? FRAME_DEFAULT_FONT_WIDTH (F) : 1)
 
 /* Pixel width of areas used to display truncation marks, continuation
-   marks, overlay arrows.  This is 0 for terminal frames.  Other
-   terminal headers must define FRAME_X_TRUNC_WIDTH.  */
+   marks, overlay arrows.  This is 0 for terminal frames.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 #define FRAME_FLAGS_AREA_COLS(F) \
      (FRAME_WINDOW_P ((F)) ? FRAME_X_FLAGS_AREA_COLS ((F)) : 0)
-#define FRAME_FLAGS_AREA_WIDTH(F) \
-     (FRAME_FLAGS_AREA_COLS ((F)) * CANON_X_UNIT ((F)))
+#define FRAME_FLAGS_AREA_WIDTH(F) FRAME_X_FLAGS_AREA_WIDTH (F)
+#define FRAME_LEFT_FLAGS_AREA_WIDTH(F) FRAME_X_LEFT_FLAGS_AREA_WIDTH (F)
+     
 #else
 #define FRAME_FLAGS_AREA_WIDTH(F)	0
 #define FRAME_FLAGS_AREA_COLS(F)	0
+#define FRAME_LEFT_FLAGS_AREA_WIDTH(F)  0
 #endif
      
 
