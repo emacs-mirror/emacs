@@ -1670,7 +1670,10 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #ifdef TRY_AGAIN
       h_errno = 0;
 #endif
+      immediate_quit = 1;
+      QUIT;
       host_info_ptr = gethostbyname (XSTRING (host)->data);
+      immediate_quit = 0;
 #ifdef TRY_AGAIN
       if (! (host_info_ptr == 0 && h_errno == TRY_AGAIN))
 #endif
@@ -2228,10 +2231,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}
 
       if ((XINT (read_kbd) > 0 || wait_for_cell)
-	  && detect_input_pending_run_timers ())
+	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
-	  if (detect_input_pending_run_timers ())
+	  if (detect_input_pending_run_timers (do_display))
 	    break;
 	}
 
