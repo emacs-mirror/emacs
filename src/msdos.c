@@ -4651,18 +4651,23 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
       saveargv1 = argv[1];
       saveargv2 = argv[2];
       argv[1] = "/c";
-      if (argv[2])
+      /* We only need to mirror slashes if a DOS shell will be invoked
+	 not via `system' (which does the mirroring itself).  Yes, that
+	 means DJGPP v1.x will lose here.  */
+      if (argv[2] && argv[3])
 	{
 	  char *p = alloca (strlen (argv[2]) + 1);
 
 	  strcpy (argv[2] = p, saveargv2);
 	  while (*p && isspace (*p))
 	    p++;
-	  while (*p && !isspace (*p))
-	    if (*p == '/')
-	      *p++ = '\\';
-	    else
-	      p++;
+	  while (*p)
+	    {
+	      if (*p == '/')
+		*p++ = '\\';
+	      else
+		p++;
+	    }
 	}
     }
 
@@ -4703,6 +4708,7 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
       if (*cmnd)
 	{
 	  extern char **environ;
+	  char **save_env = environ;
 	  int save_system_flags = __system_flags;
 
 	  /* Request the most powerful version of `system'.  We need
@@ -4717,6 +4723,7 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
 	  environ = envv;
 	  result = system (cmnd);
 	  __system_flags = save_system_flags;
+	  environ = save_env;
 	}
       else
 	result = 0;	/* emulate Unixy shell behavior with empty cmd line */
