@@ -544,10 +544,6 @@ If FRAME is missing or nil, the first member of (frame-list) is used."
 		 (custom-get-frame-properties frame))
     (custom-initialize-faces frame)))
 
-;; Enable.  This should go away when bundled with Emacs.
-(unless (string-match "XEmacs" emacs-version)
-  (add-hook 'after-make-frame-hook 'custom-initialize-frame))
-
 ;;; Initializing.
 
 (and (fboundp 'make-face)
