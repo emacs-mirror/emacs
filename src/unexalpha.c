@@ -442,7 +442,7 @@ fatal_unexec (s, va_alist)
   else
     fprintf (stderr, "unexec: %s, ", strerror (errno));
   va_start (ap);
-  _doprnt (s, ap, stderr);
+  vfprintf (stderr, s, ap);
   fputs (".\n", stderr);
   exit (1);
 }
