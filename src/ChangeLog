@@ -1,3 +1,7 @@
+2003-01-24  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Fminibuffer_message): Verify type of parameter.
+
 2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
