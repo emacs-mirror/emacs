@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, isearch
 
@@ -60,7 +61,7 @@
 
 ;; Exit from recursive edit safely.  Set in `after-change-functions'
 ;; by isearch-with-keyboard-coding.
-(defun isearch-exit-recursive-edit ()
+(defun isearch-exit-recursive-edit (start end length)
   (interactive)
   (throw 'exit nil))
 
