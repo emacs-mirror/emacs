@@ -2370,7 +2370,7 @@ EXFUN (Fsubstitute_command_keys, 1);
 EXFUN (Fdocumentation, 2);
 EXFUN (Fdocumentation_property, 3);
 extern Lisp_Object read_doc_string P_ ((Lisp_Object));
-extern Lisp_Object get_doc_string P_ ((Lisp_Object, int));
+extern Lisp_Object get_doc_string P_ ((Lisp_Object, int, int));
 extern void syms_of_doc P_ ((void));
 
 /* defined in bytecode.c */
