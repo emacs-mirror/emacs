@@ -1,6 +1,6 @@
-/* This was taken from the output of Imake
-   and set up to be configured by ../configure.
-   Some parts Copyright (c) 1992, 1993 Lucid, Inc.  */
+# This was taken from the output of Imake
+# and set up to be configured by ../configure.
+# Some parts Copyright (c) 1992, 1993 Lucid, Inc.
 
 srcdir=@srcdir@
 VPATH=@srcdir@
