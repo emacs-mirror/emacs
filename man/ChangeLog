@@ -1,3 +1,8 @@
+2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Starting GUD): Note that multiple debugging
+	sessions requires `gdb --fullname'.
+
 2004-10-05  Karl Berry  <karl@gnu.org>
 
 	* info.texi: consistently use --- throughout, periods at end of
