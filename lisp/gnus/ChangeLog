@@ -1,3 +1,7 @@
+2004-03-27  Juanma Barranquero  <lektu@terra.es>
+
+	* gnus-srvr.el (gnus-server-prepare): Remove spurious call to `cdr'.
+
 2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el: Use inhibit-read-only instead of buffer-read-only.
