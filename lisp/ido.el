@@ -1324,6 +1324,8 @@ This function also adds a hook to the minibuffer."
       (define-key map [(meta down)] 'ido-next-work-directory)
       (define-key map [backspace] 'ido-delete-backward-updir)
       (define-key map "\d"        'ido-delete-backward-updir)
+      (define-key map [remap viper-backward-char] 'ido-delete-backward-updir)
+      (define-key map [remap viper-del-backward-char-in-insert] 'ido-delete-backward-updir)
       (define-key map [(meta backspace)] 'ido-delete-backward-word-updir)
       (define-key map [(control backspace)] 'ido-up-directory)
       (define-key map [(meta ?b)] 'ido-next-work-file)
