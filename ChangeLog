@@ -1,3 +1,9 @@
+2000-04-14  Dave Love  <fx@gnu.org>
+
+	* configure.in: Use AC_FUNC_GETLOADAVG, AC_FUNC_MKTIME.
+
+	* aclocal.m4 (AC_FUNC_MKTIME): New.
+
 2000-03-28  Ken Raeburn  <raeburn@gnu.org>
 
 	* configure.in: Line up "--help" output a little better.
