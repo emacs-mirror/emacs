@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_test_function!102.c(trunk.2) $
 TEST_HEADER
  summary = EPDL allocation test
  language = c
@@ -70,7 +70,7 @@ static void dt(int kind,
 
  die(
   mps_pool_create(&pool, space, mps_class_epdl(),
-                  extendBy, avgSize, maxSize),
+                  extendBy, avgSize, 8),
   "create pool");
 
  for(hd=0; hd<number; hd++)
