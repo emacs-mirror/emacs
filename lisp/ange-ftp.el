@@ -2298,6 +2298,9 @@ which can parse the output from a DIR listing for a host of type TYPE.")
 ;; in the wildcard case.  Then we make a relative directory listing
 ;; of FILE within the directory specified by `default-directory'.
 
+(defvar ange-ftp-before-parse-ls-hook nil
+  "Normal hook run before parsing the text of an ftp directory listing.")
+
 (defun ange-ftp-ls (file lsargs parse &optional no-error wildcard)
   "Return the output of an `DIR' or `ls' command done over ftp.
 FILE is the full name of the remote file, LSARGS is any args to pass to the
@@ -2355,6 +2358,7 @@ away in the internal cache."
 					  (format
 					   "list data file %s not readable"
 					   temp))))
+		      (run-hooks 'ange-ftp-before-parse-ls-hook)
 		      (if parse
 			  (ange-ftp-set-files
 			   ange-ftp-this-file
