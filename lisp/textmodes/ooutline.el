@@ -215,13 +215,10 @@ A heading line is one that starts with a `*' (or that
   "Hides or shows lines from FROM to TO, according to FLAG.
 If FLAG is `\\n' (newline character) then text is shown,
 while if FLAG is `\\^M' (control-M) the text is hidden."
-  (let (buffer-read-only
-	(modp (buffer-modified-p)))
-    (unwind-protect
-        (subst-char-in-region from to
-			      (if (= flag ?\n) ?\^M ?\n)
-			      flag)
-     (set-buffer-modified-p modp))))
+  (let (buffer-read-only)
+    (subst-char-in-region from to
+			  (if (= flag ?\n) ?\^M ?\n)
+			  flag t)))
 
 (defun hide-entry ()
   "Hide the body directly following this heading."
