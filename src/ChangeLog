@@ -1,3 +1,8 @@
+2000-07-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* print.c (print_object): If vector printing is truncated, print
+	"..." to indicate it as well as the case of list printing.
+
 2000-07-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (next_element_from_display_vector): Improve comments.
