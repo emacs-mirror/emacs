@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.112) $
+ * $HopeName: MMsrc!mpm.h(trunk.113) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -34,7 +34,10 @@ extern Bool MPMCheck(void);
 
 /* Miscellaneous Checks -- see impl.c.mpm */
 
-extern Bool BoolCheck(Bool b);
+/* design.mps.type.bool.check */
+extern Bool (BoolCheck)(Bool b);
+/* design.mps.type.bool.check.inline */
+#define BoolCheck(b) ((unsigned)(b) <= 1)
 extern Bool FunCheck(Fun f);
 extern Bool ShiftCheck(Shift shift);
 extern Bool AttrCheck(Attr attr);
