@@ -1,5 +1,9 @@
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (confirm-kill-emacs): New user-option.
+	(save-buffers-kill-emacs): Ask for final confirmation before
+	killing Emacs.
+
 	* isearch.el (isearch-done): Set isearch-lazy-highlight-start
 	to nil.
 

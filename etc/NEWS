@@ -43,6 +43,9 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
+** The new user-option `confirm-kill-emacs' can be customized to
+let Emacs ask for confirmation before exiting.
+
 ** The <home> end <end> keys now move to the beginning or end of the
 current line, respectively.  C-<home> and C-<end> move to the
 beginning and end of the buffer.
