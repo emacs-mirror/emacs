@@ -196,7 +196,7 @@ $(DOC):;	cd ..\lib-src
 emacs:          $(EMACS)
 $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 		cd $(BLD)
-		temacs.exe -batch -l loadup dump
+		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup dump
 		copy temacs.map emacs.map
 		cd ..\..
 
