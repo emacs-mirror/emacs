@@ -380,6 +380,53 @@ __malloc_size_t __malloc_extra_blocks;
 void (*__malloc_initialize_hook) PP ((void));
 void (*__after_morecore_hook) PP ((void));
 
+#if defined GC_MALLOC_CHECK && defined GC_PROTECT_MALLOC_STATE
+
+/* Some code for hunting a bug writing into _heapinfo.
+
+   Call this macro with argument PROT non-zero to protect internal
+   malloc state against writing to it, call it with a zero argument to
+   make it readable and writable.
+
+   Note that this only works if BLOCKSIZE == page size, which is
+   the case on the i386.  */
+
+#include <sys/types.h>
+#include <sys/mman.h>
+
+static int state_protected_p;
+static __malloc_size_t last_state_size;
+static malloc_info *last_heapinfo;
+
+void
+protect_malloc_state (protect_p)
+     int protect_p;
+{
+  /* If _heapinfo has been relocated, make sure its old location
+     isn't left read-only; it will be reused by malloc.  */
+  if (_heapinfo != last_heapinfo
+      && last_heapinfo
+      && state_protected_p)
+    mprotect (last_heapinfo, last_state_size, PROT_READ | PROT_WRITE);
+
+  last_state_size = _heaplimit * sizeof *_heapinfo;
+  last_heapinfo   = _heapinfo;
+  
+  if (protect_p != state_protected_p)
+    {
+      state_protected_p = protect_p;
+      if (mprotect (_heapinfo, last_state_size,
+		    protect_p ? PROT_READ : PROT_READ | PROT_WRITE) != 0)
+	abort ();
+    }
+}
+
+#define PROTECT_MALLOC_STATE(PROT) protect_malloc_state(PROT)
+
+#else
+#define PROTECT_MALLOC_STATE(PROT)	/* empty */
+#endif
+
 
 /* Aligned allocation.  */
 static __ptr_t align PP ((__malloc_size_t));
@@ -492,6 +539,7 @@ __malloc_initialize ()
   register_heapinfo ();
 
   __malloc_initialized = 1;
+  PROTECT_MALLOC_STATE (1);
   return 1;
 }
 
@@ -515,6 +563,8 @@ morecore (size)
   result = align (size);
   if (result == NULL)
     return NULL;
+
+  PROTECT_MALLOC_STATE (0);
 
   /* Check if we need to grow the info table.  */
   if ((__malloc_size_t) BLOCK ((char *) result + size) > heapsize)
@@ -599,6 +649,7 @@ morecore (size)
 	 it can relocate or resize the info table.  */
       _heaplimit = 0;
       _free_internal (oldinfo);
+      PROTECT_MALLOC_STATE (0);
 
       /* The new heap limit includes the new table just allocated.  */
       _heaplimit = BLOCK ((char *) newinfo + heapsize * sizeof (malloc_info));
@@ -631,6 +682,8 @@ _malloc_internal (size)
   if (size == 0)
     return NULL;
 #endif
+
+  PROTECT_MALLOC_STATE (0);
 
   if (size < sizeof (struct list))
     size = sizeof (struct list);
@@ -680,11 +733,15 @@ _malloc_internal (size)
 	     and break it into fragments, returning the first.  */
 #ifdef GC_MALLOC_CHECK
 	  result = _malloc_internal (BLOCKSIZE);
+	  PROTECT_MALLOC_STATE (0);
 #else
 	  result = malloc (BLOCKSIZE);
 #endif
 	  if (result == NULL)
-	    return NULL;
+	    {
+	      PROTECT_MALLOC_STATE (1);
+	      return NULL;
+	    }
 
 	  /* Link all fragments but the first into the free list.  */
 	  next = (struct list *) ((char *) result + (1 << log));
@@ -803,6 +860,7 @@ _malloc_internal (size)
 	_heapinfo[block + blocks].busy.info.size = -blocks;
     }
 
+  PROTECT_MALLOC_STATE (1);
   return result;
 }
 
@@ -913,6 +971,8 @@ _free_internal (ptr)
   if (ptr == NULL)
     return;
 
+  PROTECT_MALLOC_STATE (0);
+  
   for (l = _aligned_blocks; l != NULL; l = l->next)
     if (l->aligned == ptr)
       {
@@ -1035,6 +1095,7 @@ _free_internal (ptr)
 	      /* Allocate new space for the info table and move its data.  */
 	      newinfo = (malloc_info *) _malloc_internal (info_blocks
 							  * BLOCKSIZE);
+	      PROTECT_MALLOC_STATE (0);
 	      memmove (newinfo, _heapinfo, info_blocks * BLOCKSIZE);
 	      _heapinfo = newinfo;
 
@@ -1133,6 +1194,8 @@ _free_internal (ptr)
 	}
       break;
     }
+  
+  PROTECT_MALLOC_STATE (1);
 }
 
 /* Return memory to the heap.  */
@@ -1296,6 +1359,8 @@ _realloc_internal (ptr, size)
 
   block = BLOCK (ptr);
 
+  PROTECT_MALLOC_STATE (0);
+  
   type = _heapinfo[block].busy.type;
   switch (type)
     {
@@ -1344,6 +1409,7 @@ _realloc_internal (ptr, size)
 	  _heaplimit = 0;
 	  _free_internal (ptr);
 	  result = _malloc_internal (size);
+	  PROTECT_MALLOC_STATE (0);
 	  if (_heaplimit == 0)
 	    _heaplimit = oldlimit;
 	  if (result == NULL)
@@ -1387,6 +1453,7 @@ _realloc_internal (ptr, size)
       break;
     }
 
+  PROTECT_MALLOC_STATE (1);
   return result;
 }
 
