@@ -44,10 +44,10 @@
 (require 'rect)
 
 ;; If non-nil, restrict current region to this rectangle.
-;; Value is a vector [top bot left right corner ins pad select].
+;; Value is a vector [top bot left right corner ins virt select].
 ;; CORNER specifies currently active corner 0=t/l 1=t/r 2=b/l 3=b/r.
 ;; INS specifies whether to insert on left(nil) or right(t) side.
-;; If PAD is non-nil, tabs are converted to spaces when necessary.
+;; If VIRT is non-nil, virtual straight edges are enabled.
 ;; If SELECT is a regexp, only lines starting with that regexp are affected.")
 (defvar cua--rectangle nil)
 (make-variable-buffer-local 'cua--rectangle)
@@ -64,6 +64,8 @@
 ;; List of overlays used to display current rectangle.
 (defvar cua--rectangle-overlays nil)
 (make-variable-buffer-local 'cua--rectangle-overlays)
+
+(defvar cua--virtual-edges-debug nil)
 
 ;; Per-buffer CUA mode undo list.
 (defvar cua--undo-list nil)
@@ -97,7 +99,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 (defvar cua--tidy-undo-counter 0
   "Number of times `cua--tidy-undo-lists' have run successfully.")
 
-;; Clean out danling entries from cua's undo list.
+;; Clean out dangling entries from cua's undo list.
 ;; Since this list contains pointers into the standard undo list,
 ;; such references are only meningful as undo information if the
 ;; corresponding entry is still on the standard undo list.
@@ -203,11 +205,11 @@ Knows about CUA rectangle highlighting in addition to standard undo."
           (aref cua--rectangle 5))
       (cua--rectangle-left))))
 
-(defun cua--rectangle-padding (&optional set val)
-  ;; Current setting of rectangle padding
+(defun cua--rectangle-virtual-edges (&optional set val)
+  ;; Current setting of rectangle virtual-edges
   (if set
       (aset cua--rectangle 6 val))
-  (and (not buffer-read-only)
+  (and ;(not buffer-read-only)
        (aref cua--rectangle 6)))
 
 (defun cua--rectangle-restriction (&optional val bounded negated)
@@ -226,7 +228,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   (if (< (cua--rectangle-bot) (cua--rectangle-top))
       (message "rectangle bot < top")))
 
-(defun cua--rectangle-get-corners (&optional pad)
+(defun cua--rectangle-get-corners ()
   ;; Calculate the rectangular region represented by point and mark,
   ;; putting start in the upper left corner and end in the
   ;; bottom right corner.
@@ -245,12 +247,12 @@ Knows about CUA rectangle highlighting in addition to standard undo."
               (setq r (1- r)))
         (setq l (prog1 r (setq r l)))
         (goto-char top)
-        (move-to-column l pad)
+        (move-to-column l)
         (setq top (point))
         (goto-char bot)
-        (move-to-column r pad)
+        (move-to-column r)
         (setq bot (point))))
-    (vector top bot l r corner 0 pad nil)))
+    (vector top bot l r corner 0 cua-virtual-rectangle-edges nil)))
 
 (defun cua--rectangle-set-corners ()
   ;; Set mark and point in opposite corners of current rectangle.
@@ -269,24 +271,21 @@ Knows about CUA rectangle highlighting in addition to standard undo."
       (setq pp (cua--rectangle-bot) pc (cua--rectangle-right)
             mp (cua--rectangle-top) mc (cua--rectangle-left))))
     (goto-char mp)
-    (move-to-column mc (cua--rectangle-padding))
+    (move-to-column mc)
     (set-mark (point))
     (goto-char pp)
-    (move-to-column pc (cua--rectangle-padding))))
+    (move-to-column pc)
+    ))
 
 ;;; Rectangle resizing
 
-(defun cua--forward-line (n pad)
+(defun cua--forward-line (n)
   ;; Move forward/backward one line.  Returns t if movement.
-  (if (or (not pad) (< n 0))
-      (= (forward-line n) 0)
-    (next-line 1)
-    t))
+  (= (forward-line n) 0))
 
 (defun cua--rectangle-resized ()
   ;; Refresh state after resizing rectangle
   (setq cua--buffer-and-point-before-command nil)
-  (cua--pad-rectangle)
   (cua--rectangle-insert-col 0)
   (cua--rectangle-set-corners)
   (cua--keep-active))
@@ -294,47 +293,35 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 (defun cua-resize-rectangle-right (n)
   "Resize rectangle to the right."
   (interactive "p")
-  (let ((pad (cua--rectangle-padding)) (resized (> n 0)))
+  (let ((resized (> n 0)))
     (while (> n 0)
       (setq n (1- n))
       (cond
-       ((and (cua--rectangle-right-side) (or pad (eolp)))
-        (cua--rectangle-right (1+ (cua--rectangle-right)))
-        (move-to-column (cua--rectangle-right) pad))
        ((cua--rectangle-right-side)
-        (forward-char 1)
-        (cua--rectangle-right (current-column)))
-       ((or pad (eolp))
-        (cua--rectangle-left (1+ (cua--rectangle-left)))
-        (move-to-column (cua--rectangle-right) pad))
+        (cua--rectangle-right (1+ (cua--rectangle-right)))
+        (move-to-column (cua--rectangle-right)))
        (t
-        (forward-char 1)
-        (cua--rectangle-left (current-column)))))
+        (cua--rectangle-left (1+ (cua--rectangle-left)))
+        (move-to-column (cua--rectangle-right)))))
     (if resized
         (cua--rectangle-resized))))
 
 (defun cua-resize-rectangle-left (n)
   "Resize rectangle to the left."
   (interactive "p")
-  (let ((pad (cua--rectangle-padding)) resized)
+  (let (resized)
     (while (> n 0)
       (setq n (1- n))
       (if (or (= (cua--rectangle-right) 0)
               (and (not (cua--rectangle-right-side)) (= (cua--rectangle-left) 0)))
           (setq n 0)
         (cond
-         ((and (cua--rectangle-right-side) (or pad (eolp) (bolp)))
-          (cua--rectangle-right (1- (cua--rectangle-right)))
-          (move-to-column (cua--rectangle-right) pad))
          ((cua--rectangle-right-side)
-          (backward-char 1)
-          (cua--rectangle-right (current-column)))
-         ((or pad (eolp) (bolp))
-          (cua--rectangle-left (1- (cua--rectangle-left)))
-          (move-to-column (cua--rectangle-right) pad))
+          (cua--rectangle-right (1- (cua--rectangle-right)))
+          (move-to-column (cua--rectangle-right)))
          (t
-          (backward-char 1)
-          (cua--rectangle-left (current-column))))
+          (cua--rectangle-left (1- (cua--rectangle-left)))
+          (move-to-column (cua--rectangle-right))))
         (setq resized t)))
     (if resized
         (cua--rectangle-resized))))
@@ -342,20 +329,20 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 (defun cua-resize-rectangle-down (n)
   "Resize rectangle downwards."
   (interactive "p")
-  (let ((pad (cua--rectangle-padding)) resized)
+  (let (resized)
     (while (> n 0)
       (setq n (1- n))
       (cond
        ((>= (cua--rectangle-corner) 2)
         (goto-char (cua--rectangle-bot))
-        (when (cua--forward-line 1 pad)
-          (move-to-column (cua--rectangle-column) pad)
+        (when (cua--forward-line 1)
+          (move-to-column (cua--rectangle-column))
           (cua--rectangle-bot t)
           (setq resized t)))
        (t
         (goto-char (cua--rectangle-top))
-        (when (cua--forward-line 1 pad)
-          (move-to-column (cua--rectangle-column) pad)
+        (when (cua--forward-line 1)
+          (move-to-column (cua--rectangle-column))
           (cua--rectangle-top t)
           (setq resized t)))))
     (if resized
@@ -364,20 +351,20 @@ Knows about CUA rectangle highlighting in addition to standard undo."
 (defun cua-resize-rectangle-up (n)
   "Resize rectangle upwards."
   (interactive "p")
-  (let ((pad (cua--rectangle-padding)) resized)
+  (let (resized)
     (while (> n 0)
       (setq n (1- n))
       (cond
        ((>= (cua--rectangle-corner) 2)
         (goto-char (cua--rectangle-bot))
-        (when (cua--forward-line -1 pad)
-          (move-to-column (cua--rectangle-column) pad)
+        (when (cua--forward-line -1)
+          (move-to-column (cua--rectangle-column))
           (cua--rectangle-bot t)
           (setq resized t)))
        (t
         (goto-char (cua--rectangle-top))
-        (when (cua--forward-line -1 pad)
-          (move-to-column (cua--rectangle-column) pad)
+        (when (cua--forward-line -1)
+          (move-to-column (cua--rectangle-column))
           (cua--rectangle-top t)
           (setq resized t)))))
     (if resized
@@ -408,7 +395,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   "Resize rectangle to bottom of buffer."
   (interactive)
   (goto-char (point-max))
-  (move-to-column (cua--rectangle-column) (cua--rectangle-padding))
+  (move-to-column (cua--rectangle-column))
   (cua--rectangle-bot t)
   (cua--rectangle-resized))
 
@@ -416,31 +403,29 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   "Resize rectangle to top of buffer."
   (interactive)
   (goto-char (point-min))
-  (move-to-column (cua--rectangle-column) (cua--rectangle-padding))
+  (move-to-column (cua--rectangle-column))
   (cua--rectangle-top t)
   (cua--rectangle-resized))
 
 (defun cua-resize-rectangle-page-up ()
   "Resize rectangle upwards by one scroll page."
   (interactive)
-  (let ((pad (cua--rectangle-padding)))
-    (scroll-down)
-    (move-to-column (cua--rectangle-column) pad)
-    (if (>= (cua--rectangle-corner) 2)
-        (cua--rectangle-bot t)
-      (cua--rectangle-top t))
-    (cua--rectangle-resized)))
+  (scroll-down)
+  (move-to-column (cua--rectangle-column))
+  (if (>= (cua--rectangle-corner) 2)
+      (cua--rectangle-bot t)
+    (cua--rectangle-top t))
+  (cua--rectangle-resized))
 
 (defun cua-resize-rectangle-page-down ()
   "Resize rectangle downwards by one scroll page."
   (interactive)
-  (let ((pad (cua--rectangle-padding)))
-    (scroll-up)
-    (move-to-column (cua--rectangle-column) pad)
-    (if (>= (cua--rectangle-corner) 2)
-        (cua--rectangle-bot t)
-      (cua--rectangle-top t))
-    (cua--rectangle-resized)))
+  (scroll-up)
+  (move-to-column (cua--rectangle-column))
+  (if (>= (cua--rectangle-corner) 2)
+      (cua--rectangle-bot t)
+    (cua--rectangle-top t))
+  (cua--rectangle-resized))
 
 ;;; Mouse support
 
@@ -450,7 +435,8 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   "Set rectangle corner at mouse click position."
   (interactive "e")
   (mouse-set-point event)
-  (if (cua--rectangle-padding)
+  ;; FIX ME -- need to calculate virtual column.
+  (if (cua--rectangle-virtual-edges)
       (move-to-column (car (posn-col-row (event-end event))) t))
   (if (cua--rectangle-right-side)
       (cua--rectangle-right (current-column))
@@ -470,6 +456,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
     (cua--deactivate t))
   (setq cua--last-rectangle nil)
   (mouse-set-point event)
+  ;; FIX ME -- need to calculate virtual column.
   (cua-set-rectangle-mark)
   (setq cua--buffer-and-point-before-command nil)
   (setq cua--mouse-last-pos nil))
@@ -489,13 +476,13 @@ If command is repeated at same position, delete the rectangle."
     (let ((cua-keep-region-after-copy t))
       (cua-copy-rectangle arg)
       (setq cua--mouse-last-pos (cons (point) cua--last-killed-rectangle)))))
+
 (defun cua--mouse-ignore (event)
   (interactive "e")
   (setq this-command last-command))
 
 (defun cua--rectangle-move (dir)
-  (let ((pad (cua--rectangle-padding))
-        (moved t)
+  (let ((moved t)
         (top (cua--rectangle-top))
         (bot (cua--rectangle-bot))
         (l (cua--rectangle-left))
@@ -503,17 +490,17 @@ If command is repeated at same position, delete the rectangle."
     (cond
      ((eq dir 'up)
       (goto-char top)
-      (when (cua--forward-line -1 pad)
+      (when (cua--forward-line -1)
         (cua--rectangle-top t)
         (goto-char bot)
         (forward-line -1)
         (cua--rectangle-bot t)))
      ((eq dir 'down)
       (goto-char bot)
-      (when (cua--forward-line 1 pad)
+      (when (cua--forward-line 1)
         (cua--rectangle-bot t)
         (goto-char top)
-        (cua--forward-line 1 pad)
+        (cua--forward-line 1)
         (cua--rectangle-top t)))
      ((eq dir 'left)
       (when (> l 0)
@@ -526,19 +513,37 @@ If command is repeated at same position, delete the rectangle."
       (setq moved nil)))
     (when moved
       (setq cua--buffer-and-point-before-command nil)
-      (cua--pad-rectangle)
       (cua--rectangle-set-corners)
       (cua--keep-active))))
 
 
 ;;; Operations on current rectangle
 
-(defun cua--rectangle-operation (keep-clear visible undo pad &optional fct post-fct)
+(defun cua--tabify-start (start end)
+  ;; Return position where auto-tabify should start (or nil if not required).
+  (save-excursion
+    (save-restriction
+      (widen)
+      (and (not buffer-read-only)
+	   cua-auto-tabify-rectangles
+	   (if (or (not (integerp cua-auto-tabify-rectangles))
+		   (= (point-min) (point-max))
+		   (progn
+		     (goto-char (max (point-min)
+				     (- start cua-auto-tabify-rectangles)))
+		     (search-forward "\t" (min (point-max)
+					       (+ end cua-auto-tabify-rectangles)) t)))
+	       start)))))
+
+(defun cua--rectangle-operation (keep-clear visible undo pad tabify &optional fct post-fct)
   ;; Call FCT for each line of region with 4 parameters:
   ;; Region start, end, left-col, right-col
   ;; Point is at start when FCT is called
+  ;; Call fct with (s,e) = whole lines if VISIBLE non-nil.
+  ;; Only call fct for visible lines if VISIBLE==t.
   ;; Set undo boundary if UNDO is non-nil.
-  ;; Rectangle is padded if PAD = t or numeric and (cua--rectangle-padding)
+  ;; Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
+  ;; Perform auto-tabify after operation if TABIFY is non-nil.
   ;; Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear.
   (let* ((start (cua--rectangle-top))
          (end   (cua--rectangle-bot))
@@ -546,11 +551,12 @@ If command is repeated at same position, delete the rectangle."
          (r (1+ (cua--rectangle-right)))
          (m (make-marker))
          (tabpad (and (integerp pad) (= pad 2)))
-         (sel (cua--rectangle-restriction)))
+         (sel (cua--rectangle-restriction))
+	 (tabify-start (and tabify (cua--tabify-start start end))))
     (if undo
         (cua--rectangle-undo-boundary))
     (if (integerp pad)
-        (setq pad (cua--rectangle-padding)))
+        (setq pad (cua--rectangle-virtual-edges)))
     (save-excursion
       (save-restriction
         (widen)
@@ -558,7 +564,7 @@ If command is repeated at same position, delete the rectangle."
           (goto-char end)
           (and (bolp) (not (eolp)) (not (eobp))
                (setq end (1+ end))))
-        (when visible
+        (when (eq visible t)
           (setq start (max (window-start) start))
           (setq end   (min (window-end) end)))
         (goto-char end)
@@ -575,7 +581,7 @@ If command is repeated at same position, delete the rectangle."
               (forward-char 1))
           (set-marker m (point))
           (move-to-column l pad)
-          (if (and fct (>= (current-column) l) (<= (current-column) r))
+          (if (and fct (or visible (and (>= (current-column) l) (<= (current-column) r))))
               (let ((v t) (p (point)))
                 (when sel
                   (if (car (cdr sel))
@@ -585,8 +591,7 @@ If command is repeated at same position, delete the rectangle."
                   (if (car (cdr (cdr sel)))
                       (setq v (null v))))
                 (if visible
-		    (unless (eolp)
-			(funcall fct p m l r v))
+		    (funcall fct p m l r v)
                   (if v
                       (funcall fct p m l r)))))
           (set-marker m nil)
@@ -594,7 +599,9 @@ If command is repeated at same position, delete the rectangle."
         (if (not visible)
             (cua--rectangle-bot t))
         (if post-fct
-            (funcall post-fct l r))))
+            (funcall post-fct l r))
+	(when tabify-start
+	  (tabify tabify-start (point)))))
     (cond
      ((eq keep-clear 'keep)
       (cua--keep-active))
@@ -607,48 +614,96 @@ If command is repeated at same position, delete the rectangle."
 
 (put 'cua--rectangle-operation 'lisp-indent-function 4)
 
-(defun cua--pad-rectangle (&optional pad)
-  (if (or pad (cua--rectangle-padding))
-      (cua--rectangle-operation nil nil t t)))
-
 (defun cua--delete-rectangle ()
-  (cua--rectangle-operation nil nil t 2
-    '(lambda (s e l r)
-       (if (and (> e s) (<= e (point-max)))
-	   (delete-region s e)))))
+  (let ((lines 0))
+    (if (not (cua--rectangle-virtual-edges))
+	(cua--rectangle-operation nil nil t 2 t
+	  '(lambda (s e l r v)
+	     (setq lines (1+ lines))
+	     (if (and (> e s) (<= e (point-max)))
+		 (delete-region s e))))
+      (cua--rectangle-operation nil 1 t nil t
+	'(lambda (s e l r v)
+	   (setq lines (1+ lines))
+	   (when (and (> e s) (<= e (point-max)))
+	     (delete-region s e)))))
+    lines))
 
 (defun cua--extract-rectangle ()
   (let (rect)
-    (cua--rectangle-operation nil nil nil 1
-     '(lambda (s e l r)
-        (setq rect (cons (buffer-substring-no-properties s e) rect))))
-      (nreverse rect)))
+    (if (not (cua--rectangle-virtual-edges))
+	(cua--rectangle-operation nil nil nil nil nil ; do not tabify
+	  '(lambda (s e l r)
+	     (setq rect (cons (buffer-substring-no-properties s e) rect))))
+      (cua--rectangle-operation nil 1 nil nil nil ; do not tabify
+	'(lambda (s e l r v)
+	   (let ((copy t) (bs 0) (as 0) row)
+	     (if (= s e) (setq e (1+ e)))
+	     (goto-char s)
+	     (move-to-column l)
+	     (if (= (point) (line-end-position))
+		 (setq bs (- r l)
+		       copy nil)
+	       (skip-chars-forward "\s\t" e)
+	       (setq bs (- (min r (current-column)) l)
+		     s (point))
+	       (move-to-column r)
+	       (skip-chars-backward "\s\t" s)
+	       (setq as (- r (max (current-column) l))
+		     e (point)))
+       	     (setq row (if (and copy (> e s))
+			   (buffer-substring-no-properties s e)
+			 ""))
+    	     (when (> bs 0)
+    	       (setq row (concat (make-string bs ?\s) row)))
+    	     (when (> as 0)
+    	       (setq row (concat row (make-string as ?\s))))
+    	     (setq rect (cons row rect))))))
+    (nreverse rect)))
 
-(defun cua--insert-rectangle (rect &optional below)
+(defun cua--insert-rectangle (rect &optional below paste-column line-count)
   ;; Insert rectangle as insert-rectangle, but don't set mark and exit with
   ;; point at either next to top right or below bottom left corner
   ;; Notice: In overwrite mode, the rectangle is inserted as separate text lines.
-  (if (and below (eq below 'auto))
+  (if (eq below 'auto)
       (setq below (and (bolp)
                        (or (eolp) (eobp) (= (1+ (point)) (point-max))))))
+  (unless paste-column
+    (setq paste-column (current-column)))
   (let ((lines rect)
-        (insertcolumn (current-column))
         (first t)
+	(tabify-start (cua--tabify-start (point) (point)))
+	last-column
         p)
     (while (or lines below)
       (or first
           (if overwrite-mode
               (insert ?\n)
             (forward-line 1)
-            (or (bolp) (insert ?\n))
-            (move-to-column insertcolumn t)))
+            (or (bolp) (insert ?\n))))
+      (unless overwrite-mode
+	(move-to-column paste-column t))
       (if (not lines)
           (setq below nil)
         (insert-for-yank (car lines))
+	(unless last-column
+	  (setq last-column (current-column)))
         (setq lines (cdr lines))
         (and first (not below)
              (setq p (point))))
-      (setq first nil))
+      (setq first nil)
+      (if (and line-count (= (setq line-count (1- line-count)) 0))
+	  (setq lines nil)))
+    (when (and line-count last-column (not overwrite-mode))
+      (while (> line-count 0)
+	(forward-line 1)
+	(or (bolp) (insert ?\n))
+	(move-to-column paste-column t)
+        (insert-char ?\s (- last-column paste-column -1))
+	(setq line-count (1- line-count))))
+    (when (and tabify-start
+	       (not overwrite-mode))
+      (tabify tabify-start (point)))
     (and p (not overwrite-mode)
          (goto-char p))))
 
@@ -662,7 +717,7 @@ If command is repeated at same position, delete the rectangle."
                    (function (lambda (row) (concat row "\n")))
                    killed-rectangle "")))))
 
-(defun cua--activate-rectangle (&optional force)
+(defun cua--activate-rectangle ()
   ;; Turn on rectangular marking mode by disabling transient mark mode
   ;; and manually handling highlighting from a post command hook.
   ;; Be careful if we are already marking a rectangle.
@@ -671,12 +726,8 @@ If command is repeated at same position, delete the rectangle."
                  (eq (car cua--last-rectangle) (current-buffer))
                  (eq (car (cdr cua--last-rectangle)) (point)))
             (cdr (cdr cua--last-rectangle))
-          (cua--rectangle-get-corners
-           (and (not buffer-read-only)
-                (or cua-auto-expand-rectangles
-                    force
-                    (eq major-mode 'picture-mode)))))
-        cua--status-string (if (cua--rectangle-padding) " Pad" "")
+          (cua--rectangle-get-corners))
+        cua--status-string (if (cua--rectangle-virtual-edges) " [R]" "")
         cua--last-rectangle nil))
 
 ;; (defvar cua-save-point nil)
@@ -698,7 +749,7 @@ If command is repeated at same position, delete the rectangle."
   ;; Each overlay extends across all the columns of the rectangle.
   ;; We try to reuse overlays where possible because this is more efficient
   ;; and results in less flicker.
-  ;; If cua--rectangle-padding is nil and the buffer contains tabs or short lines,
+  ;; If cua--rectangle-virtual-edges is nil and the buffer contains tabs or short lines,
   ;; the higlighted region may not be perfectly rectangular.
   (let ((deactivate-mark deactivate-mark)
         (old cua--rectangle-overlays)
@@ -707,12 +758,59 @@ If command is repeated at same position, delete the rectangle."
         (right (1+ (cua--rectangle-right))))
     (when (/= left right)
       (sit-for 0)  ; make window top/bottom reliable
-      (cua--rectangle-operation nil t nil nil
+      (cua--rectangle-operation nil t nil nil nil ; do not tabify
         '(lambda (s e l r v)
            (let ((rface (if v 'cua-rectangle-face 'cua-rectangle-noselect-face))
-                 overlay)
-             ;; Trim old leading overlays.
+                 overlay bs as)
 	     (if (= s e) (setq e (1+ e)))
+	     (when (cua--rectangle-virtual-edges)
+	       (let ((lb (line-beginning-position))
+		     (le (line-end-position))
+		     cl cl0 pl cr cr0 pr)
+		 (goto-char s)
+		 (setq cl (move-to-column l)
+		       pl (point))
+		 (setq cr (move-to-column r)
+		       pr (point))
+		 (if (= lb pl)
+		     (setq cl0 0)
+		   (goto-char (1- pl))
+		   (setq cl0 (current-column)))
+		 (if (= lb le)
+		     (setq cr0 0)
+		   (goto-char (1- pr))
+		   (setq cr0 (current-column)))
+		 (unless (and (= cl l) (= cr r))
+		   (when (/= cl l)
+		     (setq bs (propertize
+			       (make-string
+				(- l cl0 (if (and (= le pl) (/= le lb)) 1 0))
+				(if cua--virtual-edges-debug ?. ?\s))
+			       'face 'default))
+		     (if (/= pl le)
+			 (setq s (1- s))))
+		   (cond
+		    ((= cr r)
+		     (if (and (/= cr0 (1- cr))
+			      (= (mod cr tab-width) 0))
+			 (setq e (1- e))))
+		    ((= cr cl)
+		     (setq bs (concat bs
+				      (propertize
+				       (make-string
+					(- r l)
+					(if cua--virtual-edges-debug ?, ?\s))
+				       'face rface)))
+		     (setq rface nil))
+		    (t
+		     (setq as (propertize
+			       (make-string
+				(- r cr0 (if (= le pr) 1 0))
+				(if cua--virtual-edges-debug ?~ ?\s))
+			       'face rface))
+		     (if (/= pr le)
+			 (setq e (1- e))))))))
+	     ;; Trim old leading overlays.
              (while (and old
                          (setq overlay (car old))
                          (< (overlay-start overlay) s)
@@ -728,8 +826,10 @@ If command is repeated at same position, delete the rectangle."
                    (move-overlay overlay s e)
                    (setq old (cdr old)))
                (setq overlay (make-overlay s e)))
-             (overlay-put overlay 'face rface)
-             (setq new (cons overlay new))))))
+	     (overlay-put overlay 'before-string bs)
+	     (overlay-put overlay 'after-string as)
+	     (overlay-put overlay 'face rface)
+	     (setq new (cons overlay new))))))
     ;; Trim old trailing overlays.
     (mapcar (function delete-overlay) old)
     (setq cua--rectangle-overlays (nreverse new))))
@@ -737,9 +837,9 @@ If command is repeated at same position, delete the rectangle."
 (defun cua--indent-rectangle (&optional ch to-col clear)
   ;; Indent current rectangle.
   (let ((col (cua--rectangle-insert-col))
-        (pad (cua--rectangle-padding))
+        (pad (cua--rectangle-virtual-edges))
         indent)
-    (cua--rectangle-operation (if clear 'clear 'corners) nil t pad
+    (cua--rectangle-operation (if clear 'clear 'corners) nil t pad t
       '(lambda (s e l r)
          (move-to-column col pad)
          (if (and (eolp)
@@ -877,21 +977,18 @@ With prefix argument, the toggle restriction."
   (cua--rectangle-corner (if (= (cua--rectangle-left) (cua--rectangle-right)) 0 1))
   (cua--rectangle-set-corners))
 
-(defun cua-toggle-rectangle-padding ()
+(defun cua-toggle-rectangle-virtual-edges ()
   (interactive)
-  (if buffer-read-only
-      (message "Cannot do padding in read-only buffer.")
-    (cua--rectangle-padding t (not (cua--rectangle-padding)))
-    (cua--pad-rectangle)
-    (cua--rectangle-set-corners))
-  (setq cua--status-string (and (cua--rectangle-padding) " Pad"))
+  (cua--rectangle-virtual-edges t (not (cua--rectangle-virtual-edges)))
+  (cua--rectangle-set-corners)
+  (setq cua--status-string (and (cua--rectangle-virtual-edges) " [R]"))
   (cua--keep-active))
 
 (defun cua-do-rectangle-padding ()
   (interactive)
   (if buffer-read-only
       (message "Cannot do padding in read-only buffer.")
-    (cua--pad-rectangle t)
+    (cua--rectangle-operation nil nil t t t)
     (cua--rectangle-set-corners))
   (cua--keep-active))
 
@@ -900,7 +997,7 @@ With prefix argument, the toggle restriction."
 The text previously in the region is not overwritten by the blanks,
 but instead winds up to the right of the rectangle."
   (interactive)
-  (cua--rectangle-operation 'corners nil t 1
+  (cua--rectangle-operation 'corners nil t 1 nil
    '(lambda (s e l r)
       (skip-chars-forward " \t")
       (let ((ws (- (current-column) l))
@@ -915,7 +1012,7 @@ On each line in the rectangle, all continuous whitespace starting
 at that column is deleted.
 With prefix arg, also delete whitespace to the left of that column."
   (interactive "P")
-  (cua--rectangle-operation 'clear nil t 1
+  (cua--rectangle-operation 'clear nil t 1 nil
    '(lambda (s e l r)
       (when arg
         (skip-syntax-backward " " (line-beginning-position))
@@ -927,7 +1024,7 @@ With prefix arg, also delete whitespace to the left of that column."
   "Blank out CUA rectangle.
 The text previously in the rectangle is overwritten by the blanks."
   (interactive)
-  (cua--rectangle-operation 'keep nil nil 1
+  (cua--rectangle-operation 'keep nil nil 1 nil
    '(lambda (s e l r)
       (goto-char e)
       (skip-syntax-forward " " (line-end-position))
@@ -942,7 +1039,7 @@ The text previously in the rectangle is overwritten by the blanks."
   "Align rectangle lines to left column."
   (interactive)
   (let (x)
-    (cua--rectangle-operation 'clear nil t t
+    (cua--rectangle-operation 'clear nil t t nil
      '(lambda (s e l r)
         (let ((b (line-beginning-position)))
           (skip-syntax-backward "^ " b)
@@ -984,7 +1081,7 @@ The text previously in the rectangle is overwritten by the blanks."
   "Replace CUA rectangle contents with STRING on each line.
 The length of STRING need not be the same as the rectangle width."
   (interactive "sString rectangle: ")
-  (cua--rectangle-operation 'keep nil t t
+  (cua--rectangle-operation 'keep nil t t nil
      '(lambda (s e l r)
         (delete-region s e)
         (skip-chars-forward " \t")
@@ -999,7 +1096,7 @@ The length of STRING need not be the same as the rectangle width."
 (defun cua-fill-char-rectangle (ch)
   "Replace CUA rectangle contents with CHARACTER."
   (interactive "cFill rectangle with character: ")
-  (cua--rectangle-operation 'clear nil t 1
+  (cua--rectangle-operation 'clear nil t 1 nil
    '(lambda (s e l r)
       (delete-region s e)
       (move-to-column l t)
@@ -1010,7 +1107,7 @@ The length of STRING need not be the same as the rectangle width."
   (interactive "sReplace regexp: \nsNew text: ")
   (if buffer-read-only
       (message "Cannot replace in read-only buffer")
-    (cua--rectangle-operation 'keep nil t 1
+    (cua--rectangle-operation 'keep nil t 1 nil
      '(lambda (s e l r)
         (if (re-search-forward regexp e t)
             (replace-match newtext nil nil))))))
@@ -1018,7 +1115,7 @@ The length of STRING need not be the same as the rectangle width."
 (defun cua-incr-rectangle (increment)
   "Increment each line of CUA rectangle by prefix amount."
   (interactive "p")
-  (cua--rectangle-operation 'keep nil t 1
+  (cua--rectangle-operation 'keep nil t 1 nil
      '(lambda (s e l r)
         (cond
          ((re-search-forward "0x\\([0-9a-fA-F]+\\)" e t)
@@ -1051,36 +1148,36 @@ The numbers are formatted according to the FORMAT string."
   (if (= (length fmt) 0)
       (setq fmt cua--rectangle-seq-format)
     (setq cua--rectangle-seq-format fmt))
-  (cua--rectangle-operation 'clear nil t 1
+  (cua--rectangle-operation 'clear nil t 1 nil
      '(lambda (s e l r)
          (delete-region s e)
          (insert (format fmt first))
          (setq first (+ first incr)))))
 
-(defmacro cua--convert-rectangle-as (command)
-  `(cua--rectangle-operation 'clear nil nil nil
+(defmacro cua--convert-rectangle-as (command tabify)
+  `(cua--rectangle-operation 'clear nil nil nil ,tabify
     '(lambda (s e l r)
        (,command s e))))
 
 (defun cua-upcase-rectangle ()
   "Convert the rectangle to upper case."
   (interactive)
-  (cua--convert-rectangle-as upcase-region))
+  (cua--convert-rectangle-as upcase-region nil))
 
 (defun cua-downcase-rectangle ()
   "Convert the rectangle to lower case."
   (interactive)
-  (cua--convert-rectangle-as downcase-region))
+  (cua--convert-rectangle-as downcase-region nil))
 
 (defun cua-upcase-initials-rectangle ()
   "Convert the rectangle initials to upper case."
   (interactive)
-  (cua--convert-rectangle-as upcase-initials-region))
+  (cua--convert-rectangle-as upcase-initials-region nil))
 
 (defun cua-capitalize-rectangle ()
   "Convert the rectangle to proper case."
   (interactive)
-  (cua--convert-rectangle-as capitalize-region))
+  (cua--convert-rectangle-as capitalize-region nil))
 
 
 ;;; Replace/rearrange text in current rectangle
@@ -1116,7 +1213,7 @@ The numbers are formatted according to the FORMAT string."
       (setq z (reverse z))
       (if cua--debug
 	  (print z auxbuf))
-      (cua--rectangle-operation nil nil t pad
+      (cua--rectangle-operation nil nil t pad nil
         '(lambda (s e l r)
            (let (cc)
              (goto-char e)
@@ -1232,9 +1329,9 @@ With prefix arg, indent to that column."
   "Delete char to left or right of rectangle."
   (interactive)
   (let ((col (cua--rectangle-insert-col))
-        (pad (cua--rectangle-padding))
+        (pad (cua--rectangle-virtual-edges))
         indent)
-    (cua--rectangle-operation 'corners nil t pad
+    (cua--rectangle-operation 'corners nil t pad nil
      '(lambda (s e l r)
         (move-to-column
          (if (cua--rectangle-right-side t)
@@ -1282,10 +1379,7 @@ With prefix arg, indent to that column."
         (cua--rectangle-left (current-column)))
       (if (>= (cua--rectangle-corner) 2)
           (cua--rectangle-bot t)
-        (cua--rectangle-top t))
-      (if (cua--rectangle-padding)
-          (setq unread-command-events
-                (cons (if cua-use-hyper-key ?\H-P ?\M-P) unread-command-events)))))
+        (cua--rectangle-top t))))
   (if cua--rectangle
       (if (and mark-active
                (not deactivate-mark))
@@ -1379,7 +1473,7 @@ With prefix arg, indent to that column."
   (cua--rect-M/H-key ?m	'cua-copy-rectangle-as-text)
   (cua--rect-M/H-key ?n	'cua-sequence-rectangle)
   (cua--rect-M/H-key ?o	'cua-open-rectangle)
-  (cua--rect-M/H-key ?p	'cua-toggle-rectangle-padding)
+  (cua--rect-M/H-key ?p	'cua-toggle-rectangle-virtual-edges)
   (cua--rect-M/H-key ?P	'cua-do-rectangle-padding)
   (cua--rect-M/H-key ?q	'cua-refill-rectangle)
   (cua--rect-M/H-key ?r	'cua-replace-in-rectangle)
