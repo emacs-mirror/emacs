@@ -203,7 +203,8 @@ except in the case that `enable-multibyte-characters' is nil.")
   int pos;
   unsigned char *p;
 
-  if (MARKERP (position))
+  if (MARKERP (position)
+      && current_buffer == XMARKER (position)->buffer)
     {
       pos = marker_position (position);
       if (pos < BEGV)
