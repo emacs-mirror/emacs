@@ -40,12 +40,12 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
 		../info/speedbar
-DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
+DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		speedbar.dvi
+		 speedbar.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -231,9 +231,9 @@ autotype.dvi: autotype.texi
 
 ../info/calc: calc.texi
 	cd $(srcdir); $(MAKEINFO) calc.texi
-# This does not yet work.
-#calc.dvi: calc.texi
-#	$(ENVADD) $(TEXI2DVI) ${srcdir}/calc.texi
+
+calc.dvi: calc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/calc.texi
 
 # This is produced with --no-split to avoid making files whose
 # names clash on DOS 8+3 filesystems
