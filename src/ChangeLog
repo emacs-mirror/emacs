@@ -1,3 +1,8 @@
+2004-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pp): Shorthand for p ARG + pr.
+	(ff): New command: flush frame updates (X only).
+
 2004-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fileio.c (auto_save_1) Call Ffile_modes for remote files.
