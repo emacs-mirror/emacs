@@ -56,7 +56,7 @@ controlled by a separate variable, `mail-specify-envelope-from'."
   :group 'sendmail)
 
 ;;;###autoload
-(defcustom mail-specify-envelope-from t "\
+(defcustom mail-specify-envelope-from t
   "*If non-nil, specify the envelope-from address when sending mail.
 The value used to specify it is whatever is found in `user-mail-address'.
 
