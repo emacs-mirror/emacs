@@ -1701,6 +1701,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
 	  pause = end;
 
+#ifdef HAVE_X_WINDOWS
 	  /* Did we hit a face change?  Figure out what face we should
 	     use now.  We also hit this the first time through the
 	     loop, to see what face we should start with.  */
@@ -1710,6 +1711,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	      if (pos < next_face_change && next_face_change < pause)
 		pause = next_face_change;
 	    }
+#endif
 
 	  /* Wouldn't you hate to read the next line to someone over
              the phone?  */
@@ -1816,6 +1818,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  p1++;
 	}
 
+#ifdef HAVE_X_WINDOWS
       /* Now we've laid down some characters between p1prev and p1.
 	 Let's apply current_face to those who have a face of zero
 	 (the default), and apply Vglyph_table to the result.  */
@@ -1830,9 +1833,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    *gp = MAKE_GLYPH (GLYPH_CHAR (*gp),
 			      (GLYPH_FACE (*gp) == 0
 			       ? current_face
-			       : compute_glyph_face (f, FRAME_DEFAULT_FACE (f),
-						     GLYPH_FACE (*gp))));
+			       : compute_glyph_face (f, GLYPH_FACE (*gp))));
 	}
+#endif
 
       pos++;
     }
