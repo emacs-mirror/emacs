@@ -306,12 +306,18 @@ This command must be bound to a mouse click."
 	(start-event-window (car (car (cdr start-event))))
 	(start-nwindows (count-windows t))
 	(old-selected-window (selected-window))
-	event mouse x left right edges wconfig growth)
+	event mouse x left right edges wconfig growth
+	(which-side
+	 (or (cdr (assq 'vertical-scroll-bars default-frame-alist))
+	     'left)))
     (if (one-window-p t)
 	(error "Attempt to resize sole ordinary window"))
-    (if (= (nth 2 (window-edges start-event-window))
-	   (frame-width start-event-frame))
-	(error "Attempt to drag rightmost scrollbar"))
+    (if (eq which-side 'left)
+	(if (= (nth 0 (window-edges start-event-window)) 0)
+	    (error "Attempt to drag leftmost scrollbar"))
+      (if (= (nth 2 (window-edges start-event-window))
+	     (frame-width start-event-frame))
+	  (error "Attempt to drag rightmost scrollbar")))
     (track-mouse
       (progn
 	;; enlarge-window only works on the selected window, so
@@ -349,28 +355,34 @@ This command must be bound to a mouse click."
 		((null (car (cdr mouse)))
 		 nil)
 		(t
-		 (setq x (car (cdr mouse))
-		       edges (window-edges)
-		       left (nth 0 edges)
-		       right (nth 2 edges))
-		 ;; scale back a move that would make the
-		 ;; window too thin.
-		 (cond ((< (- x left -1) window-min-width)
-			(setq x (+ left window-min-width -1))))
-		 ;; compute size change needed
-		 (setq growth (- x right -1)
-		       wconfig (current-window-configuration))
-		 (enlarge-window growth t)
-		 ;; if this window's growth caused another
-		 ;; window to be deleted because it was too
-		 ;; thin, rescind the change.
-		 ;;
-		 ;; if size change caused space to be stolen
-		 ;; from a window to the left of this one,
-		 ;; rescind the change.
-		 (if (or (/= start-nwindows (count-windows t))
-			 (/= left (nth 0 (window-edges))))
-		     (set-window-configuration wconfig)))))))))
+		 (save-selected-window
+		   ;; If the scroll bar is on the window's left,
+		   ;; adjust the window on the left.
+		   (if (eq which-side 'left)
+		       (select-window (previous-window)))
+		   (setq x (- (car (cdr mouse))
+			      (if (eq which-side 'left) 2 0))
+			 edges (window-edges)
+			 left (nth 0 edges)
+			 right (nth 2 edges))
+		   ;; scale back a move that would make the
+		   ;; window too thin.
+		   (if (< (- x left -1) window-min-width)
+		       (setq x (+ left window-min-width -1)))
+		   ;; compute size change needed
+		   (setq growth (- x right -1)
+			 wconfig (current-window-configuration))
+		   (enlarge-window growth t)
+		   ;; if this window's growth caused another
+		   ;; window to be deleted because it was too
+		   ;; thin, rescind the change.
+		   ;;
+		   ;; if size change caused space to be stolen
+		   ;; from a window to the left of this one,
+		   ;; rescind the change.
+		   (if (or (/= start-nwindows (count-windows t))
+			   (/= left (nth 0 (window-edges))))
+		       (set-window-configuration wconfig))))))))))
 
 (defun mouse-set-point (event)
   "Move point to the position clicked on with the mouse.
