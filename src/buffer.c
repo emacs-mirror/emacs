@@ -1672,6 +1672,30 @@ validate_region (b, e)
     args_out_of_range (*b, *e);
 }
 
+/* Advance BYTE_POS up to a character boundary
+   and return the adjusted position.  */
+
+static int
+advance_to_char_boundary (byte_pos)
+     int byte_pos;
+{
+  int pos = byte_pos;
+
+  while (1)
+    {
+      int c = FETCH_BYTE (pos);
+      if (SINGLE_BYTE_CHAR_P (c))
+	break;
+      if (c == LEADING_CODE_COMPOSITION)
+	break;
+      if (BYTES_BY_CHAR_HEAD (c) > 1)
+	break;
+      pos++;
+    }
+
+  return pos;
+}
+
 DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
        1, 1, 0,
   "Set the multibyte flag of the current buffer to FLAG.\n\
@@ -1683,6 +1707,11 @@ but the contents viewed as characters do change.")
      Lisp_Object flag;
 {
   Lisp_Object tail, markers;
+
+  /* It would be better to update the list,
+     but this is good enough for now.  */
+  if (! EQ (current_buffer->undo_list, Qt))
+    current_buffer->undo_list = Qnil;
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
@@ -1714,27 +1743,43 @@ but the contents viewed as characters do change.")
 	 set_intervals_multibyte needs it too.  */
       current_buffer->enable_multibyte_characters = Qt;
 
+      GPT_BYTE = advance_to_char_boundary (GPT_BYTE);
       GPT = chars_in_text (BEG_ADDR, GPT_BYTE - BEG_BYTE) + BEG;
+
       Z = chars_in_text (GPT_ADDR, Z_BYTE - GPT_BYTE) + GPT;
+
+      BEGV_BYTE = advance_to_char_boundary (BEGV_BYTE);
       if (BEGV_BYTE > GPT_BYTE)
 	BEGV = chars_in_text (GPT_ADDR, BEGV_BYTE - GPT_BYTE) + GPT;
       else
 	BEGV = chars_in_text (BEG_ADDR, BEGV_BYTE - BEG_BYTE) + BEG;
+
+      ZV_BYTE = advance_to_char_boundary (ZV_BYTE);
       if (ZV_BYTE > GPT_BYTE)
 	ZV = chars_in_text (GPT_ADDR, ZV_BYTE - GPT_BYTE) + GPT;
       else
 	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
-      if (PT_BYTE > GPT_BYTE)
-	current_buffer->pt = chars_in_text (GPT_ADDR, PT_BYTE - GPT_BYTE) + GPT;
-      else
-	current_buffer->pt = chars_in_text (BEG_ADDR, PT_BYTE - BEG_BYTE) + BEG;
+
+      {
+	int pt_byte = advance_to_char_boundary (PT_BYTE);
+	int pt;
+
+	if (pt_byte > GPT_BYTE)
+	  pt = chars_in_text (GPT_ADDR, pt_byte - GPT_BYTE) + GPT;
+	else
+	  pt = chars_in_text (BEG_ADDR, pt_byte - BEG_BYTE) + BEG;
+	TEMP_SET_PT_BOTH (pt, pt_byte);
+      }
 
       tail = markers = BUF_MARKERS (current_buffer);
       BUF_MARKERS (current_buffer) = Qnil;
 
       while (XSYMBOL (tail) != XSYMBOL (Qnil))
 	{
+	  XMARKER (tail)->bytepos
+	    = advance_to_char_boundary (XMARKER (tail)->bytepos);
 	  XMARKER (tail)->charpos = BYTE_TO_CHAR (XMARKER (tail)->bytepos);
+
 	  tail = XMARKER (tail)->chain;
 	}
       BUF_MARKERS (current_buffer) = markers;
