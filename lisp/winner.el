@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation. Inc.
 
-;; Author: Ivar Rummelhoff <ivarr@ifi.uio.no>
-;; Maintainer: Ivar Rummelhoff <ivarr@ifi.uio.no>
+;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
 ;; Time-stamp: <1998-08-21 19:51:02 ivarr>
 ;; Keywords: convenience frames
