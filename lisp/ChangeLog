@@ -1,5 +1,8 @@
 2000-11-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (describe-function-1): Regexp-quote function name
+	when used as part of a regexp.
+
 	* toolbar/tool-bar.el (tool-bar-add-item-from-menu): Use
 	face-attribute instead of face-foreground and face-background.
 	(tool-bar-add-item): Likewise, and handle unspecified colors.
