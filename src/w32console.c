@@ -528,6 +528,9 @@ initialize_w32_display (void)
   read_socket_hook = w32_console_read_socket;
   mouse_position_hook = w32_console_mouse_position;
 
+  /* Initialize interrupt_handle.  */
+  init_crit ();
+
   /* Remember original console settings.  */
   keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
   GetConsoleMode (keyboard_handle, &prev_console_mode);
