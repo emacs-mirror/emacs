@@ -730,9 +730,15 @@
     ("black"	0     0     0     0))
   "An alist of 8 standard tty colors, their indices and RGB values.")
 
-(defvar tty-color-alist nil
-  "An alist of colors supported by the terminal.
-Each element is of the form:
+(defvar tty-defined-color-alist nil
+  "An alist of defined terminal colors and their RGB values.
+
+See the docstring of `tty-color-alist' for the details.")
+
+(defun tty-color-alist (&optional frame)
+  "Return an alist of colors supported by FRAME's terminal.
+FRAME defaults to the selected frame.
+Each element of the returned alist is of the form:
  \(NAME INDEX R G B\)
 where NAME is the name of the color, a string;
 INDEX is the index of this color to be sent to the terminal driver
@@ -742,7 +748,20 @@ components of the color, represented as numbers between 0 and 65535.
 The file `etc/rgb.txt' in the Emacs distribution lists the standard
 RGB values of the X colors.  If RGB is nil, this color will not be
 considered by `tty-color-translate' as an approximation to another
-color.")
+color."
+  tty-defined-color-alist)
+
+(defun tty-modify-color-alist (elt &optional frame)
+  "Put the association ELT int the alist of terminal colors for FRAME.
+ELT should be of the form  \(NAME INDEX R G B\) (see `tty-color-alist'
+for details).
+If FRAME is unspecified or nil, it defaults to the selected frame.
+Value is the modified color alist for FRAME."
+  (let* ((entry (assoc (car elt) (tty-color-alist frame))))
+    (if entry
+	(setcdr entry (cdr elt))
+      (setq tty-defined-color-alist (cons elt tty-defined-color-alist)))
+    tty-defined-color-alist))
 
 (defun tty-color-canonicalize (color)
   "Return COLOR in canonical form.
@@ -752,7 +771,7 @@ A canonicalized color name is all-lower case, with any blanks removed."
       (setq color (replace-match "" nil nil color)))
     color))
 
-(defun tty-color-define (name index &optional rgb)
+(defun tty-color-define (name index &optional rgb frame)
   "Specify a tty color by its NAME, terminal INDEX and RGB values.
 NAME is a string, INDEX is typically a small integer used to send to
 the terminal driver to switch on this color, and RGB is a list of 3
@@ -760,34 +779,32 @@ numbers that specify the intensity of red, green, and blue components
 of the color.
 If specified, each one of the RGB components must be a number between
 0 and 65535.  If RGB is omitted, the specified color will never be used
-by `tty-color-translate' as an approximation to another color."
+by `tty-color-translate' as an approximation to another color.
+If FRAME is not specified or is nil, it defaults to the selected frame."
   (if (or (not (stringp name))
 	  (not (integerp index))
 	  (and rgb (or (not (listp rgb)) (/= (length rgb) 3))))
       (error "Invalid specification for tty color \"%s\"" name))
-  (let* ((name (tty-color-canonicalize name))
-	 (entry (assoc name tty-color-alist)))
-    (if entry
-	(setcdr entry (cons index rgb))
-      (setq tty-color-alist
-	    (cons (append (list name index) rgb) tty-color-alist)))
-    tty-color-alist))
+  (tty-modify-color-alist
+   (append (list (tty-color-canonicalize name) index) rgb) frame))
 
-(defun tty-color-clear ()
-  "Clear the list of supported tty colors."
-  (setq tty-color-alist nil))
+(defun tty-color-clear (&optional frame)
+  "Clear the list of supported tty colors for frame FRAME.
+If FRAME is unspecified or nil, it defaults to the selected frame."
+  (setq tty-defined-color-alist nil))
 
 (defun tty-color-off-gray-diag (r g b)
   "Compute the angle between the color given by R,G,B and the gray diagonal."
   (let ((mag (sqrt (* 3 (+ (* r r) (* g g) (* b b))))))
     (if (< mag 1) 0 (acos (/ (+ r g b) mag)))))
 
-(defun tty-color-approximate (rgb)
+(defun tty-color-approximate (rgb &optional frame)
   "Given a list of 3 rgb values in RGB, find the color in `tty-color-alist'
 which is the best approximation in the 3-dimensional RGB space,
 and return the index associated with the approximating color.
-Each value of the RGB triplet has to be scaled to the 0..255 range."
-  (let* ((color-list tty-color-alist)
+Each value of the RGB triplet has to be scaled to the 0..255 range.
+FRAME defaults to the selected frame."
+  (let* ((color-list (tty-color-alist frame))
 	 (candidate (car color-list))
 	 (best-distance 195076)	;; 3 * 255^2 + 15
 	 best-color)
@@ -824,7 +841,7 @@ Each value of the RGB triplet has to be scaled to the 0..255 range."
       (setq candidate (car color-list)))
     (cadr best-color)))
 
-(defun tty-color-translate (color)
+(defun tty-color-translate (color &optional frame)
   "Given a color COLOR, return the index of the corresponding TTY color.
 COLOR must be a string that is either the color's name, or its X-style
 specification like \"#RRGGBB\" or \"RGB:rr/gg/bb\", where each primary.
@@ -836,10 +853,11 @@ looking up the name in `color-name-rgb-alist', are used to find the
 supported color that is the best approximation for COLOR in the RGB
 space.
 If COLOR is neither a valid X RGB specification of the color, nor a
-name of a color in `color-name-rgb-alist', the returned value is nil."
+name of a color in `color-name-rgb-alist', the returned value is nil.
+If FRAME is unspecified or nil, it defaults to the selected frame."
   (and (stringp color)
        (let* ((color (tty-color-canonicalize color))
-	      (idx (cadr (assoc color tty-color-alist))))
+	      (idx (cadr (assoc color (tty-color-alist frame)))))
 	 (or idx
 	     (let* ((len (length color))
 		    (maxval 256)
@@ -895,13 +913,14 @@ name of a color in `color-name-rgb-alist', the returned value is nil."
 			     maxval))))
 		      (t
 		       (cdr (assoc color color-name-rgb-alist))))))
-	       (and rgb (tty-color-approximate rgb)))))))
+	       (and rgb (tty-color-approximate rgb frame)))))))
 
-(defun tty-color-by-index (idx)
+(defun tty-color-by-index (idx &optional frame)
   "Given a numeric index of a tty color, return its description.
+FRAME, if unspecified or nil, defaults to the selected frame.
 Value is a list of the form \(NAME INDEX R G B\)."
   (and idx
-       (let ((colors tty-color-alist)
+       (let ((colors (tty-color-alist frame))
 	     desc found)
 	 (while colors
 	   (setq desc (car colors))
@@ -919,20 +938,21 @@ These values range from 0 to 65535; white is (65535 65535 65535).
 If FRAME is omitted or nil, use the selected frame."
   (let* ((frame (or frame (selected-frame)))
 	 (color (tty-color-canonicalize color))
-	 (supported (assoc color tty-color-alist)))
+	 (supported (assoc color (tty-color-alist frame))))
     (or (and supported (cddr supported)) ; full spec in tty-color-alist
 	(and supported	; no RGB values in tty-color-alist: use X RGB values
 	     (assoc color color-name-rgb-alist)
 	     (cddr
 	      (tty-color-by-index
 	       (tty-color-approximate
-		(cdr (assoc color color-name-rgb-alist))))))
-	(cddr (tty-color-by-index (tty-color-translate color))))))
+		(cdr (assoc color color-name-rgb-alist)) frame) frame)))
+	(cddr (tty-color-by-index (tty-color-translate color frame) frame)))))
 
-(defun tty-color-desc (color)
+(defun tty-color-desc (color &optional frame)
   "Return the description of the color COLOR for a character terminal.
+FRAME, if unspecified or nil, defaults to the selected frame.
 Value is a list of the form \(NAME INDEX R G B\).  Note that the returned
 NAME is not necessarily the same string as the argument COLOR, because
 the latter might need to be approximated if it is not supported directly."
-  (let ((idx (tty-color-translate color)))
-    (tty-color-by-index idx)))
+  (let ((idx (tty-color-translate color frame)))
+    (tty-color-by-index idx frame)))
