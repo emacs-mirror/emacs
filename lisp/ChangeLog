@@ -1,5 +1,8 @@
 2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* net/snmp-mode.el: Require tempo when compiling to prevent
+	warnings.  Update copyright notice.
+
 	* help.el (describe-key-briefly, describe-key): Interpret
 	`undefined' like not defined at all.
 

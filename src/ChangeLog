@@ -1,3 +1,8 @@
+2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lread.c (read_filtered_event): Do not call start_hourglass
+	before returning.
+
 2002-03-04  Juanma Barranquero  <lektu@terra.es>
 
 	* w32term.c (x_display_and_set_cursor): Fix typo.
