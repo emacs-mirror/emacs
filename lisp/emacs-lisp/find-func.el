@@ -271,7 +271,7 @@ Point is saved in the buffer if it is one of the current buffers."
 
 ;;;###autoload
 (defun find-function (function)
-  "Find the definition of the function near point in the current window.
+  "Find the definition of the FUNCTION near point.
 
 Finds the Emacs Lisp library containing the definition of the function
 near point (selected by `function-at-point') in a buffer and
@@ -286,7 +286,7 @@ See also `find-function-recenter-line' and `find-function-after-hook'."
 
 ;;;###autoload
 (defun find-function-other-window (function)
-  "Find the definition of FUNCTION near point in the other window.
+  "Find, in another window, the definition of FUNCTION near point.
 
 See `find-function' for more details."
   (interactive (find-function-read))
@@ -294,7 +294,7 @@ See `find-function' for more details."
 
 ;;;###autoload
 (defun find-function-other-frame (function)
-  "Find the definition of FUNCTION near point in the another frame.
+  "Find, in ananother frame, the definition of FUNCTION near point.
 
 See `find-function' for more details."
   (interactive (find-function-read))
@@ -317,7 +317,7 @@ The library where VARIABLE is defined is searched for in
 
 ;;;###autoload
 (defun find-variable (variable)
-  "Find the definition of the variable near point in the current window.
+  "Find the definition of the VARIABLE near point.
 
 Finds the Emacs Lisp library containing the definition of the variable
 near point (selected by `variable-at-point') in a buffer and
@@ -332,7 +332,7 @@ See also `find-function-recenter-line' and `find-function-after-hook'."
 
 ;;;###autoload
 (defun find-variable-other-window (variable)
-  "Find the definition of VARIABLE near point in the other window.
+  "Find, in another window, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
   (interactive (find-function-read 'variable))
@@ -340,7 +340,7 @@ See `find-variable' for more details."
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
-  "Find the definition of VARIABLE near point in the another frame.
+  "Find, in annother frame, the definition of VARIABLE near point.
 
 See `find-variable' for more details."
   (interactive (find-function-read 'variable))
