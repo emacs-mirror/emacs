@@ -402,6 +402,7 @@ by `lisp-body-indent'."
 	   (eval-when	1)
 	   (flet        ((&whole 4 &rest (&whole 1 (&whole 4 &rest 1) &body))
 			 &body))
+           (handler-case (4 &rest (&whole 2 (&whole 4 &rest 1) &body)))
 	   (labels . flet)
 	   (macrolet . flet)
 	   ;; `else-body' style
