@@ -321,11 +321,13 @@
 ;;   vc-BACKEND-diff.  The default implementation does an explicit tree
 ;;   walk, calling vc-BACKEND-diff for each individual file.
 ;;
-;; - annotate-command (file buf rev)
+;; - annotate-command (file buf &optional rev)
 ;;
-;;   If this function is provided, it should produce an annotated version
-;;   of FILE in BUF, relative to version REV.  This is currently only
-;;   implemented for CVS, using the `cvs annotate' command.
+;;   If this function is provided, it should produce an annotated display
+;;   of FILE in BUF, relative to version REV.  Annotation means each line
+;;   of FILE displayed is prefixed with version information associated with
+;;   its addition (deleted lines leave no history) and that the text of the
+;;   file is fontified according to age.
 ;;
 ;; - annotate-time ()
 ;;
@@ -645,7 +647,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
-;; vc-annotate functionality (CVS only).
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
