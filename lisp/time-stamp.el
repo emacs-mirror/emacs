@@ -2,7 +2,7 @@
 
 ;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1998-03-04 14:14:19 gildea>
+;; Maintainer's Time-stamp: <1999-01-06 11:06:03 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -68,8 +68,7 @@ Non-date items:
 %%   a literal percent character: `%'
 %f   file name without directory	%F  gives absolute pathname
 %s   system name
-%u   user's login name
-%U   user's full name
+%u   user's login name			%U  user's full name
 %h   mail host name
 
 Decimal digits between the % and the type character specify the
@@ -129,7 +128,8 @@ Format is the same as that used by the environment variable TZ on your system."
   "Lines of a file searched; positive counts from start, negative from end.
 The patterns `time-stamp-start' and `time-stamp-end' must be found on one
 of the first (last) `time-stamp-line-limit' lines of the file for the
-file to be time-stamped by \\[time-stamp].
+file to be time-stamped by \\[time-stamp].  A value of 0 searches the
+entire buffer (use with care).
 
 Do not change `time-stamp-line-limit', `time-stamp-start', or
 `time-stamp-end' for yourself or you will be incompatible
@@ -239,10 +239,13 @@ and `time-stamp-end' control finding the template."
 	       (goto-char (setq start (point-min)))
 	       (forward-line line-limit)
 	       (setq search-limit (point)))
-	      (t
+	      ((< line-limit 0)
 	       (goto-char (setq search-limit (point-max)))
 	       (forward-line line-limit)
-	       (setq start (point))))
+	       (setq start (point)))
+	      (t			;0 => no limit (use with care!)
+	       (setq start (point-min))
+	       (setq search-limit (point-max))))
 	(goto-char start)
 	(while (and (< (point) search-limit)
 		    (not end)
@@ -269,7 +272,9 @@ and `time-stamp-end' control finding the template."
 	    (sit-for 1))
 	   (t
 	    (let ((new-time-stamp (time-stamp-string ts-format)))
-	      (if (stringp new-time-stamp)
+	      (if (and (stringp new-time-stamp)
+		       (not (string-equal (buffer-substring start end)
+					  new-time-stamp)))
 		  (save-excursion
 		    (save-restriction
 		      (widen)
