@@ -1488,20 +1488,6 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
 	      (error "Face %s not configured for %s mode" face mode-name)))
 	  "")
 	facemenu-remove-face-function t)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
-  ;; `-- ' precedes the signature.  `-----' appears at the start of the
-  ;; lines that delimit forwarded messages.
-  ;; Lines containing just >= 3 dashes, perhaps after whitespace,
-  ;; are also sometimes used and should be separators.
-  (setq paragraph-start
-	(concat (regexp-quote mail-header-separator)
-		"$\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
-		"-- $\\|---+$\\|"
-		page-delimiter
-		;;!!! Uhm... shurely this can't be right?
-		"[> " (regexp-quote message-yank-prefix) "]+$"))
-  (setq paragraph-separate paragraph-start)
   (make-local-variable 'message-reply-headers)
   (setq message-reply-headers nil)
   (make-local-variable 'message-newsreader)
@@ -1510,6 +1496,7 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
   (set (make-local-variable 'message-sent-message-via) nil)
   (set (make-local-variable 'message-checksum) nil)
   (set (make-local-variable 'message-mime-part) 0)
+  (message-setup-fill-variables)
   ;;(when (fboundp 'mail-hist-define-keys)
   ;;  (mail-hist-define-keys))
   (if (featurep 'xemacs)
@@ -1526,22 +1513,44 @@ M-RET    message-newline-and-reformat (break the line and reformat)."
 	(mail-abbrevs-setup)
       (mail-aliases-setup)))
   (message-set-auto-save-file-name)
-  (make-local-variable 'adaptive-fill-regexp)
-  (setq adaptive-fill-regexp
-	(concat "[ \t]*[-[:alnum:]]*\\(>[ \t]*\\)+[ \t]*\\|" adaptive-fill-regexp))
-  (unless (boundp 'adaptive-fill-first-line-regexp)
-    (setq adaptive-fill-first-line-regexp nil))
-  (make-local-variable 'adaptive-fill-first-line-regexp)
-  (setq adaptive-fill-first-line-regexp
-	(concat "[ \t]*[-[:alnum:]]*\\(>[ \t]*\\)+[ \t]*\\|"
-		adaptive-fill-first-line-regexp))
-  (make-local-variable 'auto-fill-inhibit-regexp)
-  (setq auto-fill-inhibit-regexp "^[A-Z][^: \n\t]+:")
   (mm-enable-multibyte)
   (make-local-variable 'indent-tabs-mode) ;Turn off tabs for indentation.
   (setq indent-tabs-mode nil)
   (mml-mode)
   (run-hooks 'text-mode-hook 'message-mode-hook))
+
+(defun message-setup-fill-variables ()
+  "Setup message fill variables."
+  (make-local-variable 'paragraph-separate)
+  (make-local-variable 'paragraph-start)
+  (make-local-variable 'adaptive-fill-regexp)
+  (unless (boundp 'adaptive-fill-first-line-regexp)
+    (setq adaptive-fill-first-line-regexp nil))
+  (make-local-variable 'adaptive-fill-first-line-regexp)
+  (make-local-variable 'auto-fill-inhibit-regexp)
+  (let ((quote-prefix-regexp
+         (concat
+          "[ \t]*"                      ; possible initial space
+          "\\(\\(" (regexp-quote message-yank-prefix) "\\|" ; user's prefix
+          "\\w+>\\|"                    ; supercite-style prefix
+          "[|:>]"                       ; standard prefix
+          "\\)[ \t]*\\)+")))            ; possible space after each prefix
+    (setq paragraph-start
+          (concat
+           (regexp-quote mail-header-separator) "$\\|"
+           "[ \t]*$\\|"                 ; blank lines
+           "-- $\\|"                    ; signature delimiter
+           "---+$\\|"                   ; delimiters for forwarded messages
+           page-delimiter "$\\|"        ; spoiler warnings
+           ".*wrote:$\\|"               ; attribution lines
+           quote-prefix-regexp "$"))    ; empty lines in quoted text
+    (setq paragraph-separate paragraph-start)
+    (setq adaptive-fill-regexp
+          (concat quote-prefix-regexp "\\|" adaptive-fill-regexp))
+    (setq adaptive-fill-first-line-regexp
+          (concat quote-prefix-regexp "\\|"
+                  adaptive-fill-first-line-regexp))
+    (setq auto-fill-inhibit-regexp "^[A-Z][^: \n\t]+:")))
 
 
 
