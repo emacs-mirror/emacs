@@ -1,5 +1,7 @@
 2001-01-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* lpr.el (lpr-windows-system, lpr-lp-system): Add autoload cookies.
+
 	* frame.el (frame-notice-user-settings): Do the tool-bar
 	stuff only for graphical displays.  Fix a braino.
 	
@@ -51,7 +53,7 @@
 
 2001-01-29  Sam Steingold  <sds@gnu.org>
 
-	* vc-cvs.el: replaced (require 'vc) with a bunch of
+	* vc-cvs.el: Replaced (require 'vc) with a bunch of
 	`autoload' statements.
 
 2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>

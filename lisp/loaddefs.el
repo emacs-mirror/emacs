@@ -404,6 +404,28 @@ directory, so that Emacs will know its current contents." t nil)
 
 ;;;***
 
+;;;### (autoloads (ansi-color-process-output ansi-color-for-comint-mode-on)
+;;;;;;  "ansi-color" "ansi-color.el" (14965 36539))
+;;; Generated autoloads from ansi-color.el
+
+(autoload (quote ansi-color-for-comint-mode-on) "ansi-color" "\
+Set `ansi-color-for-comint-mode' to t." t nil)
+
+(autoload (quote ansi-color-process-output) "ansi-color" "\
+Maybe translate SGR control sequences of comint output into text-properties.
+
+Depending on variable `ansi-color-for-comint-mode' the comint output is
+either not processed, SGR control sequences are filtered using
+`ansi-color-filter-region', or SGR control sequences are translated into
+text-properties using `ansi-color-apply-on-region'.
+
+The comint output is assumed to lie between the marker
+`comint-last-output-start' and the process-mark.
+
+This is a good function to put in `comint-output-filter-functions'." nil nil)
+
+;;;***
+
 ;;;### (autoloads (antlr-set-tabs antlr-mode antlr-show-makefile-rules)
 ;;;;;;  "antlr-mode" "progmodes/antlr-mode.el" (14885 13467))
 ;;; Generated autoloads from progmodes/antlr-mode.el
@@ -5914,8 +5936,8 @@ Unequivocally turn on eldoc-mode (see variable documentation)." t nil)
 
 ;;;***
 
-;;;### (autoloads (elide-head) "elide-head" "elide-head.el" (14777
-;;;;;;  22205))
+;;;### (autoloads (elide-head) "elide-head" "elide-head.el" (14966
+;;;;;;  38375))
 ;;; Generated autoloads from elide-head.el
 
 (autoload (quote elide-head) "elide-head" "\
@@ -9020,7 +9042,7 @@ Image files are those whose name has an extension in
 ;;;***
 
 ;;;### (autoloads (imenu imenu-add-menubar-index imenu-add-to-menubar
-;;;;;;  imenu-sort-function) "imenu" "imenu.el" (14942 54438))
+;;;;;;  imenu-sort-function) "imenu" "imenu.el" (14965 37091))
 ;;; Generated autoloads from imenu.el
 
 (defvar imenu-sort-function nil "\
@@ -9141,6 +9163,8 @@ The default function called when selecting an Imenu item.
 The function in this variable is called when selecting a normal index-item.")
 
 (make-variable-buffer-local (quote imenu-default-goto-function))
+
+(make-variable-buffer-local (quote imenu-syntax-alist))
 
 (make-variable-buffer-local (quote imenu-case-fold-search))
 
@@ -10157,11 +10181,15 @@ Major mode for browsing CVS log output." t nil)
 ;;;***
 
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
-;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14692
-;;;;;;  45304))
+;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14967
+;;;;;;  5972))
 ;;; Generated autoloads from lpr.el
 
-(defvar printer-name (if (memq system-type (quote (ms-dos windows-nt))) "PRN") "\
+(defvar lpr-windows-system (memq system-type (quote (emx win32 w32 mswindows ms-dos windows-nt))))
+
+(defvar lpr-lp-system (memq system-type (quote (usg-unix-v dgux hpux irix))))
+
+(defvar printer-name (and lpr-windows-system "PRN") "\
 *The name of a local printer to which data is sent for printing.
 \(Note that PostScript files are sent to `ps-printer-name', which see.)
 
@@ -10182,7 +10210,7 @@ It is recommended to set `printer-name' instead of including an explicit
 switch on this list.
 See `lpr-command'.")
 
-(defvar lpr-command (cond ((memq system-type (quote (ms-dos windows-nt))) "") ((memq system-type (quote (usg-unix-v dgux hpux irix))) "lp") (t "lpr")) "\
+(defvar lpr-command (cond (lpr-windows-system "") (lpr-lp-system "lp") (t "lpr")) "\
 *Name of program for printing a file.
 
 On MS-DOS and MS-Windows systems, if the value is an empty string then
@@ -11074,11 +11102,11 @@ Multiplication puzzle with GNU Emacs." t nil)
 
 ;;;***
 
-;;;### (autoloads (msb-mode) "msb" "msb.el" (14854 32222))
+;;;### (autoloads (msb-mode) "msb" "msb.el" (14965 57143))
 ;;; Generated autoloads from msb.el
 
 (defvar msb-mode nil "\
-Toggle Msb mode on or off.
+Non-nil if Msb mode is enabled.
 See the command `msb-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `msb-mode'.")
@@ -12108,7 +12136,7 @@ Setup shell-mode to use pcomplete." nil nil)
 
 ;;;### (autoloads (cvs-dired-use-hook cvs-dired-action cvs-status
 ;;;;;;  cvs-update cvs-examine cvs-quickdir cvs-checkout) "pcvs"
-;;;;;;  "pcvs.el" (14962 39486))
+;;;;;;  "pcvs.el" (14966 38375))
 ;;; Generated autoloads from pcvs.el
 
 (autoload (quote cvs-checkout) "pcvs" "\
@@ -13340,7 +13368,7 @@ variable." t nil)
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names)
-;;;;;;  "rmail" "mail/rmail.el" (14961 12689))
+;;;;;;  "rmail" "mail/rmail.el" (14965 23688))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -13355,7 +13383,7 @@ the variable `rmail-dont-reply-to-names', for when the user does not set
 value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
-(defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:\\|^content-transfer-encoding:\\|^x-coding-system:\\|^return-path:\\|^errors-to:\\|^return-receipt-to:\\|^x-attribution:\\|^x-disclaimer:" "\
+(defvar rmail-ignored-headers (concat "^via:\\|^mail-from:\\|^origin:\\|^references:" "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:" "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:" "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:" "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:" "\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:" "\\|^content-transfer-encoding:\\|^x-coding-system:" "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:" "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:" "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:" "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:" "\\|^content-type:\\|^content-length:" "\\|^x-attribution:\\|^x-disclaimer:") "\
 *Regexp to match header fields that Rmail should normally hide.
 This variable is used for reformatting the message header,
 which normally happens once for each message,
@@ -15275,7 +15303,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 ;;;***
 
 ;;;### (autoloads (tcl-help-on-word inferior-tcl tcl-mode) "tcl"
-;;;;;;  "progmodes/tcl.el" (14651 36906))
+;;;;;;  "progmodes/tcl.el" (14965 55646))
 ;;; Generated autoloads from progmodes/tcl.el
 
 (autoload (quote tcl-mode) "tcl" "\
@@ -15979,7 +16007,7 @@ If DATE is malformed, a zero time will be returned." nil nil)
 ;;;***
 
 ;;;### (autoloads (time-stamp-toggle-active time-stamp) "time-stamp"
-;;;;;;  "time-stamp.el" (14962 39486))
+;;;;;;  "time-stamp.el" (14966 38375))
 ;;; Generated autoloads from time-stamp.el
 
 (autoload (quote time-stamp) "time-stamp" "\
@@ -16835,7 +16863,7 @@ colors. `vc-annotate-background' specifies the background color." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "vc-cvs" "vc-cvs.el" (14961 12689))
+;;;### (autoloads nil "vc-cvs" "vc-cvs.el" (14966 38375))
 ;;; Generated autoloads from vc-cvs.el
  (defun vc-cvs-registered (f)
   (when (file-readable-p (expand-file-name
@@ -17675,7 +17703,7 @@ With arg, turn Winner mode on if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (woman-find-file woman-dired-find-file woman) "woman"
-;;;;;;  "woman.el" (14835 62039))
+;;;;;;  "woman.el" (14966 38375))
 ;;; Generated autoloads from woman.el
 
 (autoload (quote woman) "woman" "\

@@ -102,6 +102,9 @@
     ("cus-face.el"
         "customization support for faces."
         (help  faces))
+    ("cus-load.el"
+        "automatically extracted custom dependencies"
+        nil)
     ("cus-start.el"
         "define customization properties of builtins."
         (internal))
@@ -1407,6 +1410,9 @@
     ("titdic-cnv.el"
         "convert cxterm dictionary (TIT format) to Quail package"
         (quail  tit  cxterm))
+    ("utf-8.el"
+        "Limited UTF-8 decoding/encoding support"
+        (multilingual  unicode  utf-8))
     ("china-util.el"
         "utilities for Chinese"
         (mule  multilingual  chinese))
@@ -2266,9 +2272,4 @@
 
 (provide 'finder-inf)
 
-;;; Local Variables:
-;;; version-control: never
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; End:
 ;;; finder-inf.el ends here
