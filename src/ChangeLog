@@ -1,5 +1,8 @@
 2001-02-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (coordinates_in_window): Increase width of area
+	where the vertical line can be dragged.
+
 	* xterm.c (x_set_glyph_string_background_width): Extend the
 	background face to the end of the drawing area in the text
 	area, only.
