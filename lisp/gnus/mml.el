@@ -2,6 +2,7 @@
 ;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -132,7 +133,7 @@ The function is called with one parameter, which is the generated part.")
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (y-or-n-p
-		   "Warning: You message contains characters with unknown encoding. Really send?"))
+		   "Message contains characters with unknown encoding.  Really send?"))
 	      (if (setq use-ascii 
 			(or (memq 'use-ascii mml-confirmation-set)
 			    (y-or-n-p "Use ASCII as charset?")))
@@ -704,25 +705,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      "application/octet-stream"))
 	 (string (completing-read
 		  (format "Content type (default %s): " default)
-		  (mapcar
-		   'list
-		   (mm-delete-duplicates
-		    (nconc
-		     (mapcar 'cdr mailcap-mime-extensions)
-		     (apply
-		      'nconc
-		      (mapcar
-		       (lambda (l)
-			 (delq nil
-			       (mapcar
-				(lambda (m)
-				  (let ((type (cdr (assq 'type (cdr m)))))
-				    (if (equal (cadr (split-string type "/"))
-					       "*")
-					nil
-				      type)))
-				(cdr l))))
-		       mailcap-mime-data))))))))
+		  (mapcar 'list (mailcap-mime-types)))))
     (if (not (equal string ""))
 	string
       default)))
