@@ -4087,7 +4087,9 @@ static char *iso_lispy_function_keys[] =
 
 static char *lispy_mouse_names[] =
 {
-  "mouse-1", "mouse-2", "mouse-3", "mouse-4", "mouse-5"
+  "mouse-1", "mouse-2", "mouse-3", "mouse-4", "mouse-5",
+  "mouse-6", "mouse-7", "mouse-8", "mouse-9", "mouse-10",
+  "mouse-11", "mouse-12", "mouse-13", "mouse-14", "mouse-15"
 };
 
 #ifdef WINDOWSNT
