@@ -1807,7 +1807,7 @@ sys_open (const char * path, int oflag, int mode)
 int
 sys_rename (const char * oldname, const char * newname)
 {
-  int result;
+  BOOL result;
   char temp[MAX_PATH];
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
@@ -1851,7 +1851,7 @@ sys_rename (const char * oldname, const char * newname)
 	  result = rename (oldname, temp);
 	}
       /* This loop must surely terminate!  */
-      while (result < 0 && (errno == EEXIST || errno == EACCES));
+      while (result < 0 && errno == EEXIST);
       if (result < 0)
 	return -1;
     }
@@ -1871,7 +1871,7 @@ sys_rename (const char * oldname, const char * newname)
   result = rename (temp, newname);
 
   if (result < 0
-      && (errno == EEXIST || errno == EACCES)
+      && errno == EEXIST
       && _chmod (newname, 0666) == 0
       && _unlink (newname) == 0)
     result = rename (temp, newname);
