@@ -397,7 +397,8 @@ static void x_new_focus_frame P_ ((struct w32_display_info *,
 static void w32_frame_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct w32_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
+static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
+				   enum text_cursor_kinds));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
 static int expose_window_tree P_ ((struct window *, RECT *));
 static int expose_window P_ ((struct window *, RECT *));
