@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.16) $
+ * $HopeName: MMsrc!buffer.c(trunk.17) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.16) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.17) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -442,21 +442,21 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
   AVER(stream != NULL);
 
   res = WriteF(stream,
-         "Buffer $P ($U) {\n", (void *)buffer, (unsigned long)buffer->serial,
-	 "  Space $P\n",       (void *)buffer->space,
-         "  Pool $P\n",        (void *)buffer->pool,
-         "  Seg $P\n",         (void *)buffer->seg,
-         "  rank $U\n",        (unsigned long)buffer->rank,
+         "Buffer $P ($U) {\n", (WriteFP)buffer, (WriteFU)buffer->serial,
+	 "  Space $P\n",       (WriteFP)buffer->space,
+         "  Pool $P\n",        (WriteFP)buffer->pool,
+         "  Seg $P\n",         (WriteFP)buffer->seg,
+         "  rank $U\n",        (WriteFU)buffer->rank,
          "  base $A  init $A  alloc $A  limit $A\n",
            buffer->base, buffer->apStruct.init,
 	   buffer->apStruct.alloc, buffer->apStruct.limit,
-         "  alignment $W\n",   (Word)buffer->alignment,
-	 "  exposed $U\n",     (unsigned long)buffer->exposed,
+         "  alignment $W\n",   (WriteFW)buffer->alignment,
+	 "  exposed $U\n",     (WriteFU)buffer->exposed,
 	 /* poolRing is uninteresting */
-         "  grey $B\n",        (unsigned long)buffer->grey,
-         "  shieldMode $B\n",  (unsigned long)buffer->shieldMode,
-         "  p $P  i $U\n",     buffer->p, (unsigned long)buffer->i,
-         "} Buffer $P ($U)\n", (void *)buffer, (unsigned long)buffer->serial,
+         "  grey $B\n",        (WriteFB)buffer->grey,
+         "  shieldMode $B\n",  (WriteFB)buffer->shieldMode,
+         "  p $P  i $U\n",     buffer->p, (WriteFU)buffer->i,
+         "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer->serial,
          NULL);
 
   return res;

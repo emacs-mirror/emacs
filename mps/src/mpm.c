@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.8) $
+ * $HopeName: MMsrc!mpm.c(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.8) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.9) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -46,6 +46,16 @@ Bool MPMCheck(void)
   CHECKL(SizeLog2(256L) == 8);
   CHECKL(SizeLog2(65536L) == 16);
   CHECKL(SizeLog2(131072L) == 17);
+
+  /* .check.writef: We check that various types will fit in a Word; */
+  /* See .writef.check.  Don't need to check WriteFS or WriteFF as they */
+  /* should not be cast to Word. */
+  CHECKL(sizeof(WriteFA) <= sizeof(Word));
+  CHECKL(sizeof(WriteFP) <= sizeof(Word));
+  CHECKL(sizeof(WriteFW) <= sizeof(Word)); /* Should be trivial*/
+  CHECKL(sizeof(WriteFU) <= sizeof(Word));
+  CHECKL(sizeof(WriteFB) <= sizeof(Word));
+  CHECKL(sizeof(WriteFC) <= sizeof(Word));
 
   return TRUE;  
 }
@@ -219,11 +229,16 @@ Size (PointerOffset)(Pointer base, Pointer limit)
 
 
 /* WriteWord -- output a textual representation of a word to a stream */
- 
-static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, unsigned width)
+/* as an unsigned value in the given base (2-16), */
+/* padded to the given width */
+
+static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, 
+  unsigned width)
 {
   static const char digit[16] = "0123456789ABCDEF";
-  char buf[MPS_WORD_WIDTH + 1]; /* enough for binary, plus one for terminator */
+  static const char pad = '0'; /* padding character */
+  char buf[MPS_WORD_WIDTH + 1]; /* enough for binary, */
+                                /* plus one for terminator */
   unsigned i;
   int r;
 
@@ -247,7 +262,7 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, unsigned width
   /* buffer with zeros. */
   while(i > MPS_WORD_WIDTH - width) {
     --i;
-    buf[i] = digit[0];
+    buf[i] = pad;
   }
 
   r = mps_lib_fputs(&buf[i], stream);
@@ -260,17 +275,22 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base, unsigned width
 
 /* WriteF -- write formatted output
  *
+ * .writef.des: See design.mps.writef, also design.mps.lib
+ *
  * .writef.p: There is an assumption that void * fits in Word in
- * the case of $P.
+ * the case of $P, and unsigned long for $U and $B.  This is checked in
+ * MPMCheck.
  *
  * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
  * are effectively three separate decisions to format at this width.
+ *
+ * .writef.check: See .check.writef
  */
 
 Res WriteF(mps_lib_FILE *stream, ...)
 {
   const char *format;
-  int r;
+  int r, i;
   Res res;
   va_list args;
 
@@ -285,7 +305,7 @@ Res WriteF(mps_lib_FILE *stream, ...)
 
     while(*format != '\0') {
       if(*format != '$') {
-        r = mps_lib_fputc(*format, stream);
+        r = mps_lib_fputc(*format, stream); /* Could be more efficient */
         if(r == mps_lib_EOF)
           return ResIO;
       } else {
@@ -294,46 +314,59 @@ Res WriteF(mps_lib_FILE *stream, ...)
 
         switch(*format) {
           case 'A': {			/* address */
-            Addr addr = va_arg(args, Addr);
-            res = WriteWord(stream, (Word)addr, 0x10, MPS_WORD_WIDTH / 4);
+            WriteFA addr = va_arg(args, WriteFA);
+            res = WriteWord(stream, (Word)addr, 16, 
+                            (sizeof(WriteFA) * CHAR_BIT + 3) / 4);
             if(res != ResOK) return res;
           } break;
 
           case 'P': {			/* pointer, see .writef.p */
-            void *p = va_arg(args, void *);
-            res = WriteWord(stream, (Word)p, 0x10, MPS_WORD_WIDTH / 4);
+            WriteFP p = va_arg(args, WriteFP);
+            res = WriteWord(stream, (Word)p, 16, 
+                            (sizeof(WriteFP) * CHAR_BIT + 3)/ 4);
             if(res != ResOK) return res;
           } break;
 
+          case 'F': {                   /* function */
+            WriteFF f = va_arg(args, WriteFF);
+            Byte *b = (Byte *)&f;
+            for(i=0; i < sizeof(WriteFF); i++) {
+              res = WriteWord(stream, (Word)(b[i]), 16, 
+                              (CHAR_BIT + 3) / 4);
+              if(res != ResOK) return res;
+            }
+          } break;
+            
           case 'S': {			/* string */
-            char *s = va_arg(args, char *);
-            r = mps_lib_fputs(s, stream);
+            WriteFS s = va_arg(args, WriteFS);
+            r = mps_lib_fputs((char *)s, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
         
           case 'C': {			/* character */
-            char c = va_arg(args, int);
-            r = mps_lib_fputc(c, stream);
+            WriteFC c = va_arg(args, WriteFC); /* promoted */
+            r = mps_lib_fputc((int)c, stream);
             if(r == mps_lib_EOF)
               return ResIO;
           } break;
         
           case 'W': {			/* word */
-            Word w = va_arg(args, Word);
-            res = WriteWord(stream, w, 0x10, MPS_WORD_WIDTH / 4);
+            WriteFW w = va_arg(args, WriteFW);
+            res = WriteWord(stream, (Word)w, 16,
+                            (sizeof(WriteFW) * CHAR_BIT + 3) / 4);
             if(res != ResOK) return res;
           } break;
 
-          case 'U': {			/* decimal */
-            unsigned long u = va_arg(args, unsigned long);
+          case 'U': {			/* decimal, see .writef.p */
+            WriteFU u = va_arg(args, WriteFU);
             res = WriteWord(stream, (Word)u, 10, 0);
             if(res != ResOK) return res;
           } break;
 
-          case 'B': {			/* binary */
-            unsigned long u = va_arg(args, unsigned long);
-            res = WriteWord(stream, (Word)u, 2, MPS_WORD_WIDTH);
+          case 'B': {			/* binary, see .writef.p */
+            WriteFB b = va_arg(args, WriteFB);
+            res = WriteWord(stream, (Word)b, 2, sizeof(WriteFB) * CHAR_BIT);
             if(res != ResOK) return res;
           } break;
         
