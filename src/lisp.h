@@ -1924,7 +1924,8 @@ extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object));
 extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object));
-extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object,
+					 Lisp_Object, struct buffer *));
 extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
 extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, struct buffer *, int));
 extern void syms_of_data P_ ((void));
