@@ -1,3 +1,7 @@
+2000-02-17  Dave Love  <fx@gnu.org>
+
+	* s/sol2.h (C_DEBUG_SWITCH): Define to allow optimization.
+
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (main): Use #if GC_MARK_STACK instead of #ifdef.
