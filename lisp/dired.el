@@ -1752,22 +1752,19 @@ OLD and NEW are both characters used to mark files."
 	(delete-region (point) (1+ (point)))
 	(insert-char new 1)))))
 
-(defun dired-unmark-all-files (flag &optional arg)
+(defun dired-unmark-all-files (mark &optional arg)
   "Remove a specific mark or any mark from every file.
 With prefix arg, query for each marked file.
 Type \\[help-command] at that time for help."
-  (interactive
-   (let* ((cursor-in-echo-area t))
-     (list (progn (message "Remove marks (RET means all): ") (read-char))
-	   current-prefix-arg)))
+  (interactive "sRemove marks (RET means all): \nP")
   (let ((count 0)
-	(re (if (zerop (length flag)) dired-re-mark
-	      (concat "^" (regexp-quote flag)))))
+	(re (if (zerop (length mark)) dired-re-mark
+	      (concat "^" (regexp-quote mark)))))
     (save-excursion
       (let (buffer-read-only case-fold-search query
 			     (help-form "\
-Type SPC or `y' to unflag one file, DEL or `n' to skip to next,
-`!' to unflag all remaining files with no more questions."))
+Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
+`!' to unmark all remaining files with no more questions."))
 	(goto-char (point-min))
 	(while (re-search-forward re nil t)
 	  (if (or (not arg)
@@ -1775,7 +1772,7 @@ Type SPC or `y' to unflag one file, DEL or `n' to skip to next,
 			       (dired-get-filename t)))
 	      (progn (delete-char -1) (insert " ") (setq count (1+ count))))
 	  (forward-line 1))))
-    (message "%s" (format "Flags removed: %d %s" count flag) )))
+    (message "%s" (format "Marks removed: %d %s" count mark))))
 
 ;; Logging failures operating on files, and showing the results.
 
