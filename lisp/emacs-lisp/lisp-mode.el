@@ -297,7 +297,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
-(define-derived-mode emacs-lisp-mode nil "Emacs-Lisp"
+(defun emacs-lisp-mode ()
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -305,8 +305,15 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{emacs-lisp-mode-map}
 Entry to this mode calls the value of `emacs-lisp-mode-hook'
 if that value is non-nil."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map emacs-lisp-mode-map)
+  (set-syntax-table emacs-lisp-mode-syntax-table)
+  (setq major-mode 'emacs-lisp-mode)
+  (setq mode-name "Emacs-Lisp")
   (lisp-mode-variables)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-case-fold-search nil)
+  (run-hooks 'emacs-lisp-mode-hook))
 
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap)))
@@ -317,7 +324,7 @@ if that value is non-nil."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode nil "Lisp"
+(defun lisp-mode ()
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -328,11 +335,20 @@ or to switch back to an existing one.
 
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map lisp-mode-map)
+  (setq major-mode 'lisp-mode)
+  (setq mode-name "Lisp")
   (lisp-mode-variables)
-  (set (make-local-variable 'comment-start-skip)
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip
        "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
-  (setq imenu-case-fold-search t))
+  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (setq font-lock-keywords-case-fold-search t)
+  (setq imenu-case-fold-search t)
+  (set-syntax-table lisp-mode-syntax-table)
+  (run-hooks 'lisp-mode-hook))
 
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
