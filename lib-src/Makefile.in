@@ -103,7 +103,7 @@ SCRIPTS= rcs2log vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
-SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
+SOURCES = COPYING ChangeLog Makefile.in README emacs.csh \
 	makedoc.com *.[chy] rcs2log vcdiff
 
 # Additional -D flags for movemail (add to MOVE_FLAGS if desired):
@@ -262,7 +262,7 @@ clean: mostlyclean
 	-rm -f ../etc/DOC* *.tab.c *.tab.h
 
 distclean: clean
-	-rm -f aixcc.c TAGS
+	-rm -f TAGS
 	-rm -f Makefile Makefile.in blessmail
 
 maintainer-clean: distclean
@@ -389,10 +389,3 @@ xveterm: ${srcdir}/emacstool.c
 	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
-
-aixcc: ${srcdir}/aixcc.c
-	$(CC) $(ALL_CFLAGS) -o aixcc ${srcdir}/aixcc.c
-
-aixcc.c: ${srcdir}/aixcc.lex
-	lex ${srcdir}/aixcc.lex
-	mv lex.yy.c aixcc.c
