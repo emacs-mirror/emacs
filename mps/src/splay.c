@@ -1,6 +1,6 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
- * $HopeName: MMsrc!splay.c(MMdevel_gavinm_splay.7) $
+ * $HopeName: MMsrc!splay.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -21,7 +21,7 @@
 #include "mpm.h"
 
 
-SRCID(splay, "$HopeName: MMsrc!splay.c(MMdevel_gavinm_splay.7) $");
+SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.2) $");
 
 /* Basic getter and setter methods */
 #define SplayTreeRoot(t) RVALUE((t)->root)
@@ -249,7 +249,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree, void *key) {
 	  SplayLinkRight(&top, &rightFirst);
 	  found = TRUE;
 	  goto assemble;
-        } break;
+        } /* break; */
 
 	case CompareLESS: {                  /* zig-zig */
 	  if(SplayNodeLeftChild(topLeft) == NULL)
@@ -286,7 +286,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree, void *key) {
 	  SplayLinkLeft(&top, &leftLast);
 	  found = TRUE;
 	  goto assemble;
-        } break;
+        } /* break; */
 
 	case CompareGREATER: {               /* zag-zag */
 	  if(SplayNodeRightChild(topRight) == NULL)
@@ -312,7 +312,7 @@ static Bool SplaySplay(SplayNode *nodeReturn, SplayTree tree, void *key) {
     case CompareEQUAL: {
       found = TRUE;
       goto assemble;
-    } break;
+    } /* break; */
 
     default: {
       NOTREACHED;
