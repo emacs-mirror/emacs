@@ -1261,7 +1261,7 @@ Value is the new frame created."
       (when spec
 	(face-spec-set face spec frame))
       (internal-merge-in-global-face face frame)
-      (when window-system
+      (when (memq window-system '(x w32))
 	(make-face-x-resource-internal face frame)))))
 
 
