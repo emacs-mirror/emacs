@@ -5,6 +5,15 @@
 
 2000-06-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* complete.el (PC-env-vars-alist): New variable.
+	(PC-complete-as-file-name): New function.
+	(partial-completion-mode): Initialize PC-env-vars-alist from
+	process-environment.
+	(PC-do-completion): Handle completion of env vars.
+
+	* info.el (Info-set-mode-line): Show file name in mode line,
+	use `*Info*' instead of `Info:'.
+
 	* startup.el (command-line-1): Change copyright messages to year
 	2000.
 
@@ -46,7 +55,7 @@
 
 	* mail/sendmail.el (mail-specify-envelope-from): Initialize to
 	nil.  Contemporary sendmails issue an X-Authentication-Warning if
-	the sender is set with `-f.
+	the sender is set with `-f'.
 
 2000-06-13  Dave Love  <fx@gnu.org>
 

@@ -638,6 +638,9 @@ compiled binary.  The same time-stamp will be written at each matching
 pattern.  The variable time-stamp-count enables this new feature; it
 defaults to 1.
 
+** Partial Completion mode now completes environment variables in 
+file names.
+
 ** Tooltips.
 
 Tooltips are small X windows displaying a help string at the current
