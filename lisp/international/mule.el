@@ -355,10 +355,12 @@ TYPE is an integer value indicating the type of coding-system as follows:
 MNEMONIC is a character to be displayed on mode line for the coding-system.
 DOC-STRING is a documentation string for the coding-system.
 FLAGS specifies more precise information of each TYPE.
+
   If TYPE is 2 (ISO-2022), FLAGS should be a list of:
       CHARSET0, CHARSET1, CHARSET2, CHARSET3, SHORT-FORM,
       ASCII-EOL, ASCII-CNTL, SEVEN, LOCKING-SHIFT, SINGLE-SHIFT,
-      USE-ROMAN, USE-OLDJIS, NO-ISO6429, INIT-BOL, DESIGNATION-BOL.
+      USE-ROMAN, USE-OLDJIS, NO-ISO6429, INIT-BOL, DESIGNATION-BOL,
+      SAFE.
     CHARSETn are character sets initially designated to Gn graphic registers.
       If CHARSETn is nil, Gn is never used.
       If CHARSETn is t, Gn can be used but nothing designated initially.
@@ -378,6 +380,9 @@ FLAGS specifies more precise information of each TYPE.
       to initial at each beginning of line on output.
     DESIGNATION-BOL non-nil means designation sequences should be placed
       at beginning of line on output.
+    SAFE non-nil means convert unexpected characters to `?' on output.
+      Unexpected characters are what not specified in CHARSETn directly.
+
   If TYPE is 4 (private), FLAGS should be a cons of CCL programs,
     for encoding and decoding.  See the documentation of CCL for more detail."
 
@@ -786,6 +791,9 @@ without changing their position code(s)."
 
 (put 'use-default-ascent 'char-table-extra-slots 0)
 (setq use-default-ascent (make-char-table 'use-default-ascent))
+(put 'ignore-relative-composition 'char-table-extra-slots 0)
+(setq ignore-relative-composition
+      (make-char-table 'ignore-relative-composition))
 
 ;;;
 (provide 'mule)
