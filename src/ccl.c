@@ -1219,7 +1219,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_TranslateCharacter:
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
-		i = reg[rrr] & 0x7F;
+		i = reg[rrr];
 	      else if (i == CHARSET_COMPOSITION)
 		{
 		  reg[RRR] = -1;
@@ -1246,7 +1246,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      ic++;
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
-		i = reg[rrr] & 0x7F;
+		i = reg[rrr];
 	      else if (i == CHARSET_COMPOSITION)
 		{
 		  reg[RRR] = -1;
