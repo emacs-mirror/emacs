@@ -1,3 +1,19 @@
+2000-05-09  Dave Love  <fx@gnu.org>
+
+	Changes mostly following Richard Sharman <rsharman@wave.home.com>.
+
+	* help.el (describe-variable): Have customize button pop the
+	help-xref stack when invoked.
+	(help-xref-symbol-regexp): Add `face'.
+	(help-make-xrefs): Check for quoted face names and adapt regexp
+	submatch numbers to cope.
+	(help-xref-interned): Maybe insert face doc too.  Separate
+	sections with a line of hyphens.
+
+	* faces.el:  Some doc fixes.
+	(describe-face): Add customize button.  Return the help
+	text.  Fix prompt.
+
 2000-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (IT-character-translations): Fix last change.
