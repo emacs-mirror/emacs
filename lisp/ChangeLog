@@ -1,3 +1,10 @@
+2003-06-04  Jason Rumney  <jasonr@gnu.org>
+
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Default to new wheel-up and wheel-down events on MacOS.
+
+	* term/mac-win.el: No need to bind wheel events specially.
+
 2003-06-04  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* simple.el (yank-excluded-properties): Expand documentation
