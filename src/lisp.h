@@ -491,9 +491,30 @@ typedef struct
     Lisp_Object this_command_keys;
     Lisp_Object internal_last_event_frame;
     Lisp_Object kbd_buffer_frame_or_window;
+
+    /* Circular buffer for pre-read keyboard input.  */
     struct input_event *kbd_buffer;
+
+    /* Pointer to next available character in kbd_buffer.
+       If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
+       This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the the
+       next available char is in kbd_buffer[0].  */
     struct input_event *kbd_fetch_ptr;
-    struct input_event *kbd_store_ptr;
+
+    /* Pointer to next place to store character in kbd_buffer.  This
+       may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
+       character should go in kbd_buffer[0].  */
+    volatile struct input_event *kbd_store_ptr;
+
+    /* The above pair of variables forms a "queue empty" flag.  When we
+       enqueue a non-hook event, we increment kbd_store_ptr.  When we
+       dequeue a non-hook event, we increment kbd_fetch_ptr.  We say that
+       there is input available iff the two counters are not equal.
+
+       Why not just have a flag set and cleared by the enqueuing and
+       dequeuing functions?  Such a flag could be screwed up by interrupts
+       at inopportune times.  */
+
     int this_command_key_count;
     int immediate_echo;
     int echo_after_prompt;
