@@ -696,7 +696,7 @@ argument causes us to read a file name and use that file as the inbox."
 	    (or (zerop new-messages)
 		(let (success)
 		  (widen)
-		  (search-backward "\n\^_")
+		  (search-backward "\n\^_" nil t)
 		  (narrow-to-region (point) (point-max))
 		  (goto-char (1+ (point-min)))
 		  (rmail-count-new-messages)
