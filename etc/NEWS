@@ -1734,6 +1734,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The function `insert-for-yank' now supports strings where the
+`yank-handler' property does not span the first character of the
+string.  The old behavior is available if you call
+`insert-for-yank-1' instead.
+
 ** New function `get-char-property-and-overlay' accepts the same
 arguments as `get-char-property' and returns a cons whose car is the
 return value of `get-char-property' called with those arguments and
