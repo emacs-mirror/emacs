@@ -77,6 +77,8 @@ extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 #endif
 
+extern char *get_system_name ();
+
 /* Make sure not to #include anything after these definitions.  Let's
    not step on anyone's prototypes.  */
 #ifdef emacs
@@ -481,26 +483,12 @@ get_environ_db ()
 {
   XrmDatabase db;
   char *p;
-  char *path = 0, *home = 0, *host = 0;
+  char *path = 0, *home = 0, *host;
 
   if ((p = getenv ("XENVIRONMENT")) == NULL)
     {
       home = gethomedir ();
-
-      {
-	int host_size = 100;
-	host = (char *) malloc (host_size);
-	
-	for (;;)
-	  {
-	    host[host_size - 1] = '\0';
-	    gethostname (host, host_size - 1);
-	    if (strlen (host) < host_size - 1)
-	      break;
-	    host = (char *) realloc (host, host_size *= 2);
-	  }
-      }
-
+      host = get_system_name ();
       path = (char *) malloc (strlen (home)
 			      + sizeof (".Xdefaults-")
 			      + strlen (host));
@@ -512,7 +500,6 @@ get_environ_db ()
 
   if (path) free (path);
   if (home) free (home);
-  if (host) free (host);
 
   return db;
 }
