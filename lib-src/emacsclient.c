@@ -67,6 +67,9 @@ char *display = NULL;
    is not running.  --alternate-editor.   */
 const char * alternate_editor = NULL;
 
+/* If non-NULL, thefilename of the UNIX socket */
+char *socket_name = NULL;
+
 void print_help_and_exit ();
 
 struct option longopts[] =
@@ -76,6 +79,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "alternate-editor", required_argument, NULL, 'a' },
+  { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
   { 0, 0, 0, 0 }
 };
@@ -91,7 +95,7 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:d:", longopts, 0);
+			     "VHnea:s:d:", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -107,6 +111,10 @@ decode_options (argc, argv)
 
 	case 'a':
 	  alternate_editor = optarg;
+	  break;
+
+	case 's':
+	  socket_name = optarg;
 	  break;
 
 	case 'd':
@@ -152,6 +160,8 @@ The following OPTIONS are accepted:\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
+-s, --socket-name=FILENAME\n\
+                        Set the filename of the UNIX socket for communication\n\
 -a, --alternate-editor=EDITOR\n\
                         Editor to fallback to if the server is not running\n\
 \n\
@@ -347,7 +357,18 @@ main (argc, argv)
   {
     int sock_status = 0;
 
-    sprintf (server.sun_path, "/tmp/emacs%d-%s/server", (int) geteuid (), system_name);
+    if (! socket_name)
+      {
+	socket_name = alloca (system_name_length + 100);
+	sprintf (socket_name, "/tmp/emacs%d-%s/server",
+		 (int) geteuid (), system_name);
+      }
+
+    if (strlen (socket_name) < sizeof (server.sun_path))
+      strcpy (server.sun_path, socket_name);
+    else
+      fprintf (stderr, "%s: socket-name %s too long",
+	       argv[0], socket_name);
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
