@@ -327,7 +327,7 @@ This also sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as file-name-coding-system for converting file names.
+  o default value used as `file-name-coding-system' for converting file names.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
   o default value for the command `set-keyboard-coding-system'
 
@@ -339,8 +339,10 @@ for MS-DOS terminal, because DOS terminals only support a single coding
 system, and Emacs automatically sets the default to that coding system at
 startup.
 
-Such a coding system that requires automatic detection of text
-encoding (e.g. undecided, unix) can't be preferred."
+A coding system that requires automatic detection of text
+encoding (e.g. undecided, unix) can't be preferred.
+
+See also `coding-category-list' and `coding-system-category'."
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -895,15 +897,15 @@ Emacs loads this file at startup time.")
 ";;; %s -- list of LEIM (Library of Emacs Input Method)
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
-;; in the same directory as this file.  Loading this file registers
-;; the whole input methods in Emacs.
+;; methods in the same directory as this file.  Loading this file
+;; registers all the input methods in Emacs.
 ;;
 ;; Each entry has the form:
 ;;   (register-input-method
 ;;    INPUT-METHOD LANGUAGE-NAME ACTIVATE-FUNC
 ;;    TITLE DESCRIPTION
 ;;    ARG ...)
-;; See the function `register-input-method' for the meanings of arguments.
+;; See the function `register-input-method' for the meanings of the arguments.
 ;;
 ;; If this directory is included in load-path, Emacs automatically
 ;; loads this file at startup time.
@@ -988,8 +990,8 @@ DESCRIPTION is a string describing this method and what it is good for.
 The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
 All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS.
 
-This function is mainly used in the file \"leim-list.el\", which is
-created at Emacs build time to register all Quail input methods
+This function is mainly used in the file \"leim-list.el\" which is
+created at Emacs build time, registering all Quail input methods
 contained in the Emacs distribution.
 
 In case you want to register a new Quail input method by yourself, be
@@ -1331,8 +1333,7 @@ The default status is as follows:
 	coding-category-binary		no-conversion
 	coding-category-utf-16-be	nil
 	coding-category-utf-16-le	nil
-	coding-category-utf-8		'mule-utf-8
-"
+	coding-category-utf-8		mule-utf-8"
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,
   ;; but that is incorrect.  It should not alter the unibyte/multibyte choice.
