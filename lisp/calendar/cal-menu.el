@@ -38,6 +38,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'calendar))
+(require 'easymenu)
 
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
 (define-key calendar-mode-map [menu-bar search] 'undefined)
@@ -87,21 +88,6 @@
 
 (define-key calendar-mode-map [menu-bar holidays]
   (cons "Holidays" (make-sparse-keymap "Holidays")))
-
-(define-key calendar-mode-map [menu-bar holidays unmark]
-  '("Unmark" . calendar-unmark))
-(define-key calendar-mode-map [menu-bar holidays mark]
-  '("Mark" . mark-calendar-holidays))
-(define-key calendar-mode-map [menu-bar holidays previous-year]
-  '("Previous year" . cal-menu-list-holidays-previous-year))
-(define-key calendar-mode-map [menu-bar holidays following-year]
-  '("Following year" . cal-menu-list-holidays-following-year))
-(define-key calendar-mode-map [menu-bar holidays year]
-  '("Year" . cal-menu-list-holidays-year))
-(define-key calendar-mode-map [menu-bar holidays 3-mon]
-  '("3 Months" . list-calendar-holidays))
-(define-key calendar-mode-map [menu-bar holidays 1-day]
-  '("One Day" . calendar-cursor-holidays))
 
 (define-key calendar-mode-map [menu-bar goto]
   (cons "Goto" (make-sparse-keymap "Goto")))
@@ -192,6 +178,51 @@
   (interactive)
   (let ((year (1- (extract-calendar-year (calendar-cursor-to-date)))))
     (list-holidays year year)))
+
+(defun cal-menu-update ()
+  ;; Update the holiday part of calendar menu bar for the current display.
+  (condition-case nil
+      (if (eq major-mode 'calendar-mode)
+          (let ((l))
+            (calendar-for-loop;; Show 11 years--5 before, 5 after year of
+                   ;; middle month
+             i from (- displayed-year 5) to (+ displayed-year 5) do
+             (setq l (cons (vector (format "For Year %s" i)
+                                   (list (list 'lambda 'nil '(interactive)
+                                               (list 'list-holidays i i)))
+                                   t)
+                           l)))
+            (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
+                          (cons ["Unmark Calendar" calendar-unmark t] l)))
+            (easy-menu-change nil "holidays" (nreverse l))
+            (let ((title
+                   (let ((m1 displayed-month)
+                         (y1 displayed-year)
+                         (m2 displayed-month)
+                         (y2 displayed-year))
+                     (increment-calendar-month m1 y1 -1)
+                     (increment-calendar-month m2 y2 1)
+                     (if (= y1 y2)
+                         (format "%s-%s, %d"
+                                 (calendar-month-name m1 3)
+                                 (calendar-month-name m2 3)
+                                 y2)
+                       (format "%s, %d-%s, %d"
+                               (calendar-month-name m1 3)
+                               y1
+                               (calendar-month-name m2 3)
+                               y2)))))
+              (define-key  calendar-mode-map [menu-bar holidays 3-day]
+                `(,(format "For Current Window (%s)" title)
+                  . list-calendar-holidays)))
+            (let ((date (calendar-cursor-to-date)))
+              (if date
+                  (define-key calendar-mode-map [menu-bar holidays 1-day]
+                    `(,(format "For Cursor Date (%s)"
+                               (calendar-date-string date t t))
+                      . calendar-cursor-holidays))))))
+    ;; Try to avoid entering infinite beep mode in case of errors.
+    (error (ding))))
 
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
