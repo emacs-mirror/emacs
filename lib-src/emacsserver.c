@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
-#include <sys/signal.h>
+#include <signal.h>
 #include <../src/config.h>
 #undef read
 #undef write
