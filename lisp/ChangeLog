@@ -16,8 +16,7 @@
 	(ps-e-overlay-end): Alias for overlay-end to avoid compilation gripes
 	for XEmacs.
 	(ps-prefix-quote): Doc fix.
-	(ps-setup, ps-print-quote, ps-generate-postscript-with-faces): Code
-	fix.
+	(ps-setup, ps-print-quote, ps-generate-postscript-with-faces): Code fix.
 	(ps-basic-plot-str, ps-plot-string): New funs.
 
 2001-05-31  Stefan Monnier  <monnier@cs.yale.edu>
