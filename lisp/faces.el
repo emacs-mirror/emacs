@@ -1670,7 +1670,7 @@ created."
     (((class color) (background light))
      (:background "yellow"))
     (((class color) (background dark))
-     (:background "yellow"))
+     (:background "SkyBlue4"))
     (t (:inverse-video t)))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)
