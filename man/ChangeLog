@@ -28,8 +28,8 @@
 	cross-references to mailutils documentation.
 	Describe various methods of specifying mailbox names,
 	user names and user passwords for rmail.
-	(Remote Mailboxes): New section. Describe
-	how movemail handles remote mailboxes. Describe configuration
+	(Remote Mailboxes): New section.  Describe
+	how movemail handles remote mailboxes.  Describe configuration
 	options used to control its behavior. 
 	(Other Mailbox Formats): Explain handling of various mailbox
 	formats.
