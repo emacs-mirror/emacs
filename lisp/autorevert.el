@@ -444,11 +444,13 @@ This is an internal function used by Auto-Revert Mode."
 	(file buffer-file-name)
 	buffer-file-name)		; ignore that file has changed
     (when (> size auto-revert-tail-pos)
+      (undo-boundary)
       (save-restriction
 	(widen)
 	(save-excursion
 	  (goto-char (point-max))
 	  (insert-file-contents file nil auto-revert-tail-pos size)))
+      (undo-boundary)
       (setq auto-revert-tail-pos size)
       (set-buffer-modified-p modified)))
   (set-visited-file-modtime))
