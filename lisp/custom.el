@@ -81,7 +81,7 @@
 			     (custom-add-option symbol option))
 			   value)
 		 ;; Fast code for the common case.
-		 (put symbol 'custom-options (copy-list value))))
+		 (put symbol 'custom-options (copy-sequence value))))
 	      (t
 	       (custom-handle-keyword symbol keyword value
 				      'custom-variable))))))
