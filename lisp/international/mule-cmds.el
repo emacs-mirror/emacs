@@ -290,19 +290,23 @@ CHARSETS is a list of character sets."
 	       (eq 'ascii (car charsets))))
       '(undecided)
     (setq charsets (delq 'composition charsets))
-    (let ((l coding-system-list)
+    (let ((l (coding-system-list 'base-only))
 	  (charset-prefered-codings
 	   (mapcar (function
 		    (lambda (x)
-		      (get-charset-property x 'prefered-coding-system)))
+		      (if (eq x 'unknown)
+			  'raw-text
+			(get-charset-property x 'prefered-coding-system))))
 		   charsets))
 	  (priorities (mapcar (function (lambda (x) (symbol-value x)))
 			      coding-category-list))
 	  codings coding safe)
+      (if (memq 'unknown charsets)
+	  ;; The region contains invalid multibyte characters.
+	  (setq l '(raw-text)))
       (while l
 	(setq coding (car l) l (cdr l))
-	(if (and (eq coding (coding-system-base coding))
-		 (setq safe (coding-system-get coding 'safe-charsets))
+	(if (and (setq safe (coding-system-get coding 'safe-charsets))
 		 (or (eq safe t)
 		     (find-coding-systems-region-subset-p charsets safe)))
 	    ;; We put the higher priority to coding systems included
@@ -330,7 +334,9 @@ where
   COUNT is a number of characters,
   CHARs are found characters of the character set.
 Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
-Optional 4th arg EXCLUDE is a list of character sets to be ignored."
+Optional 4th arg EXCLUDE is a list of character sets to be ignored.
+
+For invalid characters, CHARs are actually strings."
   (let ((chars nil)
 	charset char)
     (if (stringp from)
@@ -338,7 +344,10 @@ Optional 4th arg EXCLUDE is a list of character sets to be ignored."
 	  (while (setq idx (string-match "[^\000-\177]" from idx))
 	    (setq char (aref from idx)
 		  charset (char-charset char))
-	    (if (not (memq charset excludes))
+	    (if (eq charset 'unknown)
+		(setq char (match-string 0)))
+	    (if (or (eq charset 'unknown)
+		    (not (or (eq excludes t) (memq charset excludes))))
 		(let ((slot (assq charset chars)))
 		  (if slot
 		      (if (not (memq char (nthcdr 2 slot)))
@@ -353,10 +362,13 @@ Optional 4th arg EXCLUDE is a list of character sets to be ignored."
 	(while (re-search-forward "[^\000-\177]" to t)
 	  (setq char (preceding-char)
 		charset (char-charset char))
-	  (if (not (memq charset excludes))
+	  (if (eq charset 'unknown)
+	      (setq char (match-string 0)))
+	  (if (or (eq charset 'unknown)
+		  (not (or (eq excludes t) (memq charset excludes))))
 	      (let ((slot (assq charset chars)))
 		(if slot
-		    (if (not (memq char (nthcdr 2 slot)))
+		    (if (not (member char (nthcdr 2 slot)))
 			(let ((count (nth 1 slot)))
 			  (setcar (cdr slot) (1+ count))
 			  (if (or (not maxcount) (< count maxcount))
@@ -390,7 +402,8 @@ and TO is ignored."
   (let* ((charsets (if (stringp from) (find-charset-string from)
 		     (find-charset-region from to)))
 	 (safe-coding-systems (find-coding-systems-for-charsets charsets)))
-    (if (or (eq (car safe-coding-systems) 'undecided)
+    (if (or (not enable-multibyte-characters)
+	    (eq (car safe-coding-systems) 'undecided)
 	    (eq default-coding-system 'no-conversion)
 	    (and default-coding-system
 		 (memq (coding-system-base default-coding-system)
@@ -449,7 +462,8 @@ and TO is ignored."
 			  (insert (format "%25s: " (car (car non-safe-chars))))
 			  (let ((l (nthcdr 2 (car non-safe-chars))))
 			    (while l
-			      (insert (car l))
+			      (if (or (stringp (car l)) (char-valid-p (car l)))
+				  (insert (car l)))
 			      (setq l (cdr l))))
 			  (if (> (nth 1 (car non-safe-chars)) 3)
 			      (insert "..."))
@@ -1325,14 +1339,14 @@ specifies the character set for the major languages of Western Europe."
 
 ;;; Charset property
 
-(defsubst get-charset-property (charset propname)
+(defun get-charset-property (charset propname)
   "Return the value of CHARSET's PROPNAME property.
 This is the last value stored with
  (put-charset-property CHARSET PROPNAME VALUE)."
-  (or (eq charset 'composition)
-      (plist-get (charset-plist charset) propname)))
+  (and (not (eq charset 'composition))
+       (plist-get (charset-plist charset) propname)))
 
-(defsubst put-charset-property (charset propname value)
+(defun put-charset-property (charset propname value)
   "Store CHARSETS's PROPNAME property with value VALUE.
 It can be retrieved with `(get-charset-property CHARSET PROPNAME)'."
   (or (eq charset 'composition)
