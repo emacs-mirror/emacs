@@ -489,6 +489,10 @@ static char echobuf[300];
 /* Where to append more text to echobuf if we want to.  */
 static char *echoptr;
 
+/* If we have echoed a prompt string specified by the user,
+   this is its length.  Otherwise this is -1.  */
+static int echo_after_prompt;
+
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
 static int cannot_suspend;
@@ -504,11 +508,14 @@ echo_prompt (str)
      char *str;
 {
   int len = strlen (str);
+
   if (len > sizeof echobuf - 4)
     len = sizeof echobuf - 4;
   bcopy (str, echobuf, len);
   echoptr = echobuf + len;
   *echoptr = '\0';
+
+  echo_after_prompt = len;
 
   echo ();
 }
@@ -568,6 +575,9 @@ echo_dash ()
 {
   if (!immediate_echo && echoptr == echobuf)
     return;
+  /* Do nothing if we just printed a prompt.  */
+  if (echo_after_prompt != echoptr - echobuf)
+    return;
   /* Do nothing if not echoing at all.  */
   if (echoptr == 0)
     return;
@@ -615,6 +625,7 @@ cancel_echoing ()
 {
   immediate_echo = 0;
   echoptr = echobuf;
+  echo_after_prompt = -1;
 }
 
 /* Return the length of the current echo string.  */
@@ -4677,7 +4688,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  goto replay_key;
 		}
 	    }
-	  else
+	  else if (CONSP (XCONS (key)->cdr)
+		   && CONSP (EVENT_START (key))
+		   && CONSP (XCONS (EVENT_START (key))->cdr))
 	    {
 	      Lisp_Object posn;
 
@@ -4883,6 +4896,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      fkey_next
 		= get_keyelt (access_keymap (fkey_next, key, 1, 0));
+
+#if 0 /* I didn't turn this on, because it might cause trouble
+	 for the mapping of return into C-m and tab into C-i.  */
+	      /* Optionally don't map function keys into other things.
+		 This enables the user to redefine kp- keys easily.  */
+	      if (SYMBOLP (key) && !NILP (Vinhibit_function_key_mapping))
+		fkey_next = Qnil;
+#endif
 
 	      /* If the function key map gives a function, not an
 		 array, then call the function with no args and use
@@ -5532,10 +5553,13 @@ interrupt_signal ()
   int old_errno = errno;
 
 #ifdef USG
-  /* USG systems forget handlers when they are used;
-     must reestablish each time */
-  signal (SIGINT, interrupt_signal);
-  signal (SIGQUIT, interrupt_signal);
+  if (!read_socket_hook && NILP (Vwindow_system))
+    {
+      /* USG systems forget handlers when they are used;
+	 must reestablish each time */
+      signal (SIGINT, interrupt_signal);
+      signal (SIGQUIT, interrupt_signal);
+    }
 #endif /* USG */
 
   cancel_echoing ();
@@ -5773,7 +5797,7 @@ init_keyboard ()
   if (initialized)
     Ffillarray (kbd_buffer_frame_or_window, Qnil);
 
-  if (!noninteractive)
+  if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
     {
       signal (SIGINT, interrupt_signal);
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
@@ -5781,11 +5805,12 @@ init_keyboard ()
 	 SIGQUIT and we can't tell which one it will give us.  */
       signal (SIGQUIT, interrupt_signal);
 #endif /* HAVE_TERMIO */
+    }
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
-      signal (SIGIO, input_available_signal);
+  if (!noninteractive)
+    signal (SIGIO, input_available_signal);
 #endif /* SIGIO */
-    }
 
 /* Use interrupt input by default, if it works and noninterrupt input
    has deficiencies.  */
