@@ -1,4 +1,4 @@
-;;; bdf.el --- BDF font file handler
+;;; bdf.el --- BDF font file handler for ps-print.
 
 ;; Copyright (C) 1998 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -379,11 +379,12 @@ BITMAP-STRING is a string representing bits by hexadecimal digits."
   (ps-mule-generate-bitmap-prologue))
 
 ;; Called from ps-mule-generate-font.
-(defun bdf-generate-font (font-spec)
+(defun bdf-generate-font (charset font-spec)
   (let* ((font-name (ps-mule-font-spec-name font-spec))
 	 (font-info (bdf-get-font-info font-name)))
     (ps-mule-generate-bitmap-font font-name
 				  (ps-mule-font-spec-bytes font-spec)
+				  (charset-width charset)
 				  (bdf-info-size font-info)
 				  (bdf-info-relative-compose font-info)
 				  (bdf-info-baseline-offset font-info)
