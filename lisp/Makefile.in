@@ -314,6 +314,9 @@ bootstrap-prepare:
 maintainer-clean:
 	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
 
+bootstrap-clean:
+	cd $(lisp); rm -f *.elc */*.elc
+
 # Generate/update files for the bootstrap process.
 
 bootstrap: update-subdirs autoloads compile
