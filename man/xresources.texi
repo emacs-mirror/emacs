@@ -631,7 +631,7 @@ find the document online, at
 
 @menu
 * GTK widget names::      How widgets in GTK are named in general.
-* GTK names in Emacs::    GTK widget names in Emacs.
+* GTK Names in Emacs::    GTK widget names in Emacs.
 * GTK styles::            What can be customized in a GTK widget.
 @end menu
 
