@@ -193,8 +193,13 @@ message (m, a1, a2, a3)
   else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
     {
 #ifdef MULTI_FRAME
+      Lisp_Object minibuf_frame;
+
       choose_minibuf_frame ();
-      Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
+      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+      if (FRAME_VISIBLE_P (selected_frame)
+	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
 #endif
 
       {
@@ -244,8 +249,13 @@ message1 (m)
   else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
     {
 #ifdef MULTI_FRAME
+      Lisp_Object minibuf_frame;
+
       choose_minibuf_frame ();
-      Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
+      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+      if (FRAME_VISIBLE_P (selected_frame)
+	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
 #endif
 
       echo_area_glyphs = m;
@@ -1771,6 +1781,7 @@ display_mode_line (w)
   if (FRAME_IS_X (f)
       && ! FRAME_MINIBUF_ONLY_P (f)
       && w == XWINDOW (f->selected_window)
+      && XINT (Flength (Vframe_list)) > 1
       && (NILP (Fstring_equal (XBUFFER (w->buffer)->name, f->name))))
     x_set_name (f, XBUFFER (w->buffer)->name, Qnil);
 #endif

@@ -141,7 +141,7 @@ These supercede the values given in default-frame-alist.")
 ;;; Return some frame other than the current frame,
 ;;; creating one if neccessary.  Note that the minibuffer frame, if
 ;;; separate, is not considered (see next-frame).
-(defun get-frame ()
+(defun get-other-frame ()
   (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
 	       (new-frame)
 	     (next-frame (selected-frame)))))
