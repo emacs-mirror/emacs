@@ -183,9 +183,12 @@ without invoking the usual minibuffer commands.")
 
 /* Actual minibuffer invocation. */
 
-static Lisp_Object read_minibuf_unwind ();
-Lisp_Object get_minibuffer ();
-static Lisp_Object read_minibuf ();
+static Lisp_Object read_minibuf_unwind P_ ((Lisp_Object));
+static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
+				     Lisp_Object, Lisp_Object,
+				     int, Lisp_Object,
+				     Lisp_Object, Lisp_Object,
+				     int, int));
 
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
    (a string), putting point minus BACKUP_N bytes from the end of INITIAL,
@@ -216,6 +219,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      Lisp_Object histvar;
      Lisp_Object histpos;
      Lisp_Object defalt;
+     int allow_props;
      int inherit_input_method;
 {
   Lisp_Object val;
@@ -869,7 +873,9 @@ or the symbol from the obarray.")
      Lisp_Object string, alist, predicate;
 {
   Lisp_Object bestmatch, tail, elt, eltstring;
+  /* Size in bytes of BESTMATCH.  */
   int bestmatchsize;
+  /* These are in bytes, too.  */
   int compare, matchsize;
   int list = CONSP (alist) || NILP (alist);
   int index, obsize;
@@ -930,9 +936,9 @@ or the symbol from the obarray.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  && XSTRING (string)->size_byte <= XSTRING (eltstring)->size_byte
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       XSTRING (string)->size))
+		       XSTRING (string)->size_byte))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -970,10 +976,13 @@ or the symbol from the obarray.")
 
 	  matchcount++;
 	  if (NILP (bestmatch))
-	    bestmatch = eltstring, bestmatchsize = XSTRING (eltstring)->size;
+	    {
+	      bestmatch = eltstring;
+	      bestmatchsize = XSTRING (eltstring)->size_byte;
+	    }
 	  else
 	    {
-	      compare = min (bestmatchsize, XSTRING (eltstring)->size);
+	      compare = min (bestmatchsize, XSTRING (eltstring)->size_byte);
 	      matchsize = scmp (XSTRING (bestmatch)->data,
 				XSTRING (eltstring)->data,
 				compare);
@@ -985,8 +994,8 @@ or the symbol from the obarray.")
 		     use it as the best match rather than one that is not an
 		     exact match.  This way, we get the case pattern
 		     of the actual match.  */
-		  if ((matchsize == XSTRING (eltstring)->size
-		       && matchsize < XSTRING (bestmatch)->size)
+		  if ((matchsize == XSTRING (eltstring)->size_byte
+		       && matchsize < XSTRING (bestmatch)->size_byte)
 		      ||
 		      /* If there is more than one exact match ignoring case,
 			 and one of them is exact including case,
@@ -994,13 +1003,15 @@ or the symbol from the obarray.")
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
 			 of the input.  */
-		      ((matchsize == XSTRING (eltstring)->size)
+		      ((matchsize == XSTRING (eltstring)->size_byte)
 		       ==
-		       (matchsize == XSTRING (bestmatch)->size)
+		       (matchsize == XSTRING (bestmatch)->size_byte)
 		       && !bcmp (XSTRING (eltstring)->data,
-				 XSTRING (string)->data, XSTRING (string)->size)
+				 XSTRING (string)->data,
+				 XSTRING (string)->size_byte)
 		       && bcmp (XSTRING (bestmatch)->data,
-				XSTRING (string)->data, XSTRING (string)->size)))
+				XSTRING (string)->data,
+				XSTRING (string)->size_byte)))
 		    bestmatch = eltstring;
 		}
 	      bestmatchsize = matchsize;
@@ -1013,16 +1024,18 @@ or the symbol from the obarray.")
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
      don't change the case of what the user typed.  */
-  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size
-      && XSTRING (bestmatch)->size > bestmatchsize)
+  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size_byte
+      && XSTRING (bestmatch)->size_byte > bestmatchsize)
     return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
-  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size
+  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size_byte
       && !bcmp (XSTRING (bestmatch)->data, XSTRING (string)->data,
 		bestmatchsize))
     return Qt;
+
+  bestmatchsize = string_byte_to_char (bestmatch, bestmatchsize);
 
   XSETFASTINT (zero, 0);		/* Else extract the part in which */
   XSETFASTINT (end, bestmatchsize);	/* all completions agree */
@@ -1151,14 +1164,15 @@ are ignored unless STRING itself starts with a space.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  && XSTRING (string)->size_byte <= XSTRING (eltstring)->size_byte
 	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
-	  && ((XSTRING (string)->size > 0 && XSTRING (string)->data[0] == ' ')
+	  && ((XSTRING (string)->size_byte > 0
+	       && XSTRING (string)->data[0] == ' ')
 	      || XSTRING (eltstring)->data[0] != ' '
 	      || NILP (hide_spaces))
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       XSTRING (string)->size))
+		       XSTRING (string)->size_byte))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -1303,9 +1317,6 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
 
 Lisp_Object Fminibuffer_completion_help ();
 Lisp_Object assoc_for_completion ();
-/* A subroutine of Fintern_soft.  */
-extern Lisp_Object oblookup ();
-
 
 /* Test whether TXT is an exact completion.  */
 Lisp_Object
@@ -1321,7 +1332,9 @@ test_completion (txt)
     {
       /* Bypass intern-soft as that loses for nil */
       tem = oblookup (Vminibuffer_completion_table,
-		      XSTRING (txt)->data, XSTRING (txt)->size);
+		      XSTRING (txt)->data,
+		      XSTRING (txt)->size,
+		      XSTRING (txt)->size_byte);
       if (!SYMBOLP (tem))
 	return Qnil;
       else if (!NILP (Vminibuffer_completion_predicate))
@@ -1570,7 +1583,7 @@ Return nil if there is no valid completion, else t.")
   ()
 {
   Lisp_Object completion, tem;
-  register int i;
+  register int i, i_byte;
   register unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
 
@@ -1622,30 +1635,32 @@ Return nil if there is no valid completion, else t.")
 	  {
 	    tem = substituted;
 	    Ferase_buffer ();
-	    insert_from_string (tem, 0, XSTRING (tem)->size, 0);
+	    insert_from_string (tem, 0, 0, XSTRING (tem)->size,
+				XSTRING (tem)->size_byte, 0);
 	  }
       }
     buffer_string = XSTRING (tem)->data;
     completion_string = XSTRING (completion)->data;
-    buffer_nbytes = XSTRING (tem)->size; /* ie ZV_BYTE - BEGV_BYTE */
-    completion_nbytes = XSTRING (completion)->size;
-    i = buffer_nbytes - completion_nbytes;
+    buffer_nbytes = XSTRING (tem)->size_byte; /* ie ZV_BYTE - BEGV_BYTE */
+    completion_nbytes = XSTRING (completion)->size_byte;
+    i_byte = buffer_nbytes - completion_nbytes;
     if (i > 0 ||
 	0 <= scmp (buffer_string, completion_string, buffer_nbytes))
       {
 	/* Set buffer to longest match of buffer tail and completion head. */
-	if (i <= 0) i = 1;
-	buffer_string += i;
-	buffer_nbytes -= i;
+	if (i_byte <= 0) i_byte = 1;
+	buffer_string += i_byte;
+	buffer_nbytes -= i_byte;
 	while (0 <= scmp (buffer_string++, completion_string, buffer_nbytes--))
-	  i++;
-	del_range_byte (1, i + 1, 1);
+	  i_byte++;
+	del_range_byte (1, i_byte + 1, 1);
 	SET_PT_BOTH (ZV, ZV_BYTE);
       }
     UNGCPRO;
   }
 #endif /* Rewritten code */
-  i = ZV_BYTE - BEGV_BYTE;
+  i_byte = ZV_BYTE - BEGV_BYTE;
+  i = ZV - BEGV;
 
   /* If completion finds next char not unique,
      consider adding a space or a hyphen. */
@@ -1679,14 +1694,15 @@ Return nil if there is no valid completion, else t.")
     int len, c;
 
     completion_string = XSTRING (completion)->data;
-    for (; i < XSTRING (completion)->size; i += len)
+    for (; i_byte < XSTRING (completion)->size_byte; i_byte += len, i++)
       {
-	c = STRING_CHAR_AND_LENGTH (completion_string + i,
-				    XSTRING (completion)->size - i,
+	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,
+				    XSTRING (completion)->size - i_byte,
 				    len);
 	if (SYNTAX (c) != Sword)
 	  {
-	    i += len;
+	    i_byte += len;
+	    i++;
 	    break;
 	  }
       }
@@ -1694,7 +1710,7 @@ Return nil if there is no valid completion, else t.")
 
   /* If got no characters, print help for user.  */
 
-  if (i == ZV_BYTE - BEGV_BYTE)
+  if (i_byte == ZV_BYTE - BEGV_BYTE)
     {
       if (auto_help)
 	Fminibuffer_completion_help ();
@@ -1704,7 +1720,7 @@ Return nil if there is no valid completion, else t.")
   /* Otherwise insert in minibuffer the chars we got */
 
   Ferase_buffer ();
-  insert_from_string (completion, 0, i, 1);
+  insert_from_string (completion, 0, 0, i, i_byte, 1);
   return Qt;
 }
 
