@@ -412,6 +412,9 @@ struct coding_system
      CODING_FINISH_XXXX.  */
   int result;
 
+  /* If nonzero, suppress error notification.  */
+  int suppress_error;
+
   /* The following members are all Lisp symbols.  We don't have to
      protect them from GC because the current garbage collection
      doesn't relocate Lisp symbols.  But, when it is changed, we must
