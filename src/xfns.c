@@ -54,6 +54,9 @@ static XrmDatabase xrdb;
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
+/* The name we're using for this X application.  */
+Lisp_Object Vxrdb_name;
+
 /* Title name and application name for X stuff. */
 extern char *x_id_name;
 
@@ -1104,7 +1107,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     {
       /* Allocate space for the components, the dots which separate them,
 	 and the final '\0'.  */
-      name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
+      name_key = (char *) alloca (XSTRING (Vxrdb_name)->size
 				  + XSTRING (attribute)->size
 				  + 2);
       class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
@@ -1112,7 +1115,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 2);
 
       sprintf (name_key, "%s.%s",
-	       XSTRING (Vinvocation_name)->data,
+	       XSTRING (Vxrdb_name)->data,
 	       XSTRING (attribute)->data);
       sprintf (class_key, "%s.%s",
 	       EMACS_CLASS,
@@ -1120,7 +1123,7 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     }
   else
     {
-      name_key = (char *) alloca (XSTRING (Vinvocation_name)->size
+      name_key = (char *) alloca (XSTRING (Vxrdb_name)->size
 				  + XSTRING (component)->size
 				  + XSTRING (attribute)->size
 				  + 3);
@@ -1131,10 +1134,10 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
 				   + 3);
 
       sprintf (name_key, "%s.%s.%s",
-	       XSTRING (Vinvocation_name)->data,
+	       XSTRING (Vxrdb_name)->data,
 	       XSTRING (component)->data,
 	       XSTRING (attribute)->data);
-      sprintf (class_key, "%s.%s",
+      sprintf (class_key, "%s.%s.%s",
 	       EMACS_CLASS,
 	       XSTRING (class)->data,
 	       XSTRING (subclass)->data);
@@ -3415,6 +3418,19 @@ arg XRM_STRING is a string of resources in xrdb format.")
   x_current_display->db = xrdb;
 #endif
 
+  /* Make a version of Vinvocation_name suitable for use in xrdb
+     queries - i.e. containing no dots or asterisks.  */
+  Vxrdb_name = Fcopy_sequence (Vinvocation_name);
+  {
+    int i;
+    int len = XSTRING (Vxrdb_name)->size;
+    char *data = XSTRING (Vxrdb_name)->data;
+    
+    for (i = 0; i < len; i++)
+      if (data[i] == '.' || data[i] == '*')
+	data[i] = '-';
+  }
+
   x_screen = DefaultScreenOfDisplay (x_current_display);
 
   screen_visual = select_visual (x_screen, &n_planes);
@@ -3566,6 +3582,8 @@ syms_of_xfns ()
 Changing the value does not affect existing frames\n\
 unless you set the mouse color.");
   Vx_pointer_shape = Qnil;
+
+  staticpro (&Vxrdb_name);
 
 #if 0
   DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
