@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -546,9 +546,7 @@ a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
 	     (extern-must-show-from-fun (and bs-must-show-function
 					     (funcall bs-must-show-function
 						      (car list))))
-	     (show-flag (save-excursion
-			  (set-buffer (car list))
-			  bs-buffer-show-mark)))
+	     (show-flag (buffer-local-value 'bs-buffer-show-mark (car list))))
 	(if (or (eq show-flag 'always)
 		(and (or bs--show-all (not (eq show-flag 'never)))
 		     (not int-show-never)
@@ -865,9 +863,7 @@ always.  Otherwise it is marked to show never."
   "Set value `bs-buffer-show-mark' of buffer BUFFER to WHAT.
 Redisplay current line and display a message describing
 the status of buffer on current line."
-  (save-excursion
-    (set-buffer buffer)
-    (setq bs-buffer-show-mark what))
+  (with-current-buffer buffer (setq bs-buffer-show-mark what))
   (bs--update-current-line)
   (bs--set-window-height)
   (bs--show-config-message what))
