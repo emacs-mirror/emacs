@@ -185,7 +185,8 @@ main (argc, argv)
      to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
   lockname = concat (inname, ".lock", "");
-  tempname = strcpy (xmalloc (strlen (inname)+1), inname);
+  tempname = (char *) xmalloc (strlen (inname) + strlen ("EXXXXXX") + 1);
+  strcpy (tempname, inname);
   p = tempname + strlen (tempname);
   while (p != tempname && p[-1] != '/')
     p--;
