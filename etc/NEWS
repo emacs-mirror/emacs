@@ -81,6 +81,11 @@ paragraphs.
 ** In Dired, the w command now copies the current line's file name
 into the kill ring.
 
+** The variables dired-free-space-program and dired-free-space-args
+have been renamed to directory-free-space-program and
+directory-free-space-args, and they now apply whenever Emacs puts a
+directory listing into a buffer.
+
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 

@@ -1,3 +1,17 @@
+2001-12-18  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (directory-free-space-program): New variable.
+	(directory-free-space-args): New variable.
+	(insert-directory): Use those two variables for getting free space.
+	Use file-system-info instead, if that is defined.
+
+	* dired.el (dired-free-space-program): Variable deleted.
+	(dired-free-space-args): Variable deleted.
+	(dired-insert-directory): Don't try to determine free space.
+
+	* files.el (font-lock-defaults): Add risky-local-variables prop.
+	(hack-one-local-variable): Treat various font-lock variables as risky.
+
 2001-12-18  Werner Lemberg  <wl@gnu.org>
 
 	* language/chinese.el, language/cyrillic.el,
