@@ -223,7 +223,7 @@ make_frame_glyphs (frame, empty)
      int empty;
 {
   register int i;
-  register width = FRAME_WIDTH (frame);
+  register width = FRAME_WINDOW_WIDTH (frame);
   register height = FRAME_HEIGHT (frame);
   register struct frame_glyphs *new
     = (struct frame_glyphs *) xmalloc (sizeof (struct frame_glyphs));
@@ -609,7 +609,7 @@ scroll_frame_lines (frame, from, end, amount, newpos)
   register struct frame_glyphs *current_frame
     = FRAME_CURRENT_GLYPHS (frame);
   int pos_adjust;
-  int width = FRAME_WIDTH (frame);
+  int width = FRAME_WINDOW_WIDTH (frame);
 
   if (!line_ins_del_ok)
     return 0;
@@ -1331,7 +1331,7 @@ update_frame (f, force, inhibit_hairy_id)
 		}
 	      while (row > top && col == 0);
 
-	      if (col >= FRAME_WIDTH (f))
+	      if (col >= FRAME_WINDOW_WIDTH (f))
 		{
 		  col = 0;
 		  if (row < FRAME_HEIGHT (f) - 1)
@@ -1535,7 +1535,7 @@ count_match (str1, str2)
 /* Char insertion/deletion cost vector, from term.c */
 extern int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_WIDTH((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_WINDOW_WIDTH((f))])
 
 static void
 update_line (frame, vpos)
@@ -1583,7 +1583,7 @@ update_line (frame, vpos)
 	     spaces all the way to the frame edge
 	     so that the reverse video extends all the way across.  */
 
-	  while (olen < FRAME_WIDTH (frame) - 1)
+	  while (olen < FRAME_WINDOW_WIDTH (frame) - 1)
 	    obody[olen++] = SPACEGLYPH;
 	}
     }
@@ -1629,7 +1629,7 @@ update_line (frame, vpos)
 	 all the way to the frame edge
 	 so that the reverse video extends all the way across.  */
 
-      while (nlen < FRAME_WIDTH (frame) - 1)
+      while (nlen < FRAME_WINDOW_WIDTH (frame) - 1)
 	nbody[nlen++] = SPACEGLYPH;
     }
 
@@ -1821,7 +1821,7 @@ update_line (frame, vpos)
 	     there is no need to do clear-to-eol at the end.
 	     (and it would not be safe, since cursor is not
 	     going to be "at the margin" after the text is done) */
-	  if (nlen == FRAME_WIDTH (frame))
+	  if (nlen == FRAME_WINDOW_WIDTH (frame))
 	    olen = 0;
 	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
 
@@ -1835,7 +1835,7 @@ update_line (frame, vpos)
 	     it will lose one way or another (depending on AutoWrap)
 	     to clear to end of line after outputting all the text.
 	     So pause with one character to go and clear the line then.  */
-	  if (nlen == FRAME_WIDTH (frame) && fast_clear_end_of_line && olen > nlen)
+	  if (nlen == FRAME_WINDOW_WIDTH (frame) && fast_clear_end_of_line && olen > nlen)
 	    {
 	      /* endmatch must be zero, and tem must equal nsp + begmatch */
 	      write_glyphs (nbody + tem, nlen - tem - 1);
@@ -2173,8 +2173,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   FRAME_HEIGHT (frame) = newheight;
   SET_FRAME_WIDTH (frame, newwidth);
 
-  if (FRAME_CURSOR_X (frame) >= FRAME_WIDTH (frame))
-    FRAME_CURSOR_X (frame) = FRAME_WIDTH (frame) - 1;
+  if (FRAME_CURSOR_X (frame) >= FRAME_WINDOW_WIDTH (frame))
+    FRAME_CURSOR_X (frame) = FRAME_WINDOW_WIDTH (frame) - 1;
   if (FRAME_CURSOR_Y (frame) >= FRAME_HEIGHT (frame))
     FRAME_CURSOR_Y (frame) = FRAME_HEIGHT (frame) - 1;
 
