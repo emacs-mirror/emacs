@@ -165,15 +165,15 @@ normal variables."
 (defun apropos-command (apropos-regexp &optional do-all var-predicate)
   "Show commands (interactively callable functions) that match REGEXP.
 With optional prefix ARG, or if `apropos-do-all' is non-nil, also show
-user option variables.
+noninteractive functions.
 
-If VAR-PREDICATE is non-nil, show only variables that
+If VAR-PREDICATE is non-nil, show only variables, and only those that
 satisfy the predicate VAR-PREDICATE."
   (interactive (list (read-string (concat
 				   "Apropos command "
 				   (if (or current-prefix-arg
 					   apropos-do-all)
-				       "or variable ")
+				       "or function ")
 				   "(regexp): "))
 		     current-prefix-arg))
   (let ((message
@@ -182,12 +182,8 @@ satisfy the predicate VAR-PREDICATE."
     (or do-all (setq do-all apropos-do-all))
     (setq apropos-accumulator
 	  (apropos-internal apropos-regexp
-			    (if do-all
-				(lambda (symbol) (or (commandp symbol)
-						     (user-variable-p symbol)))
+			    (if do-all 'functionp
 			      (or var-predicate 'commandp))))
-    (if do-all
-	(setq var-predicate 'user-variable-p))
     (let ((tem apropos-accumulator))
       (while tem
 	(if (get (car tem) 'apropos-inhibit)
@@ -200,11 +196,11 @@ satisfy the predicate VAR-PREDICATE."
 	     (while p
 	       (setcar p (list
 			  (setq symbol (car p))
-			  (if (or do-all (not var-predicate))
-			      (if (commandp symbol)
-				  (if (setq doc (documentation symbol t))
-				      (substring doc 0 (string-match "\n" doc))
-				    "(not documented)")))
+			  (unless var-predicate
+			    (if (functionp symbol)
+				(if (setq doc (documentation symbol t))
+				    (substring doc 0 (string-match "\n" doc))
+				  "(not documented)")))
 			  (and var-predicate
 			       (funcall var-predicate symbol)
 			       (if (setq doc (documentation-property
