@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.130 2000/11/20 14:01:18 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.131 2000/11/24 16:25:59 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -120,6 +120,14 @@ See also variable `vc-consult-headers'."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
+(defun vc-mode (&optional arg)
+  ;; Dummy function for C-h m
+  "Version Control minor mode.
+This minor mode is automatically activated whenever you visit a file under
+control of one of the revision control systems in `vc-handled-backends'.
+VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
+\\{vc-prefix-map}")
+
 (defmacro vc-error-occurred (&rest body)
   (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
 
@@ -224,14 +232,14 @@ exists and its contents were successfully inserted."
     (set-buffer-modified-p nil)
     t))
 
-;;; Access functions to file properties
-;;; (Properties should be _set_ using vc-file-setprop, but
-;;; _retrieved_ only through these functions, which decide
-;;; if the property is already known or not. A property should
-;;; only be retrieved by vc-file-getprop if there is no
-;;; access function.)
+;; Access functions to file properties
+;; (Properties should be _set_ using vc-file-setprop, but
+;; _retrieved_ only through these functions, which decide
+;; if the property is already known or not. A property should
+;; only be retrieved by vc-file-getprop if there is no
+;; access function.)
 
-;;; properties indicating the backend being used for FILE
+;; properties indicating the backend being used for FILE
 
 (defun vc-registered (file)
   "Return non-nil if FILE is registered in a version control system.
@@ -635,7 +643,7 @@ current, and kill the buffer that visits the link."
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
-;;; more hooks, this time for file-not-found
+;; more hooks, this time for file-not-found
 (defun vc-file-not-found-hook ()
   "When file is not found, try to check it out from version control.
 Returns t if checkout was successful, nil otherwise.
@@ -662,11 +670,32 @@ Used in `find-file-not-found-hooks'."
 ;; ??? DL: why is this not done?
 ;;;(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
-;;; Now arrange for bindings and autoloading of the main package.
-;;; Bindings for this have to go in the global map, as we'll often
-;;; want to call them from random buffers.
+;; Now arrange for (autoloaded) bindings of the main package.
+;; Bindings for this have to go in the global map, as we'll often
+;; want to call them from random buffers.
 
-(autoload 'vc-prefix-map "vc" nil nil 'keymap)
+;; Autoloading works fine, but it prevents shortcuts from appearing
+;; in the menu because they don't exist yet when the menu is built.
+;; (autoload 'vc-prefix-map "vc" nil nil 'keymap)
+(defvar vc-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'vc-update-change-log)
+    (define-key map "b" 'vc-switch-backend)
+    (define-key map "c" 'vc-cancel-version)
+    (define-key map "d" 'vc-directory)
+    (define-key map "g" 'vc-annotate)
+    (define-key map "h" 'vc-insert-headers)
+    (define-key map "i" 'vc-register)
+    (define-key map "l" 'vc-print-log)
+    (define-key map "m" 'vc-merge)
+    (define-key map "r" 'vc-retrieve-snapshot)
+    (define-key map "s" 'vc-create-snapshot)
+    (define-key map "u" 'vc-revert-buffer)
+    (define-key map "v" 'vc-next-action)
+    (define-key map "=" 'vc-diff)
+    (define-key map "~" 'vc-version-other-window)
+    map))
+(fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
 
 (if (not (boundp 'vc-menu-map))
@@ -698,22 +727,22 @@ Used in `find-file-not-found-hooks'."
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
-;;; These are not correct and it's not currently clear how doing it
-;;; better (with more complicated expressions) might slow things down
-;;; on older systems.
+;; These are not correct and it's not currently clear how doing it
+;; better (with more complicated expressions) might slow things down
+;; on older systems.
 
-;;;(put 'vc-rename-file 'menu-enable 'vc-mode)
-;;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
-;;;(put 'vc-version-other-window 'menu-enable 'vc-mode)
-;;;(put 'vc-diff 'menu-enable 'vc-mode)
-;;;(put 'vc-update-change-log 'menu-enable
-;;;     '(member (vc-buffer-backend) '(RCS CVS)))
-;;;(put 'vc-print-log 'menu-enable 'vc-mode)
-;;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
-;;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
-;;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
-;;;(put 'vc-next-action 'menu-enable 'vc-mode)
-;;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
+;;(put 'vc-rename-file 'menu-enable 'vc-mode)
+;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
+;;(put 'vc-version-other-window 'menu-enable 'vc-mode)
+;;(put 'vc-diff 'menu-enable 'vc-mode)
+;;(put 'vc-update-change-log 'menu-enable
+;;     '(member (vc-buffer-backend) '(RCS CVS)))
+;;(put 'vc-print-log 'menu-enable 'vc-mode)
+;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
+;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
+;;(put 'vc-next-action 'menu-enable 'vc-mode)
+;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
 
 (provide 'vc-hooks)
 
