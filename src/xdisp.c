@@ -2273,7 +2273,7 @@ syms_of_xdisp ()
   last_arrow_string = Qnil;
 
   DEFVAR_LISP ("global-mode-string", &Vglobal_mode_string,
-    "String displayed by mode-line-format's \"%m\" specifiation.");
+    "String (or mode line construct) displayed by `%m' in mode line.");
   Vglobal_mode_string = Qnil;
 
   DEFVAR_LISP ("overlay-arrow-position", &Voverlay_arrow_position,
