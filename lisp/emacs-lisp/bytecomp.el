@@ -97,8 +97,6 @@
 ;;;				'redefine  (function cell redefined from
 ;;;					    a macro to a lambda or vice versa,
 ;;;					    or redefined to take other args)
-;;;				This defaults to nil in -batch mode, which is
-;;;				slightly faster.
 ;;; byte-compile-compatibility	Whether the compiler should
 ;;;				generate .elc files which can be loaded into
 ;;;				generic emacs 18.
