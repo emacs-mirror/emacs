@@ -361,7 +361,9 @@ Returns the compilation buffer created."
 	;; will happen, and insert a `cd' command to indicate this.
 	(set-buffer outbuf)
 	(setq buffer-read-only nil)
+	(buffer-disable-undo (current-buffer))
 	(erase-buffer)
+	(buffer-enable-undo (current-buffer))
 	(setq default-directory thisdir)
 	(insert "cd " thisdir "\n" command "\n")
 	(set-buffer-modified-p nil))
@@ -374,7 +376,6 @@ Returns the compilation buffer created."
       (save-excursion
 	(set-buffer outbuf)
 	(compilation-mode)
-	(buffer-disable-undo (current-buffer))
 	;; (setq buffer-read-only t)  ;;; Non-ergonomic.
 	(set (make-local-variable 'compilation-parse-errors-function) parser)
 	(set (make-local-variable 'compilation-error-message) error-message)
@@ -555,7 +556,7 @@ See `compilation-mode'."
 		      ;; will stay around until M-x list-processes.
 		      (delete-process proc)
 		      ;; Force mode line redisplay soon.
-		      (set-buffer-modified-p (buffer-modified-p)))
+		      (force-mode-line-update))
 		    (if (and opoint (< opoint omax))
 			(goto-char opoint))
 		    (if compilation-finish-function
