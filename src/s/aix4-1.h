@@ -2,14 +2,14 @@
 
 #include "aix4.h"
 
-#if 0 /* Tomotake FURUHATA <furuhata@trl.ibm.co.jp> says this is needed
-	 in Mule, but we don't know why.  Anyway, it's not needed now.  */
-#define SYSTEM_MALLOC
-#endif
-
 /* olson@mcs.anl.gov says -li18n is needed by -lXm.  */
+#undef LIB_MOTIF
 #define LIB_MOTIF -lXm -li18n
 
 #ifdef __GNUC__
 #undef _NO_PROTO
 #endif
+
+/* Let's hope the X internationalization stuff is working in AIX 4.1.
+   It was not working in 3.2.5.  */
+#undef X11R5_INHIBIT_I18N
