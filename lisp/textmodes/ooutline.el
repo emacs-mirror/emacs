@@ -351,20 +351,20 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (interactive)
   (outline-flag-subtree ?\n))
 
-(defun hide-sublevels (keep-levels)
-  "Hide everything except the first KEEP-LEVEL headers."
+(defun hide-sublevels (levels)
+  "Hide everything except the top LEVELS levels of headers."
   (interactive "p")
-  (if (< keep-levels 1)
+  (if (< levels 1)
       (error "Must keep at least one level of headers"))
-  (setq keep-levels (1- keep-levels))
+  (setq levels (1- levels))
   (save-excursion
     (goto-char (point-min))
     (hide-subtree)
-    (show-children keep-levels)
+    (show-children levels)
     (condition-case err
       (while (outline-get-next-sibling)
 	(hide-subtree)
-	(show-children keep-levels))
+	(show-children levels))
       (error nil))))
 
 (defun hide-other ()
