@@ -85,7 +85,7 @@
 (garbage-collect)
 (load "language/indian")
 (garbage-collect)
-(load "language/devanagari")
+(load "language/devanagari")		; This should be loaded after indian.
 (garbage-collect)
 (load "language/english")
 (garbage-collect)
