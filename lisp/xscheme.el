@@ -37,11 +37,6 @@
   "Major mode for editing Scheme and interacting with MIT's C-Scheme."
   :group 'lisp)
 
-(defcustom scheme-program-name "scheme"
-  "*Program invoked by the `run-scheme' command."
-  :type 'string
-  :group 'xscheme)
-
 (defcustom scheme-band-name nil
   "*Band loaded by the `run-scheme' command."
   :type '(choice (const nil) string)
