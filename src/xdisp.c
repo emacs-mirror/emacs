@@ -169,7 +169,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
-#define DOC_STRINGS_IN_COMMENTS
+
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -7792,8 +7792,8 @@ tool_bar_lines_needed (f)
 
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
-       /* Return the number of lines occupied by the tool bar of FRAME.  */
-       (frame))
+       doc: /* Return the number of lines occupied by the tool bar of FRAME.  */)
+     (frame)
      Lisp_Object frame;
 {
   struct frame *f;
@@ -12161,11 +12161,11 @@ dump_glyph_row (row, vpos, glyphs)
 
 DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
        Sdump_glyph_matrix, 0, 1, "p",
-       /* Dump the current matrix of the selected window to stderr.
+       doc: /* Dump the current matrix of the selected window to stderr.
 Shows contents of glyph row structures.  With non-nil
 parameter GLYPHS, dump glyphs as well.  If GLYPHS is 1 show
-glyphs in short form, otherwise show glyphs in long form.  */
-       (glyphs))
+glyphs in short form, otherwise show glyphs in long form.  */)
+     (glyphs)
      Lisp_Object glyphs;
 {
   struct window *w = XWINDOW (selected_window);
@@ -12183,11 +12183,11 @@ glyphs in short form, otherwise show glyphs in long form.  */
 
 
 DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
-       /* Dump glyph row ROW to stderr.
+       doc: /* Dump glyph row ROW to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
-GLYPH > 1 or omitted means dump glyphs in long form.  */
-       (row, glyphs))
+GLYPH > 1 or omitted means dump glyphs in long form.  */)
+     (row, glyphs)
      Lisp_Object row, glyphs;
 {
   struct glyph_matrix *matrix;
@@ -12205,11 +12205,11 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */
 
 
 DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
-  /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
+  doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
-GLYPH > 1 or omitted means dump glyphs in long form.  */
-       (row, glyphs))
+GLYPH > 1 or omitted means dump glyphs in long form.  */)
+     (row, glyphs)
      Lisp_Object row, glyphs;
 {
   struct frame *sf = SELECTED_FRAME ();
@@ -12226,9 +12226,9 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */
 
 
 DEFUN ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
-       /* Toggle tracing of redisplay.
-With ARG, turn tracing on if and only if ARG is positive.  */
-       (arg))
+       doc: /* Toggle tracing of redisplay.
+With ARG, turn tracing on if and only if ARG is positive.  */)
+     (arg)
      Lisp_Object arg;
 {
   if (NILP (arg))
@@ -12244,8 +12244,8 @@ With ARG, turn tracing on if and only if ARG is positive.  */
 
 
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
-       /* Like `format', but print result to stderr.  */
-       (nargs, args))
+       doc: /* Like `format', but print result to stderr.  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -14662,97 +14662,97 @@ syms_of_xdisp ()
   Vmessages_buffer_name = build_string ("*Messages*");
   staticpro (&Vmessages_buffer_name);
   
-  DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace
-    /* Non-nil means highlight trailing whitespace.
+  DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
+    doc: /* Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
-  DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay
-    /* Non-nil means don't actually do any redisplay.
+  DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
+    doc: /* Non-nil means don't actually do any redisplay.
 This is used for internal purposes.  */);
   Vinhibit_redisplay = Qnil;
 
-  DEFVAR_LISP ("global-mode-string", &Vglobal_mode_string
-    /* String (or mode line construct) included (normally) in `mode-line-format'.  */);
+  DEFVAR_LISP ("global-mode-string", &Vglobal_mode_string,
+    doc: /* String (or mode line construct) included (normally) in `mode-line-format'.  */);
   Vglobal_mode_string = Qnil;
 
-  DEFVAR_LISP ("overlay-arrow-position", &Voverlay_arrow_position
-    /* Marker for where to display an arrow on top of the buffer text.
+  DEFVAR_LISP ("overlay-arrow-position", &Voverlay_arrow_position,
+    doc: /* Marker for where to display an arrow on top of the buffer text.
 This must be the beginning of a line in order to work.
 See also `overlay-arrow-string'.  */);
   Voverlay_arrow_position = Qnil;
 
-  DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string
-    /* String to display as an arrow.  See also `overlay-arrow-position'.  */);
+  DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string,
+    doc: /* String to display as an arrow.  See also `overlay-arrow-position'.  */);
   Voverlay_arrow_string = Qnil;
 
-  DEFVAR_INT ("scroll-step", &scroll_step
-    /* *The number of lines to try scrolling a window by when point moves out.
+  DEFVAR_INT ("scroll-step", &scroll_step,
+    doc: /* *The number of lines to try scrolling a window by when point moves out.
 If that fails to bring point back on frame, point is centered instead.
 If this is zero, point is always centered after it moves off frame.
 If you want scrolling to always be a line at a time, you should set
 `scroll-conservatively' to a large value rather than set this to 1.  */);
 
-  DEFVAR_INT ("scroll-conservatively", &scroll_conservatively
-    /* *Scroll up to this many lines, to bring point back on screen.
+  DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
+    doc: /* *Scroll up to this many lines, to bring point back on screen.
 A value of zero means to scroll the text to center point vertically
 in the window.  */);
   scroll_conservatively = 0;
 
-  DEFVAR_INT ("scroll-margin", &scroll_margin
-    /* *Number of lines of margin at the top and bottom of a window.
+  DEFVAR_INT ("scroll-margin", &scroll_margin,
+    doc: /* *Number of lines of margin at the top and bottom of a window.
 Recenter the window whenever point gets within this many lines
 of the top or bottom of the window.  */);
   scroll_margin = 0;
 
 #if GLYPH_DEBUG
-  DEFVAR_INT ("debug-end-pos", &debug_end_pos /* Don't ask.  */);
+  DEFVAR_INT ("debug-end-pos", &debug_end_pos, doc: /* Don't ask.  */);
 #endif
 
   DEFVAR_BOOL ("truncate-partial-width-windows",
-	       &truncate_partial_width_windows
-    /* *Non-nil means truncate lines in all windows less than full frame wide.  */);
+	       &truncate_partial_width_windows,
+    doc: /* *Non-nil means truncate lines in all windows less than full frame wide.  */);
   truncate_partial_width_windows = 1;
 
-  DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video
-    /* nil means display the mode-line/header-line/menu-bar in the default face.
+  DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
+    doc: /* nil means display the mode-line/header-line/menu-bar in the default face.
 Any other value means to use the appropriate face, `mode-line',
 `header-line', or `menu' respectively.
 
 This variable is deprecated; please change the above faces instead.  */);
   mode_line_inverse_video = 1;
 
-  DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit
-    /* *Maximum buffer size for which line number should be displayed.
+  DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
+    doc: /* *Maximum buffer size for which line number should be displayed.
 If the buffer is bigger than this, the line number does not appear
 in the mode line.  A value of nil means no limit.  */);
   Vline_number_display_limit = Qnil;
 
   DEFVAR_INT ("line-number-display-limit-width",
-	      &line_number_display_limit_width
-    /* *Maximum line width (in characters) for line number display.
+	      &line_number_display_limit_width,
+    doc: /* *Maximum line width (in characters) for line number display.
 If the average length of the lines near point is bigger than this, then the
 line number may be omitted from the mode line.  */);
   line_number_display_limit_width = 200;
 
-  DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows
-    /* *Non-nil means highlight region even in nonselected windows.  */);
+  DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
+    doc: /* *Non-nil means highlight region even in nonselected windows.  */);
   highlight_nonselected_windows = 0;
 
-  DEFVAR_BOOL ("multiple-frames", &multiple_frames
-    /* Non-nil if more than one frame is visible on this display.
+  DEFVAR_BOOL ("multiple-frames", &multiple_frames,
+    doc: /* Non-nil if more than one frame is visible on this display.
 Minibuffer-only frames don't count, but iconified frames do.
 This variable is not guaranteed to be accurate except while processing
 `frame-title-format' and `icon-title-format'.  */);
 
-  DEFVAR_LISP ("frame-title-format", &Vframe_title_format
-    /* Template for displaying the title bar of visible frames.
+  DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
+    doc: /* Template for displaying the title bar of visible frames.
 \(Assuming the window manager supports this feature.)
 This variable has the same structure as `mode-line-format' (which see),
 and is used only on frames for which no explicit name has been set
 \(see `modify-frame-parameters').  */);
-  DEFVAR_LISP ("icon-title-format", &Vicon_title_format
-    /* Template for displaying the title bar of an iconified frame.
+  DEFVAR_LISP ("icon-title-format", &Vicon_title_format,
+    doc: /* Template for displaying the title bar of an iconified frame.
 \(Assuming the window manager supports this feature.)
 This variable has the same structure as `mode-line-format' (which see),
 and is used only on frames for which no explicit name has been set
@@ -14768,52 +14768,52 @@ and is used only on frames for which no explicit name has been set
 							       Qnil)))),
 			   Qnil)));
 
-  DEFVAR_LISP ("message-log-max", &Vmessage_log_max
-    /* Maximum number of lines to keep in the message log buffer.
+  DEFVAR_LISP ("message-log-max", &Vmessage_log_max,
+    doc: /* Maximum number of lines to keep in the message log buffer.
 If nil, disable message logging.  If t, log messages but don't truncate
 the buffer when it becomes large.  */);
   Vmessage_log_max = make_number (50);
 
-  DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions
-    /* Functions called before redisplay, if window sizes have changed.
+  DEFVAR_LISP ("window-size-change-functions", &Vwindow_size_change_functions,
+    doc: /* Functions called before redisplay, if window sizes have changed.
 The value should be a list of functions that take one argument.
 Just before redisplay, for each frame, if any of its windows have changed
 size since the last redisplay, or have been split or deleted,
 all the functions in the list are called, with the frame as argument.  */);
   Vwindow_size_change_functions = Qnil;
 
-  DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions
-    /* List of Functions to call before redisplaying a window with scrolling.
+  DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
+    doc: /* List of Functions to call before redisplaying a window with scrolling.
 Each function is called with two arguments, the window
 and its new display-start position.  Note that the value of `window-end'
 is not valid when these functions are called.  */);
   Vwindow_scroll_functions = Qnil;
   
-  DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p
-    /* *Non-nil means automatically resize tool-bars.
+  DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
+    doc: /* *Non-nil means automatically resize tool-bars.
 This increases a tool-bar's height if not all tool-bar items are visible.
 It decreases a tool-bar's height when it would display blank lines
 otherwise.  */);
   auto_resize_tool_bars_p = 1;
   
-  DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p
-    /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
+  DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
+    doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = 1;
 
-  DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin
-    /* *Margin around tool-bar buttons in pixels.
+  DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
+    doc: /* *Margin around tool-bar buttons in pixels.
 If an integer, use that for both horizontal and vertical margins.
 Otherwise, value should be a pair of integers `(HORZ : VERT)' with
 HORZ specifying the horizontal margin, and VERT specifying the
 vertical margin.  */);
   Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
 
-  DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief
-    /* Relief thickness of tool-bar buttons.  */);
+  DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
+    doc: /* Relief thickness of tool-bar buttons.  */);
   tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
-  DEFVAR_LISP ("fontification-functions", &Vfontification_functions
-    /* List of functions to call to fontify regions of text.
+  DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
+    doc: /* List of functions to call to fontify regions of text.
 Each function is called with one argument POS.  Functions must
 fontify a region starting at POS in the current buffer, and give
 fontified regions the property `fontified'.  */);
@@ -14821,22 +14821,22 @@ fontified regions the property `fontified'.  */);
   Fmake_variable_buffer_local (Qfontification_functions);
 
   DEFVAR_BOOL ("unibyte-display-via-language-environment",
-               &unibyte_display_via_language_environment
-    /* *Non-nil means display unibyte text according to language environment.
+               &unibyte_display_via_language_environment,
+    doc: /* *Non-nil means display unibyte text according to language environment.
 Specifically this means that unibyte non-ASCII characters
 are displayed by converting them to the equivalent multibyte characters
 according to the current language environment.  As a result, they are
 displayed according to the current fontset.  */);
   unibyte_display_via_language_environment = 0;
 
-  DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height
-    /* *Maximum height for resizing mini-windows.
+  DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
+    doc: /* *Maximum height for resizing mini-windows.
 If a float, it specifies a fraction of the mini-window frame's height.
 If an integer, it specifies a number of lines.  */);
   Vmax_mini_window_height = make_float (0.25);
 
-  DEFVAR_LISP ("resize-mini-windows", &Vresize_mini_windows
-    /* *How to resize mini-windows.
+  DEFVAR_LISP ("resize-mini-windows", &Vresize_mini_windows,
+    doc: /* *How to resize mini-windows.
 A value of nil means don't automatically resize mini-windows.
 A value of t means resize them to fit the text displayed in them.
 A value of `grow-only', the default, means let mini-windows grow
@@ -14845,36 +14845,36 @@ go back to their normal size.  */);
   Vresize_mini_windows = Qgrow_only;
 
   DEFVAR_BOOL ("cursor-in-non-selected-windows",
-	       &cursor_in_non_selected_windows
-    /* *Non-nil means display a hollow cursor in non-selected windows.
+	       &cursor_in_non_selected_windows,
+    doc: /* *Non-nil means display a hollow cursor in non-selected windows.
 Nil means don't display a cursor there.  */);
   cursor_in_non_selected_windows = 1;
   
-  DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p
-    /* *Non-nil means scroll the display automatically to make point visible.  */);
+  DEFVAR_BOOL ("automatic-hscrolling", &automatic_hscrolling_p,
+    doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
   automatic_hscrolling_p = 1;
   
-  DEFVAR_LISP ("image-types", &Vimage_types
-    /* List of supported image types.
+  DEFVAR_LISP ("image-types", &Vimage_types,
+    doc: /* List of supported image types.
 Each element of the list is a symbol for a supported image type.  */);
   Vimage_types = Qnil;
   
-  DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines
-    /* If non-nil, messages are truncated instead of resizing the echo area.
+  DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines,
+    doc: /* If non-nil, messages are truncated instead of resizing the echo area.
 Bind this around calls to `message' to let it take effect.  */);
   message_truncate_lines = 0;
 
-  DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook
-    /* Normal hook run for clicks on menu bar, before displaying a submenu.
+  DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
+    doc: /* Normal hook run for clicks on menu bar, before displaying a submenu.
 Can be used to update submenus whose contents should vary.  */);
   Vmenu_bar_update_hook = Qnil;
   
-  DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update
-    /* Non-nil means don't update menu bars.  Internal use only.  */);
+  DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
+    doc: /* Non-nil means don't update menu bars.  Internal use only.  */);
   inhibit_menubar_update = 0;
 
-  DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay
-    /* Non-nil means don't eval Lisp during redisplay.  */);
+  DEFVAR_BOOL ("inhibit-eval-during-redisplay", &inhibit_eval_during_redisplay,
+    doc: /* Non-nil means don't eval Lisp during redisplay.  */);
   inhibit_eval_during_redisplay = 0;
 }
 

@@ -19,8 +19,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#define DOC_STRINGS_IN_COMMENTS
-
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
@@ -412,8 +410,8 @@ add_frame_display_history (f, paused_p)
 
 DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
        Sdump_redisplay_history, 0, 0, "",
-       /* Dump redisplay history to stderr.  */
-       ())
+       doc: /* Dump redisplay history to stderr.  */)
+     ()
 {
   int i;
 
@@ -3307,8 +3305,8 @@ window_to_frame_hpos (w, hpos)
  **********************************************************************/
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
-       /* Clear frame FRAME and output again what is supposed to appear on it.  */
-       (frame))
+       doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
+     (frame)
      Lisp_Object frame;
 {
   struct frame *f;
@@ -3353,8 +3351,8 @@ redraw_frame (f)
 
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
-       /* Clear and redisplay all visible frames.  */
-       ())
+       doc: /* Clear and redisplay all visible frames.  */)
+     ()
 {
   Lisp_Object tail, frame;
 
@@ -6043,9 +6041,9 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 
 DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
        1, 1, "FOpen termscript file: ",
-       /* Start writing all terminal output to FILE as well as the terminal.
-FILE = nil means just close any termscript file currently open.  */
-       (file))
+       doc: /* Start writing all terminal output to FILE as well as the terminal.
+FILE = nil means just close any termscript file currently open.  */)
+     (file)
      Lisp_Object file;
 {
   if (termscript != 0) fclose (termscript);
@@ -6064,9 +6062,9 @@ FILE = nil means just close any termscript file currently open.  */
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
        Ssend_string_to_terminal, 1, 1, 0,
-       /* Send STRING to the terminal without alteration.
-Control characters in STRING will have terminal-dependent effects.  */
-       (string))
+       doc: /* Send STRING to the terminal without alteration.
+Control characters in STRING will have terminal-dependent effects.  */)
+     (string)
      Lisp_Object string;
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
@@ -6084,10 +6082,10 @@ Control characters in STRING will have terminal-dependent effects.  */
 
 
 DEFUN ("ding", Fding, Sding, 0, 1, 0,
-       /* Beep, or flash the screen.
+       doc: /* Beep, or flash the screen.
 Also, unless an argument is given,
-terminate any keyboard macro currently executing.  */
-       (arg))
+terminate any keyboard macro currently executing.  */)
+     (arg)
   Lisp_Object arg;
 {
   if (!NILP (arg))
@@ -6123,13 +6121,13 @@ bitch_at_user ()
  ***********************************************************************/
 
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
-       /* Pause, without updating display, for SECONDS seconds.
+       doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
 Emacs was built without floating point support.
-\(Not all operating systems support waiting for a fraction of a second.)  */
-       (seconds, milliseconds))
+\(Not all operating systems support waiting for a fraction of a second.)  */)
+     (seconds, milliseconds)
      Lisp_Object seconds, milliseconds;
 {
   int sec, usec;
@@ -6246,7 +6244,7 @@ sit_for (sec, usec, reading, display, initial_display)
 
 
 DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
-  /* Perform redisplay, then wait for SECONDS seconds or until input is available.
+  doc: /* Perform redisplay, then wait for SECONDS seconds or until input is available.
 SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
@@ -6255,8 +6253,8 @@ Emacs was built without floating point support.
 Optional third arg NODISP non-nil means don't redisplay, just wait for input.
 Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
-Value is t if waited the full time with no input arriving.  */
-       (seconds, milliseconds, nodisp))
+Value is t if waited the full time with no input arriving.  */)
+     (seconds, milliseconds, nodisp)
      Lisp_Object seconds, milliseconds, nodisp;
 {
   int sec, usec;
@@ -6297,14 +6295,14 @@ static Lisp_Object frame_and_buffer_state;
 
 DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
        Sframe_or_buffer_changed_p, 0, 0, 0,
-  /* Return non-nil if the frame and buffer state appears to have changed.
+  doc: /* Return non-nil if the frame and buffer state appears to have changed.
 The state variable is an internal vector containing all frames and buffers,
 aside from buffers whose names start with space,
 along with the buffers' read-only and modified flags, which allows a fast
 check to see whether the menu bars might need to be recomputed.
 If this function returns non-nil, it updates the internal vector to reflect
-the current state.  */
-       ())
+the current state.  */)
+     ()
 {
   Lisp_Object tail, frame, buf;
   Lisp_Object *vecp;
@@ -6569,11 +6567,11 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
 DEFUN ("internal-show-cursor", Finternal_show_cursor,
        Sinternal_show_cursor, 2, 2, 0,
-       /* Set the cursor-visibility flag of WINDOW to SHOW.
+       doc: /* Set the cursor-visibility flag of WINDOW to SHOW.
 WINDOW nil means use the selected window.  SHOW non-nil means
 show a cursor in WINDOW in the next redisplay.  SHOW nil means
-don't show a cursor.  */
-       (window, show))
+don't show a cursor.  */)
+     (window, show)
      Lisp_Object window, show;
 {
   /* Don't change cursor state while redisplaying.  This could confuse
@@ -6594,9 +6592,9 @@ don't show a cursor.  */
 
 DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
-   /* Value is non-nil if next redisplay will display a cursor in WINDOW.
-WINDOW nil or omitted means report on the selected window.  */
-       (window))
+   doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
+WINDOW nil or omitted means report on the selected window.  */)
+     (window)
      Lisp_Object window;
 {
   struct window *w;
@@ -6641,37 +6639,37 @@ syms_of_display ()
   Qredisplay_dont_pause = intern ("redisplay-dont-pause");
   staticpro (&Qredisplay_dont_pause);
 
-  DEFVAR_INT ("baud-rate", &baud_rate
-    /* *The output baud rate of the terminal.
+  DEFVAR_INT ("baud-rate", &baud_rate,
+    doc: /* *The output baud rate of the terminal.
 On most systems, changing this value will affect the amount of padding
 and the other strategic decisions made during redisplay.  */);
   
-  DEFVAR_BOOL ("inverse-video", &inverse_video
-    /* *Non-nil means invert the entire frame display.
+  DEFVAR_BOOL ("inverse-video", &inverse_video,
+    doc: /* *Non-nil means invert the entire frame display.
 This means everything is in inverse video which otherwise would not be.  */);
   
-  DEFVAR_BOOL ("visible-bell", &visible_bell
-    /* *Non-nil means try to flash the frame to represent a bell.  */);
+  DEFVAR_BOOL ("visible-bell", &visible_bell,
+    doc: /* *Non-nil means try to flash the frame to represent a bell.  */);
   
-  DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter
-    /* *Non-nil means no need to redraw entire frame after suspending.
+  DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
+    doc: /* *Non-nil means no need to redraw entire frame after suspending.
 A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
   
-  DEFVAR_LISP ("window-system", &Vwindow_system
-    /* A symbol naming the window-system under which Emacs is running
+  DEFVAR_LISP ("window-system", &Vwindow_system,
+    doc: /* A symbol naming the window-system under which Emacs is running
 \(such as `x'), or nil if emacs is running on an ordinary terminal.  */);
   
-  DEFVAR_LISP ("window-system-version", &Vwindow_system_version
-    /* The version number of the window system in use.
+  DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
+    doc: /* The version number of the window system in use.
 For X windows, this is 10 or 11.  */);
   
-  DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area
-    /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
+  DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
+    doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
   
-  DEFVAR_LISP ("glyph-table", &Vglyph_table
-    /* Table defining how to output a glyph code to the frame.
+  DEFVAR_LISP ("glyph-table", &Vglyph_table,
+    doc: /* Table defining how to output a glyph code to the frame.
 If not nil, this is a vector indexed by glyph code to define the glyph.
 Each element can be:
  integer: a glyph code which this glyph is an alias for.
@@ -6681,13 +6679,13 @@ Each element can be:
     while outputting it.  */);
   Vglyph_table = Qnil;
 
-  DEFVAR_LISP ("standard-display-table", &Vstandard_display_table
-    /* Display table to use for buffers that specify none.
+  DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
+    doc: /* Display table to use for buffers that specify none.
 See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
-  DEFVAR_BOOL ("redisplay-dont-pause", &redisplay_dont_pause
-    /* *Non-nil means update isn't paused when input is detected.  */);
+  DEFVAR_BOOL ("redisplay-dont-pause", &redisplay_dont_pause,
+    doc: /* *Non-nil means update isn't paused when input is detected.  */);
   redisplay_dont_pause = 0;
 
   /* Initialize `window-system', unless init_display already decided it.  */

@@ -25,9 +25,9 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+
 #include "termchar.h"
 #include "termopts.h"
-#define DOC_STRINGS_IN_COMMENTS
 #include "lisp.h"
 #include "charset.h"
 #include "coding.h"
@@ -2176,8 +2176,8 @@ turn_off_face (f, face_id)
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
-       /* Return non-nil if TTY can display colors on FRAME.  */
-       (frame))
+       doc: /* Return non-nil if TTY can display colors on FRAME.  */)
+     (frame)
      Lisp_Object frame;
 {
   return TN_max_colors > 0 ? Qt : Qnil;
@@ -2608,8 +2608,8 @@ fatal (str, arg1, arg2)
 void
 syms_of_term ()
 {
-  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo
-    /* Non-nil means the system uses terminfo rather than termcap.
+  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+    doc: /* Non-nil means the system uses terminfo rather than termcap.
 This variable can be used by terminal emulator packages.  */);
 #ifdef TERMINFO
   system_uses_terminfo = 1;
@@ -2617,8 +2617,8 @@ This variable can be used by terminal emulator packages.  */);
   system_uses_terminfo = 0;
 #endif
 
-  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function
-    /* Non-nil means call this function to ring the bell.
+  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
+    doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 

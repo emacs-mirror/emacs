@@ -37,7 +37,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 
 #include <stdio.h>
-#define DOC_STRINGS_IN_COMMENTS
+
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -656,7 +656,7 @@ list_of_items (pane)
 }
 
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
-  /* Pop up a deck-of-cards menu and return user's selection.
+  doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)
 where XOFFSET and YOFFSET are positions in pixels from the top left
@@ -688,8 +688,8 @@ in the menu.
 With this form of menu, the return value is VALUE from the chosen item.
 
 If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.  */
-       (position, menu))
+cached information about equivalent key sequences.  */)
+     (position, menu)
      Lisp_Object position, menu;
 {
   Lisp_Object keymap, tem;
@@ -881,7 +881,7 @@ cached information about equivalent key sequences.  */
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
-  /* Pop up a dialog box and return user's selection.
+  doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
 This is normally a mouse button event or a window or frame.
 If POSITION is t, it means to use the frame the mouse is on.
@@ -895,8 +895,8 @@ The return value is VALUE from the chosen item.
 An ITEM may also be just a string--that makes a nonselectable item.
 An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)  */
-       (position, contents))
+\(By default, approximately half appear on each side.)  */)
+     (position, contents)
      Lisp_Object position, contents;
 {
   struct frame * f = NULL;
@@ -2849,8 +2849,8 @@ syms_of_xmenu ()
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
 
-  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame
-    /* Frame for which we are updating a menu.
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+	       doc: /* Frame for which we are updating a menu.
 The enable predicate for a menu command should check this variable.  */);
   Vmenu_updating_frame = Qnil;
 

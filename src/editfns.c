@@ -34,7 +34,6 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
-#define DOC_STRINGS_IN_COMMENTS
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -165,8 +164,8 @@ init_editfns ()
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
-       /* Convert arg CHARACTER to a string containing that character.  */
-       (character))
+       doc: /* Convert arg CHARACTER to a string containing that character.  */)
+     (character)
      Lisp_Object character;
 {
   int len;
@@ -181,9 +180,9 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       /* Convert arg STRING to a character, the first character of that string.
-A multibyte character is handled correctly.  */
-       (string))
+       doc: /* Convert arg STRING to a character, the first character of that string.
+A multibyte character is handled correctly.  */)
+     (string)
      register Lisp_Object string;
 {
   register Lisp_Object val;
@@ -213,9 +212,9 @@ buildmark (charpos, bytepos)
 }
 
 DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
-       /* Return value of point, as an integer.
-Beginning of buffer is position (point-min).  */
-       ())
+       doc: /* Return value of point, as an integer.
+Beginning of buffer is position (point-min).  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, PT);
@@ -223,8 +222,8 @@ Beginning of buffer is position (point-min).  */
 }
 
 DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
-       /* Return value of point, as a marker object.  */
-       ())
+       doc: /* Return value of point, as a marker object.  */)
+     ()
 {
   return buildmark (PT, PT_BYTE);
 }
@@ -242,12 +241,12 @@ clip_to_bounds (lower, num, upper)
 }
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
-       /* Set point to POSITION, a number or marker.
+       doc: /* Set point to POSITION, a number or marker.
 Beginning of buffer is position (point-min), end is (point-max).
 If the position is in the middle of a multibyte form,
 the actual point is set at the head of the multibyte form
-except in the case that `enable-multibyte-characters' is nil.  */
-       (position))
+except in the case that `enable-multibyte-characters' is nil.  */)
+     (position)
      register Lisp_Object position;
 {
   int pos;
@@ -300,24 +299,24 @@ region_limit (beginningp)
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
-       /* Return position of beginning of region, as an integer.  */
-       ())
+       doc: /* Return position of beginning of region, as an integer.  */)
+     ()
 {
   return region_limit (1);
 }
 
 DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
-       /* Return position of end of region, as an integer.  */
-       ())
+       doc: /* Return position of end of region, as an integer.  */)
+     ()
 {
   return region_limit (0);
 }
 
 DEFUN ("mark-marker", Fmark_marker, Smark_marker, 0, 0, 0,
-       /* Return this buffer's mark, as a marker object.
+       doc: /* Return this buffer's mark, as a marker object.
 Watch out!  Moving this marker changes the mark position.
-If you set the marker not to point anywhere, the buffer will have no mark.  */
-       ())
+If you set the marker not to point anywhere, the buffer will have no mark.  */)
+     ()
 {
   return current_buffer->mark;
 }
@@ -557,10 +556,10 @@ find_field (pos, merge_at_boundary, beg, end)
 
 
 DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, 0,
-       /* Delete the field surrounding POS.
+       doc: /* Delete the field surrounding POS.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */
-       (pos))
+If POS is nil, the value of point is used for POS.  */)
+     (pos)
      Lisp_Object pos;
 {
   int beg, end;
@@ -571,10 +570,10 @@ If POS is nil, the value of point is used for POS.  */
 }
 
 DEFUN ("field-string", Ffield_string, Sfield_string, 0, 1, 0,
-       /* Return the contents of the field surrounding POS as a string.
+       doc: /* Return the contents of the field surrounding POS as a string.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */
-       (pos))
+If POS is nil, the value of point is used for POS.  */)
+     (pos)
      Lisp_Object pos;
 {
   int beg, end;
@@ -583,10 +582,10 @@ If POS is nil, the value of point is used for POS.  */
 }
 
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
-       /* Return the contents of the field around POS, without text-properties.
+       doc: /* Return the contents of the field around POS, without text-properties.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */
-       (pos))
+If POS is nil, the value of point is used for POS.  */)
+     (pos)
      Lisp_Object pos;
 {
   int beg, end;
@@ -595,12 +594,12 @@ If POS is nil, the value of point is used for POS.  */
 }
 
 DEFUN ("field-beginning", Ffield_beginning, Sfield_beginning, 0, 2, 0,
-       /* Return the beginning of the field surrounding POS.
+       doc: /* Return the beginning of the field surrounding POS.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
-field, then the beginning of the *previous* field is returned.  */
-       (pos, escape_from_edge))
+field, then the beginning of the *previous* field is returned.  */)
+     (pos, escape_from_edge)
      Lisp_Object pos, escape_from_edge;
 {
   int beg;
@@ -609,12 +608,12 @@ field, then the beginning of the *previous* field is returned.  */
 }
 
 DEFUN ("field-end", Ffield_end, Sfield_end, 0, 2, 0,
-       /* Return the end of the field surrounding POS.
+       doc: /* Return the end of the field surrounding POS.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
-then the end of the *following* field is returned.  */
-       (pos, escape_from_edge))
+then the end of the *following* field is returned.  */)
+     (pos, escape_from_edge)
      Lisp_Object pos, escape_from_edge;
 {
   int end;
@@ -623,7 +622,7 @@ then the end of the *following* field is returned.  */
 }
 
 DEFUN ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
-       /* Return the position closest to NEW-POS that is in the same field as OLD-POS.
+       doc: /* Return the position closest to NEW-POS that is in the same field as OLD-POS.
 
 A field is a region of text with the same `field' property.
 If NEW-POS is nil, then the current point is used instead, and set to the
@@ -648,8 +647,8 @@ only in the case where they can still move to the right line.
 If the optional argument INHIBIT-CAPTURE-PROPERTY is non-nil, and OLD-POS has
 a non-nil property of that name, then any field boundaries are ignored.
 
-Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */
-  (new_pos, old_pos, escape_from_edge, only_in_line, inhibit_capture_property))
+Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
+     (new_pos, old_pos, escape_from_edge, only_in_line, inhibit_capture_property)
      Lisp_Object new_pos, old_pos;
      Lisp_Object escape_from_edge, only_in_line, inhibit_capture_property;
 {
@@ -716,7 +715,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */
 
 DEFUN ("line-beginning-position", Fline_beginning_position, Sline_beginning_position,
   0, 1, 0,
-       /* Return the character position of the first character on the current line.
+       doc: /* Return the character position of the first character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 The scan does not cross a field boundary unless it would move
@@ -724,8 +723,8 @@ beyond there to a different line.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  And if N is nil or 1,
 and scan starts at a field boundary, the scan stops as soon as it starts.
 
-This function does not move point.  */
-       (n))
+This function does not move point.  */)
+     (n)
      Lisp_Object n;
 {
   int orig, orig_byte, end;
@@ -750,11 +749,11 @@ This function does not move point.  */
 
 DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
   0, 1, 0,
-       /* Return the character position of the last character on the current line.
+       doc: /* Return the character position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
-This function does not move point.  */
-       (n))
+This function does not move point.  */)
+     (n)
      Lisp_Object n;
 {
   int end_pos;
@@ -871,7 +870,7 @@ save_excursion_restore (info)
 }
 
 DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
-       /* Save point, mark, and current buffer; execute BODY; restore those things.
+       doc: /* Save point, mark, and current buffer; execute BODY; restore those things.
 Executes BODY just like `progn'.
 The values of point, mark and the current buffer are restored
 even in case of abnormal exit (throw or error).
@@ -880,8 +879,8 @@ The state of activation of the mark is also restored.
 This construct does not save `deactivate-mark', and therefore
 functions that change the buffer will still cause deactivation
 of the mark at the end of the command.  To prevent that, bind
-`deactivate-mark' with `let'.  */
-       (args))
+`deactivate-mark' with `let'.  */)
+     (args)
      Lisp_Object args;
 {
   register Lisp_Object val;
@@ -894,9 +893,9 @@ of the mark at the end of the command.  To prevent that, bind
 }
 
 DEFUN ("save-current-buffer", Fsave_current_buffer, Ssave_current_buffer, 0, UNEVALLED, 0,
-       /* Save the current buffer; execute BODY; restore the current buffer.
-Executes BODY just like `progn'.  */
-       (args))
+       doc: /* Save the current buffer; execute BODY; restore the current buffer.
+Executes BODY just like `progn'.  */)
+     (args)
      Lisp_Object args;
 {
   Lisp_Object val;
@@ -909,9 +908,9 @@ Executes BODY just like `progn'.  */
 }
 
 DEFUN ("buffer-size", Fbufsize, Sbufsize, 0, 1, 0,
-       /* Return the number of characters in the current buffer.
-If BUFFER, return the number of characters in that buffer instead.  */
-       (buffer))
+       doc: /* Return the number of characters in the current buffer.
+If BUFFER, return the number of characters in that buffer instead.  */)
+     (buffer)
      Lisp_Object buffer;
 {
   if (NILP (buffer))
@@ -925,9 +924,9 @@ If BUFFER, return the number of characters in that buffer instead.  */
 }
 
 DEFUN ("point-min", Fpoint_min, Spoint_min, 0, 0, 0,
-       /* Return the minimum permissible value of point in the current buffer.
-This is 1, unless narrowing (a buffer restriction) is in effect.  */
-       ())
+       doc: /* Return the minimum permissible value of point in the current buffer.
+This is 1, unless narrowing (a buffer restriction) is in effect.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, BEGV);
@@ -935,18 +934,18 @@ This is 1, unless narrowing (a buffer restriction) is in effect.  */
 }
 
 DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
-       /* Return a marker to the minimum permissible value of point in this buffer.
-This is the beginning, unless narrowing (a buffer restriction) is in effect.  */
-       ())
+       doc: /* Return a marker to the minimum permissible value of point in this buffer.
+This is the beginning, unless narrowing (a buffer restriction) is in effect.  */)
+     ()
 {
   return buildmark (BEGV, BEGV_BYTE);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
-       /* Return the maximum permissible value of point in the current buffer.
+       doc: /* Return the maximum permissible value of point in the current buffer.
 This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
-is in effect, in which case it is less.  */
-       ())
+is in effect, in which case it is less.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, ZV);
@@ -954,18 +953,18 @@ is in effect, in which case it is less.  */
 }
 
 DEFUN ("point-max-marker", Fpoint_max_marker, Spoint_max_marker, 0, 0, 0,
-       /* Return a marker to the maximum permissible value of point in this buffer.
+       doc: /* Return a marker to the maximum permissible value of point in this buffer.
 This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
-is in effect, in which case it is less.  */
-       ())
+is in effect, in which case it is less.  */)
+     ()
 {
   return buildmark (ZV, ZV_BYTE);
 }
 
 DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
-       /* Return the position of the gap, in the current buffer.
-See also `gap-size'.  */
-       ())
+       doc: /* Return the position of the gap, in the current buffer.
+See also `gap-size'.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, GPT);
@@ -973,9 +972,9 @@ See also `gap-size'.  */
 }
 
 DEFUN ("gap-size", Fgap_size, Sgap_size, 0, 0, 0,
-       /* Return the size of the current buffer's gap.
-See also `gap-position'.  */
-       ())
+       doc: /* Return the size of the current buffer's gap.
+See also `gap-position'.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, GAP_SIZE);
@@ -983,9 +982,9 @@ See also `gap-position'.  */
 }
 
 DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
-       /* Return the byte position for character position POSITION.
-If POSITION is out of range, the value is nil.  */
-       (position))
+       doc: /* Return the byte position for character position POSITION.
+If POSITION is out of range, the value is nil.  */)
+     (position)
      Lisp_Object position;
 {
   CHECK_NUMBER_COERCE_MARKER (position, 1);
@@ -995,9 +994,9 @@ If POSITION is out of range, the value is nil.  */
 }
 
 DEFUN ("byte-to-position", Fbyte_to_position, Sbyte_to_position, 1, 1, 0,
-       /* Return the character position for byte position BYTEPOS.
-If BYTEPOS is out of range, the value is nil.  */
-       (bytepos))
+       doc: /* Return the character position for byte position BYTEPOS.
+If BYTEPOS is out of range, the value is nil.  */)
+     (bytepos)
      Lisp_Object bytepos;
 {
   CHECK_NUMBER (bytepos, 1);
@@ -1007,9 +1006,9 @@ If BYTEPOS is out of range, the value is nil.  */
 }
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
-       /* Return the character following point, as a number.
-At the end of the buffer or accessible region, return 0.  */
-       ())
+       doc: /* Return the character following point, as a number.
+At the end of the buffer or accessible region, return 0.  */)
+     ()
 {
   Lisp_Object temp;
   if (PT >= ZV)
@@ -1020,9 +1019,9 @@ At the end of the buffer or accessible region, return 0.  */
 }
 
 DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
-       /* Return the character preceding point, as a number.
-At the beginning of the buffer or accessible region, return 0.  */
-       ())
+       doc: /* Return the character preceding point, as a number.
+At the beginning of the buffer or accessible region, return 0.  */)
+     ()
 {
   Lisp_Object temp;
   if (PT <= BEGV)
@@ -1039,9 +1038,9 @@ At the beginning of the buffer or accessible region, return 0.  */
 }
 
 DEFUN ("bobp", Fbobp, Sbobp, 0, 0, 0,
-       /* Return t if point is at the beginning of the buffer.
-If the buffer is narrowed, this means the beginning of the narrowed part.  */
-       ())
+       doc: /* Return t if point is at the beginning of the buffer.
+If the buffer is narrowed, this means the beginning of the narrowed part.  */)
+     ()
 {
   if (PT == BEGV)
     return Qt;
@@ -1049,9 +1048,9 @@ If the buffer is narrowed, this means the beginning of the narrowed part.  */
 }
 
 DEFUN ("eobp", Feobp, Seobp, 0, 0, 0,
-       /* Return t if point is at the end of the buffer.
-If the buffer is narrowed, this means the end of the narrowed part.  */
-       ())
+       doc: /* Return t if point is at the end of the buffer.
+If the buffer is narrowed, this means the end of the narrowed part.  */)
+     ()
 {
   if (PT == ZV)
     return Qt;
@@ -1059,8 +1058,8 @@ If the buffer is narrowed, this means the end of the narrowed part.  */
 }
 
 DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
-       /* Return t if point is at the beginning of a line.  */
-       ())
+       doc: /* Return t if point is at the beginning of a line.  */)
+     ()
 {
   if (PT == BEGV || FETCH_BYTE (PT_BYTE - 1) == '\n')
     return Qt;
@@ -1068,9 +1067,9 @@ DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
 }
 
 DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
-       /* Return t if point is at the end of a line.
-`End of a line' includes point being at the end of the buffer.  */
-       ())
+       doc: /* Return t if point is at the end of a line.
+`End of a line' includes point being at the end of the buffer.  */)
+     ()
 {
   if (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n')
     return Qt;
@@ -1078,10 +1077,10 @@ DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
 }
 
 DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
-       /* Return character in current buffer at position POS.
+       doc: /* Return character in current buffer at position POS.
 POS is an integer or a marker.
-If POS is out of range, the value is nil.  */
-       (pos))
+If POS is out of range, the value is nil.  */)
+     (pos)
      Lisp_Object pos;
 {
   register int pos_byte;
@@ -1111,10 +1110,10 @@ If POS is out of range, the value is nil.  */
 }
 
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
-       /* Return character in current buffer preceding position POS.
+       doc: /* Return character in current buffer preceding position POS.
 POS is an integer or a marker.
-If POS is out of range, the value is nil.  */
-       (pos))
+If POS is out of range, the value is nil.  */)
+     (pos)
      Lisp_Object pos;
 {
   register Lisp_Object val;
@@ -1157,14 +1156,14 @@ If POS is out of range, the value is nil.  */
 }
 
 DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
-       /* Return the name under which the user logged in, as a string.
+       doc: /* Return the name under which the user logged in, as a string.
 This is based on the effective uid, not the real uid.
 Also, if the environment variable LOGNAME or USER is set,
 that determines the value of this function.
 
 If optional argument UID is an integer, return the login name of the user
-with that uid, or nil if there is no such user.  */
-       (uid))
+with that uid, or nil if there is no such user.  */)
+     (uid)
      Lisp_Object uid;
 {
   struct passwd *pw;
@@ -1185,10 +1184,10 @@ with that uid, or nil if there is no such user.  */
 
 DEFUN ("user-real-login-name", Fuser_real_login_name, Suser_real_login_name,
   0, 0, 0,
-       /* Return the name of the user's real uid, as a string.
+       doc: /* Return the name of the user's real uid, as a string.
 This ignores the environment variables LOGNAME and USER, so it differs from
-`user-login-name' when running under `su'.  */
-       ())
+`user-login-name' when running under `su'.  */)
+     ()
 {
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
@@ -1199,31 +1198,31 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
-       /* Return the effective uid of Emacs.
-Value is an integer or float, depending on the value.  */
-       ())
+       doc: /* Return the effective uid of Emacs.
+Value is an integer or float, depending on the value.  */)
+     ()
 {
   return make_fixnum_or_float (geteuid ());
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
-       /* Return the real uid of Emacs.
-Value is an integer or float, depending on the value.  */
-       ())
+       doc: /* Return the real uid of Emacs.
+Value is an integer or float, depending on the value.  */)
+     ()
 {
   return make_fixnum_or_float (getuid ());
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
-       /* Return the full name of the user logged in, as a string.
+       doc: /* Return the full name of the user logged in, as a string.
 If the full name corresponding to Emacs's userid is not known,
 return "unknown".
 
 If optional argument UID is an integer or float, return the full name
 of the user with that uid, or nil if there is no such user.
 If UID is a string, return the full name of the user with that login
-name, or nil if there is no such user.  */
-       (uid))
+name, or nil if there is no such user.  */)
+     (uid)
      Lisp_Object uid;
 {
   struct passwd *pw;
@@ -1271,8 +1270,8 @@ name, or nil if there is no such user.  */
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
-       /* Return the name of the machine you are running on, as a string.  */
-       ())
+       doc: /* Return the name of the machine you are running on, as a string.  */)
+     ()
 {
   return Vsystem_name;
 }
@@ -1289,22 +1288,22 @@ get_system_name ()
 }
 
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
-       /* Return the process ID of Emacs, as an integer.  */
-       ())
+       doc: /* Return the process ID of Emacs, as an integer.  */)
+     ()
 {
   return make_number (getpid ());
 }
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
-       /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
+       doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
 The time is returned as a list of three integers.  The first has the
 most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
 count.
 
 The microsecond count is zero on systems that do not provide
-resolution finer than a second.  */
-       ())
+resolution finer than a second.  */)
+     ()
 {
   EMACS_TIME t;
   Lisp_Object result[3];
@@ -1370,7 +1369,7 @@ lisp_time_argument (specified_time, result, usec)
 }
 
 DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
-       /* Return the current time, as a float number of seconds since the epoch.
+       doc: /* Return the current time, as a float number of seconds since the epoch.
 If an argument is given, it specifies a time to convert to float
 instead of the current time.  The argument should have the forms:
  (HIGH . LOW) or (HIGH LOW USEC) or (HIGH LOW . USEC).
@@ -1378,8 +1377,8 @@ Thus, you can use times obtained from `current-time'
 and from `file-attributes'.
 
 WARNING: Since the result is floating point, it may not be exact.
-Do not use this function if precise time stamps are required.  */
-       (specified_time))
+Do not use this function if precise time stamps are required.  */)
+     (specified_time)
      Lisp_Object specified_time;
 {
   time_t sec;
@@ -1446,7 +1445,7 @@ emacs_memftimeu (s, maxsize, format, format_len, tp, ut)
 }
 
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
-       /* Use FORMAT-STRING to format the time TIME, or now if omitted.
+       doc: /* Use FORMAT-STRING to format the time TIME, or now if omitted.
 TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as returned by
 `current-time' or `file-attributes'.
 The third, optional, argument UNIVERSAL, if non-nil, means describe TIME
@@ -1494,8 +1493,8 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */
-       (format_string, time, universal))
+For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
+     (format_string, time, universal)
      Lisp_Object format_string, time, universal;
 {
   time_t value;
@@ -1543,7 +1542,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */
 }
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
-       /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
+       doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
 The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED)
 or (HIGH . LOW), as from `current-time' and `file-attributes', or `nil'
 to use the current time.  The list has the following nine members:
@@ -1554,8 +1553,8 @@ MONTH is an integer between 1 and 12.  YEAR is an integer indicating the
 four-digit year.  DOW is the day of week, an integer between 0 and 6, where
 0 is Sunday.  DST is t if daylight savings time is effect, otherwise nil.
 ZONE is an integer indicating the number of seconds east of Greenwich.
-(Note that Common Lisp has different meanings for DOW and ZONE.)  */
-  (specified_time))
+(Note that Common Lisp has different meanings for DOW and ZONE.)  */)
+     (specified_time)
      Lisp_Object specified_time;
 {
   time_t time_spec;
@@ -1589,7 +1588,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.
 }
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
-       /* Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.
+       doc: /* Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.
 This is the reverse operation of `decode-time', which see.
 ZONE defaults to the current time zone rule.  This can
 be a string or t (as from `set-time-zone-rule'), or it can be a list
@@ -1604,8 +1603,8 @@ This feature lets (apply 'encode-time (decode-time ...)) work.
 Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.
 Year numbers less than 100 are treated just like other year numbers.
-If you want them to stand for years in this century, you must do that yourself.  */
-       (nargs, args))
+If you want them to stand for years in this century, you must do that yourself.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -1674,7 +1673,7 @@ If you want them to stand for years in this century, you must do that yourself. 
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
-       /* Return the current time, as a human-readable string.
+       doc: /* Return the current time, as a human-readable string.
 Programs can use this function to decode a time,
 since the number of columns in each field is fixed.
 The format is `Sun Sep 16 01:03:52 1973'.
@@ -1687,8 +1686,8 @@ instead of the current time.  The argument should have the form:
 or the form:
   (HIGH LOW . IGNORED).
 Thus, you can use times obtained from `current-time'
-and from `file-attributes'.  */
-       (specified_time))
+and from `file-attributes'.  */)
+     (specified_time)
      Lisp_Object specified_time;
 {
   time_t value;
@@ -1732,7 +1731,7 @@ tm_diff (a, b)
 }
 
 DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 1, 0,
-       /* Return the offset and name for the local time zone.
+       doc: /* Return the offset and name for the local time zone.
 This returns a list of the form (OFFSET NAME).
 OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).
     A negative value means west of Greenwich.
@@ -1747,8 +1746,8 @@ and from `file-attributes'.
 
 Some operating systems cannot provide all this information to Emacs;
 in this case, `current-time-zone' returns a list containing nil for
-the data it can't find.  */
-       (specified_time))
+the data it can't find.  */)
+     (specified_time)
      Lisp_Object specified_time;
 {
   time_t value;
@@ -1804,10 +1803,10 @@ the data it can't find.  */
 static char **environbuf;
 
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
-       /* Set the local time zone using TZ, a string specifying a time zone rule.
+       doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
-If TZ is t, use Universal Time.  */
-       (tz))
+If TZ is t, use Universal Time.  */)
+     (tz)
      Lisp_Object tz;
 {
   char *tzstring;
@@ -1991,7 +1990,7 @@ insert1 (arg)
    we don't care if it gets trashed.  */
 
 DEFUN ("insert", Finsert, Sinsert, 0, MANY, 0,
-       /* Insert the arguments, either strings or characters, at point.
+       doc: /* Insert the arguments, either strings or characters, at point.
 Point and before-insertion markers move forward to end up
  after the inserted text.
 Any other markers at the point of insertion remain before the text.
@@ -1999,8 +1998,8 @@ Any other markers at the point of insertion remain before the text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */
-       (nargs, args))
+to unibyte for insertion.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -2010,7 +2009,7 @@ to unibyte for insertion.  */
 
 DEFUN ("insert-and-inherit", Finsert_and_inherit, Sinsert_and_inherit,
    0, MANY, 0,
-       /* Insert the arguments at point, inheriting properties from adjoining text.
+       doc: /* Insert the arguments at point, inheriting properties from adjoining text.
 Point and before-insertion markers move forward to end up
  after the inserted text.
 Any other markers at the point of insertion remain before the text.
@@ -2018,8 +2017,8 @@ Any other markers at the point of insertion remain before the text.
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */
-       (nargs, args))
+to unibyte for insertion.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -2029,14 +2028,14 @@ to unibyte for insertion.  */
 }
 
 DEFUN ("insert-before-markers", Finsert_before_markers, Sinsert_before_markers, 0, MANY, 0,
-       /* Insert strings or characters at point, relocating markers after the text.
+       doc: /* Insert strings or characters at point, relocating markers after the text.
 Point and markers move forward to end up after the inserted text.
 
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */
-       (nargs, args))
+to unibyte for insertion.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -2048,14 +2047,14 @@ to unibyte for insertion.  */
 
 DEFUN ("insert-before-markers-and-inherit", Finsert_and_inherit_before_markers,
   Sinsert_and_inherit_before_markers, 0, MANY, 0,
-       /* Insert text at point, relocating markers and inheriting properties.
+       doc: /* Insert text at point, relocating markers and inheriting properties.
 Point and markers move forward to end up after the inserted text.
 
 If the current buffer is multibyte, unibyte strings are converted
 to multibyte for insertion (see `unibyte-char-to-multibyte').
 If the current buffer is unibyte, multibyte strings are converted
-to unibyte for insertion.  */
-       (nargs, args))
+to unibyte for insertion.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -2066,12 +2065,12 @@ to unibyte for insertion.  */
 }
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
-       /* Insert COUNT (second arg) copies of CHARACTER (first arg).
+       doc: /* Insert COUNT (second arg) copies of CHARACTER (first arg).
 Both arguments are required.
 Point, and before-insertion markers, are relocated as in the function `insert'.
 The optional third arg INHERIT, if non-nil, says to inherit text properties
-from adjoining text, if those properties are sticky.  */
-       (character, count, inherit))
+from adjoining text, if those properties are sticky.  */)
+     (character, count, inherit)
        Lisp_Object character, count, inherit;
 {
   register unsigned char *string;
@@ -2222,15 +2221,15 @@ update_buffer_properties (start, end)
 }
 
 DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
-       /* Return the contents of part of the current buffer as a string.
+       doc: /* Return the contents of part of the current buffer as a string.
 The two arguments START and END are character positions;
 they can be in either order.
 The string returned is multibyte if the buffer is multibyte.
 
 This function copies the text properties of that part of the buffer
 into the result string; if you don't want the text properties,
-use `buffer-substring-no-properties' instead.  */
-       (start, end))
+use `buffer-substring-no-properties' instead.  */)
+     (start, end)
      Lisp_Object start, end;
 {
   register int b, e;
@@ -2244,10 +2243,10 @@ use `buffer-substring-no-properties' instead.  */
 
 DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
        Sbuffer_substring_no_properties, 2, 2, 0,
-       /* Return the characters of part of the buffer, without the text properties.
+       doc: /* Return the characters of part of the buffer, without the text properties.
 The two arguments START and END are character positions;
-they can be in either order.  */
-       (start, end))
+they can be in either order.  */)
+     (start, end)
      Lisp_Object start, end;
 {
   register int b, e;
@@ -2260,21 +2259,21 @@ they can be in either order.  */
 }
 
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
-       /* Return the contents of the current buffer as a string.
+       doc: /* Return the contents of the current buffer as a string.
 If narrowing is in effect, this function returns only the visible part
-of the buffer.  */
-       ())
+of the buffer.  */)
+     ()
 {
   return make_buffer_string (BEGV, ZV, 1);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
   1, 3, 0,
-       /* Insert before point a substring of the contents of buffer BUFFER.
+       doc: /* Insert before point a substring of the contents of buffer BUFFER.
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character numbers specifying the substring.
-They default to the beginning and the end of BUFFER.  */
-       (buf, start, end))
+They default to the beginning and the end of BUFFER.  */)
+     (buf, start, end)
      Lisp_Object buf, start, end;
 {
   register int b, e, temp;
@@ -2320,15 +2319,15 @@ They default to the beginning and the end of BUFFER.  */
 
 DEFUN ("compare-buffer-substrings", Fcompare_buffer_substrings, Scompare_buffer_substrings,
   6, 6, 0,
-       /* Compare two substrings of two buffers; return result as number.
+       doc: /* Compare two substrings of two buffers; return result as number.
 the value is -N if first string is less after N-1 chars,
 +N if first string is greater after N-1 chars, or 0 if strings match.
 Each substring is represented as three arguments: BUFFER, START and END.
 That makes six args in all, three for each substring.
 
 The value of `case-fold-search' in the current buffer
-determines whether case is significant or ignored.  */
-       (buffer1, start1, end1, buffer2, start2, end2))
+determines whether case is significant or ignored.  */)
+     (buffer1, start1, end1, buffer2, start2, end2)
      Lisp_Object buffer1, start1, end1, buffer2, start2, end2;
 {
   register int begp1, endp1, begp2, endp2, temp;
@@ -2492,11 +2491,11 @@ subst_char_in_region_unwind_1 (arg)
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
   Ssubst_char_in_region, 4, 5, 0,
-       /* From START to END, replace FROMCHAR with TOCHAR each time it occurs.
+       doc: /* From START to END, replace FROMCHAR with TOCHAR each time it occurs.
 If optional arg NOUNDO is non-nil, don't record this change for undo
 and don't mark the buffer as really changed.
-Both characters must have the same length of multi-byte form.  */
-       (start, end, fromchar, tochar, noundo))
+Both characters must have the same length of multi-byte form.  */)
+     (start, end, fromchar, tochar, noundo)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
   register int pos, pos_byte, stop, i, len, end_byte;
@@ -2659,12 +2658,12 @@ Both characters must have the same length of multi-byte form.  */
 }
 
 DEFUN ("translate-region", Ftranslate_region, Stranslate_region, 3, 3, 0,
-       /* From START to END, translate characters according to TABLE.
+       doc: /* From START to END, translate characters according to TABLE.
 TABLE is a string; the Nth character in it is the mapping
 for the character with code N.
 This function does not alter multibyte characters.
-It returns the number of characters changed.  */
-       (start, end, table))
+It returns the number of characters changed.  */)
+     (start, end, table)
      Lisp_Object start;
      Lisp_Object end;
      register Lisp_Object table;
@@ -2748,10 +2747,10 @@ It returns the number of characters changed.  */
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
-       /* Delete the text between point and mark.
+       doc: /* Delete the text between point and mark.
 When called from a program, expects two arguments,
-positions (integers or markers) specifying the stretch to be deleted.  */
-       (start, end))
+positions (integers or markers) specifying the stretch to be deleted.  */)
+     (start, end)
      Lisp_Object start, end;
 {
   validate_region (&start, &end);
@@ -2761,8 +2760,8 @@ positions (integers or markers) specifying the stretch to be deleted.  */
 
 DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
        Sdelete_and_extract_region, 2, 2, 0,
-       /* Delete the text between START and END and return it.  */
-       (start, end))
+       doc: /* Delete the text between START and END and return it.  */)
+     (start, end)
      Lisp_Object start, end;
 {
   validate_region (&start, &end);
@@ -2770,9 +2769,9 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
 }
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
-       /* Remove restrictions (narrowing) from current buffer.
-This allows the buffer's full text to be seen and edited.  */
-       ())
+       doc: /* Remove restrictions (narrowing) from current buffer.
+This allows the buffer's full text to be seen and edited.  */)
+     ()
 {
   if (BEG != BEGV || Z != ZV)
     current_buffer->clip_changed = 1;
@@ -2785,15 +2784,15 @@ This allows the buffer's full text to be seen and edited.  */
 }
 
 DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
-       /* Restrict editing in this buffer to the current region.
+       doc: /* Restrict editing in this buffer to the current region.
 The rest of the text becomes temporarily invisible and untouchable
 but is not deleted; if you save the buffer in a file, the invisible
 text is included in the file.  \\[widen] makes all visible again.
 See also `save-restriction'.
 
 When calling from a program, pass two arguments; positions (integers
-or markers) bounding the text that should remain visible.  */
-       (start, end))
+or markers) bounding the text that should remain visible.  */)
+     (start, end)
      register Lisp_Object start, end;
 {
   CHECK_NUMBER_COERCE_MARKER (start, 0);
@@ -2895,7 +2894,7 @@ save_restriction_restore (data)
 }
 
 DEFUN ("save-restriction", Fsave_restriction, Ssave_restriction, 0, UNEVALLED, 0,
-       /* Execute BODY, saving and restoring current buffer's restrictions.
+       doc: /* Execute BODY, saving and restoring current buffer's restrictions.
 The buffer's restrictions make parts of the beginning and end invisible.
 (They are set up with `narrow-to-region' and eliminated with `widen'.)
 This special form, `save-restriction', saves the current buffer's restrictions
@@ -2908,8 +2907,8 @@ The value returned is the value of the last form in BODY.
 
 Note: if you are using both `save-excursion' and `save-restriction',
 use `save-excursion' outermost:
-    (save-excursion (save-restriction ...))  */
-       (body))
+    (save-excursion (save-restriction ...))  */)
+     (body)
      Lisp_Object body;
 {
   register Lisp_Object val;
@@ -2927,13 +2926,13 @@ static char *message_text;
 static int message_length;
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
-       /* Print a one-line message at the bottom of the screen.
+       doc: /* Print a one-line message at the bottom of the screen.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */
-       (nargs, args))
+minibuffer contents show.  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -2952,14 +2951,14 @@ minibuffer contents show.  */
 }
 
 DEFUN ("message-box", Fmessage_box, Smessage_box, 1, MANY, 0,
-       /* Display a message, in a dialog box if possible.
+       doc: /* Display a message, in a dialog box if possible.
 If a dialog box is not available, use the echo area.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */
-       (nargs, args))
+minibuffer contents show.  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -3010,7 +3009,7 @@ extern Lisp_Object last_nonmenu_event;
 #endif
 
 DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,
-       /* Display a message in a dialog box or in the echo area.
+       doc: /* Display a message in a dialog box or in the echo area.
 If this command was invoked with the mouse, use a dialog box if
 `use-dialog-box' is non-nil.
 Otherwise, use the echo area.
@@ -3018,8 +3017,8 @@ The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
 If the first argument is nil, clear any existing message; let the
-minibuffer contents show.  */
-       (nargs, args))
+minibuffer contents show.  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -3032,19 +3031,19 @@ minibuffer contents show.  */
 }
 
 DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
-       /* Return the string currently displayed in the echo area, or nil if none.  */
-       ())
+       doc: /* Return the string currently displayed in the echo area, or nil if none.  */)
+     ()
 {
   return current_message ();
 }
 
 
 DEFUN ("propertize", Fpropertize, Spropertize, 3, MANY, 0,
-       /* Return a copy of STRING with text properties added.
+       doc: /* Return a copy of STRING with text properties added.
 First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
-properties to add to the result.  */
-       (nargs, args))
+properties to add to the result.  */)
+     (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
@@ -3086,7 +3085,7 @@ properties to add to the result.  */
    : STRING_BYTES (XSTRING (STRING)))
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
-       /* Format a string out of a control-string and arguments.
+       doc: /* Format a string out of a control-string and arguments.
 The first argument is a control string.
 The other arguments are substituted into it to make the result, a string.
 It may contain %-sequences meaning to substitute the next argument.
@@ -3100,8 +3099,8 @@ It may contain %-sequences meaning to substitute the next argument.
 %c means print a number as a single character.
 %S means print any object as an s-expression (using `prin1').
   The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
-Use %% to put a single % into the output.  */
-       (nargs, args))
+Use %% to put a single % into the output.  */)
+     (nargs, args)
      int nargs;
      register Lisp_Object *args;
 {
@@ -3525,10 +3524,10 @@ format1 (string1)
 }
 
 DEFUN ("char-equal", Fchar_equal, Schar_equal, 2, 2, 0,
-       /* Return t if two characters match, optionally ignoring case.
+       doc: /* Return t if two characters match, optionally ignoring case.
 Both arguments must be characters (i.e. integers).
-Case is ignored if `case-fold-search' is non-nil in the current buffer.  */
-       (c1, c2))
+Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
+     (c1, c2)
      register Lisp_Object c1, c2;
 {
   int i1, i2;
@@ -3634,15 +3633,15 @@ transpose_markers (start1, end1, start2, end2,
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
-       /* Transpose region START1 to END1 with START2 to END2.
+       doc: /* Transpose region START1 to END1 with START2 to END2.
 The regions may not be overlapping, because the size of the buffer is
 never changed in a transposition.
 
 Optional fifth arg LEAVE_MARKERS, if non-nil, means don't update
 any markers that happen to be located in the regions.
 
-Transposing beyond buffer boundaries is an error.  */
-       (startr1, endr1, startr2, endr2, leave_markers))
+Transposing beyond buffer boundaries is an error.  */)
+     (startr1, endr1, startr2, endr2, leave_markers)
      Lisp_Object startr1, endr1, startr2, endr2, leave_markers;
 {
   register int start1, end1, start2, end2;
@@ -3932,13 +3931,13 @@ syms_of_editfns ()
     = intern ("buffer-access-fontify-functions");
   staticpro (&Qbuffer_access_fontify_functions);
 
-  DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion
-	       /* Non-nil means.text motion commands don't notice fields.  */);
+  DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
+	       doc: /* Non-nil means.text motion commands don't notice fields.  */);
   Vinhibit_field_text_motion = Qnil;
 
   DEFVAR_LISP ("buffer-access-fontify-functions",
-	       &Vbuffer_access_fontify_functions
-	       /* List of functions called by `buffer-substring' to fontify if necessary.
+	       &Vbuffer_access_fontify_functions,
+	       doc: /* List of functions called by `buffer-substring' to fontify if necessary.
 Each function is called with two arguments which specify the range
 of the buffer being accessed.  */);
   Vbuffer_access_fontify_functions = Qnil;
@@ -3956,23 +3955,23 @@ of the buffer being accessed.  */);
   }
 
   DEFVAR_LISP ("buffer-access-fontified-property",
-	       &Vbuffer_access_fontified_property
-	       /* Property which (if non-nil) indicates text has been fontified.
+	       &Vbuffer_access_fontified_property,
+	       doc: /* Property which (if non-nil) indicates text has been fontified.
 `buffer-substring' need not call the `buffer-access-fontify-functions'
 functions if all the text being accessed has this property.  */);
   Vbuffer_access_fontified_property = Qnil;
 
-  DEFVAR_LISP ("system-name", &Vsystem_name
-	       /* The name of the machine Emacs is running on.  */);
+  DEFVAR_LISP ("system-name", &Vsystem_name,
+	       doc: /* The name of the machine Emacs is running on.  */);
 
-  DEFVAR_LISP ("user-full-name", &Vuser_full_name
-	       /* The full name of the user logged in.  */);
+  DEFVAR_LISP ("user-full-name", &Vuser_full_name,
+	       doc: /* The full name of the user logged in.  */);
 
-  DEFVAR_LISP ("user-login-name", &Vuser_login_name
-	       /* The user's name, taken from environment variables if possible.  */);
+  DEFVAR_LISP ("user-login-name", &Vuser_login_name,
+	       doc: /* The user's name, taken from environment variables if possible.  */);
 
-  DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name
-	       /* The user's name, based upon the real uid only.  */);
+  DEFVAR_LISP ("user-real-login-name", &Vuser_real_login_name,
+	       doc: /* The user's name, based upon the real uid only.  */);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
