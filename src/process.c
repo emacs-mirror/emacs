@@ -444,7 +444,7 @@ allocate_pty ()
 	    if (access (pty_name, 6) != 0)
 	      {
 		close (fd);
-#ifndef IRIS
+#if !defined(IRIS) && !defined(__sgi)
 		continue;
 #else
 		return -1;
