@@ -1,3 +1,8 @@
+2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Mention Gtk+ 2.6 also, as that version is
+	out now.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (MAKEINFO): Specify --force.
