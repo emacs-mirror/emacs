@@ -583,6 +583,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	struct face *face = FRAME_DEFAULT_FACE (f);
 	FONT_TYPE *font = FACE_FONT (face);
 	GC gc = FACE_GC (face);
+	int stippled = 0;
 
 	/* HL = 3 means use a mouse face previously chosen.  */
 	if (hl == 3)
@@ -603,6 +604,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	      face = intern_face (f, FRAME_COMPUTED_FACES (f) [cf]);
 	    font = FACE_FONT (face);
 	    gc = FACE_GC (face);
+	    if (FACE_STIPPLE (face))
+	      stippled = 1;
 	  }
 
 	/* Then comes the distinction between modeline and normal text.  */
@@ -613,6 +616,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	    face = FRAME_MODE_LINE_FACE (f);
 	    font = FACE_FONT (face);
 	    gc   = FACE_GC   (face);
+	    if (FACE_STIPPLE (face))
+	      stippled = 1;
 	  }
 
 #define FACE_DEFAULT (~0)
@@ -620,6 +625,9 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 	/* Now override that if the cursor's on this character.  */
 	if (hl == 2)
 	  {
+	    /* The cursor overrides stippling.  */
+	    stippled = 0;
+
 	    if ((!face->font
 		 || (int) face->font == FACE_DEFAULT
 		 || face->font == f->display.x->font)
@@ -657,8 +665,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		if (scratch_cursor_gc)
 		  XChangeGC (x_current_display, scratch_cursor_gc, mask, &xgcv);
 		else
-		  scratch_cursor_gc =
-		    XCreateGC (x_current_display, window, mask, &xgcv);
+		  scratch_cursor_gc
+		    = XCreateGC (x_current_display, window, mask, &xgcv);
 		gc = scratch_cursor_gc;
 #if 0
 /* If this code is restored, it must also reset to the default stipple
@@ -677,8 +685,28 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground)
 		       left, top + FONT_BASE (font), buf, len);
 	else
 	  {
-	    XDrawImageString (x_current_display, window, gc,
-			      left, top + FONT_BASE (font), buf, len);
+	    if (stippled)
+	      {
+		/* Turn stipple on.  */
+		XSetFillStyle (FRAME_X_DISPLAY (f), gc, FillOpaqueStippled);
+
+		/* Draw stipple on background.  */
+		XFillRectangle (x_current_display, window, gc,
+				left, top,
+				FONT_WIDTH (font) * len,
+				FONT_HEIGHT (font));
+
+		/* Turn stipple off.  */
+		XSetFillStyle (FRAME_X_DISPLAY (f), gc, FillSolid);
+
+		/* Draw the text, solidly, onto the stipple pattern.  */
+		XDrawString (x_current_display, window, gc,
+			     left, top + FONT_BASE (font), buf, len);
+	      }
+	    else
+	      XDrawImageString (x_current_display, window, gc,
+				left, top + FONT_BASE (font), buf, len);
+
 	    /* Clear the rest of the line's height.  */
 	    if (f->display.x->line_height != FONT_HEIGHT (font))
 	      XClearArea (x_current_display, window, left,
@@ -4260,8 +4288,9 @@ refreshicon (f)
 /* Make the x-window of frame F use the gnu icon bitmap.  */
 
 int
-x_bitmap_icon (f)
+x_bitmap_icon (f, file)
      struct frame *f;
+     Lisp_Object file;
 {
   int mask, bitmap_id;
   Window icon_window;
@@ -4269,15 +4298,26 @@ x_bitmap_icon (f)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-#ifdef HAVE_X11
-  if (file)
+  /* Free up our existing icon bitmap if any.  */
+  if (f->display.x->icon_bitmap > 0)
+    x_destroy_bitmap (f, f->display.x->icon_bitmap);
+  f->display.x->icon_bitmap = 0;
+
+  if (STRINGP (file))
     bitmap_id = x_create_bitmap_from_file (f, file);
   else
     {
+      /* Create the GNU bitmap if necessary.  */
       if (!icon_bitmap)
 	icon_bitmap = x_create_bitmap_from_data (f, gnu_bits,
 						 gnu_width, gnu_height);
-      x_reference_bitmap (icon_bitmap);
+
+      /* The first time we create the GNU bitmap,
+	 this increments the refcount one extra time.
+	 As a result, the GNU bitmap is never freed.
+	 That way, we don't have to worry about allocating it again.  */
+      x_reference_bitmap (f, icon_bitmap);
+
       bitmap_id = icon_bitmap;
     }
 
@@ -4309,7 +4349,8 @@ x_text_icon (f, icon_name)
 		(char *) f->display.x->icon_label);
 #endif
 
-  x_destroy_bitmap (f->display.x->icon_bitmap);
+  if (f->display.x->icon_bitmap > 0)
+    x_destroy_bitmap (f, f->display.x->icon_bitmap);
   f->display.x->icon_bitmap = 0;
   x_wm_set_icon_pixmap (f, 0);
 
@@ -4959,11 +5000,13 @@ x_make_frame_visible (f)
      struct frame *f;
 {
   int mask;
+  Lisp_Object type;
 
   BLOCK_INPUT;
 
-  if (x_icon_type (f))
-    x_bitmap_icon (f);
+  type = x_icon_type (f);
+  if (!NILP (type))
+    x_bitmap_icon (f, type);
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -5125,6 +5168,7 @@ x_iconify_frame (f)
 {
   int mask;
   int result;
+  Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
   if (x_highlight_frame == f)
@@ -5135,8 +5179,9 @@ x_iconify_frame (f)
 
   BLOCK_INPUT;
 
-  if (x_icon_type (f))
-    x_bitmap_icon (f);
+  type = x_icon_type (f);
+  if (!NILP (type))
+    x_bitmap_icon (f, type);
 
 #ifdef USE_X_TOOLKIT
 
