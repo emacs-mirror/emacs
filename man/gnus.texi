@@ -18920,9 +18920,9 @@ supposed to be able to use these, and these are mostly discussed on the
 @samp{gnu.emacs.gnus} newsgroup.
 
 @cindex Incoming*
-@vindex nnmail-delete-incoming
+@vindex mail-source-delete-incoming
 Some variable defaults differ between alpha Gnusae and released Gnusae.
-In particular, @code{nnmail-delete-incoming} defaults to @code{nil} in
+In particular, @code{mail-source-delete-incoming} defaults to @code{nil} in
 alpha Gnusae and @code{t} in released Gnusae.  This is to prevent
 lossage of mail if an alpha release hiccups while handling the mail.
 
