@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96,98  Free Software Foundation, Inc.
+;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 00  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -3418,7 +3418,7 @@ system TYPE.")
 (defun ange-ftp-file-modtime (file)
   (let* ((parsed (ange-ftp-ftp-name file))
          (res (ange-ftp-send-cmd (car parsed) (cadr parsed)
-                                 (list 'quote "mdtm" (caddr parsed)))))
+                                 (list 'quote "mdtm" (cadr (cdr parsed))))))
     (if (= ?5 (aref (cdr res) 0)) '(0 0)
       (encode-time              ; MDTM returns "YYYYMMDDHHMMSS" GMT
        (string-to-number (substring (cdr res) 16 18))
