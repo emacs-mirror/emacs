@@ -2207,17 +2207,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id);
 
-#ifdef LESSTIF_VERSION
-  /* Nov 1998: For an unknown reason a button grab remains active
-     after the popup menu has gone.  */
-  XUngrabButton (XtDisplay (f->output_data.x->widget),
-		 AnyButton, AnyModifier,
-		 XtWindow (f->output_data.x->widget));
-  XUngrabButton (XtDisplay (f->output_data.x->edit_widget),
-		 AnyButton, AnyModifier,
-		 XtWindow (f->output_data.x->edit_widget));
-#endif /* LESSTIF_VERSION */
-
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
      Nowadays the menu disappears ok, all right, but
