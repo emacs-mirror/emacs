@@ -129,6 +129,7 @@ and Sending Mail and Registers and Minibuffer.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 20.
+* Mac OS::              Using Emacs in the Mac.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
@@ -1423,6 +1424,7 @@ edit files while running shell commands.
 @include cmdargs.texi
 
 @include anti.texi
+@include macos.texi
 @include msdog.texi
 @include gnu.texi
 @include glossary.texi
