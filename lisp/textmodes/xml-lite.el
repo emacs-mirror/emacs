@@ -95,17 +95,13 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
     (bolp)))
 
 (defun xml-lite-in-string-p (&optional limit)
-  "Determine whether point is inside a string.
- 
+  "Determine whether point is inside a string.  If it is, return the
+position of the character starting the string, else return nil.
+
 Parse begins from LIMIT, which defaults to the preceding occurence of a tag
 at the beginning of a line."
-  (let (syntax-info)
-    (or limit
-        (setq limit (or (save-excursion 
-                          (re-search-backward "^[ \t]*<" nil t))
-                        (point-min))))
-    (setq syntax-info (parse-partial-sexp limit (point)))
-    (if (nth 3 syntax-info) (nth 8 syntax-info))))
+  (let ((context (sgml-lexical-context limit)))
+    (if (eq (car context) 'string) (cdr context))))
 
 
 ;; Parsing
@@ -129,78 +125,76 @@ at the beginning of a line."
   "Get information about the parent tag."
   (let ((limit (point))
         tag-type tag-start tag-end name name-end)
-
-    (cond 
-
-     ((null (re-search-backward "[<>]" nil t)))
-     
-     ((= ?> (char-after))               ;--- found tag-end ---
-      (setq tag-end (1+ (point)))
-      (goto-char tag-end)
+    (with-syntax-table sgml-tag-syntax-table
       (cond
-       ((xml-lite-looking-back-at "--") ; comment
-        (setq tag-type 'comment
-              tag-start (search-backward "<!--" nil t)))
-       ((xml-lite-looking-back-at "]]>") ; cdata
-        (setq tag-type 'cdata
-              tag-start (search-backward "![CDATA[" nil t)))
-       (t
-        (setq tag-start
-              (ignore-errors (backward-sexp) (point))))))
+
+       ((null (re-search-backward "[<>]" nil t)))
+     
+       ((= ?> (char-after))		;--- found tag-end ---
+	(setq tag-end (1+ (point)))
+	(goto-char tag-end)
+	(cond
+	 ((xml-lite-looking-back-at "--") ; comment
+	  (setq tag-type 'comment
+		tag-start (search-backward "<!--" nil t)))
+	 ((xml-lite-looking-back-at "]]>") ; cdata
+	  (setq tag-type 'cdata
+		tag-start (search-backward "![CDATA[" nil t)))
+	 (t
+	  (setq tag-start (ignore-errors (backward-sexp) (point))))))
        
-     ((= ?< (char-after))               ;--- found tag-start ---
-      (setq tag-start (point))
-      (goto-char (1+ tag-start))
+       ((= ?< (char-after))		;--- found tag-start ---
+	;; !!! This should not happen because the caller should be careful
+	;; that we do not start from within a tag !!!
+	(setq tag-start (point))
+	(goto-char (1+ tag-start))
+	(cond
+	 ((xml-lite-looking-at "!--")	; comment
+	  (setq tag-type 'comment
+		tag-end (search-forward "-->" nil t)))
+	 ((xml-lite-looking-at "![CDATA[") ; cdata
+	  (setq tag-type 'cdata
+		tag-end (search-forward "]]>" nil t)))
+	 (t
+	  (goto-char tag-start)
+	  (setq tag-end (ignore-errors (forward-sexp) (point)))))))
+     
       (cond
-       ((xml-lite-looking-at "!--")     ; comment
-        (setq tag-type 'comment
-              tag-end (search-forward "-->" nil t)))
-       ((xml-lite-looking-at "![CDATA[")   ; cdata
-        (setq tag-type 'cdata
-              tag-end (search-forward "]]>" nil t)))
+
+       ((or tag-type (null tag-start)))
+     
+       ((= ?! (char-after (1+ tag-start))) ; declaration
+	(setq tag-type 'decl))
+     
+       ((= ?? (char-after (1+ tag-start))) ; processing-instruction
+	(setq tag-type 'pi))
+     
+       ((= ?/ (char-after (1+ tag-start))) ; close-tag
+	(goto-char (+ 2 tag-start))
+	(setq tag-type 'close
+	      name (xml-lite-parse-tag-name)
+	      name-end (point)))
+
+       ((member				; JSP tags etc
+	 (char-after (1+ tag-start))
+	 '(?% ?#))
+	(setq tag-type 'unknown))
+
        (t
-        (goto-char tag-start)
-        (setq tag-end
-              (ignore-errors (forward-sexp) (point))))))
+	(goto-char (1+ tag-start))
+	(setq tag-type 'open
+	      name (xml-lite-parse-tag-name)
+	      name-end (point))
+	;; check whether it's an empty tag
+	(if (or (and tag-end (eq ?/ (char-before (- tag-end 1))))
+		(and (not sgml-xml-mode)
+		     (member-ignore-case name sgml-empty-tags)))
+	    (setq tag-type 'empty))))
 
-     )
-     
-    (cond 
-
-     ((or tag-type (null tag-start)))
-     
-     ((= ?! (char-after (1+ tag-start))) ; declaration
-      (setq tag-type 'decl))
-     
-     ((= ?? (char-after (1+ tag-start))) ; processing-instruction
-      (setq tag-type 'pi))
-     
-     ((= ?/ (char-after (1+ tag-start))) ; close-tag
-      (goto-char (+ 2 tag-start))
-      (setq tag-type 'close
-            name (xml-lite-parse-tag-name)
-            name-end (point)))
-
-     ((member                           ; JSP tags etc
-       (char-after (1+ tag-start))
-       '(?% ?#))
-      (setq tag-type 'unknown))
-
-     (t
-      (goto-char (1+ tag-start))
-      (setq tag-type 'open
-            name (xml-lite-parse-tag-name)
-            name-end (point))
-      ;; check whether it's an empty tag
-      (if (or (and tag-end (eq ?/ (char-before (- tag-end 1))))
-	      (and (not sgml-xml-mode)
-                   (member-ignore-case name sgml-empty-tags)))
-          (setq tag-type 'empty))))
-
-    (cond 
-     (tag-start 
-      (goto-char tag-start)
-      (xml-lite-make-tag tag-type tag-start tag-end name name-end)))))
+      (cond
+       (tag-start
+	(goto-char tag-start)
+	(xml-lite-make-tag tag-type tag-start tag-end name name-end))))))
 
 (defsubst xml-lite-inside-tag-p (tag-info &optional point)
   "Return true if TAG-INFO contains the POINT."
@@ -217,16 +211,17 @@ parse until we find a start-tag as the first thing on a line.
 The context is a list of tag-info structures.  The last one is the tag
 immediately enclosing the current position."
   (let ((here (point))
-        (ignore-depth 0)
+        (ignore nil)
         tag-info context)
     ;; CONTEXT keeps track of the tag-stack
-    ;; IGNORE-DEPTH keeps track of the nesting level of point relative to the
-    ;;   first (outermost) tag on the context.  This is the number of
+    ;; IGNORE keeps track of the nesting level of point relative to the
+    ;;   first (outermost) tag on the context.  This is the list of
     ;;   enclosing start-tags we'll have to ignore.
     (save-excursion
 
       (while
           (and (or (not context)
+		   ignore
                    full
                    (not (xml-lite-at-indentation-p)))
                (setq tag-info (xml-lite-parse-tag-backward)))
@@ -246,14 +241,22 @@ immediately enclosing the current position."
 
          ;; start-tag
          ((eq (xml-lite-tag-type tag-info) 'open)
-          (setq ignore-depth (1- ignore-depth))
-          (when (= ignore-depth -1)
-            (push tag-info context)
-            (setq ignore-depth 0)))
+	  (cond
+	   ((null ignore) (push tag-info context))
+	   ((eq t (compare-strings (xml-lite-tag-name tag-info) nil nil
+				   (car ignore) nil nil t))
+	    (setq ignore (cdr ignore)))
+	   (t
+	    ;; The open and close tags don't match.
+	    (if (not sgml-xml-mode)
+		;; Assume the open tag is simply not closed.
+		(message "Unclosed tag <%s>" (xml-lite-tag-name tag-info))
+	      (message "Unmatched tags <%s> and </%s>"
+		       (xml-lite-tag-name tag-info) (pop ignore))))))
 
-         ;; end-tag
+	 ;; end-tag
          ((eq (xml-lite-tag-type tag-info) 'close)
-          (setq ignore-depth (1+ ignore-depth)))
+          (push (xml-lite-tag-name tag-info) ignore))
          
          )))
 
