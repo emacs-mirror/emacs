@@ -809,7 +809,7 @@ Only useful when run on a graphic display such as X or MS-Windows."
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
-  "*If non-nil then most of the frame width is used."
+  "*If non-nil then most of the window width is used."
   :type 'boolean
   :group 'woman-formatting)
 
@@ -2211,7 +2211,7 @@ Currently set only from '\" t in the first line of the source file.")
     ;; Based loosely on a suggestion by Theodore Jump:
     (if (or woman-fill-frame
 	    (not (and (integerp woman-fill-column) (> woman-fill-column 0))))
-	(setq woman-fill-column (- (frame-width) woman-default-indent)))
+	(setq woman-fill-column (- (window-width) woman-default-indent)))
 
     ;; Check for preprocessor requests:
     (goto-char from)
