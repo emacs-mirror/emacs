@@ -3080,8 +3080,7 @@ it defaults to the value of `obarray'.  */)
      (name, obarray)
      Lisp_Object name, obarray;
 {
-  register Lisp_Object tem;
-  struct Lisp_String *string;
+  register Lisp_Object tem, string;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
@@ -3089,12 +3088,12 @@ it defaults to the value of `obarray'.  */)
   if (!SYMBOLP (name))
     {
       CHECK_STRING (name);
-      string = XSTRING (name);
+      string = name;
     }
   else
-    string = XSTRING (SYMBOL_NAME (name));
+    string = SYMBOL_NAME (name);
 
-  tem = oblookup (obarray, string->data, string->size, STRING_BYTES (string));
+  tem = oblookup (obarray, SDATA (string), SCHARS (string), SBYTES (string));
   if (INTEGERP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
     return Qnil;
   else
