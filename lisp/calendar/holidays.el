@@ -61,25 +61,11 @@ This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
-           (date (calendar-current-date))
-           (displayed-month
-            (if arg
-                (cdr (assoc
-                      (capitalize
-                       (completing-read
-                        "Month name: "
-                        (mapcar 'list (append calendar-month-name-array nil))
-                        nil t))
-                      (calendar-make-alist calendar-month-name-array)))
-              (extract-calendar-month date)))
-           (displayed-year
-            (if arg
-                (calendar-read
-                 "Year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year (calendar-current-date))))
-              (extract-calendar-year date))))
+           (date (if arg
+                     (calendar-read-date t)
+                   (calendar-current-date)))
+           (displayed-month (extract-calendar-month date))
+           (displayed-year (extract-calendar-year date)))
       (list-calendar-holidays))))
 
 (defun check-calendar-holidays (date)
