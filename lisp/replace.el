@@ -749,9 +749,10 @@ the matching is case-sensitive."
 		  ;; Add text properties.  The `occur' prop is used to
 		  ;; store the marker of the matching text in the
 		  ;; source buffer.
-		  (put-text-property (marker-position text-beg)
-				     (- (marker-position text-end) 1)
-				     'mouse-face 'highlight)
+		  (add-text-properties
+		   (marker-position text-beg) (- (marker-position text-end) 1)
+		   '(mouse-face highlight
+		     help-echo "mouse-2: go to this occurence"))
 		  (put-text-property (marker-position text-beg)
 				     (marker-position text-end)
 				     'occur occur-marker)
