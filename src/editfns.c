@@ -763,9 +763,12 @@ They default to the beginning and the end of BUFFER.")
 {
   register int beg, end, temp, len, opoint, start;
   register struct buffer *bp;
+  Lisp_Object buffer;
 
-  buf = Fget_buffer (buf);
-  bp = XBUFFER (buf);
+  buffer = Fget_buffer (buf);
+  if (NILP (buffer))
+    nsberror (buf);
+  bp = XBUFFER (buffer);
 
   if (NILP (b))
     beg = BUF_BEGV (bp);
@@ -842,8 +845,11 @@ determines whether case is significant or ignored.")
     bp1 = current_buffer;
   else
     {
-      buffer1 = Fget_buffer (buffer1);
-      bp1 = XBUFFER (buffer1);
+      Lisp_Object buf1;
+      buf1 = Fget_buffer (buffer1);
+      if (NILP (buf1))
+	nsberror (buffer1);
+      bp1 = XBUFFER (buf1);
     }
 
   if (NILP (start1))
@@ -875,7 +881,10 @@ determines whether case is significant or ignored.")
     bp2 = current_buffer;
   else
     {
-      buffer2 = Fget_buffer (buffer2);
+      Lisp_Object buf2;
+      buf2 = Fget_buffer (buffer2);
+      if (NILP (buf2))
+	nsberror (buffer2);
       bp2 = XBUFFER (buffer2);
     }
 
