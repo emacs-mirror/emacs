@@ -857,7 +857,8 @@
   :iso-final-char ?3
   :emacs-mule-id 243
   :code-space [#x20 #x7F #x20 #x75]
-  :code-offset #xE000)
+  :code-offset #xE000
+  :max-code 30015)			; U+FFFF
 
 (define-charset 'mule-unicode-0100-24ff
   "Unicode characters of the range U+0100..U+24FF."
