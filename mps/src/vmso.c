@@ -1,11 +1,11 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.12) $
- * Copyright (C) 1995.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!vmso.c(trunk.13) $
+ * Copyright (C) 1998, Harlequin Group plc.  All rights reserved.
  *
  * DESIGN
  *
- * .design: design.mps.vm (pretty skeletal).  design.mps.vmso (exists).
+ * .design: design.mps.vmso
  *
  * PURPOSE
  *
@@ -16,23 +16,24 @@
  *
  * ASSUMPTIONS
  *
- * .assume.not-last: The implementation of VMCreate assumes that
- *   mmap() will not choose a region which contains the last page
- *   in the address space, so that the limit of the mapped area
- *   is representable.  (VMCheck checks limit != 0 which is a kind
- *   of roundabout way of checking this)
+ * .assume.not-last: The implementation of VMCreate assumes that mmap()
+ * will not choose a region which contains the last page in the address
+ * space, so that the limit of the mapped area is representable.
+ * (VMCheck checks limit != 0 which is a roundabout way of checking
+ * this.)
  *
- * .assume.mmap.err: ENOMEM is the only error we really expect to
- *   get from mmap.  The others are either caused by invalid params
- *   or features we don't use.  See mmap(2) for details.
+ * .assume.mmap.err: EAGAIN is the only error we really expect to get
+ * from mmap when committing and ENOMEM when reserving.  The others are
+ * either caused by invalid params or features we don't use.  See
+ * mmap(2) for details.
  *
  * TRANSGRESSIONS
  *
- * .fildes.name: VMStruct has two fields whose names violate our
- * naming conventions.  They are called none_fd and zero_fd to
- * emphasize that they are file descriptors and this fact is not
- * reflected in their type (we can't change their type as that is
- * restricted by the interface provided by Solaris).
+ * .fildes.name: VMStruct has two fields whose names violate our naming
+ * conventions.  They are called none_fd and zero_fd to emphasize that
+ * they are file descriptors and this fact is not reflected in their
+ * type (we can't change their type as that is restricted by the
+ * interface provided by Solaris).
  */
 
 #include "mpm.h"
@@ -52,7 +53,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.12) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.13) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -108,6 +109,7 @@ Res VMCreate(VM *vmReturn, Size size)
   int none_fd;
   VM vm;
   long pagesize;
+  Res res;
 
   AVER(vmReturn != NULL);
 
@@ -129,8 +131,8 @@ Res VMCreate(VM *vmReturn, Size size)
     return ResFAIL;
   none_fd = open("/etc/passwd", O_RDONLY);
   if(none_fd == -1) {
-    close(zero_fd);
-    return ResFAIL;
+    res = ResFAIL;
+    goto failNoneOpen;
   }
 
   /* Map in a page to store the descriptor on. */
@@ -138,14 +140,9 @@ Res VMCreate(VM *vmReturn, Size size)
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
   if(addr == MAP_FAILED) {
-    int e = errno;
-    AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    close(zero_fd);
-    if(e == ENOMEM)
-      return ResMEMORY;
-    else
-      return ResFAIL;
+    AVER(errno == EAGAIN); /* .assume.mmap.err */
+    res = ResMEMORY;
+    goto failVMMap;
   }
   vm = (VM)addr;
 
@@ -157,14 +154,9 @@ Res VMCreate(VM *vmReturn, Size size)
   addr = mmap((caddr_t)0, (size_t)size, PROT_NONE, MAP_SHARED,
               none_fd, (off_t)0);
   if(addr == MAP_FAILED) {
-    int e = errno;
-    AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    close(zero_fd);
-    if(e == ENOMEM)
-      return ResRESOURCE;
-    else
-      return ResFAIL;
+    AVER(errno == ENOMEM); /* .assume.mmap.err */
+    res = (errno == ENOMEM) ? ResRESOURCE : ResFAIL;
+    goto failReserve;
   }
 
   vm->base = (Addr)addr;
@@ -180,12 +172,21 @@ Res VMCreate(VM *vmReturn, Size size)
 
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  (void)munmap((caddr_t)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+failVMMap:
+  (void)close(none_fd); /* see .close.fail */
+failNoneOpen:
+  (void)close(zero_fd);
+  return res;
 }
 
 
 void VMDestroy(VM vm)
 {
   int r;
+  int zero_fd, none_fd;
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -196,15 +197,16 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  /* We ignore failure from close() as there's very little we can do */
-  /* anyway. */
-  (void)close(vm->zero_fd);
-  (void)close(vm->none_fd);
+  zero_fd = vm->zero_fd; none_fd = vm->none_fd;
   r = munmap((caddr_t)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
   r = munmap((caddr_t)vm,
              (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+  /* .close.fail: We ignore failure from close() as there's very */
+  /* little we can do anyway. */
+  (void)close(zero_fd);
+  (void)close(none_fd);
 
   EVENT_P(VMDestroy, vm);
 }
@@ -260,7 +262,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
               MAP_PRIVATE | MAP_FIXED,
               vm->zero_fd, (off_t)0);
   if(addr == MAP_FAILED) {
-    AVER(errno == ENOMEM); /* .assume.mmap.err */
+    AVER(errno == EAGAIN); /* .assume.mmap.err */
     return ResMEMORY;
   }
   AVER(addr == (caddr_t)base);
