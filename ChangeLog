@@ -1,3 +1,7 @@
+2003-01-20  Jan D.  <jan.h.d@swipnet.se>
+
+	* configure.in: Fix --with-gtk.
+
 2003-01-19  Jan D.  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
