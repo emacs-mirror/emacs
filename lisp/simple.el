@@ -3138,6 +3138,7 @@ for `auto-fill-function' when turning Auto Fill mode on."
 (defun turn-on-auto-fill ()
   "Unconditionally turn on Auto Fill mode."
   (auto-fill-mode 1))
+(custom-add-option 'text-mode-hook 'turn-on-auto-fill)
 
 (defun set-fill-column (arg)
   "Set `fill-column' to specified argument.
