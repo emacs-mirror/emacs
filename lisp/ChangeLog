@@ -1,3 +1,27 @@
+2002-02-16  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-hist.el (eshell-hist-initialize): When in the
+	minibuffer, use the global value of `eshell-history-ring', and
+	never save it to disk, or ask to save it to disk.  This allows
+	users of session.el to control whether its global state should be
+	persisted or not.
+	(eshell-add-command-to-history): Don't write Eshell's history out
+	to disk, let the governing mode control that upon exit.
+
+2002-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/eshell.el (eshell-command): Before reading from the
+	minibuffer, add eshell-add-command-to-history to
+	minibuffer-exit-hook, and remove it after read-from-minibuffer
+	returns.
+
+	* eshell/em-hist.el (eshell-add-input-to-history): New function,
+	with most of the code from eshell-add-to-history.
+	(eshell-add-command-to-history): New function, to record in
+	eshell-history the commands run via eshell-command.
+	(eshell-add-to-history): Call eshell-add-command-to-history to do
+	most of the work.
+
 2002-02-06  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-ext.el (eshell-external-command): Added a fix for
