@@ -4468,20 +4468,7 @@ x_update_menu_appearance (f)
 	}
 
       if (changed_p && f->output_data.x->menubar_widget)
-	{
-	  int blocked;
-	  
-	  /* Function set_frame_menubar may call Lisp, for example
-	     from menu_item_eval_property inside a condition-case.  If
-	     that code signals an error, Fsignal totally unblocks
-	     input, and if this function is called inside a
-	     BLOCK/UNBLOCK_INPUT which it is, this will screw up the
-	     interrupt_input_blocked count, unless we save it...  */
-	  blocked = interrupt_input_blocked;
-	  free_frame_menubar (f);
-	  set_frame_menubar (f, 1, 1);
-	  interrupt_input_blocked = blocked;
-	}
+	free_frame_menubar (f);
     }
 }
 
