@@ -256,9 +256,10 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
+	-rm -f ../etc/DOC* *.tab.c *.tab.h
 
 distclean: clean
-	-rm -f ../etc/DOC* *.tab.c *.tab.h aixcc.c TAGS
+	-rm -f aixcc.c TAGS
 	-rm -f Makefile Makefile.in blessmail
 
 realclean: distclean
