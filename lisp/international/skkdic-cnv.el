@@ -47,9 +47,9 @@
 
 ;; To make a generated skkdic.el smaller.
 (make-coding-system
- 'coding-system-iso-2022-7-short
+ 'iso-2022-7-short
  2 ?J
- "Like `coding-system-iso-2022' but no ASCII designation before SPC."
+ "Like `iso-2022-7' but no ASCII designation before SPC."
  '(ascii nil nil nil t t nil t))
 
 (defconst skkdic-jbytes
@@ -418,7 +418,7 @@ the generated \"skkdic.el\" is saved."
       ;; Save the working buffer.
       (set-buffer buf)
       (set-visited-file-name (expand-file-name skkdic-filename dirname) t)
-      (set-buffer-file-coding-system 'coding-system-iso-2022-7-short)
+      (set-buffer-file-coding-system 'iso-2022-7-short)
       (save-buffer 0))
     (kill-buffer skkbuf)
     (switch-to-buffer buf)))

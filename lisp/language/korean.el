@@ -29,20 +29,22 @@
 ;;; Code:
 
 (make-coding-system
- 'coding-system-euc-korea 2 ?K
+ 'euc-kr 2 ?K
  "Coding-system of Korean EUC (Extended Unix Code)."
  '((ascii t) korean-ksc5601 nil nil
    nil ascii-eol ascii-cntl))
 
-;; EUC-KR is an alias for EUC-KOREA.
-(put 'coding-system-euc-kr 'coding-system 'coding-system-euc-korea)
+(define-coding-system-alias 'euc-kr 'euc-korea)
 
 (make-coding-system
- 'coding-system-iso-2022-kr 2 ?k
- "Coding-System used for communication with mail in Korea."
+ 'iso-2022-kr 2 ?k
+ "MIME ISO-2022-KR"
  '(ascii (nil korean-ksc5601) nil nil
-	 nil ascii-eol ascii-cntl seven locking-shift))
+	 nil ascii-eol ascii-cntl seven locking-shift nil nil nil nil nil
+	 'designation-bol))
 
+(register-input-method
+ "Korean" '("hanterm" encoded-kbd-select-terminal euc-kr))
 (register-input-method
  "Korean" '("quail-hangul" quail-use-package "quail/hangul"))
 (register-input-method
@@ -55,14 +57,14 @@
  "Korean" '("quail-hanja-jis" quail-use-package "quail/hanja-jis"))
 
 (defun setup-korean-environment ()
-  (setq coding-category-iso-8-2 'coding-system-euc-korea)
+  (setq coding-category-iso-8-2 'euc-kr)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-2
      coding-category-iso-8-1))
 
-  (setq-default buffer-file-coding-system 'coding-system-euc-korea)
+  (setq-default buffer-file-coding-system 'euc-kr)
 
   (setq default-input-method '("Korean" . "quail-hangul"))
   )
@@ -71,8 +73,7 @@
  "Korean" '((setup-function . setup-korean-environment)
 	    (tutorial . "TUTORIAL.kr")
 	    (charset . (korean-ksc5601))
-	    (coding-system . (coding-system-euc-korea
-			      coding-system-iso-2022-kr))
+	    (coding-system . (euc-kr iso-2022-kr))
 	    (documentation . t)
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")))
 

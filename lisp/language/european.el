@@ -29,31 +29,31 @@
 ;;; Code:
 
 (make-coding-system
- 'coding-system-iso-8859-1 2 ?X
+ 'iso-8859-1 2 ?X
  "Coding-system used in X as Compound Text Encoding."
  '((ascii t) (latin-iso8859-1 t) nil nil
    nil ascii-eol ascii-cntl))
 
 ;; CTEXT is an alias for ISO-8859-1
-(put 'coding-system-ctext 'coding-system 'coding-system-iso-8859-1)
+(define-coding-system-alias 'iso-8859-1 'ctext)
 
 (make-coding-system
- 'coding-system-iso-8859-2 2 ?2 "MIME ISO-8859-2"
+ 'iso-8859-2 2 ?2 "MIME ISO-8859-2"
  '((ascii t) (latin-iso8859-2 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (make-coding-system
- 'coding-system-iso-8859-3 2 ?3 "MIME ISO-8859-3"
+ 'iso-8859-3 2 ?3 "MIME ISO-8859-3"
  '((ascii t) (latin-iso8859-3 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (make-coding-system
- 'coding-system-iso-8859-4 2 ?4 "MIME ISO-8859-4"
+ 'iso-8859-4 2 ?4 "MIME ISO-8859-4"
  '((ascii t) (latin-iso8859-4 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
 (make-coding-system
- 'coding-system-iso-8859-9 2 ?9 "MIME ISO-8859-9"
+ 'iso-8859-9 2 ?9 "MIME ISO-8859-9"
  '((ascii t) (latin-iso8859-9 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
@@ -69,16 +69,16 @@
 		       '("quail-latin-5" quail-use-package "quail/latin"))
 
 (defun setup-european-environment ()
-  (setq coding-category-iso-8-1 'coding-system-iso-8859-1)
+  (setq coding-category-iso-8-1 'iso-8859-1)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-1
      coding-category-iso-8-2))
 
-  (setq-default buffer-file-coding-system 'coding-system-iso-8859-1)
-  (set-terminal-coding-system 'coding-system-iso-8859-1)
-  (set-keyboard-coding-system 'coding-system-iso-8859-1)
+  (setq-default buffer-file-coding-system 'iso-8859-1)
+  (set-terminal-coding-system 'iso-8859-1)
+  (set-keyboard-coding-system 'iso-8859-1)
 
   (setq default-input-method '("European" . "quail-latin-1"))
   )
@@ -94,11 +94,8 @@
  "European" '((setup-function . setup-european-environment)
 	      (charset . (ascii latin-iso8859-1 latin-iso8859-2
 			   latin-iso8859-3 latin-iso8859-4 latin-iso8859-9))
-	      (coding-system . (coding-system-iso-8859-1
-				coding-system-iso-8859-2
-				coding-system-iso-8859-3
-				coding-system-iso-8859-4
-				coding-system-iso-8859-9))
+	      (coding-system . (iso-8859-1 iso-8859-2 iso-8859-3
+				iso-8859-4 iso-8859-9))
 	      (documentation . t)
 	      (sample-text
 	       . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")))

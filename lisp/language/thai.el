@@ -29,26 +29,26 @@
 ;;; Code:
 
 (make-coding-system
- 'coding-system-tis620 2 ?T
+ 'th-tis620 2 ?T
  "Coding-system used for ASCII(MSB=0) & TIS620(MSB=1)."
  '((ascii t) (thai-tis620 t) nil nil
    nil ascii-eol))
-(put 'coding-system-tis620 'post-read-conversion
-     'thai-post-read-conversion)
-(put 'coding-system-tis620 'pre-write-conversion
-     'thai-pre-write-conversion)
+(put 'th-tis620 'post-read-conversion 'thai-post-read-conversion)
+(put 'th-tis620 'pre-write-conversion 'thai-pre-write-conversion)
+
+(define-coding-system-alias 'th-tis620 'tis620)
 
 (register-input-method
  "Thai" '("quail-thai" quail-use-package "quail/thai"))
 
 (defun setup-thai-environment ()
-  (setq coding-category-iso-8-1 'coding-system-tis620)
+  (setq coding-category-iso-8-1 'th-tis620)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-1))
 
-  (setq-default buffer-file-coding-system 'coding-system-tis620)
+  (setq-default buffer-file-coding-system 'th-tis620)
 
   (setq default-input-method '("Thai" . "quail-thai"))
   )
@@ -57,7 +57,7 @@
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)
 	  (charset . (thai-tis620))
-	  (coding-systemm . (coding-system-tis620))
+	  (coding-system . (th-tis620))
 	  (documentation . t)
 	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
 

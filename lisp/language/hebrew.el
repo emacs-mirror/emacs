@@ -29,7 +29,7 @@
 ;;; Code:
 
 (make-coding-system
- 'coding-system-iso-8859-8 2 ?8 "MIME ISO-8859-8"
+ 'iso-8859-8 2 ?8 "MIME ISO-8859-8"
  '((ascii t) (hebrew-iso8859-8 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil t))
 
@@ -37,16 +37,16 @@
  "Hebrew" '("quail-hebrew" quail-use-package "quail/hebrew"))
 
 (defun setup-hebrew-environment ()
-  (setq coding-category-iso-8-1 'coding-system-iso-8859-8)
+  (setq coding-category-iso-8-1 'iso-8859-8)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-1
      coding-category-iso-8-2))
 
-  (setq-default buffer-file-coding-system 'coding-category-iso-8-2)
-  (set-terminal-coding-system 'coding-category-iso-8-2)
-  (set-keyboard-coding-system 'coding-category-iso-8-2)
+  (setq-default buffer-file-coding-system 'iso-8859-8)
+  (set-terminal-coding-system 'iso-8859-8)
+  (set-keyboard-coding-system 'iso-8859-8)
 
   (setq default-input-method '("Hebrew" . "quail-hebrew"))
   )
@@ -54,7 +54,7 @@
 (set-language-info-alist
  "Hebrew" '((setup-function . setup-hebrew-environment)
 	    (charset . (hebrew-iso8859-8))
-	    (coding-system . (coding-system-iso-8859-8))
+	    (coding-system . (iso-8859-8))
 	    (documentation . "Right-to-left writing is Not yet supported")
 	    (sample-text . "Hebrew	,Hylem(B")))
 

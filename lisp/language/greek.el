@@ -29,7 +29,7 @@
 ;;; Code:
 
 (make-coding-system
- 'coding-system-iso-8859-7 2 ?7 "MIME ISO-8859-7"
+ 'iso-8859-7 2 ?7 "MIME ISO-8859-7"
  '((ascii t) (greek-iso8859-7 t) nil nil
    nil ascii-eol ascii-cntl nil nil nil nil))
 
@@ -37,15 +37,15 @@
  "Greek" '("quail-greek" quail-use-package "quail/greek"))
 
 (defun setup-greek-environment ()
-  (setq coding-category-iso-8-1 'coding-system-iso-8859-7)
+  (setq coding-category-iso-8-1 'iso-8859-7)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-1))
 
-  (setq-default buffer-file-coding-system 'coding-system-iso-8859-7)
-  (set-terminal-coding-system 'coding-system-iso-8859-7)
-  (set-keyboard-coding-system 'coding-system-iso-8859-7)
+  (setq-default buffer-file-coding-system 'iso-8859-7)
+  (set-terminal-coding-system 'iso-8859-7)
+  (set-keyboard-coding-system 'iso-8859-7)
 
   (setq default-input-method '("Greek" . "quail-greek"))
   )
@@ -53,7 +53,7 @@
 (set-language-info-alist
  "Greek" '((setup-function . setup-greek-environment)
 	   (charset . (greek-iso8859-7))
-	   (coding-system . (coding-system-iso-8859-7))
+	   (coding-system . (iso-8859-7))
 	   (documentation . t)
 	   (sample-text . "Greek (,FGkk]mija(B)	,FCei\(B ,Fsar(B")))
 

@@ -201,21 +201,21 @@ Both tables are indexed by the position code of Vietnamese characters.")
 
 
 (make-coding-system
- 'coding-system-viscii 4 ?V
+ 'viscii 4 ?V
  "Coding-system used for VISCII 1.1."
  (cons ccl-decode-viscii ccl-encode-viscii))
 
 (make-coding-system
- 'coding-system-vscii 4 ?V
+ 'vscii 4 ?V
  "Coding-system used for VSCII-1."
  (cons ccl-decode-vscii ccl-encode-vscii))
 
 (make-coding-system
- 'coding-system-viqr 0 ?v
+ 'viqr 0 ?v
  "Codins-system used for VIQR."
  nil)
-(put 'coding-system-viqr 'post-read-conversion 'viet-decode-viqr-region)
-(put 'coding-system-viqr 'pre-write-conversion 'viet-encode-viqr-region)
+(put 'viqr 'post-read-conversion 'viet-decode-viqr-region)
+(put 'viqr 'pre-write-conversion 'viet-encode-viqr-region)
 
 (setq font-ccl-encoder-alist
       (cons (cons "viscii" ccl-encode-viscii-font) font-ccl-encoder-alist))
@@ -228,16 +228,16 @@ Both tables are indexed by the position code of Vietnamese characters.")
 
 (defun setup-viet-environment ()
   ;; for VISCII users
-  (setq coding-category-binary 'coding-system-viscii)
+  (setq coding-category-binary 'viscii)
 
   ;; for VSCII users
-  ;; (setq coding-category-binary 'coding-system-vscii)
+  ;; (setq coding-category-binary 'vscii)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-binary))
 
-  (setq-default buffer-file-coding-system 'coding-system-viscii)
+  (setq-default buffer-file-coding-system 'viscii)
 
   (setq default-input-method '("Vietnamese" . "quail-viqr"))
   )
@@ -246,9 +246,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
  "Vietnamese" '((setup-function . setup-viet-environment)
 		(charset . (vietnamese-viscii-lower
 			    vietnamese-viscii-upper))
-		(coding-system . (coding-system-viscii
-				  coding-system-vscii
-				  coding-system-viqr))
+		(coding-system . (viscii vscii viqr))
 		(documentation . t)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")))
 

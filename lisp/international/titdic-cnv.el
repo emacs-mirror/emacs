@@ -59,10 +59,10 @@
 ;; List of values of key "ENCODE:" and the corresponding Emacs'
 ;; coding-system and language environment name.
 (defvar tit-encode-list
-  '(("GB" coding-system-euc-china "Chinese-GB")
-    ("BIG5" coding-system-big5 "Chinese-BIG5")
-    ("JIS" coding-system-euc-japan "Japanese")
-    ("KS" coding-system-euc-korea "Korean")))
+  '(("GB" euc-china "Chinese-GB")
+    ("BIG5" cn-big5 "Chinese-BIG5")
+    ("JIS" euc-japan "Japanese")
+    ("KS" euc-kk "Korean")))
 
 ;; Return a value of the key in the current line.
 (defsubst tit-read-key-value ()
@@ -310,7 +310,7 @@ the generated Quail package is saved."
       (let ((coding-system-for-read 'no-conversion))
 	(insert-file-contents (expand-file-name filename)))
       (set-visited-file-name (tit-make-quail-package-name filename dirname) t)
-      (set-buffer-file-coding-system 'coding-system-iso-2022-7)
+      (set-buffer-file-coding-system 'iso-2022-7)
 
       ;; Decode the buffer contents from the encoding specified by a
       ;; value of the key "ENCODE:".

@@ -61,7 +61,7 @@ Return the length of resulting text."
     (save-restriction
       (narrow-to-region beg end)
 
-      ;; We, at first, convert HZ/ZW to `coding-system-iso-2022-7',
+      ;; We, at first, convert HZ/ZW to `iso-2022-7',
       ;; then decode it.
 
       ;; "~\n" -> "\n"
@@ -76,13 +76,13 @@ Return the length of resulting text."
       (let ((chinese-found nil))
 	(while (re-search-forward hz/zw-start-gb nil t)
 	  (if (= (char-after (match-beginning 0)) ?z)
-	      ;; ZW -> coding-system-iso-20227-7
+	      ;; ZW -> iso-20227-7
 	      (progn
 		(delete-char -2)
 		(insert iso2022-gb-designation)
 		(end-of-line)
 		(insert iso2022-ascii-designation))
-	    ;; HZ -> coding-system-iso-20227-7
+	    ;; HZ -> iso-20227-7
 	    (delete-char -2)
 	    (insert iso2022-gb-designation)
 	    (let ((pos (save-excursion (end-of-line) (point))))
@@ -97,8 +97,7 @@ Return the length of resulting text."
 		  ;; If any, we had better decode them also.
 		  (goto-char (point-min))
 		  (re-search-forward "[\240-\377]" nil t))) 
-	    (decode-coding-region (point-min) (point-max)
-				  'coding-system-euc-china)))
+	    (decode-coding-region (point-min) (point-max) 'euc-china)))
 
       ;; "~~" -> "~"
       (goto-char (point-min))
@@ -130,7 +129,7 @@ Return the length of resulting text."
 	  (let ((enable-multibyte-characters nil)
 		pos)
 	    (goto-char (setq pos (match-beginning 0)))
-	    (encode-coding-region pos (point-max) 'coding-system-iso-2022-7)
+	    (encode-coding-region pos (point-max) 'iso-2022-7)
 	    (goto-char pos)
 	    (while (search-forward iso2022-gb-designation nil t)
 	      (delete-char -3)
