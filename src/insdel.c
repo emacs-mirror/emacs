@@ -2063,6 +2063,7 @@ del_range_1 (from, to, prepare)
   to_byte = CHAR_TO_BYTE (to);
 
   del_range_2 (from, from_byte, to, to_byte);
+  signal_after_change (from, to - from, 0);
 }
 
 /* Like del_range_1 but args are byte positions, not char positions.  */
@@ -2099,6 +2100,7 @@ del_range_byte (from_byte, to_byte, prepare)
     }
 
   del_range_2 (from, from_byte, to, to_byte);
+  signal_after_change (from, to - from, 0);
 }
 
 /* Like del_range_1, but positions are specified both as charpos
@@ -2136,6 +2138,7 @@ del_range_both (from, from_byte, to, to_byte, prepare)
     }
 
   del_range_2 (from, from_byte, to, to_byte);
+  signal_after_change (from, to - from, 0);
 }
 
 /* Delete a range of text, specified both as character positions
@@ -2263,7 +2266,6 @@ del_range_2 (from, from_byte, to, to_byte)
   CHECK_MARKERS ();
 
   evaporate_overlays (from);
-  signal_after_change (from, nchars_del, 0);
 }
 
 /* Call this if you're about to change the region of BUFFER from
