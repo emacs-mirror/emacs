@@ -1,3 +1,8 @@
+2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (DVI_TARGETS): Add calc.dvi.
+	(calc.dvi): Uncomment.
+
 2001-12-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff.texi: Typos.

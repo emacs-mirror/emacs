@@ -1,3 +1,7 @@
+2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/sendmail.el (mail-recover-1, mail-recover): Doc fix.
+
 2002-01-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated
