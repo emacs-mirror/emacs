@@ -94,7 +94,8 @@ called near the beginning of mode initialization.
 
 Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
-Special commands:\\{asm-mode-map}
+Special commands:
+\\{asm-mode-map}
 "
   (interactive)
   (kill-all-local-variables)
