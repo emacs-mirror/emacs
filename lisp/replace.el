@@ -468,8 +468,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (make-local-variable 'revert-buffer-function)
   (set (make-local-variable 'font-lock-defaults)
        '(nil t nil nil nil
-	     (font-lock-fontify-region-function . occur-fontify-region-function)
-	     (font-lock-unfontify-region-function . occur-unfontify-region-function)))
+	     (font-lock-fontify-region-function . occur-fontify-region-function)))
   (setq revert-buffer-function 'occur-revert-function)
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
@@ -587,7 +586,7 @@ If the value is nil, don't highlight the buffer names specially."
 		      (if forwardp
 			  (eobp)
 			(bobp))))
-	(setq count (+ count (if forwardp 1 -1)))
+	(setq count (+ count (if forwardp -1 1)))
 	(push
 	 (funcall (if no-props
 		      #'buffer-substring-no-properties
@@ -803,9 +802,9 @@ See also `multi-occur'."
 			      ;; concatenate them all together.
 			      (apply #'concat
 				     (nconc
-				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) t))))
+				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) keep-props))))
 				      (list out-line)
-				      (occur-engine-add-prefix (cdr (occur-accumulate-lines (1+ nlines) t))))))))
+				      (occur-engine-add-prefix (cdr (occur-accumulate-lines (1+ nlines) keep-props))))))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
 			(let ((beg (point))
@@ -862,10 +861,6 @@ See also `multi-occur'."
 							     end))
 	    (goto-char change-end))))))
   (when verbose (message "Fontifying...done")))
-
-(defun occur-unfontify-region-function (beg end)
-  (let ((inhibit-read-only t))
-    (remove-text-properties beg end '(face nil))))
 
 
 ;; It would be nice to use \\[...], but there is no reasonable way
