@@ -442,15 +442,16 @@ Arguments to ACTIVATE-FUNC are INPUT-METHOD and ARGs."
       (setq slot (cons input-method info))
       (setq input-method-alist (cons slot input-method-alist)))))
 
-(defun read-input-method-name (prompt &optional initial-input inhibit-null)
+(defun read-input-method-name (prompt &optional default inhibit-null)
   "Read a name of input method from a minibuffer prompting with PROMPT.
-If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
-  If it is (STRING . POSITION), the initial input
-  is STRING, but point is placed POSITION characters into the string.
+If DEFAULT is non-nil, use that as the default,
+  and substitute it into PROMPT at the first `%s'.
 If INHIBIT-NULL is non-nil, null input signals an error."
+  (if default
+      (setq prompt (format prompt default)))
   (let* ((completion-ignore-case t)
 	 (input-method (completing-read prompt input-method-alist
-					nil t initial-input)))
+					nil t nil nil default)))
     (if (> (length input-method) 0)
 	input-method
       (if inhibit-null
@@ -486,11 +487,10 @@ This sets both the default and local values of `default-input-method'
 to the input method you specify.
 See also the function `register-input-method'."
   (interactive
-   (let* ((default (or previous-input-method default-input-method))
-	  (initial (if default (cons default 0))))
+   (let* ((default (or previous-input-method default-input-method)))
      (if (not enable-multibyte-characters)
-	 (error "Can't activate any input method while enable-multibyte-characters is nil"))
-     (list (read-input-method-name "Input method: " initial t))))
+	 (error "Can't activate an input method while multibyte characters are disabled"))
+     (list (read-input-method-name "Input method (default %s): " default t))))
   (activate-input-method input-method)
   (setq-default default-input-method default-input-method))
 
@@ -502,15 +502,14 @@ else turn on the default input method (see `default-input-method').
 In the latter case, if default-input-method is nil, select an input method
 interactively."
   (interactive "P")
-  (let* ((default (or previous-input-method default-input-method))
-	 (initial (if default (cons default 0))))
+  (let* ((default (or previous-input-method default-input-method)))
     (if (and current-input-method (not arg))
 	(inactivate-input-method)
       (if (not enable-multibyte-characters)
 	  (error "Can't activate any input method while multibyte characters are disabled"))
       (activate-input-method
        (if (or arg (not default-input-method))
-	   (read-input-method-name "Input method: " initial t)  
+	   (read-input-method-name "Input method (default %s): " default t)  
 	 default-input-method)))))
 
 (defun describe-input-method (input-method)
