@@ -1,5 +1,19 @@
 2003-01-12  Andreas Schwab  <schwab@suse.de>
 
+	* arc-mode.el (archive-mode-map): Use command remapping instead of
+	substitute-key-definition.
+	* emerge.el (emerge-setup-fixed-keymaps): Likewise.
+	* msb.el (msb-mode-map): Likewise.
+	* forms.el (forms--change-commands): Likewise.
+	* hexl.el (hexl-mode-map): Likewise.
+	* mail/mailabbrev.el (Commentary): Likewise.
+	* play/decipher.el (decipher-mode-map): Likewise.
+	* play/gomoku.el (gomoku-mode-map): Likewise.
+	* play/landmark.el (lm-mode-map): Likewise.
+	* play/solitaire.el (solitaire-mode-map): Likewise.
+	* progmodes/sh-script.el (sh-mode-map): Likewise.
+	* textmodes/picture.el (picture-substitute): Likewise.
+
 	* ielm.el (inferior-emacs-lisp-mode): Bind
 	comint-dynamic-complete-functions locally.
 
