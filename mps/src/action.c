@@ -1,13 +1,13 @@
 /* impl.c.action: STRATEGIC ACTION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!action.c(trunk.4) $
+ * $HopeName: MMsrc!action.c(trunk.5) $
  */
 
 #include "mpm.h"
 #include <float.h> /* @@@@ for DBL_MAX */
 
-SRCID(action, "$HopeName: MMsrc!action.c(trunk.4) $");
+SRCID(action, "$HopeName: MMsrc!action.c(trunk.5) $");
 
 
 /* ActionCheck -- check consistency of an Action structure */
@@ -56,23 +56,6 @@ void ActionFinish(Action action)
 }
 
 
-/* Noddy collection policy -- condemn first pool found */
-
-static Res ActionCollect(Action action)
-{
-  Trace trace;
-  Res res;
-  Arena arena;
-
-  arena = PoolArena(action->pool);
-
-  res = TraceCreate(&trace, arena, action);
-  if(res != ResOK) return res;
-
-  return ResOK;
-}
-
-
 /* ActionPoll -- decide what to do next
  *
  * This is the brain of the system.  The function weighs up the
@@ -111,6 +94,6 @@ void ActionPoll(Arena arena)
   /* @@@@ ignores failure */
   if(bestBenefit > 0) {
     AVER(bestAction != NULL);
-    (void)ActionCollect(bestAction);
+    (void)PoolAct(bestAction->pool, bestAction);
   }
 }

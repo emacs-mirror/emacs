@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.20) $
+ * $HopeName: MMsrc!poolawl.c(trunk.21) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.20) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.21) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -334,14 +334,11 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 }
 
 
-static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
+static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVERT(Action, action);
+  /* all parameters checked by generic PoolWhiten */
 
-  /* can only condemn for a single trace, */
+  /* can only whiten for a single trace, */
   /* see design.mps.poolawl.fun.condemn */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
@@ -353,7 +350,6 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
 
     awl = PoolPoolAWL(pool);
     AVERT(AWL, awl);
-    AVER(awl == ActionAWL(action));
 
     group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
@@ -707,7 +703,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 }
 
-static Res AWLTraceBegin(Pool pool, Trace trace, Action action)
+static Res AWLTraceBegin(Pool pool, Trace trace)
 {
   AWL awl;
 
@@ -715,8 +711,6 @@ static Res AWLTraceBegin(Pool pool, Trace trace, Action action)
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
   AVERT(Trace, trace);
-  AVERT(Action, action);
-  AVER(awl == ActionAWL(action));
 
   awl->lastCollected = PoolArena(pool)->allocTime;
   return ResOK;
@@ -756,14 +750,14 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLBufferEmpty,
   PoolTrivBufferFinish,
   AWLTraceBegin,
-  AWLCondemn,
+  AWLWhiten,
   AWLGrey,
   AWLBlacken,
   AWLScan,
   AWLFix,
   AWLReclaim,
-  PoolTrivTraceEnd,
   AWLBenefit,
+  PoolCollectAct,
   PoolTrivDescribe,
   PoolClassSig
 };
