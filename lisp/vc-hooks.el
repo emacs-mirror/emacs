@@ -134,28 +134,29 @@ of the buffer."
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name nil))
-  (let ((vc-type (vc-backend-deduce file)))
-    (setq vc-mode
-	  (and vc-type
-	       (concat " " (or label (symbol-name vc-type))
-		       (if (and vc-rcs-status (eq vc-type 'RCS))
-			   (vc-rcs-status file)))))
-    ;; Even root shouldn't modify a registered file without locking it first.
-    (and vc-type
-	 (not buffer-read-only)
-	 (zerop (user-uid))
-	 (require 'vc)
-	 (not (string-equal (user-login-name) (vc-locking-user file)))
-	 (setq buffer-read-only t))
-    (and (null vc-type)
-	 (file-symlink-p file)
-	 (let ((link-type (vc-backend-deduce (file-symlink-p file))))
-	   (if link-type
-	       (message "Warning: symbolic link to %s-controlled source file"
-			link-type))))
-    (force-mode-line-update)
-    ;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
-    vc-type))
+  (if file
+      (let ((vc-type (vc-backend-deduce file)))
+	(setq vc-mode
+	      (and vc-type
+		   (concat " " (or label (symbol-name vc-type))
+			   (if (and vc-rcs-status (eq vc-type 'RCS))
+			       (vc-rcs-status file)))))
+	;; Even root shouldn't modify a registered file without locking it first.
+	(and vc-type
+	     (not buffer-read-only)
+	     (zerop (user-uid))
+	     (require 'vc)
+	     (not (string-equal (user-login-name) (vc-locking-user file)))
+	     (setq buffer-read-only t))
+	(and (null vc-type)
+	     (file-symlink-p file)
+	     (let ((link-type (vc-backend-deduce (file-symlink-p file))))
+	       (if link-type
+		   (message "Warning: symbolic link to %s-controlled source file"
+			    link-type))))
+	(force-mode-line-update)
+	;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
+	vc-type)))
 
 (defun vc-rcs-status (file)
   ;; Return string for placement in modeline by `vc-mode-line'.
