@@ -29,23 +29,28 @@
 
 ;;; Code:
 
-(defun quoted-printable-decode-region (from to &optional charset)
+(autoload 'mm-decode-coding-region "mm-util")
+(autoload 'mm-encode-coding-region "mm-util")
+
+(defun quoted-printable-decode-region (from to &optional coding-system)
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
-If CHARSET is non-nil, decode bytes into characters with that charset."
+If CODING-SYSTEM is non-nil, decode bytes into characters with that
+coding-system."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (let ((nonascii-insert-offset nonascii-insert-offset)
-	    ;; RFC 2045:  An "=" followed by two hexadecimal digits,
-	    ;; one or both of which are lowercase letters in "abcdef",
-	    ;; is formally illegal. A robust implementation might
-	    ;; choose to recognize them as the corresponding uppercase
-	    ;; letters.
-	    (case-fold-search t))
-	(if charset
-	    (setq nonascii-insert-offset (- (make-char charset) 128)))
+      ;; RFC 2045:  An "=" followed by two hexadecimal digits, one or
+      ;; both of which are lowercase letters in "abcdef", is formally
+      ;; illegal. A robust implementation might choose to recognize
+      ;; them as the corresponding uppercase letters.
+      (let ((case-fold-search t))
 	(narrow-to-region from to)
-	(goto-char from)
+	;; Do this in case we're called from Gnus, say, in a buffer
+	;; which already contains non-ASCII characters which would
+	;; then get doubly-decoded below.
+	(if coding-system
+	    (mm-encode-coding-region (point-min) (point-max) coding-system))
+	(goto-char (point-min))
 	(while (and (skip-chars-forward "^=" to)
 		    (not (eobp)))
 	  (cond ((eq (char-after (1+ (point))) ?\n)
@@ -54,25 +59,22 @@ If CHARSET is non-nil, decode bytes into characters with that charset."
 		 (let ((byte (string-to-int (buffer-substring (1+ (point))
 							      (+ 3 (point)))
 					    16)))
-		   (if (and charset (fboundp 'unibyte-char-to-multibyte))
-		       (insert (unibyte-char-to-multibyte byte))
-		     (insert byte))
-		   (delete-region (point) (+ 3 (point)))
+		   (insert byte)
+		   (delete-char 3)
 		   (unless (eq byte ?=)
 		     (backward-char))))
-		((eq (char-after (1+ (point))) ?=)
-		 (forward-char)
-		 (delete-char 1))
 		(t
 		 (message "Malformed MIME quoted-printable message")
-		 (forward-char))))))))
+		 (forward-char)))))
+      (if coding-system
+	  (mm-decode-coding-region (point-min) (point-max) coding-system)))))
 
-(defun quoted-printable-decode-string (string &optional charset)
+(defun quoted-printable-decode-string (string &optional coding-system)
   "Decode the quoted-printable encoded STRING and return the result.
-If CHARSET is non-nil, decode the region with charset."
+If CODING-SYSTEM is non-nil, decode the region with coding-system."
   (with-temp-buffer
     (insert string)
-    (quoted-printable-decode-region (point-min) (point-max) charset)
+    (quoted-printable-decode-region (point-min) (point-max) coding-system)
     (buffer-string)))
 
 (defun quoted-printable-encode-region (from to &optional fold class)
