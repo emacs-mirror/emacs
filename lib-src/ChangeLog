@@ -1,3 +1,7 @@
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Remove obsolete references to alloca.
+
 2003-07-29  Ken Brush  <ken@wirex.com>
 
 	* emacsclient.c (main)
