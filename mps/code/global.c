@@ -428,6 +428,8 @@ void ArenaEnter(Arena arena)
 }
 #endif
 
+/*  The recursive argument specifies whether to claim the lock
+    recursively or not. */
 void arenaEnterLock(Arena arena, int recursive)
 {
   Lock lock;
@@ -440,15 +442,15 @@ void arenaEnterLock(Arena arena, int recursive)
   StackProbe(StackProbeDEPTH);
   lock = ArenaGlobals(arena)->lock;
   if(recursive) {
-	LockClaimRecursive(lock);
+    LockClaimRecursive(lock);
   } else {
-	LockClaim(lock);
+    LockClaim(lock);
   }
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
   if(recursive) {
-	/* already in shield */
+    /* already in shield */
   } else {
-	ShieldEnter(arena);
+    ShieldEnter(arena);
   }
   return;
 }
@@ -486,7 +488,7 @@ void arenaLeaveLock(Arena arena, int recursive)
   lock = ArenaGlobals(arena)->lock;
 
   if(recursive) {
-	/* no need to leave shield */
+    /* no need to leave shield */
   } else {
     ShieldLeave(arena);
   }
@@ -494,7 +496,7 @@ void arenaLeaveLock(Arena arena, int recursive)
   if(recursive) {
     LockReleaseRecursive(lock);
   } else {
-	LockReleaseMPM(lock);
+    LockReleaseMPM(lock);
   }
   return;
 }
@@ -874,7 +876,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 
   arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream,
-	       "  mpsVersion $S\n", arenaGlobals->mpsVersionString,
+               "  mpsVersion $S\n", arenaGlobals->mpsVersionString,
                "  lock $P\n", (WriteFP)arenaGlobals->lock,
                "  pollThreshold $U kB\n",
                (WriteFU)(arenaGlobals->pollThreshold / 1024),
