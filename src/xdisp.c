@@ -1431,6 +1431,10 @@ redisplay_window (window, just_this_one)
   if (XFASTINT (w->last_modified) >= MODIFF
       && PT >= startp && !clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
+      /* If force-mode-line-update was called, really redisplay;
+	 that's how redisplay is forced after e.g. changing
+	 buffer-invisibility-spec.  */
+      && ! NILP (w->update_mode_line)
       /* Can't use this case if highlighting a region.  */
       && !(!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
       && NILP (w->region_showing)
