@@ -4,6 +4,11 @@
 @settitle GNU Emacs Lisp Reference Manual
 @c %**end of header
 
+@dircategory Editors
+@direntry
+* Elisp: (elisp).	The Emacs Lisp Reference Manual.
+@end direntry
+
 @smallbook
 
 @ifinfo
