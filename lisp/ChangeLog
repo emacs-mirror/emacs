@@ -1,3 +1,7 @@
+2001-08-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* image.el (image-jpeg-p): Fix call of substring.
+
 2001-08-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/animate.el (animate-string): Doc fix.  Use a buffer

@@ -1,3 +1,9 @@
+2001-08-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (make_lispy_event): Interpret double_click_fuzz
+	in units of 1/8 character on non window-system frames.
+	(syms_of_keyboard) <double-click-fuzz>: Doc fix.
+
 2001-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keyboard.c (syms_of_keyboard) <double-click-fuzz>: Fix a typo in
