@@ -1,0 +1,4 @@
+# Unlike most emacs dirs, etc has a simple non-autoconf-generated makefile
+source ^(Makefile)$
+
+# arch-tag: 5a1d62e0-593a-48cd-8743-8d45dc58dfae

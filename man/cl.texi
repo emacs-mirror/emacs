@@ -50,7 +50,7 @@ license to the document, as described in section 6 of the license.
 @end titlepage
 
 @node Top, Overview, (dir), (dir)
-@chapter Overview
+@chapter Introduction
 
 @noindent
 This document describes a set of Emacs Lisp facilities borrowed from
@@ -82,12 +82,9 @@ does assume a basic familiarity with Emacs Lisp.
 @end menu
 
 @node Overview, Program Structure, Top, Top
-@ifinfo
+@ifnottex
 @chapter Overview
-@end ifinfo
-@iftex
-@section Overview
-@end iftex
+@end ifnottex
 
 @noindent
 Common Lisp is a huge language, and Common Lisp systems tend to be

@@ -230,13 +230,13 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))
      ;; Possibly a parenthesized list of names:
-     ("\\= (\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face))
-     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face)))
+     ("\\= (\\([^) ,\n]+\\)" nil nil (1 'change-log-list-face))
+     ("\\=, *\\([^) ,\n]+\\)" nil nil (1 'change-log-list-face)))
     ;;
     ;; Function or variable names.
-    ("^\t(\\([^) ,:\n]+\\)"
+    ("^\t(\\([^) ,\n]+\\)"
      (1 'change-log-list-face)
-     ("\\=, *\\([^) ,:\n]+\\)" nil nil (1 'change-log-list-face)))
+     ("\\=, *\\([^) ,\n]+\\)" nil nil (1 'change-log-list-face)))
     ;;
     ;; Conditionals.
     ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 'change-log-conditionals-face))

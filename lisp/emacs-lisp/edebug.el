@@ -3692,8 +3692,7 @@ Return the result of the last expression."
   (setq edebug-previous-result
 	(concat "Result: "
 		(edebug-safe-prin1-to-string edebug-previous-value)
-		(let ((name (prin1-char edebug-previous-value)))
-		  (if name (concat " = " name))))))
+		(eval-expression-print-format edebug-previous-value))))
 
 (defun edebug-previous-result ()
   "Print the previous result."
@@ -3712,7 +3711,8 @@ Print result in minibuffer."
   (princ
    (edebug-outside-excursion
     (setq values (cons (edebug-eval edebug-expr) values))
-    (edebug-safe-prin1-to-string (car values)))))
+    (concat (edebug-safe-prin1-to-string (car values))
+            (eval-expression-print-format (car values))))))
 
 (defun edebug-eval-last-sexp ()
   "Evaluate sexp before point in the outside environment; value in minibuffer."

@@ -624,6 +624,8 @@ This should be bound to a mouse drag event."
     (mouse-set-region-1)))
 
 (defun mouse-set-region-1 ()
+  ;; Set transient-mark-mode for a little while.
+  (setq transient-mark-mode (or transient-mark-mode 'lambda))
   (setq mouse-last-region-beg (region-beginning))
   (setq mouse-last-region-end (region-end))
   (setq mouse-last-region-tick (buffer-modified-tick)))

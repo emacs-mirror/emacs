@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -1698,19 +1698,14 @@ info-variant-part."
 	(t (cons (car l) (artist-butlast (cdr l))))))
 
 
-(defun artist-last (seq &optional n)
-  "Return the last link in the list SEQ.
+(defun artist-last (l &optional n)
+  "Return the last link in the list L.
 With optional argument N, returns Nth-to-last link (default 1)."
-  (if (not n)
-      (setq n 1))
-  (let ((len (length seq)))
-    (elt seq (- len n))))
+  (nth (- (length l) (or n 1)) l))
 
 (defun artist-remove-nulls (l)
   "Remove nils in list L."
-  (cond ((null l) nil)
-	((null (car l)) (artist-remove-nulls (cdr l)))
-	(t (cons (car l) (artist-remove-nulls (cdr l))))))
+  (remq nil l))
 
 (defun artist-uniq (l)
   "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
@@ -3368,8 +3363,8 @@ The POINT-LIST is expected to cover the first quadrant."
     (append right-half left-half)))
 
 
-(defun artist-draw-ellipse-general (x y x-radius y-radius)
-  "Draw an ellipse with center at X, Y and X-RADIUS and Y-RADIUS.
+(defun artist-draw-ellipse-general (x1 y1 x-radius y-radius)
+  "Draw an ellipse with center at X1, Y1 and X-RADIUS and Y-RADIUS.
 
 Output is an ellipse, which is a list (END-POINT-1 END-POINT-2 SHAPE-INFO).
 
@@ -3379,15 +3374,15 @@ SHAPE-INFO is a two-element vector on the form [POINT-LIST FILL-INFO].
 POINT-LIST is a list of vectors on the form [X Y SAVED-CHAR NEW-CHAR].
 FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE].
 
-Ellipses with zero y-radius are not drawn correctly."
+Ellipses with zero Y-RADIUS are not drawn correctly."
   (let* ((point-list   (artist-ellipse-generate-quadrant x-radius y-radius))
 	 (fill-info    (artist-ellipse-compute-fill-info point-list))
 	 (shape-info   (make-vector 2 0)))
 
     (setq point-list (artist-calculate-new-chars point-list))
     (setq point-list (artist-ellipse-mirror-quadrant point-list))
-    (setq point-list (artist-ellipse-point-list-add-center x y point-list))
-    (setq fill-info (artist-ellipse-fill-info-add-center x y fill-info))
+    (setq point-list (artist-ellipse-point-list-add-center x1 y1 point-list))
+    (setq fill-info (artist-ellipse-fill-info-add-center x1 y1 fill-info))
 
     ;; Draw the ellipse
     (setq point-list
@@ -3404,12 +3399,12 @@ Ellipses with zero y-radius are not drawn correctly."
 
     (aset shape-info 0 point-list)
     (aset shape-info 1 fill-info)
-    (artist-make-2point-object (artist-make-endpoint x y)
+    (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))
 
-(defun artist-draw-ellipse-with-0-height (x y x-radius y-radius)
-  "Draw an ellipse with center at X, Y and X-RADIUS and Y-RADIUS.
+(defun artist-draw-ellipse-with-0-height (x1 y1 x-radius y-radius)
+  "Draw an ellipse with center at X1, Y1 and X-RADIUS and Y-RADIUS.
 
 Output is an ellipse, which is a list (END-POINT-1 END-POINT-2 SHAPE-INFO).
 
@@ -3419,10 +3414,10 @@ SHAPE-INFO is a two-element vector on the form [POINT-LIST FILL-INFO].
 POINT-LIST is a list of vectors on the form [X Y SAVED-CHAR NEW-CHAR].
 FILL-INFO is a list of vectors on the form [X Y ELLIPSE-WIDTH-ON-THIS-LINE].
 
-The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
+The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
   (let ((point-list nil)
 	(width      (max (- (abs (* 2 x-radius)) 1)))
-	(left-edge  (1+ (- x (abs x-radius))))
+	(left-edge  (1+ (- x1 (abs x-radius))))
 	(line-char  (if artist-line-char-set artist-line-char ?-))
 	(i          0)
 	(point-list nil)
@@ -3430,7 +3425,7 @@ The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
 	(shape-info (make-vector 2 0)))
     (while (< i width)
       (let* ((line-x (+ left-edge i))
-	     (line-y y)
+	     (line-y y1)
 	     (new-coord (artist-new-coord line-x line-y)))
 	(artist-coord-add-saved-char new-coord
 				     (artist-get-char-at-xy line-x line-y))
@@ -3440,7 +3435,7 @@ The Y-RADIUS must be 0, but the X-RADUIS must not be 0."
 	(setq i (1+ i))))
     (aset shape-info 0 point-list)
     (aset shape-info 1 fill-info)
-    (artist-make-2point-object (artist-make-endpoint x y)
+    (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))
 
@@ -3954,7 +3949,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 
 (defun artist-draw-region-trim-line-endings (min-y max-y)
   "Trim lines in current draw-region from MIN-Y to MAX-Y.
-Trimming here means removing white space at end of a line"
+Trimming here means removing white space at end of a line."
   ;; Safetyc check: switch min-y and max-y if if max-y is smaller
   (if (< max-y min-y)
       (let ((tmp min-y))
@@ -4286,7 +4281,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 
 (defun artist-key-set-point-common (arg)
   "Common routine for setting point in current shape.
-With ARG set to t, set the last point."
+With non-nil ARG, set the last point."
   (let ((draw-how    (artist-go-get-draw-how-from-symbol artist-curr-go))
 	(col         (artist-current-column))
 	(row         (artist-current-line))
@@ -4793,7 +4788,7 @@ If optional argument STATE is positive, turn borders on."
 
 
 (defun artist-mouse-choose-operation (ev op)
-  "Choose operation for evenvt EV and operation OP."
+  "Choose operation for event EV and operation OP."
   (interactive
    (progn
      (select-window (posn-window (event-start last-input-event)))

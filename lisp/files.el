@@ -642,9 +642,10 @@ This is an interface to the function `load'."
 
 (defun file-remote-p (file)
   "Test whether FILE specifies a location on a remote system."
-  (let ((handler (find-file-name-handler file 'file-local-copy)))
+  (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(get handler 'file-remote-p))))
+	(funcall handler 'file-remote-p file)
+      nil)))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
@@ -1365,34 +1366,35 @@ that are visiting the various files."
       (kill-local-variable 'buffer-file-coding-system)
       (kill-local-variable 'cursor-type)
       (let ((inhibit-read-only t))
-	(erase-buffer)
-	(and (default-value 'enable-multibyte-characters)
-	     (not rawfile)
-	     (set-buffer-multibyte t))
-	(if rawfile
-	    (condition-case ()
-		(insert-file-contents-literally filename t)
-	      (file-error
-	       (when (and (file-exists-p filename)
-			  (not (file-readable-p filename)))
-		 (kill-buffer buf)
-		 (signal 'file-error (list "File is not readable"
-					   filename)))
-	       ;; Unconditionally set error
+	(erase-buffer))
+      (and (default-value 'enable-multibyte-characters)
+	   (not rawfile)
+	   (set-buffer-multibyte t))
+      (if rawfile
+	  (condition-case ()
+	      (let ((inhibit-read-only t))
+		(insert-file-contents-literally filename t))
+	    (file-error
+	     (when (and (file-exists-p filename)
+			(not (file-readable-p filename)))
+	       (kill-buffer buf)
+	       (signal 'file-error (list "File is not readable"
+					 filename)))
+	     ;; Unconditionally set error
+	     (setq error t)))
+	(condition-case ()
+	    (let ((inhibit-read-only t))
+	      (insert-file-contents filename t))
+	  (file-error
+	   (when (and (file-exists-p filename)
+		      (not (file-readable-p filename)))
+	     (kill-buffer buf)
+	     (signal 'file-error (list "File is not readable"
+				       filename)))
+	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
+	       ;; If they fail too, set error.
 	       (setq error t)))))
-      (condition-case ()
-	  (let ((inhibit-read-only t))
-	    (insert-file-contents filename t))
-	(file-error
-	 (when (and (file-exists-p filename)
-		    (not (file-readable-p filename)))
-	   (kill-buffer buf)
-	   (signal 'file-error (list "File is not readable"
-				     filename)))
-	 ;; Run find-file-not-found-hooks until one returns non-nil.
-	 (or (run-hook-with-args-until-success 'find-file-not-found-functions)
-	     ;; If they fail too, set error.
-	     (setq error t))))
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
@@ -2902,10 +2904,8 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (file-name-as-directory (expand-file-name (or directory
 							default-directory))))
     (setq filename (expand-file-name filename))
-    (let ((hf (find-file-name-handler filename 'file-local-copy))
-          (hd (find-file-name-handler directory 'file-local-copy)))
-      (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
-      (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
+    (let ((hf (find-file-name-handler filename 'file-remote-p))
+          (hd (find-file-name-handler directory 'file-remote-p)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different drives on DOS/Windows
@@ -4336,21 +4336,26 @@ normally equivalent short `-D' option is just passed on to
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
               (forward-line -1))
-	    (let ((end (line-end-position)))
-	      (forward-word 1)
-	      (forward-char 3)
-	      (while (< (point) end)
-		(let ((start (+ beg (read (current-buffer))))
-		      (end (+ beg (read (current-buffer)))))
-		  (if (= (char-after end) ?\n)
-		      (put-text-property start end 'dired-filename t)
-		    ;; It seems that we can't trust ls's output as to
-		    ;; byte positions of filenames.
-		    (put-text-property beg (point) 'dired-filename nil)
-		    (end-of-line))))
-	      (goto-char end)
-	      (beginning-of-line)
-	      (delete-region (point) (progn (forward-line 2) (point)))))
+	    (if (looking-at "//DIRED//")
+		(let ((end (line-end-position)))
+		  (forward-word 1)
+		  (forward-char 3)
+		  (while (< (point) end)
+		    (let ((start (+ beg (read (current-buffer))))
+			  (end (+ beg (read (current-buffer)))))
+		      (if (= (char-after end) ?\n)
+			  (put-text-property start end 'dired-filename t)
+			;; It seems that we can't trust ls's output as to
+			;; byte positions of filenames.
+			(put-text-property beg (point) 'dired-filename nil)
+			(end-of-line))))
+		  (goto-char end)
+		  (beginning-of-line)
+		  (delete-region (point) (progn (forward-line 2) (point))))
+	      (forward-line 1)
+	      (if (looking-at "//DIRED-OPTIONS//")
+		  (delete-region (point) (progn (forward-line 1) (point)))
+		(forward-line 1))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read
@@ -4477,7 +4482,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	;; Get a list of the indices of the args which are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			;; The first five are special because they
+			;; The first six are special because they
 			;; return a file name.  We want to include the /:
 			;; in the return value.
 			;; So just avoid stripping it in the first place.
@@ -4486,13 +4491,21 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
 			  (file-name-sans-versions . nil)
+			  (find-backup-file-name . nil)
 			  ;; `identity' means just return the first arg
 			  ;; not stripped of its quoting.
 			  (substitute-in-file-name identity)
+			  ;; `add' means add "/:" to the result.
+			  (file-truename add 0)
+			  ;; `quote' means add "/:" to buffer-file-name.
+			  (insert-file-contents quote 0)
+			  ;; `unquote-then-quote' means set buffer-file-name
+			  ;; temporarily to unquoted filename.
+			  (verify-visited-file-modtime unquote-then-quote)
+			  ;; List the arguments which are filenames.
 			  (file-name-completion 1)
 			  (file-name-all-completions 1)
-			  ;; t means add "/:" to the result.
-			  (file-truename t 0)
+			  (write-region 2 5)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -4518,8 +4531,17 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(setq file-arg-indices (cdr file-arg-indices))))
     (cond ((eq method 'identity)
 	   (car arguments))
-	  (method
+	  ((eq method 'add)
 	   (concat "/:" (apply operation arguments)))
+	  ((eq method 'quote)
+	   (prog1 (apply operation arguments)
+	     (setq buffer-file-name (concat "/:" buffer-file-name))))
+	  ((eq method 'unquote-then-quote)
+	   (let (res)
+	     (setq buffer-file-name (substring buffer-file-name 2))
+	     (setq res (apply operation arguments))
+	     (setq buffer-file-name (concat "/:" buffer-file-name))
+	     res))
 	  (t
 	   (apply operation arguments)))))
 

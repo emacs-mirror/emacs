@@ -555,7 +555,7 @@ those sub directories of DIR."
 			 nil)  ;; we change default-directory to dir
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
-	(default-directory dir)
+	(default-directory (file-name-as-directory (expand-file-name dir)))
 	(null-device nil))		; see grep
     (grep command-args regexp)))
 

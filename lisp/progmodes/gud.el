@@ -93,42 +93,43 @@ Used to grey out relevant toolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     menu-item "Help" gdb-goto-info
-                     :enable (eq gud-minor-mode 'gdba))
+                  :enable (memq gud-minor-mode '(gdbmi gdba)))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb dbx jdb))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb dbx jdb))))
     ([until]	menu-item "Continue to selection" gud-until
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb perldb))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb perldb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
-		     :enable (memq gud-minor-mode '(gdba gdb sdb xdb bashdb)))
+		  :enable (memq gud-minor-mode '(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([up]	menu-item "Up Stack" gud-up
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdba gdb dbx xdb jdb pdb bashdb))))
+		  :enable (and (not gud-running)
+			       (memq gud-minor-mode
+				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
     ([down]	menu-item "Down Stack" gud-down
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdba gdb dbx xdb jdb pdb bashdb))))
+		  :enable (and (not gud-running)
+			       (memq gud-minor-mode
+				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
     ([print]	menu-item "Print Expression" gud-print
                      :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
-		     :enable (and (not gud-running) (eq gud-minor-mode 'gdba)))
+		     :enable (and (not gud-running)
+				  (memq gud-minor-mode '(gdbmi gdba))))
     ([finish]	menu-item "Finish Function" gud-finish
 		     :enable (and (not gud-running)
 				  (memq gud-minor-mode
-					'(gdba gdb xdb jdb pdb bashdb))))
+					'(gdbmi gdba gdb xdb jdb pdb bashdb))))
     ([stepi]	menu-item "Step Instruction" gud-stepi
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb dbx))))
+				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([nexti]	menu-item "Next Instruction" gud-nexti
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdba gdb dbx))))
+				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([step]	menu-item "Step Line" gud-step
                      :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
@@ -312,11 +313,14 @@ t means that there is no stack, and we are in display-file mode.")
 (defvar gud-speedbar-menu-items
   ;; Note to self.  Add expand, and turn off items when not available.
   '(["Jump to stack frame" speedbar-edit-line 
-     (with-current-buffer gud-comint-buffer (not (eq gud-minor-mode 'gdba)))]
+     (with-current-buffer gud-comint-buffer
+       (not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Edit value" speedbar-edit-line 
-     (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))]
+     (with-current-buffer gud-comint-buffer
+       (not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Delete expression" gdb-var-delete 
-     (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))])
+     (with-current-buffer gud-comint-buffer
+       (not (memq gud-minor-mode '(gdbmi gdba))))])
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
@@ -330,7 +334,7 @@ If the GUD BUFFER is not running a supported debugger, then turn
 off the specialized speedbar mode."
   (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
     (cond
-     ((eq minor-mode 'gdba)
+     ((memq minor-mode '(gdbmi gdba))
       (when (or gdb-var-changed
 		(not (save-excursion
 		       (goto-char (point-min))
@@ -397,7 +401,7 @@ off the specialized speedbar mode."
 	      (speedbar-insert-button (car frame)
 				      'speedbar-file-face
 				      'speedbar-highlight-face
-				      (cond ((memq minor-mode '(gdba gdb))
+				      (cond ((memq minor-mode '(gdbmi gdba gdb))
 					     'gud-gdb-goto-stackframe)
 					    (t (error "Should never be here")))
 					frame t)))
@@ -2511,14 +2515,14 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
-	 (if (eq gud-minor-mode-type 'gdba)
+	 (if (memq gud-minor-mode-type '(gdbmi gdba))
 	     (gdb-reset)
 	   (gud-reset)))
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq overlay-arrow-position nil)
 	 (with-current-buffer gud-comint-buffer
-	   (if (eq gud-minor-mode 'gdba)
+	   (if (memq gud-minor-mode-type '(gdbmi gdba))
 	       (gdb-reset)
 	     (gud-reset)))
 	 (let* ((obuf (current-buffer)))
@@ -2583,7 +2587,7 @@ Obeying it means displaying in another window the specified file and line."
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
 	 (window (and buffer (or (get-buffer-window buffer)
-				 (if (eq gud-minor-mode 'gdba)
+				 (if (memq gud-minor-mode '(gdbmi gdba))
 				     (gdb-display-source-buffer buffer)
 				   (display-buffer buffer)))))
 	 (pos))
@@ -2707,7 +2711,7 @@ Obeying it means displaying in another window the specified file and line."
 	(forward-line 0)
 	(if (looking-at comint-prompt-regexp)
 	    (set-marker gud-delete-prompt-marker (point)))
-	(if (eq gud-minor-mode 'gdba)
+	(if (memq gud-minor-mode '(gdbmi gdba))
 	    (apply comint-input-sender (list proc command))
 	  (process-send-string proc (concat command "\n")))))))
 

@@ -483,7 +483,14 @@ This is relative to `smtpmail-queue-dir'.")
 			  (setq cred-key (expand-file-name cred-key)))
 			 (file-regular-p
 			  (setq cred-cert (expand-file-name cred-cert))))
-		(list "--key-file" cred-key "--cert-file" cred-cert))))
+		(list "--key-file" cred-key "--cert-file" cred-cert)))
+	     (starttls-extra-arguments
+	      (when (and (stringp cred-key) (stringp cred-cert)
+			 (file-regular-p
+			  (setq cred-key (expand-file-name cred-key)))
+			 (file-regular-p
+			  (setq cred-cert (expand-file-name cred-cert))))
+		(list "--x509keyfile" cred-key "--x509certfile" cred-cert))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port)

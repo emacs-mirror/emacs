@@ -198,8 +198,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #ifdef MAC_OS
 #include "macterm.h"
-
-Cursor No_Cursor;
 #endif
 
 #ifndef FRAME_X_OUTPUT
@@ -4560,6 +4558,14 @@ back_to_previous_visible_line_start (it)
 	  prop = Fget_char_property (make_number (IT_CHARPOS (*it)),
 				     Qinvisible, it->window);
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
+	    visible_p = 0;
+	}
+
+      if (visible_p)
+	{
+	  struct it it2 = *it;
+
+	  if (handle_display_prop (&it2) == HANDLED_RETURN)
 	    visible_p = 0;
 	}
 
@@ -20630,11 +20636,7 @@ define_frame_cursor1 (f, cursor, pointer)
 	cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
     }
 
-#ifndef HAVE_CARBON
   if (cursor != No_Cursor)
-#else
-  if (bcmp (&cursor, &No_Cursor, sizeof (Cursor)))
-#endif
     rif->define_frame_cursor (f, cursor);
 }
 

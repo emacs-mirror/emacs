@@ -337,7 +337,15 @@ Optional ARG is ignored."
       (re-search-backward "^\n" (- (point) 1) t)
       (narrow-to-region beg end))))
 
-(defun insert-pair (arg &optional open close)
+(defvar insert-pair-alist
+  '((?\( ?\)) (?\[ ?\]) (?\{ ?\}) (?\< ?\>) (?\" ?\") (?\' ?\') (?\` ?\'))
+  "Alist of paired characters inserted by `insert-pair'.
+Each element looks like (OPEN-CHAR CLOSE-CHAR) or (COMMAND-CHAR
+OPEN-CHAR CLOSE-CHAR).  The characters OPEN-CHAR and CLOSE-CHAR
+of the pair whose key is equal to the last input character with
+or without modifiers, are inserted by `insert-pair'.")
+
+(defun insert-pair (&optional arg open close)
   "Enclose following ARG sexps in a pair of OPEN and CLOSE characters.
 Leave point after the first character.
 A negative ARG encloses the preceding ARG sexps instead.
@@ -345,32 +353,47 @@ No argument is equivalent to zero: just insert characters
 and leave point between.
 If `parens-require-spaces' is non-nil, this command also inserts a space
 before and after, depending on the surrounding characters.
-If region is active, insert enclosing characters at region boundaries."
-  (interactive "P")
-  (if arg (setq arg (prefix-numeric-value arg))
-    (setq arg 0))
-  (or open  (setq open  ?\())
-  (or close (setq close ?\)))
-  (if (and transient-mark-mode mark-active)
-      (progn
-        (save-excursion (goto-char (region-end))       (insert close))
-        (save-excursion (goto-char (region-beginning)) (insert open)))
-    (cond ((> arg 0) (skip-chars-forward " \t"))
-          ((< arg 0) (forward-sexp arg) (setq arg (- arg))))
-    (and parens-require-spaces
-         (not (bobp))
-         (memq (char-syntax (preceding-char)) (list ?w ?_ (char-syntax close)))
-         (insert " "))
-    (insert open)
-    (save-excursion
-      (or (eq arg 0) (forward-sexp arg))
-      (insert close)
-      (and parens-require-spaces
-           (not (eobp))
-           (memq (char-syntax (following-char)) (list ?w ?_ (char-syntax open)))
-           (insert " ")))))
+If region is active, insert enclosing characters at region boundaries.
 
-(defun insert-parentheses (arg)
+If arguments OPEN and CLOSE are nil, the character pair is found
+from the variable `insert-pair-alist' according to the last input
+character with or without modifiers.  If no character pair is
+found in the variable `insert-pair-alist', then the last input
+character is inserted ARG times."
+  (interactive "P")
+  (if (not (and open close))
+      (let ((pair (or (assq last-command-char insert-pair-alist)
+                      (assq (event-basic-type last-command-event)
+                            insert-pair-alist))))
+        (if pair
+            (if (nth 2 pair)
+                (setq open (nth 1 pair) close (nth 2 pair))
+              (setq open (nth 0 pair) close (nth 1 pair))))))
+  (if (and open close)
+      (if (and transient-mark-mode mark-active)
+          (progn
+            (save-excursion (goto-char (region-end))       (insert close))
+            (save-excursion (goto-char (region-beginning)) (insert open)))
+        (if arg (setq arg (prefix-numeric-value arg))
+          (setq arg 0))
+        (cond ((> arg 0) (skip-chars-forward " \t"))
+              ((< arg 0) (forward-sexp arg) (setq arg (- arg))))
+        (and parens-require-spaces
+             (not (bobp))
+             (memq (char-syntax (preceding-char)) (list ?w ?_ (char-syntax close)))
+             (insert " "))
+        (insert open)
+        (save-excursion
+          (or (eq arg 0) (forward-sexp arg))
+          (insert close)
+          (and parens-require-spaces
+               (not (eobp))
+               (memq (char-syntax (following-char)) (list ?w ?_ (char-syntax open)))
+               (insert " "))))
+    (insert-char (event-basic-type last-command-event)
+                 (prefix-numeric-value arg))))
+
+(defun insert-parentheses (&optional arg)
   "Enclose following ARG sexps in parentheses.  Leave point after open-paren.
 A negative ARG encloses the preceding ARG sexps instead.
 No argument is equivalent to zero: just insert `()' and leave point between.
@@ -379,6 +402,24 @@ before and after, depending on the surrounding characters.
 If region is active, insert enclosing characters at region boundaries."
   (interactive "P")
   (insert-pair arg ?\( ?\)))
+
+(defun delete-pair ()
+  "Delete a pair of characters enclosing the sexp that follows point."
+  (interactive)
+  (save-excursion (forward-sexp 1) (delete-char -1))
+  (delete-char 1))
+
+(defun raise-sexp (&optional arg)
+  "Raise ARG sexps higher up the tree."
+  (interactive "p")
+  (let ((s (if (and transient-mark-mode mark-active)
+               (buffer-substring (region-beginning) (region-end))
+             (buffer-substring
+              (point)
+              (save-excursion (forward-sexp arg) (point))))))
+    (backward-up-list 1)
+    (delete-region (point) (save-excursion (forward-sexp 1) (point)))
+    (save-excursion (insert s))))
 
 (defun move-past-close-and-reindent ()
   "Move past next `)', delete indentation before it, then indent after it."

@@ -1,6 +1,6 @@
 ;;; pcvs-util.el --- utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001
+;; Copyright (C) 1991,92,93,94,95,96,97,98,99, 2000,01,04
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
@@ -50,7 +50,6 @@
     (dolist (x xs zs)
       (unless (member x ys) (push x zs)))))
 
-
 (defun cvs-map (-cvs-map-f &rest -cvs-map-ls)
   (unless (cvs-every 'null -cvs-map-ls)
     (cons (apply -cvs-map-f (mapcar 'car -cvs-map-ls))
@@ -76,22 +75,6 @@ the other elements.  The ordering among elements is maintained."
     (dolist (x l)
       (if (funcall p x) (push x car) (push x cdr)))
     (cons (nreverse car) (nreverse cdr))))
-
-;; Copied from CL ;-(
-
-(defun cvs-butlast (x &optional n)
-  "Returns a copy of LIST with the last N elements removed."
-  (if (and n (<= n 0)) x
-    (cvs-nbutlast (copy-sequence x) n)))
-
-(defun cvs-nbutlast (x &optional n)
-  "Modifies LIST to remove the last N elements."
-  (let ((m (length x)))
-    (or n (setq n 1))
-    (and (< n m)
-	 (progn
-	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
-	   x))))
 
 ;;;
 ;;; frame, window, buffer handling

@@ -36,6 +36,9 @@ of this construct.
 However, if a window has become dead, don't get an error,
 just refrain from reselecting it."
   `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))

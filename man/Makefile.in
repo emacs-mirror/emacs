@@ -40,13 +40,14 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
-		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail
+		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
+		../info/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -286,6 +287,11 @@ ses.dvi: ses.texi
 	cd $(srcdir); $(MAKEINFO) smtpmail.texi
 smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
+
+../info/flymake: flymake.texi
+	cd $(srcdir); $(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/flymake.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*

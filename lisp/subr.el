@@ -1804,6 +1804,9 @@ See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
   `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
@@ -1815,7 +1818,6 @@ See also `with-temp-buffer'."
 	      (window-live-p (cadr elt))
 	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
-	   ;; This is where the code differs from save-selected-window.
 	   (select-window save-selected-window-window 'norecord)))))
 
 (defmacro with-temp-file (file &rest body)

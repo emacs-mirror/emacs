@@ -1,3 +1,8 @@
+2004-05-29  Steven Tamm  <steventamm@mac.com>
+
+	* PROBLEMS: Document the workaround for the Mac OS X port not
+	picking up the environment variables from dotfiles.
+
 2004-05-16  Juri Linkov  <juri@jurta.org>
 
 	* TUTORIAL.pt_BR: Add coding: latin-1, sentence-end-double-space: nil.

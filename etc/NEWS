@@ -90,6 +90,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** A New package flymake.el does on-the-fly syntax checking of program
+source files.  See the Flymake's Info manual for more details.
+
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
 
@@ -1044,6 +1047,12 @@ counter to the specified source line (the one where point is).
     is nil).
 
   Minor Improvements
+
+*** The STARTTLS elisp wrapper (starttls.el) can now use GNUTLS
+instead of the OpenSSL based "starttls" tool.  For backwards
+compatibility, it will prefer "starttls", but you can toggle
+`starttls-use-gnutls' to switch to GNUTLS (or simply remove the
+"starttls" tool).
 
 *** Do not allow debugger output history variable to grow without bounds.
 
@@ -2032,6 +2041,10 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** If the buffer's undo list for the current command gets longer than
+undo-outer-limit, garbage collection empties it.  This is to prevent
+it from using up the available memory and choking Emacs.
 
 ** New function quail-find-key returns a list of keys to type in the
 current input method to input a character.

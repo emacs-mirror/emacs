@@ -239,6 +239,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (set-keymap-parent emacs-lisp-mode-map lisp-mode-shared-map)
     (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
     (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun)
+    (define-key emacs-lisp-mode-map "\e\C-q" 'indent-pp-sexp)
     (define-key emacs-lisp-mode-map [menu-bar] (make-sparse-keymap))
     (define-key emacs-lisp-mode-map [menu-bar emacs-lisp]
       (cons "Emacs-Lisp" map))
@@ -355,6 +356,14 @@ if that value is non-nil."
   (setq imenu-case-fold-search t)
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
+(put 'lisp-mode 'find-tag-default-function 'lisp-find-tag-default)
+
+(defun lisp-find-tag-default ()
+  (let ((default (find-tag-default)))
+    (when (stringp default)
+      (if (string-match ":+" default)
+          (substring default (match-end 0))
+          default))))
 
 ;; Used in old LispM code.
 (defalias 'common-lisp-mode 'lisp-mode)
@@ -369,6 +378,7 @@ if that value is non-nil."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
+    (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\n" 'eval-print-last-sexp)
     map)
@@ -460,7 +470,10 @@ If CHAR is not a character, return nil."
 	  (cond
 	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
 	   ((eq c 127) "\\C-?")
-	   (t (string c)))))))
+	   (t
+	    (condition-case nil
+		(string c)
+	      (error nil))))))))
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -532,13 +545,12 @@ With argument, print output into current buffer."
 			 (prin1-to-string value)))
 	(print-length eval-expression-print-length)
 	(print-level eval-expression-print-level)
-	(char-string (prin1-char value))
 	(beg (point))
 	end)
     (prog1
 	(prin1 value)
-      (if (and (eq standard-output t) char-string)
-	  (princ (concat " = " char-string)))
+      (let ((str (eval-expression-print-format value)))
+	(if str (princ str)))
       (setq end (point))
       (when (and (bufferp standard-output)
 		 (or (not (null print-length))
@@ -1091,6 +1103,19 @@ ENDPOS is encountered."
 	   (lisp-indent-line))
       (indent-sexp endmark)
       (set-marker endmark nil))))
+
+(defun indent-pp-sexp (&optional arg)
+  "Indent each line of the list or, with prefix ARG, pretty-printify the list."
+  (interactive "P")
+  (if arg
+      (save-excursion
+        (save-restriction
+          (narrow-to-region (point) (progn (forward-sexp 1) (point)))
+          (pp-buffer)
+          (goto-char (point-max))
+          (if (eq (char-before) ?\n)
+              (delete-char -1)))))
+  (indent-sexp))
 
 ;;;; Lisp paragraph filling commands.
 

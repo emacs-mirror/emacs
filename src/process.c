@@ -774,7 +774,18 @@ nil, indicating the current buffer's process.  */)
       XSETINT (XPROCESS (process)->tick, ++process_tick);
       status_notify ();
     }
-  remove_process (process);
+  /* Do not call remove_process here; either status_notify has already done
+     it, or will do so the next time emacs polls for input.  Thus network
+     processes are not immediately removed, and their sentinel will be
+     called.
+
+     Since Fdelete_process is called by kill_buffer_processes, this also
+     means that a network process sentinel will run after the buffer is
+     dead, which would not be the case if status_notify() were called
+     unconditionally here.  This way process sentinels observe consistent
+     behavior with regard to buffer-live-p.
+  */
+  /* remove_process (process); */
   return Qnil;
 }
 
@@ -4581,7 +4592,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		}
 	    }
 #ifdef NON_BLOCKING_CONNECT
-	  if (check_connect && FD_ISSET (channel, &Connecting))
+	  if (check_connect && FD_ISSET (channel, &Connecting)
+	      && FD_ISSET (channel, &connect_wait_mask))
 	    {
 	      struct Lisp_Process *p;
 

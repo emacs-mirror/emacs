@@ -292,14 +292,15 @@ but another undo command will undo to the previous boundary.  */)
 
 /* At garbage collection time, make an undo list shorter at the end,
    returning the truncated list.
-   MINSIZE and MAXSIZE are the limits on size allowed, as described below.
-   In practice, these are the values of undo-limit and
-   undo-strong-limit.  */
+   MINSIZE, MAXSIZE and LIMITSIZE are the limits on size allowed,
+   as described below.
+   In practice, these are the values of undo-limit,
+   undo-strong-limit, and undo-outer-limit.  */
 
 Lisp_Object
-truncate_undo_list (list, minsize, maxsize)
+truncate_undo_list (list, minsize, maxsize, limitsize)
      Lisp_Object list;
-     int minsize, maxsize;
+     int minsize, maxsize, limitsize;
 {
   Lisp_Object prev, next, last_boundary;
   int size_so_far = 0;
@@ -308,7 +309,8 @@ truncate_undo_list (list, minsize, maxsize)
   next = list;
   last_boundary = Qnil;
 
-  /* Always preserve at least the most recent undo record.
+  /* Always preserve at least the most recent undo record
+     unless it is really horribly big.
      If the first element is an undo boundary, skip past it.
 
      Skip, skip, skip the undo, skip, skip, skip the undo,
@@ -323,6 +325,7 @@ truncate_undo_list (list, minsize, maxsize)
       prev = next;
       next = XCDR (next);
     }
+
   while (CONSP (next) && ! NILP (XCAR (next)))
     {
       Lisp_Object elt;
@@ -338,13 +341,20 @@ truncate_undo_list (list, minsize, maxsize)
 			    + SCHARS (XCAR (elt)));
 	}
 
+      /* If we reach LIMITSIZE before the first boundary,
+	 we're heading for memory full, so truncate the list to nothing.  */
+      if (size_so_far > limitsize)
+	return Qnil;
+
       /* Advance to next element.  */
       prev = next;
       next = XCDR (next);
     }
+
   if (CONSP (next))
     last_boundary = prev;
 
+  /* Keep more if it fits.  */
   while (CONSP (next))
     {
       Lisp_Object elt;

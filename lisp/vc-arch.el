@@ -375,7 +375,7 @@ Return non-nil if FILE is unchanged."
     (vc-arch-command nil 0 file "commit" "-s" summary "-L" comment "--"
 		     (vc-switches 'Arch 'checkin))))
 
-(defun vc-arch-diff (file &optional oldvers newvers)
+(defun vc-arch-diff (file &optional oldvers newvers buffer)
   "Get a difference report using Arch between two versions of FILE."
   (if (and newvers
 	   (vc-up-to-date-p file)
@@ -390,7 +390,7 @@ Return non-nil if FILE is unchanged."
 	   (default-directory (vc-arch-root file))
 	   (status
 	    (vc-arch-command
-	     "*vc-diff*"
+	     (or buffer "*vc-diff*")
 	     (if async 'async 1)
 	     nil "file-diffs"
 	     ;; Arch does not support the typical flags.

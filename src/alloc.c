@@ -155,6 +155,7 @@ int malloc_sbrk_unused;
 
 EMACS_INT undo_limit;
 EMACS_INT undo_strong_limit;
+EMACS_INT undo_outer_limit;
 
 /* Number of live and free conses etc.  */
 
@@ -256,6 +257,7 @@ EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
 extern void mark_kboards P_ ((void));
+extern void mark_backtrace P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
@@ -753,17 +755,20 @@ lisp_align_malloc (nbytes, type)
 #ifdef HAVE_POSIX_MEMALIGN
       {
 	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
-	abase = err ? (base = NULL) : base;
+	if (err)
+	  base = NULL;
+	abase = base;
       }
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+#endif
+
       if (base == 0)
 	{
 	  UNBLOCK_INPUT;
 	  memory_full ();
 	}
-#endif
 
       aligned = (base == abase);
       if (!aligned)
@@ -4278,20 +4283,6 @@ struct catchtag
     struct catchtag *next;
 };
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  int nargs;		/* Length of vector.  */
-  /* If nargs is UNEVALLED, args points to slot holding list of
-     unevalled args.  */
-  char evalargs;
-  /* Nonzero means call value of debugger when done with this operation. */
-  char debug_on_exit;
-};
-
-
 
 /***********************************************************************
 			  Protection from GC
@@ -4326,7 +4317,6 @@ returns nil, because real GC can't be done.  */)
   register struct specbinding *bind;
   struct catchtag *catch;
   struct handler *handler;
-  register struct backtrace *backlist;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4395,7 +4385,7 @@ returns nil, because real GC can't be done.  */)
 	if (! EQ (nextb->undo_list, Qt))
 	  nextb->undo_list
 	    = truncate_undo_list (nextb->undo_list, undo_limit,
-				  undo_strong_limit);
+				  undo_strong_limit, undo_outer_limit);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
 	if (nextb->base_buffer == 0 && !NILP (nextb->name))
@@ -4455,17 +4445,7 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
-  for (backlist = backtrace_list; backlist; backlist = backlist->next)
-    {
-      mark_object (*backlist->function);
-
-      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
-	i = 0;
-      else
-	i = backlist->nargs - 1;
-      for (; i >= 0; i--)
-	mark_object (backlist->args[i]);
-    }
+  mark_backtrace ();
   mark_kboards ();
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
@@ -4479,42 +4459,36 @@ returns nil, because real GC can't be done.  */)
   }
 #endif
 
-  gc_sweep ();
-
-  /* Look thru every buffer's undo list for elements that used to
-     contain update markers that were changed to Lisp_Misc_Free
-     objects and delete them.  This may leave a few cons cells
-     unchained, but we will get those on the next sweep.  */
+  /* Everything is now marked, except for the things that require special
+     finalization, i.e. the undo_list.
+     Look thru every buffer's undo list
+     for elements that update markers that were not marked,
+     and delete them.  */
   {
     register struct buffer *nextb = all_buffers;
 
     while (nextb)
       {
 	/* If a buffer's undo list is Qt, that means that undo is
-	   turned off in that buffer.  */
+	   turned off in that buffer.  Calling truncate_undo_list on
+	   Qt tends to return NULL, which effectively turns undo back on.
+	   So don't call truncate_undo_list if undo_list is Qt.  */
 	if (! EQ (nextb->undo_list, Qt))
 	  {
-	    Lisp_Object tail, prev, elt, car;
+	    Lisp_Object tail, prev;
 	    tail = nextb->undo_list;
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if ((elt = XCAR (tail), GC_CONSP (elt))
-		    && (car = XCAR (elt), GC_MISCP (car))
-		    && XMISCTYPE (car) == Lisp_Misc_Free)
+		if (GC_CONSP (XCAR (tail))
+		    && GC_MARKERP (XCAR (XCAR (tail)))
+		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
-		    Lisp_Object cdr = XCDR (tail);
-		    /* Do not use free_cons here, as we don't know if
-		       anybody else has a pointer to these conses.  */
-		    XSETCAR (elt, Qnil);
-		    XSETCDR (elt, Qnil);
-		    XSETCAR (tail, Qnil);
-		    XSETCDR (tail, Qnil);
 		    if (NILP (prev))
-		      nextb->undo_list = tail = cdr;
+		      nextb->undo_list = tail = XCDR (tail);
 		    else
 		      {
-			tail = cdr;
+			tail = XCDR (tail);
 			XSETCDR (prev, tail);
 		      }
 		  }
@@ -4525,10 +4499,15 @@ returns nil, because real GC can't be done.  */)
 		  }
 	      }
 	  }
+	/* Now that we have stripped the elements that need not be in the
+	   undo_list any more, we can finally mark the list.  */
+	mark_object (nextb->undo_list);
 
 	nextb = nextb->next;
       }
   }
+
+  gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
 
@@ -5096,41 +5075,9 @@ mark_buffer (buf)
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
-  if (CONSP (buffer->undo_list))
-    {
-      Lisp_Object tail;
-      tail = buffer->undo_list;
-
-      /* We mark the undo list specially because
-	 its pointers to markers should be weak.  */
-
-      while (CONSP (tail))
-	{
-	  register struct Lisp_Cons *ptr = XCONS (tail);
-
-	  if (CONS_MARKED_P (ptr))
-	    break;
-	  CONS_MARK (ptr);
-	  if (GC_CONSP (ptr->car)
-	      && !CONS_MARKED_P (XCONS (ptr->car))
-	      && GC_MARKERP (XCAR (ptr->car)))
-	    {
-	      CONS_MARK (XCONS (ptr->car));
-	      mark_object (XCDR (ptr->car));
-	    }
-	  else
-	    mark_object (ptr->car);
-
-	  if (CONSP (ptr->cdr))
-	    tail = ptr->cdr;
-	  else
-	    break;
-	}
-
-      mark_object (XCDR (tail));
-    }
-  else
-    mark_object (buffer->undo_list);
+  /* For now, we just don't mark the undo_list.  It's done later in
+     a special way just before the sweep phase, and after stripping
+     some of its elements that are not needed any more.  */
 
   if (buffer->overlays_before)
     {
@@ -5210,6 +5157,16 @@ survives_gc_p (obj)
 static void
 gc_sweep ()
 {
+  /* Remove or mark entries in weak hash tables.
+     This must be done before any object is unmarked.  */
+  sweep_weak_hash_tables ();
+
+  sweep_strings ();
+#ifdef GC_CHECK_STRING_BYTES
+  if (!noninteractive)
+    check_string_bytes (1);
+#endif
+
   /* Put all unmarked conses on free list */
   {
     register struct cons_block *cblk;
@@ -5259,16 +5216,6 @@ gc_sweep ()
     total_conses = num_used;
     total_free_conses = num_free;
   }
-
-  /* Remove or mark entries in weak hash tables.
-     This must be done before any object is unmarked.  */
-  sweep_weak_hash_tables ();
-
-  sweep_strings ();
-#ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive)
-    check_string_bytes (1);
-#endif
 
   /* Put all unmarked floats on free list */
   {
@@ -5468,9 +5415,6 @@ gc_sweep ()
 	/* If this block contains only free markers and we have already
 	   seen more than two blocks worth of free markers then deallocate
 	   this block.  */
-#if 0
-	/* There may still be pointers to these markers from a buffer's
-	   undo list, so don't free them.  KFS 2004-05-21  /
 	if (this_free == MARKER_BLOCK_SIZE && num_free > MARKER_BLOCK_SIZE)
 	  {
 	    *mprev = mblk->next;
@@ -5480,7 +5424,6 @@ gc_sweep ()
 	    n_marker_blocks--;
 	  }
 	else
-#endif
 	  {
 	    num_free += this_free;
 	    mprev = &mblk->next;
@@ -5728,11 +5671,19 @@ which includes both saved text and other data.  */);
 
   DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
 	      doc: /* Don't keep more than this much size of undo information.
-A command which pushes past this size is itself forgotten.
-This limit is applied when garbage collection happens.
+A previous command which pushes the undo list past this size
+is entirely forgotten when GC happens.
 The size is counted as the number of bytes occupied,
 which includes both saved text and other data.  */);
   undo_strong_limit = 30000;
+
+  DEFVAR_INT ("undo-outer-limit", &undo_outer_limit,
+	      doc: /* Don't keep more than this much size of undo information.
+If the current command has produced more than this much undo information,
+GC discards it.  This is a last-ditch limit to prevent memory overflow.
+The size is counted as the number of bytes occupied,
+which includes both saved text and other data.  */);
+  undo_outer_limit = 300000;
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);

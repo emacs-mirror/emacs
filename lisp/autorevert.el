@@ -311,6 +311,7 @@ This is an internal function used by Auto-Revert Mode."
   (unless (buffer-modified-p)
     (let ((buffer (current-buffer)) revert eob eoblist)
       (or (and buffer-file-name
+	       (not (file-remote-p buffer-file-name))
 	       (file-readable-p buffer-file-name)
 	       (not (verify-visited-file-modtime buffer))
 	       (setq revert t))

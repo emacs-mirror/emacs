@@ -91,36 +91,49 @@ to navigate in it.")
     (or (and extra-test (funcall extra-test))
 	next-error-function)))
 
-;; Return a next-error capable buffer.
-;; If the current buffer is such, return it.
-;; If next-error-last-buffer is set to a live buffer, use that.
-;; Otherwise, look for a next-error capable buffer and signal an error
-;; if there are none.
+;; Return a next-error capable buffer according to the following rules:
+;; 1. If the current buffer is a next-error capable buffer, return it.
+;; 2. If one window on the selected frame displays such buffer, return it.
+;; 3. If next-error-last-buffer is set to a live buffer, use that.
+;; 4. Otherwise, look for a next-error capable buffer in a buffer list.
+;; 5. Signal an error if there are none.
 (defun next-error-find-buffer (&optional other-buffer extra-test)
   (if (and (not other-buffer)
 	   (next-error-buffer-p (current-buffer) extra-test))
       ;; The current buffer is a next-error capable buffer.
       (current-buffer)
-    (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
-	     (next-error-buffer-p next-error-last-buffer extra-test)
-	     (or (not other-buffer) (not (eq next-error-last-buffer
-					     (current-buffer)))))
-	next-error-last-buffer
-      (let ((buffers (buffer-list)))
-	(while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
-				(and other-buffer
-				     (eq (car buffers) (current-buffer)))))
-	  (setq buffers (cdr buffers)))
-	(if buffers
-	    (car buffers)
-	  (or (and other-buffer
-		   (next-error-buffer-p (current-buffer) extra-test)
-		   ;; The current buffer is a next-error capable buffer.
-		   (progn
-		     (if other-buffer
-			 (message "This is the only next-error capable buffer."))
-		     (current-buffer)))
-	      (error "No next-error capable buffer found!")))))))
+    (or
+     (let ((window-buffers
+            (delete-dups
+             (delq nil
+              (mapcar (lambda (w)
+                        (and (next-error-buffer-p (window-buffer w) extra-test)
+                             (window-buffer w)))
+                      (window-list))))))
+       (if other-buffer
+           (setq window-buffers (delq (current-buffer) window-buffers)))
+       (if (eq (length window-buffers) 1)
+           (car window-buffers)))
+     (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
+              (next-error-buffer-p next-error-last-buffer extra-test)
+              (or (not other-buffer) (not (eq next-error-last-buffer
+                                              (current-buffer)))))
+         next-error-last-buffer
+       (let ((buffers (buffer-list)))
+         (while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
+                                 (and other-buffer
+                                      (eq (car buffers) (current-buffer)))))
+           (setq buffers (cdr buffers)))
+         (if buffers
+             (car buffers)
+           (or (and other-buffer
+                    (next-error-buffer-p (current-buffer) extra-test)
+                    ;; The current buffer is a next-error capable buffer.
+                    (progn
+                      (if other-buffer
+                          (message "This is the only next-error capable buffer."))
+                      (current-buffer)))
+               (error "No next-error capable buffer found!"))))))))
 
 (defun next-error (arg &optional reset)
   "Visit next next-error message and corresponding source code.
@@ -772,6 +785,23 @@ If nil, don't change the value of `debug-on-error'."
   :type 'boolean
   :version "21.1")
 
+(defun eval-expression-print-format (value)
+  "Format VALUE as a result of evaluated expression.
+Return a formatted string which is displayed in the echo area
+in addition to the value printed by prin1 in functions which
+display the result of expression evaluation."
+  (if (and (integerp value)
+           (or (not (eq this-command 'eval-last-sexp))
+               (eq this-command last-command)
+               (and (boundp 'edebug-active) edebug-active)))
+      (let ((char-string
+             (if (or (and (boundp 'edebug-active) edebug-active)
+                     (eq this-command 'eval-last-sexp))
+                 (prin1-char value))))
+        (if char-string
+            (format " (0%o, 0x%x) = %s" value value char-string)
+          (format " (0%o, 0x%x)" value value)))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (eval-expression-arg
@@ -806,7 +836,10 @@ the echo area."
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
 	   (eval-last-sexp-print-value (car values))))
-      (prin1 (car values) t))))
+      (prog1
+          (prin1 (car values) t)
+        (let ((str (eval-expression-print-format (car values))))
+          (if str (princ str t)))))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.

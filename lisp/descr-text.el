@@ -111,7 +111,8 @@ into widget buttons that call `describe-text-category' or
 			 (setq key (pop properties)
 			       val (pop properties)
 			       len 0)
-			 (unless (or (memq key '(category face font-lock-face))
+			 (unless (or (memq key '(category face font-lock-face
+                                                 syntax-table))
 				     (widgetp val))
 			   (setq val (pp-to-string val)
 				 len (length val)))
@@ -134,7 +135,15 @@ into widget buttons that call `describe-text-category' or
 			    :notify `(lambda (&rest ignore)
 				       (describe-face ',value))
 			    (format "%S" value)))
-	    ((widgetp value)
+	    ((eq key 'syntax-table)
+	     (widget-create 'push-button
+                            :tag "show"
+                            :action (lambda (widget &optional event)
+                                      (with-output-to-temp-buffer
+                                          "*Pp Eval Output*"
+                                        (pp (widget-get widget :value))))
+                            value))
+            ((widgetp value)
 	     (describe-text-widget value))
 	    (t
 	     (widget-insert value))))
@@ -476,7 +485,7 @@ as well as widgets, buttons, overlays, and text properties."
 			  (encode-char char 'ucs))))
     (setq item-list
 	  `(("character"
-	    ,(format "%s (0%o, %d, 0x%x%s)" 
+	    ,(format "%s (0%o, %d, 0x%x%s)"
 		     (apply 'propertize (if (not multibyte-p)
 					    (single-key-description char)
 					  (if (< char 128)
@@ -598,7 +607,7 @@ as well as widgets, buttons, overlays, and text properties."
 
 	(save-excursion
 	  (goto-char (point-min))
-	  (search-forward "character: ")
+	  (re-search-forward "character:[ \t\n]+")
 	  (setq pos (point)))
 	(if overlays
 	    (mapc #'(lambda (props)

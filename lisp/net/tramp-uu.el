@@ -1,7 +1,7 @@
 ;;; -*- coding: iso-2022-7bit; -*-
 ;;; tramp-uu.el --- uuencode in Lisp
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Kai Gro,A_(Bjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: comm, terminals
@@ -63,10 +63,10 @@
 	(setq c (char-after (point)))
 	(delete-char 1)
 	(if (equal c ?=)
-	    ;; "=" means padding.  Insert "`" instead.
-	    (insert "`")
-	  (insert (tramp-uu-byte-to-uu-char (tramp-uu-b64-char-to-byte c))))
-	(setq i (1+ i))
+	    ;; "=" means padding.  Insert "`" instead.  Not counted for length.
+	    (progn (insert "`") (setq len (1- len)))
+	  (insert (tramp-uu-byte-to-uu-char (tramp-uu-b64-char-to-byte c)))
+	  (setq i (1+ i)))
 	;; Every 60 characters, add "M" at beginning of line (as
 	;; length byte) and insert a newline.
 	(when (zerop (% i 60))
