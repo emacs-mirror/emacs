@@ -209,7 +209,7 @@ fix_command (input, values)
 	  Lisp_Object intail, valtail;
 	  for (intail = Fcdr (input), valtail = values;
 	       CONSP (valtail);
-	       intail = Fcdr (intail), valtail = Fcdr (valtail))
+	       intail = Fcdr (intail), valtail = XCDR (valtail))
 	    {
 	      Lisp_Object elt;
 	      elt = Fcar (intail);
