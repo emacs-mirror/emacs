@@ -1,0 +1,3 @@
+precious ^(config\.stamp|config\.h|epaths\.h)$
+
+# arch-tag: 277cc7ae-b3f5-44af-abf1-84c073164543
