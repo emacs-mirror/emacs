@@ -3998,6 +3998,7 @@ decode_coding_sjis (coding)
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
+  struct charset *charset_kanji2;
   Lisp_Object attrs, charset_list, val;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
@@ -4008,7 +4009,8 @@ decode_coding_sjis (coding)
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val)));
+  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  charset_kanji2 = NILP (val) ? NULL : CHARSET_FROM_ID (XINT (XCAR (val)));
 
   while (1)
     {
@@ -4026,31 +4028,36 @@ decode_coding_sjis (coding)
 	goto invalid_code;
       if (c < 0x80)
 	charset = charset_roman;
-      else if (c == 0x80)
+      else if (c == 0x80 || c == 0xA0)
 	goto invalid_code;
-      else
+      else if (c >= 0xA1 && c <= 0xDF)
 	{
-	  if (c >= 0xF0)
-	    goto invalid_code;
-	  if (c < 0xA0 || c >= 0xE0)
-	    {
-	      /* SJIS -> JISX0208 */
-	      ONE_MORE_BYTE (c1);
-	      if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
-		goto invalid_code;
-	      c = (c << 8) | c1;
-	      SJIS_TO_JIS (c);
-	      charset = charset_kanji;
-	    }
-	  else if (c > 0xA0)
-	    {
-	      /* SJIS -> JISX0201-Kana */
-	      c &= 0x7F;
-	      charset = charset_kana;
-	    }
-	  else
-	    goto invalid_code;
+	  /* SJIS -> JISX0201-Kana */
+	  c &= 0x7F;
+	  charset = charset_kana;
 	}
+      else if (c <= 0xEF)
+	{
+	  /* SJIS -> JISX0208 */
+	  ONE_MORE_BYTE (c1);
+	  if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
+	    goto invalid_code;
+	  c = (c << 8) | c1;
+	  SJIS_TO_JIS (c);
+	  charset = charset_kanji;
+	}
+      else if (c <= 0xFC && charset_kanji2)
+	{
+	  /* SJIS -> JISX0212 */
+	  ONE_MORE_BYTE (c1);
+	  if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
+	    goto invalid_code;
+	  c = (c << 8) | c1;
+	  SJIS_TO_JIS2 (c);
+	  charset = charset_kanji2;
+	}
+      else
+	goto invalid_code;
       if (charset->id != charset_ascii
 	  && last_id != charset->id)
 	{
@@ -4183,13 +4190,15 @@ encode_coding_sjis (coding)
   Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
+  struct charset *charset_kanji2;
   int c;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   val = charset_list;
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
-  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val)));
+  charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  charset_kanji2 = NILP (val) ? NULL : CHARSET_FROM_ID (XINT (XCAR (val)));
 
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
@@ -4234,6 +4243,21 @@ encode_coding_sjis (coding)
 	    }
 	  else if (charset == charset_kana)
 	    EMIT_ONE_BYTE (code | 0x80);
+	  else if (charset_kanji2 && charset == charset_kanji2)
+	    {
+	      int c1, c2;
+
+	      c1 = code >> 8;
+	      if (c1 == 0x21 || (c1 >= 0x23 && c1 < 0x25)
+		  || (c1 >= 0x2C && c1 <= 0x2F) || c1 >= 0x6E)
+		{
+		  JIS_TO_SJIS2 (code);
+		  c1 = code >> 8, c2 = code & 0xFF;
+		  EMIT_TWO_BYTES (c1, c2);
+		}
+	      else
+		EMIT_ONE_ASCII_BYTE (code & 0x7F);
+	    }
 	  else
 	    EMIT_ONE_ASCII_BYTE (code & 0x7F);
 	}
