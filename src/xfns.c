@@ -101,9 +101,6 @@ extern void free_frame_menubar ();
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
-/* Title name and application name for X stuff.  */
-extern char *x_id_name;
-
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
@@ -381,30 +378,6 @@ x_top_window_to_frame (wdesc)
    data more than once will not be caught.  */
 
 
-/* Structure recording X pixmap and reference count.
-   If REFCOUNT is 0 then this record is free to be reused.  */
-
-struct x_bitmap_record
-{
-  Pixmap pixmap;
-  char *file;
-  int refcount;
-  /* Record some info about this pixmap.  */
-  int height, width, depth;
-};
-
-/* Pointer to bitmap records.  */
-static struct x_bitmap_record *x_bitmaps;
-
-/* Allocated size of x_bitmaps.  */
-static int x_bitmaps_size;
-
-/* Last used bitmap index.  */
-static int x_bitmaps_last;
-
-/* Count of free bitmaps before X_BITMAPS_LAST.  */
-static int x_bitmaps_free;
-
 /* Functions to access the contents of a bitmap, given an id.  */
 
 int
@@ -412,7 +385,7 @@ x_bitmap_height (f, id)
      FRAME_PTR f;
      int id;
 {
-  return x_bitmaps[id - 1].height;
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
 int
@@ -420,7 +393,7 @@ x_bitmap_width (f, id)
      FRAME_PTR f;
      int id;
 {
-  return x_bitmaps[id - 1].width;
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
 
 int
@@ -428,43 +401,40 @@ x_bitmap_pixmap (f, id)
      FRAME_PTR f;
      int id;
 {
-  return x_bitmaps[id - 1].pixmap;
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 
 
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
 static int
-x_allocate_bitmap_record ()
+x_allocate_bitmap_record (f)
+     FRAME_PTR f;
 {
-  if (x_bitmaps == NULL)
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int i;
+
+  if (dpyinfo->bitmaps == NULL)
     {
-      x_bitmaps_size = 10;
-      x_bitmaps
-	= (struct x_bitmap_record *) xmalloc (x_bitmaps_size * sizeof (struct x_bitmap_record));
-      x_bitmaps_last = 1;
+      dpyinfo->bitmaps_size = 10;
+      dpyinfo->bitmaps
+	= (struct x_bitmap_record *) xmalloc (dpyinfo->bitmaps_size * sizeof (struct x_bitmap_record));
+      dpyinfo->bitmaps_last = 1;
       return 1;
     }
 
-  if (x_bitmaps_last < x_bitmaps_size)
-    return ++x_bitmaps_last;
+  if (dpyinfo->bitmaps_last < dpyinfo->bitmaps_size)
+    return ++dpyinfo->bitmaps_last;
 
-  if (x_bitmaps_free > 0)
-    {
-      int i;
-      for (i = 0; i < x_bitmaps_size; ++i)
-	{
-	  if (x_bitmaps[i].refcount == 0)
-	    {
-	      --x_bitmaps_free;
-	      return i + 1;
-	    }
-	}
-    }
+  for (i = 0; i < dpyinfo->bitmaps_size; ++i)
+    if (dpyinfo->bitmaps[i].refcount == 0)
+      return i + 1;
 
-  x_bitmaps_size *= 2;
-  x_bitmaps = (struct x_bitmap_record *) xrealloc (x_bitmaps, x_bitmaps_size * sizeof (struct x_bitmap_record));
-  return ++x_bitmaps_last;
+  dpyinfo->bitmaps_size *= 2;
+  dpyinfo->bitmaps
+    = (struct x_bitmap_record *) xrealloc (dpyinfo->bitmaps,
+					   dpyinfo->bitmaps_size * sizeof (struct x_bitmap_record));
+  return ++dpyinfo->bitmaps_last;
 }
 
 /* Add one reference to the reference count of the bitmap with id ID.  */
@@ -474,7 +444,7 @@ x_reference_bitmap (f, id)
      FRAME_PTR f;
      int id;
 {
-  ++x_bitmaps[id - 1].refcount;
+  ++FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
@@ -485,6 +455,7 @@ x_create_bitmap_from_data (f, bits, width, height)
      char *bits;
      unsigned int width, height;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Pixmap bitmap;
   int id;
 
@@ -494,13 +465,13 @@ x_create_bitmap_from_data (f, bits, width, height)
   if (! bitmap)
     return -1;
 
-  id = x_allocate_bitmap_record ();
-  x_bitmaps[id - 1].pixmap = bitmap;
-  x_bitmaps[id - 1].file = NULL;
-  x_bitmaps[id - 1].refcount = 1;
-  x_bitmaps[id - 1].depth = 1;
-  x_bitmaps[id - 1].height = height;
-  x_bitmaps[id - 1].width = width;
+  id = x_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
 
   return id;
 }
@@ -512,6 +483,7 @@ x_create_bitmap_from_file (f, file)
      struct frame *f;
      Lisp_Object file;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   unsigned int width, height;
   Pixmap bitmap;
   int xhot, yhot, result, id;
@@ -520,13 +492,13 @@ x_create_bitmap_from_file (f, file)
   char *filename;
 
   /* Look for an existing bitmap with the same name.  */
-  for (id = 0; id < x_bitmaps_last; ++id)
+  for (id = 0; id < dpyinfo->bitmaps_last; ++id)
     {
-      if (x_bitmaps[id].refcount
-	  && x_bitmaps[id].file
-	  && !strcmp (x_bitmaps[id].file, (char *) XSTRING (file)->data))
+      if (dpyinfo->bitmaps[id].refcount
+	  && dpyinfo->bitmaps[id].file
+	  && !strcmp (dpyinfo->bitmaps[id].file, (char *) XSTRING (file)->data))
 	{
-	  ++x_bitmaps[id].refcount;
+	  ++dpyinfo->bitmaps[id].refcount;
 	  return id + 1;
 	}
     }
@@ -544,14 +516,14 @@ x_create_bitmap_from_file (f, file)
   if (result != BitmapSuccess)
     return -1;
 
-  id = x_allocate_bitmap_record ();
-  x_bitmaps[id - 1].pixmap = bitmap;
-  x_bitmaps[id - 1].refcount = 1;
-  x_bitmaps[id - 1].file = (char *) xmalloc (XSTRING (file)->size + 1);
-  x_bitmaps[id - 1].depth = 1;
-  x_bitmaps[id - 1].height = height;
-  x_bitmaps[id - 1].width = width;
-  strcpy (x_bitmaps[id - 1].file, XSTRING (file)->data);
+  id = x_allocate_bitmap_record (f);
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+  dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (XSTRING (file)->size + 1);
+  dpyinfo->bitmaps[id - 1].depth = 1;
+  dpyinfo->bitmaps[id - 1].height = height;
+  dpyinfo->bitmaps[id - 1].width = width;
+  strcpy (dpyinfo->bitmaps[id - 1].file, XSTRING (file)->data);
 
   return id;
 }
@@ -563,28 +535,38 @@ x_destroy_bitmap (f, id)
      FRAME_PTR f;
      int id;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
   if (id > 0)
     {
-      --x_bitmaps[id - 1].refcount;
-      if (! x_bitmaps[id - 1].refcount)
+      --dpyinfo->bitmaps[id - 1].refcount;
+      if (dpyinfo->bitmaps[id - 1].refcount == 0)
 	{
-	  XFreePixmap (FRAME_X_DISPLAY (f), x_bitmaps[id - 1].pixmap);
-	  if (x_bitmaps[id - 1].file)
+	  XFreePixmap (FRAME_X_DISPLAY (f), dpyinfo->bitmaps[id - 1].pixmap);
+	  if (dpyinfo->bitmaps[id - 1].file)
 	    {
-	      free (x_bitmaps[id - 1].file);
-	      x_bitmaps[id - 1].file = NULL;
+	      free (dpyinfo->bitmaps[id - 1].file);
+	      dpyinfo->bitmaps[id - 1].file = NULL;
 	    }
 	}
     }
 }
 
-/* Return the actual X pixmap number for a given bitmap id.  */
+/* Free all the bitmaps for the display specified by DPYINFO.  */
 
-Pixmap
-x_lookup_pixmap (id)
-     int id;
+static void
+x_destroy_all_bitmaps (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
-  return x_bitmaps[id - 1].pixmap;
+  int i;
+  for (i = 0; i < dpyinfo->bitmaps_last; i++)
+    if (dpyinfo->bitmaps[i].refcount > 0)
+      {
+	XFreePixmap (dpyinfo->display, dpyinfo->bitmaps[i].pixmap);
+	if (dpyinfo->bitmaps[i].file)
+	  free (dpyinfo->bitmaps[i].file);
+      }
+  dpyinfo->bitmaps_last = 0;
 }
 
 /* Connect the frame-parameter names for X frames
@@ -861,7 +843,7 @@ x_set_frame_parameters (f, alist)
   }
 }
 
-/* Store the positions of frame F into XPTR and YPTR.
+/* Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
    not Emacs's own window.  */
 
@@ -870,7 +852,7 @@ x_real_positions (f, xptr, yptr)
      FRAME_PTR f;
      int *xptr, *yptr;
 {
-  int win_x = 0, win_y = 0;
+  int win_x, win_y;
   Window child;
 
   /* This is pretty gross, but seems to be the easiest way out of
@@ -885,36 +867,51 @@ x_real_positions (f, xptr, yptr)
   Window *tmp_children;
   int tmp_nchildren;
 
-  XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
-	      &f->display.x->parent_desc,
-	      &tmp_children, &tmp_nchildren);
-  xfree (tmp_children);
-
-  /* Find the position of the outside upper-left corner of
-     the inner window, with respect to the outer window.  */
-  if (f->display.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+  x_catch_errors (f);
+  while (1)
     {
-      BLOCK_INPUT;
-      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-			       
-			     /* From-window, to-window.  */
+      XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
+		  &f->display.x->parent_desc,
+		  &tmp_children, &tmp_nchildren);
+      xfree (tmp_children);
+
+      win_x = win_y = 0;
+
+      /* Find the position of the outside upper-left corner of
+	 the inner window, with respect to the outer window.  */
+      if (f->display.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+	{
+	  XTranslateCoordinates (FRAME_X_DISPLAY (f),
+
+				 /* From-window, to-window.  */
 #ifdef USE_X_TOOLKIT
-			     XtWindow (f->display.x->widget),
+				 XtWindow (f->display.x->widget),
 #else
-			     f->display.x->window_desc,
+				 f->display.x->window_desc,
 #endif
-			     f->display.x->parent_desc,
+				 f->display.x->parent_desc,
 
-			     /* From-position, to-position.  */
-			     0, 0, &win_x, &win_y,
+				 /* From-position, to-position.  */
+				 0, 0, &win_x, &win_y,
 
-			     /* Child of win.  */
-			     &child);
-      UNBLOCK_INPUT;
+				 /* Child of win.  */
+				 &child);
 
-      win_x += f->display.x->border_width;
-      win_y += f->display.x->border_width;
+	  win_x += f->display.x->border_width;
+	  win_y += f->display.x->border_width;
+	}
+
+      /* It is possible for the window returned by the XQueryNotify
+	 to become invalid by the time we call XTranslateCoordinates.
+	 That can happen when you restart some window managers.
+	 If so, we get an error in XTranslateCoordinates.
+	 Detect that and try the whole thing over.  */
+      if (! x_had_errors_p (f))
+	break;
     }
+
+  x_uncatch_errors (f);
+
   *xptr = f->display.x->left_pos - win_x;
   *yptr = f->display.x->top_pos - win_y;
 }
@@ -1547,9 +1544,10 @@ x_set_name (f, name, explicit)
     {
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (!strcmp (x_id_name, XSTRING (f->name)->data))
+      if (!strcmp (FRAME_X_DISPLAY_INFO (f)->x_id_name,
+		   XSTRING (f->name)->data))
 	return;
-      name = build_string (x_id_name);
+      name = build_string (FRAME_X_DISPLAY_INFO (f)->x_id_name);
     }
   else
     CHECK_STRING (name, 0);
@@ -2565,12 +2563,14 @@ x_make_gc (f)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
   "Make a new X window, which is called a \"frame\" in Emacs terms.\n\
-Return an Emacs frame object representing the X window.\n\
+Returns an Emacs frame object.\n\
 ALIST is an alist of frame parameters.\n\
 If the parameters specify that the frame should not have a minibuffer,\n\
 and do not specify a specific minibuffer window to use,\n\
 then `default-minibuffer-frame' must be a frame whose minibuffer can\n\
-be shared by the new frame.")
+be shared by the new frame.\n\
+\n\
+This function is an internal primitive--use `make-frame' instead.")
   (parms)
      Lisp_Object parms;
 {
@@ -2596,7 +2596,7 @@ be shared by the new frame.")
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
-    error ("x-create-frame: name parameter must be a string");
+    error ("Invalid frame name--not a string or nil");
 
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
@@ -2614,21 +2614,6 @@ be shared by the new frame.")
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
-  /* Set the name; the functions to which we pass f expect the name to
-     be set.  */
-  if (EQ (name, Qunbound) || NILP (name))
-    {
-      f->name = build_string (x_id_name);
-      f->explicit_name = 0;
-    }
-  else
-    {
-      f->name = name;
-      f->explicit_name = 1;
-      /* use the frame's title when getting resources for this frame.  */
-      specbind (Qx_resource_name, name);
-    }
-
   XSETFRAME (frame, f);
   GCPRO1 (frame);
 
@@ -2638,10 +2623,24 @@ be shared by the new frame.")
   f->display.x->icon_bitmap = -1;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-  FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
   /* Note that the frame has no physical cursor right now.  */
   f->phys_cursor_x = -1;
+
+  /* Set the name; the functions to which we pass f expect the name to
+     be set.  */
+  if (EQ (name, Qunbound) || NILP (name))
+    {
+      f->name = build_string (dpyinfo->x_id_name);
+      f->explicit_name = 0;
+    }
+  else
+    {
+      f->name = name;
+      f->explicit_name = 1;
+      /* use the frame's title when getting resources for this frame.  */
+      specbind (Qx_resource_name, name);
+    }
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
@@ -2777,6 +2776,10 @@ be shared by the new frame.")
      or making it visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
 
+  /* Now that the frame is official, it counts as a reference to
+     its display.  */
+  FRAME_X_DISPLAY_INFO (f)->reference_count++;
+
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
   {
@@ -2850,7 +2853,7 @@ PATTERN is a string, perhaps with wildcard characters;\n\
   the * character matches any substring, and\n\
   the ? character matches any single character.\n\
   PATTERN is case-insensitive.\n\
-FACE is a face name - a symbol.\n\
+FACE is a face name--a symbol.\n\
 \n\
 The return value is a list of strings, suitable as arguments to\n\
 set-face-font.\n\
@@ -2900,7 +2903,8 @@ even if they match PATTERN and FACE.")
     }
 
   /* See if we cached the result for this particular query.  */
-  list = Fassoc (pattern, FRAME_X_DISPLAY_INFO (f)->font_list_cache);
+  list = Fassoc (pattern,
+		 XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
 
   /* We have info in the cache for this PATTERN.  */
   if (!NILP (list))
@@ -2964,9 +2968,9 @@ even if they match PATTERN and FACE.")
       full_list = Qnil;
       for (i = 0; i < num_fonts; i++)
 	full_list = Fcons (build_string (names[i]), full_list);
-      FRAME_X_DISPLAY_INFO (f)->font_list_cache
+      XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr
 	= Fcons (Fcons (pattern, full_list),
-		 FRAME_X_DISPLAY_INFO (f)->font_list_cache);
+		 XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
 
       /* Make a list of the fonts that have the right width.  */
       list = Qnil;
@@ -3001,7 +3005,8 @@ even if they match PATTERN and FACE.")
 
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
-  "Return non-nil color COLOR is supported on frame FRAME.")
+       "Return non-nil color COLOR is supported on frame FRAME.\n\
+If FRAME is omitted or nil, use the selected frame.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -3019,7 +3024,8 @@ DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 2, 0,
 DEFUN ("x-color-values", Fx_color_values, Sx_color_values, 1, 2, 0,
   "Return a description of the color named COLOR on frame FRAME.\n\
 The value is a list of integer RGB values--(RED GREEN BLUE).\n\
-These values appear to range from 0 to 65280; white is (65280 65280 65280).")
+These values appear to range from 0 to 65280; white is (65280 65280 65280).\n\
+If FRAME is omitted or nil, use the selected frame.")
   (color, frame)
      Lisp_Object color, frame;
 {
@@ -3042,11 +3048,14 @@ These values appear to range from 0 to 65280; white is (65280 65280 65280).")
 }
 
 DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 1, 0,
-  "Return t if the X screen FRAME is on supports color.")
-  (frame)
-     Lisp_Object frame;
+  "Return t if the X display supports color.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   if (dpyinfo->n_planes <= 2)
     return Qnil;
@@ -3066,11 +3075,14 @@ DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 1, 0,
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
   0, 1, 0,
-  "Return t if the X screen FRAME is on supports grayscale.")
-  (frame)
-     Lisp_Object frame;
+  "Return t if the X display supports shades of gray.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   if (dpyinfo->n_planes <= 2)
     return Qnil;
@@ -3082,44 +3094,56 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
   0, 1, 0,
-  "Returns the width in pixels of the display FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the width in pixels of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->width);
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
   Sx_display_pixel_height, 0, 1, 0,
-  "Returns the height in pixels of the display FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the height in pixels of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->height);
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
   0, 1, 0,
-  "Returns the number of bitplanes of the display FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the number of bitplanes of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (dpyinfo->n_planes);
 }
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
   0, 1, 0,
-  "Returns the number of color cells of the display FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the number of color cells of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (DisplayCells (dpyinfo->display,
 				    XScreenNumberOfScreen (dpyinfo->screen)));
@@ -3128,21 +3152,27 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
   0, 1, 0,
-  "Returns the maximum request size of the X server FRAME is using.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the maximum request size of the X server of display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (MAXREQUEST (dpyinfo->display));
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-  "Returns the vendor ID string of the X server FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the vendor ID string of the X server of display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
   char *vendor = ServerVendor (dpyinfo->display);
 
   if (! vendor) vendor = "";
@@ -3150,14 +3180,17 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-  "Returns the version numbers of the X server in use.\n\
+  "Returns the version numbers of the X server of display DISPLAY.\n\
 The value is a list of three integers: the major and minor\n\
 version numbers of the X Protocol in use, and the vendor-specific release\n\
-number.  See also the variable `x-server-vendor'.")
-  (frame)
-     Lisp_Object frame;
+number.  See also the function `x-server-vendor'.\n\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
   Display *dpy = dpyinfo->display;
 
   return Fcons (make_number (ProtocolVersion (dpy)),
@@ -3166,43 +3199,55 @@ number.  See also the variable `x-server-vendor'.")
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-  "Returns the number of screens on the X server FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the number of screens on the X server of display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (ScreenCount (dpyinfo->display));
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-  "Returns the height in millimeters of the X screen FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the height in millimeters of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (HeightMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-  "Returns the width in millimeters of the X screen FRAME is on.")
-  (frame)
-     Lisp_Object frame;
+  "Returns the width in millimeters of the X display DISPLAY.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   return make_number (WidthMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
   Sx_display_backing_store, 0, 1, 0,
-  "Returns an indication of whether the X screen FRAME is on does backing store.\n\
-The value may be `always', `when-mapped', or `not-useful'.")
-  (frame)
-     Lisp_Object frame;
+  "Returns an indication of whether X display DISPLAY does backing store.\n\
+The value may be `always', `when-mapped', or `not-useful'.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   switch (DoesBackingStore (dpyinfo->screen))
     {
@@ -3222,13 +3267,16 @@ The value may be `always', `when-mapped', or `not-useful'.")
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
   Sx_display_visual_class, 0, 1, 0,
-  "Returns the visual class of the display FRAME is on.\n\
+  "Returns the visual class of the X display DISPLAY.\n\
 The value is one of the symbols `static-gray', `gray-scale',\n\
-`static-color', `pseudo-color', `true-color', or `direct-color'.")
-	(frame)
-     Lisp_Object frame;
+`static-color', `pseudo-color', `true-color', or `direct-color'.\n\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+	(display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   switch (dpyinfo->visual->class)
     {
@@ -3245,11 +3293,14 @@ The value is one of the symbols `static-gray', `gray-scale',\n\
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
   Sx_display_save_under, 0, 1, 0,
-  "Returns t if the X screen FRAME is on supports the save-under feature.")
-  (frame)
-     Lisp_Object frame;
+  "Returns t if the X display DISPLAY supports the save-under feature.\n\
+The optional argument DISPLAY specifies which display to ask about.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If omitted or nil, that stands for the selected frame's display.")
+  (display)
+     Lisp_Object display;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   if (DoesSaveUnders (dpyinfo->screen) == True)
     return Qt;
@@ -4265,15 +4316,18 @@ struct x_display_info *
 x_display_info_for_name (name)
      Lisp_Object name;
 {
+  Lisp_Object names;
   struct x_display_info *dpyinfo;
 
   CHECK_STRING (name, 0);
 
-  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+  for (dpyinfo = x_display_list, names = x_display_name_list;
+       dpyinfo;
+       dpyinfo = dpyinfo->next, names = XCONS (names)->cdr)
     {
       Lisp_Object tem;
-      tem = Fstring_equal (dpyinfo->name, name);
-      if (!NILP (name))
+      tem = Fstring_equal (XCONS (XCONS (names)->car)->car, name);
+      if (!NILP (tem))
 	return dpyinfo;
     }
 
@@ -4282,6 +4336,9 @@ x_display_info_for_name (name)
   dpyinfo = x_term_init (name, (unsigned char *)0,
 			 XSTRING (Vx_resource_name)->data);
 
+  if (dpyinfo == 0)
+    error ("X server %s not responding", XSTRING (name)->data);
+
   x_in_use = 1;
   XSETFASTINT (Vwindow_system_version, 11);
 
@@ -4289,11 +4346,13 @@ x_display_info_for_name (name)
 }
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
-       1, 2, 0, "Open a connection to an X server.\n\
+       1, 3, 0, "Open a connection to an X server.\n\
 DISPLAY is the name of the display to connect to.\n\
-Optional second arg XRM_STRING is a string of resources in xrdb format.")
-  (display, xrm_string)
-     Lisp_Object display, xrm_string;
+Optional second arg XRM-STRING is a string of resources in xrdb format.\n\
+If the optional third arg MUST-SUCCEED is non-nil,\n\
+terminate Emacs if we can't open the connection.")
+  (display, xrm_string, must_succeed)
+     Lisp_Object display, xrm_string, must_succeed;
 {
   unsigned int n_planes;
   unsigned char *xrm_option;
@@ -4315,54 +4374,83 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   dpyinfo = x_term_init (display, xrm_option,
 			 XSTRING (Vx_resource_name)->data);
 
+  if (dpyinfo == 0)
+    {
+      if (!NILP (must_succeed))
+	fatal ("X server %s not responding.\n\
+Check the DISPLAY environment variable or use \"-d\"\n",
+	       XSTRING (display)->data);
+      else
+	error ("X server %s not responding", XSTRING (display)->data);
+    }
+
   x_in_use = 1;
 
   XSETFASTINT (Vwindow_system_version, 11);
   return Qnil;
 }
 
-DEFUN ("x-close-current-connection", Fx_close_current_connection,
-       Sx_close_current_connection,
-       1, 1, 0, "Close the connection to frame FRAME's X server.")
-  (frame)
-  Lisp_Object frame;
+DEFUN ("x-close-connection", Fx_close_connection,
+       Sx_close_connection, 1, 1, 0,
+   "Close the connection to DISPLAY's X server.\n\
+For DISPLAY, specify either a frame or a display name (a string).\n\
+If DISPLAY is nil, that stands for the selected frame's display.")
+  (display)
+  Lisp_Object display;
 {
-  Display *dpy;
-  /* Note: If we're going to call check_x here, then the fatal error
-     can't happen.  For the moment, this check is just for safety,
-     so a user won't try out the function and get a crash.  If it's
-     really intended only to be called when killing emacs, then there's
-     no reason for it to have a lisp interface at all.  */
-  check_x ();
-  CHECK_LIVE_FRAME (frame, 0);
-  dpy = FRAME_X_DISPLAY (XFRAME (frame));
+  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *tail;
+  int i;
 
-  /* This is ONLY used when killing emacs;  For switching displays
-     we'll have to take care of setting CloseDownMode elsewhere.  */
+  if (dpyinfo->reference_count > 0)
+    error ("Display still has frames on it");
 
-  if (dpy)
+  BLOCK_INPUT;
+  /* Free the fonts in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
     {
-      BLOCK_INPUT;
-      XSetCloseDownMode (dpy, DestroyAll);
-      XCloseDisplay (dpy);
-      x_in_use = 0;
+      if (dpyinfo->font_table[i].name)
+	free (dpyinfo->font_table[i].name);
+      /* Don't free the full_name string;
+	 it is always shared with something else.  */
+      XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
     }
-  else
-    error ("No current X display connection to close");
+  x_destroy_all_bitmaps (dpyinfo);
+  XSetCloseDownMode (dpyinfo->display, DestroyAll);
+  XCloseDisplay (dpyinfo->display);
+
+  x_delete_display (dpyinfo);
+  UNBLOCK_INPUT;
 
   return Qnil;
 }
 
-DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize,
-       1, 2, 0, "If ON is non-nil, report X errors as soon as the erring request is made.\n\
+DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
+  "Return the list of display names that Emacs has connections to.")
+  ()
+{
+  Lisp_Object tail, result;
+
+  result = Qnil;
+  for (tail = x_display_name_list; ! NILP (tail); tail = XCONS (tail)->cdr)
+    result = Fcons (XCONS (XCONS (tail)->car)->car, result);
+
+  return result;
+}
+
+DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
+   "If ON is non-nil, report X errors as soon as the erring request is made.\n\
 If ON is nil, allow buffering of requests.\n\
 Turning on synchronization prohibits the Xlib routines from buffering\n\
 requests and seriously degrades performance, but makes debugging much\n\
-easier.")
-  (on, frame)
-    Lisp_Object frame, on;
+easier.
+The optional second argument DISPLAY specifies which display to act on.\n\
+DISPLAY should be either a frame or a display name (a string).\n\
+If DISPLAY is omitted or nil, that stands for the selected frame's display.")
+  (on, display)
+    Lisp_Object display, on;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (frame);
+  struct x_display_info *dpyinfo = check_x_display_info (display);
 
   XSynchronize (dpyinfo->display, !EQ (on, Qnil));
 
@@ -4554,7 +4642,8 @@ or when you set the mouse color.");
   defsubr (&Sx_horizontal_line);
 #endif
   defsubr (&Sx_open_connection);
-  defsubr (&Sx_close_current_connection);
+  defsubr (&Sx_close_connection);
+  defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
 }
 
