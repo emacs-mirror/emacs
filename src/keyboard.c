@@ -1,11 +1,11 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -241,11 +241,10 @@ extern char *pending_malloc_warning;
 /* Circular buffer for pre-read keyboard input.  */
 static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
 
-#ifdef MULTI_FRAME
-/* Vector of frames, to GCPRO the frames mentioned in kbd_buffer.
+/* Vector to GCPRO the frames and windows mentioned in kbd_buffer.
 
-   The interrupt-level event handlers will never enqueue a frame which
-   is not in Vframe_list, and once an event is dequeued,
+   The interrupt-level event handlers will never enqueue an event on a
+   frame which is not in Vframe_list, and once an event is dequeued,
    Vlast_event_frame or the event itself points to the frame.  So
    that's all fine.
 
@@ -258,15 +257,17 @@ static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
    have an event referring to a freed frame, which will crash Emacs
    when it is dequeued.
 
-   So, we use this vector to protect any frames in the event queue.
-   That way, they'll be dequeued as dead frames, but still valid lisp
-   objects.
+   Similar things happen when an event on a scrollbar is enqueued; the
+   window may be deleted while the event is in the queue.
 
-   If kbd_buffer[i] != 0, then
-     (XFRAME (XVECTOR (kbd_buffer_frames)->contents[i])
-       == kbd_buffer[i].frame).  */
-static Lisp_Object kbd_buffer_frames;
-#endif
+   So, we use this vector to protect the frame_or_window field in the
+   event queue.  That way, they'll be dequeued as dead frames or
+   windows, but still valid lisp objects.
+
+   If kbd_buffer[i].kind != no_event, then
+     (XVECTOR (kbd_buffer_frame_or_window)->contents[i]
+      == kbd_buffer[i].frame_or_window.  */
+static Lisp_Object kbd_buffer_frame_or_window;
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
@@ -1373,13 +1374,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  from_macro:
  reread_first:
-  echo_char (c);
 
   /* Record this character as part of the current key.
      Don't record mouse motion; it should never matter.  */
   if (! (EVENT_HAS_PARAMETERS (c)
 	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
-    add_command_key (c);
+    {
+      echo_char (c);
+      add_command_key (c);
+    }
 
   /* Re-reading in the middle of a command */
  reread:
@@ -1527,12 +1530,13 @@ kbd_buffer_store_event (event)
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  {
-	    Lisp_Object focus = FRAME_FOCUS_FRAME (event->frame);
+	    Lisp_Object focus =
+	      FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
 
 	    if (NILP (focus))
-	      Vlast_event_frame = focus;
+	      Vlast_event_frame = event->frame_or_window;
 	    else
-	      XSET (Vlast_event_frame, Lisp_Frame, event->frame);
+	      Vlast_event_frame = focus;
 	  }
 #endif
 
@@ -1562,16 +1566,14 @@ kbd_buffer_store_event (event)
       kbd_store_ptr->kind = event->kind;
       kbd_store_ptr->code = event->code;
       kbd_store_ptr->part = event->part;
-      kbd_store_ptr->frame = event->frame;
+      kbd_store_ptr->frame_or_window = event->frame_or_window;
       kbd_store_ptr->modifiers = event->modifiers;
       kbd_store_ptr->x = event->x;
       kbd_store_ptr->y = event->y;
       kbd_store_ptr->timestamp = event->timestamp;
-#ifdef MULTI_FRAME
-      XSET (XVECTOR (kbd_buffer_frames)->contents[kbd_store_ptr - kbd_buffer],
-	    Lisp_Frame,
-	    event->frame);
-#endif
+      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_store_ptr
+						      - kbd_buffer]
+       = event->frame_or_window);
 
       kbd_store_ptr++;
     }
@@ -1650,10 +1652,15 @@ kbd_buffer_get_event ()
       /* If this event is on a different frame, return a switch-frame this
 	 time, and leave the event in the queue for next time.  */
       {
-	Lisp_Object frame = FRAME_FOCUS_FRAME (event->frame);
+	Lisp_Object frame = event->frame_or_window;
+	Lisp_Object focus;
 
-	if (NILP (frame))
-	  XSET (frame, Lisp_Frame, event->frame);
+	if (XTYPE (frame) == Lisp_Window)
+	  frame = WINDOW_FRAME (XWINDOW (frame));
+
+	focus = FRAME_FOCUS_FRAME (XFRAME (frame));
+	if (! NILP (focus))
+	  frame = focus;
 
 	if (! EQ (frame, Vlast_event_frame))
 	  {
@@ -1673,9 +1680,8 @@ kbd_buffer_get_event ()
       
 	  /* Wipe out this event, to catch bugs.  */
 	  event->kind = no_event;
-#ifdef MULTI_FRAME
-	  XVECTOR (kbd_buffer_frames)->contents[event - kbd_buffer] = Qnil;
-#endif
+	  (XVECTOR (kbd_buffer_frame_or_window)->contents[event - kbd_buffer]
+	   = Qnil);
 
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -1683,12 +1689,12 @@ kbd_buffer_get_event ()
   else if (do_mouse_tracking && mouse_moved)
     {
       FRAME_PTR f;
-      struct scrollbar *bar;
+      Lisp_Object bar_window;
       enum scrollbar_part part;
       Lisp_Object x, y;
       unsigned long time;
 
-      (*mouse_position_hook) (&f, &bar, &part, &x, &y, &time);
+      (*mouse_position_hook) (&f, &bar_window, &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -1714,7 +1720,7 @@ kbd_buffer_get_event ()
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
       if (NILP (obj))
-	obj = make_lispy_movement (f, bar, part, x, y, time);
+	obj = make_lispy_movement (f, bar_window, part, x, y, time);
      }
   else
     /* We were promised by the above while loop that there was
@@ -1821,15 +1827,18 @@ Lisp_Object *scrollbar_parts[] = {
 };
 
 
-/* make_lispy_event stores the down-going location of the currently
-   depressed buttons in button_down_locations.  */
-struct mouse_position {
-  Lisp_Object window;
-  Lisp_Object buffer_pos;
-  Lisp_Object x, y;
-  Lisp_Object timestamp;
-};
-static struct mouse_position button_down_location[NUM_MOUSE_BUTTONS];
+/* A vector, indexed by button number, giving the down-going location
+   of currently depressed buttons, both scrollbar and non-scrollbar.
+
+   The elements have the form
+     (BUTTON-NUMBER MODIFIER-MASK . REST)
+   where REST is the cdr of a position as it would be reported in the event.
+
+   The make_lispy_event function stores positions here to tell the
+   difference between click and drag events, and to store the starting
+   location to be included in drag events.  */
+
+static Lisp_Object button_down_location;
 
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
@@ -1867,126 +1876,125 @@ make_lispy_event (event)
       /* A mouse click.  Figure out where it is, decide whether it's 
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
+    case scrollbar_click:
       {
 	int button = XFASTINT (event->code);
-	int part;
-	Lisp_Object window;
-	Lisp_Object posn;
-	struct mouse_position *loc;
+	Lisp_Object position;
+	Lisp_Object *start_pos;
 
-	if (button < 0 || button >=  NUM_MOUSE_BUTTONS)
+	if (button < 0 || button >= NUM_MOUSE_BUTTONS)
 	  abort ();
 
-	/* Where did this mouse click occur?  */
-	window = window_from_coordinates (event->frame,
-					  XINT (event->x), XINT (event->y),
-					  &part);
-	if (XTYPE (window) != Lisp_Window)
-	  posn = Qnil;
+	/* Build the position as appropriate for this mouse click.  */
+	if (event->kind == mouse_click)
+	  {
+	    int part;
+	    Lisp_Object window =
+	      window_from_coordinates (XFRAME (event->frame_or_window),
+				       XINT (event->x), XINT (event->y),
+				       &part);
+	    Lisp_Object posn;
+
+	    if (XTYPE (window) != Lisp_Window)
+	      posn = Qnil;
+	    else
+	      {
+		if (part == 1)
+		  posn = Qmode_line;
+		else if (part == 2)
+		  posn = Qvertical_line;
+		else
+		  {
+		    XSETINT (event->x, (XINT (event->x)
+					- XINT (XWINDOW (window)->left)));
+		    XSETINT (event->y, (XINT (event->y)
+					- XINT (XWINDOW (window)->top)));
+		    XSET (posn, Lisp_Int,
+			  buffer_posn_from_coords (XWINDOW (window),
+						   XINT (event->x),
+						   XINT (event->y)));
+		  }
+	      }
+
+	    position =
+	      Fcons (window,
+		     Fcons (posn,
+			    Fcons (Fcons (event->x, event->y),
+				   Fcons (make_number (event->timestamp),
+					  Qnil))));
+	  }
 	else
 	  {
-	    XSETINT (event->x, (XINT (event->x)
-				- XINT (XWINDOW (window)->left)));
-	    XSETINT (event->y, (XINT (event->y)
-				- XINT (XWINDOW (window)->top)));
-	    if (part == 1)
-	      posn = Qmode_line;
-	    else if (part == 2)
-	      posn = Qvertical_line;
-	    else
-	      XSET (posn, Lisp_Int,
-		    buffer_posn_from_coords (XWINDOW (window),
-					     XINT (event->x),
-					     XINT (event->y)));
+	    Lisp_Object window = event->frame_or_window;
+	    Lisp_Object portion_whole = Fcons (event->x, event->y);
+	    Lisp_Object part = *scrollbar_parts[(int) event->part];
+
+	    position =
+	      Fcons (window,
+		     Fcons (Qvertical_scrollbar,
+			    Fcons (portion_whole,
+				   Fcons (make_number (event->timestamp),
+					  Fcons (part,
+						 Qnil)))));
 	  }
 
-	/* If this is a button press, squirrel away the location, so we
-	   can decide later whether it was a click or a drag.  */
-	loc = button_down_location + button;
+	start_pos = &XVECTOR (button_down_location)->contents[button];
+
+	/* If this is a button press, squirrel away the location, so
+           we can decide later whether it was a click or a drag.  */
 	if (event->modifiers & down_modifier)
-	  {
-	    loc->window = window;
-	    loc->buffer_pos = posn;
-	    loc->x = event->x;
-	    loc->y = event->y;
-	    loc->timestamp = event->timestamp;
-	  }
+	  *start_pos = Fcopy_alist (position);
 
 	/* Now we're releasing a button - check the co-ordinates to
-	   see if this was a click or a drag.  */
+           see if this was a click or a drag.  */
 	else if (event->modifiers & up_modifier)
 	  {
+	    Lisp_Object down = Fnth (make_number (2), *start_pos);
+
+	    /* The third element of every position should be the (x,y)
+	       pair.  */
+	    if (! CONSP (down))
+	      abort ();
+
 	    event->modifiers &= ~up_modifier;
-	    event->modifiers |= ((EQ (event->x, loc->x)
-				  && EQ (event->y, loc->y))
+	    event->modifiers |= ((EQ (event->x, XCONS (down)->car)
+				  && EQ (event->y, XCONS (down)->cdr))
 				 ? click_modifier
 				 : drag_modifier);
 	  }
 	else
 	  /* Every mouse event should either have the down_modifier or
-	     the up_modifier set.  */
+             the up_modifier set.  */
 	  abort ();
 
-	  
-	/* Build the event.  */
 	{
-	  Lisp_Object head, start, end;
-
-	  /* Build the components of the event.  */
-	  head = modify_event_symbol (button,
-				      event->modifiers,
-				      Qmouse_click,
-				      lispy_mouse_names, &mouse_syms,
-				      (sizeof (lispy_mouse_names)
-				       / sizeof (lispy_mouse_names[0])));
-	  end = Fcons (window,
-		       Fcons (posn,
-			      Fcons (Fcons (event->x, event->y),
-				     Fcons (make_number (event->timestamp),
-					    Qnil))));
+	  /* Get the symbol we should use for the mouse click.  */
+	  Lisp_Object head =
+	    modify_event_symbol (button,
+				 event->modifiers,
+				 Qmouse_click,
+				 lispy_mouse_names, &mouse_syms,
+				 (sizeof (lispy_mouse_names)
+				  / sizeof (lispy_mouse_names[0])));
+	  
 	  if (event->modifiers & drag_modifier)
-	    start = Fcons (loc->window,
-			   Fcons (loc->buffer_pos,
-				  Fcons (Fcons (loc->x, loc->y),
-					 Fcons (make_number (loc->timestamp),
-						Qnil))));
+	    {
+	      Lisp_Object lispy_event =
+		Fcons (head,
+		       Fcons (*start_pos,
+			      Fcons (position,
+				     Qnil)));
+	      
+	      /* Allow this to be GC'd.  */
+	      *start_pos = Qnil;
 
-	  /* Assemble the pieces.  */
-	  if (event->modifiers & drag_modifier)
-	    return Fcons (head,
-			  Fcons (start,
-				 Fcons (end,
-					Qnil)));
+	      return lispy_event;
+	    }
 	  else
 	    return Fcons (head,
-			  Fcons (end,
+			  Fcons (position,
 				 Qnil));
 	}
-      }
-
-      /* A scrollbar click.  Build a scrollbar click list.  */
-    case scrollbar_click:
-      {
-	Lisp_Object button =
-	  modify_event_symbol (button,
-			       event->modifiers,
-			       Qmouse_click,
-			       lispy_mouse_names, &mouse_syms,
-			       (sizeof (lispy_mouse_names)
-				/ sizeof (lispy_mouse_names[0])));
-	Lisp_Object window =
-	  window_from_scrollbar (event->frame, event->scrollbar);
-	Lisp_Object portion_whole = Fcons (event->x, event->y);
-	Lisp_Object part = *scrollbar_parts[(int) event->part];
-	Lisp_Object total_posn =
-	  Fcons (window,
-		 Fcons (Qvertical_scrollbar,
-			Fcons (portion_whole,
-			       Fcons (make_number (event->timestamp),
-				      Fcons (part,
-					     Qnil)))));
-
-	return Fcons (button, Fcons (total_posn, Qnil));
       }
 
       /* The 'kind' field of the event is something we don't recognize.  */
@@ -1996,21 +2004,20 @@ make_lispy_event (event)
 }
 
 static Lisp_Object
-make_lispy_movement (frame, bar, part, x, y, time)
+make_lispy_movement (frame, bar_window, part, x, y, time)
      FRAME_PTR frame;
-     struct scrollbar *bar;
+     Lisp_Object bar_window;
      enum scrollbar_part part;
      Lisp_Object x, y;
      unsigned long time;
 {
   /* Is it a scrollbar movement?  */
-  if (bar)
+  if (frame && ! NILP (bar_window))
     {
-      Lisp_Object window = window_from_scrollbar (frame, bar);
       Lisp_Object part = *scrollbar_parts[(int) part];
 
       return Fcons (Qscrollbar_movement,
-		    (Fcons (Fcons (window,
+		    (Fcons (Fcons (bar_window,
 				   Fcons (Qvertical_scrollbar,
 					  Fcons (Fcons (x, y),
 						 Fcons (make_number (time),
@@ -2304,7 +2311,7 @@ apply_modifiers (modifiers, base)
      int modifiers;
      Lisp_Object base;
 {
-  Lisp_Object cache, index, entry;
+  Lisp_Object cache, index, entry, new_symbol;
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
@@ -2312,31 +2319,42 @@ apply_modifiers (modifiers, base)
   entry = Fassq (index, cache);
 
   if (CONSP (entry))
-    return XCONS (entry)->cdr;
+    new_symbol = XCONS (entry)->cdr;
+  else
+    {
+      /* We have to create the symbol ourselves.  */  
+      new_symbol = apply_modifiers_uncached (modifiers,
+					     XSYMBOL (base)->name->data,
+					     XSYMBOL (base)->name->size);
 
-  /* We have to create the symbol ourselves.  */  
-  {
-    Lisp_Object new_symbol
-      = apply_modifiers_uncached (modifiers,
-				  XSYMBOL (base)->name->data,
-				  XSYMBOL (base)->name->size);
+      /* Add the new symbol to the base's cache.  */
+      entry = Fcons (index, new_symbol);
+      Fput (base, Qmodifier_cache, Fcons (entry, cache));
 
-    /* Add the new symbol to the base's cache.  */
-    Fput (base, Qmodifier_cache,
-	  Fcons (Fcons (index, new_symbol), cache));
+      /* We have the parsing info now for free, so add it to the caches.  */
+      XFASTINT (index) = modifiers;
+      Fput (new_symbol, Qevent_symbol_element_mask,
+	    Fcons (base, Fcons (index, Qnil)));
+      Fput (new_symbol, Qevent_symbol_elements,
+	    Fcons (base, lispy_modifier_list (modifiers)));
+    }
 
-    /* We have the parsing info now for free, so add it to the caches.  */
-    XFASTINT (index) = modifiers;
-    Fput (new_symbol, Qevent_symbol_element_mask,
-	  Fcons (base, Fcons (index, Qnil)));
-    Fput (new_symbol, Qevent_symbol_elements,
-	  Fcons (base, lispy_modifier_list (modifiers)));
+  /* Make sure this symbol is of the same kind as BASE.  
 
-    /* This symbol is of the same kind as BASE.  */
-    Fput (new_symbol, Qevent_kind, Fget (new_symbol, Qevent_kind));
+     You'd think we could just set this once and for all when we
+     intern the symbol above, but reorder_modifiers may call us when
+     BASE's property isn't set right; we can't assume that just
+     because we found something in the cache it must have its kind set
+     right.  */
+  if (NILP (Fget (new_symbol, Qevent_kind)))
+    {
+      Lisp_Object kind = Fget (base, Qevent_kind);
 
-    return new_symbol;
-  }
+      if (! NILP (kind))
+	Fput (new_symbol, Qevent_kind, kind);
+    }
+
+  return new_symbol;
 }
 
 
@@ -2573,8 +2591,12 @@ read_avail_input (expected)
       for (i = 0; i < nread; i++)
 	{
 	  buf[i].kind = ascii_keystroke;
-	  XSET (buf[i].code, Lisp_Int, cbuf[i]);
-	  buf[i].frame = selected_frame;
+	  XSET (buf[i].code,		Lisp_Int,   cbuf[i]);
+#ifdef MULTI_FRAME
+	  XSET (buf[i].frame_or_window, Lisp_Frame, selected_frame);
+#else
+	  buf[i].frame_or_window = Qnil;
+#endif
 	}
     }
 
@@ -3077,7 +3099,11 @@ read_key_sequence (keybuf, bufsize, prompt)
     echo_start = echo_length ();
   keys_start = this_command_key_count;
 
+  /* We jump here when the key sequence has been thoroughly changed, and
+     we need to rescan it starting from the beginning.  When we jump here,
+     keybuf[0..mock_input] holds the sequence we should reread.  */
  replay_sequence:
+
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
      keybuf with its symbol, or if the sequence starts with a mouse
@@ -3123,6 +3149,13 @@ read_key_sequence (keybuf, bufsize, prompt)
       Lisp_Object key;
       int used_mouse_menu = 0;
 
+      /* Where the last real key started.  If we need to throw away a
+         key that has expanded into more than one element of keybuf
+         (say, a mouse click on the mode line which is being treated
+         as [mode-line (mouse-...)], then we backtrack to this point
+         of keybuf.  */
+      int last_real_key_start;
+
       /* These variables are analogous to echo_start and keys_start;
 	 while those allow us to restart the entire key sequence,
 	 echo_local_start and keys_local_start allow us to throw away
@@ -3158,6 +3191,8 @@ read_key_sequence (keybuf, bufsize, prompt)
       /* If not, we should actually read a character.  */
       else
 	{
+	  last_real_key_start = t;
+
 	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
 			   &used_mouse_menu);
 
@@ -3263,27 +3298,47 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      /* We drop unbound `down-' events altogether.  */
 	      if (modifiers & down_modifier)
 		{
-		  /* To make sure that mock_input doesn't just give
-		     this event back to us; we want to delete this
-		     event from the mock input queue.  We could delete
-		     keybuf[t] and shift everything after that to the
-		     left by one spot, but we'd also have to fix up
-		     any variable that points into keybuf, and shifting
-		     isn't really necessary anyway.
-		     
-		     Adding prefixes for non-textual mouse clicks creates
-		     two characters of mock input, and this must be the
-		     second, so mock_input would be over anyway; it's okay
-		     to zero it.
-		     
+		  /* Dispose of this event by simply jumping back to
+		     replay_key, to get another event.
+
+		     Note that if this event came from mock input,
+		     then just jumping back to replay_key will just
+		     hand it to us again.  So we have to wipe out any
+		     mock input.
+
+		     We could delete keybuf[t] and shift everything
+		     after that to the left by one spot, but we'd also
+		     have to fix up any variable that points into
+		     keybuf, and shifting isn't really necessary
+		     anyway.
+
+		     Adding prefixes for non-textual mouse clicks
+		     creates two characters of mock input, and both
+		     must be thrown away.  If we're only looking at
+		     the prefix now, we can just jump back to
+		     replay_key.  On the other hand, if we've already
+		     processed the prefix, and now the actual click
+		     itself is giving us trouble, then we've lost the
+		     state of the keymaps we want to backtrack to, and
+		     we need to replay the whole sequence to rebuild
+		     it.
+
 		     Beyond that, only function key expansion could
 		     create more than two keys, but that should never
 		     generate mouse events, so it's okay to zero
 		     mock_input in that case too.
-		     
+
 		     Isn't this just the most wonderful code ever?  */
-		  mock_input = 0;
-		  goto replay_key;
+		  if (t == last_real_key_start)
+		    {
+		      mock_input = 0;
+		      goto replay_key;
+		    }
+		  else
+		    {
+		      mock_input = last_real_key_start;
+		      goto replay_sequence;
+		    }
 		}
 
 	      /* We turn unbound `drag-' events into `click-'
@@ -3702,9 +3757,7 @@ Also cancel any kbd macro being defined.")
      volatile qualifier of kbd_store_ptr.  Is there anything wrong
      with that?  */
   kbd_fetch_ptr = (struct input_event *) kbd_store_ptr;
-#ifdef MULTI_FRAME
-  Ffillarray (kbd_buffer_frames, Qnil);
-#endif
+  Ffillarray (kbd_buffer_frame_or_window, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -3798,10 +3851,9 @@ stuff_buffered_input (stuffstring)
       if (kbd_fetch_ptr->kind == ascii_keystroke)
 	stuff_char (XINT (kbd_fetch_ptr->code));
       kbd_fetch_ptr->kind = no_event;
-#ifdef MULTI_FRAME
-      XVECTOR (kbd_buffer_frames)->contents[kbd_fetch_ptr - kbd_buffer]
-	= Qnil;
-#endif
+      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_fetch_ptr
+						     - kbd_buffer]
+       = Qnil);
       kbd_fetch_ptr++;
     }
   input_pending = 0;
@@ -4011,13 +4063,16 @@ init_keyboard ()
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
   Vlast_event_frame = Qnil;
-
-  /* If we're running an undumped Emacs, kbd_buffer_frames isn't set
-     yet.  When it does get initialized, it will be filled with the
-     right value, so it's okay not to fret about it here.  */
-  if (initialized)
-    Ffillarray (kbd_buffer_frames, Qnil);
 #endif
+
+  /* If we're running a dumped Emacs, we need to clear out
+     kbd_buffer_frame_or_window, in case some events got into it
+     before we dumped.
+
+     If we're running an undumped Emacs, it hasn't been initialized by
+     syms_of_keyboard yet.  */
+  if (initialized)
+    Ffillarray (kbd_buffer_frame_or_window, Qnil);
 
   if (!noninteractive)
     {
@@ -4068,9 +4123,9 @@ struct event_head {
 };
 
 struct event_head head_table[] = {
-  &Qmouse_movement,  "mouse-movement",   &Qmouse_movement,
-  &Qswitch_frame,    "switch-frame",     &Qswitch_frame,
-  &Qscrollbar_movement, "scrollbar-movement", &Qscrollbar_movement,
+  &Qmouse_movement,	"mouse-movement",	&Qmouse_movement,
+  &Qscrollbar_movement, "scrollbar-movement",	&Qmouse_movement,
+  &Qswitch_frame,	"switch-frame",		&Qswitch_frame,
 };
 
 syms_of_keyboard ()
@@ -4129,12 +4184,8 @@ syms_of_keyboard ()
       }
   }
 
-  {
-    int i;
-
-    for (i = 0; i < NUM_MOUSE_BUTTONS; i++)
-      staticpro (&button_down_location[i].window);
-  }
+  button_down_location = Fmake_vector (make_number (NUM_MOUSE_BUTTONS), Qnil);
+  staticpro (&button_down_location);
 
   {
     int i;
@@ -4152,10 +4203,9 @@ syms_of_keyboard ()
   this_command_keys = Fmake_vector (make_number (40), Qnil);
   staticpro (&this_command_keys);
 
-#ifdef MULTI_FRAME
-  kbd_buffer_frames = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
-  staticpro (&kbd_buffer_frames);
-#endif
+  kbd_buffer_frame_or_window
+    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
+  staticpro (&kbd_buffer_frame_or_window);
 
   func_key_syms = Qnil;
   staticpro (&func_key_syms);
