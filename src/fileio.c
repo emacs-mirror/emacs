@@ -3746,8 +3746,8 @@ build_annotations_unwind (buf)
   return Qnil;
 }
 
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 6,
-  "r\nFWrite region to file: ",
+DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
+  "r\nFWrite region to file: \ni\ni\ni\nZCoding system: ",
   "Write current region into specified file.\n\
 When called from a program, takes three arguments:\n\
 START, END and FILENAME.  START and END are buffer positions.\n\
@@ -3763,13 +3763,17 @@ If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
   use for locking and unlocking, overriding FILENAME and VISIT.\n\
+The optional seventh arg CODING-SYSTEM, if non-nil, specifies the coding\n\
+ system to be used for encoding characters.  For interactive use,\n\
+ you can specify it by giving a prefix argument.  If no coding system\n\
+ is specified, the current region is encoded according to the value of\n\
+ `coding-system-for-write' or `coding-system-alist'.  The variable\n\
+ `last-coding-system-used' is set the coding system actually used.\n\
 Kludgy feature: if START is a string, then that string is written\n\
-to the file, instead of any buffer contents, and END is ignored.\n\
-This does code conversion according to the value of\n\
- `coding-system-for-write' or `coding-system-alist', and sets the variable\n\
- `last-coding-system-used' to the coding system actually used.")
-  (start, end, filename, append, visit, lockname)
+to the file, instead of any buffer contents, and END is ignored.")
+  (start, end, filename, append, visit, lockname, coding_system_symbol)
      Lisp_Object start, end, filename, append, visit, lockname;
+     Lisp_Object coding_system_symbol;
 {
   register int desc;
   int failure;
@@ -3800,7 +3804,42 @@ This does code conversion according to the value of\n\
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
-  GCPRO4 (start, filename, visit, lockname);
+  GCPRO5 (start, filename, visit, lockname, coding_system_symbol);
+
+  /* Decide the coding-system to be encoded to.  */
+  {
+    Lisp_Object val;
+
+    if (auto_saving || NILP (current_buffer->enable_multibyte_characters))
+      val = Qnil;
+    else if (!NILP (coding_system_symbol))
+      val = coding_system_symbol;
+    else if (!NILP (Vcoding_system_for_write))
+      val = Vcoding_system_for_write;
+    else if (!NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
+					      Qnil)))
+      val = Fsymbol_value (Qbuffer_file_coding_system);
+    else
+      {
+	Lisp_Object args[7], coding_systems;
+
+	args[0] = Qwrite_region, args[1] = start, args[2] = end,
+	  args[3] = filename, args[4] = append, args[5] = visit,
+	  args[6] = lockname;
+	coding_systems = Ffind_coding_system (7, args);
+	val = (CONSP (coding_systems)
+	       ? XCONS (coding_systems)->cdr
+	       : Fsymbol_value (Qbuffer_file_coding_system));
+      }
+    setup_coding_system (Fcheck_coding_system (val), &coding); 
+    if (!STRINGP (start) && !NILP (current_buffer->selective_display))
+      coding.selective = 1;
+#ifdef DOS_NT
+    if (!NILP (current_buffer->buffer_file_type))
+      coding.eol_type = CODING_EOL_LF;
+#endif /* DOS_NT */
+  }
+
   filename = Fexpand_file_name (filename, Qnil);
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
@@ -3840,38 +3879,6 @@ This does code conversion according to the value of\n\
       UNGCPRO;
       return val;
     }
-
-  /* Decide the coding-system to be encoded to.  */
-  {
-    Lisp_Object val;
-
-    if (auto_saving || NILP (current_buffer->enable_multibyte_characters))
-      val = Qnil;
-    else if (!NILP (Vcoding_system_for_write))
-      val = Vcoding_system_for_write;
-    else if (!NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
-					      Qnil)))
-      val = Fsymbol_value (Qbuffer_file_coding_system);
-    else
-      {
-	Lisp_Object args[7], coding_systems;
-
-	args[0] = Qwrite_region, args[1] = start, args[2] = end,
-	  args[3] = filename, args[4] = append, args[5] = visit,
-	  args[6] = lockname;
-	coding_systems = Ffind_coding_system (7, args);
-	val = (CONSP (coding_systems)
-	       ? XCONS (coding_systems)->cdr
-	       : Fsymbol_value (Qbuffer_file_coding_system));
-      }
-    setup_coding_system (Fcheck_coding_system (val), &coding); 
-    if (!STRINGP (start) && !NILP (current_buffer->selective_display))
-      coding.selective = 1;
-#ifdef DOS_NT
-    if (!NILP (current_buffer->buffer_file_type))
-      coding.eol_type = CODING_EOL_LF;
-#endif /* DOS_NT */
-  }
 
   /* Special kludge to simplify auto-saving.  */
   if (NILP (start))
@@ -4009,6 +4016,14 @@ This does code conversion according to the value of\n\
  */
   if (GPT > BEG && GPT_ADDR[-1] != '\n')
     move_gap (find_next_newline (GPT, 1));
+#else
+  /* Whether VMS or not, we must move the gap to the next of newline
+     when we must put designation sequences at beginning of line.  */
+  if (INTEGERP (start)
+      && coding.type == coding_type_iso2022
+      && coding.flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL
+      && GPT > BEG && GPT_ADDR[-1] != '\n')
+    move_gap (find_next_newline (GPT, 1));
 #endif
 
   failure = 0;
@@ -4047,6 +4062,7 @@ This does code conversion according to the value of\n\
   else
     {
       /* If file was empty, still need to write the annotations */
+      coding.last_block = 1;
       failure = 0 > a_write (desc, "", 0, XINT (start), &annotations, &coding);
       save_errno = errno;
     }
@@ -4227,14 +4243,10 @@ build_annotations (start, end, pre_write_conversion)
       struct buffer *given_buffer = current_buffer;
       Vwrite_region_annotations_so_far = annotations;
       res = call2 (pre_write_conversion, start, end);
-      if (current_buffer != given_buffer)
-	{
-	  start = BEGV;
-	  end = ZV;
-	  annotations = Qnil;
-	}
       Flength (res);
-      annotations = merge (annotations, res, Qcar_less_than_car);
+      annotations = (current_buffer != given_buffer
+		     ? res
+		     : merge (annotations, res, Qcar_less_than_car));
     }
 
   UNGCPRO;
@@ -4309,14 +4321,6 @@ e_write (desc, addr, len, coding)
       produced = encode_coding (coding, addr, buf, len, WRITE_BUF_SIZE,
 				&consumed);
       len -= consumed, addr += consumed;
-      if (produced == 0 && len > 0)
-	{
-	  /* There was a carry over because of invalid codes in the source.
-	     We just write out them as is.  */
-	  bcopy (addr, buf, len);
-	  produced = len;
-	  len = 0;
-	}
       if (produced > 0)
 	{
 	  produced -= write (desc, buf, produced);
@@ -4453,7 +4457,7 @@ auto_save_1 ()
   return
     Fwrite_region (Qnil, Qnil,
 		   current_buffer->auto_save_file_name,
-		   Qnil, Qlambda, Qnil);
+		   Qnil, Qlambda, Qnil, Qnil);
 }
 
 static Lisp_Object
