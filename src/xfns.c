@@ -239,6 +239,7 @@ Lisp_Object Qiconic_startup;
 Lisp_Object Qinternal_border_width;
 Lisp_Object Qleft;
 Lisp_Object Qmouse_color;
+Lisp_Object Qnone;
 Lisp_Object Qparent_id;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qsuppress_initial_map;
@@ -249,7 +250,7 @@ Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
 
 /* The below are defined in frame.c. */
-extern Lisp_Object Qheight, Qminibuffer, Qname, Qnone, Qonly, Qwidth;
+extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable;
 
 extern Lisp_Object Vwindow_system_version;
@@ -343,8 +344,8 @@ static struct x_frame_parm_table x_frame_parms[] =
   "border-width", x_set_border_width,
   "internal-border-width", x_set_internal_border_width,
   "name", x_explicitly_set_name,
-  "autoraise", x_set_autoraise,
-  "autolower", x_set_autolower,
+  "auto-raise", x_set_autoraise,
+  "auto-lower", x_set_autolower,
   "vertical-scrollbars", x_set_vertical_scrollbars,
 };
 
@@ -3810,6 +3811,8 @@ syms_of_xfns ()
   staticpro (&Qleft);
   Qmouse_color = intern ("mouse-color");
   staticpro (&Qmouse_color);
+  Qnone = intern ("none");
+  staticpro (&Qnone);
   Qparent_id = intern ("parent-id");
   staticpro (&Qparent_id);
   Qsuppress_icon = intern ("suppress-icon");
