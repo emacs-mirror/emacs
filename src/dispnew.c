@@ -1092,6 +1092,7 @@ direct_output_for_insert (g)
   XSETFASTINT (w->last_point, PT);
   XSETFASTINT (w->last_point_x, hpos);
   XSETFASTINT (w->last_modified, MODIFF);
+  XSETFASTINT (w->last_overlay_modified, OVERLAY_MODIFF);
 
   reassert_line_highlight (0, vpos);
   write_glyphs (&current_frame->glyphs[vpos][hpos], 1);
