@@ -750,6 +750,8 @@ fit_to_screen (mw, ws, previous_ws, horizontal_p)
 	ws->x = previous_ws->x - ws->width;
       else
 	ws->x = screen_width - ws->width;
+      if (ws->x < 0)
+        ws->x = 0;
     }
   if (ws->y < 0)
     ws->y = 0;
@@ -759,6 +761,8 @@ fit_to_screen (mw, ws, previous_ws, horizontal_p)
 	ws->y = previous_ws->y - ws->height;
       else
 	ws->y = screen_height - ws->height;
+      if (ws->y < 0) 
+        ws->y = 0;
     }
 }
 
