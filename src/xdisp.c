@@ -2618,25 +2618,6 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  p = &FETCH_CHAR (pos);
 	}
 
-      /* Do nothing here for a char that's entirely off the left edge.  */
-      if (p1 >= leftmargin)
-	{
-	  /* For all the glyphs occupied by this character, except for the
-	     first, store -1 in charstarts.  */
-	  if (p1 != p1prev)
-	    {
-	      int *p2x = &charstart[(p1prev < leftmargin
-				     ? leftmargin : p1prev)
-				    - p1start];
-	      int *p2 = &charstart[(p1 < endp ? p1 : endp) - p1start];
-
-	      if (p2x < p2)
-		*p2x++ = prevpos;
-	      while (p2x < p2)
-		*p2x++ = -1;
-	    }
-	}
-
       if (p1 >= endp)
 	break;
 
@@ -2691,6 +2672,25 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
 	    }
 #endif
+
+	  /* Update charstarts for the newline that ended this line.  */
+	  /* Do nothing here for a char that's entirely off the left edge
+	     or if it starts at the right edge.  */
+	  if (p1 >= leftmargin && p1prev != endp)
+	    {
+	      /* Store the newline's position into charstarts
+		 for the column where the newline starts.
+		 Store -1 for the rest of the glyphs it occupies.  */
+	      int *p2x = &charstart[(p1prev < leftmargin
+				     ? leftmargin : p1prev)
+				    - p1start];
+	      int *p2 = &charstart[(p1 < endp ? p1 : endp) - p1start];
+
+	      *p2x++ = pos;
+	      while (p2x < p2)
+		*p2x++ = -1;
+	    }
+
 	  break;
 	}
       else if (c == '\t')
@@ -2728,6 +2728,24 @@ display_text_line (w, start, vpos, hpos, taboffset)
 		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
 	    }
 #endif
+
+	  /* Update charstarts for the ^M that ended this line.  */
+	  /* Do nothing here for a char that's entirely off the left edge
+	     or if it starts at the right edge.  */
+	  if (p1 >= leftmargin && p1prev != endp)
+	    {
+	      /* Store the newline's position into charstarts
+		 for the column where the newline starts.
+		 Store -1 for the rest of the glyphs it occupies.  */
+	      int *p2x = &charstart[(p1prev < leftmargin
+				     ? leftmargin : p1prev)
+				    - p1start];
+	      int *p2 = &charstart[(p1 < endp ? p1 : endp) - p1start];
+
+	      *p2x++ = pos;
+	      while (p2x < p2)
+		*p2x++ = -1;
+	    }
 	  break;
 	}
       else if (c < 0200 && ctl_arrow)
@@ -2761,6 +2779,28 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
       prevpos = pos;
       pos++;
+
+      /* Update charstarts for the character just output.  */
+
+      /* Do nothing here for a char that's entirely off the left edge.  */
+      if (p1 >= leftmargin)
+	{
+	  /* Store the char's position into charstarts
+	     for the first glyph occupied by this char.
+	     Store -1 for the rest of the glyphs it occupies.  */
+	  if (p1 != p1prev)
+	    {
+	      int *p2x = &charstart[(p1prev < leftmargin
+				     ? leftmargin : p1prev)
+				    - p1start];
+	      int *p2 = &charstart[(p1 < endp ? p1 : endp) - p1start];
+
+	      if (p2x < p2)
+		*p2x++ = prevpos;
+	      while (p2x < p2)
+		*p2x++ = -1;
+	    }
+	}
     }
 
   val.hpos = - XINT (w->hscroll);
