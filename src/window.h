@@ -463,4 +463,37 @@ struct glyph *get_phys_cursor_glyph P_ ((struct window *w));
 #define WINDOW_LIVE_P(WINDOW) \
      (WINDOWP ((WINDOW)) && !NILP (XWINDOW ((WINDOW))->buffer))
 
+
+/* These used to be in lisp.h.  */
+
+extern Lisp_Object Qwindowp, Qwindow_live_p;
+extern Lisp_Object Vwindow_list;
+
+EXFUN (Fwindow_end, 2);
+EXFUN (Fselected_window, 0);
+EXFUN (Fdelete_window, 1);
+EXFUN (Fwindow_buffer, 1);
+EXFUN (Fget_buffer_window, 2);
+EXFUN (Fsave_window_excursion, UNEVALLED);
+EXFUN (Fsplit_window, 3);
+EXFUN (Fset_window_configuration, 1);
+EXFUN (Fcurrent_window_configuration, 1);
+extern int compare_window_configurations P_ ((Lisp_Object, Lisp_Object, int));
+EXFUN (Fcoordinates_in_window_p, 2);
+EXFUN (Fwindow_at, 3);
+EXFUN (Fpos_visible_in_window_p, 3);
+extern void mark_window_cursors_off P_ ((struct window *));
+extern int window_internal_height P_ ((struct window *));
+extern int window_internal_width P_ ((struct window *));
+EXFUN (Frecenter, 1);
+EXFUN (Fscroll_other_window, 1);
+EXFUN (Fset_window_start, 3);
+extern void temp_output_buffer_show P_ ((Lisp_Object));
+extern void replace_buffer_in_all_windows P_ ((Lisp_Object));
+extern void init_window_once P_ ((void));
+extern void init_window P_ ((void));
+extern void syms_of_window P_ ((void));
+extern void keys_of_window P_ ((void));
+
+
 #endif /* not WINDOW_H_INCLUDED */
