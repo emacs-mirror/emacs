@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.59) $
+ * $HopeName: MMsrc!mpm.h(trunk.60) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -489,13 +489,13 @@ extern void ArenaFree(Arena arena, void *base, Size size);
  */
 
 /* Peek reads a value */
-extern Word ArenaPeek(Arena arena, Addr addr);
+extern Ref ArenaPeek(Arena arena, Addr addr);
 /* Same, but addr must be in seg */
-extern Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
+extern Ref ArenaPeekSeg(Arena arena, Seg seg, Addr addr);
 /* Poke stores a value */
-extern void ArenaPoke(Arena arena, Addr addr, Word word);
+extern void ArenaPoke(Arena arena, Addr addr, Ref ref);
 /* Same, but addr must be in seg */
-extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word);
+extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Ref ref);
 
 /* Read/Write
  *
@@ -507,7 +507,7 @@ extern void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word);
  * Only Read provided right now.
  */
 
-Word ArenaRead(Arena arena, Addr addr);
+Ref ArenaRead(Arena arena, Addr addr);
 
 #define ArenaPoolRing(arena)    (&(arena)->poolRing)
 #define ArenaRootRing(arena)    (&(arena)->rootRing)
