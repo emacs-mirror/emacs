@@ -112,7 +112,7 @@ extern void process_expose_from_menu ();
 extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show ();
-void popup_get_selection ();
+static void popup_get_selection ();
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
@@ -132,6 +132,8 @@ static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object *,
 				  int, int, int *));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
+
+extern EMACS_TIME timer_check P_ ((int));
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -1015,31 +1017,44 @@ on the left of the dialog box and all following items on the right.
 
 #ifdef USE_X_TOOLKIT
 
+/* Define a queue to save up for later unreading
+   all X events that don't pertain to the menu.  */
+struct event_queue
+  {
+    XEvent event;
+    struct event_queue *next;
+  };
+
+/* It is ok that this queue is a static variable,
+   because init_menu_items won't allow the menu mechanism
+   to be entered recursively.  */
+static struct event_queue *popup_get_selection_queue;
+
+static Lisp_Object popup_get_selection_unwind ();
+
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
-   and x-popup-dialog; it is not used for the menu bar any more.
+   and x-popup-dialog; it is not used for the menu bar.
+
+   If DO_TIMERS is nonzero, run timers.
 
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
-void
-popup_get_selection (initial_event, dpyinfo, id)
+static void
+popup_get_selection (initial_event, dpyinfo, id, do_timers)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
+     int do_timers;
 {
   XEvent event;
-
-  /* Define a queue to save up for later unreading
-     all X events that don't pertain to the menu.  */
-  struct event_queue
-    {
-      XEvent event;
-      struct event_queue *next;
-    };
-  
-  struct event_queue *queue = NULL;
   struct event_queue *queue_tmp;
+  int count = SPECPDL_INDEX ();
+
+  popup_get_selection_queue = NULL;
+
+  record_unwind_protect (popup_get_selection_unwind, Qnil);
 
   if (initial_event)
     event = *initial_event;
@@ -1100,23 +1115,38 @@ popup_get_selection (initial_event, dpyinfo, id)
 	{
 	  queue_tmp = (struct event_queue *) xmalloc (sizeof *queue_tmp);
 	  queue_tmp->event = event;
-	  queue_tmp->next = queue;
-	  queue = queue_tmp;
+	  queue_tmp->next = popup_get_selection_queue;
+	  popup_get_selection_queue = queue_tmp;
 	}
       else
 	XtDispatchEvent (&event);
 
-      if (!popup_activated ())
+      /* If the event deactivated the menu, we are finished.  */
+      if (!popup_activated_flag)
 	break;
+
+      /* If we have no events to run, consider timers.  */
+      if (do_timers && !XtAppPending (Xt_app_con))
+	timer_check (1);
+
       XtAppNextEvent (Xt_app_con, &event);
     }
 
-  /* Unread any events that we got but did not handle.  */
-  while (queue != NULL) 
+  unbind_to (count, Qnil);
+}
+
+/* Unread any events that popup_get_selection read but did not handle.  */
+
+static Lisp_Object
+popup_get_selection_unwind (ignore)
+     Lisp_Object ignore;
+{
+  while (popup_get_selection_queue != NULL) 
     {
-      queue_tmp = queue;
+      struct event_queue *queue_tmp;
+      queue_tmp = popup_get_selection_queue;
       XPutBackEvent (queue_tmp->event.xany.display, &queue_tmp->event);
-      queue = queue_tmp->next;
+      popup_get_selection_queue = queue_tmp->next;
       xfree ((char *)queue_tmp);
       /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
       interrupt_input_pending = 1;
@@ -2304,7 +2334,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0);
 
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
@@ -2386,6 +2416,22 @@ dialog_selection_callback (widget, id, client_data)
   popup_activated_flag = 0;
 }
 
+/* ARG is the LWLIB ID of the dialog box, represented
+   as a Lisp object as (HIGHPART . LOWPART).  */
+
+Lisp_Object
+xdialog_show_unwind (arg)
+     Lisp_Object arg;
+{
+  LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
+		 | XINT (XCDR (arg)));
+  BLOCK_INPUT;
+  lw_destroy_all_widgets (id);
+  UNBLOCK_INPUT;
+  popup_activated_flag = 0;
+  return Qnil;
+}
+
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
@@ -2399,7 +2445,6 @@ xdialog_show (f, keymaps, title, error)
 {
   int i, nb_buttons=0;
   LWLIB_ID dialog_id;
-  Widget menu;
   char dialog_name[6];
 
   widget_value *wv, *first_wv = 0, *prev_wv = 0;
@@ -2511,9 +2556,9 @@ xdialog_show (f, keymaps, title, error)
 
   /* Actually create the dialog.  */
   dialog_id = widget_id_tick++;
-  menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
-			   f->output_data.x->widget, 1, 0,
-			   dialog_selection_callback, 0, 0);
+  lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
+		    f->output_data.x->widget, 1, 0,
+		    dialog_selection_callback, 0, 0);
   lw_modify_all_widgets (dialog_id, first_wv->contents, True);
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
@@ -2521,17 +2566,26 @@ xdialog_show (f, keymaps, title, error)
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
-  /* Display the menu.  */
+  /* Display the dialog box.  */
   lw_pop_up_all_widgets (dialog_id);
   popup_activated_flag = 1;
 
-  /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
+  /* Process events that apply to the dialog box.
+     Also handle timers.  */
+  {
+    int count = SPECPDL_INDEX ();
 
-  lw_destroy_all_widgets (dialog_id); 
+    /* xdialog_show_unwind is responsible for popping the dialog box down.  */
+    record_unwind_protect (xdialog_show_unwind,
+			   Fcons (make_number (dialog_id >> (4 * sizeof (LWLIB_ID))),
+				  make_number (dialog_id & ~(-1 << (4 * sizeof (LWLIB_ID))))));
 
-  /* Find the selected item, and its pane, to return
-     the proper value.  */
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
+
+    unbind_to (count, Qnil);
+  }
+
+  /* Find the selected item and pane, and return the corresponding value.  */
   if (menu_item_selection != 0)
     {
       Lisp_Object prefix;
