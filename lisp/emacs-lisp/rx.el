@@ -78,8 +78,8 @@
 ;;         (and line-start ?\n)))
 ;;
 ;; "\\$[I]d: [^ ]+ \\([^ ]+\\) "
-;; (rx (and "$Id": " 
-;;          (1+ (not (in " "))) 
+;; (rx (and "$Id": "
+;;          (1+ (not (in " ")))
 ;;          " "
 ;;          (submatch (1+ (not (in " "))))
 ;;          " ")))
@@ -90,7 +90,7 @@
 ;; etc.
 
 ;;; History:
-;; 
+;;
 
 ;;; Code:
 
@@ -244,7 +244,7 @@ See also `rx-constituents'."
   (while (and (not (null op)) (symbolp op))
     (setq op (cdr (assq op rx-constituents))))
   op)
-    
+
 
 (defun rx-check (form)
   "Check FORM according to its car's parsing info."
@@ -390,7 +390,7 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 (defun rx-kleene (form)
   "Parse and produce code from FORM.
 FORM is `(OP FORM1)', where OP is one of the `zero-or-one',
-`zero-or-more' etc.  operators.  
+`zero-or-more' etc.  operators.
 If OP is one of `*', `+', `?', produce a greedy regexp.
 If OP is one of `*?', `+?', `??', produce a non-greedy regexp.
 If OP is anything else, produce a greedy regexp if `rx-greedy-flag'
@@ -403,7 +403,7 @@ is non-nil."
 	(op (cond ((memq (car form) '(* *? 0+ zero-or-more)) "*")
 		  ((memq (car form) '(+ +? 1+ one-or-more))  "+")
 		  (t "?"))))
-    (format "\\(?:%s\\)%s%s" (rx-to-string (cadr form) 'no-group) 
+    (format "\\(?:%s\\)%s%s" (rx-to-string (cadr form) 'no-group)
 	    op suffix)))
 
 
@@ -422,7 +422,7 @@ is non-nil."
 	      (cdr (assq form rx-categories)))
     (error "Unknown category `%s'" form))
   t)
-			    
+
 
 (defun rx-category (form)
   "Parse and produce code from FORM, which is `(category SYMBOL ...)'."
@@ -470,7 +470,7 @@ NO-GROUP non-nil means don't put shy groups around the result."
 		  info)
 		 ((null info)
 		  (error "Unknown Rx form `%s'" form))
-		 (t 
+		 (t
 		  (funcall (nth 0 info) form)))))
 	((consp form)
 	 (let ((info (rx-info (car form))))
@@ -508,7 +508,7 @@ CHAR
      matches any character in SET.  SET may be a character or string.
      Ranges of characters can be specified as `A-Z' in strings.
 
-'(in SET)' 
+'(in SET)'
      like `any'.
 
 `(not (any SET))'
@@ -694,7 +694,7 @@ CHAR
      still match.  A non-greedy regexp matches as little as possible.
 
 `(maximal-match SEXP)'
-     produce a greedy regexp for SEXP.   This is the default.
+     produce a greedy regexp for SEXP.  This is the default.
 
 `(zero-or-more SEXP)'
      matches zero or more occurrences of what SEXP matches.
@@ -710,7 +710,7 @@ CHAR
 
 `(one-or-more SEXP)'
      matches one or more occurrences of A.
-  
+
 `(1+ SEXP)'
      like `one-or-more'.
 
@@ -722,7 +722,7 @@ CHAR
 
 `(zero-or-one SEXP)'
      matches zero or one occurrences of A.
-     
+
 `(optional SEXP)'
      like `zero-or-one'.
 
@@ -739,7 +739,7 @@ CHAR
      matches N to M occurrences of what SEXP matches.
 
 `(eval FORM)'
-      evaluate FORM and insert result.   If result is a string,
+      evaluate FORM and insert result.  If result is a string,
       `regexp-quote' it.
 
 `(regexp REGEXP)'
