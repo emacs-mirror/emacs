@@ -569,7 +569,7 @@ run_msdos_command (argv, dir, tempin, tempout)
     envv[len] = (char *) 0;
   }
 
-  if (XTYPE (dir) == Lisp_String)
+  if (STRINGP (dir))
     chdir (XSTRING (dir)->data);
   inbak = dup (0);
   outbak = dup (1);
