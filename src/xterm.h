@@ -443,8 +443,8 @@ struct x_output
   /* Default ASCII font of this frame.  */
   XFontStruct *font;
 
-  /* The baseline position of the default ASCII font.  */
-  int font_baseline;
+  /* The baseline offset of the default ASCII font.  */
+  int baseline_offset;
 
   /* If a fontset is specified for this frame instead of font, this
      value contains an ID of the fontset, else -1.  */
