@@ -1,17 +1,17 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author:     Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:     Jacques Duthen <duthen@cegelec-red.fr>
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   print, PostScript
-;; Time-stamp: <97/11/21 22:12:47 vinicius>
-;; Version:    3.05.3
+;; Time-stamp: <98/03/06 11:14:08 vinicius>
+;; Version:    3.06
 
-(defconst ps-print-version "3.05.3"
-  "ps-print.el, v 3.05.3 <97/11/21 vinicius>
+(defconst ps-print-version "3.06"
+  "ps-print.el, v 3.06 <98/03/06 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -269,11 +269,11 @@ Please send all bug fixes and enhancements to
 ;; Headers
 ;; -------
 ;;
-;; Ps-print can print headers at the top of each column; the default
-;; headers contain the following four items: on the left, the name of
-;; the buffer and, if the buffer is visiting a file, the file's
-;; directory; on the right, the page number and date of printing.
-;; The default headers look something like this:
+;; Ps-print can print headers at the top of each column or at the top
+;; of each page; the default headers contain the following four items:
+;; on the left, the name of the buffer and, if the buffer is visiting
+;; a file, the file's directory; on the right, the page number and
+;; date of printing.  The default headers look something like this:
 ;;
 ;;     ps-print.el                                         1/21
 ;;     /home/jct/emacs-lisp/ps/new                     94/12/31
@@ -285,6 +285,9 @@ Please send all bug fixes and enhancements to
 ;; To turn them off completely, set `ps-print-header' to nil.
 ;; To turn off the header's gaudy framing box,
 ;; set `ps-print-header-frame' to nil.
+;;
+;; To print only one header at the top of each page,
+;; set `ps-print-only-one-header' to t.
 ;;
 ;; The font family and size of text in the header are determined
 ;; by the variables `ps-header-font-family', `ps-header-font-size' and
@@ -423,7 +426,28 @@ Please send all bug fixes and enhancements to
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
 ;;
-;; Font managing
+;; Hooks
+;; -----
+;;
+;; Ps-print has the following hook variables:
+;;
+;; `ps-print-hook'
+;;    It is evaluated once before any printing process.  This is the right
+;;    place to initialize ps-print global data.
+;;    For an example, see section Adding a New Font Family.
+;;
+;; `ps-print-begin-page-hook'
+;;    It is evaluated on each real beginning of page, that is, ps-print
+;;    considers each beginning of column as a beginning of page, and a real
+;;    beginning of page is when the beginning of column coincides with a
+;;    paper change on your printer.
+;;
+;; `ps-print-begin-column-hook'
+;;    It is evaluated on each beginning of column, except in the beginning
+;;    of column that `ps-print-begin-page-hook' is evaluated.
+;;
+;;
+;; Font Managing
 ;; -------------
 ;;
 ;; Ps-print now knows rather precisely some fonts:
@@ -452,7 +476,7 @@ Please send all bug fixes and enhancements to
 ;; in points, for the top line of text in the header.
 ;;
 ;;
-;; Adding a new font family
+;; Adding a New Font Family
 ;; ------------------------
 ;;
 ;; To use a new font family, you MUST first teach ps-print
@@ -478,11 +502,17 @@ Please send all bug fixes and enhancements to
 ;;
 ;; - Add these values to the `ps-font-info-database':
 ;;   (setq ps-font-info-database
-;;	 (append
-;;	  '((Helvetica ; the family name
-;;	    "Helvetica" "Helvetica-Bold" "Helvetica-Oblique" "Helvetica-BoldOblique"
-;;	    10.0 11.56 2.78 5.09243))
-;;	  ps-font-info-database))
+;;	   (append
+;;	    '((Helvetica			; the family key
+;;	       (fonts (normal      . "Helvetica")
+;;		      (bold        . "Helvetica-Bold")
+;;		      (italic      . "Helvetica-Oblique")
+;;		      (bold-italic . "Helvetica-BoldOblique"))
+;;	       (size . 10.0)
+;;	       (line-height . 11.56)
+;;	       (space-width . 2.78)
+;;	       (avg-char-width . 5.09243)))
+;;	    ps-font-info-database))
 ;; - Now you can use this font family with any size:
 ;;	(setq ps-font-family 'Helvetica)
 ;; - if you want to use this family in another emacs session, you must
@@ -491,17 +521,45 @@ Please send all bug fixes and enhancements to
 ;;	(setq ps-font-info-database (append ...)))
 ;;   if you don't want to load ps-print, you have to copy the whole value:
 ;;	(setq ps-font-info-database '(<your stuff> <the standard stuff>))
-;;   or, if you can wait until the `ps-print-hook' is implemented, do:
-;;      (add-hook 'ps-print-hook '(setq ps-font-info-database (append ...)))
-;;      This does not work yet, since there is no `ps-print-hook' yet.
+;;   or, use `ps-print-hook' (see section Hooks):
+;;	(add-hook 'ps-print-hook
+;;		  '(lambda () (setq ps-font-info-database (append ...))))
 ;;
 ;; You can create new `mixed' font families like:
-;;	(my-mixed-family
-;;	 "Courier-Bold" "Helvetica"
-;;	 "Zapf-Chancery-MediumItalic" "NewCenturySchlbk-BoldItalic"
-;;	 10.0 10.55 6.0 6.0)
+;;      (my-mixed-family
+;;       (fonts (normal               . "Courier-Bold")
+;;              (bold                 . "Helvetica")
+;;              (italic               . "Zapf-Chancery-MediumItalic")
+;;              (bold-italic          . "NewCenturySchlbk-BoldItalic")
+;;              (w3-table-hack-x-face . "LineDrawNormal"))
+;;       (size . 10.0)
+;;       (line-height . 10.55)
+;;       (space-width . 6.0)
+;;       (avg-char-width . 6.0))
 ;; Now you can use your new font family with any size:
 ;;	(setq ps-font-family 'my-mixed-family)
+;;
+;; Note that on above example the `w3-table-hack-x-face' entry refers to
+;; a face symbol, so when printing this face it'll be used the font
+;; `LineDrawNormal'.  If the face  `w3-table-hack-x-face'  is remapped to
+;; use bold and/or italic attribute, the corresponding entry (bold, italic
+;; or bold-italic) will be used instead of `w3-table-hack-x-face' entry.
+;;
+;; Note also that the font family entry order is irrelevant, so the above
+;; example could also be written:
+;;      (my-mixed-family
+;;       (size . 10.0)
+;;       (fonts (w3-table-hack-x-face . "LineDrawNormal")
+;;              (bold                 . "Helvetica")
+;;              (bold-italic          . "NewCenturySchlbk-BoldItalic")
+;;              (italic               . "Zapf-Chancery-MediumItalic")
+;;              (normal               . "Courier-Bold"))
+;;       (avg-char-width . 6.0)
+;;       (space-width . 6.0)
+;;       (line-height . 10.55))
+;;
+;; Despite the note above, it is recommended that some convention about
+;; entry order be used.
 ;;
 ;; You can get information on all the fonts resident in YOUR printer
 ;; by uncommenting the line:
@@ -529,7 +587,7 @@ Please send all bug fixes and enhancements to
 ;; italic or underline; to set them, put code like the following into your
 ;; .emacs file:
 ;;
-;; 	(setq ps-bold-faces '(my-blue-face))
+;;      (setq ps-bold-faces '(my-blue-face))
 ;;      (setq ps-italic-faces '(my-red-face))
 ;;      (setq ps-underlined-faces '(my-green-face))
 ;;
@@ -607,7 +665,7 @@ Please send all bug fixes and enhancements to
 ;;          "LeftMargin" "BottomMargin PrintHeight add" ; X and Y position
 ;;                                      ; (upper left corner)
 ;;          nil nil nil
-;;          "PrintHeight neg PrintWidth atan" ; angle
+;;          "PrintHeight neg PrintPageWidth atan" ; angle
 ;;          5 (11 . 17))                ; page list
 ;;         ))
 ;;
@@ -677,8 +735,21 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
+;; [vinicius] 980306 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; Skip invisible text
+;;
+;; [vinicius] 971130 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
+;; `ps-print-begin-column-hook'.
+;; Put one header per page over the columns.
+;; Better database font management.
+;; Better control characters handling.
+;;
 ;; [vinicius] 971121 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
+;; Dynamic evaluation at print time of `ps-lpr-switches'.
 ;; Handle control characters.
 ;; Face remapping.
 ;; New face attributes.
@@ -730,10 +801,8 @@ Please send all bug fixes and enhancements to
 ;; Things to change:
 ;; ----------------
 ;;
-;; Add `ps-print-hook' (I don't know how to do that (yet!)).
-;; Add 4-up capability (really needed?).
+;; Avoid page break inside a paragraph.
 ;; Add `ps-non-bold-faces' and `ps-non-italic-faces' (should be easy).
-;; Put one header per page over the columns (easy but needed?).
 ;; Improve the memory management for big files (hard?).
 ;; `ps-nb-pages-buffer' and `ps-nb-pages-region' should take care
 ;; of folding lines.
@@ -741,6 +810,21 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Marcus G Daniels <marcus@cathcart.sysc.pdx.edu> for a better
+;; database font management.
+;;
+;; Thanks to Martin Boyer <gamin@videotron.ca> for some ideas on putting one
+;; header per page over the columns.
+;;
+;; Thanks to Steven L Baur <steve@miranova.com> for dynamic evaluation at
+;; print time of `ps-lpr-switches'.
+;;
+;; Thanks to some suggestions on:
+;;  * Face color map: Marco Melgazzi <marco@techie.com>
+;;  * XEmacs compatibility: William J. Henney <will@astrosmo.unam.mx>
+;;  * Check ps-paper-type: Sudhakar Frederick <sfrederi@asc.corp.mot.com>
+;;
 ;; Thanks to Jacques Duthen <duthen@cegelec-red.fr> (Jack) for the 3.4 version
 ;; I started from. [vinicius]
 ;;
@@ -906,7 +990,8 @@ Valid values are:
                   (characters from \000 to \037 and \177).
   nil             raw character (no printable form).
 Any other value is treated as nil."
-  :type '(choice (const 8-bit) (const control-8-bit) (const control) (const nil))
+  :type '(choice (const 8-bit) (const control-8-bit)
+		 (const control) (const nil))
   :group 'ps-print)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
@@ -1093,6 +1178,14 @@ customizable by changing variables `ps-left-header' and
   :type 'boolean
   :group 'ps-print-header)
 
+(defcustom ps-print-only-one-header nil
+  "*Non-nil means print only one header at the top of each page.
+This is useful when printing more than one column, so it is possible
+to have only one header over all columns or one header per column.
+See also `ps-print-header'."
+  :type 'boolean
+  :group 'ps-print-header)
+
 (defcustom ps-print-header-frame t
   "*Non-nil means draw a gaudy frame around the header."
   :type 'boolean
@@ -1126,53 +1219,107 @@ the left on even-numbered pages."
 
 (defcustom ps-font-info-database
   '((Courier				; the family key
-     "Courier" "Courier-Bold" "Courier-Oblique" "Courier-BoldOblique"
-     10.0 10.55 6.0     6.0)
+     (fonts (normal      . "Courier")
+	    (bold        . "Courier-Bold")
+	    (italic      . "Courier-Oblique")
+	    (bold-italic . "Courier-BoldOblique"))
+     (size . 10.0)
+     (line-height . 10.55)
+     (space-width . 6.0)
+     (avg-char-width . 6.0))
     (Helvetica				; the family key
-     "Helvetica" "Helvetica-Bold" "Helvetica-Oblique" "Helvetica-BoldOblique"
-     10.0 11.56 2.78    5.09243)
+     (fonts (normal      . "Helvetica")
+	    (bold        . "Helvetica-Bold")
+	    (italic      . "Helvetica-Oblique")
+	    (bold-italic . "Helvetica-BoldOblique"))
+     (size . 10.0)
+     (line-height . 11.56)
+     (space-width . 2.78)
+     (avg-char-width . 5.09243))
     (Times
-     "Times-Roman" "Times-Bold" "Times-Italic" "Times-BoldItalic"
-     10.0 11.0  2.5     4.71432)
+     (fonts (normal      . "Times-Roman")
+	    (bold        . "Times-Bold")
+	    (italic      . "Times-Italic")
+	    (bold-italic . "Times-BoldItalic"))
+     (size . 10.0)
+     (line-height . 11.0)
+     (space-width . 2.5)
+     (avg-char-width 4.71432))
     (Palatino
-     "Palatino-Roman" "Palatino-Bold" "Palatino-Italic" "Palatino-BoldItalic"
-     10.0 12.1  2.5     5.08676)
+     (fonts (normal      . "Palatino-Roman")
+	    (bold        . "Palatino-Bold")
+	    (italic      . "Palatino-Italic")
+	    (bold-italic . "Palatino-BoldItalic"))
+     (size . 10.0)
+     (line-height . 12.1)
+     (space-width . 2.5)
+     (avg-char-width . 5.08676))
     (Helvetica-Narrow
-     "Helvetica-Narrow" "Helvetica-Narrow-Bold"
-     "Helvetica-Narrow-Oblique" "Helvetica-Narrow-BoldOblique"
-     10.0 11.56 2.2796  4.17579)
+     (fonts (normal      . "Helvetica-Narrow")
+	    (bold        . "Helvetica-Narrow-Bold")
+	    (italic      . "Helvetica-Narrow-Oblique")
+	    (bold-italic . "Helvetica-Narrow-BoldOblique"))
+     (size . 10.0)
+     (line-height . 11.56)
+     (space-width . 2.2796)
+     (avg-char-width . 4.17579))
     (NewCenturySchlbk
-     "NewCenturySchlbk-Roman" "NewCenturySchlbk-Bold"
-     "NewCenturySchlbk-Italic" "NewCenturySchlbk-BoldItalic"
-     10.0 12.15 2.78    5.31162)
+     (fonts (normal      . "NewCenturySchlbk-Roman")
+	    (bold        . "NewCenturySchlbk-Bold")
+	    (italic      . "NewCenturySchlbk-Italic")
+	    (bold-italic . "NewCenturySchlbk-BoldItalic"))
+     (size . 10.0)
+     (line-height 12.15)
+     (space-width . 2.78)
+     (avg-char-width . 5.31162))
     ;; got no bold for the next ones
     (AvantGarde-Book
-     "AvantGarde-Book" "AvantGarde-Book"
-     "AvantGarde-BookOblique" "AvantGarde-BookOblique"
-     10.0 11.77 2.77    5.45189)
+     (fonts (normal . "AvantGarde-Book")
+	    (italic . "AvantGarde-BookOblique"))
+     (size . 10.0)
+     (line-height . 11.77)
+     (space-width . 2.77)
+     (avg-char-width . 5.45189))
     (AvantGarde-Demi
-     "AvantGarde-Demi" "AvantGarde-Demi"
-     "AvantGarde-DemiOblique" "AvantGarde-DemiOblique"
-     10.0 12.72 2.8     5.51351)
+     (fonts (normal . "AvantGarde-Demi")
+	    (italic . "AvantGarde-DemiOblique"))
+     (size . 10.0)
+     (line-height . 12.72)
+     (space-width . 2.8)
+     (avg-char-width . 5.51351))
     (Bookman-Demi
-     "Bookman-Demi" "Bookman-Demi"
-     "Bookman-DemiItalic" "Bookman-DemiItalic"
-     10.0 11.77 3.4     6.05946)
+     (fonts (normal . "Bookman-Demi")
+	    (italic . "Bookman-DemiItalic"))
+     (size . 10.0)
+     (line-height . 11.77)
+     (space-width . 3.4)
+     (avg-char-width . 6.05946))
     (Bookman-Light
-     "Bookman-Light" "Bookman-Light"
-     "Bookman-LightItalic" "Bookman-LightItalic"
-     10.0 11.79 3.2     5.67027)
+     (fonts (normal . "Bookman-Light")
+	    (italic . "Bookman-LightItalic"))
+     (size . 10.0)
+     (line-height . 11.79)
+     (space-width . 3.2)
+     (avg-char-width . 5.67027))
     ;; got no bold and no italic for the next ones
     (Symbol
-     "Symbol" "Symbol" "Symbol" "Symbol"
-     10.0 13.03 2.5     3.24324)
+     (fonts (normal . "Symbol"))
+     (size . 10.0)
+     (line-height . 13.03)
+     (space-width . 2.5)
+     (avg-char-width . 3.24324))
     (Zapf-Dingbats
-     "Zapf-Dingbats" "Zapf-Dingbats" "Zapf-Dingbats" "Zapf-Dingbats"
-     10.0  9.63 2.78    2.78)
+     (fonts (normal . "Zapf-Dingbats"))
+     (size . 10.0)
+     (line-height . 9.63)
+     (space-width . 2.78)
+     (avg-char-width . 2.78))
     (Zapf-Chancery-MediumItalic
-     "Zapf-Chancery-MediumItalic" "Zapf-Chancery-MediumItalic"
-     "Zapf-Chancery-MediumItalic" "Zapf-Chancery-MediumItalic"
-     10.0 11.45 2.2     4.10811)
+     (fonts (normal . "Zapf-Chancery-MediumItalic"))
+     (size . 10.0)
+     (line-height . 11.45)
+     (space-width . 2.2)
+     (avg-char-width . 4.10811))
     )
   "*Font info database: font family (the key), name, bold, italic, bold-italic,
 reference size, line height, space width, average character width.
@@ -1187,15 +1334,22 @@ To get the info for another specific font (say Helvetica), do the following:
 - add the values to `ps-font-info-database'.
 You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :type '(repeat (list :tag "Font Definition"
-		       (symbol :tag "Font")
-		       (string :tag "Name")
-		       (string :tag "Bold")
-		       (string :tag "Italic")
-		       (string :tag "Bold-Italic")
-		       (number :tag "Reference Size")
-		       (number :tag "Line Height")
-		       (number :tag "Space Width")
-		       (number :tag "Average Character Width")))
+		       (symbol :tag "Font Family")
+		       (cons (const fonts)
+			     (repeat (cons (choice (const normal)
+						   (const bold)
+						   (const italic)
+						   (const bold-italic)
+						   (symbol :tag "Face"))
+					   (string :tag "Font Name"))))
+		       (cons (const size)
+			     (number :tag "Reference Size"))
+		       (cons (const line-height)
+			     (number :tag "Line Height"))
+		       (cons (const space-width)
+			     (number :tag "Space Width"))
+		       (cons (const avg-char-width)
+			     (number :tag "Average Character Width"))))
   :group 'ps-print-font)
 
 (defcustom ps-font-family 'Courier
@@ -1580,35 +1734,6 @@ The table depends on the current ps-print setup."
 
 (require 'time-stamp)
 
-(defvar ps-font nil
-  "Font family name for ordinary text, when generating PostScript.")
-
-(defvar ps-font-bold nil
-  "Font family name for bold text, when generating PostScript.")
-
-(defvar ps-font-italic nil
-  "Font family name for italic text, when generating PostScript.")
-
-(defvar ps-font-bold-italic nil
-  "Font family name for bold italic text, when generating PostScript.")
-
-(defvar ps-avg-char-width nil
-  "The average width, in points, of a character, for generating PostScript.
-This is the value that ps-print uses to determine the length,
-x-dimension, of the text it has printed, and thus affects the point at
-which long lines wrap around.")
-
-(defvar ps-space-width nil
-  "The width of a space character, for generating PostScript.
-This value is used in expanding tab characters.")
-
-(defvar ps-line-height nil
-  "The height of a line, for generating PostScript.
-This is the value that ps-print uses to determine the height,
-y-dimension, of the lines of text it has printed, and thus affects the
-point at which page-breaks are placed.
-The line-height is *not* the same as the point size of the font.")
-
 (defvar ps-print-prologue-1
   "% ISOLatin1Encoding stolen from ps_init.ps in GhostScript 2.6.1.4:
 /ISOLatin1Encoding where { pop } {
@@ -1670,8 +1795,10 @@ StandardEncoding 46 82 getinterval aload pop
     } forall		% Copy each of the symbols from the old dictionary
 			% to the new one except for the font ID.
 
-    /Encoding ISOLatin1Encoding def	% Override the encoding with
+    currentdict /FontType get 0 ne {
+      /Encoding ISOLatin1Encoding def	% Override the encoding with
 					% the ISOLatin1 encoding.
+    } if
 
     % Use the font's bounding box to determine the ascent, descent,
     % and overall height; don't forget that these values have to be
@@ -1689,9 +1816,17 @@ StandardEncoding 46 82 getinterval aload pop
 %             |    |   v Descent (usually < 0)
 % (x1 y1) --> +----+ - -
 
-    FontBBox				% -- x1 y1 x2 y2
-    FontMatrix transform /Ascent  exch def pop
-    FontMatrix transform /Descent exch def pop
+    currentdict /FontType get 0 ne {
+      FontBBox				% -- x1 y1 x2 y2
+      FontMatrix transform /Ascent  exch def pop
+      FontMatrix transform /Descent exch def pop
+    } {
+      /PrimaryFont FDepVector 0 get def
+      PrimaryFont /FontBBox get aload pop
+      PrimaryFont /FontMatrix get transform /Ascent exch def pop
+      PrimaryFont /FontMatrix get transform /Descent exch def pop
+    } ifelse
+
     /FontHeight Ascent Descent sub def	% use `sub' because descent < 0
 
     % Define these in case they're not in the FontInfo
@@ -2016,6 +2151,8 @@ StandardEncoding 46 82 getinterval aload pop
   /columnState save def
 } def
 
+/PrintHeaderWidth PrintOnlyOneHeader{PrintPageWidth}{PrintWidth}ifelse def
+
 /BeginPage {
   % ---- when 1st column, print all background effects
   ColumnIndex 1 eq {
@@ -2025,8 +2162,10 @@ StandardEncoding 46 82 getinterval aload pop
   printLocalBackground
   } if
   PrintHeader {
-    PrintHeaderFrame { HeaderFrame } if
-    HeaderText
+    PrintOnlyOneHeader{ColumnIndex 1 eq}{true}ifelse {
+      PrintHeaderFrame {HeaderFrame}if
+      HeaderText
+    } if
   } if
   0 PrintStartY moveto			% move to where printing will start
   PLN
@@ -2079,10 +2218,10 @@ StandardEncoding 46 82 getinterval aload pop
 } def
 
 /HeaderFramePath {
-  PrintWidth	 0			rlineto
-  0		 HeaderHeight		rlineto
-  PrintWidth neg 0			rlineto
-  0		 HeaderHeight neg	rlineto
+  PrintHeaderWidth	0			rlineto
+  0			HeaderHeight		rlineto
+  PrintHeaderWidth neg	0			rlineto
+  0			HeaderHeight neg	rlineto
 } def
 
 /HeaderFrame {
@@ -2152,7 +2291,7 @@ StandardEncoding 46 82 getinterval aload pop
     gsave
       dup xcheck { exec } if
       dup stringwidth pop
-      PrintWidth exch sub HeaderPad 2 mul sub 0 rmoveto
+      PrintHeaderWidth exch sub HeaderPad 2 mul sub 0 rmoveto
       show
     grestore
     0 HeaderLineHeight neg rmoveto
@@ -2249,25 +2388,18 @@ StandardEncoding 46 82 getinterval aload pop
 (defvar ps-color-format
   (if (eq ps-print-emacs-type 'emacs)
 
-    ;;Emacs understands the %f format; we'll
-    ;;use it to limit color RGB values to
-    ;;three decimals to cut down some on the
-    ;;size of the PostScript output.
-    "%0.3f %0.3f %0.3f"
+      ;; Emacs understands the %f format; we'll use it to limit color RGB
+      ;; values to three decimals to cut down some on the size of the
+      ;; PostScript output.
+      "%0.3f %0.3f %0.3f"
 
-    ;; Lucid emacsen will have to make do with
-    ;; %s (princ) for floats.
+    ;; Lucid emacsen will have to make do with %s (princ) for floats.
     "%s %s %s"))
 
 ;; These values determine how much print-height to deduct when headers
 ;; are turned on.  This is a pretty clumsy way of handling it, but
 ;; it'll do for now.
 
-(defvar ps-header-font nil)
-(defvar ps-header-title-font nil)
-
-(defvar ps-header-line-height nil)
-(defvar ps-header-title-line-height nil)
 (defvar ps-header-pad 0
   "Vertical and horizontal space in points (1/72 inch) between the header frame
 and the text it contains.")
@@ -2453,12 +2585,18 @@ If EXTENSION is any other symbol, it is ignored."
 ;; Internal functions and variables
 
 
+(make-local-hook 'ps-print-hook)
+(make-local-hook 'ps-print-begin-page-hook)
+(make-local-hook 'ps-print-begin-column-hook)
+
+
 (defun ps-print-without-faces (from to &optional filename region-p)
   (ps-spool-without-faces from to region-p)
   (ps-do-despool filename))
 
 
 (defun ps-spool-without-faces (from to &optional region-p)
+  (run-hooks 'ps-print-hook)
   (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript))
 
@@ -2469,6 +2607,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defun ps-spool-with-faces (from to &optional region-p)
+  (run-hooks 'ps-print-hook)
   (ps-printing-region region-p)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
 
@@ -2499,13 +2638,59 @@ and to indicate in the header that the printout is of a partial file.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal functions
 
+(defsubst ps-font-list (font-sym)
+  (get font-sym 'fonts))
+
+(defun ps-font (font-sym font-type)
+  "Font family name for text of `font-type', when generating PostScript."
+  (let* ((font-list (ps-font-list font-sym))
+	 (normal-font (cdr (assq 'normal font-list))))
+    (loop for font in font-list do
+	  (when (eq font-type (car font))
+	    (return (or (cdr font) normal-font))))))
+
+(defun ps-fonts (font-sym)
+  (loop for font in (ps-font-list font-sym) collect (cdr font)))
+
+(defun ps-font-number (font-sym font-type)
+  (or (position font-type (ps-font-list font-sym) :key 'car)
+      0))
+
+(defsubst ps-line-height (font-sym)
+  "The height of a line, for generating PostScript.
+This is the value that ps-print uses to determine the height,
+y-dimension, of the lines of text it has printed, and thus affects the
+point at which page-breaks are placed.
+The line-height is *not* the same as the point size of the font."
+  (get font-sym 'line-height))
+
+(defsubst ps-title-line-height (font-sym)
+  "The height of a `title' line, for generating PostScript.
+This is the value that ps-print uses to determine the height,
+y-dimension, of the lines of text it has printed, and thus affects the
+point at which page-breaks are placed.
+The title-line-height is *not* the same as the point size of the font."
+  (get font-sym 'title-line-height))
+
+(defsubst ps-space-width (font-sym)
+  "The width of a space character, for generating PostScript.
+This value is used in expanding tab characters."
+  (get font-sym 'space-width))
+
+(defsubst ps-avg-char-width (font-sym)
+  "The average width, in points, of a character, for generating PostScript.
+This is the value that ps-print uses to determine the length,
+x-dimension, of the text it has printed, and thus affects the point at
+which long lines wrap around."
+  (get font-sym 'avg-char-width))
+
 (defun ps-line-lengths-internal ()
   "Display the correspondence between a line length and a font size,
 using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (let ((buf (get-buffer-create "*Line-lengths*"))
 	(ifs ps-font-size)		; initial font size
-	(icw ps-avg-char-width)		; initial character width
+	(icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
 	(print-width (progn (ps-get-page-dimensions)
 			    ps-print-width))
 	(ps-setup (ps-setup))		; setup for the current buffer
@@ -2543,7 +2728,7 @@ of pages the number of lines would require to print
 using the current ps-print setup."
   (let ((buf (get-buffer-create "*Nb-Pages*"))
 	(ifs ps-font-size)		; initial font size
-	(ilh ps-line-height)		; initial line height
+	(ilh (ps-line-height 'ps-font-for-text)) ; initial line height
 	(page-height (progn (ps-get-page-dimensions)
 			    ps-print-height))
 	(ps-setup (ps-setup))		; setup for the current buffer
@@ -2582,56 +2767,21 @@ using the current ps-print setup."
     (insert "\n")
     (display-buffer buf 'not-this-window)))
 
-(defun ps-error-scale-font ()
-  (error "Don't have data to scale font %s.\nKnown fonts families are:\n%s"
-	 ps-font-family
-	 (mapcar 'car ps-font-info-database)))
-
-(defun ps-select-font ()
-  "Choose the font name and size (scaling data)."
-  (let ((assoc (cdr (assq ps-font-family ps-font-info-database)))
-	fn fb fi bi sz lh sw aw)
-    (or assoc (ps-error-scale-font))
-    (setq fn (nth 0 assoc)
-	  fb (nth 1 assoc)
-	  fi (nth 2 assoc)
-	  bi (nth 3 assoc)
-	  sz (nth 4 assoc)
-	  lh (nth 5 assoc)
-	  sw (nth 6 assoc)
-	  aw (nth 7 assoc)
-
-	  ps-font             fn
-	  ps-font-bold        fb
-	  ps-font-italic      fi
-	  ps-font-bold-italic bi
-	  ;; These data just need to be rescaled:
-	  ps-line-height      (/ (* lh ps-font-size) sz)
-	  ps-space-width      (/ (* sw ps-font-size) sz)
-	  ps-avg-char-width   (/ (* aw ps-font-size) sz))
-    ps-font-family))
-
-(defun ps-select-header-font ()
-  "Choose the font name and size (scaling data) for the header."
-  (let ((assoc (cdr (assq ps-header-font-family ps-font-info-database)))
-	fn fb fi bi sz lh sw aw)
-    (or assoc (ps-error-scale-font))
-    (setq fn (nth 0 assoc)
-	  fb (nth 1 assoc)
-	  fi (nth 2 assoc)
-	  bi (nth 3 assoc)
-	  sz (nth 4 assoc)
-	  lh (nth 5 assoc)
-	  sw (nth 6 assoc)
-	  aw (nth 7 assoc)
-
-	  ;; Font name
-	  ps-header-font              fn
-	  ps-header-title-font        fb
-	  ;; Line height: These data just need to be rescaled:
-	  ps-header-title-line-height (/ (* lh ps-header-title-font-size) sz)
-	  ps-header-line-height       (/ (* lh ps-header-font-size)       sz))
-    ps-header-font-family))
+(defun ps-select-font (font-family sym font-size title-font-size)
+  (let ((font-entry (cdr (assq font-family ps-font-info-database))))
+    (or font-entry
+	(error "Don't have data to scale font %s. Known fonts families are %s"
+	       font-family
+	       (mapcar 'car ps-font-info-database)))
+    (flet ((lookup (key) (cdr (assq key font-entry))))
+      (let ((size (lookup 'size)))
+	(put sym 'fonts (lookup 'fonts))
+	(flet ((size-scale (key) (/ (* (lookup key) font-size) size)))
+	  (put sym 'space-width (size-scale 'space-width))
+	  (put sym 'avg-char-width (size-scale 'avg-char-width))
+	  (put sym 'line-height (size-scale 'line-height))
+	  (put sym 'title-line-height
+	       (/ (* (lookup 'line-height) title-font-size) size)))))))
 
 (defun ps-get-page-dimensions ()
   (let ((page-dimensions (cdr (assq ps-paper-type ps-page-dimensions-database)))
@@ -2641,11 +2791,13 @@ using the current ps-print setup."
       (error "`ps-paper-type' must be one of:\n%s"
 	     (mapcar 'car ps-page-dimensions-database)))
      ((< ps-number-of-columns 1)
-      (error "The number of columns %d should not be negative"
+      (error "The number of columns %d should be positive"
 	     ps-number-of-columns)))
 
-    (ps-select-font)
-    (ps-select-header-font)
+    (ps-select-font ps-font-family 'ps-font-for-text
+		    ps-font-size ps-font-size)
+    (ps-select-font ps-header-font-family 'ps-font-for-header
+		    ps-header-font-size ps-header-title-font-size)
 
     (setq page-width  (ps-page-dimensions-get-width  page-dimensions)
 	  page-height (ps-page-dimensions-get-height page-dimensions))
@@ -2696,12 +2848,14 @@ page-height == bm + print-height + tm
     ;; If headers are turned on, deduct the height of the header from
     ;; the print height.
     (if ps-print-header
-	(setq ps-header-pad   (* ps-header-line-pad ps-header-title-line-height)
+	(setq ps-header-pad   (* ps-header-line-pad
+				 (ps-title-line-height 'ps-font-for-header))
 	      ps-print-height (- ps-print-height
 				 ps-header-offset
 				 ps-header-pad
-				 ps-header-title-line-height
-				 (* ps-header-line-height (1- ps-header-lines))
+				 (ps-title-line-height 'ps-font-for-header)
+				 (* (ps-line-height 'ps-font-for-header)
+				    (1- ps-header-lines))
 				 ps-header-pad)))
     (if (<= ps-print-height 0)
 	(error "Bad vertical layout:
@@ -2717,8 +2871,9 @@ page-height == bm + print-height + tm - ho - hh
 	       ps-header-offset
 	       ps-header-pad
 	       (+ ps-header-pad
-		  ps-header-title-line-height
-		  (* ps-header-line-height (1- ps-header-lines))
+		  (ps-title-line-height 'ps-font-for-header)
+		  (* (ps-line-height 'ps-font-for-header)
+		     (1- ps-header-lines))
 		  ps-header-pad)
 	       ps-print-height))))
 
@@ -3003,9 +3158,13 @@ page-height == bm + print-height + tm - ho - hh
 	     "\n%%Orientation: "
 	     (if ps-landscape-mode "Landscape" "Portrait")
 	     "\n%% DocumentFonts: Times-Roman Times-Italic "
-	     ps-font " " ps-font-bold " " ps-font-italic " "
-	     ps-font-bold-italic " "
-	     ps-header-font " " ps-header-title-font
+	     (mapconcat 'identity
+			(remove-duplicates
+			 (append (ps-fonts 'ps-font-for-text)
+				 (list (ps-font 'ps-font-for-header 'normal)
+				       (ps-font 'ps-font-for-header 'bold)))
+			 :test 'equal)
+			" ")
 	     "\n%%Pages: (atend)\n"
 	     "%%EndComments\n\n")
 
@@ -3029,16 +3188,18 @@ page-height == bm + print-height + tm - ho - hh
 	     (format "/HeaderOffset %s def\n" ps-header-offset)
 	     (format "/HeaderPad    %s def\n" ps-header-pad))
 
-  (ps-output-boolean "PrintHeader"      ps-print-header)
-  (ps-output-boolean "PrintHeaderFrame" ps-print-header-frame)
-  (ps-output-boolean "ShowNofN"         ps-show-n-of-n)
-  (ps-output-boolean "Duplex"           ps-spool-duplex)
+  (ps-output-boolean "PrintHeader"        ps-print-header)
+  (ps-output-boolean "PrintOnlyOneHeader" ps-print-only-one-header)
+  (ps-output-boolean "PrintHeaderFrame"   ps-print-header-frame)
+  (ps-output-boolean "ShowNofN"           ps-show-n-of-n)
+  (ps-output-boolean "Duplex"             ps-spool-duplex)
 
-  (ps-output (format "/LineHeight   %s def\n" ps-line-height)
-	     (format "/LinesPerColumn %d def\n"
-		     (round (/ (+ ps-print-height
-				  (* ps-line-height 0.45))
-			       ps-line-height))))
+  (let ((line-height (ps-line-height 'ps-font-for-text)))
+    (ps-output (format "/LineHeight   %s def\n" line-height)
+	       (format "/LinesPerColumn %d def\n"
+		       (round (/ (+ ps-print-height
+				    (* line-height 0.45))
+				 line-height)))))
 
   (ps-output-boolean "Zebra" ps-zebra-stripes)
   (ps-output-boolean "PrintLineNumber" ps-line-number)
@@ -3064,17 +3225,22 @@ page-height == bm + print-height + tm - ho - hh
 
   ;; Header fonts
   (ps-output (format "/h0 %s /%s DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
-		     ps-header-title-font-size ps-header-title-font)
+		     ps-header-title-font-size (ps-font 'ps-font-for-header
+							'bold))
 	     (format "/h1 %s /%s DefFont\n" ; /h1 12 /Helvetica DefFont
-		     ps-header-font-size       ps-header-font))
+		     ps-header-font-size (ps-font 'ps-font-for-header
+						  'normal)))
 
   (ps-output ps-print-prologue-2)
 
   ;; Text fonts
-  (ps-output (format "/f0 %s /%s DefFont\n" ps-font-size ps-font)
-	     (format "/f1 %s /%s DefFont\n" ps-font-size ps-font-bold)
-	     (format "/f2 %s /%s DefFont\n" ps-font-size ps-font-italic)
-	     (format "/f3 %s /%s DefFont\n" ps-font-size ps-font-bold-italic))
+  (loop for font in (ps-font-list 'ps-font-for-text)
+	for i from 0
+	do
+	(ps-output (format "/f%d %s /%s DefFont\n"
+			   i
+			   ps-font-size
+			   (ps-font 'ps-font-for-text (car font)))))
 
   (ps-output "\nBeginDoc\n\n"
 	     "%%EndPrologue\n"))
@@ -3103,14 +3269,20 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-begin-job ()
   (setq ps-page-count 0
 	ps-control-or-escape-regexp
-	(cond ((eq ps-print-control-characters '8-bit) "[\000-\037\177-\377]")
-	      ((eq ps-print-control-characters 'control-8-bit) "[\000-\037\177-\237]")
-	      ((eq ps-print-control-characters 'control) "[\000-\037\177]")
+	(cond ((eq ps-print-control-characters '8-bit)
+	       "[\000-\037\177-\377]")
+	      ((eq ps-print-control-characters 'control-8-bit)
+	       "[\000-\037\177-\237]")
+	      ((eq ps-print-control-characters 'control)
+	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))))
+
+(defmacro ps-page-number ()
+  `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
 (defun ps-end-file ()
   (ps-output "\nEndDoc\n\n%%Trailer\n%%Pages: "
-	     (format "%d" (1+ (/ (1- ps-page-count) ps-number-of-columns)))
+	     (format "%d" (ps-page-number))
 	     "\n%%EOF\n"))
 
 
@@ -3119,16 +3291,19 @@ page-height == bm + print-height + tm - ho - hh
   (ps-flush-output)
   (ps-begin-page))
 
-(defun ps-header-page (&optional inc-p)
-  (if (zerop (mod ps-page-count ps-number-of-columns))
+(defun ps-header-page ()
+  (if (prog1
+	  (zerop (mod ps-page-count ps-number-of-columns))
+	(incf ps-page-count))
       ;; Print only when a new real page begins.
-      (let ((page-number (1+ (/ ps-page-count ps-number-of-columns))))
+      (let ((page-number (ps-page-number)))
 	(ps-output (format "\n%%%%Page: %d %d\n" page-number page-number))
 	(ps-output "BeginDSCPage\n")
 	(ps-background page-number)
-	(and inc-p (incf ps-page-count)))
+	(run-hooks 'ps-print-begin-page-hook))
     ;; Print when any other page begins.
-    (ps-output "BeginDSCPage\n")))
+    (ps-output "BeginDSCPage\n")
+    (run-hooks 'ps-print-begin-column-hook)))
 
 (defun ps-begin-page ()
   (ps-get-page-dimensions)
@@ -3138,7 +3313,9 @@ page-height == bm + print-height + tm - ho - hh
   (ps-header-page)
 
   (ps-output (format "/LineNumber %d def\n" ps-showline-count)
-	     (format "/PageNumber %d def\n" (incf ps-page-count)))
+	     (format "/PageNumber %d def\n" (if ps-print-only-one-header
+						(ps-page-number)
+					      ps-page-count)))
 
   (when ps-print-header
     (ps-generate-header "HeaderLinesLeft"    ps-left-header)
@@ -3154,7 +3331,7 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output "EndPage\nEndDSCPage\n"))
 
 (defun ps-dummy-page ()
-  (ps-header-page t)
+  (ps-header-page)
   (ps-output "/PrintHeader false def
 BeginPage
 EndPage
@@ -3162,18 +3339,20 @@ EndDSCPage\n"))
 
 (defun ps-next-line ()
   (setq ps-showline-count (1+ ps-showline-count))
-  (if (< ps-height-remaining ps-line-height)
-      (ps-next-page)
-    (setq ps-width-remaining  ps-print-width
-	  ps-height-remaining (- ps-height-remaining ps-line-height))
-    (ps-output "HL\n")))
+  (let ((lh (ps-line-height 'ps-font-for-text)))
+    (if (< ps-height-remaining lh)
+	(ps-next-page)
+      (setq ps-width-remaining  ps-print-width
+	    ps-height-remaining (- ps-height-remaining lh))
+      (ps-output "HL\n"))))
 
 (defun ps-continue-line ()
-  (if (< ps-height-remaining ps-line-height)
-      (ps-next-page)
-    (setq ps-width-remaining  ps-print-width
-	  ps-height-remaining (- ps-height-remaining ps-line-height))
-    (ps-output "SL\n")))
+  (let ((lh (ps-line-height 'ps-font-for-text)))
+    (if (< ps-height-remaining lh)
+	(ps-next-page)
+      (setq ps-width-remaining  ps-print-width
+	    ps-height-remaining (- ps-height-remaining lh))
+      (ps-output "SL\n"))))
 
 (defun ps-find-wrappoint (from to char-width)
   (let ((avail (truncate (/ ps-width-remaining char-width)))
@@ -3183,7 +3362,8 @@ EndDSCPage\n"))
       (cons (+ from avail) ps-width-remaining))))
 
 (defun ps-basic-plot-string (from to &optional bg-color)
-  (let* ((wrappoint (ps-find-wrappoint from to ps-avg-char-width))
+  (let* ((wrappoint (ps-find-wrappoint from to
+				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
 	 (string (buffer-substring-no-properties from to)))
     (ps-output-string string)
@@ -3191,7 +3371,8 @@ EndDSCPage\n"))
     wrappoint))
 
 (defun ps-basic-plot-whitespace (from to &optional bg-color)
-  (let* ((wrappoint (ps-find-wrappoint from to ps-space-width))
+  (let* ((wrappoint (ps-find-wrappoint from to
+				       (ps-space-width 'ps-font-for-text)))
 	 (to (car wrappoint)))
     (ps-output (format "%d W\n" (- to from)))
     wrappoint))
@@ -3270,7 +3451,8 @@ EndDSCPage\n"))
     (while (< from to)
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters
-	  (let ((match (char-after (match-beginning 0))))
+	  (let* ((match-point (match-beginning 0))
+		 (match (char-after match-point)))
 	    (ps-plot 'ps-basic-plot-string from (1- (point)) bg-color)
 	    (cond
 	     ((= match ?\t)		; tab
@@ -3286,7 +3468,11 @@ EndDSCPage\n"))
 	      (ps-next-line))
 
 	     ((= match ?\f)		; form feed
-	      (ps-next-page))
+	      ;; do not skip page if previous character is NEWLINE and
+	      ;; it is a beginning of page.
+	      (or (and (= (char-after (1- match-point)) ?\n)
+		       (= ps-height-remaining ps-print-height))
+		  (ps-next-page)))
 					; characters from ^@ to ^_ and
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
@@ -3319,10 +3505,11 @@ EndDSCPage\n"))
 	 (from (1- (point)))
 	 (len (length str))
 	 (to (+ from len))
-	 (wrappoint (ps-find-wrappoint from to ps-avg-char-width)))
+	 (char-width (ps-avg-char-width 'ps-font-for-text))
+	 (wrappoint (ps-find-wrappoint from to char-width)))
     (if (< (car wrappoint) to)
 	(ps-continue-line))
-    (setq ps-width-remaining (- ps-width-remaining (* len ps-avg-char-width)))
+    (setq ps-width-remaining (- ps-width-remaining (* len char-width)))
     (ps-output-string str)
     (ps-output " S\n")))
 
@@ -3333,16 +3520,15 @@ EndDSCPage\n"))
 (defun ps-color-values (x-color)
   (cond ((fboundp 'x-color-values)
 	 (x-color-values x-color))
-	((fboundp 'color-instance-rgb-components)
-	 (if (ps-color-device)
-	     (color-instance-rgb-components
-	      (if (color-instance-p x-color)
-		  x-color
-		(make-color-instance
-		 (if (color-specifier-p x-color)
-		     (color-name x-color)
-		   x-color))))
-	   (error "No available function to determine X color values.")))
+	((and (fboundp 'color-instance-rgb-components)
+	      (ps-color-device))
+	 (color-instance-rgb-components
+	  (if (color-instance-p x-color)
+	      x-color
+	    (make-color-instance
+	     (if (color-specifier-p x-color)
+		 (color-name x-color)
+	       x-color)))))
 	(t (error "No available function to determine X color values."))))
 
 
@@ -3380,22 +3566,32 @@ If FACE is not a valid face name, it is used default face."
     (ps-face-attributes face-or-list)))
 
 
+(defconst ps-font-type (vector nil 'bold 'italic 'bold-italic))
+
+
 (defun ps-plot-with-face (from to face)
-  (if face
-      (let* ((face-bit   (ps-face-attribute-list face))
-	     (effect     (aref face-bit 0))
-	     (foreground (aref face-bit 1))
-	     (background (aref face-bit 2))
-	     (fg-color (if (and ps-print-color-p foreground (ps-color-device))
-			   (mapcar 'ps-color-value
-				   (ps-color-values foreground))
-			 ps-default-color))
-	     (bg-color (and ps-print-color-p background (ps-color-device)
-			    (mapcar 'ps-color-value
-				    (ps-color-values background)))))
-	(ps-plot-region from to (logand effect 3)
-			fg-color bg-color (lsh effect -2)))
+  (cond
+   ((null face)				; print text with null face
     (ps-plot-region from to 0))
+   ((eq face 'emacs--invisible--face))	; skip invisible text!!!
+   (t					; otherwise, text has a valid face
+    (let* ((face-bit   (ps-face-attribute-list face))
+	   (effect     (aref face-bit 0))
+	   (foreground (aref face-bit 1))
+	   (background (aref face-bit 2))
+	   (fg-color (if (and ps-print-color-p foreground (ps-color-device))
+			 (mapcar 'ps-color-value
+				 (ps-color-values foreground))
+		       ps-default-color))
+	   (bg-color (and ps-print-color-p background (ps-color-device)
+			  (mapcar 'ps-color-value
+				  (ps-color-values background)))))
+      (ps-plot-region
+       from to
+       (ps-font-number 'ps-font-for-text
+		       (or (aref ps-font-type (logand effect 3))
+			   face))
+       fg-color bg-color (lsh effect -2)))))
   (goto-char to))
 
 
@@ -3598,7 +3794,7 @@ If FACE is not a valid face name, it is used default face."
 			       (not (null prop))
 			     (or (memq prop buffer-invisibility-spec)
 				 (assq prop buffer-invisibility-spec))))
-			 nil)
+			 'emacs--invisible--face)
 			((get-text-property from 'face))
 			(t 'default)))
 	    (let ((overlays (overlays-at from))
@@ -3676,7 +3872,10 @@ If FACE is not a valid face name, it is used default face."
 		(set-buffer ps-spool-buffer)
 		(goto-char (point-min))
 		(and (re-search-forward "^/PageCount 0 def$" nil t)
-		     (replace-match (format "/PageCount %d def" ps-page-count)
+		     (replace-match (format "/PageCount %d def"
+					    (if ps-print-only-one-header
+						(ps-page-number)
+					      ps-page-count))
 				    t))
 
 		;; Setting this variable tells the unwind form that the
