@@ -251,8 +251,8 @@ main (argc, argv)
   server.sun_family = AF_UNIX;
 #ifndef SERVER_HOME_DIR
   gethostname (system_name, sizeof (system_name));
-    /* system_name must be null-terminated string */
-    system_name[sizeof (system_name) - 1] = '\0';
+  /* system_name must be null-terminated string */
+  system_name[sizeof (system_name) - 1] = '\0';
   sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
 
   if (unlink (server.sun_path) == -1 && errno != ENOENT)
