@@ -1688,6 +1688,8 @@ and `face'."
 (defface custom-button-face
   '((((type x) (class color))		; Like default modeline
      (:box (:line-width 2 :style released-button) :background "lightgrey"))
+    (((type w32) (class color))		; Like default modeline
+     (:box (:line-width 2 :style released-button) :background "lightgrey"))
     (t
      nil))
   "Face used for buttons in customization buffers."
@@ -1696,6 +1698,8 @@ and `face'."
 
 (defface custom-button-pressed-face
   '((((type x) (class color))
+     (:box (:line-width 2 :style pressed-button) :background "lightgrey"))
+    (((type w32) (class color))
      (:box (:line-width 2 :style pressed-button) :background "lightgrey"))
     (t
      (:inverse-video t)))
