@@ -1,3 +1,11 @@
+2000-05-26  Dave Love  <fx@gnu.org>
+
+	* coding.c (shrink_decoding_region): Initialize eol_conversion.
+
+	* data.c (Qsubrp, Qmany, Qunevalled): New variables.
+	(Fsubr_arity): New function.
+	(syms_of_data): Install them.
+
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (init_charset_once): Set the table bytes_by_char_head

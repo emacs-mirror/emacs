@@ -1,3 +1,11 @@
+2000-05-26  Dave Love  <fx@gnu.org>
+
+	* mail/reporter.el: Maintainer change.  Doc fixes.
+	(reporter-version): Deleted.
+
+	* emacs-lisp/elp.el: Maintainer change.
+	(elp-help-address, elp-submit-bug-report, elp-version): Deleted.
+
 2000-05-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* add-log.el (add-change-log-entry): Merge the current entry with the
