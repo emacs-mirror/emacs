@@ -200,11 +200,11 @@ and selects that window."
 (defvar menu-bar-mode nil)
 
 (defun menu-bar-mode (flag)
-  "Toggle display of vertical scroll bars on each frame.
+  "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is negative,
-turn off scroll bars; otherwise, turn on scroll bars."
+turn off menu bars; otherwise, turn on menu bars."
   (interactive "P")
   (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
 			  (or (not (numberp flag)) (>= flag 0))))
