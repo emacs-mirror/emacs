@@ -1,3 +1,8 @@
+2001-03-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-translate-key): Fix condition to
+	check if there's another breaking point in the current key.
+
 2001-03-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/rmailout.el (rmail-output-to-rmail-file): When writing the
