@@ -2234,8 +2234,8 @@ or a list of functions to be called to run the hook.
 If the value is a function, it is called with no arguments.
 If it is a list, the elements are called, in order, with no arguments.
 
-To make a hook variable buffer-local, use `make-local-hook',
-not `make-local-variable'.
+Do not use `make-local-variable' to make a hook variable buffer-local.
+Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hooks &rest HOOKS)  */)
      (nargs, args)
      int nargs;
@@ -2265,8 +2265,8 @@ with the given arguments ARGS.
 It is best not to depend on the value return by `run-hook-with-args',
 as that may change.
 
-To make a hook variable buffer-local, use `make-local-hook',
-not `make-local-variable'.
+Do not use `make-local-variable' to make a hook variable buffer-local.
+Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args HOOK &rest ARGS)  */)
      (nargs, args)
      int nargs;
@@ -2284,8 +2284,8 @@ passing arguments ARGS to each of them, until one of them
 returns a non-nil value.  Then we return that value.
 If all the functions return nil, we return nil.
 
-To make a hook variable buffer-local, use `make-local-hook',
-not `make-local-variable'.
+Do not use `make-local-variable' to make a hook variable buffer-local.
+Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-success HOOK &rest ARGS)  */)
      (nargs, args)
      int nargs;
@@ -2303,8 +2303,8 @@ passing arguments ARGS to each of them, until one of them
 returns nil.  Then we return nil.
 If all the functions return non-nil, we return non-nil.
 
-To make a hook variable buffer-local, use `make-local-hook',
-not `make-local-variable'.
+Do not use `make-local-variable' to make a hook variable buffer-local.
+Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
      (nargs, args)
      int nargs;
