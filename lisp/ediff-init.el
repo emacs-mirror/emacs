@@ -1204,11 +1204,9 @@ Instead, C-h would jump to previous difference."
   :group 'ediff)
   
 (defcustom ediff-temp-file-prefix
-  ;; The following is to make sure we get something to which we can
-  ;; add directory levels under VMS.
-  (file-name-as-directory system-tmp-directory)
+  (file-name-as-directory temporary-file-directory)
   "*Prefix to put on Ediff temporary file names.
-Do not start with `~/' or `~user-name/'."
+Do not start with `~/' or `~USERNAME/'."
   :type 'string
   :group 'ediff)
 
