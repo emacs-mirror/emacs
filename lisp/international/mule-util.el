@@ -73,12 +73,20 @@ TYPE should be `list' or `vector'."
     string))
 
 ;;;###autoload
-(defun truncate-string-to-width (str width &optional start-column padding)
-  "Truncate string STR to fit in WIDTH columns.
-Optional 1st arg START-COLUMN if non-nil specifies the starting column.
-Optional 2nd arg PADDING if non-nil is a padding character to be padded at
-the head and tail of the resulting string to fit in WIDTH if necessary.
-If PADDING is nil, the resulting string may be narrower than WIDTH."
+(defun truncate-string-to-width (str end-column &optional start-column padding)
+  "Truncate string STR to end at column END-COLUMN.
+The optional 2nd arg START-COLUMN, if non-nil, specifies
+the starting column; that means to return the characters occupying
+columns START-COLUMN ... END-COLUMN of STR.
+
+The optional 3rd arg PADDING, if non-nil, specifies a padding character
+to add at the end of the result if STR doesn't reach column END-COLUMN,
+or if END-COLUMN comes in the middle of a character in STR.
+PADDING is also added at the beginning of the result
+if column START-COLUMN appears in the middle fo a character in STR.
+
+If PADDING is nil, no padding is added in these cases, so
+the resulting string may be narrower than END-COLUMN."
   (or start-column
       (setq start-column 0))
   (let ((len (length str))
@@ -93,22 +101,24 @@ If PADDING is nil, the resulting string may be narrower than WIDTH."
 		idx (+ idx (char-bytes ch))))
       (args-out-of-range (setq idx len)))
     (if (< column start-column)
-	(if padding (make-string width padding) "")
+	(if padding (make-string end-column padding) "")
       (if (and padding (> column start-column))
 	  (setq head-padding (make-string (- column start-column) ?\ )))
       (setq from-idx idx)
-      (condition-case nil
-	  (while (< column width)
-	    (setq last-column column
-		  last-idx idx
-		  ch (sref str idx)
-		  column (+ column (char-width ch))
-		  idx (+ idx (char-bytes ch))))
-	(args-out-of-range (setq idx len)))
-      (if (> column width)
-	  (setq column last-column idx last-idx))
-      (if (and padding (< column width))
-	  (setq tail-padding (make-string (- width column) padding)))
+      (if (< end-column column)
+	  (setq idx from-idx)
+	(condition-case nil
+	    (while (< column end-column)
+	      (setq last-column column
+		    last-idx idx
+		    ch (sref str idx)
+		    column (+ column (char-width ch))
+		    idx (+ idx (char-bytes ch))))
+	  (args-out-of-range (setq idx len)))
+	(if (> column end-column)
+	    (setq column last-column idx last-idx))
+	(if (and padding (< column end-column))
+	    (setq tail-padding (make-string (- end-column column) padding))))
       (setq str (substring str from-idx idx))
       (if padding
 	  (concat head-padding str tail-padding)
