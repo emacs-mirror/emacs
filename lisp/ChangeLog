@@ -1,3 +1,7 @@
+2002-07-08  Simon Josefsson  <jas@extundo.com>
+
+	* mail/mail-extr.el (mail-extr-all-top-level-domains): Update names.
+
 2002-07-26  Juanma Barranquero  <lektu@terra.es>
 
 	* warnings.el (lwarn, warn, warning-levels): Doc fix.
