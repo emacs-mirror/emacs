@@ -13458,7 +13458,9 @@ and says what authentication scheme to use.  The default is
 @end table
 
 If the @code{:program} and @code{:function} keywords aren't specified,
-@code{pop3-movemail} will be used.
+@code{pop3-movemail} will be used.  If the
+@code{pop3-leave-mail-on-server} is non-@code{nil} the mail is to be
+left on the POP server after fetching.
 
 Here are some examples.  Fetch from the default @acronym{POP} server,
 using the default user name, and default fetcher:
