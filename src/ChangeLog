@@ -137,6 +137,8 @@
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* fns.c (syms_of_fns): Defsubr mapc.
+	(concat): Don't allow numeric args.
+	(Fconcat): Doc change.
 
 2000-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
