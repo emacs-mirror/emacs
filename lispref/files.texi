@@ -27,6 +27,7 @@ described in @ref{Backups and Auto-Saving}.
 * Create/Delete Dirs::	     Creating and Deleting Directories.
 * Magic File Names::	     Defining "magic" special handling
 			       for certain file names.
+* Files and MS-DOS::         Distinguishing text and binary files on MS-DOS.
 @end menu
 
 @node Visiting Files
@@ -1175,6 +1176,13 @@ default file protection.
 This function returns the current default protection value.
 @end defun
 
+@cindex MS-DOS and file modes
+@cindex file modes and MS-DOS
+  On MS-DOS, there is no such thing as an ``executable'' file mode bit.
+So Emacs considers a file executable if its name ends in @samp{.com},
+@samp{.bat} or @samp{.exe}.  This is reflected in the values returned
+by @code{file-modes} and @code{file-attributes}.
+
 @node File Names
 @section File Names
 @cindex file names
@@ -1195,7 +1203,8 @@ directory.
   On VMS, all these functions understand both VMS file name syntax and
 Unix syntax.  This is so that all the standard Lisp libraries can
 specify file names in Unix syntax and work properly on VMS without
-change.
+change.  On MS-DOS, these functions understand MS-DOS file name syntax
+as well as Unix syntax.
 
 @menu
 * File Name Components::  The directory part of a file name, and the rest.
@@ -1844,7 +1853,8 @@ Here are the operations that you can handle for a magic file name:
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-readable-p}, @code{file-symlink-p}, @code{file-truename},
-@code{file-writable-p}, @code{insert-directory},
+@code{file-writable-p},@*
+@code{insert-directory},
 @code{insert-file-contents}, @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
@@ -1855,7 +1865,7 @@ possibly others to be added in the future.  Therefore, it should always
 reinvoke the ordinary Lisp primitive when it receives an operation it
 does not recognize.  Here's one way to do this:
 
-@example
+@smallexample
 (defun my-file-handler (operation &rest args)
   ;; @r{First check for the specific operations}
   ;; @r{that we have special handling for.}
@@ -1863,13 +1873,39 @@ does not recognize.  Here's one way to do this:
         ((eq operation 'write-region) @dots{})
         @dots{}
         ;; @r{Handle any operation we don't know about.}
-        (t (let (file-name-handler-alist)
+        (t (let ((inhibit-file-name-handlers
+                 (cons 'ange-ftp-file-handler 
+                       (and (eq inhibit-file-name-operation operation)
+                            inhibit-file-name-handlers)))
+                (inhibit-file-name-operation operation))
              (apply operation args)))))
-@end example
+@end smallexample
 
-@defun find-file-name-handler file
+When a handler function decides to call the ordinary Emacs primitive for
+the operation at hand, it needs to prevent the primitive from calling
+the same handler once again, thus leading to an infinite recursion.  The
+example above shows how to do this, with the variables
+@code{inhibit-file-name-handlers} and
+@code{inhibit-file-name-operation}.  Be careful to use them exactly as
+shown above; the details are crucial for proper behavior in the case of
+multiple handlers, and for operations that have two file names that may
+each have handlers.
+
+@defvar inhibit-file-name-handlers
+This variable holds a list of handlers whose use is presently inhibited
+for a certain operation.
+@end defvar
+
+@defvar inhibit-file-name-operation
+The operation for which certain handlers are presently inhibited.
+@end defvar
+
+@defun find-file-name-handler file operation
 This function returns the handler function for file name @var{file}, or
-@code{nil} if there is none.
+@code{nil} if there is none.  The argument @var{operation} should be the
+operation to be performed on the file---the value you will pass to the
+handler as its first argument when you call it.  The operation is needed
+for comparison with @code{inhibit-file-name-operation}.
 @end defun
 
 @defun file-local-copy filename
@@ -1891,3 +1927,54 @@ This is useful for running a subprocess; every subprocess must have a
 non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
+
+@node Files and MS-DOS
+@section Files and MS-DOS
+@cindex MS-DOS file types
+@cindex file types on MS-DOS
+@cindex text files and binary files
+@cindex binary files and text files
+
+  Emacs on MS-DOS makes a distinction between text files and binary
+files.  This is necessary because ordinary text files on MS-DOS use two
+characters between lines: carriage-return and linefeed.  Emacs expects
+just a newline character (a linefeed) between lines.  When Emacs reads
+or writes a text file on MS-DOS, it needs to convert the line
+separators.  This means it needs to know which files are text files and
+which are binary.  It makes this decision when visiting a file, and
+records the decision in the variable @code{buffer-file-type} for when
+the file is saved.
+
+@defvar buffer-file-type
+This variable, automatically local in each buffer, records the file type
+of the buffer's visited file.
+@end defvar
+
+@defun find-buffer-file-type filename
+This function determines whether file @var{filename} is a text file
+or a binary file.  It returns @code{nil} for text, @code{t} for binary.
+@end defun
+
+@defopt file-name-buffer-file-type-alist
+This variable holds an alist for distinguishing text files from binary
+files.  Each element has the form (@var{regexp} . @var{type}), where
+@var{regexp} is matched against the file name, and @var{type} may be is
+@code{nil} for text, @code{t} for binary, or a function to call to
+compute which.  If it is a function, then it is called with a single
+argument (the file name) and should return @code{t} or @code{nil}.
+@end defopt
+
+@defopt default-buffer-file-type
+This variable specifies the default file type for files whose names
+don't indicate anything in particular.  Its value should be @code{nil}
+for text, or @code{t} for binary.
+@end defopt
+
+@deffn Command find-file-text filename
+Like @code{find-file}, but treat the file as text regardless of its name.
+@end deffn
+
+@deffn Command find-file-binary filename
+Like @code{find-file}, but treat the file as binary regardless of its
+name.
+@end deffn
