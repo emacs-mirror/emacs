@@ -29,6 +29,6 @@ foreach $testfile (@qa_args) {
  unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
   die "Compilation failed on test ".$testfile.".\n";
  }
- system("sh -c \"$objfile\"");
+ &try_test($objfile);
 }
 
