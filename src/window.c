@@ -2684,18 +2684,43 @@ window_scroll (window, n, noerror)
 
   if (pos < ZV)
     {
+      extern int scroll_margin;
+
+      int this_scroll_margin = scroll_margin;
+
+      /* Don't use a scroll margin that is negative or too large.  */
+      if (this_scroll_margin < 0)
+	this_scroll_margin = 0;
+
+      if (XINT (w->height) < 4 * scroll_margin)
+	this_scroll_margin = XINT (w->height) / 4;
+
       set_marker_restricted (w->start, make_number (pos), w->buffer);
       w->start_at_line_beg = bolp;
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
-      if (pos > opoint)
-	SET_PT (pos);
-      if (n < 0)
+
+      /* If we scrolled forward, put point enough lines down
+	 that it is outside the scroll margin.  */
+      if (n > 0 && this_scroll_margin > 0)
 	{
 	  SET_PT (pos);
-	  tem = Fvertical_motion (make_number (ht), window);
-	  if (PT > opoint || XFASTINT (tem) < ht)
+	  Fvertical_motion (make_number (this_scroll_margin), window);
+	  pos = PT;
+	}
+
+      if (pos > opoint)
+	{
+	  SET_PT (pos);
+	}
+      if (n < 0)
+	{
+	  /* If we scrolled backward, put point near the end of the window
+	     but not within the scroll margin.  */
+	  SET_PT (pos);
+	  tem = Fvertical_motion (make_number (ht - this_scroll_margin), window);
+	  if (PT > opoint || XFASTINT (tem) < ht - this_scroll_margin)
 	    SET_PT (opoint);
 	  else
 	    Fvertical_motion (make_number (-1), window);
