@@ -1918,6 +1918,14 @@ extern void syms_of_display P_ ((void));
 extern Lisp_Object Qinhibit_redisplay;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
+extern Lisp_Object echo_area_buffer[2];
+extern void setup_echo_area_for_printing P_ ((int));
+extern int push_message P_ ((void));
+extern void pop_message P_ ((void));
+extern void restore_message P_ ((void));
+extern Lisp_Object current_message P_ ((void));
+extern void set_message P_ ((char *s, Lisp_Object, int, int));
+extern void clear_message P_ ((int, int));
 extern void message P_ ((/* char *, ... */));
 extern void message_nolog P_ ((/* char *, ... */));
 extern void message1 P_ ((char *));
@@ -2116,6 +2124,7 @@ extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
 /* Defined in editfns.c */
+EXFUN (Fcurrent_message, 0);
 EXFUN (Fgoto_char, 1);
 EXFUN (Fpoint_min_marker, 0);
 EXFUN (Fpoint_max_marker, 0);
@@ -2163,6 +2172,7 @@ extern void syms_of_editfns P_ ((void));
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
+EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
 EXFUN (Foverlay_end, 1);
 extern void adjust_overlays_for_insert P_ ((int, int));
