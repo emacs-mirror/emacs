@@ -726,7 +726,7 @@ This works in IRIX 4, 5 and 6.")
   (save-excursion
     (let ((realf (gud-dbx-file-name f)))
       (if realf
-	  (let ((buf (find-file-noselect f)))
+	  (let ((buf (find-file-noselect realf)))
 	    (set-buffer buf)
 	    (gud-make-debug-menu)
 	    (local-set-key [menu-bar debug up] '("Up Stack" . gud-up))
