@@ -167,6 +167,7 @@ struct frame
   /* Size of this frame, in units of characters.  */
   EMACS_INT height;
   EMACS_INT width;
+  EMACS_INT window_width;
 
   /* New height and width for pending size change.  0 if no change pending.  */
   int new_height, new_width;
@@ -381,8 +382,8 @@ typedef struct frame *FRAME_PTR;
       : 0)
 #define FRAME_WINDOW_WIDTH_ARG(f, width) \
      ((width) + FRAME_SCROLL_BAR_WIDTH (f))
-#define FRAME_WINDOW_WIDTH(f) ((f)->width + FRAME_SCROLL_BAR_WIDTH (f))
-#define SET_FRAME_WIDTH(f,val) ((f)->width = (val))
+#define FRAME_WINDOW_WIDTH(f) ((f)->window_width)
+#define SET_FRAME_WIDTH(f,val) ((f)->width = (val), (f)->window_width = FRAME_WINDOW_WIDTH_ARG (f, (f)->width))
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
