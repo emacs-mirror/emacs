@@ -1,3 +1,8 @@
+2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xg_scroll_callback): Update XG_LAST_SB_DATA before
+	returning when xg_ignore_gtk_scrollbar is true.
+
 2004-12-14  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (read_char): Save and restore echo_string when
