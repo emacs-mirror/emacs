@@ -1,3 +1,8 @@
+2001-02-05  Miles Bader  <miles@gnu.org>
+
+	* image-file.el (insert-image-file): When visiting an image, also
+	set `truncate-lines' to t so that any fringe arrow looks correct.
+
 2001-02-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* isearch.el (isearch-forward): Add description about input method
