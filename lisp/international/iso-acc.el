@@ -318,8 +318,7 @@ the language you choose)."
 	     (+ iso-accents-insert-offset entry)
 	   entry))
       ;; Otherwise, advance and schedule the second key for execution.
-      (setq unread-command-events
-	    (push second-char unread-command-events))
+      (push second-char unread-command-events)
       (vector first-char))))
 
 ;; It is a matter of taste if you want the minor mode indicated
