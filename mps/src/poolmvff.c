@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.9) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.10) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.9) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.10) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -96,26 +96,6 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
 }
 
 
-/* MVFFRemoveFromFreeList -- Remove given range from free list
- *
- * Updates MVFF counters for reduced free space.
- * Cannot(!) fail.
- */
-
-static void MVFFRemoveFromFreeList(MVFF mvff, Addr base, Addr limit) {
-  Res res;
-
-  AVERT(MVFF, mvff);
-  AVER(limit > base);
-
-  res = CBSDelete(CBSOfMVFF(mvff), base, limit);
-  AVER(res == ResOK);
-  mvff->free -= AddrOffset(base, limit);
-
-  return;
-}
-
-
 /* MVFFFreeSegs -- Free segments from given range
  *
  * Given a free range, attempts to find entire segments within
@@ -133,6 +113,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
   Bool b;
   Addr segLimit;  /* limit of the current segment when iterating */
   Addr segBase;   /* base of the current segment when iterating */
+  Res res;
 
   AVERT(MVFF, mvff);
   AVER(base < limit);
@@ -154,7 +135,9 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
     if(segBase >= base) { /* segment starts in range */
       /* Must remove from free list first, in case free list */
       /* is using inline datastructures. */
-      MVFFRemoveFromFreeList(mvff, segBase, segLimit);
+      res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
+      AVER(res == ResOK);
+      mvff->free -= AddrOffset(base, limit);
       mvff->total -= AddrOffset(segBase, segLimit);
       SegFree(seg);
     }
@@ -259,7 +242,7 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
                               MVFF mvff, Size size)
 {
   Bool foundBlock;
-  Addr base, limit;
+  CBSFindDelete findDelete;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -267,22 +250,14 @@ static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
 
-  if(mvff->firstFit) {
-    foundBlock = CBSFindFirst(&base, &limit, CBSOfMVFF(mvff), size);
-  } else {
-    foundBlock = CBSFindLast(&base, &limit, CBSOfMVFF(mvff), size);
-  }
+  findDelete = mvff->slotHigh ? CBSFindDeleteHIGH : CBSFindDeleteLOW;
 
-  /* CBSFind* returns a possibly larger block. */
-  if(foundBlock) {
-    if(mvff->slotHigh) { /* allocate in top of block */
-      *limitReturn = limit;
-      *baseReturn = AddrSub(limit, size);
-    } else { /* allocate in bottom of block */
-      *baseReturn = base;
-      *limitReturn = AddrAdd(base, size);
-    }
-  }
+  foundBlock =
+    (mvff->firstFit ? CBSFindFirst : CBSFindLast)
+      (baseReturn, limitReturn, CBSOfMVFF(mvff), size, findDelete);
+
+  if(foundBlock)
+    mvff->free -= size;
 
   return foundBlock;
 }
@@ -330,7 +305,6 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size,
   AVER(foundBlock);
   AVER(AddrOffset(base, limit) == size);
 
-  MVFFRemoveFromFreeList(mvff, base, limit);
   *aReturn = base;
 
   return ResOK;
