@@ -1,5 +1,6 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985, 86, 93, 94, 95, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 2000, 2001
+   Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -292,6 +293,8 @@ tgetst1 (ptr, area)
 int tputs_baud_rate;
 char PC;
 
+#if 0 /* Doesn't seem to be used anymore.  */
+
 /* Actual baud rate if positive;
    - baud rate / 100 if negative.  */
 
@@ -305,6 +308,8 @@ static int speeds[] =
     -18, -24, -48, -96, -192, -288, -384, -576, -1152
 #endif /* not VMS */
   };
+
+#endif /* 0  */
 
 void
 tputs (str, nlines, outfun)
