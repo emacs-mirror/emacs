@@ -695,14 +695,12 @@ Magic characters are those in `pcomplete-arg-quote-list'."
 
 (defun pcomplete-entries (&optional regexp predicate)
   "Complete against a list of directory candidates.
-This function always uses the last argument as the basis for
-completion.
 If REGEXP is non-nil, it is a regular expression used to refine the
 match (files not matching the REGEXP will be excluded).
 If PREDICATE is non-nil, it will also be used to refine the match
 \(files for which the PREDICATE returns nil will be excluded).
-If PATH is non-nil, it will be used for completion instead of
-consulting the last argument."
+If no directory information can be extracted from the completed
+component, DEFAULT-DIRECTORY is used as the basis for completion."
   (let* ((name pcomplete-stub)
 	 (default-directory (expand-file-name
 			     (or (file-name-directory name)
