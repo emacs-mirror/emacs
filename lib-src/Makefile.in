@@ -15,7 +15,7 @@ SHELL = /bin/sh
 # ==================== Things `configure' might edit ====================
 
 CC=cc
-CONFIG_CFLAGS=-g
+DEFS=-g
 C_SWITCH_SYSTEM=
 LOADLIBES=
 version=version-not-set
@@ -100,7 +100,7 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### Some other files - those shared with other GNU utilities - need
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
-CFLAGS=${CONFIG_CFLAGS} ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src
+CFLAGS=${DEFS} ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H -I../src
 
 all: ${EXECUTABLES}
 
