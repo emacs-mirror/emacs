@@ -86,6 +86,8 @@ variable name, as appropriate.  Also state the number of the edition
 you are criticizing.
 @end ifnottex
 
+@cindex bugs
+@cindex suggestions
 Please mail comments and corrections to
 
 @example
