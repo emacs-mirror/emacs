@@ -1,3 +1,13 @@
+2002-03-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (xbm_scan, xbm_load_image, xbm_read_bitmap_data)
+	(xbm_file_p): Add prototypes.
+	(xbm_format, xbm_image_p): Sync with xfns.c.
+	(reflect_byte): New function.
+	(xbm_read_bitmap_data): Sync with xfns.c, adapt for Windows.
+	(xbm_load_image): Create bitmaps with a depth of 1.
+	(init_xfns): Enable XBM images.
+
 2002-03-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_handle_tool_bar_click): Detect up and down events
