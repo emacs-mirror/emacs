@@ -1903,17 +1903,21 @@ or in a newly created frame (if the selected frame has no other windows)."
 	      ;; window system.
 	      (quail-make-guidance-frame quail-guidance-buf)
 	    ;; Find the bottom window and split it if necessary.
-	    (let (height)
-	      (setq win (window-at
-			 0 (1- (- (frame-height) (window-height win)))))
-	      (setq height (window-height win))
+	    (setq win (window-at
+		       0 (1- (- (frame-height) (window-height win)))))
+	    (let ((height (window-height win))
+		  (window-min-height 2))
 	      ;; If WIN is tall enough, split it vertically and use
 	      ;; the lower one.
-	      (if (>= height 4)
-		  (let ((window-min-height 2))
-		    ;; Here, `split-window' returns a lower window
-		    ;; which is what we wanted.
-		    (setq win (split-window win (- height 2)))))
+	      (when (>= height 4)
+		;; Here, `split-window' returns a lower window
+		;; which is what we wanted.
+		(setq win (split-window win (- height 2))))
+	      ;; This makes sure that there's really enougth room
+	      ;; for 1 line of text, even if the mode-line is
+	      ;; taller than one line (and so the total
+	      ;; window-height of two wouldn't be enough).
+	      (set-window-text-height win 1)
 	      (set-window-buffer win quail-guidance-buf)
 	      ;;(set-window-dedicated-p win t)
 	      ))
@@ -1951,9 +1955,14 @@ or in a newly created frame (if the selected frame has no other windows)."
   ;; Update guidance buffer.
   (if (quail-require-guidance-buf)
       (let ((guidance (quail-guidance)))
-	(or (and (eq (selected-frame) (window-frame (minibuffer-window)))
+	(if (and (eq (selected-frame) (window-frame (minibuffer-window)))
 		 (eq (selected-frame) (window-frame quail-guidance-win)))
-	    (quail-show-guidance-buf))
+	    ;; Make sure the height of the guidance window is OK
+	    ;; (sometimes, if the minibuffer window has expanded due to
+	    ;; user input, it will cause the guidance window to be only
+	    ;; partially visible).
+	    (set-window-text-height quail-guidance-win 1)
+	  (quail-show-guidance-buf))
 	(cond ((or (eq guidance t)
 		   (consp guidance))
 	       ;; Show the current possible translations.
