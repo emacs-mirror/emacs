@@ -1,3 +1,10 @@
+2000-10-13  John Wiegley  <johnw@gnu.org>
+
+	* Makefile.in: Added build targets for eshell.texi.
+
+	* eshell.texi: New file.  Note that this file is only just
+	beginning.  It's based heavily on the structure of pcl-cvs.texi.
+
 2000-10-04  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* emacs.texi (Top): Update version in `Antinews' menu entry.
