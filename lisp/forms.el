@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.5 $
+;; Version: $Revision: 2.6 $
 
 ;; This file is part of GNU Emacs.
 
@@ -266,10 +266,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.5 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.6 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.5 1994/05/07 01:52:42 kwzh Exp rms $")
+  $Id: forms.el,v 2.6 1994/05/22 22:07:37 rms Exp rms $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -444,7 +444,13 @@ Commands:                        Equivalent keys in read-only mode:
 
 	;; eval the buffer, should set variables
 	;;(message "forms: processing control file...")
-	(eval-current-buffer)
+	;; If enable-local-eval is not set to t the user is asked first.
+	(if (or (eq enable-local-eval t)
+		(yes-or-no-p 
+		 (concat "Evaluate lisp code in buffer "
+			 (buffer-name) " to display forms ")))
+	    (eval-current-buffer)
+	  (error "`enable-local-eval' inhibits buffer evaluation"))
 
 	;; check if the mandatory variables make sense.
 	(or forms-file
@@ -513,6 +519,9 @@ Commands:                        Equivalent keys in read-only mode:
 
 	;;(message "forms: setting up... done.")
 	))
+
+  ;; initialization done
+  (setq forms--mode-setup t)
 
   ;; Copy desired faces to the actual variables used by the forms formatter.
   (if (fboundp 'make-face)
@@ -595,9 +604,7 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; be helpful
   (forms--help)
-
-  ;; initialization done
-  (setq forms--mode-setup t))
+)
 
 (defun forms--process-format-list ()
   ;; Validate `forms-format-list' and set some global variables.
@@ -1163,19 +1170,13 @@ Commands:                        Equivalent keys in read-only mode:
 				   (current-local-map)
 				   (current-global-map))))
   ;;
-  ;; save-buffer -> forms--save-buffer
+  ;; Use local-write-file-hooks to invoke our own buffer save
+  ;; function. Note however that it usually does not work.
   (make-local-variable 'local-write-file-hooks)
-  (add-hook 'local-write-file-hooks
-	    (function
-	     (lambda (nil)
-	       (forms--checkmod)
-	       (save-excursion
-		 (set-buffer forms--file-buffer)
-		 (save-buffer))
-	       t)))
-  ;; We have our own revert function - use it
+  (add-hook 'local-write-file-hooks 'forms--local-write-file-function)
+  ;; We have our own revert function - use it.
   (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'forms-revert-buffer)
+  (setq revert-buffer-function 'forms--revert-buffer)
 
   t)
 
@@ -1366,16 +1367,19 @@ As a side effect: sets `forms--the-record-list'."
 (defun forms-find-file (fn)
   "Visit a file in Forms mode."
   (interactive "fForms file: ")
-  (find-file-read-only fn)
-  (or forms--mode-setup (forms-mode t)))
+  (let ((enable-local-eval t)
+	(enable-local-variables t))
+    (find-file-read-only fn)
+    (or forms--mode-setup (forms-mode t))))
 
 ;;;###autoload
 (defun forms-find-file-other-window (fn)
   "Visit a file in Forms mode in other window."
   (interactive "fFbrowse file in other window: ")
-  (find-file-other-window fn)
-  (eval-current-buffer)
-  (or forms--mode-setup (forms-mode t)))
+  (let ((enable-local-eval t)
+	(enable-local-variables t))
+    (find-file-other-window fn)
+    (or forms--mode-setup (forms-mode t))))
 
 (defun forms-exit (query)
   "Normal exit from Forms mode.  Modified buffers are saved."
@@ -1608,7 +1612,15 @@ it is called to fill (some of) the fields with default values."
 	  (re-search-forward regexp nil t))))
   (setq forms--search-regexp regexp))
 
-(defun forms-revert-buffer (&optional arg noconfirm)
+(defun forms--local-write-file-function ()
+  "Local write file hook."
+  (forms--checkmod)
+  (save-excursion
+    (set-buffer forms--file-buffer)
+    (save-buffer))
+  t)
+
+(defun forms--revert-buffer (&optional arg noconfirm)
   "Reverts current form to un-modified."
   (interactive "P")
   (if (or noconfirm
