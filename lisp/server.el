@@ -427,10 +427,11 @@ are considered temporary."
 
 (defun server-done ()
   "Offer to save current buffer, mark it as \"done\" for clients.
-This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
-NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
-or nil.  KILLED is t if we killed BUFFER
-\(typically, because it was visiting a temp file)."
+This kills or buries the buffer, then returns a list
+of the form (NEXT-BUFFER KILLED).  NEXT-BUFFER is another server buffer,
+as a suggestion for what to select next, or nil.
+KILLED is t if we killed BUFFER, which happens if it was created
+specifically for the clients and did not exist before their request for it."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
 	(progn
@@ -488,6 +489,7 @@ or nil.  KILLED is t if we killed BUFFER
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
 If a server buffer is current, it is marked \"done\" and optionally saved.
+The buffer is also killed if it did not exist before the clients asked for it.
 When all of a client's buffers are marked as \"done\", the client is notified.
 
 Temporary files such as MH <draft> files are always saved and backed up,
