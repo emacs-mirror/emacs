@@ -1,0 +1,133 @@
+#### Makefile for the Emacs Manual and other documentation.
+
+# Where to find the source code.  The source code for Emacs's C kernel is
+# expected to be in ${srcdir}/src, and the source code for Emacs's
+# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# set by the configure script's `--srcdir' option.
+srcdir=@srcdir@
+
+# Tell make where to find source files; this is needed for the makefiles.
+VPATH=@srcdir@
+
+
+# The makeinfo program is part of the Texinfo distribution.
+MAKEINFO = makeinfo
+INFO_TARGETS = ../info/emacs ../info/cl ../info/forms ../info/vip \
+	       ../info/gnus ../info/sc ../info/info ../info/dired-x
+DVI_TARGETS = emacs.dvi cl.dvi forms.dvi vip.dvi gnus.dvi sc.dvi dired-x.dvi
+INFOSOURCES = info.texi info-stnd.texi
+
+# The following rule does not work with all versions of `make'.
+.SUFFIXES: .texi .dvi
+.texi.dvi:
+	texi2dvi $<
+
+TEXI2DVI = texi2dvi
+
+EMACSSOURCES= \
+	${srcdir}/emacs.texi \
+	${srcdir}/screen.texi \
+	${srcdir}/commands.texi \
+	${srcdir}/entering.texi \
+	${srcdir}/basic.texi \
+	${srcdir}/mini.texi \
+	${srcdir}/m-x.texi \
+	${srcdir}/help.texi \
+	${srcdir}/mark.texi \
+	${srcdir}/killing.texi \
+	${srcdir}/regs.texi \
+	${srcdir}/display.texi \
+	${srcdir}/search.texi \
+	${srcdir}/fixit.texi \
+	${srcdir}/files.texi \
+	${srcdir}/buffers.texi \
+	${srcdir}/windows.texi \
+	${srcdir}/frames.texi \
+	${srcdir}/major.texi \
+	${srcdir}/indent.texi \
+	${srcdir}/text.texi \
+	${srcdir}/programs.texi \
+	${srcdir}/building.texi \
+	${srcdir}/abbrevs.texi \
+	${srcdir}/picture.texi \
+	${srcdir}/sending.texi \
+	${srcdir}/rmail.texi \
+	${srcdir}/dired.texi \
+	${srcdir}/calendar.texi \
+	${srcdir}/misc.texi \
+	${srcdir}/custom.texi \
+	${srcdir}/trouble.texi \
+	${srcdir}/cmdargs.texi \
+	${srcdir}/anti.texi \
+	${srcdir}/gnu.texi \
+	${srcdir}/gnu1.texi \
+	${srcdir}/glossary.texi
+
+info: $(INFO_TARGETS)
+
+dvi: $(DVI_TARGETS)
+
+../info/info: ${INFOSOURCES}
+	$(MAKEINFO) --no-split info.texi
+
+info.dvi: ${INFOSOURCES}
+	$(TEXI2DVI) ${srcdir}/info.texi
+
+../info/emacs: ${EMACSSOURCES}
+	$(MAKEINFO) emacs.texi
+
+emacs.dvi: ${EMACSSOURCES}
+	$(TEXI2DVI) ${srcdir}/emacs.texi
+
+../info/cl: cl.texi
+	$(MAKEINFO) cl.texi
+cl.dvi: cl.texi
+	$(TEXI2DVI) ${srcdir}/cl.texi
+
+../info/dired-x: dired-x.texi
+	$(MAKEINFO) dired-x.texi
+dired-x.dvi: dired-x.texi
+	$(TEXI2DVI) ${srcdir}/dired-x.texi
+
+../info/forms: forms.texi
+	$(MAKEINFO) forms.texi
+forms.dvi: forms.texi
+	$(TEXI2DVI) ${srcdir}/forms.texi
+
+../info/sc: sc.texi
+	$(MAKEINFO) sc.texi
+sc.dvi: sc.texi
+	$(TEXI2DVI) ${srcdir}/sc.texi
+
+../info/vip: vip.texi
+	$(MAKEINFO) vip.texi
+vip.dvi: vip.texi
+	$(TEXI2DVI) ${srcdir}/vip.texi
+
+../info/gnus: gnus.texi
+	$(MAKEINFO) gnus.texi
+gnus.dvi: gnus.texi
+	$(TEXI2DVI) ${srcdir}/gnus.texi
+
+../etc/GNU: gnu1.texi gnu.texi
+	makeinfo --no-headers -o ../etc/GNU gnu1.texi
+
+mostlyclean:
+	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
+
+clean: mostlyclean
+	rm -f *.dvi
+
+distclean: clean
+
+maintainer-clean: distclean
+	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs
+# Don't delete these, because they are outside the current directory.
+#	for file in $(INFO_TARGETS); do rm -f $${file}*; done
+
+
+# Formerly this directory had texindex.c and getopt.c in it
+# and this makefile built them to make texindex.
+# That caused trouble because this is run entirely in the source directory.
+# Since we expect to get texi2dvi from elsewhere,
+# it is ok to expect texindex from elsewhere also.
