@@ -1495,21 +1495,21 @@ lw_separator_p (label, type, motif_p)
       }
       separator_names[] =
       {
-	"space",		     SEPARATOR_NO_LINE,
-	"noLine",		     SEPARATOR_NO_LINE,
-	"singleLine",		     SEPARATOR_SINGLE_LINE,
-	"doubleLine",		     SEPARATOR_DOUBLE_LINE,
-	"singleDashedLine",	     SEPARATOR_SINGLE_DASHED_LINE,
-	"doubleDashedLine",	     SEPARATOR_DOUBLE_DASHED_LINE,
-	"shadowEtchedIn",	     SEPARATOR_SHADOW_ETCHED_IN,
-	"shadowEtchedOut",	     SEPARATOR_SHADOW_ETCHED_OUT,
-	"shadowEtchedInDash",	     SEPARATOR_SHADOW_ETCHED_IN_DASH,
-	"shadowEtchedOutDash",	     SEPARATOR_SHADOW_ETCHED_OUT_DASH,
-	"shadowDoubleEtchedIn",	     SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
-	"shadowDoubleEtchedOut",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
-	"shadowDoubleEtchedInDash",  SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
-	"shadowDoubleEtchedOutDash", SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH,
-	0
+	{"space",		      SEPARATOR_NO_LINE},
+	{"noLine",		      SEPARATOR_NO_LINE},
+	{"singleLine",		      SEPARATOR_SINGLE_LINE},
+	{"doubleLine",		      SEPARATOR_DOUBLE_LINE},
+	{"singleDashedLine",	      SEPARATOR_SINGLE_DASHED_LINE},
+	{"doubleDashedLine",	      SEPARATOR_DOUBLE_DASHED_LINE},
+	{"shadowEtchedIn",	      SEPARATOR_SHADOW_ETCHED_IN},
+	{"shadowEtchedOut",	      SEPARATOR_SHADOW_ETCHED_OUT},
+	{"shadowEtchedInDash",	      SEPARATOR_SHADOW_ETCHED_IN_DASH},
+	{"shadowEtchedOutDash",	      SEPARATOR_SHADOW_ETCHED_OUT_DASH},
+	{"shadowDoubleEtchedIn",      SEPARATOR_SHADOW_DOUBLE_ETCHED_IN},
+	{"shadowDoubleEtchedOut",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT},
+	{"shadowDoubleEtchedInDash",  SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH},
+	{"shadowDoubleEtchedOutDash", SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH},
+	{0,0}
       };
 
       int i;
@@ -1540,21 +1540,21 @@ lw_separator_p (label, type, motif_p)
       }
       separator_names[] =
       {
-	"space",			SEPARATOR_NO_LINE,
-	"no-line",			SEPARATOR_NO_LINE,
-	"single-line",			SEPARATOR_SINGLE_LINE,
-	"double-line",			SEPARATOR_DOUBLE_LINE,
-	"single-dashed-line",		SEPARATOR_SINGLE_DASHED_LINE,
-	"double-dashed-line",		SEPARATOR_DOUBLE_DASHED_LINE,
-	"shadow-etched-in",		SEPARATOR_SHADOW_ETCHED_IN,
-	"shadow-etched-out",		SEPARATOR_SHADOW_ETCHED_OUT,
-	"shadow-etched-in-dash",	SEPARATOR_SHADOW_ETCHED_IN_DASH,
-	"shadow-etched-out-dash",	SEPARATOR_SHADOW_ETCHED_OUT_DASH,
-	"shadow-double-etched-in",	SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
-	"shadow-double-etched-out",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
-	"shadow-double-etched-in-dash", SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
-	"shadow-double-etched-out-dash",SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH,
-	0
+	{"space",			 SEPARATOR_NO_LINE},
+	{"no-line",			 SEPARATOR_NO_LINE},
+	{"single-line",			 SEPARATOR_SINGLE_LINE},
+	{"double-line",			 SEPARATOR_DOUBLE_LINE},
+	{"single-dashed-line",		 SEPARATOR_SINGLE_DASHED_LINE},
+	{"double-dashed-line",		 SEPARATOR_DOUBLE_DASHED_LINE},
+	{"shadow-etched-in",		 SEPARATOR_SHADOW_ETCHED_IN},
+	{"shadow-etched-out",		 SEPARATOR_SHADOW_ETCHED_OUT},
+	{"shadow-etched-in-dash",	 SEPARATOR_SHADOW_ETCHED_IN_DASH},
+	{"shadow-etched-out-dash",	 SEPARATOR_SHADOW_ETCHED_OUT_DASH},
+	{"shadow-double-etched-in",	 SEPARATOR_SHADOW_DOUBLE_ETCHED_IN},
+	{"shadow-double-etched-out",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT},
+	{"shadow-double-etched-in-dash", SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH},
+	{"shadow-double-etched-out-dash",SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH},
+	{0,0}
       };
 
       int i;
