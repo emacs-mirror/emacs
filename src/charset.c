@@ -49,10 +49,10 @@ Lisp_Object Qcharset, Qascii, Qeight_bit_control, Qeight_bit_graphic;
 Lisp_Object Qunknown;
 
 /* Declaration of special leading-codes.  */
-EMACS_INT leading_code_private_11;	/* for private DIMENSION1 of 1-column */
-EMACS_INT leading_code_private_12;	/* for private DIMENSION1 of 2-column */
-EMACS_INT leading_code_private_21;	/* for private DIMENSION2 of 1-column */
-EMACS_INT leading_code_private_22;	/* for private DIMENSION2 of 2-column */
+EMACS_INT leading_code_private_11; /* for private DIMENSION1 of 1-column */
+EMACS_INT leading_code_private_12; /* for private DIMENSION1 of 2-column */
+EMACS_INT leading_code_private_21; /* for private DIMENSION2 of 1-column */
+EMACS_INT leading_code_private_22; /* for private DIMENSION2 of 2-column */
 
 /* Declaration of special charsets.  The values are set by
    Fsetup_special_charsets.  */
@@ -1633,7 +1633,7 @@ str_as_unibyte (str, bytes)
 }
 
 
-DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
+DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
   doc: /* Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
      (n, args)
