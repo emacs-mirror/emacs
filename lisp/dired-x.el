@@ -301,7 +301,7 @@ See also functions
                                 (file-name-nondirectory fn)))
                (save-excursion ; you never know where kill-buffer leaves you
                  (kill-buffer buf))))
-        (let ((buf-list (dired-buffers-for-dir fn))
+        (let ((buf-list (dired-buffers-for-dir (expand-file-name fn)))
               (buf nil))
           (and buf-list
                (y-or-n-p (format "Kill dired buffer%s of %s, too? "
@@ -1364,7 +1364,8 @@ See also variable `dired-vm-read-only-folders'."
 (defun dired-find-buffer-nocreate (dirname)
   (if dired-find-subdir
       (let* ((cur-buf (current-buffer))
-             (buffers (nreverse (dired-buffers-for-dir dirname)))
+             (buffers (nreverse
+		       (dired-buffers-for-dir (expand-file-name dirname))))
              (cur-buf-matches (and (memq cur-buf buffers)
                                    ;; wildcards must match, too:
                                    (equal dired-directory dirname))))
