@@ -2186,6 +2186,8 @@ record_overlay_string (ssl, str, str2, pri, size)
      Lisp_Object str, str2, pri;
      int size;
 {
+  int nbytes;
+
   if (ssl->used == ssl->size)
     {
       if (ssl->buf)
@@ -2200,9 +2202,29 @@ record_overlay_string (ssl, str, str2, pri, size)
   ssl->buf[ssl->used].size = size;
   ssl->buf[ssl->used].priority = (INTEGERP (pri) ? XINT (pri) : 0);
   ssl->used++;
-  ssl->bytes += XSTRING (str)->size;
+
+  if (NILP (current_buffer->enable_multibyte_characters))
+    nbytes = XSTRING (str)->size;
+  else if (! STRING_MULTIBYTE (str))
+    nbytes = count_size_as_multibyte (XSTRING (str)->data,
+				      XSTRING (str)->size_byte);
+  else
+    nbytes = XSTRING (str)->size_byte;
+
+  ssl->bytes += nbytes;
+
   if (STRINGP (str2))
-    ssl->bytes += XSTRING (str2)->size;
+    {
+      if (NILP (current_buffer->enable_multibyte_characters))
+	nbytes = XSTRING (str2)->size;
+      else if (! STRING_MULTIBYTE (str2))
+	nbytes = count_size_as_multibyte (XSTRING (str2)->data,
+					  XSTRING (str2)->size_byte);
+      else
+	nbytes = XSTRING (str2)->size_byte;
+
+      ssl->bytes += nbytes;
+    }
 }
 
 /* Return the concatenation of the strings associated with overlays that
@@ -2225,6 +2247,7 @@ overlay_strings (pos, w, pstr)
 {
   Lisp_Object ov, overlay, window, str;
   int startpos, endpos;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   overlay_heads.used = overlay_heads.bytes = 0;
   overlay_tails.used = overlay_tails.bytes = 0;
@@ -2308,20 +2331,26 @@ overlay_strings (pos, w, pstr)
       p = overlay_str_buf;
       for (i = overlay_tails.used; --i >= 0;)
 	{
+	  int nbytes;
 	  tem = overlay_tails.buf[i].string;
-	  bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
-	  p += XSTRING (tem)->size;
+	  nbytes = copy_text (XSTRING (tem)->data, p, XSTRING (tem)->size_byte,
+			      STRING_MULTIBYTE (tem), multibyte);
+	  p += nbytes;
 	}
       for (i = 0; i < overlay_heads.used; ++i)
 	{
+	  int nbytes;
 	  tem = overlay_heads.buf[i].string;
-	  bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
-	  p += XSTRING (tem)->size;
+	  nbytes = copy_text (XSTRING (tem)->data, p, XSTRING (tem)->size_byte,
+			      STRING_MULTIBYTE (tem), multibyte);
+	  p += nbytes;
 	  tem = overlay_heads.buf[i].string2;
 	  if (STRINGP (tem))
 	    {
-	      bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
-	      p += XSTRING (tem)->size;
+	      nbytes = copy_text (XSTRING (tem)->data, p,
+				  XSTRING (tem)->size_byte,
+				  STRING_MULTIBYTE (tem), multibyte);
+	      p += nbytes;
 	    }
 	}
       if (p != overlay_str_buf + total)
