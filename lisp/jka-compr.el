@@ -181,7 +181,7 @@ based on the filename itself and `jka-compr-compression-info-list'."
 (put 'compression-error 'error-conditions '(compression-error file-error error))
 
 
-(defvar jka-compr-acceptable-retval-list '(0 141))
+(defvar jka-compr-acceptable-retval-list '(0 2 141))
 
 
 (defun jka-compr-error (prog args infile message &optional errfile)
@@ -361,50 +361,30 @@ There should be no more than seven characters after the final `/'")
 		(uncompress-message (jka-compr-info-uncompress-message info))
 		(compress-args (jka-compr-info-compress-args info))
 		(uncompress-args (jka-compr-info-uncompress-args info))
-		(temp-file (jka-compr-make-temp-name))
 		(base-name (file-name-nondirectory visit-file))
-		cbuf temp-buffer)
+		temp-file cbuf temp-buffer)
 
 	    (setq cbuf (current-buffer)
-		  temp-buffer (get-buffer-create " *jka-compr-temp*"))
+		  temp-buffer (get-buffer-create " *jka-compr-wr-temp*"))
 	    (set-buffer temp-buffer)
 	    (widen) (erase-buffer)
 	    (set-buffer cbuf)
 
-	    (and append
-		 (not can-append)
-		 (file-exists-p filename)
-		 (let* ((local-copy (file-local-copy filename))
-			(local-file (or local-copy filename)))
+	    (if (and append
+		     (not can-append)
+		     (file-exists-p filename))
+		
+		(let* ((local-copy (file-local-copy filename))
+		       (local-file (or local-copy filename)))
+		  
+		  (setq temp-file local-file))
 
-		   (unwind-protect
-
-		       (progn
-		      
-			 (and
-			  uncompress-message
-			  (message "%s %s..." uncompress-message base-name))
-
-			 (jka-compr-call-process uncompress-program
-						 (concat uncompress-message
-							 " " base-name)
-						 local-file
-						 temp-file
-						 temp-buffer
-						 uncompress-args)
-			 (and
-			  uncompress-message
-			  (message "%s %s...done" uncompress-message base-name)))
-		     
-		     (and
-		      local-copy
-		      (file-exists-p local-copy)
-		      (delete-file local-copy)))))
+	      (setq temp-file (jka-compr-make-temp-name)))
 
 	    (and 
 	     compress-message
 	     (message "%s %s..." compress-message base-name))
-
+	    
 	    (jka-compr-run-real-handler 'write-region
 					(list start end temp-file t 'dont))
 
@@ -585,7 +565,7 @@ There should be no more than seven characters after the final `/'")
 	      (local-copy
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      (temp-file (jka-compr-make-temp-name t))
-	      (temp-buffer (get-buffer-create " *jka-compr-temp*"))
+	      (temp-buffer (get-buffer-create " *jka-compr-flc-temp*"))
 	      (notfound nil)
 	      (cbuf (current-buffer))
 	      local-file)
