@@ -431,6 +431,7 @@
   "JISX0213.2004 Plane1 (Japanese)"
   :short-name "JISX0213.2004-1"
   :dimension 2
+  :code-space [33 126 33 126]
   :iso-final-char ?Q
   :superset '(japanese-jisx0213-a japanese-jisx0213-1))
 
@@ -445,7 +446,7 @@
   "2-byte part of CP932"
   :dimension 2
   :map "CP932-2BYTE"
-  :code-space [#x00 #xFF #x00 #xFE]
+  :code-space [#x40 #xFC #x81 #xEF]
   :supplementary-p t)
 
 (define-charset 'cp932
@@ -959,10 +960,28 @@
   :code-offset #x100)
 
 (define-charset 'unicode-bmp
-  "Unicode Basic Multilingual Plane"
+  "Unicode Basic Multilingual Plane (U+0000..U+FFFF)"
   :short-name "Unicode BMP"
   :code-space [0 255 0 255]
   :code-offset 0)
+
+(define-charset 'unicode-smp
+  "Unicode Supplementary Multilingual Plane (U+10000..U+1FFFF)"
+  :short-name "Unicode SMP "
+  :code-space [0 255 0 255]
+  :code-offset #x10000)
+
+(define-charset 'unicode-sip
+  "Unicode Supplementary Ideographic Plane (U+20000..U+2FFFF)"
+  :short-name "Unicode SIP"
+  :code-space [0 255 0 255]
+  :code-offset #x20000)
+
+(define-charset 'unicode-ssp
+  "Unicode Supplementary Special-purpose Plane (U+E0000..U+EFFFF)"
+  :short-name "Unicode SSP"
+  :code-space [0 255 0 255]
+  :code-offset #xE0000)
 
 (define-charset 'ethiopic
   "Ethiopic characters for Amharic and Tigrigna."
