@@ -1632,6 +1632,10 @@ x_set_internal_border_width (f, arg, oldval)
   if (f->output_data.x->internal_border_width < 0)
     f->output_data.x->internal_border_width = 0;
 
+  if (f->output_data.x->edit_widget)
+    widget_store_internal_border (f->output_data.x->edit_widget,
+				  f->output_data.x->internal_border_width);
+
   if (f->output_data.x->internal_border_width == old)
     return;
 
@@ -3201,13 +3205,13 @@ This function is an internal primitive--use `make-frame' instead.")
       Lisp_Object value;
 
       value = x_get_arg (parms, Qinternal_border_width,
-			 "internalBorder", "BorderWidth", number);
+			 "internalBorder", "internalBorder", number);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
   x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
-		       "internalBorderWidth", "BorderWidth", number);
+		       "internalBorderWidth", "internalBorderWidth", number);
   x_default_parameter (f, parms, Qvertical_scroll_bars, Qleft,
 		       "verticalScrollBars", "ScrollBars", boolean);
 
