@@ -504,7 +504,7 @@ Open another window."
   "Delete the image at point (and it's thumbnail) (or marked files if any)."
   (interactive)
   (let ((f (or thumbs-markedL (list (cdr (assoc (point) thumbs-fileL))))))
-    (if (yes-or-no-p "Really delete %d files?" (length f))
+    (if (yes-or-no-p (format "Really delete %d files? " (length f)))
 	(progn
 	  (mapcar (lambda (x)
 		    (setq thumbs-fileL (delete (rassoc x thumbs-fileL) thumbs-fileL))
@@ -529,9 +529,9 @@ Open another window."
       (rename-buffer (concat "*Image: "
 			     (file-name-nondirectory i)
 			     " - "
-			     (number-to-string num) "*")))
-    (setq thumbs-image-num num
-	  thumbs-current-image-filename i)))
+			     (number-to-string num) "*"))
+      (setq thumbs-image-num num
+	    thumbs-current-image-filename i))))
 
 (defun thumbs-next-image ()
   "Show next image."
@@ -597,7 +597,7 @@ ACTION and ARG should be legal convert command."
 (defun thumbs-emboss-image (emboss)
   "Emboss the image with value EMBOSS."
   (interactive "nEmboss value: ")
-  (if (or (< emboss 3)(> emboss 31)(evenp emboss))
+  (if (or (< emboss 3) (> emboss 31) (zerop (logand emboss 1)))
       (error "Arg must be a odd number between 3 and 31"))
   (thumbs-modify-image "emboss" (number-to-string emboss)))
 
