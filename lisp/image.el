@@ -225,7 +225,8 @@ The image is looked for first on `load-path' and then in `data-directory'."
 			   (setq found try-file))))
 		   (if found
 		       (setq image
-			     (cons 'image (plist-put spec :file found))))))
+			     (cons 'image (plist-put (copy-sequence spec)
+						     :file found))))))
 		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
