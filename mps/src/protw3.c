@@ -1,14 +1,14 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc!protnt.c(trunk.4) $
+ *  $HopeName: MMsrc!protnt.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
 
 #include "std.h"
 #include "prot.h"
-#include "fault.h"
+#include "space.h"
 
 #ifndef MPS_OS_W3
 #error "protnt.c is Win32 specific, but MPS_OS_W3 is not set"
@@ -16,22 +16,8 @@
 
 #include <windows.h>
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
-
-Addr ProtGrain(void)
-{
-  Addr grain;
-  SYSTEM_INFO si;
-
-  AVER(sizeof(DWORD) == sizeof(Addr));
-
-  GetSystemInfo(&si);
-  grain = (Addr)si.dwPageSize;
-  AVER(IsPoT(grain));
-
-  return grain;
-}
 
 void ProtSetup(void)
 {
@@ -40,17 +26,12 @@ void ProtSetup(void)
 
 void ProtSet(Addr base, Addr limit, ProtMode mode)
 {
-#ifdef DEBUG
-  Addr grain = ProtGrain();
-#endif
   DWORD newProtect;
   DWORD oldProtect;
 
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
 
   newProtect = PAGE_EXECUTE_READWRITE;
   if((mode & ProtWRITE) != 0)
@@ -99,7 +80,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   AVER(base < limit);  /* nasty case (base = -1): continue search? @@@ */
 
-  if(FaultDispatch(base, limit, mode))
+  if(SpaceAccess(base, mode))
     action = EXCEPTION_CONTINUE_EXECUTION;
   else 
     action = EXCEPTION_CONTINUE_SEARCH;
