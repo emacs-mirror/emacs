@@ -1,32 +1,18 @@
-/*  impl.c.messtest: MESSAGE TEST
+/* impl.c.messtest: MESSAGE TEST
  *
- *  $HopeName: MMsrc!messtest.c() $
- * Copyright (C) 1999 Harlequin Ltd.  All rights reserved.
+ * $HopeName: MMsrc!messtest.c(trunk.1) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
-#include "mpsaan.h" 
+#include "mpsavm.h" 
 #include "mps.h"
 #include "testlib.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
-SRCID(messtest, "$HopeName: MMsrc!messtest.c() $");
-
-
-
-static void die_true(Bool res, const char *s)
-{
-  die_expect((mps_res_t)res, (mps_res_t)TRUE, s);
-}
-
-static void die_false(Bool res, const char *s)
-{
-  die_expect((mps_res_t)res, (mps_res_t)FALSE, s);
-}
-
+SRCID(messtest, "$HopeName: MMsrc!messtest.c(trunk.1) $");
 
 
 /* Basic infrastructure for creating dummy messages */
@@ -69,12 +55,13 @@ static MessageClassStruct DGCMessageClassStruct = {
 
 static void checkNoMessages(Arena arena)
 {
-  die_false(MessagePoll(arena), "Queue not empty");
+  cdie(!MessagePoll(arena), "Queue not empty");
 }
+
 
 static void topMessageType(MessageType *typeReturn, Arena arena)
 {
-  die_true(MessageQueueType(typeReturn, arena), "Queue empty");
+  cdie(MessageQueueType(typeReturn, arena), "Queue empty");
 }
 
 
@@ -131,7 +118,7 @@ static void postInterleavedMessages(Arena arena)
 static void eatMessageOfType(Arena arena, MessageType type)
 {
   Message message;
-  die_true(MessageGet(&message, arena, type), "No message");
+  cdie(MessageGet(&message, arena, type), "No message");
   MessageDiscard(arena, message);
 }
 
@@ -167,7 +154,7 @@ static void eatTopMessageOfType(Arena arena, MessageType type)
   MessageType topType;
 
   topMessageType(&topType, arena);
-  die_true((topType == type), "Unexpected type");
+  cdie((topType == type), "Unexpected type");
   eatMessageOfType(arena, type);
 }
 
@@ -259,10 +246,11 @@ static void testGetEmpty(Arena arena)
 
   MessageEmpty(arena);
   checkNoMessages(arena);
-  die_false(MessageGet(&message, arena, MessageTypeGC),
-           "Got non-existent message"); 
+  cdie(!MessageGet(&message, arena, MessageTypeGC), "Got non-existent message");
 }
 
+
+#define testArenaSIZE (((size_t)64)<<20)
 
 extern int main(int argc, char *argv[])
 {
@@ -272,8 +260,8 @@ extern int main(int argc, char *argv[])
   testlib_unused(argc); 
   testlib_unused(argv);
 
-  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
-      "Failed to create arena");
+  die(mps_arena_create(&mpsArena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
   arena = (Arena)mpsArena;
 
   testGetEmpty(arena);
