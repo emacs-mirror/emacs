@@ -49,7 +49,7 @@
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
-;; once. If you perform version control operations with RCS/SCCS/CVS while
+;; once.  If you perform version control operations with RCS/SCCS/CVS while
 ;; vc's back is turned, or move/rename master files while vc is running,
 ;; vc may get seriously confused.  Don't do these things!
 ;;
@@ -75,7 +75,7 @@
   "*Back-end actually used by this interface; may be SCCS or RCS.
 The value is only computed when needed to avoid an expensive search.")
 (defvar vc-suppress-confirm nil
-  "*If non-nil, reat user as expert; suppress yes-no prompts on some things.")
+  "*If non-nil, treat user as expert; suppress yes-no prompts on some things.")
 (defvar vc-keep-workfiles t
   "*If non-nil, don't delete working files after registering changes.")
 (defvar vc-initial-comment nil
@@ -96,19 +96,19 @@ The value is only computed when needed to avoid an expensive search.")
 
 ;;;###autoload
 (defvar vc-checkin-hook nil
-  "*List of functions called after a vc-checkin is done.  See `run-hooks'.")
+  "*List of functions called after a checkin is done.  See `run-hooks'.")
 
 ;; Header-insertion hair
 
 (defvar vc-header-alist
   '((SCCS "\%W\%") (RCS "\$Id\$"))
-  "*Header keywords to be inserted when vc-insert-header is executed.")
+  "*Header keywords to be inserted when `vc-insert-header' is executed.")
 (defconst vc-static-header-alist
   '(("\\.c$" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.  A \%s in the
 template is replaced with the first string associated with the file's
-verson-control type in vc-header-alist.")
+version-control type in `vc-header-alist'.")
 
 (defvar vc-comment-alist
   '((nroff-mode ".\\\"" ""))
@@ -121,7 +121,7 @@ is sensitive to blank lines.")
 (defvar vc-log-entry-mode nil)
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
-(defvar vc-checkout-writeable-buffer-hook 'vc-checkout-writeable-buffer)
+(defvar vc-checkout-writable-buffer-hook 'vc-checkout-writable-buffer)
 (defvar vc-parent-buffer nil)
 (defvar vc-parent-buffer-name nil)
 
@@ -154,7 +154,7 @@ is sensitive to blank lines.")
 ;; Random helper functions
 
 (defun vc-name (file)
-  "Return the master name of a file, nil if it is not registered"
+  "Return the master name of a file, nil if it is not registered."
   (or (vc-file-getprop file 'vc-name)
       (vc-file-setprop file 'vc-name
 		       (let ((name-and-type (vc-registered file)))
@@ -365,12 +365,12 @@ the master name of FILE; this is appended to an optional list of FLAGS."
       (vc-register verbose comment)
       (if vc-initial-comment
 	  (setq vc-log-after-operation-hook
-		'vc-checkout-writeable-buffer-hook)
-	(vc-checkout-writeable-buffer file)))
+		'vc-checkout-writable-buffer-hook)
+	(vc-checkout-writable-buffer file)))
 
      ;; if there is no lock on the file, assert one and get it
      ((not (setq owner (vc-locking-user file)))
-      (vc-checkout-writeable-buffer file))
+      (vc-checkout-writable-buffer file))
 
      ;; a checked-out version exists, but the user may not own the lock
      ((not (string-equal owner (user-login-name)))
@@ -427,16 +427,16 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 (defun vc-next-action (verbose)
   "Do the next logical checkin or checkout operation on the current file.
    If the file is not already registered, this registers it for version
-control and then retrieves a writeable, locked copy for editing.
+control and then retrieves a writable, locked copy for editing.
    If the file is registered and not locked by anyone, this checks out
-a writeable and locked file ready for editing.
+a writable and locked file ready for editing.
    If the file is checked out and locked by the calling user, this
 first checks to see if the file has changed since checkout.  If not,
 it performs a revert.
    If the file has been changed, this pops up a buffer for entry
 of a log message; when the message has been entered, it checks in the
 resulting changes along with the log message as change commentary.  If
-the variable vc-keep-workfiles is non-nil (which is its default), a
+the variable `vc-keep-workfiles' is non-nil (which is its default), a
 read-only copy of the changed file is left in place afterwards.
    If the file is registered and locked by someone else, you are given
 the option to steal the lock.
@@ -465,8 +465,8 @@ lock steals will raise an error."
 
 ;;; These functions help the vc-next-action entry point
 
-(defun vc-checkout-writeable-buffer (&optional file)
-  "Retrieve a writeable copy of the latest version of the current buffer's file."
+(defun vc-checkout-writable-buffer (&optional file)
+  "Retrieve a writable copy of the latest version of the current buffer's file."
   (vc-checkout (or file (buffer-file-name)) t)
   )
 
@@ -540,13 +540,13 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
 		      (or comment (not vc-initial-comment))
 		      "Enter initial comment." 'vc-backend-admin))
 
-(defun vc-checkout (file &optional writeable)
+(defun vc-checkout (file &optional writable)
   "Retrieve a copy of the latest version of the given file."
   ;; If ftp is on this system and the name matches the ange-ftp format
   ;; for a remote file, the user is trying something that won't work.
   (if (and (string-match "^/[^/:]+:" file) (vc-find-binary "ftp"))
       (error "Sorry, you can't check out files over FTP"))
-  (vc-backend-checkout file writeable)
+  (vc-backend-checkout file writable)
   (if (string-equal file buffer-file-name)
       (vc-resynch-window file t t))
   )
@@ -581,7 +581,7 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
   "Check in the file specified by FILE.
 The optional argument REV may be a string specifying the new version level
 \(if nil increment the current level).  The file is either retained with write
-permissions zeroed, or deleted (according to the value of vc-keep-workfiles).
+permissions zeroed, or deleted (according to the value of `vc-keep-workfiles').
 COMMENT is a comment string; if omitted, a buffer is
 popped up to accept a comment."
   (setq vc-log-after-operation-hook 'vc-checkin-hook)
@@ -793,7 +793,7 @@ files in or below it."
 (defun vc-insert-headers ()
   "Insert headers in a file for use with your version-control system.
 Headers desired are inserted at the start of the buffer, and are pulled from
-the variable vc-header-alist"
+the variable `vc-header-alist'."
   (interactive)
   (if vc-dired-mode
       (find-file-other-window (dired-get-filename)))
@@ -844,8 +844,8 @@ on a buffer attached to the file named in the current Dired buffer line."
 
 (defun vc-dired-reformat-line (x)
   ;; Hack a directory-listing line, plugging in locking-user info in
-  ;; place of the user and group info. Should have the beneficial
-  ;; side-effect of shortening the listing line. Each call starts with
+  ;; place of the user and group info.  Should have the beneficial
+  ;; side-effect of shortening the listing line.  Each call starts with
   ;; point immediately following the dired mark area on the line to be
   ;; hacked.
   ;;
@@ -879,7 +879,7 @@ on a buffer attached to the file named in the current Dired buffer line."
 			    (setq filelist (cons (substring f dl) filelist))
 			    (setq userlist (cons user userlist))))))))
     (save-excursion
-      ;; This uses a semi-documented featre of dired; giving a switch
+      ;; This uses a semi-documented feature of dired; giving a switch
       ;; argument forces the buffer to refresh each time.
       (dired
        (cons default-directory (nreverse filelist))
@@ -1063,7 +1063,8 @@ to that version."
 
 ;;;###autoload
 (defun vc-cancel-version (norevert)
-  "Get rid of the version most recently checked in by anyone."
+  "Get rid of most recently checked in version of this file.
+A prefix argument means do not revert the buffer afterwards."
   (interactive "P")
   (if vc-dired-mode
       (find-file-other-window (dired-get-filename)))
@@ -1077,14 +1078,15 @@ to that version."
     (if (null (yes-or-no-p (format prompt target)))
 	nil
       (vc-backend-uncheck (buffer-file-name) target)
-      (if norevert
+      (if (or norevert
+	      (not (yes-or-no-p "Revert buffer to most recent remaining version? ")))
 	  (vc-mode-line (buffer-file-name))
 	(vc-checkout (buffer-file-name) nil)))
     ))
 
 (defun vc-rename-file (old new)
-  "Rename a file, taking its master files with it."
-  (interactive "fOld name: \nFNew name: ")
+  "Rename file OLD to NEW, and rename its master file likewise."
+  (interactive "fVC rename file: \nFRename to: ")
   (let ((oldbuf (get-file-buffer old)))
     (if (buffer-modified-p oldbuf)
 	(error "Please save files before moving them."))
@@ -1379,17 +1381,17 @@ Return nil if there is no such person."
   (message "Registering %s...done" file)
   )
 
-(defun vc-backend-checkout (file &optional writeable rev)
+(defun vc-backend-checkout (file &optional writable rev)
   ;; Retrieve a copy of a saved version into a workfile
   (message "Checking out %s..." file)
   (vc-backend-dispatch file
    (progn
      (vc-do-command 0 "get" file	;; SCCS
-		    (if writeable "-e")
+		    (if writable "-e")
 		    (and rev (concat "-r" (vc-lookup-triple file rev))))
      )
    (vc-do-command 0 "co" file	;; RCS
-		  (if writeable "-l")
+		  (if writable "-l")
 		  (and rev (concat "-r" rev)))
    )
   (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
@@ -1605,15 +1607,15 @@ Global user options:
 ;;; These things should probably be generally available
 
 (defun vc-shrink-to-fit ()
-  "Shrink a window vertically until it's just large enough to contain its text"
+  "Shrink window vertically until it's just large enough to contain its text."
   (let ((minsize (1+ (count-lines (point-min) (point-max)))))
     (if (< minsize (window-height))
 	(let ((window-min-height 2))
 	  (shrink-window (- (window-height) minsize))))))
 
 (defun vc-file-tree-walk (func &rest args)
-  "Walk recursively through default directory,
-invoking FUNC f ARGS on all non-directory files f underneath it."
+  "Walk recursively through default directory.
+Invoke FUNC f ARGS on each non-directory file f underneath it."
   (vc-file-tree-walk-internal default-directory func args)
   (message "Traversing directory %s...done" default-directory))
 
@@ -1742,7 +1744,7 @@ invoking FUNC f ARGS on all non-directory files f underneath it."
 ;;; 
 ;;; Window W:
 ;;;    Between vc-locking-user and the following steal-lock (apparent
-;;; state E).  This window may never cloce if the user fails to complete
+;;; state E).  This window may never close if the user fails to complete
 ;;; the steal-lock message.  Includes window X.
 ;;; 
 ;;; Window X:
