@@ -139,52 +139,6 @@ The value is an ASCII printing character (not upper case) or a symbol."
     (let ((base (logand event (1- (lsh 1 18)))))
       (downcase (if (< base 32) (logior base 64) base)))))
 
-(defun event-modifiers (event)
-  "Returns a list of symbols representing the modifier keys in event EVENT.
-The elements of the list may include `meta', `control',
-`shift', `hyper', `super', `alt'.
-See also the function `event-modifier-bits'."
-  (let ((type event))
-    (if (listp type)
-	(setq type (car type)))
-    (if (symbolp type)
-	(cdr (get type 'event-symbol-elements))
-      (let ((list nil))
-	(or (zerop (logand type (lsh 1 23)))
-	    (setq list (cons 'meta list)))
-	(or (and (zerop (logand type (lsh 1 22)))
-		 (>= (logand type 127) 32))
-	    (setq list (cons 'control list)))
-	(or (and (zerop (logand type (lsh 1 21)))
-		 (= (logand type 255) (downcase (logand type 255))))
-	    (setq list (cons 'shift list)))
-	(or (zerop (logand type (lsh 1 20)))
-	    (setq list (cons 'hyper list)))
-	(or (zerop (logand type (lsh 1 19)))
-	    (setq list (cons 'super list)))
-	(or (zerop (logand type (lsh 1 18)))
-	    (setq list (cons 'alt list)))
-	list))))
-
-(defun event-modifier-bits (event)
-  "Returns a number representing the modifier keys in event EVENT.
-See also the function `event-modifiers'."
-  (let ((type event))
-    (if (listp type)
-	(setq type (car type)))
-    (if (symbolp type)
-	(logand (lsh 63 18)
-		(nth 1 (get type 'event-symbol-element-mask)))
-      (let ((bits (logand type (lsh 63 18)))
-	    (base (logand type 127)))
-	;; Put in Control and Shift bits
-	;; in the cases where the basic code expresses them.
-	(if (< base 32)
-	    (setq bits (logior (lsh 1 22) bits)))
-	(if (/= base (downcase base))
-	    (setq bits (logior (lsh 1 21) bits)))
-	bits))))
-
 (defun event-object (event)
   "Returns the function argument of the given timeout, menu, or eval event."
   (nth 2 event))
@@ -276,7 +230,7 @@ an existing event object."
 	(cond ((eq type 'eval)
 	       (funcall (nth 1 event) (nth 2 event)))
 	      ((eq type 'switch-frame)
-	       (internal-select-frame (nth 1 event))))))
+	       (select-frame (nth 1 event))))))
     event))
 
 (defun process-event-p (obj)
