@@ -377,7 +377,7 @@ static void AMSTFinish(Pool pool)
 
 /* AMSSegIsFree -- return TRUE if a seg is all unallocated */
 
-Bool AMSSegIsFree(Seg seg)
+static Bool AMSSegIsFree(Seg seg)
 {
   AMSSeg amsseg;
   AVERT(Seg, seg);
@@ -388,7 +388,7 @@ Bool AMSSegIsFree(Seg seg)
 
 /* AMSSegRegionIsFree -- return TRUE if a region is all unallocated */
 
-Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
+static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   AMS ams;
@@ -417,7 +417,7 @@ Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
  * The code is similar to AMSBufferEmpty.
  */
 
-void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
+static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
 {
   Pool pool;
   AMS ams;
@@ -459,7 +459,7 @@ void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
  * The code is similar to AMSUnallocateRange.
  */
 
-void AMSAllocateRange(Seg seg, Addr base, Addr limit)
+static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
 {
   Pool pool;
   AMS ams;
@@ -511,7 +511,7 @@ void AMSAllocateRange(Seg seg, Addr base, Addr limit)
  * meet the request.
  */
 
-Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
+static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
                    Pool pool, Buffer buffer, Size size,
                    Bool withReservoirPermit)
 {
