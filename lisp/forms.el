@@ -289,10 +289,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.24 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.25 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.24 1996/01/04 23:38:16 kwzh Exp erik $")
+  $Id: forms.el,v 2.25 1996/01/14 07:34:30 erik Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -1415,7 +1415,7 @@ Commands:                        Equivalent keys in read-only mode:
 
 (defun forms--help ()
   "Initial help for Forms mode."
-  (message (substitute-command-keys (concat
+  (message "%s" (substitute-command-keys (concat
   "\\[forms-next-record]:next"
   "   \\[forms-prev-record]:prev"
   "   \\[forms-first-record]:first"
@@ -1833,7 +1833,7 @@ it is called to fill (some of) the fields with default values."
 	  (if (null (re-search-forward regexp nil t))
 	      (progn
 		(goto-char here)
-		(message (concat "\"" regexp "\" not found."))
+		(message "\"%s\" not found." regexp)
 		nil)
 	    (setq the-record (forms--get-record))
 	    (setq the-line (1+ (count-lines (point-min) (point))))))
@@ -1865,7 +1865,7 @@ it is called to fill (some of) the fields with default values."
 	  (if (null (re-search-backward regexp nil t))
 	      (progn
 		(goto-char here)
-		(message (concat "\"" regexp "\" not found."))
+		(message "\"%s\" not found." regexp)
 		nil)
 	    (setq the-record (forms--get-record))
 	    (setq the-line (1+ (count-lines (point-min) (point))))))
