@@ -13046,6 +13046,14 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
             Lisp_Object frame;
 
             wp = FrontNonFloatingWindow ();
+	    
+	    if (!wp)
+	      {
+		struct frame *f = XFRAME (XCAR (Vframe_list));
+		CollapseWindow (FRAME_MAC_WINDOW (f), false);
+		wp = FrontNonFloatingWindow ();
+	      }
+
             if (wp && is_emacs_window(wp))
 	        f = ((mac_output *) GetWRefCon (wp))->mFP;            
 

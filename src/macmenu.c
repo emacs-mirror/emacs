@@ -2226,13 +2226,14 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
 
       strcpy (item_name, "");
       for (i = 0; i < indent; i++)
-        strcat (item_name, "    ");
-      strcat (item_name, wv->name);
+	strncat (item_name, "    ", 255);
+      strncat (item_name, wv->name, 255);
       if (wv->key != NULL)
 	{
-	  strcat (item_name, " ");
-	  strcat (item_name, wv->key);
+	  strncat (item_name, " ", 255);
+	  strncat (item_name, wv->key, 255);
 	}
+      item_name[255] = 0;
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
 
@@ -2316,7 +2317,8 @@ fill_menubar (widget_value *wv)
       MenuHandle menu;
       Str255 title;
         
-      strcpy (title, wv->name);
+      strncpy (title, wv->name, 255);
+      title[255] = 0;
       c2pstr (title);
       menu = NewMenu (id, title);
 

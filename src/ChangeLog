@@ -1,3 +1,14 @@
+2002-12-02  Andrew Choi  <akochoi@shaw.ca>
+
+	* macmenu.c (add_menu_item, fill_menubar): Truncate menu item
+	names to 255 characters.
+
+	* macterm.c (XTread_socket): If all frames have been collapsed,
+	expand the first one before handling drag-and-drop events.
+
+	* s/darwin.h (GETPGRP_NO_ARG): Delete.  Replaced by GETPGRP_VOID,
+	which is detected by autoconf.
+
 2002-12-01  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (copy_twolevelhints, dump_it):  Now corrects the

@@ -209,9 +209,6 @@ Boston, MA 02111-1307, USA.  */
 /* Used in dispnew.c.  Copied from freebsd.h. */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-/* Darwin provides POSIX-style getpgrp.  */
-#define GETPGRP_NO_ARG
-
 /* System uses OXTABS instead of the expected TAB3.  (Copied from
    bsd386.h.)  */
 #define TAB3 OXTABS
