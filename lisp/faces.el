@@ -1101,7 +1101,10 @@ selected frame."
 		  ((< (apply '+ (x-color-values
 				 (cdr (assq 'background-color params))
 				 frame))
-		      (/ (apply '+ (x-color-values "white" frame)) 3))
+		      ;; Just looking at the screen,
+		      ;; colors whose values add up to .6 of the white total
+		      ;; still look dark to me.
+		      (* (apply '+ (x-color-values "white" frame)) .6))
 		   'dark)
 		  (t 'light)))
       (modify-frame-parameters frame
