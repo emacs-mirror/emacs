@@ -1,3 +1,13 @@
+2000-10-23  Jason Rumney  <jasonr@gnu.org>
+
+	* fontset.c (syms_of_fontset) [WINDOWSNT]: Special case for
+	ASCII font of default fontset on Windows.
+
+	* w32term.c (VCENTER_BASELINE_OFFSET): Bias division (see
+	xterm.c comment below).
+
+	* w32fns.c (x_to_w32_font): Initialize dpi from dpyinfo->resy.
+
 2000-10-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_connection_closed): Reset handling_signal.
