@@ -6000,7 +6000,7 @@ syms_of_keyboard ()
   DEFVAR_LISP ("last-command-char", &last_command_char,
     "Last input event that was part of a command.");
 
-  DEFVAR_LISP ("last-command-event", &last_command_char,
+  DEFVAR_LISP_NOPRO ("last-command-event", &last_command_char,
     "Last input event that was part of a command.");
 
   DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
@@ -6012,7 +6012,7 @@ so that you can determine whether the command was run by mouse or not.");
   DEFVAR_LISP ("last-input-char", &last_input_char,
     "Last input event.");
 
-  DEFVAR_LISP ("last-input-event", &last_input_char,
+  DEFVAR_LISP_NOPRO ("last-input-event", &last_input_char,
     "Last input event.");
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
