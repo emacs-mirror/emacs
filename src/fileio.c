@@ -3246,26 +3246,6 @@ Lisp_Object Qfind_buffer_file_type;
 #define READ_BUF_SIZE (64 << 10)
 #endif
 
-/* This function is called when a function bound to
-   Vset_auto_coding_function causes some error.  At that time, a text
-   of a file has already been inserted in the current buffer, but,
-   markers has not yet been adjusted.  Thus we must adjust markers
-   here.  We are sure that the buffer was empty before the text of the
-   file was inserted.  */
-
-static Lisp_Object
-set_auto_coding_unwind (multibyte)
-     Lisp_Object multibyte;
-{
-  int inserted = Z_BYTE - BEG_BYTE;
-
-  if (!NILP (multibyte))
-    inserted = multibyte_chars_in_text (GPT_ADDR - inserted, inserted);
-  adjust_after_insert (PT, PT_BYTE, Z, Z_BYTE, inserted);
-
-  return Qnil;
-}
-
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 5, 0,
   "Insert contents of file FILENAME after point.\n\
@@ -3310,7 +3290,6 @@ actually used.")
   unsigned char buffer[1 << 14];
   int replace_handled = 0;
   int set_coding_system = 0;
-  int coding_system_decided = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3415,107 +3394,161 @@ actually used.")
 	}
     }
 
-  if (BEG < Z)
-    {
-      /* Decide the coding system to use for reading the file now
-         because we can't use an optimized method for handling
-         `coding:' tag if the current buffer is not empty.  */
-      Lisp_Object val;
-      val = Qnil;
+  /* Decide the coding-system of the file.  */
+  {
+    Lisp_Object val;
+    val = Qnil;
 
-      if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
-      else if (! NILP (replace))
-	/* In REPLACE mode, we can use the same coding system
-	   that was used to visit the file.  */
-	val = current_buffer->buffer_file_coding_system;
-      else
-	{
-	  /* Don't try looking inside a file for a coding system
-	     specification if it is not seekable.  */
-	  if (! not_regular && ! NILP (Vset_auto_coding_function))
-	    {
-	      /* Find a coding system specified in the heading two
-		 lines or in the tailing several lines of the file.
-		 We assume that the 1K-byte and 3K-byte for heading
-		 and tailing respectively are sufficient fot this
-		 purpose.  */
-	      int how_many, nread;
+    if (!NILP (Vcoding_system_for_read))
+      val = Vcoding_system_for_read;
+    else if (! NILP (replace))
+      /* In REPLACE mode, we can use the same coding system
+	 that was used to visit the file.  */
+      val = current_buffer->buffer_file_coding_system;
+    else if (! not_regular)
+      {
+	/* Don't try looking inside a file for a coding system specification
+	   if it is not seekable.  */
+	if (! NILP (Vset_auto_coding_function))
+	  {
+	    /* Find a coding system specified in the heading two lines
+	       or in the tailing several lines of the file.  We assume
+	       that the 1K-byte and 3K-byte for heading and tailing
+	       respectively are sufficient fot this purpose.  */
+	    int nread;
+	    int beginning_of_end, end_of_beginning;
 
-	      if (st.st_size <= (1024 * 4))
+	    if (st.st_size <= (1024 * 4))
+	      {
 		nread = read (fd, read_buf, 1024 * 4);
-	      else
-		{
-		  nread = read (fd, read_buf, 1024);
-		  if (nread >= 0)
-		    {
-		      if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
-			report_file_error ("Setting file position",
-					   Fcons (orig_filename, Qnil));
-		      nread += read (fd, read_buf + nread, 1024 * 3);
-		    }
-		}
+		end_of_beginning = nread;
+		beginning_of_end = 0;
+	      }
+	    else
+	      {
+		nread = read (fd, read_buf, 1024);
+		end_of_beginning = nread;
+		beginning_of_end = nread;
+		if (nread >= 0)
+		  {
+		    if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
+		      report_file_error ("Setting file position",
+					 Fcons (orig_filename, Qnil));
+		    nread += read (fd, read_buf + nread, 1024 * 3);
+		  }
+	      }
 
-	      if (nread < 0)
-		error ("IO error reading %s: %s",
-		       XSTRING (orig_filename)->data, strerror (errno));
-	      else if (nread > 0)
-		{
-		  int count = specpdl_ptr - specpdl;
-		  struct buffer *prev = current_buffer;
+	    if (nread < 0)
+	      error ("IO error reading %s: %s",
+		     XSTRING (orig_filename)->data, strerror (errno));
+	    else if (nread > 0)
+	      {
+		int i;
+		int possible_spec = 0;
+		unsigned char *p, *p1;
+		Lisp_Object tem;
+		unsigned char *copy = (unsigned char *) alloca (nread + 1);
 
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-		  temp_output_buffer_setup (" *code-converting-work*");
-		  set_buffer_internal (XBUFFER (Vstandard_output));
-		  current_buffer->enable_multibyte_characters = Qnil;
-		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
-		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		  val = call1 (Vset_auto_coding_function, make_number (nread));
-		  set_buffer_internal (prev);
-		  /* Discard the unwind protect for recovering the
-                     current buffer.  */
-		  specpdl_ptr--;
+		/* Make a copy of the contents of read_buf in COPY, 
+		   and convert it to lower case so we can compare
+		   more efficiently.  */
+		bcopy (read_buf, copy, nread);
+		for (i = 0; i < nread; i++)
+		  copy[i] = DOWNCASE (copy[i]);
+		/* Ensure various comparisons fail at end of data.  */
+		copy[nread] = 0;
 
-		  /* Rewind the file for the actual read done later.  */
-		  if (lseek (fd, 0, 0) < 0)
-		    report_file_error ("Setting file position",
-				       Fcons (orig_filename, Qnil));
-		}
-	    }
+		/* Now test quickly whether the file contains a -*- line.  */
+		p = copy;
+		while (*p != '\n' && p - copy < end_of_beginning)
+		  p++;
+		if (copy[0] == '#' && copy[1] == '!')
+		  while (*p != '\n' && p - copy < end_of_beginning)
+		    p++;
+		p1 = copy;
+		while (p - p1 >= 3)
+		  {
+		    if (p1[0] == '-' && p1[1] == '*' && p1[2] == '-')
+		      {
+			while (p - p1 >= 7)
+			  {
+			    if (! bcmp ("coding:", p1, 7))
+			      {
+				possible_spec = 1;
+				goto win;
+			      }
+			    p1++;
+			  }
+			break;
+		      }
+		    p1++;
+		  }
 
-	  if (NILP (val))
-	    {
-	      /* If we have not yet decided a coding system, check
-                 file-coding-system-alist.  */
-	      Lisp_Object args[6], coding_systems;
+		/* Test quickly whether the file
+		   contains a local variables list.  */
+		p = &copy[nread - 1];
+		p1 = &copy[beginning_of_end];
+		while (p > p1)
+		  {
+		    if (p[0] == '\n' && p[1] == '\f')
+		      break;
+		    p--;
+		  }
+		p1 = &copy[nread];
+		while (p1 - p >= 16)
+		  {
+		    if (! bcmp ("local variables:", p, 16))
+		      {
+			possible_spec = 1;
+			break;
+		      }
+		    p++;
+		  }
+	      win:
 
-	      args[0] = Qinsert_file_contents, args[1] = orig_filename;
-	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
-	      coding_systems = Ffind_operation_coding_system (6, args);
-	      if (CONSP (coding_systems))
-		val = XCONS (coding_systems)->car;
-	    }
-	}
+		if (possible_spec)
+		  {
+		    /* Always make this a unibyte string
+		       because we have not yet decoded it.  */ 
+		    tem = make_unibyte_string (read_buf, nread);
+		    val = call1 (Vset_auto_coding_function, tem);
+		  }
 
+		/* Rewind the file for the actual read done later.  */
+		if (lseek (fd, 0, 0) < 0)
+		  report_file_error ("Setting file position",
+				     Fcons (orig_filename, Qnil));
+	      }
+	  }
+	if (NILP (val))
+	  {
+	    Lisp_Object args[6], coding_systems;
+
+	    args[0] = Qinsert_file_contents, args[1] = orig_filename;
+	    args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
+	    coding_systems = Ffind_operation_coding_system (6, args);
+	    if (CONSP (coding_systems))
+	      val = XCONS (coding_systems)->car;
+	  }
+      }
+
+    if (NILP (Vcoding_system_for_read)
+	&& NILP (current_buffer->enable_multibyte_characters))
+      {
+	/* We must suppress all text conversion except for end-of-line
+	   conversion.  */
+	struct coding_system coding_temp;
+
+	setup_coding_system (Fcheck_coding_system (val), &coding_temp);
+	setup_coding_system (Qraw_text, &coding);
+	coding.eol_type = coding_temp.eol_type;
+      }
+    else
       setup_coding_system (Fcheck_coding_system (val), &coding);
 
-      if (NILP (Vcoding_system_for_read)
-	  && NILP (current_buffer->enable_multibyte_characters))
-	{
-	  /* We must suppress all text conversion except for end-of-line
-	     conversion.  */
-	  int eol_type;
-
-	  eol_type = coding.eol_type;
-	  setup_coding_system (Qraw_text, &coding);
-	  coding.eol_type = eol_type;
-	}
-
-      coding_system_decided = 1;
-    }
-
-  /* Ensure we always set Vlast_coding_system_used.  */
-  set_coding_system = 1;
+    /* Ensure we always set Vlast_coding_system_used.  */
+    set_coding_system = 1;
+  }
 
   /* If requested, replace the accessible part of the buffer
      with the file contents.  Avoid replacing text at the
@@ -3532,7 +3565,6 @@ actually used.")
      But if we discover the need for conversion, we give up on this method
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
-      && BEGV < ZV
       && ! CODING_REQUIRE_DECODING (&coding)
       && (coding.eol_type == CODING_EOL_UNDECIDED
 	  || coding.eol_type == CODING_EOL_LF))
@@ -3711,7 +3743,7 @@ actually used.")
      is needed, in a simple way that needs a lot of memory.
      The preceding if-statement handles the case of no conversion
      in a more optimized way.  */
-  if (!NILP (replace) && ! replace_handled && BEGV < ZV)
+  if (!NILP (replace) && ! replace_handled)
     {
       int same_at_start = BEGV_BYTE;
       int same_at_end = ZV_BYTE;
@@ -3963,69 +3995,6 @@ actually used.")
 
   if (inserted > 0)
     {
-      if (! coding_system_decided)
-	{
-	  /* The coding system is not yet decided.  Decide it by an
-	     optimized method for handling `coding:' tag.  */
-	  Lisp_Object val;
-	  val = Qnil;
-
-	  if (!NILP (Vcoding_system_for_read))
-	    val = Vcoding_system_for_read;
-	  else
-	    {
-	      if (! NILP (Vset_auto_coding_function))
-		{
-		  /* Since we are sure that the current buffer was
-		     empty before the insertion, we can toggle
-		     enable-multibyte-characters directly here without
-		     taking care of marker adjustment and byte
-		     combining problem.  */
-		  Lisp_Object prev_multibyte;
-		  int count = specpdl_ptr - specpdl;
-
-		  prev_multibyte = current_buffer->enable_multibyte_characters;
-		  current_buffer->enable_multibyte_characters = Qnil;
-		  record_unwind_protect (set_auto_coding_unwind,
-					 prev_multibyte);
-		  val = call1 (Vset_auto_coding_function,
-			       make_number (inserted));
-		  /* Discard the unwind protect for recovering the
-		     error of Vset_auto_coding_function.  */
-		  specpdl_ptr--;
-		  current_buffer->enable_multibyte_characters = prev_multibyte;
-		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		}
-
-	      if (NILP (val))
-		{
-		  /* If the coding system is not yet decided, check
-		     file-coding-system-alist.  */
-		  Lisp_Object args[6], coding_systems;
-
-		  args[0] = Qinsert_file_contents, args[1] = orig_filename;
-		  args[2] = visit, args[3] = beg, args[4] = end, args[5] = Qnil;
-		  coding_systems = Ffind_operation_coding_system (6, args);
-		  if (CONSP (coding_systems))
-		    val = XCONS (coding_systems)->car;
-		}
-	    }
-
-	  setup_coding_system (Fcheck_coding_system (val), &coding);
-
-	  if (NILP (Vcoding_system_for_read)
-	      && NILP (current_buffer->enable_multibyte_characters))
-	    {
-	      /* We must suppress all text conversion except for
-		 end-of-line conversion.  */
-	      int eol_type;
-
-	      eol_type = coding.eol_type;
-	      setup_coding_system (Qraw_text, &coding);
-	      coding.eol_type = eol_type;
-	    }
-	}
-
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
 	  /* Here, we don't have to consider byte combining (see the
