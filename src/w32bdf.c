@@ -228,7 +228,7 @@ w32_init_bdf_font(char *filename)
 
   if (hbdf_cp_heap == INVALID_HANDLE_VALUE)
     hbdf_cp_heap = HeapCreate(0, BDF_CODEPOINT_HEAP_INITIAL_SIZE, 0);
-  if (hbdf_bmp_heap = INVALID_HANDLE_VALUE)
+  if (hbdf_bmp_heap == INVALID_HANDLE_VALUE)
     hbdf_bmp_heap = HeapCreate(0, BDF_BITMAP_HEAP_INITIAL_SIZE, 0);
 
   if (!hbdf_cp_heap || !hbdf_bmp_heap)
