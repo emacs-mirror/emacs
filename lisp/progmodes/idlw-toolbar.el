@@ -3,8 +3,8 @@
 ;; Copyright (c) 1999 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.12
-;; Date: $Date: 2000/01/05 12:38:47 $
+;; Version: 3.15
+;; Date: $Date: 2000/02/03 15:40:31 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -44,7 +44,7 @@
 		  (featurep 'xpm)                   ; need xpm
 		  (featurep 'toolbar))              ; ... and the toolbar
 	     (and (not (featurep 'xemacs))          ; This is Emacs
-		  (boundp 'toolbar-button-margin)   ; need toolbar
+		  (boundp 'tool-bar-button-margin)   ; need toolbar
 		  (fboundp 'image-type-available-p) ; need image stuff
 		  (image-type-available-p 'xpm))    ; need xpm
 	     ))
@@ -52,6 +52,8 @@
     (message "Sorry, IDLWAVE xpm toolbar cannot be used on this version of Emacs")
 ;; OK, we can define a toolbar
 
+(defconst idlwave-toolbar-is-possible t
+  "When defined, indicates that a toolbar is possible with this Emacs.")
 (defvar idlwave-toolbar-compile-icon
   (idlwave-toolbar-make-button
    "/* XPM */
@@ -776,12 +778,7 @@ static char * file[] = {
      "Reset IDL (RETALL & CLOSE,/ALL and more)"]
     ))
 
-
-;; Add the toolbar to all open idlwave buffers when the shell starts.
-(add-hook 'idlwave-shell-mode-hook 'idlwave-toolbar-add-everywhere)
-;; Make sure the toolbar will be added to any future idlwave-mode buffers
-(add-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
-;; When the shell exits, remove the special toolbar everywhere.
+;; When the shell exits, arrange to remove the special toolbar everywhere.
 (add-hook 'idlwave-shell-cleanup-hook
 	  'idlwave-toolbar-remove-everywhere)
 );; End can define toolbar
@@ -789,6 +786,7 @@ static char * file[] = {
 (defun idlwave-toolbar-add ()
   "Add the IDLWAVE toolbar if appropriate."
   (if (and (featurep 'xemacs)    ; This is a noop on Emacs
+	   (boundp 'idlwave-toolbar-is-possible)
 	   (or (eq major-mode 'idlwave-mode)
 	       (eq major-mode 'idlwave-shell-mode)))
       (set-specifier default-toolbar (cons (current-buffer)
@@ -797,6 +795,7 @@ static char * file[] = {
 (defun idlwave-toolbar-remove ()
   "Add the IDLWAVE toolbar if appropriate."
   (if (and (featurep 'xemacs)    ; This is a noop on Emacs
+	   (boundp 'idlwave-toolbar-is-possible)
 	   (or (eq major-mode 'idlwave-mode)
 	       (eq major-mode 'idlwave-shell-mode)))
       (remove-specifier default-toolbar (current-buffer))))
@@ -805,58 +804,64 @@ static char * file[] = {
 (defvar idlwave-toolbar-visible nil)
 (defun idlwave-toolbar-add-everywhere ()
   "Add the toolbar in all appropriate buffers."
-  (if (featurep 'xemacs)
-      ;; For XEmacs, map over all buffers to add toolbar
-      (save-excursion
-	(mapcar (lambda (buf)
-		  (set-buffer buf)
-		  (idlwave-toolbar-add))
-		(buffer-list)))
-    ;; For Emacs, add the key definitions to the mode maps
-    (mapcar (lambda (x)
-	      (let* ((icon (aref x 0))
-		     (func (aref x 1))
-		     ;;(show (aref x 2))
-		     (help (aref x 3))
-		     (key (vector 'toolbar func))
-		     (def (list 'menu-item
-				"a"
-				func
-				:image (symbol-value icon)
-				:help help)))
-		(define-key idlwave-mode-map key def)
-		(define-key idlwave-shell-mode-map key def)))
-	    (reverse idlwave-toolbar)))
-  (setq idlwave-toolbar-visible t))
+  (when (boundp 'idlwave-toolbar-is-possible)
+
+    ;; First make sure new buffers will get the toolbar
+    (add-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
+    ;; Then add it to all existing buffers
+    (if (featurep 'xemacs)
+	;; For XEmacs, map over all buffers to add toolbar
+	(save-excursion
+	  (mapcar (lambda (buf)
+		    (set-buffer buf)
+		    (idlwave-toolbar-add))
+		  (buffer-list)))
+      ;; For Emacs, add the key definitions to the mode maps
+      (mapcar (lambda (x)
+		(let* ((icon (aref x 0))
+		       (func (aref x 1))
+		       ;;(show (aref x 2))
+		       (help (aref x 3))
+		       (key (vector 'tool-bar func))
+		       (def (list 'menu-item
+				  "a"
+				  func
+				  :image (symbol-value icon)
+				  :help help)))
+		  (define-key idlwave-mode-map key def)
+		  (define-key idlwave-shell-mode-map key def)))
+	      (reverse idlwave-toolbar)))
+    (setq idlwave-toolbar-visible t)))
 
 (defun idlwave-toolbar-remove-everywhere ()
   "Remove the toolbar in all appropriate buffers."
   ;; First make sure new buffers won't get the toolbar
-  (remove-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
-  ;; Then remove it in all existing buffers.
-  (if (featurep 'xemacs)
-      ;; For XEmacs, map over all buffers to remove toolbar
-      (save-excursion
-	(mapcar (lambda (buf)
-		  (set-buffer buf)
-		  (idlwave-toolbar-remove))
-		(buffer-list)))
-    ;; For Emacs, remove the key definitions from the mode maps
-    (mapcar (lambda (x)
-	      (let* (;;(icon (aref x 0))
-		     (func (aref x 1))
-		     ;;(show (aref x 2))
-		     ;;(help (aref x 3))
-		     (key (vector 'toolbar func)))
-		(define-key idlwave-mode-map key nil)
-		(define-key idlwave-shell-mode-map key nil)))
-	    idlwave-toolbar))
-  (setq idlwave-toolbar-visible nil))
+  (when idlwave-toolbar-is-possible
+    (remove-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
+    ;; Then remove it in all existing buffers.
+    (if (featurep 'xemacs)
+	;; For XEmacs, map over all buffers to remove toolbar
+	(save-excursion
+	  (mapcar (lambda (buf)
+		    (set-buffer buf)
+		    (idlwave-toolbar-remove))
+		  (buffer-list)))
+      ;; For Emacs, remove the key definitions from the mode maps
+      (mapcar (lambda (x)
+		(let* (;;(icon (aref x 0))
+		       (func (aref x 1))
+		       ;;(show (aref x 2))
+		       ;;(help (aref x 3))
+		       (key (vector 'tool-bar func)))
+		  (define-key idlwave-mode-map key nil)
+		  (define-key idlwave-shell-mode-map key nil)))
+	      idlwave-toolbar))
+    (setq idlwave-toolbar-visible nil)))
 
-(defun idlwave-toolbar-toggle ()
+(defun idlwave-toolbar-toggle (&optional force-on)
   (interactive)
   (if idlwave-toolbar-visible
-      (idlwave-toolbar-remove-everywhere)
+      (or force-on (idlwave-toolbar-remove-everywhere))
     (idlwave-toolbar-add-everywhere)))
 
 (provide 'idlw-toolbar)
