@@ -39,6 +39,7 @@
 ;;; Code:
 
 (require 'lisp-mnt)
+(require 'find-func)			;for find-library(-suffixes)
 ;; Use `load' rather than `require' so that it doesn't get loaded
 ;; during byte-compilation (at which point it might be missing).
 (load "finder-inf" nil t)
@@ -259,24 +260,17 @@ no arguments compiles from `load-path'."
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
 
-(defun finder-find-library (library)
-  "Search for file LIBRARY on `load-path'.
-Try compressed versions if jka-compr is in use."
-  (or (locate-library library t)
-      (if (rassq 'jka-compr-handler file-name-handler-alist)
-        (or (locate-library (concat library ".gz") t)
-            (locate-library (concat library ".Z") t)
-            ;; last resort for MS-DOG et al
-            (locate-library (concat library "z"))))))
-
 ;;;###autoload
 (defun finder-commentary (file)
   "Display FILE's commentary section.
 FILE should be in a form suitable for passing to `locate-library'."
-  (interactive "sLibrary name: ")
-  (let* ((str (lm-commentary (or (finder-find-library file)
-				 (finder-find-library (concat file ".el"))
-				 (error "Can't find library %s" file)))))
+  (interactive
+   (list
+    (completing-read "Library name: "
+		     'locate-file-completion
+		     (cons (or find-function-source-path load-path)
+			   (find-library-suffixes)))))
+  (let* ((str (lm-commentary (find-library-name file))))
     (if (null str)
 	(error "Can't find any Commentary section"))
     (pop-to-buffer "*Finder*")
