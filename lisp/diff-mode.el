@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.13 2000/09/12 11:24:28 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.14 2000/09/18 08:15:38 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -884,8 +884,8 @@ Only works for unified diffs."
 (defun diff-hunk-text (hunk destp &optional line-offset)
   "Returns the literal source text from HUNK, if DESTP is nil, otherwise the
 destination text.  If LINE-OFFSET is non-nil, it should be a line-offset in
-HUNK, and instead of a string, a cons cell is returned who's car is the
-appropriate text, and who's cdr is the corresponding line-offset."
+HUNK, and instead of a string, a cons cell is returned whose car is the
+appropriate text, and whose cdr is the corresponding line-offset in that text."
   (with-temp-buffer
      (erase-buffer)
      (insert hunk)
