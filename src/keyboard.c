@@ -78,10 +78,13 @@ int recent_keys_index;	/* Index for storing next element into recent_keys */
 int total_keys;		/* Total number of elements stored into recent_keys */
 Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 
-/* Buffer holding the key that invoked the current command.  */
-Lisp_Object *this_command_keys;
-int this_command_key_count;	/* Size in use.  */
-int this_command_keys_size;	/* Size allocated.  */
+/* Vector holding the key sequence that invoked the current command.
+   It is reused for each command, and it may be longer than the current
+   sequence; this_command_key_count indicates how many elements
+   actually mean something.
+   It's easier to staticpro a single Lisp_Object than an array.  */
+Lisp_Object this_command_keys;
+int this_command_key_count;
 
 extern int minbuf_level;
 
@@ -472,7 +475,7 @@ echo ()
       immediate_echo = 1;
 
       for (i = 0; i < this_command_key_count; i++)
-	echo_char (this_command_keys[i]);
+	echo_char (XVECTOR (this_command_keys)->contents[i]);
       echo_dash ();
     }
 
@@ -518,15 +521,20 @@ static void
 add_command_key (key)
      Lisp_Object key;
 {
-  if (this_command_key_count == this_command_keys_size)
+  int size = XVECTOR (this_command_keys)->size;
+
+  if (this_command_key_count >= size)
     {
-      this_command_keys_size *= 2;
-      this_command_keys
-	= (Lisp_Object *) xrealloc (this_command_keys,
-				    (this_command_keys_size
-				     * sizeof (Lisp_Object)));
+      Lisp_Object new_keys = Fmake_vector (make_number (size * 2), Qnil);
+
+      bcopy (XVECTOR (this_command_keys)->contents,
+	     XVECTOR (new_keys)->contents,
+	     size);
+
+      this_command_keys = new_keys;
     }
-  this_command_keys[this_command_key_count++] = key;
+
+  XVECTOR (this_command_keys)->contents[this_command_key_count++] = key;
 }
 
 Lisp_Object
@@ -1095,8 +1103,9 @@ static Lisp_Object kbd_buffer_get_event ();
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
 
-   If we use a mouse menu to read the input, we store 1 into *USED_MOUSE_MENU.
-   Otherwise we store 0 there.  */
+   If USED_MOUSE_MENU is non-zero, then we set *USED_MOUSE_MENU to 1
+   if we used a mouse menu to read the input, or zero otherwise.  If
+   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.  */
 
 Lisp_Object
 read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
@@ -1359,7 +1368,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
 
       cancel_echoing ();
-      c = read_char (0);
+      c = read_char (0, 0, 0, Qnil, 0);
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
       redisplay ();
@@ -2032,8 +2041,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   if (! (modifiers & (down_modifier | drag_modifier))
       && i + 7 == name->size
       && strncmp (name->data + i, "mouse-", 6)
-      && '0' <= name->data[i + 6]
-      && name->data[i + 6] <= '9')
+      && ('0' <= name->data[i + 6] && name->data[i + 6] <= '9'))
     modifiers |= click_modifier;
 
   if (modifier_end)
@@ -2297,7 +2305,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
       /* Fill in the cache entries for this symbol; this also 	
 	 builds the Qevent_symbol_elements property, which the user
 	 cares about.  */
-      apply_modifiers (0, *slot);
+      apply_modifiers (modifiers & click_modifier, *slot);
       Fput (*slot, Qevent_kind, symbol_kind);
     }
 
@@ -2539,8 +2547,9 @@ static int echo_now;
    PREV_EVENT is the previous input event, or nil if we are reading
    the first event of a key sequence.
 
-   If we use a mouse menu to read the input, we store 1 into *USED_MOUSE_MENU.
-   Otherwise we store 0 there.
+   If USED_MOUSE_MENU is non-zero, then we set *USED_MOUSE_MENU to 1
+   if we used a mouse menu to read the input, or zero otherwise.  If
+   USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
 
    The prompting is done based on the prompt-string of the map
    and the strings associated with various map elements.  */
@@ -2560,7 +2569,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   int idx = -1;
   Lisp_Object rest, vector;
 
-  *used_mouse_menu = 0;
+  if (used_mouse_menu)
+    *used_mouse_menu = 0;
 
   /* Use local over global Menu maps */
 
@@ -2599,7 +2609,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       value = Fx_popup_menu (prev_event, Flist (nmaps1, realmaps));
       if (NILP (value))
 	XSET (value, Lisp_Int, quit_char);
-      *used_mouse_menu = 1;
+      if (used_mouse_menu)
+	*used_mouse_menu = 1;
       return value;
     }
 #endif /* not NO_X_MENU */
@@ -3447,7 +3458,8 @@ DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
   "Return string of the keystrokes that invoked this command.")
   ()
 {
-  return make_array (this_command_key_count, this_command_keys);
+  return make_array (this_command_key_count,
+		     XVECTOR (this_command_keys)->contents);
 }
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
@@ -3776,10 +3788,6 @@ Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
 
 init_keyboard ()
 {
-  this_command_keys_size = 40;
-  this_command_keys =
-    (Lisp_Object *) xmalloc (this_command_keys_size * sizeof (Lisp_Object));
-
   /* This is correct before outermost invocation of the editor loop */
   command_loop_level = -1;
   immediate_quit = 0;
@@ -3920,6 +3928,9 @@ syms_of_keyboard ()
   }
 
   recent_keys = Fmake_vector (make_number (NUM_RECENT_KEYS), Qnil);
+  staticpro (&recent_keys);
+
+  this_command_keys = Fmake_vector (make_number (40), Qnil);
   staticpro (&recent_keys);
 
   func_key_syms = Qnil;
