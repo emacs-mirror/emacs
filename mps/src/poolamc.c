@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.27) $
+ * $HopeName: MMsrc!poolamc.c(trunk.28) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -9,7 +9,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.27) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.28) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -73,6 +73,81 @@ typedef struct AMCNailBoardStruct {
 #define AMCNailBoardSig ((Sig)0x519A3C4B) /* SIGnature AMC NailBoard */
 
 
+/* AMCGSegStruct -- AMC segment structure 
+ *
+ * .segtype: AMC segs have a pointer to the type field of either
+ * a nailboard or a generation. This initial value is passed 
+ * as an additional parameter when the segment is allocated.
+ * See design.mps.poolamc.fix.nail.distinguish.
+ */
+
+typedef struct AMCSegStruct *AMCSeg;
+
+#define AMCSegSig      ((Sig)0x519A3C59) /* SIGnature AMC SeG */
+
+typedef struct AMCSegStruct {
+  GCSegStruct gcSegStruct;  /* superclass fields must come first */
+  int *segTypeP;            /* .segtype */
+  Sig sig;                  /* impl.h.misc.sig */
+} AMCSegStruct;
+
+#define SegAMCSeg(seg)             ((AMCSeg)(seg))
+#define AMCSegSeg(amcseg)          ((Seg)(amcseg))
+
+#define AMCSegTypeP(seg)           (SegAMCSeg(seg)->segTypeP)
+#define AMCSegSetTypeP(seg, type)  (SegAMCSeg(seg)->segTypeP = (type))
+
+static Bool AMCSegCheck(AMCSeg amcseg)
+{
+  CHECKS(AMCSeg, amcseg);
+  CHECKL(GCSegCheck(&amcseg->gcSegStruct));
+  CHECKL(*amcseg->segTypeP == AMCPTypeNailBoard || 
+         *amcseg->segTypeP == AMCPTypeGen);
+  return TRUE;
+}
+
+
+/* AMCSegInit -- initialise an AMC segment */
+
+static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, 
+                      Bool reservoirPermit, va_list args)
+{
+  int *segtype = va_arg(args, int*);  /* .segtype */
+  SegClass super;
+  AMCSeg amcseg;
+  Res res;
+
+  AVERT(Seg, seg);
+  amcseg = SegAMCSeg(seg);
+  /* no useful checks for base and size */
+  AVER(BoolCheck(reservoirPermit));
+
+  /* Initialize the superclass fields first via next-method call */
+  super = EnsureGCSegClass();
+  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  if(res != ResOK)
+    return res;
+
+  amcseg->segTypeP = segtype; /* .segtype */
+  amcseg->sig = AMCSegSig;
+  AVERT(AMCSeg, amcseg);
+
+  return ResOK;
+}
+
+
+/* AMCSegClass -- Class definition for AMC segments */
+
+DEFINE_SEG_CLASS(AMCSegClass, class)
+{
+  INHERIT_CLASS(class, GCSegClass);
+  class->name = "AMCSEG";
+  class->size = sizeof(AMCSegStruct);
+  class->init = AMCSegInit;
+}
+
+
+
 /* AMCSegHasNailBoard -- test whether the segment has a nail board
  *
  * See design.mps.poolamc.fix.nail.distinguish.
@@ -82,7 +157,7 @@ static Bool AMCSegHasNailBoard(Seg seg)
 {
   int type;
 
-  type = *(int *)SegP(seg);
+  type = *AMCSegTypeP(seg);
   AVER(type == AMCPTypeNailBoard || type == AMCPTypeGen);
   return type == AMCPTypeNailBoard;
 }
@@ -92,9 +167,9 @@ static Bool AMCSegHasNailBoard(Seg seg)
 
 static AMCNailBoard AMCSegNailBoard(Seg seg)
 {
-  void *p;
+  int *p;
 
-  p = SegP(seg);
+  p = AMCSegTypeP(seg);
   AVER(AMCSegHasNailBoard(seg));
   return PARENT(AMCNailBoardStruct, type, p);
 }
@@ -104,13 +179,12 @@ static AMCNailBoard AMCSegNailBoard(Seg seg)
 
 static AMCGen AMCSegGen(Seg seg)
 {
-  void *p;
-
-  p = SegP(seg);
   if(AMCSegHasNailBoard(seg)) {
     AMCNailBoard nailBoard = AMCSegNailBoard(seg);
     return nailBoard->gen;
   } else {
+    int *p;
+    p = AMCSegTypeP(seg);
     return PARENT(AMCGenStruct, type, p);
   }
 }
@@ -231,7 +305,7 @@ static Bool AMCBufCheck(AMCBuf amcbuf)
   segbuf = &amcbuf->segbufStruct;
   CHECKL(SegBufCheck(segbuf));
   if (amcbuf->gen != NULL) {
-    CHECKL(AMCGenCheck(amcbuf->gen));
+    CHECKD(AMCGen, amcbuf->gen);
   }
   return TRUE;
 }
@@ -433,7 +507,7 @@ static Res AMCSegCreateNailBoard(Seg seg, Pool pool)
   BTResRange(board->mark, 0, bits);
   board->sig = AMCNailBoardSig;
   AVERT(AMCNailBoard, board);
-  SegSetP(seg, &board->type); /* design.mps.poolamc.fix.nail.distinguish */
+  AMCSegSetTypeP(seg, &board->type); /* .segtype */
   return ResOK;
 
 failMarkTable:
@@ -463,7 +537,7 @@ static void AMCSegDestroyNailBoard(Seg seg, Pool pool)
   ControlFree(arena, board->mark, BTSize(bits));
   board->sig = SigInvalid;
   ControlFree(arena, board, sizeof(AMCNailBoardStruct));
-  SegSetP(seg, &gen->type); /* design.mps.poolamc.fix.nail.distinguish */
+  AMCSegSetTypeP(seg, &gen->type); /* .segtype */
 }
 
 
@@ -746,8 +820,9 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen->serial);
-  res = SegAlloc(&seg, &segPrefStruct, alignedSize, pool, 
-                 withReservoirPermit);
+  res = SegAlloc(&seg, EnsureAMCSegClass(), &segPrefStruct,
+                 alignedSize, pool, withReservoirPermit,
+                 &gen->type); /* .segtype */
   if(res != ResOK)
     return res;
 
@@ -759,7 +834,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* Put the segment in the generation indicated by the buffer. */
-  SegSetP(seg, &gen->type); /* design.mps.poolamc.fix.nail.distinguish */
   ++gen->segs;
   gen->size += alignedSize;
   /* If the generation was empty, restart the collection clock. */
