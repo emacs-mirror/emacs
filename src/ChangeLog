@@ -1,3 +1,9 @@
+2002-05-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (lisp): Change cyrillic.elc to cyrillic.el,
+	vietnamese.elc to vietnamese.el.  They are not bytecompiled now.
+	(shortlisp): Likewise.
+
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (decode_coding_charset): Adjusted for the change of
