@@ -1,6 +1,6 @@
 /* impl.c.messtest: MESSAGE TEST
  *
- * $HopeName: MMsrc!messtest.c(trunk.3) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-SRCID(messtest, "$HopeName: MMsrc!messtest.c(trunk.3) $");
+SRCID(messtest, "$Id$");
 
 
 /* Basic infrastructure for creating dummy messages */

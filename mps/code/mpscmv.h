@@ -1,6 +1,6 @@
 /* impl.h.mpscmv: MEMORY POOL SYSTEM CLASS "MV"
  *
- * $HopeName: MMsrc!mpscmv.h(trunk.4) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 

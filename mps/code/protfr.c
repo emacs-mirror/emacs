@@ -1,6 +1,6 @@
 /*  impl.c.protfr: PROTECTION FOR FreeBSD
  *
- *  $HopeName: $
+ *  $Id$
  *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
  *
  */
@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-SRCID(protfr, "$HopeName: $");
+SRCID(protfr, "$Id$");
 
 
 /* ProtSet -- set protection

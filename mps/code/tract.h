@@ -1,6 +1,6 @@
 /* impl.h.tract: PAGE TABLE INTERFACE
  *
- * $HopeName: MMsrc!tract.h(trunk.7) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 

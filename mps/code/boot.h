@@ -1,6 +1,6 @@
 /* impl.h.boot: BOOTSTRAP ALLOCATOR INTERFACE
  *
- * $HopeName: MMsrc!boot.h(trunk.2) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .overview:  A protocol for allocating memory from a given block.

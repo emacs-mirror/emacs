@@ -1,6 +1,6 @@
 /* impl.c.ssan: ANSI STACK SCANNER
  *
- * $HopeName: MMsrc!ssan.c(trunk.3) $
+ * $Id$
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * This module provides zero functionality.  It exists to feed the
@@ -12,7 +12,7 @@
 #include "ss.h"
 
 
-SRCID(ssan, "$HopeName: MMsrc!ssan.c(trunk.3) $");
+SRCID(ssan, "$Id$");
 
 
 Res StackScan(ScanState ss, Addr *stackBot)

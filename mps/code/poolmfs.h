@@ -2,7 +2,7 @@
  *
  *                    MANUAL FIXED SMALL UNIT POOL
  *
- *  $HopeName: MMsrc!poolmfs.h(trunk.5) $
+ *  $Id$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *

@@ -1,6 +1,6 @@
 /*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
  *
- *  $HopeName: MMsrc!thlii4.c(trunk.3) $
+ *  $Id$
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
@@ -46,7 +46,7 @@
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii4, "$HopeName: MMsrc!thlii4.c(trunk.3) $");
+SRCID(thlii4, "$Id$");
 
 
 /* ThreadStruct -- thread desriptor */

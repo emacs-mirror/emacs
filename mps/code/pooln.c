@@ -1,13 +1,13 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.28) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #include "pooln.h"
 #include "mpm.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.28) $");
+SRCID(pooln, "$Id$");
 
 
 /* PoolNStruct -- the pool structure */

@@ -1,7 +1,7 @@
 /* impl.c.eventrep: Allocation replayer routines
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * $HopeName: MMsrc!eventrep.c(trunk.3) $
+ * $Id$
  */
 
 #include "config.h"

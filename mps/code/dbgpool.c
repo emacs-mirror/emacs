@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.14) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -14,7 +14,7 @@
 #include "mps.h"
 #include <stdarg.h>
 
-SRCID(dbgpool, "$HopeName: MMsrc!dbgpool.c(trunk.14) $");
+SRCID(dbgpool, "$Id$");
 
 
 /* tagStruct -- tags for storing info about allocated objects */

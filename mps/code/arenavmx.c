@@ -1,6 +1,6 @@
 /* impl.c.arenavmx: STUBS FOR ARENAVM
  *
- * $HopeName: MMsrc!arenavmx.c(trunk.4) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This file is not properly part of the MPS.  It is a
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavmx, "$HopeName: MMsrc!arenavmx.c(trunk.4) $");
+SRCID(arenavmx, "$Id$");
 
 
 mps_arena_class_t mps_arena_class_vm(void)

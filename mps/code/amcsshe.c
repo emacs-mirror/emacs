@@ -1,6 +1,6 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
- * $HopeName: MMsrc!amcsshe.c(trunk.6) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 

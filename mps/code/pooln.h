@@ -1,6 +1,6 @@
 /* impl.h.pooln: NULL POOL
  *
- * $HopeName: MMsrc!pooln.h(trunk.4) $
+ * $Id$
  * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  * .purpose: The null pool class is here for pedagogical purposes.  It

@@ -1,6 +1,6 @@
 # impl.gmk.xcppgc: BUILD FOR MACOS X (CARBON)/POWERPC/GCC PLATFORM
 #
-# $HopeName: MMsrc!xcppgc.gmk(trunk.2) $
+# $Id$
 # Copyright (C) 2001 Harlequin Limited.  All rights reserved.
 
 PFM = xcppgc

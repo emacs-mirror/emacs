@@ -1,13 +1,13 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(trunk.7) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.7) $");
+SRCID(walk, "$Id$");
 
 
 /* Heap Walking
