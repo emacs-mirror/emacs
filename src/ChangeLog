@@ -1,5 +1,7 @@
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (four_corners_best): Reindent.
+
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
 	Handle :box so that it is possible to specify sexprs.
 
