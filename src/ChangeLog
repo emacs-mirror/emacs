@@ -1,8 +1,13 @@
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (Fredirect_debugging_output): New defun.
+	(syms_of_print): Defsubr it.
+
 2003-11-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fset_char_table_parent): Doc fix.
 
-2003-11-23  Kim F. Storm  <storm@cua.dk>
+2003-11-22  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (buffer_posn_from_coords): Return actual row/column
 	for glyph clicked on, rather than (unused) pixel positions.
