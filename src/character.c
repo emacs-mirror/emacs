@@ -77,6 +77,9 @@ Lisp_Object Vchar_direction_table;
 unsigned char *_fetch_multibyte_char_p;
 int _fetch_multibyte_char_len;
 
+/* Alist of scripts vs character ranges.  */
+Lisp_Object Vscript_alist;
+
 
 
 int
@@ -116,11 +119,12 @@ char_string_with_unification (c, p)
 
 int
 string_char_with_unification (p, advanced, len)
-     unsigned char *p, **advanced;
+     const unsigned char *p;
+     const unsigned char **advanced;
      int *len;
 {
   int c;
-  unsigned char *saved_p = p;
+  const unsigned char *saved_p = p;
 
   if (*p < 0x80 || ! (*p & 0x20) || ! (*p & 0x10))
     {
@@ -711,8 +715,8 @@ str_as_unibyte (str, bytes)
      unsigned char *str;
      int bytes;
 {
-  unsigned char *p = str, *endp = str + bytes;
-  unsigned char *to = str;
+  const unsigned char *p = str, *endp = str + bytes;
+  unsigned char *to;
   int c, len;
 
   while (p < endp)
@@ -723,7 +727,7 @@ str_as_unibyte (str, bytes)
 	break;
       p += len;
     }
-  to = p;
+  to = str + (p - str);
   while (p < endp)      
     {
       c = *p;
@@ -780,7 +784,8 @@ string_escape_byte8 (string)
   int nbytes = STRING_BYTES (XSTRING (string));
   int multibyte = STRING_MULTIBYTE (string);
   int byte8_count;
-  unsigned char *src, *src_end, *dst;
+  const unsigned char *src, *src_end;
+  unsigned char *dst;
   Lisp_Object val;
   int c, len;
 
@@ -914,6 +919,14 @@ A char-table for width (columns) of each character.  */);
   DEFVAR_LISP ("printable-chars", &Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
+
+  DEFVAR_LISP ("script-alist", &Vscript_alist,
+	       doc: /* Alist of scripts vs the corresponding character ranges.
+Each element has this form:
+	( SCRIPT (FROM-1 . TO-1) (FROM-2 . TO-2) ...)
+SCRIPT is a symbol representing a script name.
+FROM-n and TO-n specifies ranges of characters that belongs to SCRIPT.  */);
+  Vscript_alist = Qnil;
 }
 
 #endif /* emacs */
