@@ -1637,7 +1637,7 @@ lisp_data_to_selection_data (display, obj,
 	      || !STRING_MULTIBYTE (obj)
 	      || *size_ret == XSTRING (obj)->size)
 	     ? 0
-	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil, 1));
+	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil, 0));
 
       if (!num || (num == 1 && charsets[CHARSET_ASCII]))
 	{
