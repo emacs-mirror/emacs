@@ -1,5 +1,13 @@
 2001-08-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (command_loop_1): Fix spelling of
+	resize_echo_area_exactly.
+
+	* dispextern.h (resize_echo_area_exactly): Fix typo in function
+	name.
+
+	* xdisp.c (resize_echo_area_exactly): Fix typo in function name.
+
 	* xfns.c (x_set_tool_bar_lines): Clear the tool bar window's
 	current matrix when the window gets smaller.
 
