@@ -35,9 +35,9 @@
     (prin1 (aref dt 258))
     (princ "\nCtrl glyph: ")
     (prin1 (aref dt 259))
-    (princ "\nSelective display rope: ")
+    (princ "\nSelective display glyph sequence: ")
     (prin1 (aref dt 260))
-    (princ "\nCharacter display ropes:\n")
+    (princ "\nCharacter display glyph sequences:\n")
     (let ((vector (make-vector 256 nil))
 	  (i 0))
       (while (< i 256)
@@ -68,7 +68,7 @@
 	(if standard-display-table (aset standard-display-table l nil))
       (or standard-display-table
 	  (setq standard-display-table (make-vector 261 nil)))
-      (aset standard-display-table l l))
+      (aset standard-display-table l (vector l)))
     (setq l (1+ l))))
 
 ;;;###autoload
