@@ -2085,6 +2085,15 @@ print_object (obj, printcharfun, escapeflag)
 	  PRINTCHAR ('>');
 	  break;
 
+	case Lisp_Misc_Save_Value:
+	  strout ("#<save_value ", -1, -1, printcharfun, 0);
+	  sprintf(buf, "ptr=0x%08x int=%d",
+		  (unsigned long) XSAVE_VALUE (obj)->pointer,
+		  XSAVE_VALUE (obj)->integer);
+	  strout (buf, -1, -1, printcharfun, 0);
+	  PRINTCHAR ('>');
+	  break;
+
 	default:
 	  goto badtype;
 	}
