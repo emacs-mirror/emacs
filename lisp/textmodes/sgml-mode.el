@@ -281,7 +281,6 @@ an optional alist of possible values."
 SGML-TAG-FACE-ALIST is used for calculating `sgml-font-lock-keywords-2'.
 SGML-DISPLAY-TEXT sets up alternate text for when tags are invisible (see
 varables of same name)."
-  (kill-all-local-variables)
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table sgml-mode-syntax-table)
   (make-local-variable 'indent-line-function)
@@ -346,8 +345,7 @@ varables of same name)."
   (while sgml-display-text
     (put (car (car sgml-display-text)) 'before-string
 	 (cdr (car sgml-display-text)))
-    (setq sgml-display-text (cdr sgml-display-text)))
-  (run-hooks 'text-mode-hook 'sgml-mode-hook))
+    (setq sgml-display-text (cdr sgml-display-text))))
 
 
 (defun sgml-mode-facemenu-add-face-function (face end)
@@ -379,6 +377,9 @@ Do \\[describe-variable] sgml- SPC to see available variables.
 Do \\[describe-key] on the following bindings to discover what they do.
 \\{sgml-mode-map}"
   (interactive)
+  (kill-all-local-variables)
+  (setq mode-name "SGML"
+	major-mode 'sgml-mode)
   (sgml-mode-common sgml-tag-face-alist sgml-display-text)
   ;; Set imenu-generic-expression here, rather than in sgml-mode-common,
   ;; because this definition probably is not useful in HTML mode.
@@ -386,9 +387,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq imenu-generic-expression
 	"<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)")
   (use-local-map sgml-mode-map)
-  (setq mode-name "SGML"
-	major-mode 'sgml-mode))
-
+  (run-hooks 'text-mode-hook 'sgml-mode-hook))
 
 
 (defun sgml-comment-indent ()
@@ -1180,6 +1179,9 @@ To work around that, do:
 
 \\{html-mode-map}"
   (interactive)
+  (kill-all-local-variables)
+  (setq mode-name "HTML"
+        major-mode 'html-mode)
   (sgml-mode-common html-tag-face-alist html-display-text)
   (use-local-map html-mode-map)
   (make-local-variable 'sgml-tag-alist)
@@ -1191,9 +1193,7 @@ To work around that, do:
   (make-local-variable 'sentence-end)
   (setq sentence-end
 	"[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
-  (setq mode-name "HTML"
-        major-mode 'html-mode
-	sgml-tag-alist html-tag-alist
+  (setq sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
 	sgml-tag-help html-tag-help
 	outline-regexp "^.*<[Hh][1-6]\\>"
@@ -1203,7 +1203,7 @@ To work around that, do:
   (setq imenu-create-index-function 'html-imenu-index)
   (make-local-variable 'imenu-sort-function)
   (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
-  (run-hooks 'html-mode-hook))
+  (run-hooks 'text-mode-hook 'sgml-mode-hook 'html-mode-hook))
 
 (defvar html-imenu-regexp
   "\\s-*<h\\([1-9]\\)[^\n<>]*>\\(<[^\n<>]*>\\)*\\s-*\\([^\n<>]*\\)"
