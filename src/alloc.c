@@ -95,12 +95,16 @@ static __malloc_size_t bytes_used_when_full;
 #define UNMARK_STRING(S)	((S)->size &= ~MARKBIT)
 #define STRING_MARKED_P(S)	((S)->size & MARKBIT)
 
+#define VECTOR_MARK(V)		((V)->size |= ARRAY_MARK_FLAG)
+#define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
+#define VECTOR_MARKED_P(V)	((V)->size & ARRAY_MARK_FLAG)
+
 /* Value is the number of bytes/chars of S, a pointer to a struct
    Lisp_String.  This must be used instead of STRING_BYTES (S) or
    S->size during GC, because S->size contains the mark bit for
    strings.  */
 
-#define GC_STRING_BYTES(S)	(STRING_BYTES (S) & ~MARKBIT)
+#define GC_STRING_BYTES(S)	(STRING_BYTES (S))
 #define GC_STRING_CHARS(S)	((S)->size & ~MARKBIT)
 
 /* Number of bytes of consing done since the last gc.  */
@@ -616,20 +620,6 @@ lisp_malloc (nbytes, type)
   return val;
 }
 
-
-/* Return a new buffer structure allocated from the heap with
-   a call to lisp_malloc.  */
-
-struct buffer *
-allocate_buffer ()
-{
-  struct buffer *b
-    = (struct buffer *) lisp_malloc (sizeof (struct buffer),
-				     MEM_TYPE_BUFFER);
-  return b;
-}
-
-
 /* Free BLOCK.  This must be called to free memory allocated with a
    call to lisp_malloc.  */
 
@@ -643,6 +633,19 @@ lisp_free (block)
   mem_delete (mem_find (block));
 #endif
   UNBLOCK_INPUT;
+}
+
+
+/* Return a new buffer structure allocated from the heap with
+   a call to lisp_malloc.  */
+
+struct buffer *
+allocate_buffer ()
+{
+  struct buffer *b
+    = (struct buffer *) lisp_malloc (sizeof (struct buffer),
+				     MEM_TYPE_BUFFER);
+  return b;
 }
 
 
@@ -1223,7 +1226,7 @@ int
 string_bytes (s)
      struct Lisp_String *s;
 {
-  int nbytes = (s->size_byte < 0 ? s->size : s->size_byte) & ~MARKBIT;
+  int nbytes = (s->size_byte < 0 ? s->size & ~MARKBIT : s->size_byte);
   if (!PURE_POINTER_P (s)
       && s->data
       && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
@@ -3400,10 +3403,9 @@ mark_maybe_object (obj)
 	     buffer because checking that dereferences the pointer
 	     PO which might point anywhere.  */
 	  if (live_vector_p (m, po))
-	    mark_p = (!GC_SUBRP (obj)
-		      && !(XVECTOR (obj)->size & ARRAY_MARK_FLAG));
+	    mark_p = !GC_SUBRP (obj) && !VECTOR_MARKED_P (XVECTOR (obj));
 	  else if (live_buffer_p (m, po))
-	    mark_p = GC_BUFFERP (obj) && !XMARKBIT (XBUFFER (obj)->name);
+	    mark_p = GC_BUFFERP (obj) && !VECTOR_MARKED_P (XBUFFER (obj));
 	  break;
 
 	case Lisp_Misc:
@@ -3454,8 +3456,7 @@ mark_maybe_pointer (p)
 	  break;
 
 	case MEM_TYPE_BUFFER:
-	  if (live_buffer_p (m, p)
-	      && !XMARKBIT (((struct buffer *) p)->name))
+	  if (live_buffer_p (m, p) && !VECTOR_MARKED_P((struct buffer *)p))
 	    XSETVECTOR (obj, p);
 	  break;
 
@@ -3496,8 +3497,7 @@ mark_maybe_pointer (p)
 	    {
 	      Lisp_Object tem;
 	      XSETVECTOR (tem, p);
-	      if (!GC_SUBRP (tem)
-		  && !(XVECTOR (tem)->size & ARRAY_MARK_FLAG))
+	      if (!GC_SUBRP (tem) && !VECTOR_MARKED_P (XVECTOR (tem)))
 		obj = tem;
 	    }
 	  break;
@@ -4286,8 +4286,8 @@ Garbage collection happens automatically if you cons more than
       for (; i >= 0; i--)
 	XUNMARK (backlist->args[i]);
     }
-  XUNMARK (buffer_defaults.name);
-  XUNMARK (buffer_local_symbols.name);
+  VECTOR_UNMARK (&buffer_defaults);
+  VECTOR_UNMARK (&buffer_local_symbols);
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES && 0
   dump_zombies ();
@@ -4548,7 +4548,7 @@ mark_object (argptr)
 
       if (GC_BUFFERP (obj))
 	{
-	  if (!XMARKBIT (XBUFFER (obj)->name))
+	  if (!VECTOR_MARKED_P (XBUFFER (obj)))
 	    {
 #ifdef GC_CHECK_MARKED_OBJECTS
 	      if (po != &buffer_defaults && po != &buffer_local_symbols)
@@ -4574,11 +4574,11 @@ mark_object (argptr)
 	  register EMACS_INT size = ptr->size;
 	  register int i;
 
-	  if (size & ARRAY_MARK_FLAG)
+	  if (VECTOR_MARKED_P (ptr))
 	    break;   /* Already marked */
 
 	  CHECK_LIVE (live_vector_p);
-	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  VECTOR_MARK (ptr);	/* Else mark it */
 	  size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    {
@@ -4593,10 +4593,9 @@ mark_object (argptr)
       else if (GC_FRAMEP (obj))
 	{
 	  register struct frame *ptr = XFRAME (obj);
-	  register EMACS_INT size = ptr->size;
 
-	  if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
-	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  if (VECTOR_MARKED_P (ptr)) break;   /* Already marked */
+	  VECTOR_MARK (ptr);		      /* Else mark it */
 
 	  CHECK_LIVE (live_vector_p);
 	  mark_object (&ptr->name);
@@ -4627,25 +4626,24 @@ mark_object (argptr)
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 
-	  if (ptr->size & ARRAY_MARK_FLAG)
+	  if (VECTOR_MARKED_P (ptr))
 	    break;   /* Already marked */
 	  CHECK_LIVE (live_vector_p);
-	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  VECTOR_MARK (ptr);	/* Else mark it */
 	}
       else if (GC_WINDOWP (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
-	  register EMACS_INT size = ptr->size;
 	  register int i;
 
 	  /* Stop if already marked.  */
-	  if (size & ARRAY_MARK_FLAG)
+	  if (VECTOR_MARKED_P (ptr))
 	    break;
 
 	  /* Mark it.  */
 	  CHECK_LIVE (live_vector_p);
-	  ptr->size |= ARRAY_MARK_FLAG;
+	  VECTOR_MARK (ptr);
 
 	  /* There is no Lisp data above The member CURRENT_MATRIX in
 	     struct WINDOW.  Stop marking when that slot is reached.  */
@@ -4668,15 +4666,14 @@ mark_object (argptr)
       else if (GC_HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-	  EMACS_INT size = h->size;
 
 	  /* Stop if already marked.  */
-	  if (size & ARRAY_MARK_FLAG)
+	  if (VECTOR_MARKED_P (h))
 	    break;
 
 	  /* Mark it.  */
 	  CHECK_LIVE (live_vector_p);
-	  h->size |= ARRAY_MARK_FLAG;
+	  VECTOR_MARK (h);
 
 	  /* Mark contents.  */
 	  /* Do not mark next_free or next_weak.
@@ -4698,8 +4695,7 @@ mark_object (argptr)
 	  if (GC_NILP (h->weak))
 	    mark_object (&h->key_and_value);
 	  else
-	    XVECTOR (h->key_and_value)->size |= ARRAY_MARK_FLAG;
-
+	    VECTOR_MARK (XVECTOR (h->key_and_value));
 	}
       else
 	{
@@ -4707,9 +4703,9 @@ mark_object (argptr)
 	  register EMACS_INT size = ptr->size;
 	  register int i;
 
-	  if (size & ARRAY_MARK_FLAG) break; /* Already marked */
+	  if (VECTOR_MARKED_P (ptr)) break; /* Already marked */
 	  CHECK_LIVE (live_vector_p);
-	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	  VECTOR_MARK (ptr);	/* Else mark it */
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 
@@ -4854,9 +4850,7 @@ mark_buffer (buf)
   register Lisp_Object *ptr;
   Lisp_Object base_buffer;
 
-  /* This is the buffer's markbit */
-  mark_object (&buffer->name);
-  XMARK (buffer->name);
+  VECTOR_MARK (buffer);
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
@@ -4896,7 +4890,7 @@ mark_buffer (buf)
   else
     mark_object (&buffer->undo_list);
 
-  for (ptr = &buffer->name + 1;
+  for (ptr = &buffer->name;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (ptr);
@@ -4942,11 +4936,11 @@ survives_gc_p (obj)
 
     case Lisp_Vectorlike:
       if (GC_BUFFERP (obj))
-	survives_p = XMARKBIT (XBUFFER (obj)->name);
+	survives_p = VECTOR_MARKED_P (XBUFFER (obj));
       else if (GC_SUBRP (obj))
 	survives_p = 1;
       else
-	survives_p = XVECTOR (obj)->size & ARRAY_MARK_FLAG;
+	survives_p = VECTOR_MARKED_P (XVECTOR (obj));
       break;
 
     case Lisp_Cons:
@@ -5212,7 +5206,6 @@ gc_sweep ()
 	  {
 	    if (!mblk->markers[i].u_marker.gcmarkbit)
 	      {
-		Lisp_Object tem;
 		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
 		  unchain_marker (&mblk->markers[i].u_marker);
 		/* Set the type of the freed object to Lisp_Misc_Free.
@@ -5257,7 +5250,7 @@ gc_sweep ()
     register struct buffer *buffer = all_buffers, *prev = 0, *next;
 
     while (buffer)
-      if (!XMARKBIT (buffer->name))
+      if (!VECTOR_MARKED_P (buffer))
 	{
 	  if (prev)
 	    prev->next = buffer->next;
@@ -5269,7 +5262,7 @@ gc_sweep ()
 	}
       else
 	{
-	  XUNMARK (buffer->name);
+	  VECTOR_UNMARK (buffer);
 	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
 	  prev = buffer, buffer = buffer->next;
 	}
@@ -5281,7 +5274,7 @@ gc_sweep ()
     total_vector_size = 0;
 
     while (vector)
-      if (!(vector->size & ARRAY_MARK_FLAG))
+      if (!VECTOR_MARKED_P (vector))
 	{
 	  if (prev)
 	    prev->next = vector->next;
@@ -5295,7 +5288,7 @@ gc_sweep ()
 	}
       else
 	{
-	  vector->size &= ~ARRAY_MARK_FLAG;
+	  VECTOR_UNMARK (vector);
 	  if (vector->size & PSEUDOVECTOR_FLAG)
 	    total_vector_size += (PSEUDOVECTOR_SIZE_MASK & vector->size);
 	  else
