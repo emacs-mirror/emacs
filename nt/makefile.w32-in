@@ -69,7 +69,7 @@ which-sh:
 #
 # Build emacs
 #
-all:	which-sh $(BLD) $(ALL) all-other-dirs-$(MAKETYPE)
+all:	which-sh $(BLD) $(ALL) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake:
 	cd ..\lib-src
@@ -104,6 +104,27 @@ recompile-gmake:
 ### lisp subdirectory, removing all compiled Lisp files.  Then a
 ### special emacs executable is built from Lisp sources, which is then
 ### used to compile Lisp files.  The last step is a "normal" make.
+
+maybe-bootstrap: maybe-bootstrap-$(SHELLTYPE)
+
+# dummy target to force other targets to be evaluated.
+doit:
+
+maybe-bootstrap-CMD:	doit
+	@echo.
+	@if not EXIST ..\lisp\abbrev.elc echo Essential Lisp files seem to be missing.  You should either
+	@if not EXIST ..\lisp\abbrev.elc echo do 'make bootstrap' or create 'lisp/abbrev.elc' somehow
+	@echo.
+	@if not EXIST ..\lisp\abbrev.elc exit -1
+
+maybe-bootstrap-SH: doit
+	@if [ ! -f ../lisp/abbrev.elc ] ; then \
+	  echo; \
+	  echo "Essential Lisp files seem to be missing.  You should either"; \
+	  echo "do \`make bootstrap' or create \`lisp/abbrev.elc' somehow.";  \
+	  echo; \
+	  exit -1; \
+	fi
 
 bootstrap:	addsection bootstrap-$(MAKETYPE) all
 
