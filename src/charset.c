@@ -851,7 +851,7 @@ If the region contains any composite character,\n\
 Optional arg TABLE if non-nil is a translation table to look up.\n\
 \n\
 If the region contains invalid multiybte characters,\n\
-`unknown' is included in the returned list.
+`unknown' is included in the returned list.\n\
 \n\
 If the current buffer is unibyte, the returned list contains\n\
 `ascii' if any 7-bit characters are found,\n\
