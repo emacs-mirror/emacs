@@ -482,7 +482,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #ifdef HAVE_X_WINDOWS
 #define MSDOS_OBJ dosfns.o msdos.o
 #else
-#define MSDOS_OBJ dosfns.o msdos.o xfaces.o xmenu.o
+#define MSDOS_OBJ dosfns.o msdos.o xfaces.o
 #endif
 #else
 #define MSDOS_OBJ
