@@ -203,6 +203,14 @@
 #define VMANPageALIGNMENT ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
 
+/* Pool Gen Configuration -- see <code/chain.h> */
+
+/* Length (in chars) of a char buffer used to store the id and
+   forwarding generation in the implementation of
+   mps_message_type_gc_gen(). */
+#define POOL_GEN_MESSAGE_ID_LEN 64
+#define POOL_GEN_MESSAGE_FORWARD_LEN 64
+
 
 /* Tracer Configuration -- see <code/trace.c> */
 

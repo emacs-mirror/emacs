@@ -1,7 +1,7 @@
 /* chain.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001,2003 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef chain_h
@@ -10,6 +10,22 @@
 #include "mpmtypes.h"
 #include "ring.h"
 
+
+/* PoolGenMessageStruct implements mps_message_type_gc_gen().  Embedded
+   in PoolGenStruct. */
+
+typedef struct PoolGenMessageStruct *PoolGenMessage;
+
+#define PoolGenMessageSig ((Sig)0x519B9359) /* SIGnature PoolGenMeSsaGe */
+
+typedef struct PoolGenMessageStruct {
+  Sig sig;
+  char id[POOL_GEN_MESSAGE_ID_LEN];
+  Size condemned;     /* byte count */
+  /* Textual description of forwarding generation. */
+  char forward[POOL_GEN_MESSAGE_FORWARD_LEN];
+  MessageStruct messageStruct;
+}
 
 /* GenParamStruct -- structure for specifying generation parameters */
 /* .gen-param: This structure must match <code/mps.h#gen-param>. */
@@ -35,7 +51,6 @@ typedef struct GenDescStruct {
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
 } GenDescStruct;
 
-
 /* PoolGen -- descriptor of a generation in a pool */
 
 typedef struct PoolGenStruct *PoolGen;
@@ -51,6 +66,7 @@ typedef struct PoolGenStruct {
   RingStruct genRing;
   Size totalSize;     /* total size of segs in gen in this pool */
   Size newSize;       /* size allocated since last GC */
+  PoolGenMessageStruct message;
 } PoolGenStruct;
 
 
@@ -94,7 +110,7 @@ extern void PoolGenUpdateZones(PoolGen gen, Seg seg);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2003 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
