@@ -1,3 +1,27 @@
+2002-08-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Version 2.0.6.
+	(tramp-default-method): Change to "ssh" from "sm".
+	(tramp-wrong-passwd-regexp): Restructure.  Add additional
+	alternative.
+	(tramp-su-program): New internal variable for method parameter.
+	(tramp-perl-encode-with-module, tramp-perl-decode-with-module):
+	New variables.  Very short Perl one-liner, but requires Perl
+	module MIME::Base64 to be installed on the remote site.
+	(tramp-perl-encode, tramp-perl-decode): New base64
+	encoder/decoder.  From Juanma Barranquero <lektu@terra.es>.
+	(tramp-handle-file-truename): Invoke Ange-FTP properly (even
+	though Ange-FTP doesn't do anything for this operation).
+	(tramp-handle-set-visited-file-modtime): Comment change.
+	(tramp-handle-make-directory): Save-excursion.
+	(tramp-handle-expand-many-files): Don't try to invoke Ange-FTP
+	twice, once is enough.
+	(tramp-action-permission-denied): Show *tramp/foo* buffer so the
+	user knows what's wrong.
+	(tramp-post-connection): Support the two Perl encoders and
+	decoders.
+	(tramp-coding-commands): Ditto.  Add some todo items.
+
 2002-08-02  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule.el (merge-coding-systems): New function.
