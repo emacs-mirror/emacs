@@ -399,10 +399,13 @@ automatically, and you are prompted to fill in the variable parts.")))
     (push (point) skeleton-positions))
    ((eq 'quote (car-safe element))
     (eval (nth 1 element)))
-   ((or (stringp (car-safe element))
-	(consp (car-safe element)))
+   ((and (consp element)
+	 (or (stringp (car element)) (listp (car element))))
+    ;; Don't forget: `symbolp' is also true for nil.
     (if (symbolp (car-safe (car element)))
-	(while (skeleton-internal-list element nil t))
+	(while (and (skeleton-internal-list element nil t)
+		    ;; If the interactor is nil, don't infinite loop.
+		    (car element)))
       (setq literal (car element))
       (while literal
 	(skeleton-internal-list element (car literal))
@@ -462,6 +465,12 @@ Each alist element, which looks like (ELEMENT ...), is passed to
 
 Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
+(defvar skeleton-pair-default-alist '((?( _ ?)) (?\))
+				      (?[ _ ?]) (?\])
+				      (?{ _ ?}) (?\})
+				      (?< _ ?>) (?\>)
+				      (?« _ ?») (?\»)
+				      (?` _ ?')))
 
 ;;;###autoload
 (defun skeleton-pair-insert-maybe (arg)
@@ -478,28 +487,23 @@ If a match is found in `skeleton-pair-alist', that is inserted, else
 the defaults are used.  These are (), [], {}, <> and `' for the
 symmetrical ones, and the same character twice for the others."
   (interactive "*P")
-  (let ((mark (and skeleton-autowrap
-		   (or (eq last-command 'mouse-drag-region)
-		       (and transient-mark-mode mark-active))))
-	(skeleton-end-hook))
-    (if (or arg
-	    (not skeleton-pair)
-	    (memq (char-syntax (preceding-char)) '(?\\ ?/))
-	    (and (not mark)
-		 (or overwrite-mode
-		     (if (not skeleton-pair-on-word) (looking-at "\\w"))
-		     (funcall skeleton-pair-filter))))
-	(self-insert-command (prefix-numeric-value arg))
-      (setq last-command-char (logand last-command-char 255))
-      (skeleton-insert
-       (cons nil (or (assq last-command-char skeleton-pair-alist)
-                     (assq last-command-char '((?( _ ?))
-                                               (?[ _ ?])
-                                               (?{ _ ?})
-                                               (?< _ ?>)
-                                               (?` _ ?')))
-                     `(,last-command-char _ ,last-command-char)))
-       (if mark -1)))))
+  (if (or arg (not skeleton-pair))
+      (self-insert-command (prefix-numeric-value arg))
+    (let* ((mark (and skeleton-autowrap
+		      (or (eq last-command 'mouse-drag-region)
+			  (and transient-mark-mode mark-active))))
+	   (skeleton-end-hook)
+	   (char last-command-char)
+	   (skeleton (or (assq char skeleton-pair-alist)
+			 (assq char skeleton-pair-default-alist)
+			 `(,char _ ,char))))
+      (if (or (memq (char-syntax (preceding-char)) '(?\\ ?/))
+	      (and (not mark)
+		   (or overwrite-mode
+		       (if (not skeleton-pair-on-word) (looking-at "\\w"))
+		       (funcall skeleton-pair-filter))))
+	  (self-insert-command (prefix-numeric-value arg))
+	(skeleton-insert (cons nil skeleton) (if mark -1))))))
 
 
 ;; A more serious example can be found in sh-script.el
