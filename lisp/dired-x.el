@@ -398,7 +398,7 @@ See variable `dired-patch-unclean-extensions'."
 
 (defun dired-clean-tex ()
   "Flag dispensable files created by [La]TeX etc. for deletion.
-See variables `dired-texinfo-unclean-extensions',
+See variables `dired-tex-unclean-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions' and
 `dired-texinfo-unclean-extensions'."
   (interactive)
