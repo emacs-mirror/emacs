@@ -105,7 +105,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
   ;; the mode's commands may not make sense.
   (interactive "@e\nP")
   ;; Let the mode update its menus first.
-  (run-hooks 'activate-menubar-hook)
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* (;; This is where mouse-major-mode-menu-prefix
 	 ;; returns the prefix we should use (after menu-bar).
 	 ;; It is either nil or (SOME-SYMBOL).
@@ -166,7 +166,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
-  (run-hooks 'activate-menubar-hook)
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
