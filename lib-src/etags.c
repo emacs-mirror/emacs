@@ -4105,7 +4105,16 @@ readline_internal (linebuffer, stream)
 	  if (p > buffer && p[-1] == '\r')
 	    {
 	      *--p = '\0';
+#ifdef DOS_NT
+	      /* Assume CRLF->LF translation will be performed by Emacs
+		 when loading this file, so CRs won't appear in the buffer.
+		 It would be cleaner to compensate within Emacs;
+		 however, Emacs does not know how many CRs were deleted
+		 before any given point in the file.  */
+	      chars_deleted = 1;
+#else
 	      chars_deleted = 2;
+#endif
 	    }
 	  else
 	    {
