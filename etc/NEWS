@@ -2469,7 +2469,8 @@ which are supported in the current configuration.
 Images are stored in an image cache and removed from the cache when
 they haven't been displayed for `image-cache-eviction-delay seconds.
 The function `clear-image-cache' can be used to clear the image cache
-manually.
+manually.  Images in the cache are compared with `equal', i.e. all
+images with `equal' specifications share the same image.
 
 *** Simplified image API, image.el
 

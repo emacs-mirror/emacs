@@ -1,3 +1,13 @@
+2000-04-28  Richard Stallman  <rms@gnu.org>
+
+	* files.el (make-auto-save-file-name):
+	Apply auto-save-file-name-transforms to visited file name
+	before generating auto save file name.
+	(auto-save-file-name-transforms): New variable.
+
+	* files.el (backup-enable-predicate): 
+	Correctly test for a file under a temporary directory.
+
 2000-04-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* subr.el (add-minor-mode): Rewritten.
