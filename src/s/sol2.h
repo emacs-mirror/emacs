@@ -27,8 +27,11 @@
 #define LIBS_SYSTEM -lsocket -lnsl -lkstat
 
 /* Prefer kstat over kvm in getloadavg.c, kstat doesn't require root.
-   ghazi@caip.rutgers.edu, 7/21/97. */
+   ghazi@caip.rutgers.edu, 7/21/97.  Don't redefine if already defined
+   (e.g., by config.h). */
+#ifndef HAVE_LIBKSTAT
 #define HAVE_LIBKSTAT
+#endif
 
 /* eggert thinks all versions of SunPro C allowed this.  */
 #ifndef __GNUC__
