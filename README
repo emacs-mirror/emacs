@@ -33,15 +33,12 @@ process of building and installing Emacs.  See INSTALL for more
 detailed information.
 
 The file `configure.in' is the input used by the autoconf program to
-construct the `configure' script.  Since Emacs has configuration
-requirements that autoconf can't meet, `configure.in' uses an unholy
-marriage of custom-baked configuration code and autoconf macros; it
-may be wise to avoid rebuilding `configure' from `configure.in' when
-possible.
-
-If you do want to rebuild `configure' from `configure.in', you will
-need to install autoconf and GNU m4 (the version of m4 supplied with
-your system might not be enough).
+construct the `configure' script.  Since Emacs has some configuration
+requirements that autoconf can't meet directly, and for historical
+reasons, `configure.in' uses an unholy marriage of custom-baked
+configuration code and autoconf macros.  If you want to rebuild
+`configure' from `configure.in', you will need to install a recent
+version of autoconf and GNU m4.
 
 The file `Makefile.in' is a template used by `configure' to create
 `Makefile'.
