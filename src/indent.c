@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
+#include "category.h"
 #include "indent.h"
 #include "frame.h"
 #include "window.h"
@@ -680,6 +681,9 @@ position_indentation (pos)
 	}
       switch (*p++)
 	{
+	case 0240:
+	  if (! NILP (current_buffer->enable_multibyte_characters))
+	    return column;
 	case ' ':
 	  column++;
 	  break;
@@ -687,7 +691,21 @@ position_indentation (pos)
 	  column += tab_width - column % tab_width;
 	  break;
 	default:
-	  return column;
+	  if (ASCII_BYTE_P (p[-1])
+	      || NILP (current_buffer->enable_multibyte_characters))
+	    return column;
+	  {
+	    int pos = PTR_CHAR_POS (p - 1);
+	    int c = FETCH_MULTIBYTE_CHAR (pos);
+	    if (CHAR_HAS_CATEGORY (c, ' '))
+	      {
+		column++;
+		INC_POS (pos);
+		p = POS_ADDR (pos);
+	      }
+	    else
+	      return column;
+	  }
 	}
     }
 }
