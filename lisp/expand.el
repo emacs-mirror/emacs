@@ -1,4 +1,4 @@
-;; expand.el --- minor mode to make abbreviations more usable.
+;; expand.el --- make abbreviations more usable.
 
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
@@ -27,7 +27,7 @@
 ;;
 ;; This package defines abbrevs which expand into structured constructs
 ;; for certain languages.  The construct is indented for you,
-;; and contains points for you to ;; fill in other text.
+;; and contains slots for you to fill in other text.
 
 ;; These abbrevs expand only at the end of a line and when not in a comment
 ;; or a string.
@@ -48,62 +48,40 @@
 ;;     ("main" "int\nmain(int argc, char * argv[])\n{\n\n}\n" 37))
 ;;   "Expansions for C mode")
 ;; 
-;;   and enter Expand mode with the following hook :
+;;   and enter Abbrev mode with the following hook :
 ;;
 ;; (add-hook 'c-mode-hook (function (lambda ()
 ;; 				   (expand-add-abbrevs c-mode-abbrev-table c-expand-list)
-;; 				   (expand-mode))))
+;; 				   (abbrev-mode))))
 ;;
-;;   you can also bind jump functions to some keys and init some post-process
-;; hooks :
+;;   you can also init some post-process hooks :
 ;;
-;; (add-hook 'expand-mode-load-hook
+;; (add-hook 'expand-load-hook
 ;; 	  (function
 ;; 	   (lambda ()
 ;; 	     (add-hook 'expand-expand-hook 'indent-according-to-mode)
-;; 	     (add-hook 'expand-jump-hook 'indent-according-to-mode)
-;; 	     (define-key expand-map '[(control tab)] 'expand-jump-to-next-mark)
-;; 	     (define-key expand-map '[(control shift tab)] 'expand-jump-to-previous-mark))))
+;; 	     (add-hook 'expand-jump-hook 'indent-according-to-mode))))
 ;;
 ;; Remarks:
 ;;
-;;   Has been tested under emacs 19.28-19.34 and XEmacs 19.11.
 ;;   Many thanks to Heddy Boubaker <boubaker@cenatls.cena.dgac.fr>,
 ;;                  Jerome Santini <santini@chambord.univ-orleans.fr>,
 ;;                  Jari Aalto <jaalto@tre.tele.nokia.fi>.
 ;;
-;;   Please send me a word to give me your feeling about this mode or
+;;   Please send me a word to give me your feeling about this feature or
 ;; to explain me how you use it (your expansions table for example) using
-;; the function expand-mode-submit-report.
+;; the function expand-submit-report.
 
-;; Expand mode is not a replacement for abbrev it is just a layer above it.
-
 ;;; Constants:
 
-(defconst expand-mode-version "$Id: expand.el,v 1.1 1996/12/28 19:41:45 rms Exp rms $"
-  "Version tag for expand.el.")
-
-(defconst expand-mode-help-address "expand-help@sugix.frmug.org"
-  "Email address to send requests, comments or bug reports.")
-
-(defvar expand-mode nil
-  "Status variable for Expand mode.")
-(make-variable-buffer-local 'expand-mode)
-
-(defvar expand-mode-name " Expand"
-  "Name of mode displayed in the modeline for Expand mode.")
-
-(defvar expand-mode-hook nil
-  "Hooks run when Expand mode is enabled.")
-
-(defvar expand-mode-load-hook nil
-  "Hooks run when expand is loaded.")
+(defvar expand-load-hook nil
+  "Hooks run when `expand.el' is loaded.")
 
 (defvar expand-expand-hook nil
-  "Hooks run when expansion is done.")
+  "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded.")
 
 (defvar expand-jump-hook nil
-  "Hooks run when jump to mark occurs.")
+  "Hooks run by `expand-jump-to-previous-slot' and `expand-jump-to-next-slot'.")
 
 ;;; Samples:
 
@@ -276,32 +254,6 @@
 ;;; Code:
 
 ;;;###autoload
-(defun expand-mode (&optional arg)
-  "Toggle Expand mode.
-With argument ARG, turn Expand mode on if ARG is positive.
-In Expand mode, inserting an abbreviation at the end of a line
-causes it to expand and be replaced by its expansion."
-  (interactive "P")
-  (setq expand-mode (if (null arg) (not expand-mode)
-		       (> (prefix-numeric-value arg) 0)))
-  (if expand-mode
-      (progn
-	(setq abbrev-mode nil)
-	(run-hooks 'expand-mode-hook))))
-
-;;;###autoload
-(defvar expand-map (make-sparse-keymap)
-  "Key map used in Expand mode.")
-
-(or (assq 'expand-mode minor-mode-alist)
-    (setq minor-mode-alist (cons (list 'expand-mode expand-mode-name)
-				 minor-mode-alist)))
-
-(or (assq 'expand-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'expand-mode expand-map)
-				     minor-mode-map-alist)))
- 
-;;;###autoload
 (defun expand-add-abbrevs (table abbrevs)
   "Add a list of abbrev to abbrev table TABLE.
 ABBREVS is a list of abbrev definitions; each abbrev description entry
@@ -319,8 +271,8 @@ beginning of the expanded text.
 
 If ARG is a list of numbers, point is placed according to the first
 member of the list, but you can visit the other specified positions
-cyclicaly with the functions `expand-jump-to-previous-mark' and
-`expand-jump-to-next-mark'.
+cyclicaly with the functions `expand-jump-to-previous-slot' and
+`expand-jump-to-next-slot'.
 
 If ARG is omitted, point is placed at the end of the expanded text."
 
@@ -330,7 +282,7 @@ If ARG is omitted, point is placed at the end of the expanded text."
 		       (nth 2 (car abbrevs)))
     (expand-add-abbrevs table (cdr abbrevs))))
 
-(defvar expand-list nil "Temporary variable used by Expand mode.")
+(defvar expand-list nil "Temporary variable used by the Expand package.")
 
 (defvar expand-pos nil
   "If non nil, stores a vector containing markers to positions defined by the last expansion.
@@ -438,8 +390,10 @@ See `expand-add-abbrevs'."
       (backward-word 1)
       (buffer-substring p (point)))))
 
-(defun expand-jump-to-previous-mark ()
-  "Move the cursor to previous mark created by the expansion."
+;;;###autoload
+(defun expand-jump-to-previous-slot ()
+  "Move the cursor to the previous slot in the last abbrev expansion.
+This is used only in conjunction with `expand-add-abbrevs'."
   (interactive)
   (if expand-pos
       (progn
@@ -449,8 +403,10 @@ See `expand-add-abbrevs'."
 	(goto-char (aref expand-pos expand-index))
 	(run-hooks 'expand-jump-hook))))
 
-(defun expand-jump-to-next-mark ()
-  "Move the cursor to next mark created by the expansion."
+;;;###autoload
+(defun expand-jump-to-next-slot ()
+  "Move the cursor to the next slot in the last abbrev expansion.
+This is used only in conjunction with `expand-add-abbrevs'."
   (interactive)
   (if expand-pos
       (progn
@@ -459,6 +415,9 @@ See `expand-add-abbrevs'."
 	    (setq expand-index 0))
 	(goto-char (aref expand-pos expand-index))
 	(run-hooks 'expand-jump-hook))))
+
+;;;###autoload (define-key ctl-x-map "ap" 'expand-jump-to-previous-slot)
+;;;###autoload (define-key ctl-x-map "an" 'expand-jump-to-next-slot)
 
 (defun expand-build-list (len l)
   "Build a vector of offset positions from the list of positions."
@@ -507,22 +466,6 @@ See `expand-add-abbrevs'."
        ((nth 4 state) 'comment)
        (t nil)))))
 
-(defun expand-mode-submit-report ()
-  "Report a problem, a suggestion or a comment about Expand mode."
-  (interactive)
-  (require 'reporter)
-  (reporter-submit-bug-report
-   expand-mode-help-address
-    (concat "expand.el " expand-mode-version)
-    '(expand-mode-name
-      expand-mode-hook
-      expand-mode-load-hook
-      expand-map
-      )
-    nil
-    nil
-    "Dear expand.el maintainer,"))
-
 ;; support functions to add marks to jump from outside function
 
 (defun expand-list-to-markers (l)
@@ -548,6 +491,6 @@ See `expand-add-abbrevs'."
 (provide 'expand)
 
 ;; run load hooks
-(run-hooks 'expand-mode-load-hook)
+(run-hooks 'expand-load-hook)
 
 ;;; expand.el ends here
