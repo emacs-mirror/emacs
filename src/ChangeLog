@@ -1,3 +1,11 @@
+2001-12-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward): Change heuristic
+	for the case that we didn't move far enough initially.
+
+	* window.c (Frecenter): Simplify computation in the case of window
+	system frames and ARG < 0; use window_box_height.
+
 2001-12-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/hpux10.h (random): Undefine.

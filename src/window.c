@@ -4612,18 +4612,17 @@ and redisplay normally--don't erase and redraw the frame.")
 	  nlines = - XINT (arg) - 1;
 	  move_it_by_lines (&it, nlines, 1);
 
-	  y1 = it.current_y - y0;
-	  h = line_bottom_y (&it) - y1;
+	  y1 = line_bottom_y (&it);
 
 	  /* If we can't move down NLINES lines because we hit
 	     the end of the buffer, count in some empty lines.  */
 	  if (it.vpos < nlines)
 	    y1 += (nlines - it.vpos) * CANON_Y_UNIT (it.f);
 	  
-	  y0 = it.last_visible_y - y1 - h;
-	  
+	  h = window_box_height (w) - (y1 - y0);
+
 	  start_display (&it, w, pt);
-	  move_it_vertically (&it, - y0);
+	  move_it_vertically (&it, - h);
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
