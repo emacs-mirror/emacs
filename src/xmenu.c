@@ -2197,12 +2197,14 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Free the widget_value objects we used to specify the contents.  */
   free_menubar_widget_value_tree (first_wv);
 
+  /* Override any default settings with ones from the `menu' face.  */
+  x_set_menu_resources_from_menu_face (f, menu);
+
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
   /* Display the menu.  */
   lw_popup_menu (menu, (XEvent *) &dummy);
-  x_set_menu_resources_from_menu_face (f, menu);
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
