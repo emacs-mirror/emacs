@@ -3337,15 +3337,19 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
        doc: /* Show information about live and zombie objects.  */)
      ()
 {
-  Lisp_Object args[7];
-  args[0] = build_string ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%), max %d/%d");
+  Lisp_Object args[8], zombie_list = Qnil;
+  int i;
+  for (i = 0; i < nzombies; i++)
+    zombie_list = Fcons (zombies[i], zombie_list);
+  args[0] = build_string ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%), max %d/%d\nzombies: %S");
   args[1] = make_number (ngcs);
   args[2] = make_float (avg_live);
   args[3] = make_float (avg_zombies);
   args[4] = make_float (avg_zombies / avg_live / 100);
   args[5] = make_number (max_live);
   args[6] = make_number (max_zombies);
-  return Fmessage (7, args);
+  args[7] = zombie_list;
+  return Fmessage (8, args);
 }
 
 #endif /* GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES */
@@ -3427,7 +3431,7 @@ mark_maybe_object (obj)
 	{
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
 	  if (nzombies < MAX_ZOMBIES)
-	    zombies[nzombies] = *p;
+	    zombies[nzombies] = obj;
 	  ++nzombies;
 #endif
 	  mark_object (&obj);
@@ -4342,7 +4346,8 @@ Garbage collection happens automatically if you cons more than
     double nlive = 0;
       
     for (i = 0; i < 7; ++i)
-      nlive += XFASTINT (XCAR (total[i]));
+      if (CONSP (total[i]))
+	nlive += XFASTINT (XCAR (total[i]));
 
     avg_live = (avg_live * ngcs + nlive) / (ngcs + 1);
     max_live = max (nlive, max_live);
