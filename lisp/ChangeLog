@@ -1,3 +1,8 @@
+2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/make-mode.el (makefile-mode): Set SYNTAX-BEGIN member
+	of `font-lock-defaults' to `backward-paragraph' rather than nil.
+
 2001-02-06  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACS): Use $(THISDIR) to make emacs.exe path
