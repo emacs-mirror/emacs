@@ -1,7 +1,27 @@
+2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-progress-message): Fix docstring.
+	(bibtex-entry-update): New command bound to C-c C-u.
+	(bibtex-text-in-string): Fix regexp.
+	(bibtex-assoc-of-regexp): Remove.
+	(bibtex-progress-message): Fix docstring.
+	(bibtex-inside-field): Use if.
+	(bibtex-assoc-regexp): New function.
+	(bibtex-format-entry): Make code more robust so that it formats
+	also old entries.
+	(bibtex-autokey-demangle-title): Merge with obsolete function
+	bibtex-assoc-of-regexp.
+	(bibtex-field-list): New function.
+	(bibtex-entry): Use bibtex-field-list.
+	(bibtex-parse-entry): Fix docstring.
+	(bibtex-print-help-message): Use bibtex-field-list.
+	(bibtex-make-field): Use bibtex-field-list.
+	(bibtex-entry-index): Bugfix. Return crossref key if required.
+	(bibtex-lessp): Fix docstring.
+
 2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* select.el (xselect-convert-to-string): Move comment to intended
-	line.
+	* select.el (xselect-convert-to-string): Move comment to intended line.
 
 2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -19,14 +39,12 @@
 
 2004-05-03  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua--update-indications):
-	Fix last change.
+	* emulation/cua-base.el (cua--update-indications): Fix last change.
 	(cua-mode): Deactivate mark when cua-mode is enabled.
 
 2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* select.el (xselect-convert-to-string): Bind `inhibit-read-only'
-	to t.
+	* select.el (xselect-convert-to-string): Bind `inhibit-read-only' to t.
 
 2004-05-03  Nick Roberts  <nickrob@gnu.org>
 
