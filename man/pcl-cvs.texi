@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.16 2000/05/30 19:45:50 monnier Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.1 2000/06/01 03:34:57 monnier Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991-2000  Free Software Foundation, Inc.
@@ -69,9 +69,11 @@ Free Software Foundation instead of in the original English.
 @center @titlefont{to}
 @sp
 @center @titlefont{PCL-CVS - The Emacs Front-End to CVS}
+@ignore
 @sp 2
 @center release 2.9
 @c -release-
+@end ignore
 @sp 3
 @center Per Cederqvist
 @center Stefan Monnier
@@ -108,8 +110,11 @@ Free Software Foundation instead of in the original English.
 @ifinfo
 @top PCL-CVS
 
-This info manual describes PCL-CVS, the GNU Emacs front-end to CVS.
-This manual is updated to release 2.5 of PCL-CVS.
+This info manual describes PCL-CVS, the GNU Emacs front-end to CVS.  It
+is nowhere near complete, so you are advised to use @kbd{M-x
+customize-group RET pcl-cvs RET} and to look at the documentation strings
+of the various commands and major modes for further information.
+@c This manual is updated to release 2.5 of PCL-CVS.
 @end ifinfo
 
 @menu
@@ -183,7 +188,7 @@ proudly maintained it until January 1996, at which point he released the
 beta version 2.0b2 and passed on the maintainership to Greg A Woods.
 Development stayed mostly dormant for a few years during which the
 version 2.0 never seemed to be able to leave the ``beta'' stage while a
-separate XEmacs version was slowly splitting away.  In late 1999,
+separate XEmacs version was slowly splitting away.  In late 1998,
 Stefan Monnier picked up development again, adding some major new
 functionality and taking over maintenance.
 
@@ -613,16 +618,19 @@ Run a @samp{cvs checkout} command.  You will be asked for the directory
 in which the @samp{cvs update} will be run and the module to be checked
 out.@refill
 
+@ignore
 @item M-x cvs-quickdir
 Populate the @samp{*cvs*} buffer by just looking at the @file{CVS/Entries}
 files.  This is very much like @code{cvs-examine} except that it does
 not access the CVS repository which is a major advantage when the
 repository is far away.  But of course, it will not be able to detect
 when a file needs to be updated or merged.
+@end ignore
 
 @end table
 
-The first four of those commands are also reachable from the menubar
+@c The first four of
+Those commands are also reachable from the menubar
 under @samp{Tools->PCL-CVS}.  Finally an alternative way is to visit
 with the CVS administrative subdirectory in your work area with a simple
 prefix argument.  For example @kbd{C-u C-x C-f ~/my/work/CVS RET}.  This
