@@ -1,12 +1,10 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.25) $
+ * $HopeName: MMsrc!poolmv.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
- *                   It may call PoolCreate, which allocates from the
- *                   poolPool.
  *
  * An observation: Freeing memory introduces more information
  * into the system than allocating it.  This causes the problem
@@ -19,17 +17,11 @@
  *     memory could be pushed onto a special chain to be reclaimed later.
  *     richard 1994-11-09
  *  3. The span chain could be adaptive.  richard 1994-11-09
- *  4. Spans with no blocks could be freed.  richard 1994-11-09
  *  5. An MFS pool for the block descriptors is justified, but not really
  *     for the spans, which are much rarer. richard 1994-11-09
- *  7. Check should check pointer destinations are in the right pools.
- *     richard 1994-11-10
  *  8. By changing MVSpanAlloc it might be possible to keep track of all
  *     allocated blocks using descriptors, for debugging purposes.  richard
  *     1994-11-10
- *  9. (See note 7.) Check methods can't easily get hold of the relevant
- *     pools in ordr to check pointers using PoolAddrPool.
- *     1995-01-19 drj
  */
 
 #include "mpm.h"
@@ -37,7 +29,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.25) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.26) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -82,6 +74,7 @@ static Bool MVBlockCheck(MVBlock block)
   return TRUE;
 }
 
+#define MVSpanSig       ((Sig)0x5193F5BA) /* SIGnature MV SPAn */
 
 /* MVSpanStruct -- span structure
  *
@@ -90,10 +83,22 @@ static Bool MVBlockCheck(MVBlock block)
  * segment.  It also contains sentinel block descriptors which mark the
  * start and end of the span.  These blocks considerably simplify
  * allocation, and may be zero-sized.
+ *
+ * .design.largest: If 'largestKnown' is TRUE, 'largest' is the size
+ * of the largest free block in the segment. Otherwise, 'largest' is
+ * one more than the segment size.
+ *
+ * .design.largest.alloc: When seeking a segment in which to allocate,
+ * a segment should not be examined if 'largest' is less than the
+ * space sought.
+ *
+ * .design.largest.free: When freeing, compute the size of the new
+ * free area. If it is larger than 'largest', set 'largest' to it.
  */
 
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
+  Sig sig;                      /* design.mps.sig */
   RingStruct spans;             /* all the spans */ 
   MV mv;                        /* owning MV pool */
   Seg seg;                      /* segment underlying the span */
@@ -101,9 +106,16 @@ typedef struct MVSpanStruct {
   MVBlockStruct limit;          /* sentinel at limit of span */
   MVBlock blocks;               /* allocated blocks */
   Size space;                   /* total free space in segment */
+  Size largest;                 /* .design.largest */
+  Bool largestKnown;            /* .design.largest */
   unsigned blockCount;          /* number of blocks on chain */
 } MVSpanStruct;
 
+
+#define SpanSize(span) (AddrOffset((span)->base.base,                 \
+                                   (span)->limit.limit))
+#define SpanInsideSentinels(span) (AddrOffset((span)->base.limit,     \
+                                              (span)->limit.base))
 
 Pool MVPool(MV mv)
 {
@@ -116,9 +128,11 @@ Pool MVPool(MV mv)
 
 static Bool MVSpanCheck(MVSpan span)
 {
-  CHECKL(span != NULL);
-  CHECKU(MV, span->mv);
+  CHECKS(MVSpan, span);
+
   CHECKL(RingCheck(&span->spans));
+  CHECKU(MV, span->mv);
+  CHECKL(SegCheck(span->seg));
   CHECKL(MVBlockCheck(&span->base));
   CHECKL(MVBlockCheck(&span->limit));
   /* The block chain starts with the base sentinel. */
@@ -135,9 +149,16 @@ static Bool MVSpanCheck(MVSpan span)
   CHECKL(span->limit.limit == SegLimit(span->seg));
   /* The sentinels mustn't overlap. */
   CHECKL(span->base.limit <= span->limit.base);
-  /* The remaining space can't be more than the gap between the sentinels. */
-  CHECKL(span->space <= AddrOffset(span->base.limit, span->limit.base));
-  /* Check that it is in the span pool.  See note 7. */
+  /* The free space can't be more than the gap between the sentinels. */
+  CHECKL(span->space <= SpanInsideSentinels(span));
+
+  CHECKL(BoolCheck(span->largestKnown));
+  if (span->largestKnown) { /* .design.largest */
+    CHECKL(span->largest <= span->space);
+    /* at least this much is free */
+  } else {
+    CHECKL(span->largest == SpanSize(span)+1);
+  }
   return TRUE;
 }
 
@@ -234,6 +255,7 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
                         Pool blockPool)
 {
   Size gap;
+  Size largest = 0;
   MVBlock block;
 
   AVERT(MVSpan, span);
@@ -250,6 +272,11 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
 
     gap = AddrOffset(block->limit, block->next->base);
 
+    if (gap > largest) {
+      largest = gap;
+      AVER(largest <= span->largest);
+    }
+
     if(gap >= size) {
       Addr new = block->limit;
 
@@ -265,6 +292,12 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
       } else
         block->limit = AddrAdd(block->limit, size);
 
+      if (gap == span->largest) { /* we've used a 'largest' gap */
+        AVER(span->largestKnown);
+        span->largestKnown = FALSE;
+        span->largest = SpanSize(span) +1;  /* .design.largest */
+      }
+
       span->space -= size;
       *addrReturn = new;
       return TRUE;
@@ -273,6 +306,11 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
     block = block->next;
   }
   while(block->next != NULL);
+
+  /* we've looked at all the gaps, so now we know the largest */
+  AVER(span->largestKnown == FALSE);
+  span->largestKnown = TRUE;
+  span->largest = largest;
 
   return FALSE;
 }
@@ -284,38 +322,61 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
  * base and limit, and frees it within that span.  This may involve
  * allocating a block descriptor, which may fail, in which case an error is
  * returned.
+ *
+ * There are eight cases, depending on what we are freeing:
+ * 1. whole of non-sentinel
+ * 2. in body of any block
+ * 3. at base of non-base
+ * 4. at limit of non-limit
+ * 5. whole of base sentinel
+ * 6. whole of limit sentinel
+ * 7. at base of base sentinel
+ * 8. at limit of limit sentinel
+ * 
  */
 
 static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 {
-  MVBlock *prev, block;
+  MVBlock prev, block;
+  Size freeAreaSize = 0; /* .design.largest.free */
 
   AVERT(MVSpan, span);
   AVER(span->base.base <= base && limit <= span->limit.limit);
   AVERT(Pool, blockPool);
 
-  prev = &span->blocks;
+  prev = NULL;
   block = span->blocks;
+
   AVER(block == &span->base); /* should be base sentinel */
   do {
-    int isBase = block == &span->base;
-    int isLimit = block == &span->limit;
-    int isSentinel = isBase || isLimit;
-
     AVERT(MVBlock, block);
 
     /* Is the freed area within the block? */
     if(block->base <= base && limit <= block->limit) {
+      Bool isBase = block == &span->base;
+      Bool isLimit = block == &span->limit;
+      Bool isSentinel = isBase || isLimit;
+
       if(!isSentinel && block->base == base && limit == block->limit) {
-        AVER(block->next != NULL); /* should at least be a sentinel */
-        *prev = block->next;
+        /* case 1 : the whole of a non-sentinel block */
+        AVER(block->next != NULL); /* there must at least be a sentinel */
+        AVER(prev != NULL); /* block isn't sentinel */
+        freeAreaSize = AddrOffset(prev->limit, block->next->base);
+        prev->next = block->next;
         PoolFree(blockPool, (Addr)block, sizeof(MVBlockStruct));
         --span->blockCount;
-      } else if(!isBase && block->base == base)
+      } else if(!isBase && block->base == base) {
+        /* cases 3 and 6: at base of a block other than the base sentinel */
+        AVER(prev != NULL); /* block isn't sentinel */
+        freeAreaSize = AddrOffset(prev->limit, limit);
         block->base = limit;
-      else if(!isLimit && limit == block->limit)
+      } else if(!isLimit && limit == block->limit) {
+        /* cases 4 and 5: at limit of a block other than the limit sentinel */
+        AVER(block->next != NULL); /* should at least be a sentinel */
+        freeAreaSize = AddrOffset(base, block->next->base);
         block->limit = base;
-      else {
+      } else { 
+        /* cases 2, 7, and 8: making a new fragment */
         Res res;
         MVBlock new;
 
@@ -324,21 +385,24 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
         res = PoolAlloc((Addr *)&new, blockPool, sizeof(MVBlockStruct));
         if(res != ResOK) return res;
 
+        freeAreaSize = AddrOffset(base, limit);
+
         /* If the freed area is in the base sentinel then insert the new */
         /* descriptor after it, otherwise insert before. */
-        if(isBase) {
+        if(isBase) { /* case 7: new fragment at the base of the segment */
           new->base = limit;
           new->limit = block->limit;
           block->limit = base;
           new->next = block->next;
           AVER(new->next != NULL); /* should at least be a sentinel */
           block->next = new;
-        } else {
+        } else { /* cases 2 and 8 */
           new->base = block->base;
           new->limit = base;
           block->base = limit;
           new->next = block;
-          *prev = new;
+          AVER(prev != NULL);
+          prev->next = new;
         }
 
         AVERT(MVBlock, new);
@@ -349,13 +413,17 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 
       span->space += AddrOffset(base, limit);
 
+      if (freeAreaSize > span->largest) { /* .design.largest */
+        AVER(span->largestKnown);
+        span->largest = freeAreaSize;
+      }
+
       return ResOK;
     }
 
-    prev = &block->next;
+    prev = block;
     block = block->next;
-  }
-  while(block != NULL);
+  } while(block != NULL);
 
   /* The freed area is in the span, but not within a block. */
   NOTREACHED;
@@ -388,7 +456,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
     spans = &mv->spans;
     RING_FOR(node, spans, nextNode) {
       span = RING_ELT(MVSpan, spans, node);
-      if(size <= span->space) {
+      if((size <= span->largest) &&          /* .design.largest.alloc */
+         (size <= span->space)) {
         Addr new;
 
         if(MVSpanAlloc(&new, span, size, BLOCKPOOL(mv))) {
@@ -440,7 +509,10 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
 
   span->base.limit = AddrAdd(span->base.limit, size);
   span->space -= size;
+  span->largest = span->space;
+  span->largestKnown = TRUE;
 
+  span->sig = MVSpanSig;
   AVERT(MVSpan, span);
 
   mv->space += span->space;
@@ -491,18 +563,17 @@ static void MVFree(Pool pool, Addr old, Size size)
     mv->space += size;
   
   /* free space should be less than total space */
-  AVER(AddrAdd(span->base.base, span->space) <= span->limit.limit);
-  if(AddrAdd(span->base.base, span->space) == span->limit.limit) {
+  AVER(span->space <= SpanInsideSentinels(span));
+  if(span->space == SpanSize(span)) { /* the whole span is free */
     AVER(span->blockCount == 2);
     /* both blocks are the trivial sentinel blocks */
     AVER(span->base.limit == span->base.base);
     AVER(span->limit.limit == span->limit.base);
     SegFree(span->seg);
     RingRemove(&span->spans);
+    RingFinish(&span->spans);
     PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
   }
-
-  return;                   /* should free spans.  See note 4. */
 }
 
 
@@ -546,8 +617,16 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
                  "    span $P",   (WriteFP)span,
                  "  seg $P",      (WriteFP)span->seg,
                  "  space $W",    (WriteFW)span->space,
-                 "  blocks $U\n", (WriteFU)span->blockCount,
+                 "  blocks $U",   (WriteFU)span->blockCount,
+                 "  largest ",
                  NULL);
+    if(res != ResOK) return res;
+
+    if (span->largestKnown) /* .design.largest */
+      res = WriteF(stream, "$W\n", (WriteFW)span->largest, NULL);
+    else
+      res = WriteF(stream, "unknown\n", NULL);
+    
     if(res != ResOK) return res;
   }
 
@@ -578,7 +657,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
         if(j == block->base) {
           if(AddrAdd(j, step) == block->limit)
-            c = '@';
+            c = 'O';
           else
             c = '[';
         } else if(AddrAdd(j, step) == block->limit)
@@ -619,14 +698,14 @@ static PoolClassStruct PoolClassMVStruct = {
   PoolTrivBufferFill,                   /* bufferFill */
   PoolTrivBufferEmpty,                  /* bufferEmpty */
   PoolTrivBufferFinish,                 /* bufferFinish */
-  PoolNoTraceBegin,			/* traceBegin */
+  PoolNoTraceBegin,                     /* traceBegin */
   PoolNoWhiten,                         /* whiten */
   PoolNoGrey,                           /* mark */
   PoolNoBlacken,                        /* blacken */
   PoolNoScan,                           /* scan */
   PoolNoFix,                            /* fix */
   PoolNoReclaim,                        /* relcaim */
-  PoolNoBenefit,			/* benefit */
+  PoolNoBenefit,                        /* benefit */
   PoolNoAct,                            /* act */
   MVDescribe,                           /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
