@@ -67,15 +67,7 @@
       (modify-syntax-entry ?\( "()  " table)
       (modify-syntax-entry ?\) ")(  " table)
       (modify-syntax-entry ?\[ "(]  " table)
-      (modify-syntax-entry ?\] ")[  " table)
-      ;; All non-word multibyte characters should be `symbol'.
-      (map-char-table
-       (function (lambda (key val) 
-		   (and (>= key 256)
-			(/= (char-syntax key) ?w)
-			(modify-syntax-entry key "_   " 
-					     table))))
-       (standard-syntax-table)))
+      (modify-syntax-entry ?\] ")[  " table))
     table))
 
 (defvar lisp-mode-syntax-table
@@ -144,7 +136,9 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression lisp-imenu-generic-expression))
+  (setq imenu-generic-expression lisp-imenu-generic-expression)
+  (make-local-variable 'multibyte-syntax-as-symbol)
+  (setq multibyte-syntax-as-symbol t))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
