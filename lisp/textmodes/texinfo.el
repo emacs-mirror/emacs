@@ -1,5 +1,9 @@
-; Major mode for editing texinfo files.
-;; Copyright (C) 1985, 1988, 1989 Free Software Foundation, Inc.
+;;;; texinfo.el
+;;;; Major mode for editing Texinfo files.
+
+;;;; Version 2.00   14 Dec 1990
+
+;; Copyright (C) 1985, 1988, 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
