@@ -1,3 +1,8 @@
+1999-10-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (Fopen_network_stream): Don't loop if gethostbyname
+	fails and h_errno is TRY_AGAIN.
+
 1999-10-13  Dave Love  <fx@gnu.org>
 
 	* filelock.c (lock_file): Move gcpro of `fn'.
