@@ -6759,12 +6759,12 @@ store_frame_title_char (c)
 
 
 /* Store part of a frame title in frame_title_buf, beginning at
-   frame_title_ptr.  STR is the string to store.  Do not copy more
-   than PRECISION number of bytes from STR; PRECISION <= 0 means copy
-   the whole string.  Pad with spaces until FIELD_WIDTH number of
-   characters have been copied; FIELD_WIDTH <= 0 means don't pad.
-   Called from display_mode_element when it is used to build a frame
-   title.  */
+   frame_title_ptr.  STR is the string to store.  Do not copy
+   characters that yield more columns than PRECISION; PRECISION <= 0
+   means copy the whole string.  Pad with spaces until FIELD_WIDTH
+   number of characters have been copied; FIELD_WIDTH <= 0 means don't
+   pad.  Called from display_mode_element when it is used to build a
+   frame title.  */
 
 static int
 store_frame_title (str, field_width, precision)
@@ -6772,14 +6772,13 @@ store_frame_title (str, field_width, precision)
      int field_width, precision;
 {
   int n = 0;
+  int dummy, nbytes, width;
 
   /* Copy at most PRECISION chars from STR.  */
-  while ((precision <= 0 || n < precision)
-	 && *str)
-    {
-      store_frame_title_char (*str++);
-      ++n;
-    }
+  nbytes = strlen (str);
+  n+= c_string_width (str, nbytes, precision, &dummy, &nbytes);
+  while (nbytes--)
+    store_frame_title_char (*str++);
 
   /* Fill up with spaces until FIELD_WIDTH reached.  */
   while (field_width > 0
@@ -6837,7 +6836,8 @@ x_consider_frame_title (frame)
       frame_title_ptr = frame_title_buf;
       init_iterator (&it, XWINDOW (f->selected_window), -1, -1,
 		     NULL, DEFAULT_FACE_ID);
-      len = display_mode_element (&it, 0, -1, -1, fmt);
+      display_mode_element (&it, 0, -1, -1, fmt);
+      len = frame_title_ptr - frame_title_buf;
       frame_title_ptr = NULL;
       set_buffer_internal (obuf);
 
@@ -12804,12 +12804,13 @@ display_mode_element (it, depth, field_width, precision, elt)
 		/* Output to end of string or up to '%'.  Field width
 		   is length of string.  Don't output more than
 		   PRECISION allows us.  */
-		prec = --this - last;
+		--this;
+		prec = strwidth (last, this - last);
 		if (precision > 0 && prec > precision - n)
 		  prec = precision - n;
 		
 		if (frame_title_ptr)
-		  n += store_frame_title (last, prec, prec);
+		  n += store_frame_title (last, 0, prec);
 		else
 		  n += display_string (NULL, elt, Qnil, 0, last - lisp_string,
 				       it, 0, prec, 0, -1);
@@ -12891,9 +12892,7 @@ display_mode_element (it, depth, field_width, precision, elt)
 	       don't check for % within it.  */
 	    if (STRINGP (tem))
 	      {
-		prec = XSTRING (tem)->size;
-		if (precision > 0 && prec > precision - n)
-		  prec = precision - n;
+		prec = precision - n;
 		if (frame_title_ptr)
 		  n += store_frame_title (XSTRING (tem)->data, -1, prec);
 		else
