@@ -65,8 +65,10 @@ current buffer to the complete file name."
     ;; Chase links before visiting the file.
     ;; This makes it easier to use a single change log file
     ;; for several related directories.
-    (setq file-name
-	  (expand-file-name (or (file-symlink-p file-name) file-name)))
+    (let (temp)
+      (while (setq temp (file-symlink-p file-name))
+	(setq file-name temp)))
+    (setq file-name (expand-file-name file-name))
     ;; Move up in the dir hierarchy till we find a change log file.
     (let ((file1 file-name)
 	  parent-dir)
