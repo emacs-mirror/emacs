@@ -1,5 +1,8 @@
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (temporary-file-directory, null-device) 
+	(small-temporary-file-directory): Definitions moved up.
+
 	* progmodes/cperl-mode.el (cperl-problems, cperl-tips)
 	(cperl-non-problems, cperl-praise): Doc fixes.
 
