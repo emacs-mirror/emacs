@@ -43,6 +43,24 @@
 
 2000-08-16  Dave Love  <fx@gnu.org>
 
+	* windmove.el (windmove) <defgroup>: Add :version.
+
+	* net/goto-addr.el: Don't require browse-url.  Require thingatpt.
+	(goto-address-fontify-p, goto-address-highlight-p)
+	(goto-address-url-face, goto-address-url-mouse-face)
+	(goto-address-mail-face, goto-address-mail-mouse-face): Doc fix.
+	(goto-address-url-regexp): Use thing-at-point-url-regexp.
+	(goto-address-fontify, goto-address-at-mouse): Simplify,
+	(goto-address-at-point): browse-url-url-at-point,
+	goto-address-find-address-at-point can return nil.
+	(goto-address-find-address-at-point): Return nil on failure.
+
+	* align.el (align) <defgroup>: Add :version.
+
+	* calculator.el (calculator): Add :version.
+	(calculator): Use two lines for calculator window if `modeline'
+	face is boxed.
+
 	* play/5x5.el: Doc fixes.
 	(5x5) <defgroup>: Add :version.
 
@@ -158,6 +176,9 @@
 
 	* bs.el: Fix indentation.
 	(bs) <defgroup>: Add :links.
+	(bs-show): Doc fix.
+	(bs-apply-sort-faces): Don't use window-system.
+	(bs-mode-font-lock-keywords): Avoid testing for XEmacs.
 
 2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
