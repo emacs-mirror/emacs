@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.3 2000/07/03 13:45:58 gerd Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.4 2000/08/16 18:54:37 fx Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991-2000  Free Software Foundation, Inc.
@@ -35,28 +35,23 @@
 @ifinfo
 Copyright @copyright{} 1991-2000  Free Software Foundation, Inc.
 
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
-@ignore
-Permission is granted to process this file through Tex and print the
-results, provided the printed document carries copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-@end ignore
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-section entitled ``GNU General Public License'' is included exactly as
-in the original, and provided that the entire resulting derived work is
-distributed under the terms of a permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the section entitled ``GNU General Public License'' and
-this permission notice may be included in translations approved by the
-Free Software Foundation instead of in the original English.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 @end ifinfo
 
 @synindex vr fn
@@ -85,21 +80,23 @@ Free Software Foundation instead of in the original English.
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1991-2000  Free Software Foundation, Inc.
 
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
 
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-section entitled ``GNU General Public License'' is included exactly as
-in the original, and provided that the entire resulting derived work is
-distributed under the terms of a permission notice identical to this one.
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the section entitled ``GNU General Public License'' and
-this permission notice may be included in translations approved by the
-Free Software Foundation instead of in the original English.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 @end titlepage
 
 @c ================================================================
@@ -588,53 +585,51 @@ you can use in PCL-CVS.  They are grouped together by type.
 @findex cvs-examine
 @findex cvs-status
 @findex cvs-checkout
-@findex cvs-mode-delete-lock
-@cindex Getting the *cvs* buffer
+@findex cvs-quickdir
+@cindex Creating the *cvs* buffer
 
 Most commands in PCL-CVS require that you have a @samp{*cvs*}
 buffer.  The commands that you use to get one are listed below.
 For each, a @samp{cvs} process will be run, the output will be parsed by 
 PCL-CVS, and the result will be printed in the @samp{*cvs*} buffer (see
-@pxref{Buffer contents} for a description of the contents).@refill
+@pxref{Buffer contents} for a description of the contents).
 
 @table @kbd
 
 @item M-x cvs-update
 Run a @samp{cvs update} command.  You will be asked for the directory 
-in which the @samp{cvs update} will be run.@refill
+in which the @samp{cvs update} will be run.
 
 @item M-x cvs-examine
 Run a @samp{cvs -n update} command.  This is identical to the previous
 command, except that it will only check what needs to be done but will
 not change anything.  You will be asked for the directory in
-which the @samp{cvs -n update} will be run.@refill
+which the @samp{cvs -n update} will be run.
 
 @item M-x cvs-status
 Run a @samp{cvs status} command.  You will be asked for the directory 
-in which the @samp{cvs status} will be run.@refill
+in which the @samp{cvs status} will be run.
 
 @item M-x cvs-checkout
 Run a @samp{cvs checkout} command.  You will be asked for the directory
 in which the @samp{cvs update} will be run and the module to be checked
-out.@refill
+out.
 
-@ignore
 @item M-x cvs-quickdir
 Populate the @samp{*cvs*} buffer by just looking at the @file{CVS/Entries}
 files.  This is very much like @code{cvs-examine} except that it does
 not access the CVS repository which is a major advantage when the
 repository is far away.  But of course, it will not be able to detect
 when a file needs to be updated or merged.
-@end ignore
 
 @end table
 
-@c The first four of
+The first four of
 Those commands are also reachable from the menubar
 under @samp{Tools->PCL-CVS}.  Finally an alternative way is to visit
-with the CVS administrative subdirectory in your work area with a simple
+the CVS administrative subdirectory in your work area with a simple
 prefix argument.  For example @kbd{C-u C-x C-f ~/my/work/CVS RET}.  This
-will by default run @code{cvs-examine} but the specific behavior can be
+will by default run @code{cvs-quickdir} but the specific behavior can be
 changed with @code{cvs-dired-action} and @code{cvs-dired-use-hook}.
 
 By default, the commands above will descend recursively into
@@ -642,7 +637,6 @@ subdirectories.  You can avoid that behavior by including @samp{-l} in
 the flags for the command.  These flags can be set by giving a prefix
 argument to the command (e.g., by typing
 @kbd{C-u M-x cvs-update RET -l RET}).
-@refill
 
 
 @node Setting flags, Updating the buffer, Entering PCL-CVS, Commands
