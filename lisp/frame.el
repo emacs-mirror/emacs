@@ -244,7 +244,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	(setq default-frame-alist
 	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
 		    default-frame-alist)))))
-  
+
   ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
   ;; it in batch mode since that would leave a tool-bar-lines
   ;; parameter in default-frame-alist in a dumped Emacs, which is not
@@ -324,19 +324,19 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 		   (relief (if (and (integerp tool-bar-button-relief)
 				    (> tool-bar-button-relief 0))
 			       tool-bar-button-relief 3))
-		   (lines (/ (+ image-height 
+		   (lines (/ (+ image-height
 				(* 2 margin)
 				(* 2 relief)
 				(1- char-height))
 			     char-height))
 		   (height (frame-parameter frame-initial-frame 'height))
 		   (newparms (list (cons 'height (- height lines))))
-		   (initial-top (cdr (assq 'top 
+		   (initial-top (cdr (assq 'top
 					   frame-initial-geometry-arguments)))
 		   (top (frame-parameter frame-initial-frame 'top)))
 	      (when (and (consp initial-top) (eq '- (car initial-top)))
-		(setq newparms 
-		      (append newparms 
+		(setq newparms
+		      (append newparms
 			      `((top . ,(+ top (* lines char-height))))
 			      nil)))
 	      (modify-frame-parameters frame-initial-frame newparms)
@@ -368,7 +368,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	      (sleep-for 1))
 	    (setq parms (frame-parameters frame-initial-frame))
 
-       ;; Get rid of `name' unless it was specified explicitly before.
+            ;; Get rid of `name' unless it was specified explicitly before.
 	    (or (assq 'name frame-initial-frame-alist)
 		(setq parms (delq (assq 'name parms) parms)))
 
@@ -464,10 +464,10 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	  (setq tail allparms)
 	  ;; Find just the parms that have changed since we first
 	  ;; made this frame.  Those are the ones actually set by
-       ;; the init file.  For those parms whose values we already knew
+          ;; the init file.  For those parms whose values we already knew
 	  ;; (such as those spec'd by command line options)
 	  ;; it is undesirable to specify the parm again
-	 ;; once the user has seen the frame and been able to alter it
+          ;; once the user has seen the frame and been able to alter it
 	  ;; manually.
 	  (while tail
 	    (let (newval oldval)
@@ -789,7 +789,7 @@ If FRAME is omitted, describe the currently selected frame."
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
 To get the frame's current default font, use `frame-parameters'."
-  (interactive 
+  (interactive
    (list
     (let ((completion-ignore-case t))
       (completing-read "Font name: "
@@ -1230,7 +1230,7 @@ command starts, by installing a pre-command hook."
 (defun blink-cursor-end ()
   "Stop cursor blinking.
 This is installed as a pre-command hook by `blink-cursor-start'.
-When run, it cancels the timer `blink-cursor-timer' and removes 
+When run, it cancels the timer `blink-cursor-timer' and removes
 itself as a pre-command hook."
   (remove-hook 'pre-command-hook 'blink-cursor-end)
   (internal-show-cursor nil t)
@@ -1257,14 +1257,14 @@ itself as a pre-command hook."
 (defcustom cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected-windows.
 If nil, don't show a cursor except in the selected window.
-Use Custom to set this variable to get the display updated." 
+Use Custom to set this variable to get the display updated."
   :tag "Cursor in non-selected windows"
   :type 'boolean
   :group 'cursor
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
 	   (force-mode-line-update t)))
-  
+
 
 ;;;; Key bindings
 
