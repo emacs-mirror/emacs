@@ -1,3 +1,15 @@
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (DONTCOMPILE): Fix typo.
+
+	* shell.el (shell-write-history-on-exit): New function.
+	(shell-dumb-shell-regexp): New custom variable.
+	(shell-mode): Make shell-write-history-on-exit the process
+	sentinel if shell name matches shell-dumb-shell-regexp.
+
+	* w32-fns.el: Comment out before-init-hook function which resets
+	source-directory based; this breaks bootstrap.
+
 2000-09-14  Dave Love  <fx@gnu.org>
 
 	* toolbar/cancel.xpm, toolbar/close.xpm, toolbar/copy.xpm,
