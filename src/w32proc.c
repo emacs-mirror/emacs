@@ -38,6 +38,10 @@ Boston, MA 02111-1307, USA.
 #undef kill
 
 #include <windows.h>
+#ifdef __GNUC__
+/* This definition is missing from mingw32 headers. */
+extern BOOL WINAPI IsValidLocale(LCID, DWORD);
+#endif
 
 #include "lisp.h"
 #include "w32.h"
@@ -304,7 +308,9 @@ create_child (char *exe, char *cmdline, char *env,
 {
   STARTUPINFO start;
   SECURITY_ATTRIBUTES sec_attrs;
+#if 0
   SECURITY_DESCRIPTOR sec_desc;
+#endif
   DWORD flags;
   char dir[ MAXPATHLEN ];
   
@@ -325,13 +331,15 @@ create_child (char *exe, char *cmdline, char *env,
   start.hStdError = GetStdHandle (STD_ERROR_HANDLE);
 #endif /* HAVE_NTGUI */
 
+#if 0
   /* Explicitly specify no security */
   if (!InitializeSecurityDescriptor (&sec_desc, SECURITY_DESCRIPTOR_REVISION))
     goto EH_Fail;
   if (!SetSecurityDescriptorDacl (&sec_desc, TRUE, NULL, FALSE))
     goto EH_Fail;
+#endif
   sec_attrs.nLength = sizeof (sec_attrs);
-  sec_attrs.lpSecurityDescriptor = &sec_desc;
+  sec_attrs.lpSecurityDescriptor = NULL /* &sec_desc */;
   sec_attrs.bInheritHandle = FALSE;
   
   strcpy (dir, process_dir);
@@ -650,9 +658,9 @@ unwind:
 }
 
 int
-compare_env (const char **strp1, const char **strp2)
+compare_env (const void *strp1, const void *strp2)
 {
-  const char *str1 = *strp1, *str2 = *strp2;
+  const char *str1 = *(const char **)strp1, *str2 = *(const char **)strp2;
 
   while (*str1 && *str2 && *str1 != '=' && *str2 != '=')
     {
@@ -1302,8 +1310,9 @@ count_children:
 /* Substitute for certain kill () operations */
 
 static BOOL CALLBACK
-find_child_console (HWND hwnd, child_process * cp)
+find_child_console (HWND hwnd, LPARAM arg)
 {
+  child_process * cp = (child_process *) arg;
   DWORD thread_id;
   DWORD process_id;
 
