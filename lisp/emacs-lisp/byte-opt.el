@@ -423,7 +423,7 @@
 	       (cons (byte-optimize-form (nth 2 form) for-effect)
 		     (byte-optimize-body (cdr (cdr (cdr form))) t)))))
 	  
-	  ((memq fn '(save-excursion save-restriction))
+	  ((memq fn '(save-excursion save-restriction save-current-buffer))
 	   ;; those subrs which have an implicit progn; it's not quite good
 	   ;; enough to treat these like normal function calls.
 	   ;; This can turn (save-excursion ...) into (save-excursion) which
