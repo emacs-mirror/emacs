@@ -1,5 +1,8 @@
 ;;; xscheme.el --- run Scheme under Emacs
 
+;;; Maintainer: FSF
+;;; Last-Modified: 21 Jan 1987
+
 ;; Copyright (C) 1986, 1987, 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,8 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;;; Requires C-Scheme release 5 or later
 ;;; Changes to Control-G handler require runtime version 13.85 or later
+
+;;; Code:
 
 ;;; $Header: xscheme.el,v 1.26 90/09/11 01:51:20 GMT cph Exp $
 

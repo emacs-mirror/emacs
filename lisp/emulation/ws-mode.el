@@ -1,8 +1,8 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
-;; Author:		Juergen Nickelsen <nickel@cs.tu-berlin.de>
-;; Created:		13 Feb 1991
-;; Version:		0.7
+;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
+;; Created: 13 Feb 1991
+;; Version: 0.7
 
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
@@ -21,6 +21,7 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
 ;; How to install ws-mode.el:
 ;;
@@ -52,7 +53,7 @@
 ;;
 ;; Enjoy!
 
-
+;;; Code:
 
 (defun wordstar-mode ()
   "Major mode with WordStar-like key bindings.

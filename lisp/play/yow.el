@@ -1,4 +1,7 @@
-;; yow.el --- generate random zippyisms
+;;; yow.el --- generate random zippyisms
+
+;; Maintainer: FSF
+;; Last-modified: 14 Jun 1992
 
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
@@ -18,13 +21,18 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Important pinheaddery for GNU Emacs.
+;; Expects file emacs/etc/yow.lines to be in ITS-style LINS format
+;;  (ie strings terminated by ascii 0 characters.  Leading whitespace ignored)
+;; Everything up to the first \000 is a comment.
+
+;;; Code:
+
 ; Randomize the seed in the random number generator.
 (random t)
 
-; Important pinheaddery for GNU Emacs.
-; Expects file emacs/etc/yow.lines to be in ITS-style LINS format
-;  (ie strings terminated by ascii 0 characters.  Leading whitespace ignored)
-; Everything up to the first \000 is a comment.
 ;;;###autoload
 (defun yow (&optional n interactive)
   "Return or display a Zippy quotation."
