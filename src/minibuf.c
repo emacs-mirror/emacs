@@ -421,9 +421,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* VAL is the string of minibuffer text.  */
 
-  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (defalt))
-    val = defalt;
-
   last_minibuf_string = val;
 
   /* Add the value to the appropriate history list unless it is empty.  */
@@ -629,9 +626,9 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
   and HISTPOS is the initial position (the position in the list\n\
   which INITIAL-CONTENTS corresponds to).\n\
   Positions are counted starting from 1 at the beginning of the list.\n\
-Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
- for history commands, and as the value to return if the user enters\n\
- the empty string.\n\
+Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is available\n\
+ for history commands; but `read-from-minibuffer' does NOT return DEFAULT-VALUE\n\
+ if the user enters empty input!  It returns the empty string.\n\
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
  the current input method and the setting of enable-multibyte-characters.\n\
 If the variable `minibuffer-allow-text-properties' is non-nil,\n\
@@ -745,9 +742,13 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
      Lisp_Object prompt, initial_input, history, default_value;
      Lisp_Object inherit_input_method;
 {
-  return Fread_from_minibuffer (prompt, initial_input, Qnil,
-				Qnil, history, default_value,
-				inherit_input_method);
+  Lisp_Object val;
+  val = Fread_from_minibuffer (prompt, initial_input, Qnil,
+			       Qnil, history, default_value,
+			       inherit_input_method);
+  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
+    val = default_value;
+  return val;
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
@@ -1325,6 +1326,10 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method));
+
+  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
+    val = def;
+
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
