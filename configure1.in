@@ -1384,9 +1384,9 @@ LIBS="$libsrc_libs"
 dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
 dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
 AC_HAVE_LIBRARY(-ldnet)
-### This causes -lresolv to get used in subsequent tests,
-### which causes failures on some systems such as HPUX 9.
-### AC_HAVE_LIBRARY(-lresolv)
+dnl This causes -lresolv to get used in subsequent tests,
+dnl which causes failures on some systems such as HPUX 9.
+dnl AC_HAVE_LIBRARY(-lresolv)
 
 AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
