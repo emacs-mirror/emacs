@@ -2443,7 +2443,8 @@ DEFUN ("require", Frequire, Srequire, 1, 2, 0,
   "If feature FEATURE is not loaded, load it from FILENAME.\n\
 If FEATURE is not a member of the list `features', then the feature\n\
 is not loaded; so load the file FILENAME.\n\
-If FILENAME is omitted, the printname of FEATURE is used as the file name.")
+If FILENAME is omitted, the printname of FEATURE is used as the file name,\n\
+but in this case `load' insists on adding the suffix `.el' or `.elc'.")
   (feature, file_name)
      Lisp_Object feature, file_name;
 {
