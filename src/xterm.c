@@ -131,6 +131,7 @@ extern void _XEditResCheckMessages ();
 #include <X11/Xaw3d/Simple.h>
 #include <X11/Xaw3d/Scrollbar.h>
 #define ARROW_SCROLLBAR
+#define XAW_ARROW_SCROLLBARS
 #include <X11/Xaw3d/ScrollbarP.h>
 #else /* !HAVE_XAW3D */
 #include <X11/Xaw/Simple.h>

@@ -1,3 +1,7 @@
+2003-11-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XAW_ARROW_SCROLLBARS): Define it for Xaw 1.5E.
+
 2003-11-08  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Add kannada.el.
