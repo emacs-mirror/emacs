@@ -1044,7 +1044,8 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:box . "Box")
 		  (:inverse-video . "Inverse")
 		  (:stipple . "Stipple")
-		  (:font . "Font or fontset")))
+		  (:font . "Font or fontset")
+		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
     (with-output-to-temp-buffer "*Help*"
