@@ -404,6 +404,7 @@ Note that changing the size of one terminal frame automatically affects all.")
   calculate_costs (f);
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, parms);
+  f->face_alist = selected_frame->face_alist;
   return frame;
 }
 
