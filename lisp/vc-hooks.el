@@ -231,6 +231,29 @@ value of this flag.")
 	       (vc-file-setprop file 'vc-checkout-model 'implicit))))
       (vc-file-setprop file 'vc-master-locks (or master-locks 'none)))))
 
+(defun vc-simple-command (okstatus command file &rest args)
+  ;; Simple version of vc-do-command, for use in vc-hooks only.
+  ;; Don't switch to the *vc-info* buffer before running the
+  ;; command, because that would change its default directory
+  (save-excursion (set-buffer (get-buffer-create "*vc-info*"))
+		  (erase-buffer))
+  (let ((exec-path (append vc-path exec-path)) exec-status
+	;; Add vc-path to PATH for the execution of this command.
+	(process-environment
+	 (cons (concat "PATH=" (getenv "PATH")
+		       path-separator 
+		       (mapconcat 'identity vc-path path-separator))
+	       process-environment)))
+    (setq exec-status 
+	  (apply 'call-process command nil "*vc-info*" nil 
+		 (append args (list file))))
+    (cond ((> exec-status okstatus)
+	   (switch-to-buffer (get-file-buffer file))
+	   (shrink-window-if-larger-than-buffer
+	    (display-buffer "*vc-info*"))
+	   (error "Couldn't find version control information")))
+    exec-status))
+
 (defun vc-fetch-master-properties (file)
   ;; Fetch those properties of FILE that are stored in the master file.
   ;; For an RCS file, we don't get vc-latest-version vc-your-latest-version
@@ -287,51 +310,32 @@ value of this flag.")
       (vc-parse-locks file (vc-file-getprop file 'vc-master-locks)))
 
      ((eq (vc-backend file) 'CVS)
-      ;; don't switch to the *vc-info* buffer before running the
-      ;; command, because that would change its default directory
-      (save-excursion (set-buffer (get-buffer-create "*vc-info*"))
-		      (erase-buffer))
-      (let ((exec-path (append vc-path exec-path)) exec-status
-	    ;; Add vc-path to PATH for the execution of this command.
-	    (process-environment
-	     (cons (concat "PATH=" (getenv "PATH")
-			   path-separator 
-			   (mapconcat 'identity vc-path path-separator))
-		   process-environment)))
-	(setq exec-status 
-	      (apply 'call-process "cvs" nil "*vc-info*" nil 
-		     (list "status" file)))
-	(cond ((> exec-status 0)
-	       (switch-to-buffer (get-file-buffer file))
-	       (shrink-window-if-larger-than-buffer
-		(display-buffer "*vc-info*"))
-	       (error "Couldn't find version control information"))))
-      (set-buffer (get-buffer "*vc-info*"))
-      (set-buffer-modified-p nil)
-      (auto-save-mode nil)
-      (vc-parse-buffer     
-       ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
-       ;; and CVS 1.4a1 says "Repository revision:".
-       '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
-	 ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
-       file
-       '(vc-latest-version vc-cvs-status))
-      ;; Translate those status values that are needed into symbols.
-      ;; Any other value is converted to nil.
-      (let ((status (vc-file-getprop file 'vc-cvs-status)))
-	(cond 
-	 ((string-match "Up-to-date" status)
-	  (vc-file-setprop file 'vc-cvs-status 'up-to-date)
-	  (vc-file-setprop file 'vc-checkout-time 
-			   (nth 5 (file-attributes file))))
-	 ((vc-file-setprop file 'vc-cvs-status
+      (save-excursion
+	(vc-simple-command 0 "cvs" file "status")
+	(set-buffer (get-buffer "*vc-info*"))
+	(vc-parse-buffer     
+	 ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
+	 ;; and CVS 1.4a1 says "Repository revision:".
+	 '(("\\(RCS Version\\|RCS Revision\\|Repository revision\\):[\t ]+\\([0-9.]+\\)" 2)
+	   ("^File: [^ \t]+[ \t]+Status: \\(.*\\)" 1))
+	 file
+	 '(vc-latest-version vc-cvs-status))
+	;; Translate those status values that we understand into symbols.
+	;; Any other value is converted to nil.
+	(let ((status (vc-file-getprop file 'vc-cvs-status)))
+	 (cond 
+	  ((string-match "Up-to-date" status)
+	   (vc-file-setprop file 'vc-cvs-status 'up-to-date)
+	   (vc-file-setprop file 'vc-checkout-time 
+			    (nth 5 (file-attributes file))))
+	  ((vc-file-setprop file 'vc-cvs-status
 	    (cond 
 	     ((string-match "Locally Modified"    status) 'locally-modified)
 	     ((string-match "Needs Merge"         status) 'needs-merge)
 	     ((string-match "Needs Checkout"      status) 'needs-checkout)
 	     ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
 	     ((string-match "Locally Added"       status) 'locally-added)
-	     )))))))
+	     ))))))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
 
@@ -426,8 +430,8 @@ value of this flag.")
 	  (not (vc-locking-user file))
 	  (if (string-match ".r-..-..-." (nth 8 (file-attributes file)))
 	      (vc-file-setprop file 'vc-checkout-model 'manual)
-	    (vc-file-setprop file 'vc-checkout-model 'implicit))
-	  status)))))
+	    (vc-file-setprop file 'vc-checkout-model 'implicit)))
+     status))))
 
 ;;; Access functions to file properties
 ;;; (Properties should be _set_ using vc-file-setprop, but
@@ -511,15 +515,65 @@ value of this flag.")
       (cond (lock (cdr lock))
 	    ('none)))))
 
+(defun vc-lock-from-permissions (file)
+  ;; If the permissions can be trusted for this file, determine the
+  ;; locking state from them.  Returns (user-login-name), `none', or nil.
+   ;;   This implementation assumes that any file which is under version
+  ;; control and has -rw-r--r-- is locked by its owner.  This is true
+  ;; for both RCS and SCCS, which keep unlocked files at -r--r--r--.
+  ;; We have to be careful not to exclude files with execute bits on;
+  ;; scripts can be under version control too.  Also, we must ignore the
+  ;; group-read and other-read bits, since paranoid users turn them off.
+  ;;   This hack wins because calls to the somewhat expensive 
+  ;; `vc-fetch-master-properties' function only have to be made if 
+  ;; (a) the file is locked by someone other than the current user, 
+  ;; or (b) some untoward manipulation behind vc's back has changed 
+  ;; the owner or the `group' or `other' write bits.
+  (let ((attributes (file-attributes file)))
+    (if (not (vc-mistrust-permissions file))
+	(cond ((string-match ".r-..-..-." (nth 8 attributes))
+	       (vc-file-setprop file 'vc-locking-user 'none))
+	      ((and (= (nth 2 attributes) (user-uid))
+		    (string-match ".rw..-..-." (nth 8 attributes)))
+	       (vc-file-setprop file 'vc-locking-user (user-login-name)))
+	      (nil)))))
+
+(defun vc-file-owner (file)
+  ;; The expression below should return the username of the owner
+  ;; of the file.  It doesn't.  It returns the username if it is
+  ;; you, or otherwise the UID of the owner of the file.  The
+  ;; return value from this function is only used by
+  ;; vc-dired-reformat-line, and it does the proper thing if a UID
+  ;; is returned.
+  ;; The *proper* way to fix this would be to implement a built-in
+  ;; function in Emacs, say, (username UID), that returns the
+  ;; username of a given UID.
+  ;; The result of this hack is that vc-directory will print the
+  ;; name of the owner of the file for any files that are
+  ;; modified.
+  (let ((uid (nth 2 (file-attributes file))))
+    (if (= uid (user-uid)) (user-login-name) uid)))
+
+(defun vc-rcs-lock-from-diff (file)
+  ;; Diff the file against the master version.  If differences are found,
+  ;; mark the file locked.  This is only meaningful for RCS with non-strict
+  ;; locking.
+  (if (zerop (vc-simple-command 1 "rcsdiff" file
+	       "--brief"  ; Some diffs don't understand "--brief", but
+	                  ; for non-strict locking under VC we require it.
+	       (concat "-r" (vc-workfile-version file))))
+      (vc-file-setprop file 'vc-locking-user 'none)
+    (vc-file-setprop file 'vc-locking-user (vc-file-owner file))))
+
 (defun vc-locking-user (file)
   ;; Return the name of the person currently holding a lock on FILE.
-  ;; Return nil if there is no such person.
+  ;; Return nil if there is no such person.  (Sometimes, not the name
+  ;; of the locking user but his uid will be returned.)
   ;;   Under CVS, a file is considered locked if it has been modified since
-  ;; it was checked out.  Under CVS, this will sometimes return the uid of
-  ;; the owner of the file (as a number) instead of a string.
+  ;; it was checked out.
   ;;   The property is cached.  It is only looked up if it is currently nil.
   ;; Note that, for a file that is not locked, the actual property value
-  ;; is 'none, to distinguish it from an unknown locking state.  That value
+  ;; is `none', to distinguish it from an unknown locking state.  That value
   ;; is converted to nil by this function, and returned to the caller.
   (let ((locking-user (vc-file-getprop file 'vc-locking-user)))
     (if locking-user
@@ -528,70 +582,51 @@ value of this flag.")
 
       ;; otherwise, infer the property...
       (cond
-       ;; in the CVS case, check the status
        ((eq (vc-backend file) 'CVS)
-	(if (or (eq (vc-cvs-status file) 'up-to-date)
-		(eq (vc-cvs-status file) 'needs-checkout))
-	    (vc-file-setprop file 'vc-locking-user 'none)
-	  ;; The expression below should return the username of the owner
-	  ;; of the file.  It doesn't.  It returns the username if it is
-	  ;; you, or otherwise the UID of the owner of the file.  The
-	  ;; return value from this function is only used by
-	  ;; vc-dired-reformat-line, and it does the proper thing if a UID
-	  ;; is returned.
-	  ;; 
-	  ;; The *proper* way to fix this would be to implement a built-in
-	  ;; function in Emacs, say, (username UID), that returns the
-	  ;; username of a given UID.
-	  ;;
-	  ;; The result of this hack is that vc-directory will print the
-	  ;; name of the owner of the file for any files that are
-	  ;; modified.
-	  (let ((uid (nth 2 (file-attributes file))))
-	    (if (= uid (user-uid))
-		(vc-file-setprop file 'vc-locking-user (user-login-name))
-	      (vc-file-setprop file 'vc-locking-user uid)))))
+	(or (and (eq (vc-checkout-model file) 'manual)
+		 (vc-lock-from-permissions file))
+	    (if (or (eq (vc-cvs-status file) 'up-to-date)
+		    (eq (vc-cvs-status file) 'needs-checkout))
+		(vc-file-setprop file 'vc-locking-user 'none)
+	      (vc-file-setprop file 'vc-locking-user (vc-file-owner file)))))
 
-       ;; RCS case: attempt a header search. If this feature is
-       ;; disabled, vc-consult-rcs-headers always returns nil.
-       ((and (eq (vc-backend file) 'RCS)
-	     (eq (vc-consult-rcs-headers file) 'rev-and-lock)))
+       ((eq (vc-backend file) 'RCS)
+	(let (p-lock)
 
-       ;; if the file permissions are not trusted,
-       ;; or if locking is not strict,
-       ;; use the information from the master file
-       ((or (not vc-keep-workfiles)
-	    (vc-mistrust-permissions file)
-	    (eq (vc-checkout-model file) 'implicit))
-	(vc-file-setprop file 'vc-locking-user (vc-master-locking-user file)))
+	  ;; Check for RCS headers first
+	  (or (eq (vc-consult-rcs-headers file) 'rev-and-lock)
 
-     ;; Otherwise: Use the file permissions. (But if it turns out that the
-     ;; file is not owned by the user, use the master file.)
-     ;;   This implementation assumes that any file which is under version
-     ;; control and has -rw-r--r-- is locked by its owner.  This is true
-     ;; for both RCS and SCCS, which keep unlocked files at -r--r--r--.
-     ;; We have to be careful not to exclude files with execute bits on;
-     ;; scripts can be under version control too.  Also, we must ignore the
-     ;; group-read and other-read bits, since paranoid users turn them off.
-     ;;   This hack wins because calls to the somewhat expensive 
-     ;; `vc-fetch-master-properties' function only have to be made if 
-     ;; (a) the file is locked by someone other than the current user, 
-     ;; or (b) some untoward manipulation behind vc's back has changed 
-     ;; the owner or the `group' or `other' write bits.
-     (t
-      (let ((attributes (file-attributes file)))
-	(cond ((string-match ".r-..-..-." (nth 8 attributes))
-	       (vc-file-setprop file 'vc-locking-user 'none))
-	      ((and (= (nth 2 attributes) (user-uid))
-		    (string-match ".rw..-..-." (nth 8 attributes)))
-	       (vc-file-setprop file 'vc-locking-user (user-login-name)))
-	      (t
-	       (vc-file-setprop file 'vc-locking-user 
-				(vc-master-locking-user file))))
-	)))
-      ;; recursively call the function again,
-      ;; to convert a possible 'none value
-      (vc-locking-user file))))
+	      ;; If there are no headers, try to learn it 
+	      ;; from the permissions.
+	      (and (setq p-lock (vc-lock-from-permissions file))
+		   (if (eq p-lock 'none)
+
+		       ;; If the permissions say "not locked", we know
+		       ;; that the checkout model must be `manual'.
+		       (vc-file-setprop file 'vc-checkout-model 'manual)
+
+		     ;; If the permissions say "locked", we can only trust
+		     ;; this *if* the checkout model is `manual'.
+		     (eq (vc-checkout-model file) 'manual)))
+
+	      ;; Otherwise, use lock information from the master file.
+	      (vc-file-setprop file 'vc-locking-user
+			       (vc-master-locking-user file)))
+
+	  ;; Finally, if the file is not explicitly locked
+	  ;; it might still be locked implicitly.
+	  (and (eq (vc-file-getprop file 'vc-locking-user) 'none)
+	       (eq (vc-checkout-model file) 'implicit)
+	       (vc-rcs-lock-from-diff file))))
+
+      ((eq (vc-backend file) 'SCCS)
+       (or (vc-lock-from-permissions file)
+	   (vc-file-setprop file 'vc-locking-user 
+			    (vc-master-locking-user file))))))
+  
+      ;; convert a possible 'none value
+      (setq locking-user (vc-file-getprop file 'vc-locking-user))
+      (if (eq locking-user 'none) nil locking-user)))
 
 ;;; properties to store current and recent version numbers
 
@@ -704,12 +739,11 @@ value of this flag.")
 	   (file-directory-p (concat dirname "CVS/"))
 	   (file-readable-p (concat dirname "CVS/Entries"))
 	   (file-readable-p (concat dirname "CVS/Repository")))
-      (let ((bufs nil) (fold case-fold-search))
+      (let (buffer (fold case-fold-search))
 	(unwind-protect
 	    (save-excursion
-	      (setq bufs (list
-			  (find-file-noselect (concat dirname "CVS/Entries"))))
-	      (set-buffer (car bufs))
+	      (setq buffer (set-buffer (get-buffer-create "*vc-info*")))
+	      (vc-insert-file (concat dirname "CVS/Entries"))
 	      (goto-char (point-min))
 	      ;; make sure the file name is searched 
 	      ;; case-sensitively
@@ -725,10 +759,7 @@ value of this flag.")
 				 'vc-workfile-version
 				 (buffer-substring (match-beginning 1)
 						   (match-end 1)))
-		(setq bufs (cons (find-file-noselect 
-				  (concat dirname "CVS/Repository"))
-				 bufs))
-		(set-buffer (car bufs))
+		(vc-insert-file (concat dirname "CVS/Repository"))
 		(let ((master
 		       (concat (file-name-as-directory 
 				(buffer-substring (point-min)
@@ -738,7 +769,7 @@ value of this flag.")
 		  (throw 'found (cons master 'CVS))))
 	       (t (setq case-fold-search fold)  ;; restore the old value
 		  nil)))
-	  (mapcar (function kill-buffer) bufs)))))
+	  (kill-buffer buffer)))))
 
 (defun vc-buffer-backend ()
   "Return the version-control type of the visited file, or nil if none."
