@@ -1,3 +1,8 @@
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Modification Time): `visited-file-modtime' now
+	returns a list of two integers, instead of a cons.
+
 2004-07-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* windows.texi: Various changes in addition to:
