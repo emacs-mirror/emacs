@@ -1,3 +1,8 @@
+2000-12-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist (tempdir): Remove epaths.h from the distribution
+	instead of paths.h.
+
 2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* config.bat: Check for existence of djecho.exe, and print an
