@@ -1482,14 +1482,20 @@ specifies the value of ERROR-BUFFER."
 		    (with-current-buffer buffer
 		      (save-excursion
 			(goto-char (point-max))
-			(insert "...Shell command failed"))))
+			(insert (format "...Shell command failed with code %d"
+					exit-status)))))
 		(display-message-or-buffer buffer))
 	    ;; No output; error?
-	    (message (if (and error-file
-			      (< 0 (nth 7 (file-attributes error-file))))
-			 "(Shell command %sed with some error output)"
-		       "(Shell command %sed with no output)")
-		     (if (equal 0 exit-status) "succeed" "fail"))
+	    (let ((output
+		   (if (and error-file
+			    (< 0 (nth 7 (file-attributes error-file))))
+		       "some error output"
+		     "no output")))
+	      (if (equal 0 exit-status)
+		  (message "(Shell command succeeded with %s)"
+			   output)
+		(message "(Shell command failed with code %d and %s)"
+			 exit-status output)))
 	    ;; Don't kill: there might be useful info in the undo-log.
 	    ;; (kill-buffer buffer)
 	    ))))
@@ -1927,7 +1933,9 @@ See also the command \\[yank-pop]."
 			   ((eq arg '-) -1)
 			   (t (1- arg)))))
     (let ((inhibit-read-only t))
-      (remove-text-properties opoint (point) '(read-only nil))))
+      ;; Clear `field' property for the sake of copying from the
+      ;; minibuffer prompt or a *shell* prompt.
+      (remove-text-properties opoint (point) '(read-only nil field nil))))
   (if (consp arg)
       ;; This is like exchange-point-and-mark, but doesn't activate the mark.
       ;; It is cleaner to avoid activation, even though the command
