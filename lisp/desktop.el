@@ -339,6 +339,6 @@ provide correct modes for autoloaded files."
 	  ))))
 ; ---------------------------------------------------------------------------
 
-
+(provide 'desktop)
 
 ;; desktop.el ends here.
