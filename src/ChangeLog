@@ -2,6 +2,10 @@
 
 	* w32fns.c (x_build_heuristic_mask): Filter palette info from color.
 	(XPutPixel): Swap blue and red.
+	(xpm_format, pbm_format, png_format, jpeg_format, tiff_format)
+	(gif_format, gs_format): Use IMAGE_ASCENT_VALUE.
+	(xpm_image_p, pbm_image_p, png_image_p, jpeg_image_p)
+	(tiff_image_p, gif_image_p, gs_image_p): Don't check ascent.
 
 2002-11-18  Dave Love  <fx@gnu.org>
 
