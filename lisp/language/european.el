@@ -331,6 +331,62 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :charset-list '(cp850)
   :mime-charset 'cp850)
 (define-coding-system-alias 'ibm850 'cp850)
+
+(define-coding-system 'cp852
+  "DOS codepage 852 (Slavic)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp852)
+  :mime-charset 'cp852)
+(define-coding-system-alias 'ibm852 'cp852)
+
+(define-coding-system 'cp857
+  "DOS codepage 857 (Turkish)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp857)
+  :mime-charset 'cp857)
+(define-coding-system-alias 'ibm857 'cp857)
+
+(define-coding-system 'cp860
+  "DOS codepage 860 (Portuguese)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp860)
+  :mime-charset 'cp860)
+(define-coding-system-alias 'ibm860 'cp860)
+
+(define-coding-system 'cp861
+  "DOS codepage 861 (Icelandic)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp861)
+  :mime-charset 'cp861)
+(define-coding-system-alias 'ibm861 'cp861)
+
+(define-coding-system 'cp863
+  "DOS codepage 863 (French Canadian)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp863)
+  :mime-charset 'cp863)
+(define-coding-system-alias 'ibm863 'cp863)
+
+(define-coding-system 'cp865
+  "DOS codepage 865 (Norwegian/Danish)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp865)
+  :mime-charset 'cp865)
+(define-coding-system-alias 'ibm865 'cp865)
+
+(define-coding-system 'cp437
+  "DOS codepage 437"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp437)
+  :mime-charset 'cp437)
+(define-coding-system-alias 'ibm437 'cp437)
 
 (set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
@@ -551,11 +607,11 @@ The return value is number of composed characters."
 (let ((patterns '(("\\C^\\c^+" . diacritic-composition-function))))
   (let ((c #x300))
     (while (<= c #x362)
-      (aset composition-function-table (decode-char 'unicode c) patterns)
+      (aset composition-function-table c patterns)
       (setq c (1+ c)))
     (setq c #x20d0)
     (while (<= c #x20e3)
-      (aset composition-function-table (decode-char 'unicode c) patterns)
+      (aset composition-function-table c patterns)
       (setq c (1+ c)))))
 
 (provide 'european)
