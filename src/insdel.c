@@ -25,6 +25,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "blockinput.h"
 
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
 static void insert_from_string_1 ();
 static void insert_from_buffer_1 ();
 static void gap_left ();
@@ -275,9 +277,9 @@ make_gap (increment)
      even if it will fit in a Lisp integer.
      That won't work because so many places use `int'.  */
      
-  if (VALBITS > INTBITS
-      && (Z - BEG + GAP_SIZE + increment) >= ((unsigned) 1 << (INTBITS - 1)))
-    error ("Buffer too big");
+  if (Z - BEG + GAP_SIZE + increment
+      >= ((unsigned) 1 << (min (INTBITS, VALBITS) - 1)))
+    error ("Buffer exceeds maximum size");
 
   BLOCK_INPUT;
   result = BUFFER_REALLOC (BEG_ADDR, (Z - BEG + GAP_SIZE + increment));
@@ -349,11 +351,6 @@ insert_1 (string, length, inherit, prepare)
      int inherit, prepare;
 {
   register Lisp_Object temp;
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, length + Z);
-  if (length + Z != XINT (temp))
-    error ("maximum buffer size exceeded");
 
   if (prepare)
     prepare_to_modify_buffer (PT, PT);
