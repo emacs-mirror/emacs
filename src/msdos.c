@@ -695,6 +695,12 @@ IT_write_glyphs (GLYPH *str, int str_len)
     ? &terminal_coding
     : &safe_terminal_coding;
 
+  /* Do we need to consider conversion of unibyte characters to
+     multibyte?  */
+  int convert_unibyte_characters
+    = NILP (current_buffer->enable_multibyte_characters)
+    && unibyte_display_via_language_environment;
+
   if (str_len == 0) return;
   
   screen_buf = screen_bp = alloca (str_len * 2);
@@ -729,9 +735,7 @@ IT_write_glyphs (GLYPH *str, int str_len)
 	  /* We only want to convert unibyte characters to multibyte
 	     in unibyte buffers!  Otherwise, the 8-bit code might come
 	     from the display table set up to display foreign characters.  */
-	  if (NILP (current_buffer->enable_multibyte_characters)
-	      && unibyte_display_via_language_environment
-	      && SINGLE_BYTE_CHAR_P (ch)
+	  if (SINGLE_BYTE_CHAR_P (ch) && convert_unibyte_characters
 	      && (ch >= 0240
 		  || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
 	    ch = unibyte_char_to_multibyte (ch);
