@@ -88,6 +88,7 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "intervals.h"
 #include "process.h"
+#include "atimer.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -298,6 +299,9 @@ static String Xt_default_resources[] = {0};
 
 struct cursor_pos output_cursor;
 
+/* Non-zero means user is interacting with a toolkit scroll bar.  */
+
+static int toolkit_scroll_bar_interaction;
 
 /* Mouse movement.
 
@@ -7178,21 +7182,27 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 }
 
 
-DEFUN ("xt-process-timeouts", Fxt_process_timeouts, Sxt_process_timeouts,
-       0, 0, 0,
-  "Arrange for Xt timeout callbacks to be called.")
-  ()
-{
 #ifdef USE_X_TOOLKIT
-  BLOCK_INPUT;
-  while (XtAppPending (Xt_app_con) & XtIMTimer)
-    XtAppProcessEvent (Xt_app_con, XtIMTimer);
-  UNBLOCK_INPUT;
-#endif /* USE_X_TOOLKIT */
-  
-  return Qnil;
+
+/* Atimer callback function for TIMER.  Called every 0.1s to process
+   Xt timeouts, if needed.  We must avoid calling XtAppPending as
+   much as possible because that function does an implicit XFlush
+   that slows us down.  */
+
+static void
+x_process_timeouts (timer)
+     struct atimer *timer;
+{
+  if (toolkit_scroll_bar_interaction || popup_activated_flag)
+    {
+      BLOCK_INPUT;
+      while (XtAppPending (Xt_app_con) & XtIMTimer)
+	XtAppProcessEvent (Xt_app_con, XtIMTimer);
+      UNBLOCK_INPUT;
+    }
 }
 
+#endif /* USE_X_TOOLKIT */
 
 
 /* Scroll bar support.  */
@@ -7200,6 +7210,7 @@ DEFUN ("xt-process-timeouts", Fxt_process_timeouts, Sxt_process_timeouts,
 /* Given an X window ID, find the struct scroll_bar which manages it.
    This can be called in GC, so we have to make sure to strip off mark
    bits.  */
+
 static struct scroll_bar *
 x_window_to_scroll_bar (window_id)
      Window window_id;
@@ -7301,8 +7312,6 @@ xt_action_hook (widget, client_data, action_name, event, params,
   end_action = "EndScroll";
 #endif /* USE_MOTIF */
 
-  /* Although LessTif uses XtTimeouts like Xaw3d, the timer hack to
-     let Xt timeouts be processed doesn't work.  */
   if (scroll_bar_p
       && strcmp (action_name, end_action) == 0
       && WINDOWP (window_being_scrolled))
@@ -7315,6 +7324,9 @@ xt_action_hook (widget, client_data, action_name, event, params,
       XSCROLL_BAR (w->vertical_scroll_bar)->dragging = Qnil;
       window_being_scrolled = Qnil;
       last_scroll_bar_part = -1;
+
+      /* Xt timeouts no longer needed.  */
+      toolkit_scroll_bar_interaction = 0;
     }
 }
 
@@ -7344,6 +7356,9 @@ x_send_scroll_bar_event (window, part, portion, whole)
   ev->data.l[2] = (long) 0;
   ev->data.l[3] = (long) portion;
   ev->data.l[4] = (long) whole;
+
+  /* Make Xt timeouts work while the scroll bar is active.  */
+  toolkit_scroll_bar_interaction = 1;
 
   /* Setting the event mask to zero means that the message will
      be sent to the client that created the window, and if that
@@ -11370,8 +11385,10 @@ x_make_frame_visible (f)
 	    /* It could be confusing if a real alarm arrives while
 	       processing the fake one.  Turn it off and let the
 	       handler reset it.  */
-	    alarm (0);
-	    input_poll_signal (0);
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
 	  }
 
 	/* See if a MapNotify event has been processed.  */
@@ -12918,8 +12935,7 @@ x_delete_display (dpyinfo)
       tail = x_display_name_list;
       while (CONSP (tail) && CONSP (XCDR (tail)))
 	{
-	  if (EQ (XCAR (XCDR (tail)),
-		  dpyinfo->name_list_element))
+	  if (EQ (XCAR (XCDR (tail)), dpyinfo->name_list_element))
 	    {
 	      XCDR (tail) = XCDR (XCDR (tail));
 	      break;
@@ -13017,7 +13033,19 @@ x_initialize ()
   XtToolkitInitialize ();
   Xt_app_con = XtCreateApplicationContext ();
   XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
+
+  /* Install an asynchronous timer that processes Xt timeout events
+     every 0.1s.  This is necessary because some widget sets use
+     timeouts internally, for example the LessTif menu bar, or the
+     Xaw3d scroll bar.  When Xt timouts aren't processed, these
+     widgets don't behave normally.  */
+  {
+    EMACS_TIME interval;
+    EMACS_SET_SECS_USECS (interval, 0, 100000);
+    start_atimer (ATIMER_CONTINUOUS, interval, x_process_timeouts, 0);
+  }
 #endif
+  
 #if USE_TOOLKIT_SCROLL_BARS
   xaw3d_arrow_scroll = False;
   xaw3d_pick_top = True;
@@ -13074,7 +13102,6 @@ wide as that tab on the display.");
   x_toolkit_scroll_bars_p = 0;
 #endif
 
-  defsubr (&Sxt_process_timeouts);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
