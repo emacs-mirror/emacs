@@ -2065,7 +2065,7 @@ With prefix argument, puts mark before, point after."
 Use C-u l to reset the windows afterward."
   (interactive)
   (delete-other-windows)
-  (let ((temp-buffer-show-hook
+  (let ((temp-buffer-show-function
 	 (function (lambda (buf)
 		     (split-window-vertically)
 		     (switch-to-buffer buf)
@@ -2476,9 +2476,9 @@ been edited."
 		     ((= c ?b) 
 		      (insert-buffer-substring emerge-B-buffer B-begin B-end))
 		     ((= c ?%) 
-		      (insert ?%)
-		      (t
-		       (insert c)))))
+		      (insert ?%))
+		     (t
+		      (insert c))))
 	   (insert c)))
        (setq i (1+ i))))
    (goto-char merge-begin)
@@ -2910,7 +2910,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	      (enlarge-window 1))
 	    (let ((c (read-char)))
 	      (if (/= c 32)
-		  (setq unread-command-char c))))))))
+		  (setq unread-command-event c))))))))
 
 ;; Improved auto-save file names.
 ;; This function fixes many problems with the standard auto-save file names:
