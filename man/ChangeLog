@@ -1,3 +1,10 @@
+2000-06-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* autotype.texi, cl.texi, eudc.texi, gnus.texi, idlwave.texi
+	* reftex.texi, sc.texi, vip.texi, viper.texi, widget.texi
+	* ediff.texi, dired-x.texi: Add @setchapternewpage odd after
+	index.
+
 2000-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* .cvsignore (*.tmp): New entry.  Seems to be used for @macro.

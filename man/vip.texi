@@ -1941,5 +1941,6 @@ file.
 @unnumbered Concept Index
 @printindex cp
 
+@setchapternewpage odd
 @contents
 @bye

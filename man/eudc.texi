@@ -995,5 +995,6 @@ in testing and proofreading the code and docs of @file{ph.el}.
 
 @printindex vr
 
+@setchapternewpage odd
 @contents
 @bye

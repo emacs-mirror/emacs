@@ -5656,5 +5656,6 @@ recursion.
 
 @printindex vr
 
+@setchapternewpage odd
 @contents
 @bye

@@ -2516,6 +2516,7 @@ its @var{variable} name.
 @sp 2
 @end iftex
 @printindex vr
+@setchapternewpage odd
 @summarycontents
 @contents
 @bye

@@ -1611,5 +1611,6 @@ A mailto widget.
 
 @end itemize
 
+@setchapternewpage odd
 @contents
 @bye

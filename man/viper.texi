@@ -4499,5 +4499,6 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 
 @printindex cp
 
+@setchapternewpage odd
 @contents
 @bye

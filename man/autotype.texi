@@ -632,5 +632,6 @@ of the expansion possibilities.
 @unnumbered Variable Index
 @printindex vr
 
+@setchapternewpage odd
 @contents
 @bye

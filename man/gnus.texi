@@ -19423,6 +19423,7 @@ former).  The manual is unambiguous, but it can be confusing.
 @chapter Key Index
 @printindex ky
 
+@setchapternewpage odd
 @summarycontents
 @contents
 @bye

@@ -1,9 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
 
-@comment TODO
-@comment 1. Class *Globals*
-@comment 2. Hinweis auf customize
-
 @comment %**start of header
 @setfilename ../info/ebrowse
 @settitle A Class Browser for C++

@@ -5407,6 +5407,7 @@ Fixed bug which would parse @samp{\Section} just like @samp{\section}.
 @unnumbered Index
 @printindex cp
 
+@setchapternewpage odd
 @summarycontents
 @contents
 @bye

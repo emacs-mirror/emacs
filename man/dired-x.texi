@@ -1305,6 +1305,7 @@ Lawrence R. Dodd
 @unnumbered Variable Index
 @printindex vr
 
+@setchapternewpage odd
 @c @summarycontents
 @contents
 

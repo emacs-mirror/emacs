@@ -2331,5 +2331,6 @@ Eli Zaretskii (eliz@@is.elta.co.il)
 @unnumbered Index
 @printindex cp
 
+@setchapternewpage odd
 @contents
 @bye
