@@ -1231,7 +1231,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      /* Is this character part of the current run?  If so, extend
 		 the run.  */
 	      if (pos - 1 == width_run_end
-		  && width_table[c] == width_run_width)
+		  && XFASTINT (width_table[c]) == width_run_width)
 		width_run_end = pos;
 
 	      /* The previous run is over, since this is a character at a
@@ -1247,7 +1247,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 				       width_run_start, width_run_end);
 
 		  /* Start recording a new width run.  */
-		  width_run_width = width_table[c];
+		  width_run_width = XFASTINT (width_table[c]);
 		  width_run_start = pos - 1;
 		  width_run_end = pos;
 		}
