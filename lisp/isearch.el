@@ -152,6 +152,7 @@ string, and RET terminates editing and does a nonincremental search."
 
 (defcustom search-whitespace-regexp "\\s-+"
   "*If non-nil, regular expression to match a sequence of whitespace chars.
+This applies to regular expression incremental search.
 You might want to use something like \"[ \\t\\r\\n]+\" instead."
   :type 'regexp
   :group 'isearch)
