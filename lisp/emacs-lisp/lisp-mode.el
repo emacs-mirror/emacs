@@ -453,7 +453,9 @@ Interactively, with prefix argument, print output into current buffer."
 Likewise for other constructs as necessary."
   ;; The code in edebug-defun should be consistent with this, but not
   ;; the same, since this gets a macroexpended form.
-  (cond ((and (eq (car form) 'defvar)
+  (cond ((not (listp form))
+	 form)
+	((and (eq (car form) 'defvar)
 	      (cdr-safe (cdr-safe form)))
 	 ;; Force variable to be bound.
 	 (cons 'defconst (cdr form)))
