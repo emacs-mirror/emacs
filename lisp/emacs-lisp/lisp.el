@@ -228,12 +228,13 @@ or properties are considered."
   (interactive)
   (let* ((end (point))
 	 (buffer-syntax (syntax-table))
-	 (beg (save-excursion
-		(set-syntax-table lisp-mode-syntax-table)
-		(backward-sexp 1)
-		(while (= (char-syntax (following-char)) ?\')
-		  (forward-char 1))
-		(point)
+	 (beg (unwind-protect
+		  (save-excursion
+		    (set-syntax-table emacs-lisp-mode-syntax-table)
+		    (backward-sexp 1)
+		    (while (= (char-syntax (following-char)) ?\')
+		      (forward-char 1))
+		    (point))
 		(set-syntax-table buffer-syntax)))
 	 (pattern (buffer-substring beg end))
 	 (predicate
