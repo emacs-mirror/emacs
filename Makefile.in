@@ -676,7 +676,7 @@ bootstrap-lisp-1:
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
 
 bootstrap-lisp:
-	-(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
 
 bootstrap-src:
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
