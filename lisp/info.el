@@ -88,13 +88,19 @@ The Lisp code is executed when the node is selected.")
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
 if there is no INFOPATH variable in the environment.
-The last element of `Info-default-directory-list' is the directory
-where Emacs installs the Info files that come with it.
+
+When `Info-directory-list' is initialized from the value of
+`Info-default-directory-list', the first element of the resulting
+list is the directory where Emacs installs the Info files that
+come with it.  This is so that Emacs's own manual, which suits the
+version of Emacs you are using, will always be found first.  (If
+you want to override that, set INFOPATH in the environment.)
 
 If you run the Emacs executable from the `src' directory in the Emacs
-source tree, the `info' directory in the source tree is used as the last
-element, in place of the installation Info directory.  This is useful
-when you run a version of Emacs without installing it.")
+source tree, and INFOPATH is not defined, the `info' directory in the
+source tree is used as the first element of `Info-directory-list', in
+place of the installation Info directory.  This is useful when you run
+a version of Emacs without installing it.")
 
 (defcustom Info-additional-directory-list nil
   "List of additional directories to search for Info documentation files.
