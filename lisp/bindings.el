@@ -644,6 +644,7 @@ language you are using."
 (define-key esc-map "|" 'shell-command-on-region)
 
 (let ((map minibuffer-local-map))
+  (define-key map "\t"	  'insert-tab)
   (define-key map "\en"   'next-history-element)
   (define-key map [next]  'next-history-element)
   (define-key map [down]  'next-history-element)
