@@ -1,3 +1,8 @@
+2003-09-15  Zoltan Kemenczy <kemenczy@rogers.com>
+
+	* progmodes/gud.el (gud-find-class): Make jdb work again since
+	cc-mode changed the syntactic information.
+
 2003-09-15  David Ponce  <david@dponce.com>
 
 	* recentf.el: (recentf-exclude): Accept predicates too.
