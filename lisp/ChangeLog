@@ -1,3 +1,14 @@
+2000-11-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Extension for even/odd printing.  Doc Fix.
+	(ps-print-version): New version number (6.3.1).
+	(ps-even-or-odd-pages): Customization fix.
+	(ps-print-page-p, ps-begin-file, ps-begin-job, ps-page-number)
+	(ps-header-sheet, ps-header-page, ps-end-job): Code fix.
+	(ps-page-count): Var replaced by `ps-page-column'.
+	(ps-page-column, ps-page-sheet, ps-page-printed): New vars.
+	(ps-print-sheet-p): New fun.
+
 2000-11-02  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* tooltip.el (tooltip-gud-tips-setup): New function.
