@@ -1,5 +1,9 @@
 2001-12-26  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-mode-map): New keymap,
+	defined as before 2001-11-09.
+	(add-minor-mode call): Specify the keymap.
+
 	* progmodes/compile.el (compile-internal):
 	Set TERM variable in process-environment.
 
