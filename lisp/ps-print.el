@@ -8,12 +8,12 @@
 ;; Author:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:	print, PostScript
-;; Time-stamp:	<99/02/19 11:47:32 vinicius>
-;; Version:	4.1.4
+;; Keywords:	wp, print, PostScript
+;; Time-stamp:	<99/07/03 20:16:48 vinicius>
+;; Version:	5.0
 
-(defconst ps-print-version "4.1.4"
-  "ps-print.el, v 4.1.4 <99/02/19 vinicius>
+(defconst ps-print-version "5.0"
+  "ps-print.el, v 5.0 <99/07/03 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -43,7 +43,7 @@ Please send all bug fixes and enhancements to
 
 ;;; Commentary:
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; About ps-print
 ;; --------------
@@ -181,7 +181,7 @@ Please send all bug fixes and enhancements to
 ;; Make sure that they contain appropriate values for your system;
 ;; see the usage notes below and the documentation of these variables.
 ;;
-;; The variable `ps-printer-name' determine the name of a local printer for
+;; The variable `ps-printer-name' determines the name of a local printer for
 ;; printing PostScript files.
 ;;
 ;; NOTE: `ps-lpr-command' and `ps-lpr-switches' take their initial values
@@ -191,6 +191,11 @@ Please send all bug fixes and enhancements to
 ;;       a program that does not format the files it prints.
 ;;       `ps-printer-name' takes its initial value from the variable
 ;;       `printer-name'.
+;;
+;; The variable `ps-print-region-function' specifies a function to print the
+;; region on a PostScript printer.
+;; See definition of `call-process-region' for calling conventions.  The fourth
+;; and the sixth arguments are both nil.
 ;;
 ;;
 ;; The Page Layout
@@ -366,9 +371,9 @@ Please send all bug fixes and enhancements to
 ;; It is possible to add PostScript prologue header comments besides that
 ;; ps-print generates by setting the variable `ps-print-prologue-header'.
 ;;
-;; `ps-print-prologue-header' may be a string or a symbol function which
-;; returns a string.  Note that this string is inserted on PostScript prologue
-;; header section which is used to define some document characteristic through
+;; `ps-print-prologue-header' may be a string or a symbol function which returns
+;; a string.  Note that this string is inserted on PostScript prologue header
+;; section which is used to define some document characteristic through
 ;; PostScript special comments, like "%%Requirements: jog\n".
 ;;
 ;; By default `ps-print-prologue-header' is nil.
@@ -394,12 +399,96 @@ Please send all bug fixes and enhancements to
 ;; Duplex Printers
 ;; ---------------
 ;;
-;; If you have a duplex-capable printer (one that prints both sides of
-;; the paper), set `ps-spool-duplex' to t.
-;; ps-print will insert blank pages to make sure each buffer starts
-;; on the correct side of the paper.
-;; Don't forget to set `ps-lpr-switches' to select duplex printing
-;; for your printer.
+;; If you have a duplex-capable printer (one that prints both sides of the
+;; paper), set `ps-spool-duplex' to t.
+;; ps-print will insert blank pages to make sure each buffer starts on the
+;; correct side of the paper.
+;;
+;; The variable `ps-spool-config' specifies who is the responsable for setting
+;; duplex and page size switches.  Valid values are:
+;;
+;; lpr-switches    duplex and page size are configured by `ps-lpr-switches'.
+;;                 Don't forget to set `ps-lpr-switches' to select duplex
+;;                 printing for your printer.
+;;
+;; setpagedevice   duplex and page size are configured by ps-print using the
+;;                 setpagedevice PostScript operator.
+;;
+;; nil             duplex and page size are configured by ps-print *not* using
+;;                 the setpagedevice PostScript operator.
+;;
+;; Any other value is treated as nil.
+;;
+;; The default value is `lpr-switches'.
+;;
+;; WARNING: The setpagedevice PostScript operator affects ghostview utility when
+;;          viewing file generated using landscape.  Also on some printers,
+;;          setpagedevice affects zebra stripes; on other printers,
+;;          setpagedevice affects the left margin.
+;;          Besides all that, if your printer does not have the paper size
+;;          specified by setpagedevice, your printing will be aborted.
+;;          So, if you need to use setpagedevice, set `ps-spool-config' to
+;;          `setpagedevice', generate a test file and send it to your printer;
+;;          if the printed file isn't ok, set `ps-spool-config' to nil.
+;;
+;; The variable `ps-spool-tumble' specifies how the page images on opposite
+;; sides of a sheet are oriented with respect to each other.  If
+;; `ps-spool-tumble' is nil, produces output suitable for binding on the left or
+;; right.  If `ps-spool-tumble' is non-nil, produces output suitable for binding
+;; at the top or bottom.  It has effect only when `ps-spool-duplex' is non-nil.
+;; The default value is nil.
+;;
+;; Some printer system prints a header page and forces the first page be printed
+;; on header page back, when using duplex.  If your printer system has this
+;; behavior, set variable `ps-banner-page-when-duplexing' to t.
+;;
+;; When `ps-banner-page-when-duplexing' is non-nil means the very first page is
+;; skipped.  It's like the very first character of buffer (or region) is ^L
+;; (\014).
+;;
+;; The default for `ps-banner-page-when-duplexing' is nil (*don't* skip the very
+;; first page).
+;;
+;;
+;; N-up Printing
+;; -------------
+;;
+;; The variable `ps-n-up-printing' specifies the number of pages per sheet of
+;; paper.  The value specified must be between 1 and 100.  The default is 1.
+;;
+;; NOTE: some PostScript printer may crash printing if `ps-n-up-printing' is set
+;;       to a high value (for example, 23).  If this happens, set a lower value.
+;;
+;; The variable `ps-n-up-margin' specifies the margin in points between the
+;; sheet border and the n-up printing.  The default is 1 cm (or 0.3937 inches,
+;; or 28.35 points).
+;;
+;; If variable `ps-n-up-border-p' is non-nil a border is drawn around each page.
+;; The default is t.
+;;
+;; The variable `ps-n-up-filling' specifies how page matrix is filled on each
+;; sheet of paper.  Following are the valid values for `ps-n-up-filling' with a
+;; filling example using a 3x4 page matrix:
+;;
+;;  left-top   1  2  3  4         left-bottom    9  10 11 12
+;;             5  6  7  8                        5  6  7  8
+;;             9  10 11 12                       1  2  3  4
+;;
+;;  right-top  4  3  2  1         right-bottom   12 11 10 9
+;;             8  7  6  5                        8  7  6  5
+;;             12 11 10 9                        4  3  2  1
+;;
+;;  top-left   1  4  7  10        bottom-left    3  6  9  12
+;;             2  5  8  11                       2  5  8  11
+;;             3  6  9  12                       1  4  7  10
+;;
+;;  top-right  10 7  4  1         bottom-right   12 9  6  3
+;;             11 8  5  2                        11 8  5  2
+;;             12 9  6  3                        10 7  4  1
+;;
+;; Any other value is treated as left-top.
+;;
+;; The default value is left-top.
 ;;
 ;;
 ;; Control And 8-bit Characters
@@ -440,6 +529,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; See ps-mule.el for documentation.
 ;;
+;; See ps-print-def.el for definition.
+;;
 ;;
 ;; Line Number
 ;; -----------
@@ -474,6 +565,10 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-zebra-stripes' controls whether to print zebra stripes.
 ;; Non-nil means yes, nil means no.  The default is nil.
 ;;
+;; The variable `ps-zebra-gray' controls the zebra stripes gray scale.
+;; It should be a float number between 0.0 (black color) and 1.0 (white color).
+;; The default is 0.95.
+;;
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
 ;;
@@ -487,15 +582,19 @@ Please send all bug fixes and enhancements to
 ;;    place to initialize ps-print global data.
 ;;    For an example, see section Adding a New Font Family.
 ;;
+;; `ps-print-begin-sheet-hook'
+;;    It is evaluated on each beginning of sheet of paper.
+;;    If `ps-n-up-printing' is equal to 1, `ps-print-begin-page-hook' is never
+;;    evaluated.
+;;
 ;; `ps-print-begin-page-hook'
-;;    It is evaluated on each real beginning of page, that is, ps-print
-;;    considers each beginning of column as a beginning of page, and a real
-;;    beginning of page is when the beginning of column coincides with a
-;;    paper change on your printer.
+;;    It is evaluated on each beginning of page, except in the beginning
+;;    of page that `ps-print-begin-sheet-hook' is evaluated.
 ;;
 ;; `ps-print-begin-column-hook'
 ;;    It is evaluated on each beginning of column, except in the beginning
-;;    of column that `ps-print-begin-page-hook' is evaluated.
+;;    of column that `ps-print-begin-page-hook' is evaluated or that
+;;    `ps-print-begin-sheet-hook' is evaluated.
 ;;
 ;;
 ;; Font Managing
@@ -576,7 +675,9 @@ Please send all bug fixes and enhancements to
 ;;	(setq ps-font-info-database '(<your stuff> <the standard stuff>))
 ;;   or, use `ps-print-hook' (see section Hooks):
 ;;	(add-hook 'ps-print-hook
-;;		  '(lambda () (setq ps-font-info-database (append ...))))
+;;		  '(lambda ()
+;;		     (or (assq 'Helvetica ps-font-info-database)
+;;			 (setq ps-font-info-database (append ...)))))
 ;;
 ;; You can create new `mixed' font families like:
 ;;      (my-mixed-family
@@ -688,8 +789,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; See the documentation for `ps-extend-face'.
 ;;
-;; Let's, for example, remap font-lock-keyword-face to another foreground color
-;; and bold attribute:
+;; Let's, for example, remap `font-lock-keyword-face' to another foreground
+;; color and bold attribute:
 ;;
 ;;    (ps-extend-face '(font-lock-keyword-face "RoyalBlue" nil bold) 'MERGE)
 ;;
@@ -789,6 +890,24 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
+;; [vinicius] 990703 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; Better customization.
+;; `ps-banner-page-when-duplexing' and `ps-zebra-gray'.
+;;
+;; [vinicius] 990513 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; N-up printing.
+;; Hook: `ps-print-begin-sheet-hook'.
+;;
+;; [keinichi] 990509 Kein'ichi Handa <handa@etl.go.jp>
+;;
+;; `ps-print-region-function'
+;;
+;; [vinicius] 990301 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; PostScript tumble and setpagedevice.
+;;
 ;; [vinicius] 980922 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
 ;; PostScript prologue header comment insertion.
@@ -864,7 +983,6 @@ Please send all bug fixes and enhancements to
 ;; Things to change
 ;; ----------------
 ;;
-;; 2-up and 4-up capabilities.
 ;; Avoid page break inside a paragraph.
 ;; Add `ps-non-bold-faces' and `ps-non-italic-faces' (should be easy).
 ;; Improve the memory management for big files (hard?).
@@ -931,7 +1049,7 @@ Please send all bug fixes and enhancements to
 ;; interest.
 ;;
 ;; Jim
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
 
@@ -940,7 +1058,8 @@ Please send all bug fixes and enhancements to
 
 ;; For Emacs 20.2 and the earlier version.
 (eval-and-compile
-  (and (string< mule-version "4.0")
+  (and (boundp 'mule-version)		; only if mule package is loaded
+       (string< mule-version "4.0")
        (progn
 	 (defun set-buffer-multibyte (arg)
 	   (setq enable-multibyte-characters arg))
@@ -954,10 +1073,16 @@ Please send all bug fixes and enhancements to
 
 ;;; Interface to the command system
 
+(defgroup postscript nil
+  "PostScript Group"
+  :tag "PostScript"
+  :group 'emacs)
+
 (defgroup ps-print nil
   "PostScript generator for Emacs 19"
   :prefix "ps-"
-  :group 'wp)
+  :group 'wp
+  :group 'postscript)
 
 (defgroup ps-print-horizontal nil
   "Horizontal page layout"
@@ -996,6 +1121,39 @@ Please send all bug fixes and enhancements to
   :group 'ps-print
   :group 'faces)
 
+(defgroup ps-print-n-up nil
+  "N-up customization"
+  :prefix "ps-"
+  :tag "N-Up"
+  :group 'ps-print)
+
+(defgroup ps-print-zebra nil
+  "Zebra customization"
+  :prefix "ps-"
+  :tag "Zebra"
+  :group 'ps-print)
+
+(defgroup ps-print-background nil
+  "Background customization"
+  :prefix "ps-"
+  :tag "Background"
+  :group 'ps-print)
+
+(defgroup ps-print-printer nil
+  "Printer customization"
+  :prefix "ps-"
+  :tag "Printer"
+  :group 'ps-print)
+
+(defgroup ps-print-page nil
+  "Page customization"
+  :prefix "ps-"
+  :tag "Page"
+  :group 'ps-print)
+
+
+(require 'ps-print-def)			; Common definitions
+
 
 (defcustom ps-print-prologue-header nil
   "*PostScript prologue header comments besides that ps-print generates.
@@ -1021,7 +1179,8 @@ For more information about PostScript document comments, see:
    PostScript Language Reference Manual (2nd edition)
    Adobe Systems Incorporated
    Appendix G: Document Structuring Conventions -- Version 3.0"
-  :type '(choice string symbol (other :tag "nil" nil))
+  :type '(choice :tag "Prologue Header"
+		 string symbol (other :tag "nil" nil))
   :group 'ps-print)
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
@@ -1043,9 +1202,9 @@ appended to that file.  \(Note that `ps-print' package already has
 facilities for printing to a file, so you might as well use them instead
 of changing the setting of this variable.\)  If you want to silently
 discard the printed output, set this to \"NUL\"."
-  :type '(choice (file :tag "Name")
-		 (const :tag "Default" nil))
-  :group 'ps-print)
+  :type '(choice :tag "Printer Name"
+		 file (other :tag "Pipe to ps-lpr-command" pipe))
+  :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
   "*Name of program for printing a PostScript file.
@@ -1058,18 +1217,19 @@ NT and Novell Netware respectively) are handled specially, using
 treated like `lpr' except that an explicit filename is given as the last
 argument."
   :type 'string
-  :group 'ps-print)
+  :group 'ps-print-printer)
 
 (defcustom ps-lpr-switches lpr-switches
   "*A list of extra switches to pass to `ps-lpr-command'."
   :type '(repeat string)
-  :group 'ps-print)
+  :group 'ps-print-printer)
 
 (defcustom ps-print-region-function nil
-  "Function to call to print the region on a PostScript printer.
-See definition of `ps-do-despool' for calling conventions."
+  "*Specify a function to print the region on a PostScript printer.
+See definition of `call-process-region' for calling conventions.  The fourth and
+the sixth arguments are both nil."
   :type 'function
-  :group 'ps-print)
+  :group 'ps-print-printer)
 
 ;;; Page layout
 
@@ -1092,29 +1252,30 @@ See definition of `ps-do-despool' for calling conventions."
 ;; B5          7.16  inch x 10.125 inch
 
 (defcustom ps-page-dimensions-database
-  (list (list 'a4    (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54))
-	(list 'a3    (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54))
-	(list 'letter       (* 72  8.5)   (* 72 11.0))
-	(list 'legal        (* 72  8.5)   (* 72 14.0))
-	(list 'letter-small (* 72  7.68)  (* 72 10.16))
-	(list 'tabloid      (* 72 11.0)   (* 72 17.0))
-	(list 'ledger       (* 72 17.0)   (* 72 11.0))
-	(list 'statement    (* 72  5.5)   (* 72  8.5))
-	(list 'executive    (* 72  7.5)   (* 72 10.0))
-	(list 'a4small      (* 72  7.47)  (* 72 10.85))
-	(list 'b4           (* 72 10.125) (* 72 14.33))
-	(list 'b5           (* 72  7.16)  (* 72 10.125)))
-  "*List associating a symbolic paper type to its width and height.
-see `ps-paper-type'."
+  (list (list 'a4    (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4")
+	(list 'a3    (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3")
+	(list 'letter       (* 72  8.5)   (* 72 11.0)          "Letter")
+	(list 'legal        (* 72  8.5)   (* 72 14.0)          "Legal")
+	(list 'letter-small (* 72  7.68)  (* 72 10.16)         "LetterSmall")
+	(list 'tabloid      (* 72 11.0)   (* 72 17.0)          "Tabloid")
+	(list 'ledger       (* 72 17.0)   (* 72 11.0)          "Ledger")
+	(list 'statement    (* 72  5.5)   (* 72  8.5)          "Statement")
+	(list 'executive    (* 72  7.5)   (* 72 10.0)          "Executive")
+	(list 'a4small      (* 72  7.47)  (* 72 10.85)         "A4Small")
+	(list 'b4           (* 72 10.125) (* 72 14.33)         "B4")
+	(list 'b5           (* 72  7.16)  (* 72 10.125)        "B5"))
+  "*List associating a symbolic paper type to its width, height and doc media.
+See `ps-paper-type'."
   :type '(repeat (list :tag "Paper Type"
 		       (symbol :tag "Name")
 		       (number :tag "Width")
-		       (number :tag "Height")))
-  :group 'ps-print)
+		       (number :tag "Height")
+		       (string :tag "Media")))
+  :group 'ps-print-page)
 
 ;;;###autoload
 (defcustom ps-paper-type 'letter
-  "*Specifies the size of paper to format for.
+  "*Specify the size of paper to format for.
 Should be one of the paper types defined in `ps-page-dimensions-database', for
 example `letter', `legal' or `a4'."
   :type '(symbol :validate (lambda (wid)
@@ -1123,16 +1284,16 @@ example `letter', `legal' or `a4'."
 				 nil
 			       (widget-put wid :error "Unknown paper size")
 			       wid)))
-  :group 'ps-print)
+  :group 'ps-print-page)
 
 (defcustom ps-landscape-mode nil
   "*Non-nil means print in landscape mode."
   :type 'boolean
-  :group 'ps-print)
+  :group 'ps-print-page)
 
 (defcustom ps-print-control-characters 'control-8-bit
-  "*Specifies the printable form for control and 8-bit characters.
-That is, instead of sending, for example, a ^D (\004) to printer,
+  "*Specify the printable form for control and 8-bit characters.
+That is, instead of sending, for example, a ^D (\\004) to printer,
 it is sent the string \"^D\".
 
 Valid values are:
@@ -1155,26 +1316,88 @@ Valid values are:
 		  current font.
 
 Any other value is treated as nil."
-  :type '(choice (const 8-bit) (const control-8-bit)
+  :type '(choice :tag "Control Char"
+		 (const 8-bit)   (const control-8-bit)
 		 (const control) (other :tag "nil" nil))
   :group 'ps-print)
 
+(defcustom ps-n-up-printing 1
+  "*Specify the number of pages per sheet paper."
+  :type '(integer
+	  :tag "N Up Printing"
+	  :validate
+	  (lambda (wid)
+	    (if (and (< 0 (widget-value wid))
+		     (<= (widget-value wid) 100))
+		nil
+	      (widget-put
+	       wid :error
+	       "Number of pages per sheet paper must be between 1 and 100.")
+	      wid)))
+  :group 'ps-print-n-up)
+
+(defcustom ps-n-up-margin (/ (* 72  1.0) 2.54) ; 1 cm
+  "*Specify the margin in points between the sheet border and n-up printing."
+  :type 'number
+  :group 'ps-print-n-up)
+
+(defcustom ps-n-up-border-p t
+  "*Non-nil means a border is drawn around each page."
+  :type 'boolean
+  :group 'ps-print-n-up)
+
+(defcustom ps-n-up-filling 'left-top
+  "*Specify how page matrix is filled on each sheet of paper.
+
+Following are the valid values for `ps-n-up-filling' with a filling example
+using a 3x4 page matrix:
+
+   `left-top'   1  2  3  4         `left-bottom'    9  10 11 12
+		5  6  7  8                          5  6  7  8
+		9  10 11 12                         1  2  3  4
+
+   `right-top'  4  3  2  1         `right-bottom'   12 11 10 9
+		8  7  6  5                          8  7  6  5
+		12 11 10 9                          4  3  2  1
+
+   `top-left'   1  4  7  10        `bottom-left'    3  6  9  12
+		2  5  8  11                         2  5  8  11
+		3  6  9  12                         1  4  7  10
+
+   `top-right'  10 7  4  1         `bottom-right'   12 9  6  3
+		11 8  5  2                          11 8  5  2
+		12 9  6  3                          10 7  4  1
+
+Any other value is treated as `left-top'."
+  :type '(choice :tag "N-Up Filling"
+		 (const left-top)  (const left-bottom)
+		 (const right-top) (const right-bottom)
+		 (const top-left)  (const bottom-left)
+		 (const top-right) (const bottom-right))
+  :group 'ps-print-n-up)
+
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
-  "*Specifies the number of columns"
+  "*Specify the number of columns"
   :type 'number
   :group 'ps-print)
 
 (defcustom ps-zebra-stripes nil
   "*Non-nil means print zebra stripes.
-See also documentation for `ps-zebra-stripe-height'."
+See also documentation for `ps-zebra-stripe-height' and `ps-zebra-gray'."
   :type 'boolean
-  :group 'ps-print)
+  :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-height 3
   "*Number of zebra stripe lines.
-See also documentation for `ps-zebra-stripes'."
+See also documentation for `ps-zebra-stripes' and `ps-zebra-gray'."
   :type 'number
-  :group 'ps-print)
+  :group 'ps-print-zebra)
+
+(defcustom ps-zebra-gray 0.95
+  "*Zebra stripe gray scale.
+See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
+  :type 'number
+  :group 'ps-print-zebra)
 
 (defcustom ps-line-number nil
   "*Non-nil means print line number."
@@ -1212,18 +1435,18 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print an EPS image on all pages do:
 
    '((\"~/images/EPS-image.ps\"))"
-  :type '(repeat (list file
+  :type '(repeat (list (file   :tag "EPS File")
 		       (choice :tag "X" number string (const nil))
 		       (choice :tag "Y" number string (const nil))
 		       (choice :tag "X Scale" number string (const nil))
 		       (choice :tag "Y Scale" number string (const nil))
 		       (choice :tag "Rotation" number string (const nil))
 		       (repeat :tag "Pages" :inline t
-			       (radio integer
+			       (radio (integer :tag "Page")
 				      (cons :tag "Range"
 					    (integer :tag "From")
 					    (integer :tag "To"))))))
-  :group 'ps-print)
+  :group 'ps-print-background)
 
 (defcustom ps-print-background-text nil
   "*Text list to be printed on background.
@@ -1260,7 +1483,7 @@ PostScript programming that returns a float or integer value.
 For example, if you wish to print text \"Preliminary\" on all pages do:
 
    '((\"Preliminary\"))"
-  :type '(repeat (list string
+  :type '(repeat (list (string :tag "Text")
 		       (choice :tag "X" number string (const nil))
 		       (choice :tag "Y" number string (const nil))
 		       (choice :tag "Font" string (const nil))
@@ -1268,11 +1491,11 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
 		       (choice :tag "Gray" number string (const nil))
 		       (choice :tag "Rotation" number string (const nil))
 		       (repeat :tag "Pages" :inline t
-			       (radio integer
+			       (radio (integer :tag "Page")
 				      (cons :tag "Range"
 					    (integer :tag "From")
 					    (integer :tag "To"))))))
-  :group 'ps-print)
+  :group 'ps-print-background)
 
 ;;; Horizontal layout
 
@@ -1369,14 +1592,55 @@ NOTE: page numbers are displayed as part of headers,
   :type 'boolean
   :group 'ps-print-header)
 
-(defcustom ps-spool-duplex nil		; Not many people have duplex
-					; printers, so default to nil.
-  "*Non-nil indicates spooling is for a two-sided printer.
-For a duplex printer, the `ps-spool-*' commands will insert blank pages
-as needed between print jobs so that the next buffer printed will
-start on the right page.  Also, if headers are turned on, the headers
-will be reversed on duplex printers so that the page numbers fall to
-the left on even-numbered pages."
+(defcustom ps-spool-config 'lpr-switches
+  "*Specify who is responsable for setting duplex and page size switches.
+
+Valid values are:
+
+  `lpr-switches'    duplex and page size are configured by `ps-lpr-switches'.
+		    Don't forget to set `ps-lpr-switches' to select duplex
+		    printing for your printer.
+
+  `setpagedevice'   duplex and page size are configured by ps-print using the
+		    setpagedevice PostScript operator.
+
+  nil               duplex and page size are configured by ps-print *not* using
+		    the setpagedevice PostScript operator.
+
+Any other value is treated as nil.
+
+WARNING: The setpagedevice PostScript operator affects ghostview utility when
+	 viewing file generated using landscape.  Also on some printers,
+	 setpagedevice affects zebra stripes; on other printers, setpagedevice
+	 affects the left margin.
+	 Besides all that, if your printer does not have the paper size
+	 specified by setpagedevice, your printing will be aborted.
+	 So, if you need to use setpagedevice, set `ps-spool-config' to
+	 `setpagedevice', generate a test file and send it to your printer; if
+	 the printed file isn't ok, set `ps-spool-config' to nil."
+  :type '(choice :tag "Spool Config"
+		 (const lpr-switches) (const setpagedevice)
+		 (other :tag "nil" nil))
+  :group 'ps-print-header)
+
+(defcustom ps-spool-duplex nil		; Not many people have duplex printers,
+					; so default to nil.
+  "*Non-nil generates PostScript for a two-sided printer.
+For a duplex printer, the `ps-spool-*' and `ps-print-*' commands will insert
+blank pages as needed between print jobs so that the next buffer printed will
+start on the right page.  Also, if headers are turned on, the headers will be
+reversed on duplex printers so that the page numbers fall to the left on
+even-numbered pages."
+  :type 'boolean
+  :group 'ps-print-header)
+
+(defcustom ps-spool-tumble nil
+  "*Specify how the page images on opposite sides of a sheet are oriented.
+If `ps-spool-tumble' is nil, produces output suitable for binding on the left or
+right.  If `ps-spool-tumble' is non-nil, produces output suitable for binding at
+the top or bottom.
+
+It has effect only when `ps-spool-duplex' is non-nil."
   :type 'boolean
   :group 'ps-print-header)
 
@@ -1563,7 +1827,7 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
 (defcustom ps-print-color-p (or (fboundp 'x-color-values) ; Emacs
 				(fboundp 'color-instance-rgb-components))
 					; XEmacs
-  "*If non-nil, print the buffer's text in color."
+  "*Non-nil means print the buffer's text in color."
   :type 'boolean
   :group 'ps-print-color)
 
@@ -1685,6 +1949,12 @@ reference lists of bold and italic faces *every* time one of the
 variable."
   :type 'boolean
   :group 'ps-print-face)
+
+(defcustom ps-banner-page-when-duplexing nil
+  "*Non-nil means the very first page is skipped.
+It's like the very first character of buffer (or region) is ^L (\\014)."
+  :type 'boolean
+  :group 'ps-print-header)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User commands
@@ -1817,10 +2087,11 @@ The table depends on the current ps-print setup."
   "Return the current PostScript-generation setup."
   (format
    "
-\(setq ps-print-color-p  %s
-      ps-lpr-command    %S
-      ps-lpr-switches   %s
-      ps-printer-name   %S
+\(setq ps-print-color-p         %s
+      ps-lpr-command           %S
+      ps-lpr-switches          %s
+      ps-printer-name          %S
+      ps-print-region-function %s
 
       ps-paper-type          %s
       ps-landscape-mode      %s
@@ -1828,6 +2099,7 @@ The table depends on the current ps-print setup."
 
       ps-zebra-stripes       %s
       ps-zebra-stripe-height %s
+      ps-zebra-gray          %s
       ps-line-number         %s
 
       ps-print-control-characters %s
@@ -1838,19 +2110,27 @@ The table depends on the current ps-print setup."
 
       ps-print-prologue-header %s
 
-      ps-left-margin           %s
-      ps-right-margin          %s
-      ps-inter-column          %s
-      ps-bottom-margin         %s
-      ps-top-margin            %s
-      ps-header-offset         %s
-      ps-header-line-pad       %s
-      ps-print-header          %s
-      ps-print-only-one-header %s
-      ps-print-header-frame    %s
-      ps-header-lines          %s
-      ps-show-n-of-n           %s
-      ps-spool-duplex          %s
+      ps-left-margin                %s
+      ps-right-margin               %s
+      ps-inter-column               %s
+      ps-bottom-margin              %s
+      ps-top-margin                 %s
+      ps-header-offset              %s
+      ps-header-line-pad            %s
+      ps-print-header               %s
+      ps-print-only-one-header      %s
+      ps-print-header-frame         %s
+      ps-header-lines               %s
+      ps-show-n-of-n                %s
+      ps-spool-config               %s
+      ps-spool-duplex               %s
+      ps-spool-tumble               %s
+      ps-banner-page-when-duplexing %s
+
+      ps-n-up-printing         %s
+      ps-n-up-margin           %s
+      ps-n-up-border-p         %s
+      ps-n-up-filling          %s
 
       ps-multibyte-buffer       %s
       ps-font-family            %s
@@ -1863,11 +2143,13 @@ The table depends on the current ps-print setup."
    ps-lpr-command
    (ps-print-quote ps-lpr-switches)
    ps-printer-name
+   (ps-print-quote ps-print-region-function)
    (ps-print-quote ps-paper-type)
    ps-landscape-mode
    ps-number-of-columns
    ps-zebra-stripes
    ps-zebra-stripe-height
+   ps-zebra-gray
    ps-line-number
    (ps-print-quote ps-print-control-characters)
    (ps-print-quote ps-print-background-image)
@@ -1885,8 +2167,15 @@ The table depends on the current ps-print setup."
    ps-print-header-frame
    ps-header-lines
    ps-show-n-of-n
+   (ps-print-quote ps-spool-config)
    ps-spool-duplex
-   (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el'
+   ps-spool-tumble
+   ps-banner-page-when-duplexing
+   ps-n-up-printing
+   ps-n-up-margin
+   ps-n-up-border-p
+   (ps-print-quote ps-n-up-filling)
+   (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el' and `ps-print-def.el'
    (ps-print-quote ps-font-family)
    (ps-print-quote ps-font-size)
    (ps-print-quote ps-header-font-family)
@@ -1936,8 +2225,9 @@ The table depends on the current ps-print setup."
 
 (require 'time-stamp)
 
-(defvar ps-print-prologue-1
-  "% ISOLatin1Encoding stolen from ps_init.ps in GhostScript 2.6.1.4:
+(defconst ps-print-prologue-1
+  "
+% ISOLatin1Encoding stolen from ps_init.ps in GhostScript 2.6.1.4:
 /ISOLatin1Encoding where { pop } {
 % -- The ISO Latin-1 encoding vector isn't known, so define it.
 % -- The first half is the same as the standard encoding,
@@ -2263,7 +2553,7 @@ StandardEncoding 46 82 getinterval aload pop
 % stack: --
 /printZebra {
   gsave
-  0.985 setgray
+  ZebraGray setgray
   /double-zebra ZebraHeight ZebraHeight add def
   /yiter double-zebra LineHeight mul neg def
   /xiter PrintWidth InterColumn add def
@@ -2327,22 +2617,50 @@ StandardEncoding 46 82 getinterval aload pop
   /SpaceWidth /f0 findfont setfont ( ) stringwidth pop def
   % ---- save the state of the document (useful for ghostscript!)
   /docState save def
-  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
-  /JackGhostscript where {pop 1 27.7 29.7 div scale}if
   % ---- [andrewi] set PageSize based on chosen dimensions
-%  /setpagedevice where {
-%    pop
-%    1 dict dup
-%    /PageSize [ PrintPageWidth LeftMargin add RightMargin add
-%		 LandscapePageHeight ] put
-%    setpagedevice
-%  }{
+  UseSetpagedevice {
+    0
+    {<< /PageSize [PageWidth LandscapePageHeight] >> setpagedevice}
+    CheckConfig
+  }{
     LandscapeMode {
       % ---- translate to bottom-right corner of Portrait page
       LandscapePageHeight 0 translate
       90 rotate
     }if
-%  }ifelse
+  }ifelse
+  % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
+  /JackGhostscript where {pop 1 27.7 29.7 div scale}if
+  % ---- N-Up printing
+  N-Up 1 gt {
+    % ---- landscape
+    N-Up-Landscape {
+      PageWidth 0 translate
+      90 rotate
+    }if
+    N-Up-Margin dup translate
+    % ---- scale
+    LandscapeMode{
+      /HH PageWidth def
+      /WW LandscapePageHeight def
+    }{
+      /HH LandscapePageHeight def
+      /WW PageWidth def
+    }ifelse
+    WW N-Up-Margin sub N-Up-Margin sub
+    N-Up-Landscape
+     {N-Up-Lines div HH}{N-Up-Columns N-Up-Missing add div WW}ifelse
+    div dup scale
+    0 N-Up-Repeat 1 sub LandscapePageHeight mul translate
+    % ---- go to start position in page matrix
+    N-Up-XStart N-Up-Missing 0.5 mul
+    LandscapeMode{
+      LandscapePageHeight mul N-Up-YStart add
+    }{
+      PageWidth mul add N-Up-YStart
+    }ifelse
+    translate
+  }if
   /ColumnWidth PrintWidth InterColumn add def
   % ---- translate to lower left corner of TEXT
   LeftMargin BottomMargin translate
@@ -2350,61 +2668,108 @@ StandardEncoding 46 82 getinterval aload pop
   /f0 F					% this installs Ascent
   /PrintStartY PrintHeight Ascent sub def
   /ColumnIndex 1 def
-} def
+  /N-Up-Counter N-Up-End 1 sub def
+  SkipFirstPage{save showpage restore}if
+}def
 
 /EndDoc {
-  % ---- on last page but not last column, spit out the page
-  ColumnIndex 1 eq not { showpage } if
   % ---- restore the state of the document (useful for ghostscript!)
   docState restore
-} def
+}def
 
 /BeginDSCPage {
   % ---- when 1st column, save the state of the page
-  ColumnIndex 1 eq { /pageState save def } if
+  ColumnIndex 1 eq {
+    /pageState save def
+  }if
   % ---- save the state of the column
   /columnState save def
-} def
+}def
 
 /PrintHeaderWidth PrintOnlyOneHeader{PrintPageWidth}{PrintWidth}ifelse def
 
 /BeginPage {
   % ---- when 1st column, print all background effects
   ColumnIndex 1 eq {
-  0 PrintStartY moveto			% move to where printing will start
-  Zebra {printZebra}if
-  printGlobalBackground
-  printLocalBackground
-  } if
+    0 PrintStartY moveto		% move to where printing will start
+    Zebra {printZebra}if
+    printGlobalBackground
+    printLocalBackground
+  }if
   PrintHeader {
     PrintOnlyOneHeader{ColumnIndex 1 eq}{true}ifelse {
       PrintHeaderFrame {HeaderFrame}if
       HeaderText
-    } if
-  } if
+    }if
+  }if
   0 PrintStartY moveto			% move to where printing will start
   PLN
-} def
+}def
 
 /EndPage {
-  bg { eolbg } if
-} def
+  bg {eolbg}if
+}def
 
 /EndDSCPage {
   ColumnIndex NumberOfColumns eq {
-    % ---- on last column, spit out the page
-    showpage
     % ---- restore the state of the page
     pageState restore
     /ColumnIndex 1 def
-  } { % else
+    % ---- N-up printing
+    N-Up 1 gt {
+      N-Up-Counter 0 gt {
+	% ---- Next page on same row
+	/N-Up-Counter N-Up-Counter 1 sub def
+	N-Up-XColumn N-Up-YColumn
+      }{
+	% ---- Next page on next line
+	/N-Up-Counter N-Up-End 1 sub def
+	N-Up-XLine N-Up-YLine
+      }ifelse
+      translate
+    }if
+  }{ % else
     % ---- restore the state of the current column
     columnState restore
     % ---- and translate to the next column
     ColumnWidth 0 translate
     /ColumnIndex ColumnIndex 1 add def
-  } ifelse
-} def
+  }ifelse
+}def
+
+% stack: number-of-pages-per-sheet |- --
+/BeginSheet {
+  /sheetState save def
+  /pages-per-sheet exch def
+  % ---- N-up printing
+  N-Up 1 gt N-Up-Border and pages-per-sheet 0 gt and {
+    % ---- page border
+    gsave
+    0 setgray
+    LeftMargin neg BottomMargin neg moveto
+    N-Up-Repeat
+    {N-Up-End
+     {gsave
+      PageWidth 0 rlineto
+      0 LandscapePageHeight rlineto
+      PageWidth neg 0 rlineto
+      closepath stroke
+      grestore
+      /pages-per-sheet pages-per-sheet 1 sub def
+      pages-per-sheet 0 le{exit}if
+      N-Up-XColumn N-Up-YColumn rmoveto
+     }repeat
+     pages-per-sheet 0 le{exit}if
+     N-Up-XLine N-Up-XColumn sub N-Up-YLine rmoveto
+    }repeat
+    grestore
+  }if
+}def
+
+/EndSheet {
+  showpage
+  sheetState restore
+}def
 
 /SetHeaderLines {			% nb-lines --
   /HeaderLines exch def
@@ -2485,8 +2850,8 @@ StandardEncoding 46 82 getinterval aload pop
 
   % ---- hack: `PN 1 and'  ==  `PN 2 modulo'
 
-  % ---- if duplex and even page number, then exchange left and right
-  Duplex PageNumber 1 and 0 eq and { exch } if
+  % ---- if even page number and duplex, then exchange left and right
+  PageNumber 1 and 0 eq DuplexValue and { exch } if
 
   { % ---- process the left lines
     aload pop
@@ -2524,6 +2889,11 @@ StandardEncoding 46 82 getinterval aload pop
   /t1 12 /Helvetica-Oblique DefFont
   /t1 F
   gsave
+    (languagelevel = ) show
+    gs_languagelevel 32 string cvs show
+  grestore
+  0 FontHeight neg rmoveto
+  gsave
     (For ) show
     128 string cvs show
     ( ) show
@@ -2557,9 +2927,29 @@ StandardEncoding 46 82 getinterval aload pop
 % 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage
 % 3 cm 20 cm moveto  ReportAllFontInfo           showpage
 
+/ErrorMessages
+ [(This PostScript printer is not configured with this document page size.)
+  (Duplex printing is not supported on this PostScript printer.)]def
+
+% stack: error-index proc |- --
+/CheckConfig {
+  stopped {
+   1 cm LandscapePageHeight 0.5 mul moveto
+   /Courier findfont 10 scalefont setfont
+   gsave
+    (ps-print error:) show
+   grestore
+   0 -10 rmoveto
+   ErrorMessages exch get show
+   showpage
+   $error /newerror false put
+   stop
+  }if
+} bind def
+
 ")
 
-(defvar ps-print-prologue-2
+(defconst ps-print-prologue-2
   "
 % ---- These lines must be kept together because...
 
@@ -2574,6 +2964,20 @@ StandardEncoding 46 82 getinterval aload pop
 
 ")
 
+(defconst ps-print-duplex-feature
+  "
+% --- duplex feature verification
+1
+UseSetpagedevice {
+  {<< /Duplex DuplexValue /Tumble TumbleValue >> setpagedevice}
+}{
+  {statusdict begin
+    DuplexValue setduplexmode TumbleValue settumble
+   end}
+}ifelse
+CheckConfig
+")
+
 ;; Start Editing Here:
 
 (defvar ps-source-buffer nil)
@@ -2584,6 +2988,7 @@ StandardEncoding 46 82 getinterval aload pop
 (defvar ps-output-tail nil)
 
 (defvar ps-page-postscript 0)
+(defvar ps-page-order 0)
 (defvar ps-page-count 0)
 (defvar ps-showline-count 1)
 
@@ -2625,6 +3030,7 @@ This is in units of points (1/72 inch).")
 
 (defmacro ps-page-dimensions-get-width  (dims) `(nth 0 ,dims))
 (defmacro ps-page-dimensions-get-height (dims) `(nth 1 ,dims))
+(defmacro ps-page-dimensions-get-media  (dims) `(nth 2 ,dims))
 
 (defvar ps-landscape-page-height nil)
 
@@ -2764,7 +3170,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Adapted from font-lock:
+;; Adapted from font-lock: (obsolete stuff)
 ;; Originally face attributes were specified via `font-lock-face-attributes'.
 ;; Users then changed the default face attributes by setting that variable.
 ;; However, we try and be back-compatible and respect its value if set except
@@ -2809,6 +3215,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (make-local-hook 'ps-print-hook)
+(make-local-hook 'ps-print-begin-sheet-hook)
 (make-local-hook 'ps-print-begin-page-hook)
 (make-local-hook 'ps-print-begin-column-hook)
 
@@ -2835,7 +3242,7 @@ If EXTENSION is any other symbol, it is ignored."
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
 
 
-(defsubst ps-count-lines (from to)
+(defun ps-count-lines (from to)
   (+ (count-lines from to)
      (save-excursion
        (goto-char to)
@@ -2843,19 +3250,25 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defvar ps-printing-region nil
-  "Variable used to indicate if ps-print is printing a region.
-If non-nil, it is a cons, the car of which is the line number
-where the region begins, and its cdr is the total number of lines
-in the buffer.  Formatting functions can use this information
-to print the original line number (and not the number of lines printed),
-and to indicate in the header that the printout is of a partial file.")
+  "Variable used to indicate if the region that ps-print is printing.
+It is a cons, the car of which is the line number where the region begins, and
+its cdr is the total number of lines in the buffer.  Formatting functions can
+use this information to print the original line number (and not the number of
+lines printed), and to indicate in the header that the printout is of a partial
+file.")
+
+
+(defvar ps-printing-region-p nil
+  "Non-nil means ps-print is printing a region.")
 
 
 (defun ps-printing-region (region-p)
-  (setq ps-printing-region
-	(and region-p
-	     (cons (ps-count-lines (point-min) (region-beginning))
-		   (ps-count-lines (point-min) (point-max))))))
+  (setq ps-printing-region-p region-p
+	ps-printing-region
+	(cons (if region-p
+		  (ps-count-lines (point-min) (region-beginning))
+		1)
+	      (ps-count-lines (point-min) (point-max)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3263,29 +3676,34 @@ page-height == bm + print-height + tm - ho - hh
 	  (setq count (1+ count)))
 	(ps-output "] def\n"))))
 
-(defun ps-output-boolean (name bool)
-  (ps-output (format "/%s %s def\n" name (if bool "true" "false"))))
+
+(defun ps-output-boolean (name bool &optional no-def)
+  (ps-output (format "/%s %s%s"
+		     name (if bool "true" "false") (if no-def "\n" " def\n"))))
 
 
 (defun ps-background-pages (page-list func)
   (if page-list
       (mapcar
-       '(lambda (pages)
-	  (let ((start (if (consp pages) (car pages) pages))
-		(end   (if (consp pages) (cdr pages) pages)))
-	    (and (integerp start) (integerp end) (<= start end)
-		 (add-to-list 'ps-background-pages (vector start end func)))))
+       #'(lambda (pages)
+	   (let ((start (if (consp pages) (car pages) pages))
+		 (end   (if (consp pages) (cdr pages) pages)))
+	     (and (integerp start) (integerp end) (<= start end)
+		  (add-to-list 'ps-background-pages (vector start end func)))))
        page-list)
     (setq ps-background-all-pages (cons func ps-background-all-pages))))
+
+
+(defconst ps-boundingbox-re
+  "^%%BoundingBox:\
+\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)")
 
 
 (defun ps-get-boundingbox ()
   (save-excursion
     (set-buffer ps-spool-buffer)
     (save-excursion
-      (if (re-search-forward
-	   "^%%BoundingBox:\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)\\s-+\\([0-9.]+\\)"
-	   nil t)
+      (if (re-search-forward ps-boundingbox-re nil t)
 	  (vector (string-to-number	; lower x
 		   (buffer-substring (match-beginning 1) (match-end 1)))
 		  (string-to-number	; lower y
@@ -3318,77 +3736,78 @@ page-height == bm + print-height + tm - ho - hh
 
 (defun ps-background-text ()
   (mapcar
-   '(lambda (text)
-      (setq ps-background-text-count (1+ ps-background-text-count))
-      (ps-output (format "/ShowBackText-%d {\n" ps-background-text-count))
-      (ps-output-string (nth 0 text))	; text
-      (ps-output
-       "\n"
-       (ps-float-format (nth 4 text) 200.0) ; font size
-       (format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
-       (ps-float-format (nth 6 text)
-			"PrintHeight PrintPageWidth atan") ; rotation
-       (ps-float-format (nth 5 text) 0.85) ; gray
-       (ps-float-format (nth 1 text) "0") ; x position
-       (ps-float-format (nth 2 text) "BottomMargin") ; y position
-       "\nShowBackText} def\n")
-      (ps-background-pages (nthcdr 7 text) ; page list
-			   (format "ShowBackText-%d\n"
-				   ps-background-text-count)))
+   #'(lambda (text)
+       (setq ps-background-text-count (1+ ps-background-text-count))
+       (ps-output (format "/ShowBackText-%d {\n" ps-background-text-count))
+       (ps-output-string (nth 0 text))	; text
+       (ps-output
+	"\n"
+	(ps-float-format (nth 4 text) 200.0) ; font size
+	(format "/%s " (or (nth 3 text) "Times-Roman")) ; font name
+	(ps-float-format (nth 6 text)
+			 "PrintHeight PrintPageWidth atan") ; rotation
+	(ps-float-format (nth 5 text) 0.85) ; gray
+	(ps-float-format (nth 1 text) "0") ; x position
+	(ps-float-format (nth 2 text) "BottomMargin") ; y position
+	"\nShowBackText} def\n")
+       (ps-background-pages (nthcdr 7 text) ; page list
+			    (format "ShowBackText-%d\n"
+				    ps-background-text-count)))
    ps-print-background-text))
 
 
 (defun ps-background-image ()
   (mapcar
-   '(lambda (image)
-      (let ((image-file (expand-file-name (nth 0 image))))
-	(if (file-readable-p image-file)
-	    (progn
-	      (setq ps-background-image-count (1+ ps-background-image-count))
-	      (ps-output
-	       (format "/ShowBackImage-%d {\n--back-- " ps-background-image-count)
-	       (ps-float-format (nth 5 image) 0.0) ; rotation
-	       (ps-float-format (nth 3 image) 1.0) ; x scale
-	       (ps-float-format (nth 4 image) 1.0) ; y scale
-	       (ps-float-format (nth 1 image) ; x position
-				"PrintPageWidth 2 div")
-	       (ps-float-format (nth 2 image) ; y position
-				"PrintHeight 2 div BottomMargin add")
-	       "\nBeginBackImage\n")
-	      (ps-insert-file image-file)
-	      ;; coordinate adjustment to centralize image
-	      ;; around x and y position
-	      (let ((box (ps-get-boundingbox)))
-		(save-excursion
-		  (set-buffer ps-spool-buffer)
-		  (save-excursion
-		    (if (re-search-backward "^--back--" nil t)
-			(replace-match
-			 (format "%s %s"
-				 (ps-float-format
-				  (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
-					(aref box 0))))
-				 (ps-float-format
-				  (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
-					(aref box 1)))))
-			 t)))))
-	      (ps-output "\nEndBackImage} def\n")
-	      (ps-background-pages (nthcdr 6 image) ; page list
-				   (format "ShowBackImage-%d\n"
-					   ps-background-image-count))))))
+   #'(lambda (image)
+       (let ((image-file (expand-file-name (nth 0 image))))
+	 (if (file-readable-p image-file)
+	     (progn
+	       (setq ps-background-image-count (1+ ps-background-image-count))
+	       (ps-output
+		(format "/ShowBackImage-%d {\n--back-- "
+			ps-background-image-count)
+		(ps-float-format (nth 5 image) 0.0) ; rotation
+		(ps-float-format (nth 3 image) 1.0) ; x scale
+		(ps-float-format (nth 4 image) 1.0) ; y scale
+		(ps-float-format (nth 1 image) ; x position
+				 "PrintPageWidth 2 div")
+		(ps-float-format (nth 2 image) ; y position
+				 "PrintHeight 2 div BottomMargin add")
+		"\nBeginBackImage\n")
+	       (ps-insert-file image-file)
+	       ;; coordinate adjustment to centralize image
+	       ;; around x and y position
+	       (let ((box (ps-get-boundingbox)))
+		 (save-excursion
+		   (set-buffer ps-spool-buffer)
+		   (save-excursion
+		     (if (re-search-backward "^--back--" nil t)
+			 (replace-match
+			  (format "%s %s"
+				  (ps-float-format
+				   (- (+ (/ (- (aref box 2) (aref box 0)) 2.0)
+					 (aref box 0))))
+				  (ps-float-format
+				   (- (+ (/ (- (aref box 3) (aref box 1)) 2.0)
+					 (aref box 1)))))
+			  t)))))
+	       (ps-output "\nEndBackImage} def\n")
+	       (ps-background-pages (nthcdr 6 image) ; page list
+				    (format "ShowBackImage-%d\n"
+					    ps-background-image-count))))))
    ps-print-background-image))
 
 
 (defun ps-background (page-number)
   (let (has-local-background)
-    (mapcar '(lambda (range)
-	       (and (<= (aref range 0) page-number)
-		    (<= page-number (aref range 1))
-		    (if has-local-background
-			(ps-output (aref range 2))
-		      (setq has-local-background t)
-		      (ps-output "/printLocalBackground {\n"
-				 (aref range 2)))))
+    (mapcar #'(lambda (range)
+		(and (<= (aref range 0) page-number)
+		     (<= page-number (aref range 1))
+		     (if has-local-background
+			 (ps-output (aref range 2))
+		       (setq has-local-background t)
+		       (ps-output "/printLocalBackground {\n"
+				  (aref range 2)))))
 	    ps-background-pages)
     (and has-local-background (ps-output "} def\n"))))
 
@@ -3417,115 +3836,598 @@ page-height == bm + print-height + tm - ho - hh
     (and found index)))
 
 
+(defconst ps-n-up-database
+  '((a4
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  t   3  4  2)
+     (16  nil 4  4  0)
+     (18  t   3  6  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (32  t   4  8  0)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (50  t   5  10 0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (a3
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (18  t   3  6  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (32  t   4  8  0)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (50  t   5  10 0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (letter
+     (1   nil 1  1  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (40  t   5  8  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (legal
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   nil 3  2  1)
+     (9   nil 3  3  0)
+     (10  t   2  5  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (70  t   5  14 0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (letter-small
+     (1   nil 1  1  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  0)
+     (9   nil 3  3  0)
+     (12  t   3  4  1)
+     (15  t   3  5  0)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (28  t   4  7  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (40  t   5  8  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (60  t   6  10 0)
+     (64  nil 8  8  0)
+     (72  ni  9  8  1)
+     (81  nil 9  9  0)
+     (84  t   7  12 0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (tabloid
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (84  t   6  14 0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    ;; Ledger paper size is a special case, it is the only paper size where the
+    ;; normal size is landscaped, that is, the height is smaller than width.
+    ;; So, we use the special value `pag' in the `landscape' field.
+    (ledger
+     (1   nil 1  1  0)
+     (2   pag 1  2  0)
+     (4   nil 2  2  0)
+     (6   pag 2  3  1)
+     (8   pag 2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (84  pag 6  14 0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (statement
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   nil 3  2  1)
+     (9   nil 3  3  0)
+     (10  t   2  5  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (21  t   3  7  0)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (40  t   4  10 0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (60  t   5  12 0)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (executive
+     (1   nil 1  1  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (28  t   4  7  0)
+     (30  nil 6  5  1)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (45  t   5  9  0)
+     (49  nil 7  7  0)
+     (56  nil 8  7  1)
+     (60  t   6  10 0)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (84  t   7  12 0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (a4small
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (18  t   3  6  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (32  t   4  8  0)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (50  t   5  10 0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (78  t   6  13 0)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (b4
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (18  t   3  6  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (32  t   4  8  0)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (50  t   5  10 0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  1)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (100 nil 10 10 0))
+    (b5
+     (1   nil 1  1  0)
+     (2   t   1  2  0)
+     (4   nil 2  2  0)
+     (6   t   2  3  1)
+     (8   t   2  4  0)
+     (9   nil 3  3  0)
+     (12  nil 4  3  1)
+     (16  nil 4  4  0)
+     (18  t   3  6  0)
+     (20  nil 5  4  1)
+     (25  nil 5  5  0)
+     (30  nil 6  5  1)
+     (32  t   4  8  0)
+     (36  nil 6  6  0)
+     (42  nil 7  6  1)
+     (49  nil 7  7  0)
+     (50  t   5  10 0)
+     (56  nil 8  7  1)
+     (64  nil 8  8  0)
+     (72  nil 9  8  0)
+     (81  nil 9  9  0)
+     (90  nil 10 9  1)
+     (98  t   7  14 0)
+     (100 nil 10 10 0)))
+  "Alist which is the page matrix database used for N-up printing.
+
+Each element has the following form:
+
+   (PAGE
+    (MAX LANDSCAPE LINES COLUMNS COL-MISSING)
+    ...)
+
+Where:
+PAGE is the page size used (see `ps-paper-type').
+MAX is the maximum elements of this page matrix.
+LANDSCAPE specifies if page matrix is landscaped, has the following valid
+	  values:
+	    nil   the sheet is in portrait mode.
+	    t     the sheet is in landscape mode.
+	    pag   the sheet is in portrait mode and page is in landscape mode.
+LINES is the number of lines of page matrix.
+COLUMNS is the number of columns of page matrix.
+COL-MISSING is the number of columns missing to fill the sheet.")
+
+
+(defmacro ps-n-up-landscape (mat) `(nth 1 ,mat))
+(defmacro ps-n-up-lines     (mat) `(nth 2 ,mat))
+(defmacro ps-n-up-columns   (mat) `(nth 3 ,mat))
+(defmacro ps-n-up-missing   (mat) `(nth 4 ,mat))
+
+
+(defun ps-n-up-printing ()
+  ;; force `ps-n-up-printing' be in range 1 to 100.
+  (setq ps-n-up-printing (max (min ps-n-up-printing 100) 1))
+  ;; find suitable page matrix for a given `ps-paper-type'.
+  (let ((the-list (cdr (assq ps-paper-type ps-n-up-database))))
+    (and the-list
+	 (while (> ps-n-up-printing (caar the-list))
+	   (setq the-list (cdr the-list))))
+    (car the-list)))
+
+
+(defconst ps-n-up-filling-database
+  '((left-top
+     "PageWidth"			; N-Up-XColumn
+     "0"				; N-Up-YColumn
+     "N-Up-End 1 sub PageWidth mul neg" ; N-Up-XLine
+     "LandscapePageHeight neg"		; N-Up-YLine
+     "N-Up-Lines"			; N-Up-Repeat
+     "N-Up-Columns"			; N-Up-End
+     "0"				; N-Up-XStart
+     "0")				; N-Up-YStart
+    (left-bottom
+     "PageWidth"			; N-Up-XColumn
+     "0"				; N-Up-YColumn
+     "N-Up-End 1 sub PageWidth mul neg" ; N-Up-XLine
+     "LandscapePageHeight"		; N-Up-YLine
+     "N-Up-Lines"			; N-Up-Repeat
+     "N-Up-Columns"			; N-Up-End
+     "0"				; N-Up-XStart
+     "N-Up-Repeat 1 sub LandscapePageHeight mul neg") ; N-Up-YStart
+    (right-top
+     "PageWidth neg"			; N-Up-XColumn
+     "0"				; N-Up-YColumn
+     "N-Up-End 1 sub PageWidth mul"	; N-Up-XLine
+     "LandscapePageHeight neg"		; N-Up-YLine
+     "N-Up-Lines"			; N-Up-Repeat
+     "N-Up-Columns"			; N-Up-End
+     "N-Up-End 1 sub PageWidth mul"	; N-Up-XStart
+     "0")				; N-Up-YStart
+    (right-bottom
+     "PageWidth neg"			; N-Up-XColumn
+     "0"				; N-Up-YColumn
+     "N-Up-End 1 sub PageWidth mul"	; N-Up-XLine
+     "LandscapePageHeight"		; N-Up-YLine
+     "N-Up-Lines"			; N-Up-Repeat
+     "N-Up-Columns"			; N-Up-End
+     "N-Up-End 1 sub PageWidth mul"	; N-Up-XStart
+     "N-Up-Repeat 1 sub LandscapePageHeight mul neg") ; N-Up-YStart
+    (top-left
+     "0"				; N-Up-XColumn
+     "LandscapePageHeight neg"		; N-Up-YColumn
+     "PageWidth"			; N-Up-XLine
+     "N-Up-End 1 sub LandscapePageHeight mul" ; N-Up-YLine
+     "N-Up-Columns"			; N-Up-Repeat
+     "N-Up-Lines"			; N-Up-End
+     "0"				; N-Up-XStart
+     "0")				; N-Up-YStart
+    (bottom-left
+     "0"				; N-Up-XColumn
+     "LandscapePageHeight"		; N-Up-YColumn
+     "PageWidth"			; N-Up-XLine
+     "N-Up-End 1 sub LandscapePageHeight mul neg" ; N-Up-YLine
+     "N-Up-Columns"			; N-Up-Repeat
+     "N-Up-Lines"			; N-Up-End
+     "0"				; N-Up-XStart
+     "N-Up-End 1 sub LandscapePageHeight mul neg") ; N-Up-YStart
+    (top-right
+     "0"				; N-Up-XColumn
+     "LandscapePageHeight neg"		; N-Up-YColumn
+     "PageWidth neg"			; N-Up-XLine
+     "N-Up-End 1 sub LandscapePageHeight mul" ; N-Up-YLine
+     "N-Up-Columns"			; N-Up-Repeat
+     "N-Up-Lines"			; N-Up-End
+     "N-Up-Repeat 1 sub PageWidth mul"	; N-Up-XStart
+     "0")				; N-Up-YStart
+    (bottom-right
+     "0"				; N-Up-XColumn
+     "LandscapePageHeight"		; N-Up-YColumn
+     "PageWidth neg"			; N-Up-XLine
+     "N-Up-End 1 sub LandscapePageHeight mul neg" ; N-Up-YLine
+     "N-Up-Columns"			; N-Up-Repeat
+     "N-Up-Lines"			; N-Up-End
+     "N-Up-Repeat 1 sub PageWidth mul"	; N-Up-XStart
+     "N-Up-End 1 sub LandscapePageHeight mul neg")) ; N-Up-YStart
+  "Alist for n-up printing initializations.
+
+Each element has the following form:
+
+   (KIND XCOL YCOL XLIN YLIN REPEAT END XSTART YSTART)
+
+Where:
+KIND is a valid value of `ps-n-up-filling'.
+XCOL YCOL are the relative position for the next column.
+XLIN YLIN are the relative position for the beginning of next line.
+REPEAT is the number of repetions for external loop.
+END is the number of repetions for internal loop and also the number of pages in
+    a row.
+XSTART YSTART are the relative position for the first page in a sheet.")
+
+
+(defun ps-n-up-filling ()
+  (cdr (or (assq ps-n-up-filling ps-n-up-filling-database)
+	   (assq 'left-top ps-n-up-filling-database))))
+
+
+(defmacro ps-n-up-xcolumn (init) `(nth 0 ,init))
+(defmacro ps-n-up-ycolumn (init) `(nth 1 ,init))
+(defmacro ps-n-up-xline	  (init) `(nth 2 ,init))
+(defmacro ps-n-up-yline	  (init) `(nth 3 ,init))
+(defmacro ps-n-up-repeat  (init) `(nth 4 ,init))
+(defmacro ps-n-up-end	  (init) `(nth 5 ,init))
+(defmacro ps-n-up-xstart  (init) `(nth 6 ,init))
+(defmacro ps-n-up-ystart  (init) `(nth 7 ,init))
+
+
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
   (setq ps-page-postscript 0
+	ps-page-order 0
 	ps-background-text-count 0
 	ps-background-image-count 0
 	ps-background-pages nil
 	ps-background-all-pages nil)
 
-  (ps-output ps-adobe-tag
-	     "%%Title: " (buffer-name)	; Take job name from name of
+  (let ((dimensions (cdr (assq ps-paper-type ps-page-dimensions-database)))
+	(tumble (if ps-landscape-mode (not ps-spool-tumble) ps-spool-tumble))
+	(n-up (ps-n-up-printing))
+	(n-up-filling (ps-n-up-filling)))
+    (and (> ps-n-up-printing 1) (setq tumble (not tumble)))
+    (ps-output
+     ps-adobe-tag
+     "%%Title: " (buffer-name)		; Take job name from name of
 					; first buffer printed
-	     "\n%%Creator: " (user-full-name)
-	     " (using ps-print v" ps-print-version
-	     ")\n%%CreationDate: "
-	     (time-stamp-hh:mm:ss) " " (time-stamp-mon-dd-yyyy)
-	     "\n%%Orientation: "
-	     (if ps-landscape-mode "Landscape" "Portrait")
-	     "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
-	     (mapconcat 'identity
-			(ps-remove-duplicates
-			 (append (ps-fonts 'ps-font-for-text)
-				 (list (ps-font 'ps-font-for-header 'normal)
-				       (ps-font 'ps-font-for-header 'bold))))
-			"\n%%+ font ")
-	     "\n%%Pages: (atend)\n%%Requirements:"
-	     (if ps-spool-duplex " duplex\n" "\n"))
+     "\n%%Creator: " (user-full-name)
+     " (using ps-print v" ps-print-version
+     ")\n%%CreationDate: "
+     (time-stamp-hh:mm:ss) " " (time-stamp-mon-dd-yyyy)
+     "\n%%Orientation: "
+     (if ps-landscape-mode "Landscape" "Portrait")
+     "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
+     (mapconcat 'identity
+		(ps-remove-duplicates
+		 (append (ps-fonts 'ps-font-for-text)
+			 (list (ps-font 'ps-font-for-header 'normal)
+			       (ps-font 'ps-font-for-header 'bold))))
+		"\n%%+ font ")
+     "\n%%DocumentMedia: " (ps-page-dimensions-get-media dimensions)
+     (format " %d" (round (ps-page-dimensions-get-width dimensions)))
+     (format " %d" (round (ps-page-dimensions-get-height dimensions)))
+     " 0 () ()\n%%PageOrder: Ascend\n%%Pages: (atend)\n%%Requirements:"
+     (if ps-spool-duplex
+	 (format " duplex%s" (if tumble "(tumble)\n" "\n"))
+       "\n"))
 
-  (let ((comments (if (functionp ps-print-prologue-header)
-		      (funcall ps-print-prologue-header)
-		    ps-print-prologue-header)))
-    (and (stringp comments)
-	 (ps-output comments)))
+    (let ((comments (if (functionp ps-print-prologue-header)
+			(funcall ps-print-prologue-header)
+		      ps-print-prologue-header)))
+      (and (stringp comments)
+	   (ps-output comments)))
 
-  (ps-output "%%EndComments\n\n%%BeginPrologue\n\n")
+    (ps-output "%%EndComments\n\n%%BeginPrologue\n\n"
+	       "/gs_languagelevel /languagelevel where {pop languagelevel}{1}ifelse def\n\n")
 
-  (ps-output-boolean "LandscapeMode"             ps-landscape-mode)
-  (ps-output (format "/NumberOfColumns %d def\n" ps-number-of-columns)
+    (ps-output-boolean "SkipFirstPage      " ps-banner-page-when-duplexing)
+    (ps-output-boolean "LandscapeMode      "
+		       (or ps-landscape-mode
+			   (eq (ps-n-up-landscape n-up) 'pag)))
+    (ps-output (format "/NumberOfColumns     %d def\n" ps-number-of-columns)
 
-	     (format "/LandscapePageHeight %s def\n" ps-landscape-page-height)
-	     (format "/PrintPageWidth      %s def\n"
-		     (- (* (+ ps-print-width ps-inter-column)
-			   ps-number-of-columns)
-			ps-inter-column))
-	     (format "/PrintWidth   %s def\n" ps-print-width)
-	     (format "/PrintHeight  %s def\n" ps-print-height)
+	       (format "/LandscapePageHeight %s def\n" ps-landscape-page-height)
+	       (format "/PrintPageWidth      %s def\n"
+		       (- (* (+ ps-print-width ps-inter-column)
+			     ps-number-of-columns)
+			  ps-inter-column))
+	       (format "/PrintWidth   %s def\n" ps-print-width)
+	       (format "/PrintHeight  %s def\n" ps-print-height)
 
-	     (format "/LeftMargin   %s def\n" ps-left-margin)
-	     (format "/RightMargin  %s def\n" ps-right-margin) ; not used
-	     (format "/InterColumn  %s def\n" ps-inter-column)
+	       (format "/LeftMargin   %s def\n" ps-left-margin)
+	       (format "/RightMargin  %s def\n" ps-right-margin)
+	       (format "/InterColumn  %s def\n" ps-inter-column)
 
-	     (format "/BottomMargin %s def\n" ps-bottom-margin)
-	     (format "/TopMargin    %s def\n" ps-top-margin) ; not used
-	     (format "/HeaderOffset %s def\n" ps-header-offset)
-	     (format "/HeaderPad    %s def\n" ps-header-pad))
+	       (format "/BottomMargin %s def\n" ps-bottom-margin)
+	       (format "/TopMargin    %s def\n" ps-top-margin) ; not used
+	       (format "/HeaderOffset %s def\n" ps-header-offset)
+	       (format "/HeaderPad    %s def\n" ps-header-pad))
 
-  (ps-output-boolean "PrintHeader"        ps-print-header)
-  (ps-output-boolean "PrintOnlyOneHeader" ps-print-only-one-header)
-  (ps-output-boolean "PrintHeaderFrame"   ps-print-header-frame)
-  (ps-output-boolean "ShowNofN"           ps-show-n-of-n)
-  (ps-output-boolean "Duplex"             ps-spool-duplex)
+    (ps-output-boolean "PrintHeader       " ps-print-header)
+    (ps-output-boolean "PrintOnlyOneHeader" ps-print-only-one-header)
+    (ps-output-boolean "PrintHeaderFrame  " ps-print-header-frame)
+    (ps-output-boolean "ShowNofN          " ps-show-n-of-n)
+    (ps-output-boolean "DuplexValue       " ps-spool-duplex)
+    (ps-output-boolean "TumbleValue       " tumble)
 
-  (let ((line-height (ps-line-height 'ps-font-for-text)))
-    (ps-output (format "/LineHeight   %s def\n" line-height)
-	       (format "/LinesPerColumn %d def\n"
-		       (round (/ (+ ps-print-height
-				    (* line-height 0.45))
-				 line-height)))))
+    (let ((line-height (ps-line-height 'ps-font-for-text)))
+      (ps-output (format "/LineHeight     %s def\n" line-height)
+		 (format "/LinesPerColumn %d def\n"
+			 (round (/ (+ ps-print-height
+				      (* line-height 0.45))
+				   line-height)))))
 
-  (ps-output-boolean "Zebra" ps-zebra-stripes)
-  (ps-output-boolean "PrintLineNumber" ps-line-number)
-  (ps-output (format "/ZebraHeight %d def\n" ps-zebra-stripe-height))
+    (ps-output-boolean "Zebra           " ps-zebra-stripes)
+    (ps-output-boolean "PrintLineNumber " ps-line-number)
+    (ps-output (format "/ZebraHeight      %d def\n" ps-zebra-stripe-height)
+	       (format "/ZebraGray        %s def\n" ps-zebra-gray)
+	       "/UseSetpagedevice "
+	       (if (eq ps-spool-config 'setpagedevice)
+		   "/setpagedevice where {pop true}{false}ifelse def\n"
+		 "false def\n")
+	       "\n/PageWidth "
+	       "PrintPageWidth LeftMargin add RightMargin add def\n\n"
+	       (format "/N-Up           %d def\n" ps-n-up-printing))
+    (ps-output-boolean "N-Up-Landscape" (eq (ps-n-up-landscape n-up) t))
+    (ps-output-boolean "N-Up-Border   " ps-n-up-border-p)
+    (ps-output (format "/N-Up-Lines     %d def\n" (ps-n-up-lines n-up))
+	       (format "/N-Up-Columns   %d def\n" (ps-n-up-columns n-up))
+	       (format "/N-Up-Missing   %d def\n" (ps-n-up-missing n-up))
+	       (format "/N-Up-Margin    %s" ps-n-up-margin)
+	       " def\n/N-Up-Repeat    "
+	       (if ps-landscape-mode
+		   (ps-n-up-end     n-up-filling)
+		 (ps-n-up-repeat  n-up-filling))
+	       " def\n/N-Up-End       "
+	       (if ps-landscape-mode
+		   (ps-n-up-repeat  n-up-filling)
+		 (ps-n-up-end     n-up-filling))
+	       " def\n/N-Up-XColumn   " (ps-n-up-xcolumn n-up-filling)
+	       " def\n/N-Up-YColumn   " (ps-n-up-ycolumn n-up-filling)
+	       " def\n/N-Up-XLine     " (ps-n-up-xline   n-up-filling)
+	       " def\n/N-Up-YLine     " (ps-n-up-yline   n-up-filling)
+	       " def\n/N-Up-XStart    " (ps-n-up-xstart  n-up-filling)
+	       " def\n/N-Up-YStart    " (ps-n-up-ystart  n-up-filling) " def\n")
 
-  (ps-background-text)
-  (ps-background-image)
-  (setq ps-background-all-pages (nreverse ps-background-all-pages)
-	ps-background-pages (nreverse ps-background-pages))
+    (ps-background-text)
+    (ps-background-image)
+    (setq ps-background-all-pages (nreverse ps-background-all-pages)
+	  ps-background-pages (nreverse ps-background-pages))
 
-  (ps-output ps-print-prologue-1)
+    (ps-output ps-print-prologue-1)
 
-  (ps-output "/printGlobalBackground {\n")
-  (ps-output-list ps-background-all-pages)
-  (ps-output "} def\n/printLocalBackground {\n} def\n")
+    (ps-output "/printGlobalBackground {\n")
+    (ps-output-list ps-background-all-pages)
+    (ps-output "} def\n/printLocalBackground {\n} def\n")
 
-  ;; Header fonts
-  (ps-output (format "/h0 %s (%s) cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
-		     ps-header-title-font-size-internal
-		     (ps-font 'ps-font-for-header 'bold))
-	     (format "/h1 %s (%s) cvn DefFont\n" ; /h1 12 /Helvetica DefFont
-		     ps-header-font-size-internal
-		     (ps-font 'ps-font-for-header 'normal)))
+    ;; Header fonts
+    (ps-output (format "/h0 %s (%s) cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
+		       ps-header-title-font-size-internal
+		       (ps-font 'ps-font-for-header 'bold))
+	       (format "/h1 %s (%s) cvn DefFont\n" ; /h1 12 /Helvetica DefFont
+		       ps-header-font-size-internal
+		       (ps-font 'ps-font-for-header 'normal)))
 
-  (ps-output ps-print-prologue-2)
+    (ps-output ps-print-prologue-2)
 
-  ;; Text fonts
-  (let ((font (ps-font-alist 'ps-font-for-text))
-	(i 0))
-    (while font
-      (ps-output (format "/f%d %s (%s) cvn DefFont\n"
-			 i
-			 ps-font-size-internal
-			 (ps-font 'ps-font-for-text (car (car font)))))
-      (setq font (cdr font)
-	    i (1+ i))))
+    ;; Text fonts
+    (let ((font (ps-font-alist 'ps-font-for-text))
+	  (i 0))
+      (while font
+	(ps-output (format "/f%d %s (%s) cvn DefFont\n"
+			   i
+			   ps-font-size-internal
+			   (ps-font 'ps-font-for-text (car (car font)))))
+	(setq font (cdr font)
+	      i (1+ i))))
 
-  (let ((font-entry (cdr (assq ps-font-family ps-font-info-database))))
-    (ps-output (format "/SpaceWidthRatio %f def\n"
-		       (/ (ps-lookup 'space-width) (ps-lookup 'size)))))
+    (let ((font-entry (cdr (assq ps-font-family ps-font-info-database))))
+      (ps-output (format "/SpaceWidthRatio %f def\n"
+			 (/ (ps-lookup 'space-width) (ps-lookup 'size)))))
 
-  (ps-output "\n%%EndPrologue\n\n%%BeginSetup\nBeginDoc\n%%EndSetup\n"))
+    (ps-output "\n%%EndPrologue\n\n%%BeginSetup\n")
+    (unless (eq ps-spool-config 'lpr-switches)
+      (ps-output "\n%%BeginFeature: *Duplex "
+		 (ps-boolean-capitalized ps-spool-duplex)
+		 " *Tumble "
+		 (ps-boolean-capitalized tumble)
+		 ps-print-duplex-feature
+		 "%%EndFeature\n")))
+  (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n"))
+
+
+(defun ps-boolean-capitalized (bool)
+  (if bool "True" "False"))
+
 
 (defun ps-header-dirpart ()
   (let ((fname (buffer-file-name)))
@@ -3534,6 +4436,7 @@ page-height == bm + print-height + tm - ho - hh
 	    (file-name-directory fname)
 	  fname)
       "")))
+
 
 (defun ps-get-buffer-name ()
   (cond
@@ -3544,7 +4447,7 @@ page-height == bm + print-height + tm - ho - hh
    ((string= (buffer-name) "sokoban.el")
     "Super! C'est sokoban.el!")
    (t (concat
-       (and ps-printing-region "Subset of: ")
+       (and ps-printing-region-p "Subset of: ")
        (buffer-name)
        (and (buffer-modified-p) " (unsaved)")))))
 
@@ -3569,7 +4472,7 @@ page-height == bm + print-height + tm - ho - hh
     (goto-char (point-max))
     (and (re-search-backward "^%%Trailer$" nil t)
 	 (delete-region (match-beginning 0) (point-max))))
-  (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
+  (setq ps-showline-count (car ps-printing-region)
 	ps-page-count 0
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
 	ps-header-font-size-internal (ps-get-font-size 'ps-header-font-size)
@@ -3588,8 +4491,21 @@ page-height == bm + print-height + tm - ho - hh
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
 (defun ps-end-file ()
-  (ps-output "\n%%Trailer\n%%Pages: "
-	     (format "%d" ps-page-postscript)
+  ;; Back to the PS output buffer to set the last page n-up printing
+  (save-excursion
+    (let ((pages-per-sheet (mod ps-page-postscript ps-n-up-printing))
+	  case-fold-search)
+      (set-buffer ps-spool-buffer)
+      (goto-char (point-max))
+      (and (> pages-per-sheet 0)
+	   (re-search-backward "^[0-9]+ BeginSheet$" nil t)
+	   (replace-match (format "%d BeginSheet" pages-per-sheet) t))))
+  ;; Set dummy page
+  (and ps-spool-duplex (= (mod ps-page-order 2) 1)
+       (ps-dummy-page))
+  ;; Set end of PostScript file
+  (ps-output "EndSheet\n\n%%Trailer\n%%Pages: "
+	     (format "%d" ps-page-order)
 	     "\n\nEndDoc\n\n%%EOF\n"))
 
 
@@ -3598,23 +4514,39 @@ page-height == bm + print-height + tm - ho - hh
   (ps-flush-output)
   (ps-begin-page))
 
-(defun ps-header-page ()
+
+(defun ps-header-sheet ()
+  ;; Print only when a new sheet begins.
+  (setq ps-page-postscript (1+ ps-page-postscript)
+	ps-page-order (1+ ps-page-order))
+  (and (> ps-page-order 1)
+       (ps-output "EndSheet\n"))
+  (ps-output (format "\n%%%%Page: %d %d\n"
+		     ps-page-postscript ps-page-order))
+  (ps-output (format "%d BeginSheet\nBeginDSCPage\n" ps-n-up-printing)))
+
+
+(defsubst ps-header-page ()
   ;; set total line and page number when printing has finished
   ;; (see `ps-generate')
-  (if (prog1
-	  (zerop (mod ps-page-count ps-number-of-columns))
-	(setq ps-page-count (1+ ps-page-count)))
-      ;; Print only when a new real page begins.
-      (progn
-	(setq ps-page-postscript (1+ ps-page-postscript))
-	(ps-output (format "\n%%%%Page: %d %d\n"
-			   ps-page-postscript ps-page-postscript))
-	(ps-output "/Lines 0 def\n/PageCount 0 def\nBeginDSCPage\n")
-	(ps-background ps-page-postscript)
-	(run-hooks 'ps-print-begin-page-hook))
-    ;; Print when any other page begins.
-    (ps-output "/Lines 0 def\n/PageCount 0 def\nBeginDSCPage\n")
-    (run-hooks 'ps-print-begin-column-hook)))
+  (run-hooks
+   (if (prog1
+	   (zerop (mod ps-page-count ps-number-of-columns))
+	 (setq ps-page-count (1+ ps-page-count)))
+       (prog1
+	   (if (zerop (mod ps-page-postscript ps-n-up-printing))
+	       ;; Print only when a new sheet begins.
+	       (progn
+		 (ps-header-sheet)
+		 'ps-print-begin-sheet-hook)
+	     ;; Print only when a new page begins.
+	     (setq ps-page-postscript (1+ ps-page-postscript))
+	     (ps-output "BeginDSCPage\n")
+	     'ps-print-begin-page-hook)
+	 (ps-background ps-page-postscript))
+     ;; Print only when a new column begins.
+     (ps-output "BeginDSCPage\n")
+     'ps-print-begin-column-hook)))
 
 (defun ps-begin-page ()
   (ps-get-page-dimensions)
@@ -3643,11 +4575,15 @@ page-height == bm + print-height + tm - ho - hh
   (ps-output "EndPage\nEndDSCPage\n"))
 
 (defun ps-dummy-page ()
-  (ps-header-page)
+  (let ((ps-n-up-printing 0))
+    (ps-header-sheet))
   (ps-output "/PrintHeader false def
+/ColumnIndex 0 def
+/PrintLineNumber false def
 BeginPage
 EndPage
-EndDSCPage\n"))
+EndDSCPage\n")
+  (setq ps-page-postscript ps-n-up-printing))
 
 (defun ps-next-line ()
   (setq ps-showline-count (1+ ps-showline-count))
@@ -3868,7 +4804,8 @@ EndDSCPage\n"))
 		    (if (color-specifier-p x-color)
 			(color-name x-color)
 		      x-color)))))
-	       (t (error "No available function to determine X color values."))))
+	       (t
+		(error "No available function to determine X color values."))))
        ))
 
 
@@ -4220,24 +5157,9 @@ If FACE is not a valid face name, it is used default face."
 		(funcall genfunc from to)
 		(ps-end-page)
 
-		(and ps-spool-duplex (= (mod ps-page-count 2) 1)
-		     (ps-dummy-page))
 		(ps-end-file)
 		(ps-flush-output)
-
-		;; Back to the PS output buffer to set the page count
-		(let ((total-lines (if ps-printing-region
-				       (cdr ps-printing-region)
-				     (ps-count-lines (point-min) (point-max))))
-		      (total-pages (if ps-print-only-one-header
-				       (ps-page-number)
-				     ps-page-count)))
-		  (set-buffer ps-spool-buffer)
-		  (goto-char (point-min))
-		  (while (re-search-forward "^/Lines 0 def\n/PageCount 0 def$"
-					    nil t)
-		    (replace-match (format "/Lines %d def\n/PageCount %d def"
-					   total-lines total-pages) t)))
+		(ps-end-job)
 
 		;; Setting this variable tells the unwind form that the
 		;; the PostScript was generated without error.
@@ -4255,8 +5177,18 @@ If FACE is not a valid face name, it is used default face."
 	(and ps-razzle-dazzle (message "Formatting...done"))))))
 
 
-;; to avoid compilation gripes.
-(defvar dos-ps-printer nil)
+(defun ps-end-job ()
+  (let ((total-lines (cdr ps-printing-region))
+	(total-pages (if ps-print-only-one-header
+			 (ps-page-number)
+		       ps-page-count))
+	case-fold-search)
+    (set-buffer ps-spool-buffer)
+    ;; Back to the PS output buffer to set the page count
+    (goto-char (point-min))
+    (and (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
+	 (replace-match (format "/Lines %d def\n/PageCount %d def"
+				total-lines total-pages) t))))
 
 
 ;; Permit dynamic evaluation at print time of `ps-lpr-switches'.
@@ -4281,10 +5213,9 @@ If FACE is not a valid face name, it is used default face."
 				    (and (boundp 'printer-name)
 					 printer-name)))
 	       (ps-lpr-switches
-		(append
-		 (and (stringp ps-printer-name)
-		      (list (concat "-P" ps-printer-name)))
-		 ps-lpr-switches)))
+		(append (and (stringp ps-printer-name)
+			     (list (concat "-P" ps-printer-name)))
+			ps-lpr-switches)))
 	  (apply (or ps-print-region-function 'call-process-region)
 		 (point-min) (point-max) ps-lpr-command nil
 		 (and (fboundp 'start-process) 0)
