@@ -1,5 +1,11 @@
 2004-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (kbd_buffer_gcpro): Remove.
+	(kbd_buffer_store_event, clear_event, Fdiscard_input)
+	(stuff_buffered_input, init_keyboard, syms_of_keyboard):
+	Don't initialize and/or maintain the variable any more.  It was made
+	redundant by my commit of 2003-06-15.
+
 	* lisp.h [USE_LSB_TAG && !DECL_ALIGN]: Signal an error.
 
 2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -629,6 +635,13 @@
 	* dispextern.h (struct it): New member start.
 
 2003-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (make_float, Fcons): Clear the markbit at init time.
+	(make_float, Fcons, Fmake_symbol, allocate_misc): Move the increment
+	of block_index outside of the macro call.
+	(Fgarbage_collect): Remove null code.
+
+	* m/amdx86-64.h: Don't redefine XPNTR.
 
 	* keyboard.c (parse_modifiers, apply_modifiers): Use INTMASK instead
 	of VALMASK.
