@@ -1,3 +1,8 @@
+2002-05-21  Colin Walters  <walters@gnu.org>
+
+	* international/mule-diag.el (describe-char-after): Order display
+	of text properties by the size of their value, for clarity.
+
 2002-05-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/ange-ftp.el (ange-ftp-generate-root-prefixes)
