@@ -125,3 +125,7 @@ NOTE-END  */
 #ifdef VMS
 #define C_ALLOCA
 #endif
+
+#ifdef BSD4_2
+#define HAVE_FTIME
+#endif
