@@ -7579,8 +7579,7 @@ png_load (f, img)
   png_byte channels;
   png_uint_32 row_bytes;
   int transparent_p;
-  double screen_gamma, image_gamma;
-  int intent;
+  double screen_gamma;
   struct png_memory_storage tbr;  /* Data to be read */
 
   /* Find out what file to load.  */
@@ -7719,19 +7718,22 @@ png_load (f, img)
   screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
 #if 0 /* Avoid double gamma correction for PNG images. */
-  /* Tell the PNG lib to handle gamma correction for us.  */
+  { /* Tell the PNG lib to handle gamma correction for us.  */
+    int intent;
+    double image_gamma;
 #if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
-  if (png_get_sRGB (png_ptr, info_ptr, &intent))
-    /* The libpng documentation says this is right in this case.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.45455);
-  else
+    if (png_get_sRGB (png_ptr, info_ptr, &intent))
+      /* The libpng documentation says this is right in this case.  */
+      png_set_gamma (png_ptr, screen_gamma, 0.45455);
+    else
 #endif
-  if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
-    /* Image contains gamma information.  */
-    png_set_gamma (png_ptr, screen_gamma, image_gamma);
-  else
-    /* Use the standard default for the image gamma.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.45455);
+      if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
+	/* Image contains gamma information.  */
+	png_set_gamma (png_ptr, screen_gamma, image_gamma);
+      else
+	/* Use the standard default for the image gamma.  */
+	png_set_gamma (png_ptr, screen_gamma, 0.45455);
+  }
 #endif /* if 0 */
 
   /* Handle alpha channel by combining the image with a background
