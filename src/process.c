@@ -2807,15 +2807,17 @@ read_process_output (proc, channel)
              proc_decode_coding_system[channel] here.  It is done in
              detect_coding called via decode_coding above.  */
 
-	  /* If coding-system for encoding is not yet decided, we set it
-	     as the same as coding-system for decoding.  */
-	  if (NILP (p->encode_coding_system))
+	  /* If coding-system for encoding is not yet decided, we set
+	     it as the same as coding-system for decoding.
+
+	     But, before doing that we must check if
+	     proc_encode_coding_system[p->outfd] surely points to a
+	     valid memory because p->outfd will be changed once EOF is
+	     sent to the process.  */
+	  if (NILP (p->encode_coding_system)
+	      && proc_encode_coding_system[p->outfd])
 	    {
 	      p->encode_coding_system = coding->symbol;
-	      if (!proc_encode_coding_system[p->outfd])
-		proc_encode_coding_system[p->outfd]
-		  = ((struct coding_system *)
-		     xmalloc (sizeof (struct coding_system)));
 	      setup_coding_system (coding->symbol,
 				   proc_encode_coding_system[p->outfd]);
 	    }
@@ -2845,6 +2847,8 @@ read_process_output (proc, channel)
       chars_in_decoding_buf = 1;
     }
 #endif
+
+  Vlast_coding_system_used = coding->symbol;
 
   outstream = p->filter;
   if (!NILP (outstream))
@@ -3047,6 +3051,8 @@ send_process (proc, buf, len, object)
     error ("Output file descriptor of %s is closed", procname);
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
+  Vlast_coding_system_used = coding->symbol;
+
   if (CODING_REQUIRE_ENCODING (coding))
     {
       int require = encoding_buffer_size (coding, len);
