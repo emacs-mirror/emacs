@@ -32,16 +32,17 @@ syntactical properties of characters appearing in the buffer.
 @xref{Syntax}.
 
   The major modes fall into three major groups.  The first group
-contains Lisp mode (which has several variants), C mode, Fortran mode
-and others.  These modes are for specific programming languages.  The
-second group contains Text mode, Nroff mode, SGML mode, @TeX{} mode
-and Outline mode.  These modes are for normal text, plain or marked
-up.  The remaining major modes are not intended for use on users'
-files; they are used in buffers created for specific purposes by
-Emacs, such as Dired mode for buffers made by Dired (@pxref{Dired}),
-Mail mode for buffers made by @kbd{C-x m} (@pxref{Sending Mail}), and
-Shell mode for buffers used for communicating with an inferior shell
-process (@pxref{Interactive Shell}).
+contains modes for normal text, either plain or with mark-up.  It
+includes Text mode, HTML mode, SGML mode, @TeX{} mode and Outline
+mode.  The second group contains modes for specific programming
+languages.  These include Lisp mode (which has several variants), C
+mode, Fortran mode, and others.  The remaining major modes are not
+intended for use on users' files; they are used in buffers created for
+specific purposes by Emacs, such as Dired mode for buffers made by
+Dired (@pxref{Dired}), Mail mode for buffers made by @kbd{C-x m}
+(@pxref{Sending Mail}), and Shell mode for buffers used for
+communicating with an inferior shell process (@pxref{Interactive
+Shell}).
 
   Most programming-language major modes specify that only blank lines
 separate paragraphs.  This is to make the paragraph commands useful.

@@ -210,11 +210,11 @@ then centers the three-month calendar around that month.
 @section Scrolling in the Calendar
 
 @cindex scrolling in the calendar
-  The calendar display scrolls automatically through time when you move out
-of the visible portion.  You can also scroll it manually.  Imagine that the
-calendar window contains a long strip of paper with the months on it.
-Scrolling it means moving the strip so that new months become visible in
-the window.
+  The calendar display scrolls automatically through time when you
+move out of the visible portion.  You can also scroll it manually.
+Imagine that the calendar window contains a long strip of paper with
+the months on it.  Scrolling the calendar means moving the strip
+horizontally, so that new months become visible in the window.
 
 @table @kbd
 @item C-x <
@@ -1312,8 +1312,8 @@ Sexp Diary Entries, elisp, The Emacs Lisp Reference Manual}.
 @cindex appointment notification
 
   If you have a diary entry for an appointment, and that diary entry
-begins with a recognizable time of day, Emacs can warn you, several
-minutes beforehand, that that appointment is pending.  Emacs alerts you
+begins with a recognizable time of day, Emacs can warn you several
+minutes beforehand that that appointment is pending.  Emacs alerts you
 to the appointment by displaying a message in the mode line.
 
 @vindex diary-hook

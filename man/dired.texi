@@ -24,7 +24,7 @@ files.
 
 @menu
 * Enter: Dired Enter.         How to invoke Dired.
-* Navigation: Dired Navigation.   How to move in the Dired buffer.
+* Navigation: Dired Navigation.   Special motion commands in the Dired buffer.
 * Deletion: Dired Deletion.   Deleting files with Dired.
 * Flagging Many Files::       Flagging files based on their names.
 * Visit: Dired Visiting.      Other file operations through Dired.
@@ -93,8 +93,8 @@ buffer includes several directories.  @xref{Subdirectory Motion}.
 @cindex flagging files (in Dired)
 @cindex deleting files (in Dired)
 
-  One of the most frequent uses of Dired is to @dfn{flag} files for
-deletion and then delete the files previously flagged.
+  One of the most frequent uses of Dired is to first @dfn{flag} files for
+deletion, then delete the files that were flagged.
 
 @table @kbd
 @item d
@@ -197,8 +197,8 @@ is, files whose names begin and end with @samp{#}.
 @kindex ~ @r{(Dired)}
 @findex dired-flag-backup-files
   @kbd{~} (@code{dired-flag-backup-files}) flags for deletion all files
-whose names say they are backup files (@pxref{Backup})---that is, whose
-names end in @samp{~}.
+whose names say they are backup files (@pxref{Backup})---that is, files
+whose names end in @samp{~}.
 
 @kindex . @r{(Dired)}
 @vindex dired-kept-versions

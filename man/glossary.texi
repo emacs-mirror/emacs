@@ -67,15 +67,15 @@ track down or cancel changes you later regret making.  @xref{Backup}.
 
 @item Balance Parentheses
 Emacs can balance parentheses (or other matching delimiters) either
-manually or automatically.  Manual balancing is done by the commands
+manually or automatically.  You do manual balancing with the commands
 to move over parenthetical groupings (@pxref{Moving by Parens}).
-Automatic balancing is done by blinking or highlighting the delimiter
+Automatic balancing works by blinking or highlighting the delimiter
 that matches the one you just inserted (@pxref{Matching,,Matching
 Parens}).
 
 @item Balanced Expressions
 A balanced expression is a syntactically recognizable expression, such
-as a symbol, number, string constant, block, parenthesized expression
+as a symbol, number, string constant, block, or parenthesized expression
 in C.  @xref{Expressions,Balanced Expressions}.
 
 @item Balloon Help
@@ -297,7 +297,7 @@ it is interpreted relative to the current buffer's default directory.
 
 @item Defun
 A defun is a major definition at the top level in a program.  The name
-comes from Lisp, where most such definitions use the construct
+`defun' comes from Lisp, where most such definitions use the construct
 @code{defun}.  @xref{Defuns}.
 
 @item @key{DEL}
@@ -369,11 +369,11 @@ particular delimiter characters to reindent the line or insert one or
 more newlines in addition to self-insertion.
 
 @item End Of Line
-End of line is a character or characters which signal the end of a text
-line.  On GNU and Unix systems, this is a newline (q.v.@:), but other
-systems have other conventions.  @xref{Coding Systems,end-of-line}.
-Emacs can recognize several end-of-line conventions in files and convert
-between them.
+End of line is a character or a sequence of characters that indicate
+the end of a text line.  On GNU and Unix systems, this is a newline
+(q.v.@:), but other systems have other conventions.  @xref{Coding
+Systems,end-of-line}.  Emacs can recognize several end-of-line
+conventions in files and convert between them.
 
 @item Environment Variable
 An environment variable is one of a collection of variables stored by
@@ -1065,8 +1065,8 @@ name.  @xref{Expressions,Sexps}.
 @item Simultaneous Editing
 Simultaneous editing means two users modifying the same file at once.
 Simultaneous editing, if not detected, can cause one user to lose his
-work.  Emacs detects all cases of simultaneous editing and warns one
-of the users to investigate.
+or her work.  Emacs detects all cases of simultaneous editing, and
+warns one of the users to investigate.
 @xref{Interlocking,Interlocking,Simultaneous Editing}.
 
 @item Speedbar

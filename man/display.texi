@@ -48,7 +48,7 @@ terminal has this capability.
 specifying the face or faces to use for it.  The style of display used
 for any given character is determined by combining the attributes of
 all the applicable faces specified for that character.  Any attribute
-that isn't specified by these faces is taken from the default face,
+that isn't specified by these faces is taken from the @code{default} face,
 whose attributes reflect the default settings of the frame itself.
 
   Enriched mode, the mode for editing formatted text, includes several
@@ -258,7 +258,7 @@ beyond which buffer fontification is suppressed.
 @vindex font-lock-beginning-of-syntax-function
   Comment and string fontification (or ``syntactic'' fontification)
 relies on analysis of the syntactic structure of the buffer text.  For
-the purposes of speed, some modes, including C mode and Lisp mode,
+the sake of speed, some modes, including C mode and Lisp mode,
 rely on a special convention: an open-parenthesis or open-brace in the
 leftmost column always defines the @w{beginning} of a defun, and is
 thus always outside any string or comment.  (@xref{Left Margin
@@ -460,9 +460,9 @@ whole windowful of lines that were not previously visible.  If point
 was in the text that scrolled off the top, it ends up at the new top
 of the window.
 
-  @kbd{M-v} (@code{scroll-down}) with no argument scrolls backward
-similarly with overlap.  The number of lines of overlap across a
-@kbd{C-v} or @kbd{M-v} is controlled by the variable
+  @kbd{M-v} (@code{scroll-down}) with no argument scrolls backward in
+a similar way, also with overlap.  The number of lines of overlap
+across a @kbd{C-v} or @kbd{M-v} is controlled by the variable
 @code{next-screen-context-lines}; by default, it is 2.  The function
 keys @key{NEXT} and @key{PRIOR}, or @key{PAGEDOWN} and @key{PAGEUP},
 are equivalent to @kbd{C-v} and @kbd{M-v}.

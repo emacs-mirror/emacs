@@ -8,7 +8,7 @@
 ring}, from which it can be retrieved by @dfn{yanking} it.  Some systems
 use the terms ``cutting'' and ``pasting'' for these operations.
 
-  The commonest way of moving or copying text within Emacs is to kill it
+  The most common way of moving or copying text within Emacs is to kill it
 and later yank it elsewhere in one or more places.  This is very safe
 because Emacs remembers several recent kills, not just the last one.  It
 is versatile, because the many commands for killing syntactic units can
@@ -137,7 +137,7 @@ equivalent to @key{DEL}.  As a result, @key{BACKSPACE} and/or @key{DELETE}
 keys normally do the right things.  But in some unusual cases Emacs
 gets the wrong information from the system.  If these keys don't do
 what they ought to do, you need to tell Emacs which key to use for
-@key{DEL}.  @xref{DEL Gets Help}, for how to do this.
+@key{DEL}.  @xref{DEL Doesn't Delete}, for how to do this.
 
 @findex normal-erase-is-backspace-mode
   On most text-only terminals, Emacs cannot tell which keys the
@@ -145,8 +145,8 @@ keyboard really has, so it follows a uniform plan which may or may not
 fit your keyboard.  The uniform plan is that the ASCII @key{DEL}
 character deletes, and the ASCII @key{BS} (backspace) character asks
 for help (it is the same as @kbd{C-h}).  If this is not right for your
-keyboard, i.e.@: if you find that the key which ought to delete backwards
-enters Help instead, see @ref{DEL Gets Help}.
+keyboard, such as if you find that the key which ought to delete backwards
+enters Help instead, see @ref{DEL Doesn't Delete}.
 
 @kindex M-\
 @findex delete-horizontal-space
@@ -410,14 +410,14 @@ what's in the ring.  As long as no new killing is done, the ``last
 yank'' pointer remains at the same place in the kill ring, so repeating
 @kbd{C-y} will yank another copy of the same previous kill.
 
-  If you know how many @kbd{M-y} commands it would take to find the text
-you want, you can yank that text in one step using @kbd{C-y} with a
-numeric argument.  @kbd{C-y} with an argument restores the text the
-specified number of entries back in the kill ring.  Thus, @kbd{C-u 2
-C-y} gets the next-to-the-last block of killed text.  It is equivalent
-to @kbd{C-y M-y}.  @kbd{C-y} with a numeric argument starts counting
-from the ``last yank'' pointer, and sets the ``last yank'' pointer to
-the entry that it yanks.
+  If you know how many @kbd{M-y} commands it would take to find the
+text you want, you can yank that text in one step using @kbd{C-y} with
+a numeric argument.  @kbd{C-y} with an argument restores the text from
+the specified kill ring entry, counting back from the most recent as
+1.  Thus, @kbd{C-u 2 C-y} gets the next-to-the-last block of killed
+text---it is equivalent to @kbd{C-y M-y}.  @kbd{C-y} with a numeric
+argument starts counting from the ``last yank'' pointer, and sets the
+``last yank'' pointer to the entry that it yanks.
 
 @vindex kill-ring-max
   The length of the kill ring is controlled by the variable
@@ -446,15 +446,15 @@ scattered pieces of text into a buffer or into a file.
 
 @table @kbd
 @item M-x append-to-buffer
-Append region to the contents of specified buffer.
+Append region to the contents of a specified buffer.
 @item M-x prepend-to-buffer
-Prepend region to the contents of specified buffer.
+Prepend region to the contents of a specified buffer.
 @item M-x copy-to-buffer
 Copy region into a specified buffer, deleting that buffer's old contents.
 @item M-x insert-buffer
-Insert the contents of specified buffer into current buffer at point.
+Insert the contents of a specified buffer into current buffer at point.
 @item M-x append-to-file
-Append region to the contents of specified file, at the end.
+Append region to the contents of a specified file, at the end.
 @end table
 
   To accumulate text into a buffer, use @kbd{M-x append-to-buffer}.
@@ -483,7 +483,7 @@ copied into it.
   To retrieve the accumulated text from another buffer, use the
 command @kbd{M-x insert-buffer}; this too takes @var{buffername} as an
 argument.  It inserts a copy of the whole text in buffer
-@var{buffername} into the selected buffer at point, and sets the mark
+@var{buffername} into the current buffer at point, and sets the mark
 after the inserted text.  Alternatively, you can select the other
 buffer for editing, then copy text from it by killing.
 @xref{Buffers}, for background information on buffers.

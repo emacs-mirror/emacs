@@ -39,7 +39,7 @@ customization buffers and the like.  @xref{Help Mode}.
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
   If you are looking for a certain feature, but don't know where
-exactly it is documented, and aren't even sure of the name of the
+exactly it is documented, and aren't sure of the name of a
 related command or option, we recommend trying these methods.  Usually
 it is best to start with an apropos command, then try searching the
 manual index, then finally look in the FAQ and the package keywords.
@@ -47,8 +47,8 @@ manual index, then finally look in the FAQ and the package keywords.
 @table @kbd
 @item C-h a @var{topic} @key{RET}
 This searches for commands whose names match @var{topic}, which should
-be a regular expression (@pxref{Regexps}).  Browse the buffer popped
-up by Emacs to find what you are looking for.  @xref{Apropos}.
+be a regular expression (@pxref{Regexps}).  Browse the buffer that this
+command displays to find what you are looking for.  @xref{Apropos}.
 
 @item M-x apropos @key{RET} @var{topic} @key{RET}
 This works like @kbd{C-h a}, but it also searches for user options and
@@ -158,7 +158,7 @@ Describe the coding systems currently in use.
 @item C-h I @var{method} @key{RET}
 Describe an input method (@code{describe-input-method}).
 @item C-h L @var{language-env} @key{RET}
-Display information on the character sets, coding systems and input
+Display information on the character sets, coding systems, and input
 methods used for language environment @var{language-env}
 (@code{describe-language-environment}).
 @item C-h C-c
@@ -548,7 +548,7 @@ various situations with solutions or workarounds in many cases.
 
 @cindex tooltips
 @cindex balloon help
-When a region of text is ``active,'' so that you can select it with
+  When a region of text is ``active,'' so that you can select it with
 the mouse or a key like @kbd{RET}, it often has associated help text.
 Areas of the mode line are examples.  This help will normally be
 printed in the echo area when you move point into the active text.  In

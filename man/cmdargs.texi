@@ -49,7 +49,7 @@ and the tables below always show an equal sign.
   Most options specify how to initialize Emacs, or set parameters for
 the Emacs session.  We call them @dfn{initial options}.  A few options
 specify things to do: for example, load libraries, call functions, or
-exit Emacs.  These are called @dfn{action options}.  These and file
+terminate Emacs.  These are called @dfn{action options}.  These and file
 names together are called @dfn{action arguments}.  Emacs processes all
 the action arguments in the order they are written.
 
@@ -95,7 +95,7 @@ Visit @var{file} using @code{find-file}, then go to line number
 @item +@var{linenum}:@var{columnnum} @var{file}
 @opindex +@var{linenum}:@var{columnnum}
 Visit @var{file} using @code{find-file}, then go to line number
-@var{linenum} in it, and move to column number @var{columnnum}.
+@var{linenum} and put point at column number @var{columnnum}.
 
 @need 3000
 @item -l @var{file}
@@ -195,10 +195,10 @@ shell scripts, makefiles, and so on.  Normally the @samp{-l} option
 or @samp{-f} option will be used as well, to invoke a Lisp program
 to do the batch processing.
 
-@samp{-batch} implies @samp{-q} (do not load an init file).  It also causes
-Emacs to kill itself after all command options have been processed.  In
-addition, auto-saving is not done except in buffers for which it has been
-explicitly requested.
+@samp{-batch} implies @samp{-q} (do not load an init file).  It also
+causes Emacs to exit after processing all the command options.  In
+addition, it disables auto-saving except in buffers for which it has
+been explicitly requested.
 
 @item -q
 @opindex -q
@@ -465,7 +465,7 @@ The name of an interpreter used to parse and execute programs run from
 inside Emacs.
 @cindex background mode, on @code{xterm}
 @item TERM
-The type of the terminal that Emacs is using.  The variable must be
+The type of the terminal that Emacs is using.  This variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
 handles the machine's own display.  If the value of @env{TERM} indicates

@@ -106,7 +106,7 @@ punctuation characters between the words do not move.  For example,
   @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for
 transposing two expressions (@pxref{Expressions}), and @kbd{C-x C-t}
 (@code{transpose-lines}) exchanges lines.  They work like @kbd{M-t}
-except in determining the division of the text into syntactic units.
+except as regards what units of text they transpose.
 
   A numeric argument to a transpose command serves as a repeat count: it
 tells the transpose command to move the character (word, expression, line)
