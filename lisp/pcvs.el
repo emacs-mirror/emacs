@@ -1,6 +1,7 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,2002
+;; 		 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -13,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.35 2002/05/16 20:03:52 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.36 2002/06/18 21:50:30 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -633,23 +634,44 @@ it is finished."
 	;; This might not even be necessary
 	(set-buffer obuf)))))
 
-(defun cvs-parse-process (dcd &optional subdir)
-  "FIXME: bad name, no doc."
+(defun cvs-parse-process (dcd &optional subdir old-fis)
+  "Parse the output of a cvs process.
+DCD is the `dont-change-disc' flag to use when parsing that output.
+SUBDIR is the subdirectory (if any) where this command was run.
+OLD-FIS is the list of fileinfos on which the cvs command was applied and
+  which should be considered up-to-date if they are missing from the output."
   (let* ((from-buf (current-buffer))
 	 (fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
 	 (_ (set-buffer cvs-buffer))
 	 last
 	 (from-pt (point)))
-    ;; add the new fileinfos
+    ;; Expand OLD-FIS to actual files.
+    (dolist (fi old-fis)
+      (when (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
+	(setq old-fis (nconc (ewoc-collect cvs-cookies 'cvs-dir-member-p
+					   (cvs-fileinfo->dir fi))
+			     old-fis))))
+    ;; Drop OLD-FIS which were already up-to-date.
+    (let ((fis nil))
+      (dolist (fi old-fis)
+	(unless (eq (cvs-fileinfo->type fi) 'UP-TO-DATE) (push fi fis)))
+      (setq old-fis fis))
+    ;; Add the new fileinfos to the ewoc.
     (dolist (fi fileinfos)
+      (setq last (cvs-addto-collection cvs-cookies fi last))
+      ;; This FI was in the output, so remove it from OLD-FIS.
+      (setq old-fis (delq (ewoc-data last) old-fis)))
+    ;; Process the "silent output" (i.e. absence means up-to-date).
+    (dolist (fi old-fis)
+      (setf (cvs-fileinfo->type fi) 'UP-TO-DATE)
       (setq last (cvs-addto-collection cvs-cookies fi last)))
+    (setq fileinfos (nconc old-fis fileinfos))
+    ;; Clean up the ewoc as requested by the user.
     (cvs-cleanup-collection cvs-cookies
 			    (eq cvs-auto-remove-handled t)
 			    cvs-auto-remove-directories
 			    nil)
-    ;; update the display (might be unnecessary)
-    ;;(ewoc-refresh cvs-cookies)
-    ;; revert buffers if necessary
+    ;; Revert buffers if necessary.
     (when (and cvs-auto-revert (not dcd) (not cvs-from-vc))
       (cvs-revert-if-needed fileinfos))
     ;; get back to where we were.  `save-excursion' doesn't seem to
@@ -1628,14 +1650,6 @@ Signal an error if there is no backup file."
 		 rev1-buf rev2-buf)))))
 
 
-(defun cvs-fileinfo-kill (c fi)
-  "Mark a fileinfo xor its members (in case of a directory) as dead."
-  (if (eq (cvs-fileinfo->type fi) 'DIRCHANGE)
-      (dolist (fi (ewoc-collect c 'cvs-dir-member-p
-				(cvs-fileinfo->dir fi)))
-	(setf (cvs-fileinfo->type fi) 'UP-TO-DATE))
-    (setf (cvs-fileinfo->type fi) 'UP-TO-DATE)))
-
 (defun cvs-is-within-p (fis dir)
   "Non-nil is buffer is inside one of FIS (in DIR)."
   (when (stringp buffer-file-name)
@@ -1672,14 +1686,12 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
 			    (eq cvs-auto-remove-handled 'delayed) nil t)
     (when (fboundp after-mode)
       (setq postproc (append postproc `((,after-mode)))))
-    (when parse (push `(cvs-parse-process ',dont-change-disc) postproc))
-    (when (member cmd '("status" "update"))	;FIXME: Yuck!!
-      ;; absence of `cvs update' output has a specific meaning.
-      (push
-       `(dolist (fi ',(or fis
-			  (list (cvs-create-fileinfo 'DIRCHANGE "" "." ""))))
-	  (cvs-fileinfo-kill ',cvs-cookies fi))
-       postproc))
+    (when parse
+      (let ((old-fis
+	     (when (member cmd '("status" "update"))	;FIXME: Yuck!!
+		;; absence of `cvs update' output has a specific meaning.
+		(or fis (list (cvs-create-fileinfo 'DIRCHANGE "" "." ""))))))
+	(push `(cvs-parse-process ',dont-change-disc nil ',old-fis) postproc)))
     (setq postproc (if (cdr postproc) (cons 'progn postproc) (car postproc)))
     (cvs-update-header args fis)
     (with-current-buffer buf
