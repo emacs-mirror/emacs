@@ -4025,6 +4025,8 @@ actually used.  */)
     {
       int same_at_start = BEGV_BYTE;
       int same_at_end = ZV_BYTE;
+      int same_at_start_charpos;
+      int inserted_chars;
       int overlap;
       int bufpos;
       unsigned char *decoded;
@@ -4103,7 +4105,8 @@ actually used.  */)
 	}
 
       decoded = BUF_BEG_ADDR (XBUFFER (conversion_buffer));
-      inserted = BUF_Z_BYTE (XBUFFER (conversion_buffer));
+      inserted = (BUF_Z_BYTE (XBUFFER (conversion_buffer))
+		  - BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
 
       /* Compare the beginning of the converted string with the buffer
 	 text.  */
@@ -4176,12 +4179,15 @@ actually used.  */)
 	}
       /* Insert from the file at the proper position.  */
       SET_PT_BOTH (temp, same_at_start);
+      same_at_start_charpos
+	= buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
+				  same_at_start);
+      inserted_chars
+	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
+				   same_at_start + inserted)
+	   - same_at_start_charpos);
       insert_from_buffer (XBUFFER (conversion_buffer),
-			  buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-						  same_at_start),
-			  buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-						  same_at_start + inserted),
-			  0);
+			  same_at_start_charpos, inserted_chars, 0);
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
 
