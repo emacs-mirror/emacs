@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.25) $
+ * $HopeName: MMsrc!mpm.c(trunk.26) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.25) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.26) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -138,6 +138,25 @@ Word (WordAlignUp)(Word word, Align align)
 {
   AVER(AlignCheck(align));
   return WordAlignUp(word, align);
+}
+
+/* WordRoundUp -- round word up to round.
+ *
+ * .wordroundup.arg.word: the quantity to be rounded.
+ * .wordroundup.arg.round: The modulus to round to.  Not necessarily
+ *   an alignment (ie not a power of two).
+ *
+ * .wordroundup.result:
+ * Let m be congruent to 0 mod r (m == 0(r)),
+ *   and let m be the least m >= w.
+ * If w+r-1 (!) is representible in Word then result is m.
+ * Otherwise result is 0.  Wittily.
+ * (NB result may be 0 even if m is representible)
+ */
+Word (WordRoundUp)(Word word, Size round)
+{
+  AVER(round > 0);
+  return WordRoundUp(word, round);
 }
 
 
