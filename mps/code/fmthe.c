@@ -288,21 +288,23 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
   unsigned es;          /* variable part element size (log2 of bits) */
   mps_word_t vt;        /* total vector length */
   mps_res_t res;
-  int* header;
+  int header;
 
   assert(object_io != NULL);
 
   p = (mps_addr_t *)*object_io;
   assert(p != NULL);
 
-  header = (int*)((char*)p - headerSIZE);
-  if (*header != realTYPE) {
-    switch (*header) {
-    case pad1TYPE: *object_io = (mps_addr_t)((char*)p + 4); break;
-    case pad2TYPE: *object_io = (mps_addr_t)((char*)p + 8); break;
-    default: notreached(); break;
-    }
-    return MPS_RES_OK;
+  header = *(int*)((char*)p - headerSIZE);
+  switch(headerType(header)) {
+  case realTYPE:
+      break;
+  case padTYPE:
+      *object_io = (mps_addr_t)((char*)p + headerPadSize(header));
+      return MPS_RES_OK;
+  default:
+      notreached();
+      break;
   }
 
   h = (mps_word_t)p[0];         /* load the header word */
@@ -458,18 +460,20 @@ static mps_addr_t dylan_skip(mps_addr_t object)
   mps_word_t vt;        /* total vector length */
   unsigned vb;          /* vector bias */
   unsigned es;          /* variable part element size (log2 of bits) */
-  int* header;
+  int header;
 
   p = (mps_addr_t *)object;
   assert(p != NULL);
 
-  header = (int*)((char*)object - headerSIZE);
-  if (*header != realTYPE) {
-    switch (*header) {
-    case pad1TYPE: return (mps_addr_t)((char*)object + 4); break;
-    case pad2TYPE: return (mps_addr_t)((char*)object + 8); break;
-    default: assert(0 == 1); break;
-    }
+  header = *(int*)((char*)object - headerSIZE);
+  switch(headerType(header)) {
+  case realTYPE:
+      break;
+  case padTYPE:
+      return (mps_addr_t)((char*)object + headerPadSize(header));
+  default:
+      notreached();
+      break;
   }
 
   h = (mps_word_t)p[0];         /* load the header word */
@@ -519,12 +523,11 @@ static mps_addr_t dylan_skip(mps_addr_t object)
 static mps_addr_t dylan_isfwd(mps_addr_t object)
 {
   mps_word_t h, tag;
-  int *header;
+  int header;
 
-  header = (int*)((char*)object - headerSIZE);
-  if (*header != realTYPE) {
+  header = *(int*)((char*)object - headerSIZE);
+  if (headerType(header) != realTYPE)
     return NULL;
-  }
 
   h = *(mps_word_t *)object;
   tag = h & 3;
@@ -556,22 +559,7 @@ static void dylan_fwd(mps_addr_t old, mps_addr_t new)
 
 static void dylan_pad(mps_addr_t addr, size_t fullSize)
 {
-  mps_word_t *p;
-  size_t size;
-
-  p = (mps_word_t *)AddHeader(addr);
-  size = fullSize - headerSIZE;
-  if (fullSize <= headerSIZE) {
-    *(int*)addr = (fullSize == 4) ? pad1TYPE : pad2TYPE;
-  } else {
-    *(int*)addr = realTYPE;
-    if(size == sizeof(mps_word_t))        /* single-word object? */
-      p[0] = 1;
-    else {
-      p[0] = 2;
-      p[1] = (mps_word_t)AddHeader((char *)addr + fullSize);
-    }
-  }
+  *(int*)addr = padHeader(fullSize);
 }
 
 
