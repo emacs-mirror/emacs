@@ -114,7 +114,6 @@
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
-	     (track-mouse mouse boolean)
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (sexp :tag "on"
