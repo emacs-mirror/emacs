@@ -6729,8 +6729,7 @@ opendir (const char *dirname)
 int
 closedir (DIR *dp)
 {
-  free (dp);
-
+  xfree (dp);
   return 0;
 }
 
