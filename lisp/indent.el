@@ -253,7 +253,12 @@ Use \\[edit-tab-stops] to edit them interactively."
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
     (if tabs
-	(move-to-column (car tabs) t))))
+	(progn
+	  (if (eq last-command 'move-to-tab-stop)
+	      (let ((opoint (point)))
+		(skip-chars-backward " \t")
+		(delete-region (point) opoint)))
+	  (move-to-column (car tabs) t)))))
 
 (define-key global-map "\t" 'indent-for-tab-command)
 (define-key esc-map "\034" 'indent-region)
