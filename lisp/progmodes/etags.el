@@ -158,7 +158,9 @@ Example value:
     (\"Common Lisp\" common-lisp-hyperspec common-lisp-hyperspec-obarray)
     (\"SCWM\" scwm-documentation scwm-obarray))"
   :group 'etags
-  :type 'list
+  :type '(repeat (list (string :tag "Title")
+		       function
+		       (sexp :tag "Tags to search")))
   :version "21.1")
 
 (defvar find-tag-marker-ring (make-ring find-tag-marker-ring-length)
