@@ -710,230 +710,231 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
   ;;  (define-key dired-mode-map "\C-d" 'dired-flag-file-deletion)
 
-  (setq dired-mode-map (make-keymap))
-  (suppress-keymap dired-mode-map)
-  (define-key dired-mode-map [mouse-2] 'dired-mouse-find-file-other-window)
-  ;; Commands to mark or flag certain categories of files
-  (define-key dired-mode-map "#" 'dired-flag-auto-save-files)
-  (define-key dired-mode-map "*" 'dired-mark-executables)
-  (define-key dired-mode-map "." 'dired-clean-directory)
-  (define-key dired-mode-map "/" 'dired-mark-directories)
-  (define-key dired-mode-map "@" 'dired-mark-symlinks)
-  (define-key dired-mode-map "~" 'dired-flag-backup-files)
-  ;; Upper case keys (except !) for operating on the marked files
-  (define-key dired-mode-map "A" 'dired-do-search)
-  (define-key dired-mode-map "C" 'dired-do-copy)
-  (define-key dired-mode-map "B" 'dired-do-byte-compile)
-  (define-key dired-mode-map "D" 'dired-do-delete)
-  (define-key dired-mode-map "G" 'dired-do-chgrp)
-  (define-key dired-mode-map "H" 'dired-do-hardlink)
-  (define-key dired-mode-map "L" 'dired-do-load)
-  (define-key dired-mode-map "M" 'dired-do-chmod)
-  (define-key dired-mode-map "O" 'dired-do-chown)
-  (define-key dired-mode-map "P" 'dired-do-print)
-  (define-key dired-mode-map "Q" 'dired-do-query-replace)
-  (define-key dired-mode-map "R" 'dired-do-rename)
-  (define-key dired-mode-map "S" 'dired-do-symlink)
-  (define-key dired-mode-map "X" 'dired-do-shell-command)
-  (define-key dired-mode-map "Z" 'dired-do-compress)
-  (define-key dired-mode-map "!" 'dired-do-shell-command)
-  ;; Comparison commands
-  (define-key dired-mode-map "=" 'dired-diff)
-  (define-key dired-mode-map "\M-=" 'dired-backup-diff)
-  ;; Tree Dired commands
-  (define-key dired-mode-map "\M-\C-?" 'dired-unmark-all-files)
-  (define-key dired-mode-map "\M-\C-d" 'dired-tree-down)
-  (define-key dired-mode-map "\M-\C-u" 'dired-tree-up)
-  (define-key dired-mode-map "\M-\C-n" 'dired-next-subdir)
-  (define-key dired-mode-map "\M-\C-p" 'dired-prev-subdir)
-  ;; move to marked files
-  (define-key dired-mode-map "\M-{" 'dired-prev-marked-file)
-  (define-key dired-mode-map "\M-}" 'dired-next-marked-file)
-  ;; Make all regexp commands share a `%' prefix:
-  ;; We used to get to the submap via a symbol dired-regexp-prefix,
-  ;; but that seems to serve little purpose, and copy-keymap
-  ;; does a better job without it.
-  (define-key dired-mode-map "%" nil)
-  (define-key dired-mode-map "%u" 'dired-upcase)
-  (define-key dired-mode-map "%l" 'dired-downcase)
-  (define-key dired-mode-map "%d" 'dired-flag-files-regexp)
-  (define-key dired-mode-map "%m" 'dired-mark-files-regexp)
-  (define-key dired-mode-map "%r" 'dired-do-rename-regexp)
-  (define-key dired-mode-map "%C" 'dired-do-copy-regexp)
-  (define-key dired-mode-map "%H" 'dired-do-hardlink-regexp)
-  (define-key dired-mode-map "%R" 'dired-do-rename-regexp)
-  (define-key dired-mode-map "%S" 'dired-do-symlink-regexp)
-  ;; Lower keys for commands not operating on all the marked files
-  (define-key dired-mode-map "c" 'dired-change-marks)
-  (define-key dired-mode-map "d" 'dired-flag-file-deletion)
-  (define-key dired-mode-map "e" 'dired-find-file)
-  (define-key dired-mode-map "f" 'dired-find-file)
-  (define-key dired-mode-map "\C-m" 'dired-advertised-find-file)
-  (define-key dired-mode-map "g" 'revert-buffer)
-  (define-key dired-mode-map "h" 'describe-mode)
-  (define-key dired-mode-map "i" 'dired-maybe-insert-subdir)
-  (define-key dired-mode-map "k" 'dired-do-kill-lines)
-  (define-key dired-mode-map "l" 'dired-do-redisplay)
-  (define-key dired-mode-map "m" 'dired-mark)
-  (define-key dired-mode-map "n" 'dired-next-line)
-  (define-key dired-mode-map "o" 'dired-find-file-other-window)
-  (define-key dired-mode-map "\C-o" 'dired-display-file)
-  (define-key dired-mode-map "p" 'dired-previous-line)
-  (define-key dired-mode-map "q" 'dired-quit)
-  (define-key dired-mode-map "s" 'dired-sort-toggle-or-edit)
-  (define-key dired-mode-map "u" 'dired-unmark)
-  (define-key dired-mode-map "v" 'dired-view-file)
-  (define-key dired-mode-map "x" 'dired-do-flagged-delete)
-  (define-key dired-mode-map "+" 'dired-create-directory)
-  ;; moving
-  (define-key dired-mode-map "<" 'dired-prev-dirline)
-  (define-key dired-mode-map ">" 'dired-next-dirline)
-  (define-key dired-mode-map "^" 'dired-up-directory)
-  (define-key dired-mode-map " "  'dired-next-line)
-  (define-key dired-mode-map "\C-n" 'dired-next-line)
-  (define-key dired-mode-map "\C-p" 'dired-previous-line)
-  (define-key dired-mode-map [down] 'dired-next-line)
-  (define-key dired-mode-map [up] 'dired-previous-line)
-  ;; hiding
-  (define-key dired-mode-map "$" 'dired-hide-subdir)
-  (define-key dired-mode-map "\M-$" 'dired-hide-all)
-  ;; misc
-  (define-key dired-mode-map "?" 'dired-summary)
-  (define-key dired-mode-map "\177" 'dired-unmark-backward)
-  (define-key dired-mode-map "\C-_" 'dired-undo)
-  (define-key dired-mode-map "\C-xu" 'dired-undo)
-  )
-
-;; Make menu bar items.
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map [mouse-2] 'dired-mouse-find-file-other-window)
+    ;; Commands to mark or flag certain categories of files
+    (define-key map "#" 'dired-flag-auto-save-files)
+    (define-key map "*" 'dired-mark-executables)
+    (define-key map "." 'dired-clean-directory)
+    (define-key map "/" 'dired-mark-directories)
+    (define-key map "@" 'dired-mark-symlinks)
+    (define-key map "~" 'dired-flag-backup-files)
+    ;; Upper case keys (except !) for operating on the marked files
+    (define-key map "A" 'dired-do-search)
+    (define-key map "C" 'dired-do-copy)
+    (define-key map "B" 'dired-do-byte-compile)
+    (define-key map "D" 'dired-do-delete)
+    (define-key map "G" 'dired-do-chgrp)
+    (define-key map "H" 'dired-do-hardlink)
+    (define-key map "L" 'dired-do-load)
+    (define-key map "M" 'dired-do-chmod)
+    (define-key map "O" 'dired-do-chown)
+    (define-key map "P" 'dired-do-print)
+    (define-key map "Q" 'dired-do-query-replace)
+    (define-key map "R" 'dired-do-rename)
+    (define-key map "S" 'dired-do-symlink)
+    (define-key map "X" 'dired-do-shell-command)
+    (define-key map "Z" 'dired-do-compress)
+    (define-key map "!" 'dired-do-shell-command)
+    ;; Comparison commands
+    (define-key map "=" 'dired-diff)
+    (define-key map "\M-=" 'dired-backup-diff)
+    ;; Tree Dired commands
+    (define-key map "\M-\C-?" 'dired-unmark-all-files)
+    (define-key map "\M-\C-d" 'dired-tree-down)
+    (define-key map "\M-\C-u" 'dired-tree-up)
+    (define-key map "\M-\C-n" 'dired-next-subdir)
+    (define-key map "\M-\C-p" 'dired-prev-subdir)
+    ;; move to marked files
+    (define-key map "\M-{" 'dired-prev-marked-file)
+    (define-key map "\M-}" 'dired-next-marked-file)
+    ;; Make all regexp commands share a `%' prefix:
+    ;; We used to get to the submap via a symbol dired-regexp-prefix,
+    ;; but that seems to serve little purpose, and copy-keymap
+    ;; does a better job without it.
+    (define-key map "%" nil)
+    (define-key map "%u" 'dired-upcase)
+    (define-key map "%l" 'dired-downcase)
+    (define-key map "%d" 'dired-flag-files-regexp)
+    (define-key map "%m" 'dired-mark-files-regexp)
+    (define-key map "%r" 'dired-do-rename-regexp)
+    (define-key map "%C" 'dired-do-copy-regexp)
+    (define-key map "%H" 'dired-do-hardlink-regexp)
+    (define-key map "%R" 'dired-do-rename-regexp)
+    (define-key map "%S" 'dired-do-symlink-regexp)
+    ;; Lower keys for commands not operating on all the marked files
+    (define-key map "c" 'dired-change-marks)
+    (define-key map "d" 'dired-flag-file-deletion)
+    (define-key map "e" 'dired-find-file)
+    (define-key map "f" 'dired-find-file)
+    (define-key map "\C-m" 'dired-advertised-find-file)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "h" 'describe-mode)
+    (define-key map "i" 'dired-maybe-insert-subdir)
+    (define-key map "k" 'dired-do-kill-lines)
+    (define-key map "l" 'dired-do-redisplay)
+    (define-key map "m" 'dired-mark)
+    (define-key map "n" 'dired-next-line)
+    (define-key map "o" 'dired-find-file-other-window)
+    (define-key map "\C-o" 'dired-display-file)
+    (define-key map "p" 'dired-previous-line)
+    (define-key map "q" 'dired-quit)
+    (define-key map "s" 'dired-sort-toggle-or-edit)
+    (define-key map "u" 'dired-unmark)
+    (define-key map "v" 'dired-view-file)
+    (define-key map "x" 'dired-do-flagged-delete)
+    (define-key map "+" 'dired-create-directory)
+    ;; moving
+    (define-key map "<" 'dired-prev-dirline)
+    (define-key map ">" 'dired-next-dirline)
+    (define-key map "^" 'dired-up-directory)
+    (define-key map " "  'dired-next-line)
+    (define-key map "\C-n" 'dired-next-line)
+    (define-key map "\C-p" 'dired-previous-line)
+    (define-key map [down] 'dired-next-line)
+    (define-key map [up] 'dired-previous-line)
+    ;; hiding
+    (define-key map "$" 'dired-hide-subdir)
+    (define-key map "\M-$" 'dired-hide-all)
+    ;; misc
+    (define-key map "?" 'dired-summary)
+    (define-key map "\177" 'dired-unmark-backward)
+    (define-key map "\C-_" 'dired-undo)
+    (define-key map "\C-xu" 'dired-undo)
 
-;; Get rid of the Edit menu bar item to save space.
-(define-key dired-mode-map [menu-bar edit] 'undefined)
+    ;; Make menu bar items.
 
-(define-key dired-mode-map [menu-bar subdir]
-  (cons "Subdir" (make-sparse-keymap "Subdir")))
+    ;; Get rid of the Edit menu bar item to save space.
+    (define-key map [menu-bar edit] 'undefined)
 
-(define-key dired-mode-map [menu-bar subdir hide-all]
-  '("Hide All" . dired-hide-all))
-(define-key dired-mode-map [menu-bar subdir hide-subdir]
-  '("Hide Subdir" . dired-hide-subdir))
-(define-key dired-mode-map [menu-bar subdir tree-down]
-  '("Tree Down" . dired-tree-down))
-(define-key dired-mode-map [menu-bar subdir tree-up]
-  '("Tree Up" . dired-tree-up))
-(define-key dired-mode-map [menu-bar subdir up]
-  '("Up Directory" . dired-up-directory))
-(define-key dired-mode-map [menu-bar subdir prev-subdir]
-  '("Prev Subdir" . dired-prev-subdir))
-(define-key dired-mode-map [menu-bar subdir next-subdir]
-  '("Next Subdir" . dired-next-subdir))
-(define-key dired-mode-map [menu-bar subdir prev-dirline]
-  '("Prev Dirline" . dired-prev-dirline))
-(define-key dired-mode-map [menu-bar subdir next-dirline]
-  '("Next Dirline" . dired-next-dirline))
-(define-key dired-mode-map [menu-bar subdir insert]
-  '("Insert This Subdir" . dired-maybe-insert-subdir))
+    (define-key map [menu-bar subdir]
+      (cons "Subdir" (make-sparse-keymap "Subdir")))
 
-(define-key dired-mode-map [menu-bar immediate]
-  (cons "Immediate" (make-sparse-keymap "Immediate")))
+    (define-key map [menu-bar subdir hide-all]
+      '("Hide All" . dired-hide-all))
+    (define-key map [menu-bar subdir hide-subdir]
+      '("Hide Subdir" . dired-hide-subdir))
+    (define-key map [menu-bar subdir tree-down]
+      '("Tree Down" . dired-tree-down))
+    (define-key map [menu-bar subdir tree-up]
+      '("Tree Up" . dired-tree-up))
+    (define-key map [menu-bar subdir up]
+      '("Up Directory" . dired-up-directory))
+    (define-key map [menu-bar subdir prev-subdir]
+      '("Prev Subdir" . dired-prev-subdir))
+    (define-key map [menu-bar subdir next-subdir]
+      '("Next Subdir" . dired-next-subdir))
+    (define-key map [menu-bar subdir prev-dirline]
+      '("Prev Dirline" . dired-prev-dirline))
+    (define-key map [menu-bar subdir next-dirline]
+      '("Next Dirline" . dired-next-dirline))
+    (define-key map [menu-bar subdir insert]
+      '("Insert This Subdir" . dired-maybe-insert-subdir))
 
-(define-key dired-mode-map [menu-bar immediate backup-diff]
-  '("Compare with Backup" . dired-backup-diff))
-(define-key dired-mode-map [menu-bar immediate diff]
-  '("Diff" . dired-diff))
-(define-key dired-mode-map [menu-bar immediate view]
-  '("View This File" . dired-view-file))
-(define-key dired-mode-map [menu-bar immediate display]
-  '("Display in Other Window" . dired-display-file))
-(define-key dired-mode-map [menu-bar immediate find-file-other-window]
-  '("Find in Other Window" . dired-find-file-other-window))
-(define-key dired-mode-map [menu-bar immediate find-file]
-  '("Find This File" . dired-find-file))
-(define-key dired-mode-map [menu-bar immediate create-directory]
-  '("Create Directory..." . dired-create-directory))
+    (define-key map [menu-bar immediate]
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
 
-(define-key dired-mode-map [menu-bar regexp]
-  (cons "Regexp" (make-sparse-keymap "Regexp")))
+    (define-key map [menu-bar immediate backup-diff]
+      '("Compare with Backup" . dired-backup-diff))
+    (define-key map [menu-bar immediate diff]
+      '("Diff" . dired-diff))
+    (define-key map [menu-bar immediate view]
+      '("View This File" . dired-view-file))
+    (define-key map [menu-bar immediate display]
+      '("Display in Other Window" . dired-display-file))
+    (define-key map [menu-bar immediate find-file-other-window]
+      '("Find in Other Window" . dired-find-file-other-window))
+    (define-key map [menu-bar immediate find-file]
+      '("Find This File" . dired-find-file))
+    (define-key map [menu-bar immediate create-directory]
+      '("Create Directory..." . dired-create-directory))
 
-(define-key dired-mode-map [menu-bar regexp downcase]
-  '("Downcase" . dired-downcase))
-(define-key dired-mode-map [menu-bar regexp upcase]
-  '("Upcase" . dired-upcase))
-(define-key dired-mode-map [menu-bar regexp hardlink]
-  '("Hardlink..." . dired-do-hardlink-regexp))
-(define-key dired-mode-map [menu-bar regexp symlink]
-  '("Symlink..." . dired-do-symlink-regexp))
-(define-key dired-mode-map [menu-bar regexp rename]
-  '("Rename..." . dired-do-rename-regexp))
-(define-key dired-mode-map [menu-bar regexp copy]
-  '("Copy..." . dired-do-copy-regexp))
-(define-key dired-mode-map [menu-bar regexp flag]
-  '("Flag..." . dired-flag-files-regexp))
-(define-key dired-mode-map [menu-bar regexp mark]
-  '("Mark..." . dired-mark-files-regexp))
+    (define-key map [menu-bar regexp]
+      (cons "Regexp" (make-sparse-keymap "Regexp")))
 
-(define-key dired-mode-map [menu-bar mark]
-  (cons "Mark" (make-sparse-keymap "Mark")))
+    (define-key map [menu-bar regexp downcase]
+      '("Downcase" . dired-downcase))
+    (define-key map [menu-bar regexp upcase]
+      '("Upcase" . dired-upcase))
+    (define-key map [menu-bar regexp hardlink]
+      '("Hardlink..." . dired-do-hardlink-regexp))
+    (define-key map [menu-bar regexp symlink]
+      '("Symlink..." . dired-do-symlink-regexp))
+    (define-key map [menu-bar regexp rename]
+      '("Rename..." . dired-do-rename-regexp))
+    (define-key map [menu-bar regexp copy]
+      '("Copy..." . dired-do-copy-regexp))
+    (define-key map [menu-bar regexp flag]
+      '("Flag..." . dired-flag-files-regexp))
+    (define-key map [menu-bar regexp mark]
+      '("Mark..." . dired-mark-files-regexp))
 
-(define-key dired-mode-map [menu-bar mark prev]
-  '("Previous Marked" . dired-prev-marked-file))
-(define-key dired-mode-map [menu-bar mark next]
-  '("Next Marked" . dired-next-marked-file))
-(define-key dired-mode-map [menu-bar mark marks]
-  '("Change Marks..." . dired-change-marks))
-(define-key dired-mode-map [menu-bar mark unmark-all]
-  '("Unmark All" . dired-unmark-all-files-no-query))
-(define-key dired-mode-map [menu-bar mark symlinks]
-  '("Mark Symlinks" . dired-mark-symlinks))
-(define-key dired-mode-map [menu-bar mark directories]
-  '("Mark Directories" . dired-mark-directories))
-(define-key dired-mode-map [menu-bar mark directory]
-  '("Mark Old Backups" . dired-clean-directory))
-(define-key dired-mode-map [menu-bar mark executables]
-  '("Mark Executables" . dired-mark-executables))
-(define-key dired-mode-map [menu-bar mark backup-files]
-  '("Flag Backup Files" . dired-flag-backup-files))
-(define-key dired-mode-map [menu-bar mark auto-save-files]
-  '("Flag Auto-save Files" . dired-flag-auto-save-files))
-(define-key dired-mode-map [menu-bar mark deletion]
-  '("Flag" . dired-flag-file-deletion))
-(define-key dired-mode-map [menu-bar mark unmark]
-  '("Unmark" . dired-unmark))
-(define-key dired-mode-map [menu-bar mark mark]
-  '("Mark" . dired-mark))
+    (define-key map [menu-bar mark]
+      (cons "Mark" (make-sparse-keymap "Mark")))
 
-(define-key dired-mode-map [menu-bar operate]
-  (cons "Operate" (make-sparse-keymap "Operate")))
+    (define-key map [menu-bar mark prev]
+      '("Previous Marked" . dired-prev-marked-file))
+    (define-key map [menu-bar mark next]
+      '("Next Marked" . dired-next-marked-file))
+    (define-key map [menu-bar mark marks]
+      '("Change Marks..." . dired-change-marks))
+    (define-key map [menu-bar mark unmark-all]
+      '("Unmark All" . dired-unmark-all-files-no-query))
+    (define-key map [menu-bar mark symlinks]
+      '("Mark Symlinks" . dired-mark-symlinks))
+    (define-key map [menu-bar mark directories]
+      '("Mark Directories" . dired-mark-directories))
+    (define-key map [menu-bar mark directory]
+      '("Mark Old Backups" . dired-clean-directory))
+    (define-key map [menu-bar mark executables]
+      '("Mark Executables" . dired-mark-executables))
+    (define-key map [menu-bar mark backup-files]
+      '("Flag Backup Files" . dired-flag-backup-files))
+    (define-key map [menu-bar mark auto-save-files]
+      '("Flag Auto-save Files" . dired-flag-auto-save-files))
+    (define-key map [menu-bar mark deletion]
+      '("Flag" . dired-flag-file-deletion))
+    (define-key map [menu-bar mark unmark]
+      '("Unmark" . dired-unmark))
+    (define-key map [menu-bar mark mark]
+      '("Mark" . dired-mark))
 
-(define-key dired-mode-map [menu-bar operate query-replace]
-  '("Query Replace in Files..." . dired-do-query-replace))
-(define-key dired-mode-map [menu-bar operate search]
-  '("Search Files..." . dired-do-search))
-(define-key dired-mode-map [menu-bar operate chown]
-  '("Change Owner..." . dired-do-chown))
-(define-key dired-mode-map [menu-bar operate chgrp]
-  '("Change Group..." . dired-do-chgrp))
-(define-key dired-mode-map [menu-bar operate chmod]
-  '("Change Mode..." . dired-do-chmod))
-(define-key dired-mode-map [menu-bar operate load]
-  '("Load" . dired-do-load))
-(define-key dired-mode-map [menu-bar operate compile]
-  '("Byte-compile" . dired-do-byte-compile))
-(define-key dired-mode-map [menu-bar operate compress]
-  '("Compress" . dired-do-compress))
-(define-key dired-mode-map [menu-bar operate print]
-  '("Print" . dired-do-print))
-(define-key dired-mode-map [menu-bar operate hardlink]
-  '("Hardlink to..." . dired-do-hardlink))
-(define-key dired-mode-map [menu-bar operate symlink]
-  '("Symlink to..." . dired-do-symlink))
-(define-key dired-mode-map [menu-bar operate command]
-  '("Shell Command..." . dired-do-shell-command))
-(define-key dired-mode-map [menu-bar operate delete]
-  '("Delete" . dired-do-delete))
-(define-key dired-mode-map [menu-bar operate rename]
-  '("Rename to..." . dired-do-rename))
-(define-key dired-mode-map [menu-bar operate copy]
-  '("Copy to..." . dired-do-copy))
+    (define-key map [menu-bar operate]
+      (cons "Operate" (make-sparse-keymap "Operate")))
+
+    (define-key map [menu-bar operate query-replace]
+      '("Query Replace in Files..." . dired-do-query-replace))
+    (define-key map [menu-bar operate search]
+      '("Search Files..." . dired-do-search))
+    (define-key map [menu-bar operate chown]
+      '("Change Owner..." . dired-do-chown))
+    (define-key map [menu-bar operate chgrp]
+      '("Change Group..." . dired-do-chgrp))
+    (define-key map [menu-bar operate chmod]
+      '("Change Mode..." . dired-do-chmod))
+    (define-key map [menu-bar operate load]
+      '("Load" . dired-do-load))
+    (define-key map [menu-bar operate compile]
+      '("Byte-compile" . dired-do-byte-compile))
+    (define-key map [menu-bar operate compress]
+      '("Compress" . dired-do-compress))
+    (define-key map [menu-bar operate print]
+      '("Print" . dired-do-print))
+    (define-key map [menu-bar operate hardlink]
+      '("Hardlink to..." . dired-do-hardlink))
+    (define-key map [menu-bar operate symlink]
+      '("Symlink to..." . dired-do-symlink))
+    (define-key map [menu-bar operate command]
+      '("Shell Command..." . dired-do-shell-command))
+    (define-key map [menu-bar operate delete]
+      '("Delete" . dired-do-delete))
+    (define-key map [menu-bar operate rename]
+      '("Rename to..." . dired-do-rename))
+    (define-key map [menu-bar operate copy]
+      '("Copy to..." . dired-do-copy))
+
+    (setq dired-mode-map map)))
 
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
