@@ -583,7 +583,8 @@ loaded, by calling @code{eval-after-load}.
 
 @defun eval-after-load library form
 This function arranges to evaluate @var{form} at the end of loading the
-library @var{library}, if and when @var{library} is loaded.
+library @var{library}, if and when @var{library} is loaded.  If
+@var{library} is already loaded, it evaluates @var{form} right away.
 
 The library name @var{library} must exactly match the argument of
 @code{load}.  To get the proper results when an installed library is
@@ -593,6 +594,18 @@ directory names in @var{library}.
 An error in @var{form} does not undo the load, but does prevent
 execution of the rest of @var{form}.
 @end defun
+
+In general, well-designed Lisp programs should not use this feature.
+The clean and modular ways to interact with a Lisp library are (1)
+examine and set the library's variables (those which are meant for
+outside use), and and (2) call the library's functions.  If you wish to
+do (1), you can do it immediately---there is no need to wait for when
+the library is loaded.  To do (2), you must load the library (preferably
+with @code{require}).
+
+But it is to use @code{eval-after-load} in your personal customizations
+if you don't feel they must meet the design standards of programs to be
+released.
 
 @defvar after-load-alist
 An alist of expressions to evaluate if and when particular libraries are
