@@ -603,7 +603,7 @@ If POS is out of range, the value is nil.")
   if (NILP (pos))
     {
       pos_byte = PT_BYTE;
-      pos = PT;
+      XSETFASTINT (pos, PT);
     }
 
   if (MARKERP (pos))
@@ -637,7 +637,7 @@ If POS is out of range, the value is nil.")
   if (NILP (pos))
     {
       pos_byte = PT_BYTE;
-      pos = PT;
+      XSETFASTINT (pos, PT);
     }
 
   if (MARKERP (pos))
