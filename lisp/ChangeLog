@@ -1,3 +1,7 @@
+2002-07-18  Dave Love  <fx@gnu.org>
+
+	* info-look.el: Support current auto{conf,make} manuals.
+
 2002-07-18  Juanma Barranquero  <lektu@terra.es>
 
 	* bindings.el (last-buffer): Add missing frame argument.
@@ -585,21 +589,6 @@
 	* faces.el (header-line): Don't use a `common' clause for
 	inheriting from the mode-line face, since we can't override it,
 	and we don't want it for ttys.
-
-2002-07-02  Dave Love  <fx@gnu.org>
-
-	* international/characters.el: Fix general punctuation cases.
-	Remove $,1uf(B case.
-
-	* international/ccl.el (ccl-command-table): Add lookup-character,
-	lookup-integer.
-	(ccl-extended-code-table): Add lookup-int-const-tbl,
-	lookup-char-const-tbl.
-	(ccl-compile-lookup-integer, ccl-compile-lookup-character): New
-	function.
-
-	* international/mule.el (define-translation-hash-table): New
-	function.
 
 2002-07-02  Richard M. Stallman  <rms@gnu.org>
 
