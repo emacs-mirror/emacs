@@ -422,18 +422,14 @@ The return value is @var{window}.
 @end defun
 
 @defmac save-selected-window forms@dots{}
-This macro records the selected window, executes @var{forms}
-in sequence, then restores the earlier selected window (unless that
-window is no longer alive).
+This macro records the selected window of eac frame, executes
+@var{forms} in sequence, then restores the earlier selected windows.
 
-This macro does not save or restore anything about the sizes, arrangement
-or contents of windows; therefore, if the @var{forms} change them,
-the change persists.
-
-Each frame, at any time, has a window selected within the frame.  This
-macro saves only @emph{the} selected window; it does not save anything
-about other frames.  If the @var{forms} select some other frame and
-alter the window selected within it, the change persists.
+This macro does not save or restore anything about the sizes,
+arrangement or contents of windows; therefore, if the @var{forms}
+change them, the change persists.  If the previously selected window
+of some frame is no longer live at the time of exit from this form,
+that frame's selected window is left alone.
 @end defmac
 
 @defmac with-selected-window window forms@dots{}
@@ -2083,7 +2079,7 @@ that is visible.  It also includes the choice of selected window.
 However, it does not include the value of point in the current buffer;
 use @code{save-excursion} also, if you wish to preserve that.
 
-Don't use this construct when @code{save-selected-window} is all you need.
+Don't use this construct when @code{save-selected-window} is sufficient.
 
 Exit from @code{save-window-excursion} always triggers execution of the
 @code{window-size-change-functions}.  (It doesn't know how to tell
