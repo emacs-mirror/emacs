@@ -775,6 +775,7 @@ See also the function `select-message-coding-system'.")
 	(case-fold-search nil)
 	(coding (and (local-variable-p 'buffer-file-coding-system)
 		     buffer-file-coding-system))
+	selected-coding
 	resend-to-addresses
 	delimline
 	fcc-was-found
@@ -902,22 +903,15 @@ See also the function `select-message-coding-system'.")
 			 nil)
 			(t (error "Invalid value for `mail-from-style'")))))
 	    ;; Possibly add a MIME header for the current coding system
-	    (let (coding-system
-		  charset)
+	    (let (charset)
 	      (goto-char (point-min))
 	      (and (eq mail-send-nonascii 'mime)
 		   (not (re-search-forward "^MIME-version:" delimline t))
 		   (progn (skip-chars-forward "\0-\177")
 			  (/= (point) (point-max)))
-		   (setq coding-system (select-message-coding-system))
-		   ;; Set buffer-file-coding-system to the selected
-		   ;; one.  This prevent the later call of
-		   ;; select-message-coding-system asking a user
-		   ;; again.
-		   (prog1 t
-		     (set-buffer-file-coding-system coding-system))
+		   (setq selected-coding (select-message-coding-system))
 		   (setq charset
-			 (coding-system-get coding-system 'mime-charset))
+			 (coding-system-get selected-coding 'mime-charset))
 		   (goto-char delimline)
 		   (insert "MIME-version: 1.0\n"
 			   "Content-type: text/plain; charset="
@@ -944,7 +938,9 @@ See also the function `select-message-coding-system'.")
 \\|^resent-cc:\\|^resent-bcc:"
 				   delimline t))
 	      (let* ((default-directory "/")
-		     (coding-system-for-write (select-message-coding-system))
+		     (coding-system-for-write
+		      (or selected-coding
+			  (select-message-coding-system)))
 		     (args 
 		      (append (list (point-min) (point-max)
 				    (if (boundp 'sendmail-program)
