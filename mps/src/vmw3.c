@@ -1,6 +1,6 @@
 /*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.13) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.14) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -52,7 +52,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.13) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.14) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -147,15 +147,15 @@ void VMDestroy(Space space)
   AVER(vm->mapped == 0);
 
   /* This appears to be pretty pointless, since the vm descriptor page
-   * is about to vanish completely.  However, the VirtaulFree might
+   * is about to vanish completely.  However, the VirtualFree might
    * fail and it would be nice to have a dead sig there. */
   vm->sig = SigInvalid;
 
   b = VirtualFree((LPVOID)vm->base, (DWORD)0, MEM_RELEASE);
-  AVER(b == TRUE);
+  AVER(b != 0);
 
   b = VirtualFree((LPVOID)space, (DWORD)0, MEM_RELEASE);
-  AVER(b == TRUE);
+  AVER(b != 0);
 }
 
 
@@ -237,6 +237,6 @@ void VMUnmap(Space space, Addr base, Addr limit)
    * to unmap are mapped using VirtualQuery. */
 
   b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit), MEM_DECOMMIT);
-  AVER(b == TRUE);  /* .assume.free.success */
+  AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 }
