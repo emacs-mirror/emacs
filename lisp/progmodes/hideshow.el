@@ -555,9 +555,10 @@ Return point, or nil if top-level."
 
 (defmacro hs-life-goes-on (&rest body)
   "Executes optional BODY iff variable `hs-minor-mode' is non-nil."
-  (` (let ((inhibit-point-motion-hooks t))
-       (when hs-minor-mode 
-	   (,@ body)))))
+  `(let ((inhibit-point-motion-hooks t))
+     (when hs-minor-mode 
+       ,@body)))
+
 
 (put 'hs-life-goes-on 'edebug-form-spec '(&rest form))
 
