@@ -24,9 +24,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef standalone
 #include "buffer.h"
 #include "window.h"
-#ifdef MULTI_SCREEN
-#include "screen.h"
-#endif	/* MULTI_SCREEN */
+#ifdef MULTI_FRAME
+#include "frame.h"
+#endif	/* MULTI_FRAME */
 #endif
 
 #include "syssignal.h"
@@ -68,9 +68,9 @@ extern
 #endif /* VIRT_ADDR_VARIES */
  int malloc_sbrk_unused;
 
-/* Two thresholds controlling how much undo information to keep.  */
-int undo_threshold;
-int undo_high_threshold;
+/* Two limits controlling how much undo information to keep.  */
+int undo_limit;
+int undo_strong_limit;
 
 /* Non-nil means defun should do purecopy on the function definition */
 Lisp_Object Vpurify_flag;
@@ -1090,8 +1090,8 @@ Garbage collection happens automatically if you cons more than\n\
 	   So don't call truncate_undo_list if undo_list is Qt.  */
 	if (! EQ (nextb->undo_list, Qt))
 	  nextb->undo_list 
-	    = truncate_undo_list (nextb->undo_list, undo_threshold,
-				  undo_high_threshold);
+	    = truncate_undo_list (nextb->undo_list, undo_limit,
+				  undo_strong_limit);
 	nextb = nextb->next;
       }
   }
@@ -1344,10 +1344,10 @@ mark_object (objptr)
       }
       break;
 
-#ifdef MULTI_SCREEN
-    case Lisp_Screen:
+#ifdef MULTI_FRAME
+    case Lisp_Frame:
       {
-	register struct screen *ptr = XSCREEN (obj);
+	register struct frame *ptr = XFRAME (obj);
 	register int size = ptr->size;
 	register int i;
 
@@ -1355,7 +1355,7 @@ mark_object (objptr)
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 
 	mark_object (&ptr->name);
-	mark_object (&ptr->focus_screen);
+	mark_object (&ptr->focus_frame);
 	mark_object (&ptr->width);
 	mark_object (&ptr->height);
 	mark_object (&ptr->selected_window);
@@ -1363,7 +1363,7 @@ mark_object (objptr)
 	mark_object (&ptr->param_alist);
       }
       break;
-#endif /* MULTI_SCREEN */
+#endif /* MULTI_FRAME */
 
 #if 0
     case Lisp_Temp_Vector:
@@ -1900,20 +1900,20 @@ prevent garbage collection during a part of the program.");
     "Non-nil means loading Lisp code in order to dump an executable.\n\
 This means that certain objects should be allocated in shared (pure) space.");
 
-  DEFVAR_INT ("undo-threshold", &undo_threshold,
+  DEFVAR_INT ("undo-limit", &undo_limit,
     "Keep no more undo information once it exceeds this size.\n\
-This threshold is applied when garbage collection happens.\n\
+This limit is applied when garbage collection happens.\n\
 The size is counted as the number of bytes occupied,\n\
 which includes both saved text and other data.");
-  undo_threshold = 20000;
+  undo_limit = 20000;
 
-  DEFVAR_INT ("undo-high-threshold", &undo_high_threshold,
+  DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
     "Don't keep more than this much size of undo information.\n\
 A command which pushes past this size is itself forgotten.\n\
-This threshold is applied when garbage collection happens.\n\
+This limit is applied when garbage collection happens.\n\
 The size is counted as the number of bytes occupied,\n\
 which includes both saved text and other data.");
-  undo_high_threshold = 30000;
+  undo_strong_limit = 30000;
 
   defsubr (&Scons);
   defsubr (&Slist);

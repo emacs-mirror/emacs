@@ -30,7 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "dispextern.h"
 #include "buffer.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "commands.h"
 #include "disptab.h"
@@ -54,9 +54,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 /* Nonzero upon entry to redisplay means do not assume anything about
-   current contents of actual terminal screen; clear and redraw it.  */
+   current contents of actual terminal frame; clear and redraw it.  */
 
-int screen_garbaged;
+int frame_garbaged;
 
 /* Nonzero means last display completed.  Zero means it was preempted. */
 
@@ -67,7 +67,7 @@ int display_completed;
 
 int visible_bell;
 
-/* Invert the color of the whole screen, at a low level.  */
+/* Invert the color of the whole frame, at a low level.  */
 
 int inverse_video;
 
@@ -101,27 +101,27 @@ Lisp_Object Vstandard_display_table;
    negative means at beginning of line.  */
 int cursor_in_echo_area;
 
-/* The currently selected screen.
-   In a single-screen version, this variable always remains 0.  */
+/* The currently selected frame.
+   In a single-frame version, this variable always remains 0.  */
 
-SCREEN_PTR selected_screen;
+FRAME_PTR selected_frame;
 
-/* A screen which is not just a minibuffer, or 0 if there are no such
-   screens.  This is usually the most recent such screen that was
-   selected.  In a single-screen version, this variable always remains 0.  */
-SCREEN_PTR last_nonminibuf_screen;
+/* A frame which is not just a minibuffer, or 0 if there are no such
+   frames.  This is usually the most recent such frame that was
+   selected.  In a single-frame version, this variable always remains 0.  */
+FRAME_PTR last_nonminibuf_frame;
 
-/* In a single-screen version, the information that would otherwise
-   exist inside screen objects lives in the following structure instead.  */
+/* In a single-frame version, the information that would otherwise
+   exist inside frame objects lives in the following structure instead.  */
 
-#ifndef MULTI_SCREEN
-struct screen the_only_screen;
+#ifndef MULTI_FRAME
+struct frame the_only_frame;
 #endif
 
 /* This is a vector, made larger whenever it isn't large enough,
-   which is used inside `update_screen' to hold the old contents
-   of the SCREEN_PHYS_LINES of the screen being updated.  */
-struct screen_glyphs **ophys_lines;
+   which is used inside `update_frame' to hold the old contents
+   of the FRAME_PHYS_LINES of the frame being updated.  */
+struct frame_glyphs **ophys_lines;
 /* Length of vector currently allocated.  */
 int ophys_lines_length;
 
@@ -135,55 +135,55 @@ int in_display;		/* 1 if in redisplay: can't handle SIGWINCH now.  */
 
 int delayed_size_change;  /* 1 means SIGWINCH happened when not safe.  */
 
-#ifdef MULTI_SCREEN
+#ifdef MULTI_FRAME
 
-DEFUN ("redraw-screen", Fredraw_screen, Sredraw_screen, 1, 1, 0,
-  "Clear screen SCREEN and output again what is supposed to appear on it.")
-  (screen)
-     Lisp_Object screen;
+DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
+  "Clear frame FRAME and output again what is supposed to appear on it.")
+  (frame)
+     Lisp_Object frame;
 {
-  SCREEN_PTR s;
+  FRAME_PTR f;
 
-  CHECK_LIVE_SCREEN (screen, 0);
-  s = XSCREEN (screen);
-  update_begin (s);
+  CHECK_LIVE_FRAME (frame, 0);
+  f = XFRAME (frame);
+  update_begin (f);
   /*  set_terminal_modes (); */
-  clear_screen ();
-  update_end (s);
+  clear_frame ();
+  update_end (f);
   fflush (stdout);
-  clear_screen_records (s);
+  clear_frame_records (f);
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
-  mark_window_display_accurate (SCREEN_ROOT_WINDOW (s), 0);
-  s->garbaged = 0;
+  mark_window_display_accurate (FRAME_ROOT_WINDOW (f), 0);
+  f->garbaged = 0;
   return Qnil;
 }
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
-  "Redraw all screens marked as having their images garbled.")
+  "Redraw all frames marked as having their images garbled.")
   ()
 {
-  Lisp_Object screen, tail;
+  Lisp_Object frame, tail;
 
-  for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      screen = XCONS (tail)->car;
-      if (XSCREEN (screen)->garbaged && XSCREEN (screen)->visible)
-	Fredraw_screen (screen);
+      frame = XCONS (tail)->car;
+      if (XFRAME (frame)->garbaged && XFRAME (frame)->visible)
+	Fredraw_frame (frame);
     }
   return Qnil;
 }
 
-redraw_screen (s)
-     SCREEN_PTR s;
+redraw_frame (f)
+     FRAME_PTR f;
 {
-  Lisp_Object screen;
-  XSET (screen, Lisp_Screen, s);
-  Fredraw_screen (screen);
+  Lisp_Object frame;
+  XSET (frame, Lisp_Frame, f);
+  Fredraw_frame (frame);
 }
 
-#else /* not MULTI_SCREEN */
+#else /* not MULTI_FRAME */
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
   "Clear screen and output again what is supposed to appear on it.")
@@ -191,10 +191,10 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
 {
   update_begin (0);
   set_terminal_modes ();
-  clear_screen ();
+  clear_frame ();
   update_end (0);
   fflush (stdout);
-  clear_screen_records (0);
+  clear_frame_records (0);
   windows_or_buffers_changed++;
   /* Mark all windows as INaccurate,
      so that every window will have its redisplay done.  */
@@ -202,20 +202,20 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, 0,
   return Qnil;
 }
 
-#endif /* not MULTI_SCREEN */
+#endif /* not MULTI_FRAME */
 
-static struct screen_glyphs *
-make_screen_glyphs (screen, empty)
-     register SCREEN_PTR screen;
+static struct frame_glyphs *
+make_frame_glyphs (frame, empty)
+     register FRAME_PTR frame;
      int empty;
 {
   register int i;
-  register width = SCREEN_WIDTH (screen);
-  register height = SCREEN_HEIGHT (screen);
-  register struct screen_glyphs *new =
-    (struct screen_glyphs *) xmalloc (sizeof (struct screen_glyphs));
+  register width = FRAME_WIDTH (frame);
+  register height = FRAME_HEIGHT (frame);
+  register struct frame_glyphs *new =
+    (struct frame_glyphs *) xmalloc (sizeof (struct frame_glyphs));
 
-  SET_GLYPHS_SCREEN (new, screen);
+  SET_GLYPHS_FRAME (new, frame);
   new->height = height;
   new->width = width;
   new->used = (int *) xmalloc (height * sizeof (int));
@@ -226,7 +226,7 @@ make_screen_glyphs (screen, empty)
   new->bufp = (int *) xmalloc (height * sizeof (int));
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (screen))
+  if (FRAME_IS_X (frame))
     {
       new->nruns = (int *) xmalloc (height * sizeof (int));
       new->face_list
@@ -241,7 +241,7 @@ make_screen_glyphs (screen, empty)
   if (empty)
     {
       /* Make the buffer used by decode_mode_spec.  This buffer is also
-         used as temporary storage when updating the screen.  See scroll.c. */
+         used as temporary storage when updating the frame.  See scroll.c. */
       unsigned int total_glyphs = (width + 2) * sizeof (GLYPH);
 
       new->total_contents = (GLYPH *) xmalloc (total_glyphs);
@@ -261,9 +261,9 @@ make_screen_glyphs (screen, empty)
 }
 
 static void
-free_screen_glyphs (screen, glyphs)
-     SCREEN_PTR screen;
-     struct screen_glyphs *glyphs;
+free_frame_glyphs (frame, glyphs)
+     FRAME_PTR frame;
+     struct frame_glyphs *glyphs;
 {
   if (glyphs->total_contents)
     free (glyphs->total_contents);
@@ -275,7 +275,7 @@ free_screen_glyphs (screen, glyphs)
   free (glyphs->bufp);
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (screen))
+  if (FRAME_IS_X (frame))
     {
       free (glyphs->nruns);
       free (glyphs->face_list);
@@ -290,35 +290,35 @@ free_screen_glyphs (screen, glyphs)
 }
 
 static void
-remake_screen_glyphs (screen)
-     SCREEN_PTR screen;
+remake_frame_glyphs (frame)
+     FRAME_PTR frame;
 {
-  if (SCREEN_CURRENT_GLYPHS (screen))
-    free_screen_glyphs (screen, SCREEN_CURRENT_GLYPHS (screen));
-  if (SCREEN_DESIRED_GLYPHS (screen))
-    free_screen_glyphs (screen, SCREEN_DESIRED_GLYPHS (screen));
-  if (SCREEN_TEMP_GLYPHS (screen))
-    free_screen_glyphs (screen, SCREEN_TEMP_GLYPHS (screen));
+  if (FRAME_CURRENT_GLYPHS (frame))
+    free_frame_glyphs (frame, FRAME_CURRENT_GLYPHS (frame));
+  if (FRAME_DESIRED_GLYPHS (frame))
+    free_frame_glyphs (frame, FRAME_DESIRED_GLYPHS (frame));
+  if (FRAME_TEMP_GLYPHS (frame))
+    free_frame_glyphs (frame, FRAME_TEMP_GLYPHS (frame));
 
-  if (SCREEN_MESSAGE_BUF (screen))
-    SCREEN_MESSAGE_BUF (screen)
-      = (char *) xrealloc (SCREEN_MESSAGE_BUF (screen),
-			   SCREEN_WIDTH (screen) + 1);
+  if (FRAME_MESSAGE_BUF (frame))
+    FRAME_MESSAGE_BUF (frame)
+      = (char *) xrealloc (FRAME_MESSAGE_BUF (frame),
+			   FRAME_WIDTH (frame) + 1);
   else
-    SCREEN_MESSAGE_BUF (screen)
-      = (char *) xmalloc (SCREEN_WIDTH (screen) + 1);
+    FRAME_MESSAGE_BUF (frame)
+      = (char *) xmalloc (FRAME_WIDTH (frame) + 1);
 
-  SCREEN_CURRENT_GLYPHS (screen) = make_screen_glyphs (screen, 0);
-  SCREEN_DESIRED_GLYPHS (screen) = make_screen_glyphs (screen, 0);
-  SCREEN_TEMP_GLYPHS (screen) = make_screen_glyphs (screen, 1);
-  SET_SCREEN_GARBAGED (screen);
+  FRAME_CURRENT_GLYPHS (frame) = make_frame_glyphs (frame, 0);
+  FRAME_DESIRED_GLYPHS (frame) = make_frame_glyphs (frame, 0);
+  FRAME_TEMP_GLYPHS (frame) = make_frame_glyphs (frame, 1);
+  SET_FRAME_GARBAGED (frame);
 }
 
-/* Return the hash code of contents of line VPOS in screen-matrix M.  */
+/* Return the hash code of contents of line VPOS in frame-matrix M.  */
 
 static int
 line_hash_code (m, vpos)
-     register struct screen_glyphs *m;
+     register struct frame_glyphs *m;
      int vpos;
 {
   register GLYPH *body, *end;
@@ -364,7 +364,7 @@ line_hash_code (m, vpos)
 
 static unsigned int
 line_draw_cost (m, vpos)
-     struct screen_glyphs *m;
+     struct frame_glyphs *m;
      int vpos;
 {
   register GLYPH *beg = m->glyphs[vpos];
@@ -407,37 +407,37 @@ line_draw_cost (m, vpos)
 /* The functions on this page are the interface from xdisp.c to redisplay.
 
    The only other interface into redisplay is through setting
-   SCREEN_CURSOR_X (screen) and SCREEN_CURSOR_Y (screen)
-   and SET_SCREEN_GARBAGED (screen).  */
+   FRAME_CURSOR_X (frame) and FRAME_CURSOR_Y (frame)
+   and SET_FRAME_GARBAGED (frame).  */
 
 /* cancel_line eliminates any request to display a line at position `vpos' */
 
-cancel_line (vpos, screen)
+cancel_line (vpos, frame)
      int vpos;
-     register SCREEN_PTR screen;
+     register FRAME_PTR frame;
 {
-  SCREEN_DESIRED_GLYPHS (screen)->enable[vpos] = 0;
+  FRAME_DESIRED_GLYPHS (frame)->enable[vpos] = 0;
 }
 
-clear_screen_records (screen)
-     register SCREEN_PTR screen;
+clear_frame_records (frame)
+     register FRAME_PTR frame;
 {
-  bzero (SCREEN_CURRENT_GLYPHS (screen)->enable, SCREEN_HEIGHT (screen));
+  bzero (FRAME_CURRENT_GLYPHS (frame)->enable, FRAME_HEIGHT (frame));
 }
 
 /* Prepare to display on line VPOS starting at HPOS within it.  */
 
 void
-get_display_line (screen, vpos, hpos)
-     register SCREEN_PTR screen;
+get_display_line (frame, vpos, hpos)
+     register FRAME_PTR frame;
      int vpos;
      register int hpos;
 {
-  register struct screen_glyphs *glyphs;
-  register struct screen_glyphs *desired_glyphs = SCREEN_DESIRED_GLYPHS (screen);
+  register struct frame_glyphs *glyphs;
+  register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (frame);
   register GLYPH *p;
 
-  if (vpos < 0 || (! SCREEN_VISIBLE_P (screen)))
+  if (vpos < 0 || (! FRAME_VISIBLE_P (frame)))
     abort ();
 
   if ((desired_glyphs->enable[vpos]) && desired_glyphs->used[vpos] > hpos)
@@ -569,13 +569,13 @@ rotate_vector (vector, size, distance)
    Returns nonzero if done, zero if terminal cannot scroll them.  */
 
 int
-scroll_screen_lines (screen, from, end, amount)
-     register SCREEN_PTR screen;
+scroll_frame_lines (frame, from, end, amount)
+     register FRAME_PTR frame;
      int from, end, amount;
 {
   register int i;
-  register struct screen_glyphs *current_screen
-    = SCREEN_CURRENT_GLYPHS (screen);
+  register struct frame_glyphs *current_frame
+    = FRAME_CURRENT_GLYPHS (frame);
 
   if (!line_ins_del_ok)
     return 0;
@@ -585,193 +585,193 @@ scroll_screen_lines (screen, from, end, amount)
 
   if (amount > 0)
     {
-      update_begin (screen);
+      update_begin (frame);
       set_terminal_window (end + amount);
       if (!scroll_region_ok)
 	ins_del_lines (end, -amount);
       ins_del_lines (from, amount);
       set_terminal_window (0);
 
-      rotate_vector (current_screen->glyphs + from,
+      rotate_vector (current_frame->glyphs + from,
 		     sizeof (GLYPH *) * (end + amount - from),
 		     amount * sizeof (GLYPH *));
 
-      safe_bcopy (current_screen->used + from,
-		  current_screen->used + from + amount,
-		  (end - from) * sizeof current_screen->used[0]);
+      safe_bcopy (current_frame->used + from,
+		  current_frame->used + from + amount,
+		  (end - from) * sizeof current_frame->used[0]);
 
-      safe_bcopy (current_screen->highlight + from,
-		  current_screen->highlight + from + amount,
-		  (end - from) * sizeof current_screen->highlight[0]);
+      safe_bcopy (current_frame->highlight + from,
+		  current_frame->highlight + from + amount,
+		  (end - from) * sizeof current_frame->highlight[0]);
 
-      safe_bcopy (current_screen->enable + from,
-		  current_screen->enable + from + amount,
-		  (end - from) * sizeof current_screen->enable[0]);
+      safe_bcopy (current_frame->enable + from,
+		  current_frame->enable + from + amount,
+		  (end - from) * sizeof current_frame->enable[0]);
 
       /* Mark the lines made empty by scrolling as enabled, empty and
 	 normal video.  */
-      bzero (current_screen->used + from,
-	     amount * sizeof current_screen->used[0]);
-      bzero (current_screen->highlight + from,
-	     amount * sizeof current_screen->highlight[0]);
+      bzero (current_frame->used + from,
+	     amount * sizeof current_frame->used[0]);
+      bzero (current_frame->highlight + from,
+	     amount * sizeof current_frame->highlight[0]);
       for (i = from; i < from + amount; i++)
 	{
-	  current_screen->glyphs[i][0] = '\0';
-	  current_screen->enable[i] = 1;
+	  current_frame->glyphs[i][0] = '\0';
+	  current_frame->enable[i] = 1;
 	}
 
-      safe_bcopy (current_screen->bufp + from,
-		  current_screen->bufp + from + amount,
-		  (end - from) * sizeof current_screen->bufp[0]);
+      safe_bcopy (current_frame->bufp + from,
+		  current_frame->bufp + from + amount,
+		  (end - from) * sizeof current_frame->bufp[0]);
 
 #ifdef HAVE_X_WINDOWS
-      if (SCREEN_IS_X (screen))
+      if (FRAME_IS_X (frame))
 	{
-	  safe_bcopy (current_screen->nruns + from,
-		      current_screen->nruns + from + amount,
-		      (end - from) * sizeof current_screen->nruns[0]);
+	  safe_bcopy (current_frame->nruns + from,
+		      current_frame->nruns + from + amount,
+		      (end - from) * sizeof current_frame->nruns[0]);
 
-	  safe_bcopy (current_screen->face_list + from,
-		      current_screen->face_list + from + amount,
-		      (end - from) * sizeof current_screen->face_list[0]);
+	  safe_bcopy (current_frame->face_list + from,
+		      current_frame->face_list + from + amount,
+		      (end - from) * sizeof current_frame->face_list[0]);
 
-	  safe_bcopy (current_screen->top_left_x + from,
-		      current_screen->top_left_x + from + amount,
-		      (end - from) * sizeof current_screen->top_left_x[0]);
+	  safe_bcopy (current_frame->top_left_x + from,
+		      current_frame->top_left_x + from + amount,
+		      (end - from) * sizeof current_frame->top_left_x[0]);
 
-	  safe_bcopy (current_screen->top_left_y + from,
-		      current_screen->top_left_y + from + amount,
-		      (end - from) * sizeof current_screen->top_left_y[0]);
+	  safe_bcopy (current_frame->top_left_y + from,
+		      current_frame->top_left_y + from + amount,
+		      (end - from) * sizeof current_frame->top_left_y[0]);
 
-	  safe_bcopy (current_screen->pix_width + from,
-		      current_screen->pix_width + from + amount,
-		      (end - from) * sizeof current_screen->pix_width[0]);
+	  safe_bcopy (current_frame->pix_width + from,
+		      current_frame->pix_width + from + amount,
+		      (end - from) * sizeof current_frame->pix_width[0]);
 
-	  safe_bcopy (current_screen->pix_height + from,
-		      current_screen->pix_height + from + amount,
-		      (end - from) * sizeof current_screen->pix_height[0]);
+	  safe_bcopy (current_frame->pix_height + from,
+		      current_frame->pix_height + from + amount,
+		      (end - from) * sizeof current_frame->pix_height[0]);
 	}
 #endif				/* HAVE_X_WINDOWS */
 
-      update_end (screen);
+      update_end (frame);
     }
   if (amount < 0)
     {
-      update_begin (screen);
+      update_begin (frame);
       set_terminal_window (end);
       ins_del_lines (from + amount, amount);
       if (!scroll_region_ok)
 	ins_del_lines (end + amount, -amount);
       set_terminal_window (0);
 
-      rotate_vector (current_screen->glyphs + from + amount,
+      rotate_vector (current_frame->glyphs + from + amount,
 		     sizeof (GLYPH *) * (end - from - amount),
 		     amount * sizeof (GLYPH *));
 
-      safe_bcopy (current_screen->used + from,
-		  current_screen->used + from + amount,
-		  (end - from) * sizeof current_screen->used[0]);
+      safe_bcopy (current_frame->used + from,
+		  current_frame->used + from + amount,
+		  (end - from) * sizeof current_frame->used[0]);
 
-      safe_bcopy (current_screen->highlight + from,
-		  current_screen->highlight + from + amount,
-		  (end - from) * sizeof current_screen->highlight[0]);
+      safe_bcopy (current_frame->highlight + from,
+		  current_frame->highlight + from + amount,
+		  (end - from) * sizeof current_frame->highlight[0]);
 
-      safe_bcopy (current_screen->enable + from,
-		  current_screen->enable + from + amount,
-		  (end - from) * sizeof current_screen->enable[0]);
+      safe_bcopy (current_frame->enable + from,
+		  current_frame->enable + from + amount,
+		  (end - from) * sizeof current_frame->enable[0]);
 
       /* Mark the lines made empty by scrolling as enabled, empty and
 	 normal video.  */
-      bzero (current_screen->used + end + amount,
-	     - amount * sizeof current_screen->used[0]);
-      bzero (current_screen->highlight + end + amount,
-	     - amount * sizeof current_screen->highlight[0]);
+      bzero (current_frame->used + end + amount,
+	     - amount * sizeof current_frame->used[0]);
+      bzero (current_frame->highlight + end + amount,
+	     - amount * sizeof current_frame->highlight[0]);
       for (i = end + amount; i < end; i++)
 	{
-	  current_screen->glyphs[i][0] = '\0';
-	  current_screen->enable[i] = 1;
+	  current_frame->glyphs[i][0] = '\0';
+	  current_frame->enable[i] = 1;
 	}
 
-      safe_bcopy (current_screen->bufp + from,
-		  current_screen->bufp + from + amount,
-		  (end - from) * sizeof current_screen->bufp[0]);
+      safe_bcopy (current_frame->bufp + from,
+		  current_frame->bufp + from + amount,
+		  (end - from) * sizeof current_frame->bufp[0]);
 
 #ifdef HAVE_X_WINDOWS
-      if (SCREEN_IS_X (screen))
+      if (FRAME_IS_X (frame))
 	{
-	  safe_bcopy (current_screen->nruns + from,
-		      current_screen->nruns + from + amount,
-		      (end - from) * sizeof current_screen->nruns[0]);
+	  safe_bcopy (current_frame->nruns + from,
+		      current_frame->nruns + from + amount,
+		      (end - from) * sizeof current_frame->nruns[0]);
 
-	  safe_bcopy (current_screen->face_list + from,
-		      current_screen->face_list + from + amount,
-		      (end - from) * sizeof current_screen->face_list[0]);
+	  safe_bcopy (current_frame->face_list + from,
+		      current_frame->face_list + from + amount,
+		      (end - from) * sizeof current_frame->face_list[0]);
 
-	  safe_bcopy (current_screen->top_left_x + from,
-		      current_screen->top_left_x + from + amount,
-		      (end - from) * sizeof current_screen->top_left_x[0]);
+	  safe_bcopy (current_frame->top_left_x + from,
+		      current_frame->top_left_x + from + amount,
+		      (end - from) * sizeof current_frame->top_left_x[0]);
 
-	  safe_bcopy (current_screen->top_left_y + from,
-		      current_screen->top_left_y + from + amount,
-		      (end - from) * sizeof current_screen->top_left_y[0]);
+	  safe_bcopy (current_frame->top_left_y + from,
+		      current_frame->top_left_y + from + amount,
+		      (end - from) * sizeof current_frame->top_left_y[0]);
 
-	  safe_bcopy (current_screen->pix_width + from,
-		      current_screen->pix_width + from + amount,
-		      (end - from) * sizeof current_screen->pix_width[0]);
+	  safe_bcopy (current_frame->pix_width + from,
+		      current_frame->pix_width + from + amount,
+		      (end - from) * sizeof current_frame->pix_width[0]);
 
-	  safe_bcopy (current_screen->pix_height + from,
-		      current_screen->pix_height + from + amount,
-		      (end - from) * sizeof current_screen->pix_height[0]);
+	  safe_bcopy (current_frame->pix_height + from,
+		      current_frame->pix_height + from + amount,
+		      (end - from) * sizeof current_frame->pix_height[0]);
 	}
 #endif				/* HAVE_X_WINDOWS */
 
-      update_end (screen);
+      update_end (frame);
     }
   return 1;
 }
 
-/* After updating a window W that isn't the full screen wide,
+/* After updating a window W that isn't the full frame wide,
    copy all the columns that W does not occupy
-   into the SCREEN_DESIRED_GLYPHS (screen) from the SCREEN_PHYS_GLYPHS (screen)
-   so that update_screen will not change those columns.  */
+   into the FRAME_DESIRED_GLYPHS (frame) from the FRAME_PHYS_GLYPHS (frame)
+   so that update_frame will not change those columns.  */
 
 preserve_other_columns (w)
      struct window *w;
 {
   register int vpos;
-  register struct screen_glyphs *current_screen, *desired_screen;
-  register SCREEN_PTR screen = XSCREEN (w->screen);
+  register struct frame_glyphs *current_frame, *desired_frame;
+  register FRAME_PTR frame = XFRAME (w->frame);
   int start = XFASTINT (w->left);
   int end = XFASTINT (w->left) + XFASTINT (w->width);
   int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
-  current_screen = SCREEN_CURRENT_GLYPHS (screen);
-  desired_screen = SCREEN_DESIRED_GLYPHS (screen);
+  current_frame = FRAME_CURRENT_GLYPHS (frame);
+  desired_frame = FRAME_DESIRED_GLYPHS (frame);
 
   for (vpos = XFASTINT (w->top); vpos < bot; vpos++)
     {
-      if (current_screen->enable[vpos] && desired_screen->enable[vpos])
+      if (current_frame->enable[vpos] && desired_frame->enable[vpos])
 	{
 	  if (start > 0)
 	    {
 	      int len;
 
-	      bcopy (current_screen->glyphs[vpos],
-		     desired_screen->glyphs[vpos], start);
-	      len = min (start, current_screen->used[vpos]);
-	      if (desired_screen->used[vpos] < len)
-		desired_screen->used[vpos] = len;
+	      bcopy (current_frame->glyphs[vpos],
+		     desired_frame->glyphs[vpos], start);
+	      len = min (start, current_frame->used[vpos]);
+	      if (desired_frame->used[vpos] < len)
+		desired_frame->used[vpos] = len;
 	    }
-	  if (current_screen->used[vpos] > end
-	      && desired_screen->used[vpos] < current_screen->used[vpos])
+	  if (current_frame->used[vpos] > end
+	      && desired_frame->used[vpos] < current_frame->used[vpos])
 	    {
-	      while (desired_screen->used[vpos] < end)
-		desired_screen->glyphs[vpos][desired_screen->used[vpos]++]
+	      while (desired_frame->used[vpos] < end)
+		desired_frame->glyphs[vpos][desired_frame->used[vpos]++]
 		  = SPACEGLYPH;
-	      bcopy (current_screen->glyphs[vpos] + end,
-		     desired_screen->glyphs[vpos] + end,
-		     current_screen->used[vpos] - end);
-	      desired_screen->used[vpos] = current_screen->used[vpos];
+	      bcopy (current_frame->glyphs[vpos] + end,
+		     desired_frame->glyphs[vpos] + end,
+		     current_frame->used[vpos] - end);
+	      desired_frame->used[vpos] = current_frame->used[vpos];
 	    }
 	}
     }
@@ -779,10 +779,10 @@ preserve_other_columns (w)
 
 #if 0
 
-/* If window w does not need to be updated and isn't the full screen wide,
+/* If window w does not need to be updated and isn't the full frame wide,
  copy all the columns that w does occupy
- into the SCREEN_DESIRED_LINES (screen) from the SCREEN_PHYS_LINES (screen)
- so that update_screen will not change those columns.
+ into the FRAME_DESIRED_LINES (frame) from the FRAME_PHYS_LINES (frame)
+ so that update_frame will not change those columns.
 
  Have not been able to figure out how to use this correctly.  */
 
@@ -790,16 +790,16 @@ preserve_my_columns (w)
      struct window *w;
 {
   register int vpos, fin;
-  register struct screen_glyphs *l1, *l2;
-  register SCREEN_PTR screen = XSCREEN (w->screen);
+  register struct frame_glyphs *l1, *l2;
+  register FRAME_PTR frame = XFRAME (w->frame);
   int start = XFASTINT (w->left);
   int end = XFASTINT (w->left) + XFASTINT (w->width);
   int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
   for (vpos = XFASTINT (w->top); vpos < bot; vpos++)
     {
-      if ((l1 = SCREEN_DESIRED_GLYPHS (screen)->glyphs[vpos + 1])
-	  && (l2 = SCREEN_PHYS_GLYPHS (screen)->glyphs[vpos + 1]))
+      if ((l1 = FRAME_DESIRED_GLYPHS (frame)->glyphs[vpos + 1])
+	  && (l2 = FRAME_PHYS_GLYPHS (frame)->glyphs[vpos + 1]))
 	{
 	  if (l2->length > start && l1->length < l2->length)
 	    {
@@ -824,8 +824,8 @@ cancel_my_columns (w)
      struct window *w;
 {
   register int vpos;
-  register struct screen_glyphs *desired_glyphs =
-    SCREEN_DESIRED_GLYPHS (XSCREEN (w->screen));
+  register struct frame_glyphs *desired_glyphs =
+    FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
   register int start = XFASTINT (w->left);
   register int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
@@ -835,11 +835,11 @@ cancel_my_columns (w)
       desired_glyphs->used[vpos] = start;
 }
 
-/* These functions try to perform directly and immediately on the screen
+/* These functions try to perform directly and immediately on the frame
    the necessary output for one change in the buffer.
    They may return 0 meaning nothing was done if anything is difficult,
    or 1 meaning the output was performed properly.
-   They assume that the screen was up to date before the buffer
+   They assume that the frame was up to date before the buffer
    change being displayed.  THey make various other assumptions too;
    see command_loop_1 where these are called.  */
 
@@ -847,9 +847,9 @@ int
 direct_output_for_insert (g)
      int g;
 {
-  register SCREEN_PTR screen = selected_screen;
-  register struct screen_glyphs *current_screen
-    = SCREEN_CURRENT_GLYPHS (screen);
+  register FRAME_PTR frame = selected_frame;
+  register struct frame_glyphs *current_frame
+    = FRAME_CURRENT_GLYPHS (frame);
 
 #ifndef COMPILER_REGISTER_BUG
   register
@@ -858,11 +858,11 @@ direct_output_for_insert (g)
 #ifndef COMPILER_REGISTER_BUG
   register
 #endif /* COMPILER_REGISTER_BUG */
-    int hpos = SCREEN_CURSOR_X (screen);
+    int hpos = FRAME_CURSOR_X (frame);
 #ifndef COMPILER_REGISTER_BUG
   register
 #endif /* COMPILER_REGISTER_BUG */
-    int vpos = SCREEN_CURSOR_Y (screen);
+    int vpos = FRAME_CURSOR_Y (frame);
 
   /* Give up if about to continue line */
   if (hpos - XFASTINT (w->left) + 1 + 1 >= XFASTINT (w->width)
@@ -871,10 +871,10 @@ direct_output_for_insert (g)
       || (XINT (w->hscroll) && hpos == XFASTINT (w->left))
     
   /* Give up if cursor outside window (in minibuf, probably) */
-      || SCREEN_CURSOR_Y (screen) < XFASTINT (w->top)
-      || SCREEN_CURSOR_Y (screen) >= XFASTINT (w->top) + XFASTINT (w->height)
+      || FRAME_CURSOR_Y (frame) < XFASTINT (w->top)
+      || FRAME_CURSOR_Y (frame) >= XFASTINT (w->top) + XFASTINT (w->height)
 
-  /* Give up if cursor not really at SCREEN_CURSOR_X, SCREEN_CURSOR_Y */
+  /* Give up if cursor not really at FRAME_CURSOR_X, FRAME_CURSOR_Y */
       || !display_completed
 
   /* Give up if buffer appears in two places.  */
@@ -884,7 +884,7 @@ direct_output_for_insert (g)
       || (MINI_WINDOW_P (w) && echo_area_glyphs))
     return 0;
 
-  current_screen->glyphs[vpos][hpos] = g;
+  current_frame->glyphs[vpos][hpos] = g;
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
   XFASTINT (w->last_point) = point;
@@ -892,13 +892,13 @@ direct_output_for_insert (g)
   XFASTINT (w->last_modified) = MODIFF;
 
   reassert_line_highlight (0, vpos);
-  write_glyphs (&current_screen->glyphs[vpos][hpos], 1);
+  write_glyphs (&current_frame->glyphs[vpos][hpos], 1);
   fflush (stdout);
-  ++SCREEN_CURSOR_X (screen);
-  if (hpos == current_screen->used[vpos])
+  ++FRAME_CURSOR_X (frame);
+  if (hpos == current_frame->used[vpos])
     {
-      current_screen->used[vpos] = hpos + 1;
-      current_screen->glyphs[vpos][hpos + 1] = 0;
+      current_frame->used[vpos] = hpos + 1;
+      current_frame->glyphs[vpos][hpos + 1] = 0;
     }
 
   return 1;
@@ -908,42 +908,42 @@ int
 direct_output_forward_char (n)
      int n;
 {
-  register SCREEN_PTR screen = selected_screen;
+  register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
 
   /* Avoid losing if cursor is in invisible text off left margin
      or about to go off either side of window.  */
-  if ((SCREEN_CURSOR_X (screen) == XFASTINT (w->left)
+  if ((FRAME_CURSOR_X (frame) == XFASTINT (w->left)
        && (XINT (w->hscroll) || n < 0))
       || (n > 0
-	  && (SCREEN_CURSOR_X (screen) + 1
+	  && (FRAME_CURSOR_X (frame) + 1
 	      >= (XFASTINT (w->left) + XFASTINT (w->width)
-		  - (XFASTINT (w->width) < SCREEN_WIDTH (screen))
+		  - (XFASTINT (w->width) < FRAME_WIDTH (frame))
 		  - 1))))
     return 0;
 
-  SCREEN_CURSOR_X (screen) += n;
-  XFASTINT (w->last_point_x) = SCREEN_CURSOR_X (screen);
+  FRAME_CURSOR_X (frame) += n;
+  XFASTINT (w->last_point_x) = FRAME_CURSOR_X (frame);
   XFASTINT (w->last_point) = point;
-  cursor_to (SCREEN_CURSOR_Y (screen), SCREEN_CURSOR_X (screen));
+  cursor_to (FRAME_CURSOR_Y (frame), FRAME_CURSOR_X (frame));
   fflush (stdout);
   return 1;
 }
 
 static void update_line ();
 
-/* Update screen S based on the data in SCREEN_DESIRED_GLYPHS.
+/* Update frame F based on the data in FRAME_DESIRED_GLYPHS.
    Value is nonzero if redisplay stopped due to pending input.
    FORCE nonzero means do not stop for pending input.  */
 
 int
-update_screen (s, force, inhibit_hairy_id)
-     SCREEN_PTR s;
+update_frame (f, force, inhibit_hairy_id)
+     FRAME_PTR f;
      int force;
      int inhibit_hairy_id;
 {
-  register struct screen_glyphs *current_screen = SCREEN_CURRENT_GLYPHS (s);
-  register struct screen_glyphs *desired_screen = SCREEN_DESIRED_GLYPHS (s);
+  register struct frame_glyphs *current_frame = FRAME_CURRENT_GLYPHS (f);
+  register struct frame_glyphs *desired_frame = FRAME_DESIRED_GLYPHS (f);
   register int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
@@ -952,7 +952,7 @@ update_screen (s, force, inhibit_hairy_id)
   register int downto, leftmost;
 #endif
 
-  if (SCREEN_HEIGHT (s) == 0) abort (); /* Some bug zeros some core */
+  if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
 
   detect_input_pending ();
   if (input_pending && !force)
@@ -961,48 +961,48 @@ update_screen (s, force, inhibit_hairy_id)
       goto do_pause;
     }
 
-  update_begin (s);
+  update_begin (f);
 
   if (!line_ins_del_ok)
     inhibit_hairy_id = 1;
 
   /* See if any of the desired lines are enabled; don't compute for
      i/d line if just want cursor motion. */
-  for (i = 0; i < SCREEN_HEIGHT (s); i++)
-    if (desired_screen->enable[i])
+  for (i = 0; i < FRAME_HEIGHT (f); i++)
+    if (desired_frame->enable[i])
       break;
 
   /* Try doing i/d line, if not yet inhibited.  */
-  if (!inhibit_hairy_id && i < SCREEN_HEIGHT (s))
-    force |= scrolling (s);
+  if (!inhibit_hairy_id && i < FRAME_HEIGHT (f))
+    force |= scrolling (f);
 
   /* Update the individual lines as needed.  Do bottom line first.  */
 
-  if (desired_screen->enable[SCREEN_HEIGHT (s) - 1])
-    update_line (s, SCREEN_HEIGHT (s) - 1);
+  if (desired_frame->enable[FRAME_HEIGHT (f) - 1])
+    update_line (f, FRAME_HEIGHT (f) - 1);
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (s))
+  if (FRAME_IS_X (f))
     {
-      leftmost = downto = s->display.x->internal_border_width;
-      if (desired_screen->enable[0])
+      leftmost = downto = f->display.x->internal_border_width;
+      if (desired_frame->enable[0])
 	{
-	  current_screen->top_left_x[SCREEN_HEIGHT (s) - 1] = leftmost;
-	  current_screen->top_left_y[SCREEN_HEIGHT (s) - 1]
-	    = PIXEL_HEIGHT (s) - s->display.x->internal_border_width
-	      - LINE_HEIGHT(s, SCREEN_HEIGHT (s) - 1);
-	  current_screen->top_left_x[0] = leftmost;
-	  current_screen->top_left_y[0] = downto;
+	  current_frame->top_left_x[FRAME_HEIGHT (f) - 1] = leftmost;
+	  current_frame->top_left_y[FRAME_HEIGHT (f) - 1]
+	    = PIXEL_HEIGHT (f) - f->display.x->internal_border_width
+	      - LINE_HEIGHT(f, FRAME_HEIGHT (f) - 1);
+	  current_frame->top_left_x[0] = leftmost;
+	  current_frame->top_left_y[0] = downto;
 	}
     }
 #endif /* HAVE_X_WINDOWS */
 
   /* Now update the rest of the lines. */
-  for (i = 0; i < SCREEN_HEIGHT (s) - 1 && (force || !input_pending); i++)
+  for (i = 0; i < FRAME_HEIGHT (f) - 1 && (force || !input_pending); i++)
     {
-      if (desired_screen->enable[i])
+      if (desired_frame->enable[i])
 	{
-	  if (SCREEN_IS_TERMCAP (s))
+	  if (FRAME_IS_TERMCAP (f))
 	    {
 	      /* Flush out every so many lines.
 		 Also flush out if likely to have more than 1k buffered
@@ -1029,45 +1029,45 @@ update_screen (s, force, inhibit_hairy_id)
 		detect_input_pending ();
 	    }
 
-	  update_line (s, i);
+	  update_line (f, i);
 #ifdef HAVE_X_WINDOWS
-	  if (SCREEN_IS_X (s))
+	  if (FRAME_IS_X (f))
 	    {
-	      current_screen->top_left_y[i] = downto;
-	      current_screen->top_left_x[i] = leftmost;
+	      current_frame->top_left_y[i] = downto;
+	      current_frame->top_left_x[i] = leftmost;
 	    }
 #endif /* HAVE_X_WINDOWS */
 	}
 
 #ifdef HAVE_X_WINDOWS
-      if (SCREEN_IS_X (s))
-	downto += LINE_HEIGHT(s, i);
+      if (FRAME_IS_X (f))
+	downto += LINE_HEIGHT(f, i);
 #endif
     }
-  pause = (i < SCREEN_HEIGHT (s) - 1) ? i : 0;
+  pause = (i < FRAME_HEIGHT (f) - 1) ? i : 0;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (!pause)
     {
       if (cursor_in_echo_area)
 	{
-	  if (s == selected_screen
+	  if (f == selected_frame
 	      && cursor_in_echo_area < 0)
-	    cursor_to (SCREEN_HEIGHT (s) - 1, 0);
-	  else if (s == selected_screen
-		   && ! current_screen->enable[SCREEN_HEIGHT (s) - 1])
-	    cursor_to (SCREEN_HEIGHT (s) - 1, 0);
+	    cursor_to (FRAME_HEIGHT (f) - 1, 0);
+	  else if (f == selected_frame
+		   && ! current_frame->enable[FRAME_HEIGHT (f) - 1])
+	    cursor_to (FRAME_HEIGHT (f) - 1, 0);
 	  else
-	    cursor_to (SCREEN_HEIGHT (s) - 1,
-		       min (SCREEN_WIDTH (s) - 1,
-			    current_screen->used[SCREEN_HEIGHT (s) - 1]));
+	    cursor_to (FRAME_HEIGHT (f) - 1,
+		       min (FRAME_WIDTH (f) - 1,
+			    current_frame->used[FRAME_HEIGHT (f) - 1]));
 	}
       else
-	cursor_to (SCREEN_CURSOR_Y (s), max (min (SCREEN_CURSOR_X (s),
-						  SCREEN_WIDTH (s) - 1), 0));
+	cursor_to (FRAME_CURSOR_Y (f), max (min (FRAME_CURSOR_X (f),
+						  FRAME_WIDTH (f) - 1), 0));
     }
 
-  update_end (s);
+  update_end (f);
 
   if (termscript)
     fflush (termscript);
@@ -1076,10 +1076,10 @@ update_screen (s, force, inhibit_hairy_id)
   /* Here if output is preempted because input is detected.  */
  do_pause:
 
-  if (SCREEN_HEIGHT (s) == 0) abort (); /* Some bug zeros some core */
+  if (FRAME_HEIGHT (f) == 0) abort (); /* Some bug zeros some core */
   display_completed = !pause;
 
-  bzero (desired_screen->enable, SCREEN_HEIGHT (s));
+  bzero (desired_frame->enable, FRAME_HEIGHT (f));
   return pause;
 }
 
@@ -1089,11 +1089,11 @@ update_screen (s, force, inhibit_hairy_id)
 void
 quit_error_check ()
 {
-  if (SCREEN_DESIRED_GLYPHS (selected_screen) == 0)
+  if (FRAME_DESIRED_GLYPHS (selected_frame) == 0)
     return;
-  if (SCREEN_DESIRED_GLYPHS (selected_screen)->enable[0])
+  if (FRAME_DESIRED_GLYPHS (selected_frame)->enable[0])
     abort ();
-  if (SCREEN_DESIRED_GLYPHS (selected_screen)->enable[SCREEN_HEIGHT (selected_screen) - 1])
+  if (FRAME_DESIRED_GLYPHS (selected_frame)->enable[FRAME_HEIGHT (selected_frame) - 1])
     abort ();
 }
 
@@ -1101,19 +1101,19 @@ quit_error_check ()
 
 extern void scrolling_1 ();
 
-scrolling (screen)
-     SCREEN_PTR screen;
+scrolling (frame)
+     FRAME_PTR frame;
 {
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
   int changed_lines;
-  int *old_hash = (int *) alloca (SCREEN_HEIGHT (screen) * sizeof (int));
-  int *new_hash = (int *) alloca (SCREEN_HEIGHT (screen) * sizeof (int));
-  int *draw_cost = (int *) alloca (SCREEN_HEIGHT (screen) * sizeof (int));
+  int *old_hash = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
+  int *new_hash = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
+  int *draw_cost = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
   register int i;
-  int free_at_end_vpos = SCREEN_HEIGHT (screen);
-  register struct screen_glyphs *current_screen = SCREEN_CURRENT_GLYPHS (screen);
-  register struct screen_glyphs *desired_screen = SCREEN_DESIRED_GLYPHS (screen);
+  int free_at_end_vpos = FRAME_HEIGHT (frame);
+  register struct frame_glyphs *current_frame = FRAME_CURRENT_GLYPHS (frame);
+  register struct frame_glyphs *desired_frame = FRAME_DESIRED_GLYPHS (frame);
 
   /* Compute hash codes of all the lines.
      Also calculate number of changed lines,
@@ -1122,51 +1122,51 @@ scrolling (screen)
 
   changed_lines = 0;
   unchanged_at_top = 0;
-  unchanged_at_bottom = SCREEN_HEIGHT (screen);
-  for (i = 0; i < SCREEN_HEIGHT (screen); i++)
+  unchanged_at_bottom = FRAME_HEIGHT (frame);
+  for (i = 0; i < FRAME_HEIGHT (frame); i++)
     {
       /* Give up on this scrolling if some old lines are not enabled.  */
-      if (!current_screen->enable[i])
+      if (!current_frame->enable[i])
 	return 0;
-      old_hash[i] = line_hash_code (current_screen, i);
-      if (! desired_screen->enable[i])
+      old_hash[i] = line_hash_code (current_frame, i);
+      if (! desired_frame->enable[i])
 	new_hash[i] = old_hash[i];
       else
-	new_hash[i] = line_hash_code (desired_screen, i);
+	new_hash[i] = line_hash_code (desired_frame, i);
 
       if (old_hash[i] != new_hash[i])
 	{
 	  changed_lines++;
-	  unchanged_at_bottom = SCREEN_HEIGHT (screen) - i - 1;
+	  unchanged_at_bottom = FRAME_HEIGHT (frame) - i - 1;
 	}
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
-      draw_cost[i] = line_draw_cost (desired_screen, i);
+      draw_cost[i] = line_draw_cost (desired_frame, i);
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
   if (changed_lines < baud_rate / 2400
-      || unchanged_at_bottom == SCREEN_HEIGHT (screen))
+      || unchanged_at_bottom == FRAME_HEIGHT (frame))
     return 1;
 
-  window_size = (SCREEN_HEIGHT (screen) - unchanged_at_top
+  window_size = (FRAME_HEIGHT (frame) - unchanged_at_top
 		 - unchanged_at_bottom);
 
   if (scroll_region_ok)
     free_at_end_vpos -= unchanged_at_bottom;
-  else if (memory_below_screen)
+  else if (memory_below_frame)
     free_at_end_vpos = -1;
 
   /* If large window, fast terminal and few lines in common between
-     current screen and desired screen, don't bother with i/d calc. */
+     current frame and desired frame, don't bother with i/d calc. */
   if (window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
-					  SCREEN_HEIGHT (screen) - unchanged_at_bottom,
+					  FRAME_HEIGHT (frame) - unchanged_at_bottom,
 					  old_hash, new_hash, draw_cost)))
     return 0;
 
-  scrolling_1 (screen, window_size, unchanged_at_top, unchanged_at_bottom,
+  scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
 	       draw_cost + unchanged_at_top - 1,
 	       old_hash + unchanged_at_top - 1,
 	       new_hash + unchanged_at_top - 1,
@@ -1189,7 +1189,7 @@ buffer_posn_from_coords (window, col, line)
      window.  */
   int window_width = (XFASTINT (window->width) - 1
 		      - (XFASTINT (window->width) + window_left
-			 != SCREEN_WIDTH (XSCREEN (window->screen))));
+			 != FRAME_WIDTH (XFRAME (window->frame))));
 
   int startp = marker_position (window->start);
 
@@ -1200,8 +1200,8 @@ buffer_posn_from_coords (window, col, line)
 
   current_buffer = XBUFFER (window->buffer);
 
-  /* It would be nice if we could use SCREEN_CURRENT_GLYPHS (XSCREEN
-     (window->screen))->bufp to avoid scanning from the very top of
+  /* It would be nice if we could use FRAME_CURRENT_GLYPHS (XFRAME
+     (window->frame))->bufp to avoid scanning from the very top of
      the window, but it isn't maintained correctly, and I'm not even
      sure I will keep it.  */
   posn = compute_motion (startp, 0,
@@ -1212,7 +1212,7 @@ buffer_posn_from_coords (window, col, line)
 
   current_buffer = old_current_buffer;
 
-  /* compute_motion considers screen points past the end of a line
+  /* compute_motion considers frame points past the end of a line
      to be *after* the newline, i.e. at the start of the next line.
      This is reasonable, but not really what we want.  So if the
      result is on a line below LINE, back it up one character.  */
@@ -1244,42 +1244,42 @@ count_match (str1, str2)
 /* Char insertion/deletion cost vector, from term.c */
 extern int *char_ins_del_vector;
 
-#define char_ins_del_cost(s) (&char_ins_del_vector[SCREEN_HEIGHT((s))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_HEIGHT((f))])
 
 static void
-update_line (screen, vpos)
-     register SCREEN_PTR screen;
+update_line (frame, vpos)
+     register FRAME_PTR frame;
      int vpos;
 {
   register GLYPH *obody, *nbody, *op1, *op2, *np1, *temp;
   int tem;
   int osp, nsp, begmatch, endmatch, olen, nlen;
   int save;
-  register struct screen_glyphs *current_screen
-    = SCREEN_CURRENT_GLYPHS (screen);
-  register struct screen_glyphs *desired_screen
-    = SCREEN_DESIRED_GLYPHS (screen);
+  register struct frame_glyphs *current_frame
+    = FRAME_CURRENT_GLYPHS (frame);
+  register struct frame_glyphs *desired_frame
+    = FRAME_DESIRED_GLYPHS (frame);
 
-  if (desired_screen->highlight[vpos]
-      != (current_screen->enable[vpos] && current_screen->highlight[vpos]))
+  if (desired_frame->highlight[vpos]
+      != (current_frame->enable[vpos] && current_frame->highlight[vpos]))
     {
-      change_line_highlight (desired_screen->highlight[vpos], vpos,
-			     (current_screen->enable[vpos] ?
-			      current_screen->used[vpos] : 0));
-      current_screen->enable[vpos] = 0;
+      change_line_highlight (desired_frame->highlight[vpos], vpos,
+			     (current_frame->enable[vpos] ?
+			      current_frame->used[vpos] : 0));
+      current_frame->enable[vpos] = 0;
     }
   else
-    reassert_line_highlight (desired_screen->highlight[vpos], vpos);
+    reassert_line_highlight (desired_frame->highlight[vpos], vpos);
 
-  if (! current_screen->enable[vpos])
+  if (! current_frame->enable[vpos])
     {
       olen = 0;
     }
   else
     {
-      obody = current_screen->glyphs[vpos];
-      olen = current_screen->used[vpos];
-      if (! current_screen->highlight[vpos])
+      obody = current_frame->glyphs[vpos];
+      olen = current_frame->used[vpos];
+      if (! current_frame->highlight[vpos])
 	{
 	  if (!must_write_spaces)
 	    while (obody[olen - 1] == SPACEGLYPH && olen > 0)
@@ -1288,43 +1288,43 @@ update_line (screen, vpos)
       else
 	{
 	  /* For an inverse-video line, remember we gave it
-	     spaces all the way to the screen edge
+	     spaces all the way to the frame edge
 	     so that the reverse video extends all the way across.  */
 
-	  while (olen < SCREEN_WIDTH (screen) - 1)
+	  while (olen < FRAME_WIDTH (frame) - 1)
 	    obody[olen++] = SPACEGLYPH;
 	}
     }
 
   /* One way or another, this will enable the line being updated.  */
-  current_screen->enable[vpos] = 1;
-  current_screen->used[vpos] = desired_screen->used[vpos];
-  current_screen->highlight[vpos] = desired_screen->highlight[vpos];
-  current_screen->bufp[vpos] = desired_screen->bufp[vpos];
+  current_frame->enable[vpos] = 1;
+  current_frame->used[vpos] = desired_frame->used[vpos];
+  current_frame->highlight[vpos] = desired_frame->highlight[vpos];
+  current_frame->bufp[vpos] = desired_frame->bufp[vpos];
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (screen))
+  if (FRAME_IS_X (frame))
     {
-      current_screen->pix_width[vpos]
-	= current_screen->used[vpos]
-	  * FONT_WIDTH (screen->display.x->font);
-      current_screen->pix_height[vpos]
-	= FONT_HEIGHT (screen->display.x->font);
+      current_frame->pix_width[vpos]
+	= current_frame->used[vpos]
+	  * FONT_WIDTH (frame->display.x->font);
+      current_frame->pix_height[vpos]
+	= FONT_HEIGHT (frame->display.x->font);
     }
 #endif /* HAVE_X_WINDOWS */
 
-  if (!desired_screen->enable[vpos])
+  if (!desired_frame->enable[vpos])
     {
       nlen = 0;
       goto just_erase;
     }
 
-  nbody = desired_screen->glyphs[vpos];
-  nlen = desired_screen->used[vpos];
+  nbody = desired_frame->glyphs[vpos];
+  nlen = desired_frame->used[vpos];
 
   /* Pretend trailing spaces are not there at all,
      unless for one reason or another we must write all spaces.  */
-  if (! desired_screen->highlight[vpos])
+  if (! desired_frame->highlight[vpos])
     {
       if (!must_write_spaces)
 	/* We know that the previous character byte contains 0.  */
@@ -1334,10 +1334,10 @@ update_line (screen, vpos)
   else
     {
       /* For an inverse-video line, give it extra trailing spaces
-	 all the way to the screen edge
+	 all the way to the frame edge
 	 so that the reverse video extends all the way across.  */
 
-      while (nlen < SCREEN_WIDTH (screen) - 1)
+      while (nlen < FRAME_WIDTH (frame) - 1)
 	nbody[nlen++] = SPACEGLYPH;
     }
 
@@ -1370,17 +1370,17 @@ update_line (screen, vpos)
 	  clear_end_of_line (olen);
 	}
 
-      /* Exchange contents between current_screen and new_screen.  */
-      temp = desired_screen->glyphs[vpos];
-      desired_screen->glyphs[vpos] = current_screen->glyphs[vpos];
-      current_screen->glyphs[vpos] = temp;
+      /* Exchange contents between current_frame and new_frame.  */
+      temp = desired_frame->glyphs[vpos];
+      desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
+      current_frame->glyphs[vpos] = temp;
 
       return;
     }
 
   if (!olen)
     {
-      nsp = (must_write_spaces || desired_screen->highlight[vpos])
+      nsp = (must_write_spaces || desired_frame->highlight[vpos])
 	      ? 0 : count_blanks (nbody);
       if (nlen > nsp)
 	{
@@ -1388,10 +1388,10 @@ update_line (screen, vpos)
 	  write_glyphs (nbody + nsp, nlen - nsp);
 	}
 
-      /* Exchange contents between current_screen and new_screen.  */
-      temp = desired_screen->glyphs[vpos];
-      desired_screen->glyphs[vpos] = current_screen->glyphs[vpos];
-      current_screen->glyphs[vpos] = temp;
+      /* Exchange contents between current_frame and new_frame.  */
+      temp = desired_frame->glyphs[vpos];
+      desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
+      current_frame->glyphs[vpos] = temp;
 
       return;
     }
@@ -1402,7 +1402,7 @@ update_line (screen, vpos)
 
   /* Compute number of leading blanks in old and new contents.  */
   osp = count_blanks (obody);
-  if (!desired_screen->highlight[vpos])
+  if (!desired_frame->highlight[vpos])
     nsp = count_blanks (nbody);
   else
     nsp = 0;
@@ -1449,7 +1449,7 @@ update_line (screen, vpos)
 
   tem = (nlen - nsp) - (olen - osp);
   if (endmatch && tem
-      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (screen)[tem]))
+      && (!char_ins_del_ok || endmatch <= char_ins_del_cost (frame)[tem]))
     endmatch = 0;
 
   /* nsp - osp is the distance to insert or delete.
@@ -1459,7 +1459,7 @@ update_line (screen, vpos)
 
   if (nsp != osp
       && (!char_ins_del_ok
-	  || begmatch + endmatch <= char_ins_del_cost (screen)[nsp - osp]))
+	  || begmatch + endmatch <= char_ins_del_cost (frame)[nsp - osp]))
     {
       begmatch = 0;
       endmatch = 0;
@@ -1500,7 +1500,7 @@ update_line (screen, vpos)
 	     there is no need to do clear-to-eol at the end.
 	     (and it would not be safe, since cursor is not
 	     going to be "at the margin" after the text is done) */
-	  if (nlen == SCREEN_WIDTH (screen))
+	  if (nlen == FRAME_WIDTH (frame))
 	    olen = 0;
 	  write_glyphs (nbody + nsp + begmatch, nlen - tem);
 
@@ -1514,7 +1514,7 @@ update_line (screen, vpos)
 	     it will lose one way or another (depending on AutoWrap)
 	     to clear to end of line after outputting all the text.
 	     So pause with one character to go and clear the line then.  */
-	  if (nlen == SCREEN_WIDTH (screen) && fast_clear_end_of_line && olen > nlen)
+	  if (nlen == FRAME_WIDTH (frame) && fast_clear_end_of_line && olen > nlen)
 	    {
 	      /* endmatch must be zero, and tem must equal nsp + begmatch */
 	      write_glyphs (nbody + tem, nlen - tem - 1);
@@ -1549,10 +1549,10 @@ update_line (screen, vpos)
       clear_end_of_line (olen);
     }
 
-  /* Exchange contents between current_screen and new_screen.  */
-  temp = desired_screen->glyphs[vpos];
-  desired_screen->glyphs[vpos] = current_screen->glyphs[vpos];
-  current_screen->glyphs[vpos] = temp;
+  /* Exchange contents between current_frame and new_frame.  */
+  temp = desired_frame->glyphs[vpos];
+  desired_frame->glyphs[vpos] = current_frame->glyphs[vpos];
+  current_frame->glyphs[vpos] = temp;
 }
 
 DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
@@ -1584,25 +1584,25 @@ window_change_signal ()
   extern int errno;
   int old_errno = errno;
 
-  get_screen_size (&width, &height);
+  get_frame_size (&width, &height);
 
-  /* The screen size change obviously applies to a termcap-controlled
-     screen.  Find such a screen in the list, and assume it's the only
+  /* The frame size change obviously applies to a termcap-controlled
+     frame.  Find such a frame in the list, and assume it's the only
      one (since the redisplay code always writes to stdout, not a
-     FILE * specified in the screen structure).  Record the new size,
+     FILE * specified in the frame structure).  Record the new size,
      but don't reallocate the data structures now.  Let that be done
      later outside of the signal handler.  */
 
   {
     Lisp_Object tail;
-    SCREEN_PTR s;
+    FRAME_PTR f;
 
-    FOR_EACH_SCREEN (tail, s)
+    FOR_EACH_FRAME (tail, f)
       {
-	if (SCREEN_IS_TERMCAP (s))
+	if (FRAME_IS_TERMCAP (f))
 	  {
 	    ++in_display;
-	    change_screen_size (s, height, width, 0);
+	    change_frame_size (f, height, width, 0);
 	    --in_display;
 	    break;
 	  }
@@ -1615,7 +1615,7 @@ window_change_signal ()
 #endif /* SIGWINCH */
 
 
-/* Do any change in screen size that was requested by a signal.  */
+/* Do any change in frame size that was requested by a signal.  */
 
 do_pending_window_change ()
 {
@@ -1623,102 +1623,102 @@ do_pending_window_change ()
   while (delayed_size_change)
     {
       Lisp_Object tail;
-      SCREEN_PTR s;
+      FRAME_PTR f;
 
       delayed_size_change = 0;
 
-      FOR_EACH_SCREEN (tail, s)
+      FOR_EACH_FRAME (tail, f)
 	{
-	  int height = SCREEN_NEW_HEIGHT (s);
-	  int width = SCREEN_NEW_WIDTH (s);
+	  int height = FRAME_NEW_HEIGHT (f);
+	  int width = FRAME_NEW_WIDTH (f);
 	    
-	  SCREEN_NEW_HEIGHT (s) = 0;
-	  SCREEN_NEW_WIDTH (s) = 0;
+	  FRAME_NEW_HEIGHT (f) = 0;
+	  FRAME_NEW_WIDTH (f) = 0;
 
 	  if (height != 0)
-	    change_screen_size (s, height, width, 0);
+	    change_frame_size (f, height, width, 0);
 	}
     }
 }
 
 
-/* Change the screen height and/or width.  Values may be given as zero to
+/* Change the frame height and/or width.  Values may be given as zero to
    indicate no change is to take place. */
 
-change_screen_size (screen, newlength, newwidth, pretend)
-     register SCREEN_PTR screen;
+change_frame_size (frame, newlength, newwidth, pretend)
+     register FRAME_PTR frame;
      register int newlength, newwidth, pretend;
 {
   /* If we can't deal with the change now, queue it for later.  */
   if (in_display)
     {
-      SCREEN_NEW_HEIGHT (screen) = newlength;
-      SCREEN_NEW_WIDTH (screen) = newwidth;
+      FRAME_NEW_HEIGHT (frame) = newlength;
+      FRAME_NEW_WIDTH (frame) = newwidth;
       delayed_size_change = 1;
       return;
     }
 
-  /* This size-change overrides any pending one for this screen.  */
-  SCREEN_NEW_HEIGHT (screen) = 0;
-  SCREEN_NEW_WIDTH (screen) = 0;
+  /* This size-change overrides any pending one for this frame.  */
+  FRAME_NEW_HEIGHT (frame) = 0;
+  FRAME_NEW_WIDTH (frame) = 0;
 
-  if ((newlength == 0 || newlength == SCREEN_HEIGHT (screen))
-      && (newwidth == 0 || newwidth == SCREEN_WIDTH (screen)))
+  if ((newlength == 0 || newlength == FRAME_HEIGHT (frame))
+      && (newwidth == 0 || newwidth == FRAME_WIDTH (frame)))
     return;
 
-  if (newlength && newlength != SCREEN_HEIGHT (screen))
+  if (newlength && newlength != FRAME_HEIGHT (frame))
     {
-      if (SCREEN_HAS_MINIBUF (screen)
-	  && ! SCREEN_MINIBUF_ONLY_P (screen))
+      if (FRAME_HAS_MINIBUF (frame)
+	  && ! FRAME_MINIBUF_ONLY_P (frame))
 	{
-	  /* Screen has both root and minibuffer.  */
-	  set_window_height (SCREEN_ROOT_WINDOW (screen),
+	  /* Frame has both root and minibuffer.  */
+	  set_window_height (FRAME_ROOT_WINDOW (frame),
 			     newlength - 1, 0);
-	  XFASTINT (XWINDOW (SCREEN_MINIBUF_WINDOW (screen))->top)
+	  XFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (frame))->top)
 	    = newlength - 1;
-	  set_window_height (SCREEN_MINIBUF_WINDOW (screen), 1, 0);
+	  set_window_height (FRAME_MINIBUF_WINDOW (frame), 1, 0);
 	}
       else
-	/* Screen has just one top-level window.  */
-	set_window_height (SCREEN_ROOT_WINDOW (screen), newlength, 0);
+	/* Frame has just one top-level window.  */
+	set_window_height (FRAME_ROOT_WINDOW (frame), newlength, 0);
 	
-      if (SCREEN_IS_TERMCAP (screen) && !pretend)
-	ScreenRows = newlength;
+      if (FRAME_IS_TERMCAP (frame) && !pretend)
+	FrameRows = newlength;
 
 #if 0
-      if (screen->output_method == output_termcap)
+      if (frame->output_method == output_termcap)
 	{
-	  screen_height = newlength;
+	  frame_height = newlength;
 	  if (!pretend)
-	    ScreenRows = newlength;
+	    FrameRows = newlength;
 	}
 #endif
     }
 
-  if (newwidth && newwidth != SCREEN_WIDTH (screen))
+  if (newwidth && newwidth != FRAME_WIDTH (frame))
     {
-      set_window_width (SCREEN_ROOT_WINDOW (screen), newwidth, 0);
-      if (SCREEN_HAS_MINIBUF (screen))
-	set_window_width (SCREEN_MINIBUF_WINDOW (screen), newwidth, 0);
-      SCREEN_WIDTH (screen) = newwidth;
+      set_window_width (FRAME_ROOT_WINDOW (frame), newwidth, 0);
+      if (FRAME_HAS_MINIBUF (frame))
+	set_window_width (FRAME_MINIBUF_WINDOW (frame), newwidth, 0);
+      FRAME_WIDTH (frame) = newwidth;
 
-      if (SCREEN_IS_TERMCAP (screen) && !pretend)
-	ScreenCols = newwidth;
+      if (FRAME_IS_TERMCAP (frame) && !pretend)
+	FrameCols = newwidth;
 #if 0
-      if (screen->output_method == output_termcap)
+      if (frame->output_method == output_termcap)
 	{
-	  screen_width = newwidth;
+	  frame_width = newwidth;
 	  if (!pretend)
-	    ScreenCols = newwidth;
+	    FrameCols = newwidth;
 	}
 #endif
     }
 
   if (newlength)
-    SCREEN_HEIGHT (screen) = newlength;
+    FRAME_HEIGHT (frame) = newlength;
 
-  remake_screen_glyphs (screen);
-  calculate_costs (screen);
+  remake_frame_glyphs (frame);
+  calculate_costs (frame);
 }
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
@@ -2023,12 +2023,12 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
   term_init (terminal_type);
 
-  remake_screen_glyphs (selected_screen);
-  calculate_costs (selected_screen);
+  remake_frame_glyphs (selected_frame);
+  calculate_costs (selected_frame);
 
   /* X and Y coordinates of the cursor between updates. */
-  SCREEN_CURSOR_X (selected_screen) = 0;
-  SCREEN_CURSOR_Y (selected_screen) = 0;
+  FRAME_CURSOR_X (selected_frame) = 0;
+  FRAME_CURSOR_Y (selected_frame) = 0;
 
 #ifdef SIGWINCH
 #ifndef CANNOT_DUMP
@@ -2040,8 +2040,8 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
 syms_of_display ()
 {
-#ifdef MULTI_SCREEN
-  defsubr (&Sredraw_screen);
+#ifdef MULTI_FRAME
+  defsubr (&Sredraw_frame);
 #endif
   defsubr (&Sredraw_display);
   defsubr (&Sopen_termscript);
@@ -2055,14 +2055,14 @@ syms_of_display ()
 On most systems, changing this value will affect the amount of padding\n\
 and the other strategic decisions made during redisplay.");
   DEFVAR_BOOL ("inverse-video", &inverse_video,
-    "*Non-nil means invert the entire screen display.\n\
+    "*Non-nil means invert the entire frame display.\n\
 This means everything is in inverse video which otherwise would not be.");
   DEFVAR_BOOL ("visible-bell", &visible_bell,
-    "*Non-nil means try to flash the screen to represent a bell.");
+    "*Non-nil means try to flash the frame to represent a bell.");
   DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
-    "*Non-nil means no need to redraw entire screen after suspending.\n\
+    "*Non-nil means no need to redraw entire frame after suspending.\n\
 A non-nil value is useful if the terminal can automatically preserve\n\
-Emacs's screen display when you reenter Emacs.\n\
+Emacs's frame display when you reenter Emacs.\n\
 It is up to you to set this variable if your terminal can do that.");
   DEFVAR_LISP ("window-system", &Vwindow_system,
     "A symbol naming the window-system under which Emacs is running\n\
@@ -2073,7 +2073,7 @@ For X windows, this is 10 or 11.");
   DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
     "Non-nil means put cursor in minibuffer, at end of any message there.");
   DEFVAR_LISP ("glyph-table", &Vglyph_table,
-    "Table defining how to output a glyph code to the screen.\n\
+    "Table defining how to output a glyph code to the frame.\n\
 If not nil, this is a vector indexed by glyph code to define the glyph.\n\
 Each element can be:\n\
  integer: a glyph code which this glyph is an alias for.\n\

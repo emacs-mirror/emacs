@@ -22,7 +22,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "indent.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -70,8 +70,8 @@ This is calculated by adding together the widths of all the displayed\n\
 representations of the character between the start of the previous line\n\
 and point.  (eg control characters will have a width of 2 or 4, tabs\n\
 will have a variable width)\n\
-Ignores finite width of screen, which means that this function may return\n\
-values greater than (screen-width).\n\
+Ignores finite width of frame, which means that this function may return\n\
+values greater than (frame-width).\n\
 Whether the line is visible (if `selective-display' is t) has no effect;\n\
 however, ^M is treated as end of line when `selective-display' is t.")
   ()
@@ -395,12 +395,12 @@ struct position val_compute_motion;
    When displaying in window w, a typical formula for WIDTH is:
 
 	window_width - 1
-	 - (window_width + window_left != screen_width)
+	 - (window_width + window_left != frame_width)
 
 	where
 	  window_width is XFASTINT (w->width),
 	  window_left is XFASTINT (w->left),
-	  and screen_width = SCREEN_WIDTH (XSCREEN (window->screen))    
+	  and frame_width = FRAME_WIDTH (XFRAME (window->frame))    
 
    This accounts for the continuation-line backslashes, and the window
    borders if the window is split vertically.  */
@@ -513,7 +513,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	    break;
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width + 1 < SCREEN_WIDTH (selected_screen))
+		  && width + 1 < FRAME_WIDTH (selected_frame))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline.  */
@@ -561,7 +561,7 @@ pos_tab_offset (w, pos)
   int col;
   int width = XFASTINT (w->width) - 1
     - (XFASTINT (w->width) + XFASTINT (w->left)
-       != SCREEN_WIDTH (XSCREEN (w->screen)));
+       != FRAME_WIDTH (XFRAME (w->frame)));
 
   if (pos == BEGV || FETCH_CHAR (pos - 1) == '\n')
     return 0;
@@ -678,7 +678,7 @@ Returns number of lines moved; may be closer to zero than LINES\n\
   register struct window *w = XWINDOW (selected_window);
   int width = XFASTINT (w->width) - 1
     - (XFASTINT (w->width) + XFASTINT (w->left)
-       != SCREEN_WIDTH (XSCREEN (w->screen)));
+       != FRAME_WIDTH (XFRAME (w->frame)));
 
   CHECK_NUMBER (lines, 0);
 

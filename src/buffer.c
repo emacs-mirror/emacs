@@ -1455,7 +1455,7 @@ Automatically becomes buffer-local when set in any fashion.\n\
 \n\
 Note that this is overridden by the variable\n\
 `truncate-partial-width-windows' if that variable is non-nil\n\
-and this buffer is not full-screen width.");
+and this buffer is not full-frame width.");
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
     "Name of default directory of current buffer.  Should end with slash.\n\

@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Nonzero means don't assume anything about current
-   contents of actual terminal screen */
-extern int screen_garbaged;
+   contents of actual terminal frame */
+extern int frame_garbaged;
 
 /* Nonzero means last display completed and cursor is really at
    cursX, cursY.  Zero means it was preempted. */
@@ -34,32 +34,32 @@ struct run
 };
 #endif
 
-/* This structure is used for the actual display of text on a screen.
+/* This structure is used for the actual display of text on a frame.
 
    There are two instantiations of it:  the glyphs currently displayed,
    and the glyphs we desire to display.  The latter object is generated
    from buffers being displayed. */
 
-struct screen_glyphs
+struct frame_glyphs
   {
-#ifdef MULTI_SCREEN
-    struct  screen *screen;	/* Screen these glyphs belong to. */
-#endif /* MULTI_SCREEN */
+#ifdef MULTI_FRAME
+    struct  frame *frame;	/* Frame these glyphs belong to. */
+#endif /* MULTI_FRAME */
     int height;
     int width;
 
-    /* Contents of the screen.
+    /* Contents of the frame.
        glyphs[V][H] is the glyph at position V, H.
        Note that glyphs[V][-1],
                  glyphs[V][used[V]],
-	     and glyphs[V][screen_width] are always '\0'.  */
+	     and glyphs[V][frame_width] are always '\0'.  */
     GLYPH **glyphs;
     /* long vector from which the strings in `glyphs' are taken.  */
     GLYPH *total_contents;
 
-    /* When representing a desired screen,
-         enable[n] == 0 means that line n is same as current screen.
-       When representing current screen contents,
+    /* When representing a desired frame,
+         enable[n] == 0 means that line n is same as current frame.
+       When representing current frame contents,
          enable[n] == 0 means that line n is blank.  */
     char *enable;
 
@@ -90,6 +90,6 @@ struct screen_glyphs
 
 #define LINE_HEIGHT(s,n) (FONT_HEIGHT((s)->display.x->font))
 #define LINE_WIDTH(s,n) (FONT_HEIGHT((s)->display.x->font) \
-			 * SCREEN_CURRENT_GLYPHS(s)->enable[(n)])
+			 * FRAME_CURRENT_GLYPHS(s)->enable[(n)])
 
 extern void get_display_line ();
