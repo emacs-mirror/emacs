@@ -370,10 +370,10 @@ ebrowse: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
 ctags: etags
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
-profile: ${srcdir}/profile.c
+profile: ${srcdir}/profile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
 
-make-docfile: ${srcdir}/make-docfile.c
+make-docfile: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
 
 digest-doc: ${srcdir}/digest-doc.c
@@ -412,7 +412,7 @@ emacsclient: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 	   -DVERSION=`sed -n -e '/(defconst emacs-version/ s/^[^"]*\("[^"]*"\).*/\1/p' ${srcdir}/../lisp/version.el` \
 	   $(LOADLIBES) -o emacsclient
 
-hexl: ${srcdir}/hexl.c
+hexl: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
