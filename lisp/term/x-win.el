@@ -587,16 +587,6 @@ This is in addition to the primary selection.")
 ;;; selection won't be added to the kill ring over and over.
 (defun x-cut-buffer-or-selection-value ()
   (let (text)
-
-    ;; Don't die if x-get-selection signals an error.
-    (condition-case c
-	(setq text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
-      (error nil))
-    (if (null text) 
-	(condition-case c
-	    (setq text (x-get-selection 'PRIMARY 'STRING))
-	  (error nil)))
-    (if (string= text "") (setq text nil))
     (when x-select-enable-clipboard
       (if (null text) 
 	  (condition-case c
@@ -607,6 +597,17 @@ This is in addition to the primary selection.")
 	      (setq text (x-get-selection 'CLIPBOARD 'STRING))
 	    (error nil)))
       (if (string= text "") (setq text nil)))
+
+    ;; Don't die if x-get-selection signals an error.
+    (if (null text) 
+	(condition-case c
+	    (setq text (x-get-selection 'PRIMARY 'COMPOUND_TEXT))
+	  (error nil)))
+    (if (null text) 
+	(condition-case c
+	    (setq text (x-get-selection 'PRIMARY 'STRING))
+	  (error nil)))
+    (if (string= text "") (setq text nil))
 
     (or text (setq text (x-get-cut-buffer 0)))
     (if (string= text "") (setq text nil))
