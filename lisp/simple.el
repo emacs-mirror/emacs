@@ -955,6 +955,11 @@ In either case, the output is inserted after point (leaving mark after it)."
     map)
   "Keymap used while processing \\[universal-argument].")
 
+(defvar universal-argument-num-events nil
+  "Number of argument-specifying events read by `universal-argument'.
+`universal-argument-other-key' uses this to discard those events
+from (this-command-keys), and reread only the final command.")
+
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
 Digits or minus sign following \\[universal-argument] make up the numeric argument.
@@ -964,6 +969,7 @@ Repeating \\[universal-argument] without digits or minus sign
  multiplies the argument by 4 each time."
   (interactive)
   (setq prefix-arg (list 4))
+  (setq universal-argument-num-events (length (this-command-keys)))
   (setq overriding-terminal-local-map universal-argument-map))
 
 ;; A subsequent C-u means to multiply the factor by 4 if we've typed
@@ -973,7 +979,8 @@ Repeating \\[universal-argument] without digits or minus sign
   (if (consp arg)
       (setq prefix-arg (list (* 4 (car arg))))
     (setq prefix-arg arg)
-    (setq overriding-terminal-local-map nil)))
+    (setq overriding-terminal-local-map nil))
+  (setq universal-argument-num-events (length (this-command-keys))))
 
 (defun negative-argument (arg)
   "Begin a negative numeric argument for the next command.
@@ -985,6 +992,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	 (setq prefix-arg nil))
 	(t
 	 (setq prefix-arg '-)))
+  (setq universal-argument-num-events (length (this-command-keys)))
   (setq overriding-terminal-local-map universal-argument-map))
 
 (defun digit-argument (arg)
@@ -1000,6 +1008,7 @@ Repeating \\[universal-argument] without digits or minus sign
 	   (setq prefix-arg (if (zerop digit) '- (- digit))))
 	  (t
 	   (setq prefix-arg digit))))
+  (setq universal-argument-num-events (length (this-command-keys)))
   (setq overriding-terminal-local-map universal-argument-map))
 
 ;; For backward compatibility, minus with no modifiers is an ordinary
@@ -1015,7 +1024,10 @@ Repeating \\[universal-argument] without digits or minus sign
 (defun universal-argument-other-key (arg)
   (interactive "P")
   (setq prefix-arg arg)
-  (setq unread-command-events (list last-input-event))
+  (let* ((key (this-command-keys))
+	 (keylist (listify-key-sequence key)))
+    (setq unread-command-events
+	  (nthcdr universal-argument-num-events keylist)))
   (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
 
