@@ -53,7 +53,7 @@
     (setq auto-mode-alist
 	  ;; matches files
 	  ;;	- that have a suffix .sh, .csh or .shar (shell archive)
-	  ;;	- that contain ressources for the various shells
+	  ;;	- that contain resources for the various shells
 	  ;;	- startup files for X11
 	  (cons '("\\.c?sh\\'\\|\\.shar\\'\\|/\\.\\(z?profile\\|bash_profile\\|z?login\\|bash_login\\|z?logout\\|bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\|rcrc\\|[kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
 		auto-mode-alist)
@@ -842,7 +842,7 @@ EXPANSION may be either a string or a skeleton command."
 
 
 (defun sh-mode-syntax-table (table &rest list)
-  "Copy TABLE and set syntax for succesive CHARs according to strings S."
+  "Copy TABLE and set syntax for successive CHARs according to strings S."
   (setq table (copy-syntax-table table))
   (while list
     (modify-syntax-entry (car list) (car (cdr list)) table)
