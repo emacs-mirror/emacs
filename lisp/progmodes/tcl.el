@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.44 $
+;; Version: $Revision: 1.45 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/23 20:26:47 $|$Revision: 1.44 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/23 23:51:25 $|$Revision: 1.45 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,11 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.45  1995/07/23  23:51:25  tromey
+;; (tcl-word-no-props): New function.
+;; (tcl-figure-type): Use it.
+;; (tcl-current-word): Ditto.
+;;
 ;; Revision 1.44  1995/07/23  20:26:47  tromey
 ;; Doc fixes.
 ;;
@@ -345,7 +350,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.44 $")
+(defconst tcl-version "$Revision: 1.45 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1743,21 +1748,22 @@ of comment."
 
 (defun tcl-do-auto-fill ()
   "Auto-fill function for Tcl mode.  Only auto-fills in a comment."
-  (let ((fill-prefix "# ")
-	in-comment col)
-    (save-excursion
-      (setq in-comment (tcl-in-comment))
-      (if in-comment
-	  (setq col (1- (current-column)))))
-    (if in-comment
-	(progn
-	  (do-auto-fill)
-	  (save-excursion
-	    (back-to-indentation)
-	    (delete-region (point) (save-excursion
-				     (beginning-of-line)
-				     (point)))
-	    (indent-to-column col))))))
+  (if (> (current-column) fill-column)
+      (let ((fill-prefix "# ")
+	    in-comment col)
+	(save-excursion
+	  (setq in-comment (tcl-in-comment))
+	  (if in-comment
+	      (setq col (1- (current-column)))))
+	(if in-comment
+	    (progn
+	      (do-auto-fill)
+	      (save-excursion
+		(back-to-indentation)
+		(delete-region (point) (save-excursion
+					 (beginning-of-line)
+					 (point)))
+		(indent-to-column col)))))))
 
 
 
@@ -1956,9 +1962,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
 		  (> (prefix-numeric-value arg) 0))
 		'tcl-do-auto-fill
 	      nil))
-    ;; Update mode line.  FIXME I'd use force-mode-line-update, but I
-    ;; don't know if it exists in v18.
-    (set-buffer-modified-p (buffer-modified-p))))
+    (force-mode-line-update)))
 
 (defun tcl-electric-hash (&optional count)
   "Insert a `#' and quote if it does not start a real comment.
