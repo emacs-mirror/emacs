@@ -579,7 +579,17 @@ This discards the buffer's undo information."
   (setq buffer-undo-list nil)
   (let ((binary-process-output nil) ; for Ms-Dos
 	(binary-process-input buffer-file-type)
-	(coding-system-for-write 'no-conversion)
+	;; If the buffer was read with EOL conversions, be sure to use the
+	;; same conversions when passing the region to the `hexl' program.
+	(coding-system-for-write
+	 (let ((eol-type (coding-system-eol-type buffer-file-coding-system)))
+	   (cond ((eq eol-type 1)
+		  'raw-text-dos)
+		 ((eq eol-type 2)
+		  'raw-text-mac)
+		 ((eq eol-type 0)
+		  'raw-text-unix)
+		 (t 'no-conversion))))
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) hexlify-command t)))
 
@@ -593,7 +603,7 @@ This discards the buffer's undo information."
   (setq buffer-undo-list nil)
   (let ((binary-process-output buffer-file-type) ; for Ms-Dos
 	(binary-process-input nil)
-	(coding-system-for-read 'no-conversion)
+	(coding-system-for-read 'raw-text)
 	(buffer-undo-list t))
     (shell-command-on-region (point-min) (point-max) dehexlify-command t)))
 
