@@ -520,6 +520,7 @@ toolkit, there is only one menu bar line; all that matters about the
 number you specify is whether it is greater than zero.)
 
 @item screen-gamma
+@cindex gamma correction
 If this is a number, Emacs performs ``gamma correction'' on colors.  The
 value should be the screen gamma of your display, a floating point
 number.  Usual PC monitors have a screen gamma of 2.2, so the default is
@@ -531,6 +532,9 @@ LCD color displays.
 @item tool-bar-lines
 The number of lines to use for the toolbar.  A value of @code{nil} means
 don't display a tool bar.
+
+@item line-spacing
+Additional space put below text lines in pixels (a positive integer).
 
 @ignore
 @item parent-id
