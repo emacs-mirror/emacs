@@ -158,8 +158,10 @@ Upon exit, point is at the far edge of the newly visible text."
 
 (defun mouse-drag-region (start-event)
   "Set the region to the text that the mouse is dragged over.
-Highlight the drag area as the user moves the mouse.
-This must be bound to a button-down mouse event."
+Highlight the drag area as you move the mouse.
+This must be bound to a button-down mouse event.
+In Transient Mark mode, the highlighting remains once you
+release the mouse button.  Otherwise, it does not."
   (interactive "e")
   (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
