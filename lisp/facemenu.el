@@ -593,22 +593,35 @@ or nil if given a bad color."
   "Add a FACE to the appropriate Face menu.
 Automatically called when a new face is created."
   (let* ((name (symbol-name face))
-	 (menu (cond ((string-match "^fg:" name) 
-		      (setq name (substring name 3))
-		      'facemenu-foreground-menu)
-		     ((string-match "^bg:" name) 
-		      (setq name (substring name 3))
-		      'facemenu-background-menu)
-		     (t 'facemenu-face-menu)))
+	 menu docstring
 	 (key (cdr (assoc face facemenu-keybindings)))
 	 function menu-val)
+    (cond ((string-match "^fg:" name) 
+	   (setq name (substring name 3))
+	   (setq docstring
+		 (format "Select foreground color %s for subsequent insertion."
+			 name))
+	   (setq menu 'facemenu-foreground-menu))
+	  ((string-match "^bg:" name) 
+	   (setq name (substring name 3))
+	   (setq docstring
+		 (format "Select background color %s for subsequent insertion."
+			 name))
+	   (setq menu 'facemenu-background-menu))
+	  (t
+	   (setq docstring
+		 (format "Select face `%s' for subsequent insertion."
+			 name))
+	   (setq menu 'facemenu-face-menu)))
     (cond ((eq t facemenu-unlisted-faces))
 	  ((memq face facemenu-unlisted-faces))
 	  (key ; has a keyboard equivalent.  These go at the front.
 	   (setq function (intern (concat "facemenu-set-" name)))
 	   (fset function
-		 (` (lambda () (interactive)
-		      (facemenu-set-face (quote (, face))))))
+		 `(lambda ()
+		    ,docstring
+		    (interactive)
+		    (facemenu-set-face (quote (, face)))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
 	  ((facemenu-iterate ; check if equivalent face is already in the menu
