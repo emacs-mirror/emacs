@@ -32,7 +32,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.29";
+char pot_etags_version[] = "@(#) pot revision number is 11.30";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -3661,8 +3661,8 @@ concat (s1, s2, s3)
    guess buffer size in advance. */
 char *
 etags_getcwd ()
-#ifdef DOS_NT
 {
+#ifdef DOS_NT
   char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
 
   getwd (path);
@@ -3674,9 +3674,8 @@ etags_getcwd ()
       *p++ = tolower (*p);
 
   return strdup (path);
-}
-#elif HAVE_GETCWD /* not DOS_NT */
-{
+#else /* not DOS_NT */
+#if HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
 
@@ -3689,9 +3688,7 @@ etags_getcwd ()
     }
 
   return path;
-}
 #else /* not DOS_NT and not HAVE_GETCWD */
-{
   struct linebuffer path;
   FILE *pipe;
 
@@ -3702,8 +3699,9 @@ etags_getcwd ()
   pclose (pipe);
 
   return path.buffer;
+#endif /* not HAVE_GETCWD */
+#endif /* not DOS_NT */
 }
-#endif /* not DOS_NT and not HAVE_GETCWD */
 
 /* Return a newly allocated string containing the filename
    of FILE relative to the absolute directory DIR (which
