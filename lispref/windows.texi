@@ -97,6 +97,15 @@ the mark
 
 @item
 how recently the window was selected
+
+@item
+fringe settings
+
+@item
+display margins
+
+@item
+scroll-bar settings
 @end itemize
 
 @cindex multiple windows
@@ -149,6 +158,7 @@ This function splits @var{window} into two windows.  The original
 window @var{window} remains the selected window, but occupies only
 part of its former screen area.  The rest is occupied by a newly created
 window which is returned as the value of this function.
+This function returns the newly created window.
 
 If @var{horizontal} is non-@code{nil}, then @var{window} splits into
 two side by side windows.  The original window @var{window} keeps the
@@ -291,8 +301,7 @@ You could define a simplified version of the function like this:
 This function returns non-@code{nil} if there is only one window.  The
 argument @var{no-mini}, if non-@code{nil}, means don't count the
 minibuffer even if it is active; otherwise, the minibuffer window is
-included, if active, in the total number of windows, which is compared
-against one.
+counted when it is active.
 
 The argument @var{all-frames} specifies which frames to consider.  Here
 are the possible values and their meanings:
@@ -422,7 +431,7 @@ The return value is @var{window}.
 @end defun
 
 @defmac save-selected-window forms@dots{}
-This macro records the selected window of eac frame, executes
+This macro records the selected window of each frame, executes
 @var{forms} in sequence, then restores the earlier selected windows.
 
 This macro does not save or restore anything about the sizes,
@@ -558,6 +567,9 @@ must ensure @var{window} is in a visible frame.)
 @item 0
 Consider all windows in all visible or iconified frames.
 
+@item a frame
+Consider all windows on that frame.
+
 @item anything else
 Consider precisely the windows in @var{window}'s frame, and no others.
 @end table
@@ -657,9 +669,10 @@ of doing that call this function.
 @end example
 
 Normally, displaying @var{buffer} in @var{window} resets the window's
-fringe widths and position based on the local variables of @var{buffer}.
-However, if @var{keep-margins} is non-@code{nil}, the fringe widths and
-position of @var{window} remain unchanged.  @xref{Fringes}.
+display margins, fringe widths, scroll bar settings, and position
+based on the local variables of @var{buffer}.  However, if
+@var{keep-margins} is non-@code{nil}, the display margins and fringe
+widths of @var{window} remain unchanged.  @xref{Fringes}.
 @end defun
 
 @defun window-buffer &optional window
@@ -805,6 +818,8 @@ This function makes @var{buffer-or-name} the current buffer and
 switches to it in some window, preferably not the window previously
 selected.  The ``popped-to'' window becomes the selected window within
 its frame.  The return value is the buffer that was switched to.
+If @var{buffer-or-name} is @code{nil}, that means to choose some
+other buffer, but you don't specify which.
 
 If the variable @code{pop-up-frames} is non-@code{nil},
 @code{pop-to-buffer} looks for a window in any visible frame already
@@ -948,7 +963,7 @@ splits a window or reuses one.
 @end defopt
 
 @c Emacs 19 feature
-@defvar pop-up-frame-function
+@defopt pop-up-frame-function
 This variable specifies how to make a new frame if @code{pop-up-frames}
 is non-@code{nil}.
 
@@ -989,6 +1004,14 @@ For example:
 @noindent
 specifies to display a buffer named @samp{myfile} in a dedicated frame
 with specified @code{minibuffer} and @code{menu-bar-lines} parameters.
+
+The list of frame parameters can also use the phony frame parameters
+@code{same-frame} and @code{same-window}.  If the specified frame
+parameters include @code{(same-window . @var{value})} and @var{value}
+is non-@code{nil}, that means to display the buffer in the current
+selected window.  Otherwise, if they include @code{(same-frame .
+@var{value})} and @var{value} is non-@code{nil}, that means to display
+the buffer in a new window in the currently selected frame.
 @end defopt
 
 @defopt special-display-regexps
@@ -1072,8 +1095,8 @@ A window can be marked as ``dedicated'' to its buffer.  Then
 other buffer.
 
 @defun window-dedicated-p window
-This function returns @code{t} if @var{window} is marked as dedicated;
-otherwise @code{nil}.
+This function returns non-@code{nil} if @var{window} is marked as
+dedicated; otherwise @code{nil}.
 @end defun
 
 @defun set-window-dedicated-p window flag
@@ -1327,7 +1350,8 @@ If @var{count} is @code{nil} (or omitted), then the length of scroll
 is @code{next-screen-context-lines} lines less than the usable height of
 the window (not counting its mode line).
 
-@code{scroll-up} returns @code{nil}.
+@code{scroll-up} returns @code{nil}, unless it gets an error
+because it can't scroll any further.
 @end deffn
 
 @deffn Command scroll-down &optional count
@@ -1339,7 +1363,8 @@ If @var{count} is omitted or @code{nil}, then the length of the scroll
 is @code{next-screen-context-lines} lines less than the usable height of
 the window (not counting its mode line).
 
-@code{scroll-down} returns @code{nil}.
+@code{scroll-down} returns @code{nil}, unless it gets an error because
+it can't scroll any further.
 @end deffn
 
 @deffn Command scroll-other-window &optional count
@@ -1573,12 +1598,12 @@ left you can scroll, but eventually all the text will disappear off the
 left edge.
 
 @vindex auto-hscroll-mode
-  In Emacs 21, redisplay automatically alters the horizontal scrolling
-of a window as necessary to ensure that point is always visible, if
-@code{auto-hscroll-mode} is set.  However, you can still set the
-horizontal scrolling value explicitly.  The value you specify serves as
-a lower bound for automatic scrolling, i.e. automatic scrolling
-will not scroll a window to a column less than the specified one.
+  If @code{auto-hscroll-mode} is set, redisplay automatically alters
+the horizontal scrolling of a window as necessary to ensure that point
+is always visible.  However, you can still set the horizontal
+scrolling value explicitly.  The value you specify serves as a lower
+bound for automatic scrolling, i.e. automatic scrolling will not
+scroll a window to a column less than the specified one.
 
 @deffn Command scroll-left &optional count
 This function scrolls the selected window @var{count} columns to the
@@ -1631,10 +1656,11 @@ If @var{window} is @code{nil}, the selected window is used.
 @end defun
 
 @defun set-window-hscroll window columns
-This function sets the number of columns from the left margin that
-@var{window} is scrolled from the value of @var{columns}.  The argument
-@var{columns} should be zero or positive; if not, it is taken as zero.
-Fractional values of @var{columns} are not supported at present.
+This function sets horizontal scrolling of @var{window}.  The value of
+@var{columns} specifies the amount of scrolling, in terms of columns
+from the left margin.  The argument @var{columns} should be zero or
+positive; if not, it is taken as zero.  Fractional values of
+@var{columns} are not supported at present.
 
 Note that @code{set-window-hscroll} may appear not to work if you test
 it by evaluating a call with @kbd{M-:} in a simple way.  What happens
@@ -1685,9 +1711,8 @@ characters that separates side-by-side windows.
 @defun window-height &optional window
 This function returns the number of lines in @var{window}, including
 its mode line and header line, if any.  If @var{window} fills its
-entire frame except for the echo area, and there is no tool bar, this
-is typically one less than the value of @code{frame-height} on that
-frame.
+entire frame except for the echo area, this is typically one less than
+the value of @code{frame-height} on that frame.
 
 If @var{window} is @code{nil}, the function uses the selected window.
 
@@ -2012,6 +2037,14 @@ neighbor to the right.  This value occurs only if the window doesn't
 have a scroll bar; positions in a scroll bar are considered outside the
 window for these purposes.
 
+@item left-fringe
+@itemx right-fringe
+The coordinates are in the left or right fringe of the window.
+
+@item left-margin
+@itemx right-margin
+The coordinates are in the left or right margin of the window.
+
 @item nil
 The coordinates are not in any part of @var{window}.
 @end table
@@ -2028,7 +2061,8 @@ argument because it always uses the frame that @var{window} is on.
   A @dfn{window configuration} records the entire layout of one
 frame---all windows, their sizes, which buffers they contain, what
 part of each buffer is displayed, and the values of point and the
-mark.  It also includes the values of @code{window-min-height},
+mark; also their fringes, margins, and scroll bar settings.  It also
+includes the values of @code{window-min-height},
 @code{window-min-width} and @code{minibuffer-scroll-window}.  An
 exception is made for point in the selected window for the current
 buffer; its value is not saved in the window configuration.
