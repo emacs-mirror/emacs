@@ -653,7 +653,7 @@ float_to_string (buf, data)
   /* Make sure there is a decimal point with digit after, or an exponent,
      so that the value is readable as a float.  */
   for (cp = buf; *cp; cp++)
-    if (*cp < '0' || *cp > '9')
+    if ((*cp < '0' || *cp > '9') && *cp != '-')
       break;
 
   if (*cp == '.' && cp[1] == 0)
