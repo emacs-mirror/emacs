@@ -1349,6 +1349,7 @@ detect_coding_iso2022 (src, src_end, multibytep)
   while (mask && src < src_end)
     {
       ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+    retry:
       switch (c)
 	{
 	case ISO_CODE_ESC:
@@ -1523,6 +1524,8 @@ detect_coding_iso2022 (src, src_end, multibytep)
 		  && mask & CODING_CATEGORY_MASK_ISO_8_2)
 		{
 		  int i = 1;
+
+		  c = -1;
 		  while (src < src_end)
 		    {
 		      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
@@ -1535,6 +1538,9 @@ detect_coding_iso2022 (src, src_end, multibytep)
 		    mask &= ~CODING_CATEGORY_MASK_ISO_8_2;
 		  else
 		    mask_found |= CODING_CATEGORY_MASK_ISO_8_2;
+		  if (c >= 0)
+		    /* This means that we have read one extra byte.  */
+		    goto retry;
 		}
 	    }
 	  break;
