@@ -272,7 +272,7 @@ static int last_non_minibuf_size;
 static Lisp_Object Vauto_save_timeout;
 
 /* Total number of times read_char has returned.  */
-int num_input_chars;
+int num_input_events;
 
 /* Total number of times read_char has returned, outside of macros.  */
 int num_nonmacro_input_events;
