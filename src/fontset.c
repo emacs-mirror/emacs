@@ -210,7 +210,6 @@ fontset_ref (fontset, c)
 {
   int charset, c1, c2;
   Lisp_Object elt, defalt;
-  int i;
 
   if (SINGLE_BYTE_CHAR_P (c))
     return FONTSET_ASCII (fontset);
@@ -281,8 +280,8 @@ fontset_set (fontset, c, newelt)
      Lisp_Object newelt;
 {
   int charset, code[3];
-  Lisp_Object *elt, tmp;
-  int i, j;
+  Lisp_Object *elt;
+  int i;
 
   if (SINGLE_BYTE_CHAR_P (c))
     {
@@ -314,10 +313,9 @@ static Lisp_Object
 make_fontset (frame, name, base)
      Lisp_Object frame, name, base;
 {
-  Lisp_Object fontset, elt, base_elt;
+  Lisp_Object fontset;
   int size = ASIZE (Vfontset_table);
   int id = next_fontset_id;
-  int i, j;
 
   /* Find a free slot in Vfontset_table.  Usually, next_fontset_id is
      the next available fontset ID.  So it is expected that this loop
@@ -493,7 +491,7 @@ make_fontset_for_ascii_face (f, base_fontset_id)
      FRAME_PTR f;
      int base_fontset_id;
 {
-  Lisp_Object base_fontset, fontset, name, frame;
+  Lisp_Object base_fontset, fontset, frame;
 
   XSETFRAME (frame, f);
   if (base_fontset_id >= 0)
@@ -580,7 +578,6 @@ fs_load_font (f, c, fontname, id, face)
 {
   Lisp_Object fontset;
   Lisp_Object list, elt;
-  int font_idx;
   int size = 0;
   struct font_info *fontp;
   int charset = CHAR_CHARSET (c);
@@ -749,7 +746,7 @@ fs_query_fontset (name, regexpp)
      Lisp_Object name;
      int regexpp;
 {
-  Lisp_Object fontset, tem;
+  Lisp_Object tem;
   int i;
 
   name = Fdowncase (name);
@@ -826,7 +823,7 @@ list_fontsets (f, pattern, size)
      Lisp_Object pattern;
      int size;
 {
-  Lisp_Object frame, regexp, val, tail;
+  Lisp_Object frame, regexp, val;
   int id;
 
   XSETFRAME (frame, f);
@@ -889,7 +886,6 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.")
   elements = ascii_font = Qnil;
   for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object family, registry;
       int c, charset;
 
       tem = XCAR (tail);
@@ -1185,7 +1181,7 @@ static void
 accumulate_font_info (arg, character, elt)
      Lisp_Object arg, character, elt;
 {
-  Lisp_Object last, last_char, last_elt, tmp;
+  Lisp_Object last, last_char, last_elt;
 
   if (!CONSP (elt) && !SINGLE_BYTE_CHAR_P (XINT (character)))
     elt = FONTSET_REF (Vdefault_fontset, XINT (character));
@@ -1336,7 +1332,7 @@ If NAME is t, find a font name pattern in the default fontset.")
   (name, ch)
      Lisp_Object name, ch;
 {
-  int c, id;
+  int c;
   Lisp_Object fontset, elt;
 
   fontset = check_fontset_name (name);
@@ -1376,8 +1372,6 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
 void
 syms_of_fontset ()
 {
-  int i;
-
   if (!load_font_func)
     /* Window system initializer should have set proper functions.  */
     abort ();
