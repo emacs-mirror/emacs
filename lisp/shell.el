@@ -1,5 +1,5 @@
 ;;; shell.el --- specialized comint.el for running the shell.
-;;; Copyright (C) 1988 Free Software Foundation, Inc.
+;;; Copyright (C) 1988, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes
@@ -144,13 +144,13 @@
 (require 'comint)
 
 ;;;###autoload
-(defconst shell-prompt-pattern "^[^#$%>;]*[#$%>;] *"
+(defconst shell-prompt-pattern "^[^#$%>]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>]*[#$%>] *\", which works pretty well.
-This variable is used to initialise comint-prompt-regexp in the 
+This variable is used to initialise `comint-prompt-regexp' in the 
 shell buffer.
 
-This is a fine thing to set in your .emacs file.")
+This is a fine thing to set in your `.emacs' file.")
 
 (defvar shell-popd-regexp "popd"
   "*Regexp to match subshell commands equivalent to popd.")
@@ -184,7 +184,7 @@ Thus, this does not include the shell's current directory.")
   "Keep track of last directory for ksh `cd -' command.")
 
 (defvar shell-dirstack-query "dirs"
-  "Command used by shell-resync-dirlist to query shell.")
+  "Command used by `shell-resync-dir' to query the shell.")
 
 (defvar shell-mode-map '())
 (cond ((not shell-mode-map)
@@ -193,7 +193,7 @@ Thus, this does not include the shell's current directory.")
        (define-key shell-mode-map "\M-?"  'comint-dynamic-list-completions)))
 
 (defvar shell-mode-hook '()
-  "*Hook for customising shell mode")
+  "*Hook for customising Shell mode.")
 
 
 ;;; Basic Procedures
@@ -219,11 +219,11 @@ M-x dirs queries the shell and resyncs Emacs' idea of what the current
 M-x dirtrack-toggle turns directory tracking on and off.
 
 \\{shell-mode-map}
-Customization: Entry to this mode runs the hooks on comint-mode-hook and
-shell-mode-hook (in that order).
+Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
+`shell-mode-hook' (in that order).
 
-Variables shell-cd-regexp, shell-pushd-regexp and shell-popd-regexp are used
-to match their respective commands."
+Variables `shell-cd-regexp', `shell-pushd-regexp' and `shell-popd-regexp'
+are used to match their respective commands."
   (interactive)
   (comint-mode)
   (setq comint-prompt-regexp shell-prompt-pattern)
@@ -245,7 +245,7 @@ to match their respective commands."
 If buffer exists but shell process is not running, make new shell.
 If buffer exists and shell process is running, 
  just switch to buffer `*shell*'.
-Program used comes from variable explicit-shell-file-name,
+Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
  or else from SHELL if there is no ESHELL.
 If a file `~/.emacs_SHELLNAME' exists, it is given as initial input
@@ -334,8 +334,8 @@ default directory to track these commands.
 You may toggle this tracking on and off with M-x dirtrack-toggle.
 If emacs gets confused, you can resync with the shell with M-x dirs.
 
-See variables shell-cd-regexp, shell-pushd-regexp, and shell-popd-regexp.
-Environment variables are expanded, see function substitute-in-file-name."
+See variables `shell-cd-regexp', `shell-pushd-regexp', and `shell-popd-regexp'.
+Environment variables are expanded, see function `substitute-in-file-name'."
   (condition-case err
     (cond (shell-dirtrackp
 	   (string-match "^\\s *" str) ; skip whitespace
@@ -460,7 +460,7 @@ Environment variables are expanded, see function substitute-in-file-name."
 (defun shell-resync-dirs ()
   "Resync the buffer's idea of the current directory stack.
 This command queries the shell with the command bound to 
-shell-dirstack-query (default \"dirs\"), reads the next
+`shell-dirstack-query' (default \"dirs\"), reads the next
 line output and parses it to form the new directory stack.
 DON'T issue this command unless the buffer is at a shell prompt.
 Also, note that if some other subprocess decides to do output
@@ -555,75 +555,6 @@ command again."
 This is a good place to put keybindings.")
 	
 (run-hooks 'shell-load-hook)
-
-;;; Change Log
-;;; ===========================================================================
-;;; Olin 8/88
-;;; Created.
-;;;
-;;; Olin 5/26/90
-;;; - Split cmulisp and cmushell modes into separate files. 
-;;;   Not only is this a good idea, it's apparently the way it'll be rel 19.
-;;; - Souped up the directory tracking; it now can handle pushd, pushd +n, 
-;;;   and popd +n.
-;;; - Added cmushell-dirtrack-toggle command to toggle the directory
-;;;   tracking that cmushell tries to do. This is useful, for example,
-;;;   when you are running ftp -- it prevents the ftp "cd" command from
-;;;   spoofing the tracking machinery. This command is also named 
-;;;   dirtrack-toggle, so you need only type M-x dirtrack to run it.
-;;; - Added cmushell-resync-dirs command. This queries the shell
-;;;   for the current directory stack, and resets the buffer's stack
-;;;   accordingly. This command is also named dirs, so you need only type
-;;;   M-x dirs to run it.
-;;; - Bits of the new directory tracking code were adapted from source
-;;;   contributed by Vince Broman, Jeff Peck, and Barry Warsaw.
-;;; - See also the improvements made to comint.el at the same time.
-;;; - Renamed several variables. Mostly this comprised changing "shell"
-;;;   to "cmushell" in the names. The only variables that are not prefixed
-;;;   with "cmushell-" are the ones that are common with shell.el:
-;;;       explicit-shell-file-name shell-prompt-pattern explicit-csh-args 
-;;;       and shell-cd/popd/pushd-regexp
-;;;   The variables and functions that were changed to have "cmushell-" 
-;;;   prefixes are:
-;;;       shell-directory-stack (v), shell-directory-tracker (f)
-;;;   This should not affect users, only Emacs Lisp hackers. Hopefully
-;;;   one day shell.el will just go away, and we can drop all this
-;;;   "cmushell" bullshit.
-;;; - Upgraded process sends to use comint-send-string instead of
-;;;   process-send-string.
-;;;
-;;; Olin 6/14/90
-;;; - If your shell is named <shellname>, and a variable named
-;;;   explicit-<shellname>-args exists, cmushell is supposed
-;;;   to use its value as the arglist to the shell invocation.
-;;;   E.g., if you define explicit-csh-args to be 
-;;;   ("-ifx"), then when cmushell cranks up a csh, it execs it
-;;;   as "csh -ifx". This is what is documented. What has actually
-;;;   been the case is that the variable checked is
-;;;   explicit-<shellname>-arguments, not explicit-<shellname>-args.
-;;;   The documentation has been changed to conform to the code (for
-;;;   backwards compatibility with shell.el). This bug is inherited from
-;;;   the same bug in shell.el.
-;;;   This bug reported by Stephen Anderson.
-;;;
-;;; Olin 9/5/90
-;;; - Arguments to cd, popd, and pushd now have their env vars expanded
-;;;   out by the tracking machinery. So if you say "cd $SRCDIR/funs", the
-;;;   $SRCDIR var will be replaced by its value *in emacs' process
-;;;   environment*. If this is different from the shell's binding of the
-;;;   variable, you lose.  Several users needed this feature, fragile
-;;;   though it may be.  The fix was contributed by sk@thp.Uni-Koeln.DE.
-;;;
-;;; Olin 3/12/91
-;;; - Moved comint-dynamic-complete (filename completion) from M-tab to tab.
-;;;
-;;; Jim Blandy 10/30/91
-;;; - Removed the "cmu" prefix from names, renamed file to shell.el,
-;;;   to become the standard shell package.
-;;;
-;;; Eric Raymond 3/23/93
-;;; - Merged in Brent Benson's patch to handle cd -.  Made some more
-;;;   cmushell -> shell changes.
 
 (provide 'shell)
 
