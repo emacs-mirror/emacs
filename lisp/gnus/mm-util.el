@@ -27,6 +27,45 @@
 (eval-when-compile (require 'cl))
 (require 'mail-prsvr)
 
+(eval-and-compile
+  (mapcar
+   (lambda (elem)
+     (let ((nfunc (intern (format "mm-%s" (car elem)))))
+       (if (fboundp (car elem))
+	   (defalias nfunc (car elem))
+	 (defalias nfunc (cdr elem)))))
+   '((decode-coding-string . (lambda (s a) s))
+     (encode-coding-string . (lambda (s a) s))
+     (encode-coding-region . ignore)
+     (coding-system-list . ignore)
+     (decode-coding-region . ignore)
+     (char-int . identity)
+     (device-type . ignore)
+     (coding-system-equal . equal)
+     (annotationp . ignore)
+     (set-buffer-file-coding-system . ignore)
+     (make-char
+      . (lambda (charset int)
+	  (int-to-char int)))
+     (read-coding-system
+      . (lambda (prompt)
+	  "Prompt the user for a coding system."
+	  (completing-read
+	   prompt (mapcar (lambda (s) (list (symbol-name (car s))))
+			  mm-mime-mule-charset-alist))))
+     (read-charset
+      . (lambda (prompt)
+	  "Return a charset."
+	  (intern
+	   (completing-read
+	    prompt
+	    (mapcar (lambda (e) (list (symbol-name (car e))))
+		    mm-mime-mule-charset-alist)
+	    nil t))))
+     (string-as-unibyte . identity)
+     (multibyte-string-p . ignore)
+     )))
+
 (defvar mm-mime-mule-charset-alist
   `((us-ascii ascii)
     (iso-8859-1 latin-iso8859-1)
@@ -78,45 +117,6 @@
 				      'mule-utf-8
 				      'safe-charsets))))))
   "Alist of MIME-charset/MULE-charsets.")
-
-(eval-and-compile
-  (mapcar
-   (lambda (elem)
-     (let ((nfunc (intern (format "mm-%s" (car elem)))))
-       (if (fboundp (car elem))
-	   (defalias nfunc (car elem))
-	 (defalias nfunc (cdr elem)))))
-   '((decode-coding-string . (lambda (s a) s))
-     (encode-coding-string . (lambda (s a) s))
-     (encode-coding-region . ignore)
-     (coding-system-list . ignore)
-     (decode-coding-region . ignore)
-     (char-int . identity)
-     (device-type . ignore)
-     (coding-system-equal . equal)
-     (annotationp . ignore)
-     (set-buffer-file-coding-system . ignore)
-     (make-char
-      . (lambda (charset int)
-	  (int-to-char int)))
-     (read-coding-system
-      . (lambda (prompt)
-	  "Prompt the user for a coding system."
-	  (completing-read
-	   prompt (mapcar (lambda (s) (list (symbol-name (car s))))
-			  mm-mime-mule-charset-alist))))
-     (read-charset
-      . (lambda (prompt)
-	  "Return a charset."
-	  (intern
-	   (completing-read
-	    prompt
-	    (mapcar (lambda (e) (list (symbol-name (car e))))
-		    mm-mime-mule-charset-alist)
-	    nil t))))
-     (string-as-unibyte . identity)
-     (multibyte-string-p . ignore)
-     )))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p
