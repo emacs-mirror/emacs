@@ -1,3 +1,11 @@
+2005-02-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-update): Don't put in
+	unnecessary newlines. Adjust the end of formula marker.
+
+	* calc/calc-lang.el (math-latex-parse-frac): Don't use arguments.
+	(math-latex-parse-two-args): New function.
+
 2005-02-03  Lute Kamstra  <lute@gnu.org>
 
 	* help-fns.el (help-with-tutorial): Make sure that users cannot
