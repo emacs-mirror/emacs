@@ -263,12 +263,12 @@ getpwnam (char *name)
    user enter it, so we define EMACS_CONFIGURATION to invoke this runtime
    routine.  */
 
-static char configuration_buffer[16];
+static char configuration_buffer[32];
 
 char *
 get_emacs_configuration (void)
 {
-    char *arch, *oem;
+    char *arch, *oem, *os;
 
     /* Determine the processor type.  */
     switch (get_processor_type ()) 
@@ -297,7 +297,13 @@ get_emacs_configuration (void)
     /* Let oem be "*" until we figure out how to decode the OEM field.  */
     oem = "*";
 
-    sprintf (configuration_buffer, "%s-%s-nt%d.%d", arch, oem,
+#ifdef WINDOWS95
+    os = "win";
+#else
+    os = "nt";
+#endif
+
+    sprintf (configuration_buffer, "%s-%s-%s%d.%d", arch, oem, os,
 	     get_nt_major_version (), get_nt_minor_version ());
     return configuration_buffer;
 }
@@ -422,8 +428,21 @@ void
 prepare_standard_handles (int in, int out, int err, HANDLE handles[4])
 {
   HANDLE parent, stdin_save, stdout_save, stderr_save, err_handle;
-  
+
+#ifdef WINDOWS95
+  /* The Win95 beta doesn't set the standard handles correctly.
+     Handicap subprocesses until we get a version that works correctly.  
+     Undefining the subprocesses macro reveals other incompatibilities,
+     so, since we're expecting subprocs to work in the near future, 
+     disable them here.  */
+  report_file_error ("Subprocesses currently disabled on Win95", Qnil);
+#endif
+
   parent = GetCurrentProcess ();
+  stdin_save = GetStdHandle (STD_INPUT_HANDLE);
+  stdout_save = GetStdHandle (STD_OUTPUT_HANDLE);
+  stderr_save = GetStdHandle (STD_ERROR_HANDLE);
+
   if (!DuplicateHandle (parent, 
 		       GetStdHandle (STD_INPUT_HANDLE), 
 		       parent,
@@ -492,12 +511,16 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[4])
   HANDLE stdout_save = handles[1];
   HANDLE stderr_save = handles[2];
   HANDLE err_handle = handles[3];
-  
+  int i;
+
   if (!SetStdHandle (STD_INPUT_HANDLE, stdin_save))
     report_file_error ("Resetting input handle", Qnil);
   
   if (!SetStdHandle (STD_OUTPUT_HANDLE, stdout_save))
-    report_file_error ("Resetting output handle", Qnil);
+    {
+      i = GetLastError ();
+      report_file_error ("Resetting output handle", Qnil);
+    }
   
   if (!SetStdHandle (STD_ERROR_HANDLE, stderr_save))
     report_file_error ("Resetting error handle", Qnil);
