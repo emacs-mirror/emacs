@@ -3397,7 +3397,7 @@ string @samp{wordstar}.
 It is also possible that the package is on your system, but has not been
 loaded.  To see which packages are available for loading, look through
 your computer's lisp directory (@pxref{Filename conventions}).  The Lisp
-source to most most packages contains a short description of how they
+source to most packages contains a short description of how they
 should be loaded, invoked, and configured---so before you use or
 modify a Lisp package, see if the author has provided any hints in the
 source code.
