@@ -723,6 +723,11 @@ second and subsequent lines of a multi-line description."
 
 ;;; Making the master menu
 
+(defvar texinfo-master-menu-header
+  " --- The Detailed Node Listing ---\n"
+  "String inserted before lower level entries in Texinfo master menu.
+It comes after the chapter-level menu entries.")
+
 (defun texinfo-master-menu (update-all-nodes-menus-p)
   "Make a master menu for a whole Texinfo file.
 Non-nil argument (prefix, if interactive) means first update all
@@ -875,38 +880,36 @@ However, there does not need to be a title field."
     
     (setq master-menu-list (cdr master-menu-list))
     
-    ;; Only insert detailed master menu if there is one....
-    (if (car (car master-menu-list))
-        (insert texinfo-master-menu-header))
-    
-    ;; Now, insert all the other menus
+    ;; Now, insert all the other menus (if we have any).
     
     ;; The menu master-menu-list has a form like this:
     ;; ((("beta"  "alpha") "title-A")
     ;;  (("delta" "gamma") "title-B"))
+
+    (if (car (car master-menu-list))
+	(progn
+	  (insert "\n@detailmenu\n")
+	  (insert texinfo-master-menu-header)
     
-    (while master-menu-list
-      
-      (message
-       "Inserting menu for %s .... " (car (cdr (car master-menu-list))))
-      ;; insert title of menu section
-      (insert "\n" (car (cdr (car master-menu-list))) "\n\n")
-      
-      ;; insert each menu entry
-      (setq this-very-menu-list (reverse (car (car master-menu-list))))
-      (while this-very-menu-list
-        (insert "* " (car this-very-menu-list) "\n")
-        (setq this-very-menu-list (cdr this-very-menu-list)))
-      
-      (setq master-menu-list (cdr master-menu-list)))
+	  (while master-menu-list
+
+	    (message
+	     "Inserting menu for %s .... " (car (cdr (car master-menu-list))))
+	    ;; insert title of menu section
+	    (insert "\n" (car (cdr (car master-menu-list))) "\n\n")
+
+	    ;; insert each menu entry
+	    (setq this-very-menu-list (reverse (car (car master-menu-list))))
+	    (while this-very-menu-list
+	      (insert "* " (car this-very-menu-list) "\n")
+	      (setq this-very-menu-list (cdr this-very-menu-list)))
+
+	    (setq master-menu-list (cdr master-menu-list)))
+
+	  (insert "@end detaimenu\n")))
     
     ;; Finish menu
     (insert "@end menu\n\n")))
-
-(defvar texinfo-master-menu-header
-  "\n --- The Detailed Node Listing ---\n"
-  "String inserted before lower level entries in Texinfo master menu.
-It comes after the chapter-level menu entries.")
 
 (defun texinfo-locate-menu-p ()
   "Find the next menu in the texinfo file.
