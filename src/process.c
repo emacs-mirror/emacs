@@ -3776,7 +3776,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      int do_display;
 {
   EMACS_TIME end_time, timeout, *timeout_p;
-  int waitchannels;
+  SELECT_TYPE waitchannels;
 
   /* What does time_limit really mean?  */
   if (time_limit || microsecs)
@@ -3806,7 +3806,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     {
       int nfds;
 
-      waitchannels = XINT (read_kbd) ? 1 : 0;
+      if (XINT (read_kbd))
+	FD_SET (0, &waitchannels);
+      else
+	FD_ZERO (&waitchannels);
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
@@ -3849,7 +3852,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  /* If the system call was interrupted, then go around the
 	     loop again.  */
 	  if (errno == EINTR)
-	    waitchannels = 0;
+	    FD_ZERO (&waitchannels);
 	}
 #ifdef sun
       else if (nfds > 0 && (waitchannels & 1)  && interrupt_input)
