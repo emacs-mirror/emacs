@@ -76,7 +76,7 @@
 ;;
 ;; Checking parameters
 ;;
-;;   You might not always want a function to have it's parameters listed
+;;   You might not always want a function to have its parameters listed
 ;; in order.  When this is the case, put the following comment just in
 ;; front of the documentation string: "; checkdoc-order: nil"  This
 ;; overrides the value of `checkdoc-arguments-in-order-flag'.
@@ -173,7 +173,7 @@ comment can look like this:
 ;;  text
 But when inside a function, code can be commented out using the ;;;
 construct for all lines.  When this variable is nil, the ;;; construct
-is ignored regardless of it's location in the code."
+is ignored regardless of its location in the code."
   :group 'checkdoc
   :type 'boolean)
 
@@ -251,8 +251,8 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
   '(("adds" . "add")
     ("allows" . "allow")
     ("appends" . "append")
-    ("applies" "apply")
-    ("arranges" "arrange")
+    ("applies" . "apply")
+    ("arranges" . "arrange")
     ("brings" . "bring")
     ("calls" . "call")
     ("catches" . "catch")
@@ -263,7 +263,7 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
     ("destroys" . "destroy")
     ("disables" . "disable")
     ("executes" . "execute")
-    ("evals"   . "evaluate")
+    ("evals" . "evaluate")
     ("evaluates" . "evaluate")
     ("finds" . "find")
     ("forces" . "force")
@@ -317,7 +317,7 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
     ("tells" . "tell")
     ("tests" . "test")
     ("toggles" . "toggle")
-    ("tries"   . "try")
+    ("tries" . "try")
     ("turns" . "turn")
     ("undoes" . "undo")
     ("unloads" . "unload")
@@ -532,8 +532,7 @@ a separate buffer."
 (defun checkdoc-continue (&optional take-notes)
   "Find the next docstring in the current buffer which is stylisticly poor.
 Prefix argument TAKE-NOTES means to continue through the whole buffer and
-save warnings in a separate buffer.  Second optional argument START-POINT
-is the starting location.  If this is nil, `point-min' is used instead."
+save warnings in a separate buffer."
   (interactive "P")
   (let ((wrong nil) (msg nil) (errors nil)
 	;; Assign a flag to spellcheck flag
@@ -618,7 +617,7 @@ if there is one."
 
 ;;;###autoload
 (defun checkdoc-eval-defun ()
-  "Evaluate the current form with `eval-defun' and check it's documentation.
+  "Evaluate the current form with `eval-defun' and check its documentation.
 Evaluation is done first so the form will be read before the
 documentation is checked.  If there is a documentation error, then the display
 of what was evaluated will be overwritten by the diagnostic message."
