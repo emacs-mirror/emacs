@@ -817,7 +817,7 @@ Next time you use it, it will start from point.
 
 With a positive prefix ARG, the first window in cyclic order
 displaying the virtual cursor (or which was recently displaying the
-virutal cursor) will be deleted unless it's the selected
+virtual cursor) will be deleted unless it's the selected
 window.
 
 With a negative prefix argument, enable the virtual cursor: make it
