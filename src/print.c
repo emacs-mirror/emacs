@@ -699,7 +699,24 @@ DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
   "Output the printed representation of OBJECT, any Lisp object.\n\
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
-Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
+\n\
+OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+a list, a buffer, a window, a frame, etc.\n\
+\n\
+A printed representation of an object is text which describes that object.\n\
+\n\
+Optional argument PRINTCHARFUN is the output stream, which can be one\n\
+of these:\n\
+\n\
+   - a buffer, in which case output is inserted into that buffer at point;\n\
+   - a marker, in which case output is inserted at marker's position;\n\
+   - a function, in which case that function is called once for each\n\
+     character of OBJECT's printed representation;\n\
+   - a symbol, in which case that symbol's function definition is called; or\n\
+   - t, in which case the output is displayed in the echo area.\n\
+\n\
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
+is used instead.")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
@@ -723,7 +740,12 @@ DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
   "Return a string containing the printed representation of OBJECT,\n\
 any Lisp object.  Quoting characters are used when needed to make output\n\
 that `read' can handle, whenever this is possible, unless the optional\n\
-second argument NOESCAPE is non-nil.")
+second argument NOESCAPE is non-nil.\n\
+\n\
+OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+a list, a buffer, a window, a frame, etc.\n\
+\n\
+A printed representation of an object is text which describes that object.")
   (object, noescape)
      Lisp_Object object, noescape;
 {
@@ -759,7 +781,24 @@ DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
   "Output the printed representation of OBJECT, any Lisp object.\n\
 No quoting characters are used; no delimiters are printed around\n\
 the contents of strings.\n\
-Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
+\n\
+OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+a list, a buffer, a window, a frame, etc.\n\
+\n\
+A printed representation of an object is text which describes that object.\n\
+\n\
+Optional argument PRINTCHARFUN is the output stream, which can be one\n\
+of these:\n\
+\n\
+   - a buffer, in which case output is inserted into that buffer at point;\n\
+   - a marker, in which case output is inserted at marker's position;\n\
+   - a function, in which case that function is called once for each\n\
+     character of OBJECT's printed representation;\n\
+   - a symbol, in which case that symbol's function definition is called; or\n\
+   - t, in which case the output is displayed in the echo area.\n\
+\n\
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
+is used instead.")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
@@ -777,7 +816,24 @@ DEFUN ("print", Fprint, Sprint, 1, 2, 0,
   "Output the printed representation of OBJECT, with newlines around it.\n\
 Quoting characters are printed when needed to make output that `read'\n\
 can handle, whenever this is possible.\n\
-Output stream is PRINTCHARFUN, or value of `standard-output' (which see).")
+\n\
+OBJECT is any of the Lisp data types: a number, a a string, a symbol,\n\
+a list, a buffer, a window, a frame, etc.\n\
+\n\
+A printed representation of an object is text which describes that object.\n\
+\n\
+Optional argument PRINTCHARFUN is the output stream, which can be one\n\
+of these:\n\
+\n\
+   - a buffer, in which case output is inserted into that buffer at point;\n\
+   - a marker, in which case output is inserted at marker's position;\n\
+   - a function, in which case that function is called once for each\n\
+     character of OBJECT's printed representation;\n\
+   - a symbol, in which case that symbol's function definition is called; or\n\
+   - t, in which case the output is displayed in the echo area.\n\
+\n\
+If PRINTCHARFUN is omitted, the value of `standard-output' (which see)\n\
+is used instead.")
   (object, printcharfun)
      Lisp_Object object, printcharfun;
 {
