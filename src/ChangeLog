@@ -1,3 +1,7 @@
+2000-11-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.c, cm.c: Don't try to include termcap.h; see comment there.
+
 2000-11-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* s/sol2-5.h: Move #undef USE_MMAP_FOR_BUFFERS out of #if 0
