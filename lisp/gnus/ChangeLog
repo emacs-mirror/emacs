@@ -1,9 +1,78 @@
-2000-09-24  Simon Josefsson  <simon@josefsson.org>
+2000-10-27  Dave Love  <fx@gnu.org>
+
+	* gnus.el: Don't require custom.  Don't require message at top
+	level.
+	(gnus-message-archive-method): Require message here.
+
+2000-10-27  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* gnus-sum.el (gnus-get-split-value): Use first match only (Ed L
+	Cashin <ecashin@coe.uga.edu>).
+
+2000-10-27  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-possibly-do-gcc): 
+	(gnus-agent-restore-gcc): 
+	(gnus-agent-possibly-save-gcc): New functions.
+
+	Asks the user to synch flags with server when you plug in.
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): New variable.
+	(gnus-agent-possibly-synchronize-flags-server): New function, use it.
+	(gnus-agent-toggle-plugged): Call it.
+	(gnus-agent-synchronize-flags): Renamed from `gnus-agent-synchronize'.
+	(gnus-agent-group-mode-map): `g-a-s' -> `g-a-s-flags'.
+	(gnus-agent-possibly-synchronize-flags): New function.
+	(gnus-agent-possibly-synchronize-flags-server): New function.
+
+	* nnheader.el (nnheader-parse-head): Try both "from:" and "from: ".
+
+	* gnus-sum.el (gnus-get-newsgroup-headers): Ditto.
 
 	* gnus-group.el (gnus-group-nnimap-edit-acl): Check if server
 	support ACL's.
 
 2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus.el (gnus-xmas-define): Defalias gnus-overlay-buffer,
+	gnus-overlay-start.
+	* gnus.el (gnus-agent-fetching): New variable.
+	* gnus-agent.el (gnus-agent-with-fetch): Bind it.
+	
+	* gnus-agent.el (gnus-agent-fetch-session): Catch quit.
+	(gnus-agent-fetch-group-1): Score-param could be nil.
+	(gnus-agent-any-covered-gcc): New function.
+	(gnus-agent-possibly-save-gcc): Use it.
+	(gnus-agent-possibly-do-gcc): Ditto.
+	* gnus-agent.el: Revoke Mike McEwan's 1998-09-05 patch due to
+	the GNU assignment issue.
+	(gnus-agent-fetch-group-1): Reimplement Mike McEwan's proposal.
+	* gnus-agent.el: timer vs. itimer.
+
+	* webmail.el (webmail-type-definition): Fix my-deja open url.
+	(webmail-hotmail-list): Fix.
+	(webmail-netscape-open, webmail-hotmail-article,
+	webmail-hotmail-list): Update.
+	(webmail-my-deja-*): Rewrite.
+
+	* gnus-sum.el (gnus-refer-article-methods): The second could be 
+	a named method.
+	(gnus-cache-write-active): Auto load.
+	(gnus-summary-display-article): Enable multibyte.
+	(gnus-summary-select-article): Don't enable multibyte here.
+	(gnus-summary-goto-article): Ditto.
+	(gnus-summary-enter-digest-group): Decode to-address.
+
+	* mm-util.el (mm-multibyte-p): Test (featurep 'xemacs).
+	(mm-with-unibyte-current-buffer-mule4): New function.
+	(mm-enable-multibyte-mule4): New.
+	(mm-disable-multibyte-mule4): New.
+
+	* mm-util.el (mm-enable-multibyte-mule4): New.
+	(mm-disable-multibyte-mule4): New.
+	* gnus-sum.el (gnus-summary-mode): Use it.
+	(gnus-summary-select-article): Ditto.
+	(gnus-summary-goto-article): Use enable multibyte.
 
 	* nnkiboze.el (nnkiboze-generate-group): Use it. Inhibit list groups.
 	(nnkiboze-enter-nov): Fix it when there is no xref.
@@ -26,14 +95,13 @@
 	(message-default-charset): Set default value in non-MULE XEmacsen
 	as iso-8859-1.
 
-2000-10-27 Emerick Rogul <emerick@csa.bu.edu>
-
-	* message.el (message-setup-fill-variables): New variable.
-	(message-mode): Use it.
-
 2000-10-27  Bjorn Torkelsson  <torkel@hpc2n.umu.se>
 
 	* message.el: xemacs cleanup (use featurep ' xemacs)
+
+	* nnheader.el: ditto
+
+	* mm-util.el: ditto
 
 2000-10-27  Stanislav Shalunov <shalunov@internet2.edu>
 
