@@ -40,6 +40,6 @@ if ($ENV{"OS"} eq "Windows_NT") {
  "PLATFORM", $platform_class,
  "DEBUG_INFO", "off",
  "LOG_DIR", "$test_dir/log",
- "INTERFACE_VERSION", "GR"
+ "INTERFACE_VERSION", "BQ"
 );
 
