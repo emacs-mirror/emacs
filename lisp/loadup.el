@@ -210,8 +210,8 @@
 (load "site-init" t)
 (setq current-load-list nil)
 
-;; Write the value of load-history into etc/LOADHIST.el,
-;; the clear out load-history.
+;; Write the value of load-history into fns-VERSION.el,
+;; then clear out load-history.
 (let ((buffer-undo-list t))
   (princ "(setq load-history\n" (current-buffer))
   (princ "      (nconc load-history\n" (current-buffer))
@@ -223,12 +223,12 @@
       (if (cdr tem)
 	  (princ "               " (current-buffer)))
       (setq tem (cdr tem))))
-  (princ ")))" (current-buffer))
+  (princ ")))\n" (current-buffer))
   (write-region (point-min) (point-max)
-		(expand-file-name (format "fns-%s.el" emacs-version)
-				  data-directory))
+		(expand-file-name (format "fns-%s.el" emacs-version)))
   (erase-buffer))
 (setq load-history nil)
+(set-buffer-modified-p nil)
 
 (garbage-collect)
 
