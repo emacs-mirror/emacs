@@ -8811,7 +8811,9 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
       
   if (colors_p && img->ncolors)
     {
+#if 0  /* TODO: color table support.  */
       x_free_colors (f, img->colors, img->ncolors);
+#endif
       xfree (img->colors);
       img->colors = NULL;
       img->ncolors = 0;
