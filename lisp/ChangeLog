@@ -1,3 +1,64 @@
+2003-08-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (diary-file, diary-file-name-prefix)
+	(european-calendar-style, diary-date-forms)
+	(calendar-day-name-array, calendar-month-name-array): Doc change.
+	(generate-calendar-month): Adapt for new behaviour of
+	`calendar-day-name' function.
+	(calendar-abbrev-length, calendar-day-abbrev-array)
+	(calendar-month-abbrev-array): New variables.
+	(calendar-abbrev-construct): New function.
+	(calendar-day-name, calendar-month-name): Use new abbrev arrays,
+	rather than fixing abbrevs at some width.  Calling syntax change.
+	(calendar-make-alist): Use abbrev arrays.  Calling syntax change.
+	(calendar-date-string): Adapt for new behaviours of
+	`calendar-day-name' and `calendar-month-name' functions.
+
+	* calendar/diary-lib.el (list-diary-entries): Adapt for new
+	behaviour of `calendar-day-name' and `calendar-month-name'
+	functions.
+	(diary-name-pattern): Use abbrev arrays, rather than fixing
+	abbrevs at three chars.  Calling syntax change.
+	(mark-diary-entries):  Adapt for new behaviours of
+	`diary-name-pattern' and `calendar-make-alist' functions.
+	(fancy-diary-font-lock-keywords): Adapt for new behaviour of
+	`diary-name-pattern' function.
+	(font-lock-diary-date-forms): Use abbrev arrays, rather than
+	fixing abbrevs at three chars.  Calling syntax change.
+	(cal-hebrew, cal-islam): Require when compiling.
+	(diary-font-lock-keywords): Adapt for new behaviour of
+	`font-lock-diary-date-forms' function.
+
+	* calendar/cal-hebrew.el: Reposition some code so defined before used.
+	(calendar-hebrew-month-name-array-common-year)
+	(calendar-hebrew-month-name-array-leap-year): Add doc strings.
+	(list-hebrew-diary-entries): Adapt for new behaviours of
+	`calendar-day-name' and `add-to-diary-list' functions.
+	(mark-hebrew-diary-entries): Adapt for new behaviours of
+	`diary-name-pattern' and `calendar-make-alist' functions.
+
+	* calendar/cal-islam.el (calendar-islamic-month-name-array): Add
+	doc string.
+	(list-islamic-diary-entries): Adapt for new behaviours of
+	`calendar-day-name' and `add-to-diary-list' functions.
+	(mark-islamic-diary-entries): Adapt for new behaviours of
+	`diary-name-pattern' and `calendar-make-alist' functions.
+
+	* calendar/cal-menu.el (cal-menu-update): Adapt for new behaviour of
+	`calendar-month-name' function.
+
+	* calendar/cal-coptic.el (coptic-name): defvar rather than defconst.
+
+	* calendar/solar.el (solar-seasons-data): Move definition before use.
+
+	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
+	(cal-tex-LaTeX-hourbox): Move definition before use.
+
+	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el,
+	cal-julian.el, cal-menu.el, cal-move.el, holidays.el,
+	lunar.el, solar.el
+	(displayed-month, displayed-year): Define for compiler.
+
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el (c-init-language-vars-for): Add argument
