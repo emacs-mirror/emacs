@@ -1352,13 +1352,18 @@ DIR must be a directory name, not a file name."
 
 (defvar dired-move-to-filename-regexp
   (let* ((l "[A-Za-z\xa0-\xff]")
+	 ;; Letter or space.
+	 (ls "[ A-Za-z\xa0-\xff]")
+	 (month (concat l l "\\(" ls "\\|" l l "\\)"))
+	 ;; Recognize any non-ASCII character.  
+	 ;; The purpose is to match a Kanji character.
 	 (k "[^\x00-\xff]")
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (mm "[ 0-1][0-9]")
 	 (dd "[ 0-3][0-9]")
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
-	 (western (concat "\\(" l l "+ +" dd "\\|" dd s l l "+ *" "\\)"
+	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
 			  s "\\(" HH:MM "\\|" s yyyy "\\)"))
 	 (japanese (concat mm k " " dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
     (concat s "\\(" western "\\|" japanese "\\)" s))
