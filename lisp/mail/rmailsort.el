@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.16 1993/11/24 08:08:56 rms Exp kwzh $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.17 1994/03/12 04:53:41 kwzh Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -50,8 +50,9 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			  (let ((key (or (rmail-fetch-field msg "Subject") ""))
 				(case-fold-search t))
 			    ;; Remove `Re:'
-			    (if (string-match "^\\(re:[ \t]+\\)*" key)
-				(substring key (match-end 0)) key))))))
+			    (if (string-match "^\\(re:[ \t]*\\)*" key)
+				(substring key (match-end 0))
+			      key))))))
 
 (defun rmail-sort-by-author (reverse)
   "Sort messages of current Rmail file by author.
