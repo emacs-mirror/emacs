@@ -92,9 +92,9 @@ KEYS is expanded with `substitute-command-keys' before it is used.
 
    :key-sequence KEYS
 
-KEYS is nil a string or a vector; nil or a keyboard equivalent to this
+KEYS is nil, a string or a vector; nil or a keyboard equivalent to this
 menu item.
-This is a hint that will considerably speed up Emacs first display of
+This is a hint that will considerably speed up Emacs' first display of
 a menu.  Use `:key-sequence nil' when you know that this menu item has no
 keyboard equivalent.
 
@@ -108,9 +108,10 @@ whenever this expression's value is non-nil.
 INCLUDE is an expression; this item is only visible if this
 expression has a non-nil value.
 
-   :suffix NAME
+   :suffix FORM
 
-NAME is a string; the name of an argument to CALLBACK.
+FORM is an expression that will be dynamically evaluated and whose
+value will be concatenated to the menu entry's NAME.
 
    :style STYLE
 
@@ -149,21 +150,42 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
   ;; `easy-menu-define' in order to make byte compiled files
   ;; compatible.  Therefore everything interesting is done in this
   ;; function.
-  (set symbol (easy-menu-create-menu (car menu) (cdr menu)))
-  (fset symbol `(lambda (event) ,doc (interactive "@e")
-                 (x-popup-menu event ,symbol)))
-  (mapcar (function (lambda (map)
-	    (define-key map (vector 'menu-bar (intern (car menu)))
-	      (cons (car menu) (symbol-value symbol)))))
-	  (if (keymapp maps) (list maps) maps)))
+  (let ((keymap (easy-menu-create-menu (car menu) (cdr menu))))
+    (set symbol keymap)
+    (fset symbol
+	  `(lambda (event) ,doc (interactive "@e")
+	     ;; FIXME: XEmacs uses popup-menu which calls the binding
+	     ;; while x-popup-menu only returns the selection.
+	     (x-popup-menu event
+			   (or (and (symbolp ,symbol)
+				    (funcall
+				     (or (plist-get (get ,symbol 'menu-prop)
+						    :filter)
+					 'identity)
+				     (symbol-function ,symbol)))
+			       ,symbol))))
+    (mapcar (lambda (map)
+	      (define-key map (vector 'menu-bar (intern (car menu)))
+		(cons 'menu-item
+		      (cons (car menu)
+			    (if (not (symbolp keymap))
+				(list keymap)
+			      (cons (symbol-function keymap)
+				    (get keymap 'menu-prop)))))))
+	    (if (keymapp maps) (list maps) maps))))
 
-(defun easy-menu-filter-return (menu)
+(defun easy-menu-filter-return (menu &optional name)
  "Convert MENU to the right thing to return from a menu filter.
 MENU is a menu as computed by `easy-menu-define' or `easy-menu-create-menu' or
 a symbol whose value is such a menu.
 In Emacs a menu filter must return a menu (a keymap), in XEmacs a filter must
 return a menu items list (without menu name and keywords).
-This function returns the right thing in the two cases."
+This function returns the right thing in the two cases.
+If NAME is provided, it is used for the keymap."
+ (when (and (not (keymapp menu)) (consp menu))
+   ;; If it's a cons but not a keymap, then it can't be right
+   ;; unless it's an XEmacs menu.
+   (setq menu (easy-menu-create-menu (or name "") menu)))
  (easy-menu-get-map menu nil))		; Get past indirections.
 
 ;;;###autoload
@@ -180,7 +202,9 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
       (setq arg (cadr menu-items))
       (setq menu-items (cddr menu-items))
       (cond
-       ((eq keyword :filter) (setq filter arg))
+       ((eq keyword :filter)
+	(setq filter `(lambda (menu)
+			(easy-menu-filter-return (,arg menu) ,menu-name))))
        ((eq keyword :active) (setq enable (or arg ''nil)))
        ((eq keyword :label) (setq label arg))
        ((eq keyword :help) (setq help arg))
@@ -194,11 +218,15 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
       (if filter (setq prop (cons :filter (cons filter prop))))
       (if help (setq prop (cons :help (cons help prop))))
       (if label (setq prop (cons nil (cons label prop))))
-      (while menu-items
-	(easy-menu-do-add-item menu (car menu-items))
-	(setq menu-items (cdr menu-items)))
+      (if filter
+	  ;; The filter expects the menu in its XEmacs form and the pre-filter
+	  ;; form will only be passed to the filter anyway, so we'd better
+	  ;; not convert it at all (it will be converted on the fly by
+	  ;; easy-menu-filter-return).
+	  (setq menu menu-items)
+	(setq menu (append menu (mapcar 'easy-menu-convert-item menu-items))))
       (when prop
-	(setq menu (easy-menu-make-symbol menu))
+	(setq menu (easy-menu-make-symbol menu 'noexp))
 	(put menu 'menu-prop prop))
       menu)))
 
@@ -208,6 +236,23 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
   '((radio . :radio) (toggle . :toggle)))
 
 (defun easy-menu-do-add-item (menu item &optional before)
+  (setq item (easy-menu-convert-item item))
+  (easy-menu-define-key-intern menu (car item) (cdr item) before))
+
+(defvar easy-menu-converted-items-table (make-hash-table :test 'equal))
+
+(defun easy-menu-convert-item (item)
+  ;; Memoize easy-menu-convert-item-1.
+  ;; This makes key-shortcut-caching work a *lot* better when this
+  ;; conversion is done from within a filter.
+  ;; This also helps when the NAME of the entry is recreated each time:
+  ;; since the menu is built and traversed separately, the lookup
+  ;; would always fail because the key is `equal' but not `eq'.
+  (or (gethash item easy-menu-converted-items-table)
+      (puthash item (easy-menu-convert-item-1 item)
+	       easy-menu-converted-items-table)))
+
+(defun easy-menu-convert-item-1 (item)
   ;; Parse an item description and add the item to a keymap.  This is
   ;; the function that is used for item definition by the other easy-menu
   ;; functions.
@@ -305,13 +350,11 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 		 (or (null cache) (stringp cache) (vectorp cache)))
 	    (setq prop (cons :key-sequence (cons cache prop))))))
      (t (error "Invalid menu item in easymenu")))
-    (easy-menu-define-key-intern menu name
-				 (and (not remove)
-				      (cons 'menu-item
-					    (cons label
-						  (and name
-						       (cons command prop)))))
-				 before)))
+    (cons name (and (not remove)
+		    (cons 'menu-item
+			  (cons label
+				(and name
+				     (cons command prop))))))))
 
 (defun easy-menu-define-key-intern (menu key item &optional before)
   ;; This is the same as easy-menu-define-key, but it interns KEY and
@@ -362,13 +405,15 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 
 (defvar easy-menu-item-count 0)
 
-(defun easy-menu-make-symbol (callback)
-  ;; Return a unique symbol with CALLBACK as function value.
+(defun easy-menu-make-symbol (callback &optional noexp)
+  "Return a unique symbol with CALLBACK as function value.
+When non-nil, NOEXP indicates that CALLBACK cannot be an expression
+\(i.e. does not need to be turned into a function)."
   (let ((command
 	 (make-symbol (format "menu-function-%d" easy-menu-item-count))))
     (setq easy-menu-item-count (1+ easy-menu-item-count))
     (fset command
-	  (if (keymapp callback) callback
+	  (if (or (keymapp callback) noexp) callback
 	    `(lambda () (interactive) ,callback)))
     command))
 
