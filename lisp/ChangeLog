@@ -1,3 +1,14 @@
+2003-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (ccl-decode-mule-utf-8): Lookup
+	utf-subst-table-for-decode even for U+E000..U+FFFF.
+
+	* international/subst-jis.el: Include U+FF00..U+FFEF in decode
+	table.
+	* international/subst-big5.el: Likewise.
+	* international/subst-gb2312.el: Likewise
+	* international/subst-ksc.el: Likewise.
+
 2003-10-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (increment-calendar-month)
