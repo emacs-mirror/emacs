@@ -1,11 +1,13 @@
 2001-10-23  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* uniquify.el (uniquify-get-proposed-name): Fix (.. "usr" "/usr" 0).
+
 	* progmodes/compile.el (compile-mouse-goto-error, compile-goto-error):
 	Turn caadr into caar of cdr.
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* info.el (Info-fontify-node): Bind doun-mouse-{1,2} instead
+	* info.el (Info-fontify-node): Bind down-mouse-{1,2} instead
 	of mouse-{1,2} since dragging is on the down event.
 
 	* play/doctor.el (make-doctor-variables): Remove a '($ please)'.
@@ -19,8 +21,8 @@
 
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/compile.el (compilation-set-window-height): Select
-	old window only if it's still live.
+	* progmodes/compile.el (compilation-set-window-height):
+	Select old window only if it's still live.
 
 2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -29,8 +31,8 @@
 
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* files.el (file-name-sans-extension, file-name-extension): Don't
-	count the leading dots in file names as signaling an extension.
+	* files.el (file-name-sans-extension, file-name-extension):
+	Don't count the leading dots in file names as signaling an extension.
 
 2001-10-22  Andre Spiegel  <spiegel@gnu.org>
 
@@ -51,8 +53,7 @@
 	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Mention in the
 	doc string the effect of `left' and `top' parameters in
 	tooltip-frame-parameters, the default values, and the units.
-	(tooltip-frame-parameters): Mention `top' and `left' in the doc
-	string.
+	(tooltip-frame-parameters): Mention `top' and `left' in the doc string.
 	(tooltip-show): Mention in the doc string the `top' and `left'
 	parameters in tooltip-frame-parameters, and x-max-tooltip-size.
 
@@ -60,14 +61,13 @@
 
 	Add autoscaling support for vc-annotate.
 	From J.D. Smith <jdsmith@astro.cornell.edu>.
-	
+
 	* vc.el (vc-annotate-display-default): Accept colormap scaling
 	ratio (now deprecated).
 	(vc-annotate-display-autoscale): Added.
 	(vc-annotate-add-menu): New autoscaling menu options "Span to
 	Oldest" and "Span Oldest->Newest".  Easymenu support added for
-	toggle menus driven by customize variable
-	`vc-annotate-display-mode'.
+	toggle menus driven by customize variable `vc-annotate-display-mode'.
 	(vc-annotate-display-select): Added.
 	(vc-annotate): Changed temp-buffer-show-function to
 	`vc-annotate-display-select'.
@@ -80,7 +80,7 @@
 	(vc-default-annotate-current-time): Added.
 
 	* vc-cvs.el (vc-cvs-annotate-difference): Removed to generic
-	version in vc.el, with 
+	version in vc.el, with
 	(vc-cvs-annotate-current-time): Added, as override of default.
 	(vc-cvs-annotate-time) Added. Taken mostly from the (now removed)
 	`vc-cvs-annotate-difference'.
@@ -89,7 +89,7 @@
 
 	* saveplace.el (save-place): Require `saveplace'.
 
-	* progmodes/cwarn.el (cwarn-font-lock-feature-keywords-alist): 
+	* progmodes/cwarn.el (cwarn-font-lock-feature-keywords-alist):
 	Use `sexp' for :value-type instead of `face'.
 
 2001-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -117,15 +117,15 @@
 
 2001-10-21  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-diff-internal, vc-coding-system-for-diff, 
-	vc-default-diff-tree): New functions.
+	* vc.el (vc-diff-internal, vc-coding-system-for-diff)
+	(vc-default-diff-tree): New functions.
 	(vc-version-diff): Use them.  As a result, coding systems are now
 	set up properly for all sorts of diffs, and tree diffs can now
 	also be done locally.
 	(vc-diff): With a prefix argument, don't require that it's called
 	from a buffer under version control.
 	(diff-switches): Remove duplicate definition.
-	
+
 	* vc-cvs.el (vc-cvs-diff-tree): New function.
 
 2001-10-21  Miles Bader  <miles@gnu.org>
@@ -151,15 +151,14 @@
 2001-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (auto-mode-alist): Associate .indent.pro with
-	Fundamental mode.  Suggested by Samuel Padgett
-	<spadgett1@nc.rr.com>.
+	Fundamental mode.  Suggested by Samuel Padgett <spadgett1@nc.rr.com>.
 
 2001-10-18  Sam Steingold  <sds@gnu.org>
 
 	Put the *Compile-Log* buffer in `compilation-mode'.
 	* emacs-lisp/bytecomp.el (byte-goto-log-buffer): New function.
 	(byte-compile-log-1, byte-compile-log-file)
-	(displaying-byte-compile-warnings): use it
+	(displaying-byte-compile-warnings): Use it
 
 2001-10-18  Stefan Monnier  <monnier@cs.yale.edu>
 
