@@ -1,3 +1,9 @@
+1999-12-16  Dave Love  <fx@gnu.org>
+
+	* bytecomp.el (byte-compile-bound-variables): Doc fix.
+	(byte-extrude-byte-code-vectors): Use remprop.
+	(byte-compile-lambda): Check that arg is a lambda.
+
 1999-11-16  Anders Lindgren  <AndersL@andersl.com>
 	
 	* font-lock.el: System for adding and removing keywords.
