@@ -2060,7 +2060,7 @@ See `special-display-buffer-names', and `special-display-regexps'.")
       else if (CONSP (car)
 	       && STRINGP (XCAR (car))
 	       && fast_string_match (XCAR (car), buffer_name) >= 0)
-	return XCDR (tem);
+	return XCDR (car);
     }
   return Qnil;
 }  
