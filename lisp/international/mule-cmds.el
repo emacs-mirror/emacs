@@ -811,7 +811,8 @@ If nil, that means no input method is activated now.")
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :group 'mule
-  :type '(choice (const nil) string))
+  :type '(choice (const nil) string)
+  :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
 
