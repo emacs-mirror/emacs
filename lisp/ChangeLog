@@ -1,3 +1,8 @@
+2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* simple.el (size-indication-mode): New.
+	* bindings.el (mode-line-position): Add buffer size indicator.
+
 2003-09-04  Mario Lang  <mlang@delysid.org>
 
 	* battery.el (battery-linux-proc-acpi): New function.

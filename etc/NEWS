@@ -1454,6 +1454,10 @@ Meta and Alt:
 
 * New modes and packages in 21.4
 
++++
+** The new global minor mode `size-indication-mode' (off by default)
+shows the size of accessible part of the buffer on the mode line.
+
 ** GDB-Script-mode is used for files like .gdbinit.
 
 ---
@@ -2493,6 +2497,11 @@ Reference manual for more detailed documentation.
 
 ** Mode line display ignores text properties in the value
 of a variable whose `risky-local-variables' property is nil.
+
++++
+** The new `%i' and `%I' constructs for `mode-line-format' can be used
+to display the size of the accessible part of the buffer on the mode
+line.
 
 ---
 ** Indentation of simple and extended loop forms has been added to the

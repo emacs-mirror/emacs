@@ -1,3 +1,10 @@
+2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* xdisp.c (pint2hrstr): New function.
+	(decode_mode_spec): Add `%i' and `%I' specs.
+	* buffer.c (syms_of_buffer): Document `%i' and `%I' constructs
+	for `mode-line-format'.
+
 2003-09-07  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c: Use long instead of int when casting ABLOCKS_BUSY to

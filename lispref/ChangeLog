@@ -1,3 +1,8 @@
+2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* modes.texi (%-Constructs): Document new `%i' and `%I'
+	constructs.
+
 2003-09-03  Peter Runestig  <peter@runestig.com>
 
 	* makefile.w32-in: New file.
