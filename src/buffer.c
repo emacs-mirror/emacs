@@ -4431,7 +4431,9 @@ A value of nil means no marginal area.");
   
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
-    "*Non-nil means visually indicate lines not displaying text.\n\
+    "*Visually indicate empty lines after the buffer end.\n\
+If non-nil, a bitmap is displayed in the left fringe of a window on\n\
+window-systems.\n\
 Automatically becomes buffer-local when set in any fashion.\n");
   
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
