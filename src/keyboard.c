@@ -5281,8 +5281,8 @@ make_lispy_event (event)
 			       Qnil));
 	}
       }
-#endif /* WINDOWS_NT */
-#if defined(WINDOWS_NT) || defined(MAC_OSX)
+#endif /* WINDOWSNT */
+#if defined(WINDOWSNT) || defined(MAC_OSX)
     case MOUSE_WHEEL_EVENT:
       {
 	int part;
