@@ -46,7 +46,7 @@ DEFUN ("screenp", Fscreenp, Sscreenp, 1, 1, 0,
   "Return non-nil if OBJECT is a screen.\n\
 Value is t for a termcap screen (a character-only terminal),\n\
 `x' for an Emacs screen that is really an X window.\n\
-Also see live-screen-p.")
+Also see `live-screen-p'.")
   (object)
      Lisp_Object object;
 {

@@ -424,7 +424,7 @@ window_from_coordinates (screen, x, y, part)
   return Qnil;
 }
 
-DEFUN ("window-at", Fwindow_at, Swindow_at, 1, 2, 0,
+DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
   "Return window containing row ROW, column COLUMN on SCREEN.\n\
 If omitted, SCREEN defaults to the currently selected screen.\n\
 The top left corner of the screen is considered to be row 0,\n\
