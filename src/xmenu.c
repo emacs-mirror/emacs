@@ -113,6 +113,11 @@ static void list_of_items ();
    the item string, the enable flag, the item's value,
    and the equivalent keyboard key's description string.
 
+   In some cases, multiple levels of menus may be described.
+   A single vector slot containing nil indicates the start of a submenu.
+   A single vector slot containing lambda indicates the end of a submenu.
+   The submenu follows a menu item which is the way to reach the submenu.
+
    Using a Lisp vector to hold this information while we decode it
    takes care of protecting all the data from GC.  */
 
@@ -134,8 +139,12 @@ static int menu_items_allocated;
 /* This is the index in menu_items of the first empty slot.  */
 static int menu_items_used;
 
-/* The number of panes currently recorded in menu_items.  */
+/* The number of panes currently recorded in menu_items,
+   excluding those within submenus.  */
 static int menu_items_n_panes;
+
+/* Current depth within submenus.  */
+static int menu_items_submenu_depth;
 
 /* Initialize the menu_items structure if we haven't already done so.
    Also mark it as currently empty.  */
@@ -151,6 +160,7 @@ init_menu_items ()
 
   menu_items_used = 0;
   menu_items_n_panes = 0;
+  menu_items_submenu_depth = 0;
 }
 
 /* Call at the end of generating the data in menu_items.
@@ -176,6 +186,45 @@ discard_menu_items ()
     }
 }
 
+/* Make the menu_items vector twice as large.  */
+
+static void
+grow_menu_items ()
+{
+  Lisp_Object old;
+  int old_size = menu_items_allocated;
+  old = menu_items;
+
+  menu_items_allocated *= 2;
+  menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
+  bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
+	 old_size * sizeof (Lisp_Object));
+}
+
+/* Begin a submenu.  */
+
+static void
+push_submenu_start ()
+{
+  if (menu_items_used + 1 > menu_items_allocated)
+    grow_menu_items ();
+
+  XVECTOR (menu_items)->contents[menu_items_used++] = Qnil;
+  menu_items_submenu_depth++;
+}
+
+/* End a submenu.  */
+
+static void
+push_submenu_end ()
+{
+  if (menu_items_used + 1 > menu_items_allocated)
+    grow_menu_items ();
+
+  XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
+  menu_items_submenu_depth--;
+}
+
 /* Start a new menu pane in menu_items..
    NAME is the pane name.  PREFIX_VEC is a prefix key for this pane.  */
 
@@ -184,18 +233,10 @@ push_menu_pane (name, prefix_vec)
      Lisp_Object name, prefix_vec;
 {
   if (menu_items_used + MENU_ITEMS_PANE_LENGTH > menu_items_allocated)
-    {
-      Lisp_Object old;
-      int old_size = menu_items_allocated;
-      old = menu_items;
+    grow_menu_items ();
 
-      menu_items_allocated *= 2;
-      menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
-      bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
-	     old_size * sizeof (Lisp_Object));
-    }
-
-  menu_items_n_panes++;
+  if (menu_items_submenu_depth == 0)
+    menu_items_n_panes++;
   XVECTOR (menu_items)->contents[menu_items_used++] = Qt;
   XVECTOR (menu_items)->contents[menu_items_used++] = name;
   XVECTOR (menu_items)->contents[menu_items_used++] = prefix_vec;
@@ -212,16 +253,7 @@ push_menu_item (name, enable, key, equiv)
      Lisp_Object name, enable, key, equiv;
 {
   if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
-    {
-      Lisp_Object old;
-      int old_size = menu_items_allocated;
-      old = menu_items;
-
-      menu_items_allocated *= 2;
-      menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
-      bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
-	     old_size * sizeof (Lisp_Object));
-    }
+    grow_menu_items ();
 
   XVECTOR (menu_items)->contents[menu_items_used++] = name;
   XVECTOR (menu_items)->contents[menu_items_used++] = enable;
@@ -319,15 +351,18 @@ menu_item_enabled_p_1 (arg)
 }
 
 /* Return non-nil if the command DEF is enabled when used as a menu item.
-   This is based on looking for a menu-enable property.  */
+   This is based on looking for a menu-enable property.
+   If NOTREAL is set, don't bother really computing this.  */
 
 static Lisp_Object
-menu_item_enabled_p (def)
+menu_item_enabled_p (def, notreal)
      Lisp_Object def;
 {
   Lisp_Object enabled, tem;
 
   enabled = Qt;
+  if (notreal)
+    return enabled;
   if (XTYPE (def) == Lisp_Symbol)
     {
       /* No property, or nil, means enable.
@@ -343,12 +378,15 @@ menu_item_enabled_p (def)
 }
 
 /* Look through KEYMAPS, a vector of keymaps that is NMAPS long,
-   and generate menu panes for them in menu_items.  */
+   and generate menu panes for them in menu_items.
+   If NOTREAL is nonzero,
+   don't bother really computing whether an item is enabled.  */
 
 static void
-keymap_panes (keymaps, nmaps)
+keymap_panes (keymaps, nmaps, notreal)
      Lisp_Object *keymaps;
      int nmaps;
+     int notreal;
 {
   int mapno;
 
@@ -358,7 +396,7 @@ keymap_panes (keymaps, nmaps)
      But don't make a pane that is empty--ignore that map instead.
      P is the number of panes we have made so far.  */
   for (mapno = 0; mapno < nmaps; mapno++)
-    single_keymap_panes (keymaps[mapno], Qnil, Qnil);
+    single_keymap_panes (keymaps[mapno], Qnil, Qnil, notreal);
 
   finish_menu_items ();
 }
@@ -366,13 +404,16 @@ keymap_panes (keymaps, nmaps)
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
    The other arguments are passed along
-   or point to local variables of the previous function.  */
+   or point to local variables of the previous function.
+   If NOTREAL is nonzero,
+   don't bother really computing whether an item is enabled.  */
 
 static void
-single_keymap_panes (keymap, pane_name, prefix)
+single_keymap_panes (keymap, pane_name, prefix, notreal)
      Lisp_Object keymap;
      Lisp_Object pane_name;
      Lisp_Object prefix;
+     int notreal;
 {
   Lisp_Object pending_maps;
   Lisp_Object tail, item, item1, item_string, table;
@@ -410,7 +451,8 @@ single_keymap_panes (keymap, pane_name, prefix)
 		     a string.  Since there's no GCPRO5, we refetch
 		     item_string instead of protecting it.  */
 		  GCPRO4 (keymap, pending_maps, def, descrip);
-		  enabled = menu_item_enabled_p (def);
+		  enabled = menu_item_enabled_p (def, notreal);
+
 		  UNGCPRO;
 
 		  item_string = XCONS (item1)->car;
@@ -420,8 +462,28 @@ single_keymap_panes (keymap, pane_name, prefix)
 		    pending_maps = Fcons (Fcons (def, Fcons (item_string, XCONS (item)->car)),
 					  pending_maps);
 		  else
-		    push_menu_item (item_string, enabled, XCONS (item)->car,
-				    descrip);
+		    {
+		      Lisp_Object submap;
+		      submap = get_keymap_1 (def, 0, 1);
+#ifndef USE_X_TOOLKIT
+		      /* Indicate visually that this is a submenu.  */
+		      if (!NILP (submap))
+			item_string = concat2 (item_string,
+					       build_string (" >"));
+#endif
+		      push_menu_item (item_string, enabled, XCONS (item)->car,
+				      descrip);
+#ifdef USE_X_TOOLKIT
+		      /* Display a submenu using the toolkit.  */
+		      if (! NILP (submap))
+			{
+			  push_submenu_start ();
+			  single_keymap_panes (submap, Qnil,
+					       XCONS (item)->car, notreal);
+			  push_submenu_end ();
+			}
+#endif
+		    }
 		}
 	    }
 	}
@@ -455,7 +517,7 @@ single_keymap_panes (keymap, pane_name, prefix)
 			 a string.  Since there's no GCPRO5, we refetch
 			 item_string instead of protecting it.  */
 		      GCPRO4 (keymap, pending_maps, def, descrip);
-		      enabled = menu_item_enabled_p (def);
+		      enabled = menu_item_enabled_p (def, notreal);
 		      UNGCPRO;
 
 		      item_string = XCONS (item1)->car;
@@ -465,8 +527,26 @@ single_keymap_panes (keymap, pane_name, prefix)
 			pending_maps = Fcons (Fcons (def, Fcons (item_string, character)),
 					      pending_maps);
 		      else
-			push_menu_item (item_string, enabled,
-					character, descrip);
+			{
+			  Lisp_Object submap;
+			  submap = get_keymap_1 (def, 0, 1);
+#ifndef USE_X_TOOLKIT
+			  if (!NILP (submap))
+			    item_string = concat2 (item_string,
+						   build_string (" >"));
+#endif
+			  push_menu_item (item_string, enabled, character,
+					  descrip);
+#ifdef USE_X_TOOLKIT
+			  if (! NILP (submap))
+			    {
+			      push_submenu_start ();
+			      single_keymap_panes (submap, Qnil,
+						   character, notreal);
+			      push_submenu_end ();
+			    }
+#endif
+			}
 		    }
 		}
 	    }
@@ -476,12 +556,14 @@ single_keymap_panes (keymap, pane_name, prefix)
   /* Process now any submenus which want to be panes at this level.  */
   while (!NILP (pending_maps))
     {
-      Lisp_Object elt, eltcdr;
+      Lisp_Object elt, eltcdr, string;
       elt = Fcar (pending_maps);
       eltcdr = XCONS (elt)->cdr;
-      single_keymap_panes (Fcar (elt),
-			   /* Fails to discard the @.  */
-			   XCONS (eltcdr)->car, XCONS (eltcdr)->cdr);
+      string = XCONS (eltcdr)->car;
+      /* We no longer discard the @ from the beginning of the string here.
+	 Instead, we do this in xmenu_show.  */
+      single_keymap_panes (Fcar (elt), string,
+			   XCONS (eltcdr)->cdr, notreal);
       pending_maps = Fcdr (pending_maps);
     }
 }
@@ -581,10 +663,10 @@ cached information about equivalent key sequences.")
   int menubarp = 0;
   struct gcpro gcpro1;
 
-  check_x ();
-
   if (! NILP (position))
     {
+      check_x ();
+
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt))
 	{
@@ -668,7 +750,7 @@ cached information about equivalent key sequences.")
       keymap = get_keymap (menu);
 
       /* Extract the detailed info to make one pane.  */
-      keymap_panes (&menu, 1);
+      keymap_panes (&menu, 1, NILP (position));
 
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
@@ -704,7 +786,7 @@ cached information about equivalent key sequences.")
 	}
 
       /* Extract the detailed info to make one pane.  */
-      keymap_panes (maps, nmaps);
+      keymap_panes (maps, nmaps, NILP (position));
 
       /* Make the title be the pane title of the first pane.  */
       if (!NILP (title) && menu_items_n_panes >= 0)
@@ -1123,6 +1205,11 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   widget_value *menubar_item = 0;
 
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
+  widget_value **submenu_stack
+    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
+  Lisp_Object *subprefix_stack
+    = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
+  int submenu_depth = 0;
 
   /* Define a queue to save up for later unreading
      all X events that don't pertain to the menu.  */
@@ -1188,7 +1275,23 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+	{
+	  submenu_stack[submenu_depth++] = save_wv;
+	  save_wv = prev_wv;
+	  prev_wv = 0;
+	  i++;
+	}
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+	{
+	  prev_wv = save_wv;
+	  save_wv = submenu_stack[--submenu_depth];
+	  i++;
+	}
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
+	       && submenu_depth != 0)
+	i += MENU_ITEMS_PANE_LENGTH;
+      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
@@ -1197,7 +1300,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
-	  /* If there is just one pane, put all its items directly
+	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
 	    pane_string = "";
@@ -1402,7 +1505,18 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	{
 	  Lisp_Object entry;
 
-	  if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+	  if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+	    {
+	      subprefix_stack[submenu_depth++] = prefix;
+	      prefix = entry;
+	      i++;
+	    }
+	  else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+	    {
+	      prefix = subprefix_stack[--submenu_depth];
+	      i++;
+	    }
+	  else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
 	    {
 	      prefix
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
@@ -1416,9 +1530,13 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 		{
 		  if (keymaps != 0)
 		    {
+		      int j;
+
 		      entry = Fcons (entry, Qnil);
 		      if (!NILP (prefix))
 			entry = Fcons (prefix, entry);
+		      for (j = submenu_depth - 1; j >= 0; j--)
+			entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  return entry;
 		}
