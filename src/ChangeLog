@@ -15,7 +15,7 @@
 	* keyboard.h (map_prompt): Remove.
 
 	* xterm.c, w32term.c, term.c, minibuf.c, keymap.c,
-	intervals.c, fns.c, doc.c, callint.c: Include keymap.h.
+	* intervals.c, fns.c, doc.c, callint.c: Include keymap.h.
 
 	* xmenu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
 
