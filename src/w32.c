@@ -683,25 +683,25 @@ Keep this around...we might need it later.
   SID_NAME_USE    User;
 
   if (1)
-    Vuser_real_name = build_string ("foo");
+    Vuser_real_login_name = build_string ("foo");
   else if (!OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &Token))
     {
-      Vuser_real_name = build_string ("unknown");
+      Vuser_real_login_name = build_string ("unknown");
     }
   else if (!GetTokenInformation (Token, TokenUser, (PVOID)b, 256,
 				 &trash))
     {
       CloseHandle (Token);
-      Vuser_real_name = build_string ("unknown");
+      Vuser_real_login_name = build_string ("unknown");
     }
   else if (!LookupAccountSid ((void *)0, (PSID)b, Name, &length, RefD,
 			      &rlength, &User))
     {
       CloseHandle (Token);
-      Vuser_real_name = build_string ("unknown");
+      Vuser_real_login_name = build_string ("unknown");
     }
   else
-    Vuser_real_name = build_string (Name);
+    Vuser_real_login_name = build_string (Name);
 }
 #else   /* not WINDOWSNT */
 #endif  /* not WINDOWSNT */
