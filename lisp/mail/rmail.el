@@ -1426,6 +1426,7 @@ If summary buffer is currently displayed, update current message there also."
 		      (progn
 			(setq overlay (car overlays)
 			      overlays (cdr overlays))
+			(overlay-put overlay 'face face)
 			(move-overlay overlay beg (point)))
 		    ;; Make a new overlay and add it to
 		    ;; rmail-overlay-list.
