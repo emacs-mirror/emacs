@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.10 2001/11/16 13:53:05 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.11 2001/11/26 16:08:51 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -84,7 +84,7 @@
 	  "Working file: \\(.+\\)"
 	  "\\|SCCS/s\\.\\(.+\\):"
 	  "\\)\n"))
-(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\|D \\([.0-9]+\\) .*\\)$")
+(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\|rev \\([0-9]+\\):  .*\\|D \\([.0-9]+\\) .*\\)$")
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
@@ -150,7 +150,7 @@
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
-	(let ((rev (or (match-string 2) (match-string 3))))
+	(let ((rev (or (match-string 2) (match-string 3) (match-string 4))))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
 
@@ -182,9 +182,9 @@
     (switch-to-buffer (vc-find-version (log-view-current-file) 
                                        (log-view-current-tag)))))
 
-;;;
-;;; diff
-;;;
+;;
+;; diff
+;;
 
 (defun log-view-diff (beg end)
   "Get the diff for several revisions.
