@@ -1,0 +1,351 @@
+;;; ediff-vers.el --- version control interface to Ediff
+
+;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+
+;; Author: Michael Kifer <kifer@cs.sunysb.edu>
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+
+;;; Code:
+      
+;; VC.el support
+(defun vc-ediff-internal (rev1 rev2 &optional startup-hooks)
+;; Run Ediff on versions of the current buffer.
+;; If REV2 is "" then compare current buffer with REV1.
+;; If the current buffer is named `F', the version is named `F.~REV~'.
+;; If `F.~REV~' already exists, it is used instead of being re-created.
+  (let (file1 file2 rev1buf rev2buf)
+    (save-excursion
+      (vc-version-other-window rev1)
+      (setq rev1buf (current-buffer)
+	    file1 (buffer-file-name)))
+    (save-excursion
+      (or (string= rev2 "") 		; use current buffer
+	  (vc-version-other-window rev2))
+      (setq rev2buf (current-buffer)
+	    file2 (buffer-file-name)))
+    (setq startup-hooks
+	  (cons (` (lambda ()
+		     (delete-file (, file1))
+		     (or (, (string= rev2 "")) (delete-file (, file2)))
+		     ))
+		startup-hooks))
+    (ediff-buffers
+     rev1buf rev2buf
+     startup-hooks
+     'ediff-revision)))
+    
+;; RCS.el support
+(defun rcs-ediff-view-revision (&optional rev)
+;; View previous RCS revision of current file.
+;; With prefix argument, prompts for a revision name.
+  (interactive (list (if current-prefix-arg 
+			 (read-string "Revision: "))))
+  (let* ((filename (buffer-file-name (current-buffer)))
+	 (switches (append '("-p")
+			   (if rev (list (concat "-r" rev)) nil)))
+	 (buff (concat (file-name-nondirectory filename) ".~" rev "~")))
+    (message "Working ...")
+    (setq filename (expand-file-name filename))
+    (with-output-to-temp-buffer buff
+      (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
+	(delete-windows-on output-buffer)
+	(save-excursion
+	  (set-buffer output-buffer)
+	  (apply 'call-process "co" nil t nil
+		 ;; -q: quiet (no diagnostics)
+		 (append switches rcs-default-co-switches
+			 (list "-q" filename))))) 
+      (message "")
+      buff)))    
+      
+(defun ediff-rcs-get-output-buffer (file name)
+  ;; Get a buffer for RCS output for FILE, make it writable and clean it up.
+  ;; Optional NAME is name to use instead of `*RCS-output*'.
+  ;; This is a modified version from rcs.el v1.1. I use it here to make
+  ;; Ediff immune to changes in rcs.el
+  (let* ((default-major-mode 'fundamental-mode) ; no frills!
+	 (buf (get-buffer-create name)))
+    (save-excursion
+      (set-buffer buf)
+      (setq buffer-read-only nil
+	    default-directory (file-name-directory (expand-file-name file)))
+      (erase-buffer))
+    buf))
+
+(defun rcs-ediff-internal (rev1 rev2 &optional startup-hooks)
+;; Run Ediff on versions of the current buffer.
+;; If REV2 is "" then use current buffer.
+  (let ((rev2buf (if (string= rev2 "")
+		     (current-buffer)
+		   (rcs-ediff-view-revision rev2)))
+	(rev1buf (rcs-ediff-view-revision rev1)))
+	
+    ;; rcs.el doesn't create temp version files, so we don't have to delete
+    ;; anything in startup hooks to ediff-buffers
+    (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)
+    ))
+
+
+;; GENERIC-SC.el support
+
+(defun generic-sc-get-latest-rev ()
+  (cond ((eq sc-mode 'CCASE)
+	 (eval "main/LATEST"))
+	(t (eval ""))))
+
+(defun generic-sc-ediff-internal (rev1 rev2 &optional startup-hooks)
+;; Run Ediff on versions of the current buffer.
+;; If REV2 is "" then compare current buffer with REV1.
+;; If the current buffer is named `F', the version is named `F.~REV~'.
+;; If `F.~REV~' already exists, it is used instead of being re-created.
+  (let (rev1buf rev2buf)
+    (save-excursion
+      (if (or (not rev1) (string= rev1 ""))
+	  (setq rev1 (generic-sc-get-latest-rev)))
+      (sc-visit-previous-revision rev1)
+      (setq rev1buf (current-buffer)))
+    (save-excursion
+      (or (string= rev2 "") 		; use current buffer
+	  (sc-visit-previous-revision rev2))
+      (setq rev2buf (current-buffer)))
+    (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)))
+
+
+;;; Merge with Version Control
+
+(defun vc-ediff-merge-internal (rev1 rev2 ancestor-rev &optional startup-hooks)
+;; If ANCESTOR-REV non-nil, merge with ancestor
+  (let (buf1 buf2 ancestor-buf)
+    (save-excursion
+      (vc-version-other-window rev1)
+      (setq buf1 (current-buffer)))
+    (save-excursion
+      (or (string= rev2 "")
+	  (vc-version-other-window rev2))
+      (setq buf2 (current-buffer)))
+    (if ancestor-rev
+	(save-excursion
+	  (or (string= ancestor-rev "")
+	      (vc-version-other-window ancestor-rev))
+	  (setq ancestor-buf (current-buffer))))
+    (setq startup-hooks 
+	  (cons 
+	   (` (lambda () 
+		(delete-file (, (buffer-file-name buf1)))
+		(or (, (string= rev2 ""))
+		    (delete-file (, (buffer-file-name buf2))))
+		(or (, (string= ancestor-rev ""))
+		    (, (not ancestor-rev))
+		    (delete-file (, (buffer-file-name ancestor-buf))))
+		))
+	   startup-hooks))
+    (if ancestor-rev
+	(ediff-merge-buffers-with-ancestor
+	 buf1 buf2 ancestor-buf
+	 startup-hooks 'ediff-merge-revisions-with-ancestor)
+      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))
+    ))
+
+(defun rcs-ediff-merge-internal (rev1 rev2 ancestor-rev
+				      &optional startup-hooks)
+  ;; If ANCESTOR-REV non-nil, merge with ancestor
+  (let (buf1 buf2 ancestor-buf)
+    (setq buf1 (rcs-ediff-view-revision rev1)
+	  buf2 (if (string= rev2 "")
+		   (current-buffer)
+		 (rcs-ediff-view-revision rev2))
+	  ancestor-buf (if ancestor-rev
+			   (if (string= ancestor-rev "")
+			       (current-buffer)
+			     (rcs-ediff-view-revision ancestor-rev))))
+    ;; rcs.el doesn't create temp version files, so we don't have to delete
+    ;; anything in startup hooks to ediff-buffers
+    (if ancestor-rev
+	(ediff-merge-buffers-with-ancestor
+	 buf1 buf2 ancestor-buf
+	 startup-hooks 'ediff-merge-revisions-with-ancestor)
+      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))))
+
+(defun generic-sc-ediff-merge-internal (rev1 rev2 ancestor-rev
+					     &optional startup-hooks)
+  ;; If ANCESTOR-REV non-nil, merge with ancestor
+  (let (buf1 buf2 ancestor-buf)
+    (save-excursion
+      (if (string= rev1 "")
+	  (setq rev1 (generic-sc-get-latest-rev)))
+      (sc-visit-previous-revision rev1)
+      (setq buf1 (current-buffer)))
+    (save-excursion
+      (or (string= rev2 "")
+	  (sc-visit-previous-revision rev2))
+      (setq buf2 (current-buffer)))
+    (if ancestor-rev
+	(save-excursion
+	  (or (string= ancestor-rev "")
+	      (sc-visit-previous-revision ancestor-rev))
+	  (setq ancestor-buf (current-buffer))))
+    (if ancestor-rev
+	(ediff-merge-buffers-with-ancestor
+	 buf1 buf2 ancestor-buf
+	 startup-hooks 'ediff-merge-revisions-with-ancestor)
+      (ediff-merge-buffers buf1 buf2 startup-hooks 'ediff-merge-revisions))))
+
+
+;; PCL-CVS.el support
+
+(defun pcl-cvs-ediff-internal (rev1 rev2 &optional startup-hooks)
+;; Run Ediff on a pair of revisions of the current buffer.
+;; If REV1 is "", use the latest revision.
+;; If REV2 is "", use the current buffer as the second file to compare.
+  (let ((orig-buf (current-buffer))
+	orig-file-name buf1 buf2 file1 file2)
+    
+    (or (setq orig-file-name (buffer-file-name (current-buffer)))
+	(error "Current buffer is not visiting any file"))
+    (if (string= rev1 "") (setq rev1 nil)) ; latest revision
+    (setq buf1 (ediff-pcl-cvs-view-revision orig-file-name rev1)
+	  buf2 (if (string= rev2 "")
+		   orig-buf
+		 (ediff-pcl-cvs-view-revision orig-file-name rev2))
+	  file1 (buffer-file-name buf1)
+	  file2 (buffer-file-name buf2))
+    (setq startup-hooks
+	  (cons (` (lambda ()
+		     (delete-file (, file1))
+		     (or (, (string= rev2 "")) (delete-file (, file2)))
+		     ))
+		startup-hooks))
+    (ediff-buffers buf1 buf2 startup-hooks 'ediff-revision)))
+
+;; This function is the standard Ediff's interface to pcl-cvs.
+;; Works like with other interfaces: runs ediff on versions of the file in the
+;; current buffer.
+(defun pcl-cvs-ediff-merge-internal (rev1 rev2 ancestor-rev
+					  &optional startup-hooks)
+;; Ediff-merge appropriate revisions of the selected file.
+;; If REV1 is "" then use the latest revision.
+;; If REV2 is "" then merge current buffer's file with REV1.
+;; If ANCESTOR-REV is "" then use current buffer's file as ancestor.
+;; If ANCESTOR-REV is nil, then merge without the ancestor.
+  (let ((orig-buf (current-buffer))
+	orig-file-name buf1 buf2 ancestor-buf)
+
+    (or (setq orig-file-name (buffer-file-name (current-buffer)))
+	(error "Current buffer is not visiting any file"))
+    (if (string= rev1 "") (setq rev1 nil)) ; latest revision
+
+    (setq buf1 (ediff-pcl-cvs-view-revision orig-file-name rev1))
+    (setq buf2 (if (string= rev2 "")
+		   orig-buf
+		 (ediff-pcl-cvs-view-revision orig-file-name rev2)))
+    (if (stringp ancestor-rev)
+	(setq ancestor-buf
+	      (if (string= ancestor-rev "")
+		  orig-buf
+		(ediff-pcl-cvs-view-revision orig-file-name ancestor-rev))))
+
+    (setq startup-hooks 
+	  (cons 
+	   (` (lambda () 
+		(delete-file (, (buffer-file-name buf1)))
+		(or (, (string= rev2 ""))
+		    (delete-file (, (buffer-file-name buf2))))
+		(or (, (string= ancestor-rev ""))
+		    (, (not ancestor-rev))
+		    (delete-file (, (buffer-file-name ancestor-buf))))
+		))
+	   startup-hooks))
+
+    (if ancestor-buf
+	(ediff-merge-buffers-with-ancestor
+	 buf1 buf2 ancestor-buf startup-hooks 
+	 'ediff-merge-revisions-with-ancestor)
+      (ediff-merge-buffers
+       buf1 buf2 startup-hooks 'ediff-merge-revisions))
+    ))
+
+(defun ediff-pcl-cvs-view-revision (file rev)
+;; if rev = "", get the latest revision
+  (let ((temp-name (make-temp-name
+		    (concat ediff-temp-file-prefix
+			    "ediff_" rev))))
+    (cvs-kill-buffer-visiting temp-name)
+    (if rev
+	(message "Retrieving revision %s..." rev)
+      (message "Retrieving latest revision..."))
+    (let ((res (call-process cvs-shell nil nil nil "-c"
+			     (concat cvs-program " update -p "
+				     (if rev
+					 (concat "-r " rev " ")
+				       "")
+				     file
+				     " > " temp-name))))
+      (if (and res (not (and (integerp res) (zerop res))))
+	  (error "Failed to retrieve revision: %s" res))
+
+      (if rev
+	  (message "Retrieving revision %s... Done." rev)
+	(message "Retrieving latest revision... Done."))
+      (find-file-noselect temp-name))))
+
+
+(defun cvs-run-ediff-on-file-descriptor (tin)
+;; This is a replacement for cvs-emerge-mode
+;; Run after cvs-update.
+;; Ediff-merge appropriate revisions of the selected file.
+  (let* ((fileinfo (tin-cookie cvs-cookie-handle tin))
+	 (type (cvs-fileinfo->type fileinfo))
+	 (tmp-file
+	  (cvs-retrieve-revision-to-tmpfile fileinfo))
+	 ancestor-file)
+    
+    (or (memq type '(MERGED CONFLICT MODIFIED))
+	(error
+	 "Can only merge `Modified', `Merged' or `Conflict' files"))
+    
+    (cond ((memq type '(MERGED CONFLICT))
+	   (setq ancestor-file
+		 (cvs-retrieve-revision-to-tmpfile
+		  fileinfo
+		  ;; revision
+		  (cvs-fileinfo->base-revision fileinfo)))
+	   (ediff-merge-buffers-with-ancestor
+	    (find-file-noselect tmp-file)
+	    (find-file-noselect (cvs-fileinfo->backup-file fileinfo))
+	    (find-file-noselect ancestor-file)
+	    nil ; startup-hooks
+	    'ediff-merge-revisions-with-ancestor))
+	  ((eq type 'MODIFIED)
+	   (ediff-merge-buffers
+	    (find-file-noselect tmp-file)
+	    (find-file-noselect (cvs-fileinfo->full-path fileinfo))
+	    nil ; startup-hooks
+	    'ediff-merge-revisions)))
+    (if (stringp tmp-file) (delete-file tmp-file))
+    (if (stringp ancestor-file) (delete-file ancestor-file))))
+
+;;; Local Variables:
+;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; End:
+
+(provide 'ediff-vers)
+
+;;; ediff-vers.el ends here
