@@ -477,11 +477,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	;; alist to be OK.
 	)
       (message "Reading directory %s...done" dirname)
-      (set-buffer-modified-p nil)
       ;; Must first make alist buffer local and set it to nil because
       ;; dired-build-subdir-alist will call dired-clear-alist first
       (set (make-local-variable 'dired-subdir-alist) nil)
-      (dired-build-subdir-alist))))
+      (dired-build-subdir-alist)
+      (set-buffer-modified-p nil))))
 
 ;; Subroutines of dired-readin
 
