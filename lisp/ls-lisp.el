@@ -257,7 +257,7 @@ are: A a c i r S s t u"
 		(format "%6d " (nth 10 file-attr)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(format "%4d " (fceiling (/ file-size 1024.0))))
+		(format "%4.0f " (fceiling (/ file-size 1024.0))))
 	    (nth 8 file-attr)		; permission bits
 	    ;; numeric uid/gid are more confusing than helpful
 	    ;; Emacs should be able to make strings of them.
