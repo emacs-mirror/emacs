@@ -1,4 +1,4 @@
-;;; help-screen.el --- Makes command line help such as help-for-help
+;;; help-macro.el --- Makes command line help such as help-for-help
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
@@ -31,6 +31,9 @@
 ;; by help-for-help. This can be used to make many modes easier to use; for
 ;; example, the Gnu Emacs Empire Tool uses this for every "nested" mode map
 ;; called from the main mode map.
+
+;;       The name of this package was changed from help-screen.el to
+;; help-macro.el in order to fit in a 14-character limit.
 
 ;;-> ***********************  Example of use *********************************
 
@@ -104,5 +107,5 @@ from the HELPED-MAP and the corresponding interactive function is executed."
 		   (ding))))))
      ))
 
-;;; help-screen.el
+;;; help-macro.el
 
