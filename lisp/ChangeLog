@@ -1,3 +1,52 @@
+2000-08-03  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-use-prompt-regexp-instead-of-fields):
+	New variable.
+	(comint-prompt-regexp, comint-get-old-input): Document dependence on
+	comint-use-prompt-regexp-instead-of-fields.
+	(comint-send-input): Add `input' field property to stuff we send to
+	the process, if comint-use-prompt-regexp-instead-of-fields is nil.
+	(comint-output-filter): Add `output' field property to process
+	output, if comint-use-prompt-regexp-instead-of-fields is nil.
+	(comint-replace-by-expanded-history)
+	(comint-get-old-input-default, comint-show-output)
+	(comint-backward-matching-input, comint-forward-matching-input)
+	(comint-next-prompt, comint-previous-prompt):  Use field
+	properties if comint-use-prompt-regexp-instead-of-fields is nil.
+	(comint-line-beginning-position): New function.
+	(comint-bol): Use comint-line-beginning-position.  Make ARG optional.
+	(comint-replace-by-expanded-history-before-point): Use
+	comint-line-beginning-position and line-end-position.
+	(comint-last-output-overlay): New variable.
+	(comint-mode): Make `comint-last-output-overlay' buffer-local.
+
+	* shell.el (shell-prompt-pattern): Doc change.
+	(shell-backward-command): Use line-beginning-position.
+
+	* gud.el (gud-gdb-complete-command): Use
+	comint-line-beginning-position.
+
+	* ielm.el (ielm-indent-line): Detect a "prompt" line by seeing if
+	comint-bol doesn't actually go to the beginning of the line.
+
+	* hippie-exp.el (try-expand-line): Only use comint-prompt-regexp
+	if comint-use-prompt-regexp-instead-of-fields is non-nil.
+	(try-expand-line-all-buffers): Likewise.
+
+	* progmodes/sql.el (sql-magic-go): Use comint-bol instead of
+	explicitly matching comint-prompt-regexp.
+	(sql-copy-column): Use comint-line-beginning-position instead of
+	explicitly matching comint-prompt-regexp.
+
+	* progmodes/octave-inf.el (inferior-octave-complete): Use
+	comint-line-beginning-position.
+
+	* progmodes/inf-lisp.el (inferior-lisp-prompt): Doc change.
+
+	* progmodes/idlw-shell.el (idlwave-shell-send-command): When
+	looking for a prompt, use `forward-line 0' instead of
+	`beginning-of-line', to avoid getting caught by an input field.
+
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (shell-quote-wildcard-pattern): Make sure to return
