@@ -2389,16 +2389,22 @@ With a prefix argument you can edit the current listing switches instead."
   ;; Toggle between sort by date/name.  Reverts the buffer.
   (setq dired-actual-switches
 	(let (case-fold-search)
-	  (concat
-	   "-l"
-	   (dired-replace-in-string (concat "[-lt"
-					    dired-ls-sorting-switches "]")
-				    ""
-				    dired-actual-switches)
-	   (if (string-match (concat "[t" dired-ls-sorting-switches "]")
-			     dired-actual-switches)
-	       ""
-	     "t"))))
+	  (if (string-match " " dired-actual-switches)
+	      ;; New toggle scheme: add/remove a trailing " -t"
+	      (if (string-match " -t\\'" dired-actual-switches)
+		  (dired-replace-in-string " -t\\'" "" dired-actual-switches)
+		(concat dired-actual-switches " -t"))
+	    ;; old toggle scheme: look for some 't' switch and add/remove it
+	    (concat
+	     "-l"
+	     (dired-replace-in-string (concat "[-lt"
+					      dired-ls-sorting-switches "]")
+				      ""
+				      dired-actual-switches)
+	     (if (string-match (concat "[t" dired-ls-sorting-switches "]")
+			       dired-actual-switches)
+		 ""
+	       "t")))))
   (dired-sort-set-modeline)
   (revert-buffer))
 
