@@ -2434,8 +2434,9 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      just read it and wait -- that's more efficient.  */
   if (!timeout)
     {
-      while (! detect_input_pending ())
-	check_timer (&t);
+      do
+	check_timer (&t);  /* check timer even if some input is pending */
+      while (!detect_input_pending ());
     }
   else
     {
