@@ -148,7 +148,7 @@ lisp= \
 	$(lispsource)custom.elc \
 	$(lispsource)faces.elc \
 	$(lispsource)files.elc \
-	$(lispsource)fill.elc \
+	$(lispsource)textmodes/fill.elc \
 	$(lispsource)format.elc \
 	$(FACE_SUPPORT) \
 	$(MOUSE_SUPPORT) \
@@ -158,8 +158,8 @@ lisp= \
 	$(lispsource)help.elc \
 	$(lispsource)indent.elc \
 	$(lispsource)isearch.elc \
-	$(lispsource)lisp-mode.elc \
-	$(lispsource)lisp.elc \
+	$(lispsource)emacs-lisp/lisp-mode.elc \
+	$(lispsource)emacs-lisp/lisp.elc \
 	$(lispsource)loadup.el \
 	$(lispsource)loaddefs.el \
 	$(lispsource)map-ynp.elc \
@@ -184,15 +184,15 @@ lisp= \
 	$(lispsource)language/tibetan.elc \
 	$(lispsource)language/vietnamese.elc \
 	$(lispsource)language/misc-lang.elc \
-	$(lispsource)page.elc \
-	$(lispsource)paragraphs.elc \
+	$(lispsource)textmodes/page.elc \
+	$(lispsource)textmodes/paragraphs.elc \
 	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
 	$(lispsource)simple.elc \
 	$(lispsource)startup.elc \
 	$(lispsource)subr.elc \
-	$(lispsource)text-mode.elc \
+	$(lispsource)textmodes/text-mode.elc \
 	$(lispsource)vc-hooks.elc \
 	$(lispsource)ediff-hook.elc \
 	$(VMS_SUPPORT) \
@@ -270,6 +270,15 @@ $(BLD)\b2m.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
 
+$(BLD)\ctags.obj : \
+	$(SRC)\ctags.c \
+	$(EMACS_ROOT)\nt\inc\sys\param.h \
+	$(EMACS_ROOT)\src\s\ms-w32.h \
+	$(EMACS_ROOT)\src\m\intel386.h \
+	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(SRC)\ntlib.h \
+	$(SRC)\getopt.h
+
 $(BLD)\cvtmail.obj : \
 	$(SRC)\cvtmail.c
 
@@ -299,6 +308,7 @@ $(BLD)\etags.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h \
+	$(SRC)\ntlib.h \
 	$(SRC)\getopt.h
 
 $(BLD)\fakemail.obj : \
@@ -321,6 +331,7 @@ $(BLD)\getopt.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
+	$(SRC)\ntlib.h \
 	$(SRC)\getopt.h
 
 $(BLD)\getopt1.obj : \
@@ -351,7 +362,8 @@ $(BLD)\movemail.obj : \
 	$(EMACS_ROOT)\nt\inc\sys\file.h \
 	$(EMACS_ROOT)\src\vmsproc.h \
 	$(EMACS_ROOT)\lib-src\..\src\syswait.h \
-	$(EMACS_ROOT)\nt\inc\pwd.h
+	$(EMACS_ROOT)\nt\inc\pwd.h \
+	$(SRC)\ntlib.h
 		$(CC) $(CFLAGS) -DUSG -Fo$@ movemail.c
 
 $(BLD)\ntlib.obj : \
