@@ -3001,7 +3001,7 @@ extern void unmark_byte_stack P_ ((void));
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
-EXFUN (Fexecute_kbd_macro, 2);
+EXFUN (Fexecute_kbd_macro, 3);
 extern void init_macros P_ ((void));
 extern void syms_of_macros P_ ((void));
 
