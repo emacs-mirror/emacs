@@ -486,7 +486,9 @@ inputting at minibuffer if this flag is t.")
 
 ;;;###autoload
 (defun set-language-environment (language-name)
-  "Setup multi-lingual environment convenient for LANGUAGE-NAME users."
+  "Set up multi-lingual environment for using LANGUAGE-NAME.
+This sets the coding system priority and the default input method
+and sometimes other things."
   (interactive (list (read-language-name 'setup-function "Language: ")))
   (if (or (null language-name)
 	  (null (get-language-info language-name 'setup-function)))
