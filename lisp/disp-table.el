@@ -163,9 +163,9 @@ X frame."
 	     (logior uc (lsh (face-id 'underline) 19))
 	   (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m"))))))
 
-;; Allocate a glyph code to display by sending STRING to the terminal.
 ;;;###autoload
 (defun create-glyph (string)
+  "Allocate a glyph code to display by sending STRING to the terminal."
   (if (= (length glyph-table) 65536)
       (error "No free glyph codes remain"))
   ;; Don't use slots that correspond to ASCII characters.
