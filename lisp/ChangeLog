@@ -773,6 +773,16 @@
 	* ps-print.el (ps-begin-file): Improve the DSC compliance of the
 	generated PostScript.
 
+2004-08-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (tls-process-connection-type): Fix docstring.  (Sync
+	with Gnus v5_10 branch.)
+
+2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* calendar/time-date.el (time-to-number-of-days): New function.
+	Imported from from Gnus.
+
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/make-mode.el: Fix comments.

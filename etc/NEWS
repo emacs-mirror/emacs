@@ -264,6 +264,15 @@ This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
 using strokes as an input method.
 
+** Gnus package
+
+*** Gnus now includes Sieve and PGG
+Sieve is a library for managing Sieve scripts.  PGG is a library to handle
+PGP/MIME.
+
+*** There are many news features, bug fixes and improvements.
+See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
+
 +++
 ** Desktop package
 

@@ -1,5 +1,5 @@
-;;; gnus-audio.el --- sound effects for Gnus
-;; Copyright (C) 1996, 2000 Free Software Foundation
+;;; gnus-audio.el --- Sound effects for Gnus
+;; Copyright (C) 1996, 2000, 2003 Free Software Foundation
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news, mail, multimedia
@@ -47,15 +47,15 @@
   :type '(choice directory (const nil))
   :group 'gnus-audio)
 
-(defcustom gnus-audio-au-player "/usr/bin/showaudio"
+(defcustom gnus-audio-au-player (executable-find "play")
   "Executable program for playing sun AU format sound files."
   :group 'gnus-audio
-  :type 'string)
+  :type '(choice file (const nil)))
 
-(defcustom gnus-audio-wav-player "/usr/local/bin/play"
+(defcustom gnus-audio-wav-player (executable-find "play")
   "Executable program for playing WAV files."
   :group 'gnus-audio
-  :type 'string)
+  :type '(choice file (const nil)))
 
 ;;; The following isn't implemented yet.  Wait for Millennium Gnus.
 ;;(defvar gnus-audio-effects-enabled t
@@ -93,7 +93,7 @@
 ;;;###autoload
 (defun gnus-audio-play (file)
   "Play a sound FILE through the speaker."
-  (interactive)
+  (interactive "fSound file name: ")
   (let ((sound-file (if (file-exists-p file)
 			file
 		      (expand-file-name file gnus-audio-directory))))

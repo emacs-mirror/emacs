@@ -1,6 +1,6 @@
 ;;; nngateway.el --- posting news via mail gateways
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -65,7 +65,8 @@ parameter -- the gateway address.")
 	(insert mail-header-separator "\n")
 	(widen)
 	(let (message-required-mail-headers)
-	  (funcall message-send-mail-function))
+	  (funcall (or message-send-mail-real-function
+		       message-send-mail-function)))
 	t))))
 
 ;;; Internal functions

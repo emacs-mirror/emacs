@@ -1,5 +1,5 @@
 ;;; time-date.el --- date and time handling functions
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2004 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -38,7 +38,7 @@
 	     (parse-time-string
 	      ;; `parse-time-string' isn't sufficiently general or
 	      ;; robust.  It fails to grok some of the formats that
-	      ;; timzeone does (e.g. dodgy post-2000 stuff from some
+	      ;; timezone does (e.g. dodgy post-2000 stuff from some
 	      ;; Elms) and either fails or returns bogus values.  Lars
 	      ;; reverted this change, but that loses non-trivially
 	      ;; often for me.  -- fx
@@ -176,6 +176,11 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
        (/ (1- year) 4)			;	+ Julian leap years
        (- (/ (1- year) 100))		;	- century years
        (/ (1- year) 400))))		;	+ Gregorian leap years
+
+(defun time-to-number-of-days (time)
+  "Return the number of days represented by TIME.
+The number of days will be returned as a floating point number."
+  (/ (+ (* 1.0 65536 (car time)) (cadr time)) (* 60 60 24)))
 
 ;;;###autoload
 (defun safe-date-to-time (date)
