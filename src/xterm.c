@@ -5673,7 +5673,20 @@ x_wm_set_icon_pixmap (f, pixmap_id)
       f->output_data.x->wm_hints.icon_pixmap = icon_pixmap;
     }
   else
-    f->output_data.x->wm_hints.icon_pixmap = None;
+    {
+      /* It seems there is no way to turn off use of an icon pixmap.
+	 The following line does it, only if no icon has yet been created,
+	 for some window managers.  But with mwm it crashes.
+	 Some people say it should clear the IconPixmapHint bit in this case,
+	 but that doesn't work, and the X consortium said it isn't the
+	 right thing at all.  Since there is no way to win,
+	 best to explicitly give up.  */
+#if 0
+      f->output_data.x->wm_hints.icon_pixmap = None;
+#else
+      return;
+#endif
+    }
 
   f->output_data.x->wm_hints.flags |= IconPixmapHint;
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->output_data.x->wm_hints);
