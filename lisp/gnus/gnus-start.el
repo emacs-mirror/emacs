@@ -41,31 +41,29 @@
   :type 'file)
 
 (defcustom gnus-init-file (nnheader-concat gnus-home-directory ".gnus")
-  "Your Gnus elisp startup file.
-If a file with the .el or .elc suffixes exist, it will be read
-instead."
+  "Your Gnus Emacs-Lisp startup file name.
+If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type 'file)
 
 (defcustom gnus-site-init-file
   (condition-case nil
-    (concat (file-name-directory
-	     (directory-file-name installation-directory))
-	    "site-lisp/gnus-init")
+      (concat (file-name-directory
+	       (directory-file-name installation-directory))
+	      "site-lisp/gnus-init")
     (error nil))
-  "The site-wide Gnus elisp startup file.
-If a file with the .el or .elc suffixes exist, it will be read
-instead."
+  "The site-wide Gnus Emacs-Lisp startup file name, or nil if none.
+If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
-  :type 'file)
+  :type '(choice file (const nil)))
 
 (defcustom gnus-default-subscribed-newsgroups nil
-  "This variable lists what newsgroups should be subscribed the first time Gnus is used.
-It should be a list of strings.
-If it is `t', Gnus will not do anything special the first time it is
+  "List of newsgroups to subscribe, when a user runs Gnus the first time.
+The value should be a list of strings.
+If it is t, Gnus will not do anything special the first time it is
 started; it'll just use the normal newsgroups subscription methods."
   :group 'gnus-start
-  :type '(repeat string))
+  :type '(choice (repeat string) (const :tag "Nothing special" t)))
 
 (defcustom gnus-use-dribble-file t
   "*Non-nil means that Gnus will use a dribble file to store user updates.
