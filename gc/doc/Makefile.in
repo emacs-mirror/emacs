@@ -108,6 +108,7 @@ STRIP = @STRIP@
 THREADLIBS = @THREADLIBS@
 VERSION = @VERSION@
 addincludes = @addincludes@
+addlibs = @addlibs@
 addobjs = @addobjs@
 addtests = @addtests@
 am__include = @am__include@

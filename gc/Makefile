@@ -76,6 +76,8 @@ HOSTCFLAGS=$(CFLAGS)
 # -DGC_MACOSX_THREADS enables support for Mac OS X pthreads.  Untested.
 # -DGC_DGUX386_THREADS enables support for DB/UX on I386 threads.
 #   See README.DGUX386.
+# -DGC_WIN32_THREADS enables support for win32 threads.  That makes sense
+#   for this Makefile only under Cygwin.
 # -DGC_THREADS should set the appropriate one of the above macros.
 #   It assumes pthreads for Solaris.
 # -DALL_INTERIOR_POINTERS allows all pointers to the interior
@@ -253,7 +255,7 @@ HOSTCFLAGS=$(CFLAGS)
 #   makes incremental collection easier.  Was enabled by default until 6.0.
 #   Rarely used, to my knowledge.
 # -DHANDLE_FORK attempts to make GC_malloc() work in a child process fork()ed
-#   from a multithreaded parent.  Currently only supported by linux_threads.c.
+#   from a multithreaded parent.  Currently only supported by pthread_support.c.
 #   (Similar code should work on Solaris or Irix, but it hasn't been tried.)
 # -DTEST_WITH_SYSTEM_MALLOC causes gctest to allocate (and leak) large chunks
 #   of memory with the standard system malloc.  This will cause the root
@@ -277,9 +279,9 @@ AR= ar
 RANLIB= ranlib
 
 
-OBJS= alloc.o reclaim.o allchblk.o misc.o mach_dep.o os_dep.o mark_rts.o headers.o mark.o obj_map.o blacklst.o finalize.o new_hblk.o dbg_mlc.o malloc.o stubborn.o checksums.o solaris_threads.o irix_threads.o linux_threads.o typd_mlc.o ptr_chck.o mallocx.o solaris_pthreads.o gcj_mlc.o specific.o gc_dlopen.o backgraph.o
+OBJS= alloc.o reclaim.o allchblk.o misc.o mach_dep.o os_dep.o mark_rts.o headers.o mark.o obj_map.o blacklst.o finalize.o new_hblk.o dbg_mlc.o malloc.o stubborn.o checksums.o solaris_threads.o aix_irix_threads.o pthread_support.o pthread_stop_world.o darwin_stop_world.o typd_mlc.o ptr_chck.o mallocx.o solaris_pthreads.o gcj_mlc.o specific.o gc_dlopen.o backgraph.o win32_threads.o
 
-CSRCS= reclaim.c allchblk.c misc.c alloc.c mach_dep.c os_dep.c mark_rts.c headers.c mark.c obj_map.c pcr_interface.c blacklst.c finalize.c new_hblk.c real_malloc.c dyn_load.c dbg_mlc.c malloc.c stubborn.c checksums.c solaris_threads.c irix_threads.c linux_threads.c typd_mlc.c ptr_chck.c mallocx.c solaris_pthreads.c gcj_mlc.c specific.c gc_dlopen.c backgraph.c
+CSRCS= reclaim.c allchblk.c misc.c alloc.c mach_dep.c os_dep.c mark_rts.c headers.c mark.c obj_map.c pcr_interface.c blacklst.c finalize.c new_hblk.c real_malloc.c dyn_load.c dbg_mlc.c malloc.c stubborn.c checksums.c solaris_threads.c aix_irix_threads.c pthread_support.c pthread_stop_world.c darwin_stop_world.c typd_mlc.c ptr_chck.c mallocx.c solaris_pthreads.c gcj_mlc.c specific.c gc_dlopen.c backgraph.c win32_threads.c
 
 CORD_SRCS=  cord/cordbscs.c cord/cordxtra.c cord/cordprnt.c cord/de.c cord/cordtest.c include/cord.h include/ec.h include/private/cord_pos.h cord/de_win.c cord/de_win.h cord/de_cmds.h cord/de_win.ICO cord/de_win.RC
 
@@ -298,10 +300,12 @@ SRCS= $(CSRCS) mips_sgi_mach_dep.S rs6000_mach_dep.s alpha_mach_dep.S \
     include/private/solaris_threads.h include/gc_backptr.h \
     hpux_test_and_clear.s include/gc_gcj.h \
     include/gc_local_alloc.h include/private/dbg_mlc.h \
-    include/private/specific.h powerpc_macosx_mach_dep.s \
+    include/private/specific.h powerpc_darwin_mach_dep.s \
     include/leak_detector.h include/gc_amiga_redirects.h \
     include/gc_pthread_redirects.h ia64_save_regs_in_stack.s \
-    include/gc_config_macros.h $(CORD_SRCS)
+    include/gc_config_macros.h include/private/pthread_support.h \
+    include/private/pthread_stop_world.h include/private/darwin_semaphore.h \
+    include/private/darwin_stop_world.h $(CORD_SRCS)
 
 DOC_FILES= README.QUICK doc/README.Mac doc/README.MacOSX doc/README.OS2 \
 	doc/README.amiga doc/README.cords doc/debugging.html \
@@ -334,7 +338,7 @@ OTHER_FILES= Makefile setjmp_t.c callprocs pc_excludes \
            MacProjects.sit.hqx MacOS.c \
            Mac_files/datastart.c Mac_files/dataend.c \
            Mac_files/MacOS_config.h Mac_files/MacOS_Test_config.h \
-           add_gc_prefix.c gc_cpp.cpp win32_threads.c \
+           add_gc_prefix.c gc_cpp.cpp \
 	   version.h AmigaOS.c \
 	   $(TESTS) $(GNU_BUILD_FILES) $(OTHER_MAKEFILES)
 
@@ -388,7 +392,7 @@ $(OBJS) tests/test.o dyn_load.o dyn_load_sunos53.o: \
 
 mark.o typd_mlc.o finalize.o ptr_chck.o: $(srcdir)/include/gc_mark.h $(srcdir)/include/private/gc_pmark.h
 
-specific.o linux_threads.o: $(srcdir)/include/private/specific.h
+specific.o pthread_support.o: $(srcdir)/include/private/specific.h
 
 solaris_threads.o solaris_pthreads.o: $(srcdir)/include/private/solaris_threads.h
 
@@ -485,7 +489,7 @@ liblinuxgc.so: $(OBJS) dyn_load.o
 
 mach_dep.o: $(srcdir)/mach_dep.c $(srcdir)/mips_sgi_mach_dep.S \
 	    $(srcdir)/mips_ultrix_mach_dep.s \
-            $(srcdir)/rs6000_mach_dep.s $(srcdir)/powerpc_macosx_mach_dep.s \
+            $(srcdir)/rs6000_mach_dep.s $(srcdir)/powerpc_darwin_mach_dep.s \
 	    $(srcdir)/sparc_mach_dep.S $(srcdir)/sparc_sunos4_mach_dep.s \
 	    $(srcdir)/ia64_save_regs_in_stack.s \
 	    $(srcdir)/sparc_netbsd_mach_dep.s $(UTILS)
@@ -494,7 +498,7 @@ mach_dep.o: $(srcdir)/mach_dep.c $(srcdir)/mips_sgi_mach_dep.S \
 	 | ./if_mach MIPS IRIX5 grep -v "^\#" > $(srcdir)/mips_sgi_mach_dep.s
 	./if_mach MIPS RISCOS $(AS) -o mach_dep.o $(srcdir)/mips_ultrix_mach_dep.s
 	./if_mach MIPS ULTRIX $(AS) -o mach_dep.o $(srcdir)/mips_ultrix_mach_dep.s
-	./if_mach POWERPC MACOSX $(AS) -o mach_dep.o $(srcdir)/powerpc_macosx_mach_dep.s
+	./if_mach POWERPC MACOSX $(AS) -o mach_dep.o $(srcdir)/powerpc_darwin_mach_dep.s
 	./if_mach ALPHA LINUX $(CC) -c -o mach_dep.o $(srcdir)/alpha_mach_dep.S
 	./if_mach SPARC SUNOS5 $(CC) -c -o mach_dep.o $(srcdir)/sparc_mach_dep.S
 	./if_mach SPARC SUNOS4 $(AS) -o mach_dep.o $(srcdir)/sparc_sunos4_mach_dep.s

@@ -1780,8 +1780,93 @@ Since 6.2alpha3:
    when it should have called the lower case version, since it was
    explicitly computing a base pointer.
 
+Since 6.2alpha4:
+ - GC_invoke_finalizers could, under rare conditions, set
+   GC_finalizer_mem_freed to an essentially random value.  This could
+   possibly cause unbounded heap growth for long-running applications
+   under some conditions.  (The bug was introduced in 6.1alpha5, and
+   is not in gcc3.3.  Thanks to Ben Hutchings for finding it.)
+ - Attempted to sanitize the various DLL macros.  GC_USE_DLL disappeared.
+   GC_DLL is used instead.  All internal tests are now on GC_DLL.
+   README.macros is now more precise about the intended meaning.
+ - Include DllMain in the multithreaded win32 version only if the
+   collector is actually built as a dll.  (Thanks to Mohan Embar for
+   a version of the patch.)
+ - Hide the cygwin threadAttach/Detach functions.  They were violating our
+   namespace rules.  
+ - Fixed an assertion in GC_check_heap_proc.  Added GC_STATIC_ASSERT.
+   (Thanks again to Ben Hutchings.)
+ - Removed some obsolete definitions for Linux/PowerPC in gcconfig.h.
+ - CORD_cat was not rebalancing unbalanced trees in some cases, violating
+   a CORD invariant.  Also tweaked the rebalancing rule for
+   CORD_cat_char_star.  (Thanks to Alexandr Petrosian for the bug report
+   and patch.)
+ - Added hand-coded structured exception handling support to mark.c.
+   This should enable support of dynamic libraries under win32 with
+   gcc-compiled code.  (Thanks to Ranjit Mathew for the patch.)
+   Turned on dynamic library scanning for win32/gcc.
+ - Removed some remnants of read wrapping.  (Thanks to Kenneth Schalk.)
+   GC_USE_LD_WRAP ws probably broken in recent versions.
+ - The build could fail on some platforms since gcconfig.h could include
+   declarations mentioning ptr_t, which was not defined, e.g. when if_mach
+   was built.  (Thanks to Yann Dirson for pointing this out.)  Also
+   cleaned up tests for GC_PRIVATE_H in gcconfig.h a bit. 
+ - The GC_LOOP_ON_ABORT environment variable interfered with incremental
+   collection, since the write fault handler was erroneously overridden.
+   Handlers are now set up in the correct order.
+ - It used to be possible to call GC_mark_thread_local_free_lists() while
+   the world was not stopped during an incremental GC.  This was not safe.
+   Fortunately, it was also unnecessary.  Added GC_world_stopped flag
+   to avoid it.  (This caused occasional crashes in GC_set_fl_marks
+   with thread local allocation and incremental GC.  This probably happened
+   primarily on old, slow multiprocessors.)
+ - Allowed overriding of MAX_THREADS in win32_threads.c from the build
+   command line.  (Patch from Yannis Bres.)
+ - Taught the IA64/linux code to determine the register backing store base from
+   /proc/self/maps after checking the __libc symbol, but before guessing.
+   (__libc symbols are on the endangered list, and the guess is likely to not
+   always be right for 2.6 kernels.)  Restructured the code to read and parse
+   /proc/self/maps so it only exists in one place (all platforms).
+ - The -DUSE_PROC_FOR_LIBRARIES code was broken on Linux.  It claimed that it
+   also registered the main data segment, but didn't actually do so.  (I don't
+   think anyone actually uses this configuration, but ...)
+ - Made another attempt to get --enablecplusplus to do the right thing.
+   Since there are unavoidable problems with C programs linking against a
+   dynamic library that includes C++ code, I separated out the c++ code into
+   libgccpp.
+
+Since 6.2alpha5:
+ - There was extra underscore in the name of GC_save_registers_in_stack
+   for NetBSD/SPARC.  (Thanks to Jaap Boender for the patch.)
+ - Integrated Brian Alliet's patch for Darwin.  This restructured the
+   linuxthreads/pthreads support to separate generic pthreads support
+   from more the system-dependent thread-stopping code.  I believe this
+   should make it easier to eliminate the code duplication between
+   pthreads platforms in the future.  The patch included some other
+   code cleanups.
+ - Integrated Dan Bonachea's patch to support AIX threads.  This required
+   substantial manual integration, mostly due to conflicts with other
+   recent threads changes.  It may take another iteration to
+   get it to work.
+ - Removed HPUX/PA-RISC support from aix_irix_threads.c.  It wasn't used
+   anyway and it cluttered up the code.  And anything we can do to migrate
+   towards generic pthreads support is a good thing.
+ - Added a more explicit test for tracing of function arguments to test.c.
+   (Thanks to Dan Grayson.)
+ - Added Akira Tagoh's PowerPC64 patch.
+ - Fixed some bit rot in the Cygwin port.  (Thanks to Dan Bonachea for
+   pointing it out.)  Gc.h now includes just windows.h, not winbase.h.
+ - Declared GC_save_regs_in_stack() in gc_priv.h.  Remove other declarations.
+ - Changed --enable-cplusplus to use automake consitionals.  The old way
+   confused libtool.  "Make install" didn't work correctly for the old version.
+   Previously --enable-cplusplus was broken on cygwin.
+ - Changed the C version of GC_push_regs to fail at compile time if it is
+   generated with an empty body.  This seems to have been the cause of one
+   or two subtle failures on unusual platforms.  Those failures should
+   now occur at build time and be easily fixable.
+    
+
 To do:
- - MacOSX thread support still appears to be a bit unreliable.
  - A dynamic libgc.so references dlopen unconditionally, but doesn't link
    against libdl.
  - GC_proc_fd for Solaris is not correctly updated in response to a

@@ -52,15 +52,21 @@
   int GC_pthread_create(pthread_t *new_thread,
                         const pthread_attr_t *attr,
 		        void *(*start_routine)(void *), void *arg);
+#ifndef GC_DARWIN_THREADS
   int GC_pthread_sigmask(int how, const sigset_t *set, sigset_t *oset);
+#endif
   int GC_pthread_join(pthread_t thread, void **retval);
   int GC_pthread_detach(pthread_t thread);
 
 # define pthread_create GC_pthread_create
+#ifndef GC_DARWIN_THREADS
 # define pthread_sigmask GC_pthread_sigmask
+#endif
 # define pthread_join GC_pthread_join
 # define pthread_detach GC_pthread_detach
+#ifndef GC_DARWIN_THREADS
 # define dlopen GC_dlopen
+#endif
 
 #endif /* GC_xxxxx_THREADS */
 

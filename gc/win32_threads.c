@@ -1,6 +1,7 @@
 #if defined(GC_WIN32_THREADS) 
 
 #include "private/gc_priv.h"
+#include <windows.h>
 
 #ifdef CYGWIN32
 # include <errno.h>
@@ -19,13 +20,9 @@
 
 #endif
 
-
-#if 0
-#define STRICT
-#include <windows.h>
+#ifndef MAX_THREADS
+# define MAX_THREADS 64
 #endif
-
-#define MAX_THREADS 64
 
 struct thread_entry {
   LONG in_use;
@@ -373,9 +370,13 @@ void GC_get_next_stack(char *start, char **lo, char **hi)
     if (*lo < start) *lo = start;
 }
 
-#if !defined(MSWINCE) && !(defined(__MINGW32__) && !defined(_DLL))
+#if !defined(CYGWIN32)
 
-HANDLE WINAPI GC_CreateThread(
+#if !defined(MSWINCE) && defined(GC_DLL)
+
+/* We register threads from DllMain */
+
+GC_API HANDLE GC_CreateThread(
     LPSECURITY_ATTRIBUTES lpThreadAttributes, 
     DWORD dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, 
     LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId )
@@ -384,7 +385,10 @@ HANDLE WINAPI GC_CreateThread(
                         lpParameter, dwCreationFlags, lpThreadId);
 }
 
-#else /* !defined(MSWINCE) && !(defined(__MINGW32__) && !defined(_DLL))  */
+#else /* defined(MSWINCE) || !defined(GC_DLL))  */
+
+/* We have no DllMain to take care of new threads.  Thus we	*/
+/* must properly intercept thread creation.			*/
 
 typedef struct {
     HANDLE child_ready_h, parent_ready_h;
@@ -510,6 +514,8 @@ static DWORD WINAPI thread_start(LPVOID arg)
 }
 #endif /* !defined(MSWINCE) && !(defined(__MINGW32__) && !defined(_DLL))  */
 
+#endif /* !CYGWIN32 */
+
 #ifdef MSWINCE
 
 typedef struct {
@@ -565,10 +571,11 @@ DWORD WINAPI main_thread_start(LPVOID arg)
 
 LONG WINAPI GC_write_fault_handler(struct _EXCEPTION_POINTERS *exc_info);
 
-/* threadAttach/threadDetach routines used by both CYGWIN and DLL implementation,
-   since both recieve explicit notification on thread creation/destruction
+/* threadAttach/threadDetach routines used by both CYGWIN and DLL
+ * implementation, since both recieve explicit notification on thread
+ * creation/destruction.
  */
-void threadAttach() {
+static void threadAttach() {
   int i;
   /* It appears to be unsafe to acquire a lock here, since this	*/
   /* code is apparently not preeemptible on some systems.	*/
@@ -617,7 +624,7 @@ void threadAttach() {
   while (GC_please_stop) Sleep(20);
 }
 
-void threadDetach(DWORD thread_id) {
+static void threadDetach(DWORD thread_id) {
   int i;
 
   LOCK();
@@ -783,7 +790,8 @@ void GC_thread_exit_proc(void *arg)
     int i;
 
 #   if DEBUG_CYGWIN_THREADS
-      GC_printf2("thread 0x%x(0x%x) called pthread_exit().\n",(int)pthread_self(),GetCurrentThreadId());
+      GC_printf2("thread 0x%x(0x%x) called pthread_exit().\n",
+		 (int)pthread_self(),GetCurrentThreadId());
 #   endif
 
     LOCK();
@@ -806,12 +814,13 @@ int GC_pthread_sigmask(int how, const sigset_t *set, sigset_t *oset) {
 int GC_pthread_detach(pthread_t thread) {
   return pthread_detach(thread);
 }
-#else
+#else /* !CYGWIN32 */
 
 /*
  * We avoid acquiring locks here, since this doesn't seem to be preemptable.
  * Pontus Rydin suggests wrapping the thread start routine instead.
  */
+#ifdef GC_DLL
 BOOL WINAPI DllMain(HINSTANCE inst, ULONG reason, LPVOID reserved)
 {
   switch (reason) {
@@ -852,7 +861,8 @@ BOOL WINAPI DllMain(HINSTANCE inst, ULONG reason, LPVOID reserved)
   }
   return TRUE;
 }
-#endif /* CYGWIN32 */
+#endif /* GC_DLL */
+#endif /* !CYGWIN32 */
 
 # endif /* !MSWINCE */
 

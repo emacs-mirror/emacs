@@ -3,7 +3,7 @@
 /* it to keep the old-style build process working.		*/
 #define GC_TMP_VERSION_MAJOR 6
 #define GC_TMP_VERSION_MINOR 2
-#define GC_TMP_ALPHA_VERSION 4
+#define GC_TMP_ALPHA_VERSION 6
 
 #if defined(GC_VERSION_MAJOR)
 # if GC_TMP_VERSION_MAJOR != GC_VERSION_MAJOR || \
