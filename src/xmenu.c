@@ -29,11 +29,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Rewritten for clarity and GC protection by rms in Feb 94.  */
 
-#include <stdio.h>
-
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
 #include <config.h>
+
+#include <stdio.h>
 #include "lisp.h"
 #include "termhooks.h"
 #include "frame.h"

@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <stdio.h>
-
 #include <config.h>
+
+#include <stdio.h>
 #include "lisp.h"
 #include "frame.h"
 #include "termhooks.h"
@@ -1055,6 +1055,9 @@ If omitted, FRAME defaults to the currently selected frame.")
     }
 #endif
 
+  /* Make menu bar update for the Buffers and Frams menus.  */
+  windows_or_buffers_changed++;
+
   return frame;
 }
 
@@ -1093,6 +1096,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     x_make_frame_invisible (XFRAME (frame));
 #endif
 
+  /* Make menu bar update for the Buffers and Frams menus.  */
+  windows_or_buffers_changed++;
+
   return Qnil;
 }
 
@@ -1125,6 +1131,9 @@ If omitted, FRAME defaults to the currently selected frame.")
   if (FRAME_X_P (XFRAME (frame)))
       x_iconify_frame (XFRAME (frame));
 #endif
+
+  /* Make menu bar update for the Buffers and Frams menus.  */
+  windows_or_buffers_changed++;
 
   return Qnil;
 }

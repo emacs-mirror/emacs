@@ -19,9 +19,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include <signal.h>
-#include <stdio.h>
 
 #include <config.h>
+
+#include <stdio.h>
 #include <ctype.h>
 
 #include "lisp.h"

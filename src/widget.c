@@ -19,8 +19,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Emacs 19 face widget ported by Fred Pierresteguy */
 
-#include <stdio.h>
 #include <config.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "xterm.h"
 

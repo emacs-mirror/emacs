@@ -20,9 +20,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <signal.h>
 #include <errno.h>
-#include <stdio.h>
 
 #include <config.h>
+#include <stdio.h>
 
 extern int errno;
 extern char *strerror ();
