@@ -1,7 +1,7 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.13) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!bt.c(trunk.14) $
+ * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  * READERSHIP
  *
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.13) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.14) $");
 
 /* is the whole word of bits at this index set? */
 
@@ -94,7 +94,7 @@ Size (BTSize)(unsigned long n)
   
 
 /* design.mps.bt.fun.get */
-int (BTGet)(BT t, Index i)
+Bool (BTGet)(BT t, Index i)
 {
   AVER(BTCheck(t));
   /* Can't check i */
