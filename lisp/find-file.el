@@ -1,6 +1,6 @@
 ;;; find-file.el --- find a file corresponding to this one given a pattern
 
-;; Author:         Henry Guillaume <henry@qbd.com.au>
+;; Author: Henry Guillaume <henri@tibco.com, henry@c032.aone.net.au>
 ;; Keywords: c, matching, tools
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
