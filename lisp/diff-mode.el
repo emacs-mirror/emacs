@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.14 2000/09/18 08:15:38 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.15 2000/09/19 02:43:33 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -163,67 +163,74 @@ when editing big diffs)."
 ;;;; font-lock support
 ;;;; 
 
+(defface diff-header-face
+  '((t (:inherit highlight)))
+  "`diff-mode' face inherited by hunk, file and index header faces."
+  :group 'diff-mode)
+(defvar diff-header-face 'diff-header-face)
+
 (defface diff-file-header-face
-  '((((class color) (background light))
-     (:background "grey70" :bold t))
-    (t (:bold t)))
-  "diff-mode face used to highlight file header lines."
+  '((t (:bold t))) ;; :height 1.3
+  "`diff-mode' face used to highlight file header lines."
   :group 'diff-mode)
 (defvar diff-file-header-face 'diff-file-header-face)
 
 (defface diff-index-face
-  '((((class color) (background light))
-     (:background "grey70" :bold t))
-    (t (:bold t)))
-  "diff-mode face used to highlight index header lines."
+  '((t (:inherit diff-file-header-face)))
+  "`diff-mode' face used to highlight index header lines."
   :group 'diff-mode)
 (defvar diff-index-face 'diff-index-face)
 
 (defface diff-hunk-header-face
-  '((((class color) (background light))
-     (:background "grey85"))
-    (t (:bold t)))
-  "diff-mode face used to highlight hunk header lines."
+  '((t (:inherit diff-header-face)))
+  "`diff-mode' face used to highlight hunk header lines."
   :group 'diff-mode)
 (defvar diff-hunk-header-face 'diff-hunk-header-face)
 
 (defface diff-removed-face
-  '((t ()))
-  "diff-mode face used to highlight removed lines."
+  '((t (:inherit diff-changed-face)))
+  "`diff-mode' face used to highlight removed lines."
   :group 'diff-mode)
 (defvar diff-removed-face 'diff-removed-face)
 
 (defface diff-added-face
-  '((t ()))
-  "diff-mode face used to highlight added lines."
+  '((t (:inherit diff-changed-face)))
+  "`diff-mode' face used to highlight added lines."
   :group 'diff-mode)
 (defvar diff-added-face 'diff-added-face)
 
 (defface diff-changed-face
   '((t ()))
-  "diff-mode face used to highlight changed lines."
+  "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
 (defvar diff-changed-face 'diff-changed-face)
 
+(defface diff-comment-face
+  '((t (:inherit font-lock-comment-face)))
+  "`diff-mode' face used to highlight context and other side-information."
+  :group 'diff-mode)
+(defvar diff-comment-face 'diff-comment-face)
+
 (defvar diff-font-lock-keywords
-  '(("^@@ \\(-[0-9,]+ \\+[0-9,]+\\) @@\\(.*\\)$" ;unified
+  '(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
      (1 diff-hunk-header-face)
-     (2 font-lock-comment-face))
-    ("^--- \\(.+\\) ----$"		;context
-     (1 diff-hunk-header-face))
-    ("\\(\\*\\{15\\}\\)\\(.*\\)\n"	;context
+     (2 diff-comment-face))
+    ("^--- .+ ----$"		;context
+     . diff-hunk-header-face)
+    ("\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
      (1 diff-hunk-header-face)
-     (2 font-lock-comment-face))
-    ("^\\*\\*\\* \\(.+\\) \\*\\*\\*"	;context
-      (1 diff-hunk-header-face))
-    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)"  (2 diff-file-header-face))
+     (2 diff-comment-face))
+    ("^\\*\\*\\* .+ \\*\\*\\*\\*"	;context
+     . diff-hunk-header-face)
+    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\).*[^*-]\n"
+     (0 diff-header-face) (2 diff-file-header-face prepend))
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
     ("^!.*\n" . diff-changed-face)	;context
     ("^[+>].*\n" . diff-added-face)
     ("^[-<].*\n" . diff-removed-face)
-    ("^Index: \\(.+\\)$"  (1 diff-index-face))
+    ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
     ("^#.*" . font-lock-string-face)
-    ("^[^-=+*!<>].*\n" . font-lock-comment-face)))
+    ("^[^-=+*!<>].*\n" . diff-comment-face)))
 
 (defconst diff-font-lock-defaults
   '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))
@@ -441,7 +448,7 @@ Non-nil OLD means that we want the old file."
 	 file)))))
 
 (defun diff-find-source-location (&optional other-file)
-  "Find out (FILE LINE SPAN)."
+  "Find out (FILE LINE)."
   (save-excursion
     (diff-beginning-of-hunk)
     (let* ((old (if (not other-file) diff-jump-to-old-file-flag
@@ -454,22 +461,12 @@ Non-nil OLD means that we want the old file."
 		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
 			(error "Can't find the hunk separator"))
 		      (match-string 1)))))
-	   ;; Extract the actual line number.
-	   (lines (if (string-match "^\\([0-9]*\\),\\([0-9]*\\)" loc)
-		      (cons (string-to-number (match-string 1 loc))
-			    (string-to-number (match-string 2 loc)))
-		    (cons (string-to-number loc) nil)))
-	   (file (diff-find-file-name old))
-	   (line (car lines))
-	   (span (if (or (null (cdr lines)) (< (cdr lines) 0)) 0
-		   ;; Bad hack.
-		   (if (< (cdr lines) line) (cdr lines)
-		     (- (cdr lines) line)))))
+	   (file (diff-find-file-name old)))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file-flag old))
       (if (null file) (error "Can't find the file")
-	(list file line span)))))
+	(list file (string-to-number loc))))))
 
 (defun diff-mouse-goto-source (event)
   "Run `diff-goto-source' for the diff at a mouse click."
@@ -882,12 +879,12 @@ Only works for unified diffs."
 	   (equal (match-string 1) (match-string 2)))))
 
 (defun diff-hunk-text (hunk destp &optional line-offset)
-  "Returns the literal source text from HUNK, if DESTP is nil, otherwise the
-destination text.  If LINE-OFFSET is non-nil, it should be a line-offset in
+  "Returns the literal source text from HUNK.
+if DESTP is nil return the source, otherwise the destination text.
+If LINE-OFFSET is non-nil, it should be a line-offset in
 HUNK, and instead of a string, a cons cell is returned whose car is the
 appropriate text, and whose cdr is the corresponding line-offset in that text."
   (with-temp-buffer
-     (erase-buffer)
      (insert hunk)
      (goto-char (point-min))
      (let ((src-pos nil)
@@ -962,10 +959,9 @@ appropriate text, and whose cdr is the corresponding line-offset in that text."
 	    (cons text (count-lines (point-min) (point)))
 	  text))))))
 
-(defun diff-find-text (text line)
-  "Return the buffer position of the nearest occurance of TEXT to line LINE.
+(defun diff-find-text (text)
+  "Return the buffer position of the nearest occurance of TEXT.
 If TEXT isn't found, nil is returned."
-  (goto-line line)
   (let* ((orig (point))
 	 (forw (and (search-forward text nil t)
 			  (match-beginning 0)))
@@ -1023,11 +1019,14 @@ was non-nil."
 	 (old (diff-hunk-text hunk reverse hunk-line-offset))
 	 (new (diff-hunk-text hunk (not reverse) hunk-line-offset))
 	 (pos
-	  (with-current-buffer buf (diff-find-text (car old) patch-line)))
+	  (with-current-buffer buf
+	    (goto-line patch-line)
+	    (diff-find-text (car old))))
 	 (reversed-pos
 	  (and (null pos)
 	       (with-current-buffer buf
-		 (diff-find-text (car new) patch-line)))))
+		 (goto-line patch-line)
+		 (diff-find-text (car new))))))
 
     (when (and reversed-pos popup)
       ;; A reversed patch was detected, perhaps apply it in reverse
@@ -1115,9 +1114,9 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
   (or (diff-apply-hunk nil other-file t 'select t)
       ;; couldn't actually find the hunk, just obey the hunk line number
       (let ((loc (diff-find-source-location other-file)))
-	(find-file-other-window (car loc))
+	(pop-to-buffer (find-file-noselect (car loc)))
 	(goto-line (cadr loc))
-	(error "Hunk text not found"))))
+	(message "Hunk text not found"))))
 
 
 ;; provide the package
