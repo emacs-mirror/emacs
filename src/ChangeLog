@@ -1,3 +1,10 @@
+2000-04-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/alpha.h (_LP64) [!_LP64]: Define.
+	(ORDINARY_LINK): Define for NetBSD.
+
+	* m/macppc.h (ORDINARY_LINK): Define for NetBSD.
+	
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* s/bsd386.h, s/freebsd.h, s/gnu.h, s/netbsd.h: Revert 2000-04-14

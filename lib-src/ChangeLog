@@ -1,3 +1,9 @@
+2000-04-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (xmalloc, xrealloc): Rewritten.
+	(declaration): Remove parameter IS_EXTERN.
+	(class_definition): Remove unused variable.
+
 2000-04-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INSTALLABLES): Add ebrowse.
