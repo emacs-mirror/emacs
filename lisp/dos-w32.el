@@ -98,8 +98,8 @@ upon the filename, the contents of `untranslated-filesystem-list' and
 `file-name-buffer-file-type-alist', and whether the file exists:
 
   If it matches in `untranslated-filesystem-list':
-    If the file exists:					`no-conversion'
-    If the file does not exist:				`undecided'
+    If the file exists:					`undecided'
+    If the file does not exist:				`undecided-unix'
   If it matches in `file-name-buffer-file-type-alist':
     If the match is t (for binary):			`no-conversion'
     If the match is nil (for dos-text):			`undecided-dos'
