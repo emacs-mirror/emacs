@@ -42,7 +42,7 @@
 (defcustom delete-auto-save-files t
   "*Non-nil means delete auto-save file when a buffer is saved or killed.
 
-Note that auto-save file will not be deleted if the buffer is killed
+Note that the auto-save file will not be deleted if the buffer is killed
 when it has unsaved changes."
   :type 'boolean
   :group 'auto-save)
@@ -355,10 +355,14 @@ The functions are called in the order given until one of them returns non-nil.")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
-(defvar find-file-hook nil
+(defcustom find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
-functions are called.")
+functions are called."
+  :group 'find-file
+  :type 'hook
+  :options '(auto-insert)
+  :version "21.4")
 (defvaralias 'find-file-hooks 'find-file-hook)
 (make-obsolete-variable 'find-file-hooks 'find-file-hook "21.4")
 
@@ -1601,7 +1605,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
-     ("\\.scm\\'" . scheme-mode)
+     ("\\.scm\\|\\.stk\\|\\.ss\\|\\.sch\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.lisp\\'" . lisp-mode)
      ("\\.f\\'" . fortran-mode)
@@ -1717,6 +1721,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.[1-9]\\'" . nroff-mode)
      ("\\.g\\'" . antlr-mode)
      ("\\.ses\\'" . ses-mode)
+     ("\\.orig\\'" nil t)		; from patch
      ("\\.in\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
