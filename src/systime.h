@@ -27,6 +27,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <time.h>
 #endif
 #endif
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif
 
 #ifdef HAVE_TZNAME
 #ifndef tzname		/* For SGI.  */
@@ -72,9 +75,6 @@ extern long timezone;
 
    EMACS_GET_TIME (TIME) stores the current system time in TIME, which
 	should be an lvalue.
-   EMACS_SET_UTIMES (PATH, ATIME, MTIME) changes the last-access and
-	last-modification times of the file named PATH to ATIME and
-	MTIME, which are EMACS_TIMEs.
 
    EMACS_ADD_TIME (DEST, SRC1, SRC2) adds SRC1 to SRC2 and stores the
 	result in DEST.  SRC should not be negative.
@@ -148,24 +148,4 @@ extern long timezone;
 #define EMACS_SET_SECS_USECS(time, secs, usecs) 		\
   (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
 
-#ifdef USE_UTIME
-
-#define EMACS_SET_UTIMES(path, atime, mtime)			\
-  {								\
-    time_t tv[2];						\
-    tv[0] = EMACS_SECS (atime);					\
-    tv[1] = EMACS_SECS (mtime);					\
-    utime ((path), tv);						\
-  }
-
-#else /* ! defined (USE_UTIME) */
-
-#define EMACS_SET_UTIMES(path, atime, mtime)			\
-  {								\
-    EMACS_TIME tv[2];						\
-    tv[0] = atime;						\
-    tv[1] = mtime;						\
-    utimes ((path), tv);					\
-  }
-
-#endif /* ! defined (USE_UTIME) */
+extern int set_file_times ();
