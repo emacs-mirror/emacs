@@ -280,7 +280,7 @@ so don't mark these buffers specially, just visit them normally."
       (set-buffer obuf))
     (nconc client client-record)))
 
-(defun server-buffer-done (buffer)
+(defun server-buffer-done (buffer &optional for-killing)
   "Mark BUFFER as \"done\" for its client(s).
 This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
 NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
@@ -322,10 +322,11 @@ or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
 	    (set-buffer buffer)
 	    (setq server-buffer-clients nil)
 	    (run-hooks 'server-done-hook))
-	  (if (server-temp-file-p buffer)
-	      (progn (kill-buffer buffer)
-		     (setq killed t))
-	    (bury-buffer buffer))))
+	  (if for-killing
+	      (if (server-temp-file-p buffer)
+		  (progn (kill-buffer buffer)
+			 (setq killed t))
+		(bury-buffer buffer)))))
     (list next-buffer killed)))
 
 (defun server-temp-file-p (buffer)
@@ -382,6 +383,11 @@ or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
 	(yes-or-no-p "Server buffers still have clients; exit anyway? "))))
 
 (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+
+;; When a buffer is killed, inform the clients.
+(add-hook 'kill-buffer-hook 'server-kill-buffer)
+(defun server-kill-buffer ()
+  (server-buffer-done (current-buffer) t))
 
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
