@@ -1,27 +1,3 @@
-From johnsonm@stolaf.edu Thu Apr 29 23:04:42 1993
-Status: RO
-X-VM-v5-Data: ([nil nil nil nil nil nil nil nil nil]
-	["6194" "Thu" "29" "April" "93" "21:50:38" "CDT" "Michael K Johnson" "johnsonm@stolaf.edu " nil "194" "linux.h file as promised" "^From:" nil nil "4"])
-Received: by occs.cs.oberlin.edu (5.65/DEC-Ultrix/4.3-ccpvt-12/92)
-	id AA16177; Thu, 29 Apr 1993 23:04:37 -0400
-Received: from nic.stolaf.edu by churchy.gnu.ai.mit.edu (5.65/4.0) with SMTP
-	id <AA23757@churchy.gnu.ai.mit.edu>; Thu, 29 Apr 93 22:50:50 -0400
-Received: from lars.acc-admin.stolaf.edu (lars.acc.stolaf.edu) by stolaf.edu (4.1/SMI-4.1)
-	id AA21175; Thu, 29 Apr 93 21:50:38 CDT
-Message-Id: <9304300250.AA21175@stolaf.edu>
-Received: by lars.acc-admin.stolaf.edu (4.1/SMI-4.1)
-	id AA26266; Thu, 29 Apr 93 21:50:37 CDT
-From: johnsonm@stolaf.edu (Michael K Johnson)
-To: emacs-19-alpha@gnu.ai.mit.edu
-Subject: linux.h file as promised
-Date: Thu, 29 Apr 93 21:50:38 CDT
-
-Here is the linux.h file that I used to compile emacs 19 with the
-patches that I just sent to the list in my last message.:
-
-michaelkjohnson
-
---------8<--------linux.h
 /* This file is the configuration file for the Linux operating system.
    Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
    Some changes copyright (C) 1993 Michael K. Johnson and Rik Faith.
@@ -210,4 +186,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X11
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
-
