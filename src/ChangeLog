@@ -1,3 +1,11 @@
+2004-06-21  David Kastrup  <dak@gnu.org>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Do lazy binding
+	and unbinding of `case-fold-search' according to
+	`completion-ignore-case' around calls of string-match and
+	predicates, respectively.  Should give satisfactory performance
+	in all relevant cases.
+
 2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
