@@ -294,10 +294,8 @@ typedef enum
    compiled, the `re_nsub' field is available.  All other fields are
    private to the regex routines.  */
 
-#ifndef RE_TRANSLATE_TYPE 
+#ifndef RE_TRANSLATE_TYPE
 #define RE_TRANSLATE_TYPE char *
-#define RE_TRANSLATE(TBL, C) ((TBL)[C])
-#define RE_TRANSLATE_P(TBL) (TBL)
 #endif
 
 struct re_pattern_buffer
