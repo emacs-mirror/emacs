@@ -1422,7 +1422,7 @@ since only regular expressions have distinguished subexpressions.")
   register int c, prevc;
   int inslen;
   int sub;
-  int opoint;
+  int opoint, newpoint;
 
   CHECK_STRING (newtext, 0);
 
@@ -1675,6 +1675,8 @@ since only regular expressions have distinguished subexpressions.")
   else if (case_action == cap_initial)
     Fupcase_initials_region (make_number (PT - inslen), make_number (PT));
 
+  newpoint = PT;
+
   /* Put point back where it was in the text.  */
   if (opoint < 0)
     temp_set_point (opoint + ZV, current_buffer);
@@ -1682,7 +1684,7 @@ since only regular expressions have distinguished subexpressions.")
     temp_set_point (opoint, current_buffer);
 
   /* Now move point "officially" to the start of the inserted replacement.  */
-  move_if_not_intangible (search_regs.start[sub]);
+  move_if_not_intangible (newpoint);
   
   return Qnil;
 }
