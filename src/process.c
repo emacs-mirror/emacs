@@ -3009,11 +3009,12 @@ read_process_output (proc, channel)
       XSETINT (p->decoding_carryover, carryover);
       nbytes = STRING_BYTES (XSTRING (text));
       nchars = XSTRING (text)->size;
-      internal_condition_case_1 (read_process_output_call,
-				 Fcons (outstream,
-					Fcons (proc, Fcons (text, Qnil))),
-				 !NILP (Vdebug_on_error) ? Qnil : Qerror,
-				 read_process_output_error_handler);
+      if (nbytes > 0)
+	internal_condition_case_1 (read_process_output_call,
+				   Fcons (outstream,
+					  Fcons (proc, Fcons (text, Qnil))),
+				   !NILP (Vdebug_on_error) ? Qnil : Qerror,
+				   read_process_output_error_handler);
 
       /* If we saved the match data nonrecursively, restore it now.  */
       restore_match_data ();
