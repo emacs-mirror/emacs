@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/22 14:24:17 vinicius>
+;; Time-stamp: <2004/02/29 20:23:29 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.2.1
 
@@ -68,7 +68,7 @@
 ;; Name = "[A-Za-z][A-Za-z0-9_.]*".
 ;;
 ;; Comment = "/*" "any character, but the sequence \"*/\"" "*/"
-;;         | "//" "any character" "\\n".
+;;         | "//" "any character, but the newline \"\\n\"" "\\n".
 ;;
 ;;
 ;; In other words, a valid Name begins with a letter (upper or lower case)
