@@ -1,5 +1,8 @@
 2000-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* files.el (auto-mode-alist): Add .dif and .pat as diff-mode
+	extensions, for MS-DOS.
+
 	* diff-mode.el (diff-header-face, diff-file-header-face)
 	(diff-changed-face): Define tty-specific colors.
 
