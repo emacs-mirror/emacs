@@ -1,16 +1,16 @@
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight): Add
-	make-obsolete cookies, to follow faces.el.
+	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight):
+	Add make-obsolete cookies, to follow faces.el.
 
 	These changes avoid warnings from the byte compiler in faces.el:
-	
+
 	* faces.el (internal-get-face): Use facep instead of the obsolete
 	internal-find-face.
-	(internal-frob-font-weight, internal-frob-font-slant): New
-	defailiases for obsolete functions.
-	(x-make-font-bold, x-make-font-demibold, x-make-font-unbold) 
-	(x-make-font-italic, x-make-font-oblique, x-make-font-unitalic) 
+	(internal-frob-font-weight, internal-frob-font-slant):
+	New defaliases for obsolete functions.
+	(x-make-font-bold, x-make-font-demibold, x-make-font-unbold)
+	(x-make-font-italic, x-make-font-oblique, x-make-font-unitalic)
 	(x-make-font-bold-italic): Use internal-frob-font-weight and
 	internal-frob-font-slant aliases instead of the obsolete
 	x-frob-... functions.
@@ -34,8 +34,7 @@
 
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* button.el (button): Special face definition for MS-DOS
-	terminals.
+	* button.el (button): Special face definition for MS-DOS terminals.
 
 2001-10-26  Sam Steingold  <sds@gnu.org>
 
@@ -71,6 +70,22 @@
 	(numerous places): Add back-tick and tick around names in
 	docstrings, fix punctuation in docstrings, remove trailing spaces.
 
+2001-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-font-lock-keywords-1): Ignore comments.
+	(sgml-font-lock-keywords-2): Use `eval'.  Moved from sgml-mode-common.
+	(sgml-font-lock-syntactic-keywords): New var.
+	(sgml-mode-common): Drop the two args.
+	Don't make buffer-local variables that aren't used.
+	Don't set sgml-font-lock-keywords-2 now that it uses `eval instead.
+	Don't set `before-string' props from sgml-display-text.
+	(sgml-mode): Use define-derived-mode.
+	(sgml-tags-invisible): Use sgml-display-text.
+	(sgml-quote): New command.
+	(html-tag-alist): Add args for `span'.
+	(html-mode): Use define-derived-mode.
+	Set sgml-display-text and sgml-tag-face-alist.
+
 2001-10-25  Sam Steingold  <sds@gnu.org>
 
 	* add-log.el (add-log-always-start-new-record): New user option.
@@ -103,7 +118,7 @@
 2001-10-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/texinfo.el (texinfo-environments)
-	(texinfo-environment-regexp): Hoisted.
+	(texinfo-environment-regexp): Hoist.
 	(texinfo-font-lock-keywords): Use `italic' and `bold' faces.
 	Only highlight the menu name in menu items.
 	Setup `@foo ... @end foo' as text clones.
@@ -120,7 +135,7 @@
 	(texinfo-subsubsection-level-regexp)
 	(texinfo-update-menu-same-level-regexps)
 	(texinfo-update-menu-higher-regexps)
-	(texinfo-update-menu-lower-regexps): Hoisted to eliminate warnings.
+	(texinfo-update-menu-lower-regexps): Hoist to eliminate warnings.
 
 	* derived.el (define-derived-mode): Use {delay,run}-mode-hooks.
 	(derived-mode-p): Autoload.
