@@ -1120,23 +1120,25 @@ static const char *re_error_msgid[] =
    REGEX_ALLOCATE_STACK.  */
 
 
-/* Number of failure points for which to initially allocate space
+/* Approximate number of failure points for which to initially allocate space
    when matching.  If this number is exceeded, we allocate more
    space, so it is not a hard limit.  */
 #ifndef INIT_FAILURE_ALLOC
-#define INIT_FAILURE_ALLOC 5
+#define INIT_FAILURE_ALLOC 20
 #endif
 
 /* Roughly the maximum number of failure points on the stack.  Would be
-   exactly that if always used MAX_FAILURE_ITEMS items each time we failed.
+   exactly that if always used TYPICAL_FAILURE_SIZE items each time we failed.
    This is a variable only so users of regex can assign to it; we never
    change it ourselves.	 */
 #if defined (MATCH_MAY_ALLOCATE)
-/* 4400 was enough to cause a crash on Alpha OSF/1,
-   whose default stack limit is 2mb.  */
-int re_max_failures = 20000;
+/* Note that 4400 is enough to cause a crash on Alpha OSF/1,
+   whose default stack limit is 2mb.  In order for a larger
+   value to work reliably, you have to try to make it accord
+   with the process stack limit.  */
+int re_max_failures = 40000;
 #else
-int re_max_failures = 2000;
+int re_max_failures = 4000;
 #endif
 
 union fail_stack_elt
@@ -1166,7 +1168,8 @@ typedef struct
 #define INIT_FAIL_STACK()						\
   do {									\
     fail_stack.stack = (fail_stack_elt_t *)				\
-      REGEX_ALLOCATE_STACK (INIT_FAILURE_ALLOC * sizeof (fail_stack_elt_t));	\
+      REGEX_ALLOCATE_STACK (INIT_FAILURE_ALLOC * TYPICAL_FAILURE_SIZE	\
+			    * sizeof (fail_stack_elt_t));		\
 									\
     if (fail_stack.stack == NULL)					\
       return -2;							\
@@ -1186,24 +1189,37 @@ typedef struct
 #endif
 
 
-/* Double the size of FAIL_STACK, up to approximately `re_max_failures' items.
+/* Double the size of FAIL_STACK, up to a limit
+   which allows approximately `re_max_failures' items.
 
    Return 1 if succeeds, and 0 if either ran out of memory
    allocating space for it or it was already too large.
 
    REGEX_REALLOCATE_STACK requires `destination' be declared.	*/
 
-#define DOUBLE_FAIL_STACK(fail_stack)					\
-  ((fail_stack).size > re_max_failures * MAX_FAILURE_ITEMS		\
+/* Factor to increase the failure stack size by
+   when we increase it.
+   This used to be 2, but 2 was too wasteful
+   because the old discarded stacks added up to as much space
+   were as ultimate, maximum-size stack.  */
+#define FAIL_STACK_GROWTH_FACTOR 4
+
+#define GROW_FAIL_STACK(fail_stack)					\
+  ((fail_stack).size >= re_max_failures * TYPICAL_FAILURE_SIZE		\
    ? 0									\
-   : ((fail_stack).stack = (fail_stack_elt_t *)				\
+   : ((fail_stack).stack						\
+      = (fail_stack_elt_t *)						\
 	REGEX_REALLOCATE_STACK ((fail_stack).stack,			\
 	  (fail_stack).size * sizeof (fail_stack_elt_t),		\
-	  ((fail_stack).size << 1) * sizeof (fail_stack_elt_t)),	\
+	  MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
+	       ((fail_stack).size * sizeof (fail_stack_elt_t)		\
+		* FAIL_STACK_GROWTH_FACTOR))),				\
 									\
       (fail_stack).stack == NULL					\
       ? 0								\
-      : ((fail_stack).size <<= 1,					\
+      : (MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
+	      ((fail_stack).size * sizeof (fail_stack_elt_t)		\
+	       * FAIL_STACK_GROWTH_FACTOR)),				\
 	 1)))
 
 
@@ -1212,7 +1228,7 @@ typedef struct
    space to do so.  */
 #define PUSH_PATTERN_OP(POINTER, FAIL_STACK)				\
   ((FAIL_STACK_FULL ()							\
-    && !DOUBLE_FAIL_STACK (FAIL_STACK))					\
+    && !GROW_FAIL_STACK (FAIL_STACK))					\
    ? 0									\
    : ((FAIL_STACK).stack[(FAIL_STACK).avail++].pointer = POINTER,	\
       1))
@@ -1255,7 +1271,7 @@ typedef struct
    if we ever fail back to it.
 
    Requires variables fail_stack, regstart, regend, reg_info, and
-   num_regs be declared.  DOUBLE_FAIL_STACK requires `destination' be
+   num_regs be declared.  GROW_FAIL_STACK requires `destination' be
    declared.
 
    Does `return FAILURE_CODE' if runs out of memory.  */
@@ -1279,7 +1295,7 @@ typedef struct
     /* Ensure we have enough space allocated for what we will push.  */	\
     while (REMAINING_AVAIL_SLOTS < NUM_FAILURE_ITEMS)			\
       {									\
-	if (!DOUBLE_FAIL_STACK (fail_stack))				\
+	if (!GROW_FAIL_STACK (fail_stack))				\
 	  return failure_code;						\
 									\
 	DEBUG_PRINT2 ("\n  Doubled stack; size now: %d\n",		\
@@ -1346,13 +1362,14 @@ typedef struct
 #define NUM_NONREG_ITEMS 4
 #endif
 
-/* We push at most this many items on the stack.  */
-/* We used to use (num_regs - 1), which is the number of registers
-   this regexp will save; but that was changed to 5
-   to avoid stack overflow for a regexp with lots of parens.  */
-#define MAX_FAILURE_ITEMS (5 * NUM_REG_ITEMS + NUM_NONREG_ITEMS)
+/* Estimate the size of data pushed by a typical failure stack entry.
+   An estimate is all we need, because all we use this for
+   is to choose a limit for how big to make the failure stack.  */
 
-/* We actually push this many items.  */
+#define TYPICAL_FAILURE_SIZE 20
+
+/* This is how many items we actually use for a failure point.
+   It depends on the regexp.  */
 #define NUM_FAILURE_ITEMS				\
   (((0							\
      ? 0 : highest_active_reg - lowest_active_reg + 1)	\
@@ -2939,12 +2956,9 @@ regex_compile (pattern, size, syntax, bufp)
   {
     int num_regs = bufp->re_nsub + 1;
 
-    /* Since DOUBLE_FAIL_STACK refuses to double only if the current size
-       is strictly greater than re_max_failures, the largest possible stack
-       is 2 * re_max_failures failure points.  */
-    if (fail_stack.size < (2 * re_max_failures * MAX_FAILURE_ITEMS))
+    if (fail_stack.size < re_max_failures * TYPICAL_FAILURE_SIZE)
       {
-	fail_stack.size = (2 * re_max_failures * MAX_FAILURE_ITEMS);
+	fail_stack.size = re_max_failures * TYPICAL_FAILURE_SIZE);
 
 #ifdef emacs
 	if (! fail_stack.stack)
