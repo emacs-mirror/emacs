@@ -64,7 +64,7 @@ a non-nil value, TYPE is the image's type ")
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
 	      (throw 'jfif 
-		     (string-match "JFIF" (substring data i nbytes))))
+		     (string-match "JFIF" (substring data i (+ i nbytes)))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
