@@ -11105,7 +11105,7 @@ redisplay_window (window, just_this_one_p)
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto recenter;
 	}
-      
+
       /* If centering point failed to make the whole line visible,
 	 put point at the top instead.  That has to make the whole line
 	 visible, if it can be done.  */
@@ -17475,7 +17475,7 @@ x_produce_glyphs (it)
 	      if (font == NULL)
 		{
 		  font = FRAME_FONT (it->f);
-		  boff = it->f->output_data.x->baseline_offset;
+		  boff = FRAME_BASELINE_OFFSET (it->f);
 		  font_info = NULL;
 		}
 	      else
@@ -17488,7 +17488,7 @@ x_produce_glyphs (it)
 		}
 
 	      if (font_info
-		  && (pcm = rif->per_char_metric (font, &char2b, 
+		  && (pcm = rif->per_char_metric (font, &char2b,
 						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
 		{
 		  width = pcm->width;
