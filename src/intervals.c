@@ -304,7 +304,7 @@ rotate_right (interval)
   if (! NULL_INTERVAL_P (i))
     i->parent = interval;
 
-  /* A's total length is decreased by the length of B and it's left child.  */
+  /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
@@ -348,7 +348,7 @@ rotate_left (interval)
   if (! NULL_INTERVAL_P (i))
     i->parent = interval;
 
-  /* A's total length is decreased by the length of B and it's right child.  */
+  /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
 
   /* B must have the same total length of A.  */
@@ -726,7 +726,7 @@ adjust_intervals_for_insertion (tree, position, length)
 
 /* Effect an adjustment corresponding to the addition of LENGTH characters
    of text.  Do this by finding the interval containing POSITION in the
-   interval tree TREE, and then adjusting all of it's ancestors by adding
+   interval tree TREE, and then adjusting all of its ancestors by adding
    LENGTH to them.
 
    If POSITION is the first character of an interval, meaning that point
@@ -927,12 +927,12 @@ merge_properties_sticky (pleft, pright)
 	    rear = Fcons (sym, rear);
 	}
     }
+  props = Fnreverse (props);
   if (! NILP (front))
-    props = Fcons (Qfront_sticky, Fcons (front, props));
+    props = Fcons (Qfront_sticky, Fcons (Fnreverse (front), props));
   if (! NILP (rear))
-    props = Fcons (Qrear_nonsticky, Fcons (rear, props));
+    props = Fcons (Qrear_nonsticky, Fcons (Fnreverse (rear), props));
   return props;
-  
 }
 
 
