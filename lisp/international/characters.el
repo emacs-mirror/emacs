@@ -757,9 +757,6 @@
     (setq l (cdr l))))
  
 
-(set-char-table-range printable-chars '(32 . 126) t)
-(set-char-table-range printable-chars  (cons 160 (max-char)) t)
-
 ;; CJK double width characters.
 (let ((l '((#x1100 . #x11FF)
 	   (#x2E80 . #x9FAF)
