@@ -1,3 +1,60 @@
+2002-05-21  Colin Walters  <walters@verbum.org>	
+
+	* font-lock.el (font-lock-defaults, font-lock-defaults-alist)
+	(font-lock-multiline, font-lock-fontified, font-lock-mode)
+	(turn-on-font-lock, font-lock-add-keywords, global-font-lock-mode)
+	(font-lock-global-modes): Moved to font-core.el.
+	(font-lock-set-defaults-1): Partially moved to font-core.el.
+
+	* font-core.el: New file, with functions taken from font-lock.el.
+	(font-lock-category-alist): New variable.
+	(font-lock-mode): Use it.
+	(font-lock-set-defaults): Partially taken from font-lock.el.  Only
+	load font-lock.el when necessary.
+
+	* replace.el (occur-mode-hook): New variable.
+	(occur-fontify-region-function): Deleted.
+	(occur-mode): Don't use it.  Set up `font-lock-category-alist'
+	instead.
+	(occur-fontify-on-property): Deleted.
+	(occur-engine): Use categories from `font-lock-category-alist'.
+
+	* ibuffer.el (ibuffer-formats): Update docs.
+	(ibuffer-category-alist): New variable.
+	(ibuffer-get-category): New function.
+	(ibuffer-compile-make-eliding-form): Use category property instead
+	of face.
+	(ibuffer-compile-format): Pass current ibuffer buffer to column
+	functions too.
+	(ibuffer-buffer-name-category): New function.
+	(ibuffer-compile-format): If the current column is a `name'
+	column, figure out the appropriate category to put on it.
+	(filename-and-process): Use category property.
+	(ibuffer-fontify-region-function): Deleted.
+	(ibuffer-unfontify-region-function): Deleted.
+	(ibuffer-update-title-and-summary): Use category properties.
+	(ibuffer-insert-filter-group): Ditto.
+	(ibuffer-mode): Set up category properties.
+
+2002-05-21  Colin Walters  <walters@debian.org>	
+
+	* replace.el (occur-engine): Increment globalcount all at once
+	after searching a buffer.
+	(occur-mode-map): Don't escape plain "o".
+	
+	* ibuffer.el (toplevel): Require font-lock, to get the face
+	definitions.
+	(ibuffer-use-fontification): Deleted.
+	(column filename-and-process): New column.
+	(ibuffer-formats): Use it by default.
+	(ibuffer-name-map, ibuffer-mode-name-map)
+	(ibuffer-filter-group-map): Don't set parent to
+	`ibuffer-mode-map'.
+	(ibuffer-do-save, ibuffer-do-toggle-modified)
+	(ibuffer-do-toggle-read-only, ibuffer-do-delete)
+	(ibuffer-do-kill-on-deletion-marks): Include name in definition.
+	(ibuffer): New optional argument `formats'.
+
 2002-05-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* indent.el (indent-rigidly): Mention how to remove all indentation.
