@@ -2102,10 +2102,11 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
 
-      if (nomenus && !ascii_sequence_p (this))
+      /* if (nomenus && !ascii_sequence_p (this)) */
+      if (nomenus && XINT (last) >= 0 && !INTEGERP (Faref (this, 0)))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
-	   non-ascii prefixes.  */
+	   non-ascii prefixes like `C-down-mouse-2'.  */
 	continue;
       
       QUIT;
