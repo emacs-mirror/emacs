@@ -1,3 +1,8 @@
+2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
+	(destroy_all_children): Call it self to destroy sub menu children.
+
 2002-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* xlwmenu.c (pop_new_stack_if_no_contents): Do nothing if
