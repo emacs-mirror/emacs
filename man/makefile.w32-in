@@ -30,7 +30,7 @@ infodir = $(srcdir)/../info
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
-MULTI_INSTALL_INFO = $(srcdir)\..\nt\multi-install-info.bat
+MULTI_INSTALL_INFO = $(srcdir)/../nt/multi-install-info.bat
 INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/cl $(infodir)/dired-x \
 		$(infodir)/ediff $(infodir)/forms \
@@ -60,7 +60,7 @@ INFOSOURCES = info.texi
 	texi2dvi $<
 
 TEXI2DVI = texi2dvi
-ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
+ENVADD = $(srcdir)/../nt/envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
 EMACSSOURCES= \
