@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001, 2002
+   Copyright (C) 1985,86,87,93,94,95,96,97,1998,2000, 2001, 2002, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -4194,6 +4194,15 @@ window_scroll_pixel_based (window, n, whole, noerror)
     {
       int pos = IT_CHARPOS (it);
       int bytepos;
+
+      /* If in the middle of a multi-glyph character move forward to
+	 the next character.  */
+      if (in_display_vector_p (&it))
+	{
+	  ++pos;
+	  move_it_to (&it, pos, -1, -1, -1, MOVE_TO_POS);
+	}
+
       /* Set the window start, and set up the window for redisplay.  */
       set_marker_restricted (w->start, make_number (pos),
 			     w->buffer);
