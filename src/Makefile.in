@@ -676,13 +676,16 @@ lisp= \
 	${lispsource}case-table.elc \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
+	${lispsource}language/indian.elc \
 	${lispsource}language/devanagari.elc \
 	${lispsource}language/english.elc \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
+	${lispsource}language/czech.elc \
+	${lispsource}language/slovak.elc \
+	${lispsource}language/romanian.elc \
 	${lispsource}language/greek.elc \
 	${lispsource}language/hebrew.elc \
-	${lispsource}language/indian.elc \
 	${lispsource}language/japanese.elc \
 	${lispsource}language/korean.elc \
 	${lispsource}language/lao.elc \
@@ -738,13 +741,16 @@ shortlisp= \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
+	../lisp/language/indian.elc \
 	../lisp/language/devanagari.elc \
 	../lisp/language/english.elc \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
+	../lisp/language/czech.elc \
+	../lisp/language/slovak.elc \
+	../lisp/language/romanian.elc \
 	../lisp/language/greek.elc \
 	../lisp/language/hebrew.elc \
-	../lisp/language/indian.elc \
 	../lisp/language/japanese.elc \
 	../lisp/language/korean.elc \
 	../lisp/language/lao.elc \
