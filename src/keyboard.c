@@ -6556,6 +6556,11 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
+/* This remembers the last number of characters read, so we could
+   avoid zeroing out the whole struct input_event buf and instead zero
+   out only its used slots.  */
+static int prev_read = KBD_BUFFER_SIZE;
+
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6576,7 +6581,7 @@ read_avail_input (expected)
   register int i;
   int nread;
 
-  for (i = 0; i < KBD_BUFFER_SIZE; i++)
+  for (i = 0; i < prev_read; i++)
     EVENT_INIT (buf[i]);
 
   if (read_socket_hook)
@@ -6592,12 +6597,12 @@ read_avail_input (expected)
 
       /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
-      return 0;
+      return (prev_read = 0);
 #else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
-	return 0;
+	return (prev_read = 0);
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
@@ -6615,7 +6620,7 @@ read_avail_input (expected)
 	    n_to_read = 0;
 	}
       if (n_to_read == 0)
-	return 0;
+	return (prev_read = 0);
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
@@ -6706,7 +6711,7 @@ read_avail_input (expected)
 	break;
     }
 
-  return nread;
+  return (prev_read = nread);
 }
 #endif /* not VMS */
 
