@@ -31,7 +31,7 @@
 (defcustom text-mode-hook nil
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
-  :options '(turn-on-auto-fill)
+  :options '(turn-on-auto-fill flyspell-mode)
   :group 'data)
 
 (defvar text-mode-variant nil
@@ -192,7 +192,7 @@ The argument NLINES says how many lines to center."
 	(delete-horizontal-space)
 	(setq line-length (current-column))
 	(if (> (- fill-column lm line-length) 0)
-	    (indent-line-to 
+	    (indent-line-to
 	     (+ lm (/ (- fill-column lm line-length) 2))))))
     (cond ((null nlines)
 	   (setq nlines 0))
