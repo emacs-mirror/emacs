@@ -30,7 +30,7 @@
 
 (set-language-info-alist
  "Romanian" '((charset . (ascii latin-iso8859-2))
-	      (coding-system . (iso-8859-2))
+	      (coding-system . (iso-8859-2 iso-latin-10))
 	      (coding-priority . (iso-8859-2))
 	      (nonascii-translation . iso-8859-2)
 	      (input-method . "latin-2-postfix")
