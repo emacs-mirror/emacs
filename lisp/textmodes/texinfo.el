@@ -299,6 +299,7 @@ chapter."
 (defface texinfo-heading-face
   '((t (:inherit font-lock-function-name-face)))
   "Face used for section headings in `texinfo-mode'.")
+(defvar texinfo-heading-face 'texinfo-heading-face)
 
 (defvar texinfo-font-lock-keywords
   `(;; All but the first had an OVERRIDE of t.
