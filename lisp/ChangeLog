@@ -1,3 +1,20 @@
+2000-02-10  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el: (widgets) [defgroup]: Remove url link.
+	(widget-color-choice-list, widget-color-history, widget-mouse-help):
+	Deleted.
+	(widget-specify-field, widget-specify-button): Don't use
+	widget-mouse-help as help-echo property.
+	(default): Use #'ignore for :validate and :mouse-down-action.
+	(checkbox): Add help-echo.
+	(widget-sexp-validate): Rewritten to clarify error messages.
+	(character): Use char-valid-p in :match function.
+	(widget-color-complete): Use facemenu-color-alist.
+	(widget-color-action): Use facemenu-read-color.
+
+	* emacs-lisp/cl-macs.el: Don't bother testing for defalias.  Don't
+	set up `caar' &c that we now have.
+
 2000-02-09  Dave Love  <fx@gnu.org>
 
 	* bindings.el (mode-line-input-method-map): New variable.
@@ -3215,6 +3232,11 @@
 
 	* Makefile (bootstrap-compile): New target.  Compile Lisp
 	files with ../src/temacs.
+
+1999-10-08  Dave Love  <fx@gnu.org>
+
+	* ange-ftp.el: Require dired when compiling.
+	(ange-ftp-normal-login): Allow EFS-style port specification.
 
 1999-10-08  Simon Marshall  <simon@gnu.org>
 
