@@ -111,6 +111,11 @@ the rightmost column indicates a line that ``wraps'' onto the next line,
 which is also called @dfn{continuing} the line.  (The display table can
 specify alternative indicators; see @ref{Display Tables}.)
 
+@cindex fringes, and line continuation/truncation indicators
+  On a windowed display, the @samp{$} and @samp{\} indicators are
+replaced with graphics bitmaps displayed on the thin areas right near
+the window edges, called the @dfn{fringes}.
+
   Note that continuation is different from filling; continuation happens
 on the screen only, not in the buffer contents, and it breaks a line
 precisely at the right margin, not at a word boundary.  @xref{Filling}.
@@ -561,6 +566,7 @@ interface to debuggers, the overlay arrow indicates the line of code
 about to be executed.
 
 @defvar overlay-arrow-string
+@cindex fringe, and overlay arrow display
 This variable holds the string to display to call attention to a
 particular line, or @code{nil} if the arrow feature is not in use.
 On a graphical display the contents of the string are ignored; instead a
@@ -3132,6 +3138,7 @@ buffers that do not override it.  @xref{Default Value}.
 
 @defopt indicate-empty-lines
 @tindex indicate-empty-lines
+@cindex fringes, and empty line indication
 When this is non-@code{nil}, Emacs displays a special glyph in
 each empty line at the end of the buffer, on terminals that
 support it (window systems).
