@@ -907,7 +907,7 @@ extern struct glyph_row scratch_glyph_row;
 #define WINDOW_DISPLAY_PIXEL_WIDTH(W)					\
      (((XFASTINT ((W)->width)						\
         - FRAME_SCROLL_BAR_WIDTH (XFRAME (WINDOW_FRAME ((W))))		\
-	- 2 * FRAME_FLAGS_AREA_COLS (XFRAME (WINDOW_FRAME ((W)))))	\
+	- FRAME_FLAGS_AREA_COLS (XFRAME (WINDOW_FRAME ((W)))))		\
        * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
 
 /* Height of the display region of W, including a mode line, if any.  */
@@ -951,7 +951,7 @@ extern struct glyph_row scratch_glyph_row;
      (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
       + (WINDOW_LEFT_MARGIN ((W))					\
          * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W)))))			\
-      + FRAME_FLAGS_AREA_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
+      + FRAME_LEFT_FLAGS_AREA_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
 
 /* Right edge of window W in pixels, relative to its frame.  */
      
