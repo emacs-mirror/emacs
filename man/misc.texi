@@ -2029,7 +2029,7 @@ to beginning and end of buffer and @kbd{C-Escape} does
 @cindex PC Selection minor mode
 @cindex mode, PC selection
 @cindex selection, PC
-The command @kbd{M-x pc-selection-mode} enables a global minor mode
+The command @kbd{M-x pc-selection-mode} toggles a global minor mode
 that emulates the mark, copy, cut and paste commands of various other
 systems---an interface known as CUA.  It establishes the key bindings
 of PC mode, and also modifies the bindings of the cursor keys and the
@@ -2044,6 +2044,9 @@ However, using @kbd{Shift} together with the ``move keys'' activates
 the region over which they move.  The copy, cut and paste functions
 are available on @kbd{C-insert}, @kbd{S-delete} and @kbd{S-insert}
 respectively.
+
+Turning @code{pc-selection-mode} off restores the old key bindings of
+these keys.
 
 @cindex s-region package
 The @code{s-region} package provides similar, but less complete,
