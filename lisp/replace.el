@@ -170,7 +170,7 @@ Fourth and fifth arg START and END specify the region to operate on."
      ;; We make TO a list because replace-match-string-symbols requires one,
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
-     (list from (car to) start end current-prefix-arg)))
+     (list from (car to) current-prefix-arg start end)))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   start end t t delimited))
 
