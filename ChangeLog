@@ -1,3 +1,8 @@
+2002-02-18  Paul Eggert  <eggert@twinsun.com>
+
+	* make-dist: Port to POSIX 1003.1-2001, which doesn't allow "head -1".
+	"sed q" is a portable equivalent to plain "head -1".
+
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist: Remove the (empty) lisp/calc subdirectory after
@@ -5053,7 +5058,7 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
