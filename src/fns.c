@@ -1568,7 +1568,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
-#ifdef HAVE_X_MENU
+#if defined (HAVE_X_MENU) || defined (HAVE_NTGUI)
       if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
 	  && using_x_p ())
 	{
@@ -1676,8 +1676,8 @@ and can edit it until it has been confirmed.")
 
   CHECK_STRING (prompt, 0);
 
-#ifdef HAVE_X_MENU
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+#if defined (HAVE_X_MENU) || defined (HAVE_NTGUI)
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event)) 
       && using_x_p ())
     {
       Lisp_Object pane, menu, obj;
