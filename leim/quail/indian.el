@@ -1,4 +1,4 @@
-;; quail/indian.el -- Quail packages for inputting Indian
+;;; indian.el --- Quail packages for inputting Indian
 
 ;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
@@ -214,4 +214,4 @@
  "devanagari-inscript" "Devanagari" "DevIS"
  "Devanagari keyboard Inscript.")
 
-;; quail/indian.el ends here.
+;;; indian.el ends here
