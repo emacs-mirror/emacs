@@ -382,6 +382,10 @@ struct buffer
        indirect buffer, this holds a marker that records
        ZV for this buffer when the buffer is not current.  */
     Lisp_Object zv_marker;
+
+    /* This holds the point value before the last scroll operation.
+       Explicitly setting point sets this to nil.  */
+    Lisp_Object point_before_scroll;
   };
 
 /* This points to the current buffer.  */
