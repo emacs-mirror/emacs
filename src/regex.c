@@ -1205,7 +1205,8 @@ typedef struct
 #define FAIL_STACK_GROWTH_FACTOR 4
 
 #define GROW_FAIL_STACK(fail_stack)					\
-  ((fail_stack).size >= re_max_failures * TYPICAL_FAILURE_SIZE		\
+  (((fail_stack).size * sizeof (fail_stack_elt_t)			\
+    >= re_max_failures * TYPICAL_FAILURE_SIZE)				\
    ? 0									\
    : ((fail_stack).stack						\
       = (fail_stack_elt_t *)						\
