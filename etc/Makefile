@@ -9,7 +9,7 @@ all:
 mostlyclean:
 	-rm -f core
 
-clean distclean realclean:
+clean distclean maintainer-clean:
 	-rm -f DOC* core
 
 SOURCES = [0-9A-QS-Z]* README *.[ch16] emacs.* etags.* ledit.l ms-* \
