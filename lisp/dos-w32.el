@@ -85,6 +85,8 @@ against the file name, and TYPE is nil for text, t for binary.")
 	      ((and (symbolp code) (fboundp code))
 	       (funcall code filename)))))))
 
+(setq-default buffer-file-coding-system 'undecided-dos)
+
 (defun find-buffer-file-type-coding-system (command)
   "Choose a coding system for a file operation.
 If COMMAND is `insert-file-contents', the coding system is chosen based
@@ -101,9 +103,23 @@ upon the filename, the contents of `untranslated-filesystem-list' and
     If the file exists:					`undecided'
     If the file does not exist:				`undecided-dos'
 
-If COMMAND is `write-region', the coding system is chosen based
-upon the value of `buffer-file-type': If t, the coding system is
-`no-conversion', otherwise it is `undecided-dos'."
+If COMMAND is `write-region', the coding system is chosen based upon
+the value of `buffer-file-coding-system' and `buffer-file-type'. If
+`buffer-file-coding-system' is non-nil, its value is used.  If it is
+nil and `buffer-file-type' is t, the coding system is `no-conversion'.
+Otherwise, it is `undecided-dos'.
+
+The two most common situations are when DOS and Unix files are read
+and written, and their names do not match in
+`untranslated-filesystem-list' and `file-name-buffer-file-type-alist'.
+In these cases, the coding system initially will be `undecided'.  As
+the file is read in the DOS case, the coding system will be changed to
+`undecided-dos' as CR/LFs are detected.  As the file is read in the
+Unix case, the coding system will be changed to `undecided-unix' as
+LFs are detected.  In both cases, `buffer-file-coding-system' will be
+set to the appropriate coding system, and the value of
+`buffer-file-coding-system' will be used when writing the file."
+
   (let ((op (nth 0 command))
 	(target)
 	(binary nil) (text nil)
@@ -118,13 +134,18 @@ upon the value of `buffer-file-type': If t, the coding system is
 	     (unless binary
 		     (if (find-buffer-file-type-match target)
 			 (setq text t)
-		       (setq undecided (file-exists-p target))))))
-	  ((eq op 'write-region) 
-	   (setq binary buffer-file-type)))
-    (cond (binary '(no-conversion . no-conversion))
-	  (text '(undecided-dos . undecided-dos))
-	  (undecided '(undecided . undecided))
-	  (t '(undecided-dos . undecided-dos)))))
+		       (setq undecided (file-exists-p target)))))
+	   (cond (binary '(no-conversion . no-conversion))
+		 (text '(undecided-dos . undecided-dos))
+		 (undecided '(undecided . undecided))
+		 (t '(undecided-dos . undecided-dos))))
+	  ((eq op 'write-region)
+	   (if buffer-file-coding-system
+	       (cons buffer-file-coding-system
+		     buffer-file-coding-system)
+	     (if buffer-file-type
+		 '(no-conversion . no-conversion)
+	       '(undecided-dos . undecided-dos)))))))
 
 (modify-coding-system-alist 'file "" 'find-buffer-file-type-coding-system)
 
@@ -140,15 +161,18 @@ upon the value of `buffer-file-type': If t, the coding system is
   (let ((file-name-buffer-file-type-alist '(("" . nil))))
     (find-file filename)))
 
-(defun find-file-not-found-set-buffer-file-type ()
+(defun find-file-not-found-set-buffer-file-coding-system ()
   (save-excursion
     (set-buffer (current-buffer))
-    (setq buffer-file-type (find-buffer-file-type (buffer-file-name))))
-  nil)
+    (let* ((dummy-insert-op (list 'insert-file-contents (buffer-file-name)))
+	   (coding-system-pair
+	    (find-buffer-file-type-coding-system dummy-insert-op)))
+      (setq buffer-file-coding-system (car coding-system-pair))
+      (setq buffer-file-type (eq buffer-file-coding-system 'no-conversion)))))
 
-;;; To set the default file type on new files.
-(add-hook 'find-file-not-found-hooks 'find-file-not-found-set-buffer-file-type)
-
+;;; To set the default coding system on new files.
+(add-hook 'find-file-not-found-hooks 
+	  'find-file-not-found-set-buffer-file-coding-system)
 
 ;;; To accomodate filesystems that do not require CR/LF translation.
 (defvar untranslated-filesystem-list nil
