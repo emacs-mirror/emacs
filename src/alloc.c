@@ -1190,28 +1190,6 @@ struct backtrace
 	       /* if nargs is UNEVALLED, args points to slot holding list of unevalled args */
     char evalargs;
   };
-
-/* Two flags that are set during GC in the `size' component
-   of a string or vector.  On some machines, these flags
-   are defined by the m- file to be different bits.  */
-
-/* On vector, means it has been marked.
-   On string size field or a reference to a string,
-   means not the last reference in the chain.  */
-
-#ifndef ARRAY_MARK_FLAG
-#define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
-#endif /* no ARRAY_MARK_FLAG */
-
-/* Any slot that is a Lisp_Object can point to a string
-   and thus can be put on a string's reference-chain
-   and thus may need to have its ARRAY_MARK_FLAG set.
-   This includes the slots whose markbits are used to mark
-   the containing objects.  */
-
-#if ARRAY_MARK_FLAG == MARKBIT
-you lose
-#endif
 
 /* Garbage collection!  */
 
