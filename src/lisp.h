@@ -1199,7 +1199,10 @@ struct Lisp_Save_Value
   {
     int type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    int spacer : 14;
+    /* If DOGC is set, POINTER is the address of a memory
+       area containing INTEGER potential Lisp_Objects.  */
+    unsigned int dogc : 1;
     void *pointer;
     int integer;
   };
@@ -3270,22 +3273,6 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
       }							  \
   } while (0)
 
-/* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.
-   Temporarily inhibits GC since that array is unknow to GC.  */
-
-#define SAFE_ALLOCA_LISP(buf, size)			  \
-  do {							  \
-    if ((size) < MAX_ALLOCA)				  \
-      buf = (Lisp_Object *) alloca (size);		  \
-    else						  \
-      {							  \
-	buf = (Lisp_Object *) xmalloc (size);		  \
-	inhibit_garbage_collection();			  \
-	record_unwind_protect (safe_alloca_unwind,	  \
-			       make_save_value (buf, 0)); \
-      }							  \
-  } while (0)
-
 /* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
 
 #define SAFE_FREE(size)			\
@@ -3294,6 +3281,29 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
       unbind_to (sa_count, Qnil);	\
   } while (0)
 
+
+/* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.  */
+
+#define SAFE_ALLOCA_LISP(buf, nelt)			  \
+  do {							  \
+    int size_ = (nelt) * sizeof (Lisp_Object);		  \
+    if (size_ < MAX_ALLOCA)				  \
+      buf = (Lisp_Object *) alloca (size_);		  \
+    else						  \
+      {							  \
+	Lisp_Object arg_;				  \
+	buf = (Lisp_Object *) xmalloc (size_);		  \
+	arg_ = make_save_value (buf, nelt);		  \
+	XSAVE_VALUE (arg_)->dogc = 1;			  \
+	record_unwind_protect (safe_alloca_unwind, arg_); \
+      }							  \
+  } while (0)
+
+#define SAFE_FREE_LISP(nelt)				\
+  do {							\
+    if (((nelt) * sizeof (Lisp_Object)) >= MAX_ALLOCA)	\
+      unbind_to (sa_count, Qnil);			\
+  } while (0)
 
 
 
