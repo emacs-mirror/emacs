@@ -1,3 +1,9 @@
+2004-02-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* category.c (Fdefine_category, Fcategory_docstring)
+	(Fget_unused_category, Fset_category_table)
+	(Fcategory_set_mnemonics): Doc fixes.
+
 2004-02-20  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c: Undo 2004-02-16 and 2004-02-17 changes.
@@ -7,7 +13,7 @@
 	(read_avail_input): Separate and rework handling of read_socket_hook
 	and non-read_socket_hook cases.  Use smaller input_event buffer
 	in read_socket_hook case, and repeat if full buffer is read.  Use
-	new local variable 'discard' to skip input after C-g. 
+	new local variable 'discard' to skip input after C-g.
 	In non-read_socket_hook case, just use a single input_event, and
 	call kbd_buffer_store_event on the fly for each character.
 
