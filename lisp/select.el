@@ -29,8 +29,9 @@
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection, 
-and the argument DATA-TYPE (default `STRING') says how to convert the data."
-  (x-get-selection-internal (or type 'PRIMARY) (or data-type 'STRING)))
+and the argument DATA-TYPE (default `COMPOUND_TEXT') says
+how to convert the data."
+  (x-get-selection-internal (or type 'PRIMARY) (or data-type 'COMPOUND_TEXT)))
 
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
@@ -287,6 +288,7 @@ Cut buffers are considered obsolete; you should use selections instead."
 
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
+	(COMPOUND_TEXT . xselect-convert-to-string)
 	(STRING . xselect-convert-to-string)
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
