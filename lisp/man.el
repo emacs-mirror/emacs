@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/11/07 12:13:16 $
-;; Version:		$Revision: 1.57 $
+;; Last-Modified:	$Date: 1994/11/08 22:34:06 $
+;; Version:		$Revision: 1.58 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -258,6 +258,7 @@ This regular expression should start with a `^' character.")
 /\b/ {	s/_\b//g
 	s/\b_//g
         s/o\b+/o/g
+        s/+\bo/o/g
 	:ovstrk
 	s/\\(.\\)\b\\1/\\1/g
 	t ovstrk
@@ -269,6 +270,7 @@ This regular expression should start with a `^' character.")
 /\b/ {	s/_\b//g\\
 	s/\b_//g\\
         s/o\b+/o/g\\
+        s/+\bo/o/g\\
 	:ovstrk\\
 	s/\\(.\\)\b\\1/\\1/g\\
 	t ovstrk\\
@@ -616,8 +618,8 @@ Same for the ANSI bold and normal escape sequences."
     (replace-match "\\1")
     (put-text-property (1- (point)) (point) 'face Man-overstrike-face))
   (goto-char (point-min))
-  (while (search-forward "o\b+" nil t)
-    (backward-delete-char 2)
+  (while (re-search-forward "o\b\\+\\|\\+\bo" nil t)
+    (replace-match "o")
     (put-text-property (1- (point)) (point) 'face 'bold))
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
@@ -642,7 +644,7 @@ Same for the ANSI bold and normal escape sequences."
 	(goto-char (point-min))
 	(while (re-search-forward "\e\\[[0-9]+m" nil t) (replace-match ""))
 	(goto-char (point-min))
-	(while (search-forward "o\b+" nil t) (backward-delete-char 2))
+	(while (re-search-forward "o\b\\+\\|\\+\bo" nil t) (replace-match "o"))
 	))
   (goto-char (point-min))
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t) (replace-match "+"))
