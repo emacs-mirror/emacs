@@ -1,3 +1,8 @@
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* makefile.w32-in (obj): Add all files (X and Mac) to doc so the
+	resulting DOC file can be used on Unix/Mac also.
+
 2004-09-13  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (main): When relative file names are given as argument,
