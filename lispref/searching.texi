@@ -1255,7 +1255,7 @@ just the text that matched @samp{\(ba*r\)}.
 @subsection Simple Match Data Access
 
   This section explains how to use the match data to find out what was
-matched by the last search or match operation.
+matched by the last search or match operation, if it succeeded.
 
   You can ask about the entire matching text, or about a particular
 parenthetical subexpression of a regular expression.  The @var{count}
@@ -1273,7 +1273,8 @@ only information available is about the entire match.
 
   A search which fails may or may not alter the match data.  In the
 past, a failing search did not do this, but we may change it in the
-future.
+future.  So don't try to rely on the value of the match data after
+a failing search.
 
 @defun match-string count &optional in-string
 This function returns, as a string, the text matched in the last search
