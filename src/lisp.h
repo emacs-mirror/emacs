@@ -2546,6 +2546,7 @@ extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
 /* Defined in editfns.c */
+EXFUN (Fpropertize, MANY);
 EXFUN (Fcurrent_message, 0);
 EXFUN (Fgoto_char, 1);
 EXFUN (Fpoint_min_marker, 0);
