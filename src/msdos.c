@@ -2341,6 +2341,7 @@ int run_dos_timer_hooks = 0;
 #include "sysselect.h"
 
 static int last_ti_sec = -1;
+static int dos_menubar_clock_displayed = 0;
 
 static void
 check_timer (t)
@@ -2383,6 +2384,13 @@ check_timer (t)
 
       len = sprintf (clock_str, "%2d.%02d.%02d", hour, min, t->ti_sec);
       dos_direct_output (0, screen_size_X - len - 1, clock_str, len);
+      dos_menubar_clock_displayed = 1;
+    }
+  else if (dos_menubar_clock_displayed)
+    {
+      /* Erase last displayed time.  */
+      dos_direct_output (0, screen_size_X - 9, "        ", 8);
+      dos_menubar_clock_displayed = 0;
     }
   
   if (!NILP (Vdos_timer_hooks))
