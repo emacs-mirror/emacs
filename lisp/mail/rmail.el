@@ -2053,8 +2053,10 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (if (and window-system rmail-mail-new-frame)
       (prog1
 	(apply 'mail-other-frame args)
+	;; This is not a standard frame parameter;
+	;; nothing except sendmail.el looks at it.
 	(modify-frame-parameters (selected-frame)
-				 '((dedicated . t))))
+				 '((mail-dedicated-frame . t))))
     (apply 'mail-other-window args)))
 
 (defun rmail-mail ()
