@@ -56,7 +56,10 @@ When t this still needs to be initialized.")
 (defcustom mail-complete-alist
   ;; Don't use backquote here; we don't want backquote to get loaded
   ;; just because of loading this file.
-  (cons (cons mail-address-field-regexp '(mail-get-names pattern))
+  ;; Don't refer to mail-address-field-regexp here;
+  ;; that confuses some things such as cus-dep.el.
+  (cons '("^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
+	  . (mail-get-names pattern))
 	'(("Newsgroups:" . (if (boundp 'gnus-active-hashtb)
 			       gnus-active-hashtb
 			     (if (boundp news-group-article-assoc)
