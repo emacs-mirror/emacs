@@ -1,3 +1,22 @@
+2002-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl.el (values): Simplify definition.
+
+	* simple.el (shell-command): Match & only at end of whole command.
+	(display-message-or-buffer): Don't use the echo area
+	if output buffer is visible.
+
+	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Doc fixes.
+
+	* progmodes/cperl-mode.el: Many trivial doc fixes.
+	(cperl-non-problems): Definition deleted.
+	(cperl-menu): Don't refer to cperl-non-problems.
+	(cperl-word-at-point): Add doc string.
+	(cperl-beautify-regexp-piece): Fix error message.
+	(cperl-invert-if-unless): Fix error message.
+
+	* dired.el (dired-find-alternate-file): Mark as disabled.
+
 2002-06-25  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-ftp-method): New user option.
