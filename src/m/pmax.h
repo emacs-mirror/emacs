@@ -10,7 +10,9 @@ NOTE-START
 The operating system would be either osf1, ultrix, or NetBSD.
 NOTE-END  */
 
+#ifndef __MIPSEB__
 #undef WORDS_BIG_ENDIAN
+#endif
 #undef LIB_STANDARD
 #undef START_FILES
 #undef COFF
@@ -29,6 +31,7 @@ NOTE-END  */
 
 #if defined (__NetBSD__) || defined (__OpenBSD__)
 #undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib/crt0.o
 #undef RUN_TIME_REMAP
 #undef UNEXEC
 #define UNEXEC unexelf.o
