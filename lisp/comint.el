@@ -140,7 +140,7 @@ This is a good thing to set in mode hooks.")
   "Size of input history ring.")
 
 (defvar comint-process-echoes nil
-  "*If non-`nil', assume that the subprocess echoes any input.
+  "*If non-nil, assume that the subprocess echoes any input.
 If so, delete one copy of the input so that only one copy eventually
 appears in the buffer. 
 
@@ -151,46 +151,46 @@ This variable is buffer-local.")
   "Function that submits old text in comint mode.
 This function is called when return is typed while the point is in old text.
 It returns the text to be submitted as process input.  The default is
-comint-get-old-input-default, which grabs the current line, and strips off
-leading text matching comint-prompt-regexp")
+`comint-get-old-input-default', which grabs the current line, and strips off
+leading text matching `comint-prompt-regexp'.")
 
 (defvar comint-input-sentinel (function ignore)
-  "Called on each input submitted to comint mode process by comint-send-input.
+  "Called on each input submitted to comint mode process by `comint-send-input'.
 Thus it can, for instance, track cd/pushd/popd commands issued to the csh.")
 
 (defvar comint-input-filter
   (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
   "Predicate for filtering additions to input history.
 Only inputs answering true to this function are saved on the input
-history list. Default is to save anything that isn't all whitespace")
+history list.  Default is to save anything that isn't all whitespace")
 
 (defvar comint-input-sender (function comint-simple-send)
   "Function to actually send to PROCESS the STRING submitted by user.
-Usually this is just 'comint-simple-send, but if your mode needs to 
-massage the input string, this is your hook. This is called from
-the user command comint-send-input. comint-simple-send just sends
-the string plus a newline.")
+Usually this is just `comint-simple-send', but if your mode needs to 
+massage the input string, put a different function here.
+`comint-simple-send' just sends the string plus a newline.
+This is called from the user command `comint-send-input'.")
 
-(defvar comint-eol-on-send 'T
-  "If non-nil, then jump to the end of the line before sending input to process.
-See comint-send-input")
+(defvar comint-eol-on-send t
+  "*Non-nil means go to the end of the line before sending input to process.
+See `comint-send-input'.")
 
 (defvar comint-mode-hook '()
   "Called upon entry into comint-mode
 This is run before the process is cranked up.")
 
 (defvar comint-exec-hook '()
-  "Called each time a process is exec'd by comint-exec.
+  "Called each time a process is exec'd by `comint-exec'.
 This is called after the process is cranked up.  It is useful for things that
-must be done each time a process is executed in a comint-mode buffer (e.g.,
-(process-kill-without-query)). In contrast, the comint-mode-hook is only
+must be done each time a process is executed in a comint mode buffer (e.g.,
+`(process-kill-without-query)').  In contrast, the `comint-mode-hook' is only
 executed once when the buffer is created.")
 
 (defvar comint-mode-map nil)
 
 (defvar comint-ptyp t
   "True if communications via pty; false if by pipe.  Buffer local.
-This is to work around a bug in emacs process signalling.")
+This is to work around a bug in Emacs process signalling.")
 
 ;;(defvar comint-last-input-match ""
 ;;  "Last string searched for by comint input history search, for defaulting.
@@ -208,20 +208,19 @@ This is to work around a bug in emacs process signalling.")
 Interpreter name is same as buffer name, sans the asterisks.
 Return at end of buffer sends line as input.
 Return not at end copies rest of line to end and sends it.
-Setting mode variable comint-eol-on-send means jump to the end of the line
+Setting variable `comint-eol-on-send' means jump to the end of the line
 before submitting new input.
 
-This mode is typically customised to create inferior-lisp-mode,
-shell-mode, etc.. This can be done by setting the hooks
-comint-input-sentinel, comint-input-filter, comint-input-sender and
-comint-get-old-input to appropriate functions, and the variable
-comint-prompt-regexp to the appropriate regular expression.
+This mode is typically customised to create Inferior Lisp mode,
+Shell mode, etc.  This can be done by setting the hooks
+`comint-input-sentinel', `comint-input-filter', `comint-input-sender' and
+`comint-get-old-input' to appropriate functions, and the variable
+`comint-prompt-regexp' to the appropriate regular expression.
 
-An input history is maintained of size comint-input-ring-size, and
-can be accessed with the commands comint-next-input [\\[comint-next-input]] and 
-comint-previous-input [\\[comint-previous-input]]. Commands not keybound by
-default are send-invisible, comint-dynamic-complete, and 
-comint-list-dynamic-completions.
+An input history is maintained of size `comint-input-ring-size', and
+can be accessed with the commands \\[comint-next-input] and \\[comint-previous-input].
+Commands with no default key bindings include `send-invisible',
+`comint-dynamic-complete', and `comint-list-dynamic-completions'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -287,16 +286,16 @@ Entry to this mode runs the hooks on comint-mode-hook"
 ;;; so that client modes won't interfere with each other. This function
 ;;; isn't necessary in emacs 18.5x, but we keep it around for 18.4x versions.
 (defun full-copy-sparse-keymap (km)
-  "Recursively copy the sparse keymap KM"
+  "Recursively copy the sparse keymap KM."
   (cond ((consp km)
 	 (cons (full-copy-sparse-keymap (car km))
 	       (full-copy-sparse-keymap (cdr km))))
 	(t km)))
 
 (defun comint-check-proc (buffer)
-  "True if there is a process associated w/buffer BUFFER, and
-it is alive (status RUN or STOP). BUFFER can be either a buffer or the
-name of one"
+  "True if there is a living process associated w/buffer BUFFER.
+Living means the status is `run' or `stop'.
+BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(run stop)))))
 
@@ -320,10 +319,10 @@ the process.  Any more args are arguments to PROGRAM."
     buffer))
 
 (defun comint-exec (buffer name command startfile switches)
-  "Fires up a process in buffer for comint modes.
+  "Start up a process in buffer BUFFER for comint modes.
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same comint
-buffer.  The hook comint-exec-hook is run after each exec."
+buffer.  The hook `comint-exec-hook' is run after each exec."
   (save-excursion
     (set-buffer buffer)
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
@@ -593,15 +592,17 @@ If N is negative, find the previous or Nth previous match."
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls value
 of variable `comint-get-old-input' to retrieve old input, copies it to the
-process mark, and sends it.  If variable `comint-process-echoes' is `nil',
+process mark, and sends it.  If variable `comint-process-echoes' is nil,
 a terminal newline is also inserted into the buffer and sent to the process
-\(if it is non-`nil', all text from the process mark to point is deleted,
-since it is assumed the remote process will re-echo it).  The value of
-variable `comint-input-sentinel' is called on the input before sending it.
-The input is entered into the input history ring, if the value of variable
-`comint-input-filter' returns non-`nil' when called on the input.
+\(if it is non-nil, all text from the process mark to point is deleted,
+since it is assumed the remote process will re-echo it).
 
-If variable `comint-eol-on-send' is non-`nil', then point is moved to the
+The value of variable `comint-input-sentinel' is called on the input
+before sending it.  The input is entered into the input history ring,
+if the value of variable `comint-input-filter' returns non-nil when
+called on the input.
+
+If variable `comint-eol-on-send' is non-nil, then point is moved to the
 end of line before sending the input.
 
 `comint-get-old-input', `comint-input-sentinel', and `comint-input-filter'
@@ -669,6 +670,10 @@ Similarly for Soar, Scheme, etc."
 	  (setq oend (+ oend nchars)))
 
       (insert-before-markers string)
+      ;; Don't insert initial prompt outside the top of the window.
+      (if (= (window-start (selected-window)) (point))
+	  (set-window-start (selected-window) (- (point) (length string))))
+
       (and comint-last-input-end
 	   (marker-buffer comint-last-input-end)
 	   (= (point) comint-last-input-end)
@@ -682,9 +687,9 @@ Similarly for Soar, Scheme, etc."
     (set-buffer obuf)))
 
 (defun comint-get-old-input-default ()
-  "Default for comint-get-old-input.
+  "Default for `comint-get-old-input'.
 Take the current line, and discard any initial text matching
-comint-prompt-regexp."
+`comint-prompt-regexp'."
   (save-excursion
     (beginning-of-line)
     (comint-skip-prompt)
@@ -693,7 +698,7 @@ comint-prompt-regexp."
       (buffer-substring beg (point)))))
 
 (defun comint-skip-prompt ()
-  "Skip past the text matching regexp comint-prompt-regexp. 
+  "Skip past the text matching regexp `comint-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."
   (let ((eol (save-excursion (end-of-line) (point))))
     (if (and (looking-at comint-prompt-regexp)
@@ -714,7 +719,7 @@ If this takes us past the end of the current line, don't skip at all."
 (defun comint-simple-send (proc string)
   "Default function for sending to PROC input STRING.
 This just sends STRING plus a newline. To override this,
-set the hook COMINT-INPUT-SENDER."
+set the hook `comint-input-sender'."
   (comint-send-string proc string)
   (comint-send-string proc "\n"))
 
@@ -724,10 +729,10 @@ If a prefix argument is given (\\[universal-argument]), then no prompt skip
 -- go straight to column 0.
 
 The prompt skip is done by skipping text matching the regular expression
-comint-prompt-regexp, a buffer local variable.
+`comint-prompt-regexp', a buffer local variable.
 
-If you don't like this command, reset c-a to beginning-of-line 
-in your hook, comint-mode-hook."
+If you don't like this command, bind C-a to `beginning-of-line' 
+in your hook, `comint-mode-hook'."
   (interactive "P")
   (beginning-of-line)
   (if (null arg) (comint-skip-prompt)))
@@ -741,12 +746,11 @@ in your hook, comint-mode-hook."
 Prompt with argument PROMPT, a string.  Optional argument STARS causes
 input to be echoed with '*' characters on the prompt line.  Input ends with
 RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
-inhibit-quit is set because e.g. this function was called from a process
-filter and C-g is pressed, this function will return `nil', rather than a
-string).
+`inhibit-quit' is set because e.g. this function was called from a process
+filter and C-g is pressed, this function returns nil rather than a string).
 
 Note that the keystrokes comprising the text can still be recovered
-(temporarily) with \\[view-lossage].  This may be a security bug for some
+\(temporarily) with \\[view-lossage].  This may be a security bug for some
 applications."
   (let ((ans "")
 	(c 0)
@@ -787,8 +791,8 @@ applications."
 
 (defun send-invisible (str)
   "Read a string without echoing.
-Then send it to the process running in the current buffer. A new-line
-is additionally sent. String is not saved on comint input history list.
+Then send it to the process running in the current buffer.  A new-line
+is additionally sent.  String is not saved on comint input history list.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
 ; (interactive (list (comint-read-noecho "Enter non-echoed text")))
@@ -804,14 +808,14 @@ Security bug: your string can still be temporarily recovered with
 ;;; Low-level process communication
 
 (defvar comint-input-chunk-size 512
-  "*Long inputs send to comint processes are broken up into chunks of this size.
+  "*Long inputs are sent to comint processes in chunks of this size.
 If your process is choking on big inputs, try lowering the value.")
 
 (defun comint-send-string (proc str)
   "Send PROCESS the contents of STRING as input.
-This is equivalent to process-send-string, except that long input strings
-are broken up into chunks of size comint-input-chunk-size. Processes
-are given a chance to output between chunks. This can help prevent processes
+This is equivalent to `process-send-string', except that long input strings
+are broken up into chunks of size `comint-input-chunk-size'.  Processes
+are given a chance to output between chunks.  This can help prevent processes
 from hanging when you send them long inputs on some OS's."
   (let* ((len (length str))
 	 (i (min len comint-input-chunk-size)))
@@ -824,8 +828,8 @@ from hanging when you send them long inputs on some OS's."
 
 (defun comint-send-region (proc start end)
   "Sends to PROC the region delimited by START and END.
-This is a replacement for process-send-region that tries to keep
-your process from hanging on long inputs. See comint-send-string."
+This is a replacement for `process-send-region' that tries to keep
+your process from hanging on long inputs.  See `comint-send-string'."
   (comint-send-string proc (buffer-substring start end)))
 
 
@@ -1012,7 +1016,7 @@ Useful if you accidentally suspend the top-level process."
 ;;; This is pretty stupid about strings. It decides we're in a string
 ;;; if there's a quote on both sides of point on the current line.
 (defun comint-extract-string ()
-  "Returns string around POINT that starts the current line or nil." 
+  "Return string around POINT that starts the current line, or nil." 
   (save-excursion
     (let* ((point (point))
 	   (bol (progn (beginning-of-line) (point)))
@@ -1110,7 +1114,7 @@ Useful if you accidentally suspend the top-level process."
 
 
 (defun comint-match-partial-pathname ()
-  "Returns the filename at point or causes an error."
+  "Return the filename at point, or signal an error."
   (save-excursion
     (if (re-search-backward "[^~/A-Za-z0-9_.$#,=-]" nil 'move)
 	(forward-char 1))
@@ -1122,14 +1126,14 @@ Useful if you accidentally suspend the top-level process."
 
 
 (defun comint-replace-by-expanded-filename ()
-"Expand the filename at point.
+  "Expand the filename at point.
 Replace the filename with an expanded, canonicalised, and completed
  replacement.
 \"Expanded\" means environment variables (e.g., $HOME) and ~'s are
 replaced with the corresponding directories.  \"Canonicalised\" means ..
 and \. are removed, and the filename is made absolute instead of relative.
-See functions expand-file-name and substitute-in-file-name. See also
-comint-dynamic-complete."
+See functions `expand-file-name' and `substitute-in-file-name'.  See also
+`comint-dynamic-complete'."
   (interactive)
   (let* ((pathname (comint-match-partial-pathname))
 	 (pathdir (file-name-directory pathname))
