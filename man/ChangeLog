@@ -1,3 +1,7 @@
+2004-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Replace): Rewrite description of \# \, and \?.
+
 2004-06-25  David Kastrup  <dak@gnu.org>
 
 	* search.texi (Regexp Replace): Some typo corrections and
