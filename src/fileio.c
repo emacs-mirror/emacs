@@ -296,16 +296,6 @@ restore_point_unwind (location)
   return Qnil;
 }
 
-/* Kill the working buffer for code conversion.  */
-
-static Lisp_Object
-kill_workbuf_unwind (workbuf)
-     Lisp_Object workbuf;
-{
-  if (! NILP (workbuf) && ! NILP (Fbuffer_live_p (workbuf)))
-    Fkill_buffer (workbuf);
-  return Qnil;
-}
 
 Lisp_Object Qexpand_file_name;
 Lisp_Object Qsubstitute_in_file_name;
@@ -3958,7 +3948,7 @@ actually used.  */)
 
 	  if (CODING_REQUIRE_DETECTION (&coding))
 	    {
-	      coding_system = detect_coding_system (buffer, nread, 1, 0,
+	      coding_system = detect_coding_system (buffer, nread, nread, 1, 0,
 						    coding_system);
 	      setup_coding_system (coding_system, &coding);
 	    }
@@ -4117,11 +4107,9 @@ actually used.  */)
       int temp;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
-      Lisp_Object conversion_buffer
-	= make_conversion_work_buffer (-1, multibyte);
-      struct gcpro1;
+      Lisp_Object conversion_buffer;
 
-      record_unwind_protect (kill_workbuf_unwind, conversion_buffer);
+      conversion_buffer = code_conversion_save (1, multibyte);
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
@@ -4484,8 +4472,8 @@ actually used.  */)
 	 decide it at first by detecting the file's encoding.  */
       if (CODING_REQUIRE_DETECTION (&coding))
 	{
-	  coding_system = detect_coding_system (PT_ADDR, inserted, 1, 0,
-						coding_system);
+	  coding_system = detect_coding_system (PT_ADDR, inserted, inserted,
+						1, 0, coding_system);
 	  setup_coding_system (coding_system, &coding);
 	}
 
@@ -4498,8 +4486,7 @@ actually used.  */)
     }
 
   coding.dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
-  if ((CODING_REQUIRE_DETECTION (&coding)
-       || CODING_REQUIRE_DECODING (&coding))
+  if (CODING_MAY_REQUIRE_DECODING (&coding)
       && (inserted > 0 || CODING_REQUIRE_FLUSHING (&coding)))
     {
       move_gap_both (PT, PT_BYTE);
@@ -4510,6 +4497,7 @@ actually used.  */)
       Z -= inserted;
       decode_coding_gap (&coding, inserted, inserted);
       inserted = coding.produced_char;
+      coding_system = CODING_ID_NAME (coding.id);
     }
   else if (inserted > 0)
     adjust_after_insert (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
