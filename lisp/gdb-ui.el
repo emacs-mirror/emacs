@@ -199,10 +199,8 @@ The following interactive lisp functions help control operation :
 	(gud-call (concat "server ptype " expr)))
     (goto-char (- (point-max) 1))
     (if (equal (char-before) (string-to-char "\*"))
-	(gdb-enqueue-input
-	 (list (concat "display* " expr "\n") 'ignore))
-      (gdb-enqueue-input
-       (list (concat "display " expr "\n") 'ignore)))))
+	(gud-call (concat "display* " expr))
+      (gud-call (concat "display " expr)))))
 
 ; this would messy because these bindings don't work with M-x gdb
 ; (define-key global-map "\C-x\C-a\C-a" 'gud-display)
@@ -239,10 +237,7 @@ The following interactive lisp functions help control operation :
   "A string of characters from gdb that have not yet been processed.")
 
 (def-gdb-var input-queue ()
-  "A list of high priority gdb command objects.")
-
-(def-gdb-var idle-input-queue ()
-  "A list of low priority gdb command objects.")
+  "A list of gdb command objects.")
 
 (def-gdb-var prompting nil
   "True when gdb is idle with no pending input.")
@@ -432,9 +427,6 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 
 ;; INPUT: things sent to gdb
 ;;
-;; There is a high and low priority input queue.  Low priority input is sent
-;; only when the high priority queue is idle.
-;;
 ;; The queues are lists.  Each element is either a string (indicating user or
 ;; user-like input) or a list of the form:
 ;;
@@ -453,12 +445,7 @@ This filter may simply queue output for a later time."
   (gdb-enqueue-input (concat string "\n")))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
-;; is a query, or other non-top-level prompt.  To guarantee stuff will get
-;; sent to the top-level prompt, currently it must be put in the idle queue.
-;;				 ^^^^^^^^^
-;; [This should encourage gdb extensions that invoke gdb commands to let
-;;  the user go first; it is not a bug.     -t]
-;;
+;; is a query, or other non-top-level prompt. 
 
 (defun gdb-enqueue-input (item)
   (if (gdb-get-prompting)
@@ -474,24 +461,6 @@ This filter may simply queue output for a later time."
 	 (if (not (cdr queue))
 	     (let ((answer (car queue)))
 	       (gdb-set-input-queue '())
-	       answer)
-	   (gdb-take-last-elt queue)))))
-
-(defun gdb-enqueue-idle-input (item)
-  (if (and (gdb-get-prompting)
-	   (not (gdb-get-input-queue)))
-      (progn
-	(gdb-send-item item)
-	(gdb-set-prompting nil))
-    (gdb-set-idle-input-queue
-     (cons item (gdb-get-idle-input-queue)))))
-
-(defun gdb-dequeue-idle-input ()
-  (let ((queue (gdb-get-idle-input-queue)))
-    (and queue
-	 (if (not (cdr queue))
-	     (let ((answer (car queue)))
-	       (gdb-set-idle-input-queue '())
 	       answer)
 	   (gdb-take-last-elt queue)))))
 
@@ -609,22 +578,16 @@ This sends the next command (if any) to gdb."
      (t
       (gdb-set-output-sink 'user)
       (error "Phase error in gdb-prompt (got %s)" sink))))
-  (let ((highest (gdb-dequeue-input)))
-    (if highest
-	(gdb-send-item highest)
-      (let ((lowest (gdb-dequeue-idle-input)))
-	(if lowest
-	    (gdb-send-item lowest)
-	  (progn
-	    (gdb-set-prompting t)
-	    (gud-display-frame)))))))
+  (let ((input (gdb-dequeue-input)))
+    (if input
+	(gdb-send-item input)
+      (progn
+	(gdb-set-prompting t)
+	(gud-display-frame)))))
 
 (defun gdb-subprompt (ignored)
   "An annotation handler for non-top-level prompts."
-  (let ((highest (gdb-dequeue-input)))
-    (if highest
-	(gdb-send-item highest)
-      (gdb-set-prompting t))))
+  (gdb-set-prompting t))
 
 (defun gdb-starting (ignored)
   "An annotation handler for `starting'.  This says that I/O for the
@@ -1176,15 +1139,15 @@ output from the current command if that happens to be appropriate."
 ;; command might have changed, and we have to be able to run the command
 ;; behind the user's back.
 ;;
-;; The idle input queue and the output phasing associated with the variable
-;; gdb-output-sink help us to run commands behind the user's back.
+;; The output phasing associated with the variable gdb-output-sink
+;; help us to run commands behind the user's back.
 ;;
 ;; Below is the code for specificly managing buffers of output from one
 ;; command.
 ;;
 
 ;; The trigger function is suitable for use in the assoc GDB-ANNOTATION-RULES
-;; It adds an idle input for the command we are tracking.  It should be the
+;; It adds an input for the command we are tracking.  It should be the
 ;; annotation rule binding of whatever gdb sends to tell us this command
 ;; might have changed it's output.
 ;;
@@ -1199,7 +1162,7 @@ output from the current command if that happens to be appropriate."
 	      (not (member ',name
 			   (gdb-get-pending-triggers))))
 	 (progn
-	   (gdb-enqueue-idle-input
+	   (gdb-enqueue-input
 	    (list ,gdb-command ',output-handler))
 	   (gdb-set-pending-triggers
 	    (cons ',name
@@ -2376,12 +2339,12 @@ BUFFER nil or omitted means use the current buffer."
 	  (progn
 	    ;; take previous disassemble command off the queue
 	    (with-current-buffer gud-comint-buffer
-	      (let ((queue (gdb-get-idle-input-queue)) (item))
+	      (let ((queue (gdb-get-input-queue)) (item))
 		(dolist (item queue)
 		  (if (equal (cdr item) '(gdb-assembler-handler))
-		      (gdb-set-idle-input-queue 
-		       (delete item (gdb-get-idle-input-queue)))))))
-	    (gdb-enqueue-idle-input
+		      (gdb-set-input-queue 
+		       (delete item (gdb-get-input-queue)))))))
+	    (gdb-enqueue-input
 	     (list (concat "server disassemble " gdb-current-address "\n")
 		   'gdb-assembler-handler))
 	    (gdb-set-pending-triggers
@@ -2393,7 +2356,7 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-get-current-frame ()
   (if (not (member 'gdb-get-current-frame (gdb-get-pending-triggers)))
       (progn
-	(gdb-enqueue-idle-input
+	(gdb-enqueue-input
 	 (list (concat "server info frame\n") 'gdb-frame-handler))
 	(gdb-set-pending-triggers
 	 (cons 'gdb-get-current-frame
