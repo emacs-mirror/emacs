@@ -778,7 +778,7 @@ Example:
         (s2 "world"))
      (put-text-property 0 (length s1) 'face 'bold s1)
      (put-text-property 0 (length s2) 'face 'italic s2)
-     (format s1 s2)
+     (format s1 s2))
 
 results in a bold-face string with an italic `world' at the end.
 
@@ -977,7 +977,7 @@ since the use of too many or too big scalable fonts may crash XFree86
 servers.
 
 To enable scalable font use, set the variable
-`scalable-fonts-allowed'.  A value of nil, the default, means nver use
+`scalable-fonts-allowed'.  A value of nil, the default, means never use
 scalable fonts.  A value of t means any scalable font may be used.
 Otherwise, the value must be a list of regular expressions.  A
 scalable font may then be used if it matches a regular expression from
@@ -1277,7 +1277,7 @@ may be present in the image specification.
 
 *** Supported image types
 
-**** XBM, iamge type `xbm'.
+**** XBM, image type `xbm'.
 
 XBM images don't require an external library.  Additional image
 properties supported are
@@ -1405,12 +1405,12 @@ Additional image properties supported are:
 `:pt-width WIDTH'
 
 WIDTH is width of the image in pt (1/72 inch).  WIDTH must be an
-integer.  This is an required property.
+integer.  This is a required property.
 
 `:pt-height HEIGHT'
 
 HEIGHT specifies the height of the image in pt (1/72 inch).  HEIGHT
-must be an integer.  This is an required property.
+must be a integer.  This is an required property.
 
 `:bounding-box BOX'
 
