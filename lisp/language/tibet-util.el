@@ -35,6 +35,23 @@
 
 ;;; Code:
 
+(defconst tibetan-obsolete-glyphs
+  `(("$(7!=(B" . "$(8!=(B")			; 2 col <-> 1 col
+    ("$(7!?(B" . "$(8!?(B")
+    ("$(7!@(B" . "$(8!@(B")
+    ("$(7!A(B" . "$(8!A(B")
+    ("$(7"`(B" . "$(8"`(B")
+    ("$(7!;(B" . "$(8!;(B")
+    ("$(7!D(B" . "$(8!D(B")
+    ;; Yes these are dirty. But ...
+    ("$(7!>(B $(7!>(B" . ,(compose-string "$(7!>(B $(7!>(B" 0 3 [?$(7!>(B (Br . Bl) ?  (Br . Bl) ?$(7!>(B]))
+    ("$(7!4!5!5(B" . ,(compose-string
+		  "$(7#R#S#S#S(B" 0 4
+		  [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
+    ("$(7!4!5(B" . ,(compose-string "$(7#R#S#S(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (Br . Bl) ?$(7#S(B]))
+    ("$(7!6(B" . ,(compose-string "$(7#R#S!I(B" 0 3 [?$(7#R(B (Br . Bl) ?$(7#S(B (br . tr) ?$(7!I(B]))
+    ("$(7!4(B"   . ,(compose-string "$(7#R#S(B" 0 2 [?$(7#R(B (Br . Bl) ?$(7#S(B]))))
+
 ;;;###autoload
 (defun tibetan-char-p (ch)
   "Check if char CH is Tibetan character.
