@@ -2470,7 +2470,7 @@ init_display ()
       display_arg = (display != 0 && *display != 0);
     }
 
-  if (!inhibit_window_system && display_arg)
+  if (!inhibit_window_system && display_arg && initialized)
     {
       Vwindow_system = intern ("x");
 #ifdef HAVE_X11
