@@ -2538,7 +2538,7 @@ handle_single_display_prop (it, prop, object, position)
 	      it->object = NILP (object) ? it->w->buffer : object;
 	      it->method = next_element_from_image;
 	      
-	      /* Say that we don't have consumed the characters with
+	      /* Say that we haven't consumed the characters with
 		 `display' property yet.  The call to pop_it in
 		 set_iterator_to_next will clean this up.  */
 	      *position = start_pos;
@@ -10708,6 +10708,7 @@ DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
 Shows contents of glyph row structures.  With non-nil optional\n\
 parameter WITH-GLYPHS-P, dump glyphs as well.")
   (with_glyphs_p)
+     Lisp_Object with_glyphs_p;
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buffer = XBUFFER (w->buffer);
