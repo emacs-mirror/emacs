@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.19 1993/06/09 11:53:26 jimb Exp jimb $
+;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.20 1993/06/10 10:40:16 jimb Exp jimb $
 
 ;; This file is part of GNU Emacs.
 
@@ -5356,15 +5356,19 @@ Run gnus-open-server-hook just before opening news server."
     ;; Open NNTP server.
     (if (or confirm
 	    (null gnus-nntp-server))
-	(if (and (boundp 'gnus-secondary-servers) gnus-secondary-servers)
-	    ;; Read server name with completion.
-	    (setq gnus-nntp-server
-		  (completing-read "NNTP server: "
-				   (cons (list gnus-nntp-server)
-					 gnus-secondary-servers)
-				   nil nil gnus-nntp-server))
-	  (setq gnus-nntp-server
-		(read-string "NNTP server: " gnus-nntp-server))))
+	;; If someone has set the service to nil, then this should always
+	;; be the local host.
+	(if gnus-nntp-service
+	    (if (and (boundp 'gnus-secondary-servers) gnus-secondary-servers)
+		;; Read server name with completion.
+		(setq gnus-nntp-server
+		      (completing-read "NNTP server: "
+				       (cons (list gnus-nntp-server)
+					     gnus-secondary-servers)
+				       nil nil gnus-nntp-server))
+	      (setq gnus-nntp-server
+		    (read-string "NNTP server: " gnus-nntp-server)))
+	  (setq gnus-nntp-server "")))
     ;; If no server name is given, local host is assumed.
     (if (or (string-equal gnus-nntp-server "")
 	    (string-equal gnus-nntp-server "::")) ;RMS preference.
