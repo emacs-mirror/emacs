@@ -119,7 +119,17 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			(beg (1+ (rmail-msgbeg rmail-current-message)))
 			(end (1+ (rmail-msgend rmail-current-message))))
 		    (if (not buf)
-			(append-to-file beg end file-name)
+			;; Output to a file.
+			(if rmail-fields-not-to-output
+			    ;; Delete some fields while we output.
+			    (let ((obuf (current-buffer)))
+			      (set-buffer (get-buffer-create " rmail-out-temp"))
+			      (insert-buffer-substring obuf beg end)
+			      (rmail-delete-unwanted-fields)
+			      (append-to-file (point-min) (point-max) file-name)
+			      (set-buffer obuf)
+			      (kill-buffer (get-buffer " rmail-out-temp")))
+			  (append-to-file beg end file-name))
 		      (if (eq buf (current-buffer))
 			  (error "Can't output message to same file it's already in"))
 		      ;; File has been visited, in buffer BUF.
@@ -143,6 +153,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			      (widen)
 			      (search-backward "\n\^_")
 			      (narrow-to-region (point) (point-max))
+			      (rmail-delete-unwanted-fields)
 			      (rmail-count-new-messages t)
 			      (if (rmail-summary-exists)
 				  (rmail-select-summary
@@ -151,7 +162,8 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		;; Output file not in rmail mode => just insert at the end.
 		(narrow-to-region (point-min) (1+ (buffer-size)))
 		(goto-char (point-max))
-		(insert-buffer-substring cur beg end)))))))
+		(insert-buffer-substring cur beg end)
+		(rmail-delete-unwanted-fields)))))))
 	      (rmail-set-attribute "filed" t))
 	  (if redelete (rmail-set-attribute "deleted" t))))
       (setq count (1- count))
@@ -159,6 +171,26 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	  (rmail-delete-forward)
 	(if (> count 0)
 	    (rmail-next-undeleted-message 1))))))
+
+(defvar rmail-fields-not-to-output nil
+  "*Regexp describing fields to exclude when outputting a message to a file.")
+
+;; Delete from the buffer header fields we don't want output.
+;; NOT-RMAIL if t means this buffer does not have the full header
+;; and *** EOOH *** that a message in an Rmail file has.
+(defun rmail-delete-unwanted-fields (&optional not-rmail)
+  (if rmail-fields-not-to-output 
+      (save-excursion
+	(goto-char (point-min))
+	;; Find the end of the header.
+	(if (and (or not-rmail (search-forward "\n*** EOOH ***\n" nil t))
+		 (search-forward "\n\n" nil t))
+	    (let ((end (point-marker)))
+	      (goto-char (point-min))
+	      (while (re-search-forward rmail-fields-not-to-output end t)
+		(beginning-of-line)
+		(delete-region (point)
+			       (progn (forward-line 1) (point)))))))))
 
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload
@@ -254,6 +286,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  (set-buffer tembuf)
 	  (erase-buffer)
 	  (insert-buffer-substring rmailbuf)
+	  (rmail-delete-unwanted-fields t)
 	  (insert "\n")
 	  (goto-char (point-min))
 	  (if mail-from
