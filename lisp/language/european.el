@@ -69,35 +69,27 @@
 		       '("quail-latin-5" quail-use-package "quail/latin"))
 
 (defun setup-european-environment ()
-  (setq coding-category-iso-8-1 'iso-8859-1)
-
-  (set-coding-priority
-   '(coding-category-iso-7
-     coding-category-iso-8-1
-     coding-category-iso-8-2))
-
-  (setq-default buffer-file-coding-system 'iso-8859-1)
-  (set-terminal-coding-system 'iso-8859-1)
-  (set-keyboard-coding-system 'iso-8859-1)
+  (setup-english-environment)
 
   (setq default-input-method '("European" . "quail-latin-1"))
   )
 
-(set-language-info "English" 'tutorial "TUTORIAL")
-
-(register-input-method "French"
-		       '("quail-latin-1" quail-use-package "quail/latin"))
-(register-input-method "French"
-		       '("quail-latin-1" quail-use-package "quail/latin"))
-
 (set-language-info-alist
  "European" '((setup-function . setup-european-environment)
 	      (charset . (ascii latin-iso8859-1 latin-iso8859-2
-			   latin-iso8859-3 latin-iso8859-4 latin-iso8859-9))
+			  latin-iso8859-3 latin-iso8859-4 latin-iso8859-9))
 	      (coding-system . (iso-8859-1 iso-8859-2 iso-8859-3
 				iso-8859-4 iso-8859-9))
 	      (documentation . t)
 	      (sample-text
 	       . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")))
+
+(let ((languages '("French" "German" "Spanish" "Italian"
+		   ;; We have to list much more European langauges here.
+		   ))
+      (val '("quail-latin-1" quail-use-package "quail/latin")))
+  (while languages
+    (register-input-method (car languages) val)
+    (setq languages (cdr languages))))
 
 ;;; european.el ends here
