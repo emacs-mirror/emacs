@@ -1647,10 +1647,11 @@ to make one entry in the kill ring."
      ;; However, there's no harm in putting
      ;; the region's text in the kill ring, anyway.
      (copy-region-as-kill beg end)
-     ;; This should always barf, and give us the correct error.
+     ;; Set this-command now, so it will be set even if we get an error.
+     (setq this-command 'kill-region)
+     ;; This should barf, if appropriate, and give us the correct error.
      (if kill-read-only-ok
 	 (message "Read only text copied to kill ring")
-       (setq this-command 'kill-region)
        ;; Signal an error if the buffer is read-only.
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
