@@ -3340,7 +3340,8 @@ File not found")))
 
 (defun dungeon-nil (arg)
   "noop"
-  (interactive "*p"))
+  (interactive "*p")
+  nil)
 
 (defun dun-batch-dungeon ()
   (load "dun-batch")
