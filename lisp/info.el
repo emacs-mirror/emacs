@@ -2272,7 +2272,7 @@ Selecting other nodes:
 \\[Info-prev]	Move to the \"previous\" node of this node.
 \\[Info-up]	Move \"up\" from this node.
 \\[Info-menu]	Pick menu item specified by name (or abbreviation).
-	Picking a menu item causes another node to be selected.
+	  Picking a menu item causes another node to be selected.
 \\[Info-directory]	Go to the Info directory node.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
 \\[Info-last]	Move to the last node you were at.
@@ -2285,12 +2285,13 @@ Selecting other nodes:
 
 Moving within a node:
 \\[Info-scroll-up]	Normally, scroll forward a full screen.
-Once you scroll far enough in a node that its menu appears on the screen
-but after point, the next scroll moves into its first subnode.
-When after all menu items (or if their is no menu), move up to
-the parent node.
+	  Once you scroll far enough in a node that its menu appears on the
+	  screen but after point, the next scroll moves into its first
+	  subnode.  When after all menu items (or if there is no menu),
+	  move up to the parent node.
 \\[Info-scroll-down]	Normally, scroll backward.  If the beginning of the buffer is
-already visible, try to go to the previous menu entry, or up if there is none.
+	  already visible, try to go to the previous menu entry, or up
+	  if there is none.
 \\[beginning-of-buffer]	Go to beginning of node.
 
 Advanced commands:
@@ -2299,10 +2300,10 @@ Advanced commands:
 1	Pick first item in node's menu.
 2, 3, 4, 5   Pick second ... fifth item in node's menu.
 \\[Info-goto-node]	Move to node specified by name.
-	You may include a filename as well, as (FILENAME)NODENAME.
+	  You may include a filename as well, as (FILENAME)NODENAME.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[Info-search]	Search through this Info file for specified regexp,
-	and select the node in which the next occurrence is found.
+	  and select the node in which the next occurrence is found.
 \\[Info-next-reference]	Move cursor to next cross-reference or menu item.
 \\[Info-prev-reference]	Move cursor to previous cross-reference or menu item."
   (kill-all-local-variables)
