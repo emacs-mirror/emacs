@@ -378,6 +378,10 @@ raising or deiconifying as necessary.
 buffer to select:
 
 @table @kbd
+@item C-x 5 1
+@kindex C-x 5 1
+@findex delete-other-frames
+Delete all frames except the selected one (@code{delete-other-frames}).
 @item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
