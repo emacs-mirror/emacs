@@ -105,7 +105,9 @@ NOTE-END
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
+#ifndef LINUX
 #define DATA_START    0x140000000
+#endif
 #endif
 
 #ifndef __ELF__
