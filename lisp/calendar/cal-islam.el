@@ -263,7 +263,10 @@ not be marked in the calendar.  This function is provided for use with the
                        (backward-char 1)
                        (subst-char-in-region date-start (point) ?\^M ?\n t)
                        (add-to-diary-list
-                         gdate (buffer-substring entry-start (point)))))))
+                        gdate
+                        (buffer-substring-no-properties entry-start (point))
+                        (buffer-substring-no-properties
+                         (1+ date-start) (1- entry-start)))))))
                (setq d (cdr d))))
            (setq gdate
                  (calendar-gregorian-from-absolute
