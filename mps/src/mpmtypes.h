@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.68) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.69) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -122,6 +122,13 @@ enum {
   CBSFindDeleteHIGH,    /* delete precise size from high end */
   CBSFindDeleteENTIRE   /* delete entire range */
 };
+
+/* See design.mps.cbs.impl.low-mem.inline.block */
+typedef void **CBSEmergencyBlock; /* next, limit */
+
+/* See design.mps.cbs.impl.low-mem.inline.block */
+typedef void **CBSEmergencyGrain; /* next */
+
 
 
 /* Arena*Method -- see @@@@ */
