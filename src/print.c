@@ -399,6 +399,7 @@ printchar (ch, fun)
 	{
 	  message_log_maybe_newline ();
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
+	  echo_area_message = Qnil;
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
@@ -527,6 +528,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	{
 	  message_log_maybe_newline ();
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
+	  echo_area_message = Qnil;
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
@@ -1614,6 +1616,26 @@ print (obj, printcharfun, escapeflag)
 	      strout (" on ", -1, -1, printcharfun, 0);
 	      print_string (XBUFFER (XWINDOW (obj)->buffer)->name, printcharfun);
 	    }
+	  PRINTCHAR ('>');
+	}
+      else if (HASH_TABLE_P (obj))
+	{
+	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
+	  strout ("#<hash-table", -1, -1, printcharfun, 0);
+	  if (SYMBOLP (h->test))
+	    {
+	      PRINTCHAR (' ');
+	      PRINTCHAR ('\'');
+	      strout (XSYMBOL (h->test)->name->data, -1, -1, printcharfun, 0);
+	      PRINTCHAR (' ');
+	      strout (XSYMBOL (h->weak)->name->data, -1, -1, printcharfun, 0);
+	      PRINTCHAR (' ');
+	      sprintf (buf, "%d/%d", XFASTINT (h->count),
+		       XVECTOR (h->next)->size);
+	      strout (buf, -1, -1, printcharfun, 0);
+	    }
+	  sprintf (buf, " 0x%lx", (unsigned long) h);
+	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('>');
 	}
       else if (BUFFERP (obj))
