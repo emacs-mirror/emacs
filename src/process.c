@@ -2795,16 +2795,17 @@ read_process_output (proc, channel)
   if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
       Lisp_Object old_read_only;
-      Lisp_Object old_begv, old_zv;
+      int old_begv, old_zv;
       Lisp_Object odeactivate;
+      int before;
 
       odeactivate = Vdeactivate_mark;
 
       Fset_buffer (p->buffer);
       opoint = PT;
       old_read_only = current_buffer->read_only;
-      XSETFASTINT (old_begv, BEGV);
-      XSETFASTINT (old_zv, ZV);
+      old_begv = BEGV;
+      old_zv = ZV;
 
       current_buffer->read_only = Qnil;
 
@@ -2815,22 +2816,12 @@ read_process_output (proc, channel)
 	SET_PT (clip_to_bounds (BEGV, marker_position (p->mark), ZV));
       else
 	SET_PT (ZV);
+      before = PT;
 
       /* If the output marker is outside of the visible region, save
 	 the restriction and widen.  */
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
-
-      /* Make sure opoint floats ahead of any new text, just as point
-	 would.  */
-      if (PT <= opoint)
-	opoint += nchars;
-
-      /* Insert after old_begv, but before old_zv.  */
-      if (PT < XFASTINT (old_begv))
-	XSETFASTINT (old_begv, XFASTINT (old_begv) + nchars);
-      if (PT <= XFASTINT (old_zv))
-	XSETFASTINT (old_zv, XFASTINT (old_zv) + nchars);
 
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
@@ -2842,9 +2833,18 @@ read_process_output (proc, channel)
 
       update_mode_lines++;
 
+      /* Make sure opoint and the old restrictions
+	 float ahead of any new text just as point would.  */
+      if (opoint >= before)
+	opoint += PT - before;
+      if (old_begv > before)
+	old_begv += PT - before;
+      if (old_zv >= before)
+	old_zv += PT - before;
+
       /* If the restriction isn't what it should be, set it.  */
-      if (XFASTINT (old_begv) != BEGV || XFASTINT (old_zv) != ZV)
-	Fnarrow_to_region (old_begv, old_zv);
+      if (old_begv != BEGV || old_zv != ZV)
+	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
@@ -3952,6 +3952,7 @@ status_notify ()
 	      Lisp_Object ro, tem;
 	      struct buffer *old = current_buffer;
 	      int opoint;
+	      int before;
 
 	      ro = XBUFFER (buffer)->read_only;
 
@@ -3960,6 +3961,7 @@ status_notify ()
 	      if (NILP (XBUFFER (buffer)->name))
 		continue;
 	      Fset_buffer (buffer);
+
 	      opoint = PT;
 	      /* Insert new output into buffer
 		 at the current end-of-output marker,
@@ -3968,8 +3970,8 @@ status_notify ()
 		SET_PT (marker_position (p->mark));
 	      else
 		SET_PT (ZV);
-	      if (PT <= opoint)
-		opoint += XSTRING (msg)->size + XSTRING (p->name)->size + 10;
+
+	      before = PT;
 
 	      tem = current_buffer->read_only;
 	      current_buffer->read_only = Qnil;
@@ -3980,7 +3982,11 @@ status_notify ()
 	      current_buffer->read_only = tem;
 	      Fset_marker (p->mark, make_number (PT), p->buffer);
 
-	      SET_PT (opoint);
+	      if (opoint >= before)
+		SET_PT (opoint + (PT - before));
+	      else
+		SET_PT (opoint);
+
 	      set_buffer_internal (old);
 	    }
 	}
