@@ -3842,6 +3842,8 @@ This does code conversion according to the value of\n\
       && (NILP (visit) || !NILP (replace)))
     signal_after_change (PT, 0, inserted);
 
+  Vlast_coding_system_used = coding.symbol;
+
   if (inserted > 0)
     {
       p = Vafter_insert_file_functions;
@@ -3999,6 +4001,8 @@ to the file, instead of any buffer contents, and END is ignored.")
     if (!STRINGP (start) && !NILP (current_buffer->selective_display))
       coding.selective = 1;
   }
+
+  Vlast_coding_system_used = coding.symbol;
 
   filename = Fexpand_file_name (filename, Qnil);
   if (STRINGP (visit))
