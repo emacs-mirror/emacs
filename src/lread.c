@@ -1460,7 +1460,6 @@ STREAM or the value of `standard-input' may be:
      (stream)
      Lisp_Object stream;
 {
-  extern Lisp_Object Fread_minibuffer ();
   if (NILP (stream))
     stream = Vstandard_input;
   if (EQ (stream, Qt))
