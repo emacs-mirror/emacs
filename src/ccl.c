@@ -701,22 +701,11 @@ static int stack_idx_of_map_multiple;
 #define CCL_WRITE_CHAR(ch)					\
   do {								\
     int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);	\
-    if (ch == '\n' && ccl->eol_type == CODING_EOL_CRLF)		\
-      bytes++;							\
     if (!dst)							\
       CCL_INVALID_CMD;						\
     else if (dst + bytes <= (dst_bytes ? dst_end : src))	\
       {								\
-	if (ch == '\n')						\
-	  {							\
-	    if (ccl->eol_type == CODING_EOL_CRLF)		\
-	      *dst++ = '\r', *dst++ = '\n';			\
-	    else if (ccl->eol_type == CODING_EOL_CR)		\
-	      *dst++ = '\r';					\
-	    else						\
-	      *dst++ = '\n';					\
-	  }							\
-	else if (bytes == 1)					\
+	if (bytes == 1)						\
 	  {							\
 	    *dst++ = (ch);					\
 	    if ((ch) >= 0x80 && (ch) < 0xA0)			\
@@ -746,24 +735,42 @@ static int stack_idx_of_map_multiple;
   } while (0)
 
 /* Read one byte from the current input buffer into Rth register.  */
-#define CCL_READ_CHAR(r)			\
-  do {						\
-    if (!src)					\
-      CCL_INVALID_CMD;				\
-    else if (src < src_end)			\
-      {						\
-	r = *src++;				\
-	if (r == LEADING_CODE_8_BIT_CONTROL	\
-	    && ccl->multibyte)			\
-	  r = *src++ - 0x20;			\
-      }						\
-    else if (ccl->last_block)			\
-      {						\
-        ic = ccl->eof_ic;			\
-        goto ccl_repeat;			\
-      }						\
-    else					\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);	\
+#define CCL_READ_CHAR(r)				\
+  do {							\
+    if (!src)						\
+      CCL_INVALID_CMD;					\
+    else if (src < src_end)				\
+      {							\
+	r = *src++;					\
+	if (r == '\n'					\
+	    && ccl->eol_type != CODING_EOL_LF)		\
+	  {						\
+	    /* We are encoding.  */			\
+	    if (ccl->eol_type == CODING_EOL_CRLF)	\
+	      {						\
+		if (ccl->cr_consumed)			\
+		  ccl->cr_consumed = 0;			\
+		else					\
+		  {					\
+		    ccl->cr_consumed = 1;		\
+		    r = '\r';				\
+		    src--;				\
+		  }					\
+	      }						\
+	    else					\
+	      r = '\r';					\
+	  }						\
+	if (r == LEADING_CODE_8_BIT_CONTROL		\
+	    && ccl->multibyte)				\
+	  r = *src++ - 0x20;				\
+      }							\
+    else if (ccl->last_block)				\
+      {							\
+        ic = ccl->eof_ic;				\
+        goto ccl_repeat;				\
+      }							\
+    else						\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);		\
   } while (0)
 
 
@@ -1209,7 +1216,26 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 	      
 		i = *src++;
-		if (i < 0x80)
+		if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
+		  {
+		    /* We are encoding.  */ 
+		    if (ccl->eol_type == CODING_EOL_CRLF)
+		      {
+			if (ccl->cr_consumed)
+			  ccl->cr_consumed = 0;
+			else
+			  {
+			    ccl->cr_consumed = 1;
+			    i = '\r';
+			    src--;
+			  }
+		      }
+		    else
+		      i = '\r';
+		    reg[rrr] = i;
+		    reg[RRR] = CHARSET_ASCII;
+		  }
+		else if (i < 0x80)
 		  {
 		    /* ASCII */
 		    reg[rrr] = i;
