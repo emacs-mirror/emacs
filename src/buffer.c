@@ -3290,8 +3290,7 @@ adjust_overlays_for_delete (pos, length)
    endpoint in this range will need to be unlinked from the overlay
    list and reinserted in its proper place.
    Such an overlay might even have negative size at this point.
-   If so, we'll reverse the endpoints.  Can you think of anything
-   better to do in this situation?  */
+   If so, we'll make the overlay empty. */
 void
 fix_start_end_in_overlays (start, end)
      register int start, end;
@@ -3318,23 +3317,24 @@ fix_start_end_in_overlays (start, end)
   for (parent = NULL, tail = current_buffer->overlays_before; tail;)
     {
       XSETMISC (overlay, tail);
+
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+
+      /* If the overlay is backwards, make it empty.  */
+      if (endpos < startpos)
+	{
+	  startpos = endpos;
+	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
+		       Qnil);
+	}
+
       if (endpos < start)
 	break;
-      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      
       if (endpos < end
 	  || (startpos >= start && startpos < end))
 	{
-	  /* If the overlay is backwards, fix that now.  */
-	  if (startpos > endpos)
-	    {
-	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
-			   Qnil);
-	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
-			   Qnil);
-	      tem = startpos; startpos = endpos; endpos = tem;
-	    }
 	  /* Add it to the end of the wrong list.  Later on,
 	     recenter_overlay_lists will move it to the right place.  */
 	  if (endpos < current_buffer->overlay_center)
@@ -3365,22 +3365,24 @@ fix_start_end_in_overlays (start, end)
   for (parent = NULL, tail = current_buffer->overlays_after; tail;)
     {
       XSETMISC (overlay, tail);
+
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+
+      /* If the overlay is backwards, make it empty.  */
+      if (endpos < startpos)
+	{
+	  startpos = endpos;
+	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
+		       Qnil);	  
+	}
+
       if (startpos >= end)
 	break;
-      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+
       if (startpos >= start
 	  || (endpos >= start && endpos < end))
 	{
-	  if (startpos > endpos)
-	    {
-	      int tem;
-	      Fset_marker (OVERLAY_START (overlay), make_number (endpos),
-			   Qnil);
-	      Fset_marker (OVERLAY_END (overlay), make_number (startpos),
-			   Qnil);
-	      tem = startpos; startpos = endpos; endpos = tem;
-	    }
 	  if (endpos < current_buffer->overlay_center)
 	    {
 	      if (!afterp)
