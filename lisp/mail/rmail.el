@@ -154,9 +154,9 @@ before obeying `rmail-ignored-headers'.")
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
 
-;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:".
+;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:" or "Re[2]".
 ;; This pattern should catch all the common variants.
-(defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\^[0-9]+\\)?: *\\)*"
+(defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?: *\\)*"
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defvar rmail-display-summary nil
