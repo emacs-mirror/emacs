@@ -48,8 +48,7 @@
 ;;
 ;; Characters from other character sets can be encoded with mule-utf-8
 ;; by populating the translation table
-;; `utf-translation-table-for-encode' and registering the translation
-;; with `register-char-codings'.  Hash tables
+;; `utf-translation-table-for-encode'.  Hash tables
 ;; `utf-subst-table-for-decode' and `utf-subst-table-for-encode' are
 ;; used to support encoding and decoding of about a quarter of the CJK
 ;; space between U+3400 and U+DFFF.
@@ -177,9 +176,7 @@ Setting this variable outside customize has no effect."
 				'translation-table)
 			   ucs-mule-to-mule-unicode)
 		 (define-translation-table 'utf-translation-table-for-encode
-		   utf-defragmentation-table)
-		 (dolist (coding '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
-		   (register-char-codings coding utf-defragmentation-table))))
+		   utf-defragmentation-table)))
 	   (define-translation-table 'utf-translation-table-for-decode)
 	   ;; When unify-8859-on-encoding-mode is off, be sure to make
 	   ;; mule-utf-* disabled for characters in
@@ -187,17 +184,7 @@ Setting this variable outside customize has no effect."
 	   (unless (eq (get 'utf-translation-table-for-encode
 			    'translation-table)
 		       ucs-mule-to-mule-unicode)
-	     (define-translation-table 'utf-translation-table-for-encode)
-	     (map-char-table
-	      (lambda (key val)
-		(if (and (>= key 128) val)
-		    (aset char-coding-system-table key
-			  (remq 'mule-utf-8
-				(remq 'mule-utf-16-le
-				      (remq 'mule-utf-16-be
-					    (aref char-coding-system-table
-						  key)))))))
-	      utf-defragmentation-table)))
+	     (define-translation-table 'utf-translation-table-for-encode)))
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
@@ -258,26 +245,14 @@ default.  Also, installing them may be rather slow."
 		 (maphash (lambda (k v)
 			    (aset table k t))
 			  ucs-mule-cjk-to-unicode)
-		 (register-char-codings 'mule-utf-8 table)
-		 (register-char-codings 'mule-utf-16-le table)
-		 (register-char-codings 'mule-utf-16-be table))
 	       (define-translation-hash-table 'utf-subst-table-for-decode
 		 ucs-unicode-to-mule-cjk)
 	       (define-translation-hash-table 'utf-subst-table-for-encode
 		 ucs-mule-cjk-to-unicode))
-	   (map-char-table
-	    (lambda (k v)
-	      (if (gethash k ucs-mule-cjk-to-unicode)
-		  (aset char-coding-system-table k
-			(remq 'mule-utf-8
-			      (remq 'mule-utf-16-le
-				    (remq 'mule-utf-16-be v))))))
-	    char-coding-system-table)
 	   (define-translation-hash-table 'utf-subst-table-for-decode
 	     (make-hash-table :test 'eq))
 	   (define-translation-hash-table 'utf-subst-table-for-encode
-	     (make-hash-table :test 'eq)))
-	 (optimize-char-coding-system-table)
+	     (make-hash-table :test 'eq))))
 	 (set-default s v))
   :version "21.4"
   :type 'boolean
