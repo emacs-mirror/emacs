@@ -85,7 +85,7 @@ unsuccessful after disturbing the status quo, it removes config.status."
 ### names.
 config_h_opts=" \
 HAVE_X_WINDOWS HAVE_X11 HAVE_X_MENU \
-SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE "
+SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST"
 
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
@@ -796,12 +796,36 @@ case "${default_cc}" in
     echo "  Using GCC."
     default_cflags='-g -O'
   ;;
-  "*" )
+  * )
     echo "  Using the system's CC."
     default_cflags='-g'
   ;;
 esac
 
+
+#### Does this compiler support the `const' keyword?
+#### The code for this test was adapted from autoconf's test.
+echo "Checking if the compiler supports \`const'."
+rm -f conftest*
+compile='${default_cc} conftest.c -o conftest >/dev/null 2>&1'
+echo "
+main() { exit(0); } t() { /* Ultrix mips cc rejects this.  */
+typedef int charset[2]; const charset x;
+/* SunOS 4.1.1 cc rejects this. */
+char const *const *p;
+char **p2;
+/* HPUX 7.0 cc rejects these. */
+++p;
+p2 = (char const* const*) p;
+ }" > conftest.c
+if eval $compile; then
+  echo "  It seems to."
+  HAVE_CONST=yes
+else
+  echo "  It doesn't seem to."
+  HAVE_CONST=no
+fi
+rm -f conftest*
 
 #### What is the return type of a signal handler?
 
@@ -972,7 +996,7 @@ message="Configured for \`${configuration}'.
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   What window system should Emacs use?                    ${window_system}
   What compiler should emacs be built with?               ${default_cc}
-  Should the compilation use \`-g' and/or \`-O'?            ${default_cflags- neither}"
+  Should the compilation use \`-g' and/or \`-O'?            ${default_cflags-neither}"
 
 ### Write config.status, documenting the damage we have done.
 
