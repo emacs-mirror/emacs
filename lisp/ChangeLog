@@ -1,3 +1,8 @@
+2000-12-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* jka-compr.el (jka-compr-partial-uncompress): Don't use `concat'
+	for numbers.
+
 2000-12-20  Miles Bader  <miles@gnu.org>
 
 	* international/quail.el (quail-help): Resize the help window
