@@ -1255,7 +1255,6 @@ unification on input operations."
       (set-char-table-parent safe nil)
       (coding-system-put coding-system 'translation-table-for-encode nil))))
 
-;;;###autoload
 (define-minor-mode unify-8859-on-encoding-mode
   "Set up translation tables for unifying ISO 8859 characters on encoding.
 
@@ -1286,7 +1285,6 @@ See also command `unify-8859-on-decoding-mode'."
       (ucs-unify-8859 t)
     (ucs-fragment-8859 t)))
 
-;;;###autoload
 (define-minor-mode unify-8859-on-decoding-mode
   "Set up translation table for unifying ISO 8859 characters on decoding.
 On decoding -- i.e. input operations -- non-ASCII characters from the
