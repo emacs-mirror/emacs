@@ -122,7 +122,7 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 #define sigfree() sigsetmask (SIGEMPTYMASK)
 #define sigholdx(sig) sigsetmask (sigmask (sig))
 #define sigblockx(sig) sigblock (sigmask (sig))
-#define sigunblockx(sig) sigblock (SIGEMPTYMASK)
+#define sigunblockx(sig) sigunblock (sigmask (sig))
 #define sigpausex(sig) sigpause (0)
 #endif /* BSD4_1 */
 
