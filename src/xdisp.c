@@ -20892,7 +20892,8 @@ note_mouse_highlight (f, x, y)
 
   if (part == ON_VERTICAL_BORDER)
     cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
-  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+  else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE
+	   || part == ON_SCROLL_BAR)
     cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   else
     cursor = FRAME_X_OUTPUT (f)->text_cursor;
