@@ -10593,8 +10593,12 @@ XTread_socket (sd, bufp, numchars, expected)
 			     character events.  */
 			  for (i = 0; i < nbytes; i += len)
 			    {
-			      c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-							  nbytes - i, len);
+			      if (nchars == nbytes)
+				c = copy_bufptr[i], len = 1;
+			      else
+				c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+							    nbytes - i, len);
+			      
 			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
 					    ? ascii_keystroke
 					    : multibyte_char_keystroke);
