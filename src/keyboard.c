@@ -2913,8 +2913,6 @@ static void
 record_char (c)
      Lisp_Object c;
 {
-  Lisp_Object help;
-
   /* Don't record `help-echo' in recent_keys unless it shows some help
      message, and a different help than the previoiusly recorded
      event.  */
@@ -3672,8 +3670,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 
 	  if (NILP (obj))
 	    {
-	      int idx;
-	      
 	      obj = make_lispy_event (event);
 	      
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
@@ -6256,7 +6252,7 @@ menu_bar_items (old)
      in the current keymaps, or nil where it is not a prefix.  */
   Lisp_Object *maps;
 
-  Lisp_Object def, tem, tail;
+  Lisp_Object def, tail;
 
   Lisp_Object result;
 
