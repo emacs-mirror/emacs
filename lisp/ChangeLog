@@ -21,6 +21,9 @@
 
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
+	* help.el (view-order-manuals, view-emacs-news, describe-copying)
+	(describe-distribution, describe-project): Use view-file.
+
 	* emacs-lisp/cl-indent.el (define-modify-macro): Better indent spec.
 
 	* net/ange-ftp.el (ange-ftp-file-modtime): Use save-match-data.
