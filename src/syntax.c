@@ -427,9 +427,7 @@ describe_syntax (value)
   if (match)
     {
       insert_string (", matches ");
-      
-      str[0] = match, str[1] = 0;
-      insert (str, 1);
+      insert_char (match);
     }
 
   if (start1)
