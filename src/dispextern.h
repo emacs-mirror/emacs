@@ -99,7 +99,8 @@ enum window_part
   ON_LEFT_FRINGE,
   ON_RIGHT_FRINGE,
   ON_LEFT_MARGIN,
-  ON_RIGHT_MARGIN
+  ON_RIGHT_MARGIN,
+  ON_SCROLL_BAR
 };
 
 /* Number of bits allocated to store fringe bitmap numbers.  */
