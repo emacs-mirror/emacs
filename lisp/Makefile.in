@@ -278,7 +278,7 @@ recompile: doit
 
 bootstrap-clean:
 	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
-	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
+	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
 
