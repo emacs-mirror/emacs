@@ -44,7 +44,7 @@
 ;; You can "age" different sets of changes by using
 ;; `highlight-changes-rotate-faces'.  This rotates different through a series
 ;; of different faces, so you can distinguish "new" changes from "older"
-;; changes.  You can customize these "rotates" faces in two ways.  You can
+;; changes.  You can customize these "rotated" faces in two ways.  You can
 ;; either explicitly define each face by customizing
 ;; `highlight-changes-face-list'.  If, however, the faces differ from
 ;; `highlight-changes-face' only in the foreground colour, you can simply set
