@@ -137,7 +137,7 @@
 ;;;     is evaluated at compile-time.  When it appears at top-level, this
 ;;;     is analogous to the Common Lisp idiom (eval-when (compile) ...).
 ;;;     When it does not appear at top-level, it is similar to the
-;;;     Common Lisp #. reader macro (but not in interpreted code.)
+;;;     Common Lisp #. reader macro (but not in interpreted code).
 ;;;
 ;;;  o  The form `eval-and-compile' is similar to eval-when-compile, but
 ;;;	the whole form is evalled both at compile-time and at run-time.
@@ -305,7 +305,7 @@ which the byte-code interpreter knows about directly (eq, cons, etc.) are
 not reported.
 
 The call tree also lists those functions which are not known to be called
-\(that is, to which no calls have been compiled.)  Functions which can be
+\(that is, to which no calls have been compiled).  Functions which can be
 invoked interactively are excluded from this list.")
 
 (defconst byte-compile-call-tree nil "Alist of functions and their call tree.
@@ -3212,7 +3212,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
 (make-obsolete-variable 'temp-buffer-show-hook
 			'temp-buffer-show-function)
 (make-obsolete-variable 'inhibit-local-variables
-		"use enable-local-variables (with the reversed sense.)")
+		"use enable-local-variables (with the reversed sense).")
 (make-obsolete-variable 'unread-command-char
   "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1.")
 (make-obsolete-variable 'unread-command-event
