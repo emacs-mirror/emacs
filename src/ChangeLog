@@ -1,5 +1,10 @@
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xmenu.c: Spell the name of Emacs properly (GNU Emacs instead of
+	gnuemacs).
+	(HAVE_BOXES): Fix typo in comment.
+	(push_menu_pane): Fix typo in comment.
+
 	* xdisp.c: (display_prop_string_p): Remove unused local declaration
 	of `Qwhen'.
 	(single_display_prop_string_p): Remove unused local declarations
