@@ -788,9 +788,9 @@ The value of this variable is used when Font Lock mode is turned on."
   :version "21.1"
   :group 'font-lock)
 
-(defvar fast-lock-mode nil)
-(defvar lazy-lock-mode nil)
-(defvar jit-lock-mode nil)
+(defvar fast-lock-mode)
+(defvar lazy-lock-mode)
+(defvar jit-lock-mode)
 
 (defun font-lock-turn-on-thing-lock ()
   (let ((thing-mode (font-lock-value-in-major-mode font-lock-support-mode)))
@@ -811,26 +811,26 @@ The value of this variable is used when Font Lock mode is turned on."
 			      (not font-lock-keywords-only))))))
 
 (defun font-lock-turn-off-thing-lock ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-mode -1))
-	(jit-lock-mode
+	((and (boundp 'jit-lock-mode) jit-lock-mode)
 	 (jit-lock-unregister 'font-lock-fontify-region)
 	 ;; Reset local vars to the non-jit-lock case.
 	 (kill-local-variable 'font-lock-fontify-buffer-function))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-mode -1))))
 
 (defun font-lock-after-fontify-buffer ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-after-fontify-buffer))
 	;; Useless now that jit-lock intercepts font-lock-fontify-buffer.  -sm
 	;; (jit-lock-mode
 	;;  (jit-lock-after-fontify-buffer))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-fontify-buffer))))
 
 (defun font-lock-after-unfontify-buffer ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-after-unfontify-buffer))
 	;; Useless as well.  It's only called when:
 	;; - turning off font-lock: it does not matter if we leave spurious
@@ -840,7 +840,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	;;
 	;; (jit-lock-mode
 	;;  (jit-lock-after-unfontify-buffer))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-unfontify-buffer))))
 
 ;;; End of Font Lock Support mode.
@@ -932,13 +932,18 @@ The value of this variable is used when Font Lock mode is turned on."
     (font-lock-after-unfontify-buffer)
     (setq font-lock-fontified nil)))
 
+(defvar font-lock-dont-widen nil
+  "If non-nil, font-lock will work on the non-widened buffer.
+Useful for things like RMAIL and Info where the whole buffer is not
+a very meaningful entity to highlight.")
+
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
       ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
        (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
-	  (widen)
+	  (unless font-lock-dont-widen (widen))
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
@@ -1025,7 +1030,8 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
-(define-key facemenu-keymap "\M-g" 'font-lock-fontify-block)
+(if (boundp 'facemenu-keymap)
+    (define-key facemenu-keymap "\M-g" 'font-lock-fontify-block))
 
 ;;; End of Fontification functions.
 
@@ -1312,7 +1318,8 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 
 (defun font-lock-fontify-keywords-region (start end &optional loudly)
   "Fontify according to `font-lock-keywords' between START and END.
-START should be at the beginning of a line."
+START should be at the beginning of a line.
+LOUDLY, if non-nil, allows progress-meter bar."
   (unless (eq (car font-lock-keywords) t)
     (setq font-lock-keywords
 	  (font-lock-compile-keywords font-lock-keywords t)))
