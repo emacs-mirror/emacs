@@ -117,10 +117,14 @@ NOTE-END */
 /* This is totally uncalibrated. */
 #define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 
+#ifndef SOLARIS2_4
 /* j.w.hawtin@lut.ac.uk says Solaris 2.1 on the X86 needs -lkvm, and it 
-   already has FSCALE defined in a system header.  configure thinks solaris
-   X86 has gethostname but it does not work so undefine it.  */
+   already has FSCALE defined in a system header.  */
 #define LIBS_MACHINE -lkvm
+#endif
+
+/* configure thinks solaris X86 has gethostname, but it does not work,
+   so undefine it.  */
 #undef HAVE_GETHOSTNAME
 
 #else /* not SOLARIS2 */
