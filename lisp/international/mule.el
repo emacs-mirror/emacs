@@ -750,7 +750,7 @@ a value of `safe-charsets' in PLIST."
       (let ((args (transform-make-coding-system-args coding-system type
 						     mnemonic doc-string)))
 	(setq coding-system (car args)
-	      type (nth 1 nargs)
+	      type (nth 1 args)
 	      mnemonic (nth 2 args)
 	      doc-string (nth 3 args)
 	      flags (nth 4 args)
