@@ -24,26 +24,34 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    hole between the first bloc and the end of malloc storage. */
 
 #ifdef emacs
+
 #include "config.h"
 #include "lisp.h"		/* Needed for VALBITS.  */
+
+#undef NULL
 
 /* Declared in dispnew.c, this version doesn't screw up if regions
    overlap.  */
 extern void safe_bcopy ();
-#endif
 
-#ifndef emacs
+#include "getpagesize.h"
+
+#else	/* Not emacs.  */
+
 #include <stddef.h>
+
 typedef size_t SIZE;
 typedef void *POINTER;
+
 #define EXCEEDS_LISP_PTR(x) 0
 
-#define safe_bcopy(x, y, z) memmove (y, x, z)
-#endif
+#include <unistd.h>
+#include <malloc.h>
+#include <string.h>
 
-#undef NULL
-#include "mem-limits.h"
-#include "getpagesize.h"
+#define safe_bcopy(x, y, z) memmove (y, x, z)
+
+#endif	/* emacs.  */
 
 #define NIL ((POINTER) 0)
 
@@ -436,7 +444,7 @@ r_alloc_init ()
   __morecore = r_alloc_sbrk;
 
   virtual_break_value = break_value = (*real_morecore) (0);
-  if (break_value == NULL)
+  if (break_value == NIL)
     abort ();
 
   page_break_value = (POINTER) ROUNDUP (break_value);
