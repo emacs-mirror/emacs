@@ -435,8 +435,8 @@ make_process (name)
   XSETTYPE (val, Lisp_Process);
 
   p = XPROCESS (val);
-  XFASTINT (p->infd) = 0;
-  XFASTINT (p->outfd) = 0;
+  XSET (p->infd, Lisp_Int, -1);
+  XSET (p->outfd, Lisp_Int, -1);
   XFASTINT (p->pid) = 0;
   XFASTINT (p->tick) = 0;
   XFASTINT (p->update_tick) = 0;
@@ -557,7 +557,7 @@ nil, indicating the current buffer's process.")
       XPROCESS (proc)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       XSETINT (XPROCESS (proc)->tick, ++process_tick);
     }
-  else if (XFASTINT (XPROCESS (proc)->infd))
+  else if (XINT (XPROCESS (proc)->infd >= 0))
     {
       Fkill_process (proc, Qnil);
       /* Do this now, since remove_process will make sigchld_handler do nothing.  */
@@ -702,9 +702,9 @@ If the process has a filter, its buffer is not used for output.")
 {
   CHECK_PROCESS (proc, 0);
   if (EQ (filter, Qt))
-    FD_CLR (XPROCESS (proc)->infd, &input_wait_mask);
+    FD_CLR (XINT (XPROCESS (proc)->infd), &input_wait_mask);
   else if (EQ (XPROCESS (proc)->filter, Qt))
-    FD_SET (XPROCESS (proc)->infd, &input_wait_mask);
+    FD_SET (XINT (XPROCESS (proc)->infd), &input_wait_mask);
   XPROCESS (proc)->filter = filter;
   return filter;
 }
@@ -1166,8 +1166,8 @@ create_process (process, new_argv, current_dir)
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
   chan_process[inchannel] = process;
-  XFASTINT (XPROCESS (process)->infd) = inchannel;
-  XFASTINT (XPROCESS (process)->outfd) = outchannel;
+  XSET (XPROCESS (process)->infd, Lisp_Int, inchannel);
+  XSET (XPROCESS (process)->outfd, Lisp_Int, outchannel);
   /* Record the tty descriptor used in the subprocess.  */
   if (forkin < 0)
     XPROCESS (process)->subtty = Qnil;
@@ -1489,8 +1489,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Qnil;
   XPROCESS (proc)->pid = Qnil;
-  XFASTINT (XPROCESS (proc)->infd) = s;
-  XFASTINT (XPROCESS (proc)->outfd) = outch;
+  XSET (XPROCESS (proc)->infd, Lisp_Int, s);
+  XSET (XPROCESS (proc)->outfd, Lisp_Int, outch);
   XPROCESS (proc)->status = Qrun;
   FD_SET (inch, &input_wait_mask);
 
@@ -1505,10 +1505,10 @@ deactivate_process (proc)
   register int inchannel, outchannel;
   register struct Lisp_Process *p = XPROCESS (proc);
 
-  inchannel = XFASTINT (p->infd);
-  outchannel = XFASTINT (p->outfd);
+  inchannel = XINT (p->infd);
+  outchannel = XINT (p->outfd);
 
-  if (inchannel)
+  if (inchannel >= 0)
     {
       /* Beware SIGCHLD hereabouts. */
       flush_pending_output (inchannel);
@@ -1522,12 +1522,12 @@ deactivate_process (proc)
       }
 #else
       close (inchannel);
-      if (outchannel && outchannel != inchannel)
+      if (outchannel >= 0 && outchannel != inchannel)
  	close (outchannel);
 #endif
 
-      XFASTINT (p->infd) = 0;
-      XFASTINT (p->outfd) = 0;
+      XSET (p->infd, Lisp_Int, -1);
+      XSET (p->outfd, Lisp_Int, -1);
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
     }
@@ -1546,11 +1546,11 @@ close_process_descs ()
       process = chan_process[i];
       if (!NILP (process))
 	{
-	  int in = XFASTINT (XPROCESS (process)->infd);
-	  int out = XFASTINT (XPROCESS (process)->outfd);
-	  if (in)
+	  int in = XINT (XPROCESS (process)->infd);
+	  int out = XINT (XPROCESS (process)->outfd);
+	  if (in >= 0)
 	    close (in);
-	  if (out && in != out)
+	  if (out >= 0 && in != out)
 	    close (out);
 	}
     }
@@ -1672,7 +1672,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   Lisp_Object proc;
   EMACS_TIME timeout, end_time, garbage;
   SELECT_TYPE Atemp;
-  int wait_channel = 0;
+  int wait_channel = -1;
   struct Lisp_Process *wait_proc = 0;
   int got_some_input = 0;
   Lisp_Object *wait_for_cell = 0;
@@ -1684,7 +1684,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   if (XTYPE (read_kbd) == Lisp_Process)
     {
       wait_proc = XPROCESS (read_kbd);
-      wait_channel = XFASTINT (wait_proc->infd);
+      wait_channel = XINT (wait_proc->infd);
       XFASTINT (read_kbd) = 0;
     }
 
@@ -1794,7 +1794,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	redisplay_preserve_echo_area ();
 
       if (XINT (read_kbd) && detect_input_pending ())
-	nfds = 0;
+	{
+	  nfds = 0;
+	  FD_ZERO (&Available);
+	}
       else
 	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
 
@@ -1895,8 +1898,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) || wait_for_cell)
 	do_pending_window_change ();
 
-      /* Check for data from a process or a command channel */
-      for (channel = FIRST_PROC_DESC; channel < MAXDESC; channel++)
+      /* Check for data from a process.  */
+      /* Really FIRST_PROC_DESC should be 0 on Unix,
+	 but this is safer in the short run.  */
+      for (channel = keyboard_descriptor == 0 ? FIRST_PROC_DESC : 0;
+	   channel < MAXDESC; channel++)
 	{
 	  if (FD_ISSET (channel, &Available))
 	    {
@@ -1907,7 +1913,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 waiting.  */
 	      if (wait_channel == channel)
 		{
-		  wait_channel = 0;
+		  wait_channel = -1;
 		  time_limit = -1;
 		  got_some_input = 1;
 		}
@@ -2205,7 +2211,7 @@ send_process (proc, buf, len)
 	if (this > 500)
 	  this = 500;
 	old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
-	rv = write (XFASTINT (XPROCESS (proc)->outfd), buf, this);
+	rv = write (XINT (XPROCESS (proc)->outfd), buf, this);
 	signal (SIGPIPE, old_sigpipe);
 	if (rv < 0)
 	  {
@@ -2331,7 +2337,7 @@ process_send_signal (process, signo, current_group, nomsg)
   if (!EQ (p->childp, Qt))
     error ("Process %s is not a subprocess",
 	   XSTRING (p->name)->data);
-  if (!XFASTINT (p->infd))
+  if (XINT (p->infd) < 0)
     error ("Process %s is not active",
 	   XSTRING (p->name)->data);
 
@@ -2353,17 +2359,17 @@ process_send_signal (process, signo, current_group, nomsg)
       switch (signo)
 	{
 	case SIGINT:
-	  tcgetattr (XFASTINT (p->infd), &t);
+	  tcgetattr (XINT (p->infd), &t);
 	  send_process (proc, &t.c_cc[VINTR], 1);
 	  return;
 
 	case SIGQUIT:
-	  tcgetattr (XFASTINT (p->infd), &t);
+	  tcgetattr (XINT (p->infd), &t);
   	  send_process (proc, &t.c_cc[VQUIT], 1);
   	  return;
 
   	case SIGTSTP:
-	  tcgetattr (XFASTINT (p->infd), &t);
+	  tcgetattr (XINT (p->infd), &t);
 #ifdef VSWTCH
   	  send_process (proc, &t.c_cc[VSWTCH], 1);
 #else
@@ -2384,16 +2390,16 @@ process_send_signal (process, signo, current_group, nomsg)
       switch (signo)
 	{
 	case SIGINT:
-	  ioctl (XFASTINT (p->infd), TIOCGETC, &c);
+	  ioctl (XINT (p->infd), TIOCGETC, &c);
 	  send_process (proc, &c.t_intrc, 1);
 	  return;
 	case SIGQUIT:
-	  ioctl (XFASTINT (p->infd), TIOCGETC, &c);
+	  ioctl (XINT (p->infd), TIOCGETC, &c);
 	  send_process (proc, &c.t_quitc, 1);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
-	  ioctl (XFASTINT (p->infd), TIOCGLTC, &lc);
+	  ioctl (XINT (p->infd), TIOCGLTC, &lc);
 	  send_process (proc, &lc.t_suspc, 1);
 	  return;
 #endif /* ! defined (SIGTSTP) */
@@ -2408,16 +2414,16 @@ process_send_signal (process, signo, current_group, nomsg)
       switch (signo)
 	{
 	case SIGINT:
-	  ioctl (XFASTINT (p->infd), TCGETA, &t);
+	  ioctl (XINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VINTR], 1);
 	  return;
 	case SIGQUIT:
-	  ioctl (XFASTINT (p->infd), TCGETA, &t);
+	  ioctl (XINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VQUIT], 1);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
-	  ioctl (XFASTINT (p->infd), TCGETA, &t);
+	  ioctl (XINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VSWTCH], 1);
 	  return;
 #endif /* ! defined (SIGTSTP) */
@@ -2445,7 +2451,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	if (!NILP (p->subtty))
 	  err = ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
 	else
-	  err = ioctl (XFASTINT (p->infd), TIOCGPGRP, &gid);
+	  err = ioctl (XINT (p->infd), TIOCGPGRP, &gid);
 
 #ifdef pfa
 	if (err == -1)
@@ -2492,7 +2498,7 @@ process_send_signal (process, signo, current_group, nomsg)
       sys$forcex (&(XFASTINT (p->pid)), 0, 1);
       whoosh:
 #endif
-      flush_pending_output (XFASTINT (p->infd));
+      flush_pending_output (XINT (p->infd));
       break;
     }
 
@@ -2508,7 +2514,7 @@ process_send_signal (process, signo, current_group, nomsg)
   /* gid may be a pid, or minus a pgrp's number */
 #ifdef TIOCSIGSEND
   if (!NILP (current_group))
-    ioctl (XFASTINT (p->infd), TIOCSIGSEND, signo);
+    ioctl (XINT (p->infd), TIOCSIGSEND, signo);
   else
     {
       gid = - XFASTINT (p->pid);
@@ -2618,7 +2624,7 @@ nil, indicating the current buffer's process.")
 #ifdef DID_REMOTE
   {
     char buf[1];
-    write (XFASTINT (XPROCESS (proc)->outfd), buf, 0);
+    write (XINT (XPROCESS (proc)->outfd), buf, 0);
   }
 #else /* did not do TOICREMOTE */
 #ifdef VMS
@@ -2628,8 +2634,8 @@ nil, indicating the current buffer's process.")
     send_process (proc, "\004", 1);
   else
     {
-      close (XPROCESS (proc)->outfd);
-      XFASTINT (XPROCESS (proc)->outfd) = open (NULL_DEVICE, O_WRONLY);
+      close (XINT (XPROCESS (proc)->outfd));
+      XSET (XPROCESS (proc)->outfd, Lisp_Int, open (NULL_DEVICE, O_WRONLY));
     }
 #endif /* VMS */
 #endif /* did not do TOICREMOTE */
@@ -2653,7 +2659,7 @@ kill_buffer_processes (buffer)
 	{
 	  if (NETCONN_P (proc))
 	    deactivate_process (proc);
-	  else if (XFASTINT (XPROCESS (proc)->infd))
+	  else if (XINT (XPROCESS (proc)->infd) >= 0)
 	    process_send_signal (proc, SIGHUP, Qnil, 1);
 	}
     }
@@ -2768,8 +2774,8 @@ sigchld_handler (signo)
 	  
 	  /* If process has terminated, stop waiting for its output.  */
 	  if (WIFSIGNALED (w) || WIFEXITED (w))
-	    if (XFASTINT (p->infd))
-	      FD_CLR (XFASTINT (p->infd), &input_wait_mask);
+	    if (XINT (p->infd) >= 0)
+	      FD_CLR (XINT (p->infd), &input_wait_mask);
 
 	  /* Tell wait_reading_process_input that it needs to wake up and
 	     look around.  */
@@ -2875,9 +2881,9 @@ status_notify ()
 	  XSETINT (p->update_tick, XINT (p->tick));
 
 	  /* If process is still active, read any output that remains.  */
-	  if (XFASTINT (p->infd))
+	  if (XINT (p->infd) >= 0)
 	    while (! EQ (p->filter, Qt)
-		   && read_process_output (proc, XFASTINT (p->infd)) > 0);
+		   && read_process_output (proc, XINT (p->infd)) > 0);
 
 	  buffer = p->buffer;
 
