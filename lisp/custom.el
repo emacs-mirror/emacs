@@ -408,7 +408,11 @@ the default value for the SYMBOL."
 		 (value (nth 1 entry))
 		 (now (nth 2 entry))
 		 (requests (nth 3 entry))
-		 (set (or (get symbol 'custom-set) 'custom-set-default)))
+		 set)
+	    (when requests
+	      (put symbol 'custom-requests requests)
+	      (mapcar 'require requests))
+	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
 	    (put symbol 'saved-value (list value))
 	    (cond (now 
 		   ;; Rogue variable, set it now.
@@ -417,9 +421,6 @@ the default value for the SYMBOL."
 		  ((default-boundp symbol)
 		   ;; Something already set this, overwrite it.
 		   (funcall set symbol (eval value))))
-	    (when requests
-	      (put symbol 'custom-requests requests)
-	      (mapcar 'require requests))
 	    (setq args (cdr args)))
 	;; Old format, a plist of SYMBOL VALUE pairs.
 	(message "Warning: old format `custom-set-variables'")
