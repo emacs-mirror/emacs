@@ -1968,7 +1968,8 @@ If this is a session registry buffer then just bury it."
 			  olist))
 	    (while (and olist
 			(or (null (car olist))
-			    (overlay-get (car olist) 'invisible)))
+			    (and (overlayp (car olist))
+				 (overlay-get (car olist) 'invisible))))
 	      (setq olist (cdr olist)))
 	    (setq result (car olist)))))
     (if result
