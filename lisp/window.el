@@ -456,6 +456,11 @@ header-line."
 	  ;; (`count-screen-lines' always works on the current buffer).
 	  (with-current-buffer buf
 	    (+ (count-screen-lines)
+	       ;; If the buffer is empty, (count-screen-lines) is
+	       ;; zero.  But, even in that case, we need one text line
+	       ;; for cursor.
+	       (if (= (point-min) (point-max))
+		   1 0)
 	       ;; For non-minibuffers, count the mode-line, if any
 	       (if (and (not (window-minibuffer-p window))
 			mode-line-format)
@@ -495,11 +500,13 @@ header-line."
 			 (1- (point))
 		       (point))))))
 	(set-window-vscroll window 0)
+	(prog1
+	 (list desired-height max-height)
 	(while (and (< desired-height max-height)
 		    (= desired-height (window-height window))
 		    (not (pos-visible-in-window-p end window t)))
 	  (enlarge-window 1)
-	  (setq desired-height (1+ desired-height)))))))
+	  (setq desired-height (1+ desired-height))))))))
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
