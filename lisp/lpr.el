@@ -76,8 +76,8 @@ See `lpr-command'."
   :type '(repeat (string :tag "Argument"))
   :group 'lpr)
 
-(defcustom lpr-add-switches (eq system-type 'berkeley-unix)
-  "*Non-nil means construct -T and -J options for the printer program.
+(defcustom lpr-add-switches (memq system-type '(berkeley-unix gnu/linux))
+  "*Non-nil means construct `-T' and `-J' options for the printer program.
 These are made assuming that the program is `lpr';
 if you are using some other incompatible printer program,
 this variable should be nil."
