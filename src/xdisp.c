@@ -1186,10 +1186,12 @@ redisplay_window (window, just_this_one)
 	    }
 	  /* If we are highlighting the region,
 	     then we just changed the region, so redisplay to show it.  */
-	  cancel_my_columns (XWINDOW (window));
 	  if (!NILP (Vtransient_mark_mode)
 	      && !NILP (current_buffer->mark_active))
-	    try_window (window, startp);
+	    {
+	      cancel_my_columns (XWINDOW (window));
+	      try_window (window, startp);
+	    }
 	}
       goto done;
     }
