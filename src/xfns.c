@@ -1300,7 +1300,6 @@ x_set_mouse_color (f, arg, oldval)
     hourglass_cursor = XCreateFontCursor (dpy, XC_watch);
   x_check_errors (dpy, "bad hourglass pointer cursor: %s");
 
-  x_check_errors (dpy, "bad nontext pointer cursor: %s");
   if (!NILP (Vx_mode_pointer_shape))
     {
       CHECK_NUMBER (Vx_mode_pointer_shape);
@@ -4416,11 +4415,6 @@ the excessive values are ignored.  */)
 
 static struct image_type *image_types;
 
-/* The symbol `image' which is the car of the lists used to represent
-   images in Lisp.  */
-
-extern Lisp_Object Qimage;
-
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
 Lisp_Object Qxbm;
@@ -4500,7 +4494,7 @@ valid_image_p (object)
 {
   int valid_p = 0;
 
-  if (CONSP (object) && EQ (XCAR (object), Qimage))
+  if (IMAGEP (object))
     {
       Lisp_Object tem;
 
@@ -4602,7 +4596,7 @@ parse_image_spec (spec, keywords, nkeywords, type)
   int i;
   Lisp_Object plist;
 
-  if (!CONSP (spec) || !EQ (XCAR (spec), Qimage))
+  if (!IMAGEP (spec))
     return 0;
 
   plist = XCDR (spec);
