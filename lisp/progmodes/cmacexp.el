@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.17 1994/09/01 10:35:52 pot Exp pot $
+;; Version: $Id: cmacexp.el,v 1.17 1994/09/01 11:05:40 pot Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -90,7 +90,7 @@
 (defvar c-macro-shrink-window-flag nil
   "*Non-nil means shrink the *Macroexpansion* window to fit its contents.")
 
-(defvar c-macro-prompt-flag t
+(defvar c-macro-prompt-flag nil
   "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments.")
 
 (defvar c-macro-preprocessor "/lib/cpp -C"
