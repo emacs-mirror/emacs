@@ -56,9 +56,7 @@ typedef unsigned long SIZE;
    overlap.  */
 extern void safe_bcopy ();
 
-#include "getpagesize.h"
-
-#else	/* Not emacs.  */
+#else /* not emacs */
 
 #include <stddef.h>
 
@@ -70,8 +68,11 @@ typedef void *POINTER;
 #include <string.h>
 
 #define safe_bcopy(x, y, z) memmove (y, x, z)
+#define bzero(x, len) memset (x, 0, len)
 
-#endif	/* emacs.  */
+#endif	/* not emacs */
+
+#include "getpagesize.h"
 
 #define NIL ((POINTER) 0)
 
@@ -691,14 +692,14 @@ free_bloc (bloc)
   /* Update the records of which blocs are in HEAP.  */
   if (heap->first_bloc == bloc)
     {
-      if (bloc->next->heap == heap)
+      if (bloc->next != 0 && bloc->next->heap == heap)
 	heap->first_bloc = bloc->next;
       else
 	heap->first_bloc = heap->last_bloc = NIL_BLOC;
     }
   if (heap->last_bloc == bloc)
     {
-      if (bloc->prev->heap == heap)
+      if (bloc->prev != 0 && bloc->prev->heap == heap)
 	heap->last_bloc = bloc->prev;
       else
 	heap->first_bloc = heap->last_bloc = NIL_BLOC;
@@ -900,7 +901,9 @@ r_alloc_free (ptr)
   free_bloc (dead_bloc);
   *ptr = 0;
 
+#ifdef emacs
   refill_memory_reserve ();
+#endif
 }
 
 /* Given a pointer at address PTR to relocatable data, resize it to SIZE.
