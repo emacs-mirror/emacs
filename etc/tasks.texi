@@ -15,7 +15,7 @@
 @end titlepage
 
 @ifinfo
-@node Top, Preface, (dir), (dir)
+@node Top, Intro, (dir), (dir)
 @top GNU Task List
 
 This file is updated automatically from @file{tasks.texi}, which was
