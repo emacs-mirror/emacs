@@ -515,7 +515,11 @@ Returns nil if line starts inside a string, t if in a comment."
 		 ;; previous line of the statement.
 		 (progn
 		   (c-backward-to-start-of-continued-exp containing-sexp)
-		   (+ c-continued-statement-offset (current-column)))
+		   (+ c-continued-statement-offset (current-column)
+                      (if (save-excursion (goto-char indent-point)
+					  (skip-chars-forward " \t")
+					  (eq (following-char) ?{))
+			  c-continued-brace-offset 0)))
 	       ;; This line starts a new statement.
 	       ;; Position following last unclosed open.
 	       (goto-char containing-sexp)
