@@ -2029,7 +2029,7 @@ Typing SPC flushes the help buffer."
 ;;; 
 ;;; (defvar shell-mode-map '())
 ;;; (cond ((not shell-mode-map)
-;;;        (setq shell-mode-map (full-copy-sparse-keymap comint-mode-map))
+;;;        (setq shell-mode-map (copy-keymap comint-mode-map))
 ;;;        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
 ;;;        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
 ;;;        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
