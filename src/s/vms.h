@@ -109,6 +109,11 @@ Boston, MA 02111-1307, USA.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
+/* In olden days, VMS filenames did not support hyphen (i.e., the "-"
+   character).  You can #undef this in vmsX-Y.h for newer versions.  */
+
+#define NO_HYPHENS_IN_FILENAMES
+
 /* Do you have the sharable library bug?  If you link with a sharable
    library that contains psects with the NOSHR attribute and also refer to
    those psects in your program, the linker give you a private version of
