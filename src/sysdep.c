@@ -643,8 +643,11 @@ sys_subshell ()
   int st;
   char oldwd[MAXPATHLEN+1]; /* Fixed length is safe on MSDOS.  */
 #endif
-  int pid = fork ();
+  int pid;
   struct save_signal saved_handlers[5];
+  Lisp_Object dir;
+  unsigned char *str = 0;
+  int len;
 
   saved_handlers[0].code = SIGINT;
   saved_handlers[1].code = SIGQUIT;
@@ -655,6 +658,27 @@ sys_subshell ()
 #else
   saved_handlers[3].code = 0;
 #endif
+
+  /* Mentioning current_buffer->buffer would mean including buffer.h,
+     which somehow wedges the hp compiler.  So instead...  */
+
+  dir = intern ("default-directory");
+  /* Can't use NILP */
+  if (XFASTINT (Fboundp (dir)) == XFASTINT (Qnil))
+    goto xyzzy;
+  dir = Fsymbol_value (dir);
+  if (XTYPE (dir) != Lisp_String)
+    goto xyzzy;
+
+  dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
+  str = (unsigned char *) alloca (XSTRING (dir)->size + 2);
+  len = XSTRING (dir)->size;
+  bcopy (XSTRING (dir)->data, str, len);
+  if (str[len - 1] != '/') str[len++] = '/';
+  str[len] = 0;
+ xyzzy:
+
+  pid = vfork ();
 
   if (pid == -1)
     error ("Can't spawn subshell");
@@ -670,30 +694,9 @@ sys_subshell ()
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      {
-	Lisp_Object dir;
-	unsigned char *str;
-	int len;
-
-	/* mentioning current_buffer->buffer would mean including buffer.h,
-	   which somehow wedges the hp compiler.  So instead... */
-
-	dir = intern ("default-directory");
-	/* Can't use NILP */
-	if (XFASTINT (Fboundp (dir)) == XFASTINT (Qnil))
-	  goto xyzzy;
-	dir = Fsymbol_value (dir);
-	if (XTYPE (dir) != Lisp_String)
-	  goto xyzzy;
-
-	str = (unsigned char *) alloca (XSTRING (dir)->size + 2);
-	len = XSTRING (dir)->size;
-	bcopy (XSTRING (dir)->data, str, len);
-	if (str[len - 1] != '/') str[len++] = '/';
-	str[len] = 0;
+      if (str)
 	chdir (str);
-      }
-    xyzzy:
+
 #ifdef subprocesses
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 #endif
@@ -2033,7 +2036,17 @@ init_system_name ()
   if (initialized)
 #endif /* not CANNOT_DUMP */
     {
-      struct hostent *hp = gethostbyname (hostname);
+      struct hostent *hp;
+      int count;
+      for (count = 0; count < 10; count++)
+	{
+	  hp = gethostbyname (hostname);
+#ifdef TRY_AGAIN
+	  if (! (hp == 0 && h_errno == TRY_AGAIN))
+#endif
+	    break;
+	  Fsleep_for (make_number (1), Qnil);
+	}
       if (hp)
 	{
 	  char *fqdn = hp->h_name;
