@@ -1,13 +1,18 @@
+2004-11-04  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (set-auto-mode): Don't get error after setting
+	-*-mode-*-.
+
 2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-read-dir-and-switches): Call read-directory-name
 	if a dialog will be used, read-file-name otherwise.
-	
+
 2004-11-04  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/table.el (table group): Add :version.
 
-	* textmodes/ispell.el (ispell-word): 
+	* textmodes/ispell.el (ispell-word):
 	Don't alter args; set them only thru `interactive' spec.
 
 	* textmodes/flyspell.el (flyspell-word):
@@ -18,11 +23,11 @@
 	* net/browse-url.el (browse-url-maybe-new-window):
 	Use called-interactively-p.
 
-	* mail/supercite.el (sc-cite-region): 
+	* mail/supercite.el (sc-cite-region):
 	Don't use interactive-p.  Add arg INTERACTIVE.
 	(sc-version): Don't use interactive-p.  Rename arg to MESSAGE.
 
-	* international/mule-cmds.el (set-input-method, toggle-input-method): 
+	* international/mule-cmds.el (set-input-method, toggle-input-method):
 	Don't use interactive-p.  Add arg INTERACTIVE.
 
 	* eshell/esh-mode.el (eshell-show-maximum-output):
