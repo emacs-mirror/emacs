@@ -64,6 +64,8 @@ Boston, MA 02111-1307, USA.  */
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
+#define minmax(floor, val, ceil) \
+	((val) < (floor) ? (floor) : (val) > (ceil) ? (ceil) : (val))
 
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.
@@ -1357,8 +1359,7 @@ update_frame (f, force, inhibit_hairy_id)
 	}
       else
 	cursor_to (FRAME_CURSOR_Y (f), 
-		   max (min (FRAME_CURSOR_X (f),
-			     FRAME_WINDOW_WIDTH (f) - 1), 0));
+		   minmax (0, FRAME_CURSOR_X (f), FRAME_WINDOW_WIDTH (f) - 1));
     }
 
   update_end (f);
