@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #endif
 
-#include "emacssignal.h"
+#include "syssignal.h"
 
 #ifdef LISP_FLOAT_TYPE
 #include <math.h>
