@@ -50,7 +50,7 @@
 (set-language-info-alist
  "Hebrew" '((charset . iso-8859-8)
 	    (coding-priority hebrew-iso-8bit)
-	    (coding-system hebrew-iso-8bit)
+	    (coding-system hebrew-iso-8bit windows-1255 cp862)
 	    (nonascii-translation . iso-8859-8)
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
@@ -73,7 +73,7 @@ Right-to-left writing is not yet supported.")))
 (define-coding-system-alias 'cp1255 'windows-1255)
 
 (define-coding-system 'cp862
-  "DOS codepage 862 (Portuguese)"
+  "DOS codepage 862 (Hebrew)"
   :coding-type 'charset
   :mnemonic ?D
   :charset-list '(cp862)
