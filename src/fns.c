@@ -4974,6 +4974,8 @@ integers, including negative integers.")
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
   "Return MD5 message digest of OBJECT, a buffer or string.\n\
+A message digest is a cryptographic checksum of a document,\n\
+and the algorithm to calculate it is defined in RFC 1321.\n\
 \n\
 The two optional arguments START and END are character positions\n\
 specifying for which part of OBJECT the message digest should be computed.\n\
