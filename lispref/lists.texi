@@ -733,6 +733,20 @@ The function @code{delq} offers a way to perform this operation
 destructively.  See @ref{Sets And Lists}.
 @end defun
 
+@defun number-sequence from to &optional separation
+This returns a list of numbers starting with @var{from}
+and incrementing by @var{separation} (or by 1 if @var{separation}
+is @code{nil} or omitted), and ending at or just before @var{to}.
+For example,
+
+@example
+(number-sequence 4 9)
+     @result{} (4 5 6 7 8 9)
+(number-sequence 1.5 6 2)
+     @result{} (1.5 3.5 5.5)
+@end example
+@end defun
+
 @node Modifying Lists
 @section Modifying Existing List Structure
 @cindex destructive list operations
