@@ -1595,12 +1595,13 @@ Value is the new frame created."
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
   (dolist (face (face-list))
-    (face-spec-set face (face-user-default-spec face) frame)
-    (internal-merge-in-global-face face frame)
-    (when (and (memq window-system '(x w32 mac))
-	       (or (not (boundp 'inhibit-default-face-x-resources))
-		   (not (eq face 'default))))
-      (make-face-x-resource-internal face frame)))
+    (when (not (equal face 'default))
+      (face-spec-set face (face-user-default-spec face) frame)
+      (internal-merge-in-global-face face frame)
+      (when (and (memq window-system '(x w32 mac))
+		 (or (not (boundp 'inhibit-default-face-x-resources))
+		     (not (eq face 'default))))
+	(make-face-x-resource-internal face frame))))
 
   ;; Initialize attributes from frame parameters.
   (let ((params '((foreground-color default :foreground)
@@ -1767,7 +1768,8 @@ created."
   :group 'basic-faces)
 
 
-(defface minibuffer-prompt '((t ()))
+(defface minibuffer-prompt '((((background dark)) (:foreground "cyan"))
+			     (t (:foreground "dark blue")))
   "Face for minibuffer prompts."
   :version "21.3"
   :group 'basic-faces)
