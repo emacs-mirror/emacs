@@ -3,6 +3,20 @@
 	* isearch.el (isearch-resume-enabled): New variable.
 	(isearch-done): Use that variable.
 
+2001-12-01  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-button-click): Don't move point permanently:
+	Avoid mouse-set-point--instead select the window,
+	then do save-excursion, then move point.
+	Specify the buffer for get-char-property.
+	Don't use `@' in interactive.
+	
+	* indent.el (indent-line-function):
+	Default is indent-to-left-margin again.
+
+	* replace.el (query-replace-read-args): Display message
+	if FROM contains `\n' or `\t'.
+
 2001-12-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.el (tab-to-tab-stop): Use delete-horizontal-space.

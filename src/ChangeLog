@@ -1,3 +1,10 @@
+2001-12-02  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (menu_highlight_callback): Use `help' field as Lisp_Object.
+	(single_submenu, xmenu_show): Set `help' field as Lisp_Object.
+
+	* fileio.c (read_non_regular): Delete Fsignal call.
+
 2001-12-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lisp.h (run_hook_list_with_args): Undo last change.
