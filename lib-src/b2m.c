@@ -36,8 +36,9 @@ int header = FALSE, printing;
 long ltoday;
 char from[256], labels[256], data[256], *p, *today;
 
-main(argc, argv)
-char **argv;
+main (argc, argv)
+     int argc;
+     char **argv;
 {
   ltoday = time(0);
   today = ctime(&ltoday);
@@ -54,8 +55,13 @@ char **argv;
     puts(data);
 
   while (gets(data)) {
+
+#if 0
+    /* What was this for?  Does somebody have something against blank
+       lines?  */
     if (!strcmp(data, ""))
       exit(0);
+#endif
 
     if (!strcmp(data, "*** EOOH ***") && !printing) {
       printing = header = TRUE;
