@@ -1,3 +1,16 @@
+2003-10-29  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_face): Create a fallback fontset on demand
+	(make_fontset): Don't create a fallback fontset here.
+	(free_face_fontset): Free a fallback fontset (if any) too.
+	(n_auto_fontsets): Delete this variable.
+	(auto_fontset_alist): New variable.
+	(new_fontset_from_font_name): Check auto_fontset_alist.
+	(dump_fontset) [FONTSET_DEBUG]: Fully re-written.
+	(Ffontset_list_all) [FONTSET_DEBUG]: New function.
+	(syms_of_fontset): Initialize and staticpro auto_fontset_alist.
+	Defsubr Sfontset_list_all.
+
 2003-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
