@@ -1843,6 +1843,10 @@ del_range_2 (from, from_byte, to, to_byte)
 			       from_byte_1,
 			       to + combined_after_bytes,
 			       to_byte + combined_after_bytes, 1);
+  if (combined_after_bytes)
+    /* COMBINED_AFTER_BYTES nonzero means that the above code moved
+       the gap.  We must move the gap again to a proper place.  */
+    move_gap_both (from, from_byte);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
@@ -1866,12 +1870,6 @@ del_range_2 (from, from_byte, to, to_byte)
 					from, from_byte);
     }
   record_delete (from - !!combined_after_bytes, deletion);
-
-  if (combined_after_bytes)
-    /* COMBINED_AFTER_BYTES nonzero means that the above record_delete
-       moved the gap by calling Fbuffer_substring.  We must move the
-       gap again to a proper place.  */
-    move_gap_both (from, from_byte);
   MODIFF++;
 
   /* Relocate point as if it were a marker.  */
