@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2003-02-01 09:26:25 gildea>
+;; Maintainer's Time-stamp: <2004-06-13 14:22:25 teirllm>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -32,7 +32,7 @@
 ;; See the top of `time-stamp.el' for another example.
 
 ;; To use time-stamping, add this line to your .emacs file:
-;;     (add-hook 'write-file-hooks 'time-stamp)
+;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
 ;; See the documentation for the functions `time-stamp'
@@ -242,7 +242,7 @@ of the time-stamped file itself.")
   "Update the time stamp string(s) in the buffer.
 A template in a file can be automatically updated with a new time stamp
 every time you save the file.  Add this line to your .emacs file:
-    (add-hook 'write-file-hooks 'time-stamp)
+    (add-hook 'before-save-hook 'time-stamp)
 Normally the template must appear in the first 8 lines of a file and
 look like one of the following:
       Time-stamp: <>
@@ -318,7 +318,6 @@ template."
       (setq start (time-stamp-once start search-limit ts-start ts-end
 				   ts-format format-lines end-lines))
       (setq ts-count (1- ts-count))))
-  ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
