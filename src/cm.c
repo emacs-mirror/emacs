@@ -137,9 +137,9 @@ void
 cmcheckmagic (tty)
      struct tty_output *tty;
 {
-  if (curX == FrameCols)
+  if (curX (tty) == FrameCols (tty))
     {
-      if (!MagicWrap || curY >= FrameRows - 1)
+      if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
 	abort ();
       if (TTY_TERMSCRIPT (tty))
 	putc ('\r', TTY_TERMSCRIPT (tty));
@@ -147,8 +147,8 @@ cmcheckmagic (tty)
       if (TTY_TERMSCRIPT (tty))
 	putc ('\n', TTY_TERMSCRIPT (tty));
       putc ('\n', TTY_OUTPUT (tty));
-      curX = 0;
-      curY++;
+      curX (tty) = 0;
+      curY (tty)++;
     }
 }
 
@@ -160,21 +160,21 @@ cmcheckmagic (tty)
  */
 
 void
-cmcostinit ()
+cmcostinit (struct tty_output *tty)
 {
     char *p;
 
 #define	COST(x,e)	(x ? (cost = 0, tputs (x, 1, e), cost) : BIG)
 #define CMCOST(x,e)	((x == 0) ? BIG : (p = tgoto(x, 0, 0), COST(p ,e)))
 
-    Wcm.cc_up =		COST (Wcm.cm_up, evalcost);
-    Wcm.cc_down =	COST (Wcm.cm_down, evalcost);
-    Wcm.cc_left =	COST (Wcm.cm_left, evalcost);
-    Wcm.cc_right =	COST (Wcm.cm_right, evalcost);
-    Wcm.cc_home =	COST (Wcm.cm_home, evalcost);
-    Wcm.cc_cr =		COST (Wcm.cm_cr, evalcost);
-    Wcm.cc_ll =		COST (Wcm.cm_ll, evalcost);
-    Wcm.cc_tab =	Wcm.cm_tabwidth ? COST (Wcm.cm_tab, evalcost) : BIG;
+    tty->Wcm->cc_up =	 COST (tty->Wcm->cm_up, evalcost);
+    tty->Wcm->cc_down =	 COST (tty->Wcm->cm_down, evalcost);
+    tty->Wcm->cc_left =	 COST (tty->Wcm->cm_left, evalcost);
+    tty->Wcm->cc_right = COST (tty->Wcm->cm_right, evalcost);
+    tty->Wcm->cc_home =	 COST (tty->Wcm->cm_home, evalcost);
+    tty->Wcm->cc_cr =	 COST (tty->Wcm->cm_cr, evalcost);
+    tty->Wcm->cc_ll =	 COST (tty->Wcm->cm_ll, evalcost);
+    tty->Wcm->cc_tab =	 tty->Wcm->cm_tabwidth ? COST (tty->Wcm->cm_tab, evalcost) : BIG;
 
     /*
      * These last three are actually minimum costs.  When (if) they are
@@ -185,9 +185,9 @@ cmcostinit ()
      * cursor motion seem to take straight numeric values.  --ACT)
      */
 
-    Wcm.cc_abs =  CMCOST (Wcm.cm_abs, evalcost);
-    Wcm.cc_habs = CMCOST (Wcm.cm_habs, evalcost);
-    Wcm.cc_vabs = CMCOST (Wcm.cm_vabs, evalcost);
+    tty->Wcm->cc_abs =  CMCOST (tty->Wcm->cm_abs, evalcost);
+    tty->Wcm->cc_habs = CMCOST (tty->Wcm->cm_habs, evalcost);
+    tty->Wcm->cc_vabs = CMCOST (tty->Wcm->cm_vabs, evalcost);
 
 #undef CMCOST
 #undef COST
@@ -217,16 +217,16 @@ calccost (struct tty_output *tty, int srcy, int srcx, int dsty, int dstx, int do
        don't believe the cursor position: give up here
        and force use of absolute positioning.  */
 
-    if (curX == Wcm.cm_cols)
+    if (curX (tty) == tty->Wcm->cm_cols)
       goto fail;
 
     totalcost = 0;
     if ((deltay = dsty - srcy) == 0)
 	goto x;
     if (deltay < 0)
-	p = Wcm.cm_up, c = Wcm.cc_up, deltay = -deltay;
+	p = tty->Wcm->cm_up, c = tty->Wcm->cc_up, deltay = -deltay;
     else
-	p = Wcm.cm_down, c = Wcm.cc_down;
+	p = tty->Wcm->cm_down, c = tty->Wcm->cc_down;
     if (c == BIG) {		/* caint get thar from here */
 	if (doit)
 	    printf ("OOPS");
@@ -240,11 +240,11 @@ x:
     if ((deltax = dstx - srcx) == 0)
 	goto done;
     if (deltax < 0) {
-	p = Wcm.cm_left, c = Wcm.cc_left, deltax = -deltax;
+	p = tty->Wcm->cm_left, c = tty->Wcm->cc_left, deltax = -deltax;
 	goto dodelta;		/* skip all the tab junk */
     }
     /* Tabs (the toughie) */
-    if (Wcm.cc_tab >= BIG || !Wcm.cm_usetabs)
+    if (tty->Wcm->cc_tab >= BIG || !tty->Wcm->cm_usetabs)
 	goto olddelta;		/* forget it! */
 
     /*
@@ -255,12 +255,12 @@ x:
      * we will put into tabx (for ntabs) and tab2x (for n2tabs)).
      */
 
-    ntabs = (deltax + srcx % Wcm.cm_tabwidth) / Wcm.cm_tabwidth;
+    ntabs = (deltax + srcx % tty->Wcm->cm_tabwidth) / tty->Wcm->cm_tabwidth;
     n2tabs = ntabs + 1;
-    tabx = (srcx / Wcm.cm_tabwidth + ntabs) * Wcm.cm_tabwidth;
-    tab2x = tabx + Wcm.cm_tabwidth;
+    tabx = (srcx / tty->Wcm->cm_tabwidth + ntabs) * tty->Wcm->cm_tabwidth;
+    tab2x = tabx + tty->Wcm->cm_tabwidth;
 
-    if (tab2x >= Wcm.cm_cols)	/* too far (past edge) */
+    if (tab2x >= tty->Wcm->cm_cols)	/* too far (past edge) */
 	n2tabs = 0;
 
     /*
@@ -269,11 +269,11 @@ x:
      */
 
 		   /* cost for ntabs     +    cost for right motion */
-    tabcost = ntabs ? ntabs * Wcm.cc_tab + (dstx - tabx) * Wcm.cc_right
+    tabcost = ntabs ? ntabs * tty->Wcm->cc_tab + (dstx - tabx) * tty->Wcm->cc_right
 		    : BIG;
 
 		   /* cost for n2tabs    +    cost for left motion */
-    c = n2tabs  ?    n2tabs * Wcm.cc_tab + (tab2x - dstx) * Wcm.cc_left
+    c = n2tabs  ?    n2tabs * tty->Wcm->cc_tab + (tab2x - dstx) * tty->Wcm->cc_left
 		: BIG;
 
     if (c < tabcost)		/* then cheaper to overshoot & back up */
@@ -286,11 +286,11 @@ x:
      * See if tabcost is less than just moving right
      */
 
-    if (tabcost < (deltax * Wcm.cc_right)) {
+    if (tabcost < (deltax * tty->Wcm->cc_right)) {
 	totalcost += tabcost;	/* use the tabs */
 	if (doit)
 	    while (--ntabs >= 0)
-              emacs_tputs (tty, Wcm.cm_tab, 1, cmputc);
+              emacs_tputs (tty, tty->Wcm->cm_tab, 1, cmputc);
 	srcx = tabx;
     }
 
@@ -303,9 +303,9 @@ newdelta:
 	goto done;
 olddelta:
     if (deltax > 0)
-	p = Wcm.cm_right, c = Wcm.cc_right;
+	p = tty->Wcm->cm_right, c = tty->Wcm->cc_right;
     else
-	p = Wcm.cm_left, c = Wcm.cc_left, deltax = -deltax;
+	p = tty->Wcm->cm_left, c = tty->Wcm->cc_left, deltax = -deltax;
 
 dodelta:
     if (c == BIG) {		/* caint get thar from here */
@@ -349,47 +349,47 @@ cmgoto (tty, row, col)
            *dcm;
 
   /* First the degenerate case */
-  if (row == curY && col == curX) /* already there */
+    if (row == curY (tty) && col == curX (tty)) /* already there */
     return;
 
-  if (curY >= 0 && curX >= 0)
+    if (curY (tty) >= 0 && curX (tty) >= 0)
     {
       /* We may have quick ways to go to the upper-left, bottom-left,
        * start-of-line, or start-of-next-line.  Or it might be best to
        * start where we are.  Examine the options, and pick the cheapest.
        */
 
-      relcost = calccost (tty, curY, curX, row, col, 0);
+      relcost = calccost (tty, curY (tty), curX (tty), row, col, 0);
       use = USEREL;
-      if ((homecost = Wcm.cc_home) < BIG)
+      if ((homecost = tty->Wcm->cc_home) < BIG)
           homecost += calccost (tty, 0, 0, row, col, 0);
       if (homecost < relcost)
           relcost = homecost, use = USEHOME;
-      if ((llcost = Wcm.cc_ll) < BIG)
-          llcost += calccost (tty, Wcm.cm_rows - 1, 0, row, col, 0);
+      if ((llcost = tty->Wcm->cc_ll) < BIG)
+          llcost += calccost (tty, tty->Wcm->cm_rows - 1, 0, row, col, 0);
       if (llcost < relcost)
           relcost = llcost, use = USELL;
-      if ((crcost = Wcm.cc_cr) < BIG) {
-	  if (Wcm.cm_autolf)
-	      if (curY + 1 >= Wcm.cm_rows)
-		  crcost = BIG;
+      if ((crcost = tty->Wcm->cc_cr) < BIG) {
+	  if (tty->Wcm->cm_autolf)
+            if (curY (tty) + 1 >= tty->Wcm->cm_rows)
+                crcost = BIG;
 	      else
-                  crcost += calccost (tty, curY + 1, 0, row, col, 0);
+                crcost += calccost (tty, curY (tty) + 1, 0, row, col, 0);
 	  else
-	      crcost += calccost (tty, curY, 0, row, col, 0);
+            crcost += calccost (tty, curY (tty), 0, row, col, 0);
       }
       if (crcost < relcost)
 	  relcost = crcost, use = USECR;
-      directcost = Wcm.cc_abs, dcm = Wcm.cm_abs;
-      if (row == curY && Wcm.cc_habs < BIG)
-	  directcost = Wcm.cc_habs, dcm = Wcm.cm_habs;
-      else if (col == curX && Wcm.cc_vabs < BIG)
-	  directcost = Wcm.cc_vabs, dcm = Wcm.cm_vabs;
+      directcost = tty->Wcm->cc_abs, dcm = tty->Wcm->cm_abs;
+      if (row == curY (tty) && tty->Wcm->cc_habs < BIG)
+	  directcost = tty->Wcm->cc_habs, dcm = tty->Wcm->cm_habs;
+      else if (col == curX (tty) && tty->Wcm->cc_vabs < BIG)
+	  directcost = tty->Wcm->cc_vabs, dcm = tty->Wcm->cm_vabs;
     }
   else
     {
       directcost = 0, relcost = 100000;
-      dcm = Wcm.cm_abs;
+      dcm = tty->Wcm->cm_abs;
     }
 
   /*
@@ -400,13 +400,14 @@ cmgoto (tty, row, col)
     {
       /* compute REAL direct cost */
       cost = 0;
-      p = dcm == Wcm.cm_habs ? tgoto (dcm, row, col) :
-			       tgoto (dcm, col, row);
+      p = dcm == tty->Wcm->cm_habs
+        ? tgoto (dcm, row, col)
+        : tgoto (dcm, col, row);
       emacs_tputs (tty, p, 1, evalcost);
       if (cost <= relcost)
 	{	/* really is cheaper */
 	  emacs_tputs (tty, p, 1, cmputc);
-	  curY = row, curX = col;
+	  curY (tty) = row, curX (tty) = col;
 	  return;
 	}
     }
@@ -414,25 +415,25 @@ cmgoto (tty, row, col)
   switch (use)
     {
     case USEHOME:
-      emacs_tputs (tty, Wcm.cm_home, 1, cmputc);
-      curY = 0, curX = 0;
+      emacs_tputs (tty, tty->Wcm->cm_home, 1, cmputc);
+      curY (tty) = 0, curX (tty) = 0;
       break;
 
     case USELL:
-      emacs_tputs (tty, Wcm.cm_ll, 1, cmputc);
-      curY = Wcm.cm_rows - 1, curX = 0;
+      emacs_tputs (tty, tty->Wcm->cm_ll, 1, cmputc);
+      curY (tty) = tty->Wcm->cm_rows - 1, curX (tty) = 0;
       break;
 
     case USECR:
-      emacs_tputs (tty, Wcm.cm_cr, 1, cmputc);
-      if (Wcm.cm_autolf)
-	curY++;
-      curX = 0;
+      emacs_tputs (tty, tty->Wcm->cm_cr, 1, cmputc);
+      if (tty->Wcm->cm_autolf)
+	curY (tty)++;
+      curX (tty) = 0;
       break;
     }
 
-  (void) calccost (tty, curY, curX, row, col, 1);
-  curY = row, curX = col;
+  (void) calccost (tty, curY (tty), curX (tty), row, col, 1);
+  curY (tty) = row, curX (tty) = col;
 }
 
 /* Clear out all terminal info.
@@ -440,9 +441,9 @@ cmgoto (tty, row, col)
  */
 
 void
-Wcm_clear ()
+Wcm_clear (struct tty_output *tty)
 {
-  bzero (&Wcm, sizeof Wcm);
+  bzero (tty->Wcm, sizeof (struct cm));
   UP = 0;
   BC = 0;
 }
@@ -455,21 +456,21 @@ Wcm_clear ()
  */
 
 int
-Wcm_init ()
+Wcm_init (struct tty_output *tty)
 {
 #if 0
-  if (Wcm.cm_abs && !Wcm.cm_ds)
+  if (tty->Wcm->cm_abs && !tty->Wcm->cm_ds)
     return 0;
 #endif
-  if (Wcm.cm_abs)
+  if (tty->Wcm->cm_abs)
     return 0;
   /* Require up and left, and, if no absolute, down and right */
-  if (!Wcm.cm_up || !Wcm.cm_left)
+  if (!tty->Wcm->cm_up || !tty->Wcm->cm_left)
     return - 1;
-  if (!Wcm.cm_abs && (!Wcm.cm_down || !Wcm.cm_right))
+  if (!tty->Wcm->cm_abs && (!tty->Wcm->cm_down || !tty->Wcm->cm_right))
     return - 1;
   /* Check that we know the size of the screen.... */
-  if (Wcm.cm_rows <= 0 || Wcm.cm_cols <= 0)
+  if (tty->Wcm->cm_rows <= 0 || tty->Wcm->cm_cols <= 0)
     return - 2;
   return 0;
 }

@@ -98,66 +98,65 @@ struct cm
     int cc_vabs;
   };
 
-extern struct cm Wcm;		/* Terminal capabilities */
 extern char PC;			/* Pad character */
 
 /* Shorthand */
 #ifndef NoCMShortHand
-#define curY		Wcm.cm_curY
-#define curX		Wcm.cm_curX
-#define Up		Wcm.cm_up
-#define Down		Wcm.cm_down
-#define Left		Wcm.cm_left
-#define Right		Wcm.cm_right
-#define Tab		Wcm.cm_tab
-#define BackTab		Wcm.cm_backtab
-#define TabWidth	Wcm.cm_tabwidth
-#define CR		Wcm.cm_cr
-#define Home		Wcm.cm_home
-#define LastLine	Wcm.cm_ll
-#define AbsPosition	Wcm.cm_abs
-#define ColPosition	Wcm.cm_habs
-#define RowPosition	Wcm.cm_vabs
-#define MultiUp		Wcm.cm_multiup
-#define MultiDown	Wcm.cm_multidown
-#define MultiLeft	Wcm.cm_multileft
-#define MultiRight	Wcm.cm_multiright
-#define AutoWrap	Wcm.cm_autowrap
-#define MagicWrap	Wcm.cm_magicwrap
-#define UseTabs		Wcm.cm_usetabs
-#define FrameRows	Wcm.cm_rows
-#define FrameCols	Wcm.cm_cols
+#define curY(tty)		(tty)->Wcm->cm_curY
+#define curX(tty)		(tty)->Wcm->cm_curX
+#define Up(tty)			(tty)->Wcm->cm_up
+#define Down(tty)		(tty)->Wcm->cm_down
+#define Left(tty)		(tty)->Wcm->cm_left
+#define Right(tty)		(tty)->Wcm->cm_right
+#define Tab(tty)		(tty)->Wcm->cm_tab
+#define BackTab(tty)		(tty)->Wcm->cm_backtab
+#define TabWidth(tty)		(tty)->Wcm->cm_tabwidth
+#define CR(tty)			(tty)->Wcm->cm_cr
+#define Home(tty)		(tty)->Wcm->cm_home
+#define LastLine(tty)		(tty)->Wcm->cm_ll
+#define AbsPosition(tty)	(tty)->Wcm->cm_abs
+#define ColPosition(tty)	(tty)->Wcm->cm_habs
+#define RowPosition(tty)	(tty)->Wcm->cm_vabs
+#define MultiUp(tty)		(tty)->Wcm->cm_multiup
+#define MultiDown(tty)		(tty)->Wcm->cm_multidown
+#define MultiLeft(tty)		(tty)->Wcm->cm_multileft
+#define MultiRight(tty)		(tty)->Wcm->cm_multiright
+#define AutoWrap(tty)		(tty)->Wcm->cm_autowrap
+#define MagicWrap(tty)		(tty)->Wcm->cm_magicwrap
+#define UseTabs(tty)		(tty)->Wcm->cm_usetabs
+#define FrameRows(tty)		(tty)->Wcm->cm_rows
+#define FrameCols(tty)		(tty)->Wcm->cm_cols
 
-#define UpCost		Wcm.cc_up
-#define DownCost	Wcm.cc_down
-#define LeftCost	Wcm.cc_left
-#define RightCost	Wcm.cc_right
-#define HomeCost	Wcm.cc_home
-#define CRCost		Wcm.cc_cr
-#define LastLineCost	Wcm.cc_ll
-#define TabCost		Wcm.cc_tab
-#define BackTabCost	Wcm.cc_backtab
-#define AbsPositionCost	Wcm.cc_abs
-#define ColPositionCost	Wcm.cc_habs
-#define RowPositionCost	Wcm.cc_vabs
-#define MultiUpCost	Wcm.cc_multiup
-#define MultiDownCost	Wcm.cc_multidown
-#define MultiLeftCost	Wcm.cc_multileft
-#define MultiRightCost	Wcm.cc_multiright
+#define UpCost(tty)		(tty)->Wcm->cc_up
+#define DownCost(tty)		(tty)->Wcm->cc_down
+#define LeftCost(tty)		(tty)->Wcm->cc_left
+#define RightCost(tty)		(tty)->Wcm->cc_right
+#define HomeCost(tty)		(tty)->Wcm->cc_home
+#define CRCost(tty)		(tty)->Wcm->cc_cr
+#define LastLineCost(tty)	(tty)->Wcm->cc_ll
+#define TabCost(tty)		(tty)->Wcm->cc_tab
+#define BackTabCost(tty)	(tty)->Wcm->cc_backtab
+#define AbsPositionCost(tty)	(tty)->Wcm->cc_abs
+#define ColPositionCost(tty)	(tty)->Wcm->cc_habs
+#define RowPositionCost(tty)	(tty)->Wcm->cc_vabs
+#define MultiUpCost(tty)	(tty)->Wcm->cc_multiup
+#define MultiDownCost(tty)	(tty)->Wcm->cc_multidown
+#define MultiLeftCost(tty)	(tty)->Wcm->cc_multileft
+#define MultiRightCost(tty)	(tty)->Wcm->cc_multiright
 #endif
 
-#define cmat(row,col)	(curY = (row), curX = (col))
-#define cmplus(n)					\
-  {							\
-    if ((curX += (n)) >= FrameCols && !MagicWrap)	\
-      {							\
-	if (Wcm.cm_losewrap) losecursor ();		\
-	else if (AutoWrap) curX = 0, curY++;		\
-	else curX--;					\
-      }							\
+#define cmat(tty,row,col)	(curY(tty) = (row), curX(tty) = (col))
+#define cmplus(tty,n)					            \
+  {                                                                 \
+    if ((curX (tty) += (n)) >= FrameCols (tty) && !MagicWrap (tty)) \
+      {                                                             \
+	if ((tty)->Wcm->cm_losewrap) losecursor (tty);              \
+	else if (AutoWrap (tty)) curX (tty) = 0, curY (tty)++;      \
+	else curX (tty)--;                                          \
+      }                                                             \
   }
 
-#define losecursor()	(curX = -1, curY = -1)
+#define losecursor(tty)	 (curX(tty) = -1, curY(tty) = -1)
 
 extern int cost;
 extern int evalcost ();
@@ -167,10 +166,10 @@ extern int evalcost ();
 extern struct tty_output *current_tty;
 extern void cmcheckmagic P_ ((struct tty_output *));
 extern int cmputc P_ ((int));
-extern void cmcostinit ();
+extern void cmcostinit P_ ((struct tty_output *tty));
 extern void cmgoto P_ ((struct tty_output *, int, int));
-extern void Wcm_clear ();
-extern int Wcm_init ();
+extern void Wcm_clear P_ ((struct tty_output *tty));
+extern int Wcm_init P_ ((struct tty_output *tty));
 
 /* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
    (do not change this comment) */

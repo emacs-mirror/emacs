@@ -380,6 +380,7 @@ int tty_erase_char;
 int flow_control = 0;
 int meta_key = 0;
 char _sobuf[BUFSIZ];
+int emacs_pid;
 
 /* Adapted from init_sys_modes() in sysdep.c. */
 int
@@ -548,7 +549,7 @@ init_tty ()
 void
 window_change ()
 {
-  int width, height;
+  int width = 0, height = 0;
 
 #ifdef TIOCGWINSZ
   {
@@ -601,6 +602,9 @@ window_change ()
   }
 #endif /* not SunOS-style */
 #endif /* not BSD-style */
+
+  if (width != 0 && height != 0)
+    kill (emacs_pid, SIGWINCH);
 }
 
 int in_conversation = 0;
@@ -696,7 +700,7 @@ init_pty ()
 }
 
 int
-copy_from_to (int in, int out)
+copy_from_to (int in, int out, int sigio)
 {
   static char buf[BUFSIZ];
   int nread = read (in, &buf, BUFSIZ);
@@ -716,6 +720,11 @@ copy_from_to (int in, int out)
       
       if (r < 0)
         return 0;               /* Error */
+
+      if (sigio)
+        {
+          kill (emacs_pid, SIGIO);
+        }
     }
   return 1;
 }
@@ -744,13 +753,13 @@ pty_conversation ()
         if (FD_ISSET (master, &set))
           {
             /* Copy Emacs output to stdout. */
-            if (! copy_from_to (master, 0))
+            if (! copy_from_to (master, 0, 0))
               return 1;
           }
         if (FD_ISSET (1, &set))
           {
             /* Forward user input to Emacs. */
-            if (! copy_from_to (1, master))
+            if (! copy_from_to (1, master, 1))
               return 1;
           }
       }
@@ -1078,6 +1087,18 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   if (here)
     {
+      /* First of all, get the pid of the Emacs process.
+         XXX Is there is some nifty libc/kernel feature for doing this?
+       */
+      str = fgets (string, BUFSIZ, in);
+      emacs_pid = atoi (str);
+      if (emacs_pid == 0)
+        {
+          reset_tty ();
+          fprintf (stderr, "%s: Could not get process id of Emacs\n", argv[0]);
+          fail (argc, argv);
+        }
+      
       if (! pty_conversation ())
         {
           reset_tty ();

@@ -72,17 +72,23 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((void));
 static void tty_hide_cursor P_ ((void));
 
-#define OUTPUT(tty, a) \
-    emacs_tputs ((tty), a, (int) (FRAME_LINES (XFRAME (selected_frame)) - curY), cmputc)
+#define OUTPUT(tty, a)                                          \
+  emacs_tputs ((tty), a,                                        \
+               (int) (FRAME_LINES (XFRAME (selected_frame))     \
+                      - curY (tty)),                            \
+               cmputc)
+
 #define OUTPUT1(tty, a) emacs_tputs ((tty), a, 1, cmputc)
 #define OUTPUTL(tty, a, lines) emacs_tputs ((tty), a, lines, cmputc)
 
 #define OUTPUT_IF(tty, a)                                               \
-     do {								\
-       if (a)                                                           \
-         emacs_tputs ((tty), a, (int) (FRAME_LINES (XFRAME (selected_frame)) \
-			  - curY), cmputc);				\
-     } while (0)
+  do {                                                                  \
+    if (a)                                                              \
+      emacs_tputs ((tty), a,                                            \
+                   (int) (FRAME_LINES (XFRAME (selected_frame))         \
+                          - curY (tty) ),                               \
+                   cmputc);                                             \
+  } while (0)
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
@@ -407,6 +413,8 @@ extern char *tgetstr ();
 void
 ring_bell ()
 {
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+
   if (!NILP (Vring_bell_function))
     {
       Lisp_Object function;
@@ -426,32 +434,37 @@ ring_bell ()
 
       Vring_bell_function = function;
     }
-  else if (!FRAME_TERMCAP_P (XFRAME (selected_frame)))
+  else if (!FRAME_TERMCAP_P (f))
     (*ring_bell_hook) ();
   else {
-    OUTPUT (CURTTY (), TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
+    struct tty_output *tty = FRAME_TTY (f);
+    OUTPUT (tty, TS_visible_bell && visible_bell ? TS_visible_bell : TS_bell);
   }
 }
 
 void
-set_terminal_modes (struct tty_output *tty)
+set_terminal_modes ()
 {
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  if (FRAME_TERMCAP_P (f))
     {
+      struct tty_output *tty = FRAME_TTY (f);
       OUTPUT_IF (tty, TS_termcap_modes);
       OUTPUT_IF (tty, TS_cursor_visible);
       OUTPUT_IF (tty, TS_keypad_mode);
-      losecursor ();
+      losecursor (tty);
     }
   else
     (*set_terminal_modes_hook) ();
 }
 
 void
-reset_terminal_modes (struct tty_output *tty)
+reset_terminal_modes ()
 {
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  if (FRAME_TERMCAP_P (f))
     {
+      struct tty_output *tty = FRAME_TTY (f);
       turn_off_highlight ();
       turn_off_insert ();
       OUTPUT_IF (tty, TS_end_keypad_mode);
@@ -496,10 +509,12 @@ void
 set_terminal_window (size)
      int size;
 {
-  if (FRAME_TERMCAP_P (updating_frame))
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  if (FRAME_TERMCAP_P (f))
     {
-      specified_window = size ? size : FRAME_LINES (updating_frame);
-      if (TTY_SCROLL_REGION_OK (FRAME_TTY (updating_frame)))
+      struct tty_output *tty = FRAME_TTY (f);
+      specified_window = size ? size : FRAME_LINES (f);
+      if (TTY_SCROLL_REGION_OK (tty))
 	set_scroll_region (0, specified_window);
     }
   else
@@ -511,9 +526,8 @@ set_scroll_region (start, stop)
      int start, stop;
 {
   char *buf;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
 
   if (TS_set_scroll_region)
     buf = tparam (TS_set_scroll_region, 0, 0, start, stop - 1);
@@ -525,31 +539,29 @@ set_scroll_region (start, stop)
   else
     buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (f));
 
-  OUTPUT (FRAME_TTY (f), buf);
+  OUTPUT (tty, buf);
   xfree (buf);
-  losecursor ();
+  losecursor (tty);
 }
 
 
 static void
 turn_on_insert ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
   if (!insert_mode)
-    OUTPUT (FRAME_TTY (f), TS_insert_mode);
+    OUTPUT (tty, TS_insert_mode);
   insert_mode = 1;
 }
 
 void
 turn_off_insert ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
   if (insert_mode)
-    OUTPUT (FRAME_TTY (f), TS_end_insert_mode);
+    OUTPUT (tty, TS_end_insert_mode);
   insert_mode = 0;
 }
 
@@ -558,22 +570,20 @@ turn_off_insert ()
 void
 turn_off_highlight ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
   if (standout_mode)
-    OUTPUT_IF (FRAME_TTY (f), TS_end_standout_mode);
+    OUTPUT_IF (tty, TS_end_standout_mode);
   standout_mode = 0;
 }
 
 static void
 turn_on_highlight ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
   if (!standout_mode)
-    OUTPUT_IF (FRAME_TTY (f), TS_standout_mode);
+    OUTPUT_IF (tty, TS_standout_mode);
   standout_mode = 1;
 }
 
@@ -592,14 +602,12 @@ toggle_highlight ()
 static void
 tty_hide_cursor ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
-
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
   if (tty_cursor_hidden == 0)
     {
       tty_cursor_hidden = 1;
-      OUTPUT_IF (FRAME_TTY (f), TS_cursor_invisible);
+      OUTPUT_IF (tty, TS_cursor_invisible);
     }
 }
 
@@ -609,15 +617,14 @@ tty_hide_cursor ()
 static void
 tty_show_cursor ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
 
   if (tty_cursor_hidden)
     {
       tty_cursor_hidden = 0;
-      OUTPUT_IF (FRAME_TTY (f), TS_cursor_normal);
-      OUTPUT_IF (FRAME_TTY (f), TS_cursor_visible);
+      OUTPUT_IF (tty, TS_cursor_normal);
+      OUTPUT_IF (tty, TS_cursor_visible);
     }
 }
 
@@ -654,7 +661,7 @@ void
 cursor_to (vpos, hpos)
      int vpos, hpos;
 {
-  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
     {
@@ -662,18 +669,21 @@ cursor_to (vpos, hpos)
       return;
     }
 
+  struct tty_output *tty = FRAME_TTY (f);
+
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
   if (! costs_set)
     return;
 
-  if (curY == vpos && curX == hpos)
+  if (curY (tty) == vpos
+      && curX (tty) == hpos)
     return;
   if (!TF_standout_motion)
     background_highlight ();
   if (!TF_insmode_motion)
     turn_off_insert ();
-  cmgoto (FRAME_TTY (f), vpos, hpos);
+  cmgoto (tty, vpos, hpos);
 }
 
 /* Similar but don't take any account of the wasted characters.  */
@@ -688,13 +698,15 @@ raw_cursor_to (row, col)
       (*raw_cursor_to_hook) (row, col);
       return;
     }
-  if (curY == row && curX == col)
+  struct tty_output *tty = FRAME_TTY (f);
+  if (curY (tty) == row
+      && curX (tty) == col)
     return;
   if (!TF_standout_motion)
     background_highlight ();
   if (!TF_insmode_motion)
     turn_off_insert ();
-  cmgoto (FRAME_TTY (f), row, col);
+  cmgoto (tty, row, col);
 }
 
 /* Erase operations */
@@ -705,23 +717,22 @@ clear_to_end ()
 {
   register int i;
 
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   
   if (clear_to_end_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_to_end_hook) ();
       return;
     }
+  struct tty_output *tty = FRAME_TTY (f);
   if (TS_clr_to_bottom)
     {
       background_highlight ();
-      OUTPUT (FRAME_TTY (f), TS_clr_to_bottom);
+      OUTPUT (tty, TS_clr_to_bottom);
     }
   else
     {
-      for (i = curY; i < FRAME_LINES (f); i++)
+      for (i = curY (tty); i < FRAME_LINES (f); i++)
 	{
 	  cursor_to (i, 0);
 	  clear_end_of_line (FRAME_COLS (f));
@@ -734,20 +745,19 @@ clear_to_end ()
 void
 clear_frame ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (clear_frame_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_frame_hook) ();
       return;
     }
+  struct tty_output *tty = FRAME_TTY (f);
   if (TS_clr_frame)
     {
       background_highlight ();
-      OUTPUT (FRAME_TTY (f), TS_clr_frame);
-      cmat (0, 0);
+      OUTPUT (tty, TS_clr_frame);
+      cmat (tty, 0, 0);
     }
   else
     {
@@ -767,9 +777,7 @@ clear_end_of_line (first_unused_hpos)
 {
   register int i;
 
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   
   if (clear_end_of_line_hook
       && ! FRAME_TERMCAP_P (f))
@@ -778,34 +786,37 @@ clear_end_of_line (first_unused_hpos)
       return;
     }
 
+  struct tty_output *tty = FRAME_TTY (f);
+
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
   if (! costs_set)
     return;
 
-  if (curX >= first_unused_hpos)
+  if (curX (tty) >= first_unused_hpos)
     return;
   background_highlight ();
   if (TS_clr_line)
     {
-      OUTPUT1 (FRAME_TTY (f), TS_clr_line);
+      OUTPUT1 (tty, TS_clr_line);
     }
   else
     {			/* have to do it the hard way */
       turn_off_insert ();
 
       /* Do not write in last row last col with Auto-wrap on. */
-      if (AutoWrap && curY == FRAME_LINES (f) - 1
+      if (AutoWrap (tty)
+          && curY (tty) == FRAME_LINES (f) - 1
 	  && first_unused_hpos == FRAME_COLS (f))
 	first_unused_hpos--;
 
-      for (i = curX; i < first_unused_hpos; i++)
+      for (i = curX (tty); i < first_unused_hpos; i++)
 	{
-	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
-	    fputc (' ', TTY_TERMSCRIPT (FRAME_TTY (f)));
-	  fputc (' ', TTY_OUTPUT (FRAME_TTY (f)));
+	  if (TTY_TERMSCRIPT (tty))
+	    fputc (' ', TTY_TERMSCRIPT (tty));
+	  fputc (' ', TTY_OUTPUT (tty));
 	}
-      cmplus (first_unused_hpos - curX);
+      cmplus (tty, first_unused_hpos - curX (tty));
     }
 }
 
@@ -935,20 +946,22 @@ write_glyphs (string, len)
       return;
     }
 
+  struct tty_output *tty = FRAME_TTY (f);
+
   turn_off_insert ();
   tty_hide_cursor ();
 
   /* Don't dare write in last column of bottom line, if Auto-Wrap,
      since that would scroll the whole frame on some terminals.  */
 
-  if (AutoWrap
-      && curY + 1 == FRAME_LINES (f)
-      && (curX + len) == FRAME_COLS (f))
+  if (AutoWrap (tty)
+      && curY (tty) + 1 == FRAME_LINES (f)
+      && (curX (tty) + len) == FRAME_COLS (f))
     len --;
   if (len <= 0)
     return;
 
-  cmplus (len);
+  cmplus (tty, len);
 
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
@@ -979,12 +992,12 @@ write_glyphs (string, len)
 	  if (produced > 0)
 	    {
 	      fwrite (conversion_buffer, 1, produced,
-                      TTY_OUTPUT (FRAME_TTY (f)));
-	      if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
-		clearerr (TTY_OUTPUT (FRAME_TTY (f)));
-	      if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+                      TTY_OUTPUT (tty));
+	      if (ferror (TTY_OUTPUT (tty)))
+		clearerr (TTY_OUTPUT (tty));
+	      if (TTY_TERMSCRIPT (tty))
 		fwrite (conversion_buffer, 1, produced,
-                        TTY_TERMSCRIPT (FRAME_TTY (f)));
+                        TTY_TERMSCRIPT (tty));
 	    }
 	  len -= consumed;
 	  n -= consumed;
@@ -1005,16 +1018,16 @@ write_glyphs (string, len)
       if (terminal_coding.produced > 0)
 	{
 	  fwrite (conversion_buffer, 1, terminal_coding.produced,
-                  TTY_OUTPUT (FRAME_TTY (f)));
-	  if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
-	    clearerr (TTY_OUTPUT (FRAME_TTY (f)));
-	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+                  TTY_OUTPUT (tty));
+	  if (ferror (TTY_OUTPUT (tty)))
+	    clearerr (TTY_OUTPUT (tty));
+	  if (TTY_TERMSCRIPT (tty))
 	    fwrite (conversion_buffer, 1, terminal_coding.produced,
-		    TTY_TERMSCRIPT (FRAME_TTY (f)));
+		    TTY_TERMSCRIPT (tty));
 	}
     }
 
-  cmcheckmagic (FRAME_TTY (f));
+  cmcheckmagic (tty);
 }
 
 /* If start is zero, insert blanks instead of a string at start */
@@ -1026,23 +1039,23 @@ insert_glyphs (start, len)
 {
   char *buf;
   struct glyph *glyph = NULL;
-  struct frame *f;
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (len <= 0)
     return;
 
-  if (insert_glyphs_hook)
+  if (insert_glyphs_hook  && ! FRAME_TERMCAP_P (f))
     {
       (*insert_glyphs_hook) (start, len);
       return;
     }
 
-  f = updating_frame ? updating_frame : XFRAME (selected_frame);
+  struct tty_output *tty = FRAME_TTY (f);
 
   if (TS_ins_multi_chars)
     {
       buf = tparam (TS_ins_multi_chars, 0, 0, len);
-      OUTPUT1 (FRAME_TTY (f), buf);
+      OUTPUT1 (tty, buf);
       xfree (buf);
       if (start)
 	write_glyphs (start, len);
@@ -1050,7 +1063,7 @@ insert_glyphs (start, len)
     }
 
   turn_on_insert ();
-  cmplus (len);
+  cmplus (tty, len);
   /* The bit CODING_MODE_LAST_BLOCK should be set to 1 only at the tail.  */
   terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
   while (len-- > 0)
@@ -1059,7 +1072,7 @@ insert_glyphs (start, len)
       unsigned char conversion_buffer[1024];
       int conversion_buffer_size = sizeof conversion_buffer;
 
-      OUTPUT1_IF (FRAME_TTY (f), TS_ins_char);
+      OUTPUT1_IF (tty, TS_ins_char);
       if (!start)
 	{
 	  conversion_buffer[0] = SPACEGLYPH;
@@ -1075,7 +1088,7 @@ insert_glyphs (start, len)
 	     occupies more than one column.  */
 	  while (len && CHAR_GLYPH_PADDING_P (*start))
 	    {
-	      OUTPUT1_IF (FRAME_TTY (f), TS_ins_char);
+	      OUTPUT1_IF (tty, TS_ins_char);
 	      start++, len--;
 	    }
 
@@ -1092,15 +1105,15 @@ insert_glyphs (start, len)
       if (produced > 0)
 	{
 	  fwrite (conversion_buffer, 1, produced,
-                  TTY_OUTPUT (FRAME_TTY (f)));
-	  if (ferror (TTY_OUTPUT (FRAME_TTY (f))))
-	    clearerr (TTY_OUTPUT (FRAME_TTY (f)));
-	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+                  TTY_OUTPUT (tty));
+	  if (ferror (TTY_OUTPUT (tty)))
+	    clearerr (TTY_OUTPUT (tty));
+	  if (TTY_TERMSCRIPT (tty))
 	    fwrite (conversion_buffer, 1, produced,
-                    TTY_TERMSCRIPT (FRAME_TTY (f)));
+                    TTY_TERMSCRIPT (tty));
 	}
 
-      OUTPUT1_IF (FRAME_TTY (f), TS_pad_inserted_char);
+      OUTPUT1_IF (tty, TS_pad_inserted_char);
       if (start)
 	{
 	  turn_off_face (f, glyph->face_id);
@@ -1108,7 +1121,7 @@ insert_glyphs (start, len)
 	}
     }
 
-  cmcheckmagic (FRAME_TTY (f));
+  cmcheckmagic (tty);
 }
 
 void
@@ -1117,12 +1130,15 @@ delete_glyphs (n)
 {
   char *buf;
   register int i;
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
 
-  if (delete_glyphs_hook && ! FRAME_TERMCAP_P (updating_frame))
+  if (delete_glyphs_hook && ! FRAME_TERMCAP_P (f))
     {
       (*delete_glyphs_hook) (n);
       return;
     }
+
 
   if (delete_in_insert_mode)
     {
@@ -1131,20 +1147,20 @@ delete_glyphs (n)
   else
     {
       turn_off_insert ();
-      OUTPUT_IF (FRAME_TTY (updating_frame), TS_delete_mode);
+      OUTPUT_IF (tty, TS_delete_mode);
     }
-
+  
   if (TS_del_multi_chars)
     {
       buf = tparam (TS_del_multi_chars, 0, 0, n);
-      OUTPUT1 (FRAME_TTY (updating_frame), buf);
+      OUTPUT1 (tty, buf);
       xfree (buf);
     }
   else
     for (i = 0; i < n; i++)
-      OUTPUT1 (FRAME_TTY (updating_frame), TS_del_char);
+      OUTPUT1 (tty, TS_del_char);
   if (!delete_in_insert_mode)
-    OUTPUT_IF (FRAME_TTY (updating_frame), TS_end_delete_mode);
+    OUTPUT_IF (tty, TS_end_delete_mode);
 }
 
 /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
@@ -1156,18 +1172,18 @@ ins_del_lines (vpos, n)
   char *multi = n > 0 ? TS_ins_multi_lines : TS_del_multi_lines;
   char *single = n > 0 ? TS_ins_line : TS_del_line;
   char *scroll = n > 0 ? TS_rev_scroll : TS_fwd_scroll;
-  struct frame *f;
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   register int i = n > 0 ? n : -n;
   register char *buf;
 
-  if (ins_del_lines_hook && ! FRAME_TERMCAP_P (updating_frame))
+  if (ins_del_lines_hook && ! FRAME_TERMCAP_P (f))
     {
       (*ins_del_lines_hook) (vpos, n);
       return;
     }
 
-  f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct tty_output *tty = FRAME_TTY (f);
 
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
@@ -1176,10 +1192,10 @@ ins_del_lines (vpos, n)
   /* If the lines below the deletion are blank lines coming
      out of the end of the window, don't bother,
      as there will be a matching inslines later that will flush them. */
-  if (TTY_SCROLL_REGION_OK (FRAME_TTY (f))
+  if (TTY_SCROLL_REGION_OK (tty)
       && vpos + i >= specified_window)
     return;
-  if (!TTY_MEMORY_BELOW_FRAME (FRAME_TTY (f))
+  if (!TTY_MEMORY_BELOW_FRAME (tty)
       && vpos + i >= FRAME_LINES (f))
     return;
 
@@ -1188,7 +1204,7 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       buf = tparam (multi, 0, 0, i);
-      OUTPUT (FRAME_TTY (f), buf);
+      OUTPUT (tty, buf);
       xfree (buf);
     }
   else if (single)
@@ -1196,9 +1212,9 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUT (FRAME_TTY (f), single);
+	OUTPUT (tty, single);
       if (TF_teleray)
-	curX = 0;
+	curX (tty) = 0;
     }
   else
     {
@@ -1209,12 +1225,12 @@ ins_del_lines (vpos, n)
 	raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUTL (FRAME_TTY (f), scroll, specified_window - vpos);
+	OUTPUTL (tty, scroll, specified_window - vpos);
       set_scroll_region (0, specified_window);
     }
 
-  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f))
-      && TTY_MEMORY_BELOW_FRAME (FRAME_TTY (f))
+  if (!TTY_SCROLL_REGION_OK (tty)
+      && TTY_MEMORY_BELOW_FRAME (tty)
       && n < 0)
     {
       cursor_to (FRAME_LINES (f) + n, 0);
@@ -1392,7 +1408,7 @@ calculate_costs (frame)
   else
     RPov = FRAME_COLS (frame) * 2;
 
-  cmcostinit ();		/* set up cursor motion costs */
+  cmcostinit (FRAME_TTY (frame)); /* set up cursor motion costs */
 }
 
 struct fkey_table {
@@ -1857,6 +1873,7 @@ turn_on_face (f, face_id)
   struct face *face = FACE_FROM_ID (f, face_id);
   long fg = face->foreground;
   long bg = face->background;
+  struct tty_output *tty = FRAME_TTY (f);
 
   /* Do this first because TS_end_standout_mode may be the same
      as TS_exit_attribute_mode, which turns all appearances off. */
@@ -1907,23 +1924,23 @@ turn_on_face (f, face_id)
   if (face->tty_bold_p)
     {
       if (MAY_USE_WITH_COLORS_P (NC_BOLD))
-	OUTPUT1_IF (FRAME_TTY (f), TS_enter_bold_mode);
+	OUTPUT1_IF (tty, TS_enter_bold_mode);
     }
   else if (face->tty_dim_p)
     if (MAY_USE_WITH_COLORS_P (NC_DIM))
-      OUTPUT1_IF (FRAME_TTY (f), TS_enter_dim_mode);
+      OUTPUT1_IF (tty, TS_enter_dim_mode);
 
   /* Alternate charset and blinking not yet used.  */
   if (face->tty_alt_charset_p
       && MAY_USE_WITH_COLORS_P (NC_ALT_CHARSET))
-    OUTPUT1_IF (FRAME_TTY (f), TS_enter_alt_charset_mode);
+    OUTPUT1_IF (tty, TS_enter_alt_charset_mode);
 
   if (face->tty_blinking_p
       && MAY_USE_WITH_COLORS_P (NC_BLINK))
-    OUTPUT1_IF (FRAME_TTY (f), TS_enter_blink_mode);
+    OUTPUT1_IF (tty, TS_enter_blink_mode);
 
   if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
-    OUTPUT1_IF (FRAME_TTY (f), TS_enter_underline_mode);
+    OUTPUT1_IF (tty, TS_enter_underline_mode);
 
   if (TN_max_colors > 0)
     {
@@ -1932,14 +1949,14 @@ turn_on_face (f, face_id)
       if (fg >= 0 && TS_set_foreground)
 	{
 	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
-	  OUTPUT (FRAME_TTY (f), p);
+	  OUTPUT (tty, p);
 	  xfree (p);
 	}
 
       if (bg >= 0 && TS_set_background)
 	{
 	  p = tparam (TS_set_background, NULL, 0, (int) bg);
-	  OUTPUT (FRAME_TTY (f), p);
+	  OUTPUT (tty, p);
 	  xfree (p);
 	}
     }
@@ -1954,6 +1971,7 @@ turn_off_face (f, face_id)
      int face_id;
 {
   struct face *face = FACE_FROM_ID (f, face_id);
+  struct tty_output *tty = FRAME_TTY (f);
 
   xassert (face != NULL);
 
@@ -1969,23 +1987,23 @@ turn_off_face (f, face_id)
 	  || face->tty_blinking_p
 	  || face->tty_underline_p)
 	{
-	  OUTPUT1_IF (FRAME_TTY (f), TS_exit_attribute_mode);
+	  OUTPUT1_IF (tty, TS_exit_attribute_mode);
 	  if (strcmp (TS_exit_attribute_mode, TS_end_standout_mode) == 0)
 	    standout_mode = 0;
 	}
 
       if (face->tty_alt_charset_p)
-	OUTPUT_IF (FRAME_TTY (f), TS_exit_alt_charset_mode);
+	OUTPUT_IF (tty, TS_exit_alt_charset_mode);
     }
   else
     {
       /* If we don't have "me" we can only have those appearances
 	 that have exit sequences defined.  */
       if (face->tty_alt_charset_p)
-	OUTPUT_IF (FRAME_TTY (f), TS_exit_alt_charset_mode);
+	OUTPUT_IF (tty, TS_exit_alt_charset_mode);
 
       if (face->tty_underline_p)
-	OUTPUT_IF (FRAME_TTY (f), TS_exit_underline_mode);
+	OUTPUT_IF (tty, TS_exit_underline_mode);
     }
 
   /* Switch back to default colors.  */
@@ -1994,7 +2012,7 @@ turn_off_face (f, face_id)
 	   && face->foreground != FACE_TTY_DEFAULT_FG_COLOR)
 	  || (face->background != FACE_TTY_DEFAULT_COLOR
 	      && face->background != FACE_TTY_DEFAULT_BG_COLOR)))
-    OUTPUT1_IF (FRAME_TTY (f), TS_orig_pair);
+    OUTPUT1_IF (tty, TS_orig_pair);
 }
 
 
@@ -2256,6 +2274,10 @@ term_init (name, terminal_type)
       tty_list = tty;
     }
 
+  if (tty->Wcm)
+    xfree (tty->Wcm);
+  tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+  
   if (name)
     {
       int fd;
@@ -2314,7 +2336,7 @@ term_init (name, terminal_type)
   return tty;
 #else  /* not WINDOWSNT */
 
-  Wcm_clear ();
+  Wcm_clear (tty);
 
   TTY_TYPE (tty) = xstrdup (terminal_type);
 
@@ -2357,16 +2379,16 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_ins_line = tgetstr ("al", address);
   TS_ins_multi_lines = tgetstr ("AL", address);
   TS_bell = tgetstr ("bl", address);
-  BackTab = tgetstr ("bt", address);
+  BackTab (tty) = tgetstr ("bt", address);
   TS_clr_to_bottom = tgetstr ("cd", address);
   TS_clr_line = tgetstr ("ce", address);
   TS_clr_frame = tgetstr ("cl", address);
-  ColPosition = NULL; /* tgetstr ("ch", address); */
-  AbsPosition = tgetstr ("cm", address);
-  CR = tgetstr ("cr", address);
+  ColPosition (tty) = NULL; /* tgetstr ("ch", address); */
+  AbsPosition (tty) = tgetstr ("cm", address);
+  CR (tty) = tgetstr ("cr", address);
   TS_set_scroll_region = tgetstr ("cs", address);
   TS_set_scroll_region_1 = tgetstr ("cS", address);
-  RowPosition = tgetstr ("cv", address);
+  RowPosition (tty) = tgetstr ("cv", address);
   TS_del_char = tgetstr ("dc", address);
   TS_del_multi_chars = tgetstr ("DC", address);
   TS_del_line = tgetstr ("dl", address);
@@ -2374,40 +2396,40 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_delete_mode = tgetstr ("dm", address);
   TS_end_delete_mode = tgetstr ("ed", address);
   TS_end_insert_mode = tgetstr ("ei", address);
-  Home = tgetstr ("ho", address);
+  Home (tty) = tgetstr ("ho", address);
   TS_ins_char = tgetstr ("ic", address);
   TS_ins_multi_chars = tgetstr ("IC", address);
   TS_insert_mode = tgetstr ("im", address);
   TS_pad_inserted_char = tgetstr ("ip", address);
   TS_end_keypad_mode = tgetstr ("ke", address);
   TS_keypad_mode = tgetstr ("ks", address);
-  LastLine = tgetstr ("ll", address);
-  Right = tgetstr ("nd", address);
-  Down = tgetstr ("do", address);
-  if (!Down)
-    Down = tgetstr ("nl", address); /* Obsolete name for "do" */
+  LastLine (tty) = tgetstr ("ll", address);
+  Right (tty) = tgetstr ("nd", address);
+  Down (tty) = tgetstr ("do", address);
+  if (!Down (tty))
+    Down (tty) = tgetstr ("nl", address); /* Obsolete name for "do" */
 #ifdef VMS
   /* VMS puts a carriage return before each linefeed,
      so it is not safe to use linefeeds.  */
-  if (Down && Down[0] == '\n' && Down[1] == '\0')
-    Down = 0;
+  if (Down (tty) && Down (tty)[0] == '\n' && Down (tty)[1] == '\0')
+    Down (tty) = 0;
 #endif /* VMS */
   if (tgetflag ("bs"))
-    Left = "\b";		  /* can't possibly be longer! */
+    Left (tty) = "\b";		  /* can't possibly be longer! */
   else				  /* (Actually, "bs" is obsolete...) */
-    Left = tgetstr ("le", address);
-  if (!Left)
-    Left = tgetstr ("bc", address); /* Obsolete name for "le" */
+    Left (tty) = tgetstr ("le", address);
+  if (!Left (tty))
+    Left (tty) = tgetstr ("bc", address); /* Obsolete name for "le" */
   TS_pad_char = tgetstr ("pc", address);
   TS_repeat = tgetstr ("rp", address);
   TS_end_standout_mode = tgetstr ("se", address);
   TS_fwd_scroll = tgetstr ("sf", address);
   TS_standout_mode = tgetstr ("so", address);
   TS_rev_scroll = tgetstr ("sr", address);
-  Wcm.cm_tab = tgetstr ("ta", address);
+  tty->Wcm->cm_tab = tgetstr ("ta", address);
   TS_end_termcap_modes = tgetstr ("te", address);
   TS_termcap_modes = tgetstr ("ti", address);
-  Up = tgetstr ("up", address);
+  Up (tty) = tgetstr ("up", address);
   TS_visible_bell = tgetstr ("vb", address);
   TS_cursor_normal = tgetstr ("ve", address);
   TS_cursor_visible = tgetstr ("vs", address);
@@ -2424,10 +2446,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_exit_alt_charset_mode = tgetstr ("ae", address);
   TS_exit_attribute_mode = tgetstr ("me", address);
 
-  MultiUp = tgetstr ("UP", address);
-  MultiDown = tgetstr ("DO", address);
-  MultiLeft = tgetstr ("LE", address);
-  MultiRight = tgetstr ("RI", address);
+  MultiUp (tty) = tgetstr ("UP", address);
+  MultiDown (tty) = tgetstr ("DO", address);
+  MultiLeft (tty) = tgetstr ("LE", address);
+  MultiRight (tty) = tgetstr ("RI", address);
 
   /* SVr4/ANSI color suppert.  If "op" isn't available, don't support
      color because we can't switch back to the default foreground and
@@ -2454,10 +2476,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   tty_default_color_capabilities (1);
 
-  MagicWrap = tgetflag ("xn");
+  MagicWrap (tty) = tgetflag ("xn");
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
-  AutoWrap = MagicWrap || tgetflag ("am");
+  AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
   TTY_MEMORY_BELOW_FRAME (tty) = tgetflag ("db");
   TF_hazeltine = tgetflag ("hz");
   TTY_MUST_WRITE_SPACES (tty) = tgetflag ("in");
@@ -2493,32 +2515,32 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TTY_MIN_PADDING_SPEED (tty) = tgetnum ("pb");
 #endif
 
-  TabWidth = tgetnum ("tw");
+  TabWidth (tty) = tgetnum ("tw");
 
 #ifdef VMS
   /* These capabilities commonly use ^J.
      I don't know why, but sending them on VMS does not work;
      it causes following spaces to be lost, sometimes.
      For now, the simplest fix is to avoid using these capabilities ever.  */
-  if (Down && Down[0] == '\n')
-    Down = 0;
+  if (Down (tty) && Down (tty)[0] == '\n')
+    Down (tty) = 0;
 #endif /* VMS */
 
   if (!TS_bell)
     TS_bell = "\07";
 
   if (!TS_fwd_scroll)
-    TS_fwd_scroll = Down;
+    TS_fwd_scroll = Down (tty);
 
   PC = TS_pad_char ? *TS_pad_char : 0;
 
-  if (TabWidth < 0)
-    TabWidth = 8;
+  if (TabWidth (tty) < 0)
+    TabWidth (tty) = 8;
 
 /* Turned off since /etc/termcap seems to have :ta= for most terminals
    and newer termcap doc does not seem to say there is a default.
-  if (!Wcm.cm_tab)
-    Wcm.cm_tab = "\t";
+  if (!tty->Wcm->cm_tab)
+    tty->Wcm->cm_tab = "\t";
 */
 
   /* We don't support standout modes that use `magic cookies', so
@@ -2554,14 +2576,14 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (TF_teleray)
     {
-      Wcm.cm_tab = 0;
+      tty->Wcm->cm_tab = 0;
       /* We can't support standout mode, because it uses magic cookies.  */
       TS_standout_mode = 0;
       /* But that means we cannot rely on ^M to go to column zero! */
-      CR = 0;
+      CR (tty) = 0;
       /* LF can't be trusted either -- can alter hpos */
       /* if move at column 0 thru a line with TS_standout_mode */
-      Down = 0;
+      Down (tty) = 0;
     }
 
   /* Special handling for certain terminal types known to need it */
@@ -2569,7 +2591,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   if (!strcmp (terminal_type, "supdup"))
     {
       TTY_MEMORY_BELOW_FRAME (tty) = 1;
-      Wcm.cm_losewrap = 1;
+      tty->Wcm->cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
       || !strcmp (terminal_type, "perq"))
@@ -2602,7 +2624,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
       strcat (area, "\033\007!");
       TS_termcap_modes = area;
       area += strlen (area) + 1;
-      p = AbsPosition;
+      p = AbsPosition (tty);
       /* Change all %+ parameters to %C, to handle
          values above 96 correctly for the C100.  */
       while (*p)
@@ -2613,11 +2635,11 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
         }
     }
 
-  FrameRows = FRAME_LINES (sf);
-  FrameCols = FRAME_COLS (sf);
+  FrameRows (tty) = FRAME_LINES (sf);
+  FrameCols (tty) = FRAME_COLS (sf);
   specified_window = FRAME_LINES (sf);
 
-  if (Wcm_init () == -1)	/* can't do cursor motion */
+  if (Wcm_init (tty) == -1)	/* can't do cursor motion */
 #ifdef VMS
     fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
@@ -2656,10 +2678,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
               && TS_end_standout_mode
               && !strcmp (TS_standout_mode, TS_end_standout_mode));
 
-  UseTabs = tabs_safe_p () && TabWidth == 8;
+  UseTabs (tty) = tabs_safe_p (tty) && TabWidth (tty) == 8;
 
   TTY_SCROLL_REGION_OK (tty)
-    = (Wcm.cm_abs
+    = (tty->Wcm->cm_abs
        && (TS_set_window || TS_set_scroll_region || TS_set_scroll_region_1));
 
   TTY_LINE_INS_DEL_OK (tty)
@@ -2720,6 +2742,8 @@ The function should accept no arguments.  */);
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
+
+  Fprovide (intern ("multi-tty"), Qnil);
 }
 
 struct tty_output *

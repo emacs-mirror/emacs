@@ -341,13 +341,13 @@ struct frame
      frame becomes visible again, it must be marked as garbaged.  The
      FRAME_SAMPLE_VISIBILITY macro takes care of this.
 
-     On Windows NT/9X, to avoid wasting effort updating visible frames
-     that are actually completely obscured by other windows on the
-     display, we bend the meaning of visible slightly: if greater than
-     1, then the frame is obscured - we still consider it to be
-     "visible" as seen from lisp, but we don't bother updating it.  We
-     must take care to garbage the frame when it ceaces to be obscured
-     though.  Note that these semantics are only used on NT/9X.
+     On ttys and on Windows NT/9X, to avoid wasting effort updating
+     visible frames that are actually completely obscured by other
+     windows on the display, we bend the meaning of visible slightly:
+     if greater than 1, then the frame is obscured - we still consider
+     it to be "visible" as seen from lisp, but we don't bother
+     updating it.  We must take care to garbage the frame when it
+     ceaces to be obscured though.
 
      iconified is nonzero if the frame is currently iconified.
 

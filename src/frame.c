@@ -752,7 +752,7 @@ do_switch_frame (frame, track, for_deletion)
       && FRAME_TERMCAP_P (XFRAME (frame))
       && FRAME_TTY (XFRAME (selected_frame)) == FRAME_TTY (XFRAME (frame)))
     {
-      XFRAME (selected_frame)->async_visible = 0;
+      XFRAME (selected_frame)->async_visible = 2; /* obscured */
       XFRAME (frame)->async_visible = 1;
       FRAME_TTY (XFRAME (frame))->top_frame = frame;
     }

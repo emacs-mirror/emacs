@@ -41,6 +41,10 @@ struct tty_output
   int old_tty_valid;            /* 1 if outer tty status has been recorded.  */
 
 
+  /* Structure for info on cursor positioning.  */
+
+  struct cm *Wcm;
+
   /* Redisplay. */
 
   /* XXX This may cause problems with GC. */

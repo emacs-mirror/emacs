@@ -249,8 +249,8 @@ int emacs_ospeed;
 void croak P_ ((char *));
 
 #ifdef AIXHFT
-void hft_init ();
-void hft_reset ();
+void hft_init P_ ((struct tty_output *));
+void hft_reset P_ ((struct tty_output *));
 #endif
 
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
@@ -282,8 +282,12 @@ discard_tty_input ()
 #else /* not VMS */
 #ifdef APOLLO
   {
-    int zero = 0;
-    ioctl (fileno (TTY_INPUT (CURTTY())), TIOCFLUSH, &zero);
+    struct tty_output *tty;
+    for (tty = tty_list; tty; tty = tty->next)
+      {
+        int zero = 0;
+        ioctl (fileno (TTY_INPUT (tty)), TIOCFLUSH, &zero);
+      }
   }
 #else /* not Apollo */
 #ifdef MSDOS    /* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
@@ -310,12 +314,7 @@ discard_tty_input ()
    the terminal.  */
 
 void
-#ifdef PROTOTYPES
 stuff_char (char c)
-#else
-stuff_char (c)
-     char c;
-#endif
 {
   if (read_socket_hook)
     return;
@@ -1074,22 +1073,23 @@ int inherited_pgroup;
    group, redirect the TTY to point to our own process group.  We need
    to be in our own process group to receive SIGIO properly.  */
 void
-narrow_foreground_group ()
+narrow_foreground_group (struct tty_output *tty)
 {
   int me = getpid ();
 
   setpgrp (0, inherited_pgroup);
+  /* XXX This only works on the controlling tty. */
   if (inherited_pgroup != me)
-    EMACS_SET_TTY_PGRP (fileno (stdin), &me); /* stdin is intentional here */
+    EMACS_SET_TTY_PGRP (fileno (TTY_INPUT (tty)), &me);
   setpgrp (0, me);
 }
 
 /* Set the tty to our original foreground group.  */
 void
-widen_foreground_group ()
+widen_foreground_group (struct tty_output *tty)
 {
   if (inherited_pgroup != getpid ())
-    EMACS_SET_TTY_PGRP (fileno (stdin), &inherited_pgroup); /* stdin is intentional here */
+    EMACS_SET_TTY_PGRP (fileno (TTY_INPUT (tty)), &inherited_pgroup);
   setpgrp (0, inherited_pgroup);
 }
 
@@ -1353,7 +1353,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef BSD_PGRPS
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
-    narrow_foreground_group ();
+    narrow_foreground_group (tty_out);
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1578,7 +1578,7 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif
 
 #ifdef AIXHFT
-      hft_init ();
+      hft_init (tty_out);
 #ifdef IBMR2AIX
       {
 	/* IBM's HFT device usually thinks a ^J should be LF/CR.  We need it
@@ -1678,12 +1678,12 @@ nil means don't delete them until `list-processes' is run.  */);
    At the time this is called, init_sys_modes has not been done yet.  */
 
 int
-tabs_safe_p ()
+tabs_safe_p (struct tty_output *tty)
 {
-  struct emacs_tty tty;
+  struct emacs_tty etty;
 
-  EMACS_GET_TTY (fileno (TTY_INPUT (CURTTY())), &tty);
-  return EMACS_TTY_TABS_OK (&tty);
+  EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &etty);
+  return EMACS_TTY_TABS_OK (&etty);
 }
 
 /* Get terminal size from system.
@@ -1888,7 +1888,7 @@ reset_sys_modes (tty_out)
 #endif
 
 #ifdef BSD_PGRPS
-  widen_foreground_group ();
+  widen_foreground_group (tty_out);
 #endif
 }
 
@@ -5098,7 +5098,7 @@ srandom (seed)
 
 /* Called from init_sys_modes.  */
 void
-hft_init ()
+hft_init (struct tty_output *tty_out)
 {
   int junk;
 
@@ -5146,14 +5146,14 @@ hft_init ()
   }
   /* The HFT system on AIX doesn't optimize for scrolling, so it's really ugly
      at times.  */
-  TTY_LINE_INS_DEL_OK (CURTTY ()) = 0;
-  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 0;
+  TTY_LINE_INS_DEL_OK (tty_out) = 0;
+  TTY_CHAR_INS_DEL_OK (tty_out) = 0;
 }
 
 /* Reset the rubout key to backspace.  */
 
 void
-hft_reset ()
+hft_reset (struct tty_output *tty_out)
 {
   struct hfbuf buf;
   struct hfkeymap keymap;

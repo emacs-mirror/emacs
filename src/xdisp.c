@@ -9567,7 +9567,7 @@ select_frame_for_redisplay (frame)
 {
   Lisp_Object tail, sym, val;
   Lisp_Object old = selected_frame;
-  
+
   selected_frame = frame;
 
   for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
@@ -13319,7 +13319,7 @@ try_window_id (w)
 
 	      /* On dumb terminals delete dvpos lines at the end
 		 before inserting dvpos empty lines.  */
-	      if (!TTY_SCROLL_REGION_OK (CURTTY ()))
+	      if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f)))
 		ins_del_lines (end - dvpos, -dvpos);
 
 	      /* Insert dvpos empty lines in front of
@@ -13340,7 +13340,7 @@ try_window_id (w)
 
 	      /* On a dumb terminal insert dvpos empty lines at the
                  end.  */
-	      if (!TTY_SCROLL_REGION_OK (CURTTY ()))
+	      if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f)))
 		ins_del_lines (end + dvpos, -dvpos);
 	    }
 

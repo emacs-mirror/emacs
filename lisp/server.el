@@ -319,13 +319,15 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		  (server-select-display display)
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
-	   ;; Open a new tty at the client.
+	   ;; Open a new frame at the client.  ARG is the name of the pseudo tty.
 	   ((and (equal "-pty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
 	    (let ((pty (server-unquote-arg (match-string 1 request)))
 		  (type (server-unquote-arg (match-string 2 request))))
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
-		  (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))
+		  (progn
+		    (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))
+		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n")))
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
 	   ;; ARG is a line number option.

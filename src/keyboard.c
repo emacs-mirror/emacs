@@ -6460,7 +6460,7 @@ get_filtered_input_pending (addr, do_timers_now, filter_events)
   /* If input is being read as it arrives, and we have none, there is none.  */
   if (*addr > 0 || (interrupt_input && ! interrupts_deferred))
     return;
-
+  
   /* Try to read some input and see how much we get.  */
   gobble_input (0);
   *addr = (!NILP (Vquit_flag)
@@ -6579,7 +6579,7 @@ read_avail_input (expected)
   struct input_event buf[KBD_BUFFER_SIZE];
   register int i;
   int nread;
-
+  
   for (i = 0; i < KBD_BUFFER_SIZE; i++)
     EVENT_INIT (buf[i]);
 
@@ -6611,8 +6611,8 @@ read_avail_input (expected)
       nread = 0;
 
       /* Try to read from each available tty, until one succeeds. */
-      for (tty = tty_list; tty && !nread; tty = tty->next) {
-        
+      for (tty = tty_list; tty; tty = tty->next) {
+      
         /* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
         /* Find out how much input is available.  */
@@ -6624,6 +6624,7 @@ read_avail_input (expected)
             /* ??? Is it really right to send the signal just to this process
                rather than to the whole process group?
                Perhaps on systems with FIONREAD Emacs is alone in its group.  */
+            /* It appears to be the case, see narrow_foreground_group. */
             if (! noninteractive)
               {
                 if (! tty_list->next)
@@ -6706,15 +6707,20 @@ read_avail_input (expected)
 #endif /* USG or DGUX or CYGWIN */
 #endif /* no FIONREAD */
 
+        if (nread > 0)
+          break;
       } /* for each tty */
       
-      if (! nread)
+      if (nread <= 0)
         return 0;
       
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
-      /* XXX Select frame corresponding to the tty. */
+      /* Select frame corresponding to the active tty.  Note that the
+         value of selected_frame is not reliable here, redisplay tends
+         to temporarily change it.  But tty should always be non-NULL. */
+      Lisp_Object frame = (tty ? tty->top_frame : selected_frame);
       
       for (i = 0; i < nread; i++)
 	{
@@ -6725,8 +6731,8 @@ read_avail_input (expected)
 	  if (meta_key != 2)
 	    cbuf[i] &= ~0x80;
 
-	  buf[i].code = cbuf[i];
-	  buf[i].frame_or_window = selected_frame;
+          buf[i].code = cbuf[i];
+	  buf[i].frame_or_window = frame;
 	  buf[i].arg = Qnil;
 	}
     }

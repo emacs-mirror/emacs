@@ -259,10 +259,6 @@ Lisp_Object selected_frame;
 
 struct frame *last_nonminibuf_frame;
 
-/* Structure for info on cursor positioning.  */
-
-struct cm Wcm;
-
 /* 1 means SIGWINCH happened when not safe.  */
 
 int delayed_size_change;
@@ -6059,7 +6055,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 			   newheight - FRAME_TOP_MARGIN (f), 0);
 
       if (FRAME_TERMCAP_P (f) && !pretend)
-	FrameRows = newheight;
+	FrameRows (FRAME_TTY (f)) = newheight;
     }
 
   if (new_frame_total_cols != FRAME_TOTAL_COLS (f))
@@ -6069,7 +6065,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
 
       if (FRAME_TERMCAP_P (f) && !pretend)
-	FrameCols = newwidth;
+	FrameCols (FRAME_TTY (f)) = newwidth;
 
       if (WINDOWP (f->tool_bar_window))
 	XSETFASTINT (XWINDOW (f->tool_bar_window)->total_cols, newwidth);

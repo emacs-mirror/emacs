@@ -2558,7 +2558,7 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 void get_tty_size P_ ((struct tty_output *, int *, int *));
 void request_sigio P_ ((void));
 void unrequest_sigio P_ ((void));
-int tabs_safe_p P_ ((void));
+int tabs_safe_p P_ ((struct tty_output *));
 void init_baud_rate P_ ((void));
 void init_sigio P_ ((int));
 
@@ -2724,8 +2724,8 @@ extern Lisp_Object Qredisplay_dont_pause;
 /* Defined in term.c */
 
 extern void ring_bell P_ ((void));
-extern void set_terminal_modes P_ ((struct tty_output *));
-extern void reset_terminal_modes P_ ((struct tty_output *));
+extern void set_terminal_modes P_ (());
+extern void reset_terminal_modes P_ (());
 extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
 extern void set_terminal_window P_ ((int));

@@ -2952,7 +2952,6 @@ extern void child_setup_tty P_ ((int));
 extern void setup_pty P_ ((int));
 extern int set_window_size P_ ((int, int, int));
 extern void create_process P_ ((Lisp_Object, char **, Lisp_Object));
-extern int tabs_safe_p P_ ((void));
 extern void init_baud_rate P_ ((void));
 extern int emacs_open P_ ((const char *, int, int));
 extern int emacs_close P_ ((int));
