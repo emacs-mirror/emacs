@@ -136,23 +136,6 @@ Major/minor modes can set this variable if they know which option applies.")
 
 (defvar font-lock-fontified nil)	; Whether we have fontified the buffer.
 
-(defvar font-lock-category-alist nil
-  "An alist of (CATEGORY-SYMBOL . FACE-PROP) controlled by Font Lock.
-This variable is intended to be used by special modes which construct
-buffer text for display to the user (i.e. buffer-menu, occur), but
-wish to have fontification turned on and off by Font Lock.  If this
-variable is non-nil, then calling `font-lock-mode' will simply toggle
-the symbol property `face' of CATEGORY-SYMBOL.")
-
-(defvar font-lock-symbol-category-alist nil
-  "An alist of (SYMBOL . CATEGORY-SYMBOL) to help maintain categories.
-This variable is not directly used by font-lock; instead it is
-intended to be used by modes which use `font-lock-category-alist'.
-Normally, you want category symbols to be uninterned, so that their
-properties can be local to a buffer.  This variable helps you maintain
-a mapping between normal category names (i.e. interned symbols) and
-their local uninterned versions.")
-
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
 It will be passed one argument, which is the current value of
@@ -229,8 +212,16 @@ your own function which is called when `font-lock-mode' is toggled via
   ;; Turn on Font Lock mode.
   (when font-lock-mode
     (font-lock-set-defaults)
-    (dolist (elt font-lock-category-alist)
-      (put (car elt) 'face (cdr elt)))
+    (set (make-local-variable 'char-property-alias-alist)
+	 (copy-tree char-property-alias-alist))
+    ;; Add `font-lock-face' as an alias for the `face' property.
+    (let ((elt (assq 'face char-property-alias-alist)))
+      (if elt
+	  (unless (memq 'font-lock-face (cdr elt))
+	    (setcdr elt (nconc (cdr elt) (list 'font-lock-face))))
+	(push (list 'face 'font-lock-face) char-property-alias-alist)))
+    ;; Only do hard work if the mode has specified stuff in
+    ;; `font-lock-defaults'.
     (when font-lock-defaults
       (add-hook 'after-change-functions 'font-lock-after-change-function t t)
       (font-lock-turn-on-thing-lock)
@@ -245,8 +236,14 @@ your own function which is called when `font-lock-mode' is toggled via
 			(buffer-name)))))))
   ;; Turn off Font Lock mode.
   (unless font-lock-mode
-    (dolist (elt font-lock-category-alist)
-      (put (car elt) 'face nil))
+    ;; Remove `font-lock-face' as an alias for the `face' property.
+    (set (make-local-variable 'char-property-alias-alist)
+	 (copy-tree char-property-alias-alist))
+    (let ((elt (assq 'face char-property-alias-alist)))
+      (when elt
+	(setcdr elt (remq 'font-lock-face (cdr elt)))
+	(when (null (cdr elt))
+	  (setq char-property-alias-alist (delq elt char-property-alias-alist)))))
     (when font-lock-defaults
       (remove-hook 'after-change-functions 'font-lock-after-change-function t)
       (font-lock-unfontify-buffer)
@@ -347,7 +344,6 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 
 (defun turn-on-font-lock-if-enabled ()
   (when (and (or font-lock-defaults
-		 font-lock-category-alist
 		 (assq major-mode font-lock-defaults-alist))
 	     (or (eq font-lock-global-modes t)
 		 (if (eq (car-safe font-lock-global-modes) 'not)
