@@ -1,5 +1,7 @@
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* info/dir (WoMan): Add entry.
+
 	* config.bat (maindir): Update src/_gdbinit even if it does
 	already exist.
 

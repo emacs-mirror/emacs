@@ -1,3 +1,11 @@
+2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.texi: New file.
+
+	* Makefile.in (INFO_TARGETS): Add ../info/woman.
+	(DVI_TARGETS): Add woman.dvi.
+	(../info/woman, woman.dvi): New targets.
+
 2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frames.texi (Highlight Interactively): Document the hi-lock
