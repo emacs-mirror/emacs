@@ -1655,16 +1655,18 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       if (event.type == ButtonRelease)
 	{
 	  XtDispatchEvent (&event);
-	  if (! menubarp)
-	    {
-	      /* Do the work of construct_mouse_click since it can't
-		 be called. Initially, the popup menu has been called
-		 from a ButtonPress in the edit_widget. Then the mouse
-		 has been set to grabbed. Reset it now.  */
-	      x_mouse_grabbed &= ~(1 << event.xbutton.button);
-	      if (!x_mouse_grabbed)
-		Vmouse_depressed = Qnil;
-	    }
+
+	  /* Do the work of construct_mouse_click since it can't
+	     be called. Initially, the popup menu has been called
+	     from a ButtonPress in the edit_widget. Then the mouse
+	     has been set to grabbed. Reset it now.  */
+	  x_mouse_grabbed &= ~(1 << event.xbutton.button);
+	  if (!x_mouse_grabbed)
+	    Vmouse_depressed = Qnil;
+
+	  /* If we release the button soon without selecting anything,
+	     stay in the loop--that is, leave the menu posted.
+	     Otherwise, exit this loop and thus pop down the menu.  */
 	  if (! (menu_item_selection == 0
 		 && !next_release_must_exit
 		 && (((XButtonEvent *) (&event))->time - last_event_timestamp
