@@ -99,9 +99,10 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 			 (compare-windows-skip-whitespace opoint2)
 		       (funcall skip-whitespace opoint2)))
 	       (setq p2a (point))
-	       (and result1 result2 (eq result1 result2)
-		    (setq p1 p1a
-			  p2 p2a)))))
+	       (if (or (stringp skip-whitespace)
+		       (and result1 result2 (eq result1 result2)))
+		   (setq p1 p1a
+			 p2 p2a)))))
 
       ;; Try advancing comparing 1000 chars at a time.
       ;; When that fails, go 500 chars at a time, and so on.
