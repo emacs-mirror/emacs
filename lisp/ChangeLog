@@ -1,3 +1,61 @@
+2004-11-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (math-integral-cache-state, calc-lang)
+	(calc-original-buffer): Declare them.
+
+	(calc-user-formula-alist): New variable.
+	(calc-user-define-formula, calc-fix-user-formula)
+	(calc-user-define-composition, calc-finish-formula-edit):
+	Replace variable `alist' by declared variable.
+
+	(var-q0, var-q1, var-q2, var-q3, var-q4, var-q5, var-q6)
+	(var-q7, var-q7, var-q8, var-q9): Declare them.
+	(calc-kbd-push): Don't check to see if var-q0 through var-q9
+	are bound.
+
+	(calcFunc-typeof): Replace undeclared variable by expression.
+
+	(math-exp-env): New variable.
+	(math-define-body, math-define-exp): Replace exp-env by declared
+	variable.
+
+	(math-define-exp): Replace misplaced variable by expression.
+
+	* calc/calcalg3.el (calc-curve-nvars, calc-curve-varnames)
+	(calc-curve-model, calc-curve-coefnames): New variables.
+	(calc-curve-fit, calc-get-fit-variables): Replace variables nvars,
+	varnames, model and coefnames by declared variables.
+
+	(math-root-widen): New variable.
+	(math-search-root, math-find-root): Replace variable root-widen by
+	declared variable.
+
+	(var-DUMMY): Declare it.
+	(math-root-vars, math-min-vars): Move the declarations to earlier in
+	the file.
+
+	(math-brent-min): Make d a local variable.
+
+	(math-find-minimum): Replace non-existent variable.
+
+	(math-ninteg-romberg): Remove unnecessary variable.
+
+	(math-ninteg-temp): New variable.
+	(math-ninteg-romberg, math-ninteg-midpoint): Replace variable
+	integ-temp by declared variable.
+
+	(math-fit-first-var, math-fit-first-coef, math-fit-new-coefs):
+	New variables.
+	(math-general-fit): Replace variables first-var, first-coef and
+	new-coefs by declared variables.
+	(calcFunc-fitvar): Replace variable first-var by declared variable.
+	(calcFunc-fitparam): Replace variable first-coef by declared variable.
+	(calcFunc-fitdummy): Replace variable new-coefs by declared variable.
+
+	(math-all-vars-vars, math-all-vars-found): New variables.
+	(math-all-vars-in, math-all-vars-rec): Replace variables vars and
+	found by declared variable math-all-vars-vars.
+
 2004-11-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/cust-print.el (custom-printers): Use `defvar' instead
