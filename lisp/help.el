@@ -190,8 +190,15 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		       (substitute-command-keys first-message)
 		     "")
 		   (if first-message "  " "")
-		   (substitute-command-keys
-		    "\\[scroll-other-window] to scroll the help."))))))
+		   (if (or (member (buffer-name standard-output)
+				   same-window-buffer-names)
+			   (memq t (mapcar '(lambda (elt)
+					      (string-match elt (buffer-name standard-output)))
+					   same-window-regexps)))
+		       (substitute-command-keys
+			"\\[scroll-up] to scroll the help.")
+		     (substitute-command-keys
+		      "\\[scroll-other-window] to scroll the help.")))))))
 
 (defun describe-key (key)
   "Display documentation of the function invoked by KEY.  KEY is a string."
