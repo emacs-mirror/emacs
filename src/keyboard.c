@@ -375,6 +375,7 @@ static volatile struct input_event *kbd_store_ptr;
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
 
+#ifdef HAVE_MOUSE
 /* If this flag is a frame, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.
    Otherwise, mouse motion is ignored.  */
@@ -396,6 +397,9 @@ int mouse_moved;
   ((kbd_fetch_ptr == kbd_store_ptr) \
    && (! FRAMEP (do_mouse_tracking) || !mouse_moved))
 
+#else /* Not HAVE_MOUSE.  */
+#define EVENT_QUEUES_EMPTY (kbd_fetch_ptr == kbd_store_ptr)
+#endif /* HAVE_MOUSE.  */
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
@@ -1935,6 +1939,8 @@ restore_getcjmp (temp)
 }
 
 
+#ifdef HAVE_MOUSE
+
 /* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
    of this function.  */
 
@@ -1981,6 +1987,8 @@ Normally, mouse motion is ignored.")
   val = Fprogn (args);
   return unbind_to (count, val);
 }
+
+#endif	/* HAVE_MOUSE */
 
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
@@ -2261,6 +2269,7 @@ kbd_buffer_get_event ()
 	    }
 	}
     }
+#ifdef HAVE_MOUSE
   /* Try generating a mouse motion event.  */
   else if (FRAMEP (do_mouse_tracking) && mouse_moved)
     {
@@ -2297,13 +2306,12 @@ kbd_buffer_get_event ()
 	}
 #endif
 
-#if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
       if (!NILP (x) && NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, time);
-#endif
     }
+#endif	/* HAVE_MOUSE */
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -5959,7 +5967,9 @@ init_keyboard ()
   recent_keys_index = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
+#ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
+#endif
   input_pending = 0;
 
 #ifdef MULTI_FRAME
@@ -6165,7 +6175,9 @@ syms_of_keyboard ()
 
   defsubr (&Sread_key_sequence);
   defsubr (&Srecursive_edit);
+#ifdef HAVE_MOUSE
   defsubr (&Strack_mouse);
+#endif
   defsubr (&Sinput_pending_p);
   defsubr (&Scommand_execute);
   defsubr (&Srecent_keys);
@@ -6383,8 +6395,10 @@ Otherwise, the menu bar continues to reflect the buffer's local map\n\
 and the minor mode maps regardless of `overriding-local-map'.");
   Voverriding_local_map_menu_flag = Qnil;
 
+#ifdef HAVE_MOUSE
   DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
+#endif
 
   DEFVAR_LISP ("system-key-alist", &Vsystem_key_alist,
     "Alist of system-specific X windows key symbols.\n\
