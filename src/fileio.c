@@ -1647,6 +1647,339 @@ See also the function `substitute-in-file-name'.  */)
   return make_string (target, o - target);
 }
 
+#if 0
+/* PLEASE DO NOT DELETE THIS COMMENTED-OUT VERSION!
+   This is the old version of expand-file-name, before it was thoroughly
+   rewritten for Emacs 10.31.  We leave this version here commented-out,
+   because the code is very complex and likely to have subtle bugs.  If
+   bugs _are_ found, it might be of interest to look at the old code and
+   see what did it do in the relevant situation.
+
+   Don't remove this code: it's true that it will be accessible via CVS,
+   but a few years from deletion, people will forget it is there.  */
+
+/* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.  */
+DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
+  "Convert FILENAME to absolute, and canonicalize it.\n\
+Second arg DEFAULT is directory to start with if FILENAME is relative\n\
+ (does not start with slash); if DEFAULT is nil or missing,\n\
+the current buffer's value of default-directory is used.\n\
+Filenames containing `.' or `..' as components are simplified;\n\
+initial `~/' expands to your home directory.\n\
+See also the function `substitute-in-file-name'.")
+     (name, defalt)
+     Lisp_Object name, defalt;
+{
+  unsigned char *nm;
+
+  register unsigned char *newdir, *p, *o;
+  int tlen;
+  unsigned char *target;
+  struct passwd *pw;
+  int lose;
+#ifdef VMS
+  unsigned char * colon = 0;
+  unsigned char * close = 0;
+  unsigned char * slash = 0;
+  unsigned char * brack = 0;
+  int lbrack = 0, rbrack = 0;
+  int dots = 0;
+#endif /* VMS */
+
+  CHECK_STRING (name, 0);
+
+#ifdef VMS
+  /* Filenames on VMS are always upper case.  */
+  name = Fupcase (name);
+#endif
+
+  nm = XSTRING (name)->data;
+
+  /* If nm is absolute, flush ...// and detect /./ and /../.
+     If no /./ or /../ we can return right away.  */
+  if (
+      nm[0] == '/'
+#ifdef VMS
+      || index (nm, ':')
+#endif /* VMS */
+      )
+    {
+      p = nm;
+      lose = 0;
+      while (*p)
+	{
+	  if (p[0] == '/' && p[1] == '/'
+#ifdef APOLLO
+	      /* // at start of filename is meaningful on Apollo system.  */
+	      && nm != p
+#endif /* APOLLO */
+	      )
+	    nm = p + 1;
+	  if (p[0] == '/' && p[1] == '~')
+	    nm = p + 1, lose = 1;
+	  if (p[0] == '/' && p[1] == '.'
+	      && (p[2] == '/' || p[2] == 0
+		  || (p[2] == '.' && (p[3] == '/' || p[3] == 0))))
+	    lose = 1;
+#ifdef VMS
+	  if (p[0] == '\\')
+	    lose = 1;
+	  if (p[0] == '/') {
+	    /* if dev:[dir]/, move nm to / */
+	    if (!slash && p > nm && (brack || colon)) {
+	      nm = (brack ? brack + 1 : colon + 1);
+	      lbrack = rbrack = 0;
+	      brack = 0;
+	      colon = 0;
+	    }
+	    slash = p;
+	  }
+	  if (p[0] == '-')
+#ifndef VMS4_4
+	    /* VMS pre V4.4,convert '-'s in filenames. */
+	    if (lbrack == rbrack)
+	      {
+		if (dots < 2)   /* this is to allow negative version numbers */
+		  p[0] = '_';
+	      }
+	    else
+#endif /* VMS4_4 */
+	      if (lbrack > rbrack &&
+		  ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<') &&
+		   (p[1] == '.' || p[1] == ']' || p[1] == '>')))
+		lose = 1;
+#ifndef VMS4_4
+	      else
+		p[0] = '_';
+#endif /* VMS4_4 */
+	  /* count open brackets, reset close bracket pointer */
+	  if (p[0] == '[' || p[0] == '<')
+	    lbrack++, brack = 0;
+	  /* count close brackets, set close bracket pointer */
+	  if (p[0] == ']' || p[0] == '>')
+	    rbrack++, brack = p;
+	  /* detect ][ or >< */
+	  if ((p[0] == ']' || p[0] == '>') && (p[1] == '[' || p[1] == '<'))
+	    lose = 1;
+	  if ((p[0] == ':' || p[0] == ']' || p[0] == '>') && p[1] == '~')
+	    nm = p + 1, lose = 1;
+	  if (p[0] == ':' && (colon || slash))
+	    /* if dev1:[dir]dev2:, move nm to dev2: */
+	    if (brack)
+	      {
+		nm = brack + 1;
+		brack = 0;
+	      }
+	    /* If /name/dev:, move nm to dev: */
+	    else if (slash)
+	      nm = slash + 1;
+	    /* If node::dev:, move colon following dev */
+	    else if (colon && colon[-1] == ':')
+	      colon = p;
+	    /* If dev1:dev2:, move nm to dev2: */
+	    else if (colon && colon[-1] != ':')
+	      {
+		nm = colon + 1;
+		colon = 0;
+	      }
+	  if (p[0] == ':' && !colon)
+	    {
+	      if (p[1] == ':')
+		p++;
+	      colon = p;
+	    }
+	  if (lbrack == rbrack)
+	    if (p[0] == ';')
+	      dots = 2;
+	    else if (p[0] == '.')
+	      dots++;
+#endif /* VMS */
+	  p++;
+	}
+      if (!lose)
+	{
+#ifdef VMS
+	  if (index (nm, '/'))
+	    return build_string (sys_translate_unix (nm));
+#endif /* VMS */
+	  if (nm == XSTRING (name)->data)
+	    return name;
+	  return build_string (nm);
+	}
+    }
+
+  /* Now determine directory to start with and put it in NEWDIR */
+
+  newdir = 0;
+
+  if (nm[0] == '~')             /* prefix ~ */
+    if (nm[1] == '/'
+#ifdef VMS
+	|| nm[1] == ':'
+#endif /* VMS */
+	|| nm[1] == 0)/* ~/filename */
+      {
+	if (!(newdir = (unsigned char *) egetenv ("HOME")))
+	  newdir = (unsigned char *) "";
+	nm++;
+#ifdef VMS
+	nm++;                   /* Don't leave the slash in nm.  */
+#endif /* VMS */
+      }
+    else  /* ~user/filename */
+      {
+	/* Get past ~ to user */
+	unsigned char *user = nm + 1;
+	/* Find end of name. */
+	unsigned char *ptr = (unsigned char *) index (user, '/');
+	int len = ptr ? ptr - user : strlen (user);
+#ifdef VMS
+	unsigned char *ptr1 = index (user, ':');
+	if (ptr1 != 0 && ptr1 - user < len)
+	  len = ptr1 - user;
+#endif /* VMS */
+	/* Copy the user name into temp storage. */
+	o = (unsigned char *) alloca (len + 1);
+	bcopy ((char *) user, o, len);
+	o[len] = 0;
+
+	/* Look up the user name. */
+	pw = (struct passwd *) getpwnam (o + 1);
+	if (!pw)
+	  error ("\"%s\" isn't a registered user", o + 1);
+
+	newdir = (unsigned char *) pw->pw_dir;
+
+	/* Discard the user name from NM.  */
+	nm += len;
+      }
+
+  if (nm[0] != '/'
+#ifdef VMS
+      && !index (nm, ':')
+#endif /* not VMS */
+      && !newdir)
+    {
+      if (NILP (defalt))
+	defalt = current_buffer->directory;
+      CHECK_STRING (defalt, 1);
+      newdir = XSTRING (defalt)->data;
+    }
+
+  /* Now concatenate the directory and name to new space in the stack frame */
+
+  tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
+  target = (unsigned char *) alloca (tlen);
+  *target = 0;
+
+  if (newdir)
+    {
+#ifndef VMS
+      if (nm[0] == 0 || nm[0] == '/')
+	strcpy (target, newdir);
+      else
+#endif
+      file_name_as_directory (target, newdir);
+    }
+
+  strcat (target, nm);
+#ifdef VMS
+  if (index (target, '/'))
+    strcpy (target, sys_translate_unix (target));
+#endif /* VMS */
+
+  /* Now canonicalize by removing /. and /foo/.. if they appear */
+
+  p = target;
+  o = target;
+
+  while (*p)
+    {
+#ifdef VMS
+      if (*p != ']' && *p != '>' && *p != '-')
+	{
+	  if (*p == '\\')
+	    p++;
+	  *o++ = *p++;
+	}
+      else if ((p[0] == ']' || p[0] == '>') && p[0] == p[1] + 2)
+	/* brackets are offset from each other by 2 */
+	{
+	  p += 2;
+	  if (*p != '.' && *p != '-' && o[-1] != '.')
+	    /* convert [foo][bar] to [bar] */
+	    while (o[-1] != '[' && o[-1] != '<')
+	      o--;
+	  else if (*p == '-' && *o != '.')
+	    *--p = '.';
+	}
+      else if (p[0] == '-' && o[-1] == '.' &&
+	       (p[1] == '.' || p[1] == ']' || p[1] == '>'))
+	/* flush .foo.- ; leave - if stopped by '[' or '<' */
+	{
+	  do
+	    o--;
+	  while (o[-1] != '.' && o[-1] != '[' && o[-1] != '<');
+	  if (p[1] == '.')      /* foo.-.bar ==> bar.  */
+	    p += 2;
+	  else if (o[-1] == '.') /* '.foo.-]' ==> ']' */
+	    p++, o--;
+	  /* else [foo.-] ==> [-] */
+	}
+      else
+	{
+#ifndef VMS4_4
+	  if (*p == '-' &&
+	      o[-1] != '[' && o[-1] != '<' && o[-1] != '.' &&
+	      p[1] != ']' && p[1] != '>' && p[1] != '.')
+	    *p = '_';
+#endif /* VMS4_4 */
+	  *o++ = *p++;
+	}
+#else /* not VMS */
+      if (*p != '/')
+	{
+	  *o++ = *p++;
+	}
+      else if (!strncmp (p, "//", 2)
+#ifdef APOLLO
+	       /* // at start of filename is meaningful in Apollo system.  */
+	       && o != target
+#endif /* APOLLO */
+	       )
+	{
+	  o = target;
+	  p++;
+	}
+      else if (p[0] == '/' && p[1] == '.' &&
+	       (p[2] == '/' || p[2] == 0))
+	p += 2;
+      else if (!strncmp (p, "/..", 3)
+	       /* `/../' is the "superroot" on certain file systems.  */
+	       && o != target
+	       && (p[3] == '/' || p[3] == 0))
+	{
+	  while (o != target && *--o != '/')
+	    ;
+#ifdef APOLLO
+	  if (o == target + 1 && o[-1] == '/' && o[0] == '/')
+	    ++o;
+	  else
+#endif /* APOLLO */
+	  if (o == target && *o == '/')
+	    ++o;
+	  p += 3;
+	}
+      else
+	{
+	  *o++ = *p++;
+	}
+#endif /* not VMS */
+    }
+
+  return make_string (target, o - target);
+}
+#endif
 
 DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
        Ssubstitute_in_file_name, 1, 1, 0,
