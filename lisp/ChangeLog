@@ -1,3 +1,28 @@
+2000-04-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* replace.el (perform-replace): Add parameters START and END.  Use
+	them instead of the check for a region in Transient Mark mode.
+	(query-replace-read-args): Return two more list elements for the
+	start and end of the region in Transient Mark mode.
+	(query-replace, query-replace-regexp, query-replace-regexp-eval)
+	(map-query-replace-regexp, replace-string, replace-regexp): Add
+	optional last arguments START and END and pass them to
+	perform-replace.
+
+	* progmodes/ebrowse.el (ebrowse-tags-query-replace): Construct a
+	form with additional arguments for perform-replace.
+
+	* progmodes/etags.el (tags-query-replace): Add parameters START
+	and END.  Construct a form with additional arguments for
+	perform-replace.
+
+	* simple.el (shell-command): Set default directory for "*Shell
+	Command Output" buffer.
+
+	* language/european.el (iso-latin-4): Fix typo.
+
+	* emacs-lisp/crm.el: New file.
+
 2000-04-24  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)

@@ -1126,7 +1126,10 @@ protocols.  It has a separate manual.
 *** autoconf.el provides a major mode for editing configure.in files
 for Autoconf, selected automatically.
 
-*** windmove.el
+*** windmove.el provides moving between windows.
+
+*** crm.el provides a facility to read multiple strings from the 
+minibuffer with completion.
 
 ** Withdrawn packages
 
@@ -1143,6 +1146,16 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** The function `shell-command' now sets the default directory of the
+`*Shell Command Output*' buffer to the default directory of the buffer
+from which the command was issued.
+
+** The functions `query-replace', `query-replace-regexp',
+`query-replace-regexp-eval' `map-query-replace-regexp',
+`replace-string', `replace-regexp', and `perform-replace' take two
+additional optional arguments START and END that specify the region to
+operate on.
 
 ** The new function `count-screen-lines' is a more flexible alternative
 to `window-buffer-height'.

@@ -1,3 +1,17 @@
+2000-04-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id) <all changes above window start>: Adjust
+	positions in glyph matrix.  Don't compute new window end
+	positions.
+
+	* dispnew.c (increment_matrix_positions): Renamed from
+	increment_glyph_matrix_buffer_positions.
+	(increment_row_positions): Renamed from
+	increment_glyph_row_buffer_positions.
+
+	* dispextern.h: Change names of renamed functions from dispnew.c
+	in prototypes.
+
 2000-04-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Fdo_auto_save): Create directories for auto-save

@@ -3335,6 +3335,40 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 
 ;;;***
 
+;;;### (autoloads (completing-read-multiple) "crm" "emacs-lisp/crm.el"
+;;;;;;  (14597 38419))
+;;; Generated autoloads from emacs-lisp/crm.el
+
+(autoload (quote completing-read-multiple) "crm" "\
+Read multiple strings in the minibuffer, with completion.
+By using this functionality, a user may specify multiple strings at a
+single prompt, optionally using completion.
+
+Multiple strings are specified by separating each of the strings with
+a prespecified separator character.  For example, if the separator
+character is a comma, the strings 'alice', 'bob', and 'eve' would be
+specified as 'alice,bob,eve'.
+
+The default value for the separator character is the value of
+`crm-default-separator' (comma).  The separator character may be
+changed by modifying the value of `crm-separator'.
+
+Continguous strings of non-separator-characters are referred to as
+'elements'.  In the aforementioned example, the elements are: 'alice',
+'bob', and 'eve'.
+
+Completion is available on a per-element basis.  For example, if the
+contents of the minibuffer are 'alice,bob,eve' and point is between
+'l' and 'i', pressing TAB operates on the element 'alice'.
+
+The return value of this function is a list of the read strings.
+
+See the documentation for `completing-read' for details on the arguments:
+PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST, DEF, and
+INHERIT-INPUT-METHOD." nil nil)
+
+;;;***
+
 ;;;### (autoloads (customize-menu-create custom-menu-create custom-save-all
 ;;;;;;  customize-save-customized custom-file customize-browse custom-buffer-create-other-window
 ;;;;;;  custom-buffer-create customize-apropos-groups customize-apropos-faces
@@ -3343,7 +3377,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14558 7062))
+;;;;;;  (14587 2634))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3997,7 +4031,7 @@ Decompose Devanagari characters in the region to IS 13194 characters." t nil)
 ;;;***
 
 ;;;### (autoloads (diary-mail-entries diary) "diary-lib" "calendar/diary-lib.el"
-;;;;;;  (14523 49787))
+;;;;;;  (14587 2634))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -4876,8 +4910,8 @@ It returns the old style symbol." t nil)
 
 ;;;### (autoloads (ebrowse-save-tree-as ebrowse-tags-query-replace
 ;;;;;;  ebrowse-tags-loop-continue ebrowse-tags-complete-symbol ebrowse-electric-choose-tree
-;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14577
-;;;;;;  54346))
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14597
+;;;;;;  60306))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload (quote ebrowse-tree-mode) "ebrowse" "\
@@ -4945,7 +4979,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14576 25687))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14583 8560))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -5500,8 +5534,8 @@ This function works by modifying `process-environment'." t nil)
 ;;;;;;  pop-tag-mark find-tag-regexp find-tag-other-frame find-tag-other-window
 ;;;;;;  find-tag find-tag-noselect tags-table-files visit-tags-table
 ;;;;;;  find-tag-default-function find-tag-hook tags-add-tables tags-table-list
-;;;;;;  tags-case-fold-search) "etags" "progmodes/etags.el" (14551
-;;;;;;  24244))
+;;;;;;  tags-case-fold-search) "etags" "progmodes/etags.el" (14597
+;;;;;;  60154))
 ;;; Generated autoloads from progmodes/etags.el
 
 (defvar tags-file-name nil "\
@@ -7276,7 +7310,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful." nil nil)
 ;;;***
 
 ;;;### (autoloads (jdb pdb perldb xdb dbx sdb gdb) "gud" "gud.el"
-;;;;;;  (14517 9487))
+;;;;;;  (14587 2634))
 ;;; Generated autoloads from gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -7385,7 +7419,7 @@ Provide help for current mode." t nil)
 ;;;***
 
 ;;;### (autoloads (hexlify-buffer hexl-find-file hexl-mode) "hexl"
-;;;;;;  "hexl.el" (14335 43064))
+;;;;;;  "hexl.el" (14589 54862))
 ;;; Generated autoloads from hexl.el
 
 (autoload (quote hexl-mode) "hexl" "\
@@ -8205,7 +8239,7 @@ for more information." t nil)
 ;;;***
 
 ;;;### (autoloads (inferior-lisp) "inf-lisp" "progmodes/inf-lisp.el"
-;;;;;;  (13898 16429))
+;;;;;;  (14589 55732))
 ;;; Generated autoloads from progmodes/inf-lisp.el
 
 (defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'" "\
@@ -8257,8 +8291,8 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;***
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
-;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14544 60288))
+;;;;;;  Info-goto-emacs-command-node Info-directory info-standalone
+;;;;;;  info info-other-window) "info" "info.el" (14581 64356))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -8283,6 +8317,9 @@ in all the directories in that path." t nil)
 Run Emacs as a standalone Info reader.
 Usage:  emacs -f info-standalone [filename]
 In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself." nil nil)
+
+(autoload (quote Info-directory) "info" "\
+Go to the Info directory node." t nil)
 
 (autoload (quote Info-goto-emacs-command-node) "info" "\
 Go to the Info node in the Emacs manual for command COMMAND.
@@ -8501,16 +8538,16 @@ Add submenus to the Files menu, to convert to and from various formats." t nil)
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-word ispell-dictionary-alist ispell-local-dictionary-alist
 ;;;;;;  ispell-personal-dictionary) "ispell" "textmodes/ispell.el"
-;;;;;;  (14457 51532))
+;;;;;;  (14587 2706))
 ;;; Generated autoloads from textmodes/ispell.el
 
-(defconst ispell-xemacsp (string-match "Lucid\\|XEmacs" emacs-version) "\
+(defconst xemacsp (string-match "Lucid\\|XEmacs" emacs-version) "\
 Non nil if using XEmacs.")
 
-(defconst ispell-version18p (string-match "18\\.[0-9]+\\.[0-9]+" emacs-version) "\
+(defconst version18p (string-match "18\\.[0-9]+\\.[0-9]+" emacs-version) "\
 Non nil if using emacs version 18.")
 
-(defconst ispell-version20p (string-match "20\\.[0-9]+\\.[0-9]+" emacs-version) "\
+(defconst version20p (string-match "20\\.[0-9]+\\.[0-9]+" emacs-version) "\
 Non nil if using emacs version 20.")
 
 (defvar ispell-personal-dictionary nil "\
@@ -8522,7 +8559,7 @@ where DICTNAME is the name of your default dictionary.")
 *Contains local or customized dictionary definitions.
 See `ispell-dictionary-alist'.")
 
-(setq ispell-dictionary-alist-1 (quote ((nil "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("american" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("brasiliano" "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[']" nil ("-d" "brasileiro") nil iso-8859-1) ("british" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B" "-d" "british") nil iso-8859-1) ("castellano" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[---]" nil ("-B" "-d" "castellano") "~tex" iso-8859-1) ("castellano8" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[---]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1))))
+(setq ispell-dictionary-alist-1 (quote ((nil "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("american" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("brasileiro" "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[']" nil ("-d" "brasileiro") nil iso-8859-1) ("british" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B" "-d" "british") nil iso-8859-1) ("castellano" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[---]" nil ("-B" "-d" "castellano") "~tex" iso-8859-1) ("castellano8" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[---]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1))))
 
 (setq ispell-dictionary-alist-2 (quote (("czech" "[A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]" "[^A-Za-z\301\311\314\315\323\332\331\335\256\251\310\330\317\253\322\341\351\354\355\363\372\371\375\276\271\350\370\357\273\362]" "" nil ("-B" "-d" "czech") nil iso-8859-2) ("dansk" "[A-Z\306\330\305a-z\346\370\345]" "[^A-Z\306\330\305a-z\346\370\345]" "[']" nil ("-C") nil iso-8859-1) ("deutsch" "[a-zA-Z\"]" "[^a-zA-Z\"]" "[']" t ("-C") "~tex" iso-8859-1) ("deutsch8" "[a-zA-Z\304\326\334\344\366\337\374]" "[^a-zA-Z\304\326\334\344\366\337\374]" "[']" t ("-C" "-d" "deutsch") "~latin1" iso-8859-1) ("english" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1))))
 
@@ -8590,15 +8627,15 @@ Spelling menu for XEmacs.
 If nil when package is loaded, a standard menu will be set,
 and added as a submenu of the \"Edit\" menu.")
 
-(defvar ispell-menu-map-needed (and (not ispell-menu-map) (not ispell-version18p) (not ispell-xemacsp) (quote reload)))
+(defvar ispell-menu-map-needed (and (not ispell-menu-map) (not version18p) (not xemacsp) (quote reload)))
 
-(if ispell-menu-map-needed (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist))) (path (and (boundp (quote ispell-library-path)) ispell-library-path)) name load-dict) (setq ispell-menu-map (make-sparse-keymap "Spell")) (while dicts (setq name (car (car dicts)) load-dict (car (cdr (member "-d" (nth 5 (car dicts))))) dicts (cdr dicts)) (cond ((not (stringp name)) (define-key ispell-menu-map (vector (quote default)) (cons "Select Default Dict" (list (quote lambda) nil (quote (interactive)) (list (quote ispell-change-dictionary) "default"))))) ((or (not path) (file-exists-p (concat path "/" name ".hash")) (file-exists-p (concat path "/" name ".has")) (and load-dict (or (file-exists-p (concat path "/" load-dict ".hash")) (file-exists-p (concat path "/" load-dict ".has"))))) (define-key ispell-menu-map (vector (intern name)) (cons (concat "Select " (capitalize name)) (list (quote lambda) nil (quote (interactive)) (list (quote ispell-change-dictionary) name)))))))))
+(if ispell-menu-map-needed (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist))) (path (and (boundp (quote ispell-library-path)) ispell-library-path)) name load-dict) (setq ispell-menu-map (make-sparse-keymap "Spell")) (while dicts (setq name (car (car dicts)) load-dict (car (cdr (member "-d" (nth 5 (car dicts))))) dicts (cdr dicts)) (cond ((not (stringp name)) (define-key ispell-menu-map (vector (quote default)) (cons "Select Default Dict" (cons "Dictionary for which Ispell was configured" (list (quote lambda) nil (quote (interactive)) (list (quote ispell-change-dictionary) "default")))))) ((or (not path) (file-exists-p (concat path "/" name ".hash")) (file-exists-p (concat path "/" name ".has")) (and load-dict (or (file-exists-p (concat path "/" load-dict ".hash")) (file-exists-p (concat path "/" load-dict ".has"))))) (define-key ispell-menu-map (vector (intern name)) (cons (concat "Select " (capitalize name) " Dict") (list (quote lambda) nil (quote (interactive)) (list (quote ispell-change-dictionary) name)))))))))
 
-(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-change-dictionary] (quote ("Change Dictionary" . ispell-change-dictionary))) (define-key ispell-menu-map [ispell-kill-ispell] (quote ("Kill Process" . ispell-kill-ispell))) (define-key ispell-menu-map [ispell-pdict-save] (quote ("Save Dictionary" lambda nil (interactive) (ispell-pdict-save t t)))) (define-key ispell-menu-map [ispell-complete-word] (quote ("Complete Word" . ispell-complete-word))) (define-key ispell-menu-map [ispell-complete-word-interior-frag] (quote ("Complete Word Frag" . ispell-complete-word-interior-frag)))))
+(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-change-dictionary] (quote (menu-item "Change Dictionary..." ispell-change-dictionary :help "Supply explicit path to dictionary"))) (define-key ispell-menu-map [ispell-kill-ispell] (quote (menu-item "Kill Process" ispell-kill-ispell :enable (and (boundp (quote ispell-process)) ispell-process (eq (ispell-process-status) (quote run))) :help "Terminate Ispell subprocess"))) (define-key ispell-menu-map [ispell-pdict-save] (quote (menu-item "Save Dictionary" (lambda nil (interactive) (ispell-pdict-save t t)) :help "Save personal dictionary"))) (define-key ispell-menu-map [ispell-help] (quote (menu-item "Help" (lambda nil (interactive) (describe-function (quote ispell-help))) :help "Show standard Ispell keybindings and commands"))) (define-key ispell-menu-map [ispell-complete-word] (quote (menu-item "Complete Word" ispell-complete-word :help "Complete word at cursor using dictionary"))) (define-key ispell-menu-map [ispell-complete-word-interior-frag] (quote (menu-item "Complete Word Fragment" ispell-complete-word-interior-frag :help "Complete word fragment at cursor")))))
 
-(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-continue] (quote ("Continue Check" . ispell-continue))) (define-key ispell-menu-map [ispell-word] (quote ("Check Word" . ispell-word))) (define-key ispell-menu-map [ispell-comments-and-strings] (quote ("Check Comments" . ispell-comments-and-strings))) (define-key ispell-menu-map [ispell-region] (quote ("Check Region" . ispell-region))) (define-key ispell-menu-map [ispell-buffer] (quote ("Check Buffer" . ispell-buffer)))))
+(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-continue] (quote (menu-item "Continue Spell-Checking" ispell-continue :enable (and (boundp (quote ispell-region-end)) (marker-position ispell-region-end) (equal (marker-buffer ispell-region-end) (current-buffer)))))) (define-key ispell-menu-map [ispell-word] (quote (menu-item "Spell-Check Word" ispell-word :help "Spell-check word at cursor"))) (define-key ispell-menu-map [ispell-comments-and-strings] (quote (menu-item "Spell-Check Comments" ispell-comments-and-strings :help "Spell-check only comments and strings")))))
 
-(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-message] (quote ("Check Message" . ispell-message))) (define-key ispell-menu-map [ispell-help] (quote ("Help" lambda nil (interactive) (describe-function (quote ispell-help))))) (put (quote ispell-region) (quote menu-enable) (quote mark-active)) (fset (quote ispell-menu-map) (symbol-value (quote ispell-menu-map)))))
+(if ispell-menu-map-needed (progn (define-key ispell-menu-map [ispell-region] (quote (menu-item "Spell-Check Region" ispell-region :enable mark-active :help "Spell-check text in marked region"))) (define-key ispell-menu-map [ispell-message] (quote (menu-item "Spell-Check Message" ispell-message :help "Skip headers and included message text"))) (define-key ispell-menu-map [ispell-buffer] (quote (menu-item "Spell-Check Buffer" ispell-buffer))) (fset (quote ispell-menu-map) (symbol-value (quote ispell-menu-map)))))
 
 (defvar ispell-skip-region-alist (quote ((ispell-words-keyword forward-line) (ispell-dictionary-keyword forward-line) (ispell-pdict-keyword forward-line) (ispell-parsing-keyword forward-line) ("^---*BEGIN PGP [A-Z ]*--*" . "^---*END PGP [A-Z ]*--*") ("^---* \\(Start of \\)?[Ff]orwarded [Mm]essage" . "^---* End of [Ff]orwarded [Mm]essage") ("\\(/\\|\\(\\(\\w\\|-\\)+[.:@]\\)\\)\\(\\w\\|-\\)*\\([.:/@]+\\(\\w\\|-\\|~\\)+\\)+"))) "\
 Alist expressing beginning and end of regions not to spell check.
@@ -8739,7 +8776,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;### (autoloads (iswitchb-buffer-other-frame iswitchb-display-buffer
 ;;;;;;  iswitchb-buffer-other-window iswitchb-buffer iswitchb-default-keybindings
-;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14482 55434))
+;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14586 61846))
 ;;; Generated autoloads from iswitchb.el
 
 (autoload (quote iswitchb-read-buffer) "iswitchb" "\
@@ -9596,7 +9633,7 @@ Previous contents of that buffer are killed first." t nil)
 
 ;;;***
 
-;;;### (autoloads (man-follow man) "man" "man.el" (14570 21850))
+;;;### (autoloads (man-follow man) "man" "man.el" (14583 33482))
 ;;; Generated autoloads from man.el
 
 (defalias (quote manual-entry) (quote man))
@@ -11090,7 +11127,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-initialize
 ;;;;;;  ps-mule-plot-composition ps-mule-plot-string ps-mule-set-ascii-font
 ;;;;;;  ps-mule-prepare-ascii-font ps-multibyte-buffer) "ps-mule"
-;;;;;;  "ps-mule.el" (14454 81))
+;;;;;;  "ps-mule.el" (14588 21278))
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -11187,7 +11224,7 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-paper-type) "ps-print"
-;;;;;;  "ps-print.el" (14563 18761))
+;;;;;;  "ps-print.el" (14584 21532))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -12251,7 +12288,7 @@ KEYWORDS is a comma-separated list of labels." t nil)
 ;;;;;;  rmail-summary-by-senders rmail-summary-by-topic rmail-summary-by-regexp
 ;;;;;;  rmail-summary-by-recipients rmail-summary-by-labels rmail-summary
 ;;;;;;  rmail-summary-line-count-flag rmail-summary-scroll-between-messages)
-;;;;;;  "rmailsum" "mail/rmailsum.el" (14568 47126))
+;;;;;;  "rmailsum" "mail/rmailsum.el" (14597 48840))
 ;;; Generated autoloads from mail/rmailsum.el
 
 (defvar rmail-summary-scroll-between-messages t "\
@@ -12444,7 +12481,7 @@ scribe-electric-parenthesis
 ;;;;;;  mail-signature mail-personal-alias-file mail-alias-file mail-default-reply-to
 ;;;;;;  mail-archive-file-name mail-header-separator mail-yank-ignored-headers
 ;;;;;;  mail-interactive mail-self-blind mail-specify-envelope-from
-;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14532 62968))
+;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14588 18519))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -13324,7 +13361,7 @@ From a program takes two point or marker arguments, BEG and END." t nil)
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (14403 56247))
+;;;;;;  "speedbar.el" (14597 45194))
 ;;; Generated autoloads from speedbar.el
 
 (defalias (quote speedbar) (quote speedbar-frame-mode))
@@ -14070,7 +14107,7 @@ if large.  You can use Info-split to do this manually." t nil)
 ;;;***
 
 ;;;### (autoloads (texinfo-mode) "texinfo" "textmodes/texinfo.el"
-;;;;;;  (14536 60906))
+;;;;;;  (14587 10351))
 ;;; Generated autoloads from textmodes/texinfo.el
 
 (autoload (quote texinfo-mode) "texinfo" "\
@@ -14137,8 +14174,8 @@ Top node, is accompanied by some kind of section line, such as an
 If the file has a `top' node, it must be called `top' or `Top' and
 be the first node in the file.
 
-Entering Texinfo mode calls the value of text-mode-hook, and then the
-value of texinfo-mode-hook." t nil)
+Entering Texinfo mode calls the value of `text-mode-hook', and then the
+value of `texinfo-mode-hook'." t nil)
 
 ;;;***
 
@@ -14557,7 +14594,7 @@ to a tcp server on another machine." nil nil)
 ;;;***
 
 ;;;### (autoloads (trace-function-background trace-function trace-buffer)
-;;;;;;  "trace" "emacs-lisp/trace.el" (13607 52440))
+;;;;;;  "trace" "emacs-lisp/trace.el" (14583 8560))
 ;;; Generated autoloads from emacs-lisp/trace.el
 
 (defvar trace-buffer "*trace-output*" "\
