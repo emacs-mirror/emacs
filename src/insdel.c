@@ -520,7 +520,7 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
 void
-make_gap (nbytes_added)
+make_gap_larger (nbytes_added)
      int nbytes_added;
 {
   Lisp_Object tem;
@@ -567,6 +567,75 @@ make_gap (nbytes_added)
   *(Z_ADDR) = 0;
 
   Vinhibit_quit = tem;
+}
+
+
+/* Make the gap NBYTES_REMOVED bytes shorted.  */
+
+void
+make_gap_smaller (nbytes_removed)
+     int nbytes_removed;
+{
+  Lisp_Object tem;
+  int real_gap_loc;
+  int real_gap_loc_byte;
+  int real_Z;
+  int real_Z_byte;
+  int old_gap_size;
+
+  /* Make sure the gap is at least 20 bytes.  */
+  if (GAP_SIZE - nbytes_removed < 20)
+    nbytes_removed = GAP_SIZE - 20;
+
+  /* Prevent quitting in move_gap.  */
+  tem = Vinhibit_quit;
+  Vinhibit_quit = Qt;
+
+  real_gap_loc = GPT;
+  real_gap_loc_byte = GPT_BYTE;
+  old_gap_size = GAP_SIZE;
+  real_Z = Z;
+  real_Z_byte = Z_BYTE;
+
+  /* Pretend that the last unwanted part of the gap is the entire gap,
+     and that the first desired part of the gap is part of the buffer
+     text.  */
+  bzero (GPT_ADDR, GAP_SIZE - nbytes_removed);
+  GPT += GAP_SIZE - nbytes_removed;
+  GPT_BYTE += GAP_SIZE - nbytes_removed;
+  Z += GAP_SIZE - nbytes_removed;
+  Z_BYTE += GAP_SIZE - nbytes_removed;
+  GAP_SIZE = nbytes_removed;
+
+  /* Move the unwanted pretend gap to the end of the buffer.  This
+     adjusts the markers properly too.  */
+  gap_right (Z, Z_BYTE);
+
+  enlarge_buffer_text (current_buffer, -nbytes_removed);
+
+  /* Now restore the desired gap.  */
+  GAP_SIZE = old_gap_size - nbytes_removed;
+  GPT = real_gap_loc;
+  GPT_BYTE = real_gap_loc_byte;
+  Z = real_Z;
+  Z_BYTE = real_Z_byte;
+
+  /* Put an anchor.  */
+  *(Z_ADDR) = 0;
+
+  Vinhibit_quit = tem;
+}
+
+void
+make_gap (nbytes_added)
+     int nbytes_added;
+{
+  if (nbytes_added >= 0)
+    make_gap_larger (nbytes_added);
+#if defined (USE_MMAP_FOR_BUFFERS) || defined (REL_ALLOC)
+  else
+    make_gap_smaller (-nbytes_added);
+#endif
 }
 
 /* Copy NBYTES bytes of text from FROM_ADDR to TO_ADDR.
