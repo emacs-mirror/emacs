@@ -728,7 +728,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	  (if (consp event)
 	      ;; Use reverse, not nreverse, since event-modifiers
 	      ;; does not copy the list it returns.
-	      (cons (event-convert-list (reverse (cons basic old-modifiers)))
+	      (cons (event-convert-list (reverse (cons basic modifiers)))
 		    (cdr event))
 	    event)))
     (setcar last new)
