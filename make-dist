@@ -6,7 +6,7 @@
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
 
-# Copyright (C) 1995, 1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -235,6 +235,15 @@ if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
   echo "\`./configure.in' is newer than \`./configure'" >&2
   echo "Running autoconf" >&2
   autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
+fi
+
+### Make sure src/config-in.stamp is newer than configure.in.
+if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
+  echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
+  echo "Running autoheader" >&2
+  autoheader || { x=$?; echo Autoheader FAILED! >&2; exit $x; }
+  rm -f src/stamp-h.in
+  echo timestamp > src/stamp-h.in
 fi
 
 if [ $update = yes ];
