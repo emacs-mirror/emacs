@@ -234,7 +234,7 @@ TYPES is a list of types the source supports."
 The handler is first localted by looking at `x-dnd-protocol-alist'.
 If no match is found here, and the value of `browse-url-browser-function'
 is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
-If no match is found, just call `x-dnd-insert-text,A4(B.
+If no match is found, just call `x-dnd-insert-text'.
 WINDOW is where the drop happend, ACTION is the action for the drop,
 ARG is the URL that has been dropped.
 Returns ACTION."
