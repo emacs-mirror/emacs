@@ -1,3 +1,8 @@
+2003-01-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Undo last change.
+	Fix the docstring instead.
+
 2003-01-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (calendar-only-one-frame-setup): Autoload it.

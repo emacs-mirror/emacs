@@ -133,18 +133,18 @@ in REGEXP."
   (require 'cl))
 
 (defun regexp-opt-group (strings &optional paren lax)
-  "Return a regexp to match a string in STRINGS.
-If PAREN non-nil, output regexp parentheses around returned regexp.
-If LAX non-nil, don't output parentheses if it doesn't require them.
-Merges keywords to avoid backtracking in Emacs' regexp matcher.
+  ;; Return a regexp to match a string in the sorted list STRINGS.
+  ;; If PAREN non-nil, output regexp parentheses around returned regexp.
+  ;; If LAX non-nil, don't output parentheses if it doesn't require them.
+  ;; Merges keywords to avoid backtracking in Emacs' regexp matcher.
 
-The basic idea is to find the shortest common prefix or suffix, remove it
-and recurse.  If there is no prefix, we divide the list into two so that
-\(at least) one half will have at least a one-character common prefix.
+  ;; The basic idea is to find the shortest common prefix or suffix, remove it
+  ;; and recurse.  If there is no prefix, we divide the list into two so that
+  ;; \(at least) one half will have at least a one-character common prefix.
 
-Also we delay the addition of grouping parenthesis as long as possible
-until we're sure we need them, and try to remove one-character sequences
-so we can use character sets rather than grouping parenthesis."
+  ;; Also we delay the addition of grouping parenthesis as long as possible
+  ;; until we're sure we need them, and try to remove one-character sequences
+  ;; so we can use character sets rather than grouping parenthesis.
   (let* ((open-group (cond ((stringp paren) paren) (paren "\\(?:") (t "")))
 	 (close-group (if paren "\\)" ""))
 	 (open-charset (if lax "" open-group))
@@ -223,10 +223,7 @@ so we can use character sets rather than grouping parenthesis."
 	      ;; particular letter and those that do not, and recurse on them.
 	      (let* ((char (char-to-string (string-to-char (car strings))))
 		     (half1 (all-completions char strings))
-		     (half2 strings))
-		;; Remove from HALF2 whatever is in HALF1.
-		(dolist (elt half1)
-		  (setq half2 (delq elt half2)))
+		     (half2 (nthcdr (length half1) strings)))
 		(concat open-group
 			(regexp-opt-group half1)
 			"\\|" (regexp-opt-group half2)
