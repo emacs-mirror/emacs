@@ -202,7 +202,7 @@ extern Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have. */
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-extern Lisp_Object Qinvisible, Qhidden, Qread_only;
+extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
 
