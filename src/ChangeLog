@@ -1,5 +1,8 @@
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (handle_display_prop): Use it->w->buffer as object,
+	instead of nil.
+
 	* xterm.c (note_mouse_highlight): Handle mouse-face and 
 	help-echo in strings.
 	(x_y_to_hpos_vpos): Add parameter BUFFER_ONLY_P.
