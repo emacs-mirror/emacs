@@ -121,6 +121,7 @@
 	(documentation (documentation major-mode)))
     (save-excursion
       (set-buffer (get-buffer-create "*Help*"))
+      (setq buffer-read-only nil)
       (erase-buffer)
       (insert name " Mode\n" documentation)
       (help-mode)))
