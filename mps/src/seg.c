@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(MMdevel_bufferscan.2) $
+ * $HopeName: MMsrc!seg.c(trunk.3) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -9,14 +9,14 @@
  *
  * .check.shield: The "pm", "sm", and "depth" fields are not checked by
  * SegCheck, because I haven't spent time working out the invariants.
- * We should certainly work them out, by studying impl.c.sheild, and
+ * We should certainly work them out, by studying impl.c.shield, and
  * assert things about shielding, protection, shield cache consistency,
  * etc. richard 1997-04-03
  */
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(MMdevel_bufferscan.2) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.3) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -39,14 +39,18 @@ Bool SegCheck(Seg seg)
     /* in the segment then it cannot contain black or grey refs. */
     CHECKL(seg->grey == TraceSetEMPTY);
     CHECKL(seg->black == TraceSetEMPTY);
+    CHECKL(seg->summary == RefSetEMPTY);
+    CHECKL(seg->sm == AccessSetEMPTY);
+    CHECKL(seg->pm == AccessSetEMPTY);
   } else {
     /* design.mps.seg.field.rankSet.single: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */
     CHECKL(RankSetIsSingle(seg->rankSet));
+    /* .check.wb: If summary isn't universal then it must be Write shielded */
+    CHECKL(seg->summary == RefSetUNIV || (seg->sm & AccessWRITE));
   }
   /* "pm", "sm", and "depth" not checked.  See .check.shield. */
-  CHECKL((seg->rankSet == RankSetEMPTY) == (seg->summary == RefSetEMPTY));
   CHECKL(BoolCheck(seg->single));
   return TRUE;
 }
