@@ -1964,7 +1964,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	       nil t))
      ;;
      ;; Emacs Lisp autoload cookies.
-     '("^;;;###\\(autoload\\)\\>" 1 font-lock-warning-face prepend)
+     '("^;;;###\\(autoload\\)" 1 font-lock-warning-face prepend)
      ))
   "Subdued level highlighting for Lisp modes.")
 
