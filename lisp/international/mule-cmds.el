@@ -378,6 +378,7 @@ and TO is ignored."
 		     (find-charset-region from to)))
 	 (safe-coding-systems (find-coding-systems-for-charsets charsets)))
     (if (or (eq (car safe-coding-systems) 'undecided)
+	    (eq default-coding-system 'no-conversion)
 	    (and default-coding-system
 		 (memq (coding-system-base default-coding-system)
 		       safe-coding-systems)))
