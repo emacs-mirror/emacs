@@ -2527,10 +2527,7 @@ Advanced commands:
   (make-local-variable 'Info-index-alternatives)
   (setq header-line-format
 	(if Info-use-header-line
-	    '(:eval
-	      (replace-regexp-in-string
-	       "%" "%%"
-	       (get-text-property (point-min) 'header-line)))
+	    '(:eval (get-text-property (point-min) 'header-line))
 	  nil)) ; so the header line isn't displayed
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
@@ -2775,6 +2772,27 @@ the variable `Info-file-list-for-emacs'."
   "Face for headers in Info menus."
   :group 'info)
 
+(defun Info-escape-percent (string)
+  "Double all occurrences of `%' in STRING.
+
+Return a new string with all `%' characters replaced by `%%'.
+Preserve text properties."
+  (let ((start 0)
+	(end (length string))
+	mb me m matches)
+    (save-match-data
+      (while (and (< start end) (string-match "%" string start))
+	(setq mb (match-beginning 0)
+	      me (1+ mb)
+	      m (substring string mb me)
+	      matches (cons m 
+			    (cons m 
+				  (cons (substring string start mb) 
+					matches)))
+	      start me))
+      (push (substring string start end) matches)
+      (apply #'concat (nreverse matches)))))
+
 (defun Info-fontify-menu-headers ()
   "Add the face `info-menu-header' to any header before a menu entry."
   (save-excursion
@@ -2868,7 +2886,7 @@ the variable `Info-file-list-for-emacs'."
 		  (setq header (buffer-substring (point) header-end))))
 
 	      (put-text-property (point-min) (1+ (point-min))
-				 'header-line header)
+				 'header-line (Info-escape-percent header))
 	      ;; Hide the part of the first line
 	      ;; that is in the header, if it is just part.
 	      (unless (bobp)
