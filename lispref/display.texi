@@ -244,7 +244,6 @@ support them, then @code{message-box} uses the echo area, like
 @end defun
 
 @defun current-message
-@tindex current-message
 This function returns the message currently being displayed in the
 echo area, or @code{nil} if there is none.
 @end defun
@@ -260,7 +259,6 @@ for brief periods of time.
 @end defvar
 
 @defvar echo-area-clear-hook
-@tindex echo-area-clear-hook
 This normal hook is run whenever the echo area is cleared---either by
 @code{(message nil)} or for any other reason.
 @end defvar
@@ -352,13 +350,11 @@ by a visible newline, it displays an ellipsis.
 @code{buffer-invisibility-spec} and removing elements from it.
 
 @defun add-to-invisibility-spec element
-@tindex add-to-invisibility-spec
 Add the element @var{element} to @code{buffer-invisibility-spec}
 (if it is not already present in that list).
 @end defun
 
 @defun remove-from-invisibility-spec element
-@tindex remove-from-invisibility-spec
 Remove the element @var{element} from @code{buffer-invisibility-spec}.
 This does nothing if @var{element} is not in the list.
 @end defun
@@ -1043,7 +1039,6 @@ overlays that specify property @var{prop} for the character at point:
 @end defun
 
 @defun overlays-in beg end
-@tindex overlays-in
 This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
@@ -1083,19 +1078,16 @@ check the width of a character.  @xref{Primitive Indent}, and
 @ref{Screen Lines}, for related functions.
 
 @defun char-width char
-@tindex char-width
 This function returns the width in columns of the character @var{char},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
 @defun string-width string
-@tindex string-width
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
 @defun truncate-string-to-width string width &optional start-column padding
-@tindex truncate-string-to-width
 This function returns the part of @var{string} that fits within
 @var{width} columns, as a new string.
 
@@ -1278,7 +1270,6 @@ customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
 @defmac defface face spec doc [keyword value]... 
-@tindex defface
 This declares @var{face} as a customizable face that defaults according
 to @var{spec}.  You should not quote the symbol @var{face}.  The
 argument @var{doc} specifies the face documentation.  The keywords you
@@ -1365,7 +1356,6 @@ frame must match one of the @var{value}s specified for it in
 with the customization buffer, and @code{face-documentation} for the
 documentation string.
 
-@tindex frame-background-mode
 @defopt frame-background-mode
 This option, if non-@code{nil}, specifies the background type to use for
 interpreting face definitions.  If it is @code{dark}, then Emacs treats
@@ -1643,7 +1633,6 @@ because the precise font that you specified is used.
 @end defun
 
 @defun set-face-bold-p face bold-p &optional frame
-@tindex set-face-bold-p
 This function specifies whether @var{face} should be bold.  If
 @var{bold-p} is non-@code{nil}, that means yes; @code{nil} means no.
 
@@ -1652,7 +1641,6 @@ In Emacs 20, it sets the @code{:bold} attribute.
 @end defun
 
 @defun set-face-italic-p face italic-p &optional frame
-@tindex set-face-italic-p
 This function specifies whether @var{face} should be italic.  If
 @var{italic-p} is non-@code{nil}, that means yes; @code{nil} means no.
 
@@ -1692,13 +1680,11 @@ This function returns the name of the font of face @var{face}.
 @end defun
 
 @defun face-bold-p face &optional frame
-@tindex face-bold-p
 This function returns @code{t} if @var{face} is bold---that is, if it is
 bolder than normal.  It returns @code{nil} otherwise.
 @end defun
 
 @defun face-italic-p face &optional frame
-@tindex face-italic-p
 This function returns @code{t} if @var{face} is italic or oblique,
 @code{nil} otherwise.
 @end defun
@@ -1914,7 +1900,6 @@ This function returns the face number of face @var{face}.
 @end defun
 
 @defun face-documentation face
-@tindex face-documentation
 This function returns the documentation string of face @var{face}, or
 @code{nil} if none was specified for it.
 @end defun
@@ -2998,7 +2983,6 @@ effect of setting @code{ctl-arrow} to a non-@code{nil} value:
 @end example
 
 @defun display-table-slot display-table slot
-@tindex display-table-slot
 This function returns the value of the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
 5 inclusive, or a slot name (symbol).  Valid symbols are
@@ -3007,7 +2991,6 @@ This function returns the value of the extra slot @var{slot} of
 @end defun
 
 @defun set-display-table-slot display-table slot value
-@tindex set-display-table-slot
 This function stores @var{value} in the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
 5 inclusive, or a slot name (symbol).  Valid symbols are
@@ -3157,7 +3140,6 @@ capability (@samp{vb}).
 @end defopt
 
 @defvar ring-bell-function
-@tindex ring-bell-function
 If this is non-@code{nil}, it specifies how Emacs should ``ring the
 bell.''  Its value should be a function of no arguments.  If this is
 non-@code{nil}, it takes precedence over the @code{visible-bell}

@@ -202,7 +202,6 @@ existing buffer.
 @end defun
 
 @defspec save-current-buffer body...
-@tindex save-current-buffer
 The @code{save-current-buffer} macro saves the identity of the current
 buffer, evaluates the @var{body} forms, and finally restores that buffer
 as current.  The return value is the value of the last form in
@@ -216,7 +215,6 @@ remains current.
 @end defspec
 
 @defmac with-current-buffer buffer body...
-@tindex with-current-buffer
 The @code{with-current-buffer} macro saves the identity of the current
 buffer, makes @var{buffer} current, evaluates the @var{body} forms, and
 finally restores the buffer.  The return value is the value of the last
@@ -225,7 +223,6 @@ abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 @end defmac
 
 @defmac with-temp-buffer body...
-@tindex with-temp-buffer
 The @code{with-temp-buffer} macro evaluates the @var{body} forms
 with a temporary buffer as the current buffer.  It saves the identity of
 the current buffer, creates a temporary buffer and makes it current,

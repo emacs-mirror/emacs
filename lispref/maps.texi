@@ -152,7 +152,6 @@ The keymap which displays the Files menu in the menu bar.
 The keymap which displays the Help menu in the menu bar.
 
 @item menu-bar-mule-menu
-@tindex menu-bar-mule-menu
 @vindex menu-bar-mule-menu
 The keymap which displays the Mule menu in the menu bar.
 

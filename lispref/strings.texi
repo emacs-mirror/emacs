@@ -128,7 +128,6 @@ This function returns a string made up of @var{count} repetitions of
 @end defun
 
 @defun string &rest characters
-@tindex string
 This returns a string containing the characters @var{characters}.
 
 @example
@@ -270,7 +269,6 @@ Lists}.
 @end defun
 
 @defun split-string string separators
-@tindex split-string
 This function splits @var{string} into substrings at matches for the regular
 expression @var{separators}.  Each match for @var{separators} defines a
 splitting point; the substrings between the splitting points are made
@@ -319,7 +317,6 @@ that index, @code{aset} signals an error.
   A more powerful function is @code{store-substring}:
 
 @defun store-substring string idx obj
-@tindex store-substring
 This function alters part of the contents of the string @var{string}, by
 storing @var{obj} starting at index @var{idx}.  The argument @var{obj}
 may be either a character or a (smaller) string.
@@ -432,7 +429,6 @@ no characters is less than any other string.
 @end defun
 
 @defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
-@tindex compare-strings
 This function compares the specified part of @var{string1} with the
 specified part of @var{string2}.  The specified part of @var{string1}
 runs from index @var{start1} up to index @var{end1} (@code{nil} means
@@ -454,14 +450,12 @@ portion) is less.
 @end defun
 
 @defun assoc-ignore-case key alist
-@tindex assoc-ignore-case
 This function works like @code{assoc}, except that @var{key} must be a
 string, and comparison is done using @code{compare-strings}.
 Case differences are ignored in this comparison.
 @end defun
 
 @defun assoc-ignore-representation key alist
-@tindex assoc-ignore-representation
 This function works like @code{assoc}, except that @var{key} must be a
 string, and comparison is done using @code{compare-strings}.
 Case differences are significant.

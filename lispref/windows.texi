@@ -676,7 +676,6 @@ If it is a frame, consider windows on that frame.
 @end defun
 
 @defvar buffer-display-time
-@tindex buffer-display-time
 This variable records the time at which a buffer was last made visible
 in a window.  It is always local in each buffer; each time
 @code{set-window-buffer} is called, it sets this variable to
@@ -1288,7 +1287,6 @@ If this variable is non-@code{nil}, it tells @code{scroll-other-window}
 which buffer to scroll.
 @end defvar
 
-@tindex scroll-margin
 @defopt scroll-margin
 This option specifies the size of the scroll margin---a minimum number
 of lines between point and the top or bottom of a window.  Whenever
@@ -1297,7 +1295,6 @@ the window scrolls automatically (if possible) to move point out of the
 margin, closer to the center of the window.
 @end defopt
 
-@tindex scroll-conservatively
 @defopt scroll-conservatively
 This variable controls how scrolling is done automatically when point
 moves off the screen (or into the scroll margin).  If the value is zero,
@@ -1339,7 +1336,6 @@ only by precisely @var{n} lines, not a smaller number.  This feature
 does not work with @code{scroll-margin}.  The default value is zero.
 @end defopt
 
-@tindex scroll-preserve-screen-position
 @defopt scroll-preserve-screen-position
 If this option is non-@code{nil}, the scroll functions move point so
 that the vertical position of the cursor is unchanged, when that is
@@ -2053,7 +2049,6 @@ Windows}) is what you need here.
 @end defvar
 
 @defvar redisplay-end-trigger-functions
-@tindex redisplay-end-trigger-functions
 This abnormal hook is run whenever redisplay in a window uses text that
 extends past a specified end trigger position.  You set the end trigger
 position with the function @code{set-window-redisplay-end-trigger}.  The
@@ -2064,18 +2059,15 @@ after the hook is run.
 @end defvar
 
 @defun set-window-redisplay-end-trigger window position
-@tindex set-window-redisplay-end-trigger
 This function sets @var{window}'s end trigger position at
 @var{position}.
 @end defun
 
 @defun window-redisplay-end-trigger &optional window
-@tindex window-redisplay-end-trigger
 This function returns @var{window}'s current end trigger position.
 @end defun
 
 @defvar window-configuration-change-hook
-@tindex window-configuration-change-hook
 A normal hook that is run every time you change the window configuration
 of an existing frame.  This includes splitting or deleting windows,
 changing the sizes of windows, or displaying a different buffer in a

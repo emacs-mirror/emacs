@@ -111,7 +111,6 @@ byte compiler.  @xref{Byte-Code Type}.
 @end table
 
 @defun functionp object
-@tindex functionp
 This function returns @code{t} if @var{object} is any kind of function,
 or a special form or macro.
 @end defun

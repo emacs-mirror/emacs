@@ -239,7 +239,6 @@ backup version 3 is excess.  The function @code{find-backup-file-name}
 (@pxref{Backup Names}) is responsible for determining which backup
 versions to delete, but does not delete them itself.
 
-@tindex delete-old-versions
 @defopt delete-old-versions
 If this variable is @code{t}, then saving a file deletes excess
 backup versions silently.  If it is @code{nil}, that means

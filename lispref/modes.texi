@@ -1229,7 +1229,6 @@ other variables could have the same effects on the mode line if
 @code{mode-line-format} were changed to use them.
 
 @defvar mode-line-mule-info
-@tindex mode-line-mule-info
 This variable holds the value of the mode-line construct that displays
 information about the language environment, buffer coding system, and
 current input method.  @xref{Non-ASCII Characters}.
@@ -1249,7 +1248,6 @@ Changing this variable does not force an update of the mode line.
 @end defvar
 
 @defvar mode-line-frame-identification
-@tindex mode-line-frame-identification
 This variable identifies the current frame.  The default value is
 @code{" "} if you are using a window system which can show multiple
 frames, or @code{"-%F "} on an ordinary terminal which shows only one

@@ -553,7 +553,6 @@ The value returned is always @code{nil}.
 @end deffn
 
 @defopt backward-delete-char-untabify-method
-@tindex backward-delete-char-untabify-method
 This option specifies how @code{backward-delete-char-untabify} should
 deal with whitespace.  Possible values include @code{untabify}, the
 default, meaning convert a tab to many spaces and delete one;
@@ -1416,7 +1415,6 @@ becomes buffer-local when set in any fashion.
 @end defvar
 
 @defvar fill-nobreak-predicate
-@tindex fill-nobreak-predicate
 This variable gives major modes a way to specify not to break a line at
 certain places.  Its value should be a function.  This function is
 called during filling, with no arguments and with point located at the
@@ -2533,7 +2531,6 @@ position less than or equal to @var{pos}; it equals @var{pos} only if
 @end defun
 
 @defun next-char-property-change position &optional limit
-@tindex next-char-property-change
 This is like @code{next-property-change} except that it considers
 overlay properties as well as text properties.  There is no @var{object}
 operand because this function operates only on the current buffer.  It
@@ -2541,7 +2538,6 @@ returns the next address at which either kind of property changes.
 @end defun
 
 @defun previous-char-property-change position &optional limit
-@tindex previous-char-property-change
 This is like @code{next-char-property-change}, but scans back from
 @var{position} instead of forward.
 @end defun
@@ -3532,7 +3528,6 @@ arguments.
 @end defvar
 
 @defmac combine-after-change-calls body...
-@tindex combine-after-change-calls
 The macro executes @var{body} normally, but arranges to call the
 after-change functions just once for a series of several changes---if
 that seems safe.

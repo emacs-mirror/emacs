@@ -508,7 +508,6 @@ with @code{insert-file-contents}, as long as @var{replace} and
 @end defun
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
-@tindex insert-file-contents-literally
 This function works like @code{insert-file-contents} except that it does
 not do format decoding (@pxref{Format Conversion}), does not do
 character code conversion (@pxref{Coding Systems}), does not run
@@ -597,7 +596,6 @@ files that the user does not need to know about.
 @end deffn
 
 @defmac with-temp-file file body...
-@tindex with-temp-file
 The @code{with-temp-file} macro evaluates the @var{body} forms with a
 temporary buffer as the current buffer; then, at the end, it writes the
 buffer contents into file @var{file}.  It kills the temporary buffer
@@ -812,7 +810,6 @@ give an error.
 @end defun
 
 @defun access-file filename string
-@tindex access-file
 This function opens file @var{filename} for reading, then closes it and
 returns @code{nil}.  However, if the open fails, it signals an error
 using @var{string} as the error message text.

@@ -121,7 +121,6 @@ nil @equiv{} 'nil
 @end example
 
 @defvar keyword-symbols-constant-flag
-@tindex keyword-symbols-constant-flag
 If this variable is @code{nil}, you are allowed to set and bind symbols
 whose names start with @samp{:} however you wish.  This is to make it
 possible to run old Lisp programs which do that.

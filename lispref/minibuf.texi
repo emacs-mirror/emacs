@@ -450,7 +450,6 @@ A history list for file-name arguments.
 @end defvar
 
 @defvar buffer-name-history
-@tindex buffer-name-history
 A history list for buffer-name arguments.
 @end defvar
 
@@ -1443,7 +1442,6 @@ The return value of @code{map-y-or-n-p} is the number of objects acted on.
   To read a password to pass to another program, you can use the
 function @code{read-passwd}.
 
-@tindex read-passwd
 @defun read-passwd prompt &optional confirm default
 This function reads a password, prompting with @var{prompt}.  It does
 not echo the password as the user types it; instead, it echoes @samp{.}

@@ -554,7 +554,6 @@ specifies @code{nil}.
 whenever the char-table does not specify any other non-@code{nil} value.
 
 @defun make-char-table subtype &optional init
-@tindex make-char-table
 Return a newly created char-table, with subtype @var{subtype}.  Each
 element is initialized to @var{init}, which defaults to @code{nil}.  You
 cannot alter the subtype of a char-table after the char-table is
@@ -565,18 +564,15 @@ all char-tables have room for any valid character code as an index.
 @end defun
 
 @defun char-table-p object
-@tindex char-table-p
 This function returns @code{t} if @var{object} is a char-table,
 otherwise @code{nil}.
 @end defun
 
 @defun char-table-subtype char-table
-@tindex char-table-subtype
 This function returns the subtype symbol of @var{char-table}.
 @end defun
 
 @defun set-char-table-default char-table new-default
-@tindex set-char-table-default
 This function sets the default value of @var{char-table} to
 @var{new-default}.
 
@@ -585,25 +581,21 @@ To do that, use @code{(char-table-range @var{char-table} nil)}.
 @end defun
 
 @defun char-table-parent char-table
-@tindex char-table-parent
 This function returns the parent of @var{char-table}.  The parent is
 always either @code{nil} or another char-table.
 @end defun
 
 @defun set-char-table-parent char-table new-parent
-@tindex set-char-table-parent
 This function sets the parent of @var{char-table} to @var{new-parent}.
 @end defun
 
 @defun char-table-extra-slot char-table n
-@tindex char-table-extra-slot
 This function returns the contents of extra slot @var{n} of
 @var{char-table}.  The number of extra slots in a char-table is
 determined by its subtype.
 @end defun
 
 @defun set-char-table-extra-slot char-table n value
-@tindex set-char-table-extra-slot
 This function stores @var{value} in extra slot @var{n} of
 @var{char-table}.
 @end defun
@@ -612,7 +604,6 @@ This function stores @var{value} in extra slot @var{n} of
 it can also specify a value for an entire character set.
 
 @defun char-table-range char-table range
-@tindex char-table-range
 This returns the value specified in @var{char-table} for a range of
 characters @var{range}.  Here are the possibilities for @var{range}:
 
@@ -636,7 +627,6 @@ name.  @xref{Splitting Characters}, for a description of generic characters.
 @end defun
 
 @defun set-char-table-range char-table range value
-@tindex set-char-table-range
 This function sets the value in @var{char-table} for a range of
 characters @var{range}.  Here are the possibilities for @var{range}:
 
@@ -663,7 +653,6 @@ name.  @xref{Splitting Characters}, for a description of generic characters.
 @end defun
 
 @defun map-char-table function char-table
-@tindex map-char-table
 This function calls @var{function} for each element of @var{char-table}.
 @var{function} is called with two arguments, a key and a value.  The key
 is a possible @var{range} argument for @code{char-table-range}---either
@@ -707,13 +696,11 @@ from that, you manipulate them with same functions used for other kinds
 of arrays.
 
 @defun make-bool-vector length initial
-@tindex make-bool-vector
 Return a new book-vector of @var{length} elements,
 each one initialized to @var{initial}.
 @end defun
 
 @defun bool-vector-p object
-@tindex bool-vector-p
 This returns @code{t} if @var{object} is a bool-vector,
 and @code{nil} otherwise.
 @end defun

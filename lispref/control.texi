@@ -173,7 +173,6 @@ never evaluated---it is ignored.  Thus, in the example below,
 @end defspec
 
 @defmac when condition then-forms@dots{}
-@tindex when
 This is a variant of @code{if} where there are no @var{else-forms},
 and possibly several @var{then-forms}.  In particular,
 
@@ -190,7 +189,6 @@ is entirely equivalent to
 @end defmac
 
 @defmac unless condition forms@dots{}
-@tindex condition
 This is a variant of @code{if} where there is no @var{then-form}:
 
 @example

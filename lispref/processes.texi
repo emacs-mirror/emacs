@@ -365,7 +365,6 @@ inputinput@point{}
 @end defun
 
 @defun shell-command-to-string command
-@tindex shell-command-to-string
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
 @end defun
@@ -594,7 +593,6 @@ This function returns the name of @var{process}.
 @end defun
 
 @defun process-contact process
-@tindex process-contact
 This function returns @code{t} for an ordinary child process, and
 @code{(@var{hostname} @var{service})} for a net connection
 (@pxref{Network}).
@@ -663,7 +661,6 @@ instead of a terminal (see @code{process-connection-type} in
 @end defun
 
 @defun process-coding-system process
-@tindex process-coding-system
 This function returns a cons cell describing the coding systems in use
 for decoding output from @var{process} and for encoding input to
 @var{process} (@pxref{Coding Systems}).  The value has this form:
@@ -674,7 +671,6 @@ for decoding output from @var{process} and for encoding input to
 @end defun
 
 @defun set-process-coding-system process decoding-system encoding-system
-@tindex set-process-coding-system
 This function specifies the coding systems to use for subsequent output
 from and input to @var{process}.  It will use @var{decoding-system} to
 decode subprocess output, and @var{encoding-system} to encode subprocess

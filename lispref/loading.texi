@@ -764,7 +764,6 @@ installed in @code{exec-directory} and has a name of the form
   See the source for the function @code{symbol-file}, for an example of
 code that loads this file to find functions in preloaded libraries.
 
-@tindex loadhist-special-hooks
 @defvar loadhist-special-hooks
 This variable holds a list of hooks to be scanned before unloading a
 library, to remove functions defined in the library.

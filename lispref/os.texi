@@ -779,7 +779,6 @@ This function returns the process @sc{id} of the Emacs process.
 @end defun
 
 @defvar tty-erase-char
-@tindex tty-erase-char
 This variable holds the erase character that was selected
 in the system's terminal driver, before Emacs was started.
 @end defvar

@@ -408,7 +408,6 @@ the speed.  @xref{Inline Functions}.
 @node Documentation Tips
 @section Tips for Documentation Strings
 
-@tindex checkdoc-minor-mode
 @findex checkdoc-minor-mode
   Here are some tips and conventions for the writing of documentation
 strings.  You can check many of these conventions by running the command

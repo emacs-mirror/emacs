@@ -93,7 +93,6 @@ Parameters}, for documentation of individual parameters you can specify.
 @end defun
 
 @defvar before-make-frame-hook
-@tindex before-make-frame-hook
 A normal hook run by @code{make-frame} before it actually creates the
 frame.
 @end defvar
@@ -933,7 +932,6 @@ change it.
 @end defun
 
 @defopt focus-follows-mouse
-@tindex focus-follows-mouse
 This option is how you inform Emacs whether the window manager transfers
 focus when the user moves the mouse.  Non-@code{nil} says that it does.
 When this is so, the command @code{other-frame} moves the mouse to a
@@ -1367,7 +1365,6 @@ the third, and so on through all eight cut buffers.
 @end defun
 
 @defvar selection-coding-system
-@tindex selection-coding-system
 This variable specifies the coding system to use when reading and
 writing selections, the clipboard, or a cut buffer.  @xref{Coding
 Systems}.  The default is @code{compound-text}, which converts to

@@ -655,7 +655,6 @@ the printed representation of a Lisp object as a string.
 @end defun
 
 @defmac with-output-to-string body...
-@tindex with-output-to-string
 This macro executes the @var{body} forms with @code{standard-output} set
 up to feed output into a string.  Then it returns that string.
 
@@ -714,7 +713,6 @@ In the second expression, the local binding of
 @code{prin1}, but not during the printing of the result.
 @end defvar
 
-@tindex print-escape-nonascii
 @defvar print-escape-nonascii
 If this variable is non-@code{nil}, then unibyte non-@sc{ascii}
 characters in strings are unconditionally printed as backslash sequences
@@ -726,7 +724,6 @@ characters, regardless of the value of this variable, when the output
 stream is a multibyte buffer or a marker pointing into one.
 @end defvar
 
-@tindex print-escape-multibyte
 @defvar print-escape-multibyte
 If this variable is non-@code{nil}, then multibyte non-@sc{ascii}
 characters in strings are unconditionally printed as backslash sequences

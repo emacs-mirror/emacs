@@ -320,7 +320,6 @@ marker should do by setting its @dfn{insertion type}.  Note that use of
 relocating a marker to point after the inserted text.
 
 @defun set-marker-insertion-type marker type
-@tindex set-marker-insertion-type
 This function sets the insertion type of marker @var{marker} to
 @var{type}.  If @var{type} is @code{t}, @var{marker} will advance when
 text is inserted at its position.  If @var{type} is @code{nil},
@@ -328,7 +327,6 @@ text is inserted at its position.  If @var{type} is @code{nil},
 @end defun
 
 @defun marker-insertion-type marker
-@tindex marker-insertion-type
 This function reports the current insertion type of @var{marker}.
 @end defun
 

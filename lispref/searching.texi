@@ -702,7 +702,6 @@ whitespace:
 @end defun
 
 @defun regexp-opt strings &optional paren
-@tindex regexp-opt
 This function returns an efficient regular expression that will match
 any of the strings @var{strings}.  This is useful when you need to make
 matching or searching as fast as possible---for example, for Font Lock
@@ -727,7 +726,6 @@ regular expression which is equivalent to the actual value
 @end defun
 
 @defun regexp-opt-depth regexp
-@tindex regexp-opt-depth
 This function returns the total number of grouping constructs
 (parenthesized expressions) in @var{regexp}.
 @end defun

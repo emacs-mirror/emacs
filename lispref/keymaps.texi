@@ -635,7 +635,6 @@ Lookup}).
 @end defvar
 
 @defvar minor-mode-overriding-map-alist
-@tindex minor-mode-overriding-map-alist
 This variable allows major modes to override the key bindings for
 particular minor modes.  The elements of this alist look like the
 elements of @code{minor-mode-map-alist}: @code{(@var{variable}

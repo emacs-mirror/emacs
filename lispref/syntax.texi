@@ -546,7 +546,6 @@ the current syntax table in the usual way.
 @end table
 
 @defvar parse-sexp-lookup-properties
-@tindex parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions pay attention
 to syntax text properties.  Otherwise they use only the current syntax
 table.

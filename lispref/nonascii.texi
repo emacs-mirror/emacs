@@ -69,7 +69,6 @@ The representation for a string is determined and recorded in the string
 when the string is constructed.
 
 @defvar enable-multibyte-characters
-@tindex enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte text.
@@ -79,7 +78,6 @@ You cannot set this variable directly; instead, use the function
 @end defvar
 
 @defvar default-enable-multibyte-characters
-@tindex default-enable-multibyte-characters
 This variable's value is entirely equivalent to @code{(default-value
 'enable-multibyte-characters)}, and setting this variable changes that
 default value.  Setting the local binding of
@@ -104,7 +102,6 @@ Return the buffer position corresponding to byte-position
 @end defun
 
 @defun multibyte-string-p string
-@tindex multibyte-string-p
 Return @code{t} if @var{string} is a multibyte string.
 @end defun
 
@@ -152,7 +149,6 @@ text to multibyte and back to unibyte reproduces the original unibyte
 text.
 
 @defvar nonascii-insert-offset
-@tindex nonascii-insert-offset
 This variable specifies the amount to add to a non-@sc{ascii} character
 when converting unibyte text to multibyte.  It also applies when
 @code{self-insert-command} inserts a character in the unibyte
@@ -166,7 +162,6 @@ value for the Latin 1 character set, rather than zero.
 @end defvar
 
 @defvar nonascii-translation-table
-@tindex nonascii-translation-table
 This variable provides a more general alternative to
 @code{nonascii-insert-offset}.  You can use it to specify independently
 how to translate each code in the range of 128 through 255 into a
@@ -175,14 +170,12 @@ If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @end defvar
 
 @defun string-make-unibyte string
-@tindex string-make-unibyte
 This function converts the text of @var{string} to unibyte
 representation, if it isn't already, and returns the result.  If
 @var{string} is a unibyte string, it is returned unchanged.
 @end defun
 
 @defun string-make-multibyte string
-@tindex string-make-multibyte
 This function converts the text of @var{string} to multibyte
 representation, if it isn't already, and returns the result.  If
 @var{string} is a multibyte string, it is returned unchanged.
@@ -195,7 +188,6 @@ representation, if it isn't already, and returns the result.  If
 multibyte when it was unibyte, or vice versa.
 
 @defun set-buffer-multibyte multibyte
-@tindex set-buffer-multibyte
 Set the representation type of the current buffer.  If @var{multibyte}
 is non-@code{nil}, the buffer becomes multibyte.  If @var{multibyte}
 is @code{nil}, the buffer becomes unibyte.
@@ -217,7 +209,6 @@ base buffer.
 @end defun
 
 @defun string-as-unibyte string
-@tindex string-as-unibyte
 This function returns a string with the same bytes as @var{string} but
 treating each byte as a character.  This means that the value may have
 more characters than @var{string} has.
@@ -227,7 +218,6 @@ If @var{string} is already a unibyte string, then the value is
 @end defun
 
 @defun string-as-multibyte string
-@tindex string-as-multibyte
 This function returns a string with the same bytes as @var{string} but
 treating each multibyte sequence as one character.  This means that the
 value may have fewer characters than @var{string} has.
@@ -281,18 +271,15 @@ characters, generally known as Big 5, is divided into two Emacs
 character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
 
 @defun charsetp object
-@tindex charsetp
 Returns @code{t} if @var{object} is a symbol that names a character set,
 @code{nil} otherwise.
 @end defun
 
 @defun charset-list
-@tindex charset-list
 This function returns a list of all defined character set names.
 @end defun
 
 @defun char-charset character
-@tindex char-charset
 This function returns the name of the character set that @var{character}
 belongs to.
 @end defun
@@ -323,7 +310,6 @@ there are either one or two distinguishing bytes; the number of such
 bytes is called the @dfn{dimension} of the character set.
 
 @defun charset-dimension charset
-@tindex charset-dimension
 This function returns the dimension of @var{charset}; at present, the
 dimension is always 1 or 2.
 @end defun
@@ -351,7 +337,6 @@ be concerned with the sequence of bytes used to represent a character,
 because Emacs translates automatically when necessary.
 
 @defun split-char character
-@tindex split-char
 Return a list containing the name of the character set of
 @var{character}, followed by one or two byte values (integers) which
 identify @var{character} within that character set.  The number of byte
@@ -374,7 +359,6 @@ the @code{ascii} character set:
 @end defun
 
 @defun make-char charset &rest byte-values
-@tindex make-char
 This function returns the character in character set @var{charset}
 identified by @var{byte-values}.  This is roughly the inverse of
 @code{split-char}.  Normally, you should specify either one or two
@@ -414,7 +398,6 @@ coding systems (@pxref{Coding Systems}) are capable of representing all
 of the text in question.
 
 @defun find-charset-region beg end &optional translation
-@tindex find-charset-region
 This function returns a list of the character sets that appear in the
 current buffer between positions @var{beg} and @var{end}.
 
@@ -437,7 +420,6 @@ When a multibyte buffer contains invalid byte-sequences (raw bytes).
 @end defun
 
 @defun find-charset-string string &optional translation
-@tindex find-charset-string
 This function returns a list of the character sets that appear in the
 string @var{string}.  It is just like @code{find-charset-region}, except
 that it applies to the contents of @var{string} instead of part of the
@@ -567,7 +549,6 @@ represented in the internal Emacs encoding.  This is like
 that the result is multibyte data.
 
 @defun coding-system-get coding-system property
-@tindex coding-system-get
 This function returns the specified property of the coding system
 @var{coding-system}.  Most coding system properties exist for internal
 purposes, but one that you might find useful is @code{mime-charset}.
@@ -605,7 +586,6 @@ operation finishes the job of choosing a coding system.  Very often
 you will want to find out afterwards which coding system was chosen.
 
 @defvar buffer-file-coding-system
-@tindex buffer-file-coding-system
 This variable records the coding system that was used for visiting the
 current buffer.  It is used for saving the buffer, and for writing part
 of the buffer with @code{write-region}.  When those operations ask the
@@ -618,7 +598,6 @@ to a subprocess.
 @end defvar
 
 @defvar save-buffer-coding-system
-@tindex save-buffer-coding-system
 This variable specifies the coding system for saving the buffer---but it
 is not used for @code{write-region}.
 
@@ -631,7 +610,6 @@ user specified.
 @end defvar
 
 @defvar last-coding-system-used
-@tindex last-coding-system-used
 I/O operations for files and subprocesses set this variable to the
 coding system name that was used.  The explicit encoding and decoding
 functions (@pxref{Explicit Encoding}) set it too.
@@ -651,27 +629,23 @@ selections for the window system.  @xref{Window System Selections}.
   Here are the Lisp facilities for working with coding systems:
 
 @defun coding-system-list &optional base-only
-@tindex coding-system-list
 This function returns a list of all coding system names (symbols).  If
 @var{base-only} is non-@code{nil}, the value includes only the
 base coding systems.  Otherwise, it includes variant coding systems as well.
 @end defun
 
 @defun coding-system-p object
-@tindex coding-system-p
 This function returns @code{t} if @var{object} is a coding system
 name.
 @end defun
 
 @defun check-coding-system coding-system
-@tindex check-coding-system
 This function checks the validity of @var{coding-system}.
 If that is valid, it returns @var{coding-system}.
 Otherwise it signals an error with condition @code{coding-system-error}.
 @end defun
 
 @defun coding-system-change-eol-conversion coding-system eol-type
-@tindex coding-system-change-eol-conversion
 This function returns a coding system which is like @var{coding-system}
 except for its eol conversion, which is specified by @code{eol-type}.
 @var{eol-type} should be @code{unix}, @code{dos}, @code{mac}, or
@@ -680,7 +654,6 @@ the end-of-line conversion from the data.
 @end defun
 
 @defun coding-system-change-text-conversion eol-coding text-coding
-@tindex coding-system-change-text-conversion
 This function returns a coding system which uses the end-of-line
 conversion of @var{eol-coding}, and the text conversion of
 @var{text-coding}.  If @var{text-coding} is @code{nil}, it returns
@@ -688,7 +661,6 @@ conversion of @var{eol-coding}, and the text conversion of
 @end defun
 
 @defun find-coding-systems-region from to
-@tindex find-coding-systems-region
 This function returns a list of coding systems that could be used to
 encode a text between @var{from} and @var{to}.  All coding systems in
 the list can safely encode any multibyte characters in that portion of
@@ -699,7 +671,6 @@ list @code{(undecided)}.
 @end defun
 
 @defun find-coding-systems-string string
-@tindex find-coding-systems-string
 This function returns a list of coding systems that could be used to
 encode the text of @var{string}.  All coding systems in the list can
 safely encode any multibyte characters in @var{string}.  If the text
@@ -708,13 +679,11 @@ contains no multibyte characters, this returns the list
 @end defun
 
 @defun find-coding-systems-for-charsets charsets
-@tindex find-coding-systems-for-charsets
 This function returns a list of coding systems that could be used to
 encode all the character sets in the list @var{charsets}.
 @end defun
 
 @defun detect-coding-region start end &optional highest
-@tindex detect-coding-region
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be ``raw bytes''
 (@pxref{Explicit Encoding}).
@@ -730,7 +699,6 @@ is @code{undecided} or @code{(undecided)}.
 @end defun
 
 @defun detect-coding-string string highest
-@tindex detect-coding-string
 This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
@@ -741,7 +709,6 @@ systems used for I/O to a subprocess.
 @node User-Chosen Coding Systems
 @subsection User-Chosen Coding Systems
 
-@tindex select-safe-coding-system
 @defun select-safe-coding-system from to &optional preferred-coding-system
 This function selects a coding system for encoding the text between
 @var{from} and @var{to}, asking the user to choose if necessary.
@@ -764,7 +731,6 @@ target text, and @var{to} is ignored.
 system, with completion.  @xref{Completion}.
 
 @defun read-coding-system prompt &optional default
-@tindex read-coding-system
 This function reads a coding system using the minibuffer, prompting with
 string @var{prompt}, and returns the coding system name as a symbol.  If
 the user enters null input, @var{default} specifies which coding system
@@ -772,7 +738,6 @@ to return.  It should be a symbol or a string.
 @end defun
 
 @defun read-non-nil-coding-system prompt
-@tindex read-non-nil-coding-system
 This function reads a coding system using the minibuffer, prompting with
 string @var{prompt}, and returns the coding system name as a symbol.  If
 the user tries to enter null input, it asks the user to try again.
@@ -794,7 +759,6 @@ don't change these variables; instead, override them using
 (@pxref{Specifying Coding Systems}).
 
 @defvar file-coding-system-alist
-@tindex file-coding-system-alist
 This variable is an alist that specifies the coding systems to use for
 reading and writing particular files.  Each element has the form
 @code{(@var{pattern} . @var{coding})}, where @var{pattern} is a regular
@@ -815,7 +779,6 @@ as described above.
 @end defvar
 
 @defvar process-coding-system-alist
-@tindex process-coding-system-alist
 This variable is an alist specifying which coding systems to use for a
 subprocess, depending on which program is running in the subprocess.  It
 works like @code{file-coding-system-alist}, except that @var{pattern} is
@@ -839,7 +802,6 @@ the end of line conversion---that is, one like @code{latin-1-unix},
 rather than @code{undecided} or @code{latin-1}.
 
 @defvar network-coding-system-alist
-@tindex network-coding-system-alist
 This variable is an alist that specifies the coding system to use for
 network streams.  It works much like @code{file-coding-system-alist},
 with the difference that the @var{pattern} in an element may be either a
@@ -849,7 +811,6 @@ stream.
 @end defvar
 
 @defvar default-process-coding-system
-@tindex default-process-coding-system
 This variable specifies the coding systems to use for subprocess (and
 network stream) input and output, when nothing else specifies what to
 do.
@@ -860,7 +821,6 @@ the subprocess, and @var{output-coding} applies to output to it.
 @end defvar
 
 @defun find-operation-coding-system operation &rest arguments
-@tindex find-operation-coding-system
 This function returns the coding system to use (by default) for
 performing @var{operation} with @var{arguments}.  The value has this
 form:
@@ -902,7 +862,6 @@ the variables @code{coding-system-for-read} and/or
 @code{coding-system-for-write}.
 
 @defvar coding-system-for-read
-@tindex coding-system-for-read
 If this variable is non-@code{nil}, it specifies the coding system to
 use for reading a file, or for input from a synchronous subprocess.
 
@@ -932,7 +891,6 @@ input, including @code{file-coding-system-alist},
 @end defvar
 
 @defvar coding-system-for-write
-@tindex coding-system-for-write
 This works much like @code{coding-system-for-read}, except that it
 applies to output rather than input.  It affects writing to files,
 as well as sending output to subprocesses and net connections.
@@ -944,7 +902,6 @@ affect it.
 @end defvar
 
 @defvar inhibit-eol-conversion
-@tindex inhibit-eol-conversion
 When this variable is non-@code{nil}, no end-of-line conversion is done,
 no matter which coding system is specified.  This applies to all the
 Emacs I/O and subprocess primitives, and to the explicit encoding and
@@ -1021,7 +978,6 @@ meant to operate on ``raw bytes''.  All of these functions discard text
 properties.
 
 @defun encode-coding-region start end coding-system
-@tindex encode-coding-region
 This function encodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The encoded text replaces the
 original text in the buffer.  The result of encoding is ``raw bytes,''
@@ -1029,14 +985,12 @@ but the buffer remains multibyte if it was multibyte before.
 @end defun
 
 @defun encode-coding-string string coding-system
-@tindex encode-coding-string
 This function encodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 encoded text.  The result of encoding is a unibyte string of ``raw bytes.''
 @end defun
 
 @defun decode-coding-region start end coding-system
-@tindex decode-coding-region
 This function decodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The decoded text replaces the
 original text in the buffer.  To make explicit decoding useful, the text
@@ -1044,7 +998,6 @@ before decoding ought to be ``raw bytes.''
 @end defun
 
 @defun decode-coding-string string coding-system
-@tindex decode-coding-string
 This function decodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
@@ -1061,26 +1014,22 @@ text using a particular encoding such as Latin-1.  Emacs does not set
 terminal.
 
 @defun keyboard-coding-system
-@tindex keyboard-coding-system
 This function returns the coding system that is in use for decoding
 keyboard input---or @code{nil} if no coding system is to be used.
 @end defun
 
 @defun set-keyboard-coding-system coding-system
-@tindex set-keyboard-coding-system
 This function specifies @var{coding-system} as the coding system to
 use for decoding keyboard input.  If @var{coding-system} is @code{nil},
 that means do not decode keyboard input.
 @end defun
 
 @defun terminal-coding-system
-@tindex terminal-coding-system
 This function returns the coding system that is in use for encoding
 terminal output---or @code{nil} for no encoding.
 @end defun
 
 @defun set-terminal-coding-system coding-system
-@tindex set-terminal-coding-system
 This function specifies @var{coding-system} as the coding system to use
 for encoding terminal output.  If @var{coding-system} is @code{nil},
 that means do not encode terminal output.
@@ -1160,7 +1109,6 @@ yet documented in this manual, but here we describe how to use them.
   Each input method has a name, which is currently a string;
 in the future, symbols may also be usable as input method names.
 
-@tindex current-input-method
 @defvar current-input-method
 This variable holds the name of the input method now active in the
 current buffer.  (It automatically becomes local in each buffer when set
@@ -1168,14 +1116,12 @@ in any fashion.)  It is @code{nil} if no input method is active in the
 buffer now.
 @end defvar
 
-@tindex default-input-method
 @defvar default-input-method
 This variable holds the default input method for commands that choose an
 input method.  Unlike @code{current-input-method}, this variable is
 normally global.
 @end defvar
 
-@tindex set-input-method
 @defun set-input-method input-method
 This function activates input method @var{input-method} for the current
 buffer.  It also sets @code{default-input-method} to @var{input-method}.
@@ -1183,7 +1129,6 @@ If @var{input-method} is @code{nil}, this function deactivates any input
 method for the current buffer.
 @end defun
 
-@tindex read-input-method-name
 @defun read-input-method-name prompt &optional default inhibit-null
 This function reads an input method name with the minibuffer, prompting
 with @var{prompt}.  If @var{default} is non-@code{nil}, that is returned
@@ -1193,7 +1138,6 @@ by default, if the user enters empty input.  However, if
 The returned value is a string.
 @end defun
 
-@tindex input-method-alist
 @defvar input-method-alist
 This variable defines all the supported input methods.
 Each element defines one input method, and should have the form:

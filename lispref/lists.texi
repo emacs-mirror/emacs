@@ -383,7 +383,6 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end defun
 
 @defun safe-length list
-@tindex safe-length
 This function returns the length of @var{list}, with no risk
 of either an error or an infinite loop.
 
@@ -397,23 +396,19 @@ worried that it may be circular, is with @code{length}.  @xref{Sequence
 Functions}.
 
 @defun caar cons-cell
-@tindex caar
 This is the same as @code{(car (car @var{cons-cell}))}.
 @end defun
 
 @defun cadr cons-cell
-@tindex cadr
 This is the same as @code{(car (cdr @var{cons-cell}))}
 or @code{(nth 1 @var{cons-cell})}.
 @end defun
 
 @defun cdar cons-cell
-@tindex cdar
 This is the same as @code{(cdr (car @var{cons-cell}))}.
 @end defun
 
 @defun cddr cons-cell
-@tindex cddr
 This is the same as @code{(cdr (cdr @var{cons-cell}))}
 or @code{(nthcdr 2 @var{cons-cell})}.
 @end defun
@@ -1469,7 +1464,6 @@ becomes clearer if the association is written in dotted pair notation:
 @end smallexample
 @end defun
 
-@tindex assoc-default
 @defun assoc-default key alist test default
 This function searches @var{alist} for a match for @var{key}.  For each
 element of @var{alist}, it compares the element (if it is an atom) or
