@@ -19656,7 +19656,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
       if (charpos < MATRIX_ROW_START_CHARPOS (first))
 	{
 	  *x = *y = *hpos = *vpos = 0;
-	  return 0;
+	  return 1;
 	}
       else
 	{
@@ -19696,7 +19696,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
     }
 
   *hpos = glyph - row->glyphs[TEXT_AREA];
-  return past_end;
+  return !past_end;
 }
 
 #else /* not 1 */
