@@ -4105,7 +4105,7 @@ Three arguments are passed to the function: the positions of\n\
 the beginning and end of the range of changed text,\n\
 and the length of the pre-change text replaced by that range.\n\
 \(For an insertion, the pre-change length is zero;\n\
-for a deletion, that length is the number of characters deleted,\n\
+for a deletion, that length is the number of bytes deleted,\n\
 and the post-change beginning and end are at the same place.)\n\
 \n\
 Buffer changes made while executing the `after-change-function'\n\
@@ -4136,9 +4136,9 @@ accomplishing an equivalent result by using other variables.");
 	       "List of function to call after each text change.\n\
 Three arguments are passed to each function: the positions of\n\
 the beginning and end of the range of changed text,\n\
-and the length of the pre-change text replaced by that range.\n\
+and the length in bytes of the pre-change text replaced by that range.\n\
 \(For an insertion, the pre-change length is zero;\n\
-for a deletion, that length is the number of characters deleted,\n\
+for a deletion, that length is the number of bytes deleted,\n\
 and the post-change beginning and end are at the same place.)\n\
 \n\
 Buffer changes made while executing the `after-change-functions'\n\
