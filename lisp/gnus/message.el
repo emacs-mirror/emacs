@@ -1414,6 +1414,7 @@ Point is left at the beginning of the narrowed-to region."
   (define-key message-mode-map "\C-c\C-v" 'message-delete-not-region)
   (define-key message-mode-map "\C-c\C-z" 'message-kill-to-signature)
   (define-key message-mode-map "\M-\r" 'message-newline-and-reformat)
+  (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
 
@@ -1777,6 +1778,12 @@ With the prefix argument FORCE, insert the header anyway."
     (fill-paragraph nil)
     (goto-char point)
     (forward-line 1)))
+
+(defun message-split-line ()
+  "Split current line, moving portion beyond point vertically down.
+If the current line has `message-yank-prefix', insert it on the new line."
+  (interactive "*")
+  (split-line message-yank-prefix))
 
 (defun message-insert-signature (&optional force)
   "Insert a signature.  See documentation for variable `message-signature'."
