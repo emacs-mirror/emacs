@@ -1635,7 +1635,7 @@ and it reactivates the mark."
     (goto-char omark)
     nil))
 
-(defun transient-mark-mode (arg &optional print-message)
+(defun transient-mark-mode (arg)
   "Toggle Transient Mark mode.
 With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
@@ -1644,14 +1644,15 @@ Changing the buffer \"deactivates\" the mark.
 So do certain other operations that set the mark
 but whose main purpose is something else--for example,
 incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
-  (interactive "P\np")
+  (interactive "P")
   (setq transient-mark-mode
 	(if (null arg)
 	    (not transient-mark-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (if transient-mark-mode
-      (message "Transient Mark mode enabled")
-    (message "Transient Mark mode disabled")))
+  (if (interactive-p)
+      (if transient-mark-mode
+	  (message "Transient Mark mode enabled")
+	(message "Transient Mark mode disabled"))))
 
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
