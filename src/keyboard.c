@@ -1116,8 +1116,10 @@ command_loop_1 ()
 	  Fsit_for (make_number (2), Qnil, Qnil);
 	  unbind_to (count, Qnil);
 
-	  echo_area_glyphs = 0;
-	  no_direct = 1;
+	  /* Clear the echo area.  */
+	  message2 (0);
+
+	  /* If a C-g came in before, treat it as input now.  */
 	  if (!NILP (Vquit_flag))
 	    {
 	      Vquit_flag = Qnil;
