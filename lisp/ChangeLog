@@ -1,3 +1,7 @@
+2003-07-21  John Paul Wallington  <jpw@gnu.org>
+
+	* subr.el (with-selected-window): Add closing paren.
+
 2003-07-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode): Use run-mode-hooks.
