@@ -680,13 +680,8 @@ This is relative to `smtpmail-queue-dir'.")
 				 ;; size estimate:
 				 (+ (- (point-max) (point-min))
 				    ;; Add one byte for each change-of-line
-				    ;; because or CR-LF representation:
-				    (count-lines (point-min) (point-max))
-				    ;; For some reason, an empty line is
-				    ;; added to the message.  Maybe this
-				    ;; is a bug, but it can't hurt to add
-				    ;; those two bytes anyway:
-				    2)))
+				    ;; because of CR-LF representation:
+				    (count-lines (point-min) (point-max)))))
 		     ""))
 		  (body-part
 		   (if (member '8bitmime supported-extensions)
