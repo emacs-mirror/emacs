@@ -170,11 +170,14 @@ and `./etc/termcap.dat' may already contain appropriately-modified
 entries.
 
 7) Run `make' in the top directory of the Emacs distribution to finish
-building Emacs in the standard way.  The final executable file will be
-named `src/emacs'.  If you want to have Emacs's executable programs
-and data files installed as well, run `make install'.
+building Emacs in the standard way.  The final executable file is
+named `src/emacs'.  You can execute this file "in place" without
+copying it, if you wish; then it automatically uses the sibling
+directories ../lisp, ../lib-src, ../info.
 
-By default, Emacs installs its files in the following directories:
+Or you can "install" the executable and the other Emacs into their
+installed locations, with `make install'.  By default, Emacs's files
+are installed in the following directories:
 
 `/usr/local/bin' holds the executable programs users normally run -
 		`emacs', `etags', `ctags', `b2m', `emacsclient',
