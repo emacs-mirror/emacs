@@ -23,6 +23,11 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
+;; $Id$
+
+;;; Todo:
+
+;; Make this mode deal with comint-last-input-end properly. 
 
 ;;; Code:
 
@@ -50,6 +55,13 @@ Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
 a pty is being used, and errors will result from using a pipe instead.")
 
+;;;###autoload
+;(setq rlogin-initially-track-cwd nil)
+(defvar rlogin-initially-track-cwd t
+  "*If non-`nil', do remote directory tracking via ange-ftp right away.
+If `nil', you can still enable directory tracking by doing 
+`M-x dirtrack-toggle'.")
+
 ;; Leave this nil because it makes rlogin-filter a tiny bit faster.  Plus
 ;; you can still call rlogin-password by hand.
 ;;;###autoload
@@ -69,27 +81,35 @@ the minibuffer using the command `rlogin-password' explicitly.")
        (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)))
 
 ;;;###autoload
-(defun rlogin (&optional prefix host)
+(defun rlogin (input-args &optional prefix)
   "Open a network login connection to HOST via the `rlogin' program.
 Input is sent line-at-a-time to the remote connection.
 
-Communication with HOST is recorded in a buffer *rlogin-HOST*.
-If a prefix argument is given and the buffer *rlogin-HOST* already exists,
-a new buffer with a different connection will be made. 
+Communication with the remote host is recorded in a buffer *rlogin-HOST*,
+where HOST is the first word in the string ARGS.  If a prefix argument is
+given and the buffer *rlogin-HOST* already exists, a new buffer with a
+different connection will be made.
 
 The variable `rlogin-program' contains the name of the actual program to
 run.  It can be a relative or absolute path. 
 
 The variable `rlogin-explicit-args' is a list of arguments to give to
-the rlogin when starting."
-  (interactive (list current-prefix-arg
-                     (read-from-minibuffer "Open rlogin connection to host: ")))
+the rlogin when starting.  They are added after any arguments given in ARGS."
+  (interactive (list (read-from-minibuffer "rlogin arguments (hostname first): ")
+                     current-prefix-arg))
   (let* ((process-connection-type rlogin-process-connection-type)
-         (buffer-name (format "*rlogin-%s*" host))
-         (args (if (and rlogin-explicit-args (listp rlogin-explicit-args))
-                   (cons host rlogin-explicit-args)
-                 (list host)))
-	 proc)
+         (buffer-name (format "*rlogin-%s*" input-args))
+         args
+	 proc
+         (old-match-data (match-data)))
+    (while (string-match "[ \t]*\\([^ \t]+\\)$" input-args)
+      (setq args 
+            (cons (substring input-args (match-beginning 1) (match-end 1))
+                  args)
+            input-args (substring input-args 0 (match-beginning 0))))
+    (store-match-data old-match-data)
+    (setq buffer-name (format "*rlogin-%s*" (car args))
+          args (append args rlogin-explicit-args))
     (and prefix (setq buffer-name 
                       (buffer-name (generate-new-buffer buffer-name))))
     (switch-to-buffer buffer-name)
@@ -101,37 +121,17 @@ the rlogin when starting."
           ;; Set process-mark to point-max in case there is text in the
           ;; buffer from a previous exited process.
           (set-marker (process-mark proc) (point-max))
-          (set-process-filter proc 'rlogin-filter)
           (rlogin-mode)
-	  ;; Set the prefix for filename completion and directory tracking
-	  ;; to find the remote machine's files by ftp.
-	  (set (make-local-variable 'comint-filename-prefix)
-	       (concat "/" host ":"))
-	  ;; Presume the user will start in his remote home directory.
-	  ;; If this is wrong, M-x dirs will fix it.
-	  (cd-absolute (concat "/" host ":~/"))
-	  ))))
-
-;;;###autoload
-(defun rlogin-with-args (host args)
-  "Open a new rlogin connection to HOST, even if one already exists. 
-String ARGS is given as arguments to the `rlogin' program, overriding the
-value of `rlogin-explicit-args'."
-  (interactive (list (read-from-minibuffer "Open rlogin connection to host: ")
-                     (read-from-minibuffer "with arguments: ")))
-  (let ((old-match-data (match-data))
-        (rlogin-explicit-args nil))
-    (unwind-protect
-        (progn
-          (while (string-match "[ \t]*\\([^ \t]+\\)$" args)
-            (setq rlogin-explicit-args 
-                  (cons (substring args 
-                                   (match-beginning 1)
-                                   (match-end 1))
-                        rlogin-explicit-args)
-                  args (substring args 0 (match-beginning 0)))))
-      (store-match-data old-match-data))
-    (rlogin 1 host)))
+          ;; Set this *after* running rlogin-mode because rlogin-mode calls
+          ;; shell-mode, which munges the process filter.
+          (set-process-filter proc 'rlogin-filter)
+          ;; Set the prefix for filename completion and directory tracking
+          ;; to find the remote machine's files by ftp.
+          (setq comint-filename-prefix (concat "/" (car args) ":"))
+          (and rlogin-initially-track-cwd
+               ;; Presume the user will start in his remote home directory.
+               ;; If this is wrong, M-x dirs will fix it.
+               (cd-absolute (concat "/" (car args) ":~/")))))))
 
 ;;;###autoload
 (defun rlogin-password (&optional proc)
@@ -165,6 +165,8 @@ If `rlogin-mode-hook' is set, run it."
   (setq major-mode 'rlogin-mode)
   (setq mode-name "rlogin")
   (use-local-map rlogin-mode-map)
+  (setq shell-dirtrackp rlogin-initially-track-cwd)
+  (make-local-variable 'comint-filename-prefix)
   (run-hooks 'rlogin-mode-hook))
 
 
