@@ -1,3 +1,7 @@
+1999-11-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/scribe.el (scribe-mode): Doc-fix.
+
 1999-11-13  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net-utils.el (run-network-program, net-utils-run-program):
