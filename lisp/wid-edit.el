@@ -3485,8 +3485,7 @@ To use this type, you must define :match or :match-alternatives."
 	 (help-echo (and widget (widget-get widget :help-echo))))
     (if (functionp help-echo)
 	(setq help-echo (funcall help-echo widget)))
-    (if (stringp help-echo)
-	(message "%s" help-echo))))
+    (if help-echo (message "%s" (eval help-echo)))))
 
 ;;; The End:
 
