@@ -3966,9 +3966,9 @@ x_draw_image_glyph_string (s)
       
       if (s->img->mask)
 	{
-	  /* Create a pixmap as large as the glyph string Fill it with
-	     the background color.  Copy the image to it, using its
-	     mask.  Copy the temporary pixmap to the display.  */
+	  /* Create a pixmap as large as the glyph string.  Fill it
+	     with the background color.  Copy the image to it, using
+	     its mask.  Copy the temporary pixmap to the display.  */
 	  Screen *screen = FRAME_X_SCREEN (s->f);
 	  int depth = DefaultDepthOfScreen (screen);
 
@@ -4002,10 +4002,6 @@ x_draw_image_glyph_string (s)
 	    }
 	}
       else
-	/* Implementation idea: Is it possible to construct a mask?
-	   We could look at the color at the margins of the image, and
-	   say that this color is probably the background color of the
-	   image.  */
 	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
       
       s->background_filled_p = 1;
@@ -6670,7 +6666,7 @@ note_mouse_highlight (f, x, y)
 	  Lisp_Object help, overlay;
 
 	  /* Check overlays first.  */
-	  help = Qnil;
+	  help = overlay = Qnil;
 	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
 	    {
 	      overlay = overlay_vec[i];
@@ -13089,6 +13085,7 @@ x_find_ccl_program (fontp)
 {
   Lisp_Object list, elt;
 
+  elt = Qnil;
   for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCDR (list))
     {
       elt = XCAR (list);
@@ -13098,6 +13095,7 @@ x_find_ccl_program (fontp)
 	      >= 0))
 	break;
     }
+  
   if (! NILP (list))
     {
       struct ccl_program *ccl
