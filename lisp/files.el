@@ -257,9 +257,9 @@ Not actually set up until the first time you you use it.")
 	 (while (setq cd-colon (string-match ":" cd-path cd-start))
 	   (setq cd-list
 		 (nconc cd-list
-			(list (substitute-in-file-name
-			       (if (= cd-start cd-colon)
-				   "."
+			(list (if (= cd-start cd-colon)
+				   nil
+				(substitute-in-file-name
 				 (file-name-as-directory
 				  (substring cd-path cd-start cd-colon)))))))
 	   (setq cd-start (+ cd-colon 1)))
