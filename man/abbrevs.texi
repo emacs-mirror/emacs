@@ -123,7 +123,7 @@ read with the minibuffer).
 
   To change the definition of an abbrev, just define a new definition.
 When the abbrev has a prior definition, the abbrev definition commands
-ask for confirmation for replacing it.
+ask for confirmation before replacing it.
 
   To remove an abbrev definition, give a negative argument to the abbrev
 definition command: @kbd{C-u - C-x a g} or @kbd{C-u - C-x a l}.  The
@@ -212,7 +212,7 @@ once.  This command is effective even if Abbrev mode is not enabled.
 
 @table @kbd
 @item M-x list-abbrevs
-Display a list of all abbrev definitions.  With numeric argument, list
+Display a list of all abbrev definitions.  With a numeric argument, list
 only local abbrevs.
 @item M-x edit-abbrevs
 Edit a list of abbrevs; you can add, alter or remove definitions.
@@ -387,8 +387,8 @@ you are expanding.
 @vindex dabbrev-case-fold-search
   This feature is controlled by the variable
 @code{dabbrev-case-fold-search}.  If it is @code{t}, case is ignored in
-this search; if @code{nil}, the word and the expansion must match in
-case.  If the value of @code{dabbrev-case-fold-search} is
+this search; if it is @code{nil}, the word and the expansion must match
+in case.  If the value of @code{dabbrev-case-fold-search} is
 @code{case-fold-search}, which is true by default, then the variable
 @code{case-fold-search} controls whether to ignore case while searching
 for expansions.
@@ -401,7 +401,7 @@ pattern.
 @vindex dabbrev-case-fold-search
   The variable @code{dabbrev-case-replace} controls whether to preserve
 the case pattern of the abbrev.  If it is @code{t}, the abbrev's case
-pattern is preserved in most cases; if @code{nil}, the expansion is
+pattern is preserved in most cases; if it is @code{nil}, the expansion is
 always copied verbatim.  If the value of @code{dabbrev-case-replace} is
 @code{case-replace}, which is true by default, then the variable
 @code{case-replace} controls whether to copy the expansion verbatim.

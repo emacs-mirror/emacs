@@ -125,7 +125,7 @@ ask you to report any bugs you find.  @xref{Bugs}.
 
 @item Button Down Event
 A button down event is the kind of input event generated right away when
-you press a mouse button.  @xref{Mouse Buttons}.
+you press down on a mouse button.  @xref{Mouse Buttons}.
 
 @item By Default
 See `default.'
@@ -255,11 +255,11 @@ The current line is a line point is on (@pxref{Point}).
 
 @item Current Paragraph
 The current paragraph is the paragraph that point is in.  If point is
-between paragraphs, the current paragraph is the one that follows point.
-@xref{Paragraphs}.
+between two paragraphs, the current paragraph is the one that follows
+point.  @xref{Paragraphs}.
 
 @item Current Defun
-The current defun is a defun (q.v.@:) that point is in.  If point is
+The current defun is the defun (q.v.@:) that point is in.  If point is
 between defuns, the current defun is the one that follows point.
 @xref{Defuns}.
 
@@ -315,7 +315,7 @@ Deleting a file means erasing it from the file system.
 @item Deletion of Messages
 Deleting a message means flagging it to be eliminated from your mail
 file.  Until you expunge (q.v.@:) the Rmail file, you can still undelete
-the messages you have deleted.  @xref{Rmail Deletion}.
+the messages you have flagged to be deleted.  @xref{Rmail Deletion}.
 
 @item Deletion of Windows
 Deleting a window means eliminating it from the screen.  Other windows
@@ -369,7 +369,7 @@ particular delimiter characters to reindent the line or insert one or
 more newlines in addition to self-insertion.
 
 @item End Of Line
-End of line is a character or characters which signal an end of a text
+End of line is a character or characters which signal the end of a text
 line.  On GNU and Unix systems, this is a newline (q.v.@:), but other
 systems have other conventions.  @xref{Coding Systems,end-of-line}.
 Emacs can recognize several end-of-line conventions in files and convert
@@ -519,7 +519,7 @@ tags (see `tags table').  @xref{Global Mark Ring}.
 
 @item Global Substitution
 Global substitution means replacing each occurrence of one string by
-another string through a large amount of text.  @xref{Replace}.
+another string throughout a large amount of text.  @xref{Replace}.
 
 @item Global Variable
 The global value of a variable (q.v.@:) takes effect in all buffers
@@ -616,8 +616,9 @@ that someone else is already editing.
 See `incremental search.'
 
 @item Justification
-Justification means adding extra spaces to lines of text to make them
-come exactly to a specified width.  @xref{Filling,Justification}.
+Justification means adding extra spaces within lines of text to make
+them align exactly to a specified width.
+@xref{Filling,Justification}.
 
 @item Keyboard Macro
 Keyboard macros are a way of defining new Emacs commands from
@@ -655,8 +656,8 @@ called yanking (q.v.@:).  @xref{Yanking}.
 @item Killing
 Killing means erasing text and saving it on the kill ring so it can be
 yanked (q.v.@:) later.  Some other systems call this ``cutting.''
-Most Emacs commands to erase text do killing, as opposed to deletion
-(q.v.@:).  @xref{Killing}.
+Most Emacs commands that erase text perform killing, as opposed to
+deletion (q.v.@:).  @xref{Killing}.
 
 @item Killing a Job
 Killing a job (such as, an invocation of Emacs) means making it cease
@@ -932,7 +933,7 @@ Visiting a file that is write-protected also makes a read-only buffer.
 @item Rectangle
 A rectangle consists of the text in a given range of columns on a given
 range of lines.  Normally you specify a rectangle by putting point at
-one corner and putting the mark at the opposite corner.
+one corner and putting the mark at the diagonally opposite corner.
 @xref{Rectangles}.
 
 @item Recursive Editing Level
@@ -967,7 +968,9 @@ digits.  @xref{Regexps}.
 @item Remote File
 A remote file is a file that is stored on a system other than your own.
 Emacs can access files on other computers provided that they are
-connected to the same network as your machine.  @xref{Remote Files}.
+connected to the same network as your machine, and (obviously) that
+you have a supported method to gain access to those files.
+@xref{Remote Files}.
 
 @item Repeat Count
 See `numeric argument.'
@@ -1061,7 +1064,7 @@ name.  @xref{Expressions,Sexps}.
 
 @item Simultaneous Editing
 Simultaneous editing means two users modifying the same file at once.
-Simultaneous editing if not detected can cause one user to lose his
+Simultaneous editing, if not detected, can cause one user to lose his
 work.  Emacs detects all cases of simultaneous editing and warns one
 of the users to investigate.
 @xref{Interlocking,Interlocking,Simultaneous Editing}.
@@ -1124,7 +1127,7 @@ Emacs does not make a termscript file unless you tell it to.
 @xref{Bugs}.
 
 @item Text
-Two meanings (@pxref{Text}):
+`Text' has two meanings (@pxref{Text}):
 
 @itemize @bullet
 @item

@@ -198,7 +198,7 @@ variable @env{REPLYTO} is set, @code{mail-default-reply-to} is
 initialized from that environment variable.
 
 @item In-reply-to
-This field contains a piece of text describing a message you are
+This field contains a piece of text describing the message you are
 replying to.  Some mail systems can use this information to correlate
 related pieces of mail.  Normally this field is filled in by Rmail
 when you reply to a message in Rmail, and you never need to
@@ -380,8 +380,8 @@ word commands to edit mail addresses.
 
   Mail mode is normally used in buffers set up automatically by the
 @code{mail} command and related commands.  However, you can also switch
-to Mail mode in a file-visiting buffer.  That is a useful thing to do if
-you have saved draft message text in a file.
+to Mail mode in a file-visiting buffer.  This is a useful thing to do if
+you have saved the text of a draft message in a file.
 
 @menu
 * Mail Sending::        Commands to send the message.
@@ -488,7 +488,7 @@ the full name, and what style to use, as in @code{mail-from-style}
 
   For completion purposes, the valid mailing addresses are taken to be
 the local users' names plus your personal mail aliases.  You can
-specify additional sources of valid addresses; look at customization
+specify additional sources of valid addresses; look at the customization
 group @samp{mailalias} to see the options for this
 (@pxref{Customization Groups}).
 
@@ -564,7 +564,7 @@ Insert the file @file{~/.signature} at the end of the message text
 Insert the contents of @var{file} at the end of the outgoing message
 (@code{mail-attach-file}).
 @item M-x ispell-message
-Do spelling correction on the message text, but not on citations from
+Perform spelling correction on the message text, but not on citations from
 other messages.
 @end table
 
@@ -580,7 +580,7 @@ separator line---that is, to the beginning of the message body text.
 the end of the message to say more about who you are.  The text comes
 from the file @file{~/.signature} in your home directory.  To insert
 your signature automatically, set the variable @code{mail-signature} to
-@code{t}; then starting a mail message automatically inserts the
+@code{t}; after that, starting a mail message automatically inserts the
 contents of your @file{~/.signature} file.  If you want to omit your
 signature from a particular message, delete it from the buffer before
 you send the message.
@@ -620,7 +620,7 @@ that hook.  @xref{Hooks}.
   The main difference between these hooks is just when they are
 invoked.  Whenever you type @kbd{M-x mail}, @code{mail-mode-hook} runs
 as soon as the @samp{*mail*} buffer is created.  Then the
-@code{mail-setup} function puts in the default contents of the buffer.
+@code{mail-setup} function inserts the default contents of the buffer.
 After these default contents are inserted, @code{mail-setup-hook} runs.
 
 @node Mail Amusements
@@ -672,7 +672,7 @@ MH-E and Message mode, not documented in this manual.
 @xref{MH-E,,,mh-e, The Emacs Interface to MH}.  @xref{Message,,,message,
 Message Manual}.  You can choose any of them as your preferred method.
 The commands @code{C-x m}, @code{C-x 4 m} and @code{C-x 5 m} use
-whichever agent you have specified.  So do various other Emacs commands
+whichever agent you have specified, as do various other Emacs commands
 and facilities that send mail.
 
 @vindex mail-user-agent

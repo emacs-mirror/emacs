@@ -23,7 +23,7 @@ command that the argument is for.  The prompt normally ends with a colon.
 @cindex default argument
   Sometimes a @dfn{default argument} appears in parentheses after the
 colon; it too is part of the prompt.  The default will be used as the
-argument value if you enter an empty argument (for example, just type
+argument value if you enter an empty argument (that is, just type
 @key{RET}).  For example, commands that read buffer names always show a
 default, which is the name of the buffer that will be used if you type
 just @key{RET}.
@@ -146,13 +146,14 @@ minibuffer window.  But you can make it taller in the normal fashion
 with @kbd{C-x ^}.
 
 @vindex resize-mini-windows
-  The minibuffer window expands vertically as necessary to hold the text
-that you put in the minibuffer if @code{resize-mini-windows} is
+  The minibuffer window expands vertically as necessary to hold the
+text that you put in the minibuffer if @code{resize-mini-windows} is
 non-@code{nil}.  If @code{resize-mini-windows} is @code{t}, the window
 is always resized to fit the size of the text it displays.  If
 @code{resize-mini-windows} is the symbol @code{grow-only}, the window
-is enlarged only, until it becomes empty again, at which point it
-shrinks to its normal size again.
+is enlarged when the size of displayed text grows, but never shrinked
+until it becomes empty, at which point it shrinks back to its normal
+size.
 
 @vindex max-mini-window-height
   The variable @code{max-mini-window-height} controls the maximum
@@ -164,7 +165,7 @@ window automatically.  The default value is 0.25.
   If while in the minibuffer you issue a command that displays help text
 of any sort in another window, you can use the @kbd{C-M-v} command while
 in the minibuffer to scroll the help text.  This lasts until you exit
-the minibuffer.  This feature is especially useful if a completing
+the minibuffer.  This feature is especially useful if the
 minibuffer gives you a list of possible completions.  @xref{Other Window}.
 
 @vindex enable-recursive-minibuffers
@@ -265,7 +266,7 @@ next hyphen or space.  If you have @samp{auto-f} in the minibuffer and
 type @key{SPC}, it finds that the completion is @samp{auto-fill-mode},
 but it stops completing after @samp{fill-}.  This gives
 @samp{auto-fill-}.  Another @key{SPC} at this point completes all the
-way to @samp{auto-fill-mode}.  @key{SPC} in the minibuffer when
+way to @samp{auto-fill-mode}.  Typing @key{SPC} in the minibuffer when
 completion is available runs the command
 @code{minibuffer-complete-word}.
 
@@ -277,7 +278,7 @@ window that displays a list of completions:
 @item Mouse-2
 Clicking mouse button 2 on a completion in the list of possible
 completions chooses that completion (@code{mouse-choose-completion}).
-You normally use this command while point is in the minibuffer; but you
+You normally use this command while point is in the minibuffer, but you
 must click in the list of completions, not in the minibuffer itself.
 
 @findex switch-to-completions
@@ -365,10 +366,11 @@ strings, then they are not ignored.  Ignored extensions do not apply to
 lists of completions---those always mention all possible completions.
 
 @vindex completion-auto-help
-  Normally, a completion command that finds the next character is undetermined
-automatically displays a list of all possible completions.  If the variable
-@code{completion-auto-help} is set to @code{nil}, this does not happen,
-and you must type @kbd{?} to display the possible completions.
+  Normally, a completion command that finds that the next character is
+undetermined automatically displays a list of all possible
+completions.  If the variable @code{completion-auto-help} is set to
+@code{nil}, this does not happen, and you must type @kbd{?} to display
+the possible completions.
 
 @cindex Partial Completion mode
 @vindex partial-completion-mode

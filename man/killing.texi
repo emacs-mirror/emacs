@@ -47,11 +47,12 @@ deleting it from the buffer.  When this happens, a message in the echo
 area tells you what is happening.
 
   The delete commands include @kbd{C-d} (@code{delete-char}) and
-@key{DEL} (@code{delete-backward-char}), which delete only one character at
-a time, and those commands that delete only spaces or newlines.  Commands
-that can destroy significant amounts of nontrivial data generally kill.
-The commands' names and individual descriptions use the words @samp{kill}
-and @samp{delete} to say which they do.
+@key{DEL} (@code{delete-backward-char}), which delete only one
+character at a time, and those commands that delete only spaces or
+newlines.  Commands that can destroy significant amounts of nontrivial
+data generally do a kill operation instead.  The commands' names and
+individual descriptions use the words @samp{kill} and @samp{delete} to
+say which kind of operation they perform.
 
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
@@ -132,7 +133,7 @@ should be.
 
   Why do we say ``or it should be''?  When Emacs starts up using a
 window system, it determines automatically which key or keys should be
-equivalent to @key{DEL}.  So the @key{BACKSPACE} and/or @key{DELETE}
+equivalent to @key{DEL}.  As a result, @key{BACKSPACE} and/or @key{DELETE}
 keys normally do the right things.  But in some unusual cases Emacs
 gets the wrong information from the system.  If these keys don't do
 what they ought to do, you need to tell Emacs which key to use for
@@ -144,7 +145,7 @@ keyboard really has, so it follows a uniform plan which may or may not
 fit your keyboard.  The uniform plan is that the ASCII @key{DEL}
 character deletes, and the ASCII @key{BS} (backspace) character asks
 for help (it is the same as @kbd{C-h}).  If this is not right for your
-keyboard, if you find that the key which ought to delete backwards
+keyboard, i.e.@: if you find that the key which ought to delete backwards
 enters Help instead, see @ref{DEL Gets Help}.
 
 @kindex M-\
@@ -157,7 +158,7 @@ characters: spaces, tabs and newlines.  @kbd{M-\}
 characters before and after point.  @kbd{M-@key{SPC}}
 (@code{just-one-space}) does likewise but leaves a single space after
 point, regardless of the number of spaces that existed previously (even
-zero).
+if there were none before).
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
@@ -192,7 +193,7 @@ of the line, you can be sure @kbd{C-k} will kill the newline.
 
   When @kbd{C-k} is given a positive argument, it kills that many lines
 and the newlines that follow them (however, text on the current line
-before point is spared).  With a negative argument @minus{}@var{n}, it
+before point is not killed).  With a negative argument @minus{}@var{n}, it
 kills @var{n} lines preceding the current line (together with the text
 on the current line before point).  Thus, @kbd{C-u - 2 C-k} at the front
 of a line kills the two previous lines.
@@ -343,8 +344,9 @@ This is a line @point{}of sample text.
 with point shown by @point{}.  If you type @kbd{M-d M-@key{DEL} M-d
 M-@key{DEL}}, killing alternately forward and backward, you end up with
 @samp{a line of sample} as one entry in the kill ring, and @samp{This
-is@ @ text.} in the buffer.  (Note the double space, which you can clean
-up with @kbd{M-@key{SPC}} or @kbd{M-q}.)
+is@ @ text.} in the buffer.  (Note the double space between @samp{is}
+and @samp{text}, which you can clean up with @kbd{M-@key{SPC}} or
+@kbd{M-q}.)
 
   Another way to kill the same text is to move back two words with
 @kbd{M-b M-b}, then kill all four words forward with @kbd{C-u M-d}.
@@ -390,7 +392,7 @@ yank'' pointer moves to the newly made entry at the front of the ring.
 text in the buffer changes to match.  Enough @kbd{M-y} commands can move
 the pointer to any entry in the ring, so you can get any entry into the
 buffer.  Eventually the pointer reaches the end of the ring; the next
-@kbd{M-y} moves it to the first entry again.
+@kbd{M-y} loops back around to the first entry again.
 
   @kbd{M-y} moves the ``last yank'' pointer around the ring, but it does
 not change the order of the entries in the ring, which always runs from
@@ -444,15 +446,15 @@ scattered pieces of text into a buffer or into a file.
 
 @table @kbd
 @item M-x append-to-buffer
-Append region to contents of specified buffer.
+Append region to the contents of specified buffer.
 @item M-x prepend-to-buffer
-Prepend region to contents of specified buffer.
+Prepend region to the contents of specified buffer.
 @item M-x copy-to-buffer
-Copy region into specified buffer, deleting that buffer's old contents.
+Copy region into a specified buffer, deleting that buffer's old contents.
 @item M-x insert-buffer
-Insert contents of specified buffer into current buffer at point.
+Insert the contents of specified buffer into current buffer at point.
 @item M-x append-to-file
-Append region to contents of specified file, at the end.
+Append region to the contents of specified file, at the end.
 @end table
 
   To accumulate text into a buffer, use @kbd{M-x append-to-buffer}.
@@ -461,7 +463,7 @@ buffer specified.  If you specify a nonexistent buffer,
 @code{append-to-buffer} creates the buffer.  The text is inserted
 wherever point is in that buffer.  If you have been using the buffer for
 editing, the copied text goes into the middle of the text of the buffer,
-wherever point happens to be in it.
+starting from wherever point happens to be at that moment.
 
   Point in that buffer is left at the end of the copied text, so
 successive uses of @code{append-to-buffer} accumulate the text in the
@@ -474,7 +476,7 @@ a buffer, then point is always at the end.
   @kbd{M-x prepend-to-buffer} is just like @code{append-to-buffer}
 except that point in the other buffer is left before the copied text, so
 successive prependings add text in reverse order.  @kbd{M-x
-copy-to-buffer} is similar except that any existing text in the other
+copy-to-buffer} is similar, except that any existing text in the other
 buffer is deleted, so the buffer is left containing just the text newly
 copied into it.
 
@@ -512,7 +514,7 @@ text into or out of such formats.
   When you must specify a rectangle for a command to work on, you do it
 by putting the mark at one corner and point at the opposite corner.  The
 rectangle thus specified is called the @dfn{region-rectangle} because
-you control it in about the same way the region is controlled.  But
+you control it in much the same way as the region is controlled.  But
 remember that a given combination of point and mark values can be
 interpreted either as a region or as a rectangle, depending on the
 command that uses them.
@@ -548,8 +550,8 @@ Replace rectangle contents with @var{string} on each line.
 Insert @var{string} on each line of the rectangle.
 @end table
 
-  The rectangle operations fall into two classes: commands deleting and
-inserting rectangles, and commands for blank rectangles.
+  The rectangle operations fall into two classes: commands for
+deleting and inserting rectangles, and commands for blank rectangles.
 
 @kindex C-x r k
 @kindex C-x r d
@@ -560,7 +562,7 @@ discard the text (delete it) or save it as the ``last killed''
 rectangle.  The commands for these two ways are @kbd{C-x r d}
 (@code{delete-rectangle}) and @kbd{C-x r k} (@code{kill-rectangle}).  In
 either case, the portion of each line that falls inside the rectangle's
-boundaries is deleted, causing following text (if any) on the line to
+boundaries is deleted, causing any following text on the line to
 move left into the gap.
 
   Note that ``killing'' a rectangle is not killing in the usual sense; the
@@ -575,9 +577,9 @@ commands have to be used and yank-popping is hard to make sense of.
 (@code{yank-rectangle}).  Yanking a rectangle is the opposite of killing
 one.  Point specifies where to put the rectangle's upper left corner.
 The rectangle's first line is inserted there, the rectangle's second
-line is inserted at a position one line vertically down, and so on.  The
-number of lines affected is determined by the height of the saved
-rectangle.
+line is inserted at the same horizontal, but one line vertically down,
+and so on.  The number of lines affected is determined by the height of
+the saved rectangle.
 
   You can convert single-column lists into double-column lists using
 rectangle killing and yanking; kill the second half of the list as a

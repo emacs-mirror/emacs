@@ -43,7 +43,7 @@ compilation errors occurred.
 @table @kbd
 @item M-x compile
 Run a compiler asynchronously under Emacs, with error messages going to
-@samp{*compilation*} buffer.
+the @samp{*compilation*} buffer.
 @item M-x grep
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
@@ -161,9 +161,10 @@ Visit the locus of the error message that you click on.
 @kindex C-x `
 @findex next-error
   You can visit the source for any particular error message by moving
-point in @samp{*compilation*} to that error message and typing @key{RET}
-(@code{compile-goto-error}).  Or click @kbd{Mouse-2} on the error message;
-you need not switch to the @samp{*compilation*} buffer first.
+point in the @samp{*compilation*} buffer to that error message and
+typing @key{RET} (@code{compile-goto-error}).  Alternatively, you can
+click @kbd{Mouse-2} on the error message; you need not switch to the
+@samp{*compilation*} buffer first.
 
   To parse the compiler error messages sequentially, type @kbd{C-x `}
 (@code{next-error}).  The character following the @kbd{C-x} is the
@@ -284,24 +285,24 @@ to a particular debugger program.
 @table @kbd
 @item M-x gdb @key{RET} @var{file} @key{RET}
 @findex gdb
-Run GDB as a subprocess of Emacs.  This command creates a buffer for
-input and output to GDB, and switches to it.  If a GDB buffer already
-exists, it just switches to that buffer.
+This command runs GDB as a subprocess of Emacs.  It creates a buffer
+for input and output to GDB, and switches to it.  If a GDB buffer
+already exists, it just switches to that buffer.
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
-Similar, but run DBX instead of GDB.
+Similar, but runs DBX instead of GDB.
 
 @item M-x xdb @key{RET} @var{file} @key{RET}
 @findex xdb
 @vindex gud-xdb-directories
-Similar, but run XDB instead of GDB.  Use the variable
+Similar, but runs XDB instead of GDB.  Use the variable
 @code{gud-xdb-directories} to specify directories to search for source
 files.
 
 @item M-x sdb @key{RET} @var{file} @key{RET}
 @findex sdb
-Similar, but run SDB instead of GDB.
+Similar, but runs SDB instead of GDB.
 
   Some versions of SDB do not mention source file names in their
 messages.  When you use them, you need to have a valid tags table
@@ -345,7 +346,7 @@ displayed in the marginal area of the Emacs window.}  Moving point in
 this buffer does not move the arrow.
 
   You can start editing these source files at any time in the buffers
-that were made to display them.  The arrow is not part of the file's
+that display them.  The arrow is not part of the file's
 text; it appears only on the screen.  If you do modify a source file,
 keep in mind that inserting or deleting lines will throw off the arrow's
 positioning; GUD has no way of figuring out which line corresponded
@@ -368,9 +369,9 @@ selecting stack frames, and for stepping through the program.  These
 commands are available both in the GUD buffer and globally, but with
 different key bindings.
 
-  The breakpoint commands are usually used in source file buffers,
-because that is the way to specify where to set or clear the breakpoint.
-Here's the global command to set a breakpoint:
+  The breakpoint commands are normally used in source file buffers,
+because that is the easiest way to specify where to set or clear the
+breakpoint.  Here's the global command to set a breakpoint:
 
 @table @kbd
 @item C-x @key{SPC}
@@ -513,7 +514,7 @@ debugger interaction buffer:
 
   This defines a command named @var{function} which sends
 @var{cmdstring} to the debugger process, and gives it the documentation
-string @var{docstring}.  You can use the command thus defined in any
+string @var{docstring}.  You can then use the command thus defined in any
 buffer.  If @var{binding} is non-@code{nil}, @code{gud-def} also binds
 the command to @kbd{C-c @var{binding}} in the GUD buffer's mode and to
 @kbd{C-x C-a @var{binding}} generally.
@@ -748,7 +749,7 @@ is @code{eval-region}.  @kbd{M-x eval-region} parses the text of the
 region as one or more Lisp expressions, evaluating them one by one.
 @kbd{M-x eval-current-buffer} is similar but evaluates the entire
 buffer.  This is a reasonable way to install the contents of a file of
-Lisp code that you are just ready to test.  Later, as you find bugs and
+Lisp code that you are ready to test.  Later, as you find bugs and
 change individual functions, use @kbd{C-M-x} on each function that you
 change.  This keeps the Lisp world in step with the source file.
 

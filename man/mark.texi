@@ -95,7 +95,7 @@ use keyboard commands to set the mark.  @xref{Mouse Commands}.
 @findex exchange-point-and-mark
   Ordinary terminals have only one cursor, so there is no way for Emacs
 to show you where the mark is located.  You have to remember.  The usual
-solution to this problem is to set the mark and then use it soon, before
+solution to this problem is to set the mark and then use it before
 you forget where it is.  Alternatively, you can see where the mark is
 with the command @kbd{C-x C-x} (@code{exchange-point-and-mark}) which
 puts the mark where point was and point where the mark was.  The extent
@@ -106,7 +106,7 @@ reactivates the mark.
   @kbd{C-x C-x} is also useful when you are satisfied with the position
 of point but want to move the other end of the region (where the mark
 is); do @kbd{C-x C-x} to put point at that end of the region, and then
-move it.  A second use of @kbd{C-x C-x}, if necessary, puts the mark at
+move it.  Using @kbd{C-x C-x} a second time, if necessary, puts the mark at
 the new position with point back at its original position.
 
   For more facilities that allow you to go to previously set marks, see
@@ -155,8 +155,8 @@ the mode.
 @itemize @bullet
 @item
 To set the mark, type @kbd{C-@key{SPC}} (@code{set-mark-command}).
-This makes the mark active; as you move point, you will see the region
-highlighting grow and shrink.
+This makes the mark active; as you move point, you will see the
+highlighted region grow and shrink.
 
 @item 
 The mouse commands for specifying the mark also make it active.  So do
@@ -175,8 +175,8 @@ on a region will get an error and refuse to operate.  You can make the
 region active again by typing @kbd{C-x C-x}.
 
 @item
-Commands like @kbd{M->} and @kbd{C-s} that ``leave the mark behind'' in
-addition to some other primary purpose do not activate the new mark.
+Commands like @kbd{M->} and @kbd{C-s} that ``leave the mark behind'', in
+addition to some other primary purpose, do not activate the new mark.
 You can activate the new region by executing @kbd{C-x C-x}
 (@code{exchange-point-and-mark}).
 
@@ -195,9 +195,9 @@ when there is a region.  Outside Transient Mark mode, you must type
 in their own documentation.
 @end itemize
 
-  Highlighting of the region uses the @code{region} face; you can
-customize how the region is highlighted by changing this face.
-@xref{Face Customization}.
+  The highlighting of the region uses the @code{region} face; you can
+customize the appearance of the highlighted region by changing this
+face.  @xref{Face Customization}.
 
 @vindex highlight-nonselected-windows
   When multiple windows show the same buffer, they can have different
@@ -206,7 +206,7 @@ all share one common mark position).  Ordinarily, only the selected
 window highlights its region (@pxref{Windows}).  However, if the
 variable @code{highlight-nonselected-windows} is non-@code{nil}, then
 each window highlights its own region (provided that Transient Mark mode
-is enabled and the window's buffer's mark is active).
+is enabled and the mark in the buffer's window is active).
 
   When Transient Mark mode is not enabled, every command that sets the
 mark also activates it, and nothing ever deactivates it.
@@ -249,8 +249,8 @@ Print hardcopy with @kbd{M-x print-region} (@pxref{Hardcopy}).
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
 @end itemize
 
-  Most commands that operate on the text in the
-region have the word @code{region} in their names.
+  Most commands that operate on text in the region have the word
+@code{region} in their names.
 
 @node Marking Objects
 @section Commands to Mark Textual Objects
@@ -261,18 +261,18 @@ object such as a word, list, paragraph or page.
 
 @table @kbd
 @item M-@@
-Set mark after end of next word (@code{mark-word}).  This command and
+Set mark after the end of next word (@code{mark-word}).  This command and
 the following one do not move point.
 @item C-M-@@
-Set mark after end of following balanced expression (@code{mark-sexp}).
+Set mark after the end of following balanced expression (@code{mark-sexp}).
 @item M-h
-Put region around current paragraph (@code{mark-paragraph}).
+Put region around the current paragraph (@code{mark-paragraph}).
 @item C-M-h
-Put region around current defun (@code{mark-defun}).
+Put region around the current defun (@code{mark-defun}).
 @item C-x h
-Put region around entire buffer (@code{mark-whole-buffer}).
+Put region around the entire buffer (@code{mark-whole-buffer}).
 @item C-x C-p
-Put region around current page (@code{mark-page}).
+Put region around the current page (@code{mark-page}).
 @end table
 
 @kbd{M-@@} (@code{mark-word}) puts the mark at the end of the next
@@ -288,8 +288,8 @@ the beginning of the paragraph that surrounds or follows point, and puts
 the mark at the end of that paragraph (@pxref{Paragraphs}).  It prepares
 the region so you can indent, case-convert, or kill a whole paragraph.
 
-  @kbd{C-M-h} (@code{mark-defun}) similarly puts point before and the
-mark after the current or following major top-level definition, or
+  @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
+mark after, the current or following major top-level definition, or
 defun (@pxref{Moving by Defuns}).  @kbd{C-x C-p} (@code{mark-page})
 puts point before the current page, and mark at the end
 (@pxref{Pages}).  The mark goes after the terminating page delimiter
@@ -315,7 +315,7 @@ remembering a spot that you may want to go back to.  To make this
 feature more useful, each buffer remembers 16 previous locations of the
 mark, in the @dfn{mark ring}.  Commands that set the mark also push the
 old mark onto this ring.  To return to a marked location, use @kbd{C-u
-C-@key{SPC}} (or @kbd{C-u C-@@}); this is the command
+C-@key{SPC}} (or @kbd{C-u C-@@}); this is the same as the command
 @code{set-mark-command} given a numeric argument.  It moves point to
 where the mark was, and restores the mark from the ring of former
 marks.  Thus, repeated use of this command moves point to all of the old
@@ -341,7 +341,7 @@ Registers}).
 @vindex mark-ring-max
   The variable @code{mark-ring-max} specifies the maximum number of
 entries to keep in the mark ring.  If that many entries exist and
-another one is pushed, the last one in the list is discarded.  Repeating
+another one is pushed, the earliest one in the list is discarded.  Repeating
 @kbd{C-u C-@key{SPC}} cycles through the positions currently in the
 ring.
 

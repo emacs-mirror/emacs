@@ -223,7 +223,7 @@ commands may also be useful (@pxref{Rectangles}).
 Clear out the region-rectangle with spaces
 (@code{picture-clear-rectangle}).  With argument, delete the text.
 @item C-c C-w @var{r}
-Similar but save rectangle contents in register @var{r} first
+Similar, but save rectangle contents in register @var{r} first
 (@code{picture-clear-rectangle-to-register}).
 @item C-c C-y
 Copy last killed rectangle into the buffer by overwriting, with upper
@@ -255,9 +255,9 @@ rectangle for @kbd{C-c C-y}.
 @findex picture-yank-rectangle
 @findex picture-yank-rectangle-from-register
   The Picture mode commands for yanking rectangles differ from the
-standard ones in overwriting instead of inserting.  This is the same way
-that Picture mode insertion of other text differs from other modes.
-@kbd{C-c C-y} (@code{picture-yank-rectangle}) inserts (by overwriting)
-the rectangle that was most recently killed, while @kbd{C-c C-x}
-(@code{picture-yank-rectangle-from-register}) does likewise for the
-rectangle found in a specified register.
+standard ones in that they overwrite instead of inserting.  This is
+the same way that Picture mode insertion of other text differs from
+other modes.  @kbd{C-c C-y} (@code{picture-yank-rectangle}) inserts
+(by overwriting) the rectangle that was most recently killed, while
+@kbd{C-c C-x} (@code{picture-yank-rectangle-from-register}) does
+likewise for the rectangle found in a specified register.

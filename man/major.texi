@@ -31,16 +31,17 @@ how comments are to be delimited.  Many major modes redefine the
 syntactical properties of characters appearing in the buffer.
 @xref{Syntax}.
 
-  The major modes fall into three major groups.  Lisp mode (which has
-several variants), C mode, Fortran mode and others are for specific
-programming languages.  Text mode, Nroff mode, SGML mode, @TeX{} mode
-and Outline mode are for normal text, plain or marked up.  The remaining
-major modes are not intended for use on users' files; they are used in
-buffers created for specific purposes by Emacs, such as Dired mode for
-buffers made by Dired (@pxref{Dired}), Mail mode for buffers made by
-@kbd{C-x m} (@pxref{Sending Mail}), and Shell mode for buffers used for
-communicating with an inferior shell process (@pxref{Interactive
-Shell}).
+  The major modes fall into three major groups.  The first group
+contains Lisp mode (which has several variants), C mode, Fortran mode
+and others.  These modes are for specific programming languages.  The
+second group contains Text mode, Nroff mode, SGML mode, @TeX{} mode
+and Outline mode.  These modes are for normal text, plain or marked
+up.  The remaining major modes are not intended for use on users'
+files; they are used in buffers created for specific purposes by
+Emacs, such as Dired mode for buffers made by Dired (@pxref{Dired}),
+Mail mode for buffers made by @kbd{C-x m} (@pxref{Sending Mail}), and
+Shell mode for buffers used for communicating with an inferior shell
+process (@pxref{Interactive Shell}).
 
   Most programming-language major modes specify that only blank lines
 separate paragraphs.  This is to make the paragraph commands useful.
@@ -88,8 +89,8 @@ or this form,
 For example, one element normally found in the list has the form
 @code{(@t{"\\.c\\'"} . c-mode)}, and it is responsible for selecting C
 mode for files whose names end in @file{.c}.  (Note that @samp{\\} is
-needed in Lisp syntax to include a @samp{\} in the string, which is
-needed to suppress the special meaning of @samp{.} in regexps.)  If the
+needed in Lisp syntax to include a @samp{\} in the string, which must
+be used to suppress the special meaning of @samp{.} in regexps.)  If the
 element has the form @code{(@var{regexp} @var{mode-function}
 @var{flag})} and @var{flag} is non-@code{nil}, then after calling
 @var{mode-function}, the suffix that matched @var{regexp} is discarded
@@ -106,7 +107,7 @@ mode name should appear in this line both preceded and followed by
 
 @noindent
 tells Emacs to use Lisp mode.  Such an explicit specification overrides
-any defaulting based on the file name.  Note how the semicolon is used
+any defaults based on the file name.  Note how the semicolon is used
 to make Lisp treat this line as a comment.
 
   Another format of mode specification is
@@ -158,7 +159,7 @@ mode is taken from the previously current buffer.
 mode Emacs would choose automatically: use the command @kbd{M-x
 normal-mode} to do this.  This is the same function that
 @code{find-file} calls to choose the major mode.  It also processes
-the file's local variables list if any.
+the file's local variables list (if any).
 
 @vindex change-major-mode-with-file-name
   The commands @kbd{C-x C-w} and @code{set-visited-file-name} change to

@@ -12,22 +12,22 @@ adjust indentation.
 @c WideCommands
 @table @kbd
 @item @key{TAB}
-Indent current line ``appropriately'' in a mode-dependent fashion.
+Indent the current line ``appropriately'' in a mode-dependent fashion.
 @item @kbd{C-j}
 Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @item M-^
-Merge two lines (@code{delete-indentation}).  This would cancel out
-the effect of @kbd{C-j}.
+Merge the previous and the current line (@code{delete-indentation}).
+This would cancel out the effect of @kbd{C-j}.
 @item C-M-o
-Split line at point; text on the line after point becomes a new line
-indented to the same column that it now starts in (@code{split-line}).
+Split the line at point; text on the line after point becomes a new line
+indented to the same column where point is located (@code{split-line}).
 @item M-m
 Move (forward or back) to the first nonblank character on the current
 line (@code{back-to-indentation}).
 @item C-M-\
-Indent several lines to same column (@code{indent-region}).
+Indent several lines to the same column (@code{indent-region}).
 @item C-x @key{TAB}
-Shift block of lines rigidly right or left (@code{indent-rigidly}).
+Shift a block of lines rigidly right or left (@code{indent-rigidly}).
 @item M-i
 Indent from point to the next prespecified tab stop column
 (@code{tab-to-tab-stop}).
@@ -52,8 +52,8 @@ knows about many aspects of C syntax.
 indents to the next tab stop column.  You can set the tab stops with
 @kbd{M-x edit-tab-stops}.
 
-  Normally, @key{TAB} inserts a mix of tabs and spaces to indent lines.
-@xref{Just Spaces}, for how to override that.
+  Normally, @key{TAB} inserts an optimal mix of tabs and spaces to
+indent lines.  @xref{Just Spaces}, for how to override that.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.
