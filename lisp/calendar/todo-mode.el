@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.21 1997/10/24 16:51:02 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.22 1997/10/24 16:53:20 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -32,17 +32,12 @@
 ;;
 ;;      To get this to work, make emacs execute the line
 ;;
-;;          (require 'todo-mode) ;; load the TODO package
-;;
-;;      If you don't like "require", do as Harald Backer prescribes:
-;;
-;;          "I don't like require statements as they slow down startup
-;;          emacs.  As I include .todo-do in diary and start calendar
-;;          at startup of emacs, the mode indicator of .todo-do will
-;;          make emacs fail, unless the following is defined:"
-;;
 ;;          (autoload 'todo-mode "todo-mode"
-;;              "Major mode for editing TODO lists." t)
+;;                    "Major mode for editing TODO lists." t)
+;;          (autoload 'todo-show "todo-mode"
+;;                    "Show TODO items." t)
+;;          (autoload 'todo-insert-item "todo-mode"
+;;                    "Add TODO item." t)
 ;;
 ;;      You may now enter new items by typing "M-x todo-insert-item",
 ;;      or enter your TODO list file by typing "M-x todo-show".
@@ -77,7 +72,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.21 1997/10/24 16:51:02 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.22 1997/10/24 16:53:20 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -250,6 +245,13 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.22  1997/10/24  16:53:20  os10000
+;; Paul Stodghill <stodghil@CS.Cornell.EDU> writes:
+;;
+;; When invoked with a prefix, todo-insert-item
+;; should not prompt for a category.  (He adds:
+;; At least that's what I think.)
+;;
 ;; Revision 1.21  1997/10/24  16:51:02  os10000
 ;; Rafael Laboissiere <rafael@icp.inpg.fr> writes:
 ;;
@@ -595,24 +597,10 @@ TODO categories. Use `todo-categories' instead.")
   0)
 
 ;;;### autoload
-(defun todo-insert-item (ARG)
+(defun todo-add-item-non-interactively (new-item category)
   "Insert new TODO list entry."
-  (interactive "P")
-  (let* ((new-item (concat todo-prefix " "
-			   (read-from-minibuffer
-                            "New TODO entry: "
-                                 (if todo-entry-prefix-function
-                                     (funcall todo-entry-prefix-function)))))
-         (categories todo-categories)
-         (history (cons 'categories (1+ todo-category-number)))
-	 (current-category (nth todo-category-number todo-categories))
-	 (category 
-	  (if ARG
-	      current-category
-	      (completing-read 
-                    (concat "Category ["
-                            current-category "]: ")
-                    (todo-category-alist) nil nil nil history))))
+  (save-excursion
+    (todo-show)
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (let ((cat-exists (member category todo-categories)))
@@ -642,6 +630,29 @@ TODO categories. Use `todo-categories' instead.")
     (todo-backward-item)
     (save-buffer)
     (message "")))
+
+;;;### autoload
+(defun todo-insert-item (ARG)
+  "Insert new TODO list entry."
+  (interactive "P")
+  (todo-show)
+  (let* ((new-item (concat todo-prefix " "
+			   (read-from-minibuffer
+                            "New TODO entry: "
+                                 (if todo-entry-prefix-function
+                                     (funcall todo-entry-prefix-function)))))
+         (categories todo-categories)
+         (history (cons 'categories (1+ todo-category-number)))
+	 (current-category (nth todo-category-number todo-categories))
+	 (category 
+	  (if ARG
+	      current-category
+	      (completing-read 
+                    (concat "Category ["
+                            current-category "]: ")
+                    (todo-category-alist) nil nil nil history))))
+    (todo-add-item-non-interactively new-item category)))
+
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
 (defun todo-more-important-p (line)
