@@ -37,12 +37,6 @@ NAME-EXP may be a string constant giving the file name to use,
 or more generally it may be any kind of expression that returns
 a file name as a string.")
 
-;; These duplicate defvars in rmail.el, for the sake of gnus.
-(defvar rmail-default-file nil
-  "*Default file name for \\[rmail-output].")
-(defvar rmail-default-rmail-file (expand-file-name "~/XMAIL")
-  "*Default file name for \\[rmail-output-to-rmail-file].")
-
 (defun rmail-output-menu (event)
   "Output current message to another Rmail file, chosen with a menu."
   (interactive "e")
