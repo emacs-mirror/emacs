@@ -1,3 +1,8 @@
+2000-07-23  Dave Love  <fx@gnu.org>
+
+	* international/iso-transl.el (iso-transl-char-map): Fix ^e, ^i,
+	^o, ^u.
+
 2000-07-21  Dave Love  <fx@gnu.org>
 
 	* ediff-init.el (ediff-region-help-echo): Modify to use overlay
