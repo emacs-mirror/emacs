@@ -1383,7 +1383,7 @@ Display-dependent faces are those which have different definitions
 according to the `background-mode' and `display-type' frame parameters."
   (let* ((bg-resource
 	  (and window-system
-	       (x-get-resource ".backgroundMode" "BackgroundMode")))
+	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
 	 (bg-mode
 	  (cond (frame-background-mode)
