@@ -35,12 +35,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/ioctl.h>
 #endif
 
-#ifdef APOLLO
-#ifndef APOLLO_SR10
-#include <default_acl.h>
-#endif
-#endif
-
 #include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
@@ -119,6 +113,8 @@ char *stack_bottom;
 #ifdef HAVE_X_WINDOWS
 extern Lisp_Object Vwindow_system;
 #endif /* HAVE_X_WINDOWS */
+
+extern Lisp_Object Vauto_save_list_file_name;
 
 #ifdef USG_SHARED_LIBRARIES
 /* If nonzero, this is the place to put the end of the writable segment
@@ -498,15 +494,6 @@ main (argc, argv, envp)
 #endif
 
   clearerr (stdin);
-
-#ifdef APOLLO
-#ifndef APOLLO_SR10
-  /* If USE_DOMAIN_ACLS environment variable exists,
-     use ACLs rather than UNIX modes. */
-  if (egetenv ("USE_DOMAIN_ACLS"))
-    default_acl (USE_DEFACL);
-#endif
-#endif /* APOLLO */
 
 #ifndef SYSTEM_MALLOC
   if (! initialized)
@@ -1142,6 +1129,11 @@ all of which are called before Emacs is actually killed.")
   if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
+  /* If we have an auto-save list file,
+     kill it because we are exiting Emacs deliberately (not crashing).  */
+  if (STRINGP (Vauto_save_list_file_name))
+    unlink (XSTRING (Vauto_save_list_file_name)->data);
+
   UNGCPRO;
 
 /* Is it really necessary to do this deassign
@@ -1237,8 +1229,6 @@ shut_down_emacs (sig, no_x, stuff)
 
 
 #ifndef CANNOT_DUMP
-/* Nothing like this can be implemented on an Apollo.
-   What a loss!  */
 
 #ifdef HAVE_SHM
 
@@ -1261,7 +1251,7 @@ This function exists on systems that use HAVE_SHM.")
   /* Tell malloc where start of impure now is */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
-  memory_warnings (&my_edata, malloc_warning);
+  memory_warnings (my_edata, malloc_warning);
 #endif
   map_out_data (XSTRING (intoname)->data);
 
