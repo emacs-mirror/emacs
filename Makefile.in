@@ -342,6 +342,7 @@ install-arch-indep: mkdir
 	   (cd $(docdir); chmod a+r DOC*; rm DOC) \
 	else true; fi
 	if [ -r ./lisp ] \
+	   && [ -r ./lisp/simple.el ] \
 	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
 	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
 	then \
