@@ -121,12 +121,12 @@ Returns the number of actions taken."
 		  (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
 		    (message "%s(y, n, !, ., q, %sor %s) "
 			     prompt user-keys
-			     (key-description (char-to-string help-char)))
+			     (key-description (vector help-char)))
 		    (setq char (read-event)))
 		  ;; Show the answer to the question.
 		  (message "%s(y, n, !, ., q, %sor %s) %s"
 			   prompt user-keys
-			   (key-description (char-to-string help-char))
+			   (key-description (vector help-char))
 			   (single-key-description char))
 		  (setq def (lookup-key map (vector char)))
 		  (cond ((eq def 'exit)
@@ -205,7 +205,7 @@ the current %s and exit."
 			(t
 			 ;; Random char.
 			 (message "Type %s for help."
-				  (key-description (char-to-string help-char)))
+				  (key-description (vector help-char)))
 			 (beep)
 			 (sit-for 1)
 			 (setq next (` (lambda ()
