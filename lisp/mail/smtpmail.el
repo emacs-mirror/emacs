@@ -350,7 +350,7 @@ This is relative to `smtpmail-queue-dir'.")
 		      (throw 'done nil)))
 	      (let ((extension-lines (cdr (cdr response-code))))
 		(while extension-lines
-		  (let ((name (intern (downcase (substring (car extension-lines) 4)))))
+		  (let ((name (intern (downcase (car (split-string (substring (car extension-lines) 4) "[ ]"))))))
 		    (and name
 			 (cond ((memq name '(verb xvrb 8bitmime onex xone
 						  expn size dsn etrn
