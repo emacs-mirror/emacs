@@ -101,9 +101,9 @@ that's how we tell where the answer ends."
 	  (copy-to-buffer buf (point-min) (point-max))
 	  (delete-region (point-min) (point))
 	  (pop-to-buffer buf nil)
-	  (error (concat "Spurious communication from process "
-			 (process-name (tq-process tq))
-			 ", see buffer " (buffer-name buf) ".")))
+	  (error "Spurious communication from process %s, see buffer %s"
+		 (process-name (tq-process tq))
+		 (buffer-name buf)))
       (goto-char (point-min))
       (if (re-search-forward (tq-queue-head-regexp tq) nil t)
 	  (let ((answer (buffer-substring (point-min) (point))))
