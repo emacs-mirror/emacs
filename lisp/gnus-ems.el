@@ -24,6 +24,15 @@
 
 ;;; Commentary:
 
+;;; This file has been censored by the Communications Decency Act.
+;;; That law was passed under the guise of a ban on pornography, but
+;;; it bans far more than that.  This file did not contain pornograpy,
+;;; but it was censored nonetheless.
+
+;;; For information on US government censorship of the Internet, and
+;;; what you can do to bring back freedom of the press, see the web
+;;; site http://www.vtw.org/
+
 ;;; Code:
 
 (defvar gnus-mouse-2 [mouse-2])
@@ -414,10 +423,10 @@ NOTE: This command only works with newsgroups that use real or simulated NNTP."
 			  'gnus-mark gnus-unread-mark 
 			  'gnus-level 0
 			  'gnus-pseudo (car pslist)))
-	  ;; Fucking XEmacs redisplay bug with truncated lines.
+	  ;; Fire-trucking XEmacs redisplay bug with truncated lines.
 	  (goto-char b)
 	  (sit-for 0)
-	  ;; Grumble.. Fucking XEmacs stickiness of text properties.
+	  ;; Grumble.. fire-trucking XEmacs stickiness of text properties.
 	  (remove-text-properties
 	   (1+ b) (1+ (gnus-point-at-eol))
 	   '(gnus-number nil gnus-mark nil gnus-level nil))
