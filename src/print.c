@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 1986, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -793,6 +793,11 @@ print (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('n');
 		}
+	      else if (c == '\f' && print_escape_newlines)
+		{
+		  PRINTCHAR ('\\');
+		  PRINTCHAR ('f');
+		}
 	      else
 		{
 		  if (c == '\"' || c == '\\')
@@ -1069,7 +1074,8 @@ A value of nil means no limit.");
   Vprint_level = Qnil;
 
   DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
-    "Non-nil means print newlines in strings as backslash-n.");
+    "Non-nil means print newlines in strings as backslash-n.
+Also print formfeeds as backslash-f.");
   print_escape_newlines = 0;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
