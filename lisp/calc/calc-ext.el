@@ -948,12 +948,12 @@ calc-expand-formula calc-factor calc-normalize-rat calc-poly-div
 calc-poly-div-rem calc-poly-gcd calc-poly-rem calc-simplify
 calc-simplify-extended calc-substitute)
 
- ("calc-alg-2" calc-alt-summation calc-derivative
+ ("calcalg2" calc-alt-summation calc-derivative
 calc-dump-integral-cache calc-integral calc-num-integral
 calc-poly-roots calc-product calc-solve-for calc-summation
 calc-tabulate calc-taylor)
 
- ("calc-alg-3" calc-curve-fit calc-find-maximum calc-find-minimum
+ ("calcalg3" calc-curve-fit calc-find-maximum calc-find-minimum
 calc-find-root calc-poly-interp)
 
  ("calc-arith" calc-abs calc-abssqr calc-ceiling calc-decrement
@@ -1037,7 +1037,7 @@ calc-tex-language calc-unformatted-language)
  ("calc-map" calc-accumulate calc-apply calc-inner-product calc-map
 calc-map-equation calc-map-stack calc-outer-product calc-reduce)
 
- ("calc-mat" calc-mdet calc-mlud calc-mtrace)
+ ("calc-mtx" calc-mdet calc-mlud calc-mtrace)
 
  ("calc-math" calc-arccos calc-arccosh calc-arcsin calc-arcsinh
 calc-arctan calc-arctan2 calc-arctanh calc-conj calc-cos calc-cosh
@@ -1089,7 +1089,7 @@ calc-select-less calc-select-more calc-select-next calc-select-once
 calc-select-once-maybe calc-select-part calc-select-previous
 calc-show-selections calc-unselect)
 
- ("calc-sel-2" calc-commute-left calc-commute-right calc-sel-commute
+ ("calcsel2" calc-commute-left calc-commute-right calc-sel-commute
 calc-sel-distribute calc-sel-invert calc-sel-isolate
 calc-sel-jump-equals calc-sel-merge calc-sel-negate calc-sel-unpack)
 
