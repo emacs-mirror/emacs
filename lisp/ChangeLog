@@ -1,3 +1,8 @@
+2002-11-07   Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-dep.el (custom-make-dependencies): Fix comment inserted in
+	cus-load.el.
+
 2002-11-06  Dave Love  <fx@gnu.org>
 
 	* simple.el (quoted-insert): Bind keyboard-translate-table around
