@@ -1152,7 +1152,7 @@ fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
- termhooks.h msdos.h
+ termhooks.h coding.h msdos.h
 
 /* Text properties support */
 textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
