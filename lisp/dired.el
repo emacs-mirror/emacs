@@ -386,6 +386,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       (setq dirname dir-or-list))
     (setq dirname (abbreviate-file-name
 		   (expand-file-name (directory-file-name dirname))))
+    (if find-file-visit-truename
+	(setq dirname (file-truename dirname)))
     (if (file-directory-p dirname)
 	(setq dirname (file-name-as-directory dirname)))
     (if (consp dir-or-list)
