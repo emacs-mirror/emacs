@@ -1966,7 +1966,7 @@ WINDOW can be an object or a window."
 sure process output will be displayed correctly in buffers
 in which the mode is activated.
 
-Follow Mode inserts it's own process filter to do it's 
+Follow Mode inserts its own process filter to do its 
 magic stuff before the real process filter is called."
   (if follow-intercept-processes
       (progn
@@ -2086,7 +2086,7 @@ report this using the `follow-submit-feedback' function."
 
 ;;; The following section is a naive method to make buffers with
 ;;; process output to work with Follow mode. Whenever the start of the
-;;; window displaying the buffer is moved, we moves it back to it's
+;;; window displaying the buffer is moved, we moves it back to its
 ;;; original position and try to select a new window.  (If we fail,
 ;;; the normal redisplay functions of Emacs will scroll it right
 ;;; back!)
