@@ -45,8 +45,8 @@
 FILE defaults to the file at the mark.
 The prompted-for file is the first file given to `diff'."
   (interactive
-   (let ((default (if (mark)
-		      (save-excursion (goto-char (mark))
+   (let ((default (if (mark t)
+		      (save-excursion (goto-char (mark t))
 				      (dired-get-filename t t)))))
      (list (read-file-name (format "Diff %s with: %s"
 				   (dired-get-filename t)
