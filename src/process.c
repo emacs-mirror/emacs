@@ -1855,9 +1855,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #endif /* TERM */
 
   inch = s;
-  outch = dup (s);
-  if (outch < 0) 
-    report_file_error ("error duplicating socket", Fcons (name, Qnil));
+  outch = s;
 
   if (!NILP (buffer))
     buffer = Fget_buffer_create (buffer);
