@@ -1,5 +1,5 @@
 /* terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 98
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2052,8 +2052,18 @@ turn_on_face (f, face_id)
 	{
 	  /* If we can't display colors, use reverse video
 	     if the face specifies that.  */
-	  if (face->tty_reverse_p)
-	    toggle_highlight ();
+	  if (inverse_video)
+	    {
+	      if (fg == FACE_TTY_DEFAULT_FG_COLOR
+		  || bg == FACE_TTY_DEFAULT_BG_COLOR)
+		toggle_highlight ();
+	    }
+	  else
+	    {
+	      if (fg == FACE_TTY_DEFAULT_BG_COLOR
+		  || bg == FACE_TTY_DEFAULT_FG_COLOR)
+		toggle_highlight ();
+	    }
 	}
     }
 
