@@ -1193,7 +1193,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 		else if (i == LEADING_CODE_8_BIT_CONTROL)
 		  {
-		    if ((src + 1) >= src_end)
+		    if (src >= src_end)
 		      goto ccl_read_multibyte_character_suspend;
 		    reg[RRR] = CHARSET_8_BIT_CONTROL;
 		    reg[rrr] = (*src++ - 0x20);
