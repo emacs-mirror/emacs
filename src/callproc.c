@@ -154,14 +154,14 @@ Lisp_Object
 call_process_cleanup (fdpid)
      Lisp_Object fdpid;
 {
-#if defined (MSDOS) || defined (macintosh)
+#if defined (MSDOS) || defined (MAC_OS8)
   /* for MSDOS fdpid is really (fd . tempfile)  */
   register Lisp_Object file;
   file = Fcdr (fdpid);
   emacs_close (XFASTINT (Fcar (fdpid)));
   if (strcmp (XSTRING (file)-> data, NULL_DEVICE) != 0)
     unlink (XSTRING (file)->data);
-#else /* not MSDOS and not macintosh */
+#else /* not MSDOS and not MAC_OS8 */
   register int pid = XFASTINT (Fcdr (fdpid));
 
   if (call_process_exited)
@@ -232,7 +232,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   char *outf, *tempfile;
   int outfilefd;
 #endif
-#ifdef macintosh
+#ifdef MAC_OS8
   char *tempfile;
   int outfilefd;
 #endif
@@ -440,7 +440,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   fd[1] = outfilefd;
 #endif /* MSDOS */
 
-#ifdef macintosh
+#ifdef MAC_OS8
   /* Since we don't have pipes on the Mac, create a temporary file to
      hold the output of the subprocess.  */
   tempfile = (char *) alloca (STRING_BYTES (XSTRING (Vtemp_file_name_pattern)) + 1);
@@ -458,14 +458,14 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     }
   fd[0] = filefd;
   fd[1] = outfilefd;
-#endif /* macintosh */
+#endif /* MAC_OS8 */
 
   if (INTEGERP (buffer))
     fd[1] = emacs_open (NULL_DEVICE, O_WRONLY, 0), fd[0] = -1;
   else
     {
 #ifndef MSDOS
-#ifndef macintosh
+#ifndef MAC_OS8
       errno = 0;
       if (pipe (fd) == -1)
 	{
@@ -531,7 +531,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     current_dir = ENCODE_FILE (current_dir);
 
-#ifdef macintosh
+#ifdef MAC_OS8
     {
       /* Call run_mac_command in sysdep.c here directly instead of doing
          a child_setup as for MSDOS and other platforms.  Note that this
@@ -576,7 +576,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  report_file_error ("Cannot re-open temporary file", Qnil);
 	}
     }
-#else /* not macintosh */
+#else /* not MAC_OS8 */
 #ifdef MSDOS /* MW, July 1993 */
     /* Note that on MSDOS `child_setup' actually returns the child process
        exit status, not its PID, so we assign it to `synch_process_retcode'
@@ -635,7 +635,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_error >= 0)
       emacs_close (fd_error);
 #endif /* not MSDOS */
-#endif /* not macintosh */
+#endif /* not MAC_OS8 */
 
     environ = save_environ;
 
@@ -669,14 +669,14 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
-#if defined(MSDOS) || defined(macintosh)
+#if defined(MSDOS) || defined(MAC_OS8)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), build_string (tempfile)));
 #else
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
-#endif /* not MSDOS and not macintosh */
+#endif /* not MSDOS and not MAC_OS8 */
 
 
   if (BUFFERP (buffer))

@@ -325,7 +325,9 @@ for subdir in lisp site-lisp lispref lispintro \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/e lock info man msdos vms mac mac/inc mac/inc/sys \
-	      mac/src
+	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
+	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
+	      mac/Emacs.app/Contents/Resources/English.lproj
 do
   echo "  ${tempdir}/${subdir}"
   mkdir ${tempdir}/${subdir}
@@ -528,6 +530,14 @@ echo "Making links to \`mac/src'"
 (cd mac/src
  ln [a-z]*.c *.r ../../${tempdir}/mac/src)
 
+echo "Making links to \`mac/Emacs.app/Contents'"
+(cd mac/Emacs.app/Contents
+ ln Info.plist PkgInfo ../../../${tempdir}/mac/Emacs.app/Contents)
+
+echo "Making links to \`mac/Emacs.app/Contents/Resources/English.lproj'"
+(cd mac/Emacs.app/Contents/Resources/English.lproj
+ ln InfoPlist.strings ../../../../../${tempdir}/mac/Emacs.app/Contents/Resources/English.lproj)
+ 
 echo "Making links to \`msdos'"
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos

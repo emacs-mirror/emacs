@@ -17,9 +17,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #define emacs 1
 #define HAVE_CONFIG_H
 
-#define CODEWARRIOR_VERSION_6
+#define MAC_OS8 1
+#define MAC_OS 1

@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #ifndef _SYS_STAT_H
 #define _SYS_STAT_H
@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef __MWERKS__
 #include <stat.mac.h>
 
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
 #define fstat _fstat
 #endif
 

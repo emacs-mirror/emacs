@@ -56,7 +56,7 @@ extern int tgetnum P_ ((char *id));
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macterm.h"
 #endif
 

@@ -19,7 +19,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
 
 
-Contributed by Andrew Choi (akochoi@i-cable.com).
+Contributed by Andrew Choi (akochoi@mac.com).
 
 Exported from the emacs-cw6.mcp project in Metrowerks CodeWarrior Pro
 6 for distribution.  This copyright notice was then added by hand.
@@ -80,7 +80,7 @@ emacs-cw6.mcp project.
 <PROJECT>
     <TARGETLIST>
         <TARGET>
-            <NAME>Emacs</NAME>
+            <NAME>Emacs CW</NAME>
             <SETTINGLIST>
 
                 <!-- Settings for "Source Trees" panel -->
@@ -153,7 +153,7 @@ emacs-cw6.mcp project.
                 <SETTING><NAME>Linker</NAME><VALUE>MacOS PPC Linker</VALUE></SETTING>
                 <SETTING><NAME>PreLinker</NAME><VALUE></VALUE></SETTING>
                 <SETTING><NAME>PostLinker</NAME><VALUE></VALUE></SETTING>
-                <SETTING><NAME>Targetname</NAME><VALUE>Emacs</VALUE></SETTING>
+                <SETTING><NAME>Targetname</NAME><VALUE>Emacs CW</VALUE></SETTING>
                 <SETTING><NAME>OutputDirectory</NAME>
                     <SETTING><NAME>Path</NAME><VALUE>:</VALUE></SETTING>
                     <SETTING><NAME>PathFormat</NAME><VALUE>MacOS</VALUE></SETTING>
@@ -637,7 +637,7 @@ emacs-cw6.mcp project.
                 <!-- Settings for "FTP Panel" panel -->
                 <SETTING><NAME>MWFTP_Post_hostName</NAME><VALUE></VALUE></SETTING>
                 <SETTING><NAME>MWFTP_Post_username</NAME><VALUE></VALUE></SETTING>
-                <SETTING><NAME>MWFTP_Post_password</NAME><VALUE>3654kr6a654npes6544xbe*&#154;A&#145;&#224;"</VALUE></SETTING>
+                <SETTING><NAME>MWFTP_Post_password</NAME><VALUE>35kmm835kpjgj5k5td7&#224;</VALUE></SETTING>
                 <SETTING><NAME>MWFTP_Post_remoteDir</NAME><VALUE></VALUE></SETTING>
                 <SETTING><NAME>MWFTP_Post_ftp_PathVersion</NAME><VALUE>0</VALUE></SETTING>
                 <SETTING><NAME>MWFTP_Post_ftp_PathType</NAME><VALUE>0</VALUE></SETTING>
@@ -1882,367 +1882,367 @@ emacs-cw6.mcp project.
     </TARGETLIST>
 
     <TARGETORDER>
-        <ORDEREDTARGET><NAME>Emacs</NAME></ORDEREDTARGET>
+        <ORDEREDTARGET><NAME>Emacs CW</NAME></ORDEREDTARGET>
     </TARGETORDER>
 
     <GROUPLIST>
         <GROUP><NAME>Emacs Source</NAME>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>abbrev.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>alloc.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>alloca.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>atimer.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>buffer.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>bytecode.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>callint.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>callproc.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>casefiddle.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>casetab.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>category.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>ccl.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>charset.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>cm.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>cmds.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>coding.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>composite.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>data.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>dired.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>dispnew.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>doc.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>doprnt.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>editfns.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>emacs.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>eval.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>fileio.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>filemode.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>floatfns.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>fns.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>fontset.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>frame.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>getloadavg.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>indent.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>insdel.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>intervals.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>keyboard.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>keymap.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>lread.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>macros.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>marker.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>md5.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>minibuf.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>mktime.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>print.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>process.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>regex.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>region-cache.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>scroll.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>search.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>strftime.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>syntax.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>sysdep.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>term.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>termcap.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>textprop.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>tparam.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>undo.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>window.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>xdisp.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>xfaces.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
@@ -2250,25 +2250,25 @@ emacs-cw6.mcp project.
         </GROUP>
         <GROUP><NAME>Mac Source</NAME>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>mac.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>macfns.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>macmenu.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>macterm.c</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
@@ -2276,7 +2276,7 @@ emacs-cw6.mcp project.
         </GROUP>
         <GROUP><NAME>Resources</NAME>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>Emacs.r</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
@@ -2284,31 +2284,31 @@ emacs-cw6.mcp project.
         </GROUP>
         <GROUP><NAME>Mac Libraries</NAME>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>InterfaceLib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>MathLib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>AppleScriptLib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>TextEncodingConverter</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>AppearanceLib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
@@ -2316,19 +2316,19 @@ emacs-cw6.mcp project.
         </GROUP>
         <GROUP><NAME>ANSI Libraries</NAME>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>MSL C.PPC.Lib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>MSL SIOUX.PPC.Lib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>
             </FILEREF>
             <FILEREF>
-                <TARGETNAME>Emacs</TARGETNAME>
+                <TARGETNAME>Emacs CW</TARGETNAME>
                 <PATHTYPE>Name</PATHTYPE>
                 <PATH>MSL RuntimePPC.Lib</PATH>
                 <PATHFORMAT>MacOS</PATHFORMAT>

@@ -144,6 +144,9 @@ find_capability (bp, cap)
   return NULL;
 }
 
+/* These are already defined in the System framework in Mac OS X and
+   cause prebinding to fail.  */
+#ifndef MAC_OSX
 int
 tgetnum (cap)
      char *cap;
@@ -177,6 +180,7 @@ tgetstr (cap, area)
     return NULL;
   return tgetst1 (ptr, area);
 }
+#endif /* MAC_OSX */
 
 #ifdef IS_EBCDIC_HOST
 /* Table, indexed by a character in range 0200 to 0300 with 0200 subtracted,
@@ -294,7 +298,12 @@ short ospeed;
 /* If OSPEED is 0, we use this as the actual baud rate.  */
 int tputs_baud_rate;
 #endif
+
+/* Already defined in the System framework in Mac OS X and causes
+   prebinding to fail.  */
+#ifndef MAC_OSX
 char PC;
+#endif  /* MAC_OSX */
 
 #ifndef emacs
 /* Actual baud rate if positive;
@@ -313,6 +322,9 @@ static int speeds[] =
 
 #endif /* not emacs */
 
+/* Already defined in the System framework in Mac OS X and causes
+   prebinding to fail.  */
+#ifndef MAC_OSX
 void
 tputs (str, nlines, outfun)
      register char *str;
@@ -375,6 +387,7 @@ tputs (str, nlines, outfun)
   while (padcount-- > 0)
     (*outfun) (PC);
 }
+#endif /* MAC_OSX */
 
 /* Finding the termcap entry in the termcap data base.  */
 
@@ -445,6 +458,9 @@ valid_filename_p (fn)
    0 if the data base is accessible but the type NAME is not defined
    in it, and some other value otherwise.  */
 
+/* Already defined in the System framework in Mac OS X and causes
+   prebinding to fail.  */
+#ifndef MAC_OSX
 int
 tgetent (bp, name)
      char *bp, *name;
@@ -603,6 +619,7 @@ tgetent (bp, name)
   term_entry = bp;
   return 1;
 }
+#endif /* MAC_OSX */
 
 /* Given file open on FD and buffer BUFP,
    scan the file from the beginning until a line is found

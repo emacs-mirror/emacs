@@ -47,13 +47,13 @@ OptOption = # -opt speed			# alternatively set to -opt off or -opt size
 PPCCOptions = {SymOption} {OptOption} -noMapCR -enum int ¶
 	-typecheck relaxed -w off ¶
 	-includes unix -i {Includes},{Src} ¶
-	-d emacs=1 -d HAVE_CONFIG_H
+	-d emacs=1 -d HAVE_CONFIG_H -d MAC_OS -d MAC_OS8
 
 LinkOptions = {SymOption} -d
 
 CONFIG_H_GROUP = "{Includes}config.h" "{Includes}s-mac.h" "{Includes}utsname.h" "{Includes}m-mac.h"
-DISPEXTERN_H_GROUP = "{Src}dispextern.h" "{Includes}macgui.h"
-INTERVALS_H_GROUP = "{Src}intervals.h" "{Src}dispextern.h" "{Includes}macgui.h"
+DISPEXTERN_H_GROUP = "{Src}dispextern.h" "{Src}macgui.h"
+INTERVALS_H_GROUP = "{Src}intervals.h" "{Src}dispextern.h" "{Src}macgui.h"
 WINDOW_H_GROUP = "{Src}window.h" {DISPEXTERN_H_GROUP}
 BLOCKINPUT_H_GROUP = "{Src}blockinput.h" "{Src}atimer.h" "{Src}systime.h" ¶
   "{Includes}sys:time.h" "{Includes}sys:time.h"
@@ -125,10 +125,10 @@ EmacsObjects = ¶
 # The list of object files generated from new source files of the Macintosh port.
 
 MacObjects = ¶
-	"{Source}mac.c.x" ¶
-	"{Source}macfns.c.x" ¶
-	"{Source}macmenu.c.x" ¶
-	"{Source}macterm.c.x"
+	"{Src}mac.c.x" ¶
+	"{Src}macfns.c.x" ¶
+	"{Src}macmenu.c.x" ¶
+	"{Src}macterm.c.x"
 
 # The next two are the dependency rules for building Emacs.
 
@@ -369,8 +369,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}process.h" ¶
 	"{Src}keyboard.h" ¶
 	"{Src}syssignal.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}systime.h"
 	
@@ -482,8 +482,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}lisp.h" ¶
 	"{Src}charset.h" ¶
 	"{Src}fontset.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}frame.h" ¶
 	"{Src}fontset.h" ¶
@@ -556,8 +556,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}systty.h" ¶
 		"{Includes}termio.h" ¶
 	"{Includes}sys:types.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}systime.h"
 
@@ -734,8 +734,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{DISPEXTERN_H_GROUP} ¶
 	{WINDOW_H_GROUP} ¶
 	"{Src}cm.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h"
 	
 {Src}termcap.c.x Ä ¶
@@ -774,8 +774,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{DISPEXTERN_H_GROUP} ¶
 	{BLOCKINPUT_H_GROUP} ¶
 	{INTERVALS_H_GROUP} ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h"	
 	
 {Src}xdisp.c.x Ä ¶
@@ -799,8 +799,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}process.h" ¶
 	"{Src}region-cache.h" ¶
 	"{Src}fontset.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h"	
 	
 {Src}xfaces.c.x Ä ¶
@@ -811,8 +811,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}charset.h" ¶
 	"{Src}frame.h" ¶
 	"{Src}fontset.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}buffer.h" ¶
 	{DISPEXTERN_H_GROUP} ¶
@@ -833,7 +833,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Includes}sys:types.h" ¶
 	{DISPEXTERN_H_GROUP}
 
-{Source}mac.c Ä ¶
+{Src}mac.c Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}utime.h" ¶
 	"{Includes}dirent.h" ¶
@@ -849,12 +849,12 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 		"{Includes}sys:time.h" ¶
 	"{Includes}utsname.h"
 
-{Source}macfns.c Ä ¶
+{Src}macfns.c Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
 	"{Src}charset.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}frame.h" ¶
 	{WINDOW_H_GROUP} ¶
@@ -871,13 +871,13 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}systime.h" ¶
 	"{Src}bitmaps:gray.xbm"
 
-{Source}macterm.c Ä ¶
+{Src}macterm.c Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
 	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}syssignal.h" ¶
-	"{Includes}macterm.h" ¶
-		"{Includes}macgui.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Includes}alloca.h" ¶
 	"{Includes}sys:types.h" ¶
@@ -992,9 +992,9 @@ EmacsSource = ¶
 	"{Src}xmenu.c"
 
 MacSource = ¶
-	"{Source}mac.c" ¶
-	"{Source}macfns.c" ¶
-	"{Source}macterm.c"
+	"{Src}mac.c" ¶
+	"{Src}macfns.c" ¶
+	"{Src}macterm.c"
 
 
 LispSource = ¶
@@ -1040,22 +1040,10 @@ LispSource = ¶
 	{Lisp}language:chinese.elc ¶
 	{Lisp}language:cyrillic.elc ¶
 	{Lisp}language:indian.elc ¶
-	{Lisp}language:devanagari.elc ¶
-	{Lisp}language:english.elc ¶
 	{Lisp}language:ethiopic.elc ¶
 	{Lisp}language:european.elc ¶
-	{Lisp}language:czech.elc ¶
-	{Lisp}language:slovak.elc ¶
-	{Lisp}language:romanian.elc ¶
-	{Lisp}language:greek.elc ¶
-	{Lisp}language:hebrew.elc ¶
-	{Lisp}language:japanese.elc ¶
-	{Lisp}language:korean.elc ¶
-	{Lisp}language:lao.elc ¶
-	{Lisp}language:thai.elc ¶
 	{Lisp}language:tibetan.elc ¶
 	{Lisp}language:vietnamese.elc ¶
-	{Lisp}language:misc-lang.elc ¶
 	{Lisp}paths.el ¶
 	{Lisp}register.elc ¶
 	{Lisp}replace.elc ¶
@@ -1073,13 +1061,27 @@ LispSource = ¶
 	{Lisp}window.elc ¶
 	{Lisp}version.el
 
+LispSourceDontCompile = ¶
+	{Lisp}language:devanagari.el ¶
+	{Lisp}language:english.el ¶
+	{Lisp}language:czech.el ¶
+	{Lisp}language:slovak.el ¶
+	{Lisp}language:romanian.el ¶
+	{Lisp}language:greek.el ¶
+	{Lisp}language:hebrew.el ¶
+	{Lisp}language:japanese.el ¶
+	{Lisp}language:korean.el ¶
+	{Lisp}language:lao.el ¶
+	{Lisp}language:thai.el ¶
+	{Lisp}language:misc-lang.el
 
 Doc Ä {DocTarget}DOC
 
-{DocTarget}DOC Ä {Makefile} {EmacsSource} {MacSource} {LispSource} {Make-DocFileDir}Make-DocFile
+{DocTarget}DOC Ä {Makefile} {EmacsSource} {MacSource} {LispSource} {LispSourceDontCompile} {Make-DocFileDir}Make-DocFile
 	{Make-DocFileDir}make-docfile {EmacsSource} > {DocTarget}DOC
 	{Make-DocFileDir}make-docfile {MacSource} >> {DocTarget}DOC
 	{Make-DocFileDir}make-docfile {LispSource} >> {DocTarget}DOC
+	{Make-DocFileDir}make-docfile {LispSourceDontCompile} >> {DocTarget}DOC
 
 
 #-----------------------------------------------#

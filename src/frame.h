@@ -57,7 +57,7 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
-#if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(macintosh)
+#if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(MAC_OS)
 
 #if !defined(HAVE_X_WINDOWS)
 
@@ -82,7 +82,7 @@ struct x_output
 /* A structure describing a termcap frame display.  */
 extern struct x_output tty_display;
 
-#endif /* ! MSDOS && ! WINDOWSNT && ! macintosh */
+#endif /* ! MSDOS && ! WINDOWSNT && ! MAC_OS */
 
 struct frame
 {
@@ -260,7 +260,7 @@ struct frame
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
   int external_menu_bar;
 #endif
@@ -404,7 +404,7 @@ typedef struct frame *FRAME_PTR;
 #ifdef HAVE_NTGUI
 #define FRAME_WINDOW_P(f) FRAME_W32_P (f)
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
 #define FRAME_WINDOW_P(f) FRAME_MAC_P (f)
 #endif
 #ifndef FRAME_WINDOW_P
@@ -444,7 +444,7 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if this frame should display a menu bar
    in a way that does not use any text lines.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0

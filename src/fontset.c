@@ -1410,10 +1410,10 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-#if defined (macintosh)
+#if defined (MAC_OS)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
-	     build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman"));
+	     build_string ("-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1"));
 #elif defined (WINDOWSNT)
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Andrew Choi <akochoi@i-cable.com>
+;; Author: Andrew Choi <akochoi@mac.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -120,7 +120,7 @@
 ;; X Window emulation in macterm.c is not complete enough to start a
 ;; frame without a minibuffer properly.  Call this to tell ediff
 ;; library to use a single frame.
-(ediff-toggle-multiframe)
+; (ediff-toggle-multiframe)
 
 ;; Setup to use the Mac clipboard.  The functions mac-cut-function and
 ;; mac-paste-function are defined in mac.c.
@@ -214,6 +214,16 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; To display filenames in Chinese or Japanese, replace mac-roman with
 ;; big5 or sjis
 (setq file-name-coding-system 'mac-roman)
+
+;; If Emacs is started from the Finder, change the default directory
+;; to the user's home directory.
+(if (string= default-directory "/")
+    (cd "~"))
+
+;; Tell Emacs to use pipes instead of pty's for processes because the
+;; latter sometimes lose characters.  Pty support is compiled in since
+;; ange-ftp will not work without it.
+(setq process-connection-type nil)
 
 ;; (prefer-coding-system 'mac-roman)
 

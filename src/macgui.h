@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Mac OS.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,13 +18,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #ifndef EMACS_MACGUI_H
 #define EMACS_MACGUI_H
-
-#include <MacTypes.h>
-#include <Quickdraw.h>
 
 typedef int Pixmap;
 typedef int Bitmap;
@@ -32,8 +29,13 @@ typedef int Bitmap;
 typedef int Display;  /* fix later */
 
 typedef unsigned long Time;
-typedef RGBColor Color;
+
+#if MAC_OSX
+typedef struct OpaqueWindowPtr* Window;
+#else
+#include <QuickDraw.h>
 typedef WindowPtr Window;
+#endif
 
 #define FACE_DEFAULT (~0)
 
@@ -51,9 +53,9 @@ typedef struct _XCharStruct
 struct MacFontStruct {
   char *fontname;
 
-  SInt16 mac_fontnum;  /* font number of font used in this window */
+  short mac_fontnum;  /* font number of font used in this window */
   int mac_fontsize;  /* size of font */
-  Style mac_fontface;  /* plain, bold, italics, etc. */
+  short mac_fontface;  /* plain, bold, italics, etc. */
   short mac_scriptcode;  /* Mac OS script code for font used */
 
 #if 0
@@ -67,14 +69,14 @@ struct MacFontStruct {
   int mDescent;
   int mLeading;
   char mTwoByte;  /* true for two-byte font */
-#endif
+#endif /* 0 */
 
 /* from Xlib.h */
 #if 0
   XExtData *ext_data;      /* hook for extension to hang data */
   Font fid;                /* Font id for this font */
   unsigned direction;      /* hint about the direction font is painted */
-#endif
+#endif /* 0 */
   unsigned min_char_or_byte2;/* first character */
   unsigned max_char_or_byte2;/* last character */
   unsigned min_byte1;      /* first row that exists */
@@ -84,7 +86,7 @@ struct MacFontStruct {
   unsigned default_char;   /* char to print for undefined character */
   int n_properties;        /* how many properties there are */
   XFontProp *properties;   /* pointer to array of additional properties */
-#endif
+#endif /* 0 */
   XCharStruct min_bounds;  /* minimum bounds over all existing char */
   XCharStruct max_bounds;  /* maximum bounds over all existing char */
   XCharStruct *per_char;   /* first_char to last_char information */

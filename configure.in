@@ -128,6 +128,8 @@ AC_ARG_WITH(toolkit-scroll-bars,
                           don't use Motif or Xaw3d scroll bars])
 AC_ARG_WITH(xim,
 [  --without-xim           don't use X11 XIM])
+AC_ARG_WITH(carbon,
+[  --without-carbon        don't use Carbon GUI on Mac OS X])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
@@ -1104,6 +1106,13 @@ case "${canonical}" in
     machine=f301 opsys=uxpv
   ;;
 
+  ## Darwin / Mac OS X
+  powerpc-apple-darwin* )
+    machine=powermac opsys=darwin
+    # Define CPP as follows to make autoconf work correctly.
+    CPP="cc -E -traditional-cpp"
+  ;;
+
   * )
     unported=yes
   ;;
@@ -1995,6 +2004,16 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${HAVE_GIF}" = "yes"; then
     AC_DEFINE(HAVE_GIF, 1, [Define to 1 if you have the ungif library (-lungif).])
   fi
+fi
+
+### Use Mac OS X Carbon API to implement GUI.
+HAVE_CARBON=no
+if test "${with_carbon}" != "no"; then
+  AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
+fi
+
+if test "${HAVE_CARBON}" = "yes"; then
+  AC_DEFINE(HAVE_CARBON)
 fi
 
 ### Use session management (-lSM -lICE) if available

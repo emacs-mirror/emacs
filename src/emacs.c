@@ -793,6 +793,11 @@ main (argc, argv, envp)
     run_time_remap (argv[0]);
 #endif
 
+#ifdef MAC_OSX
+  if (!initialized)
+    unexec_init_emacs_zone ();
+#endif
+
   sort_args (argc, argv);
   argc = 0;
   while (argv[argc]) argc++;
@@ -847,6 +852,13 @@ main (argc, argv, envp)
 	printf ("malloc jumpstart failed!\n");
   }
 #endif /* NeXT */
+
+#ifdef MAC_OSX
+  /* Skip process serial number passed in the form -psn_x_y as
+     command-line argument.  */
+  if (argc > skip_args + 1 && strncmp (argv[skip_args+1], "-psn_", 5) == 0)
+    skip_args++;
+#endif /* MAC_OSX */
 
 #ifdef VMS
   /* If -map specified, map the data file in.  */
@@ -1175,12 +1187,12 @@ main (argc, argv, envp)
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
 
-#ifdef macintosh
+#ifdef MAC_OS8
       /* init_window_once calls make_terminal_frame which on Mac OS
          creates a full-fledge output_mac type frame.  This does not
          work correctly before syms_of_textprop, syms_of_macfns,
          syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, x_term_init, and init_keyboard have already
+         syms_of_frame, mac_initialize, and init_keyboard have already
          been called.  */
       syms_of_textprop ();
       syms_of_macfns ();
@@ -1192,7 +1204,7 @@ main (argc, argv, envp)
       syms_of_search ();
       syms_of_frame ();
 
-      x_term_init ();
+      mac_initialize ();
       init_keyboard ();
 #endif
 
@@ -1388,8 +1400,8 @@ main (argc, argv, envp)
       /* The basic levels of Lisp must come first.  */
       /* And data must come first of all
 	 for the sake of symbols like error-message.  */
-#ifndef macintosh
-      /* Called before init_window_once for Mac OS.  */
+#ifndef MAC_OS8
+      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
 #endif
       syms_of_alloc ();
@@ -1407,8 +1419,8 @@ main (argc, argv, envp)
       syms_of_casetab ();
       syms_of_callproc ();
       syms_of_category ();
-#ifndef macintosh
-      /* Called before init_window_once for Mac OS.  */
+#ifndef MAC_OS8
+      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_ccl ();
 #endif
       syms_of_charset ();
@@ -1432,8 +1444,8 @@ main (argc, argv, envp)
       syms_of_marker ();
       syms_of_minibuf ();
       syms_of_process ();
-#ifndef macintosh
-      /* Called before init_window_once for Mac OS.  */
+#ifndef MAC_OS8
+      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_search ();
       syms_of_frame ();
 #endif
@@ -1443,8 +1455,8 @@ main (argc, argv, envp)
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif
-#ifndef macintosh
-      /* Called before init_window_once for Mac OS.  */
+#ifndef MAC_OS8
+      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_textprop ();
 #endif
       syms_of_composite ();
@@ -1469,7 +1481,8 @@ main (argc, argv, envp)
 #endif /* HAVE_X_WINDOWS */
 
 #ifndef HAVE_NTGUI
-#ifndef macintosh
+#ifndef MAC_OS
+      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_xmenu ();
 #endif
 #endif
@@ -1481,6 +1494,13 @@ main (argc, argv, envp)
       syms_of_w32menu ();
       syms_of_fontset ();
 #endif /* HAVE_NTGUI */
+
+#ifdef HAVE_CARBON
+      syms_of_macterm ();
+      syms_of_macfns ();
+      syms_of_macmenu ();
+      syms_of_fontset ();
+#endif /* HAVE_CARBON */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
@@ -1506,8 +1526,8 @@ main (argc, argv, envp)
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  init_sys_modes uses results.  */
     }
-#ifndef macintosh
-  /* Called before init_window_once for Mac OS.  */
+#ifndef MAC_OS8
+  /* Called before init_window_once for Mac OS Classic.  */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
 #endif
 #ifdef VMS

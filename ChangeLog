@@ -1,3 +1,10 @@
+2002-04-26  Andrew Choi  <akochoi@shaw.ca>
+
+	* configure.in: Add support for powerpc-apple-darwin*.
+	(HAVE_CARBON): Add.
+
+	* make-dist: create directories in mac/Emacs.app.	
+
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib-Xol* are removed.

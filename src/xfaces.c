@@ -234,32 +234,11 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_WIDTH FONT_MAX_WIDTH
 #endif /* WINDOWSNT */
 
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macterm.h"
 #define x_display_info mac_display_info
 #define check_x check_mac
-
-extern XGCValues *XCreateGC (void *, WindowPtr, unsigned long, XGCValues *);
-
-static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
-{
-  GC gc;
-  gc = XCreateGC (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), mask, xgcv);
-  return gc;
-}
-
-static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
-{
-  XFreeGC (FRAME_MAC_DISPLAY (f), gc);
-}
-#endif
+#endif /* MAC_OS */
 
 #include "buffer.h"
 #include "dispextern.h"
@@ -813,6 +792,32 @@ x_free_gc (f, gc)
 }
 
 #endif  /* WINDOWSNT */
+
+#ifdef MAC_OS
+/* Mac OS emulation of GCs */
+
+extern XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
+
+static INLINE GC
+x_create_gc (f, mask, xgcv)
+     struct frame *f;
+     unsigned long mask;
+     XGCValues *xgcv;
+{
+  GC gc;
+  gc = XCreateGC (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), mask, xgcv);
+  return gc;
+}
+
+static INLINE void
+x_free_gc (f, gc)
+     struct frame *f;
+     GC gc;
+{
+  XFreeGC (FRAME_MAC_DISPLAY (f), gc);
+}
+
+#endif  /* MAC_OS */
 
 /* Like stricmp.  Used to compare parts of font names which are in
    ISO8859-1.  */
@@ -1382,7 +1387,7 @@ defined_color (f, color_name, color_def, alloc)
   else if (FRAME_W32_P (f))
     return w32_defined_color (f, color_name, color_def, alloc);
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
   else if (FRAME_MAC_P (f))
     return mac_defined_color (f, color_name, color_def, alloc);
 #endif
@@ -1889,7 +1894,7 @@ static struct frame *font_frame;
    font height, then for weight, then for slant.'  This variable can be
    set via set-face-font-sort-order.  */
 
-#ifdef macintosh
+#ifdef MAC_OS
 static int font_sort_order[4] = {
   XLFD_SWIDTH, XLFD_POINT_SIZE, XLFD_WEIGHT, XLFD_SLANT
 };
@@ -4341,7 +4346,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
 {
   Lisp_Object value = Qnil;
 #ifndef WINDOWSNT
-#ifndef macintosh
+#ifndef MAC_OS
   CHECK_STRING (resource);
   CHECK_STRING (class);
   CHECK_LIVE_FRAME (frame);
@@ -4349,7 +4354,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
-#endif /* not macintosh */
+#endif /* not MAC_OS */
 #endif /* not WINDOWSNT */
   return value;
 }
@@ -4997,7 +5002,7 @@ prepare_face_for_display (f, face)
 #ifdef WINDOWSNT
 	  xgcv.font = face->font;
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
 	  xgcv.font = face->font;
 #endif
 	  mask |= GCFont;
@@ -6428,7 +6433,7 @@ realize_x_face (cache, attrs, c, base_face)
       face->fontset = make_fontset_for_ascii_face (f, fontset);
       face->font = NULL;	/* to force realize_face to load font */
 
-#ifdef macintosh
+#ifdef MAC_OS
       /* Load the font if it is specified in ATTRS.  This fixes
          changing frame font on the Mac.  */
       if (STRINGP (attrs[LFACE_FONT_INDEX]))

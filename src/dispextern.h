@@ -39,7 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "w32gui.h"
 #endif
 
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macgui.h"
 #endif
 

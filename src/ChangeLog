@@ -1,3 +1,36 @@
+2002-04-26  Andrew Choi  <akochoi@shaw.ca>
+
+	* Makefile.in (C_SWITCH_SYSTEM_TEMACS): Add.
+	[HAVE_CARBON]: Include Mac object files.
+
+	* alloc.c, callproc.c, dispextern.h, dispnew.c, emacs.c,
+	fontset.c, frame.c, frame.h, keyboard.c, sysdep.c, term.c,
+	termcap.c, window.c, xdisp.c, xfaces.c: Use macros MAC_OS8,
+	MAC_OSX, and MAC_OS instead of macintosh.
+
+	* editfns.c [MAC_OS8]: Include stdio.h.
+
+	* emacs.c [MAC_OS8]: Call mac_initialize instead of x_term_init.
+
+	* fontset.c [MAC_OS]: Set Vdefault_fontset to ETL Fixed instead of
+	Apple Monaco.
+
+	* process.c: Declare QCfamily and QCfilter as extern.
+	(wait_reading_process_input) [MAC_OSX]: Clear bit for stdin before
+	calling select.
+
+	* termcap.c [MAC_OSX]: Don't define tgetnum, PC, tputs, and
+	tgetent.
+	
+	* tparam.c [MAC_OSX]: Don't define BC and UP.
+	
+	* config.in [HAVE_CARBON]: Add.
+
+	* mac.c, macgui.h, macfns.c, macmenu.c, macterm.c, macterm.h: Move
+	here from mac/src and mac/inc.
+
+	* s/darwin.h, m/powermac.h, unexmacosx.c: New files.
+	
 2002-04-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_phys_cursor_glyph): Undo last change.  Compute

@@ -1,6 +1,6 @@
-GNU Emacs for Mac OS
+Emacs for Mac OS 8/9 and Mac OS X
 
-Copyright (c) 2001 Free Software Foundation, Inc.
+Copyright (c) 2001, 2002 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
@@ -13,8 +13,8 @@ Copyright (c) 2001 Free Software Foundation, Inc.
    provided also that they carry prominent notices stating who last
    changed them.
 
-This directory contains the files needed to build GNU Emacs on the Mac
-OS (8.1-9.0).  Many of the major features of the Unix version are
+This directory contains the files needed to build Emacs on the Mac OS
+8/9 and Mac OS X.  Many of the major features of the Unix version are
 supported: multiple frames, colors, scroll bars, menu bars, use of the
 mouse, fontsets, international characters, input methods, and coding
 systems.
@@ -23,24 +23,42 @@ Mac OS specific support includes document drag-and-drop in the Finder,
 transfer of text to and from other applications via the clipboard, and
 sending AppleScript commands to other applications from Emacs.
 
-The following are not yet supported: unexec (dump-emacs), asynchronous
-subprocesses (start-process), and networking
-(open-network-stream).
+The following are not supported on Mac OS 8/9 : unexec (dump-emacs),
+asynchronous subprocesses (start-process), and networking
+(open-network-stream).  These features work fine on Mac OS X.
 
-There is basic support for synchronous subprocesses (call-process)
-although Unix commands that are used will need to be ported to the
-Mac.
+There is basic support for synchronous subprocesses (call-process) on
+Mac OS 8/9 although Unix commands that are used will need to be
+ported.
 
-Metrowerks CodeWarrior Pro 5 or Pro 6 or MPW-GM (August 2000) can be
-used to build Emacs on the Mac OS.  See the INSTALL file in this
-directory for instructions on building Emacs.
+Metrowerks CodeWarrior Pro 6 or MPW-GM (August 2001) can be used to
+build Emacs on the Mac OS 8/9.  On Mac OS X, Emacs can be built using
+the Developer Tools.  See the INSTALL file in this directory for
+instructions on building Emacs.
 
-Binary distributions are available in
+Binary distributions will be available in
 
   ftp://ftp.gnu.org/gnu/mac/emacs/
 
-At this site you can also find an FAQ related to running GNU Emacs on
-Mac OS.
+Read the Mac OS section of the on-line help to find out about how to
+use Emacs on the Mac.
+
+A number of things do not work yet:
+
++ On Mac OS X, environment variables are not set up correctly when
+  Emacs is started from the Finder.
+
++ Emacs does not respond correctly to C-g when it is not reading
+  input.
+
++ No image support yet.
+
++ There is no mouse-2 and mouse-3 emulation yet.
+
+If your Mac is connected to the Internet, report bugs by typing `M-x
+report-emacs-bug' or by choosing the entry `Send Bug Report...'  in
+the `Help' menu.  This will send the bug report to the address
+emacs-pretest-bug@gnu.org.
 
 Andrew.
-<akochoi@i-cable.com>
+<akochoi@mac.com>

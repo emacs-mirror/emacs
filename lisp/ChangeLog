@@ -1,3 +1,8 @@
+2002-04-26  Andrew Choi  <akochoi@shaw.ca>
+
+	* term/mac-win.el: Don't call ediff-toggle-multiframe.  Set
+	default directory.  Set process-connection-type to nil.
+
 2002-04-26  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (customize-face): Use read-face-name

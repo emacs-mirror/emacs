@@ -33,6 +33,12 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+/* Without this, sprintf on Mac OS Classic will produce wrong
+   result.  */
+#ifdef MAC_OS8
+#include <stdio.h>
+#endif
+
 #include <ctype.h>
 
 #include "lisp.h"

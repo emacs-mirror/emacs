@@ -1,27 +1,31 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000,2001 Free Software Foundation, Inc.
+@c Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS, MS-DOS, Antinews, Top
 @appendix Emacs and the Mac OS
 @cindex Mac OS
 @cindex Macintosh
 
-  Emacs built on the Mac OS supports many of its major features:
+  Emacs built on Mac OS X supports most of its major features:
 multiple frames, colors, scroll bars, menu bars, use of the mouse,
-fontsets, international characters, input methods, coding systems, and
-synchronous subprocesses (@code{call-process}).  Much of this works in
-the same way as on other platforms and is therefore documented in the
-rest of this manual.  This section describes the peculiarities of using
-Emacs under the Mac OS.
+fontsets, international characters, input methods, coding systems,
+asynchronous and synchronous subprocesses, unexec (@code{dump-emacs}),
+and networking (@code{open-network-stream}).  Support for various
+image file formats has not been implemented yet.
 
-  The following features of Emacs are not yet supported on the Mac:
-unexec (@code{dump-emacs}), asynchronous subprocesses
+  The following features of Emacs are not yet supported on the Mac OS
+8 or 9: unexec (@code{dump-emacs}), asynchronous subprocesses
 (@code{start-process}), and networking (@code{open-network-stream}).
 As a result, packages such as Gnus, GUD, and Comint do not work.
+However, synchronous subprocesses (@code{call-process}) are supported.
+Since external programs to handle commands such as @code{print-buffer}
+and @code{diff} are not available on Mac OS 8 or 9, they are not
+supported.
 
-  Since external programs to handle commands such as
-@code{print-buffer} and @code{diff} are not available on the Mac OS,
-they are not supported in the Mac OS version.
+  Most of the features that are supported work in the same way as on
+other platforms and are therefore documented in the rest of this
+manual.  This section describes the peculiarities of using Emacs under
+the Mac OS.
 
 @menu
 * Input: Mac Input.                Keyboard input on the Mac.
@@ -138,9 +142,15 @@ Traditional Chinese, use @samp{chinese-big5-mac} and for Japanese,
 @section Environment Variables and Command Line Arguments.
 @cindex environment variables (Mac OS)
 
-  Environment variables and command line arguments for Emacs can be set
-by modifying the @samp{STR#} resources 128 and 129, respectively.  A common
-environment variable that one may want to set is @samp{HOME}.
+  On Mac OS X, when Emacs is run in a terminal, it inherits the values
+of environment variables from the shell from which it is invoked.
+However, when it is run from the Finder as a GUI application, it
+inherits no environment variable values.
+
+  On Mac OS 8 or 9, environment variables and command line arguments
+for Emacs can be set by modifying the @samp{STR#} resources 128 and
+129, respectively.  A common environment variable that one may want to
+set is @samp{HOME}.
 
   The way to set an environment variable is by adding a string of the
 form
@@ -173,17 +183,18 @@ So when Emacs requests a file name, doing file name completion on
 @file{/} will display all volumes on the system.  You can use @file{..}
 to go up a directory level.
 
-  To access files and folders on the desktop, look in the folder
-@file{Desktop Folder} in your boot volume (this folder is usually
-invisible in the Mac @code{Finder}).
+  On Mac OS 8 or 9, to access files and folders on the desktop, look
+in the folder @file{Desktop Folder} in your boot volume (this folder
+is usually invisible in the Mac @code{Finder}).
 
-  Emacs creates the Mac folder @file{:Preferences:Emacs:} in the
-@file{System Folder} and uses it as the temporary directory.  Emacs
-maps the directory name @file{/tmp/} to that.  Therefore it
-is best to avoid naming a volume @file{tmp}.  If everything works
-correctly, the program should leave no files in it when it exits.  You
-should be able to set the environment variable @code{TMPDIR} to use
-another directory but this folder will still be created.
+  On Mac OS 8 or 9, Emacs creates the Mac folder
+@file{:Preferences:Emacs:} in the @file{System Folder} and uses it as
+the temporary directory.  Emacs maps the directory name @file{/tmp/}
+to that.  Therefore it is best to avoid naming a volume @file{tmp}.
+If everything works correctly, the program should leave no files in it
+when it exits.  You should be able to set the environment variable
+@code{TMPDIR} to use another directory but this folder will still be
+created.
 
 
 @node Mac Font Specs

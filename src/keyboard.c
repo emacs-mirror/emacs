@@ -71,7 +71,7 @@ Boston, MA 02111-1307, USA.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macterm.h"
 #endif
 
@@ -94,8 +94,8 @@ extern int input_fd;
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
-#ifdef macintosh
-/* But not too big (local data > 32K error) if on macintosh.  */
+#ifdef MAC_OS8
+/* But not too big (local data > 32K error) if on Mac OS Classic.  */
 #define KBD_BUFFER_SIZE 512
 #else
 #define KBD_BUFFER_SIZE 4096
@@ -3687,7 +3687,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  abort ();
 #endif
 	}
-#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (macintosh)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
       else if (event->kind == delete_window_event)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
@@ -3718,7 +3718,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  XSETBUFFER (obj, current_buffer);
 	  kbd_fetch_ptr = event + 1;
 	}
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
       else if (event->kind == menu_bar_activate_event)
 	{
 	  kbd_fetch_ptr = event + 1;
@@ -5373,7 +5373,7 @@ make_lispy_event (event)
       }
 #endif /* HAVE_MOUSE */
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to

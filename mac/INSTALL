@@ -1,6 +1,6 @@
-* BUILDING EMACS ON THE MAC OS     -*- outline -*-
+* BUILDING EMACS ON MAC OS 8/9 AND MAC OS X     -*- outline -*-
 
-Copyright (c) 2001 Free Software Foundation, Inc.
+Copyright (c) 2001, 2002 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
@@ -13,37 +13,123 @@ Copyright (c) 2001 Free Software Foundation, Inc.
    provided also that they carry prominent notices stating who last
    changed them.
 
-You can use either Metrowerks CodeWarrior Pro 5 or 6 or MPW-GM
-(Aug. 2000) to build Emacs.
+* BUILDING EMACS ON MAC OS X
 
-You will need MPW-GM to build the make-docfile utility and to generate
-the doc string file DOC.
+You should be able to build Emacs on Mac OS X by typing the following
+commands at the top-level directory after the source distribution is
+un-tarred.
 
-To decompress files, you can use MacGzip from
+  ./configure
+  make
+  make install
 
-  http://persephone.cps.unizar.es/~spd/gzip
+The last step must be performed as root.
 
-and to untar them, you can use tar 4.0 from
+If you have X Window installed, you need to type `./configure
+--without-x' instead of `./configure'.
 
-  http://hyperarchive.lcs.mit.edu/HyperArchive/Archive/cmp/tar-40b.hqx
+You can type `make bootstrap' instead of `make' to rebuild everything,
+including byte-compiling the Lisp files.
 
-(Optional) If you wish to fetch files from the Emacs CVS repository
-directly to your Mac, you can use the CVS client MacCVS, which can be
-downloaded from
+If you have not installed the GNU texinfo package on your system, the
+build will complain that makeinfo cannot be found.  Instructions for
+installing the GNU texinfo package are given below.  Alternatively,
+you can type `make -k' instead of `make' and safely ignore the error
+messages and use the existing info files.
 
-  http://www.wincvs.org/
+After Emacs is installed, you can run it by typing `emacs -nw' from a
+terminal (make sure your path contains /usr/local/bin) or by
+double-clicking on mac/Emacs.app in the Finder.  At present,
+command-line options cannot be passed to Emacs running under the Aqua
+GUI.  This should soon be fixed.
+
+To use colors in a terminal, put the following lines in the file
+~/.termcap and log in again.
+
+-----
+# added ANSI color
+vt100|vt100-am|vt100am|dec vt100:\
+    :pa#64:Co#8:Sf=\E[3%dm:Sb=\E[4%dm:op=\E[m:AF=\E[3%dm:AB=\E[4%dm:\
+    :do=^J:co#80:li#24:cl=\E[;H\E[2J:sf=2*\ED:\
+    :le=^H:bs:am:cm=5\E[%i%d;%dH:nd=2\E[C:up=2\E[A:\
+    :ce=3\E[K:cd=50\E[J:so=2\E[7m:se=2\E[m:us=2\E[4m:ue=2\E[m:\
+    :md=2\E[1m:mr=2\E[7m:mb=2\E[5m:me=2\E[m:\
+    :rf=/usr/share/tabset/vt100:\
+    :rs=\E>\E[?3l\E[?4l\E[?5l\E[?7h\E[?8h\E[;r\E[0m\E(B\E)B\E[2J:\
+    :ks=\E[?1h\E=:ke=\E[?1l\E>:\
+    :ku=\EOA:kd=\EOB:kr=\EOC:kl=\EOD:kb=^H:\
+    :ho=\E[H:k1=\EOP:k2=\EOQ:k3=\EOR:k4=\EOS:pt:sr=2*\EM:vt#3:xn:\
+    :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
+-----
+
+To build a binary distribution of Emacs for Mac OS X, run the shell
+script make-bin-dist in the `mac' directory.  This will create a file
+emacs-21.xx.yy-mac-bin.tar.gz.
+
+To install the binary distribution, untar the file and run the shell
+script osx-install in its top-level directory.
+
+To build the `info' files, you need to install the texinfo software.
+
+To install from source, obtain texinfo-4.2.tar.gz from ftp.gnu.org or
+a mirror.  Un-tar it, enter its directory and type
+
+  ./configure
+  make
+  make install
+
+The last step needs to be performed as root.
+
+You may also like to install ispell, which will allow you to use
+ispell and flyspell-mode.  To install ispell from source, you first
+need to install GNU textutils.
+
+To do so, download textutils-2.0.tar.gz from ftp.gnu.org or a mirror.
+Un-tar it, enter its directory, type
+
+  ./configure --host=powerpc-apple-bsd
+  make
+  make install
+    
+Again, the last step needs to be performed as root.  Note that if you
+run `make check', the test for `pr' will fail.
+
+Get and un-tar ispell-3.2.06.tar.gz.  Look for it here:
+
+  http://fmg-www.cs.ucla.edu/geoff/ispell.html
+
+Go into its directory, type
+
+  cp local.h.samp local.h
+
+Add a line `#define TERMLIB ""' to the end of local.h.
+
+Set the environment variable TMPDIR to an existing directory.  For
+example since `/tmp' exists on my machine and I am using `bash', I
+typed
+
+  export TMPDIR=/tmp
+
+Run `make' and `make install', the latter as root.
+
+
+* BUILDING EMACS ON MAC OS 8/9
+
+You can use either Metrowerks CodeWarrior Pro 6 or MPW-GM (Aug. 2001)
+to build Emacs.  MPW-GM can be downloaded free of charge from Apple.
+
+In either case, you will need MPW-GM to build the make-docfile utility
+and to generate the doc string file DOC.
+
+### IMPORTANT ### You can use StuffIf Expander to decompress and untar
+the distribution.  However, you *must* set the radio button in the
+Preferences->Cross Platform->Convert text files to Macintosh format to
+"Never".  Otherwise the compiled Lisp files will be corrupted.
 
 (Optional) A subset of the fonts from the GNU intlfonts-1.2
 distribution converted to NFNT format can be obtained from
 
   ftp://mac-emacs.sourceforge.net/pub/mac-emacs/GNU-fonts.smi.bin
-
-### IMPORTANT ### If you use StuffIf Expander to decompress and untar
-the distribution, you *must* set the radio button in the
-Preferences->Cross Platform->Convert text files to Macintosh format to
-"Never".  Otherwise the compiled Lisp files will be corrupted.
-
-* BUILDING EMACS
 
 To build Emacs in the MPW Shell, simply set the directory to
 ...:emacs:mac: and build the target Emacs of the make file
@@ -53,13 +139,11 @@ makefile.mpw.  I.e., execute the commands
   Emacs.MakeScript
 
 To build Emacs using CodeWarrior, start up the CodeWarrior IDE, choose
-File->Import Project...  and select the file cw5-mcp.xml or
-cw6-mcp.xml, depending on which verison of CodeWarrior used.  When
+File->Import Project...  and select the file cw6-mcp.xml.  When
 prompted to save the project, navigate to same directory as the file
-cw[56]-mcp.xml, name it emacs-cw5.mcp or emacs-cw6.mcp, and save it
-there.  Then choose Project->Make.  Note that this does not build the
-DOC file.  To do so, use MPW and build the target "Doc" in
-makefile.MPW.
+cw6-mcp.xml, name the project emacs-cw6.mcp, and save it there.  Then
+choose Project->Make.  Note that this does not build the DOC file.  To
+do so, use MPW and build the target "Doc" in makefile.MPW.
 
 Once built, the Emacs application (Emacs CW or Emacs MPW) can be
 launched where it is created.
@@ -70,35 +154,29 @@ dialog.  To build a version for profiling, check the Profiler
 Information box in the Emacs Settings->Code Generation->PPC Processor
 dialog and include the Profiler PPC.Lib library.
 
-To build optimized or debugging version of Emacs in MPW, follow the
-comment in makefile.MPW to enable the -opt speed or -sym on option
-(see note below).
-
 * NOTES
 
-Emacs should build and run on a PowerMac running Mac OS 8.1 - 9.0.
+Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.1.
 
 You will need around 100 MB of disk space for the source files and
 intermediate files.
 
-It will not run on machines with more than 256 MB of physical or
-virtual memory.
+It will not run on machines running Mac OS 8/9 with more than 256 MB
+of physical or virtual memory.  It does not have this restriction when
+it is run under Mac OS X.  But the usual 128MB buffer limit of a
+32-bit Emacs still exists.
 
-Currently there is no support for building the LEIM directory on the
-Mac.  However, it can be built on another platform and transferred to
-the Mac.
+Under Mac OS 8/9, there is no support for building the LEIM directory.
+However, it can be built on Mac OS X or another platform and
+transferred to the Mac.
 
-When Emacs is built with "-opt speed" enabled in makefile.MPW,
-optimization causes the functions reset_buffer_local_variables in
-buffer.c, syms_of_lread in lread.c, and x_draw_hollow_cursor in
-macterm.c to crash.  Avoid this by enclosing them in the following
-pragmas.
+On Mac OS 8/9, to use the same icon as when Emacs is built on Windows
+NT, define GNU_ICON in mac/src/Emacs.r.  Currently Emacs uses a
+generic application icon on the Mac OS X.  A better looking one is
+coming soon.
 
-  #pragma options opt off
 
-  <function definition...>
+Enjoy!
 
-  #pragma options opt reset
-
-To use the same icon as when Emacs is built on Windows NT, define
-GNU_ICON in mac/src/Emacs.r.
+Andrew.
+<akochoi@mac.com>

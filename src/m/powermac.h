@@ -1,5 +1,5 @@
-/* Handcrafted m-mac.h file for building GNU Emacs on the Macintosh.
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* Machine description file for Apple Power Macintosh
+   Copyright (C) 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,11 +18,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 /* The following line tells the configuration script what sort of 
    operating system this machine is likely to run.
-   USUAL-OPSYS="<name of system .h file here, without the s- or .h>"  */
+   USUAL-OPSYS="darwin"  */
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
@@ -55,21 +54,21 @@ Boston, MA 02111-1307, USA.  */
 
    If you use NO_UNION_TYPE, this flag does not matter.  */
 
-#define EXPLICIT_SIGN_EXTEND
+/* #define EXPLICIT_SIGN_EXTEND */
 
 /* Data type of load average, as read out of kmem.  */
 
-/* #define LOAD_AVE_TYPE long */
+#define LOAD_AVE_TYPE long
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
-/* #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE) */
+#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
 
-#define CANNOT_DUMP
+/* #define CANNOT_DUMP */
 
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
@@ -78,7 +77,7 @@ Boston, MA 02111-1307, USA.  */
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
 
-#define VIRT_ADDR_VARIES
+/* #define VIRT_ADDR_VARIES * */
 
 /* Define C_ALLOCA if this machine does not support a true alloca
    and the one written in C should be used instead.
@@ -87,7 +86,7 @@ Boston, MA 02111-1307, USA.  */
    Define neither one if an assembler-language alloca
    in the file alloca.s should be used.  */
 
-#define C_ALLOCA
+/* #define C_ALLOCA */
 /* #define HAVE_ALLOCA */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
@@ -95,7 +94,7 @@ Boston, MA 02111-1307, USA.  */
    when Emacs is dumped.  If you define this, the preloaded Lisp
    code will not be sharable; but that's better than failing completely.  */
 
-/* #define NO_REMAP */
+#define NO_REMAP
 
 /* Some really obscure 4.2-based systems (like Sequent DYNIX)
  * do not support asynchronous I/O (using SIGIO) on sockets,
@@ -109,7 +108,7 @@ Boston, MA 02111-1307, USA.  */
  * file.
  */
 
-#define NO_SOCK_SIGIO
+/* #define NO_SOCK_SIGIO */
 
 
 /* After adding support for a new system, modify the large case
@@ -120,21 +119,3 @@ Boston, MA 02111-1307, USA.  */
    If you've just fixed a problem in an existing configuration file,
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
-
-/* MPW build crashes if this is not defined.  */
-#ifdef __MRC__
-#define IEEE_FLOATING_POINT 1
-#endif
-
-#if 0
-/* The usual definition of XINT, which involves shifting, does not
-   sign-extend properly on this machine.  */
-
-#define XINT(i) (((sign_extend_temp=(i)) & 0x00800000) \
-		 ? (sign_extend_temp | 0xFF000000) \
-		 : (sign_extend_temp & 0x00FFFFFF))
-
-#ifdef emacs /* Don't do this when making xmakefile! */
-extern int sign_extend_temp;
-#endif
-#endif

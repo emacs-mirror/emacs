@@ -1341,7 +1341,7 @@ allocate_string ()
 
 #ifdef GC_CHECK_STRING_BYTES
   if (!noninteractive
-#ifdef macintosh
+#ifdef MAC_OS8
       && current_sblock
 #endif
      )

@@ -1,3 +1,136 @@
+2002-04-13  Andrew Choi  <akochoi@shaw.ca>
+
+	* Emacs.app/Contents/Info.plist: New file.
+
+	* Emacs.app/Contents/PkgInfo: New file.
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	New file.
+
+	* cw5-mcp.xml: Remove file.
+
+	* inc/defs-cw5.h: Remove file.
+
+	* cw6-mcp.xml: Update with new version.
+
+	* mac/inc/defs-cw6.h: New constant MAC_OS8.  Remove definition
+	of constant CODEWARRIOR_VERSION_6.
+
+	* mac/src/mac.c:
+	* mac/src/macmenu.c:
+	* mac/src/macterm.c:
+	Test constant __MSL__ instead of CODEWARRIOR_VERSION_6.
+
+	* src/Carbon.r: New File.
+
+	* makefile.MPW: Define MAC_OS and MAC_OS8.  Update with change of
+	locations for mac.c, macfns.c, macgui.h, macmenu.c, macterm.c, and
+	macterm.h.  Generate DOC from .el instead of .elc versions of
+	files listed in DONTCOMPILE in lisp/Makefile.in.
+	
+	* INSTALL: Add installation instructions for Mac OS X.
+
+	* README: Add information for Mac OS X.
+
+	* src/mac.c, inc/macgui.h, src/macfns.c, src/macmenu.c,
+	src/macterm.c, inc/macterm.h: Remove from here and move to src.
+
+2002-04-12  Andrew Choi  <akochoi@shaw.ca>
+
+	* src/mac.c (select): Under Carbon, always return true so
+	XTread_socket is called to poll input.
+	(run_mac_command): Not implemented under Carbon.
+	(get_wd): Call PBHGetVolSync and path_from_vol_dir_name to
+	establish pathname.
+	(do_applescript): Use Carbon routines AEGetDescDatASize and
+	AEGetDescData.
+	(Fmac_paste_function): Use Carbon routines GetCurrentScrap,
+	GetScrapFlavorFlags, GetScrapFlavorSize, and GetScrapFlavorData.
+	(Fmac_cut_function): Use Carbon routines ClearCurrentScrap,
+	GetCurrentScrap, and PutScrapFlavor.
+	(Fx_selection_exists_p): Use Carbon routines GetCurrentScrap and
+	GetScrapFlavorFlags.
+
+	* src/macfns.c: Synchronize with changes in w32fns.c.
+ 	[MAC_OSX]: Include Carbon headers.
+	(x_real_positions): Use Carbon routine GetWindowPortBounds.
+	(x_set_scroll_bar_width): Set width of scroll bar to 16.
+	(x_make_gc): Remove static qualifier.
+
+	* src/macmenu.c: Synchronize with changes in w32menu.c.
+	[MAC_OSX]: Include Carbon headers.
+	(set_frame_menubar): Check equality of vector representation of
+	scroll bars using Fequal instead of EQ.
+	(mac_menu_show): Use Carbon routine GetWindowPort.
+	(mac_dialog): Likewise.
+	(add_menu_item): Use Carbon routines CountMenuItems,
+	EnableMenuItem, and DisableMenuItem.
+
+	* src/macterm.c: Synchronize with changes in w32term.c.
+	[MAC_OSX]: Include Carbon headers.
+	(XDrawLine): Use Carbon routine GetWindowPort.
+	(XClearArea): Likewise.
+	(XClearWindow): Use Carbon routines GetWindowPort and
+	GetWindowPortBounds.
+	(mac_draw_bitmap): Use Carbon routines GetWindowPort and
+	GetPortPixMap.
+	(mac_set_clip_rectangle): Use Carbon routine GetWindowPort.
+	(mac_reset_clipping): Use Carbon routine GetWindowPort.
+	(XFillRectangle): Likewise.
+	(mac_draw_rectangle): Likewise.
+	(mac_draw_rectangle_to_pixmap): Likewise.
+	(mac_draw_string_common): Likewise.
+	(mac_copy_area): Use Carbon routines GetWindowPort and
+	GetPortPixMap.
+	(mac_scroll_area): Use Carbon routines GetWindowPort and
+	GetQDGlobalsScreenBits.
+	(x_flush): Call Carbon routine QDFlushPortBuffer.
+	(x_update_end): Use Carbon routine GetWindowPort; call x_flush.
+	(x_draw_fringe_bitmap): Call mac_reset_clipping before returning.
+	(x_draw_image_glyph_string): Likewise.
+	(x_draw_stretch_glyph_string): Likewise.
+	(construct_mouse_click): Call Carbon routine GetWindowPort.
+	(note_mouse_movement): Call Carbon routine GetWindowPortBounds.
+	(XTmouse_position): Call Carbon routine GetWindowPort.
+	(x_scroll_bar_create): Create scroll bar with proc
+	kControlScrollBarProc.
+	(XTset_vertical_scroll_bar) [MAC_OSX]: Set width to 16.
+	(activate_scroll_bar): Call ActivateControl instead of
+	SetControlMaximum.
+	(deactivate_scroll_bar): Call DeactivateControl instead of
+	SetControlMaximum.
+	(x_scroll_bar_handle_click): Use default case for scroll
+	indicator.
+	(x_scroll_bar_report_motion): Call Carbon routine GetWindowPort.
+	(x_calc_absolute_position): Call Carbon routines GetWindowPort and
+	GetWindowPortBounds.
+	(init_font_name_table): Call Carbon Font Manager routines to
+	iterate through all fonts.
+	(XLoadQueryFont): Call Carbon routines GetPortTextFont,
+	GetPortTextSize, and GetPortTextFace.
+	(do_init_managers): Do not initialize Mac Toolbox under Carbon.
+	(is_emacs_window): New function to filter out non-Emacs windows
+	passed back by WaitNextEvent.
+	(do_mouse_moved): Call Carbon routine GetWindowPort.
+	(do_apple_menu): No apple menu handler under Carbon.
+	(do_zoom_window): Call Carbon routines GetWindowPort,
+	GetQDGlobalsScreenBits, SetWindowStandardState, and
+	GetWindowPortBounds.
+	(init_required_apple_events): Use UPP procedure type converter.
+	(main): Don't define for Carbon version.
+	(XTread_socket): Don't check interrupt_input_blocked.  Don't call
+	check_alarm.  Call Carbon routines GetWindowPort,
+	GetQDGlobalScreenBits, GetWindowPortBounds, and InvalWindowRect.
+	(NewMacWindow): Set making_terminal_window to 0.  Call Carbon
+	routine GetWindowPort.
+	(mac_initialize): Rename from x_initialize.  Use new Doc string
+	format.
+
+	* inc/macterm.h: Synchronize with changes in w32term.h.
+
+	* inc/macgui.h [MAC_OSX]: Use OpaqueWindowPtr* instead of
+	WindowPtr.
+
 2002-01-28  Kim F. Storm  <storm@cua.dk>
 
 	* src/macterm.c (x_erase_phys_cursor): Don't erase cursor if

@@ -30,7 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macterm.h"
 #endif
 #include "buffer.h"
@@ -486,11 +486,11 @@ make_terminal_frame ()
   f->output_method = output_termcap;
   f->output_data.x = &tty_display;
 #else
-#ifdef macintosh
+#ifdef MAC_OS8
   make_mac_terminal_frame (f);
 #else
   f->output_data.x = &tty_display;
-#endif /* macintosh */
+#endif /* MAC_OS8 */
 #endif /* WINDOWSNT */
 #endif /* MSDOS */
 
@@ -521,7 +521,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
     abort ();
 #else /* not MSDOS */
 
-#ifdef macintosh
+#ifdef MAC_OS
   if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
@@ -1112,7 +1112,7 @@ frame.  The hook is called with one argument FRAME.  */)
     return Qnil;
 
   if (NILP (force) && !other_visible_frames (f)
-#ifdef macintosh
+#ifdef MAC_OS8
       /* Terminal frame deleted before any other visible frames are
 	 created.  */
       && strcmp (XSTRING (f->name)->data, "F1") != 0

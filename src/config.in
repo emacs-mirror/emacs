@@ -717,6 +717,18 @@ Boston, MA 02111-1307, USA.  */
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
 
+/* Define if we should use the Carbon API on Mac OS X.  */
+#undef HAVE_CARBON
+
+#ifdef HAVE_CARBON
+#define HAVE_WINDOW_SYSTEM
+#define HAVE_MOUSE
+#define HAVE_MENUS
+#endif
+
+/* Define if we have the session management (SM) library.  */
+#undef HAVE_X_SM
+
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
    code using `volatile' can become incorrect without. Disable with care. */
 #undef volatile

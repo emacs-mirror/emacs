@@ -1,5 +1,5 @@
 /* Unix emulation routines for GNU Emacs on the Mac OS.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include <config.h>
 
@@ -34,6 +34,20 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef MAC_OSX
+#undef mktime
+#undef DEBUG
+#undef free
+#undef malloc
+#undef realloc
+#include <Carbon/Carbon.h>
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#else /* not MAC_OSX */
 #include <Files.h>
 #include <MacTypes.h>
 #include <TextUtils.h>
@@ -44,6 +58,8 @@ Boston, MA 02111-1307, USA.  */
 #include <Timer.h>
 #include <OSA.h>
 #include <AppleScript.h>
+#include <Scrap.h>
+#endif /* not MAC_OSX */
 
 #include "lisp.h"
 #include "process.h"
@@ -81,13 +97,13 @@ string_cat_and_replace (char *s1, const char *s2, int n, char a, char b)
 }
 
 
-/* Convert a Mac pathname to Unix form.  A Mac full pathname is one
+/* Convert a Mac pathname to Posix form.  A Mac full pathname is one
    that does not begin with a ':' and contains at least one ':'. A Mac
-   full pathname causes an '/' to be prepended to the Unix pathname.
+   full pathname causes an '/' to be prepended to the Posix pathname.
    The algorithm for the rest of the pathname is as follows:
      For each segment between two ':',
        if it is non-null, copy as is and then add a '/' at the end,
-       otherwise, insert a "../" into the Unix pathname.
+       otherwise, insert a "../" into the Posix pathname.
    Returns 1 if successful; 0 if fails.  */
    
 int
@@ -146,7 +162,7 @@ mac_to_posix_pathname (const char *mfn, char *ufn, int ufnbuflen)
 extern char *get_temp_dir_name ();
 
 
-/* Convert a Unix pathname to Mac form.  Approximately reverse of the
+/* Convert a Posix pathname to Mac form.  Approximately reverse of the
    above in algorithm.  */
    
 int
@@ -235,6 +251,7 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
   return 1;
 }
 
+#ifndef MAC_OSX
 
 /* The following functions with "sys_" prefix are stubs to Unix
    functions that have already been implemented by CW or MPW.  The
@@ -250,21 +267,21 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 #define MAC_UNIX_EPOCH_DIFF  ((365L * 66 + 17) * 24 * 60 * 60)
 
 #ifdef __MWERKS__
-#ifndef CODEWARRIOR_VERSION_6
+#if __MSL__ < 0x6000
 /* CW Pro 5 epoch is Jan 1, 1900 (aaarghhhhh!); remember, 1900 is not
    a leap year!  This is for adjusting time_t values returned by MSL
    functions.  */
 #define CW_OR_MPW_UNIX_EPOCH_DIFF ((365L * 70 + 17) * 24 * 60 * 60)
-#else
-/* CW changes Pro 6 to following Unix!  */
+#else /* __MSL__ >= 0x6000 */
+/* CW changes Pro 6 to follow Unix!  */
 #define CW_OR_MPW_UNIX_EPOCH_DIFF ((365L * 66 + 17) * 24 * 60 * 60)
-#endif
+#endif /* __MSL__ >= 0x6000 */
 #elif __MRC__
 /* MPW library functions follow Unix (confused?).  */
 #define CW_OR_MPW_UNIX_EPOCH_DIFF ((365L * 66 + 17) * 24 * 60 * 60)
-#else
+#else /* not __MRC__ */
 You lose!!!
-#endif
+#endif /* not __MRC__ */
 
 
 /* Define our own stat function for both MrC and CW.  The reason for
@@ -407,8 +424,6 @@ fstat (int fildes, struct stat *buf)
 }
 #endif  /* __MRC__ */
 
-
-/* Adapted from Think Reference code example.  */
 
 int
 mkdir (const char *dirname, int mode)
@@ -611,9 +626,9 @@ sys_open (const char *path, int oflag)
       if (oflag & O_CREAT)
         fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
       return res;
-#else
+#else /* not __MRC__ */
       return open (mac_pathname, oflag);
-#endif
+#endif /* not __MRC__ */
     }
 }
 
@@ -637,9 +652,9 @@ sys_creat (const char *path, mode_t mode)
       int result = creat (mac_pathname);
       fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
       return result;
-#else
+#else /* not __MRC__ */
       return creat (mac_pathname, mode);
-#endif
+#endif /* not __MRC__ */
     }
 }
 
@@ -675,7 +690,7 @@ sys_read (int fildes, char *buf, int count)
   if (fildes == 0)  /* this should not be used for console input */
     return -1;
   else
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
     return _read (fildes, buf, count);
 #else
     return read (fildes, buf, count);
@@ -690,7 +705,7 @@ sys_write (int fildes, const char *buf, int count)
   if (fildes == DEV_NULL_FD)
     return count;
   else
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
     return _write (fildes, buf, count);
 #else
     return write (fildes, buf, count);
@@ -764,7 +779,7 @@ sys_fopen (const char *name, const char *mode)
 #ifdef __MRC__
       if (mode[0] == 'w' || mode[0] == 'a')
         fsetfileinfo (mac_pathname, 'EMAx', 'TEXT');
-#endif
+#endif /* not __MRC__ */
       return fopen (mac_pathname, mode);
     }
 }
@@ -778,9 +793,9 @@ long target_ticks = 0;
 __sigfun alarm_signal_func = (__sigfun) 0;
 #elif __MWERKS__
 __signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
-#else
+#else /* not __MRC__ and not __MWERKS__ */
 You lose!!!
-#endif
+#endif /* not __MRC__ and not __MWERKS__ */
 
 
 /* These functions simulate SIG_ALRM.  The stub for function signal
@@ -804,13 +819,16 @@ check_alarm ()
 
 
 int
-select(n,  rfds, wfds, efds, timeout)
+select (n,  rfds, wfds, efds, timeout)
   int n;
   SELECT_TYPE *rfds;
   SELECT_TYPE *wfds;
   SELECT_TYPE *efds;
   struct timeval *timeout;
 {
+#ifdef TARGET_API_MAC_CARBON
+  return 1;
+#else /* not TARGET_API_MAC_CARBON */
   EMACS_TIME end_time, now;
   EventRecord e;
 
@@ -844,7 +862,8 @@ select(n,  rfds, wfds, efds, timeout)
           }
       }
       
-      WaitNextEvent (0, &e, 1UL, NULL);	/* Accept no event; wait 1 tic. by T.I.*/
+      WaitNextEvent (0, &e, 1UL, NULL);	/* Accept no event; wait 1
+					   tic. by T.I. */
       
       EMACS_GET_TIME (now);
       EMACS_SUB_TIME (now, end_time, now);
@@ -852,6 +871,7 @@ select(n,  rfds, wfds, efds, timeout)
   while (!EMACS_TIME_NEG_P (now));
 
   return 0;
+#endif /* not TARGET_API_MAC_CARBON */
 }
 
 
@@ -866,8 +886,9 @@ pause ()
   if (!target_ticks)  /* no alarm pending */
     return -1;
 
-  if ( (tick = TickCount ()) < target_ticks )
-    WaitNextEvent (0, &e, target_ticks - tick, NULL);	/* Accept no event; just wait. by T.I.*/
+  if ((tick = TickCount ()) < target_ticks)
+    WaitNextEvent (0, &e, target_ticks - tick, NULL); /* Accept no event;
+							 just wait. by T.I. */
   
   target_ticks = 0;
   if (alarm_signal_func)
@@ -897,9 +918,9 @@ sys_signal (int signal_num, __sigfun signal_func)
 extern __signal_func_ptr signal (int signal, __signal_func_ptr signal_func);
 __signal_func_ptr
 sys_signal (int signal_num, __signal_func_ptr signal_func)
-#else
+#else /* not __MRC__ and not __MWERKS__ */
      You lose!!!
-#endif
+#endif /* not __MRC__ and not __MWERKS__ */
 {
   if (signal_num != SIGALRM)
     return signal (signal_num, signal_func);
@@ -1003,7 +1024,7 @@ extern struct tm *localtime (const time_t *);
 struct tm *
 sys_localtime (const time_t *timer)
 {
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
   time_t unix_time = *timer;
 #else
   time_t unix_time = *timer + CW_OR_MPW_UNIX_EPOCH_DIFF;
@@ -1018,7 +1039,7 @@ extern char *ctime (const time_t *);
 char *
 sys_ctime (const time_t *timer)
 {
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
   time_t unix_time = *timer;
 #else
   time_t unix_time = *timer + CW_OR_MPW_UNIX_EPOCH_DIFF;
@@ -1033,7 +1054,7 @@ extern time_t time (time_t *);
 time_t
 sys_time (time_t *timer)
 {
-#ifdef CODEWARRIOR_VERSION_6
+#if __MSL__ >= 0x6000
   time_t mac_time = time (NULL);
 #else
   time_t mac_time = time (NULL) - CW_OR_MPW_UNIX_EPOCH_DIFF;
@@ -1333,6 +1354,7 @@ link (const char *name1, const char *name2)
   return -1;
 }
 
+#endif  /* ! MAC_OSX */
 
 /* Determine the path name of the file specified by VREFNUM, DIRID,
    and NAME and place that in the buffer PATH of length
@@ -1381,6 +1403,7 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
   return 1;  /* success */
 }
 
+#ifndef MAC_OSX
 
 int
 readlink (const char *path, char *buf, int bufsiz)
@@ -1593,7 +1616,7 @@ geteuid ()
 
 
 #ifdef __MWERKS__
-#ifndef CODEWARRIOR_VERSION_6
+#if __MSL__ < 0x6000
 #undef getpid
 int
 getpid ()
@@ -1602,6 +1625,8 @@ getpid ()
 }
 #endif
 #endif /* __MWERKS__ */
+
+#endif /* ! MAC_OSX */
 
 
 /* Return the path to the directory in which Emacs can create
@@ -1613,7 +1638,7 @@ getpid ()
    directory "Emacs" in the Preferences Folder.  This directory is
    created if it does not exist.  */
 
-static char *
+char *
 get_temp_dir_name ()
 {
   static char *temp_dir_name = NULL;
@@ -1658,6 +1683,7 @@ get_temp_dir_name ()
   return temp_dir_name;
 }
 
+#ifndef MAC_OSX
 
 /* Allocate and construct an array of pointers to strings from a list
    of strings stored in a 'STR#' resource.  The returned pointer array
@@ -1725,7 +1751,8 @@ get_path_to_system_folder ()
   if (!path_from_vol_dir_name (full_path, 255, vol_ref_num, dir_id, "\p"))
     return NULL;
 
-  if (!mac_to_posix_pathname (full_path, system_folder_unix_name, MAXPATHLEN+1))
+  if (!mac_to_posix_pathname (full_path, system_folder_unix_name,
+			      MAXPATHLEN+1))
     return NULL;
     
   return system_folder_unix_name;
@@ -1831,9 +1858,9 @@ char *sys_siglist[] =
   "Segment violation",
   "Terminal"
 };
-#else
+#else /* not __MRC__ and not __MWERKS__ */
 You lose!!!
-#endif
+#endif /* not __MRC__ and not __MWERKS__ */
 
 
 #include <utsname.h>
@@ -1928,6 +1955,9 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
      const char *workdir;
      const char *infn, *outfn, *errfn;
 {
+#ifdef TARGET_API_MAC_CARBON
+  return -1;
+#else /* not TARGET_API_MAC_CARBON */
   char macappname[MAXPATHLEN+1], macworkdir[MAXPATHLEN+1];
   char macinfn[MAXPATHLEN+1], macoutfn[MAXPATHLEN+1], macerrfn[MAXPATHLEN+1];
   int paramlen, argc, newargc, j, retries;
@@ -2008,9 +2038,9 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	  char *t = (char *) alloca (strlen (newargv[0]) + 7 + 1);
 	  strcpy (t, "~emacs/");
 	  strcat (t, newargv[0]);
-#endif
+#endif /* 0 */
 	  Lisp_Object path;
-	  openp (Vexec_path, build_string (newargv[0]), Vexec_suffixes, &path,
+	  openp (Vexec_path, build_string (newargv[0]), EXEC_SUFFIXES, &path,
 		 1);
 
 	  if (NILP (path))
@@ -2158,6 +2188,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   free (param);
 
   return ref_con;
+#endif /* not TARGET_API_MAC_CARBON */
 }
 
 
@@ -2360,6 +2391,8 @@ getwd (char *path)
     return path;
 }
 
+#endif  /* ! MAC_OSX */
+
 
 void
 initialize_applescript ()
@@ -2423,6 +2456,15 @@ do_applescript (char *script, char **result)
       if (!OSAScriptError (as_scripting_component, kOSAErrorMessage, typeChar,
 			   &error_desc))
         {
+#if TARGET_API_MAC_CARBON
+          length = AEGetDescDataSize (&error_desc);
+          *result = (char *) xmalloc (length + 1);
+          if (*result)
+            {
+              AEGetDescData (&error_desc, *result, length);
+              *(*result + length) = '\0';
+            }
+#else /* not TARGET_API_MAC_CARBON */
           HLock (error_desc.dataHandle);
           length = GetHandleSize(error_desc.dataHandle);
           *result = (char *) xmalloc (length + 1);
@@ -2432,11 +2474,21 @@ do_applescript (char *script, char **result)
               *(*result + length) = '\0';
             }
           HUnlock (error_desc.dataHandle);
+#endif /* not TARGET_API_MAC_CARBON */
           AEDisposeDesc (&error_desc);
         }
     }
   else if (osaerror == noErr)  /* success: retrieve resulting script value */
     {
+#if TARGET_API_MAC_CARBON
+      length = AEGetDescDataSize (&result_desc);
+      *result = (char *) xmalloc (length + 1);
+      if (*result)
+        {
+          AEGetDescData (&result_desc, *result, length);
+          *(*result + length) = '\0';
+        }
+#else /* not TARGET_API_MAC_CARBON */
       HLock (result_desc.dataHandle);
       length = GetHandleSize(result_desc.dataHandle);
       *result = (char *) xmalloc (length + 1);
@@ -2446,6 +2498,7 @@ do_applescript (char *script, char **result)
           *(*result + length) = '\0';
         }
       HUnlock (result_desc.dataHandle);
+#endif /* not TARGET_API_MAC_CARBON */
     }
 
   AEDisposeDesc (&script_desc);
@@ -2456,11 +2509,11 @@ do_applescript (char *script, char **result)
 
 
 DEFUN ("do-applescript", Fdo_applescript, Sdo_applescript, 1, 1, 0,
-    "Compile and execute AppleScript SCRIPT and retrieve and return the\n\
-result.  If compilation and execution are successful, the resulting script\n\
-value is returned as a string.  Otherwise the function aborts and\n\
-displays the error message returned by the AppleScript scripting\n\
-component.")
+       doc: /* Compile and execute AppleScript SCRIPT and retrieve and return the result.
+If compilation and execution are successful, the resulting script
+value is returned as a string.  Otherwise the function aborts and
+displays the error message returned by the AppleScript scripting
+component.  */)
   (script)
     Lisp_Object script;
 {
@@ -2468,7 +2521,7 @@ component.")
   Lisp_Object lisp_result;
   long status;
 
-  CHECK_STRING (script, 0);
+  CHECK_STRING (script);
   
   status = do_applescript (XSTRING (script)->data, &result);
   if (status)
@@ -2497,15 +2550,15 @@ component.")
 }
 
 
-DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix, Smac_file_name_to_posix, 1,
-       1, 0,
-    "Convert Macintosh filename to Posix form.")
-  (mac_filename)
-    Lisp_Object mac_filename;
+DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
+       Smac_file_name_to_posix, 1, 1, 0,
+       doc: /* Convert Macintosh filename to Posix form.  */)
+     (mac_filename)
+     Lisp_Object mac_filename;
 {
   char posix_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (mac_filename, 0);
+  CHECK_STRING (mac_filename);
   
   if (mac_to_posix_pathname (XSTRING (mac_filename)->data, posix_filename,
 			   MAXPATHLEN))
@@ -2515,15 +2568,15 @@ DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix, Smac_file_name_to_posi
 }
 
 
-DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac, Sposix_file_name_to_mac, 1,
-       1, 0,
-    "Convert Unix filename to Mac form.")
-  (posix_filename)
-    Lisp_Object posix_filename;
+DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac,
+       Sposix_file_name_to_mac, 1, 1, 0,
+       doc: /* Convert Posix filename to Mac form.  */)
+     (posix_filename)
+     Lisp_Object posix_filename;
 {
   char mac_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (posix_filename, 0);
+  CHECK_STRING (posix_filename);
   
   if (posix_to_mac_pathname (XSTRING (posix_filename)->data, mac_filename,
 			   MAXPATHLEN))
@@ -2536,9 +2589,39 @@ DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac, Sposix_file_name_to_ma
 /* set interprogram-paste-function to mac-paste-function in mac-win.el
    to enable Emacs to obtain the contents of the Mac clipboard. */
 DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
-    "Return the contents of the Mac clipboard as a string.")
-  ()
+       doc: /* Return the contents of the Mac clipboard as a string.  */)
+     ()
 {
+#if TARGET_API_MAC_CARBON
+  ScrapRef scrap;
+  ScrapFlavorFlags sff;
+  Size s;
+  int i;
+  char *data;
+
+  if (GetCurrentScrap (&scrap) != noErr)
+    return Qnil;
+
+  if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) != noErr)
+    return Qnil;
+
+  if (GetScrapFlavorSize (scrap, kScrapFlavorTypeText, &s) != noErr)
+    return Qnil;
+
+  if ((data = (char*) alloca (s)) == NULL)
+    return Qnil;
+
+  if (GetScrapFlavorData (scrap, kScrapFlavorTypeText, &s, data) != noErr
+      || s == 0)
+    return Qnil;
+  
+  /* Emacs expects clipboard contents have Unix-style eol's */
+  for (i = 0; i < s; i++)
+    if (data[i] == '\r')
+      data[i] = '\n';
+
+  return make_string (data, s);
+#else /* not TARGET_API_MAC_CARBON */
   Lisp_Object value;
   Handle my_handle;
   long scrap_offset, rc, i;
@@ -2563,13 +2646,14 @@ DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
   DisposeHandle (my_handle);
 
   return value;
+#endif /* not TARGET_API_MAC_CARBON */
 }
 
 
 /* set interprogram-cut-function to mac-cut-function in mac-win.el
    to enable Emacs to write the top of the kill-ring to the Mac clipboard. */
 DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
-    "Put the value of the string parameter to the Mac clipboard.")
+       doc: /* Put the value of the string parameter to the Mac clipboard.  */)
   (value, push)
     Lisp_Object value, push;
 {
@@ -2578,36 +2662,50 @@ DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
 
   /* fixme: ignore the push flag for now */
 
-  CHECK_STRING (value, 0);
+  CHECK_STRING (value);
   
   len = XSTRING (value)->size;
-  buf = (char *) alloca (len);
-  bcopy(XSTRING (value)->data, buf, len);
+  buf = (char *) alloca (len+1);
+  bcopy (XSTRING (value)->data, buf, len);
+  buf[len] = '\0';
   
   /* convert to Mac-style eol's before sending to clipboard */
   for (i = 0; i < len; i++)
     if (buf[i] == '\n')
       buf[i] = '\r';
 
+#if TARGET_API_MAC_CARBON
+  {
+    ScrapRef scrap;
+    ClearCurrentScrap ();
+    if (GetCurrentScrap (&scrap) != noErr)
+      error ("cannot get current scrap");
+
+    if (PutScrapFlavor (scrap, kScrapFlavorTypeText, kScrapFlavorMaskNone, len,
+			buf) != noErr)
+      error ("cannot put to scrap");
+  }
+#else /* not TARGET_API_MAC_CARBON */
   ZeroScrap ();
   PutScrap (len, 'TEXT', buf);
+#endif /* not TARGET_API_MAC_CARBON */
   
   return Qnil;
 }
 
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
-  0, 1, 0,
-  "Whether there is an owner for the given X Selection.\n\
-The arg should be the name of the selection in question, typically one of\n\
-the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
-\(Those are literal upper-case symbol names, since that's what X expects.)\n\
-For convenience, the symbol nil is the same as `PRIMARY',\n\
-and t is the same as `SECONDARY'.")
+       0, 1, 0,
+       doc: /* Whether there is an owner for the given X Selection.
+The arg should be the name of the selection in question, typically one of
+the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+(Those are literal upper-case symbol names, since that's what X expects.)
+For convenience, the symbol nil is the same as `PRIMARY',
+and t is the same as `SECONDARY'.  */)
   (selection)
      Lisp_Object selection;
 {
-  CHECK_SYMBOL (selection, 0);
+  CHECK_SYMBOL (selection);
 
   /* Return nil for PRIMARY and SECONDARY selections; for CLIPBOARD, check
      if the clipboard currently has valid text format contents. */
@@ -2615,7 +2713,15 @@ and t is the same as `SECONDARY'.")
   if (EQ (selection, QCLIPBOARD))
     {
       Lisp_Object val = Qnil;
-      Lisp_Object value;
+
+#if TARGET_API_MAC_CARBON
+      ScrapRef scrap;
+      ScrapFlavorFlags sff;
+
+      if (GetCurrentScrap (&scrap) == noErr)
+        if (GetScrapFlavorFlags (scrap, kScrapFlavorTypeText, &sff) == noErr)
+          val = Qt;
+#else /* not TARGET_API_MAC_CARBON */
       Handle my_handle;
       long rc, scrap_offset;
 
@@ -2626,6 +2732,7 @@ and t is the same as `SECONDARY'.")
         val = Qt;
 
       DisposeHandle (my_handle);
+#endif /* not TARGET_API_MAC_CARBON */
 
       return val;
     }
@@ -2641,7 +2748,9 @@ syms_of_mac ()
   
   defsubr (&Smac_paste_function);
   defsubr (&Smac_cut_function);
+#if 0
   defsubr (&Sx_selection_exists_p);
+#endif /* 0 */
 
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);

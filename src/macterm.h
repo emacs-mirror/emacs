@@ -1,5 +1,5 @@
 /* Display module for Mac OS.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include "macgui.h"
 #include "frame.h"
@@ -103,7 +103,7 @@ struct mac_display_info
   Window root_window;
 
   /* The cursor to use for vertical scroll bars.  */
-  Cursor vertical_scroll_bar_cursor;
+  struct Cursor *vertical_scroll_bar_cursor;
 
 #if 0
   /* color palette information.  */
@@ -151,10 +151,9 @@ struct mac_display_info
   int mouse_face_end_row, mouse_face_end_col;
   int mouse_face_end_x, mouse_face_end_y;
   int mouse_face_past_end;
-
   Lisp_Object mouse_face_window;
-
   int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
 
   /* 1 if a mouse motion event came and we didn't handle it right away because
      gc was in progress.  */
@@ -168,6 +167,9 @@ struct mac_display_info
 
   /* Nonzero means defer mouse-motion highlighting.  */
   int mouse_face_defer;
+
+  /* Nonzero means that the mouse highlight should not be shown.  */
+  int mouse_face_hidden;
 
   int mouse_face_image_state;
 
@@ -208,11 +210,11 @@ struct mac_display_info
 
 #define x_display_info mac_display_info
 
-/* This is a chain of structures for all the displays currently in use.  */
-extern struct mac_display_info one_mac_display_info;
-
 /* This is a chain of structures for all the X displays currently in use.  */
 extern struct x_display_info *x_display_list;
+
+/* This is a chain of structures for all the displays currently in use.  */
+extern struct mac_display_info one_mac_display_info;
 
 /* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
    one for each element of x_display_list and in the same order.
@@ -228,10 +230,24 @@ extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
 extern struct mac_display_info *mac_term_init ();
 
-/* The collection of data describing a window on the Mac.  Functions
-   defined in macterm.c */
+/* When Emacs uses a tty window, tty_display in frame.c points to an
+   x_output struct .  */
+struct x_output
+{
+  unsigned long background_pixel;
+  unsigned long foreground_pixel;
+};
+
+/* The collection of data describing a window on the Mac.  */
 struct mac_output {
-  WindowPtr mWP;		/* pointer to QuickDraw window */
+  /* Placeholder for things accessed through output_data.x.  Must
+     appear first.  */
+  struct x_output x_compatible;
+
+  /* Menubar "widget" handle.  */
+  int menubar_widget;
+
+  Window mWP;			/* pointer to QuickDraw window */
   FRAME_PTR mFP;		/* points back to the frame struct */
 
 #if 0
@@ -239,11 +255,15 @@ struct mac_output {
   int mNumRows;			/* number of characters per row */
   int mLineHeight;		/* height of one line of text in pixels */
   int mCharWidth;		/* width of one character in pixels */
-  int mHomeX;			/* X pixel coordinate of lower left corner of character at (0, 0) */
-  int mHomeY;			/* Y pixel coordinate of lower left corner of character at (0, 0) */
+  int mHomeX;			/* X pixel coordinate of lower left
+				   corner of character at (0, 0) */
+  int mHomeY;			/* Y pixel coordinate of lower left
+				   corner of character at (0, 0) */
   int mHighlight;		/* current highlight state (0 = off). */
-  int mTermWinSize;		/* num of lines from top of window affected by ins_del_lines; set by set_terminal_window. */
-#endif
+  int mTermWinSize;		/* num of lines from top of window
+				   affected by ins_del_lines; set by
+				   set_terminal_window. */
+#endif /* 0 */
 
 #if 0
   /* stuffs used by xfaces.c */
@@ -253,9 +273,6 @@ struct mac_output {
   int n_computed_faces;
   int size_computed_faces;
 #endif
-
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
 
   /* Position of the Mac window (x and y offsets in global coordinates).  */
   int left_pos;
@@ -318,11 +335,11 @@ struct mac_output {
   unsigned long scroll_bar_background_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
-  Cursor text_cursor;
-  Cursor nontext_cursor;
-  Cursor modeline_cursor;
-  Cursor cross_cursor;
-  Cursor hourglass_cursor;
+  struct Cursor *text_cursor;
+  struct Cursor *nontext_cursor;
+  struct Cursor *modeline_cursor;
+  struct Cursor *cross_cursor;
+  struct Cursor *hourglass_cursor;
 #if 0
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display a hourglass-cursor.  */
@@ -380,15 +397,13 @@ struct mac_output {
   /* Nonzero means menubar is currently active.  */
   char menubar_active;
 
-  /* Always contains NULL on the Mac OS because the menu bar is shared.  */
-  int menubar_widget;
-  
-#if 0
+  /* Nonzero means a menu command is being processed.  */
+  char menu_command_in_progress;
+
   /* Nonzero means menubar is about to become active, but should be
      brought up to date first.  */
   volatile char pending_menu_activation;
 
-#endif
   /* Relief GCs, colors etc.  */
   struct relief
   {
@@ -408,13 +423,15 @@ typedef struct mac_output mac_output;
 /* Return the Mac window used for displaying data in frame F.  */
 #define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->mWP)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.mac->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.mac->background_pixel)
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 
 #define FRAME_FONT(f) ((f)->output_data.mac->font)
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)
 
-#define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.mac->internal_border_width)
+#undef FRAME_INTERNAL_BORDER_WIDTH
+#define FRAME_INTERNAL_BORDER_WIDTH(f) \
+     ((f)->output_data.mac->internal_border_width)
 #define FRAME_LINE_HEIGHT(f) ((f)->output_data.mac->line_height)
 /* Width of the default font of frame F.  Must be defined by each
    terminal specific header.  */
@@ -468,6 +485,7 @@ typedef struct mac_output mac_output;
 
 #define FRAME_X_LEFT_FRINGE_WIDTH(F) ((F)->output_data.mac->left_fringe_width)
 #define FRAME_X_RIGHT_FRINGE_WIDTH(F) ((F)->output_data.mac->right_fringe_width)
+
 
 
 /* Mac-specific scroll bar stuff.  */
@@ -539,13 +557,16 @@ struct scroll_bar {
    XSETINT ((high), ((int32) >> 16) & 0xffff))
 
 
-/* Extract the Mac control handle of the scroll bar from a struct scroll_bar.  */
+/* Extract the Mac control handle of the scroll bar from a struct
+   scroll_bar.  */
 #define SCROLL_BAR_CONTROL_HANDLE(ptr) \
-  ((ControlHandle) SCROLL_BAR_PACK ((ptr)->control_handle_low, (ptr)->control_handle_high))
+  ((ControlHandle) SCROLL_BAR_PACK ((ptr)->control_handle_low, \
+                                    (ptr)->control_handle_high))
 
 /* Store a Mac control handle in a struct scroll_bar.  */
 #define SET_SCROLL_BAR_CONTROL_HANDLE(ptr, id) \
-  (SCROLL_BAR_UNPACK ((ptr)->control_handle_low, (ptr)->control_handle_high, (int) id))
+  (SCROLL_BAR_UNPACK ((ptr)->control_handle_low, \
+                      (ptr)->control_handle_high, (int) id))
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -563,12 +584,14 @@ struct scroll_bar {
    scaling buffer positions to scroll bar positions, we use this, not
    VERTICAL_SCROLL_BAR_INSIDE_HEIGHT.  */
 #define VERTICAL_SCROLL_BAR_TOP_RANGE(f,height) \
-  (VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, height) - VERTICAL_SCROLL_BAR_MIN_HANDLE - UP_AND_DOWN_ARROWS)
+  (VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, height) \
+   - VERTICAL_SCROLL_BAR_MIN_HANDLE - UP_AND_DOWN_ARROWS)
 
 /* Return the inside height of vertical scroll bar, given the outside
    height.  See VERTICAL_SCROLL_BAR_TOP_RANGE too.  */
 #define VERTICAL_SCROLL_BAR_INSIDE_HEIGHT(f,height) \
-  ((height) - VERTICAL_SCROLL_BAR_TOP_BORDER - VERTICAL_SCROLL_BAR_BOTTOM_BORDER)
+  ((height) - VERTICAL_SCROLL_BAR_TOP_BORDER \
+   - VERTICAL_SCROLL_BAR_BOTTOM_BORDER)
 
 
 /* Border widths for scroll bars.
@@ -645,8 +668,3 @@ struct scroll_bar {
 
 struct frame * check_x_frame (Lisp_Object);
 
-/* Dummy entry for defining tty_display in frame.c.  */
-struct x_output
-{
-  char _dummy;
-};

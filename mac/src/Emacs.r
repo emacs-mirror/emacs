@@ -18,11 +18,13 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Contributed by Andrew Choi (akochoi@users.sourceforge.net).  */
+/* Contributed by Andrew Choi (akochoi@mac.com).  */
 
+#ifndef TARGET_API_MAC_CARBON
 #include "Types.r"
 /* added for finder icon balloon help --ben */
 #include "Balloons.r"
+#endif
 
 /* Define to use gnu icon */
 /* #define GNU_ICON 1 */
@@ -55,10 +57,12 @@ resource 'hfdr' (-5696) { /*help for emacs icon*/
    	}
 };
 
+#ifndef TARGET_API_MAC_CARBON
 /* added for finder icon balloon help --ben */
 resource 'STR ' (128) { /*help message for emacs icon*/
 	"GNU Emacs\0xd1the extensible, customizable, self-documenting real-time display editor."
 };
+#endif
 
 resource 'MENU' (128, preload) {
 	128,

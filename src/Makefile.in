@@ -159,6 +159,12 @@ CC = C_COMPILER
 #define LD_SWITCH_SYSTEM_TEMACS
 #endif
 
+/* Some s/SYSTEM.h files define this to request special switches
+   for compiling temacs.  */
+#ifndef C_SWITCH_SYSTEM_TEMACS
+#define C_SWITCH_SYSTEM_TEMACS
+#endif
+
 /* Some m/MACHINE.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE
@@ -266,7 +272,7 @@ TOOLKIT_DEFINES =
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS}
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -531,10 +537,17 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
 #endif
 
+#ifdef HAVE_CARBON
+XMENU_OBJ =
+MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o
+emacsapp = ../mac/Emacs.app/
+#else
+XMENU_OBJ = xmenu.o
+#endif
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o\
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -547,13 +560,14 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o \
+  mac.o macterm.o macfns.o macmenu.o
 
 
 #ifdef TERMINFO
@@ -1167,6 +1181,38 @@ composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
    select which of these should be compiled.  */
 
 sunfns.o: sunfns.c buffer.h window.h dispextern.h $(config_h)
+
+#ifdef HAVE_CARBON
+abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+  fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
+  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
+  xterm.o xselect.o sound.o: macgui.h
+mac.o: mac.c process.h sysselect.h systime.h $(config_h)
+macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
+  dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
+  atimer.h systime.h epaths.h termhooks.h coding.h ccl.h systime.h $(config_h)
+macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
+  keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
+macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
+  frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
+  termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
+  process.h coding.h $(config_h)
+
+macosx-app: ${emacsapp}Contents/MacOS/Emacs \
+  ${emacsapp}Contents/Resources/Emacs.rsrc
+
+${emacsapp}Contents/MacOS/Emacs: emacs
+	if [ -d ${emacsapp}Contents/MacOS/ ]; then true; else \
+	  mkdir ${emacsapp}Contents/MacOS/; \
+	fi
+	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs Emacs
+
+${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
+	/Developer/Tools/Rez -useDF -o \
+	${emacsapp}Contents/Resources/Emacs.rsrc \
+	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r \
+	../mac/src/Emacs.r
+#endif
 
 ${libsrc}emacstool: ${libsrc}emacstool.c
 	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool

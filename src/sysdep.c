@@ -48,7 +48,7 @@ extern void srandom P_ ((unsigned int));
 #include "blockinput.h"
 #undef NULL
 
-#ifdef macintosh
+#ifdef MAC_OS8
 /* It is essential to include stdlib.h so that this file picks up
    the correct definitions of rand, srand, and RAND_MAX.
    Otherwise random numbers will not work correctly.  */
@@ -58,7 +58,7 @@ extern void srandom P_ ((unsigned int));
 /* Nonzero means delete a process right away if it exits (process.c).  */
 static int delete_exited_processes;
 #endif
-#endif  /* macintosh */
+#endif  /* MAC_OS8 */
 
 #ifdef WINDOWSNT
 #define read sys_read
@@ -759,7 +759,7 @@ sys_suspend ()
 
 /* Fork a subshell.  */
 
-#ifndef macintosh
+#ifndef MAC_OS8
 void
 sys_subshell ()
 {
@@ -895,7 +895,7 @@ sys_subshell ()
   synch_process_alive = 0;
 #endif /* !VMS */
 }
-#endif /* !macintosh */
+#endif /* !MAC_OS8 */
 
 static void
 save_signal_handlers (saved_handlers)
@@ -1305,7 +1305,7 @@ init_sys_modes ()
 {
   struct emacs_tty tty;
 
-#ifdef macintosh
+#ifdef MAC_OS8
 /* cus-start.el complains if delete-exited-processes is not defined */
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
@@ -1313,7 +1313,7 @@ init_sys_modes ()
 nil means don't delete them until `list-processes' is run.  */);
   delete_exited_processes = 0;
 #endif
-#endif /* not macintosh */
+#endif /* MAC_OS8 */
 
 #ifdef VMS
 #if 0

@@ -1,0 +1,97 @@
+#!/bin/sh
+
+#### osx-install: create the file ~/.MacOSX/environment.plist with
+#### appropriate paths for Emacs to access lisp and bin directories.
+#### On Mac OS X, this file contains values for environment variables
+#### seen by Aqua application launched in the Finder.  This script
+#### must be run at the top level of a Mac OS X binary distribution.
+
+# Copyright (C) 2002 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+progname="$0"
+
+### Exit if a command fails.
+#set -e
+
+### Print out each line we read, for debugging's sake.
+set -v
+
+LANGUAGE=C
+LC_ALL=C
+LC_MESSAGES=
+LANG=
+export LANGUAGE LC_ALL LC_MESSAGES LANG
+
+## Don't restrict access to any files.
+umask 0
+
+### Make sure we're running in the right place.
+if [ ! -d Emacs.app -o ! -d libexec -o ! -d share ]; then
+  echo "${progname} must be run in the top directory of the Emacs" >&2
+  echo "binary distribution tree for Mac OS.  cd to that directory" >&2
+  echo "and try again." >&2
+  exit 1
+fi
+
+versionfile=`ls share/emacs/21.*/lisp/version.el`
+
+### Find out which version of Emacs this is.
+shortversion=`grep 'defconst[	 ]*emacs-version' ${versionfile} \
+	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
+version=`grep 'defconst[	 ]*emacs-version' ${versionfile} \
+	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
+if [ ! "${version}" ]; then
+  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'" >&2
+  exit 1
+fi
+
+echo Version numbers are $version and $shortversion
+
+homedir=`ls -d ~`
+initfile="${homedir}/.MacOSX/environment.plist"
+
+if [ -f ${initfile} ]; then
+  mv ${initfile} ${initfile}.old
+fi
+
+if [ -d ${homedir}/.MacOSX ]; then
+  mkdir ${homedir}/.MacOSX
+fi
+
+execpath=`ls -d libexec/emacs/21.*/powerpc-apple-*/`
+
+echo '<?xml version="1.0" encoding="UTF-8"?>' > ${initfile}
+echo '<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">' >> ${initfile}
+echo '<plist version="0.9">' >> ${initfile}
+echo '<dict>' >> ${initfile}
+echo '  <key>EMACSLOADPATH</key>' >> ${initfile}
+echo "  <string>`pwd`/share/emacs/${version}/lisp/</string>" >> ${initfile}
+echo '  <key>EMACSPATH</key>' >> ${initfile}
+echo "  <string>`pwd`/${execpath}:`pwd`/bin/</string>" >> ${initfile}
+echo '  <key>EMACSDATA</key>' >> ${initfile}
+echo "  <string>`pwd`/share/emacs/${version}/etc/</string>" >> ${initfile}
+echo '  <key>EMACSDOC</key>' >> ${initfile}
+echo "  <string>`pwd`/share/emacs/${version}/etc/</string>" >> ${initfile}
+echo '  <key>INFOPATH</key>' >> ${initfile}
+echo "  <string>`pwd`/info/</string>" >> ${initfile}
+echo '</dict>' >> ${initfile}
+echo '</plist>' >> ${initfile}
+
+### osx-install ends here

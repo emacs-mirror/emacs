@@ -44,7 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef MSDOS
 #include "msdos.h"
 #endif
-#ifdef macintosh
+#ifdef MAC_OS
 #include "macterm.h"
 #endif
 

@@ -107,6 +107,9 @@ tparam (string, outstring, len, arg0, arg1, arg2, arg3)
   return tparam1 (string, outstring, len, NULL, NULL, arg);
 }
 
+/* These are already defined in the System framework in Mac OS X and
+   cause prebinding to fail.  */
+#ifndef MAC_OSX
 char *BC;
 char *UP;
 
@@ -124,6 +127,7 @@ tgoto (cm, hpos, vpos)
   args[1] = hpos;
   return tparam1 (cm, tgoto_buf, 50, UP, BC, args);
 }
+#endif
 
 static char *
 tparam1 (string, outstring, len, up, left, argp)
