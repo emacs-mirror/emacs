@@ -179,7 +179,7 @@ through a file easier.")
 
 (defvar bookmark-save-flag t
   "*Controls when Emacs saves bookmarks to a file.
---> Nil means never save bookmarks, except when `bookmark-save' is
+--> nil means never save bookmarks, except when `bookmark-save' is
     explicitly called \(\\[bookmark-save]\).
 --> t means save bookmarks when Emacs is killed.
 --> Otherise, it should be a number that is the frequency with which
@@ -202,18 +202,18 @@ bookmark-file, which is `~/.emacs-bkmrks' by default.")
   "*File in which to save bookmarks by default.")
 
 (defvar bookmark-version-control 'nospecial
-  "This variable controls whether or not to make numbered backups of
-the master bookmark file.  It can have four values: t, nil, never, and
-nospecial.  The first three have the same meaning that they do for the
-variable version-control, and the final value nospecial means just use
-the value of version-control.")
+  "Control whether to make numbered backups of the master bookmark file.
+This variable can have four values: t, nil, `never', and `nospecial'.
+The first three have the same meaning that they do for the
+variable `version-control'.
+The value `nospecial' means just use the value of `version-control'.")
 
 (defvar bookmark-completion-ignore-case t
   "*Non-nil means bookmark functions ignore case in completion.")
 
 (defvar bookmark-sort-flag t
-  "*Non-nil means that bookmarks will be displayed sorted by bookmark
-name.  Otherwise they will be displayed in LIFO order (that is, most
+  "*Non-nil means display bookmarks sorted by name.
+Otherwise they are  displayed in LIFO order (that is, most
 recently set ones come first, oldest ones come last).")
 
 (defvar bookmark-search-size 500 
@@ -225,7 +225,7 @@ recently set ones come first, oldest ones come last).")
 
 ;;;###autoload
 (defun bookmark-set (&optional parg)
-  "Set a bookmark named NAME inside a file.  
+  "Set a bookmark named NAME inside the visited file.  
 With prefix arg, will not overwrite a bookmark that has the same name
 as NAME if such a bookmark already exists, but instead will \"push\"
 the new bookmark onto the bookmark alist.  Thus the most recently set
@@ -237,7 +237,7 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-v inserts the name of the current file being visited. Typing
+Typing C-v inserts the name of the current file being visited.  Typing
 C-u inserts the name of the last bookmark used in the buffer \(as an
 aid in using a single bookmark name to track your progress through a
 large file\).  If no bookmark was used, then C-u behaves like C-v and
@@ -388,10 +388,9 @@ You may have a problem using this function if the value of variable
 bookmarks.  See help on function `bookmark-load' for more about
 this.
 
-If the file pointed to by BOOKMARK no longer exists, you will be asked
-if you wish to give the bookmark a new location, and bookmark-jump
-will then jump to the new location, as well as recording it in place
-of the old one in the permanent bookmark record."
+If the file pointed to by BOOKMARK no longer exists, `bookmark-jump'
+asks you to specify a different file to use instead.  If you specify
+one, it also updates BOOKMARK to refer to that file."
   (interactive (progn (bookmark-try-default-file)
                       (let* ((completion-ignore-case
                               bookmark-completion-ignore-case)
@@ -476,11 +475,11 @@ of the old one in the permanent bookmark record."
             nil))))))
 
 ;;;###autoload
-(defun bookmark-relocate (str)
-  "Relocate BOOKMARK -- prompts for a filename, and makes an already
-existing bookmark point to that file, instead of the one it used to
-point at.  Useful when a file has been renamed after a bookmark was
-set in it."
+(defun bookmark-relocate (bookmark)
+  "Relocate bookmark BOOKMARK.
+Prompt for a filename, and makes the bookmark BOOKMARK point to that
+file, instead of the one it used to point at.  Useful when a file has
+been renamed after a bookmark was set in it."
   (interactive (let ((completion-ignore-case
                       bookmark-completion-ignore-case))
                  (progn (bookmark-try-default-file)
@@ -489,11 +488,11 @@ set in it."
                                bookmark-alist
                                nil
                                0)))))
-  (let* ((bmrk (assoc str bookmark-alist))
+  (let* ((bmrk (assoc bookmark bookmark-alist))
          (bmrk-filename (car (car (cdr bmrk))))
          (newloc (expand-file-name
                  (read-file-name
-                  (format "Relocate %s to: " str)
+                  (format "Relocate %s to: " bookmark)
                   (file-name-directory bmrk-filename)))))
     (setcar (car (cdr bmrk)) newloc)))
 
@@ -632,9 +631,8 @@ one most recently used in this file, if any\)."
 
 ;;;###autoload
 (defun bookmark-write ()
-  "Write bookmarks to a file \(for which the user will be prompted
-interactively\).  Don't use this in Lisp programs; use bookmark-save
-instead."
+  "Write bookmarks to a specified file.
+Don't use this in Lisp programs; use `bookmark-save' instead."
   (interactive)
   (bookmark-try-default-file)
   (bookmark-save t))
@@ -811,8 +809,8 @@ following in your .emacs:
 (defun list-bookmarks ()
   "Display a list of existing bookmarks.
 The list is displayed in a buffer named `*Bookmark List*'.
-The leftmost column displays a D if the bookmark is flagged for
-deletion, or > if it is flagged for displaying."
+The leftmost column displays a `D' if the bookmark is flagged for
+deletion, or `>' if it is flagged for displaying."
   (interactive)
   (bookmark-try-default-file)
   (switch-to-buffer (get-buffer-create "*Bookmark List*"))
@@ -839,7 +837,7 @@ Letters do not insert themselves; instead, they are commands.
 \\<Bookmark-menu-mode-map>
 \\[Bookmark-menu-mark] -- mark bookmark to be displayed.
 \\[Bookmark-menu-select] -- select bookmark of line point is on.
-  Also show bookmarks marked using m in other windows.
+  Also show bookmarks marked using `m' in other windows.
 \\[Bookmark-menu-toggle-filenames] -- toggle displaying of filenames (they may obscure long bookmark names).
 \\[Bookmark-menu-locate] -- display (in minibuffer) location of this bookmark.
 \\[Bookmark-menu-1-window] -- select this bookmark in full-frame window.
@@ -1110,8 +1108,8 @@ Optional ARG means move up."
         (forward-line 1))))
 
 (defun Bookmark-menu-delete-backwards ()
-  "Mark bookmark on this line to be deleted by \\<Bookmark-menu-mode-map>\\[Bookmark-menu-execute] command
-and then move up one line"
+  "Mark bookmark on this line to be deleted by \\<Bookmark-menu-mode-map>\\[Bookmark-menu-execute] command.
+Then move up one line"
   (interactive)
   (Bookmark-menu-delete)
   (forward-line -2)
@@ -1215,7 +1213,7 @@ this."
 
 ;;;###autoload
 (defun bookmark-menu-bar-locate (event)
-  "Insert the name of the  file associated with BOOKMARK. 
+  "Insert the name of the file associated with BOOKMARK. 
 \(This is not the same as the contents of that file\)."
   (interactive "e")
   (bookmark-make-menu-bar-with-function 'bookmark-locate
