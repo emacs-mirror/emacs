@@ -524,15 +524,16 @@ to a list (a . b)"
   (let ((file (concat news-path
 		      (string-subst-char ?/ ?. news-current-news-group)
 		      "/" arg)))
+    (if (= arg 
+	   (or (news-cadr (memq (news-cdar news-point-pdl) news-list-of-files))
+	       0))
+	(setcdr (car news-point-pdl) arg))
+    (setq news-current-message-number arg)
     (if (file-exists-p file)
-	(let ((buffer-read-only ()))
-	  (if (= arg 
-		 (or (news-cadr (memq (news-cdar news-point-pdl) news-list-of-files))
-		     0))
-	      (setcdr (car news-point-pdl) arg))
-	  (setq news-current-message-number arg)
-	  (news-read-in-file file)
-	  (news-set-mode-line))
+  	(let ((buffer-read-only nil))
+  	  (news-read-in-file file)
+  	  (news-set-mode-line))
+      (news-set-mode-line)
       (error "Article %d nonexistent" arg))))
 
 (defun news-force-update ()
