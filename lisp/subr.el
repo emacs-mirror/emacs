@@ -54,7 +54,7 @@ BODY should be a list of lisp expressions."
 ;;;; Window tree functions.
 
 (defun one-window-p (&optional nomini all-frames)
-  "Returns non-nil if there is only one window.
+  "Returns non-nil if the selected window is the only window (in its frame).
 Optional arg NOMINI non-nil means don't count the minibuffer
 even if it is active.
 
