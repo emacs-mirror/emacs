@@ -1024,8 +1024,6 @@ Otherwise, the speedbar is opened as normal file browser."
 (defcustom vhdl-speedbar-hierarchy-indent 1
   "*Amount of indentation in hierarchy display of subcomponent."
   :type 'integer
-  :set (lambda (variable value)
-         (vhdl-custom-set variable value 'speedbar-refresh))
   :group 'vhdl-menu)
 
 (defcustom vhdl-index-menu nil
@@ -8358,7 +8356,7 @@ END is the point beyond which matching/searching should not go."
 				   (match-string 1))))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
-	      (vhdl-parse-string ";\\s-*")
+	      (vhdl-parse-string "\\s-*;\\s-*")
 	      ;; parse inline comment
 	      (unless comment
 		(setq comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)
@@ -8406,7 +8404,7 @@ END is the point beyond which matching/searching should not go."
 	      (setq type (substring type 0 (match-end 1)))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
-	      (vhdl-parse-string ";\\s-*")
+	      (vhdl-parse-string "\\s-*;\\s-*")
 	      ;; parse inline comment
 	      (unless comment
 		(setq comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)
@@ -8565,7 +8563,7 @@ END is the point beyond which matching/searching should not go."
 	    (setq generics-list (cdr generics-list))
 	    (insert (if generics-list ", " ")")))
 	(unless vhdl-argument-list-indent
-	  (insert "\n") (indent-to (+ margin (* 2 vhdl-basic-offset))))
+	  (insert "\n") (indent-to (+ margin vhdl-basic-offset)))
 	(setq list-margin (current-column))
 	(while generics-list
 	  (setq generic (car generics-list))
@@ -8600,7 +8598,7 @@ END is the point beyond which matching/searching should not go."
 	    (setq ports-list (cdr ports-list))
 	    (insert (if ports-list ", " ");")))
 	(unless vhdl-argument-list-indent
-	  (insert "\n") (indent-to (+ margin (* 2 vhdl-basic-offset))))
+	  (insert "\n") (indent-to (+ margin vhdl-basic-offset)))
 	(setq list-margin (current-column))
 	(while ports-list
 	  (setq port (car ports-list))
@@ -9700,6 +9698,7 @@ specified."
 		(set-buffer (find-buffer-visiting file-name))
 	      (set-buffer (find-file-noselect file-name nil t))
 	      (setq opened t))
+	    (let ((case-fold-search t))
 	    (modify-syntax-entry ?_ "w" (syntax-table))
 	    ;; scan for entities
 	    (goto-char (point-min))
@@ -9786,7 +9785,7 @@ specified."
 	    (setq file-list (cdr file-list))
 	    ;; add design units to variable `vhdl-file-alist'
 	    (aput 'vhdl-file-alist file-name
-		  (list ent-list arch-list conf-list pack-list inst-list))
+		  (list ent-list arch-list conf-list pack-list inst-list)))
 	    ;; close file
 	    (if opened
 		(kill-buffer (current-buffer))
@@ -10023,7 +10022,7 @@ entity ENT-NAME."
 (if (not (boundp 'speedbar-frame))
     (add-hook 'speedbar-load-hook 'vhdl-speedbar-initialize)
   (vhdl-speedbar-initialize)
-  (speedbar-refresh))
+  (when speedbar-frame (speedbar-refresh)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Display functions
