@@ -1030,10 +1030,11 @@ the file-operating commands, this command operates on the next @var{n}
 files, or on the marked files if any; but it does not operate on the
 current file as a last resort.
 
-  If you kill the line for a file that is a directory, the directory's
-contents are also deleted from the buffer.  Typing @kbd{C-u k} on the
-header line for a subdirectory is another way to delete a subdirectory
-from the Dired buffer.
+  If you use @kbd{k} with a numeric prefix argument to kill the line
+for a file that is a directory, which you have inserted in the Dired
+buffer as a subdirectory, then this deletes that subdirectory from the
+buffer as well.  Typing @kbd{C-u k} on the header line for a subdirectory
+is another way to delete a subdirectory from the Dired buffer.
 
   The @kbd{g} command brings back any individual lines that you have
 killed in this way, but not subdirectories---you must use @kbd{i} to
