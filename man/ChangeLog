@@ -1,5 +1,10 @@
 2003-07-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
+	* info.texi (Help-Inv, Help-M, Help-Xref): Update following
+	renaming of `vis-mode' to `visible-mode'.
+
+2003-07-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
 	* display.texi (Font Lock): Fix typo.
 
 2003-07-07  Richard M. Stallman  <rms@gnu.org>
