@@ -98,75 +98,108 @@
 ;;; Configurable stuff
 ;;; ------------------------------------------------------------
 
-(defvar makefile-browser-buffer-name "*Macros and Targets*"
-  "Name of the macro- and target browser buffer.")
+(defgroup makefile nil
+  "Makefile editing commands for Emacs."
+  :group 'tools
+  :prefix "makefile-")
 
-(defvar makefile-target-colon ":"
+(defcustom makefile-browser-buffer-name "*Macros and Targets*"
+  "Name of the macro- and target browser buffer."
+  :type 'string
+  :group 'makefile)
+
+(defcustom makefile-target-colon ":"
   "String to append to all target names inserted by `makefile-insert-target'.
-\":\" or \"::\" are common values.")
+\":\" or \"::\" are common values."
+  :type 'string
+  :group 'makefile)
 
-(defvar makefile-macro-assign " = "
+(defcustom makefile-macro-assign " = "
   "String to append to all macro names inserted by `makefile-insert-macro'.
 The normal value should be \" = \", since this is what
 standard make expects. However, newer makes such as dmake
 allow a larger variety of different macro assignments, so you
-might prefer to use \" += \" or \" := \" .")
+might prefer to use \" += \" or \" := \" ."
+  :type 'string
+  :group 'makefile)
 
-(defvar makefile-electric-keys nil
-  "If non-nil, install electric keybindings.
-Default is nil.")
+(defcustom makefile-electric-keys nil
+  "If non-nil, Makefile mode should install electric keybindings.
+Default is nil."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-use-curly-braces-for-macros-p nil
+(defcustom makefile-use-curly-braces-for-macros-p nil
   "Controls the style of generated macro references.
-t (actually non-nil) means macro references should use curly braces,
-like `${this}'.
-nil means use parentheses, like `$(this)'.")
+Non-nil means macro references should use curly braces, like `${this}'.
+nil means use parentheses, like `$(this)'."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-tab-after-target-colon t
+(defcustom makefile-tab-after-target-colon t
   "If non-nil, insert a TAB after a target colon.
 Otherwise, a space is inserted.
-The default is t.")
+The default is t."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-browser-leftmost-column 10
-  "Number of blanks to the left of the browser selection mark.")
+(defcustom makefile-browser-leftmost-column 10
+  "Number of blanks to the left of the browser selection mark."
+  :type 'integer
+  :group 'makefile)
 
-(defvar makefile-browser-cursor-column 10
-  "Column in which the cursor is positioned when it moves
-up or down in the browser.")
+(defcustom makefile-browser-cursor-column 10
+  "Column the cursor goes to when it moves up or down in the Makefile browser."
+  :type 'integer
+  :group 'makefile)
 
-(defvar makefile-backslash-column 48
-  "*Column in which `makefile-backslash-region' inserts backslashes.")
+(defcustom makefile-backslash-column 48
+  "*Column in which `makefile-backslash-region' inserts backslashes."
+  :type 'integer
+  :group 'makefile)
 
-(defvar makefile-backslash-align t
-  "If non-nil, `makefile-backslash-region' will align backslashes.")
+(defcustom makefile-backslash-align t
+  "If non-nil, `makefile-backslash-region' will align backslashes."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-browser-selected-mark "+  "
-  "String used to mark selected entries in the browser.")
+(defcustom makefile-browser-selected-mark "+  "
+  "String used to mark selected entries in the Makefile browser."
+  :type 'string
+  :group 'makefile)
 
-(defvar makefile-browser-unselected-mark "   "
-  "String used to mark unselected entries in the browser.")
+(defcustom makefile-browser-unselected-mark "   "
+  "String used to mark unselected entries in the Makefile browser."
+  :type 'string
+  :group 'makefile)
 
-(defvar makefile-browser-auto-advance-after-selection-p t
-  "If non-nil, cursor will move after item is selected in browser.")
+(defcustom makefile-browser-auto-advance-after-selection-p t
+  "If non-nil, cursor will move after item is selected in Makefile browser."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-pickup-everything-picks-up-filenames-p nil
+(defcustom makefile-pickup-everything-picks-up-filenames-p nil
   "If non-nil, `makefile-pickup-everything' picks up filenames as targets.
-\(i.e. it calls `makefile-find-filenames-as-targets').
-Otherwise filenames are omitted.")
+This means it calls `makefile-find-filenames-as-targets'.
+Otherwise filenames are omitted."
+  :type 'boolean
+  :group 'makefile)
 
-(defvar makefile-cleanup-continuations-p t
+(defcustom makefile-cleanup-continuations-p t
   "If non-nil, automatically clean up continuation lines when saving.
 A line is cleaned up by removing all whitespace following a trailing
 backslash.  This is done silently.
 IMPORTANT: Please note that enabling this option causes makefile-mode
-to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \'it seems necessary\'.")
+to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
+  :type 'boolean
+  :group 'makefile)
 
 (defvar makefile-browser-hook '())
 
 ;;
 ;; Special targets for DMake, Sun's make ...
 ;; 
-(defvar makefile-special-targets-list
+(defcustom makefile-special-targets-list
   '(("DEFAULT")      ("DONE")        ("ERROR")        ("EXPORT")
     ("FAILED")       ("GROUPEPILOG") ("GROUPPROLOG")  ("IGNORE")
     ("IMPORT")       ("INCLUDE")     ("INCLUDEDIRS")  ("INIT")
@@ -177,14 +210,18 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \'it seems necessary\'.")
     ("el.elc")       ("y.c")         ("s.o"))
   "List of special targets.
 You will be offered to complete on one of those in the minibuffer whenever
-you enter a \".\" at the beginning of a line in makefile-mode.")
+you enter a \".\" at the beginning of a line in makefile-mode."
+  :type '(repeat (list string))
+  :group 'makefile)
 
-(defvar makefile-runtime-macros-list
+(defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
   "List of macros that are resolved by make at runtime.
 If you insert a macro reference using makefile-insert-macro-ref, the name
 of the macro is checked against this list. If it can be found its name will
-not be enclosed in { } or ( ).")
+not be enclosed in { } or ( )."
+  :type '(repeat (list string))
+  :group 'makefile)
 
 ;; Note that the first big subexpression is used by font lock.  Note
 ;; that if you change this regexp you must fix the imenu index
@@ -253,10 +290,13 @@ not be enclosed in { } or ( ).")
 ;;; of `makefile-query-by-make-minus-q' .
 ;;; ------------------------------------------------------------
 
-(defvar makefile-brave-make "make"
-  "A make that can handle the `-q' option.")
+(defcustom makefile-brave-make "make"
+  "How to invoke make, for `makefile-query-targets'.
+This should identify a `make' command that can handle the `-q' option."
+  :type 'string
+  :group 'makefile)
 
-(defvar makefile-query-one-target-method 'makefile-query-by-make-minus-q
+(defcustom makefile-query-one-target-method 'makefile-query-by-make-minus-q
   "Function to call to determine whether a make target is up to date.
 The function must satisfy this calling convention:
 
@@ -269,10 +309,14 @@ The function must satisfy this calling convention:
 
 * It must return the integer value 0 (zero) if the given target
   should be considered up-to-date in the context of the given
-  makefile, any nonzero integer value otherwise.")
+  makefile, any nonzero integer value otherwise."
+  :type 'function
+  :group 'makefile)
 
-(defvar makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
-  "Name of the Up-to-date overview buffer.")
+(defcustom makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
+  "Name of the Up-to-date overview buffer."
+  :type 'string
+  :group 'makefile)
 
 ;;; --- end of up-to-date-overview configuration ------------------
 
