@@ -1423,8 +1423,8 @@ to unibyte for insertion.")
 
 DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
   "Insert COUNT (second arg) copies of CHARACTER (first arg).\n\
-Point and before-insertion-markers are affected as in the function `insert'.\n\
 Both arguments are required.\n\
+Point, and before-insertion markers, are relocated as in the function `insert'.\n\
 The optional third arg INHERIT, if non-nil, says to inherit text properties\n\
 from adjoining text, if those properties are sticky.")
   (character, count, inherit)
