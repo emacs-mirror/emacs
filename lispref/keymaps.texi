@@ -1048,7 +1048,7 @@ standard bindings:
 
 @c Emacs 19 feature
 If @var{oldmap} is non-@code{nil}, then its bindings determine which
-keys to rebind.  The rebindings still happen in @var{newmap}, not in
+keys to rebind.  The rebindings still happen in @var{keymap}, not in
 @var{oldmap}.  Thus, you can change one map under the control of the
 bindings in another.  For example,
 
