@@ -644,8 +644,8 @@ emacs: temacs ${etc}DOC ${lisp}
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 
-# We run make-docfile twice because the command line may get too long
-# on some systems.
+/* We run make-docfile twice because the command line may get too long
+   on some systems.  */
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	-rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} > ${etc}DOC
