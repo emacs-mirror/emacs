@@ -212,7 +212,8 @@ once.  This command is effective even if Abbrev mode is not enabled.
 
 @table @kbd
 @item M-x list-abbrevs
-Display a list of all abbrev definitions.
+Display a list of all abbrev definitions.  With numeric argument, list
+only local abbrevs.
 @item M-x edit-abbrevs
 Edit a list of abbrevs; you can add, alter or remove definitions.
 @end table
