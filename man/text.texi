@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
 @chapter Commands for Human Languages
@@ -876,6 +877,7 @@ the hook @code{outline-mode-hook} (@pxref{Hooks}).
                                      outlines. 
 * Visibility: Outline Visibility.  Commands to control what is visible.
 * Views: Outline Views.            Outlines and multiple views.
+* Foldout::                        Folding editing.
 @end menu
 
 @node Outline Format
@@ -1120,7 +1122,102 @@ independently; as a result, each buffer can have its own view.  If you
 want more than two views on the same outline, create additional indirect
 buffers.
 
-@node TeX Mode
+@node Foldout
+@subsection Folding editing with Foldout
+
+@cindex folding editing
+The Foldout package provides folding editor extensions for Outline mode
+and Outline minor mode.  It may be used by putting in your @file{.emacs}
+@example
+(eval-after-load "outline" '(require 'foldout))
+@end example
+Folding editing works as follows.
+
+Consider an Outline mode buffer all the text and subheadings under
+level-1 headings hidden.  To look at what is hidden under one of these
+headings normally you would use @kbd{C-c C-e} (@kbd{M-x show-entry}) to
+expose the body or @kbd{C-c C-i} to expose the child (level-2) headings.
+
+@kindex C-c C-z
+@findex foldout-zoom-subtree
+With Foldout, you use @kbd{C-c C-z} (@kbd{M-x foldout-zoom-subtree}).
+This exposes the body and child subheadings and narrows the buffer so
+that only the level-1 heading, the body and the level-2 headings are
+visible.  Now to look under one of the level-2 headings, position the
+cursor on it and use @kbd{C-c C-z} again.  This exposes the level-2 body
+and its level-3 child subheadings and narrows the buffer again.  Zooming
+in on successive subheadings can be done as much as you like.  A string
+in the modeline shows how deep you've gone.
+
+When zooming in on a heading, to see only the child subheadings specify
+a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
+can be specified too (compare @kbd{M-x show-children}), e.g.@: @kbd{M-2
+C-c C-z} exposes two levels of child subheadings.  Alternatively, the
+body can be spcified with a negative argument: @kbd{M-- C-c C-z}.  The
+whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
+show-subtree}), by specifying a zero argument: @kbd{M-0 C-c C-z}.
+
+While you're zoomed in you can still use outline-mode's exposure and
+hiding functions without disturbing Foldout.  Also, since the buffer is
+narrowed, `global' editing actions will only affect text under the
+zoomed-in heading.  This is useful for restricting changes to a
+particular chapter or section of your document.
+
+@kindex C-c C-x
+@findex foldout-exit-fold
+Unzoom (exit) a fold using @kbd{C-c C-x} (@kbd{M-x foldout-exit-fold}).
+This hides all the text and subheadings under the top-level heading and
+returns you to the previous view of the buffer.  Specifying a numeric
+argument exits that many folds.  Specifying a zero argument exits all
+folds.
+
+You might want to exit a fold without hiding the text and subheadings,
+specify a negative argument.  For example, @kbd{M--2 C-c C-x} exits two
+folds and leaves the text and subheadings exposed.
+
+Foldout provides mouse bindings for entering and exiting folds and for
+showing and hiding text as follows:
+@table @asis
+@item @kbd{M-C-mouse-1} zooms in on the heading clicked on
+@table @asis
+@item single click
+expose body
+@item double click
+expose subheadings
+@item triple click
+expose body and subheadings
+@item quad click
+expose entire subtree
+@end table
+@item @kbd{M-C-mouse-2} exposes text under the heading clicked on
+@table @r
+@item single click
+expose body
+@item double click
+expose subheadings
+@item triple click
+expose body and subheadings
+@item quad click
+expose entire subtree
+@end table
+@item @kbd{M-C-mouse-3} hides text under the heading clicked on or exits fold
+@table @r
+@item single click
+hide subtree
+@item double click
+exit fold and hide text
+@item triple click
+exit fold without hiding text
+@item quad click
+exit all folds and hide text
+@end table
+@end table
+
+@vindex foldout-mouse-modifiers
+You can change the modifier keys used by setting
+@code{foldout-mouse-modifiers}.
+
+@node TeX Mode, Nroff Mode, Outline Mode, Text
 @section @TeX{} Mode
 @cindex @TeX{} mode
 @cindex La@TeX{} mode
