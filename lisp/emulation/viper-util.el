@@ -20,7 +20,7 @@
 (require 'ring)
 
 ;; Whether it is XEmacs or not
-(defconst vip-xemacs-p (string-match "\\(Lucid\\|Xemacs\\)" emacs-version))
+(defconst vip-xemacs-p (string-match "\\(Lucid\\|XEmacs\\)" emacs-version))
 ;; Whether it is Emacs or not
 (defconst vip-emacs-p (not vip-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
@@ -479,6 +479,12 @@ Type any key to continue..." emacs-version))
 	   (format "%s%s%s%s"
 		   pre-string truncated-str abbrev-sign post-string))
 	  (t (format "%s%s%s" pre-string truncated-str post-string)))))
+
+;; tells if we are over a whitespace-only line
+(defsubst vip-over-whitespace-line ()
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "^[ \t]*$")))
 	  
 
 ;;; Saving settings in custom file
