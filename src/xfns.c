@@ -1962,6 +1962,8 @@ x_set_scroll_bar_width (f, arg, oldval)
     {
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = 0;
       FRAME_SCROLL_BAR_COLS (f) = 2;
+      if (FRAME_X_WINDOW (f))
+        x_set_window_size (f, 0, FRAME_WIDTH (f), FRAME_HEIGHT (f));
     }
   else if (INTEGERP (arg) && XINT (arg) > 0
 	   && XFASTINT (arg) != FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
