@@ -1479,6 +1479,9 @@ reset_sys_modes ()
     }
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
+#ifdef O_NDELAY
+  fcntl (input_fd, F_SETFL, fcntl (input_fd, F_GETFL, 0) & ~O_NDELAY);
+#endif
 #endif /* F_SETFL */
 #ifdef BSD4_1
   if (interrupt_input)
