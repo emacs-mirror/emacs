@@ -944,6 +944,14 @@ something different (the functions @code{make-auto-save-file-name} and
 @code{auto-save-file-name-p}).  The file name to be used for auto-saving
 in a buffer is calculated when auto-saving is turned on in that buffer.
 
+@cindex auto-save for remote files
+@vindex auto-save-file-name-transforms
+The variable @code{auto-save-file-name-transforms} allows a
+degree of control over the auto-save file name.  The default value is
+set up to put the auto-save files for remote files
+(@pxref{Remote Files}) into the temporary file directory on the local
+machine. 
+
   When you delete a substantial part of the text in a large buffer, auto
 save turns off temporarily in that buffer.  This is because if you
 deleted the text unintentionally, you might find the auto-save file more
@@ -2974,6 +2982,10 @@ you to access servers running on a non-default TCP port.
 @vindex ange-ftp-make-backup-files
   If you want to disable backups for remote files, set the variable
 @code{ange-ftp-make-backup-files} to @code{nil}.
+
+  By default, the auto-save files (@pxref{Auto Save Files}) for remote
+files are made in the temporary file directory on the local machine.
+This is achieved using the variable @code{auto-save-file-name-transforms}.
 
 @cindex ange-ftp
 @vindex ange-ftp-default-user
