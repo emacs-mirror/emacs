@@ -1,0 +1,316 @@
+1999-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (SHELL, MAKESHELL): Use /xyzzy/command as the shell.
+
+1999-07-12  Richard Stallman  <rms@gnu.org>
+
+	* Version 20.4 released.
+
+1999-07-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (SHELL, MAKESHELL): Don't use /dos/command, it can
+	invoke an incompatible version of COMAMND.COM.
+
+1999-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Use -gcoff instead of -g in CFLAGS, for those who
+	have GCC configured by default to use stabs, which unexec.c
+	doesn't currently support.
+
+1999-01-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (install): Use update instead of sed to install fns.el.
+
+1999-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (install): Install fns.el in ../bin, since Emacs
+	looks for it in exec-directory.
+
+1999-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp: New file, for configuring the leim directory.
+
+	* mainmake.v2 (src): Build files in leim if leim/Makefile exists.
+	(clean): Add clean in leim.
+
+1998-11-08  Eli Zaretskii  <eliz@mescaline.gnu.org>
+
+	* mainmake.v2 (SHELL, MAKESHELL): Don't use `override'.
+
+1998-10-20  Eli Zaretskii  <eliz@mescaline.gnu.org>
+
+	* mainmake.v2: Forcibly set SHELL and MAKESHELL to force Make to
+	use COMMAND.COM as the shell.
+
+1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Version 20.3 released.
+
+1998-05-04  Eli Zaretskii  <eliz@mescaline.gnu.org>
+
+	* mainmake.v2 (TAGS tags): Fix file name wildcards in lisp
+	directory.
+
+1998-04-13  Eli Zaretskii  <eliz@delysid.gnu.org>
+
+	* mainmake.v2 (src): Replace topdir with top_srcdir in commands
+	which generate gdb.ini.
+
+1998-04-12  Eli Zaretskii  <eliz@delysid.gnu.org>
+
+	* mainmake.v2 (version): Determine emacs-version from
+	lisp/version.el.  Pass it to sub-Make's.
+
+1998-04-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed3v2.inp: When installing ${version},
+	do it replacing @version@.
+
+	* mainmake.v2 (version): Compute the version from lisp/version.el
+	and pass to sub-Make's.  Pass top_srcdir to sub-Make's.
+
+1997-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed6.inp: New file, configures the man directory for MSDOS.
+
+	* mainmake.v2 (man): New target to build the manual.
+	(all): Add the man dependency.
+	(install): Change bin\\nul to bin\nul.
+
+1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.2 released.
+
+1997-09-15  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.1 released.
+
+1997-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed1v2.inp: Enlarge the stack size of temacs to 100KB.
+
+1997-08-13  Eli Zaretskii  <eliz@psilocin.gnu.ai.mit.edu>
+
+	* sed2.inp: (EMACS_CONFIGURATION): Set to i386-pc-msdosdjgpp.
+
+1997-08-10 +03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed1v2.inp (CPPFLAGS, LDFLAGS): Edit to empty.
+
+1997-07-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp (HAVE_LOGB, HAVE_FREXP, HAVE_FMOD, HAVE_RINT)
+	(HAVE_CBRT, HAVE_FPATHCONF, HAVE_SETRLIMIT): Defined.
+
+	* sed1.inp, sed1v2.inp: Remove `stamp-oldxmenu' dependency, so
+	MSDOS users won't need `touch' installed.
+
+	* mainmake.v2 (TAGS, tags): Include new lisp subdirectories.
+
+1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.33 released.
+
+1996-08-04  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* is_exec.c: Renamed from is-exec.c.
+
+1996-07-27  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.32 released.
+
+	* is-exec.c, sigaction.c: New files.
+
+1996-07-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (TAGS): Make sure bin/etags.exe is current.  Make
+	the rules always generate TAGS.
+
+1996-06-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp: Don't undef MULTI_FRAME.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1996-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed1.inp: Replace `make-docfile' with `make-doc.exe'.  In case
+	src/Makefile needs to rebuild `make-doc.exe', use one command per line.
+	Undo the previous change.
+	
+1996-04-15  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* sed1.inp: Change make-docfile to make-doc.exe in a second place. 
+
+1996-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mainmake.v2 (src): Create a file with sed commands instead of using
+	a long sed command line (some versions of Sed don't handle that).
+	(gdb): Merged back into src, undoing April 13 change.
+	(install): Do use if statements, but not a loop.
+	
+1996-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* mainmake.v2 (gdb): New target, broken out of src.
+	(install): Use simple explicit copy commands, not a loop.
+
+1996-04-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp: Under DJGPP v2, use <sys/config.h> instead of most of
+	config.h.in.
+
+	* sed1v2.inp, sed3v2.inp, mainmake.v2: New files.
+
+1996-01-23  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* sed2.inp (LOCALTIME_CACHE, HAVE_TZSET): Define these.
+
+1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.30 released.
+
+1995-11-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* sed3.inp: Alter test-distrib to test-dis.
+
+1995-11-03  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* mainmake (install): Don't mv make-doc.exe into ../bin/.
+
+1995-10-11  Kim Storm  <kfstorm@wombat.gnu.ai.mit.edu>
+
+	* sed1.inp: Call make-doc.exe instead of make-docfile.
+
+1995-06-08  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
+
+	* sed2.inp: Define STDC_HEADERS.
+	Undefine MULTI_FRAME, until somebody fixes msdos.h and msdos.c.
+
+1995-01-20  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
+
+	* sed3.inp: Fix sed append command to behave as intended.
+
+1995-01-20  Morten Welinder  <terra@diku.dk>
+
+	* sed3.inp: Delete mysterious dot.  Add comment to protect blank
+	line at end of file.  Make sure make-docfile is compiled.
+
+1995-01-10  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
+
+	* sed3.inp: Use coff2exe on make-docfile.
+	* sed1.inp: Not go32, which has problems with long arg lists.
+
+1994-10-17  Morten Welinder  <terra@mole.gnu.ai.mit.edu>
+
+	* sed1.inp: Handle "\t#"-style comments.
+	(obj): Don't add any files -- now done in src/makefile.in.in
+	(temacs): Don't depend on prefix-args.
+	(DOC): Reflect makefile changes regarding two-batch run.
+
+	* sed2.inp: Add comments showing how to use the system malloc.
+	(EMACS_CONFIG_OPTIONS): Set though not useful.
+	(HAVE_MKTIME): Define.
+
+	* mainmake (clean): Add target.
+
+	* sed1x.inp, sed2x.inp, sed5x.inp: New files for X configuration.
+
+
+1994-07-14  Morten Welinder  (terra@diku.dk)
+
+	* sed2.inp (HAVE_STRERROR): Define.
+
+1994-07-08  Morten Welinder  (terra@diku.dk)
+
+	* sed1.inp, sed2.inp: Use "m/intel386" instead of "m/dos386.h".
+
+1994-06-01  Morten Welinder  (terra@diku.dk)
+
+	* sed4.inp: New file for configuring src/paths.h.
+
+1994-05-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.25 released.
+
+1994-05-22  Morten Welinder  (terra@diku.dk)
+
+	* sed1.inp: Adding dos-fns.elc to the set of lisp files was moved
+	to src/makefile.in.in.
+
+1994-05-20  Morten Welinder  (terra@tyr.diku.dk)
+
+	* sed2.inp: Reflect change from CONFIGURATION to EMACS_CONFIGURATION.
+	Also set it to correct three-part value.
+
+1994-05-16  Morten Welinder  (terra@tyr.diku.dk)
+
+	* Version 19.23 released.
+
+	* sed1.inp: Don't use `+' in regexps as different stream
+	editors interpret them differently.  Use `*' instead.
+
+1994-05-12  Morten Welinder  (terra@diku.dk)
+
+	* mainmake (install): Set the minimum stack (for running under
+	DPMI) to 512K.  Avoid using wildcard for matching one file.
+
+1994-05-08  Morten Welinder  (terra@diku.dk)
+
+	* sed3.inp: Don't pass version to [ce]tags.
+
+1994-04-30  Morten Welinder  (terra@diku.dk)
+
+	* sed1.inp: don't comment out the inc-vers run as that
+	does not exist anymore.
+	Don't reset DEBUG_MOLE as that no longer is used.
+	Identify the file being patched as src/...
+	* sed2.inp: Identify the file being patched as src/...
+	* sed3.inp: We don't have to have the version number in here
+	anymore.  Instead we patch the way it is passed from make to
+	the C compiler.
+
+1994-04-29  Morten Welinder  (terra@diku.dk)
+
+	* sed1.inp: Set CFLAGS=-O2, not -g.  Handle the new
+	M_FILE, S_FILE, and SET_MAKE defines.  Get rid of ^Ms.
+
+	* sed2.inp: We have bcmp.  Configuration is "msdos".
+	Get rid of ^Ms.
+
+	* sed3.inp: Set CFLAGS=-O2, not -g.  Correct for
+	new configuration regarding utilities not to compile.
+	Fix version number.  Get rid of ^Ms.
+
+1994-01-08  Morten Welinder  (terra@diku.dk)
+
+	* sed3.inp: improve make-compatibility by not using drive
+	specifications and by not specifying an explicit shell.
+
+1994-01-07  Morten Welinder  (terra@diku.dk)
+
+	* sed1.inp: Incorporate the actions of patch1.
+	* patch1: File deleted.
+
+1993-01-05  Morten Welinder  (terra@diku.dk)
+
+	* mainmake: New file, makefile for the main directory.
+
+	* patch1: New file.  Context diff to turn src/makefile.in into
+	a msdos version called makefile.
+
+	* emacs.pif: New file, program information file for Emacs under
+	Windows.  (This file contains non-printable characters.)
+
+	* emacs.ico: New file, icon for Emacs under Windows.  It's so ugly
+	that someone is bound to create a better.  Mail uuencoded icons
+	to terra@diku.dk, but be prepared to sign a copyright disclaimer.
+	(This file contains non-printable characters.)
+
+	* sed3.inp: New file for changing lib-src/makefile.in into 
+	lib-src/makefile.
+
+	* sed2.inp: New file for changing src/config.h-in into src/config.h
+
+	* sed1.inp: New file for changing src/makefile.in.in into src/makefile
