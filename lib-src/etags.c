@@ -34,7 +34,7 @@
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.19";
+char pot_etags_version[] = "@(#) pot revision number is 16.26";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -766,18 +766,18 @@ Relative ones are stored relative to the output file's directory.\n");
 	Create tag entries for member variables in C and derived languages.");
 
 #ifdef ETAGS_REGEXPS
-  puts ("-r /REGEXP/, --regex=/REGEXP/ or --regex=@regexfile\n\
-        Make a tag for each line matching pattern REGEXP in the following\n\
- 	files.  {LANGUAGE}/REGEXP/ uses REGEXP for LANGUAGE files only.\n\
-	regexfile is a file containing one REGEXP per line.\n\
-	REGEXP is anchored (as if preceded by ^).\n\
-	The form /REGEXP/NAME/ creates a named tag.\n\
+  puts ("-r REGEXP, --regex=REGEXP or --regex=@regexfile\n\
+        Make a tag for each line matching the regular expression pattern\n\
+	in the following files.  {LANGUAGE}REGEXP uses REGEXP for LANGUAGE\n\
+	files only.  REGEXFILE is a file containing one REGEXP per line.\n\
+	REGEXP takes the form /TAGREGEXP/TAGNAME/MODS, where TAGNAME/ is\n\
+	optional.  The TAGREGEXP pattern is anchored (as if preceded by ^).");
+  puts ("	If TAGNAME/ is present, the tags created are named.\n\
 	For example Tcl named tags can be created with:\n\
-	--regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\".");
-  puts ("In the form /REGEXP/MODS or /REGEXP/NAME/MODS, MODS are\n\
-	one-letter modifiers: `i' means to ignore case, `m' means\n\
-	allow multi-line matches, `s' implies `m' and additionally\n\
-	causes dot to match the newline character.");
+	  --regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\".\n\
+	MODS are optional one-letter modifiers: `i' means to ignore case,\n\
+	`m' means to allow multi-line matches, `s' implies `m' and\n\
+	causes dot to match the newline character as well.");
   puts ("-R, --no-regex\n\
         Don't create tags from regexps for the following files.");
 #endif /* ETAGS_REGEXPS */
@@ -1227,7 +1227,7 @@ main (argc, argv)
 
   if (!CTAGS || cxref_style)
     {
-      put_entries (nodehead);
+      put_entries (nodehead);	/* write the remainig tags (ETAGS) */
       free_tree (nodehead);
       nodehead = NULL;
       if (!CTAGS)
@@ -1264,7 +1264,7 @@ main (argc, argv)
   tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
   if (tagf == NULL)
     pfatal (tagfile);
-  put_entries (nodehead);
+  put_entries (nodehead);	/* write all the tags (CTAGS) */
   free_tree (nodehead);
   nodehead = NULL;
   if (fclose (tagf) == EOF)
@@ -2012,11 +2012,6 @@ add_node (np, cur_node_p)
  * invalidate_nodes ()
  *	Scan the node tree and invalidate all nodes pointing to the
  *	given file description (CTAGS case) or free them (ETAGS case).
- *
- * This function most likely contains a bug, but I cannot tell where.
- * I have a case of a binary that crashes inside this function with a bus
- * error.  Unfortunately, the binary does not contain debug information, and
- * compiling with debugging information makes the bug disappear.
  */
 static void
 invalidate_nodes (badfdp, npp)
@@ -2039,14 +2034,16 @@ invalidate_nodes (badfdp, npp)
     }
   else
     {
-      node **next = &np->left;
+      assert (np->fdp != NULL);
       if (np->fdp == badfdp)
 	{
-	  *npp = *next;		/* detach the sublist from the list */
+	  *npp = np->left;	/* detach the sublist from the list */
 	  np->left = NULL;	/* isolate it */
 	  free_tree (np);	/* free it */
+	  invalidate_nodes (badfdp, npp);
 	}
-      invalidate_nodes (badfdp, next);
+      else
+	invalidate_nodes (badfdp, &np->left);
     }
 }
 
@@ -5095,7 +5092,7 @@ prolog_atom (s, pos)
  */
 static int erlang_func __P((char *, char *));
 static void erlang_attribute __P((char *));
-static int erlang_atom __P((char *, int));
+static int erlang_atom __P((char *));
 
 static void
 Erlang_functions (inf)
@@ -5160,7 +5157,7 @@ erlang_func (s, last)
   int pos;
   int len;
 
-  pos = erlang_atom (s, 0);
+  pos = erlang_atom (s);
   if (pos < 1)
     return 0;
 
@@ -5194,19 +5191,15 @@ static void
 erlang_attribute (s)
      char *s;
 {
-  int pos;
-  int len;
+  char *cp = s;
 
-  if (LOOKING_AT (s, "-define") || LOOKING_AT (s, "-record"))
+  if ((LOOKING_AT (cp, "-define") || LOOKING_AT (cp, "-record"))
+      && *cp++ == '(')
     {
-      if (s[pos++] == '(')
-	{
-	  pos = skip_spaces (s + pos) - s;
-	  len = erlang_atom (s, pos);
-	  if (len != 0)
-	    pfnote (savenstr (& s[pos], len), TRUE,
-		    s, pos + len, lineno, linecharno);
-	}
+      int len = erlang_atom (skip_spaces (cp));
+      if (len > 0)
+	pfnote (savenstr (cp, len), TRUE,
+		s, cp + len - s, lineno, linecharno);
     }
   return;
 }
@@ -5217,49 +5210,28 @@ erlang_attribute (s)
  * Return the number of bytes consumed, or -1 if there was an error.
  */
 static int
-erlang_atom (s, pos)
+erlang_atom (s)
      char *s;
-     int pos;
 {
-  int origpos;
-
-  origpos = pos;
+  int pos = 0;
 
   if (ISALPHA (s[pos]) || s[pos] == '_')
     {
       /* The atom is unquoted. */
-      pos++;
-      while (ISALNUM (s[pos]) || s[pos] == '_')
+      do
 	pos++;
-      return pos - origpos;
+      while (ISALNUM (s[pos]) || s[pos] == '_');
     }
   else if (s[pos] == '\'')
     {
+      for (pos++; s[pos] != '\''; pos++)
+	if (s[pos] == '\0'	/* multiline quoted atoms are ignored */
+	    || (s[pos] == '\\' && s[++pos] == '\0'))
+	  return 0;
       pos++;
-
-      for (;;)
-	{
-	  if (s[pos] == '\'')
-	    {
-	      pos++;
-	      break;
-	    }
-	  else if (s[pos] == '\0')
-	    /* Multiline quoted atoms are ignored. */
-	    return -1;
-	  else if (s[pos] == '\\')
-	    {
-	      if (s[pos+1] == '\0')
-		return -1;
-	      pos += 2;
-	    }
-	  else
-	    pos++;
-	}
-      return pos - origpos;
     }
-  else
-    return -1;
+
+  return pos;
 }
 
 
