@@ -185,6 +185,12 @@ Boston, MA 02111-1307, USA.  */
 #else
 #define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
 #endif /* __mips__ */
+
+/* Link temacs with -z nocombreloc so that unexec works right, whether or
+   not -z combreloc is the default.  GNU ld ignores unknown -z KEYOWRD
+   switches, so this also works with older versions that don't implement
+   -z combreloc.  */
+#define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
 #endif /* __ELF__ */
 
 /* As of version 1.1.51, Linux did not actually implement SIGIO.
