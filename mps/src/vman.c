@@ -2,7 +2,7 @@
  *
  *           MALLOC-BASED PSUEDO-VIRTUAL MEMORY MAPPING
  *
- *  $HopeName: MMsrc!vman.c(trunk.6) $
+ *  $HopeName: MMsrc!vman.c(trunk.7) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-SRCID("$HopeName: MMsrc!vman.c(trunk.6) $");
+SRCID("$HopeName: MMsrc!vman.c(trunk.7) $");
 
 #define VMSig	((Sig)0x519FEE33)
 
@@ -89,7 +89,7 @@ Error VMCreate(VM *vmReturn, Addr size)
   vm->limit = vm->base + size;
   AVER(vm->limit < (Addr)vm->block + size + VMAN_GRAIN);
 
-  memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)size);
+  memset((void *)vm->base, VM_JUNKBYTE, (size_t)size);
 
   vm->sig = VMSig;
 
@@ -106,7 +106,7 @@ void VMDestroy(VM vm)
   
   vm->sig = SigInvalid;
 
-  memset((void *)vm->base, VMAN_JUNKBYTE, (size_t)(vm->limit - vm->base));
+  memset((void *)vm->base, VM_JUNKBYTE, (size_t)(vm->limit - vm->base));
 
   free(vm->block);
   free(vm);
@@ -152,5 +152,5 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(IsAligned(VMAN_GRAIN, base));
   AVER(IsAligned(VMAN_GRAIN, limit));
   
-  memset((void *)base, VMAN_JUNKBYTE, (size_t)(limit - base));
+  memset((void *)base, VM_JUNKBYTE, (size_t)(limit - base));
 }
