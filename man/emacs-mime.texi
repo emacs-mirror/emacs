@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@setfilename ../emacs-mime
+@setfilename ../info/emacs-mime
 @settitle Emacs MIME Manual
 @synindex fn cp
 @synindex vr cp
@@ -235,7 +235,7 @@ Narrow the buffer to the header under point.
 @item mail-encode-encoded-word-region
 @findex mail-encode-encoded-word-region
 Encode the non-ASCII words in the region.  For instance,
-@samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+@samp{Nave} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
 
 @item mail-encode-encoded-word-buffer
 @findex mail-encode-encoded-word-buffer
@@ -248,7 +248,7 @@ Encode the words that need encoding in a string, and return the result.
 
 @example
 (mail-encode-encoded-word-string
- "This is naïve, baby")
+ "This is nave, baby")
 @result{} "This is =?iso-8859-1?q?na=EFve,?= baby"
 @end example
 
@@ -263,7 +263,7 @@ Decode the encoded words in the string and return the result.
 @example
 (mail-decode-encoded-word-string
  "This is =?iso-8859-1?q?na=EFve,?= baby")
-@result{} "This is naïve, baby"
+@result{} "This is nave, baby"
 @end example
 
 @end table
