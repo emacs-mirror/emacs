@@ -1986,8 +1986,10 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	      unbind_to (count, Qnil);
 	    }
 	  else
-	    message (0);
+	      message (0);
 	}
+      
+      help_echo_showing_p = STRINGP (help);
     }
 }
 
@@ -2171,7 +2173,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Redisplay if no pending input.  */
       while (!input_pending)
 	{
-	  redisplay ();
+	  if (help_echo_showing_p && !EQ (selected_window, minibuf_window))
+	    redisplay_preserve_echo_area ();
+	  else
+	    redisplay ();
 
 	  if (!input_pending)
 	    /* Normal case: no input arrived during redisplay.  */
