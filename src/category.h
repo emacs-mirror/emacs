@@ -53,7 +53,7 @@ Boston, MA 02111-1307, USA.  */
 #define CATEGORYP(x) \
   (INTEGERP ((x)) && XFASTINT ((x)) >= 0x20 && XFASTINT ((x)) <= 0x7E)
 
-#define CHECK_CATEGORY(x, i)						\
+#define CHECK_CATEGORY(x)						\
   do {									\
     if (!CATEGORYP ((x))) x = wrong_type_argument (Qcategoryp, (x));	\
   } while (0)
@@ -71,7 +71,7 @@ Boston, MA 02111-1307, USA.  */
 #define SET_CATEGORY_SET(category_set, category, val) \
   (Faset (category_set, category, val))
 
-#define CHECK_CATEGORY_SET(x, i)					   \
+#define CHECK_CATEGORY_SET(x)					   \
   do {									   \
     if (!CATEGORY_SET_P ((x))) x = wrong_type_argument (Qcategorysetp, (x)); \
   } while (0)
