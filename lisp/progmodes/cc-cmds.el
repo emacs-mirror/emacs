@@ -2761,7 +2761,7 @@ command to conveniently insert and align the necessary backslashes."
 		  '("" . 0))))))
     ))
 
-(defun c-mask-comment (fill-include-ender apply-outside-literal fun &rest args)
+(defun c-mask-comment (fill-mode apply-outside-literal fun &rest args)
   ;; Calls FUN with ARGS ar arguments.  If point is inside a comment,
   ;; the comment starter and ender are masked and the buffer is
   ;; narrowed to make it look like a normal paragraph during the call.
@@ -2790,7 +2790,7 @@ command to conveniently insert and align the necessary backslashes."
       ;; Widen to catch comment limits correctly.
       (widen)
       (unless c-lit-limits
-	(setq c-lit-limits (c-literal-limits nil t)))
+	(setq c-lit-limits (c-literal-limits nil fill-mode)))
       (setq c-lit-limits (c-collect-line-comments c-lit-limits))
       (unless c-lit-type
 	(setq c-lit-type (c-literal-type c-lit-limits))))
@@ -2840,8 +2840,8 @@ command to conveniently insert and align the necessary backslashes."
 						 "\\)\\*/"))
 			     (eq (cdr c-lit-limits) (match-end 0))
 			     ;; Leave the comment ender on its own line.
-			     (set-marker end (point))))
-		(when fill-include-ender
+			     (set-marker end (max (point) here))))
+		(when fill-mode
 		  ;; The comment ender should hang.  Replace all cruft
 		  ;; between it and the last word with one or two 'x'
 		  ;; and include it in the region.  We'll change them
@@ -2900,12 +2900,13 @@ command to conveniently insert and align the necessary backslashes."
 	      ;; The region includes the comment starter.
 	      (save-excursion
 		(goto-char (car c-lit-limits))
-		(if (and (looking-at (concat "\\(" comment-start-skip "\\)$"))
-			 (> here (match-end 0)))
-		    ;; Begin with the next line.
-		    (setq beg (c-point 'bonl))
-		  ;; Fake the fill prefix in the first line.
-		  (setq tmp-pre t)))))
+		(when (and (looking-at comment-start-skip)
+			   (> here (match-end 0)))
+		  (if (eq (match-end 0) (c-point 'eol))
+		      ;; Begin with the next line.
+		      (setq beg (c-point 'bonl))
+		    ;; Fake the fill prefix in the first line.
+		    (setq tmp-pre t))))))
 	   ((eq c-lit-type 'string)	; String.
 	    (save-excursion
 	      (when (>= end (cdr c-lit-limits))
@@ -2951,7 +2952,9 @@ Warning: Regexp from `c-comment-prefix-regexp' doesn't match the comment prefix 
 		  (goto-char (match-end 0))
 		(forward-char 2)
 		(skip-chars-forward " \t"))
-	      (while (< (current-column) (cdr fill)) (forward-char 1))
+	      (while (and (< (current-column) (cdr fill))
+			  (not (eolp)))
+		(forward-char 1))
 	      (let ((col (current-column)))
 		(setq beg (1+ (point))
 		      tmp-pre (list (point)))
