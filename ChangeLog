@@ -1,22 +1,3 @@
-2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-util.el (viper-read-key-sequence): fixed so it'll read
-	fast key sequences in emacs native mode
-	(viper-events-to-keys): deleted
-	
-	* viper.el (describe-key, describe-key-briefly): get rid of
-	viper-events-to-keys.
-
-	* ediff-init.el (ediff-has-gutter-support): Steven Turnbull's patch.
-	
-	* ediff-wind.el (ediff-setup-control-frame): Use
-	ediff-has-gutter-support.
-	
-	* ediff-util.el (ediff-dispose-of-variant-according-to-user):
-	check if buff is alive.
-	
-	* ediff.el: typo in comment.
-	
 2002-02-08  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): Add an infinite sleep-loop.
