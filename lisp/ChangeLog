@@ -1,3 +1,12 @@
+2004-12-02  Kim F. Storm  <storm@cua.dk>
+
+	* faces.el (escape-glyph): Rename from glyph.
+	(standard-display-table): Set it here.  Add escape-glyph face to
+	extra slot characters.
+
+	* disp-table.el: Undo 2004-12-01 change.  Display table is now
+	setup in faces.el.
+
 2004-12-02  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-parse-dtd): Don't show validity messages when
@@ -7706,7 +7715,7 @@
 	(compilation-forget-errors): Don't localize already local
 	compilation-locs and remove FIXME about refontifying.
 
-2004-04-14  
+2004-04-14
 	Split the rule for dired marks into 3 separate rules: for marks,
 	marked file names and flagged file names.
 
