@@ -170,7 +170,7 @@ or `read-char-exclusive' instead.")
   register Lisp_Object val;
 
 #ifndef standalone
-  val = read_char (0);
+  val = read_char (0, 0, 0, Qnil, 0);
   if (XTYPE (val) != Lisp_Int)
     {
       unread_command_char = val;
@@ -189,7 +189,7 @@ DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
 {
   register Lisp_Object val;
 
-  val = read_char (0);
+  val = read_char (0, 0, 0, Qnil, 0);
   return val;
 }
 
@@ -203,7 +203,7 @@ It is returned as a number.  Non character events are ignored.")
 #ifndef standalone
   do
     {
-      val = read_char (0);
+      val = read_char (0, 0, 0, Qnil, 0);
     }
   while (XTYPE (val) != Lisp_Int);
 #else
