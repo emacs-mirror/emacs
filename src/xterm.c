@@ -1516,13 +1516,16 @@ x_produce_image_glyph (it)
   
   if (face->box != FACE_NO_BOX)
     {
-      it->ascent += face->box_line_width;
-      it->descent += face->box_line_width;
+      if (face->box_line_width > 0)
+	{
+	  it->ascent += face->box_line_width;
+	  it->descent += face->box_line_width;
+	}
       
       if (it->start_of_box_run_p)
-	it->pixel_width += face->box_line_width;
+	it->pixel_width += abs (face->box_line_width);
       if (it->end_of_box_run_p)
-	it->pixel_width += face->box_line_width;
+	it->pixel_width += abs (face->box_line_width);
     }
 
   take_vertical_position_into_account (it);
@@ -1727,13 +1730,16 @@ x_produce_stretch_glyph (it)
 
   if (face->box != FACE_NO_BOX)
     {
-      it->ascent += face->box_line_width;
-      it->descent += face->box_line_width;
+      if (face->box_line_width > 0)
+	{
+	  it->ascent += face->box_line_width;
+	  it->descent += face->box_line_width;
+	}
       
       if (it->start_of_box_run_p)
-	it->pixel_width += face->box_line_width;
+	it->pixel_width += abs (face->box_line_width);
       if (it->end_of_box_run_p)
-	it->pixel_width += face->box_line_width;
+	it->pixel_width += abs (face->box_line_width);
     }
   
   take_vertical_position_into_account (it);
@@ -1890,9 +1896,14 @@ x_produce_glyphs (it)
 	    {
 	      int thick = face->box_line_width;
 	      
-	      it->ascent += thick;
-	      it->descent += thick;
-	      
+	      if (thick > 0)
+		{
+		  it->ascent += thick;
+		  it->descent += thick;
+		}
+	      else
+		thick = -thick;
+
 	      if (it->start_of_box_run_p)
 		it->pixel_width += thick;
 	      if (it->end_of_box_run_p)
@@ -1935,11 +1946,11 @@ x_produce_glyphs (it)
 	  it->ascent = it->phys_ascent = font->ascent + boff;
 	  it->descent = it->phys_descent = font->descent - boff;
       
-	  if (face->box != FACE_NO_BOX)
+	  if (face->box != FACE_NO_BOX
+	      && face->box_line_width > 0)
 	    {
-	      int thick = face->box_line_width;
-	      it->ascent += thick;
-	      it->descent += thick;
+	      it->ascent += face->box_line_width;
+	      it->descent += face->box_line_width;
 	    }
 	}
       else if (it->char_to_display == '\t')
@@ -2004,8 +2015,14 @@ x_produce_glyphs (it)
 	  if (face->box != FACE_NO_BOX)
 	    {
 	      int thick = face->box_line_width;
-	      it->ascent += thick;
-	      it->descent += thick;
+
+	      if (thick > 0)
+		{
+		  it->ascent += thick;
+		  it->descent += thick;
+		}
+	      else
+		thick = - thick;
 	  
 	      if (it->start_of_box_run_p)
 		it->pixel_width += thick;
@@ -2271,8 +2288,14 @@ x_produce_glyphs (it)
       if (face->box != FACE_NO_BOX)
 	{
 	  int thick = face->box_line_width;
-	  it->ascent += thick;
-	  it->descent += thick;
+
+	  if (thick > 0)
+	    {
+	      it->ascent += thick;
+	      it->descent += thick;
+	    }
+	  else
+	    thick = - thick;
 	  
 	  if (it->start_of_box_run_p)
 	    it->pixel_width += thick;
@@ -2329,7 +2352,8 @@ x_estimate_mode_line_height (f, face_id)
 	  {
 	    if (face->font)
 	      height = FONT_HEIGHT (face->font);
-	    height += 2 * face->box_line_width;
+	    if (face->box_line_width > 0)
+	      height += 2 * face->box_line_width;
 	  }
       }
   
@@ -3076,25 +3100,27 @@ x_draw_glyph_string_background (s, force_p)
      shouldn't be drawn in the first place.  */
   if (!s->background_filled_p)
     {
+      int box_line_width = max (s->face->box_line_width, 0);
+
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
 	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
 	  XFillRectangle (s->display, s->window, s->gc, s->x,
-			  s->y + s->face->box_line_width,
+			  s->y + box_line_width,
 			  s->background_width,
-			  s->height - 2 * s->face->box_line_width);
+			  s->height - 2 * box_line_width);
 	  XSetFillStyle (s->display, s->gc, FillSolid);
 	  s->background_filled_p = 1;
 	}
-      else if (FONT_HEIGHT (s->font) < s->height - 2 * s->face->box_line_width
+      else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
 	{
-	  x_clear_glyph_string_rect (s, s->x, s->y + s->face->box_line_width,
+	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
 				     s->background_width,
-				     s->height - 2 * s->face->box_line_width);
+				     s->height - 2 * box_line_width);
 	  s->background_filled_p = 1;
 	}
     }
@@ -3113,7 +3139,7 @@ x_draw_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + s->face->box_line_width;
+    x = s->x + abs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -3183,7 +3209,7 @@ x_draw_composite_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + s->face->box_line_width;
+    x = s->x + abs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -3801,7 +3827,7 @@ x_draw_glyph_string_box (s)
 		? s->first_glyph
 		: s->first_glyph + s->nchars - 1);
 
-  width = s->face->box_line_width;
+  width = abs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = ((s->row->full_width_p
@@ -3846,7 +3872,7 @@ x_draw_image_foreground (s)
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + s->face->box_line_width;
+    x = s->x + abs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -3932,7 +3958,7 @@ x_draw_image_relief (s)
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + s->face->box_line_width;
+    x = s->x + abs (s->face->box_line_width);
   else
     x = s->x;
   
@@ -3978,7 +4004,7 @@ x_draw_image_foreground_1 (s, pixmap)
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->face->box_line_width;
+    x = abs (s->face->box_line_width);
   else
     x = 0;
 
@@ -4072,11 +4098,12 @@ x_draw_image_glyph_string (s)
      struct glyph_string *s;
 {
   int x, y;
-  int box_line_width = s->face->box_line_width;
+  int box_line_hwidth = abs (s->face->box_line_width);
+  int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
   Pixmap pixmap = None;
 
-  height = s->height - 2 * box_line_width;
+  height = s->height - 2 * box_line_vwidth;
 
   /* Fill background with face under the image.  Do it only if row is
      taller than image or if image has a clip mask to reduce
@@ -4089,12 +4116,12 @@ x_draw_image_glyph_string (s)
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
-      if (box_line_width && s->first_glyph->left_box_line_p)
-	x = s->x + box_line_width;
+      if (box_line_hwidth && s->first_glyph->left_box_line_p)
+	x = s->x + box_line_hwidth;
       else
 	x = s->x;
       
-      y = s->y + box_line_width;
+      y = s->y + box_line_vwidth;
       
       if (s->img->mask)
 	{
