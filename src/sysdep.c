@@ -751,8 +751,6 @@ sys_subshell ()
 	report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
 #else /* not MSDOS */
 #ifdef  WINDOWSNT
-      restore_console ();
-
       /* Waits for process completion */
       pid = _spawnlp (_P_WAIT, sh, sh, NULL);
       if (pid == -1)
