@@ -135,7 +135,12 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_ALLOCA_H
 
 #undef HAVE_GETTIMEOFDAY
+/* If we don't have gettimeofday,
+   the test for GETTIMEOFDAY_ONE_ARGUMENT may succeed,
+   but we should ignore it.  */
+#ifdef HAVE_GETTIMEOFDAY
 #undef GETTIMEOFDAY_ONE_ARGUMENT
+#endif
 #undef HAVE_GETHOSTNAME
 #undef HAVE_DUP2
 #undef HAVE_RENAME
