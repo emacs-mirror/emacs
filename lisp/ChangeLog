@@ -1,3 +1,26 @@
+1999-12-18  Dave Love  <fx@gnu.org>
+
+	* cl-macs.el: Remove conditional definition of eval-when-compile.
+	Don't specify abs, expt, gethash, hash-table-count, hash-table-p
+	as side-effect-free here.
+	(cl-emacs-type): Don't declare.
+	(cl-compile-time-init): Remove Emacs 18 compiler patch.
+	(cl-parse-loop-clause): Remove compatibility code.
+
+	* byte-opt.el: Don't put optimization info on `eql'.
+	(side-effect-free-fns): Add gethash, hash-table-count.
+	(side-effect-and-error-free-fns): Add hash-table-p.
+
+	* cl.el: Remove Emacs 18 compatibility code.  Prepend `cl-' to
+	autoload names for some hash functions.  Don't autoload
+	eval-when-compile.  Don't provide mini-cl.
+	(cl-emacs-type): Remove.
+	(cl-map-extents): Remove compatibility code.
+
+	* float.el: Bind free variables.
+
+	* bytecomp.el (byte-compile-constp): Include keywords.
+
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el (completion-ignored-extensions): Add .tfm.
