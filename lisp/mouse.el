@@ -380,6 +380,8 @@ Upon exit, point is at the far edge of the newly visible text."
 
 (defvar mouse-selection-click-count 0)
 
+(defvar mouse-selection-click-count-buffer nil)
+
 (defun mouse-drag-region (start-event)
   "Set the region to the text that the mouse is dragged over.
 Highlight the drag area as you move the mouse.
@@ -400,6 +402,7 @@ release the mouse button.  Otherwise, it does not."
 		   (1- (nth 3 bounds))))
 	 (click-count (1- (event-click-count start-event))))
     (setq mouse-selection-click-count click-count)
+    (setq mouse-selection-click-count-buffer (current-buffer))
     (mouse-set-point start-event)
     (let ((range (mouse-start-end start-point start-point click-count)))
       (move-overlay mouse-drag-overlay (car range) (nth 1 range)
@@ -655,7 +658,12 @@ If you do this twice in the same position, the selection is killed."
 	  ;; Don't let a subsequent kill command append to this one:
 	  ;; prevent setting this-command to kill-region.
 	  (this-command this-command))
-      (if (and (mark t) (> (mod mouse-selection-click-count 3) 0))
+      (if (and (save-excursion
+		 (set-buffer (window-buffer (posn-window (event-start click))))
+		 (and (mark t) (> (mod mouse-selection-click-count 3) 0)
+		      ;; Don't be fooled by a recent click in some other buffer.
+		      (eq mouse-selection-click-count-buffer 
+			  (current-buffer)))))
 	  (if (not (and (eq last-command 'mouse-save-then-kill)
 			(equal click-posn
 			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
