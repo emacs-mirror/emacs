@@ -31,6 +31,11 @@
 	* vc-cvs.el (vc-cvs-parse-entry): Revert last change to allow
 	bootstrap.
 
+2003-10-01  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* files.el: Fix typo.
+	* imenu.el (imenu--generic-function): Docstring fix.
+
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mode): Handle dired-directory as a list.
