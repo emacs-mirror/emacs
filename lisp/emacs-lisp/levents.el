@@ -230,7 +230,7 @@ will be returned for events which have no direct ASCII equivalent."
 (defun event-x (event)
   "Returns the X position in characters of the given mouse-related event."
   (/ (car (posn-col-row (event-end event)))
-     (character-width (window-frame (event-window event)))))
+     (frame-char-width (window-frame (event-window event)))))
 
 (defun event-x-pixel (event)
   "Returns the X position in pixels of the given mouse-related event."
@@ -239,7 +239,7 @@ will be returned for events which have no direct ASCII equivalent."
 (defun event-y (event)
   "Returns the Y position in characters of the given mouse-related event."
   (/ (cdr (posn-col-row (event-end event)))
-     (character-width (window-frame (event-window event)))))
+     (frame-char-height (window-frame (event-window event)))))
 
 (defun event-y-pixel (event)
   "Returns the Y position in pixels of the given mouse-related event."
