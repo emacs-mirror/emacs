@@ -116,6 +116,7 @@ Another non-nil value means always display the index in a completion buffer."
 		 (other :tag "Always" t))
   :group 'imenu)
 
+;;;###autoload
 (defcustom imenu-sort-function nil
   "*The function to use for sorting the index mouse-menu.
 
@@ -208,6 +209,7 @@ syntax \"word\" syntax during matching.")
 
 ;;;; Hooks
 
+;;;###autoload
 (defvar imenu-create-index-function 'imenu-default-create-index-function
   "The function to use for creating a buffer index.
 
@@ -223,8 +225,10 @@ if it is a sub-alist.
 This function is called within a `save-excursion'.
 
 The variable is buffer-local.")
+;;;###autoload
 (make-variable-buffer-local 'imenu-create-index-function)
 
+;;;###autoload
 (defvar imenu-prev-index-position-function 'beginning-of-defun
   "Function for finding the next index position.
 
@@ -237,9 +241,10 @@ The function should leave point at the place to be connected to the
 index and it should return nil when it doesn't find another index.
 
 This variable is local in all buffers.")
-
+;;;###autoload
 (make-variable-buffer-local 'imenu-prev-index-position-function)
 
+;;;###autoload
 (defvar imenu-extract-index-name-function nil
   "Function for extracting the index item name, given a position.
 
@@ -248,12 +253,14 @@ finds a position for an index item, with point at that position.
 It should return the name for that index item.
 
 This variable is local in all buffers.")
-
+;;;###autoload
 (make-variable-buffer-local 'imenu-extract-index-name-function)
 
+;;;###autoload
 (defvar imenu-default-goto-function 'imenu-default-goto-function
   "The default function called when selecting an Imenu item.
 The function in this variable is called when selecting a normal index-item.")
+;;;###autoload
 (make-variable-buffer-local 'imenu-default-goto-function)
 
 
