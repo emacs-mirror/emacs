@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
+;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: faces files
-;; Version: 2.08.04
+;; Version: 2.09
 
 ;;; This file is part of GNU Emacs.
 
@@ -258,6 +258,7 @@
 ;; - Removed `byte-*' variables from `eval-when-compile' (Erik Naggum hint)
 ;; - Made various wrapping `inhibit-point-motion-hooks' (Vinicius Latorre hint)
 ;; - Made `lazy-lock-fontify-after-idle' wrap `minibuffer-auto-raise'
+;; - Made `lazy-lock-fontify-after-defer' paranoid about deferred buffers
 
 ;;; Code:
 
@@ -314,7 +315,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.04"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.09"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -829,12 +830,18 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 (defun lazy-lock-fontify-after-defer ()
   ;; Called from `timer-idle-list'.
   ;; Fontify all windows where deferral has occurred for its buffer.
-  (while (and lazy-lock-buffers (not (input-pending-p)))
-    (let ((windows (get-buffer-window-list (car lazy-lock-buffers) 'nomini t)))
-      (while windows
-	(lazy-lock-fontify-window (car windows))
-	(setq windows (cdr windows)))
-      (setq lazy-lock-buffers (cdr lazy-lock-buffers))))
+  (save-excursion
+    (while (and lazy-lock-buffers (not (input-pending-p)))
+      (let ((buffer (car lazy-lock-buffers)) windows)
+	;; Paranoia: check that the buffer is still live and Lazy Lock mode on.
+	(when (buffer-live-p buffer)
+	  (set-buffer buffer)
+	  (when lazy-lock-mode
+	    (setq windows (get-buffer-window-list buffer 'nomini t))
+	    (while windows
+	      (lazy-lock-fontify-window (car windows))
+	      (setq windows (cdr windows)))))
+	(setq lazy-lock-buffers (cdr lazy-lock-buffers)))))
   ;; Add hook if fontification should now be defer-driven in this buffer.
   (when (and lazy-lock-mode lazy-lock-defer-on-scrolling
 	     (memq 'lazy-lock-fontify-after-scroll window-scroll-functions)
@@ -1095,6 +1102,12 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (if (consp alist)
 	(cdr (or (assq major-mode alist) (assq t alist)))
       alist)))
+
+(unless (fboundp 'buffer-live-p)
+  ;; We use this to check that a buffer we have to fontify still exists.
+  (defun buffer-live-p (object)
+    "Return non-nil if OBJECT is an editor buffer that has not been deleted."
+    (and (bufferp object) (buffer-name object))))
 
 (unless (fboundp 'get-buffer-window-list)
   ;; We use this to get all windows showing a buffer we have to fontify.
