@@ -1318,7 +1318,7 @@ applications."
              ;; may clear quit-flag itself and return C-g.  That would make
              ;; it impossible to quit this loop in a simple way, so
              ;; re-enable it here (for backward-compatibility the check for
-             ;; quit-flag below would still be necessary, so this is seems
+             ;; quit-flag below would still be necessary, so this seems
              ;; like the simplest way to do things).
              (setq quit-flag t
                    done t))
