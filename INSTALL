@@ -182,16 +182,22 @@ are installed in the following directories:
 `/usr/local/share/emacs/VERSION/lisp' holds the Emacs Lisp library;
 		`VERSION' stands for the number of the Emacs version
 		you are installing, like `18.59' or `19.27'.  Since the
-		lisp library changes from one version of Emacs to
+		Lisp library changes from one version of Emacs to
 		another, including the version number in the path
 		allows you to have several versions of Emacs installed
-		at the same time; this means that you don't have to
-		make Emacs unavailable while installing a new
-		version.
+		at the same time; in particular, you don't have to
+		make Emacs unavailable while installing a new version.
 
-		Emacs searches for its lisp files in
-		`/usr/local/share/emacs/site-lisp', then in this
-		directory.
+`/usr/local/share/emacs/VERSION/site-lisp' holds the local Emacs Lisp
+		files installed for Emacs version VERSION only.
+
+`/usr/local/share/emacs/site-lisp' holds the local Emacs Lisp
+		files installed for all Emacs versions.
+
+		When Emacs is installed, it searches for its Lisp files
+		in `/usr/local/share/emacs/VERSION/site-lisp', then in
+		`/usr/local/share/emacs/site-lisp', and finally in
+		`/usr/local/share/emacs/VERSION/lisp'.
 
 `/usr/local/share/emacs/VERSION/etc' holds the Emacs tutorial, the DOC
 		file, the `yow' database, and other
@@ -228,7 +234,7 @@ are installed in the following directories:
 
 If these directories are not what you want, you can specify where to
 install Emacs's libraries and data files or where Emacs should search
-for its lisp files by giving values for `make' variables as part of
+for its Lisp files by giving values for `make' variables as part of
 the command.  See the section below called `MAKE VARIABLES' for more
 information on this.
 
@@ -268,7 +274,7 @@ Here is a complete list of the variables you may want to set.
 	read-only data files that Emacs refers to while it runs; it
 	defaults to /usr/local/share.  We create the following
 	subdirectories under `datadir':
-	- `emacs/VERSION/lisp', containing the Emacs lisp library, and
+	- `emacs/VERSION/lisp', containing the Emacs Lisp library, and
 	- `emacs/VERSION/etc', containing the Emacs tutorial, the DOC
 		file, and the `yow' database.
 	`VERSION' is the number of the Emacs version you are installing,
@@ -339,20 +345,20 @@ Here is a complete list of the variables you may want to set.
 The above variables serve analogous purposes in the makefiles for all
 GNU software; here are some variables specific to Emacs.
 
-`lispdir' indicates where Emacs installs and expects its lisp library.
+`lispdir' indicates where Emacs installs and expects its Lisp library.
 	Its default value, based on `datadir' (see above), is
 	`/usr/local/share/emacs/VERSION/lisp' (where `VERSION' is as
 	described above).
 
-`locallisppath' indicates where Emacs should search for lisp files
+`locallisppath' indicates where Emacs should search for Lisp files
 	specific to your site.  It should be a colon-separated list of
 	directories; Emacs checks them in order before checking
-	`lispdir'.  Its default value, based on `datadir' (see above),
-	is `/usr/local/share/emacs/site-lisp'.
+	`lispdir'.  Its default value, based on `datadir' (see above), is
+	`/usr/local/share/emacs/VERSION/site-lisp:/usr/local/share/emacs/site-lisp'.
 
 `lisppath' is the complete list of directories Emacs should search for
-	its lisp files; its default value is the concatenation of
-	`lispdir' and `locallisppath'.  It should be a colon-separated
+	its Lisp files; its default value is the concatenation of
+	`locallisppath' and `lispdir'.  It should be a colon-separated
 	list of directories; Emacs checks them in the order they
 	appear.
 
