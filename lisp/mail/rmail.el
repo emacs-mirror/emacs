@@ -170,11 +170,12 @@ Called with region narrowed to unformatted header.")
 (defmacro rmail-select-summary (&rest body)
   (` (progn (if (rmail-summary-displayed)
 		(let ((window (selected-window)))
-		  (unwind-protect
-		      (progn
-			(pop-to-buffer rmail-summary-buffer)
-			(,@ body))
-		    (select-window window)))
+		  (save-excursion
+		    (unwind-protect
+			(progn
+			  (pop-to-buffer rmail-summary-buffer)
+			  (,@ body))
+		      (select-window window))))
 	      (save-excursion
 		(set-buffer rmail-summary-buffer)
 		(progn (,@ body))))
