@@ -9609,7 +9609,20 @@ XTread_socket (sd, bufp, numchars, expected)
 	      if (event.xfocus.detail != NotifyPointer)
 		dpyinfo->x_focus_event_frame = f;
 	      if (f)
-		x_new_focus_frame (dpyinfo, f);
+		{
+		  x_new_focus_frame (dpyinfo, f);
+
+		  /* Don't stop displaying the initial startup message
+		     for a switch-frame event we don't need.  */
+		  if (GC_NILP (Vterminal_frame)
+		      && GC_CONSP (Vframe_list)
+		      && !GC_NILP (XCDR (Vframe_list)))
+		    {
+		      bufp->kind = FOCUS_IN_EVENT;
+		      XSETFRAME (bufp->frame_or_window, f);
+		      ++bufp, ++count, --numchars;
+		    }
+		}
 
 #ifdef HAVE_X_I18N
 	      if (f && FRAME_XIC (f))
