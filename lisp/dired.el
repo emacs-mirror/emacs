@@ -900,10 +900,10 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (define-key dired-mode-map [menu-bar operate]
   (cons "Operate" (make-sparse-keymap "Operate")))
 
-(define-key dired-mode-map [menu-bar operate tags-query-replace]
-  '("Query Replace in Files..." . dired-do-tags-query-replace))
-(define-key dired-mode-map [menu-bar operate tags-search]
-  '("Search Files..." . dired-do-tags-query-replace))
+(define-key dired-mode-map [menu-bar operate query-replace]
+  '("Query Replace in Files..." . dired-do-query-replace))
+(define-key dired-mode-map [menu-bar operate search]
+  '("Search Files..." . dired-do-search))
 (define-key dired-mode-map [menu-bar operate chown]
   '("Change Owner..." . dired-do-chown))
 (define-key dired-mode-map [menu-bar operate chgrp]
