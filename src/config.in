@@ -87,6 +87,10 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_GETHOSTNAME
 #undef HAVE_DUP2
 #undef TM_IN_SYS_TIME
+#undef STDC_HEADERS
+#undef TIME_WITH_SYS_TIME
+#undef CRAY_STACKSEG_END
+#undef STACK_DIRECTION
 #undef const
 
 /* If using GNU, then support inline function declarations. */
