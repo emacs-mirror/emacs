@@ -163,11 +163,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 #define USE_UTIME
 
+/* previously defined in usg5-4, if we choose to use that.  */
+#ifndef LIBS_SYSTEM
 #ifdef USG5_4
 #define LIBS_SYSTEM -lsocket -lnsl 
 #else
 #define LIBS_SYSTEM -lbsd -lg
 #endif /* USG5_4 */
+#endif
 
 #define NEED_TERMIOS
 
