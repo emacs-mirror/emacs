@@ -1,3 +1,7 @@
+2002-08-28  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs.c (USAGE1): Add missing newline.
+
 2002-08-27  Andrew Choi  <akochoi@shaw.ca>
 
 	* s/darwin.h [HAVE_LIBNCURSES]: Define HAVE_TERMINFO.
@@ -16,7 +20,7 @@
 	* xterm.h (FRAME_BLINK_OFF_CURSOR, FRAME_BLINK_OFF_CURSOR_WIDTH):
 	New macros.
 	(struct x_output): New fields blink_off_cursor, blink_off_cursor_width.
-	
+
 	* xterm.c (x_display_and_set_cursor): Use FRAME_BLINK_OFF_CURSOR
 	and FRAME_BLINK_OFF_CURSOR_WIDTH for blinking cursor off.
 
@@ -62,7 +66,7 @@
 	HAVE_CARBON is defined.
 	(HAVE_WORKING_VFORK): #undef it.  Define vfork to fork.
 	(DONT_REOPEN_PTY): #def it.
-	
+
 	* macterm.c (XTread_socket): Remove code to call
 	SendEventToEventTarget for keys with command modifiers when
 	mac_command_key_is_meta is nil.
@@ -168,7 +172,7 @@
 	* lisp.h (Fexecute_kbd_macro): Update prototype.
 
 	* keyboard.c (Fcommand_execute): Update call to Fexecute_kbd_macro.
-	
+
 2002-08-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* xselect.c (QUTF8_STRING): New variable.
@@ -200,7 +204,7 @@
 2002-08-12  Richard M. Stallman  <rms@gnu.org>
 
 	* syswait.h: Only the include of sys/wait.h tests HAVE_SYS_WAIT_H.
-	[!VMS] (WCOREDUMP, WEXITSTATUS, WIFEXITED, WIFSTOPPED, WIFSIGNALED) 
+	[!VMS] (WCOREDUMP, WEXITSTATUS, WIFEXITED, WIFSTOPPED, WIFSIGNALED)
 	(WSTOPSIG, WTERMSIG): Define each one independently if not defined
 	already.
 
@@ -325,7 +329,7 @@
 
 	* termhooks.h (event_kind): Define MOUSE_WHEEL_EVENT also for
 	MAC_OSX.
-	
+
 2002-08-03  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xdisp.c (forward_to_next_line_start): Fix a condition that

@@ -1,7 +1,12 @@
+2002-08-28  Juanma Barranquero  <lektu@terra.es>
+
+	* subr.el (make-variable-frame-localizable): Alias for
+	`make-variable-frame-local'.
+
 2002-08-28  Miles Bader  <miles@gnu.org>
 
 	* rfn-eshadow.el (read-file-name-electric-shadow-properties)
-	(read-file-name-electric-shadow-tty-properties) 
+	(read-file-name-electric-shadow-tty-properties)
 	(read-file-name-electric-shadow-mode): Remove compatibility defs.
 
 	* comint.el (comint-carriage-motion): Start at START.
@@ -383,16 +388,16 @@
 
 2002-08-12  Richard M. Stallman  <rms@gnu.org>
 
-	* menu-bar.el (menu-bar-next-tag-other-window, menu-bar-next-tag) 
-	(menu-bar-right-scroll-bar, menu-bar-left-scroll-bar) 
-	(menu-bar-no-scroll-bar, menu-bar-toggle-auto-compression) 
-	(menu-bar-toggle-cua-mode, menu-bar-read-mail) 
-	(menu-bar-help-extra-packages, help-with-tutorial-spec-language) 
+	* menu-bar.el (menu-bar-next-tag-other-window, menu-bar-next-tag)
+	(menu-bar-right-scroll-bar, menu-bar-left-scroll-bar)
+	(menu-bar-no-scroll-bar, menu-bar-toggle-auto-compression)
+	(menu-bar-toggle-cua-mode, menu-bar-read-mail)
+	(menu-bar-help-extra-packages, help-with-tutorial-spec-language)
 	(menu-bar-text-mode-auto-fill): New commands, used
 	in menu bar menus instead of lambda expressions.
 
-	(menu-bar-showhide-fringe-menu-customize-left) 
-	(menu-bar-showhide-fringe-menu-customize-right) 
+	(menu-bar-showhide-fringe-menu-customize-left)
+	(menu-bar-showhide-fringe-menu-customize-right)
 	(menu-bar-showhide-fringe-menu-customize-disable)
 	(menu-bar-showhide-fringe-menu-customize-reset): Doc fixes.
 
