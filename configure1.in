@@ -493,6 +493,11 @@ case "${configuration}" in
     machine=cydra5 opsys=usg5-3
   ;;
 
+  ## Data General AViiON Machines
+  m88k-dg-dgux* )
+    machine=aviion opsys=dgux
+  ;;
+
   ## DECstations
   mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0 | mips-dec-bsd4.2 )
     machine=pmax opsys=bsd4-2
