@@ -33,10 +33,10 @@
 
 (defvar Info-default-directory-list
   (let ((start (list "/usr/local/info/"
-		     "/usr/local/lib/info/"
-		     configure-info-directory)))
-    (or (member configure-info-directory start)
-	(setq start (nconc start (list configure-info-directory))))
+		     "/usr/local/lib/info/"))
+	(configdir (file-name-as-directory configure-info-directory)))
+    (or (member configdir start)
+	(setq start (nconc start (list configdir))))
     (or (member (expand-file-name "../info/" data-directory) start)
 	(setq start
 	      (nconc start
