@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.232 1998/06/16 16:38:47 rms Exp eliz $
+;; $Id: vc.el,v 1.233 1998/06/21 14:29:07 eliz Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -1240,7 +1240,7 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     ;; we don't zap the *VC-log* buffer and the typing therein).
     (let ((logbuf (get-buffer "*VC-log*")))
       (cond (logbuf
-             (delete-windows-on logbuf)
+             (delete-windows-on logbuf (selected-frame))
              (kill-buffer logbuf))))
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
