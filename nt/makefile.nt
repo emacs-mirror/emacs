@@ -29,14 +29,6 @@ TRES		= $(BLD)\emacs.res
 TRES		= $(BLD)\emacs.rbj
 !endif
 
-!IF ("$(_NMAKE_VER)" == "$(_NMAKE_VER_4)")
-.c{$(BLD)}.obj:
-		$(CC) $(CFLAGS) -Fo$(OBJDIR)\i386\ $<
-!ELSE
-.c{$(BLD)}.obj::
-		$(CC) $(CFLAGS) -Fo$(OBJDIR)\i386\ $<
-!ENDIF
-
 addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
