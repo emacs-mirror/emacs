@@ -30,6 +30,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #undef NULL
 
+/* The important properties of this type are that 1) it's a pointer, and
+   2) arithmetic on it should work as if the size of the object pointed
+   to has a size of 1.  */
+#ifdef __STDC__
+typedef void *POINTER;
+#else
+typedef char *POINTER;
+#endif
+
+typedef unsigned long SIZE;
+
 /* Declared in dispnew.c, this version doesn't screw up if regions
    overlap.  */
 extern void safe_bcopy ();
@@ -42,8 +53,6 @@ extern void safe_bcopy ();
 
 typedef size_t SIZE;
 typedef void *POINTER;
-
-#define EXCEEDS_LISP_PTR(x) 0
 
 #include <unistd.h>
 #include <malloc.h>
