@@ -370,13 +370,14 @@ the user from the mailer."
 			     fcc-list))
 	(delete-region (match-beginning 0)
 		       (progn (forward-line 1) (point))))
+      (let* ((foo (current-time-zone))
+	     (offset (+ (car foo) (if (nth 1 foo) 60 0)))
+	     (abs (abs offset)))
+	(setq timezone (format "%s%02d%02d"
+			       (if (< offset 0) "-" "+")
+			       (/ abs 60)
+			       (% abs 60))))
       (set-buffer tembuf)
-      (erase-buffer)
-      (call-process "date" nil t nil)
-      (goto-char (point-min))
-      (re-search-forward 
-        "[0-9] \\([A-Za-z][-A-Za-z ]*[A-Za-z]\\)[0-9 ]*$")
-      (setq timezone (buffer-substring (match-beginning 1) (match-end 1)))
       (erase-buffer)
       (insert "\nFrom " (user-login-name) " "
 	      (current-time-string) "\n")
