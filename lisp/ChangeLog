@@ -3,6 +3,19 @@
 	* startup.el (fancy-splash-screens): Set buffer-undo-list to t.
 	Use fancy-splash-delay.
 
+2000-10-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Internal variable changes to defcustom,
+	make-local-hook changes to defvar.  Doc fix.
+	(ps-print-version): New version number (6.1).
+	(ps-setup, ps-do-despool): Code fix.
+	(ps-printer-name): Customization fix.
+	(ps-printer-name-option): Now is a defcustom instead of an
+	internal variable.
+	(ps-print-hook, ps-print-begin-sheet-hook, ps-print-begin-page-hook)
+	(ps-print-begin-column-hook): Now are defvar instead of
+	make-local-hook.
+	
 2000-10-18  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-delete-output): Renamed from `comint-kill-output'.
