@@ -507,8 +507,10 @@ concat (nargs, args, target_type, last_special)
     val = Fmake_list (make_number (result_len), Qnil);
   else if (target_type == Lisp_Vectorlike)
     val = Fmake_vector (make_number (result_len), Qnil);
-  else
+  else if (some_multibyte)
     val = make_uninit_multibyte_string (result_len, result_len_byte);
+  else
+    val = make_uninit_string (result_len);
 
   /* In `append', if all but last arg are nil, return last arg.  */
   if (target_type == Lisp_Cons && EQ (val, Qnil))
@@ -966,8 +968,9 @@ This function allows vectors as well as strings.")
 
   if (STRINGP (string))
     {
-      res = make_multibyte_string (XSTRING (string)->data + from_byte,
-				   to_char - from_char, to_byte - from_byte);
+      res = make_specified_string (XSTRING (string)->data + from_byte,
+				   to_char - from_char, to_byte - from_byte,
+				   STRING_MULTIBYTE (string));
       copy_text_properties (from_char, to_char, string,
 			    make_number (0), res, Qnil);
     }
@@ -1006,8 +1009,9 @@ substring_both (string, from, from_byte, to, to_byte)
 
   if (STRINGP (string))
     {
-      res = make_multibyte_string (XSTRING (string)->data + from_byte,
-				   to - from, to_byte - from_byte);
+      res = make_specified_string (XSTRING (string)->data + from_byte,
+				   to - from, to_byte - from_byte,
+				   STRING_MULTIBYTE (string));
       copy_text_properties (from, to, string, make_number (0), res, Qnil);
     }
   else
