@@ -373,9 +373,9 @@ struct glyph
    character is multibyte, return -1 as we can't use glyph table for a
    multibyte character. */
      
-#define GLYPH_FROM_CHAR_GLYPH(GLYPH)		\
-  ((GLYPH).u.ch < 256				\
-   ? ((GLYPH).u.ch | ((GLYPH).face_id << 8))	\
+#define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
+  ((GLYPH).u.ch < 256						\
+   ? ((GLYPH).u.ch | ((GLYPH).face_id << CHARACTERBITS))	\
    : -1)
 
 /* Is GLYPH a padding glyph?  */
