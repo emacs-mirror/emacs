@@ -120,12 +120,13 @@ calling this function."
 	  ;; deal w/ multiple 'To' recipients
 	  (if prequery
 	      (progn
+		(setq prequery (rfc2368-unhexify-string prequery))
 		(if (assoc "To" headers-alist)
 		    (let* ((our-cons-cell
 			    (assoc "To" headers-alist))
 			   (our-cdr
 			    (cdr our-cons-cell)))
-		      (setcdr our-cons-cell (concat our-cdr ", " prequery)))
+		      (setcdr our-cons-cell (concat prequery ", " our-cdr)))
 		  (setq headers-alist
 			(cons (cons "To" prequery) headers-alist)))))
 
