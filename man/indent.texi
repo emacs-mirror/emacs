@@ -19,8 +19,9 @@ Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 Merge the previous and the current line (@code{delete-indentation}).
 This would cancel out the effect of @kbd{C-j}.
 @item C-M-o
-Split the line at point; text on the line after point becomes a new line
-indented to the same column where point is located (@code{split-line}).
+Split the current line at point; text on the line after point becomes a
+new line indented to the same column where point is located
+(@code{split-line}).
 @item M-m
 Move (forward or back) to the first nonblank character on the current
 line (@code{back-to-indentation}).

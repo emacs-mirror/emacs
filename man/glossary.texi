@@ -315,7 +315,7 @@ Deleting a file means erasing it from the file system.
 @item Deletion of Messages
 Deleting a message means flagging it to be eliminated from your mail
 file.  Until you expunge (q.v.@:) the Rmail file, you can still undelete
-the messages you have flagged to be deleted.  @xref{Rmail Deletion}.
+the messages you have deleted.  @xref{Rmail Deletion}.
 
 @item Deletion of Windows
 Deleting a window means eliminating it from the screen.  Other windows
@@ -617,7 +617,7 @@ See `incremental search.'
 
 @item Justification
 Justification means adding extra spaces within lines of text to make
-them align exactly to a specified width.
+them extend exactly to a specified width.
 @xref{Filling,Justification}.
 
 @item Keyboard Macro

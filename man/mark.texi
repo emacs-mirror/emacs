@@ -315,7 +315,7 @@ remembering a spot that you may want to go back to.  To make this
 feature more useful, each buffer remembers 16 previous locations of the
 mark, in the @dfn{mark ring}.  Commands that set the mark also push the
 old mark onto this ring.  To return to a marked location, use @kbd{C-u
-C-@key{SPC}} (or @kbd{C-u C-@@}); this is the same as the command
+C-@key{SPC}} (or @kbd{C-u C-@@}); this is the command
 @code{set-mark-command} given a numeric argument.  It moves point to
 where the mark was, and restores the mark from the ring of former
 marks.  Thus, repeated use of this command moves point to all of the old

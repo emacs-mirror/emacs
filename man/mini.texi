@@ -151,9 +151,9 @@ text that you put in the minibuffer if @code{resize-mini-windows} is
 non-@code{nil}.  If @code{resize-mini-windows} is @code{t}, the window
 is always resized to fit the size of the text it displays.  If
 @code{resize-mini-windows} is the symbol @code{grow-only}, the window
-is enlarged when the size of displayed text grows, but never shrinked
-until it becomes empty, at which point it shrinks back to its normal
-size.
+is enlarged when the size of displayed text grows, but never reduced
+in size until it becomes empty, at which point it shrinks back to its
+normal size.
 
 @vindex max-mini-window-height
   The variable @code{max-mini-window-height} controls the maximum

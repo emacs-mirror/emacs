@@ -285,24 +285,24 @@ to a particular debugger program.
 @table @kbd
 @item M-x gdb @key{RET} @var{file} @key{RET}
 @findex gdb
-This command runs GDB as a subprocess of Emacs.  It creates a buffer
+Run GDB as a subprocess of Emacs.  This command creates a buffer
 for input and output to GDB, and switches to it.  If a GDB buffer
 already exists, it just switches to that buffer.
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
-Similar, but runs DBX instead of GDB.
+Similar, but run DBX instead of GDB.
 
 @item M-x xdb @key{RET} @var{file} @key{RET}
 @findex xdb
 @vindex gud-xdb-directories
-Similar, but runs XDB instead of GDB.  Use the variable
+Similar, but run XDB instead of GDB.  Use the variable
 @code{gud-xdb-directories} to specify directories to search for source
 files.
 
 @item M-x sdb @key{RET} @var{file} @key{RET}
 @findex sdb
-Similar, but runs SDB instead of GDB.
+Similar, but run SDB instead of GDB.
 
   Some versions of SDB do not mention source file names in their
 messages.  When you use them, you need to have a valid tags table
