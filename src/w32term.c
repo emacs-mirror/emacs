@@ -161,6 +161,7 @@ int x_toolkit_scroll_bars_p;
    (The display is done in read_char.)  */
    
 static Lisp_Object help_echo;
+static Lisp_Object help_echo_window;
 static Lisp_Object help_echo_object;
 static int help_echo_pos;
 
@@ -383,7 +384,6 @@ static void w32_frame_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct w32_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int));
-static int w32_intersect_rectangles P_ ((RECT *, RECT *, RECT *));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
 static void expose_window_tree P_ ((struct window *, RECT *));
 static void expose_window P_ ((struct window *, RECT *));
@@ -468,13 +468,6 @@ void XGetGCValues (void* ignore, XGCValues *gc,
                    unsigned long mask, XGCValues *xgcv)
 {
   XChangeGC (ignore, xgcv, mask, gc);
-}
-
-void XTextExtents16 (XFontStruct *font, wchar_t *text, int nchars,
-                     int *direction,int *font_ascent,
-                     int *font_descent, XCharStruct *cs)
-{
-  /* NTEMACS_TODO: Use GetTextMetrics to do this and inline it below. */
 }
 
 static void
@@ -1158,7 +1151,7 @@ w32_per_char_metric (hdc, font, char2b, font_type)
       else if (!w32_enable_unicode_output)
         font_type = ANSI_FONT;
       else
-        font_type = UNICODE_FONT;  /* NTEMACS_TODO: Need encoding? */
+        font_type = UNICODE_FONT;
     }
 
   pcm = (XCharStruct *) xmalloc (sizeof (XCharStruct));
@@ -2648,16 +2641,9 @@ static INLINE void
 x_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
-    {
-      XCharStruct cs;
-      int direction, font_ascent, font_descent;
-      XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
-		      &font_ascent, &font_descent, &cs);
-      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
-    }
+  /* NTEMACS_TODO: Windows does not appear to have a method for
+     getting this info without getting the ABC widths for each
+     individual character and working it out manually. */
 }
 
 
@@ -3366,7 +3352,7 @@ x_draw_image_foreground (s)
 	  image_rect.y = y;
 	  image_rect.width = s->img->width;
 	  image_rect.height = s->img->height;
-	  if (w32_intersect_rectangles (&clip_rect, &image_rect, &r))
+	  if (IntersectRect (&r, &clip_rect, &image_rect))
 	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
 		       r.x - x, r.y - y, r.width, r.height, r.x, r.y);
 	}
@@ -3377,6 +3363,7 @@ x_draw_image_foreground (s)
           HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
           HBRUSH orig_brush = SelectObject (s->hdc, fg_brush);
           HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
+          x_set_glyph_string_clipping (s);
 
           SetTextColor (s->hdc, s->gc->foreground);
           SetBkColor (s->hdc, s->gc->background);
@@ -3401,6 +3388,7 @@ x_draw_image_foreground (s)
 	  if (s->hl == DRAW_CURSOR)
             w32_draw_rectangle (s->hdc, s->gc, x, y, s->img->width - 1,
                                 s->img->height - 1);
+          w32_set_clip_rectangle(s->hdc, NULL);
 	}
     }
   else
@@ -4968,7 +4956,7 @@ expose_frame (f, x, y, w, h)
       window_rect.right = window_x + window_width;
       window_rect.bottom = window_y + window_height;
 
-      if (w32_intersect_rectangles (&r, &window_rect, &intersection_rect))
+      if (IntersectRect (&intersection_rect, &r, &window_rect))
 	expose_window (w, &intersection_rect);
     }
 }
@@ -5010,7 +4998,7 @@ expose_window_tree (w, r)
 	  window_rect.bottom = window_rect.top
 	    + window_height + CURRENT_MODE_LINE_HEIGHT (w);
 
-	  if (w32_intersect_rectangles (r, &window_rect, &intersection_rect))
+	  if (IntersectRect (&intersection_rect, r, &window_rect))
 	    expose_window (w, &intersection_rect);
 	}
 
@@ -5128,7 +5116,7 @@ x_phys_cursor_in_rect_p (w, r)
       cr.top = w->phys_cursor.y;
       cr.right = cr.left + cursor_glyph->pixel_width;
       cr.bottom = cr.top + w->phys_cursor_height;
-      return w32_intersect_rectangles (&cr, r, &result);
+      return IntersectRect (&result, &cr, r);
     }
   else
     return 0;
@@ -5212,60 +5200,6 @@ expose_window (w, r)
 	x_update_window_cursor (w, 1);
     }
 }
-
-
-/* Determine the intersection of two rectangles R1 and R2.  Return
-   the intersection in *RESULT.  Value is non-zero if RESULT is not
-   empty.  */
-
-static int
-w32_intersect_rectangles (r1, r2, result)
-     RECT *r1, *r2, *result;
-{
-  RECT *left, *right;
-  RECT *upper, *lower;
-  int intersection_p = 0;
-  
-  /* Rerrange so that R1 is the left-most rectangle.  */
-  if (r1->left < r2->left)
-    left = r1, right = r2;
-  else
-    left = r2, right = r1;
-
-  /* X0 of the intersection is right.x0, if this is inside R1,
-     otherwise there is no intersection.  */
-  if (right->left <= left->right)
-    {
-      result->left = right->left;
-      
-      /* The right end of the intersection is the minimum of the
-	 the right ends of left and right.  */
-      result->right = min (left->right, right->right);
-
-      /* Same game for Y.  */
-      if (r1->top < r2->top)
-	upper = r1, lower = r2;
-      else
-	upper = r2, lower = r1;
-
-      /* The upper end of the intersection is lower.y0, if this is inside
-	 of upper.  Otherwise, there is no intersection.  */
-      if (lower->top <= upper->bottom)
-	{
-	  result->top = lower->top;
-	  
-	  /* The lower end of the intersection is the minimum of the lower
-	     ends of upper and lower.  */
-	  result->bottom = min (lower->bottom, upper->bottom);
-	  intersection_p = 1;
-	}
-    }
-
-  return intersection_p;
-}
-
-
-
 
 
 static void
@@ -5867,6 +5801,7 @@ note_mode_line_highlight (w, x, mode_line_p)
 	  if (!NILP (help))
             {
               help_echo = help;
+              XSETWINDOW (help_echo_window, w);
               help_echo_object = glyph->object;
               help_echo_pos = glyph->charpos;
             }
@@ -6020,6 +5955,7 @@ note_mouse_highlight (f, x, y)
 	    noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
 	  }
 
+	/* Sort overlays into increasing priority order.  */
         noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	/* Check mouse-face highlighting.  */
@@ -6037,7 +5973,7 @@ note_mouse_highlight (f, x, y)
 
             /* Find the highest priority overlay that has a mouse-face prop.  */
             overlay = Qnil;
-            for (i = 0; i < noverlays; i++)
+            for (i = noverlays - 1; i >= 0; --i)
               {
                 mouse_face = Foverlay_get (overlay_vec[i], Qmouse_face);
                 if (!NILP (mouse_face))
@@ -6123,17 +6059,21 @@ note_mouse_highlight (f, x, y)
 
         /* Look for a `help-echo' property.  */
         {
-          Lisp_Object help;
+          Lisp_Object help, overlay;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
-	  for (i = 0; i < noverlays && NILP (help); ++i)
-	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
+	  for (i = noverlays - 1; i >= 0 && NILP (help); --i)
+            {
+              overlay = overlay_vec[i];
+              help = Foverlay_get (overlay, Qhelp_echo); 
+            }
 
           if (!NILP (help))
             {
               help_echo = help;
-              help_echo_object = w->buffer;
+              help_echo_window = window;
+              help_echo_object = overlay;
               help_echo_pos = pos;
             }
           else
@@ -6151,6 +6091,7 @@ note_mouse_highlight (f, x, y)
               if (!NILP (help))
                 {
                   help_echo = help;
+                  help_echo_window = window;
                   help_echo_object = glyph->object;
                   help_echo_pos = glyph->charpos;
                 }
@@ -6385,7 +6326,7 @@ note_tool_bar_highlight (f, x, y)
   
   /* Set help_echo to a help string.to display for this tool-bar item.
      w32_read_socket does the rest.  */
-  help_echo_object = Qnil;
+  help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
   help_echo = (XVECTOR (f->current_tool_bar_items)
 	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
@@ -7701,7 +7642,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 
 	case WM_MOUSEMOVE:
           previous_help_echo = help_echo;
-          help_echo = Qnil;
+          help_echo = help_echo_object = help_echo_window = Qnil;
+          help_echo_pos = -1;
 
 	  if (dpyinfo->grabbed && last_mouse_frame
 	      && FRAME_LIVE_P (last_mouse_frame))
@@ -7732,7 +7674,7 @@ w32_read_socket (sd, bufp, numchars, expected)
                 frame = Qnil;
 
               any_help_event_p = 1;
-              n = gen_help_event (bufp, help_echo, frame,
+              n = gen_help_event (bufp, help_echo, frame, help_echo_window,
                                   help_echo_object, help_echo_pos);
               bufp += n, count += n, numchars -= n;
             }
@@ -8059,7 +8001,7 @@ w32_read_socket (sd, bufp, numchars, expected)
                   int n;
 
                   XSETFRAME (frame, f);
-                  n = gen_help_event (bufp, Qnil, frame, Qnil, 0);
+                  n = gen_help_event (bufp, Qnil, frame, Qnil, Qnil, 0);
                   bufp += n, count += n, numchars -=n;
                 }
             }
@@ -8364,18 +8306,31 @@ x_draw_bar_cursor (w, row, width)
       if (cursor_glyph == NULL)
 	return;
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      /* If on an image, draw like a normal cursor.  That's usually better
+         visible than drawing a bar, esp. if the image is large so that
+         the bar might not be in the window.  */
+      if (cursor_glyph->type == IMAGE_GLYPH)
+        {
+          struct glyph_row *row;
+          row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+          x_draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+        }
+      else
+        {
 
-      if (width < 0)
-        width = f->output_data.w32->cursor_width;
+          x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
 
-      hdc = get_frame_dc (f);
-      w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
-                     x,
-                     WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-                     min (cursor_glyph->pixel_width, width),
-                     row->height);
-      release_frame_dc (f, hdc);
+          if (width < 0)
+            width = f->output_data.w32->cursor_width;
+
+          hdc = get_frame_dc (f);
+          w32_fill_area (f, hdc, f->output_data.w32->cursor_pixel,
+                         x,
+                         WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+                         min (cursor_glyph->pixel_width, width),
+                         row->height);
+          release_frame_dc (f, hdc);
+        }
     }
 }
 
@@ -8902,17 +8857,12 @@ x_font_min_bounds (font, w, h)
      XFontStruct *font;
      int *w, *h;
 {
+  /*
+   * NTEMACS_TODO: Windows does not appear to offer min bound, only
+   * average and maximum width, and maximum height.
+   */
   *h = FONT_HEIGHT (font);
   *w = FONT_WIDTH (font);
-#if 0 /* NTEMACS_TODO: min/max bounds of Windows fonts */
-  *w = font->min_bounds.width;
-
-  /* Try to handle the case where FONT->min_bounds has invalid
-     contents.  Since the only font known to have invalid min_bounds
-     is fixed-width, use max_bounds if min_bounds seems to be invalid.  */
-  if (*w <= 0)
-    *w = font->max_bounds.width;
-#endif
 }
 
 
@@ -9002,7 +8952,7 @@ x_calc_absolute_position (f)
 			      - 2 * f->output_data.w32->border_width - pt.x
 			      - PIXEL_WIDTH (f)
 			      + f->output_data.w32->left_pos);
-  /* NTEMACS_TODO: Subtract menubar height?  */
+
   if (flags & YNegative)
     f->output_data.w32->top_pos = (FRAME_W32_DISPLAY_INFO (f)->height
 			     - 2 * f->output_data.w32->border_width - pt.y
@@ -9877,8 +9827,11 @@ affect on NT machines.");
   staticpro (&help_echo);
   help_echo_object = Qnil;
   staticpro (&help_echo_object);
+  help_echo_window = Qnil;
+  staticpro (&help_echo_window);
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
+  help_echo_pos = -1;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     "*Non-nil means draw block cursor as wide as the glyph under it.\n\
