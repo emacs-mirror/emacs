@@ -1,3 +1,9 @@
+2002-06-24  Dave Love  <fx@gnu.org>
+
+	* lread.c: Remove some unused variables.
+	(safe_to_load_p): If safe, return the magic number version byte.
+	(Fload): Maybe use load-with-code-conversion.
+
 2002-06-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* category.c (Fmodify_category_entry): Don't modify the contents
@@ -12,14 +18,14 @@
 
 	* charset.h (enum define_charset_arg_index): Delete
 	charset_arg_parents and add charset_arg_subset and
-	charset_arg_superset,.
+	charset_arg_superset.
 	(enum charset_attr_index): Delete charset_parents and add
 	charset_subset and charset_superset.
 	(enum charset_method): Delete CHARSET_METHOD_INHERIT and add
 	CHARSET_METHOD_SUBSET and CHARSET_METHOD_SUPERSET.
 	(CHARSET_ATTR_PARENTS, CHARSET_PARENTS): Macros deleted.
-	(CHARSET_ATTR_SUBSET, CHARSET_ATTR_SUPERSET, CHARSET_SUBSET,
-	CHARSET_SUPERSET): New macros.
+	(CHARSET_ATTR_SUBSET, CHARSET_ATTR_SUPERSET, CHARSET_SUBSET)
+	(CHARSET_SUPERSET): New macros.
 	(charset_work): Extern it.
 	(ENCODE_CHAR): Use charset_work.
 	(CHAR_CHARSET_P): Adjusted for the change of encoder format.
@@ -89,8 +95,8 @@
 	not bytecompiled now.
 	(shortlisp): Likewise.
 
-	* charset.c (charset_jisx0201_roman, charset_jisx0208_1978,
-	charset_jisx0208): New variables.
+	* charset.c (charset_jisx0201_roman, charset_jisx0208_1978)
+	(charset_jisx0208): New variables.
 	(Fdefine_charset_internal): Setup them if appropriate.
 	(init_charset_once): Initialize them to -1.
 

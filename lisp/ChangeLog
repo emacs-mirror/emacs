@@ -1,3 +1,19 @@
+2002-06-24  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Make korean-ksc5601 double-width.
+
+	* international/mule.el (auto-coding-regexp-alist): Recognize
+	Emacs 20/1 byte-compiled files.
+
+	* international/mule-conf.el (file-coding-system-alist): Change
+	.elc to utf-8-Emacs.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory)
+	(batch-byte-recompile-directory): Update from trunk.
+	(byte-compile-fix-header): Adjust for use of utf-8-emacs.
+	(byte-compile-insert-header): Update magic number.  Add ballast.
+	(map-char-table): Use byte-compile-funarg-2.
+
 2002-06-16  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Use
