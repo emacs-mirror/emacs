@@ -3549,7 +3549,12 @@ it were the arg to `interactive' (which see) to interactively read VALUE.
 
 If VARIABLE has been defined with `defcustom', then the type information
 in the definition is used to check that VALUE is valid."
-  (interactive (let* ((var (read-variable "Set variable: "))
+  (interactive
+   (let* ((default-var (variable-at-point))
+          (var (if (symbolp default-var)
+                   (read-variable (format "Set variable (default %s): " default-var)
+                                  default-var)
+                 (read-variable "Set variable: ")))
 		      (minibuffer-help-form '(describe-variable var))
 		      (prop (get var 'variable-interactive))
 		      (prompt (format "Set %s to value: " var))
