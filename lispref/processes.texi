@@ -1309,9 +1309,9 @@ transaction.  The argument @var{fn} is the function to call when the
 corresponding answer comes back; it is called with two arguments:
 @var{closure}, and the answer received.
 
-The argument @var{regexp} is a regular expression that should match the
-entire answer, but nothing less; that's how @code{tq-enqueue} determines
-where the answer ends.
+The argument @var{regexp} is a regular expression that should match
+text at the end of the entire answer, but nothing before; that's how
+@code{tq-enqueue} determines where the answer ends.
 
 The return value of @code{tq-enqueue} itself is not meaningful.
 @end defun
