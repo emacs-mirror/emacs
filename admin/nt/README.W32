@@ -185,7 +185,4 @@
   bugs in a specific package; e.g. M-x gnus-bug for Gnus, M-x
   c-submit-bug-report for C/C++/Java mode, etc.
 
-  Enjoy.
-
-  Andrew Innes
-  (andrewi@gnu.org)
+  Enjoy!
