@@ -561,8 +561,9 @@ Yank the last killed rectangle with its upper left corner at point
 Insert blank space to fill the space of the region-rectangle
 (@code{open-rectangle}).  This pushes the previous contents of the
 region-rectangle rightward.
-@item M-x clear-rectangle
-Clear the region-rectangle by replacing its contents with spaces.
+@item C-x r c
+Clear the region-rectangle by replacing its contents with spaces
+(@code{clear-rectangle}).
 @item M-x delete-whitespace-rectangle
 Delete whitespace in each of the lines on the specified rectangle,
 starting from the left edge column of the rectangle.
@@ -615,12 +616,13 @@ Registers}.
 
 @kindex C-x r o
 @findex open-rectangle
+@kindex C-x r c
 @findex clear-rectangle
   There are two commands you can use for making blank rectangles:
-@kbd{M-x clear-rectangle} which blanks out existing text, and @kbd{C-x r
-o} (@code{open-rectangle}) which inserts a blank rectangle.  Clearing a
-rectangle is equivalent to deleting it and then inserting a blank
-rectangle of the same size.
+@kbd{C-x r c} (@code{clear-rectangle}) which blanks out existing text,
+and @kbd{C-x r o} (@code{open-rectangle}) which inserts a blank
+rectangle.  Clearing a rectangle is equivalent to deleting it and then
+inserting a blank rectangle of the same size.
 
 @findex delete-whitespace-rectangle
   The command @kbd{M-x delete-whitespace-rectangle} deletes horizontal
