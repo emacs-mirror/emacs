@@ -184,6 +184,7 @@ executed once when the buffer is created.")
 
 (defvar comint-mode-map nil)
 
+(defvar comint-input-ring nil)
 (defvar comint-last-input-start)
 (defvar comint-last-input-end)
 
