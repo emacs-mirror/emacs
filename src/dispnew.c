@@ -880,7 +880,7 @@ direct_output_for_insert (g)
 #ifdef USE_TEXT_PROPERTIES
   /* Intervals have already been adjusted, point is after the
      character that was just inserted. */
-  /* Give up if character has is invisible. */
+  /* Give up if character is invisible. */
   /* Give up if character has a face property.
      At the moment we only lose at end of line or end of buffer
      and only with faces that have some background */
