@@ -53,6 +53,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define O_RDWR 2
 #endif
 
+extern void malloc_warning ();
+extern char *index ();
+extern char *strerror ();
+
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
 
@@ -340,8 +344,6 @@ main (argc, argv, envp)
   int skip_args = 0;
   extern int errno;
   extern sys_nerr;
-  extern char *strerror ();
-  extern void malloc_warning ();
 
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
@@ -881,7 +883,6 @@ This function exists on systems that use HAVE_SHM.")
 {
   extern int my_edata;
   Lisp_Object tem;
-  extern void malloc_warning ();
 
   CHECK_STRING (intoname, 0);
   intoname = Fexpand_file_name (intoname, Qnil);
@@ -917,7 +918,6 @@ and announce itself normally when it is run.")
 {
   extern int my_edata;
   Lisp_Object tem;
-  extern void malloc_warning ();
 
   CHECK_STRING (intoname, 0);
   intoname = Fexpand_file_name (intoname, Qnil);
@@ -962,7 +962,6 @@ decode_env_path (evarname, defalt)
      char *evarname, *defalt;
 {
   register char *path, *p;
-  extern char *index ();
 
   Lisp_Object lpath;
 
