@@ -1,3 +1,8 @@
+2000-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (coordinates_in_window): Subtract 1 when computing
+	right_x.
+
 2000-05-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (lisp): Add env.elc.

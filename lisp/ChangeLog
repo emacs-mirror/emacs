@@ -1,3 +1,9 @@
+2000-05-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (IT-character-translations): More updates of
+	latin-iso8859-14 and latin-iso8859-15 from the latest ISO/IEC
+	documents.
+
 2000-05-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* env.el (getenv): New function, interactively callable.
