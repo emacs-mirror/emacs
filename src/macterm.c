@@ -1143,6 +1143,9 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.x, output_cursor.y);
 
       x_draw_vertical_border (w);
+
+      draw_window_fringes (w);
+
       UNBLOCK_INPUT;
     }
 
@@ -1239,11 +1242,7 @@ x_after_update_window_line (desired_row)
   xassert (w);
 
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
-    {
-      BLOCK_INPUT;
-      draw_row_fringe_bitmaps (w, desired_row);
-      UNBLOCK_INPUT;
-    }
+    desired_row->redraw_fringe_bitmaps_p = 1;
 
   /* When a window has disappeared, make sure that no rest of
      full-width rows stays visible in the internal border.  Could
@@ -1295,9 +1294,24 @@ x_draw_fringe_bitmap (w, row, p)
   XGCValues gcv;
   GC gc = f->output_data.mac->normal_gc;
   struct face *face = p->face;
+  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  x_clip_to_row (w, row, gc);
+  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  if (p->y < rowY)
+    {
+      /* Adjust position of "bottom aligned" bitmap on partially
+	 visible last row.  */
+      int oldY = row->y;
+      int oldVH = row->visible_height;
+      row->visible_height = p->h;
+      row->y -= rowY - p->y;
+      x_clip_to_row (w, row, gc);
+      row->y = oldY;
+      row->visible_height = oldVH;
+    }
+  else
+    x_clip_to_row (w, row, gc);
 
   if (p->bx >= 0)
     {
@@ -4545,6 +4559,14 @@ mac_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, act
       w->phys_cursor_type = cursor_type;
       w->phys_cursor_width = cursor_width;
       w->phys_cursor_on_p = 1;
+
+      if (glyph_row->exact_window_width_line_p
+	  && w->phys_cursor.hpos >= glyph_row->used[TEXT_AREA])
+	{
+	  glyph_row->cursor_in_fringe_p = 1;
+	  draw_fringe_bitmap (w, glyph_row, 0);
+	  return;
+	}
 
       switch (cursor_type)
 	{
