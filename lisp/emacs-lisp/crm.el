@@ -41,7 +41,7 @@
 ;; `crm-default-separator' (comma).  The separator character may be
 ;; changed by modifying the value of `crm-separator'.
 
-;; Continguous strings of non-separator-characters are referred to as
+;; Contiguous strings of non-separator-characters are referred to as
 ;; 'elements'.  In the aforementioned example, the elements are:
 ;; 'alice', 'bob', and 'eve'.
 
@@ -529,7 +529,7 @@ This keymap inherits from the keymap named `minibuffer-local-completion-map'.
 The only difference is that TAB is bound to `crm-minibuffer-complete' in
 the inheriting keymap.
 
-If REQUIRE-MACTH is non-nil, the keymap `crm-local-must-match-map' is used.
+If REQUIRE-MATCH is non-nil, the keymap `crm-local-must-match-map' is used.
 This keymap inherits from the keymap named `minibuffer-local-must-match-map'.
 The inheriting keymap binds RET to `crm-minibuffer-complete-and-exit'
 and TAB to `crm-minibuffer-complete'."
@@ -574,7 +574,7 @@ The default value for the separator character is the value of
 `crm-default-separator' (comma).  The separator character may be
 changed by modifying the value of `crm-separator'.
 
-Continguous strings of non-separator-characters are referred to as
+Contiguous strings of non-separator-characters are referred to as
 'elements'.  In the aforementioned example, the elements are: 'alice',
 'bob', and 'eve'.
 
@@ -590,9 +590,8 @@ INHERIT-INPUT-METHOD."
   (let ((minibuffer-completion-table (function crm-collection-fn))
 	(minibuffer-completion-predicate predicate)
 	;; see completing_read in src/minibuf.c
-	(minibuffer-completion-confirm (if (eq require-match t)
-					   nil
-					 t))
+	(minibuffer-completion-confirm
+	 (unless (eq require-match t) require-match))
 	(crm-completion-table table)
 	crm-last-exact-completion
 	crm-current-element
@@ -600,30 +599,27 @@ INHERIT-INPUT-METHOD."
 	crm-right-of-element
 	crm-beginning-of-element
 	crm-end-of-element
-	map)
-    (if require-match
-	;; use `crm-local-must-match-map'
-	(setq map crm-local-must-match-map)
-      ;; use `minibuffer-local-completion-map'
-      (setq map minibuffer-local-completion-map))
+	(map (if require-match
+		 crm-local-must-match-map
+	       crm-local-completion-map)))
     (split-string (read-from-minibuffer
 		   prompt initial-input map
 		   nil hist def inherit-input-method)
 		  crm-separator)))
 
 ;; testing and debugging
-;;; (defun crm-init-test-environ ()
-;;;   "Set up some variables for testing."
-;;;   (interactive)
-;;;   (setq my-prompt "Prompt: ")
-;;;   (setq my-table
-;;; 	'(("hi") ("there") ("man") ("may") ("mouth") ("ma")
-;;; 	  ("a") ("ab") ("abc") ("abd") ("abf") ("zab") ("acb")
-;;; 	  ("da") ("dab") ("dabc") ("dabd") ("dabf") ("dzab") ("dacb")
-;;; 	  ("fda") ("fdab") ("fdabc") ("fdabd") ("fdabf") ("fdzab") ("fdacb")
-;;; 	  ("gda") ("gdab") ("gdabc") ("gdabd") ("gdabf") ("gdzab") ("gdacb")
-;;; 	  ))
-;;;   (setq my-separator ","))
+;; (defun crm-init-test-environ ()
+;;   "Set up some variables for testing."
+;;   (interactive)
+;;   (setq my-prompt "Prompt: ")
+;;   (setq my-table
+;; 	'(("hi") ("there") ("man") ("may") ("mouth") ("ma")
+;; 	  ("a") ("ab") ("abc") ("abd") ("abf") ("zab") ("acb")
+;; 	  ("da") ("dab") ("dabc") ("dabd") ("dabf") ("dzab") ("dacb")
+;; 	  ("fda") ("fdab") ("fdabc") ("fdabd") ("fdabf") ("fdzab") ("fdacb")
+;; 	  ("gda") ("gdab") ("gdabc") ("gdabd") ("gdabf") ("gdzab") ("gdacb")
+;; 	  ))
+;;   (setq my-separator ","))
 
 ;(completing-read-multiple my-prompt my-table)
 ;(completing-read-multiple my-prompt my-table nil t)
