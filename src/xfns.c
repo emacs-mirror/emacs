@@ -255,6 +255,11 @@ extern Lisp_Object Vwindow_system_version;
 
 Lisp_Object Qface_set_after_frame_default;
 
+#ifdef GLYPH_DEBUG
+int image_cache_refcount, dpyinfo_refcount;
+#endif
+
+
 
 /* Error if we are not connected to X.  */
 
@@ -746,6 +751,8 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
+static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
 static void x_change_window_heights P_ ((Lisp_Object, int));
 static void x_disable_image P_ ((struct frame *, struct image *));
 static void x_create_im P_ ((struct frame *));
@@ -4023,6 +4030,37 @@ x_free_gcs (f)
 }
 
 
+/* Handler for signals raised during x_create_frame and
+   x_create_top_frame.  FRAME is the frame which is partially
+   constructed.  */
+
+static Lisp_Object
+unwind_create_frame (frame)
+     Lisp_Object frame;
+{
+  struct frame *f = XFRAME (frame);
+
+  /* If frame is ``official'', nothing to do.  */
+  if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
+    {
+#ifdef GLYPH_DEBUG
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+#endif
+      
+      x_free_frame_resources (f);
+
+      /* Check that reference counts are indeed correct.  */
+      xassert (dpyinfo->reference_count == dpyinfo_refcount);
+      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+  
+      tip_window = None;
+      tip_frame = Qnil;
+    }
+  
+  return Qnil;
+}
+
+
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
   "Make a new X window, which is called a \"frame\" in Emacs terms.\n\
@@ -4043,7 +4081,7 @@ This function is an internal primitive--use `make-frame' instead.")
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct x_display_info *dpyinfo = NULL;
@@ -4113,6 +4151,7 @@ This function is an internal primitive--use `make-frame' instead.")
   f->output_data.x->fontset = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
   f->output_data.x->scroll_bar_background_pixel = -1;
+  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
     = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
@@ -4121,6 +4160,10 @@ This function is an internal primitive--use `make-frame' instead.")
     f->icon_name = Qnil;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+#ifdef GLYPH_DEBUG
+  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
@@ -4408,6 +4451,7 @@ This function is an internal primitive--use `make-frame' instead.")
   UNGCPRO;
   return unbind_to (count, frame);
 }
+
 
 /* FRAME is used only to get a handle on the X display.  We don't pass the
    display info directly because we're called from frame.c, which doesn't
@@ -10308,8 +10352,24 @@ Lisp_Object tip_frame;
 Lisp_Object tip_timer;
 Window tip_window;
 
+
+static Lisp_Object
+unwind_create_tip_frame (frame)
+     Lisp_Object frame;
+{
+  tip_window = None;
+  tip_frame = Qnil;
+  return unwind_create_frame (frame);
+}
+
+
 /* Create a frame for a tooltip on the display described by DPYINFO.
-   PARMS is a list of frame parameters.  Value is the frame.  */
+   PARMS is a list of frame parameters.  Value is the frame.
+
+   Note that functions called here, esp. x_default_parameter can
+   signal errors, for instance when a specified color name is
+   undefined.  We have to make sure that we're in a consistent state
+   when this happens.  */
 
 static Lisp_Object
 x_create_tip_frame (dpyinfo, parms)
@@ -10321,7 +10381,7 @@ x_create_tip_frame (dpyinfo, parms)
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
 
@@ -10350,7 +10410,12 @@ x_create_tip_frame (dpyinfo, parms)
   f = make_frame (1);
   XSETFRAME (frame, f);
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  record_unwind_protect (unwind_create_frame, frame);
 
+  /* By setting the output method, we're essentially saying that
+     the frame is live, as per FRAME_LIVE_P.  If we get a signal
+     from this point on, x_destroy_window might screw up reference
+     counts etc.  */
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
@@ -10360,6 +10425,10 @@ x_create_tip_frame (dpyinfo, parms)
   f->output_data.x->scroll_bar_background_pixel = -1;
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+#ifdef GLYPH_DEBUG
+  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
@@ -10404,8 +10473,8 @@ x_create_tip_frame (dpyinfo, parms)
       specbind (Qx_resource_name, name);
     }
 
-  /* Extract the window parameters from the supplied values
-     that are needed to determine window geometry.  */
+  /* Extract the window parameters from the supplied values that are
+     needed to determine window geometry.  */
   {
     Lisp_Object font;
 
@@ -10566,6 +10635,7 @@ x_create_tip_frame (dpyinfo, parms)
      its display.  */
   FRAME_X_DISPLAY_INFO (f)->reference_count++;
 
+  /* Discard the unwind_protect.  */
   return unbind_to (count, frame);
 }
 
