@@ -55,40 +55,55 @@
 ;;; Code:
 
 
-;;;###autoload
-(defvar resize-minibuffer-mode nil
-  "*If non-`nil', resize the minibuffer so its entire contents are visible.")
+(defgroup resize-minibuffer nil
+  "Dynamically resize minibuffer to display entire contents"
+  :group 'frames)
+
 
 ;;;###autoload
-(defvar resize-minibuffer-window-max-height nil
+(defcustom resize-minibuffer-mode nil
+  "*If non-`nil', resize the minibuffer so its entire contents are visible."
+  :type 'boolean
+  :group 'resize-minibuffer)
+
+;;;###autoload
+(defcustom resize-minibuffer-window-max-height nil
   "*Maximum size the minibuffer window is allowed to become.
 If less than 1 or not a number, the limit is the height of the frame in
-which the active minibuffer window resides.")
+which the active minibuffer window resides."
+  :type '(choice (const nil) integer)
+  :group 'resize-minibuffer)
 
 ;;;###autoload
-(defvar resize-minibuffer-window-exactly t
+(defcustom resize-minibuffer-window-exactly t
   "*Allow making minibuffer exactly the size to display all its contents.
 If `nil', the minibuffer window can temporarily increase in size but
 never get smaller while it is active.  Any other value allows exact
-resizing.")
+resizing."
+  :type 'boolean
+  :group 'resize-minibuffer)
 
 ;;;###autoload
-(defvar resize-minibuffer-frame nil
+(defcustom resize-minibuffer-frame nil
   "*Allow changing the frame height of minibuffer frames.
 If non-`nil' and the active minibuffer is the sole window in its frame,
-allow changing the frame height.")
+allow changing the frame height."
+  :type 'boolean
+  :group 'resize-minibuffer)
 
 ;;;###autoload
-(defvar resize-minibuffer-frame-max-height nil
+(defcustom resize-minibuffer-frame-max-height nil
   "*Maximum size the minibuffer frame is allowed to become.
 If less than 1 or not a number, there is no limit.")
 
 ;;;###autoload
-(defvar resize-minibuffer-frame-exactly t
+(defcustom resize-minibuffer-frame-exactly t
   "*Allow making minibuffer frame exactly the size to display all its contents.
 If `nil', the minibuffer frame can temporarily increase in size but
 never get smaller while it is active.  Any other value allows exact
-resizing.")
+resizing."
+  :type 'boolean
+  :group 'resize-minibuffer)
 
 ;; Variable used to store the height of the minibuffer frame
 ;; on entry, so it can be restored on exit.  It is made local before it is

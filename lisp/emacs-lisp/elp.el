@@ -142,15 +142,23 @@
 ;; start user configuration variables
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-(defvar elp-function-list nil
-  "*List of function to profile.
-Used by the command `elp-instrument-list'.")
+(defgroup elp nil
+  "Emacs Lisp Profiler"
+  :group 'lisp)
 
-(defvar elp-reset-after-results t
+(defcustom elp-function-list nil
+  "*List of functions to profile.
+Used by the command `elp-instrument-list'."
+  :type '(repeat function)
+  :group 'elp)
+
+(defcustom elp-reset-after-results t
   "*Non-nil means reset all profiling info after results are displayed.
-Results are displayed with the `elp-results' command.")
+Results are displayed with the `elp-results' command."
+  :type 'boolean
+  :group 'elp)
 
-(defvar elp-sort-by-function 'elp-sort-by-total-time
+(defcustom elp-sort-by-function 'elp-sort-by-total-time
   "*Non-nil specifies elp results sorting function.
 These functions are currently available:
 
@@ -163,21 +171,30 @@ interface specified by the PRED argument for the `sort' defun.  Each
 \"element of LIST\" is really a 4 element vector where element 0 is
 the call count, element 1 is the total time spent in the function,
 element 2 is the average time spent in the function, and element 3 is
-the symbol's name string.")
+the symbol's name string."
+  :type 'function
+  :group 'elp)
 
-(defvar elp-report-limit 1
+(defcustom elp-report-limit 1
   "*Prevents some functions from being displayed in the results buffer.
 If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
-functions will be displayed.")
+functions will be displayed."
+  :type '(choice integer
+		 (const :tag "All" nil))
+  :group 'elp)
 
-(defvar elp-use-standard-output nil
-  "*Non-nil says to output to `standard-output' instead of a buffer.")
+(defcustom elp-use-standard-output nil
+  "*Non-nil says to output to `standard-output' instead of a buffer."
+  :type 'boolean
+  :group 'elp)
 
-(defvar elp-recycle-buffers-p t
+(defcustom elp-recycle-buffers-p t
   "*Nil says to not recycle the `elp-results-buffer'.
 In other words, a new unique buffer is create every time you run
-\\[elp-results].")
+\\[elp-results]."
+  :type 'boolean
+  :group 'elp)
 
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
