@@ -60,11 +60,16 @@ We will probably delete this variable in a future Emacs version
 unless we get a substantial number of complaints about the auto-wrap
 feature.")
 
+(defvar skeleton-end-newline t
+  "If non-nil, make sure that the skeleton inserted ends with a newline.
+This just influences the way the default `skeleton-end-hook' behaves.")
+
 (defvar skeleton-end-hook
   (lambda ()
-    (or (eolp) (newline-and-indent)))
+    (or (eolp) (not skeleton-end-newline) (newline-and-indent)))
   "Hook called at end of skeleton but before going to point of interest.
-By default this moves out anything following to next line.
+By default this moves out anything following to next line,
+  unless `skeleton-end-newline' is set to nil.
 The variables `v1' and `v2' are still set when calling this.")
 
 
@@ -375,6 +380,9 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 opoint)
     (or str
 	(setq str `(setq str (skeleton-read ',(car skeleton) nil ,recursive))))
+    (when (and (eq (car skeleton) '\n)
+	       (save-excursion (beginning-of-line) (looking-at "[ \t]*$")))
+      (setq skeleton (cons '> (cdr skeleton))))
     (while (setq skeleton-modified (eq opoint (point))
 		 opoint (point)
 		 skeleton (cdr skeleton))
@@ -412,20 +420,17 @@ automatically, and you are prompted to fill in the variable parts.")))
 				      (funcall skeleton-transformation element)
 				    element))))
 	((eq element '\n)		; actually (eq '\n 'n)
-	 (if (and skeleton-regions
-		  (eq (nth 1 skeleton) '_))
-	     (progn
-	       (or (eolp)
-		   (newline))
-	       (indent-region (point) (car skeleton-regions) nil))
-	   (if skeleton-newline-indent-rigidly
-	       (indent-to (prog1 (current-indentation)
-			    (newline)))
-	     (newline)
-	     (indent-according-to-mode))))
+	 (cond
+	  ((and skeleton-regions (eq (nth 1 skeleton) '_))
+	   (or (eolp) (newline))
+	   (indent-region (line-beginning-position)
+			  (car skeleton-regions) nil))
+	  ((and (null (cdr skeleton)) (eolp)) nil)
+	  (skeleton-newline-indent-rigidly
+	   (indent-to (prog1 (current-indentation) (newline))))
+	  (t (newline) (indent-according-to-mode))))
 	((eq element '>)
-	 (if (and skeleton-regions
-		  (eq (nth 1 skeleton) '_))
+	 (if (and skeleton-regions (eq (nth 1 skeleton) '_))
 	     (indent-region (line-beginning-position)
 			    (car skeleton-regions) nil)
 	   (indent-according-to-mode)))
@@ -446,7 +451,9 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 (or skeleton-modified
 	     (setq skeleton (cdr skeleton))))
 	((eq element '@)
-	 (setq skeleton-positions (cons (point) skeleton-positions)))
+	 (if skeleton-point
+	     (push (point) skeleton-positions)
+	   (setq skeleton-point (point))))
 	((eq 'quote (car-safe element))
 	 (eval (nth 1 element)))
 	((or (stringp (car-safe element))
