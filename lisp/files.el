@@ -663,13 +663,12 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
 
-The arguments COUNTER and PREV-DIRS are used only in recursive calls.
-Do not specify them in other calls."
-  ;; COUNTER can be a cons cell whose car is the count of how many more links
-  ;; to chase before getting an error.
+\(fn FILENAME)"
+  ;; COUNTER and PREV-DIRS are only used in recursive calls.
+  ;; COUNTER can be a cons cell whose car is the count of how many
+  ;; more links to chase before getting an error.
   ;; PREV-DIRS can be a cons cell whose car is an alist
   ;; of truenames we've just recently computed.
-
   (cond ((or (string= filename "") (string= filename "~"))
 	 (setq filename (expand-file-name filename))
 	 (if (string= filename "")
