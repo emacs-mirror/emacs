@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.13 1998/06/24 09:16:26 schwab Exp kwzh $
+;; $Id: mh-comp.el,v 1.14 1999/03/01 03:47:07 kwzh Exp rms $
 
 ;;; Code:
 
@@ -307,23 +307,27 @@ See also documentation for `\\[mh-send]' function."
 			 (mh-insert-fields "To:" to "Cc:" cc)
 			 (save-buffer)))
 		      (t
-		       (mh-read-draft "" draft-name nil)))))
+		       (mh-read-draft "" draft-name nil))))
+	 (fwd-msg-file (mh-msg-filename (if (numberp msg-or-seq)
+					    msg-or-seq
+					  (car (mh-seq-to-msgs msg-or-seq)))
+					folder)))
     (let (orig-from
 	  orig-subject)
-      (goto-char (point-min))
-      (re-search-forward "^------- Forwarded Message")
-      (forward-line 1)
-      (skip-chars-forward " \t\n")
-      (save-restriction
-	(narrow-to-region (point) (point-max))
+      (save-excursion
+	(set-buffer (get-buffer-create mh-temp-buffer))
+	(erase-buffer)
+	(insert-file-contents fwd-msg-file)
 	(setq orig-from (mh-get-header-field "From:"))
 	(setq orig-subject (mh-get-header-field "Subject:")))
       (let ((forw-subject
 	     (mh-forwarded-letter-subject orig-from orig-subject)))
 	(mh-insert-fields "Subject:" forw-subject)
 	(goto-char (point-min))
-	(re-search-forward "^------- Forwarded Message")
-	(forward-line -1)
+	(if (re-search-forward "^------- Forwarded Message" nil t)
+	    (forward-line -1)
+	  (re-search-forward "^--------")
+	  (forward-line 1))
 	(delete-other-windows)
 	(if (numberp msg-or-seq)
 	    (mh-add-msgs-to-seq msg-or-seq 'forwarded t)
