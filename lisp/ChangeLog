@@ -1,5 +1,10 @@
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.el (blink-cursor-mode): Don't hide cursor initially.
+
+	* startup.el (command-line): Initialize blink-cursor based
+	on window-system.
+
 	* frame.el (blink-cursor): Default to nil if not running under
 	a window-system.
 
