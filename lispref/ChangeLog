@@ -1,3 +1,8 @@
+2000-11-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lists.texi (Building Lists): Add footnote to explain how to add
+	to the end of a list.
+
 2000-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.texi (Visiting Functions): Typos.
