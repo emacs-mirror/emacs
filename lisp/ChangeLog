@@ -1,3 +1,8 @@
+2002-10-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* dired-aux.el (dired-add-entry): Put point in correct position
+	before inserting marker char.
+
 2002-10-16  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-readin-insert): Expand dired-directory.
