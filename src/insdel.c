@@ -283,6 +283,9 @@ static void
 adjust_markers_gap_motion (from, to, amount)
      register int from, to, amount;
 {
+  /* Now that a marker has a bytepos, not counting the gap,
+     nothing needs to be done here.  */
+#if 0
   Lisp_Object marker;
   register struct Lisp_Marker *m;
   register int mpos;
@@ -292,7 +295,7 @@ adjust_markers_gap_motion (from, to, amount)
   while (!NILP (marker))
     {
       m = XMARKER (marker);
-      mpos = m->bufpos;
+      mpos = m->bytepos;
       if (amount > 0)
 	{
 	  if (mpos > to && mpos < to + amount)
@@ -319,6 +322,7 @@ adjust_markers_gap_motion (from, to, amount)
       m->bufpos = mpos;
       marker = m->chain;
     }
+#endif
 }
 
 /* Adjust all markers for a deletion
@@ -349,32 +353,34 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	abort ();
 
       /* If the marker is after the deletion,
-	 its bufpos needs no change because the deleted text
-	 becomes gap; but its charpos needs to be decreased.  */
+	 relocate by number of chars / bytes deleted.  */
       if (charpos > to)
-	m->charpos -= to - from;
+	{
+	  m->charpos -= to - from;
+	  m->bytepos -= to_byte - from_byte;
+	}
 
-      /* Here's the case where a marker is inside text being deleted.
-	 We take advantage of the fact that the deletion is at the gap.  */
+      /* Here's the case where a marker is inside text being deleted.  */
       else if (charpos > from)
 	{
 	  record_marker_adjustment (marker, from - charpos);
 	  m->charpos = from;
-	  /* The gap must be at or after FROM_BYTE when we do a deletion.  */
-	  m->bufpos = from_byte;
+	  m->bytepos = from_byte;
 	}
 
       /* In a single-byte buffer, a marker's two positions must be equal.  */
       if (Z == Z_BYTE)
 	{
-	  register int i = m->bufpos;
+	  register int i = m->bytepos;
 
+#if 0
 	  /* We use FROM_BYTE here instead of GPT_BYTE
 	     because FROM_BYTE is where the gap will be after the deletion.  */
 	  if (i > from_byte + coming_gap_size)
 	    i -= coming_gap_size;
 	  else if (i > from_byte)
 	    i = from_byte;
+#endif
 
 	  if (m->charpos != i)
 	    abort ();
@@ -388,7 +394,7 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
    consisting of NCHARS chars, which are NBYTES bytes.
 
    We have to relocate the charpos of every marker that points
-   after the insertion (but not their bufpos).
+   after the insertion (but not their bytepos).
 
    When a marker points at the insertion point,
    we advance it if either its insertion-type is t
@@ -408,26 +414,31 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
   while (!NILP (marker))
     {
       register struct Lisp_Marker *m = XMARKER (marker);
-      if (m->bufpos == from_byte
+      if (m->bytepos == from_byte
 	  && (m->insertion_type || before_markers))
 	{
-	  m->bufpos += nbytes;
+	  m->bytepos += nbytes;
 	  m->charpos += nchars;
 	  if (m->insertion_type)
 	    adjusted = 1;
 	}
-      else if (m->bufpos > from_byte)
-	m->charpos += nchars;
+      else if (m->bytepos > from_byte)
+	{
+	  m->bytepos += nbytes;
+	  m->charpos += nchars;
+	}
 
       /* In a single-byte buffer, a marker's two positions must be equal.  */
       if (Z == Z_BYTE)
 	{
-	  register int i = m->bufpos;
+	  register int i = m->bytepos;
 
+#if 0
 	  if (i > GPT_BYTE + GAP_SIZE)
 	    i -= GAP_SIZE;
 	  else if (i > GPT_BYTE)
 	    i = GPT_BYTE;
+#endif
 
 	  if (m->charpos != i)
 	    abort ();
