@@ -1,3 +1,7 @@
+2005-03-16  Lute Kamstra  <lute@gnu.org>
+
+	* floatfns.c (Ffloor): Doc fix.
+
 2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c: Include macterm.h instead of directly including Carbon.h.
