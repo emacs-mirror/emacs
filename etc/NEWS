@@ -41,6 +41,9 @@ lacks unexec, asynchronous processes, and networking support.
 
 * Changes in Emacs 21.1
 
+** When visiting a file with M-x find-file-literally, no newlines will
+be added to the end of the buffer because of `require-final-newline'.
+
 ** auto-compression mode is no longer enabled just by loading jka-compr.el.
 To control it, set `auto-compression-mode' via Custom or use the
 `auto-compression-mode' command.

@@ -278,7 +278,8 @@ system.  @xref{Frames}.
 encoding or conversion, use the @kbd{M-x find-file-literally} command.
 It visits a file, like @kbd{C-x C-f}, but does not do format conversion
 (@pxref{Formatted Text}), character code conversion (@pxref{Coding
-Systems}), or automatic uncompression (@pxref{Compressed Files}).
+Systems}), or automatic uncompression (@pxref{Compressed Files}), and
+does not add a final newline because of @code{require-final-newline}.
 If you already have visited the same file in the usual (non-literal)
 manner, this command asks you whether to visit it literally instead.
 

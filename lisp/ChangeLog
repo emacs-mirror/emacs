@@ -1,5 +1,9 @@
 2000-11-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (basic-save-buffer): Don't add a newline if
+	find-file-literally is non-nil.
+	(find-file-literally): Extend doc string.
+
 	* sort.el (sort-columns): If sort-fold-case it non-nil, invoke
 	sort(1) with the `-f' argument.
 
