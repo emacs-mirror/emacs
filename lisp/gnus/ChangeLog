@@ -618,7 +618,7 @@
 	unless plugged.  Disable the agent so that an open failure causes
 	an error.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Reiner Steib  <Reiner.Steib@gmx.de>
+2004-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-agent.el (gnus-agent-fetched-hook): Add :version.
 	(gnus-agent-go-online): Change :version.
@@ -660,21 +660,21 @@
 	(gnus-convert-mark-converter-prompt)
 	(gnus-convert-converter-needs-prompt): Fix use of property list.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+2004-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-restore-gcc): Use ^ and regexp-quote.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2004-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-get-unread-articles-in-group): Don't do
 	stuff for non-living groups.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2004-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-agent.el (gnus-agent-synchronize-flags): Default to nil.
 	(gnus-agent-regenerate-group): Using nil messages aren't valid.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2004-10-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-agent.el (gnus-agent-read-agentview):
 	Inline gnus-uncompress-range.
@@ -691,7 +691,7 @@
 	message-send-mail-function.  The change makes the agent real-time
 	responsive to user changes to message-send-mail-function.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Reiner Steib  <Reiner.Steib@gmx.de>
+2004-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-start.el (gnus-get-unread-articles): Fix last commit.
 
@@ -732,12 +732,12 @@
 
 	* gnus-util.el (gnus-rename-file): New function.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+2004-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-regenerate-group): Activate the group
 	when the group's active is not available.
 
-2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+2004-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-read-agentview): Add a missing arg to
 	error.
