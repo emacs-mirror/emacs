@@ -56,3 +56,6 @@
 
 /* zoo@armadillo.com says we don't need -lXext in HPUX 9.  */
 #undef LIBX11_SYSTEM
+
+/* Tested in getloadavg.c.  */
+#define HAVE_PSTAT_GETDYNAMIC
