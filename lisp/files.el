@@ -1182,7 +1182,7 @@ If `enable-local-variables' is nil, this function does not check for a
 		      (memq (nth 1 (nth 2 val))
 			    '(lisp-indent-hook)))
 		 ;; Permit eval if not root and user says ok.
-		 (and (not (string= (user-login-name) "root"))
+		 (and (not (zerop (user-uid)))
 		      (or (eq enable-local-eval t)
 			  (and enable-local-eval
 			       (save-window-excursion
