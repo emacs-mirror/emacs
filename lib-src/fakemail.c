@@ -19,6 +19,9 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+/* This is needed to get the declaration of cuserid in GNU libc.  */
+#define _XOPEN_SOURCE 1
+
 #define NO_SHORTNAMES
 #include <../src/config.h>
 
@@ -599,6 +602,7 @@ args_size (the_header)
 
    Also, if the header has any FCC fields, call setup_files for each one.  */
 
+void
 parse_header (the_header, where)
      header the_header;
      register char *where;
