@@ -1,5 +1,10 @@
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-generate-call-tree): Doc fix.
+	(display-call-tree): Ensure newline after caller/calls blocks.
+
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* startup.el (command-line-1): Make option
 	--directory/-L modify `load-path' straight away.
 
