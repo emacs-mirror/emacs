@@ -1,3 +1,13 @@
+2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+
+	* dired.el (dired-insert-directory): Always add "--dired" to to
+	SWITCHES for remote files.
+	* files.el (insert-directory): Comment saying that "--dired"
+	might be in the SWITCHES.
+	* net/ange-ftp.el (ange-ftp-ls): Handle "--dired" in LSARGS.
+	(ange-ftp-insert-directory): Comment explaining "--dired"
+	handling.
+
 2002-09-21  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/mailabbrev.el (mail-abbrev-make-syntax-table):  Give %!._-

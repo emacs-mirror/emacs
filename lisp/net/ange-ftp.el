@@ -2527,6 +2527,8 @@ which can parse the output from a DIR listing for a host of type TYPE.")
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
+  (when (string-match "^--dired\\s-+" lsargs)
+    (setq lsargs (replace-match "" nil t lsargs)))
   ;; If parse is t, we assume that file is a directory. i.e. we only parse
   ;; full directory listings.
   (let* ((ange-ftp-this-file (ange-ftp-expand-file-name file))
@@ -4416,6 +4418,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; Some of the old dired hooks would still be needed even if this is done.
 ;; I have preserved (and modernized) those hooks.
 ;; So the format conversion should be all that is needed.
+
+;; When called from dired, SWITCHES may start with "--dired".
+;; `ange-ftp-ls' handles this.
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
   (let ((short (ange-ftp-abbreviate-filename file))

@@ -677,8 +677,7 @@ If HDR is non-nil, insert a header line with the directory name."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    (if (and dired-use-ls-dired
-	     (not (file-remote-p dir)))
+    (if (or dired-use-ls-dired (file-remote-p dir))
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,

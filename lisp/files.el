@@ -3969,6 +3969,9 @@ program specified by `directory-free-space-program' if that is non-nil."
 ;;   		 dired-insert-headerline
 ;;   		 dired-after-subdir-garbage (defines what a "total" line is)
 ;;   - variable dired-subdir-regexp
+;; - may be passed "--dired" as the first argument in SWITCHES.
+;;   Filename handlers might have to remove this switch if their
+;;   "ls" command does not support it.
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
