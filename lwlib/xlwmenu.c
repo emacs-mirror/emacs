@@ -803,7 +803,7 @@ draw_separator (mw, window, x, y, width, type)
       xgcv.line_style = LineOnOffDash;
       XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
       XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
-      draw_separator (mw, window, x, y, SEPARATOR_SHADOW_ETCHED_IN);
+      draw_separator (mw, window, x, y, width, SEPARATOR_SHADOW_ETCHED_IN);
       xgcv.line_style = LineSolid;
       XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
       XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
@@ -813,7 +813,7 @@ draw_separator (mw, window, x, y, width, type)
       xgcv.line_style = LineOnOffDash;
       XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
       XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
-      draw_separator (mw, window, x, y, SEPARATOR_SHADOW_ETCHED_OUT);
+      draw_separator (mw, window, x, y, width, SEPARATOR_SHADOW_ETCHED_OUT);
       xgcv.line_style = LineSolid;
       XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
       XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
