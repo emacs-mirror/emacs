@@ -1385,8 +1385,6 @@ created."
 (defface margin
   '((((class color))
      (:background "grey95"))
-    (((class mono))
-     (:background "white"))
     (t
      (:background "gray")))
   "Basic face for the margins to the left and right of windows under X."
