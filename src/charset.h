@@ -628,22 +628,28 @@ else
   do {						\
     unsigned char *p = BYTE_POS_ADDR (pos);	\
     pos++;					\
-    if (*p++ >= 0x80)				\
+    if (BASE_LEADING_CODE_P (*p++))		\
       while (!CHAR_HEAD_P (*p)) p++, pos++;	\
   } while (0)
 
 /* Decrease the buffer point POS of the current buffer to the previous
    character boundary.  No range checking of POS.  */
-#define DEC_POS(pos)					      	\
-  do {							      	\
-    unsigned char *p, *p_min;				      	\
-    int pos_saved = --pos;				      	\
-    if (pos < GPT_BYTE)					      	\
-      p = BEG_ADDR + pos - 1, p_min = BEG_ADDR;		      	\
-    else						      	\
+#define DEC_POS(pos)						\
+  do {								\
+    unsigned char *p, *p_min;					\
+    								\
+    pos--;							\
+    if (pos < GPT_BYTE)						\
+      p = BEG_ADDR + pos - 1, p_min = BEG_ADDR;			\
+    else							\
       p = BEG_ADDR + GAP_SIZE + pos - 1, p_min = GAP_END_ADDR;	\
-    while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;		\
-    if (*p < 0x80 && pos != pos_saved) pos = pos_saved;		\
+    if (p > p_min && !CHAR_HEAD_P (*p))				\
+      {								\
+	int pos_saved = pos--;					\
+	p--;							\
+	while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;	\
+	if (!BASE_LEADING_CODE_P (*p)) pos = pos_saved;		\
+      }								\
   } while (0)
 
 /* Increment both CHARPOS and BYTEPOS, each in the appropriate way.  */
@@ -676,12 +682,12 @@ while (0)
    character boundary.  This macro relies on the fact that *GPT_ADDR
    and *Z_ADDR are always accessible and the values are '\0'.  No
    range checking of POS.  */
-#define BUF_INC_POS(buf, pos)			\
-  do {						\
+#define BUF_INC_POS(buf, pos)				\
+  do {							\
     unsigned char *p = BUF_BYTE_ADDRESS (buf, pos);	\
-    pos++;					\
-    if (*p++ >= 0x80)				\
-      while (!CHAR_HEAD_P (*p)) p++, pos++;	\
+    pos++;						\
+    if (BASE_LEADING_CODE_P (*p++))			\
+      while (!CHAR_HEAD_P (*p)) p++, pos++;		\
   } while (0)
 
 /* Decrease the buffer point POS of the current buffer to the previous
@@ -700,8 +706,13 @@ while (0)
 	p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos - 1;	\
 	p_min = BUF_GAP_END_ADDR (buf);				\
       }								\
-    while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;		\
-    if (*p < 0x80 && pos != pos_saved) pos = pos_saved;		\
+    if (p > p_min && !CHAR_HEAD_P (*p))				\
+      {								\
+	int pos_saved = pos--;					\
+	p--;							\
+	while (p > p_min && !CHAR_HEAD_P (*p)) p--, pos--;	\
+	if (!BASE_LEADING_CODE_P (*p)) pos = pos_saved;		\
+      }								\
   } while (0)
 
 #endif /* emacs */
@@ -755,6 +766,8 @@ extern int n_cmpchars;
 
 /* Maximum character code currently used.  */
 #define MAX_CHAR (MIN_CHAR_COMPOSITION + n_cmpchars)
+
+extern void invalid_character P_ ((int));
 
 extern int unify_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_non_ascii_string P_ ((unsigned char *, int, int *,
