@@ -467,6 +467,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
+	region-cache.o \
 	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ
 
 /* Object files used on some machine or other.
@@ -789,7 +790,7 @@ alloca.o : alloca.s $(config_h)
    and so rarely changed in ways that do require any.  */
 
 abbrev.o: abbrev.c buffer.h commands.h $(config_h) 
-buffer.o: buffer.c buffer.h commands.h window.h \
+buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    INTERVAL_SRC blockinput.h $(config_h) 
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
@@ -814,7 +815,7 @@ filelock.o: filelock.c buffer.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
-   termopts.h disptab.h
+   termopts.h disptab.h region-cache.h
 insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
@@ -835,10 +836,12 @@ mocklisp.o: mocklisp.c buffer.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h) 
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h 
+region-cache.o: region-cache.c buffer.h region-cache.h
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    buffer.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
-search.o: search.c regex.h commands.h buffer.h syntax.h blockinput.h $(config_h) 
+search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
+   blockinput.h $(config_h) 
 strftime.o: strftime.c $(config_h)
 syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h) 
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
