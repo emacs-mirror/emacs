@@ -104,7 +104,10 @@ struct kboard
        ends before this.  This is not the same as kbd_macro_ptr, because
        we advance this to kbd_macro_ptr when a key's command is complete.
        This way, the keystrokes for "end-kbd-macro" are not included in the
-       macro.  */
+       macro.  This also allows us to throw away the events added to the
+       macro by the last command: all the events between kbd_macro_end and
+       kbd_macro_ptr belong to the last command; see
+       cancel-kbd-macro-events.  */
     Lisp_Object *kbd_macro_end;
 
     /* Allocated size of kbd_macro_buffer.  */
