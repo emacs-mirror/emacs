@@ -231,27 +231,25 @@ Driven by the variable `calendar-date-display-form'."
                            calendar-hebrew-month-name-array-leap-year
                          calendar-hebrew-month-name-array-common-year))
           (completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Hebrew calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         (if (= year 3761)
-                             '(lambda (x)
-                                (let ((m (cdr
-                                          (assoc
-                                           (car x)
-                                           (calendar-make-alist
-                                            month-array)))))
-                                  (< 0
-                                     (calendar-absolute-from-hebrew
-                                      (list m
-                                            (hebrew-calendar-last-day-of-month
-                                             m year)
-                                            year))))))
-                                 
-                         t))
-                       (calendar-make-alist month-array 1 'capitalize))))
+          (month (cdr (assoc-ignore-case
+                       (completing-read
+                        "Hebrew calendar month name: "
+                        (mapcar 'list (append month-array nil))
+                        (if (= year 3761)
+                            '(lambda (x)
+                               (let ((m (cdr
+                                         (assoc-ignore-case
+                                          (car x)
+                                          (calendar-make-alist
+                                           month-array)))))
+                                 (< 0
+                                    (calendar-absolute-from-hebrew
+                                     (list m
+                                           (hebrew-calendar-last-day-of-month
+                                            m year)
+                                           year))))))
+                        t)
+                       (calendar-make-alist month-array 1))))
           (last (hebrew-calendar-last-day-of-month month year))
           (first (if (and (= year 3761) (= month 10))
                      18 1))
@@ -674,21 +672,22 @@ is provided for use as part of the nongregorian-diary-marking-hook."
                          (string-to-int y-str)))))
             (if dd-name
                 (mark-calendar-days-named
-                 (cdr (assoc (capitalize (substring dd-name 0 3))
-                             (calendar-make-alist
-                               calendar-day-name-array
-                               0
-                              '(lambda (x) (substring x 0 3))))))
+                 (cdr (assoc-ignore-case
+                       (substring dd-name 0 3)
+                       (calendar-make-alist
+                        calendar-day-name-array
+                        0
+                        '(lambda (x) (substring x 0 3))))))
               (if mm-name
                   (if (string-equal mm-name "*")
                       (setq mm 0)
                     (setq
                       mm
                       (cdr 
-                        (assoc
-                          (capitalize mm-name)
-                            (calendar-make-alist
-                               calendar-hebrew-month-name-array-leap-year))))))
+                        (assoc-ignore-case
+                         mm-name
+                         (calendar-make-alist
+                          calendar-hebrew-month-name-array-leap-year))))))
               (mark-hebrew-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
@@ -837,14 +836,12 @@ from the cursor position."
                            (int-to-string (extract-calendar-year today))))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
-                    (month (cdr (assoc
-                                 (capitalize
-                                  (completing-read
-                                   "Month of death (name): "
-                                   (mapcar 'list (append month-array nil))
-                                   nil t))
-                                 (calendar-make-alist
-                                  month-array 1 'capitalize))))
+                    (month (cdr (assoc-ignore-case
+                                 (completing-read
+                                  "Month of death (name): "
+                                  (mapcar 'list (append month-array nil))
+                                  nil t)
+                                 (calendar-make-alist month-array 1))))
                     (last (calendar-last-day-of-month month year))
                     (day (calendar-read
                           (format "Day of death (1-%d): " last)
