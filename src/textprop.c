@@ -525,8 +525,8 @@ DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
 OBJECT is optional and defaults to the current buffer.\n\
 If POSITION is at the end of OBJECT, the value is nil.\n\
 If OBJECT is a buffer, then overlay properties are considered as well as\n\
-text properties.
-If OBJECT is a window, then that window's buffer is used, but window-specific
+text properties.\n\
+If OBJECT is a window, then that window's buffer is used, but window-specific\n\
 overlays are considered only if they are associated with OBJECT.")
   (pos, prop, object)
      Lisp_Object pos, object;
