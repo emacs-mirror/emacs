@@ -2141,7 +2141,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       '("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
       ;;
       ;; Constant values.
-      '("\\<:\\sw\\sw+\\>" 0 font-lock-builtin-face)
+      '("\\<:\\sw+\\>" 0 font-lock-builtin-face)
       ;;
       ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\sw+\\>" . font-lock-type-face)
