@@ -290,7 +290,7 @@ struct x_display_info
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
   Xatom_ATOM_PAIR;
 #ifdef MULTI_KBOARD
-  KBOARD *kboard;
+  struct kboard *kboard;
 #endif
   int cut_buffers_initialized; /* Whether we're sure they all exist */
 };
