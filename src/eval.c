@@ -1187,7 +1187,7 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   Lisp_Object val;
   int count = SPECPDL_INDEX ();
 
-  record_unwind_protect (0, Fcdr (args));
+  record_unwind_protect (Fprogn, Fcdr (args));
   val = Feval (Fcar (args));
   return unbind_to (count, val);
 }
