@@ -176,6 +176,8 @@ Its value should be an event that has a binding in MENU."
 	;; This way we only ask the user one question,
 	;; for which element of that pane.
 	(setq choice (cdr (car tmm-km-list)))
+      (unless tmm-km-list
+	(error "Empty menu reached"))
       (and tmm-km-list
 	   (let ((index-of-default 0))
 	     (if tmm-mid-prompt
@@ -220,7 +222,7 @@ Its value should be an event that has a binding in MENU."
 	   (string= (substring out 0 (length tmm-c-prompt)) tmm-c-prompt)
 	   (setq out (substring out (length tmm-c-prompt))
 		 choice (cdr (assoc out tmm-km-list))))
-      (and (null choice)
+      (and (null choice) out
 	   (setq out (try-completion out tmm-km-list)
 		 choice (cdr (assoc  out tmm-km-list)))))
     ;; CHOICE is now (STRING . MEANING).  Separate the two parts.
@@ -426,6 +428,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (setq km (nth 2 elt))
 	       (setq str (nth 1 elt))
 	       (and str
+		    (consp (nth 3 elt))
 		    (stringp (cdr (car (nth 3 elt)))) ; keyseq cache
 		    (setq cache (cdr (car (nth 3 elt))))
 		    cache
