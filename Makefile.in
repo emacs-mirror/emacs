@@ -388,6 +388,11 @@ install-arch-indep: mkdir
 	   chmod a+r ${man1dir}/$${page}${manext}); \
 	done
 
+### Build Emacs and install it, stripping binaries while installing them.
+install-strip:
+        $(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' \
+                install
+
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
@@ -468,7 +473,7 @@ clean: FRC
 top_distclean=\
 	rm -f config.status config.cache config.log ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
-	(cd lock && rm -f *)
+	(cd lock && (rm * || true))
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
