@@ -325,7 +325,8 @@ This should be bound to a mouse drag event."
 	(goto-char (posn-point end)))
     ;; Don't set this-command to kill-region, so that a following
     ;; C-w will not double the text in the kill ring.
-    (let (this-command)
+    ;; Ignore last-command so we don't append to a preceding kill.
+    (let (this-command last-command)
       (copy-region-as-kill (mark) (point)))
     (mouse-set-region-1)))
 
