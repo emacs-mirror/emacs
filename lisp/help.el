@@ -473,7 +473,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       (let ((defn (or (string-key-binding key)
 		      (key-binding key)))
 	    (key-desc (key-description key)))
-	(if (or (null defn) (integerp defn))
+	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (princ (format "%s is undefined" key-desc))
 	  (princ (format (if (windowp window)
 			     "%s at that spot runs the command %s"
@@ -501,7 +501,7 @@ pass a string or a vector."
 	    (set-buffer (window-buffer window))
 	(goto-char position))
       (let ((defn (or (string-key-binding key) (key-binding key))))
-	(if (or (null defn) (integerp defn))
+	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (message "%s is undefined" (key-description key))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))
 	  (with-output-to-temp-buffer (help-buffer)
