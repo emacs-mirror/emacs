@@ -21,7 +21,8 @@ custom-deps: doit
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
-	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins
+	echo Directories: $$wins; \
+	$(EMACS) -batch -l cus-dep -f custom-make-dependencies $$wins
 
 finder-data: doit
 	subdirs=`find . -type d -print`; \
@@ -30,6 +31,7 @@ finder-data: doit
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
+	echo Directories: $$wins; \
 	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins
 
 autoloads: doit
@@ -39,6 +41,7 @@ autoloads: doit
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
+	echo Directories: $$wins; \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
 update-subdirs: doit
@@ -62,7 +65,8 @@ updates: doit
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done; \
-	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins; \
+	echo Directories: $$wins; \
+	$(EMACS) -batch -l cus-dep -f custom-make-dependencies $$wins; \
 	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins; \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
