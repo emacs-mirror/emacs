@@ -452,7 +452,7 @@ clean: FRC.clean
 top_distclean=\
 	rm -f config.status build-install ; \
 	rm -f Makefile ${SUBDIR_MAKEFILES} ; \
-	(cd lock ; rm *)
+	(cd lock ; rm -f *)
 distclean: FRC.distclean
 	(cd src;      make ${MFLAGS} distclean)
 	(cd oldXMenu; make ${MFLAGS} distclean)
