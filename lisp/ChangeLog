@@ -1,5 +1,7 @@
 2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* toolbar/tool-bar.el (tool-bar-add-item): Doc fix.
+
 	* emacs-lisp/re-builder.el (reb-update-modestring): Don't use
 	concat for integers.  From Juanma Barranquero <lektu@uol.com.br>.
 
