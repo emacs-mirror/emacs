@@ -239,6 +239,10 @@ Lisp_Object Qw32_charset_mac;
 Lisp_Object Qw32_charset_unicode;
 #endif
 
+/* Prefix for system colors.  */
+#define SYSTEM_COLOR_PREFIX "System"
+#define SYSTEM_COLOR_PREFIX_LEN (sizeof (SYSTEM_COLOR_PREFIX) - 1)
+
 /* State variables for emulating a three button mouse. */
 #define LMOUSE 1
 #define MMOUSE 2
@@ -1077,6 +1081,56 @@ w32_color_map_lookup (colorname)
   return ret;
 }
 
+
+static void
+add_system_logical_colors_to_map (system_colors)
+     Lisp_Object *system_colors;
+{
+  HKEY colors_key;
+
+  /* Other registry operations are done with input blocked.  */
+  BLOCK_INPUT;
+
+  /* Look for "Control Panel/Colors" under User and Machine registry
+     settings.  */
+  if (RegOpenKeyEx (HKEY_CURRENT_USER, "Control Panel\\Colors", 0,
+		    KEY_READ, &colors_key) == ERROR_SUCCESS
+      || RegOpenKeyEx (HKEY_LOCAL_MACHINE, "Control Panel\\Colors", 0,
+		       KEY_READ, &colors_key) == ERROR_SUCCESS)
+    {
+      /* List all keys.  */
+      char color_buffer[64];
+      char full_name_buffer[MAX_PATH + SYSTEM_COLOR_PREFIX_LEN];
+      int index = 0;
+      DWORD name_size, color_size;
+      char *name_buffer = full_name_buffer + SYSTEM_COLOR_PREFIX_LEN;
+
+      name_size = sizeof (full_name_buffer) - SYSTEM_COLOR_PREFIX_LEN;
+      color_size = sizeof (color_buffer);
+
+      strcpy (full_name_buffer, SYSTEM_COLOR_PREFIX);
+
+      while (RegEnumValueA (colors_key, index, name_buffer, &name_size,
+			    NULL, NULL, color_buffer, &color_size)
+	     == ERROR_SUCCESS)
+	{
+	  int r, g, b;
+	  if (sscanf (color_buffer, " %u %u %u", &r, &g, &b) == 3)
+	    *system_colors = Fcons (Fcons (build_string (full_name_buffer),
+					   make_number (RGB (r, g, b))),
+				    *system_colors);
+
+	  name_size = sizeof (full_name_buffer) - SYSTEM_COLOR_PREFIX_LEN;
+	  color_size = sizeof (color_buffer);
+	  index++;
+	}
+      RegCloseKey (colors_key);
+    }
+
+  UNBLOCK_INPUT;
+}
+
+
 COLORREF
 x_to_w32_color (colorname)
      char * colorname;
@@ -1267,7 +1321,6 @@ x_to_w32_color (colorname)
   UNBLOCK_INPUT;
   return ret;
 }
-
 
 void
 w32_regenerate_palette (FRAME_PTR f)
@@ -6773,6 +6826,9 @@ terminate Emacs if we can't open the connection.  */)
   }
   if (NILP (Vw32_color_map))
     Vw32_color_map = Fw32_default_color_map ();
+
+  /* Merge in system logical colors.  */
+  add_system_logical_colors_to_map (&Vw32_color_map);
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) SDATA (xrm_string);
