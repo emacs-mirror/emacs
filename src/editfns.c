@@ -352,28 +352,22 @@ text_property_stickiness (prop, pos)
      Lisp_Object prop;
      Lisp_Object pos;
 {
-  Lisp_Object front_sticky;
+  Lisp_Object prev_pos, front_sticky;
+  int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
 
   if (XINT (pos) > BEGV)
     /* Consider previous character.  */
     {
-      Lisp_Object prev_pos = make_number (XINT (pos) - 1);
+      Lisp_Object rear_non_sticky;
 
-      if (! NILP (Fget_text_property (prev_pos, prop, Qnil)))
-	/* Non-rear-non-stickiness only takes precedence if the
-	   preceding property value is non-nil.  */
-	{
-	  Lisp_Object rear_non_sticky
-	    = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
+      prev_pos = make_number (XINT (pos) - 1);
+      rear_non_sticky = Fget_text_property (prev_pos, Qrear_nonsticky, Qnil);
 
-	  if (EQ (rear_non_sticky, Qnil)
-	      || (CONSP (rear_non_sticky)
-		  && NILP (Fmemq (prop, rear_non_sticky))))
-	    /* PROP is not rear-non-sticky, and since this takes
-	       precedence over any front-stickiness, PROP is inherited
-	       from before.  */
-	    return -1;
-	}
+      if (CONSP (rear_non_sticky)
+	  ? Fmemq (prop, rear_non_sticky)
+	  : !NILP (rear_non_sticky))
+	/* PROP is rear-non-sticky.  */
+	is_rear_sticky = 0;
     }
 
   /* Consider following character.  */
@@ -383,10 +377,24 @@ text_property_stickiness (prop, pos)
       || (CONSP (front_sticky)
 	  && !NILP (Fmemq (prop, front_sticky))))
     /* PROP is inherited from after.  */
-    return 1;
+    is_front_sticky = 1;
 
-  /* PROP is not inherited from either side.  */
-  return 0;
+  /* Simple cases, where the properties are consistent.  */
+  if (is_rear_sticky && !is_front_sticky)
+    return -1;
+  else if (!is_rear_sticky && is_front_sticky)
+    return 1;
+  else if (!is_rear_sticky && !is_front_sticky)
+    return 0;
+
+  /* The stickiness properties are inconsistent, so we have to
+     disambiguate.  Basically, rear-sticky wins, _except_ if the
+     property that would be inherited has a value of nil, in which case
+     front-sticky wins.  */
+  if (XINT (pos) == BEGV || NILP (Fget_text_property (prev_pos, prop, Qnil)))
+    return 1;
+  else
+    return -1;
 }
 
 
