@@ -1,3 +1,14 @@
+2005-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update Killing submenu.
+
+	* killing.texi (Killing): Reorganize section.
+	No more TeX-only text; put the node command at start of chapter.
+	But the first section heading is used only in TeX.
+	Rewrite the text to read better in this mode.
+	(Graphical Kill): New subnode gets some of the text that
+	used to be in the first section.
+
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.texi (Shell Commands in Dired): Delete the ? example.
