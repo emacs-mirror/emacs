@@ -461,7 +461,7 @@ init_syntax_once ()
 #  ifdef __GNUC__
 #   define alloca __builtin_alloca
 #  else /* not __GNUC__ */
-#   if HAVE_ALLOCA_H
+#   ifdef HAVE_ALLOCA_H
 #    include <alloca.h>
 #   endif /* HAVE_ALLOCA_H */
 #  endif /* not __GNUC__ */
