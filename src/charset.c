@@ -205,7 +205,7 @@ parse_charset_map (charset, map, control_flag)
   for (first = 1, i = 0; i < size; i += 2)
     {
       Lisp_Object val;
-      unsigned code, temp;
+      unsigned code;
       int c, char_index;
 
       val = AREF (map, i);
@@ -337,6 +337,8 @@ read_hex (fp, eof)
    The returned vector has this form:
 	[ CODE1 CHAR1 CODE2 CHAR2 .... ]
 */
+
+extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 
 static Lisp_Object
 load_charset_map (charset, mapfile)
@@ -1198,7 +1200,9 @@ decode_char (charset, code)
 
   if (CHARSET_UNIFIED_P (charset)
       && c >= 0)
-    MAYBE_UNIFY_CHAR (c);
+    {
+      MAYBE_UNIFY_CHAR (c);
+    }
 
   return c;
 }
