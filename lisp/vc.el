@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.230 1998/06/11 15:33:13 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.231 1998/06/12 11:13:37 spiegel Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -516,7 +516,8 @@ If nil, VC itself computes this value when it is first needed."
 	  (lambda (s)
 	    (if s
 		(let ((full (concat s "/" name)))
-		  (if (file-executable-p full)
+		  (if (and (file-executable-p full)
+			   (not (file-directory-p full)))
 		      (progn
 			(setq vc-binary-assoc
 			      (cons (cons name full) vc-binary-assoc))
