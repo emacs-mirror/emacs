@@ -1,3 +1,10 @@
+2001-11-05  Richard M. Stallman  <rms@gnu.org>
+
+	* m/news-risc.h (BROKEN_PROTOTYPES): Defined.
+
+	* buffer.c (Fkill_buffer): Don't delete auto save file
+	if buffer is modified.
+
 2001-11-05  Andreas Schwab  <schwab@suse.de>
 
 	* sound.c (sound_perror): Save errno from being clobbered.
