@@ -2386,7 +2386,7 @@ describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl,
      int transl;
      int always_title;
 {
-  Lisp_Object maps, seen, sub_shadows;
+  Lisp_Object maps, orig_maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
   int something = 0;
   char *key_heading
@@ -2394,7 +2394,7 @@ describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl,
 key             binding\n\
 ---             -------\n";
 
-  maps = Faccessible_keymaps (startmap, prefix);
+  orig_maps = maps = Faccessible_keymaps (startmap, prefix);
   seen = Qnil;
   sub_shadows = Qnil;
   GCPRO3 (maps, seen, sub_shadows);
@@ -2475,7 +2475,16 @@ key             binding\n\
 	    sub_shadows = Fcons (shmap, sub_shadows);
 	}
 
-      describe_map (Fcdr (elt), Fcar (elt),
+      /* Maps we have already listed in this loop shadow this map.  */
+      for (tail = orig_maps; ! EQ (tail, maps); tail = XCDR (tail))
+	{
+	  Lisp_Object tem;
+	  tem = Fequal (Fcar (XCAR (tail)), prefix);
+	  if (! NILP (tem))
+	    sub_shadows = Fcons (XCDR (XCAR (tail)), sub_shadows);
+	}
+
+      describe_map (Fcdr (elt), prefix,
 		    transl ? describe_translation : describe_command,
 		    partial, sub_shadows, &seen, nomenu);
 
