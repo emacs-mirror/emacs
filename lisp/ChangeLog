@@ -1,3 +1,10 @@
+2002-04-19  Miles Bader  <miles@gnu.org>
+
+	* custom.el (customize-mark-to-save, customize-mark-as-set)
+	(custom-quote): Moved here from `cus-edit.el'.
+	* cus-edit.el (customize-mark-to-save, customize-mark-as-set)
+	(custom-quote): Moved to `custom.el'.
+
 2002-04-18  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (list-text-properties-at): Command deleted.
@@ -61,7 +68,7 @@
 
 	* term.el (term-emulate-terminal): Fix last change.
 
-2002-04-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* bindings.el (mode-line-mode-menu): Update names to reflect
 	latest changes.
