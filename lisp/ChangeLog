@@ -1,3 +1,8 @@
+2005-04-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-diary-default-entry): Fixed call to
+	`add-to-diary-entry'. 
+
 2005-04-05  Kim F. Storm  <storm@cua.dk>
 
 	* ediff-init.el: Use (featurep 'xemacs).
