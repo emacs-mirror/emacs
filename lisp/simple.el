@@ -157,7 +157,11 @@ With arg N, insert N newlines."
 (defun quoted-insert (arg)
   "Read next input character and insert it.
 This is useful for inserting control characters.
-You may also type up to 3 octal digits, to insert a character with that code.
+
+If the first character you type after this command is an octal digit,
+you should type a sequence of octal digits which specify a character code.
+Any nondigit terminates the sequence.  If the terminator is a space,
+it is discarded; any other terminator is used itself as input.
 
 In overwrite mode, this function inserts the character anyway, and
 does not handle octal digits specially.  This means that if you use
@@ -165,8 +169,8 @@ overwrite as your normal editing mode, you can use this function to
 insert characters when necessary.
 
 In binary overwrite mode, this function does overwrite, and octal
-digits are interpreted as a character code.  This is supposed to make
-this function useful in editing binary files."
+digits are interpreted as a character code.  This is intended to be
+useful for editing binary files."
   (interactive "*p")
   (let ((char (if (or (not overwrite-mode)
 		      (eq overwrite-mode 'overwrite-mode-binary))
