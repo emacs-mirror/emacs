@@ -524,16 +524,6 @@ coordinates_in_window (w, x, y)
       bottom_y = WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y (w);
     }
 
-  /* Completely outside anything interesting?  */
-  if (*y < top_y
-      || *y >= bottom_y
-      || *x < (left_x
-	       - flags_area_width
-	       - (FRAME_LEFT_SCROLL_BAR_WIDTH (f)
-		  * CANON_X_UNIT (f)))
-      || *x > right_x + flags_area_width)
-    return ON_NOTHING;
-  
   /* On the mode line or header line?  If it's near the start of
      the mode or header line of window that's has a horizontal
      sibling, say it's on the vertical line.  That's to be able
@@ -541,6 +531,7 @@ coordinates_in_window (w, x, y)
      scroll bars.  */
   
   if (WINDOW_WANTS_MODELINE_P (w)
+      && *y < bottom_y
       && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
     {
       if (!WINDOW_RIGHTMOST_P (w)
@@ -552,6 +543,7 @@ coordinates_in_window (w, x, y)
     }
   
   if (WINDOW_WANTS_HEADER_LINE_P (w)
+      && *y >= top_y
       && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     {
       if (!WINDOW_RIGHTMOST_P (w)
@@ -562,6 +554,16 @@ coordinates_in_window (w, x, y)
       return ON_HEADER_LINE;
     }
 
+  /* Completely outside anything interesting?  */
+  if (*y < top_y
+      || *y >= bottom_y
+      || *x < (left_x
+	       - flags_area_width
+	       - (FRAME_LEFT_SCROLL_BAR_WIDTH (f)
+		  * CANON_X_UNIT (f)))
+      || *x > right_x + flags_area_width)
+    return ON_NOTHING;
+  
   if (FRAME_WINDOW_P (f))
     {
       if (!w->pseudo_window_p
