@@ -1,7 +1,7 @@
 ;;; mh-seq --- mh-e sequences support
-;; Time-stamp: <93/12/02 09:36:09 gildea>
+;; Time-stamp: <94/12/22 20:34:50 gildea>
 
-;; Copyright 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of mh-e.
 
@@ -23,28 +23,36 @@
 
 ;; Internal support for mh-e package.
 
+;;; Change Log:
+
+;; $Id: mh-seq.el,v 1.5 94/12/27 22:38:10 gildea Exp $
+
 ;;; Code:
 
 (provide 'mh-seq)
 (require 'mh-e)
 
-(defvar mh-last-seq-used nil
-  "Name of the sequence to which a message was last added.")
+;;; Internal variables:
+
+(defvar mh-last-seq-used nil)		;Name of seq to which a msg was last added.
+
+(defvar mh-non-seq-mode-line-annotation nil) ;Saved value of mh-mode-line-annotation when narrowed to a seq.
 
 
-(defun mh-delete-seq (seq)
+(defun mh-delete-seq (sequence)
   "Delete the SEQUENCE."
   (interactive (list (mh-read-seq-default "Delete" t)))
-  (mh-map-to-seq-msgs 'mh-notate-if-in-one-seq seq ?  (1+ mh-cmd-note) seq)
-  (mh-undefine-sequence seq "all")
-  (mh-delete-seq-locally seq))
+  (mh-map-to-seq-msgs 'mh-notate-if-in-one-seq sequence ?  (1+ mh-cmd-note)
+		      sequence)
+  (mh-undefine-sequence sequence '("all"))
+  (mh-delete-seq-locally sequence))
 
 
 (defun mh-list-sequences (folder)
   "List the sequences defined in FOLDER."
   (interactive (list (mh-prompt-for-folder "List sequences in"
 					   mh-current-folder t)))
-  (let ((temp-buffer " *mh-temp*")
+  (let ((temp-buffer mh-temp-buffer)
 	(seq-list mh-seq-list))
     (with-output-to-temp-buffer temp-buffer
       (save-excursion
@@ -72,44 +80,49 @@
 	(message "Listing sequences...done")))))
 
 
-(defun mh-msg-is-in-seq (msg)
-  "Display the sequences that contain MESSAGE (default: displayed message)."
+(defun mh-msg-is-in-seq (message)
+  "Display the sequences that contain MESSAGE (default: current message)."
   (interactive (list (mh-get-msg-num t)))
   (message "Message %d is in sequences: %s"
-	   msg
+	   message
 	   (mapconcat 'concat
-		      (mh-list-to-string (mh-seq-containing-msg msg))
+		      (mh-list-to-string (mh-seq-containing-msg message t))
 		      " ")))
 
 
-(defun mh-narrow-to-seq (seq)
-  "Restrict display of this folder to just messages in a sequence.
-Reads which sequence.\\<mh-folder-mode-map>  Use \\[mh-widen] to undo this command."
+(defun mh-narrow-to-seq (sequence)
+  "Restrict display of this folder to just messages in SEQUENCE.
+Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
   (interactive (list (mh-read-seq "Narrow to" t)))
-  (let ((eob (point-max)))
-    (with-mh-folder-updating (t)
-      (cond ((mh-seq-to-msgs seq)
-	     (mh-copy-seq-to-point seq eob)
+  (with-mh-folder-updating (t)
+    (cond ((mh-seq-to-msgs sequence)
+	   (mh-widen)
+	   (let ((eob (point-max)))
+	     (mh-copy-seq-to-point sequence eob)
 	     (narrow-to-region eob (point-max))
-	     (mh-make-folder-mode-line (symbol-name seq))
+	     (make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
+	     (setq mh-non-seq-mode-line-annotation mh-mode-line-annotation)
+	     (setq mh-mode-line-annotation (symbol-name sequence))
+	     (mh-make-folder-mode-line)
 	     (mh-recenter nil)
-	     (setq mh-narrowed-to-seq seq))
-	    (t
-	     (error "No messages in sequence `%s'" (symbol-name seq)))))))
+	     (setq mh-narrowed-to-seq sequence)))
+	  (t
+	   (error "No messages in sequence `%s'" (symbol-name sequence))))))
 
 
-(defun mh-put-msg-in-seq (msg-or-seq to)
+(defun mh-put-msg-in-seq (msg-or-seq sequence)
   "Add MESSAGE(s) (default: displayed message) to SEQUENCE.
 If optional prefix argument provided, then prompt for the message sequence."
   (interactive (list (if current-prefix-arg
 			 (mh-read-seq-default "Add messages from" t)
 		         (mh-get-msg-num t))
 		     (mh-read-seq-default "Add to" nil)))
-  (setq mh-last-seq-used to)
+  (if (not (mh-internal-seq sequence))
+      (setq mh-last-seq-used sequence))
   (mh-add-msgs-to-seq (if (numberp msg-or-seq)
 			  msg-or-seq
 			  (mh-seq-to-msgs msg-or-seq))
-		      to))
+		      sequence))
 
 
 (defun mh-widen ()
@@ -119,6 +132,7 @@ If optional prefix argument provided, then prompt for the message sequence."
       (with-mh-folder-updating (t)
 	(delete-region (point-min) (point-max))
 	(widen)
+	(setq mh-mode-line-annotation mh-non-seq-mode-line-annotation)
 	(mh-make-folder-mode-line)))
   (setq mh-narrowed-to-seq nil))
 
@@ -131,7 +145,10 @@ If optional prefix argument provided, then prompt for the message sequence."
 
 (defun mh-read-seq-default (prompt not-empty)
   ;; Read and return sequence name with default narrowed or previous sequence.
-  (mh-read-seq prompt not-empty (or mh-narrowed-to-seq mh-last-seq-used)))
+  (mh-read-seq prompt not-empty
+	       (or mh-narrowed-to-seq
+		   mh-last-seq-used
+		   (car (mh-seq-containing-msg (mh-get-msg-num nil) nil)))))
 
 
 (defun mh-read-seq (prompt not-empty &optional default)
@@ -145,7 +162,8 @@ If optional prefix argument provided, then prompt for the message sequence."
 					     (format "[%s] " default)
 					     ""))
 				 (mh-seq-names mh-seq-list)))
-	 (seq (cond ((equal input "%") (mh-msg-to-seq (mh-get-msg-num t)))
+	 (seq (cond ((equal input "%")
+		     (car (mh-seq-containing-msg (mh-get-msg-num t) nil)))
 		    ((equal input "") default)
 		    (t (intern input))))
 	 (msgs (mh-seq-to-msgs seq)))
@@ -154,27 +172,22 @@ If optional prefix argument provided, then prompt for the message sequence."
     seq))
 
 
-(defun mh-msg-to-seq (msg)
-  ;; Given a MESSAGE number, return the first sequence in which it occurs.
-  (car (mh-seq-containing-msg msg)))
-
-
 (defun mh-seq-names (seq-list)
   ;; Return an alist containing the names of the SEQUENCES.
   (mapcar (function (lambda (entry) (list (symbol-name (mh-seq-name entry)))))
 	  seq-list))
 
 
-(defun mh-rename-seq (seq new-name)
-  "Rename a SEQUENCE to have a new NAME."
+(defun mh-rename-seq (sequence new-name)
+  "Rename SEQUENCE to have NEW-NAME."
   (interactive (list (mh-read-seq "Old" t)
 		     (intern (read-string "New sequence name: "))))
-  (let ((old-seq (mh-find-seq seq)))
+  (let ((old-seq (mh-find-seq sequence)))
     (or old-seq
-	(error "Sequence %s does not exist" seq))
-    ;; create new seq first, since it might raise an error.
+	(error "Sequence %s does not exist" sequence))
+    ;; create new sequence first, since it might raise an error.
     (mh-define-sequence new-name (mh-seq-msgs old-seq))
-    (mh-undefine-sequence seq (mh-seq-msgs old-seq))
+    (mh-undefine-sequence sequence (mh-seq-msgs old-seq))
     (rplaca old-seq new-name)))
 
 
@@ -201,7 +214,7 @@ If optional prefix argument provided, then prompt for the message sequence."
       (if msgs
 	  (apply 'mh-exec-cmd "mark" mh-current-folder "-add"
 		 "-sequence" (symbol-name seq)
-		 msgs))))
+		 (mh-coalesce-msg-list msgs)))))
 
 
 (defun mh-copy-seq-to-point (seq location)
@@ -213,10 +226,11 @@ If optional prefix argument provided, then prompt for the message sequence."
 (defun mh-copy-line-to-point (msg location)
   ;; Copy the current line to the LOCATION in the current buffer.
   (beginning-of-line)
-  (let ((beginning-of-line (point)))
-    (forward-line 1)
-    (copy-region-as-kill beginning-of-line (point))
-    (goto-char location)
-    (yank)
-    (goto-char beginning-of-line)))
+  (save-excursion
+    (let ((beginning-of-line (point))
+	  end)
+      (forward-line 1)
+      (setq end (point))
+      (goto-char location)
+      (insert-buffer-substring (current-buffer) beginning-of-line end))))
 
