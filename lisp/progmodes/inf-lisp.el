@@ -203,6 +203,8 @@ buffer with \\[set-variable].")
 (defvar inferior-lisp-mode-hook '()
   "*Hook for customising Inferior Lisp mode.")
 
+(put 'inferior-lisp-mode 'mode-class 'special)
+
 (defun inferior-lisp-mode () 
   "Major mode for interacting with an inferior Lisp process.  
 Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O through an
