@@ -96,7 +96,7 @@ BLOCKS is a number of  blocks of translation.")
 (defvar quail-current-data nil
   "Any Lisp object holding information of current translation status.
 When a key sequence is mapped to TRANS and TRANS is a cons
-of actual translation and some Lisp object to be refered
+of actual translation and some Lisp object to be referred
 for translating the longer key sequence, this variable is set
 to that Lisp object.")
 (make-variable-buffer-local 'quail-current-data)
@@ -310,7 +310,7 @@ This map is activated while translation region is active.")
     (define-key map [backspace] 'quail-conversion-backward-delete-char)
     map)
   "Keymap used for processing conversion in Quail mode.
-This map is activated while convesion region is active but translation
+This map is activated while conversion region is active but translation
 region is not active.")
 
 ;;;###autoload
@@ -382,8 +382,8 @@ OVERLAY-PLIST if non-nil is a property list put on an overlay which
 covers Quail translation region.
 
 UPDATE-TRANSLATION-FUNCTION if non-nil is a function to call to update
-the current translation region accoding to a new translation data.  By
-default, a translated text or a user's key sequence (if no transltion
+the current translation region according to a new translation data.  By
+default, a translated text or a user's key sequence (if no translation
 for it) is inserted.
 
 CONVERSION-KEYS specifies additional key bindings used while
@@ -614,7 +614,7 @@ you type is correctly handled."
 	  ch
 	(let ((char (aref quail-keyboard-layout-standard i)))
 	  (if (= char ?\ )
-	      ;; A user typed a key at the location not convered by
+	      ;; A user typed a key at the location not converted by
 	      ;; quail-keyboard-layout-standard.  Just return CH as
 	      ;; well as above.
 	      ch
@@ -912,7 +912,7 @@ The returned value is a Quail map specific to KEY."
 			 (quail-keyboard-translate key) key)
 		     (cdr (quail-map))))
 	  (null key))
-      ;; Ok, we can start translation.
+      ;; OK, we can start translation.
       (let* ((echo-keystrokes 0)
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-translation-keymap))
@@ -1926,7 +1926,7 @@ key		binding
 
 
 (defvar quail-directory-name "quail"
-  "Name of Quail directory which cotains Quail packages.
+  "Name of Quail directory which contains Quail packages.
 This is a sub-directory of LEIM directory.")
 
 ;;;###autoload
@@ -1984,7 +1984,7 @@ of each directory."
 	     (message "Garbage in %s deleted" leim-list)
 	     (delete-region pos (point-max)))))))
 
-    ;; Search for `quail' subdirector under each DIRNAMES.
+    ;; Search for `quail' subdirectory under each DIRNAMES.
     (setq dirnames (cons dirname dirnames))
     (let ((l dirnames))
       (while l
