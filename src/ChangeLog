@@ -1,5 +1,10 @@
 2002-08-19  Kenichi Handa  <handa@etl.go.jp>
 
+	* syntax.c (scan_words): Don't treat characters belonging to
+	different scripts constituting a work.
+
+	* editfns.c (Fformat): Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
+
 	* fontset.c (Fset_fontset_font): Treate `ascii' as charset, not
 	script.
 
