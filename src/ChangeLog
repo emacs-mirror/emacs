@@ -1,3 +1,13 @@
+2000-06-20  Dave Love  <fx@gnu.org>
+
+	* fns.c (make_hash_table, maybe_resize_hash_table): Cast arg of
+	next_almost_prime.
+
+	* tparam.c [emacs]: Include lisp.h. 
+
+	* termcap.c [emacs]: Test HAVE_FCNTL_H, not USG5.  Include lisp.h
+	and unistd.h.
+
 2000-06-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/isc4-0.h (sigblock): Redefined to pass a pointer as second
@@ -30,8 +40,7 @@
 	* m/stride.h, m/mips.h: Don't define HAVE_GETWD,
 	HAVE_GETTIMEOFDAY.
 
-	* m/ibmrt-aix.h:
-	Don't declare HAVE_GETTIMEOFDAY, HAVE_VFORK.
+	* m/ibmrt-aix.h: Don't declare HAVE_GETTIMEOFDAY, HAVE_VFORK.
 
 	* m/ibmrs6000.h, m/ibmps2-aix.h, m/dpx2.h: Don't declare
 	HAVE_GETWD.
