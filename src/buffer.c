@@ -560,7 +560,11 @@ This does not change the name of the visited file (if any).")
 
   CHECK_STRING (name, 0);
   tem = Fget_buffer (name);
-  if (XBUFFER (tem) == current_buffer)
+  /* Don't short-circuit if UNIQUE is t.  That is a useful way to rename
+     the buffer automatically so you can create another with the original name.
+     It makes UNIQUE equivalent to
+     (rename-buffer (generate-new-buffer-name NAME)).  */
+  if (NILP (unique) && XBUFFER (tem) == current_buffer)
     return current_buffer->name;
   if (!NILP (tem))
     {
