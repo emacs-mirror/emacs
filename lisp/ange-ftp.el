@@ -3934,6 +3934,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; Turn off RCS/SCCS processing to save time.
 ;; This returns nil for any file name as argument.
 (put 'vc-registered 'ange-ftp 'null)
+
+(put 'dired-call-process 'ange-ftp 'ange-ftp-dired-call-process)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
 ;;; turning off our handler.
@@ -4070,7 +4072,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; default-directory is in ange-ftp syntax for remote file names.
       (ange-ftp-real-shell-command command))))
 
-;;; Thisis not hooked up yet.	    
+;;; This is the handler for call-process.
 (defun ange-ftp-dired-call-process (program discard &rest arguments)
   ;; PROGRAM is always one of those below in the cond in dired.el.
   ;; The ARGUMENTS are (nearly) always files.
