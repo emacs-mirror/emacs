@@ -226,7 +226,7 @@
 (put 'undecided-mac 'eol-type 2)
 (put 'undecided-mac 'eol-variant t)
 (put 'undecided 'coding-system
-     (vector t ?+ "No conversion on encoding, automatic conversion on decoding"
+     (vector t ?- "No conversion on encoding, automatic conversion on decoding"
 	     nil nil))
 (put 'undecided 'eol-type
      (vector 'undecided-unix
