@@ -1,3 +1,9 @@
+2003-03-29  John Paul Wallington  <jpw@gnu.org>
+
+	* international/mule.el (with-category-table): Use `make-symbol'
+	to avoid variable capture.  Set table within `unwind-protect'.
+	Ensure table is restored in correct buffer.  Add docstring.
+
 2003-03-29  Kenichi Handa  <handa@etlken2>
 
 	* language/japan-util.el: If system-type is not for Windows,
