@@ -211,7 +211,10 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 
 ;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
-  (if (not comment-start) (or noerror (error "No comment syntax is defined"))
+  (if (not comment-start)
+      (unless noerror
+	(set (make-local-variable 'comment-start)
+	     (read-string "No comment syntax is defined.  Use: ")))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)
@@ -246,7 +249,7 @@ This is obsolete because you might as well use \\[newline-and-indent]."
 		 ;; In case comment-start has changed since last time.
 		 (string-match comment-start-skip comment-start))
       (set (make-local-variable 'comment-start-skip)
-	   (concat "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
+	   (concat "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
 		   ;; Let's not allow any \s- but only [ \t] since \n
 		   ;; might be both a comment-end marker and \s-.
@@ -664,7 +667,13 @@ comment markers."
 	      (goto-char (match-end 0)))
 	    (if (null arg) (delete-region (point-min) (point))
 	      (skip-syntax-backward " ")
-	      (delete-char (- numarg)))
+	      (delete-char (- numarg))
+	      (unless (or (bobp)
+			  (save-excursion (goto-char (point-min))
+					  (looking-at comment-start-skip)))
+		;; If there's something left but it doesn't look like
+		;; a comment-start any more, just remove it.
+		(delete-region (point-min) (point))))
 
 	    ;; Remove the end-comment (and leading padding and such).
 	    (goto-char (point-max)) (comment-enter-backward)
@@ -677,7 +686,11 @@ comment markers."
 	      (when (and (bolp) (not (bobp))) (backward-char))
 	      (if (null arg) (delete-region (point) (point-max))
 		(skip-syntax-forward " ")
-		(delete-char numarg)))
+		(delete-char numarg)
+		(unless (or (eobp) (looking-at comment-end-skip))
+		  ;; If there's something left but it doesn't look like
+		  ;; a comment-end any more, just remove it.
+		  (delete-region (point) (point-max)))))
 
 	    ;; Unquote any nested end-comment.
 	    (comment-quote-nested comment-start comment-end t)
