@@ -215,16 +215,21 @@ is okay.  See `mode-line-format'.")
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
-;; This is here to avoid autoloading etags on M-TAB.
-;; M-x visit-tags-table will autoload etags, which will redefine complete-tag.
-(defun complete-tag ()
+(define-key esc-map "\t" 'complete-symbol)
+
+(defun complete-symbol ()
   "Perform tags completion on the text around point.
 Completes to the set of names listed in the current tags table.
 The string to complete is chosen in the same way as the default
 for \\[find-tag] (which see)."
-  (interactive)
-  (error (substitute-command-keys
-	  "No tags table loaded.  Try \\[visit-tags-table].")))
+  (interactive "P")
+  (if arg
+      (if (fboundp 'complete-tag)
+	  (complete-tag)
+	;; Don't autoload etags if we have no tags table.
+	(error (substitute-command-keys
+		"No tags table loaded; use \\[visit-tags-table] to load one")))
+    (info-complete-symbol)))
 
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
