@@ -112,7 +112,7 @@ wrong_type_argument (predicate, value)
 	{
 	 if (STRINGP (value) &&
 	     (EQ (predicate, Qintegerp) || EQ (predicate, Qinteger_or_marker_p)))
-	   return Fstring_to_number (value);
+	   return Fstring_to_number (value, Qnil);
 	 if (INTEGERP (value) && EQ (predicate, Qstringp))
 	   return Fnumber_to_string (value);
 	}
@@ -1912,17 +1912,53 @@ NUMBER may be an integer or a floating point number.")
   return build_string (buffer);
 }
 
-DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 1, 0,
+INLINE static int
+digit_to_number (character, base)
+     int character, base;
+{
+  int digit;
+
+  if (character >= '0' && character <= '9')
+    digit = character - '0';
+  else if (character >= 'a' && character <= 'z')
+    digit = character - 'a' + 10;
+  else if (character >= 'A' && character <= 'Z')
+    digit = character - 'A' + 10;
+  else
+    return -1;
+
+  if (digit >= base)
+    return -1;
+  else
+    return digit;
+}    
+
+DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
   "Convert STRING to a number by parsing it as a decimal number.\n\
 This parses both integers and floating point numbers.\n\
-It ignores leading spaces and tabs.")
-  (string)
-     register Lisp_Object string;
+It ignores leading spaces and tabs.\n\
+\n\
+If BASE, interpret STRING as a number in that base.  If BASE isn't\n\
+present, base 10 is used.  BASE must be between 2 and 16 (inclusive).\n\
+Floating point numbers always use base 10.")
+   (string, base)
+     register Lisp_Object string, base;
 {
-  Lisp_Object value;
-  unsigned char *p;
+  register unsigned char *p;
+  register int b, digit, v = 0;
+  int negative = 1;
 
   CHECK_STRING (string, 0);
+
+  if (NILP (base))
+    b = 10;
+  else
+    {
+      CHECK_NUMBER (base, 1);
+      b = XINT (base);
+      if (b < 2 || b > 16)
+	Fsignal (Qargs_out_of_range, Fcons (base, Qnil));
+    }
 
   p = XSTRING (string)->data;
 
@@ -1931,19 +1967,30 @@ It ignores leading spaces and tabs.")
   while (*p == ' ' || *p == '\t')
     p++;
 
+  if (*p == '-')
+    {
+      negative = -1;
+      p++;
+    }
+  else if (*p == '+')
+    p++;
+  
 #ifdef LISP_FLOAT_TYPE
   if (isfloat_string (p))
     return make_float (atof (p));
 #endif /* LISP_FLOAT_TYPE */
 
-  if (sizeof (int) == sizeof (EMACS_INT))
-    XSETINT (value, atoi (p));
-  else if (sizeof (long) == sizeof (EMACS_INT))
-    XSETINT (value, atol (p));
-  else
-    abort ();
-  return value;
+  while (1)
+    {
+      int digit = digit_to_number (*p++, b);
+      if (digit < 0)
+	break;
+      v = v * b + digit;
+    }
+  
+  return make_number (negative * v);
 }
+
 
 enum arithop
   { Aadd, Asub, Amult, Adiv, Alogand, Alogior, Alogxor, Amax, Amin };
