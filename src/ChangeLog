@@ -1,3 +1,10 @@
+2003-01-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (XPutPixel): Handle monochrome images; used for masks.
+	[HAVE_PNG]: Sync with xfns.c version.
+	(png_load): Adjust colors for Windows. Use Windows
+	bitmaps. Disable color table lookups.
+
 2003-01-24  Andreas Schwab  <schwab@suse.de>
 
 	* minibuf.c (Fminibuffer_message): Verify type of parameter.
