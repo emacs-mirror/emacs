@@ -1,3 +1,27 @@
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print-command): Move definitions to calc.el.
+
+	* calc/calc-embed.el (calc-embedded-announce-formula)
+	(calc-embedded-open-formula, calc-embedded-close-formula)
+	(calc-embedded-open-word, calc-embedded-close-word)
+	(calc-embedded-open-plain, calc-embedded-close-plain)
+	(calc-embedded-open-new-formula, calc-embedded-close-new-formula)
+	(calc-embedded-open-mode, calc-embedded-close-mode):
+	Move definitions to calc.el.
+
+	* calc/calc.el (calc-settings-file, calc-language-alist):
+	Make customizable.
+	(calc-embedded-announce-formula, calc-embedded-open-formula)
+	(calc-embedded-close-formula, calc-embedded-open-word)
+	(calc-embedded-close-word, calc-embedded-open-plain)
+	(calc-embedded-close-plain, calc-embedded-open-new-formula)
+	(calc-embedded-close-new-formula, calc-embedded-open-mode)
+	(calc-embedded-close-mode, calc-gnuplot-name)
+	(calc-gnuplot-plot-command, calc-gnuplot-print-command): Move here
+	from other files and make customizable.
+
 2005-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-temp-buffer, cvs-mode-kill-process, cvs-buffer-check):

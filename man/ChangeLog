@@ -1,3 +1,12 @@
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Troubleshooting Commands): Remove comment about
+	installation.
+	(Installation): Remove section.
+	(Customizable Variables): New section.
+	(Basic Embedded Mode, Customizing Embedded Mode, Graphics)
+	(Graphical Devices): Add references to Customizable Variables.
+
 2005-04-01  Lute Kamstra  <lute@gnu.org>
 
 	* maintaining.texi (Change Log): add-change-log-entry uses
