@@ -3566,7 +3566,9 @@ single_display_prop_intangible_p (prop)
 	return 0;
     }
 
-  return CONSP (prop) && EQ (XCAR (prop), Qimage);
+  return (CONSP (prop)
+	  && (EQ (XCAR (prop), Qimage)
+	      || EQ (XCAR (prop), Qspace)));
 }
 
 
