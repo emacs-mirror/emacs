@@ -1,3 +1,22 @@
+2000-11-30  Rob Riepel  <riepel@Stanford.EDU>
+
+	* emulation/tpu-edt.el (tpu-version): New version.
+	(tpu-search-overlay, tpu-replace-overlay): New initial range.
+	(tpu-original-mode-line): Variable deleted.
+	(tpu-mark-flag): New initial value.
+	(tpu-set-mode-line): Don't redefine mode-line-format.  Add
+	tpu-mark-flag to minor-mode-alist.
+	(tpu-update-mode-line): New mark flag logic.
+	(tpu-get): Use find-file-wildcards.
+	(tpu-search-highlight): Move overlay less, reset overlay properly.
+	(tpu-unselect): Deactivate mark.
+	(tpu-lm-replace): Reset overlay properly.
+	(tpu-forward-line): Use forward-visible-line.
+	(tpu-edt-on): Set transient mark mode.  ispell autoloads deleted.
+
+	* emulation/tpu-extras.el (tpu-forward-line): Use
+	forward-visible-line.
+	
 2000-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/cl.el (third...tenth): Really undo change of 2000-08-05.
