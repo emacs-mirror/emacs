@@ -1035,11 +1035,14 @@ copy, or link files by replacing regexp matches in file names.
   Here are some other commands that find matches for a regular
 expression.  They all ignore case in matching, if the pattern contains
 no upper-case letters and @code{case-fold-search} is non-@code{nil}.
-Aside from @code{occur}, all operate on the text from point to the end
-of the buffer, or on the active region in Transient Mark mode.
+Aside from @code{occur} and its variants, all operate on the text from
+point to the end of the buffer, or on the active region in Transient
+Mark mode.
 
 @findex list-matching-lines
 @findex occur
+@findex multi-occur
+@findex multi-occur-by-filename-regexp
 @findex how-many
 @findex delete-non-matching-lines
 @findex delete-matching-lines
@@ -1063,6 +1066,14 @@ moves point to the original of the chosen occurrence.
 
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
+
+@item M-x multi-occur @key{RET} @var{buffers} @key{RET} @var{regexp} @key{RET}
+This function is just like `occur', except it is able to search
+through multiple buffers.
+
+@item M-x multi-occur-by-filename-regexp @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
+This function is similar to `multi-occur', except the buffers to
+search are specified by a regexp on their filename.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}
 Print the number of matches for @var{regexp} that exist in the buffer
