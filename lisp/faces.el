@@ -1695,7 +1695,7 @@ created."
     (((class color) (background dark))
      (:background "blue3"))
     (((class color) (background light))
-     (:background "light goldenrod yellow"))
+     (:background "lightgoldenrod2"))
     (t (:background "gray")))
   "Basic face for highlighting the region."
   :version "21.1"
