@@ -1231,7 +1231,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
         (list-calendar-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
-(autoload 'view-diary-entries "diary"
+(autoload 'view-diary-entries "diary-lib"
   "Prepare and display a buffer with diary entries.
 Searches your diary file for entries that match ARG days starting with
 the date indicated by the cursor position in the displayed three-month
@@ -1377,48 +1377,48 @@ Driven by the variable `calendar-date-display-form'."
   "String of Ethiopic date of Gregorian date."
   t)
 
-(autoload 'show-all-diary-entries "diary"
+(autoload 'show-all-diary-entries "diary-lib"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   t)
 
-(autoload 'mark-diary-entries "diary"
+(autoload 'mark-diary-entries "diary-lib"
   "Mark days in the calendar window that have diary entries.
 Each entry in diary file visible in the calendar window is marked."
   t)
 
-(autoload 'make-diary-entry "diary"
+(autoload 'make-diary-entry "diary-lib"
   "Insert a diary entry STRING which may be NONMARKING in FILE."
   t)
 
-(autoload 'insert-diary-entry "diary"
+(autoload 'insert-diary-entry "diary-lib"
   "Insert a diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-weekly-diary-entry "diary"
+(autoload 'insert-weekly-diary-entry "diary-lib"
   "Insert a weekly diary entry for the day of the week indicated by point."
   t)
 
 
-(autoload 'insert-monthly-diary-entry "diary"
+(autoload 'insert-monthly-diary-entry "diary-lib"
   "Insert a monthly diary entry for the day of the month indicated by point."
   t)
 
-(autoload 'insert-yearly-diary-entry "diary"
+(autoload 'insert-yearly-diary-entry "diary-lib"
   "Insert an annual diary entry for the day of the year indicated by point."
   t)
 
-(autoload 'insert-anniversary-diary-entry "diary"
+(autoload 'insert-anniversary-diary-entry "diary-lib"
   "Insert an anniversary diary entry for the date indicated by point."
   t)
 
-(autoload 'insert-block-diary-entry "diary"
+(autoload 'insert-block-diary-entry "diary-lib"
   "Insert a block diary entry for the dates indicated by point and mark."
   t)
 
-(autoload 'insert-cyclic-diary-entry "diary"
+(autoload 'insert-cyclic-diary-entry "diary-lib"
   "Insert a cyclic diary entry starting at the date indicated by point."
   t)
 

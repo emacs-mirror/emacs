@@ -45,7 +45,7 @@
 
 (require 'calendar)
 
-(autoload 'list-diary-entries "diary" nil t)
+(autoload 'list-diary-entries "diary-lib" nil t)
 (autoload 'calendar-holiday-list "holidays" nil t)
 (autoload 'calendar-iso-from-absolute "cal-iso" nil t)
 
