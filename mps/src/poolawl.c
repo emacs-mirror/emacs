@@ -1,11 +1,11 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.64) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolawl.c(trunk.65) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
- * DESIGN
  *
- * .design: design.mps.poolawl
+ * .design: See design.mps.poolawl.  This is Dylan-specific pool.
+ *
  *
  * ASSUMPTIONS (about when to scan single references on accesses)
  *
@@ -41,12 +41,13 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.64) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.65) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
 
 #define AWLGen  ((Serial)1) /* "generation" for AWL pools */
+/* This and the dynamic criterion are the only ways AWL will get collected. */
 
 
 /* Statistics gathering about instruction emulation. 
@@ -80,9 +81,8 @@ typedef struct AWLStatTotalStruct {
 typedef struct AWLStruct {
   PoolStruct poolStruct;
   Shift alignShift;
-  ActionStruct actionStruct;
+  Chain chain;
   Size size;                /* allocated size in bytes */
-  Size survivors;           /* allocated size after last collection in bytes */
   Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
   AWLStatTotalStruct stats;
@@ -97,11 +97,6 @@ static Bool AWLCheck(AWL awl);
 
 #define PoolPoolAWL(pool) \
   PARENT(AWLStruct, poolStruct, (pool))
-
-
-/* ActionAWL -- converts action to the enclosing AWL */
-
-#define ActionAWL(action)        PARENT(AWLStruct, actionStruct, action)
 
 
 /* Conversion between indexes and Addrs */
@@ -146,7 +141,7 @@ extern SegClass EnsureAWLSegClass(void);
 static Bool AWLSegCheck(AWLSeg awlseg)
 {
   CHECKS(AWLSeg, awlseg);
-  CHECKL(GCSegCheck(&awlseg->gcSegStruct));
+  CHECKD(GCSeg, &awlseg->gcSegStruct);
   CHECKL(awlseg->mark != NULL);
   CHECKL(awlseg->scanned != NULL);
   CHECKL(awlseg->alloc != NULL);
@@ -508,14 +503,14 @@ static Res AWLInit(Pool pool, va_list arg)
   awl = PoolPoolAWL(pool);
 
   format = va_arg(arg, Format);
-
   AVERT(Format, format);
   pool->format = format;
+  awl->chain = va_arg(arg, Chain);
+  AVERT(Chain, awl->chain);
+
   awl->alignShift = SizeLog2(pool->alignment);
-  ActionInit(&awl->actionStruct, pool);
   awl->gen = AWLGen;
   awl->size = (Size)0;
-  awl->survivors = (Size)0;
 
   awl->succAccesses = 0;
   AWLStatTotalInit(awl);
@@ -543,7 +538,6 @@ static void AWLFinish(Pool pool)
     AVERT(Seg, seg);
     SegFree(seg);
   }
-  ActionFinish(&awl->actionStruct);
 }
 
 
@@ -706,7 +700,7 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
                                      BufferLimit(buffer));
   }
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   return ResOK;
 }
 
@@ -730,7 +724,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
-  if(!TraceSetIsMember(SegWhite(seg), trace->ti)) {
+  if(!TraceSetIsMember(SegWhite(seg), trace)) {
     AWL awl;
     AWLSeg awlseg;
 
@@ -739,10 +733,11 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     awlseg = SegAWLSeg(seg);
     AVERT(AWLSeg, awlseg);
 
-    SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace->ti));
+    SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
     if(SegBuffer(seg) != NULL) {
       Addr base = SegBase(seg);
       Buffer buffer = SegBuffer(seg);
+
       AWLRangeGrey(awlseg,
                    0,
 		   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
@@ -809,6 +804,8 @@ static Bool AWLDependentObject(Addr *objReturn, Addr parent)
 }
 
 
+/* awlScanObject -- scan a single object */
+
 static Res awlScanObject(Arena arena, ScanState ss,
                          FormatScanMethod scan, Addr base, Addr limit)
 {
@@ -848,6 +845,8 @@ static Res awlScanObject(Arena arena, ScanState ss,
   return res;
 }
 
+
+/* awlScanSinglePass -- a single scan pass over a segment */
 
 static Res awlScanSinglePass(Bool *anyScannedReturn,
                              ScanState ss, Pool pool,
@@ -915,6 +914,8 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   return ResOK;
 }
 
+
+/* AWLScan -- segment scan method for AWL */
 
 static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
@@ -1048,6 +1049,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   while(i < awlseg->grains) {
     Addr p, q;
     Index j;
+
     if(!BTGet(awlseg->alloc, i)) {
       ++i;
       continue;
@@ -1082,28 +1084,12 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(i == awlseg->grains);
 
   freed = (awlseg->free - oldFree) << awl->alignShift;
-  awl->size -= freed; awl->survivors = awl->size;
+  awl->size -= freed;
   trace->reclaimSize += freed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
-  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
+  SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   /* @@@@ never frees a segment */
-}
-
-
-/* AWLTraceBegin -- note trace start */
-
-static Res AWLTraceBegin(Pool pool, Trace trace)
-{
-  AWL awl;
-
-  AVERT(Pool, pool);
-  awl = PoolPoolAWL(pool);
-  AVERT(AWL, awl);
-  AVERT(Trace, trace);
-
-  awl->survivors = awl->size; /* stop attempts to restart */
-  return ResOK;
 }
 
 
@@ -1143,44 +1129,6 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   }
 
   return res;
-}
-
-
-/* AWLBenefit -- calculate the benefit of starting an AWL-only collection
- *
- * This is mostly for tests that only have AWL, but in pathological
- * situations AMC allocation might stop while AWL goes on.  Normally,
- * most allocation is in AMC, and we want AMC to start the collections,
- * as that collects younger generations too.  Just see of AWL has grown
- * enough since last collection (since it's a non-moving pool, this is
- * the nearest analog to capacity).
- */
-
-static double AWLBenefit(Pool pool, Action action)
-{
-  AWL awl;
-  double c;             /* frequency of collection, in kB of alloc */
-
-  AVERT(Pool, pool);
-  awl = PoolPoolAWL(pool);
-  AVERT(AWL, awl);
-  AVERT(Action, action);
-  AVER(awl == ActionAWL(action));
-
-  switch(awl->gen) {
-  case 0: c = TraceGen0Size; break;
-  case 1: c = TraceGen1Size; break;
-  case 2: c = TraceGen2Size; break;
-  default:
-    if(awl->gen == TraceFinalGen) {
-      return 0.0; /* Don't ever collect the final generation. */
-    } else {
-      c = TraceGen2Size + TraceGen2plusSizeMultiplier * awl->gen;
-    }
-    break;
-  }
-
-  return (awl->size - awl->survivors) - c * 1024.0;
 }
 
 
@@ -1252,7 +1200,6 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->bufferClass = EnsureRankBufClass;
   this->bufferFill = AWLBufferFill;
   this->bufferEmpty = AWLBufferEmpty;
-  this->traceBegin = AWLTraceBegin;
   this->access = AWLAccess;
   this->whiten = AWLWhiten;
   this->grey = AWLGrey;
@@ -1261,7 +1208,6 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->fix = AWLFix;
   this->fixEmergency = AWLFix;
   this->reclaim = AWLReclaim;
-  this->benefit = AWLBenefit;
   this->walk = AWLWalk;
 }
 
@@ -1280,8 +1226,6 @@ static Bool AWLCheck(AWL awl)
   CHECKD(Pool, &awl->poolStruct);
   CHECKL(awl->poolStruct.class == EnsureAWLPoolClass());
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
-  CHECKD(Action, &awl->actionStruct);
-  CHECKL(awl->size >= awl->survivors);
 
   /* 30 is just a sanity check really, not a constraint */
   CHECKL(0 <= awl->gen && awl->gen <= 30);
