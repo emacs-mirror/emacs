@@ -1,3 +1,12 @@
+2000-12-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (syms_of_xdisp): Doc fix.
+
+	* xdisp.c (redisplay_window): Remove label restore_buffers;
+	use finish_scroll_bars instead to make sure that scroll bars
+	are redeemed.  If we don't do this, flickering can result from
+	scroll bars being destroyed and recreated.
+
 2000-12-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_draw_bitmap): Fix drawing so it does not appear

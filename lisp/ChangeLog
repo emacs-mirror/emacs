@@ -1,3 +1,7 @@
+2000-12-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/compile.el (compilation-forget-errors): Fix indentation.
+
 2000-12-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* smerge-mode.el (smerge-basic-map): Use `=' rather than `d'.
