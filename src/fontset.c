@@ -79,6 +79,11 @@ struct font_info *(*query_font_func) P_ ((FRAME_PTR f, char *name));
 void (*set_frame_fontset_func) P_ ((FRAME_PTR f, Lisp_Object arg,
 				    Lisp_Object oldval));
 
+/* To find a CCL program, fs_load_font calls this function.
+   The argument is a pointer to the struct font_info.
+   This function set the memer `encoder' of the structure.  */
+void (*find_ccl_program_func) P_ ((struct font_info *));
+
 /* Check if any window system is used now.  */
 void (*check_window_system_func) P_ ((void));
 
@@ -234,19 +239,9 @@ fs_load_font (f, font_table, charset, fontname, fontset)
     }
 
   fontp->font_encoder = (struct ccl_program *) 0;
-  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCONS (list)->cdr)
-    {
-      elt = XCONS (list)->car;
-      if (CONSP (elt)
-	  && STRINGP (XCONS (elt)->car) && VECTORP (XCONS (elt)->cdr)
-	  && fast_c_string_match_ignore_case (XCONS (elt)->car, fontname) >= 0)
-	{
-	  fontp->font_encoder
-	    = (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
-	  setup_ccl_program (fontp->font_encoder, XCONS (elt)->cdr);
-	  break;
-	}
-    }
+
+  if (find_ccl_program_func)
+    (*find_ccl_program_func) (fontp);
 
   /* If FONTSET is specified, setup various fields of it.  */
   if (fontsetp)
@@ -449,12 +444,14 @@ fontset_pattern_regexp (pattern)
   return CACHED_FONTSET_REGEX;
 }
 
-DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 1, 0,
+DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
   "Return a fontset name which matches PATTERN, nil if no matching fontset.\n\
 PATTERN can contain `*' or `?' as a wild card\n\
-just like X's font name matching algorithm allows.")
-  (pattern)
-     Lisp_Object pattern;
+just like X's font name matching algorithm allows.\n\
+If REGEXPP is non-nil, pattern is regexp;\n\
+so PATTERN is considered as regular expression.")
+  (pattern, regexpp)
+     Lisp_Object pattern, regexpp;
 {
   Lisp_Object regexp, tem;
 
@@ -469,7 +466,10 @@ just like X's font name matching algorithm allows.")
   if (!NILP (tem))
     return Fcar (tem);
 
-  regexp = fontset_pattern_regexp (pattern);
+  if (NILP (regexpp))
+    regexp = fontset_pattern_regexp (pattern);
+  else
+    regexp = pattern;
 
   for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
     {
@@ -566,7 +566,7 @@ FONTLIST is an alist of charsets vs corresponding font names.")
   CHECK_STRING (name, 0);
   CHECK_LIST (fontlist, 1);
 
-  fullname = Fquery_fontset (name);
+  fullname = Fquery_fontset (name, Qnil);
   if (!NILP (fullname))
     error ("Fontset \"%s\" matches the existing fontset \"%s\"",
 	   XSTRING (name)->data, XSTRING (fullname)->data);
@@ -621,7 +621,7 @@ If FRAME is omitted or nil, all frames are affected.")
   if ((charset = get_charset_id (charset_symbol)) < 0)
     error ("Invalid charset: %s", XSYMBOL (charset_symbol)->name->data);
 
-  fullname = Fquery_fontset (name);
+  fullname = Fquery_fontset (name, Qnil);
   if (NILP (fullname))
     error ("Fontset \"%s\" does not exist", XSTRING (name)->data);
 
