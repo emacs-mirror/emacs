@@ -1588,11 +1588,17 @@ extern Lisp_Object Fread_no_blanks_input ();
 
 /* Defined in callint.c */
 
+extern int current_prefix_partial;
 extern Lisp_Object Qminus, Qplus, Vcurrent_prefix_arg, Vprefix_arg;
 extern Lisp_Object Vcommand_history;
 extern Lisp_Object Qcall_interactively;
 extern Lisp_Object Fcall_interactively ();
 extern Lisp_Object Fprefix_numeric_value ();
+extern Lisp_Object Funiversal_argument ();
+extern Lisp_Object Fnegative_argument ();
+extern Lisp_Object Fdigit_argument ();
+extern void clear_prefix_arg ();
+extern void finalize_prefix_arg ();
 
 /* defined in casefiddle.c */
 
@@ -1605,7 +1611,6 @@ extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
 extern Lisp_Object Qvertical_scroll_bar;
-extern void clear_prefix_arg ();
 
 /* defined in keymap.c */
 
