@@ -226,7 +226,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (set (make-local-variable 'paragraph-separate)
        (concat paragraph-separate "\\|\\(" outline-regexp "\\)"))
   (set (make-local-variable 'font-lock-defaults)
-       '(outline-font-lock-keywords t nil nil 'backward-paragraph))
+       '(outline-font-lock-keywords t nil nil backward-paragraph))
   (setq imenu-generic-expression
 	(list (list nil (concat outline-regexp ".*$") 0)))
   (add-hook 'change-major-mode-hook 'show-all nil t))
@@ -303,9 +303,12 @@ at the end of the buffer."
   (re-search-backward (concat "^\\(" outline-regexp "\\)")
 		      nil 'move))
 
-(defsubst outline-visible ()
-  "Non-nil if the character after point is visible."
-  (not (get-char-property (point) 'invisible)))
+(defsubst outline-invisible-p ()
+  "Non-nil if the character after point is invisible."
+  (get-char-property (point) 'invisible))
+(defun outline-visible ()
+  "Obsolete.  Use `outline-invisible-p'."
+  (not (outline-invisible-p)))
 
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
@@ -475,12 +478,9 @@ Show the heading too, if it is currently invisible."
 	(while (not (eobp))
 	  (outline-flag-region (point)
 			       (progn (outline-next-preface) (point)) t)
-	  (if (not (eobp))
-	      (progn
-		(forward-char
-		 (if (looking-at "\n\n")
-		     2 1))
-		(outline-end-of-heading)))))))
+	  (unless (eobp)
+	    (forward-char (if (looking-at "\n\n") 2 1))
+	    (outline-end-of-heading))))))
   (run-hooks 'outline-view-change-hook))
 
 (defun show-all ()
@@ -497,8 +497,9 @@ Show the heading too, if it is currently invisible."
   "Hide all body after this heading at deeper levels."
   (interactive)
   (outline-back-to-heading)
-  (outline-end-of-heading)
-  (hide-region-body (point) (progn (outline-end-of-subtree) (point))))
+  (save-excursion
+    (outline-end-of-heading)
+    (hide-region-body (point) (progn (outline-end-of-subtree) (point)))))
 
 (defun show-subtree ()
   "Show everything after this heading at deeper levels."
@@ -535,7 +536,7 @@ Show the heading too, if it is currently invisible."
     (save-excursion
       (outline-back-to-heading t)
       (show-entry)
-      (while (condition-case nil (progn (outline-up-heading 1) t)
+      (while (condition-case nil (progn (outline-up-heading 1) (not (bobp)))
 	       (error nil))
 	(outline-flag-region (1- (point))
 			     (save-excursion (forward-line 1) (point))
