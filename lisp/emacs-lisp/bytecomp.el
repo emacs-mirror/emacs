@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.117 $")
+(defconst byte-compile-version "$Revision: 2.118 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -782,19 +782,27 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	  ;; Go through load-history, look for newly loaded files
 	  ;; and mark all the functions defined therein.
 	  (while (and hist-new (not (eq hist-new hist-orig)))
-	    (let ((xs (pop hist-new)))
+	    (let ((xs (pop hist-new))
+		  old-autoloads)
 	      ;; Make sure the file was not already loaded before.
 	      (unless (assoc (car xs) hist-orig)
 		(dolist (s xs)
 		  (cond
-		   ((symbolp s) (put s 'byte-compile-noruntime t))
+		   ((symbolp s)
+		    (unless (memq s old-autoloads)
+		      (put s 'byte-compile-noruntime t)))
+		   ((and (consp s) (eq t (car s)))
+		    (push s old-autoloads))
 		   ((and (consp s) (eq 'autoload (car s)))
 		    (put (cdr s) 'byte-compile-noruntime t)))))))
 	  ;; Go through current-load-list for the locally defined funs.
-	  (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))
-	    (let ((s (pop hist-nil-new)))
-	      (when (symbolp s)
-		(put s 'byte-compile-noruntime t)))))))))
+	  (let (old-autoloads)
+	    (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))
+	      (let ((s (pop hist-nil-new)))
+		(when (and (symbolp s) (not (memq s old-autoloads)))
+		  (put s 'byte-compile-noruntime t))
+		(when (and (consp s) (eq t (car s)))
+		  (push s old-autoloads))))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."
@@ -1245,6 +1253,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			'(cl-block-wrapper cl-block-throw
 			  multiple-value-call nth-value
 			  copy-seq first second rest endp cl-member
+			  ;; These are included in generated code
+			  ;; that can't be called except at compile time
+			  ;; or unless cl is loaded anyway.
+			  cl-defsubst-expand cl-struct-setf-expander
 			  ;; These would sometimes be warned about
 			  ;; but such warnings are never useful,
 			  ;; so don't warn about them.
