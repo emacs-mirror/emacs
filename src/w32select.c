@@ -99,10 +99,10 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
   BOOL ok = TRUE;
   HANDLE htext;
   int nbytes;
-  int truelen;
+  int truelen, nlines = 0;
   unsigned char *src;
   unsigned char *dst;
-  
+
   CHECK_STRING (string, 0);
   
   if (!NILP (frame))
@@ -112,6 +112,16 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 
   nbytes = STRING_BYTES (XSTRING (string)) + 1;
   src = XSTRING (string)->data;
+  dst = src;
+
+  /* We need to know how many lines there are, since we need CRLF line
+     termination for compatibility with other Windows Programs.
+     avoid using strchr because it recomputes the length every time */
+  while ((dst = memchr (dst, '\n', nbytes - (dst - src))) != NULL)
+    {
+      nlines++;
+      dst++;
+    }
 
   {
     /* Since we are now handling multilingual text, we must consider
@@ -134,14 +144,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	   standard CF_TEXT clipboard format uses CRLF line endings,
 	   while Emacs uses just LF internally).  */
 
-	truelen = nbytes;
-	dst = src;
-	/* avoid using strchr because it recomputes the length everytime */
-	while ((dst = memchr (dst, '\n', nbytes - (dst - src))) != NULL)
-	  {
-	    truelen++;
-	    dst++;
-	  }
+	truelen = nbytes + nlines;
 
 	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, truelen)) == NULL)
 	  goto error;
@@ -191,7 +194,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	  (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
 	Vnext_selection_coding_system = Qnil;
 	coding.mode |= CODING_MODE_LAST_BLOCK;
-	bufsize = encoding_buffer_size (&coding, nbytes);
+	bufsize = encoding_buffer_size (&coding, nbytes) + nlines;
 	if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, bufsize)) == NULL)
 	  goto error;
 	if ((dst = (unsigned char *) GlobalLock (htext)) == NULL)
