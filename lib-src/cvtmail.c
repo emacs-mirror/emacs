@@ -1,9 +1,9 @@
-/* Copyright (C) 1985 Free Software Foundation
+/* Copyright (C) 1985, 1994 Free Software Foundation
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -29,13 +29,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * be mv'ed to ~/mbox, and then have rmail invoked on them.
  * 
  * Author: Larry Kolodney, 1985
-
- * RMS, 2 Sept 85: Removed fix maximums on file name sizes.
  */
 
 
 #include <stdio.h>
 
+char *malloc ();
+char *realloc ();
+char *xmalloc ();
+char *xrealloc ();
+char *getenv ();
 
 main (argc, argv)
      int argc;
@@ -108,22 +111,22 @@ skip_to_lf (stream)
     ;
 }
 
-int
+char *
 xmalloc (size)
-     int size;
+     unsigned size;
 {
-  int result = malloc (size);
+  char *result = malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
 
-int
+char *
 xrealloc (ptr, size)
      char *ptr;
-     int size;
+     unsigned size;
 {
-  int result = realloc (ptr, size);
+  char *result = realloc (ptr, size);
   if (!result)
     fatal ("virtual memory exhausted");
   return result;
@@ -141,7 +144,7 @@ fatal (s1, s2)
 error (s1, s2)
      char *s1, *s2;
 {
-  printf ("cvtmail: ");
-  printf (s1, s2);
-  printf ("\n");
+  fprintf (stderr, "cvtmail: ");
+  fprintf (stderr, s1, s2);
+  fprintf (stderr, "\n");
 }
