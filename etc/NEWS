@@ -3317,7 +3317,8 @@ and `display-warning'.
 ** The functions all-completions and try-completion now accept lists
 of strings as well as hash-tables additionally to alists, obarrays
 and functions.  Furthermore, the function `test-completion' is now
-exported to Lisp.
+exported to Lisp.  The keys in alists and hash tables may be either
+strings or symbols, which are automatically converted with to strings.
 
 ---
 ** When pure storage overflows while dumping, Emacs now prints how

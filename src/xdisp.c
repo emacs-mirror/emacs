@@ -20776,7 +20776,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
      have a STOP object and previous row's end glyph came from STOP.  */
   if (!NILP (stop))
     {
-      struct glyph_row *prev = row-1;
+      struct glyph_row *prev;
       while ((prev = row - 1, prev >= first)
 	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
 	     && prev->used[TEXT_AREA] > 0)
@@ -20785,8 +20785,8 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 	  glyph = end + prev->used[TEXT_AREA];
 	  while (--glyph >= end
 		 && INTEGERP (glyph->object));
-	  if (glyph >= end
-	      && !EQ (stop, glyph->object))
+	  if (glyph < end
+	      || !EQ (stop, glyph->object))
 	    break;
 	  row = prev;
 	}

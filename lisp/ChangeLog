@@ -1,3 +1,39 @@
+2005-02-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Comment change.
+
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/hideif.el (hide-ifdef-use-define-alist): Use
+	completing-read.  Suggested by Juan-Leon Lahoz Garcia.
+
+2005-02-22  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-netscape-new-window-is-tab): New
+	variable.
+	(browse-url-netscape): Use it.  Suggested by "Johann 'Myrkraverk'
+	Oskarsson" <myrkraverk@users.sourceforget.net>.
+
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-on-link-p): If arg POS is a mouse event,
+	check that window of that event is the selected window.
+	(mouse-drag-region-1): Compare mouse event window to selected
+	window before setting point.
+
+	* tooltip.el (tooltip-show-help-function): Pass event to
+	mouse-on-link-p so it can check selected window.
+
+2005-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-header-string-charsets): Delete it.
+	(ps-mule-show-warning): New function.
+	(ps-mule-begin-job): Use ps-mule-show-warning if unprintable
+	characters are found.
+
+	* ps-print.el (ps-header-footer-string): Return a list of header
+	and footer strings.
+
 2005-02-21  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* pcvs.el (cvs-retrieve-revision): Fix thinko.

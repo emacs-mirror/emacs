@@ -1,3 +1,19 @@
+2005-02-23  Lute Kamstra  <lute@gnu.org>
+
+	* buffer.c (Foverlay_buffer): Doc fix.
+
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Allow both string
+	and symbol keys in alists and hash tables.
+
+	* xdisp.c (fast_find_position): Fix search for start of overlay.
+
+2005-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_scroll_pixel_based): When scrolling backwards,
+	handle partial visible line at end of window even when we hit PT.
+
 2005-02-21  Stefan  <monnier@iro.umontreal.ca>
 
 	* keymap.h: Declare Fcurrent_active_maps, used in doc.c.

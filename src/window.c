@@ -4765,6 +4765,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
   else if (n < 0)
     {
       int charpos, bytepos;
+      int partial_p;
 
       /* Save our position, for the preserve_y case.  */
       charpos = IT_CHARPOS (it);
@@ -4776,7 +4777,20 @@ window_scroll_pixel_based (window, n, whole, noerror)
 		  it.last_visible_y - this_scroll_margin - 1, -1,
 		  MOVE_TO_POS | MOVE_TO_Y);
 
-      if (IT_CHARPOS (it) == PT)
+      /* Save our position, in case it's correct.  */
+      charpos = IT_CHARPOS (it);
+      bytepos = IT_BYTEPOS (it);
+
+      /* See if point is on a partially visible line at the end.  */
+      if (it.what == IT_EOB)
+	partial_p = it.current_y + it.ascent + it.descent > it.last_visible_y;
+      else
+	{
+	  move_it_by_lines (&it, 1, 1);
+	  partial_p = it.current_y > it.last_visible_y;
+	}
+
+      if (charpos == PT && !partial_p)
 	/* We found PT before we found the display margin, so PT is ok.  */
 	;
       else if (preserve_y >= 0)
@@ -4797,14 +4811,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	}
       else
 	{
-	  /* Save our position, in case it's correct.  */
-	  charpos = IT_CHARPOS (it);
-	  bytepos = IT_BYTEPOS (it);
-
-	  /* See if point is on a partially visible line at the end.  */
-	  move_it_by_lines (&it, 1, 1);
-
-	  if (it.current_y > it.last_visible_y)
+	  if (partial_p)
 	    /* The last line was only partially visible, so back up two
 	       lines to make sure we're on a fully visible line.  */
 	    {
