@@ -25,20 +25,12 @@
 
 ;;; Commentary:
 ;;
-;; Purpose of this package:
-;;   1. Expand abbreviations only when they are at the end of a line and not
-;;   in a comment or in a string.
-;;   2. Position the cursor after expansion to a place specified by advance.
-;;   3. Indent the expanded region.
-;;   4. If a list of points as been provided with the abbreviation definition,
-;;   the functions expand-jump-to-previous-mark and expand-jump-to-next-mark
-;;   moved from mark to mark.
-;;
-;; Installation:
-;;   * store this file somewhere in your load-path and byte compile it.
-;;   * put (require 'expand) in your .emacs or in site-start.el or generate
-;; autoloads.
-;;   * and according to the mode install your expansion table.
+;; This package defines abbrevs which expand into structured constructs
+;; for certain languages.  The construct is indented for you,
+;; and contains points for you to ;; fill in other text.
+
+;; These abbrevs expand only at the end of a line and when not in a comment
+;; or a string.
 ;;
 ;;   Look at the Sample: section for emacs-lisp, perl and c expand lists.
 ;; For example for c-mode, you could declare your abbrev table with :
@@ -58,7 +50,7 @@
 ;; 
 ;;   and enter Expand mode with the following hook :
 ;;
-;; (add-hook 'c-mode-hook (function (lambda()
+;; (add-hook 'c-mode-hook (function (lambda ()
 ;; 				   (expand-add-abbrevs c-mode-abbrev-table c-expand-list)
 ;; 				   (expand-mode))))
 ;;
@@ -67,7 +59,7 @@
 ;;
 ;; (add-hook 'expand-mode-load-hook
 ;; 	  (function
-;; 	   (lambda()
+;; 	   (lambda ()
 ;; 	     (add-hook 'expand-expand-hook 'indent-according-to-mode)
 ;; 	     (add-hook 'expand-jump-hook 'indent-according-to-mode)
 ;; 	     (define-key expand-map '[(control tab)] 'expand-jump-to-next-mark)
@@ -88,7 +80,7 @@
 
 ;;; Constants:
 
-(defconst expand-mode-version "$Id: expand.el,v 1.13 1996/11/23 18:59:53 fred Exp $"
+(defconst expand-mode-version "$Id: expand.el,v 1.1 1996/12/28 19:41:45 rms Exp rms $"
   "Version tag for expand.el.")
 
 (defconst expand-mode-help-address "expand-help@sugix.frmug.org"
@@ -284,7 +276,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun expand-mode(&optional arg)
+(defun expand-mode (&optional arg)
   "Toggle Expand mode.
 With argument ARG, turn Expand mode on if ARG is positive.
 In Expand mode, inserting an abbreviation at the end of a line
@@ -300,7 +292,6 @@ causes it to expand and be replaced by its expansion."
 ;;;###autoload
 (defvar expand-map (make-sparse-keymap)
   "Key map used in Expand mode.")
-(define-key expand-map " " 'expand-template-abbreviation)
 
 (or (assq 'expand-mode minor-mode-alist)
     (setq minor-mode-alist (cons (list 'expand-mode expand-mode-name)
@@ -312,22 +303,27 @@ causes it to expand and be replaced by its expansion."
  
 ;;;###autoload
 (defun expand-add-abbrevs (table abbrevs)
-  "Add a list of abbrev to the table.
-Each abbrev description entry has the following format :
-	(abbrev expansion arg)
-where
-      abbrev is the abbreviation to replace.
-      expansion is the replacement string or a function which will make
-the expansion. For example you could use the DMacros or skeleton packages
+  "Add a list of abbrev to abbrev table TABLE.
+ABBREVS is a list of abbrev definitions; each abbrev description entry
+has the form (ABBREV EXPANSION ARG).
+
+ABBREV is the abbreviation to replace.
+
+EXPANSION is the replacement string or a function which will make the
+expansion.  For example you, could use the DMacros or skeleton packages
 to generate such functions.
-      arg is an optional  element which can be a  number or a  list of
-numbers. If arg is a  number, the cursor will be  placed at arg  chars
-from  the beginning of  the expanded text.   If expansion is a list of
-numbers the cursor will be placed according to the first number of the
-list from the beginning of the expanded text and  marks will be placed
-and you  will  be able to  visit  them  cyclicaly  with the  functions
-expand-jump-to-previous-mark  and expand-jump-to-next-mark. If arg  is
-omitted, the cursor will be placed at the end of the expanded text."
+
+ARG is an optional argument which can be a number or a list of
+numbers.  If ARG is a number, point is placed ARG chars from the
+beginning of the expanded text.
+
+If ARG is a list of numbers, point is placed according to the first
+member of the list, but you can visit the other specified positions
+cyclicaly with the functions `expand-jump-to-previous-mark' and
+`expand-jump-to-next-mark'.
+
+If ARG is omitted, point is placed at the end of the expanded text."
+
   (if (null abbrevs)
       table
     (expand-add-abbrev table (nth 0 (car abbrevs)) (nth 1 (car abbrevs))
@@ -342,7 +338,7 @@ This variable is local to a buffer.")
 (make-variable-buffer-local 'expand-pos)
 
 (defvar expand-index 0
-  "Index of the last marker used in expand-pos.
+  "Index of the last marker used in `expand-pos'.
 This variable is local to a buffer.")
 (make-variable-buffer-local 'expand-index)
 
@@ -376,25 +372,10 @@ This variable is local to a buffer.")
 	      )
       'expand-abbrev-hook)))
 
-;;;###autoload
-(defun expand-template-abbreviation(arg)
-  "Do the expansion job if we are at the end of a line or insert space."
-  (interactive "p")
-  (or (expand-try-to-expand)
-      (self-insert-command arg)))
-
-;; Try to expand an abbrev. On success check if it is an Expand mode abbrev
-;; else undo the expansion.
-(defun expand-try-to-expand()
-  (if (not (expand-abbrev))
-      nil
-    (if (not (stringp (symbol-value last-abbrev)))
-	t
-      (unexpand-abbrev)
-      nil)))
-
-(defun expand-abbrev-hook()
-  "Abbrev hook used to do the expansion job of expand abbrevs. See `expand-add-abbrevs'."
+(put 'expand-abbrev-hook 'no-self-insert t)
+(defun expand-abbrev-hook ()
+  "Abbrev hook used to do the expansion job of expand abbrevs.
+See `expand-add-abbrevs'."
   ;; Expand only at the end of a line if we are near a word that has
   ;; an abbrev built from expand-add-abbrev.
   (if (and (eolp)
@@ -423,7 +404,7 @@ This variable is local to a buffer.")
 	      t))))
   )
 
-(defun expand-do-expansion()
+(defun expand-do-expansion ()
   (delete-backward-char (length last-abbrev-text))
   (let* ((vect (symbol-value last-abbrev))
 	 (text (aref vect 0))
@@ -442,7 +423,7 @@ This variable is local to a buffer.")
     t)
   )
 
-(defun expand-abbrev-from-expand(word)
+(defun expand-abbrev-from-expand (word)
   "Test if an abbrev has a hook."
   (or
    (and (intern-soft word local-abbrev-table)
@@ -457,7 +438,7 @@ This variable is local to a buffer.")
       (backward-word 1)
       (buffer-substring p (point)))))
 
-(defun expand-jump-to-previous-mark()
+(defun expand-jump-to-previous-mark ()
   "Move the cursor to previous mark created by the expansion."
   (interactive)
   (if expand-pos
@@ -468,7 +449,7 @@ This variable is local to a buffer.")
 	(goto-char (aref expand-pos expand-index))
 	(run-hooks 'expand-jump-hook))))
 
-(defun expand-jump-to-next-mark()
+(defun expand-jump-to-next-mark ()
   "Move the cursor to next mark created by the expansion."
   (interactive)
   (if expand-pos
@@ -556,10 +537,11 @@ This variable is local to a buffer.")
     v))
 
 ;; integration with skeleton.el
+;; Used in `skeleton-end-hook' to fetch the positions for  @ skeleton tags.
+;; See `skeleton-insert'.
 (defun expand-skeleton-end-hook ()
-  "`skeleton-end-hook' to enable expand marks jumps for @ skeleton tags see `skeleton-insert'."
-  (if skeleton-marks
-      (setq expand-list skeleton-marks)))
+  (if skeleton-positions
+      (setq expand-list skeleton-positions)))
   
 (add-hook 'skeleton-end-hook (function expand-skeleton-end-hook))
 
