@@ -1085,7 +1085,7 @@ Read the Emacs Manual\tView the Emacs manual using Info
 	   :face variable-pitch
 	   "\
 Copying Conditions\tConditions for redistributing and changing Emacs
-Ordering Manuals\tBuying printed Emacs manuals from the Free Software Foundation\n")
+More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face variable-pitch
 	   "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n\n"
@@ -1364,7 +1364,7 @@ Read the Emacs Manual	View the Emacs manual using Info
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
 Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
-Ordering Manuals	How to order printed manuals from the FSF.
+More Manuals / Ordering Manuals    How to order printed manuals from the FSF.
 ")
 	    (insert "\n\n" (emacs-version)
 			    "
