@@ -171,10 +171,13 @@ SUBDIR = lib-src src
 # The makefiles of the directories in $SUBDIR.
 SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile
 
-# Subdirectories to install, and where they'll go.  lib-src's makefile
-# knows how to install it, so we don't do that here.
-COPYDIR = etc ${srcdir}/info ${srcdir}/lisp
-COPYDESTS = ${etcdir} ${infodir} ${lispdir}
+# Subdirectories to install, and where they'll go.
+# lib-src's makefile knows how to install it, so we don't do that here.
+# When installing the info files, we need to do special things to
+# avoid nuking an existing dir file, so we don't do that here;
+# instead, we have written out explicit code in the `install' targets.
+COPYDIR = etc ${srcdir}/lisp
+COPYDESTS = ${etcdir} ${lispdir}
 
 all:	src/paths.h ${SUBDIR}
 
