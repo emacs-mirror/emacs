@@ -1,3 +1,8 @@
+2002-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (directory-free-space-args): Don't use `-P' on Darwin.
+	* term/mac-win.el: Don't set it here.
+
 2002-06-29  Andreas Schwab  <schwab@suse.de>
 
 	* term/mac-win.el: Use directory-free-space-program instead of
