@@ -1,3 +1,8 @@
+2001-08-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* image.el (image-jpeg-p): Test for APPn markers in the range
+	#xe0..#xef.
+
 2001-08-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* desktop.el (desktop-save): Don't use concat to form a file
