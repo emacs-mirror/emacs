@@ -2456,6 +2456,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	  *buffer++ = 0x0d;
 	  count--;
 	  nchars++;
+	  fd_info[fd].flags &= ~FILE_LAST_CR;
 	}
 
       /* presence of a child_process structure means we are operating in
@@ -2471,8 +2472,10 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	    case STATUS_READ_FAILED:
 	    case STATUS_READ_ERROR:
-	      /* report normal EOF */
-	      return 0;
+	      /* report normal EOF if nothing in buffer */
+	      if (nchars <= 0)
+		fd_info[fd].flags |= FILE_AT_EOF;
+	      return nchars;
 
 	    case STATUS_READ_READY:
 	    case STATUS_READ_IN_PROGRESS:
@@ -2501,8 +2504,9 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	      PeekNamedPipe ((HANDLE) _get_osfhandle (fd), NULL, 0, NULL, &waiting, NULL);
 	      to_read = min (waiting, (DWORD) count);
-      
-	      nchars += _read (fd, buffer, to_read);
+
+	      if (to_read > 0)
+		nchars += _read (fd, buffer, to_read);
 	    }
 #ifdef HAVE_SOCKETS
 	  else /* FILE_SOCKET */
@@ -2534,10 +2538,18 @@ sys_read (int fd, char * buffer, unsigned int count)
 #endif
 	}
       else
-	nchars += _read (fd, buffer, count);
+	{
+	  int nread = _read (fd, buffer, count);
+	  if (nread >= 0)
+	    nchars += nread;
+	  else if (nchars == 0)
+	    nchars = nread;
+	}
 
+      if (nchars <= 0)
+	fd_info[fd].flags |= FILE_AT_EOF;
       /* Perform text mode translation if required.  */
-      if ((fd_info[fd].flags & FILE_BINARY) == 0)
+      else if ((fd_info[fd].flags & FILE_BINARY) == 0)
 	{
 	  nchars = crlf_to_lf (nchars, orig_buffer);
 	  /* If buffer contains only CR, return that.  To be absolutely
@@ -2549,8 +2561,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      fd_info[fd].flags |= FILE_LAST_CR;
 	      nchars--;
 	    }
-	  else
-	    fd_info[fd].flags &= ~FILE_LAST_CR;
 	}
     }
   else
@@ -2631,6 +2641,50 @@ sys_write (int fd, const void * buffer, unsigned int count)
   return nchars;
 }
 
+static void
+check_windows_init_file ()
+{
+  extern int noninteractive, inhibit_window_system;
+
+  /* A common indication that Emacs is not installed properly is when
+     it cannot find the Windows installation file.  If this file does
+     not exist in the expected place, tell the user.  */
+
+  if (!noninteractive && !inhibit_window_system) {
+    extern Lisp_Object Vwindow_system, Vload_path;
+    Lisp_Object init_file;
+    int fd;
+
+    init_file = build_string ("term/w32-win");
+    fd = openp (Vload_path, init_file, ".el:.elc", NULL, 0);
+    if (fd < 0) {
+      Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
+      char *init_file_name = XSTRING (init_file)->data;
+      char *load_path = XSTRING (load_path_print)->data;
+      char *buffer = alloca (1024);
+
+      sprintf (buffer, 
+	       "The Emacs Windows initialization file \"%s.el\" "
+	       "could not be found in your Emacs installation.  "
+	       "Emacs checked the following directories for this file:\n"
+	       "\n%s\n\n"
+	       "When Emacs cannot find this file, it usually means that it "
+	       "was not installed properly, or its distribution file was "
+	       "not unpacked properly.\nSee the README.W32 file in the "
+	       "top-level Emacs directory for more information.",
+	       init_file_name, load_path);
+      MessageBox (NULL,
+		  buffer,
+		  "Emacs Abort Dialog",
+		  MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
+      close (fd);
+
+      /* Use the low-level Emacs abort. */
+#undef abort
+      abort ();
+    }
+  }
+}
 
 void
 term_ntproc ()
@@ -2639,6 +2693,12 @@ term_ntproc ()
   /* shutdown the socket interface if necessary */
   term_winsock ();
 #endif
+
+  /* Check whether we are shutting down because we cannot find the
+     Windows initialization file.  Do this during shutdown so that
+     Emacs is initialized as possible, and so that it is out of the 
+     critical startup path.  */
+  check_windows_init_file ();
 }
 
 void
