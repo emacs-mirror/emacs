@@ -433,7 +433,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   '("Get New Mail" . rmail-get-new-mail))
 
 (define-key rmail-mode-map [menu-bar mail lambda]
-  "----")
+  '("----"))
 
 (define-key rmail-mode-map [menu-bar mail continue]
   '("Continue" . rmail-continue))
