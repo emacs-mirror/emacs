@@ -1,3 +1,8 @@
+2002-03-21  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (dispnew.o, sysdep.o, xdisp.o, xselect.o, alloc.o):
+	Depend on process.h.
+
 2002-03-20  Jason Rumney  <jasonr@gnu.org>
 
 	Most of the following changes are still conditional on HAVE_IMAGES
