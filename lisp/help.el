@@ -412,21 +412,19 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
      (list (if (equal val "")
 	       fn (intern val))
 	   current-prefix-arg)))
-  (let* ((binding (and (symbolp definition) (commandp definition)
-		       (key-binding definition nil t)))
-	 (remap (and (symbolp binding) (commandp binding) binding))
-	 (keys (where-is-internal definition overriding-local-map nil nil remap))
+  (let* ((remapped (remap-command definition))
+	 (keys (where-is-internal definition overriding-local-map nil nil remapped))
 	 (keys1 (mapconcat 'key-description keys ", "))
 	 (standard-output (if insert (current-buffer) t)))
     (if insert
 	(if (> (length keys1) 0)
-	    (if remap
-		(princ (format "%s (%s) (remapped from %s)" keys1 remap definition))
+	    (if remapped
+		(princ (format "%s (%s) (remapped from %s)" keys1 remapped definition))
 	      (princ (format "%s (%s)" keys1 definition)))
 	  (princ (format "M-x %s RET" definition)))
       (if (> (length keys1) 0)
-	  (if remap
-	      (princ (format "%s is remapped to %s which is on %s" definition remap keys1))
+	  (if remapped
+	      (princ (format "%s is remapped to %s which is on %s" definition remapped keys1))
 	    (princ (format "%s is on %s" definition keys1)))
 	(princ (format "%s is not on any key" definition)))))
   nil)
