@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(MMdevel_drj_arena_hysteresis.11) $
+ * $HopeName: MMsrc!arenavm.c(trunk.57) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -32,7 +32,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(MMdevel_drj_arena_hysteresis.11) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.57) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -1659,6 +1659,94 @@ static void VMArenaHysteresisRemovePage(VMArenaChunk chunk, Index pi)
 }
 
 
+static Res VMArenaSegMap(VMArena vmArena, VMArenaChunk chunk,
+                         Seg seg, Index baseIndex,
+			 Count pages, Addr segLimit,
+                         Pool pool)
+{
+  Index i;
+  Index limitIndex;
+  Index mappedBase, mappedLimit;
+  Index unmappedBase, unmappedLimit;
+  Res res;
+
+  /* Ensure that the page descriptors we need are on mapped pages. */
+  res = VMArenaEnsurePageTableMapped(chunk, baseIndex, baseIndex + pages);
+  if(res != ResOK)
+    goto failTableMap;
+
+  mappedBase = baseIndex;
+  mappedLimit = mappedBase;
+  limitIndex = baseIndex + pages;
+
+  do {
+    while(VMArenaPageIsMapped(chunk, mappedLimit)) {
+      ++mappedLimit;
+      if(mappedLimit >= limitIndex) {
+	break;
+      }
+    }
+    AVER(mappedLimit <= limitIndex);
+    /* NB for loop will loop 0 times iff first page is not mapped */
+    for(i = mappedBase; i < mappedLimit; ++i) {
+      VMArenaHysteresisRemovePage(chunk, i);
+      VMArenaPageAlloc(chunk, i, baseIndex, pages, segLimit, seg, pool);
+    }
+    if(mappedLimit >= limitIndex)
+      break;
+    unmappedBase = mappedLimit;
+    unmappedLimit = unmappedBase;
+    while(!VMArenaPageIsMapped(chunk, unmappedLimit)) {
+      ++unmappedLimit;
+      if(unmappedLimit >= limitIndex) {
+        break;
+      }
+    }
+    AVER(unmappedLimit <= limitIndex);
+    res = VMArenaMap(vmArena, chunk->vm, 
+		     PageIndexBase(chunk, unmappedBase),
+		     PageIndexBase(chunk, unmappedLimit));
+    if(res != ResOK) {
+      goto failPagesMap;
+    }
+    for(i = unmappedBase; i < unmappedLimit; ++i) {
+      VMArenaPageAlloc(chunk, i, baseIndex, pages, segLimit, seg, pool);
+    }
+    mappedBase = unmappedLimit;
+    mappedLimit = mappedBase;
+  } while(mappedLimit < limitIndex);
+  AVER(mappedLimit == limitIndex);
+
+  return ResOK;
+
+failPagesMap:
+  /* region from baseIndex to mappedLimit needs unmapping */
+  if(baseIndex < mappedLimit) {
+    VMArenaUnmap(vmArena, chunk->vm,
+		 PageIndexBase(chunk, baseIndex),
+		 PageIndexBase(chunk, mappedLimit));
+    /* mark pages as free */
+    SegFinish(PageSeg(&chunk->pageTable[baseIndex]));
+    for(i = baseIndex; i < mappedLimit; ++i) {
+      VMArenaPageFree(chunk, i);
+    }
+  }
+  {
+    Index pageTableBaseIndex, pageTableLimitIndex;
+    /* find which pages of page table were affected */
+    VMArenaTablePagesUsed(&pageTableBaseIndex, &pageTableLimitIndex,
+			  chunk, baseIndex, limitIndex);
+    /* Resetting the noLatentPages bits is lazy, it means that */
+    /* we don't have to bother trying to unmap unused portions */
+    /* of the pageTable. */
+    BTResRange(chunk->noLatentPages,
+	       pageTableBaseIndex, pageTableLimitIndex);
+  }
+failTableMap:
+  return res;
+}
+
+
 /* VMSegAllocComm -- allocate a segment from the arena
  *
  * Common code used by mps_arena_class_vm and
@@ -1673,11 +1761,7 @@ static Res VMSegAllocComm(Seg *segReturn,
   Addr segBase, segLimit;
   Arena arena;
   Count pages;
-  Index i;
-  Index baseIndex, limitIndex;
-  Index mappedBase, mappedLimit;
-  Index pageTableBaseIndex, pageTableLimitIndex;
-  Index unmappedBase, unmappedLimit;
+  Index baseIndex;
   RefSet segRefSet;
   Res res;
   Seg seg;
@@ -1727,52 +1811,20 @@ static Res VMSegAllocComm(Seg *segReturn,
   /* Compute number of pages to be allocated. */
   pages = size >> chunk->pageShift;
 
-  /* Ensure that the page descriptors we need are on mapped pages. */
-  res = VMArenaEnsurePageTableMapped(chunk, baseIndex, baseIndex + pages);
-  if(res != ResOK)
-    goto failTableMap;
-
-  mappedBase = baseIndex;
-  mappedLimit = mappedBase;
-  limitIndex = baseIndex + pages;
-
-  do {
-    while(VMArenaPageIsMapped(chunk, mappedLimit)) {
-      ++mappedLimit;
-      if(mappedLimit >= limitIndex) {
-	break;
+  res = VMArenaSegMap(vmArena, chunk, seg, baseIndex, pages, segLimit, pool);
+  if(res != ResOK) {
+    if(arena->spareCommitted > 0) {
+      VMArenaPurgeLatentPages(vmArena);
+      res =
+	VMArenaSegMap(vmArena, chunk, seg, baseIndex, pages, segLimit, pool);
+      if(res != ResOK) {
+	goto failSegMap;
       }
+      /* win! */
+    } else {
+      goto failSegMap;
     }
-    AVER(mappedLimit <= limitIndex);
-    /* NB for loop will loop 0 times iff first page is not mapped */
-    for(i = mappedBase; i < mappedLimit; ++i) {
-      VMArenaHysteresisRemovePage(chunk, i);
-      VMArenaPageAlloc(chunk, i, baseIndex, pages, segLimit, seg, pool);
-    }
-    if(mappedLimit >= limitIndex)
-      break;
-    unmappedBase = mappedLimit;
-    unmappedLimit = unmappedBase;
-    while(!VMArenaPageIsMapped(chunk, unmappedLimit)) {
-      ++unmappedLimit;
-      if(unmappedLimit >= limitIndex) {
-        break;
-      }
-    }
-    AVER(unmappedLimit <= limitIndex);
-    res = VMArenaMap(vmArena, chunk->vm, 
-		     PageIndexBase(chunk, unmappedBase),
-		     PageIndexBase(chunk, unmappedLimit));
-    if(res != ResOK) {
-      goto failPagesMap;
-    }
-    for(i = unmappedBase; i < unmappedLimit; ++i) {
-      VMArenaPageAlloc(chunk, i, baseIndex, pages, segLimit, seg, pool);
-    }
-    mappedBase = unmappedLimit;
-    mappedLimit = mappedBase;
-  } while(mappedLimit < limitIndex);
-  AVER(mappedLimit == limitIndex);
+  }
 
   segRefSet = RefSetOfSeg(arena, seg);
 
@@ -1789,27 +1841,7 @@ static Res VMSegAllocComm(Seg *segReturn,
   *segReturn = seg;
   return ResOK;
 
-failPagesMap:
-  /* region from baseIndex to mappedLimit needs unmapping */
-  if(baseIndex < mappedLimit) {
-    VMArenaUnmap(vmArena, chunk->vm,
-		 PageIndexBase(chunk, baseIndex),
-		 PageIndexBase(chunk, mappedLimit));
-    /* mark pages as free */
-    SegFinish(PageSeg(&chunk->pageTable[baseIndex]));
-    for(i = baseIndex; i < mappedLimit; ++i) {
-      VMArenaPageFree(chunk, i);
-    }
-  }
-  /* find which pages of page table were affected */
-  VMArenaTablePagesUsed(&pageTableBaseIndex, &pageTableLimitIndex,
-                        chunk, baseIndex, limitIndex);
-  /* Resetting the noLatentPages bits is lazy, it means that */
-  /* we don't have to bother trying to unmap unused portions */
-  /* of the pageTable. */
-  BTResRange(chunk->noLatentPages,
-             pageTableBaseIndex, pageTableLimitIndex);
-failTableMap:
+failSegMap:
   return res;
 }
 
