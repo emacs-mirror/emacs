@@ -1,3 +1,19 @@
+2001-07-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xselect.c (x_decline_selection_request): Handle errors
+	caused by receivers that have vanished.
+
+	* xterm.c (XTread_socket) <PropertyNotify>: Put the code
+	ignoring events on foreign windows in #if 0.  Always dispatch
+	the event after checking it with x_handle_property_notify.
+
+	* xselect.c (TRACE0, TRACE1, TRACE2): New macros, defined
+	depending on TRACE_SELECTION.  Replace fprintfs in #if 0 with 
+	TRACE macros to facilitate debugging.  Add additional trace
+	statements.
+	(toplevel): Add prototypes for file-local functions.
+	(x_atom_to_symbol): Remove DPYINFO parameter.
+
 2001-07-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* w32menu.c (menubar_selection_callback, w32_menu_show):
