@@ -634,7 +634,7 @@ from Emacs 19.34 distribution:
   a vector of the actual parameter values, written as equations:
   @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
   than pick them out of the formula.  (You can type @kbd{t y}
-! to move this vector to the stack; @pxref{Trail Commands})
+! to move this vector to the stack; @pxref{Trail Commands}.)
   
   Specifying a different independent variable name will affect the
   resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
