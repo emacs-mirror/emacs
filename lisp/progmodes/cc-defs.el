@@ -105,7 +105,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.5"
+(defconst c-version "5.30.6"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
