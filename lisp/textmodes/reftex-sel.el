@@ -1,8 +1,8 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -607,13 +607,11 @@ Useful for large TOC's."
     (setq ovl (make-overlay boe eoe))
     (push (list data ovl separator) reftex-select-marked)
     (overlay-put ovl 'face reftex-select-mark-face)
-    (if (featurep 'xemacs)
-        ;; before-string property is broken in Emacs
-        (overlay-put ovl 'before-string
-                     (if separator
-                         (format "*%c%d* " separator
-                                 (length reftex-select-marked))
-                       (format "*%d*  " (length reftex-select-marked)))))
+    (overlay-put ovl 'before-string
+                 (if separator
+                     (format "*%c%d* " separator
+                             (length reftex-select-marked))
+                   (format "*%d*  " (length reftex-select-marked))))
     (message "Entry has mark no. %d" (length reftex-select-marked))))
 
 (defun reftex-select-mark-comma ()
@@ -725,7 +723,7 @@ Useful for large TOC's."
       (define-key reftex-select-label-map (car x) (cdr x)))
 
 ;; Specific bindings in reftex-select-bib-map
-(loop for key across "grRaA" do
+(loop for key across "grRaAeE" do
       (define-key reftex-select-bib-map (vector (list key))
         (list 'lambda '() 
               "Press `?' during selection to find out about this key."

@@ -1,8 +1,8 @@
 ;;; reftex-auc.el --- RefTeX's interface to AUCTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 

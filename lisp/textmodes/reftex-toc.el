@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -754,13 +754,13 @@ if these sets are sorted blocks in the alist."
   "Make sure all files of the document are being visited by buffers,
 and that the scanning info is absolutely up to date.
 We do this by rescanning with reftex-keep-temporary-buffers bound to t.
-The variable PRO-OR-DE is assumed to be dynamically scoped into this function.
+The variable PRO-OR-DE is assumed to be dynamically scoped into thes function.
 When finished, we exit with an error message."
   (let ((reftex-keep-temporary-buffers t))
     (reftex-toc-Rescan)
     (reftex-toc-restore-region start-line mark-line)
     (throw 'exit
-           "TOC had to be updated first.  Please check selection and repeat the command.")))
+           (format "TOC had to be updated first.  Please check selection and repeat the command." pro-or-de))))
 
 (defun reftex-toc-rename-label ()
   "Rename the currently selected label in the *TOC* buffer.
@@ -868,6 +868,7 @@ label prefix determines the wording of a reference."
            ((and (markerp marker) (marker-buffer marker))
             ;; Buffer is still live and we have the marker.  Should be easy.
             (switch-to-buffer-other-window (marker-buffer marker))
+            (push-mark nil)
             (goto-char (marker-position marker))
             (or (looking-at (regexp-quote literal))
                 (looking-at (reftex-make-regexp-allow-for-ctrl-m literal))
