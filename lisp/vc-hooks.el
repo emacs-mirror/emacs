@@ -33,39 +33,52 @@
 
 ;; Customization Variables (the rest is in vc.el)
 
-(defvar vc-default-back-end nil
+(defcustom vc-default-back-end nil
   "*Back-end actually used by this interface; may be SCCS or RCS.
-The value is only computed when needed to avoid an expensive search.")
+The value is only computed when needed to avoid an expensive search."
+  :type '(choice (const nil) (const RCS) (const SCCS))
+  :group 'vc)
 
-(defvar vc-handle-cvs t
+(defcustom vc-handle-cvs t
   "*If non-nil, use VC for files managed with CVS.
-If it is nil, don't use VC for those files.")
+If it is nil, don't use VC for those files."
+  :type 'boolean
+  :group 'vc)
 
-(defvar vc-rcsdiff-knows-brief nil
+(defcustom vc-rcsdiff-knows-brief nil
   "*Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
-to use --brief and sets this variable to remember whether it worked.")
+to use --brief and sets this variable to remember whether it worked."
+  :type '(choice (const nil) (const yes) (const no))
+  :group 'vc)
 
-(defvar vc-path
+(defcustom vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")
     nil)
-  "*List of extra directories to search for version control commands.")
+  "*List of extra directories to search for version control commands."
+  :type '(repeat directory)
+  :group 'vc)
 
-(defvar vc-master-templates
+
+(defcustom vc-master-templates
   '(("%sRCS/%s,v" . RCS) ("%s%s,v" . RCS) ("%sRCS/%s" . RCS)
     ("%sSCCS/s.%s" . SCCS) ("%ss.%s". SCCS)
     vc-find-cvs-master)
   "*Where to look for version-control master files.
 The first pair corresponding to a given back end is used as a template
 when creating new masters.
-Setting this variable to nil turns off use of VC entirely.")
+Setting this variable to nil turns off use of VC entirely."
+  :type '(repeat sexp)
+  :group 'vc)
 
-(defvar vc-make-backup-files nil
+(defcustom vc-make-backup-files nil
   "*If non-nil, backups of registered files are made as with other files.
-If nil (the default), files covered by version control don't get backups.")
+If nil (the default), files covered by version control don't get backups."
+  :type 'boolean
+  :group 'vc)
 
-(defvar vc-follow-symlinks 'ask
+(defcustom vc-follow-symlinks 'ask
   "*Indicates what to do if you visit a symbolic link to a file
 that is under version control.  Editing such a file through the
 link bypasses the version control system, which is dangerous and
@@ -73,24 +86,35 @@ probably not what you want.
   If this variable is t, VC follows the link and visits the real file,
 telling you about it in the echo area.  If it is `ask', VC asks for
 confirmation whether it should follow the link.  If nil, the link is
-visited and a warning displayed.")
+visited and a warning displayed."
+  :type '(choice (const ask) (const nil) (const t))
+  :group 'vc)
 
-(defvar vc-display-status t
+(defcustom vc-display-status t
   "*If non-nil, display revision number and lock status in modeline.
-Otherwise, not displayed.")
+Otherwise, not displayed."
+  :type 'boolean
+  :group 'vc)
 
-(defvar vc-consult-headers t
-  "*If non-nil, identify work files by searching for version headers.")
 
-(defvar vc-keep-workfiles t
+(defcustom vc-consult-headers t
+  "*If non-nil, identify work files by searching for version headers."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-keep-workfiles t
   "*If non-nil, don't delete working files after registering changes.
 If the back-end is CVS, workfiles are always kept, regardless of the
-value of this flag.")
+value of this flag."
+  :type 'boolean
+  :group 'vc)
 
-(defvar vc-mistrust-permissions nil
+(defcustom vc-mistrust-permissions nil
   "*If non-nil, don't assume that permissions and ownership track 
 version-control status.  If nil, do rely on the permissions.
-See also variable `vc-consult-headers'.")
+See also variable `vc-consult-headers'."
+  :type 'boolean
+  :group 'vc)
 
 (defun vc-mistrust-permissions (file)
   ;; Access function to the above.
