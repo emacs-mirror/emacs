@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'cus-face)
+(require 'cus-start)
 (require 'wid-edit)
 (require 'easymenu)
 (eval-when-compile (require 'cl))
@@ -316,7 +317,7 @@
 
 (defgroup mule nil
   "MULE Emacs internationalization."
-  :group 'emacs)
+  :group 'i18n)
 
 (defgroup windows nil
   "Windows within a frame."
