@@ -267,6 +267,10 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-banish-hook ()
   (if (and (not executing-kbd-macro)	; don't check inside macro
+	   ;; Don't check while mouse is down.
+	   (not (and (consp last-input-event)
+		     (symbolp (car last-input-event))
+		     (memq 'down (event-modifiers (car last-input-event)))))
 	   (mouse-avoidance-kbd-command (this-command-keys)))
       (mouse-avoidance-banish-mouse)))
 
@@ -274,6 +278,9 @@ redefine this function to suit your own tastes."
   ;; For exile mode, the state is nil when the mouse is in its normal
   ;; position, and set to the old mouse-position when the mouse is in exile.
   (if (and (not executing-kbd-macro)
+	   (not (and (consp last-input-event)
+		     (symbolp (car last-input-event))
+		     (memq 'down (event-modifiers (car last-input-event)))))
 	   (mouse-avoidance-kbd-command (this-command-keys)))
       (let ((mp (mouse-position)))
 	(cond ((and (not mouse-avoidance-state)
@@ -293,6 +300,9 @@ redefine this function to suit your own tastes."
 (defun mouse-avoidance-fancy-hook ()
   ;; Used for the "fancy" modes, ie jump et al.
   (if (and (not executing-kbd-macro)	; don't check inside macro
+	   (not (and (consp last-input-event)
+		     (symbolp (car last-input-event))
+		     (memq 'down (event-modifiers (car last-input-event)))))
 	   (mouse-avoidance-kbd-command (this-command-keys))
 	   (mouse-avoidance-too-close-p (mouse-position)))
       (let ((old-pos (mouse-position)))
