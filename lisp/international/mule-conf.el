@@ -278,6 +278,16 @@
  '((ascii t) nil t nil
    nil ascii-eol ascii-cntl nil nil single-shift))
 
+(make-coding-system
+ 'iso-safe 2 ?-
+ "Convert all characters but ASCII to `?'."
+ '(ascii nil nil nil
+   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t))
+
+;; Use iso-safe for terminal output if some other coding system is
+;; specified explicitely.
+(set-safe-terminal-coding-system-internal 'iso-safe)
+
 ;; The other coding-systems are defined in each language specific
 ;; section of languages.el.
 
