@@ -930,7 +930,7 @@ write_glyphs (string, len)
   if (CODING_REQUIRE_FLUSHING (&terminal_coding))
     {
       terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&terminal_coding, (char *)0, conversion_buffer,
+      encode_coding (&terminal_coding, "", conversion_buffer,
 		     0, conversion_buffer_size);
       if (terminal_coding.produced > 0)
 	{
