@@ -2120,7 +2120,7 @@ x_set_mouse_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
+  Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   int count;
   int mask_color;
 
@@ -2183,12 +2183,12 @@ x_set_mouse_color (f, arg, oldval)
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
       CHECK_NUMBER (Vx_sensitive_text_pointer_shape);
-      cross_cursor
+      hand_cursor
 	= XCreateFontCursor (FRAME_W32_DISPLAY (f),
 			     XINT (Vx_sensitive_text_pointer_shape));
     }
   else
-    cross_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
+    hand_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_crosshair);
 
   if (!NILP (Vx_window_horizontal_drag_shape))
     {
@@ -2200,7 +2200,6 @@ x_set_mouse_color (f, arg, oldval)
   else
     horizontal_drag_cursor
       = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
-  /* TODO: hand_cursor */
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
@@ -2225,11 +2224,10 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), mode_cursor,
 		    &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), cross_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), hand_cursor,
                     &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
                     &fore_color, &back_color);
-    /* TODO: hand_cursor */
   }
 
   if (FRAME_W32_WINDOW (f) != 0)
@@ -2254,11 +2252,10 @@ x_set_mouse_color (f, arg, oldval)
     XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->modeline_cursor);
   f->output_data.w32->modeline_cursor = mode_cursor;
 
-  if (cross_cursor != f->output_data.w32->cross_cursor
-      && f->output_data.w32->cross_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->cross_cursor);
-  f->output_data.w32->cross_cursor = cross_cursor;
-    /* TODO: hand_cursor */
+  if (hand_cursor != f->output_data.w32->hand_cursor
+      && f->output_data.w32->hand_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hand_cursor);
+  f->output_data.w32->hand_cursor = hand_cursor;
 
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -2268,8 +2265,6 @@ x_set_mouse_color (f, arg, oldval)
 }
 
 /* Defined in w32term.c. */
-void x_update_cursor (struct frame *f, int on_p);
-
 void
 x_set_cursor_color (f, arg, oldval)
      struct frame *f;
@@ -5692,10 +5687,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->text_cursor = w32_load_cursor (IDC_IBEAM);
   f->output_data.w32->nontext_cursor = w32_load_cursor (IDC_ARROW);
   f->output_data.w32->modeline_cursor = w32_load_cursor (IDC_ARROW);
-  f->output_data.w32->cross_cursor = w32_load_cursor (IDC_CROSS);
+  f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
-  f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
 
   /* Add the tool-bar height to the initial frame height so that the
      user gets a text display area of the size he specified with -g or
