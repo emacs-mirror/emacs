@@ -5155,11 +5155,11 @@ for its argument.");
 
   DEFVAR_LISP ("auto-file-coding-system-function",
 	       &Vauto_file_coding_system_function,
-    "If non-nil, a function to call to decide a coding system of file.
-One argument is passed to this function: the string of the first
-few lines of a file to be read.
-This function should return a coding system to decode the file contents
-specified in the heading lines with the format:
+    "If non-nil, a function to call to decide a coding system of file.\n\
+One argument is passed to this function: the string of the first\n\
+few lines of a file to be read.\n\
+This function should return a coding system to decode the file contents\n\
+specified in the heading lines with the format:\n\
 	-*- ... coding: CODING-SYSTEM; ... -*-");
   Vauto_file_coding_system_function = Qnil;
 
