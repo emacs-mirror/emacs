@@ -107,6 +107,12 @@ install: all
 	stubedit emacs.exe minstack=512k
 	mv -f emacs.exe ../bin/
 	cd ..
+	djecho -s "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)" \
+	          "    (normal-top-level-add-subdirs-to-load-path))" \
+	    > ./subdirs.el
+	if not exist .\site-lisp\subdirs.el \
+	   update ./subdirs.el ./site-lisp/subdirs.el
+	rm -f ./subdirs.el
 
 FRC:
 
