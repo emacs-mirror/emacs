@@ -219,7 +219,7 @@ and the value of the environment variable MAIL overrides it)."
   :group 'rmail-files)
 
 ;;;###autoload
-(defcustom rmail-confirm-expunge 'yes-or-no-p
+(defcustom rmail-confirm-expunge 'y-or-n-p
   "*Whether and how to ask for confirmation before expunging deleted messages."
   :type '(choice (const :tag "No confirmation" nil)
 		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
