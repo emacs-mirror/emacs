@@ -692,7 +692,7 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block... %s" error-data)))))))
 
-(define-key esc-map "\C-g" 'font-lock-fontify-block)
+(define-key global-map "\M-g\M-g" 'font-lock-fontify-block)
 
 ;; Syntactic fontification functions.
 
