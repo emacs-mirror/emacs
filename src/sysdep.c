@@ -314,7 +314,7 @@ wait_for_termination (pid)
       status = SYS$FORCEX (&pid, 0, 0);
       break;
 #else /* not VMS */
-#if defined (BSD) || (defined (HPUX) && !defined (HPUX_5))
+#if (defined (BSD) && !defined (LINUX)) || (defined (HPUX) && !defined (HPUX_5))
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -333,7 +333,7 @@ wait_for_termination (pid)
 	sleep (1);
       else
 	sigpause (SIGEMPTYMASK);
-#else /* not BSD, and not HPUX version >= 6 */
+#else /* not BSD, not LINUX, and not HPUX version >= 6 */
 #ifdef UNIPLUS
       if (0 > kill (pid, 0))
 	break;
