@@ -93,8 +93,18 @@ Instead, define sequences consisting of @kbd{C-c} followed by a
 non-letter.  These sequences are reserved for major modes.
 
 Changing all the major modes in Emacs 18 so they would follow this
-convention was a lot of work.  Abandoning this convention would waste
-that work and inconvenience the users.
+convention was a lot of work.  Abandoning this convention would make
+that work go to waste, and inconvenience users.
+
+@item
+Sequences consisting of @kbd{C-c} followed by @kbd{@{}, @kbd{@}},
+@kbd{<}, @kbd{>}, @kbd{:} or @kbd{;} are also reserved for major modes.
+
+@item
+Sequences consisting of @kbd{C-c} followed by any other punctuation
+character are allocated for minor modes.  Using them in a major mode is
+not absolutely prohibited, but if you do that, the major mode binding
+may be shadowed from time to time by minor modes.
 
 @item
 You should not bind @kbd{C-h} following any prefix character (including
