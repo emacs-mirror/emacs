@@ -1,3 +1,9 @@
+2003-02-03  Juanma Barranquero  <lektu@terra.es>
+
+	* calculator.el (calculator): Don't use the minibuffer even in
+	electric mode; use a private buffer and display it in the minibuffer
+	window using `set-window-buffer'.
+
 2003-02-03  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/benchmark.el: New.
@@ -121,8 +127,6 @@
 	* antlr-mode: Version 2.2 is released.
 
 	* antlr-mode.el (antlr): Moved to SourceForge.net
-
-	Changes from 2002-02-28:
 
 	* antlr-mode.el: Minor bug fixes: insert options and indentation.
 	(antlr-option-location): Don't use point as position where to
