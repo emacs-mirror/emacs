@@ -1,7 +1,3 @@
-2003-04-08  Richard M. Stallman  <rms@gnu.org>
-
-	* configure.in: Put #include of jpeglib.h at start of line.
-
 2003-04-06  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* configure.in: Use the same configuration for all aix5, not just
