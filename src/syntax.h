@@ -58,7 +58,7 @@ enum syntaxcode
 /* Set the syntax entry VAL for char C in table TABLE.  */
 
 #define SET_RAW_SYNTAX_ENTRY(table, c, val)	\
-  CHAR_TABLE_SET ((table), make_number (c), (val))
+  CHAR_TABLE_SET ((table), c, (val))
 
 /* Set the syntax entry VAL for char-range RANGE in table TABLE.
    RANGE is a cons (FROM . TO) specifying the range of characters.  */
