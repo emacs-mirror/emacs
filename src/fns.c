@@ -1026,9 +1026,11 @@ DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
        doc: /* Return a multibyte string with the same individual bytes as STRING.
 If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
+
 If STRING is unibyte and contains an individual 8-bit byte (i.e. not
-part of a multibyte form), it is converted to the corresponding
-multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
+part of a correct utf-8 sequence), it is converted to the corresponding
+multibyte character of charset `eight-bit'.
+See also `string-to-multibyte'.  */)
      (string)
      Lisp_Object string;
 {
@@ -1062,7 +1064,11 @@ If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 
 If STRING is unibyte and contains an 8-bit byte, it is converted to
-the corresponding multibyte character of charset `eight-bit'.  */)
+the corresponding multibyte character of charset `eight-bit'.
+
+This differs from `string-as-multibyte' by converting each byte of a correct
+utf-8 sequence to an eight-bit character, not just bytes that don't form a
+correct sequence.  */)
      (string)
      Lisp_Object string;
 {
