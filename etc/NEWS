@@ -29,6 +29,17 @@ Emacs with Leim.
 * Changes in Emacs 21.3
 
 +++
+** The new command-line option --color=MODE lets you specify a standard
+mode for a tty color support.  It is meant to be used on character
+terminals whose capabilities are not set correctly in the terminal
+database, or with terminal emulators which support colors, but don't
+set the TERM environment variable to a name of a color-capable
+terminal.  "emacs --color" uses the same color commands as GNU `ls'
+when invoked with "ls --color", so if your terminal can support colors
+in "ls --color", it will support "emacs --color" as well.  See the
+user manual for the possible values of the MODE parameter.
+
++++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
 
 When Emacs is invoked on a window system, the new command-line options
@@ -314,6 +325,12 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.3
+
++++
+** The new frame parameter `tty-color-mode' specifies the mode to use
+for color support on character terminal frames.  Its value can be a
+number of colors to support, or a symbol.  See the Emacs Lisp
+Reference manual for more detailed documentation.
 
 ** Already true in Emacs 21.1, but not emphasized clearly enough:
 
