@@ -1,3 +1,8 @@
+2003-01-16  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (set-process-filter): Document unibyte/multibyte-ness
+	of string argument.
+
 2003-01-16  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (NEXT_CHAR_BOUNDARY, PREV_CHAR_BOUNDARY): New macros.
