@@ -1,5 +1,13 @@
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
+	* wid-edit.el (widget-documentation-string-value-create):
+	Say "Hide Rest", not just "Hide".
+
+	* cus-edit.el (custom-variable-value-create):
+	Say "Show Value", not just "Show".  Also "Hide Value".
+	Output a newline before the doc string.
+	(custom-face-value-create): Say "Show Face" and "Hide Face".
+
 	* files.el (toggle-read-only): Clean up the hint message.
 
 	* emacs-lisp/bytecomp.el: Use warnings.el.

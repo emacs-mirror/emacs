@@ -1,3 +1,21 @@
+2002-07-20  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_error_message): New args CONTEXT and CALLER.
+	Calls changed.
+	
+	* lisp.h (print_error_message): Declare new args.
+
+	* keyboard.c (cmd_error_internal): Pass Vsignaling_function
+	and CONTEXT to print_error_message, don't print them here.
+	For a Quit, don't use Vsignaling_function.
+	Call message_log_maybe_newline.
+	
+	* Makefile.in (xsmfns.o): Don't depend on lisp.h.
+
+2002-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Test MODIFF to set buffer_unchanged_p.
+
 2002-07-19  Ken Raeburn  <raeburn@gnu.org>
 
 	* bytecode.c (struct byte_stack): Pointers into byte string now

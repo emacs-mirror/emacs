@@ -940,6 +940,9 @@ mode-lines in inverse-video.
 
 * Lisp Changes in Emacs 21.4
 
+** There is a new Warnings facility; see the functions `warn'
+and `display-warning'.
+
 ** The functions all-completions and try-completion now accept lists
 of strings as well as hash-tables additionally to alists, obarrays
 and functions.  Furthermore, the function `test-completion' is now
