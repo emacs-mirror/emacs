@@ -1,3 +1,7 @@
+2002-11-29   Markus Rost  <rost@math.ohio-state.edu>
+
+	* mwheel.el (mouse-wheel-inhibit-click-time): Fix custom type.
+
 2002-11-29  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
