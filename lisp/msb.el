@@ -523,7 +523,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	 ;; Make alist that looks like
 	 ;; ((PATH-1 BUFFER-1) (PATH-2 BUFFER-2) ...)
 	 ;; sorted on PATH-x
-	 (sort (mapcan
+	 (sort (mapcar
 		(lambda (buffer)
 		  (let ((file-name (expand-file-name (buffer-file-name buffer))))
 		    (when file-name
@@ -537,7 +537,7 @@ If the argument is left out or nil, then the current buffer is considered."
     (let ((path nil)
 	  (buffers nil))
       (nconc
-       (mapcan (lambda (item)
+       (mapcar (lambda (item)
 		 (cond
 		  ((and path
 			(string= path (car item)))
@@ -582,7 +582,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	  rest (cdr buffer-alist)
 	  path (car first)
 	  buffers (cdr first))
-    (setq msb--choose-file-menu-list (copy-list rest))
+    (setq msb--choose-file-menu-list (apply #'list rest))
     ;; This big loop tries to clump buffers together that have a
     ;; similar name. Remember that buffer-alist is sorted based on the
     ;; path for the buffers.
@@ -756,9 +756,8 @@ to the buffer-list variable in function-info."
 	(save-excursion
 	  (set-buffer buffer)
 	  ;; Menu found.  Add to this menu
-	  (mapc (lambda (function-info)
-		  (msb--add-to-menu buffer function-info max-buffer-name-length))
-		(msb--collect function-info-vector)))
+	  (dolist (info (msb--collect function-info-vector))
+	    (msb--add-to-menu buffer info max-buffer-name-length)))
       (error (unless msb--error
 	       (setq msb--error
 		     (format
@@ -792,13 +791,13 @@ SAME-PREDICATE) are aggregated together.  The alist is first sorted by
 SORT-PREDICATE.
 
 Example:
-(msb--aggregate-alist
+\(msb--aggregate-alist
  '((a . a1) (a . a2) (b . b1) (c . c3) (a . a4) (a . a3) (b . b3) (b . b2))
  (function string=)
  (lambda (item1 item2)
    (string< (symbol-name item1) (symbol-name item2))))
 results in
-((a a1 a2 a4 a3) (b b1 b3 b2) (c c3))"
+\((a a1 a2 a4 a3) (b b1 b3 b2) (c c3))"
   (when (not (null alist))
     (let (result
 	  same
@@ -807,7 +806,7 @@ results in
 	  (first-time-p t)
 	  old-car)
       (nconc
-       (mapcan (lambda (item)
+       (mapcar (lambda (item)
 		 (cond
 		  (first-time-p
 		   (push (cdr item) same)
@@ -837,14 +836,13 @@ results in
 		    (concat (cdr item) " (%d)")))
 	    (sort
 	     (let ((mode-list nil))
-	       (mapc (lambda (buffer)
-		       (save-excursion
-			 (set-buffer buffer)
-			 (when (and (not (msb-invisible-buffer-p))
-				    (not (assq major-mode mode-list))
-				    (push (cons major-mode mode-name)
-					  mode-list)))))
-		     (cdr (buffer-list)))
+	       (dolist (buffer (cdr (buffer-list)))
+		 (save-excursion
+		   (set-buffer buffer)
+		   (when (and (not (msb-invisible-buffer-p))
+			      (not (assq major-mode mode-list)))
+		     (push (cons major-mode mode-name)
+			   mode-list))))
 	       mode-list)
 	     (lambda (item1 item2)
 	       (string< (cdr item1) (cdr item2)))))))
@@ -881,14 +879,11 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
 	file-buffers
 	function-info-vector)
     ;; Calculate the longest buffer name.
-    (mapc
-     (lambda (buffer)
-       (if (or msb-display-invisible-buffers-p
-	       (not (msb-invisible-buffer-p)))
-	   (setq max-buffer-name-length
-		 (max max-buffer-name-length
-		      (length (buffer-name buffer))))))
-     (buffer-list))
+    (dolist (buffer (buffer-list))
+      (when (or msb-display-invisible-buffers-p
+		(not (msb-invisible-buffer-p)))
+	(setq max-buffer-name-length
+	      (max max-buffer-name-length (length (buffer-name buffer))))))
     ;; Make a list with elements of type
     ;; (BUFFER-LIST-VARIABLE
     ;;  CONDITION
@@ -904,19 +899,18 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
 			 (append msb-menu-cond (msb--mode-menu-cond)))))
     ;; Split the buffer-list into several lists; one list for each
     ;; criteria.  This is the most critical part with respect to time.
-    (mapc (lambda (buffer)
-	    (cond ((and msb-files-by-directory
-			(buffer-file-name buffer)
-			;; exclude ange-ftp buffers
-			;;(not (string-match "\\/[^/:]+:"
-			;;		   (buffer-file-name buffer)))
-			)
-		   (push buffer file-buffers))
-		  (t
-		   (msb--choose-menu buffer
-				     function-info-vector
-				     max-buffer-name-length))))
-	  (buffer-list))
+    (dolist (buffer (buffer-list))
+      (cond ((and msb-files-by-directory
+		  (buffer-file-name buffer)
+		  ;; exclude ange-ftp buffers
+		  ;;(not (string-match "\\/[^/:]+:"
+		  ;;		   (buffer-file-name buffer)))
+		  )
+	     (push buffer file-buffers))
+	    (t
+	     (msb--choose-menu buffer
+			       function-info-vector
+			       max-buffer-name-length))))
     (when file-buffers
       (setq file-buffers
 	    (mapcar (lambda (buffer-list)
@@ -1042,7 +1036,7 @@ variable `msb-menu-cond'."
     sorted-list)
    (t
     (let ((last-key nil))
-      (mapcan
+      (mapcar
        (lambda (item)
 	 (cond
 	  ((and msb-separator-diff
