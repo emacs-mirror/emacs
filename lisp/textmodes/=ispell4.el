@@ -1,4 +1,4 @@
-;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 3.
+;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 4.
 
 ;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 
