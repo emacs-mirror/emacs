@@ -1,4 +1,4 @@
-# cp932.awk -- Add sort key at the tail of each line of CP932-2BYTE.map.
+# cp932.awk -- Add sort keys and append user defined area to CP932-2BYTE.map.
 # Copyright (C) 2004
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
@@ -30,6 +30,7 @@
 #   1: NEC special characters.
 #   2: IBM extension characters.
 #   3: NEC selection of IBM extension characters.
+#   4: user defined area
 
 BEGIN {
   tohex["A"] = 10;
@@ -64,6 +65,7 @@ function sjis_to_jis_ku(code)
 	j1 = s1 * 2 - 352;	# j1 = s1 * 2 - 0x160
       else
 	j1 = s1 * 2 - 224;	# j1 = s1 * 2 - 0xE0
+      j2 = s2 - 126		# j2 = s2 - #x7E
     }
   else
     {
@@ -71,6 +73,10 @@ function sjis_to_jis_ku(code)
 	j1 = s1 * 2 - 353;	# j1 = s1 * 2 - 0x161
       else
 	j1 = s1 * 2 - 225;	# j1 = s1 * 2 - 0xE1
+      if (s2 >= 127)		# s2 >= #x7F
+	j2 = s2 - 32;
+      else
+	j2 = s2 - 31;
     }
   return j1 - 32;
 }
@@ -79,19 +85,32 @@ function sjis_to_jis_ku(code)
   sjis=decode_hex(substr($1, 3, 4))
   ku=sjis_to_jis_ku(sjis);
   if (ku == 13)
-    print $0" # 1";
+    printf "%s # 1 %02X%02X\n", $0, j1, j2;
   else if (ku >= 89 && ku <= 92)
-    print $0" # 3";
+    printf "%s # 3 %02X%02X\n", $0, j1, j2;
   else
-    print $0" # 0";
+    printf "%s # 0 %02X%02X\n", $0, j1, j2;
   next;
 }
 
 /^0xF/ {
-  print $0" # 2";
+  printf "%s # 2\n", $0;
   next;
 }
 
 {
   print;
+}
+
+END {
+  code = 57344;			# 0xE000
+  for (i = 240; i < 250; i++)
+    {
+      for (j = 64; j <= 126; j++)
+	printf "0x%02X%02X 0x%04X # 4\n", i, j, code++;
+      for (j = 128; j <= 158; j++)
+	printf "0x%02X%02X 0x%04X # 4\n", i, j, code++;
+      for (; j <= 252; j++)
+	printf "0x%02X%02X 0x%04X # 4\n", i, j, code++;
+    }
 }
