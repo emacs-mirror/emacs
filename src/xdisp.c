@@ -10767,6 +10767,17 @@ try_window_id (w)
   last_unchanged_at_beg_row = find_last_unchanged_at_beg_row (w);
   if (last_unchanged_at_beg_row)
     {
+      /* Avoid starting to display in the moddle of a character, a TAB
+	 for instance.  This is easier than to set up the iterator
+	 exactly, and it's not a frequent case, so the additional
+	 effort wouldn't really pay off.  */
+      while (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row)
+	     && last_unchanged_at_beg_row > w->current_matrix->rows)
+	--last_unchanged_at_beg_row;
+
+      if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row))
+	return 0;
+      
       init_to_row_end (&it, w, last_unchanged_at_beg_row);
       start_pos = it.current.pos;
       
