@@ -219,7 +219,7 @@ Symbols are also allowed; their print names are used instead.")
 }
 
 DEFUN ("compare-strings", Fcompare_strings,
-       Scompare_strings, 2, 7, 0,
+       Scompare_strings, 6, 7, 0,
   "Compare the contents of two strings, converting to multibyte if needed.\n\
 In string STR1, skip the first START1 characters and stop at END1.\n\
 In string STR2, skip the first START2 characters and stop at END2.\n\
