@@ -1,3 +1,8 @@
+2001-02-06  Dave Love  <fx@gnu.org>
+
+	* qp.el (quoted-printable-encode-region): Remove redundant code
+	from last change.
+
 2001-02-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-score.el (gnus-summary-score-entry): match may be an integer.

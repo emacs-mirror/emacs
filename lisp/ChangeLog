@@ -1,3 +1,10 @@
+2001-02-06  Dave Love  <fx@gnu.org>
+
+	* add-log.el (add-log-current-defun-function) 
+	(add-log-buffer-file-name-function, add-log-file-name-function):
+	Fix :type.
+	(change-log-mode) <font-lock-defaults>: Set SYNTAX-BEGIN.
+
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (info-initialize): Remove the test for system-type when

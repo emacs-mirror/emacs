@@ -90,7 +90,8 @@ trailing whitespace within the current restriction.  You can also add
 this function to `write-file-hooks' or `local-write-file-hooks'.
 
 ** When visiting a file with M-x find-file-literally, no newlines will
-be added to the end of the buffer because of `require-final-newline'.
+be added to the end of the buffer even if `require-final-newline' is
+non-nil.
 
 ** auto-compression mode is no longer enabled just by loading jka-compr.el.
 To control it, set `auto-compression-mode' via Custom or use the
@@ -444,6 +445,7 @@ read mail from the menu etc.
 ** Hexl contains a new command `hexl-insert-hex-string' which inserts
 a string of hexadecimal numbers read from the mini-buffer.
 
++++
 ** Just loading the msb package doesn't switch on Msb mode anymore.
 If you have `(require 'msb)' in your .emacs, please replace it with
 `(msb-mode 1)'.
@@ -1558,7 +1560,7 @@ appropriate for C-style escape sequences in strings.
 ** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
 
 +++
-** The Dabbrev package has a new user-option `dabbrev-ignored-buffer-regexps'
+** The Dabbrev package has a new user-option `dabbrev-ignored-regexps'
 containing a list of regular expressions.  Buffers matching a regular
 expression from that list, are not checked.
 
@@ -2447,21 +2449,24 @@ a composition at a specified position in a buffer or a string.
 obsolete.
 
 ** The new character sets `mule-unicode-0100-24ff',
-`mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' are introduced
-for Unicode characters in the range U+0100..U+24FF, U+2500..U+33FF,
-U+E000..U+FFFF respectively.
+`mule-unicode-2500-33ff', and `mule-unicode-e000-ffff' have been
+introduced for Unicode characters in the range U+0100..U+24FF,
+U+2500..U+33FF, U+E000..U+FFFF respectively.
 
-** The new coding system `mule-utf-8' is added.  It provides a limited
-support for decoding/encoding UTF-8 text.  For the details, please see
-the documentation string of this coding system.
+** The new coding system `mule-utf-8' has been added.  It provides
+limited support for decoding/encoding UTF-8 text.  For details, please
+see the documentation string of this coding system.
 
 ** The new character sets `japanese-jisx0213-1' and
-`japanese-jisx0213-2' are introduced for the new Japanese standard JIS
-X 0213 Plane 1 and Plane 2.
+`japanese-jisx0213-2' have been introduced for the new Japanese
+standard JIS X 0213 Plane 1 and Plane 2.
+
+** The new character sets `latin-iso8859-14' and `latin-iso8859-15'
+have been introduced.
 
 +++
 ** The new character sets `eight-bit-control' and `eight-bit-graphic'
-are introduced for 8-bit characters in the ranges 0x80..0x9F and
+have been introduced for 8-bit characters in the ranges 0x80..0x9F and
 0xA0..0xFF respectively.
 
 +++
