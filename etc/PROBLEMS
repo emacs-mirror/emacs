@@ -473,7 +473,7 @@ src/s/hpux10.h.
 * Crashes when displaying uncompressed GIFs with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 
-* Font Lock displays portions of the bufefr in incorrect faces.
+* Font Lock displays portions of the buffer in incorrect faces.
 
 By far the most frequent cause of this is a parenthesis `(' or a brace
 `{' in column zero.  Font Lock assumes that such a paren is outside of
