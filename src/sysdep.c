@@ -21,11 +21,11 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 #include <setjmp.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
 
 #include <config.h>
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
 #include "lisp.h"
 #include "blockinput.h"
 #undef NULL
@@ -101,7 +101,9 @@ extern unsigned start __asm__ ("start");
 #endif
 #endif
 
+#ifndef errno
 extern int errno;
+#endif
 
 #ifdef VMS
 #include <rms.h>
