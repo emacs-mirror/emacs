@@ -166,9 +166,6 @@ NOTE-END */
 /* #define VIRT_ADDR_VARIES */
 
 #ifdef XENIX
-#define VALBITS 26
-#define GCTYPEBITS 5
-
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
@@ -191,11 +188,6 @@ NOTE-END */
 /* '__fltused' is unresolved w/o Slibcfp.a */
 #define LIB_STANDARD /lib/386/Slibcfp.a /lib/386/Slibc.a
 #else /* not XENIX */
-
-#ifdef SOLARIS2
-#define VALBITS 26
-#define GCTYPEBITS 5
-#endif
 
 /* this brings in alloca() if we're using cc */
 #ifdef USG
