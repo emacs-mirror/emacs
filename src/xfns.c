@@ -1537,62 +1537,61 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 
 DEFUN ("x-parse-geometry", Fx_parse_geometry, Sx_parse_geometry, 1, 1, 0,
        "Parse an X-style geometry string STRING.\n\
-Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
+Returns an alist of the form ((top . TOP), (left . LEFT) ... ).\n\
+The properties returned may include `top', `left', `height', and `width'.\n\
+The value of `left' or `top' may be an integer or `-'.\n\
+`-' means \"minus zero\".")
      (string)
      Lisp_Object string;
 {
   int geometry, x, y;
   unsigned int width, height;
-  Lisp_Object values[4];
+  Lisp_Object result;
 
   CHECK_STRING (string, 0);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
 			     &x, &y, &width, &height);
 
-  switch (geometry & 0xf)	/* Mask out {X,Y}Negative */
+#if 0
+  if (!!(geometry & XValue) != !!(geometry & YValue))
+    error ("Must specify both x and y position, or neither");
+#endif
+
+  result = Qnil;
+  if (geometry & XValue)
     {
-    case (XValue | YValue):
-      /* What's one pixel among friends?
-	 Perhaps fix this some day by returning symbol `extreme-top'... */
+      Lisp_Object element;
+
       if (x == 0 && (geometry & XNegative))
-	x = -1;
-      if (y == 0 && (geometry & YNegative))
-	y = -1;
-      values[0] = Fcons (Qleft, make_number (x));
-      values[1] = Fcons (Qtop, make_number (y));
-      return Flist (2, values);
-      break;
-
-    case (WidthValue | HeightValue):
-      values[0] = Fcons (Qwidth, make_number (width));
-      values[1] = Fcons (Qheight, make_number (height));
-      return Flist (2, values);
-      break;
-
-    case (XValue | YValue | WidthValue | HeightValue):
-      if (x == 0 && (geometry & XNegative))
-	x = -1;
-      if (y == 0 && (geometry & YNegative))
-	y = -1;
-      values[0] = Fcons (Qwidth, make_number (width));
-      values[1] = Fcons (Qheight, make_number (height));
-      values[2] = Fcons (Qleft, make_number (x));
-      values[3] = Fcons (Qtop, make_number (y));
-      return Flist (4, values);
-      break;
-
-    case 0:
-	return Qnil;
-      
-    default:
-      error ("Must specify x and y value, and/or width and height");
+	element = Fcons (Qleft, Qminus);
+      else
+	element = Fcons (Qleft, make_number (x));
+      result = Fcons (element, result);
     }
+
+  if (geometry & YValue)
+    {
+      Lisp_Object element;
+
+      if (y == 0 && (geometry & YNegative))
+	element = Fcons (Qtop, Qminus);
+      else
+	element = Fcons (Qtop, make_number (y));
+      result = Fcons (element, result);
+    }
+
+  if (geometry & WidthValue)
+    result = Fcons (Fcons (Qwidth, make_number (width)), result);
+  if (geometry & HeightValue)
+    result = Fcons (Fcons (Qheight, make_number (height)), result);
+
+  return result;
 }
 
 #ifdef HAVE_X11
 /* Calculate the desired size and position of this window,
-   and return the attributes saying which aspects were specified.
+   and return the flags saying which aspects were specified.
 
    This function does not make the coordinates positive.  */
 
@@ -1622,19 +1621,23 @@ x_figure_window_size (f, parms)
   tem0 = x_get_arg (parms, Qheight, 0, 0, number);
   tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
   tem2 = x_get_arg (parms, Quser_size, 0, 0, number);
-  if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
+  if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     {
-      CHECK_NUMBER (tem0, 0);
-      CHECK_NUMBER (tem1, 0);
-      f->height = XINT (tem0);
-      f->width = XINT (tem1);
-      if (!NILP (tem2))
+      if (!EQ (tem0, Qunbound))
+	{
+	  CHECK_NUMBER (tem0, 0);
+	  f->height = XINT (tem0);
+	}
+      if (!EQ (tem1, Qunbound))
+	{
+	  CHECK_NUMBER (tem1, 0);
+	  f->width = XINT (tem1);
+	}
+      if (!NILP (tem2) && !EQ (tem2, Qunbound))
 	window_prompting |= USSize;
       else
 	window_prompting |= PSize;
     }
-  else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
-    error ("Must specify *both* height and width");
 
   f->display.x->vertical_scroll_bar_extra
     = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
@@ -1646,23 +1649,44 @@ x_figure_window_size (f, parms)
   tem0 = x_get_arg (parms, Qtop, 0, 0, number);
   tem1 = x_get_arg (parms, Qleft, 0, 0, number);
   tem2 = x_get_arg (parms, Quser_position, 0, 0, number);
-  if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
+  if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     {
-      CHECK_NUMBER (tem0, 0);
-      CHECK_NUMBER (tem1, 0);
-      f->display.x->top_pos = XINT (tem0);
-      f->display.x->left_pos = XINT (tem1);
-      if (f->display.x->top_pos < 0)
-	window_prompting |= YNegative;
-      if (f->display.x->left_pos < 0)
-	window_prompting |= XNegative;
+      if (EQ (tem0, Qminus))
+	{
+	  f->display.x->top_pos = 0;
+	  window_prompting |= YNegative;
+	}
+      else if (EQ (tem0, Qunbound))
+	f->display.x->top_pos = 0;
+      else
+	{
+	  CHECK_NUMBER (tem0, 0);
+	  f->display.x->top_pos = XINT (tem0);
+	  if (f->display.x->top_pos < 0)
+	    window_prompting |= YNegative;
+	}
+
+      if (EQ (tem1, Qminus))
+	{
+	  f->display.x->left_pos = 0;
+	  window_prompting |= XNegative;
+	}
+      else if (EQ (tem1, Qunbound))
+	f->display.x->left_pos = 0;
+      else
+	{
+	  CHECK_NUMBER (tem1, 0);
+	  f->display.x->left_pos = XINT (tem1);
+	  if (f->display.x->left_pos < 0)
+	    window_prompting |= XNegative;
+	}
+
       if (!NILP (tem2))
 	window_prompting |= USPosition;
       else
 	window_prompting |= PPosition;
     }
-  else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
-    error ("Must specify *both* top and left corners");
+
   return window_prompting;
 }
 
@@ -1756,7 +1780,7 @@ x_window (f, window_prompting, minibuffer_only)
   BLOCK_INPUT;
 
   if (STRINGP (f->name))
-     name = (char*) XSTRING (f->name)->data;
+    name = (char*) XSTRING (f->name)->data;
   else
     name = "emacs";
 
@@ -1816,9 +1840,9 @@ x_window (f, window_prompting, minibuffer_only)
     if (window_prompting & USPosition)
       {
 	int left = f->display.x->left_pos;
-	int xneg = left < 0;
+	int xneg = window_prompting & XNegative;
 	int top = f->display.x->top_pos;
-	int yneg = top < 0;
+	int yneg = window_prompting & YNegative;
 	if (left < 0)
 	  left = -left;
 	if (top < 0)
@@ -1838,7 +1862,7 @@ x_window (f, window_prompting, minibuffer_only)
     XtSetValues (shell_widget, al, ac);
   }
 
-  x_calc_absolute_position (f);
+  x_calc_absolute_position (f, window_prompting);
 
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
@@ -2219,20 +2243,19 @@ be shared by the new frame.")
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
 
-  switch (((f->display.x->left_pos < 0) << 1) + (f->display.x->top_pos < 0))
+  if (window_prompting & XNegative)
     {
-    case 0:
-      f->display.x->win_gravity = NorthWestGravity;
-      break;
-    case 1:
-      f->display.x->win_gravity = SouthWestGravity;
-      break;
-    case 2:
-      f->display.x->win_gravity = NorthEastGravity;
-      break;
-    case 3:
-      f->display.x->win_gravity = SouthEastGravity;
-      break;
+      if (window_prompting & YNegative)
+	f->display.x->win_gravity = SouthEastGravity;
+      else
+	f->display.x->win_gravity = NorthEastGravity;
+    }
+  else
+    {
+      if (window_prompting & YNegative)
+	f->display.x->win_gravity = SouthWestGravity;
+      else
+	f->display.x->win_gravity = NorthWestGravity;
     }
 
 #ifdef USE_X_TOOLKIT
