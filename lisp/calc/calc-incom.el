@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -171,6 +170,12 @@
 			     (list 'incomplete 'vec
 				   (cons 'vec (append (cdr (cdr inc)) stuff)))
 			     (list 'incomplete 'vec))))))))
+
+;; The following variables are initially declared in calc.el,
+;; but are used by calc-digit-dots.
+(defvar calc-prev-char)
+(defvar calc-prev-prev-char)
+(defvar calc-digit-value)
 
 (defun calc-digit-dots ()
   (if (eq calc-prev-char ?.)
