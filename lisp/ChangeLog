@@ -1,3 +1,7 @@
+2002-04-25  Andreas Schwab  <schwab@suse.de>
+
+	* find-dired.el (find-name-dired): Don't quote pattern twice.
+
 2002-04-26  Miles Bader  <miles@gnu.org>
 
 	* cus-edit.el (customize-face, customize-face-other-window):
