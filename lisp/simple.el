@@ -998,7 +998,8 @@ Set the kill-ring-yank pointer to point to it.
 If `interprogram-cut-function' is non-nil, apply it to STRING.
 Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list."
-  (menu-bar-update-yank-menu string (and replace (car kill-ring)))
+  (and (fboundp 'menu-bar-update-yank-menu)
+       (menu-bar-update-yank-menu string (and replace (car kill-ring))))
   (if replace
       (setcar kill-ring string)
     (setq kill-ring (cons string kill-ring))
