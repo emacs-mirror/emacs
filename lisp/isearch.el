@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/05/14 09:50:26 $|$Revision: 1.69 $
+;; |$Date: 1994/06/11 18:59:38 $|$Revision: 1.70 $
 
 ;; This file is part of GNU Emacs.
 
@@ -232,9 +232,6 @@ Default value, nil, means edit the string instead.")
     
       (define-key map "\C-w" 'isearch-yank-word)
       (define-key map "\C-y" 'isearch-yank-line)
-      (define-key map [mouse-2] 'isearch-yank-kill)
-      ;; This overrides the default binding for t.
-      (define-key map [down-mouse-2] 'nil)
 
       ;; Bind the ASCII-equivalent "function keys" explicitly to nil
       ;; so that the default binding does not apply.
