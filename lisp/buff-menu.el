@@ -48,6 +48,8 @@
 ; Put buffer *Buffer List* into proper mode right away
 ; so that from now on even list-buffers is enough to get a buffer menu.
 
+(defvar Buffer-menu-buffer-column nil)
+
 (defvar Buffer-menu-mode-map nil "")
 
 (if Buffer-menu-mode-map
@@ -115,43 +117,37 @@ Letters do not insert themselves; instead, they are commands.
   (setq mode-name "Buffer Menu")
   (save-excursion
     (goto-char (point-min))
+    (search-forward "Buffer")
+    (backward-word 1)
+    (setq Buffer-menu-buffer-column (current-column))
     (forward-line 2)
     (while (not (eobp))
-      (put-text-property (point) (save-excursion (end-of-line) (point))
-			 'mouse-face 'highlight)
+      (let ((where (Buffer-menu-buffer-name-position)))
+	(put-text-property (car where) (cdr where) 'mouse-face 'highlight))
       (forward-line 1)))
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
 
-(defvar Buffer-menu-buffer-column nil)
-
-(defvar Buffer-menu-size-column nil)
-
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
-  (if (null Buffer-menu-buffer-column)
-      (save-excursion
-       (goto-char (point-min))
-       (search-forward "Buffer")
-       (backward-word 1)
-       (setq Buffer-menu-buffer-column (current-column))
-       (search-forward "Size")
-       (backward-word 1)
-       (setq Buffer-menu-size-column (current-column))))
+  (let* ((where (Buffer-menu-buffer-name-position))
+	 (string (buffer-substring (car where) (cdr where))))
+    (or (get-buffer string)
+	(if error-if-non-existent-p
+	    (error "No buffer named \"%s\"" string)
+	  nil))))
+
+;; Find the start and end positions of the buffer name on this line.
+;; Returns a cons (START . END).
+(defun Buffer-menu-buffer-name-position ()
   (save-excursion
     (beginning-of-line)
     (forward-char Buffer-menu-buffer-column)
-    (let ((start (point))
-	  string)
-      ;; End of buffer name marked by tab or two spaces.
+    (let ((start (point)))
       (re-search-forward "\t\\|  ")
       (skip-chars-backward " \t")
-      (setq string (buffer-substring start (point)))
-      (or (get-buffer string)
-	  (if error-if-non-existent-p
-	      (error "No buffer named \"%s\"" string)
-	    nil)))))
+      (cons start (point)))))
 
 (defun buffer-menu (&optional arg)
   "Make a menu of buffers so you can save, delete or select them.
