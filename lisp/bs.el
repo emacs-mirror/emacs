@@ -137,6 +137,8 @@
 (defgroup bs nil
   "Buffer Selection: Maintaining buffers by buffer menu."
   :version "21.1"
+  :link '(emacs-commentary-link "bs")
+  :link '(url-link "http://home.netsurf.de/olaf.sylvester/emacs")
   :group 'convenience)
 
 (defgroup bs-appearence nil
@@ -180,7 +182,7 @@ return a string representing the columns value."
 (defun bs--make-header-match-string ()
   "Return a regexp matching the first line of a Buffer Selection Menu buffer."
   (let ((res "^\\(")
- (ele  bs-attributes-list))
+	(ele  bs-attributes-list))
     (while ele
       (setq res (concat res (car (car ele)) " *"))
       (setq ele (cdr ele)))
@@ -188,21 +190,21 @@ return a string representing the columns value."
 
 ;;; Font-Lock-Settings
 (defvar bs-mode-font-lock-keywords
-  (list ;; header in font-lock-type-face
-        (list (bs--make-header-match-string)
-       '(1 font-lock-type-face append) '(1 'bold append))
- ;; Buffername embedded by *
- (list "^\\(.*\\*.*\\*.*\\)$"
-       1 (if bs--running-in-xemacs
-      ;; problem in XEmacs with font-lock-constant-face
-      (if (facep 'font-lock-constant-face)
-   'font-lock-constant-face
-        'font-lock-comment-face)
-    'font-lock-constant-face))
- ;; Dired-Buffers
- '("^..\\(.*Dired by .*\\)$" 1 font-lock-function-name-face)
- ;; the star for modified buffers
- '("^.\\(\\*\\) +[^\\*]"     1 font-lock-comment-face))
+  (list;; header in font-lock-type-face
+   (list (bs--make-header-match-string)
+	 '(1 font-lock-type-face append) '(1 'bold append))
+   ;; Buffername embedded by *
+   (list "^\\(.*\\*.*\\*.*\\)$"
+	 1 (if bs--running-in-xemacs
+	       ;; problem in XEmacs with font-lock-constant-face
+	       (if (facep 'font-lock-constant-face)
+		   'font-lock-constant-face
+		 'font-lock-comment-face)
+	     'font-lock-constant-face))
+   ;; Dired-Buffers
+   '("^..\\(.*Dired by .*\\)$" 1 font-lock-function-name-face)
+   ;; the star for modified buffers
+   '("^.\\(\\*\\) +[^\\*]"     1 font-lock-comment-face))
   "Default font lock expressions for Buffer Selection Menu.")
 
 (defcustom bs-max-window-height 20
@@ -365,18 +367,18 @@ A value of `always' means to show buffer regardless of the configuration.")
 (defun bs--sort-by-name (b1 b2)
   "Compare buffers B1 and B2 by buffer name."
   (string< (buffer-name b1)
-    (buffer-name b2)))
+	   (buffer-name b2)))
 
 (defun bs--sort-by-filename (b1 b2)
   "Compare buffers B1 and B2 by file name."
   (string< (or (buffer-file-name b1) "")
-    (or (buffer-file-name b2) "")))
+	   (or (buffer-file-name b2) "")))
 
 (defun bs--sort-by-mode (b1 b2)
   "Compare buffers B1 and B2 by mode name."
   (save-excursion
     (string< (progn (set-buffer b1) (format "%s" mode-name))
-      (progn (set-buffer b2) (format "%s" mode-name)))))
+	     (progn (set-buffer b2) (format "%s" mode-name)))))
 
 (defun bs--sort-by-size (b1 b2)
   "Compare buffers B1 and B2 by buffer size."
@@ -415,10 +417,10 @@ don't highlight.
 The new sort aspect will be inserted into list `bs-sort-functions'."
   (let ((tupel (assoc name bs-sort-functions)))
     (if tupel
- (setcdr tupel (list fun regexp-for-sorting face))
+	(setcdr tupel (list fun regexp-for-sorting face))
       (setq bs-sort-functions
-     (cons (list name fun regexp-for-sorting face)
-    bs-sort-functions)))))
+	    (cons (list name fun regexp-for-sorting face)
+		  bs-sort-functions)))))
 
 (defvar bs--current-sort-function nil
   "Description of the current function for sorting the buffer list.
@@ -431,9 +433,9 @@ naming a sort behavior.  Default is \"by nothing\" which means no sorting."
   :group 'bs
   :type  'string
   :set (lambda (var-name value)
-  (set var-name value)
-  (setq bs--current-sort-function
-        (assoc value bs-sort-functions))))
+	 (set var-name value)
+	 (setq bs--current-sort-function
+	       (assoc value bs-sort-functions))))
 
 (defvar bs--buffer-coming-from nil
   "The buffer in which the user started the current Buffer Selection Menu.")
@@ -534,52 +536,53 @@ and `bs-buffer-sort-function'.
 If SORT-DESCRIPTION isn't nil the list will be sorted by
 a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
   (setq sort-description (or sort-description bs--current-sort-function)
- list (or list (buffer-list)))
+	list (or list (buffer-list)))
   (let ((result nil))
     (while list
       (let* ((buffername (buffer-name (car list)))
-      (int-show-never (string-match bs--intern-show-never buffername))
-      (ext-show-never (and bs-dont-show-regexp
-         (string-match bs-dont-show-regexp
-         buffername)))
-      (extern-must-show (or (and bs-must-always-show-regexp
-     (string-match bs-must-always-show-regexp
-            buffername))
-       (and bs-must-show-regexp
-     (string-match bs-must-show-regexp
-            buffername))))
-      (extern-show-never-from-fun (and bs-dont-show-function
-           (funcall bs-dont-show-function
-             (car list))))
-      (extern-must-show-from-fun (and bs-must-show-function
-          (funcall bs-must-show-function
-            (car list))))
-      (show-flag (save-excursion
-     (set-buffer (car list))
-     bs-buffer-show-mark)))
- (if (or (eq show-flag 'always)
-  (and (or bs--show-all (not (eq show-flag 'never)))
-       (not int-show-never)
-       (or bs--show-all
-    extern-must-show
-    extern-must-show-from-fun
-    (and (not ext-show-never)
-         (not extern-show-never-from-fun)))))
-     (setq result (cons (car list)
-          result)))
- (setq list (cdr list))))
+	     (int-show-never (string-match bs--intern-show-never buffername))
+	     (ext-show-never (and bs-dont-show-regexp
+				  (string-match bs-dont-show-regexp
+						buffername)))
+	     (extern-must-show (or (and bs-must-always-show-regexp
+					(string-match
+					 bs-must-always-show-regexp
+					 buffername))
+				   (and bs-must-show-regexp
+					(string-match bs-must-show-regexp
+						      buffername))))
+	     (extern-show-never-from-fun (and bs-dont-show-function
+					      (funcall bs-dont-show-function
+						       (car list))))
+	     (extern-must-show-from-fun (and bs-must-show-function
+					     (funcall bs-must-show-function
+						      (car list))))
+	     (show-flag (save-excursion
+			  (set-buffer (car list))
+			  bs-buffer-show-mark)))
+	(if (or (eq show-flag 'always)
+		(and (or bs--show-all (not (eq show-flag 'never)))
+		     (not int-show-never)
+		     (or bs--show-all
+			 extern-must-show
+			 extern-must-show-from-fun
+			 (and (not ext-show-never)
+			      (not extern-show-never-from-fun)))))
+	    (setq result (cons (car list)
+			       result)))
+	(setq list (cdr list))))
     (setq result (reverse result))
     ;; The current buffer which was the start point of bs should be an element
     ;; of result list, so that we can leave with space and be back in the
     ;; buffer we started bs-show.
     (if (and bs--buffer-coming-from
-      (buffer-live-p bs--buffer-coming-from)
-      (not (memq bs--buffer-coming-from result)))
- (setq result (cons bs--buffer-coming-from result)))
+	     (buffer-live-p bs--buffer-coming-from)
+	     (not (memq bs--buffer-coming-from result)))
+	(setq result (cons bs--buffer-coming-from result)))
     ;; sorting
     (if (and sort-description
-      (nth 1 sort-description))
- (setq result (sort result (nth 1 sort-description)))
+	     (nth 1 sort-description))
+	(setq result (sort result (nth 1 sort-description)))
       ;; else standard sorting
       (bs-buffer-sort result))))
 
@@ -596,31 +599,31 @@ SORT-DESCRIPTION is an element of `bs-sort-functions'"
   (let ((line (1+ (count-lines 1 (point)))))
     (bs-show-in-buffer (bs-buffer-list nil sort-description))
     (if keep-line-p
- (goto-line line))
+	(goto-line line))
     (beginning-of-line)))
 
 (defun bs--goto-current-buffer ()
   "Goto line which represents the current buffer;
 actually the line which begins with character in `bs-string-current' or
 `bs-string-current-marked'."
-  (let (point
- (regexp (concat "^"
-   (regexp-quote bs-string-current)
-   "\\|^"
-   (regexp-quote bs-string-current-marked))))
+  (let ((regexp (concat "^"
+			(regexp-quote bs-string-current)
+			"\\|^"
+			(regexp-quote bs-string-current-marked)))
+	point)
     (save-excursion
       (goto-char (point-min))
       (if (search-forward-regexp regexp nil t)
-   (setq point (- (point) 1))))
+	  (setq point (- (point) 1))))
     (if point
- (goto-char point))))
+	(goto-char point))))
 
 (defun bs--current-config-message ()
   "Return a string describing the current `bs-mode' configuration."
   (if bs--show-all
       "Show all buffers."
     (format "Show buffer by configuration %S"
-     bs-current-configuration)))
+	    bs-current-configuration)))
 
 (defun bs-mode ()
   "Major mode for editing a subset of Emacs' buffers.
@@ -661,11 +664,11 @@ to show always.
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'font-lock-verbose)
   (setq major-mode 'bs-mode
- mode-name "Buffer-Selection-Menu"
- buffer-read-only t
- truncate-lines t
- font-lock-defaults '(bs-mode-font-lock-keywords t)
- font-lock-verbose nil)
+	mode-name "Buffer-Selection-Menu"
+	buffer-read-only t
+	truncate-lines t
+	font-lock-defaults '(bs-mode-font-lock-keywords t)
+	font-lock-verbose nil)
   (run-hooks 'bs-mode-hook))
 
 (defun bs-kill ()
@@ -676,7 +679,7 @@ to show always.
 
 (defun bs-abort ()
   "Ding and leave Buffer Selection Menu without a selection."
- (interactive)
+  (interactive)
   (ding)
   (bs-kill))
 
@@ -698,35 +701,35 @@ Take only windows of current frame into account.
 Return nil if there is no such buffer."
   (let ((window nil))
     (walk-windows (lambda (wind)
-      (if (string= (buffer-name (window-buffer wind))
-     buffer-name)
-   (setq window wind))))
+		    (if (string= (buffer-name (window-buffer wind))
+				 buffer-name)
+			(setq window wind))))
     window))
 
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
   (unless (one-window-p t)
     (shrink-window (- (window-height (selected-window))
-        ;; window-height in xemacs includes mode-line
-        (+ (if bs--running-in-xemacs 3 1)
-    bs-header-lines-length
-    (min (length bs-current-list)
-         bs-max-window-height))))))
+		      ;; window-height in xemacs includes mode-line
+		      (+ (if bs--running-in-xemacs 3 1)
+			 bs-header-lines-length
+			 (min (length bs-current-list)
+			      bs-max-window-height))))))
 
 (defun bs--current-buffer ()
   "Return buffer on current line.
 Raise an error if not an a buffer line."
   (beginning-of-line)
   (let ((line (+ (- bs-header-lines-length)
-   (count-lines 1 (point)))))
+		 (count-lines 1 (point)))))
     (if (< line 0)
- (error "You are on a header row"))
+	(error "You are on a header row"))
     (nth line bs-current-list)))
 
 (defun bs--update-current-line ()
   "Update the entry on current line for Buffer Selection Menu."
   (let ((buffer (bs--current-buffer))
- (inhibit-read-only t))
+	(inhibit-read-only t))
     (beginning-of-line)
     (delete-region (point) (line-end-position))
     (bs--insert-one-entry buffer)
@@ -751,18 +754,18 @@ Leave Buffer Selection Menu."
     (set-window-configuration bs--window-config-coming-from)
     (switch-to-buffer buffer)
     (if bs--marked-buffers
- ;; Some marked buffers for selection
- (let* ((all (delq buffer bs--marked-buffers))
-        (height (/ (1- (frame-height)) (1+ (length all)))))
-   (delete-other-windows)
-   (switch-to-buffer buffer)
-   (while all
-     (split-window nil height)
-     (other-window 1)
-     (switch-to-buffer (car all))
-     (setq all (cdr all)))
-   ;; goto window we have started bs.
-   (other-window 1)))))
+	;; Some marked buffers for selection
+	(let* ((all (delq buffer bs--marked-buffers))
+	       (height (/ (1- (frame-height)) (1+ (length all)))))
+	  (delete-other-windows)
+	  (switch-to-buffer buffer)
+	  (while all
+	    (split-window nil height)
+	    (other-window 1)
+	    (switch-to-buffer (car all))
+	    (setq all (cdr all)))
+	  ;; goto window we have started bs.
+	  (other-window 1)))))
 
 (defun bs-select-other-window ()
   "Select current line's buffer by `switch-to-buffer-other-window'.
@@ -834,21 +837,21 @@ See `visit-tags-table'."
   (interactive)
   (let ((file (buffer-file-name (bs--current-buffer))))
     (if file
- (visit-tags-table file)
+	(visit-tags-table file)
       (error "Specified buffer has no file"))))
 
 (defun bs-toggle-current-to-show ()
   "Toggle status of showing flag for buffer in current line."
   (interactive)
   (let ((buffer (bs--current-buffer))
- res)
+	res)
     (save-excursion
       (set-buffer buffer)
       (setq res (cond ((null bs-buffer-show-mark)
-         'never)
-        ((eq bs-buffer-show-mark 'never)
-         'always)
-        (t nil)))
+		       'never)
+		      ((eq bs-buffer-show-mark 'never)
+		       'always)
+		      (t nil)))
       (setq bs-buffer-show-mark res))
     (bs--update-current-line)
     (bs--set-window-height)
@@ -886,13 +889,13 @@ COUNT is the number of buffers to mark.
 Move cursor vertically down COUNT lines."
   (interactive "p")
   (let ((dir (if (> count 0) 1 -1))
- (count (abs count)))
+	(count (abs count)))
     (while (> count 0)
       (let ((buffer (bs--current-buffer)))
- (if buffer
-     (setq bs--marked-buffers (cons buffer bs--marked-buffers)))
- (bs--update-current-line)
- (bs-down dir))
+	(if buffer
+	    (setq bs--marked-buffers (cons buffer bs--marked-buffers)))
+	(bs--update-current-line)
+	(bs-down dir))
       (setq count (1- count)))))
 
 (defun bs-unmark-current (count)
@@ -901,40 +904,40 @@ COUNT is the number of buffers to unmark.
 Move cursor vertically down COUNT lines."
   (interactive "p")
   (let ((dir (if (> count 0) 1 -1))
- (count (abs count)))
+	(count (abs count)))
     (while (> count 0)
       (let ((buffer (bs--current-buffer)))
- (if buffer
-     (setq bs--marked-buffers (delq buffer bs--marked-buffers)))
- (bs--update-current-line)
- (bs-down dir))
+	(if buffer
+	    (setq bs--marked-buffers (delq buffer bs--marked-buffers)))
+	(bs--update-current-line)
+	(bs-down dir))
       (setq count (1- count)))))
 
 (defun bs--show-config-message (what)
   "Show message indicating the new showing status WHAT.
 WHAT is a value of nil, `never', or `always'."
   (bs-message-without-log (cond ((null what)
-     "Buffer will be shown normally.")
-    ((eq what 'never)
-     "Mark buffer to never be shown.")
-    (t "Mark buffer to show always."))))
+				 "Buffer will be shown normally.")
+				((eq what 'never)
+				 "Mark buffer to never be shown.")
+				(t "Mark buffer to show always."))))
 
 (defun bs-delete ()
   "Kill buffer on current line."
   (interactive)
   (let ((current (bs--current-buffer))
- (inhibit-read-only t))
+	(inhibit-read-only t))
     (setq bs-current-list (delq current bs-current-list))
     (kill-buffer current)
     (beginning-of-line)
     (delete-region (point) (save-excursion
-        (end-of-line)
-        (if (eobp) (point) (1+ (point)))))
+			     (end-of-line)
+			     (if (eobp) (point) (1+ (point)))))
     (if (eobp)
- (progn
-   (backward-delete-char 1)
-   (beginning-of-line)
-   (recenter -1)))
+	(progn
+	  (backward-delete-char 1)
+	  (beginning-of-line)
+	  (recenter -1)))
     (bs--set-window-height)))
 
 (defun bs-delete-backward ()
@@ -943,14 +946,14 @@ WHAT is a value of nil, `never', or `always'."
   (let ((on-last-line-p (save-excursion (end-of-line) (eobp))))
     (bs-delete)
     (unless on-last-line-p
- (bs-up 1))))
+      (bs-up 1))))
 
 (defun bs-show-sorted ()
   "Show buffer list sorted by buffer name."
   (interactive)
   (setq bs--current-sort-function
- (bs-next-config-aux (car bs--current-sort-function)
-       bs-sort-functions))
+	(bs-next-config-aux (car bs--current-sort-function)
+			    bs-sort-functions))
   (bs--redisplay)
   (bs--goto-current-buffer)
   (bs-message-without-log "Sorted %s" (car bs--current-sort-function)))
@@ -960,7 +963,7 @@ WHAT is a value of nil, `never', or `always'."
 SORT-DESCRIPTION is an element of `bs-sort-functions'.
 Default is `bs--current-sort-function'."
   (let ((sort-description (or sort-description
-         bs--current-sort-function)))
+			      bs--current-sort-function)))
     (save-excursion
       (goto-char (point-min))
       (if (and (nth 2 sort-description)
@@ -1020,9 +1023,9 @@ If on top of buffer list go to last line."
   (previous-line 1)
   (if (<= (count-lines 1 (point)) (1- bs-header-lines-length))
       (progn
- (goto-char (point-max))
- (beginning-of-line)
- (recenter -1))
+	(goto-char (point-max))
+	(beginning-of-line)
+	(recenter -1))
     (beginning-of-line)))
 
 (defun bs-down (arg)
@@ -1037,7 +1040,7 @@ If on top of buffer list go to last line."
 If at end of buffer list go to first line."
   (let ((last (line-end-position)))
     (if (eq last (point-max))
- (goto-line (1+ bs-header-lines-length))
+	(goto-line (1+ bs-header-lines-length))
       (next-line 1))))
 
 (defun bs-visits-non-file (buffer)
@@ -1060,28 +1063,28 @@ These variables are `bs-dont-show-regexp', `bs-must-show-regexp',
 `bs-dont-show-function', `bs-must-show-function' and
 `bs-buffer-sort-function'."
   (setq bs-dont-show-regexp nil
- bs-must-show-regexp nil
- bs-dont-show-function nil
- bs-must-show-function nil
- bs-buffer-sort-function nil))
+	bs-must-show-regexp nil
+	bs-dont-show-function nil
+	bs-must-show-function nil
+	bs-buffer-sort-function nil))
 
 (defun bs-config--only-files ()
   "Define a configuration for showing only buffers visiting a file."
   (bs-config-clear)
-  (setq ;; I want to see *-buffers at the end
-        bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
- ;; Don't show files who don't belong to a file
- bs-dont-show-function 'bs-visits-non-file))
+  (setq;; I want to see *-buffers at the end
+   bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
+   ;; Don't show files who don't belong to a file
+   bs-dont-show-function 'bs-visits-non-file))
 
 (defun bs-config--files-and-scratch ()
   "Define a configuration for showing buffer *scratch* and file buffers."
   (bs-config-clear)
-  (setq ;; I want to see *-buffers at the end
-        bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
- ;; Don't show files who don't belong to a file
- bs-dont-show-function 'bs-visits-non-file
- ;; Show *scratch* buffer.
- bs-must-show-regexp "^\\*scratch\\*"))
+  (setq;; I want to see *-buffers at the end
+   bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
+   ;; Don't show files who don't belong to a file
+   bs-dont-show-function 'bs-visits-non-file
+   ;; Show *scratch* buffer.
+   bs-must-show-regexp "^\\*scratch\\*"))
 
 (defun bs-config--all ()
   "Define a configuration for showing all buffers.
@@ -1100,20 +1103,20 @@ Intern buffers appear at end of all buffers."
 When called interactively ask user for a configuration and apply selected
 configuration."
   (interactive (list (completing-read "Use configuration: "
-          bs-configurations
-          nil
-          t)))
+				      bs-configurations
+				      nil
+				      t)))
   (let ((list (assoc name bs-configurations)))
     (if list
- (if (listp list)
-     (setq bs-current-configuration name
-    bs-must-show-regexp     (nth 1 list)
-    bs-must-show-function   (nth 2 list)
-    bs-dont-show-regexp     (nth 3 list)
-    bs-dont-show-function   (nth 4 list)
-    bs-buffer-sort-function (nth 5 list))
-   ;; for backward compability
-   (funcall (cdr list)))
+	(if (listp list)
+	    (setq bs-current-configuration name
+		  bs-must-show-regexp     (nth 1 list)
+		  bs-must-show-function   (nth 2 list)
+		  bs-dont-show-regexp     (nth 3 list)
+		  bs-dont-show-function   (nth 4 list)
+		  bs-buffer-sort-function (nth 5 list))
+	  ;; for backward compability
+	  (funcall (cdr list)))
       ;; else
       (ding)
       (bs-message-without-log "No bs-configuration named %S." name))))
@@ -1127,15 +1130,15 @@ configuration."
   "Get the next assoc after START-NAME in list LIST.
 Will return the first if START-NAME is at end."
   (let ((assocs list)
- (length (length list))
- pos)
+	(length (length list))
+	pos)
     (while (and assocs (not pos))
       (if (string= (car (car assocs)) start-name)
-   (setq pos (- length (length assocs))))
+	  (setq pos (- length (length assocs))))
       (setq assocs (cdr assocs)))
     (setq pos (1+ pos))
     (if (eq pos length)
- (car list)
+	(car list)
       (nth pos list))))
 
 (defun bs-next-config (name)
@@ -1163,13 +1166,13 @@ and move point to current buffer."
   (switch-to-buffer (get-buffer-create "*buffer-selection*"))
   (bs-mode)
   (let* ((inhibit-read-only t)
-  (map-fun (lambda (entry)
-      (length (buffer-name entry))))
-  (max-length-of-names (apply 'max
-         (cons 0 (mapcar map-fun list))))
-  (name-entry-length (min bs-maximal-buffer-name-column
-     (max bs-minimal-buffer-name-column
-          max-length-of-names))))
+	 (map-fun (lambda (entry)
+		    (length (buffer-name entry))))
+	 (max-length-of-names (apply 'max
+				     (cons 0 (mapcar map-fun list))))
+	 (name-entry-length (min bs-maximal-buffer-name-column
+				 (max bs-minimal-buffer-name-column
+				      max-length-of-names))))
     (erase-buffer)
     (setq bs--name-entry-length name-entry-length)
     (bs--show-header)
@@ -1190,12 +1193,12 @@ If BUFFER-LIST is nil the result of `bs-buffer-list' will be used as
 buffer list.  The result is a cons of normally the second element of
 BUFFER-LIST and the buffer list used for buffer cycling."
   (let* ((bs--current-sort-function (if sorting-p
-     bs--current-sort-function))
-  (bs-buffer-list (or buffer-list (bs-buffer-list))))
+					bs--current-sort-function))
+	 (bs-buffer-list (or buffer-list (bs-buffer-list))))
     (cons (or (car (cdr bs-buffer-list))
-       (car bs-buffer-list)
-       (current-buffer))
-   bs-buffer-list)))
+	      (car bs-buffer-list)
+	      (current-buffer))
+	  bs-buffer-list)))
 
 (defun bs-previous-buffer (&optional buffer-list sorting-p)
   "Return previous buffer and buffer list for buffer cycling in BUFFER-LIST.
@@ -1204,11 +1207,11 @@ If BUFFER-LIST is nil the result of `bs-buffer-list' will be used as
 buffer list.  The result is a cons of last element of BUFFER-LIST and the
 buffer list used for buffer cycling."
   (let* ((bs--current-sort-function (if sorting-p
-     bs--current-sort-function))
-  (bs-buffer-list (or buffer-list (bs-buffer-list))))
+					bs--current-sort-function))
+	 (bs-buffer-list (or buffer-list (bs-buffer-list))))
     (cons (or (car (last bs-buffer-list))
-       (current-buffer))
-   bs-buffer-list)))
+	      (current-buffer))
+	  bs-buffer-list)))
 
 (defun bs-message-without-log (&rest args)
   "Like `message' but don't log it on the message log.
@@ -1226,29 +1229,29 @@ The buffers taking part in buffer cycling are defined
 by buffer configuration `bs-cycle-configuration-name'."
   (interactive)
   (let ((bs--buffer-coming-from (current-buffer))
- (bs-dont-show-regexp   bs-dont-show-regexp)
- (bs-must-show-regexp   bs-must-show-regexp)
- (bs-dont-show-function bs-dont-show-function)
- (bs-must-show-function bs-must-show-function)
- (bs--show-all          bs--show-all))
+	(bs-dont-show-regexp   bs-dont-show-regexp)
+	(bs-must-show-regexp   bs-must-show-regexp)
+	(bs-dont-show-function bs-dont-show-function)
+	(bs-must-show-function bs-must-show-function)
+	(bs--show-all          bs--show-all))
     (if bs-cycle-configuration-name
- (bs-set-configuration bs-cycle-configuration-name))
+	(bs-set-configuration bs-cycle-configuration-name))
     (let ((bs-buffer-sort-function nil)
-   (bs--current-sort-function nil))
+	  (bs--current-sort-function nil))
       (let* ((tupel (bs-next-buffer (if (or (eq last-command
-      'bs-cycle-next)
-         (eq last-command
-      'bs-cycle-previous))
-     bs--cycle-list)))
-      (next (car tupel))
-      (cycle-list (cdr tupel)))
- (setq bs--cycle-list (append (cdr cycle-list)
-         (list (car cycle-list))))
- (bury-buffer)
- (switch-to-buffer next)
- (bs-message-without-log "Next buffers: %s"
-    (or (cdr bs--cycle-list)
-        "this buffer"))))))
+						'bs-cycle-next)
+					    (eq last-command
+						'bs-cycle-previous))
+					bs--cycle-list)))
+	     (next (car tupel))
+	     (cycle-list (cdr tupel)))
+	(setq bs--cycle-list (append (cdr cycle-list)
+				     (list (car cycle-list))))
+	(bury-buffer)
+	(switch-to-buffer next)
+	(bs-message-without-log "Next buffers: %s"
+				(or (cdr bs--cycle-list)
+				    "this buffer"))))))
 
 
 ;;;###autoload
@@ -1258,38 +1261,38 @@ The buffers taking part in buffer cycling are defined
 by buffer configuration `bs-cycle-configuration-name'."
   (interactive)
   (let ((bs--buffer-coming-from (current-buffer))
- (bs-dont-show-regexp   bs-dont-show-regexp)
- (bs-must-show-regexp   bs-must-show-regexp)
- (bs-dont-show-function bs-dont-show-function)
- (bs-must-show-function bs-must-show-function)
- (bs--show-all          bs--show-all))
+	(bs-dont-show-regexp   bs-dont-show-regexp)
+	(bs-must-show-regexp   bs-must-show-regexp)
+	(bs-dont-show-function bs-dont-show-function)
+	(bs-must-show-function bs-must-show-function)
+	(bs--show-all          bs--show-all))
     (if bs-cycle-configuration-name
- (bs-set-configuration bs-cycle-configuration-name))
+	(bs-set-configuration bs-cycle-configuration-name))
     (let ((bs-buffer-sort-function nil)
-   (bs--current-sort-function nil))
+	  (bs--current-sort-function nil))
       (let* ((tupel (bs-previous-buffer (if (or (eq last-command
-          'bs-cycle-next)
-      (eq last-command
-          'bs-cycle-previous))
-         bs--cycle-list)))
-      (prev-buffer (car tupel))
-      (cycle-list (cdr tupel)))
- (setq bs--cycle-list (append (last cycle-list)
-         (reverse (cdr (reverse cycle-list)))))
- (switch-to-buffer prev-buffer)
- (bs-message-without-log "Previous buffers: %s"
-    (or (reverse (cdr bs--cycle-list))
-        "this buffer"))))))
+						    'bs-cycle-next)
+						(eq last-command
+						    'bs-cycle-previous))
+					    bs--cycle-list)))
+	     (prev-buffer (car tupel))
+	     (cycle-list (cdr tupel)))
+	(setq bs--cycle-list (append (last cycle-list)
+				     (reverse (cdr (reverse cycle-list)))))
+	(switch-to-buffer prev-buffer)
+	(bs-message-without-log "Previous buffers: %s"
+				(or (reverse (cdr bs--cycle-list))
+				    "this buffer"))))))
 
 (defun bs--get-value (fun &optional args)
   "Apply function FUN with arguments ARGS.
 Return result of evaluation.  Will return FUN if FUN is a number
 or a string."
   (cond ((numberp fun)
-  fun)
- ((stringp fun)
-  fun)
- (t (apply fun args))))
+	 fun)
+	((stringp fun)
+	 fun)
+	(t (apply fun args))))
 
 (defun bs--get-marked-string (start-buffer all-buffers)
   "Return a string which describes whether current buffer is marked.
@@ -1298,23 +1301,23 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu.
 The result string is one of `bs-string-current', `bs-string-current-marked',
 `bs-string-marked', `bs-string-show-normally', `bs-string-show-never', or
 `bs-string-show-always'."
-  (cond ;; current buffer is the buffer we started buffer selection.
-        ((eq (current-buffer) start-buffer)
-  (if (memq (current-buffer) bs--marked-buffers)
-      bs-string-current-marked ; buffer is marked
-    bs-string-current))
- ;; current buffer is marked
- ((memq (current-buffer) bs--marked-buffers)
-  bs-string-marked)
- ;; current buffer hasn't a special mark.
- ((null bs-buffer-show-mark)
-  bs-string-show-normally)
- ;; current buffer has a mark not to show itself.
- ((eq bs-buffer-show-mark 'never)
-  bs-string-show-never)
- ;; otherwise current buffer is marked to show always.
- (t
-  bs-string-show-always)))
+  (cond;; current buffer is the buffer we started buffer selection.
+   ((eq (current-buffer) start-buffer)
+    (if (memq (current-buffer) bs--marked-buffers)
+	bs-string-current-marked	; buffer is marked
+      bs-string-current))
+   ;; current buffer is marked
+   ((memq (current-buffer) bs--marked-buffers)
+    bs-string-marked)
+   ;; current buffer hasn't a special mark.
+   ((null bs-buffer-show-mark)
+    bs-string-show-normally)
+   ;; current buffer has a mark not to show itself.
+   ((eq bs-buffer-show-mark 'never)
+    bs-string-show-never)
+   ;; otherwise current buffer is marked to show always.
+   (t
+    bs-string-show-always)))
 
 (defun bs--get-modified-string (start-buffer all-buffers)
   "Return a string which describes whether current buffer is modified.
@@ -1343,8 +1346,8 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
   (let ((name (copy-sequence (buffer-name))))
     (put-text-property 0 (length name) 'mouse-face 'highlight name)
     (if (< (length name) bs--name-entry-length)
- (concat name
-  (make-string (- bs--name-entry-length (length name)) ? ))
+	(concat name
+		(make-string (- bs--name-entry-length (length name)) ? ))
       name)))
 
 
@@ -1362,9 +1365,9 @@ default directory.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
   (let ((string (copy-sequence (if (member major-mode
-        '(shell-mode dired-mode))
-       default-directory
-     (or buffer-file-name "")))))
+					   '(shell-mode dired-mode))
+				   default-directory
+				 (or buffer-file-name "")))))
     (put-text-property 0 (length string) 'mouse-face 'highlight string)
     string))
 
@@ -1375,25 +1378,25 @@ It goes over all columns described in `bs-attributes-list'
 and evaluates corresponding string.  Inserts string in current buffer;
 normally *buffer-selection*."
   (let ((string "")
- (columns bs-attributes-list)
- (to-much 0)
+	(columns bs-attributes-list)
+	(to-much 0)
         (apply-args (append (list bs--buffer-coming-from bs-current-list))))
     (save-excursion
       (while columns
- (set-buffer buffer)
- (let ((min   (bs--get-value (nth 1 (car columns))))
-       ;;(max   (bs--get-value (nth 2 (car columns)))) refered no more
-       (align (nth 3 (car columns)))
-       (fun   (nth 4 (car columns)))
-       (val   nil)
-       new-string)
-   (setq val (bs--get-value fun apply-args))
-   (setq new-string (bs--format-aux val align (- min to-much)))
-   (setq string (concat string new-string))
-   (if (> (length new-string) min)
-       (setq to-much (- (length new-string) min)))
-   ) ; let
- (setq columns (cdr columns))))
+	(set-buffer buffer)
+	(let ((min   (bs--get-value (nth 1 (car columns))))
+	      ;;(max   (bs--get-value (nth 2 (car columns)))) refered no more
+	      (align (nth 3 (car columns)))
+	      (fun   (nth 4 (car columns)))
+	      (val   nil)
+	      new-string)
+	  (setq val (bs--get-value fun apply-args))
+	  (setq new-string (bs--format-aux val align (- min to-much)))
+	  (setq string (concat string new-string))
+	  (if (> (length new-string) min)
+	      (setq to-much (- (length new-string) min)))
+	  )				; let
+	(setq columns (cdr columns))))
     (insert string)
     string))
 
@@ -1402,16 +1405,16 @@ normally *buffer-selection*."
 ALIGN is one of the symbols `left', `middle', or `right'."
   (let ((length (length string)))
     (if (>= length len)
- string
+	string
       (if (eq 'right align)
-   (concat (make-string (- len length) ? ) string)
- (concat string (make-string (- len length) ? ))))))
+	  (concat (make-string (- len length) ? ) string)
+	(concat string (make-string (- len length) ? ))))))
 
 (defun bs--show-header ()
   "Insert header for Buffer Selection Menu in current buffer."
   (mapcar '(lambda (string)
-      (insert string "\n"))
-   (bs--create-header)))
+	     (insert string "\n"))
+	  (bs--create-header)))
 
 (defun bs--get-name-length ()
   "Return value of `bs--name-entry-length'."
@@ -1420,18 +1423,18 @@ ALIGN is one of the symbols `left', `middle', or `right'."
 (defun bs--create-header ()
   "Return all header lines used in Buffer Selection Menu as a list of strings."
   (list (mapconcat (lambda (column)
-       (bs--format-aux (bs--get-value (car column))
-         (nth 3 column) ; align
-         (bs--get-value (nth 1 column))))
-     bs-attributes-list
-     "")
- (mapconcat (lambda (column)
-       (let ((length (length (bs--get-value (car column)))))
-         (bs--format-aux (make-string length ?-)
-           (nth 3 column) ; align
-           (bs--get-value (nth 1 column)))))
-     bs-attributes-list
-     "")))
+		     (bs--format-aux (bs--get-value (car column))
+				     (nth 3 column) ; align
+				     (bs--get-value (nth 1 column))))
+		   bs-attributes-list
+		   "")
+	(mapconcat (lambda (column)
+		     (let ((length (length (bs--get-value (car column)))))
+		       (bs--format-aux (make-string length ?-)
+				       (nth 3 column) ; align
+				       (bs--get-value (nth 1 column)))))
+		   bs-attributes-list
+		   "")))
 
 (defun bs--show-with-configuration (name &optional arg)
   "Display buffer list of configuration with NAME name.
@@ -1446,38 +1449,38 @@ The optional argument ARG is the prefix argument when calling a function
 for buffer selection."
   (bs-set-configuration name)
   (let ((bs--show-all (or bs--show-all arg)))
-  (unless (string= "*buffer-selection*" (buffer-name))
+    (unless (string= "*buffer-selection*" (buffer-name))
       ;; Only when not in buffer *buffer-selection*
       ;; we have to set the buffer we started the command
       (progn
- (setq bs--buffer-coming-from (current-buffer))
- (setq bs--window-config-coming-from (current-window-configuration))))
-  (let ((liste (bs-buffer-list))
- (active-window (bs--window-for-buffer "*buffer-selection*")))
-    (if active-window
- (select-window active-window)
-      (if (> (window-height (selected-window)) 7)
-   (progn
-     (split-window-vertically)
-     (other-window 1))))
-    (bs-show-in-buffer liste)
-    (bs-message-without-log "%s" (bs--current-config-message)))))
+	(setq bs--buffer-coming-from (current-buffer))
+	(setq bs--window-config-coming-from (current-window-configuration))))
+    (let ((liste (bs-buffer-list))
+	  (active-window (bs--window-for-buffer "*buffer-selection*")))
+      (if active-window
+	  (select-window active-window)
+	(if (> (window-height (selected-window)) 7)
+	    (progn
+	      (split-window-vertically)
+	      (other-window 1))))
+      (bs-show-in-buffer liste)
+      (bs-message-without-log "%s" (bs--current-config-message)))))
 
 (defun bs--configuration-name-for-prefix-arg (prefix-arg)
   "Convert prefix argument PREFIX-ARG to a name of a buffer configuration.
 If PREFIX-ARG is nil return `bs-default-configuration'.
 If PREFIX-ARG is an integer return PREFIX-ARG element of `bs-configurations'.
 Otherwise return `bs-alternative-configuration'."
-  (cond ;; usually activation
-        ((null prefix-arg)
-  bs-default-configuration)
- ;; call with integer as prefix argument
- ((integerp prefix-arg)
-  (if (and (< 0 prefix-arg) (<= prefix-arg (length bs-configurations)))
-      (car (nth (1- prefix-arg) bs-configurations))
-    bs-default-configuration))
- ;; call by prefix argument C-u
- (t bs-alternative-configuration)))
+  (cond;; usually activation
+   ((null prefix-arg)
+    bs-default-configuration)
+   ;; call with integer as prefix argument
+   ((integerp prefix-arg)
+    (if (and (< 0 prefix-arg) (<= prefix-arg (length bs-configurations)))
+	(car (nth (1- prefix-arg) bs-configurations))
+      bs-default-configuration))
+   ;; call by prefix argument C-u
+   (t bs-alternative-configuration)))
 
 ;; ----------------------------------------------------------------------
 ;; Main function bs-customize and bs-show
@@ -1491,7 +1494,7 @@ Otherwise return `bs-alternative-configuration'."
 
 ;;;###autoload
 (defun bs-show (arg)
-  "Make a menu of buffers so you can manipulate buffer list or buffers itself.
+  "Make a menu of buffers so you can manipulate buffers or the buffer list.
 \\<bs-mode-map>
 There are many key commands similar to `Buffer-menu-mode' for
 manipulating buffer list and buffers itself.
