@@ -40,20 +40,6 @@
 \gdef\mycxxz#1{}
 @end tex
 
-@c Fix some things to make math mode work properly.
-@iftex
-@textfont0=@tenrm
-@font@teni=cmmi10 scaled @magstephalf   @textfont1=@teni
-@font@seveni=cmmi7 scaled @magstephalf  @scriptfont1=@seveni
-@font@fivei=cmmi5 scaled @magstephalf   @scriptscriptfont1=@fivei
-@font@tensy=cmsy10 scaled @magstephalf  @textfont2=@tensy
-@font@sevensy=cmsy7 scaled @magstephalf @scriptfont2=@sevensy
-@font@fivesy=cmsy5 scaled @magstephalf  @scriptscriptfont2=@fivesy
-@font@tenex=cmex10 scaled @magstephalf  @textfont3=@tenex
-@scriptfont3=@tenex  @scriptscriptfont3=@tenex
-@textfont7=@tentt  @scriptfont7=@tentt  @scriptscriptfont7=@tentt
-@end iftex
-
 @c Fix some other things specifically for this manual.
 @iftex
 @finalout
@@ -830,9 +816,6 @@ operated by the normal Emacs keyboard.  When you type @kbd{M-# c}
 to start the Calculator, the Emacs screen splits into two windows
 with the file you were editing on top and Calc on the bottom.
 
-@iftex
-@advance@hsize20pt
-@end iftex
 @smallexample
 @group
 
@@ -983,17 +966,6 @@ Stack; the lower window is a picture of a typical calculator keypad.
                                         | OFF |  0  |  .  | PI  |  +  |
                                         |-----+-----+-----+-----+-----+
 @end smallexample
-@iftex
-@begingroup
-@ifdim@hsize=5in
-@vskip-3.7in
-@advance@hsize-2.2in
-@else
-@vskip-3.89in
-@advance@hsize-3.05in
-@advance@vsize.1in
-@fi
-@end iftex
 
 Keypad Mode is much easier for beginners to learn, because there
 is no need to memorize lots of obscure key sequences.  But not all
@@ -1013,9 +985,6 @@ keypad change to show other sets of commands, such as advanced
 math functions, vector operations, and operations on binary
 numbers.
 
-@iftex
-@endgroup
-@end iftex
 Because Keypad Mode doesn't use the regular keyboard, Calc leaves
 the cursor in your original editing buffer.  You can type in
 this buffer in the usual way while also clicking on the Calculator
