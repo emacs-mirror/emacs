@@ -71,6 +71,8 @@ int pending_atimers;
 
 static void set_alarm P_ ((void));
 static void schedule_atimer P_ ((struct atimer *));
+static struct atimer *append_atimer_lists P_ ((struct atimer *,
+					       struct atimer *));
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -99,10 +101,6 @@ start_atimer (type, time, fn, client_data)
      void *client_data;
 {
   struct atimer *t;
-
-  /* May not be called when some timers are stopped.  */
-  if (stopped_atimers)
-    abort ();
 
   /* Round TIME up to the next full second if we don't have
      itimers.  */
@@ -168,27 +166,20 @@ void
 cancel_atimer (timer)
      struct atimer *timer;
 {
-  struct atimer *t, *prev;
-  struct atimer **list;
-
+  int i;
+  
   BLOCK_ATIMERS;
 
-  /* If we've stopped all other timers except TIMER, we can
-     just reset the list of active atimers to null.  */
-  if (stopped_atimers && timer == atimers)
+  for (i = 0; i < 2; ++i)
     {
-      timer->next = free_atimers;
-      free_atimers = timer;
-      atimers = NULL;
-    }
-  else
-    {
+      struct atimer *t, *prev;
+      struct atimer **list = i ? &stopped_atimers : &atimers;
+      
       /* See if TIMER is active or stopped.  */
-      list = stopped_atimers ? &stopped_atimers : &atimers;
       for (t = *list, prev = 0; t && t != timer; t = t->next)
 	;
 
-      /* If it is, take it off the list of its list, and put in on the
+      /* If it is, take it off the its list, and put in on the
 	 free-list.  We don't bother to arrange for setting a
 	 different alarm time, since a too early one doesn't hurt.  */
       if (t)
@@ -207,10 +198,30 @@ cancel_atimer (timer)
 }
 
 
-/* Stop all timers except timer T.  T null means stop all timers.
-   This function may only be called when all timers are running.  Two
-   calls of this function in a row will lead to an abort.  You may not
-   call cancel_atimer or start_atimer while timers are stopped.  */
+/* Append two lists of atimers LIST1 and LIST2 and return the
+   result list.  */
+
+static struct atimer *
+append_atimer_lists (list1, list2)
+     struct atimer *list1, *list2;
+{
+  if (list1 == NULL)
+    return list2;
+  else if (list2 == NULL)
+    return list1;
+  else
+    {
+      struct atimer *p;
+      
+      for (p = list1; p->next; p = p->next)
+	;
+      p->next = list2;
+      return list1;
+    }
+}
+
+
+/* Stop all timers except timer T.  T null means stop all timers.  */
 
 void
 stop_other_atimers (t)
@@ -218,9 +229,6 @@ stop_other_atimers (t)
 {
   BLOCK_ATIMERS;
   
-  if (stopped_atimers)
-    abort ();
-
   if (t)
     {
       struct atimer *p, *prev;
@@ -242,7 +250,7 @@ stop_other_atimers (t)
 	t = NULL;
     }
   
-  stopped_atimers = atimers;
+  stopped_atimers = append_atimer_lists (atimers, stopped_atimers);
   atimers = t;
   UNBLOCK_ATIMERS;
 }
@@ -257,11 +265,19 @@ run_all_atimers ()
   if (stopped_atimers)
     {
       struct atimer *t = atimers;
+      struct atimer *next;
+      
       BLOCK_ATIMERS;
       atimers = stopped_atimers;
       stopped_atimers = NULL;
-      if (t)
-	schedule_atimer (t);
+      
+      while (t)
+	{
+	  next = t->next;
+	  schedule_atimer (t);
+	  t = next;
+	}
+      
       UNBLOCK_ATIMERS;
     }
 }
