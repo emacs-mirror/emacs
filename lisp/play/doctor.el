@@ -206,7 +206,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (go on\, don\'t be afraid \.)
 	  (i need a little more detail please \.)
 	  (you\'re being a bit brief\, ($ please) go into detail \.)
-	  (can you be more explicit \?)
+	  (can you ($ please) be more explicit \?)
 	  (and \?)
 	  (($ please) go into more detail \?)
 	  (you aren\'t being very talkative today\!)
@@ -490,7 +490,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq mathlst '(
 		  (($ describe) ($ something) about math \.)
 		  (($ maybe) your ($ problems) ($ arerelated) (// found) \.)
-		  (i do\'nt know much (// found) \, but ($ continue)
+		  (i don\'t know much (// found) \, but ($ continue)
 		     anyway \.)))
   (make-local-variable 'zippylst)
   (setq zippylst '(
