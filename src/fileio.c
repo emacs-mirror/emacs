@@ -3128,7 +3128,7 @@ build_annotations_unwind (buf)
   return Qnil;
 }
 
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 5,
+DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 6,
   "r\nFWrite region to file: ",
   "Write current region into specified file.\n\
 When called from a program, takes three arguments:\n\
@@ -3143,10 +3143,12 @@ If VISIT is a string, it is a second file name;\n\
   VISIT is also the file name to lock and unlock for clash detection.\n\
 If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
+The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
+  use for locking and unlocking, overriding FILENAME and VISIT.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
-  (start, end, filename, append, visit)
-     Lisp_Object start, end, filename, append, visit;
+  (start, end, filename, append, visit, lockname)
+     Lisp_Object start, end, filename, append, visit, lockname;
 {
   register int desc;
   int failure;
@@ -3163,7 +3165,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   Lisp_Object visit_file;
   Lisp_Object annotations;
   int visiting, quietly;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
 #ifdef DOS_NT
   int buffer_file_type
@@ -3176,7 +3178,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
-  GCPRO2 (filename, visit);
+  GCPRO3 (filename, visit, lockname);
   filename = Fexpand_file_name (filename, Qnil);
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
@@ -3189,7 +3191,10 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   annotations = Qnil;
 
-  GCPRO4 (start, filename, annotations, visit_file);
+  if (NILP (lockname))
+    lockname = visit_file;
+
+  GCPRO5 (start, filename, annotations, visit_file, lockname);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -3234,7 +3239,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    lock_file (visit_file);
+    lock_file (lockname);
 #endif /* CLASH_DETECTION */
 
   fn = XSTRING (filename)->data;
@@ -3308,7 +3313,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     {
 #ifdef CLASH_DETECTION
       save_errno = errno;
-      if (!auto_saving) unlock_file (visit_file);
+      if (!auto_saving) unlock_file (lockname);
       errno = save_errno;
 #endif /* CLASH_DETECTION */
       report_file_error ("Opening output file", Fcons (filename, Qnil));
@@ -3320,7 +3325,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     if (lseek (desc, 0, 2) < 0)
       {
 #ifdef CLASH_DETECTION
-	if (!auto_saving) unlock_file (visit_file);
+	if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
 	report_file_error ("Lseek error", Fcons (filename, Qnil));
       }
@@ -3443,7 +3448,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
-    unlock_file (visit_file);
+    unlock_file (lockname);
 #endif /* CLASH_DETECTION */
 
   /* Do this before reporting IO error
@@ -3749,7 +3754,7 @@ auto_save_1 ()
   return
     Fwrite_region (Qnil, Qnil,
 		   current_buffer->auto_save_file_name,
-		   Qnil, Qlambda);
+		   Qnil, Qlambda, Qnil);
 }
 
 static Lisp_Object
