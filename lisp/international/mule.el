@@ -815,7 +815,7 @@ don't want to mark the buffer modified, just set the variable
 `buffer-file-coding-system' directly."
   (interactive "zCoding system for visited file (default, nil): \nP")
   (check-coding-system coding-system)
-  (if (and buffer-file-coding-system (null force))
+  (if (and coding-system buffer-file-coding-system (null force))
       (let ((x (coding-system-eol-type buffer-file-coding-system))
 	    (y (coding-system-eol-type coding-system)))
 	(if (and (numberp x) (>= x 0) (<= x 2) (vectorp y))
