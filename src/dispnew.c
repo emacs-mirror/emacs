@@ -1094,7 +1094,7 @@ direct_output_for_insert (g)
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
   XSETFASTINT (w->last_point, PT);
-  XSETFASTINT (w->last_point_x, hpos);
+  XSETFASTINT (w->last_point_x, hpos + 1);
   XSETFASTINT (w->last_modified, MODIFF);
   XSETFASTINT (w->last_overlay_modified, OVERLAY_MODIFF);
 
