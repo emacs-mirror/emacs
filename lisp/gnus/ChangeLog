@@ -1,15 +1,28 @@
-2000-11-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2000-11-08  John Wiegley  <johnw@gnu.org>
+
+	* gnus-topic.el (gnus-topic-mode): Use `setq' to clear
+	`gnus-group-change-level-function', instead of `remove-hook',
+	because it's not a hook!
+
+2000-11-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnweb.el (nnweb-decode-entities): Work for non-character
 	entities. 
 
-2000-11-09  Simon Josefsson  <simon@josefsson.org>
+	* gnus-start.el (gnus-read-active-file, gnus-activate-group):
+	Issue message on quit.
+
+2000-11-08  Simon Josefsson  <simon@josefsson.org>
 
 	* rfc2104.el: Add SHA-1 example.
 	(rfc2104-hexstring-to-bitstring): New function.
 	(rfc2104-hash): Use it.
 
 2000-11-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-start.el: Remove gnus-xemacs.
+	
+	* nndoc.el (nndoc-dissect-mime-parts-sub): Correctly mark body-begin.
 
 	* gnus-score.el (gnus-score-body): Don't score body when
 	agent-fetching.
@@ -22,6 +35,8 @@
 	asynchronous in Exp version.
 
 2000-11-08  Dave Love  <fx@gnu.org>
+
+	* mm-bodies.el (mm-encode-body): Use mm-multibyte-p.
 
 	* gnus-score.el (gnus-score-load-file): Use expand-file-name.
 	(gnus-score-find-bnews): Don't concat "".
