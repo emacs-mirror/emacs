@@ -288,6 +288,13 @@ static int mouse_face_mouse_x, mouse_face_mouse_y;
 /* Nonzero means defer mouse-motion highlighting.  */
 static int mouse_face_defer;
 
+/* Incremented by XTread_socket whenever it really tries to read events.  */
+#ifdef __STDC__
+static int volatile input_signal_count;
+#else
+static int input_signal_count;
+#endif
+
 /* `t' if a mouse button is depressed. */
 
 extern Lisp_Object Vmouse_depressed;
@@ -3166,7 +3173,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
   interrupt_input_pending = 0;
   BLOCK_INPUT;
-	
+
+  /* So people can tell when we have read the available input.  */
+  input_signal_count++;
+
   if (numchars <= 0)
     abort ();			/* Don't think this happens. */
 
@@ -4905,7 +4915,6 @@ XTframe_raise_lower (f, raise)
     x_lower_frame (f);
 }
 
-
 /* Change from withdrawn state to mapped state,
    or deiconify. */
 
@@ -4941,17 +4950,28 @@ x_make_frame_visible (f)
 
   XFlushQueue ();
 
-  UNBLOCK_INPUT;
-
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
+    int count = input_signal_count;
+
+    /* This must come after we set COUNT.  */
+    UNBLOCK_INPUT;
+
     XSET (frame, Lisp_Frame, f);
-    while (! f->async_visible)
+
+    while (1)
       {
 	x_sync (frame);
+	/* Once we have handled input events,
+	   we should have received the MapNotify if one is coming.
+	   So if we have not got it yet, stop looping.
+	   Some window managers make their own decisions
+	   about visibility.  */
+	if (input_signal_count != count)
+	  break;
 	/* Machines that do polling rather than SIGIO have been observed
 	   to go into a busy-wait here.  So we'll fake an alarm signal
 	   to let the handler know that there's something to be read.
@@ -4964,6 +4984,13 @@ x_make_frame_visible (f)
 	    alarm (0);
 	    input_poll_signal ();
 	  }
+	/* Once we have handled input events,
+	   we should have received the MapNotify if one is coming.
+	   So if we have not got it yet, stop looping.
+	   Some window managers make their own decisions
+	   about visibility.  */
+	if (input_signal_count != count)
+	  break;
       }
     FRAME_SAMPLE_VISIBILITY (f);
   }
