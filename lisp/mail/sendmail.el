@@ -185,8 +185,8 @@ The function `mail-setup' runs this hook."
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
-\(The file's name is normally `~/.mailrc', but your MAILRC environment
-variable can override that name.)
+\(The file's name is normally `~/.mailrc', but `mail-personal-alias-file'
+can specify a different file name.)
 The alias definitions in the file have this form:
     alias ALIAS MEANING")
 
