@@ -10751,39 +10751,29 @@ Value is t is tooltip was open, nil otherwise.")
   ()
 {
   int count;
-  Lisp_Object deleted;
+  Lisp_Object deleted, frame, timer;
+  struct gcpro gcpro1, gcpro2;
 
   /* Return quickly if nothing to do.  */
-  if (NILP (tip_timer) && !FRAMEP (tip_frame))
+  if (NILP (tip_timer) && NILP (tip_frame))
     return Qnil;
   
+  frame = tip_frame;
+  timer = tip_timer;
+  GCPRO2 (frame, timer);
+  tip_frame = tip_timer = deleted = Qnil;
+  
   count = BINDING_STACK_SIZE ();
-  deleted = Qnil;
   specbind (Qinhibit_redisplay, Qt);
   specbind (Qinhibit_quit, Qt);
   
-  if (!NILP (tip_timer))
-    {
-      Lisp_Object tem;
-      struct gcpro gcpro1;
-      tem = tip_timer;
-      GCPRO1 (tem);
-      tip_timer = Qnil;
-      call1 (intern ("cancel-timer"), tem);
-      UNGCPRO;
-    }
+  if (!NILP (timer))
+    call1 (intern ("cancel-timer"), timer);
 
-  if (FRAMEP (tip_frame))
+  if (FRAMEP (frame))
     {
-      Lisp_Object frame;
-      struct gcpro gcpro1;
-
-      frame = tip_frame;
-      GCPRO1 (frame);
-      tip_frame = Qnil;
       Fdelete_frame (frame, Qnil);
       deleted = Qt;
-      UNGCPRO;
 
 #ifdef USE_LUCID
       /* Bloodcurdling hack alert: The Lucid menu bar widget's
@@ -10805,6 +10795,7 @@ Value is t is tooltip was open, nil otherwise.")
 #endif /* USE_LUCID */
     }
 
+  UNGCPRO;
   return unbind_to (count, deleted);
 }
 
