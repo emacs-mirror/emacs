@@ -296,7 +296,7 @@ This function is called, by name, directly by the C code."
 	      (apply (aref timer 5) (aref timer 6))
 	    (error nil))
 	  (if retrigger
-	      (aset timer 7 nil)))
+	      (aset timer 0 nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.
