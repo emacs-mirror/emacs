@@ -525,7 +525,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return newdef;
 }
 
-DEFUN ("define-function", Fdefine_function, Sdefine_function, 2, 2, 0,
+DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
   "Set SYMBOL's function definition to NEWVAL, and return NEWVAL.\n\
 Associates the function with the current load file, if any.")
   (sym, newdef)
@@ -2153,7 +2153,7 @@ syms_of_data ()
   defsubr (&Sboundp);
   defsubr (&Sfboundp);
   defsubr (&Sfset);
-  defsubr (&Sdefine_function);
+  defsubr (&Sdefalias);
   defsubr (&Ssetplist);
   defsubr (&Ssymbol_value);
   defsubr (&Sset);
