@@ -3424,6 +3424,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 		      cursor_hpos = p1 - leftmargin;
 		    }
 		  pos = next_boundary;
+		  pos_byte = CHAR_TO_BYTE (pos);
 		  last_invis_skip = pos;
 		  last_invis_prop = prop;
 		}
