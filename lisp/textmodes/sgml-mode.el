@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; Author: James Clark
-;; Maintainer: FSF
+;; Author: James Clark <jjc@clark.com>
 ;; Adapted-By: ESR
 ;; Keywords: wp
 

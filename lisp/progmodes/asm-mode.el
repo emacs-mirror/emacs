@@ -1,18 +1,18 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
+;; Copyright (C) 1991 Free Software Foundation, Inc.
+
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Last-Modified: 14 Jul 1992
 ;; Keywords: tools, languages
 
-;; 	@(#)asm-mode.el	1.6
-
-;; Copyright (C) 1991 Free Software Foundation, Inc.
+;; 	@(#)asm-mode.el	1.7
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
