@@ -241,10 +241,7 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 			   global-map)
 
 ;; Support mouse-wheel scrolling
-(autoload 'mwheel-scroll "mwheel")
-(global-set-key [mouse-wheel] 'mwheel-scroll)
-(global-set-key [C-mouse-wheel] 'mwheel-scroll)
-(global-set-key [S-mouse-wheel] 'mwheel-scroll)
+(mouse-wheel-mode 1)
 
 ;; (prefer-coding-system 'mac-roman)
 
