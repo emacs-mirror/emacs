@@ -94,7 +94,7 @@ not edit these files manually, but you may if you know how.
 @node Summary of Gnus
 @subsection Summary of Gnus Commands
 
-Reading news is a two step process:
+Reading news is a two-step process:
 
 @enumerate
 @item
@@ -906,17 +906,17 @@ to the bottom before inserting.
 
 @vindex comint-scroll-show-maximum-output
   If @code{comint-scroll-show-maximum-output} is non-@code{nil}, then
-scrolling due to arrival of output tries to place the last line of text
-at the bottom line of the window, so as to show as much useful text as
-possible.  (This mimics the scrolling behavior of many terminals.)
-The default is @code{nil}.
+scrolling due to the arrival of output tries to place the last line of
+text at the bottom line of the window, so as to show as much useful
+text as possible.  (This mimics the scrolling behavior of many
+terminals.)  The default is @code{nil}.
 
 @vindex comint-scroll-to-bottom-on-output
   By setting @code{comint-scroll-to-bottom-on-output}, you can opt for
 having point jump to the end of the buffer whenever output arrives---no
 matter where in the buffer point was before.  If the value is
 @code{this}, point jumps in the selected window.  If the value is
-@code{all}, point jumps in each window that shows the comint buffer.  If
+@code{all}, point jumps in each window that shows the Comint buffer.  If
 the value is @code{other}, point jumps in all nonselected windows that
 show the current buffer.  The default value is @code{nil}, which means
 point does not jump to the end.
@@ -1073,7 +1073,7 @@ temporarily visible, but will be erased when you hit return.  (This
 happens automatically; there is no special password processing.)
 
   When you log in to a different machine, you need to specify the type
-of terminal your using.  Terminal types @samp{ansi} or @samp{vt100}
+of terminal you're using.  Terminal types @samp{ansi} or @samp{vt100}
 will work on most systems.
 
 @c   If you are talking to a Bourne-compatible
@@ -1090,7 +1090,7 @@ will work on most systems.
 @c as long as Emacs can access the source files specified by gdb.
 
 @ignore
-  You cannot log into to a remote computer using the Shell mode.
+  You cannot log in to a remote computer using the Shell mode.
 @c (This will change when Shell is re-written to use Term.)
 Instead, Emacs provides two commands for logging in to another computer
 and communicating with it through an Emacs buffer using Comint mode:
@@ -1153,7 +1153,7 @@ variable @env{EDITOR} to specify which editor to run.  If you set
 @env{EDITOR} to @samp{emacs}, they invoke Emacs---but in an
 inconvenient fashion, by starting a new, separate Emacs process.  This
 is inconvenient because it takes time and because the new Emacs process
-doesn't share the buffers in the existing Emacs process.
+doesn't share the buffers in any existing Emacs process.
 
   You can arrange to use your existing Emacs process as the editor for
 programs like @code{mail} by using the Emacs client and Emacs server
@@ -1185,7 +1185,7 @@ to edit various files, and selects the next such file.
 
   You can switch to a server buffer manually if you wish; you don't
 have to arrive at it with @kbd{C-x #}.  But @kbd{C-x #} is the way to
-say that you are ``finished'' with one.
+say that you are finished with one.
 
 @vindex server-kill-new-buffers
 @vindex server-temp-file-regexp
@@ -1480,7 +1480,7 @@ instructs the printer to use built-in fonts for @sc{ascii} and Latin-1
 characters, and Intlfonts BDF fonts for the rest.
 
 @vindex bdf-directory-list
-  To be able to use the BDF fonts, Emacs should know where to find
+  To be able to use the BDF fonts, Emacs needs to know where to find
 them.  The variable @code{bdf-directory-list} holds the list of
 directories where Emacs should look for the fonts; the default value
 includes a single directory @file{/usr/local/share/emacs/fonts/bdf}.
@@ -1541,7 +1541,7 @@ Specify which field to sort by with a numeric argument: 1 to sort by
 field 1, etc.  A negative argument means count fields from the right
 instead of from the left; thus, minus 1 means sort by the last field.
 If several lines have identical contents in the field being sorted, they
-keep same relative order that they had in the original buffer.
+keep the same relative order that they had in the original buffer.
 
 @item M-x sort-numeric-fields
 Like @kbd{M-x sort-fields} except the specified field is converted
@@ -1664,8 +1664,8 @@ the mode line whenever narrowing is in effect.
 @findex narrow-to-region
   The primary narrowing command is @kbd{C-x n n} (@code{narrow-to-region}).
 It sets the current buffer's restrictions so that the text in the current
-region remains accessible but all text before the region or after the region
-is inaccessible.  Point and mark do not change.
+region remains accessible, but all text before the region or after the
+region is inaccessible.  Point and mark do not change.
 
 @kindex C-x n p
 @findex narrow-to-page
@@ -1832,8 +1832,8 @@ invoked @code{hexl-mode}.
 
 @noindent
 Other Hexl commands let you insert strings (sequences) of binary
-bytes, move by short's or int's, etc.; type @kbd{C-h a hexl-
-@key{RET}} for details.
+bytes, move by @code{short}s or @code{int}s, etc.; type @kbd{C-h a
+hexl-@key{RET}} for details.
 
 
 @node Saving Emacs Sessions, Recursive Edit, Editing Binary Files, Top
@@ -1919,7 +1919,7 @@ but also quits the unfinished command immediately.  Use the command
 
   The mode line shows you when you are in a recursive edit by displaying
 square brackets around the parentheses that always surround the major and
-minor mode names.  Every window's mode line shows this, in the same way,
+minor mode names.  Every window's mode line shows this in the same way,
 since being in a recursive edit is true of Emacs as a whole rather than
 any particular window or buffer.
 
@@ -2251,7 +2251,7 @@ Find the definition of the function that @var{key} invokes.
   These commands provide an easy way to find the definitions of Emacs
 Lisp functions and variables.  They are similar in purpose to the Tags
 facility (@pxref{Tags}), but don't require a tags table; on the other
-hand, they only works for function and variable definitions that are
+hand, they only work for function and variable definitions that are
 already loaded in the Emacs session.
 
 @findex find-function
