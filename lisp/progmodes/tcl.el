@@ -438,7 +438,7 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;;    proc foo { \n {arg1 def} \n arg2 } {
 ;; The current setting handles the first case properly but not the second.
 ;; It also fails if `proc' is not in column-0 (e.g. it's in a namespace).
-(defconst tcl-omit-ws-regexp "^[^] \t\n#}].+[ \t]+")
+(defconst tcl-omit-ws-regexp "^[^]\" \t\n#}][^\n\"]+[ \t]+")
 
 
 
