@@ -1708,7 +1708,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
                               ifnname)))
-        (setq maxlen (max maxlen (length width))
+        (setq maxlen (max maxlen width)
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
 				   (- (length text) (length ifnname))
