@@ -674,6 +674,13 @@ lisp= \
 	${lispsource}international/mule-cmds.elc \
 	${lispsource}international/characters.elc \
 	${lispsource}international/utf-8.elc \
+	${lispsource}international/latin-1.el \
+	${lispsource}international/latin-2.el \
+	${lispsource}international/latin-3.el \
+	${lispsource}international/latin-4.el \
+	${lispsource}international/latin-5.el \
+	${lispsource}international/latin-8.el \
+	${lispsource}international/latin-9.el \
 	${lispsource}case-table.elc \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
@@ -724,6 +731,7 @@ shortlisp= \
 	../lisp/byte-run.elc \
 	../lisp/cus-start.el \
 	../lisp/custom.elc \
+	../lisp/emacs-lisp/backquote.elc \
 	../lisp/emacs-lisp/lisp-mode.elc \
 	../lisp/emacs-lisp/lisp.elc \
 	../lisp/facemenu.elc \
@@ -744,6 +752,14 @@ shortlisp= \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
+	../lisp/international/utf-8.elc \
+	../lisp/international/latin-1.el \
+	../lisp/international/latin-2.el \
+	../lisp/international/latin-3.el \
+	../lisp/international/latin-4.el \
+	../lisp/international/latin-5.el \
+	../lisp/international/latin-8.el \
+	../lisp/international/latin-9.el \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
@@ -764,6 +780,7 @@ shortlisp= \
 	../lisp/language/tibetan.elc \
 	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.elc \
+	../lisp/menu-bar.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
 	../lisp/replace.elc \
@@ -786,7 +803,7 @@ shortlisp= \
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
    for the sake of systems which can't handle large ones.  */
-SOME_MACHINE_LISP = ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
+SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
   ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
