@@ -28,16 +28,10 @@
 
 ;;; Usage:
 
-;;  See edt-user.doc
+;;  See edt-user.doc in the Emacs etc directory.
 
 ;; ====================================================================
 
-;;;
-;;;  Revision Information
-;;;
-(defconst edt-vt100-revision "$Revision: 1.1 $"
-    "Revision Number of EDT VT Series Terminal Support.")
-
 ;; Get keyboard function key mapping to EDT keys.
 (load "edt-lk201" nil t)
 
