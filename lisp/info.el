@@ -186,15 +186,16 @@ to read a file name from the minibuffer."
 	    (progn (setq Info-current-node nodename)
 		   (Info-set-mode-line))
 	  ;; Search file for a suitable node.
-	  ;; First get advice from tag table if file has one.
-	  ;; Also, if this is an indirect info file,
-	  ;; read the proper subfile into this buffer.
-	  (let ((guesspos (point-min)))
+	  (let ((guesspos (point-min))
+		(regexp (concat "Node: *" (regexp-quote nodename) " *[,\t\n\177]")))
+	    ;; First get advice from tag table if file has one.
+	    ;; Also, if this is an indirect info file,
+	    ;; read the proper subfile into this buffer.
 	    (if (marker-position Info-tag-table-marker)
 		(save-excursion
 		  (set-buffer (marker-buffer Info-tag-table-marker))
 		  (goto-char Info-tag-table-marker)
-		  (if (search-forward (concat "Node: " nodename "\177") nil t)
+		  (if (re-search-forward regexp nil t)
 		      (progn
 			(setq guesspos (read (current-buffer)))
 			;; If this is an indirect file,
@@ -204,10 +205,9 @@ to read a file name from the minibuffer."
 			    (setq guesspos
 				  (Info-read-subfile guesspos))))
 		    (error "No such node: \"%s\"" nodename))))
-	    (goto-char (max (point-min) (- guesspos 1000))))
-	  ;; Now search from our advised position (or from beg of buffer)
-	  ;; to find the actual node.
-	  (let ((regexp (concat "Node: *" (regexp-quote nodename) " *[,\t\n]")))
+	    (goto-char (max (point-min) (- guesspos 1000)))
+	    ;; Now search from our advised position (or from beg of buffer)
+	    ;; to find the actual node.
 	    (catch 'foo
 	      (while (search-forward "\n\^_" nil t)
 		(forward-line 1)
