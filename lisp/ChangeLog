@@ -1,5 +1,8 @@
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule-diag.el (mule-diag): Insert information about
+	configure options, multibyte awareness, language env.
+
 	* international/ja-dic-cnv.el (skkdic-get-candidate-list): Fix the
 	regexp to search for candidates.
 

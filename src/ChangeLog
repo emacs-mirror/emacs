@@ -1,3 +1,9 @@
+2000-12-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (Vface_ignored_fonts): New variable.
+	(x_face_list_fonts): Ignore fonts matching Vface_ignored_fonts.
+	(syms_of_xfaces): Declare Vface_ignored_fonts as a Lisp variable.
+
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_window): Detect pending input every nth line

@@ -3175,8 +3175,17 @@ to find a best match for the specified font height, etc.
 
 Setting `face-font-family-alternatives' allows the user to specify
 alternative font families to try if a family specified by a face
-doesn't exist.  Likewise, `face-font-registry-alternatives' allows to
-specify alternative font registry names to try.
+doesn't exist.  
+
+Setting `face-font-registry-alternatives' allows the user to specify
+all alternative font registry names to try for a face speciying a
+registry.
+
+Please note that the iterpretations of the above two variables are
+slightly different.
+
+Setting face-ignored-fonts allows the user to ignore specific fonts.
+
 
 +++
 **** Scalable fonts
