@@ -709,8 +709,9 @@ main (argc, argv, envp)
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
-  /* Call malloc at least once, to run the initial __malloc_hook.  */
-  malloc (4);
+  /* Call malloc at least once, to run the initial __malloc_hook.
+     Also call realloc and free for consistency.  */
+  free (realloc (malloc (4), 4));
 
   /* Arrange to disable interrupt input inside malloc etc.  */
   uninterrupt_malloc ();
