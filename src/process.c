@@ -2781,7 +2781,11 @@ send_process (proc, buf, len, object)
 		      offset = buf - (char *) XSTRING (object)->data;
 
 		    XSETFASTINT (zero, 0);
+#ifdef EMACS_HAS_USECS
+		    wait_reading_process_input (0, 20000, zero, 0);
+#else
 		    wait_reading_process_input (1, 0, zero, 0);
+#endif
 
 		    if (BUFFERP (object))
 		      buf = (char *) BUF_CHAR_ADDRESS (XBUFFER (object), offset);
