@@ -2387,6 +2387,18 @@ Each function is called with two arguments which specify the range\n\
 of the buffer being accessed.");
   Vbuffer_access_fontify_functions = Qnil;
 
+  {
+    Lisp_Object obuf;
+    extern Lisp_Object Vprin1_to_string_buffer;
+    obuf = Fcurrent_buffer ();
+    /* Do this here, because init_buffer_once is too early--it won't work.  */
+    Fset_buffer (Vprin1_to_string_buffer);
+    /* Make sure buffer-access-fontify-functions is nil in this buffer.  */
+    Fset (Fmake_local_variable (intern ("buffer-access-fontify-functions")),
+	  Qnil);
+    Fset_buffer (obuf);
+  }
+
   DEFVAR_LISP ("buffer-access-fontified-property",
 	       &Vbuffer_access_fontified_property,
        "Property which (if non-nil) indicates text has been fontified.\n\
