@@ -571,11 +571,7 @@ sys_suspend ()
 #else
 #ifdef SIGTSTP
 
-#ifdef GETPGRP_NO_ARG
-  EMACS_KILLPG (getpgrp (), SIGTSTP);
-#else
   EMACS_KILLPG (getpgrp (0), SIGTSTP);
-#endif
 
 #else /* No SIGTSTP */
 #ifdef USG_JOBCTRL /* If you don't know what this is don't mess with it */
@@ -2921,20 +2917,22 @@ char *sys_siglist[NSIG + 1] =
 
 #include <dirent.h>
 
-#ifndef AIX
+#ifndef HAVE_CLOSEDIR
 int
 closedir (dirp)
      register DIR *dirp;              /* stream from opendir */
 {
   sys_close (dirp->dd_fd);
 
-  /* Some systems allocate the buffer and the DIR all in one block.
-     Why in the world are we freeing this ourselves anyway?  */
-  if (dirp->dd_buf != (char *)(dirp + 1))
-    xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
+  /* Some systems (like Solaris) allocate the buffer and the DIR all
+     in one block.  Why in the world are we freeing this ourselves
+     anyway?  */
+#if ! (defined (sun) && defined (USG5_4))
+  xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
+#endif
   xfree ((char *) dirp);
 }
-#endif /* not AIX */
+#endif /* not HAVE_CLOSEDIR */
 #endif /* SYSV_SYSTEM_DIR */
 
 #ifdef NONSYSTEM_DIR_LIBRARY
