@@ -1,3 +1,32 @@
+2001-02-06  David M. Koppelman <koppel@ee.lsu.edu>
+
+	* hi-lock.el (hi-lock-mode): Toggling hi-lock-mode now affects all
+	buffers.  When hi-lock turned on rather than only checking current
+	buffer for regexps, all buffers are checked. Moved activation of
+	font-lock to hi-lock-refontify. When font-lock turned off rather
+	than removing added highlighting just in current buffer, remove it
+	in all buffers.  Changed edit menu text from "Automatic
+	Highlighting" to "Regexp Highlighting" Documentation for
+	highlighting phrases, minor documentation changes.
+	(hi-lock-set-file-patterns): Execute only if there are new or
+	existing file patterns.
+	(hi-lock-refontify): Assume font-lock-fontify-buffer will first
+	unfontify and, if a support mode is active, will not refontify the
+	whole buffer.  If necessary, turn on font lock. (Removed
+	font-lock-unfontify and font-lock support-mode-specific calls,
+	such as lazy-lock-fontify-window.)
+	(hi-lock-find-patterns): Do not turn on hi-lock-mode even if
+	patterns are found. Not useful now since find-file-hook is removed
+	if hi-lock is off, but may be needed for per-buffer hi-lock
+	activation.
+	(hi-lock-face-phrase-buffer): New function.  Also added related
+	menu item and keybinding.
+	(highlight-phrase): New alias, to hi-lock-face-phrase-buffer.
+	(hi-lock-process-phrase): New function.
+	(hi-lock-line-face-buffer): Doc fixes.
+	(hi-lock-face-buffer): Doc fixes.
+	(hi-lock-unface-buffer): Doc fixes.
+	
 2001-02-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* dabbrev.el (dabbrev-ignored-buffer-regexps): Renamed from

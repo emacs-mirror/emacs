@@ -1798,8 +1798,8 @@ typical scenario is to keep track of how much time you spend working
 on certain projects.
 
 +++
-*** The new package hi-lock.el, text matching interactively entered
-regexp's can be highlighted.  For example,
+*** The new package hi-lock.el provides commands to highlight matches
+of interactively entered regexps.  For example,
 
   M-x highlight-regexp RET clearly RET RET
 
@@ -1809,7 +1809,8 @@ typed.  `M-x unhighlight-regexp RET' will remove the highlighting.
 Any existing face can be used for highlighting and a set of
 appropriate faces is provided.  The regexps can be written into the
 current buffer in a form that will be recognized the next time the
-corresponding file is read.
+corresponding file is read.  There are commands to highlight matches
+to phrases and to highlight entire lines containing a match.
 
 +++
 *** The new package zone.el plays games with Emacs' display when
