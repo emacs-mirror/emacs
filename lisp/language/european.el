@@ -28,34 +28,6 @@
 
 ;;; Code:
 
-;; Setup for LANGAUGE which uses one-byte 8-bit CHARSET, one-byte
-;; 8-bit coding system, and INPUT-METHOD.
-(defun setup-8-bit-environment (language charset input-method)
-  (setup-english-environment)
-  (set-language-environment-coding-systems language)
-
-  (when default-enable-multibyte-characters
-    (if charset
-	(let ((nonascii-offset (- (make-char charset) 128)))
-	  ;; Set up for insertion of characters in this character set
-	  ;; when codes 0200 - 0377 are typed in.
-	  (setq nonascii-insert-offset nonascii-offset)))
-
-    (if input-method
-	(setq default-input-method input-method)))
-
-  ;; If this language environment supports unibyte operation,
-  ;; load the proper syntax definitions for codes 0240-0377.
-  (when (get-language-info language 'unibyte-syntax)
-    (let ((set-case-syntax-set-multibyte nil))
-      (load (get-language-info language 'unibyte-syntax) nil t)
-      (set-standard-case-table (standard-case-table))
-      (let ((list (buffer-list)))
-	(while list
-	  (with-current-buffer (car list)
-	    (set-case-table (standard-case-table)))
-	  (setq list (cdr list)))))))
-
 ;; Latin-1 (ISO-8859-1)
 
 (make-coding-system
@@ -81,14 +53,15 @@
 (defun setup-latin1-environment ()
   "Set up multilingual environment (MULE) for European Latin-1 users."
   (interactive)
-  (setup-8-bit-environment "Latin-1" 'latin-iso8859-1 "latin-1-prefix"))
+  (set-language-environment "Latin-1"))
 
 (set-language-info-alist
- "Latin-1" '((setup-function . setup-latin1-environment)
-	     (charset ascii latin-iso8859-1)
+ "Latin-1" '((charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
 	     (coding-priority iso-latin-1)
+	     (nonascii-translation . latin-iso8859-1)
 	     (unibyte-syntax . "latin-1")
+	     (unibyte-display . iso-latin-1)
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . "\
@@ -114,14 +87,15 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 (defun setup-latin2-environment ()
   "Set up multilingual environment (MULE) for European Latin-2 users."
   (interactive)
-  (setup-8-bit-environment "Latin-2" 'latin-iso8859-2 "latin-2-prefix"))
+  (set-language-environment "Laint-2"))
 
 (set-language-info-alist
- "Latin-2" '((setup-function . setup-latin2-environment)
-	     (charset ascii latin-iso8859-2)
+ "Latin-2" '((charset ascii latin-iso8859-2)
 	     (coding-system iso-latin-2)
 	     (coding-priority iso-latin-2)
+	     (nonascii-translation . latin-iso8859-2)
 	     (unibyte-syntax . "latin-2")
+	     (unibyte-display . iso-latin-2)
 	     (documentation . "\
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
@@ -146,14 +120,15 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 (defun setup-latin3-environment ()
   "Set up multilingual environment (MULE) for European Latin-3 users."
   (interactive)
-  (setup-8-bit-environment "Latin-3" 'latin-iso8859-3 "latin-3-prefix"))
+  (set-language-environment "Latin-3"))
 
 (set-language-info-alist
- "Latin-3" '((setup-function . setup-latin3-environment)
-	     (charset ascii latin-iso8859-3)
+ "Latin-3" '((charset ascii latin-iso8859-3)
 	     (coding-system iso-latin-3)
 	     (coding-priority iso-latin-3)
+	     (nonascii-translation . latin-iso8859-3)
 	     (unibyte-syntax . "latin-3")
+	     (unibyte-display . iso-latin-3)
 	     (documentation . "\
 These languages are supported with the Latin-3 (ISO-8859-3) character set:
  Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
@@ -177,14 +152,15 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 (defun setup-latin4-environment ()
   "Set up multilingual environment (MULE) for European Latin-4 users."
   (interactive)
-  (setup-8-bit-environment "Latin-4" 'latin-iso8859-4 "latin-4-prefix"))
+  (set-language-environment "Latin-4"))
 
 (set-language-info-alist
- "Latin-4" '((setup-function . setup-latin4-environment)
-	     (charset ascii latin-iso8859-4)
+ "Latin-4" '((charset ascii latin-iso8859-4)
 	     (coding-system iso-8859-4)
 	     (coding-priority iso-8859-4)
+	     (nonascii-translation . latin-iso8859-4)
 	     (unibyte-syntax . "latin-4")
+	     (unibyte-display . iso-8859-4)
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
@@ -208,14 +184,15 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 (defun setup-latin5-environment ()
   "Set up multilingual environment (MULE) for European Latin-5 users."
   (interactive)
-  (setup-8-bit-environment "Latin-5" 'latin-iso8859-9 "latin-5-prefix"))
+  (set-language-environment "Latin-5"))
 
 (set-language-info-alist
- "Latin-5" '((setup-function . setup-latin5-environment)
-	     (charset ascii latin-iso8859-9)
+ "Latin-5" '((charset ascii latin-iso8859-9)
 	     (coding-system iso-latin-5)
 	     (coding-priority iso-latin-5)
+	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
+	     (unibyte-display . iso-latin-5)
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set."))
  '("European"))
@@ -224,16 +201,17 @@ These languages are supported with the Latin-5 (ISO-8859-9) character set."))
 (defun setup-german-environment ()
   "Set up multilingual environment (MULE) for German users."
   (interactive)
-  (funcall (get-language-info "Latin-1" 'setup-function))
-  (setq default-input-method "german-postfix"))
+  (set-language-environment "German"))
 
 (set-language-info-alist
- "German" '((setup-function . setup-german-environment)
-	    (tutorial . "TUTORIAL.de")
+ "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
 	    (coding-priority iso-latin-1)
+	    (input-method "german-postfix")
+	    (nonascii-translation . iso-latin-1)
 	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
 	    (sample-text . "\
 German (Deutsch Nord)	Guten Tag
 German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
