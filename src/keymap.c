@@ -342,8 +342,7 @@ keymap_memberp (map, maps)
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
        doc: /* Modify KEYMAP to set its parent map to PARENT.
-Return PARENT.
-PARENT should be nil or another keymap.  */)
+Return PARENT.  PARENT should be nil or another keymap.  */)
      (keymap, parent)
      Lisp_Object keymap, parent;
 {
