@@ -315,7 +315,7 @@ autoloads for all files in the current directory.
 @file{loaddefs.el}.  If the form following the magic comment is not a
 function definition, it is copied verbatim.  You can also use a magic
 comment to execute a form at build time @emph{without} executing it when
-the file itself is loaded.  To do this, write the form @dfn{on the same
+the file itself is loaded.  To do this, write the form @emph{on the same
 line} as the magic comment.  Since it is in a comment, it does nothing
 when you load the source file; but @code{update-file-autoloads} copies
 it to @file{loaddefs.el}, where it is executed while building Emacs.
