@@ -1,10 +1,11 @@
-;;;; texinfmt.el
-;;; Copyright (C) 1985, 1986, 1988,
-;;;               1990, 1991, 1992, 1993  Free Software Foundation, Inc.
+;;; texinfmt.el --- format Texinfo files into Info files.
+
+;; Copyright (C) 1985, 1986, 1988,
+;;               1990, 1991, 1992, 1993  Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@prep.ai.mit.edu>
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

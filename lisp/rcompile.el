@@ -1,4 +1,4 @@
-;;; rcompile.el Run a compilation on a remote machine
+;;; rcompile.el --- run a compilation on a remote machine
 
 ;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;;_* allout.el - Extensive outline mode for use alone and with other modes.
+;;; allout.el --- Extensive outline mode for use alone and with other modes.
 
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 

@@ -1,8 +1,5 @@
-;;; File:  edt-lk201.el  ---  Enhanced EDT Keypad Mode Emulation
-;;;                             for LK-201 Keyboards
-;;;
-;;;                          For GNU Emacs 19
-;;
+;;; edt-lk201.el --- Enhanced EDT Keypad Mode Emulation for LK-201 Keyboards
+
 ;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>

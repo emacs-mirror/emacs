@@ -1,4 +1,4 @@
-;;; tmm.el - text mode access to menu-bar
+;;; tmm.el --- text mode access to menu-bar
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 

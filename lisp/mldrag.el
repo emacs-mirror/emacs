@@ -1,4 +1,4 @@
-;;; mldrag.el -- Mode line and vertical line dragging to resize windows.
+;;; mldrag.el --- mode line and vertical line dragging to resize windows
 ;;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Kyle E. Jones <kyle@wonderworks.com>

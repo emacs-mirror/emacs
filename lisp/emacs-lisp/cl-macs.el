@@ -1,4 +1,4 @@
-;; cl-macs.el --- Common Lisp extensions for GNU Emacs Lisp (part four)
+;;; cl-macs.el --- Common Lisp extensions for GNU Emacs Lisp (part four)
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;; pp.el --- pretty printer for Emacs Lisp
+;;; pp.el --- pretty printer for Emacs Lisp
 ;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@ora.com>

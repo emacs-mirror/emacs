@@ -1,5 +1,5 @@
-;; demo for forms-mode	-*-emacs-lisp-*-
-;;
+;;; forms-pass.el --- passwd file demo for forms-mode
+
 ;; This demo visits your passwd file.
 
 ;; use yp if present

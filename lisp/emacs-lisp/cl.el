@@ -1,4 +1,4 @@
-;; cl.el --- Common Lisp extensions for GNU Emacs Lisp
+;;; cl.el --- Common Lisp extensions for GNU Emacs Lisp
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

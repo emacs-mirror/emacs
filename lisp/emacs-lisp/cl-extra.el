@@ -1,4 +1,4 @@
-;; cl-extra.el --- Common Lisp extensions for GNU Emacs Lisp (part two)
+;;; cl-extra.el --- Common Lisp extensions for GNU Emacs Lisp (part two)
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 

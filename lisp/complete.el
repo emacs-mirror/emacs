@@ -1,4 +1,4 @@
-;; complete.el -- partial completion mechanism plus other goodies.
+;;; complete.el -- partial completion mechanism plus other goodies
 
 ;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;; solitaire.el --- game of solitaire in emacs lisp
+;;; solitaire.el --- game of solitaire in Emacs Lisp
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 

@@ -1,5 +1,5 @@
-;;; Texinfo mode utilities for updating nodes and menus in Texinfo files.
-;;; Copyright 1989, 1990, 1991, 1992 Free Software Foundation
+;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
+;; Copyright (C) 1989, 1990, 1991, 1992 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell      
 ;; Maintainer: bug-texinfo@prep.ai.mit.edu

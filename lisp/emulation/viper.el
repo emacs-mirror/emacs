@@ -1,4 +1,4 @@
-;;; viper.el --- A full-featured Vi emulator for GNU Emacs 19 and XEmacs 19,
+;;; viper.el --- A full-featured Vi emulator.
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.

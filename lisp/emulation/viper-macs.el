@@ -1,4 +1,5 @@
-;;; viper-macs.el -- functions implementing keyboard macros for Viper
+;;; viper-macs.el --- functions implementing keyboard macros for Viper
+
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

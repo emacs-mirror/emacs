@@ -1,12 +1,11 @@
-;;; New backquote for GNU Emacs.
+;;; backquote.el -- implement the ` Lisp construct
 ;;; Copyright (C) 1990, 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF
 ;; Keywords: extensions, internal
 
-;; This file is not part of GNU Emacs but is distributed under
-;; the same conditions as GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,19 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; This is a new backquote for GNU Emacs written by
-;; Rick Sladkey <jrs@world.std.com>.  It has the following
-;; features compared to the version 18 backquote:
-
-;; Correctly handles nested backquotes.
-;; Correctly handles constants after a splice.
-;; Correctly handles top-level atoms and unquotes.
-;; Correctly handles unquote after dot.
-;; Understands vectors.
-;; Minimizes gratuitous consing.
-;; Faster operation with simpler semantics.
-;; Generates faster run-time expressions.
-;; One third fewer calories than our regular beer.
+;;; Commentary:
 
 ;; This backquote will generate calls to the backquote-list* form.
 ;; Both a function version and a macro version are included.

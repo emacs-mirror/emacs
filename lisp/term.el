@@ -1,4 +1,5 @@
-;; term.el --- general command interpreter in a window stuff
+;;; term.el --- general command interpreter in a window stuff
+
 ;; Copyright (C) 1988, 1990, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <bothner@cygnus.com>

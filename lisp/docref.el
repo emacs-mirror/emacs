@@ -1,4 +1,4 @@
-;;; docref.el -- Simple cross references for Elisp documentation strings
+;;; docref.el --- Simple cross references for Elisp documentation strings
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Vadim Geshel <vadik@unas.cs.kiev.ua>

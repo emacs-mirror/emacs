@@ -1,4 +1,5 @@
-;;; viper-mous.el -- Mouse support for Viper
+;;; viper-mous.el --- mouse support for Viper
+
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

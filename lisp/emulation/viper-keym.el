@@ -1,4 +1,5 @@
-;;; viper-keym.el -- Main Viper keymaps
+;;; viper-keym.el --- main Viper keymaps
+
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

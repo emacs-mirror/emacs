@@ -1,3 +1,4 @@
+;;; auto-show.el --- perform automatic horizontal scrolling as point moves
 ;;; This file is in the public domain.
 
 ;;; Keywords: scroll display minor-mode

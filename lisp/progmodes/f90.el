@@ -1,4 +1,4 @@
-;; f90.el --- Fortran-90 mode (free format) for GNU Emacs and GNU XEmacs.
+;;; f90.el --- Fortran-90 mode (free format)
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>

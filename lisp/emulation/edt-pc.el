@@ -1,8 +1,5 @@
-;;; File:  edt-pc.el  ---  Enhanced EDT Keypad Mode Emulation
-;;;                        for PC 101 Keyboards
-;;;
-;;;                          For GNU Emacs 19
-;;
+;;; edt-pc.el --- Enhanced EDT Keypad Mode Emulation for PC 101 Keyboards
+
 ;; Copyright (C) 1986, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>

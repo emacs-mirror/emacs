@@ -1,11 +1,12 @@
-;;;; texinfo.el--major mode for editing Texinfo files.
+;;; texinfo.el --- major mode for editing Texinfo files
+
 ;; Copyright (C) 1985, '88, '89, 
 ;;                '90, '91, '92, '93 Free Software Foundation, Inc.
 
-;;; Author: Robert J. Chassell          
-;;; Maintainer: FSF
+;; Author: Robert J. Chassell          
+;; Maintainer: FSF
 
-;;; This file is part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

@@ -1,4 +1,4 @@
-;;; avoid.el -- make mouse pointer stay out of the way of editing.
+;;; avoid.el --- make mouse pointer stay out of the way of editing
 
 ;;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 

@@ -1,10 +1,7 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;; -*- Mode: emacs-lisp -*- ;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; GNU EMACS interface for International Ispell Version 3.1 by Geoff Kuenning.
-;;;
-;;;
+;;; ispell.el --- spell checking using Ispell
+
 ;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
-;;;
-;;;
+
 ;;; Authors         : Ken Stevens <k.stevens@ieee.org>
 ;;; Note: version numbers and time stamp are not updated
 ;;;   when this file is edited for release with GNU Emacs.
@@ -14,10 +11,10 @@
 ;;; Status	    : Release with 3.1.12+ ispell.
 ;;; Version	    : International Ispell Version 3.1 by Geoff Kuenning.
 ;;; Bug Reports	    : ispell-el-bugs@itcorp.com
-;;;
+
 ;;; Note: version numbers and time stamp are not updated
-;;;   when this file is edited for release with GNU emacs.
-;;;
+;;;   when this file is edited for release with GNU Emacs.
+
 ;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is free software; you can redistribute it and/or modify

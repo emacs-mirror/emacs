@@ -1,4 +1,4 @@
-;;; ada-mode.el - An Emacs major-mode for editing Ada source.
+;;; ada-mode.el --- An Emacs major-mode for editing Ada source.
 ;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;;; Authors: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>

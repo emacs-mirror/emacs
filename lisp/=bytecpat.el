@@ -1,3 +1,4 @@
+;;; bytecpat.el --- do recompilation for Emacs patch files.
 ;;; This function is used by the patch files to update Emacs releases.
 
 (defun batch-byte-recompile-emacs ()

@@ -1,4 +1,4 @@
-;;; edt.el  ---  Enhanced EDT Keypad Mode Emulation for GNU Emacs 19
+;;; edt.el --- Enhanced EDT Keypad Mode Emulation for GNU Emacs 19
 
 ;; Copyright (C) 1986, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 

@@ -1,10 +1,11 @@
-;;;; makeinfo.el -- run makeinfo conveniently.
-;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+;;; makeinfo.el --- run makeinfo conveniently
 
-;;; Author: Robert J. Chassell      
-;;; Maintainer: FSF
+;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
-;;; This file is part of GNU Emacs.
+;; Author: Robert J. Chassell      
+;; Maintainer: FSF
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

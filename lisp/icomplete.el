@@ -1,12 +1,11 @@
-;;;_. icomplete.el - minibuffer completion incremental feedback
+;;; icomplete.el --- minibuffer completion incremental feedback
 
-;;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
-;;; Author: Ken Manheimer <klm@nist.gov>
-;;; Maintainer: Ken Manheimer <klm@nist.gov>
-;;; Version: Id: icomplete.el,v 4.3 1994/08/31 18:48:29 klm Exp 
-;;; Created: Mar 1993 klm@nist.gov - first release to usenet
-;;; Keywords: help, abbrev
+;; Author: Ken Manheimer <klm@nist.gov>
+;; Maintainer: Ken Manheimer <klm@nist.gov>
+;; Created: Mar 1993 klm@nist.gov - first release to usenet
+;; Keywords: help, abbrev
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-;;; facemenu.el -- Create a face menu for interactively adding fonts to text
+;;; facemenu.el --- create a face menu for interactively adding fonts to text
 ;; Copyright (c) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>

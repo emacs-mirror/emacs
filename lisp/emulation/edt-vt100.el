@@ -1,9 +1,5 @@
-;;; File:  edt-vt100.el  ---  Enhanced EDT Keypad Mode Emulation
-;;;                             for VT Series Terminals
-;;;
-;;;                          For GNU Emacs 19
-;;;
-;;
+;;; edt-vt100.el --- Enhanced EDT Keypad Mode Emulation for VT Series Terminals
+
 ;; Copyright (C) 1986, 1992, 1993, 1995 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kgallagh@spd.dsccc.com>

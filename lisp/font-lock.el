@@ -1,4 +1,4 @@
-;; Electric Font Lock Mode
+;;; font-lock.el --- electric font lock mode
 ;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm <simon@gnu.ai.mit.edu>

@@ -1,4 +1,4 @@
-;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
+;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
