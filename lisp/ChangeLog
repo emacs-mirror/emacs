@@ -1,3 +1,8 @@
+2003-06-20  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/asm-mode.el (asm-font-lock-keywords): Support
+	labels starting with "." and directives starting with ".".
+
 2003-06-22  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Avoid
