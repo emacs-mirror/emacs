@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93-95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired, Calendar/Diary, Rmail, Top
 @chapter Dired, the Directory Editor
@@ -27,6 +27,7 @@ to operate on the files listed.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
+* Extra Features for Dired::  Dired-X provides more features.
 @end menu
 
 @node Dired Enter
@@ -106,6 +107,10 @@ file and typing @kbd{d} (@code{dired-flag-file-deletion}).  The deletion flag is
 the beginning of the line.  This command moves point to the next line,
 so that repeated @kbd{d} commands flag successive files.  A numeric
 argument serves as a repeat count.
+@vindex dired-recursive-deletes
+The variable @code{dired-recursive-deletes} determines if the delete
+command will delete non-empty directories recursively.  The default
+is to delete only empty directories.
 
 @kindex u @r{(Dired deletion)}
 @kindex DEL @r{(Dired)}
@@ -447,6 +452,9 @@ commands, also use these conventions to decide which files to work on.)
 Copy the specified files (@code{dired-do-copy}).  The argument @var{new}
 is the directory to copy into, or (if copying a single file) the new
 name.
+@vindex dired-recursive-copies
+The variable @code{dired-recursive-copies} determines if directories are
+copied recursively.  The default is to not copy recursively.
 
 @vindex dired-copy-preserve-time
 If @code{dired-copy-preserve-time} is non-@code{nil}, then copying with
@@ -558,6 +566,12 @@ replacing matches for @var{from} (a regular expression) with the string
 This command is a variant of @code{tags-query-replace}.  If you exit the
 query replace loop, you can use @kbd{M-,} to resume the scan and replace
 more matches.  @xref{Tags Search}.
+
+@kindex a @r{(Dired)}
+@findex dired-do-apply
+@item a @var{function} @kbd{RET}
+Apply an arbitrary Lisp function to the name of each marked file
+(@code{dired-do-apply}).
 @end table
 
 @kindex + @r{(Dired)}
@@ -604,6 +618,11 @@ files, writing the output into a corresponding @file{.uu} file:
 @example
 for file in *; do uuencode $file $file >$file.uu; done
 @end example
+
+@noindent
+In simple cases you can instead use @samp{?} in the command.  This is
+similar to @samp{*} but the command will be run on each file
+individually.
 
 The working directory for the shell command is the top-level directory
 of the Dired buffer.
@@ -948,3 +967,11 @@ know how to use @code{find}.
 variable @code{find-ls-option}, whose default value specifies using
 options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
 may need to change the value of this variable.
+
+@node Extra Features for Dired
+@section Extra Features for Dired---The Dired-X Package
+
+The Dired-X package provides various extra features for Dired mode.  You
+can load it with @code{M-x load-library} or customize
+@code{dired-load-hook} to add @samp{(require@w{ }'dired-x)}.
+@xref{Top, Introduction, dired-x, Dired Extra Version 2 User's Manual}.
