@@ -1,3 +1,8 @@
+2004-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (vmotion): Do not reserve one column for continuation
+	marks on window frames.
+
 2004-04-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* charset.h (SINGLE_BYTE_CHAR_P): Fix macro to avoid warnings

@@ -1,7 +1,15 @@
+2004-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* term.el (term-is-xemacs): Remove.
+	(term-if-xemacs, term-ifnot-xemacs): Test (featurep 'xemacs).
+	(term-window-width): New function.
+	(term-mode, term-check-size): Use it.
+	(term-mode): Disable overflow-newline-into-fringe in term buffer.
+
 2004-04-05  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-add-parent-links): Changed unbound variable
-	`symbol' to `name'. 
+	`symbol' to `name'.
 
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
