@@ -3450,11 +3450,22 @@ sys_pipe (int * phandles)
 
   if (rc == 0)
     {
-      flags = FILE_PIPE | FILE_READ | FILE_BINARY;
-      fd_info[phandles[0]].flags = flags;
+      /* Protect against overflow, since Windows can open more handles than
+	 our fd_info array has room for.  */
+      if (phandles[0] >= MAXDESC || phandles[1] >= MAXDESC)
+	{
+	  _close (phandles[0]);
+	  _close (phandles[1]);
+	  rc = -1;
+	}
+      else
+	{
+	  flags = FILE_PIPE | FILE_READ | FILE_BINARY;
+	  fd_info[phandles[0]].flags = flags;
 
-      flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
-      fd_info[phandles[1]].flags = flags;
+	  flags = FILE_PIPE | FILE_WRITE | FILE_BINARY;
+	  fd_info[phandles[1]].flags = flags;
+	}
     }
 
   return rc;
