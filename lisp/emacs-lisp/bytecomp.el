@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.50 $")
+(defconst byte-compile-version "$Revision: 2.51 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -278,7 +278,8 @@ This includes variable references and calls to functions such as `car'."
 
 (defvar byte-compile-dynamic nil
   "If non-nil, compile function bodies so they load lazily.
-They are hidden comments in the compiled file, and brought into core when the
+They are hidden in comments in the compiled file,
+and each one is brought into core when the
 function is called.
 
 To enable this option, make it a file-local variable
