@@ -1,3 +1,8 @@
+2002-12-07   Markus Rost  <rost@math.ohio-state.edu>
+
+	* customize.texi (Simple Types): Clarify decription of custom type
+	'number. Decribe new custom type 'float.
+
 2002-12-04   Markus Rost  <rost@math.ohio-state.edu>
 
 	* variables.texi (File Local Variables): Fix typo.
