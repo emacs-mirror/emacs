@@ -3027,7 +3027,10 @@ read_avail_input (expected)
     nread = (*read_socket_hook) (0, buf, KBD_BUFFER_SIZE, expected, expected);
   else
     {
-      unsigned char cbuf[KBD_BUFFER_SIZE];
+      /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
+	 the kbd_buffer can really hold.  That may prevent loss
+	 of characters on some systems when input is stuffed at us.  */
+      unsigned char cbuf[KBD_BUFFER_SIZE - 1];
 
 #ifdef FIONREAD
       /* Find out how much input is available.  */
