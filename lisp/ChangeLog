@@ -1,5 +1,8 @@
 2000-05-26  Dave Love  <fx@gnu.org>
 
+	* loadhist.el (unload-feature): Fix interactive spec [from
+	lijnzaad@ebi.ac.uk].
+
 	* emacs-lisp/bytecomp.el (byte-compile-callargs-warn): Use
 	subr-arity to check primitives.
 	(byte-compile-flush-pending, byte-compile-file-form-progn)
