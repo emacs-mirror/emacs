@@ -86,6 +86,10 @@ static Lisp_Object Qchar_script_table;
 /* Mapping table from unibyte chars to multibyte chars.  */
 int unibyte_to_multibyte_table[256];
 
+/* Nth element is 1 iff unibyte char N can be mapped to a multibyte
+   char.  */
+char unibyte_has_multibyte_table[256];
+
 
 
 /* Store multibyte form of character C at P.  If C has modifier bits,
