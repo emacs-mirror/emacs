@@ -1,3 +1,8 @@
+2004-09-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Bind `buffer-read-only'
+	locally around the call to `revert-buffer'.
+
 2004-09-03  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-toggle-regexp): Set `isearch-success' and
