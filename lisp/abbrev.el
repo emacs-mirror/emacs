@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst only-global-abbrevs nil "\
+(defvar only-global-abbrevs nil "\
 *t means user plans to use global abbrevs only.
 Makes the commands to define mode-specific abbrevs define global ones instead.")
 
