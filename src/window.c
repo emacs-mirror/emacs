@@ -3751,7 +3751,9 @@ grow_mini_window (w, delta)
     {
       int min_height = window_min_size (root, 0, 0, 0);
       if (XFASTINT (root->height) - delta < min_height)
-	delta = XFASTINT (root->height) - min_height;
+	/* Note that the roor window may already be smaller than
+	   min_height.  */
+	delta = max (0, XFASTINT (root->height) - min_height);
     }
     
   if (delta)
