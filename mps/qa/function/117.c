@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!117.c(trunk.2) $
  summary = should collect objects on buffered segs (request.dylan.160064)
  language = c
  link = testlib.o rankfmt.o
@@ -15,18 +15,26 @@ END_HEADER
 #include "mpsavm.h"
 #include "rankfmt.h"
 
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
+
 void *stackpointer;
 
-mps_space_t space;
+mps_arena_t arena;
+
 
 static void test(void)
 {
  mps_pool_t pool;
  mps_thr_t thread;
-
  mps_root_t root;
 
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_ap_t ap;
 
  mycell *a, *b;
@@ -35,29 +43,26 @@ static void test(void)
 
  int i;
 
-/* create an arena that can't grow beyond 128 M */
+ /* create an arena that can't grow beyond 128 M */
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*128)),
+      "create arena");
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*128)),
-  "create arena");
+ die(mps_thread_reg(&thread, arena), "register thread");
+ die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                         mps_stack_scan_ambig, stackpointer, 0),
+     "create root");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-  mps_stack_scan_ambig, stackpointer, 0), "create root");
-
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
-
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(
   mps_ap_create(&ap, pool, MPS_RANK_EXACT),
   "create ap");
 
-/* allocate a jolly big chain of objects */
+ /* allocate a jolly big chain of objects */
 
  b = allocone(ap, 4, MPS_RANK_EXACT);
 
@@ -69,21 +74,20 @@ static void test(void)
 
  comment("%d objs allocated.", i);
 
- mps_arena_collect(space);
- x = mps_arena_committed(space);
+ mps_arena_collect(arena);
+ x = mps_arena_committed(arena);
  report("livesize", "%d", x);
 
-/* now let everything die, by destroying the only root and calling
-   collect-world */
+ /* now let everything die, by destroying the only root and mps_arena_collect */
 
  mps_root_destroy(root);
- mps_arena_collect(space);
- y = mps_arena_committed(space);
+ mps_arena_collect(arena);
+ y = mps_arena_committed(arena);
  report("rootless", "%d", y);
 
  mps_ap_destroy(ap);
- mps_arena_collect(space);
- z = mps_arena_committed(space);
+ mps_arena_collect(arena);
+ z = mps_arena_committed(arena);
  report("apless", "%d", z);
 
  report("drop12", "%d", x - y);
@@ -91,16 +95,13 @@ static void test(void)
  mps_pool_destroy(pool);
  comment("Destroyed pool.");
 
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
- mps_space_destroy(space);
- comment("Destroyed space.");
-
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
+
 
 int main(void)
 {
