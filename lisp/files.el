@@ -3822,17 +3822,18 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	;; Get a list of the indices of the args which are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			;; The first four are special because they
+			;; The first five are special because they
 			;; return a file name.  We want to include the /:
 			;; in the return value.
 			;; So just avoid stripping it in the first place.
 			'((expand-file-name . nil)
-			  ;; `identity' means just return the first arg
-			  ;; as stripped of its quoting.
-			  (substitute-in-file-name . identity)
 			  (file-name-directory . nil)
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
+			  (file-name-sans-versions . nil)
+			  ;; `identity' means just return the first arg
+			  ;; as stripped of its quoting.
+			  (substitute-in-file-name . identity)
 			  (file-name-completion 0 1)
 			  (file-name-all-completions 0 1)
 			  (rename-file 0 1)
@@ -3857,7 +3858,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(setq file-arg-indices (cdr file-arg-indices))))
     (if (eq file-arg-indices 'identity)
 	(car arguments)
-      (apply operation arguments))))
+      (let ((value (apply operation arguments)))
+	(cond ((memq operation '(file-name-completion))
+	       (and value (concat "/:" value)))
+	      ((memq operation '(file-name-all-completions))
+	       (mapcar (lambda (name) (concat "/:" name)) value))
+	      (t value))))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
