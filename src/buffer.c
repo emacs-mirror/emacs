@@ -521,6 +521,9 @@ reset_buffer_local_variables (b, permanent_too)
   b->case_canon_table = XCHAR_TABLE (Vascii_downcase_table)->extras[1];
   b->case_eqv_table = XCHAR_TABLE (Vascii_downcase_table)->extras[2];
   b->invisibility_spec = Qt;
+#ifndef DOS_NT
+  b->buffer_file_type = Qnil;
+#endif
 
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
@@ -3428,14 +3431,13 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.left_margin, 0x800);
   XSETFASTINT (buffer_local_flags.abbrev_table, 0x1000);
   XSETFASTINT (buffer_local_flags.display_table, 0x2000);
-  XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
-  XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
 #ifdef DOS_NT
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags |= 0x4000;
 #endif
-
+  XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
+  XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
