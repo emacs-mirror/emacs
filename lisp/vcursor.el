@@ -1124,7 +1124,7 @@ line is treated like ordinary characters."
 (defun vcursor-toggle-vcursor-map (&optional force noredisp)
   "Toggle the state of the vcursor key map.
 When on, the keys defined in it are mapped directly on top of the main
-keymap,  allowing you to move the vcursor with ordinary motion keys.
+keymap, allowing you to move the vcursor with ordinary motion keys.
 An indication \"!VC\" appears in the mode list.  The effect is
 local to the current buffer.
 With prefix FORCE, turn on, or off if it is 0.

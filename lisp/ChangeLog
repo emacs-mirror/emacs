@@ -1,7 +1,60 @@
+2002-09-06  Juanma Barranquero  <lektu@terra.es>
+
+	* calendar/solar.el (calendar-time-display-form): Fix spacing.
+
+	* double.el (double-prefix-only): Likewise.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Likewise.
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Likewise.
+
+	* emacs-lisp/float.el (string-to-float): Likewise.
+
+	* emacs-lisp/rx.el (rx): Likewise.
+
+	* faces.el (copy-face): Likewise.
+
+	* hilit-chg.el (highlight-changes-colours)
+	(highlight-changes-active-string)
+	(highlight-changes-passive-string)
+	(highlight-changes-global-modes, hilit-chg-hide-changes)
+	(highlight-changes-rotate-faces, global-highlight-changes): Likewise.
+
+	* international/mule.el (decode-char): Likewise.
+
+	* international/ucs-tables.el (decode-char): Likewise.
+
+	* progmodes/idlwave.el (idlwave-support-inheritance)
+	(idlwave-routine-entry-compare): Likewise.
+
+	* progmodes/idlw-shell.el (idlwave-shell-use-breakpoint-glyph):
+	Likewise.
+
+	* progmodes/pascal.el (pascal-start-keywords): Likewise.
+
+	* progmodes/sh-script.el (sh-indent-for-fi, sh-indent-for-done):
+	Likewise.
+
+	* progmodes/vhdl-mode.el (vhdl-progress-interval)
+	(vhdl-corresponding-begin): Likewise.
+
+	* ps-mule.el (ps-multibyte-buffer): Likewise.
+
+	* speedbar.el (speedbar-mode): Likewise.
+
+	* textmodes/fill.el (fill-nonuniform-paragraphs)
+	(fill-individual-paragraphs): Likewise.
+
+	* textmodes/reftex.el (reftex-TeX-master-file): Likewise.
+
+	* textmodes/reftex-vars.el (reftex-multiref-punctuation): Likewise.
+
+	* vcursor.el (vcursor-toggle-vcursor-map): Likewise.
+
 2002-09-05  Richard M. Stallman  <rms@gnu.org>
 
-	* international/ucs-tables.el (non-885 char sets handling):
-	Don't call coding-system-put or register-char-codings.
+	* international/ucs-tables.el (non-885 char sets handling): Don't call
+	coding-system-put or register-char-codings.
 
 	* help.el (help-with-tutorial): Allow various ways
 	to specify the text in the [...] line, in handling the <...> line.
