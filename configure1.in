@@ -1165,15 +1165,28 @@ case "${with_x}" in
   ;;
   no )
     window_system=${window_system}none
-esac
-case "${with_x11}" in
-  yes )
-    window_system=${window_system}x11
   ;;
 esac
-case "${with_x10}" in
-  yes )
-    window_system=${window_system}x10
+case "${window_system}" in
+  .* )
+  ;;
+  * )
+    case "${with_x11}" in
+      yes )
+	window_system=x11
+      ;;
+      no )
+	window_system=none
+      ;;
+    esac
+    case "${with_x10}" in
+      yes )
+	window_system=x10
+      ;;
+      no )
+	window_system=none
+      ;;
+    esac
   ;;
 esac
 
@@ -1577,7 +1590,7 @@ echo creating lib-src/Makefile
   sed -e 's@^# \(Generated.*\)$@/* \1 */@' \
       -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
       < Makefile.in > junk.c
-  $CPP $undefs -I. -I$top_srcdir/lib-src $CPPFLAGS junk.c |
+  $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
   sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
   rm -f junk.c
   chmod 444 Makefile.new;
