@@ -131,7 +131,7 @@ by these regular expressions."
       (condition-case nil
 	  (vc-svn-command t 0 file "status" "-v")
 	;; We can't find an `svn' executable.  We could also deregister SVN.
-	(file-error nil)
+	(file-error nil))
       (vc-svn-parse-status t)
       (eq 'SVN (vc-file-getprop file 'vc-backend)))))
 
@@ -454,7 +454,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	    (diff-switches-list (vc-diff-switches-list 'SVN)))
         (apply 'vc-svn-command "*vc-diff*" 1 nil "diff"
 	       (append
-		(when oldvers
+		(when rev1
 		  (list "-r"
 			(if rev2 (concat rev1 ":" rev2) rev1)))
 		(when diff-switches-list
