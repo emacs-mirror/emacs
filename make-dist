@@ -211,6 +211,7 @@ echo "Making links to \`lisp'."
  rm -f TAGS =*
  rm -f site-init site-init.el site-init.elc
  rm -f site-load site-load.el site-load.elc
+ rm -f site-start site-start.el site-start.elc
  rm -f default default.el default.elc)
 
 #echo "Making links to \`lisp/calc-2.02'."
