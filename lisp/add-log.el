@@ -43,6 +43,12 @@ This defaults to the value returned by the `user-full-name' function.")
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
 This defaults to the value of `user-mail-address'.")
 
+(defvar change-log-font-lock-keywords
+  '(("^[SMTWF].+$" . font-lock-function-name-face)	; Date line.
+    ("^\t\\* \\([^ :\n]+\\)" 1 font-lock-comment-face)	; File name.
+    ("\(\\([^)\n]+\\)\)" 1 font-lock-keyword-face))	; Function name.
+  "Additional expressions to highlight in Change Log mode.")
+
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
@@ -259,6 +265,7 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
   (set (make-local-variable 'version-control) 'never)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
+  (set (make-local-variable 'font-lock-keywords) change-log-font-lock-keywords)
   (run-hooks 'change-log-mode-hook))
 
 (defvar change-log-mode-map nil
