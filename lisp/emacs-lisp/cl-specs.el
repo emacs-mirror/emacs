@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 2000/01/30 01:50:41 $|1.1|
+;; |$Date: 2000/01/30 21:20:14 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -47,8 +47,6 @@
 
 ;; Loops
 
-(def-edebug-spec when t)
-(def-edebug-spec unless t)
 (def-edebug-spec case (form &rest (sexp body)))
 (def-edebug-spec ecase case)
 (def-edebug-spec do
@@ -127,12 +125,12 @@
 
 (def-edebug-spec incf (place &optional form))
 (def-edebug-spec decf incf)
-(def-edebug-spec push (form place))
+(def-edebug-spec push (form place))	; different for CL
 (def-edebug-spec pushnew 
   (form place &rest 
 	&or [[&or ":test" ":test-not" ":key"] function-form]
 	[edebug-keywordp form]))
-(def-edebug-spec pop (place))
+(def-edebug-spec pop (place))		; different for CL
 
 (def-edebug-spec shiftf (&rest place))  ;; really [&rest place] form
 (def-edebug-spec rotatef (&rest place))
