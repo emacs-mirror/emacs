@@ -1,42 +1,16 @@
 \input texinfo  @c -*-texinfo-*-
-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.15 2002/04/09 18:41:56 monnier Exp $"
-
-@c Documentation for the GNU Emacs CVS mode.
-@c Copyright (C) 1991,92,93,94,95,96,97,98,99,2000, 2001  Free Software Foundation, Inc.
-
-@c This file is part of GNU Emacs
-
-@c GNU Emacs is free software; you can redistribute it and/or modify
-@c it under the terms of the GNU General Public License as published by
-@c the Free Software Foundation; either version 2 of the License,
-@c or (at your option) any later version.
-
-@c GNU Emacs is distributed in the hope that it will be useful,
-@c but WITHOUT ANY WARRANTY; without even the implied warranty of
-@c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-@c GNU General Public License for more details.
-
-@c You should have received a copy of the GNU General Public License
-@c along with pcl-cvs; see the file COPYING.  If not, write to
-@c the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.16 2002/08/16 06:29:40 eggert Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
+@syncodeindex vr fn
 @c %**end of header
 
-@c 
+@copying
+Copyright @copyright{} 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+1999, 2000, 2002 Free Software Foundation, Inc.
 
-@dircategory Emacs
-@direntry
-* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
-@end direntry
-@setchapternewpage on
-
-@ifinfo
-Copyright @copyright{} 1991,92,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -54,9 +28,14 @@ license to the document, as described in section 6 of the license.
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development.''
-@end ifinfo
+@end quotation
+@end copying
 
-@syncodeindex vr fn
+@dircategory Emacs
+@direntry
+* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
+@end direntry
+
 @c The titlepage section does not appear in the Info file.
 @titlepage
 @sp 4
@@ -80,25 +59,7 @@ Software Foundation raise funds for GNU development.''
 @c  for the printed manual.  This will not appear in the Info file.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1991,92,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+@insertcopying
 @end titlepage
 
 @c ================================================================
@@ -106,7 +67,7 @@ Software Foundation raise funds for GNU development.''
 @c ================================================================
 
 @node Top, About PCL-CVS, (dir), (dir)
-@ifinfo
+@ifnottex
 @top PCL-CVS
 
 This manual describes PCL-CVS, the GNU Emacs front-end to CVS.  It
@@ -114,7 +75,7 @@ is nowhere near complete, so you are advised to use @kbd{M-x
 customize-group RET pcl-cvs @key{RET}} and to look at the documentation strings
 of the various commands and major modes for further information.
 @c This manual is updated to release 2.5 of PCL-CVS.
-@end ifinfo
+@end ifnottex
 
 @menu
 * About PCL-CVS::               Installation, credits, history, @dots{}

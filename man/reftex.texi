@@ -2,10 +2,6 @@
 @c %**start of header
 @setfilename ../info/reftex
 @settitle RefTeX User Manual
-@dircategory Emacs
-@direntry
-* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
-@end direntry
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -13,6 +9,41 @@
 @set EDITION 4.19
 @set DATE August 2002
 @c %**end of header
+
+@copying
+This file documents @b{Ref@TeX{}}, a package to do labels, references,
+citations and indices for LaTeX documents with Emacs.
+
+This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
+@b{Ref@TeX{}} @value{VERSION}.
+
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+@end direntry
+
 @finalout
 
 @c Macro definitions
@@ -27,33 +58,6 @@
 @end ifnotinfo
 @end macro
 
-@ifinfo
-This file documents @b{Ref@TeX{}}, a package to do labels, references,
-citations and indices for LaTeX documents with Emacs.@refill
-
-This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
-@b{Ref@TeX{}} @value{VERSION}@refill
-
-Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-@end ifinfo
-
 @titlepage
 @title Ref@TeX{} User Manual
 @subtitle Support for LaTeX labels, references, citations and index entries with GNU Emacs
@@ -61,32 +65,9 @@ license to the document, as described in section 6 of the license.
 
 @author by Carsten Dominik
 @page
-Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-@sp 2
-This is edition @value{EDITION} of the @cite{Ref@TeX{} User Manual} for
-@b{Ref@TeX{}} version @value{VERSION}, @value{DATE}.@refill
-
-@sp 2
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@vskip 0pt plus 1filll
+@insertcopying
 @end titlepage
-@page
 
 @ifnottex
 @node Top,,,(dir)

@@ -9,18 +9,13 @@
 @c This is used in many places
 @set VER 21.3
 
-@c The @ifinfo stuff only appears in the Info version
-@ifinfo
-@dircategory Emacs
-@direntry
-* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
-@end direntry
-
+@copying
 Copyright 2001, 2002 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
 Copyright 1992,1993 Steven Byrnes@*
 Copyright 1990,1991,1992 Joseph Brian Wells@*
 
+@quotation
 This list of frequently asked questions about GNU Emacs with answers
 ("FAQ") may be translated into other languages, transformed into other
 formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
@@ -37,8 +32,13 @@ itself allows free copying and redistribution.
 
 [This version has been somewhat edited from the last-posted version
 (as of August 1999) for inclusion in the Emacs distribution.]
+@end quotation
+@end copying
 
-@end ifinfo
+@dircategory Emacs
+@direntry
+* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+@end direntry
 
 @c The @titlepage stuff only appears in the printed version
 @titlepage
@@ -48,27 +48,7 @@ itself allows free copying and redistribution.
 @c The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2001,2002 Free Software Foundation, inc.@*
-Copyright @copyright{} 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
-Copyright @copyright{} 1992,1993 Steven Byrnes@*
-Copyright @copyright{} 1990,1991,1992 Joseph Brian Wells@*
-
-This list of frequently asked questions about GNU Emacs with answers
-("FAQ") may be translated into other languages, transformed into other
-formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
-
-The same conditions apply to any derivative of the FAQ as apply to the FAQ
-itself.  Every copy of the FAQ must include this notice or an approved
-translation, information on who is currently maintaining the FAQ and how to
-contact them (including their e-mail address), and information on where the
-latest version of the FAQ is archived (including FTP information).
-
-The FAQ may be copied and redistributed under these conditions, except that
-the FAQ may not be embedded in a larger literary work unless that work
-itself allows free copying and redistribution.
-
-[This version has been somewhat edited from the last-posted version
-(as of August 1999) for inclusion in the Emacs distribution.]
+@insertcopying
 @end titlepage
 
 @node    Top, FAQ notation, (dir), (dir)

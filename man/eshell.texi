@@ -1,40 +1,17 @@
 \input texinfo  @c -*-texinfo-*-
-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.14 2002/06/17 15:55:51 kai Exp $"
-
-@c Documentation for Eshell: The Emacs Shell.
-@c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
-
-@c This file is part of GNU Emacs
-
-@c GNU Emacs is free software; you can redistribute it and/or modify it
-@c under the terms of the GNU General Public License as published by the
-@c Free Software Foundation; either version 2 of the License, or (at
-@c your option) any later version.
-
-@c GNU Emacs is distributed in the hope that it will be useful, but
-@c WITHOUT ANY WARRANTY; without even the implied warranty of
-@c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-@c General Public License for more details.
-
-@c You should have received a copy of the GNU General Public License
-@c along with Eshell; see the file COPYING.  If not, write to the Free
-@c Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.15 2002/08/16 06:29:39 eggert Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
+@synindex vr fn
 @c %**end of header
 
-@dircategory Emacs
-@direntry
-* Eshell: (eshell).     A command shell implemented in Emacs Lisp.
-@end direntry
-@setchapternewpage on
-     
-@ifinfo
-Copyright @copyright{} 1999, 2000, 2001  Free Software Foundation, Inc.
+@copying
+This manual is for Eshell, the Emacs shell.
 
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -51,10 +28,16 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
 
-@synindex vr fn
-@c The titlepage section does not appear in the Info file.
+@dircategory Emacs
+@direntry
+* Eshell: (eshell).     A command shell implemented in Emacs Lisp.
+@end direntry
+
+@setchapternewpage on
+
 @titlepage
 @sp 4
 @c The title is printed in a large font.
@@ -72,28 +55,9 @@ license to the document, as described in section 6 of the license.
 @center John Wiegley
 @c -date-
 
-@c  The following two commands start the copyright page for the printed
-@c  manual.  This will not appear in the Info file.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000, 2001  Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @contents
@@ -102,7 +66,7 @@ license to the document, as described in section 6 of the license.
 @c                   The real text starts here
 @c ================================================================
 
-@ifinfo
+@ifnottex
 @node Top, What is Eshell?, (dir), (dir)
 @top Eshell
 
@@ -113,7 +77,7 @@ replacement for command shells such as @command{bash}, @command{zsh},
 @command{rc}, or @command{4dos}; since Emacs itself is capable of
 handling the sort of tasks accomplished by those tools.
 @c This manual is updated to release 2.4 of Eshell.
-@end ifinfo
+@end ifnottex
 
 @menu
 * What is Eshell?::             A brief introduction to the Emacs Shell.

@@ -6,35 +6,11 @@
 @comment @setfilename viper.info
 @setfilename ../info/viper
 
-@dircategory Emacs
-@direntry
-* VIPER: (viper).       The newest Emacs VI-emulation mode.
-                          (also, A VI Plan for Emacs Rescue
-                           or the VI PERil.)
-@end direntry
+@copying
+Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software
+Foundation, Inc.
 
-@iftex
-@finalout
-@end iftex
-
-@titlepage
-@title Viper Is a Package for Emacs Rebels
-@subtitle a Vi emulator for Emacs
-@subtitle January 2002, Viper Version 3.11.2
-
-@author Michael Kifer (Viper)
-@author Aamod Sane (VIP 4.4)
-@author Masahiko Sato (VIP 3.5)
-
-@page
-@vskip 0pt plus 1fill
-@end titlepage
-
-@unnumbered Distribution
-
-@noindent
-Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -51,8 +27,33 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
 
-@ifinfo
+@dircategory Emacs
+@direntry
+* VIPER: (viper).       The newest Emacs VI-emulation mode.
+                          (also, A VI Plan for Emacs Rescue
+                           or the VI PERil.)
+@end direntry
+
+@finalout
+
+@titlepage
+@title Viper Is a Package for Emacs Rebels
+@subtitle a Vi emulator for Emacs
+@subtitle January 2002, Viper Version 3.11.2
+
+@author Michael Kifer (Viper)
+@author Aamod Sane (VIP 4.4)
+@author Masahiko Sato (VIP 3.5)
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@ifnottex
 @node Top, Overview,, (DIR)
 
 @unnumbered Viper
@@ -98,7 +99,7 @@ Comments and bug reports are welcome.
 @code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
-@end ifinfo
+@end ifnottex
 
 @menu
 * Overview::                    Read for a smoother start

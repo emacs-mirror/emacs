@@ -18,31 +18,19 @@
 @setfilename ../info/dired-x
 @c dired-x.el REVISION NUMBER
 @settitle Dired Extra Version 2 User's Manual
-
-@dircategory Emacs
-@direntry
-* Dired-X: (dired-x).   Dired Extra Features.
-@end direntry
-
 @iftex
 @finalout
 @end iftex
 @c @setchapternewpage odd		% For book style double sided manual.
 @comment %**end of header (This is for running Texinfo on a region.)
-@c      @smallbook
-@tex
-\overfullrule=0pt
-%\global\baselineskip 30pt      % For printing in double spaces
-@end tex
 
-@ifinfo
-@node Copyright, Top, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@copying
 This documents the ``extra'' features for Dired Mode for GNU Emacs found in
 the file @file{dired-x.el}.
 
-Copyright @copyright{} 1993, 1994, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
 preserved on all copies.
@@ -68,9 +56,20 @@ notice identical to this one except for the removal of this paragraph
 (this paragraph not being relevant to the printed manual).
 
 @end ignore
-@end ifinfo
+@end quotation
+@end copying
 
-@c
+@dircategory Emacs
+@direntry
+* Dired-X: (dired-x).   Dired Extra Features.
+@end direntry
+
+@c      @smallbook
+@tex
+\overfullrule=0pt
+%\global\baselineskip 30pt      % For printing in double spaces
+@end tex
+
 @titlepage
 @sp 6
 @c dired-x.el REVISION NUMBER
@@ -89,33 +88,14 @@ notice identical to this one except for the removal of this paragraph
 @center (Based on @file{dired.texi} by Sebastian Kremer <sk@@thp.uni-koeln.de>)
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993, 1994, 2001 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of
-this manual under the conditions for verbatim copying, provided that
-the entire resulting derived work is distributed under the terms of
-a permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this
-manual into another language, under the above conditions for
-modified versions, except that this permission notice may be stated
-in a translation approved by the Free Software Foundation.
-
-The file used to create this is called @file{dired-x.texi}, but the
-original work that was altered to make that file was called
-@file{dired.texi} written by Sebastian Kremer.
-
+@insertcopying
 @end titlepage
 
 @page
 
 @ifinfo
 
-@node Top, Introduction, Copyright, (dir)
+@node Top
 @comment  node-name,  next,  previous,  up
 
 @noindent

@@ -1,3 +1,17 @@
+2002-10-02  Karl Berry  <karl@gnu.org>
+
+	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi
+	dired-x.texi ebrowse.texi ediff.texi emacs-mime.texi emacs.texi
+	eshell.texi eudc.texi faq.texi forms.texi idlwave.texi info.texi
+	message.texi mh-e.texi pcl-cvs.texi reftex.texi sc.texi ses.texi
+	speedbar.texi vip.texi viper.texi widget.texi woman.texi):
+	Per rms, update all manuals to use @copying instead of @ifinfo.
+	Also use @ifnottex instead of @ifinfo around the top node, where
+	needed for the sake of the HTML output.
+	(The gnus manual is not fixed since it's not clear to me how it
+	 works; and the tramp manual already uses @copying, although in an
+	 unusual way.  All others were changed.)
+
 2002-09-10  Jonathan Yavner  <jyavner@engineer.com>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add SES.

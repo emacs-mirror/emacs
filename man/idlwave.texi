@@ -2,10 +2,6 @@
 @c %**start of header
 @setfilename ../info/idlwave
 @settitle IDLWAVE User Manual
-@dircategory Emacs
-@direntry
-* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
-@end direntry
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -21,9 +17,8 @@
 @set MAINTAINER-EMAIL jdsmith@@as.arizona.edu
 @set IDLWAVE-HOMEPAGE http://idlwave.org/
 @c %**end of header
-@finalout
 
-@ifinfo 
+@copying
 This file documents IDLWAVE, a major mode for editing IDL files with
 Emacs, and interacting with an IDL shell run as a subprocess.
 
@@ -33,6 +28,7 @@ This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation,
 Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -49,7 +45,15 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
+@end direntry
+
+@finalout
 
 @titlepage
 @title IDLWAVE User Manual
@@ -60,26 +64,8 @@ license to the document, as described in section 6 of the license.
 @page
 This is edition @value{EDITION} of the @cite{IDLWAVE User Manual} for
 IDLWAVE version @value{VERSION}, @value{DATE}.
-@sp 2
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-@sp 2
 @cindex Copyright, of IDLWAVE
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 @contents
 
