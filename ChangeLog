@@ -1,3 +1,8 @@
+2001-05-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* make-dist (LANG): Set LC_ALL and LANGUAGE to C, unset
+	LC_MESSAGES and LANG.  From Karl Eichwalder <keichwa@gmx.net>.
+
 2001-05-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Copy texinfo.tex unconditionally.

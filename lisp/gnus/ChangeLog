@@ -166,13 +166,13 @@
 	image/x-portable-bitmap.
 	(mm-get-image): Grok pbm.
 
-2000-12-24 11:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2000-12-24  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-mail): Support yank-action.
 
 	* message.el (message-setup): Revoke the last change.
 
-2000-12-24 01:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2000-12-24  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-setup): Use cons. Suggested by Johan Vromans
 	<jvromans@squirrel.nl>.
@@ -215,7 +215,7 @@
 	* gnus-art.el (article-treat-dumbquotes): More doc, provided by
 	Paul Stevenson <p.stevenson@surrey.ac.uk>
 
-2000-12-21 14:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2000-12-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mml.el (gnus-add-minor-mode): Autoload.
 

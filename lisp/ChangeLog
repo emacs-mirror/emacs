@@ -4692,7 +4692,7 @@
 	* filecache.el (file-cache-directory-name)
 	(file-cache-minibuffer-complete): Ignore the minibuffer prompt.
 
-2000-12-01 Milan Zamazal <Milan.Zamazal@qbizm.com>
+2000-12-01  Milan Zamazal  <Milan.Zamazal@qbizm.com>
 
 	* filecache.el (file-cache-minibuffer-complete): Don't try to
 	delete the minibuffer prompt.
@@ -12357,7 +12357,7 @@
 	contains the string "//\"", it regarded the // as a comment
 	start since the \ temporarily doesn't have escape syntax.
 
-2000-07-17 Emmanuel Briot <briot@act-europe.fr>
+2000-07-17  Emmanuel Briot  <briot@act-europe.fr>
 
 	* ada-mode.el Got rid of all byte-compiler warnings on Emacs Load
 	ada-xref.el before ada-prj.el, so that the Project menu is created
