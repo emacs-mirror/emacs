@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.5.0
+;; Version: 1.6.1
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -381,6 +381,23 @@ The program can also specify a TCP connection.  See `make-comint'."
   :version "20.8"
   :group 'SQL)
 
+;; Customization for DB2
+
+(defcustom sql-db2-program "db2"
+  "*Command to start db2 by IBM.
+
+Starts `sql-interactive-mode' after doing some setup.
+
+The program can also specify a TCP connection.  See `make-comint'."
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-db2-options nil
+  "*List of additional options for `sql-db2-program'."
+  :type '(repeat string)
+  :version "20.8"
+  :group 'SQL)
+
 
 
 ;;; Variables which do not need customization
@@ -468,7 +485,11 @@ Based on `comint-mode-map'.")
    ["Pop to SQLi buffer after send"
     sql-toggle-pop-to-buffer-after-send-region
     :style toggle
-    :selected sql-pop-to-buffer-after-send-region]))
+    :selected sql-pop-to-buffer-after-send-region]
+   ("Highlighting"
+    ["ANSI SQL keywords" sql-highlight-ansi-keywords t]
+    ["Oracle keywords" sql-highlight-oracle-keywords t]
+    ["Postgres keywords" sql-highlight-postgres-keywords t])))
 
 ;; easy menu for sql-interactive-mode.
 
@@ -697,6 +718,31 @@ can be changed by some entry functions to provide more hilighting.")
 
 
 
+;;; Functions to switch highlighting
+
+(defun sql-highlight-oracle-keywords ()
+  "Highlight Oracle keywords.
+Basically, this just sets `font-lock-keywords' appropriately."
+  (interactive)
+  (setq font-lock-keywords sql-mode-oracle-font-lock-keywords)
+  (font-lock-fontify-buffer))
+
+(defun sql-highlight-postgres-keywords ()
+  "Highlight Postgres keywords.
+Basically, this just sets `font-lock-keywords' appropriately."
+  (interactive)
+  (setq font-lock-keywords sql-mode-postgres-font-lock-keywords)
+  (font-lock-fontify-buffer))
+
+(defun sql-highlight-ansi-keywords ()
+  "Highlight ANSI SQL keywords.
+Basically, this just sets `font-lock-keywords' appropriately."
+  (interactive)
+  (setq font-lock-keywords sql-mode-ansi-font-lock-keywords)
+  (font-lock-fontify-buffer))
+
+
+
 ;;; Compatibility functions
 
 (if (not (fboundp 'comint-line-beginning-position))
@@ -758,6 +804,7 @@ Other non-free SQL implementations are also supported:
     Sybase: \\[sql-sybase]
     Ingres: \\[sql-ingres]
     Microsoft: \\[sql-ms]
+    Interbase: \\[sql-interbase]
 
 But we urge you to choose a free implementation instead of these.
 
@@ -978,6 +1025,24 @@ This function is used for `comint-input-sender' if using `sql-oracle' on NT."
 		  t t string)))
   (comint-send-string proc string)
   (comint-send-string proc "\n"))
+
+;; Using DB2 interactively, newlines must be escaped with " \".
+;; The space before the backslash is relevant.
+(defun sql-escape-newlines-and-send (proc string)
+  "Send to PROC input STRING, escaping newlines if necessary.
+Every newline in STRING will be preceded with a space and a backslash."
+  (let ((result "") (start 0) mb me)
+    (while (string-match "\n" string start)
+      (setq mb (match-beginning 0)
+	    me (match-end 0))
+      (if (and (> mb 1)
+	       (string-equal " \\" (substring string (- mb 2) mb)))
+	  (setq result (concat result (substring string start me)))
+	(setq result (concat result (substring string start mb) " \\\n")))
+      (setq start me))
+    (setq result (concat result (substring string start)))
+    (comint-send-string proc result)
+    (comint-send-string proc "\n")))
 
 
 
@@ -1275,7 +1340,9 @@ The default comes from `process-coding-system-alist' and
     ;; calling sql-interactive-mode.
     (setq sql-mode-font-lock-keywords sql-mode-oracle-font-lock-keywords)
     (sql-interactive-mode)
-    ;; If running on NT, make sure we do placeholder replacement ourselves.
+    ;; If running on NT, make sure we do placeholder replacement
+    ;; ourselves.  This must come after sql-interactive-mode because all
+    ;; local variables will be killed, there.
     (if (eq window-system 'w32)
 	(setq comint-input-sender 'sql-query-placeholders-and-send))
     (message "Login...done")
@@ -1674,6 +1741,56 @@ The default comes from `process-coding-system-alist' and
     (setq sql-prompt-length 5)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
+
+;;;###autoload
+(defun sql-db2 ()
+  "Run db2 by IBM as an inferior process.
+
+If buffer `*SQL*' exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-db2-program'.  There is not
+automatic login.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+If you use \\[sql-accumulate-and-indent] to send multiline commands to db2,
+newlines will be escaped if necessary.  If you don't want that, use 
+
+set `comint-input-sender' back to `comint-simple-send'.
+comint-input-sender's value is 
+comint-simple-send
+
+
+To specify a coding system for converting non-ASCII characters
+in the input and output to the process, use \\[universal-coding-system-argument]
+before \\[sql-db2].  You can also specify this with \\[set-buffer-process-coding-system]
+in the SQL buffer, after you start the process.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (set-buffer (apply 'make-comint "SQL" sql-db2-program
+		       nil sql-db2-options))
+    (setq sql-prompt-regexp "^db2 => ")
+    (setq sql-prompt-length 7)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    ;; Escape newlines.  This must come after sql-interactive-mode
+    ;; because all local variables will be killed, there.
+    (setq comint-input-sender 'sql-escape-newlines-and-send)
     (message "Login...done")
     (pop-to-buffer sql-buffer)))
 
