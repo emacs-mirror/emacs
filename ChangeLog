@@ -1,3 +1,7 @@
+2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
+
+	* make-dist (tempdir): Include cursors in nt/icons
+
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* INSTALL.CVS: Renamed from INSTALL-CVS to avoid file-name
@@ -5745,7 +5749,7 @@
 	to match build-install and paths.h.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002

@@ -1,3 +1,57 @@
+2004-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fx_popup_dialog): Add an Ok button if no buttons are
+	specified.
+
+2004-01-08  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Fformat): Fix '&' to '&&'.
+
+2004-01-08  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess) <case Lisp_Vectorlike>: Only mask
+	size if PSEUDOVECTOR_FLAG is set.
+
+2004-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (Fdeclare_equiv_charset): Fix docstring.
+
+	* fontset.c (fontset_ref_via_base): Fix previous change.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Only activate adaptive
+	buffering if we read less than 256 bytes at a time.
+
+2004-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (buffer_posn_from_coords): Return both buffer/string
+	object and image object.  Return glyph width and height.
+	(mode_line_string, marginal_area_string): Ditto.
+
+	* dispextern.h (buffer_posn_from_coords, mode_line_string)
+	(marginal_area_string): Fix prototypes.
+
+	* keyboard.h (POSN_POSN, POSN_SET_POSN): Rename macros from
+	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN. All uses changed.
+	(POSN_INBUFFER_P, POSN_BUFFER_POSN): New macros.
+
+	* keyboard.c (make_lispy_position): Use modified mode_line_string,
+	buffer_posn_from_coords, and marginal_area_string functions to
+	include both string object and image object in the lispy position.
+	Also add actual glyph width and height to position.
+	(read_key_sequence): Use real buffer position from mouse
+	event to find keymap property even when click is in marginal area.
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Use modified
+	mode_line_string and marginal_area_string functions to handle
+	both string object and image object properties.
+	
+2004-01-06  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (skip_chars): Treat '-' at end of string as ordinary
+	character.
+
 2004-01-02  Andreas Schwab  <schwab@suse.de>
 
 	* macterm.c (emacs_options, x_initialized, same_x_server): Remove

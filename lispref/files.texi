@@ -404,25 +404,29 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 This works just like @code{write-file-functions}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
 pertain to where the file came from.  Such hooks are usually set up by
-major modes, as buffer-local bindings for this variable.
+major modes, as buffer-local bindings for this variable.  If any of the
+functions in this hook returns non-@code{nil}, @code{write-file-functions}
+is not run.
 
 This variable automatically becomes buffer-local whenever it is set;
-switching to a new major mode always resets this variable.
+switching to a new major mode always resets this variable, but
+calling @code{set-visited-file-name} does not.
 @end defvar
 
-@defvar before-save-hook
-This normal hook runs before a buffer has been saved in its visited
-file.  One use of this hook is for the Copyright package; it uses this
-hook to make sure the file has the current year in the copyright
-header.
-@end defvar
+@defopt before-save-hook
+This normal hook runs before a buffer is saved in its visited file,
+regardless of whether that is done normally or by one of the hooks
+described above.  One use of this hook is for the Copyright package;
+it uses this hook to make sure the file has the current year in the
+copyright header.
+@end defopt
 
 @c Emacs 19 feature
-@defvar after-save-hook
+@defopt after-save-hook
 This normal hook runs after a buffer has been saved in its visited file.
 One use of this hook is in Fast Lock mode; it uses this hook to save the
 highlighting information in a cache file.
-@end defvar
+@end defopt
 
 @defvar file-precious-flag
 If this variable is non-@code{nil}, then @code{save-buffer} protects
@@ -2456,7 +2460,7 @@ multiple handlers, and for operations that have two file names that may
 each have handlers.
 
 @kindex safe-magic (@r{property})
-Handlers that don't really do anything specal for actual access to the
+Handlers that don't really do anything special for actual access to the
 file---such as the ones that implement completion of host names for
 remote file names---should have a non-@code{nil} @code{safe-magic}
 property.  For instance, Emacs normally ``protects'' directory names

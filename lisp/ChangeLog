@@ -1,3 +1,61 @@
+2004-01-09  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (mode-line-change-eol): Add EVENT parameter.
+	Temporarily select EVENT's window for changing eol type.
+
+2004-01-09  Deepak Goel  <deego@gnufans.org>
+
+	* calendar/diary-lib.el (diary-entry-time):
+	Also accept time in the form XX[.XX][am/pm/AM/PM].
+	(fancy-diary-font-lock-keywords): Likewise.
+	(diary-font-lock-keywords): Likewise.
+	* calendar/appt.el (appt-add): Likewise.
+	(appt-make-list): Likewise.
+	(appt-convert-time): Likewise.
+
+2004-01-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-ann3): Revert previous change.
+	(gdb-source-info): Allow for case of where compilation directory
+	is not recorded.
+
+2004-01-08  John Paul Wallington  <jpw@gnu.org>
+
+	* emerge.el (emerge-restore-buffer-characteristics): Doc fix.
+
+2004-01-07  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gdb-first-prompt): Renamed from
+	gdb-first-pre-prompt
+
+	* gdb-ui.el (gdba): Avoid duplication, use gdb-ann3.
+	(gdb-ann3): Use GDB command "set width 0" to prevent word wrapping
+	problems.
+	(gdb-prompt): Set (renamed) gdb-first-prompt to nil in gdb-ann3.
+
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (write-file-functions, write-contents-functions):
+	Clarify docstrings.
+
+2004-01-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (set-auto-coding): Fix for the case that
+	end-of-line is only CR.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (event-start, event-end): Doc fix.
+	(posn-string, posn-image): New defuns.
+	(posn-object): Return either image or string object.
+	(posn-object-x-y): Return 8th element of position.
+	(posn-object-width-height): New defun.
+
+2004-01-06  Andreas Schwab  <schwab@suse.de>
+
+	* gdb-ui.el (gdb-frame-handler): Handle word wrapping anywhere in
+	output.
+
 2004-01-05  Karl Berry  <karl@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): might as well allow
@@ -149,7 +207,7 @@
 	(term-sentinel): New function.
 	(term-handle-exit): New function.
 
-	* subr.el (assoc-ignore-case, assoc-ignore-representation): 
+	* subr.el (assoc-ignore-case, assoc-ignore-representation):
 	Use assoc-string, and mark them obsolete.
 	(delay-mode-hooks): Mark as permanent local.
 
@@ -833,7 +891,7 @@
 	* xml.el (xml-parse-region): Allow comments to appear after the
 	topmost element has closed.
 	(xml-ns-parse-ns-attrs, xml-ns-expand-el)
-	(xml-ns-expand-attr): New functions to do namespace handling.	
+	(xml-ns-expand-attr): New functions to do namespace handling.
 	(xml-intern-attrlist): Back-compatible handling of attribute
 	names.
 	(xml-parse-tag): Move namespace handling to seperate functions.

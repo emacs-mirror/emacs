@@ -4771,7 +4771,7 @@ read_process_output (proc, channel)
       if (!NILP (p->adaptive_read_buffering))
 	{
 	  int delay = XINT (p->read_output_delay);
-	  if (nbytes < readmax - carryover)
+	  if (nbytes < 256)
 	    {
 	      if (delay < READ_OUTPUT_DELAY_MAX_MAX)
 		{
@@ -4780,7 +4780,7 @@ read_process_output (proc, channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0)
+	  else if (delay > 0 && (nbytes == readmax - carryover))
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)

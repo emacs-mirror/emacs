@@ -20178,19 +20178,56 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
   Lisp_Object pointer = Qnil;
-  int charpos, dx, dy;
-  Lisp_Object string;
+  int charpos, dx, dy, width, height;
+  Lisp_Object string, object = Qnil;
   Lisp_Object pos, help, image;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
-    string = mode_line_string (w, &x, &y, 0, 0, area, &charpos);
+    string = mode_line_string (w, area, &x, &y, &charpos,
+			       &object, &dx, &dy, &width, &height);
   else
     {
       x -= WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
-      string = marginal_area_string (w, &x, &y, &dx, &dy, area, &charpos);
+      string = marginal_area_string (w, area, &x, &y, &charpos,
+				     &object, &dx, &dy, &width, &height);
     }
 
   help = Qnil;
+
+  if (IMAGEP (object))
+    {
+      Lisp_Object image_map, hotspot;
+      if ((image_map = Fplist_get (XCDR (object), QCmap),
+	   !NILP (image_map))
+	  && (hotspot = find_hot_spot (image_map, dx, dy),
+	      CONSP (hotspot))
+	  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+	{
+	  Lisp_Object area_id, plist;
+
+	  area_id = XCAR (hotspot);
+	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
+	     If so, we could look for mouse-enter, mouse-leave
+	     properties in PLIST (and do something...).  */
+	  if ((plist = XCDR (hotspot), CONSP (plist)))
+	    {
+	      pointer = Fplist_get (plist, Qpointer);
+	      if (NILP (pointer))
+		pointer = Qhand;
+	      help = Fplist_get (plist, Qhelp_echo);
+	      if (!NILP (help))
+		{
+		  help_echo_string = help;
+		  /* Is this correct?  ++kfs */
+		  XSETWINDOW (help_echo_window, w);
+		  help_echo_object = w->buffer;
+		  help_echo_pos = charpos;
+		}
+	    }
+	  if (NILP (pointer))
+	    pointer = Fplist_get (XCDR (object), QCpointer);
+	}
+    }
 
   if (STRINGP (string))
     {
@@ -20219,40 +20256,6 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	    map = Fget_text_property (pos, Qkeymap, string);
 	  if (!KEYMAPP (map))
 	    cursor = dpyinfo->vertical_scroll_bar_cursor;
-	}
-    }
-  else if (IMAGEP (string))
-    {
-      Lisp_Object image_map, hotspot;
-      if ((image_map = Fplist_get (XCDR (string), QCmap),
-	   !NILP (image_map))
-	  && (hotspot = find_hot_spot (image_map, dx, dy),
-	      CONSP (hotspot))
-	  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-	{
-	  Lisp_Object area_id, plist;
-
-	  area_id = XCAR (hotspot);
-	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
-	     If so, we could look for mouse-enter, mouse-leave
-	     properties in PLIST (and do something...).  */
-	  if ((plist = XCDR (hotspot), CONSP (plist)))
-	    {
-	      pointer = Fplist_get (plist, Qpointer);
-	      if (NILP (pointer))
-		pointer = Qhand;
-	      help = Fplist_get (plist, Qhelp_echo);
-	      if (!NILP (help))
-		{
-		  help_echo_string = help;
-		  /* Is this correct?  ++kfs */
-		  XSETWINDOW (help_echo_window, w);
-		  help_echo_object = w->buffer;
-		  help_echo_pos = charpos;
-		}
-	    }
-	  if (NILP (pointer))
-	    pointer = Fplist_get (XCDR (string), QCpointer);
 	}
     }
 

@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -116,7 +116,9 @@ The following interactive lisp functions help control operation :
   ;;
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
   (gdb command-line)
-  ;;
+  (gdb-ann3))
+
+(defun gdb-ann3 ()
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
   ;;
@@ -160,7 +162,7 @@ The following interactive lisp functions help control operation :
   (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
   (setq gdb-var-changed nil)
-  (setq gdb-first-pre-prompt nil)
+  (setq gdb-first-prompt nil)
   ;;
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
@@ -686,9 +688,7 @@ output from a previous command if that happens to be in effect."
 (defun gdb-prompt (ignored)
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
-  (when gdb-first-pre-prompt
-      (gdb-ann3)
-      (setq gdb-first-pre-prompt nil))
+  (when gdb-first-prompt (gdb-ann3))
   (let ((sink (gdb-get-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -707,66 +707,6 @@ This sends the next command (if any) to gdb."
       (progn
 	(gdb-set-prompting t)
 	(gud-display-frame)))))
-
-(defun gdb-ann3 ()
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
-  ;;
-  (gud-def gud-break (if (not (string-equal mode-name "Machine"))
-			 (gud-call "break %f:%l" arg)
-		       (save-excursion
-			 (beginning-of-line)
-			 (forward-char 2)
-			 (gud-call "break *%a" arg)))
-	   "\C-b" "Set breakpoint at current line or address.")
-  ;;
-  (gud-def gud-remove (if (not (string-equal mode-name "Machine"))
-			  (gud-call "clear %f:%l" arg)
-			(save-excursion
-			  (beginning-of-line)
-			  (forward-char 2)
-			  (gud-call "clear *%a" arg)))
-	   "\C-d" "Remove breakpoint at current line or address.")
-  ;;
-  (gud-def gud-until  (if (not (string-equal mode-name "Machine"))
-			  (gud-call "until %f:%l" arg)
-			(save-excursion
-			  (beginning-of-line)
-			  (forward-char 2)
-			  (gud-call "until *%a" arg)))
-	   "\C-u" "Continue to current line or address.")
-
-  (define-key gud-minor-mode-map [left-margin mouse-1]
-    'gdb-mouse-toggle-breakpoint)
-  (define-key gud-minor-mode-map [left-fringe mouse-1]
-    'gdb-mouse-toggle-breakpoint)
-
-  (setq comint-input-sender 'gdb-send)
-  ;;
-  ;; (re-)initialise
-  (setq gdb-current-address "main")
-  (setq gdb-previous-address nil)
-  (setq gdb-previous-frame nil)
-  (setq gdb-current-frame "main")
-  (setq gdb-view-source t)
-  (setq gdb-selected-view 'source)
-  (setq gdb-var-list nil)
-  (setq gdb-var-changed nil)
-  ;;
-  (mapc 'make-local-variable gdb-variables)
-  (setq gdb-buffer-type 'gdba)
-  ;;
-  (gdb-clear-inferior-io)
-  ;;
-  (if (eq window-system 'w32)
-      (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
-  (gdb-enqueue-input (list "set height 0\n" 'ignore))
-  ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
-  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
-  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
-  ;;
-  (run-hooks 'gdba-mode-hook))
 
 (defun gdb-subprompt (ignored)
   "An annotation handler for non-top-level prompts."
@@ -1765,14 +1705,13 @@ This arrangement depends on the value of `gdb-many-windows'."
 buffers."
   (goto-char (point-min))
   (if (search-forward "directory is " nil t)
-      (progn
-	(if (looking-at "\\S-*:\\(\\S-*\\)")
-	    (setq gdb-cdir (match-string 1))
-	  (looking-at "\\S-*")
-	  (setq gdb-cdir (match-string 0)))
-	(search-forward "Located in ")
+      (if (looking-at "\\S-*:\\(\\S-*\\)")
+	  (setq gdb-cdir (match-string 1))
 	(looking-at "\\S-*")
-	(setq gdb-main-file (match-string 0)))
+	(setq gdb-cdir (match-string 0))))
+  (if (search-forward "Located in " nil t)
+      (if (looking-at "\\S-*")
+	  (setq gdb-main-file (match-string 0)))
     (setq gdb-view-source nil))
   (delete-other-windows)
   (switch-to-buffer gud-comint-buffer)
@@ -1985,7 +1924,7 @@ BUFFER nil or omitted means use the current buffer."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (forward-line)
-    (if (looking-at ".*= 0x\\(\\S-*\\) in \\(\\S-*\\)")
+    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*\\)")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))
@@ -1994,7 +1933,7 @@ BUFFER nil or omitted means use the current buffer."
 		(setq gdb-current-address
 		      (concat "0x" (match-string 1 address)))
 	      (setq gdb-current-address (concat "0x" address))))
-	  (if (or (if (not (looking-at ".*(\\S-*:[0-9]*)"))
+	  (if (or (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
@@ -2003,8 +1942,7 @@ BUFFER nil or omitted means use the current buffer."
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))
-    (forward-line)
-    (if (looking-at " source language \\(\\S-*\\)\.")
+    (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
 	(setq gdb-current-language (match-string 1))))
 
 (provide 'gdb-ui)

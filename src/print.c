@@ -1342,7 +1342,9 @@ print_preprocess (obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR (obj)->size & PSEUDOVECTOR_SIZE_MASK;
+	  size = XVECTOR (obj)->size;
+	  if (size & PSEUDOVECTOR_FLAG)
+	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
 	    print_preprocess (XVECTOR (obj)->contents[i]);
 	  break;

@@ -1092,6 +1092,12 @@ on the left of the dialog box and all following items on the right.
     CHECK_STRING (title);
     record_unwind_protect (unuse_menu_items, Qnil);
 
+    if (NILP (Fcar (Fcdr (contents))))
+      /* No buttons specified, add an "Ok" button so users can pop down
+         the dialog.  Also, the lesstif/motif version crashes if there are
+         no buttons.  */
+      contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
+    
     list_of_panes (Fcons (contents, Qnil));
 
     /* Display them in a dialog box.  */

@@ -306,7 +306,7 @@ fontset_ref_via_base (fontset, c)
     elt = FONTSET_REF (FONTSET_BASE (fontset), *c);
   if (NILP (elt))
     elt = lookup_overriding_fontspec (FONTSET_FRAME (fontset), *c);
-  if (NILP (elt) && ! EQ (FONTSET_BASE (fontset), Vdefault_fontset))
+  if (NILP (elt))
     elt = FONTSET_REF (Vdefault_fontset, *c);
   if (NILP (elt))
     return Qnil;

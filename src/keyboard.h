@@ -254,17 +254,21 @@ extern Lisp_Object item_properties;
 
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCAR (posn))
-#define POSN_BUFFER_POSN(posn) (XCAR (XCDR (posn)))
-#define POSN_BUFFER_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
+#define POSN_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
 #define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
-#define POSN_TIMESTAMP(posn) \
-  (XCAR (XCDR (XCDR (XCDR (posn)))))
+#define POSN_TIMESTAMP(posn) (XCAR (XCDR (XCDR (XCDR (posn)))))
 #define POSN_SCROLLBAR_PART(posn)	(Fnth (make_number (4), (posn)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
    It's a cons if the click is over a string in the mode line.  */
 
-#define POSN_STRING(POSN) Fnth (make_number (4), (POSN))
+#define POSN_STRING(posn) (Fnth (make_number (4), (posn)))
+
+/* If POSN_STRING is nil, event refers to buffer location.  */
+
+#define POSN_INBUFFER_P(posn) (NILP (POSN_STRING (posn)))
+#define POSN_BUFFER_POSN(posn) (Fnth (make_number (5), (posn)))
 
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;

@@ -1,3 +1,18 @@
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Saving Buffers): Clarify descriptions of
+	`write-contents-functions' and `before-save-hook'.
+	Make the defvar's for `before-save-hook' and `after-save-hook'
+	into defopt's.
+
+2004-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe new image and
+	width/height elements of click events.
+	(Accessing Events): Add posn-string, posn-image, and
+	posn-object-width-height.  Change posn-object to return either
+	image or string object.
+
 2004-01-01  Simon Josefsson  <jas@extundo.com>
 
 	* hooks.texi (Standard Hooks): Add before-save-hook.

@@ -508,7 +508,7 @@ off the specialized speedbar mode."
      gud-minibuffer-local-map nil
      hist-sym)))
 
-(defvar gdb-first-pre-prompt t)
+(defvar gdb-first-prompt t)
 
 ;;;###autoload
 (defun gdb (command-line)
@@ -540,7 +540,7 @@ and source-file directory for your debugger."
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
-  (setq gdb-first-pre-prompt t)
+  (setq gdb-first-prompt t)
   (run-hooks 'gdb-mode-hook))
 
 ;; One of the nice features of GDB is its impressive support for

@@ -3447,7 +3447,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    /* Anything but a string, convert to a string using princ.  */
 	    register Lisp_Object tem;
 	    tem = Fprin1_to_string (args[n], Qt);
-	    if (STRING_MULTIBYTE (tem) & ! multibyte)
+	    if (STRING_MULTIBYTE (tem) && ! multibyte)
 	      {
 		multibyte = 1;
 		goto retry;

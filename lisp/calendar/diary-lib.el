@@ -636,7 +636,7 @@ This function is provided for optional use as the `diary-display-hook'."
                                                    (symbol-name sym)))
                                               marks))))
                          faceinfo)
-                    ;; Remove :face info from the marks, 
+                    ;; Remove :face info from the marks,
                     ;; copy the face info into temp-face
                     (setq faceinfo marks)
                     (while (setq faceinfo (memq :face faceinfo))
@@ -1097,12 +1097,15 @@ after those with times."
 (defun diary-entry-time (s)
   "Return time at the beginning of the string S as a military-style integer.
 For example, returns 1325 for 1:25pm.
-Returns `diary-unknown-time' (default value -9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
-XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
-or XX:XXPM."
+
+Returns `diary-unknown-time' (default value -9999) if no time is recognized.
+The recognized forms are XXXX, X:XX, or XX:XX (military time), and XXam,
+XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  We also try to
+accept time in the form XX[.XX][am/pm/AM/PM]]."
   (let ((case-fold-search nil))
     (cond ((string-match        ; Military time
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)"
+            s)
 	   (+ (* 100 (string-to-int
 		      (substring s (match-beginning 1) (match-end 1))))
 	      (string-to-int (substring s (match-beginning 2) (match-end 2)))))
@@ -1114,7 +1117,7 @@ or XX:XXPM."
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
 	  ((string-match        ; Hour and minute  XX:XXam or XX:XXpm
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.][\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
@@ -1286,7 +1289,7 @@ A number of built-in functions are available for this type of diary entry:
 
 Marking these entries is *extremely* time consuming, so these entries are
 best if they are nonmarking."
-  (let ((s-entry (concat "\\(\\`\\|\^M\\|\n\\)" 
+  (let ((s-entry (concat "\\(\\`\\|\^M\\|\n\\)"
                          (regexp-quote diary-nonmarking-symbol)
                          "?"
                          (regexp-quote sexp-diary-entry-symbol)
@@ -1753,7 +1756,7 @@ Prefix arg will make the entry nonmarking."
    '("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
    '("^Day.*omer.*$" . font-lock-builtin-face)
    '("^Parashat.*$" . font-lock-comment-face)
-   '("^[ \t]*[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\)?"
+   '("^[ \t]*[0-9]?[0-9]\\([:.]?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\(-[0-9]?[0-9]\\([:.]?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\)?"
      . font-lock-variable-name-face))
   "Keywords to highlight in fancy diary display")
 
@@ -1848,7 +1851,7 @@ names."
                  "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
          '(1 font-lock-reference-face))
         '(font-lock-diary-sexps . font-lock-keyword-face)
-        '("[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\)?"
+        '("[0-9]?[0-9]\\([:.]?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\(-[0-9]?[0-9]\\([:.]?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\)?"
           . font-lock-function-name-face)))
       "Forms to highlight in diary-mode")
 

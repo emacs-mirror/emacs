@@ -2939,13 +2939,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       Lisp_Object posn;
 
-      posn = POSN_BUFFER_POSN (EVENT_START (c));
+      posn = POSN_POSN (EVENT_START (c));
       /* Handle menu-bar events:
 	 insert the dummy prefix event `menu-bar'.  */
       if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 	{
 	  /* Change menu-bar to (menu-bar) as the event "position".  */
-	  POSN_BUFFER_SET_POSN (EVENT_START (c), Fcons (posn, Qnil));
+	  POSN_SET_POSN (EVENT_START (c), Fcons (posn, Qnil));
 
 	  also_record = c;
 	  Vunread_command_events = Fcons (c, Vunread_command_events);
@@ -4979,9 +4979,11 @@ make_lispy_position (f, x, y, time)
     {
       /* It's a click in window window at frame coordinates (x,y)  */
       struct window *w = XWINDOW (window);
-      Lisp_Object object = Qnil;
+      Lisp_Object string_info = Qnil;
       int textpos = -1, rx = -1, ry = -1;
       int dx = -1, dy = -1;
+      int width = -1, height = -1;
+      Lisp_Object object = Qnil;
 
       /* Set event coordinates to window-relative coordinates
 	 for constructing the Lisp event below.  */
@@ -4997,9 +4999,10 @@ make_lispy_position (f, x, y, time)
 
 	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
 	  rx = wx, ry = wy;
-	  string = mode_line_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  string = mode_line_string (w, part, &rx, &ry, &charpos,
+				     &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
-	    object = Fcons (string, make_number (charpos));
+	    string_info = Fcons (string, make_number (charpos));
 	  if (w == XWINDOW (selected_window))
 	    textpos = PT;
 	  else
@@ -5010,6 +5013,7 @@ make_lispy_position (f, x, y, time)
 	  posn = Qvertical_line;
 	  wx = -1;
 	  dx = 0;
+	  width = 1;
 	}
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
@@ -5018,22 +5022,10 @@ make_lispy_position (f, x, y, time)
 	  
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
-	  string = marginal_area_string (w, &rx, &ry, &dx, &dy, part, &charpos);
+	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
+					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
-	    object = Fcons (string, make_number (charpos));
-#ifdef HAVE_WINDOW_SYSTEM
-	  else if (IMAGEP (string))
-	    {
-	      Lisp_Object image_map, hotspot;
-	      object = string;
-	      if ((image_map = Fplist_get (XCDR (object), QCmap),
-		   !NILP (image_map))
-		  && (hotspot = find_hot_spot (image_map, dx, dy),
-		      CONSP (hotspot))
-		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-		posn = XCAR (hotspot);
-	    }
-#endif
+	    string_info = Fcons (string, make_number (charpos));
 	}
       else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
 	{
@@ -5052,46 +5044,60 @@ make_lispy_position (f, x, y, time)
 
       if (textpos < 0)
 	{
-	  Lisp_Object string;
+	  Lisp_Object string2, object2 = Qnil;
 	  struct display_pos p;
 	  int dx2, dy2;
+	  int width2, height2;
 	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
-	  buffer_posn_from_coords (w, &wx, &wy, &dx2, &dy2, &string, &p);
+	  string2 = buffer_posn_from_coords (w, &wx, &wy, &p,
+					     &object2, &dx2, &dy2,
+					     &width2, &height2);
 	  textpos = CHARPOS (p.pos);
 	  if (rx < 0) rx = wx;
 	  if (ry < 0) ry = wy;
 	  if (dx < 0) dx = dx2;
 	  if (dy < 0) dy = dy2;
+	  if (width < 0) width = width2;
+	  if (height < 0) height = height2;
 
 	  if (NILP (posn))
 	    {
 	      posn = make_number (textpos);
-	      if (STRINGP (string))
-		object = Fcons (string,
-				make_number (CHARPOS (p.string_pos)));
-#ifdef HAVE_WINDOW_SYSTEM
-	      else if (IMAGEP (string))
-		{
-		  Lisp_Object image_map, hotspot;
-		  object = string;
-		  if ((image_map = Fplist_get (XCDR (object), QCmap),
-		       !NILP (image_map))
-		      && (hotspot = find_hot_spot (image_map, dx, dy),
-			  CONSP (hotspot))
-		      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
-		    posn = XCAR (hotspot);
-		}
-#endif
+	      if (STRINGP (string2))
+		string_info = Fcons (string2,
+				     make_number (CHARPOS (p.string_pos)));
 	    }
+	  if (NILP (object))
+	    object = object2;
 	}
 
+#ifdef HAVE_WINDOW_SYSTEM
+      if (IMAGEP (object))
+	{
+	  Lisp_Object image_map, hotspot;
+	  if ((image_map = Fplist_get (XCDR (object), QCmap),
+	       !NILP (image_map))
+	      && (hotspot = find_hot_spot (image_map, dx, dy),
+		  CONSP (hotspot))
+	      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+	    posn = XCAR (hotspot);
+	}
+#endif
+
+      /* Object info */
       extra_info = Fcons (object,
+			  Fcons (Fcons (make_number (dx),
+					make_number (dy)),
+				 Fcons (Fcons (make_number (width),
+					       make_number (height)),
+					Qnil)));
+
+      /* String info */
+      extra_info = Fcons (string_info,
 			  Fcons (make_number (textpos),
 				 Fcons (Fcons (make_number (rx),
 					       make_number (ry)),
-					Fcons (Fcons (make_number (dx),
-						      make_number (dy)),
-					       Qnil))));
+					extra_info)));
     }
   else if (f != 0)
     {
@@ -8918,7 +8924,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      Lisp_Object window, posn;
 
 	      window = POSN_WINDOW      (EVENT_START (key));
-	      posn   = POSN_BUFFER_POSN (EVENT_START (key));
+	      posn   = POSN_POSN (EVENT_START (key));
 
 	      if (CONSP (posn)
 		  || (!NILP (fake_prefixed_keys)
@@ -8976,7 +8982,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  localized_local_map = 1;
 		  start = EVENT_START (key);
 
-		  if (CONSP (start) && CONSP (XCDR (start)))
+		  if (CONSP (start) && POSN_INBUFFER_P (start))
 		    {
 		      pos = POSN_BUFFER_POSN (start);
 		      if (INTEGERP (pos)
@@ -9086,7 +9092,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    {
 	      Lisp_Object posn;
 
-	      posn = POSN_BUFFER_POSN (EVENT_START (key));
+	      posn = POSN_POSN (EVENT_START (key));
 	      /* Handle menu-bar events:
 		 insert the dummy prefix event `menu-bar'.  */
 	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
@@ -9098,8 +9104,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  /* Zap the position in key, so we know that we've
 		     expanded it, and don't try to do so again.  */
-		  POSN_BUFFER_SET_POSN (EVENT_START (key),
-					Fcons (posn, Qnil));
+		  POSN_SET_POSN (EVENT_START (key),
+				 Fcons (posn, Qnil));
 
 		  mock_input = t + 2;
 		  goto replay_sequence;

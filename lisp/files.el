@@ -375,7 +375,12 @@ So any buffer-local binding of this variable is discarded if you change
 the visited file name with \\[set-visited-file-name], but not when you
 change the major mode.
 
-See also `write-contents-functions'.")
+This hook is not run if any of the functions in
+`write-contents-functions' returns non-nil.  Both hooks pertain
+to how to save a buffer to file, for instance, choosing a suitable
+coding system and setting mode bits.  (See Info
+node `(elisp)Saving Buffers'.)  To perform various checks or
+updates before the buffer is saved, use `before-save-hook' .")
 (put 'write-file-functions 'permanent-local t)
 (defvaralias 'write-file-hooks 'write-file-functions)
 (make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
@@ -395,7 +400,11 @@ buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
 major mode does clear it.
 
-See also `write-file-functions'.")
+For hooks that _do_ pertain to the particular visited file, use
+`write-file-functions'.  Both this variable and
+`write-file-functions' relate to how a buffer is saved to file.
+To perform various checks or updates before the buffer is saved,
+use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
 (defvaralias 'write-contents-hooks 'write-contents-functions)
 (make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")

@@ -437,7 +437,8 @@ Usually just deletes the appointment buffer."
 The time should be in either 24 hour format or am/pm format."
 
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
-  (if (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" new-appt-time)
+  (if (string-match "[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
+		    new-appt-time)
       nil
     (error "Unacceptable time-string"))
 
@@ -519,7 +520,7 @@ They specify the range of dates that the diary is being processed for."
 			   (calendar-current-date) (car (car entry-list))))
 		(let ((time-string (cadr (car entry-list))))
 		  (while (string-match
-			  "\\([0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\).*"
+			  "\\([0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?\\).*"
 			  time-string)
 		    (let* ((beg (match-beginning 0))
 			   ;; Get just the time for this appointment.
@@ -527,7 +528,7 @@ They specify the range of dates that the diary is being processed for."
 			   ;; Find the end of this appointment
 			   ;; (the start of the next).
 			   (end (string-match
-				 "^[ \t]*[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
+				 "^[ \t]*[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
 				 time-string
 				 (match-end 0)))
 			   ;; Get the whole string for this appointment.
@@ -586,17 +587,17 @@ it from the original list."
 
 
 (defun appt-convert-time (time2conv)
-  "Convert hour:min[am/pm] format to minutes from midnight."
-
+  "Convert hour:min[am/pm] format to minutes from midnight.
+Also try to accept the hour.min[am/pm] format."
   (let ((conv-time 0)
         (hr 0)
         (min 0))
 
-    (string-match ":\\([0-9][0-9]\\)" time2conv)
+    (string-match "[:.]\\([0-9][0-9]\\)" time2conv)
     (setq min (string-to-int
                (match-string 1 time2conv)))
 
-    (string-match "[0-9]?[0-9]:" time2conv)
+    (string-match "[0-9]?[0-9][:.]" time2conv)
     (setq hr (string-to-int
               (match-string 0 time2conv)))
 
