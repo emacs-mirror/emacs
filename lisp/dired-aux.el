@@ -2033,7 +2033,7 @@ true then the type of the file linked to by FILE is printed instead."
       (call-process "file" nil t t "--" file))
     (when (bolp)
       (backward-delete-char 1))
-    (message (buffer-string))))
+    (message "%s" (buffer-string))))
 
 (provide 'dired-aux)
 
