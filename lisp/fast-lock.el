@@ -1,10 +1,10 @@
 ;;; fast-lock.el --- Automagic text properties caching for fast Font Lock mode.
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.11
+;; Version: 3.12
 
 ;;; This file is part of GNU Emacs.
 
@@ -160,6 +160,9 @@
 ;; - Added `fast-lock-verbose'
 ;; - XEmacs: Add `font-lock-value-in-major-mode' if necessary
 ;; - Removed `fast-lock-submit-bug-report' and bade farewell
+;; 3.11--3.12:
+;; - Added Custom support (Hrvoje Niksic help)
+;; - Made `fast-lock-cache-data' simplify calls of `font-lock-compile-keywords'
 
 ;;; Code:
 
@@ -183,8 +186,8 @@
   (defmacro save-buffer-state (varlist &rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
     (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p))
-		     (inhibit-read-only t) (buffer-undo-list t)
+		   '((modified (buffer-modified-p)) (buffer-undo-list t)
+		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
 		     before-change-functions after-change-functions
 		     deactivate-mark buffer-file-name buffer-file-truename))))
 	 (,@ body)
@@ -207,7 +210,7 @@
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.11"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)
@@ -220,16 +223,16 @@
 ;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
 ;In the `*scratch*' buffer, evaluate:"))))
 
-(defvar fast-lock-mode nil)
-(defvar fast-lock-cache-timestamp nil)	; for saving/reading
-(defvar fast-lock-cache-filename nil)	; for deleting
+(defvar fast-lock-mode nil)		; Whether we are turned on.
+(defvar fast-lock-cache-timestamp nil)	; For saving/reading.
+(defvar fast-lock-cache-filename nil)	; For deleting.
 
 ;; User Variables:
 
 (defgroup fast-lock nil
-  "Automagic text properties caching for fast Font Lock mode"
-  :group 'faces)
-
+  "Font Lock support mode to cache fontification."
+  :link '(custom-manual "(emacs)Support Modes")
+  :group 'font-lock)
 
 (defcustom fast-lock-cache-directories '("." "~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
@@ -250,7 +253,7 @@ For example:
 
 would cause a file's current directory to be used if the file is under your
 home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'."
-  :type '(repeat (choice (cons regexp directory) directory))
+  :type '(repeat (radio (cons regexp directory) directory))
   :group 'fast-lock)
 
 (defcustom fast-lock-minimum-size (* 25 1024)
@@ -262,8 +265,10 @@ where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . 25600) (c++-mode . 25600) (rmail-mode . 1048576))
 means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
 for buffers in Rmail mode, and size is irrelevant otherwise."
-  :type '(choice (integer :tag "Size") (repeat (cons (symbol :tag "Major Mode")
-						    (integer :tag "Size"))))
+  :type '(radio (const :tag "None" nil)
+		(integer :tag "Size")
+		(repeat (cons (symbol :tag "Major Mode")
+			      (integer :tag "Size"))))
   :group 'fast-lock)
 
 (defcustom fast-lock-save-events '(kill-buffer kill-emacs)
@@ -281,18 +286,20 @@ Font Lock cache files saved.  Ownership may be unknown for networked files."
   :type 'boolean
   :group 'fast-lock)
 
+(defcustom fast-lock-verbose font-lock-verbose
+  "*If non-nil, means show status messages for cache processing.
+If a number, only buffers greater than this size have processing messages."
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "Always" t)
+		(integer :tag "Size"))
+  :group 'fast-lock)
+
 (defvar fast-lock-save-faces
   (when (save-match-data (string-match "XEmacs" (emacs-version)))
     ;; XEmacs uses extents for everything, so we have to pick the right ones.
     font-lock-face-list)
   "Faces that will be saved in a Font Lock cache file.
 If nil, means information for all faces will be saved.")
-
-(defcustom fast-lock-verbose font-lock-verbose
-  "*If non-nil, means show status messages for cache processing.
-If a number, only buffers greater than this size have processing messages."
-  :type '(choice integer boolean)
-  :group 'fast-lock)
 
 ;; User Functions:
 
@@ -559,10 +566,9 @@ See `fast-lock-cache-directory'."
   ;; Change from (HIGH LOW) for back compatibility.  Remove for version 3!
   (when (consp (cdr-safe timestamp))
     (setcdr timestamp (nth 1 timestamp)))
-  ;; Compile KEYWORDS and `font-lock-keywords' in case one is and one isn't.
-  (let ((current font-lock-keywords))
-    (setq keywords (font-lock-compile-keywords keywords)
-	  font-lock-keywords (font-lock-compile-keywords current)))
+  ;; Compile `font-lock-keywords' and KEYWORDS in case one is and one isn't.
+  (setq font-lock-keywords (font-lock-compile-keywords font-lock-keywords)
+	keywords (font-lock-compile-keywords keywords))
   ;; Use the Font Lock cache PROPERTIES if we're using cache VERSION format 2,
   ;; the current buffer's file timestamp matches the TIMESTAMP, and the current
   ;; buffer's font-lock-keywords are the same as KEYWORDS.
@@ -739,7 +745,9 @@ See `fast-lock-get-face-properties' for the format of PROPERTIES."
 (add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs)
 
 ;;;###autoload
-(if (fboundp 'add-minor-mode) (add-minor-mode 'fast-lock-mode nil))
+(when (fboundp 'add-minor-mode)
+  (defvar fast-lock-mode nil)
+  (add-minor-mode 'fast-lock-mode nil))
 ;;;###dont-autoload
 (unless (assq 'fast-lock-mode minor-mode-alist)
   (setq minor-mode-alist (append minor-mode-alist '((fast-lock-mode nil)))))

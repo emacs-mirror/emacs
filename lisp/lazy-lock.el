@@ -1,10 +1,10 @@
 ;;; lazy-lock.el --- Lazy demand-driven fontification for fast Font Lock mode.
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 2.07
+;; Version: 2.08
 
 ;;; This file is part of GNU Emacs.
 
@@ -25,6 +25,8 @@
 
 ;;; Commentary:
 
+;; Purpose:
+;;
 ;; Lazy Lock mode is a Font Lock support mode.
 ;; It makes visiting buffers in Font Lock mode faster by making fontification
 ;; be demand-driven, deferred and stealthy, so that fontification only occurs
@@ -111,7 +113,7 @@
 ;; Hooks `window-size-change-functions' and `redisplay-end-trigger-functions'
 ;; were added for these circumstances.
 ;;
-;; Ben Wing thinks these hooks are "horribly horribly kludgy", and implemented
+;; (Ben Wing thinks these hooks are "horribly horribly kludgy", and implemented
 ;; a `pre-idle-hook', a `mother-of-all-post-command-hooks', for XEmacs 19.14.
 ;; He then hacked up a version 1 lazy-lock.el to use `pre-idle-hook' rather
 ;; than `post-command-hook'.  Whereas functions on `post-command-hook' are
@@ -127,6 +129,9 @@
 ;; Since `pre-idle-hook' is pretty much like `post-command-hook', there is no
 ;; point in making this version of lazy-lock.el work with it.  Anyway, that's
 ;; Lit 30 of my humble opinion.
+;;
+;; Steve Baur reverted to a non-hacked version 1 lazy-lock.el for XEmacs 19.15
+;; and 20.0.  Obviously, the above `post-command-hook' problems still apply.)
 ;;
 ;; - Version 1 stealth fontification is also implemented by placing a function
 ;; on `post-command-hook'.  This function waits for a given amount of time,
@@ -148,6 +153,21 @@
 ;; problems (a), (b) and (c).  Version 2 deferral and stealth are implemented
 ;; by functions on Idle Timers.  (A function on XEmacs' `pre-idle-hook' is
 ;; similar to an Emacs Idle Timer function with a fixed zero second timeout.)
+
+;; - Version 1 has the following problems (relative to version 2):
+;;
+;; (a) It is slow when it does its job.
+;; (b) It does not always do its job when it should.
+;; (c) It slows all interaction (when it doesn't need to do its job).
+;; (d) It interferes with other package functions on `post-command-hook'.
+;; (e) It interferes with Emacs things within the read-eval loop.
+;;
+;; Ben's hacked-up lazy-lock.el 1.14 almost solved (b) but made (c) worse.
+;;
+;; - Version 2 has the following additional features (relative to version 1):
+;;
+;; (a) It can defer fontification (both on-the-fly and on-scrolling).
+;; (b) It can fontify contextually (syntactically true on-the-fly).
 
 ;; Caveats:
 ;;
@@ -230,6 +250,9 @@
 ;; - Added `lazy-lock-defer-on-the-fly' from `lazy-lock-defer-time'
 ;; - Renamed `lazy-lock-defer-driven' to `lazy-lock-defer-on-scrolling'
 ;; - Removed `lazy-lock-submit-bug-report' and bade farewell
+;; 2.07--2.08:
+;; - Made `lazy-lock-fontify-conservatively' fontify around `window-point'
+;; - Added Custom support
 
 ;;; Code:
 
@@ -241,11 +264,6 @@
       (and (= emacs-major-version 19) (< emacs-minor-version 30)))
     (error "`lazy-lock' was written for Emacs 19.30 or later"))
 
-;; Flush out those lusers who didn't read all of the Commentary.
-(if (or (memq 'turn-on-defer-lock font-lock-mode-hook)
-	(memq 'defer-lock-mode font-lock-mode-hook))
-    (error "`lazy-lock' was written for use without `defer-lock'"))
-  
 (eval-when-compile
   ;;
   ;; We don't do this at the top-level as idle timers are not necessarily used.
@@ -262,8 +280,8 @@
   (defmacro save-buffer-state (varlist &rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
     (` (let* ((,@ (append varlist
-		   '((modified (buffer-modified-p))
-		     (inhibit-read-only t) (buffer-undo-list t)
+		   '((modified (buffer-modified-p)) (buffer-undo-list t)
+		     (inhibit-read-only t) (inhibit-point-motion-hooks t)
 		     before-change-functions after-change-functions
 		     deactivate-mark buffer-file-name buffer-file-truename))))
 	 (,@ body)
@@ -291,7 +309,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.07"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -306,13 +324,18 @@ The value returned is the value of the last form in BODY."
 ;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
 ;In the `*scratch*' buffer, evaluate:"))))
 
-(defvar lazy-lock-mode nil)
-(defvar lazy-lock-buffers nil)			; for deferral
-(defvar lazy-lock-timers (cons nil nil))	; for deferral and stealth
+(defvar lazy-lock-mode nil)			; Whether we are turned on.
+(defvar lazy-lock-buffers nil)			; For deferral.
+(defvar lazy-lock-timers (cons nil nil))	; For deferral and stealth.
 
 ;; User Variables:
 
-(defvar lazy-lock-minimum-size (* 25 1024)
+(defgroup lazy-lock nil
+  "Font Lock support mode to fontify lazily."
+  :link '(custom-manual "(emacs)Support Modes")
+  :group 'font-lock)
+
+(defcustom lazy-lock-minimum-size (* 25 1024)
   "*Minimum size of a buffer for demand-driven fontification.
 On-demand fontification occurs if the buffer size is greater than this value.
 If nil, means demand-driven fontification is never performed.
@@ -322,9 +345,14 @@ where MAJOR-MODE is a symbol or t (meaning the default).  For example:
 means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
 for buffers in Rmail mode, and size is irrelevant otherwise.
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "None" nil)
+		(integer :tag "Size")
+		(repeat (cons (symbol :tag "Major Mode")
+			      (integer :tag "Size"))))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-defer-on-the-fly t
+(defcustom lazy-lock-defer-on-the-fly t
   "*If non-nil, means fontification after a change should be deferred.
 If nil, means on-the-fly fontification is performed.  This means when changes
 occur in the buffer, those areas are immediately fontified.
@@ -335,9 +363,13 @@ fontification should occur.  The sense of the list is negated if it begins with
 means that on-the-fly fontification is deferred for buffers in C and C++ modes
 only, and deferral does not occur otherwise.
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "Always" t)
+		(repeat (symbol :tag "Major Mode")))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-defer-on-scrolling nil
+(defcustom lazy-lock-defer-on-scrolling nil
   "*If non-nil, means fontification after a scroll should be deferred.
 If nil, means demand-driven fontification is performed.  This means when
 scrolling into unfontified areas of the buffer, those areas are immediately
@@ -356,9 +388,13 @@ occur during scrolling after the buffer is first fontified, scrolling will
 become faster.  (But, since contextual changes continually occur, such a value
 makes little sense if `lazy-lock-defer-contextually' is non-nil.)
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "Always" t)
+		(const :tag "Eventually" eventually))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-defer-contextually 'syntax-driven
+(defcustom lazy-lock-defer-contextually 'syntax-driven
   "*If non-nil, means deferred fontification should be syntactically true.
 If nil, means deferred fontification occurs only on those lines modified.  This
 means where modification on a line causes syntactic change on subsequent lines,
@@ -370,9 +406,13 @@ If any other value, e.g., `syntax-driven', means deferred syntactically true
 fontification occurs only if syntactic fontification is performed using the
 buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "Never" nil)
+		(const :tag "Always" t)
+		(const :tag "Syntax driven" syntax-driven))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-defer-time
+(defcustom lazy-lock-defer-time
   (if (featurep 'lisp-float-type) (/ (float 1) (float 3)) 1)
   "*Time in seconds to delay before beginning deferred fontification.
 Deferred fontification occurs if there is no input within this time.
@@ -380,23 +420,32 @@ If nil, means fontification is never deferred, regardless of the values of the
 variables `lazy-lock-defer-on-the-fly', `lazy-lock-defer-on-scrolling' and
 `lazy-lock-defer-contextually'.
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "Never" nil)
+		(number :tag "Seconds"))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-stealth-time 30
+(defcustom lazy-lock-stealth-time 30
   "*Time in seconds to delay before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
 If nil, means stealth fontification is never performed.
 
-The value of this variable is used when Lazy Lock mode is turned on.")
+The value of this variable is used when Lazy Lock mode is turned on."
+  :type '(radio (const :tag "Never" nil)
+		(number :tag "Seconds"))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
+(defcustom lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
   "*Maximum size of a chunk of stealth fontification.
 Each iteration of stealth fontification can fontify this number of lines.
 To speed up input response during stealth fontification, at the cost of stealth
-taking longer to fontify, you could reduce the value of this variable.")
+taking longer to fontify, you could reduce the value of this variable."
+  :type '(integer :tag "Lines")
+  :group 'lazy-lock)
 
-(defvar lazy-lock-stealth-load
-  (when (condition-case nil (load-average) (error)) 200)
+(defcustom lazy-lock-stealth-load
+  (when (condition-case nil (load-average) (error))
+    200)
   "*Load in percentage above which stealth fontification is suspended.
 Stealth fontification pauses when the system short-term load average (as
 returned by the function `load-average' if supported) goes above this level,
@@ -404,9 +453,12 @@ thus reducing the demand that stealth fontification makes on the system.
 If nil, means stealth fontification is never suspended.
 To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could reduce the value of this variable.
-See also `lazy-lock-stealth-nice'.")
+See also `lazy-lock-stealth-nice'."
+  :type '(radio (const :tag "Never" nil)
+		(integer :tag "Load"))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-stealth-nice
+(defcustom lazy-lock-stealth-nice
   (if (featurep 'lisp-float-type) (/ (float 1) (float 8)) 1)
   "*Time in seconds to pause between chunks of stealth fontification.
 Each iteration of stealth fontification is separated by this amount of time,
@@ -414,12 +466,17 @@ thus reducing the demand that stealth fontification makes on the system.
 If nil, means stealth fontification is never paused.
 To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
-See also `lazy-lock-stealth-load'.")
+See also `lazy-lock-stealth-load'."
+  :type '(radio (const :tag "Never" nil)
+		(number :tag "Seconds"))
+  :group 'lazy-lock)
 
-(defvar lazy-lock-stealth-verbose
+(defcustom lazy-lock-stealth-verbose
   (when (featurep 'lisp-float-type)
     (and font-lock-verbose (not lazy-lock-defer-contextually)))
-  "*If non-nil, means stealth fontification should show status messages.")
+  "*If non-nil, means stealth fontification should show status messages."
+  :type 'boolean
+  :group 'lazy-lock)
 
 ;; User Functions:
 
@@ -904,8 +961,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   (with-current-buffer (window-buffer window)
     (lazy-lock-fontify-region
      (save-excursion
+       (goto-char (window-point window))
        (vertical-motion (- (window-height window)) window) (point))
      (save-excursion
+       (goto-char (window-point window))
        (vertical-motion (window-height window) window) (point)))))
 
 (defun lazy-lock-unfontified-p ()
