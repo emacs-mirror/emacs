@@ -1,5 +1,11 @@
 2000-03-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* cus-edit.el (custom-variable-tag-face): Handle case that
+	default face's height is not a number.
+	(custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face): Ditto.
+	(custom-group-tag-face-1): Add :group.
+	
 	* info.el (Info-fontify-maximum-menu-size): Increase to 100000.
 
 2000-03-15  Gerd Moellmann  <gerd@gnu.org>
