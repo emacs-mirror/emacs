@@ -127,11 +127,11 @@ other buffer names are changed."
   :group 'uniquify)
 
 (defcustom uniquify-ignore-buffers-re nil
-  "*Regular expression matching buffer names that should not be uniqified.
+  "*Regular expression matching buffer names that should not be uniquified.
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
 draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
 visited file name isn't the same as that of the buffer."
-  :type 'boolean
+  :type '(choice (const :tag "Uniquify all buffers" nil) regexp)
   :group 'uniquify)
 
 (defcustom uniquify-min-dir-content 0
