@@ -1796,10 +1796,21 @@ The value returned is the value of the last form in BODY.
 This does not alter the buffer list ordering.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
-  `(let ((save-selected-window-window (selected-window)))
+  ;; Most of this code is a copy of save-selected-window.
+  `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+		  (frame-list))))
      (unwind-protect
 	 (progn (select-window ,window 'norecord)
 		,@body)
+       (dolist (elt save-selected-window-alist)
+	 (and (frame-live-p (car elt))
+	      (window-live-p (cadr elt))
+	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord)))))
 
