@@ -4429,6 +4429,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       
       goto dflt;
 
+    case WM_GETMINMAXINFO:
+      /* Hack to correct bug that allows Emacs frames to be resized
+	 below the Minimum Tracking Size.  */
+      ((LPMINMAXINFO) lParam)->ptMinTrackSize.y++;
+      return 0;
+
     case WM_EMACS_CREATESCROLLBAR:
       return (LRESULT) w32_createscrollbar ((struct frame *) wParam,
 					    (struct scroll_bar *) lParam);
