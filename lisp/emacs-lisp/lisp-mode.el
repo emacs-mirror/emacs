@@ -459,14 +459,20 @@ alternative printed representations that can be displayed."
 If CHAR is not a character, return nil."
   (and (integerp char)
        (eventp char)
-       (let ((c (event-basic-type char)))
+       (let ((c (event-basic-type char))
+	     (mods (event-modifiers char)))
+	 ;; Prevent ?A from turning into ?\S-a.
+	 (if (and (memq 'shift mods)
+		  (not (let ((case-fold-search nil))
+			 (char-equal c (upcase c)))))
+	     (setq c (upcase c) mods nil))
 	 (concat
 	  "?"
 	  (mapconcat
 	   (lambda (modif)
 	     (cond ((eq modif 'super) "\\s-")
 		   (t (string ?\\ (upcase (aref (symbol-name modif) 0)) ?-))))
-	   (event-modifiers char) "")
+	   mods "")
 	  (cond
 	   ((memq c '(?\; ?\( ?\) ?\{ ?\} ?\[ ?\] ?\" ?\' ?\\)) (string ?\\ c))
 	   ((eq c 127) "\\C-?")
