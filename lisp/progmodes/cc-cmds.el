@@ -2088,7 +2088,7 @@ Optional prefix ARG means justify paragraph as well."
 			  ;; along with surrounding ws.
 			  nil
 			(goto-char ender-start))
-		      (skip-chars-backward " \t\r\n")
+		      ;(skip-chars-backward " \t\r\n")
 		      (when (/= (point) ender-start)
 			(insert ?x)	; Insert first to keep marks right.
 			(delete-region (point) (1+ ender-start))
