@@ -749,7 +749,8 @@ appear on disk when you save the tar-file's buffer."
 		(let ((coding
 		       (and set-auto-coding-function
 			    (save-excursion
-			      (funcall set-auto-coding-function (point-max)))))
+			      (funcall set-auto-coding-function
+				       name (point-max)))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
 				 1 (min 16384 (point-max)) t)))
