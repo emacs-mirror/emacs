@@ -5,6 +5,7 @@
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: Inge Frick <inge@nada.kth.se>
+;; Keywords: files
 
 ;; This file is part of GNU Emacs.
 

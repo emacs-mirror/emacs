@@ -4,8 +4,9 @@
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
+;; Keywords: tools
 
-;; $Id: vc.el,v 1.305 2001/08/07 14:48:30 gerd Exp $
+;; $Id: vc.el,v 1.306 2001/08/28 17:02:59 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,8 +1,9 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
-;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
+;; Keywords: lisp
 
 ;; This file is part of GNU Emacs.
 

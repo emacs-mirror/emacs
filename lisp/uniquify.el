@@ -1,9 +1,10 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (c) 1989, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (c) 1989, 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: FSF
+;; Keywords: files
 ;; Created: 15 May 86
 
 ;; This file is part of GNU Emacs.
