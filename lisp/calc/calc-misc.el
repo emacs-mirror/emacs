@@ -95,8 +95,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 		      (calc-unread-command (cdr key))))))
 	(calc-do-dispatch nil))
     (let ((calc-dispatch-help t))
-      (calc-do-dispatch arg)))
-)
+      (calc-do-dispatch arg))))
 
 
 (defun calc-big-or-small (arg)
@@ -123,8 +122,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	    (calc nil calc-full-mode nil))))
     (message (if calc-full-mode
 		 "Now using full screen for Calc."
-	       "Now using partial screen for Calc.")))
-)
+	       "Now using partial screen for Calc."))))
 
 (defun calc-other-window ()
   "Invoke the Calculator in another window."
@@ -137,8 +135,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
     (if (get-buffer-window "*Calculator*")
 	(calc-quit)
       (let ((win (selected-window)))
-	(calc nil win (interactive-p)))))
-)
+	(calc nil win (interactive-p))))))
 
 (defun another-calc ()
   "Create another, independent Calculator buffer."
@@ -149,8 +146,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 		 (set-default v (symbol-value v)))) calc-local-var-list))
   (set-buffer (generate-new-buffer "*Calculator*"))
   (pop-to-buffer (current-buffer))
-  (calc-mode)
-)
+  (calc-mode))
 
 
 ;;; Make an attempt to preserve the window configuration, while deleting
@@ -216,8 +212,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 		    mainpos (nth 1 (car wins))
 		    wins (cdr wins)))
 	    (if (window-point sel)
-		(select-window sel))))))
-)
+		(select-window sel)))))))
 
 
 (defun calc-info ()
@@ -241,8 +236,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
   (or (and (boundp 'Info-current-file)
 	   (stringp Info-current-file)
 	   (string-match "calc" Info-current-file))
-      (Info-find-node calc-info-filename "Top"))
-)
+      (Info-find-node calc-info-filename "Top")))
 
 (defun calc-tutorial ()
   "Run the Emacs Info system on the Calculator Tutorial."
@@ -252,15 +246,13 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
   (calc-info)
   (Info-goto-node "Interactive Tutorial")
   (calc-other-window)
-  (message "Welcome to the Calc Tutorial!")
-)
+  (message "Welcome to the Calc Tutorial!"))
 
 (defun calc-info-summary ()
   "Run the Emacs Info system on the Calculator Summary."
   (interactive)
   (calc-info)
-  (Info-goto-node "Summary")
-)
+  (Info-goto-node "Summary"))
 
 (defun calc-help ()
   (interactive)
@@ -307,8 +299,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 								   msgs))
 						    (length msg)) 32)
 				    "  [?=MORE]")
-			  ""))))))
-)
+			  "")))))))
 
 
 
@@ -333,8 +324,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 			    (if calc-auto-why
 				(eq (car (nth 1 calc-why)) '*))))
 	(setq calc-last-why-command this-command)
-	(calc-clear-command-flag 'clear-message)))
-)
+	(calc-clear-command-flag 'clear-message))))
 
 (defun calc-record-why (&rest stuff)
   (if (eq (car stuff) 'quiet)
@@ -351,8 +341,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	  (setq stuff (cons '* (cons (substring (car stuff) 1)
 				     (cdr stuff)))))))
   (setq calc-next-why (cons stuff calc-next-why))
-  nil
-)
+  nil)
 
 ;;; True if A is a constant or vector of constants.  [P x] [Public]
 (defun math-constp (a)
@@ -362,8 +351,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	     (while (and (setq a (cdr a))
 			 (or (Math-scalarp (car a))  ; optimization
 			     (math-constp (car a)))))
-	     (null a))))
-)
+	     (null a)))))
 
 
 (defun calc-roll-down-stack (n &optional m)
@@ -378,8 +366,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	     (calc-roll-down-with-selections n m)
 	   (calc-pop-push-list n
 			       (append (calc-top-list m 1)
-				       (calc-top-list (- n m) (1+ m)))))))
-)
+				       (calc-top-list (- n m) (1+ m))))))))
 
 (defun calc-roll-up-stack (n &optional m)
   (if (< n 0)
@@ -393,8 +380,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	     (calc-roll-up-with-selections n m)
 	   (calc-pop-push-list n
 			       (append (calc-top-list (- n m) 1)
-				       (calc-top-list m (- n m -1)))))))
-)
+				       (calc-top-list m (- n m -1))))))))
 
 
 (defun calc-do-refresh ()
@@ -403,8 +389,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	(setq calc-display-dirty t)
 	nil)
     (calc-refresh)
-    t)
-)
+    t))
 
 
 (defun calc-record-list (vals &optional prefix)
@@ -413,15 +398,13 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	(progn
 	  (calc-record (car vals) prefix)
 	  (setq prefix "...")))
-    (setq vals (cdr vals)))
-)
+    (setq vals (cdr vals))))
 
 
 (defun calc-last-args-stub (arg)
   (interactive "p")
   (calc-extensions)
-  (calc-last-args arg)
-)
+  (calc-last-args arg))
 
 
 (defun calc-power (arg)
@@ -430,43 +413,37 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
    (if (and calc-extensions-loaded
 	    (calc-is-inverse))
        (calc-binary-op "root" 'calcFunc-nroot arg nil nil)
-     (calc-binary-op "^" 'calcFunc-pow arg nil nil '^)))
-)
+     (calc-binary-op "^" 'calcFunc-pow arg nil nil '^))))
 
 (defun calc-mod (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "%" 'calcFunc-mod arg nil nil '%))
-)
+   (calc-binary-op "%" 'calcFunc-mod arg nil nil '%)))
 
 (defun calc-inv (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "inv" 'calcFunc-inv arg))
-)
+   (calc-unary-op "inv" 'calcFunc-inv arg)))
 
 (defun calc-percent ()
   (interactive)
   (calc-slow-wrapper
    (calc-pop-push-record-list
-    1 "%" (list (list 'calcFunc-percent (calc-top-n 1)))))
-)
+    1 "%" (list (list 'calcFunc-percent (calc-top-n 1))))))
 
 
 (defun calc-over (n)
   (interactive "P")
   (if n
       (calc-enter (- (prefix-numeric-value n)))
-    (calc-enter -2))
-)
+    (calc-enter -2)))
 
 
 (defun calc-pop-above (n)
   (interactive "P")
   (if n
       (calc-pop (- (prefix-numeric-value n)))
-    (calc-pop -2))
-)
+    (calc-pop -2)))
 
 (defun calc-roll-down (n)
   (interactive "P")
@@ -481,8 +458,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 				(reverse
 				 (calc-top-list (calc-stack-size)))))
 	   (t
-	    (calc-roll-down-stack (calc-stack-size) (- nn))))))
-)
+	    (calc-roll-down-stack (calc-stack-size) (- nn)))))))
 
 (defun calc-roll-up (n)
   (interactive "P")
@@ -497,8 +473,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 				(reverse
 				 (calc-top-list (calc-stack-size)))))
 	   (t
-	    (calc-roll-up-stack (calc-stack-size) (- nn))))))
-)
+	    (calc-roll-up-stack (calc-stack-size) (- nn)))))))
 
 
 
@@ -510,8 +485,7 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
 	((equal n '(4)) "C-u ")
 	((consp n) (format "%d " (car n)))
 	((integerp n) (format "%d " n))
-	(t ""))
-)
+	(t "")))
 
 (defun calc-missing-key (n)
   "This is a placeholder for a command which needs to be loaded from calc-ext.
@@ -522,14 +496,12 @@ loaded and the keystroke automatically re-typed."
   (if (keymapp (key-binding (char-to-string last-command-char)))
       (message "%s%c-" (calc-num-prefix-name n) last-command-char))
   (calc-unread-command)
-  (setq prefix-arg n)
-)
+  (setq prefix-arg n))
 
 (defun calc-shift-Y-prefix-help ()
   (interactive)
   (calc-extensions)
-  (calc-do-prefix-help calc-Y-help-msgs "other" ?Y)
-)
+  (calc-do-prefix-help calc-Y-help-msgs "other" ?Y))
 
 
 
@@ -540,8 +512,7 @@ loaded and the keystroke automatically re-typed."
       (progn
 	(setq last-command-char (upcase last-command-char))
 	(calcDigit-key))
-    (calcDigit-nondigit))
-)
+    (calcDigit-nondigit)))
 
 
 ;; A Lisp version of temp_minibuffer_message from minibuf.c.
@@ -558,8 +529,7 @@ loaded and the keystroke automatically re-typed."
 	    (setq okay t))
 	(progn
 	  (delete-region savemax (point-max))
-	  (or okay (abort-recursive-edit))))))
-)
+	  (or okay (abort-recursive-edit)))))))
 
 
 (put 'math-with-extra-prec 'lisp-indent-hook 1)
@@ -582,8 +552,7 @@ loaded and the keystroke automatically re-typed."
 			     (not (math-matrixp v1))))
 		    (cdr v2)
 		  (list v2)))
-      (list '| v1 v2)))
-)
+      (list '| v1 v2))))
 
 
 ;;; True if A is zero.  Works for un-normalized values.  [P n] [Public]
@@ -600,8 +569,7 @@ loaded and the keystroke automatically re-typed."
 	     (and (math-zerop (nth 1 a))
 		  (math-zerop (nth 2 a))
 		  (math-zerop (nth 3 a)))))
-    (eq a 0))
-)
+    (eq a 0)))
 
 
 ;;; True if A is real and negative.  [P n] [Public]
@@ -625,8 +593,7 @@ loaded and the keystroke automatically re-typed."
 		 (and (math-zerop (nth 3 a))
 		      (memq (nth 1 a) '(0 2)))))
 	    ((equal a '(neg (var inf var-inf))) t))
-    (< a 0))
-)
+    (< a 0)))
 
 ;;; True if A is a negative number or an expression the starts with '-'.
 (defun math-looks-negp (a)   ; [P x] [Public]
@@ -636,8 +603,7 @@ loaded and the keystroke automatically re-typed."
 	   (or (math-looks-negp (nth 1 a))
 	       (math-looks-negp (nth 2 a))))
       (and (eq (car-safe a) '-)
-	   (math-looks-negp (nth 1 a))))
-)
+	   (math-looks-negp (nth 1 a)))))
 
 
 ;;; True if A is real and positive.  [P n] [Public]
@@ -662,11 +628,10 @@ loaded and the keystroke automatically re-typed."
 		 (and (math-zerop (nth 2 a))
 		      (memq (nth 1 a) '(0 1)))))
 	    ((equal a '(var inf var-inf)) t))
-    (> a 0))
-)
+    (> a 0)))
 
-(fset 'math-fixnump (symbol-function 'integerp))
-(fset 'math-fixnatnump (symbol-function 'natnump))
+(defalias math-fixnump 'integerp)
+(defalias math-fixnatnump 'natnump)
 
 
 ;;; True if A is an even integer.  [P R R] [Public]
@@ -674,8 +639,7 @@ loaded and the keystroke automatically re-typed."
   (if (consp a)
       (and (memq (car a) '(bigpos bigneg))
 	   (= (% (nth 1 a) 2) 0))
-    (= (% a 2) 0))
-)
+    (= (% a 2) 0)))
 
 ;;; Compute A / 2, for small or big integer A.  [I i]
 ;;; If A is negative, type of truncation is undefined.
@@ -684,15 +648,13 @@ loaded and the keystroke automatically re-typed."
       (if (cdr a)
 	  (math-normalize (cons (car a) (math-div2-bignum (cdr a))))
 	0)
-    (/ a 2))
-)
+    (/ a 2)))
 
 (defun math-div2-bignum (a)   ; [l l]
   (if (cdr a)
       (cons (+ (/ (car a) 2) (* (% (nth 1 a) 2) 500))
 	    (math-div2-bignum (cdr a)))
-    (list (/ (car a) 2)))
-)
+    (list (/ (car a) 2))))
 
 
 ;;; Reject an argument to a calculator function.  [Public]
@@ -701,8 +663,7 @@ loaded and the keystroke automatically re-typed."
       (calc-record-why option p a)
     (if p
 	(calc-record-why p a)))
-  (signal 'wrong-type-argument (and a (if p (list p a) (list a))))
-)
+  (signal 'wrong-type-argument (and a (if p (list p a) (list a)))))
 
 
 ;;; Coerce A to be an integer (by truncation toward zero).  [I N] [Public]
@@ -716,9 +677,8 @@ loaded and the keystroke automatically re-typed."
 	((eq (car a) 'float)
 	 (math-scale-int (nth 1 a) (nth 2 a)))
 	(t (calc-extensions)
-	   (math-trunc-fancy a)))
-)
-(fset 'calcFunc-trunc (symbol-function 'math-trunc))
+	   (math-trunc-fancy a))))
+(defalias calcFunc-trunc 'math-trunc)
 
 ;;; Coerce A to be an integer (by truncation toward minus infinity).  [I N]
 (defun math-floor (a &optional prec)    ;  [Public]
@@ -732,9 +692,8 @@ loaded and the keystroke automatically re-typed."
 	     (math-add (math-trunc a) -1)
 	   (math-trunc a)))
 	(t (calc-extensions)
-	   (math-floor-fancy a)))
-)
-(fset 'calcFunc-floor (symbol-function 'math-floor))
+	   (math-floor-fancy a))))
+(defalias calcFunc-floor 'math-floor)
 
 
 (defun math-imod (a b)   ; [I I I] [Public]
@@ -742,8 +701,7 @@ loaded and the keystroke automatically re-typed."
       (if (= b 0)
 	  (math-reject-arg a "*Division by zero")
 	(% a b))
-    (cdr (math-idivmod a b)))
-)
+    (cdr (math-idivmod a b))))
 
 
 (defun calcFunc-inv (m)
@@ -754,8 +712,7 @@ loaded and the keystroke automatically re-typed."
 	    (or (math-with-extra-prec 2 (math-matrix-inv-raw m))
 		(math-reject-arg m "*Singular matrix"))
 	  (math-reject-arg m 'square-matrixp)))
-    (math-div 1 m))
-)
+    (math-div 1 m)))
 
 
 (defun math-do-working (msg arg)
@@ -768,8 +725,7 @@ loaded and the keystroke automatically re-typed."
 				  math-working-step math-working-step-2 msg))
 	      (setq msg (format "[%d] %s" math-working-step msg))))
 	(message "Working... %s = %s" msg
-		 (math-showing-full-precision (math-format-number arg)))))
-)
+		 (math-showing-full-precision (math-format-number arg))))))
 
 
 ;;; Compute A modulo B, defined in terms of truncation toward minus infinity.
@@ -782,8 +738,7 @@ loaded and the keystroke automatically re-typed."
 	((and (Math-anglep a) (Math-anglep b))
 	 (math-sub a (math-mul (math-floor (math-div a b)) b)))
 	(t (calc-extensions)
-	   (math-mod-fancy a b)))
-)
+	   (math-mod-fancy a b))))
 
 
 
@@ -812,8 +767,7 @@ loaded and the keystroke automatically re-typed."
 	     (math-ipow a b))))
 	(t
 	 (calc-extensions)
-	 (math-pow-fancy a b)))
-)
+	 (math-pow-fancy a b))))
 
 (defun math-ipow (a n)   ; [O O I] [Public]
   (cond ((Math-integer-negp n)
@@ -826,15 +780,13 @@ loaded and the keystroke automatically re-typed."
 	 (math-ipow (math-mul a a) (math-div2 n)))
 	(t
 	 (math-mul a (math-ipow (math-mul a a)
-				(math-div2 (math-add n -1))))))
-)
+				(math-div2 (math-add n -1)))))))
 
 (defun math-iipow (a n)   ; [O O S]
   (cond ((= n 0) 1)
 	((= n 1) a)
 	((= (% n 2) 0) (math-iipow (math-mul a a) (/ n 2)))
-	(t (math-mul a (math-iipow (math-mul a a) (/ n 2)))))
-)
+	(t (math-mul a (math-iipow (math-mul a a) (/ n 2))))))
 
 (defun math-iipow-show (a n)   ; [O O S]
   (math-working "pow" a)
@@ -844,8 +796,7 @@ loaded and the keystroke automatically re-typed."
 	      ((= (% n 2) 0) (math-iipow-show (math-mul a a) (/ n 2)))
 	      (t (math-mul a (math-iipow-show (math-mul a a) (/ n 2)))))))
     (math-working "pow" val)
-    val)
-)
+    val))
 
 
 (defun math-read-radix-digit (dig)   ; [D S; Z S]
@@ -855,8 +806,7 @@ loaded and the keystroke automatically re-typed."
 	(- dig 55))
     (if (>= dig ?0)
 	(- dig ?0)
-      nil))
-)
+      nil)))
 
 
 
@@ -871,7 +821,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (mail nil calc-bug-address topic)
   (goto-char (point-max))
   (insert "\nIn Calc " calc-version ", Emacs " (emacs-version) "\n\n")
-  (message (substitute-command-keys "Type \\[mail-send] to send bug report."))
-)
-(fset 'calc-report-bug (symbol-function 'report-calc-bug))
+  (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
+(defalias calc-report-bug 'report-calc-bug)
 
+;;; calc-misc.el ends here
