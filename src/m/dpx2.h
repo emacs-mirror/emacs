@@ -133,7 +133,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /*
  * if we use X11, libX11.a has these...
  */
-#ifdef HAVE_X_WINDOWS
 # undef LIB_X11_LIB
 # define LIB_X11_LIB -lX11
 # undef LIBX11_SYSTEM
@@ -145,14 +144,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * we must have INET loaded so we have sockets
  */
 # define HAVE_SOCKETS
-#endif /* HAVE_X_WINDOWS */
 
 /*
  * useful if you have INET loaded
  */
-#ifdef HAVE_SOCKETS
 # define LIBS_MACHINE -linet
-#endif
 
 
 #if (defined(ncl_mr) || defined(ncl_el)) && !defined (NBPC)
