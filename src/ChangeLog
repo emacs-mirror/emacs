@@ -1,5 +1,9 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* cmds.c, composite.c, dired.c, doc.c, filelock.c, floatfns.c,
+	* fontset.c, insdel.c, keymap.c: Change doc-string comments to
+	`new style' [w/`doc:' keyword].
+
 	* xmenu.c (x-popup-menu): Reindent.
 	(x-popup-dialog): Likewise.
 

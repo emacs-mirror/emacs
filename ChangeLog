@@ -2,6 +2,8 @@
 
 	* Makefile.in (install-arch-indep): Use `${manext}' instead of
 	`.1'.
+	(install-arch-indep): Install emacsclient manual page.
+	(uninstall): Uninstall emacsclient manual page.
 
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
