@@ -1,3 +1,12 @@
+2002-11-06  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-fontify-node): Fixed hiding of *note references
+	with embedded file names like (xxx.yyy).
+	Avoid making any lines visibly longer if hiding newlines inside
+	note references by wrapping line after references if it contained
+	a newline (unfortunaly this makes more lines appear "shorter").
+	Properly reindent multi-line menu entry descriptions.
+
 2002-11-05  Juanma Barranquero  <lektu@terra.es>
 
 	* language/cyrillic.el ("Bulgarian"): Fix typo.
