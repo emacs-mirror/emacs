@@ -4324,4 +4324,5 @@ See also `normal-erase-is-backspace'."
 ;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
 ;  
 
+(provide 'simple)
 ;;; simple.el ends here
