@@ -413,6 +413,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 #endif
 
   /* VAL is the string of minibuffer text.  */
+
+  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (defalt))
+    val = defalt;
+
   last_minibuf_string = val;
 
   /* Add the value to the appropriate history list unless it is empty.  */
@@ -676,8 +680,6 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
 		      histvar, histpos, default_value,
 		      minibuffer_allow_text_properties,
 		      !NILP (inherit_input_method));
-  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
-    val = default_value;
   UNGCPRO;
   return val;
 }
@@ -1256,8 +1258,6 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method));
-  if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
-    val = def;
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
