@@ -462,15 +462,12 @@ extern int width_by_char_head[256];
    ? (c1)					 	\
    : MAKE_NON_ASCII_CHAR ((charset), (c1) & 0x7F, (c2) & 0x7F))
 
-/* 1 if C is in the range of possible character code Emacs can have.  */
-#define VALID_CHAR_P(c)							\
-  ((c) >= 0								\
-   && (SINGLE_BYTE_CHAR_P (c)						\
-       || ((c) < MIN_CHAR_COMPOSITION					\
-	   ? ((c) & CHAR_FIELD1_MASK					\
-	      ? (CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)	\
-	      : (CHAR_FIELD2 (c) >= 16 && CHAR_FIELD3 (c) >= 32))	\
-	   : (c) < MIN_CHAR_COMPOSITION + n_cmpchars)))
+/* If GENERICP is nonzero, return nonzero iff C is a valid normal or
+   generic character.  If GENERICP is zero, return nonzero iff C is a
+   valid normal character.  */
+#define CHAR_VALID_P(c, genericp)	\
+  ((c) >= 0				\
+   && (SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, genericp)))
 
 /* The charset of non-ASCII character C is stored in CHARSET, and the
    position-codes of C are stored in C1 and C2.
