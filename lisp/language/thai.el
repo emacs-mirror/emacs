@@ -50,15 +50,9 @@
 	  (features thai-util)
 	  (sample-text 
 	   . (thai-compose-string
-	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
+	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B")))
 	  (documentation . t)))
 
-
-;; Register a function to compose Thai characters.
-(set-char-table-range composition-function-table
-		      '(#x0E00 . #x0E7F)
-		      '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?"
-			 . thai-composition-function)))
 
 (define-coding-system 'cp874
   "DOS codepage 874 (Thai)"
@@ -75,6 +69,12 @@ This is the same as `thai-tis620' with the addition of no-break-space."
   :mnemonic ?*
   :mime-charset 'iso-8859-11 ; not actually registered as of 2002-05-24
   :charset-list '(iso-8859-11))
+
+;; For automatic composition.
+(let ((chars ",TQTUVWXYZghijklmn(B"))
+  (dotimes (i (length chars))
+    (aset composition-function-table (aref chars i)
+	  'thai-composition-function)))
 
 (provide 'thai)
 
