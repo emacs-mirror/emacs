@@ -569,6 +569,7 @@ it is displayed along with the global value."
 		  (insert " value is shown ")
 		  (insert-button "below"
 				 'action help-button-cache
+				 'follow-link t
 				 'help-echo "mouse-2, RET: show value")
 		  (insert ".\n\n")))
 	      ;; Add a note for variables that have been make-var-buffer-local.
