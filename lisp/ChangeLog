@@ -1,3 +1,8 @@
+2005-01-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Add help-echo for
+	breakpoint image symbol in margin.
+
 2005-01-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-prog.el (calc-execute-kbd-macro):
