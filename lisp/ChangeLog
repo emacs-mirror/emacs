@@ -477,19 +477,11 @@
 
 	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
 	Apply `tramp-handle-directory-file-name'.
-	(tramp-smb-devices, tramp-smb-get-device): Remove.
-	Functionality moved to tramp.el.
 	(tramp-smb-handle-file-attributes):  Apply `tramp-get-device'.
 	ATIME and CTIME are (0 0) now (= "don't know"), which is more honest.
 	(tramp-smb-handle-make-directory): Use Emacs file name primitives
 	instead of calling tramp-smb-handle-* equivalents directly.
-	(tramp-smb-read-file-entry): Return size as a number but a string.
-	(tramp-smb-get-device, tramp-smb-get-inode):  New functions.
-	Device number and inode number don't exist for SMB files.
-	Therefore we must generate virtual ones.
-	(tramp-smb-devices, tramp-smb-inodes): New variables.
-	Keep generated virtual device numbers and inodes numbers for SMB files.
-	(tramp-smb-handle-file-attributes): Apply them.
+	(tramp-smb-read-file-entry): Return size as a number, not a string.
 	(top-level): Defaults for `tramp-default-method-alist' must be a list.
 
 2003-02-05  Stefan Monnier  <monnier@cs.yale.edu>
