@@ -7411,6 +7411,38 @@ tool_bar_lines_needed (f)
 }
 
 
+DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
+       0, 1, 0,
+  "Return the number of lines occupied by the tool bar of FRAME.")
+  (frame)
+     Lisp_Object frame;
+{
+  struct frame *f;
+  struct window *w;
+  int nlines = 0;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  else
+    CHECK_FRAME (frame, 0);
+  f = XFRAME (frame);
+  
+  if (WINDOWP (f->tool_bar_window)
+      || (w = XWINDOW (f->tool_bar_window),
+	  XFASTINT (w->height) > 0))
+    {
+      update_tool_bar (f, 1);
+      if (f->n_tool_bar_items)
+	{
+	  build_desired_tool_bar_string (f);
+	  nlines = tool_bar_lines_needed (f);
+	}
+    }
+
+  return make_number (nlines);
+}
+
+
 /* Display the tool-bar of frame F.  Value is non-zero if tool-bar's
    height should be changed.  */
 
@@ -13929,6 +13961,7 @@ syms_of_xdisp ()
   defsubr (&Strace_redisplay_toggle);
   defsubr (&Strace_to_stderr);
 #endif
+  defsubr (&Stool_bar_lines_needed);
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
