@@ -2548,7 +2548,8 @@ This has an effect only if a summary buffer exists.")
       (widen)
       (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
       (remove-text-properties (point-min) (point-max) '(rmail-fontified nil))
-      (font-lock-default-unfontify-buffer))))
+      (font-lock-default-unfontify-buffer)
+      (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))
 
 (defun rmail-fontify-message ()
   ;; Fontify the current message if it is not already fontified.
@@ -2560,7 +2561,8 @@ This has an effect only if a summary buffer exists.")
 	(save-excursion
 	  (save-match-data
 	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
-	    (font-lock-fontify-region (point-min) (point-max)))))))
+	    (font-lock-fontify-region (point-min) (point-max))
+	    (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))))
 
 ;;;; *** Rmail Specify Inbox Files ***
 
