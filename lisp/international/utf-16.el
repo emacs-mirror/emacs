@@ -206,22 +206,6 @@ Others are encoded as U+FFFD.")
 
 (makunbound 'utf-16-decode-to-ucs)
 
-(defun utf-16-le-pre-write-conversion (beg end)
-  "Semi-dummy pre-write function effectively to autoload ucs-tables."
-  ;; Ensure translation table is loaded.
-  (require 'ucs-tables)
-  ;; Don't do this again.
-  (coding-system-put 'mule-utf-16-le 'pre-write-conversion nil)
-  nil)
-
-(defun utf-16-be-pre-write-conversion (beg end)
-  "Semi-dummy pre-write function effectively to autoload ucs-tables."
-  ;; Ensure translation table is loaded.
-  (require 'ucs-tables)
-  ;; Don't do this again.
-  (coding-system-put 'mule-utf-16-be 'pre-write-conversion nil)
-  nil)
-
 (let ((doc "
 
 Assumes and ignores the leading two-byte signature.
@@ -278,7 +262,9 @@ are encoded as U+FFFD."))
      (coding-category . coding-category-utf-16-be)
      (valid-codes (0 . 255))
      (pre-write-conversion . utf-16-be-pre-write-conversion)))
-  )
+
+  (register-char-codings 'mule-utf-16-le ucs-mule-to-mule-unicode)
+  (register-char-codings 'mule-utf-16-be ucs-mule-to-mule-unicode))
 
 (define-coding-system-alias 'utf-16-le 'mule-utf-16-le)
 (define-coding-system-alias 'utf-16-be 'mule-utf-16-be)
