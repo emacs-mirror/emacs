@@ -1358,6 +1358,7 @@ created."
     (t
      (:inverse-video t)))
   "Basic mode line face."
+  :version "21.1"
   :group 'basic-faces)
 
 ;; Make `modeline' an alias for `mode-line', for compatibility.
@@ -1369,6 +1370,7 @@ created."
     (t
      (:inverse-video t)))
   "Basic header-line face."
+  :version "21.1"
   :group 'basic-faces)
 
 
@@ -1380,6 +1382,7 @@ created."
     (t
      ()))
   "Basic tool-bar face."
+  :version "21.1"
   :group 'basic-faces)
 
 
@@ -1459,7 +1462,8 @@ created."
     (((class color) (background dark))
      (:background "darkolivegreen"))
     (t (:inverse-video t)))
-  "Basic face for highlighting.")
+  "Basic face for highlighting."
+  :group 'basic-faces)
 
 
 (defface secondary-selection
@@ -1470,7 +1474,8 @@ created."
     (((class color) (background dark))
      (:background "darkslateblue"))
     (t (:inverse-video t)))
-  "Basic face for displaying the secondary selection.")
+  "Basic face for displaying the secondary selection."
+  :group 'basic-faces)
 
 
 (defface fixed-pitch '((t (:family "courier*")))
@@ -1489,7 +1494,9 @@ created."
     (((class color) (background dark))
      (:background "red"))
     (t (:inverse-video t)))
-  "Basic face for highlighting trailing whitespace.")
+  "Basic face for highlighting trailing whitespace."
+  :version "21.1"
+  :group 'basic-faces)
 
 
 
