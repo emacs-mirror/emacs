@@ -1221,7 +1221,7 @@ bootstrap: bootstrap-emacs
    Lisp files from loadup.el in source form.  */
 
 bootstrap-temacs: 
-	$(MAKE) $(MFLAGS) temacs ALL_CFLAGS="$(ALL_CFLAGS) -DPURESIZE=5000000"
+	LC_ALL=C $(MAKE) $(MFLAGS) temacs ALL_CFLAGS="$(ALL_CFLAGS) -DPURESIZE=5000000"
 
 /* Dump an Emacs executable named bootstrap-emacs containing the 
    files from loadup.el in source form.  */
