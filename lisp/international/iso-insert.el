@@ -29,10 +29,6 @@
 
 ;;; Code:
 
-;;; Provide some binding for startup:
-;;;###autoload (define-key global-map "\C-x8" '8859-1-map)
-;;;###autoload (autoload '8859-1-map "iso-insert" "Keymap for ISO 8859/1 character insertion." t 'keymap)
-  
 (defun insert-no-break-space ()
    (interactive "*")
    (insert (string 160))
