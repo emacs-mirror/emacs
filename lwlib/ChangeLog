@@ -1,3 +1,13 @@
+2002-11-20  Dave Love  <fx@gnu.org>
+
+	* lwlib.c: Remove obsolete USE_OLIT code.
+	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean
+	args.
+	(lwlib_memset): Declare length arg as size_t.
+	(malloc_widget_value): Cast arg of lwlib_memset.
+
+	* xlwmenu.c (separator_height): Prototype.
+
 2002-05-07  Miles Bader  <miles@gnu.org>
 
 	* xlwmenu.c (make_drawing_gcs): The scaling factor passed to
