@@ -1,5 +1,8 @@
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* make-dist: Add COPYING to the top-level directory of the
+	distribution.  Simplify the logic behind copying.
+
 	* Makefile.in (maybe_bootstrap): Fix previous change.
 
 2001-11-28  Richard M. Stallman  <rms@gnu.org>
