@@ -2588,11 +2588,11 @@ x_window_to_scroll_bar (window_id)
 
   for (tail = Vframe_list;
        XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       Lisp_Object frame, bar, condemned;
 
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
       if (! GC_FRAMEP (frame))
 	abort ();
@@ -3473,7 +3473,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 			numchars--;
 		      }
 		    else if (! NILP(Vframe_list)
-			     && ! NILP (XCONS (Vframe_list)->cdr))
+			     && ! NILP (XCDR (Vframe_list)))
 		      /* Force a redisplay sooner or later to update the
 			 frame titles in case this is the second frame.  */
 		      record_asynch_buffer_change ();
@@ -4981,7 +4981,7 @@ w32_term_init (display_name, xrm_option, resource_name)
   /* Put it on w32_display_name_list as well, to keep them parallel.  */ 
   w32_display_name_list = Fcons (Fcons (display_name, Qnil),
 				   w32_display_name_list);
-  dpyinfo->name_list_element = XCONS (w32_display_name_list)->car;
+  dpyinfo->name_list_element = XCAR (w32_display_name_list);
   
   dpyinfo->w32_id_name
     = (char *) xmalloc (XSTRING (Vinvocation_name)->size
@@ -5071,22 +5071,22 @@ x_delete_display (dpyinfo)
   /* Discard this display from w32_display_name_list and w32_display_list.
      We can't use Fdelq because that can quit.  */
   if (! NILP (w32_display_name_list)
-      && EQ (XCONS (w32_display_name_list)->car, dpyinfo->name_list_element))
-    w32_display_name_list = XCONS (w32_display_name_list)->cdr;
+      && EQ (XCAR (w32_display_name_list), dpyinfo->name_list_element))
+    w32_display_name_list = XCDR (w32_display_name_list);
   else
     {
       Lisp_Object tail;
 
       tail = w32_display_name_list;
-      while (CONSP (tail) && CONSP (XCONS (tail)->cdr))
+      while (CONSP (tail) && CONSP (XCDR (tail)))
 	{
-	  if (EQ (XCONS (XCONS (tail)->cdr)->car,
+	  if (EQ (XCAR (XCDR (tail)),
 		  dpyinfo->name_list_element))
 	    {
-	      XCONS (tail)->cdr = XCONS (XCONS (tail)->cdr)->cdr;
+	      XCDR (tail) = XCDR (XCDR (tail));
 	      break;
 	    }
-	  tail = XCONS (tail)->cdr;
+	  tail = XCDR (tail);
 	}
     }
 

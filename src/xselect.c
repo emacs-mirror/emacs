@@ -278,9 +278,9 @@ x_own_selection (selection_name, selection_value)
       {
 	Lisp_Object rest;	/* we know it's not the CAR, so it's easy.  */
 	for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
-	  if (EQ (prev_value, Fcar (XCONS (rest)->cdr)))
+	  if (EQ (prev_value, Fcar (XCDR (rest))))
 	    {
-	      XCONS (rest)->cdr = Fcdr (XCONS (rest)->cdr);
+	      XCDR (rest) = Fcdr (XCDR (rest));
 	      break;
 	    }
       }
@@ -311,7 +311,7 @@ x_get_local_selection (selection_symbol, target_type)
   if (EQ (target_type, QTIMESTAMP))
     {
       handler_fn = Qnil;
-      value = XCONS (XCONS (XCONS (local_value)->cdr)->cdr)->car;
+      value = XCAR (XCDR (XCDR (local_value)));
     }
 #if 0
   else if (EQ (target_type, QDELETE))
@@ -319,19 +319,19 @@ x_get_local_selection (selection_symbol, target_type)
       handler_fn = Qnil;
       Fx_disown_selection_internal
 	(selection_symbol,
-	 XCONS (XCONS (XCONS (local_value)->cdr)->cdr)->car);
+	 XCAR (XCDR (XCDR (local_value))));
       value = QNULL;
     }
 #endif
 
 #if 0 /* #### MULTIPLE doesn't work yet */
   else if (CONSP (target_type)
-	   && XCONS (target_type)->car == QMULTIPLE)
+	   && XCAR (target_type) == QMULTIPLE)
     {
       Lisp_Object pairs;
       int size;
       int i;
-      pairs = XCONS (target_type)->cdr;
+      pairs = XCDR (target_type);
       size = XVECTOR (pairs)->size;
       /* If the target is MULTIPLE, then target_type looks like
 	  (MULTIPLE . [[SELECTION1 TARGET1] [SELECTION2 TARGET2] ... ])
@@ -362,7 +362,7 @@ x_get_local_selection (selection_symbol, target_type)
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
 		       selection_symbol, target_type,
-		       XCONS (XCONS (local_value)->cdr)->car);
+		       XCAR (XCDR (local_value)));
       else
 	value = Qnil;
       unbind_to (count, Qnil);
@@ -373,9 +373,9 @@ x_get_local_selection (selection_symbol, target_type)
 
   check = value;
   if (CONSP (value)
-      && SYMBOLP (XCONS (value)->car))
-    type = XCONS (value)->car,
-    check = XCONS (value)->cdr;
+      && SYMBOLP (XCAR (value)))
+    type = XCAR (value),
+    check = XCDR (value);
   
   if (STRINGP (check)
       || VECTORP (check)
@@ -385,12 +385,12 @@ x_get_local_selection (selection_symbol, target_type)
     return value;
   /* Check for a value that cons_to_long could handle.  */
   else if (CONSP (check)
-	   && INTEGERP (XCONS (check)->car)
-	   && (INTEGERP (XCONS (check)->cdr)
+	   && INTEGERP (XCAR (check))
+	   && (INTEGERP (XCDR (check))
 	       ||
-	       (CONSP (XCONS (check)->cdr)
-		&& INTEGERP (XCONS (XCONS (check)->cdr)->car)
-		&& NILP (XCONS (XCONS (check)->cdr)->cdr))))
+	       (CONSP (XCDR (check))
+		&& INTEGERP (XCAR (XCDR (check)))
+		&& NILP (XCDR (XCDR (check))))))
     return value;
   else
     return
@@ -687,7 +687,7 @@ x_handle_selection_request (event)
     }
 
   local_selection_time = (Time)
-    cons_to_long (XCONS (XCONS (XCONS (local_selection_data)->cdr)->cdr)->car);
+    cons_to_long (XCAR (XCDR (XCDR (local_selection_data))));
 
   if (SELECTION_EVENT_TIME (event) != CurrentTime
       && local_selection_time > SELECTION_EVENT_TIME (event))
@@ -799,7 +799,7 @@ x_handle_selection_clear (event)
   if (NILP (local_selection_data)) return;
 
   local_selection_time = (Time)
-    cons_to_long (XCONS (XCONS (XCONS (local_selection_data)->cdr)->cdr)->car);
+    cons_to_long (XCAR (XCDR (XCDR (local_selection_data))));
 
   /* This SelectionClear is for a selection that we no longer own, so we can
      disregard it.  (That is, we have reasserted the selection since this
@@ -818,9 +818,9 @@ x_handle_selection_clear (event)
     {
       Lisp_Object rest;
       for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
-	if (EQ (local_selection_data, Fcar (XCONS (rest)->cdr)))
+	if (EQ (local_selection_data, Fcar (XCDR (rest))))
 	  {
-	    XCONS (rest)->cdr = Fcdr (XCONS (rest)->cdr);
+	    XCDR (rest) = Fcdr (XCDR (rest));
 	    break;
 	  }
     }
@@ -881,13 +881,13 @@ x_clear_frame_selections (f)
 
   /* Delete elements after the beginning of Vselection_alist.  */
   for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
-    if (EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (XCONS (rest)->cdr)))))))
+    if (EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (XCDR (rest))))))))
       {
 	/* Let random Lisp code notice that the selection has been stolen.  */
 	Lisp_Object hooks, selection_symbol;
 
 	hooks = Vx_lost_selection_hooks;
-	selection_symbol = Fcar (Fcar (XCONS (rest)->cdr));
+	selection_symbol = Fcar (Fcar (XCDR (rest)));
 
 	if (!EQ (hooks, Qunbound))
 	  {
@@ -897,7 +897,7 @@ x_clear_frame_selections (f)
 	    redisplay_preserve_echo_area ();
 #endif
 	  }
-	XCONS (rest)->cdr = Fcdr (XCONS (rest)->cdr);
+	XCDR (rest) = Fcdr (XCDR (rest));
 	break;
       }
 }
@@ -975,8 +975,8 @@ wait_for_property_change_unwind (identifierval)
      Lisp_Object identifierval;
 {
   unexpect_property_change ((struct prop_location *)
-			    (XFASTINT (XCONS (identifierval)->car) << 16
-			     | XFASTINT (XCONS (identifierval)->cdr)));
+			    (XFASTINT (XCAR (identifierval)) << 16
+			     | XFASTINT (XCDR (identifierval))));
   return Qnil;
 }
 
@@ -992,13 +992,13 @@ wait_for_property_change (location)
   Lisp_Object tem;
 
   tem = Fcons (Qnil, Qnil);
-  XSETFASTINT (XCONS (tem)->car, (EMACS_UINT)location >> 16);
-  XSETFASTINT (XCONS (tem)->cdr, (EMACS_UINT)location & 0xffff);
+  XSETFASTINT (XCAR (tem), (EMACS_UINT)location >> 16);
+  XSETFASTINT (XCDR (tem), (EMACS_UINT)location & 0xffff);
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind, tem);
 
-  XCONS (property_change_reply)->car = Qnil;
+  XCAR (property_change_reply) = Qnil;
 
   property_change_reply_object = location;
   /* If the event we are waiting for arrives beyond here, it will set
@@ -1009,7 +1009,7 @@ wait_for_property_change (location)
       usecs = (x_selection_timeout % 1000) * 1000;
       wait_reading_process_input (secs, usecs, property_change_reply, 0);
 
-      if (NILP (XCONS (property_change_reply)->car))
+      if (NILP (XCAR (property_change_reply)))
 	error ("Timed out waiting for property-notify event");
     }
 
@@ -1043,7 +1043,7 @@ x_handle_property_notify (event)
 	  /* If this is the one wait_for_property_change is waiting for,
 	     tell it to wake up.  */
 	  if (rest == property_change_reply_object)
-	    XCONS (property_change_reply)->car = Qt;
+	    XCAR (property_change_reply) = Qt;
 
 	  if (prev)
 	    prev->next = rest->next;
@@ -1092,7 +1092,7 @@ copy_multiple_data (obj)
   int i;
   int size;
   if (CONSP (obj))
-    return Fcons (XCONS (obj)->car, copy_multiple_data (XCONS (obj)->cdr));
+    return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
     
   CHECK_VECTOR (obj, 0);
   vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
@@ -1140,7 +1140,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   Lisp_Object frame;
 
   if (CONSP (target_type))
-    type_atom = symbol_to_x_atom (dpyinfo, display, XCONS (target_type)->car);
+    type_atom = symbol_to_x_atom (dpyinfo, display, XCAR (target_type));
   else
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
 
@@ -1153,7 +1153,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   /* Prepare to block until the reply has been read.  */
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
-  XCONS (reading_selection_reply)->car = Qnil;
+  XCAR (reading_selection_reply) = Qnil;
 
   frame = some_frame_on_display (dpyinfo);
 
@@ -1179,9 +1179,9 @@ x_get_foreign_selection (selection_symbol, target_type)
   x_uncatch_errors (display, count);
   UNBLOCK_INPUT;
 
-  if (NILP (XCONS (reading_selection_reply)->car))
+  if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
-  if (EQ (XCONS (reading_selection_reply)->car, Qlambda))
+  if (EQ (XCAR (reading_selection_reply), Qlambda))
     error ("No `%s' selection", XSYMBOL (selection_symbol)->name->data);
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
@@ -1627,12 +1627,12 @@ lisp_data_to_selection_data (display, obj,
 
   *nofree_ret = 0;
 
-  if (CONSP (obj) && SYMBOLP (XCONS (obj)->car))
+  if (CONSP (obj) && SYMBOLP (XCAR (obj)))
     {
-      type = XCONS (obj)->car;
-      obj = XCONS (obj)->cdr;
-      if (CONSP (obj) && NILP (XCONS (obj)->cdr))
-	obj = XCONS (obj)->car;
+      type = XCAR (obj);
+      obj = XCDR (obj);
+      if (CONSP (obj) && NILP (XCDR (obj)))
+	obj = XCAR (obj);
     }
 
   if (EQ (obj, QNULL) || (EQ (type, QNULL)))
@@ -1722,10 +1722,10 @@ lisp_data_to_selection_data (display, obj,
       if (NILP (type)) type = QINTEGER;
     }
   else if (INTEGERP (obj)
-	   || (CONSP (obj) && INTEGERP (XCONS (obj)->car)
-	       && (INTEGERP (XCONS (obj)->cdr)
-		   || (CONSP (XCONS (obj)->cdr)
-		       && INTEGERP (XCONS (XCONS (obj)->cdr)->car)))))
+	   || (CONSP (obj) && INTEGERP (XCAR (obj))
+	       && (INTEGERP (XCDR (obj))
+		   || (CONSP (XCDR (obj))
+		       && INTEGERP (XCAR (XCDR (obj)))))))
     {
       *format_ret = 32;
       *size_ret = 1;
@@ -1831,20 +1831,20 @@ clean_local_selection_data (obj)
      Lisp_Object obj;
 {
   if (CONSP (obj)
-      && INTEGERP (XCONS (obj)->car)
-      && CONSP (XCONS (obj)->cdr)
-      && INTEGERP (XCONS (XCONS (obj)->cdr)->car)
-      && NILP (XCONS (XCONS (obj)->cdr)->cdr))
-    obj = Fcons (XCONS (obj)->car, XCONS (obj)->cdr);
+      && INTEGERP (XCAR (obj))
+      && CONSP (XCDR (obj))
+      && INTEGERP (XCAR (XCDR (obj)))
+      && NILP (XCDR (XCDR (obj))))
+    obj = Fcons (XCAR (obj), XCDR (obj));
 
   if (CONSP (obj)
-      && INTEGERP (XCONS (obj)->car)
-      && INTEGERP (XCONS (obj)->cdr))
+      && INTEGERP (XCAR (obj))
+      && INTEGERP (XCDR (obj)))
     {
-      if (XINT (XCONS (obj)->car) == 0)
-	return XCONS (obj)->cdr;
-      if (XINT (XCONS (obj)->car) == -1)
-	return make_number (- XINT (XCONS (obj)->cdr));
+      if (XINT (XCAR (obj)) == 0)
+	return XCDR (obj);
+      if (XINT (XCAR (obj)) == -1)
+	return make_number (- XINT (XCDR (obj)));
     }
   if (VECTORP (obj))
     {
@@ -1876,7 +1876,7 @@ x_handle_selection_notify (event)
   if (event->selection != reading_which_selection)
     return;
 
-  XCONS (reading_selection_reply)->car
+  XCAR (reading_selection_reply)
     = (event->property != 0 ? Qt : Qlambda);
 }
 
@@ -1920,9 +1920,9 @@ TYPE is the type of data desired, typically `STRING'.")
 
 #if 0 /* #### MULTIPLE doesn't work yet */
   if (CONSP (target_type)
-      && XCONS (target_type)->car == QMULTIPLE)
+      && XCAR (target_type) == QMULTIPLE)
     {
-      CHECK_VECTOR (XCONS (target_type)->cdr, 0);
+      CHECK_VECTOR (XCDR (target_type), 0);
       /* So we don't destructively modify this...  */
       target_type = copy_multiple_data (target_type);
     }
@@ -1939,11 +1939,11 @@ TYPE is the type of data desired, typically `STRING'.")
     }
 
   if (CONSP (val)
-      && SYMBOLP (XCONS (val)->car))
+      && SYMBOLP (XCAR (val)))
     {
-      val = XCONS (val)->cdr;
-      if (CONSP (val) && NILP (XCONS (val)->cdr))
-	val = XCONS (val)->car;
+      val = XCDR (val);
+      if (CONSP (val) && NILP (XCDR (val)))
+	val = XCAR (val);
     }
   val = clean_local_selection_data (val);
  DONE:
@@ -2006,14 +2006,14 @@ x_disown_buffer_selections (buffer)
   Lisp_Object tail;
   struct buffer *buf = XBUFFER (buffer);
 
-  for (tail = Vselection_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vselection_alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, value;
-      elt = XCONS (tail)->car;
-      value = XCONS (elt)->cdr;
-      if (CONSP (value) && MARKERP (XCONS (value)->car)
-	  && XMARKER (XCONS (value)->car)->buffer == buf)
-	Fx_disown_selection_internal (XCONS (elt)->car, Qnil);
+      elt = XCAR (tail);
+      value = XCDR (elt);
+      if (CONSP (value) && MARKERP (XCAR (value))
+	  && XMARKER (XCAR (value))->buffer == buf)
+	Fx_disown_selection_internal (XCAR (elt), Qnil);
     }
 }
 

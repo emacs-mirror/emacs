@@ -302,16 +302,16 @@ DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
 
   return ((STRINGP (object)
 	   || (CONSP (object)
-	       && CONSP (XCONS (object)->cdr)
-	       && CONSP (XCONS (XCONS (object)->cdr)->cdr)
-	       && NILP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->cdr)
-	       && (width = XCONS (object)->car, INTEGERP (width))
-	       && (height = XCONS (XCONS (object)->cdr)->car, INTEGERP (height))
-	       && STRINGP (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)
+	       && CONSP (XCDR (object))
+	       && CONSP (XCDR (XCDR (object)))
+	       && NILP (XCDR (XCDR (XCDR (object))))
+	       && (width = XCAR (object), INTEGERP (width))
+	       && (height = XCAR (XCDR (object)), INTEGERP (height))
+	       && STRINGP (XCAR (XCDR (XCDR (object))))
 	       && XINT (width) > 0
 	       && XINT (height) > 0
 	       /* The string must have enough bits for width * height.  */
-	       && ((XSTRING (XCONS (XCONS (XCONS (object)->cdr)->cdr)->car)->size
+	       && ((XSTRING (XCAR (XCDR (XCDR (object))))->size
 		    * (BITS_PER_INT / sizeof (int)))
 		   >= XFASTINT (width) * XFASTINT (height))))
 	  ? Qt : Qnil);
@@ -828,7 +828,7 @@ merge_face_list (f, face, prop)
   int j;
 
   if (CONSP (prop)
-      && ! STRINGP (XCONS (prop)->cdr))
+      && ! STRINGP (XCDR (prop)))
     {
       /* We have a list of faces, merge them in reverse order.  */
 
@@ -855,10 +855,10 @@ merge_face_list (f, face, prop)
     {
       if (CONSP (faces[j]))
 	{
-	  if (EQ (XCONS (faces[j])->car, Qbackground_color))
-	    face->background = load_color (f, XCONS (faces[j])->cdr);
-	  if (EQ (XCONS (faces[j])->car, Qforeground_color))
-	    face->foreground = load_color (f, XCONS (faces[j])->cdr);
+	  if (EQ (XCAR (faces[j]), Qbackground_color))
+	    face->background = load_color (f, XCDR (faces[j]));
+	  if (EQ (XCAR (faces[j]), Qforeground_color))
+	    face->foreground = load_color (f, XCDR (faces[j]));
 	}
       else
 	{

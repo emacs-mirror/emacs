@@ -2068,11 +2068,11 @@ If successful, the new layout id is returned, otherwise nil.")
   DWORD kl;
 
   CHECK_CONS (layout, 0);
-  CHECK_NUMBER (XCONS (layout)->car, 0);
-  CHECK_NUMBER (XCONS (layout)->cdr, 0);
+  CHECK_NUMBER (XCAR (layout), 0);
+  CHECK_NUMBER (XCDR (layout), 0);
 
-  kl = (XINT (XCONS (layout)->car) & 0xffff)
-    | (XINT (XCONS (layout)->cdr) << 16);
+  kl = (XINT (XCAR (layout)) & 0xffff)
+    | (XINT (XCDR (layout)) << 16);
 
   /* Synchronize layout with input thread.  */
   if (dwWindowsThreadId)

@@ -7062,11 +7062,11 @@ x_window_to_scroll_bar (window_id)
 
   for (tail = Vframe_list;
        XGCTYPE (tail) == Lisp_Cons;
-       tail = XCONS (tail)->cdr)
+       tail = XCDR (tail))
     {
       Lisp_Object frame, bar, condemned;
 
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
       if (! GC_FRAMEP (frame))
 	abort ();
@@ -9061,7 +9061,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      numchars--;
 		    }
 		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCONS (Vframe_list)->cdr))
+			   && ! NILP (XCDR (Vframe_list)))
 		    /* Force a redisplay sooner or later
 		       to update the frame titles
 		       in case this is the second frame.  */
@@ -11728,17 +11728,17 @@ x_list_fonts (f, pattern, size, maxnames)
     /* We can return any single font matching PATTERN.  */
     try_XLoadQueryFont = 1;
 
-  for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
+  for (; CONSP (patterns); patterns = XCDR (patterns))
     {
       int num_fonts;
       char **names;
 
-      pattern = XCONS (patterns)->car;
+      pattern = XCAR (patterns);
       /* See if we cached the result for this particular query.
          The cache is an alist of the form:
 	   (((PATTERN . MAXNAMES) (FONTNAME . WIDTH) ...) ...)
       */
-      if (f && (tem = XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr,
+      if (f && (tem = XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element),
 		key = Fcons (pattern, make_number (maxnames)),
 		!NILP (list = Fassoc (key, tem))))
 	{
@@ -11864,30 +11864,30 @@ x_list_fonts (f, pattern, size, maxnames)
 
       /* Now store the result in the cache.  */
       if (f != NULL)
-	XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr
+	XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element)
 	  = Fcons (Fcons (key, list),
-		   XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->cdr);
+		   XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
 
       newlist = second_best = Qnil;
       /* Make a list of the fonts that have the right width.  */
-      for (; CONSP (list); list = XCONS (list)->cdr)
+      for (; CONSP (list); list = XCDR (list))
 	{
 	  int found_size;
 
-	  tem = XCONS (list)->car;
+	  tem = XCAR (list);
 
-	  if (!CONSP (tem) || NILP (XCONS (tem)->car))
+	  if (!CONSP (tem) || NILP (XCAR (tem)))
 	    continue;
 	  if (!size)
 	    {
-	      newlist = Fcons (XCONS (tem)->car, newlist);
+	      newlist = Fcons (XCAR (tem), newlist);
 	      continue;
 	    }
 
-	  if (!INTEGERP (XCONS (tem)->cdr))
+	  if (!INTEGERP (XCDR (tem)))
 	    {
 	      /* Since we have not yet known the size of this font, we
 		must try slow function call XLoadQueryFont.  */
@@ -11896,7 +11896,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	      BLOCK_INPUT;
 	      count = x_catch_errors (dpy);
 	      thisinfo = XLoadQueryFont (dpy,
-					 XSTRING (XCONS (tem)->car)->data);
+					 XSTRING (XCAR (tem))->data);
 	      if (x_had_errors_p (dpy))
 		{
 		  /* This error is perhaps due to insufficient memory on X
@@ -11909,7 +11909,7 @@ x_list_fonts (f, pattern, size, maxnames)
 
 	      if (thisinfo)
 		{
-		  XCONS (tem)->cdr
+		  XCDR (tem)
 		    = (thisinfo->min_bounds.width == 0
 		       ? make_number (0)
 		       : make_number (thisinfo->max_bounds.width));
@@ -11919,26 +11919,26 @@ x_list_fonts (f, pattern, size, maxnames)
 		/* For unknown reason, the previous call of XListFont had
 		  returned a font which can't be opened.  Record the size
 		  as 0 not to try to open it again.  */
-		XCONS (tem)->cdr = make_number (0);
+		XCDR (tem) = make_number (0);
 	    }
 
-	  found_size = XINT (XCONS (tem)->cdr);
+	  found_size = XINT (XCDR (tem));
 	  if (found_size == size)
-	    newlist = Fcons (XCONS (tem)->car, newlist);
+	    newlist = Fcons (XCAR (tem), newlist);
 	  else if (found_size > 0)
 	    {
 	      if (NILP (second_best))
 		second_best = tem;
 	      else if (found_size < size)
 		{
-		  if (XINT (XCONS (second_best)->cdr) > size
-		      || XINT (XCONS (second_best)->cdr) < found_size)
+		  if (XINT (XCDR (second_best)) > size
+		      || XINT (XCDR (second_best)) < found_size)
 		    second_best = tem;
 		}
 	      else
 		{
-		  if (XINT (XCONS (second_best)->cdr) > size
-		      && XINT (XCONS (second_best)->cdr) > found_size)
+		  if (XINT (XCDR (second_best)) > size
+		      && XINT (XCDR (second_best)) > found_size)
 		    second_best = tem;
 		}
 	    }
@@ -11947,7 +11947,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	break;
       else if (!NILP (second_best))
 	{
-	  newlist = Fcons (XCONS (second_best)->car, Qnil);
+	  newlist = Fcons (XCAR (second_best), Qnil);
 	  break;
 	}
     }
@@ -12071,12 +12071,12 @@ x_load_font (f, fontname, size)
       int i;
 
       for (i = 0; i < dpyinfo->n_fonts; i++)
-	for (tail = font_names; CONSP (tail); tail = XCONS (tail)->cdr)
+	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
 	  if (dpyinfo->font_table[i].name
 	      && (!strcmp (dpyinfo->font_table[i].name,
-			   XSTRING (XCONS (tail)->car)->data)
+			   XSTRING (XCAR (tail))->data)
 		  || !strcmp (dpyinfo->font_table[i].full_name,
-			      XSTRING (XCONS (tail)->car)->data)))
+			      XSTRING (XCAR (tail))->data)))
 	    return (dpyinfo->font_table + i);
     }
 
@@ -12094,7 +12094,7 @@ x_load_font (f, fontname, size)
        a bug of not finding a font even if the font surely exists and
        is loadable by XLoadQueryFont.  */
     if (size > 0 && !NILP (font_names))
-      fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
+      fontname = (char *) XSTRING (XCAR (font_names))->data;
 
     BLOCK_INPUT;
     count = x_catch_errors (FRAME_X_DISPLAY (f));
@@ -12190,19 +12190,19 @@ x_load_font (f, fontname, size)
 	Lisp_Object lispy_name = build_string (fontname);
 	Lisp_Object lispy_full_name = build_string (fontp->full_name);
 
-	XCONS (dpyinfo->name_list_element)->cdr
+	XCDR (dpyinfo->name_list_element)
 	  = Fcons (Fcons (Fcons (lispy_name, make_number (256)),
 			  Fcons (Fcons (lispy_full_name,
 					make_number (fontp->size)),
 				 Qnil)),
-		   XCONS (dpyinfo->name_list_element)->cdr);
+		   XCDR (dpyinfo->name_list_element));
 	if (full_name)
-	  XCONS (dpyinfo->name_list_element)->cdr
+	  XCDR (dpyinfo->name_list_element)
 	    = Fcons (Fcons (Fcons (lispy_full_name, make_number (256)),
 			    Fcons (Fcons (lispy_full_name,
 					  make_number (fontp->size)),
 				   Qnil)),
-		     XCONS (dpyinfo->name_list_element)->cdr);
+		     XCDR (dpyinfo->name_list_element));
       }
 
     /* The slot `encoding' specifies how to map a character
@@ -12288,12 +12288,12 @@ x_find_ccl_program (fontp)
 {
   Lisp_Object list, elt;
 
-  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCONS (list)->cdr)
+  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCDR (list))
     {
-      elt = XCONS (list)->car;
+      elt = XCAR (list);
       if (CONSP (elt)
-	  && STRINGP (XCONS (elt)->car)
-	  && (fast_c_string_match_ignore_case (XCONS (elt)->car, fontp->name)
+	  && STRINGP (XCAR (elt))
+	  && (fast_c_string_match_ignore_case (XCAR (elt), fontp->name)
 	      >= 0))
 	break;
     }
@@ -12302,7 +12302,7 @@ x_find_ccl_program (fontp)
       struct ccl_program *ccl
 	= (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
 
-      if (setup_ccl_program (ccl, XCONS (elt)->cdr) < 0)
+      if (setup_ccl_program (ccl, XCDR (elt)) < 0)
 	xfree (ccl);
       else
 	fontp->font_encoder = ccl;
@@ -12487,8 +12487,8 @@ x_term_init (display_name, xrm_option, resource_name)
     Lisp_Object tail;
 
     for (share = x_display_list, tail = x_display_name_list; share;
-	 share = share->next, tail = XCONS (tail)->cdr)
-      if (same_x_server (XSTRING (XCONS (XCONS (tail)->car)->car)->data,
+	 share = share->next, tail = XCDR (tail))
+      if (same_x_server (XSTRING (XCAR (XCAR (tail)))->data,
 			 XSTRING (display_name)->data))
 	break;
     if (share)
@@ -12524,7 +12524,7 @@ x_term_init (display_name, xrm_option, resource_name)
   /* Put it on x_display_name_list as well, to keep them parallel.  */ 
   x_display_name_list = Fcons (Fcons (display_name, Qnil),
 			       x_display_name_list);
-  dpyinfo->name_list_element = XCONS (x_display_name_list)->car;
+  dpyinfo->name_list_element = XCAR (x_display_name_list);
 
   dpyinfo->display = dpy;
 
@@ -12743,22 +12743,22 @@ x_delete_display (dpyinfo)
   /* Discard this display from x_display_name_list and x_display_list.
      We can't use Fdelq because that can quit.  */
   if (! NILP (x_display_name_list)
-      && EQ (XCONS (x_display_name_list)->car, dpyinfo->name_list_element))
-    x_display_name_list = XCONS (x_display_name_list)->cdr;
+      && EQ (XCAR (x_display_name_list), dpyinfo->name_list_element))
+    x_display_name_list = XCDR (x_display_name_list);
   else
     {
       Lisp_Object tail;
 
       tail = x_display_name_list;
-      while (CONSP (tail) && CONSP (XCONS (tail)->cdr))
+      while (CONSP (tail) && CONSP (XCDR (tail)))
 	{
-	  if (EQ (XCONS (XCONS (tail)->cdr)->car,
+	  if (EQ (XCAR (XCDR (tail)),
 		  dpyinfo->name_list_element))
 	    {
-	      XCONS (tail)->cdr = XCONS (XCONS (tail)->cdr)->cdr;
+	      XCDR (tail) = XCDR (XCDR (tail));
 	      break;
 	    }
-	  tail = XCONS (tail)->cdr;
+	  tail = XCDR (tail);
 	}
     }
 

@@ -341,9 +341,9 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -867,18 +867,18 @@ x_set_frame_parameters (f, alist)
 	    if (leftpos < 0)
 	      f->output_data.w32->size_hint_flags |= XNegative;
 	  }
-	else if (CONSP (left) && EQ (XCONS (left)->car, Qminus)
-		 && CONSP (XCONS (left)->cdr)
-		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	else if (CONSP (left) && EQ (XCAR (left), Qminus)
+		 && CONSP (XCDR (left))
+		 && INTEGERP (XCAR (XCDR (left))))
 	  {
-	    leftpos = - XINT (XCONS (XCONS (left)->cdr)->car);
+	    leftpos = - XINT (XCAR (XCDR (left)));
 	    f->output_data.w32->size_hint_flags |= XNegative;
 	  }
-	else if (CONSP (left) && EQ (XCONS (left)->car, Qplus)
-		 && CONSP (XCONS (left)->cdr)
-		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	else if (CONSP (left) && EQ (XCAR (left), Qplus)
+		 && CONSP (XCDR (left))
+		 && INTEGERP (XCAR (XCDR (left))))
 	  {
-	    leftpos = XINT (XCONS (XCONS (left)->cdr)->car);
+	    leftpos = XINT (XCAR (XCDR (left)));
 	  }
 
 	if (EQ (top, Qminus))
@@ -889,18 +889,18 @@ x_set_frame_parameters (f, alist)
 	    if (toppos < 0)
 	      f->output_data.w32->size_hint_flags |= YNegative;
 	  }
-	else if (CONSP (top) && EQ (XCONS (top)->car, Qminus)
-		 && CONSP (XCONS (top)->cdr)
-		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	else if (CONSP (top) && EQ (XCAR (top), Qminus)
+		 && CONSP (XCDR (top))
+		 && INTEGERP (XCAR (XCDR (top))))
 	  {
-	    toppos = - XINT (XCONS (XCONS (top)->cdr)->car);
+	    toppos = - XINT (XCAR (XCDR (top)));
 	    f->output_data.w32->size_hint_flags |= YNegative;
 	  }
-	else if (CONSP (top) && EQ (XCONS (top)->car, Qplus)
-		 && CONSP (XCONS (top)->cdr)
-		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	else if (CONSP (top) && EQ (XCAR (top), Qplus)
+		 && CONSP (XCDR (top))
+		 && INTEGERP (XCAR (XCDR (top))))
 	  {
-	    toppos = XINT (XCONS (XCONS (top)->cdr)->car);
+	    toppos = XINT (XCAR (XCDR (top)));
 	  }
 
 
@@ -989,7 +989,7 @@ x_report_frame_params (f, alistptr)
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
-		  XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->car);
+		  XCAR (FRAME_W32_DISPLAY_INFO (f)->name_list_element));
 }
 
 
@@ -2049,11 +2049,11 @@ x_set_cursor_type (f, arg, oldval)
       FRAME_DESIRED_CURSOR (f) = bar_cursor;
       f->output_data.w32->cursor_width = 2;
     }
-  else if (CONSP (arg) && EQ (XCONS (arg)->car, Qbar)
-	   && INTEGERP (XCONS (arg)->cdr))
+  else if (CONSP (arg) && EQ (XCAR (arg), Qbar)
+	   && INTEGERP (XCDR (arg)))
     {
       FRAME_DESIRED_CURSOR (f) = bar_cursor;
-      f->output_data.w32->cursor_width = XINT (XCONS (arg)->cdr);
+      f->output_data.w32->cursor_width = XINT (XCDR (arg));
     }
   else
     /* Treat anything unknown as "box cursor".
@@ -2105,7 +2105,7 @@ x_icon_type (f)
 
   tem = assq_no_quit (Qicon_type, f->param_alist);
   if (CONSP (tem))
-    return XCONS (tem)->cdr;
+    return XCDR (tem);
   else
     return Qnil;
 }
@@ -2885,18 +2885,18 @@ x_figure_window_size (f, parms)
 	  f->output_data.w32->top_pos = 0;
 	  window_prompting |= YNegative;
 	}
-      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qminus)
-	       && CONSP (XCONS (tem0)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+      else if (CONSP (tem0) && EQ (XCAR (tem0), Qminus)
+	       && CONSP (XCDR (tem0))
+	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  f->output_data.w32->top_pos = - XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.w32->top_pos = - XINT (XCAR (XCDR (tem0)));
 	  window_prompting |= YNegative;
 	}
-      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qplus)
-	       && CONSP (XCONS (tem0)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+      else if (CONSP (tem0) && EQ (XCAR (tem0), Qplus)
+	       && CONSP (XCDR (tem0))
+	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  f->output_data.w32->top_pos = XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.w32->top_pos = XINT (XCAR (XCDR (tem0)));
 	}
       else if (EQ (tem0, Qunbound))
 	f->output_data.w32->top_pos = 0;
@@ -2913,18 +2913,18 @@ x_figure_window_size (f, parms)
 	  f->output_data.w32->left_pos = 0;
 	  window_prompting |= XNegative;
 	}
-      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qminus)
-	       && CONSP (XCONS (tem1)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+      else if (CONSP (tem1) && EQ (XCAR (tem1), Qminus)
+	       && CONSP (XCDR (tem1))
+	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  f->output_data.w32->left_pos = - XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.w32->left_pos = - XINT (XCAR (XCDR (tem1)));
 	  window_prompting |= XNegative;
 	}
-      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qplus)
-	       && CONSP (XCONS (tem1)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+      else if (CONSP (tem1) && EQ (XCAR (tem1), Qplus)
+	       && CONSP (XCDR (tem1))
+	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  f->output_data.w32->left_pos = XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.w32->left_pos = XINT (XCAR (XCDR (tem1)));
 	}
       else if (EQ (tem1, Qunbound))
 	f->output_data.w32->left_pos = 0;
@@ -4833,8 +4833,8 @@ This function is an internal primitive--use `make-frame' instead.")
     }
 
   /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
-    fs_register_fontset (f, XCONS (tem)->car);
+  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
+    fs_register_fontset (f, XCAR (tem));
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
@@ -5052,14 +5052,14 @@ w32_load_system_font (f,fontname,size)
       /* First check if any are already loaded, as that is cheaper
          than loading another one. */
       for (i = 0; i < dpyinfo->n_fonts; i++)
-	for (tail = font_names; CONSP (tail); tail = XCONS (tail)->cdr)
+	for (tail = font_names; CONSP (tail); tail = XCDR (tail))
 	  if (!strcmp (dpyinfo->font_table[i].name,
-		       XSTRING (XCONS (tail)->car)->data)
+		       XSTRING (XCAR (tail))->data)
 	      || !strcmp (dpyinfo->font_table[i].full_name,
-			  XSTRING (XCONS (tail)->car)->data))
+			  XSTRING (XCAR (tail))->data))
 	    return (dpyinfo->font_table + i);
 #endif
-      fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
+      fontname = (char *) XSTRING (XCAR (font_names))->data;
     }
   else if (w32_strict_fontnames)
     {
@@ -5234,13 +5234,13 @@ int size;
       char *bdf_name, *bdf_file;
       Lisp_Object bdf_pair;
 
-      bdf_name = XSTRING (XCONS (bdf_fonts)->car)->data;
-      bdf_pair = Fassoc (XCONS (bdf_fonts)->car, Vw32_bdf_filename_alist);
-      bdf_file = XSTRING (XCONS (bdf_pair)->cdr)->data;
+      bdf_name = XSTRING (XCAR (bdf_fonts))->data;
+      bdf_pair = Fassoc (XCAR (bdf_fonts), Vw32_bdf_filename_alist);
+      bdf_file = XSTRING (XCDR (bdf_pair))->data;
 
       retval = w32_load_bdf_font (f, bdf_name, size, bdf_file);
 
-      bdf_fonts = XCONS (bdf_fonts)->cdr;
+      bdf_fonts = XCDR (bdf_fonts);
     }
 
   if (retval)
@@ -5831,7 +5831,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
         || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
       {
 	*lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
-	lpef->tail = &(XCONS (*lpef->tail)->cdr);
+	lpef->tail = &(XCDR (*lpef->tail));
 	lpef->numFonts++;
       }
   }
@@ -5899,11 +5899,11 @@ Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
   list = Vw32_bdf_filename_alist;
   ptnstr = XSTRING (pattern)->data;
 
-  for ( ; CONSP (list); list = XCONS (list)->cdr)
+  for ( ; CONSP (list); list = XCDR (list))
     {
-      tem = XCONS (list)->car;
+      tem = XCAR (list);
       if (CONSP (tem))
-        fontname = XSTRING (XCONS (tem)->car)->data;
+        fontname = XSTRING (XCAR (tem))->data;
       else if (STRINGP (tem))
         fontname = XSTRING (tem)->data;
       else
@@ -5911,7 +5911,7 @@ Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
 
       if (w32_font_match (fontname, ptnstr))
         {
-          newlist = Fcons (XCONS (tem)->car, newlist);
+          newlist = Fcons (XCAR (tem), newlist);
           n_fonts++;
           if (n_fonts >= max_names)
             break;
@@ -5943,17 +5943,17 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
   if (NILP (patterns))
     patterns = Fcons (pattern, Qnil);
 
-  for (; CONSP (patterns); patterns = XCONS (patterns)->cdr)
+  for (; CONSP (patterns); patterns = XCDR (patterns))
     {
       enumfont_t ef;
 
-      tpat = XCONS (patterns)->car;
+      tpat = XCAR (patterns);
 
       /* See if we cached the result for this particular query.
          The cache is an alist of the form:
            ((PATTERN (FONTNAME . WIDTH) ...) ...)
       */
-      if (tem = XCONS (dpyinfo->name_list_element)->cdr,
+      if (tem = XCDR (dpyinfo->name_list_element),
           !NILP (list = Fassoc (tpat, tem)))
         {
           list = Fcdr_safe (list);
@@ -6004,9 +6004,9 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
 
       /* Make a list of the fonts we got back.
          Store that in the font cache for the display. */
-      XCONS (dpyinfo->name_list_element)->cdr
+      XCDR (dpyinfo->name_list_element)
         = Fcons (Fcons (tpat, list),
-                 XCONS (dpyinfo->name_list_element)->cdr);
+                 XCDR (dpyinfo->name_list_element));
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
@@ -6014,25 +6014,25 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
       newlist = second_best = Qnil;
 
       /* Make a list of the fonts that have the right width.  */          
-      for (; CONSP (list); list = XCONS (list)->cdr)
+      for (; CONSP (list); list = XCDR (list))
         {
           int found_size;
-          tem = XCONS (list)->car;
+          tem = XCAR (list);
 
           if (!CONSP (tem))
             continue;
-          if (NILP (XCONS (tem)->car))
+          if (NILP (XCAR (tem)))
             continue;
           if (!size)
             {
-              newlist = Fcons (XCONS (tem)->car, newlist);
+              newlist = Fcons (XCAR (tem), newlist);
               n_fonts++;
               if (n_fonts >= maxnames)
                 break;
               else
                 continue;
             }
-          if (!INTEGERP (XCONS (tem)->cdr))
+          if (!INTEGERP (XCDR (tem)))
             {
               /* Since we don't yet know the size of the font, we must
                  load it and try GetTextMetrics.  */
@@ -6041,7 +6041,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
               HDC hdc;
               HANDLE oldobj;
 
-              if (!x_to_w32_font (XSTRING (XCONS (tem)->car)->data, &lf))
+              if (!x_to_w32_font (XSTRING (XCAR (tem))->data, &lf))
                 continue;
 
               BLOCK_INPUT;
@@ -6053,18 +6053,18 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
               hdc = GetDC (dpyinfo->root_window);
               oldobj = SelectObject (hdc, thisinfo.hfont);
               if (GetTextMetrics (hdc, &thisinfo.tm))
-                XCONS (tem)->cdr = make_number (FONT_WIDTH (&thisinfo));
+                XCDR (tem) = make_number (FONT_WIDTH (&thisinfo));
               else
-                XCONS (tem)->cdr = make_number (0);
+                XCDR (tem) = make_number (0);
               SelectObject (hdc, oldobj);
               ReleaseDC (dpyinfo->root_window, hdc);
               DeleteObject(thisinfo.hfont);
               UNBLOCK_INPUT;
             }
-          found_size = XINT (XCONS (tem)->cdr);
+          found_size = XINT (XCDR (tem));
           if (found_size == size)
             {
-              newlist = Fcons (XCONS (tem)->car, newlist);
+              newlist = Fcons (XCAR (tem), newlist);
               n_fonts++;
               if (n_fonts >= maxnames)
                 break;
@@ -6078,14 +6078,14 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
                   
               else if (found_size < size)
                 {
-                  if (XINT (XCONS (second_best)->cdr) > size
-                      || XINT (XCONS (second_best)->cdr) < found_size)
+                  if (XINT (XCDR (second_best)) > size
+                      || XINT (XCDR (second_best)) < found_size)
                     second_best = tem;
                 }
               else
                 {
-                  if (XINT (XCONS (second_best)->cdr) > size
-                      && XINT (XCONS (second_best)->cdr) >
+                  if (XINT (XCDR (second_best)) > size
+                      && XINT (XCDR (second_best)) >
                       found_size)
                     second_best = tem;
                 }
@@ -6096,7 +6096,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
         break;
       else if (!NILP (second_best))
         {
-          newlist = Fcons (XCONS (second_best)->car, Qnil);
+          newlist = Fcons (XCAR (second_best), Qnil);
           break;
         }
     }
@@ -6150,9 +6150,9 @@ w32_list_synthesized_fonts (f, pattern, size, max_names)
 
   matches = w32_list_fonts (f, build_string (new_pattn), size, max_names);
 
-  for ( ; CONSP (matches); matches = XCONS (matches)->cdr)
+  for ( ; CONSP (matches); matches = XCDR (matches))
     {
-      tem = XCONS (matches)->car;
+      tem = XCAR (matches);
       if (!STRINGP (tem))
         continue;
 
@@ -6208,12 +6208,12 @@ w32_find_ccl_program (fontp)
 {
   Lisp_Object list, elt;
 
-  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCONS (list)->cdr)
+  for (list = Vfont_ccl_encoder_alist; CONSP (list); list = XCDR (list))
     {
-      elt = XCONS (list)->car;
+      elt = XCAR (list);
       if (CONSP (elt)
-	  && STRINGP (XCONS (elt)->car)
-	  && (fast_c_string_match_ignore_case (XCONS (elt)->car, fontp->name)
+	  && STRINGP (XCAR (elt))
+	  && (fast_c_string_match_ignore_case (XCAR (elt), fontp->name)
 	      >= 0))
 	break;
     }
@@ -6222,7 +6222,7 @@ w32_find_ccl_program (fontp)
       struct ccl_program *ccl
 	= (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
 
-      if (setup_ccl_program (ccl, XCONS (elt)->cdr) < 0)
+      if (setup_ccl_program (ccl, XCDR (elt)) < 0)
 	xfree (ccl);
       else
 	fontp->font_encoder = ccl;
@@ -6297,7 +6297,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
   /* See if we cached the result for this particular query.  */
   list = Fassoc (pattern,
-		 XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr);
+		 XCDR (FRAME_W32_DISPLAY_INFO (f)->name_list_element));
 
   /* We have info in the cache for this PATTERN.  */
   if (!NILP (list))
@@ -6305,7 +6305,7 @@ fonts to match.  The first MAXIMUM fonts are reported.")
       Lisp_Object tem, newlist;
 
       /* We have info about this pattern.  */
-      list = XCONS (list)->cdr;
+      list = XCDR (list);
 
       if (size_ref == 0)
 	return list;
@@ -6314,16 +6314,16 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
       /* Filter the cached info and return just the fonts that match FACE.  */
       newlist = Qnil;
-      for (tem = list; CONSP (tem); tem = XCONS (tem)->cdr)
+      for (tem = list; CONSP (tem); tem = XCDR (tem))
 	{
 	  struct font_info *fontinf;
           XFontStruct *thisinfo = NULL;
 
-          fontinf = w32_load_font (f, XSTRING (XCONS (tem)->car)->data, 0);
+          fontinf = w32_load_font (f, XSTRING (XCAR (tem))->data, 0);
           if (fontinf)
             thisinfo = (XFontStruct *)fontinf->font;
           if (thisinfo && same_size_fonts (thisinfo, size_ref))
-	    newlist = Fcons (XCONS (tem)->car, newlist);
+	    newlist = Fcons (XCAR (tem), newlist);
 
 	  w32_unload_font (FRAME_W32_DISPLAY_INFO (f), thisinfo);
         }
@@ -6358,9 +6358,9 @@ fonts to match.  The first MAXIMUM fonts are reported.")
 
       /* Make a list of all the fonts we got back.
 	 Store that in the font cache for the display.  */
-      XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr
+      XCDR (FRAME_W32_DISPLAY_INFO (f)->name_list_element)
 	= Fcons (Fcons (pattern, namelist),
-		 XCONS (FRAME_W32_DISPLAY_INFO (f)->name_list_element)->cdr);
+		 XCDR (FRAME_W32_DISPLAY_INFO (f)->name_list_element));
 
       /* Make a list of the fonts that have the right width.  */
       list = Qnil;
@@ -6413,13 +6413,13 @@ will not be included in the list. DIR may be a list of directories.")
   if (!CONSP (directory))
     return w32_find_bdf_fonts_in_dir (directory);
 
-  for ( ; CONSP (directory); directory = XCONS (directory)->cdr)
+  for ( ; CONSP (directory); directory = XCDR (directory))
     {
       Lisp_Object pair[2];
       pair[0] = list;
       pair[1] = Qnil;
       GCPRO2 (directory, list);
-      pair[1] = w32_find_bdf_fonts_in_dir( XCONS (directory)->car );
+      pair[1] = w32_find_bdf_fonts_in_dir( XCAR (directory) );
       list = Fnconc( 2, pair );
       UNGCPRO;
     }
@@ -6439,9 +6439,9 @@ Lisp_Object w32_find_bdf_fonts_in_dir( Lisp_Object directory )
   filelist = Fdirectory_files (directory, Qt,
                               build_string (".*\\.[bB][dD][fF]"), Qt);
 
-  for ( ; CONSP(filelist); filelist = XCONS (filelist)->cdr)
+  for ( ; CONSP(filelist); filelist = XCDR (filelist))
     {
-      Lisp_Object filename = XCONS (filelist)->car;
+      Lisp_Object filename = XCAR (filelist);
       if (w32_BDF_to_x_font (XSTRING (filename)->data, fontname, 100))
           store_in_alist (&list, build_string (fontname), filename);
     }
@@ -6803,10 +6803,10 @@ x_display_info_for_name (name)
 
   for (dpyinfo = &one_w32_display_info, names = w32_display_name_list;
        dpyinfo;
-       dpyinfo = dpyinfo->next, names = XCONS (names)->cdr)
+       dpyinfo = dpyinfo->next, names = XCDR (names))
     {
       Lisp_Object tem;
-      tem = Fstring_equal (XCONS (XCONS (names)->car)->car, name);
+      tem = Fstring_equal (XCAR (XCAR (names)), name);
       if (!NILP (tem))
 	return dpyinfo;
     }
@@ -6949,8 +6949,8 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   Lisp_Object tail, result;
 
   result = Qnil;
-  for (tail = w32_display_name_list; ! NILP (tail); tail = XCONS (tail)->cdr)
-    result = Fcons (XCONS (XCONS (tail)->car)->car, result);
+  for (tail = w32_display_name_list; ! NILP (tail); tail = XCDR (tail))
+    result = Fcons (XCAR (XCAR (tail)), result);
 
   return result;
 }

@@ -351,9 +351,9 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -389,9 +389,9 @@ x_any_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -427,9 +427,9 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -462,9 +462,9 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -491,9 +491,9 @@ x_top_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -1027,18 +1027,18 @@ x_set_frame_parameters (f, alist)
 	    if (leftpos < 0)
 	      f->output_data.x->size_hint_flags |= XNegative;
 	  }
-	else if (CONSP (left) && EQ (XCONS (left)->car, Qminus)
-		 && CONSP (XCONS (left)->cdr)
-		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	else if (CONSP (left) && EQ (XCAR (left), Qminus)
+		 && CONSP (XCDR (left))
+		 && INTEGERP (XCAR (XCDR (left))))
 	  {
-	    leftpos = - XINT (XCONS (XCONS (left)->cdr)->car);
+	    leftpos = - XINT (XCAR (XCDR (left)));
 	    f->output_data.x->size_hint_flags |= XNegative;
 	  }
-	else if (CONSP (left) && EQ (XCONS (left)->car, Qplus)
-		 && CONSP (XCONS (left)->cdr)
-		 && INTEGERP (XCONS (XCONS (left)->cdr)->car))
+	else if (CONSP (left) && EQ (XCAR (left), Qplus)
+		 && CONSP (XCDR (left))
+		 && INTEGERP (XCAR (XCDR (left))))
 	  {
-	    leftpos = XINT (XCONS (XCONS (left)->cdr)->car);
+	    leftpos = XINT (XCAR (XCDR (left)));
 	  }
 
 	if (EQ (top, Qminus))
@@ -1049,18 +1049,18 @@ x_set_frame_parameters (f, alist)
 	    if (toppos < 0)
 	      f->output_data.x->size_hint_flags |= YNegative;
 	  }
-	else if (CONSP (top) && EQ (XCONS (top)->car, Qminus)
-		 && CONSP (XCONS (top)->cdr)
-		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	else if (CONSP (top) && EQ (XCAR (top), Qminus)
+		 && CONSP (XCDR (top))
+		 && INTEGERP (XCAR (XCDR (top))))
 	  {
-	    toppos = - XINT (XCONS (XCONS (top)->cdr)->car);
+	    toppos = - XINT (XCAR (XCDR (top)));
 	    f->output_data.x->size_hint_flags |= YNegative;
 	  }
-	else if (CONSP (top) && EQ (XCONS (top)->car, Qplus)
-		 && CONSP (XCONS (top)->cdr)
-		 && INTEGERP (XCONS (XCONS (top)->cdr)->car))
+	else if (CONSP (top) && EQ (XCAR (top), Qplus)
+		 && CONSP (XCDR (top))
+		 && INTEGERP (XCAR (XCDR (top))))
 	  {
-	    toppos = XINT (XCONS (XCONS (top)->cdr)->car);
+	    toppos = XINT (XCAR (XCDR (top)));
 	  }
 
 
@@ -1205,7 +1205,7 @@ x_report_frame_params (f, alistptr)
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
-		  XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->car);
+		  XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
 
   if (f->output_data.x->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
@@ -1698,11 +1698,11 @@ x_set_cursor_type (f, arg, oldval)
       FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
       f->output_data.x->cursor_width = 2;
     }
-  else if (CONSP (arg) && EQ (XCONS (arg)->car, Qbar)
-	   && INTEGERP (XCONS (arg)->cdr))
+  else if (CONSP (arg) && EQ (XCAR (arg), Qbar)
+	   && INTEGERP (XCDR (arg)))
     {
       FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
-      f->output_data.x->cursor_width = XINT (XCONS (arg)->cdr);
+      f->output_data.x->cursor_width = XINT (XCDR (arg));
     }
   else
     /* Treat anything unknown as "box cursor".
@@ -1759,7 +1759,7 @@ x_icon_type (f)
 
   tem = assq_no_quit (Qicon_type, f->param_alist);
   if (CONSP (tem))
-    return XCONS (tem)->cdr;
+    return XCDR (tem);
   else
     return Qnil;
 }
@@ -2921,18 +2921,18 @@ x_figure_window_size (f, parms)
 	  f->output_data.x->top_pos = 0;
 	  window_prompting |= YNegative;
 	}
-      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qminus)
-	       && CONSP (XCONS (tem0)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+      else if (CONSP (tem0) && EQ (XCAR (tem0), Qminus)
+	       && CONSP (XCDR (tem0))
+	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  f->output_data.x->top_pos = - XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.x->top_pos = - XINT (XCAR (XCDR (tem0)));
 	  window_prompting |= YNegative;
 	}
-      else if (CONSP (tem0) && EQ (XCONS (tem0)->car, Qplus)
-	       && CONSP (XCONS (tem0)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem0)->cdr)->car))
+      else if (CONSP (tem0) && EQ (XCAR (tem0), Qplus)
+	       && CONSP (XCDR (tem0))
+	       && INTEGERP (XCAR (XCDR (tem0))))
 	{
-	  f->output_data.x->top_pos = XINT (XCONS (XCONS (tem0)->cdr)->car);
+	  f->output_data.x->top_pos = XINT (XCAR (XCDR (tem0)));
 	}
       else if (EQ (tem0, Qunbound))
 	f->output_data.x->top_pos = 0;
@@ -2949,18 +2949,18 @@ x_figure_window_size (f, parms)
 	  f->output_data.x->left_pos = 0;
 	  window_prompting |= XNegative;
 	}
-      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qminus)
-	       && CONSP (XCONS (tem1)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+      else if (CONSP (tem1) && EQ (XCAR (tem1), Qminus)
+	       && CONSP (XCDR (tem1))
+	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  f->output_data.x->left_pos = - XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.x->left_pos = - XINT (XCAR (XCDR (tem1)));
 	  window_prompting |= XNegative;
 	}
-      else if (CONSP (tem1) && EQ (XCONS (tem1)->car, Qplus)
-	       && CONSP (XCONS (tem1)->cdr)
-	       && INTEGERP (XCONS (XCONS (tem1)->cdr)->car))
+      else if (CONSP (tem1) && EQ (XCAR (tem1), Qplus)
+	       && CONSP (XCDR (tem1))
+	       && INTEGERP (XCAR (XCDR (tem1))))
 	{
-	  f->output_data.x->left_pos = XINT (XCONS (XCONS (tem1)->cdr)->car);
+	  f->output_data.x->left_pos = XINT (XCAR (XCDR (tem1)));
 	}
       else if (EQ (tem1, Qunbound))
 	f->output_data.x->left_pos = 0;
@@ -3673,8 +3673,8 @@ This function is an internal primitive--use `make-frame' instead.")
     }
 
   /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
-    fs_register_fontset (f, XCONS (tem)->car);
+  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
+    fs_register_fontset (f, XCAR (tem));
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
@@ -5262,10 +5262,10 @@ x_display_info_for_name (name)
 
   for (dpyinfo = x_display_list, names = x_display_name_list;
        dpyinfo;
-       dpyinfo = dpyinfo->next, names = XCONS (names)->cdr)
+       dpyinfo = dpyinfo->next, names = XCDR (names))
     {
       Lisp_Object tem;
-      tem = Fstring_equal (XCONS (XCONS (names)->car)->car, name);
+      tem = Fstring_equal (XCAR (XCAR (names)), name);
       if (!NILP (tem))
 	return dpyinfo;
     }
@@ -5383,8 +5383,8 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   Lisp_Object tail, result;
 
   result = Qnil;
-  for (tail = x_display_name_list; ! NILP (tail); tail = XCONS (tail)->cdr)
-    result = Fcons (XCONS (XCONS (tail)->car)->car, result);
+  for (tail = x_display_name_list; ! NILP (tail); tail = XCDR (tail))
+    result = Fcons (XCAR (XCAR (tail)), result);
 
   return result;
 }
@@ -9591,8 +9591,8 @@ x_create_tip_frame (dpyinfo, parms)
     }
 
   /* Create fontsets from `global_fontset_alist' before handling fonts.  */
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCONS (tem)->cdr)
-    fs_register_fontset (f, XCONS (tem)->car);
+  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
+    fs_register_fontset (f, XCAR (tem));
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */

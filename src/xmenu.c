@@ -211,9 +211,9 @@ menubar_id_to_frame (id)
   Lisp_Object tail, frame;
   FRAME_PTR f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
-      frame = XCONS (tail)->car;
+      frame = XCAR (tail);
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
@@ -417,14 +417,14 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
   notbuttons = menu_items_used;
 #endif
 
-  for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = keymap; CONSP (tail); tail = XCDR (tail))
     {
       GCPRO2 (keymap, pending_maps);
       /* Look at each key binding, and if it is a menu item add it
 	 to this menu.  */
-      item = XCONS (tail)->car;
+      item = XCAR (tail);
       if (CONSP (item))
-	single_menu_item (XCONS (item)->car, XCONS (item)->cdr,
+	single_menu_item (XCAR (item), XCDR (item),
 			  &pending_maps, notreal, maxdepth, &notbuttons);
       else if (VECTORP (item))
 	{
@@ -447,12 +447,12 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
     {
       Lisp_Object elt, eltcdr, string;
       elt = Fcar (pending_maps);
-      eltcdr = XCONS (elt)->cdr;
-      string = XCONS (eltcdr)->car;
+      eltcdr = XCDR (elt);
+      string = XCAR (eltcdr);
       /* We no longer discard the @ from the beginning of the string here.
 	 Instead, we do this in xmenu_show.  */
       single_keymap_panes (Fcar (elt), string,
-			   XCONS (eltcdr)->cdr, notreal, maxdepth - 1);
+			   XCDR (eltcdr), notreal, maxdepth - 1);
       pending_maps = Fcdr (pending_maps);
     }
 }
@@ -705,7 +705,7 @@ cached information about equivalent key sequences.")
 
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt)
-	  || (CONSP (position) && EQ (XCONS (position)->car, Qmenu_bar)))
+	  || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = selected_frame;
@@ -903,7 +903,7 @@ on the left of the dialog box and all following items on the right.\n\
 
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
-      || (CONSP (position) && EQ (XCONS (position)->car, Qmenu_bar)))
+      || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
