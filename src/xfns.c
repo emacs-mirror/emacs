@@ -171,8 +171,8 @@ extern Atom Xatom_wm_save_yourself;
 extern Atom Xatom_wm_delete_window;
 
 /* Other WM communication */
-Atom Xatom_wm_configure_denied;	  /* When our config request is denied */
-Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
+extern Atom Xatom_wm_configure_denied; /* When our config request is denied */
+extern Atom Xatom_wm_window_moved;     /* When the WM moves us. */
 
 #else	/* X10 */
 
@@ -3922,7 +3922,8 @@ also be depressed for NEWSTRING to appear.")
      register Lisp_Object newstring;
 {
   char *rawstring;
-  register KeySym keysym, modifier_list[16];
+  register KeySym keysym;
+  KeySym modifier_list[16];
 
   CHECK_STRING (x_keysym, 1);
   CHECK_STRING (newstring, 3);

@@ -1691,6 +1691,18 @@ static char *events[] =
    sometimes don't work.  */
 static Time enter_timestamp;
 
+/* Communication with window managers. */
+Atom Xatom_wm_protocols;
+
+/* Kinds of protocol things we may receive. */
+Atom Xatom_wm_take_focus;
+Atom Xatom_wm_save_yourself;
+Atom Xatom_wm_delete_window;
+
+/* Other WM communication */
+Atom Xatom_wm_configure_denied;	  /* When our config request is denied */
+Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
+
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -1761,6 +1773,51 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       switch (event.type)
 	{
 #ifdef HAVE_X11
+	case ClientMessage:
+	  {
+	    if (event.xclient.message_type == Xatom_wm_protocols
+		&& event.xclient.format == 32)
+	      {
+		if (event.xclient.data.l[0] == Xatom_wm_take_focus)
+		  {
+		    s = x_window_to_screen (event.xclient.window);
+		    if (s)
+		      x_focus_on_screen (s);
+		    /* Not certain about handling scrollbars here */
+		  }
+		else if (event.xclient.data.l[0] == Xatom_wm_save_yourself)
+		  {
+		    /* Save state modify the WM_COMMAND property to
+		       something which can reinstate us. This notifies
+		       the session manager, who's looking for such a
+		       PropertyNotify.  Can restart processing when
+		       a keyboard or mouse event arrives. */
+		    if (numchars > 0)
+		      {
+		      }
+		  }
+		else if (event.xclient.data.l[0] == Xatom_wm_delete_window)
+		  {
+		    struct screen *s = x_window_to_screen (event.xclient.window);
+
+		    if (s)
+		      if (numchars > 0)
+			{
+			}
+		  }
+	      }
+	    else if (event.xclient.message_type == Xatom_wm_configure_denied)
+	      {
+	      }
+	    else if (event.xclient.message_type == Xatom_wm_window_moved)
+	      {
+		int new_x, new_y;
+
+		new_x = event.xclient.data.s[0];
+		new_y = event.xclient.data.s[1];
+	      }
+	  }
+	  break;
 
 	case SelectionClear:	/* Someone has grabbed ownership. */
 	  x_disown_selection (event.xselectionclear.window,

@@ -33,8 +33,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define EVENT_BUFFER_SIZE 64
 
-#define RES_CLASS "emacs"
-
 /* Max and Min sizes in character columns. */
 #define MINWIDTH 10
 #define MINHEIGHT 10
