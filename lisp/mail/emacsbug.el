@@ -47,36 +47,71 @@
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive "sBug Subject: ")
-  (mail nil bug-gnu-emacs topic)
-  (goto-char (point-min))
-  (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
-  (insert "In " (emacs-version) "\n")
-  (if (and system-configuration-options
-	   (not (equal system-configuration-options "")))
-      (insert "configured using `configure "
-	      system-configuration-options "'\n"))
-  (insert "\n")
-  ;; This is so the user has to type something
-  ;; in order to send easily.
-  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-  (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
-  (with-output-to-temp-buffer "*Bug Help*"
-    (princ (substitute-command-keys
-	    "Type \\[mail-send-and-exit] to send the bug report.\n"))
-    (terpri)
-    (princ (substitute-command-keys
-	    "Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+  (if (mail nil bug-gnu-emacs topic)
+      (let (user-point)
+	;; The rest of this does not execute
+	;; if the user was asked to confirm and said no.
+	(goto-char (point-min))
+	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
+	(insert "In " (emacs-version) "\n")
+	(if (and system-configuration-options
+		 (not (equal system-configuration-options "")))
+	    (insert "configured using `configure "
+		    system-configuration-options "'\n"))
+	(insert "\n")
+	(insert "Please describe exactly what actions triggered the bug\n"
+		"and the precise symptoms of the bug:\n\n") 
+	(setq user-point (point))
+	(insert "\n\n\n"
+		"Recent input:\n")
+	(let ((before-keys (point)))
+	  (insert (mapconcat (function (lambda (key)
+					 (if (or (integerp key)
+						 (symbolp key)
+						 (listp key))
+					     (single-key-description key)
+					   (prin1-to-string key nil))))
+			     (recent-keys)
+			     " "))
+	  (goto-char before-keys)
+	  (while (progn (move-to-column 50) (not (eobp)))
+	    (search-forward " " nil t)
+	    (insert "\n")))
+	(insert "\n\n")
+	(insert "Recent messages:\n")
+	(insert-buffer-substring "*Messages*"
+				 (save-excursion
+				   (set-buffer "*Messages*")
+				   (goto-char (point-max))
+				   (forward-line -10)
+				   (point))
+				 (save-excursion
+				   (set-buffer "*Messages*")
+				   (point-max)))
+	;; This is so the user has to type something
+	;; in order to send easily.
+	(use-local-map (nconc (make-sparse-keymap) (current-local-map)))
+	(define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+	(with-output-to-temp-buffer "*Bug Help*"
+	  (princ (substitute-command-keys
+		  "Type \\[mail-send-and-exit] to send the bug report.\n"))
+	  (princ (substitute-command-keys
+		  "Type \\[kill-buffer] RET to cancel (don't send it).\n"))
+	  (terpri)
+	  (princ (substitute-command-keys
+		  "Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
 about when and how to write a bug report,
 and what information to supply so that the bug can be fixed.
 Type SPC to scroll through this section and its subsections.")))
-  ;; Make it less likely people will send empty messages.
-  (make-local-variable 'mail-send-hook)
-  (add-hook 'mail-send-hook 'report-emacs-bug-hook)
-  (save-excursion
-    (goto-char (point-max))
-    (skip-chars-backward " \t\n")
-    (make-local-variable 'report-emacs-bug-orig-text)
-    (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point)))))
+	;; Make it less likely people will send empty messages.
+	(make-local-variable 'mail-send-hook)
+	(add-hook 'mail-send-hook 'report-emacs-bug-hook)
+	(save-excursion
+	  (goto-char (point-max))
+	  (skip-chars-backward " \t\n")
+	  (make-local-variable 'report-emacs-bug-orig-text)
+	  (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point))))
+	(goto-char user-point))))
 
 (defun report-emacs-bug-info ()
   "Go to the Info node on reporting Emacs bugs."
