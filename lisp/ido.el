@@ -2448,7 +2448,6 @@ for first matching file."
 	res)
     (while paths
       (setq path (car paths)
-	    paths (cdr paths)
 	    paths (cdr paths))
       (if (and (string-match "^/" path)
 	       (file-exists-p path))
