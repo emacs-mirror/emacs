@@ -593,7 +593,10 @@ int
 detect_coding_iso2022 (src, src_end)
      unsigned char *src, *src_end;
 {
-  int mask = CODING_CATEGORY_MASK_ANY;
+  int mask = (CODING_CATEGORY_MASK_ISO_7
+	      | CODING_CATEGORY_MASK_ISO_8_1
+	      | CODING_CATEGORY_MASK_ISO_8_2
+	      | CODING_CATEGORY_MASK_ISO_ELSE);
   int g1 = 0;			/* 1 iff designating to G1.  */
   int c, i;
 
@@ -612,10 +615,6 @@ detect_coding_iso2022 (src, src_end)
 				  || (*src >= '@' && *src <= 'B'))))
 	    {
 	      /* Valid designation sequence.  */
-	      mask &= (CODING_CATEGORY_MASK_ISO_7
-		       | CODING_CATEGORY_MASK_ISO_8_1
-		       | CODING_CATEGORY_MASK_ISO_8_2
-		       | CODING_CATEGORY_MASK_ISO_ELSE);
 	      if (c == ')' || (c == '$' && *src == ')'))
 		{
 		  g1 = 1;
