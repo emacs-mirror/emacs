@@ -255,7 +255,7 @@ extern Lisp_Object Vwindow_system_version;
 
 Lisp_Object Qface_set_after_frame_default;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
@@ -4043,7 +4043,7 @@ unwind_create_frame (frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
       
@@ -4158,7 +4158,7 @@ This function is an internal primitive--use `make-frame' instead.")
     f->icon_name = Qnil;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -10440,7 +10440,7 @@ x_create_tip_frame (dpyinfo, parms)
   f->output_data.x->scroll_bar_background_pixel = -1;
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */

@@ -141,7 +141,7 @@ static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
 				     int, int, struct dim));
 static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
 static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
 #endif
 static void fill_up_frame_row_with_spaces P_ ((struct glyph_row *, int));
