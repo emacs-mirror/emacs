@@ -95,6 +95,7 @@ which are deleted and reused after each edit
 by the programs that invoke the emacs server.")
 
 (make-variable-buffer-local 'server-buffer-clients)
+(put 'server-buffer-clients 'permanent-local t)
 (setq-default server-buffer-clients nil)
 (or (assq 'server-buffer-clients minor-mode-alist)
     (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))
