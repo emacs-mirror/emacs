@@ -1409,7 +1409,7 @@ dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
-  sys/param.h sys/vlimit.h sys/resource.h locale.h)
+  sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h)
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
@@ -2049,6 +2049,26 @@ dnl with `--with-xim=no'.
 if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
 	    [Define to 1 if we should use XIM, if it is available.])
+  AC_TRY_COMPILE([
+#include <X11/Xlib.h>
+#include <X11/Xresource.h>],
+[Display *display;
+XrmDatabase db;
+char *res_name;
+char *res_class;
+XIMProc  callback;
+XPointer *client_data;
+(void)XRegisterIMInstantiateCallback(display, db, res_name, res_class, callback,
+   client_data);],
+    [emacs_cv_arg6_star=yes])
+  AH_TEMPLATE(XRegisterIMInstantiateCallback_arg6,
+         [Define to the type of the 6th arg of XRegisterIMInstantiateCallback,
+either XPointer or XPointer*.])dnl
+  if test "$emacs_cv_arg6_star" = yes; then
+     AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer*])
+  else
+     AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
+  fi
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
@@ -2660,6 +2680,9 @@ AH_BOTTOM([
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
+/* We have blockinput.h.  */
+#define DO_BLOCK_INPUT
+
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */
@@ -2735,6 +2758,8 @@ AH_BOTTOM([
 #if ! HAVE_MKTIME || BROKEN_MKTIME
 #define mktime emacs_mktime
 #endif
+
+#define my_strftime nstrftime	/* for strftime.c */
 
 /* The rest of the code currently tests the CPP symbol BSTRING.
    Override any claims made by the system-description files.
