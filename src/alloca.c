@@ -87,7 +87,7 @@ typedef char *pointer;
    hand, the utilities in lib-src need alloca to call malloc; some of
    them are very simple, and don't have an xmalloc routine.
 
-   Non-Emacs programs expect this to call use xmalloc.
+   Non-Emacs programs expect this to call xmalloc.
 
    Callers below should use malloc.  */
 
