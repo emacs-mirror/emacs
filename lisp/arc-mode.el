@@ -752,9 +752,7 @@ This function changes the set of information shown for each files."
 	  (run-hooks 'archive-extract-hooks))
 	(archive-maybe-update t))
       (if view-p
-          (progn
-            (view-buffer buffer)
-            (and just-created (setq view-exit-action 'kill-buffer)))
+	  (view-buffer buffer (and just-created 'kill-buffer))
         (if (eq other-window-p 'display)
             (display-buffer buffer)
           (if other-window-p
