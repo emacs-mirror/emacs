@@ -1241,6 +1241,14 @@ the faces: please specify bold, italic, underline, shadow and box.)
 The expansion is entirely correct because it uses the C preprocessor."
   t)
 
+(defvar cperl-imenu--function-name-regexp-perl
+  (concat
+   "^\\("
+       "[ \t]*\\(sub\\|package\\)[ \t\n]+\\([a-zA-Z_0-9:']+\\)[ \t]*\\(([^()]*)[ \t]*\\)?"
+     "\\|"
+       "=head\\([12]\\)[ \t]+\\([^\n]+\\)$"
+   "\\)"))
+
 (defvar cperl-outline-regexp
   (concat cperl-imenu--function-name-regexp-perl "\\|" "\\`"))
 
@@ -4296,14 +4304,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	(backward-char 1))
       ;; Previous space could have gone:
       (or (memq (preceding-char) '(?\ ?\t)) (insert " "))))))
-
-(defvar cperl-imenu--function-name-regexp-perl
-  (concat
-   "^\\("
-       "[ \t]*\\(sub\\|package\\)[ \t\n]+\\([a-zA-Z_0-9:']+\\)[ \t]*\\(([^()]*)[ \t]*\\)?"
-     "\\|"
-       "=head\\([12]\\)[ \t]+\\([^\n]+\\)$"
-   "\\)"))
 
 (defun cperl-imenu-addback (lst &optional isback name)
   ;; We suppose that the lst is a DAG, unless the first element only
