@@ -410,6 +410,148 @@ the difference that the command will be run on each file individually.
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 
+** CC mode changes.
+
+Note: This release contains changes that might not be compatible with
+current user setups (although it's believed that these
+incompatibilities will only show in very uncommon circumstances).
+However, since the impact is uncertain, these changes may be rolled
+back depending on user feedback.  Therefore there's no forward
+compatibility guarantee wrt the new features introduced in this
+release.
+
+*** New initialization procedure for the style system.
+When the initial style for a buffer is determined by CC Mode (from the
+variable c-default-style), the global values of style variables now
+take precedence over the values specified by the chosen style.  This
+is different than the old behavior: previously, the style-specific
+settings would override the global settings.  This change makes it
+possible to do simple configuration in the intuitive way with
+Customize or with setq lines in one's .emacs file.
+
+By default, the global value of every style variable is the new
+special symbol set-from-style, which causes the value to be taken from
+the style system.  This means that in effect, only an explicit setting
+of a style variable will cause the "overriding" behavior described
+above.
+
+Also note that global settings override style-specific settings *only*
+when the initial style of a buffer is chosen by a CC Mode major mode
+function.  When a style is chosen in other ways --- for example, by a
+call like (c-set-style "gnu") in a hook, or via M-x c-set-style ---
+then the style-specific values take precedence over any global style
+values.  In Lisp terms, global values override style-specific values
+only when the new second argument to c-set-style is non-nil; see the
+function documentation for more info.
+
+The purpose of these changes is to make it easier for users,
+especially novice users, to do simple customizations with Customize or
+with setq in their .emacs files.  On the other hand, the new system is
+intended to be compatible with advanced users' customizations as well,
+such as those that choose styles in hooks or whatnot.  This new system
+is believed to be almost entirely compatible with current
+configurations, in spite of the changed precedence between style and
+global variable settings when a buffer's default style is set.
+
+(Thanks to Eric Eide for clarifying this explanation a bit.)
+
+**** c-offsets-alist is now a customizable variable.
+This became possible as a result of the new initialization behavior.
+
+This variable is treated slightly differently from the other style
+variables; instead of using the symbol set-from-style, it will be
+completed with the syntactic symbols it doesn't already contain when
+the style is first initialized.  This means it now defaults to the
+empty list to make all syntactic elements get their values from the
+style system.
+
+**** Compatibility variable to restore the old behavior.
+In case your configuration doesn't work with this change, you can set
+c-old-style-variable-behavior to non-nil to get the old behavior back
+as far as possible.
+
+*** Improvements to line breaking and text filling.
+CC Mode now handles this more intelligently and seamlessly wrt the
+surrounding code, especially inside comments.  For details see the new
+chapter about this in the manual.
+
+**** New variable to recognize comment line prefix decorations.
+The variable c-comment-prefix-regexp has been added to properly
+recognize the line prefix in both block and line comments.  It's
+primarily used to initialize the various paragraph recognition and
+adaptive filling variables that the text handling functions uses.
+
+**** New variable c-block-comment-prefix.
+This is a generalization of the now obsolete variable
+c-comment-continuation-stars to handle arbitrary strings.
+
+**** CC Mode now uses adaptive fill mode.
+This to make it adapt better to the paragraph style inside comments.
+
+It's also possible to use other adaptive filling packages inside CC
+Mode, notably Kyle E. Jones' Filladapt mode (http://wonderworks.com/).
+A new convenience function c-setup-filladapt sets up Filladapt for use
+inside CC Mode.
+
+Note though that the 2.12 version of Filladapt lacks a feature that
+causes it to work suboptimally when c-comment-prefix-regexp can match
+the empty string (which it commonly does).  A patch for that is
+available from the CC Mode web site (http://www.python.org/emacs/
+cc-mode/).
+
+**** It's now possible to selectively turn off auto filling.
+The variable c-ignore-auto-fill is used to ignore auto fill mode in
+specific contexts, e.g. in preprocessor directives and in string
+literals.
+
+**** New context sensitive line break function c-context-line-break.
+It works like newline-and-indent in normal code, and adapts the line
+prefix according to the comment style when used inside comments.  If
+you're normally using newline-and-indent, you might want to switch to
+this function.
+
+*** Fixes to IDL mode.
+It now does a better job in recognizing only the constructs relevant
+to IDL.  E.g. it no longer matches "class" as the beginning of a
+struct block, but it does match the CORBA 2.3 "valuetype" keyword.
+Thanks to Eric Eide.
+
+*** Improvements to the Whitesmith style.
+It now keeps the style consistently on all levels and both when
+opening braces hangs and when they don't.
+
+**** New lineup function c-lineup-whitesmith-in-block.
+
+*** New lineup functions c-lineup-template-args and c-indent-multi-line-block.
+See their docstrings for details.  c-lineup-template-args does a
+better job of tracking the brackets used as parens in C++ templates,
+and is used by default to line up continued template arguments.
+
+*** c-lineup-comment now preserves alignment with a comment on the
+previous line.  It used to instead preserve comments that started in
+the column specified by comment-column.
+
+*** c-lineup-C-comments handles "free form" text comments.
+In comments with a long delimiter line at the start, the indentation
+is kept unchanged for lines that start with an empty comment line
+prefix.  This is intended for the type of large block comments that
+contain documentation with its own formatting.  In these you normally
+don't want CC Mode to change the indentation.
+
+*** The `c' syntactic symbol is now relative to the comment start
+instead of the previous line, to make integers usable as lineup
+arguments.
+
+*** All lineup functions have gotten docstrings.
+
+*** More preprocessor directive movement functions.
+c-down-conditional does the reverse of c-up-conditional.
+c-up-conditional-with-else and c-down-conditional-with-else are
+variants of these that also stops at "#else" lines (suggested by Don
+Provan).
+
+*** Minor improvements to many movement functions in tricky situations.
+
 ** Isearch changes
 
 *** In Isearch mode, mouse-2 in the echo area now yanks the current
