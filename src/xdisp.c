@@ -9840,6 +9840,7 @@ get_overlay_arrow_glyph_row (w)
 
       /* Compute its width, get its glyphs.  */
       n_glyphs_before = it.glyph_row->used[TEXT_AREA];
+      SET_TEXT_POS (it.position, -1, -1);
       PRODUCE_GLYPHS (&it);
 
       /* If this character doesn't fit any more in the line, we have
