@@ -2577,7 +2577,11 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
   coding->fake_multibyte = 0;
 
   if (src_bytes <= 0)
-    return result;
+    {
+      coding->produced = coding->produced_char = 0;
+      coding->consumed = coding->consumed_char = 0;
+      return result;
+    }
 
   switch (coding->eol_type)
     {
@@ -3240,6 +3244,7 @@ setup_raw_text_coding_system (coding)
 	    coding->symbol
 	      = XVECTOR (subsidiaries)->contents[coding->eol_type];
 	}
+      setup_coding_system (coding->symbol, coding);
     }
   return;
 }
