@@ -478,12 +478,13 @@ copy-to-buffer} is similar except that any existing text in the other
 buffer is deleted, so the buffer is left containing just the text newly
 copied into it.
 
-  To retrieve the accumulated text from another buffer, use the command
-@kbd{M-x insert-buffer}; this too takes @var{buffername} as an argument.
-It inserts a copy of the text in buffer @var{buffername} into the
-selected buffer.  You can alternatively select the other buffer for
-editing, then optionally move text from it by killing.  @xref{Buffers},
-for background information on buffers.
+  To retrieve the accumulated text from another buffer, use the
+command @kbd{M-x insert-buffer}; this too takes @var{buffername} as an
+argument.  It inserts a copy of the whole text in buffer
+@var{buffername} into the selected buffer at point, and sets the mark
+after the inserted text.  Alternatively, you can select the other
+buffer for editing, then copy text from it by killing.
+@xref{Buffers}, for background information on buffers.
 
   Instead of accumulating text within Emacs, in a buffer, you can append
 text directly into a file with @kbd{M-x append-to-file}, which takes
