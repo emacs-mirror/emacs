@@ -332,3 +332,7 @@ CC=gcc
    with job control). This stops Emacs dead in its tracks when coming
    up under X11. */
 #define BROKEN_FASYNC
+
+/* (Assume) we do have vfork.  */
+
+#define HAVE_VFORK
