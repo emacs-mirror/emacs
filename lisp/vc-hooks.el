@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.160 2003/09/01 15:45:17 miles Exp $
+;; $Id: vc-hooks.el,v 1.161 2004/03/15 03:53:05 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -463,8 +463,15 @@ and does not employ any heuristic at all."
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
 Return non-nil if FILE is unchanged."
-  ;; If rev1 is nil, `diff' uses the current workfile version.
-  (zerop (vc-call diff file)))
+  (let ((diff-args-length
+         (length (cadr (symbol-function
+                        (vc-find-backend-function backend 'diff))))))
+    (zerop (if (> diff-args-length 4) 
+               ;; If the implementation supports it, let the output
+               ;; go to *vc*, not *vc-diff*, since this is an internal call.
+               (vc-call diff file nil nil "*vc*")
+             ;; for backward compatibility
+             (vc-call diff file)))))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
