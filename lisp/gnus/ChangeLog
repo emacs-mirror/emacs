@@ -1,13 +1,31 @@
+2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-exit): Undo last change and fix it in
+	a more conservative way.
+
+2005-02-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* mm-decode.el (mm-dissect-buffer): Pass the from field on to
+	`mm-dissect-multipart' and receive the from field as an (optional)
+	argument from `mm-dissect-multipart'.
+	(mm-dissect-multipart): Receive the from field as an argument and
+	pass it on when we call `mm-dissect-buffer' on MIME parts.
+	Fixes verification/decryption of signed/encrypted MIME parts.
+
+2005-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-exit): Move point after displaying the
+	buffer, so it moves the window's cursor.
+
 2005-02-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* nnheader.el (nnheader-find-file-noselect): Added doc string.
+	* nnheader.el (nnheader-find-file-noselect): Add doc string.
 
 	* nnfolder.el (nnfolder-read-folder): Use RAWFILE for
-	`nnheader-find-file-noselect' to avoid
-	`large-file-warning-threshold'.
+	`nnheader-find-file-noselect' to avoid `large-file-warning-threshold'.
 
-	* gnus-sum.el (gnus-summary-caesar-message): Apply
-	`gnus-treat-article' after rotation.
+	* gnus-sum.el (gnus-summary-caesar-message):
+	Apply `gnus-treat-article' after rotation.
 
 	* gnus-group.el (gnus-group-clear-data): Mention process/prefix in
 	doc string.
@@ -41,7 +59,7 @@
 
 2005-02-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-registry.el (gnus-registry-delete-group): minor bug fix
+	* gnus-registry.el (gnus-registry-delete-group): Minor bug fix.
 
 	* gnus.el (gnus-install-group-spam-parameters): Doc fix.
 

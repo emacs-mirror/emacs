@@ -1,3 +1,79 @@
+2005-02-28  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Debugging): Fix typo.
+	(Error Debugging): Document eval-expression-debug-on-error.
+	(Function Debugging): Update example.
+	(Using Debugger): Mention starred stack frames.
+	(Debugger Commands): Document `j' and `l'.
+	(Invoking the Debugger): `d' and `j' exit recursive edit too.
+	Update the messages that the debugger displays.
+	(Internals of Debugger): Add cross reference.  Update example.
+	(Excess Open): Minor improvement.
+	(Excess Close): Minor improvement.
+
+2005-02-26  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Clarify.
+	Put all the major mode key reservations together.
+	Mention the Mouse-1 => Mouse-2 conventions.
+
+	* syntax.texi (Syntax Class Table): Clarify.
+	(Syntax Table Functions): syntax-after moved from here.
+	(Syntax Table Internals): syntax-after moved to here.
+	(Parsing Expressions): Update info on number of values
+	and what's meaningful in the STATE argument.
+	(Categories): Fix typo.
+
+	* sequences.texi (Arrays): Cleanup.
+	(Char-Tables): Clarify.
+
+	* processes.texi (Deleting Processes): Cleanups, add xref.
+	(Subprocess Creation): Explain nil in exec-path.  Cleanup.
+	(Process Information): set-process-coding-system, some args optional.
+	(Input to Processes): Explain various types for PROCESS args.
+	Rename them from PROCESS-NAME to PROCESS.
+	(Signals to Processes): Likewise.
+	(Decoding Output): Cleanup.
+	(Query Before Exit): Clarify.
+
+	* os.texi (Startup Summary): Correct the options; add missing ones.
+	(Terminal Output, Batch Mode): Clarify.
+	(Flow Control): Node deleted.
+
+	* markers.texi (The Mark): Clarify.
+
+	* macros.texi (Expansion): Cleanup.
+	(Indenting Macros): indent-spec allows ints, not floats.
+
+	* keymaps.texi (Keymaps): Clarify.
+	(Format of Keymaps): Update lisp-mode-map example.
+	(Active Keymaps, Key Lookup): Clarify.
+	(Changing Key Bindings): Add xref to `kbd'.
+	(Key Binding Commands, Simple Menu Items): Clarify.
+	(Mouse Menus, Menu Bar): Clarify.
+	(Menu Example): Replace print example with menu-bar-replace-menu.
+
+	* help.texi (Documentation Basics): Add function-documentation prop.
+
+	* elisp.texi (Top): Don't refer to Flow Control node.
+
+	* commands.texi (Command Overview): Improve xrefs.
+	(Adjusting Point): Adjusting point applies to intangible and invis.
+	(Key Sequence Input): Doc extra read-key-sequence args.
+	Likewise for read-key-sequence-vector.
+
+	* backups.texi (Rename or Copy): Minor fix.
+	(Numbered Backups): For version-control, say the default.
+	(Auto-Saving): make-auto-save-file-name example is simplified.
+
+	* advice.texi (Advising Functions): Don't imply one part of Emacs
+	should advise another part.  Markup changes.
+	(Defining Advice): Move transitional para.
+	(Activation of Advice): Cleanup.
+	Explain if COMPILE is nil or negative.
+
+	* abbrevs.texi (Abbrev Expansion): Clarify, fix typo.
+
 2005-02-24  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Defining Minor Modes): Explain that INIT-VALUE,

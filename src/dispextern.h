@@ -119,6 +119,13 @@ enum window_part
 #define GLYPH_DEBUG 0
 #endif
 
+/* If XASSERTS is non-zero, additional consistency checks are activated.
+   Turn it off by defining the macro XASSERTS to zero.  */
+
+#ifndef XASSERTS
+#define XASSERTS 0
+#endif
+
 /* Macros to include code only if GLYPH_DEBUG != 0.  */
 
 #if GLYPH_DEBUG
@@ -127,8 +134,11 @@ enum window_part
 #define IF_DEBUG(X)	(void) 0
 #endif
 
-/* Maybe move this inside the above `#ifdef GLYPH_DEBUG' for release.  */
+#if XASSERTS
 #define xassert(X)	do {if (!(X)) abort ();} while (0)
+#else
+#define xassert(X)	(void) 0
+#endif
 
 /* Macro for displaying traces of redisplay.  If Emacs was compiled
    with GLYPH_DEBUG != 0, the variable trace_redisplay_p can be set to
@@ -1881,7 +1891,7 @@ struct it
 
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
-#define OVERLAY_STRING_CHUNK_SIZE 3
+#define OVERLAY_STRING_CHUNK_SIZE 16
   Lisp_Object overlay_strings[OVERLAY_STRING_CHUNK_SIZE];
 
   /* Total number of overlay strings to process.  This can be >

@@ -116,6 +116,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	   ;; End of generated event.  See if he will repeat it...
 	   (let ((new (double-read-event prompt))
 		 (entry (assoc double-last-event double-map)))
+	     (force-window-update (selected-window))
 	     (if (eq new double-last-event)
 		 (progn
 		   (setq unread-command-events

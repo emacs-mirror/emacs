@@ -5689,7 +5689,7 @@ arrow bitmaps.
 
 If value is a symbol `left' or `right', both angle and arrow bitmaps
 are displayed in the left or right fringe, resp.  Any other value
-that doesn't look like an alist means displat the angle bitmaps in
+that doesn't look like an alist means display the angle bitmaps in
 the left fringe but no arrows.
 
 You can exercise more precise control by using an alist as the

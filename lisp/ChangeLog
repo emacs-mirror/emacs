@@ -1,11 +1,178 @@
+2005-03-02  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-filter-disable): Move back to the current
+	buffer after removing limits.
+	(ibuffer-pop-filter): Ditto.
+	Update copyright.
+
+2005-03-02  Miles Bader  <miles@gnu.org>
+
+	* button.el (make-text-button): If the user doesn't specify a
+	type, use the default.  Rewrite to use `add-text-properties' and
+	plist functions.
+
+2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el: (texinfo-no-refill-regexp): Comment out
+	inclusion of "itemize\\|", which may be unnecessary, is certainly
+	inelegant, and stops refilling in itemize lists when formatting
+	Japanese Texinfo files to Info.
+	Update copyright to 2005.
+
+2005-03-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-get-location): Use a warning instead
+	of an error if GDB can't find the source file.
+
+2005-03-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Work from any buffer,
+	not just the calendar.
+
+	* calendar/diary-lib.el (mark-diary-entries): Remove any old marks
+	first.
+	(diary-redraw-calendar): New function.
+	(make-diary-entry): Add diary-redraw-calendar to local
+	write-contents-functions.  Turn off selective display before
+	inserting in diary.
+
+2005-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/copyright.el (copyright-fix-years): New command.
+
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Reimplement to make sure
+	that debug-entry-code can be safely removed from a function while
+	this code is being evaluated.  Revert the 2005-02-27 change as the
+	new implementation no longer requires it.  Make sure that a
+	function body containing just a string is not mistaken for a
+	docstring.
+	(debug): Skip one more frame in case of debug on entry.
+	(debugger-setup-buffer): Delete one more frame line in case of
+	debug on entry.
+	(debugger-frame-number): Update to use the new text introduced by
+	the 1999-11-03 change.  Skip one more frame in case of debug on
+	entry.
+
+2005-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* double.el (double-translate-key): Call force-window-update after
+	read-event to avoid crash in redisplay.
+
+2005-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): New var.
+	(debug): Use it.  Move the inhibit-trace earlier.
+	(debug-entry-code): New const.
+	(debug-on-entry-1): Use it.
+
+2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le):
+	Fix BUFFER_MAGNIFICATION to 2.
+	(ccl-encode-mule-utf-16be): Likewise.
+
+2005-02-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le-with-signature):
+	Fix BUFFER_MAGNIFICATION to 4.
+	(ccl-encode-mule-utf-16be-with-signature): Likewise.
+
+2005-02-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-update-flag): Doc fix.
+	(speedbar-show-info-under-mouse): Give set-mouse-position the right
+	argument.
+
+2005-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-post-command): Don't try to reveal overlays which
+	have a non-nil `invisible' property but are actually visible.
+
+	* progmodes/perl-mode.el (perl-imenu-generic-expression): Add entries
+	for perldoc sections.
+	(perl-outline-regexp, perl-outline-level): New var and function.
+	(perl-mode): Use them.
+
+2005-02-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-remind): Discard any mark portion
+	from diary-entry.  Reported by Andrew Kemp <ajwk@pell.uklinux.net>.
+
+2005-02-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Comment change.
+	(custom-buffer-create-internal): Slightly reword text at top of
+	Custom buffers.  Mention there that saving an option edits the
+	init file.  Add link to Emacs manual node on `custom-file'.
+	(custom-magic-alist): Rewrite individual State messages to use
+	capitalized keywords.  Doc fix.
+
+2005-02-27  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar/calendar.el (calendar-buffer): Move above
+	calendar-week-start-day.
+	(calendar-week-start-day): Doc fix.  Add :set function.
+	(calendar-minimum-window-height): New variable.
+	(generate-calendar-window): Only resize window if selected-window
+	is displaying the calendar buffer.  Use new variable
+	calendar-minimum-window-height.
+	(generate-calendar): Reword error message.
+	(calendar-mode-map): Bind DEL to scroll-other-window-down.
+
+2005-02-27  Andreas Schwab  <schwab@suse.de>
+
+	* vc.el (vc-do-command): Don't run command asynchronously when
+	operating in a remote directory.
+
+	* net/tramp.el (tramp-file-name-for-operation): Fix misapplied
+	change from sync with Tramp 2.0.47.
+
+2005-02-27  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-change-dictionary): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-mode-on):
+	Call ispell-change-dictionary only if necessary.
+
+	* emacs-lisp/re-builder.el (regexp-builder): New function.
+
+	* register.el (describe-register-1): Explicitly handle
+	yank-excluded-properties = t.
+
+	* cus-edit.el (custom-buffer-create-internal): Improve progress msgs.
+	(custom-magic-alist): Change the status descriptions again.
+	(face widget-type): Total rewrite based on `restricted-sexp'
+	to eliminate the confusing double hiding levels.
+
+	* emacs-lisp/debug.el (debug-on-entry-1):
+	If function body is empty, add nil as body form.
+
+2005-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (inhibit-trace): New var.
+	(trace-make-advice): Use it.
+
+	* emacs-lisp/debug.el (debug): Put back the inhibit-trace.
+
+2005-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-in-non-selected-windows): New defcustom.
+	(mouse-on-link-p, mouse-drag-region-1): Use it.
+
+2005-02-25  Lute Kamstra  <lute@gnu.org>
+
+	* replace.el (query-replace-read-from): Fix 2005-02-19 change.
+
 2005-02-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frame.el (blink-cursor-mode): Add :group keyword.
 
 2005-02-24  Ulf Jasper  <ulf.jasper@web.de>
 
-	* calendar/icalendar.el (icalendar--decode-isodatetime): New
-	optional argument DAY-SHIFT.
+	* calendar/icalendar.el (icalendar--decode-isodatetime):
+	New optional argument DAY-SHIFT.
 	(icalendar-export-region): Fix coding-system-for-write.
 	(icalendar--convert-ical-to-diary): Shift end-day of all-day
 	events by one.
@@ -19,6 +186,13 @@
 	* international/iso-acc.el (iso-accents-compose): Fix crash
 	during redisplay.  Call force-window-update after read-event
 	and delete-region to signal that window is not accurate.
+
+2005-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Hide the buffer if it's not killed.
+	Remove unused and inexistent var `inhibit-trace'.
+	(debugger-mode): Use run-mode-hooks.
+	(debugger-list-functions): Add buttons; setup xref stack.
 
 2005-02-23  Richard M. Stallman  <rms@gnu.org>
 
@@ -152,8 +326,8 @@
 	* viper-util.el (viper-glob-unix-files): Fix shell status check.
 	(viper-file-remote-p): Make equivalent to file-remote-p.
 
-	* viper.el (viper-major-mode-modifier-list): Use
-	viper-gnus-modifier-map.
+	* viper.el (viper-major-mode-modifier-list):
+	Use viper-gnus-modifier-map.
 
 2005-02-19  David Kastrup  <dak@gnu.org>
 
@@ -163,7 +337,7 @@
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-math.el (calc-arctan, calc-tanh, calc-arctanh):
-	Removed extra definitions.
+	Remove extra definitions.
 	(calc-coth): New function.
 	(calcFunc-cot): Fix `let'.
 
@@ -180,8 +354,8 @@
 	query-replace-from-history-variable to handle the case of an empty
 	string entered to accept the suggested default.
 
-	* net/tramp.el (tramp-file-name-for-operation): Use
-	dired-call-process instead of dired-call-process-command.
+	* net/tramp.el (tramp-file-name-for-operation):
+	Use dired-call-process instead of dired-call-process-command.
 
 2005-02-19  Jay Belanger  <belanger@truman.edu>
 
@@ -202,22 +376,22 @@
 
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
-	ediff-set-fine-overlays-in-one-buffer,ediff-goto-word) make sure
+	* ediff.el (ediff-set-diff-overlays-in-one-buffer)
+	(ediff-set-fine-overlays-in-one-buffer,ediff-goto-word): Make sure
 	we use the syntax table of the correct buffer.
-	(ediff-same-file-contents,ediff-same-contents): enhancements thanks to
+	(ediff-same-file-contents,ediff-same-contents): Enhancements thanks to
 	Felix Gatzemeier.
 
-	* ediff-init.el (ediff-hide-face): checks for definedness of functions.
-	(ediff-file-remote-p): make synonymous with file-remote-p.
+	* ediff-init.el (ediff-hide-face): Check for definedness of functions.
+	(ediff-file-remote-p): Make synonymous with file-remote-p.
 	In all deffaces ediff-*-face-*, use min-colors.
 
-	* ediff-mult.el (ediff-meta-mark-equal-files): make use of
-        ediff-recurse-to-subdirectories.
-	(ediff-mark-if-equal): check that the arguments are strings, use
+	* ediff-mult.el (ediff-meta-mark-equal-files): Make use of
+	ediff-recurse-to-subdirectories.
+	(ediff-mark-if-equal): Check that the arguments are strings, use
 	ediff-same-contents (after to Felix Gatzemeier).
 
-	* ediff.el (ediff-merge-on-startup): don't set buffer-modified-p to
+	* ediff.el (ediff-merge-on-startup): Don't set buffer-modified-p to
 	nil.
 
 2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -287,7 +461,7 @@
 2005-02-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el: Add simplification rules for calcFunc-sec,
-	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch and
+	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch, and
 	calcFunc-coth.
 	(math-simplify-sqrt): Add simplifications.
 

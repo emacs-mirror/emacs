@@ -85,23 +85,28 @@ can move point away, leaving the mark behind.
 button one across a range of text; that puts point where you release the
 mouse button, and sets the mark at the other end of that range.  Or you
 can click mouse button three, which sets the mark at point (like
-@kbd{C-@key{SPC}}) and then moves point (like @kbd{Mouse-1}).  Both of
-these methods copy the region into the kill ring in addition to setting
-the mark; that gives behavior consistent with other window-driven
-applications, but if you don't want to modify the kill ring, you must
-use keyboard commands to set the mark.  @xref{Mouse Commands}.
+@kbd{C-@key{SPC}}) and then moves point where you clicked (like
+@kbd{Mouse-1}).  Both of these methods copy the region into the kill
+ring in addition to setting the mark; that gives behavior consistent
+with other window-driven applications, but if you don't want to modify
+the kill ring, you must use keyboard commands to set the mark.
+@xref{Mouse Commands}.
 
 @kindex C-x C-x
 @findex exchange-point-and-mark
-  Ordinary terminals have only one cursor, so there is no way for Emacs
-to show you where the mark is located.  You have to remember.  The usual
-solution to this problem is to set the mark and then use it soon, before
-you forget where it is.  Alternatively, you can see where the mark is
-with the command @kbd{C-x C-x} (@code{exchange-point-and-mark}) which
-puts the mark where point was and point where the mark was.  The extent
-of the region is unchanged, but the cursor and point are now at the
-previous position of the mark.  In Transient Mark mode, this command
-also reactivates the mark.
+  When Emacs was developed, terminals had only one cursor, so Emacs
+does not show where the mark is located--you have to remember.  If you
+enable Transient Mark mode (see below), then the region is highlighted
+when it is active; you can tell mark is at the other end of the
+highlighted region.  But this only applies when the mark is active.
+
+  The usual solution to this problem is to set the mark and then use
+it soon, before you forget where it is.  Alternatively, you can see
+where the mark is with the command @kbd{C-x C-x}
+(@code{exchange-point-and-mark}) which puts the mark where point was
+and point where the mark was.  The extent of the region is unchanged,
+but the cursor and point are now at the previous position of the mark.
+In Transient Mark mode, this command also reactivates the mark.
 
   @kbd{C-x C-x} is also useful when you are satisfied with the position
 of point but want to move the other end of the region (where the mark
@@ -113,14 +118,13 @@ the new position with point back at its original position.
 @ref{Mark Ring}.
 
 @kindex C-@@
-  There is no such character as @kbd{C-@key{SPC}} in @acronym{ASCII}; when you
-type @key{SPC} while holding down @key{CTRL}, what you get on most
-ordinary terminals is the character @kbd{C-@@}.  This key is actually
-bound to @code{set-mark-command}.  But unless you are unlucky enough to
-have a terminal where typing @kbd{C-@key{SPC}} does not produce
+  There is no such character as @kbd{C-@key{SPC}} in @acronym{ASCII};
+when you type @key{SPC} while holding down @key{CTRL} on a text
+terminal, what you get is the character @kbd{C-@@}.  This key is also
+bound to @code{set-mark-command}--so unless you are unlucky enough to
+have a text terminal where typing @kbd{C-@key{SPC}} does not produce
 @kbd{C-@@}, you might as well think of this character as
-@kbd{C-@key{SPC}}.  Under X, @kbd{C-@key{SPC}} is actually a distinct
-character, but its binding is still @code{set-mark-command}.
+@kbd{C-@key{SPC}}.
 
 @node Transient Mark
 @section Transient Mark Mode
@@ -180,6 +184,10 @@ Any change to the buffer, such as inserting or deleting a character,
 deactivates the mark.  This means any subsequent command that operates
 on a region will get an error and refuse to operate.  You can make the
 region active again by typing @kbd{C-x C-x}.
+
+@item
+If Delete Selection mode is also enabled, some commands delete the
+region when used while the mark is active.  @xref{Graphical Kill}.
 
 @item
 Quitting with @kbd{C-g} deactivates the mark.
@@ -320,10 +328,10 @@ Put region around current page (@code{mark-page}).
 word, while @kbd{C-M-@@} (@code{mark-sexp}) puts it at the end of the
 next balanced expression (@pxref{Expressions}).  These commands handle
 arguments just like @kbd{M-f} and @kbd{C-M-f}.  If you repeat these
-commands, the region is extended.  For example, you can type either
-@kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.
-The region is also extended when the mark is active in Transient Mark
-mode, regardless of the last command.
+commands, that extends the region.  For example, you can type either
+@kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.  This
+command also extends the region when the mark is active in Transient
+Mark mode, regardless of the last command.
 
 @kindex C-x h
 @findex mark-whole-buffer
@@ -337,20 +345,20 @@ paragraph.  With prefix argument, if the argument's value is positive,
 point.  If the prefix argument is @minus{}@var{n}, @kbd{M-h} also
 marks @var{n} paragraphs, running back form the one surrounding point.
 In that last case, point moves forward to the end of that paragraph,
-and the mark goes at the start of the region.  The @kbd{M-h} command
-also supports the extension of the region, similar to @kbd{M-@@} and
-@kbd{C-M-@@}.
+and the mark goes at the start of the region.  Repeating the @kbd{M-h}
+command extends the region, just as with @kbd{M-@@} and @kbd{C-M-@@}.
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
 mark after, the current (or following) major top-level definition, or
-defun (@pxref{Moving by Defuns}).  (Currently it only marks one defun,
-but repeating it marks more defuns, like for @kbd{M-@@}.)  @kbd{C-x
-C-p} (@code{mark-page}) puts point before the current page, and mark
-at the end (@pxref{Pages}).  The mark goes after the terminating page
-delimiter (to include it in the region), while point goes after the
-preceding page delimiter (to exclude it).  A numeric argument
-specifies a later page (if positive) or an earlier page (if negative)
-instead of the current page.
+defun (@pxref{Moving by Defuns}).  Repeating @kbd{C-M-h} also extends
+the region.
+
+  @kbd{C-x C-p} (@code{mark-page}) puts point before the current page,
+and mark at the end (@pxref{Pages}).  The mark goes after the
+terminating page delimiter (to include it in the region), while point
+goes after the preceding page delimiter (to exclude it).  A numeric
+argument specifies a later page (if positive) or an earlier page (if
+negative) instead of the current page.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
 buffer as the region, by putting point at the beginning and the mark at

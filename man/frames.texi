@@ -312,6 +312,12 @@ mouse while it is held down, also has its usual behavior of setting
 the region.  The variable @code{mouse-1-click-follows-link} controls
 whether @kbd{Mouse-1} has this behavior.
 
+@vindex mouse-1-click-follows-link
+  Normally, the @kbd{Mouse-1} click behavior is performed on links in
+any window.  The variable @code{mouse-1-click-in-non-selected-windows}
+controls whether @kbd{Mouse-1} has this behavior even in non-selected
+windows, or only in the selected window.
+
 @vindex mouse-highlight
   You can usually tell when @kbd{Mouse-1} and @kbd{Mouse-2} have this
 special sort of meaning because the sensitive text highlights when you

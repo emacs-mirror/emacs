@@ -16,9 +16,10 @@ the minibuffer to edit the argument text.
 @cindex prompt
   When the minibuffer is in use, it appears in the echo area, and the
 terminal's cursor moves there.  The beginning of the minibuffer line
-displays a @dfn{prompt} which says what kind of input you should supply and
-how it will be used.  Often this prompt is derived from the name of the
-command that the argument is for.  The prompt normally ends with a colon.
+displays a @dfn{prompt} in a special color, to say what kind of input
+you should supply and how it will be used.  Often this prompt is
+derived from the name of the command that the argument is for.  The
+prompt normally ends with a colon.
 
 @cindex default argument
   Sometimes a @dfn{default argument} appears in parentheses after the
@@ -123,8 +124,8 @@ entering.
 
   Since @key{RET} in the minibuffer is defined to exit the minibuffer,
 you can't use it to insert a newline in the minibuffer.  To do that,
-type @kbd{C-o} or @kbd{C-q C-j}.  (Recall that a newline is really the
-character control-J.)
+type @kbd{C-o} or @kbd{C-q C-j}.  (On text terminals, newline is
+really the @acronym{ASCII} character control-J.)
 
   The minibuffer has its own window which always has space on the screen
 but acts as if it were not there when the minibuffer is not in use.  When
@@ -147,12 +148,13 @@ with @kbd{C-x ^}.
 
 @vindex resize-mini-windows
   The minibuffer window expands vertically as necessary to hold the
-text that you put in the minibuffer, if @code{resize-mini-windows} is
-non-@code{nil}.  If @code{resize-mini-windows} is @code{t}, the window
-is always resized to fit the size of the text it displays.  If
-@code{resize-mini-windows} is the symbol @code{grow-only}, the window
-grows when the size of displayed text increases, but shrinks (back to
-the normal size) only when the minibuffer becomes inactive.
+text that you put in the minibuffer.  If @code{resize-mini-windows} is
+@code{t} (the default), the window is always resized to fit the size
+of the text it displays.  If its value is the symbol @code{grow-only},
+the window grows when the size of displayed text increases, but
+shrinks (back to the normal size) only when the minibuffer becomes
+inactive.  If its value is @code{nil}, you have to adjust the height
+yourself.
 
 @vindex max-mini-window-height
   The variable @code{max-mini-window-height} controls the maximum
@@ -161,11 +163,13 @@ specifies a fraction of the frame's height; an integer specifies the
 maximum number of lines; @code{nil} means do not resize the minibuffer
 window automatically.  The default value is 0.25.
 
-  If while in the minibuffer you issue a command that displays help text
-of any sort in another window, you can use the @kbd{C-M-v} command while
-in the minibuffer to scroll the help text.  This lasts until you exit
-the minibuffer.  This feature is especially useful when you display
-a buffer listing possible completions.  @xref{Other Window}.
+  If, while in the minibuffer, you issue a command that displays help
+text of any sort in another window, you can use the @kbd{C-M-v}
+command while in the minibuffer to scroll the help text.
+(@kbd{M-@key{PAGEUP}} and @kbd{M-@key{PAGEDOWN}} also operate on that
+help text.)  This lasts until you exit the minibuffer.  This feature
+is especially useful when you display a buffer listing possible
+completions.  @xref{Other Window}.
 
 @vindex enable-recursive-minibuffers
   Emacs normally disallows most commands that use the minibuffer while
@@ -273,8 +277,9 @@ window that displays a list of completions:
 
 @table @kbd
 @findex mouse-choose-completion
-@item Mouse-2
-Clicking mouse button 2 on a completion in the list of possible
+@item Mouse-1
+@itemx Mouse-2
+Clicking mouse button 1 or 2 on a completion in the list of possible
 completions chooses that completion (@code{mouse-choose-completion}).
 You normally use this command while point is in the minibuffer, but you
 must click in the list of completions, not in the minibuffer itself.
@@ -447,10 +452,13 @@ match for @var{regexp} (@code{next-matching-history-element}).
 @findex previous-history-element
   The simplest way to reuse the saved arguments in the history list is
 to move through the history list one element at a time.  While in the
-minibuffer, use @kbd{M-p} or up-arrow (@code{previous-history-element})
-to ``move to'' the next earlier minibuffer input, and use @kbd{M-n} or
-down-arrow (@code{next-history-element}) to ``move to'' the next later
-input.
+minibuffer, use @kbd{M-p} or up-arrow
+(@code{previous-history-element}) to ``move to'' the next earlier
+minibuffer input, and use @kbd{M-n} or down-arrow
+(@code{next-history-element}) to ``move to'' the next later input.
+These commands don't move the cursor, they bring different saved
+strings into the minibuffer.  But you can think of them as ``moving''
+through the history list.
 
   The previous input that you fetch from the history entirely replaces
 the contents of the minibuffer.  To use it as the argument, exit the
@@ -570,7 +578,7 @@ but it does something similar.  Although it behaves like a complex command,
 it normally does not appear in the history list for @kbd{C-x
 @key{ESC} @key{ESC}}.  You can make it appear in the history by
 setting @code{isearch-resume-in-command-history} to a non-@code{nil}
-value.
+value.  @xref{Incremental Search}.
 
 @vindex command-history
   The list of previous minibuffer-using commands is stored as a Lisp

@@ -1,3 +1,38 @@
+2005-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (XASSERTS): Define to 0 if not already defined.
+	(xassert) [!XASSERTS]: Define dummy version.
+
+2005-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): YABX (yet another bogus xassert).
+	Reported by David Kastrup.
+
+2005-03-01  Ehud Karni  <ehud@unix.mvs.co.il>
+
+	* xdisp.c (get_next_display_element): Fix control and escape
+	glyph from display vector.
+
+2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fposn_at_x_y): Check integerness of X and Y.
+
+2005-02-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_resize_outer_widget): Remove unneeded call to
+	gtk_window_resize and x_wm_set_size_hint.
+
+2005-02-25  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (OVERLAY_STRING_CHUNK_SIZE): Increase from 3 to 16.
+
+	* xdisp.c (init_from_display_pos): Don't read past end of
+	it->overlay_strings array.
+
+2005-02-25  Stephan Stahl <stahl@eos.franken.de>  (tiny change)
+
+	* buffer.c (syms_of_buffer): Fix typo.
+
 2005-02-23  Lute Kamstra  <lute@gnu.org>
 
 	* buffer.c (Foverlay_buffer): Doc fix.
@@ -14,7 +49,7 @@
 	* window.c (window_scroll_pixel_based): When scrolling backwards,
 	handle partial visible line at end of window even when we hit PT.
 
-2005-02-21  Stefan  <monnier@iro.umontreal.ca>
+2005-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.h: Declare Fcurrent_active_maps, used in doc.c.
 
@@ -72,8 +107,7 @@
 	(Fx_window_property): Likewise.
 
 	* xselect.c (Fx_disown_selection_internal): Use union of struct
-	input_event and struct selection_input_event to avoid aliasing
-	issues.
+	input_event and struct selection_input_event to avoid aliasing issues.
 
 	* xterm.c (handle_one_xevent): Use union of struct input_event and
 	struct selection_input_event to avoid aliasing issues.
@@ -102,21 +136,20 @@
 	clipboard operations and delayed rendering.
 
 	Drop last_clipboard_text and related code, keep track of
-	ownership via clipboard_owner instead.  Drop old #if0
-	sections.
+	ownership via clipboard_owner instead.  Drop old #if0 sections.
 
 	(DEFAULT_LCID, ANSICP, OEMCP, QUNICODE, QANSICP, QOEMCP)
 	(clipboard_owner, modifying_clipboard, cfg_coding_system)
 	(cfg_codepage, cfg_lcid, cfg_clipboard_type, current_text)
 	(current_coding_system, current_requires_encoding)
-	(current_num_nls, current_clipboard_type, current_lcid): New
-	static variables.
+	(current_num_nls, current_clipboard_type, current_lcid):
+	New static variables.
 
 	(convert_to_handle_as_ascii, convert_to_handle_as_coded)
 	(render, render_all, run_protected, lisp_error_handler)
 	(owner_callback, create_owner, setup_config)
-	(enum_locale_callback, cp_from_locale, coding_from_cp): New
-	local functions.
+	(enum_locale_callback, cp_from_locale, coding_from_cp):
+	New local functions.
 
 	(term_w32select, globals_of_w32select): New global functions.
 
@@ -316,8 +349,7 @@
 	(casify_region): Fix loop condition, args to replace_range_2, and
 	update opoint_byte.
 
-	* insdel.c (replace_range_2): Fix bugs in adjusting markers and
-	point.
+	* insdel.c (replace_range_2): Fix bugs in adjusting markers and point.
 
 2005-02-01  Kim F. Storm  <storm@cua.dk>
 
@@ -10994,9 +11026,9 @@
 	These changes were in part based upon suggestions made by Peter
 	'Luna' Runestig [peter@runestig.com].
 
-	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token,
-	g_b_init_get_token_information, g_b_init_lookup_account_sid,
-	g_b_init_get_sid_identifier_authority ): Add several static
+	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token)
+	(g_b_init_get_token_information, g_b_init_lookup_account_sid)
+	(g_b_init_get_sid_identifier_authority ): Add several static
 	global variables.
 
 	* w32.c (globals_of_w32): New function.  Used to initialize those

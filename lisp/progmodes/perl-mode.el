@@ -161,10 +161,11 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 (defvar perl-imenu-generic-expression
   '(;; Functions
-    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)\\(\\s-\\|\n\\)*{" 1 )
+    (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1 )
-    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1 ))
+    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
+    ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
+    ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
 
 ;; Regexps updated with help from Tom Tromey <tromey@cambric.colorado.edu> and
@@ -411,6 +412,20 @@ create a new comment."
 (defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
   "*Lines starting with this regular expression are not auto-indented."
   :type 'regexp)
+
+;; Outline support
+
+(defvar perl-outline-regexp
+  (concat (mapconcat 'cadr perl-imenu-generic-expression "\\|")
+	  "\\|^=cut\\>"))
+
+(defun perl-outline-level ()
+  (cond
+   ((looking-at "package\\s-") 0)
+   ((looking-at "sub\\s-") 1)
+   ((looking-at "=head[0-9]") (- (char-before (match-end 0)) ?0))
+   ((looking-at "=cut") 1)
+   (t 3)))
 
 ;;;###autoload
 (defun perl-mode ()
@@ -498,9 +513,12 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
 			      . perl-font-lock-syntactic-face-function)
 			     (parse-sexp-lookup-properties . t)))
   ;; Tell imenu how to handle Perl.
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression perl-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+       perl-imenu-generic-expression)
   (setq imenu-case-fold-search nil)
+  ;; Setup outline-minor-mode.
+  (set (make-local-variable 'outline-regexp) perl-outline-regexp)
+  (set (make-local-variable 'outline-level) 'perl-outline-level)
   (run-hooks 'perl-mode-hook))
 
 ;; This is used by indent-for-comment

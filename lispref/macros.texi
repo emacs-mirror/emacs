@@ -140,13 +140,10 @@ uses this feature.
 
 @defun macroexpand-all form &optional environment
 @cindex macro expansion in entire form
-
 @code{macroexpand-all} expands macros like @code{macroexpand}, but
 will look for and expand all macros in @var{form}, not just at the
-top-level.
-
-In emacs-lisp, @code{macroexpand-all} guarantees that if no macros
-are expanded, the return value will be @code{eq} to @var{form}.
+top-level.  If no macros are expanded, the return value is @code{eq}
+to @var{form}.
 
 Repeating the example used for @code{macroexpand} above with
 @code{macroexpand-all}, we see that @code{macroexpand-all} @emph{does}
@@ -715,7 +712,7 @@ This is the same as no property---use the standard indentation pattern.
 @item @code{defun}
 Handle this function like a @samp{def} construct: treat the second
 line as the start of a @dfn{body}.
-@item a number, @var{number}
+@item an integer, @var{number}
 The first @var{number} arguments of the function are
 @dfn{distinguished} arguments; the rest are considered the body
 of the expression.  A line in the expression is indented according to

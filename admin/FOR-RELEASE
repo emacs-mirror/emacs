@@ -37,9 +37,6 @@ invalid pointer from string_free_list.
 
 ** Fix up url-ldap.el.
 
-** url/*.el has lots of `(declare (special ...))' which
-are meaningless.  What's that trying to do?
-
 * BUGS
 
 ** Ange-ftp should ignore irrelevant IPv6 errors:
@@ -232,17 +229,17 @@ people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-lispref/abbrevs.texi     "Luc Teirlinck"
-lispref/advice.texi	 Joakim Verona <joakim@verona.se>
+lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
+lispref/advice.texi	 joakim@verona.se  Chong Yidong
 lispref/anti.texi
-lispref/backups.texi     "Luc Teirlinck"  Chong Yidong
+lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>
-lispref/commands.texi    "Luc Teirlinck"
+lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi
-lispref/debugging.texi   Joakim Verona <joakim@verona.se>
+lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi
 lispref/edebug.texi
 lispref/elisp.texi       "Luc Teirlinck"
@@ -252,17 +249,17 @@ lispref/files.texi       "Luc Teirlinck"   Chong Yidong
 lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
 lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/help.texi	 "Luc Teirlinck"
+lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hooks.texi
 lispref/internals.texi	 "Luc Teirlinck"
 lispref/intro.texi	 "Luc Teirlinck"
-lispref/keymaps.texi	 "Luc Teirlinck"
+lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi
-lispref/macros.texi      "Luc Teirlinck"
+lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
 lispref/maps.texi
-lispref/markers.texi     "Luc Teirlinck"
+lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong
 lispref/nonascii.texi    "Luc Teirlinck"
@@ -270,7 +267,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi
+lispref/processes.texi   Chong Yidong
 lispref/searching.texi	 "Luc Teirlinck"
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong

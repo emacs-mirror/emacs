@@ -77,11 +77,12 @@ cannot be executed.  If the file name is relative, the variable
 @code{exec-path} contains a list of directories to search.  Emacs
 initializes @code{exec-path} when it starts up, based on the value of
 the environment variable @code{PATH}.  The standard file name
-constructs, @samp{~}, @samp{.}, and @samp{..}, are interpreted as usual
-in @code{exec-path}, but environment variable substitutions
+constructs, @samp{~}, @samp{.}, and @samp{..}, are interpreted as
+usual in @code{exec-path}, but environment variable substitutions
 (@samp{$HOME}, etc.) are not recognized; use
 @code{substitute-in-file-name} to perform them (@pxref{File Name
-Expansion}).
+Expansion}).  @code{nil} in this list refers to
+@code{default-directory}.
 
   Executing a program can also try adding suffixes to the specified
 name:
@@ -92,6 +93,10 @@ specified program file name.  The list should include @code{""} if you
 want the name to be tried exactly as specified.  The default value is
 system-dependent.
 @end defvar
+
+  @strong{Please note:} The argument @var{program} contains only the
+name of the program; it may not contain any command-line arguments.  You
+must use @var{args} to provide those.
 
   Each of the subprocess-creating functions has a @var{buffer-or-name}
 argument which specifies where the standard output from the program will
@@ -107,12 +112,7 @@ same buffer because their output would be intermixed randomly.
 argument, @var{args}.  The @var{args} must all be strings, and they are
 supplied to @var{program} as separate command line arguments.  Wildcard
 characters and other shell constructs have no special meanings in these
-strings, since the whole strings are passed directly to the specified
-program.
-
-  @strong{Please note:} The argument @var{program} contains only the
-name of the program; it may not contain any command-line arguments.  You
-must use @var{args} to provide those.
+strings, since the strings are passed directly to the specified program.
 
   The subprocess gets its current directory from the value of
 @code{default-directory} (@pxref{File Name Expansion}).
@@ -547,17 +547,16 @@ Information}).
 subprocess.  Processes are deleted automatically after they terminate,
 but not necessarily right away.  You can delete a process explicitly
 at any time.  If you delete a terminated process explicitly before it
-is deleted automatically, no harm results.  Deletion of a running
+is deleted automatically, no harm results.  Deleting a running
 process sends a signal to terminate it (and its child processes if
-any), and calls the process sentinel if it has one.
+any), and calls the process sentinel if it has one.  @xref{Sentinels}.
 
-  @code{get-buffer-process} and @code{process-list} do not remember a
-deleted process, but the process object itself continues to exist as
-long as other Lisp objects point to it.  All the Lisp primitives that
-work on process objects accept deleted processes, but those that do
-I/O or send signals will report an error.  The process mark continues
-to point to the same place as before, usually into a buffer where
-output from the process was being inserted.
+  When a process is deleted, the process object itself continues to
+exist as long as other Lisp objects point to it.  All the Lisp
+primitives that work on process objects accept deleted processes, but
+those that do I/O or send signals will report an error.  The process
+mark continues to point to the same place as before, usually into a
+buffer where output from the process was being inserted.
 
 @defopt delete-exited-processes
 This variable controls automatic deletion of processes that have
@@ -567,15 +566,16 @@ terminated (due to calling @code{exit} or to a signal).  If it is
 they exit.
 @end defopt
 
-@defun delete-process name
-This function deletes the process associated with @var{name}, killing
-it with a @code{SIGKILL} signal.  The argument @var{name} may be a
-process, the name of a process, a buffer, or the name of a buffer.
-Calling @code{delete-process} on a running process terminates it,
-updates the process status, and runs the sentinel (if any) immediately.
-If the process has already terminated, calling @code{delete-process}
-has no effect on its status, or on the running of its sentinel (which
-will happen sooner or later).
+@defun delete-process process
+This function deletes a process, killing it with a @code{SIGKILL}
+signal.  The argument may be a process, the name of a process, a
+buffer, or the name of a buffer.  (A buffer or buffer-name stands for
+the process that @code{get-buffer-process} returns.)  Calling
+@code{delete-process} on a running process terminates it, updates the
+process status, and runs the sentinel (if any) immediately.  If the
+process has already terminated, calling @code{delete-process} has no
+effect on its status, or on the running of its sentinel (which will
+happen sooner or later).
 
 @smallexample
 @group
@@ -728,7 +728,7 @@ for decoding output from @var{process} and for encoding input to
 @end example
 @end defun
 
-@defun set-process-coding-system process decoding-system encoding-system
+@defun set-process-coding-system process &optional decoding-system encoding-system
 This function specifies the coding systems to use for subsequent output
 from and input to @var{process}.  It will use @var{decoding-system} to
 decode subprocess output, and @var{encoding-system} to encode subprocess
@@ -784,11 +784,14 @@ again.  This gives the subprocess a chance to read more of its pending
 input and make space in the buffer.  It also allows filters, sentinels
 and timers to run---so take account of that in writing your code.
 
-@defun process-send-string process-name string
-This function sends @var{process-name} the contents of @var{string} as
-standard input.  The argument @var{process-name} must be a process or
-the name of a process.  If it is @code{nil}, the current buffer's
-process is used.
+  In these functions, the @var{process} argument can be a process or
+the name of a process, or a buffer or buffer name (which stands
+for a process via @code{get-buffer-process}).  @code{nil} means
+the current buffer's process.
+
+@defun process-send-string process string
+This function sends @var{process} the contents of @var{string} as
+standard input.  If it is @code{nil}, the current buffer's process is used.
 
   The function returns @code{nil}.
 
@@ -811,26 +814,20 @@ introduction.txt                text.texi~
 @end smallexample
 @end defun
 
-@defun process-send-region process-name start end
+@defun process-send-region process start end
 This function sends the text in the region defined by @var{start} and
-@var{end} as standard input to @var{process-name}, which is a process or
-a process name.  (If it is @code{nil}, the current buffer's process is
-used.)
+@var{end} as standard input to @var{process}.
 
 An error is signaled unless both @var{start} and @var{end} are
 integers or markers that indicate positions in the current buffer.  (It
 is unimportant which number is larger.)
 @end defun
 
-@defun process-send-eof &optional process-name
-  This function makes @var{process-name} see an end-of-file in its
+@defun process-send-eof &optional process
+This function makes @var{process} see an end-of-file in its
 input.  The @acronym{EOF} comes after any text already sent to it.
 
-  If @var{process-name} is not supplied, or if it is @code{nil}, then
-this function sends the @acronym{EOF} to the current buffer's process.  An
-error is signaled if the current buffer has no process.
-
-  The function returns @var{process-name}.
+The function returns @var{process}.
 
 @smallexample
 @group
@@ -875,10 +872,11 @@ user hung up the phone.)
   Each of the signal-sending functions takes two optional arguments:
 @var{process-name} and @var{current-group}.
 
-  The argument @var{process-name} must be either a process, the name of
-one, or @code{nil}.  If it is @code{nil}, the process defaults to the
-process associated with the current buffer.  An error is signaled if
-@var{process-name} does not identify a process.
+  The argument @var{process} must be either a process, a process
+name, a buffer, a buffer name, or @code{nil}.  A buffer or buffer name
+stands for a process through @code{get-buffer-process}.  @code{nil}
+stands for the process associated with the current buffer.  An error
+is signaled if @var{process} does not identify a process.
 
   The argument @var{current-group} is a flag that makes a difference
 when you are running a job-control shell as an Emacs subprocess.  If it
@@ -895,8 +893,8 @@ support the distinction in the case of pipes.  For the same reason,
 job-control shells won't work when a pipe is used.  See
 @code{process-connection-type} in @ref{Asynchronous Processes}.
 
-@defun interrupt-process &optional process-name current-group
-This function interrupts the process @var{process-name} by sending the
+@defun interrupt-process &optional process current-group
+This function interrupts the process @var{process} by sending the
 signal @code{SIGINT}.  Outside of Emacs, typing the ``interrupt
 character'' (normally @kbd{C-c} on some systems, and @code{DEL} on
 others) sends this signal.  When the argument @var{current-group} is
@@ -904,21 +902,21 @@ non-@code{nil}, you can think of this function as ``typing @kbd{C-c}''
 on the terminal by which Emacs talks to the subprocess.
 @end defun
 
-@defun kill-process &optional process-name current-group
-This function kills the process @var{process-name} by sending the
+@defun kill-process &optional process current-group
+This function kills the process @var{process} by sending the
 signal @code{SIGKILL}.  This signal kills the subprocess immediately,
 and cannot be handled by the subprocess.
 @end defun
 
-@defun quit-process &optional process-name current-group
+@defun quit-process &optional process current-group
 This function sends the signal @code{SIGQUIT} to the process
-@var{process-name}.  This signal is the one sent by the ``quit
+@var{process}.  This signal is the one sent by the ``quit
 character'' (usually @kbd{C-b} or @kbd{C-\}) when you are not inside
 Emacs.
 @end defun
 
-@defun stop-process &optional process-name current-group
-This function stops the process @var{process-name} by sending the
+@defun stop-process &optional process current-group
+This function stops the process @var{process} by sending the
 signal @code{SIGTSTP}.  Use @code{continue-process} to resume its
 execution.
 
@@ -929,9 +927,9 @@ Outside of Emacs, on systems with job control, the ``stop character''
 subprocess.
 @end defun
 
-@defun continue-process &optional process-name current-group
+@defun continue-process &optional process current-group
 This function resumes execution of the process @var{process} by sending
-it the signal @code{SIGCONT}.  This presumes that @var{process-name} was
+it the signal @code{SIGCONT}.  This presumes that @var{process} was
 stopped previously.
 @end defun
 
@@ -940,8 +938,9 @@ stopped previously.
 This function sends a signal to process @var{process}.  The argument
 @var{signal} specifies which signal to send; it should be an integer.
 
-You can specify the target process by its process @acronym{ID}; that allows
-you to send signals to processes that are not children of Emacs.
+The @var{process} argument can be a system process @acronym{ID}; that
+allows you to send signals to processes that are not children of
+Emacs.
 @end defun
 
 @node Output from Processes
@@ -1240,7 +1239,7 @@ there is no filter function:
 it decodes the output according to the process output coding system.
 If the coding system is @code{raw-text} or @code{no-conversion}, Emacs
 converts the unibyte output to multibyte using
-@code{string-to-multibyte}, inserts the resulting multibyte text.
+@code{string-to-multibyte}, and inserts the resulting multibyte text.
 
   You can use @code{set-process-coding-system} to specify which coding
 system to use (@pxref{Process Information}).  Otherwise, the coding
@@ -1443,7 +1442,7 @@ was not.
 @section Querying Before Exit
 
   When Emacs exits, it terminates all its subprocesses by sending them
-the @code{SIGHUP} signal.  Because some subprocesses are doing
+the @code{SIGHUP} signal.  Because subprocesses may be doing
 valuable work, Emacs normally asks the user to confirm that it is ok
 to terminate them.  Each process has a query flag which, if
 non-@code{nil}, says that Emacs should ask for confirmation before

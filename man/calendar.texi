@@ -291,7 +291,9 @@ Display day-in-year (@code{calendar-print-day-of-year}).
 @item C-c C-l
 Regenerate the calendar window (@code{redraw-calendar}).
 @item SPC
-Scroll the next window (@code{scroll-other-window}).
+Scroll the next window up (@code{scroll-other-window}).
+@item DEL
+Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{exit-calendar}).
 @end table
@@ -314,8 +316,9 @@ non-Calendar-mode editing commands.)
 
 @kindex SPC @r{(Calendar mode)}
   In Calendar mode, you can use @kbd{SPC} (@code{scroll-other-window})
-to scroll the other window.  This is handy when you display a list of
-holidays or diary entries in another window.
+and @kbd{DEL} (@code{scroll-other-window-down}) to scroll the other
+window up or down, respectively.  This is handy when you display a list
+of holidays or diary entries in another window.
 
 @kindex q @r{(Calendar mode)}
 @findex exit-calendar
@@ -437,8 +440,8 @@ marks, type @kbd{u}, which also erases any diary marks (@pxref{Diary}).
 @findex list-calendar-holidays
   To get even more detailed information, use the @kbd{a} command, which
 displays a separate buffer containing a list of all holidays in the
-current three-month range.  You can use @key{SPC} in the calendar window
-to scroll that list.
+current three-month range.  You can use @key{SPC} and @key{DEL} in the
+calendar window to scroll that list up and down, respectively.
 
 @findex holidays
   The command @kbd{M-x holidays} displays the list of holidays for the
@@ -861,7 +864,7 @@ The @dfn{long count} is a counting of days with these units:
 @noindent
 Thus, the long count date 12.16.11.16.6 means 12 baktun, 16 katun, 11
 tun, 16 uinal, and 6 kin.  The Emacs calendar can handle Mayan long
-count dates as early as 7.17.18.13.1, but no earlier.  When you use the
+count dates as early as 7.17.18.13.3, but no earlier.  When you use the
 @kbd{g m l} command, type the Mayan long count date with the baktun,
 katun, tun, uinal, and kin separated by periods.
 
@@ -1203,7 +1206,10 @@ make a nonmarking diary entry, give a numeric argument to the command.
 For example, @kbd{C-u i w} makes a nonmarking weekly diary entry.
 
   When you modify the diary file, be sure to save the file before
-exiting Emacs.
+exiting Emacs.  Saving the diary file after using any of the above
+insertion commands will automatically update the diary marks in the
+calendar window, if appropriate.  You can use the command
+@code{redraw-calendar} to force an update at any time.
 
 @node Special Diary Entries
 @subsection Special Diary Entries
@@ -1510,11 +1516,14 @@ instance) keep track of how much time you spend working.
 
 @findex timeclock-in
 @findex timeclock-out
+@findex timeclock-change
 @findex timeclock-workday-remaining
 @findex timeclock-when-to-leave
   Use the @kbd{M-x timeclock-in} command when you start working on a
 project, and @kbd{M-x timeclock-out} command when you're done.  Each
-time you do this, it adds one time interval to the record of the project.
+time you do this, it adds one time interval to the record of the
+project.  You can change to working on a different project with @kbd{M-x
+timeclock-change}.
 
   Once you've collected data from a number of time intervals, you can use
 @kbd{M-x timeclock-workday-remaining} to see how much time is left to
@@ -1529,12 +1538,13 @@ workday in the mode line, either customize the
 @code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.
 
 @vindex timeclock-ask-before-exiting
-  Terminating the current Emacs session might or might not mean that
-you have stopped working on the project.  If you'd like Emacs to ask
-you about this, set the value of the variable
-@code{timeclock-ask-before-exiting} to @code{t} (via @kbd{M-x
-customize}).  By default, only an explicit @kbd{M-x timeclock-out}
-tells Emacs that the current interval is over.
+  Terminating the current Emacs session might or might not mean that you
+have stopped working on the project and, by default, Emacs queries this.
+You can, however, set the value of the variable
+@code{timeclock-ask-before-exiting} to @code{nil} (via @kbd{M-x
+customize}) to avoid this behaviour; then, only an explicit @kbd{M-x
+timeclock-out} or @kbd{M-x timeclock-change} will tell Emacs that the
+current interval is over.
 
 @cindex @file{.timelog} file
 @vindex timeclock-file

@@ -198,7 +198,7 @@ If this variable is non-@code{nil}, Emacs always makes backup files by
 copying.
 @end defopt
 
-  The following two variables, when non-@code{nil}, cause the second
+  The following three variables, when non-@code{nil}, cause the second
 method to be used in certain special cases.  They have no effect on the
 treatment of files that don't fall into the special cases.
 
@@ -253,7 +253,7 @@ file or multiple numbered backups.
 @table @asis
 @item @code{nil}
 Make numbered backups if the visited file already has numbered backups;
-otherwise, do not.
+otherwise, do not.  This is the default.
 
 @item @code{never}
 Do not make numbered backups.
@@ -503,7 +503,8 @@ function should check that variable first.
 @end group
 @end example
 
-The standard definition of this function is as follows:
+Here is a simplified version of the standard definition of this
+function:
 
 @example
 @group

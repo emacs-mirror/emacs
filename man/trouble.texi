@@ -1037,16 +1037,21 @@ form that is clearly safe to install.
 
 If you would like to help pretest Emacs releases to assure they work
 well, or if you would like to work on improving Emacs, please contact
-the maintainers at @email{bug-gnu-emacs@@gnu.org}.  A pretester
+the maintainers at @email{emacs-devel@@gnu.org}.  A pretester
 should be prepared to investigate bugs as well as report them.  If you'd
 like to work on improving Emacs, please ask for suggested projects or
 suggest your own ideas.
 
 If you have already written an improvement, please tell us about it.  If
 you have not yet started work, it is useful to contact
-@email{bug-gnu-emacs@@gnu.org} before you start; it might be
+@email{emacs-devel@@gnu.org} before you start; it might be
 possible to suggest ways to make your extension fit in better with the
 rest of Emacs.
+
+The development version of Emacs can be downloaded from the CVS
+repository where it is actively maintained by a group of developers.
+See the Emacs project page http://savannah.gnu.org/projects/emacs/ for
+details.
 
 @node Service, Copying, Contributing, Top
 @section How To Get Help with GNU Emacs

@@ -2387,9 +2387,10 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
 ;;;###autoload
 (defun ispell-change-dictionary (dict &optional arg)
   "Change to dictionary DICT for Ispell.
-By just answering RET you can find out what the current dictionary is.
+With a prefix arg, set it \"globally\", for all buffers.
+Without a prefix arg, set it \"locally\", just for this buffer.
 
-With prefix argument, set the default dictionary."
+By just answering RET you can find out what the current dictionary is."
   (interactive
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "

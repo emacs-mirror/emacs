@@ -2541,7 +2541,10 @@ init_from_display_pos (it, w, pos)
      after-string.  */
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
 
-  for (i = 0; i < it->n_overlay_strings; ++i)
+  /* This only scans the current chunk -- it should scan all chunks.
+     However, OVERLAY_STRING_CHUNK_SIZE has been increased from 3 in 21.1
+     to 16 in 22.1 to make this a lesser problem.  */
+  for (i = 0; i < it->n_overlay_strings && i < OVERLAY_STRING_CHUNK_SIZE; ++i)
     {
       const char *s = SDATA (it->overlay_strings[i]);
       const char *e = s + SBYTES (it->overlay_strings[i]);
@@ -5178,11 +5181,12 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
-	      int face_id, lface_id;
+	      int face_id, lface_id = 0 ;
 	      GLYPH escape_glyph;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
+		  g = '^';	     /* default glyph for Control */
 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
 		  if (it->dp
 		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
@@ -5190,19 +5194,18 @@ get_next_display_element (it)
 		    {
 		      g = XINT (DISP_CTRL_GLYPH (it->dp));
 		      lface_id = FAST_GLYPH_FACE (g);
-		      if (lface_id)
-			{
-			  g = FAST_GLYPH_CHAR (g);
-			  face_id = merge_faces (it->f, Qt, lface_id,
-						 it->face_id);
-			}
+		    }
+		  if (lface_id)
+		    {
+		       g = FAST_GLYPH_CHAR (g);
+		       face_id = merge_faces (it->f, Qt, lface_id,
+					      it->face_id);
 		    }
 		  else
 		    {
 		      /* Merge the escape-glyph face into the current face.  */
 		      face_id = merge_faces (it->f, Qescape_glyph, 0,
 					     it->face_id);
-		      g = '^';
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
@@ -5212,25 +5215,25 @@ get_next_display_element (it)
 		  goto display_control;
 		}
 
+	      escape_glyph = '\\';    /* default for Octal display */
 	      if (it->dp
 		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
 		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
 		{
 		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  lface_id = FAST_GLYPH_FACE (escape_glyph);
-		  if (lface_id)
-		    {
-		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
-		      face_id = merge_faces (it->f, Qt, lface_id,
-					     it->face_id);
-		    }
+		}
+	      if (lface_id)
+		{
+		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+		  face_id = merge_faces (it->f, Qt, lface_id,
+					 it->face_id);
 		}
 	      else
 		{
 		  /* Merge the escape-glyph face into the current face.  */
 		  face_id = merge_faces (it->f, Qescape_glyph, 0,
 					 it->face_id);
-		  escape_glyph = '\\';
 		}
 
 	      if (it->c == 0xA0 || it->c == 0xAD)
@@ -5947,9 +5950,9 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && IT_CHARPOS (*it) >= to_charpos				\
-   && (it->method == GET_FROM_BUFFER ||				\
-       (it->method == GET_FROM_DISPLAY_VECTOR &&		\
-	it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
+   && (it->method == GET_FROM_BUFFER				\
+       || (it->method == GET_FROM_DISPLAY_VECTOR		\
+	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
 
 
   while (1)
@@ -12386,7 +12389,11 @@ redisplay_window (window, just_this_one_p)
     {
       init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
       move_it_vertically_backward (&it, 0);
+#if 0
+      /* I think this assert is bogus if buffer contains
+	 invisible text or images.  KFS.  */
       xassert (IT_CHARPOS (it) <= PT);
+#endif
       it.current_y = 0;
     }
 
@@ -20920,8 +20927,10 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 
   /* If whole rows or last part of a row came from a display overlay,
      row_containing_pos will skip over such rows because their end pos
-     equals the start pos of the overlay or interval.  Backtrack if we
-     have a STOP object and previous row's end glyph came from STOP.  */
+     equals the start pos of the overlay or interval.
+
+     Move back if we have a STOP object and previous row's
+     end glyph came from STOP.  */
   if (!NILP (stop))
     {
       struct glyph_row *prev;
@@ -20929,11 +20938,11 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
 	     && prev->used[TEXT_AREA] > 0)
 	{
-	  end = prev->glyphs[TEXT_AREA];
-	  glyph = end + prev->used[TEXT_AREA];
-	  while (--glyph >= end
+	  struct glyph *beg = prev->glyphs[TEXT_AREA];
+	  glyph = beg + prev->used[TEXT_AREA];
+	  while (--glyph >= beg
 		 && INTEGERP (glyph->object));
-	  if (glyph < end
+	  if (glyph < beg
 	      || !EQ (stop, glyph->object))
 	    break;
 	  row = prev;
@@ -22961,8 +22970,10 @@ Bind this around calls to `message' to let it take effect.  */);
   message_truncate_lines = 0;
 
   DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
-    doc: /* Normal hook run for clicks on menu bar, before displaying a submenu.
-Can be used to update submenus whose contents should vary.  */);
+    doc: /* Normal hook run to update the menu bar definitions.
+Redisplay runs this hook before it redisplays the menu bar.
+This is used to update submenus such as Buffers,
+whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
 
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,

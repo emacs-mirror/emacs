@@ -394,17 +394,17 @@ This is another name for @code{set-marker}.
 @cindex mark ring
 
   One special marker in each buffer is designated @dfn{the mark}.  It
-records a position for the user for the sake of commands such as
-@code{kill-region} and @code{indent-rigidly}.  Lisp programs should set
-the mark only to values that have a potential use to the user, and never
-for their own internal purposes.  For example, the @code{replace-regexp}
-command sets the mark to the value of point before doing any
-replacements, because this enables the user to move back there
-conveniently after the replace is finished.
+specifies a position to bound a range of text for commands such as
+@code{kill-region} and @code{indent-rigidly}.  Lisp programs should
+set the mark only to values that have a potential use to the user, and
+never for their own internal purposes.  For example, the
+@code{replace-regexp} command sets the mark to the value of point
+before doing any replacements, because this enables the user to move
+back there conveniently after the replace is finished.
 
-  Many commands are designed so that when called interactively they
-operate on the text between point and the mark.  If you are writing such
-a command, don't examine the mark directly; instead, use
+  Many commands are designed to operate on the text between point and
+the mark when called interactively.  If you are writing such a
+command, don't examine the mark directly; instead, use
 @code{interactive} with the @samp{r} specification.  This provides the
 values of point and the mark as arguments to the command in an
 interactive call, but permits other Lisp programs to specify arguments
