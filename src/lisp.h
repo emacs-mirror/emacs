@@ -1719,6 +1719,7 @@ EXFUN (Fchar_table_extra_slot, 2);
 EXFUN (Fset_char_table_extra_slot, 3);
 EXFUN (Frassoc, 2);
 EXFUN (Fstring_equal, 2);
+EXFUN (Fcompare_strings, 7);
 EXFUN (Fstring_lessp, 2);
 extern int char_table_translate P_ ((Lisp_Object, int));
 extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object, Lisp_Object),
