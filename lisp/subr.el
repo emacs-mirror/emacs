@@ -665,7 +665,8 @@ If EVENT is a mouse press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -674,7 +675,8 @@ The `posn-' functions access elements of such lists."
   "Return the ending location of EVENT.  EVENT should be a click or drag event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
-   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -757,17 +759,35 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions." 
   (nth 3 position))
 
-(defsubst posn-object (position)
-  "Return the object of POSITION.
+(defsubst posn-string (position)
+  "Return the string object of POSITION, or nil if a buffer position.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions." 
   (nth 4 position))
+
+(defsubst posn-image (position)
+  "Return the image object of POSITION, or nil if a not an image.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (nth 7 position))
+
+(defsubst posn-object (position)
+  "Return the object (image or string) of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (or (posn-image position) (posn-string position)))
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions." 
-  (nth 7 position))
+  (nth 8 position))
+
+(defsubst posn-object-width-height (position)
+  "Return the pixel width and height of the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (nth 9 position))
 
 
 ;;;; Obsolescent names for functions.
