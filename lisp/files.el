@@ -2069,6 +2069,7 @@ is specified, returning t if it is specified."
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (put 'mode-line-modes 'risky-local-variable t)
 (put 'mode-line-position 'risky-local-variable t)
+(put 'mode-line-process 'risky-local-variable t)
 (put 'mode-name 'risky-local-variable t)
 (put 'display-time-string 'risky-local-variable t)
 (put 'parse-time-rules 'risky-local-variable t)
