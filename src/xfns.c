@@ -2839,6 +2839,7 @@ x_window (f)
   f->output_data.x->wm_hints.flags |= InputHint;
   XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	       &f->output_data.x->wm_hints);
+  f->output_data.x->wm_hints.icon_pixmap = None;
 
   /* Request "save yourself" and "delete window" commands from wm.  */
   {
