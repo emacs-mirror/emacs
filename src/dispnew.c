@@ -502,6 +502,20 @@ clear_frame_records (frame)
   bzero (FRAME_CURRENT_GLYPHS (frame)->enable, FRAME_HEIGHT (frame));
 }
 
+/* Clear out all display lines for a coming redisplay.  */
+
+void
+init_desired_glyphs (frame)
+     register FRAME_PTR frame;
+{
+  register struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (frame);
+  int vpos;
+  int height = FRAME_HEIGHT (frame);
+
+  for (vpos = 0; vpos < height; vpos++)
+    desired_glyphs->enable[vpos] = 0;
+}
+
 /* Prepare to display on line VPOS starting at HPOS within it.  */
 
 void
@@ -1887,6 +1901,7 @@ DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
   Sframe_or_buffer_changed_p, 0, 0, 0,
   "Return non-nil if the frame and buffer state appears to have changed.\n\
 The state variable is an internal vector containing all frames and buffers,\n\
+aside from buffers whose names start with space,\n\
 along with the buffers' read-only and modified flags, which allows a fast\n\
 check to see whether the menu bars might need to be recomputed.\n\
 If this function returns non-nil, it updates the internal vector to reflect\n\
@@ -1907,6 +1922,9 @@ the current state.\n")
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       buf = XCONS (XCONS (tail)->car)->cdr;
+      /* Ignore buffers that aren't included in buffer lists.  */
+      if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
+	continue;
       if (!EQ (*vecp++, buf))
 	goto changed;
       if (!EQ (*vecp++, XBUFFER (buf)->read_only))
@@ -1934,6 +1952,9 @@ the current state.\n")
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       buf = XCONS (XCONS (tail)->car)->cdr;
+      /* Ignore buffers that aren't included in buffer lists.  */
+      if (XSTRING (XBUFFER (buf)->name)->data[0] == ' ')
+	continue;
       *vecp++ = buf;
       *vecp++ = XBUFFER (buf)->read_only;
       *vecp++ = Fbuffer_modified_p (buf);
@@ -2290,8 +2311,7 @@ Emacs was built without floating point support.\n\
    it does the redisplay.
 
    It's also much like Fsit_for, except that it can be used for
-   waiting for input as well.  One differnce is that sit_for
-   does not call prepare_menu_bars; Fsit_for does call that.  */
+   waiting for input as well.  */
 
 Lisp_Object
 sit_for (sec, usec, reading, display)
