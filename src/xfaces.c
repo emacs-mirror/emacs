@@ -1631,9 +1631,12 @@ unload_color (f, pixel)
      unsigned long pixel;
 {
 #ifdef HAVE_X_WINDOWS
-  BLOCK_INPUT;
-  x_free_colors (f, &pixel, 1);
-  UNBLOCK_INPUT;
+  if (pixel != -1)
+    {
+      BLOCK_INPUT;
+      x_free_colors (f, &pixel, 1);
+      UNBLOCK_INPUT;
+    }
 #endif
 }
 
