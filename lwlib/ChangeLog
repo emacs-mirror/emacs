@@ -1,3 +1,8 @@
+2000-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (make_menubar) [LESSTIF_VERSION]: Don't set
+	XmNresizeHeight and XmNresizeWidth.
+
 2000-03-08  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (liblw.a): Don't bother testing for ranlib failing

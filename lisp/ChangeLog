@@ -1,3 +1,8 @@
+2000-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* recentf.el (recentf-keep-non-readable-files-p): Remove
+	double/nested definition.
+
 2000-03-12  Dave Love  <fx@gnu.org>
 
 	* facemenu.el (facemenu-get-face): Use display-color-p.
