@@ -5204,7 +5204,7 @@ This is the same as (default-value 'ctl-arrow).  */);
 
    DEFVAR_LISP_NOPRO ("default-direction-reversed",
 		      &buffer_defaults.direction_reversed,
-		      doc: /* Default value of `direction_reversed' for buffers that do not override it.
+		      doc: /* Default value of `direction-reversed' for buffers that do not override it.
 This is the same as (default-value 'direction-reversed).  */);
 
    DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
