@@ -217,7 +217,7 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 			 (if newbot
 			     (setq newsizes
 				   (cons (cons w (* level-size (- newbot newtop)))
-					 newsizes)))))))
+					 newsizes))))))
 		    'nomini)
       ;; Make walk-windows start with the topmost window.
       (select-window (previous-window (frame-first-window (selected-frame))))
@@ -237,7 +237,7 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 							nil t)
 					(unless (= (window-height) newsize)
 					  (setq done nil))))))
-			'nomini)))))
+			'nomini))))))
 
 ;;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
