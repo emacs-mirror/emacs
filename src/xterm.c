@@ -3557,9 +3557,9 @@ x_connection_closed ()
   exit (70);
 }
 
-/* An X error handler which prints an error message and then kills Emacs.  
-   This is what's normally installed as Xlib's handler for protocol and 
-   I/O errors.  */
+/* An X error handler which prints an error message and then kills
+   Emacs.  This is what's normally installed as Xlib's handler for
+   protocol errors.  */
 static int
 x_error_quitter (display, error)
      Display *display;
@@ -3573,6 +3573,23 @@ x_error_quitter (display, error)
   XGetErrorText (display, error->error_code, buf, sizeof (buf));
   fprintf (stderr, "X protocol error: %s on protocol request %d\n",
 	   buf, error->request_code);
+
+  /* While we're testing Emacs 19, we'll just dump core whenever we
+     get an X error, so we can figure out why it happened.  */
+  abort ();
+
+  x_connection_closed ();
+}
+
+/* A handler for X IO errors which prints an error message and then
+   kills Emacs.  This is what is always installed as Xlib's handler
+   for I/O errors.  */
+static int
+x_io_error_quitter (display)
+     Display *display;
+{
+  fprintf (stderr, "Connection to X server %s lost.\n",
+	   XDisplayName (DisplayString (display)));
 
   /* While we're testing Emacs 19, we'll just dump core whenever we
      get an X error, so we can figure out why it happened.  */
@@ -3873,8 +3890,7 @@ x_set_window_size (f, cols, rows)
      might be kind of confusing to the lisp code, since size changes
      wouldn't be reported in the frame parameters until some random
      point in the future when the ConfigureNotify event arrives.  */
-  FRAME_WIDTH (f) = cols;
-  FRAME_HEIGHT (f) = rows;
+  change_frame_size (f, rows, cols, 0, 0);
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
 
@@ -4506,7 +4522,7 @@ x_term_init (display_name)
   /* Note that there is no real way portable across R3/R4 to get the 
      original error handler.  */
   XHandleError (x_error_quitter);
-  XHandleIOError (x_error_quitter);
+  XHandleIOError (x_io_error_quitter);
 
   /* Disable Window Change signals;  they are handled by X events. */
 #ifdef SIGWINCH
