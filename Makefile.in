@@ -286,7 +286,7 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
 
-oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
+oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
 	rm -f oldXMenu/Makefile.tmp
 	@echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile'."
 	@(echo "# This file is generated from \`${srcdir}/oldXMenu/Makefile'." ; \
