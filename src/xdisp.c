@@ -13961,7 +13961,9 @@ syms_of_xdisp ()
   defsubr (&Strace_redisplay_toggle);
   defsubr (&Strace_to_stderr);
 #endif
+#ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Stool_bar_lines_needed);
+#endif
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
