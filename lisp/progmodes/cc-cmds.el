@@ -1165,7 +1165,7 @@ but the line is always reindented.
 A numeric argument, regardless of its value, means indent rigidly all
 the lines of the expression starting after point so that this line
 becomes properly indented.  The relative indentation among the lines
-of the expression are preserved.
+of the expression is preserved.
 
   [*] The amount and kind of whitespace inserted is controlled by the
   variable `c-insert-tab-function', which is called to do the actual
