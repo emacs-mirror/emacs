@@ -199,10 +199,8 @@ Lisp_Object Vx_pixel_size_width_font_regexp;
 /*&&& symbols declared here &&&*/
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
-Lisp_Object Qbar;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
-Lisp_Object Qbox;
 Lisp_Object Qcursor_color;
 Lisp_Object Qcursor_type;
 Lisp_Object Qgeometry;
@@ -9889,14 +9887,10 @@ syms_of_macfns ()
   staticpro (&Qauto_raise);
   Qauto_lower = intern ("auto-lower");
   staticpro (&Qauto_lower);
-  Qbar = intern ("bar");
-  staticpro (&Qbar);
   Qborder_color = intern ("border-color");
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
   staticpro (&Qborder_width);
-  Qbox = intern ("box");
-  staticpro (&Qbox);
   Qcursor_color = intern ("cursor-color");
   staticpro (&Qcursor_color);
   Qcursor_type = intern ("cursor-type");
