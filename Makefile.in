@@ -294,11 +294,13 @@ lwlib/Makefile: lwlib/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ## We don't depend on `all', but rather on ${SUBDIR}, so that we won't
 ## ever modify src/paths.h.
-install: ${SUBDIR} install-arch-dep install-arch-indep blessmail
+install: ${SUBDIR} install-arch-indep install-arch-dep blessmail
 	@true
 
 ### Install the executables that were compiled specifically for this machine.
-install-arch-dep: mkdir
+### This depends on install-arch-indep because
+### the executable needs the Lisp files and DOC file to work properly.
+install-arch-dep: mkdir install-arch-indep
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
