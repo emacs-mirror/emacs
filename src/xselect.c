@@ -729,6 +729,7 @@ x_reply_selection_request (event, format, data, size, type)
       TRACE0 ("Done sending incrementally");
     }
 
+  /* rms, 2003-01-03: I think I have fixed this bug.  */
   /* The window we're communicating with may have been deleted
      in the meantime (that's a real situation from a bug report).
      In this case, there may be events in the event queue still

@@ -450,7 +450,7 @@ The DTD must end before the position END in the current buffer."
     (setq string (replace-match "'"  t nil string)))
   (while (string-match "&quot;" string)
     (setq string (replace-match "\"" t nil string)))
-  ;; do this last to avoid aliasing errors
+  ;; This goes last so it doesn't confuse the matches above.
   (while (string-match "&amp;" string)
     (setq string (replace-match "&"  t nil string)))
   string)
