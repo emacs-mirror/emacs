@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000
+;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000, 2001
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -909,10 +909,9 @@ This controls how we read comma constructs.")
 	  (edebug-storing-offsets (point)  
 	    (if (featurep 'cl) 'function* 'function))
 	  (edebug-read-storing-offsets stream)))
-	((memq (char-after)
-	       ;; Other # read forms than these probably shouldn't be
-	       ;; in source.
-	       '(?: ?B ?O ?X ?b ?o ?x))
+	((memq (following-char) '(?: ?B ?O ?X ?b ?o ?x ?1 ?2 ?3 ?4 ?5 ?6
+				    ?7 ?8 ?9 ?0))
+	 (backward-char 1)
 	 (edebug-original-read stream))
 	(t (edebug-syntax-error "Bad char after #"))))
 
