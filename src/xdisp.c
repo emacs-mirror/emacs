@@ -2756,6 +2756,7 @@ handle_single_display_prop (it, prop, object, position)
       if (FRAME_TERMCAP_P (it->f)
 	  || FRAME_MSDOS_P (it->f)
 	  || FRAME_W32_CONSOLE_P (it->f))
+	return 0;
       
       value = XCAR (XCDR (prop));
       if (NUMBERP (value) && XFLOATINT (value) > 0)
@@ -2769,6 +2770,7 @@ handle_single_display_prop (it, prop, object, position)
       if (FRAME_TERMCAP_P (it->f)
 	  || FRAME_MSDOS_P (it->f)
 	  || FRAME_W32_CONSOLE_P (it->f))
+	return 0;
       
 #ifdef HAVE_WINDOW_SYSTEM
       value = XCAR (XCDR (prop));
@@ -10225,7 +10227,7 @@ try_window_reusing_current_matrix (w)
 	  
 	  /* Disable lines in the current matrix which are now
 	     below the window.  */
-	  for (; row < bottom_row; ++row)
+	  for (++row; row < bottom_row; ++row)
 	    row->enabled_p = 0;
 	}
 
