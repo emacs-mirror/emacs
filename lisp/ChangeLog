@@ -7,6 +7,23 @@
 	recent compilation directory only when `recompile' is invoked NOT
 	in the compilation buffer.  Otherwise, use `default-directory' of
 	the compilation buffer.
+	(compilation-error-properties): Allow to funcall col and end-col.
+	(compilation-mode-font-lock-keywords): Check col and end-col by
+	`integerp'.
+	(compilation-goto-locus): If end-mk is non-nil in transient mark
+	mode don't activate the mark (and don't display message in
+	push-mark), but highlight overlay between mk and end-mk.
+
+	* progmodes/grep.el (grep-highlight-matches): New defcustom.
+	(grep-regexp-alist): Add rule to highlight grep matches.
+	(grep-process-setup): Set env-vars GREP_OPTIONS and GREP_COLOR.
+
+	* info.el (Info-fontify-node): Don't compute other-tag
+	if Info-hide-note-references=hide.
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point):
+	Try `find-tag-default' when other methods failed.
 
 	* emacs-lisp/lisp.el (beginning-of-defun, end-of-defun):
 	Do not push mark if inhibit-mark-movement is non-nil.
