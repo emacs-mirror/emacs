@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.88.1.1 $")
+(defconst byte-compile-version "$Revision: 2.89 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2151,7 +2151,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	       (unless (cdr list)
 		 (error "Variable name missing after &optional")))
 	      ((memq arg vars)
-	       (error "Repeated variable %s in lambda-list" arg))
+	       (byte-compile-warn "repeated variable %s in lambda-list" arg))
 	      (t 
 	       (push arg vars))))
       (setq list (cdr list)))))
