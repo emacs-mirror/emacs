@@ -3724,8 +3724,8 @@ direct_output_forward_char (n)
   row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
 
   /* Give up if PT is outside of the last known cursor row.  */
-  if (PT <= MATRIX_ROW_START_BYTEPOS (row)
-      || PT >= MATRIX_ROW_END_BYTEPOS (row))
+  if (PT <= MATRIX_ROW_START_CHARPOS (row)
+      || PT >= MATRIX_ROW_END_CHARPOS (row))
     return 0;
 
   set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
