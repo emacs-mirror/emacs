@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.52) $
+ * $HopeName: MMsrc!mpsi.c(trunk.53) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.52) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.53) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -723,7 +723,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   Res res;
 
   AVER(mps_ap != NULL);  
-  AVERT(Buffer, buf);
+  AVER(CHECKT(Buffer, buf));
   arena = BufferArena(buf);
 
   ArenaEnter(arena);
@@ -1285,7 +1285,7 @@ mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
 
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
-  AVERT(Buffer, buf);
+  AVER(CHECKT(Buffer, buf));
   AVER(mps_alloc_pattern == NULL);
 
   arena = BufferArena(buf);
@@ -1307,7 +1307,7 @@ mps_res_t mps_ap_alloc_pattern_end(mps_ap_t mps_ap,
 
   AVER(mps_ap != NULL);
   buf = BufferOfAP((AP)mps_ap);
-  AVERT(Buffer, buf);
+  AVER(CHECKT(Buffer, buf));
   AVER(mps_alloc_pattern == NULL);
 
   arena = BufferArena(buf);
