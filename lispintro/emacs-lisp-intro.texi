@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.02
-@set update-date 2001 Nov 25
+@set edition-number 2.03
+@set update-date 2001 Dec  7
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -4950,10 +4950,10 @@ complicated than shown here.  The line reads
 @noindent
 (The expression works nearly the same as before.  It sets a mark at
 the highest numbered place in the buffer that it can.  However, in
-this version, @code{push-mark} has two additional arguments The second
-argument to @code{push-mark} is @code{nil}.  This tells the function
-it should @emph{not} display a message that says `Mark set' when it
-pushes the mark.  The third argument is @code{t}.  This tells
+this version, @code{push-mark} has two additional arguments.  The
+second argument to @code{push-mark} is @code{nil}.  This tells the
+function it @emph{should} display a message that says `Mark set' when
+it pushes the mark.  The third argument is @code{t}.  This tells
 @code{push-mark} to activate the mark when Transient Mark mode is
 turned on.  Transient Mark mode highlights the currently active
 region.  It is usually turned off.)
