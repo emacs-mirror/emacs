@@ -3209,16 +3209,22 @@ x_detect_focus_change (dpyinfo, event, bufp, numchars)
     {
     case EnterNotify:
     case LeaveNotify:
-      if (event->xcrossing.detail != NotifyInferior
-          && event->xcrossing.focus
-          && ! (frame->output_data.x->focus_state & FOCUS_EXPLICIT))
-        nr_events = x_focus_changed ((event->type == EnterNotify
-                                      ? FocusIn : FocusOut),
-                                     FOCUS_IMPLICIT,
-                                     dpyinfo,
-                                     frame,
-                                     bufp,
-                                     numchars);
+      {
+        struct frame *focus_frame = dpyinfo->x_focus_event_frame;
+        int focus_state
+          = focus_frame ? focus_frame->output_data.x->focus_state : 0;
+
+        if (event->xcrossing.detail != NotifyInferior
+            && event->xcrossing.focus
+            && ! (focus_state & FOCUS_EXPLICIT))
+          nr_events = x_focus_changed ((event->type == EnterNotify
+                                        ? FocusIn : FocusOut),
+                                       FOCUS_IMPLICIT,
+                                       dpyinfo,
+                                       frame,
+                                       bufp,
+                                       numchars);
+      }
       break;
 
     case FocusIn:
