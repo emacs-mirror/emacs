@@ -2413,7 +2413,8 @@ See the sections below for details.
 
 ** Since `format' preserves text properties, the idiom
 `(format "%s" foo)' no longer works to copy and remove properties.
-Use `copy-sequence' and `set-text-properties'.
+Use `copy-sequence' to copy the string, then use `set-text-properties'
+to remove the properties of the copy.
 
 ** Since the `keymap' text property now has significance, some code
 which uses both `local-map' and `keymap' properties (for portability)
