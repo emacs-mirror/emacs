@@ -394,7 +394,9 @@ brace."
   (let ((res nil))
     (while
 	(progn
-	  (setq res (re-search-forward "[^!<>=]\\(=\\)[^=]" limit t))
+	  (setq res (re-search-forward
+		     "[^!<>=]\\(\\([-+*/%&^|]\\|<<\\|>>\\)?=\\)[^=]"
+		     limit t))
 	  (and res
 	       (save-excursion
 		 (goto-char (match-beginning 1))
