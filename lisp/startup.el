@@ -41,13 +41,14 @@
 ; -u user		load user's init file
 ; -user user		same
 ; -debug-init		Don't catch errors in init file; let debugger run.
+; -no-site-file		Don't load site-run-file.
 
 ; These are processed in the order encountered.
 ; -f function		execute function
 ; -funcall function	same
 ; -l file		load file
 ; -load file		same
-; -insert file		same
+; -insert file		insert file into buffer
 ; file			visit file
 ; -kill			kill (exit) emacs
 
@@ -291,7 +292,21 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
     ;; processed.  This is consistent with the way main in emacs.c
     ;; does things.
     (while (and (not done) args)
-      (let ((argi (car args)))
+      (let ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
+			("--debug-init")))
+	    (argi (car args))
+	    (argval nil))
+	(if (string-match "=" argi)
+	    (setq argi (substring argi 0 (1- (match-beginning 0)))
+		  argval (substring argi (match-end 0))))
+	(let ((completion (try-completion argi longopts)))
+	  (if (eq completion t)
+	      (setq argi (substring argi 1))
+	    (if (stringp completion)
+		(let ((elt (assoc completion longopts)))
+		  (or elt
+		      (error "Option `%s' is ambiguous" argi))
+		  (setq argi (substring (car elt) 1))))))
 	(cond
 	 ((or (string-equal argi "-q")
 	      (string-equal argi "-no-init-file"))
@@ -299,8 +314,11 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 		args (cdr args)))
 	 ((or (string-equal argi "-u")
 	      (string-equal argi "-user"))
-	  (setq args (cdr args)
-		init-file-user (car args)
+	  (or argval
+	      (setq argval (car args)
+		    args (cdr args)))
+	  (setq init-file-user argval
+		argval nil
 		args (cdr args)))
 	 ((string-equal argi "-no-site-file")
 	  (setq site-run-file nil
@@ -308,8 +326,11 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	 ((string-equal argi "-debug-init")
 	  (setq init-file-debug t
 		args (cdr args)))
-	 (t (setq done t)))))
-    
+	 (t (setq done t)))
+	;; Was argval set but not used?
+	(and argval
+	     (error "Option `%s' doesn't allow an argument" argi))))
+
     ;; Re-attach the program name to the front of the arg list.
     (setcdr command-line-args args))
 
