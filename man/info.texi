@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.11 2001/04/17 12:13:47 eliz Exp $
+@comment $Id: info.texi,v 1.20 2001/05/03 14:02:33 karl Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -91,7 +91,7 @@ To learn advanced Info commands, type @kbd{n} twice.  This brings you to
 * Getting Started::             Getting started using an Info reader.
 * Advanced Info::               Advanced commands within Info.
 * Creating an Info File::       How to make your own Info file.
-* Index::                       An Index of topics, commands, and variables.
+* Index::                       An index of topics, commands, and variables.
 @end menu
 
 @node Getting Started, Advanced Info, Top, Top
@@ -771,55 +771,6 @@ underlying text and the mouse pointer change in response.
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
-@node Help-Cross,  ,  , Help-Adv
-@subsection The node reached by the cross reference in Info
-
-  This is the node reached by the cross reference named @samp{Cross}.
-
-  While this node is specifically intended to be reached by a cross
-reference, most cross references lead to nodes that ``belong''
-someplace else far away in the structure of an Info document.  So you
-cannot expect this node to have a @samp{Next}, @samp{Previous} or
-@samp{Up} links pointing back to where you came from.  In general, the
-@kbd{l} (el) command is the only way to get back there.
-
-@format
->> Type @kbd{l} to return to the node where the cross reference was.
-@end format
-
-@node Help-Q,  , Help-Adv, Getting Started
-@comment  node-name,  next,  previous,  up
-@section Quitting Info
-
-@kindex q @r{(Info mode)}
-@findex Info-exit
-@cindex quitting Info mode
-  To get out of Info, back to what you were doing before, type @kbd{q}
-for @dfn{Quit}.  This runs @code{Info-exit} in Emacs.
-
-  This is the end of the basic course on using Info.  You have learned
-how to move in an Info document, and how to follow menus and cross
-references.  This makes you ready for reading manuals top to bottom,
-as new users should do when they learn a new package.
-
-  Another set of Info commands is useful when you need to find
-something quickly in a manual---that is, when you need to use a manual
-as a reference rather than as a tutorial.  We urge you to make learn
-these search commands as well.  If you want to do that now, follow this
-cross reference to @ref{Info Search}.
-
-Yet another set of commands are meant for experienced users; you can
-find them by looking in the Directory node for documentation on Info.
-Finding them will be a good exercise in using Info in the usual
-manner.
-
-@format
->> Type @kbd{d} to go to the Info directory node; then type
-   @kbd{mInfo} and Return, to get to the node about Info and
-   see what other help is available.
-@end format
-
-
 @node Advanced Info
 @chapter Info for Experts
 
@@ -1150,6 +1101,60 @@ examples of cross references pointers:
 @noindent
 @emph{These are just examples.}  The places they ``lead to'' do not
 really exist!
+
+@menu
+* Help-Cross::                  Target of a cross-reference.
+@end menu
+
+
+@node Help-Cross,  ,  , Cross-refs
+@subsection The node reached by the cross reference in Info
+
+  This is the node reached by the cross reference named @samp{Cross}.
+
+  While this node is specifically intended to be reached by a cross
+reference, most cross references lead to nodes that ``belong''
+someplace else far away in the structure of an Info document.  So you
+cannot expect this node to have a @samp{Next}, @samp{Previous} or
+@samp{Up} links pointing back to where you came from.  In general, the
+@kbd{l} (el) command is the only way to get back there.
+
+@format
+>> Type @kbd{l} to return to the node where the cross reference was.
+@end format
+
+@node Help-Q,  , Help-Adv, Getting Started
+@comment  node-name,  next,  previous,  up
+@section Quitting Info
+
+@kindex q @r{(Info mode)}
+@findex Info-exit
+@cindex quitting Info mode
+  To get out of Info, back to what you were doing before, type @kbd{q}
+for @dfn{Quit}.  This runs @code{Info-exit} in Emacs.
+
+  This is the end of the basic course on using Info.  You have learned
+how to move in an Info document, and how to follow menus and cross
+references.  This makes you ready for reading manuals top to bottom,
+as new users should do when they learn a new package.
+
+  Another set of Info commands is useful when you need to find
+something quickly in a manual---that is, when you need to use a manual
+as a reference rather than as a tutorial.  We urge you to make learn
+these search commands as well.  If you want to do that now, follow this
+cross reference to @ref{Info Search}.
+
+Yet another set of commands are meant for experienced users; you can
+find them by looking in the Directory node for documentation on Info.
+Finding them will be a good exercise in using Info in the usual
+manner.
+
+@format
+>> Type @kbd{d} to go to the Info directory node; then type
+   @kbd{mInfo} and Return, to get to the node about Info and
+   see what other help is available.
+@end format
+
 
 @node Tags, Checking, Cross-refs, Advanced Info
 @comment  node-name,  next,  previous,  up
