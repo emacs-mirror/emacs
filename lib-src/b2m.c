@@ -211,12 +211,13 @@ readline (linebuffer, stream)
 	}
       if (c == EOF)
 	{
+	  *p = '\0';
 	  chars_deleted = 0;
 	  break;
 	}
       if (c == '\n')
 	{
-	  if (p[-1] == '\r' && p > buffer)
+	  if (p > buffer && p[-1] == '\r')
 	    {
 	      *--p = '\0';
 	      chars_deleted = 2;
