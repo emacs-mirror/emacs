@@ -57,10 +57,6 @@
 (or window-system
     (error "Can't fontify on an ASCII terminal"))
 
-(or (internal-find-face 'underline)
-    (copy-face 'default 'underline))
-(set-face-underline-p 'underline t)
-
 (defvar font-lock-comment-face
   'italic
   "Face to use for comments.")
@@ -215,7 +211,9 @@ slow things down!")
 	(setq prev nil))
       (and prev
 	   (remove-text-properties prev end '(face nil)))
-      (set-buffer-modified-p modified))))
+      (and (buffer-modified-p)
+	   (not modified)
+	   (set-buffer-modified-p nil)))))
 
 ;; This code used to be used to show a string on reaching the end of it.
 ;; It is probably not needed due to later changes to handle strings
@@ -314,20 +312,21 @@ slow things down!")
 	    (if (not (memq allow-overlap-p '(t nil)))
 		(save-excursion
 		  (goto-char s)
-		  (save-restriction
-		    (narrow-to-region s e)
-		    (while (not (eobp))
-		      (let ((next (next-single-property-change (point) 'face)))
-			(if (or (null next) (> next (point-max)))
-			    (setq next (point-max)))
-			(if (not (get-text-property (point) 'face))
-			    (put-text-property (point) next 'face face))
-			(goto-char next)))))
+		  (while (< (point) e)
+		    (let ((next (next-single-property-change (point) 'face
+							     nil e)))
+		      (if (or (null next) (> next e))
+			  (setq next e))
+		      (if (not (get-text-property (point) 'face))
+			  (put-text-property (point) next 'face face))
+		      (goto-char next))))
 	      (put-text-property s e 'face face))))
       (if loudly (message "Fontifying %s... (regexps...%s)"
 			  (buffer-name)
 			  (make-string (setq count (1+ count)) ?.))))
-    (set-buffer-modified-p modified)))
+    (and (buffer-modified-p)
+	 (not modified)
+	 (set-buffer-modified-p nil))))
 
 ;; The user level functions
 
@@ -585,7 +584,7 @@ This does a lot more highlighting.")
     ;;
     ;; fontify case targets and goto-tags.  This is slow because the
     ;; expression is anchored on the right.
-    "\\(\\(\\sw\\|\\s_\\)+\\):"
+    '("[ \t\n]\\(\\(\\sw\\|\\s_\\)+\\):" . 1)
     ;;
     ;; Fontify variables declared with structures, or typedef names.
     '("}[ \t*]*\\(\\(\\sw\\|\\s_\\)+\\)[ \t]*[,;]"
