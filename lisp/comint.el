@@ -268,6 +268,9 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
 (defvar comint-input-ring-size 32
   "Size of input history ring.")
 
+(defvar comint-input-ring-separator "\n"
+  "Separator between commands in the history file.")
+
 (defcustom comint-process-echoes nil
   "*If non-nil, assume that the subprocess echoes any input.
 If so, delete one copy of the input so that only one copy eventually
@@ -744,8 +747,9 @@ failure to read the history file.
 
 This function is useful for major mode commands and mode hooks.
 
-The structure of the history file should be one input command per line,
-with the most recent command last.
+The commands stored in the history file are separated by the
+`comint-input-ring-separator'.  The most recent command comes last.
+
 See also `comint-input-ignoredups' and `comint-write-input-ring'."
   (cond ((or (null comint-input-ring-file-name)
 	     (equal comint-input-ring-file-name ""))
@@ -771,13 +775,19 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 (while (and (< count comint-input-ring-size)
 			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
 						 nil t))
-		   (let ((history (buffer-substring (match-beginning 1)
-						    (match-end 1))))
-		     (if (or (null comint-input-ignoredups)
-			     (ring-empty-p ring)
-			     (not (string-equal (ring-ref ring 0) history)))
-			 (ring-insert-at-beginning ring history)))
-		   (setq count (1+ count))))
+	       (let (start end history)
+		 (while (and (< count comint-input-ring-size)
+			     (re-search-backward comint-input-ring-separator nil t)
+			     (setq end (match-beginning 0))
+			     (re-search-backward comint-input-ring-separator nil t)
+			     (setq start (match-end 0))
+			     (setq history (buffer-substring start end))
+			     (goto-char start))
+		   (if (or (null comint-input-ignoredups)
+			   (ring-empty-p ring)
+			   (not (string-equal (ring-ref ring 0) history)))
+		       (ring-insert-at-beginning ring history)))
+		 (setq count (1+ count)))))
 	     (kill-buffer history-buf))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
@@ -809,7 +819,7 @@ See also `comint-read-input-ring'."
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
-	       (insert (ring-ref ring index) ?\n))
+               (insert (ring-ref ring index) comint-input-ring-separator))
 	     (write-region (buffer-string) nil file nil 'no-message)
 	     (kill-buffer nil))))))
 
