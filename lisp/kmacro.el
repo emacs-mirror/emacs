@@ -583,9 +583,13 @@ others, use M-x name-last-kbd-macro."
     (if end-macro
 	(kmacro-end-macro arg)
       (call-last-kbd-macro arg #'kmacro-loop-setup-function))
+    (when (consp arg)
+      (setq arg (car arg)))
     (when (and (or (null arg) (> arg 0))
 	       (setq repeat-key
-		     (if (eq kmacro-call-repeat-key t) repeat-key kmacro-call-repeat-key)))
+		     (if (eq kmacro-call-repeat-key t)
+			 repeat-key
+		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
 	(message "Repeat macro %swith `%s'..." 
@@ -596,7 +600,8 @@ others, use M-x name-last-kbd-macro."
 	(if (equal repeat-key (read-event))
 	    (progn
 	      (clear-this-command-keys t)
-	      (call-last-kbd-macro (and kmacro-call-repeat-with-arg arg) #'kmacro-loop-setup-function)
+	      (call-last-kbd-macro (and kmacro-call-repeat-with-arg arg)
+				   #'kmacro-loop-setup-function)
 	      (setq last-input-event nil))
 	  (setq repeat-key nil)))
       (when last-input-event
