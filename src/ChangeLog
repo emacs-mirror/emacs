@@ -1,5 +1,10 @@
 2005-03-02  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (XASSERTS): Define to 0 if not already defined.
+	(xassert) [!XASSERTS]: Define dummy version.
+
+2005-03-02  Kim F. Storm  <storm@cua.dk>
+
 	* xdisp.c (redisplay_window): YABX (yet another bogus xassert).
 	Reported by David Kastrup.
 
