@@ -248,6 +248,17 @@ fire repeatedly that many seconds apart."
 (defvar timer-event-last-1 nil)
 (defvar timer-event-last nil)
 
+(defvar timer-max-repeats 10
+  "*Maximum number of times to repeat a timer, if real time jumps.")
+
+(defun timer-until (timer time)
+  "Calculate number of seconds from when TIMER will run, until TIME.
+TIMER is a timer, and stands for the time when its next repeat is scheduled.
+TIME is a time-list.
+  (let ((high (- (car time) (aref timer 1)))
+	(low (- (nth 1 time) (aref timer 2))))
+    (+ low (* high 65536))))
+  
 (defun timer-event-handler (event)
   "Call the handler for the timer in the event EVENT."
   (interactive "e")
@@ -269,6 +280,15 @@ fire repeatedly that many seconds apart."
 	      (if (aref timer 7)
 		  (timer-activate-when-idle timer)
 		(timer-inc-time timer (aref timer 4) 0)
+		;; If real time has jumped forward,
+		;; perhaps because Emacs was suspended for a long time,
+		;; limit how many times things get repeated.
+		(if (and (numberp timer-max-repeats)
+			 (< 0 (timer-until timer (current-time))))
+		    (let ((repeats (/ (timer-until timer (current-time))
+				      (aref timer 4))))
+		      (if (> repeats timer-max-repeats)
+			  (timer-inc-time timer (* (aref timer 4) repeats)))))
 		(timer-activate timer))))
       (error "Bogus timer event"))))
 
