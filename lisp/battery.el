@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2003, 2004
+;; Copyright (C) 1997, 1998, 2000, 2001, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
@@ -108,20 +108,23 @@ The text being displayed in the echo area is controlled by the variables
 		  "Battery status not available")))
 
 ;;;###autoload
-(defun display-battery ()
+(define-minor-mode display-battery-mode
   "Display battery status information in the mode line.
 The text being displayed in the mode line is controlled by the variables
 `battery-mode-line-format' and `battery-status-function'.
 The mode line will be updated automatically every `battery-update-interval'
 seconds."
-  (interactive)
+  :global t
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
-  (add-to-list 'global-mode-string 'battery-mode-line-string t)
   (and battery-update-timer (cancel-timer battery-update-timer))
-  (setq battery-update-timer (run-at-time nil battery-update-interval
-					  'battery-update-handler))
-  (battery-update))
+  (if (not display-battery-mode)
+      (setq global-mode-string
+	    (delq 'battery-mode-line-string global-mode-string))
+    (add-to-list 'global-mode-string 'battery-mode-line-string t)
+    (setq battery-update-timer (run-at-time nil battery-update-interval
+					    'battery-update-handler))
+    (battery-update)))
 
 (defun battery-update-handler ()
   (battery-update)

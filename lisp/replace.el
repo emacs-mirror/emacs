@@ -1267,8 +1267,8 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   "*Controls the lazy-highlighting during query replacements.
 When non-nil, all text in the buffer matching the current match
 is highlighted lazily using isearch lazy highlighting (see
-`isearch-lazy-highlight-initial-delay' and
-`isearch-lazy-highlight-interval')."
+`lazy-highlight-initial-delay' and
+`lazy-highlight-interval')."
   :type 'boolean
   :group 'matching
   :version "21.4")

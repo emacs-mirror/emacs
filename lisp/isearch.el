@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999,
-;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -155,6 +155,15 @@ command history."
   :type 'boolean
   :group 'isearch)
 
+(defcustom isearch-lazy-highlight t
+  "*Controls the lazy-highlighting during incremental search.
+When non-nil, all text in the buffer matching the current search
+string is highlighted lazily (see `lazy-highlight-initial-delay'
+and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'isearch)
+
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
@@ -199,6 +208,54 @@ Default value, nil, means edit the string instead."
   :type 'boolean
   :group 'isearch)
 
+;;; Lazy highlight customization.
+(defgroup lazy-highlight nil
+  "Lazy highlighting feature for matching strings."
+  :prefix "lazy-highlight-"
+  :version "21.1"
+  :group 'isearch
+  :group 'replace)
+
+(defcustom lazy-highlight-cleanup t
+  "*Controls whether to remove extra highlighting after a search.
+If this is nil, extra highlighting can be \"manually\" removed with
+\\[isearch-lazy-highlight-cleanup]."
+  :type 'boolean
+  :group 'lazy-highlight)
+
+(defcustom lazy-highlight-initial-delay 0.25
+  "*Seconds to wait before beginning to lazily highlight all matches."
+  :type 'number
+  :group 'lazy-highlight)
+
+(defcustom lazy-highlight-interval 0 ; 0.0625
+  "*Seconds between lazily highlighting successive matches."
+  :type 'number
+  :group 'lazy-highlight)
+
+(defcustom lazy-highlight-max-at-a-time 20
+  "*Maximum matches to highlight at a time (for `lazy-highlight').
+Larger values may reduce isearch's responsiveness to user input;
+smaller values make matches highlight slowly.
+A value of nil means highlight all matches."
+  :type '(choice (const :tag "All" nil)
+		 (integer :tag "Some"))
+  :group 'lazy-highlight)
+
+(defface lazy-highlight-face
+  '((((class color) (min-colors 88) (background light))
+     (:background "paleturquoise"))
+    (((class color) (min-colors 88) (background dark))
+     (:background "paleturquoise4"))
+    (((class color) (min-colors 16))
+     (:background "turquoise3"))
+    (((class color) (min-colors 8))
+     (:background "turquoise3"))
+    (t (:underline t)))
+  "Face for lazy highlighting of matches other than the current one."
+  :group 'isearch-faces
+  :group 'lazy-highlight)
+
 ;; Define isearch-mode keymap.
 
 (defvar isearch-mode-map
@@ -648,7 +705,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
             (if (< isearch-other-end (point)) ; isearch-forward?
                 (isearch-highlight isearch-other-end (point))
               (isearch-highlight (point) isearch-other-end))
-          (isearch-dehighlight nil))
+          (isearch-dehighlight))
         ))
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
@@ -676,8 +733,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq overriding-terminal-local-map nil)
   ;; (setq pre-command-hook isearch-old-pre-command-hook) ; for lemacs
   (setq minibuffer-message-timeout isearch-original-minibuffer-message-timeout)
-  (isearch-dehighlight t)
-  (isearch-lazy-highlight-cleanup isearch-lazy-highlight-cleanup)
+  (isearch-dehighlight)
+  (isearch-lazy-highlight-cleanup lazy-highlight-cleanup)
   (let ((found-start (window-start (selected-window)))
 	(found-point (point)))
     (if isearch-window-configuration
@@ -2163,7 +2220,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
            (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
            ))))
 
-(defun isearch-dehighlight (totally)
+(defun isearch-dehighlight ()
   (when isearch-overlay
     (delete-overlay isearch-overlay)))
 
@@ -2227,46 +2284,6 @@ since they have special meaning in a regexp."
 ;;  - the variable `isearch-invalid-regexp' is expected to be true
 ;;    iff `isearch-string' is an invalid regexp.
 
-(defgroup isearch-lazy-highlight nil
-  "Lazy highlighting feature for incremental search."
-  :prefix "isearch-lazy-highlight-"
-  :version "21.1"
-  :group 'isearch)
-
-(defcustom isearch-lazy-highlight t
-  "*Controls the lazy-highlighting during incremental searches.
-When non-nil, all text in the buffer matching the current search
-string is highlighted lazily (see `isearch-lazy-highlight-initial-delay'
-and `isearch-lazy-highlight-interval')."
-  :type 'boolean
-  :group 'isearch-lazy-highlight)
-
-(defcustom isearch-lazy-highlight-cleanup t
-  "*Controls whether to remove extra highlighting after a search.
-If this is nil, extra highlighting can be \"manually\" removed with
-\\[isearch-lazy-highlight-cleanup]."
-  :type 'boolean
-  :group 'isearch-lazy-highlight)
-
-(defcustom isearch-lazy-highlight-initial-delay 0.25
-  "*Seconds to wait before beginning to lazily highlight all matches."
-  :type 'number
-  :group 'isearch-lazy-highlight)
-
-(defcustom isearch-lazy-highlight-interval 0 ; 0.0625
-  "*Seconds between lazily highlighting successive matches."
-  :type 'number
-  :group 'isearch-lazy-highlight)
-
-(defcustom isearch-lazy-highlight-max-at-a-time 20
-  "*Maximum matches to highlight at a time (for `isearch-lazy-highlight').
-Larger values may reduce isearch's responsiveness to user input;
-smaller values make matches highlight slowly.
-A value of nil means highlight all matches."
-  :type '(choice (const :tag "All" nil)
-		 (integer :tag "Some"))
-  :group 'isearch-lazy-highlight)
-
 (defgroup isearch-faces nil
   "Lazy highlighting feature for incremental search."
   :version "21.1"
@@ -2288,19 +2305,7 @@ A value of nil means highlight all matches."
   :group 'isearch-faces)
 (defvar isearch 'isearch)
 
-(defface isearch-lazy-highlight-face
-  '((((class color) (min-colors 88) (background light))
-     (:background "paleturquoise"))
-    (((class color) (min-colors 88) (background dark))
-     (:background "paleturquoise4"))
-    (((class color) (min-colors 16))
-     (:background "turquoise3"))
-    (((class color) (min-colors 8))
-     (:background "turquoise3"))
-    (t (:underline t)))
-  "Face for lazy highlighting of Isearch matches other than the current one."
-  :group 'isearch-faces)
-(defvar isearch-lazy-highlight-face 'isearch-lazy-highlight-face)
+(defvar isearch-lazy-highlight-face 'lazy-highlight-face)
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)
@@ -2316,11 +2321,11 @@ A value of nil means highlight all matches."
 
 (defun isearch-lazy-highlight-cleanup (&optional force)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
-FORCE non-nil means do it whether or not `isearch-lazy-highlight-cleanup'
+FORCE non-nil means do it whether or not `lazy-highlight-cleanup'
 is nil.  This function is called when exiting an incremental search if
-`isearch-lazy-highlight-cleanup' is non-nil."
+`lazy-highlight-cleanup' is non-nil."
   (interactive '(t))
-  (if (or force isearch-lazy-highlight-cleanup)
+  (if (or force lazy-highlight-cleanup)
       (while isearch-lazy-highlight-overlays
         (delete-overlay (car isearch-lazy-highlight-overlays))
         (setq isearch-lazy-highlight-overlays
@@ -2330,7 +2335,7 @@ is nil.  This function is called when exiting an incremental search if
     (setq isearch-lazy-highlight-timer nil)))
 
 (defun isearch-lazy-highlight-new-loop ()
-  "Cleanup any previous `isearch-lazy-highlight' loop and begin a new one.
+  "Cleanup any previous `lazy-highlight' loop and begin a new one.
 This happens when `isearch-update' is invoked (which can cause the
 search string to change or the window to scroll)."
   (when (and (null executing-kbd-macro)
@@ -2361,7 +2366,7 @@ search string to change or the window to scroll)."
             isearch-lazy-highlight-wrapped      nil)
       (unless (equal isearch-string "")
 	(setq isearch-lazy-highlight-timer
-	      (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
+	      (run-with-idle-timer lazy-highlight-initial-delay nil
 				   'isearch-lazy-highlight-update))))))
 
 (defun isearch-lazy-highlight-search ()
@@ -2382,7 +2387,7 @@ Attempt to do the search exactly the way the pending isearch would."
 
 (defun isearch-lazy-highlight-update ()
   "Update highlighting of other matches for current search."
-  (let ((max isearch-lazy-highlight-max-at-a-time)
+  (let ((max lazy-highlight-max-at-a-time)
         (looping t)
         nomore)
     (with-local-quit

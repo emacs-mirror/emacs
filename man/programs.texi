@@ -17,9 +17,9 @@ Find or move over top-level definitions (@pxref{Defuns}).
 Apply the usual indentation conventions of the language
 (@pxref{Program Indent}).
 @item
-Insert, kill or align comments (@pxref{Comments}).
-@item
 Balance parentheses (@pxref{Parentheses}).
+@item
+Insert, kill or align comments (@pxref{Comments}).
 @item
 Highlight program syntax (@pxref{Font Lock}).
 @end itemize
@@ -81,7 +81,7 @@ and you can select it by typing @kbd{M-x @var{l}-mode @key{RET}}.
 @cindex PostScript mode
   The existing programming language major modes include Lisp, Scheme (a
 variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
-AWK, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
+ASM, AWK, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
 format), Icon, IDL (CORBA), IDLWAVE, Java, Metafont (@TeX{}'s
 companion for font creation), Modula2, Objective-C, Octave, Pascal,
 Perl, Pike, PostScript, Prolog, Simula, Tcl, and VHDL.  There is
@@ -316,11 +316,11 @@ buffer.
 @vindex which-func-modes
   To enable (or disable) Which Function mode, use the command @kbd{M-x
 which-function-mode}.  This command is global; it applies to all
-buffers, both existing ones and those yet to be created.  However,
-it only takes effect in certain major modes, those listed in the value of
-@code{which-func-modes}.  If the value is @code{t}, then Which
-Function mode applies to all major modes that know how to support
-it---in other words, all the major modes that support Imenu.
+buffers, both existing ones and those yet to be created.  However, it
+takes effect in only certain major modes, those listed in the value of
+@code{which-func-modes}.  If the value is @code{t}, then Which Function
+mode applies to all major modes that know how to support it---in other
+words, all the major modes that support Imenu.
 
 @node Program Indent
 @section Indentation for Programs
@@ -428,7 +428,7 @@ lines that start inside comments and strings.
 positioning point before the beginning of it and typing @kbd{C-M-q}
 (@code{indent-sexp} in Lisp mode, @code{c-indent-exp} in C mode; also
 bound to other suitable commands in other modes).  The indentation of
-the line where the grouping starts is not changed; therefore, this
+the line where the grouping starts is not changed; therefore it
 changes only the relative indentation within the grouping, not its
 overall indentation.  To correct that as well, type @key{TAB} first.
 
@@ -638,7 +638,7 @@ expression in Lisp.}.
 @item C-M-f
 Move forward over a balanced expression (@code{forward-sexp}).
 @item C-M-b
-Move backward over a balanced expression(@code{backward-sexp}).
+Move backward over a balanced expression (@code{backward-sexp}).
 @item C-M-k
 Kill balanced expression forward (@code{kill-sexp}).
 @item C-M-t
@@ -746,7 +746,7 @@ groupings are lists.
 @item C-M-n
 Move forward over a parenthetical group (@code{forward-list}).
 @item C-M-p
-Move backward over a parenthetical group(@code{backward-list}).
+Move backward over a parenthetical group (@code{backward-list}).
 @item C-M-u
 Move up in parenthesis structure (@code{backward-up-list}).
 @item C-M-d
@@ -1142,7 +1142,7 @@ for ``w/o (without) man,'' since it doesn't use the @code{man}
 program.}.  Unlike @kbd{M-x man}, it does not run any external
 programs to format and display the man pages; instead it does the job
 in Emacs Lisp, so it works on systems such as MS-Windows, where the
-@code{man} program (and the other programs it uses) are not generally
+@code{man} program (and other programs it uses) are not generally
 available.
 
   @kbd{M-x woman} prompts for a name of a manual page, and provides
@@ -1259,9 +1259,9 @@ Hide the current block (@code{hs-hide-block}).
 @item C-c @@ C-s
 Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
-Either hide or show the current block (@code{hs-toggle-hiding})
+Either hide or show the current block (@code{hs-toggle-hiding}).
 @item S-Mouse-2
-Either hide or show the block you click on (@code{hs-mouse-toggle-hiding})
+Either hide or show the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
 Hide all top-level blocks (@code{hs-hide-all}).
 @item C-c @@ C-M-s
@@ -1282,7 +1282,7 @@ Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
 
 @item hs-isearch-open
 Specifies what kind of hidden blocks to open in Isearch mode.
-The value should be one of these four symbols.
+The value should be one of these four symbols:
 
 @table @code
 @item code
@@ -1958,16 +1958,15 @@ through 4.  (Columns always count from 0 in GNU Emacs.)
   Line numbers of four digits or less are normally indented one space.
 The variable @code{fortran-line-number-indent} controls this; it
 specifies the maximum indentation a line number can have.  Line numbers
-are indented to right-justify them to end in column 4 unless that would
-require more than this maximum indentation.  The default value of the
-variable is 1.
+are right-justified to end in column 4 unless that would require more
+than this maximum indentation.  The default value of the variable is 1.
 
 @vindex fortran-electric-line-number
   Simply inserting a line number is enough to indent it according to
 these rules.  As each digit is inserted, the indentation is recomputed.
 To turn off this feature, set the variable
-@code{fortran-electric-line-number} to @code{nil}.  Then inserting line
-numbers is like inserting anything else.
+@code{fortran-electric-line-number} to @code{nil}.  
+
 
 @node ForIndent Conv
 @subsubsection Syntactic Conventions
@@ -2111,7 +2110,7 @@ Align the text as if it were a line of code, but with an additional
 @code{fortran-comment-line-extra-indent} columns of indentation.
 
 @item nil
-Don't move text in full-line comments automatically at all.
+Don't move text in full-line comments automatically.
 @end table
 
 @vindex fortran-comment-indent-char
@@ -2223,12 +2222,13 @@ Fortran.
 
 @vindex fortran-column-ruler-fixed
 @vindex fortran-column-ruler-tabs
-  The text used to display the column ruler depends on the value of
-the variable @code{indent-tabs-mode}.  If @code{indent-tabs-mode} is
+  The text used to display the column ruler depends on the value of the
+variable @code{indent-tabs-mode}.  If @code{indent-tabs-mode} is
 @code{nil}, then the value of the variable
 @code{fortran-column-ruler-fixed} is used as the column ruler.
-Otherwise, the variable @code{fortran-column-ruler-tab} is displayed.
-By changing these variables, you can change the column ruler display.
+Otherwise, the value of the variable @code{fortran-column-ruler-tab} is
+displayed.  By changing these variables, you can change the column ruler
+display.
 
 @kindex C-c C-w @r{(Fortran mode)}
 @findex fortran-window-create-momentarily

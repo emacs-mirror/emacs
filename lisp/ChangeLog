@@ -1,4 +1,98 @@
+2005-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Re-add an interactive spec.
+	(uniquify-rationalize-file-buffer-names): Fix corner case when renaming
+	to the same name.
+
+	* isearch.el (isearch-dehighlight): Remove unused arg `totally'.
+	(isearch-update, isearch-done): Adjust calls accordingly.
+
+2005-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-variable)
+	(find-variable-other-window, find-variable-other-frame):
+	Fix the TYPE args to find-function-read and find-function-do-it.
+	(find-function): Doc fix.
+	(find-function-at-point): Replace function-at-point alias.
+
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-face.el (custom-declare-face):
+	Record defface in current-load-list.
+
+	* help-fns.el (variable-at-point): New arg ANY-SYMBOL.
+
+	* emacs-lisp/find-func.el: Doc fixes.
+	(find-face-regexp): New variable.
+	(find-function-regexp-alist): New variable.
+	(find-function-C-source): Third arg is now TYPE.
+	(find-function-search-for-symbol): Handle general TYPE.
+	(find-function-read, find-function-do-it): Handle general TYPE.
+	(find-definition-noselect, find-face): New functions.
+	(function-at-point): Alias deleted.
+
+2005-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (display-battery-mode): Rename from display-battery.
+	Handle the case where it gets turned off.
+
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (customize): Make :link point to user doc.
+
+	* man.el (Man-fontify-manpage): Turn off undo generation.
+
+	* add-log.el (change-log-font-lock-keywords): Don't match just "From".
+
+2005-01-04  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (insert-directory): Only look for error lines in
+	inserted text.  Don't move too far after processing --dired markers.
+
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook):
+	Don't expand if the character is @, period, dash, etc.
+	(define-mail-abbrev): Quote names that contain problem characters.
+
+2005-01-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: No longer require `cl'; `dolist' is standard.
+
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (replace-dehighlight): Use lazy-highlight-cleanup.
+	(query-replace-highlight, query-replace-lazy-highlight)
+	(query-replace): Definitions moved up.  Doc fix.
+
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (lazy-highlight): Group renamed from isearch-lazy-...
+	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
+	(lazy-highlight-interval, lazy-highlight-max-at-a-time)
+	(lazy-highlight-face): Rename from isearch-lazy-...
+	Change all references to them.
+
+2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-file): Doc fix for defcustom.
+	(custom-file): The function no longer sets the variable
+	`custom-file' to its return value.
+
+	* startup.el (command-line): No longer load `custom-file'.
+
+2005-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-variable-regexp): Avoid defface.
+
+	* progmodes/perl-mode.el (perl-nochange, perl-calculate-indent):
+	Don't confuse module-prefixed identifiers for labels.
+	Reported by Juan-Leon Lahoz Garcia <juanleon1@gmail.com>.
+
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (basic-save-buffer-1): Fix previous change.
 
 	* loadhist.el (file-loadhist-lookup): New function.
 	(file-provides, file-requires): Use it.
@@ -6,10 +100,11 @@
 	* electric.el (Electric-pop-up-window): Use fit-window-to-buffer
 	instead of calculating the right size.
 
-2005-01-02  Stefan  <monnier@iro.umontreal.ca>
+2005-01-02  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
-	From Karl Chen <quarl@cs.berkeley.edu>.
+
+2005-01-02  Stefan  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-workfile-version): Handle the empty-branch case.
 
@@ -60,7 +155,6 @@
 
 	* ses.el (copy-region-as-kill): Deactivate mark.
 
->>>>>>> 1.6818
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-1): If the output buffer is also an input,

@@ -489,9 +489,10 @@ face (according to `face-differs-from-default-p')."
 ;; Variables
 
 ;;;###autoload
-(defun variable-at-point ()
+(defun variable-at-point (&optional any-symbol)
   "Return the bound variable symbol found around point.
-Return 0 if there is no such symbol."
+Return 0 if there is no such symbol.
+If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (or (condition-case ()
 	  (with-syntax-table emacs-lisp-mode-syntax-table
 	    (save-excursion
@@ -505,12 +506,12 @@ Return 0 if there is no such symbol."
 	(error nil))
       (let* ((str (find-tag-default))
 	     (sym (if str (intern-soft str))))
-	(if (and sym (boundp sym))
+	(if (and sym (or any-symbol (boundp sym)))
 	    sym
 	  (save-match-data
 	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
 	      (setq sym (intern-soft (match-string 1 str)))
-	      (and (boundp sym) sym)))))
+	      (and (or any-symbol (boundp sym)) sym)))))
       0))
 
 ;;;###autoload

@@ -322,8 +322,8 @@ This allows us to use `mail-fetch-field', etc."
 	  (let ((url-request-method url-http-method)
 		(url-request-data url-http-data)
 		(url-request-extra-headers url-http-extra-headers))
-	    (url-retrieve url url-callback-function url-callback-arguments))))
-      (kill-buffer (current-buffer)))))
+	    (url-retrieve url url-callback-function
+                          url-callback-arguments)))))))
 
 (defun url-http-parse-response ()
   "Parse just the response code."

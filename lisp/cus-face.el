@@ -50,6 +50,7 @@
 	    (make-face-x-resource-internal face))))
     ;; Don't record SPEC until we see it causes no errors.
     (put face 'face-defface-spec spec)
+    (push (cons 'defface face) current-load-list)
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face (purecopy doc)))
     (custom-handle-all-keywords face args 'custom-face)

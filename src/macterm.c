@@ -4952,7 +4952,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
@@ -6475,12 +6476,8 @@ x_font_min_bounds (font, w, h)
      MacFontStruct *font;
      int *w, *h;
 {
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = font->min_bounds.width;
 }
 
 
@@ -6708,14 +6705,20 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->per_char = (XCharStruct *)
 	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
       {
-        int c;
+        int c, min_width, max_width;
 
+	min_width = max_width = char_width;
         for (c = 0x20; c <= 0xff; c++)
           {
-            font->per_char[c - 0x20] = font->max_bounds;
-            font->per_char[c - 0x20].width =
-	      font->per_char[c - 0x20].rbearing = CharWidth (c);
+	    font->per_char[c - 0x20] = font->max_bounds;
+	    char_width = CharWidth (c);
+	    font->per_char[c - 0x20].width = char_width;
+	    font->per_char[c - 0x20].rbearing = char_width;
+	    min_width = min (min_width, char_width);
+	    max_width = max (max_width, char_width);
           }
+	font->min_bounds.width = min_width;
+	font->max_bounds.width = max_width;
       }
     }
 
@@ -6822,6 +6825,35 @@ x_load_font (f, fontname, size)
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
     bcopy (font->fontname, fontp->name, strlen (font->fontname) + 1);
+
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = mac_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	if (pcm)
+	  {
+	    int width = pcm->width;
+	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
+		width += pcm->width;
+	    fontp->average_width = width / 95;
+	  }
+	else
+	  fontp->average_width = FONT_WIDTH (font);
+      }
 
     fontp->full_name = fontp->name;
 

@@ -1856,8 +1856,14 @@ mode function to use.  FUNCTION will be called, unless it is nil.
 
 If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
-REGEXP and search the list again for another match.")
+REGEXP and search the list again for another match.
 
+If the file name matches `inhibit-first-line-modes-regexps',
+then `auto-mode-alist' is not processed.
+
+See also `interpreter-mode-alist', which detects executable script modes
+based on the interpreters they specify to run,
+and `magic-mode-alist', which determines modes based on file contents.")
 
 (defvar interpreter-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
@@ -1902,11 +1908,13 @@ REGEXP and search the list again for another match.")
      ("guile" . scheme-mode)
      ("clisp" . lisp-mode)))
   "Alist mapping interpreter names to major modes.
-This alist applies to files whose first line starts with `#!'.
+This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
 The car of each element is compared with
 the name of the interpreter specified in the first line.
-If it matches, mode MODE is selected.")
+If it matches, mode MODE is selected.
+
+See also `auto-mode-alist'.")
 
 (defvar inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
   "List of regexps; if one matches a file name, don't look for `-*-'.")
@@ -1935,12 +1943,14 @@ with that interpreter in `interpreter-mode-alist'.")
 	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
 		comment-re "*"
 		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
-		"[Hh][Tt][Mm][Ll]")) . html-mode)
+		"[Hh][Tt][Mm][Ll]"))
+     . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\s *<" comment-re "*!DOCTYPE ")) . sgml-mode)
+	(concat "\\s *<" comment-re "*!DOCTYPE "))
+     . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
@@ -3264,11 +3274,12 @@ Before and after saving the buffer, this function runs
 ;; but inhibited if one of write-file-functions returns non-nil.
 ;; It returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-1 ()
-  (if save-buffer-coding-system
-      (let ((coding-system-for-write save-buffer-coding-system))
+  (prog1
+      (if save-buffer-coding-system
+	  (let ((coding-system-for-write save-buffer-coding-system))
+	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
-    (basic-save-buffer-2))
-  (setq buffer-file-coding-system-explicit last-coding-system-used))
+    (setq buffer-file-coding-system-explicit last-coding-system-used)))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -4549,7 +4560,7 @@ normally equivalent short `-D' option is just passed on to
 		    error-lines)
 		;; Find all the lines that are error messages,
 		;; and record the bounds of each one.
-		(goto-char (point-min))
+		(goto-char beg)
 		(while (< (point) linebeg)
 		  (or (eql (following-char) ?\s)
 		      (push (list (point) (line-end-position)) error-lines))
@@ -4575,11 +4586,9 @@ normally equivalent short `-D' option is just passed on to
 		      (end-of-line))))
 		(goto-char end)
 		(beginning-of-line)
-		(delete-region (point) (progn (forward-line 2) (point))))
-	      (forward-line 1)
+		(delete-region (point) (progn (forward-line 1) (point))))
 	      (if (looking-at "//DIRED-OPTIONS//")
-		  (delete-region (point) (progn (forward-line 1) (point)))
-		(forward-line 1))))
+		  (delete-region (point) (progn (forward-line 1) (point))))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read

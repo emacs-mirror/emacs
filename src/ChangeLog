@@ -1,3 +1,38 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Doc fix.
+
+2005-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (refill_memory_reserve): Move.
+	(emacs_blocked_free, emacs_blocked_malloc, emacs_blocked_realloc)
+	(reset_malloc_hooks, uninterrupt_malloc) [SYNC_INPUT]: Don't define.
+
+2005-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Don't correct preserve_y
+	for CURRENT_HEADER_LINE_HEIGHT when moving backwards.
+
+2005-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_load_bdf_font): Set fontp->average_width and
+	fontp->space_width to FONT_WIDTH so they are valid.
+
+	* w32fns.c (w32_load_system_font): Set FONT_WIDTH to maximum, not
+	average width. Set fontp->average_width and fontp->space_width to
+	their appropriate values.
+
+	* w32term.c (x_new_font): Set FRAME_COLUMN_WIDTH to
+	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
+	fontp->space_width.
+
+2005-01-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_new_font): Set FRAME_SPACE_WIDTH.
+	(x_font_min_bounds, XLoadQueryFont): Use the correct font width
+	metrics for max and min bounds.
+	(x_load_font): Correctly calculate average font width metrics.
+
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (Fgarbage_collect): Don't truncate_undo_list on dead buffers.
@@ -52,7 +87,7 @@
 
 	* xterm.c (x_new_font): Set FRAME_COLUMN_WIDTH to
 	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
-	fontp-?space_width..
+	fontp->space_width.
 	(x_load_font): Calculate fontp->space_width and
 	fontp->average_width.
 	(x_term_init): Initialize dpyinfo->Xatom_AVERAGE_WIDTH.
@@ -301,6 +336,10 @@
 
 	* gtkutil.c (xg_initialize): Install bindings for C-g so that
 	dialogs and menus pop down.
+
+2004-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region): Fix calculation of `ratio'.
 
 2004-12-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
