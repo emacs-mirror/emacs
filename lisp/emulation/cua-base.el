@@ -425,20 +425,19 @@ Can be toggled by [M-p] while the rectangle is active,"
   :type 'boolean
   :group 'cua)
 
-(defcustom cua-normal-cursor-color nil
+(defcustom cua-normal-cursor-color (or (and (boundp 'initial-cursor-color) initial-cursor-color)
+				       (and (boundp 'initial-frame-alist)
+					    (assoc 'cursor-color initial-frame-alist)
+					    (cdr (assoc 'cursor-color initial-frame-alist)))
+				       (and (boundp 'default-frame-alist)
+					    (assoc 'cursor-color default-frame-alist)
+					    (cdr (assoc 'cursor-color default-frame-alist)))
+				       (frame-parameter nil 'cursor-color)
+				       "red")
   "Normal (non-overwrite) cursor color.
 Also used to indicate that rectangle padding is not in effect.
-Automatically loaded from frame parameters, if nil."
-  :initialize (lambda (symbol value)
-		(set symbol (or value
-				(and (boundp 'initial-cursor-color) initial-cursor-color)
-				(and (boundp 'initial-frame-alist)
-				     (assoc 'cursor-color initial-frame-alist)
-				     (cdr (assoc 'cursor-color initial-frame-alist)))
-				(and (boundp 'default-frame-alist)
-				     (assoc 'cursor-color default-frame-alist)
-				     (cdr (assoc 'cursor-color default-frame-alist)))
-				(frame-parameter nil 'cursor-color))))
+Default is to load cursor color from initial or default frame parameters."
+  :initialize 'custom-initialize-default
   :type 'color
   :group 'cua)
 
