@@ -12919,7 +12919,9 @@ tiff_load (f, img)
 
 #if HAVE_GIF
 
+#define DrawText gif_DrawText
 #include <gif_lib.h>
+#undef DrawText
 
 static int gif_image_p P_ ((Lisp_Object object));
 static int gif_load P_ ((struct frame *f, struct image *img));
@@ -12974,6 +12976,25 @@ static struct image_type gif_type =
   x_clear_image,
   NULL
 };
+
+
+/* GIF library details.  */
+DEF_IMGLIB_FN (DGifCloseFile);
+DEF_IMGLIB_FN (DGifSlurp);
+DEF_IMGLIB_FN (DGifOpen);
+DEF_IMGLIB_FN (DGifOpenFileName);
+
+static int
+init_gif_functions (library)
+     HMODULE library;
+{
+  LOAD_IMGLIB_FN (library, DGifCloseFile);
+  LOAD_IMGLIB_FN (library, DGifSlurp);
+  LOAD_IMGLIB_FN (library, DGifOpen);
+  LOAD_IMGLIB_FN (library, DGifOpenFileName);
+  return 1;
+}
+
 
 /* Return non-zero if OBJECT is a valid GIF image specification.  */
 
@@ -13061,7 +13082,7 @@ gif_load (f, img)
         }
 
       /* Open the GIF file.  */
-      gif = DGifOpenFileName (SDATA (file));
+      gif = fn_DGifOpenFileName (SDATA (file));
       if (gif == NULL)
         {
           image_error ("Cannot open `%s'", file, Qnil);
@@ -13077,7 +13098,7 @@ gif_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      gif = DGifOpen(&memsrc, gif_read_from_memory);
+      gif = fn_DGifOpen(&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
@@ -13087,11 +13108,11 @@ gif_load (f, img)
     }
 
   /* Read entire contents.  */
-  rc = DGifSlurp (gif);
+  rc = fn_DGifSlurp (gif);
   if (rc == GIF_ERROR)
     {
       image_error ("Error reading `%s'", img->spec, Qnil);
-      DGifCloseFile (gif);
+      fn_DGifCloseFile (gif);
       UNGCPRO;
       return 0;
     }
@@ -13102,18 +13123,18 @@ gif_load (f, img)
     {
       image_error ("Invalid image number `%s' in image `%s'",
                    image, img->spec);
-      DGifCloseFile (gif);
+      fn_DGifCloseFile (gif);
       UNGCPRO;
       return 0;
     }
 
-  width = img->width = gif->SWidth;
-  height = img->height = gif->SHeight;
+  width = img->width = max (gif->SWidth, gif->Image.Left + gif->Image.Width);
+  height = img->height = max (gif->SHeight, gif->Image.Top + gif->Image.Height);
 
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
-      DGifCloseFile (gif);
+      fn_DGifCloseFile (gif);
       UNGCPRO;
       return 0;
     }
@@ -13122,19 +13143,27 @@ gif_load (f, img)
   gif_color_map = gif->SavedImages[ino].ImageDesc.ColorMap;
   if (!gif_color_map)
     gif_color_map = gif->SColorMap;
+#if 0 /* TODO: Color tables */
   init_color_table ();
+#endif
   bzero (pixel_colors, sizeof pixel_colors);
 
   for (i = 0; i < gif_color_map->ColorCount; ++i)
     {
-      int r = gif_color_map->Colors[i].Red << 8;
-      int g = gif_color_map->Colors[i].Green << 8;
-      int b = gif_color_map->Colors[i].Blue << 8;
+      int r = gif_color_map->Colors[i].Red;
+      int g = gif_color_map->Colors[i].Green;
+      int b = gif_color_map->Colors[i].Blue;
+#if 0 /* TODO: Color tables */
       pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+#else
+      pixel_colors[i] = PALETTERGB (r, g, b);
+#endif
     }
 
+#if 0 /* TODO: Color tables */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+#endif
 
   /* Clear the part of the screen image that are not covered by
      the image from the GIF file.  Full animated GIF support
@@ -13205,7 +13234,7 @@ gif_load (f, img)
 	  }
     }
 
-  DGifCloseFile (gif);
+  fn_DGifCloseFile (gif);
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
@@ -15694,7 +15723,11 @@ init_external_image_libraries ()
 #endif
 
 #if HAVE_GIF
-  define_image_type (&gif_type);
+  if (library = LoadLibrary ("libungif.dll"))
+    {
+      if (init_gif_functions (library))
+        define_image_type (&gif_type);
+    }
 #endif
 
 #if HAVE_PNG
