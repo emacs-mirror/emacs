@@ -4,6 +4,12 @@
 	(progress-reporter-force-update, progress-reporter-do-update)
 	(progress-reporter-done): New functions.
 
+	* tar-mode.el (tar-summarize-buffer): Use progress reporter.
+
+	* progmodes/etags.el (etags-tags-completion-table): Use progress
+	reporter.
+	(etags-tags-apropos): Likewise.
+
 2004-10-08  Alan Mackenzie  <acm@muc.de>
 
 	* isearch.el (isearch-yank-line): C-y yanks to next EOL, not end
