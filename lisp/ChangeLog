@@ -1,6 +1,15 @@
+2005-03-24  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el (generic-font-lock-defaults): Make it obsolete.
+	(generic-font-lock-keywords): New variable to replace
+	generic-font-lock-defaults.
+	(generic-mode-set-font-lock): Delete it.
+	(generic-mode-internal): Don't call generic-mode-set-font-lock.
+	(generic-bracket-support): Add docstring.
+
 2005-03-23  Miles Bader  <miles@gnu.org>
 
-	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled): 
+	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
 	Remove tty-specific variants, as they're no longer needed.
 
 2005-03-23  Lute Kamstra  <lute@gnu.org>
