@@ -37,6 +37,9 @@ A value of nil means that any change in indentation starts a new paragraph.")
 (defconst sentence-end-double-space t
   "*Non-nil means a single space does not end a sentence.")
 
+(defvar fill-paragraph-function nil
+  "Mode-specific function to fill a paragraph.")
+
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
 Filling expects lines to start with the fill prefix and
@@ -317,20 +320,25 @@ space does not end a sentence, so don't break a line there."
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix arg means justify as well.
 If `sentence-end-double-space' is non-nil, then period followed by one
-space does not end a sentence, so don't break a line there."
+space does not end a sentence, so don't break a line there.
+
+If `fill-paragraph-function' is non-nil, we call it (passing our
+argument to it), and if it returns non-nil, we simply return its value."
   (interactive "P")
-  (let ((before (point)))
-    (save-excursion
-      (forward-paragraph)
-      (or (bolp) (newline 1))
-      (let ((end (point))
-	    (beg (progn (backward-paragraph) (point))))
-	(goto-char before)
-	(if use-hard-newlines
-	    ;; Can't use fill-region-as-paragraph, since this paragraph may
-	    ;; still contain hard newlines.  See fill-region.
-	    (fill-region beg end arg)
-	  (fill-region-as-paragraph beg end arg))))))
+  (or (and fill-paragraph-function
+	   (funcall fill-paragraph-function arg))
+      (let ((before (point)))
+	(save-excursion
+	  (forward-paragraph)
+	  (or (bolp) (newline 1))
+	  (let ((end (point))
+		(beg (progn (backward-paragraph) (point))))
+	    (goto-char before)
+	    (if use-hard-newlines
+		;; Can't use fill-region-as-paragraph, since this paragraph may
+		;; still contain hard newlines.  See fill-region.
+		(fill-region beg end arg)
+	      (fill-region-as-paragraph beg end arg)))))))
 
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
