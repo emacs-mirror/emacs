@@ -2525,6 +2525,8 @@ describe_vector (vector, elt_prefix, elt_describer,
   int from, to;
   /* The current depth of VECTOR if it is char-table.  */
   int this_level;
+  /* Flag to tell if we should handle multibyte characters.  */
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   /* Array of indices to access each level of char-table.
      The elements are charset, code1, and code2.  */
   int idx[3];
@@ -2676,7 +2678,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       /* If we find a char-table within a char-table,
 	 scan it recursively; it defines the details for
 	 a character set or a portion of a character set.  */
-      if (CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
+      if (multibyte && CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
 	{
 	  if (this_level == 0
 	      && CHARSET_VALID_P (i))
