@@ -66,22 +66,23 @@
 ;; Known problems (these are all caused by limitations in the Emacs Lisp
 ;; parsing routine (parse-partial-sexp), which was not designed for such
 ;; a rich language; writing a more suitable parser would be a big job):
+;; 2)  The globbing syntax <pattern> is not recognized, so special
+;;       characters in the pattern string must be backslashed.
+;; 3)  The << quoting operators are not recognized; see below.
+;; 5)  To make '$' work correctly, $' is not recognized as a variable.
+;;     Use "$'" or $POSTMATCH instead.
+;;
+;; If you don't use font-lock, additional problems will appear:
 ;; 1)  Regular expression delimiters do not act as quotes, so special
 ;;       characters such as `'"#:;[](){} may need to be backslashed
 ;;       in regular expressions and in both parts of s/// and tr///.
-;; 2)  The globbing syntax <pattern> is not recognized, so special
-;;       characters in the pattern string must be backslashed.
-;; 3)  The q, qq, and << quoting operators are not recognized; see below.
-;; 5)  To make '$' work correctly, $' is not recognized as a variable.
-;;     Use "$'" or $POSTMATCH instead.
-;; 7)  When ' (quote) is used as a package name separator, perl-mode
-;;       doesn't understand, and thinks it is seeing a quoted string.
-;;
-;; If you don't use font-lock, additional problems will appear:
+;; 4)  The q and qq quoting operators are not recognized; see below.
 ;; 5)  To make variables such a $' and $#array work, perl-mode treats
 ;;       $ just like backslash, so '$' is not treated correctly.
 ;; 6)  Unfortunately, treating $ like \ makes ${var} be treated as an
 ;;       unmatched }.  See below.
+;; 7)  When ' (quote) is used as a package name separator, perl-mode
+;;       doesn't understand, and thinks it is seeing a quoted string.
 
 ;; Here are some ugly tricks to bypass some of these problems:  the perl
 ;; expression /`/ (that's a back-tick) usually evaluates harmlessly,
@@ -91,6 +92,11 @@
 ;;
 ;;     /`/; $ugly = q?"'$?; /`/;
 ;;
+;; The same trick can be used for problem 6 as in:
+;;     /{/; while (<${glob_me}>)
+;; but a simpler solution is to add a space between the $ and the {:
+;;     while (<$ {glob_me}>)
+;; 
 ;; Problem 7 is even worse, but this 'fix' does work :-(
 ;;     $DB'stop#'
 ;;         [$DB'line#'
@@ -133,8 +139,9 @@ The expansion is entirely correct because it uses the C preprocessor."
   (let ((st (make-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?\n ">" st)
     (modify-syntax-entry ?# "<" st)
-    (modify-syntax-entry ?$ "/" st)
-    (modify-syntax-entry ?% "." st)
+    (modify-syntax-entry ?$ "/ p" st)
+    (modify-syntax-entry ?% ". p" st)
+    (modify-syntax-entry ?@ ". p" st)
     (modify-syntax-entry ?& "." st)
     (modify-syntax-entry ?\' "\"" st)
     (modify-syntax-entry ?* "." st)
@@ -187,14 +194,11 @@ The expansion is entirely correct because it uses the C preprocessor."
    (list
     ;;
     ;; Fontify keywords, except those fontified otherwise.
-;   (make-regexp '("if" "until" "while" "elsif" "else" "unless" "do" "dump"
-;  "for" "foreach" "exit" "die"
-;  "BEGIN" "END" "return" "exec" "eval"))
-    (concat "\\<\\("
-	    "BEGIN\\|END\\|d\\(ie\\|o\\|ump\\)\\|"
-	    "e\\(ls\\(e\\|if\\)\\|val\\|x\\(ec\\|it\\)\\)\\|"
-	    "for\\(\\|each\\)\\|if\\|return\\|un\\(less\\|til\\)\\|while"
-	    "\\)\\>")
+    (concat "\\<"
+	    (regexp-opt '("if" "until" "while" "elsif" "else" "unless"
+			  "do" "dump" "for" "foreach" "exit" "die"
+			  "BEGIN" "END" "return" "exec" "eval") t)
+	    "\\>")
     ;;
     ;; Fontify local and my keywords as types.
     '("\\<\\(local\\|my\\)\\>" . font-lock-type-face)
@@ -217,17 +221,149 @@ The expansion is entirely correct because it uses the C preprocessor."
 (defvar perl-font-lock-keywords perl-font-lock-keywords-1
   "Default expressions to highlight in Perl mode.")
 
+(defvar perl-quote-like-pairs
+  '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\< . ?\>)))
+
+;; FIXME: handle here-docs and regexps.
+;; <<EOF <<"EOF" <<'EOF' (no space)
+;; see `man perlop'
+;; ?...?
+;; /.../
+;; m [...]
+;; m /.../
+;; q /.../ = '...'
+;; qq /.../ = "..."
+;; qx /.../ = `...`
+;; qr /.../ = precompiled regexp =~=~ m/.../
+;; qw /.../
+;; s /.../.../
+;; s <...> /.../
+;; s '...'...'
+;; tr /.../.../
+;; y /.../.../
+;;
+;; <file*glob>
 (defvar perl-font-lock-syntactic-keywords
   ;; Turn POD into b-style comments
-  '(("^\\(=\\)\\(head1\\|pod\\)\\([ \t]\\|$\\)" (1 "< b"))
+  '(("^\\(=\\)\\sw" (1 "< b"))
     ("^=cut[ \t]*\\(\n\\)" (1 "> b"))
     ;; Catch ${ so that ${var} doesn't screw up indentation.
-    ("\\(\\$\\)[{']" (1 "."))))
+    ;; This also catches $' to handle 'foo$', although it should really
+    ;; check that it occurs inside a '..' string.
+    ("\\(\\$\\)[{']" (1 "."))
+    ;; Handle funny names like $DB'stop.
+    ("\\$ ?{?^?[_a-zA-Z][_a-zA-Z0-9]*\\('\\)[_a-zA-Z]" (1 "_"))
+    ;; format statements
+    ("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
+    ;; Funny things in sub arg specifications like `sub myfunc ($$)'
+    ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
+    ;; regexp and funny quotes
+    ("[;(=!~{][ \t\n]*\\(/\\)" (1 '(7)))
+    ("[;( =!~{\t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+     ;; Nasty cases:
+     ;; /foo/m  $a->m  $#m $m @m %m
+     ;; \s (appears often in regexps).
+     ;; -s file
+     (2 (if (assoc (char-after (match-beginning 2))
+		   perl-quote-like-pairs)
+	    '(15) '(7))))))
+
+(defvar perl-empty-syntax-table
+  (let ((st (copy-syntax-table)))
+    ;; Make all chars be of punctuation syntax.
+    (dotimes (i 256) (aset st i '(1)))
+    (modify-syntax-entry ?\\ "\\" st)
+    st)
+  "Syntax table used internally for processing quote-like operators.")
+
+(defun perl-quote-syntax-table (char)
+  (let ((close (cdr (assq char perl-quote-like-pairs)))
+	(st (copy-syntax-table perl-empty-syntax-table)))
+    (if (not close)
+	(modify-syntax-entry char "\"" st)
+      (modify-syntax-entry char "(" st)
+      (modify-syntax-entry close ")" st))
+    st))
 
 (defun perl-font-lock-syntactic-face-function (state)
-  (if (nth 3 state)
-      font-lock-string-face
-    (if (nth 7 state) font-lock-doc-face font-lock-comment-face)))
+  (let ((char (nth 3 state)))
+    (cond
+     ((not char)
+      ;; Comment or docstring.
+      (if (nth 7 state) font-lock-doc-face font-lock-comment-face))
+     ((and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\"))
+      ;; Normal string.
+      font-lock-string-face)
+     ((eq (nth 3 state) ?\n)
+      ;; A `format' command.
+      (save-excursion
+	(when (and (re-search-forward "^\\s *\\.\\s *$" nil t)
+		   (not (eobp)))
+	  (put-text-property (point) (1+ (point)) 'syntax-table '(7)))
+	font-lock-string-face))
+     (t
+      ;; This is regexp like quote thingy.
+      (setq char (char-after (nth 8 state)))
+      (save-excursion
+	(let ((twoargs (save-excursion
+			 (goto-char (nth 8 state))
+			 (skip-syntax-backward " ")
+			 (skip-syntax-backward "w")
+			 (member (buffer-substring
+				  (point) (progn (forward-word 1) (point)))
+				 '("tr" "s" "y"))))
+	      (close (cdr (assq char perl-quote-like-pairs)))
+	      (pos (point))
+	      (st (perl-quote-syntax-table char)))
+	  (if (not close)
+	      ;; The closing char is the same as the opening char.
+	      (with-syntax-table st
+		(parse-partial-sexp (point) (point-max)
+				    nil nil state 'syntax-table)
+		(when twoargs
+		  (parse-partial-sexp (point) (point-max)
+				      nil nil state 'syntax-table)))
+	    ;; The open/close chars are matched like () [] {} and <>.
+	    (let ((parse-sexp-lookup-properties nil))
+	      (ignore-errors
+		(with-syntax-table st
+		  (goto-char (nth 8 state)) (forward-sexp 1))
+		(when twoargs
+		  (save-excursion
+		    ;; Skip whitespace and make sure that font-lock will
+		    ;; refontify the second part in the proper context.
+		    (put-text-property
+		     (point) (progn (forward-comment (point-max)) (point))
+		     'font-lock-multiline t)
+		    ;; 
+		    (unless
+			(save-excursion
+			  (let* ((char2 (char-after))
+				 (st2 (perl-quote-syntax-table char2)))
+			    (with-syntax-table st2 (forward-sexp 1))
+			    (put-text-property pos (line-end-position)
+					       'jit-lock-defer-multiline t)
+			    (looking-at "\\s-*\\sw*e")))
+		      (put-text-property (point) (1+ (point))
+					 'syntax-table
+					 (if (assoc (char-after)
+						    perl-quote-like-pairs)
+					     '(15) '(7)))))))))
+	  ;; Erase any syntactic marks within the quoted text.
+	  (put-text-property pos (1- (point)) 'syntax-table nil)
+	  (when (eq (char-before (1- (point))) ?$)
+	    (put-text-property (- (point) 2) (1- (point))
+			       'syntax-table '(1)))
+	  (put-text-property (1- (point)) (point)
+			     'syntax-table (if close '(15) '(7)))
+	  font-lock-string-face))))))
+	    ;; (if (or twoargs (not (looking-at "\\s-*\\sw*e")))
+	    ;; 	font-lock-string-face
+	    ;;   (font-lock-fontify-syntactically-region
+	    ;;    ;; FIXME: `end' is accessed via dyn-scoping.
+	    ;;    pos (min end (1- (point))) nil '(nil))
+	    ;;   nil)))))))
+	
 
 (defcustom perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block."
@@ -536,7 +672,8 @@ changed by, or (parse-state) if line starts in a quoted string."
 (defun perl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Perl code.
 In usual case returns an integer: the column to indent to.
-Returns (parse-state) if line starts inside a string."
+Returns (parse-state) if line starts inside a string.
+Optional argument PARSE-START should be the position of `beginning-of-defun'."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
@@ -557,16 +694,16 @@ Returns (parse-state) if line starts inside a string."
 	(perl-beginning-of-function))
       (while (< (point) indent-point)	;repeat until right sexp
 	(setq state (parse-partial-sexp (point) indent-point 0))
-; state = (depth_in_parens innermost_containing_list last_complete_sexp
-;          string_terminator_or_nil inside_commentp following_quotep
-;          minimum_paren-depth_this_scan)
-; Parsing stops if depth in parentheses becomes equal to third arg.
+	;; state = (depth_in_parens innermost_containing_list
+	;;          last_complete_sexp string_terminator_or_nil inside_commentp
+	;;          following_quotep minimum_paren-depth_this_scan)
+	;; Parsing stops if depth in parentheses becomes equal to third arg.
 	(setq containing-sexp (nth 1 state)))
       (cond ((nth 3 state) state)	; In a quoted string?
 	    ((null containing-sexp)	; Line is at top level.
 	     (skip-chars-forward " \t\f")
 	     (if (= (following-char) ?{)
-		 0   ; move to beginning of line if it starts a function body
+		 0  ; move to beginning of line if it starts a function body
 	       ;; indent a little if this is a continuation line
 	       (perl-backward-to-noncomment)
 	       (if (or (bobp)
@@ -609,50 +746,50 @@ Returns (parse-state) if line starts inside a string."
 		 ;; Is line first statement after an open-brace?
 		 ;; If no, find that first statement and indent like it.
 		 (save-excursion
-		   (forward-char 1)
-		   ;; Skip over comments and labels following openbrace.
-		   (while (progn
-			    (skip-chars-forward " \t\f\n")
-			    (cond ((looking-at ";?#")
-				   (forward-line 1) t)
-				  ((looking-at "\\(\\w\\|\\s_\\)+:")
-				   (save-excursion 
-				     (end-of-line) 
-				     (setq colon-line-end (point)))
-				   (search-forward ":")))))
-		   ;; The first following code counts
-		   ;; if it is before the line we want to indent.
-		   (and (< (point) indent-point)
-			(if (> colon-line-end (point))
-			    (- (current-indentation) perl-label-offset)
-			  (current-column))))
-		 ;; If no previous statement,
-		 ;; indent it relative to line brace is on.
-		 ;; For open paren in column zero, don't let statement
-		 ;; start there too.  If perl-indent-level is zero,
-		 ;; use perl-brace-offset + perl-continued-statement-offset
-		 ;; For open-braces not the first thing in a line,
-		 ;; add in perl-brace-imaginary-offset.
-		 (+ (if (and (bolp) (zerop perl-indent-level))
-			(+ perl-brace-offset perl-continued-statement-offset)
-		      perl-indent-level)
-		    ;; Move back over whitespace before the openbrace.
-		    ;; If openbrace is not first nonwhite thing on the line,
-		    ;; add the perl-brace-imaginary-offset.
-		    (progn (skip-chars-backward " \t")
-			   (if (bolp) 0 perl-brace-imaginary-offset))
-		    ;; If the openbrace is preceded by a parenthesized exp,
-		    ;; move to the beginning of that;
-		    ;; possibly a different line
-		    (progn
-		      (if (eq (preceding-char) ?\))
-			  (forward-sexp -1))
-		      ;; Get initial indentation of the line we are on.
-		      (current-indentation))))))))))
+		  (forward-char 1)
+		  ;; Skip over comments and labels following openbrace.
+		  (while (progn
+			   (skip-chars-forward " \t\f\n")
+			   (cond ((looking-at ";?#")
+				  (forward-line 1) t)
+				 ((looking-at "\\(\\w\\|\\s_\\)+:")
+				  (save-excursion
+				    (end-of-line)
+				    (setq colon-line-end (point)))
+				  (search-forward ":")))))
+		  ;; The first following code counts
+		  ;; if it is before the line we want to indent.
+		  (and (< (point) indent-point)
+		       (if (> colon-line-end (point))
+			   (- (current-indentation) perl-label-offset)
+			 (current-column))))
+		;; If no previous statement,
+		;; indent it relative to line brace is on.
+		;; For open paren in column zero, don't let statement
+		;; start there too.  If perl-indent-level is zero,
+		;; use perl-brace-offset + perl-continued-statement-offset
+		;; For open-braces not the first thing in a line,
+		;; add in perl-brace-imaginary-offset.
+		(+ (if (and (bolp) (zerop perl-indent-level))
+		       (+ perl-brace-offset perl-continued-statement-offset)
+		     perl-indent-level)
+		   ;; Move back over whitespace before the openbrace.
+		   ;; If openbrace is not first nonwhite thing on the line,
+		   ;; add the perl-brace-imaginary-offset.
+		   (progn (skip-chars-backward " \t")
+			  (if (bolp) 0 perl-brace-imaginary-offset))
+		   ;; If the openbrace is preceded by a parenthesized exp,
+		   ;; move to the beginning of that;
+		   ;; possibly a different line
+		   (progn
+		     (if (eq (preceding-char) ?\))
+			 (forward-sexp -1))
+		     ;; Get initial indentation of the line we are on.
+		     (current-indentation))))))))))
 
 (defun perl-backward-to-noncomment ()
   "Move point backward to after the first non-white-space, skipping comments."
-  (interactive)				;why??  -stef
+  (interactive)
   (forward-comment (- (point-max))))
 
 (defun perl-backward-to-start-of-continued-exp (lim)
