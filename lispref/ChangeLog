@@ -1,3 +1,11 @@
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Quitting): Clarify value of with-local-quit.
+
+	* elisp.texi (Top): Fix previous change.
+
+	* loading.texi (Loading): Fix previous change.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (MAKEINFO): Specify --force.
