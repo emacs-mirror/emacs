@@ -520,6 +520,43 @@ A negative ARG moves in the opposite order."
     (if (eq window-system 'w32)
 	(w32-focus-frame frame)
       (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
+
+(defun make-frame-names-alist ()
+  (let* ((current-frame (selected-frame))
+	 (falist
+	  (cons
+	   (cons (frame-parameter current-frame 'name) current-frame) nil))
+	 (frame (next-frame nil t)))
+    (while (not (eq frame current-frame))
+      (progn
+	(setq falist (cons (cons (frame-parameter frame 'name) frame) falist))
+	(setq frame (next-frame frame t))))
+    falist))
+
+(defvar frame-name-history nil)
+(defvar frame-names-alist nil)
+(defun select-frame-by-name (name)
+  "Select the frame whose name is NAME and raise it.
+If there is no frame by that name, signal an error."
+  (interactive
+   (let (input default)
+     (setq frame-names-alist (make-frame-names-alist))
+     (setq default (car (car frame-names-alist)))
+     (setq input
+	   (completing-read
+	    (format "Select Frame (default %s): " default)
+	    frame-names-alist nil t nil 'frame-name-history))
+     (if (= (length input) 0)
+	 (list default)
+       (list input))))
+  (or (interactive-p)
+      (setq frame-names-alist (make-frame-names-alist)))
+  (let ((frame (cdr (assoc name frame-names-alist))))
+    (or frame
+	(error "There is no frame named `%s'" name))
+    (make-frame-visible frame)
+    (raise-frame frame)
+    (select-frame frame)))
 
 ;;;; Frame configurations
 
