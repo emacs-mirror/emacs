@@ -1632,9 +1632,11 @@ x_set_internal_border_width (f, arg, oldval)
   if (f->output_data.x->internal_border_width < 0)
     f->output_data.x->internal_border_width = 0;
 
+#ifdef USE_X_TOOLKIT
   if (f->output_data.x->edit_widget)
     widget_store_internal_border (f->output_data.x->edit_widget,
 				  f->output_data.x->internal_border_width);
+#endif
 
   if (f->output_data.x->internal_border_width == old)
     return;
@@ -5154,7 +5156,7 @@ switches, if present.");
   Vx_resource_name = Qnil;
 
 #if 0 /* This doesn't really do anything.  */
-  DEFVAR_INT ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
+  DEFVAR_LISP ("x-nontext-pointer-shape", &Vx_nontext_pointer_shape,
 	      "The shape of the pointer when not over text.\n\
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
@@ -5162,14 +5164,14 @@ or when you set the mouse color.");
   Vx_nontext_pointer_shape = Qnil;
 
 #if 0 /* This doesn't really do anything.  */
-  DEFVAR_INT ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
+  DEFVAR_LISP ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
 	      "The shape of the pointer when over the mode line.\n\
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
 #endif
   Vx_mode_pointer_shape = Qnil;
 
-  DEFVAR_INT ("x-sensitive-text-pointer-shape",
+  DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	      &Vx_sensitive_text_pointer_shape,
 	      "The shape of the pointer when over mouse-sensitive text.\n\
 This variable takes effect when you create a new frame\n\
