@@ -777,8 +777,27 @@ get_minibuffer (depth)
   else
     {
       int count = SPECPDL_INDEX ();
+      Lisp_Object overlay;
+      struct buffer *b = XBUFFER (buf);
 
-      reset_buffer (XBUFFER (buf));
+      /* `reset_buffer' blindly sets the list of overlays to NULL, so we
+	 have to empty the list, otherwise we end up with overlays that
+	 think they belong to this buffer while the buffer doesn't know about
+	 them any more.  */
+      while (b->overlays_before)
+	{
+	  XSETMISC (overlay, b->overlays_before);
+	  Fdelete_overlay (overlay);
+	}
+      while (b->overlays_after)
+	{
+	  XSETMISC (overlay, b->overlays_after);
+	  Fdelete_overlay (overlay);
+	}
+      eassert (b->overlays_before == NULL);
+      eassert (b->overlays_after == NULL);
+
+      reset_buffer (b);
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buf);
       Fkill_all_local_variables ();
