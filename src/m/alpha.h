@@ -210,7 +210,6 @@ NOTE-END
    But not in makefiles!  */
 
 #ifndef NOT_C_CODE
-#ifndef THIS_IS_YMAKEFILE
 /* We need these because pointers are larger than the default ints.  */
 #include <alloca.h>
 
@@ -253,7 +252,6 @@ extern void r_alloc_free ();
 #endif /* not _MALLOC_INTERNAL */
 #endif /* REL_ALLOC */
 
-#endif /* not THIS_IS_YMAKEFILE */
 #endif /* not NOT_C_CODE */
 
 #ifdef OSF1
