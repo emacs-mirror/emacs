@@ -1,11 +1,17 @@
 2003-06-10  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-version): bump to 3.3
+	* whitespace.el (whitespace-version): Bump to 3.3
 	(whitespace-cleanup): Respect user preference for silence
 
-	* whitespace.el: Remove :tag in commentary :link. Remove empty
+	* whitespace.el: Remove :tag in commentary :link.  Remove empty
 	lines in comment, since commentary seems to have a problem with that.
-	
+
+2003-06-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/tex-mode.el (tex-search-noncomment): New macro.
+	(tex-last-unended-begin, tex-next-unmatched-end): Use it
+	so we don't get confused by \begin and \end in comments.
+	(tex-compile): Change dir before calling tex-compile-default.
 
 2003-06-09  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
