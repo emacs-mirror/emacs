@@ -7746,7 +7746,7 @@ echo $ECHO_N "checking whether heap start address is randomized... $ECHO_C" >&6
 if test x"$ac_cv_header_unistd_h" != x && test x"$ac_cv_header_stdlib_h" != x
 then
   if test "$cross_compiling" = yes; then
-  emacs_cv_execshield='assuming no'
+  emacs_cv_randomheap='assuming no'
 else
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -7788,24 +7788,24 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  emacs_cv_execshield=yes
+  emacs_cv_randomheap=yes
 else
   echo "$as_me: program exited with status $ac_status" >&5
 echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 ( exit $ac_status )
-emacs_cv_execshield=no
+emacs_cv_randomheap=no
 fi
 rm -f core *.core gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 else
-  emacs_cv_execshield='assuming no'
+  emacs_cv_randomheap='assuming no'
 fi
-echo "$as_me:$LINENO: result: $emacs_cv_execshield" >&5
-echo "${ECHO_T}$emacs_cv_execshield" >&6
+echo "$as_me:$LINENO: result: $emacs_cv_randomheap" >&5
+echo "${ECHO_T}$emacs_cv_randomheap" >&6
 
-if test "$emacs_cv_execshield" = yes; then
+if test "$emacs_cv_randomheap" = yes; then
   # Extract the first word of "setarch", so it can be a program name with args.
 set dummy setarch; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -7854,13 +7854,26 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   else
-    { { echo "$as_me:$LINENO: error: Heap start address is randomized and no workaround is known.
-Probably exec-shield is turned on.  Emacs can not dump itself if this is the
-case.  Read about exec-shield in \`etc/PROBLEMS' for further information." >&5
-echo "$as_me: error: Heap start address is randomized and no workaround is known.
-Probably exec-shield is turned on.  Emacs can not dump itself if this is the
-case.  Read about exec-shield in \`etc/PROBLEMS' for further information." >&2;}
-   { (exit 1); exit 1; }; }
+    { echo "$as_me:$LINENO: WARNING:
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+" >&5
+echo "$as_me: WARNING:
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in \`etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+" >&2;}
   fi
 fi
 

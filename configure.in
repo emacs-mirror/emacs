@@ -1599,23 +1599,30 @@ int main (int argc, char *argv[])
     exit (-1);
   }
   exit (this_sbrk == old_sbrk);
-}], emacs_cv_execshield=yes, emacs_cv_execshield=no,
-     emacs_cv_execshield='assuming no')
+}], emacs_cv_randomheap=yes, emacs_cv_randomheap=no,
+     emacs_cv_randomheap='assuming no')
 else
-  emacs_cv_execshield='assuming no'
+  emacs_cv_randomheap='assuming no'
 fi
-AC_MSG_RESULT($emacs_cv_execshield)
+AC_MSG_RESULT($emacs_cv_randomheap)
 
-if test "$emacs_cv_execshield" = yes; then
+if test "$emacs_cv_randomheap" = yes; then
   AC_PATH_PROG(SETARCH, setarch, no)
   AC_SUBST(SETARCH)
   if test "$SETARCH" != no && test "$machine" = "intel386"; then
     AC_DEFINE(HAVE_RANDOM_HEAPSTART, 1,
     [Define to 1 if this OS randomizes the start address of the heap.])
   else
-    AC_MSG_ERROR([Heap start address is randomized and no workaround is known.
-Probably exec-shield is turned on.  Emacs can not dump itself if this is the
-case.  Read about exec-shield in `etc/PROBLEMS' for further information.])
+    AC_MSG_WARN([
+**********************************************************************
+
+Heap start address is randomized and no workaround is known.
+Emacs will probably dump core when temacs is run in the build phase.
+Maybe exec-shield is turned on.  Read about exec-shield in `etc/PROBLEMS'
+for further information.
+
+**********************************************************************
+])
   fi
 fi
 
