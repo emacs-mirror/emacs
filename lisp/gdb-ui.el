@@ -817,7 +817,7 @@ output from the current command if that happens to be appropriate."
   (setq gdb-display-in-progress nil))
 
 (define-button-type 'gdb-display-back
-  'help-echo (purecopy "mouse-2, RET: go back to previous display buffer")
+  'help-echo "mouse-2, RET: go back to previous display buffer"
   'action (lambda (button) (gdb-display-go-back)))
 
 (defun gdb-display-go-back ()
@@ -945,10 +945,8 @@ output from the current command if that happens to be appropriate."
 	(insert-buffer-substring (gdb-get-buffer
 				  'gdb-partial-output-buffer)
 				 start end)
-	(put-text-property (- (point) (- end start)) (- (point) 1)
-			   'mouse-face 'highlight)
-	(put-text-property (- (point) (- end start)) (- (point) 1)
-			   'local-map gdb-dive-map)))
+	(add-text-properties (- (point) (- end start)) (- (point) 1)
+			     `(mouse-face highlight local-map ,gdb-dive-map))))
     (delete-region start end)))
 
 (defvar gdb-values nil)
@@ -1060,12 +1058,11 @@ output from the current command if that happens to be appropriate."
 	  (setq array-stop (int-to-string (aref gdb-array-stop num)))
 	  (setq array-range (concat "[" array-start
 				    ":" array-stop "]"))
-	  (put-text-property 1 (+ (length array-start)
-				  (length array-stop) 2)
-			     'mouse-face 'highlight array-range)
-	  (put-text-property 1 (+ (length array-start)
-				  (length array-stop) 2)
-			     'local-map gdb-array-slice-map array-range)
+	  (add-text-properties 
+	   1 (+ (length array-start) (length array-stop) 2)
+	   `(mouse-face highlight
+	     local-map ,gdb-array-slice-map
+	     help-echo "mouse-2, RET: select slice for this index") array-range)
 	  (goto-char (point-min))
 	  (setq array-slice (concat array-slice array-range))
 	  (setq num (+ num 1)))
@@ -1342,7 +1339,7 @@ static char *magick[] = {
       (with-current-buffer buffer
 	(if (and (eq gud-minor-mode 'gdba)
 		 (not (string-match "^\*" (buffer-name))))
-	    (if (eq window-system 'x)
+	    (if (display-images-p)
 		(remove-images (point-min) (point-max))
 	      (gdb-remove-strings (point-min) (point-max))))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
@@ -1360,9 +1357,9 @@ static char *magick[] = {
 		      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
 			    (file (match-string 1)))
-			(put-text-property (progn (beginning-of-line) (point))
-					   (progn (end-of-line) (point))
-					   'mouse-face 'highlight)
+			(add-text-properties (point-at-bol) (point-at-eol)
+			 '(mouse-face highlight
+			   help-echo "mouse-2, RET: visit breakpoint"))
 			(with-current-buffer
 			    (find-file-noselect
 			     (if (file-exists-p file) file
@@ -1383,7 +1380,7 @@ static char *magick[] = {
 			    (let ((start (progn (beginning-of-line)
 						(- (point) 1)))
 				  (end (progn (end-of-line) (+ (point) 1))))
-			      (if (eq window-system 'x)
+			      (if (display-images-p)
 				  (progn
 				    (remove-images start end)
 				    (if (eq ?y flag)
@@ -1544,18 +1541,17 @@ current line."
       (let ((buffer-read-only nil))
 	(goto-char (point-min))
 	(while (< (point) (point-max))
-	  (put-text-property (progn (beginning-of-line) (point))
-			     (progn (end-of-line) (point))
-			     'mouse-face 'highlight)
+	  (add-text-properties (point-at-bol) (point-at-eol)
+			     '(mouse-face highlight
+			       help-echo "mouse-2, RET: Select frame"))
 	  (beginning-of-line)
 	  (if (or (looking-at "^#[0-9]*\\s-*\\S-* in \\(\\S-*\\)")
 		  (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)"))
 	      (if (equal (match-string 1) gdb-current-frame)
-		  (put-text-property (progn (beginning-of-line) (point))
-				     (progn (end-of-line) (point))
-				     'face 
-				     `(:background ,(face-attribute 'default :foreground)
-				       :foreground ,(face-attribute 'default :background)))))
+		  (put-text-property (point-at-bol) (point-at-eol)
+		   'face 
+		   `(:background ,(face-attribute 'default :foreground)
+		     :foreground ,(face-attribute 'default :background)))))
 	  (forward-line 1))))))
 
 (defun gdb-stack-buffer-name ()
@@ -1629,9 +1625,9 @@ the source buffer."
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (while (< (point) (point-max))
-	(put-text-property (progn (beginning-of-line) (point))
-			   (progn (end-of-line) (point))
-			   'mouse-face 'highlight)
+	(add-text-properties (point-at-bol) (point-at-eol)
+			     '(mouse-face highlight
+			       help-echo "mouse-2, RET: select thread"))
 	(forward-line 1)))))
 
 (defun gdb-threads-buffer-name ()
@@ -2160,7 +2156,7 @@ This arrangement depends on the value of `gdb-many-windows'."
 	  (if (eq gud-minor-mode 'gdba)
 	      (if (string-match "^\*.+*$" (buffer-name))
 		  (kill-buffer nil)
-		(if (eq window-system 'x)
+		(if (display-images-p)
 		    (remove-images (point-min) (point-max))
 		  (gdb-remove-strings (point-min) (point-max)))
 		(setq left-margin-width 0)
@@ -2323,7 +2319,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (setq gdb-arrow-position (point))
 		  (gdb-put-arrow "=>" (point))))))
       ;; remove all breakpoint-icons in assembler buffer before updating.
-      (if (eq window-system 'x)
+      (if (display-images-p)
 	  (remove-images (point-min) (point-max))
 	(gdb-remove-strings (point-min) (point-max))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
@@ -2344,7 +2340,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (let ((start (progn (beginning-of-line) (- (point) 1)))
 			    (end (progn (end-of-line) (+ (point) 1))))
-			(if (eq window-system 'x)
+			(if (display-images-p)
 			    (progn
 			      (remove-images start end)
 			      (if (eq ?y flag)
