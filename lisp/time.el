@@ -267,7 +267,7 @@ When this display is enabled, it updates automatically every minute.
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 This runs the normal hook `display-time-hook' after each update."
-  nil nil nil :global t :group 'display-time
+  :global t :group 'display-time
     (and display-time-timer (cancel-timer display-time-timer))
     (setq display-time-timer nil)
     (setq display-time-string "")
