@@ -3050,7 +3050,7 @@ Actually, the value is nil only if we can be sure that no input is available.")
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-  "Return vector of last 100 chars read from terminal.")
+  "Return a vector of last 100 events read from terminal.")
   ()
 {
   Lisp_Object val;
