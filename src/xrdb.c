@@ -204,12 +204,12 @@ magic_searchpath_decoder (incantation_string, file, return_path)
 	      string = (char *) alloca (string_size * sizeof (*string));
 	    }
 	  bcopy (s, string, len);
-	  string[len + 1] = '\0';
+	  string[len] = '\0';
 	  if (decode_magic (string, file, return_path))
 	    return 1;
 	}
 
-      if (p)
+      if (p && *p != 0)
 	s = p + 1;
       else
 	return 0;
