@@ -2436,6 +2436,25 @@ clear_mouse_face (dpyinfo)
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
   dpyinfo->mouse_face_window = Qnil;
 }
+
+/* Just discard the mouse face information for frame F, if any.
+   This is used when the size of F is changed.  */
+
+void
+cancel_mouse_face (f)
+     FRAME_PTR f;
+{
+  Lisp_Object window;
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+
+  window = dpyinfo->mouse_face_window;
+  if (! NILP (window) && XFRAME (XWINDOW (window)->frame) == f)
+    {
+      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+      dpyinfo->mouse_face_window = Qnil;
+    }
+}
 
 struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
@@ -3698,6 +3717,17 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  
 		  if (f->iconified)
 		    {
+                      int x, y;
+
+                      /* Reset top and left positions of the Window
+                         here since Windows sends a WM_MOVE message
+                         BEFORE telling us the Window is minimized
+                         when the Window is iconified, with 3000,3000
+                         as the co-ords. */
+                      x_real_positions (f, &x, &y);
+                      f->output_data.w32->left_pos = x;
+                      f->output_data.w32->top_pos = y;
+
 		      bufp->kind = deiconify_event;
 		      XSETFRAME (bufp->frame_or_window, f);
 		      bufp++;
@@ -3744,7 +3774,7 @@ w32_read_socket (sd, bufp, numchars, expected)
 		  
 		  change_frame_size (f, rows, columns, 0, 1);
 		  SET_FRAME_GARBAGED (f);
-		  
+		  cancel_mouse_face (f);
 		  f->output_data.w32->pixel_width = width;
 		  f->output_data.w32->pixel_height = height;
 		  f->output_data.w32->win_gravity = NorthWestGravity;
@@ -4387,7 +4417,6 @@ x_set_window_size (f, change_gravity, cols, rows)
      int cols, rows;
 {
   int pixelwidth, pixelheight;
-  Lisp_Object window;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   
   BLOCK_INPUT;
@@ -4456,14 +4485,8 @@ x_set_window_size (f, change_gravity, cols, rows)
      since it might be in a place that's outside the new frame size. 
      Actually checking whether it is outside is a pain in the neck,
      so don't try--just let the highlighting be done afresh with new size.  */
-  window = dpyinfo->mouse_face_window;
-  if (! NILP (window) && XFRAME (window) == f)
-    {
-      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
-      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
-      dpyinfo->mouse_face_window = Qnil;
-    }
-  
+  cancel_mouse_face (f);
+
   UNBLOCK_INPUT;
 }
 
