@@ -2156,7 +2156,7 @@ extern int tool_bar_button_relief;
 int string_buffer_position P_ ((struct window *, Lisp_Object, int));
 int line_bottom_y P_ ((struct it *));
 int display_prop_intangible_p P_ ((Lisp_Object));
-void resize_echo_area_axactly P_ ((void));
+void resize_echo_area_exactly P_ ((void));
 int resize_mini_window P_ ((struct window *, int));
 int try_window P_ ((Lisp_Object, struct text_pos));
 void window_box P_ ((struct window *, int, int *, int *, int *, int *));
