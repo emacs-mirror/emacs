@@ -972,7 +972,11 @@ If `enable-local-variables' is nil, this function does not check for a
 			    (beginning-of-line)
 			    (set-window-start (selected-window) (point)))
 			  (y-or-n-p (format "Set local variables as specified at end of %s? "
-					    (file-name-nondirectory buffer-file-name))))))))
+ 					    (if buffer-file-name
+ 						(file-name-nondirectory 
+ 						 buffer-file-name)
+ 					      (concat "buffer "
+ 						      (buffer-name))))))))))
 	(let ((continue t)
 	      prefix prefixlen suffix beg
 	      (enable-local-eval enable-local-eval))
