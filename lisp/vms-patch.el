@@ -168,7 +168,7 @@ spawned Emacs and doing things like \"emacs -l myfile.el -f doit\""
       "/SIZE/DATE/OWNER/WIDTH=(FILENAME=32,SIZE=5)")
 
 (setq print-region-function
-      '(lambda (start end command ign1 ign2 ign3 &rest switches)
+      (lambda (start end command ign1 ign2 ign3 &rest switches)
 	 (write-region start end "sys$login:delete-me.txt")
 	 (send-command-to-subprocess
 	  1
