@@ -1,23 +1,23 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.33) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.34) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
-PFM = nti3mv
+PFM = w3i3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
 MPM = <assert> <ring> <mpsliban> <mpm> <bt> \
-      <arenavm> <vmnt> <space> <pool> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <locknt> \
-      <ref> <trace> <protnt> <shield> \
-      <thnti3> <ssnti3> <mpsi> <mpsint> <ld> \
+      <arenavm> <vmw3> <space> <pool> <poolmfs> \
+      <poolmv> <root> <format> <buffer> <lockw3> \
+      <ref> <trace> <protw3> <shield> \
+      <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> \
       <mpsioan> <event> <action> <seg>
 SW  = <assert> <ring> <mpm> \
       <arenacl> <space> <pool> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <locknt> \
+      <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <shield> \
-      <thnti3> <ssnti3> <mpsisw> <mpsint> <ld> <poolepdl> \
+      <thw3i3> <ssw3i3> <mpsisw> <mpsiw3> <ld> <poolepdl> \
       <action> <seg>
 AMC = <amc>
 AWL = <poolawl>
@@ -43,124 +43,124 @@ TESTLIB = <testlib>
 CFLAGS=$(CFLAGSCOMMON) $(CFDF)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDF)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDF)
-MPMOBJ0 = $(MPM:<=nti3mv\df\)
+MPMOBJ0 = $(MPM:<=w3i3mv\df\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=nti3mv\df\)
+SWOBJ0 = $(SW:<=w3i3mv\df\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\df\)
+AMCOBJ0 = $(AMC:<=w3i3mv\df\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\df\)
+AWLOBJ0 = $(AWL:<=w3i3mv\df\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\df\)
+LOOBJ0 = $(LO:<=w3i3mv\df\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\df\)
+MRGOBJ0 = $(MRG:<=w3i3mv\df\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\df\)
+DWOBJ0 = $(DW:<=w3i3mv\df\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\df\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\df\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "dp"
 CFLAGS=$(CFLAGSCOMMON) $(CFDP)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDP)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDP)
-MPMOBJ0 = $(MPM:<=nti3mv\dp\)
+MPMOBJ0 = $(MPM:<=w3i3mv\dp\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=nti3mv\dp\)
+SWOBJ0 = $(SW:<=w3i3mv\dp\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\dp\)
+AMCOBJ0 = $(AMC:<=w3i3mv\dp\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\dp\)
+AWLOBJ0 = $(AWL:<=w3i3mv\dp\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\dp\)
+LOOBJ0 = $(LO:<=w3i3mv\dp\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\dp\)
+MRGOBJ0 = $(MRG:<=w3i3mv\dp\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\dp\)
+DWOBJ0 = $(DW:<=w3i3mv\dp\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\dp\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\dp\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ds"
 CFLAGS=$(CFLAGSCOMMON) $(CFDS)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDS)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDS)
-MPMOBJ0 = $(MPM:<=nti3mv\ds\)
+MPMOBJ0 = $(MPM:<=w3i3mv\ds\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=nti3mv\ds\)
+SWOBJ0 = $(SW:<=w3i3mv\ds\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\ds\)
+AMCOBJ0 = $(AMC:<=w3i3mv\ds\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\ds\)
+AWLOBJ0 = $(AWL:<=w3i3mv\ds\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\ds\)
+LOOBJ0 = $(LO:<=w3i3mv\ds\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\ds\)
+MRGOBJ0 = $(MRG:<=w3i3mv\ds\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\ds\)
+DWOBJ0 = $(DW:<=w3i3mv\ds\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\ds\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ds\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "dl"
 CFLAGS=$(CFLAGSCOMMON) $(CFDL)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFDL)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSDL)
-MPMOBJ0 = $(MPM:<=nti3mv\dl\)
+MPMOBJ0 = $(MPM:<=w3i3mv\dl\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=nti3mv\dl\)
+SWOBJ0 = $(SW:<=w3i3mv\dl\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\dl\)
+AMCOBJ0 = $(AMC:<=w3i3mv\dl\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\dl\)
+AWLOBJ0 = $(AWL:<=w3i3mv\dl\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\dl\)
+LOOBJ0 = $(LO:<=w3i3mv\dl\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\dl\)
+MRGOBJ0 = $(MRG:<=w3i3mv\dl\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\dl\)
+DWOBJ0 = $(DW:<=w3i3mv\dl\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\dl\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\dl\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ro"
 CFLAGS=$(CFLAGSCOMMON) $(CFRO)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFRO)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSRO)
-MPMOBJ0 = $(MPM:<=nti3mv\ro\)
+MPMOBJ0 = $(MPM:<=w3i3mv\ro\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-SWOBJ0 = $(SW:<=nti3mv\ro\)
+SWOBJ0 = $(SW:<=w3i3mv\ro\)
 SWOBJ = $(SWOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\ro\)
+AMCOBJ0 = $(AMC:<=w3i3mv\ro\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\ro\)
+AWLOBJ0 = $(AWL:<=w3i3mv\ro\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\ro\)
+LOOBJ0 = $(LO:<=w3i3mv\ro\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\ro\)
+MRGOBJ0 = $(MRG:<=w3i3mv\ro\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\ro\)
+DWOBJ0 = $(DW:<=w3i3mv\ro\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\ro\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\ro\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "cv"
 CFLAGS=$(CFLAGSCOMMON) $(CFCV)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCV)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCV)
-MPMOBJ0 = $(MPM:<=nti3mv\cv\)
+MPMOBJ0 = $(MPM:<=w3i3mv\cv\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
-AMCOBJ0 = $(AMC:<=nti3mv\cv\)
+AMCOBJ0 = $(AMC:<=w3i3mv\cv\)
 AMCOBJ = $(AMCOBJ0:>=.obj)
-AWLOBJ0 = $(AWL:<=nti3mv\cv\)
+AWLOBJ0 = $(AWL:<=w3i3mv\cv\)
 AWLOBJ = $(AWLOBJ0:>=.obj)
-LOOBJ0 = $(LO:<=nti3mv\cv\)
+LOOBJ0 = $(LO:<=w3i3mv\cv\)
 LOOBJ = $(LOOBJ0:>=.obj)
-MRGOBJ0 = $(MRG:<=nti3mv\cv\)
+MRGOBJ0 = $(MRG:<=w3i3mv\cv\)
 MRGOBJ = $(MRGOBJ0:>=.obj)
-DWOBJ0 = $(DW:<=nti3mv\cv\)
+DWOBJ0 = $(DW:<=w3i3mv\cv\)
 DWOBJ = $(DWOBJ0:>=.obj)
-TESTLIBOBJ0 = $(TESTLIB:<=nti3mv\cv\)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\cv\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ENDIF
