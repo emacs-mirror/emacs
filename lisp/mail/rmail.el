@@ -449,6 +449,9 @@ Note:    it means the file has no messages in it.\n\^_")))
 (define-key rmail-mode-map [menu-bar summary]
   (cons "Summary" (make-sparse-keymap "Summary")))
 
+(define-key rmail-mode-map [menu-bar summary senders]
+  '("By Senders..." . rmail-summary-by-senders))
+
 (define-key rmail-mode-map [menu-bar summary labels]
   '("By Labels..." . rmail-summary-by-labels))
 
@@ -762,8 +765,9 @@ original copy."
 	;; Sort here instead of in directory-files
 	;; because this list is usually much shorter.
 	(sort ret 'string<))
-    (if (string-match rmail-secondary-file-regexp start)
-	(list (file-name-nondirectory start)))))
+    (let ((case-fold-search nil))
+      (if (string-match rmail-secondary-file-regexp start)
+	  (list (file-name-nondirectory start))))))
 
 (defun rmail-list-to-menu (menu-name l action &optional full-name)
   (let ((menu (make-sparse-keymap menu-name)))
@@ -2563,6 +2567,11 @@ Normally checks the Subject field of headers;
 but if WHOLE-MESSAGE is non-nil (prefix arg given), 
  look in the whole message.
 SUBJECT is a string of regexps separated by commas."
+  t)
+
+(autoload 'rmail-summary-by-sender "rmailsum"
+  "Display a summary of all messages with the given SENDERS.
+SENDERS is a string of names separated by commas."
   t)
 
 ;;;; *** Rmail output messages to files ***
