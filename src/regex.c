@@ -4263,7 +4263,7 @@ mutually_exclusive_p (bufp, p1, p2)
       {
 	register re_wchar_t c
 	  = (re_opcode_t) *p2 == endline ? '\n'
-	  : RE_STRING_CHAR(p2 + 2, pend - p2 - 2);
+	  : RE_STRING_CHAR (p2 + 2, pend - p2 - 2);
 
 	if ((re_opcode_t) *p1 == exactn)
 	  {
@@ -4308,12 +4308,10 @@ mutually_exclusive_p (bufp, p1, p2)
       break;
 
     case charset:
-    case charset_not:
       {
 	if ((re_opcode_t) *p1 == exactn)
 	  /* Reuse the code above.  */
 	  return mutually_exclusive_p (bufp, p2, p1);
-
 
       /* It is hard to list up all the character in charset
 	 P2 if it includes multibyte character.  Give up in
@@ -4330,7 +4328,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	     P2 is ASCII, it is enough to test only bitmap
 	     table of P1.  */
 
-	  if (*p1 == *p2)
+	  if ((re_opcode_t) *p1 == charset)
 	    {
 	      int idx;
 	      /* We win if the charset inside the loop
@@ -4349,8 +4347,7 @@ mutually_exclusive_p (bufp, p1, p2)
 		  return 1;
 		}
 	    }
-	  else if ((re_opcode_t) *p1 == charset
-		   || (re_opcode_t) *p1 == charset_not)
+	  else if ((re_opcode_t) *p1 == charset_not)
 	    {
 	      int idx;
 	      /* We win if the charset_not inside the loop lists
@@ -4370,6 +4367,22 @@ mutually_exclusive_p (bufp, p1, p2)
 	  }
       }
       
+    case charset_not:
+      switch (SWITCH_ENUM_CAST (*p1))
+	{
+	case exactn:
+	case charset:
+	  /* Reuse the code above.  */
+	  return mutually_exclusive_p (bufp, p2, p1);
+	case charset_not:
+	  /* When we have two charset_not, it's very unlikely that
+	     they don't overlap.  The union of the two sets of excluded
+	     chars should cover all possible chars, which, as a matter of
+	     fact, is virtually impossible in multibyte buffers.  */
+	  ;
+	}
+      break;
+
     case wordend:
     case notsyntaxspec:
       return ((re_opcode_t) *p1 == syntaxspec
