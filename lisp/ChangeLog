@@ -1,3 +1,7 @@
+2003-01-29  Juanma Barranquero  <lektu@terra.es>
+
+	* composite.el (decompose-composite-char): Fix docstring.
+
 2003-01-27  Juanma Barranquero  <lektu@terra.es>
 
 	* progmodes/cc-vars.el (c-offsets-alist): Fix typo.
