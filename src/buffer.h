@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 1986, 1990, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1990, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -269,6 +269,8 @@ struct buffer
     /* Changes in the buffer are recorded here for undo.
        t means don't record anything.  */
     Lisp_Object undo_list;
+    /* t means the mark and region are currently active.  */
+    Lisp_Object mark_active;
 
     /* List of fields in this buffer.  */
     Lisp_Object fieldlist;
@@ -337,6 +339,9 @@ extern Lisp_Object Vbefore_change_function;
 extern Lisp_Object Vafter_change_function;
 extern Lisp_Object Vfirst_change_hook;
 extern Lisp_Object Qfirst_change_hook;
+
+extern Lisp_Object Vdeactivate_mark;
+extern Lisp_Object Vtransient_mark_mode;
 
 /* Fields.
 
