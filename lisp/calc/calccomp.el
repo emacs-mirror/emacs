@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -61,6 +60,25 @@
 ;;;    (rule X)              Horizontal line of X, full width of enclosing comp
 ;;;
 ;;;    (tag X C)             Composition C corresponds to sub-expression X
+
+;; math-comp-just and math-comp-comma-spc are local to 
+;; math-compose-expr, but are used by math-compose-matrix, which is 
+;; called by math-compose-expr
+(defvar math-comp-just)
+(defvar math-comp-comma-spc)
+
+;; math-comp-vector-prec is local to math-compose-expr, but is used by 
+;; math-compose-matrix and math-compose-rows, which are called by 
+;; math-compose-expr.
+(defvar math-comp-vector-prec)
+
+;; math-comp-left-bracket, math-comp-right-bracket and math-comp-comma are 
+;; local to math-compose-expr, but are used by math-compose-rows, which is 
+;; called by math-compose-expr.
+(defvar math-comp-left-bracket)
+(defvar math-comp-right-bracket)
+(defvar math-comp-comma)
+
 
 (defun math-compose-expr (a prec)
   (let ((math-compose-level (1+ math-compose-level)))
@@ -154,21 +172,21 @@
 			  (and (setq temp2 (assq nil (cdr temp)))
 			       (funcall (cdr temp2) a))))))))
      ((eq (car a) 'vec)
-      (let* ((left-bracket (if calc-vector-brackets
+      (let* ((math-comp-left-bracket (if calc-vector-brackets
 			       (substring calc-vector-brackets 0 1) ""))
-	     (right-bracket (if calc-vector-brackets
+	     (math-comp-right-bracket (if calc-vector-brackets
 				(substring calc-vector-brackets 1 2) ""))
 	     (inner-brackets (memq 'R calc-matrix-brackets))
 	     (outer-brackets (memq 'O calc-matrix-brackets))
 	     (row-commas (memq 'C calc-matrix-brackets))
-	     (comma-spc (or calc-vector-commas " "))
-	     (comma (or calc-vector-commas ""))
-	     (vector-prec (if (or (and calc-vector-commas
+	     (math-comp-comma-spc (or calc-vector-commas " "))
+	     (math-comp-comma (or calc-vector-commas ""))
+	     (math-comp-vector-prec (if (or (and calc-vector-commas
 				       (math-vector-no-parens a))
 				  (memq 'P calc-matrix-brackets)) 0 1000))
-	     (just (cond ((eq calc-matrix-just 'right) 'vright)
-			 ((eq calc-matrix-just 'center) 'vcent)
-			 (t 'vleft)))
+	     (math-comp-just (cond ((eq calc-matrix-just 'right) 'vright)
+                                      ((eq calc-matrix-just 'center) 'vcent)
+                                      (t 'vleft)))
 	     (break calc-break-vectors))
 	(if (and (memq calc-language '(nil big))
 		 (not calc-break-vectors)
@@ -177,17 +195,17 @@
 		     (and (< (length a) 7) (< (length (nth 1 a)) 7))
 		     (progn (setq break t) nil)))
 	    (if (progn
-		  (setq vector-prec (if (or (and calc-vector-commas
-						 (math-vector-no-parens
-						  (nth 1 a)))
-					    (memq 'P calc-matrix-brackets))
-					0 1000))
+		  (setq math-comp-vector-prec (if (or (and calc-vector-commas
+                                                           (math-vector-no-parens
+                                                            (nth 1 a)))
+                                                      (memq 'P calc-matrix-brackets))
+                                                  0 1000))
 		  (= (length a) 2))
 		(list 'horiz
-		      (concat left-bracket left-bracket " ")
-		      (math-compose-vector (cdr (nth 1 a)) (concat comma " ")
-					   vector-prec)
-		      (concat " " right-bracket right-bracket))
+		      (concat math-comp-left-bracket math-comp-left-bracket " ")
+		      (math-compose-vector (cdr (nth 1 a)) (concat math-comp-comma " ")
+					   math-comp-vector-prec)
+		      (concat " " math-comp-right-bracket math-comp-right-bracket))
 	      (let* ((rows (1- (length a)))
 		     (cols (1- (length (nth 1 a))))
 		     (base (/ (1- rows) 2))
@@ -196,17 +214,17 @@
 			(list (append '(vleft)
 				      (list base)
 				      (list (concat (and outer-brackets
-							 (concat left-bracket
+							 (concat math-comp-left-bracket
 								 " "))
 						    (and inner-brackets
-							 (concat left-bracket
+							 (concat math-comp-left-bracket
 								 " "))))
 				      (make-list (1- rows)
 						 (concat (and outer-brackets
 							      "  ")
 							 (and inner-brackets
 							      (concat
-							       left-bracket
+							       math-comp-left-bracket
 							       " "))))))
 			(math-compose-matrix (cdr a) 1 cols base)
 			(list (append '(vleft)
@@ -214,20 +232,20 @@
 				      (make-list (1- rows)
 						 (if inner-brackets
 						     (concat " "
-							     right-bracket
+							     math-comp-right-bracket
 							     (and row-commas
-								  comma))
+								  math-comp-comma))
 						   (if (and outer-brackets
 							    row-commas)
 						       ";" "")))
 				      (list (concat
 					     (and inner-brackets
 						  (concat " "
-							  right-bracket))
+							  math-comp-right-bracket))
 					     (and outer-brackets
 						  (concat
 						   " "
-						   right-bracket)))))))))
+						   math-comp-right-bracket)))))))))
 	  (if (and calc-display-strings
 		   (cdr a)
 		   (math-vector-is-string a))
@@ -237,7 +255,6 @@
 		(let* ((full (or calc-full-vectors (< (length a) 7)))
 		       (rows (if full (1- (length a)) 5))
 		       (base (/ (1- rows) 2))
-		       (just 'vleft)
 		       (calc-break-vectors nil))
 		  (list 'horiz
 			(cons 'vleft (cons base
@@ -260,26 +277,29 @@
 			       (math-matrixp a))
 			  (list 'horiz
 				"matrix("
-				left-bracket
-				(math-compose-vector (cdr a) (concat comma " ")
-						     vector-prec)
-				right-bracket
+				math-comp-left-bracket
+				(math-compose-vector (cdr a) 
+                                                     (concat math-comp-comma " ")
+						     math-comp-vector-prec)
+				math-comp-right-bracket
 				")")
 			(list 'horiz
-			      left-bracket
-			      (math-compose-vector (cdr a) (concat comma " ")
-						   vector-prec)
-			      right-bracket))))
+			      math-comp-left-bracket
+			      (math-compose-vector (cdr a) 
+                                                   (concat math-comp-comma " ")
+						   math-comp-vector-prec)
+			      math-comp-right-bracket))))
 		(list 'horiz
-		      left-bracket
+		      math-comp-left-bracket
 		      (math-compose-vector (list (nth 1 a) (nth 2 a) (nth 3 a))
-					   (concat comma " ") vector-prec)
-		      comma (if (eq calc-language 'tex) " \\ldots" " ...")
-		      comma " "
+					   (concat math-comp-comma " ") 
+                                           math-comp-vector-prec)
+		      math-comp-comma (if (eq calc-language 'tex) " \\ldots" " ...")
+		      math-comp-comma " "
 		      (list 'break math-compose-level)
 		      (math-compose-expr (nth (1- (length a)) a)
-					 (if (equal comma "") 1000 0))
-		      right-bracket)))))))
+					 (if (equal math-comp-comma "") 1000 0))
+		      math-comp-right-bracket)))))))
      ((eq (car a) 'incomplete)
       (if (cdr (cdr a))
 	  (cond ((eq (nth 1 a) 'vec)
@@ -929,17 +949,18 @@
   (let ((col 0)
 	(res nil))
     (while (<= (setq col (1+ col)) cols)
-      (setq res (cons (cons just
+      (setq res (cons (cons math-comp-just
 			    (cons base
 				  (mapcar (function
 					   (lambda (r)
 					     (list 'horiz
 						   (math-compose-expr
 						    (nth col r)
-						    vector-prec)
+						    math-comp-vector-prec)
 						   (if (= col cols)
 						       ""
-						     (concat comma-spc " ")))))
+						     (concat 
+                                                      math-comp-comma-spc " ")))))
 					  a)))
 		      res)))
     (nreverse res)))
@@ -950,17 +971,17 @@
 	  (if (< count 0)
 	      (math-compose-rows (cdr a) -1 nil)
 	    (cons (concat (if (eq calc-language 'tex) "  \\ldots" "  ...")
-			  comma)
+			  math-comp-comma)
 		  (math-compose-rows (cdr a) -1 nil)))
 	(cons (list 'horiz
-		    (if first (concat left-bracket " ") "  ")
-		    (math-compose-expr (car a) vector-prec)
-		    comma)
+		    (if first (concat math-comp-left-bracket " ") "  ")
+		    (math-compose-expr (car a) math-comp-vector-prec)
+		    math-comp-comma)
 	      (math-compose-rows (cdr a) (1- count) nil)))
     (list (list 'horiz
-		(if first (concat left-bracket " ") "  ")
-		(math-compose-expr (car a) vector-prec)
-		(concat " " right-bracket)))))
+		(if first (concat math-comp-left-bracket " ") "  ")
+		(math-compose-expr (car a) math-comp-vector-prec)
+		(concat " " math-comp-right-bracket)))))
 
 (defun math-compose-tex-matrix (a)
   (if (cdr a)
@@ -1202,15 +1223,21 @@
 	       expr
 	       (if (memq prec '(196 201)) ")" "")))))
 
+;; The variables math-svo-c, math-svo-wid and math-svo-off are local
+;; to math-stack-value-offset in calc.el, but are used by 
+;; math-stack-value-offset-fancy, which is called by math-stack-value-offset..
+(defvar math-svo-c)
+(defvar math-svo-wid)
+(defvar math-svo-off)
 
 (defun math-stack-value-offset-fancy ()
-  (let ((cwid (+ (math-comp-width c))))
+  (let ((cwid (+ (math-comp-width math-svo-c))))
     (cond ((eq calc-display-just 'right)
 	   (if calc-display-origin
-	       (setq wid (max calc-display-origin 5))
+	       (setq math-svo-wid (max calc-display-origin 5))
 	     (if (integerp calc-line-breaking)
-		 (setq wid calc-line-breaking)))
-	   (setq off (- wid cwid
+		 (setq math-svo-wid calc-line-breaking)))
+	   (setq math-svo-off (- math-svo-wid cwid
 			(max (- (length calc-right-label)
 				(if (and (integerp calc-line-breaking)
 					 calc-display-origin)
@@ -1222,21 +1249,20 @@
 	  (t
 	   (if calc-display-origin
 	       (progn
-		 (setq off (- calc-display-origin (/ cwid 2)))
+		 (setq math-svo-off (- calc-display-origin (/ cwid 2)))
 		 (if (integerp calc-line-breaking)
-		     (setq off (min off (- calc-line-breaking cwid
+		     (setq math-svo-off (min math-svo-off (- calc-line-breaking cwid
 					   (length calc-right-label)))))
-		 (if (>= off 0)
-		     (setq wid (max wid (+ off cwid)))))
+		 (if (>= math-svo-off 0)
+		     (setq math-svo-wid (max math-svo-wid (+ math-svo-off cwid)))))
 	     (if (integerp calc-line-breaking)
-		 (setq wid calc-line-breaking))
-	     (setq off (/ (- wid cwid) 2)))))
+		 (setq math-svo-wid calc-line-breaking))
+	     (setq math-svo-off (/ (- math-svo-wid cwid) 2)))))
     (and (integerp calc-line-breaking)
-	 (or (< off 0)
+	 (or (< math-svo-off 0)
 	     (and calc-display-origin
 		  (> calc-line-breaking calc-display-origin)))
-	 (setq wid calc-line-breaking))))
-
+	 (setq math-svo-wid calc-line-breaking))))
 
 
 ;;; Convert a composition to string form, with embedded \n's if necessary.
@@ -1273,40 +1299,59 @@
 ;;; lines if necessary, choosing break points according to the structure
 ;;; of the formula.
 
-(defun math-comp-to-string-flat (c full-width)
+;; The variables math-comp-full-width, math-comp-highlight, math-comp-word,
+;; math-comp-level, math-comp-margin and math-comp-buf are local to 
+;; math-comp-to-string-flat, but are used by math-comp-to-string-flat-term, 
+;; which is called by math-comp-to-string-flat.
+;; math-comp-highlight and math-comp-buf are also local to 
+;; math-comp-simplify-term and math-comp-simplify respectively, but are used 
+;; by math-comp-add-string.
+(defvar math-comp-full-width)
+(defvar math-comp-highlight)
+(defvar math-comp-word)
+(defvar math-comp-level)
+(defvar math-comp-margin)
+(defvar math-comp-buf)
+;; The variable math-comp-pos is local to math-comp-to-string-flat, but
+;; is used by math-comp-to-string-flat-term and math-comp-sel-first-term,
+;; which are called by math-comp-to-string-flat.
+(defvar math-comp-pos)
+
+(defun math-comp-to-string-flat (c math-comp-full-width)
   (if math-comp-sel-hpos
-      (let ((comp-pos 0))
+      (let ((math-comp-pos 0))
 	(math-comp-sel-flat-term c))
-    (let ((comp-buf "")
-	  (comp-word "")
-	  (comp-pos 0)
-	  (comp-margin 0)
-	  (comp-highlight (and math-comp-selected calc-show-selections))
-	  (comp-level -1))
+    (let ((math-comp-buf "")
+	  (math-comp-word "")
+	  (math-comp-pos 0)
+	  (math-comp-margin 0)
+	  (math-comp-highlight (and math-comp-selected calc-show-selections))
+	  (math-comp-level -1))
       (math-comp-to-string-flat-term '(set -1 0))
       (math-comp-to-string-flat-term c)
       (math-comp-to-string-flat-term '(break -1))
       (let ((str (aref math-comp-buf-string 0))
 	    (prefix ""))
 	(and (> (length str) 0) (= (aref str 0) ? )
-	     (> (length comp-buf) 0)
-	     (let ((k (length comp-buf)))
-	       (while (not (= (aref comp-buf (setq k (1- k))) ?\n)))
-	       (aset comp-buf k ? )
-	       (if (and (< (1+ k) (length comp-buf))
-			(= (aref comp-buf (1+ k)) ? ))
+	     (> (length math-comp-buf) 0)
+	     (let ((k (length math-comp-buf)))
+	       (while (not (= (aref math-comp-buf (setq k (1- k))) ?\n)))
+	       (aset math-comp-buf k ? )
+	       (if (and (< (1+ k) (length math-comp-buf))
+			(= (aref math-comp-buf (1+ k)) ? ))
 		   (progn
-		     (aset comp-buf (1+ k) ?\n)
+		     (aset math-comp-buf (1+ k) ?\n)
 		     (setq prefix " "))
 		 (setq prefix "\n"))))
-	(concat comp-buf prefix str)))))
+	(concat math-comp-buf prefix str)))))
 
 (defun math-comp-to-string-flat-term (c)
   (cond ((not (consp c))
-	 (if comp-highlight
+	 (if math-comp-highlight
 	     (setq c (math-comp-highlight-string c)))
-	 (setq comp-word (if (= (length comp-word) 0) c (concat comp-word c))
-	       comp-pos (+ comp-pos (length c))))
+	 (setq math-comp-word (if (= (length math-comp-word) 0) c 
+                                (concat math-comp-word c))
+	       math-comp-pos (+ math-comp-pos (length c))))
 
 	((eq (car c) 'horiz)
 	 (while (setq c (cdr c))
@@ -1315,83 +1360,83 @@
 	((eq (car c) 'set)
 	 (if (nth 1 c)
 	     (progn
-	       (setq comp-level (1+ comp-level))
-	       (if (>= comp-level (length math-comp-buf-string))
+	       (setq math-comp-level (1+ math-comp-level))
+	       (if (>= math-comp-level (length math-comp-buf-string))
 		   (setq math-comp-buf-string (vconcat math-comp-buf-string
 						       math-comp-buf-string)
 			 math-comp-buf-margin (vconcat math-comp-buf-margin
 						       math-comp-buf-margin)
 			 math-comp-buf-level (vconcat math-comp-buf-level
 						      math-comp-buf-level)))
-	       (aset math-comp-buf-string comp-level "")
-	       (aset math-comp-buf-margin comp-level (+ comp-pos
+	       (aset math-comp-buf-string math-comp-level "")
+	       (aset math-comp-buf-margin math-comp-level (+ math-comp-pos
 							(or (nth 2 c) 0)))
-	       (aset math-comp-buf-level comp-level (nth 1 c)))))
+	       (aset math-comp-buf-level math-comp-level (nth 1 c)))))
 
 	((eq (car c) 'break)
 	 (if (not calc-line-breaking)
-	     (setq comp-buf (concat comp-buf comp-word)
-		   comp-word "")
+	     (setq math-comp-buf (concat math-comp-buf math-comp-word)
+		   math-comp-word "")
 	   (let ((i 0) str)
-	     (if (and (> comp-pos full-width)
+	     (if (and (> math-comp-pos math-comp-full-width)
 		      (progn
 			(while (progn
 				 (setq str (aref math-comp-buf-string i))
-				 (and (= (length str) 0) (< i comp-level)))
+				 (and (= (length str) 0) (< i math-comp-level)))
 			  (setq i (1+ i)))
-			(or (> (length str) 0) (> (length comp-buf) 0))))
+			(or (> (length str) 0) (> (length math-comp-buf) 0))))
 		 (let ((prefix "") mrg wid)
 		   (setq mrg (aref math-comp-buf-margin i))
 		   (if (> mrg 12)  ; indenting too far, go back to far left
 		       (let ((j i) (new (if calc-line-numbering 5 1)))
-			 '(while (<= j comp-level)
+			 '(while (<= j math-comp-level)
 			   (aset math-comp-buf-margin j
 				 (+ (aref math-comp-buf-margin j) (- new mrg)))
 			   (setq j (1+ j)))
 			 (setq mrg new)))
-		   (setq wid (+ (length str) comp-margin))
+		   (setq wid (+ (length str) math-comp-margin))
 		   (and (> (length str) 0) (= (aref str 0) ? )
-			(> (length comp-buf) 0)
-			(let ((k (length comp-buf)))
-			  (while (not (= (aref comp-buf (setq k (1- k))) ?\n)))
-			  (aset comp-buf k ? )
-			  (if (and (< (1+ k) (length comp-buf))
-				   (= (aref comp-buf (1+ k)) ? ))
+			(> (length math-comp-buf) 0)
+			(let ((k (length math-comp-buf)))
+			  (while (not (= (aref math-comp-buf (setq k (1- k))) ?\n)))
+			  (aset math-comp-buf k ? )
+			  (if (and (< (1+ k) (length math-comp-buf))
+				   (= (aref math-comp-buf (1+ k)) ? ))
 			      (progn
-				(aset comp-buf (1+ k) ?\n)
+				(aset math-comp-buf (1+ k) ?\n)
 				(setq prefix " "))
 			    (setq prefix "\n"))))
-		   (setq comp-buf (concat comp-buf prefix str "\n"
+		   (setq math-comp-buf (concat math-comp-buf prefix str "\n"
 					  (make-string mrg ? ))
-			 comp-pos (+ comp-pos (- mrg wid))
-			 comp-margin mrg)
+			 math-comp-pos (+ math-comp-pos (- mrg wid))
+			 math-comp-margin mrg)
 		   (aset math-comp-buf-string i "")
-		   (while (<= (setq i (1+ i)) comp-level)
+		   (while (<= (setq i (1+ i)) math-comp-level)
 		     (if (> (aref math-comp-buf-margin i) wid)
 			 (aset math-comp-buf-margin i
 			       (+ (aref math-comp-buf-margin i)
 				  (- mrg wid))))))))
-	   (if (and (= (nth 1 c) (aref math-comp-buf-level comp-level))
-		    (< comp-pos (+ (aref math-comp-buf-margin comp-level) 2)))
+	   (if (and (= (nth 1 c) (aref math-comp-buf-level math-comp-level))
+		    (< math-comp-pos (+ (aref math-comp-buf-margin math-comp-level) 2)))
 	       ()  ; avoid stupid breaks, e.g., "1 +\n really_long_expr"
-	     (let ((str (aref math-comp-buf-string comp-level)))
+	     (let ((str (aref math-comp-buf-string math-comp-level)))
 	       (setq str (if (= (length str) 0)
-			     comp-word
-			   (concat str comp-word))
-		     comp-word "")
-	       (while (< (nth 1 c) (aref math-comp-buf-level comp-level))
-		 (setq comp-level (1- comp-level))
-		 (or (= (length (aref math-comp-buf-string comp-level)) 0)
-		     (setq str (concat (aref math-comp-buf-string comp-level)
+			     math-comp-word
+			   (concat str math-comp-word))
+		     math-comp-word "")
+	       (while (< (nth 1 c) (aref math-comp-buf-level math-comp-level))
+		 (setq math-comp-level (1- math-comp-level))
+		 (or (= (length (aref math-comp-buf-string math-comp-level)) 0)
+		     (setq str (concat (aref math-comp-buf-string math-comp-level)
 				       str))))
-	       (aset math-comp-buf-string comp-level str)))))
+	       (aset math-comp-buf-string math-comp-level str)))))
 
 	((eq (car c) 'tag)
 	 (cond ((eq (nth 1 c) math-comp-selected)
-		(let ((comp-highlight (not calc-show-selections)))
+		(let ((math-comp-highlight (not calc-show-selections)))
 		  (math-comp-to-string-flat-term (nth 2 c))))
 	       ((eq (nth 1 c) t)
-		(let ((comp-highlight nil))
+		(let ((math-comp-highlight nil))
 		  (math-comp-to-string-flat-term (nth 2 c))))
 	       (t (math-comp-to-string-flat-term (nth 2 c)))))
 
@@ -1405,18 +1450,25 @@
 	  (aset s i (if calc-show-selections ?\. ?\#)))))
   s)
 
+
+;; The variable math-comp-sel-tag is local to calc-find-selected-part
+;; in calc-sel.el, but is used by math-comp-sel-flat-term and 
+;; math-comp-add-string-sel, which are called (indirectly) by 
+;; calc-find-selected-part.
+(defvar math-comp-sel-tag)
+
 (defun math-comp-sel-flat-term (c)
   (cond ((not (consp c))
-	 (setq comp-pos (+ comp-pos (length c))))
+	 (setq math-comp-pos (+ math-comp-pos (length c))))
 	((memq (car c) '(set break)))
 	((eq (car c) 'horiz)
 	 (while (and (setq c (cdr c)) (< math-comp-sel-cpos 1000000))
 	   (math-comp-sel-flat-term (car c))))
 	((eq (car c) 'tag)
-	 (if (<= comp-pos math-comp-sel-cpos)
+	 (if (<= math-comp-pos math-comp-sel-cpos)
 	     (progn
 	       (math-comp-sel-flat-term (nth 2 c))
-	       (if (> comp-pos math-comp-sel-cpos)
+	       (if (> math-comp-pos math-comp-sel-cpos)
 		   (setq math-comp-sel-tag c
 			 math-comp-sel-cpos 1000000)))
 	   (math-comp-sel-flat-term (nth 2 c))))
@@ -1427,35 +1479,47 @@
 ;;;   (vleft n "string" "string" "string" ...)
 ;;; where 0 <= n < number-of-strings.
 
+;; The variables math-comp-base, math-comp-hgt, math-comp-tag,
+;; math-comp-hpos and math-comp-vpos are local to math-comp-simplify,
+;; but are used by math-comp-add-string (math-comp-base, math-comp-hgt),
+;; math-comp-add-string-sel (math-comp-tag) and math-comp-simplify-term
+;; (math-comp-tag, math-comp-vpos, math-comp-hpos), which are called by
+;; math-comp-simplify.
+(defvar math-comp-base)
+(defvar math-comp-hgt)
+(defvar math-comp-tag)
+(defvar math-comp-hpos)
+(defvar math-comp-vpos)
+
 (defun math-comp-simplify (c full-width)
-  (let ((comp-buf (list ""))
-	(comp-base 0)
-	(comp-height 1)
-	(comp-hpos 0)
-	(comp-vpos 0)
-	(comp-highlight (and math-comp-selected calc-show-selections))
-	(comp-tag nil))
+  (let ((math-comp-buf (list ""))
+	(math-comp-base 0)
+	(math-comp-hgt 1)
+	(math-comp-hpos 0)
+	(math-comp-vpos 0)
+	(math-comp-highlight (and math-comp-selected calc-show-selections))
+	(math-comp-tag nil))
     (math-comp-simplify-term c)
-    (cons 'vleft (cons comp-base comp-buf))))
+    (cons 'vleft (cons math-comp-base math-comp-buf))))
 
 (defun math-comp-add-string (s h v)
   (and (> (length s) 0)
-       (let ((vv (+ v comp-base)))
+       (let ((vv (+ v math-comp-base)))
 	 (if math-comp-sel-hpos
 	     (math-comp-add-string-sel h vv (length s) 1)
 	   (if (< vv 0)
-	       (setq comp-buf (nconc (make-list (- vv) "") comp-buf)
-		     comp-base (- v)
-		     comp-height (- comp-height vv)
+	       (setq math-comp-buf (nconc (make-list (- vv) "") math-comp-buf)
+		     math-comp-base (- v)
+		     math-comp-hgt (- math-comp-hgt vv)
 		     vv 0)
-	     (if (>= vv comp-height)
-		 (setq comp-buf (nconc comp-buf
-				       (make-list (1+ (- vv comp-height)) ""))
-		       comp-height (1+ vv))))
-	   (let ((str (nthcdr vv comp-buf)))
+	     (if (>= vv math-comp-hgt)
+		 (setq math-comp-buf (nconc math-comp-buf
+				       (make-list (1+ (- vv math-comp-hgt)) ""))
+		       math-comp-hgt (1+ vv))))
+	   (let ((str (nthcdr vv math-comp-buf)))
 	     (setcar str (concat (car str)
 				 (make-string (- h (length (car str))) 32)
-				 (if comp-highlight
+				 (if math-comp-highlight
 				     (math-comp-highlight-string s)
 				   s))))))))
 
@@ -1464,20 +1528,20 @@
 	   (> (+ y h) math-comp-sel-vpos)
 	   (<= x math-comp-sel-hpos)
 	   (> (+ x w) math-comp-sel-hpos))
-      (setq math-comp-sel-tag comp-tag
+      (setq math-comp-sel-tag math-comp-tag
 	    math-comp-sel-vpos 10000)))
 
 (defun math-comp-simplify-term (c)
   (cond ((stringp c)
-	 (math-comp-add-string c comp-hpos comp-vpos)
-	 (setq comp-hpos (+ comp-hpos (length c))))
+	 (math-comp-add-string c math-comp-hpos math-comp-vpos)
+	 (setq math-comp-hpos (+ math-comp-hpos (length c))))
 	((memq (car c) '(set break))
 	 nil)
 	((eq (car c) 'horiz)
 	 (while (setq c (cdr c))
 	   (math-comp-simplify-term (car c))))
 	((memq (car c) '(vleft vcent vright))
-	 (let* ((comp-vpos (+ (- comp-vpos (nth 1 c))
+	 (let* ((math-comp-vpos (+ (- math-comp-vpos (nth 1 c))
 			      (1- (math-comp-ascent (nth 2 c)))))
 		(widths (mapcar 'math-comp-width (cdr (cdr c))))
 		(maxwid (apply 'max widths))
@@ -1488,53 +1552,53 @@
 	   (while (setq c (cdr c))
 	     (if (eq (car-safe (car c)) 'rule)
 		 (math-comp-add-string (make-string maxwid (nth 1 (car c)))
-				       comp-hpos comp-vpos)
-	       (let ((comp-hpos (+ comp-hpos (/ (* bias (- maxwid
+				       math-comp-hpos math-comp-vpos)
+	       (let ((math-comp-hpos (+ math-comp-hpos (/ (* bias (- maxwid
 							   (car widths)))
 						2))))
 		 (math-comp-simplify-term (car c))))
 	     (and (cdr c)
-		  (setq comp-vpos (+ comp-vpos
+		  (setq math-comp-vpos (+ math-comp-vpos
 				     (+ (math-comp-descent (car c))
 					(math-comp-ascent (nth 1 c))))
 			widths (cdr widths))))
-	   (setq comp-hpos (+ comp-hpos maxwid))))
+	   (setq math-comp-hpos (+ math-comp-hpos maxwid))))
 	((eq (car c) 'supscr)
 	 (let* ((asc (or 1 (math-comp-ascent (nth 1 c))))
 		(desc (math-comp-descent (nth 2 c)))
 		(oldh (prog1
-			  comp-hpos
+			  math-comp-hpos
 			(math-comp-simplify-term (nth 1 c))))
-		(comp-vpos (- comp-vpos (+ asc desc))))
+		(math-comp-vpos (- math-comp-vpos (+ asc desc))))
 	   (math-comp-simplify-term (nth 2 c))
 	   (if math-comp-sel-hpos
 	       (math-comp-add-string-sel oldh
-					 (- comp-vpos
+					 (- math-comp-vpos
 					    -1
 					    (math-comp-ascent (nth 2 c)))
-					 (- comp-hpos oldh)
+					 (- math-comp-hpos oldh)
 					 (math-comp-height c)))))
 	((eq (car c) 'subscr)
 	 (let* ((asc (math-comp-ascent (nth 2 c)))
 		(desc (math-comp-descent (nth 1 c)))
-		(oldv comp-vpos)
+		(oldv math-comp-vpos)
 		(oldh (prog1
-			  comp-hpos
+			  math-comp-hpos
 			(math-comp-simplify-term (nth 1 c))))
-		(comp-vpos (+ comp-vpos (+ asc desc))))
+		(math-comp-vpos (+ math-comp-vpos (+ asc desc))))
 	   (math-comp-simplify-term (nth 2 c))
 	   (if math-comp-sel-hpos
 	       (math-comp-add-string-sel oldh oldv
-					 (- comp-hpos oldh)
+					 (- math-comp-hpos oldh)
 					 (math-comp-height c)))))
 	((eq (car c) 'tag)
 	 (cond ((eq (nth 1 c) math-comp-selected)
-		(let ((comp-highlight (not calc-show-selections)))
+		(let ((math-comp-highlight (not calc-show-selections)))
 		  (math-comp-simplify-term (nth 2 c))))
 	       ((eq (nth 1 c) t)
-		(let ((comp-highlight nil))
+		(let ((math-comp-highlight nil))
 		  (math-comp-simplify-term (nth 2 c))))
-	       (t (let ((comp-tag c))
+	       (t (let ((math-comp-tag c))
 		    (math-comp-simplify-term (nth 2 c))))))))
 
 
