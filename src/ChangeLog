@@ -1,3 +1,8 @@
+2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
+	comapring font names.
+
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* fileio.c (Fread_file_name): Pass Qt as fifth parameter to
