@@ -1158,7 +1158,8 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_KBOARD
-  any_kboard_state ();
+  if (command_loop_level == 0 && minibuf_level == 0)
+    any_kboard_state ();
 #endif
 
   return make_number (0);
@@ -1247,6 +1248,10 @@ command_loop ()
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
+	/* Reset single_kboard in case top-level set it while
+	   evaluating an -f option, or we are stuck there for some
+	   other reason.  */
+	any_kboard_state ();
 	internal_catch (Qtop_level, command_loop_2, Qnil);
 	executing_macro = Qnil;
 
