@@ -2579,7 +2579,7 @@ Use %% to put a single % into the output.")
 	    else
 #endif
 	      if (*format != 'd' && *format != 'o' && *format != 'x'
-		  && *format != 'X' && *format != 'c')
+		  && *format != 'i' && *format != 'X' && *format != 'c')
 		error ("Invalid format operation %%%c", *format);
 
 	    thissize = 30;	
