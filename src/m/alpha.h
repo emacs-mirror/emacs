@@ -159,10 +159,9 @@ NOTE-END
 
 #define DATA_SEG_BITS 0x140000000
 
-
+#ifdef __osf1__
 #define ORDINARY_LINK
 
-#ifdef __osf1__
 /* Some systems seem to have this, others don't.  */
 #ifdef HAVE_LIBDNET
 #define LIBS_MACHINE -ldnet
