@@ -40,20 +40,23 @@ MAKE = make  # BSD doesn't have it as a default.
 
 # ==================== Things `configure' Might Edit ====================
 
-CC=cc
-CONFIG_CFLAGS=-g
-C_SWITCH_SYSTEM=
+CC=@CC@
+DEFS=@DEFS@
+C_SWITCH_SYSTEM=@c_switch_system@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
 
 ### This should be the number of the Emacs version we're building,
 ### like `18.59' or `19.0'.
-version=version-not-set
+version=@version@
 
 ### This should be the name of the configuration we're building Emacs
 ### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
-configname=configuration-name-not-set
+configuration=@configuration@
+
+### Libraries which should be edited into lib-src/Makefile.
+libsrc_libs=@libsrc_libs@
 
 # ==================== Where To Install Things ====================
 
@@ -153,7 +156,7 @@ lockdir=${statedir}/emacs/lock
 # This path usually includes the Emacs version and configuration name,
 # so that multiple configurations for multiple versions of Emacs may
 # be installed at once.
-archlibdir=${libdir}/emacs/${version}/${configname}
+archlibdir=${libdir}/emacs/${version}/${configuration}
 
 # ====================== Developer's configuration =======================
 
@@ -184,7 +187,7 @@ INSTALL_DATA = ${INSTALL}
 # Flags passed down to subdirectory makefiles.
 MFLAGS = 
 
-CFLAGS=${CONFIG_CFLAGS}
+CFLAGS=${DEFS}
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
@@ -222,7 +225,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";')
-	${srcdir}/move-if-change src/paths.h.tmp src/paths.h
+	@${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
 src:	lib-src
 
@@ -230,7 +233,7 @@ src:	lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all ${MFLAGS} \
-		CC='${CC}' CONFIG_CFLAGS='${CONFIG_CFLAGS}' \
+		CC='${CC}' DEFS='${DEFS}' \
 		srcdir='${srcdir}/$@' libdir='${libdir}'
 
 ## We build the makefiles for the subdirectories here so that we can
@@ -247,18 +250,18 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
 	  /bin/sed < ${srcdir}/lib-src/Makefile.in			\
 	  -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
-	  -e 's|^\(configname *=\).*$$|\1'"${configname}"'|'		\
+	  -e 's|^\(configname *=\).*$$|\1'"${configuration}"'|'		\
 	  -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'			\
 	  -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
 	  -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	  -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
 	  -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
 	  -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'	\
 	  -e '/^# DIST: /d') > lib-src/Makefile.tmp
-	${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
+	@${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
 	chmod -w lib-src/Makefile
 
 src/Makefile: ${srcdir}/src/Makefile.in Makefile
@@ -272,9 +275,9 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  /bin/sed < ${srcdir}/src/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	  -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
 	  -e '/^# DIST: /d') > src/Makefile.tmp
-	${srcdir}/move-if-change src/Makefile.tmp src/Makefile
+	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
 
 oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile Makefile
@@ -461,7 +464,7 @@ clean mostlyclean:
 	cd src; $(MAKE) clean
 	cd lib-src; $(MAKE) clean
 	cd oldXMenu; $(MAKE) clean
-	if [ `(cd ${etcdir} ; /bin/pwd` != `(cd etc; /bin/pwd)` ] ; then \
+	if [ `(cd ${etcdir} ; /bin/pwd)` != `(cd etc; /bin/pwd)` ] ; then \
 	  cd etc; $(MAKE) clean; \
 	else true; \
 	fi
