@@ -40,29 +40,37 @@ extern int quit_char;
    invocation, the next element is used for a recursive minibuffer
    invocation, etc.  The list is extended at the end as deeper
    minibuffer recursions are encountered.  */
+
 Lisp_Object Vminibuffer_list;
 
 /* Data to remember during recursive minibuffer invocations  */
+
 Lisp_Object minibuf_save_list;
 
 /* Depth in minibuffer invocations.  */
+
 int minibuf_level;
 
 /* Nonzero means display completion help for invalid input.  */
+
 int auto_help;
 
 /* The maximum length of a minibuffer history.  */
+
 Lisp_Object Qhistory_length, Vhistory_length;
 
 /* Fread_minibuffer leaves the input here as a string. */
+
 Lisp_Object last_minibuf_string;
 
 /* Nonzero means let functions called when within a minibuffer 
    invoke recursive minibuffers (to read arguments, or whatever) */
+
 int enable_recursive_minibuffers;
 
 /* Nonzero means don't ignore text properties
    in Fread_from_minibuffer.  */
+
 int minibuffer_allow_text_properties;
 
 /* help-form is bound to this while in the minibuffer.  */
@@ -109,6 +117,7 @@ static Lisp_Object last_exact_completion;
 
 /* Non-nil means it is the window for C-M-v to scroll
    when the minibuffer is selected.  */
+
 extern Lisp_Object Vminibuf_scroll_window;
 
 extern Lisp_Object Voverriding_local_map;
@@ -120,6 +129,15 @@ Lisp_Object Qminibuffer_default;
 Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
 extern Lisp_Object Qmouse_face;
+
+/* If the following variable is bound, mini-buffer prompts are
+   inserted into mini-buffers instead of being displayed via
+   display_string.  Tested in simple.el.  No other use.  */
+
+#if !NO_PROMPT_IN_BUFFER
+Lisp_Object  Vminibuffer_prompt_in_buffer;
+#endif
+
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
@@ -181,6 +199,8 @@ without invoking the usual minibuffer commands.")
   return window;
 }
 
+#include <stdio.h>
+
 
 /* Actual minibuffer invocation. */
 
@@ -228,6 +248,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
+#if !NO_PROMPT_IN_BUFFER
+  extern Lisp_Object Qinvisible, Qintangible, Qread_only, Qfront_sticky;
+#endif
 
   specbind (Qminibuffer_default, defalt);
 
@@ -297,6 +320,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
+#if !NO_PROMPT_IN_BUFFER
+  minibuf_save_list
+    = Fcons (current_buffer->minibuffer_prompt_length,
+	     minibuf_save_list);
+#endif
 
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
@@ -361,6 +389,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
+#if !NO_PROMPT_IN_BUFFER
+  XSETFASTINT (current_buffer->minibuffer_prompt_length, 0);
+#endif
 
   /* Erase the buffer.  */
   {
@@ -370,6 +401,25 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     unbind_to (count1, Qnil);
   }
 
+  if (!NILP (current_buffer->enable_multibyte_characters)
+      && ! STRING_MULTIBYTE (minibuf_prompt))
+    minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
+
+#if !NO_PROMPT_IN_BUFFER
+  /* Insert the prompt, record where it ends.  */
+  Finsert (1, &minibuf_prompt);
+  XSETFASTINT (current_buffer->minibuffer_prompt_length, PT);
+  if (PT > BEG)
+    {
+      Fput_text_property (make_number (BEG), make_number (PT - 1),
+			  Qfront_sticky, Qt, Qnil);
+      Fput_text_property (make_number (BEG), make_number (PT - 1),
+			  Qread_only, Qt, Qnil);
+      Fput_text_property (make_number (PT - 1), make_number (Z),
+			  Qrear_nonsticky, Qt, Qnil);
+    }
+#endif
+      
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
     current_buffer->enable_multibyte_characters = enable_multibyte;
@@ -385,16 +435,13 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   echo_area_glyphs = 0;
   /* This is in case the minibuffer-setup-hook calls Fsit_for.  */
   previous_echo_glyphs = 0;
+  echo_area_message = previous_echo_area_message = Qnil,
 
   current_buffer->keymap = map;
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
     call1 (Qactivate_input_method, input_method);
-
-  if (!NILP (current_buffer->enable_multibyte_characters)
-      && ! STRING_MULTIBYTE (minibuf_prompt))
-    minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
@@ -407,12 +454,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
-  if ((FRAME_CURSOR_Y (selected_frame)
-       >= XFASTINT (XWINDOW (minibuf_window)->top))
+  if (XWINDOW (minibuf_window)->cursor.vpos >= 0
       && !noninteractive)
     {
-      FRAME_CURSOR_X (selected_frame)
-	= FRAME_LEFT_SCROLL_BAR_WIDTH (selected_frame);
+      XWINDOW (minibuf_window)->cursor.hpos = 0;
+      XWINDOW (minibuf_window)->cursor.x = 0;
+      XWINDOW (minibuf_window)->must_be_updated_p = 1;
       update_frame (selected_frame, 1, 1);
     }
 
@@ -545,8 +592,8 @@ get_minibuffer (depth)
   return buf;
 }
 
-/* This function is called on exiting minibuffer, whether normally or not,
- and it restores the current window, buffer, etc. */
+/* This function is called on exiting minibuffer, whether normally or
+   not, and it restores the current window, buffer, etc. */
 
 static Lisp_Object
 read_minibuf_unwind (data)
@@ -566,11 +613,16 @@ read_minibuf_unwind (data)
   minibuf_level--;
 
   window = minibuf_window;
-  /* To keep things predictable, in case it matters, let's be in the minibuffer
-     when we reset the relevant variables.  */
+  /* To keep things predictable, in case it matters, let's be in the
+     minibuffer when we reset the relevant variables.  */
   Fset_buffer (XWINDOW (window)->buffer);
 
   /* Restore prompt, etc, from outer minibuffer level.  */
+#if !NO_PROMPT_IN_BUFFER
+  current_buffer->minibuffer_prompt_length = Fcar (minibuf_save_list);
+  minibuf_save_list = Fcdr (minibuf_save_list);
+#endif
+
   minibuf_prompt = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   minibuf_prompt_width = XFASTINT (Fcar (minibuf_save_list));
@@ -607,7 +659,6 @@ read_minibuf_unwind (data)
   windows_or_buffers_changed++;
   XSETFASTINT (XWINDOW (window)->last_modified, 0);
   XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
-
   return Qnil;
 }
 
@@ -1616,7 +1667,11 @@ a repetition of this command will exit.")
   Lisp_Object val;
 
   /* Allow user to specify null string */
+#if !NO_PROMPT_IN_BUFFER
+  if (XFASTINT (current_buffer->minibuffer_prompt_length) == ZV)
+#else
   if (BEGV == ZV)
+#endif
     goto exit;
 
   if (!NILP (test_completion (Fbuffer_string ())))
@@ -1750,8 +1805,19 @@ Return nil if there is no valid completion, else t.")
     UNGCPRO;
   }
 #endif /* Rewritten code */
-  i_byte = ZV_BYTE - BEGV_BYTE;
+  
+#if !NO_PROMPT_IN_BUFFER
+  {
+    int prompt_end_charpos, prompt_end_bytepos;
+    prompt_end_charpos = XFASTINT (current_buffer->minibuffer_prompt_length);
+    prompt_end_bytepos = CHAR_TO_BYTE (prompt_end_charpos);
+    i = ZV - prompt_end_charpos;
+    i_byte = ZV_BYTE - prompt_end_bytepos;
+  }
+#else
   i = ZV - BEGV;
+  i_byte = ZV_BYTE - BEGV_BYTE;
+#endif
 
   /* If completion finds next char not unique,
      consider adding a space or a hyphen. */
@@ -1801,7 +1867,11 @@ Return nil if there is no valid completion, else t.")
 
   /* If got no characters, print help for user.  */
 
-  if (i_byte == ZV_BYTE - BEGV_BYTE)
+#if !NO_PROMPT_IN_BUFFER
+  if (i == ZV - XFASTINT (current_buffer->minibuffer_prompt_length))
+#else
+  if (i == ZV - BEGV)
+#endif
     {
       if (auto_help)
 	Fminibuffer_completion_help ();
@@ -2009,6 +2079,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
 				  Vminibuffer_completion_predicate,
 				  Qt);
   echo_area_glyphs = 0;
+  echo_area_message = Qnil;
 
   if (NILP (completions))
     {
@@ -2062,7 +2133,11 @@ DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
   ()
 {
   Lisp_Object width;
+#if !NO_PROMPT_IN_BUFFER
+  XSETFASTINT (width, current_buffer->minibuffer_prompt_length);
+#else
   XSETFASTINT (width, minibuf_prompt_width);
+#endif
   return width;
 }
 
@@ -2177,6 +2252,15 @@ syms_of_minibuf ()
   Qactivate_input_method = intern ("activate-input-method");
   staticpro (&Qactivate_input_method);
 
+#if !NO_PROMPT_IN_BUFFER
+  /* This variable should be removed once it has been decided whether or
+     not to use prompts in buffers.  */
+  DEFVAR_LISP ("minibuffer-prompt-in-buffer", &Vminibuffer_prompt_in_buffer, 
+    "The existance of this variable indicates that mini-buffer prompts are\n\
+inserted into the mini-buffer.");
+  Vminibuffer_prompt_in_buffer = Qnil;
+#endif /* !NO_PROMPT_IN_BUFFER */
+  
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function, 
     "If this is non-nil, `read-buffer' does its work by calling this function.");
   Vread_buffer_function = Qnil;
