@@ -1176,7 +1176,7 @@ If you do this twice in the same position, the selection is killed."
 		    (progn
 		      ;; Move whichever end of the region is closer to the click.
 		      ;; That is what xterm does, and it seems reasonable.
-		      (if (< (abs (- new (point))) (abs (- new (mark t))))
+		      (if (<= (abs (- new (point))) (abs (- new (mark t))))
 			  (goto-char new)
 			(set-mark new))
 		      (setq deactivate-mark nil)))
