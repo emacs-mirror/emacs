@@ -145,7 +145,9 @@
 
 #define NARROWPROTO 1
 
-/* The following is needed to make `configure' find Xpm and Xaw3d
-   headers, which are checked for with AC_CHECK_HEADER.  */
+/* The following is needed to make `configure' find Xpm, Xaw3d and
+   image include and library files if using /usr/bin/gcc.  That
+   compiler seems to be modified to not find headers in
+   /usr/local/include or libs in /usr/local/lib by default.  */
 
-#define C_SWITCH_SYSTEM -I /usr/X11R6/include
+#define C_SWITCH_SYSTEM -I /usr/X11R6/include -I /usr/local/include -L /usr/local/lib
