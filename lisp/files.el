@@ -3576,72 +3576,77 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
   ;; We need the directory in order to find the right handler.
   (let ((handler (find-file-name-handler (expand-file-name file)
 					 'insert-directory)))
-   (if handler
+    (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
 	  (vms-read-directory file switches (current-buffer))
-	(let* ((coding-system-for-read
-		(and enable-multibyte-characters
-		     (or file-name-coding-system
-			 default-file-name-coding-system)))
-	       ;; This is to control encoding the arguments in call-process.
-	       (coding-system-for-write coding-system-for-read)
-	       (result
-		(if wildcard
-		    ;; Run ls in the directory of the file pattern we asked for
-		    (let ((default-directory
-			    (if (file-name-absolute-p file)
-				(file-name-directory file)
-			      (file-name-directory (expand-file-name file))))
-			  (pattern (file-name-nondirectory file)))
-		      (call-process
-		       shell-file-name nil t nil
-		       "-c" (concat (if (memq system-type '(ms-dos windows-nt))
-					""
-				      "\\") ; Disregard Unix shell aliases!
-				    insert-directory-program
-				    " -d "
-				    (if (stringp switches)
-					switches
-				      (mapconcat 'identity switches " "))
-				    " -- "
-				    ;; Quote some characters that have
-				    ;; special meanings in shells; but
-				    ;; don't quote the wildcards--we
-				    ;; want them to be special.  We
-				    ;; also currently don't quote the
-				    ;; quoting characters in case
-				    ;; people want to use them
-				    ;; explicitly to quote wildcard
-				    ;; characters.
-				    (shell-quote-wildcard-pattern pattern))))
-		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
-		  ;; directory if FILE is a symbolic link.
-		  (apply 'call-process
-			 insert-directory-program nil t nil
-			 (append
-			  (if (listp switches) switches
-			    (unless (equal switches "")
-			      ;; Split the switches at any spaces so we can
-			      ;; pass separate options as separate args.
-			      (split-string switches)))
-			  ;; Avoid lossage if FILE starts with `-'.
-			  '("--")
-			  (progn
-			    (if (string-match "\\`~" file)
-				(setq file (expand-file-name file)))
-			    (list
-			     (if full-directory-p
-				 (concat (file-name-as-directory file) ".")
-			       file))))))))
+	(let (result available)
+
+	  ;; Read the actual directory using `insert-directory-program'.
+	  ;; RESULT gets the status code.
+	  (let ((coding-system-for-read
+		 (and enable-multibyte-characters
+		      (or file-name-coding-system
+			  default-file-name-coding-system)))
+		;; This is to control encoding the arguments in call-process.
+		(coding-system-for-write coding-system-for-read))
+	    (setq result
+		  (if wildcard
+		      ;; Run ls in the directory part of the file pattern
+		      ;; using the last component as argument.
+		      (let ((default-directory
+			      (if (file-name-absolute-p file)
+				  (file-name-directory file)
+				(file-name-directory (expand-file-name file))))
+			    (pattern (file-name-nondirectory file)))
+			(call-process
+			 shell-file-name nil t nil
+			 "-c"
+			 (concat (if (memq system-type '(ms-dos windows-nt))
+				     ""
+				   "\\") ; Disregard Unix shell aliases!
+				 insert-directory-program
+				 " -d "
+				 (if (stringp switches)
+				     switches
+				   (mapconcat 'identity switches " "))
+				 " -- "
+				 ;; Quote some characters that have
+				 ;; special meanings in shells; but
+				 ;; don't quote the wildcards--we want
+				 ;; them to be special.  We also
+				 ;; currently don't quote the quoting
+				 ;; characters in case people want to
+				 ;; use them explicitly to quote
+				 ;; wildcard characters.
+				 (shell-quote-wildcard-pattern pattern))))
+		    ;; SunOS 4.1.3, SVr4 and others need the "." to list the
+		    ;; directory if FILE is a symbolic link.
+		    (apply 'call-process
+			   insert-directory-program nil t nil
+			   (append
+			    (if (listp switches) switches
+			      (unless (equal switches "")
+				;; Split the switches at any spaces so we can
+				;; pass separate options as separate args.
+				(split-string switches)))
+			    ;; Avoid lossage if FILE starts with `-'.
+			    '("--")
+			    (progn
+			      (if (string-match "\\`~" file)
+				  (setq file (expand-file-name file)))
+			      (list
+			       (if full-directory-p
+				   (concat (file-name-as-directory file) ".")
+				 file))))))))
+
+	  ;; If `insert-directory-program' failed, signal an error.
 	  (if (/= result 0)
-	      ;; We get here if `insert-directory-program' failed.
 	      ;; On non-Posix systems, we cannot open a directory, so
 	      ;; don't even try, because that will always result in
-	      ;; the ubiquitous "Access denied".  Instead, show them
-	      ;; the `ls' command line and let them guess what went
-	      ;; wrong.
+	      ;; the ubiquitous "Access denied".  Instead, show the
+	      ;; command line so the user can try to guess what went wrong.
 	      (if (and (file-directory-p file)
 		       (memq system-type '(ms-dos windows-nt)))
 		  (error
@@ -3650,25 +3655,36 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		   (if (listp switches) (concat switches) switches)
 		   file result)
 		;; Unix.  Access the file to get a suitable error.
-		(access-file file "Reading directory"))
-	    ;; Replace "total" with "used", to avoid confusion.
-	    ;; Add in the amount of free space.
-	    (save-excursion
-	      (goto-char (point-min))
-	      (when (re-search-forward "^total" nil t)
+		(access-file file "Reading directory")
+		(error "Listing directory failed but `access-file' worked")))
+
+	  ;; Try to insert the amount of free space.
+	  (save-excursion
+	    (goto-char (point-min))
+	    ;; First find the line to put it on.
+	    (when (re-search-forward "^total" nil t)
+	      ;; Try to find the number of free blocks.
+	      (save-match-data
+		(with-temp-buffer
+		  (call-process "df" nil t nil ".")
+		  ;; Usual format is a header line
+		  ;; followed by a line of numbers.
+		  (goto-char (point-min))
+		  (forward-line 1)
+		  (if (not (eobp))
+		      (progn
+			;; Move to the end of the "available blocks" number.
+			(skip-chars-forward "^ \t")
+			(forward-word 3)
+			;; Copy it into AVAILABLE.
+			(let ((end (point)))
+			  (forward-word -1)
+			  (setq available (buffer-substring (point) end)))))))
+	      (when available
+		;; Replace "total" with "used", to avoid confusion.
 		(replace-match "used")
 		(end-of-line)
-		(let (available)
-		  (with-temp-buffer
-		    (call-process "df" nil t nil ".")
-		    (goto-char (point-min))
-		    (forward-line 1)
-		    (skip-chars-forward "^ \t")
-		    (forward-word 3)
-		    (let ((end (point)))
-		      (forward-word -1)
-		      (setq available (buffer-substring (point) end))))
-		  (insert " available " available))))))))))
+		(insert " available " available)))))))))
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)
