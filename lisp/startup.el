@@ -458,11 +458,8 @@ from being initialized."
 	(setq charset (concat "latin-" which))
 	;; Set up for this character set in multibyte mode.
 	(if (string-match "latin-[12345]" charset)
-	    (set-language-environment charset)))
-      ;; These two lines are ok for any Latin-N character set,
-      ;; as long as the terminal displays it.
-      (require 'disp-table)
-      (standard-display-european t t)))
+	    (set-language-environment charset))
+	(standard-display-european t charset))))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
