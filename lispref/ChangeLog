@@ -1,3 +1,8 @@
+2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* numbers.texi (Numeric Conversions): Not just `floor', but also
+	`truncate', `ceiling' and `round' accept optional argument DIVISOR.
+
 2003-11-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* markers.texi (Creating Markers): Specify insertion type of
