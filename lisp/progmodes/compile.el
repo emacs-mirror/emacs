@@ -133,6 +133,9 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 (defvar compilation-error-message "No more errors"
   "Message to print when no more matches are found.")
 
+(defvar compilation-arguments nil
+  "Arguments that were given to `compile-internal'.")
+
 (defvar compilation-num-errors-found)
 
 (defvar compilation-error-regexp-alist
@@ -627,6 +630,12 @@ Returns the compilation buffer created."
 	     file-regexp-alist)
 	(set (make-local-variable 'compilation-nomessage-regexp-alist)
 	     nomessage-regexp-alist)
+	(set (make-local-variable 'compilation-arguments)
+	     (list command error-message
+		   name-of-mode parser
+		   error-regexp-alist name-function
+		   enter-regexp-alist leave-regexp-alist
+		   file-regexp-alist nomessage-regexp-alist))
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
 	(set-window-start outwin (point-min))
@@ -774,7 +783,13 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (compilation-setup)
   (set (make-local-variable 'font-lock-defaults)
        '(compilation-mode-font-lock-keywords t))
+  (set (make-local-variable 'revert-buffer-function)
+       'compilation-revert-buffer)
   (run-hooks 'compilation-mode-hook))
+
+(defun compilation-revert-buffer (ignore-auto noconfirm)
+  (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
+      (apply 'compile-internal compilation-arguments)))
 
 ;; Prepare the buffer for the compilation parsing commands to work.
 (defun compilation-setup ()
@@ -1710,11 +1725,11 @@ An error message with no file name and no file name has been seen earlier."))
 			 (setq compilation-directory-stack
 			       (cons filename compilation-directory-stack)
 			       default-directory filename)))
-		  (and (eq type 'leave
-			   stack
-			   (setq compilation-directory-stack (cdr stack))
-			   (setq stack (car compilation-directory-stack))
-			   (setq default-directory stack)))
+		  (and (eq type 'leave)
+		       stack
+		       (setq compilation-directory-stack (cdr stack))
+		       (setq stack (car compilation-directory-stack))
+		       (setq default-directory stack))
 		  (goto-char end-of-match) ; Prepare to look at next message.
 		  (and limit-search (>= end-of-match limit-search)
 		       ;; The user wanted a specific error, and we're past it.
