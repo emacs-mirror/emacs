@@ -3210,6 +3210,11 @@ x_figure_window_size (f, parms)
   f->output_data.w32->top_pos = 0;
   f->output_data.w32->left_pos = 0;
 
+  /* Ensure that old new_width and new_height will not override the
+     values set here.  */
+  FRAME_NEW_WIDTH (f) = 0;
+  FRAME_NEW_HEIGHT (f) = 0;
+
   tem0 = w32_get_arg (parms, Qheight, 0, 0, RES_TYPE_NUMBER);
   tem1 = w32_get_arg (parms, Qwidth, 0, 0, RES_TYPE_NUMBER);
   tem2 = w32_get_arg (parms, Quser_size, 0, 0, RES_TYPE_NUMBER);
