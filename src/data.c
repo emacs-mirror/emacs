@@ -73,6 +73,7 @@ Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
+
 Lisp_Object Qcdr;
 Lisp_Object Qad_advice_info, Qad_activate;
 
@@ -83,6 +84,10 @@ Lisp_Object Qoverflow_error, Qunderflow_error;
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
 #endif
+
+static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
+static Lisp_Object Qfloat, Qwindow_configuration, Qprocess, Qwindow;
+static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 
 static Lisp_Object swap_in_symval_forwarding ();
 
@@ -174,178 +179,241 @@ DEFUN ("eq", Feq, Seq, 2, 2, 0,
 }
 
 DEFUN ("null", Fnull, Snull, 1, 1, 0, "T if OBJECT is nil.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (NILP (obj))
+  if (NILP (object))
     return Qt;
   return Qnil;
 }
 
-DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "T if OBJECT is a cons cell.")
-  (obj)
-     Lisp_Object obj;
+DEFUN ("type-of", Ftype_of, Stype_of, 1, 1, 0,
+  "Return a symbol representing the type of OBJECT.\n\
+The symbol returned names the object's basic type;\n\
+for example, (type-of 1) returns `integer'.")
+  (object)
+     Lisp_Object object;
 {
-  if (CONSP (obj))
+  switch (XGCTYPE (object))
+    {
+    case Lisp_Int:
+      return Qinteger;
+
+    case Lisp_Symbol:
+      return Qsymbol;
+
+    case Lisp_String:
+      return Qstring;
+
+    case Lisp_Cons:
+      return Qcons;
+
+    case Lisp_Misc:
+      switch (XMISC (object)->type)
+	{
+	case Lisp_Misc_Marker:
+	  return Qmarker;
+	case Lisp_Misc_Overlay:
+	  return Qoverlay;
+	case Lisp_Misc_Float:
+	  return Qfloat;
+	}
+      abort ();
+
+    case Lisp_Vectorlike:
+      if (GC_WINDOW_CONFIGURATIONP (object))
+	return Qwindow_configuration;
+      if (GC_PROCESSP (object))
+	return Qprocess;
+      if (GC_WINDOWP (object))
+	return Qwindow;
+      if (GC_SUBRP (object))
+	return Qsubr;
+      if (GC_COMPILEDP (object))
+	return Qcompiled_function;
+      if (GC_BUFFERP (object))
+	return Qbuffer;
+
+#ifdef MULTI_FRAME
+      if (GC_FRAMEP (object))
+	return Qframe;
+#endif
+      return Qvector;
+
+#ifdef LISP_FLOAT_TYPE
+    case Lisp_Float:
+      return Qfloat;
+#endif
+
+    default:
+      abort ();
+    }
+}
+
+DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "T if OBJECT is a cons cell.")
+  (object)
+     Lisp_Object object;
+{
+  if (CONSP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("atom", Fatom, Satom, 1, 1, 0, "T if OBJECT is not a cons cell.  This includes nil.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (CONSP (obj))
+  if (CONSP (object))
     return Qnil;
   return Qt;
 }
 
 DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "T if OBJECT is a list.  This includes nil.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (CONSP (obj) || NILP (obj))
+  if (CONSP (object) || NILP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "T if OBJECT is not a list.  Lists include nil.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (CONSP (obj) || NILP (obj))
+  if (CONSP (object) || NILP (object))
     return Qnil;
   return Qt;
 }
 
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "T if OBJECT is a symbol.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (SYMBOLP (obj))
+  if (SYMBOLP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "T if OBJECT is a vector.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (VECTORP (obj))
+  if (VECTORP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "T if OBJECT is a string.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (STRINGP (obj))
+  if (STRINGP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0, "T if OBJECT is an array (string or vector).")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (VECTORP (obj) || STRINGP (obj))
+  if (VECTORP (object) || STRINGP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
   "T if OBJECT is a sequence (list or array).")
-  (obj)
-     register Lisp_Object obj;
+  (object)
+     register Lisp_Object object;
 {
-  if (CONSP (obj) || NILP (obj) || VECTORP (obj) || STRINGP (obj))
+  if (CONSP (object) || NILP (object) || VECTORP (object) || STRINGP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0, "T if OBJECT is an editor buffer.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (BUFFERP (obj))
+  if (BUFFERP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0, "T if OBJECT is a marker (editor pointer).")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (MARKERP (obj))
+  if (MARKERP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0, "T if OBJECT is a built-in function.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (SUBRP (obj))
+  if (SUBRP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
        1, 1, 0, "T if OBJECT is a byte-compiled function object.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (COMPILEDP (obj))
+  if (COMPILEDP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
   "T if OBJECT is a character (an integer) or a string.")
-  (obj)
-     register Lisp_Object obj;
+  (object)
+     register Lisp_Object object;
 {
-  if (INTEGERP (obj) || STRINGP (obj))
+  if (INTEGERP (object) || STRINGP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0, "T if OBJECT is an integer.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (INTEGERP (obj))
+  if (INTEGERP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 0,
   "T if OBJECT is an integer or a marker (editor pointer).")
-  (obj)
-     register Lisp_Object obj;
+  (object)
+     register Lisp_Object object;
 {
-  if (MARKERP (obj) || INTEGERP (obj))
+  if (MARKERP (object) || INTEGERP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
   "T if OBJECT is a nonnegative integer.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (NATNUMP (obj))
+  if (NATNUMP (object))
     return Qt;
   return Qnil;
 }
 
 DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
        "T if OBJECT is a number (floating point or integer).")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (NUMBERP (obj))
+  if (NUMBERP (object))
     return Qt;
   else
     return Qnil;
@@ -354,10 +422,10 @@ DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
 DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
        Snumber_or_marker_p, 1, 1, 0,
        "T if OBJECT is a number or a marker.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (NUMBERP (obj) || MARKERP (obj))
+  if (NUMBERP (object) || MARKERP (object))
     return Qt;
   return Qnil;
 }
@@ -365,10 +433,10 @@ DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
 #ifdef LISP_FLOAT_TYPE
 DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
        "T if OBJECT is a floating point number.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (FLOATP (obj))
+  if (FLOATP (object))
     return Qt;
   return Qnil;
 }
@@ -2279,8 +2347,42 @@ syms_of_data ()
   staticpro (&Qad_advice_info);
   staticpro (&Qad_activate);
 
+  /* Types that type-of returns.  */
+  Qinteger = intern ("integer");
+  Qsymbol = intern ("symbol");
+  Qstring = intern ("string");
+  Qcons = intern ("cons");
+  Qmarker = intern ("marker");
+  Qoverlay = intern ("overlay");
+  Qfloat = intern ("float");
+  Qwindow_configuration = intern ("window-configuration");
+  Qprocess = intern ("process");
+  Qwindow = intern ("window");
+  /* Qsubr = intern ("subr"); */
+  Qcompiled_function = intern ("compiled-function");
+  Qbuffer = intern ("buffer");
+  Qframe = intern ("frame");
+  Qvector = intern ("vector");
+
+  staticpro (&Qinteger);
+  staticpro (&Qsymbol);
+  staticpro (&Qstring);
+  staticpro (&Qcons);
+  staticpro (&Qmarker);
+  staticpro (&Qoverlay);
+  staticpro (&Qfloat);
+  staticpro (&Qwindow_configuration);
+  staticpro (&Qprocess);
+  staticpro (&Qwindow);
+  /* staticpro (&Qsubr); */
+  staticpro (&Qcompiled_function);
+  staticpro (&Qbuffer);
+  staticpro (&Qframe);
+  staticpro (&Qvector);
+
   defsubr (&Seq);
   defsubr (&Snull);
+  defsubr (&Stype_of);
   defsubr (&Slistp);
   defsubr (&Snlistp);
   defsubr (&Sconsp);
