@@ -1,3 +1,7 @@
+2004-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info): Change order of arguments to makeinfo.
+
 2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar.texi (iCalendar): Update for package changes.
