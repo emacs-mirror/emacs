@@ -84,8 +84,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 		  topic)
     ;; The rest of this does not execute
     ;; if the user was asked to confirm and said no.
-    (goto-char (point-min))
-    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
+    (rfc822-goto-eoh)
+    (forward-line 1)
+
+    (let ((signature (buffer-substring (point) (point-max))))
+      ;; Discourage users to write non-English text.
+      (set-buffer-multibyte nil)
+      (delete-region (point) (point-max))
+      (insert signature))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
       (insert "This bug report will be sent to the Free Software Foundation,\n")
@@ -154,8 +160,6 @@ Type SPC to scroll through this section and its subsections.")))
     ;; Make it less likely people will send empty messages.
     (make-local-variable 'mail-send-hook)
     (add-hook 'mail-send-hook 'report-emacs-bug-hook)
-    ;; Discourage users to write non-English text.
-    (set-buffer-multibyte nil)
     (save-excursion
       (goto-char (point-max))
       (skip-chars-backward " \t\n")
