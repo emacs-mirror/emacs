@@ -40,7 +40,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.21 1996/12/13 01:49:23 rms Exp rms $
+;; $Id: time-stamp.el,v 1.22 1996/12/17 00:14:41 rms Exp rms $
 
 ;;; Code:
 
@@ -249,15 +249,6 @@ Do not alter other %-combinations, and do detect %%."
 		  (sit-for 1)))
 	   (time-stamp-fconcat time-stamp-format " ")))))
 
-(defconst time-stamp-month-numbers
-  '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4) ("May" . 5) ("Jun" . 6)
-    ("Jul" . 7) ("Aug" . 8) ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
-  "Alist of months and their number.")
-
-(defconst time-stamp-month-full-names
-  ["(zero)" "January" "February" "March" "April" "May" "June"
-   "July" "August" "September" "October" "November" "December"])
-
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
 
@@ -305,89 +296,54 @@ around literals."
 
 (defun time-stamp-month-dd-yyyy ()
   "Return the current date as a string in \"Month DD, YYYY\" form."
-  (let ((date (current-time-string)))
-    (format "%s %d, %s"
-	    (aref time-stamp-month-full-names
-		  (cdr (assoc (substring date 4 7) time-stamp-month-numbers)))
-	    (string-to-int (substring date 8 10))
-	    (substring date -4))))
+  (format-time-string "%B %e, %Y"))
 
 (defun time-stamp-dd/mm/yyyy ()
   "Return the current date as a string in \"DD/MM/YYYY\" form."
-  (let ((date (current-time-string)))
-    (format "%02d/%02d/%s"
-            (string-to-int (substring date 8 10)) 
-            (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
-            (substring date -4) )))
+  (format-time-string "%d/%m/%Y"))
 
 ;;; same as __DATE__ in ANSI C
 
 (defun time-stamp-mon-dd-yyyy ()
   "Return the current date as a string in \"Mon DD YYYY\" form.
 The first character of DD is space if the value is less than 10."
-  (let ((date (current-time-string)))
-    (format "%s %2d %s"
-	    (substring date 4 7)
-	    (string-to-int (substring date 8 10))
-	    (substring date -4))))
+  (format-time-string "%b %d %Y"))
 
 ;;; RFC 822 date
 
 (defun time-stamp-dd-mon-yy ()
   "Return the current date as a string in \"DD Mon YY\" form."
-  (let ((date (current-time-string)))
-    (format "%02d %s %s"
-	    (string-to-int (substring date 8 10))
-	    (substring date 4 7)
-	    (substring date -2))))
+  (format-time-string "%d %b %y"))
 
 ;;; RCS 3 date
 
 (defun time-stamp-yy/mm/dd ()
   "Return the current date as a string in \"YY/MM/DD\" form."
-  (let ((date (current-time-string)))
-    (format "%s/%02d/%02d"
-	    (substring date -2)
-	    (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
-	    (string-to-int (substring date 8 10)))))
+  (format-time-string "%y/%m/%d"))
 
 ;;; RCS 5 date
 
 (defun time-stamp-yyyy/mm/dd ()
   "Return the current date as a string in \"YYYY/MM/DD\" form."
-  (let ((date (current-time-string)))
-    (format "%s/%02d/%02d"
-	    (substring date -4)
-	    (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
-	    (string-to-int (substring date 8 10)))))
+  (format-time-string "%Y/%m/%d"))
 
 ;;; ISO 8601 date
 
 (defun time-stamp-yyyy-mm-dd ()
   "Return the current date as a string in \"YYYY-MM-DD\" form."
-  (let ((date (current-time-string)))
-    (format "%s-%02d-%02d"
-	    (substring date -4)
-	    (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
-	    (string-to-int (substring date 8 10)))))
+  (format-time-string "%Y-%m-%d"))
 
 (defun time-stamp-yymmdd ()
   "Return the current date as a string in \"YYMMDD\" form."
-  (let ((date (current-time-string)))
-    (format "%s%02d%02d"
-	    (substring date -2)
-	    (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
-	    (string-to-int (substring date 8 10)))))
+  (format-time-string "%y%m%d"))
 
 (defun time-stamp-hh:mm:ss ()
   "Return the current time as a string in \"HH:MM:SS\" form."
-  (substring (current-time-string) 11 19))
+  (format-time-string "%T"))
 
 (defun time-stamp-hhmm ()
   "Return the current time as a string in \"HHMM\" form."
-  (let ((date (current-time-string)))
-    (concat (substring date 11 13)
-	    (substring date 14 16))))
+  (format-time-string "%H%M"))
 
 (provide 'time-stamp)
 
