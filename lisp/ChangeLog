@@ -1,5 +1,8 @@
 1999-11-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (file-local-copy): Remove optional BUFFER argument
+	because that's not used by anything.
+
 	* mail/mh-comp.el (mh-smail-batch): If TO is nil, use "" as
 	to-address.
 
