@@ -1,3 +1,18 @@
+2001-01-08  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-default-latest-on-branch-p): New function, replaces 
+	constant implementations in backends.
+
+	* vc-cvs.el (vc-cvs-latest-on-branch-p): Removed.
+	(vc-cvs-checkout): Renamed arg WRITABLE to EDITABLE.
+
+	* vc-rcs.el (vc-rcs-checkout, vc-rcs-cancel-version): Renamed arg
+	WRITABLE to EDITABLE.
+
+	* vc-sccs.el (vc-sccs-latest-on-branch-p): Removed.
+	(vc-sccs-checkout, vc-sccs-cancel-version): Renamed arg WRITABLE
+	to EDITABLE.
+
 2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/copyright.el (copyright-current-year): Now a defvar.
