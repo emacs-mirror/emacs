@@ -1,3 +1,7 @@
+2004-10-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar.texi (iCalendar): Style changes.
+
 2004-10-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* search.texi (Regexps): The regexp described in the example is no
@@ -12,6 +16,10 @@
 
 	* building.texi (Starting GUD): Note that multiple debugging
 	sessions requires `gdb --fullname'.
+
+2004-10-05  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar.texi (iCalendar): New section for a new package.
 
 2004-10-05  Karl Berry  <karl@gnu.org>
 
