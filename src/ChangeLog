@@ -1,4 +1,8 @@
-2002-05-26  Dave Love  <d.love@dl.ac.uk>
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* coding.c (decode_coding_utf_8): Reject overlong sequences.
+
+2002-05-26  Dave Love  <fx@gnu.org>
 
 	* coding.c: Doc fixes.
 	(Fcoding_system_aliases): Fix return value.
