@@ -74,6 +74,18 @@ buffer."
       (clear-abbrev-table (symbol-value (car tables)))
       (setq tables (cdr tables)))))
 
+(defun copy-abbrev-table (table)
+  "Make a new abbrev-table with the same abbrevs as TABLE."
+  (let ((new-table (make-abbrev-table)))
+    (mapatoms
+     (lambda (symbol)
+       (define-abbrev new-table
+	 (symbol-name symbol)
+	 (symbol-value symbol)
+	 (symbol-function symbol)))
+     table)
+    new-table))
+
 (defun insert-abbrevs ()
   "Insert after point a description of all defined abbrevs.
 Mark is set after the inserted text."
