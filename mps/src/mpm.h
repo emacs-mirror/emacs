@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.18) $
+ * $HopeName: MMsrc!mpm.h(trunk.19) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  */
 
@@ -175,6 +175,38 @@ extern Ring (RingNext)(Ring ring);
   for(var = RingNext(ring); \
       var != (ring); \
       var = RingNext(var))
+
+
+/* Bit Table Interface -- see design.mps.bt for the interface doc */
+
+/* design.mps.bt.if.size */
+Size BTSize(unsigned long);
+
+/* design.mps.bt.if.get */
+int (BTGet)(BT, Index);
+#define BTGet(a, i) ((a)[((i)>>MPS_WORD_SHIFT)] >> \
+                     ((i)&~((Word)-1<<MPS_WORD_SHIFT)) & (Word)1)
+
+/* design.mps.bt.if.set */
+void (BTSet)(BT, Index);
+#define BTSet(a, i) \
+  BEGIN \
+    (a)[((i)>>MPS_WORD_SHIFT)] |= \
+    (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
+  END
+
+/* design.mps.bt.if.res */
+void (BTRes)(BT, Index);
+#define BTRes(a, i) \
+  BEGIN \
+    (a)[((i)>>MPS_WORD_SHIFT)] &= \
+    ~((Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT))); \
+  END
+
+void BTSetRange(BT, Index, Index);
+void BTResRange(BT, Index, Index);
+Bool BTFindResRange(Index *, unsigned long *,
+                    BT, unsigned long, unsigned long);
 
 
 /* Pool Interface -- see impl.c.pool */

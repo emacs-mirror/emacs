@@ -1,9 +1,9 @@
 #
 #     BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
-# $HopeName: MMsrc!o1algc.gmk(trunk.4) $
+# $HopeName: MMsrc!o1algc.gmk(trunk.5) $
 #
-# Copyright (C) 1995 Harlequin Group, all rights reserved
+# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # This is the GNU makefile for platform.o1algc.
 #
@@ -14,7 +14,7 @@
 PFM = o1algc
 PFMDEFS = -D_ANSI_C_SOURCE
 
-MPM = assert.c ring.c mpsliban.c mpm.c \
+MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       arenavm.c space.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
       trace.c than.c protan.c shield.c mpsi.c ld.c vman.c ssan.c
