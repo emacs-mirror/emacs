@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 #include <errno.h>
 #include "lisp.h"
+#include "intervals.h"
 
 #ifndef standalone
 #include "buffer.h"
@@ -190,7 +191,7 @@ readchar (readcharfun)
      Lisp_Object readcharfun;
 {
   Lisp_Object tem;
-  register int c, mpos;
+  register int c;
 
   if (BUFFERP (readcharfun))
     {
@@ -476,7 +477,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
       /* Convert certain symbols to their ASCII equivalents.  */
       if (SYMBOLP (val))
 	{
-	  Lisp_Object tem, tem1, tem2;
+	  Lisp_Object tem, tem1;
 	  tem = Fget (val, Qevent_symbol_element_mask);
 	  if (!NILP (tem))
 	    {
@@ -1902,8 +1903,6 @@ read1 (readcharfun, pch, first_in_list)
 
     case '?':
       {
-	register Lisp_Object val;
-
 	c = READCHAR;
 	if (c < 0) return Fsignal (Qend_of_file, Qnil);
 
@@ -2938,8 +2937,6 @@ OBARRAY defaults to the value of `obarray'.")
   (function, obarray)
      Lisp_Object function, obarray;
 {
-  Lisp_Object tem;
-
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
