@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.38 $
+;; Version: $Revision: 1.39 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/09 21:30:32 $|$Revision: 1.38 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/09 21:58:03 $|$Revision: 1.39 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.39  1995/07/09  21:58:03  tromey
+;; (tcl-do-fill-paragraph): New function.
+;; (tcl-mode): Set up for paragraph filling.
+;;
 ;; Revision 1.38  1995/07/09  21:30:32  tromey
 ;; (tcl-mode): Fixes to 19.29 paragraph variables.
 ;;
@@ -325,7 +329,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.38 $")
+(defconst tcl-version "$Revision: 1.39 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -945,6 +949,16 @@ Commands:
   (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function 'tcl-imenu-create-index-function)
   (make-local-variable 'parse-sexp-ignore-comments)
+
+  ;; Settings for new dabbrev code.
+  (make-local-variable 'dabbrev-case-fold-search)
+  (setq dabbrev-case-fold-search nil)
+  (make-local-variable 'dabbrev-case-replace)
+  (setq dabbrev-case-replace nil)
+  (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
+  (setq dabbrev-abbrev-skip-leading-regexp "[$!]")
+  (make-local-variable 'dabbrev-abbrev-char-regexp)
+  (setq dabbrev-abbrev-char-regexp "\\sw\\|\\s_")
 
   (if tcl-using-emacs-19
       (progn
