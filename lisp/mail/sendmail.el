@@ -347,11 +347,8 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*[-_][-_][-_]+$\\|-- $\\|-----\\|"
-				paragraph-start))
-  (setq paragraph-separate (concat (regexp-quote mail-header-separator)
-				   "$\\|[ \t]*[-_][-_][-_]+$\\|-- $\\|-----\\|"
-				   paragraph-separate))
+				"\\|$\\|" page-delimiter))
+  (setq paragraph-separate paragraph-start)
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
 (defun mail-mode-auto-fill ()
