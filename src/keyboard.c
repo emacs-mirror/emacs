@@ -452,6 +452,10 @@ int input_pending;
 
 int meta_key;
 
+/* Non-zero means force key bindings update in parse_menu_item.  */
+
+int update_menu_bindings;
+
 extern char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
@@ -6482,11 +6486,11 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* Initialize optional entries.  */
   for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
-    XVECTOR (item_properties)->contents[i] = Qnil;
-  XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = Qt;
+    AREF (item_properties, i) = Qnil;
+  AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
 	 
   /* Save the item here to protect it from GC.  */
-  XVECTOR (item_properties)->contents[ITEM_PROPERTY_ITEM] = item;
+  AREF (item_properties, ITEM_PROPERTY_ITEM) = item;
 
   item_string = XCAR (item);
 
@@ -6495,13 +6499,12 @@ parse_menu_item (item, notreal, inmenubar)
   if (STRINGP (item_string))
     {
       /* Old format menu item.  */
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
+      AREF (item_properties, ITEM_PROPERTY_NAME) = item_string;
 
       /* Maybe help string.  */
       if (CONSP (item) && STRINGP (XCAR (item)))
 	{
-	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
-	    = XCAR (item);
+	  AREF (item_properties, ITEM_PROPERTY_HELP) = XCAR (item);
 	  start = item;
 	  item = XCDR (item);
 	}
@@ -6516,27 +6519,25 @@ parse_menu_item (item, notreal, inmenubar)
 	}
       
       /* This is the real definition--the function to run.  */
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = item;
+      AREF (item_properties, ITEM_PROPERTY_DEF) = item;
 
       /* Get enable property, if any.  */
       if (SYMBOLP (item))
 	{
 	  tem = Fget (item, Qmenu_enable);
 	  if (!NILP (tem))
-	    XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = tem;
+	    AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
 	}
     }
   else if (EQ (item_string, Qmenu_item) && CONSP (item))
     {
       /* New format menu item.  */
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]
-	= XCAR (item);
+      AREF (item_properties, ITEM_PROPERTY_NAME) = XCAR (item);
       start = XCDR (item);
       if (CONSP (start))
 	{
 	  /* We have a real binding.  */
-	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF]
-	    = XCAR (start);
+	  AREF (item_properties, ITEM_PROPERTY_DEF) = XCAR (start);
 
 	  item = XCDR (start);
 	  /* Is there a cache list with key equivalences. */
@@ -6553,8 +6554,7 @@ parse_menu_item (item, notreal, inmenubar)
 	      item = XCDR (item);
 
 	      if (EQ (tem, QCenable))
-		XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE]
-		  = XCAR (item);
+		AREF (item_properties, ITEM_PROPERTY_ENABLE) = XCAR (item);
 	      else if (EQ (tem, QCvisible) && !notreal)
 		{
 		  /* If got a visible property and that evaluates to nil
@@ -6564,8 +6564,7 @@ parse_menu_item (item, notreal, inmenubar)
 		    return 0;
 	 	}
 	      else if (EQ (tem, QChelp))
-		XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
-		  = XCAR (item);
+		AREF (item_properties, ITEM_PROPERTY_HELP) = XCAR (item);
 	      else if (EQ (tem, QCfilter))
 		filter = item;
 	      else if (EQ (tem, QCkey_sequence))
@@ -6580,8 +6579,7 @@ parse_menu_item (item, notreal, inmenubar)
 		{
 		  tem = XCAR (item);
 		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
-		    XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
-		      = tem;
+		    AREF (item_properties, ITEM_PROPERTY_KEYEQ) = tem;
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
 		{
@@ -6590,9 +6588,9 @@ parse_menu_item (item, notreal, inmenubar)
 		  type = XCAR (tem);
 		  if (EQ (type, QCtoggle) || EQ (type, QCradio))
 		    {
-		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
+		      AREF (item_properties, ITEM_PROPERTY_SELECTED)
 			= XCDR (tem);
-		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE]
+		      AREF (item_properties, ITEM_PROPERTY_TYPE)
 			= type;
 		    }
 		}
@@ -6607,23 +6605,23 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* If item string is not a string, evaluate it to get string.
      If we don't get a string, skip this item.  */
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+  item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
   if (!(STRINGP (item_string) || notreal))
     {
       item_string = menu_item_eval_property (item_string);
       if (!STRINGP (item_string))
 	return 0;
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
+      AREF (item_properties, ITEM_PROPERTY_NAME) = item_string;
     }
      
   /* If got a filter apply it on definition.  */
-  def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+  def = AREF (item_properties, ITEM_PROPERTY_DEF);
   if (!NILP (filter))
     {
       def = menu_item_eval_property (list2 (XCAR (filter),
 					    list2 (Qquote, def)));
 
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = def;
+      AREF (item_properties, ITEM_PROPERTY_DEF) = def;
     }
 
   /* If we got no definition, this item is just unselectable text which
@@ -6632,7 +6630,7 @@ parse_menu_item (item, notreal, inmenubar)
     return (inmenubar ? 0 : 1);
  
   /* Enable or disable selection of item.  */
-  tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
+  tem = AREF (item_properties, ITEM_PROPERTY_ENABLE);
   if (!EQ (tem, Qt))
     {
       if (notreal)
@@ -6641,19 +6639,20 @@ parse_menu_item (item, notreal, inmenubar)
 	tem = menu_item_eval_property (tem);
       if (inmenubar && NILP (tem))
 	return 0;		/* Ignore disabled items in menu bar.  */
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = tem;
+      AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
     }
 
   /* See if this is a separate pane or a submenu.  */
-  def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+  def = AREF (item_properties, ITEM_PROPERTY_DEF);
   tem = get_keymap_1 (def, 0, 1);
   /* For a subkeymap, just record its details and exit.  */
   if (!NILP (tem))
     {
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP] = tem;
-      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = tem;
+      AREF (item_properties, ITEM_PROPERTY_MAP) = tem;
+      AREF (item_properties, ITEM_PROPERTY_DEF) = tem;
       return 1;
     }
+  
   /* At the top level in the menu bar, do likewise for commands also.
      The menu bar does not display equivalent key bindings anyway.
      ITEM_PROPERTY_DEF is already set up properly.  */
@@ -6668,7 +6667,7 @@ parse_menu_item (item, notreal, inmenubar)
       XCDR (start) = Fcons (Fcons (Qnil, Qnil), XCDR (start));
       cachelist = XCAR (XCDR (start));
       newcache = 1;
-      tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
+      tem = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (!NILP (keyhint))
 	{
 	  XCAR (cachelist) = XCAR (keyhint);
@@ -6680,6 +6679,7 @@ parse_menu_item (item, notreal, inmenubar)
 	  XCAR (cachelist) = Qt;
 	}
     }
+  
   tem = XCAR (cachelist);
   if (!EQ (tem, Qt))
     {
@@ -6689,21 +6689,22 @@ parse_menu_item (item, notreal, inmenubar)
       if (!NILP (tem))
 	tem = Fkey_binding (tem, Qnil);
 
-      prefix = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
+      prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
 	{
 	  def = XCAR (prefix);
 	  prefix = XCDR (prefix);
 	}
       else
-	def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+	def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
+      if (!update_menu_bindings)
+	chkcache = 0;
+      else if (NILP (XCAR (cachelist))) /* Have no saved key.  */
 	{
 	  if (newcache		/* Always check first time.  */
 	      /* Should we check everything when precomputing key
 		 bindings?  */
-	      /* || notreal */
 	      /* If something had no key binding before, don't recheck it
 		 because that is too slow--except if we have a list of
 		 rebound commands in Vdefine_key_rebound_commands, do
@@ -6728,7 +6729,8 @@ parse_menu_item (item, notreal, inmenubar)
 	     command name has equivalent keys.  Otherwise look up the
 	     specified command itself.  We don't try both, because that
 	     makes lmenu menus slow. */
-	  if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
+	  if (SYMBOLP (def)
+	      && SYMBOLP (XSYMBOL (def)->function)
 	      && ! NILP (Fget (def, Qmenu_alias)))
 	    def = XSYMBOL (def)->function;
 	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil);
@@ -6772,7 +6774,7 @@ parse_menu_item (item, notreal, inmenubar)
     return 1;
 
   /* If we have an equivalent key binding, use that.  */
-  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ] = tem;
+  AREF (item_properties, ITEM_PROPERTY_KEYEQ) = tem;
 
   /* Include this when menu help is implemented.
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
@@ -6786,9 +6788,9 @@ parse_menu_item (item, notreal, inmenubar)
   */
 
   /* Handle radio buttons or toggle boxes.  */ 
-  tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
+  tem = AREF (item_properties, ITEM_PROPERTY_SELECTED);
   if (!NILP (tem))
-    XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
+    AREF (item_properties, ITEM_PROPERTY_SELECTED)
       = menu_item_eval_property (tem);
 
   return 1;
@@ -10628,6 +10630,12 @@ The default value is nil, in which case, point adjustment are\n\
 suppressed only after special commands that set\n\
 `disable-point-adjustment' (which see) to non-nil.");
   Vglobal_disable_point_adjustment = Qnil;
+
+  DEFVAR_LISP ("update-menu-bindings", &update_menu_bindings,
+    "Non-nil means updating menu bindings is allowed.\n\
+A value of nil means menu bindings should not be updated.\n\
+Used during Emacs' startup.");
+  update_menu_bindings = 1;
 }
 
 void
