@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.5) $
+ * $HopeName: MMsrc!poollo.c(trunk.6) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.5) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.6) $");
 
 
 /* MACROS */
@@ -42,7 +42,6 @@ typedef struct LOStruct *LO;
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
   RingStruct groupRing;         /* ring of groups */
-  Format format;                /* format for allocated objects */
   Shift alignShift;             /* log_2 of pool alignment */
   ActionStruct actionStruct;    /* action of collecting this pool */
   Size objectsSize;             /* total size of all objects */
@@ -344,7 +343,7 @@ static void loGroupReclaim(LOGroup group, Trace trace)
       p = AddrAdd(p, LOPool(lo)->alignment);
       continue;
     }
-    q = (*lo->format->skip)(p);
+    q = (*LOPool(lo)->format->skip)(p);
     if(BTGet(group->mark, i)) {
       marked = TRUE;
     } else {
@@ -418,10 +417,10 @@ static void LOWalk(Pool pool, Seg seg,
       ++i;
       continue;
     }
-    next = (*lo->format->skip)(object);
+    next = (*pool->format->skip)(object);
     j = loIndexOfAddr(base, lo, next);
     AVER(i < j);
-    (*f)(object, lo->format, pool, p, s);
+    (*f)(object, pool->format, pool, p, s);
     i = j;
   }
 }
@@ -443,7 +442,7 @@ static Res LOInit(Pool pool, va_list arg)
   lo = PoolPoolLO(pool);
   
   RingInit(&lo->groupRing);
-  lo->format = format;
+  pool->format = format;
   lo->poolStruct.alignment = format->alignment;
   lo->alignShift = 
     SizeLog2((unsigned long)PoolAlignment(&lo->poolStruct));
@@ -792,7 +791,6 @@ static Bool LOCheck(LO lo)
   CHECKD(Pool, &lo->poolStruct);
   CHECKL(lo->poolStruct.class == &PoolClassLOStruct);
   CHECKL(RingCheck(&lo->groupRing));
-  CHECKD(Format, lo->format);
   CHECKL(ShiftCheck(lo->alignShift));
   CHECKL(1uL << lo->alignShift == PoolAlignment(&lo->poolStruct));
   CHECKD(Action, &lo->actionStruct);
