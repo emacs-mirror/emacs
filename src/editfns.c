@@ -435,10 +435,12 @@ If BUFFER, return the number of characters in that buffer instead.")
 {
   if (NILP (buffer))
     return make_number (Z - BEG);
-  else {
-    CHECK_BUFFER (buffer, 1);
-    return make_number (BUF_Z (XBUFFER (buffer)) - BUF_BEG (XBUFFER (buffer)));
-  }
+  else
+    {
+      CHECK_BUFFER (buffer, 1);
+      return make_number (BUF_Z (XBUFFER (buffer))
+			  - BUF_BEG (XBUFFER (buffer)));
+    }
 }
 
 DEFUN ("point-min", Fpoint_min, Spoint_min, 0, 0, 0,
