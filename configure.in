@@ -859,7 +859,7 @@ dnl checks for Unix variants
 AC_AIX
 
 dnl checks for header files
-AC_CHECK_HEADERS(sys/timeb.h sys/time.h unistd.h utime.h)
+AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
