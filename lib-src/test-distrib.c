@@ -2,6 +2,12 @@
 #include <config.h>
 #endif
 
+/* Cancel substitutions made by config.h for Emacs.  */
+#undef open
+#undef read
+#undef write
+#undef close
+
 #include <stdio.h>
 
 #ifndef O_RDONLY
