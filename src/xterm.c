@@ -2098,9 +2098,10 @@ note_mouse_movement (frame, event)
       /* Ask for another mouse motion event.  */
       {
 	int dummy;
+	Window dummy_window;
 
 	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		       (Window *) &dummy, (Window *) &dummy,
+		       &dummy_window, &dummy_window,
 		       &dummy, &dummy, &dummy, &dummy,
 		       (unsigned int *) &dummy);
       }
@@ -2120,9 +2121,10 @@ note_mouse_movement (frame, event)
       /* Ask for another mouse motion event.  */
       {
 	int dummy;
+	Window dummy_window;
 
 	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		       (Window *) &dummy, (Window *) &dummy,
+		       &dummy_window, &dummy_window,
 		       &dummy, &dummy, &dummy, &dummy,
 		       (unsigned int *) &dummy);
       }
@@ -2133,9 +2135,10 @@ note_mouse_movement (frame, event)
 	 event the next time the mouse moves and we can see if it's
 	 *still* on the same glyph.  */
       int dummy;
+      Window dummy_window;
       
       XQueryPointer (event->display, FRAME_X_WINDOW (frame),
-		     (Window *) &dummy, (Window *) &dummy,
+		     &dummy_window, &dummy_window,
 		     &dummy, &dummy, &dummy, &dummy,
 		     (unsigned int *) &dummy);
     }
@@ -3190,9 +3193,10 @@ x_scroll_bar_note_movement (bar, event)
      moves and we can see *still* on the same position.  */
   {
     int dummy;
+    Window dummy_window;
       
     XQueryPointer (event->xmotion.display, event->xmotion.window,
-		   (Window *) &dummy, (Window *) &dummy,
+		   &dummy_window, &dummy_window,
 		   &dummy, &dummy, &dummy, &dummy,
 		   (unsigned int *) &dummy);
   }
