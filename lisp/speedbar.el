@@ -92,7 +92,7 @@
 ;; into sub-lists.  A long flat list can be used instead if needed.
 ;; Other filters can be easily added.
 ;;
-;;    AUC-TEX users: The imenu tags for AUC-TEX mode doesn't work very
+;;    AUCTEX users: The imenu tags for AUCTEX mode doesn't work very
 ;; well.  Use the imenu keywords from tex-mode.el for better results.
 ;;
 ;; This file requires the library package assoc (association lists)

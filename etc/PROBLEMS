@@ -497,46 +497,20 @@ earlier versions.
       ((consp (sgml-entity-text entity)) ; external id?
        (let* ((extid (sgml-entity-text entity))
 
-** AUC TeX
+** AUCTeX
 
-*** Emacs 21 freezes when visiting a TeX file with AUC TeX installed.
+You should not be using a version older than 11.52 if you can avoid
+it.
 
-Emacs 21 needs version 10 or later of AUC TeX; upgrading should solve
+*** Emacs 21 freezes when visiting a TeX file with AUCTeX installed.
+
+Emacs 21 needs version 10 or later of AUCTeX; upgrading should solve
 these problems.
 
-*** No colors in AUC TeX with Emacs 21.
+*** No colors in AUCTeX with Emacs 21.
 
 Upgrade to AUC TeX version 10 or later, and make sure it is
 byte-compiled with Emacs 21.
-
-*** Running TeX from AUC TeX package with Emacs 20.3 gives a Lisp error
-about a read-only tex output buffer.
-
-This problem appeared for AUC TeX version 9.9j and some earlier
-versions.  Here is a patch for the file tex-buf.el in the AUC TeX
-package.
-
-diff -c auctex/tex-buf.el~ auctex/tex-buf.el
-*** auctex/tex-buf.el~	Wed Jul 29 18:35:32 1998
---- auctex/tex-buf.el	Sat Sep  5 15:20:38 1998
-***************
-*** 545,551 ****
-  	(dir (TeX-master-directory)))
-      (TeX-process-check file)		; Check that no process is running
-      (setq TeX-command-buffer (current-buffer))
-!     (with-output-to-temp-buffer buffer)
-      (set-buffer buffer)
-      (if dir (cd dir))
-      (insert "Running `" name "' on `" file "' with ``" command "''\n")
-- --- 545,552 ----
-  	(dir (TeX-master-directory)))
-      (TeX-process-check file)		; Check that no process is running
-      (setq TeX-command-buffer (current-buffer))
-!     (let (temp-buffer-show-function temp-buffer-show-hook)
-!       (with-output-to-temp-buffer buffer))
-      (set-buffer buffer)
-      (if dir (cd dir))
-      (insert "Running `" name "' on `" file "' with ``" command "''\n")
 
 ** Miscellaneous problems
 

@@ -1,3 +1,7 @@
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* speedbar.el, iswitchb.el, ido.el: Update AUCTeX information.
+
 2004-08-22  Andreas Schwab  <schwab@suse.de>
 
 	* cvs-status.el: Require pcvs during byte-compiling for
