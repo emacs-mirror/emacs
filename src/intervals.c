@@ -1248,10 +1248,11 @@ make_new_interval (intervals, start, length)
    text...  */
 
 void
-graft_intervals_into_buffer (source, position, buffer)
+graft_intervals_into_buffer (source, position, buffer, inherit)
      INTERVAL source;
      int position;
      struct buffer *buffer;
+     int inherit;
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree = buffer->intervals;
@@ -1284,23 +1285,21 @@ graft_intervals_into_buffer (source, position, buffer)
 	tree = create_root_interval (buf);
       }
     }
-  else
-    if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
-      /* If the buffer contains only the new string, but
-	 there was already some interval tree there, then it may be
-	 some zero length intervals.  Eventually, do something clever
-	 about inserting properly.  For now, just waste the old intervals.  */
-      {
-	buffer->intervals = reproduce_tree (source, tree->parent);
-	/* Explicitly free the old tree here.  */
+  else if (TOTAL_LENGTH (tree) == TOTAL_LENGTH (source))
+    /* If the buffer contains only the new string, but
+       there was already some interval tree there, then it may be
+       some zero length intervals.  Eventually, do something clever
+       about inserting properly.  For now, just waste the old intervals.  */
+    {
+      buffer->intervals = reproduce_tree (source, tree->parent);
+      /* Explicitly free the old tree here.  */
 
-	return;
-      }
-    else
-      /* Paranoia -- the text has already been added, so this buffer
-	 should be of non-zero length.  */
-      if (TOTAL_LENGTH (tree) == 0)
-	abort ();
+      return;
+    }
+  /* Paranoia -- the text has already been added, so this buffer
+     should be of non-zero length.  */
+  else if (TOTAL_LENGTH (tree) == 0)
+    abort ();
 
   this = under = find_interval (tree, position);
   if (NULL_INTERVAL_P (under))	/* Paranoia */
@@ -1345,7 +1344,7 @@ graft_intervals_into_buffer (source, position, buffer)
       else
 	this = under;
       copy_properties (over, this);
-      if (MERGE_INSERTIONS (this))
+      if (inherit)
 	merge_properties (over, this);
       else
 	copy_properties (over, this);
