@@ -1193,11 +1193,13 @@ and selects that window."
   "Click on an alternative in the `*Completions*' buffer to choose it."
   (interactive "e")
   (let ((buffer (window-buffer))
-        choice)
+        choice
+	base-size)
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-start event))))
       (if completion-reference-buffer
 	  (setq buffer completion-reference-buffer))
+      (setq base-size completion-base-size)
       (save-excursion
 	(goto-char (posn-point (event-start event)))
 	(let (beg end)
@@ -1218,7 +1220,7 @@ and selects that window."
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
       (select-window owindow))
-    (choose-completion-string choice buffer)))
+    (choose-completion-string choice buffer base-size)))
 
 ;; Font selection.
 
