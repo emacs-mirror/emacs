@@ -2,6 +2,7 @@
 
 	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with
 	`invalid'.
+	* midnight.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
