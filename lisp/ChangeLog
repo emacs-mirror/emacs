@@ -1,3 +1,11 @@
+2004-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el: Fix old function calls (ps-mule-chars-in-string ->
+	length, ps-mule-string-char -> aref, ps-mule-next-index -> 1+,
+	ps-mule-next-point -> 1+).
+
+	* composite.el (encode-composition-rule): Add autoload cooky.
+
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* format.el (buffer-auto-save-file-format): Make it permanent local.
