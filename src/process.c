@@ -1400,7 +1400,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (host_info_ptr == 0)
     /* Attempt to interpret host as numeric inet address */
     {
-      numeric_addr = inet_addr (XSTRING (host)->data);
+      numeric_addr = inet_addr ((char *) XSTRING (host)->data);
       if (numeric_addr == -1)
 	error ("Unknown host \"%s\"", XSTRING (host)->data);
 
