@@ -12188,14 +12188,16 @@ the stack contains the arguments and the result: @samp{2 3 5}.
 
 With the exception of keyboard macros, this works for all commands that
 take arguments off the stack. (To avoid potentially unpleasant behavior,
-keyboard macros ignore the @kbd{K} prefix.)  As another example, @kbd{K
-a s} simplifies a formula, pushing the simplified version of the formula
-onto the stack after the original formula (rather than replacing the
-original formula).  Note that you could get the same effect by typing
-@kbd{@key{RET} a s}, copying the formula and then simplifying the copy.
-One difference is that for a very large formula the time taken to format
-the intermediate copy in @kbd{@key{RET} a s} could be noticeable; @kbd{K
-a s} would avoid this extra work.
+a @kbd{K} prefix before a keyboard macro will be ignored.  A @kbd{K}
+prefix called @emph{within} the keyboard macro will still take effect.)  
+As another example, @kbd{K a s} simplifies a formula, pushing the
+simplified version of the formula onto the stack after the original
+formula (rather than replacing the original formula).  Note that you
+could get the same effect by typing @kbd{@key{RET} a s}, copying the
+formula and then simplifying the copy. One difference is that for a very
+large formula the time taken to format the intermediate copy in
+@kbd{@key{RET} a s} could be noticeable; @kbd{K a s} would avoid this
+extra work. 
 
 Even stack manipulation commands are affected.  @key{TAB} works by
 popping two values and pushing them back in the opposite order,
