@@ -356,7 +356,7 @@ make_frame (mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (XSTRING (Fbuffer_name (buf))->data[0] == ' ')
-      buf = Fother_buffer (buf, Qnil);
+      buf = Fother_buffer (buf, Qnil, Qnil);
     Fset_window_buffer (root_window, buf);
 
     f->buffer_list = Fcons (buf, Qnil);
@@ -1424,6 +1424,8 @@ before calling this function on it, like this.\n\
   return Qnil;
 }
 
+static void make_frame_visible_1 P_ ((Lisp_Object));
+
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
   "Make the frame FRAME visible (assuming it is an X-window).\n\
@@ -1445,10 +1447,35 @@ If omitted, FRAME defaults to the currently selected frame.")
     }
 #endif
 
+  make_frame_visible_1 (XFRAME (frame)->root_window);
+
   /* Make menu bar update for the Buffers and Frams menus.  */
   windows_or_buffers_changed++;
 
   return frame;
+}
+
+/* Update the display_time slot of the buffers shown in WINDOW
+   and all its descendents.  */
+
+static void
+make_frame_visible_1 (window)
+     Lisp_Object window;
+{
+  struct window *w;
+
+  for (;!NILP (window); window = w->next)
+    {
+      w = XWINDOW (window);
+
+      if (!NILP (w->buffer))
+	XBUFFER (w->buffer)->display_time = Fcurrent_time ();
+
+      if (!NILP (w->vchild))
+	make_frame_visible_1 (w->vchild);
+      if (!NILP (w->hchild))
+	make_frame_visible_1 (w->hchild);
+    }
 }
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
@@ -1696,26 +1723,28 @@ get_frame_param (frame, prop)
 /* Return the buffer-predicate of the selected frame.  */
 
 Lisp_Object
-frame_buffer_predicate ()
+frame_buffer_predicate (frame)
+     Lisp_Object frame;
 {
-  return selected_frame->buffer_predicate;
+  return XFRAME (frame)->buffer_predicate;
 }
 
 /* Return the buffer-list of the selected frame.  */
 
 Lisp_Object
-frame_buffer_list ()
+frame_buffer_list (frame)
+     Lisp_Object frame;
 {
-  return selected_frame->buffer_list;
+  return XFRAME (frame)->buffer_list;
 }
 
 /* Set the buffer-list of the selected frame.  */
 
 void
-set_frame_buffer_list (list)
-     Lisp_Object list;
+set_frame_buffer_list (frame, list)
+     Lisp_Object frame, list;
 {
-  selected_frame->buffer_list = list;
+  XFRAME (frame)->buffer_list = list;
 }
 
 /* Discard BUFFER from the buffer-list of each frame.  */
@@ -1920,7 +1949,8 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : FRAME_MINIBUF_ONLY_P (f) ? Qonly
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
-  store_in_alist (&alist, Qbuffer_list, frame_buffer_list ());
+  store_in_alist (&alist, Qbuffer_list,
+		  frame_buffer_list (Fselected_frame ()));
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
