@@ -54,8 +54,8 @@
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
 (load "international/mule-cmds")
-(load "international/characters")
 (load "case-table")
+(load "international/characters")
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
   (load "international/latin-2")
