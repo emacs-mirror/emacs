@@ -73,14 +73,7 @@ Otherwise, not displayed.")
 (defun vc-registered (file)
   (let (handler handlers)
     (if (boundp 'file-name-handler-alist)
-	(save-match-data
-	  (setq handlers file-name-handler-alist)
-	  (while (and (consp handlers) (null handler))
-	    (if (and (consp (car handlers))
-		     (stringp (car (car handlers)))
-		     (string-match (car (car handlers)) file))
-		(setq handler (cdr (car handlers))))
-	    (setq handlers (cdr handlers)))))
+	(setq handler (find-file-name-handler file 'vc-registered)))
     (if handler
 	(funcall handler 'vc-registered file)
       ;; Search for a master corresponding to the given file
