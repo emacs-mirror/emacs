@@ -2088,15 +2088,15 @@ x_set_scroll_bar_background (f, value, oldval)
 
    Store the byte length of resulting text in *TEXT_BYTES.
 
-   If the text contains only ASCII and Latin-1, store 1 in *LATIN1_P,
+   If the text contains only ASCII and Latin-1, store 1 in *STRING_P,
    which means that the `encoding' of the result can be `STRING'.
-   Otherwise store 0 in *LATIN1_P, which means that the `encoding' of
+   Otherwise store 0 in *STRINGP, which means that the `encoding' of
    the result should be `COMPOUND_TEXT'.  */
 
 unsigned char *
-x_encode_text (string, coding_system, text_bytes, latin1_p)
+x_encode_text (string, coding_system, text_bytes, stringp)
      Lisp_Object string, coding_system;
-     int *text_bytes, *latin1_p;
+     int *text_bytes, *stringp;
 {
   unsigned char *str = XSTRING (string)->data;
   int chars = XSTRING (string)->size;
@@ -2111,7 +2111,7 @@ x_encode_text (string, coding_system, text_bytes, latin1_p)
     {
       /* No multibyte character in OBJ.  We need not encode it.  */
       *text_bytes = bytes;
-      *latin1_p = 1;
+      *stringp = 1;
       return str;
     }
 
@@ -2119,11 +2119,13 @@ x_encode_text (string, coding_system, text_bytes, latin1_p)
   coding.src_multibyte = 1;
   coding.dst_multibyte = 0;
   coding.mode |= CODING_MODE_LAST_BLOCK;
+  if (coding.type == coding_type_iso2022)
+    coding.flags |= CODING_FLAG_ISO_SAFE;
   bufsize = encoding_buffer_size (&coding, bytes);
   buf = (unsigned char *) xmalloc (bufsize);
   encode_coding (&coding, str, buf, bytes, bufsize);
   *text_bytes = coding.produced;
-  *latin1_p = (charset_info == 1);
+  *stringp = (charset_info == 1 || !EQ (coding_system, Qcompound_text));
   return buf;
 }
 
@@ -2189,10 +2191,10 @@ x_set_name (f, name, explicit)
 #ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
-	int bytes, latin1_p;
+	int bytes, stringp;
 
-	text.value = x_encode_text (name, Qcompound_text, &bytes, &latin1_p);
-	text.encoding = (latin1_p ? XA_STRING
+	text.value = x_encode_text (name, Qcompound_text, &bytes, &stringp);
+	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
@@ -2204,8 +2206,8 @@ x_set_name (f, name, explicit)
 	else
 	  {
 	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
-					&bytes, &latin1_p);
-	    icon.encoding = (latin1_p ? XA_STRING
+					&bytes, &stringp);
+	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
@@ -2292,10 +2294,10 @@ x_set_title (f, name, old_name)
 #ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
-	int bytes, latin1_p;
+	int bytes, stringp;
 
-	text.value = x_encode_text (name, Qcompound_text, &bytes, &latin1_p);
-	text.encoding = (latin1_p ? XA_STRING
+	text.value = x_encode_text (name, Qcompound_text, &bytes, &stringp);
+	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
@@ -2307,8 +2309,8 @@ x_set_title (f, name, old_name)
 	else
 	  {
 	    icon.value = x_encode_text (f->icon_name, Qcompound_text,
-					&bytes, &latin1_p);
-	    icon.encoding = (latin1_p ? XA_STRING
+					&bytes, &stringp);
+	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
