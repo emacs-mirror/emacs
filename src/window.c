@@ -1319,7 +1319,11 @@ window_loop (type, obj, mini, frames)
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
-	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj))
+	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj)
+		/* Don't find any minibuffer window
+		   except the one that is currently in use.  */
+		&& (MINI_WINDOW_P (XWINDOW (w))
+		    ? EQ (w, minibuf_window) : 1))
 	      return w;
 	    break;
 
