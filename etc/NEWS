@@ -37,8 +37,8 @@ between ISO 8859 character sets (`unification') on encoding
 it and write it out again without edits, so it is not generally advisable.
 By default `unify-8859-on-encoding-mode' is turned on.
 
-** The default value of selection-coding-system is now
-compound-text-with-extensions.
+** In Emacs running on the X window system, the default value of
+`selection-coding-system' is now `compound-text-with-extensions'.
 
 If you want the old behavior, set selection-coding-system to
 compound-text, which may be significantly more efficient.  Using
