@@ -1014,7 +1014,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 struct string_block_head
   {
     struct string_block *next, *prev;
-    int pos;
+    EMACS_INT pos;
   };
 
 struct string_block
