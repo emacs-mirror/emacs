@@ -448,8 +448,8 @@ extern int width_by_char_head[256];
   (((str)[0] < 0x80 || (str)[0] >= 0xA0)		\
    ? (bytes) = 1					\
    : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),	\
-      ((str)[0] != LEADING_CODE_8_BIT_CONTROL		\
-       && (bytes) <= (length)				\
+      ((bytes) > 1 && (bytes) <= (length)		\
+       && (str)[0] != LEADING_CODE_8_BIT_CONTROL	\
        && !CHAR_HEAD_P ((str)[1])			\
        && ((bytes) == 2					\
 	   || (!CHAR_HEAD_P ((str)[2])			\
