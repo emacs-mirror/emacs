@@ -1530,57 +1530,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	      (setq hooks (cdr hooks)))
 	    ;; If a hook returned t, file is already "written".
 	    (cond ((not done)
-		   (if (not (file-writable-p buffer-file-name))
-		       (let ((dir (file-name-directory buffer-file-name)))
-			 (if (not (file-directory-p dir))
-			     (error "%s is not a directory" dir)
-			   (if (not (file-exists-p buffer-file-name))
-			       (error "Directory %s write-protected" dir)
-			     (if (yes-or-no-p
-				  (format "File %s is write-protected; try to save anyway? "
-					  (file-name-nondirectory
-					   buffer-file-name)))
-				 (setq tempsetmodes t)
-			       (error "Attempt to save to a file which you aren't allowed to write"))))))
-		   (or buffer-backed-up
-		       (setq setmodes (backup-buffer)))
-		   (if file-precious-flag
-		       ;; If file is precious, write temp name, then rename it.
-		       (let ((dir (file-name-directory buffer-file-name))
-			     (realname buffer-file-name)
-			     tempname temp nogood i succeed)
-			 (setq i 0)
-			 (setq nogood t)
-			 ;; Find the temporary name to write under.
-			 (while nogood
-			   (setq tempname (format "%s#tmp#%d" dir i))
-			   (setq nogood (file-exists-p tempname))
-			   (setq i (1+ i)))
-			 (unwind-protect
-			     (progn (clear-visited-file-modtime)
-				    (write-region (point-min) (point-max)
-						  tempname nil realname)
-				    (setq succeed t))
-			   ;; If writing the temp file fails,
-			   ;; delete the temp file.
-			   (or succeed (delete-file tempname)))
-			 ;; Since we have created an entirely new file
-			 ;; and renamed it, make sure it gets the
-			 ;; right permission bits set.
-			 (setq setmodes (file-modes buffer-file-name))
-			 ;; We succeeded in writing the temp file,
-			 ;; so rename it.
-			 (rename-file tempname buffer-file-name t))
-		     ;; If file not writable, see if we can make it writable
-		     ;; temporarily while we write it.
-		     ;; But no need to do so if we have just backed it up
-		     ;; (setmodes is set) because that says we're superseding.
-		     (cond ((and tempsetmodes (not setmodes))
-			    ;; Change the mode back, after writing.
-			    (setq setmodes (file-modes buffer-file-name))
-			    (set-file-modes buffer-file-name 511)))
-		     (write-region (point-min) (point-max)
-				   buffer-file-name nil t)))))
+		   (setq setmodes (basic-save-buffer-1)))))
 	  (setq buffer-file-number (nth 10 (file-attributes buffer-file-name)))
 	  (if setmodes
 	      (condition-case ()
@@ -1591,6 +1541,65 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	(delete-auto-save-file-if-necessary recent-save)
 	(run-hooks 'after-save-hook))
     (message "(No changes need to be saved)")))
+
+;; This does the "real job" of writing a buffer into its visited file
+;; and making a backup file.  This is what is normally done
+;; but inhibited if one of write-file-hooks returns non-nil.
+;; It returns a value to store in setmodes.
+(defun basic-save-buffer-1 ()
+  (let (tempsetmodes setmodes)
+    (if (not (file-writable-p buffer-file-name))
+	(let ((dir (file-name-directory buffer-file-name)))
+	  (if (not (file-directory-p dir))
+	      (error "%s is not a directory" dir)
+	    (if (not (file-exists-p buffer-file-name))
+		(error "Directory %s write-protected" dir)
+	      (if (yes-or-no-p
+		   (format "File %s is write-protected; try to save anyway? "
+			   (file-name-nondirectory
+			    buffer-file-name)))
+		  (setq tempsetmodes t)
+		(error "Attempt to save to a file which you aren't allowed to write"))))))
+    (or buffer-backed-up
+	(setq setmodes (backup-buffer)))
+    (if file-precious-flag
+	;; If file is precious, write temp name, then rename it.
+	(let ((dir (file-name-directory buffer-file-name))
+	      (realname buffer-file-name)
+	      tempname temp nogood i succeed)
+	  (setq i 0)
+	  (setq nogood t)
+	  ;; Find the temporary name to write under.
+	  (while nogood
+	    (setq tempname (format "%s#tmp#%d" dir i))
+	    (setq nogood (file-exists-p tempname))
+	    (setq i (1+ i)))
+	  (unwind-protect
+	      (progn (clear-visited-file-modtime)
+		     (write-region (point-min) (point-max)
+				   tempname nil realname)
+		     (setq succeed t))
+	    ;; If writing the temp file fails,
+	    ;; delete the temp file.
+	    (or succeed (delete-file tempname)))
+	  ;; Since we have created an entirely new file
+	  ;; and renamed it, make sure it gets the
+	  ;; right permission bits set.
+	  (setq setmodes (file-modes buffer-file-name))
+	  ;; We succeeded in writing the temp file,
+	  ;; so rename it.
+	  (rename-file tempname buffer-file-name t))
+      ;; If file not writable, see if we can make it writable
+      ;; temporarily while we write it.
+      ;; But no need to do so if we have just backed it up
+      ;; (setmodes is set) because that says we're superseding.
+      (cond ((and tempsetmodes (not setmodes))
+	     ;; Change the mode back, after writing.
+	     (setq setmodes (file-modes buffer-file-name))
+	     (set-file-modes buffer-file-name 511)))
+      (write-region (point-min) (point-max)
+		    buffer-file-name nil t))
+    setmodes))
 
 (defun save-some-buffers (&optional arg exiting)
   "Save some modified file-visiting buffers.  Asks user about each one.
