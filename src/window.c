@@ -2333,8 +2333,8 @@ DEFUN ("set-window-configuration",
   "Set the configuration of windows and buffers as specified by CONFIGURATION.\n\
 CONFIGURATION must be a value previously returned\n\
 by `current-window-configuration' (which see).")
-     (arg)
-     Lisp_Object arg;
+     (configuration)
+     Lisp_Object configuration;
 {
   register struct window *w;
   register struct save_window_data *data;
@@ -2345,12 +2345,13 @@ by `current-window-configuration' (which see).")
   int k;
   FRAME_PTR f;
 
-  while (XTYPE (arg) != Lisp_Window_Configuration)
+  while (XTYPE (configuration) != Lisp_Window_Configuration)
     {
-      arg = wrong_type_argument (intern ("window-configuration-p"), arg);
+      configuration = wrong_type_argument (intern ("window-configuration-p"),
+					   configuration);
     }
 
-  data = (struct save_window_data *) XVECTOR (arg);
+  data = (struct save_window_data *) XVECTOR (configuration);
   saved_windows = XVECTOR (data->saved_windows);
 
   f = XFRAME (XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame);
@@ -2372,12 +2373,7 @@ by `current-window-configuration' (which see).")
 
   /* Mark all windows now on frame as "deleted".
      Restoring the new configuration "undeletes" any that are in it.  */
-
   delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-#if 0
-  /* This loses when the minibuf frame is not f. */
-  delete_all_subwindows (XWINDOW (XWINDOW (minibuf_window)->prev));
-#endif
 
   for (k = 0; k < saved_windows->size; k++)
     {
@@ -2393,13 +2389,7 @@ by `current-window-configuration' (which see).")
       if (!NILP (p->prev))
 	{
 	  w->prev = SAVED_WINDOW_N (saved_windows, XFASTINT (p->prev))->window;
-#ifdef MULTI_FRAME
-	  /* This is true for a minibuffer-only frame. */
-	  if (w->mini_p && EQ (w->prev, p->window))
-	    w->next = Qnil;
-	  else
-#endif	/* MULTI_FRAME */
-	    XWINDOW (w->prev)->next = p->window;
+	  XWINDOW (w->prev)->next = p->window;
 	}
       else
 	{
@@ -2707,8 +2697,10 @@ syms_of_window ()
   Qwindowp = intern ("windowp");
   staticpro (&Qwindowp);
 
+#ifndef MULTI_FRAME
   /* Make sure all windows get marked */
   staticpro (&minibuf_window);
+#endif
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
     "Non-nil means call as function to display a help buffer.\n\
