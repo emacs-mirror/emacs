@@ -83,20 +83,25 @@ FROM-FN is called to decode files in that format; it gets two args, BEGIN
         and END, and can make any modifications it likes, returning the new
         end.  It must make sure that the beginning of the file no longer
         matches REGEXP, or else it will get called again.
-TO-FN   is called to encode a region into that format; it is also passed BEGIN
-        and END, and either returns a list of annotations like
-        `write-region-annotate-functions', or modifies the region and returns
-        the new end.
-MODIFY, if non-nil, means the TO-FN modifies the region.  If nil, TO-FN may
-        not make any changes and should return a list of annotations.
+TO-FN   is called to encode a region into that format; it is passed three
+        arguments: BEGIN, END, and BUFFER.  BUFFER is the original buffer that
+        the data being written came from, which the function could use, for
+        example, to find the values of local variables.  TO-FN should either
+        return a list of annotations like `write-region-annotate-functions',
+        or modify the region and return the new end.
+MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
+        TO-FN will not make any changes but will instead return a list of
+        annotations. 
 MODE-FN, if specified, is called when visiting a file with that format.")
 
 ;;; Basic Functions (called from Lisp)
 
-(defun format-annotate-function (format from to)
+(defun format-annotate-function (format from to orig-buf)
   "Returns annotations for writing region as FORMAT.
 FORMAT is a symbol naming one of the formats defined in `format-alist',
 it must be a single symbol, not a list like `buffer-file-format'.
+FROM and TO delimit the region to be operated on in the current buffer.
+ORIG-BUF is the original buffer that the data came from.
 This function works like a function on `write-region-annotate-functions':
 it either returns a list of annotations, or returns with a different buffer
 current, which contains the modified text to write.
@@ -114,10 +119,10 @@ For most purposes, consider using `format-encode-region' instead."
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
-	      (funcall to-fn (point-min) (point-max))
+	      (funcall to-fn (point-min) (point-max) orig-buf)
 	      nil)
 	  ;; Otherwise just call function, it will return annotations.
-	  (funcall to-fn from to)))))
+	  (funcall to-fn from to orig-buf)))))
 
 (defun format-decode (format length &optional visit-flag)
   ;; This function is called by insert-file-contents whenever a file is read.
@@ -232,8 +237,9 @@ one of the formats defined in `format-alist', or a list of such symbols."
 	      result)
 	 (if to-fn
 	     (if modify
-		 (setq end (funcall to-fn beg end))
-	       (format-insert-annotations (funcall to-fn beg end))))
+		 (setq end (funcall to-fn beg end (current-buffer)))
+	       (format-insert-annotations 
+		(funcall to-fn beg end (current-buffer)))))
 	 (setq format (cdr format)))))))
 
 (defun format-write-file (filename format)
