@@ -1,16 +1,19 @@
-/*  ==== MPM STRESS TEST ====
+/*  impl.c.mpmss: MPM STRESS TEST
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.9) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.10) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "mps.h"
 #include "mpscmv.h"
 #include "mpslib.h"
+#include "testlib.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
@@ -20,7 +23,7 @@
 extern mps_class_t PoolClassMFS(void);
 
 
-#define TEST_SET_SIZE           500
+#define TEST_SET_SIZE 200
 
 
 static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int i), ...)
@@ -44,8 +47,8 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
     if(res != MPS_RES_OK) return res;
 
-    if(i && i%5==0) putchar('\n');
-    printf("%8lX %4lu ", (unsigned long)ps[i], (unsigned long)ss[i]);
+    if(i && i%4==0) putchar('\n');
+    printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
   putchar('\n');
 
@@ -73,10 +76,16 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
 }
 
 
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
+
 static size_t randomSize(int i)
 {
-  (void)i;
-  return (rand() % 1000)+1;
+  /* Make the range large enough to span three pages in the segment table: */
+  /* 160 segments/page, page size max 0x2000. */
+  size_t maxSize = 2 * 160 * 0x2000;
+  /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
+  return rnd() % max((maxSize >> (i / 10)), 2) + 1;
 }
 
 
@@ -89,28 +98,22 @@ static size_t fixedSize(int i)
 }
 
 
-static void die(mps_res_t res, const char *s)
-{
-  if(res != MPS_RES_OK)
-  {
-    fprintf(stderr, "%s: %d\n", s, res);
-    exit(1);
-  }
-}
-
-
 int main(void)
 {
   mps_space_t space;
 
+  srand(time(NULL));
+
   die(mps_space_create(&space), "SpaceInit");
-  die(stress(mps_class_mv(),
-             space, randomSize, (size_t)65536,
-             (size_t)32, (size_t)65536), "stress MV");
+
   fixedSizeSize = 13;
   die(stress(PoolClassMFS(),
              space, fixedSize, (size_t)100000, fixedSizeSize),
       "stress MFS");
+
+  die(stress(mps_class_mv(),
+             space, randomSize, (size_t)65536,
+             (size_t)32, (size_t)65536), "stress MV");
 
   mps_space_destroy(space);
 
