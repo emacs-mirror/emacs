@@ -1917,6 +1917,11 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	     if (WINDOW_FULL_WIDTH_P (w))
 	     preserve_my_columns (w);
 	     */
+	  if (current_buffer->clip_changed
+	      && ! NILP (Vwindow_scroll_functions))
+	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				  make_number (marker_position (w->start)));
+
 	  goto done;
 	}
       /* Don't bother trying redisplay with same start;
@@ -1981,6 +1986,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	      || beg_unchanged < startp)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = Qnil;
+
+	  if (current_buffer->clip_changed
+	      && ! NILP (Vwindow_scroll_functions))
+	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				  make_number (marker_position (w->start)));
+
 	  goto done;
 	}
       else
