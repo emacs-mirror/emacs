@@ -2641,7 +2641,7 @@ validate_x_resource_name ()
 extern char *x_get_string_resource ();
 
 DEFUN ("x-get-resource", Fx_get_resource, Sx_get_resource, 2, 4, 0,
-  doc: /* Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.
+       doc: /* Return the value of ATTRIBUTE, of class CLASS, from the X defaults database.
 This uses `INSTANCE.ATTRIBUTE' as the key and `Emacs.CLASS' as the
 class, where INSTANCE is the name under which Emacs was invoked, or
 the name specified by the `-name' or `-rn' command-line arguments.
