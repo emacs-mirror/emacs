@@ -292,6 +292,7 @@ Thus, point can go before an invisible, intangible region, but not
 after it.  This prevents C-f and C-b from appearing to stand still on
 the screen.
 
++++
 ** define-abbrev now accepts an optional argument SYSTEM-FLAG.  If
 non-nil, this marks the abbrev as a "system" abbrev, which means that
 it won't be stored in the user's abbrevs file if he saves the abbrevs.

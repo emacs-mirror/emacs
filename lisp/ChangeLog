@@ -1,5 +1,15 @@
 2001-12-30  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-fontify-node): For a **** underline line, put the
+	invisible and intangible props on the following newline, but not
+	on the previous newline or the last char of the previous line.
+
+	* faces.el (face-set-after-frame-default): Don't change `default' face.
+
+	* faces.el (minibuffer-prompt): Adopt some default colors.
+
+	* replace.el (query-replace-read-args): Immediate error if read-only.
+
 	* textmodes/makeinfo.el (makeinfo-compilation-sentinel): 
 	Display the output buffer in a more intelligent way.
 
