@@ -2626,8 +2626,8 @@ set_window_buffer (window, buffer, run_hooks_p)
   XSETFASTINT (w->window_end_vpos, 0);
   bzero (&w->last_cursor, sizeof w->last_cursor);
   w->window_end_valid = Qnil;
-  XSETFASTINT (w->hscroll, 0);
-  XSETFASTINT (w->min_hscroll, 0);
+  w->hscroll = w->min_height = make_number (0);
+  w->vscroll = make_number (0);
   set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
   set_marker_restricted (w->start,
 			 make_number (b->last_window_start),
