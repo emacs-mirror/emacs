@@ -246,8 +246,8 @@ it can't find."
 	       (cons
 		(/ (abs (- t0-utc-diff t1-utc-diff)) 60)
 		(if (< t0-utc-diff t1-utc-diff)
-		    (list t0-name t1-name t1-rules t2-rules t2-time t1-time)
-		    (list t1-name t0-name t2-rules t1-rules t1-time t2-time)
+		    (list t0-name t1-name t1-rules t2-rules t1-time t2-time)
+		    (list t1-name t0-name t2-rules t1-rules t2-time t1-time)
 		    )))))))))))
 
 ;;; The following six defvars relating to daylight savings time should NOT be
