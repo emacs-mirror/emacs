@@ -1101,7 +1101,7 @@ the variable @code{c-comment-only-line-offset} (@pxref{Comments in C}).
 Emacs comes with several predefined indentation styles for C and related
 modes, including @code{gnu}, @code{k&r}, @code{bsd}, @code{stroustrup},
 @code{linux}, @code{python}, @code{java}, @code{whitesmith},
-@code{ellemtel}, and @code{cc-mode}.  The default style is @code{gnu}.
+@code{ellemtel}, @code{cc-mode}, and @code{user}.
 
 @findex c-set-style
 @vindex c-default-style
@@ -1122,6 +1122,14 @@ mode and which indentation style to use for it.  For example,
 specifies an explicit choice for Java mode, and the default @samp{gnu}
 style for the other C-like modes.
 
+  The style @code{gnu} defines the formatting recommend by the GNU
+Project; it is the default, so as to encourage the indentation we
+recommend.  The style @code{user} is the same as @code{gnu} but
+incorporates any changes made in variables such as @code{c-basic-offset}
+and @code{c-offsets-alist} by your @file{~/.emacs} file.  To make them
+take effect, you should select the style @code{user} with
+@code{c-set-style} or @code{c-default-style}.
+
 @findex c-add-style
   To define a new C indentation style, call the function
 @code{c-add-style}:
@@ -1136,8 +1144,8 @@ Here @var{name} is the name of the new style (a string), and
 @code{(@var{variable} . @var{value})}.  The variables you specify should
 be among those documented in @ref{Variables for C Indent}.
 
-If @var{use-now} is non-@code{nil}, @code{c-add-style} switches to the
-new style after defining it.
+  If @var{use-now} is non-@code{nil}, @code{c-add-style} selects the new
+style after defining it.
 
 @node Matching
 @section Automatic Display Of Matching Parentheses
