@@ -118,6 +118,7 @@
       (setq scheme-mode-map (make-sparse-keymap))
       (scheme-mode-commands scheme-mode-map)))
 
+;;;###autoload
 (defun scheme-mode ()
   "Major mode for editing Scheme code.
 Editing commands are similar to those of lisp-mode.
