@@ -166,13 +166,14 @@
 ;;;; VARIABLES and CONSTANTS
 ;;;;
 
-;; For backward compatibility to Emacs 19, skip this if defgroup is
-;; not defined.
-(if (fboundp 'defgroup)
-    (defgroup edt nil
-      "Emacs emulating EDT."
-      :prefix "edt-"
-      :group 'emulations))
+;; For backward compatibility to Emacs 19.
+(or (fboundp 'defgroup)
+    (defmacro defgroup (&rest rest)))
+
+(defgroup edt nil
+  "Emacs emulating EDT."
+  :prefix "edt-"
+  :group 'emulations)
 
 ;;;
 ;;;  Version Information
