@@ -1831,7 +1831,9 @@ parent node."
   (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
       (error "No index"))
   (goto-char (match-beginning 1))
-  (Info-goto-node (Info-extract-menu-node-name)))
+  ;; Protect Info-history so that the current node (Top) is not added to it.
+  (let ((Info-history nil))
+    (Info-goto-node (Info-extract-menu-node-name))))
 
 (defun Info-index (topic)
   "Look up a string TOPIC in the index for this file.
@@ -1857,16 +1859,14 @@ Give a blank topic name to go to the Index node itself."
 			 (regexp-quote topic)))
 	node
 	(case-fold-search t))
-    ;; Here, and subsequently in this function,
-    ;; we bind Info-history to nil for internal node-switches
-    ;; so that we don't put junk in the history.
-    ;; In the first Info-goto-node call, above, we do update the history
-    ;; because that is what the user's previous node choice into it.
-    (let ((Info-history nil))
-      (Info-goto-index))
+    (Info-goto-index)
     (or (equal topic "")
 	(let ((matches nil)
 	      (exact nil)
+	      ;; We bind Info-history to nil for internal node-switches so
+	      ;; that we don't put junk in the history.  In the first
+	      ;; Info-goto-index call, above, we do update the history
+	      ;; because that is what the user's previous node choice into it.
 	      (Info-history nil)
 	      found)
 	  (while
