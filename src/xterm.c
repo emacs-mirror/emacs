@@ -2024,9 +2024,9 @@ x_window_to_scroll_bar (window_id)
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCONS (tail)->cdr)
     {
-      Lisp_Object frame = XCONS (tail)->car;
-      Lisp_Object bar, condemned;
+      Lisp_Object frame, bar, condemned;
 
+      frame = XCONS (tail)->car;
       /* All elements of Vframe_list should be frames.  */
       if (XGCTYPE (frame) != Lisp_Frame)
 	abort ();
@@ -4500,8 +4500,9 @@ x_new_font (f, fontname)
     }
 
   {
-    Lisp_Object lispy_name = build_string (fontname);
+    Lisp_Object lispy_name;
 
+    lispy_name = build_string (fontname);
 
     /* Free the information from XListFonts.  The data
        we actually retain comes from XLoadQueryFont.  */
