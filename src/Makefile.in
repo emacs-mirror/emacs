@@ -1034,7 +1034,7 @@ stamp-oldxmenu:
    whenever emacs was #defined, but that's not appropriate for all
    users of alloca in Emacs.  Check out ../lib-src/getopt.c.  */
 alloca.o : alloca.c
-	$(CC) -c $(CPPFLAGS) -DEMACS_FREE=xfree \
+	$(CC) -c $(CPPFLAGS) -DEMACS_FREE=xfree -DDO_BLOCK_INPUT \
 	$(ALL_CFLAGS) ${srcdir}/alloca.c
 #else
 #ifndef HAVE_ALLOCA
