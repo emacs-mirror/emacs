@@ -147,8 +147,9 @@ still the current message in the Rmail buffer.")
   "Regexp marking the end of an mmdf message")
 
 (defvar rmail-message-filter nil
-  "If non nil, a filter function for new messages in RMAIL.
-Called with region narrowed to the message, including headers.")
+  "If non-nil, a filter function for new messages in RMAIL.
+Called with region narrowed to the message, including headers,
+before obeying `rmail-ignored-headers'.")
 
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
@@ -156,10 +157,10 @@ Called with region narrowed to the message, including headers.")
 ;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:".
 ;; This pattern should catch all the common variants.
 (defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\^[0-9]+\\)?: *\\)*"
-  "Regexp to delete from Subject line before inserting rmail-reply-prefix.")
+  "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defvar rmail-display-summary nil
-  "If non nil, the summary buffer is always displayed.")
+  "If non-nil, Rmail always displays the summary buffer.")
 
 (defvar rmail-mode-map nil)
 
