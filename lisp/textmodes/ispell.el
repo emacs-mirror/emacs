@@ -2301,7 +2301,7 @@ A new one will be started as soon as necessary.
 
 By just answering RET you can find out what the current dictionary is.
 
-With prefix argument, set the default directory."
+With prefix argument, set the default dictionary."
   (interactive
    (list (completing-read
 	  "Use new dictionary (RET for current, SPC to complete): "
