@@ -1373,10 +1373,10 @@ This default should work without changes."
   (cdr (assq 'unsplittable (frame-parameters frame))))
 
 (defsubst ediff-get-next-window (wind prev-wind)
-  (or (window-live-p wind)
-      (setq wind (if prev-wind
-		     (next-window wind)
-		   (selected-window)))))
+  (cond ((window-live-p wind) wind)
+	(prev-wind (next-window wind))
+	(t (selected-window))
+	))
 
 
 (defsubst ediff-kill-buffer-carefully (buf)
