@@ -1,3 +1,11 @@
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_preserve_echo_area): Flush display in case
+	caller, such as call-process, is not going to poll for input.
+	(calc_line_height_property): Handle case where it->object is nil.
+
+	* xterm.c (x_redisplay_interface): Fix flush_display_optional.
+
 2004-10-12  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): If
