@@ -1,6 +1,6 @@
 # impl.nmk.commpost: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.38) $
+# $HopeName: MMsrc!commpost.nmk(trunk.39) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -233,7 +233,7 @@ $(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\ /Fo$@ $<
 
 {}.asm{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
