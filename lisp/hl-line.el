@@ -44,6 +44,9 @@
 ;; `hl-line-highlight', on `post-command-hook', activates it again
 ;; across the window width.
 
+;; You could make variable `hl-line-mode' buffer-local to avoid
+;; highlighting specific buffers.
+
 ;;; Code:
 
 (defgroup hl-line nil
@@ -63,13 +66,14 @@
 (defun hl-line-highlight ()
   "Active the Hl-Line overlay on the current line in the current window.
 \(Unless it's a minibuffer window.)"
-  (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
-    (unless hl-line-overlay		; new overlay for this buffer
-      (setq hl-line-overlay (make-overlay 1 1))	; to be moved
-      (overlay-put hl-line-overlay 'face hl-line-face))
-    (overlay-put hl-line-overlay 'window (selected-window))
-    (move-overlay hl-line-overlay
-		  (line-beginning-position) (1+ (line-end-position)))))
+  (when hl-line-mode			; Could be made buffer-local.
+    (unless (window-minibuffer-p (selected-window)) ; silly in minibuffer
+      (unless hl-line-overlay		; new overlay for this buffer
+	(setq hl-line-overlay (make-overlay 1 1)) ; to be moved
+	(overlay-put hl-line-overlay 'face hl-line-face))
+      (overlay-put hl-line-overlay 'window (selected-window))
+      (move-overlay hl-line-overlay
+		    (line-beginning-position) (1+ (line-end-position))))))
 
 (defun hl-line-unhighlight ()
   "Deactivate the Hl-Line overlay on the current line in the current window."
