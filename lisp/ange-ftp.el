@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.33 $")
+(defconst ange-ftp-version "$Revision: 1.34 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3634,13 +3634,13 @@ system TYPE.")
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
-(defun ange-ftp-load (file)
+(defun ange-ftp-load (file &rest args)
   (if (ange-ftp-ftp-name file)
       (let ((copy (ange-ftp-file-local-copy file)))
 	(unwind-protect
-	    (load copy)
+	    (apply 'load copy args)
 	  (delete-file copy)))
-    (ange-ftp-real-load file)))
+    (apply 'ange-ftp-real-load file args)))
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
 (defun ange-ftp-unhandled-file-name-directory (filename)
