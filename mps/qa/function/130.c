@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!130.c(trunk.1) $
  summary = allocation shouldn't fail if there's garbage to collect (2)
  language = c
  link = testlib.o rankfmt.o
@@ -12,10 +12,12 @@ END_HEADER
 #include "mpsavm.h"
 #include "rankfmt.h"
 
+
 void *stackpointer;
 
 mps_pool_t poolmv;
-mps_space_t space;
+mps_arena_t arena;
+
 
 static void test(void)
 {
@@ -34,33 +36,29 @@ static void test(void)
 
 /* create an arena that can't grow beyond 30 M */
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*30)),
-  "create arena");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*30)),
+      "create arena");
 
- mps_arena_commit_limit_set(space, (size_t) (1024*1024*40));
+ mps_arena_commit_limit_set(arena, (size_t) (1024*1024*40));
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-  mps_stack_scan_ambig, stackpointer, 0), "create root");
+ cdie(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA),
+      "create format");
 
- cdie(
-  mps_pool_create(&pool, space, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_pool_create(&pool, arena, mps_class_amc(), format),
+      "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
+      "create ap");
 
-/* allocate until full */
-
+ /* allocate until full */
 
  i = 0;
-
  b = NULL;
 
  while (allocrone(&a, ap, 128, MPS_RANK_EXACT) == MPS_RES_OK) {
@@ -70,9 +68,9 @@ static void test(void)
  }
 
  comment("%d objs allocated.", i);
- report("committed", "%ld", mps_arena_committed(space));
+ report("committed", "%ld", mps_arena_committed(arena));
 
-/* try to allocate 10 times */
+ /* try to allocate 10 times */
 
  cdie(mps_ap_create(&ap2, pool, MPS_RANK_EXACT), "create second ap");
  mps_ap_destroy(ap);
@@ -82,7 +80,7 @@ static void test(void)
   report("predie", "%s", err_text(res));
  }
 
-/* now let everything die, and try to allocate 10 times */
+ /* now let everything die, and try to allocate 10 times */
 
  mps_root_destroy(root);
 
@@ -105,10 +103,10 @@ static void test(void)
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
-
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
+
 
 int main(void)
 {
