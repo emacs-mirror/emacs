@@ -21,10 +21,6 @@
 	(bibtex-find-entry): Use bibtex-reposition-window.  Always return
 	position of entry if key is found or nil if not found.
 
-2004-12-05  Luc Teirlinck  <teirllm@auburn.edu>
-
-	* cus-edit.el (custom-file): Escape double-quotes in docstring.
-
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-file): Doc fix.
