@@ -651,23 +651,37 @@ Optional arg TABLE if non-nil is a unification table to look up.")
      Lisp_Object beg, end, table;
 {
   int charsets[MAX_CHARSET + 1];
-  int from, to, stop, i;
+  int from, from_byte, to, stop, stop_byte, i;
   Lisp_Object val;
 
   validate_region (&beg, &end);
   from = XFASTINT (beg);
   stop = to = XFASTINT (end);
+
   if (from < GPT && GPT < to)
-    stop = GPT;
+    {
+      stop = GPT;
+      stop_byte = GPT_BYTE;
+    }
+  else
+    stop_byte = CHAR_TO_BYTE (stop);
+
+  from_byte = CHAR_TO_BYTE (from);
+
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   while (1)
     {
-      find_charset_in_str (POS_ADDR (from), stop - from, charsets, table);
+      find_charset_in_str (BYTE_POS_ADDR (from_byte), stop_byte - from_byte,
+			   charsets, table);
       if (stop < to)
-	from = stop, stop = to;
+	{
+	  from = stop, from_byte = stop_byte;
+	  stop = to, stop_byte = CHAR_TO_BYTE (stop);
+	}
       else
 	break;
     }
+
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
@@ -989,7 +1003,7 @@ character.")
       if (*p == LEADING_CODE_COMPOSITION)
 	{
 	  p++;
-	  while (p < endp && ! CHAR_HEAD_P (p)) p++;
+	  while (p < endp && ! CHAR_HEAD_P (*p)) p++;
 	}
       else
 	p += BYTES_BY_CHAR_HEAD (*p);
@@ -1001,62 +1015,45 @@ character.")
 }
 
 DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
-  "Return number of characters between BEG and END.\n\
-When using multibyte characters, this is not the necessarily same\n\
-as (- END BEG); that subtraction gives you the number of bytes, which\n\
-may be more than the number of characters.")
+  "Return number of characters between BEG and END.")
   (beg, end)
      Lisp_Object beg, end;
 {
-  int from, to, stop;
-  Lisp_Object val;
-  int chars = 0;
-  unsigned char *p, *endp;
-
-  validate_region (&beg, &end);
+  int from, to;
 
   from = min (XFASTINT (beg), XFASTINT (end));
   to = max (XFASTINT (beg), XFASTINT (end));
-  p = POS_ADDR (from);
+
+  return to - from;
+}
+
+int
+chars_in_text (ptr, nbytes)
+     unsigned char *ptr;
+     int nbytes;
+{
+  unsigned char *endp;
+  int chars;
 
   if (NILP (current_buffer->enable_multibyte_characters))
-    return make_number (to - from);
+    return nbytes;
 
-  if (from < GPT && GPT <= to)
-    {
-      stop = GPT;
-      endp = GPT_ADDR;
-    }
-  else
-    {
-      stop = to;
-      endp = POS_ADDR (stop);
-    }
+  endp = ptr + nbytes;
+  chars = 0;
 
-  while (1)
+  while (ptr < endp)
     {
-      if (p >= endp)
+      if (*ptr == LEADING_CODE_COMPOSITION)
 	{
-	  if (stop >= to)
-	    break;
-
-	  p = POS_ADDR (stop);
-	  stop = to;
-	  endp = POS_ADDR (stop);
-	}
-
-      if (*p == LEADING_CODE_COMPOSITION)
-	{
-	  p++;
-	  while (p < endp && ! CHAR_HEAD_P (p)) p++;
+	  ptr++;
+	  while (ptr < endp && ! CHAR_HEAD_P (*ptr)) ptr++;
 	}
       else
-	p += BYTES_BY_CHAR_HEAD (*p);
-
+	ptr += BYTES_BY_CHAR_HEAD (*ptr);
       chars++;
     }
 
-  return make_number (chars);
+  return chars;
 }
 
 DEFUN ("char-boundary-p", Fchar_boundary_p, Schar_boundary_p, 1, 1, 0,
@@ -1071,31 +1068,7 @@ If POS is out of range or not at character boundary, return NIL.")
   (pos)
      Lisp_Object pos;
 {
-  Lisp_Object val;
-  int n;
-
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
-
-  n = XINT (pos);
-  if (n < BEGV || n > ZV)
-    return Qnil;
-
-  if (n == ZV || NILP (current_buffer->enable_multibyte_characters))
-    XSETFASTINT (val, 0);
-  else
-    {
-      unsigned char *p = POS_ADDR (n);
-
-      if (SINGLE_BYTE_CHAR_P (*p))
-	XSETFASTINT (val, 0);
-      else if (*p == LEADING_CODE_COMPOSITION)
-	XSETFASTINT (val, 4);
-      else if (BYTES_BY_CHAR_HEAD (*p) > 1)
-	XSETFASTINT (val, BYTES_BY_CHAR_HEAD (*p) - 1);
-      else
-	val = Qnil;
-    }
-  return val;
+  return make_number (0);
 }
 
 DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
@@ -1206,7 +1179,7 @@ str_cmpchar_id (str, len)
     unsigned char *p, *endp = str + 1, *lastp = str + len;
     int bytes;
 
-    while (endp < lastp && ! CHAR_HEAD_P (endp)) endp++;
+    while (endp < lastp && ! CHAR_HEAD_P (*endp)) endp++;
     chars = 0;
     p = str + 1 + embedded_rule;
     while (p < endp)
@@ -1523,7 +1496,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
              unchanged.  */
 	  p++;
 	  ptemp = p;
-	  while (! CHAR_HEAD_P (p)) p++;
+	  while (! CHAR_HEAD_P (*p)) p++;
 	  if (i + (p - ptemp) >= MAX_LENGTH_OF_MULTI_BYTE_FORM)
 	    error ("Too long string to be composed: %s", XSTRING (str)->data);
 	  bcopy (ptemp, buf + i, p - ptemp);
