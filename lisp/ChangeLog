@@ -1,3 +1,42 @@
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (news-directory): Renamed from news-path.  Old name alias.
+	(rmail-spool-directory): Use defvar.
+	(sendmail-program): Use defcustom.
+	(remote-shell-program): Use defcustom.
+	(term-file-prefix): Use defvar.
+	(abbrev-file-name): Use defvar.
+
+	* term.el: Add maintainer.
+
+	* subr.el (with-local-quit): Return nil if there's a quit.
+	(read-passwd): Use with-local-quit.  Doc fix.
+
+	* strokes.el (strokes-list-strokes): Don't try to delete char at eob.
+	(strokes-unload-hook): Set as a variable with add-hook.
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
+	* shadowfile.el (shadowfile-unload-hook): Set as variable w/ add-hook.
+
+	* server.el (server-unload-hook): Set as a variable with add-hook.
+
+	* help-at-pt.el (help-at-pt-unload-hook): Use add-hook; no defvar.
+
+	* frame.el (special-display-popup-frame): 
+	Make the buffer current as its frame is created.
+
+	* delsel.el (delsel-unload-hook): Set as a variable.
+
+	* comint.el (comint-output-filter-functions):
+	Add comint-watch-for-password-prompt.
+	(comint-read-noecho): Function deleted.
+	(send-invisible): Use read-passwd.
+
+	* fringe.el (fringe-mode-initialize): New function.
+	(fringe-mode): Use fringe-mode-initialize as :initialize.
+
 2004-10-17  Kim F. Storm  <storm@cua.dk>
 
 	* language/indian.el (indian-script-language-alist): Swap value and doc.

@@ -1,3 +1,16 @@
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* gnus-registry.el (gnus-registry-unload-hook): 
+	Set as a variable with add-hook.
+
+	* nnspool.el (nnspool-spool-directory): Use news-directory instead
+	of news-path.
+
+	* spam-stat.el (spam-stat-unload-hook): Set as a variable w/ add-hook.
+
+	* spam.el: Delete duplicate `provide'.
+	(spam-unload-hook): Set as a variable with add-hook.
+
 2004-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-tokenize-header): Fix 2004-09-06 change
