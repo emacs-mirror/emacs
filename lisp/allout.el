@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <klm@nist.gov>
-;; Maintainer: Ken Manheimer <klm@nist.gov>
+;; Author: Ken Manheimer <klm@python.org>
+;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
 ;; Version: Id: allout.el,v 4.3 1994/05/12 17:43:08 klm Exp ||
 ;; Keywords: outline mode
