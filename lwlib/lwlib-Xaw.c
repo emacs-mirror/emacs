@@ -118,11 +118,13 @@ xaw_update_one_widget (instance, widget, val, deep_p)
      widget_value *val;
      Boolean deep_p;
 {
+#if 0
   if (XtIsSubclass (widget, scrollbarWidgetClass))
     {
       xaw_update_scrollbar (instance, widget, val);
     }
-  else if (XtIsSubclass (widget, dialogWidgetClass))
+#endif
+  if (XtIsSubclass (widget, dialogWidgetClass))
     {
       Arg al[1];
       int ac = 0;
@@ -132,6 +134,8 @@ xaw_update_one_widget (instance, widget, val, deep_p)
   else if (XtIsSubclass (widget, commandWidgetClass))
     {
       Dimension bw = 0;
+      Arg al[3];
+
       XtVaGetValues (widget, XtNborderWidth, &bw, 0);
       if (bw == 0)
 	/* Don't let buttons end up with 0 borderwidth, that's ugly...
@@ -140,15 +144,16 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 	   that I don't feel like opening right now.  Making Athena widgets
 	   not look like shit is just entirely too much work.
 	 */
-	XtVaSetValues (widget, XtNborderWidth, 1, 0);
+	{
+	  XtSetArg (al[0], XtNborderWidth, 1);
+	  XtSetValues (widget, al, 1);
+	}
 
-      XtVaSetValues (widget,
-		     XtNlabel, val->value,
-		     XtNsensitive, val->enabled,
-		     /* Force centered button text.  Se above. */
-		     XtNjustify, XtJustifyCenter,
-		     0);
-
+      XtSetArg (al[0], XtNlabel, val->value);
+      XtSetArg (al[1], XtNsensitive, val->enabled);
+      /* Force centered button text.  Se above. */
+      XtSetArg (al[2], XtNjustify, XtJustifyCenter);
+      XtSetValues (widget, al, 3);
       XtRemoveAllCallbacks (widget, XtNcallback);
       XtAddCallback (widget, XtNcallback, xaw_generic_callback, instance);
     }
