@@ -1,3 +1,7 @@
+2002-06-25  Andreas Schwab  <schwab@suse.de>
+
+	* replace.el (occur-1): Avoid invalid message format string.
+
 2002-06-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-parse.el (cvs-parse-table):
