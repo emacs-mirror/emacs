@@ -75,7 +75,7 @@ char *lwlib_toolkit_type = "motif";
 char *lwlib_toolkit_type = "lucid";
 #endif
 
-#if defined __STDC__
+#if defined __STDC__ || defined PROTOTYPES
 #define P_(x)	x
 #else
 #define P_(x)	()
@@ -142,7 +142,7 @@ lwlib_bcopy (from, to, length)
 /* utility functions for widget_instance and widget_info */
 char *
 safe_strdup (s)
-     char *s;
+     const char *s;
 {
   char *result;
   if (! s) return 0;
@@ -753,7 +753,7 @@ lw_modify_all_widgets (id, val, deep_p)
   int change_p = 0;
 
   if (!info)
-    return;
+    return 0;
 
   for (new_val = val; new_val; new_val = new_val->next)
     {
