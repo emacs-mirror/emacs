@@ -43,7 +43,9 @@ Boston, MA 02111-1307, USA.  */
 * }
 */
 
-DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "Mocklisp version of `if'.")
+DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0,
+       "Mocklisp version of `if'.
+usage: (ml-if COND THEN ELSE...)")
   (args)
      Lisp_Object args;
 {
@@ -137,7 +139,8 @@ DEFUN ("ml-interactive", Fml_interactive, Sml_interactive, 0, 0, 0,
 
 DEFUN ("ml-provide-prefix-argument", Fml_provide_prefix_argument, Sml_provide_prefix_argument,
   2, UNEVALLED, 0,
-  "Evaluate second argument, using first argument as prefix arg value.")
+  "Evaluate second argument, using first argument as prefix arg value.
+usage: (ml-provide-prefix-argument ARG1 ARG2)")
   (args)
      Lisp_Object args;
 {
@@ -150,7 +153,7 @@ DEFUN ("ml-provide-prefix-argument", Fml_provide_prefix_argument, Sml_provide_pr
 
 DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_loop,
        0, UNEVALLED, 0,
-  "")
+  "usage: (ml-prefix-argument-loop ...)")
   (args)
      Lisp_Object args;
 {
@@ -201,7 +204,8 @@ If either FROM or LENGTH is negative, the length of STRING is added to it.")
 DEFUN ("insert-string", Finsert_string, Sinsert_string, 0, MANY, 0,
   "Mocklisp-compatibility insert function.\n\
 Like the function `insert' except that any argument that is a number\n\
-is converted into a string by expressing it in decimal.")
+is converted into a string by expressing it in decimal.
+usage: (insert-string &rest ARGS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
