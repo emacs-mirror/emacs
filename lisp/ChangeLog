@@ -18,6 +18,9 @@
 
 	* custom.el (custom-initialize-default, defcustom): Typo in docstring.
 
+	* files.el (set-visited-file-name, file-expand-wildcards):
+	Fix docstring.
+
 2004-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (prin1-char): Use eventp.
@@ -105,15 +108,15 @@
 
 2004-05-09  Juanma Barranquero  <lektu@terra.es>
 
-	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
-	Don't use CL-style default args.
+	* help-fns.el (help-highlight-arguments): Don't try to highlight
+	missing or autoloaded arglists.  Accept structured arguments, like
+	the first ones of `do' and `flet'.
 
 	* pcvs.el (cvs-mode-run, cvs-is-within-p): Fix typo in docstring.
 	(cvs-get-marked): Remove redundant arglist info.
 
-	* help-fns.el (help-highlight-arguments): Don't try to highlight
-	missing or autoloaded arglists.  Accept structured arguments, like
-	the first ones of `do' and `flet'.
+	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
+	Don't use CL-style default args.
 
 2004-05-08  Andreas Schwab  <schwab@suse.de>
 
@@ -332,12 +335,12 @@
 
 2004-05-06  Juanma Barranquero  <lektu@terra.es>
 
+	* ehelp.el (electric-help-command-loop): Check whether the last
+	character is visible, not (point-max).
+
 	* help-fns.el (help-argument-name): Default to bold; don't inherit
 	from font-lock-variable-name-face.
 	(help-do-arg-highlight): Grok also ARGth occurrences in the docstring.
-
-	* ehelp.el (electric-help-command-loop): Check whether the last
-	character is visible, not (point-max).
 
 2004-05-05  Kenichi Handa  <handa@m17n.org>
 
@@ -386,6 +389,9 @@
 
 2004-05-04  Juanma Barranquero  <lektu@terra.es>
 
+	* ehelp.el (electric-help-command-loop, electric-help-undefined)
+	(electric-help-help): Check against unmapped commands.
+
 	* help-fns.el (help-argument-name): New face, inheriting from
 	font-lock-variable-name-face, to highlight function arguments in
 	`describe-function' and `describe-key'.
@@ -396,12 +402,9 @@
 	(describe-function-1): Use it. Do docstring output via `insert',
 	not 'princ', so text attributes are preserved.
 
-	* winner.el (winner-mode-map): Move winner-undo and winner-redo to
-	C-c <left> and C-c <right>, respectively (the previous bindings
-	conflict with prev-buffer, next-buffer).
-
-	* ehelp.el (electric-help-command-loop, electric-help-undefined)
-	(electric-help-help): Check against unmapped commands.
+	* winner.el (winner-mode-map): Move `winner-undo' and
+	`winner-redo' to C-c <left> and C-c <right>, respectively (the
+	previous bindings conflict with `prev-buffer', `next-buffer').
 
 2004-05-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -680,7 +683,7 @@
 	`font-lock-add-keywords'.
 	(sql-send-string): Add function.
 
-2004-04-29  Dave Love <fx@gnu.org>
+2004-04-29  Dave Love  <fx@gnu.org>
 
 	* progmodes/cfengine.el (cfengine-beginning-of-defun)
 	(cfengine-end-of-defun): Ensure progress through buffer.
@@ -1123,10 +1126,10 @@
 
 2004-04-21  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in (WINS): Add url/ directory.
-
 	* font-lock.el (font-lock-preprocessor-face): Remove spurious quote.
 	(font-lock-warning-face): Fix spacing.
+
+	* makefile.w32-in (WINS): Add url/ directory.
 
 2004-04-21  Lars Hansen  <larsh@math.ku.dk>
 
