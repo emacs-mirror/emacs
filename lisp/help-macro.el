@@ -82,17 +82,16 @@ and then returns."
 	   (, help-text)
 	   (interactive)
 	   (let ((line-prompt
-		  (substitute-command-keys (, help-line)))
-		 (help-screen (documentation (quote (, fname)))))
+		  (substitute-command-keys (, help-line))))
 	     (message line-prompt)
-	     (let ((old-local-map (current-local-map))
-		   (old-global-map (current-global-map))
-		   (minor-mode-map-alist nil)
-		   config key char)
+	     (let* ((overriding-local-map (make-sparse-keymap))
+		    (minor-mode-map-alist nil)
+		    config key char help-screen)
 	       (unwind-protect
 		   (progn
-		     (use-global-map (, helped-map))
-		     (use-local-map nil)
+		     (setcdr overriding-local-map (, helped-map))
+		     (define-key overriding-local-map [t] 'undefined)
+		     (setq help-screen (documentation (quote (, fname))))
 		     (setq key (read-key-sequence nil))
 		     (setq char (aref key 0))
 		     (if (or (eq char ??) (eq char help-char))
@@ -102,12 +101,15 @@ and then returns."
 			   (erase-buffer)
 			   (insert help-screen)
 			   (goto-char (point-min))
-			   (while (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
+			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
+				      (equal key "\M-v"))
+			     (setq list (cons key list))
 			     (condition-case nil
 				 (progn
 				   (if (memq char '(?\C-v ?\ ))
 				       (scroll-up))
-				   (if (memq char '(?\177 ?\M-v))
+				   (if (or (memq char '(?\177 ?\M-v))
+					   (equal key "\M-v"))
 				       (scroll-down)))
 			       (error nil))
 			     (message "%s%s: "
@@ -116,7 +118,8 @@ and then returns."
 					  "" " or Space to scroll"))
 			     (let ((cursor-in-echo-area t))
 			       (setq key (read-key-sequence nil)
-				     char (aref key 0))))))
+				     char (aref key 0))))
+			   (setq list (cons key list))))
 		     ;; Mouse clicks are not part of the help feature,
 		     ;; so reexecute them in the standard environment.
 		     (if (listp char)
@@ -130,12 +133,9 @@ and then returns."
 				   (progn
 				     (set-window-configuration config)
 				     (setq config nil)))
-			       (use-local-map old-local-map)
-			       (use-global-map old-global-map)
+			       (setq overriding-local-map nil)
 			       (call-interactively defn))
 			   (ding)))))
-		 (use-local-map old-local-map)
-		 (use-global-map old-global-map)
 		 (if config
 		     (set-window-configuration config))))))
      ))
