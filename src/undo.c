@@ -41,6 +41,7 @@ Lisp_Object pending_boundary;
    (It is possible to record an insertion before or after the fact
    because we don't need to record the contents.)  */
 
+void
 record_insert (beg, length)
      int beg, length;
 {
@@ -168,6 +169,7 @@ record_change (beg, length)
    Record the file modification date so that when undoing this entry
    we can tell whether it is obsolete because the file was saved again.  */
 
+void
 record_first_change ()
 {
   Lisp_Object high, low;
@@ -191,6 +193,7 @@ record_first_change ()
 /* Record a change in property PROP (whose old value was VAL)
    for LENGTH characters starting at position BEG in BUFFER.  */
 
+void
 record_property_change (beg, length, prop, value, buffer)
      int beg, length;
      Lisp_Object prop, value, buffer;
