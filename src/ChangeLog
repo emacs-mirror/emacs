@@ -7,6 +7,8 @@
 	* dispextern.h (pixel_to_glyph_coords, glyph_to_pixel_coords):
 	Add prototypes.
 
+	* xterm.h (STORE_NATIVE_RECT): New macro.
+
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_glyph_string_clip_rect): Use
