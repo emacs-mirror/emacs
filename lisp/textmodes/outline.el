@@ -284,7 +284,7 @@ See the command `outline-mode' for more information on this mode."
   "*Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line."
   :type 'function
-  :group outlines)
+  :group 'outlines)
 
 ;; This used to count columns rather than characters, but that made ^L
 ;; appear to be at level 2 instead of 1.  Columns would be better for
