@@ -294,18 +294,14 @@ enum pvec_type
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned. */
-#ifndef DECL_ALIGN
+#if defined USE_LSB_TAG && !defined DECL_ALIGN
 /* What compiler directive should we use for non-gcc compilers?  -stef  */
-#if defined (__GNUC__)
-#define DECL_ALIGN(type, var) \
+# if defined (__GNUC__)
+#  define DECL_ALIGN(type, var) \
     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-#endif
-#endif
-
-#ifndef DECL_ALIGN
-/* Can't USE_LSB_TAG if we can't enforce alignment of statically allocated
-   objects like lisp_subr and the special buffers in buffer.c.  */
-#undef USE_LSB_TAG
+# else
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
 #endif
 
 #ifndef USE_LSB_TAG
