@@ -1850,7 +1850,7 @@ Selecting a simple element has the effect of moving to position
 Selecting a special element performs:
 
 @example
-(funcall @var{function} 
+(funcall @var{function}
          @var{index-name} @var{index-position} @var{arguments}@dots{})
 @end example
 
@@ -2331,8 +2331,8 @@ where they are defined and where they are used.
 @vindex font-lock-constant-face
 Used (typically) for constant names.
 
-@item font-locl-preprocessor-face
-@vindex font-locl-preprocessor-face
+@item font-lock-preprocessor-face
+@vindex font-lock-preprocessor-face
 Used (typically) for preprocessor commands.
 
 @item font-lock-warning-face
@@ -2436,6 +2436,18 @@ the valid kinds of functions that @code{funcall} accepts (@pxref{What Is
 a Function}).  Most normal hook variables are initially void;
 @code{add-hook} knows how to deal with this.
 
+With @code{add-hook}, you can also add hook functions to the
+buffer-local value of a hook variable.  If necessary, @code{add-hook}
+first makes the hook variable buffer-local and adds @code{t} to the
+buffer-local value.  The element @code{t} in the buffer-local value of
+a hook variable acts as a signal for the various functions that run
+hooks to run the default value of the hook variable as well; @code{t}
+is basically substituted with the elements of the default value of a
+hook variable.  Since @code{add-hook} normally adds hook functions to
+the front of hook variables, this means that the hook functions in the
+buffer-local value are called before the hook functions in the default
+value of hook variables.
+
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
 indicates it is probably an @dfn{abnormal hook}.  Then you should look at its
@@ -2465,9 +2477,10 @@ run particular hooks.  This function calls the hook functions that have
 been added with @code{add-hook}.
 
 @defun run-hooks &rest hookvars
-This function takes one or more hook variable names as arguments, and
-runs each hook in turn.  Each argument should be a symbol that is a hook
-variable.  These arguments are processed in the order specified.
+This function takes one or more normal hook variable names as
+arguments, and runs each hook in turn.  Each argument should be a
+symbol that is a hook variable.  These arguments are processed in the
+order specified.
 
 If a hook variable has a non-@code{nil} value, that value may be a
 function or a list of functions.  If the value is a function (either a
@@ -2497,33 +2510,33 @@ its parent modes' mode hooks until the end.
 @end defmac
 
 @defun run-hook-with-args hook &rest args
-This function is the way to run an abnormal hook which passes arguments
-to the hook functions.  It calls each of the hook functions, passing
-each of them the arguments @var{args}.
+This function is the way to run an abnormal hook.  It calls each of
+the hook functions, passing each of them the arguments @var{args}.
 @end defun
 
 @defun run-hook-with-args-until-failure hook &rest args
-This function is the way to run an abnormal hook which passes arguments
-to the hook functions, and stops as soon as any hook function fails.  It
-calls each of the hook functions, passing each of them the arguments
-@var{args}, until some hook function returns @code{nil}.  Then it stops,
-and returns @code{nil} if some hook function returned @code{nil}.
-Otherwise it returns a non-@code{nil} value.
+This function is the way to run an abnormal hook until one of the hook
+functions fails.  It calls each of the hook functions, passing each of
+them the arguments @var{args}, until some hook function returns
+@code{nil}.  It then stops and returns @code{nil}.  If none of the
+hook functions return @code{nil}, it returns a non-@code{nil} value.
 @end defun
 
 @defun run-hook-with-args-until-success hook &rest args
-This function is the way to run an abnormal hook which passes arguments
-to the hook functions, and stops as soon as any hook function succeeds.
-It calls each of the hook functions, passing each of them the arguments
-@var{args}, until some hook function returns non-@code{nil}.  Then it
-stops, and returns whatever was returned by the last hook function
-that was called.
+This function is the way to run an abnormal hook until a hook function
+succeeds.  It calls each of the hook functions, passing each of them
+the arguments @var{args}, until some hook function returns
+non-@code{nil}.  Then it stops, and returns whatever was returned by
+the last hook function that was called.  If all hook functions return
+@code{nil}, it returns @code{nil} as well.
 @end defun
 
 @defun add-hook hook function &optional append local
 This function is the handy way to add function @var{function} to hook
-variable @var{hook}.  The argument @var{function} may be any valid Lisp
-function with the proper number of arguments.  For example,
+variable @var{hook}.  The argument @var{function} is not added if it
+is already present on @var{hook} (comparisons are performed with
+@code{equal}; @pxref{Equality Predicates}).  @var{function} may be any
+valid Lisp function with the proper number of arguments.  For example,
 
 @example
 (add-hook 'text-mode-hook 'my-text-hook-function)
@@ -2537,18 +2550,25 @@ hooks.
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
-for trouble.''  However, the order is predictable: normally,
+for trouble''.  However, the order is predictable: normally,
 @var{function} goes at the front of the hook list, so it will be
 executed first (barring another @code{add-hook} call).  If the optional
 argument @var{append} is non-@code{nil}, the new hook function goes at
 the end of the hook list and will be executed last.
 
-If @var{local} is non-@code{nil}, that says to add @var{function}
-to the buffer-local hook list instead of to the global hook list.
+If @var{local} is non-@code{nil}, that says to add @var{function} to
+the buffer-local hook list instead of to the global hook list.  If
+needed, this makes the hook buffer-local and adds @code{t} to the
+buffer-local value.  The latter acts as a flag to run the hook
+functions in the default value as well as in the local value.
 @end defun
 
 @defun remove-hook hook function &optional local
-This function removes @var{function} from the hook variable @var{hook}.
+This function removes @var{function} from the hook variable
+@var{hook}.  The argument @var{function} is compared with elements of
+@var{hook} by means of @code{equal} (@pxref{Equality Predicates}).
+This means that you can remove symbols with a function definition as
+well as lambda expressions.
 
 If @var{local} is non-@code{nil}, that says to remove @var{function}
 from the buffer-local hook list instead of from the global hook list.
