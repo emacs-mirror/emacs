@@ -1,3 +1,9 @@
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/emacs-xtra):
+	Add emacs-xtra.
+	* emacs-xtra.texi: New file.
+
 2004-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.texi (Dired Enter): Mention conditions on `ls' switches.

@@ -1,3 +1,12 @@
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Add hyperlink to emacs-xtra manual to docstring.
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Add
+	hyperlink to emacs-xtra manual to docstring, as well as an
+	info-link.
+
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
 
 	* image.el (image-library-alist): New variable to map image types
