@@ -2548,6 +2548,7 @@ extern void syms_of_casetab P_ ((void));
 
 extern Lisp_Object Qdisabled, QCfilter;
 extern Lisp_Object Vtty_erase_char, Vhelp_form, Vtop_level;
+extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
 EXFUN (Fcommand_execute, 4);
