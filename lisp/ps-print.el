@@ -1760,8 +1760,20 @@ EndDSCPage\n"))
 			   (min (next-overlay-change from) to)))
 		 (setq position
 		       (min property-change overlay-change))
+		 ;; The code below is not quite correct,
+		 ;; because a non-nil overlay invisible property
+		 ;; which is inactive according to the current value
+		 ;; of buffer-invisibility-spec nonetheless overrides
+		 ;; a face text property.
 		 (setq face
-		       (cond ((get-text-property from 'invisible) nil)
+		       (cond ((let ((prop (get-text-property from 'invisible)))
+				;; Decide whether this invisible property
+				;; really makes the text invisible.
+				(if (eq buffer-invisibility-spec t)
+				    (not (null prop))
+				  (or (memq prop buffer-invisibility-spec)
+				      (assq prop buffer-invisibility-spec))))
+			      nil)
 			     ((get-text-property from 'face))
 			     (t 'default)))
 		 (let ((overlays (overlays-at from))
@@ -1775,7 +1787,11 @@ EndDSCPage\n"))
 						  0)))
 		       (if (and (or overlay-invisible overlay-face)
 				(> overlay-priority face-priority))
-			   (setq face (cond (overlay-invisible nil)
+			   (setq face (cond ((if (eq buffer-invisibility-spec t)
+						 (not (null overlay-invisible))
+					       (or (memq overlay-invisible buffer-invisibility-spec)
+						   (assq overlay-invisible buffer-invisibility-spec)))
+					     nil)
 					    ((and face overlay-face)))
 				 face-priority overlay-priority)))
 		     (setq overlays (cdr overlays))))
