@@ -549,6 +549,24 @@ addition, the encoding is fully shown."
 
 (defvar read-expression-history nil)
 
+(defcustom eval-expression-print-level 4
+  "*Value to use for `print-level' when printing value in `eval-expression'."
+  :group 'lisp
+  :type 'integer
+  :version "21.1")
+
+(defcustom eval-expression-print-length 12
+  "*Value to use for `print-length' when printing value in `eval-expression'."
+  :group 'lisp
+  :type 'integer
+  :version "21.1")
+
+(defcustom eval-expression-debug-on-error t
+  "*Value to use for `debug-on-error' when evaluating in `eval-expression'."
+  :group 'lisp
+  :type 'boolean
+  :version "21.1")
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (eval-expression-arg
@@ -560,9 +578,12 @@ Value is also consed on to front of the variable `values'."
 			       nil read-expression-map t
 			       'read-expression-history)
 	 current-prefix-arg))
-  (setq values (cons (eval eval-expression-arg) values))
-  (prin1 (car values)
-	 (if eval-expression-insert-value (current-buffer) t)))
+  (let ((debug-on-error eval-expression-debug-on-error))
+    (setq values (cons (eval eval-expression-arg) values)))
+  (let ((print-length eval-expression-print-length)
+	(print-level eval-expression-print-level))
+    (prin1 (car values)
+	   (if eval-expression-insert-value (current-buffer) t))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
