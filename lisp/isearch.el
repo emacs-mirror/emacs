@@ -142,36 +142,39 @@
 ;;;=========================================================================
 ;;; The following, defined in loaddefs.el, are still used with isearch-mode.
 
-;(defvar search-last-string ""
-;  "Last string search for by a search command.
-;This does not include direct calls to the primitive search functions,
-;and does not include searches that are aborted.")
+(defvar search-last-string ""
+  "Last string search for by a search command.
+This does not include direct calls to the primitive search functions,
+and does not include searches that are aborted.")
 
-;(defvar search-last-regexp ""
-;  "Last string searched for by a regexp search command.
-;This does not include direct calls to the primitive search functions,
-;and does not include searches that are aborted.")
+(defvar search-last-regexp ""
+  "Last string searched for by a regexp search command.
+This does not include direct calls to the primitive search functions,
+and does not include searches that are aborted.")
 
-;(defconst search-exit-option t
-;  "Non-nil means random control characters terminate incremental search.")
+(defconst search-exit-option t
+  "Non-nil means random control characters terminate incremental search.")
 
-;(defvar search-slow-window-lines 1
-;  "*Number of lines in slow search display windows.")
+(defvar search-slow-window-lines 1
+  "*Number of lines in slow search display windows.
+These are the short windows used during incremental search on slow terminals.
+Negative means put the slow search window at the top (normally it's at bottom)
+and the value is minus the number of lines.")
 
-;(defconst search-slow-speed 1200
-;  "*Highest terminal speed at which to use \"slow\" style incremental search.
-;This is the style where a one-line window is created to show the line
-;that the search has reached.")
+(defvar search-slow-speed 1200
+  "*Highest terminal speed at which to use \"slow\" style incremental search.
+This is the style where a one-line window is created to show the line
+that the search has reached.")
 
 ;;;========================================================================
 ;;; Some additional options and constants.
 
-(defvar search-caps-disable-folding t
+(defvar search-upper-case t
   "*If non-nil, upper case chars disable case fold searching.
 That is, upper and lower case chars must match exactly.
 This applies no matter where the chars come from, but does not
-apply to chars prefixed with \\, for regexps.
-If this value is 'not-yanks, yanked text is always downcased.")
+apply to chars in regexps that are prefixed with `\\'.
+If this value is `not-yanks', yanked text is always downcased.")
 
 (defvar search-nonincremental-instead t
   "*If non-nil, do a nonincremental search instead if exiting immediately.
@@ -224,8 +227,7 @@ Default value, nil, means edit the string instead.")
 
 (or isearch-mode-map
     (let* ((i 0)
-	   (map (make-keymap))
-	   (len (length map)))
+	   (map (make-keymap)))
 
       ;; Control chars, by default, end isearch mode transparently.
       (while (< i ?\ )
@@ -234,7 +236,7 @@ Default value, nil, means edit the string instead.")
 
       ;; Printing chars extend the selection by default.
       ;; This assumes that all remaining chars are printable.
-      (while (< i len)
+      (while (< i 128)
 	(define-key map (make-string 1 i) 'isearch-printing-char)
 	(setq i (1+ i)))
 
@@ -281,8 +283,8 @@ Default value, nil, means edit the string instead.")
       ;; default local key binding for any key not otherwise bound.
       (define-key map (char-to-string meta-prefix-char) (make-keymap))
       (setq i 0)
-      (while (< i len)
-	(define-key map (char-to-string (+ 128 i)) ;; Needs to be generalized.
+      (while (< i 128)
+	(define-key map (char-to-string (+ 128 i));; Needs to be generalized.
 	  'isearch-other-meta-char)
 	(setq i (1+ i)))
 
@@ -375,6 +377,11 @@ Default value, nil, means edit the string instead.")
 
 (defvar isearch-mode nil) ;; Name of the minor mode, if non-nil.
 (make-variable-buffer-local 'isearch-mode)
+
+(define-key global-map "\C-s" 'isearch-forward)
+(define-key esc-map "\C-s" 'isearch-forward-regexp)
+(define-key global-map "\C-r" 'isearch-backward)
+(define-key esc-map "\C-r" 'isearch-backward-regexp)
 
 ;;;===============================================================
 ;;; Entry points to isearch-mode.
@@ -875,7 +882,7 @@ If no previous match was done, just beep."
 		     (point))))))
     ;; Downcase the string if not supposed to case-fold yanked strings.
     (if (and isearch-case-fold-search
-	     (eq 'not-yanks search-caps-disable-folding))
+	     (eq 'not-yanks search-upper-case))
 	(setq string (downcase string)))
     (if isearch-regexp (setq string (regexp-quote string)))
     (setq isearch-string (concat isearch-string string)
@@ -1247,7 +1254,7 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-search ()
   ;; Do the search with the current search string.
   (isearch-message nil t)
-  (if search-caps-disable-folding
+  (if search-upper-case
       (setq isearch-case-fold-search (isearch-no-upper-case-p isearch-string)))
   (condition-case lossage
       (let ((inhibit-quit nil)
