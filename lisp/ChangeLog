@@ -1,3 +1,9 @@
+2004-01-19  Karl Berry  <karl@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): define outline-regexp to start
+	with ^, since that's what texinfo-show-structure
+	documentation says (plus it works much better in texinfo.txi).
+
 2004-01-18  Jesper Harder  <harder@ifa.au.dk>
 
 	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious
