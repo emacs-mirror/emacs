@@ -12406,11 +12406,12 @@ x_iconify_frame (f)
   UNBLOCK_INPUT;
 #endif /* not USE_X_TOOLKIT */
 }
+
 
-/* Destroy the X window of frame F.  */
+/* Free X resources of frame F.  */
 
 void
-x_destroy_window (f)
+x_free_frame_resources (f)
      struct frame *f;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -12419,19 +12420,19 @@ x_destroy_window (f)
 
   /* If a display connection is dead, don't try sending more
      commands to the X server.  */
-  if (dpyinfo->display != 0)
+  if (dpyinfo->display)
     {
-      if (f->output_data.x->icon_desc != 0)
+      if (f->output_data.x->icon_desc)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
+      
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (f))
 	free_frame_xic (f);
 #endif
+      
       if (FRAME_X_WINDOW (f))
-	{
-	  XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-	  FRAME_X_WINDOW (f) = 0;
-	}
+	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+      
 #ifdef USE_X_TOOLKIT
       if (f->output_data.x->widget)
 	XtDestroyWidget (f->output_data.x->widget);
@@ -12444,6 +12445,7 @@ x_destroy_window (f)
       unload_color (f, f->output_data.x->cursor_foreground_pixel);
       unload_color (f, f->output_data.x->border_pixel);
       unload_color (f, f->output_data.x->mouse_pixel);
+      
       if (f->output_data.x->scroll_bar_background_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_background_pixel);
       if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -12453,7 +12455,9 @@ x_destroy_window (f)
       if (f->output_data.x->black_relief.allocated_p)
 	unload_color (f, f->output_data.x->black_relief.pixel);
 
-      free_frame_faces (f);
+      if (FRAME_FACE_CACHE (f))
+	free_frame_faces (f);
+      
       x_free_gcs (f);
       XFlush (FRAME_X_DISPLAY (f));
     }
@@ -12462,15 +12466,14 @@ x_destroy_window (f)
     xfree (f->output_data.x->saved_menu_event);
 
   xfree (f->output_data.x);
-  f->output_data.x = 0;
+  f->output_data.x = NULL;
+  
   if (f == dpyinfo->x_focus_frame)
     dpyinfo->x_focus_frame = 0;
   if (f == dpyinfo->x_focus_event_frame)
     dpyinfo->x_focus_event_frame = 0;
   if (f == dpyinfo->x_highlight_frame)
     dpyinfo->x_highlight_frame = 0;
-
-  dpyinfo->reference_count--;
 
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
@@ -12485,6 +12488,24 @@ x_destroy_window (f)
 
   UNBLOCK_INPUT;
 }
+
+
+/* Destroy the X window of frame F.  */
+
+void
+x_destroy_window (f)
+     struct frame *f;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  /* If a display connection is dead, don't try sending more
+     commands to the X server.  */
+  if (dpyinfo->display != 0)
+    x_free_frame_resources (f);
+
+  dpyinfo->reference_count--;
+}
+
 
 /* Setting window manager hints.  */
 
