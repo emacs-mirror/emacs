@@ -665,6 +665,23 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
+  ;; Register default TTY colors for the case the terminal hasn't a
+  ;; terminal init file.
+  (or (memq window-system '(x w32))
+      (not (tty-display-color-p))
+      (let* ((colors (cond ((eq window-system 'pc)
+                            msdos-color-values)
+                           ((eq system-type 'windows-nt)
+                            w32-tty-standard-colors)
+                           (t tty-standard-colors)))
+	     (color (car colors)))
+	(while colors
+	  (tty-color-define (car color) (cadr color) (cddr color))
+	  (setq colors (cdr colors) color (car colors)))
+	;; Modifying color mappings means realized faces don't
+	;; use the right colors, so clear them.
+	(clear-face-cache)))
+
   (run-hooks 'before-init-hook)
 
   ;; Run the site-start library if it exists.  The point of this file is
@@ -796,23 +813,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(set-buffer "*scratch*")
 	(if (eq major-mode 'fundamental-mode)
 	    (funcall initial-major-mode))))
-
-  ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.
-  (or (memq window-system '(x w32))
-      (not (tty-display-color-p))
-      (let* ((colors (cond ((eq window-system 'pc)
-                            msdos-color-values)
-                           ((eq system-type 'windows-nt)
-                            w32-tty-standard-colors)
-                           (t tty-standard-colors)))
-	     (color (car colors)))
-	(while colors
-	  (tty-color-define (car color) (cadr color) (cddr color))
-	  (setq colors (cdr colors) color (car colors)))
-	;; Modifying color mappings means realized faces don't
-	;; use the right colors, so clear them.
-	(clear-face-cache)))
   
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
