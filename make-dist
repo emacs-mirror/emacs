@@ -297,7 +297,7 @@ echo "Making links to \`nt/inc/sys'"
 echo "Making links to \`msdos'"
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos
- ln mainmake sed*.inp ../${tempdir}/msdos
+ ln mainmake mainmake.v2 sed*.inp ../${tempdir}/msdos
  cd ../${tempdir}/msdos
  rm -f =*)
 
