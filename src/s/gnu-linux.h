@@ -153,9 +153,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* #define LINUX_LDAV_FILE "/proc/loadavg" */
 
-/* This is needed for disknew.c:update_frame() */
+/* This is needed for disknew.c:update_frame */
 
 #ifdef emacs
+#include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
 #ifdef _IO_STDIO_H
 /* new C libio names */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
