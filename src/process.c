@@ -1177,7 +1177,7 @@ SIGTYPE
 create_process_1 (signo)
      int signo;
 {
-#ifdef USG
+#if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time */
   signal (signo, create_process_1);
@@ -3371,7 +3371,7 @@ sigchld_handler (signo)
 
 	  /* USG systems forget handlers when they are used;
 	     must reestablish each time */
-#ifdef USG
+#if defined (USG) && !defined (POSIX_SIGNALS)
 	  signal (signo, sigchld_handler);   /* WARNING - must come after wait3() */
 #endif
 #ifdef  BSD4_1
@@ -3479,7 +3479,7 @@ sigchld_handler (signo)
 	 Otherwise (on systems that have WNOHANG), loop around
 	 to use up all the processes that have something to tell us.  */
 #if defined (USG) && ! (defined (HPUX) && defined (WNOHANG)) || defined (WINDOWSNT)
-#ifdef USG
+#if defined (USG) && ! defined (POSIX_SIGNALS)
       signal (signo, sigchld_handler);
 #endif
       errno = old_errno;
