@@ -1,5 +1,7 @@
 2003-11-22  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (encode_coding_emacs_mule): Emit bytes with MSB.
+
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
 	is a cons specifying a character range.
 
