@@ -23,6 +23,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 
+extern int errno;
+#ifndef VMS
+extern char *sys_errlist[];
+#endif
+
 /* Define SIGCHLD as an alias for SIGCLD.  */
 
 #if !defined (SIGCHLD) && defined (SIGCLD)
@@ -474,6 +479,14 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     *new_env = 0;
   }
 
+  /* Make sure that in, out, and err are not actually already in
+     descriptors zero, one, or two; this could happen if Emacs is
+     started with its standard in, our, or error closed, as might
+     happen under X.  */
+  in = relocate_fd (in, 3);
+  out = relocate_fd (out, 3);
+  err = relocate_fd (err, 3);
+
   close (0);
   close (1);
   close (2);
@@ -505,6 +518,35 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   write (1, "Couldn't exec the program ", 26);
   write (1, new_argv[0], strlen (new_argv[0]));
   _exit (1);
+}
+
+/* Move the file descriptor FD so that its number is not less than MIN.
+   If the file descriptor is moved at all, the original is freed.  */
+int
+relocate_fd (fd, min)
+     int fd, min;
+{
+  if (fd >= min)
+    return fd;
+  else
+    {
+      int new = dup (fd);
+      if (new == -1)
+	{
+	  char message1[] =
+	    "Error while setting up child: ";
+	  char message2[] = "\n";
+	  write (2, message1, sizeof (message1) - 1);
+	  write (2, sys_errlist[errno], strlen (sys_errlist[errno]));
+	  write (2, message2, sizeof (message2) - 1);
+	  _exit (1);
+	}
+      /* Note that we hold the original FD open while we recurse,
+	 to guarantee we'll get a new FD if we need it.  */
+      new = relocate_fd (new, min);
+      close (fd);
+      return new;
+    }
 }
 
 static int
