@@ -137,7 +137,7 @@ casify_object (flag, obj)
 		}
 	      obj = make_multibyte_string (buf, SCHARS (obj),
 					   j_byte);
-	      SAFE_FREE (bufsize);
+	      SAFE_FREE ();
 	    }
 	  return obj;
 	}

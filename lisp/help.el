@@ -573,14 +573,14 @@ the last key hit are used."
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
 
-(defun describe-key (key &optional untranslated)
+(defun describe-key (key &optional untranslated up-event)
   "Display documentation of the function invoked by KEY.
 KEY should be a key sequence--when calling from a program,
 pass a string or a vector.
 If non-nil UNTRANSLATED is a vector of the untranslated events.
 It can also be a number in which case the untranslated events from
 the last key hit are used."
-  (interactive "kDescribe key: \np")
+  (interactive "kDescribe key: \np\nU")
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
@@ -608,6 +608,17 @@ the last key hit are used."
 	    (prin1 defn)
 	    (princ "\n   which is ")
 	    (describe-function-1 defn)
+	    (when up-event
+	      (let ((defn (or (string-key-binding up-event) (key-binding up-event))))
+		(unless (or (null defn) (integerp defn) (equal defn 'undefined))
+		  (princ "\n\n-------------- up event ---------------\n\n")
+		  (princ (key-description up-event))
+		  (if (windowp window)
+		      (princ " at that spot"))
+		  (princ " runs the command ")
+		  (prin1 defn)
+		  (princ "\n   which is ")
+		  (describe-function-1 defn))))
 	    (print-help-return-message)))))))
 
 

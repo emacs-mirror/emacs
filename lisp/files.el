@@ -1645,41 +1645,35 @@ in that case, this function acts as if `enable-local-variables' were t."
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
-   '(("\\.te?xt\\'" . text-mode)
-     ("\\.tex\\'" . tex-mode)
+   '(;; do this first, so that .html.pl is Polish html, not Perl
+     ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.te?xt\\'" . text-mode)
+     ("\\.[tT]e[xX]\\'" . tex-mode)
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
-     ("\\.lisp\\'" . lisp-mode)
-     ("\\.f\\'" . fortran-mode)
-     ("\\.F\\'" . fortran-mode)
+     ("\\.li?sp\\'" . lisp-mode)
+     ("\\.[fF]\\'" . fortran-mode)
      ("\\.for\\'" . fortran-mode)
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
-     ("\\.\\([pP]\\([Llm]\\|erl\\)\\|al\\)\\'" . perl-mode)
-     ("\\.s?html?\\'" . html-mode)
+     ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
      ("\\.mk\\'" . makefile-mode)
-     ("\\(M\\|m\\|GNUm\\)akefile\\'" . makefile-mode)
+     ("\\([Mm]\\|GNUm\\)akep*file\\'" . makefile-mode)
      ("\\.am\\'" . makefile-mode)	;For Automake.
      ;; Less common extensions come here
      ;; so more common ones above are found faster.
      ("\\.texinfo\\'" . texinfo-mode)
      ("\\.te?xi\\'" . texinfo-mode)
-     ("\\.s\\'" . asm-mode)
-     ("\\.S\\'" . asm-mode)
+     ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
-     ("ChangeLog\\'" . change-log-mode)
-     ("change\\.log\\'" . change-log-mode)
-     ("changelo\\'" . change-log-mode)
-     ("ChangeLog\\.[0-9]+\\'" . change-log-mode)
-     ;; for MSDOS and MS-Windows (which are case-insensitive)
-     ("changelog\\'" . change-log-mode)
-     ("changelog\\.[0-9]+\\'" . change-log-mode)
+     ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
+     ("[cC]hange[lL]og\\.[0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -1688,36 +1682,28 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\(/\\|\\`\\)\\.\\(bash_logout\\|shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
      ("\\.m?spec\\'" . sh-mode)
-     ("\\.mm\\'" . nroff-mode)
-     ("\\.me\\'" . nroff-mode)
-     ("\\.ms\\'" . nroff-mode)
+     ("\\.m[mes]\\'" . nroff-mode)
      ("\\.man\\'" . nroff-mode)
-     ("\\.TeX\\'" . tex-mode)
      ("\\.sty\\'" . latex-mode)
-     ("\\.cls\\'" . latex-mode)		;LaTeX 2e class
-     ("\\.clo\\'" . latex-mode)		;LaTeX 2e class option
+     ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
      ("\\.bbl\\'" . latex-mode)
      ("\\.bib\\'" . bibtex-mode)
      ("\\.sql\\'" . sql-mode)
-     ("\\.m4\\'" . m4-mode)
-     ("\\.mc\\'" . m4-mode)
+     ("\\.m[4c]\\'" . m4-mode)
      ("\\.mf\\'" . metafont-mode)
      ("\\.mp\\'" . metapost-mode)
      ("\\.vhdl?\\'" . vhdl-mode)
      ("\\.article\\'" . text-mode)
      ("\\.letter\\'" . text-mode)
-     ("\\.tcl\\'" . tcl-mode)
+     ("\\.i?tcl\\'" . tcl-mode)
      ("\\.exp\\'" . tcl-mode)
-     ("\\.itcl\\'" . tcl-mode)
      ("\\.itk\\'" . tcl-mode)
      ("\\.icn\\'" . icon-mode)
      ("\\.sim\\'" . simula-mode)
      ("\\.mss\\'" . scribe-mode)
-     ("\\.f90\\'" . f90-mode)
-     ("\\.f95\\'" . f90-mode)
+     ("\\.f9[05]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.pro\\'" . idlwave-mode)
-     ("\\.lsp\\'" . lisp-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
      ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|ear\\|jar\\|war\\)\\'" . archive-mode)
@@ -1733,10 +1719,11 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\`/tmp/fol/" . text-mode)
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
-     ("\\.xml\\'" . sgml-mode)
-     ("\\.xsl\\'" . sgml-mode)
+     ("\\.x[ms]l\\'" . xml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
+     ("\\.js\\'" . java-mode)		; javascript-mode would be better
+     ("\\.x[bp]m\\'" . c-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -1760,7 +1747,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
      ;; Using mode nil rather than `ignore' would let the search continue
      ;; through this list (with the shortened name) rather than start over.
-     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" ignore t)
+     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
      ;; The following should come after the ChangeLog pattern
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
@@ -1849,12 +1836,20 @@ be interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode associated
 with that interpreter in `interpreter-mode-alist'.")
 
-(defun set-auto-mode (&optional just-from-file-name)
+(defvar xml-based-modes '(html-mode)
+  "Modes that override an XML declaration.
+When `set-auto-mode' sees an <?xml or <!DOCTYPE declaration, that
+buffer will be in some XML mode.  If `auto-mode-alist' associates
+the file with one of the modes in this list, that mode will be
+used.  Else `xml-mode' or `sgml-mode' is used.")
+
+(defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
-This checks for a -*- mode tag in the buffer's text,
-compares the filename against the entries in `auto-mode-alist',
-or checks the interpreter that runs this file against
-`interpreter-mode-alist'.
+This checks for a -*- mode tag in the buffer's text, checks the
+interpreter that runs this file against `interpreter-mode-alist',
+looks for an <?xml or <!DOCTYPE declaration (see
+`xml-based-modes'), or compares the filename against the entries
+in `auto-mode-alist'.
 
 It does not check for the `mode:' local variable in the
 Local Variables section of the file; for that, use `hack-local-variables'.
@@ -1862,14 +1857,16 @@ Local Variables section of the file; for that, use `hack-local-variables'.
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag.
 
-If the optional argument JUST-FROM-FILE-NAME is non-nil,
-then we do not set anything but the major mode,
-and we don't even do that unless it would come from the file name."
+If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
+only set the major mode, if that would change it."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (end done modes)
+  (let (end done mode modes xml)
+    ;; Find a -*- mode tag
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
+      ;; While we're at this point, check xml for later.
+      (setq xml (looking-at "<\\?xml \\|<!DOCTYPE"))
       (and enable-local-variables
 	   (setq end (set-auto-mode-1))
 	   (if (save-excursion (search-forward ":" end t))
@@ -1891,62 +1888,71 @@ and we don't even do that unless it would come from the file name."
 	     (push (intern (concat (downcase (buffer-substring (point) end))
 				   "-mode"))
 		   modes))))
-    ;; If we found modes to use, invoke them now,
-    ;; outside the save-excursion.
-    (unless just-from-file-name
-      (dolist (mode (nreverse modes))
-	(if (not (functionp mode))
-	    (message "Ignoring unknown mode `%s'" mode)
-	  (setq done t)
-	  (funcall mode))))
-    ;; If we didn't find a mode from a -*- line, try using the file name.
+    ;; If we found modes to use, invoke them now, outside the save-excursion.
+    (if modes
+	(catch 'nop
+	  (dolist (mode (nreverse modes))
+	    (if (not (functionp mode))
+		(message "Ignoring unknown mode `%s'" mode)
+	      (setq done t)
+	      (or (set-auto-mode-0 mode)
+		  (throw 'nop nil)))))
+      ;; If we didn't, look for an interpreter specified in the first line.
+      ;; As a special case, allow for things like "#!/bin/env perl", which
+      ;; finds the interpreter anywhere in $PATH.
+      (setq mode (save-excursion
+		   (goto-char (point-min))
+		   (if (looking-at auto-mode-interpreter-regexp)
+		       (match-string 2)
+		     ""))
+	    ;; Map interpreter name to a mode, signalling we're done at the
+	    ;; same time.
+	    done (assoc (file-name-nondirectory mode)
+			interpreter-mode-alist))
+      ;; If we found an interpreter mode to use, invoke it now.
+      (if done (set-auto-mode-0 (cdr done))))
     (if (and (not done) buffer-file-name)
-	(let ((name buffer-file-name)
-	      (keep-going t))
+	(let ((name buffer-file-name))
 	  ;; Remove backup-suffixes from file name.
 	  (setq name (file-name-sans-versions name))
-	  (while keep-going
-	    (setq keep-going nil)
-	    (let ((alist auto-mode-alist)
-		  (mode nil))
-	      ;; Find first matching alist entry.
-	      (let ((case-fold-search
-		     (memq system-type '(vax-vms windows-nt cygwin))))
-		(while (and (not mode) alist)
-		  (if (string-match (car (car alist)) name)
-		      (if (and (consp (cdr (car alist)))
-			       (nth 2 (car alist)))
-			  (setq mode (car (cdr (car alist)))
-				name (substring name 0 (match-beginning 0))
-				keep-going t)
-			(setq mode (cdr (car alist))
-			      keep-going nil)))
-		  (setq alist (cdr alist))))
-	      (if mode
-		  ;; When JUST-FROM-FILE-NAME is set,
-		  ;; we are working on behalf of set-visited-file-name.
-		  ;; In that case, if the major mode specified is the
-		  ;; same one we already have, don't actually reset it.
-		  ;; We don't want to lose minor modes such as Font Lock.
-		  (unless (and just-from-file-name (eq mode major-mode))
-		    (funcall mode))
-		;; If we can't deduce a mode from the file name,
-		;; look for an interpreter specified in the first line.
-		;; As a special case, allow for things like "#!/bin/env perl",
-		;; which finds the interpreter anywhere in $PATH.
-		(let ((interpreter
-		       (save-excursion
-			 (goto-char (point-min))
-			 (if (looking-at auto-mode-interpreter-regexp)
-			     (match-string 2)
-			   "")))
-		      elt)
-		  ;; Map interpreter name to a mode.
-		  (setq elt (assoc (file-name-nondirectory interpreter)
-				   interpreter-mode-alist))
-		  (unless just-from-file-name
-		    (if elt
-			(funcall (cdr elt))))))))))))
+	  (while name
+	    ;; Find first matching alist entry.
+	    (let ((case-fold-search
+		   (memq system-type '(vax-vms windows-nt cygwin))))
+	      (if (and (setq mode (assoc-default name auto-mode-alist
+						 'string-match))
+		       (consp mode)
+		       (cadr mode))
+		  (setq mode (car mode)
+			name (substring name 0 (match-beginning 0)))
+		(setq name)))
+	    (when mode
+	      (if xml (or (memq mode xml-based-modes)
+			  (setq mode 'xml-mode)))
+	      (set-auto-mode-0 mode)
+	      (setq done t)))))
+    (and xml
+	 (not done)
+	 (set-auto-mode-0 'xml-mode))))
+
+
+;; When `keep-mode-if-same' is set, we are working on behalf of
+;; set-visited-file-name.  In that case, if the major mode specified is the
+;; same one we already have, don't actually reset it.  We don't want to lose
+;; minor modes such as Font Lock.
+(defun set-auto-mode-0 (mode)
+  "Apply MODE and return it.
+If `keep-mode-if-same' is non-nil MODE is chased of any aliases and
+compared to current major mode.  If they are the same, do nothing
+and return nil."
+  (when keep-mode-if-same
+    (while (symbolp (symbol-function mode))
+      (setq mode (symbol-function mode)))
+    (if (eq mode major-mode)
+	(setq mode)))
+  (when mode
+    (funcall mode)
+    mode))
 
 
 (defun set-auto-mode-1 ()
@@ -2157,7 +2163,7 @@ is specified, returning t if it is specified."
 			(error "Local variables entry is missing the suffix")))
 		  (forward-line 1))
 		(goto-char (point-min))
-		  
+
 		(while (not (eobp))
 		  ;; Find the variable name; strip whitespace.
 		  (skip-chars-forward " \t")

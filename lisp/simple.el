@@ -1901,13 +1901,13 @@ value passed."
         (if fh (apply fh 'process-file program infile buffer display args)
           (when infile (setq lc (file-local-copy infile)))
           (setq stderr-file (when (and (consp buffer) (stringp (cadr buffer)))
-                              (make-temp-file "emacs"))))
-      (prog1
-          (apply 'call-process program
-                 (or lc infile)
-                 (if stderr-file (list (car buffer) stderr-file) buffer)
-                 display args)
-        (when stderr-file (copy-file stderr-file (cadr buffer))))
+                              (make-temp-file "emacs")))
+          (prog1
+              (apply 'call-process program
+                     (or lc infile)
+                     (if stderr-file (list (car buffer) stderr-file) buffer)
+                     display args)
+            (when stderr-file (copy-file stderr-file (cadr buffer)))))
       (when stderr-file (delete-file stderr-file))
       (when lc (delete-file lc)))))
 

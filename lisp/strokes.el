@@ -1746,7 +1746,7 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
   (strokes-mode -1)
   (remove-hook 'kill-emacs-query-functions 'strokes-prompt-user-save-strokes))
 
-(add-hooks 'strokes-unload-hook 'strokes-unload-hook)
+(add-hook 'strokes-unload-hook 'strokes-unload-hook)
 
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)

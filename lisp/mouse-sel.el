@@ -1,6 +1,7 @@
 ;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993,1994,1995,2001,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
@@ -240,9 +241,10 @@ to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
 & mouse-3, but operate on the X secondary selection rather than the
 primary selection and region."
   :global t
+  :group 'mouse-sel
   (if mouse-sel-mode
       (progn
-	(add-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
+	(add-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
 	(when mouse-sel-default-bindings
 	  ;; Save original bindings and replace them with new ones.
 	  (setq mouse-sel-original-bindings
@@ -262,7 +264,7 @@ primary selection and region."
 		  interprogram-paste-function nil))))
 
     ;; Restore original bindings
-    (remove-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
+    (remove-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
     (dolist (binding mouse-sel-original-bindings)
       (global-set-key (car binding) (cdr binding)))
     ;; Restore the old values of these variables,
@@ -711,5 +713,5 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 
 (provide 'mouse-sel)
 
-;;; arch-tag: 86e6c73f-deaa-48d3-a24e-c565fda1f7d7
+;; arch-tag: 86e6c73f-deaa-48d3-a24e-c565fda1f7d7
 ;;; mouse-sel.el ends here

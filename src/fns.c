@@ -1012,7 +1012,7 @@ string_make_multibyte (string)
 	     0, 1);
 
   ret = make_multibyte_string (buf, SCHARS (string), nbytes);
-  SAFE_FREE (nbytes);
+  SAFE_FREE ();
 
   return ret;
 }
@@ -1046,7 +1046,7 @@ string_to_multibyte (string)
   str_to_multibyte (buf, nbytes, SBYTES (string));
 
   ret = make_multibyte_string (buf, SCHARS (string), nbytes);
-  SAFE_FREE (nbytes);
+  SAFE_FREE ();
 
   return ret;
 }
@@ -1073,7 +1073,7 @@ string_make_unibyte (string)
 	     1, 0);
 
   ret = make_unibyte_string (buf, nchars);
-  SAFE_FREE (nchars);
+  SAFE_FREE ();
 
   return ret;
 }
@@ -3030,7 +3030,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
     args[i] = separator;
 
   ret = Fconcat (nargs, args);
-  SAFE_FREE_LISP (nargs);
+  SAFE_FREE ();
 
   return ret;
 }
@@ -3056,7 +3056,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   mapcar1 (leni, args, function, sequence);
 
   ret = Flist (leni, args);
-  SAFE_FREE_LISP (leni);
+  SAFE_FREE ();
 
   return ret;
 }
@@ -3763,7 +3763,7 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      SAFE_FREE (allength);
+      SAFE_FREE ();
       error ("Multibyte character in data for base64 encoding");
     }
 
@@ -3771,7 +3771,7 @@ into shorter lines.  */)
      and delete the old.  (Insert first in order to preserve markers.)  */
   SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert (encoded, encoded_length);
-  SAFE_FREE (allength);
+  SAFE_FREE ();
   del_range_byte (ibeg + encoded_length, iend + encoded_length, 1);
 
   /* If point was outside of the region, restore it exactly; else just
@@ -3820,12 +3820,12 @@ into shorter lines.  */)
   if (encoded_length < 0)
     {
       /* The encoding wasn't possible. */
-      SAFE_FREE (allength);
+      SAFE_FREE ();
       error ("Multibyte character in data for base64 encoding");
     }
 
   encoded_string = make_unibyte_string (encoded, encoded_length);
-  SAFE_FREE (allength);
+  SAFE_FREE ();
 
   return encoded_string;
 }
@@ -3962,7 +3962,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
   if (decoded_length < 0)
     {
       /* The decoding wasn't possible. */
-      SAFE_FREE (allength);
+      SAFE_FREE ();
       error ("Invalid base64 data");
     }
 
@@ -3970,7 +3970,7 @@ If the region can't be decoded, signal an error and don't modify the buffer.  */
      and delete the old.  (Insert first in order to preserve markers.)  */
   TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert_1_both (decoded, inserted_chars, decoded_length, 0, 1, 0);
-  SAFE_FREE (allength);
+  SAFE_FREE ();
 
   /* Delete the original text.  */
   del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars,
@@ -4014,7 +4014,7 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   else
     decoded_string = Qnil;
 
-  SAFE_FREE (length);
+  SAFE_FREE ();
   if (!STRINGP (decoded_string))
     error ("Invalid base64 data");
 

@@ -183,7 +183,8 @@ text properties. This is only needed on XEmacs, as FSF Emacs does this anyway."
     (insert (gnus-pp-to-string spec))))
 
 (defun gnus-update-format-specifications (&optional force &rest types)
-  "Update all (necessary) format specifications."
+  "Update all (necessary) format specifications.
+Return a list of updated types."
   ;; Make the indentation array.
   ;; See whether all the stored info needs to be flushed.
   (when (or force
@@ -195,13 +196,12 @@ text properties. This is only needed on XEmacs, as FSF Emacs does this anyway."
     (setq gnus-format-specs nil))
 
   ;; Go through all the formats and see whether they need updating.
-  (let (new-format entry type val)
+  (let (new-format entry type val updated)
     (while (setq type (pop types))
       ;; Jump to the proper buffer to find out the value of the
       ;; variable, if possible.  (It may be buffer-local.)
       (save-excursion
-	(let ((buffer (intern (format "gnus-%s-buffer" type)))
-	      val)
+	(let ((buffer (intern (format "gnus-%s-buffer" type))))
 	  (when (and (boundp buffer)
 		     (setq val (symbol-value buffer))
 		     (gnus-buffer-exists-p val))
@@ -231,10 +231,12 @@ text properties. This is only needed on XEmacs, as FSF Emacs does this anyway."
 		(setcar (cdr entry) val)
 		(setcar entry new-format))
 	    (push (list type new-format val) gnus-format-specs))
-	  (set (intern (format "gnus-%s-line-format-spec" type)) val)))))
+	  (set (intern (format "gnus-%s-line-format-spec" type)) val)
+	  (push type updated))))
 
-  (unless (assq 'version gnus-format-specs)
-    (push (cons 'version emacs-version) gnus-format-specs)))
+    (unless (assq 'version gnus-format-specs)
+      (push (cons 'version emacs-version) gnus-format-specs))
+    updated))
 
 (defvar gnus-mouse-face-0 'highlight)
 (defvar gnus-mouse-face-1 'highlight)

@@ -1,3 +1,28 @@
+2004-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Display Feature Testing): Explain about "vendor".
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Interactive Codes): `N' uses numeric prefix,
+	not raw.  Clarify `n'.
+	(Interactive Call): Rewrite interactive-p, focusing on when
+	and how to use it.
+	(Misc Events): Clarify previous change.
+
+	* advice.texi (Simple Advice): Clarify what job the example does.
+	(Around-Advice): Clarify ad-do-it.
+	(Activation of Advice): An option of ad-default-compilation-action
+	is `never', not `nil'.
+
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Interactive Codes): Add U code letter.
+
+2004-10-25  Simon Josefsson  <jas@extundo.com>
+
+	* minibuf.texi (Reading a Password): Add.
+
 2004-10-24  Jason Rumney  <jasonr@gnu.org>
 
 	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up

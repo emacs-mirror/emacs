@@ -108,8 +108,8 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
   QCUT_BUFFER4, QCUT_BUFFER5, QCUT_BUFFER6, QCUT_BUFFER7;
 #endif
 
-static Lisp_Object Vx_lost_selection_hooks;
-static Lisp_Object Vx_sent_selection_hooks;
+static Lisp_Object Vx_lost_selection_functions;
+static Lisp_Object Vx_sent_selection_functions;
 /* Coding system for communicating with other X clients via cutbuffer,
    selection, and clipboard.  */
 static Lisp_Object Vselection_coding_system;
@@ -856,7 +856,7 @@ x_handle_selection_request (event)
   /* Let random lisp code notice that the selection has been asked for.  */
   {
     Lisp_Object rest;
-    rest = Vx_sent_selection_hooks;
+    rest = Vx_sent_selection_functions;
     if (!EQ (rest, Qunbound))
       for (; CONSP (rest); rest = Fcdr (rest))
 	call3 (Fcar (rest), selection_symbol, target_symbol, successful_p);
@@ -939,7 +939,7 @@ x_handle_selection_clear (event)
 
   {
     Lisp_Object rest;
-    rest = Vx_lost_selection_hooks;
+    rest = Vx_lost_selection_functions;
     if (!EQ (rest, Qunbound))
       {
 	for (; CONSP (rest); rest = Fcdr (rest))
@@ -972,7 +972,7 @@ x_clear_frame_selections (f)
       /* Let random Lisp code notice that the selection has been stolen.  */
       Lisp_Object hooks, selection_symbol;
 
-      hooks = Vx_lost_selection_hooks;
+      hooks = Vx_lost_selection_functions;
       selection_symbol = Fcar (Fcar (Vselection_alist));
 
       if (!EQ (hooks, Qunbound))
@@ -996,7 +996,7 @@ x_clear_frame_selections (f)
 	/* Let random Lisp code notice that the selection has been stolen.  */
 	Lisp_Object hooks, selection_symbol;
 
-	hooks = Vx_lost_selection_hooks;
+	hooks = Vx_lost_selection_functions;
 	selection_symbol = Fcar (Fcar (XCDR (rest)));
 
 	if (!EQ (hooks, Qunbound))
@@ -2699,15 +2699,15 @@ means that a side-effect was executed,
 and there is no meaningful selection value.  */);
   Vselection_converter_alist = Qnil;
 
-  DEFVAR_LISP ("x-lost-selection-hooks", &Vx_lost_selection_hooks,
+  DEFVAR_LISP ("x-lost-selection-functions", &Vx_lost_selection_functions,
 	       doc: /* A list of functions to be called when Emacs loses an X selection.
 \(This happens when some other X client makes its own selection
 or when a Lisp program explicitly clears the selection.)
 The functions are called with one argument, the selection type
 \(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').  */);
-  Vx_lost_selection_hooks = Qnil;
+  Vx_lost_selection_functions = Qnil;
 
-  DEFVAR_LISP ("x-sent-selection-hooks", &Vx_sent_selection_hooks,
+  DEFVAR_LISP ("x-sent-selection-functions", &Vx_sent_selection_functions,
 	       doc: /* A list of functions to be called when Emacs answers a selection request.
 The functions are called with four arguments:
   - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
@@ -2719,7 +2719,7 @@ including being asked for a selection that we no longer own, or being asked
 to convert into a type that we don't know about or that is inappropriate.
 This hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
-  Vx_sent_selection_hooks = Qnil;
+  Vx_sent_selection_functions = Qnil;
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
 	       doc: /* Coding system for communicating with other X clients.

@@ -143,15 +143,15 @@
      (calc-pop-push-record-list n "rwrt" (list expr)))
    (calc-handle-whys)))
 
-(defun calc-match (pat)
-  (interactive "sPattern: \n")
+(defun calc-match (pat &optional interactive)
+  (interactive "sPattern: \np")
   (calc-slow-wrapper
    (let (n expr)
      (if (or (null pat) (equal pat "") (equal pat "$"))
 	 (setq expr (calc-top-n 2)
 	       pat (calc-top-n 1)
 	       n 2)
-       (if (interactive-p) (setq calc-previous-alg-entry pat))
+       (if interactive (setq calc-previous-alg-entry pat))
        (setq pat (if (stringp pat) (math-read-expr pat) pat))
        (if (eq (car-safe pat) 'error)
 	   (error "Bad format in expression: %s" (nth 1 pat)))

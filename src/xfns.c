@@ -1960,6 +1960,7 @@ xic_create_xfontset (f, base_fontname)
       struct frame *cf = XFRAME (frame);
       if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
           && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && FRAME_XIC_BASE_FONTNAME (cf)
           && !strcmp (FRAME_XIC_BASE_FONTNAME (cf), base_fontname))
         {
           xfs = FRAME_XIC_FONTSET (cf);
@@ -3498,7 +3499,9 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the vendor ID string of the X server of display DISPLAY.
+       doc: /* Returns the "vendor ID" string of the X server of display DISPLAY.
+\(Labelling every distributor as a "vendor" embodies the false assumption
+that operating systems cannot be developed and distributed noncommercially.)
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3515,7 +3518,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
        doc: /* Returns the version numbers of the X server of display DISPLAY.
 The value is a list of three integers: the major and minor
-version numbers of the X Protocol in use, and the vendor-specific release
+version numbers of the X Protocol in use, and the distributor-specific release
 number.  See also the function `x-server-vendor'.
 
 The optional argument DISPLAY specifies which display to ask about.

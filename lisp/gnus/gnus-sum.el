@@ -3225,43 +3225,54 @@ buffer that was in action when the last article was fetched."
   (save-excursion
     (when (gnus-buffer-exists-p gnus-summary-buffer)
       (set-buffer gnus-summary-buffer))
-    (let ((gnus-replied-mark 129)
-	  (gnus-score-below-mark 130)
-	  (gnus-score-over-mark 130)
-	  (gnus-undownloaded-mark 131)
-	  (spec gnus-summary-line-format-spec)
-	  gnus-visual pos)
+    (let ((spec gnus-summary-line-format-spec)
+	  pos)
       (save-excursion
 	(gnus-set-work-buffer)
-	(let ((gnus-summary-line-format-spec spec)
+	(let ((gnus-tmp-unread ?Z)
+	      (gnus-replied-mark ?Z)
+	      (gnus-score-below-mark ?Z)
+	      (gnus-score-over-mark ?Z)
+	      (gnus-undownloaded-mark ?Z)
+	      (gnus-summary-line-format-spec spec)
 	      (gnus-newsgroup-downloadable '(0))
-	      marks)
-	  (insert ?\200 "\200" ?\201 "\201" ?\202 "\202" ?\203 "\203")
-	  (while (not (bobp))
-	    (push (buffer-substring (1- (point)) (point)) marks)
-	    (backward-char))
+	      (header [0 "" "" "05 Apr 2001 23:33:09 +0400" "" "" 0 0 "" nil])
+	      case-fold-search ignores)
+	  ;; Here, all marks are bound to Z.
+	  (gnus-summary-insert-line header
+				    0 nil t gnus-tmp-unread t nil "" nil 1)
+	  (goto-char (point-min))
+	  ;; Memorize the positions of the same characters as dummy marks.
+	  (while (re-search-forward "[A-D]" nil t)
+	    (push (point) ignores))
 	  (erase-buffer)
-	  (gnus-summary-insert-line
-	   [0 "" "" "05 Apr 2001 23:33:09 +0400" "" "" 0 0 "" nil]
-	   0 nil t 128 t nil "" nil 1)
+	  ;; We use A-D as dummy marks in order to know column positions
+	  ;; where marks should be inserted.
+	  (setq gnus-tmp-unread ?A
+		gnus-replied-mark ?B
+		gnus-score-below-mark ?C
+		gnus-score-over-mark ?C
+		gnus-undownloaded-mark ?D)
+	  (gnus-summary-insert-line header
+				    0 nil t gnus-tmp-unread t nil "" nil 1)
+	  ;; Ignore characters which aren't dummy marks.
+	  (dolist (p ignores)
+	    (delete-region (goto-char (1- p)) p)
+	    (insert ?Z))
 	  (goto-char (point-min))
 	  (setq pos (list (cons 'unread
-				(and (or (search-forward (nth 0 marks) nil t)
-					 (search-forward (nth 1 marks) nil t))
+				(and (search-forward "A" nil t)
 				     (- (point) (point-min) 1)))))
 	  (goto-char (point-min))
-	  (push (cons 'replied (and (or (search-forward (nth 2 marks) nil t)
-					(search-forward (nth 3 marks) nil t))
+	  (push (cons 'replied (and (search-forward "B" nil t)
 				    (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'score (and (or (search-forward (nth 4 marks) nil t)
-				      (search-forward (nth 5 marks) nil t))
+	  (push (cons 'score (and (search-forward "C" nil t)
 				  (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'download (and (or (search-forward (nth 6 marks) nil t)
-					 (search-forward (nth 7 marks) nil t))
+	  (push (cons 'download (and (search-forward "D" nil t)
 				     (- (point) (point-min) 1)))
 		pos)))
       (setq gnus-summary-mark-positions pos))))
@@ -3559,9 +3570,11 @@ If NO-DISPLAY, don't generate a summary buffer."
 	     (gnus-active gnus-newsgroup-name)))
       ;; You can change the summary buffer in some way with this hook.
       (gnus-run-hooks 'gnus-select-group-hook)
-      (gnus-update-format-specifications
-       nil 'summary 'summary-mode 'summary-dummy)
-      (gnus-update-summary-mark-positions)
+      (when (memq 'summary (gnus-update-format-specifications
+			    nil 'summary 'summary-mode 'summary-dummy))
+	;; The format specification for the summary line was updated,
+	;; so we need to update the mark positions as well.
+	(gnus-update-summary-mark-positions))
       ;; Do score processing.
       (when gnus-use-scoring
 	(gnus-possibly-score-headers))
