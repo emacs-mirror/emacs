@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "keyboard.h"
 #include "blockinput.h"
+#include "buffer.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -53,8 +54,17 @@ typedef struct menu_map
   int menu_items_used;
 } menu_map;
 
+Lisp_Object Qdebug_on_next_call;
+
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
+
+extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object Voverriding_local_map_menu_flag;
+
+extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
+
+extern Lisp_Object Qmenu_bar_update_hook;
 
 static Lisp_Object win32_dialog_show ();
 static Lisp_Object win32menu_show ();
@@ -1384,12 +1394,40 @@ set_frame_menubar (f, first_time)
   int i;
   struct gcpro gcpro1;
   menu_map mm;
+  int count = specpdl_ptr - specpdl;
+
+  struct buffer *prev = current_buffer;
+  Lisp_Object buffer;
+
+  buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer;
+  specbind (Qinhibit_quit, Qt);
+  /* Don't let the debugger step into this code
+     because it is not reentrant.  */
+  specbind (Qdebug_on_next_call, Qnil);
+
+  record_unwind_protect (Fstore_match_data, Fmatch_data ());
+  if (NILP (Voverriding_local_map_menu_flag))
+    {
+      specbind (Qoverriding_terminal_local_map, Qnil);
+      specbind (Qoverriding_local_map, Qnil);
+    }
+
+  set_buffer_internal_1 (XBUFFER (buffer));
+
+  /* Run the Lucid hook.  */
+  call1 (Vrun_hooks, Qactivate_menubar_hook);
+  /* If it has changed current-menubar from previous value,
+     really recompute the menubar from the value.  */
+  if (! NILP (Vlucid_menu_bar_dirty_flag))
+    call0 (Qrecompute_lucid_menubar);
+  safe_run_hooks (Qmenu_bar_update_hook);
   
   BLOCK_INPUT;
   
   GCPRO1 (items);
   
-  if (NILP (items = FRAME_MENU_BAR_ITEMS (f)))
+  items = FRAME_MENU_BAR_ITEMS (f);
+  if (NILP (items))
     items = FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
   
   hmenu = CreateMenu ();
@@ -1397,6 +1435,7 @@ set_frame_menubar (f, first_time)
   if (!hmenu) goto error;
   
   discard_menu_items (&mm);
+  UNBLOCK_INPUT;
 
   for (i = 0; i < XVECTOR (items)->size; i += 4)
     {
@@ -1409,6 +1448,8 @@ set_frame_menubar (f, first_time)
       if (NILP (string))
 	break;
       
+      /* Input must not be blocked here
+	 because we call general Lisp code and internal_condition_case_1.  */
       new_hmenu = create_menu_items (&mm,
 				     XVECTOR (items)->contents[i + 2],
 				     0);
@@ -1416,10 +1457,13 @@ set_frame_menubar (f, first_time)
       if (!new_hmenu)
 	continue;
       
+      BLOCK_INPUT;
       AppendMenu (hmenu, MF_POPUP, (UINT)new_hmenu,
 		  (char *) XSTRING (string)->data);
+      UNBLOCK_INPUT;
     }
   
+  BLOCK_INPUT;
   {
     HMENU old = GetMenu (FRAME_WIN32_WINDOW (f));
     SetMenu (FRAME_WIN32_WINDOW (f), hmenu);
@@ -1427,8 +1471,10 @@ set_frame_menubar (f, first_time)
   }
   
  error:
+  set_buffer_internal_1 (prev);
   UNGCPRO;
   UNBLOCK_INPUT;
+  unbind_to (count, Qnil);
 }
 
 void 
@@ -1913,6 +1959,9 @@ win32_dialog_show (f, menubarp, keymaps, title, error)
 
 syms_of_win32menu ()
 {
+  Qdebug_on_next_call = intern ("debug-on-next-call");
+  staticpro (&Qdebug_on_next_call);
+
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
 }
