@@ -1,3 +1,8 @@
+2000-07-13  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (custom-group-menu-create, customize-menu-create):
+	Use :filter, per old XEmacs code.
+
 2000-07-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* term.el (term-send-raw-meta): Strip modifiers from the keyboard
