@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(MMQA_harness_dev.1) $
+# $HopeName: MMQA_harness!script:headread(trunk.18) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -71,7 +71,7 @@ sub readheader {
  &readvals($header, "=");
  %test_header = %keyvalues;
 
- &readvals($outspec, "=~|<=|>=|=|<|>");
+ &readvals($outspec, "=~|<=|>=|=|<|>|P=");
  %spec_output = %keyvalues;
  %spec_rel    = %keyrelations;
 
@@ -180,6 +180,32 @@ sub read_results {
  }
 }
 
+
+#
+# filenames_differ takes 2 filenames and returns false iff all of the 
+# first filename matches with the tail components of the second
+# filename. All standard directory separators are permitted (\/:)
+# 
+
+sub filenames_differ {
+  local($fname1, $fname2) = @_;
+
+  @f1 = split(m;[/:\\];, $fname1);
+  @f2 = split(m;[/:\\];, $fname2);
+  $i1 = $#f1;
+  $i2 = $#f2;
+  while ($i1 >= 0 && $i2 >= 0) {
+    if ($f1[$i1] ne $f2[$i2]) {
+      # return true if names components don't match
+      return(1);
+    }
+    $i1--;
+    $i2--;
+  }
+  # return true if not all of @f1 has been checked
+  return($i1 >= 0)
+}
+
 #
 # &verdict has the job of setting $testconclusion, $testconcreason
 #
@@ -201,7 +227,8 @@ sub verdict {
     || $ope eq "<" && $spe <= $acn
     || $ope eq ">" && $spe >= $acn
     || $ope eq "<=" && $spe < $acn
-    || $ope eq ">=" && $spe > $acn) {
+    || $ope eq ">=" && $spe > $acn
+    || $ope eq "P=" && filenames_differ($spe, $acn)) {
     $testconclusion = "FAIL";
     $testconcreason = "failed on $key: wanted $ope $spe, was $acn";
     last;
