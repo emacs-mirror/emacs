@@ -151,8 +151,8 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
     ()
   (setq lisp-mode-map
 	(nconc (make-sparse-keymap) shared-lisp-mode-map))
-  (define-key lisp-mode-map "\e\C-x" 'lisp-send-defun)
-  (define-key lisp-mode-map "\C-c\C-l" 'run-lisp))
+  (define-key lisp-mode-map "\e\C-x" 'lisp-eval-defun)
+  (define-key lisp-mode-map "\C-c\C-z" 'run-lisp))
 
 (defun lisp-mode ()
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
@@ -175,7 +175,7 @@ if that value is non-nil."
   (run-hooks 'lisp-mode-hook))
 
 ;; This will do unless shell.el is loaded.
-(defun lisp-send-defun nil
+(defun lisp-eval-defun nil
   "Send the current defun to the Lisp process made by \\[run-lisp]."
   (interactive)
   (error "Process lisp does not exist"))
