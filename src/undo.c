@@ -22,6 +22,7 @@ and this notice must be preserved on all copies.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "commands.h"
 
 /* Last buffer for which undo information was recorded.  */
 Lisp_Object last_undo_buffer;
@@ -95,10 +96,10 @@ record_delete (beg, length)
   XFASTINT (lbeg) = beg;
   XFASTINT (lend) = beg + length;
 
-  /* If point isn't at start of deleted range, record where it is.  */
-  if (PT != XFASTINT (sbeg))
+  /* If point wasn't at start of deleted range, record where it was.  */
+  if (last_point_position != XFASTINT (sbeg))
     current_buffer->undo_list
-      = Fcons (make_number (PT), current_buffer->undo_list);
+      = Fcons (make_number (last_point_position), current_buffer->undo_list);
 
   current_buffer->undo_list
     = Fcons (Fcons (Fbuffer_substring (lbeg, lend), sbeg),
