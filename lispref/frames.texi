@@ -289,7 +289,9 @@ iconified.  @xref{Visibility of Frames}.
 
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu bar.
-The default is 1.  @xref{Menu Bar}.
+The default is 1.  @xref{Menu Bar}.  (In Emacs versions that use the X
+toolkit, there is only one menu bar line; all that matters about the
+number you specify is whether it is greater than zero.)
 
 @item parent-id
 @c ??? Not yet working.
