@@ -12,6 +12,9 @@ optionally some of its subdirectories as well.  You can use the normal
 Emacs commands to move around in this buffer, and special Dired commands
 to operate on the files listed.
 
+  The Dired-X package provides various extra features for Dired mode.
+@xref{,Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
+
 @menu
 * Enter: Dired Enter.         How to invoke Dired.
 * Commands: Dired Commands.   Commands in the Dired buffer.
@@ -29,7 +32,6 @@ to operate on the files listed.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
-* Extra: Dired Extra Features. Dired-X provides more features.
 @end menu
 
 @node Dired Enter
@@ -109,10 +111,11 @@ file and typing @kbd{d} (@code{dired-flag-file-deletion}).  The deletion flag is
 the beginning of the line.  This command moves point to the next line,
 so that repeated @kbd{d} commands flag successive files.  A numeric
 argument serves as a repeat count.
+
 @vindex dired-recursive-deletes
-The variable @code{dired-recursive-deletes} determines if the delete
-command will delete non-empty directories recursively.  The default
-is to delete only empty directories.
+  The variable @code{dired-recursive-deletes} controls whether the
+delete command will delete non-empty directories (including their
+contents).  The default is to delete only empty directories.
 
 @kindex u @r{(Dired deletion)}
 @kindex DEL @r{(Dired)}
@@ -470,14 +473,16 @@ commands, also use these conventions to decide which files to work on.)
 Copy the specified files (@code{dired-do-copy}).  The argument @var{new}
 is the directory to copy into, or (if copying a single file) the new
 name.
-@vindex dired-recursive-copies
-The variable @code{dired-recursive-copies} determines if directories are
-copied recursively.  The default is to not copy recursively.
 
 @vindex dired-copy-preserve-time
 If @code{dired-copy-preserve-time} is non-@code{nil}, then copying with
 this command sets the modification time of the new file to be the same
 as that of the old file.
+
+@vindex dired-recursive-copies
+The variable @code{dired-recursive-copies} controls whether
+directories are copied recursively.  The default is to not copy
+recursively, which means that directories cannot be copied.
 
 @item D
 @findex dired-do-delete
@@ -640,20 +645,24 @@ For example, @kbd{! uudecode @key{RET}} runs @code{uudecode} on each
 file.
 @end itemize
 
-What if you want to run the shell command once for each file but with
-the file name inserted in the middle?  Or if you want to use the file
-names in a more complicated fashion?  Use a shell loop.  For example,
-this shell command would run @code{uuencode} on each of the specified
-files, writing the output into a corresponding @file{.uu} file:
+What if you want to run the shell command once for each file, with the
+file name inserted in the middle?  You can use @samp{?} in the command
+instead of @samp{*}.  The current file name is substituted for
+@samp{?}.  You can use @samp{?} more than once.  For instance, here is
+how to uuencode each file, making the output file name by appending
+@samp{.uu} to the input file name:
+
+@example
+uuencode ? ? > ?.uu
+@end example
+
+To use the file names in a more complicated fashion, you can use a
+shell loop.  For example, this shell command is another way to
+uuencode each file:
 
 @example
 for file in *; do uuencode $file $file >$file.uu; done
 @end example
-
-@noindent
-In simple cases you can instead use @samp{?} in the command.  This is
-similar to @samp{*} but the command will be run on each file
-individually.
 
 The working directory for the shell command is the top-level directory
 of the Dired buffer.
@@ -1001,16 +1010,17 @@ minibuffer arguments, @var{directory} and @var{find-args}; it runs
 @code{find} what condition to test.  To use this command, you need to
 know how to use @code{find}.
 
+@pindex locate
+@findex locate
+@findex locate-with-filter
+@cindex file database (locate)
+@vindex locate-command
+  @kbd{M-x locate} provides a similar interface to the @code{locate}.
+@kbd{M-x locate-with-filter} is similar, but keeps only lines matching
+a given regular expression.
+
 @vindex find-ls-option
   The format of listing produced by these commands is controlled by the
 variable @code{find-ls-option}, whose default value specifies using
 options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
 may need to change the value of this variable.
-
-@node Dired Extra Features
-@section Extra Features for Dired
-
-The Dired-X package provides various extra features for Dired mode.  You
-can load it with @code{M-x load-library} or customize
-@code{dired-load-hook} to add @code{dired-require-dired-x}.
-@xref{,Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
