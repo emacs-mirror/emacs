@@ -1,3 +1,25 @@
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (make-coding-system) 
+	(set-buffer-file-coding-system): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (common-lisp-mode): New.
+
+	* emacs-lisp/lisp.el (beginning-of-defun-function): Doc fix.
+
+	* international/utf-8.el (ucs-unicode-to-mule-cjk): Use smaller
+	:size.
+
+	* international/utf-16.el: Add mime-text-unsuitable coding system
+	properties.
+
+	* international/latin1-disp.el (latin1-display): Add ?$,1s"(B.
+
+	* cus-edit.el: Add some :links.
+	(bib): Remove.
+
+	* textmodes/bib-mode.el (bib): Add :group external.
+
 2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* wid-edit.el (widget-echo-help): Make it handle expressions that
