@@ -1,9 +1,9 @@
 ;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
 
 ;; Author:     1994-1997 Barry A. Warsaw
-;; Maintainer: bug-cc-mode@gnu.org
+;; Maintainer: Unmaintained
 ;; Created:    August 1994, split from cc-mode.el
 ;; Version:    See cc-mode.el
 ;; Keywords:   c languages oop
@@ -40,9 +40,15 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cc-defs)
-  (require 'cc-styles)
-  (require 'cc-engine))
+  (let ((load-path
+	 (if (and (boundp 'byte-compile-current-file)
+		  (stringp byte-compile-current-file))
+	     (cons (file-name-directory byte-compile-current-file)
+		   load-path)
+	   load-path)))
+    (load "cc-defs" nil t)))
+(require 'cc-styles)
+(require 'cc-engine)
 
 
 ;; In case c-mode.el isn't loaded

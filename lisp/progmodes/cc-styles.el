@@ -1,8 +1,8 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
 
-;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -28,10 +28,16 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-
-;; explicit compile-time dependencies
 (eval-when-compile
-  (require 'cc-defs))
+  (let ((load-path
+	 (if (and (boundp 'byte-compile-current-file)
+		  (stringp byte-compile-current-file))
+	     (cons (file-name-directory byte-compile-current-file)
+		   load-path)
+	   load-path)))
+    (load "cc-defs" nil t)))
+(require 'cc-vars)
+
 
 
 ;; Warning: don't eval-defun this constant or you'll break style inheritance.
@@ -50,8 +56,7 @@
 			 (inline-open . 0)
 			 ))
      (c-special-indent-hook . c-gnu-impose-minimum)
-     (c-comment-continuation-stars . "")
-     (c-hanging-comment-ender-p . t)
+     (c-block-comment-prefix . "")
      )
     ("k&r"
      (c-basic-offset . 5)
@@ -71,6 +76,8 @@
 			 (substatement-open . 0)
 			 (label . 0)
 			 (statement-cont . +)
+			 (inline-open . 0)
+			 (inexpr-class . 0)
 			 ))
      )
     ("stroustrup"
@@ -85,13 +92,32 @@
     ("whitesmith"
      (c-basic-offset . 4)
      (c-comment-only-line-offset . 0)
-     (c-offsets-alist . ((statement-block-intro . +)
-			 (knr-argdecl-intro . +)
-			 (substatement-open . 0)
+     (c-offsets-alist . ((knr-argdecl-intro . +)
 			 (label . 0)
 			 (statement-cont . +)
+			 (substatement-open . +)
+			 (block-open . +)
+			 (statement-block-intro . c-lineup-whitesmith-in-block)
+			 (block-close . c-lineup-whitesmith-in-block)
+			 (inline-open . +)
+			 (defun-open . +)
+			 (defun-block-intro . c-lineup-whitesmith-in-block)
+			 (defun-close . c-lineup-whitesmith-in-block)
+			 (brace-list-open . +)
+			 (brace-list-intro . c-lineup-whitesmith-in-block)
+			 (brace-entry-open . c-indent-multi-line-block)
+			 (brace-list-close . c-lineup-whitesmith-in-block)
+			 (class-open . +)
+			 (inclass . c-lineup-whitesmith-in-block)
+			 (class-close . +)
+			 (inexpr-class . 0)
+			 (extern-lang-open . +)
+			 (inextern-lang . c-lineup-whitesmith-in-block)
+			 (extern-lang-close . +)
+			 (namespace-open . +)
+			 (innamespace . c-lineup-whitesmith-in-block)
+			 (namespace-close . +)
 			 ))
-
      )
     ("ellemtel"
      (c-basic-offset . 3)
@@ -124,7 +150,7 @@
      )
     ("python"
      (indent-tabs-mode . t)
-     (fill-column      . 72)
+     (fill-column      . 78)
      (c-basic-offset   . 8)
      (c-offsets-alist  . ((substatement-open . 0)
 			  (inextern-lang . 0)
@@ -138,21 +164,18 @@
 				(substatement-open after)
 				(block-close . c-snug-do-while)
 				))
-     (c-comment-continuation-stars . "")
-     (c-hanging-comment-ender-p . nil)
-     (fill-column . 78)
+     (c-block-comment-prefix . "")
      )
     ("java"
      (c-basic-offset . 4)
      (c-comment-only-line-offset . (0 . 0))
      ;; the following preserves Javadoc starter lines
-     (c-hanging-comment-starter-p . nil)
      (c-offsets-alist . ((inline-open . 0)
 			 (topmost-intro-cont    . +)
 			 (statement-block-intro . +)
  			 (knr-argdecl-intro     . 5)
  			 (substatement-open     . +)
- 			 (label                 . 0)
+ 			 (label                 . +)
  			 (statement-case-open   . +)
  			 (statement-cont        . +)
  			 (arglist-intro  . c-lineup-arglist-intro-after-paren)
@@ -161,7 +184,6 @@
 			 (inher-cont     . c-lineup-java-inher)
 			 (func-decl-cont . c-lineup-java-throws)
 			 ))
-
      )
     )
   "Styles of indentation.
@@ -175,7 +197,7 @@ for that variable when using the selected style.
 
 Optional BASE-STYLE if present, is a string and must follow
 STYLE-STRING.  BASE-STYLE names a style that this style inherits from.
-By default, all styles inherit from the \"cc-mode\" style, which is
+By default, all styles inherit from the \"user\" style, which is
 computed at run time.  Style loops generate errors.
 
 Two variables are treated specially.  When VARIABLE is
@@ -197,9 +219,10 @@ to add new styles or modify existing styles (it is not a good idea to
 modify existing styles -- you should create a new style that inherits
 the existing style.")
 
+
 
 ;; Functions that manipulate styles
-(defun c-set-style-1 (conscell)
+(defun c-set-style-1 (conscell dont-override)
   ;; Set the style for one variable
   (let ((attr (car conscell))
 	(val  (cdr conscell)))
@@ -211,50 +234,68 @@ the existing style.")
 	(lambda (langentry)
 	  (let ((langelem (car langentry))
 		(offset (cdr langentry)))
-	    (c-set-offset langelem offset)
+	    (unless (and dont-override
+			 (assq langelem c-offsets-alist))
+	      (c-set-offset langelem offset))
 	    )))
-       val))
+       (if dont-override (reverse val) val)))
      ;; second special variable
      ((eq attr 'c-special-indent-hook)
-      (if (listp val)
-	  (while val
-	    (add-hook 'c-special-indent-hook (car val))
-	    (setq val (cdr val)))
-	(add-hook 'c-special-indent-hook val)))
+      (let ((add-func (if dont-override
+			  (lambda (func)
+			    (unless (memq func c-special-indent-hook)
+			      (add-hook 'c-special-indent-hook func t)))
+			(lambda (func)
+			  (add-hook 'c-special-indent-hook func)))))
+	(if (listp val)
+	    (mapcar add-func (if dont-override (reverse val) val))
+	  (funcall add-func val))))
      ;; all other variables
-     (t (set attr val)))
+     (t (if (or (not dont-override)
+		(not (memq attr c-style-variables))
+		(eq (symbol-value attr) 'set-from-style))
+	    (set attr val))))
     ))
 
-(defun c-set-style-2 (style basestyles)
-  ;; Recursively set the base style.  If no base style is given, the
-  ;; default base style is "user" (a.k.a. "cc-mode") and the recursion
-  ;; stops.  Be sure to detect loops.
+(defun c-get-style-variables (style basestyles)
+  ;; Return all variables in a style by resolving inheritances.
   (let ((vars (cdr (or (assoc (downcase style) c-style-alist)
 		       (assoc (upcase style) c-style-alist)
 		       (assoc style c-style-alist)
 		       (error "Undefined style: %s" style)))))
-    (if (not (string-equal style "user"))
-	(let ((base (if (stringp (car vars))
-			(prog1
-			    (downcase (car vars))
-			  (setq vars (cdr vars)))
-		      "user")))
-	  (if (memq base basestyles)
-	      (error "Style loop detected: %s in %s" base basestyles))
-	  (c-set-style-2 base (cons base basestyles))))
-    (mapcar 'c-set-style-1 vars)))
-    
+    (if (string-equal style "user")
+	(copy-alist vars)
+      (let ((base (if (stringp (car vars))
+		      (prog1
+			  (downcase (car vars))
+			(setq vars (cdr vars)))
+		    "user")))
+	(if (memq base basestyles)
+	    (error "Style loop detected: %s in %s" base basestyles))
+	(nconc (c-get-style-variables base (cons base basestyles))
+	       (copy-alist vars))))))
+
 (defvar c-set-style-history nil)
 
 ;;;###autoload
-(defun c-set-style (stylename)
+(defun c-set-style (stylename &optional dont-override)
   "Set CC Mode variables to use one of several different indentation styles.
 STYLENAME is a string representing the desired style from the list of
 styles described in the variable `c-style-alist'.  See that variable
 for details of setting up styles.
 
 The variable `c-indentation-style' always contains the buffer's current
-style name."
+style name.
+
+If the optional argument DONT-OVERRIDE is non-nil, no style variables
+that already have values will be overridden.  I.e. in the case of
+`c-offsets-alist', syntactic symbols will only be added, and in the
+case of all other style variables, only those set to `set-from-style'
+will be reassigned.
+
+Obviously, specifying DONT-OVERRIDE is useful mainly when the initial
+style is chosen for a CC Mode buffer by a major mode.  Since this is
+done internally by CC Mode, there's hardly ever a reason to use it."
   (interactive (list (let ((completion-ignore-case t)
 			   (prompt (format "Which %s indentation style? "
 					   mode-name)))
@@ -262,7 +303,12 @@ style name."
 					(cons c-indentation-style 0)
 					'c-set-style-history))))
   (c-initialize-builtin-style)
-  (c-set-style-2 stylename nil)
+  (let ((vars (c-get-style-variables stylename nil)))
+    (mapcar (lambda (elem)
+	      (c-set-style-1 elem dont-override))
+	    ;; Need to go through the variables backwards when we
+	    ;; don't override.
+	    (if dont-override (nreverse vars) vars)))
   (setq c-indentation-style stylename)
   (c-keep-region-active))
 
@@ -292,195 +338,6 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 
 
 
-(defconst c-offsets-alist
-  '((string                . c-lineup-dont-change)
-    (c                     . c-lineup-C-comments)
-    (defun-open            . 0)
-    (defun-close           . 0)
-    (defun-block-intro     . +)
-    (class-open            . 0)
-    (class-close           . 0)
-    (inline-open           . +)
-    (inline-close          . 0)
-    (func-decl-cont        . +)
-    (knr-argdecl-intro     . +)
-    (knr-argdecl           . 0)
-    (topmost-intro         . 0)
-    (topmost-intro-cont    . 0)
-    (member-init-intro     . +)
-    (member-init-cont      . 0)
-    (inher-intro           . +)
-    (inher-cont            . c-lineup-multi-inher)
-    (block-open            . 0)
-    (block-close           . 0)
-    (brace-list-open       . 0)
-    (brace-list-close      . 0)
-    (brace-list-intro      . +)
-    (brace-list-entry      . 0)
-    (brace-entry-open      . 0)
-    (statement             . 0)
-    ;; some people might prefer
-    ;;(statement             . c-lineup-runin-statements)
-    (statement-cont        . +)
-    ;; some people might prefer
-    ;;(statement-cont        . c-lineup-math)
-    (statement-block-intro . +)
-    (statement-case-intro  . +)
-    (statement-case-open   . 0)
-    (substatement          . +)
-    (substatement-open     . +)
-    (case-label            . 0)
-    (access-label          . -)
-    (label                 . 2)
-    (do-while-closure      . 0)
-    (else-clause           . 0)
-    (catch-clause          . 0)
-    (comment-intro         . c-lineup-comment)
-    (arglist-intro         . +)
-    (arglist-cont          . 0)
-    (arglist-cont-nonempty . c-lineup-arglist)
-    (arglist-close         . +)
-    (stream-op             . c-lineup-streamop)
-    (inclass               . +)
-    (cpp-macro             . -1000)
-    (cpp-macro-cont        . c-lineup-dont-change)
-    (friend                . 0)
-    (objc-method-intro     . -1000)
-    (objc-method-args-cont . c-lineup-ObjC-method-args)
-    (objc-method-call-cont . c-lineup-ObjC-method-call)
-    (extern-lang-open      . 0)
-    (extern-lang-close     . 0)
-    (inextern-lang         . +)
-    (namespace-open        . 0)
-    (namespace-close       . 0)
-    (innamespace           . +)
-    (template-args-cont    . +)
-    (inlambda              . c-lineup-inexpr-block)
-    (lambda-intro-cont     . +)
-    (inexpr-statement      . 0)
-    (inexpr-class          . +)
-    )
-  "Association list of syntactic element symbols and indentation offsets.
-As described below, each cons cell in this list has the form:
-
-    (SYNTACTIC-SYMBOL . OFFSET)
-
-When a line is indented, CC Mode first determines the syntactic
-context of the line by generating a list of symbols called syntactic
-elements.  This list can contain more than one syntactic element and
-the global variable `c-syntactic-context' contains the context list
-for the line being indented.  Each element in this list is actually a
-cons cell of the syntactic symbol and a buffer position.  This buffer
-position is called the relative indent point for the line.  Some
-syntactic symbols may not have a relative indent point associated with
-them.
-
-After the syntactic context list for a line is generated, CC Mode
-calculates the absolute indentation for the line by looking at each
-syntactic element in the list.  First, it compares the syntactic
-element against the SYNTACTIC-SYMBOL's in `c-offsets-alist'.  When it
-finds a match, it adds the OFFSET to the column of the relative indent
-point.  The sum of this calculation for each element in the syntactic
-list is the absolute offset for line being indented.
-
-If the syntactic element does not match any in the `c-offsets-alist',
-an error is generated if `c-strict-syntax-p' is non-nil, otherwise the
-element is ignored.
-
-Actually, OFFSET can be an integer, a function, a variable, or one of
-the following symbols: `+', `-', `++', `--', `*', or `/'.  These
-latter designate positive or negative multiples of `c-basic-offset',
-respectively: 1, -1, 2, -2, 0.5, and -0.5. If OFFSET is a function, it
-is called with a single argument containing the cons of the syntactic
-element symbol and the relative indent point.  The function should
-return an integer offset.
-
-OFFSET can also be a list, in which case it is recursively evaluated
-using the semantics described above.  The first element of the list to 
-return a non-nil value succeeds.  If none of the elements returns a
-non-nil value, then what happends depends on the value of
-`c-strict-syntax-p'.  When `c-strict-syntax-p' is nil, then an offset
-of zero is used, otherwise an error is generated.
-
-Here is the current list of valid syntactic element symbols:
-
- string                 -- inside multi-line string
- c                      -- inside a multi-line C style block comment
- defun-open             -- brace that opens a function definition
- defun-close            -- brace that closes a function definition
- defun-block-intro      -- the first line in a top-level defun
- class-open             -- brace that opens a class definition
- class-close            -- brace that closes a class definition
- inline-open            -- brace that opens an in-class inline method
- inline-close           -- brace that closes an in-class inline method
- func-decl-cont         -- the region between a function definition's
-                           argument list and the function opening brace
-                           (excluding K&R argument declarations). In C, you
-                           cannot put anything but whitespace and comments
-                           between them; in C++ and Java, throws declarations
-                           and other things can appear in this context.
- knr-argdecl-intro      -- first line of a K&R C argument declaration
- knr-argdecl            -- subsequent lines in a K&R C argument declaration
- topmost-intro          -- the first line in a topmost construct definition
- topmost-intro-cont     -- topmost definition continuation lines
- member-init-intro      -- first line in a member initialization list
- member-init-cont       -- subsequent member initialization list lines
- inher-intro            -- first line of a multiple inheritance list
- inher-cont             -- subsequent multiple inheritance lines
- block-open             -- statement block open brace
- block-close            -- statement block close brace
- brace-list-open        -- open brace of an enum or static array list
- brace-list-close       -- close brace of an enum or static array list
- brace-list-intro       -- first line in an enum or static array list
- brace-list-entry       -- subsequent lines in an enum or static array list
- brace-entry-open       -- subsequent lines in an enum or static array
-                           list that start with an open brace.
- statement              -- a C (or like) statement
- statement-cont         -- a continuation of a C (or like) statement
- statement-block-intro  -- the first line in a new statement block
- statement-case-intro   -- the first line in a case \"block\"
- statement-case-open    -- the first line in a case block starting with brace
- substatement           -- the first line after an if/while/for/do/else
- substatement-open      -- the brace that opens a substatement block
- case-label             -- a `case' or `default' label
- access-label           -- C++ private/protected/public access label
- label                  -- any ordinary label
- do-while-closure       -- the `while' that ends a do/while construct
- else-clause            -- the `else' of an if/else construct
- catch-clause           -- the `catch' or `finally' of a try/catch construct
- comment-intro          -- a line containing only a comment introduction
- arglist-intro          -- the first line in an argument list
- arglist-cont           -- subsequent argument list lines when no
-                           arguments follow on the same line as the
-                           arglist opening paren
- arglist-cont-nonempty  -- subsequent argument list lines when at
-                           least one argument follows on the same
-                           line as the arglist opening paren
- arglist-close          -- the solo close paren of an argument list
- stream-op              -- lines continuing a stream operator construct
- inclass                -- the construct is nested inside a class definition
- cpp-macro              -- the start of a C preprocessor macro definition
- cpp-macro-cont         -- the second and subsequent lines in a
-                           multi-line C preprocessor macro definition
- friend                 -- a C++ friend declaration
- objc-method-intro      -- the first line of an Objective-C method definition
- objc-method-args-cont  -- lines continuing an Objective-C method definition
- objc-method-call-cont  -- lines continuing an Objective-C method call
- extern-lang-open       -- brace that opens an external language block
- extern-lang-close      -- brace that closes an external language block
- inextern-lang          -- analogous to `inclass' syntactic symbol,
-                           but used inside, e.g. extern \"C\" constructs
- namespace-open         -- brace that opens a C++ namespace block
- namespace-close        -- brace that closes a C++ namespace block
- innamespace            -- analogous to `inextern-lang' syntactic
-                           symbol, but used inside C++ namespace constructs
- template-args-cont     -- C++ template argument list continuations
- inlambda               -- in the header or body of a lambda function
- lambda-intro-cont      -- continuation of the header of a lambda function
- inexpr-statement       -- the statement is inside an expression
- inexpr-class           -- the class is inside an expression
-")
-
 (defun c-evaluate-offset (offset langelem symbol)
   ;; offset can be a number, a function, a variable, a list, or one of
   ;; the symbols + or -
@@ -529,8 +386,11 @@ Here is the current list of valid syntactic element symbols:
 	     (goto-char relpos)
 	     (current-column))
 	 0)
-       (c-evaluate-offset offset langelem symbol))
+       (or (and (numberp offset) offset)
+	   (and (symbolp offset) (symbol-value offset))
+	   0))
     ))
+
 
 
 (defvar c-read-offset-history nil)
@@ -538,7 +398,9 @@ Here is the current list of valid syntactic element symbols:
 (defun c-read-offset (langelem)
   ;; read new offset value for LANGELEM from minibuffer. return a
   ;; legal value only
-  (let* ((oldoff  (cdr-safe (assq langelem c-offsets-alist)))
+  (let* ((oldoff  (cdr-safe (or (assq langelem c-offsets-alist)
+				(assq langelem (get 'c-offsets-alist
+						    'c-stylevar-fallback)))))
 	 (symname (symbol-name langelem))
 	 (defstr  (format "(default %s): " oldoff))
 	 (errmsg  (concat "Offset must be int, func, var, list, "
@@ -574,11 +436,11 @@ Here is the current list of valid syntactic element symbols:
     offset))
 
 ;;;###autoload
-(defun c-set-offset (symbol offset &optional add-p)
+(defun c-set-offset (symbol offset &optional ignored)
   "Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
-offset for that syntactic element.  Optional ADD says to add SYMBOL to
-`c-offsets-alist' if it doesn't already appear there."
+offset for that syntactic element.  The optional argument is not used
+and exists only for compatibility reasons."
   (interactive
    (let* ((langelem
 	   (intern (completing-read
@@ -588,7 +450,7 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 		    (mapcar
 		     #'(lambda (langelem)
 			 (cons (format "%s" (car langelem)) nil))
-		     c-offsets-alist)
+		     (get 'c-offsets-alist 'c-stylevar-fallback))
 		    nil (not current-prefix-arg)
 		    ;; initial contents tries to be the last element
 		    ;; on the syntactic analysis list for the current
@@ -601,33 +463,19 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
 	  (offset (c-read-offset langelem)))
      (list langelem offset current-prefix-arg)))
   ;; sanity check offset
-  (or (eq offset '+)
-      (eq offset '-)
-      (eq offset '++)
-      (eq offset '--)
-      (eq offset '*)
-      (eq offset '/)
-      (integerp offset)
-      (functionp offset)
-      (listp offset)
-      (boundp offset)
-      (error "Offset must be int, func, var, list, or in [+,-,++,--,*,/]: %s"
-	     offset))
+  (unless (c-valid-offset offset)
+    (error "Offset must be int, func, var, list, or in [+,-,++,--,*,/]: %s"
+	   offset))
   (let ((entry (assq symbol c-offsets-alist)))
     (if entry
 	(setcdr entry offset)
-      (if add-p
+      (if (assq symbol (get 'c-offsets-alist 'c-stylevar-fallback))
 	  (setq c-offsets-alist (cons (cons symbol offset) c-offsets-alist))
-	(error "%s is not a valid syntactic symbol." symbol))))
+	(error "%s is not a valid syntactic symbol" symbol))))
   (c-keep-region-active))
 
-
-(defun c-copy-tree (tree)
-  (if (consp tree)
-      (cons (c-copy-tree (car tree))
-            (c-copy-tree (cdr tree)))
-    tree))
 
+
 (defun c-initialize-builtin-style ()
   ;; Dynamically append the default value of most variables. This is
   ;; crucial because future c-set-style calls will always reset the
@@ -639,39 +487,42 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
     (or (assoc "cc-mode" c-style-alist)
 	(assoc "user" c-style-alist)
 	(progn
-	  (c-add-style "user"
-		       (mapcar
-			(function
-			 (lambda (var)
-			   (let ((val (symbol-value var)))
-			     (cons var (c-copy-tree val)))))
-			'(c-backslash-column
-			  c-basic-offset
-			  c-cleanup-list
-			  c-comment-only-line-offset
-			  c-electric-pound-behavior
-			  c-hanging-braces-alist
-			  c-hanging-colons-alist
-			  c-hanging-comment-starter-p
-			  c-hanging-comment-ender-p
-			  c-offsets-alist
-			  )))
-	  (c-add-style "cc-mode" '("user"))
-	  ))
+	  (c-add-style
+	   "user"
+	   (mapcar
+	    (lambda (var)
+	      (let ((val (symbol-value var)))
+		(cons var
+		      (cond ((eq var 'c-offsets-alist)
+			     (mapcar
+			      (lambda (langentry)
+				(setq langentry (or (assq (car langentry) val)
+						    langentry))
+				(cons (car langentry)
+				      (cdr langentry)))
+			      (get var 'c-stylevar-fallback)))
+			    ((eq var 'c-special-indent-hook)
+			     val)
+			    (t
+			     (if (eq val 'set-from-style)
+				 (get var 'c-stylevar-fallback)
+			       val))))))
+	    c-style-variables))
+	  (c-add-style "cc-mode" '("user"))))
     (if c-style-variables-are-local-p
 	(c-make-styles-buffer-local))))
 
-
 (defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.
-If you edit primarily one style of C (or C++, Objective-C, Java) code,
-you probably want style variables to be global.  This is the default.
+If you edit primarily one style of C (or C++, Objective-C, Java, etc)
+code, you probably want style variables to be global.  This is the
+default.
 
-If you edit many different styles of C (or C++, Objective-C, Java) at
-the same time, you probably want the CC Mode style variables to be
-buffer local.  If you do, then you will need to set any CC Mode style
-variables in a hook function (e.g. off of c-mode-common-hook), instead
-of at the top level of your ~/.emacs file.
+If you edit many different styles of C (or C++, Objective-C, Java,
+etc) at the same time, you probably want the CC Mode style variables
+to be buffer local.  If you do, it's advicable to set any CC Mode
+style variables in a hook function (e.g. off of `c-mode-common-hook'),
+instead of at the top level of your ~/.emacs file.
 
 This function makes all the CC Mode style variables buffer local.
 Call it after CC Mode is loaded into your Emacs environment.
@@ -685,24 +536,14 @@ instead of `make-variable-buffer-local'."
   (let ((func (if this-buf-only-p
 		  'make-local-variable
 		'make-variable-buffer-local))
-	(varsyms '(c-offsets-alist
-		   c-basic-offset
-		   c-file-style
-		   c-file-offsets
-		   c-comment-only-line-offset
-		   c-cleanup-list
-		   c-hanging-braces-alist
-		   c-hanging-colons-alist
-		   c-hanging-comment-starter-p
-		   c-hanging-comment-ender-p
-		   c-backslash-column
-		   c-label-minimum-indentation
-		   c-indentation-style)))
+	(varsyms (cons 'c-indentation-style (copy-alist c-style-variables))))
+    (delq 'c-special-indent-hook varsyms)
     (mapcar func varsyms)
     ;; Hooks must be handled specially
     (if this-buf-only-p
 	(make-local-hook 'c-special-indent-hook)
-      (make-variable-buffer-local 'c-special-indent-hook))
+      (make-variable-buffer-local 'c-special-indent-hook)
+      (setq c-style-variables-are-local-p t))
     ))
 
 

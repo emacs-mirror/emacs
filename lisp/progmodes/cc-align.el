@@ -1,8 +1,8 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
 
-;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -29,16 +29,22 @@
 ;; Boston, MA 02111-1307, USA.
 
 (eval-when-compile
-  (require 'cc-defs)
-  (require 'cc-vars)
-  (require 'cc-engine)
-  (require 'cc-langs))
+  (let ((load-path
+	 (if (and (boundp 'byte-compile-current-file)
+		  (stringp byte-compile-current-file))
+	     (cons (file-name-directory byte-compile-current-file)
+		   load-path)
+	   load-path)))
+    (load "cc-defs" nil t)))
+(require 'cc-engine)
 
 
 ;; Standard indentation line-ups
+
 (defun c-lineup-arglist (langelem)
-  ;; lineup the current arglist line with the arglist appearing just
-  ;; after the containing paren which starts the arglist.
+  "Line up the current argument line under the first argument.
+
+Works with: arglist-cont-nonempty."
   (save-excursion
     (let* ((containing-sexp
 	    (save-excursion
@@ -65,7 +71,7 @@
 		 (- (current-column) langelem-col))
 	(goto-char containing-sexp)
 	(or (eolp)
-	    (not (memq (char-after) '(?{ ?\( )))
+	    (not (memq (char-after) '(?{ ?\( ?\[)))
 	    (let ((eol (c-point 'eol))
 		  (here (progn
 			  (forward-char 1)
@@ -78,7 +84,11 @@
 	))))
 
 (defun c-lineup-arglist-intro-after-paren (langelem)
-  ;; lineup an arglist-intro line to just after the open paren
+  "Line up a line just after the open paren of the surrounding paren or
+brace block.
+
+Works with: defun-block-intro, brace-list-intro,
+statement-block-intro, statement-case-intro, arglist-intro."
   (save-excursion
     (let ((langelem-col (c-langelem-col langelem t))
 	  (ce-curcol (save-excursion
@@ -89,7 +99,12 @@
       (- ce-curcol langelem-col -1))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
-  ;; lineup an arglist-close line under the corresponding open paren
+  "Line up a closing paren line under the corresponding open paren.
+
+Works with: defun-close, class-close, inline-close, block-close,
+brace-list-close, arglist-close, extern-lang-close, namespace-close
+\(for most of these, a zero offset will normally produce the same
+result, though)."
   (save-excursion
     (let ((langelem-col (c-langelem-col langelem t))
 	  (ce-curcol (save-excursion
@@ -99,15 +114,16 @@
       (- ce-curcol langelem-col))))
 
 (defun c-lineup-close-paren (langelem)
-  ;; Indents the closing paren under its corresponding open paren if
-  ;; the open paren is followed by code.  If the open paren ends its
-  ;; line, no indentation is added.  E.g:
-  ;;
-  ;; main (int,                main (
-  ;;       char **               int, char **
-  ;;      )            <->     )              <- c-lineup-close-paren
-  ;;
-  ;; Works with any type of paren.
+  "Line up the closing paren under its corresponding open paren if the
+open paren is followed by code.  If the open paren ends its line, no
+indentation is added.  E.g:
+
+main (int,              main (
+      char **               int, char **
+     )           <->    )                 <- c-lineup-close-paren
+
+Works with: defun-close, class-close, inline-close, block-close,
+brace-list-close, arglist-close, extern-lang-close, namespace-close."
   (save-excursion
     (condition-case nil
 	(let (opencol spec)
@@ -124,10 +140,12 @@
 	  (if (eolp)
 	      0
 	    (- opencol (c-langelem-col langelem t))))
-      (error 0))))
+      (error nil))))
 
 (defun c-lineup-streamop (langelem)
-  ;; lineup stream operators
+  "Line up C++ stream operators under each other.
+
+Works with: stream-op."
   (save-excursion
     (let ((langelem-col (c-langelem-col langelem)))
       (re-search-forward "<<\\|>>" (c-point 'eol) 'move)
@@ -135,7 +153,9 @@
       (- (current-column) langelem-col))))
 
 (defun c-lineup-multi-inher (langelem)
-  ;; line up multiple inheritance lines
+  "Line up the classes in C++ multiple inheritance clauses under each other.
+
+Works with: inher-cont."
   (save-excursion
     (let ((eol (c-point 'eol))
 	  (here (point))
@@ -149,110 +169,215 @@
       )))
 
 (defun c-lineup-java-inher (langelem)
-  ;; line up Java implements and extends continuations
+  "Line up Java implements and extends declarations.
+If class names follows on the same line as the implements/extends
+keyword, they are lined up under each other.  Otherwise, they are
+indented by adding `c-basic-offset' to the column of the keyword.
+E.g:
+
+class Foo             class Foo
+    extends               extends Cyphr,
+        Bar    <->                Bar     <- c-lineup-java-inher
+    <--> c-basic-offset
+
+Works with: inher-cont."
   (save-excursion
     (let ((langelem-col (c-langelem-col langelem)))
       (forward-word 1)
       (if (looking-at "[ \t]*$")
-	  langelem-col
+	  c-basic-offset
 	(c-forward-syntactic-ws)
 	(- (current-column) langelem-col)))))
 
 (defun c-lineup-java-throws (langelem)
-  ;; lineup func-decl-cont's in Java which are continuations of throws
-  ;; declarations.  If `throws' starts the previous line, line up to
-  ;; just after that keyword.  If not, lineup under the previous line.
+  "Line up Java throws declarations.
+If exception names follows on the same line as the throws keyword,
+they are lined up under each other.  Otherwise, they are indented by
+adding `c-basic-offset' to the column of the throws keyword.  The
+throws keyword itself is also indented by `c-basic-offset' from the
+function declaration start if it doesn't hang.  E.g:
+
+int foo()           int foo() throws Cyphr,
+    throws     <->                   Bar,    <- c-lineup-java-throws
+        Bar    <->                   Vlod    <- c-lineup-java-throws
+<--><--> c-basic-offset
+
+Works with: func-decl-cont."
   (save-excursion
-    (let ((iopl (c-point 'iopl))
-	  (langelem-col (c-langelem-col langelem t))
-	  (extra 0))
-      (back-to-indentation)
-      (cond
-       ((looking-at "throws[ \t\n]")
-	(goto-char (cdr langelem))
-	(setq extra c-basic-offset))
-       ((and (goto-char iopl)
-	     (looking-at "throws[ \t\n]"))
-	(forward-word 1)
-	(skip-chars-forward " \t")
-	(if (eolp)
-	    (progn
-	      (back-to-indentation)
-	      (setq extra c-basic-offset))))
-       (t (goto-char iopl)))
-      (+ (- (current-column) langelem-col) extra))))
+    (let* ((lim (1- (c-point 'bol)))
+	   (throws (catch 'done
+		     (goto-char (cdr langelem))
+		     (while (zerop (c-forward-token-1 1 t lim))
+		       (if (looking-at "throws\\>[^_]")
+			   (throw 'done t))))))
+      (if throws
+	  (if (zerop (c-forward-token-1 1 nil (c-point 'eol)))
+	      (- (current-column) (c-langelem-col langelem))
+	    (back-to-indentation)
+	    (+ (- (current-column) (c-langelem-col langelem))
+	       c-basic-offset))
+	c-basic-offset))))
 
 (defun c-indent-one-line-block (langelem)
-  ;; Adds c-basic-offset to the indentation if the line is a one line
-  ;; block, otherwise 0.  E.g:
-  ;;
-  ;; if (n)                     if (n)
-  ;;   {m+=n; n=0;}     <->     {            <- c-indent-one-line-block
-  ;;                              m+=n; n=0;
-  ;;                            }
+  "Indent a one line block `c-basic-offset' extra.
+E.g:
+
+if (n > 0)                 if (n > 0)
+    {m+=n; n=0;}    <->    {               <- c-indent-one-line-block
+<--> c-basic-offset            m+=n; n=0;
+                           }
+
+The block may be surrounded by any kind of parenthesis characters.
+nil is returned if the line doesn't start with a one line block, which
+makes the function usable in list expressions.
+
+Work with: Almost all syntactic symbols, but most useful on *-open."
   (save-excursion
-    (let ((eol (progn (end-of-line) (point))))
-      (beginning-of-line)
-      (skip-chars-forward " \t")
-      (if (and (eq (following-char) ?{)
+    (let ((eol (c-point 'eol)))
+      (back-to-indentation)
+      (if (and (eq (char-syntax (char-after)) ?\()
 	       (c-safe (progn (c-forward-sexp) t))
-	       (<= (point) eol)
-	       (eq (preceding-char) ?}))
+	       (<= (point) eol))
 	  c-basic-offset
-	0))))
+	nil))))
+
+(defun c-indent-multi-line-block (langelem)
+  "Indent a multi line block `c-basic-offset' extra.
+E.g:
+
+int *foo[] = {           int *foo[] = {
+    NULL,                    NULL,
+    {17},         <->            {       <- c-indent-multi-line-block
+                                 17
+                                 }
+                             <--> c-basic-offset
+
+The block may be surrounded by any kind of parenthesis characters.
+nil is returned if the line doesn't start with a multi line block,
+which makes the function usable in list expressions.
+
+Work with: Almost all syntactic symbols, but most useful on *-open."
+  (save-excursion
+    (let ((eol (c-point 'eol)))
+      (back-to-indentation)
+      (if (and (eq (char-syntax (char-after)) ?\()
+	       (or (not (c-safe (progn (c-forward-sexp) t)))
+		   (> (point) eol)))
+	  c-basic-offset
+	nil))))
 
 (defun c-lineup-C-comments (langelem)
-  ;; line up C block comment continuation lines
+  "Line up C block comment continuation lines.
+Various heuristics are used to handle most of the common comment
+styles.  Some examples:
+
+/*          /**         /*         /* text      /*          /**
+ * text      * text       text        text      ** text      ** text
+ */          */         */         */           */           */
+
+/*********************************************************************
+ * text
+ ********************************************************************/
+
+/*********************************************************************
+    Free form text comments:
+ In comments with a long delimiter line at the start, the indentation
+ is kept unchanged for lines that start with an empty comment line
+ prefix.  The delimiter line is whatever matches the
+ `comment-start-skip' regexp.
+*********************************************************************/
+
+The variable `c-comment-prefix-regexp' is used to recognize the
+comment line prefix, e.g. the `*' that usually starts every line
+inside a comment.
+
+Works with: The `c' syntactic symbol."
   (save-excursion
-    (let ((here (point))
-	  (stars (progn (back-to-indentation)
-			(skip-chars-forward "*")))
-	  (langelem-col (c-langelem-col langelem)))
-      (back-to-indentation)
-      (if (not (re-search-forward "/\\([*]+\\)" (c-point 'eol) t))
-	  (progn
-	    (if (not (looking-at "[*]+"))
+    (let* ((here (point))
+	   (prefixlen (progn (back-to-indentation)
+			     (if (looking-at c-comment-prefix-regexp)
+				 (- (match-end 0) (point))
+			       0)))
+	   (starterlen (save-excursion
+			 (goto-char (cdr langelem))
+			 (looking-at comment-start-skip)
+			 (- (save-excursion
+			      (goto-char (match-end 0))
+			      (skip-chars-backward " \t")
+			      (point))
+			    (or (match-end 1) (point))
+			    1)))	; Don't count the first '/'.
+	   (langelem-col (save-excursion (c-langelem-col langelem))))
+      (if (and (> starterlen 10) (zerop prefixlen))
+	  ;; The comment has a long starter and the line doesn't have
+	  ;; a nonempty comment prefix.  Treat it as free form text
+	  ;; and don't change the indentation.
+	  (- (current-column) langelem-col)
+	(forward-line -1)
+	(back-to-indentation)
+	(if (>= (cdr langelem) (point))
+	    ;; On the second line in the comment.
+	    (if (zerop prefixlen)
+		;; No nonempty comment prefix. Align after comment
+		;; starter.
 		(progn
-		  ;; we now have to figure out where this comment begins.
-		  (goto-char here)
-		  (back-to-indentation)
-		  (if (looking-at "[*]+/")
-		      (progn (goto-char (match-end 0))
-			     (forward-comment -1))
+		  (goto-char (match-end 0))
+		  (if (looking-at "\\([ \t]+\\).+$")
+		      ;; Align with the text that hangs after the
+		      ;; comment starter.
+		      (goto-char (match-end 1)))
+		  (- (current-column) langelem-col))
+	      ;; How long is the comment starter?  if greater than the
+	      ;; length of the comment prefix, align left.  if less
+	      ;; than or equal, align right.  this should also pick up
+	      ;; Javadoc style comments.
+	      (if (> starterlen prefixlen)
+		  (progn
 		    (goto-char (cdr langelem))
-		    (back-to-indentation))))
-	    (- (current-column) langelem-col))
-	(if (zerop stars)
-	    (progn
-	      (skip-chars-forward " \t")
-	      (- (current-column) langelem-col))
-	  ;; how many stars on comment opening line?  if greater than
-	  ;; on current line, align left.  if less than or equal,
-	  ;; align right.  this should also pick up Javadoc style
-	  ;; comments.
-	  (if (> (length (match-string 1)) stars)
-	      (progn
-		(back-to-indentation)
-		(- (current-column) -1 langelem-col))
-	    (- (current-column) stars langelem-col))
-	  )))))
+		    (- (current-column) -1 langelem-col))
+		(goto-char (match-end 0))
+		(skip-chars-backward " \t")
+		(- (current-column) prefixlen langelem-col)))
+	  ;; Not on the second line in the comment.  If the previous
+	  ;; line has a nonempty comment prefix, align with it.
+	  ;; Otherwise, align with the previous nonempty line, but
+	  ;; align the comment ender with the starter.
+	  (when (or (not (looking-at c-comment-prefix-regexp))
+		    (eq (match-beginning 0) (match-end 0)))
+	    (goto-char here)
+	    (back-to-indentation)
+	    (if (looking-at (concat "\\(" c-comment-prefix-regexp "\\)\\*/"))
+		(goto-char (cdr langelem))
+	      (while (and (zerop (forward-line -1))
+			  (looking-at "^[ \t]*$")))
+	      (back-to-indentation)
+	      (if (< (point) (cdr langelem))
+		  ;; Align with the comment starter rather than
+		  ;; with the code before it.
+		  (goto-char (cdr langelem)))))
+	  (- (current-column) langelem-col))))))
 
 (defun c-lineup-comment (langelem)
-  ;; support old behavior for comment indentation. we look at
-  ;; c-comment-only-line-offset to decide how to indent comment
-  ;; only-lines
+  "Line up a comment start according to `c-comment-only-line-offset'.
+If the comment is lined up with a comment starter on the previous
+line, that alignment is preserved.
+
+Works with: comment-intro."
   (save-excursion
     (back-to-indentation)
     ;; this highly kludgiforous flag prevents the mapcar over
     ;; c-syntactic-context from entering an infinite loop
-    (let ((recurse-prevention-flag (boundp 'recurse-prevention-flag)))
+    (let ((recurse-prevention-flag (boundp 'recurse-prevention-flag))
+	  (col (current-column)))
       (cond
-       ;; CASE 1: preserve comment-column
        (recurse-prevention-flag 0)
-       ((= (current-column) comment-column)
+       ;; CASE 1: preserve aligned comments
+       ((save-excursion
+	  (and (c-forward-comment -1)
+	       (= col (current-column))))
 	;; we have to subtract out all other indentation
-	(- comment-column (apply '+ (mapcar 'c-get-offset
-					    c-syntactic-context))))
+	(- col (apply '+ (mapcar 'c-get-offset
+				 c-syntactic-context))))
        ;; indent as specified by c-comment-only-line-offset
        ((not (bolp))
 	(or (car-safe c-comment-only-line-offset)
@@ -264,18 +389,33 @@
        ))))
 
 (defun c-lineup-runin-statements (langelem)
-  ;; line up statements in coding standards which place the first
-  ;; statement on the same line as the block opening brace.
+  "Line up statements when the first statement is on the same line as
+the block opening brace.  E.g:
+
+int main()
+{ puts (\"Hello world!\");
+  return 0;                 <- c-lineup-runin-statements
+}
+
+If there is no statement after the opening brace to align with, nil is
+returned.  This makes the function usable in list expressions.
+
+Works with: The `statement' syntactic symbol."
   (if (eq (char-after (cdr langelem)) ?{)
       (save-excursion
 	(let ((langelem-col (c-langelem-col langelem)))
 	  (forward-char 1)
 	  (skip-chars-forward " \t")
-	  (- (current-column) langelem-col)))
-    0))
+	  (unless (eolp)
+	    (- (current-column) langelem-col))))))
 
 (defun c-lineup-math (langelem)
-  ;; line up math statement-cont after the equals
+  "Line up the current line after the equal sign on the first line in
+the statement.  If there isn't any, indent with `c-basic-offset'.  If
+the current line contains an equal sign too, try to align it with the
+first one.
+
+Works with: statement-cont."
   (save-excursion
     (let ((equalp (save-excursion
 		    (goto-char (c-point 'boi))
@@ -307,13 +447,29 @@
 	(- (current-column) equalp langelem-col))
       )))
 
+(defun c-lineup-template-args (langelem)
+  "Line up template argument lines under the first argument.
+To allow this function to be used in a list expression, nil is
+returned if there's no template argument on the first line.
+
+Works with: template-args-cont."
+  (save-excursion
+    (c-with-syntax-table c++-template-syntax-table
+      (beginning-of-line)
+      (backward-up-list 1)
+      (if (and (eq (char-after) ?<)
+	       (zerop (c-forward-token-1 1 nil (c-point 'eol))))
+	  (- (current-column) (c-langelem-col langelem))))))
+
 (defun c-lineup-ObjC-method-call (langelem)
-  ;; Line up methods args as elisp-mode does with function args: go to
-  ;; the position right after the message receiver, and if you are at
-  ;; (eolp) indent the current line by a constant offset from the
-  ;; opening bracket; otherwise we are looking at the first character
-  ;; of the first method call argument, so lineup the current line
-  ;; with it.
+  "Line up selector args as elisp-mode does with function args:
+Go to the position right after the message receiver, and if you are at
+the end of the line, indent the current line c-basic-offset columns
+from the opening bracket; otherwise you are looking at the first
+character of the first method call argument, so lineup the current
+line with it.
+
+Works with: objc-method-call-cont."
   (save-excursion
     (let* ((extra (save-excursion
 		    (back-to-indentation)
@@ -336,8 +492,11 @@
       (- target-col open-bracket-col extra))))
 
 (defun c-lineup-ObjC-method-args (langelem)
-  ;; Line up the colons that separate args. This is done trying to
-  ;; align colons vertically.
+  "Line up the colons that separate args.
+The colon on the current line is aligned with the one on the first
+line.
+
+Works with: objc-method-args-cont."
   (save-excursion
     (let* ((here (c-point 'boi))
 	   (curcol (progn (goto-char here) (current-column)))
@@ -357,8 +516,11 @@
 	  c-basic-offset)))))
 
 (defun c-lineup-ObjC-method-args-2 (langelem)
-  ;; Line up the colons that separate args. This is done trying to
-  ;; align the colon on the current line with the previous one.
+  "Line up the colons that separate args.
+The colon on the current line is aligned with the one on the previous
+line.
+
+Works with: objc-method-args-cont."
   (save-excursion
     (let* ((here (c-point 'boi))
 	   (curcol (progn (goto-char here) (current-column)))
@@ -377,31 +539,57 @@
 	  c-basic-offset)))))
 
 (defun c-lineup-inexpr-block (langelem)
-  ;; This function lines up the block for the various constructs that
-  ;; uses a block inside an expression.  For constructs matching
-  ;; c-lambda-key and c-inexpr-block-key, indentation to the column of
-  ;; the beginning of the match is added.  For standalone statement
-  ;; blocks, indentation to the column of the opening brace is added.
+  "Line up the block for constructs that use a block inside an expression,
+e.g. anonymous classes in Java and lambda functions in Pike.  The body
+is aligned with the start of the header, e.g. with the \"new\" or
+\"lambda\" keyword.  Returns nil if the block isn't part of such a
+construct.
+
+Works with: inlambda, inexpr-statement, inexpr-class."
   (save-excursion
     (back-to-indentation)
     (let ((res (or (c-looking-at-inexpr-block)
 		   (if (c-safe (backward-up-list 1)
 			       (eq (char-after) ?{))
 		       (c-looking-at-inexpr-block)))))
-      (if (not res)
-	  0
+      (when res
 	(goto-char (cdr res))
 	(- (current-column)
 	   (progn
 	     (back-to-indentation)
 	     (current-column)))))))
 
+(defun c-lineup-whitesmith-in-block (langelem)
+  "Line up lines inside a block in whitesmith style.
+It's done in a way that works both when the opening brace hangs and
+when it doesn't.  E.g:
+
+something
+    {                something {
+    foo;     <->         foo;     <- c-lineup-whitesmith-in-block
+    }                    }
+                     <--> c-basic-offset
+
+In the first case the indentation is kept unchanged, in the
+second `c-basic-offset' is added.
+
+Works with: defun-close, defun-block-intro, block-close,
+brace-list-close, brace-list-intro, statement-block-intro, inclass,
+inextern-lang, innamespace."
+  (save-excursion
+    (goto-char (cdr langelem))
+    (back-to-indentation)
+    (if (eq (char-syntax (char-after)) ?\()
+	0
+      c-basic-offset)))
+
 (defun c-lineup-dont-change (langelem)
-  ;; Do not change the indentation of the current line
+  "Do not change the indentation of the current line.
+
+Works with: Any syntactic symbol."
   (save-excursion
     (back-to-indentation)
-    (current-column)))
-
+    (- (current-column) (c-langelem-col langelem))))
 
 
 (defun c-snug-do-while (syntax pos)
@@ -450,6 +638,7 @@ indentation amount."
 
 
 ;; Useful for c-hanging-semi&comma-criteria
+
 (defun c-semi&comma-inside-parenlist ()
   "Controls newline insertion after semicolons in parenthesis lists.
 If a comma was inserted, no determination is made.  If a semicolon was

@@ -1,8 +1,8 @@
 ;;; cc-mode.el --- major mode for editing C, C++, Objective-C, and Java code
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
 
-;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -10,7 +10,7 @@
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages oop
 
-(defconst c-version "5.25"
+(defconst c-version "5.26e"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -85,26 +85,33 @@
 
 ;;; Code:
 
-
-(defvar c-buffer-is-cc-mode nil
-  "Non-nil for all buffers with a `major-mode' derived from CC Mode.
-Otherwise, this variable is nil. I.e. this variable is non-nil for
-`c-mode', `c++-mode', `objc-mode', `java-mode', `idl-mode',
-`pike-mode', and any other non-CC Mode mode that calls
-`c-initialize-cc-mode' (e.g. `awk-mode').")
-(make-variable-buffer-local 'c-buffer-is-cc-mode)
-(put 'c-buffer-is-cc-mode 'permanent-local t)
+(eval-when-compile
+  (let ((load-path
+	 ;; Try to make sure the source directory is at the front of
+	 ;; load-path when we load cc-defs.
+	 (if (and (boundp 'byte-compile-current-file)
+		  (stringp byte-compile-current-file))
+	     ;; byte-compile-current-file is set by the byte compiler
+	     ;; to the full path to this file.
+	     (cons (file-name-directory byte-compile-current-file)
+		   load-path)
+	   load-path)))
+    ;; Load our version of cc-defs unconditionally, since an older
+    ;; version might very well be dumped in or already loaded.  This
+    ;; way we ensure that the code is compiled with the correct macros
+    ;; and defsubsts.  The same problem affects the subpackages that's
+    ;; require'd below, but that doesn't harm the compiler; it can
+    ;; only cause some bogus warnings.
+    (load "cc-defs" nil t)))
 
-(eval-and-compile
-  (require 'cc-defs))
+(require 'cc-defs) ; Not meaningless; this passes on require's from cc-defs.
 (require 'cc-menus)
 (require 'cc-vars)
-(require 'cc-engine)
-(require 'cc-langs)
-(require 'cc-align)
 (require 'cc-styles)
+(require 'cc-langs)
+(require 'cc-engine)
+(require 'cc-align)
 (require 'cc-cmds)
-
 
 
 ;; Other modes and packages which depend on CC Mode should do the
@@ -120,15 +127,17 @@ Otherwise, this variable is nil. I.e. this variable is non-nil for
   (let ((initprop 'cc-mode-is-initialized)
 	c-initialization-ok)
     (unless (get 'c-initialize-cc-mode initprop)
-      (put 'c-initialize-cc-mode initprop t)
-      (c-initialize-builtin-style)
       (unwind-protect
 	  (progn
+	    (put 'c-initialize-cc-mode initprop t)
+	    (c-initialize-builtin-style)
 	    (run-hooks 'c-initialization-hook)
+	    ;; Fix obsolete variables.
+	    (if (boundp 'c-comment-continuation-stars)
+		(setq c-block-comment-prefix c-comment-continuation-stars))
 	    (setq c-initialization-ok t))
 	;; Will try initialization hooks again if they failed.
-	(unless c-initialization-ok
-	  (put 'c-initialize-cc-mode initprop nil))))
+	(put 'c-initialize-cc-mode initprop c-initialization-ok)))
     ))
 
 
@@ -162,10 +171,10 @@ Key bindings:
 	c-conditional-key c-C-conditional-key
 	c-class-key c-C-class-key
 	c-baseclass-key nil
-	c-comment-start-regexp c-C++-comment-start-regexp
-	imenu-generic-expression cc-imenu-c-generic-expression
-	imenu-case-fold-search nil
+	c-comment-start-regexp c-C-comment-start-regexp
+	c-bitfield-key c-C-bitfield-key
 	)
+  (cc-imenu-init cc-imenu-c-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
   (c-update-modeline))
@@ -205,9 +214,9 @@ Key bindings:
 	c-extra-toplevel-key c-C++-extra-toplevel-key
 	c-access-key c-C++-access-key
 	c-recognize-knr-p nil
-	imenu-generic-expression cc-imenu-c++-generic-expression
-	imenu-case-fold-search nil
+	c-bitfield-key c-C-bitfield-key
 	)
+  (cc-imenu-init cc-imenu-c++-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c++-mode-hook)
   (c-update-modeline))
@@ -241,15 +250,14 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
 	comment-end   ""
-	c-conditional-key c-C-conditional-key
-	c-comment-start-regexp c-C++-comment-start-regexp
+	c-conditional-key c-ObjC-conditional-key
+	c-comment-start-regexp c-ObjC-comment-start-regexp
  	c-class-key c-ObjC-class-key
 	c-baseclass-key nil
 	c-access-key c-ObjC-access-key
 	c-method-key c-ObjC-method-key
-	imenu-create-index-function 'cc-imenu-objc-function
-	imenu-case-fold-search nil
 	)
+  (cc-imenu-init cc-imenu-objc-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'objc-mode-hook)
   (c-update-modeline))
@@ -285,6 +293,10 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
  	comment-end   ""
+	paragraph-start (concat paragraph-start
+				"\\("
+				c-Java-javadoc-paragraph-start
+				"\\|$\\)")
  	c-conditional-key c-Java-conditional-key
  	c-comment-start-regexp c-Java-comment-start-regexp
   	c-class-key c-Java-class-key
@@ -294,9 +306,8 @@ Key bindings:
  	c-access-key c-Java-access-key
 	c-inexpr-class-key c-Java-inexpr-class-key
 	;defun-prompt-regexp c-Java-defun-prompt-regexp
-	imenu-generic-expression cc-imenu-java-generic-expression
-	imenu-case-fold-search nil
 	)
+  (cc-imenu-init cc-imenu-java-generic-expression)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'java-mode-hook)
   (c-update-modeline))
@@ -330,15 +341,16 @@ Key bindings:
   (c-common-init)
   (setq comment-start "// "
 	comment-end ""
-	c-conditional-key c-C++-conditional-key
-	c-comment-start-regexp c-C++-comment-start-regexp
+	c-conditional-key c-IDL-conditional-key
+	c-comment-start-regexp c-IDL-comment-start-regexp
 	c-class-key c-IDL-class-key
+	c-method-key nil
+	c-baseclass-key nil
 	c-extra-toplevel-key c-IDL-extra-toplevel-key
-	c-access-key c-C++-access-key
+	c-access-key c-IDL-access-key
 	c-recognize-knr-p nil
-;;	imenu-generic-expression cc-imenu-c++-generic-expression
-;;	imenu-case-fold-search nil
 	)
+  ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;FIXME
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'idl-mode-hook)
   (c-update-modeline))
@@ -373,6 +385,7 @@ Key bindings:
   (setq comment-start "// "
  	comment-end   ""
  	c-conditional-key c-Pike-conditional-key
+	c-comment-start-regexp c-Pike-comment-start-regexp
   	c-class-key c-Pike-class-key
 	c-method-key nil
  	c-baseclass-key nil
@@ -381,12 +394,43 @@ Key bindings:
 	c-lambda-key c-Pike-lambda-key
 	c-inexpr-block-key c-Pike-inexpr-block-key
 	c-special-brace-lists c-Pike-special-brace-lists
-	;imenu-generic-expression cc-imenu-java-generic-expression ;FIXME
-	;imenu-case-fold-search nil ;FIXME
 	)
+  ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;FIXME
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'pike-mode-hook)
   (c-update-modeline))
+
+
+(defun c-setup-filladapt ()
+  "Convenience function to configure Kyle E. Jones' Filladapt mode for
+CC Mode by making sure the proper entries are present on
+`filladapt-token-table', `filladapt-token-match-table', and
+`filladapt-token-conversion-table'.  This is intended to be used on
+`c-mode-common-hook' or similar."
+  ;; This function is intended to be used explicitly by the end user
+  ;; only.
+  ;;
+  ;; The default configuration already handles C++ comments, but we
+  ;; need to add handling of C block comments.  A new filladapt token
+  ;; `c-comment' is added for that.
+  (let (p)
+    (setq p filladapt-token-table)
+    (while (and p (not (eq (car-safe (cdr-safe (car-safe p))) 'c-comment)))
+      (setq p (cdr-safe p)))
+    (if p
+	(setcar (car p) c-comment-prefix-regexp)
+      (setq filladapt-token-table
+	    (append (list (car filladapt-token-table)
+			  (list c-comment-prefix-regexp 'c-comment))
+		    (cdr filladapt-token-table)))))
+  (unless (assq 'c-comment filladapt-token-match-table)
+    (setq filladapt-token-match-table
+	  (append '((c-comment c-comment))
+		  filladapt-token-match-table)))
+  (unless (assq 'c-comment filladapt-token-conversion-table)
+    (setq filladapt-token-conversion-table
+	  (append '((c-comment . exact))
+		  filladapt-token-conversion-table))))
 
 
 ;; bug reporting
@@ -423,36 +467,40 @@ Key bindings:
 		    ((eq major-mode 'c-mode)    "C")
 		    ((eq major-mode 'objc-mode) "ObjC")
 		    ((eq major-mode 'java-mode) "Java")
+		    ((eq major-mode 'idl-mode)  "IDL")
 		    ((eq major-mode 'pike-mode) "Pike")
 		    )
 	      ")")
-      (let ((vars (list
+      (let ((vars (append
 		   ;; report only the vars that affect indentation
-		   'c-basic-offset
-		   'c-offsets-alist
-		   'c-cleanup-list
-		   'c-comment-only-line-offset
-		   'c-backslash-column
-		   'c-delete-function
-		   'c-electric-pound-behavior
-		   'c-hanging-braces-alist
-		   'c-hanging-colons-alist
-		   'c-hanging-comment-starter-p
-		   'c-hanging-comment-ender-p
-		   'c-indent-comments-syntactically-p
-		   'c-tab-always-indent
-		   'c-comment-continuation-stars
-		   'c-label-minimum-indentation
-		   'defun-prompt-regexp
-		   'tab-width
-		   'comment-column
-		   ;; A brain-damaged XEmacs only variable that, if
-		   ;; set to nil can cause all kinds of chaos.
-		   'signal-error-on-buffer-boundary
-		   )))
-	(if (not (boundp 'defun-prompt-regexp))
-	    (delq 'defun-prompt-regexp vars)
-	  vars))
+		   c-style-variables
+		   '(c-delete-function
+		     c-electric-pound-behavior
+		     c-indent-comments-syntactically-p
+		     c-tab-always-indent
+		     defun-prompt-regexp
+		     tab-width
+		     comment-column
+		     parse-sexp-ignore-comments
+		     ;; A brain-damaged XEmacs only variable that, if
+		     ;; set to nil can cause all kinds of chaos.
+		     signal-error-on-buffer-boundary
+		     ;; Variables that affect line breaking and comments.
+		     auto-fill-mode
+		     filladapt-mode
+		     comment-multi-line
+		     comment-start-skip
+		     fill-prefix
+		     paragraph-start
+		     adaptive-fill-mode
+		     adaptive-fill-regexp)
+		   nil)))
+	(delq 'c-special-indent-hook vars)
+	(unless (boundp 'defun-prompt-regexp)
+	  (delq 'defun-prompt-regexp vars))
+	(unless (boundp 'filladapt-mode)
+	  (delq 'filladapt-mode vars))
+	vars)
       (function
        (lambda ()
 	 (insert

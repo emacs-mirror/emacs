@@ -1,8 +1,8 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
-;; Copyright (C) 1985,87,92,93,94,95,96,97,98 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
 
-;; Authors:    1998 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -28,10 +28,17 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-
 (eval-when-compile
-  (require 'cc-defs))
+  (let ((load-path
+	 (if (and (boundp 'byte-compile-current-file)
+		  (stringp byte-compile-current-file))
+	     (cons (file-name-directory byte-compile-current-file)
+		   load-path)
+	   load-path)))
+    (load "cc-defs" nil t)))
+(require 'cc-langs)
 
+
 ;; KLUDGE ALERT: c-maybe-labelp is used to pass information between
 ;; c-crosses-statement-barrier-p and c-beginning-of-statement-1.  A
 ;; better way should be implemented, but this will at least shut up
@@ -98,7 +105,7 @@
 	   ;; CASE 2: some other kind of literal?
 	   ((c-in-literal lim))
 	   ;; CASE 3: are we looking at a conditional keyword?
-	   ((or (looking-at c-conditional-key)
+	   ((or (and c-conditional-key (looking-at c-conditional-key))
 		(and (eq (char-after) ?\()
 		     (save-excursion
 		       (c-forward-sexp 1)
@@ -112,6 +119,7 @@
 					  (<= lim (point))
 					  (not (c-in-literal lim))
 					  (not (eq (char-before) ?_))
+					  c-conditional-key
 					  (looking-at c-conditional-key)
 					  ))))
 		       ;; did we find a conditional?
@@ -144,8 +152,10 @@
 		(setq substmt-p nil))
 	    (setq last-begin (point)
 		  donep substmt-p))
-	   ;; CASE 4: are we looking at a label?
-	   ((looking-at c-label-key))
+	   ;; CASE 4: are we looking at a label?  (But we handle
+	   ;; switch labels later.)
+	   ((and (looking-at c-label-key)
+		 (not (looking-at "default\\>"))))
 	   ;; CASE 5: is this the first time we're checking?
 	   (firstp (setq firstp nil
 			 substmt-p (not (c-crosses-statement-barrier-p
@@ -170,7 +180,7 @@
 		     ;; `case' or `default' is first thing on line
 		     (let ((here (point)))
 		       (beginning-of-line)
-		       (c-forward-syntactic-ws)
+		       (c-forward-syntactic-ws here)
 		       (if (looking-at c-switch-label-key)
 			   t
 			 (goto-char here)
@@ -187,7 +197,7 @@
     ;; We always want to skip over the non-whitespace modifier
     ;; characters that can start a statement.
     (let ((lim (point)))
-      (skip-chars-backward "-+!*&~@ \t\n" (c-point 'boi))
+      (skip-chars-backward "-+!*&~@` \t\n" (c-point 'boi))
       (skip-chars-forward " \t\n" lim))))
 
 (defun c-end-of-statement-1 ()
@@ -254,7 +264,7 @@
 	 (hugenum (point-max)))
     (while (/= here (point))
       (setq here (point))
-      (forward-comment hugenum)
+      (c-forward-comment hugenum)
       ;; skip preprocessor directives
       (when (and (eq (char-after) ?#)
 		 (= (c-point 'boi) (point)))
@@ -264,28 +274,13 @@
       )
     (if lim (goto-char (min (point) lim)))))
 
-(defsubst c-beginning-of-macro (&optional lim)
-  ;; Go to the beginning of a cpp macro definition.  Leaves point at
-  ;; the beginning of the macro and returns t if in a cpp macro
-  ;; definition, otherwise returns nil and leaves point unchanged.
-  ;; `lim' is currently ignored, but the interface requires it.
-  (let ((here (point)))
-    (beginning-of-line)
-    (while (eq (char-before (1- (point))) ?\\)
-      (forward-line -1))
-    (back-to-indentation)
-    (if (eq (char-after) ?#)
-	t
-      (goto-char here)
-      nil)))
-
 (defun c-backward-syntactic-ws (&optional lim)
   ;; Backward skip over syntactic whitespace for Emacs 19.
   (let* ((here (point-min))
 	 (hugenum (- (point-max))))
     (while (/= here (point))
       (setq here (point))
-      (forward-comment hugenum)
+      (c-forward-comment hugenum)
       (c-beginning-of-macro))
     (if lim (goto-char (max (point) lim)))))
 
@@ -428,16 +423,18 @@
 (if (fboundp 'buffer-syntactic-context)
     (defalias 'c-in-literal 'c-fast-in-literal))
 
-(defun c-literal-limits (&optional lim near)
+(defun c-literal-limits (&optional lim near not-in-delimiter)
   ;; Returns a cons of the beginning and end positions of the comment
   ;; or string surrounding point (including both delimiters), or nil
   ;; if point isn't in one.  If LIM is non-nil, it's used as the
   ;; "safe" position to start parsing from.  If NEAR is non-nil, then
   ;; the limits of any literal next to point is returned.  "Next to"
   ;; means there's only [ \t] between point and the literal.  The
-  ;; search for such a literal is done first in forward direction.
-  ;;
-  ;; This is the Emacs 19 version.
+  ;; search for such a literal is done first in forward direction.  If
+  ;; NOT-IN-DELIMITER is non-nil, the case when point is inside a
+  ;; starting delimiter won't be recognized.  This only has effect for
+  ;; comments, which have starting delimiters with more than one
+  ;; character.
   (save-excursion
     (let* ((pos (point))
 	   (lim (or lim (c-point 'bod)))
@@ -460,18 +457,20 @@
 			    lim (point) nil nil state)
 		     lim (point)))
 	     (backward-char 2)
-	     (cons (point) (progn (forward-comment 1) (point))))
+	     (cons (point) (progn (c-forward-comment 1) (point))))
 	    ((nth 4 state)
 	     ;; Block comment.  Search backward for the comment starter.
 	     (while (nth 4 state)
 	       (search-backward "/*")	; Should never fail.
 	       (setq state (parse-partial-sexp lim (point))))
-	     (cons (point) (progn (forward-comment 1) (point))))
-	    ((c-safe (nth 4 (parse-partial-sexp ; Can't use prev state due
-			     lim (1+ (point))))) ; to bug in Emacs 19.34.
+	     (cons (point) (progn (c-forward-comment 1) (point))))
+	    ((and (not not-in-delimiter)
+		  (not (nth 5 state))
+		  (eq (char-before) ?/)
+		  (looking-at "[/*]"))
 	     ;; We're standing in a comment starter.
-	     (backward-char 2)
-	     (cons (point) (progn (forward-comment 1) (point))))
+	     (backward-char 1)
+	     (cons (point) (progn (c-forward-comment 1) (point))))
 	    (near
 	     (goto-char pos)
 	     ;; Search forward for a literal.
@@ -481,7 +480,7 @@
 	       (cons (point) (or (c-safe (c-forward-sexp 1) (point))
 				 (point-max))))
 	      ((looking-at "/[/*]")	; Line or block comment.
-	       (cons (point) (progn (forward-comment 1) (point))))
+	       (cons (point) (progn (c-forward-comment 1) (point))))
 	      (t
 	       ;; Search backward.
 	       (skip-chars-backward " \t")
@@ -495,31 +494,64 @@
 		   ;; comments, they will always be covered by the
 		   ;; normal case above.
 		   (goto-char end)
-		   (forward-comment -1)
+		   (c-forward-comment -1)
 		   ;; If LIM is bogus, beg will be bogus.
 		   (setq beg (point))))
 		 (if beg (cons beg end))))))
 	    ))))
 
-(defun c-literal-limits-fast (&optional lim)
+(defun c-literal-limits-fast (&optional lim near not-in-delimiter)
   ;; Like c-literal-limits, but for emacsen whose `parse-partial-sexp'
-  ;; returns the pos of the comment start.  FIXME: Add NEAR.
+  ;; returns the pos of the comment start.
   (save-excursion
-    (let ((state (parse-partial-sexp lim (point))))
+    (let* ((pos (point))
+	   (lim (or lim (c-point 'bod)))
+	   (state (parse-partial-sexp lim (point))))
       (cond ((nth 3 state)		; String.
 	     (goto-char (nth 8 state))
 	     (cons (point) (or (c-safe (c-forward-sexp 1) (point))
 			       (point-max))))
 	    ((nth 4 state)		; Comment.
 	     (goto-char (nth 8 state))
-	     (cons (point) (progn (forward-comment 1) (point))))
-	    ((c-safe
-	      (nth 4 (parse-partial-sexp ; Works?
-		      (point) (1+ (point)) nil nil state)))
-	     ;; We're in a comment starter.
-	     (backward-char 2)
-	     (cons (point) (progn (forward-comment 1) (point))))
+	     (cons (point) (progn (c-forward-comment 1) (point))))
+	    ((and (not not-in-delimiter)
+		  (not (nth 5 state))
+		  (eq (char-before) ?/)
+		  (looking-at "[/*]"))
+	     ;; We're standing in a comment starter.
+	     (backward-char 1)
+	     (cons (point) (progn (c-forward-comment 1) (point))))
+	    (near
+	     (goto-char pos)
+	     ;; Search forward for a literal.
+	     (skip-chars-forward " \t")
+	     (cond
+	      ((eq (char-syntax (or (char-after) ?\ )) ?\") ; String.
+	       (cons (point) (or (c-safe (c-forward-sexp 1) (point))
+				 (point-max))))
+	      ((looking-at "/[/*]")	; Line or block comment.
+	       (cons (point) (progn (c-forward-comment 1) (point))))
+	      (t
+	       ;; Search backward.
+	       (skip-chars-backward " \t")
+	       (let ((end (point)) beg)
+		 (cond
+		  ((eq (char-syntax (or (char-before) ?\ )) ?\") ; String.
+		   (setq beg (c-safe (c-backward-sexp 1) (point))))
+		  ((and (c-safe (forward-char -2) t)
+			(looking-at "*/"))
+		   ;; Block comment.  Due to the nature of line
+		   ;; comments, they will always be covered by the
+		   ;; normal case above.
+		   (goto-char end)
+		   (c-forward-comment -1)
+		   ;; If LIM is bogus, beg will be bogus.
+		   (setq beg (point))))
+		 (if beg (cons beg end))))))
 	    ))))
+
+(if (c-safe (> (length (save-excursion (parse-partial-sexp 1 1))) 8))
+    (defalias 'c-literal-limits 'c-literal-limits-fast))
 
 (defun c-collect-line-comments (range)
   ;; If the argument is a cons of two buffer positions (such as
@@ -536,18 +568,16 @@
 	    (let ((col (current-column))
 		  (beg (point))
 		  (end (cdr range)))
-	      (while (and (not (bobp))
-			  (forward-comment -1)
+	      (while (and (c-forward-comment -1)
 			  (looking-at "//")
 			  (= col (current-column)))
 		(setq beg (point)))
 	      (goto-char end)
-	      (while (progn
-		       (skip-chars-forward " \t")
-		       (and (looking-at "//")
-			    (= col (current-column))))
-		(forward-comment 1)
-		(setq end (point)))
+	      (while (and (progn (skip-chars-forward " \t")
+				 (looking-at "//"))
+			  (= col (current-column))
+			  (prog1 (zerop (forward-line 1))
+			    (setq end (point)))))
 	      (cons beg end))
 	  range)
       (error range))))
@@ -558,11 +588,11 @@
   ;; It's much faster than using c-in-literal and is intended to be
   ;; used when you need both the type of a literal and its limits.
   (if (consp range)
-    (save-excursion
-      (goto-char (car range))
-      (cond ((eq (char-syntax (or (char-after) ?\ )) ?\") 'string)
-	    ((looking-at "//") 'c++)
-	    (t 'c)))			; Assuming the range is valid.
+      (save-excursion
+	(goto-char (car range))
+	(cond ((eq (char-syntax (or (char-after) ?\ )) ?\") 'string)
+	      ((looking-at "//") 'c++)
+	      (t 'c)))			; Assuming the range is valid.
     range))
 
 
@@ -1230,28 +1260,32 @@ brace."
   ;; backward search.
   (save-excursion
     (or lim (setq lim (point-min)))
-    (if (and (eq (char-after) ?{)
-	     (progn (c-backward-syntactic-ws) (> (point) lim))
-	     (eq (char-before) ?\()
-	     (not (and c-special-brace-lists
-		       (c-looking-at-special-brace-list))))
-	(cons 'inexpr-statement (point))
-      (let (res)
-	(while (and (not res)
-		    (= (c-backward-token-1 1 t lim) 0)
-		    (>= (point) lim)
-		    (looking-at "(\\|\\w\\|\\s_\\|\\."))
-	  (setq res
-		(cond ((and c-inexpr-class-key
-			    (looking-at c-inexpr-class-key))
-		       (cons 'inexpr-class (point)))
-		      ((and c-inexpr-block-key
-			    (looking-at c-inexpr-block-key))
-		       (cons 'inexpr-statement (point)))
-		      ((and c-lambda-key
-			    (looking-at c-lambda-key))
-		       (cons 'inlambda (point))))))
-	res))))
+    (let ((block-follows (eq (char-after) ?{)))
+      ;; Look at the character after point only as a last resort when
+      ;; we can't disambiguate.
+      (if (and block-follows
+	       (progn (c-backward-syntactic-ws) (> (point) lim))
+	       (eq (char-before) ?\()
+	       (not (and c-special-brace-lists
+			 (c-looking-at-special-brace-list))))
+	  (cons 'inexpr-statement (point))
+	(let (res)
+	  (while (and (not res)
+		      (= (c-backward-token-1 1 t lim) 0)
+		      (>= (point) lim)
+		      (looking-at "(\\|\\w\\|\\s_\\|\\."))
+	    (setq res
+		  (cond ((and block-follows
+			      c-inexpr-class-key
+			      (looking-at c-inexpr-class-key))
+			 (cons 'inexpr-class (point)))
+			((and c-inexpr-block-key
+			      (looking-at c-inexpr-block-key))
+			 (cons 'inexpr-statement (point)))
+			((and c-lambda-key
+			      (looking-at c-lambda-key))
+			 (cons 'inlambda (point))))))
+	  res)))))
 
 (defun c-looking-at-inexpr-block-backward (&optional lim)
   ;; Returns non-nil if we're looking at the end of an in-expression
@@ -1322,19 +1356,6 @@ brace."
 	    (c-point 'eol))))
     ;; return the class vector
     inclass-p))
-
-(defsubst c-add-class-syntax (symbol classkey)
-  ;; The inclass and class-close syntactic symbols are added in
-  ;; several places and some work is needed to fix everything.
-  ;; Therefore it's collected here.
-  (save-restriction
-    (widen)
-    (goto-char (aref classkey 1))
-    (if (and (eq symbol 'inclass) (= (point) (c-point 'boi)))
-	(c-add-syntax symbol (point))
-      (c-add-syntax symbol (aref classkey 0))
-      (if (and c-inexpr-class-key (c-looking-at-inexpr-block))
-	  (c-add-syntax 'inexpr-class)))))
 
 
 ;; This function implements the main decision tree for determining the
@@ -1425,10 +1446,7 @@ brace."
 	  (c-add-syntax 'string (c-point 'bopl)))
 	 ;; CASE 2: in a C or C++ style comment.
 	 ((memq literal '(c c++))
-	  ;; we need to catch multi-paragraph C comments
-	  (while (and (zerop (forward-line -1))
-		      (looking-at "^[ \t]*$")))
-	  (c-add-syntax literal (c-point 'boi)))
+	  (c-add-syntax literal (car (c-literal-limits lim))))
 	 ;; CASE 3: in a cpp preprocessor macro
 	 ((eq literal 'pound)
 	  (let ((boi (c-point 'boi))
@@ -1638,9 +1656,16 @@ brace."
 	      ;; don't add inclass symbol since relative point already
 	      ;; contains any class offset
 	      )))
-	   ;; CASE 5D: this could be a top-level compound statement or a
-	   ;; member init list continuation
-	   ((eq char-before-ip ?,)
+	   ;; CASE 5D: this could be a top-level compound statement, a
+	   ;; member init list continuation, or a template argument
+	   ;; list continuation.
+	   ((c-with-syntax-table (if (c-major-mode-is 'c++-mode)
+				     c++-template-syntax-table
+				   (syntax-table))
+	      (save-excursion
+		(while (and (= (c-backward-token-1 1 t lim) 0)
+			    (not (looking-at "[;{<,]"))))
+		(eq (char-after) ?,)))
 	    (goto-char indent-point)
 	    (c-backward-syntactic-ws lim)
 	    (while (and (< lim (point))
@@ -1659,7 +1684,6 @@ brace."
 	     ;; for bogus matches on access specifiers inside classes.
 	     ((and (save-excursion
 		     ;; There might be member inits on the first line too.
-		     (end-of-line)
 		     (while (and (> (point) lim)
 				 (eq (char-before) ?,)
 				 (= (c-backward-token-1 2 t lim) 0)
@@ -1667,15 +1691,16 @@ brace."
 				 (= (c-backward-token-1 1 t lim) 0))
 		       (c-backward-syntactic-ws lim))
 		     (setq placeholder (point))
-		     (c-backward-syntactic-ws lim)
-		     (eq (char-before) ?:))
+		     (c-backward-token-1 1 t lim)
+		     (and (eq (char-after) ?:)
+			  (not (eq (char-before) ?:))))
 		   (save-excursion
 		     (goto-char placeholder)
 		     (back-to-indentation)
 		     (and
-		      c-access-key
-		      (not (looking-at c-access-key))
-		      (not (looking-at c-class-key)))
+		      (if c-access-key (not (looking-at c-access-key)) t)
+		      (not (looking-at c-class-key))
+		      (if c-bitfield-key (not (looking-at c-bitfield-key)) t))
 		     ))
 	      (goto-char placeholder)
 	      (c-forward-syntactic-ws)
@@ -1708,7 +1733,7 @@ brace."
 	      ;; we can probably indent it just like an arglist-cont
 	      (goto-char placeholder)
 	      (c-beginning-of-statement-1 lim)
-	      (c-add-syntax 'template-args-cont (point)))
+	      (c-add-syntax 'template-args-cont (c-point 'boi)))
 	     ;; CASE 5D.5: perhaps a top-level statement-cont
 	     (t
 	      (c-beginning-of-statement-1 lim)
@@ -1821,7 +1846,13 @@ brace."
 		   (beginning-of-line)
 		   (looking-at c-method-key)))
 	    (c-add-syntax 'objc-method-args-cont (point)))
-	   ;; CASE 5K: we are at a topmost continuation line
+	   ;; CASE 5K: we are at the first argument of a template
+	   ;; arglist that begins on the previous line.
+	   ((eq (char-before) ?<)
+	    (c-beginning-of-statement-1 lim)
+	    (c-forward-syntactic-ws)
+	    (c-add-syntax 'template-args-cont (c-point 'boi)))
+	   ;; CASE 5L: we are at a topmost continuation line
 	   (t
 	    (c-beginning-of-statement-1 lim)
 	    (c-forward-syntactic-ws)
@@ -1839,12 +1870,9 @@ brace."
 	    ;; It's a Pike lambda.  Check whether we are between the
 	    ;; lambda keyword and the argument list or at the defun
 	    ;; opener.
-	    (setq tmpsymbol
-		  (if (save-excursion
-			(and (c-safe (c-forward-sexp -1) t)
-			     (looking-at c-lambda-key)))
-		      'lambda-intro-cont
-		    'inline-open)))
+	    (setq tmpsymbol (if (eq char-after-ip ?{)
+				'inline-open
+			      'lambda-intro-cont)))
 	  (goto-char (cdr placeholder))
 	  (c-add-syntax tmpsymbol (c-point 'boi))
 	  (c-add-syntax (car placeholder)))
@@ -1859,7 +1887,10 @@ brace."
 	  (c-backward-syntactic-ws containing-sexp)
 	  (cond
 	   ;; CASE 7A: we are looking at the arglist closing paren
-	   ((and (not (eq char-before-ip ?,))
+	   ((and (or (c-major-mode-is 'pike-mode)
+		     ;; Don't check this in Pike since it allows a
+		     ;; comma after the last arg.
+		     (not (eq char-before-ip ?,)))
 		 (memq char-after-ip '(?\) ?\])))
 	    (goto-char containing-sexp)
 	    (c-add-syntax 'arglist-close (c-point 'boi)))
@@ -1961,10 +1992,13 @@ brace."
 	   ((and (consp special-brace-list)
 		 (eq char-after-ip (car (cdr special-brace-list))))
 	    (goto-char (car (car special-brace-list)))
-	    (c-beginning-of-statement-1 lim)
-	    (c-forward-token-1 0)
-	    (if (looking-at "typedef\\>") (c-forward-token-1 1))
-	    (c-add-syntax 'brace-list-open (c-point 'boi)))
+	    (skip-chars-backward " \t")
+	    (if (bolp)
+		(setq syntax (c-guess-basic-syntax))
+	      (c-beginning-of-statement-1 lim)
+	      (c-forward-token-1 0)
+	      (if (looking-at "typedef\\>") (c-forward-token-1 1))
+	      (c-add-syntax 'brace-list-open (c-point 'boi))))
 	   ;; CASE 9B: brace-list-close brace
 	   ((if (consp special-brace-list)
 		;; Check special brace list closer.
@@ -2034,7 +2068,7 @@ brace."
 	  (let ((after-cond-placeholder
 		 (save-excursion
 		   (goto-char placeholder)
-		   (if (looking-at c-conditional-key)
+		   (if (and c-conditional-key (looking-at c-conditional-key))
 		       (progn
 			 (c-safe (c-skip-conditional))
 			 (c-forward-syntactic-ws)
@@ -2078,7 +2112,14 @@ brace."
 				  (= (c-backward-token-1 1 t) 0)
 				  (/= (char-after) ?=)))
 		      (eq (char-after) ?=)))
-		(c-add-syntax 'brace-list-open placeholder))
+		;; The most semantically accurate symbol here is
+		;; brace-list-open, but we report it simply as a
+		;; statement-cont.  The reason is that one normally
+		;; adjusts brace-list-open for brace lists as
+		;; top-level constructs, and brace lists inside
+		;; statements is a completely different context.
+		(goto-char placeholder)
+		(c-add-syntax 'statement-cont (c-point 'boi)))
 	       ;; CASE 10B.3: catch-all for unknown construct.
 	       (t
 		;; Can and should I add an extensibility hook here?
@@ -2131,7 +2172,8 @@ brace."
 		   (setq placeholder (point))
 		   (looking-at "do\\b[^_]"))
 		 ))
-	  (c-add-syntax 'do-while-closure placeholder))
+	  (goto-char placeholder)
+	  (c-add-syntax 'do-while-closure (c-point 'boi)))
 	 ;; CASE 13: A catch or finally clause?  This case is simpler
 	 ;; than if-else and do-while, because a block is required
 	 ;; after every try, catch and finally.
@@ -2404,6 +2446,17 @@ With universal argument, inserts the analysis as a comment on that line."
       (insert (format "%s" syntax))
       ))
   (c-keep-region-active))
+
+(defun c-syntactic-information-on-region (from to)
+  "Inserts a comment with the syntactic analysis on every line in the region."
+  (interactive "*r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(c-show-syntactic-information '(0))
+	(forward-line)))))
 
 
 (provide 'cc-engine)
