@@ -3195,12 +3195,16 @@ The variable `selective-display' has a separate value for each buffer."
 
 (defun toggle-truncate-lines (arg)
   "Toggle whether to fold or truncate long lines on the screen.
-With arg, truncate long lines iff arg is positive."
+With arg, truncate long lines iff arg is positive.
+Note that in side-by-side windows, truncation is always enabled."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
 	    (not truncate-lines)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update)
+  (message "Truncate long lines %s"
+	   (if truncate-lines "enabled" "disabled")))
 
 (defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")
