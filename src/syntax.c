@@ -1025,33 +1025,33 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
 
 /* Dump syntax table to buffer in human-readable format */
 
-static void
-describe_syntax (value)
-    Lisp_Object value;
+DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
+       Sinternal_describe_syntax_value, 1, 1, 0,
+       doc: /* Insert a description of the internal syntax description SYNTAX at point.  */)
+     (syntax)
+     Lisp_Object syntax;
 {
   register enum syntaxcode code;
   char desc, start1, start2, end1, end2, prefix, comstyle, comnested;
   char str[2];
-  Lisp_Object first, match_lisp;
-
-  Findent_to (make_number (16), make_number (1));
+  Lisp_Object first, match_lisp, value = syntax;
 
   if (NILP (value))
     {
-      insert_string ("default\n");
-      return;
+      insert_string ("default");
+      return syntax;
     }
 
   if (CHAR_TABLE_P (value))
     {
-      insert_string ("deeper char-table ...\n");
-      return;
+      insert_string ("deeper char-table ...");
+      return syntax;
     }
 
   if (!CONSP (value))
     {
-      insert_string ("invalid\n");
-      return;
+      insert_string ("invalid");
+      return syntax;
     }
 
   first = XCAR (value);
@@ -1059,8 +1059,8 @@ describe_syntax (value)
 
   if (!INTEGERP (first) || !(NILP (match_lisp) || INTEGERP (match_lisp)))
     {
-      insert_string ("invalid\n");
-      return;
+      insert_string ("invalid");
+      return syntax;
     }
 
   code = (enum syntaxcode) (XINT (first) & 0377);
@@ -1075,7 +1075,7 @@ describe_syntax (value)
   if ((int) code < 0 || (int) code >= (int) Smax)
     {
       insert_string ("invalid");
-      return;
+      return syntax;
     }
   desc = syntax_code_spec[(int) code];
 
@@ -1142,7 +1142,7 @@ describe_syntax (value)
       insert_string ("string fence"); break;
     default:
       insert_string ("invalid");
-      return;
+      return syntax;
     }
 
   if (!NILP (match_lisp))
@@ -1168,8 +1168,19 @@ describe_syntax (value)
   if (prefix)
     insert_string (",\n\t  is a prefix character for `backward-prefix-chars'");
 
+  return syntax;
+}
+
+
+static void
+describe_syntax (value)
+    Lisp_Object value;
+{
+  Findent_to (make_number (16), make_number (1));
+  Finternal_describe_syntax_value (value);
   insert_string ("\n");
 }
+
 
 static Lisp_Object
 describe_syntax_1 (vector)
@@ -3027,6 +3038,7 @@ See the info node `(elisp)Syntax Properties' for a description of the
   defsubr (&Sstring_to_syntax);
   defsubr (&Smodify_syntax_entry);
   defsubr (&Sdescribe_syntax);
+  defsubr (&Sinternal_describe_syntax_value);
 
   defsubr (&Sforward_word);
 
