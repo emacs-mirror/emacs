@@ -60,7 +60,8 @@ Non-nil arg (prefix arg) means append to last macro defined;\n\
 	{
 	  current_kboard->kbd_macro_bufsize = 30;
 	  current_kboard->kbd_macro_buffer
-	    = (Lisp_Object *)xrealloc (30 * sizeof (Lisp_Object));
+	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
+				       30 * sizeof (Lisp_Object));
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
