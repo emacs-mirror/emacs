@@ -1819,8 +1819,6 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 (defun encode-coding-char (char coding-system)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
 If CODING-SYSTEM can't safely encode CHAR, return nil."
-  (if (cmpcharp char)
-      (setq char (car (decompose-composite-char char 'list))))
   (let ((str1 (char-to-string char))
 	(str2 (make-string 2 char))
 	(safe-charsets (and coding-system
