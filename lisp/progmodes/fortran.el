@@ -370,19 +370,23 @@ This variable used in TAB format mode.")
   "Default expressions to highlight in Fortran mode.")
 
 (defvar fortran-imenu-generic-expression
-    (list
-     (list
-      nil
-      ;; Lines are: 1. leading whitespace; 2. function declaration
-      ;; with optional type, e.g. `real', `double precision', [which
-      ;; will be fooled by `end function' allowed by G77]; 3. untyped
-      ;; declarations; 4. the name to index.
+  ;; These patterns could be confused by sequence nos. in cols 72+ and
+  ;; don't allow continuations everywhere.
+  '((nil
+     ;; Lines below are: 1. leading whitespace; 2. function
+     ;; declaration with optional type, e.g. `real', `real*4',
+     ;; character(*), `double precision' and possible statement
+     ;; continuation; 3. untyped declarations; 4. the variable to
+     ;; index.  [This will be fooled by `end function' allowed by G77.
+     ;; Also, it assumes sensible whitespace is employed.]
       "^\\s-+\\(\
-\\(\\sw\\|\\s-\\)*\\<function\\|\
-subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t]+\
+\\(\\sw\\|\\s-\\|[*()+]\\)*\\<function\\|\
+subroutine\\|entry\\|block\\s-*data\\|program\\)[ \t+]+\
 \\(\\sw+\\)"
-      3))
-  "imenu generic expression for `imenu-ci-default-create-index-function'.")
+     3)
+    ;; Un-named block data
+    (nil "^\\s-+\\(block\\s-*data\\)\\s-*$" 1))
+  "imenu generic expression for `imenu-default-create-index-function'.")
 
 (defvar fortran-mode-map ()
   "Keymap used in Fortran mode.")
