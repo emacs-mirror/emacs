@@ -1,5 +1,5 @@
 /* This file is the configuration file for GNU/Linux operating systems.
-   Copyright (C) 1985, 1986, 1992, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1994, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,29 +37,17 @@ Boston, MA 02111-1307, USA.  */
 
 #define SYSTEM_TYPE "linux"		/* All the best software is free. */
 
-/* Emacs can read input using SIGIO and buffering characters itself,
-   or using CBREAK mode and making C-g cause SIGINT.
-   The choice is controlled by the variable interrupt_input.
-   Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
+/* Check the version number of Linux--if it is at least 1.2.0,
+   it is safe to use SIGIO.  */
+#ifndef NOT_C_CODE
+#ifdef emacs
+#include <linux/version.h>
 
-   SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvantages
-     1) At least in 4.2, it is impossible to handle the Meta key properly.
-        I hear that in system V this problem does not exist.
-     2) Control-G causes output to be discarded.
-        I do not know whether this can be fixed in system V.
-
-   Another method of doing input is planned but not implemented.
-   It would have Emacs fork off a separate process
-   to read the input and send it to the true Emacs process
-   through a pipe.
-*/
-
-/* There have been suggestions made to add SIGIO to Linux.  If this
-   is done, you may, at your discretion, uncomment the line below.
-*/
-
-/* #define INTERRUPT_INPUT */
+#if LINUX_VERSION_CODE > 0x10200
+#define LINUX_SIGIO_DOES_WORK
+#endif
+#endif
+#endif
 
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'p' means it is /dev/ptyp0  */
@@ -169,11 +157,15 @@ Boston, MA 02111-1307, USA.  */
 /* As of version 1.1.51, Linux does not actually implement SIGIO.  */
 /* Here we assume that signal.h is already included.  */
 #ifdef emacs
+#ifdef LINUX_SIGIO_DOES_WORK
+#define INTERRUPT_INPUT
+#else
 #undef SIGIO
 /* Some versions of Linux define SIGURG and SIGPOLL as aliases for SIGIO.
    This prevents lossage in process.c.  */
 #undef SIGURG
 #undef SIGPOLL
+#endif
 #endif
 
 /* This is needed for sysdep.c */
@@ -226,6 +218,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
 #define LIB_MOTIF -lXm -lXpm
+
+#ifdef HAVE_NCURSES
+#define TERMINFO
+#endif
 
 #define HAVE_SYSVIPC
 
