@@ -200,6 +200,8 @@
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
+	     (open-paren-in-column-0-is-defun-start editing-basics boolean
+						    "21.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (display-buffer-function windows (choice (const nil) function))
@@ -254,6 +256,7 @@
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
+	     (line-number-display-limit-width display integer)
 	     (highlight-nonselected-windows display boolean)
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
@@ -319,6 +322,8 @@
 	(put symbol 'custom-version version)))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
+(custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
+		     'custom-variable)
 (put 'selection-coding-system 'custom-set
      (lambda (symbol value)
        (set-selection-coding-system value)
