@@ -1,3 +1,11 @@
+2005-03-04  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Error Debugging): Document stack-trace-on-error.
+
+2005-03-03  Lute Kamstra  <lute@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls): Fix typo.
+
 2005-03-01  Lute Kamstra  <lute@gnu.org>
 
 	* debugging.texi (Debugger Commands): Update `j'.

@@ -1,3 +1,9 @@
+2005-03-04  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a
+	defvar.
+	(debug-function-list): Ditto.
+
 2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* textmodes/texinfmt.el (texinfo-append-refill):
