@@ -1,11 +1,10 @@
 2002-04-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* cus-start.el: Rename `x-autoselect-window' to
-	`autoselect-window'.
+	* cus-start.el: Rename `x-autoselect-window' to `autoselect-window'.
 
 	* window.el (handle-select-window): New function.
 	Update copyright.
-	
+
 2002-04-01  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (info-tool-bar-map): Use tool-bar-local-item-from-menu.
@@ -13,14 +12,14 @@
 	* toolbar/tool-bar.el (tool-bar-local-item): Renamed from
 	tool-bar-add-item, and new arg MAP.
 	(tool-bar-add-item): Now calls tool-bar-local-item.
-	(tool-bar-local-item-from-menu): Renamed from 
+	(tool-bar-local-item-from-menu): Renamed from
 	tool-bar-add-item-from-menu, and new arg IN-MAP.
 	(tool-bar-add-item-from-menu): Now calls tool-bar-local-item-from-menu.
 
 	* help-fns.el (help-with-tutorial): Allow various ways
 	to specify the text in the [...] line, in handling the <...> line.
 
-	* progmodes/idlw-rinfo.el (idlwave-system-routines): 
+	* progmodes/idlw-rinfo.el (idlwave-system-routines):
 	WOLRDTITLE => WORLDTITLE.  SUPRESS_VALUE => SUPPRESS_VALUE.
 
 	* subr.el (redraw-modeline): Define alias.
@@ -30,7 +29,7 @@
 	* files.el (file-expand-wildcards): Use save-match-data.
 
 	* files.el (format-alist): Mark as risky.
-	
+
 	* simple.el (kill-new): Doc fix.
 
 	* emacs-lisp/byte-opt.el (side-effect-free-fns)
@@ -56,8 +55,8 @@
 
 2002-03-29  Colin Walters  <walters@verbum.org>
 
-	* ibuffer.el (ibuffer-mark-interactive): Use
-	`ibuffer-forward-line' instead of `forward-line'.
+	* ibuffer.el (ibuffer-mark-interactive): Use `ibuffer-forward-line'
+	instead of `forward-line'.
 	(ibuffer-forward-line): Be sure to skip over special properties
 	before moving, too.
 
@@ -69,6 +68,20 @@
 
 	* calc/calc-misc.el (calc-delete-windows-keep): Function deleted.
 
+2002-03-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-lexical-context): Return (text . START)
+	instead of nil when point is outside of any tag.
+	(sgml-beginning-of-tag): Adjust to the change.
+	(sgml-calculate-indent): Use the new info returned by
+	sgml-lexical-context.  Try to handle unclosed tags.
+
+	* textmodes/xml-lite.el (xml-lite-get-context): Don't stop parsing
+	at unclosed tags unless it is at indentation.
+	Kill nested unclosed tags.
+	(xml-lite-calculate-indent, xml-lite-indent-line): Remove.
+	(xml-lite-mode): Use sgml-indent-line instead.
+
 2002-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (auto-save-file-name-transforms): Don't run "\\2" via
@@ -77,13 +90,34 @@
 	* startup.el (command-line): Recompute auto-save-file-name-transforms
 	using the updated value of temporary-file-directory.
 
+2002-03-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/xml-lite.el (xml-lite-get-context): Allow stopping
+	even with an empty context.  Don't save excursion any more.
+	Don't complain about unmatched start-tags in sgml-unclosed-tags.
+	Ignore end-tags in sgml-empty-tags.
+	(xml-lite-get-context, xml-lite-calculate-indent)
+	(xml-lite-insert-end-tag): Save excursion around xml-lite-get-context.
+	(xml-lite-indent-line): Use back-to-indentation.
+
+	* textmodes/sgml-mode.el (sgml-basic-offset): New var.
+	(sgml-name-re, sgml-attrs-re): New consts.
+	(sgml-tag-name-re, sgml-start-tag-regex, sgml-font-lock-keywords-1)
+	(sgml-mode): Use them.
+	(sgml-lexical-context): Default to (point-min) if nothing else works.
+	(sgml-calculate-indent): Indent slightly differently.
+	(sgml-indent-line): Use back-to-indentation.
+	(sgml-parse-dtd): New function.
+	(sgml-unclosed-tags): New var.
+	(html-mode): Set it.
+
 2002-03-29  Simon Marshall  <simon.marshall@misys.com>
 
 	* font-lock.el (save-buffer-state): Use make-symbol to bind `modified'.
 
 2002-03-29  Richard M. Stallman  <rms@gnu.org>
 
-	* dired-aux.el (dired-do-query-replace-regexp, dired-do-search): 
+	* dired-aux.el (dired-do-query-replace-regexp, dired-do-search):
 	Use FILTER arg in dired-get-marked-files to exclude directories.
 	(dired-nondirectory-p): New function.
 
@@ -115,6 +149,23 @@
 
 	* bindings.el (mode-line-mule-info): Use :propertize, not :eval.
 
+2002-03-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/xml-lite.el (xml-lite-in-string-p):
+	Use sgml-lexical-context.
+	(xml-lite-parse-tag-backward): Use sgml-tag-syntax-table.
+	(xml-lite-get-context): Check that open/close tags match.
+	Don't stop scanning while we're ignoring matching tags.
+
+	* textmodes/sgml-mode.el (sgml-make-syntax-table): New fun.
+	(sgml-mode-syntax-table): Use it.
+	(sgml-tag-syntax-table, sgml-tag-name-re): New const.
+	(sgml-tags-invisible): Use it.
+	(sgml-lexical-context): New fun.
+	(sgml-maybe-end-tag, sgml-beginning-of-tag): Use it.
+	(sgml-quote): Accept \n as entity reference terminator.
+	(sgml-calculate-indent, sgml-indent-line): New funs.
+
 2002-03-28  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-global-switches): New user option.
@@ -138,6 +189,15 @@
 	(operation query-replace): Use new `noerror' arg for
 	`query-replace-read-args'.
 	(operation query-replace-regexp): Ditto.
+
+2002-03-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/xml-lite.el: Fix copyright notice.
+	(xml-lite-basic-offset): Rename from xml-lite-indent-offset.
+	(xml-lite-indent-comment-offset): Remove.
+	(xml-lite-calculate-indent): Use new name.  Use natural alignment
+	for comments.
+	(xml-lite-in-string-p): Simplify.
 
 2002-03-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
