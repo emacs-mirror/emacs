@@ -406,6 +406,7 @@ echo "Making links to \`leim' and its subdirectories"
  ln MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
  ln Makefile.in ../${tempdir}/leim/Makefile.in
+ ln leim-ext.el ../${tempdir}/leim/leim-ext.el
  ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
  rm -f ../${tempdir}/leim/quail/quick-b5.*
  rm -f ../${tempdir}/leim/quail/quick-cns.*

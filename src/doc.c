@@ -574,7 +574,7 @@ records them in function and variable definitions.
 The function takes one argument, FILENAME, a string;
 it specifies the file name (without a directory) of the DOC file.
 That file is found in `../etc' now; later, when the dumped Emacs is run,
-the same file name is found in the `data-directory'.  */)
+the same file name is found in the `doc-directory'.  */)
      (filename)
      Lisp_Object filename;
 {

@@ -232,8 +232,8 @@ called interactively.
 which can specify how @key{TAB} should indent macro calls, and how to
 step through them for Edebug.
 
-@anchor{Definition of declare}
 @defmac declare @var{specs}@dots{}
+@anchor{Definition of declare}
 A @code{declare} form is used in a macro definition to specify various
 additional information about it.  Two kinds of specification are
 currently supported:

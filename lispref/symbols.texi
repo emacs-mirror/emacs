@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/symbols
@@ -360,8 +360,8 @@ This variable is the standard obarray for use by @code{intern} and
 @code{read}.
 @end defvar
 
-@anchor{Definition of mapatoms}
 @defun mapatoms function &optional obarray
+@anchor{Definition of mapatoms}
 This function calls @var{function} once with each symbol in the obarray
 @var{obarray}.  Then it returns @code{nil}.  If @var{obarray} is
 omitted, it defaults to the value of @code{obarray}, the standard

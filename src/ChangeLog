@@ -1,3 +1,146 @@
+2004-04-10  Miles Bader  <miles@gnu.org>
+
+	* eval.c (Fspecialp): New function.
+	(syms_of_eval): Initialize it.
+
+2004-04-03  Miles Bader  <miles@gnu.org>
+
+	* eval.c (Feval): If a variable isn't bound lexically, fall back
+	to looking it up dynamically even if it isn't declared special.
+
+2002-08-26  Miles Bader  <miles@gnu.org>
+
+	* bytecode.c (Fbyte_code): Fsub1 can GC, so protect it.
+
+2002-06-12  Miles Bader  <miles@gnu.org>
+
+	Lexical binding changes to the byte-code interpreter:
+
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, Bvec_ref, Bvec_set)
+	(BdiscardN): New constants. 
+	(exec_byte_code): Renamed from `Fbyte_code'.
+	Implement above new bytecodes.
+	Add ARGS-TEMPLATE, NARGS and ARGS parameters, and optionally use
+	them push initial args on the stack.
+	(Fbyte_code): New function, just call `exec_byte_code'.
+	Add additional optional arguments for `exec_byte_code'.
+	(Qand_optional, Qand_rest): New extern declarations.
+	* eval.c (Fcurry, Ffunctionp): New functions.
+	(syms_of_eval): Initialize them.
+	(funcall_lambda): Call `exec_byte_code' instead of Fbyte_code.
+	If a compiled-function object has a `push-args' slot, call the
+	byte-code interpreter without binding any arguments.
+	(Ffuncall): Add support for curried functions.
+	* lisp.h (Fbyte_code): Declare max-args as MANY.
+	(exec_byte_code): New declaration.
+
+	Lexical binding changes to the lisp interpreter:
+
+	* lisp.h (struct Lisp_Symbol): Add `declared_special' field.
+	(apply_lambda): Add new 3rd arg to decl.
+	* alloc.c (Fmake_symbol): Initialize `declared_special' field.
+	* eval.c (Vinterpreter_lexical_environment): New variable.
+	(syms_of_eval): Initialize it.
+	(Fsetq): Modify SYM's lexical binding if appropriate.
+	(Ffunction): Return a closure if within a lexical environment.
+	(Flet, FletX): Lexically bind non-defvar'd variables if inside a
+	lexical environment.
+	(Feval): Return lexical binding of variables, if they have one.
+	Pass current lexical environment to embedded lambdas.  Handle closures.
+	(Ffuncall): Pass nil lexical environment to lambdas.  Handle closures.
+	(funcall_lambda): Add new LEXENV argument, and lexically bind
+	arguments if it's non-nil.  Bind `interpreter-lexenv' if it changed.
+	(apply_lambda): Add new LEXENV argument and pass it to funcall_lambda.
+	(Fdefvaralias, Fdefvar, Fdefconst): Mark the variable as special.
+	(Qinternal_interpreter_environment, Qclosure): New constants.
+	(syms_of_eval): Initialize them.
+	(Fdefun, Fdefmacro): Use a closure if lexical binding is active.
+	* lread.c (defvar_bool, defvar_lisp_nopro, defvar_per_buffer) 
+	(defvar_kboard, defvar_int): Mark the variable as special.
+	(Vlexical_binding, Qlexical_binding): New variables.
+	(syms_of_lread): Initialize them.
+	(Fload): Bind `lexically-bound' to nil unless specified otherwise
+	in the file header.
+	(lisp_file_lexically_bound_p): New function.
+	(Qinternal_interpreter_environment): New variable.
+	* doc.c (Qclosure): New extern declaration.
+	(Fdocumentation, store_function_docstring): Handle interpreted
+	closures.
+
+2004-06-23  David Kastrup  <dak@gnu.org>
+
+	* search.c (Freplace_match): Adjust the match-data more
+	thoroughly when replacing strings in the buffer.
+	search.c (match-data): When INTEGERS is non-nil and the last match
+	was in a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is
+	a buffer, restore it to last_thing_searched.
+	(save_search_regs): Save last_thing_searched as part of the match
+	data.
+	(restore_match_data): Restore it again.
+
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Ftext_char_description): Doc fix.
+	* doc.c (Fsnarf_documentation): Doc fix.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmapcar, Fmapconcat): GCPRO the args array.
+
+	* lisp.h (struct Lisp_Save_Value): New member dogc.
+	(SAFE_ALLOCA_LISP): Change second arg to number of elements.
+	Set dogc member in Lisp_Save_Value object so it will be GC'ed.
+	(SAFE_FREE_LISP): New macro.
+
+	* alloc.c (safe_alloca_unwind): Clear dogc and pointer members.
+	(make_save_value): Init new dogc member.
+	(mark_object): Mark Lisp_Save_Value pointer array if dogc is set.
+
+	* fns.c (Fmapconcat, Fmapcar): Use new SAFE_ALLOCA_LISP and
+	SAFE_FREE_LISP macros.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (SAFE_ALLOCA_LISP): New macro to allocate Lisp_Objects.
+	Temporarily inhibits GC if memory is xmalloc'ed, as the Lisp_Objects
+	in that memory area are unknown to GC.  Add comments.
+
+	* fns.c (Fmapconcat, Fmapcar): Use SAFE_ALLOCA_LISP.
+
+2004-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (MAX_ALLOCA): Define here.
+	(safe_alloca_unwind): Add prototype.
+	(USE_SAFE_ALLOCA, SAFE_ALLOCA, SAFE_FREE): New macros.
+
+	* alloc.c (safe_alloca_unwind): New function.
+
+	* casefiddle.c (casify_object): Use SAFE_ALLOCA.
+
+	* charset.c (Fstring): Use SAFE_ALLOCA.
+
+	* coding.c (MAX_ALLOCA): Remove define.
+
+	* data.c (MAX_ALLOCA): Remove define.
+	(Faset): Use SAFE_ALLOCA.
+
+	* editfns.c (Fformat, Ftranspose_regions): Use SAFE_ALLOCA.
+
+	* fns.c (string_make_multibyte, string_to_multibyte)
+	(string_make_unibyte, Fmapconcat, Fmapcar): Use SAFE_ALLOCA.
+	(MAX_ALLOCA): Remove define.
+	(Fbase64_encode_region, Fbase64_encode_string)
+	(Fbase64_decode_region, Fbase64_decode_string): Use SAFE_ALLOCA.
+	(Fbase64_encode_region, Fbase64_encode_string): Fix potential
+	memory leak if encoding fails.
+
+	* xdisp.c (add_to_log): Use SAFE_ALLOCA.
+
+2004-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
 	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
@@ -125,75 +268,6 @@
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.
-
-2004-04-10  Miles Bader  <miles@gnu.org>
-
-	* eval.c (Fspecialp): New function.
-	(syms_of_eval): Initialize it.
-
-2004-04-03  Miles Bader  <miles@gnu.org>
-
-	* eval.c (Feval): If a variable isn't bound lexically, fall back
-	to looking it up dynamically even if it isn't declared special.
-
-2002-08-26  Miles Bader  <miles@gnu.org>
-
-	* bytecode.c (Fbyte_code): Fsub1 can GC, so protect it.
-
-2002-06-12  Miles Bader  <miles@gnu.org>
-
-	Lexical binding changes to the byte-code interpreter:
-
-	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, Bvec_ref, Bvec_set)
-	(BdiscardN): New constants. 
-	(exec_byte_code): Renamed from `Fbyte_code'.
-	Implement above new bytecodes.
-	Add ARGS-TEMPLATE, NARGS and ARGS parameters, and optionally use
-	them push initial args on the stack.
-	(Fbyte_code): New function, just call `exec_byte_code'.
-	Add additional optional arguments for `exec_byte_code'.
-	(Qand_optional, Qand_rest): New extern declarations.
-	* eval.c (Fcurry, Ffunctionp): New functions.
-	(syms_of_eval): Initialize them.
-	(funcall_lambda): Call `exec_byte_code' instead of Fbyte_code.
-	If a compiled-function object has a `push-args' slot, call the
-	byte-code interpreter without binding any arguments.
-	(Ffuncall): Add support for curried functions.
-	* lisp.h (Fbyte_code): Declare max-args as MANY.
-	(exec_byte_code): New declaration.
-
-	Lexical binding changes to the lisp interpreter:
-
-	* lisp.h (struct Lisp_Symbol): Add `declared_special' field.
-	(apply_lambda): Add new 3rd arg to decl.
-	* alloc.c (Fmake_symbol): Initialize `declared_special' field.
-	* eval.c (Vinterpreter_lexical_environment): New variable.
-	(syms_of_eval): Initialize it.
-	(Fsetq): Modify SYM's lexical binding if appropriate.
-	(Ffunction): Return a closure if within a lexical environment.
-	(Flet, FletX): Lexically bind non-defvar'd variables if inside a
-	lexical environment.
-	(Feval): Return lexical binding of variables, if they have one.
-	Pass current lexical environment to embedded lambdas.  Handle closures.
-	(Ffuncall): Pass nil lexical environment to lambdas.  Handle closures.
-	(funcall_lambda): Add new LEXENV argument, and lexically bind
-	arguments if it's non-nil.  Bind `interpreter-lexenv' if it changed.
-	(apply_lambda): Add new LEXENV argument and pass it to funcall_lambda.
-	(Fdefvaralias, Fdefvar, Fdefconst): Mark the variable as special.
-	(Qinternal_interpreter_environment, Qclosure): New constants.
-	(syms_of_eval): Initialize them.
-	(Fdefun, Fdefmacro): Use a closure if lexical binding is active.
-	* lread.c (defvar_bool, defvar_lisp_nopro, defvar_per_buffer) 
-	(defvar_kboard, defvar_int): Mark the variable as special.
-	(Vlexical_binding, Qlexical_binding): New variables.
-	(syms_of_lread): Initialize them.
-	(Fload): Bind `lexically-bound' to nil unless specified otherwise
-	in the file header.
-	(lisp_file_lexically_bound_p): New function.
-	(Qinternal_interpreter_environment): New variable.
-	* doc.c (Qclosure): New extern declaration.
-	(Fdocumentation, store_function_docstring): Handle interpreted
-	closures.
 
 2004-06-13  Andreas Schwab  <schwab@suse.de>
 

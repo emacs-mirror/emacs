@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/backups
@@ -712,8 +712,8 @@ reverts the file without asking the user for confirmation.
   Some major modes customize @code{revert-buffer} by making
 buffer-local bindings for these variables:
 
-@anchor{Definition of revert-buffer-function}
 @defvar revert-buffer-function
+@anchor{Definition of revert-buffer-function}
 The value of this variable is the function to use to revert this
 buffer.  If non-@code{nil}, it should be a function with two optional
 arguments to do the work of reverting.  The two optional arguments,

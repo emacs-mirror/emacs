@@ -6315,6 +6315,7 @@ add_to_log (format, arg1, arg2)
   char *buffer;
   int len;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  USE_SAFE_ALLOCA;
 
   /* Do nothing if called asynchronously.  Inserting text into
      a buffer may call after-change-functions and alike and
@@ -6331,10 +6332,12 @@ add_to_log (format, arg1, arg2)
   msg = Fformat (3, args);
 
   len = SBYTES (msg) + 1;
-  buffer = (char *) alloca (len);
+  SAFE_ALLOCA (buffer, char *, len);
   bcopy (SDATA (msg), buffer, len);
 
   message_dolog (buffer, len - 1, 1, 0);
+  SAFE_FREE (len);
+
   UNGCPRO;
 }
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 2003, 2004 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/eval
 @node Evaluation, Control Structures, Symbols, Top
@@ -313,8 +313,8 @@ symbol function indirection when calling @code{erste}.
 perform symbol function indirection explicitly.
 
 @c Emacs 19 feature
-@anchor{Definition of indirect-function}
 @defun indirect-function function
+@anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If
 @var{function} is a symbol, then it finds @var{function}'s function
 definition and starts over with that value.  If @var{function} is not a
@@ -630,8 +630,8 @@ The number of currently active calls to @code{eval} is limited to
 @code{max-lisp-eval-depth} (see below).
 @end defun
 
-@anchor{Definition of eval-region}
 @deffn Command eval-region start end &optional stream read-function
+@anchor{Definition of eval-region}
 This function evaluates the forms in the current buffer in the region
 defined by the positions @var{start} and @var{end}.  It reads forms from
 the region and calls @code{eval} on them until the end of the region is
@@ -674,8 +674,8 @@ output of the output functions is printed in the echo area.
 @code{eval-current-buffer} is an alias for this command.
 @end deffn
 
-@anchor{Definition of max-lisp-eval-depth}
 @defvar max-lisp-eval-depth
+@anchor{Definition of max-lisp-eval-depth}
 This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
 message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).
