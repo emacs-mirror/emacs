@@ -1598,16 +1598,13 @@ push_key_description (c, p)
   else if (c < 128)
     *p++ = c;
   else if (c < 256)
+    *p++ = c;
+  else if (c < 512)
     {
-      if (current_buffer->enable_multibyte_characters)
-	*p++ = c;
-      else
-	{
-	  *p++ = '\\';
-	  *p++ = (7 & (c >> 6)) + '0';
-	  *p++ = (7 & (c >> 3)) + '0';
-	  *p++ = (7 & (c >> 0)) + '0';
-	}
+      *p++ = '\\';
+      *p++ = (7 & (c >> 6)) + '0';
+      *p++ = (7 & (c >> 3)) + '0';
+      *p++ = (7 & (c >> 0)) + '0';
     }
   else
     {
@@ -2564,7 +2561,10 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    /* A char-table is not that deep.  */
 	    wrong_type_argument (Qchar_table_p, vector);
 
-	  for (i = 0; i < this_level; i++)
+	  /* For multibyte characters, the top level index for
+             charsets starts from 256.  */
+	  idx[0] = XINT (XVECTOR (elt_prefix)->contents[0]) - 128;
+	  for (i = 1; i < this_level; i++)
 	    idx[i] = XINT (XVECTOR (elt_prefix)->contents[i]);
 	  complete_char
 	    = (CHARSET_VALID_P (idx[0])
@@ -2593,8 +2593,13 @@ describe_vector (vector, elt_prefix, elt_describer,
   for (i = from; i < to; i++)
     {
       QUIT;
-      definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
 
+      if (this_level == 0
+	  && i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
+	  && !CHARSET_DEFINED_P (i - 128))
+	continue;
+
+      definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
       if (NILP (definition)) continue;      
 
       /* Don't mention suppressed commands.  */
@@ -2681,12 +2686,12 @@ describe_vector (vector, elt_prefix, elt_describer,
       if (multibyte && CHAR_TABLE_P (vector) && CHAR_TABLE_P (definition))
 	{
 	  if (this_level == 0
-	      && CHARSET_VALID_P (i))
+	      && CHARSET_VALID_P (i - 128))
 	    {
 	      /* Before scanning the deeper table, print the
 		 information for this character set.  */
 	      insert_string ("\t\t<charset:");
-	      tem2 = CHARSET_TABLE_INFO (i, CHARSET_SHORT_NAME_IDX);
+	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
 	      insert_from_string (tem2, 0 , XSTRING (tem2)->size, 0);
 	      insert (">", 1);
 	    }
