@@ -341,7 +341,7 @@ Accepts a prefix argument of the number of characters to invert."
 (defun indent-or-fill-region ()
   "Fill region in text modes, indent region in programming language modes."
   (interactive)
-  (if (string= paragraph-start "^$\\|^")
+  (if (string= paragraph-start "^$\\|^\f")
       (indent-region (point) (mark) nil)
     (fill-region (point) (mark))))
 
