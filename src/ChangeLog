@@ -1,3 +1,7 @@
+2004-07-30  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Allocate extra (dummy) element in info.
+
 2004-07-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* eval.c (Fdefvar, Fdefconst): Doc fixes.
