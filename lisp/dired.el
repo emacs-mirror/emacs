@@ -1226,7 +1226,9 @@ Creates a buffer if necessary."
   (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
     (if (file-exists-p file-name)
 	(find-file file-name)
-      (error "File no longer exists; type `g' to update Dired buffer"))))
+      (if (file-symlink-p file-name)
+	  (error "File is a symlink to a nonexistent target")
+	(error "File no longer exists; type `g' to update Dired buffer")))))
 
 (defun dired-mouse-find-file-other-window (event)
   "In dired, visit the file or directory name you click on."
