@@ -379,17 +379,12 @@ Don't use this command in Lisp programs!
 		 (point-max))))
   ;; If we went to a place in the middle of the buffer,
   ;; adjust it to the beginning of a line.
-  (if arg (forward-line 1)
-    ;; If the end of the buffer is not already on the screen,
-    ;; then scroll specially to put it near, but not at, the bottom.
-    (if (let ((old-point (point)))
-	  (save-excursion
-		    (goto-char (window-start))
-		    (vertical-motion (window-height))
-		    (< (point) old-point)))
-	(progn
-	  (overlay-recenter (point))
-	  (recenter -3)))))
+  (cond (arg (forward-line 1))
+	((< (point) (window-end nil t))
+	 ;; If the end of the buffer is not already on the screen,
+	 ;; then scroll specially to put it near, but not at, the bottom.
+	 (overlay-recenter (point))
+	 (recenter -3))))
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
