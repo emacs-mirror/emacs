@@ -102,8 +102,8 @@ System V rel 4 (-opsystem=usg5-4)
 
 Ultrix (-opsystem=bsd4-2)
 
-  DEC's Ultrix OS is essentially Berkeley 4.2.  It does not correctly
-  implement certain features of 4.3.
+  Recent versions of Ultrix appear to support the features of Berkeley 4.3.
+  Ultrix was at the BSD 4.2 level for a long time after BSD 4.3 came out.
 
   Ultrix 3.0 has incompatibilities in its X library if you have the
   Ultrix version of X (UWS version 2.0).  To solve them, you need to
