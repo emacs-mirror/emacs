@@ -28,20 +28,23 @@
 The window system startup file should set this to its frame creation
 function, which should take an alist of parameters as its argument.")
 
-;;; The default value for this must ask for a minibuffer.  There must
-;;; always exist a frame with a minibuffer, and after we delete the
-;;; terminal frame, this will be the only frame.
+;;; The initial value given here for this must ask for a minibuffer.
+;;; There must always exist a frame with a minibuffer, and after we
+;;; delete the terminal frame, this will be the only frame.
 (defvar initial-frame-alist '((minibuffer . t))
   "Alist of values used when creating the initial emacs text frame.
 These may be set in your init file, like this:
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
+If this requests a frame without a minibuffer, and you do not create a
+minibuffer frame on your own, one will be created, according to
+`minibuffer-frame-alist'.
 These supercede the values given in frame-default-alist.")
 
-(defvar minibuffer-frame-alist nil
+(defvar minibuffer-frame-alist '((width . 80) (height . 2))
   "Alist of values to apply to a minibuffer frame.
 These may be set in your init file, like this:
  (setq minibuffer-frame-alist
-   '((top . 1) (left . 1) (width . 80) (height . 1)))
+   '((top . 1) (left . 1) (width . 80) (height . 2)))
 These supercede the values given in default-frame-alist.")
 
 (defvar pop-up-frame-alist nil
@@ -80,22 +83,16 @@ These supercede the values given in default-frame-alist.")
   
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive))
-      (let ((frames (frame-list)))
-    
-	;; Look for a frame that has a minibuffer.
-	(while (and frames
-		    (or (eq (car frames) terminal-frame)
-			(not (cdr (assq 'minibuffer
-					(frame-parameters
-					 (car frames)))))))
-	  (setq frames (cdr frames)))
-
-	;; If there was none, then we need to create the opening frame.
-	(or frames
+      (progn
+	;; If there is no frame with a minibuffer besides the terminal
+	;; frame, then we need to create the opening frame.  Make sure
+	;; it has a minibuffer, but let initial-frame-alist omit the
+	;; minibuffer spec.
+	(or (delq terminal-frame (minibuffer-frame-list))
 	    (setq default-minibuffer-frame
 		  (setq frame-initial-frame
 			(new-frame initial-frame-alist))))
-    
+
 	;; At this point, we know that we have a frame open, so we 
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
@@ -108,50 +105,115 @@ These supercede the values given in default-frame-alist.")
 	     (error
 	      "Can't create multiple frames without a window system."))))))
 					
-;;; startup.el calls this function after loading the user's init file.
-;;; If we created a minibuffer before knowing if we had permission, we
-;;; need to see if it should go away or change.  Create a text frame
-;;; here.
+;;; startup.el calls this function after loading the user's init
+;;; file.  Now default-frame-alist and initial-frame-alist contain
+;;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
-  (if (frame-live-p frame-initial-frame)
-      (progn
-	;; If the user wants a minibuffer-only frame, we'll have to
-	;; make a new one; you can't remove or add a root window to/from
-	;; an existing frame.
+
+  ;; Creating and deleting frames may shift the selected frame around,
+  ;; and thus the current buffer.  Protect against that.  We don't
+  ;; want to use save-excursion here, because that may also try to set
+  ;; the buffer of the selected window, which fails when the selected
+  ;; window is the minibuffer.
+  (let ((old-buffer (current-buffer)))
+
+    ;; If the initial frame is still around, apply initial-frame-alist
+    ;; and default-frame-alist to it.
+    (if (frame-live-p frame-initial-frame)
+
+	;; The initial frame we create above always has a minibuffer.
+	;; If the user wants to remove it, or make it a minibuffer-only
+	;; frame, then we'll have to delete the current frame and make a
+	;; new one; you can't remove or add a root window to/from an
+	;; existing frame.
+	;;
 	;; NOTE: default-frame-alist was nil when we created the
 	;; existing frame.  We need to explicitly include
 	;; default-frame-alist in the parameters of the screen we
 	;; create here, so that its new value, gleaned from the user's
 	;; .emacs file, will be applied to the existing screen.
-	(if (eq (cdr (or (assq 'minibuffer initial-frame-alist)
-			 '(minibuffer . t)))
-		     'only)
-	    (progn
-	      (setq default-minibuffer-frame
-		    (new-frame
-		     (append initial-frame-alist
-			     default-frame-alist
-			     (frame-parameters frame-initial-frame))))
+	(if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
+			      (assq 'minibuffer default-frame-alist)
+			      '(minibuffer . t)))
+		     t))
+	    ;; Create the new frame.
+	    (let ((new
+		   (new-frame
+		    (append initial-frame-alist
+			    default-frame-alist
+			    (frame-parameters frame-initial-frame)))))
+
+	      ;; The initial frame, which we are about to delete, may be
+	      ;; the only frame with a minibuffer.  If it is, create a
+	      ;; new one.
+	      (or (delq frame-initial-frame (minibuffer-frame-list))
+		  (new-frame (append minibuffer-frame-alist
+				     '((minibuffer . only)))))
+
+	      ;; If the initial frame is serving as a surrogate
+	      ;; minibuffer frame for any frames, we need to wean them
+	      ;; onto a new frame.  The default-minibuffer-frame
+	      ;; variable must be handled similarly.
+	      (let ((users-of-initial
+		     (filtered-frame-list
+		      (function (lambda (frame)
+				  (and (not (eq frame frame-initial-frame))
+				       (eq (window-frame
+					    (minibuffer-window frame))
+					   frame-initial-frame)))))))
+		(if (or users-of-initial
+			(eq default-minibuffer-frame frame-initial-frame))
+
+		    ;; Choose an appropriate frame.  Prefer frames which
+		    ;; are only minibuffers.
+		    (let* ((new-surrogate
+			    (car
+			     (or (filtered-frame-list
+				  (function
+				   (lambda (frame)
+				     (eq (cdr (assq 'minibuffer
+						    (frame-parameters frame)))
+					 'only))))
+				 (minibuffer-frame-list))))
+			   (new-minibuffer (minibuffer-window new-surrogate)))
+
+		      (if (eq default-minibuffer-frame frame-initial-frame)
+			  (setq default-minibuffer-frame new-surrogate))
+
+		      ;; Wean the frames using frame-initial-frame as
+		      ;; their minibuffer frame.
+		      (mapcar
+		       (function
+			(lambda (frame)
+			  (modify-frame-parameters
+			   frame (list (cons 'minibuffer new-minibuffer)))))
+		       users-of-initial))))
 
 	      ;; Redirect events enqueued at this frame to the new frame.
 	      ;; Is this a good idea?
-	      (redirect-frame-focus frame-initial-frame
-				    default-minibuffer-frame)
+	      (redirect-frame-focus frame-initial-frame new)
 
+	      ;; Finally, get rid of the old frame.
 	      (delete-frame frame-initial-frame))
+
+	  ;; Otherwise, we don't need all that rigamarole; just apply
+	  ;; the new parameters.
 	  (modify-frame-parameters frame-initial-frame
 				   (append initial-frame-alist
-					   default-frame-alist)))))
+					   default-frame-alist))))
 
-  ;; Make sure the initial frame can be GC'd if it is ever deleted.
-  (makunbound 'frame-initial-frame))
+    ;; Restore the original buffer.
+    (set-buffer old-buffer)
+
+    ;; Make sure the initial frame can be GC'd if it is ever deleted.
+    (makunbound 'frame-initial-frame)))
 
 
-;;;; Creation of additional frames
+;;;; Creation of additional frames, and other frame miscellanea
 
-;;; Return some frame other than the current frame,
-;;; creating one if neccessary.  Note that the minibuffer frame, if
-;;; separate, is not considered (see next-frame).
+;;; Return some frame other than the current frame, creating one if
+;;; neccessary.  Note that the minibuffer frame, if separate, is not
+;;; considered (see next-frame).
 (defun get-other-frame ()
   (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
 	       (new-frame)
@@ -204,6 +266,22 @@ under the X Window System."
   (interactive)
   (funcall frame-creation-function parameters))
 
+(defun filtered-frame-list (predicate)
+  "Return a list of all live frames which satisfy PREDICATE."
+  (let ((frames (frame-list))
+	good-frames)
+    (while (consp frames)
+      (if (funcall predicate (car frames))
+	  (setq good-frames (cons (car frames) good-frames)))
+      (setq frames (cdr frames)))
+    good-frames))
+
+(defun minibuffer-frame-list ()
+  "Return a list of all frames with their own minibuffers."
+  (filtered-frame-list
+   (function (lambda (frame)
+	       (eq frame (window-frame (minibuffer-window frame)))))))
+
 
 ;;;; Frame configurations
 
@@ -251,49 +329,81 @@ If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
 (defun set-default-font (font-name)
+  "Set the font of the selected frame to FONT.
+When called interactively, prompt for the name of the font to use."
   (interactive "sFont name: ")
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'font font-name))))
+			   (list (cons 'font font-name))))
 
 (defun set-frame-background (color-name)
+  "Set the background color of the selected frame to COLOR.
+When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'background-color color-name))))
+			   (list (cons 'background-color color-name))))
 
 (defun set-frame-foreground (color-name)
+  "Set the foreground color of the selected frame to COLOR.
+When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'foreground-color color-name))))
+			   (list (cons 'foreground-color color-name))))
 
 (defun set-cursor-color (color-name)
+  "Set the text cursor color of the selected frame to COLOR.
+When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'cursor-color color-name))))
+			   (list (cons 'cursor-color color-name))))
 
 (defun set-pointer-color (color-name)
+  "Set the color of the mouse pointer of the selected frame to COLOR.
+When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'mouse-color color-name))))
+			   (list (cons 'mouse-color color-name))))
 
-(defun set-auto-raise (toggle)
-  (interactive "xt or nil? ")
+(defun set-auto-raise (arg)
+  "Toggle whether or not the selected frame should auto-raise.
+With arg, turn auto-raise mode on if and only if arg is positive."
+  (interactive "P")
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'auto-raise (frame-parameters (selected-frame))))
+		-1 1)))
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'auto-raise toggle))))
+			   (list (cons 'auto-raise (> arg 0)))))
 
-(defun set-auto-lower (toggle)
-  (interactive "xt or nil? ")
+(defun set-auto-lower (arg)
+  "Toggle whether or not the selected frame should auto-lower.
+With arg, turn auto-lower mode on if and only if arg is positive."
+  (interactive "P")
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'auto-lower (frame-parameters (selected-frame))))
+		-1 1)))
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'auto-lower toggle))))
+			   (list (cons 'auto-lower (> arg 0)))))
 
-(defun set-vertical-bar (toggle)
-  (interactive "xt or nil? ")
+(defun set-vertical-bar (arg)
+  "Toggle whether or not the selected frame has vertical scrollbars.
+With arg, turn vertical scrollbars on if and only if arg is positive."
+  (interactive "P")
+  (if (null arg)
+      (setq arg
+	    (if (cdr (assq 'vertical-scrollbars
+			   (frame-parameters (selected-frame))))
+		-1 1)))
   (modify-frame-parameters (selected-frame)
-			    (list (cons 'vertical-scroll-bar toggle))))
+			   (list (cons 'vertical-scrollbars (> arg 0)))))
 
-(defun set-horizontal-bar (toggle)
-  (interactive "xt or nil? ")
-  (modify-frame-parameters (selected-frame)
-			    (list (cons 'horizontal-scroll-bar toggle))))
+(defun set-horizontal-bar (arg)
+  "Toggle whether or not the selected frame has horizontal scrollbars.
+With arg, turn horizontal scrollbars on if and only if arg is positive.
+Horizontal scrollbars aren't implemented yet."
+  (interactive "P")
+  (error "Horizontal scrollbars aren't implemented yet."))
+
 
 ;;;; Aliases for backward compatibility with Emacs 18.
 (fset 'screen-height 'frame-height)
