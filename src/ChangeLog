@@ -1,3 +1,7 @@
+2004-06-16  Miles Bader  <miles@gnu.org>
+
+	* image.c (lookup_image_type): Initialize image type if necessary.
+
 2004-06-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (try_cursor_movement): Exclude header line from scroll
