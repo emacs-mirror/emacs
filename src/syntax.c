@@ -1361,15 +1361,9 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   while (i_byte < size_byte)
     {
-      int c_leading_code;
+      int c_leading_code = XSTRING (string)->data[i_byte];
 
-      if (string_multibyte)
-	{
-	  c_leading_code = XSTRING (string)->data[i_byte];
-	  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
-	}
-      else
-	c = c_leading_code = XSTRING (string)->data[i_byte++];
+      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 
       /* Convert multibyteness between what the string has
 	 and what the buffer has.  */
@@ -1387,13 +1381,8 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (i_byte == size_byte)
 		break;
 
-	      if (string_multibyte)
-		{
-		  c_leading_code = XSTRING (string)->data[i_byte];
-		  FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
-		}
-	      else
-		c = c_leading_code = XSTRING (string)->data[i_byte++];
+	      c_leading_code = XSTRING (string)->data[i_byte];
+	      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
 	    }
 	  if (i_byte < size_byte
 	      && XSTRING (string)->data[i_byte] == '-')
@@ -1407,13 +1396,8 @@ skip_chars (forwardp, syntaxp, string, lim)
 		break;
 
 	      /* Get the end of the range.  */
-	      if (string_multibyte)
-		{
-		  c2_leading_code = XSTRING (string)->data[i_byte];
-		  FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
-		}
-	      else
-		c2 = XSTRING (string)->data[i_byte++];
+	      c2_leading_code = XSTRING (string)->data[i_byte];
+	      FETCH_STRING_CHAR_ADVANCE (c2, string, i, i_byte);
 
 	      if (SINGLE_BYTE_CHAR_P (c))
 		{
