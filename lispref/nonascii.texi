@@ -156,7 +156,7 @@ text.
 This variable specifies the amount to add to a non-@sc{ascii} character
 when converting unibyte text to multibyte.  It also applies when
 @code{self-insert-command} inserts a character in the unibyte
-non-@sc{ascii} range, 128 through 255.  However, the function
+non-@sc{ascii} range, 128 through 255.  However, the functions
 @code{insert} and @code{insert-char} do not perform this conversion.
 
 The right value to use to select character set @var{cs} is @code{(-
@@ -262,7 +262,7 @@ text representations.
 
 If the optional argument @var{genericp} is non-nil, this function
 returns @code{t} if @var{charcode} is a generic character
-(@pxref{Generic Character}).
+(@pxref{Splitting Characters}).
 @end defun
 
 @node Character Sets
