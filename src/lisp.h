@@ -153,12 +153,19 @@ enum Lisp_Type
     Lisp_Window,
 
     /* Used by save,set,restore-window-configuration */
-    Lisp_Window_Configuration
+    Lisp_Window_Configuration,
 
 #ifdef LISP_FLOAT_TYPE
-      ,
-    Lisp_Float
+    Lisp_Float,
 #endif /* LISP_FLOAT_TYPE */
+
+    /* The overlay type.
+       An overlay values is actually a retagged cons, the first in a
+       list of the form
+           ((START . END) nil . PLIST)
+       where START and END are markers in the overlay's buffer, and
+       PLIST is the overlay's property list.  */
+    Lisp_Overlay
   };
 
 #ifndef NO_UNION_TYPE
@@ -626,7 +633,12 @@ typedef unsigned char UCHAR;
 #define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
 #define WINDOWP(x) (XTYPE ((x)) == Lisp_Window)
 #define WINDOW_CONFIGURATIONP(x) (XTYPE ((x)) == Lisp_Window_Configuration)
+#ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
+#else
+#define FLOATP(x) (0)
+#endif
+#define OVERLAYP(x) (XTYPE ((x)) == Lisp_Overlay)
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
@@ -712,6 +724,9 @@ typedef unsigned char UCHAR;
 
 #define XFLOATINT(n) XINT((n))
 #endif /* LISP_FLOAT_TYPE */
+
+#define CHECK_OVERLAY(x, i) \
+  { if (XTYPE ((x)) != Lisp_Overlay) x = wrong_type_argument (Qoverlayp, (x));}
 
 /* Cast pointers to this type to compare them.  Some machines want int.  */
 #ifndef PNTR_COMPARISON_TYPE
@@ -1122,6 +1137,7 @@ extern Lisp_Object Fget_buffer (), Fget_buffer_create (), Fset_buffer ();
 extern Lisp_Object Fbarf_if_buffer_read_only ();
 extern Lisp_Object Fcurrent_buffer (), Fswitch_to_buffer (), Fpop_to_buffer ();
 extern Lisp_Object Fother_buffer ();
+extern Lisp_Object Qoverlayp;
 extern struct buffer *all_buffers;
 
 /* defined in marker.c */
