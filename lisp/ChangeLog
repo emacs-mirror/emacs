@@ -1,4 +1,4 @@
-2003-04-09  Kenichi Handa  <handa@etlken2>
+2003-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-coding-system-briefly): If
 	DOC-STRING is `tightly', print the doc-string tightly.
@@ -17,7 +17,7 @@
 	Do not disable file name handlers for `file-exists-p' and
 	`file-directory-p'.
 
-2003-04-08  Kenichi Handa  <handa@etlken2>
+2003-04-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-conf.el: Register ?\225 in
 	latin-extra-code-table.
