@@ -1,6 +1,9 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.22 1993/06/29 23:03:21 jimb Exp rms $
+
+;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Version: $Header: gnus.el,v 4.1 93/07/19 15:42:20 umerin Exp $
+;; Keywords: news
 
 ;; This file is part of GNU Emacs.
 
@@ -80,38 +83,23 @@
 ;;     If you are not allowed to create the Info file to the standard
 ;;     Info-directory, create it in your private directory and set the
 ;;     variable gnus-info-directory to that directory.
-
-;; GNUS Mailing List:
-;; There are two mailing lists for GNUS lovers in the world:
 ;;
-;;	info-gnus@flab.fujitsu.co.jp, and
-;;	info-gnus-english@tut.cis.ohio-state.edu.
-;;
-;; They are intended to exchange useful information about GNUS, such
-;; as bug fixes, useful hooks, and extensions.  The major difference
-;; between the lists is what the official language is.  Both Japanese
-;; and English are available in info-gnus, while English is only
-;; available in info-gnus-english. There is no need to subscribe to
-;; info-gnus if you cannot read Japanese messages, because most of the
-;; discussion and important announcements will be sent to
-;; info-gnus-english. Moreover, if you can read gnu.emacs.gnus
-;; newsgroup of USENET, you need not, either. info-gnus-english and
-;; gnu.emacs.gnus are linked each other.
-;;
-;; Please send subscription request to:
-;;
-;; 	info-gnus-request@flab.fujitsu.co.jp, or
-;;	info-gnus-english-request@cis.ohio-state.edu
+;; For getting more information about GNUS, consult USENET newsgorup
+;; gnu.emacs.gnus.
 
 ;; TO DO:
 ;; (1) Incremental update of active info.
-;; (2) GNUS own poster.
-;; (3) Multi-GNUS (Talking to many hosts same time).
-;; (4) Asynchronous transmission of large messages.
+;; (2) Asynchronous transmission of large messages.
+
+;;; Code:
 
 (provide 'gnus)
 (require 'nntp)
 (require 'mail-utils)
+
+(defvar gnus-default-nntp-server nil
+  "*Specify default NNTP server.
+This variable should be defined in paths.el.")
 
 (defvar gnus-nntp-server (or (getenv "NNTPSERVER") gnus-default-nntp-server)
   "*The name of the host running NNTP server.
@@ -605,8 +593,15 @@ use this; if non-nil, use no host name (user name only)")
 
 ;; Internal variables.
 
-(defconst gnus-version "GNUS 3.15"
+(defconst gnus-version "GNUS 4.1"
   "Version numbers of this version of GNUS.")
+
+(defconst gnus-emacs-version
+  (progn
+    (string-match "[0-9]*" emacs-version)
+    (string-to-int (substring emacs-version
+			      (match-beginning 0) (match-end 0))))
+  "Major version number of this emacs.")
 
 (defvar gnus-info-nodes
   '((gnus-group-mode		"(gnus)Newsgroup Commands")
@@ -1211,8 +1206,9 @@ If optional argument CONFIRM is non-nil, ask NNTP server."
 (defun gnus-group-startup-message ()
   "Insert startup message in current buffer."
   ;; Insert the message.
-  (insert "
-                   GNUS Version 3.15
+  (insert
+   (format "
+                   %s
 
          NNTP-based News Reader for GNU Emacs
 
@@ -1223,7 +1219,7 @@ know. I will fix your problems in the next release.
 Comments, suggestions, and bug fixes are welcome.
 
 Masanobu UMEDA
-umerin@mse.kyutech.ac.jp")
+umerin@mse.kyutech.ac.jp" gnus-version))
   ;; And then hack it.
   ;; 57 is the longest line.
   (indent-rigidly (point-min) (point-max) (/ (max (- (window-width) 57) 0) 2))
@@ -6569,9 +6565,14 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(.*\\)$"
     ;; Suggested by composer@bucsf.bu.edu (Jeff Kellem)
     ;; but no longer viable because of extensive backtracking in Emacs 19:
-    ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$" nil t)
+    ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$"
+    ;; but, the following causes trouble on some case:
+    ;; "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\|[^ \t\n].*\\)$"
     (while (re-search-forward
-	    "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\|[^ \t\n].*\\)$" nil t)
+	    (if (= gnus-emacs-version 18)
+		"^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(\\(...\\)*.*\\)$"
+	      "^\\([^:! \t\n]+\\)\\([:!]\\)[ \t]*\\(.*\\)$")
+	    nil t)
       (setq newsgroup (buffer-substring (match-beginning 1) (match-end 1)))
       ;; Check duplications of newsgroups.
       ;; Note: Checking the duplications takes very long time.
@@ -6943,3 +6944,5 @@ otherwise, if FILE2 does not exist, the answer is t."
 ;;Local variables:
 ;;eval: (put 'gnus-eval-in-buffer-window 'lisp-indent-hook 1)
 ;;end:
+
+;;; gnus.el ends here
