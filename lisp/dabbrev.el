@@ -241,8 +241,8 @@ The default value is t."
 (defvar dabbrev-select-buffers-function 'dabbrev--select-buffers
   "A function that selects buffers that should be searched by dabbrev.
 The function should take no arguments and return a list of buffers to
-search for expansions.  Have a look at `dabbrev--select-buffers' for
-an example.
+search for expansions.  See the source of `dabbrev--select-buffers'
+for an example.
 
 A mode setting this variable should make it buffer local.")
 
