@@ -59,6 +59,14 @@ See the documentation of `quail-package-alist' for the format.")
 ;; A buffer to show completion list of the current key sequence.
 (defvar quail-completion-buf nil)
 
+;; Each buffer in which Quail is activated should use different
+;; guidance buffers.
+(make-variable-buffer-local 'quail-guidance-buf)
+
+;; A main window showing Quail guidance buffer.
+(defvar quail-guidance-win nil)
+(make-variable-buffer-local 'quail-guidance-win)
+
 (defvar quail-mode nil
   "Non-nil if in Quail minor mode.")
 (make-variable-buffer-local 'quail-mode)
@@ -79,7 +87,12 @@ See the documentation of `quail-package-alist' for the format.")
   "Currently selected translation of the current key.")
 
 (defvar quail-current-translations nil
-  "Cons of indices and vector of possible translations of the current key.")
+  "Cons of indices and vector of possible translations of the current key.
+Indices is a list of (CURRENT START END BLOCK BLOCKS), where
+CURRENT is an index of the current translation,
+START and END are indices of the start and end of the current block,
+BLOCK is the current block index,
+BLOCKS is a number of  blocks of translation.")
 
 (defvar quail-current-data nil
   "Any Lisp object holding information of current translation status.
@@ -87,6 +100,7 @@ When a key sequence is mapped to TRANS and TRANS is a cons
 of actual translation and some Lisp object to be refered
 for translating the longer key sequence, this variable is set
 to that Lisp object.")
+(make-variable-buffer-local 'quail-current-data)
 
 ;; A flag to control conversion region.  Normally nil, but if set to
 ;; t, it means we must start the new conversion region if new key to
@@ -401,9 +415,13 @@ vs. corresponding command to be called."
 	   (if create-decode-map (list 'decode-map) nil)
 	   maximum-shortest overlay-plist update-translation-function
 	   conversion-keymap))
-    ;; Update TITLE field.
-    (let ((slot (assoc name input-method-alist)))
-      (if slot (setcar (nthcdr 4 slot) docstring))))
+
+    ;; Update input-method-alist.
+    (let ((slot (assoc name input-method-alist))
+	  (val (list language 'quail-use-package title docstring)))
+      (if slot (setcdr slot val)
+	(setq input-method-alist (cons (cons name val) input-method-alist)))))
+
   (quail-select-package name))
 
 ;; Quail minor mode handlers.
@@ -711,13 +729,15 @@ The installed map can be referred by the function `quail-map'."
   "Add one translation rule, KEY to TRANSLATION, in the current Quail package.
 KEY is a string meaning a sequence of keystrokes to be translated.
 TRANSLATION is a character, a string, a vector, a Quail map,
-a function, or a cons.
+ a function, or a cons.
 It it is a character, it is the sole translation of KEY.
 If it is a string, each character is a candidate for the translation.
 If it is a vector, each element (string or character) is a candidate
-  for the translation.
+ for the translation.
 If it is a cons, the car is one of the above and the cdr is a function
-to call when translating KEY.
+ to call when translating KEY (the return value is assigned to the
+ variable `quail-current-data').  If the cdr part is not a function,
+ the value itself is assigned to `quail-current-data'.
 In these cases, a key specific Quail map is generated and assigned to KEY.
 
 If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
@@ -732,9 +752,9 @@ current Quail package."
 	(setq quail-current-package package)))
   (quail-defrule-internal key translation (quail-map)))
 
-;; Define KEY as TRANS in a Quail map MAP.
 ;;;###autoload
 (defun quail-defrule-internal (key trans map)
+  "Define KEY as TRANS in a Quail map MAP."
   (if (null (stringp key))
       "Invalid Quail key `%s'" key)
   (if (not (or (numberp trans) (stringp trans) (vectorp trans)
@@ -807,25 +827,27 @@ selected translation."
 
    ((stringp def)
     ;; Each character in DEF is a candidate of translation.  Reform
-    ;; it as (INDEX . VECTOR).
+    ;; it as (INDICES . VECTOR).
     (setq def (string-to-vector def))
     ;; But if the length is 1, we don't need vector but a single
     ;; candidate as the translation.
     (if (= (length def) 1)
 	(aref def 0)
-      (cons 0 def)))
+      (cons (list 0 0 0 0 nil) def)))
 
    ((vectorp def)
     ;; Each element (string or character) in DEF is a candidate of
-    ;; translation.  Reform it as (INDEX . VECTOR).
-    (cons 0 def))
+    ;; translation.  Reform it as (INDICES . VECTOR).
+    (cons (list 0 0 0 0 nil) def))
 
    (t
     (error "Invalid object in Quail map: %s" def))))
 
-(defun quail-lookup-key (key len)
+(defun quail-lookup-key (key &optional len)
   "Lookup KEY of length LEN in the current Quail map and return the definition.
 The returned value is a Quail map specific to KEY."
+  (or len
+      (setq len (length key)))
   (let ((idx 0)
 	(map (quail-map))
 	(kbd-translate (quail-kbd-translate))
@@ -841,6 +863,7 @@ The returned value is a Quail map specific to KEY."
 	  (setcdr slot (funcall (cdr slot) key idx)))
       (setq map (cdr slot)))
     (setq def (car map))
+    (setq quail-current-translations nil)
     (if (and map (setq translation (quail-get-translation def key len)))
 	(progn
 	  (if (and (consp def) (not (vectorp (cdr def))))
@@ -859,7 +882,7 @@ The returned value is a Quail map specific to KEY."
 	      (progn
 		(setq quail-current-translations translation)
 		(if (quail-forget-last-selection)
-		    (setcar quail-current-translations 0))))
+		    (setcar (car quail-current-translations) 0))))
 	  ;; We may have to reform cdr part of MAP.
 	  (if (and (cdr map) (symbolp (cdr map)))
 	      (progn
@@ -1022,6 +1045,85 @@ The returned value is a Quail map specific to KEY."
 	(concat quail-current-key (char-to-string last-command-event)))
   (quail-update-translation (quail-translate-key)))
 
+;; Return the actual definition part of Quail map MAP.
+(defun quail-map-definition (map)
+  (let ((def (car map)))
+    (if (and (consp def) (not (vectorp (cdr def))))
+	(setq def (car def)))
+    def))
+
+;; Return a string to be shown as the current translation of key
+;; sequence of length LEN.  DEF is a definition part of Quail map for
+;; the sequence.
+(defun quail-get-current-str (len def)
+  (or (and (consp def) (aref (cdr def) (car (car def))))
+      def
+      (and (> len 1)
+	   (let ((str (quail-get-current-str
+		       (1- len)
+		       (quail-map-definition (quail-lookup-key
+					      quail-current-key (1- len))))))
+	     (if str
+		 (concat (if (stringp str) str (char-to-string str))
+			 (substring quail-current-key (1- len) len)))))))
+
+(defvar quail-guidance-translations-starting-column 20)
+
+;; Update `quail-current-translations' to make RELATIVE-INDEX the
+;; current translation.
+(defun quail-update-current-translations (&optional relative-index)
+  (let* ((indices (car quail-current-translations))
+	 (cur (car indices))
+	 (start (nth 1 indices))
+	 (end (nth 2 indices)))
+    ;; Validate the index number of current translation.
+    (if (< cur 0)
+	(setcar indices (setq cur 0))
+      (if (>= cur (length (cdr quail-current-translations)))
+	  (setcar indices
+		  (setq cur (1- (length (cdr quail-current-translations)))))))
+
+    (if (or (null end)			; We have not yet calculated END.
+	    (< cur start)		; We moved to the previous block.
+	    (>= cur end))		; We moved to the next block.
+	(let ((len (length (cdr quail-current-translations)))
+	      (maxcol (- (window-width quail-guidance-win)
+			 quail-guidance-translations-starting-column))
+	      (block (nth 3 indices))
+	      col idx width trans num-items blocks)
+	  (if (< cur start)
+	      ;; We must calculate from the head.
+	      (setq start 0 block 0)
+	    (if end			; i.e. (>= cur end)
+		(setq start end)))
+	  (setq idx start col 0 end start num-items 0)
+	  ;; Loop until we hit the tail, or reach the block of CUR.
+	  (while (and (< idx len) (>= cur end))
+	    (if (= num-items 0)
+		(setq start idx col 0 block (1+ block)))
+	    (setq trans (aref (cdr quail-current-translations) idx))
+	    (setq width (if (integerp trans) (char-width trans)
+			  (string-width trans)))
+	    (setq col (+ col width 3) num-items (1+ num-items))
+	    (if (and (> num-items 0)
+		     (or (>= col maxcol) (> num-items 10)))
+		(setq end idx num-items 0)
+	      (setq idx (1+ idx))))
+	  (setcar (nthcdr 3 indices) block)
+	  (if (>= idx len)
+	      (progn
+		;; We hit the tail before reaching MAXCOL.
+		(setq end idx)
+		(setcar (nthcdr 4 indices) block)))
+	  (setcar (cdr indices) start)
+	  (setcar (nthcdr 2 indices) end)))
+    (if relative-index
+	(if (>= (+ start relative-index) end)
+	    (setcar indices end)
+	  (setcar indices (+ start relative-index))))
+    (setq quail-current-str
+	  (aref (cdr quail-current-translations) (car indices)))))
+
 (defun quail-translate-key ()
   "Translate the current key sequence according to the current Quail map.
 Return t if we can terminate the translation.
@@ -1033,11 +1135,8 @@ sequence counting from the head."
 	 (map (quail-lookup-key quail-current-key len))
 	 def ch)
     (if map
-	(let ((def (car map)))
-	  (if (and (consp def) (not (vectorp (cdr def))))
-	      (setq def (car def)))
-	  (setq quail-current-str
-		(if (consp def) (aref (cdr def) (car def)) def))
+	(let ((def (quail-map-definition map)))
+	  (setq quail-current-str (quail-get-current-str len def))
 	  ;; Return t only if we can terminate the current translation.
 	  (and
 	   ;; No alternative translations.
@@ -1056,15 +1155,13 @@ sequence counting from the head."
       (cond ((and
 	      (quail-maximum-shortest)
 	      (>= len 4)
-	      (setq def (car (quail-lookup-key quail-current-key (- len 2))))
-	      (if (and (consp def) (not (vectorp (cdr def))))
-		  (setq def (car def)))
+	      (setq def (quail-map-definition
+			 (quail-lookup-key quail-current-key (- len 2))))
 	      (quail-lookup-key (substring quail-current-key -2) 2))
 	     ;; Now the sequence is "...ABCD", which can be split into
 	     ;; "...AB" and "CD..." to get valid translation.
 	     ;; At first, get translation of "...AB".
-	     (setq quail-current-str
-		   (if (consp def) (aref (cdr def) (car def)) def))
+	     (setq quail-current-str (quail-get-current-str (- len 2) def))
 	     ;; Then, return the length of "...AB".
 	     (- len 2))
 
@@ -1074,10 +1171,9 @@ sequence counting from the head."
 		  (>= ch ?0) (<= ch ?9))
 	     ;; A numeric key is entered to select a desirable translation.
 	     (setq quail-current-key (substring quail-current-key 0 -1))
-	     (quail-select-translation
-	      (+ (* (/ (car quail-current-translations) 10) 10)
-		 ;; We treat key 1,2..,9,0 as specifying 0,1,..8,9.
-		 (if (= ch ?0) 9 (- ch ?1))))
+	     ;; We treat key 1,2..,9,0 as specifying 0,1,..8,9.
+	     (setq ch (if (= ch ?0) 9 (- ch ?1)))
+	     (quail-update-current-translations ch)
 	     ;; And, we can terminate the current translation.
 	     t)
 
@@ -1089,50 +1185,59 @@ sequence counting from the head."
   "Select next translation in the current batch of candidates."
   (interactive)
   (if quail-current-translations
-      (progn
-	(quail-select-translation (1+ (car quail-current-translations)))
-	(quail-update-translation nil))
+      (let ((indices (car quail-current-translations)))
+	(if (= (1+ (car indices)) (length (cdr quail-current-translations)))
+	    ;; We are alread at the tail.
+	    (beep)
+	  (setcar indices (1+ (car indices)))
+	  (quail-update-current-translations)
+	  (quail-update-translation nil)))
     (beep)))
 
 (defun quail-prev-translation ()
   "Select previous translation in the current batch of candidates."
   (interactive)
   (if quail-current-translations
-      (progn
-	(quail-select-translation (1- (car quail-current-translations)))
-	(quail-update-translation nil))
+      (let ((indices (car quail-current-translations)))
+	(if (= (car indices) 0)
+	    ;; We are already at the head.
+	    (beep)
+	  (setcar indices (1- (car indices)))
+	  (quail-update-current-translations)
+	  (quail-update-translation nil)))
     (beep)))
 
 (defun quail-next-translation-block ()
-  "Select the next batch of 10 translation candidates."
+  "Select from the next block of translations."
   (interactive)
   (if quail-current-translations
-      (let ((limit (1- (length (cdr quail-current-translations))))
-	    (n (car quail-current-translations)))
-	(if (< (/ n 10) (/ limit 10))
-	    (progn
-	      (quail-select-translation (min (+ n 10) limit))
-	      (quail-update-translation nil))
-	  ;; We are already at the last block.
-	  (beep)))
+      (let* ((indices (car quail-current-translations))
+	     (offset (- (car indices) (nth 1 indices))))
+	(if (>= (nth 2 indices) (length (cdr quail-current-translations)))
+	    ;; We are already at the last block.
+	    (beep)
+	  (setcar indices (+ (nth 2 indices) offset))
+	  (quail-update-current-translations)
+	  (quail-update-translation nil)))
     (beep)))
 
 (defun quail-prev-translation-block ()
   "Select the previous batch of 10 translation candidates."
   (interactive)
-  (if (and quail-current-translations
-	   (>= (car quail-current-translations) 10))
-      (progn
-	(quail-select-translation (- (car quail-current-translations) 10))
-	(quail-update-translation nil))
+  (if quail-current-translations
+      (let* ((indices (car quail-current-translations))
+	     (offset (- (car indices) (nth 1 indices))))
+	(if (= (nth 1 indices) 0)
+	    ;; We are already at the first block.
+	    (beep)
+	  (setcar indices (1- (nth 1 indices)))
+	  (quail-update-current-translations)
+	  (if (< (+ (nth 1 indices) offset) (nth 2 indices))
+	      (progn
+		(setcar indices (+ (nth 1 indices) offset))
+		(quail-update-current-translations)))
+	  (quail-update-translation nil)))
     (beep)))
-
-(defun quail-select-translation (n)
-  "Select Nth translation in the current batch of translation candidates."
-  (if (or (< n 0) (>= n (length (cdr quail-current-translations))))
-      (beep)
-    (setcar quail-current-translations n)
-    (setq quail-current-str (aref (cdr quail-current-translations) n))))
 
 (defun quail-abort-translation ()
   "Abort translation and delete the current Quail key sequence."
@@ -1201,57 +1306,75 @@ Remaining args are for FUNC."
 
 ;; Guidance, Completion, and Help buffer handlers.
 
+;; Make a new one-line frame for Quail guidance buffer.
+(defun quail-make-guidance-frame (buf)
+  (let* ((fparam (frame-parameters))
+	 (top (cdr (assq 'top fparam)))
+	 (border (cdr (assq 'border-width fparam)))
+	 (internal-border (cdr (assq 'internal-border-width fparam)))
+	 (newtop (- top
+		    (frame-char-height) (* internal-border 2) (* border 2))))
+    (if (< newtop 0)
+	(setq newtop (+ top (frame-pixel-height))))
+    (let* ((frame (make-frame (append '((user-position . t) (height . 1)
+					(minibuffer) (menu-bar-lines . 0))
+				      (cons (cons 'top newtop) fparam))))
+	   (win (frame-first-window frame)))
+      (set-window-buffer win buf)
+      (set-window-dedicated-p win t))))
+
 (defun quail-show-guidance-buf ()
-  "Display a Quail guidance buffer in some window.
+  "Display a guidance buffer for Quail input method in some window.
 Create the buffer if it does not exist yet.
-The window is normally shown in a minibuffer,
-but if the selected window is a minibuffer, it is shown in
-the bottommost ordinary window."
+The buffer is normally displayed at the echo area,
+but if the current buffer is a minibuffer, it is shown in
+the bottom-most ordinary window of the same frame,
+or in a newly created frame (if the selected frame has no other windows)."
+  (if (and input-method-tersely-flag
+	   (eq (selected-window) (minibuffer-window)))
+      ;; We don't need the guidance buffer.
+      nil
+    ;; At first, setup a guidance buffer.
+    (or (buffer-live-p quail-guidance-buf)
+	(setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*")))
+    (let ((title (quail-title)))
+      (save-excursion
+	(set-buffer quail-guidance-buf)
+	;; To show the title of Quail package.
+	(setq current-input-method t
+	      current-input-method-title title)
+	(erase-buffer)
+	(or (overlayp quail-overlay)
+	    (progn
+	      (setq quail-overlay (make-overlay 1 1))
+	      (overlay-put quail-overlay 'face 'highlight)))
+	(delete-overlay quail-overlay)
+	(set-buffer-modified-p nil)))
+    (bury-buffer quail-guidance-buf)
 
-  (if (or (null input-method-tersely-flag)
-	  (not (eq (selected-window) (minibuffer-window))))
-      (progn
-	;; At first, setup a guidance buffer.
-	(or (buffer-live-p quail-guidance-buf)
-	    (setq quail-guidance-buf
-		  (get-buffer-create " *Quail-guidance*")))
-	(save-excursion
-	  (let ((title (quail-title)))
-	    (set-buffer quail-guidance-buf)
-	    ;; Show the title of Quail package in the left of mode-line.
-	    (setq current-input-method nil)
-	    (setq current-input-method-title title)
-	    (setq mode-line-format (cons '("[" current-input-method-title "]")
-					 default-mode-line-format))
-	    (erase-buffer)
-	    (or (overlayp quail-overlay)
-		(progn
-		  (setq quail-overlay (make-overlay 1 1))
-		  (overlay-put quail-overlay 'face 'highlight)))
-	    (delete-overlay quail-overlay)
-	    (set-buffer-modified-p nil)))
-	(bury-buffer quail-guidance-buf)
-
-	;; Then, display it in an appropriate window.
-	(if (not (get-buffer-window quail-guidance-buf))
-	    ;; Guidance buffer is not yet shown in any window.
-	    (let ((win (minibuffer-window)))
-	      (if (eq (selected-window) win)
-		  ;; Since we are in minibuffer, we can't use it for guidance.
-		  ;; Let's find the bottom window.
-		  (let (height)
-		    (setq win (window-at 0 (- (frame-height) 2)))
-		    (setq height (window-height win))
-		    ;; If WIN is too tall, split it vertically and use
-		    ;; the lower one.
-		    (if (>= height 4)
-			(let ((window-min-height 2))
-			  ;; Here, `split-window' returns a lower window
-			  ;; which is what we wanted.
-			  (setq win (split-window win (- height 2)))))
-		    (set-window-buffer win quail-guidance-buf)
-		    (set-window-dedicated-p win t))
-		(set-window-buffer win quail-guidance-buf))))))
+    ;; Then, display it in an appropriate window.
+    (let ((win (minibuffer-window)))
+      (if (eq (selected-window) win)
+	  ;; Since we are in minibuffer, we can't use it for guidance.
+	  (if (eq win (frame-root-window))
+	      ;; Create a frame.  It is sure that we are using some
+	      ;; window system.
+	      (quail-make-guidance-frame quail-guidance-buf)
+	    ;; Find the bottom window and split it if necessary.
+	    (let (height)
+	      (setq win (window-at 0 (- (frame-height) 2)))
+	      (setq height (window-height win))
+	      ;; If WIN is tall enough, split it vertically and use
+	      ;; the lower one.
+	      (if (>= height 4)
+		  (let ((window-min-height 2))
+		    ;; Here, `split-window' returns a lower window
+		    ;; which is what we wanted.
+		    (setq win (split-window win (- height 2)))))
+	      (set-window-buffer win quail-guidance-buf)
+	      (set-window-dedicated-p win t)))
+	(set-window-buffer win quail-guidance-buf))
+      (setq quail-guidance-win win)))
 
   ;; And, create a buffer for completion.
   (or (buffer-live-p quail-completion-buf)
@@ -1265,19 +1388,23 @@ the bottommost ordinary window."
 
 (defun quail-hide-guidance-buf ()
   "Hide the Quail guidance buffer."
-  (let* ((win (minibuffer-window))
-	 (buf (window-buffer win)))
-    (if (eq buf quail-guidance-buf)
-	;; Quail guidance buffer is at echo area.  Vacate it to the
-	;; deepest minibuffer.
-	(set-window-buffer win (format " *Minibuf-%d*" (minibuffer-depth)))
-      ;; Delete the window for guidance buffer.
-      (if (or (null input-method-tersely-flag)
-	      (not (eq (selected-window) (minibuffer-window))))
-	  (if (setq win (get-buffer-window quail-guidance-buf))
-	      (progn
-		(set-window-dedicated-p win nil)
-		(delete-window win)))))))
+  (if (buffer-live-p quail-guidance-buf)
+      (let ((win-list (get-buffer-window-list quail-guidance-buf t t))
+	    win)
+	(while win-list
+	  (setq win (car win-list) win-list (cdr win-list))
+	  (if (eq win (minibuffer-window))
+	      ;; We are using echo area for the guidance buffer.
+	      ;; Vacate it to the deepest minibuffer.
+	      (set-window-buffer win
+				 (format " *Minibuf-%d*" (minibuffer-depth)))
+	    (if (eq win (frame-root-window (window-frame win)))
+		(progn
+		  ;; We are using a separate frame for guidance buffer.
+		  ;;(set-window-dedicated-p win nil)
+		  (delete-frame (window-frame win)))
+	      (set-window-dedicated-p win nil)
+	      (delete-window win)))))))
 
 (defun quail-update-guidance ()
   "Update the Quail guidance buffer and completion buffer (if displayed now)."
@@ -1345,10 +1472,9 @@ the bottommost ordinary window."
 (defun quail-show-translations ()
   "Show the current possible translations."
   (let* ((key quail-current-key)
-	 (map (quail-lookup-key quail-current-key (length quail-current-key)))
-	 (def (car map)))
-    (if (and (consp def) (not (vectorp (cdr def))))
-	(setq def (car def)))
+	 (map (quail-lookup-key quail-current-key)))
+    (if quail-current-translations
+	(quail-update-current-translations))
     (save-excursion
       (set-buffer quail-guidance-buf)
       (erase-buffer)
@@ -1356,7 +1482,7 @@ the bottommost ordinary window."
       ;; Show the current key.
       (insert key)
 
-      ;; Show possible following keys.
+      ;; Show followable keys.
       (if (cdr map)
 	  (let ((l (cdr map)))
 	    (insert "[")
@@ -1366,25 +1492,25 @@ the bottommost ordinary window."
 	    (insert "]")))
 
       ;; Show list of translations.
-      (if (and (not (quail-deterministic)) (consp def))
-	  (let* ((idx (car def))
-		 (translations (cdr def))
-		 (from (* (/ idx 10) 10))
-		 (to (min (+ from 10) (length translations))))
-	    (indent-to 10)
-	    (insert (format "(%d/%d)"
-			    (1+ (/ from 10))
-			    (1+ (/ (length translations) 10))))
-	    (while (< from to)
-	      ;; We show the last digit of FROM, but by changing
-	      ;; 0,1,..,9 to 1,2,..,0.
-	      (insert (format " %d."
-			      (if (= (% from 10) 9) 0 (1+ (% from 10)))))
+      (if quail-current-translations
+	  (let* ((indices (car quail-current-translations))
+		 (cur (car indices))
+		 (start (nth 1 indices))
+		 (end (nth 2 indices))
+		 (idx start))
+	    (indent-to (- quail-guidance-translations-starting-column 7))
+	    (insert (format "(%02d/"(nth 3 indices))
+		    (if (nth 4 indices)
+			(format "%02d)" (nth 4 indices))
+		      "??)"))
+	    (while (< idx end)
+	      (insert (format " %d." (if (= (- idx start) 9) 0
+				       (1+ (- idx start)))))
 	      (let ((pos (point)))
-		(insert (aref translations from))
-		(if (= idx from)
+		(insert (aref (cdr quail-current-translations) idx))
+		(if (= idx cur)
 		    (move-overlay quail-overlay pos (point))))
-	      (setq from (1+ from)))))
+	      (setq idx (1+ idx)))))
       )))
 
 (defun quail-completion ()
@@ -1393,7 +1519,7 @@ All possible translations of the current key and whole possible longer keys
  are shown."
   (interactive)
   (let ((key quail-current-key)
-	(map (quail-lookup-key quail-current-key (length quail-current-key))))
+	(map (quail-lookup-key quail-current-key)))
     (save-excursion
       (set-buffer quail-completion-buf)
       (erase-buffer)
@@ -1491,7 +1617,6 @@ key		binding
 key		binding
 ---		-------\n"))
 	  (help-mode))))))
-
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
   (let (from to)
@@ -1655,7 +1780,7 @@ LEIM is a library of Emacs input method."
 	  (save-excursion
 	    (set-buffer list-buf)
 	    (setq buffer-file-coding-system 'iso-2022-7bit)
-	    (save-buffer))
+	    (save-buffer 0))
 	  (kill-buffer list-buf)
 	  (message "Updating %s ... done" (buffer-file-name list-buf)))))))
 ;;
