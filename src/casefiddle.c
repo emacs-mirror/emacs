@@ -55,18 +55,14 @@ casify_object (flag, obj)
 
 	  c1 = XFASTINT (obj) & ~flagbits;
 	  if (! multibyte)
-	    {
-	      MAKE_CHAR_UNIBYTE (c1);
-	    }
+	    MAKE_CHAR_MULTIBYTE (c1);
 	  c = DOWNCASE (c1);
 	  if (inword || c == c1)
 	    {
 	      if (! inword)
 		c = UPCASE1 (c1);
 	      if (! multibyte)
-		{
-		  MAKE_CHAR_MULTIBYTE (c);
-		}
+		MAKE_CHAR_UNIBYTE (c);
 	      XSETFASTINT (obj, c | flags);
 	    }
 	  return obj;
