@@ -155,7 +155,7 @@ PROPS is a list of additional properties to add to the binding."
 (defun tool-bar-help ()
   "Pop up the help menu from the tool-bar."
   (interactive)
-  (let* ((p (mouse-position))
+  (let* ((p (mouse-pixel-position))
 	 (menu menu-bar-help-menu)
 	 (selection (x-popup-menu (list (list (cadr p) (cddr p)) (car p))
 				  menu))
