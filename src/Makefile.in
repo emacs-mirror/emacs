@@ -506,8 +506,11 @@ LD=ld
 #endif /* not ORDINARY_LINK */
 
 /* Flags to pass to LD only for temacs.  */
+/* Don't delete the trailing comment character or you lose on Tru64 
+   with /usr/lib/cpp, for instance, when INTERVAL_SRC... comes immediately
+   after the backslash.  */
 TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
-	 LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE
+	 LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE #
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
