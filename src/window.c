@@ -5503,7 +5503,7 @@ work using this function.");
 
   DEFVAR_LISP ("even-window-heights", &Veven_window_heights,
     "*If non-nil, `display-buffer' should even the window heights.\n\
-If nil, `display-buffer' will leave the window configuation alone.");
+If nil, `display-buffer' will leave the window configuration alone.");
   Veven_window_heights = Qt;
 
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
