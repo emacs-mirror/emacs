@@ -1287,6 +1287,9 @@ x_set_autolower (f, arg, oldval)
 #ifdef HAVE_X11
 int n_faces;
 
+#if 0
+/* I believe this function is obsolete with respect to the new face display
+   changes.  */
 x_set_face (scr, font, background, foreground, stipple)
      struct frame *scr;
      XFontStruct *font;
@@ -1338,6 +1341,7 @@ x_set_face (scr, font, background, foreground, stipple)
   x_face_table[++n_faces] = new_face;
   return 1;
 }
+#endif
 
 x_set_glyph (scr, glyph)
 {
