@@ -3936,7 +3936,7 @@ made within the @code{combine-after-change-calls} body.
 @code{after-change-functions} within
 the body of a @code{combine-after-change-calls} form.
 
-@strong{Note:} If the changes you combine occur in widely scattered
+@strong{Warning:} if the changes you combine occur in widely scattered
 parts of the buffer, this will still work, but it is not advisable,
 because it may lead to inefficient behavior for some change hook
 functions.

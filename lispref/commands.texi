@@ -2055,7 +2055,7 @@ calls that function, passing the character as an argument.
 If this is non-@code{nil}, its value specifies the current input method
 function.
 
-@strong{Note:} Don't bind this variable with @code{let}.  It is often
+@strong{Warning:} don't bind this variable with @code{let}.  It is often
 buffer-local, and if you bind it around reading input (which is exactly
 when you @emph{would} bind it), switching buffers asynchronously while
 Emacs is waiting will cause the value to be restored in the wrong

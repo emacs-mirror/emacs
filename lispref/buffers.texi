@@ -106,7 +106,7 @@ Emacs reads a command is the buffer that the command will apply to.
 switch visibly to a different buffer so that the user can edit it.  For
 that, you must use the functions described in @ref{Displaying Buffers}.
 
-  @strong{Note:} Lisp functions that change to a different current buffer
+  @strong{Warning:} Lisp functions that change to a different current buffer
 should not depend on the command loop to set it back afterwards.
 Editing commands written in Emacs Lisp can be called from other programs
 as well as from the command loop; it is convenient for the caller if

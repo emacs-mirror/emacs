@@ -1110,12 +1110,13 @@ initial input.  It defaults to the current buffer's value of
 @code{default-directory}.
 
 @c Emacs 19 feature
-If you specify @var{initial}, that is an initial file name to insert in
-the buffer (after @var{directory}, if that is inserted).  In this
+If you specify @var{initial}, that is an initial file name to insert
+in the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
-@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Note:} we
-recommend using @var{default} rather than @var{initial} in most cases.
+@var{initial} does, try the command @kbd{C-x C-v}.  @strong{Please
+note:} we recommend using @var{default} rather than @var{initial} in
+most cases.
 
 If @var{predicate} is non-@code{nil}, it specifies a function of one
 argument that decides which file names are acceptable completion

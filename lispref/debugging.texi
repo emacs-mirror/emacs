@@ -216,10 +216,10 @@ When @code{debug-on-entry} is called interactively, it prompts for
 up to invoke the debugger on entry, @code{debug-on-entry} does nothing.
 @code{debug-on-entry} always returns @var{function-name}.
 
-@strong{Note:} if you redefine a function after using
-@code{debug-on-entry} on it, the code to enter the debugger is discarded
-by the redefinition.  In effect, redefining the function cancels
-the break-on-entry feature for that function.
+@strong{Warning:} if you redefine a function after using
+@code{debug-on-entry} on it, the code to enter the debugger is
+discarded by the redefinition.  In effect, redefining the function
+cancels the break-on-entry feature for that function.
 
 @example
 @group

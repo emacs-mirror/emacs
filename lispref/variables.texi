@@ -1281,9 +1281,9 @@ If the variable is terminal-local, this function signals an error.  Such
 variables cannot have buffer-local bindings as well.  @xref{Multiple
 Displays}.
 
-@strong{Note:} Do not use @code{make-local-variable} for a hook
-variable.  The hook variables are automatically made buffer-local
-as needed if you use the @var{local} argument to @code{add-hook} or
+@strong{Warning:} do not use @code{make-local-variable} for a hook
+variable.  The hook variables are automatically made buffer-local as
+needed if you use the @var{local} argument to @code{add-hook} or
 @code{remove-hook}.
 @end deffn
 

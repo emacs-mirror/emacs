@@ -148,9 +148,9 @@ The function should accept one argument, just as @code{read} does.
 Normally, the variable's value is @code{nil}, which means those
 functions should use @code{read}.
 
-@strong{Note:} Instead of using this variable, it is cleaner to use
-another, newer feature: to pass the function as the @var{read-function}
-argument to @code{eval-region}.  @xref{Eval}.
+Instead of using this variable, it is cleaner to use another, newer
+feature: to pass the function as the @var{read-function} argument to
+@code{eval-region}.  @xref{Eval}.
 @end defvar
 
   For information about how @code{load} is used in building Emacs, see
