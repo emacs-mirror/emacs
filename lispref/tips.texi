@@ -144,10 +144,10 @@ always, @code{forward-line} is more convenient as well as more
 predictable and robust.  @xref{Text Lines}.
 
 @item
-Don't use functions that set the mark in your Lisp code (unless you are
-writing a command to set the mark).  The mark is a user-level feature,
-so it is incorrect to change the mark except to supply a value for the
-user's benefit.  @xref{The Mark}.
+Don't call functions that set the mark, unless setting the mark is one
+of the intended features of your program.  The mark is a user-level
+feature, so it is incorrect to change the mark except to supply a value
+for the user's benefit.  @xref{The Mark}.
 
 In particular, don't use these functions:
 
@@ -228,7 +228,7 @@ Function calls are slow in Emacs Lisp even when a compiled function
 is calling another compiled function.
 
 @item
-Using the primitive list-searching functions @code{memq}, @code{assq} or
+Using the primitive list-searching functions @code{memq}, @code{assq}, or
 @code{assoc} is even faster than explicit iteration.  It may be worth
 rearranging a data structure so that one of these primitive search
 functions can be used.
@@ -273,7 +273,7 @@ the speed.  @xref{Inline Functions}.
 
 @itemize @bullet
 @item
-Every command, function or variable intended for users to know about
+Every command, function, or variable intended for users to know about
 should have a documentation string.
 
 @item
@@ -282,12 +282,12 @@ string, and you can save space by using a comment instead.
 
 @item
 The first line of the documentation string should consist of one or two
-complete sentences which stand on their own as a summary.  @kbd{M-x
+complete sentences that stand on their own as a summary.  @kbd{M-x
 apropos} displays just the first line, and if it doesn't stand on its
 own, the result looks bad.  In particular, start the first line with a
 capital letter and end with a period.
 
-The documentation string can have additional lines which expand on the
+The documentation string can have additional lines that expand on the
 details of how to use the function or variable.  The additional lines
 should be made up of complete sentences also, but they may be filled if
 that looks good.
@@ -316,7 +316,7 @@ Do not start or end a documentation string with whitespace.
 
 @item
 Format the documentation string so that it fits in an Emacs window on an
-80 column screen.  It is a good idea for most lines to be no wider than
+80-column screen.  It is a good idea for most lines to be no wider than
 60 characters.  The first line can be wider if necessary to fit the 
 information that ought to be there.
 
@@ -334,8 +334,8 @@ starting double-quote is not part of the string!
 @item
 A variable's documentation string should start with @samp{*} if the
 variable is one that users would often want to set interactively.  If
-the value is a long list, or a function, or if the variable would only
-be set in init files, then don't start the documentation string with
+the value is a long list, or a function, or if the variable would be set
+only in init files, then don't start the documentation string with
 @samp{*}.  @xref{Defining Variables}.
 
 @item
@@ -413,7 +413,7 @@ Lisp mode and related modes, the @kbd{M-;} (@code{indent-for-comment})
 command automatically inserts such a @samp{;} in the right place, or
 aligns such a comment if it is already present.
 
-(The following examples are taken from the Emacs sources.)
+This and following examples are taken from the Emacs sources.
 
 @smallexample
 @group
@@ -444,7 +444,7 @@ Every function that has no documentation string (because it is use only
 internally within the package it belongs to), should have instead a
 two-semicolon comment right before the function, explaining what the
 function does and how to call it properly.  Explain precisely what each
-argument means and how the function interprets its possible value.
+argument means and how the function interprets its possible values.
 
 @item ;;;
 Comments that start with three semicolons, @samp{;;;}, should start at
@@ -460,7 +460,7 @@ For example:
 @end group
 @end smallexample
 
-Another use for triple-semicolon comments is for commenting out line
+Another use for triple-semicolon comments is for commenting out lines
 within a function.  We use triple-semicolons for this precisely so that
 they remain at the left margin.
 
@@ -485,7 +485,7 @@ program.  For example:
 The indentation commands of the Lisp modes in Emacs, such as @kbd{M-;}
 (@code{indent-for-comment}) and @key{TAB} (@code{lisp-indent-line})
 automatically indent comments according to these conventions,
-depending on the the number of semicolons.  @xref{Comments,,
+depending on the number of semicolons.  @xref{Comments,,
 Manipulating Comments, emacs, The GNU Emacs Manual}.
 
 @node Library Headers
@@ -512,7 +512,7 @@ them.  This section explains these conventions.  First, an example:
 ;; Keywords: docs
 
 ;; This file is part of GNU Emacs.
-@var{copying conditions}@dots{}
+@var{copying permissions}@dots{}
 @end group
 @end smallexample
 

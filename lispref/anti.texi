@@ -91,18 +91,23 @@ You'll have to write programs specially to use it, though.
 As a result, certain macros, functions, and predicates no longer handle
 specifications for floating point numbers.
 
+@itemize @bullet
+@item
 The function @code{string-to-number}, the predicate @code{floatp}, and
 the variable @code{float-output-format} have all been eliminated.
 
+@item
 The functions @code{float}, @code{truncate}, @code{floor}, @code{ceil},
 @code{round}, and @code{logb} do not exist; neither do the functions
 @code{abs}, @code{cos}, @code{sin}, @code{tan}, @code{acos},
 @code{asin}, @code{atan}, @code{exp}, @code{expt}, @code{log10},
 @code{log}, or @code{sqrt}.
 
+@item
 The @code{format} function no longer handles the specifications
 @samp{%e}, @samp{%f} and @samp{%g} for printing floating point numbers;
 likewise for @code{message}.
+@end bullet
 
 @section Changes in Basic Editing Functions
 
@@ -169,6 +174,8 @@ We eliminated text properties.
 Many file-related functions have been eliminated or simplified.  Here is
 a basic listing of these functions.
 
+@itemize @bullet
+@item
 The functions @code{file-accessible-directory-p}, @code{file-truename},
 @code{make-directory}, @code{delete-directory},
 @code{set-visited-file-modtime}, @code{directory-abbrev-alist},
@@ -177,17 +184,22 @@ The functions @code{file-accessible-directory-p}, @code{file-truename},
 @code{set-default-file-modes}, @code{default-file-modes}, and
 @code{unix-sync} have been eliminated.
 
+@item
 We got rid of the ``initial file name'' argument to
 @code{read-file-name}.
 
+@item
 Additionally, we removed the 12th element from the list returned by
 @code{file-attributes}.
 
+@item
 @code{directory-files} always sorts the list of files.  It's not user
 friendly to process the files in any haphazard order.
 
+@item
 We eliminated the variables @code{write-contents-hooks} and
 @code{local-write-file-hooks}.
+@end bullet
 
 @section Making Certain File Names ``Magic''
 
@@ -207,7 +219,7 @@ of creeping featurism.
 @itemize @bullet
 @item
 The functions @code{mouse-position} and @code{set-mouse-position}, and
-the special form @code{track-mouse} have been eliminated.
+the special form @code{track-mouse}, have been eliminated.
 
 @item
 Likewise, the functions @code{x-set-selection}, @code{x-set-cut-buffer},
@@ -334,7 +346,7 @@ accept strings.
 We removed the @code{read-event}, @code{event-start},
 @code{posn-window}, @code{posn-point}, @code{posn-col-row},
 @code{posn-timestamp}, @code{scroll-bar-scale}, and @code{event-end}
-functions, since they were only useful for non-character events.
+functions, since they were useful only for non-character events.
 
 @item
 We removed the @code{unread-command-events} and @code{last-event-frame}
@@ -357,29 +369,39 @@ same encoding used in strings: 128 plus the corresponding non-Meta
 
 @section Menus
 
+@itemize @bullet
+@item
 You can no longer define menus as keymaps; good system design requires
 crafting a special-purpose interface for each facility, so it can
 precisely fit the requirements of that facility.  We decided that
 unifying keymaps and menus was simply too much of a strain.
 
-In Emacs 18, you can only activate menus with the mouse.  Using them
+@item
+In Emacs 18, you can activate menus only with the mouse.  Using them
 with a keyboard was too confusing for too many users.
 
+@item
 Emacs 18 has no menu bars.  All functions and variables related to the
 menu bar have been eliminated.
+@end bullet
 
 @section Changes in Minibuffer Features
 
+@itemize @bullet
+@item
 The minibuffer history feature has been eliminated.  Thus, we removed
 the optional argument @var{hist} from the minibuffer input functions
 @code{read-from-minibuffer} and @code{completing-read}.
 
+@item
 The @var{initial} argument to @code{read-from-minibuffer} and other
 minibuffer input functions can no longer be a cons cell
 @code{(@var{string} . @var{position})}.
 
+@item
 In the function @code{read-no-blanks-input}, the @var{initial} argument
 is no longer optional.
+@end bullet
 
 @section New Features for Defining Commands
 
@@ -399,15 +421,20 @@ special meaning.
 
 @section Removed Features for Reading Input
 
+@itemize @bullet
+@item
 We removed the third argument (@var{meta}) from the function
 @code{set-input-mode}.  Consequently, we added the variable
 @code{meta-flag}; set it to @code{t} to enable use of a Meta key, and
 to @code{nil} to disable it.  (Those are the only two alternatives.)
 
+@item
 We also removed the variable @code{extra-keyboard-modifiers}.
 
+@item
 We removed the function @code{keyboard-translate} and the variables
 @code{num-input-keys} and @code{function-key-map}.
+@end itemize
 
 @section Removed Syntax Table Features
 
@@ -427,10 +454,13 @@ We abolished the variable @code{words-include-escapes}.
 
 @section The Case Table
 
+@itemize @bullet
+@item
 Case tables do not exist in Emacs 18.  Due to this change, we have
 removed the associated functions @code{set-standard-case-table},
 @code{standard-case-table}, @code{current-case-table},
 @code{set-case-table}, and @code{set-case-syntax-pair}.
+@end itemize
 
 @section Features for Dealing with Buffers
 
@@ -480,11 +510,12 @@ is local in the current buffer.
 
 @section Features for Subprocesses
 
+@itemize @bullet
+@item
 @code{call-process} and @code{call-process-region} no longer indicate
 the termination status of the subprocess.  We call on users to have faith
 that the subprocess executed properly.
 
-@itemize
 @item
 The standard asynchronous subprocess features do not work on VMS;
 instead, special VMS asynchronous subprocess functions have been added.
@@ -540,11 +571,15 @@ We removed the variable @code{command-debug-status} and the function
 
 @section Memory Allocation Changes
 
+@itemize @bullet
+@item
 We removed the function @code{memory-limit}.
 
+@item
 The list returned by @code{garbage-collect} no longer contains an
 element to describe floating point numbers, since there aren't any
 floating point numbers in Emacs 18.
+@end itemize
 
 @section Hook Changes
 

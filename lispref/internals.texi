@@ -39,12 +39,12 @@ routines, but not the editing commands.
 the real runnable Emacs executable.  These arguments direct
 @file{temacs} to evaluate the Lisp files specified in the file
 @file{loadup.el}.  These files set up the normal Emacs editing
-environment, resulting in an Emacs which is still impure but no longer
+environment, resulting in an Emacs that is still impure but no longer
 bare.
 
   It takes a substantial time to load the standard Lisp files.  Luckily,
 you don't have to do this each time you run Emacs; @file{temacs} can
-dump out an executable program called @file{emacs} which has these files
+dump out an executable program called @file{emacs} that has these files
 preloaded.  @file{emacs} starts more quickly because it does not need to
 load the files.  This is the Emacs executable that is normally
 installed.
@@ -64,7 +64,7 @@ extra time is not too severe a problem.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
-@file{site-load.el} which loads them.  You may need to increase the
+@file{site-load.el} that loads them.  You may need to increase the
 value of @code{PURESIZE}, in @file{src/puresize.h}, to make room for the
 additional files.  (Try adding increments of 20000 until it is big
 enough.)  However, the advantage of preloading additional files
@@ -134,7 +134,8 @@ which reduces their usefulness at present, but we hope they will be
 convenient in the future.
 
 @defvar emacs-major-version
-The major version number of Emacs, as an integer.
+The major version number of Emacs, as an integer.  For Emacs version
+19.23, the value is 19.
 @end defvar
 
 @defvar emacs-minor-version
@@ -148,14 +149,14 @@ The minor version number of Emacs, as an integer.  For Emacs version
 
   Emacs Lisp uses two kinds of storage for user-created Lisp objects:
 @dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
-all the new data which is created during an Emacs session is kept; see
-the following section for information on normal storage.  Pure storage
-is used for certain data in the preloaded standard Lisp files---data
-that should never change during actual use of Emacs.
+all the new data created during an Emacs session is kept; see the
+following section for information on normal storage.  Pure storage is
+used for certain data in the preloaded standard Lisp files---data that
+should never change during actual use of Emacs.
 
   Pure storage is allocated only while @file{temacs} is loading the
 standard preloaded Lisp libraries.  In the file @file{emacs}, it is
-marked as read-only (on operating systems which permit this), so that
+marked as read-only (on operating systems that permit this), so that
 the memory space can be shared by all the Emacs jobs running on the
 machine at once.  Pure storage is not expandable; a fixed amount is
 allocated when Emacs is compiled, and if that is not sufficient for the
@@ -221,26 +222,26 @@ might be a more intuitive metaphor for this facility.)
   The garbage collector operates by finding and marking all Lisp objects
 that are still accessible to Lisp programs.  To begin with, it assumes
 all the symbols, their values and associated function definitions, and
-any data presently on the stack, are accessible.  Any objects which can
+any data presently on the stack, are accessible.  Any objects that can
 be reached indirectly through other accessible objects are also
 accessible.
 
   When marking is finished, all objects still unmarked are garbage.  No
 matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
-might as well be reused, since no one will miss them.  The second,
-``sweep'' phase of the garbage collector arranges to reuse them.
+might as well be reused, since no one will miss them.  The second
+(``sweep'') phase of the garbage collector arranges to reuse them.
 
 @cindex free list
   The sweep phase puts unused cons cells onto a @dfn{free list}
 for future allocation; likewise for symbols and markers.  It compacts
 the accessible strings so they occupy fewer 8k blocks; then it frees the
-other 8k blocks.  Vectors, buffers, windows and other large objects are
+other 8k blocks.  Vectors, buffers, windows, and other large objects are
 individually allocated and freed using @code{malloc} and @code{free}.
 
 @cindex CL note---allocate more storage
 @quotation
-@b{Common Lisp note:} unlike other Lisps, GNU Emacs Lisp does not
+@b{Common Lisp note:} Unlike other Lisps, GNU Emacs Lisp does not
 call the garbage collector when the free list is empty.  Instead, it
 simply requests the operating system to allocate more storage, and
 processing continues until @code{gc-cons-threshold} bytes have been
@@ -333,7 +334,7 @@ called.
 The initial threshold value is 100,000.  If you specify a larger
 value, garbage collection will happen less often.  This reduces the
 amount of time spent garbage collecting, but increases total memory use.
-You may want to do this when running a program which creates lots of
+You may want to do this when running a program that creates lots of
 Lisp data.
 
 You can make collections more frequent by specifying a smaller value,
@@ -469,11 +470,11 @@ should be a single sentence.
 name list that every C function must have, followed by ordinary C
 declarations for the arguments.  For a function with a fixed maximum
 number of arguments, declare a C argument for each Lisp argument, and
-give them all type @code{Lisp_Object}.  If the function has no upper
-limit on the number of arguments in Lisp, then in C it receives two
-arguments: the first is the number of Lisp arguments, and the second is
-the address of a block containing their values.  They have types
-@code{int} and @w{@code{Lisp_Object *}}.
+give them all type @code{Lisp_Object}.  When a Lisp function has no
+upper limit on the number of arguments, its implementation in C actually
+receives exactly two arguments: the first is the number of Lisp
+arguments, and the second is the address of a block containing their
+values.  They have types @code{int} and @w{@code{Lisp_Object *}}.
 
   Within the function @code{For} itself, note the use of the macros
 @code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to ``protect''
@@ -524,8 +525,8 @@ file, add to it a @code{syms_of_@var{filename}} (e.g.,
 of these functions are called, and add a call to
 @code{syms_of_@var{filename}} there.
 
-  This function @code{syms_of_@var{filename}} is also the place to
-define any C variables which are to be visible as Lisp variables.
+  The function @code{syms_of_@var{filename}} is also the place to define
+any C variables that are to be visible as Lisp variables.
 @code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
 in Lisp.  @code{DEFVAR_INT} makes a C variable of type @code{int}
 visible in Lisp with a value that is always an integer.
@@ -643,7 +644,7 @@ Many are accessible indirectly in Lisp programs via Lisp primitives.
 
 @table @code
 @item name
-The buffer name is a string which names the buffer.  It is guaranteed to
+The buffer name is a string that names the buffer.  It is guaranteed to
 be unique.  @xref{Buffer Names}.
 
 @item save_modified
@@ -696,7 +697,7 @@ gap, must check each of these markers and perhaps update it.
 @xref{Markers}.
 
 @item backed_up
-This field is a flag which tells whether a backup file has been made
+This field is a flag that tells whether a backup file has been made
 for the visited file of this buffer.
 
 @item mark
@@ -744,7 +745,7 @@ The frame that this window is on.
 Non-@code{nil} if this window is a minibuffer window.
 
 @item buffer
-The buffer which the window is displaying.  This may change often during
+The buffer that the window is displaying.  This may change often during
 the life of the window.
 
 @item dedicated
@@ -756,7 +757,7 @@ This is the value of point in the current buffer when this window is
 selected; when it is not selected, it retains its previous value.
 
 @item start
-he position in the buffer which is the first character to be displayed
+The position in the buffer that is the first character to be displayed
 in the window.
 
 @item force_start
@@ -806,7 +807,7 @@ to a window's parent.
 Parent windows do not display buffers, and play little role in display
 except to shape their child windows.  Emacs Lisp programs usually have
 no access to the parent windows; they operate on the windows at the
-leaves of the tree, that actually display buffers.
+leaves of the tree, which actually display buffers.
 
 @item hscroll
 This is the number of columns that the display in the window is scrolled
@@ -869,8 +870,9 @@ A flag, non-@code{nil} if this is really a child process.
 It is @code{nil} for a network connection.
 
 @item mark
-A marker indicating the position of end of last output from this process
-inserted into the buffer.  This is usually the end of the buffer.
+A marker indicating the position of the end of the last output from this
+process inserted into the buffer.  This is often but not always the end
+of the buffer.
 
 @item kill_without_query
 If this is non-@code{nil}, killing Emacs while this process is still
