@@ -208,8 +208,7 @@ If nil, use local time.")
 	    (now (current-time)))
 	(unwind-protect
 	    (progn
-	      (set-time-zone-rule
-	       change-log-time-zone-rule)
+	      (set-time-zone-rule change-log-time-zone-rule)
 	      (concat
 	       (format-time-string "%Y-%m-%d " now)
 	       (add-log-iso8601-time-zone now)))
@@ -425,7 +424,7 @@ non-nil, otherwise in local time."
 	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert "\n\n")
+	   (insert-char ?\n 2)
 	   (forward-line -2)
 	   (indent-relative-maybe))
 	  (t
@@ -435,10 +434,11 @@ non-nil, otherwise in local time."
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert "\n\n\n")
+	   (insert-char ?\n 3)
 	   (forward-line -2)
 	   (indent-to left-margin)
-	   (insert "* " (or entry ""))))
+	   (insert "* ")
+	   (if entry (insert entry))))
     ;; Now insert the function name, if we have one.
     ;; Point is at the entry for this file,
     ;; either at the end of the line or at the first blank line.
@@ -811,11 +811,8 @@ Point is assumed to be at the start of the entry."
 Both must be found in Change Log mode (since the merging depends on
 the appropriate motion commands).
 
-Entries are inserted in chronological order.
-
-Both the current and old-style time formats for entries are supported,
-so this command could be used to convert old-style logs by merging
-with an empty log."
+Entries are inserted in chronological order.  Both the current and
+old-style time formats for entries are supported."
   (interactive "*fLog file name to merge: ")
   (if (not (eq major-mode 'change-log-mode))
       (error "Not in Change Log mode"))
@@ -848,6 +845,29 @@ with an empty log."
 				     (with-current-buffer other-buf
 				       (goto-char (point-max))
 				       (point)))))))))
+
+;;;###autoload
+(defun change-log-redate ()
+  "Fix any old-style date entries in the current log file to default format."
+  (interactive)
+  (require 'timezone)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^\\sw.........[0-9:+ ]*" nil t)
+      (unless (= 12 (- (match-end 0) (match-beginning 0)))
+	(let* ((date (save-match-data
+		       (timezone-fix-time (match-string 0) nil nil)))
+	       (zone (if (consp (aref date 6))
+			 (nth 1 (aref date 6)))))
+	  (replace-match (format-time-string
+			  "%Y-%m-%d  "
+			  (encode-time (aref date 5)
+				       (aref date 4)
+				       (aref date 3)
+				       (aref date 2)
+				       (aref date 1)
+				       (aref date 0)
+				       zone))))))))
 
 (provide 'add-log)
 
