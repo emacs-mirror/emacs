@@ -193,7 +193,7 @@ Each subdirectory has an element: (DIRNAME . STARTMARKER).
 The order of elements is the reverse of the order in the buffer.
 In simple cases, this list contains one element.")
 
-(defvar dired-subdir-regexp "^. \\([^ \n\r]+\\)\\(:\\)[\n\r]"
+(defvar dired-subdir-regexp "^. \\([^\n\r]+\\)\\(:\\)[\n\r]"
   "Regexp matching a maybe hidden subdirectory line in `ls -lR' output.
 Subexpression 1 is the subdirectory proper, no trailing colon.
 The match starts at the beginning of the line and ends after the end
