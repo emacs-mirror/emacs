@@ -858,7 +858,7 @@ are shown; the contents of those subgroups are initially hidden."
 ;;;###autoload
 (defun customize-changed-options (since-version)
   "Customize all user option variables whose default values changed recently.
-This means, in other words, variables defined with a `:new' option."
+This means, in other words, variables defined with a `:version' option."
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
       (setq since-version nil))
