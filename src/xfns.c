@@ -530,6 +530,7 @@ x_report_frame_params (f, alistptr)
   sprintf (buf, "%d", FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
+  FRAME_SAMPLE_VISIBILITY (f);
   store_in_alist (alistptr, Qvisibility,
 		  (FRAME_VISIBLE_P (f) ? Qt
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
