@@ -2331,9 +2331,8 @@ key.  If you type a prefix key by accident, you can press @kbd{C-g}
 to cancel it.  (In fact, you can press @kbd{C-g} to cancel almost
 anything in Emacs.)  To get help on a prefix key, press that key
 followed by @kbd{?}.  Some prefixes have several lines of help,
-so you need to press @kbd{?} repeatedly to see them all.  This may
-not work under Lucid Emacs, but you can also type @kbd{h h} to
-see all the help at once.
+so you need to press @kbd{?} repeatedly to see them all.  
+You can also type @kbd{h h} to see all the help at once.
 
 Try pressing @kbd{t ?} now.  You will see a line of the form,
 
@@ -5923,9 +5922,6 @@ anything you like.  Rewrite rules also work as a powerful programming
 system.  But Lisp and rewrite rules take a while to master, and often
 all you want to do is define a new function or repeat a command a few
 times.  Calc has features that allow you to do these things easily.
-
-(Note that the programming commands relating to user-defined keys
-are not yet supported under Lucid Emacs 19.)
 
 One very limited form of programming is defining your own functions.
 Calc's @kbd{Z F} command allows you to define a function name and
