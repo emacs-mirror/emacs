@@ -2683,7 +2683,7 @@ extern void keys_of_window P_ ((void));
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void store_in_alist P_ ((Lisp_Object *, Lisp_Object, Lisp_Object));
-extern Lisp_Object do_switch_frame P_ ((Lisp_Object, Lisp_Object, int));
+extern Lisp_Object do_switch_frame P_ ((Lisp_Object, int, int));
 extern Lisp_Object get_frame_param P_ ((struct frame *, Lisp_Object));
 extern Lisp_Object frame_buffer_predicate P_ ((Lisp_Object));
 EXFUN (Fframep, 1);
