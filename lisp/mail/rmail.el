@@ -700,6 +700,36 @@ Instead, these commands are available:
     (replace-buffer-in-windows obuf)
     (bury-buffer obuf)))
 
+(defun rmail-bury ()
+  "Bury current Rmail buffer and its summary buffer."
+  (interactive)
+  ;; This let var was called rmail-buffer, but that interfered
+  ;; with the buffer-local var used in summary buffers.
+  (let ((buffer-to-bury (current-buffer)))
+    (if (rmail-summary-exists)
+	(let (window)
+	  (while (setq window (get-buffer-window rmail-summary-buffer))
+	    (set-window-buffer window (other-buffer rmail-summary-buffer)))
+	  (bury-buffer rmail-summary-buffer)))
+    (switch-to-buffer (other-buffer (current-buffer)))
+    (bury-buffer buffer-to-bury)))
+
+(defun rmail-duplicate-message ()
+  "Create a duplicated copy of the current message.
+The duplicate copy goes into the Rmail file just after the
+original copy."
+  (interactive)
+  (widen)
+  (let ((buffer-read-only nil)
+	(number rmail-current-message)
+	(string (buffer-substring (rmail-msgbeg rmail-current-message)
+				  (rmail-msgend rmail-current-message))))
+    (goto-char (rmail-msgend rmail-current-message))
+    (insert string)
+    (rmail-forget-messages)
+    (rmail-show-message number)
+    (message "Message duplicated")))
+
 ;;;###autoload
 (defun rmail-input (filename)
   "Run Rmail on file FILENAME."
@@ -2114,7 +2144,7 @@ use \\[mail-yank-original] to yank the original message into it."
          ;; If we can't kludge it simply, do it correctly
          (let ((mail-use-rfc822 t))
            (rmail-make-in-reply-to-field from date message-id)))))
-
+
 (defun rmail-forward (resend)
   "Forward the current message to another user.
 With prefix argument, \"resend\" the message instead of forwarding it;
@@ -2167,7 +2197,7 @@ see the documentation of `rmail-resend'."
 	    (insert-buffer-substring forward-buffer)
 	    (insert "------- End of forwarded message -------\n")
 	    (push-mark))))))
-
+
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
 ADDRESSES should be a single address, a string consisting of several
@@ -2238,7 +2268,7 @@ typically for purposes of moderating a list."
 	    (funcall send-mail-function)))
       (kill-buffer tembuf))
     (rmail-set-attribute "resent" t rmail-current-message)))
-
+
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
 	  "^ *---+ +Returned message +---+ *$\\|"
@@ -2294,7 +2324,7 @@ specifying headers which should not be copied into the new message."
 		  (set-buffer (get-buffer-create " rmail retry temp"))
 		  (insert-buffer old-buffer)
 		  (goto-char (point-max))
-		  (if (re-search-backward "^End of returned message$")
+		  (if (re-search-backward "^End of returned message$" nil t)
 		      (delete-region (point) (point-max)))
 		  (indent-rigidly (point-min) (point-max) (- column))
 		  (goto-char (point-min))
@@ -2342,21 +2372,7 @@ specifying headers which should not be copied into the new message."
 	    (mail-position-on-field (if resending "Resent-To" "To") t)
 	    (set-buffer mail-buffer)
 	    (rmail-beginning-of-message))))))
-
-(defun rmail-bury ()
-  "Bury current Rmail buffer and its summary buffer."
-  (interactive)
-  ;; This let var was called rmail-buffer, but that interfered
-  ;; with the buffer-local var used in summary buffers.
-  (let ((buffer-to-bury (current-buffer)))
-    (if (rmail-summary-exists)
-	(let (window)
-	  (while (setq window (get-buffer-window rmail-summary-buffer))
-	    (set-window-buffer window (other-buffer rmail-summary-buffer)))
-	  (bury-buffer rmail-summary-buffer)))
-    (switch-to-buffer (other-buffer (current-buffer)))
-    (bury-buffer buffer-to-bury)))
-
+
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
 In fact, the non-nil value returned is the summary buffer itself."
