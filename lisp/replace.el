@@ -30,11 +30,17 @@
 
 (defvar query-replace-history nil)
 
-(defun query-replace-read-args (string)
+(defvar query-replace-interactive nil
+  "Non-nil means `query-replace' uses the last search string.
+That becomes the \"string to replace\".")
+
+(defun query-replace-read-args (string regexp-flag)
   (let (from to)
-    (setq from (read-from-minibuffer (format "%s: " string)
-				     nil nil nil
-				     'query-replace-history))
+    (if query-replace-interactive
+	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
+      (setq from (read-from-minibuffer (format "%s: " string)
+				       nil nil nil
+				       'query-replace-history)))
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
 				   'query-replace-history))
@@ -45,13 +51,17 @@
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
 
+If `query-replace-interactive' is non-nil, the last incremental search
+string is used as FROM-STRING--you don't have to specify it with the
+minibuffer.
+
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and FROM-STRING has no uppercase letters.
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
-  (interactive (query-replace-read-args "Query replace"))
+  (interactive (query-replace-read-args "Query replace" nil))
   (perform-replace from-string to-string t nil arg)
   (or unread-command-events (message "Done")))
 (define-key esc-map "%" 'query-replace)
@@ -61,6 +71,10 @@ To customize possible responses, change the \"bindings\" in `query-replace-map'.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
 
+If `query-replace-interactive' is non-nil, the last incremental search
+regexp is used as REGEXP--you don't have to specify it with the
+minibuffer.
+
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
@@ -68,7 +82,7 @@ only matches surrounded by word boundaries.
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
-  (interactive (query-replace-read-args "Query replace regexp"))
+  (interactive (query-replace-read-args "Query replace regexp" t))
   (perform-replace regexp to-string t t arg)
   (or unread-command-events (message "Done")))
 
@@ -81,13 +95,18 @@ wrapping around from the last such string to the first.
 
 Non-interactively, TO-STRINGS may be a list of replacement strings.
 
+If `query-replace-interactive' is non-nil, the last incremental search
+regexp is used as REGEXP--you don't have to specify it with the minibuffer.
+
 A prefix argument N says to use each replacement string N times
 before rotating to the next."
   (interactive
    (let (from to)
-     (setq from (read-from-minibuffer "Map query replace (regexp): "
-				      nil nil nil
-				      'query-replace-history))
+     (setq from (if query-replace-interactive
+		    (car regexp-search-ring)
+		  (read-from-minibuffer "Map query replace (regexp): "
+					nil nil nil
+					'query-replace-history)))
      (setq to (read-from-minibuffer
 	       (format "Query replace %s with (space-separated strings): "
 		       from)
@@ -117,12 +136,16 @@ are non-nil and FROM-STRING has no uppercase letters.
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 
+If `query-replace-interactive' is non-nil, the last incremental search
+string is used as FROM-STRING--you don't have to specify it with the
+minibuffer.
+
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
   (while (search-forward FROM-STRING nil t)
     (replace-match TO-STRING nil t))
 which will run faster and will not set the mark or print anything."
-  (interactive (query-replace-read-args "Replace string"))
+  (interactive (query-replace-read-args "Replace string" nil))
   (perform-replace from-string to-string nil nil delimited)
   (or unread-command-events (message "Done")))
 
@@ -136,12 +159,15 @@ In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP.
 
+If `query-replace-interactive' is non-nil, the last incremental search
+regexp is used as REGEXP--you don't have to specify it with the minibuffer.
+
 This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
   (while (re-search-forward REGEXP nil t)
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
-  (interactive (query-replace-read-args "Replace regexp"))
+  (interactive (query-replace-read-args "Replace regexp" t))
   (perform-replace regexp to-string nil t delimited)
   (or unread-command-events (message "Done")))
 
