@@ -1,3 +1,8 @@
+2004-12-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-read-key-sequence): Leave the old message visible
+	when reading a new key sequence.
+
 2004-12-02  Kim F. Storm  <storm@cua.dk>
 
 	* faces.el (escape-glyph): Rename from glyph.
