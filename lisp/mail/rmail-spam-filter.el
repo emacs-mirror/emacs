@@ -84,6 +84,7 @@
   "Spam filter for RMAIL, the mail reader for Emacs."
   :group 'rmail)
 
+;;;###autoload
 (defcustom rmail-use-spam-filter nil
   "*Non-nil to activate the rmail spam filter.
 Specify `rmail-spam-definitions-alist' to define what you consider spam
