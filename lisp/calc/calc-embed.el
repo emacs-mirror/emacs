@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-embed () nil)
 
 (defun calc-show-plain (n)
   (interactive "P")
@@ -331,7 +329,6 @@ This is not required to be present for user-written mode annotations.")
       (aset info 8 val)
       (calc-embedded-update info 14 t t))))
 
-;;;###autoload
 (defun calc-do-embedded-activate (arg cbuf)
   (calc-plain-buffer-only)
   (if arg
@@ -1225,6 +1222,8 @@ The command \\[yank] can retrieve it from there."
 	    (setq p (cdr p))))
 	(setq bp (if buf nil (cdr bp))))
       (or first calc-embedded-quiet (message "")))))
+
+(provide 'calc-embed)
 
 ;;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here
