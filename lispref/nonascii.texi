@@ -739,22 +739,39 @@ systems used for I/O to a subprocess.
 @node User-Chosen Coding Systems
 @subsection User-Chosen Coding Systems
 
-@defun select-safe-coding-system from to &optional preferred-coding-system
-This function selects a coding system for encoding the text between
-@var{from} and @var{to}, asking the user to choose if necessary.
+@defun select-safe-coding-system from to &optional default-coding-system accept-default-p
+This function selects a coding system for encoding specified text,
+asking the user to choose if necessary.  Normally the specified text
+is the text in the current buffer between @var{from} and @var{to},
+defaulting to the whole buffer if they are @code{nil}.  If @var{from}
+is a string, the string is the target text, and @var{to} is ignored.
 
-The optional argument @var{preferred-coding-system} specifies a coding
-system to try first.  If that one can handle the text in the specified
-region, then it is used.  If this argument is omitted, the current
-buffer's value of @code{buffer-file-coding-system} is tried first.
+If @var{default-coding-system} is non-@code{nil}, that is the first
+coding system to try; if that can handle the text,
+@code{select-safe-coding-system} returns that coding system.  It can
+also be a list of coding systems; then the function tries each of them
+one by one.  After trying all of them, it next tries the user's most
+preferred coding system (@pxref{Recognize Coding,
+prefer-coding-system, the description of @code{prefer-coding-system},
+emacs, GNU Emacs Manual}), and after that the current buffer's value
+of @code{buffer-file-coding-system} (if it is not @code{undecided}).
 
-If the region contains some multibyte characters that the preferred
-coding system cannot encode, this function asks the user to choose from
-a list of coding systems which can encode the text, and returns the
-user's choice.
+If one of those coding systems can safely encode all the specified
+text, @code{select-safe-coding-system} chooses it and returns it.
+Otherwise, it asks the user to choose from a list of coding systems
+which can encode all the text, and returns the user's choice.
 
-One other kludgy feature: if @var{from} is a string, the string is the
-target text, and @var{to} is ignored.
+The optional argument @var{accept-default-p}, if non-@code{nil},
+should be a function to determine whether the coding system selected
+without user interaction is acceptable.  If this function returns
+@code{nil}, the silently selected coding system is rejected, and the
+user is asked to select a coding system from a list of possible
+candidates.
+
+@vindex select-safe-coding-system-accept-default-p
+If the variable @code{select-safe-coding-system-accept-default-p} is
+non-@code{nil}, its value overrides the value of
+@var{accept-default-p}.
 @end defun
 
   Here are two functions you can use to let the user specify a coding
@@ -787,6 +804,18 @@ particular coding system for a particular operation in a Lisp program,
 don't change these variables; instead, override them using
 @code{coding-system-for-read} and @code{coding-system-for-write}
 (@pxref{Specifying Coding Systems}).
+
+@defvar auto-coding-regexp-alist
+This variable is an alist of text patterns and corresponding coding
+systems. Each element has the form @code{(@var{regexp}
+. @var{coding-system})}; a file whose first few kilobytes match
+@var{regexp} is decoded with @var{coding-system} when its contents are
+read into a buffer.  The settings in this alist take priority over
+@code{coding:} tags in the files and the contents of
+@code{file-coding-system-alist} (see below).  The default value is set
+so that Emacs automatically recognizes mail files in Babyl format and
+reads them with no code conversions.
+@end defvar
 
 @defvar file-coding-system-alist
 This variable is an alist that specifies the coding systems to use for
