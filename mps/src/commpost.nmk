@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.22) $
+# $HopeName: MMsrc!commpost.nmk(trunk.23) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -35,7 +35,8 @@ mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
 mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
 
-# "clean" removes the directory containing the build results for the platform
+# "clean" removes the directory containing the build results.
+# Depends on there being no file called "clean".
 
 clean:
 	$(ECHO) $(PFM): $@
@@ -45,6 +46,7 @@ clean:
 # target target
 # %%VARIETY: Add a recusive make call for the new variety
 # Only the varieties needed for development and internal customers are made.
+# Depends on there being no file called "target".
 
 !IFDEF TARGET
 !IFNDEF VARIETY
@@ -56,12 +58,18 @@ target:
 !ENDIF
 
 # variety
+# Depends on there being no file called "variety".
 
 !IFDEF VARIETY
 !IFDEF TARGET
 variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 !ENDIF
+
+# FORCE
+# Used to force a target to be built.
+# Depends on there being no file called "FORCE".
+FORCE:
 
 
 # GENUINE TARGETS
@@ -74,6 +82,11 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 # %%TARGET: Add your new target here
 
 !IFDEF VARIETY
+
+# .special.version: version.o has a special rule so that it is always
+# built. This rule has no commands, meaning that the commands from
+# other rules (the implicit .c -> .obj rule in particular) will be used
+$(PFM)\$(VARIETY)\version.obj: FORCE
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
