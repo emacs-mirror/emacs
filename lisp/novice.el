@@ -71,7 +71,10 @@
 Space to try the command just this once,
       but leave it disabled,
 Y to try it and enable it (no questions if you use it again),
-N to do nothing (command remains disabled)."))
+N to do nothing (command remains disabled).")
+       (save-excursion
+	(set-buffer standard-output)
+	(help-mode)))
      (message "Type y, n or Space: ")
      (let ((cursor-in-echo-area t))
        (while (not (memq (setq char (downcase (read-char)))
