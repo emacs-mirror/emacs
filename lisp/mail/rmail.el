@@ -1740,11 +1740,11 @@ use \\[mail-yank-original] to yank the original message into it."
 	      subject (or (and resent-reply-to
 			       (mail-fetch-field "resent-subject" t))
 			  (mail-fetch-field "subject"))
-	      date (cond (resent-reply-to
-			  (mail-fetch-field "resent-date" t))
-			 ((mail-fetch-field "date")))
+	      date (or (and resent-reply-to
+			    (mail-fetch-field "resent-date" t))
+		       (mail-fetch-field "date"))
 	      to (cond (resent-reply-to
-			(mail-fetch-field "resent-to" t))
+			(or (mail-fetch-field "resent-to" t)) "")
 		       ((mail-fetch-field "to" nil t))
 		       ;((mail-fetch-field "apparently-to")) ack gag barf
 		       (t ""))
