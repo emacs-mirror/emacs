@@ -57,10 +57,6 @@
 ;; keep the behavior.  No point in forcing nonincremental search until
 ;; the last possible moment.
 
-;; TODO
-;; - Integrate the emacs 19 generalized command history.
-;; - Hooks and options for failed search.
-
 ;;; Code:
 
 
@@ -160,6 +156,15 @@ Ordinarily the text becomes invisible again at the end of the search."
 
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.")
+
+(defvar isearch-wrap-function nil
+  "Function to call to wrap the search when search is failed.
+If nil, move point to the beginning of the buffer for a forward search,
+or to the end of the buffer for a backward search.")
+
+(defvar isearch-push-state-function nil
+  "Function to save a function restoring the mode-specific isearch state
+to the search status stack.")
 
 ;; Search ring.
 
@@ -775,6 +780,9 @@ REGEXP says which ring to use."
 (defsubst isearch-case-fold-search-state (frame)
   "Return the case-folding flag in FRAME."
   (aref frame 11))
+(defsubst isearch-pop-fun-state (frame)
+  "Return the function restoring the mode-specific isearch state in FRAME."
+  (aref frame 12))
 
 (defun isearch-top-state ()
   (let ((cmd (car isearch-cmds)))
@@ -789,6 +797,8 @@ REGEXP says which ring to use."
 	  isearch-barrier (isearch-barrier-state cmd)
 	  isearch-within-brackets (isearch-within-brackets-state cmd)
 	  isearch-case-fold-search (isearch-case-fold-search-state cmd))
+    (if (functionp (isearch-pop-fun-state cmd))
+	(funcall (isearch-pop-fun-state cmd) cmd))
     (goto-char (isearch-point-state cmd))))
 
 (defun isearch-pop-state ()
@@ -801,7 +811,9 @@ REGEXP says which ring to use."
 		      isearch-success isearch-forward isearch-other-end
 		      isearch-word
 		      isearch-invalid-regexp isearch-wrapped isearch-barrier
-		      isearch-within-brackets isearch-case-fold-search)
+		      isearch-within-brackets isearch-case-fold-search
+		      (if isearch-push-state-function
+			  (funcall isearch-push-state-function)))
 	      isearch-cmds)))
 
 
@@ -987,10 +999,13 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 (defun isearch-cancel ()
   "Terminate the search and go back to the starting point."
   (interactive)
+  (if (functionp (isearch-pop-fun-state (car (last isearch-cmds))))
+      (funcall (isearch-pop-fun-state (car (last isearch-cmds)))
+               (car (last isearch-cmds))))
   (goto-char isearch-opoint)
-  (isearch-done t)
+  (isearch-done t)                      ; exit isearch
   (isearch-clean-overlays)
-  (signal 'quit nil))  ; and pass on quit signal
+  (signal 'quit nil))                   ; and pass on quit signal
 
 (defun isearch-abort ()
   "Abort incremental search mode if searching is successful, signaling quit.
@@ -1002,11 +1017,9 @@ Use `isearch-exit' to quit without signaling."
   (if isearch-success
       ;; If search is successful, move back to starting point
       ;; and really do quit.
-      (progn (goto-char isearch-opoint)
-	     (setq isearch-success nil)
-	     (isearch-done t)   ; exit isearch
-	     (isearch-clean-overlays)
-	     (signal 'quit nil))  ; and pass on quit signal
+      (progn
+        (setq isearch-success nil)
+        (isearch-cancel))
     ;; If search is failing, or has an incomplete regexp,
     ;; rub out until it is once more successful.
     (while (or (not isearch-success) isearch-invalid-regexp)
@@ -1031,7 +1044,9 @@ Use `isearch-exit' to quit without signaling."
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
-	      (goto-char (if isearch-forward (point-min) (point-max)))
+	      (if isearch-wrap-function
+		  (funcall isearch-wrap-function)
+	        (goto-char (if isearch-forward (point-min) (point-max))))
 	      (setq isearch-wrapped t))))
     ;; C-s in reverse or C-r in forward, change direction.
     (setq isearch-forward (not isearch-forward)))
@@ -1881,6 +1896,7 @@ If there is no completion possible, say so and continue searching."
   (or isearch-success (setq ellipsis nil))
   (let ((m (concat (if isearch-success "" "failing ")
 		   (if (and isearch-wrapped
+			    (not isearch-wrap-function)
 			    (if isearch-forward
 				(> (point) isearch-opoint)
 			      (< (point) isearch-opoint)))
@@ -1977,6 +1993,8 @@ Can be changed via `isearch-search-fun-function' for special needs."
     ;; Ding if failed this time after succeeding last time.
     (and (isearch-success-state (car isearch-cmds))
 	 (ding))
+    (if (functionp (isearch-pop-fun-state (car isearch-cmds)))
+        (funcall (isearch-pop-fun-state (car isearch-cmds)) (car isearch-cmds)))
     (goto-char (isearch-point-state (car isearch-cmds)))))
 
 
