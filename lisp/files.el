@@ -1108,12 +1108,14 @@ If `enable-local-variables' is nil, this function does not check for a
 		  (funcall mode)
 		;; If we can't deduce a mode from the file name,
 		;; look for an interpreter specified in the first line.
+		;; As a special case, allow for things like "#!/bin/env perl",
+		;; which finds the interpreter anywhere in $PATH.
 		(let ((interpreter
 		       (save-excursion
 			 (goto-char (point-min))
-			 (if (looking-at "#! *\\([^ \t\n]+\\)")
-			     (buffer-substring (match-beginning 1)
-					       (match-end 1))
+			 (if (looking-at "#! *\\([^ \t\n]*/bin/env +\\)?\\([^ \t\n]+\\)")
+			     (buffer-substring (match-beginning 2)
+					       (match-end 2))
 			   "")))
 		      elt)
 		  ;; Map interpreter name to a mode.
