@@ -1,3 +1,15 @@
+2003-07-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-menu): Use Info-menu-entry-name-re.
+
+2003-07-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-hooks.el (vc-stay-local, vc-stay-local-p): Move from vc.el.
+	* vc.el (vc-stay-local, vc-stay-local-p): Move to vc-hooks.el.
+
+	* info.el (Info-menu-entry-name-re): Be careful to avoid multiple ways
+	to match the same text.
+
 2003-07-06  John Paul Wallington  <jpw@gnu.org>
 
 	* vc.el (vc-annotate-offset): Move defvar up.
@@ -9,31 +21,29 @@
 
 2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* files.el (auto-mode-alist, interpreter-mode-alist): Removed
-	entries to CC Mode modes to avoid duplicates; they are now added
+	* files.el (auto-mode-alist, interpreter-mode-alist):
+	Remove entries to CC Mode modes to avoid duplicates; they are now added
 	with autoload directives in cc-mode.el.
 
 2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist,
-	c-lang-variable-inits, c-lang-variable-inits-tail): The values of
+	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist)
+	(c-lang-variable-inits, c-lang-variable-inits-tail): The values of
 	these are changed, so declare them as variables and not constants.
 
-	* progmodes/cc-mode.el: Fixed some autoload problems: Try to
+	* progmodes/cc-mode.el: Fix some autoload problems: Try to
 	ensure that the entry for ".c" extension comes before the one for
-	".C" on `auto-mode-alist', to behave better on case insensitive
-	OS:es.  Fixed incorrect entries that were added to
-	`interpreter-mode-alist'.  Moved the autoload directives for AWK
-	to the top level since they aren't recognized anywhere else.  Do
-	not use the new AWK mode doc in the autoload form for the old AWK
-	mode.
+	".C" on `auto-mode-alist', to behave better on case insensitive OS:es.
+	Fix incorrect entries that were added to `interpreter-mode-alist'.
+	Move the autoload directives for AWK to the top level since they
+	aren't recognized anywhere else.  Do not use the new AWK mode doc
+	in the autoload form for the old AWK mode.
 
 2003-06-30  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-sort-entry-class): new entry
-	catch-all.
-	(bibtex-sort-ignore-string-entries): default value t.
-	(bibtex-entry-kill-ring-max): Reintroduced as it was removed
+	* textmodes/bibtex.el (bibtex-sort-entry-class): New entry catch-all.
+	(bibtex-sort-ignore-string-entries): Default value t.
+	(bibtex-entry-kill-ring-max): Reintroduce as it was removed
 	erroneously in previous version.
 	(bibtex-string-files): Docstring reflects new parsing scheme.
 	(bibtex-autokey-transcriptions): Merge some rewrite entries, fix
@@ -56,12 +66,11 @@
 	(bibtex-autokey-name-year-separator)
 	(bibtex-autokey-year-title-separator)
 	(bibtex-autokey-before-presentation-function)
-	(bibtex-entry-type-history, bibtex-entry-maybe-empty-head): Fix
-	docstring.
-	(bibtex-strings, bibtex-reference-keys): Use
-	lazy-completion-table and make-variable-buffer-local.
-	(bibtex-sort-entry-class-alist): Use downcase, account for
-	catch-all.
+	(bibtex-entry-type-history, bibtex-entry-maybe-empty-head):
+	Fix docstring.
+	(bibtex-strings, bibtex-reference-keys):
+	Use lazy-completion-table and make-variable-buffer-local.
+	(bibtex-sort-entry-class-alist): Use downcase, account for catch-all.
 	(bibtex-braced-string-syntax-table)
 	(bibtex-quoted-string-syntax-table): New variables.
 	(bibtex-parse-nested-braces): Remove.
@@ -77,7 +86,7 @@
 	(bibtex-start-of-text-in-string, bibtex-end-of-text-in-string)
 	(bibtex-end-of-string, bibtex-type-in-head): Use defsubst.
 	(bibtex-skip-to-valid-entry): Return buffer position of beginning
-	and ending of entry. Update for changes of bibtex-search-entry.
+	and ending of entry.  Update for changes of bibtex-search-entry.
 	Simplify.
 	(bibtex-map-entries): FUN is called with three arguments.
 	(bibtex-search-entry): Return a cons pair with buffer positions of
@@ -103,25 +112,24 @@
 	(bibtex-make-field): Fix docstring. Simplify.
 	(bibtex-beginning-of-entry): Always return new position of point.
 	(bibtex-end-of-entry): Rearrange cond clauses.
-	(bibtex-count-entries, bibtex-validate, bibtex-reformat): Update
-	for changes of bibtex-map-entries.
+	(bibtex-count-entries, bibtex-validate, bibtex-reformat):
+	Update for changes of bibtex-map-entries.
 	(bibtex-ispell-abstract): Do not move point.
 	(bibtex-entry-index): Use downcase. Simplify.
 	(bibtex-lessp): Handle catch-all.
-	(bibtex-find-crossref): Turned into a command.
+	(bibtex-find-crossref): Turn into a command.
 	(bibtex-find-entry): Simplify. Use bibtex-read-key. Fix regexp.
 	(bibtex-clean-entry): Use bibtex-read-key. Handle string and
 	preamble entries.
 	(bibtex-fill-field-bounds): New function.
-	(bibtex-fill-field): New command. Bound to
-	fill-paragraph-function.
+	(bibtex-fill-field): New command. Bound to fill-paragraph-function.
 	(bibtex-fill-entry): Use bibtex-fill-field-bounds
-	(bibtex-String): Use bibtex-strings. Always obey
+	(bibtex-String): Use bibtex-strings.  Always obey
 	bibtex-sort-ignore-string-entries.
 
 2003-07-05  John Paul Wallington  <jpw@gnu.org>
 
-	* cus-theme.el (customize-create-theme): 
+	* cus-theme.el (customize-create-theme):
 	Call `customize-create-theme' in Reset widget's notify function.
 
 	* ibuffer.el (ibuffer-backward-line, ibuffer-forward-line)
