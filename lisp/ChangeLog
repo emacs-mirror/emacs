@@ -1,5 +1,8 @@
 2000-06-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/mule.el (mule-version): Change version name to
+	SAKAKI.  AOI has already been used by Meadow.
+
 	* international/quail.el (quail-show-guidance-buf): To find the
 	bottom window (but minibuffer), pay attention to the height of
 	minibuffer.
