@@ -9,6 +9,10 @@
 
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* process.c (read_process_output): Make sure the process marker's
+	position is valid when the process buffer is changed in
+	after-change functions.  W3 does that.
+	
 	* xfns.c (x_free_gcs): New function.
 
 	* xterm.h (x_free_gcs): Add prototype.
