@@ -2026,4 +2026,11 @@ and selects that window."
 
 (provide 'mouse)
 
+;; This file contains the functionality of the old mldrag.el.
+(defalias 'mldrag-drag-mode-line 'mouse-drag-mode-line)
+(defalias 'mldrag-drag-vertical-line 'mouse-drag-vertical-line)
+(make-obsolete 'mldrag-drag-mode-line 'mouse-drag-mode-line)
+(make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line)
+(provide 'mldrag)
+
 ;;; mouse.el ends here
