@@ -3,7 +3,7 @@
 ;; Author: RMS
 ;; Keywords: internal
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -166,7 +166,12 @@ A subsequent \\[yank] yanks the choice just selected."
     ;; XXX should this perhaps do something other than simply return? -rm
     (if arg
 	(progn
-	  (rotate-yank-pointer arg)
+	  ;; We don't use `rotate-yank-pointer' because we want to move
+	  ;; relative to the beginning of kill-ring, not the current
+	  ;; position.  Also, that would ask for any new X selection and
+	  ;; thus change the list of items the user just chose from, which
+	  ;; would be highly confusing.
+	  (setq kill-ring-yank-pointer (nthcdr arg kill-ring))
 	  (if (interactive-p)
 	      (message "The next yank will insert the selected text.")
 	    (current-kill 0))))))
