@@ -898,13 +898,10 @@ command_loop_1 ()
   waiting_for_input = 0;
   cancel_echoing ();
 
-  /* Don't clear out last_command at the beginning of a macro.  */
-  if (XTYPE (Vexecuting_macro) != Lisp_String)
-    last_command = Qt;
-
   nonundocount = 0;
   no_redisplay = 0;
   this_command_key_count = 0;
+  last_command = this_command;
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
