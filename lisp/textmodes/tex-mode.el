@@ -1651,8 +1651,10 @@ of the current buffer."
   "Return the relative name of the main file."
   (let* ((file (or tex-main-file
 		   ;; Compatibility with AUCTeX.
-		   (and (boundp 'TeX-master) (stringp TeX-master)
-			(set (make-local-variable 'tex-main-file) TeX-master))
+		   (with-no-warnings
+		    (when (and (boundp 'TeX-master) (stringp TeX-master))
+		      (make-local-variable 'tex-main-file)
+		      (setq tex-main-file TeX-master)))
 		   ;; Try to guess the main file.
 		   (if (not buffer-file-name)
 		       (error "Buffer is not associated with any file")
