@@ -170,7 +170,7 @@ write_c_args (out, buf, minargs, maxargs)
       /* Print the C arguments as they would appear in Elisp;
 	 print underscores as hyphens.  */
       if (c == '_')
-	putc ('-');
+	putc ('-', out);
       else
 	putc (c, out);
     }

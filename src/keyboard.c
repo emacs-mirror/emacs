@@ -1148,7 +1148,7 @@ read_char (commandflag)
     }
 
   /* Save outer setjmp data, in case called recursively.  */
-  bcopy (getcjmp, save_jump, sizeof getcjmp);
+  save_getcjmp (save_jump);
 
   stop_polling ();
 
@@ -1161,8 +1161,6 @@ read_char (commandflag)
 #ifdef MULTI_SCREEN
       XSET (Vlast_event_screen, Lisp_Screen, selected_screen);
 #endif
-
-      clear_waiting_for_input ();
 
       goto non_reread;
     }
@@ -1182,7 +1180,7 @@ read_char (commandflag)
     {
       Lisp_Object tem0;
 
-      tem0 = Fsit_for (make_number (echo_keystrokes), Qnil, Qt);
+      tem0 = sit_for (echo_keystrokes, 0, 1, 1);
       if (EQ (tem0, Qt))
 	echo ();
     }
@@ -1223,7 +1221,7 @@ read_char (commandflag)
       {
 	Lisp_Object tem0;
 	int delay = delay_level * XFASTINT (Vauto_save_timeout) / 4;
-	tem0 = Fsit_for (make_number (delay), Qnil, Qt);
+	tem0 = sit_for (delay, 0, 1, 1);
 	if (EQ (tem0, Qt))
 	  {
 	    jmp_buf temp;
@@ -1263,7 +1261,7 @@ read_char (commandflag)
 
  non_reread:
 
-  bcopy (save_jump, getcjmp, sizeof getcjmp);
+  restore_getcjmp (save_jump);
 
   start_polling ();
 
@@ -1590,7 +1588,10 @@ kbd_buffer_get_event ()
 #endif /* SIGIO */
       if (EVENT_QUEUES_EMPTY)
 	{
-	  wait_reading_process_input (0, 0, -1, 1);
+	  Lisp_Object minus_one;
+
+	  XSET (minus_one, Lisp_Int, -1);
+	  wait_reading_process_input (0, 0, minus_one, 1);
 
 	  if (!interrupt_input && EVENT_QUEUES_EMPTY)
 	    {
@@ -3330,7 +3331,7 @@ quit_throw_to_read_char ()
   quit_error_check ();
   sigfree ();
   /* Prevent another signal from doing this before we finish.  */
-  waiting_for_input = 0;
+  clear_waiting_for_input ();
   input_pending = 0;
 
 #if 0

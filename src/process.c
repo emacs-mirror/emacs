@@ -1587,10 +1587,11 @@ Return non-nil iff we received any output before the timeout expired.")
 	seconds = 0;
     }
 
+  if (NILP (proc))
+    XFASTINT (proc) = 0;
+
   return
-    (wait_reading_process_input (seconds, useconds,
-				 (NILP (proc)
-				  ? XPROCESS (get_process (proc)) : 0), 0)
+    (wait_reading_process_input (seconds, useconds, proc, 0)
      ? Qt : Qnil);
 }
 
@@ -1610,14 +1611,14 @@ static int waiting_for_user_input_p;
      zero for no limit, or
      -1 means gobble data immediately available but don't wait for any.
 
-   read_kbd is:
+   read_kbd is a lisp value:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
        the quit handler, or
-     a pointer to a struct Lisp_Process, meaning wait until something
-       arrives from that process.  The return value is true iff we read
-       some input from that process.
+     a process object, meaning wait until something arrives from that
+       process.  The return value is true iff we read some input from
+       that process.
 
    do_display != 0 means redisplay should be done to show subprocess
    output that arrives.
@@ -1628,7 +1629,9 @@ static int waiting_for_user_input_p;
    Otherwise, return true iff we recieved input from any process.  */
 
 wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
-     int time_limit, microsecs, read_kbd, do_display;
+     int time_limit, microsecs;
+     Lisp_Object read_kbd;
+     int do_display;
 {
   register int channel, nfds, m;
   static SELECT_TYPE Available;
@@ -1642,15 +1645,16 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
   FD_ZERO (&Available);
 
-  /* Detect when read_kbd is really the address of a Lisp_Process.  */
-  if (read_kbd > 10 || read_kbd < -1)
+  /* If read_kbd is a process to watch, set wait_proc and wait_channel
+     accordingly.  */
+  if (XTYPE (read_kbd) == Lisp_Process)
     {
-      wait_proc = (struct Lisp_Process *) read_kbd;
+      wait_proc = XPROCESS (read_kbd);
       wait_channel = XFASTINT (wait_proc->infd);
-      read_kbd = 0;
+      XFASTINT (read_kbd) = 0;
     }
 
-  waiting_for_user_input_p = read_kbd;
+  waiting_for_user_input_p = XINT (read_kbd);
 
   /* Since we may need to wait several times,
      compute the absolute time to return at.  */
@@ -1666,7 +1670,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
-      if (read_kbd >= 0)
+      if (XINT (read_kbd) >= 0)
 	QUIT;
 
       /* If status of something has changed, and no input is available,
@@ -1710,13 +1714,13 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Cause C-g and alarm signals to take immediate action,
 	 and cause input available signals to zero out timeout */
-      if (read_kbd < 0)
+      if (XINT (read_kbd) < 0)
 	set_waiting_for_input (&timeout);
 
       /* Wait till there is something to do */
 
       Available = input_wait_mask;
-      if (!read_kbd)
+      if (! XINT (read_kbd))
 	FD_CLR (0, &Available);
 
       /* If screen size has changed or the window is newly mapped,
@@ -1726,7 +1730,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (screen_garbaged)
 	redisplay_preserve_echo_area ();
 
-      if (read_kbd && detect_input_pending ())
+      if (XINT (read_kbd) && detect_input_pending ())
 	nfds = 0;
       else
 	nfds = select (MAXDESC, &Available, 0, 0, &timeout);
@@ -1779,7 +1783,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if (read_kbd && detect_input_pending ())
+      if (XINT (read_kbd) && detect_input_pending ())
 	break;
 
 #ifdef SIGIO
@@ -1789,9 +1793,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 but select says there is input.  */
 
       /*
-	if (read_kbd && interrupt_input && (Available & fileno (stdin)))
+	if (XINT (read_kbd) && interrupt_input && (Available & fileno (stdin)))
 	*/
-      if (read_kbd && interrupt_input && (FD_ISSET (fileno (stdin), &Available)))
+      if (XINT (read_kbd) && interrupt_input && (FD_ISSET (fileno (stdin), &Available)))
 	kill (0, SIGIO);
 #endif
 
@@ -1810,7 +1814,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* If checking input just got us a size-change event from X,
 	 obey it now if we should.  */
-      if (read_kbd)
+      if (XINT (read_kbd))
 	do_pending_window_change ();
 
       /* Check for data from a process or a command channel */
@@ -1921,7 +1925,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
      Otherwise, do pending quit if requested.  */
-  if (read_kbd >= 0)
+  if (XINT (read_kbd) >= 0)
     {
       /* Prevent input_pending from remaining set if we quit.  */
       clear_input_pending ();
@@ -2134,7 +2138,12 @@ send_process (proc, buf, len)
 	/* Allow input from processes between bursts of sending.
 	   Otherwise things may get stopped up.  */
 	if (len > 0)
-	  wait_reading_process_input (-1, 0, 0, 0);
+	  {
+	    Lisp_Object zero;
+
+	    XFASTINT (zero) = 0;
+	    wait_reading_process_input (-1, 0, zero, 0);
+	  }
       }
 #endif
   else
@@ -2901,7 +2910,7 @@ extern int screen_garbaged;
      zero for no limit, or
      -1 means gobble data immediately available but don't wait for any.
 
-   read_kbd is:
+   read_kbd is a Lisp_Object:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 means caller will actually read the input, so don't throw to
@@ -2912,14 +2921,13 @@ extern int screen_garbaged;
    do_display != 0 means redisplay should be done to show subprocess
    output that arrives.  This version of the function ignores it.
 
-   If read_kbd is a pointer to a struct Lisp_Process, then the
-     function returns true iff we received input from that process
-     before the timeout elapsed.
-   Otherwise, return true iff we recieved input from any process.  */
+   Return true iff we recieved input from any process.  */
 
 int
 wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
-     int time_limit, microsecs, read_kbd, do_display;
+     int time_limit, microsecs;
+     Lisp_Object read_kbd;
+     int do_display;
 {
   EMACS_TIME end_time, timeout, *timeout_p;
   int waitchannels;
@@ -2952,12 +2960,12 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     {
       int nfds;
 
-      waitchannels = read_kbd ? 1 : 0;
+      waitchannels = XINT (read_kbd) ? 1 : 0;
 
       /* If calling from keyboard input, do not quit
 	 since we want to return C-g as an input character.
 	 Otherwise, do pending quit if requested.  */
-      if (read_kbd >= 0)
+      if (XINT (read_kbd) >= 0)
 	QUIT;
 
       if (timeout_p)
@@ -2970,7 +2978,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Cause C-g and alarm signals to take immediate action,
 	 and cause input available signals to zero out timeout.  */
-      if (read_kbd < 0)
+      if (XINT (read_kbd) < 0)
 	set_waiting_for_input (&timeout);
 
       /* If a screen has been newly mapped and needs updating,
@@ -2978,7 +2986,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (screen_garbaged)
 	redisplay_preserve_echo_area ();
 
-      if (read_kbd && detect_input_pending ())
+      if (XINT (read_kbd) && detect_input_pending ())
 	nfds = 0;
       else
 	nfds = select (1, &waitchannels, 0, 0, timeout_p);
@@ -3001,7 +3009,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	/* System sometimes fails to deliver SIGIO.  */
 	kill (getpid (), SIGIO);
 #endif
-      if (read_kbd && interrupt_input && (waitchannels & 1))
+      if (XINT (read_kbd) && interrupt_input && (waitchannels & 1))
 	kill (0, SIGIO);
 
       /* If we have timed out (nfds == 0) or found some input (nfds > 0),

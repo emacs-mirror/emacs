@@ -118,7 +118,7 @@ directory name of the directory where the `.emacs' file was looked for.")
     (if (not (eq system-type 'vax-vms))
 	(mapcar (function
 		 (lambda (var)
-		   (let ((value (getev var)))
+		   (let ((value (getenv var)))
 		     (if (and value
 			      (< (length value) (length default-directory))
 			      (equal (file-attributes default-directory)

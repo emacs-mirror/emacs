@@ -1780,14 +1780,14 @@ DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
   "Pause, without updating display, for ARG seconds.\n\
 Optional second arg non-nil means ARG is measured in milliseconds.\n\
 \(Not all operating systems support milliseconds.)")
-  (n, millisec)
-     Lisp_Object n, millisec;
+  (arg, millisec)
+     Lisp_Object arg, millisec;
 {
   int usec = 0;
   int sec;
 
-  CHECK_NUMBER (n, 0);
-  sec = XINT (n);
+  CHECK_NUMBER (arg, 0);
+  sec = XINT (arg);
   if (sec <= 0)
     return Qnil;
 
@@ -1801,7 +1801,12 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
 #endif
     }
 
-  wait_reading_process_input (sec, usec, 0, 0);
+  {
+    Lisp_Object zero;
+
+    XFASTINT (zero) = 0;
+    wait_reading_process_input (sec, usec, zero, 0);
+  }
 
 #if 0 /* No wait_reading_process_input */
   immediate_quit = 1;
@@ -1837,45 +1842,31 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
   return Qnil;
 }
 
-DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
-  "Perform redisplay, then wait for ARG seconds or until input is available.\n\
-Optional second arg non-nil means ARG counts in milliseconds.\n\
-Optional third arg non-nil means don't redisplay, just wait for input.\n\
-Redisplay is preempted as always if input arrives, and does not happen\n\
-if input is available before it starts.\n\
-Value is t if waited the full time with no input arriving.")
-  (n, millisec, nodisp)
-     Lisp_Object n, millisec, nodisp;
-{
-  int usec = 0;
-  int sec;
+/* This is just like wait_reading_process_input, except that
+   it does the redisplay.
 
-  CHECK_NUMBER (n, 0);
+   It's also just like Fsit_for, except that it can be used for
+   waiting for input as well.  */
+
+Lisp_Object
+sit_for (sec, usec, reading, display)
+     int sec, usec, reading, display;
+{
+  Lisp_Object read_kbd;
 
   if (detect_input_pending ())
     return Qnil;
-  
-  if (EQ (nodisp, Qnil))
+
+  if (display)
     redisplay_preserve_echo_area ();
-
-  sec = XINT (n);
-  if (sec <= 0)
-    return Qt;
-
-  if (!NILP (millisec))
-    {
-#ifndef EMACS_HAS_USECS
-      error ("millisecond sleep-for not supported on %s", SYSTEM_TYPE);
-#else
-      usec = sec % 1000 * 1000;
-      sec /= 1000;
-#endif
-    }
 
 #ifdef SIGIO
   gobble_input ();
-#endif				/* SIGIO */
-  wait_reading_process_input (sec, usec, 1, 1);
+#endif
+
+  XSET (read_kbd, Lisp_Int, reading ? -1 : 1);
+  wait_reading_process_input (sec, usec, read_kbd, display);
+
 
 #if 0 /* No wait_reading_process_input available.  */
   immediate_quit = 1;
@@ -1883,7 +1874,7 @@ Value is t if waited the full time with no input arriving.")
 
   waitchannels = 1;
 #ifdef VMS
-  input_wait_timeout (XINT (n));
+  input_wait_timeout (XINT (arg));
 #else				/* not VMS */
 #ifndef HAVE_TIMEVAL
   timeout_sec = sec;
@@ -1901,18 +1892,54 @@ Value is t if waited the full time with no input arriving.")
   return detect_input_pending () ? Qnil : Qt;
 }
 
+DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
+  "Perform redisplay, then wait for ARG seconds or until input is available.\n\
+Optional second arg non-nil means ARG counts in milliseconds.\n\
+Optional third arg non-nil means don't redisplay, just wait for input.\n\
+Redisplay is preempted as always if input arrives, and does not happen\n\
+if input is available before it starts.\n\
+Value is t if waited the full time with no input arriving.")
+  (arg, millisec, nodisp)
+     Lisp_Object arg, millisec, nodisp;
+{
+  int usec = 0;
+  int sec = 0;
+
+  CHECK_NUMBER (arg, 0);
+
+  sec = XINT (arg);
+  if (sec <= 0)
+    return Qt;
+
+  if (!NILP (millisec))
+    {
+#ifndef EMACS_HAS_USECS
+      error ("millisecond sit-for not supported on %s", SYSTEM_TYPE);
+#else
+      usec = (sec % 1000) * 1000;
+      sec /= 1000;
+#endif
+    }
+
+  return sit_for (sec, usec, 0, NILP (nodisp));
+}
+
 DEFUN ("sleep-for-millisecs", Fsleep_for_millisecs, Ssleep_for_millisecs,
   1, 1, 0,
   "Pause, without updating display, for ARG milliseconds.")
-  (n)
-     Lisp_Object n;
+  (arg)
+     Lisp_Object arg;
 {
+  Lisp_Object zero;
+
 #ifndef EMACS_HAS_USECS
   error ("sleep-for-millisecs not supported on %s", SYSTEM_TYPE);
 #else
-  CHECK_NUMBER (n, 0);
-  wait_reading_process_input (XINT (n) / 1000, XINT (n) % 1000 * 1000,
-			      0, 0);
+  CHECK_NUMBER (arg, 0);
+
+  XFASTINT (zero) = 0;
+  wait_reading_process_input (XINT (arg) / 1000, XINT (arg) % 1000 * 1000,
+			      zero, 0);
   return Qnil;
 #endif /* EMACS_HAS_USECS */
 }
