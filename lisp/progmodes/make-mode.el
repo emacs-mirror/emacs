@@ -7,7 +7,18 @@
 ;; Adapted-By: ESR
 ;; Keywords: unix, tools
 
-;; $Id: makefile.el,v 1.3 1993/04/20 20:01:16 esr Exp $
+;; RMS:
+;; This needs work.  The electric characters are too obnoxious.
+;; It should not define C-c LETTER.
+;; It should support knowing the list of existing macros and targets
+;; via M-TAB completion, not by preempting insertion of references.
+;; Also, the doc strings need fixing: the first line doesn't stand alone,
+;; and other usage is not high quality.  Symbol names don't have `...'.
+;; The Mode names is written as makefile-mode instead of Makefile mode.
+
+;; So, for the meantime, this is not the default mode for makefiles.
+
+;; $Id: makefile.el,v 1.7 1993/04/21 03:47:05 eric Exp rms $
 
 ;; This file is part of GNU Emacs.
 
