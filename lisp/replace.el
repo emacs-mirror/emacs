@@ -732,6 +732,8 @@ Compatibility function for \\[next-error] invocations."
        #'previous-single-property-change
      #'next-single-property-change)
    "No more matches")
+  ;; In case the *Occur* buffer is visible in a nonselected window.
+  (set-window-point (get-buffer-window (current-buffer)) (point))
   (occur-mode-goto-occurrence))
 
 
@@ -1009,9 +1011,11 @@ See also `multi-occur'."
 			      ;; concatenate them all together.
 			      (apply #'concat
 				     (nconc
-				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) keep-props))))
+				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ (abs nlines))) keep-props))))
 				      (list out-line)
-				      (occur-engine-add-prefix (cdr (occur-accumulate-lines (1+ nlines) keep-props))))))))
+				      (if (> nlines 0)
+					  (occur-engine-add-prefix
+					   (cdr (occur-accumulate-lines (1+ nlines) keep-props)))))))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
 			(let ((beg (point))
