@@ -1,3 +1,9 @@
+2000-03-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (coding_save_composition): Be sure to allocate
+	composition data area in coding even if there's no composition in
+	the current run.
+
 2000-03-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c: Equivalent changes to those made to xterm.c on
