@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help, Mark, M-x, Top
 @chapter Help
@@ -31,7 +32,9 @@ prefix key.  (A few prefix keys don't support @kbd{C-h}, because they
 define other meanings for it, but they all support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
-scroll conveniently with @key{SPC} and @key{DEL}.
+scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
+hyperlinks to more help on cross-referenced names, Info nodes,
+customization buffers and the like.  @xref{Help Mode}.
 
 @menu
 * Help Summary::	Brief list of all Help commands.
@@ -42,6 +45,7 @@ scroll conveniently with @key{SPC} and @key{DEL}.
 * Language Help::       Help relating to international language support.
 * Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
+* Help Echo::           Help on active text and tooltips (`balloon help')
 @end menu
 
 @iftex
@@ -208,6 +212,11 @@ Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
 variable.  @xref{Variables}.@refill
 
+Help buffers describing variables or functions defined in Lisp
+normally have hyperlinks to their definitions using the @code{find-func}
+package if you have the Lisp source files installed.  If you can read
+Lisp, this provides the ultimate documentation.
+  
 @node Apropos
 @section Apropos
 
@@ -485,3 +494,14 @@ displays general information about the GNU Project.  @kbd{C-h P}
 (@code{view-emacs-problems}) displays the file
 @file{emacs/etc/PROBLEMS}, which lists known problems with Emacs in
 various situations with solutions or workarounds in many cases.
+
+@node Help Echo
+@section Help on Active Text and Tooltips
+
+@cindex tooltips
+@cindex ballon help
+Often when a region of text is `active' so that you can select it with
+the mouse or a key like @kbd{RET}, it has associated help text.  Areas
+of the mode line are examples.  This help will normally be printed in
+the echo area when you move point into the active text.  In a window
+system you can display the help text as `tooltips'.  @xref{Tooltips}.
