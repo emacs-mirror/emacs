@@ -1,3 +1,7 @@
+2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el (mouse-region-delete-keys): Add deletechar.
+
 2002-03-03  Sam Steingold  <sds@gnu.org>
 
 	* play/snake.el (snake-score-file): Fixed parens (broken by the
