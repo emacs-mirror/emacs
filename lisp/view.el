@@ -243,9 +243,15 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer (find-file-noselect file)
-		 (and (not had-a-buf) 'kill-buffer))))
+  (let ((had-a-buf (get-file-buffer file))
+	(buffer (find-file-noselect file)))
+    (if (eq (with-current-buffer buffer
+	      (get major-mode 'mode-class))
+	    'special)
+	(progn
+	  (switch-to-buffer buffer)
+	  (message "Not using View mode because the major mode is special"))
+      (view-buffer buffer (and (not had-a-buf) 'kill-buffer)))))
 
 ;;;###autoload
 (defun view-file-other-window (file)
