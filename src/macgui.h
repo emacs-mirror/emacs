@@ -30,6 +30,8 @@ typedef int Display;  /* fix later */
 
 typedef unsigned long Time;
 
+#define No_Cursor (0)  /* fix later */
+
 #if MAC_OSX
 typedef struct OpaqueWindowPtr* Window;
 #else
@@ -168,6 +170,31 @@ XCreateGC (void *, Window, unsigned long, XGCValues *);
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
 extern int XParseGeometry ();
+
+typedef struct {
+    int x, y;
+    unsigned width, height;
+} XRectangle;
+
+#define NativeRectangle Rect
+
+#define CONVERT_TO_XRECT(xr,nr)			\
+  ((xr).x = (nr).left,				\
+   (xr).y = (nr).top,				\
+   (xr).width = ((nr).right - (nr).left),	\
+   (xr).height = ((nr).bottom - (nr).top))
+
+#define CONVERT_FROM_XRECT(xr,nr)		\
+  ((nr).left = (xr).x,				\
+   (nr).top = (xr).y,				\
+   (nr).right = ((xr).x + (xr).width),		\
+   (nr).bottom = ((xr).y + (xr).height))
+
+#define STORE_NATIVE_RECT(nr,x,y,width,height)	\
+  ((nr).left = (x),				\
+   (nr).top = (y),				\
+   (nr).right = ((nr).left + (width)),		\
+   (nr).bottom = ((nr).top + (height)))
 
 #endif /* EMACS_MACGUI_H */
 
