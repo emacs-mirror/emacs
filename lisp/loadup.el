@@ -33,6 +33,10 @@
 (buffer-disable-undo "*scratch*")
 
 (load "subr")
+
+;; We specify .el in case someone compiled version.el by mistake.
+(load "version.el")
+
 (garbage-collect)
 (load "byte-run")
 (garbage-collect)
@@ -129,9 +133,6 @@
 
 (garbage-collect)
 (load "vc-hooks")
-
-;; We specify .el in case someone compiled version.el by mistake.
-(load "version.el")
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
