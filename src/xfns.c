@@ -1520,26 +1520,49 @@ x_set_cursor_color (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   unsigned long fore_pixel, pixel;
+  int fore_pixel_allocated_p = 0, pixel_allocated_p = 0;
 
-  if (!EQ (Vx_cursor_fore_pixel, Qnil))
-    fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
-				 WHITE_PIX_DEFAULT (f));
+  if (!NILP (Vx_cursor_fore_pixel))
+    {
+      fore_pixel = x_decode_color (f, Vx_cursor_fore_pixel,
+				   WHITE_PIX_DEFAULT (f));
+      fore_pixel_allocated_p = 1;
+    }
   else
     fore_pixel = f->output_data.x->background_pixel;
+  
   pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  pixel_allocated_p = 1;
 
   /* Make sure that the cursor color differs from the background color.  */
   if (pixel == f->output_data.x->background_pixel)
     {
+      if (pixel_allocated_p)
+	{
+	  x_free_colors (f, &pixel, 1);
+	  pixel_allocated_p = 0;
+	}
+      
       pixel = f->output_data.x->mouse_pixel;
       if (pixel == fore_pixel)
-	fore_pixel = f->output_data.x->background_pixel;
+	{
+	  if (fore_pixel_allocated_p)
+	    {
+	      x_free_colors (f, &fore_pixel, 1);
+	      fore_pixel_allocated_p = 0;
+	    }
+	  fore_pixel = f->output_data.x->background_pixel;
+	}
     }
 
   unload_color (f, f->output_data.x->cursor_foreground_pixel);
+  if (!fore_pixel_allocated_p)
+    fore_pixel = x_copy_color (f, fore_pixel);
   f->output_data.x->cursor_foreground_pixel = fore_pixel;
 
   unload_color (f, f->output_data.x->cursor_pixel);
+  if (!pixel_allocated_p)
+    pixel = x_copy_color (f, pixel);
   f->output_data.x->cursor_pixel = pixel;
 
   if (FRAME_X_WINDOW (f) != 0)
