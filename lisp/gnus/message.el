@@ -1258,14 +1258,15 @@ C-c C-r  message-caesar-buffer-body (rot13 the message body)."
 	facemenu-remove-face-function t)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
+  ;; `-- ' precedes the signature.  `-----' appears at the start of the
+  ;; lines that delimit forwarded messages.
+  ;; Lines containing just >= 3 dashes, perhaps after whitespace,
+  ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*[-_][-_][-_]+$\\|"
-				"-- $\\|"
-				paragraph-start))
-  (setq paragraph-separate (concat (regexp-quote mail-header-separator)
-				   "$\\|[ \t]*[-_][-_][-_]+$\\|"
-				   "-- $\\|"
-				   paragraph-separate))
+				"$\\|[ \t]*[a-z0-9A-Z]*>+[ \t]*$\\|[ \t]*$\\|"
+				"-- $\\|---+$\\|"
+				page-delimiter))
+  (setq paragraph-separate paragraph-start)
   (make-local-variable 'message-reply-headers)
   (setq message-reply-headers nil)
   (make-local-variable 'message-newsreader)
