@@ -30,10 +30,21 @@
 
 ;;; Code:
 
-(defvar delete-auto-save-files t
-  "*Non-nil means delete auto-save file when a buffer is saved or killed.")
+(defgroup backup nil
+  "Backups of edited data files."
+  :group 'data)
 
-(defvar directory-abbrev-alist
+(defgroup find-file nil
+  "Finding and editing files."
+  :group 'data)
+
+
+(defcustom delete-auto-save-files t
+  "*Non-nil means delete auto-save file when a buffer is saved or killed."
+  :type 'boolean
+  :group 'auto-save)
+
+(defcustom directory-abbrev-alist
   nil
   "*Alist of abbreviations for file directories.
 A list of elements of the form (FROM . TO), each meaning to replace
@@ -46,10 +57,16 @@ They should be ordinary absolute directory names.
 
 Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
-the name it is linked to.")
+the name it is linked to."
+  :type '(repeat (cons :format "%v"
+		       :value ("" . "")
+		       (regexp :tag "From")
+		       (regexp :tag "To")))
+  :group 'abbrev
+  :group 'find-file)
 
 ;;; Turn off backup files on VMS since it has version numbers.
-(defvar make-backup-files (not (eq system-type 'vax-vms))
+(defcustom make-backup-files (not (eq system-type 'vax-vms))
   "*Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
@@ -65,7 +82,9 @@ The file's owner and group are unchanged.
 
 The choice of renaming or copying is controlled by the variables
 `backup-by-copying', `backup-by-copying-when-linked' and
-`backup-by-copying-when-mismatch'.  See also `backup-inhibited'.")
+`backup-by-copying-when-mismatch'.  See also `backup-inhibited'."
+  :type 'boolean
+  :group 'backup)
 
 ;; Do this so that local variables based on the file name
 ;; are not overridden by the major mode.
@@ -75,22 +94,28 @@ This variable is intended for use by making it local to a buffer.
 But it is local only if you make it local.")
 (put 'backup-inhibited 'permanent-local t)
 
-(defvar backup-by-copying nil
+(defcustom backup-by-copying nil
  "*Non-nil means always use copying to create backup files.
-See documentation of variable `make-backup-files'.")
+See documentation of variable `make-backup-files'."
+ :type 'boolean
+ :group 'backup)
 
-(defvar backup-by-copying-when-linked nil
+(defcustom backup-by-copying-when-linked nil
  "*Non-nil means use copying to create backups for files with multiple names.
 This causes the alternate names to refer to the latest version as edited.
-This variable is relevant only if `backup-by-copying' is nil.")
+This variable is relevant only if `backup-by-copying' is nil."
+ :type 'boolean
+ :group 'backup)
 
-(defvar backup-by-copying-when-mismatch nil
+(defcustom backup-by-copying-when-mismatch nil
   "*Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
 that is, for files which are owned by you and whose group matches
 the default for a new file created there by you.
-This variable is relevant only if `backup-by-copying' is nil.")
+This variable is relevant only if `backup-by-copying' is nil."
+  :type 'boolean
+  :group 'backup)
 
 (defvar backup-enable-predicate
   '(lambda (name)
@@ -99,29 +124,37 @@ This variable is relevant only if `backup-by-copying' is nil.")
   "Predicate that looks at a file name and decides whether to make backups.
 Called with an absolute file name as argument, it returns t to enable backup.")
 
-(defvar buffer-offer-save nil
+(defcustom buffer-offer-save nil
   "*Non-nil in a buffer means offer to save the buffer on exit
 even if the buffer is not visiting a file.
-Automatically local in all buffers.")
+Automatically local in all buffers."
+  :type 'boolean
+  :group 'backup)
 (make-variable-buffer-local 'buffer-offer-save)
 
-(defvar find-file-existing-other-name t
+(defcustom find-file-existing-other-name t
   "*Non-nil means find a file under alternative names, in existing buffers.
 This means if any existing buffer is visiting the file you want
-under another name, you get the existing buffer instead of a new buffer.")
+under another name, you get the existing buffer instead of a new buffer."
+  :type 'boolean
+  :group 'find-file)
 
-(defvar find-file-visit-truename nil
+(defcustom find-file-visit-truename nil
   "*Non-nil means visit a file under its truename.
 The truename of a file is found by chasing all links
-both at the file level and at the levels of the containing directories.")
+both at the file level and at the levels of the containing directories."
+  :type 'boolean
+  :group 'find-file)
 
-(defvar find-file-revert-without-query
+(defcustom find-file-revert-without-query
   nil
   "*Specify which files should be reverted without query.
 The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
 then `find-file' reverts the file without querying
-if the file has changed on disk and you have not edited the buffer.")
+if the file has changed on disk and you have not edited the buffer."
+  :type 'boolean
+  :group 'find-file)
 
 (defvar buffer-file-number nil
   "The device number and file number of the file visited in the current buffer.
@@ -134,7 +167,7 @@ If the buffer is visiting a new file, the value is nil.")
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
   "Non-nil means that buffer-file-number uniquely identifies files.")
 
-(defvar file-precious-flag nil
+(defcustom file-precious-flag nil
   "*Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.
 
@@ -145,46 +178,72 @@ and there is never any instant where the file is nonexistent.
 
 Note that this feature forces backups to be made by copying.
 Yet, at the same time, saving a precious file
-breaks any hard links between it and other files.")
+breaks any hard links between it and other files."
+  :type 'boolean
+  :group 'backup)
 
-(defvar version-control nil
+(defcustom version-control nil
   "*Control use of version numbers for backup files.
 t means make numeric backup versions unconditionally.
 nil means make them for files that have some already.
-`never' means do not make them.")
+`never' means do not make them."
+  :type 'boolean
+  :group 'backup
+  :group 'vc)
 
-(defvar dired-kept-versions 2
-  "*When cleaning directory, number of versions to keep.")
+(defcustom dired-kept-versions 2
+  "*When cleaning directory, number of versions to keep."
+  :type 'integer
+  :group 'backup
+  :group 'dired)
 
-(defvar delete-old-versions nil
+(defcustom delete-old-versions nil
   "*If t, delete excess backup versions silently.
-If nil, ask confirmation.  Any other value prevents any trimming.")
+If nil, ask confirmation.  Any other value prevents any trimming."
+  :type '(choice (const :tag "Delete" t)
+		 (const :tag "Ask" nil)
+		 (sexp :tag "Leave" :format "%t\n" other))
+  :group 'backup)
 
-(defvar kept-old-versions 2
-  "*Number of oldest versions to keep when a new numbered backup is made.")
+(defcustom kept-old-versions 2
+  "*Number of oldest versions to keep when a new numbered backup is made."
+  :type 'integer
+  :group 'backup)
 
-(defvar kept-new-versions 2
+(defcustom kept-new-versions 2
   "*Number of newest versions to keep when a new numbered backup is made.
-Includes the new backup.  Must be > 0")
+Includes the new backup.  Must be > 0"
+  :type 'integer
+  :group 'backup)
 
-(defvar require-final-newline nil
+(defcustom require-final-newline nil
   "*Value of t says silently ensure a file ends in a newline when it is saved.
 Non-nil but not t says ask user whether to add a newline when there isn't one.
-nil means don't add newlines.")
+nil means don't add newlines."
+  :type 'boolean
+  :group 'editing-basics)
 
-(defvar auto-save-default t
-  "*Non-nil says by default do auto-saving of every file-visiting buffer.")
+(defcustom auto-save-default t
+  "*Non-nil says by default do auto-saving of every file-visiting buffer."
+  :type 'boolean
+  :group 'auto-save)
 
-(defvar auto-save-visited-file-name nil
+(defcustom auto-save-visited-file-name nil
   "*Non-nil says auto-save a buffer in the file it is visiting, when practical.
-Normally auto-save files are written under other names.")
+Normally auto-save files are written under other names."
+  :type 'boolean
+  :group 'auto-save)
 
-(defvar save-abbrevs nil
+(defcustom save-abbrevs nil
   "*Non-nil means save word abbrevs too when files are saved.
-Loading an abbrev file sets this to t.")
+Loading an abbrev file sets this to t."
+  :type 'boolean
+  :group 'abbrev)
 
-(defvar find-file-run-dired t
-  "*Non-nil says run dired if `find-file' is given the name of a directory.")
+(defcustom find-file-run-dired t
+  "*Non-nil says run dired if `find-file' is given the name of a directory."
+  :type 'boolean
+  :group 'find-file)
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
@@ -242,23 +301,31 @@ LOCAL argument.
 See also `write-file-hooks'.")
 (make-variable-buffer-local 'write-contents-hooks)
 
-(defvar enable-local-variables t
+(defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
 The value can be t, nil or something else.
 A value of t means file local variables specifications are obeyed;
 nil means they are ignored; anything else means query.
 
 The command \\[normal-mode] always obeys file local variable
-specifications and ignores this variable.")
+specifications and ignores this variable."
+  :type '(choice (const :tag "Obey" t)
+		 (const :tag "Ignore" nil)
+		 (sexp :tag "Query" :format "%t\n" other))
+  :group 'find-file)
 
-(defvar enable-local-eval 'maybe
+(defcustom enable-local-eval 'maybe
   "*Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
 nil means ignore them; anything else means query.
 
 The command \\[normal-mode] always obeys local-variables lists
-and ignores this variable.")
+and ignores this variable."
+  :type '(choice (const :tag "Obey" t)
+		 (const :tag "Ignore" nil)
+		 (sexp :tag "Query" :format "%t\n" other))
+  :group 'find-file)
 
 ;; Avoid losing in versions where CLASH_DETECTION is disabled.
 (or (fboundp 'lock-buffer)
@@ -704,12 +771,14 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 		      (substring filename (match-end 0)))))
     filename))
 
-(defvar find-file-not-true-dirname-list nil
+(defcustom find-file-not-true-dirname-list nil
   "*List of logical names for which visiting shouldn't save the true dirname.
 On VMS, when you visit a file using a logical name that searches a path,
 you may or may not want the visited file name to record the specific
 directory where the file was found.  If you *do not* want that, add the logical
-name to this list as a string.")
+name to this list as a string."
+  :type '(repeat (string :tag "Name"))
+  :group 'find-file)
 
 (defun find-buffer-visiting (filename)
   "Return the buffer visiting file FILENAME (a string).
@@ -1498,13 +1567,15 @@ is specified, returning t if it is specified."
 	   (set var val))))
 
 
-(defvar change-major-mode-with-file-name t
+(defcustom change-major-mode-with-file-name t
   "*Non-nil means \\[write-file] should set the major mode from the file name.
 However, the mode will not be changed if
 \(1) a local variables list or the `-*-' line specifies a major mode, or
 \(2) the current major mode is a \"special\" mode,
 \    not suitable for ordinary files, or
-\(3) the new file name does not particularly specify any mode.")
+\(3) the new file name does not particularly specify any mode."
+  :type 'boolean
+  :group 'editing-basics)
 
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
@@ -2721,15 +2792,19 @@ by `sh' are supported."
     ;; not its part.  Make the regexp say so.
     (concat "\\`" result "\\'")))
 
-(defvar list-directory-brief-switches
+(defcustom list-directory-brief-switches
   (if (eq system-type 'vax-vms) "" "-CF")
-  "*Switches for list-directory to pass to `ls' for brief listing,")
+  "*Switches for list-directory to pass to `ls' for brief listing,"
+  :type 'string
+  :group 'dired)
 
-(defvar list-directory-verbose-switches
+(defcustom list-directory-verbose-switches
   (if (eq system-type 'vax-vms)
       "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
     "-l")
-  "*Switches for list-directory to pass to `ls' for verbose listing,")
+  "*Switches for list-directory to pass to `ls' for verbose listing,"
+  :type 'string
+  :group 'dired)
 
 (defun list-directory (dirname &optional verbose)
   "Display a list of files in or matching DIRNAME, a la `ls'.
