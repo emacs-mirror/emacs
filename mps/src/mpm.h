@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.115) $
+ * $HopeName: MMsrc!mpm.h(trunk.116) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -90,12 +90,16 @@ extern Addr (AddrAlignDown)(Addr addr, Align align);
 
 #define AddrWord(a)             ((Word)(a))
 #define SizeWord(s)             ((Word)(s))
+#define IndexWord(s)            ((Word)(s))
 #define AlignWord(s)            ((Word)(s))
 #define AddrIsAligned(p, a)     WordIsAligned(AddrWord(p), (a))
 #define AddrAlignUp(p, a)       ((Addr)WordAlignUp(AddrWord(p), (a)))
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), (a))
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), (a)))
 #define SizeAlignDown(s, a)     ((Size)WordAlignDown(SizeWord(s), (a)))
+#define IndexIsAligned(s, a)    WordIsAligned(IndexWord(s), (a))
+#define IndexAlignUp(s, a)      ((Index)WordAlignUp(IndexWord(s), (a)))
+#define IndexAlignDown(s, a)    ((Index)WordAlignDown(IndexWord(s), (a)))
 
 /* r not required to be a power of 2 */
 #define SizeRoundUp(s, r) \
