@@ -1,5 +1,9 @@
 1999-12-27  Kenichi Handa  <handa@etl.go.jp>
 
+	* dispextern.h (FACE_FROM_ID): Cast the arg ID to `unsigned'.
+
+1999-12-27  Kenichi Handa  <handa@etl.go.jp>
+
 	The following changes are to use more bits for face IDs.
 
 	* lisp.h (GLYPH): Defined as `int', not `unsigned int'.  Now the
