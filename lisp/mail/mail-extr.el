@@ -730,7 +730,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	(extraction-buffer (get-buffer-create " *extract address components*"))
 	char
 ;;	multiple-addresses
-	<-pos >-pos @-pos :-pos ,-pos !-pos %-pos \;-pos
+	<-pos >-pos @-pos :-pos comma-pos !-pos %-pos \;-pos
 	group-:-pos group-\;-pos route-addr-:-pos
 	record-pos-symbol
 	first-real-pos last-real-pos
@@ -849,7 +849,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	 ((setq record-pos-symbol
 		(cdr (assq char
 			   '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
-			     (?: . :-pos) (?, . \,-pos) (?! . !-pos)
+			     (?: . :-pos) (?, . comma-pos) (?! . !-pos)
 			     (?% . %-pos) (?\; . \;-pos)))))
 	  (set record-pos-symbol
 	       (cons (point) (symbol-value record-pos-symbol)))
@@ -978,7 +978,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	(mail-extr-nuke-outside-range !-pos group-:-pos group-\;-pos t)
 	(mail-extr-nuke-outside-range @-pos group-:-pos group-\;-pos t)
 	(mail-extr-nuke-outside-range %-pos group-:-pos group-\;-pos t)
-	(mail-extr-nuke-outside-range ,-pos group-:-pos group-\;-pos t)
+	(mail-extr-nuke-outside-range comma-pos group-:-pos group-\;-pos t)
 	(and last-real-pos
 	     (> last-real-pos (1+ group-\;-pos))
 	     (setq last-real-pos (1+ group-\;-pos)))
@@ -1004,7 +1004,7 @@ If ADDRESS contains more than one RFC-822 address, only the first is
       ;; Hell, go ahead an nuke all of the commas.
       ;; **** This will cause problems when we start handling commas in
       ;; the PHRASE part .... no it won't ... yes it will ... ?????
-      (mail-extr-nuke-outside-range ,-pos 1 1)
+      (mail-extr-nuke-outside-range comma-pos 1 1)
       
       ;; can only have multiple @s inside < >.  The fact that some MTAs
       ;; put de-bracketed ROUTE-ADDRs in the UUCP-style "From " line is
