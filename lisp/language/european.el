@@ -348,6 +348,13 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :mime-charset 'cp857)
 (define-coding-system-alias 'ibm857 'cp857)
 
+(define-coding-system 'cp858
+  "Codepage 858 (Multilingual Latin I + Euro)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp858)
+  :mime-charset 'cp858)
+
 (define-coding-system 'cp860
   "DOS codepage 860 (Portuguese)"
   :coding-type 'charset
@@ -479,7 +486,18 @@ but it selects the Dutch tutorial and input method."))
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
 	     (sample-text . "Turkish (T,A|(Brk,Ag(Be)	Merhaba")
-	     (documentation . t)))
+	     (setup-function
+	      . (lambda ()
+		  (set-case-syntax-pair ?I ?,C9(B (standard-case-table))
+		  (set-case-syntax-pair ?,C)(B ?i (standard-case-table))))
+	     (exit-function
+	      . (lambda ()
+		  (set-case-syntax-pair ?I ?i (standard-case-table))
+		  (set-case-syntax ?,C9(B "w" (standard-case-table))
+		  (set-case-syntax ?,C)(B "w" (standard-case-table))))
+	     (documentation . "Support for Turkish.
+Differs from the Latin-5 environment in using the `turkish-postfix' input
+method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B.")))
 
 ;; Polish ISO 8859-2 environment.
 ;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
