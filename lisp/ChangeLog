@@ -5,6 +5,10 @@
 	(line-move): Don't perform auto-window-vscroll when defining or
 	executing keyboard macro to ensure consistent behaviour.
 
+2005-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-string->strings): Strip trailing whitespace.
+
 2005-03-13  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debug): Set debug-on-exit before calling
