@@ -1528,8 +1528,8 @@ x_set_mouse_color (f, arg, oldval)
 {
 #if 0
   Cursor cursor, nontext_cursor, mode_cursor, cross_cursor;
-  int count;
 #endif
+  int count;
   int mask_color;
 
   if (!EQ (Qnil, arg))
