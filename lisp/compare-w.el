@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs.
 
-;; Copyright (C) 1986, 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -29,8 +29,8 @@
 
 ;;; Code:
 
-(defvar compare-windows-whitespace " \t\n"
-  "*String of characters considered whitespace for \\[compare-windows].
+(defvar compare-windows-whitespace "[ \t\n]+"
+  "*Regexp that defines whitespace sequences for \\[compare-windows].
 Changes in whitespace are optionally ignored.
 
 The value of `compare-windows-whitespace' may instead be a function; this
@@ -61,8 +61,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 	    (opoint1 (point))
 	    opoint2
 	    (skip-whitespace (if ignore-whitespace
-				 compare-windows-whitespace))
-	    (skip-whitespace-regexp (concat "[" skip-whitespace "]+")))
+				 compare-windows-whitespace)))
     (setq p1 (point) b1 (current-buffer))
     (setq w2 (next-window (selected-window)))
     (if (eq w2 (selected-window))
@@ -88,24 +87,18 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
       (and skip-whitespace
 	   (save-excursion
 	     (let (p1a p2a w1 w2 result1 result2)
-	       (if (stringp skip-whitespace)
-		   (progn
-		     (if (not (eobp))
-			 (skip-chars-backward skip-whitespace opoint1))
-		     (and (looking-at skip-whitespace-regexp)
-			  (setq p1a (match-end 0) result1 t)))
-		 (setq result1 (funcall skip-whitespace opoint1))
-		 (setq p1a (point)))
+	       (setq result1
+		     (if (stringp skip-whitespace)
+			 (compare-windows-skip-whitespace opoint1)
+		       (funcall skip-whitespace opoint1)))
+	       (setq p1a (point))
 	       (set-buffer b2)
 	       (goto-char p2)
-	       (if (stringp skip-whitespace)
-		   (progn
-		     (if (not (eobp))
-			 (skip-chars-backward skip-whitespace opoint2))
-		     (and (looking-at skip-whitespace-regexp)
-			  (setq p2a (match-end 0) result2 t)))
-		 (setq result2 (funcall skip-whitespace opoint2))
-		 (setq p2a (point)))
+	       (setq result2
+		     (if (stringp skip-whitespace)
+			 (compare-windows-skip-whitespace opoint2)
+		       (funcall skip-whitespace opoint2)))
+	       (setq p2a (point))
 	       (and result1 result2 (eq result1 result2)
 		    (setq p1 p1a
 			  p2 p2a)))))
@@ -134,6 +127,26 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
     (set-window-point w2 p2)
     (if (= (point) opoint1)
 	(ding))))
+
+;; Move forward over whatever might be called whitespace.
+;; compare-windows-whitespace is a regexp that matches whitespace.
+;; Match it at various starting points before the original point
+;; and find the latest point at which a match ends.
+;; Don't try starting points before START, though.
+;; Value is non-nil if whitespace is found.
+(defun compare-windows-skip-whitespace (start)
+  (let ((end (point))
+	(opoint (point)))
+    (while (and (looking-at compare-windows-whitespace)
+		(<= end (match-end 0))
+		;; This match goes past END, so advance END.
+		(progn (setq end (match-end 0))
+		       (> (point) start)))
+      ;; keep going back until whitespace
+      ;; doesn't extend to or past end
+      (forward-char -1))
+    (goto-char end)
+    (/= end opoint)))
 
 (provide 'compare-w)
 
