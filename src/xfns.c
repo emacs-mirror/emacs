@@ -1718,7 +1718,7 @@ be shared by the new frame.")
 {
 #ifdef HAVE_X11
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame, tem, tem0, tem1;
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
@@ -1861,8 +1861,10 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
 		       "menuBarLines", "MenuBarLines", number);
 
+  tem0 = x_get_arg (parms, Qtop, 0, 0, number);
+  tem1 = x_get_arg (parms, Qleft, 0, 0, number);
   BLOCK_INPUT;
-  x_wm_set_size_hint (f, window_prompting);
+  x_wm_set_size_hint (f, window_prompting, XINT (tem0), XINT (tem1));
   UNBLOCK_INPUT;
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
