@@ -7966,7 +7966,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
 };
 
-/* Structure describing the image type `gif'.  */
+/* Structure describing the image type `png'.  */
 
 static struct image_type png_type =
 {
@@ -8958,17 +8958,28 @@ gif_load (f, img)
       static int interlace_start[] = {0, 4, 2, 1};
       static int interlace_increment[] = {8, 8, 4, 2};
       int pass, inc;
+      int row = interlace_start[0];
 
-      for (pass = 0; pass < 4; ++pass)
+      pass = 0;
+
+      for (y = 0; y < image_height; y++)
 	{
-	  inc = interlace_increment[pass];
-	  for (y = interlace_start[pass]; y < image_height; y += inc)
-	    for (x = 0; x < image_width; ++x)
-	      {
-		unsigned i = gif->SavedImages[ino].RasterBits[y * image_width + x];
-		XPutPixel (ximg, x + image_left, y + image_top, 
-			   pixel_colors[i]);
-	      }
+	  if (row >= image_height)
+	    {
+	      row = interlace_start[++pass];
+	      while (row >= image_height)
+		row = interlace_start[++pass];
+	    }
+	  
+	  for (x = 0; x < image_width; x++)
+	    {
+	      unsigned int i
+		= gif->SavedImages[ino].RasterBits[(y * image_width) + x];
+	      XPutPixel (ximg, x + image_left, row + image_top,
+			 pixel_colors[i]);
+	    }
+	  
+	  row += interlace_increment[pass];
 	}
     }
   else
