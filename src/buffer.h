@@ -308,13 +308,14 @@ struct buffer
        This value is meaningful only on certain operating systems.  */
     Lisp_Object buffer_file_type;
 
-    /* String of length 256 mapping each char to its lower-case version.  */
+    /* Case table for case-conversion in this buffer.
+       This char-table maps each char into its lower-case version.  */
     Lisp_Object downcase_table;
-    /* String of length 256 mapping each char to its upper-case version.  */
+    /* Char-table mapping each char to its upper-case version.  */
     Lisp_Object upcase_table;
-    /* Translate table for case-folding search.  */
+    /* Char-table for conversion for case-folding search.  */
     Lisp_Object case_canon_table;
-    /* Inverse translate (equivalence class) table for case-folding search.  */
+    /* Char-table of equivalences for case-folding search.  */
     Lisp_Object case_eqv_table;
 
     /* Non-nil means do not display continuation lines.  */
