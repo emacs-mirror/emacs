@@ -1,3 +1,7 @@
+1999-12-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .tfm.
+
 1999-12-16  Dave Love  <fx@gnu.org>
 
 	* faces.el (set-face-attribute): Purecopy the attributes set.
