@@ -1,3 +1,7 @@
+2004-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* make-dist: Link leim-ext.el into tempdir.
+
 2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info/dir (File): Add emacs-xtra.
