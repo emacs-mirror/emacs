@@ -1,5 +1,7 @@
 2005-02-21  Stefan  <monnier@iro.umontreal.ca>
 
+	* frame.el (blink-cursor-mode): Use define-minor-mode.
+
 	* term/mac-win.el (function-key-map): Use char-names more consistently.
 	(file-name-coding-system): Only set it for MacOS-9.  The other case is
 	already handled in mule-cmds.el (where it also works when mac-win.el
