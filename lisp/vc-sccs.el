@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.1 2000/09/04 19:48:23 gerd Exp $
+;; $Id: vc-sccs.el,v 1.2 2000/09/05 20:08:22 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -29,14 +29,15 @@
 ;;; Code:
 
 (defcustom vc-sccs-register-switches nil
-  "*A string or list of strings; extra switches for registering a file
-in |SCCS.  These are passed to the checkin program by
+  "*Extra switches for registering a file in SCCS.
+A string or list of strings passed to the checkin program by
 \\[vc-sccs-register]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
+  :version "21.1"
   :group 'vc)
 
 (defcustom vc-sccs-header (or (cdr (assoc 'SCCS vc-header-alist)) '("%W%"))
@@ -54,7 +55,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
-  :version "20.5"
+  :version "21.1"
   :group 'vc)
 
 (defconst vc-sccs-name-assoc-file "VC-names")
@@ -96,7 +97,7 @@ For a description of possible values, see `vc-check-master-templates'."
               (if (file-ownership-preserved-p file)
                   'edited
                 (vc-user-login-name owner-uid))
-          ;; Strange permissions.  
+          ;; Strange permissions.
           ;; Fall through to real state computation.
           (vc-sccs-state file)))
     (vc-sccs-state file))))
@@ -107,14 +108,14 @@ For a description of possible values, see `vc-check-master-templates'."
     (vc-insert-file (vc-name file) "^\001e")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
 
-(defun vc-sccs-checkout-model (file) 
+(defun vc-sccs-checkout-model (file)
   "SCCS-specific version of `vc-checkout-model'."
   'locking)
 
 (defun vc-sccs-workfile-unchanged-p (file)
   "SCCS-specific implementation of vc-workfile-unchanged-p."
   (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
-         (list "--brief" "-q" 
+         (list "--brief" "-q"
                (concat "-r" (vc-workfile-version file)))))
 
 ;; internal code
@@ -199,7 +200,7 @@ The result is a list of the form ((VERSION . USER) (VERSION . USER) ...)."
 (defun vc-sccs-lookup-triple (file name)
   "Return the numeric version corresponding to a named snapshot of FILE.
 If NAME is nil or a version number string it's just passed through."
-  (if (or (null name) 
+  (if (or (null name)
 	  (let ((firstchar (aref name 0)))
 	    (and (>= firstchar ?0) (<= firstchar ?9))))
       name
@@ -224,10 +225,10 @@ If NAME is nil or a version number string it's just passed through."
   (vc-do-command nil 0 "get" (vc-name file) "-g" (if rev (concat "-r" rev))))
 
 (defun vc-sccs-cancel-version (file writable)
-  "Undo the most recent checkin of FILE.  
+  "Undo the most recent checkin of FILE.
 WRITABLE non-nil means previous version should be locked."
-  (vc-do-command nil 0 "rmdel" 
-		 (vc-name file) 
+  (vc-do-command nil 0 "rmdel"
+		 (vc-name file)
 		 (concat "-r" (vc-workfile-version file)))
   (vc-do-command nil 0 "get"
 		 (vc-name file)
@@ -255,8 +256,7 @@ WRITABLE non-nil means previous version should be locked."
 	(vc-do-command nil 0 "get" (vc-name file)))))
 
 (defun vc-sccs-latest-on-branch-p (file)
-  "Return t iff the current workfile version of FILE is the latest on
-its branch."
+  "Return t iff the current workfile version of FILE is latest on its branch."
   ;; Always return t; we do not support previous versions in the workfile
   ;; under SCCS.
   t)
@@ -311,7 +311,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
       (let ((vc-name
 	     (or project-file
 		 (format (car vc-sccs-master-templates) dirname basename)))|)
-	(apply 'vc-do-command nil 0 "admin" nil 
+	(apply 'vc-do-command nil 0 "admin" nil
 	       (and rev (concat "-r" rev))
 	       "-fb"
 	       (concat "-i" file)
@@ -323,9 +323,9 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	  (vc-do-command nil 0 "get" (vc-name file)))))
 
 (defun vc-sccs-checkout (file &optional writable rev workfile)
-  "Retrieve a copy of a saved version of an SCCS controlled FILE into
-a WORKFILE.  WRITABLE non-nil means that the file should be writable.
-REV is the revision to check out into WORKFILE."
+  "Retrieve a copy of a saved version of SCCS controlled FILE into a WORKFILE.
+WRITABLE non-nil means that the file should be writable.  REV is the
+revision to check out into WORKFILE."
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
 	switches)
@@ -363,9 +363,9 @@ REV is the revision to check out into WORKFILE."
                                  (current-buffer) 0 "get" (vc-name file)
                                  "-s" ;; suppress diagnostic output
                                  (if writable "-e")
-                                 "-p" 
+                                 "-p"
                                  (and rev
-                                      (concat "-r" 
+                                      (concat "-r"
                                               (vc-sccs-lookup-triple file rev)))
                                  switches)))
                       (set-file-modes filename
@@ -381,7 +381,7 @@ REV is the revision to check out into WORKFILE."
     (message "Checking out %s...done" filename)))
 
 (defun vc-sccs-update-changelog (files)
-  (error "Sorry, generating ChangeLog entries is not implemented for SCCS."))
+  (error "Sorry, generating ChangeLog entries is not implemented for SCCS"))
 
 (provide 'vc-sccs)
 
