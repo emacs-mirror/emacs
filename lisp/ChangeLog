@@ -1,3 +1,7 @@
+2001-02-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* skeleton.el (skeleton-internal-1): Always push the mark for @.
+
 2001-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (info-initialize): If installation-directory is nil, for
