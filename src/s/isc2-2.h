@@ -35,7 +35,7 @@
 #define SIGNALS_VIA_CHARACTERS
 
 /* -lPW is only needed if not using Gcc.  We used to include -lcposix here
-   for the rename function, but some pepople saus ISC's renames doesn't
+   for the rename function, but some people say ISC's rename doesn't
    work correctly with Emacs so we use Emacs' emulation instead. */
 #if defined (__GNUC__)
 #  define LIB_STANDARD -lcposix -lc
