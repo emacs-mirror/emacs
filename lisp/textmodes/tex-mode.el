@@ -1,4 +1,4 @@
-;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands
+;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 86, 89, 92, 94, 95, 96, 97, 98, 1999, 2002
 ;;       Free Software Foundation, Inc.
@@ -120,23 +120,20 @@ See the documentation of that variable."
   :group 'tex-run)
 
 ;;;###autoload
-(defcustom tex-start-options nil
+(defcustom tex-start-options ""
   "*TeX options to use when starting TeX.
-These precede the commands in `tex-start-options'
-and the input file name.  If nil, TeX runs with no options.
-See the documentation of `tex-command'."
-  :type '(radio (const :tag "Interactive \(nil\)" nil)
-		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
-		       "\\nonstopmode\\input")
-		(string :tag "String at your choice"))
+These immediately precede the commands in `tex-start-commands'
+and the input file name, with no separating space and are not shell-quoted.
+If nil, TeX runs with no options.  See the documentation of `tex-command'."
+  :type 'string
   :group 'tex-run
   :version "21.4")
 
 ;;;###autoload
 (defcustom tex-start-commands "\\nonstopmode\\input"
   "*TeX commands to use when starting TeX.
-These precede the input file name.  If nil, no commands are used.
-See the documentation of `tex-command'."
+They are shell-quoted and precede the input file name, with a separating space.
+If nil, no commands are used.  See the documentation of `tex-command'."
   :type '(radio (const :tag "Interactive \(nil\)" nil)
 		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
 		       "\\nonstopmode\\input")
@@ -235,12 +232,14 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 (defcustom tex-open-quote "``"
   "*String inserted by typing \\[tex-insert-quote] to open a quotation."
   :type 'string
+  :options '("``" "\"<" "\"`" "<<" "«")
   :group 'tex)
 
 ;;;###autoload
 (defcustom tex-close-quote "''"
   "*String inserted by typing \\[tex-insert-quote] to close a quotation."
   :type 'string
+  :options '("''" "\">" "\"'" ">>" "»")
   :group 'tex)
 
 (defvar tex-last-temp-file nil
@@ -248,9 +247,9 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 Deleted when the \\[tex-region] or \\[tex-buffer] is next run, or when the
 tex shell terminates.")
 
-(defvar tex-command nil
+(defvar tex-command "tex"
   "*Command to run TeX.
-If this string contains an asterisk \(`*'\), that is replaced by the file name\;
+If this string contains an asterisk \(`*'\), that is replaced by the file name;
 otherwise the value of `tex-start-options', the \(shell-quoted\)
 value of `tex-start-commands', and the file name are added at the end
 with blanks as separators.
@@ -465,6 +464,12 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
+       ;; display $$ math $$
+       ;; We only mark the match between $$ and $$ because the $$ delimiters
+       ;; themselves have already been marked (along with $..$) by syntactic
+       ;; fontification.  Also this is done at the very beginning so as to
+       ;; interact with the other keywords in the same way as $...$ does.
+       (list "\\$\\$\\([^$]+\\)\\$\\$" 1 'tex-math-face)
        ;; Heading args.
        (list (concat slash headings "\\*?" opt arg)
 	     ;; If ARG ends up matching too much (if the {} don't match, f.ex)
@@ -529,9 +534,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
 	;;
 	;; Text between `` quotes ''.
-	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "k") t)
+	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "«") t)
 		      "[^'\">{]+"	;a bit pessimistic
-		      (regexp-opt `("''" "\">" "\"'" ">>" "{") t))
+		      (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
 	      'font-lock-string-face)
 	;;
 	;; Command names, special and general.
@@ -601,7 +606,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (define-key map "[" 'skeleton-pair-insert-maybe)
     (define-key map "$" 'skeleton-pair-insert-maybe)
     (define-key map "\n" 'tex-terminate-paragraph)
-    (define-key map "\t" 'indent-for-tab-command)
     (define-key map "\M-\r" 'latex-insert-item)
     (define-key map "\C-c}" 'up-list)
     (define-key map "\C-c{" 'tex-insert-braces)
@@ -686,7 +690,8 @@ says which mode to use."
 		   (eval-when-compile
 		     (concat
 		      (regexp-opt '("documentstyle" "documentclass"
-				    "begin" "section" "part" "chapter") 'words)
+				    "begin" "subsection" "section"
+				    "part" "chapter" "newcommand") 'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
 		  (if (looking-at
 		       "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
@@ -824,8 +829,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'imenu-create-index-function)
        'latex-imenu-create-index)
   (set (make-local-variable 'tex-face-alist) tex-latex-face-alist)
-  (set (make-local-variable 'fill-nobreak-predicate)
-       'latex-fill-nobreak-predicate)
+  (add-hook 'fill-nobreak-predicate 'latex-fill-nobreak-predicate nil t)
   (set (make-local-variable 'indent-line-function) 'latex-indent)
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
@@ -913,6 +917,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	 (font-lock-mark-block-function . mark-paragraph)
 	 (font-lock-syntactic-face-function
 	  . tex-font-lock-syntactic-face-function)))
+  ;; TABs in verbatim environments don't do what you think.
+  (set (make-local-variable 'indent-tabs-mode) nil)
   (make-local-variable 'tex-command)
   (make-local-variable 'tex-start-of-header)
   (make-local-variable 'tex-end-of-header)
@@ -954,12 +960,17 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 \(normally '') depending on the context.  With prefix argument, always
 inserts \" characters."
   (interactive "*P")
-  (if arg
+  (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
+	  (eq (get-text-property (point) 'face) 'tex-verbatim-face)
+	  (save-excursion
+	    (backward-char (length tex-open-quote))
+	    (when (or (looking-at (regexp-quote tex-open-quote))
+		      (looking-at (regexp-quote tex-close-quote)))
+	      (delete-char (length tex-open-quote))
+	      t)))
       (self-insert-command (prefix-numeric-value arg))
-    (insert
-     (cond ((= (preceding-char) ?\\) ?\")
-	   ((memq (char-syntax (preceding-char)) '(?\( ?> ?\ )) tex-open-quote)
-	   (t tex-close-quote)))))
+    (insert (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
+		tex-open-quote tex-close-quote))))
 
 (defun tex-validate-buffer ()
   "Check current buffer for paragraphs containing mismatched braces or $s.
@@ -1090,12 +1101,10 @@ A prefix arg inhibits the checking."
   (let ((opoint (point))
 	inside)
     (save-excursion
-      (save-restriction
-	(beginning-of-line)
-	(narrow-to-region (point) opoint)
-	(while (re-search-forward "\\\\verb\\(.\\)" nil t)
-	  (unless (re-search-forward (regexp-quote (match-string 1)) nil t)
-	    (setq inside t)))))
+      (beginning-of-line)
+      (while (re-search-forward "\\\\verb\\(.\\)" opoint t)
+	(unless (re-search-forward (regexp-quote (match-string 1)) opoint t)
+	  (setq inside t))))
     inside))
 
 (defvar latex-block-default "enumerate")
@@ -1106,9 +1115,8 @@ A prefix arg inhibits the checking."
 Puts point on a blank line between them."
   (let ((choice (completing-read (format "LaTeX block name [%s]: "
 					 latex-block-default)
-				 (mapcar 'list
-					 (append standard-latex-block-names
-						 latex-block-names))
+				 (append latex-block-names
+					 standard-latex-block-names)
 				 nil nil nil nil latex-block-default)))
     (setq latex-block-default choice)
     (unless (or (member choice standard-latex-block-names)
@@ -1116,10 +1124,10 @@ Puts point on a blank line between them."
       ;; Remember new block names for later completion.
       (push choice latex-block-names))
     choice)
-  \n "\\begin{" str ?\}
+  \n "\\begin{" str "}"
   ?\[ (skeleton-read "[options]: ") & ?\] | -1
   > \n _ \n
-  "\\end{" str ?\} > \n)
+  "\\end{" str "}" > \n)
 
 (define-skeleton latex-insert-item
   "Insert a \item macro."
@@ -1133,9 +1141,11 @@ Puts point on a blank line between them."
 
 (defun tex-last-unended-begin ()
   "Leave point at the beginning of the last `\\begin{...}' that is unended."
-  (while (and (re-search-backward "\\\\\\(begin\\|end\\)\\s *{")
-              (looking-at "\\\\end"))
-    (tex-last-unended-begin)))
+  (condition-case nil
+      (while (and (re-search-backward "\\\\\\(begin\\|end\\)\\s *{")
+		  (looking-at "\\\\end"))
+	(tex-last-unended-begin))
+    (search-failed (error "Couldn't find unended \\begin"))))
 
 (defun tex-next-unmatched-end ()
   "Leave point at the end of the next `\\end' that is unended."
@@ -1150,9 +1160,7 @@ Mark is left at original location."
   (interactive)
   (let ((spot))
     (save-excursion
-      (condition-case nil
-          (tex-last-unended-begin)
-        (error (error "Couldn't find unended \\begin")))
+      (tex-last-unended-begin)
       (setq spot (point)))
     (push-mark)
     (goto-char spot)))
@@ -1428,7 +1436,8 @@ ALL other buffers."
 		       (save-restriction
 			 (widen)
 			 (goto-char (point-min))
-			 (re-search-forward header-re 10000 t))))
+			 (re-search-forward
+			  header-re (+ (point) 10000) t))))
 	    (throw 'found (expand-file-name buffer-file-name))))))))
 
 (defun tex-main-file ()
@@ -1443,7 +1452,8 @@ ALL other buffers."
 		     (file-relative-name
 		      (if (save-excursion
 			    (goto-char (point-min))
-			    (re-search-forward tex-start-of-header 10000 t))
+			    (re-search-forward tex-start-of-header
+					       (+ (point) 10000) t))
 			  ;; This is the main file.
 			  buffer-file-name
 			;; This isn't the main file, let's try to find better,
@@ -1462,10 +1472,10 @@ ALL other buffers."
 		      (comint-quote-filename file)
 		      (substring command (1+ star)))
             (concat command " "
+		    tex-start-options
 		    (if (< 0 (length tex-start-commands))
 			(concat
 			 (shell-quote-argument tex-start-commands) " "))
-		    tex-start-options
 		    (comint-quote-filename file)))))
     (tex-send-tex-command compile-command dir)))
 
