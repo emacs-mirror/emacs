@@ -2279,6 +2279,8 @@ temp_output_buffer_show (buf)
   register Lisp_Object window;
   register struct window *w;
 
+  XBUFFER (buf)->directory = current_buffer->directory;
+
   Fset_buffer (buf);
   BUF_SAVE_MODIFF (XBUFFER (buf)) = MODIFF;
   BEGV = BEG;
