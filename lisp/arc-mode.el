@@ -166,7 +166,7 @@ Extraction should happen to standard output.  Archive and member name will
 be added.  If `archive-zip-use-pkzip' is non-nil then this program is
 expected to extract to a file junking the directory part of the name.")
 
-;; For several reasons the latter behaviour is not desireable in general.
+;; For several reasons the latter behaviour is not desirable in general.
 ;; (1) It uses more disk space.  (2) Error checking is worse or non-
 ;; existent.  (3) It tends to do funny things with other systems' file
 ;; names.
@@ -616,7 +616,7 @@ is visible (and the real data of the buffer is hidden)."
     (archive-next-line no)))
 
 (defun archive-summarize-files (files)
-  "Insert a desciption of a list of files annotated with proper mouse face"
+  "Insert a description of a list of files annotated with proper mouse face"
   (setq archive-file-list-start (point-marker))
   (setq archive-file-name-indent (if files (aref (car files) 1) 0))
   ;; We don't want to do an insert for each element since that takes too
