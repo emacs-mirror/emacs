@@ -1,3 +1,39 @@
+2004-12-13  Richard M. Stallman  <rms@gnu.org>
+
+	* filecache.el (file-cache-add-directory-using-find):
+	Only set up file-cache-find-command-posix-flag if we will use it.
+
+	* bindings.el (mode-line-buffer-identification-keymap): 
+	Don't cancel the mode-line's usual down-mouse-1 binding.
+
+	* cus-edit.el (custom-face-selected): Handle `default' specs.
+	(custom-face-edit): Increase extra-offset.
+	(custom-display): Handle `default' specs.
+
+	* xml.el (xml-name-re, xml-entity-value-re): Add defvars.
+
+	* vc.el (vc-default-update-changelog): Use insert-file-contents,
+	not insert-file.
+
+	* emacs-lisp/elint.el (elint-standard-variables)
+	(elint-unknown-builtin-args): Move definitions up.
+
+	* net/browse-url.el (browse-url-url-at-point): Add autoload.
+
+	* info.el (info-xref-visited): Use `default' instead of t.
+	(Info-try-follow-nearest-node): Don't explicitly load browse-url.
+
+	* faces.el (header-line, mode-line-inactive, tool-bar):
+	Use `default' instead of t for setting the defaults.
+	(face-spec-choose): Separate `t' from `default'.
+
+	* subr.el (while-no-input): New macro.
+
+2004-12-13  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>  (tiny change)
+
+	* filecache.el (file-cache-add-directory-using-find):
+	Only test file-cache-find-command-posix-flag on some systems.
+
 2004-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-repository-hostname): Adjust to new format.
