@@ -967,6 +967,7 @@ Returns new end position."
     (set-char-table-extra-slot table 0 alist)
     table))
 
+;;;###autoload
 (defun indian-2-column-to-ucs-region (from to)
   "Convert old Emacs Devanagari characters to UCS."
   (interactive "r")
