@@ -1,3 +1,14 @@
+2004-04-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): Set coding->common_flags
+	correctly for raw-text.
+	(consume_chars): On encoding unibyte text by raw-text, don't check
+	multibyte form.
+	(encode_coding): On encoding by raw-text, never use translation
+	tables.
+
+	* fileio.c (e_write): Short cut for the case of no encoding.
+
 2004-04-20  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Delete unused variables.
