@@ -1,3 +1,9 @@
+2001-10-18  Andrew Innes  <andrewi@gnu.org>
+
+	* fontset.c (fs_load_font) [WINDOWSNT && _MSC_VER]: Disable
+	optimization.  The fontp->encoding array was not being initialized
+	correctly when compiled with optimizations by MSVC.
+
 2001-10-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): Indicate empty lines in active
