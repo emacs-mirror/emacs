@@ -224,6 +224,13 @@ Accept any number of arguments, but ignore them."
 (fset 'eval-current-buffer 'eval-buffer)
 (fset 'compiled-function-p 'byte-code-function-p)
 
+;;; This name isn't mentioned in the manual, and we've been hoping to
+;;; phase it out, but there's still a lot of code out there, even for
+;;; Emacs 18.59, which uses mod.  I'm going to let the byte compiler's
+;;; make-obsolete function to poke people a little more, and leave the
+;;; `mod' name around for a while longer.
+(fset 'mod '%)
+
 ; alternate names
 (fset 'string= 'string-equal)
 (fset 'string< 'string-lessp)
