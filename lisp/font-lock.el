@@ -1031,7 +1031,8 @@ what properties to clear before refontifying a region.")
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
-  (let ((inhibit-point-motion-hooks t))
+  (let ((inhibit-point-motion-hooks t)
+	(inhibit-quit t))
     (save-excursion
       (save-match-data
 	;; Rescan between start of lines enclosing the region.
