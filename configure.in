@@ -932,11 +932,11 @@ else
 fi
 
 if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
-  LD_SWITCH_X_SITE="-L${x_libraries}"
-  LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
+  LD_SWITCH_X_SITE=-L`echo ${x_libraries} | sed -e "s/:/ -L/g"`
+  LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
 fi
 if test "${x_includes}" != NONE && test -n "${x_includes}"; then
-  C_SWITCH_X_SITE="-I${x_includes}"
+  C_SWITCH_X_SITE=-I`echo ${x_libraries} | sed -e "s/:/ -I/g"`
 fi
 
 if test x"${x_includes}" = x; then
