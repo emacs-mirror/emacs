@@ -1,3 +1,9 @@
+2000-12-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* subr.el (butlast, nbutlast): Moved from cl.el to here.
+
+	* emacs-lisp/cl.el (butlast, nbutlast): Moved to subr.el.
+
 2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	From Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>:
