@@ -305,6 +305,7 @@ install-arch-dep: mkdir
 	-chmod 1755  ${bindir}/emacs-${version}
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
+	unset CDPATH; \
 	for f in `cd lib-src && echo fns-*.el`; do \
 	  ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
 	done
@@ -318,6 +319,7 @@ install-arch-dep: mkdir
 ## as a workaround for a bug in tar on Ultrix 4.2.
 install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
+	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
 	  if [ `(cd $$1 && /bin/pwd)` != `(cd $${dir} && /bin/pwd)` ] ; then \
 	    rm -rf $$1 ; \
@@ -327,6 +329,7 @@ install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	mkdir ${COPYDESTS} ; \
 	chmod ugo+rx ${COPYDESTS} ; \
+	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dir} ] \
@@ -365,6 +368,7 @@ install-arch-indep: mkdir
 	    > ${datadir}/emacs/site-lisp/subdirs.el; \
 	fi
 	-chmod a+r ${datadir}/emacs/site-lisp/subdirs.el
+	unset CDPATH; \
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
@@ -372,6 +376,7 @@ install-arch-indep: mkdir
 	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null); \
 	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
 	else true; fi
+	unset CDPATH; \
 	if [ -r ./lisp ] \
 	   && [ -r ./lisp/simple.el ] \
 	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
@@ -381,6 +386,7 @@ install-arch-indep: mkdir
 	   (cd lisp; tar -cf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 0; tar -xvf - && cat > /dev/null); \
 	else true; fi
+	unset CDPATH; \
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
@@ -398,7 +404,8 @@ install-arch-indep: mkdir
 	      chmod a+r ${infodir}/$$f); \
 	   done); \
 	else true; fi
-	-thisdir=`/bin/pwd`; \
+	-unset CDPATH; \
+	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
 	  for f in ada-mode ccmode cl dired-x ediff emacs forms gnus info message mh-e reftex sc vip viper widget; do \
@@ -451,6 +458,7 @@ uninstall:
 	 $(MAKE) $(MFLAGS) uninstall			\
 	    prefix=${prefix} exec_prefix=${exec_prefix}	\
 	    bindir=${bindir} libexecdir=${libexecdir} archlibdir=${archlibdir})
+	unset CDPATH; \
 	for dir in ${lispdir} ${etcdir} ; do 		\
 	  if [ -d $${dir} ]; then			\
 	    case `(cd $${dir} ; /bin/pwd)` in		\
