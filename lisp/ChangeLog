@@ -1,3 +1,17 @@
+2002-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bindings.el (mode-line-change-eol)
+	(mode-line-eol-desc-cache, mode-line-eol-desc): New.
+	(mode-line-mule-info): Use them for the EOL part of the modeline.
+
+	* server.el (server-sentinel): Kill buffers if applicable.
+	(server-temp-file-p): Make arg optional.
+	(server-done): Use it to simplify.
+	(server-switch-buffer): If server-window is a function, use it.
+
+	* mail/undigest.el (rmail-digest-end-regexps): Simplify.
+	(undigestify-rmail-message): Fix paren-bug and simplify.
+
 2002-11-02  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-hide-note-references): nil value now does no
@@ -24,7 +38,7 @@
 
 2002-10-31  Kim F. Storm  <storm@cua.dk>
 
-	* shell.el (explicit-bash-args): Bash 1.x doesn't grook
+	* shell.el (explicit-bash-args): Bash 1.x doesn't grok
 	--noediting option; added run-time check to exclude it.
 
 	* info.el (Info-follow-reference, Info-next-reference)
