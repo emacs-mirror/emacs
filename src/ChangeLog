@@ -1,3 +1,15 @@
+2001-02-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (ccl_coding_driver): If ccl->eight_bit_control is zero,
+	treat the produced bytes as a valid multibyte sequence.
+
+	* ccl.c (CCL_WRITE_MULTIBYTE_CHAR): New macro.
+	(ccl_driver) <CCL_WriteMultibyteChar2>: Use
+	CCL_WRITE_MULTIBYTE_CHAR instead of CCL_WRITE_CHAR.
+	<ccl_finish>: Set ccl->eight_bit_control properly.
+
+	* ccl.h (struct ccl_program): New member eight_bit_control.
+
 2001-02-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (Faccessible_keymaps): Pass `is_metized' to
