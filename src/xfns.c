@@ -1765,7 +1765,7 @@ x_window (f, window_prompting, minibuffer_only)
 
   f->display.x->column_widget = pane_widget;
 
-  if (!minibuffer_only) 
+  if (!minibuffer_only && FRAME_MENU_BAR_LINES (f) > 0)
     initialize_frame_menubar (f);
 
   /* mappedWhenManaged to false tells to the paned window to not map/unmap 
@@ -2198,6 +2198,9 @@ be shared by the new frame.")
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", string);
 
+  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
+		       "menuBarLines", "MenuBarLines", number);
+
   f->display.x->parent_desc = ROOT_WINDOW;
   window_prompting = x_figure_window_size (f, parms);
 
@@ -2229,9 +2232,6 @@ be shared by the new frame.")
   height = f->height;
   f->height = f->width = 0;
   change_frame_size (f, height, width, 1, 0);
-
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0),
-		       "menuBarLines", "MenuBarLines", number);
 
 /* With the toolkit, the geometry management is done in x_window.  */
 #ifndef USE_X_TOOLKIT
@@ -2671,7 +2671,13 @@ even if they match PATTERN and FACE.")
   else
     {
       FRAME_PTR f = NILP (frame) ? selected_frame : XFRAME (frame);
-      int face_id = face_name_id_number (f, face);
+      int face_id;
+
+      /* Don't die if we get called with a terminal frame.  */
+      if (! FRAME_X_P (f))
+	error ("non-X frame used in `x-list-fonts'");
+
+      face_id = face_name_id_number (f, face);
 
       if (face_id < 0 || face_id >= FRAME_N_PARAM_FACES (f)
 	  || FRAME_PARAM_FACES (f) [face_id] == 0)
