@@ -1,7 +1,7 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.33) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!amcss.c(trunk.34) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #include "fmtdy.h"
@@ -13,27 +13,26 @@
 #include "mpsw3.h"
 #endif
 #include "mps.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 /* These values have been tuned to cause one top-generation collection. */
-#define testArenaSIZE     ((size_t)1600*1024)
-#ifdef MPS_OS_W3
-#define collectionFreqMULTIPLIER 0.03
-#else
-#define collectionFreqMULTIPLIER 0.05
-#endif
+#define testArenaSIZE     ((size_t)1100*1024)
 #define avLEN             3
-#define exactRootsCOUNT   224
+#define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50
+#define genCOUNT          2
 #define collectionsCOUNT  39
 #define rampSIZE          9
 #define initTestFREQ      6000
+
+/* testChain -- generation parameters for the test */
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 150, 0.85 }, { 170, 0.35 } };
+
+
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
 #define objNULL           ((mps_addr_t)0xDECEA5ED)
 
@@ -71,10 +70,13 @@ static void test_stepper(mps_addr_t object, void *p, size_t s)
 }
 
 
+/* test -- the body of the test */
+
 static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
+  mps_chain_t chain;
   mps_root_t exactRoot, ambigRoot;
   unsigned long objs; size_t i;
   mps_word_t collections, rampSwitch;
@@ -87,8 +89,9 @@ static void *test(void *arg, size_t s)
   (void)s; /* unused */
 
   die(dylan_fmt(&format, arena), "fmt_create");
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&pool, arena, mps_class_amc(), format),
+  die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
@@ -194,6 +197,7 @@ static void *test(void *arg, size_t s)
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
   mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(format);
 
   return NULL;
@@ -210,7 +214,6 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "arena_create");
-  adjust_collection_freq(0.05);
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
