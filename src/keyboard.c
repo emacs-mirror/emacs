@@ -1584,7 +1584,7 @@ kbd_buffer_get_event ()
       struct input_event *event;
       Lisp_Object frame;
 
-      event = ((kbd_fetch_ptr <= kbd_buffer + KBD_BUFFER_SIZE)
+      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
 	       ? kbd_fetch_ptr
 	       : kbd_buffer);
 
