@@ -1,4 +1,9 @@
-2004-11-16  Luc Teirlinck  <teirllm@auburn.edu>
+2004-11-18  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Undo 2004-11-16 change.
+	Instead, move back again if reseating moves too far ahead.
+
+2004-11-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* xdisp.c (message3): Call clear_message.
 
