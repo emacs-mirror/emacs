@@ -840,6 +840,36 @@ store_symval_forwarding (symbol, valcontents, newval)
     }
 }
 
+/* Set up SYMBOL to refer to its global binding.
+   This makes it safe to alter the status of other bindings.  */
+
+void
+swap_in_global_binding (symbol)
+     Lisp_Object symbol;
+{
+  Lisp_Object valcontents, cdr;
+  
+  valcontents = XSYMBOL (symbol)->value;
+  if (!BUFFER_LOCAL_VALUEP (valcontents)
+      && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    abort ();
+  cdr = XBUFFER_LOCAL_VALUE (valcontents)->cdr;
+
+  /* Unload the previously loaded binding.  */
+  Fsetcdr (XCAR (cdr),
+	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+  
+  /* Select the global binding in the symbol.  */
+  XCAR (cdr) = cdr;
+  store_symval_forwarding (symbol, valcontents, XCDR (cdr));
+
+  /* Indicate that the global binding is set up now.  */
+  XBUFFER_LOCAL_VALUE (valcontents)->frame = Qnil;
+  XBUFFER_LOCAL_VALUE (valcontents)->buffer = Qnil;
+  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
+  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
+}
+
 /* Set up the buffer-local symbol SYMBOL for validity in the current buffer.
    VALCONTENTS is the contents of its value cell,
    which points to a struct Lisp_Buffer_Local_Value.
@@ -1002,6 +1032,9 @@ set_internal (symbol, newval, buf, bindflag)
   /* If restoring in a dead buffer, do nothing.  */
   if (NILP (buf->name))
     return newval;
+
+  if (strcmp (XSYMBOL (symbol)->name->data, "foo") == 0)
+    fprintf (stderr, "foo\n");
 
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
