@@ -1,3 +1,8 @@
+2000-02-07  Eli Zaretskii <eliz@is.elta.co.il>
+
+	* s/msdos.h (INTERNAL_TERMINAL): Add capabilities se, so, us, ue,
+	md, mh, mb, mr, and me to the fake termcap entry.
+
 2000-02-06  Ken Raeburn  <raeburn@gnu.org>
 
 	* sound.c (sound_cleanup): Don't call device close routine if the
