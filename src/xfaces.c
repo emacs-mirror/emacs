@@ -522,7 +522,7 @@ static int face_numeric_weight P_ ((Lisp_Object));
 static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
-static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int));
+static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int, int*));
 static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
 static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
 					Lisp_Object *, Lisp_Object));
@@ -534,7 +534,7 @@ static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
 static void free_realized_faces P_ ((struct face_cache *));
 static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
-				     struct font_name *, int, int));
+				     struct font_name *, int, int, int *));
 static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
 static void uncache_face P_ ((struct face_cache *, struct face *));
 static int xlfd_numeric_slant P_ ((struct font_name *));
@@ -1257,11 +1257,13 @@ load_face_font (f, face, c)
 {
   struct font_info *font_info = NULL;
   char *font_name;
+  int needs_overstrike;
 
   face->font_info_id = -1;
   face->font = NULL;
 
-  font_name = choose_face_font (f, face->lface, face->fontset, c);
+  font_name = choose_face_font (f, face->lface, face->fontset, c,
+				&needs_overstrike);
   if (!font_name)
     return;
 
@@ -1274,6 +1276,7 @@ load_face_font (f, face, c)
       face->font_info_id = font_info->font_idx;
       face->font = font_info->font;
       face->font_name = font_info->full_name;
+      face->overstrike = needs_overstrike;
       if (face->gc)
 	{
 	  x_free_gc (f, face->gc);
@@ -4313,7 +4316,7 @@ set_font_frame_param (frame, lface)
 	  /* Choose a font name that reflects LFACE's attributes and has
 	     the registry and encoding pattern specified in the default
 	     fontset (3rd arg: -1) for ASCII characters (4th arg: 0).  */
-	  font = choose_face_font (f, XVECTOR (lface)->contents, -1, 0);
+	  font = choose_face_font (f, XVECTOR (lface)->contents, -1, 0, 0);
 	  if (!font)
 	    error ("No font matches the specified attribute");
 	  font_name = build_string (font);
@@ -6140,15 +6143,20 @@ may_use_scalable_font_p (font)
    widths if ATTRS specifies such a width.
 
    Value is a font name which is allocated from the heap.  FONTS is
-   freed by this function.  */
+   freed by this function.
+
+   If NEEDS_OVERSTRIKE is non-zero, a boolean is returned in it to
+   indicate whether the resulting font should be drawn using overstrike
+   to simulate bold-face.  */
 
 static char *
-best_matching_font (f, attrs, fonts, nfonts, width_ratio)
+best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
      struct frame *f;
      Lisp_Object *attrs;
      struct font_name *fonts;
      int nfonts;
      int width_ratio;
+     int *needs_overstrike;
 {
   char *font_name;
   struct font_name *best;
@@ -6183,6 +6191,9 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 
   exact_p = 0;
 
+  if (needs_overstrike)
+    *needs_overstrike = 0;
+
   /* Start with the first non-scalable font in the list.  */
   for (i = 0; i < nfonts; ++i)
     if (!font_scalable_p (fonts + i))
@@ -6203,7 +6214,6 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 	    if (exact_p)
 	      break;
 	  }
-
     }
   else
     best = NULL;
@@ -6236,6 +6246,24 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio)
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
 	      best = fonts + i;
 	  }
+
+      if (needs_overstrike)
+	{
+	  enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
+	  enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
+
+	  if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
+	    {
+	      /* We want a bold font, but didn't get one; try to use
+		 overstriking instead to simulate bold-face.  However,
+		 don't overstrike an already-bold fontn unless the
+		 desired weight grossly exceeds the available weight.  */
+	      if (got_weight > XLFD_WEIGHT_MEDIUM)
+		*needs_overstrike = (got_weight - want_weight) > 2;
+	      else
+		*needs_overstrike = 1;
+	    }
+	}
     }
 
   if (font_scalable_p (best))
@@ -6393,13 +6421,18 @@ face_fontset (attrs)
    allocated from the heap and must be freed by the caller, or NULL if
    we can get no information about the font name of C.  It is assured
    that we always get some information for a single byte
-   character.  */
+   character.
+
+   If NEEDS_OVERSTRIKE is non-zero, a boolean is returned in it to
+   indicate whether the resulting font should be drawn using overstrike
+   to simulate bold-face.  */
 
 static char *
-choose_face_font (f, attrs, fontset, c)
+choose_face_font (f, attrs, fontset, c, needs_overstrike)
      struct frame *f;
      Lisp_Object *attrs;
      int fontset, c;
+     int *needs_overstrike;
 {
   Lisp_Object pattern;
   char *font_name = NULL;
@@ -6427,7 +6460,8 @@ choose_face_font (f, attrs, fontset, c)
   width_ratio = (SINGLE_BYTE_CHAR_P (c)
 		 ? 1
 		 : CHARSET_WIDTH (CHAR_CHARSET (c)));
-  font_name = best_matching_font (f, attrs, fonts, nfonts, width_ratio);
+  font_name = best_matching_font (f, attrs, fonts, nfonts, width_ratio,
+				  needs_overstrike);
   return font_name;
 }
 
