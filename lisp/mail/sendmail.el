@@ -65,6 +65,10 @@ match the variable `mail-header-separator'.")
 (defvar mail-header-separator "--text follows this line--" "\
 *Line used to separate headers from text in messages being composed.")
 
+;; Set up mail-header-separator for use as a category text property.
+(put 'mail-header-separator 'rear-nonsticky '(category))
+(put 'mail-header-separator 'read-only t)
+
 ;;;###autoload
 (defvar mail-archive-file-name nil "\
 *Name of file to write all outgoing messages in, or nil for none.
@@ -266,7 +270,11 @@ actually occur.")
 	(insert "BCC: " (user-login-name) "\n"))
     (if mail-archive-file-name
 	(insert "FCC: " mail-archive-file-name "\n"))
-    (insert mail-header-separator "\n")
+    (put-text-property (point)
+		       (progn
+			 (insert mail-header-separator "\n")
+			 (1- (point)))
+		       'category 'mail-header-separator)
     ;; Insert the signature.  But remember the beginning of the message.
     (if to (setq to (point)))
     (cond ((eq mail-signature t)
@@ -438,7 +446,7 @@ the user from the mailer."
 	  (y-or-n-p "Send buffer contents as mail message? ")
 	(or (buffer-modified-p)
 	    (y-or-n-p "Message already sent; resend? ")))
-      (progn
+      (let ((inhibit-read-only t))
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
 	(funcall send-mail-function)
@@ -1008,9 +1016,10 @@ The seventh argument ACTIONS is a list of actions to take
     (and (not noerase)
 	 (or (not (buffer-modified-p))
 	     (y-or-n-p "Unsent message being composed; erase it? "))
-	 (progn (erase-buffer)
-		(mail-setup to subject in-reply-to cc replybuffer actions)
-		(setq initialized t)))
+	 (let ((inhibit-read-only t))
+	   (erase-buffer)
+	   (mail-setup to subject in-reply-to cc replybuffer actions)
+	   (setq initialized t)))
     (if (and buffer-auto-save-file-name
 	     (file-exists-p buffer-auto-save-file-name))
 	(message "Auto save file for draft message exists; consider M-x mail-recover"))
