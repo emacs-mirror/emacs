@@ -1997,7 +1997,7 @@ Floating point numbers always use base 10.")
   
 #ifdef LISP_FLOAT_TYPE
   if (isfloat_string (p))
-    return make_float (atof (p));
+    return make_float (negative * atof (p));
 #endif /* LISP_FLOAT_TYPE */
 
   while (1)
