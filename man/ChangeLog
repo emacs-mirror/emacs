@@ -1,3 +1,12 @@
+2004-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* custom.texi (File Variables): Add `unibyte' and make it more
+	clear that `unibyte' and `coding' are special.  Suggested by Simon
+	Krahnke <overlord@gmx.li>.
+
+	* mule.texi (Enabling Multibyte): Refer to File Variables.
+	Suggested by Simon Krahnke <overlord@gmx.li>.
+
 2004-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Rename use-old-gtk-file-dialog to

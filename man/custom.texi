@@ -961,7 +961,8 @@ numeric values:
   You can also specify the coding system for a file in this way: just
 specify a value for the ``variable'' named @code{coding}.  The ``value''
 must be a coding system name that Emacs recognizes.  @xref{Coding
-Systems}.
+Systems}.  @w{@samp{unibyte: t}} specifies unibyte loading for a
+particular Lisp file.  @xref{Enabling Multibyte}.
 
   The @code{eval} pseudo-variable, described below, can be specified in
 the first line as well.
@@ -1022,14 +1023,15 @@ Here's an example of doing this:
 # End:
 @end example
 
-  Two ``variable names'' have special meanings in a local variables
+  Some ``variable names'' have special meanings in a local variables
 list: a value for the variable @code{mode} really sets the major mode,
 and a value for the variable @code{eval} is simply evaluated as an
-expression and the value is ignored.  @code{mode} and @code{eval} are
-not real variables; setting variables named @code{mode} and @code{eval}
-in any other context has no special meaning.  @emph{If @code{mode} is
-used to set a major mode, it should be the first ``variable'' in the
-list.}  Otherwise, the entries that precede it in the list of the local
+expression and the value is ignored.  @code{coding}, @code{unibyte},
+@code{mode} and @code{eval} are not real variables; setting variables
+named @code{coding}, @code{unibyte}, @code{mode} and @code{eval} in any
+other context has no special meaning.  @emph{If @code{mode} is used to
+set a major mode, it should be the first ``variable'' in the list.}
+Otherwise, the entries that precede it in the list of the local
 variables are likely to be ignored, since most modes kill all local
 variables as part of their initialization.
 
