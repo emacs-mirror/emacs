@@ -1,5 +1,8 @@
 2001-08-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (mode-line-format): Specify help-echo for line
+	number, column number and buffer-percent part of the mode-line.
+
 	* image.el (image-type-regexps): Allow whitespace at the start
 	of the image data for XPM, XBM and Postscript, which are
 	text files.
