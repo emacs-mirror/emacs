@@ -1,3 +1,11 @@
+2000-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_produce_glyphs): If a font for a component of
+	a composition is not found, use 1 pixel dot ascent and 0 dot
+	descent value to avoid displaying terribly tall empty boxes.
+	(expose_area): Pass x-coordinate relative to the exposed
+	area to x_draw_glyphs instead of a window-relative coordinate.
+
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (record_char): Don't record identical help-echo
