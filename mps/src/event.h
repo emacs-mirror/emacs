@@ -1,7 +1,7 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
- * $HopeName: MMsrc!event.h(trunk.8) $
+ * $HopeName: MMsrc!event.h(trunk.9) $
  *
  * READERSHIP
  *
@@ -82,7 +82,7 @@ extern EventUnion Event;
     if((length) > (size_t)(EventLimit - EventNext)) \
       EventFlush(); /* @@@ should pass length */ \
     AVER((length) <= (size_t)(EventLimit - EventNext)); \
-    MPS_MEMCPY(EventNext, &Event, (length)); \
+    mps_lib_memcpy(EventNext, &Event, (length)); \
     EventNext += (length); \
   } \
   END
