@@ -769,7 +769,6 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
     }
   else
     {
-      Lisp_Object initial_value, value;
       int count = specpdl_ptr - specpdl;
 
       if (! NILP (object))
@@ -786,19 +785,31 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
       else
 	CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
-      initial_value = Fget_char_property (position, prop, object);
-      
-      for (;;)
+      if (XFASTINT (position) <= XFASTINT (limit))
+	position = limit;
+      else
 	{
-	  position = Fprevious_char_property_change (position, limit);
-	  if (XFASTINT (position) <= XFASTINT (limit)) {
-	    position = limit;
-	    break;
-	  }
+	  Lisp_Object initial_value =
+	    Fget_char_property (position - 1, prop, object);
+      
+	  for (;;)
+	    {
+	      position = Fprevious_char_property_change (position, limit);
 
-	  value = Fget_char_property (position - 1, prop, object);
-	  if (!EQ (value, initial_value))
-	    break;
+	      if (XFASTINT (position) <= XFASTINT (limit))
+		{
+		  position = limit;
+		  break;
+		}
+	      else
+		{
+		  Lisp_Object value =
+		    Fget_char_property (position - 1, prop, object);
+
+		  if (!EQ (value, initial_value))
+		    break;
+		}
+	    }
 	}
 
       unbind_to (count, Qnil);
