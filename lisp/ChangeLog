@@ -1,3 +1,10 @@
+2004-05-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* replace.el (query-replace-interactive): Convert defvar into
+	defcustom.
+
+	* autorevert.el: Update `Commentary' section.
+
 2004-05-30  Juanma Barranquero  <lektu@terra.es>
 
 	* dos-fns.el (convert-standard-filename):
