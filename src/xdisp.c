@@ -450,25 +450,8 @@ prepare_menu_bars ()
       frame_garbaged = 0;
     }
 
-  if (clip_changed || windows_or_buffers_changed)
-    update_mode_lines++;
-
-  /* Detect case that we need to write a star in the mode line.  */
-  if (XFASTINT (w->last_modified) < MODIFF
-      && XFASTINT (w->last_modified) <= current_buffer->save_modified)
-    {
-      w->update_mode_line = Qt;
-      if (buffer_shared > 1)
-	update_mode_lines++;
-    }
-
-  all_windows = update_mode_lines || buffer_shared > 1;
-
-  /* If specs for an arrow have changed, do thorough redisplay
-     to ensure we remove any arrow that should no longer exist.  */
-  if (! EQ (Voverlay_arrow_position, last_arrow_position)
-      || ! EQ (Voverlay_arrow_string, last_arrow_string))
-    all_windows = 1, clip_changed = 1;
+  all_windows = (update_mode_lines || buffer_shared > 1
+		 || clip_changed || windows_or_buffers_changed);
 
   /* Update the menu bar item lists, if appropriate.
      This has to be done before any actual redisplay
@@ -478,15 +461,10 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
 
       FOR_EACH_FRAME (tail, frame)
-	{
-	  FRAME_PTR f = XFRAME (frame);
-
-	  if (FRAME_VISIBLE_P (f))
-	    update_menu_bars (FRAME_ROOT_WINDOW (f));
-	}
+	update_menu_bar (XFRAME (frame));
     }
-  else if (FRAME_VISIBLE_P (selected_frame))
-    update_menu_bar (selected_window);
+  else
+    update_menu_bar (selected_frame);
 }
 
 /* Do a frame update, taking possible shortcuts into account.
@@ -932,43 +910,19 @@ mark_window_display_accurate (window, flag)
     }
 }
 
-/* Update the menu bar item lists for WINDOW
-   and its subwindows and siblings.
+/* Update the menu bar item list for frame F.
    This has to be done before we start to fill in any display lines,
    because it can call eval.  */
 
 static void
-update_menu_bars (window)
-     Lisp_Object window;
+update_menu_bar (f)
+     FRAME_PTR f;
 {
-  for (; !NILP (window); window = XWINDOW (window)->next)
-    update_menu_bar (window);
-}
-
-/* Update the menu bar item list for window WINDOW and its subwindows.  */
-
-static void
-update_menu_bar (window)
-     Lisp_Object window;
-{
-  register struct window *w = XWINDOW (window);
   struct buffer *old = current_buffer;
-  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
-
-  /* If this is a combination window, do its children; that's all.  */
-
-  if (!NILP (w->vchild))
-    {
-      update_menu_bars (w->vchild);
-      return;
-    }
-  if (!NILP (w->hchild))
-    {
-      update_menu_bars (w->hchild);
-      return;
-    }
-  if (NILP (w->buffer))
-    abort ();
+  Lisp_Object window;
+  register struct window *w;
+  window = FRAME_SELECTED_WINDOW (f);
+  w = XWINDOW (window);
   
   if (update_mode_lines)
     w->update_mode_line = Qt;
@@ -980,7 +934,7 @@ update_menu_bar (window)
 #else
       && FRAME_MENU_BAR_LINES (f) > 0
 #endif
-      && EQ (FRAME_SELECTED_WINDOW (f), window))
+      )
     {
       /* If the user has switched buffers or windows, we need to
 	 recompute to reflect the new bindings.  But we'll
