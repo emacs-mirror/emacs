@@ -2,13 +2,13 @@
 # Configuration script for lib-src/makefile
 # ----------------------------------------------------------------------
 /^# DIST: /d
-# /^SHELL *=/s/=.*$/= command.com/
+/^SHELL *=/s/^/# /
 /^CC *=/s/=.*$/=gcc/
 /^version *=/s/=.*$/=19.17/
 /^configname *=/s/=.*$/=msdos/
-/^archlibdir *=/s!=.*$!=c:/emacs/bin!
-/^bindir *=/s!=.*$!=c:/emacs/bin!
-/^libdir *=/s!=.*$!=c:/emacs/bin!
+/^archlibdir *=/s!=.*$!=/emacs/bin!
+/^bindir *=/s!=.*$!=/emacs/bin!
+/^libdir *=/s!=.*$!=/emacs/bin!
 /^srcdir *=/s!=.*$!=.!
 /^VPATH *=/s!=.*$!=.!
 /^CFLAGS *=/s!=.*$!=-g!
