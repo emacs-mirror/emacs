@@ -1,0 +1,95 @@
+                 THE DESIGN OF THE LOW-MEMORY RESERVOIR
+                          design.mps.reservoir
+                           incomplete design
+                            tony 1998-07-30
+
+
+INTRODUCTION:
+
+The low-memory reservoir provides client support for implementing handlers for 
+low-memory situations which allocate.  The reservoir is implemented inside the 
+arena as a pool of unallocatable segments.
+
+
+OVERVIEW:
+
+This is just a placeholder at the moment.
+
+
+ARCHITECTURE:
+
+.adt: The reservoir interface looks (almost) like an abstract data type of type 
+Reservoir.  It's not quite abstract because the arena embeds the structure of 
+the reservoir (of type ReservoirStruct) into its own structure, for simplicity 
+of initialization.
+
+.align: The reservoir is implemented as a pool of available tracts, along with 
+a size and limit which must always be aligned to the arena alignment.  The size 
+corresponds to the amount of memory currently maintained in the reservoir.  The 
+limit is the maximum amount that it is desired to maintain.
+
+.wastage: When the reservoir limit is set by the client, the actual limit 
+should be increased by an arena alignment amount for every active mutator 
+buffer.
+
+.really-empty: When the reservoir limit is set to 0, assume that the client 
+really doesn't have a need for a reservoir at all.  In this case, the client 
+won't even want an allowance to be made for wastage in active buffers.
+
+
+IMPLEMENTATION:
+
+.interface: The following functions comprise the interface to the reservoir 
+module:
+
+
+.interface.check: ReservoirCheck checks the reservoir for consistency:
+extern Bool ReservoirCheck(Reservoir reservoir);
+
+.interface.init: ReservoirInit initializes the reservoir and its associated 
+pool, setting the size and limit to 0:
+extern Res ReservoirInit(Reservoir reservoir, Arena arena);
+
+.interface.finish: ReservoirFinish de-initializes the reservoir and its 
+associated pool:
+extern void ReservoirFinish (Reservoir reservoir);
+
+.interface.limit: ReservoirLimit returns the limit of the reservoir:
+extern Size ReservoirLimit(Reservoir reservoir);
+
+.interface.set-limit: ReservoirSetLimit sets the limit of the reservoir, making 
+an allowance for wastage in mutator buffers:
+extern void ReservoirSetLimit(Reservoir reservoir, Size size);
+
+.interface.available: ReservoirAvailable returns the available size of the 
+reservoir:
+extern Size ReservoirAvailable(Reservoir reservoir);
+
+.interface.ensure-full: ReservoirEnsureFull attempts to fill the reservoir with 
+memory from the arena, until it is full:
+extern Res ReservoirEnsureFull(Reservoir reservoir);
+
+.interface.deposit: ReservoirDeposit attempts to fill the reservoir with memory 
+in the supplied range, until it is full.  This is called by the arena from 
+ArenaFree if the reservoir is not known to be full.  Any memory which is not 
+added to the reservoir (because the reservoir is full) is freed via the arena 
+class's free method.
+extern void ReservoirDeposit(Reservoir reservoir, Addr base, Size size);
+
+.interface.withdraw: ReservoirWithdraw attempts to allocate memory of the 
+specified size to the specified pool to the reservoir.  If no suitable memory 
+can be found it returns ResMEMORY. 
+extern Res ReservoirWithdraw(Addr *baseReturn, Tract *baseTractReturn,
+                             Reservoir reservoir, Size size, Pool pool);
+
+.interface.withdraw.align: Currently, ReservoirWithdraw can only withdraw 
+memory in chunks of the size of the arena alignment.  This is because the 
+reservoir doesn't attempt to coalesce adjacent memory blocks.  This deficiency 
+should be fixed in the future.
+
+.pool: The memory managed by the reservoir is owned by the reservoir pool.  
+This memory is never sub-allocated.  Each tract belonging to the pool is linked 
+onto a list.  The head of the list is in the Reservoir object.  Links are 
+stored in the TractP fields of each tract object.
+
+

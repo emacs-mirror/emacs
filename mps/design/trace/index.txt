@@ -1,0 +1,95 @@
+                                 TRACER
+                            design.mps.trace
+                           incomplete design
+                             drj 1996-09-25
+
+
+ARCHITECTURE:
+
+.instance.limit: There will be a limit on the number of traces that can be 
+created at any one time.  This effectively limits the number of concurrent 
+traces.  This limitation is expressed in the symbol TRACE_MAX [currently set to 
+1, see request.mps.160020 "Multiple traces would not work"  drj 1998-06-15].
+
+.rate: [see mail.nickb.1997-07-31.14-37].  [Now revised?  See 
+request.epcore.160062 and change.epcore.minnow.160062.  drj 1998-06-15]
+
+.exact.legal: Exact references should either point outside the arena (to 
+non-managed address space) or to a tract allocated to a pool.  Exact references 
+that are to addresses which the arena has reserved but hasn't allocated memory 
+to are illegal (the exact reference couldn't possibly refer to a real object).  
+Depending on the future semantics of PoolDestroy we might need to adjust our 
+strategy here.  See mail.dsm.1996-02-14.18-18 for a strategy of coping 
+gracefully with PoolDestroy.  We check that this is the case in the fixer.  It 
+may be sensible to make this check CRITICAL in certain configurations.
+
+.fix.fixed.all: ss->fixedSummary is accumulated (in the fixer) for all the 
+pointers whether or not they are genuine references.  We could accumulate fewer 
+pointers here; if a pointer fails the TractOfAddr test then we know it isn't a 
+reference, so we needn't accumulate it into the fixed summary.  The design 
+allows this, but it breaks a useful post-condition on scanning (if the 
+accumulation of ss->fixedSummary was moved the accuracy of ss->fixedSummary 
+would vary according to the "width" of the white summary).  See 
+mail.pekka.1998-02-04.16-48 for improvement suggestions.
+
+
+ANALYSIS:
+
+.fix.copy-fail: Fixing can always succeed, even if copying the referenced 
+object has failed (due to lack of memory, for example), by backing off to 
+treating a reference as ambiguous.  Assuming that fixing an ambiguous reference 
+doesn't allocate memory (which is no longer true for AMC for example).  See 
+request.dylan.170560 for a slightly more sophisticated way to proceed when you 
+can no longer allocate memory for copying.
+
+
+IDEAS:
+
+.flip.after: To avoid excessive barrier impact on the mutator immediately after 
+flip, we could scan during flip other objects which are "near" the roots, or 
+otherwise known to be likely to be accessed in the near future.
+
+
+IMPLEMENTATION:
+
+Speed
+
+.fix: The fix path is critical to garbage collection speed.  Abstractly fix is 
+applied to all the references in the non-white heap and all the references in 
+the copied heap.  Remembered sets cut down the number of segments we have to 
+scan.  The zone test cuts down the number of references we call fix on.  The 
+speed of the remainder of the fix path is still critical to system 
+performance.  Various modifications to and aspects of the system are concerned 
+with maintaining the speed along this path.
+
+.fix.tractofaddr: TractOfAddr is called on every reference that passes the zone 
+test and is on the critical path, to determine whether the segment is white. 
+There is no need to examine the segment to perform this test, since whiteness 
+information is duplicated in tracts, specifically to optimize this test.  
+TractOfAddr itself is a simple class dispatch function (which dispatches to the 
+arena class's TractOfAddr method).  Inlining the dispatch and inlining the 
+functions called by VMTractOfAddr makes a small but noticable difference to the 
+speed of the dylan compiler.
+
+.fix.noaver: AVERs in the code add bulk to the code (reducing I-cache efficacy) 
+and add branches to the path (polluting the branch pedictors) resulting in a 
+slow down.  Removing all the AVERs from the fix path improves the overall speed 
+of the dylan compiler by as much as 9%.
+
+.fix.nocopy: AMCFix used to copy objects by using the format's copy method.  
+This involved a function call (through an indirection) and in dylan_copy a call 
+to dylan_skip (to recompute the length) and call to memcpy with general 
+parameters.  Replacing this with a direct call to memcpy removes these 
+overheads and the call to memcpy now has aligned parameters.  The call to 
+memcpy is inlined by the (C) compiler.  This change results in a 4-5% speed-up 
+in the dylan compiler.
+
+.reclaim: Because the reclaim phase of the trace (implemented by TraceReclaim) 
+examines every segment it is fairly time intensive.  rit's profiles presented 
+in request.dylan.170551 show a gap between the two varieties variety.hi and 
+variety.wi.
+
+.reclaim.noaver: Converting AVERs in the loops of TraceReclaim, PoolReclaim, 
+AMCReclaim (LOReclaim? AWLReclaim) will result in a noticeable speed 
+improvement [insert actual speed improvement here].
+

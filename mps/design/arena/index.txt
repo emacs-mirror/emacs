@@ -1,0 +1,446 @@
+                      THE DESIGN OF THE MPS ARENA
+                            design.mps.arena
+                           incomplete design
+                            pekka 1997-08-11
+
+INTRODUCTION
+
+
+.intro: This is the design of the arena structure.
+
+.readership: MM developers.
+
+
+Document History
+
+.hist.0: Version 0 is a different document.
+
+.hist.1: First draft written by Pekka P. Pirinen 1997-08-11, based on 
+design.mps.space(0) and mail.richard.1997-04-25.11-52(0).
+
+.hist.2: Updated for separation of tracts and segments.  tony 1999-04-16
+
+
+OVERVIEW
+
+.overview: The arena serves two purposes: A structure that is the top-level 
+state of the MPS, and as such contains a lot of fields which are considered 
+"global"; Provision of raw memory to pools.
+
+An arena is of a particular arena class, the class is selected when the arena 
+is created.  Classes encapsulate both policy (such as how pools placement 
+preferences map into actual placement) and mechanism (such as where the memory 
+originates: OS VM, client provided, via malloc).  Some behaviour (most in the 
+former "top-level datastructure" category) is implemented by generic arena 
+code, some by arena class code.  To some extent the arena coordinates placement 
+policies between different pools active in the same arena, however this 
+functionality is likely to be replaced by something more modular and which does 
+a better job: The Locus Manager.
+
+
+DEFINITIONS
+
+.def.tract: Pools request memory from the arena (using ArenaAlloc) as a block 
+comprising a contiguous sequence of units.  The units are known as tracts.  A 
+tract has a specific size (the arena alignment, often corresponds to the OS 
+page size) and all tracts are aligned to that size.  Also used to mean the 
+datastructure used to manage tracts.
+
+
+REQUIREMENTS
+
+[copied from design.mps.arena.vm(1) and edited slightly -- drj 1999-06-23]
+
+[Where do these come from?  Need to identify and document the sources of 
+requirements so that they are traceable to client requirements.  Most of these 
+come from the architectural design (design.mps.architecture) or the fix 
+function design (design.mps.fix). -- richard 1995-08-28]
+
+These requirements are the responsiblity of the class implementations as well 
+as the generic arena.  However, some classes (ANSI arena, arenaan.c, in 
+particular) are not intended for production use so do not have to meet all the 
+speed and space requirements.
+
+
+Block Management
+
+.req.fun.block.alloc: The Arena Manager must provide allocation of contiguous 
+blocks of memory.
+
+.req.fun.block.free: It must also provide freeing of contiguously allocated 
+blocks owned by a pool - whether or not the block was allocated via a single 
+request.
+
+.req.attr.block.size.min: The Arena Manager must support management of blocks 
+down to the size of the grain (page) provided by the virtual mapping interface 
+if a VM interface is being used, a comparable size otherwise.
+
+.req.attr.block.size.max: It must also support management of blocks up to the 
+maximum size allowed by the combination of operating system and architecture.  
+This is derived from req.dylan.attr.obj.max (at least).
+
+.req.attr.block.align.min: The alignment of blocks shall not be less than 
+MPS_PF_ALIGN (defined in "mpstd.h" included via "config.h") for the 
+architecture.  This is so that pool classes can conveniently guarantee pool 
+allocated blocks are aligned to MPS_PF_ALIGN.  (A trivial requirement)
+
+.req.attr.block.grain.max: The granularity of allocation shall not be more than 
+the grain size provided by the virtual mapping interface.
+
+
+Address Translation
+
+.req.fun.trans: The Arena must provide a translation from any address to either 
+an indication that the address is not in any tract (if that is so) or the 
+following data associated with the tract containing that address:
+.req.fun.trans.pool: The pool that allocated the tract.
+.req.fun.trans.arbitrary: An arbitrary pointer value that the pool can 
+associate with the tract at any time.
+.req.fun.trans.white: The tracer whiteness information.  IE a bit for each 
+active trace that indicates whether this tract is white (contains white 
+objects).  This is required so that the tracer resolve / preserve (aka "Fix") 
+protocol can run very quickly.
+
+.req.attr.trans.time: The translation shall take no more than @@@@ [something 
+not very large -- drj 1999-06-23]
+
+Iteration Protocol
+
+.req.iter: er, there's a tract iteration protocol which is presumably required 
+for some reason?
+
+
+Arena Partition
+
+.req.fun.set: The Arena Manager must provide a method for approximating sets of 
+addresses.  .req.fun.set.time: The determination of membership shall take no 
+more than ???? [something very small indeed].  (the non-obvious solution is 
+refsets)
+
+
+Constraints
+
+.req.attr.space.overhead: req.dylan.attr.space.struct implies that the arena 
+must limit the space overhead.  The arena is not the only part that introduces 
+an overhead (pool classes being the next most obvious), so multiple parts must 
+cooperate in order to meet the ultimate requirements.
+.req.attr.time.overhead: Time overhead constraint? [how can there be a time 
+"overhead" on a necessary component?  drj 1999-06-23]
+
+
+
+ARCHITECTURE
+
+Statics
+
+.static: There is no higher-level data structure than a arena, so in order to 
+support several arenas, we have to have some static data in impl.c.arena.  See 
+impl.c.arena.static.
+
+.static.init: All the static data items are initialized when the first arena is 
+created.
+
+.static.serial: arenaSerial is a static Serial, containing the serial number of 
+the next arena to be created. The serial of any existing arena is less than 
+this.
+
+.static.ring: arenaRing is the sentinel of the ring of arenas.
+
+.static.ring.init: arenaRingInit is a bool showing whether the ring of arenas 
+has been initialized. 
+
+.static.ring.lock: The ring of arenas has to be locked when traversing the 
+ring, to prevent arenas being added or removed. This is achieved by using the 
+(non-recursive) global lock facility, provided by the lock module.
+
+.static.check: The statics are checked each time any arena is checked.
+
+
+Arena Classes
+
+.class: The Arena datastructure is designed to be subclassable (see 
+design.mps.protocol(0)). Clients can select what arena class they'd like when 
+instantiating one with mps_arena_create().  The arguments to mps_arena_create 
+are class dependent.
+
+.class.init: However, the generic ArenaInit is called from the class-specific 
+method, rather than vice versa, because the method is responsible for 
+allocating the memory for the arena descriptor and the arena lock in the first 
+place.  Likewise, ArenaFinish is called from the finish method.
+
+.class.fields: The alignment (for tract allocations) and zoneShift (for 
+computing zone sizes and what zone an address is in) fields in the arena are 
+the responsibility of the each class, and are initialized by the init method.  
+The responsibility for maintaining the commitLimit, spareCommitted, 
+spareCommitLimit fields is shared between the (generic) arena and the arena 
+class.  commitLimit (see .commit-limit below) is changed by the generic arena 
+code, but arena classes are responsible for ensuring the semantics.  For 
+spareCommitted and spareCommitLimit see .spare-committed below.
+
+.class.abstract: The basic arena class (AbstractArenaClass) is abstract and 
+must not be instantiated. It provides little useful behaviour, and exists 
+primarily as the root of the tree of arena classes. Each concrete class must 
+specialize each of the class method fields, with the exception of the describe 
+method (which has a trivial implementation) and the extend, retract and 
+spareCommitExceeded methods which have non-callable methods for the benefit of 
+arena classes which don't implement these features. .class.abstract.null: The 
+abstract class does not provide dummy implementations of those methods which 
+must be overridden. Instead each abstract method is initialized to NULL.
+
+
+Tracts
+
+.tract: The arena allocation function (ArenaAlloc) allocates a block of memory 
+to pools, of a size which is aligned to the arena alignment. Each alignment 
+unit (grain) of allocation is represented by an object called a Tract. Tracts 
+are the hook on which the segment module is implemented. Pools which don't use 
+segments may use tracts for associating their own data with each allocation 
+grain.
+
+.tract.structure: The tract structure definition looks as follows:-
+
+typedef struct TractStruct { /* Tract structure */
+  Pool pool;   /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
+  void *p;                    /* pointer for use of owning pool */
+  Addr base;                  /* Base address of the tract */
+  TraceSet white : TRACE_MAX; /* traces for which tract is white */
+  unsigned int hasSeg : 1;    /* does tract have a seg in p?  */
+} TractStruct;
+
+.tract.field.pool: The pool field indicates to which pool the tract has been 
+allocated (.req.fun.trans.pool). Tracts are only valid when they are allocated 
+to pools. When tracts are not allocated to pools, arena classes are free to 
+reuse tract objects in undefined ways. A standard technique is for arena class 
+implementations to internally describe the objects as a union type of 
+TractStruct and some private representation, and to set the pool field to NULL 
+when the tract is not allocated. The pool field must come first so that the 
+private representation can share a common prefix with TractStruct. This permits 
+arena classes to determine from their private representation whether such an 
+object is allocated or not, without requiring an extra field.
+
+.tract.field.p: The p field is used by pools to associate tracts with other 
+data (.req.fun.trans.arbitrary). It's used by the segment module to indicate 
+which segment a tract belongs to.  If a pool doesn't use segments it may use 
+the p field for its own purposes. This field has the non-specific type (void *) 
+so that pools can use it for any purpose.
+
+.tract.field.hasSeg: The hasSeg bit-field is a boolean which indicates whether 
+the p field is being used by the segment module. If this field is TRUE, then 
+the value of p is a Seg. hasSeg is typed as an unsigned int, rather than a 
+Bool. This ensures that there won't be sign conversion problems when converting 
+the bit-field value. 
+
+.tract.field.base: The base field contains the base address of the memory 
+represented by the tract.
+
+.tract.field.white: The white bit-field indicates for which traces the tract is 
+white (.req.fun.trans.white). This information is also stored in the segment, 
+but is duplicated here for efficiency during a call to TraceFix (see 
+design.mps.trace.fix).
+
+.tract.limit: The limit of the tract's memory may be determined by adding the 
+arena alignment to the base address.
+
+.tract.iteration: Iteration over tracts is described in 
+design.mps.arena.tract-iter(0).
+
+.tract.if.tractofaddr: Function TractOfAddr finds the tract corresponding to an 
+address in memory. (.req.fun.trans).
+
+Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr);
+
+If addr is an address which has been allocated to some pool, then returns TRUE, 
+and sets *tractReturn to the tract corresponding to that address. Otherwise, 
+returns false.  This function is similar to TractOfBaseAddr (see 
+design.mps.arena.tract-iter.if.contig-base) but serves a more general purpose 
+and is less efficient. 
+
+.tract.if.TRACT_OF_ADDR: TRACT_OF_ADDR is a macro version of TractOfAddr. It's 
+provided for efficiency during a call to TraceFix (see 
+design.mps.trace.fix.tractofaddr)
+
+
+Control Pool
+
+.pool: Each arena has a "control pool", arena->controlPoolStruct, which is used 
+for allocating MPS control data structures (using ControlAlloc()).
+
+
+Polling
+
+.poll: ArenaPoll is called "often" by other MM code (for instance, on buffer 
+fill or allocation).  It is the entry point for doing tracing work.  If the 
+polling clock exceeds a set threshold, and we're not already doing some tracing 
+work (i.e., insidePoll is not set), it calls TracePoll on all busy traces.  
+.poll.size: The actual clock is arena->fillMutatorSize.  This is because 
+internal allocation is only significant when copy segments are being allocated, 
+and we don't want to have the pause times to shrink because of that.  (There is 
+no current requirement for the trace rate to guard against running out of 
+memory. [clearly it really ought to though, we have a requirement to not run 
+out of memory (req.dylan.prot.fail-alloc, req.dylan.prot.consult), emergency 
+tracing should not be our only story.  drj 1999-06-22])  BufferEmpty is not 
+taken into account, because the splinter will rarely be useable for allocation 
+and we are wary of the clock running backward.
+
+.poll.clamp: Polling is disabled when the arena is "clamped", in which case 
+arena->clamped is TRUE.  Clamping the arena prevents background tracing work, 
+and further new garbage collections from starting.  Clamping and releasing are 
+implemented by the ArenaClamp and ArenaRelease methods.
+
+.poll.park: The arena is "parked" by clamping it, then polling until there are 
+no active traces.  This finishes all the active collections and prevents 
+further collection.  Parking is implemented by the ArenaPark method.
+
+
+Commit Limit
+
+.commit-limit: The arena supports a client configurable "commit limit" which is 
+a limit on the total amount of committed memory.  The generic arena structure 
+contains a field to hold the value of the commit limit and the implementation 
+provides two functions for manipulating it (ArenaCommitLimit to read it and 
+ArenaSetCommitLimit to set it).  Actually abiding by the contract of not 
+committing more memory than the commit limit is left up to the individual arena 
+classes.
+
+.commit-limit.err: When allocation from the arena would otherwise succeed but 
+cause the MPS to use more committed memory than specified by the commit limit 
+ArenaAlloc should refuse the request and return ResCOMMIT_LIMIT.  
+.commit-limit.err.multi: In the case where an ArenaAlloc request cannot be 
+fulfilled for more than one reason including exceeding the commit limit then 
+class implementations should strive to return a result code other than 
+ResCOMMIT_LIMIT (ie ResCOMMIT_LIMIT should only be returned if the _only_ 
+reason for failing the ArenaAlloc request is that the commit limit would be 
+exceeded).  The (client) documentation allows implementations to be ambiguous 
+with respect to which result code in returned in such a situation however.
+
+
+Spare Committed (aka "hysteresis")
+
+.spare-committed: (See symbol.mps.c.mps_arena_spare_committed(0))  The generic 
+arena structure contains two fields for the spare committed memory fund: 
+spareCommitted records the total number of spare committed bytes; 
+spareCommitLimit records the limit (set by the user) on the amount of spare 
+committed memory.  spareCommitted is modified by the arena class but its value 
+is used by the generic arena code.  There are two uses: a getter function for 
+this value is provided through the MPS interface 
+(mps_arena_spare_commit_limit_set), and by the SetSpareCommitLimit function to 
+determine whether the amount of spare committed memory needs to be reduced.  
+spareCommitLimit is mainpulated by generic arena code, however the associated 
+semantics are the reponsibility of the class.  It is the class's resposibility 
+to ensure that it doesn't use more spare committed bytes than the value in 
+spareCommitLimit.
+
+.spare-commit-limit: The function ArenaSetSpareCommitLimit sets the 
+spareCommitLimit field.  If the limit is set to a value lower than the amount 
+of spare committed memory (stored in spareCommitted) then the class specific 
+function spareCommitExceeded is called.
+
+
+Locks
+
+.lock.ring: ArenaAccess is called when we fault on a barrier.  The first thing 
+it does is claim the non-recursive global lock to protect the arena ring (see 
+design.mps.lock(0)).  .lock.arena: After the arena ring lock is claimed, 
+ArenaEnter is called on one or more arenas.  This claims the lock for that 
+arena.  When the correct arena is identified or we run out of arenas, the lock 
+on the ring is released.
+
+.lock.avoid: Deadlocking is avoided as follows:
+
+.lock.avoid.mps: Firstly we require the MPS not to fault (i.e., when any of 
+these locks are held by a thread, that thread does not fault).
+
+.lock.avoid.thread: Secondly, we require that in a multi-threaded system, 
+memory fault handlers do not suspend threads (although the faulting thread 
+will, of course, wait for the fault handler to finish).
+
+.lock.avoid.conflict: Thirdly, we avoid conflicting deadlock between the arena 
+and global locks by ensuring we never claim the arena lock when the recursive 
+global lock is already held, and we never claim the binary global lock when the 
+arena lock is held. 
+
+
+Location Dependencies
+
+.ld: Location dependencies use fields in the arena to maintain a history of 
+summaries of moved objects, and to keep a notion of time, so that the staleness 
+of location dependency can be determined.
+
+
+Finalization
+
+.final: There is a pool which is optionally (and dynamically) instantiated to 
+implement finalization.  The fields finalPool and isFinalPool are used.
+
+
+IMPLEMENTATION
+
+
+Tract Cache
+
+.tract.cache: When tracts are allocated to pools (by ArenaAlloc), the first 
+tract of the block and it's base address are cached in arena fields lastTract 
+and lastTractBase. The function TractOfBaseAddr (see 
+design.mps.arena.tract-iter.if.block-base(0)) checks against these cached 
+values and only calls the class method on a cache miss. This optimizes for the 
+common case where a pool allocates a block and then iterates over all its 
+tracts (e.g. to attach them to a segment).
+
+.tract.uncache: When blocks of memory are freed by pools, ArenaFree checks to 
+see if the cached value for the most recently allocated tract (see 
+.tract.cache) is being freed. If so, the cache is invalid, and must be reset. 
+The lastTract and lastTractBase fields are set to NULL.
+
+
+Control Pool
+
+.pool.init: The control pool is initialized by a call to PoolInit() during 
+ArenaCreate().
+
+.pool.ready: All the other fields in the arena are made checkable before 
+calling PoolInit(), so PoolInit can call ArenaCheck(arena).  The pool itself 
+is, of course, not checkable, so we have a field arena->poolReady, which is 
+false until after the return from PoolInit.  ArenaCheck only checks the pool 
+if(poolReady).
+
+
+Traces
+
+.trace: arena->trace[ti] is valid if and only if 
+TraceSetIsMember(arena->busyTraces, ti).
+
+.trace.create: Since the arena created by ArenaCreate has arena->busyTraces = 
+TraceSetEMPTY, none of the traces are meaningful.
+
+.trace.invalid: Invalid traces have signature SigInvalid, which can be checked.
+
+
+Polling
+
+.poll.fields: There are three fields of a arena used for polling: 
+pollThreshold, insidePoll, and clamped (see above).  pollThreshold is the 
+threshold for the next poll: it is set at the end of ArenaPoll to the current 
+polling time plus ARENA_POLL_MAX.
+
+
+Location Dependencies
+
+.ld.epoch: arena->epoch is the "current epoch".  This is the number of 'flips' 
+of traces in the arena since the arena was created.  From the mutator's point 
+of view locations chanage atomically at flip.
+
+.ld.history: arena->history is an array of ARENA_LD_LENGTH RefSets.  These are 
+the summaries of moved objects since the last ARENA_LD_LENGTH epochs.  If e is 
+one of these recent epochs, arena->history[e % ARENA_LD_LENGTH] is a summary of 
+(the original locations of) objects moved since epoch e.
+
+.ld.prehistory: arena->prehistory is a RefSet summarizing the original 
+locations of all objects ever moved.  When considering whether a really old 
+location dependency is stale, it is compared with this summary.
+
+
+Roots
+
+.root-ring: The arena holds a member of a ring of roots in the arena.  It holds 
+an incremental serial which is the serial of the next root.
+

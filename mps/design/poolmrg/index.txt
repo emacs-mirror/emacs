@@ -1,0 +1,515 @@
+                           GUARDIAN POOLCLASS
+                           design.mps.poolmrg
+                             incomplete doc
+                             drj 1997-02-03
+
+INTRODUCTION
+
+.readership: Any MPS developer.
+
+.intro: This is the design of the Guardian PoolClass.  The Guardian PoolClass 
+is part of the MPS.  The Guardian PoolClass is internal to the MPS (has no 
+client interface) and is used to implement finalization.
+
+.source: Some of the techniques in paper.dbe93 ("Guardians in a 
+Generation-Based Garbage Collector") were used in this design.  Some analysis 
+of this design (including various improvements and some more in-depth 
+justification) is in analysis.mps.poolmrg.  That document should be understood 
+before changing this document.
+
+It is also helpful to look at design.mps.finalize and design.mps.message.
+
+
+GOALS
+
+.goal.final: The Guardian Pool should support all requirements pertaining to 
+finalization.
+
+
+REQUIREMENTS
+
+.req: We have only one requirement pertaining to finalization:
+
+req.dylan.fun.finalization: Support the Dylan language-level implementation of 
+finalized objects: objects are registered, and are finalized in random order 
+when they would otherwise have died.  Cycles are broken at random places.  
+There is no guarantee of promptness.
+
+.req.general: However, finalization is a very common piece of functionality 
+that is provided by (sophisticated) memory managers, so we can expect other 
+clients to request this sort of functionality.
+
+.anti-req: Is it required that the Guardian Pool return unused segments to the 
+arena? (PoolMFS does not do this) (PoolMRG will not do this in its initial 
+implementation)
+
+
+TERMINOLOGY
+
+.def.mrg: MRG: The Pool Class's identifier will be MRG.  This stands for 
+"Manual Rank Guardian".  The pool is manually managed and implements guardians 
+for references of a particular rank (currently just final).
+
+.def.final.ref: final reference: A reference of rank final (see 
+design.mps.type.rank).
+
+.def.final.object: finalizable object: An object is finalizable with respect to 
+a final reference if, since the creation of that reference, there was a point 
+in time when no references to the object of lower (that is, stronger) rank were 
+reachable from a root.
+
+.def.final.object.note: Note that this means an object can be finalizable even 
+if it is now reachable from the root via exact references.  
+
+.def.finalize: finalize: To finalize an object is to notify the client that the 
+object is finalizable.  The client is presumed to be interested in this 
+information (typically it will apply some method to the object).
+
+.def.guardian: guardian: An object allocated in the Guardian Pool.  A guardian 
+contains exactly one final reference, and some fields for the pool's internal 
+use.  Guardians are used to implement a finalization mechanism.
+
+
+OVERVIEW
+
+.over: The Guardian Pool Class is a PoolClass in the MPS.  It is intended to 
+provide the functionality of "finalization".
+
+.over.internal: The Guardian PoolClass is internal to the MPM, it is not 
+intended to have a client interface.  Clients are expected to access the 
+functionality provided by this pool (finalization) using a separate MPS 
+finalization interface (design.mps.finalize).
+
+.over.one-size: The Guardian Pool manages objects of a single certain size, 
+each object contains a single reference of rank final.
+
+.over.one-size.justify: This is all that is necessary to meet our requirements 
+for finalization.  Whenever an object is registered for finalization, it is 
+sufficient to create a single reference of rank final to it.
+
+.over.queue: A pool maintains a queue of live guardian objects, called (for 
+historical reasons) the "entry" queue.  .over.queue.free: The pool also 
+maintains a queue of free guardian objects called the "free" queue.  
+.over.queue.exit.not: There used to be an "exit" queue, but this is now 
+historical and there shouldn't be any current references to it. 
+
+.over.alloc: When guardians are allocated, they are placed on the entry queue. 
+Guardians on the entry queue refer to objects that have not yet been shown to 
+be finalizable (either the object has references of lower rank than final to 
+it, or the MPS has not yet got round to determining that the object is 
+finalizable).  .over.message.create: When a guardian is discovered to refer to 
+a finalizable object it is removed from the entry queue and becomes a message 
+on the space's queue of messages.  .over.message.deliver: When the MPS client 
+receives the message the message system arranges for the message to be 
+destroyed and the pool reclaims the storage associated with the 
+guardian/message.
+
+.over.scan: When the pool is scanned at rank final each reference will be 
+fixed.  If the reference is to an object that was in old arena (before the 
+fix), then the object must now be finalizable.  In this case the containing 
+guardian will be removed from the entry queue and posted as a message.
+
+.over.scan.justify: The scanning process is a crucial step necessary for 
+implementing finalization.  It is the means by which the MPS detects that 
+objects are finalizable.
+
+.over.message: PoolClassMRG implements a MessageClass (see 
+design.mps.message).  All the messages are of one MessageType.  This type is 
+MessageTypeFinalization.  Messages are created when objects are discovered to 
+be finalizable and destroyed when the MPS client has received the message.
+
+.over.message.justify: Messages provide a means for the MPS to communicate with 
+its client.  Notification of finalization is just such a communication.  
+Messages allow the MPS to inform the client of finalization events when it is 
+convenient for the MPS to do so (i.e. not in PageFault context).
+
+.over.manual: Objects in the Guardian Pool are manually managed.  
+.over.manual.alloc: They are allocated (by ArenaFinalize when objects are 
+registered for finalization.  .over.manual.free: They are freed when the 
+associated message is destroyed.
+.over.manual.justify: The lifetime of a guardian object is very easy to 
+determine so manual memory management is appropriate.
+
+
+PROTOCOLS
+
+
+Object Registration
+
+.protocol.register: There is a protocol by which objects can be registered for 
+finalization.  This protocol is handled by the arena module on behalf of 
+finalization.  see design.mps.finalize.int.finalize.
+
+
+Finalizer Execution
+
+.protocol.finalizer: If an object is proven to be finalizable then a message to 
+this effect will eventually be posted.  A client can receive the message, 
+determine what to do about it, and do it.  Typically this would involve calling 
+the finalization method for the object, and deleting the message.  Once the 
+message is deleted, the object may become recyclable.
+
+
+Setup / Destroy
+
+.protocol.life: An instance of PoolClassMRG is needed in order to support 
+finalization, it is called the "final" pool and is attached to the arena (see 
+design.mps.finalize.int.arena.struct).  .protocol.life.birth: The final pool is 
+created lazily by ArenaFinalize.  .protocol.life.death: The final pool is 
+destroyed during ArenaDestroy.
+
+
+DATA STRUCTURES
+
+.guardian:
+
+The guardian
+
+.guardian.over: A guardian is an object used to manage the references and other 
+datastructures that are used by the pool in order to keep track of which 
+objects are registered for finalization, which ones have been finalized, and so 
+on.  .guardian.state: A guardian can be in one of four states: 
+.guardian.state.enum: The states are Free, Prefinal, Final, PostFinal (referred 
+to as MRGGuardianFree, etc. in the implementation).  .guardian.state.free: The 
+guardian is free, meaning that it is on the free list for the pool and 
+available for allocation.  .guardian.state.prefinal: The guardian is allocated, 
+and refers to an object that has not yet been discovered to be finalizable.  
+.guardian.state.final: The guardian is allocated, and refers to an object that 
+has been shown to be finalizable; this state corresponds to the existence of a 
+message.  .guardian.state.postfinal: This state is only used briefly and is 
+entirely internal to the pool; the guardian enters this state just after the 
+associated message has been destroyed (which happens when the client receives 
+the message) and will be freed immediately (whereupon it will enter the Free 
+state).  This state is used for checking only (so that MRGFree can check that 
+only guardians in this state are being freed).
+
+.guardian.life-cycle: Guardians go through the following state life-cycle:
+
+Free -> Prefinal -> Final -> Postfinal -> Free.
+
+.guardian.two-part: A guardian is a structure consisting abstractly of a link 
+part and a reference part.  Concretely, the link part will be a LinkPartStruct, 
+and the reference part will be a Word.  The link part is used by the pool, the 
+reference part forms the object visible to clients of the pool.  The reference 
+part is the reference of Rank FINAL that refers to objects registered for 
+finalization and is how the MPS detects finalizable objects.  
+.guardian.two-part.union: The LinkPartStruct is a discriminated union of a 
+RingStruct and a MessageStruct.  The RingStruct is used when the guardian is 
+either Free or Prefinal.  The MessageStruct is used when the guardian is 
+Final.  Neither part of the union is used when the guardian is in the Postfinal 
+state.
+.guardian.two-part.justify: This may seem a little profligate with space, but 
+this is okay as we are not required to make finalization extremely space 
+efficient.
+
+.guardian.parts.separate: The two parts will be stored in separate segments.  
+.guardian.parts.separate.justify: This is so that the data structures the pool 
+uses to manage the objects can be separated from the objects themselves.  This 
+avoids the pool having to manipulate data structures that are on shielded 
+segments (analysis.mps.poolmrg.hazard.shield).
+
+.guardian.assoc: The nth (from the beginning of the segment) ref part in one 
+segment will correspond with the nth link part in another segment.  The 
+association between the two segments will be managed by the additional fields 
+in pool-specific segment subclasses (see .mrgseg).  .guardian.ref: Guardians 
+that are either Prefinal or Final are live and have valid references (possibly 
+NULL) in their ref parts.  Guardians that are free are dead and always have 
+NULL in their ref parts (see .free.overwrite and .scan.free)  
+.guardian.ref.free: When freeing an object, it is a pointer to the reference 
+part that will be passed (internally in the pool).
+
+.guardian.init: Guardians are initialized when the pool is grown 
+(.alloc.grow).  The initial state has the ref part NULL and the link part is 
+attached to the free ring.  Freeing an object returns a guardian to its initial 
+state.
+
+.poolstruct:
+The Pool structure, MRGStruct will have
+
+.poolstruct.entry: the head of the entry queue.
+
+.poolstruct.exit: the head of the exit queue.
+
+.poolstruct.free: a free list.
+
+.poolstruct.rings: The entry queue, the exit queue, and the free list will all 
+use Rings.  Each Ring will be maintained using the link part of the guardian.  
+.poolstruct.rings.justify: This is because Rings are convenient to use and are 
+well tested.  It is possible to implement all three lists using a singly linked 
+list, but the saving is certainly not worth making at this stage.
+
+.poolstruct.refring: a ring of "ref" segments in use for links or messages (see 
+.mrgseg.ref.mrgring below).
+
+.poolstruct.extend: a precalculated extendby field (see .init.extend).  This 
+value is used to determine how large a segment should be requested from the 
+Arena for the reference part segment when the pool needs to grow (see 
+.alloc.grow.size).  .poolstruct.extend.justify: Calculating a reasonable value 
+for this once and remembering it simplifies the allocation (.alloc.grow).
+
+.poolstruct.init: poolstructs are initialized once for each pool instance by 
+MRGInit (.init).  The initial state has all the rings initialized to singleton 
+rings, and the extendBy field initialized to some value (see .init.extend).
+
+.mrgseg:
+
+The pool defines two segment subclasses: MRGRefSegClass and MRGLinkSegClass. 
+Segments of the former class will be used to store the ref parts of guardians, 
+segments of the latter will be used to store the link parts of guardians (see 
+.guardian.two-part). Segments are always allocated in pairs, with one of each 
+class (by function MRGSegPairCreate).  Each segment contains a link to its pair.
+
+.mrgseg.ref: MRGRefSegClass is a subclass of GCSegClass. Instances are of type 
+MRGRefSeg, and contain: 
+
+.mrgseg.ref.mrgring: a field for the ring of ref part segments in the pool.
+
+.mrgseg.ref.linkseg: a pointer to the paired link segment.
+
+.mrgseg.ref.grey: a set describing the greyness of the segment for each trace.
+
+.mrgseg.ref.init: A segment is created and initialized once every time the pool 
+is grown (.alloc.grow).  The initial state has the segment ring node 
+initialized and attached to the pool's segment ring, the linkseg field points 
+to the relevant link segment, the grey field is initialized such that the 
+segment is not grey for all traces.
+
+.mrgseg.link: MRGLinkSegClass is a subclass of SegClass. Instances are of type 
+MRGLinkSeg, and contain: 
+
+.mrgseg.link.refseg: a pointer to the paired ref segment. This may be NULL 
+during initialization, while the pairing is being established.
+
+.mrgseg.link.init: The initial state has the linkseg field pointing to the 
+relevant ref segment.
+
+
+FUNCTIONS
+
+.check: MRGCheck
+
+  Will check the signatures, the class, and each field of the MRGStruct.  Each 
+field is checked as being appropriate for its type.  .check.justify: There are 
+no non-trivial invariants that can be easily checked.
+
+.alloc: [these apply to MRGRegister now. - Pekka 1997-09-19]
+
+.alloc.grow: If the free list is empty then two new segments will be allocated 
+and the free list filled up from them (note that the reference fields of the 
+new guardians will need to be overwritten with NULL, see .free.overwrite)  
+.alloc.grow.size: The size of the reference part segment will be the pool's 
+extendBy (.poolstruct.extend) value.  The link part segment will be whatever 
+size is necessary to accommodate N link parts, where N is the number of 
+reference parts that fit in the reference part segment.  
+
+.alloc.error: If any of the requests for more resource (there are two; one for 
+each of two segments) fail then the successful requests will be retracted and 
+the result code from the failing request will be returned.
+
+.alloc.pop: MRGAlloc will pop a ring node off the free list, and add it to the 
+entry queue.
+
+.free: MRGFree
+
+  MRGFree will remove the guardian from the message queue and add it to the 
+free list.  .free.push: The guardian will simply be added to the front of the 
+free list (i.e. no keeping the free list in address order or anything like 
+that).  .free.inadequate: No attempt will be made to return unused free 
+segments to the Arena (although see analysis.mps.poolmrg.improve.free.* for 
+suggestions).
+
+.free.overwrite:
+  MRGFree also writes over the reference with NULL.  .free.overwrite.justify: 
+This is so that when the segment is subsequently scanned (.scan.free), the 
+reference that used to be in the object is not accidentally fixed.
+
+.init: MRGInit
+
+  Has to initialize the two queues, the free ring, the ref ring, and the 
+extendBy field.  .init.extend: The extendBy field is initialized to one 
+ArenaAlign() (usually a page).  .init.extend.justify: This is adequate as the 
+pool is not expected to grow very quickly.
+
+.finish: MRGFinish
+
+  Iterate over all the segments, returning all the segments to the Arena.
+
+.scan: MRGScan
+
+.scan.trivial: Scan will do nothing (i.e. return immediately) if the tracing 
+rank is anything other than final.  [This optimization is missing.  
+impl.c.trace.scan.conservative is not a problem because there are no faults on 
+these segs, because there are no references into them.  But that's why 
+TraceScan can't do it.  - Pekka 1997-09-19]  .scan.trivial.justify:  If the 
+rank is lower than final then scanning is detrimental, it will only delay 
+finalization.  If the rank is higher than final there is nothing to do, the 
+pool only contains final references.
+
+.scan.guardians: Scan will iterate over all guardians in the segment.  Every 
+guardian's reference will be fixed (.scan.free: note that guardians that are on 
+the free list have NULL in their reference part).  .scan.wasold: If the object 
+referred to had not been fixed previously (i.e. was unmarked) then the object 
+is not referenced by a reference of a lower rank (than FINAL) and hence is 
+finalizable.  .scan.finalize: The guardian will be finalized.  This entails 
+moving the guardian from state Prefinal to Final; it is removed from the entry 
+queue and initialized as a message and posted on the arena's message queue.  
+.scan.finalize.idempotent: In fact this will only happen if the guardian has 
+not already been finalized (which is determined by examining the state of the 
+guardian).
+
+.scan.unordered: Because scanning occurs a segment at a time, the order in 
+which objects are finalized is "random" (it cannot be predicted by considering 
+only the references between objects registered for finalization).  See 
+analysis.mps.poolmrg.improve.semantics for how this can be improved.  
+.scan.unordered.justify: Unordered finalization is all that is required.
+
+(see analysis.mps.poolmrg.improve.scan.nomove for a suggested improvement that 
+avoids redundant unlinking and relinking).
+
+.describe: MRGDescribe
+
+  Will print out the usual blurb.
+  Will iterate along each of the entry and exit queues and printout the 
+guardians in each.  The location of the guardian and the value of the reference 
+in it will be printed out.
+
+.functions.unused: BufferInit, BufferFill, BufferEmpty, BufferFinish, 
+TraceBegin, Condemn, Fix, Reclaim, TraceEnd, Benefit.
+
+  All of these will be unused.
+
+.functions.trivial: The Grey method of the pool class will be PoolTrivGrey, 
+this pool has no further bookkeeping to perform for grey segments.
+
+
+TRANSGRESSIONS
+
+.trans.no-finish: The MRG pool does not trouble itself to tidy up its internal 
+rings properly when being destroyed.
+
+.trans.free-seg: No attempt is made to release free segments to the arena.  A 
+suggested strategy for this is as follows:
+  - Add a count of free guardians to each segment, and maintain it in 
+appropriate places.
+  - Add a free segment ring to the pool.
+  - In MRGRefSegScan, if the segment is entirely free, don't scan it, but 
+instead detach its links from the free ring, and move the segment to the free 
+segment ring.
+  - At some appropriate point (such as the end of MRGAlloc), destroy free 
+segments.
+  - In MRGAlloc, if there are no free guardians, check the free segment ring 
+before creating a new pair of segments.
+Note that this algorithm would give some slight measure of segment hysteresis.  
+It is not the place of the pool to support general segment hysteresis.
+
+
+FUTURE
+
+.future.array: In future, for speed or simplicity, this pool could be rewritten 
+to use an array.  See mail.gavinm.1997-09-04.13-08(0).
+
+
+TESTS
+
+.test: [This section is utterly out of date. -- Pekka 1997-09-19] The test 
+impl.c.finalcv is similar to the weakness test (see design.mps.weakness, 
+impl.c.weakcv [???]).
+
+
+Functionality
+
+  This is the functionality to be tested:
+
+  .fun.alloc: Can allocate objects.
+
+  .fun.free: Can free objects that were allocated.
+
+  .prot.write: Can write a reference into an allocated object.
+
+  .prot.read: Can read the reference from an allocated object.
+
+  .promise.faithful: A reference stored in an allocated object will continue to 
+refer to the same object.
+
+  .promise.live: A reference stored in an allocated object will preserve the 
+object referred to.
+
+  .promise.unreachable: Any objects referred to in finalization messages are 
+not (at the time of reading the message) reachable via a chain of ambiguous or 
+exact references.  (we will not be able to test this at first as there is no 
+messaging interface)
+
+  .promise.try: The Pool will make a "good faith" effort to finalize objects 
+that are not reachable via a chain of ambiguous or exact references.
+
+
+Attributes
+
+  The following attributes will be tested:
+
+.attr.none: There are no attribute requirements.
+
+
+Implementation
+
+[New test]
+new test will simply allocate a number of objects in the AMC pool and finalize 
+each one, throwing away the reference to the objects.  Churn.
+
+  .test.mpm: The test will use the MPM interface (impl.h.mpm).  
+.test.mpm.justify: This is because it is not intended to provide an MPS 
+interface to this pool directly, and the MPS interface to finalization has not 
+been written yet (impl.h.mps).  .test.mpm.change: Later on it may use the MPS 
+interface, in which case, where the following text refers to allocating objects 
+in the MRG pool it will need adjusting.
+
+  .test.two-pools: The test will use two pools, an AMC pool, and an MRG pool.
+
+  .test.alloc: A number of objects will be allocated in the MRG pool.  
+.test.free: They will then be freed.  This will test .fun.alloc and .fun.free, 
+although not very much.
+
+  .test.rw.a: An object, 'A', will be allocated in the AMC pool, a reference to 
+it will be kept in a root.  .test.rw.alloc: A number of objects will be 
+allocated in the MRG pool.  .test.rw.write: A reference to A will be written 
+into each object.  .test.rw.read: The reference in each object will be read and 
+checked to see if it refers to A.  .test.rw.free: All the objects will be 
+freed.  .test.rw.drop: The reference to A will be dropped.  This will test 
+.prot.write and .prot.read.
+
+  .test.promise.fl.alloc: A number of objects will be allocated in the AMC 
+pool.  .test.promise.fl.tag: Each object will be tagged uniquely.  
+.test.promise.fl.refer: a reference to it will be stored in an object allocated 
+in the MRG pool.  .test.promise.fl.churn: A large amount of garbage will be 
+allocated in the AMC pool.  Regularly, whilst this garbage is being allocated, 
+a check will be performed that all the objects allocated in the MRG pool refer 
+to valid objects and that they still refer to the same objects.  All objects 
+from the MRG pool will then be freed (thus dropping all references to the AMC 
+objects).  This will test .promise.faithful and .promise.live.
+
+  .test.promise.ut.not: The following part of the test has not implemented.  
+This is because the messaging system has not yet been implemented.
+  .test.promise.ut.alloc: A number of objects will be allocated in the AMC 
+pool.  .test.promise.ut.refer: Each object will be referred to by a root and 
+also referred to by an object allocated in the MRG pool.  .test.promise.ut.drop
+: References to a random selection of the objects from the AMC pool will be 
+deleted from the root.  .test.promise.ut.churn: A large amount of garbage will 
+be allocated in the AMC pool.  .test.promise.ut.message: The message interface 
+will be used to receive finalization messages.  .test.promise.ut.final.check: 
+For each finalization message received it will check that the object referenced 
+in the message is not referred to in the root.  .test.promise.ut.nofinal.check: 
+After some amount of garbage has been allocated it will check to see if any 
+objects are not in the root and haven't been finalized.  This will test 
+.promise.unreachable and .promise.try.
+
+
+NOTES
+
+
+.access.inadequate: PoolAccess will scan segments at Rank Exact.  Really it 
+should be scanned at whatever the minimum rank of all grey segments is (the 
+trace rank phase), however there is no way to find this out.  As a consequence 
+we will sometimes scan pages at Rank exact when the pages could have been 
+scanned at Rank final.  This means that finalization of some objects may 
+sometimes get delayed.
+
