@@ -469,6 +469,25 @@ However, on some systems, the function is redefined with a definition
 that really does change some file names to canonicalize certain
 patterns and to guarantee valid names."
   filename)
+
+(defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
+  "Read directory name, prompting with PROMPT and completing in directory DIR.
+Value is not expanded---you must call `expand-file-name' yourself.
+Default name to DEFAULT-DIRNAME if user enters a null string.
+ (If DEFAULT-DIRNAME is omitted, the current buffer's directory is used,
+  except that if INITIAL is specified, that combined with DIR is used.)
+Fourth arg MUSTMATCH non-nil means require existing directory's name.
+ Non-nil and non-t means also require confirmation after completion.
+Fifth arg INITIAL specifies text to start with.
+DIR defaults to current buffer's directory default."
+  (unless dir
+    (setq dir default-directory))
+  (unless default-dirname
+    (setq default-dirname 
+	  (if initial (concat dir initial) default-directory)))
+  (read-file-name prompt dir default-dirname mustmatch initial
+		  'file-directory-p))
+
 
 (defun pwd ()
   "Show the current default directory."
@@ -517,7 +536,7 @@ Not actually set up until the first time you use it.")
 If your environment includes a `CDPATH' variable, try each one of that
 colon-separated list of directories when resolving a relative directory name."
   (interactive
-   (list (read-file-name "Change default directory: "
+   (list (read-directory-name "Change default directory: "
 			 default-directory default-directory
 			 (and (member cd-path '(nil ("./")))
 			      (null (getenv "CDPATH"))))))
