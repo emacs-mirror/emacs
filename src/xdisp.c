@@ -7601,13 +7601,15 @@ hscroll_window_tree (window)
 	      /* Center cursor in window.  */
 	      hscroll = (max (0, it.current_x - text_area_width / 2)
 			 / CANON_X_UNIT (it.f));
+	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
 
 	      /* Don't call Fset_window_hscroll if value hasn't
 		 changed because it will prevent redisplay
 		 optimizations.  */
 	      if (XFASTINT (w->hscroll) != hscroll)
 		{
-		  Fset_window_hscroll (window, make_number (hscroll));
+		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+		  w->hscroll = make_number (hscroll);
 		  hscrolled_p = 1;
 		}
 	    }
