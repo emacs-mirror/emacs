@@ -1,3 +1,12 @@
+2002-06-20  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c: Use, together with etags.el, an optimised form of tags,
+	which are almost always unnamed.  etags.el looks for an explicit
+	tag name, then for an implicit one.  See make_tag for details.
+	The change is both forwards and backwards compatible.
+	(make_tag): New function (was the disabled function new_pfnote).
+	(make_C_tag): Use it.
+
 2002-06-19  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (add_regex): Invalid regexp modifiers are ignored.
