@@ -159,9 +159,6 @@ Returns non-nil if the new state is enabled.
 Image files are those whose name has an extension in
 `image-file-name-extensions', or matches a regexp in
 `image-file-name-regexps'."
-  nil
-  nil
-  nil
   :global t
   :group 'image
   ;; Remove existing handler
