@@ -1,5 +1,5 @@
 % test set for daily tests of Dylan on Unix
-% $HopeName$
+% $HopeName: MMQA_testsets!dailydw(trunk.4) $
 
 function/0.c
 function/1.c
@@ -75,7 +75,6 @@ function/109.c
 function/110.c
 function/111.c
 function/112.c
-function/113.c
 function/114.c
 function/117.c
 function/118.c
