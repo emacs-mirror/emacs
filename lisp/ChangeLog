@@ -1,3 +1,10 @@
+2004-02-21  Stephen Compall  <s11@member.fsf.org>  (tiny change)
+
+	* textmodes/texinfo.el (texinfo-insert-@item): Look for the
+	current Texinfo environment, using the same method as in
+	`texinfo-insert-@end', and insert a space rather than a newline if
+	point in a @table environment.
+
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
 	* ffap.el (ffap-file-at-point): Try parent directories.
