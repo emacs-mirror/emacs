@@ -222,6 +222,7 @@ clean: mostlyclean
 
 distclean: clean
 	-rm -f ../etc/DOC* *.tab.c *.tab.h aixcc.c TAGS
+	-rm -f Makefile Makefile.in blessmail
 
 realclean: distclean
 	true
