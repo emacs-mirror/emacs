@@ -214,8 +214,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'viqr 0 ?v
  "Codins-system used for VIQR."
  nil)
-(put 'viqr 'post-read-conversion 'viet-decode-viqr-region)
-(put 'viqr 'pre-write-conversion 'viet-encode-viqr-region)
+(put 'viqr 'post-read-conversion 'viqr-post-read-conversion)
+(put 'viqr 'pre-write-conversion 'viqr-pre-write-conversion)
 
 (setq font-ccl-encoder-alist
       (cons (cons "viscii" ccl-encode-viscii-font) font-ccl-encoder-alist))
