@@ -1735,11 +1735,11 @@ function by default."
 ;;       After writing, basic-save-buffer-1 sets this value to
 ;;       last-coding-system-used.
 ;; This variable is used for decoding in revert-buffer.
-(defvar explicit-buffer-file-coding-system nil
+(defvar buffer-file-coding-system-explicit nil
   "The file coding system explicitly specified for the current buffer.
 Internal use only.")
-(make-variable-buffer-local 'explicit-buffer-file-coding-system)
-(put 'explicit-buffer-file-coding-system 'permanent-local t)
+(make-variable-buffer-local 'buffer-file-coding-system-explicit)
+(put 'buffer-file-coding-system-explicit 'permanent-local t)
 
 (defun after-insert-file-set-coding (inserted &optional visit)
   "Set `buffer-file-coding-system' of current buffer after text is inserted.
@@ -1751,7 +1751,7 @@ The optional second arg VISIT non-nil means that we are visiting a file."
   (if (and visit
 	   coding-system-for-read
 	   (not (eq coding-system-for-read 'auto-save-coding)))
-      (setq explicit-buffer-file-coding-system coding-system-for-read))
+      (setq buffer-file-coding-system-explicit coding-system-for-read))
   (if last-coding-system-used
       (let ((coding-system
 	     (find-new-buffer-file-coding-system last-coding-system-used))
