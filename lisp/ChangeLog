@@ -1,3 +1,8 @@
+2001-12-07  Miles Bader  <miles@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Added
+	regexps for RXP.  From Reto Stamm <reto@xilinx.com>.
+
 2001-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/cwarn.el (cwarn-font-lock-match-assignment-in-expression):
