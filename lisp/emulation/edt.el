@@ -656,7 +656,7 @@ Accepts a positive prefix argument for the number of characters to delete."
 Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-forward-string)
-  (edt-update-mode-line)
+  (force-mode-line-update)
   (if (string-equal " *Minibuf" 
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
       (exit-minibuffer)))
@@ -670,7 +670,7 @@ Also, execute command specified if in Minibuffer."
 Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-backward-string)
-  (edt-update-mode-line)
+  (force-mode-line-update)
   (if (string-equal " *Minibuf" 
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
       (exit-minibuffer)))
@@ -1251,15 +1251,6 @@ Accepts a positive prefix argument for the number times to duplicate the line."
   (interactive)
   (split-window)
   (other-window 1))
-
-;;;
-;;; UPDATE MODE LINE
-;;;
-
-(defun edt-update-mode-line ()
-  "Make sure mode-line in the current buffer reflects all changes."
-  (set-buffer-modified-p (buffer-modified-p))
-  (sit-for 0))
 
 ;;;
 ;;; COPY RECTANGLE
