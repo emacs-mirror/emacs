@@ -676,16 +676,20 @@ or properties are considered."
 	(kill-buffer (current-buffer))
 	(or files
 	    (error "No matching files"))
+	;; Bring the other files (not the first) into buffers.
 	(save-window-excursion
 	  (while (setq next (cdr next))
 	    (let ((buf (find-file-noselect (car next))))
+	      ;; Put this buffer at the front of the buffer list.
 	      (switch-to-buffer buf))))
-	;; This modifies the "buf" variable inside find-file-noselect.
+	;; This modifies the `buf' variable inside find-file-noselect.
 	(setq buf (get-file-buffer first))
 	(if buf
 	    nil   ; should do verify-visited-file-modtime stuff.
 	  (setq filename first)
 	  (setq buf (create-file-buffer filename))
+	  ;; This modified `truename' inside find-file-noselect.
+	  (setq truename (abbreviate-file-name (file-truename filename)))
 	  (set-buffer buf)
 	  (erase-buffer)
 	  (insert-file-contents filename t))
