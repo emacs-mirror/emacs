@@ -46,6 +46,13 @@
   :mime-charset 'windows-1253)
 (define-coding-system-alias 'cp1253 'windows-1253)
 
+(define-coding-system 'cp737
+  "Codepage 737 (PC Greek)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp737)
+  :mime-charset 'cp737)
+
 (define-coding-system 'cp851
   "DOS codepage 851 (Greek)"
   :coding-type 'charset
@@ -68,7 +75,6 @@
 	   (coding-priority greek-iso-8bit)
 	   (nonascii-translation . iso-8859-7)
 	   (input-method . "greek")
-	   (unibyte-display . greek-iso-8bit)
 	   (documentation . t)))
 
 (provide 'greek)
