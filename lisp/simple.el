@@ -1986,7 +1986,9 @@ comes the newest one."
   (setq this-command 'yank)
   (let ((inhibit-read-only t)
 	(before (< (point) (mark t))))
-    (funcall (or yank-undo-function 'delete-region) (point) (mark t))
+    (if before
+	(funcall (or yank-undo-function 'delete-region) (point) (mark t))
+      (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
     (setq yank-undo-function nil)
     (set-marker (mark-marker) (point) (current-buffer))
     (insert-for-yank (current-kill arg))
