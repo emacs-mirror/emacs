@@ -4185,4 +4185,26 @@ See also `normal-erase-is-backspace'."
   (and (boundp 'byte-compile-current-file)
        (stringp byte-compile-current-file)))
 
+
+;;; Minibuffer prompt stuff.
+
+(defun minibuffer-prompt-modification (start end)
+  (error "You cannot modify the prompt"))
+
+
+(defun minibuffer-prompt-insertion (start end)
+  (let ((inhibit-modification-hooks t))
+    (delete-region start end)
+    ;; Discard undo information for the text insertion itself
+    ;; and for the text deletion.above.
+    (when (consp buffer-undo-list)
+      (setq buffer-undo-list (cddr buffer-undo-list)))
+    (message "You cannot modify the prompt")))
+
+
+(setq minibuffer-prompt-properties 
+  (list 'modification-hooks '(minibuffer-prompt-modification)
+	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
+  
+
 ;;; simple.el ends here
