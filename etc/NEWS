@@ -16,6 +16,10 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The menu bar configuration has changed.  The new configuration is
+more CUA-compliant.  The most significant change is that Options is
+now a separate menu-bar item, with Mule and Customize as its submenus.
+
 ** User-option `show-cursor-in-non-selected-windows' controls how to
 display the cursor in non-selected windows.  If nil, no cursor is
 shown, if non-nil a hollow box cursor is shown.  This option can
