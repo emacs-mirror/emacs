@@ -2540,8 +2540,15 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  p = &FETCH_CHAR (pos);
 	}
       c = *p++;
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
+      /* Let a display table override all standard display methods.  */
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	{
+	  p1 = copy_part_of_rope (f, p1, leftmargin,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
+				  current_face);
+	}
+      else if (c >= 040 && c < 0177)
 	{
 	  if (p1 >= leftmargin)
 	    *p1 = MAKE_GLYPH (f, c, current_face);
@@ -2616,13 +2623,6 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    }
 #endif
 	  break;
-	}
-      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	{
-	  p1 = copy_part_of_rope (f, p1, leftmargin,
-				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
-				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
-				  current_face);
 	}
       else if (c < 0200 && ctl_arrow)
 	{
@@ -3734,8 +3734,14 @@ display_string (w, vpos, string, length, hpos, truncate,
       else if (c == 0)
 	break;
 
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	{
+	  p1 = copy_part_of_rope (f, p1, start,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
+				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
+				  0);
+	}
+      else if (c >= 040 && c < 0177)
 	{
 	  if (p1 >= start)
 	    *p1 = c;
@@ -3750,13 +3756,6 @@ display_string (w, vpos, string, length, hpos, truncate,
 	      p1++;
 	    }
 	  while ((p1 - start + hscroll - (hscroll > 0)) % tab_width);
-	}
-      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	{
-	  p1 = copy_part_of_rope (f, p1, start,
-				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
-				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
-				  0);
 	}
       else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
