@@ -785,8 +785,8 @@ cdr of that cell with VAL.  Otherwise, make a new cons cell
   "Set VAR to NEWVAL; save the old value.
 The old value is saved on the `pc-select-saved-settings-alist'."
   `(when (boundp ',var)
-       (pc-select-add-to-alist pc-select-saved-settings-alist ,var ,var)
-       (setq ,var ,newval)))
+     (pc-select-add-to-alist pc-select-saved-settings-alist ,var ,var)
+     (setq ,var ,newval)))
 
 (defmacro pc-select-save-and-set-mode (mode &optional arg mode-var)
   "Call the function MODE; save the old value of the variable MODE.
@@ -796,12 +796,11 @@ Then, if ARG is specified, call MODE with ARG, otherwise call it with
 nil as an argument.  If MODE-VAR is specified, save the value of the
 variable MODE-VAR (instead of the value of the variable MODE) on
 `pc-select-saved-settings-alist'."
-    `(when (fboundp ',mode)
-       (pc-select-add-to-alist pc-select-saved-settings-alist
-				,mode
-				(or (and (boundp ',mode) ,mode)
-				    ,mode-var))
-       (,mode ,arg)))
+  (unless mode-var (setq mode-var mode))
+  `(when (fboundp ',mode)
+     (pc-select-add-to-alist pc-select-saved-settings-alist
+			     ,mode-var ,mode-var)
+     (,mode ,arg)))
 
 (defmacro pc-select-restore-var (var)
   "Restore the previous value of the variable VAR. 
@@ -821,7 +820,7 @@ If the value is non-nil, call the function MODE with an argument of
     `(when (fboundp ',mode)
        (let ((,elt (assq ',mode pc-select-saved-settings-alist)))
 	 (unless (null ,elt)
-	 (,mode (if (cdr ,elt) 1 -1)))))))
+	   (,mode (if (cdr ,elt) 1 -1)))))))
 
 
 ;;;###autoload
