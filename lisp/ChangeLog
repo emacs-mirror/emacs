@@ -1,3 +1,9 @@
+2003-10-16  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (breakpoint-xpm-data, breakpoint-enabled-pbm-data)
+	(breakpoint-disabled-pbm-data): Make breakpoint icons 10x10
+	instead of 12x12.
+
 2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Display a
