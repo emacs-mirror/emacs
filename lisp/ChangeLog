@@ -1,3 +1,8 @@
+1999-11-23  Dave Love  <fx@gnu.org>
+
+	* find-func.el (find-function-regexp): Use `define-minor-mode'
+	after easy-menu change.
+
 1999-11-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el: Add redirection.from active comint buffers into
