@@ -340,7 +340,7 @@ do-install: mkdir
 	   [ -d $${dir} ] \
 	   && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
 	   && (echo "Copying $${dir}..." ; \
-	       (cd $${dir}; tar cf - . )|(cd $${dest}; umask 0; tar xvf - ); \
+	       (cd $${dir}; tar -cf - . )|(cd $${dest};umask 0; tar -xvf - ); \
 	       for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
 		 rm -rf $${subdir}/RCS ; \
 		 rm -rf $${subdir}/CVS ; \
@@ -350,7 +350,7 @@ do-install: mkdir
 	 done
 	[ `(cd etc; /bin/pwd)` != `(cd ${srcdir}/etc; /bin/pwd)` ] \
 	&& (echo "Copying etc/DOC* ..." ; \
-	    (cd etc; tar cf - DOC*)|(cd ${etcdir}; umask 0; tar xvf - ))
+	    (cd etc; tar -cf - DOC*)|(cd ${etcdir}; umask 0; tar -xvf - ))
 	-[ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ] \
 	 && (cd ${srcdir}/info ; \
 	     if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
