@@ -116,14 +116,16 @@ This is only meaningful if you don't use the implicit checkout model
 ;;;###autoload (defun vc-mcvs-registered (file)
 ;;;###autoload   (let ((dir file))
 ;;;###autoload     (while (and (stringp dir)
-;;;###autoload 		(not (equal dir (setq dir (file-name-directory dir)))))
+;;;###autoload                 (not (equal
+;;;###autoload                       dir (setq dir (file-name-directory dir))))
+;;;###autoload                 dir)
 ;;;###autoload       (setq dir (if (file-directory-p
-;;;###autoload 		     (expand-file-name "MCVS/CVS" dir))
-;;;###autoload 		    t (directory-file-name dir))))
+;;;###autoload                      (expand-file-name "MCVS/CVS" dir))
+;;;###autoload                     t (directory-file-name dir))))
 ;;;###autoload     (if (eq dir t)
-;;;###autoload 	(progn
-;;;###autoload 	  (load "vc-mcvs")
-;;;###autoload 	  (vc-mcvs-registered file)))))
+;;;###autoload          (progn
+;;;###autoload           (load "vc-mcvs")
+;;;###autoload           (vc-mcvs-registered file)))))
 
 (defun vc-mcvs-root (file)
   "Return the root directory of a Meta-CVS project, if any."
@@ -132,7 +134,8 @@ This is only meaningful if you don't use the implicit checkout model
        file 'mcvs-root
        (let ((root nil))
 	 (while (not (or root
-			 (equal file (setq file (file-name-directory file)))))
+			 (equal file (setq file (file-name-directory file)))
+			 (null file)))
 	   (if (file-directory-p (expand-file-name "MCVS/CVS" file))
 	       (setq root file)
 	     (setq file (directory-file-name file))))
