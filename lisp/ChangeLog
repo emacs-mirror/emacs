@@ -1,3 +1,12 @@
+2003-01-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-edit.el (customize-group, customize-group-other-window):
+	Remove unnecessary calls to custom-load-symbol.
+	(custom-group-value-create):
+	Load widget deps if state is not hidden.  If widget deps are
+	loaded, load them in advance.
+	(custom-menu-create): If widget deps are loaded, load them earlier.
+
 2003-01-09  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* language/ethio-util.el (ethio-gemination)
