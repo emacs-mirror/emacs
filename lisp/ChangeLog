@@ -1,3 +1,8 @@
+2002-03-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* mwheel.el (mouse-wheel-mode): Use global-set-key and
+	global-unset-key.
+
 2002-03-24  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-resend): Call mail-abbrev-make-syntax-table.
