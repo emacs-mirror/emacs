@@ -273,7 +273,9 @@ FILE should be in a form suitable for passing to `locate-library'."
   (let* ((str (lm-commentary (find-library-name file))))
     (if (null str)
 	(error "Can't find any Commentary section"))
-    (pop-to-buffer "*Finder*")
+    ;; This used to use *Finder* but that would clobber the
+    ;; directory of categories.
+    (pop-to-buffer "*Finder-package*")
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert str)
