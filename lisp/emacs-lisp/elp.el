@@ -204,6 +204,20 @@ This variable is set by the master function.")
 (defvar elp-master nil
   "Master function symbol.")
 
+(defvar elp-not-profilable
+  '(elp-wrapper elp-elapsed-time error call-interactively apply current-time interactive-p)
+  "List of functions that cannot be profiled.
+Those functions are used internally by the profiling code and profiling
+them would thus lead to infinite recursion.")
+
+(defun elp-not-profilable-p (fun)
+  (or (memq fun elp-not-profilable)
+      (keymapp fun)
+      (condition-case nil
+	  (when (subrp (symbol-function fun))
+	    (eq 'unevalled (cdr (subr-arity (symbol-function fun)))))
+	(error nil))))
+
 
 ;;;###autoload
 (defun elp-instrument-function (funsym)
@@ -222,6 +236,9 @@ FUNSYM must be a symbol of a defined function."
   (let* ((funguts (symbol-function funsym))
 	 (infovec (vector 0 0 funguts))
 	 (newguts '(lambda (&rest args))))
+    ;; We cannot profile functions used internally during profiling.
+    (when (elp-not-profilable-p funsym)
+      (error "ELP cannot profile the function: %s" funsym))
     ;; we cannot profile macros
     (and (eq (car-safe funguts) 'macro)
 	 (error "ELP cannot profile macro: %s" funsym))
@@ -237,13 +254,11 @@ FUNSYM must be a symbol of a defined function."
     ;; put rest of newguts together
     (if (commandp funsym)
 	(setq newguts (append newguts '((interactive)))))
-    (setq newguts (append newguts (list
-				   (list 'elp-wrapper
-					 (list 'quote funsym)
-					 (list 'and
-					       '(interactive-p)
-					       (not (not (commandp funsym))))
-					 'args))))
+    (setq newguts (append newguts `((elp-wrapper
+				     (quote ,funsym)
+				     ,(when (commandp funsym)
+					'(interactive-p))
+				     args))))
     ;; to record profiling times, we set the symbol's function
     ;; definition so that it runs the elp-wrapper function with the
     ;; function symbol as an argument.  We place the old function
@@ -279,9 +294,8 @@ FUNSYM must be a symbol of a defined function."
 	(fset funsym newguts)))
 
     ;; add this function to the instrumentation list
-    (or (memq funsym elp-all-instrumented-list)
-	(setq elp-all-instrumented-list
-	      (cons funsym elp-all-instrumented-list)))))
+    (unless (memq funsym elp-all-instrumented-list)
+      (push funsym elp-all-instrumented-list))))
 
 (defun elp-restore-function (funsym)
   "Restore an instrumented function to its original definition.
@@ -337,12 +351,10 @@ For example, to instrument all ELP functions, do the following:
     'intern
     (all-completions
      prefix obarray
-     (function
-      (lambda (sym)
-	(and (fboundp sym)
-	     (not (memq (car-safe (symbol-function sym)) '(autoload macro))))
-	))
-     ))))
+     (lambda (sym)
+       (and (fboundp sym)
+	    (not (or (memq (car-safe (symbol-function sym)) '(autoload macro))
+		     (elp-not-profilable-p sym)))))))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
