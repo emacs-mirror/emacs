@@ -154,7 +154,7 @@ void error(const char *format, ...)
 }
 
 static void myabort(void) {
- abort();
+ exit(EXIT_FAILURE);
 }
 
 void verror(const char *format, va_list args)
@@ -190,6 +190,20 @@ void asserts(int expr, const char *format, ...)
 
 /* routines for easy use of the MPS */
 
+/* my own assertion handler, insalled by easy_tramp
+*/
+
+void my_assert_handler(const char *cond, const char *id,
+                       const char *file, unsigned line) {
+ comment("MPS ASSERTION FAILURE");
+ report("assert", "true");
+ report("assertid", id);
+ report("assertfile", file);
+ report("assertline", "%u", line);
+ report("assertcond", cond);
+ myabort();
+}
+
 /* easy_tramp
    simplified trampoline, for those who don't want to
    pass anything into or out of it -- it takes
@@ -199,6 +213,8 @@ void asserts(int expr, const char *format, ...)
 static void *call_f(void *p, size_t s)
 {
  void (**f)(void) = p;
+
+ mps_assert_install(my_assert_handler);
 
  (**f)(); 
  return NULL;
