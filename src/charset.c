@@ -118,20 +118,20 @@ Lisp_Object Vcharset_map_directory;
 
 Lisp_Object Vchar_unified_charset_table;
 
-#define CODE_POINT_TO_INDEX(charset, code)			\
-  ((charset)->code_linear_p					\
-   ? (code) - (charset)->min_code				\
-   : ((((code) >> 24) <= (charset)->code_space[13])		\
-      && ((((code) >> 16) & 0xFF) <= (charset)->code_space[9])	\
-      && ((((code) >> 8) & 0xFF) <= (charset)->code_space[5])	\
-      && (((code) & 0xFF) <= (charset)->code_space[1]))		\
-   ? (((((code) >> 24) - (charset)->code_space[12])		\
-       * (charset)->code_space[11])				\
-      + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])	\
-	 * (charset)->code_space[7])				\
-      + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])	\
-	 * (charset)->code_space[3])				\
-      + (((code) & 0xFF) - (charset)->code_space[0]))		\
+#define CODE_POINT_TO_INDEX(charset, code)				\
+  ((charset)->code_linear_p						\
+   ? (code) - (charset)->min_code					\
+   : (((charset)->code_space_mask[(code) >> 24] & 0x8)			\
+      && ((charset)->code_space_mask[((code) >> 16) & 0xFF] & 0x4)	\
+      && ((charset)->code_space_mask[((code) >> 8) & 0xFF] & 0x2)	\
+      && ((charset)->code_space_mask[(code) & 0xFF] & 0x1))		\
+   ? (((((code) >> 24) - (charset)->code_space[12])			\
+       * (charset)->code_space[11])					\
+      + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])		\
+	 * (charset)->code_space[7])					\
+      + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])		\
+	 * (charset)->code_space[3])					\
+      + (((code) & 0xFF) - (charset)->code_space[0]))			\
    : -1)
 
 
@@ -268,10 +268,20 @@ load_charset_map (charset, entries, n_entries, control_flag)
 	}
       else
 	{
-	  for (; from <= to; from++)
-	    {
-	      int c1 = DECODE_CHAR (charset, from);
+	  unsigned code = from;
+	  int from_index, to_index;
 
+	  from_index = CODE_POINT_TO_INDEX (charset, from);
+	  if (from == to)
+	    to_index = from_index;
+	  else
+	    to_index = CODE_POINT_TO_INDEX (charset, to);
+	  if (from_index < 0 || to_index < 0)
+	    continue;
+	  while (1)
+	    {
+	      int c1 = DECODE_CHAR (charset, code);
+	      
 	      if (c1 >= 0)
 		{
 		  CHAR_TABLE_SET (table, c, make_number (c1));
@@ -280,6 +290,10 @@ load_charset_map (charset, entries, n_entries, control_flag)
 		    CHAR_TABLE_SET (Vchar_unified_charset_table, c1,
 				    CHARSET_NAME (charset));
 		}
+	      if (from_index == to_index)
+		break;
+	      from_index++, c++;
+	      code = INDEX_TO_CODE_POINT (charset, from_index);
 	    }
 	}
     }
@@ -313,7 +327,7 @@ read_hex (fp, eof)
 
   while ((c = getc (fp)) != EOF)
     {
-      if (c == '#' || c == ' ')
+      if (c == '#')
 	{
 	  while ((c = getc (fp)) != EOF && c != '\n');
 	}
@@ -648,7 +662,7 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
   Lisp_Object val;
   unsigned hash_code;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (Vcharset_hash_table);
-  int i;
+  int i, j;
   struct charset charset;
   int id;
   int dimension;
@@ -701,6 +715,16 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
 	       || (charset.code_space[6] == 256
 		   && (charset.dimension == 3
 		       || charset.code_space[10] == 256)))));
+
+  if (! charset.code_linear_p)
+    {
+      charset.code_space_mask = (unsigned char *) xmalloc (256);
+      bzero (charset.code_space_mask, sizeof (charset.code_space_mask));
+      for (i = 0; i < 4; i++)
+	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
+	     j++)
+	  charset.code_space_mask[j] |= (1 << i);
+    }
 
   charset.iso_chars_96 = charset.code_space[2] == 96;
 
@@ -1277,6 +1301,8 @@ decode_char (charset, code)
   else
     {
       char_index = CODE_POINT_TO_INDEX (charset, code);
+      if (char_index < 0)
+	return -1;
 
       if (method == CHARSET_METHOD_MAP)
 	{
@@ -1350,7 +1376,8 @@ encode_char (charset, c)
 	      && (code_offset < 0 || code >= code_offset))
 	    {
 	      code -= code_offset;
-	      if (CODE_POINT_TO_INDEX (charset, code) >= 0)
+	      if (code >= charset->min_code && code <= charset->max_code
+		  && CODE_POINT_TO_INDEX (charset, code) >= 0)
 		return code;
 	    }
 	}
@@ -1406,7 +1433,7 @@ and CODE-POINT to a chracter.   Currently not supported and just ignored.  */)
     {
       CHECK_NATNUM (XCAR (code_point));
       CHECK_NATNUM (XCDR (code_point));
-      code = (XINT (XCAR (code_point)) << 16) | (XINT (XCAR (code_point)));
+      code = (XINT (XCAR (code_point)) << 16) | (XINT (XCDR (code_point)));
     }
   else
     {
