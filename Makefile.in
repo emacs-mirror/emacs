@@ -203,7 +203,6 @@ removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate paths.h from paths.in.  This target is invoked by `configure'.
 paths-force: FRC
-	@echo "Producing \`src/paths.h' from \`src/paths.in'."
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
 	  sed < ${srcdir}/src/paths.in > paths.h.$$$$		\
