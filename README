@@ -68,6 +68,8 @@ There are several subdirectories:
       an updated manual.  `makeinfo' is part of the GNU Texinfo
       package; you need version 4.0 or later of Texinfo.
 `lispref' holds the source code for the Emacs Lisp reference manual.
+`lispintro' holds the source code for the Introduction to Programming
+            in Emacs Lisp manual.
 
 `msdos' holds configuration files for compiling Emacs under MSDOG.
 `vms' holds instructions and useful files for running Emacs under VMS.
