@@ -483,6 +483,7 @@ typedef struct interval *INTERVAL;
 
 #endif /* USE_TEXT_PROPERTIES */
 
+#define ECHOBUFSIZE 300
 /* All of the per-display objects, packaged together in a struct.  */
 typedef struct
   {
@@ -490,6 +491,33 @@ typedef struct
     Lisp_Object current_prefix_arg;
     Lisp_Object this_command_keys;
     Lisp_Object internal_last_event_frame;
+
+    /* Vector to GCPRO the frames and windows mentioned in kbd_buffer.
+
+       The interrupt-level event handlers will never enqueue an event on a
+       frame which is not in Vframe_list, and once an event is dequeued,
+       internal_last_event_frame or the event itself points to the frame.
+       So that's all fine.
+
+       But while the event is sitting in the queue, it's completely
+       unprotected.  Suppose the user types one command which will run for
+       a while and then delete a frame, and then types another event at
+       the frame that will be deleted, before the command gets around to
+       it.  Suppose there are no references to this frame elsewhere in
+       Emacs, and a GC occurs before the second event is dequeued.  Now we
+       have an event referring to a freed frame, which will crash Emacs
+       when it is dequeued.
+
+       Similar things happen when an event on a scroll bar is enqueued; the
+       window may be deleted while the event is in the queue.
+
+       So, we use this vector to protect the frame_or_window field in the
+       event queue.  That way, they'll be dequeued as dead frames or
+       windows, but still valid lisp objects.
+
+       If perd->kbd_buffer[i].kind != no_event, then
+	 (XVECTOR (perd->kbd_buffer_frame_or_window)->contents[i]
+	  == perd->kbd_buffer[i].frame_or_window.  */
     Lisp_Object kbd_buffer_frame_or_window;
 
     /* Circular buffer for pre-read keyboard input.  */
@@ -516,10 +544,20 @@ typedef struct
        at inopportune times.  */
 
     int this_command_key_count;
+
+    /* Nonzero means echo each character as typed.  */
     int immediate_echo;
+
+    /* If we have echoed a prompt string specified by the user,
+       this is its length.  Otherwise this is -1.  */
     int echo_after_prompt;
+
+    /* Where to append more text to echobuf if we want to.  */
     char *echoptr;
-    char echobuf[300];
+
+    /* The text we're echoing in the modeline - partial key sequences,
+       usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
+    char echobuf[ECHOBUFSIZE];
   } PERDISPLAY;
 extern PERDISPLAY the_only_perdisplay;
 #define get_perdisplay(f) (&the_only_perdisplay)
