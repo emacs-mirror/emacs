@@ -171,6 +171,7 @@
       reftex-everything-regexp
     reftex-everything-regexp-no-index))
 
+;;;###autoload
 (defun reftex-all-document-files (&optional relative)
   "Return a list of all files belonging to the current document.
 When RELATIVE is non-nil, give file names relative to directory
