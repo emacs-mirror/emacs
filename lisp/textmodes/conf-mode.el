@@ -36,7 +36,7 @@
 (defgroup conf nil
   "Configuration files."
   :group 'data
-  :version "20.4")
+  :version "21.4")
 
 (defcustom conf-assignment-column 24
   "Align assignments to this column by default with \\[conf-align-assignments].
