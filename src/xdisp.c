@@ -1250,7 +1250,10 @@ update_menu_bar (f, save_match_data)
 	  || !NILP (w->update_mode_line)
 	  || (XFASTINT (w->last_modified) < MODIFF
 	      && (XFASTINT (w->last_modified)
-		  <= BUF_SAVE_MODIFF (XBUFFER (w->buffer)))))
+		  <= BUF_SAVE_MODIFF (XBUFFER (w->buffer))))
+	  || ((!NILP (Vtransient_mark_mode)
+	       && !NILP (XBUFFER (w->buffer)->mark_active))
+	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
 	  int count = specpdl_ptr - specpdl;
