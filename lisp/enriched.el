@@ -348,7 +348,11 @@ One annotation each for foreground color, background color, italic, etc."
 	    
 (defun enriched-face-ans (face)
   "Return annotations specifying FACE."
-  (cond ((string-match "^fg:" (symbol-name face))
+  (cond ((and (consp face) (eq (car face) 'foreground-color))
+	 (list "x-color" (cdr face)))
+	((and (consp face) (eq (car face) 'background-color))
+	 (list "x-bg-color" (cdr face)))
+	((string-match "^fg:" (symbol-name face))
 	 (list (list "x-color" (substring (symbol-name face) 3))))
 	((string-match "^bg:" (symbol-name face))
 	 (list (list "x-bg-color" (substring (symbol-name face) 3))))
