@@ -114,7 +114,7 @@ of the textual entity that was found."
 		    (real-beg
 		     (progn 
 		       (funcall 
-			(or (get thing 'end-op) 
+			(or (get thing 'beginning-op) 
 			    (function (lambda () (forward-thing thing -1)))))
 		       (point))))
 		(if (and real-beg end (<= real-beg orig) (<= orig end))
@@ -172,6 +172,15 @@ a symbol as a valid THING."
       (forward-sexp 1))))
 
 (put 'sexp 'end-op 'end-of-sexp)
+
+(defun beginning-of-sexp ()
+  (let ((char-syntax (char-syntax (char-before (point)))))
+    (if (or (eq char-syntax ?\()
+	    (and (eq char-syntax ?\") (in-string-p)))
+	(forward-char -1)
+      (forward-sexp -1))))
+
+(put 'sexp 'beginning-op 'beginning-of-sexp)
 
 ;;  Lists 
 
