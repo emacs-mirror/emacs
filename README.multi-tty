@@ -187,6 +187,17 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** frame-creation-function was removed, which might be a bad idea.
+   Think up a compatible solution.
+
+** make-frame does not correctly handle extra parameters in its
+   argument:
+
+	(frame-parameter (make-frame (list (cons 'foobar 42))) 'foobar)
+		=> nil
+
+   (This is likely an error in the CVS trunk.)
+
 ** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
