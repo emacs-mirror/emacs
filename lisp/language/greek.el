@@ -47,6 +47,7 @@
  "Greek" '((setup-function . setup-greek-environment)
 	   (charset . (greek-iso8859-7))
 	   (coding-system . (greek-iso-8bit))
+	   (coding-priority greek-iso-8bit)
 	   (sample-text . "Greek (,FGkk]mija(B)	,FCei\(B ,Fsar(B")
 	   (documentation . t)))
 
