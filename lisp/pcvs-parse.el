@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.5 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.6 2001/03/07 00:17:53 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -82,11 +82,11 @@ PARSE-SPEC is a function of no argument advancing the point and returning
   either a fileinfo or t (if the matched text should be ignored) or
   nil if it didn't match anything.
 DONT-CHANGE-DISC just indicates whether the command was changing the disc
-  or not (useful to tell the difference btween `cvs-examine' and `cvs-update'
-  ouytput.
+  or not (useful to tell the difference between `cvs-examine' and `cvs-update'
+  output.
 The path names should be interpreted as relative to SUBDIR (defaults
   to the `default-directory').
-Return a list of collected entries, or t if an error occured."
+Return a list of collected entries, or t if an error occurred."
   (goto-char (point-min))
   (let ((fileinfos ())
 	(cvs-current-dir "")
@@ -159,7 +159,8 @@ Match RE and if successful, execute MATCHES."
      (and
       (cvs-match ".*$")
       (cvs-create-fileinfo 'MESSAGE cvs-current-dir " "
-			   (concat " Unknown msg: '" (cvs-parse-msg) "'")
+			   ;; (concat " Unknown msg: '"
+			   (cvs-parse-msg) ;; "'")
 			   :subtype 'ERROR)))))
 
 
