@@ -3483,7 +3483,7 @@ arg XRM_STRING is a string of resources in xrdb format.")
   {
     int i;
     int len = XSTRING (Vxrdb_name)->size;
-    char *data = XSTRING (Vxrdb_name)->data;
+    unsigned char *data = XSTRING (Vxrdb_name)->data;
     
     for (i = 0; i < len; i++)
       if (data[i] == '.' || data[i] == '*')
