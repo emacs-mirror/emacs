@@ -1,5 +1,7 @@
 2001-11-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* search.c (Freplace_match): Remove unused variable `inslen'.
+
 	* keymap.c (access_keymap): Remove unused variables `c1' and `c2'.
 
 2001-11-22  Jason Rumney  <jasonr@gnu.org>
