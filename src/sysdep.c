@@ -4860,3 +4860,30 @@ hft_reset ()
 }
 
 #endif /* AIX */
+
+#ifdef USE_DL_STUBS
+
+/* These are included on Sunos 4.1 when we do not use shared libraries.
+   X11 libraries may refer to these functions but (we hope) do not
+   actually call them.  */
+
+void *
+dlopen ()
+{
+  return 0;
+}
+
+void *
+dlsym ()
+{
+  return 0;
+}
+
+int
+dlclose ()
+{
+  return -1;
+}
+
+#endif /* USE_DL_STUBS */
+
