@@ -3426,18 +3426,29 @@ system TYPE.")
       (ange-ftp-real-delete-file file))))
 
 (defun ange-ftp-file-modtime (file)
+  "Return the modification time of remote file FILE.
+Value is (0 0) if the modification time cannot be determined."
   (let* ((parsed (ange-ftp-ftp-name file))
+	 ;; At least one FTP server (wu-ftpd) can return a "226
+	 ;; Transfer complete" before the "213 MODTIME".  Let's skip
+	 ;; that.
+	 (ange-ftp-skip-msgs (concat ange-ftp-skip-msgs "\\|^226"))
          (res (ange-ftp-send-cmd (car parsed) (cadr parsed)
-                                 (list 'quote "mdtm" (cadr (cdr parsed))))))
-    (if (= ?5 (aref (cdr res) 0)) '(0 0)
-      (encode-time              ; MDTM returns "YYYYMMDDHHMMSS" GMT
-       (string-to-number (substring (cdr res) 16 18))
-       (string-to-number (substring (cdr res) 14 16))
-       (string-to-number (substring (cdr res) 12 14))
-       (string-to-number (substring (cdr res) 10 12))
-       (string-to-number (substring (cdr res)  8 10))
-       (string-to-number (substring (cdr res)  4  8))
-       0))))
+                                 (list 'quote "mdtm" (cadr (cdr parsed)))))
+	 (line (cdr res))
+	 (modtime '(0 0)))
+    (when (string-match "^213" line)
+	;; MDTM should return "213 YYYYMMDDhhmmss" GMT on success.
+      (setq modtime
+	    (encode-time
+	     (string-to-number (substring line 16 18))
+	     (string-to-number (substring line 14 16))
+	     (string-to-number (substring line 12 14))
+	     (string-to-number (substring line 10 12))
+	     (string-to-number (substring line  8 10))
+	     (string-to-number (substring line  4  8))
+	     0)))
+    modtime))
 
 (defun ange-ftp-verify-visited-file-modtime (buf)
   (let ((name (buffer-file-name buf)))
