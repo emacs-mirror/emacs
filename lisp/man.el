@@ -733,7 +733,8 @@ all sections related to a subject, put something appropriate into the
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
 	     (start-process manual-program buffer
-			    shell-file-name shell-command-switch
+			    (if (eq system-type 'cygwin) shell-file-name "sh")
+			    shell-command-switch
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
 	  (let ((exit-status
