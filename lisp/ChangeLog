@@ -1,3 +1,15 @@
+2004-09-30  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-lambda-form, kmacro-extract-lambda): Add.
+	(kmacro-bind-to-key, kmacro-name-last-macro): Use kmacro-lambda-form.
+
+	* edmacro.el: Require kmacro to use the new kmacro-lambda-form and
+	kmacro-extract-lambda functions.
+	(edit-kbd-macro): Handle kmacro lambda forms.
+	Include counter and counter format in edit buffer.
+	(edmacro-finish-edit): Get counter and format from edit buffer and
+	update kmacro bindings when found.
+
 2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/paragraphs.el (forward-paragraph): Avoid
