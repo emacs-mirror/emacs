@@ -1838,12 +1838,12 @@ If this is nil, extra highlighting can be \"manually\" removed with
   :type 'boolean
   :group 'isearch-lazy-highlight)
 
-(defcustom isearch-lazy-highlight-initial-delay 0.25
+(defcustom isearch-lazy-highlight-initial-delay 0 ; 0.25
   "*Seconds to wait before beginning to lazily highlight all matches."
   :type 'number
   :group 'isearch-lazy-highlight)
 
-(defcustom isearch-lazy-highlight-interval 0.0625
+(defcustom isearch-lazy-highlight-interval 0 ; 0.0625
   "*Seconds between lazily highlighting successive matches."
   :type 'number
   :group 'isearch-lazy-highlight)
