@@ -1,3 +1,8 @@
+2003-04-17  John Paul Wallington  <jpw@gnu.org>
+
+	* hexl.el (hexl-find-file): Bind `default-major-mode' to
+	`fundamental-mode'.
+
 2003-04-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (describe-language-environment): At
