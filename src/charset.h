@@ -66,14 +66,14 @@ Boston, MA 02111-1307, USA.  */
   0x00		official dim1    -- none --		-- none --
 		(ASCII)
   0x01..0x7F	--never used--
-  0x80		--never used--
+  0x80		official dim1	 -- none --		-- none --
+		(eight-bit-graphic)
   0x81..0x8F	official dim1    same as charset	-- none --
   0x90..0x99	official dim2	 same as charset	-- none --
   0x9A..0x9D	--never used--
   0x9E		official dim1	 same as charset	-- none --
 		(eight-bit-control)
-  0x9F		official dim1	 -- none --		-- none --
-		(eight-bit-graphic)
+  0x9F		--never used--
   0xA0..0xDF	private dim1	    0x9A		same as charset
 		of 1-column width
   0xE0..0xEF	private dim1	    0x9B		same as charset
@@ -119,7 +119,7 @@ Boston, MA 02111-1307, USA.  */
 /* Definition of special charsets.  */
 #define CHARSET_ASCII		0	/* 0x00..0x7F */
 #define CHARSET_8_BIT_CONTROL	0x9E	/* 0x80..0x9F */
-#define CHARSET_8_BIT_GRAPHIC	0x9F	/* 0xA0..0xFF */
+#define CHARSET_8_BIT_GRAPHIC	0x80	/* 0xA0..0xFF */
 
 extern int charset_latin_iso8859_1; /* ISO8859-1 (Latin-1) */
 extern int charset_jisx0208_1978; /* JISX0208.1978 (Japanese Kanji old set) */
@@ -443,14 +443,16 @@ extern int width_by_char_head[256];
    set to the byte length of the multibyte form.  */
 
 #define UNIBYTE_STR_AS_MULTIBYTE_P(str, length, bytes)	\
-  (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])) == 1	\
-   || ((str)[0] != LEADING_CODE_8_BIT_CONTROL		\
+  (((str)[0] < 0x80 || (str)[0] >= 0xA0)		\
+   ? (bytes) = 1					\
+   : (((bytes) = BYTES_BY_CHAR_HEAD ((str)[0])),	\
+      ((str)[0] != LEADING_CODE_8_BIT_CONTROL		\
        && (bytes) <= (length)				\
        && !CHAR_HEAD_P ((str)[1])			\
        && ((bytes) == 2					\
 	   || (!CHAR_HEAD_P ((str)[2])			\
 	       && ((bytes) == 3				\
-		   || !CHAR_HEAD_P ((str)[3]))))))
+		   || !CHAR_HEAD_P ((str)[3])))))))
 
 /* Return 1 iff the byte sequence at multibyte string STR is valid as
    a unibyte form.  By a side effect, BYTES is set to the byte length
