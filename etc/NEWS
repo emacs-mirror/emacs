@@ -835,6 +835,10 @@ variable is used by read-file-name-internal to filter the completion list.
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
+** The new function `read-directory-name' can be used instead of
+`read-file-name' to read a directory name; when used, completion
+will only show directories.
+
 ** The New lisp library fringe.el controls the apperance of fringes.
 
 ** The `defmacro' form may contain declarations specifying how to
@@ -1113,6 +1117,11 @@ and the latter now controls scrolling down.
 
 This is like window-height but does not count the mode line
 or the header line.
+
+** New function format-mode-line.
+
+This returns the mode-line or header-line of the selected (or a
+specified) window as a string without text properties.
 
 ** New functions `lax-plist-get' and `lax-plist-put'.
 
