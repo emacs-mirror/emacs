@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1987, 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.10 $ 
+;; Ada Core Technologies's version:   $Revision: 1.1 $ 
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
 ;; Maintainer: Rolf Ebert <ebert@waporo.muc.de>
@@ -162,15 +162,15 @@
 ;;; ---- statement skeletons ------------------------------------------
 
 (define-skeleton ada-array
-  "Insert array type definition.  Uses the minibuffer to prompt
-for component type and index subtypes."
+  "Insert array type definition.
+Uses the minibuffer to prompt for component type and index subtypes."
   ()
   "array (" ("index definition: " str ", " ) -2 ") of " _ ?\;)
 
 
 (define-skeleton ada-case
-  "Build skeleton case statement, prompting for the selector expression.
-Also builds the first when clause."
+  "Build skeleton case statement.
+Prompt for the selector expression. Also builds the first when clause."
   "[selector expression]: "
   "case " str " is" \n
   > "when " ("discrete choice: " str " | ") -3 " =>" \n
