@@ -1,3 +1,18 @@
+2002-07-18  Richard M. Stallman  <rms@gnu.org>
+
+	* timer.el (timer-inc-time): Doc fix.
+
+	* replace.el (keep-lines, flush-lines): Interactively report
+	read-only error	before reading regexp argument.
+
+	* dabbrev.el (dabbrev--search): Use inhibit-point-motion-hooks.
+
+	* bindings.el (last-buffer): Handle buffer-list and buffer-predicate
+	frame parameters like bury-buffer.
+
+	* simple.el (choose-completion-delete-max-match):
+	Handle minibuffer prompts explicitly.
+
 2002-07-18  Juanma Barranquero  <lektu@terra.es>
 
 	* international/mule-util.el (string-to-sequence, truncate-string): Add
