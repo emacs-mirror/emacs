@@ -52,6 +52,7 @@ extern int sys_nerr;
 #endif
 
 #include "lisp.h"
+#include "intervals.h"
 #include "buffer.h"
 #include "window.h"
 
@@ -2320,6 +2321,9 @@ before the error is signaled.")
   if (inserted > 0)
     {
       record_insert (point, inserted);
+
+      /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+      offset_intervals (current_buffer, point, inserted);
       MODIFF++;
     }
 
