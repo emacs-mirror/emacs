@@ -240,10 +240,12 @@ FILES is an alist whose elements are (FILENAME LINENUMBER)."
 
 (defun server-buffer-done (buffer)
   "Mark BUFFER as \"done\" for its client(s).
-Buries the buffer, and returns another server buffer
-as a suggestion for what to select next."
+This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
+NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
+or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
   (let ((running (eq (process-status server-process) 'run))
 	(next-buffer nil)
+	(killed nil)
 	(old-clients server-clients))
     (while old-clients
       (let ((client (car old-clients)))
@@ -277,9 +279,10 @@ as a suggestion for what to select next."
 	    (setq server-buffer-clients nil)
 	    (run-hooks 'server-done-hook))
 	  (if (server-temp-file-p buffer)
-	      (kill-buffer buffer)
+	      (progn (kill-buffer buffer)
+		     (setq killed t))
 	    (bury-buffer buffer))))
-    next-buffer))
+    (list next-buffer killed)))
 
 (defun server-temp-file-p (buffer)
   "Return non-nil if BUFFER contains a file considered temporary.
@@ -293,7 +296,9 @@ are considered temporary."
 
 (defun server-done ()
   "Offer to save current buffer, mark it as \"done\" for clients.
-Then bury it, and return a suggested buffer to select next."
+This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
+NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
+or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
 	(progn
@@ -351,11 +356,15 @@ starts server process and that is all.  Invoked by \\[server-edit]."
 	  (not server-process)
 	  (memq (process-status server-process) '(signal exit)))
       (server-start nil)
-    (server-switch-buffer (server-done))))
+    (apply 'server-switch-buffer (server-done))))
 
-(defun server-switch-buffer (next-buffer)
+(defun server-switch-buffer (next-buffer &optional killed-one)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
+  ;; KILLED-ONE is t in a recursive call
+  ;; if we have already killed one temp-file server buffer.
+  ;; This means we should avoid the final "switch to some other buffer"
+  ;; since we've already effectively done that.
   (cond ((and (windowp server-window)
 	      (window-live-p server-window))
 	 (select-window server-window))
@@ -378,11 +387,12 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	;; If NEXT-BUFFER is a dead buffer,
 	;; remove the server records for it
 	;; and try the next surviving server buffer.
-	(server-switch-buffer
-	 (server-buffer-done next-buffer)))
+	(apply 'server-switch-buffer
+	       (server-buffer-done next-buffer)))
     (if server-clients
-	(server-switch-buffer (nth 1 (car server-clients)))
-      (switch-to-buffer (other-buffer)))))
+	(server-switch-buffer (nth 1 (car server-clients)) killed-one)
+      (if (not killed-one)
+	  (switch-to-buffer (other-buffer))))))
 
 (global-set-key "\C-x#" 'server-edit)
 
