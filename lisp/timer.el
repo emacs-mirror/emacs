@@ -245,7 +245,7 @@ fire repeatedly that many seconds apart."
 
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
-  "Perform an action after a delay of SECS seconds.
+  "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
 TIME should be a string like \"11:23pm\", nil meaning now, a number of seconds
 from now, or a value from `encode-time'.
