@@ -1,5 +1,9 @@
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* eval.c (debugger_may_continue, Vdebug_ignored_errors,
+	call_debugger, Fcondition_case, skip_debugger, unbind_to):
+	Fix typos in comments.
+
 	* mocklisp.c (Fml_defun, Fml_while, Fml_substr): Remove commented
 	and #ifdef'd-out code.
 	Fix and reindent comments.
