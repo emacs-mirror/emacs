@@ -2096,7 +2096,9 @@ Both should not be used to define a buffer-local dictionary."
 	  (setq ispell-buffer-local-name (buffer-name)))
       (let ((end (save-excursion (end-of-line) (point)))
 	    string)
-	(while (re-search-forward " *\\([^ \"]+\\)" end t)
+	;; This used to treat " specially, but that loses for some
+	;; people using them to fake accented letters.
+	(while (re-search-forward " *\\([^ ]+\\)" end t)
 	  (setq string (buffer-substring (match-beginning 1) (match-end 1)))
 	  (process-send-string ispell-process (concat "@" string "\n")))))))
 
