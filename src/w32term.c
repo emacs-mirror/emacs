@@ -296,8 +296,9 @@ record_event (locus, type)
 #endif /* 0 */
 
 
-void XChangeGC (void * ignore, XGCValues* gc, unsigned long mask,
-                XGCValues *xgcv)
+void
+XChangeGC (void * ignore, XGCValues* gc, unsigned long mask,
+	   XGCValues *xgcv)
 {
   if (mask & GCForeground)
     gc->foreground = xgcv->foreground;
@@ -318,7 +319,8 @@ XGCValues *XCreateGC (void * ignore, Window window, unsigned long mask,
   return gc;
 }
 
-void XGetGCValues (void* ignore, XGCValues *gc,
+void
+XGetGCValues (void* ignore, XGCValues *gc,
                    unsigned long mask, XGCValues *xgcv)
 {
   XChangeGC (ignore, xgcv, mask, gc);
@@ -5939,7 +5941,8 @@ x_wm_set_size_hint (f, flags, user_position)
 }
 
 /* Window manager things */
-void x_wm_set_icon_position (f, icon_x, icon_y)
+void
+x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
 {
