@@ -80,7 +80,6 @@ Lisp_Object Qicon;
 Lisp_Object Qminibuffer;
 Lisp_Object Qmodeline;
 Lisp_Object Qname;
-Lisp_Object Qnone;
 Lisp_Object Qonly;
 Lisp_Object Qunsplittable;
 Lisp_Object Qwidth;
@@ -1110,7 +1109,7 @@ If FRAME is omitted, return information on the currently selected frame.")
   store_in_alist (&alist, Qwidth, make_number (f->width));
   store_in_alist (&alist, Qmodeline, (f->wants_modeline ? Qt : Qnil));
   store_in_alist (&alist, Qminibuffer,
-		  (! FRAME_HAS_MINIBUF_P (f) ? Qnone
+		  (! FRAME_HAS_MINIBUF_P (f) ? Qnil
 		   : (FRAME_MINIBUF_ONLY_P (f) ? Qonly
                    : FRAME_MINIBUF_WINDOW (f))));
   store_in_alist (&alist, Qunsplittable, (f->no_split ? Qt : Qnil));
@@ -1396,8 +1395,6 @@ syms_of_frame ()
   staticpro (&Qmodeline);
   Qname = intern ("name");
   staticpro (&Qname);
-  Qnone = intern ("none");
-  staticpro (&Qnone);
   Qonly = intern ("only");
   staticpro (&Qonly);
   Qunsplittable = intern ("unsplittable");
