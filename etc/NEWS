@@ -175,8 +175,8 @@ modes do.
 
 +++
 ** When the undo information of the current command gets really large
-(beyond the value of `undo-outer-limit'), Emacs asks you whether to
-discard it or keep it.
+(beyond the value of `undo-outer-limit'), Emacs discards it and warns
+you about it.
 
 ** line-move-ignore-invisible now defaults to t.
 
