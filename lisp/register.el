@@ -227,8 +227,10 @@ The Lisp value REGISTER is a character."
 	(princ (car val))))
 
      ((stringp val)
-      (remove-list-of-text-properties 0 (length val)
-                                      yank-excluded-properties val)
+      (if (eq yank-excluded-properties t)
+	  (set-text-properties 0 (length val) nil val)
+	(remove-list-of-text-properties 0 (length val)
+					yank-excluded-properties val))
       (if verbose
 	  (progn
 	    (princ "the text:\n")
