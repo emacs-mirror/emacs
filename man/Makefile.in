@@ -16,10 +16,11 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
-		../info/faq
+		../info/faq ../info/ada-mode
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
-		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi
+		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
+		 ada-mode.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -96,6 +97,11 @@ emacs.dvi: ${EMACSSOURCES}
 	cd $(srcdir); $(MAKEINFO) cc-mode.texi
 cc-mode.dvi: cc-mode.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/cc-mode.texi
+
+../info/ada-mode: ada-mode.texi
+	cd $(srcdir); $(MAKEINFO) ada-mode.texi
+ada-mode.dvi: ada-mode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ada-mode.texi
 
 ../info/cl: cl.texi
 	cd $(srcdir); $(MAKEINFO) cl.texi
