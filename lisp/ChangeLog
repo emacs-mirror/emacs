@@ -7,6 +7,11 @@
 
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xt-mouse.el (xterm-mouse-event): Recognize control sequences
+	for buttons > 3.
+	(xterm-mouse-translate): Handle the case that we don't get a
+	down-event.
+	
 	* emacs-lisp/find-func.el (find-function-regexp): Add
 	easy-mmode-define-global-mode to the regexp.  Allow newlines
 	in front of the function name.
