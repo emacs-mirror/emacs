@@ -1,3 +1,7 @@
+2004-11-12  Kim F. Storm  <storm@cua.dk>
+
+	* xmenu.c (pop_down_menu): Return nil.
+
 2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (x_menu_wait_for_event): New function.
@@ -8,7 +12,7 @@
 	do_timers to popup_widget_loop.
 	(xmenu_show): Call XMenuActivateSetWaitFunction so that
 	x_menu_wait_for_event is called by XMenuActivate.
-	(create_and_show_popup_menu): Pass 1 for do_timers to 
+	(create_and_show_popup_menu): Pass 1 for do_timers to
 	popup_get_selection.
 	(pop_down_menu): New function.
 	(popup_get_selection, popup_widget_loop): Unwind protect to
