@@ -227,7 +227,6 @@ Returns the abbrev symbol, if expansion took place.")
   int uccount = 0, lccount = 0;
   register Lisp_Object sym;
   Lisp_Object expansion, hook, tem;
-  int oldmodiff = MODIFF;
   Lisp_Object value;
 
   value = Qnil;
