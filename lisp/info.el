@@ -94,39 +94,47 @@ Marker points nowhere if file has no tag table.")
 (defvar Info-standalone nil
   "Non-nil if Emacs was started solely as an Info browser.")
 
-(defvar Info-suffix-list '( (".info"    . nil)
-			    (""         . nil)
+(defvar Info-suffix-list '( (".info.Z"  . "uncompress")
+			    (".info.Y"  . "unyabba")
+			    (".info.gz" . "gunzip")
+			    (".info.z"  . "gunzip")
+			    (".info"    . nil)
 			    (".Z"       . "uncompress")
 			    (".Y"       . "unyabba")
 			    (".gz"      . "gunzip")
 			    (".z"       . "gunzip")
-			    (".info.Z"  . "uncompress")
-			    (".info.Y"  . "unyabba")
-			    (".info.gz" . "gunzip")
-			    (".info.z"  . "gunzip"))
+			    (""         . nil))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
-the command as standard input.  If STRING is nil, no decoding is done.")
+the command as standard input.  If STRING is nil, no decoding is done.
+Because the SUFFIXes are tried in order, the empty string should
+be last in the list.")
 
 (defun info-insert-file-contents (filename &optional visit)
   "Insert the contents of an info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
-  (if (null (catch 'ok
-	      (mapcar
-	       (function
-		(lambda (x)
-		  (let ((compressed (concat filename (car x))))
-		    (if (file-exists-p compressed)
-			(progn
-			  (insert-file-contents compressed visit)
-			  (if (cdr x)
-			      (let ((buffer-read-only nil))
-				(shell-command-on-region
-				 (point-min) (point-max) (cdr x) t)))
-			  (throw 'ok t))))))
-	       Info-suffix-list)
-	      nil))
-      (error "Can't find %s or any compressed version of it!" filename)))
+  (let ((tail Info-suffix-list)
+	fullname decoder)
+    (if (file-exists-p filename)
+	(progn
+	  (while (and tail
+		      (not (string-match
+			    (concat (regexp-quote (car (car tail))) "$")
+			    filename)))
+	    (setq tail (cdr tail)))
+	  (setq fullname filename
+		decoder (cdr (car tail))))
+      (while (and tail
+		  (not (file-exists-p (concat filename (car (car tail))))))
+	(setq tail (cdr tail)))
+      (setq fullname (concat filename (car (car tail)))
+	    decoder (cdr (car tail)))
+      (or tail
+	  (error "Can't find %s or any compressed version of it!" filename)))
+    (insert-file-contents fullname visit)
+    (if decoder
+	(let ((buffer-read-only nil))
+	  (shell-command-on-region (point-min) (point-max) decoder t)))))
 
 ;;;###autoload
 (defun info (&optional file)
