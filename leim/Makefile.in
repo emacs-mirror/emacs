@@ -138,7 +138,8 @@ ${TIT}:
 	[ -d quail ] || mkdir quail
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
-	${RUN-EMACS} -f batch-byte-compile ${TIT}
+	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
+	    -f batch-byte-compile ${TIT}
 
 leim-list.el: ${SUBDIRS} ${TIT}
 	if [ x`(cd ${srcdir}; /bin/pwd)` = x`(/bin/pwd)` ] ; then \
