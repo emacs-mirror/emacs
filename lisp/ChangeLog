@@ -1,3 +1,11 @@
+2000-03-29  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/autoload.el: Also print defsubst doc string
+	specially.
+
+	* dired.el (dired-insert-directory): If dired-free-space-program
+	failed just delete its output.
+
 2000-03-29  Dave Love  <fx@gnu.org>
 
 	* international/iso-cvt.el: Move provide to end.  Doc fixes.

@@ -1,3 +1,7 @@
+2000-03-29  Andreas Schwab  <schwab@suse.de>
+
+	* make-docfile.c (scan_lisp_file): Also look for `defsubst'.
+
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* etags.c (lisp_suffixes)  Add `LSP'.
