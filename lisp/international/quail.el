@@ -1510,11 +1510,12 @@ or in a newly created frame (if the selected frame has no other windows)."
     ;; At first, setup a guidance buffer.
     (or (buffer-live-p quail-guidance-buf)
 	(setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*")))
-    (let ((title (quail-title)))
+    (let ((name (quail-name))
+	  (title (quail-title)))
       (save-excursion
 	(set-buffer quail-guidance-buf)
 	;; To show the title of Quail package.
-	(setq current-input-method t
+	(setq current-input-method name
 	      current-input-method-title title)
 	(erase-buffer)
 	(or (overlayp quail-overlay)
