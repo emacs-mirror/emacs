@@ -207,7 +207,7 @@ Should show the queue(s) that \\[tex-print] puts jobs on."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-default-mode 'plain-tex-mode
+(defcustom tex-default-mode 'latex-mode
   "*Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
