@@ -704,6 +704,11 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** bs.el is a new package for buffer selection similar to
+list-buffers or electric-buffer-list.  Use M-x bs-show to display a
+buffer menu with this package.  You can use M-x bs-customize to
+customize the package.
+
 *** The minor modes cwarn-mode and global-cwarn-mode highlights
 suspicious C and C++ constructions.  Currently, assignments inside
 expressions, semicolon following `if', `for' and `while' (except, of

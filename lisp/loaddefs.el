@@ -168,7 +168,7 @@ Insert a descriptive header at the top of the file." t nil)
 ;;;### (autoloads (add-log-current-defun change-log-mode add-change-log-entry-other-window
 ;;;;;;  add-change-log-entry find-change-log prompt-for-change-log-name
 ;;;;;;  add-log-mailing-address add-log-full-name) "add-log" "add-log.el"
-;;;;;;  (14410 18533))
+;;;;;;  (14439 22994))
 ;;; Generated autoloads from add-log.el
 
 (defvar add-log-full-name nil "\
@@ -364,7 +364,7 @@ directory, so that Emacs will know its current contents." t nil)
 ;;;***
 
 ;;;### (autoloads (antlr-set-tabs antlr-mode) "antlr-mode" "progmodes/antlr-mode.el"
-;;;;;;  (14393 24267))
+;;;;;;  (14431 34774))
 ;;; Generated autoloads from progmodes/antlr-mode.el
 
 (autoload (quote antlr-mode) "antlr-mode" "\
@@ -380,7 +380,7 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'." nil nil)
 ;;;### (autoloads (appt-make-list appt-delete appt-add appt-display-diary
 ;;;;;;  appt-display-duration appt-msg-window appt-display-mode-line
 ;;;;;;  appt-visible appt-audible appt-message-warning-time appt-issue-message)
-;;;;;;  "appt" "calendar/appt.el" (14406 9730))
+;;;;;;  "appt" "calendar/appt.el" (14432 37852))
 ;;; Generated autoloads from calendar/appt.el
 
 (defvar appt-issue-message t "\
@@ -1443,10 +1443,43 @@ Return a vector containing the lines from `bruce-phrases-file'." nil nil)
 
 ;;;***
 
+;;;### (autoloads (bs-show bs-customize bs-cycle-previous bs-cycle-next)
+;;;;;;  "bs" "bs.el" (14440 44552))
+;;; Generated autoloads from bs.el
+
+(autoload (quote bs-cycle-next) "bs" "\
+Select next buffer defined by buffer cycling.
+The buffers taking part in buffer cycling are defined
+by buffer configuration `bs-cycle-configuration-name'." t nil)
+
+(autoload (quote bs-cycle-previous) "bs" "\
+Select previous buffer defined by buffer cycling.
+The buffers taking part in buffer cycling are defined
+by buffer configuration `bs-cycle-configuration-name'." t nil)
+
+(autoload (quote bs-customize) "bs" "\
+Customization of group bs for Buffer Selection Menu." t nil)
+
+(autoload (quote bs-show) "bs" "\
+Make a menu of buffers so you can manipulate buffer list or buffers itself.
+\\<bs-mode-map>
+There are many key commands similar to `Buffer-menu-mode' for
+manipulating buffer list and buffers itself.
+User can move with [up] or [down], select a buffer
+by \\[bs-select] or [SPC]
+
+Type \\[bs-kill] to leave Buffer Selection Menu without a selection.
+Type \\[bs-help] after invocation to get help on commands available.
+With prefix argument ARG show a different buffer list.  Function
+`bs--configuration-name-for-prefix-arg' determine accordingly
+name of buffer configuration." t nil)
+
+;;;***
+
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (14425 19316))
+;;;;;;  "emacs-lisp/bytecomp.el" (14432 37858))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -2434,7 +2467,7 @@ The Command History listing is recomputed each time this mode is invoked." t nil
 
 ;;;***
 
-;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14160 15550))
+;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14432 37868))
 ;;; Generated autoloads from emacs-lisp/cl.el
 
 (defvar custom-print-functions nil "\
@@ -2607,7 +2640,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (14388 8490))
+;;;;;;  "compile" "progmodes/compile.el" (14440 46010))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -3630,7 +3663,7 @@ $
 ;;;***
 
 ;;;### (autoloads (cancel-debug-on-entry debug-on-entry debug) "debug"
-;;;;;;  "emacs-lisp/debug.el" (14428 55109))
+;;;;;;  "emacs-lisp/debug.el" (14432 49602))
 ;;; Generated autoloads from emacs-lisp/debug.el
 
 (setq debugger (quote debug))
@@ -5605,7 +5638,7 @@ The magic number of such a command displays all lines but itself." t nil)
 ;;;***
 
 ;;;### (autoloads (expand-jump-to-next-slot expand-jump-to-previous-slot
-;;;;;;  expand-add-abbrevs) "expand" "expand.el" (14428 51143))
+;;;;;;  expand-add-abbrevs) "expand" "expand.el" (14435 44141))
 ;;; Generated autoloads from expand.el
 
 (autoload (quote expand-add-abbrevs) "expand" "\
@@ -7109,76 +7142,39 @@ hide-ifdef-read-only
 
 ;;;***
 
-;;;### (autoloads (hs-minor-mode hs-mouse-toggle-hiding hs-hide-all
-;;;;;;  hs-show-hidden-short-form hs-hide-comments-when-hiding-all)
-;;;;;;  "hideshow" "progmodes/hideshow.el" (13845 6001))
+;;;### (autoloads (hs-minor-mode hs-hide-comments-when-hiding-all)
+;;;;;;  "hideshow" "progmodes/hideshow.el" (14440 46011))
 ;;; Generated autoloads from progmodes/hideshow.el
 
 (defvar hs-hide-comments-when-hiding-all t "\
-Hide the comments too when you do an `hs-hide-all'.")
+*Hide the comments too when you do an `hs-hide-all'.")
 
-(defvar hs-show-hidden-short-form t "\
-Leave only the first line visible in a hidden block.
-If non-nil only the first line is visible when a block is in the
-hidden state, else both the first line and the last line are shown.
-A nil value disables `hs-adjust-block-beginning', which see.
-
-An example of how this works: (in C mode)
-original:
-
-  /* My function main
-     some more stuff about main
-  */
-  int
-  main(void)
-  {
-    int x=0;
-    return 0;
-  }
-
-
-hidden and `hs-show-hidden-short-form' is nil
-  /* My function main...
-  */
-  int
-  main(void)
-  {...
-  }
-
-hidden and `hs-show-hidden-short-form' is t
-  /* My function main...
-  int
-  main(void)...
-
-For the last case you have to be on the line containing the
-ellipsis when you do `hs-show-block'.")
-
-(defvar hs-special-modes-alist (quote ((c-mode "{" "}" nil nil hs-c-like-adjust-block-beginning) (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning) (java-mode "\\(\\(\\([ 	]*\\(\\(abstract\\|final\\|native\\|p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|s\\(tatic\\|ynchronized\\)\\)[ 	\n]+\\)*[.a-zA-Z0-9_:]+[ 	\n]*\\(\\[[ 	\n]*\\][ 	\n]*\\)?\\([a-zA-Z0-9_:]+[ 	\n]*\\)([^)]*)\\([ \n	]+throws[ 	\n][^{]+\\)?\\)\\|\\([ 	]*static[^{]*\\)\\)[ 	\n]*{\\)" "}" "/[*/]" java-hs-forward-sexp hs-c-like-adjust-block-beginning))) "\
+(defvar hs-special-modes-alist (quote ((c-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning) (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning) (bibtex-mode ("^@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning))) "\
 *Alist for initializing the hideshow variables for different modes.
-It has the form
+Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
-If present, hideshow will use these values as regexps for start, end
-and comment-start, respectively.  Since Algol-ish languages do not have
-single-character block delimiters, the function `forward-sexp' used
-by hideshow doesn't work.  In this case, if a similar function is
-available, you can register it and have hideshow use it instead of
-`forward-sexp'.  See the documentation for `hs-adjust-block-beginning'
-to see what is the use of ADJUST-BEG-FUNC.
 
-If any of those is left nil, hideshow will try to guess some values
-using function `hs-grok-mode-type'.
+If non-nil, hideshow will use these values as regexps to define blocks
+and comments, respectively for major mode MODE.
 
-Note that the regexps should not contain leading or trailing whitespace.")
+START, END and COMMENT-START are regular expressions.  A block is
+defined as text surrounded by START and END.
 
-(autoload (quote hs-hide-all) "hideshow" "\
-Hide all top-level blocks, displaying only first and last lines.
-Move point to the beginning of the line, and it run the normal hook
-`hs-hide-hook'.  See documentation for `run-hooks'.
-If `hs-hide-comments-when-hiding-all' is t, also hide the comments." t nil)
+As a special case, START may be a list of the form (COMPLEX-START
+MDATA-SELECTOR), where COMPLEX-START is a regexp w/ multiple parts and
+MDATA-SELECTOR an integer that specifies which sub-match is the proper
+place to adjust point, before calling `hs-forward-sexp-func'.  For
+example, see the `hs-special-modes-alist' entry for `bibtex-mode'.
 
-(autoload (quote hs-mouse-toggle-hiding) "hideshow" "\
-Toggle hiding/showing of a block.
-Should be bound to a mouse key." t nil)
+For some major modes, `forward-sexp' does not work properly.  In those
+cases, FORWARD-SEXP-FUNC specifies another function to use instead.
+
+See the documentation for `hs-adjust-block-beginning' to see what is the
+use of ADJUST-BEG-FUNC.
+
+If any of the elements is left nil or omitted, hideshow tries to guess
+appropriate values.  The regexps should not contain leading or trailing
+whitespace.  Case does not matter.")
 
 (autoload (quote hs-minor-mode) "hideshow" "\
 Toggle hideshow minor mode.
@@ -7186,12 +7182,11 @@ With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
-Last, the normal hook `hs-minor-mode-hook' is run; see the doc
-for `run-hooks'.
+Last, the normal hook `hs-minor-mode-hook' is run; see `run-hooks'.
 
 The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
-`hs-show-block', `hs-hide-level' and `hs-show-region'.
-Also see the documentation for the variable `hs-show-hidden-short-form'.
+`hs-show-block', `hs-hide-level' and `hs-show-region'.  There is also
+`hs-hide-initial-comment-block' and `hs-mouse-toggle-hiding'.
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands.
@@ -7460,6 +7455,139 @@ Variables controlling indentation style:
 
 Turning on Icon mode calls the value of the variable `icon-mode-hook'
 with no args, if that value is non-nil." t nil)
+
+;;;***
+
+;;;### (autoloads (idlwave-mode) "idlwave" "progmodes/idlwave.el"
+;;;;;;  (14430 3722))
+;;; Generated autoloads from progmodes/idlwave.el
+
+(autoload (quote idlwave-mode) "idlwave" "\
+Major mode for editing IDL and WAVE CL .pro files.
+
+The main features of this mode are
+
+1. Indentation and Formatting
+   --------------------------
+   Like other Emacs programming modes, C-j inserts a newline and indents.
+   TAB is used for explicit indentation of the current line.
+
+   To start a continuation line, use \\[idlwave-split-line].  This function can also
+   be used in the middle of a line to split the line at that point.
+   When used inside a long constant string, the string is split at
+   that point with the `+' concatenation operator.
+
+   Comments are indented as follows:
+
+   `;;;' Indentation remains unchanged.
+   `;;'  Indent like the surrounding code
+   `;'   Indent to a minimum column.
+
+   The indentation of comments starting in column 0 is never changed.
+
+   Use \\[idlwave-fill-paragraph] to refill a paragraph inside a comment.  The indentation
+   of the second line of the paragraph relative to the first will be
+   retained.  Use \\[idlwave-auto-fill-mode] to toggle auto-fill mode for these comments.
+   When the variable `idlwave-fill-comment-line-only' is nil, code
+   can also be auto-filled and auto-indented (not recommended).
+
+   To convert pre-existing IDL code to your formatting style, mark the
+   entire buffer with \\[mark-whole-buffer] and execute \\[idlwave-expand-region-abbrevs].
+   Then mark the entire buffer again followed by \\[indent-region] (`indent-region').
+
+2. Routine Info
+   ------------
+   IDLWAVE displays information about the calling sequence and the accepted
+   keyword parameters of a procedure or function with \\[idlwave-routine-info].
+   \\[idlwave-find-module] jumps to the source file of a module.
+   These commands know about system routines, all routines in idlwave-mode
+   buffers and (when the idlwave-shell is active) about all modules
+   currently compiled under this shell.  Use \\[idlwave-update-routine-info] to update this
+   information, which is also used for completion (see next item).
+
+3. Completion
+   ----------
+   \\[idlwave-complete] completes the names of procedures, functions and
+   keyword parameters.  It is context sensitive and figures out what
+   is expected at point (procedure/function/keyword).  Lower case
+   strings are completed in lower case, other strings in mixed or
+   upper case.
+
+4. Code Templates and Abbreviations
+   --------------------------------
+   Many Abbreviations are predefined to expand to code fragments and templates.
+   The abbreviations start generally with a `\\`.  Some examples
+
+   \\pr        PROCEDURE template
+   \\fu        FUNCTION template
+   \\c         CASE statement template
+   \\f         FOR loop template
+   \\r         REPEAT Loop template
+   \\w         WHILE loop template
+   \\i         IF statement template
+   \\elif      IF-ELSE statement template
+   \\b         BEGIN
+   
+   For a full list, use \\[idlwave-list-abbrevs].  Some templates also have
+   direct keybindings - see the list of keybindings below.
+
+   \\[idlwave-doc-header] inserts a documentation header at the beginning of the
+   current program unit (pro, function or main).  Change log entries
+   can be added to the current program unit with \\[idlwave-doc-modification].
+
+5. Automatic Case Conversion
+   -------------------------
+   The case of reserved words and some abbrevs is controlled by
+   `idlwave-reserved-word-upcase' and `idlwave-abbrev-change-case'.
+
+6. Automatic END completion
+   ------------------------
+   If the variable `idlwave-expand-generic-end' is non-nil, each END typed
+   will be converted to the specific version, like ENDIF, ENDFOR, etc.
+
+7. Hooks
+   -----
+   Loading idlwave.el runs `idlwave-load-hook'.
+   Turning on `idlwave-mode' runs `idlwave-mode-hook'.
+
+8. Documentation and Customization
+   -------------------------------
+   Info documentation for this package is available.  Use \\[idlwave-info]
+   to display (complain to your sysadmin if that does not work).
+   For Postscript and HTML versions of the documentation, check IDLWAVE's
+   homepage at `http://www.strw.leidenuniv.nl/~dominik/Tools/idlwave'.
+   IDLWAVE has customize support - see the group `idlwave'.
+
+9. Keybindings
+   -----------
+   Here is a list of all keybindings of this mode.
+   If some of the key bindings below show with ??, use \\[describe-key]
+   followed by the key sequence to see what the key sequence does.
+
+\\{idlwave-mode-map}" t nil)
+
+;;;***
+
+;;;### (autoloads (idlwave-shell) "idlwave-shell" "progmodes/idlwave-shell.el"
+;;;;;;  (14430 3857))
+;;; Generated autoloads from progmodes/idlwave-shell.el
+
+(autoload (quote idlwave-shell) "idlwave-shell" "\
+Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'.
+If buffer exists but shell process is not running, start new IDL.
+If buffer exists and shell process is running, just switch to the buffer.
+
+When called with a prefix ARG, or when `idlwave-shell-use-dedicated-frame'
+is non-nil, the shell buffer and the source buffers will be in
+separate frames.
+
+The command to run comes from variable `idlwave-shell-explicit-file-name'.
+
+The buffer is put in `idlwave-shell-mode', providing commands for sending
+input and controlling the IDL job.  See help on `idlwave-shell-mode'.
+See also the variable `idlwave-shell-prompt-pattern'.
+
+\(Type \\[describe-mode] in the shell buffer for a list of commands.)" t nil)
 
 ;;;***
 
@@ -7969,7 +8097,7 @@ Add submenus to the Files menu, to convert to and from various formats." t nil)
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-word ispell-dictionary-alist ispell-local-dictionary-alist
 ;;;;;;  ispell-personal-dictionary) "ispell" "textmodes/ispell.el"
-;;;;;;  (14381 63241))
+;;;;;;  (14440 46011))
 ;;; Generated autoloads from textmodes/ispell.el
 
 (defvar ispell-personal-dictionary nil "\
@@ -8336,7 +8464,7 @@ Unconditionally turn on Just-in-time Lock mode." nil nil)
 ;;;***
 
 ;;;### (autoloads (auto-compression-mode) "jka-compr" "jka-compr.el"
-;;;;;;  (14345 52910))
+;;;;;;  (14440 46009))
 ;;; Generated autoloads from jka-compr.el
 
 (defvar auto-compression-mode nil "\
@@ -8603,8 +8731,8 @@ shown; this is often useful to constrain a big search." t nil)
 ;;;***
 
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
-;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14359
-;;;;;;  3115))
+;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14440
+;;;;;;  46009))
 ;;; Generated autoloads from lpr.el
 
 (defvar printer-name (if (memq system-type (quote (ms-dos windows-nt))) "PRN") "\
@@ -8640,25 +8768,42 @@ treated like `lpr' except that an explicit filename is given as the last
 argument.")
 
 (autoload (quote lpr-buffer) "lpr" "\
-Print buffer contents as with Unix command `lpr'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr." t nil)
+Print buffer contents without pagination or page headers.
+See the variables `lpr-switches' and `lpr-command'
+for customization of the printer command." t nil)
 
 (autoload (quote print-buffer) "lpr" "\
 Paginate and print buffer contents.
-Normally invokes `pr' for pagination, but see the variable
-`lpr-page-header-program'.  Printing is normally done with `lpr'
-or `lp'; the variable `lpr-command' changes this.
 
-Also see the variables `lpr-switches' and `lpr-page-header-switches'
-for further customization of the commands used." t nil)
+The variable `lpr-headers-switches' controls how to paginate.
+If it is nil (the default), we run the `pr' program (or whatever program
+`lpr-page-header-program' specifies) to paginate.
+`lpr-page-header-switches' specifies the switches for that program.
+
+Otherwise, the switches in `lpr-headers-switches' are used
+in the print command itself; we expect them to request pagination.
+ 
+See the variables `lpr-switches' and `lpr-command'
+for further customization of the printer command." t nil)
 
 (autoload (quote lpr-region) "lpr" "\
-Print region contents as with Unix command `lpr'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr." t nil)
+Print region contents without pagination or page headers.
+See the variables `lpr-switches' and `lpr-command'
+for customization of the printer command." t nil)
 
 (autoload (quote print-region) "lpr" "\
-Print region contents as with Unix command `lpr -p'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr." t nil)
+Paginate and print the region contents.
+
+The variable `lpr-headers-switches' controls how to paginate.
+If it is nil (the default), we run the `pr' program (or whatever program
+`lpr-page-header-program' specifies) to paginate.
+`lpr-page-header-switches' specifies the switches for that program.
+
+Otherwise, the switches in `lpr-headers-switches' are used
+in the print command itself; we expect them to request pagination.
+ 
+See the variables `lpr-switches' and `lpr-command'
+for further customization of the printer command." t nil)
 
 ;;;***
 
@@ -11620,12 +11765,12 @@ This function is obsolete." t nil)
 ;;;***
 
 ;;;### (autoloads (dsssl-mode scheme-mode) "scheme" "progmodes/scheme.el"
-;;;;;;  (13730 30380))
+;;;;;;  (14432 37919))
 ;;; Generated autoloads from progmodes/scheme.el
 
 (autoload (quote scheme-mode) "scheme" "\
 Major mode for editing Scheme code.
-Editing commands are similar to those of lisp-mode.
+Editing commands are similar to those of `lisp-mode'.
 
 In addition, if an inferior Scheme process is running, some additional
 commands will be defined, for evaluating expressions and controlling
@@ -11638,12 +11783,12 @@ Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
-Entry to this mode calls the value of scheme-mode-hook
+Entry to this mode calls the value of `scheme-mode-hook'
 if that value is non-nil." t nil)
 
 (autoload (quote dsssl-mode) "scheme" "\
 Major mode for editing DSSSL code.
-Editing commands are similar to those of lisp-mode.
+Editing commands are similar to those of `lisp-mode'.
 
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -11931,7 +12076,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (14424 59273))
+;;;;;;  (14432 40418))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))

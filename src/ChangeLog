@@ -2,6 +2,7 @@
 
 	* xdisp.c (try_window_id): Compute BEG_UNCHANGED and END_UNCHANGED
 	if MODIFF > 1.
+	(dump_glyph_row): Adapt to changes in struct glyph.
 
 	* buffer.c (modify_overlay): Always compute unchanged info.
 

@@ -1,3 +1,7 @@
+1999-12-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* bs.el: New file.
+
 1999-12-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* textmodes/ispell.el (ispell-process-line):
