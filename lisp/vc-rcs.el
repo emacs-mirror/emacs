@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.21 2001/08/28 17:05:12 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.22 2002/01/05 17:21:06 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -553,7 +553,7 @@ Needs RCS 5.6.2 or later for -M."
          (append (list "-q"
                        (concat "-r" oldvers)
                        (and newvers (concat "-r" newvers)))
-                 (vc-diff-switches-list rcs))))
+                 (vc-diff-switches-list 'RCS))))
 
 
 ;;;
