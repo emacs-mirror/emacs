@@ -48,3 +48,7 @@
     strncpy(pty_name, ptyname, sizeof(pty_name)); \
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
+
+/* David Miller <davem@caip.rutgers.edu> says vfork fails on 2.4.  */
+/* Brendan Kehoe <brendan@zen.org> says it also fails on 2.3.  */
+#undef HAVE_VFORK
