@@ -317,21 +317,33 @@ if it is quoted with double-quotes."
 	;; If DEFINITION is null string, avoid looping even once.
 	(start (and (not (equal definition "")) 0))
 	(L (length definition))
+	convert-backslash
 	end tem)
     (while start
+      (setq convert-backslash nil)
       ;; If we're reading from the mailrc file, then addresses are delimited
       ;; by spaces, and addresses with embedded spaces must be surrounded by
       ;; double-quotes.  Otherwise, addresses are separated by commas.
       (if from-mailrc-file
 	  (if (eq ?\" (aref definition start))
-	      (setq start (1+ start)
-		    end (string-match "\"[ \t,]*" definition start))
+	      (progn (string-match "[^\\]\\(\\([\\][\\]\\)*\\)\"[ \t,]*" definition start)
+		     (setq start (1+ start)
+			   end (match-end 1)
+			   convert-backslash t))
 	    (setq end (string-match "[ \t,]+" definition start)))
 	(setq end (string-match "[ \t\n,]*,[ \t\n,]*" definition start)))
-      (setq result (cons (substring definition start end) result))
-      (setq start (and end
-		       (/= (match-end 0) L)
-		       (match-end 0))))
+      (let ((temp (substring definition start end))
+	    (pos 0))
+	(setq start (and end
+			 (/= (match-end 0) L)
+			 (match-end 0)))
+	(if convert-backslash
+	    (while (string-match "[\\]" temp pos)
+	      (setq temp (replace-match "" t t temp))
+	      (if start 
+		  (setq start (1- start)))
+	      (setq pos (match-end 0))))
+	(setq result (cons temp result))))
     (setq definition (mapconcat (function identity)
 				(nreverse result)
 				", "))
