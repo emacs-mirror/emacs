@@ -592,7 +592,7 @@ struct Lisp_Vector
   (CHAR_TABLE_P (CT) && IDX >= 0 && IDX < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
    ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])				\
       ? XCHAR_TABLE (CT)->contents[IDX]					\
-      : XCHAR_TABLE (CT)->default)					\
+      : XCHAR_TABLE (CT)->defalt)					\
    : Faref (CT, IDX))
 
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
@@ -1290,9 +1290,7 @@ extern char *stack_bottom;
 
 /* 1 if CH is lower case.  */
 
-#define LOWERCASEP(CH) \
-  (!UPPERCASEP (CH) \
-   && XCHAR_TABLE (current_buffer->upcase_table)->contents[CH] != (CH))
+#define LOWERCASEP(CH) (!UPPERCASEP (CH) && !NOCASEP(CH))
 
 /* 1 if CH is neither upper nor lower case.  */
 
@@ -1301,9 +1299,7 @@ extern char *stack_bottom;
 
 /* Upcase a character, or make no change if that cannot be done.  */
 
-#define UPCASE(CH) \
-  (XCHAR_TABLE (current_buffer->downcase_table)->contents[CH] == (CH) \
-   ? UPCASE1 (CH) : (CH))
+#define UPCASE(CH) (!UPPERCASEP (CH) ? UPCASE1 (CH) : (CH))
 
 /* Upcase a character known to be not upper case.  */
 
