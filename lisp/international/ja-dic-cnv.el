@@ -197,7 +197,7 @@
 (defun skkdic-get-candidate-list (from to)
   (let (candidates)
     (goto-char from)
-    (while (re-search-forward "/\\cj+" to t)
+    (while (re-search-forward "/[^/ \n]+" to t)
       (setq candidates (cons (buffer-substring (1+ (match-beginning 0))
 					       (match-end 0))
 			     candidates)))
