@@ -1563,7 +1563,7 @@ On MS-DOS and MS-Windows systems, a string value is taken as the name of the
 printer device or port to which PostScript files are written, provided
 `ps-lpr-command' is \"\".  By default it is the same as `printer-name'; typical
 non-default settings would be \"LPT1\" to \"LPT3\" for parallel printers, or
-\"COM1\" to \"COM4\" or \"AUX\" for serial printers, or \"//hostname/printer\"
+\"COM1\" to \"COM4\" or \"AUX\" for serial printers, or \"\\\\hostname\\printer\"
 for a shared network printer.  You can also set it to a name of a file, in
 which case the output gets appended to that file.  \(Note that `ps-print'
 package already has facilities for printing to a file, so you might as well use
@@ -3794,9 +3794,6 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-output-string (string)
   (ps-output t string))
 
-(defun ps-output-list (the-list)
-  (mapcar 'ps-output the-list))
-
 ;; Output strings in the list ARGS in the PostScript prologue part.
 (defun ps-output-prologue (args)
   (ps-output 'prologue (if (stringp args) (list args) args)))
@@ -4462,12 +4459,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
-  (setq ps-page-postscript 0
-	ps-page-order 0
-	ps-page-sheet 0
-	ps-page-n-up 0
+  (setq ps-page-order 0
 	ps-page-printed 0
-	ps-print-page-p t
 	ps-background-text-count 0
 	ps-background-image-count 0
 	ps-background-pages nil
@@ -4609,7 +4602,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output "\n" ps-print-prologue-1)
 
     (ps-output "\n/printGlobalBackground{\n")
-    (ps-output-list ps-background-all-pages)
+    (mapcar 'ps-output ps-background-all-pages)
     (ps-output "}def\n/printLocalBackground{\n}def\n")
 
     ;; Header fonts
@@ -4779,8 +4772,12 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (and (re-search-backward "^%%Trailer$" nil t)
 	 (delete-region (match-beginning 0) (point-max))))
   ;; miscellaneous
-  (setq ps-showline-count (car ps-printing-region)
+  (setq ps-page-postscript 0
+	ps-page-sheet 0
+	ps-page-n-up 0
 	ps-page-column 0
+	ps-print-page-p t
+	ps-showline-count (car ps-printing-region)
 	ps-font-size-internal        (ps-get-font-size 'ps-font-size)
 	ps-header-font-size-internal (ps-get-font-size 'ps-header-font-size)
 	ps-header-title-font-size-internal
