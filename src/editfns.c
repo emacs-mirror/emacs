@@ -560,9 +560,9 @@ resolution finer than a second.")
   Lisp_Object result[3];
 
   EMACS_GET_TIME (t);
-  XSET (result[0], Lisp_Int, (EMACS_SECS (t) >> 16) & 0xffff);
-  XSET (result[1], Lisp_Int, (EMACS_SECS (t) >> 0)  & 0xffff);
-  XSET (result[2], Lisp_Int, EMACS_USECS (t));
+  XSETINT (result[0], (EMACS_SECS (t) >> 16) & 0xffff);
+  XSETINT (result[1], (EMACS_SECS (t) >> 0)  & 0xffff);
+  XSETINT (result[2], EMACS_USECS (t));
 
   return Flist (3, result);
 }
@@ -1631,7 +1631,7 @@ Use %% to put a single % into the output.")
 	  }
 	else if (SYMBOLP (args[n]))
 	  {
-	    XSET (args[n], Lisp_String, XSYMBOL (args[n])->name);
+	    XSETSTRING (args[n], XSYMBOL (args[n])->name);
 	    goto string;
 	  }
 	else if (STRINGP (args[n]))
