@@ -1710,39 +1710,6 @@ indirect definition itself.")
     
   return found;
 }
-
-/* Return a string listing the keys and buttons that run DEFINITION.  */
-
-static Lisp_Object
-where_is_string (definition)
-     Lisp_Object definition;
-{
-  register Lisp_Object keys, keys1;
-
-  keys = Fwhere_is_internal (definition, Voverriding_local_map, Qnil, Qnil);
-  keys1 = Fmapconcat (Qkey_description, keys, build_string (", "));
-
-  return keys1;
-}
-
-DEFUN ("where-is", Fwhere_is, Swhere_is, 1, 1, "CWhere is command: ",
-  "Print message listing key sequences that invoke specified command.\n\
-Argument is a command definition, usually a symbol with a function definition.")
-  (definition)
-     Lisp_Object definition;
-{
-  register Lisp_Object string;
-
-  CHECK_SYMBOL (definition, 0);
-  string = where_is_string (definition);
- 
-  if (XSTRING (string)->size)
-    message ("%s is on %s", XSYMBOL (definition)->name->data,
-	     XSTRING (string)->data);
-  else
-    message ("%s is not on any key", XSYMBOL (definition)->name->data);
-  return Qnil;
-}
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
 
@@ -2414,7 +2381,6 @@ key, typing `ESC O P x' would return [f1 x].");
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
-  defsubr (&Swhere_is);
   defsubr (&Sdescribe_bindings);
   defsubr (&Sapropos_internal);
 }
