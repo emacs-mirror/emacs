@@ -977,10 +977,10 @@ FRAME nil or omitted means delete all frames except the selected frame."
   (mapcar 'delete-frame (delq frame (frame-list))))
 
 
-(make-obsolete 'screen-height 'frame-height)
-(make-obsolete 'screen-width  'frame-width)
-(make-obsolete 'set-screen-width 'set-frame-width)
-(make-obsolete 'set-screen-height 'set-frame-height)
+(make-obsolete 'screen-height 'frame-height) ;before 19.15
+(make-obsolete 'screen-width  'frame-width) ;before 19.15
+(make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
+(make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
 
 
 ;;; Highlighting trailing whitespace.

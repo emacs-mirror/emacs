@@ -133,7 +133,7 @@ the resulting string may be narrower than END-COLUMN."
 ;;; For backward compatibility ...
 ;;;###autoload
 (defalias 'truncate-string 'truncate-string-to-width)
-(make-obsolete 'truncate-string 'truncate-string-to-width)
+(make-obsolete 'truncate-string 'truncate-string-to-width "20.1")
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
 ;;; also nested alist.

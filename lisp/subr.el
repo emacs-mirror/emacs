@@ -615,8 +615,8 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'define-function 'defalias)
 
 (defalias 'sref 'aref)
-(make-obsolete 'sref 'aref)
-(make-obsolete 'char-bytes "Now this function always returns 1")
+(make-obsolete 'sref 'aref "20.4")
+(make-obsolete 'char-bytes "Now this function always returns 1" "20.4")
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()

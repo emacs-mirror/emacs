@@ -156,7 +156,7 @@ If NAME is already a face, it is simply returned.
 This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
   (facep name))
-(make-obsolete 'internal-find-face 'facep)
+(make-obsolete 'internal-find-face 'facep "21.1")
 
 
 (defun internal-get-face (name &optional frame)
@@ -170,7 +170,7 @@ This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
   (or (internal-find-face name frame)
       (check-face name)))
-(make-obsolete 'internal-get-face "See `facep' and `check-face'.")
+(make-obsolete 'internal-get-face "See `facep' and `check-face'." "21.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1471,14 +1471,14 @@ created."
 
 (defun frame-update-faces (frame)
   nil)
-(make-obsolete 'frame-update-faces "No longer necessary")
+(make-obsolete 'frame-update-faces "No longer necessary" "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
 ;; changed.
 
 (defun frame-update-face-colors (frame)
   (frame-set-background-mode frame))
-(make-obsolete 'frame-update-face-colors 'frame-set-background-mode)
+(make-obsolete 'frame-update-face-colors 'frame-set-background-mode "21.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1771,7 +1771,7 @@ also the same size as FACE on FRAME, or fail."
 	  ((string-match x-font-regexp-weight font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
-(make-obsolete 'x-frob-font-weight 'make-face-...)
+(make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
 
 (defun x-frob-font-slant (font which)
   (let ((case-fold-search t))
@@ -1792,50 +1792,50 @@ also the same size as FACE on FRAME, or fail."
 	  ((string-match x-font-regexp-slant font)
 	   (concat (substring font 0 (match-beginning 1)) which
 		   (substring font (match-end 1)))))))
-(make-obsolete 'x-frob-font-slant 'make-face-...)
+(make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
 
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "bold"))
-(make-obsolete 'x-make-font-bold 'make-face-bold)
+(make-obsolete 'x-make-font-bold 'make-face-bold "21.1")
 
 (defun x-make-font-demibold (font)
   "Given an X font specification, make a demibold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "demibold"))
-(make-obsolete 'x-make-font-demibold 'make-face-bold)
+(make-obsolete 'x-make-font-demibold 'make-face-bold "21.1")
 
 (defun x-make-font-unbold (font)
   "Given an X font specification, make a non-bold version of it.
 If that can't be done, return nil."
   (x-frob-font-weight font "medium"))
-(make-obsolete 'x-make-font-unbold 'make-face-unbold)
+(make-obsolete 'x-make-font-unbold 'make-face-unbold "21.1")
 
 (defun x-make-font-italic (font)
   "Given an X font specification, make an italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "i"))
-(make-obsolete 'x-make-font-italic 'make-face-italic)
+(make-obsolete 'x-make-font-italic 'make-face-italic "21.1")
 
 (defun x-make-font-oblique (font) ; you say tomayto...
   "Given an X font specification, make an oblique version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "o"))
-(make-obsolete 'x-make-font-oblique 'make-face-italic)
+(make-obsolete 'x-make-font-oblique 'make-face-italic "21.1")
 
 (defun x-make-font-unitalic (font)
   "Given an X font specification, make a non-italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "r"))
-(make-obsolete 'x-make-font-unitalic 'make-face-unitalic)
+(make-obsolete 'x-make-font-unitalic 'make-face-unitalic "21.1")
 
 (defun x-make-font-bold-italic (font)
   "Given an X font specification, make a bold and italic version of it.
 If that can't be done, return nil."
   (and (setq font (x-make-font-bold font))
        (x-make-font-italic font)))
-(make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic)
+(make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic "21.1")
 
 (provide 'faces)
 

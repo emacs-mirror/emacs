@@ -280,7 +280,7 @@ This also sets the following values:
   (setq default-process-coding-system (cons coding-system coding-system)))
 
 (defalias 'update-iso-coding-systems 'update-coding-systems-internal)
-(make-obsolete 'update-iso-coding-systems 'update-coding-systems-internal)
+(make-obsolete 'update-iso-coding-systems 'update-coding-systems-internal "20.3")
 
 (defun prefer-coding-system (coding-system)
   "Add CODING-SYSTEM at the front of the priority list for automatic detection.
