@@ -3040,11 +3040,21 @@ See `term-prompt-regexp'."
    ((eq parameter 8)
     (setq term-ansi-current-invisible 1))
 
+;;; Foreground
    ((and (>= parameter 30) (<= parameter 37))
     (setq term-ansi-current-color (- parameter 29)))
 
+;;; Reset foreground
+   ((eq parameter 39)
+    (setq term-ansi-current-color 0))
+
+;;; Background
    ((and (>= parameter 40) (<= parameter 47))
     (setq term-ansi-current-bg-color (- parameter 39)))
+
+;;; Reset background
+   ((eq parameter 49)
+    (setq term-ansi-current-bg-color 0))
 
 ;;; 0 (Reset) or unknown (reset anyway)
    (t
