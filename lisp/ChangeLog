@@ -1,3 +1,8 @@
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (lisp): Set to an absolute directory, namely
+	$(CURDIR).
+
 2000-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacs-lisp/autoload.el (update-file-autoloads): Use raw-text to
