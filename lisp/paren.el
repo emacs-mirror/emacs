@@ -93,12 +93,14 @@ after `show-paren-delay' seconds of Emacs idle time."
 				      (min (point-max)
 					   (+ (point) blink-matching-paren-distance))))
 		;; Scan across one sexp within that range.
+		;; Errors or nil mean there is a mismatch.
 		(condition-case ()
 		    (setq pos (scan-sexps (point) dir))
-		  (error nil))
-		;; See if the "matching" paren is the right kind of paren
-		;; to match the one we started at.
-		(if pos
+		  (error (setq pos t
+			       mismatch t)))
+		;; If found a "matching" paren, see if it is the right
+		;; kind of paren to match the one we started at.
+		(if (integerp pos)
 		    (let ((beg (min pos oldpos)) (end (max pos oldpos)))
 		      (and (/= (char-syntax (char-after beg)) ?\$)
 			   (setq mismatch
@@ -127,28 +129,39 @@ after `show-paren-delay' seconds of Emacs idle time."
 			(message "Paren mismatch"))))
 		)))
 	(cond (pos
-	       (if (= dir -1)
+	       (if (or (= dir -1)
+		       (not (integerp pos)))
 		   ;; If matching backwards, highlight the closeparen
 		   ;; before point as well as its matching open.
-		   (progn
+		   ;; If matching forward, and the openparen is unbalanced,
+		   ;; highlight the paren at point to indicate misbalance.
+		   (let ((from (if (= dir 1)
+				   (point)
+				 (1- (point))))
+			 (to (if (= dir 1)
+				 (1+ (point))
+			       (point))))
 		     (if show-paren-overlay-1
 			 (move-overlay show-paren-overlay-1
-				       (+ (point) dir) (point)
+				       from to
 				       (current-buffer))
 		       (setq show-paren-overlay-1
-			     (make-overlay (+ (point) dir) (point))))
+			     (make-overlay from to)))
 		     ;; Always set the overlay face, since it varies.
 		     (overlay-put show-paren-overlay-1 'face face))
 		 ;; Otherwise, turn off any such highlighting.
 		 (and show-paren-overlay-1
 		      (overlay-buffer show-paren-overlay-1)
 		      (delete-overlay show-paren-overlay-1)))
-	       ;; Turn on highlighting for the matching paren.
-	       (if show-paren-overlay
-		   (move-overlay show-paren-overlay (- pos dir) pos
-				 (current-buffer))
-		 (setq show-paren-overlay
-		       (make-overlay (- pos dir) pos)))
+	       ;; Turn on highlighting for the matching paren, if found.
+	       ;; If it's an unmatched paren, turn off any such highlighting.
+	       (or (and (not (integerp pos))
+			(delete-overlay show-paren-overlay))
+		   (if show-paren-overlay
+		       (move-overlay show-paren-overlay (- pos dir) pos
+				     (current-buffer))
+		     (setq show-paren-overlay
+			   (make-overlay (- pos dir) pos))))
 	       ;; Always set the overlay face, since it varies.
 	       (overlay-put show-paren-overlay 'face face))
 	      (t
