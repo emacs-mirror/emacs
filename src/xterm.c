@@ -715,7 +715,7 @@ x_draw_fringe_bitmap (w, row, p)
   else
     x_clip_to_row (w, row, gc);
 
-  if (p->bx >= 0)
+  if (p->bx >= 0 && !p->overlay_p)
     {
       /* In case the same realized face is used for fringes and
 	 for something displayed in the text (e.g. face `region' on
@@ -733,20 +733,44 @@ x_draw_fringe_bitmap (w, row, p)
 	XSetForeground (display, face->gc, face->foreground);
     }
 
-  if (p->which != NO_FRINGE_BITMAP)
+  if (p->which)
     {
-      unsigned char *bits = fringe_bitmaps[p->which].bits + p->dh;
-      Pixmap pixmap;
+      unsigned char *bits = p->bits + p->dh;
+      Pixmap pixmap, clipmask = (Pixmap) 0;
       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+      XGCValues gcv;
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
 	 by the server.  */
       pixmap = XCreatePixmapFromBitmapData (display, window, bits, p->wd, p->h,
-					    face->foreground,
+					    (p->cursor_p
+					     ? (p->overlay_p ? face->background
+						: f->output_data.x->cursor_pixel)
+					     : face->foreground),
 					    face->background, depth);
+
+      if (p->overlay_p)
+	{
+	  clipmask = XCreatePixmapFromBitmapData (display, 
+						  FRAME_X_DISPLAY_INFO (f)->root_window,
+						  bits, p->wd, p->h, 
+						  1, 0, 1);
+	  gcv.clip_mask = clipmask;
+	  gcv.clip_x_origin = p->x;
+	  gcv.clip_y_origin = p->y; 
+	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+	}
+
       XCopyArea (display, pixmap, window, gc, 0, 0,
 		 p->wd, p->h, p->x, p->y);
       XFreePixmap (display, pixmap);
+
+      if (p->overlay_p)
+	{
+	  gcv.clip_mask = (Pixmap) 0;
+	  XChangeGC (display, gc, GCClipMask, &gcv);
+	  XFreePixmap (display, clipmask);
+	}
     }
 
   XSetClipMask (display, gc, None);
@@ -10867,6 +10891,8 @@ static struct redisplay_interface x_redisplay_interface =
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
   x_draw_fringe_bitmap,
+  0, /* define_fringe_bitmap */
+  0, /* destroy_fringe_bitmap */
   x_per_char_metric,
   x_encode_char,
   x_compute_glyph_string_overhangs,
