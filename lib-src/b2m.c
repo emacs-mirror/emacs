@@ -168,7 +168,7 @@ main (argc, argv)
 	      p = strtok (data.buffer, " ,\r\n\t");
 	      labels = "X-Babyl-Labels: ";
 
-	      while (p = strtok (NULL, " ,\r\n\t"))
+	      while ((p = strtok (NULL, " ,\r\n\t")))
 		labels = concat (labels, p, ", ");
 
 	      p = &labels[strlen (labels) - 2];
