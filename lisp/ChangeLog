@@ -7,6 +7,9 @@
 
 2003-05-03  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/autoload.el (update-directory-autoloads): Renamed from
+	update-autoloads-from-directories.
+
 	* progmodes/cperl-mode.el (cperl-nonoverridable-face): Doc fix.
 
 	* mail/sendmail.el (mail-dont-send, mail-bury): Make ARG optional.
