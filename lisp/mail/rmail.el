@@ -3057,7 +3057,12 @@ use \\[mail-yank-original] to yank the original message into it."
 	;; rmail-view-buffer which doesn't contain any lines specific
 	;; to BABYL format (e.g. "*** EOOH ***").  Thus, there's no
 	;; need of narrowing in such a case.
-	(unless rmail-enable-mime
+	(if rmail-enable-mime
+	    (narrow-to-region
+	     (goto-char (point-min))
+	     (if (search-forward "\n\n" nil 'move)
+		 (1+ (match-beginning 0))
+	       (point)))
 	  (widen)
 	  (goto-char (rmail-msgbeg rmail-current-message))
 	  (forward-line 1)
