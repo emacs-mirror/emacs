@@ -5430,7 +5430,7 @@ and the cdr part is used for encoding.\n\
 If VAL is a function symbol, the function must return a coding system\n\
 or a cons of coding systems which are used as above.\n\
 \n\
-See also the function `find-operation-coding-system'.\n\
+See also the function `find-operation-coding-system'\n\
 and the variable `auto-coding-alist'.");
   Vfile_coding_system_alist = Qnil;
 
@@ -5527,7 +5527,7 @@ If set, this function is called to force a user to select a proper\n\
 coding system which can encode the text in the case that a default\n\
 coding system used in each operation can't encode the text.\n\
 \n\
-The default value is `select-safe-codign-system' (which see).");
+The default value is `select-safe-coding-system' (which see).");
   Vselect_safe_coding_system_function = Qnil;
 
 }
