@@ -249,8 +249,9 @@ Lisp_Object Qmake_symbolic_link;
 Lisp_Object Qfile_exists_p;
 Lisp_Object Qfile_executable_p;
 Lisp_Object Qfile_readable_p;
-Lisp_Object Qfile_symlink_p;
 Lisp_Object Qfile_writable_p;
+Lisp_Object Qfile_symlink_p;
+Lisp_Object Qaccess_file;
 Lisp_Object Qfile_directory_p;
 Lisp_Object Qfile_regular_p;
 Lisp_Object Qfile_accessible_directory_p;
@@ -2694,6 +2695,32 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 	  ? Qt : Qnil);
 }
 
+DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
+  "Access file FILENAME, and get an error if that does not work.\n\
+The second argument STRING is used in the error message.\n\
+If there is no error, we return nil.")
+  (filename, string)
+     Lisp_Object filename, string;
+{
+  Lisp_Object handler;
+  int fd;
+
+  CHECK_STRING (filename, 0);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (filename, Qaccess_file);
+  if (!NILP (handler))
+    return call3 (handler, Qaccess_file, filename, string);
+
+  fd = open (XSTRING (filename)->data, O_RDONLY);
+  if (fd < 0)
+    report_file_error (XSTRING (string)->data, Fcons (filename, Qnil));
+  close (fd);
+
+  return Qnil;
+}
+
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
   "Return non-nil if file FILENAME is the name of a symbolic link.\n\
 The value is the name of the file to which it is linked.\n\
@@ -4509,8 +4536,9 @@ syms_of_fileio ()
   Qfile_exists_p = intern ("file-exists-p");
   Qfile_executable_p = intern ("file-executable-p");
   Qfile_readable_p = intern ("file-readable-p");
-  Qfile_symlink_p = intern ("file-symlink-p");
   Qfile_writable_p = intern ("file-writable-p");
+  Qfile_symlink_p = intern ("file-symlink-p");
+  Qaccess_file = intern ("access-file");
   Qfile_directory_p = intern ("file-directory-p");
   Qfile_regular_p = intern ("file-regular-p");
   Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
@@ -4539,8 +4567,9 @@ syms_of_fileio ()
   staticpro (&Qfile_exists_p);
   staticpro (&Qfile_executable_p);
   staticpro (&Qfile_readable_p);
-  staticpro (&Qfile_symlink_p);
   staticpro (&Qfile_writable_p);
+  staticpro (&Qaccess_file);
+  staticpro (&Qfile_symlink_p);
   staticpro (&Qfile_directory_p);
   staticpro (&Qfile_regular_p);
   staticpro (&Qfile_accessible_directory_p);
@@ -4695,6 +4724,7 @@ a non-nil value.");
   defsubr (&Sfile_executable_p);
   defsubr (&Sfile_readable_p);
   defsubr (&Sfile_writable_p);
+  defsubr (&Saccess_file);
   defsubr (&Sfile_symlink_p);
   defsubr (&Sfile_directory_p);
   defsubr (&Sfile_accessible_directory_p);
