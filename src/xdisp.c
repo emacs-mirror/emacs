@@ -129,6 +129,7 @@ static char *fmodetrunc ();
 static char *decode_mode_spec ();
 static int display_string ();
 static void display_menu_bar ();
+static int display_count_lines ();
 
 /* Prompt to display in front of the minibuffer contents */
 char *minibuf_prompt;
@@ -168,6 +169,12 @@ int clip_changed;
    since last redisplay that finished */
 int windows_or_buffers_changed;
 
+/* Nonzero after display_mode_line if %l was used
+   and it displayed a line number.  */
+int line_number_displayed;
+
+/* Maximum buffer size for which to display line numbers.  */
+int line_number_display_limit;
 
 /* Specify m, a string, as a message in the minibuf.  If m is 0, clear out
    any existing message, and let the minibuffer text show through.  */
@@ -819,9 +826,11 @@ redisplay_window (window, just_this_one)
   startp = marker_position (w->start);
 
   /* Handle case where place to start displaying has been specified,
-     unless the specified location is outside the visible range.  */
+     unless the specified location is outside the accessible range.  */
   if (!NILP (w->force_start))
     {
+      /* Forget any recorded base line for line number display.  */
+      w->base_line_number = Qnil;
       w->update_mode_line = Qt;
       w->force_start = Qnil;
       XFASTINT (w->last_modified) = 0;
@@ -928,7 +937,12 @@ redisplay_window (window, just_this_one)
       /* If point has not moved off frame, accept the results */
       try_window (window, startp);
       if (cursor_vpos >= 0)
-	goto done;
+	{
+	  if (!just_this_one || clip_changed || beg_unchanged < startp)
+	    /* Forget any recorded base line for line number display.  */
+	    w->base_line_number = Qnil;
+	  goto done;
+	}
       else
 	cancel_my_columns (w);
     }
@@ -955,7 +969,12 @@ redisplay_window (window, just_this_one)
 	{
 	  try_window (window, pos.bufpos);
 	  if (cursor_vpos >= 0)
-	    goto done;
+	    {
+	      if (!just_this_one || clip_changed || beg_unchanged < startp)
+		/* Forget any recorded base line for line number display.  */
+		w->base_line_number = Qnil;
+	      goto done;
+	    }
 	  else
 	    cancel_my_columns (w);
 	}
@@ -965,6 +984,9 @@ redisplay_window (window, just_this_one)
   /* Finally, just choose place to start which centers point */
 
 recenter:
+  /* Forget any previously recorded base line for line number display.  */
+  w->base_line_number = Qnil;
+
   pos = *vmotion (point, - height / 2, width, hscroll, window);
   try_window (window, pos.bufpos);
 
@@ -973,12 +995,19 @@ recenter:
     (startp == BEGV || FETCH_CHAR (startp - 1) == '\n') ? Qt : Qnil;
 
 done:
-  /* If window not full width, must redo its mode line
-     if the window to its side is being redone */
   if ((!NILP (w->update_mode_line)
-       || (!just_this_one && width < FRAME_WIDTH (f) - 1))
+       /* If window not full width, must redo its mode line
+	  if the window to its side is being redone */
+       || (!just_this_one && width < FRAME_WIDTH (f) - 1)
+       || INTEGERP (w->base_line_pos))
       && height != XFASTINT (w->height))
     display_mode_line (w);
+  if (! line_number_displayed
+      && ! BUFFERP (w->base_line_pos))
+    {
+      w->base_line_pos = Qnil;
+      w->base_line_number = Qnil;
+    }
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (!NILP (w->update_mode_line)
@@ -1889,6 +1918,8 @@ display_mode_line (w)
   register int right = XFASTINT (w->width) + left;
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
 
+  line_number_displayed = 0;
+
   get_display_line (f, vpos, left);
   display_mode_element (w, vpos, left, 0, right, right,
 			current_buffer->mode_line_format);
@@ -2181,6 +2212,93 @@ decode_mode_spec (w, c, maxwidth)
 #endif
       break;
 
+    case 'l':
+      {
+	int startpos = marker_position (w->start);
+	int line, linepos, topline;
+	int nlines, junk;
+	Lisp_Object tem;
+	int height = XFASTINT (w->height);
+
+	/* If we decided that this buffer isn't suitable for line numbers, 
+	   don't forget that too fast.  */
+	if (EQ (w->base_line_pos, w->buffer))
+	  return "??";
+
+	/* If the buffer is very big, don't waste time.  */
+	if (ZV - BEGV > line_number_display_limit)
+	  {
+	    w->base_line_pos = Qnil;
+	    w->base_line_number = Qnil;
+	    return "??";
+	  }
+
+	if (!NILP (w->base_line_number)
+	    && !NILP (w->base_line_pos)
+	    && XFASTINT (w->base_line_pos) <= marker_position (w->start))
+	  {
+	    line = XFASTINT (w->base_line_number);
+	    linepos = XFASTINT (w->base_line_pos);
+	  }
+	else
+	  {
+	    line = 1;
+	    linepos = BEGV;
+	  }
+
+	/* Count lines from base line to window start position.  */
+	nlines = display_count_lines (linepos, startpos, startpos, &junk);
+
+	topline = nlines + line;
+
+	/* Determine a new base line, if the old one is too close
+	   or too far away, or if we did not have one.
+	   "Too close" means it's plausible a scroll-down would
+	   go back past it.  */
+	if (startpos == BEGV)
+	  {
+	    XFASTINT (w->base_line_number) = topline;
+	    XFASTINT (w->base_line_pos) = BEGV;
+	  }
+	else if (nlines < height + 25 || nlines > height * 3 + 50
+		 || linepos == BEGV)
+	  {
+	    int limit = BEGV;
+	    int position;
+	    int distance = (height * 2 + 30) * 200;
+
+	    if (startpos - distance > limit)
+	      limit = startpos - distance;
+
+	    nlines = display_count_lines (startpos, limit,
+					  -(height * 2 + 30),
+					  &position);
+	    /* If we couldn't find the lines we wanted within 
+	       200 chars per line,
+	       give up on line numbers for this window.  */
+	    if (position == startpos - distance)
+	      {
+		w->base_line_pos = w->buffer;
+		w->base_line_number = Qnil;
+		return "??";
+	      }
+
+	    XFASTINT (w->base_line_number) = topline - nlines;
+	    XFASTINT (w->base_line_pos) = position;
+	  }
+
+	/* Now count lines from the start pos to point.  */
+	nlines = display_count_lines (startpos, PT, PT, &junk);
+
+	/* Record that we did display the line number.  */
+	line_number_displayed = 1;
+
+	/* Make the string to show.  */
+	sprintf (decode_mode_spec_buf, "%d", topline + nlines);
+	return decode_mode_spec_buf;
+      }
+      break;
+
     case 'm': 
       obj = current_buffer->mode_name;
       break;
@@ -2284,6 +2402,37 @@ decode_mode_spec (w, c, maxwidth)
   else
     return "";
 }
+
+/* Count up to N lines starting from FROM.
+   But don't go beyond LIMIT.
+   Return the number of lines thus found (always positive).
+   Store the position after what was found into *POS_PTR.  */
+
+static int
+display_count_lines (from, limit, n, pos_ptr)
+     int from, limit, n;
+     int *pos_ptr;
+{
+  int oldbegv = BEGV;
+  int oldzv = ZV;
+  int shortage = 0;
+  
+  if (limit < from)
+    BEGV = limit;
+  else
+    ZV = limit;
+
+  *pos_ptr = scan_buffer ('\n', from, n, &shortage);
+
+  ZV = oldzv;
+  BEGV = oldbegv;
+
+  if (n < 0)
+    /* When scanning backwards, scan_buffer stops *after* the last newline
+       it finds, but does count it.  Compensate for that.  */
+    return - n - shortage - (*pos_ptr != limit);
+  return n - shortage;
+}  
 
 /* Display STRING on one line of window W, starting at HPOS.
    Display at position VPOS.  Caller should have done get_display_line.
@@ -2462,6 +2611,10 @@ If this is zero, point is always centered after it moves off frame.");
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
     "*Non-nil means use inverse video for the mode line.");
   mode_line_inverse_video = 1;
+
+  DEFVAR_INT ("line-number-display-limit", &line_number_display_limit,
+    "*Maximum buffer size for which line number should be displayed.");
+  line_number_display_limit = 1000000;
 }
 
 /* initialize the window system */
