@@ -1105,21 +1105,24 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 		    /* Draw the first character at the normal position.  */
                     if (print_via_unicode)
-                      ExtTextOutW (hdc, left + x_offset, top /*+ baseline*/,
+                      ExtTextOutW (hdc, left + x_offset,
+                                   top /*+ baseline*/,
                                    fuOptions, clip_region,
                                    x_2byte_buffer, 1, NULL);
                     else if (CHARSET_DIMENSION (charset) > 1)
                       {
                         /* Keep character together */
                         int n = CHARSET_DIMENSION (charset) ;
-                        ExtTextOut (hdc, left + x_offset, top /*+ baseline*/,
+                        ExtTextOut (hdc, left + x_offset,
+                                    top /*+ baseline*/,
                                     fuOptions, clip_region,
                                     x_1byte_buffer, n, NULL);
                         /* fiddle i.  */
                         i += n - 1;
                       }
                     else
-                      ExtTextOut (hdc, left + x_offset, top /*+ baseline*/,
+                      ExtTextOut (hdc, left + x_offset,
+                                  top /*+ baseline*/,
                                   fuOptions, clip_region,
                                   x_1byte_buffer, 1, NULL);
                     gidx++;
@@ -1256,7 +1259,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 	  if (face->underline)
 	    w32_fill_area (f, hdc, fg, left,
-                           top + FONT_BASE (font) + underline_position,
+                           top + FONT_BASE (FRAME_FONT (f))
+                           + underline_position,
                            run_width, 1);
 	}
 
@@ -5164,6 +5168,7 @@ When nil, CapsLock only affects normal character input keys.");
 When nil, the right-alt and left-ctrl key combination is\n\
 interpreted normally."); 
   Vw32_recognize_altgr = Qt;
+
   DEFVAR_BOOL ("w32-no-unicode-output",
                &w32_no_unicode_output,
                "Disable the use of Unicode for text output if non-nil.\n\
