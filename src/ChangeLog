@@ -1,7 +1,17 @@
+2003-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (kbd_buffer_get_event): Don't handle SELECT_WINDOW_EVENT
+	specially, so that they can't hide an implicit switch-frame event.
+	(make_lispy_event): Handle SELECT_WINDOW_EVENT.
+	(head_table): Use switch-frame as event_kind for select-window.
+	(keys_of_keyboard): Don't bind [select-window] in special-event-map.
+
+	* editfns.c (Fformat): Lisp_Object/int mixup.
+	(format2): Remove unused var numargs.
+
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (Vafter_insert_file_adjust_coding_function): Delete
-	this variable.
+	* fileio.c (Vafter_insert_file_adjust_coding_function): Delete.
 	(Qafter_insert_file_set_coding): New variable.
 	(syms_of_fileio): Initialize and staticpro it.  Delete declaration
 	for after-insert-file-adjust-coding-function.
@@ -17,11 +27,10 @@
 
 2003-04-10  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (Vafter_insert_file_adjust_coding_function): New
-	variable.
+	* fileio.c (Vafter_insert_file_adjust_coding_function): New variable.
 	(syms_of_fileio): Declare it as a lisp variable.
-	(Finsert_file_contents): Call
-	Vafter_insert_file_adjust_coding_function before calling
+	(Finsert_file_contents):
+	Call Vafter_insert_file_adjust_coding_function before calling
 	decode-format.
 
 2003-04-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -37,14 +46,12 @@
 	* xfaces.c (Vface_font_rescale_alist): New variable.
 	(struct font_name): New member rescale_ratio.
 	(font_rescale_ratio): New function.
-	(split_font_name): If NUMERIC_P is nonzero, set
-	font->rescale_ratio.
+	(split_font_name): If NUMERIC_P is nonzero, set font->rescale_ratio.
 	(better_font_p): On comparing point sized, pay attention to
 	recale_ratio member of fonts.
 	(build_scalable_font_name): Reflect font->rescale_ratio in the
 	font name.
-	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
-	variable.
+	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp variable.
 
 	* lread.c (read1): Before calling index, check if the 2nd
 	arguemnt is in ASCII range.
@@ -60,7 +67,7 @@
 	(syms_of_fileio) <after-insert-file-functions>: Doc fix.
 
 2003-04-08  Ivan Zakharyaschev  <imz@altlinux.org>  (tiny change)
-	
+
 	* lread.c (openp): Get the Qfile_exists_p handler for STRING, not FN.
 
 2003-04-08  Steven Tamm  <steventamm@mac.com>
@@ -70,8 +77,8 @@
 
 2003-04-08  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (code_convert_region_unwind): Set
-	Vlast_coding_system_used to the argument.
+	* coding.c (code_convert_region_unwind):
+	Set Vlast_coding_system_used to the argument.
 	(code_convert_region): If post-read-conversion function changed
 	the value of last-coding-sytem, keep the new value in
 	coding->symbol so that it won't be overridden.
@@ -164,8 +171,8 @@
 	(x_get_arg, x_frame_get_arg, x_frame_get_and_record_arg)
 	(x_default_parameter, Fx_parse_geometry): Functions for generic
 	access to frame parameters.
-	(x_figure_window_size): Generic calculation of frame size. Fixed
-	to add space needed for tool bar.  Also setup size_hint_flags.
+	(x_figure_window_size): Generic calculation of frame size.
+	Fixed to add space needed for tool bar.  Also setup size_hint_flags.
 	(syms_of_frame): Intern and staticpro frame parameter variables.
 	Defvar_lisp Vx_resource_class and Vx_resource_name here.
 	Defsubr Sx_get_resource and Sx_parse_geometry.
