@@ -1930,6 +1930,18 @@ created files will not have that permission enabled.")
   return mask;
 }
 
+#ifdef unix
+
+DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
+  "Tell Unix to finish all pending disk updates.")
+  ()
+{
+  sync ();
+  return Qnil;
+}
+
+#endif /* unix */
+
 DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_p, 2, 2, 0,
   "Return t if file FILE1 is newer than file FILE2.\n\
 If FILE1 does not exist, the answer is nil;\n\
@@ -2875,4 +2887,6 @@ nil means use format `var'.  This variable is meaningful only on VMS.");
 
   defsubr (&Sread_file_name_internal);
   defsubr (&Sread_file_name);
+
+  defsubr (&Sunix_sync);
 }

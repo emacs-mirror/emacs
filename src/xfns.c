@@ -2864,6 +2864,8 @@ DEFUN ("x-pixel-height", Fx_pixel_height, Sx_pixel_height, 1, 1, 0,
   return make_number (XSCREEN (screen)->display.x->pixel_height);
 }
 
+#if 0  /* These no longer seem like the right way to do things.  */
+
 /* Draw a rectangle on the screen with left top corner including
    the character specified by LEFT_CHAR and TOP_CHAR.  The rectangle is
    CHARS by LINES wide and long and is the color of the cursor. */
@@ -3330,7 +3332,6 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 }
 #endif
 
-#if 0
 DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
   "")
   (event)
@@ -4351,10 +4352,12 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
   defsubr (&Sx_get_resource);
   defsubr (&Sx_pixel_width);
   defsubr (&Sx_pixel_height);
+#if 0
   defsubr (&Sx_draw_rectangle);
   defsubr (&Sx_erase_rectangle);
   defsubr (&Sx_contour_region);
   defsubr (&Sx_uncontour_region);
+#endif
   defsubr (&Sx_color_display_p);
   defsubr (&Sx_defined_color);
 #if 0
