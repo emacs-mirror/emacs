@@ -19,7 +19,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* X pop-up deck-of-cards menu facility for gnuemacs.
+/* X pop-up deck-of-cards menu facility for GNU Emacs.
  *
  * Written by Jon Arnold and Roman Budzianowski
  * Mods and rewrite by Robert Krawitz
@@ -115,7 +115,7 @@ void popup_get_selection ();
 
 #ifdef USE_X_TOOLKIT
 
-/* Define HAVE_BOXES if meus can handle radio and toggle buttons.  */
+/* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
 #define HAVE_BOXES 1
 #endif
@@ -320,7 +320,7 @@ push_left_right_boundary ()
   XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
 }
 
-/* Start a new menu pane in menu_items..
+/* Start a new menu pane in menu_items.
    NAME is the pane name.  PREFIX_VEC is a prefix key for this pane.  */
 
 static void
