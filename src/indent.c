@@ -1566,6 +1566,11 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
   else
     CHECK_LIVE_WINDOW (window, 0);
 
+  if (XINT (from) < BEGV || XINT (from) > ZV)
+    args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
+  if (XINT (to) < BEGV || XINT (to) > ZV)
+    args_out_of_range_3 (to, make_number (BEGV), make_number (ZV));
+
   pos = compute_motion (XINT (from), XINT (XCONS (frompos)->cdr),
 			XINT (XCONS (frompos)->car), 0,
 			XINT (to), XINT (XCONS (topos)->cdr),
