@@ -13,9 +13,9 @@
 * Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
 @end direntry
 
-Copyright 1994-1999 Reuven M. Lerner@*
-Copyright 1992-1993 Steven Byrnes@*
-Copyright 1990-1992 Joseph Brian Wells@*
+Copyright 1994,1995,1996,1997,1998,1999 Reuven M. Lerner@*
+Copyright 1992,1993 Steven Byrnes@*
+Copyright 1990,1991,1992 Joseph Brian Wells@*
 
 This list of frequently asked questions about GNU Emacs with answers
 ("FAQ") may be translated into other languages, transformed into other
@@ -44,9 +44,9 @@ itself allows free copying and redistribution.
 @c The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1994-1999 Reuven M. Lerner@*
-Copyright @copyright{} 1992-1993 Steven Byrnes@*
-Copyright @copyright{} 1990-1992 Joseph Brian Wells@*
+Copyright @copyright{} 1994,1995,1996,1997,1998,1999 Reuven M. Lerner@*
+Copyright @copyright{} 1992,1993 Steven Byrnes@*
+Copyright @copyright{} 1990,1991,1992 Joseph Brian Wells@*
 
 This list of frequently asked questions about GNU Emacs with answers
 ("FAQ") may be translated into other languages, transformed into other
@@ -4368,52 +4368,21 @@ undesirable if you actually intend to use them.
 @cindex Displaying eight-bit characters
 @cindex Eight-bit characters, displaying
 
-Emacs 19 has built-in support for eight-bit characters.  See
-@inforef{European Display, European Display, emacs}, from which this
-excerpt is taken:
-
-@quotation
-Some European languages use accented letters and other special symbols.
-The ISO 8859 Latin-1 character set defines character codes for many
-European languages in the range 160 to 255.
-
-Emacs can display those characters according to Latin-1, provided the
-terminal or font in use supports them.  The @kbd{M-x
-standard-display-european} command toggles European character display
-mode.  With a numeric argument, @kbd{M-x standard-display-european}
-enables European character display if and only if the argument is
-positive.
-
-Some operating systems let you specify the language you are using by
-setting a locale.  Emacs handles one common special case of this: if
-your locale name for character types contains the string "8859-1" or
-"88591", Emacs automatically enables European character display mode
-when it starts up.
-@end quotation
+See @inforef{Single-Byte European Support, Single-byte European
+Character Support, emacs}.  On a non-window-system display you typically
+need to use @code{set-terminal-coding-system} to tell Emacs what the
+terminal can display, even after setting the language environment.
+Otherwise non-ASCII characters will display as @samp{?}.
 
 @node Inputting eight-bit characters, Kanji and Chinese characters, Emacs does not display 8-bit characters, Alternate character sets
 @section How do I input eight-bit characters?
 @cindex Entering eight-bit characters
 @cindex Eight-bit characters, entering
 
-@inforef{European Display, European Display, emacs}, from which this is
-taken:
-
-@quotation
-If you enter non-ASCII ISO Latin-1 characters often, you might find ISO
-Accents mode convenient.  When this minor mode is enabled, @key{`},
-@key{'}, @key{"}, @key{^}, @key{/} and @key{~} modify the following
-letter by adding the corresponding diacritical mark to it, if possible.
-To enable or disable ISO Accents mode, use the command @kbd{M-x
-iso-accents-mode}.  This command affects only the current buffer.
-
-To enter one of those six special characters, type the character,
-followed by a space.  Some of those characters have a corresponding
-"dead key" accent character in the ISO Latin-1 character set; to enter
-that character, type the corresponding ASCII character twice.  For
-example, @kbd{''} enters the Latin-1 character acute-accent (character
-code 0264).
-@end quotation
+Various methods are available for input of eight-bit characters.  See
+@inforef{Single-Byte European Support, Single-byte European Character
+Support, emacs}.  For more sophisticated methods, see @inforef{Input
+Methods, Input Methods, emacs}.
 
 @node Kanji and Chinese characters, Right-to-left alphabets, Inputting eight-bit characters, Alternate character sets
 @section Where can I get an Emacs that handles kanji, Chinese, or other character sets?
