@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/AddSel.c,v 1.1 1992/04/11 22:10:17 jimb Exp $ */
+/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/AddSel.c,v 1.1 1999/10/03 19:34:52 fx Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -17,13 +17,14 @@
 #include "XMenuInt.h"
 
 int
-XMenuAddSelection(display, menu, p_num, data, label, active)
+XMenuAddSelection(display, menu, p_num, data, label, active, help)
     Display *display;
     register XMenu *menu;	/* Menu object to be modified. */
     register int p_num;		/* Pane number to be modified. */
     char *data;			/* Data value. */
     char *label;		/* Selection label. */
     int active;			/* Make selection active? */
+    char *help;			/* Help string */
 {
     register XMPane *pane;	/* Pane containing the new selection. */
     register XMSelect *select;	/* Newly created selection. */
@@ -79,6 +80,7 @@ XMenuAddSelection(display, menu, p_num, data, label, active)
     select->label_length = label_length;
     select->data = data;
     select->parent_p = pane;
+    select->help_string = help;
     
     /*
      * Insert the selection at the end of the selection list.
