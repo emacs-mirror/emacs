@@ -1316,6 +1316,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   (interactive
    (let ((completion-ignore-case t)
 	 (case-fold-search t)
+	 (inhibit-point-motion-hooks t)
 	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
        ;; Store end and beginning of line.
@@ -1380,6 +1381,7 @@ FOOTNOTENAME may be an abbreviation of the reference name."
     (error "No reference was specified"))
 
   (let (target beg i (str (concat "\\*note " (regexp-quote footnotename)))
+	       (inhibit-point-motion-hooks t)
 	       (case-fold-search t))
     (while (setq i (string-match " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
@@ -1807,6 +1809,7 @@ parent node."
   "Move cursor to the next cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
+	(inhibit-point-motion-hooks t)
 	(old-pt (point))
 	(case-fold-search t))
     (or (eobp) (forward-char 1))
@@ -1827,6 +1830,7 @@ parent node."
   "Move cursor to the previous cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
+	(inhibit-point-motion-hooks t)
 	(old-pt (point))
 	(case-fold-search t))
     (or (re-search-backward pat nil t)
@@ -2055,7 +2059,8 @@ If no reference to follow, moves to the next node, or up if none."
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node ()
   "Follow a node reference near point.  Return non-nil if successful."
-  (let (node)
+  (let (node
+	(inhibit-point-motion-hooks t))
     (cond
      ((setq node (Info-get-token (point) "\\*note[ \n]"
 				 "\\*note[ \n]\\([^:]*\\):"))
@@ -2712,20 +2717,43 @@ the variable `Info-file-list-for-emacs'."
 	    (add-text-properties (match-beginning 2) (1+ (match-end 2))
 				 '(invisible t intangible t))))
 	(goto-char (point-min))
-	(while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
-	  (if (= (char-after (1- (match-beginning 0))) ?\") ; hack
-	      nil
-	    (add-text-properties (match-beginning 1) (match-end 1)
-				 '(font-lock-face info-xref
-				   mouse-face highlight
-				   help-echo "mouse-2: go to this node"))))
+	(while (re-search-forward "\\(\\*Note[ \n\t]+\\)\\([^:]*\\)\\(:[^.,:]*[,:]?\\)" nil t)
+	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
+	    (let ((next (point))
+		  (hide-tag font-lock-mode)
+		  other-tag)
+	      (when hide-tag
+		;; *Note is often used where *note should have been
+		(goto-char (match-beginning 0))
+		(skip-syntax-backward " ")
+		(setq other-tag
+		      (cond
+		       ((or (<= (point) (point-min))
+			    (memq (char-after (1- (point))) '( ?\. ?! )))
+			"See ")
+		       ((memq (char-after (1- (point))) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
+			"see ")
+		       (t nil)))
+		(goto-char next))
+	      (if hide-tag
+		  (add-text-properties (match-beginning 1) (match-end 1)
+				       (if other-tag
+					   (list 'display other-tag 'intangible t)
+					 '(invisible t intangible t))))
+	      (add-text-properties (match-beginning 2) (match-end 2)
+				   '(font-lock-face info-xref
+						    mouse-face highlight
+						    help-echo "mouse-2: go to this node"))
+	      (add-text-properties (match-beginning 3) (match-end 3)
+				   '(invisible t intangible t)))))
+
 	(goto-char (point-min))
 	(if (and (search-forward "\n* Menu:" nil t)
 		 (not (string-match "\\<Index\\>" Info-current-node))
 		 ;; Don't take time to annotate huge menus
 		 (< (- (point-max) (point)) Info-fontify-maximum-menu-size))
 	    (let ((n 0))
-	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\):" nil t)
+	      (while (re-search-forward "^\\* +\\([^:\t\n]*\\)\\(:[^.,:]*[,:.][ \t]*\\)" nil t)
 		(setq n (1+ n))
 		(if (zerop (% n 3)) ; visual aids to help with 1-9 keys
 		    (put-text-property (match-beginning 0)
@@ -2734,7 +2762,12 @@ the variable `Info-file-list-for-emacs'."
 		(add-text-properties (match-beginning 1) (match-end 1)
 				     '(font-lock-face info-xref
 				       mouse-face highlight
-				       help-echo "mouse-2: go to this node")))))
+				       help-echo "mouse-2: go to this node"))
+		(add-text-properties (match-beginning 2) (match-end 2)
+				     (list 'display 
+					   (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )
+					   'intangible t)))))
+
 	(Info-fontify-menu-headers)
 	(set-buffer-modified-p nil)))))
 
