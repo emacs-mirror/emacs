@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/11/09 12:38:31 $
-;; Version:		$Revision: 1.59 $
+;; Last-Modified:	$Date: 1994/11/22 04:37:43 $
+;; Version:		$Revision: 1.60 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -480,13 +480,15 @@ default section number is selected from `Man-auto-section-alist'."
 	     (progn (skip-chars-forward "-a-zA-Z0-9_.") (point))))
       
       ;; If looking at something like ioctl(2) or brc(1M), include the
-      ;; section number in the returned value.
-      (concat
-       default-title
-       (if (looking-at
-	    (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-	   (format "(%s)" (Man-match-substring 1)))
-       ))))
+      ;; section number in the returned value.  Remove text properties.
+      (let ((result (concat
+		     default-title
+		     (if (looking-at
+			  (concat "[ \t]*([ \t]*\\("
+				  Man-section-regexp "\\)[ \t]*)"))
+			 (format "(%s)" (Man-match-substring 1))))))
+	(set-text-properties 0 (length result) nil result)
+	))))
 
 
 ;; ======================================================================
