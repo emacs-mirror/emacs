@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.25 2000/10/02 03:46:26 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.26 2000/10/02 06:49:21 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -229,7 +229,7 @@ when editing big diffs)."
      (1 diff-hunk-header-face)
      (2 diff-comment-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
-    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\).*[^*-]\n"
+    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
     ("^!.*\n" . diff-changed-face)	;context
@@ -1050,7 +1050,6 @@ With a prefix argument, REVERSE the hunk."
 
 
 (defun diff-test-hunk (&optional reverse)
-  ;; FIXME: is `reverse' ever useful ???
   "See whether it's possible to apply the current hunk.
 With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
@@ -1067,15 +1066,15 @@ is given) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
   then `diff-jump-to-old-file-flag' is also set, for the next invocations."
   (interactive "P")
-  (destructuring-bind (buf line-offset pos src dst &optional switched)
-      ;; We normally jump to the NEW file, where the hunk should already
-      ;; be applied, so favor the `reverse'.
-      (diff-find-source-location other-file t)
-    (pop-to-buffer buf)
-    (goto-char (+ pos (cdr src)))
-    (if line-offset
-	(diff-hunk-status-msg line-offset (not switched) t)
-      (message "Hunk text not found"))))
+  ;; When pointing at a removal line, we probably want to jump to
+  ;; the old location, and else to the new (i.e. as if reverting).
+  ;; This is a convenient detail when using smerge-diff.
+  (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
+    (destructuring-bind (buf line-offset pos src dst &optional switched)
+	(diff-find-source-location other-file rev)
+      (pop-to-buffer buf)
+      (goto-char (+ pos (cdr src)))
+      (diff-hunk-status-msg line-offset (not switched) t))))
 
 
 (defun diff-current-defun ()
