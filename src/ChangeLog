@@ -1,5 +1,8 @@
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_hide_tip) [USE_LUCID]: Add a hack to redisplay
+	the menu bar when the tooltip is unmapped.
+
 	* buffer.c (Fkill_buffer): Notice if the buffer to kill is the
 	sole visible buffer when we're currently in the mini-buffer, and
 	give up if so.

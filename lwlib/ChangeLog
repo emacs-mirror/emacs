@@ -1,3 +1,7 @@
+2000-11-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenu.c (xlwmenu_redisplay): New function.
+
 2000-09-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lwlib.c (lw_separator_p): Init separator_p (bug with "-- some text").
