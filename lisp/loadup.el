@@ -94,6 +94,16 @@
     (progn
       (garbage-collect)
       (load "vms-patch")))
+(if (eq system-type 'ms-dos)
+    (progn
+      (load "ls-lisp")
+      (garbage-collect)
+      (load "mouse")
+      (garbage-collect)
+      (load "dos-fns")
+      (garbage-collect)
+      (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
+      (garbage-collect)))
 (if (fboundp 'atan)	; preload some constants and 
     (progn		; floating pt. functions if 
       (garbage-collect)	; we have float support.
@@ -124,10 +134,12 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
-      (setq name (concat (expand-file-name "../etc/DOC-") name))
-      (if (file-exists-p name)
-	  (delete-file name))
-      (copy-file (expand-file-name "../etc/DOC") name t)
+      (if (eq system-type 'ms-dos)
+	  (setq name (expand-file-name "../etc/DOC"))
+	(setq name (concat (expand-file-name "../etc/DOC-") name))
+	(if (file-exists-p name)
+	    (delete-file name))
+	(copy-file (expand-file-name "../etc/DOC") name t))
       (Snarf-documentation (file-name-nondirectory name)))
     (Snarf-documentation "DOC"))
 (message "Finding pointers to doc strings...done")
@@ -153,7 +165,9 @@
 	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			     "-"
 			     (substring name (match-end 0)))))
-	(message "Dumping under names emacs and %s" name))
+	(if (eq system-type 'ms-dos)
+	    (message "Dumping under the name emacs")
+	  (message "Dumping under names emacs and %s" name)))
       (condition-case ()
 	  (delete-file "emacs")
 	(file-error nil))
@@ -163,12 +177,13 @@
       ;; other GNU product's build process.
       (dump-emacs "emacs" "temacs")
       ;; Recompute NAME now, so that it isn't set when we dump.
-      (let ((name (concat "emacs-" emacs-version)))
-	(while (string-match "[^-+_.a-zA-Z0-9]+" name)
-	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
-			     "-"
-			     (substring name (match-end 0)))))
-	(add-name-to-file "emacs" name t))
+      (if (not (eq system-type 'ms-dos))
+	  (let ((name (concat "emacs-" emacs-version)))
+	    (while (string-match "[^-+_.a-zA-Z0-9]+" name)
+	      (setq name (concat (downcase (substring name 0 (match-beginning 0)))
+				 "-"
+				 (substring name (match-end 0)))))
+	    (add-name-to-file "emacs" name t)))
       (kill-emacs)))
 
 ;; Avoid error if user loads some more libraries now.
