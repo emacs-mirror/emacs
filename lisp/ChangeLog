@@ -1,5 +1,8 @@
 2002-06-10  Miles Bader  <miles@gnu.org>
 
+	* simple.el (line-move-finish): Inhibit field motion when
+	computing `line-end'.
+
 	* files.el (revert-buffer): Correct typo: variable name is
 	`buffer-file-format', not `buffer-file-formats'.
 
