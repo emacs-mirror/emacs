@@ -1,3 +1,25 @@
+2001-11-24  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+
+	The following changes are for new indian languages support based
+	on Unicode charset and CDAC fonts.
+
+	* international/mule-conf.el: Change indian-1-column charset to
+	indian-glyph charset.
+
+	* international/characters.el: Adjusted for the change of
+	indian-1-column -> indian-glyph.
+
+	* international/fontset.el: Delete the setting for indian-1-column
+	and add the setting for indian-glyph in the default fontset.
+	
+	* language/indian.el: Completely re-written.
+
+	* language/devanagari.el: Completely re-written. 
+
+	* language/devan-util.el: Completely re-written.
+
+	* language/ind-util.el: New file.
+
 2001-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (command-line-1): Don't do startup screen

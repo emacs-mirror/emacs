@@ -1,3 +1,16 @@
+2001-11-21  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+
+	* quail/devanagari.el: Renamed to indian.el.
+
+	* quail/indian.el: Renamed from devanagari.el, and completely
+	re-written.  The input method devanagari-hindi-transliteration is
+	merged with devanagari-itrans, devanagari-keyboard-a is renamed to
+	devanagari-inscript, devanagari-transliteration is renamed to
+	devanagari-kyoto-harvard.
+
+	* Makefile.in: Adjusted for the file name change;
+	quail/devanagari.elc -> quail/indian.elc.
+
 2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/welsh.el: Avoid an error message due to a commented-out

@@ -1,3 +1,10 @@
+2001-11-24  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Fload): Detect recursive load error for more than 3
+	nestings of the same file.
+	(Vrecursive_load_depth_limit): Variable deleted.
+	(syms_of_lread) <recursive-load-depth-limit>: Variable deleted.
+
 2001-11-24  Jason Rumney  <jasonr@gnu.org>
 
 	* xfns.c (compute_tip_xy): Initialize root_x and root_y from

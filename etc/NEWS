@@ -202,9 +202,13 @@ called to print the entries' values.  It default to `princ'.
 ** emacsserver now runs pre-command-hook and post-command-hook when
 it receives a request from emacsclient.
 
-** The default value of paragraph-start and indent-line-function has
-been changed to reflect the one used in text-mode rather than the one
-used in indented-text-mode.
+** The variable `recursive-load-depth-limit' has been deleted.
+Emacs now signals an error if the same file is loaded with more
+than 3 levels of nesting.
+
+** The default values of paragraph-start and indent-line-function have
+been changed to reflect those used in Text mode rather than those used
+in Indented-Text mode.
 
 ** If a major mode function has a non-nil `no-clone-indirect'
 property, `clone-indirect-buffer' signals an error if you use
