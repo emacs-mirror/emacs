@@ -45,37 +45,65 @@
 
 ;; User Options:
 
-(defvar bibtex-mode-hook nil
-  "List of functions to call on entry to BibTeX mode.")
+(defgroup bibtex nil
+  "BibTeX mode."
+  :group 'tex
+  :prefix "bibtex-")
 
-(defvar bibtex-field-delimiters 'braces
+(defgroup bibtex-autokey nil
+  "Generates automatically a key from the author/editor and the title field"
+  :group 'bibtex
+  :prefix 'bibtex-autokey)
+
+(defcustom bibtex-mode-hook nil
+  "List of functions to call on entry to BibTeX mode."
+  :group 'bibtex
+  :type '(repeat function))
+
+(defcustom bibtex-field-delimiters 'braces
   "*Controls type of field delimiters used.
 Set this to 'braces or 'double-quotes according to your personal
-preferences. This variable is buffer local.")
+preferences. This variable is buffer local."
+  :group 'bibtex
+  :type '(choice (const braces)
+		 (const double-quotes)))
 (make-variable-buffer-local 'bibtex-field-delimiters)
 
-(defvar bibtex-entry-delimiters 'braces
+(defcustom bibtex-entry-delimiters 'braces
   "*Controls type of entry delimiters used.
 Set this to 'braces or 'parentheses according to your personal
-preferences. This variable is buffer local.")
+preferences. This variable is buffer local."
+  :group 'bibtex
+  :type '(choice (const braces)
+		 (const parentheses)))
 (make-variable-buffer-local 'bibtex-entry-delimiters)
 
-(defvar bibtex-include-OPTcrossref '("InProceedings" "InCollection")
-  "*All entries listed here will have an OPTcrossref field.")
+(defcustom bibtex-include-OPTcrossref '("InProceedings" "InCollection")
+  "*All entries listed here will have an OPTcrossref field."
+  :group 'bibtex
+  :type '(repeat string))
 
-(defvar bibtex-include-OPTkey t
+(defcustom bibtex-include-OPTkey t
   "*If non-nil, all entries will have an OPTkey field.
 If this is a string, it will be used as the initial field text.
-If this is a function, it will be called to generate the initial field text.")
+If this is a function, it will be called to generate the initial field text."
+  :group 'bibtex
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "Default" t)
+		 (string :tag "Initial text")
+		 (function :tag "Initialize Function")))
 
-(defvar bibtex-user-optional-fields
+(defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
   "*List of optional fields the user wants to have always present.
 Entries should be of the same form as the OPTIONAL and
 CROSSREF-OPTIONAL lists in bibtex-entry-field-alist (see documentation
-of this variable for details).")
+of this variable for details)."
+  :group 'bibtex
+  :type '(repeat
+	  (repeat string)))
 
-(defvar bibtex-entry-format '(opts-or-alts numerical-fields)
+(defcustom bibtex-entry-format '(opts-or-alts numerical-fields)
   "*Controls type of formatting performed by bibtex-clean-entry.
 It may be t, nil, or a list of symbols out of the following: 
 'opts-or-alts        (delete empty optional and alternative fields and
@@ -97,39 +125,55 @@ It may be t, nil, or a list of symbols out of the following:
                       bibtex-field-delimiters and bibtex-entry-delimiters)
 'unify-case          (change case of entry and field names)
 Value t means do all of the above formatting actions,
-value nil means do no formatting at all.")
+value nil means do no formatting at all."
+  :group 'bibtex
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "All" t)
+		 (repeat symbol)))
 
-(defvar bibtex-clean-entry-hook nil
+(defcustom bibtex-clean-entry-hook nil
   "*List of functions to call when entry has been cleaned.
 Functions are called with point inside the cleaned entry, buffer is
-narrowed to just the entry.")
+narrowed to just the entry."
+  :group 'bibtex
+  :type '(repeat function))
 
-(defvar bibtex-sort-ignore-string-entries t
+(defcustom bibtex-sort-ignore-string-entries t
   "*If non-nil, BibTeX @String entries are not sort-significant.
 That means they are ignored when determining ordering of the buffer
 (e.g. sorting, locating alphabetical position for new entries, etc.).
-This variable is buffer local.")
+This variable is buffer local."
+  :group 'bibtex
+  :type 'boolean)
 (make-variable-buffer-local 'bibtex-sort-ignore-string-entries)
 
-(defvar bibtex-maintain-sorted-entries nil
+(defcustom bibtex-maintain-sorted-entries nil
   "*If non-nil, bibtex-mode maintains all BibTeX entries in sorted order.
 Setting this variable to nil will strip off some comfort (e.g. TAB
 completion for reference keys in minibuffer, automatic detection of
 duplicates) from bibtex-mode. See also bibtex-sort-ignore-string-entries.
-This variable is buffer local.")
+This variable is buffer local."
+  :group 'bibtex
+  :type 'boolean)
 (make-variable-buffer-local 'bibtex-maintain-sorted-entries)
 
-(defvar bibtex-field-kill-ring-max 20
-  "*Maximum length of bibtex-field-kill-ring before oldest elements are deleted.")
+(defcustom bibtex-field-kill-ring-max 20
+  "*Maximum length of bibtex-field-kill-ring before oldest elements are deleted."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-entry-kill-ring-max 20
-  "*Maximum length of bibtex-entry-kill-ring before oldest elements are deleted.")
+(defcustom bibtex-entry-kill-ring-max 20
+  "*Maximum length of bibtex-entry-kill-ring before oldest elements are deleted."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-parse-keys-timeout 60
+(defcustom bibtex-parse-keys-timeout 60
   "*Specifies interval for parsing buffers.
 All BibTeX buffers in emacs are parsed if emacs has been idle
 `bibtex-parse-keys-timeout' seconds. Only buffers which were modified
-after last parsing and which are maintained in sorted order are parsed.")
+after last parsing and which are maintained in sorted order are parsed."
+  :group 'bibtex
+  :type 'integer)
 
 (defvar bibtex-entry-field-alist
   '(
@@ -348,19 +392,24 @@ of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative. ALTERNATIVE-FLAG may be t only in the
 REQUIRED or CROSSREF-REQUIRED lists.")
 
-(defvar bibtex-add-entry-hook nil
-  "List of functions to call when entry has been inserted.")
+(defcustom bibtex-add-entry-hook nil
+  "List of functions to call when entry has been inserted."
+  :group 'bibtex
+  :type '(repeat function))
 
-(defvar bibtex-predefined-month-strings
+(defcustom bibtex-predefined-month-strings
   '(
     ("jan") ("feb") ("mar") ("apr") ("may") ("jun")
     ("jul") ("aug") ("sep") ("oct") ("nov") ("dec")
     )
   "Alist of month string definitions.
 Should contain all strings used for months in the BibTeX style files.
-Each element is a list with just one element: the string.")
+Each element is a list with just one element: the string."
+  :group 'bibtex
+  :type '(repeat
+	  (list string)))
 
-(defvar bibtex-predefined-strings
+(defcustom bibtex-predefined-strings
   (append
    bibtex-predefined-month-strings
    '(
@@ -371,39 +420,54 @@ Each element is a list with just one element: the string.")
      ))
   "Alist of string definitions.
 Should contain the strings defined in the BibTeX style files. Each
-element is a list with just one element: the string.")
+element is a list with just one element: the string."
+  :group 'bibtex
+  :type '(repeat
+	  (list string)))
 
-(defvar bibtex-string-files nil
+(defcustom bibtex-string-files nil
   "*List of BibTeX files containing string definitions.
 Those files must be specified using pathnames relative to the
 directories specified in bibtex-string-file-path. This variable is only
 evaluated when bibtex-mode is entered (i. e. when loading the BibTeX
-file).")
+file)."
+  :group 'bibtex
+  :type '(repeat file))
 
 (defvar bibtex-string-file-path (getenv "BIBINPUTS")
   "*Colon separated list of pathes to search for bibtex-string-files.")
 
-(defvar bibtex-help-message t
-  "*If not nil print help messages in the echo area on entering a new field.")
+(defcustom bibtex-help-message t
+  "*If not nil print help messages in the echo area on entering a new field."
+  :group 'bibtex
+  :type 'boolean)
 
-(defvar bibtex-autokey-prefix-string ""
+(defcustom bibtex-autokey-prefix-string ""
   "*String to use as a prefix for all generated keys.
-See the documentation of function bibtex-generate-autokey for further detail.")
+See the documentation of function bibtex-generate-autokey for further detail."
+  :group 'bibtex-autokey
+  :type 'string)
 
-(defvar bibtex-autokey-names 1
+(defcustom bibtex-autokey-names 1
   "*Number of names to use for the automatically generated reference key.
 If this is set to anything but a number, all names are used.
 Possibly more names are used according to bibtex-autokey-names-stretch.
-See the documentation of function bibtex-generate-autokey for further detail.")
+See the documentation of function bibtex-generate-autokey for further detail."
+  :group 'bibtex-autokey
+  :type 'integer)
 
-(defvar bibtex-autokey-names-stretch 0
+(defcustom bibtex-autokey-names-stretch 0
   "*Number of names that can additionally be used.
 These names are used only, if all names are used then.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'integer)
 
-(defvar bibtex-autokey-additional-names ""
+(defcustom bibtex-autokey-additional-names ""
   "*String to prepend to the generated key if not all names could be used.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'string)
 
 (defvar bibtex-autokey-transcriptions
   '(
@@ -431,132 +495,185 @@ bibtex-autokey-titleword-change-strings. Defaults to translating some
 language specific characters to their ascii transcriptions and
 removing any character accents.")
 
-(defvar bibtex-autokey-name-change-strings
+(defcustom bibtex-autokey-name-change-strings
   bibtex-autokey-transcriptions
   "Alist of (old-regexp new-string) pairs.
 Any part of name matching a old-regexp is replaced by new-string.
 Case of the old-regexp is significant. All regexps are tried in the
 order in which they appear in the list, so be sure to avoid inifinite
 loops here.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(repeat
+	  (list (regexp :tag "Old")
+		(string :tag "New"))))
 
-(defvar bibtex-autokey-name-length 'infty
+(defcustom bibtex-autokey-name-length 'infty
   "*Number of characters from name to incorporate into key.
 If this is set to anything but a number, all characters are used.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(choice (const :tag "All" infty)
+		 integer))
 
-(defvar bibtex-autokey-name-separator ""
+(defcustom bibtex-autokey-name-separator ""
   "*String that comes between any two names in the key.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'string)
 
-(defvar bibtex-autokey-year-length 2
+(defcustom bibtex-autokey-year-length 2
   "*Number of rightmost digits from the year field yo incorporate into key.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'integer)
 
-(defvar bibtex-autokey-year-use-crossref-entry t
+(defcustom bibtex-autokey-year-use-crossref-entry t
   "*If non-nil use year field from crossreferenced entry if necessary.
 If this variable is non-nil and the current entry has no year, but a
 valid crossref entry, the year field from the crossreferenced entry is
 used.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'boolean)
 
-(defvar bibtex-autokey-titlewords 5
+(defcustom bibtex-autokey-titlewords 5
   "*Number of title words to use for the automatically generated reference key.
 If this is set to anything but a number, all title words are used.
 Possibly more words from the title are used according to
 bibtex-autokey-titlewords-stretch.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(choice (const :tag "All" infty)
+		 integer))
 
-(defvar bibtex-autokey-title-terminators
+(defcustom bibtex-autokey-title-terminators
   '("\\." "!"  "\\?" ":" ";" "--")
   "*Regexp list defining the termination of the main part of the title.
 Case of the regexps is ignored.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(repeat regexp))
 
-(defvar bibtex-autokey-titlewords-stretch 2
+(defcustom bibtex-autokey-titlewords-stretch 2
   "*Number of words that can additionally be used from the title.
 These words are used only, if a sentence from the title can be ended then.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'integer)
 
-(defvar bibtex-autokey-titleword-first-ignore
+(defcustom bibtex-autokey-titleword-first-ignore
   '("a" "an" "on" "the" "eine?" "der" "die" "das")
   "*Determines words that may begin a title but are not to be used in the key.
 Each item of the list is a regexp. If the first word of the title matchs a
 regexp from that list, it is not included in the title, even if it is
 capitalized. Case of regexps in this list doesn't matter.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(repeat regexp))
 
-(defvar bibtex-autokey-titleword-abbrevs nil
+(defcustom bibtex-autokey-titleword-abbrevs nil
   "*Determines exceptions to the usual abbreviation mechanism.
 An alist of (old-regexp new-string) pairs. Case of old-regexp ignored.
 The first matching pair is used.
 See the documentation of function bibtex-generate-autokey for details.")
 
-(defvar bibtex-autokey-titleword-change-strings
+(defcustom bibtex-autokey-titleword-change-strings
   bibtex-autokey-transcriptions
   "Alist of (old-regexp new-string) pairs.
 Any part of title word matching a old-regexp is replaced by new-string.
 Case of the old-regexp is significant. All regexps are tried in the
 order in which they appear in the list, so be sure to avoid inifinite
 loops here.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(repeat
+	  (list (regexp :tag "Old")
+		(string :tag "New"))))
 
-(defvar bibtex-autokey-titleword-length 5
+(defcustom bibtex-autokey-titleword-length 5
   "*Number of characters from title words to incorporate into key.
 If this is set to anything but a number, all characters are used.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type '(choice (const :tag "All" infty)
+		 integer))
 
-(defvar bibtex-autokey-titleword-separator "_"
+(defcustom bibtex-autokey-titleword-separator "_"
   "*String to be put between the title words.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'string)
 
-(defvar bibtex-autokey-name-year-separator ""
+(defcustom bibtex-autokey-name-year-separator ""
   "*String to be put between name part and year part of key.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'string)
 
-(defvar bibtex-autokey-year-title-separator ":_"
+(defcustom bibtex-autokey-year-title-separator ":_"
   "*String to be put between name part and year part of key.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'string)
 
-(defvar bibtex-autokey-preserve-case nil
+(defcustom bibtex-autokey-preserve-case nil
   "*If non-nil, names and titlewords used aren't converted to lowercase.
-See the documentation of function bibtex-generate-autokey for details.")
+See the documentation of function bibtex-generate-autokey for details."
+  :group 'bibtex-autokey
+  :type 'boolean)
 
-(defvar bibtex-autokey-edit-before-use t
-  "*If non-nil, user is allowed to edit the generated key before it is used.")
+(defcustom bibtex-autokey-edit-before-use t
+  "*If non-nil, user is allowed to edit the generated key before it is used."
+  :group 'bibtex-autokey
+  :type 'boolean)
 
-(defvar bibtex-autokey-before-presentation-hook nil
+(defcustom bibtex-autokey-before-presentation-hook nil
   "Function to call before the generated key is presented.
 If non-nil this should be a single function, which is called before
 the generated key is presented (in entry or, if
 `bibtex-autokey-edit-before-use' is t, in minibuffer). This function
 must take one argument (the automatically generated key), and must
-return with a string (the key to use).")
+return with a string (the key to use)."
+  :group 'bibtex-autokey
+  :type 'function)
 
-(defvar bibtex-entry-offset 0
+(defcustom bibtex-entry-offset 0
   "*Offset for BibTeX entries.
-Added to the value of all other variables which determine colums.")
+Added to the value of all other variables which determine colums."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-field-indentation 2
-  "*Starting column for the name part in BibTeX fields.")
+(defcustom bibtex-field-indentation 2
+  "*Starting column for the name part in BibTeX fields."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-text-indentation
+(defcustom bibtex-text-indentation
   (+
    bibtex-field-indentation
    (length "organization = "))
   "*Starting column for the text part in BibTeX fields.
-Should be equal to the space needed for the longest name part.")
+Should be equal to the space needed for the longest name part."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-contline-indentation
+(defcustom bibtex-contline-indentation
   (+ bibtex-text-indentation 1)
-  "*Starting column for continuation lines of BibTeX fields.")
+  "*Starting column for continuation lines of BibTeX fields."
+  :group 'bibtex
+  :type 'integer)
 
-(defvar bibtex-align-at-equal-sign nil
+(defcustom bibtex-align-at-equal-sign nil
   "*If non-nil, align fields at equal sign instead of field text.
-If non nil, column of equal sign is bibtex-text-indentation - 2.")
+If non nil, column of equal sign is bibtex-text-indentation - 2."
+  :group 'bibtex
+  :type 'boolean)
 
-(defvar bibtex-comma-after-last-field nil
-  "*If non-nil, a comma is put at end of last field in the entry template.")
+(defcustom bibtex-comma-after-last-field nil
+  "*If non-nil, a comma is put at end of last field in the entry template."
+  :group 'bibtex
+  :type 'boolean)
 
 ;; bibtex-font-lock-keywords is a user option as well, but since the
 ;; patterns used to define this variable are defined in a later
