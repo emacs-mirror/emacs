@@ -1017,18 +1017,14 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
-      syms_of_xfaces ();
       syms_of_fontset ();
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
 #endif /* HAVE_X_WINDOWS */
 
-#if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
-      syms_of_xfaces ();
-#endif
-
 #ifndef HAVE_NTGUI
+      syms_of_xfaces ();
       syms_of_xmenu ();
 #endif
 
