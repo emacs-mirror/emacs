@@ -1417,14 +1417,14 @@ If run in the middle of a line, the line is not broken."
       (setq program (f90-mark-subprogram))
       (if program
 	  (progn
-	    (message "Indenting %s %s."
+	    (message "Indenting %s %s..."
 		     (car program) (car (cdr program)))
 	    (f90-indent-region (point) (mark))
-	    (message "Indenting %s %s...done."
+	    (message "Indenting %s %s...done"
 		     (car program) (car (cdr program))))
-	(message "Indenting the whole file.")
+	(message "Indenting the whole file...")
 	(f90-indent-region (point) (mark))
-	(message "Indenting the whole file...done.")))))
+	(message "Indenting the whole file...done")))))
 
 ;; autofill and break-line
 (defun f90-break-line (&optional no-update)
