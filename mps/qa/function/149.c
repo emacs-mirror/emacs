@@ -1,6 +1,6 @@
 /*
 TEST_HEADER
- id = $HopeName: MMQA_test_function!149.c(trunk.1) $
+ id = $HopeName: MMQA_test_function!149.c(trunk.2) $
  summary = SNC low-memory reservoir tests with commit limit
  language = c
  harness = 2.1
@@ -99,7 +99,7 @@ static void test(void) {
 /* set commit limit to whatever is currently committed plus 1 MB
 */
 
- mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+1024*1024);
+ die(mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+1024*1024), "commit limit set");
  mps_reservoir_limit_set(arena, (size_t) (10ul*1024*1024));
  report("lim3", "%d", lim3 = mps_reservoir_limit(arena));
  report("avail3",  "%d", avail3 = mps_reservoir_available(arena));
@@ -110,7 +110,7 @@ static void test(void) {
 /* now raise it by 1/2 MB -- reservoir should grow
 */
 
- mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+512*1024);
+ die(mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+512*1024), "commit limit set");
  report("lim4", "%d", lim4 = mps_reservoir_limit(arena));
  report("avail4",  "%d", avail4 = mps_reservoir_available(arena));
  report("commit4", "%d", commit4 = arena_committed_and_used(arena));
@@ -193,6 +193,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
- report("result", "pass");
+ report("completed", "yes");
  return 0;
 }
