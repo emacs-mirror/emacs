@@ -1182,7 +1182,7 @@ Leaves point at end of replacement text.")
   int some_multiletter_word;
   int some_lowercase;
   int some_uppercase;
-  int some_lowercase_initial;
+  int some_nonuppercase_initial;
   register int c, prevc;
   int inslen;
 
@@ -1212,7 +1212,7 @@ Leaves point at end of replacement text.")
 	 is more than one letter long. */
       some_multiletter_word = 0;
       some_lowercase = 0;
-      some_lowercase_initial = 0;
+      some_nonuppercase_initial = 0;
       some_uppercase = 0;
 
       for (pos = search_regs.start[0]; pos < last; pos++)
@@ -1224,7 +1224,7 @@ Leaves point at end of replacement text.")
 
 	      some_lowercase = 1;
 	      if (SYNTAX (prevc) != Sword)
-		some_lowercase_initial = 1;
+		some_nonuppercase_initial = 1;
 	      else
 		some_multiletter_word = 1;
 	    }
@@ -1236,6 +1236,13 @@ Leaves point at end of replacement text.")
 	      else
 		some_multiletter_word = 1;
 	    }
+	  else
+	    {
+	      /* If the initial is a caseless word constituent,
+		 treat that like a lowercase initial.  */
+	      if (SYNTAX (prevc) != Sword)
+		some_nonuppercase_initial = 1;
+	    }
 
 	  prevc = c;
 	}
@@ -1245,9 +1252,9 @@ Leaves point at end of replacement text.")
       if (! some_lowercase && some_multiletter_word)
 	case_action = all_caps;
       /* Capitalize each word, if the old text has all capitalized words.  */
-      else if (!some_lowercase_initial && some_multiletter_word)
+      else if (!some_nonuppercase_initial && some_multiletter_word)
 	case_action = cap_initial;
-      else if (!some_lowercase_initial && some_uppercase)
+      else if (!some_nonuppercase_initial && some_uppercase)
 	/* Should x -> yz, operating on X, give Yz or YZ?
 	   We'll assume the latter.  */
 	case_action = all_caps;
