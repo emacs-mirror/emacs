@@ -289,37 +289,38 @@ parentheses are always balanced.  And if you have a non-qwerty keyboard, where
 typing some of the stranger programming language symbols makes you bend your
 fingers backwards, this can be quite relieving too.
 
-@findex pair-insert-maybe
-@vindex pair
+@findex skeleton-pair-insert-maybe
+@vindex skeleton-pair
   This is done by binding the first key (@pxref{(emacs)Rebinding}) of the
-pair to @code{pair-insert-maybe} instead of @code{self-insert-command}.
-The maybe comes from the fact that this at first surprising behaviour is
-initially turned off.  To enable it, you must set @code{pair} to some
+pair to @code{skeleton-pair-insert-maybe} instead of @code{self-insert-command}.
+The ``maybe'' comes from the fact that this at first surprising behaviour is
+initially turned off.  To enable it, you must set @code{skeleton-pair} to some
 non-@code{nil} value.  And even then, a positive argument
 (@pxref{(emacs)Arguments}) will make this key behave like a self
 inserting key (@pxref{(emacs)Inserting Text}).
 
-@findex pair-on-word
+@vindex skeleton-pair-on-word
   While this breaks with the stated intention of always balancing pairs, it
 turns out that one often doesn't want pairing to occur, when the following
 character is part of a word.  If you want pairing to occur even then, set
-@code{pair-on-word} to some non-@code{nil} value.
+@code{skeleton-pair-on-word} to some non-@code{nil} value.
 
-@vindex pair-alist
+@vindex skeleton-pair-alist
   Pairing is possible for all visible characters.  By default the parenthesis
 `(', the square bracket `[', the brace `@{', the pointed bracket `<' and the
 backquote ``' will all pair to the symmetrical character.  All other
 characters will pair themselves.  This behaviour can be modified by the
-variable @code{pair-alist}.  This is in fact an alist of skeletons
+variable @code{skeleton-pair-alist}.  This is in fact an alist of skeletons
 (@pxref{Skeleton Language}), with the first part of each sublist matching the
 typed character.  This is the position of the interactor, but since pairs
 don't need the @code{str} element, this is ignored.
 
-  Some modes have bound the command @code{pair-insert-maybe} to relevant keys.
-These modes also configure the pairs as appropriate.  For example, when typing
-english prose, you'd expect the backquote (`) to pair to the quote (') while
-in Shell script mode it must pair to itself.  They can also inhibit pairing
-in certain contexts.  For example an escaped character will stand for itself.
+  Some modes have bound the command @code{skeleton-pair-insert-maybe} to
+relevant keys.  These modes also configure the pairs as appropriate.
+For example, when typing english prose, you'd expect the backquote (`)
+to pair to the quote (') while in Shell script mode it must pair to
+itself.  They can also inhibit pairing in certain contexts.  For example
+an escaped character will stand for itself.
 
 
 
