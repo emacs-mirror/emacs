@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing.
 
-;; Copyright (C) 1985, 1989, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -23,67 +23,42 @@
 
 ;;; Commentary:
 
-;; This package provides the `view' major mode documented in the Emacs
+;; This package provides the `view' minor mode documented in the Emacs
 ;; user's manual.
 
 ;;; Code:
+
+(defvar view-mode nil "Non-nil if view-mode is enabled.")
+(make-variable-buffer-local 'view-mode)
+
+(or (assq 'view-mode minor-mode-alist)
+    (setq minor-mode-alist
+	  (cons '(view-mode " View") minor-mode-alist)))
 
 (defvar view-mode-map nil)
 (if view-mode-map
     nil
   (setq view-mode-map (make-keymap))
-  (fillarray (nth 1 view-mode-map) 'View-undefined)
-  (define-key view-mode-map "\C-c" (lookup-key global-map "\C-c"))
+  (suppress-keymap view-mode-map)
   (define-key view-mode-map "q" 'view-exit)
-  (define-key view-mode-map "-" 'negative-argument)
-  (define-key view-mode-map "0" 'digit-argument)
-  (define-key view-mode-map "1" 'digit-argument)
-  (define-key view-mode-map "2" 'digit-argument)
-  (define-key view-mode-map "3" 'digit-argument)
-  (define-key view-mode-map "4" 'digit-argument)
-  (define-key view-mode-map "5" 'digit-argument)
-  (define-key view-mode-map "6" 'digit-argument)
-  (define-key view-mode-map "7" 'digit-argument)
-  (define-key view-mode-map "8" 'digit-argument)
-  (define-key view-mode-map "9" 'digit-argument)
-  (define-key view-mode-map "\C-u" 'universal-argument)
-  (define-key view-mode-map "\e" nil)
-  (define-key view-mode-map "\C-x" 'Control-X-prefix)
-  (define-key view-mode-map "\e-" 'negative-argument)
-  (define-key view-mode-map "\e0" 'digit-argument)
-  (define-key view-mode-map "\e1" 'digit-argument)
-  (define-key view-mode-map "\e2" 'digit-argument)
-  (define-key view-mode-map "\e3" 'digit-argument)
-  (define-key view-mode-map "\e4" 'digit-argument)
-  (define-key view-mode-map "\e5" 'digit-argument)
-  (define-key view-mode-map "\e6" 'digit-argument)
-  (define-key view-mode-map "\e7" 'digit-argument)
-  (define-key view-mode-map "\e8" 'digit-argument)
-  (define-key view-mode-map "\e9" 'digit-argument)
   (define-key view-mode-map "<" 'beginning-of-buffer)
   (define-key view-mode-map ">" 'end-of-buffer)
   (define-key view-mode-map "\ev" 'View-scroll-lines-backward)
   (define-key view-mode-map "\C-v" 'View-scroll-lines-forward)
   (define-key view-mode-map " " 'View-scroll-lines-forward)
-  (define-key view-mode-map "\177" 'View-scroll-lines-backward)
+  (define-key view-mode-map "\C-?" 'View-scroll-lines-backward)
   (define-key view-mode-map "\n" 'View-scroll-one-more-line)
   (define-key view-mode-map "\r" 'View-scroll-one-more-line)
-  (define-key view-mode-map "\C-l" 'recenter)
   (define-key view-mode-map "z" 'View-scroll-lines-forward-set-scroll-size)
   (define-key view-mode-map "g" 'View-goto-line)
   (define-key view-mode-map "=" 'what-line)
   (define-key view-mode-map "." 'set-mark-command)
-  (define-key view-mode-map "\C-@" 'set-mark-command)
   (define-key view-mode-map "'" 'View-back-to-mark)
   (define-key view-mode-map "@" 'View-back-to-mark)  
   (define-key view-mode-map "x" 'exchange-point-and-mark)
   (define-key view-mode-map "h" 'Helper-describe-bindings)
   (define-key view-mode-map "?" 'Helper-describe-bindings)
   (define-key view-mode-map (char-to-string help-char) 'Helper-help)
-  (define-key view-mode-map "\C-n" 'next-line)
-  (define-key view-mode-map "\C-p" 'previous-line)
-  (define-key view-mode-map "\C-s" 'isearch-forward)
-  (define-key view-mode-map "\C-r" 'isearch-backward)
   (define-key view-mode-map "s" 'isearch-forward)
   (define-key view-mode-map "r" 'isearch-backward)
   (define-key view-mode-map "/" 'View-search-regexp-forward)
@@ -154,9 +129,8 @@ This command runs the normal hook `view-mode-hook'."
 
 ;;;###autoload
 (defun view-buffer-other-window (buffer-name not-return)
-  "View BUFFER in View mode in another window,
-returning to original buffer when done *only* if 
-prefix argument NOT-RETURN is nil (which is the default).
+  "View BUFFER in View mode in another window.
+Return to previous buffer when done, unless NOT-RETURN is non-nil.
 
 The usual Emacs commands are not available in View mode; instead,
 a special set of commands (mostly letters and punctuation)
@@ -172,7 +146,7 @@ This command runs the normal hook `view-mode-hook'."
 
 ;;;###autoload
 (defun view-mode (&optional prev-buffer action)
-  "Major mode for viewing text but not editing it.
+  "Minor mode for viewing text but not editing it.
 Letters do not insert themselves.  Instead these commands are provided.
 Most commands take prefix arguments.  Commands dealing with lines
 default to \"scroll size\" lines (initially size of window).
@@ -218,10 +192,6 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 	mode-line-buffer-identification)
   (make-local-variable 'view-old-buffer-read-only)
   (setq view-old-buffer-read-only buffer-read-only)
-  (make-local-variable 'view-old-mode-name)
-  (setq view-old-mode-name mode-name)
-  (make-local-variable 'view-old-major-mode)
-  (setq view-old-major-mode major-mode)
   (make-local-variable 'view-old-local-map)
   (setq view-old-local-map (current-local-map))
   (make-local-variable 'view-old-Helper-return-blurb)
@@ -234,8 +204,7 @@ Entry to this mode runs the normal hook `view-mode-hook'.
 	 (if (buffer-file-name)
 	     "Viewing %f"
 	   "Viewing %b")))
-  (setq mode-name "View")
-  (setq major-mode 'view-mode)
+  (setq view-mode t)
   (setq Helper-return-blurb
 	(format "continue viewing %s"
 		(if (buffer-file-name)
@@ -258,9 +227,10 @@ Entry to this mode runs the normal hook `view-mode-hook'.
   (setq goal-column nil)
 
   (use-local-map view-mode-map)
-  (run-hooks 'view-hook 'view-mode-hook)
-  (view-helpful-message))
-
+  (run-hooks 'view-mode-hook)
+  (message
+     (substitute-command-keys
+      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
 
 (defun view-exit ()
   "Exit from view-mode.
@@ -269,8 +239,6 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
   (interactive)
   (setq mode-line-buffer-identification
 	view-old-mode-line-buffer-identification)
-  (setq major-mode view-old-major-mode)
-  (setq mode-name view-old-mode-name)
   (use-local-map view-old-local-map)
   (setq buffer-read-only view-old-buffer-read-only)
 
@@ -288,23 +256,10 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
       (set-window-configuration view-return-here)))
     (if action (funcall action viewed-buffer))))
 
-(defun view-helpful-message ()
-  (message
-     (substitute-command-keys
-      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
-
-(defun View-undefined ()
-  (interactive)
-  (ding)
-  (view-helpful-message))
-
 (defun view-window-size () (1- (window-height)))
 
 (defun view-scroll-size ()
   (min (view-window-size) (or view-scroll-size (view-window-size))))
-
-(defvar view-hook nil
-  "Normal hook run when starting to view a buffer or file.")
 
 (defvar view-mode-hook nil
   "Normal hook run when starting to view a buffer or file.")
@@ -322,13 +277,13 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 ;      (funcall view-last-command view-last-command-argument))
 ;  (setq this-command view-last-command-entry))
 
-(defun View-goto-line (&optional line)
+(defun View-goto-line (line)
   "Move to line LINE in View mode.
 Display is centered at LINE.  Sets mark at starting position and pushes
 mark ring."
   (interactive "p")
   (push-mark)
-  (goto-line (or line 1))
+  (goto-line line)
   (recenter (/ (view-window-size) 2)))
 
 (defun View-scroll-lines-forward (&optional lines)
@@ -336,14 +291,13 @@ mark ring."
 No arg means whole window full, or number of lines set by \\[View-scroll-lines-forward-set-scroll-size].
 Arg is number of lines to scroll."
   (interactive "P")
+  (setq lines
+	(if lines (prefix-numeric-value lines)
+	  (view-scroll-size)))
   (if (and (pos-visible-in-window-p (point-max))
 	   ;; Allow scrolling backward at the end of the buffer.
-	   (or (null lines)
-	       (> lines 0)))
+	   (> lines 0))
       (view-exit)
-    (setq lines
-	  (if lines (prefix-numeric-value lines)
-	    (view-scroll-size)))
     ;; (view-last-command 'View-scroll-lines-forward lines)
     (if (>= lines (view-window-size))
 	(scroll-up nil)
@@ -424,7 +378,7 @@ pushes mark ring."
 Displays line at center of window.  Pops mark ring so successive
 invocations return to earlier marks."
   (interactive)
-  (goto-char (or (mark) (point-min)))
+  (goto-char (or (mark t) (point-min)))
   (pop-mark)
   (recenter (/ (view-window-size) 2)))
 	     
