@@ -1,3 +1,7 @@
+2002-02-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (Fx_file_dialog): Export (for Motif code in fileio.c).
+
 2002-02-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_native_per_char_metric):  Disable 2002-01-20 change.
@@ -28,7 +32,7 @@
 	is invisible.  This can happen if cursor is on top line of a
 	window, and we switch to a buffer with a header line.
 
-	* w32term.c (x_erase_phys_cursor): ditto.
+	* w32term.c (x_erase_phys_cursor): Ditto.
 
 2002-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -99,8 +103,7 @@
 
 2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* sound.c (Fplay_sound): Initialize header_size also for :data
-	case.
+	* sound.c (Fplay_sound): Initialize header_size also for :data case.
 
 2002-01-13  Andreas Schwab  <schwab@suse.de>
 
