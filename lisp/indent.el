@@ -23,7 +23,7 @@
 ;;; Code:
 
 (defvar indent-line-function 'indent-to-left-margin "\
-Function to indent current line.");Now in loaddefs.el
+Function to indent current line.")
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode."
