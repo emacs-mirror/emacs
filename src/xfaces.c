@@ -7687,6 +7687,53 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
 }
 
 
+/* Merge a face into a realized face.
+
+   F is frame where faces are (to be) realized.
+
+   FACE_NAME is named face to merge, or if nil,
+   FACE_ID is face_id of realized face to merge.
+
+   BASE_FACE_ID is realized face to merge into.
+
+   Return new face.
+*/
+
+int
+merge_into_realized_face (f, face_name, face_id, base_face_id)
+     struct frame *f;
+     Lisp_Object face_name;
+     int face_id, base_face_id;
+{
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+  struct face *base_face;
+
+  base_face = FACE_FROM_ID (f, base_face_id);
+  if (!base_face)
+    return base_face_id;
+
+  /* Begin with attributes from the base face.  */
+  bcopy (base_face->lface, attrs, sizeof attrs);
+
+  if (!NILP (face_name))
+    {
+      if (!merge_named_face (f, face_name, attrs, 0))
+	return base_face_id;
+    }
+  else
+    {
+      struct face *face;
+      face = FACE_FROM_ID (f, face_id);
+      if (!face)
+	return base_face_id;
+      merge_face_vectors (f, face->lface, attrs, 0);
+    }
+
+  /* Look up a realized face with the given face attributes,
+     or realize a new one for ASCII characters.  */
+  return lookup_face (f, attrs, 0, NULL);
+}
+
 
 /***********************************************************************
 				Tests
