@@ -171,7 +171,10 @@ These options can be used to limit how many ICMP packets are emitted."
   )
 
 (defcustom nslookup-prompt-regexp "^> "
-  "Regexp to match the nslookup prompt."
+  "Regexp to match the nslookup prompt.
+
+This variable is only used if the variable
+`comint-use-prompt-regexp-instead-of-fields' is non-nil."
   :group 'net-utils
   :type  'regexp
   )
@@ -195,7 +198,10 @@ These options can be used to limit how many ICMP packets are emitted."
   )
 
 (defcustom ftp-prompt-regexp "^ftp>"
-  "Regexp which matches the FTP program's prompt."
+  "Regexp which matches the FTP program's prompt.
+
+This variable is only used if the variable
+`comint-use-prompt-regexp-instead-of-fields' is non-nil."
   :group 'net-utils
   :type  'regexp
   )
@@ -213,7 +219,10 @@ These options can be used to limit how many ICMP packets are emitted."
   )
 
 (defcustom smbclient-prompt-regexp "^smb: \>"
-  "Regexp which matches the smbclient program's prompt."
+  "Regexp which matches the smbclient program's prompt.
+
+This variable is only used if the variable
+`comint-use-prompt-regexp-instead-of-fields' is non-nil."
   :group 'net-utils
   :type  'regexp
   )
@@ -230,7 +239,6 @@ These options can be used to limit how many ICMP packets are emitted."
   (progn
     (require 'font-lock)
     (list
-     (list nslookup-prompt-regexp 0 font-lock-reference-face)
      (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
      (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
 	   1 font-lock-keyword-face)
@@ -252,26 +260,6 @@ These options can be used to limit how many ICMP packets are emitted."
       0 font-lock-variable-name-face)
      ))
   "Expressions to font-lock for nslookup.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; FTP goodies
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defconst ftp-font-lock-keywords
-  (progn
-    (require 'font-lock)
-    (list
-     (list ftp-prompt-regexp 0 font-lock-reference-face))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; smbclient goodies
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defconst smbclient-font-lock-keywords
-  (progn
-    (require 'font-lock)
-    (list
-     (list smbclient-prompt-regexp 0 font-lock-reference-face))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -457,23 +445,18 @@ If your system's ping continues until interrupted, you can try setting
   (interactive)
   (require 'comint)
   (comint-run nslookup-program)
-  (set-process-filter (get-buffer-process "*nslookup*")
-   'net-utils-remove-ctrl-m-filter)
   (nslookup-mode)
   )
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
-(define-derived-mode
-  nslookup-mode comint-mode "Nslookup"
+(define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
   (set
    (make-local-variable 'font-lock-defaults)
    '((nslookup-font-lock-keywords)))
   (setq local-abbrev-table nslookup-mode-abbrev-table)
   (abbrev-mode t)
-  (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp nslookup-prompt-regexp)
-  (make-local-variable 'comint-input-autoexpand)
   (setq comint-input-autoexpand t)
   )
 
@@ -520,33 +503,27 @@ If your system's ping continues until interrupted, you can try setting
   (require 'comint)
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
-    (comint-mode)
+    (ftp-mode)
     (comint-exec buf (concat "ftp-" host) ftp-program nil
 		 (if ftp-program-options
 		     (append (list host) ftp-program-options)
 		   (list host)))
-    (ftp-mode)
-    (switch-to-buffer-other-window buf)
-    ))
+    (pop-to-buffer buf)))
 
-(define-derived-mode
-  ftp-mode comint-mode "FTP"
+(define-derived-mode ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
-
-  (set
-   (make-local-variable 'font-lock-defaults)
-   '((ftp-font-lock-keywords)))
-
-  (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp ftp-prompt-regexp)
-
-  (make-local-variable 'comint-input-autoexpand)
   (setq comint-input-autoexpand t)
-
-  ;; Already buffer local!
-  (setq comint-output-filter-functions
-	(list 'comint-watch-for-password-prompt))
-
+  ;; Only add the password-prompting hook if it's not already in the
+  ;; global hook list.  This stands a small chance of losing, if it's
+  ;; later removed from the global list (very small, since any
+  ;; password prompts will probably immediately follow the initial
+  ;; connection), but it's better than getting prompted twice for the
+  ;; same password.
+  (unless (memq 'comint-watch-for-password-prompt
+		(default-value 'comint-output-filter-functions))
+    (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
+	      nil t))
   (setq local-abbrev-table ftp-mode-abbrev-table)
   (abbrev-mode t)
   )
@@ -571,14 +548,12 @@ If your system's ping continues until interrupted, you can try setting
 	 (buf (get-buffer-create (concat "*" name "*")))
 	 (service-name (concat "\\\\" host "\\" service)))
     (set-buffer buf)
-    (comint-mode)
+    (smbclient-mode)
     (comint-exec buf name smbclient-program nil
 		 (if smbclient-program-options
 		     (append (list service-name) smbclient-program-options)
 		   (list service-name)))
-    (smbclient-mode)
-    (switch-to-buffer-other-window buf)
-    ))
+    (pop-to-buffer buf)))
 
 (defun smbclient-list-shares (host)
   "List services on HOST."
@@ -589,35 +564,25 @@ If your system's ping continues until interrupted, you can try setting
     ))
   (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
     (set-buffer buf)
-    (comint-mode)
-    (comint-exec
-     buf
-     "smbclient-list-shares"
-     smbclient-program
-     nil
-     (list "-L" host)
-     )
     (smbclient-mode)
-    (switch-to-buffer-other-window buf)))
+    (comint-exec buf "smbclient-list-shares"
+		 smbclient-program nil (list "-L" host))
+    (pop-to-buffer buf)))
 
-(define-derived-mode
-  smbclient-mode comint-mode "smbclient"
+(define-derived-mode smbclient-mode comint-mode "smbclient"
   "Major mode for interacting with the smbclient program."
-
-  (set
-   (make-local-variable 'font-lock-defaults)
-   '((smbclient-font-lock-keywords)))
-
-  (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp smbclient-prompt-regexp)
-
-  (make-local-variable 'comint-input-autoexpand)
   (setq comint-input-autoexpand t)
-
-  ;; Already buffer local!
-  (setq comint-output-filter-functions
-	(list 'comint-watch-for-password-prompt))
-
+  ;; Only add the password-prompting hook if it's not already in the
+  ;; global hook list.  This stands a small chance of losing, if it's
+  ;; later removed from the global list (very small, since any
+  ;; password prompts will probably immediately follow the initial
+  ;; connection), but it's better than getting prompted twice for the
+  ;; same password.
+  (unless (memq 'comint-watch-for-password-prompt
+		(default-value 'comint-output-filter-functions))
+    (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
+	      nil t))
   (setq local-abbrev-table smbclient-mode-abbrev-table)
   (abbrev-mode t)
   )
@@ -662,8 +627,7 @@ This list in not complete.")
 ;; Workhorse macro
 (defmacro run-network-program (process-name host port
 					    &optional initial-string)
-  `
-   (let ((tcp-connection)
+  `(let ((tcp-connection)
 	 (buf)
 	 )
     (setq buf (get-buffer-create (concat "*" ,process-name "*")))
@@ -720,7 +684,7 @@ queries of the form USER@HOST, and wants a query containing USER only."
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
 	 found)
-    (while (not (string-match (car regexps) host))
+    (while (and regexps (not (string-match (car regexps) host)))
       (setq regexps (cdr regexps)))
     (when regexps
       (setq user-and-host user))
