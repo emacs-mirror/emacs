@@ -1,3 +1,8 @@
+2005-01-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-fancy-prefix-other-key): Set prefix arg
+	for called function.
+
 2005-01-20  Steven Tamm  <steventamm@mac.com>
 
 	* term/mac-win.el (process-connection-type): Removed.
