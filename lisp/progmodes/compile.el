@@ -131,7 +131,9 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 
     ;; Apollo cc, 4.3BSD fc:
     ;;	"foo.f", line 3: Error: syntax error near end of statement
-    ("\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\):" 1 2)
+    ;; IBM RS6000:
+    ;;  "vvouch.c", line 19.5: 1506-046 (S) Syntax error.
+    ("\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)[:.]" 1 2)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
