@@ -218,6 +218,13 @@ extern int errno;
 #define FSCALE 1024.0
 #endif
 
+#if defined(alliant) && defined(i860) /* Alliant FX/2800 */
+/* <sys/param.h> defines an incorrect value for FSCALE on an
+   Alliant FX/2800 Concentrix 2.2, according to ghazi@noc.rutgers.edu.  */
+#undef FSCALE
+#define FSCALE 100.0
+#endif
+
 
 #ifndef	FSCALE
 
@@ -243,13 +250,6 @@ extern int errno;
 #endif
 
 #ifdef tek4300
-#define FSCALE 100.0
-#endif
-
-#if defined(alliant) && defined(i860) /* Alliant FX/2800 */
-/* <sys/param.h> defines an incorrect value for FSCALE on an
-   Alliant FX/2800 Concentrix 2.2, according to ghazi@noc.rutgers.edu.  */
-#undef FSCALE
 #define FSCALE 100.0
 #endif
 
