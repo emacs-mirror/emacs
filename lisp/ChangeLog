@@ -1,3 +1,26 @@
+2004-05-21  Juanma Barranquero  <lektu@terra.es>
+
+	* allout.el (allout-chart-subtree, allout-rebullet-topic-grunt):
+	Don't mention in the docstring these arguments meant for
+	internal (recursive) use only.
+	(allout-char-spec): Comment out (it's not implemented).
+	(allout-old-expose-topic, allout-exposure): Fix docstring and add
+	obsolescence declaration.
+	(allout-flatten-exposed-to-buffer)
+	(allout-indented-exposed-to-buffer): Fix typos in docstring.
+	(my-mark-marker): Doc fix.
+	(produce-allout-mode-map, allout-sibling-index)
+	(allout-isearch-expose, allout-distinctive-bullet)
+	(allout-open-topic, allout-reindent-body)
+	(allout-rebullet-heading, allout-process-exposed)
+	(allout-insert-listified, allout-latex-verb-quote)
+	(allout-insert-latex-header, allout-insert-latex-trailer):
+	Make arguments match their use in docstring.
+	(allout-primary-bullet, allout-old-style-prefixes)
+	(allout-inhibit-protection, allout-init, allout-mode)
+	(allout-before-change-protect, allout-flag-region):
+	Use "Emacs" instead of "emacs" in docstrings.
+
 2004-05-21  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
 
 	* international/characters.el: Modify syntax of more characters.
@@ -55,7 +78,7 @@
 2004-05-19  Masatake YAMATO  <jet@gyve.org>
 
 	* wid-edit.el (widget-radio-button-notify): Revert my last
-	change. Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
+	change.  Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
 
 2004-05-19  Kenichi Handa  <handa@m17n.org>
 
@@ -630,7 +653,7 @@
 	list of arguments in a string.
 	(help-highlight-arguments): Highlight the function arguments and
 	all uses of them in the docstring.
-	(describe-function-1): Use it. Do docstring output via `insert',
+	(describe-function-1): Use it.  Do docstring output via `insert',
 	not 'princ', so text attributes are preserved.
 
 	* winner.el (winner-mode-map): Move `winner-undo' and
@@ -655,7 +678,7 @@
 	(bibtex-parse-entry): Fix docstring.
 	(bibtex-print-help-message): Use bibtex-field-list.
 	(bibtex-make-field): Use bibtex-field-list.
-	(bibtex-entry-index): Bugfix. Return crossref key if required.
+	(bibtex-entry-index): Bugfix.  Return crossref key if required.
 	(bibtex-lessp): Fix docstring.
 
 2004-05-03  Luc Teirlinck  <teirllm@auburn.edu>
