@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.15) $
+ * $HopeName: MMsrc!awlut.c(trunk.16) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -25,10 +25,7 @@
 #define TABLE_SLOTS 49
 #define ITERATIONS 5000
 #define CHATTER 100
-/* The number that a half of all numbers generated from rnd are less
- * than.  Hence, probability a-half, or P a-half */
-/* see impl.h.testlib */
-#define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
+static mps_gen_param_s testChain[1] = { { 1300, 0.99 } };
 
 
 static mps_word_t bogus_class;
@@ -196,7 +193,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
-    if (rnd() < P_A_HALF) {
+    if (rnd() % 2 == 0) {
       string = alloc_string("iamalive", leafap);
       preserve[i] = string;
     } else {
@@ -219,23 +216,17 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
   for(i = 0; i < TABLE_SLOTS; ++i) {
     if (preserve[i] == 0) {
       if (table_slot(weaktable, i)) {
-        fprintf(stdout,
-                "Strongly unreachable weak table entry found, "
-                "slot %lu.\n",
-                i);
+        error("Strongly unreachable weak table entry found, slot %lu.\n", i);
       } else {
         if (table_slot(exacttable, i) != 0) {
-          fprintf(stdout,
-                  "Weak table entry deleted, but corresponding "
-                  "exact table entry not deleted, slot %lu.\n",
-                  i);
+          error("Weak table entry deleted, but corresponding "
+                "exact table entry not deleted, slot %lu.\n", i);
         }
       }
     }
   }
 
   (void)mps_commit(bogusap, p, 64);
-  puts("A okay\n");
 }
 
 
@@ -260,6 +251,7 @@ static void *setup(void *v, size_t s)
   mps_pool_t tablepool;
   mps_fmt_t dylanfmt;
   mps_fmt_t dylanweakfmt;
+  mps_chain_t chain;
   mps_ap_t leafap, exactap, weakap, bogusap;
   mps_root_t stack;
   mps_thr_t thr;
@@ -276,9 +268,10 @@ static void *setup(void *v, size_t s)
       "Format Create\n");
   die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
       "Format Create (weak)\n");
+  die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
   die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
-  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt),
+  die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt, chain),
       "Table Pool Create\n");
   die(mps_ap_create(&leafap, leafpool, MPS_RANK_EXACT),
       "Leaf AP Create\n");
@@ -297,6 +290,7 @@ static void *setup(void *v, size_t s)
   mps_ap_destroy(leafap);
   mps_pool_destroy(tablepool);
   mps_pool_destroy(leafpool);
+  mps_chain_destroy(chain);
   mps_fmt_destroy(dylanweakfmt);
   mps_fmt_destroy(dylanfmt);
   mps_root_destroy(stack);
