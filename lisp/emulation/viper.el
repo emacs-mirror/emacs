@@ -368,9 +368,9 @@ DO NOT set this variable interactively."
 		Buffer-menu-mode view-mode vm-mode vm-summary-mode)
   "*A list of major modes that should never come up in Vi command mode.
 Viper automatically augments this list with some obvious modes, such as
-`dired-mode', `tar-mode', etc. So, don't put modes on this list, unless 
+`dired-mode', `tar-mode', etc.  So, don't put a mode on this list, unless 
 it comes up in a wrong Viper state."
-  :type 'list
+  :type '(repeat symbol)
   :group 'viper)
 
 
