@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
-;; Copyright (C) 1996-2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -30,8 +30,9 @@
 ;; for ido-switch-buffer and found the inspiration for ido-find-file.
 ;; The ido package would never have existed without his work.
 
-;; Also thanks to Klaus Berndl, Rohit Namjoshi, Robert Fenk, Alex Schroeder,
-;; Bill Benedetto, and Stephen Eglen for bug fixes and improvements.
+;; Also thanks to Klaus Berndl, Rohit Namjoshi, Robert Fenk, Alex
+;; Schroeder, Bill Benedetto, Stephen Eglen, and many others for bug
+;; fixes and improvements.
 
 ;;; History
 
@@ -55,7 +56,7 @@
 ;; so I invented a common "ido-" namespace for the merged packages.
 ;;
 ;; This version is based on ido.el version 1.57 released on
-;; gnu.emacs.sources adapted for emacs 21.4 to use command remapping
+;; gnu.emacs.sources adapted for emacs 21.5 to use command remapping
 ;; and optionally hooking the read-buffer and read-file-name functions.
 ;;
 ;; Prefix matching was added by Klaus Berndl <klaus.berndl@sdm.de> based on
