@@ -162,6 +162,13 @@ NOTE-END
 
 #define ORDINARY_LINK
 
+/* Some systems seem to have this, others don't.  */
+#ifdef HAVE_LIBDNET
+#define LIBS_MACHINE -ldnet
+#else
+#define LIBS_MACHINE -ldnet_stub
+#endif
+
 #ifndef __GNUC__
 /* This apparently is for the system ld as opposed to Gnu ld.  */
 #ifdef OSF1
@@ -193,8 +200,8 @@ NOTE-END
 
 /* Define XINT and XUINT so that they can take arguments of type int */
 
-#define XINT(a)         (((long)(a) << LONGBITS-VALBITS) >> LONGBITS-VALBITS)
-#define XUINT(a)        ((long)(a) & VALMASK)
+#define XINT(a)  (((long) (a) << (LONGBITS - VALBITS)) >> (LONGBITS - VALBITS))
+#define XUINT(a) ((long) (a) & VALMASK)
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 
