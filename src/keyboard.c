@@ -710,6 +710,7 @@ cmd_error (data)
   if (!current_perdisplay)
     abort ();
   current_perdisplay->Vprefix_arg = Qnil;
+  cancel_echoing ();
   cmd_error_internal (data, 0);
 
   Vquit_flag = Qnil;
@@ -919,7 +920,6 @@ command_loop_1 ()
 
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
-  cancel_echoing ();
 
   nonundocount = 0;
   no_redisplay = 0;
