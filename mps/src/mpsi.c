@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.18) $
+ * $HopeName: MMsrc!mpsi.c(trunk.19) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -45,9 +45,6 @@
  * method, mps_stack_scan_ambig.  This may never change, but the way the
  * interface is designed allows for the possibility of change.
  *
- * .msg.unimpl: (rule.universal.complete) Asynchronous messages from the
- * MPS to the client are not implemented.
- *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
  * normal MPS naming conventions.  See design.mps.interface.c.naming.
  */
@@ -55,7 +52,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.18) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.19) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -729,11 +726,11 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
  */
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
-                               mps_reg_t mps_reg, void *p, size_t s)
+                               mps_thr_t mps_thr, void *p, size_t s)
 {
   /* s is unused */
   ScanState ss = (ScanState)mps_ss;
-  Thread thread = (Thread)mps_reg;
+  Thread thread = (Thread)mps_thr;
   return ThreadScan(ss, thread, p);
 }
 
@@ -865,36 +862,4 @@ mps_word_t mps_collections(mps_space_t mps_space)
 {
   Space space = (Space)mps_space;
   return SpaceEpoch(space);  /* thread safe: see impl.h.space.epoch.ts */
-}
-
-
-/* Unimplemented -- see .msg.unimpl */
-
-mps_bool_t mps_msg_next(mps_space_t mps_space,
-                        mps_mc_t *mps_mc_o,
-                        void **msg_data_o)
-{
-  NOTREACHED;
-  return FALSE;
-}
-
-
-/* Unimplemented -- see .msg.unimpl */
-
-mps_bool_t mps_msg_peek(mps_space_t mps_space,
-                    mps_mc_t *mps_mc_o,
-                    void **msg_data_o)
-{
-  NOTREACHED;
-  return FALSE;
-}
-
-
-/* Unimplemented -- see .msg.unimpl */
-
-mps_msg_handler_t mps_msg_handler(mps_space_t mps_space,
-                                  mps_msg_handler_t mps_handler)
-{
-  NOTREACHED;
-  return NULL;
 }
