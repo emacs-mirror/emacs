@@ -1,6 +1,7 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000
+;;	Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
 ;;	Simon Marshall <simon@gnu.org>
@@ -201,6 +202,17 @@ This variable is buffer-local."
 		 (other :tag "on" t))
   :group 'comint)
 
+(defcustom comint-highlight-input t
+  "*If non-nil, highlight input; also allow choosing previous input with a mouse.
+See also `comint-highlight-face'."
+  :type 'boolean
+  :group 'comint)
+
+(defcustom comint-highlight-face 'bold
+  "*Face to use to highlight input when `comint-highlight-input' is non-nil."
+  :type 'face
+  :group 'comint)
+
 (defcustom comint-input-ignoredups nil
   "*If non-nil, don't add input matching the last on the input ring.
 This mirrors the optional behavior of bash.
@@ -214,7 +226,8 @@ This variable is buffer-local."
 See also `comint-read-input-ring' and `comint-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks."
-  :type 'boolean
+  :type '(choice (const :tag "nil" nil)
+		 file)
   :group 'comint)
 
 (defcustom comint-scroll-to-bottom-on-input nil
@@ -519,6 +532,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
+  ;; Mouse Buttons:
+  ;; Note, if you change this, you will have to change
+  ;; comint-insert-clicked-input as well
+  (define-key comint-mode-map [mouse-2] 'comint-insert-clicked-input)
   ;; Menu bars:
   ;; completion:
   (define-key comint-mode-map [menu-bar completion] 
@@ -715,6 +732,33 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
     (if changed
 	(set-process-coding-system proc decoding encoding))
     proc))
+
+
+(defun comint-insert-clicked-input (event)
+  "In a comint buffer, set the current input to the clicked-on previous input."
+  (interactive "e")
+  ;; This won't play nicely with other overlays...
+  (let ((overs (overlays-at (posn-point (event-end event)))))
+    ;; do we have input in this area?
+    (if overs
+	(let ((input-str (buffer-substring (overlay-start (car overs))
+					   (overlay-end (car overs)))))
+	  (if (not (comint-after-pmark-p))
+	      (error "Not at command line"))
+	  (delete-region 
+	   ;; Can't use kill-region as it sets this-command
+	   (or  (marker-position comint-accum-marker)
+		(process-mark (get-buffer-process (current-buffer))))
+	   (point))	  
+	  (insert input-str))
+      ;; fall back to the user's previous definition if we aren't
+      ;; on previous input region (note, if you change [mouse-2]
+      ;; to something else, you should also change the default
+      ;; keybinding above)
+      (let ((fun (lookup-key global-map [mouse-2])))
+	(if fun
+	    (call-interactively fun event nil))))))
+  
 
 ;; Input history processing in a buffer
 ;; ===========================================================================
@@ -1328,6 +1372,15 @@ Similarly for Soar, Scheme, etc."
 	      (ring-insert comint-input-ring history))
 	  (run-hook-with-args 'comint-input-filter-functions
 			      (concat input "\n"))
+	  (let ((beg (marker-position pmark))
+		(end (1- (point))))
+	    (when (and comint-highlight-input
+		       ;; handle a special case
+		       (not (> beg end)))
+	      (let ((over (make-overlay beg end)))
+		(overlay-put over 'face comint-highlight-face)
+		(overlay-put over 'mouse-face 'highlight)		
+		(overlay-put over 'evaporate t))))
 	  (setq comint-save-input-ring-index comint-input-ring-index)
 	  (setq comint-input-ring-index nil)
 	  ;; Update the markers before we send the input
