@@ -611,7 +611,7 @@ x_create_bitmap_from_file (f, file)
 
 /* Remove reference to bitmap with id number ID.  */
 
-int
+void
 x_destroy_bitmap (f, id)
      FRAME_PTR f;
      int id;
@@ -1023,6 +1023,7 @@ x_real_positions (f, xptr, yptr)
    and whose values are not correctly recorded in the frame's
    param_alist need to be considered here.  */
 
+void
 x_report_frame_params (f, alistptr)
      struct frame *f;
      Lisp_Object *alistptr;
@@ -1445,6 +1446,7 @@ x_set_border_color (f, arg, oldval)
    Note that this does not fully take effect if done before
    F has an x-window.  */
 
+void
 x_set_border_pixel (f, pix)
      struct frame *f;
      int pix;
@@ -1653,8 +1655,7 @@ x_set_internal_border_width (f, arg, oldval)
 
 #ifdef USE_X_TOOLKIT
   if (f->output_data.x->edit_widget)
-    widget_store_internal_border (f->output_data.x->edit_widget,
-				  f->output_data.x->internal_border_width);
+    widget_store_internal_border (f->output_data.x->edit_widget);
 #endif
 
   if (f->output_data.x->internal_border_width == old)
