@@ -358,6 +358,9 @@ if that value is non-nil."
   (set-syntax-table lisp-mode-syntax-table)
   (run-mode-hooks 'lisp-mode-hook))
 
+;; Used in old LispM code.
+(defalias 'common-lisp-mode 'lisp-mode)
+
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
