@@ -292,7 +292,7 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
       (beginning-of-line)
       (if mailp 
 	  (while (or (looking-at "[ \t]*[^ \t\n]*:") (looking-at "[ \t]*$"))
-	    (forward-line 1)))
+	    (search-forward "\n\n" nil 'move)))
       (narrow-to-region (point) max)
       ;; Loop over paragraphs.
       (while (progn (skip-chars-forward " \t\n") (not (eobp)))
