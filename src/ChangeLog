@@ -1,7 +1,7 @@
 2001-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (with_echo_area_buffer): Use echo_kboard instead
-	of the only tempoarily set echoing flag for deciding when
+	of the only temporarily set echoing flag for deciding when
 	the cancel echoing.
 
 	* keyboard.c (echo_kboard): Make externally visible.
@@ -9,7 +9,7 @@
 	* lisp.h (echo_kboard): Declare extern.
 
 	* xdisp.c (make_cursor_line_fully_visible): Return 0 and set
-	fonts_changed_p if need larger matrices due to vscrolling.
+	fonts_changed_p if we need larger matrices due to vscrolling.
 	(try_scrolling, try_cursor_movement, redisplay_window): Give up on
 	this round of redisplay if make_cursor_line_fully_visible fails.
 	(CURSOR_MOVEMENT_*, SCROLLING_*): New enumerators.
