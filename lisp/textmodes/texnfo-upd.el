@@ -1001,10 +1001,11 @@ error if the node is not the top node and a section is not found."
                            t)
         "top")
        ((re-search-forward texinfo-section-types-regexp nil t)
-        (buffer-substring (progn (beginning-of-line) ; copy its name
-                                 (1+ (point)))
-                          (progn (forward-word 1)
-                                 (point))))
+        (buffer-substring-no-properties
+	 (progn (beginning-of-line) ; copy its name
+		(1+ (point)))
+	 (progn (forward-word 1)
+		(point))))
        (t
         (error
          "texinfo-specific-section-type: Chapter or section not found."))))))
