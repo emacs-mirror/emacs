@@ -1,5 +1,8 @@
 2002-04-29  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/emacsbug.el (report-emacs-bug-hook): Don't fail completely
+	if the user edits the Emacs version number in the text.
+
 	* filesets.el (filesets-running-xemacs): Make defvar unconditional.
 	(filesets-ingroup-files): Renamed from filesets-ingroup-paths.
 	(filesets-error): Simplify definition and make conditional
