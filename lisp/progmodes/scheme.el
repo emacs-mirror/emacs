@@ -500,7 +500,8 @@ of the start of the containing expression."
 		(if (integerp val)
 		    (setcar indent-stack
 			    (setq this-indent val))
-		  (setcar indent-stack (- (car (cdr val))))
+                  (if (cdr val)
+                      (setcar indent-stack (- (car (cdr val)))))
 		  (setq this-indent (car val)))))
 	    (if (/= (current-column) this-indent)
 		(progn (delete-region bol (point))
