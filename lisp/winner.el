@@ -1,6 +1,6 @@
 ;;; winner.el  --- Restore window configuration (or switch buffer)
 
-;; Copyright (C) 1997 Free Software Foundation. Inc.
+;; Copyright (C) 1997, 1998 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarr@ifi.uio.no>
 ;; Maintainer: Ivar Rummelhoff <ivarr@ifi.uio.no>
@@ -45,29 +45,49 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 (require 'ring)
 
-(defvar winner-dont-bind-my-keys nil
-  "If non-nil: Do not use `winner-mode-map' in Winner mode.")
+(defgroup winner nil
+  "Restoring window configurations."
+  :group 'windows)
+
+(defcustom winner-mode nil
+  "Toggle winner-mode.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (winner-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'winner
+  :require 'winner)
+
+(defcustom winner-dont-bind-my-keys nil
+  "If non-nil: Do not use `winner-mode-map' in Winner mode."
+  :type 'boolean
+  :group 'winner)
 
 (defvar winner-ring-size 100
   "Maximum number of stored window configurations per frame.")
 
-(defvar winner-skip-buffers
+(defcustom winner-skip-buffers
   '("*Messages*",
     "*Compile-Log*",
     ".newsrc-dribble",
     "*Completions*",
     "*Buffer list*")
-  "Exclude these buffer names from any \(Winner switch\) list of buffers.")
+  "Exclude these buffer names from any \(Winner switch\) list of buffers."
+  :type '(repeat string)
+  :group 'winner)
 
-(defvar winner-skip-regexps '("^ ")
+(defcustom winner-skip-regexps '("^ ")
   "Winner excludes buffers with names matching any of these regexps.
 They are not included in any Winner mode list of buffers.
 
 By default `winner-skip-regexps' is set to \(\"^ \"\),
-which excludes \"invisible buffers\".")
+which excludes \"invisible buffers\"."
+  :type '(repeat regexp)
+  :group 'winner)
 
 (defvar winner-ring-alist nil)
 
@@ -98,15 +118,19 @@ which excludes \"invisible buffers\".")
 
 ;;; Winner mode  (a minor mode)
 
-(defvar winner-mode-hook nil
-  "Functions to run whenever Winner mode is turned on.")
+(defcustom winner-mode-hook nil
+  "Functions to run whenever Winner mode is turned on."
+  :type 'hook
+  :group winner)
 
 (defvar winner-mode-leave-hook nil
-  "Functions to run whenever Winner mode is turned off.")
+  "Functions to run whenever Winner mode is turned off."
+  :type 'hook
+  :group winner)
 
-(defvar winner-mode nil) ; mode variable
 (defvar winner-mode-map nil "Keymap for Winner mode.")
 
+;;;###autoload
 (defun winner-mode (&optional arg)
   "Toggle Winner mode.
 With arg, turn Winner mode on if and only if arg is positive."
@@ -136,7 +160,8 @@ With arg, turn Winner mode on if and only if arg is positive."
 
 (defun winner-undo (arg)
   "Switch back to an earlier window configuration saved by Winner mode.
-In other words, \"undo\" changes in window configuration."
+In other words, \"undo\" changes in window configuration.
+With prefix arg, undo that many levels."
   (interactive "p")
   (cond
    ((not winner-mode) (error "Winner mode is turned off"))
