@@ -248,7 +248,10 @@ get_cached_face (f, face)
   for (i = 0; i < nfaces; i++)
     {
       if (face_eql (face_vector[i], face))
-	return face_vector[i];
+	{
+	  face->cached_index = i;
+	  return face_vector[i];
+	}
       if (face_vector[i] == 0)
 	empty = i;
     }
@@ -273,6 +276,7 @@ get_cached_face (f, face)
   /* Make a graphics context for it.  */
   build_face (f, result);
 
+  face->cached_index = empty;
   return result;
 }
 
