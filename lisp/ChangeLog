@@ -173,6 +173,11 @@
 	(battery-linux-proc-acpi): Fix a bug in %b which made "!" never
 	appear due to wrong ordering of the expressions in `or'.
 
+2003-09-09  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* misc.el (upcase-char): Fix docstring.
+	(zap-up-to-char): New command.
+
 2003-09-08  David Ponce  <david@dponce.com>
 
 	Ensure that recentf correctly update the menu bar.
