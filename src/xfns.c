@@ -1831,6 +1831,8 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
+      if (!NILP (Fequal (result, oldval)))
+	return;
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
