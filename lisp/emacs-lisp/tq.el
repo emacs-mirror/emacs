@@ -36,10 +36,12 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun tq-create (process)
-  "Create and return a transaction queue.  PROCESS should be capable
-of sending and receiving streams of bytes.  It may be a local process,
-or it may be connected to a tcp server on another machine."
+  "Create and return a transaction queue communicating with PROCESS.
+PROCESS should be a subprocess capable of sending and receiving
+streams of bytes.  It may be a local process, or it may be connected
+to a tcp server on another machine."
   (let ((tq (cons nil (cons process
 			    (generate-new-buffer
 			     (concat " tq-temp-"
@@ -68,14 +70,17 @@ or it may be connected to a tcp server on another machine."
 
 ;;; must add to queue before sending!
 (defun tq-enqueue (tq question regexp closure fn)
-  "Add a transaction to TQ.  Send question to the process, and call FN
-with CLOSURE and and the answer, when it appears.  The end of the
-answer is identified by REGEXP."
+  "Add a transaction to transaction queue TQ.
+This sends the string QUESTION to the process that TQ communicates with.
+When the corresponding answer comes back, we call FN
+with two arguments: CLOSURE, and the answer to the question.
+REGEXP is a regular expression to match the entire answer;
+that's how we tell where the answer ends."
   (tq-queue-add tq regexp closure fn)
   (process-send-string (tq-process tq) question))
 
 (defun tq-close (tq)
-  "Shut down the process, and destroy the evidence."
+  "Shut down transaction queue TQ, terminating the process."
   (delete-process (tq-process tq))
   (kill-buffer (tq-buffer tq)))
 
