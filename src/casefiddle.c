@@ -47,13 +47,17 @@ casify_object (flag, obj)
     {
       if (INTEGERP (obj))
 	{
-	  c = DOWNCASE (XFASTINT (obj));
+	  int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
+			  | CHAR_SHIFT | CHAR_CTL | CHAR_META);
+	  int flags = XINT (obj) & flagbits;
+
+	  c = DOWNCASE (XFASTINT (obj) & ~flagbits);
 	  if (inword)
-	    XSETFASTINT (obj, c);
-	  else if (c == XFASTINT (obj))
+	    XSETFASTINT (obj, c | flags);
+	  else if (c == (XFASTINT (obj) & ~flagbits))
 	    {
-	      c = UPCASE1 (XFASTINT (obj));
-	      XSETFASTINT (obj, c);
+	      c = UPCASE1 ((XFASTINT (obj) & ~flagbits));
+	      XSETFASTINT (obj, c | flags);
 	    }
 	  return obj;
 	}
