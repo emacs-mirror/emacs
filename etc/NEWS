@@ -25,7 +25,7 @@ parameter `mouse-color' and face `mouse'.
 
 Changing frame parameter `font' sets font-related attributes of the
 `default' face and vice versa.  Setting frame parameters
-`foreground-color' or `background-color' sets the colors of the 
+`foreground-color' or `background-color' sets the colors of the
 `default' face and vice versa.
 
 ** New face `menu'.
@@ -377,6 +377,35 @@ Shell script mode (sh-script) can now indent scripts for shells
 derived from sh and rc.  The indentation style is customizeable, and
 sh-script can attempt to "learn" the current buffer's style.
 
+** Etags changes.
+
+*** In DOS, etags looks for file.cgz if it cannot find file.c.
+
+*** In C and derived languages, etags creates tags for function
+declarations when given the --declarations option.
+
+*** In C++, tags are created for "operator".  The tags have the form
+"operator+", without spaces between the keyword and the operator. 
+
+*** New language Ada: tags are functions, procedures, packages, tasks, and
+types.
+
+*** In Fortran, procedure is no more tagged.
+
+*** In Java, tags are created for "interface".
+
+*** In Lisp, "(defstruct (foo", "(defun (operator" and similar constructs
+are now tagged.
+
+*** In Perl, the --globals option tags global variables.  my and local
+variables are tagged.
+
+*** New language Python: def and class at the beginning of a line are tags.
+
+*** .ss files are Scheme files.
+
+*** New option --ignore-case-regex is an alternative to --regex.
+
 ** Emacs now attempts to determine the initial language environment
 and preferred and locale coding systems systematically from the
 LC_ALL, LC_CTYPE, and LANG environment variables during startup.
@@ -661,7 +690,7 @@ Clear TABLE.
 Look up KEY in TABLE and return its associated VALUE or DEFAULT if
 not found.
 
-- Function: puthash KEY VALUE TABLE 
+- Function: puthash KEY VALUE TABLE
 
 Associate KEY with VALUE in TABLE.  If KEY is already associated with
 another value, replace the old value with VALUE.
@@ -683,7 +712,7 @@ Return a hash code for Lisp object OBJ.
 
 Define a new hash table test named NAME.  If NAME is specified as
 a test in `make-hash-table', the table created will use TEST-FN for
-comparing keys, and HASH-FN to compute hash codes for keys.  Test 
+comparing keys, and HASH-FN to compute hash codes for keys.  Test
 and hash function are stored as symbol property `hash-table-test'
 of NAME with a value of (TEST-FN HASH-FN).
 
@@ -702,7 +731,7 @@ be strings that are compared case-insensitively.
   (defun case-fold-string-hash (a)
     (sxhash (upcase a)))
 
-  (define-hash-table-test 'case-fold 'case-fold-string= 
+  (define-hash-table-test 'case-fold 'case-fold-string=
                           'case-fold-string-hash))
 
   (make-hash-table :test 'case-fold)
@@ -867,18 +896,18 @@ font names anymore and face merging now works as expected.
 Each face can specify the following display attributes:
 
    1. Font family or fontset alias name.
-   
+
    2. Relative proportionate width, aka character set width or set
    width (swidth), e.g. `semi-compressed'.
-   
+
    3. Font height in 1/10pt
-   
+
    4. Font weight, e.g. `bold'.
-   
+
    5. Font slant, e.g. `italic'.
-   
+
    6. Foreground color.
-   
+
    7. Background color.
 
    8. Whether or not characters should be underlined, and in what color.
@@ -905,7 +934,7 @@ attributes mentioned above.
 There is also a global face alist `face-new-frame-defaults'.  Face
 definitions from this list are used to initialize faces of newly
 created frames.
-   
+
 A face doesn't have to specify all attributes.  Those not specified
 have a nil value.  Faces specifying all attributes are called
 `fully-specified'.
@@ -962,7 +991,7 @@ unused fonts.
 
 +++
 *** Font selection.
-   
+
 Font selection tries to find the best available matching font for a
 given (charset, face) combination.  This is done slightly differently
 for faces specifying a fontset, or a font family name.
@@ -1029,7 +1058,7 @@ REGISTRY-AND-ENCODING is a string giving the registry and encoding of
 the font.  The result list is sorted according to the current setting
 of the face font sort order.
 
-- Function: x-font-family-list 
+- Function: x-font-family-list
 
 Return a list of available font families on FRAME.  If FRAME is
 omitted or nil, use the selected frame.  Value is a list of conses
@@ -1181,7 +1210,7 @@ from X resources:
   :underline		attributeUnderline	Face.AttributeUnderline
   :inverse-video	attributeInverse	Face.AttributeInverse
   :stipple		attributeStipple	Face.AttributeStipple
-	or		attributeBackgroundPixmap 
+	or		attributeBackgroundPixmap
 						Face.AttributeBackgroundPixmap
   :font			attributeFont		Face.AttributeFont
   :bold			attributeBold		Face.AttributeBold
@@ -1277,7 +1306,7 @@ of the image's height to use for its ascent.  Default is 50.
 
 `:margin MARGIN'
 
-MARGIN must be a number >= 0 specifying how many pixels to put as 
+MARGIN must be a number >= 0 specifying how many pixels to put as
 margin around the image.  Default is 0.
 
 `:relief RELIEF'
@@ -1371,7 +1400,7 @@ add a `:data' property instead of a `:file' property.
 
 `:data DATA'
 
-DATA must be a string containing an XPM image.  The contents of the 
+DATA must be a string containing an XPM image.  The contents of the
 string are of the same format as that of XPM files.
 
 The XPM library uses libz in its implementation so that it is able
@@ -1458,8 +1487,8 @@ lisp/gs.el.
 
 *** Lisp interface.
 
-The variable `image-types' contains a list of those image types 
-which are supported in the current configuration.  
+The variable `image-types' contains a list of those image types
+which are supported in the current configuration.
 
 Images are stored in an image cache and removed from the cache when
 they haven't been displayed for `image-cache-eviction-delay seconds.
@@ -1525,15 +1554,15 @@ The function `set-window-vscroll' can be used to set the vertical
 scrolling value.  Here is an example of how these function might be
 used.
 
-  (global-set-key [A-down] 
-    #'(lambda () 
+  (global-set-key [A-down]
+    #'(lambda ()
         (interactive)
-	(set-window-vscroll (selected-window) 
+	(set-window-vscroll (selected-window)
                             (+ 0.5 (window-vscroll)))))
-  (global-set-key [A-up] 
+  (global-set-key [A-up]
     #'(lambda ()
 	(interactive)
-	(set-window-vscroll (selected-window) 
+	(set-window-vscroll (selected-window)
 	                    (- (window-vscroll) 0.5)))))
 
 +++
@@ -1565,37 +1594,37 @@ automatically so that all tool bar items are visible.
 Tool bar items are defined using `define-key' with a prefix-key
 `tool-bar'.  For example `(define-key global-map [tool-bar item1] ITEM)'
 where ITEM is a list `(menu-item CAPTION BINDING PROPS...)'.
-   
+
 CAPTION is the caption of the item, If it's not a string, it is
 evaluated to get a string.  The caption is currently not displayed in
 the tool bar, but it is displayed if the item doesn't have a `:help'
 property (see below).
-   
+
 BINDING is the tool bar item's binding.  Tool bar items with keymaps as
 binding are currently ignored.
 
 The following properties are recognized:
 
 `:enable FORM'.
-   
+
 FORM is evaluated and specifies whether the tool bar item is enabled
 or disabled.
-   
+
 `:visible FORM'
-   
+
 FORM is evaluated and specifies whether the tool bar item is displayed.
-   
+
 `:filter FUNCTION'
 
 FUNCTION is called with one parameter, the same list BINDING in which
 FUNCTION is specified as the filter.  The value FUNCTION returns is
 used instead of BINDING to display this item.
-   
+
 `:button (TYPE SELECTED)'
 
 TYPE must be one of `:radio' or `:toggle'.  SELECTED is evaluated
 and specifies whether the button is selected (pressed) or not.
-   
+
 `:image IMAGES'
 
 IMAGES is either a single image specification or a vector of four
@@ -1608,9 +1637,9 @@ meaning of each of the four elements:
      1		enabled and deselected
      2		disabled and selected
      3		disabled and deselected
-   
+
 `:help HELP-STRING'.
-   
+
 Gives a help string to display for the tool bar item.  This help
 is displayed when the mouse is moved over the item.
 
@@ -1620,7 +1649,7 @@ If `auto-resize-tool-bar' is non-nil, the tool bar will automatically
 resize to show all defined tool bar items.  It will never grow larger
 than 1/4 of the frame's size.
 
-If `auto-raise-tool-bar-buttons' is non-nil, tool bar buttons will be 
+If `auto-raise-tool-bar-buttons' is non-nil, tool bar buttons will be
 raised when the mouse moves over them.
 
 You can add extra space between tool bar items by setting
@@ -1633,7 +1662,7 @@ You can change the shadow thickness of tool bar buttons by setting
 *** Tool-bar clicks with modifiers.
 
 You can bind commands to clicks with control, shift, meta etc. on
-a tool bar item.  If 
+a tool bar item.  If
 
   (define-key global-map [tool-bar shell]
     '(menu-item "Shell" shell
@@ -1930,7 +1959,7 @@ temporarily to nil, for example
   (let ((window-size-fixed nil))
      (enlarge-window 10))
 
-Likewise, an attempt to split a fixed-height window vertically, 
+Likewise, an attempt to split a fixed-height window vertically,
 or a fixed-width window horizontally results in a error.
 
 * Changes in Emacs 20.4
@@ -2186,7 +2215,7 @@ limit.
 
 *** \\1-expressions are now valid in `nnmail-split-methods'.
 
-*** The `custom-face-lookup' function has been removed.  
+*** The `custom-face-lookup' function has been removed.
 If you used this function in your initialization files, you must
 rewrite them to use `face-spec-set' instead.
 
@@ -2272,7 +2301,7 @@ customization group `reftex-finding-files'.
 
 *** The option `reftex-bibfile-ignore-list' has been renamed to
 `reftex-bibfile-ignore-regexps' and indeed can be fed with regular
-expressions. 
+expressions.
 
 *** Multiple Selection buffers are now hidden buffers.
 
@@ -2473,7 +2502,7 @@ requested feature cannot be loaded.
 
 ** In the function modify-face, an argument of (nil) for the
 foreground color, background color or stipple pattern
-means to clear out that attribute.  
+means to clear out that attribute.
 
 ** The `outer-window-id' frame property of an X frame
 gives the window number of the outermost X window for the frame.
@@ -2621,7 +2650,7 @@ that you can set it to t, nil, `default', or `complex-only'.
   when you are using complex input methods such as chinese-py.
 
   If the value is `default' (this is the default), extra guidance is
-  given in the following case: 
+  given in the following case:
     o When you are using a complex input method.
     o When you are using a simple input method but not in the minibuffer.
 
@@ -2811,7 +2840,7 @@ doing an isearch.  In order for this to happen search-invisible should
 be set to open (the default).  If an isearch match is inside a hidden
 outline the outline is made visible.  If you continue pressing C-s and
 the match moves outside the formerly invisible outline, the outline is
-made invisible again. 
+made invisible again.
 
 ** Mail reading and sending changes
 
@@ -2903,7 +2932,7 @@ the file named in the current Dired buffer line.  `v v' invokes
 
 The new command `v t' (vc-dired-toggle-terse-mode) allows you to
 toggle between terse display (only locked files) and full display (all
-VC files plus subdirectories).  There is also a special command, 
+VC files plus subdirectories).  There is also a special command,
 `* l', to mark all files currently locked.
 
 Giving a prefix argument to C-x v d now does the same thing as in
@@ -2978,7 +3007,7 @@ automatically in compilation-mode windows.
 *** Multiline macros are now handled, both as they affect indentation,
 and as recognized syntax.  New syntactic symbol cpp-macro-cont is
 assigned to second and subsequent lines of a multiline macro
-definition. 
+definition.
 
 *** A new style "user" which captures all non-hook-ified
 (i.e. top-level) .emacs file variable settings and customizations.
@@ -3010,7 +3039,7 @@ variable c-initialize-on-load controls this and is t by default.
 
 ** Changes to hippie-expand.
 
-*** New customization variable `hippie-expand-dabbrev-skip-space'. If 
+*** New customization variable `hippie-expand-dabbrev-skip-space'. If
 non-nil, trailing spaces may be included in the abbreviation to search for,
 which then gives the same behavior as the original `dabbrev-expand'.
 
@@ -3039,9 +3068,9 @@ against the first word in the title.
 *** Autokey generation now uses all words from the title, not just
 capitalized words.  To avoid conflicts with existing customizations,
 bibtex-autokey-titleword-ignore is set up such that words starting with
-lowerkey characters will still be ignored.  Thus, if you want to use 
+lowerkey characters will still be ignored.  Thus, if you want to use
 lowercase words from the title, you will have to overwrite the
-bibtex-autokey-titleword-ignore standard setting. 
+bibtex-autokey-titleword-ignore standard setting.
 
 *** Case conversion of names and title words for automatic key
 generation is more flexible.  Variable bibtex-autokey-preserve-case is
@@ -3069,15 +3098,15 @@ vcursor, but doesn't disable it, after any non-vcursor command.
 
 ** Ispell changes.
 
-*** You can now spell check comments and strings in the current 
-buffer with M-x ispell-comments-and-strings.  Comments and strings 
+*** You can now spell check comments and strings in the current
+buffer with M-x ispell-comments-and-strings.  Comments and strings
 are identified by syntax tables in effect.
 
 *** Generic region skipping implemented.
 A single buffer can be broken into a number of regions where text will
 and will not be checked.  The definitions of the regions can be user
 defined.  New applications and improvements made available by this
-include: 
+include:
 
     o URLs are automatically skipped
     o EMail message checking is vastly improved.
@@ -3098,7 +3127,7 @@ entire multifile document in order to parse the document.  The new
 recursive parser scans the individual files.
 
 *** Parsing only part of a document.
-    
+
 Reparsing of changed document parts can now be made faster by enabling
 partial scans.  To use this feature, read the documentation string of
 the variable `reftex-enable-partial-scans' and set the variable to t.
@@ -3310,7 +3339,7 @@ default value changed.  For example,
      :group 'foo
      :version "20.3")
 
-   (defgroup foo-group nil "The foo group."  
+   (defgroup foo-group nil "The foo group."
      :version "20.3")
 
 If an entire new group is added or the variables in it have the
@@ -3478,7 +3507,7 @@ The supported properties include
 		  item is enabled.
 :visible FORM     Evaluate FORM to determine whether the
 		  item should appear in the menu.
-:filter FILTER-FN 
+:filter FILTER-FN
 		  FILTER-FN is a function of one argument,
 		  which will be REAL-BINDING.
 		  It should return a binding to use instead.
@@ -4227,7 +4256,7 @@ presumably identical to the last checked-in version, the command now asks
 which version to compare with.
 
 ** When using hideshow.el, incremental search can temporarily show hidden
-blocks if a match is inside the block. 
+blocks if a match is inside the block.
 
 The block is hidden again if the search is continued and the next match
 is outside the block.  By customizing the variable
@@ -4424,10 +4453,10 @@ for output.
 
 *** nntp.el has been totally rewritten in an asynchronous fashion.
 
-*** Article prefetching functionality has been moved up into 
-Gnus.  
+*** Article prefetching functionality has been moved up into
+Gnus.
 
-*** Scoring can now be performed with logical operators like 
+*** Scoring can now be performed with logical operators like
 `and', `or', `not', and parent redirection.
 
 *** Article washing status can be displayed in the
@@ -4472,7 +4501,7 @@ generating lines in buffers.
     (setq gnus-use-adaptive-scoring '(word))
 
 *** Scores can be decayed.
- 
+
     (setq gnus-decay-scores t)
 
 *** Scoring can be performed using a regexp on the Date header.  The
@@ -4507,7 +4536,7 @@ sorting functions, and each topic can be sorted independently.
     See the commands under the `G P' submap.
 
 *** Cached articles can be pulled into the groups.
-  
+
     Use the `Y c' command.
 
 *** Score files are now applied in a more reliable order.
@@ -4518,7 +4547,7 @@ sorting functions, and each topic can be sorted independently.
 
 *** More hooks and functions have been added to remove junk
 from incoming mail before saving the mail.
- 
+
     See `nnmail-prepare-incoming-header-hook'.
 
 *** The nnml mail backend now understands compressed article files.
@@ -4574,10 +4603,10 @@ Note that this only takes effect if you do it *before* cc-mode.el is
 loaded.
 
 If you typically edit more than one style of C (or C++, Objective-C,
-Java) code in a single Emacs session, you may want to make the CC Mode 
+Java) code in a single Emacs session, you may want to make the CC Mode
 style variables have buffer local values.  By default, all buffers
-share the same style variable settings; to make them buffer local, set 
-c-style-variables-are-local-p to t in your .emacs file.  Note that you 
+share the same style variable settings; to make them buffer local, set
+c-style-variables-are-local-p to t in your .emacs file.  Note that you
 must do this *before* CC Mode is loaded.
 
 *** The new variable c-indentation-style holds the C style name
@@ -4623,7 +4652,7 @@ for the year of the selected date, or the following/previous years.
 
 ** ps-print changes
 
-There are some new user variables for customizing the page layout.  
+There are some new user variables for customizing the page layout.
 
 *** Paper size, paper orientation, columns
 
@@ -4635,12 +4664,12 @@ It defaults to `letter'.
 If you need other sizes, see the variable `ps-page-dimensions-database'.
 
 The variable `ps-landscape-mode' determines the orientation
-of the printing on the page.  nil, the default, means "portrait" mode, 
+of the printing on the page.  nil, the default, means "portrait" mode,
 non-nil means "landscape" mode.
 
 The variable `ps-number-of-columns' must be a positive integer.
 It determines the number of columns both in landscape and portrait mode.
-It defaults to 1. 
+It defaults to 1.
 
 *** Horizontal layout
 
@@ -4660,14 +4689,14 @@ If the variable `ps-print-header' is nil, no header is printed.  Then
 `ps-header-offset' is not relevant and `ps-top-margin' represents the
 margin above the text.
 
-If the variable `ps-print-header-frame' is non-nil, a gaudy 
+If the variable `ps-print-header-frame' is non-nil, a gaudy
 framing box is printed around the header.
 
 The contents of the header are determined by `ps-header-lines',
 `ps-show-n-of-n', `ps-left-header' and `ps-right-header'.
 
-The height of the header is determined by `ps-header-line-pad', 
-`ps-header-font-family', `ps-header-title-font-size' and 
+The height of the header is determined by `ps-header-line-pad',
+`ps-header-font-family', `ps-header-title-font-size' and
 `ps-header-font-size'.
 
 *** Font managing
@@ -4677,13 +4706,13 @@ used for ordinary text.  Its value must be a key symbol in the alist
 `ps-font-info-database'.  You can add other font families by adding
 elements to this alist.
 
-The variable `ps-font-size' determines the size of the font 
+The variable `ps-font-size' determines the size of the font
 for ordinary text.  It defaults to 8.5 points.
 
 ** hideshow changes.
 
 *** now supports hiding of blocks of single line comments (like // for
-C++, ; for lisp). 
+C++, ; for lisp).
 
 *** Support for java-mode added.
 
@@ -4697,7 +4726,7 @@ way!  This is run by default when entering the `hs-minor-mode'.
 *** Now uses overlays instead of `selective-display', so is more
 robust and a lot faster.
 
-*** A block beginning can span multiple lines. 
+*** A block beginning can span multiple lines.
 
 *** The new variable `hs-show-hidden-short-form' if t, directs hideshow
 to show only the beginning of a block when it is hidden.  See the
@@ -4824,7 +4853,7 @@ stubs.
 
 The user options `ada-compiler-make', `ada-make-options',
 `ada-language-version', `ada-compiler-syntax-check', and
-`ada-compile-options' are used within these commands. 
+`ada-compile-options' are used within these commands.
 
 *** Ada mode can now work with Outline minor mode.  The outline level
 is calculated from the indenting, not from syntactic constructs.
@@ -4909,7 +4938,7 @@ different environments (equation, figure, ...) and has full support for
 multifile documents.  To use it, select a buffer with a LaTeX document and
 turn the mode on with M-x reftex-mode.  Here are the main user commands:
 
-C-c (    reftex-label        
+C-c (    reftex-label
    Creates a label semi-automatically.  RefTeX is context sensitive and
    knows which kind of label is needed.
 
@@ -4927,7 +4956,7 @@ C-c &    reftex-view-crossref
 C-c =    reftex-toc
    Shows a table of contents of the (multifile) document.  From there you
    can quickly jump to every section.
- 
+
 Under X, RefTeX installs a "Ref" menu in the menu bar, with additional
 commands.  Press `?' to get help when a prompt mentions this feature.
 Full documentation and customization examples are in the file
@@ -5056,10 +5085,10 @@ related to the GNU format has now been fixed.)
 ** Changes in Viper
 
 *** The startup file is now .viper instead of .vip
-*** All variable/function names have been changed to start with viper- 
+*** All variable/function names have been changed to start with viper-
     instead of vip-.
 *** C-\ now simulates the meta-key in all Viper states.
-*** C-z in Insert state now escapes to Vi for the duration of the next 
+*** C-z in Insert state now escapes to Vi for the duration of the next
 Viper command. In Vi and Insert states, C-z behaves as before.
 *** C-c \ escapes to Vi for one command if Viper is in Insert or Emacs states.
 *** _ is no longer the meta-key in Vi state.
@@ -5225,7 +5254,7 @@ instance) and vice versa.
 To use this package load it using
     M-x load-library [enter] ogonek
 Then, you may get an explanation by calling one of
-    M-x ogonek-jak        -- in Polish  
+    M-x ogonek-jak        -- in Polish
     M-x ogonek-how        -- in English
 The info specifies the commands and variables provided as well as the
 ways of customization in `.emacs'.
@@ -5331,7 +5360,7 @@ adding one of these suffixes.
 
 *** string-to-number now takes an optional second argument BASE
 which specifies the base to use when converting an integer.
-If BASE is omitted, base 10 is used. 
+If BASE is omitted, base 10 is used.
 
 We have not implemented other radices for floating point numbers,
 because that would be much more work and does not seem useful.
@@ -5418,7 +5447,7 @@ This means that some Lisp programs, which assume that a character is
 always one buffer position, need to be changed.
 
 However, all ASCII characters are always one buffer position.
- 
+
 *** The regexp [\200-\377] no longer matches all non-ASCII characters,
 because when enable-multibyte-characters is non-nil, these characters
 have codes that are not in the range octal 200 to octal 377.  However,
@@ -5732,16 +5761,16 @@ t when it should hide it.
 *** add-to-invisibility-spec, remove-from-invisibility-spec
 
 Modes that use overlays to hide portions of a buffer should set the
-invisible property of the overlay to the mode's name (or another symbol) 
-and modify the `buffer-invisibility-spec' to include that symbol. 
+invisible property of the overlay to the mode's name (or another symbol)
+and modify the `buffer-invisibility-spec' to include that symbol.
 Use  `add-to-invisibility-spec' and `remove-from-invisibility-spec' to
-manipulate the `buffer-invisibility-spec'. 
+manipulate the `buffer-invisibility-spec'.
 Here is an example of how to do this:
 
  ;; If we want to display an ellipsis:
- (add-to-invisibility-spec '(my-symbol . t)) 
+ (add-to-invisibility-spec '(my-symbol . t))
  ;; If you don't want ellipsis:
- (add-to-invisibility-spec 'my-symbol) 
+ (add-to-invisibility-spec 'my-symbol)
 
   ...
  (overlay-put  (make-overlay beginning end)  'invisible 'my-symbol)
@@ -5978,7 +6007,7 @@ at the end of the keymap.  If the keymap is a menu, this means it
 goes after the other menu items.
 
 ** If you have a program that makes several changes in the same area
-of the buffer, you can use the macro combine-after-change-calls 
+of the buffer, you can use the macro combine-after-change-calls
 around that Lisp code to make it faster when after-change hooks
 are in use.
 
@@ -6071,7 +6100,7 @@ is how %S normally pads to two positions.
 ** imenu.el changes.
 
 You can now specify a function to be run when selecting an
-item from menu created by imenu. 
+item from menu created by imenu.
 
 An example of using this feature: if we define imenu items for the
 #include directives in a C file, we can open the included file when we
@@ -6180,7 +6209,7 @@ previously released version, except in the message composition area.
 Below is a list of the more user-visible changes.  Coding changes
 between Gnus 5.1 and 5.2 are more extensive.
 
-*** A new message composition mode is used.  All old customization 
+*** A new message composition mode is used.  All old customization
 variables for mail-mode, rnews-reply-mode and gnus-msg are now
 obsolete.
 
@@ -6194,7 +6223,7 @@ missing articles are represented by empty nodes.
     To disable this:  (setq gnus-message-archive-group nil)
 
 *** Partial thread regeneration now happens when articles are
-referred. 
+referred.
 
 *** Gnus can make use of GroupLens predictions:
 
@@ -6205,7 +6234,7 @@ referred.
     (setq gnus-use-trees t)
 
 *** An nn-like pick-and-read minor mode is available for the summary
-buffers. 
+buffers.
 
     (add-hook 'gnus-summary-mode-hook 'gnus-pick-mode)
 
@@ -6232,7 +6261,7 @@ groups of groups.
 *** Caching is possible in virtual groups.
 
 *** nndoc now understands all kinds of digests, mail boxes, rnews news
-batches, ClariNet briefs collections, and just about everything else. 
+batches, ClariNet briefs collections, and just about everything else.
 
 *** Gnus has a new backend (nnsoup) to create/read SOUP packets.
 
@@ -6265,11 +6294,11 @@ articles with the `*' command.
 
 *** All mail backends support fetching articles by Message-ID.
 
-*** Duplicate mail can now be treated properly.  See the 
+*** Duplicate mail can now be treated properly.  See the
 `nnmail-treat-duplicates' variable.
 
 *** All summary mode commands are available directly from the article
-buffer. 
+buffer.
 
 *** Frames can be part of `gnus-buffer-configuration'.
 
@@ -6279,21 +6308,21 @@ buffer.
 
     (setq gnus-use-nocem t)
 
-*** Groups can be made permanently visible. 
+*** Groups can be made permanently visible.
 
     (setq gnus-permanently-visible-groups "^nnml:")
 
-*** Many new hooks have been introduced to make customizing easier. 
+*** Many new hooks have been introduced to make customizing easier.
 
 *** Gnus respects the Mail-Copies-To header.
 
-*** Threads can be gathered by looking at the References header. 
+*** Threads can be gathered by looking at the References header.
 
-    (setq gnus-summary-thread-gathering-function 
+    (setq gnus-summary-thread-gathering-function
           'gnus-gather-threads-by-references)
 
 *** Read articles can be stored in a special backlog buffer to avoid
-refetching.  
+refetching.
 
     (setq gnus-keep-backlog 50)
 
@@ -6307,11 +6336,11 @@ buffer to allow easier treatment.
     (setq gnus-prompt-before-saving t)
 
 *** gnus-uu can view decoded files asynchronously while fetching
-articles. 
+articles.
 
     (setq gnus-uu-grabbed-file-functions 'gnus-uu-grab-view)
 
-*** Filling in the article buffer now works properly on cited text. 
+*** Filling in the article buffer now works properly on cited text.
 
 *** Hiding cited text adds buttons to toggle hiding, and how much
 cited text to hide is now customizable.
@@ -6637,7 +6666,7 @@ pressing both mouse buttons.
 
 *** A number of packages and commands which previously failed or had
 restricted functionality on MS-DOS, now work.  The most important ones
-are: 
+are:
 
 **** Printing (both with `M-x lpr-buffer' and with `ps-print' package)
 now works.
