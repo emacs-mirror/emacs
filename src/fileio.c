@@ -901,29 +901,6 @@ See also the function `substitute-in-file-name'.")
   }
 #endif /* DOS_NT */
 
-  /* Handle // and /~ in middle of file name
-     by discarding everything through the first / of that sequence.  */
-  p = nm;
-  while (*p)
-    {
-      /* Since we are expecting the name to be absolute, we can assume
-	 that each element starts with a "/".  */
-
-      if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
-#if defined (APOLLO) || defined (WINDOWSNT)
-	  /* // at start of filename is meaningful on Apollo
-	     and WindowsNT systems */
-	  && nm != p
-#endif /* APOLLO || WINDOWSNT */
-	  )
-	nm = p + 1;
-
-      if (IS_DIRECTORY_SEP (p[0]) && p[1] == '~')
-	nm = p + 1;
-
-      p++;
-    }
-
 #ifdef WINDOWSNT
   /* Discard any previous drive specifier if nm is now in UNC format. */
   if (IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
