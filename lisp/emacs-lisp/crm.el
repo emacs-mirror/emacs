@@ -109,6 +109,11 @@ Analog of `minibuffer-local-completion-map'.")
   "Local keymap for minibuffer multiple input with exact match completion.
 Analog of `minibuffer-local-must-match-map' for crm.")
 
+(defvar crm-completion-table nil
+  "An alist whose elements' cars are strings, or an obarray.
+This is a table used for completion by `completing-read-multiple' and its
+supporting functions.")
+
 ;; this is supposed to be analogous to last_exact_completion in src/minibuf.c
 (defvar crm-last-exact-completion nil
   "Completion string if last attempt reported \"Complete, but not unique\".")
@@ -160,7 +165,7 @@ Functions'."
       (setq string (substring string (match-end 0))))
     (if (eq flag 'lambda)
 	;; return t for exact match, nil otherwise
-	(let ((result (try-completion string table predicate)))
+	(let ((result (try-completion string crm-completion-table predicate)))
 	  (if (stringp result)
 	      nil
 	    (if result
@@ -168,9 +173,9 @@ Functions'."
 	      nil))))
       (if flag
 	  ;; called via (all-completions string 'crm-completion-fn predicate)?
-	  (all-completions string table predicate)
+	  (all-completions string crm-completion-table predicate)
 	;; called via (try-completion string 'crm-completion-fn predicate)?
-	(let ((result (try-completion string table predicate)))
+	(let ((result (try-completion string crm-completion-table predicate)))
 	  (if (stringp result)
 	      (concat lead result)
 	    result)))))
@@ -221,7 +226,8 @@ and return t."
   "Return t if CANDIDATE is an exact match for a valid completion."
   (let ((completions
 	 ;; TODO: verify whether the arguments are appropriate
-	 (all-completions candidate table minibuffer-completion-predicate)))
+	 (all-completions 
+	  candidate crm-completion-table minibuffer-completion-predicate)))
     (if (member candidate completions)
 	t
       nil)))
@@ -587,6 +593,7 @@ INHERIT-INPUT-METHOD."
 	(minibuffer-completion-confirm (if (eq require-match t)
 					   nil
 					 t))
+	(crm-completion-table table)
 	crm-last-exact-completion
 	crm-current-element
 	crm-left-of-element
