@@ -1,3 +1,7 @@
+2003-04-11  John Paul Wallington  <jpw@gnu.org>
+
+	* type-break.el (type-break-warning-countdown-string): Doc fix.
+
 2003-04-11  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
 
 	* international/utf-8.el (utf-translate-cjk-mode): Fix incorrect
