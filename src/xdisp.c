@@ -5399,7 +5399,6 @@ display_echo_area_1 (w)
      struct window *w;
 {
   Lisp_Object window;
-  struct frame *f = XFRAME (w->frame);
   struct text_pos start;
   int window_height_changed_p = 0;
 
@@ -9992,8 +9991,6 @@ try_window_id (w)
      mentioned, this is not a frequent case.  */
   if (w->cursor.vpos < 0)
     {
-      int last_y = min (it.last_visible_y, it.last_visible_y + dy);
-
       /* Cursor in unchanged rows at the top?  */
       if (PT < CHARPOS (start_pos)
 	  && last_unchanged_at_beg_row)
