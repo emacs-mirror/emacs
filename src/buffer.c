@@ -265,7 +265,7 @@ reset_buffer (b)
   b->directory = (current_buffer) ? current_buffer->directory : Qnil;
   b->modtime = 0;
   b->save_modified = 1;
-  b->save_length = 0;
+  XFASTINT (b->save_length) = 0;
   b->last_window_start = 1;
   b->backed_up = Qnil;
   b->auto_save_modified = 0;
