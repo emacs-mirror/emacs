@@ -8878,9 +8878,11 @@ redisplay_internal (preserve_echo_area)
 	  
 	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
+#ifdef HAVE_WINDOW_SYSTEM
 	      if (clear_face_cache_count % 50 == 0
 		  && FRAME_WINDOW_P (f))
 		clear_image_cache (f, 0);
+#endif /* HAVE_WINDOW_SYSTEM */
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
@@ -13598,8 +13600,7 @@ display_mode_element (it, depth, field_width, precision, elt, props)
       {
 	/* A string: output it and check for %-constructs within it.  */
 	unsigned char c;
-	unsigned char *this = XSTRING (elt)->data;
-	unsigned char *lisp_string = this;
+	unsigned char *this, *lisp_string;
 
 	if (!NILP (props))
 	  {
@@ -13607,6 +13608,23 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 	    oprops = Ftext_properties_at (make_number (0), elt);
 	    if (NILP (Fequal (props, oprops)))
 	      {
+		/* If the starting string has properties,
+		   merge the specified ones onto the existing ones.  */
+		if (! NILP (oprops))
+		  {
+		    Lisp_Object tem;
+
+		    oprops = Fcopy_sequence (oprops);
+		    tem = props;
+		    while (CONSP (tem))
+		      {
+			oprops = Fplist_put (oprops, XCAR (tem),
+					     XCAR (XCDR (tem)));
+			tem = XCDR (XCDR (tem));
+		      }
+		    props = oprops;
+		  }
+
 		aelt = Fassoc (elt, mode_line_proptrans_alist);
 		if (! NILP (aelt) && !NILP (Fequal (props, XCDR (aelt))))
 		  elt = XCAR (aelt);
@@ -13620,6 +13638,9 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 		  }
 	      }
 	  }
+
+	this = XSTRING (elt)->data;
+	lisp_string = this;
 
 	if (literal)
 	  {
@@ -13689,20 +13710,24 @@ display_mode_element (it, depth, field_width, precision, elt, props)
 		else if (c != 0)
 		  {
 		    int multibyte;
-		    unsigned char *spec
+		    int bytepos, charpos;
+		    unsigned char *spec;
+			
+		    bytepos = percent_position - lisp_string;
+		    charpos = (STRING_MULTIBYTE (elt)
+			       ? string_byte_to_char (elt, bytepos)
+			       : bytepos);
+
+		    spec
 		      = decode_mode_spec (it->w, c, field, prec, &multibyte);
 
 		    if (frame_title_ptr)
 		      n += store_frame_title (spec, field, prec);
 		    else
 		      {
-			int nglyphs_before, bytepos, charpos, nwritten;
+			int nglyphs_before, nwritten;
 			
 			nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			bytepos = percent_position - XSTRING (elt)->data;
-			charpos = (STRING_MULTIBYTE (elt)
-				   ? string_byte_to_char (elt, bytepos)
-				   : bytepos);
 			nwritten = display_string (spec, Qnil, elt,
 						   charpos, 0, it,
 						   field, prec, 0,
