@@ -3625,7 +3625,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      count++;
 		      numchars--;
 		    }
-		  else
+		  else if (! NILP(Vframe_list)
+			   && ! NILP (XCONS (Vframe_list)->cdr))
 		    /* Force a redisplay sooner or later
 		       to update the frame titles
 		       in case this is the second frame.  */
