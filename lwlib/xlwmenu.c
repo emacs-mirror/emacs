@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
-#include "../src/lisp.h"
+#include "lisp.h"
 
 #include <stdio.h>
 
@@ -1707,8 +1707,6 @@ XlwMenuInitialize (request, mw, args, num_args)
      Cardinal *num_args;
 {
   /* Get the GCs and the widget size */
-  XSetWindowAttributes xswa;
-  int mask;
 
   Window window = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   Display* display = XtDisplay (mw);
@@ -1738,10 +1736,6 @@ XlwMenuInitialize (request, mw, args, num_args)
 
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
-
-  xswa.background_pixel = mw->core.background_pixel;
-  xswa.border_pixel = mw->core.border_pixel;
-  mask = CWBackPixel | CWBorderPixel;
 
   mw->menu.popped_up = False;
 
