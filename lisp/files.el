@@ -1379,7 +1379,8 @@ in that case, this function acts as if `enable-local-variables' were t."
     ("\\.smi$" . snmp-mode)
     ("\\.as2$" . snmpv2-mode)
     ("\\.mi2$" . snmpv2-mode)
-    ("\\.sm2$" . snmpv2-mode))
+    ("\\.sm2$" . snmpv2-mode)
+    ("\\.[eE]?[pP][sS]$" . ps-mode))
   "\
 Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
