@@ -350,12 +350,9 @@ If the third argument is incorrect, Emacs may crash.")
 		case Lisp_Symbol:
 		  if (!EQ (v2, Qunbound))
 		    break;
-		case Lisp_Intfwd:
-		case Lisp_Boolfwd:
-		case Lisp_Objfwd:
+		case Lisp_Misc:
 		case Lisp_Buffer_Local_Value:
 		case Lisp_Some_Buffer_Local_Value:
-		case Lisp_Buffer_Objfwd:
 		  v2 = Fsymbol_value (v1);
 		}
 	    }
