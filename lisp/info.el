@@ -488,7 +488,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                       (goto-char guesspos)
 
                     ;; Else we may have a node, which we search for:
-                    (goto-char (max (point-min) (- guesspos 1000)))
+		    (goto-char (max (point-min)
+				    (- (byte-to-position guesspos) 1000)))
                     ;; Now search from our advised position
                     ;; (or from beg of buffer)
                     ;; to find the actual node.
