@@ -6072,11 +6072,11 @@ try_font_list (f, attrs, family, registry, fonts)
   int nfonts = 0;
   Lisp_Object face_family = attrs[LFACE_FAMILY_INDEX];
 
-  if (STRINGP (face_family))
-    nfonts = try_alternative_families (f, face_family, registry, fonts);
-
-  if (nfonts == 0 && !NILP (family))
+  if (!NILP (family))
     nfonts = try_alternative_families (f, family, registry, fonts);
+
+  if (nfonts == 0 && STRINGP (face_family))
+    nfonts = try_alternative_families (f, face_family, registry, fonts);
 
   /* Try font family of the default face or "fixed".  */
   if (nfonts == 0)
