@@ -1,3 +1,11 @@
+2001-05-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (try_alternative_families): New function.
+	(try_font_list): Use it.  If ATTRS specifies a family, check
+	fonts from that family first.
+	(choose_face_font): Remove code setting the family part of
+	the pattern to nil.
+
 2001-05-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_id): Fix case of all changes before
