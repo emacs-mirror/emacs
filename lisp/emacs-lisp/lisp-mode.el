@@ -339,7 +339,8 @@ With argument, print output into current buffer."
 (defun eval-defun (eval-defun-arg-internal)
   "Evaluate defun that point is in or before.
 Print value in minibuffer.
-With argument, insert value in current buffer after the defun."
+With argument, insert value in current buffer after the defun.
+Return the result of evaluation."
   (interactive "P")
   (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
 	 beg end form)
@@ -367,7 +368,10 @@ With argument, insert value in current buffer after the defun."
 		       ;; Skipping to the end of the specified region
 		       ;; will make eval-region return.
 		       (goto-char end)
-		       form)))))
+		       form))
+      ;; The result of evaluation has been put onto VALUES.
+      ;; So return it.
+      (car values))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
