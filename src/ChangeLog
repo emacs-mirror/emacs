@@ -1,5 +1,7 @@
 2001-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (adjust_glyph_matrix): Always clear desired matrices.
+
 	* xdisp.c (display_line): Simplify check for glyphs fitting
 	entirely in the line.
 
