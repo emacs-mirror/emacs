@@ -588,7 +588,7 @@ If START or END is negative, it counts from the end."
 (defun cl-copy-tree (tree &optional vecp)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
-Constrast to copy-sequence, which copies only along the cdrs.  With second
+Contrast to copy-sequence, which copies only along the cdrs.  With second
 argument VECP, this copies vectors as well as conses."
   (if (consp tree)
       (let ((p (setq tree (copy-list tree))))
