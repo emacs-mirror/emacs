@@ -245,11 +245,13 @@ slow things down!")
       (goto-char end)
       (end-of-line)
       (setq end (point))
-      ;; First scan for strings and comments.
-      (font-lock-fontify-region beg (1+ end))
       (goto-char beg)
       (beginning-of-line)
       (setq beg (point))
+      ;; First scan for strings and comments.
+      ;; Must scan from line start in case of
+      ;; inserting space into `intfoo () {}'.
+      (font-lock-fontify-region beg (1+ end))
       ;; Now scan for keywords.
       (font-lock-hack-keywords beg end))))
 
@@ -485,7 +487,7 @@ This does a lot more highlighting.")
 	   "^\\(" ctoken "[ \t]+\\)?"	; type specs; there can be no
 	   "\\(" ctoken "[ \t]+\\)?"	; more than 3 tokens, right?
 	   "\\(" ctoken "[ \t]+\\)?"
-	   "\\(\\*+[ \t]*\\)?"		; pointer
+	   "\\([*&]+[ \t]*\\)?"		; pointer
 	   "\\(" ctoken "\\)[ \t]*(")		; name
 	  5 'font-lock-function-name-face)
     ;;
@@ -559,8 +561,8 @@ This does a lot more highlighting.")
 	      '("#endif" "#else" "#ifdef" "#ifndef" "#if" "#include"
 		"#define" "#undef")
 	      "\\|")
-   '("^[ \n\t]*sub[ \t]+\\([^ \t{]+\\)\\{" . font-lock-function-name-face)
-   '("[ \n\t{]*\\(eval\\)[ \n\t(;]" . font-lock-function-name-face)
+   '("^[ \n\t]*sub[ \t]+\\([^ \t{]+\\)[ \t]*[{]" 1 font-lock-function-name-face)
+   '("[ \n\t{]*\\(eval\\)[ \n\t(;]" 1 font-lock-function-name-face)
    '("\\(--- .* ---\\|=== .* ===\\)" . font-lock-doc-string-face)
    )
   "Additional expressions to highlight in Perl mode.")
