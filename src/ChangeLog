@@ -1,3 +1,7 @@
+2001-01-25  Dave Love  <fx@gnu.org>
+
+	* keymap.c (Fwhere_is_internal): Declare gcpro3, gcpro4.
+
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (echo_area_display): Don't call redisplay_internal
