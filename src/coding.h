@@ -230,8 +230,8 @@ enum coding_result_code
 #define CODING_MODE_INHIBIT_INCONSISTENT_EOL	0x01
 
 /* If set, the decoding/encoding routines treat the current data as
-   the last block of the whole text to be converted, and do
-   appropriate fisishing job.  */
+   the last block of the whole text to be converted, and do the
+   appropriate finishing job.  */
 #define CODING_MODE_LAST_BLOCK			0x02
 
 /* If set, it means that the current source text is in a buffer which
