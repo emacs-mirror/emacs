@@ -54,6 +54,9 @@
 
 ;;; Code:
 
+(or window-system
+    (error "Can't fontify on an ASCII terminal"))
+
 (or (internal-find-face 'underline)
     (copy-face 'default 'underline))
 (set-face-underline-p 'underline t)
