@@ -1,11 +1,7 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(trunk.9) $
- * Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
- *
- * READERSHIP
- *
- * .readership: Any MPS developer
+ * $HopeName: MMsrc!protsu.c(trunk.10) $
+ * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -31,8 +27,9 @@
 
 #include <sys/mman.h>
 #include <signal.h>
+#include <limits.h>
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.9) $");
+SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.10) $");
 
 
 /* Fix up unprototyped system calls. */
@@ -215,8 +212,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 }
 
 
-/* ProtSync -- synchronize protection settings with hardware
- */
+/* ProtSync -- synchronize protection settings with hardware */
 
 void ProtSync(Arena arena)
 {
@@ -226,8 +222,7 @@ void ProtSync(Arena arena)
 }
 
 
-/* ProtTramp -- protection trampoline
- */
+/* ProtTramp -- protection trampoline */
 
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
                void *p, size_t s)

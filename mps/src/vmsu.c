@@ -1,12 +1,9 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.19) $
+ * $HopeName: MMsrc!vmsu.c(trunk.20) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
- * Design: design.mps.vm
- *
- * This is the implementation of the virtual memory mapping interface
- * (vm.h) for SunOS 4.
+ * .design: See design.mps.vm for general design.
  *
  * mmap(2) is used to reserve address space by creating a mapping to
  * /etc/passwd with page access none.  mmap(2) is used to map pages
@@ -23,9 +20,9 @@
  *   in the address space, so that the limit of the mapped area
  *   is representable.
  *
- * .assume.size: The maximum size of the reserved address space
- *   is limited by the range of "int".  This will probably be half
- *   of the address space.
+ * .assume.size: The maximum size of the reserved address space is
+ *   limited by the range of "int" (because doc of munmap(2) says so).
+ *   This will probably be half of the address space.
  *
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
@@ -44,22 +41,18 @@
 #ifndef MPS_OS_SU
 #error "vmsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
-#ifdef VM_RM
-#error "vmsu.c compiled with VM_RM set"
-#endif /* VM_RM */
 
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/errno.h>
+#include <limits.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.19) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.20) $");
 
 
-/* Fix up unprototyped system calls.  */
-/* Note that these are not fixed up by std.h because that only fixes */
-/* up discrepancies with ANSI. */
+/* Fix up unprototyped system calls. */
 
 extern int close(int fd);
 extern int munmap(caddr_t addr, int len);
