@@ -279,8 +279,10 @@ This variable is buffer-local."
 
 ;; AIX puts the name of the person being su'd to in front of the prompt.
 ;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
+;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
+;; ssh-add prints a prompt like `Enter passphrase: '.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\)\
+  "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\|Enter passphrase\\)\
 \\( for [^@ \t\n]+@[^@ \t\n]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
