@@ -29,7 +29,7 @@ ALL		= $(BLD)\addpm.exe
 addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.obj: addpm.c
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
-		  $(LINK) -out:$@ -subsystem:windows -entry:WinMainCRTStartup \
+		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
 
 # Since Windows 95 does not support multiple commands on one command line
