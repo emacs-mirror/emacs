@@ -536,8 +536,8 @@ If N is negative, find the previous or Nth previous match."
   "\
 Get previous element of history which is a completion of minibuffer contents."
   (interactive "p")
-  (next-matching-history-element (concat "^" (regexp-quote (buffer-string)))
-				 n))
+  (next-matching-history-element
+   (concat "^" (regexp-quote (buffer-substring (point-min) (point)))) n))
 
 (defun previous-complete-history-element (n)
   "Get next element of history which is a completion of minibuffer contents."
