@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.10 1997/02/19 10:24:26 friedman Exp $
+;; $Id: eldoc.el,v 1.11 1997/03/27 10:44:56 friedman Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -54,8 +54,12 @@
 (or (featurep 'timer)
     (load "timer" t))
 
+(defgroup eldoc nil
+  "Show function arglist or variable docstring in echo area."
+  :group 'extensions)
+
 ;;;###autoload
-(defvar eldoc-mode nil
+(defcustom eldoc-mode nil
   "*If non-nil, show the defined parameters for the elisp function near point.
 
 For the emacs lisp function at the beginning of the sexp which point is
@@ -67,18 +71,24 @@ from the documentation string if possible.
 If point is over a documented variable, print that variable's docstring
 instead.
 
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'eldoc)
 (make-variable-buffer-local 'eldoc-mode)
 
-(defvar eldoc-idle-delay 0.50
+(defcustom eldoc-idle-delay 0.50
   "*Number of seconds of idle time to wait before printing.
 If user input arrives before this interval of time has elapsed after the
 last input, no documentation will be printed.
 
-If this variable is set to 0, no idle time is required.")
+If this variable is set to 0, no idle time is required."
+  :type 'number
+  :group 'eldoc)
 
-(defvar eldoc-minor-mode-string " ElDoc"
-  "*String to display in mode line when Eldoc Mode is enabled.")
+(defcustom eldoc-minor-mode-string " ElDoc"
+  "*String to display in mode line when Eldoc Mode is enabled."
+  :type 'string
+  :group 'eldoc)
 
 ;; Put this minor mode on the global minor-mode-alist.
 (or (assq 'eldoc-mode (default-value 'minor-mode-alist))
@@ -86,11 +96,13 @@ If this variable is set to 0, no idle time is required.")
                   (append (default-value 'minor-mode-alist)
                           '((eldoc-mode eldoc-minor-mode-string)))))
 
-(defvar eldoc-argument-case 'upcase
+(defcustom eldoc-argument-case 'upcase
   "Case to display argument names of functions, as a symbol.
 This has two preferred values: `upcase' or `downcase'.
 Actually, any name of a function which takes a string as an argument and
-returns another string is acceptable.")
+returns another string is acceptable."
+  :type '(choice (const upcase) (const downcase))
+  :group 'eldoc)
 
 ;; No user options below here.
 
