@@ -5470,8 +5470,8 @@ produce_chars (coding)
   if (! coding->chars_at_source)
     {
       /* Characters are in coding->charbuf.  */
-      EMACS_INT *buf = coding->charbuf;
-      EMACS_INT *buf_end = buf + coding->charbuf_used;
+      int *buf = coding->charbuf;
+      int *buf_end = buf + coding->charbuf_used;
       unsigned char *adjusted_dst_end;
 
       if (BUFFERP (coding->src_object)
