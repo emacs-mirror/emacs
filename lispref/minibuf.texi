@@ -697,6 +697,11 @@ into the minibuffer as part of the input.  Then it allows the user to
 edit the input, providing several commands to attempt completion.
 In most cases, we recommend using @var{default}, and not @var{initial}.
 
+@strong{We discourage use of a non-@code{nil} value for
+@var{initial}}, because it is an intrusive interface.  The history
+list (which did not exist when we introduced @var{initial}) is a far
+more convenient way for the user to get the default and edit it.
+
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
 minibuffer inherits the current input method (@pxref{Input
 Methods}) and the setting of @code{enable-multibyte-characters}
