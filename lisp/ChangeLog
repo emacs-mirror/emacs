@@ -1,3 +1,15 @@
+2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/sgml-mode.el (sgml-start-tag-regex)
+	(sgml-font-lock-keywords-1, sgml-mode-common): Allow underscore,
+	colon, non-ASCII letters.
+	(sgml-name-char): Don't assume anything about charsets handled by
+	encode-char.
+	(sgml-name-8bit-mode): Doc fix.
+	(sgml-font-lock-keywords-1): Remove comment pattern.
+	(sgml-mode-common): Set font-lock-syntactic-keywords.
+	From Dave Love <fx@gnu.org>.
+
 2002-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* play/pong.el (pong-height): Don't use height that exceeds the
