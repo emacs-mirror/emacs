@@ -108,6 +108,10 @@ TIBETAN=${srcdir}/quail/tibetan.el
 
 LATIN=${srcdir}/quail/latin-pre.el ${srcdir}/quail/latin-post.el
 
+SLAVIC= \
+	${srcdir}/quail/czech.el \
+	${srcdir}/quail/slovak.el \
+
 GREEK=${srcdir}/quail/greek.el
 
 RUSSIAN=${srcdir}/quail/cyrillic.el ${srcdir}/quail/cyril-jis.el
@@ -117,7 +121,7 @@ MISC=${srcdir}/quail/ethiopic.el ${srcdir}/quail/ipa.el
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
-EUROPEAN=${LATIN} ${GREEK} ${RUSSIAN}
+EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
 WORLD=${ASIA} ${EUROPEAN} ${MISC}
 
 TIT=${CHINESE-TIT}
