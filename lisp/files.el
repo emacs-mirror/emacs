@@ -1063,6 +1063,7 @@ run `normal-mode' explicitly."
     ("\\.oak\\'" . scheme-mode)
     ("\\.sgml?\\'" . sgml-mode)
     ("\\.dtd\\'" . sgml-mode)
+    ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
     ("\\.s?html?\\'" . html-mode)
     ;; .emacs following a directory delimiter
     ;; in either Unix or VMS syntax.
