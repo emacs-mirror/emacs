@@ -238,18 +238,6 @@ If FRAME is omitted, describe the currently selected frame."
 If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
-(defun set-frame-height (h)
-  (interactive "NHeight: ")
-  (let* ((frame (selected-frame))
-	 (width (cdr (assoc 'width (frame-parameters (selected-frame))))))
-    (set-frame-size (selected-frame) width h)))
-
-(defun set-frame-width (w)
-  (interactive "NWidth: ")
-  (let* ((frame (selected-frame))
-	 (height (cdr (assoc 'height (frame-parameters (selected-frame))))))
-    (set-frame-size (selected-frame) w height)))
-
 (defun set-default-font (font-name)
   (interactive "sFont name: ")
   (modify-frame-parameters (selected-frame)
