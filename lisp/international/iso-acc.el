@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
 
-;; Author: Johan Vromans <jv@mh.nl>
-;; Version: 1.7 (modified)
+;; Author: Johan Vromans
 ;; Maintainer: FSF
 ;; Keywords: i18n
 
