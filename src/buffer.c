@@ -140,6 +140,10 @@ Lisp_Object Qinsert_behind_hooks;
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
+#ifdef MSDOS
+Lisp_Object Qbuffer_file_type;
+#endif
+
 nsberror (spec)
      Lisp_Object spec;
 {
@@ -2064,6 +2068,9 @@ init_buffer_once ()
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.ctl_arrow = Qt;
 
+#ifdef MSDOS
+  buffer_defaults.buffer_file_type = 0; /* TEXT */
+#endif
   XFASTINT (buffer_defaults.fill_column) = 70;
   XFASTINT (buffer_defaults.left_margin) = 0;
 
@@ -2105,6 +2112,9 @@ init_buffer_once ()
   XFASTINT (buffer_local_flags.abbrev_table) = 0x1000;
   XFASTINT (buffer_local_flags.display_table) = 0x2000;
   XFASTINT (buffer_local_flags.syntax_table) = 0x8000;
+#ifdef MSDOS
+  XFASTINT (buffer_local_flags.buffer_file_type) = 0x4000;
+#endif
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -2239,6 +2249,14 @@ This is the same as (default-value 'tab-width).");
     "Default value of `case-fold-search' for buffers that don't override it.\n\
 This is the same as (default-value 'case-fold-search).");
 
+#ifdef MSDOS
+  DEFVAR_LISP_NOPRO ("default-buffer-file-type", 
+		     &buffer_defaults.buffer_file_type,
+    "Default file type for buffers that do not override it.\n\
+This is the same as (default-value 'buffer-file-type).\n\
+The file type is nil for text, t for binary.");
+#endif
+
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format, 
 		     Qnil, 0);
 
@@ -2268,6 +2286,7 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
   %s -- print process status.   %l -- print the current line number.\n\
   %p -- print percent of buffer above top of window, or top, bot or all.\n\
   %n -- print Narrow if appropriate.\n\
+  %t -- print T if files is text, B if binary.\n\
   %[ -- print one [ for each recursive editing level.  %] similar.\n\
   %% -- print %.   %- -- print infinitely many dashes.\n\
 Decimal digits after the % specify field width to which to pad.");
@@ -2325,6 +2344,12 @@ Automatically becomes buffer-local when set in any fashion.\n\
 Note that this is overridden by the variable\n\
 `truncate-partial-width-windows' if that variable is non-nil\n\
 and this buffer is not full-frame width.");
+
+#ifdef MSDOS
+  DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
+		     Qnil,
+    "*If visited file is text, nil; otherwise, t.");
+#endif
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
 		     make_number (Lisp_String),

@@ -244,6 +244,10 @@ struct buffer
     Lisp_Object left_margin;
     /* Function to call when insert space past fill column */
     Lisp_Object auto_fill_function;
+#ifdef MSDOS
+    /* nil: text, t: binary.  */
+    Lisp_Object buffer_file_type;
+#endif
 
     /* String of length 256 mapping each char to its lower-case version.  */
     Lisp_Object downcase_table;
