@@ -687,59 +687,59 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 (unless f90-mode-abbrev-table
   (let ((ac abbrevs-changed))
     (define-abbrev-table 'f90-mode-abbrev-table ())
-    (define-abbrev f90-mode-abbrev-table  "`al"  "allocate" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`ab"  "allocatable" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`as"  "assignment" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`ba"  "backspace" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`bd"  "block data" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`c"   "character" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`cl"  "close" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`cm"  "common" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`cx"  "complex" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`cn"  "contains" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`cy"  "cycle" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`de"  "deallocate" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`df"  "define" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`di"  "dimension" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`dw"  "do while" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`el"  "else" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`eli" "else if" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`elw" "elsewhere" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`eq"  "equivalence" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`ex"  "external" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`ey"  "entry" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`fl"  "forall" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`fo"  "format" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`fu"  "function" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`fa"  ".false." nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`al"  "allocate"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`ab"  "allocatable"   nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`as"  "assignment"    nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`ba"  "backspace"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`bd"  "block data"    nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`c"   "character"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`cl"  "close"         nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`cm"  "common"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`cx"  "complex"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`cn"  "contains"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`cy"  "cycle"         nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`de"  "deallocate"    nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`df"  "define"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`di"  "dimension"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`dw"  "do while"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`el"  "else"          nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`eli" "else if"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`elw" "elsewhere"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`eq"  "equivalence"   nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`ex"  "external"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`ey"  "entry"         nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`fl"  "forall"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`fo"  "format"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`fu"  "function"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`fa"  ".false."       nil 0 t)
     (define-abbrev f90-mode-abbrev-table  "`im"  "implicit none" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`in " "include" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`i"   "integer" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`it"  "intent" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`if"  "interface" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`lo"  "logical" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`mo"  "module" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`na"  "namelist" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`nu"  "nullify" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`op"  "optional" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`pa"  "parameter" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`po"  "pointer" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`pr"  "print" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`pi"  "private" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`pm"  "program" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`pu"  "public" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`r"   "real" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`rc"  "recursive" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`rt"  "return" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`rw"  "rewind" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`se"  "select" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`sq"  "sequence" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`su"  "subroutine" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`ta"  "target" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`tr"  ".true." nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`t"   "type" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`wh"  "where" nil 0 t)
-    (define-abbrev f90-mode-abbrev-table  "`wr"  "write" nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`in " "include"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`i"   "integer"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`it"  "intent"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`if"  "interface"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`lo"  "logical"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`mo"  "module"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`na"  "namelist"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`nu"  "nullify"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`op"  "optional"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`pa"  "parameter"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`po"  "pointer"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`pr"  "print"         nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`pi"  "private"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`pm"  "program"       nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`pu"  "public"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`r"   "real"          nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`rc"  "recursive"     nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`rt"  "return"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`rw"  "rewind"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`se"  "select"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`sq"  "sequence"      nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`su"  "subroutine"    nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`ta"  "target"        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`tr"  ".true."        nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`t"   "type"          nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`wh"  "where"         nil 0 t)
+    (define-abbrev f90-mode-abbrev-table  "`wr"  "write"         nil 0 t)
     (setq abbrevs-changed ac)))
 
 (defcustom f90-mode-hook nil
@@ -777,8 +777,8 @@ Variables controlling indentation style and extra features:
 `f90-continuation-indent'
   Extra indentation applied to continuation lines (default 5).
 `f90-comment-region'
-  String inserted by \\[f90-comment-region] at start of each line in
-  region (default \"!!!$\").
+  String inserted by function \\[f90-comment-region] at start of each
+  line in region (default \"!!!$\").
 `f90-indented-comment-re'
   Regexp determining the type of comment to be intended like code
   (default \"!\").
@@ -809,27 +809,19 @@ Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
-  (setq major-mode 'f90-mode)
-  (setq mode-name "F90")
-  (setq local-abbrev-table f90-mode-abbrev-table)
+  (setq major-mode 'f90-mode
+        mode-name "F90"
+        local-abbrev-table f90-mode-abbrev-table)
   (set-syntax-table f90-mode-syntax-table)
   (use-local-map f90-mode-map)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'f90-indent-line)
-  (make-local-variable 'indent-region-function)
-  (setq indent-region-function 'f90-indent-region)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
-  (make-local-variable 'comment-start)
-  (setq comment-start "!")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "!+ *")
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'f90-comment-indent)
-  (make-local-variable 'abbrev-all-caps)
-  (setq abbrev-all-caps t)
-  (make-local-variable 'normal-auto-fill-function)
-  (setq normal-auto-fill-function 'f90-do-auto-fill)
+  (set (make-local-variable 'indent-line-function) 'f90-indent-line)
+  (set (make-local-variable 'indent-region-function) 'f90-indent-region)
+  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'comment-start) "!")
+  (set (make-local-variable 'comment-start-skip) "!+ *")
+  (set (make-local-variable 'comment-indent-function) 'f90-comment-indent)
+  (set (make-local-variable 'abbrev-all-caps) t)
+  (set (make-local-variable 'normal-auto-fill-function) 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)
   ;; Setting up things for font-lock.
   (when f90-xemacs-flag
@@ -840,17 +832,16 @@ with no args, if that value is non-nil."
       (set-buffer-menubar (copy-sequence current-menubar))
       (add-submenu nil f90-xemacs-menu)))
   ;; XEmacs: Does not need a special case, since both emacsen work alike -sb.
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	'((f90-font-lock-keywords f90-font-lock-keywords-1
-				  f90-font-lock-keywords-2
-				  f90-font-lock-keywords-3
-				  f90-font-lock-keywords-4)
-	  nil t))
+  (set (make-local-variable 'font-lock-defaults)
+       '((f90-font-lock-keywords f90-font-lock-keywords-1
+                                 f90-font-lock-keywords-2
+                                 f90-font-lock-keywords-3
+                                 f90-font-lock-keywords-4)
+         nil t))
   ;; Tell imenu how to handle f90.
   (set (make-local-variable 'imenu-case-fold-search) t)
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression f90-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+        f90-imenu-generic-expression)
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
   (run-hooks 'f90-mode-hook))
@@ -884,19 +875,17 @@ not the last line of a continued statement."
   (save-excursion
     (beginning-of-line)
     (while (and (looking-at "[ \t]*\\(!\\|$\\)") (zerop (forward-line -1))))
-    (let ((bol (line-beginning-position)))
-      (end-of-line)
-      (while (f90-in-comment)
-	(search-backward "!" bol)
-	(skip-chars-backward "!"))
-      (skip-chars-backward " \t")
-      (= (preceding-char) ?&))))
+    (end-of-line)
+    (while (f90-in-comment)
+      (search-backward "!" (line-beginning-position))
+      (skip-chars-backward "!"))
+    (skip-chars-backward " \t")
+    (= (preceding-char) ?&)))
 
 (defsubst f90-current-indentation ()
   "Return indentation of current line.
 Line-numbers are considered whitespace characters."
-  (save-excursion
-    (beginning-of-line) (skip-chars-forward " \t0-9")))
+  (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")))
 
 (defsubst f90-indent-to (col &optional no-line-number)
   "Indent current line to column COL.
@@ -914,14 +903,12 @@ line-number before indenting."
   "If point lies within a comment, return the string starting the comment.
 For example, \"!\" or \"!!\"."
   (save-excursion
-    (let ((type nil) (eol (line-end-position)))
-      (when (f90-in-comment)
-        (beginning-of-line)
-        (re-search-forward "[!]+" eol)
-        (while (f90-in-string)
-          (re-search-forward "[!]+" eol))
-        (setq type (match-string 0)))
-      type)))
+    (when (f90-in-comment)
+      (beginning-of-line)
+      (re-search-forward "[!]+" (line-end-position))
+      (while (f90-in-string)
+        (re-search-forward "[!]+" (line-end-position))
+        (match-string 0)))))
 
 (defsubst f90-equal-symbols (a b)
   "Compare strings A and B neglecting case and allowing for nil value."
@@ -956,9 +943,9 @@ NAME is nil if the statement has no label."
   "Return (\"if\" NAME) if an if () then statement starts after point.
 NAME is nil if the statement has no label."
   (save-excursion
-    (let (struct (label nil))
-      (when (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
-        (setq struct (match-string 3))
+    (when (looking-at "\\(\\(\\sw+\\)[ \t]*\:\\)?[ \t]*\\(if\\)\\>")
+      (let (label
+            (struct (match-string 3)))
         (if (looking-at "\\(\\sw+\\)[ \t]*\:")
             (setq label (match-string 1)))
         (let ((pos (scan-lists (point) 1 0)))
@@ -1039,13 +1026,13 @@ middle - current line is neither first nor last in a continued statement.
 Comment lines embedded amongst continued lines return 'middle."
   (let (pcont cont)
     (save-excursion
-      (setq pcont (if (f90-previous-statement) (f90-line-continued) nil)))
+      (setq pcont (if (f90-previous-statement) (f90-line-continued))))
     (setq cont (f90-line-continued))
     (cond ((and (not pcont) (not cont)) 'single)
  	  ((and (not pcont) cont)       'begin)
  	  ((and pcont       (not cont)) 'end)
  	  ((and pcont       cont)       'middle)
- 	  (t (error)))))
+ 	  (t (error "The impossible occurred")))))
 
 (defsubst f90-indent-line-no ()
   "If `f90-leave-line-no' is nil, left-justify a line number.
@@ -1098,7 +1085,8 @@ Does not check type and subprogram indentation."
       (beginning-of-line)
       (when (re-search-forward "\\(if\\|do\\|select\\|where\\|forall\\)"
                                (line-end-position) t)
-        (beginning-of-line) (skip-chars-forward " \t")
+        (beginning-of-line)
+        (skip-chars-forward " \t")
         (cond ((f90-looking-at-do)
                (setq icol (+ icol f90-do-indent)))
               ((or (f90-looking-at-if-then)
@@ -1108,17 +1096,18 @@ Does not check type and subprogram indentation."
         (end-of-line))
       (while (re-search-forward
 	      "\\(if\\|do\\|select\\|where\\|forall\\)" epnt t)
-	(beginning-of-line) (skip-chars-forward " \t0-9")
-	(cond  ((f90-looking-at-do)
-		(setq icol (+ icol f90-do-indent)))
-	       ((or (f90-looking-at-if-then)
-		    (f90-looking-at-where-or-forall)
-		    (f90-looking-at-select-case))
-		(setq icol (+ icol f90-if-indent)))
-	       ((looking-at f90-end-if-re)
-		(setq icol (- icol f90-if-indent)))
-	       ((looking-at "end[ \t]*do\\>")
-		(setq icol (- icol f90-do-indent))))
+	(beginning-of-line)
+        (skip-chars-forward " \t0-9")
+	(cond ((f90-looking-at-do)
+               (setq icol (+ icol f90-do-indent)))
+              ((or (f90-looking-at-if-then)
+                   (f90-looking-at-where-or-forall)
+                   (f90-looking-at-select-case))
+               (setq icol (+ icol f90-if-indent)))
+              ((looking-at f90-end-if-re)
+               (setq icol (- icol f90-if-indent)))
+              ((looking-at "end[ \t]*do\\>")
+               (setq icol (- icol f90-do-indent))))
 	(end-of-line))
       icol)))
 
@@ -1136,7 +1125,7 @@ Does not check type and subprogram indentation."
 	(cond ((eq cont 'begin)
 	       (setq icol (+ (f90-current-indentation)
 			     f90-continuation-indent)))
-	      ((eq cont 'middle) (setq icol(current-indentation)))
+	      ((eq cont 'middle) (setq icol (current-indentation)))
 	      (t (setq icol (f90-current-indentation))
 		 (skip-chars-forward " \t")
 		 (if (looking-at "[0-9]")
@@ -1201,17 +1190,18 @@ Return nil if no later statement is found."
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-beg)
-    (beginning-of-line) (skip-chars-forward " \t0-9")
+    (beginning-of-line)
+    (skip-chars-forward " \t0-9")
     (if (setq matching-beg (f90-looking-at-program-block-start))
-	(setq count (- count 1)))
+	(setq count (1- count)))
     (while (and (not (zerop count))
 		(re-search-backward f90-program-block-re nil 'move))
-      (beginning-of-line) (skip-chars-forward " \t0-9")
-      (cond
-       ((setq matching-beg (f90-looking-at-program-block-start))
-	(setq count (- count 1)))
-       ((f90-looking-at-program-block-end)
-	(setq count (+ count 1)))))
+      (beginning-of-line)
+      (skip-chars-forward " \t0-9")
+      (cond ((setq matching-beg (f90-looking-at-program-block-start))
+             (setq count (1- count)))
+            ((f90-looking-at-program-block-end)
+             (setq count (1+ count)))))
     (beginning-of-line)
     (if (zerop count)
 	matching-beg
@@ -1223,17 +1213,19 @@ Return (TYPE NAME), or nil if not found."
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-end)
-    (beginning-of-line) (skip-chars-forward " \t0-9")
+    (beginning-of-line)
+    (skip-chars-forward " \t0-9")
     (if (setq matching-end (f90-looking-at-program-block-end))
 	(setq count (1- count)))
     (end-of-line)
     (while (and (not (zerop count))
 		(re-search-forward f90-program-block-re nil 'move))
-      (beginning-of-line) (skip-chars-forward " \t0-9")
+      (beginning-of-line)
+      (skip-chars-forward " \t0-9")
       (cond ((f90-looking-at-program-block-start)
-	     (setq count (+ count 1)))
+	     (setq count (1+ count)))
 	    ((setq matching-end (f90-looking-at-program-block-end))
-	     (setq count (1- count ))))
+	     (setq count (1- count))))
       (end-of-line))
     (forward-line 1)
     (if (zerop count)
@@ -1281,8 +1273,8 @@ in the region, or, if already present, remove it."
     (if (looking-at (regexp-quote f90-comment-region))
 	(delete-region (point) (match-end 0))
       (insert f90-comment-region))
-    (while (and  (zerop (forward-line 1))
-		 (< (point) (marker-position end)))
+    (while (and (zerop (forward-line 1))
+		(< (point) (marker-position end)))
       (if (looking-at (regexp-quote f90-comment-region))
 	  (delete-region (point) (match-end 0))
 	(insert f90-comment-region)))
@@ -1293,7 +1285,7 @@ in the region, or, if already present, remove it."
 Unless optional argument NO-UPDATE is non-nil, call `f90-update-line'
 after indenting."
   (interactive)
-  (let (indent (no-line-number nil) (pos (make-marker)) (case-fold-search t))
+  (let (indent no-line-number (pos (make-marker)) (case-fold-search t))
     (set-marker pos (point))
     (beginning-of-line)			; digits after & \n are not line-nos
     (if (save-excursion (and (f90-previous-statement) (f90-line-continued)))
@@ -1304,9 +1296,8 @@ after indenting."
       (if (and (looking-at "end") f90-smart-end)
           (f90-match-end))
       (setq indent (f90-calculate-indent)))
-    (if (zerop (- indent (current-column)))
-	nil
-      (f90-indent-to indent no-line-number))
+    (if (not (zerop (- indent (current-column))))
+        (f90-indent-to indent no-line-number))
     ;; If initial point was within line's indentation,
     ;; position after the indentation.  Else stay at same point in text.
     (if (< (point) (marker-position pos))
@@ -1328,8 +1319,8 @@ If run in the middle of a line, the line is not broken."
     (f90-indent-line 'no-update)
     (end-of-line)
     (delete-horizontal-space)		; destroy trailing whitespace
-    (setq string (f90-in-string))
-    (setq cont (f90-line-continued))
+    (setq string (f90-in-string)
+          cont (f90-line-continued))
     (if (and string (not cont)) (insert "&"))
     (f90-update-line)
     (newline)
@@ -1340,8 +1331,9 @@ If run in the middle of a line, the line is not broken."
 (defun f90-indent-region (beg-region end-region)
   "Indent every line in region by forward parsing."
   (interactive "*r")
-  (let ((end-region-mark (make-marker)) (save-point (point-marker))
-	(block-list nil) ind-lev ind-curr ind-b cont
+  (let ((end-region-mark (make-marker))
+        (save-point (point-marker))
+	block-list ind-lev ind-curr ind-b cont
 	struct beg-struct end-struct)
     (set-marker end-region-mark end-region)
     (goto-char beg-region)
@@ -1358,11 +1350,12 @@ If run in the middle of a line, the line is not broken."
     ;; Process present line for beginning of block.
     (setq f90-cache-position (point))
     (f90-indent-line 'no-update)
-    (setq ind-lev (f90-current-indentation))
-    (setq ind-curr ind-lev)
-    (beginning-of-line) (skip-chars-forward " \t0-9")
-    (setq struct nil)
-    (setq ind-b (cond ((setq struct (f90-looking-at-do)) f90-do-indent)
+    (setq ind-lev (f90-current-indentation)
+          ind-curr ind-lev)
+    (beginning-of-line)
+    (skip-chars-forward " \t0-9")
+    (setq struct nil
+          ind-b (cond ((setq struct (f90-looking-at-do)) f90-do-indent)
 		      ((or (setq struct (f90-looking-at-if-then))
 			   (setq struct (f90-looking-at-select-case))
 			   (setq struct (f90-looking-at-where-or-forall))
@@ -1448,8 +1441,7 @@ If run in the middle of a line, the line is not broken."
   "Properly indent the subprogram containing point."
   (interactive)
   (save-excursion
-    (let (program)
-      (setq program (f90-mark-subprogram))
+    (let ((program (f90-mark-subprogram)))
       (if program
 	  (progn
 	    (message "Indenting %s %s..."
@@ -1502,8 +1494,7 @@ Update keyword case first."
   (while (> (current-column) fill-column)
     (let ((pos-mark (point-marker)))
       (move-to-column fill-column)
-      (if (not (f90-in-string))
-          (f90-find-breakpoint))
+      (or (f90-in-string) (f90-find-breakpoint))
       (f90-break-line)
       (goto-char pos-mark)
       (set-marker pos-mark nil))))
@@ -1515,30 +1506,28 @@ Update keyword case first."
   (let (pos (oldpos (point)))
     (end-of-line)
     (skip-chars-backward " \t")
-    (cond ((= (preceding-char) ?&)
-	   (delete-char -1)
-	   (setq pos (point))
-	   (forward-line 1)
-	   (skip-chars-forward " \t")
-	   (if (looking-at "\&") (delete-char 1))
-	   (delete-region pos (point))
-	   (unless (f90-in-string)
-             (delete-horizontal-space)
-             (insert " "))
-	   (if (and auto-fill-function
-		    (> (save-excursion (end-of-line)
-				       (current-column))
-		       fill-column))
-	       (f90-do-auto-fill))
-	   (goto-char oldpos)
-	   t))))
+    (when (= (preceding-char) ?&)
+      (delete-char -1)
+      (setq pos (point))
+      (forward-line 1)
+      (skip-chars-forward " \t")
+      (if (looking-at "\&") (delete-char 1))
+      (delete-region pos (point))
+      (unless (f90-in-string)
+        (delete-horizontal-space)
+        (insert " "))
+      (if (and auto-fill-function
+               (> (line-end-position) fill-column))
+          (f90-do-auto-fill))
+      (goto-char oldpos)
+      t)))                              ; return t if joined something
 
 (defun f90-fill-region (beg-region end-region)
   "Fill every line in region by forward parsing.  Join lines if possible."
   (interactive "*r")
   (let ((end-region-mark (make-marker))
-	(f90-smart-end nil) (f90-auto-keyword-case nil) (go-on t)
-	(auto-fill-function nil))
+        (go-on t)
+	f90-smart-end f90-auto-keyword-case auto-fill-function)
     (set-marker end-region-mark end-region)
     (goto-char beg-region)
     (while go-on
@@ -1550,9 +1539,9 @@ Update keyword case first."
 	(move-to-column fill-column)
 	(f90-find-breakpoint)
 	(f90-break-line 'no-update))
-      (setq go-on (and  (< (point) (marker-position end-region-mark))
-			(zerop (forward-line 1))))
-      (setq f90-cache-position (point)))
+      (setq go-on (and (< (point) (marker-position end-region-mark))
+                       (zerop (forward-line 1)))
+            f90-cache-position (point)))
     (setq f90-cache-position nil)
     (if f90-xemacs-flag
 	(zmacs-deactivate-region)
@@ -1594,13 +1583,13 @@ Leave point at the end of line."
 (defun f90-match-end ()
   "From an end block statement, find the corresponding block and name."
   (interactive)
-  (let ((count 1) (top-of-window (window-start)) (matching-beg nil)
+  (let ((count 1) (top-of-window (window-start))
 	(end-point (point)) (case-fold-search t)
-	beg-name end-name beg-block end-block end-struct)
+	matching-beg beg-name end-name beg-block end-block end-struct)
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
                           (setq end-struct (f90-looking-at-program-block-end)))
-      (setq end-block (car end-struct))
-      (setq end-name  (car (cdr end-struct)))
+      (setq end-block (car end-struct)
+            end-name  (car (cdr end-struct)))
       (save-excursion
         (beginning-of-line)
         (while
@@ -1616,18 +1605,19 @@ Leave point at the end of line."
                              (not (or (f90-in-string)
                                       (f90-in-comment))))))
                    (not notexist)))
-          (beginning-of-line) (skip-chars-forward " \t0-9")
+          (beginning-of-line)
+          (skip-chars-forward " \t0-9")
           (cond ((setq matching-beg
-                       (cond
-                        ((f90-looking-at-do))
-                        ((f90-looking-at-if-then))
-                        ((f90-looking-at-where-or-forall))
-                        ((f90-looking-at-select-case))
-                        ((f90-looking-at-type-like))
-                        ((f90-looking-at-program-block-start))))
-                 (setq count (- count 1)))
+                       (or
+                        (f90-looking-at-do)
+                        (f90-looking-at-if-then)
+                        (f90-looking-at-where-or-forall)
+                        (f90-looking-at-select-case)
+                        (f90-looking-at-type-like)
+                        (f90-looking-at-program-block-start)))
+                 (setq count (1- count)))
                 ((looking-at (concat "end[ \t]*" f90-blocks-re "\\b"))
-                 (setq count (+ count 1)))))
+                 (setq count (1+ count)))))
         (if (not (zerop count))
             (message "No matching beginning.")
           (f90-update-line)
@@ -1639,8 +1629,8 @@ Leave point at the end of line."
                             (line-beginning-position)
                             (line-end-position)))
                 (sit-for 1)))
-          (setq beg-block (car matching-beg))
-          (setq beg-name (car (cdr matching-beg)))
+          (setq beg-block (car matching-beg)
+                beg-name (car (cdr matching-beg)))
           (goto-char end-point)
           (beginning-of-line)
           (f90-block-match beg-block beg-name end-block end-name))))))
@@ -1648,7 +1638,7 @@ Leave point at the end of line."
 (defun f90-insert-end ()
   "Insert a complete end statement matching beginning of present block."
   (interactive)
-  (let ((f90-smart-end (if f90-smart-end f90-smart-end 'blink)))
+  (let ((f90-smart-end (or f90-smart-end 'blink)))
     (insert "end")
     (f90-indent-new-line)))
 
@@ -1724,14 +1714,15 @@ Any other key combination is executed normally."
   "Change the case of F90 keywords in the region (if specified) or buffer.
 CHANGE-WORD should be one of 'upcase-word, 'downcase-word, capitalize-word."
   (save-excursion
-    (setq beg (if beg beg (point-min)))
-    (setq end (if end end (point-max)))
+    (setq beg (or beg (point-min))
+          end (or end (point-max)))
     (let ((keyword-re
 	   (concat "\\("
 		   f90-keywords-re "\\|" f90-procedures-re "\\|"
 		   f90-hpf-keywords-re "\\|" f90-operators-re "\\)"))
-	  (ref-point (point-min)) state
-	  (modified (buffer-modified-p)) saveword back-point)
+	  (ref-point (point-min)) 
+	  (modified (buffer-modified-p))
+          state saveword back-point)
       (goto-char beg)
       (unwind-protect
 	  (while (re-search-forward keyword-re end t)
@@ -1743,8 +1734,8 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, capitalize-word."
                             (skip-chars-forward " \t0-9")
                             (looking-at "#"))))
 	      (setq ref-point (point)
-		    back-point (save-excursion (backward-word 1) (point)))
-	      (setq saveword (buffer-substring back-point ref-point))
+		    back-point (save-excursion (backward-word 1) (point))
+                    saveword (buffer-substring back-point ref-point))
 	      (funcall change-word -1)
 	      (or (string= saveword (buffer-substring back-point ref-point))
 		  (setq modified t))))
