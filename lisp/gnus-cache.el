@@ -173,8 +173,8 @@
 	t))))
 
 (defun gnus-cache-enter-remove-article (article)
-  (setq gnus-cache-removeable-articles
-	(cons article gnus-cache-removeable-articles)))
+  (setq gnus-cache-removable-articles
+	(cons article gnus-cache-removable-articles)))
 
 (defsubst gnus-cache-possibly-remove-article 
   (article ticked dormant unread)
@@ -194,7 +194,7 @@
 			   (progn (forward-line 1) (point))))))))
 
 (defun gnus-cache-possibly-remove-articles ()
-  (let ((articles gnus-cache-removeable-articles)
+  (let ((articles gnus-cache-removable-articles)
 	(cache-articles (gnus-cache-articles-in-group gnus-newsgroup-name))
 	article)
     (gnus-cache-change-buffer gnus-newsgroup-name)
