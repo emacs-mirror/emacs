@@ -286,7 +286,7 @@ fi
 
 if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory."
-  rm -rf ${tempparent}
+  rm -rf ${tempdir}
 fi
 
 ### make-dist ends here
