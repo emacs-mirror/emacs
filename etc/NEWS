@@ -1044,6 +1044,10 @@ digest message.
 *** The new user option `rmail-automatic-folder-directives' specifies
 in which folder to put messages automatically.
 
+*** The new function `rmail-redecode-body' allows to fix a message
+with non-ASCII characters if Emacs happens to decode it incorrectly
+due to missing or malformed "charset=" header.
+
 ** Changes to TeX mode
 
 *** The default mode has been changed from `plain-tex-mode' to
