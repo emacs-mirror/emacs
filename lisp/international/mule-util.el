@@ -344,7 +344,7 @@ positions (integers or markers) specifying the region."
 	  (set-buffer buf)
 	  (goto-char start)
 	  (delete-region start end)
-	  (insert-buffer tempbuf))))))
+	  (insert-buffer-substring tempbuf))))))
 
 ;;;###autoload
 (defun decompose-string (string)
