@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.10 2002/06/15 19:04:57 walters Exp $
+;; Revision: $Id: pcvs-info.el,v 1.11 2002/06/18 21:47:41 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -310,13 +310,11 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
 (defun cvs-add-face (str face &optional keymap &rest props)
-  (when cvs-highlight
-    (when keymap
-      (when (keymapp keymap)
-	(setq props (list* 'keymap keymap props)))
-      (setq props (list* 'mouse-face 'highlight props)))
-    (setq props (list* 'font-lock-face face props)))
-  (when props (add-text-properties 0 (length str) props str))
+  (when keymap
+    (when (keymapp keymap)
+      (setq props (list* 'keymap keymap props)))
+    (setq props (list* 'mouse-face 'highlight props)))
+  (add-text-properties 0 (length str) (list* 'font-lock-face face props) str)
   str)
 
 (defun cvs-fileinfo-pp (fileinfo)
