@@ -157,16 +157,17 @@ shorter.
 `Kinsoku' is a Japanese word which originally means ordering to stay
 in one place, and is used for the text processing described above in
 the context of text formatting."
-  (if (or (and
-	   ;; The character after point can't be placed at beginning
-	   ;; of line.  
-	   (aref (char-category-set (following-char)) ?>)
-	   ;; We at first try to dissolve this situation by making a
-	   ;; line longer.  If it fails, then try making a line
-	   ;; shorter.
-	   (not (kinsoku-longer)))
-	  ;; The character before point can't be placed at end of line.
-	  (aref (char-category-set (preceding-char)) ?<))
-      (kinsoku-shorter linebeg)))
+  (if enable-kinsoku
+      (if (or (and
+	       ;; The character after point can't be placed at beginning
+	       ;; of line.  
+	       (aref (char-category-set (following-char)) ?>)
+	       ;; We at first try to dissolve this situation by making a
+	       ;; line longer.  If it fails, then try making a line
+	       ;; shorter.
+	       (not (kinsoku-longer)))
+	      ;; The character before point can't be placed at end of line.
+	      (aref (char-category-set (preceding-char)) ?<))
+	  (kinsoku-shorter linebeg))))
 
 ;; kinsoku.el ends here
