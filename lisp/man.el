@@ -190,7 +190,7 @@ the manpage buffer.")
   "*Normal hook run when Man mode is enabled.")
 
 (defvar Man-cooked-hook nil
-  "*Hooks run after removing backspace characters from man page.")
+  "*Normal hook run after removing backspaces but before Man-mode processing.")
 
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
