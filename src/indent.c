@@ -353,23 +353,23 @@ string_display_width (string, beg, end)
 
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
   "Indent from point with tabs and spaces until COLUMN is reached.\n\
-Optional second argument MIN says always do at least MIN spaces\n\
-even if that goes past COLUMN; by default, MIN is zero.")
-  (col, minimum)
-     Lisp_Object col, minimum;
+Optional second argument MININUM says always do at least MININUM spaces\n\
+even if that goes past COLUMN; by default, MININUM is zero.")
+  (column, minimum)
+     Lisp_Object column, minimum;
 {
   int mincol;
   register int fromcol;
   register int tab_width = XINT (current_buffer->tab_width);
 
-  CHECK_NUMBER (col, 0);
+  CHECK_NUMBER (column, 0);
   if (NILP (minimum))
     XSETFASTINT (minimum, 0);
   CHECK_NUMBER (minimum, 1);
 
   fromcol = current_column ();
   mincol = fromcol + XINT (minimum);
-  if (mincol < XINT (col)) mincol = XINT (col);
+  if (mincol < XINT (column)) mincol = XINT (column);
 
   if (fromcol == mincol)
     return make_number (mincol);
@@ -388,15 +388,15 @@ even if that goes past COLUMN; by default, MIN is zero.")
 	}
     }
 
-  XSETFASTINT (col, mincol - fromcol);
-  Finsert_char (make_number (' '), col, Qt);
+  XSETFASTINT (column, mincol - fromcol);
+  Finsert_char (make_number (' '), column, Qt);
 
   last_known_column = mincol;
   last_known_column_point = point;
   last_known_column_modified = MODIFF;
 
-  XSETINT (col, mincol);
-  return col;
+  XSETINT (column, mincol);
+  return column;
 }
 
 
