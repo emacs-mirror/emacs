@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 87, 93, 94, 95, 97, 1998, 1999, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1302,21 +1302,25 @@ scan_words (from, count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 1, 1, "p",
+DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
 and the function returns nil.  Field boundaries are not noticed if
 `inhibit-field-text-motion' is non-nil.  */)
-     (count)
-     Lisp_Object count;
+     (arg)
+     Lisp_Object arg;
 {
   int orig_val, val;
-  CHECK_NUMBER (count);
 
-  val = orig_val = scan_words (PT, XINT (count));
+  if (NILP (arg))
+    XSETFASTINT (arg, 1);
+  else
+    CHECK_NUMBER (arg);
+
+  val = orig_val = scan_words (PT, XINT (arg));
   if (! orig_val)
-    val = XINT (count) > 0 ? ZV : BEGV;
+    val = XINT (arg) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
   val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
@@ -1451,16 +1455,15 @@ skip_chars (forwardp, string, lim)
 
 	      c = str[i_byte++];
 	    }
-	  if (i_byte < size_byte
+	  /* Treat `-' as range character only if another character
+	     follows.  */
+	  if (i_byte + 1 < size_byte
 	      && str[i_byte] == '-')
 	    {
 	      unsigned int c2;
 
 	      /* Skip over the dash.  */
 	      i_byte++;
-
-	      if (i_byte == size_byte)
-		break;
 
 	      /* Get the end of the range.  */
 	      c2 = str[i_byte++];
@@ -1537,10 +1540,13 @@ skip_chars (forwardp, string, lim)
 		break;
 
 	      leading_code = str[i_byte];
-	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
+					  size_byte - i_byte, len);
 	      i_byte += len;
 	    }
-	  if (i_byte < size_byte
+	  /* Treat `-' as range character only if another character
+	     follows.  */
+	  if (i_byte + 1 < size_byte
 	      && str[i_byte] == '-')
 	    {
 	      unsigned int c2;
@@ -1549,12 +1555,10 @@ skip_chars (forwardp, string, lim)
 	      /* Skip over the dash.  */
 	      i_byte++;
 
-	      if (i_byte == size_byte)
-		break;
-
 	      /* Get the end of the range.  */
 	      leading_code2 = str[i_byte];
-	      c2 =STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
+					   size_byte - i_byte, len);
 	      i_byte += len;
 
 	      if (c2 == '\\'
@@ -3312,3 +3316,6 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
+
+/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
+   (do not change this comment) */

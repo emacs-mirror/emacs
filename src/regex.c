@@ -1000,9 +1000,10 @@ print_partial_compiled_pattern (start, end)
 	    int has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
 	    fprintf (stderr, "/charset [%s",
-		    (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
+		     (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
-	    assert (p + *p < pend);
+	    if (p + *p >= pend)
+	      fprintf (stderr, " !extends past end of pattern! ");
 
 	    for (c = 0; c < 256; c++)
 	      if (c / 8 < length
@@ -1761,8 +1762,11 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 
 
 /* This is not an arbitrary limit: the arguments which represent offsets
-   into the pattern are two bytes long.  So if 2^16 bytes turns out to
+   into the pattern are two bytes long.  So if 2^15 bytes turns out to
    be too small, many things would have to change.  */
+# define MAX_BUF_SIZE (1L << 15)
+
+#if 0  /* This is when we thought it could be 2^16 bytes.  */
 /* Any other compiler which, like MSC, has allocation limit below 2^16
    bytes will have to use approach similar to what was done below for
    MSC and drop MAX_BUF_SIZE a bit.  Otherwise you may end up
@@ -1774,6 +1778,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 #else
 # define MAX_BUF_SIZE (1L << 16)
 #endif
+#endif /* 0 */
 
 /* Extend the buffer by twice its current size via realloc and
    reset the pointers that pointed into the old block to point to the
@@ -3588,8 +3593,6 @@ regex_compile (pattern, size, syntax, bufp)
   if (syntax & RE_NO_POSIX_BACKTRACKING)
     BUF_PUSH (succeed);
 
-  free (compile_stack.stack);
-
   /* We have succeeded; set the length of the buffer.  */
   bufp->used = b - bufp->buffer;
 
@@ -3634,7 +3637,7 @@ regex_compile (pattern, size, syntax, bufp)
   }
 #endif /* not MATCH_MAY_ALLOCATE */
 
-  return REG_NOERROR;
+  FREE_STACK_RETURN (REG_NOERROR);
 } /* regex_compile */
 
 /* Subroutines for `regex_compile'.  */
@@ -4571,9 +4574,9 @@ skip_one_char (p)
 
 
 /* Jump over non-matching operations.  */
-static unsigned char *
+static re_char *
 skip_noops (p, pend)
-     unsigned char *p, *pend;
+     re_char *p, *pend;
 {
   int mcnt;
   while (p < pend)
@@ -4602,7 +4605,7 @@ skip_noops (p, pend)
 static int
 mutually_exclusive_p (bufp, p1, p2)
      struct re_pattern_buffer *bufp;
-     unsigned char *p1, *p2;
+     re_char *p1, *p2;
 {
   re_opcode_t op2;
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
@@ -6474,3 +6477,6 @@ regfree (preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
+
+/* arch-tag: 4ffd68ba-2a9e-435b-a21a-018990f9eeb2
+   (do not change this comment) */
