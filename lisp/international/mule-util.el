@@ -30,8 +30,7 @@
 ;;;###autoload
 (defun string-to-sequence (string type)
   "Convert STRING to a sequence of TYPE which contains characters in STRING.
-TYPE should be `list' or `vector'.
-Multibyte characters are conserned."
+TYPE should be `list' or `vector'."
   (or (eq type 'list) (eq type 'vector)
       (error "Invalid type: %s" type))
   (let* ((len (length string))
@@ -200,67 +199,132 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;; Coding system related functions.
 
 ;;;###autoload
-(defun set-coding-system-alist (target-type regexp coding-system
-					    &optional operation)
-  "Update `coding-system-alist' according to the arguments.
-TARGET-TYPE specifies a type of the target: `file', `process', or `network'.
-  TARGET-TYPE tells which slots of coding-system-alist should be affected.
-  If `file', it affects slots for insert-file-contents and write-region.
-  If `process', it affects slots for call-process, call-process-region, and
-    start-process.
-  If `network', it affects a slot for open-network-process.
-REGEXP is a regular expression matching a target of I/O operation.
-CODING-SYSTEM is a coding system to perform code conversion
-  on the I/O operation, or a cons of coding systems for decoding and
-  encoding respectively, or a function symbol which returns the cons.
-Optional arg OPERATION if non-nil specifies directly one of slots above.
-  The valid value is: insert-file-contents, write-region,
-  call-process, call-process-region, start-process, or open-network-stream.
-If OPERATION is specified, TARGET-TYPE is ignored.
-See the documentation of `coding-system-alist' for more detail."
-  (or (stringp regexp)
-      (error "Invalid regular expression: %s" regexp))
-  (or (memq target-type '(file process network))
-      (error "Invalid target type: %s" target-type))
-  (if (symbolp coding-system)
-      (if (not (fboundp coding-system))
-	  (progn
-	    (check-coding-system coding-system)
-	    (setq coding-system (cons coding-system coding-system))))
-    (check-coding-system (car coding-system))
-    (check-coding-system (cdr coding-system)))
-  (let ((op-list (if operation (list operation)
-		   (cond ((eq target-type 'file)
-			  '(insert-file-contents write-region))
-			 ((eq target-type 'process)
-			  '(call-process call-process-region start-process))
-			 (t		; i.e. (eq target-type network)
-			  '(open-network-stream)))))
-	slot)
-    (while op-list
-      (setq slot (assq (car op-list) coding-system-alist))
-      (if slot
-	  (let ((chain (cdr slot)))
-	    (if (catch 'tag
-		  (while chain
-		    (if (string= regexp (car (car chain)))
-			(progn
-			  (setcdr (car chain) coding-system)
-			  (throw 'tag nil)))
-		    (setq chain (cdr chain)))
-		  t)
-	      (setcdr slot (cons (cons regexp coding-system) (cdr slot)))))
-	(setq coding-system-alist
-	      (cons (cons (car op-list) (list (cons regexp coding-system)))
-		    coding-system-alist)))
-      (setq op-list (cdr op-list)))))
-
-;;;###autoload
-(defun coding-system-list ()
-  "Return a list of all existing coding systems."
+(defun coding-system-list (&optional base-only)
+  "Return a list of all existing coding systems.
+If optional arg BASE-ONLY is non-nil, each element of the list
+is a base coding system or a list of coding systems.
+In the latter case, the first element is a base coding system,
+and the remainings are aliases of it."
   (let (l)
     (mapatoms (lambda (x) (if (get x 'coding-system) (setq l (cons x l)))))
-    l))
+    (if (not base-only)
+	l
+      (let* ((codings (sort l (function
+			       (lambda (x y)
+				 (<= (coding-system-mnemonic x)
+				     (coding-system-mnemonic y))))))
+	     (tail (cons nil codings))
+	     (aliases nil)		; ((BASE ALIAS ...) ...)
+	     base coding)
+	;; At first, remove subsidiary coding systems (eol variants) and
+	;; move alias coding systems to ALIASES.
+	(while (cdr tail)
+	  (setq coding (car (cdr tail)))
+	  (if (get coding 'eol-variant)
+	      (setcdr tail (cdr (cdr tail)))
+	    (setq base (coding-system-base coding))
+	    (if (and (not (eq coding base))
+		     (coding-system-equal coding base))
+		(let ((slot (memq base aliases)))
+		  (setcdr tail (cdr (cdr tail)))
+		  (if slot
+		      (setcdr slot (cons coding (cdr slot)))
+		    (setq aliases (cons (list base coding) aliases))))
+	      (setq tail (cdr tail)))))
+	;; Then, replace a coding system who has aliases with a list.
+	(setq tail codings)
+	(while tail
+	  (let ((alias (assq (car tail) aliases)))
+	    (if alias
+		(setcar tail alias)))
+	  (setq tail (cdr tail)))
+	codings))))
+
+;;;###autoload
+(defun coding-system-base (coding-system)
+  "Return a base of CODING-SYSTEM.
+The base is a coding system of which coding-system property is a
+coding-spec (see the function `make-coding-system')."
+  (let ((coding-spec (get coding-system 'coding-system)))
+    (if (vectorp coding-spec)
+	coding-system
+      (coding-system-base coding-spec))))
+
+;;;###autoload
+(defun coding-system-plist (coding-system)
+  "Return property list of CODING-SYSTEM."
+  (let ((found nil)
+	coding-spec eol-type
+	post-read-conversion pre-write-conversion
+	unification-table)
+    (while (not found)
+      (or eol-type
+	  (setq eol-type (get coding-system 'eol-type)))
+      (or post-read-conversion
+	  (setq post-read-conversion
+		(get coding-system 'post-read-conversion)))
+      (or pre-write-conversion
+	  (setq pre-write-conversion
+		(get coding-system 'pre-write-conversion)))
+      (or unification-table
+	  (setq unification-table
+		(get coding-system 'unification-table)))
+      (setq coding-spec (get coding-system 'coding-system))
+      (if (and coding-spec (symbolp coding-spec))
+	  (setq coding-system coding-spec)
+	(setq found t)))
+    (if (not coding-spec)
+	(error "Invalid coding system: %s" coding-system))
+    (list 'coding-spec coding-spec
+	  'eol-type eol-type
+	  'post-read-conversion post-read-conversion
+	  'pre-write-conversion pre-write-conversion
+	  'unification-table unification-table)))
+
+;;;###autoload
+(defun coding-system-equal (coding-system-1 coding-system-2)
+  "Return t if and only of CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
+Two coding systems are identical if two symbols are equal
+or one is an alias of the other."
+  (equal (coding-system-plist coding-system-1)
+	 (coding-system-plist coding-system-2)))
+
+;;;###autoload
+(defun coding-system-eol-type-mnemonic (coding-system)
+  "Return mnemonic letter of eol-type of CODING-SYSTEM."
+  (let ((eol-type (coding-system-eol-type coding-system)))
+    (cond ((vectorp eol-type) eol-mnemonic-undecided)
+	  ((eq eol-type 0) eol-mnemonic-unix)
+	  ((eq eol-type 1) eol-mnemonic-unix)
+	  ((eq eol-type 2) eol-mnemonic-unix)
+	  (t ?-))))
+
+;;;###autoload
+(defun coding-system-post-read-conversion (coding-system)
+  "Return post-read-conversion property of CODING-SYSTEM."
+  (and coding-system
+       (symbolp coding-system)
+       (or (get coding-system 'post-read-conversion)
+	   (coding-system-post-read-conversion
+	    (get coding-system 'coding-system)))))
+
+;;;###autoload
+(defun coding-system-pre-write-conversion (coding-system)
+  "Return pre-write-conversion property of CODING-SYSTEM."
+  (and coding-system
+       (symbolp coding-system)
+       (or (get coding-system 'pre-write-conversion)
+	   (coding-system-pre-write-conversion
+	    (get coding-system 'coding-system)))))
+
+;;;###autoload
+(defun coding-system-unification-table (coding-system)
+  "Return unification-table property of CODING-SYSTEM."
+  (and coding-system
+       (symbolp coding-system)
+       (or (get coding-system 'unification-table)
+	   (coding-system-unification-table
+	    (get coding-system 'coding-system)))))
 
 
 ;;; Composite charcater manipulations.
