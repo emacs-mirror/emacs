@@ -95,6 +95,11 @@ This is to optimize `debugger-make-xrefs'.")
 
 (defvar inhibit-debug-on-entry nil)
 
+;; When you change this, you may also need to change the number of
+;; frames that the debugger skips.
+(defconst debug-entry-code '(if inhibit-debug-on-entry nil (debug 'debug))
+  "Code added to a function to cause it to call the debugger upon entry.")
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -189,8 +194,9 @@ first will be printed into the backtrace buffer."
 		  (message "%s" (buffer-string))
 		  (kill-emacs))
 		(if (eq (car debugger-args) 'debug)
-		    ;; Skip the frames for backtrace-debug, byte-code, and debug.
-		    (backtrace-debug 3 t))
+		    ;; Skip the frames for backtrace-debug, byte-code,
+		    ;; and debug-entry-code.
+		    (backtrace-debug 4 t))
 		(debugger-reenable)
 		(message "")
 		(let ((standard-output nil)
@@ -253,7 +259,9 @@ That buffer should be current already."
   (delete-region (point)
 		 (progn
 		   (search-forward "\n  debug(")
-		   (forward-line 1)
+		   (forward-line (if (eq (car debugger-args) 'debug)
+				     2	; Remove debug-entry-code frame.
+				   1))
 		   (point)))
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
@@ -426,14 +434,13 @@ will be used, such as in a debug on exit from a frame."
 	  (count 0))
       (while (not (eq (cadr (backtrace-frame count)) 'debug))
 	(setq count (1+ count)))
+      ;; Skip debug-entry-code frame.
+      (when (member '(debug (quote debug)) (cdr (backtrace-frame (1+ count))))
+	(setq count (1+ count)))
       (goto-char (point-min))
-      (if (or (equal (buffer-substring (point) (+ (point) 6))
-		     "Signal")
-	      (equal (buffer-substring (point) (+ (point) 6))
-		     "Return"))
-	  (progn
-	    (search-forward ":")
-	    (forward-sexp 1)))
+      (when (looking-at "Debugger entered--\\(Lisp error\\|returning value\\):")
+	(goto-char (match-end 0))
+	(forward-sexp 1))
       (forward-line 1)
       (while (progn
 	       (forward-char 2)
@@ -692,9 +699,6 @@ If argument is nil or an empty string, cancel for all functions."
 	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
-(defconst debug-entry-code '(if inhibit-debug-on-entry nil (debug 'debug))
-  "Code added to a function to cause it to call the debugger upon entry.")
-
 (defun debug-on-entry-1 (function defn flag)
   (if (subrp defn)
       (error "%s is a built-in function" function)
@@ -707,7 +711,7 @@ If argument is nil or an empty string, cancel for all functions."
 	(when (and (stringp (cadr tail)) (cddr tail))
 	  (setq tail (cdr tail)))
 	;; Skip the interactive form.
-	(when (eq 'interactive (car-safe (cadr tail))) 
+	(when (eq 'interactive (car-safe (cadr tail)))
 	  (setq tail (cdr tail)))
 	(unless (eq flag (equal (cadr tail) debug-entry-code))
 	  ;; Add/remove debug statement as needed.
