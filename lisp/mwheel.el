@@ -63,11 +63,11 @@
   :type 'integer
   :set 'mouse-wheel-change-button)
 
-(defcustom mouse-wheel-scroll-amount '(5 . 1)
+(defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
   "Amount to scroll windows by when spinning the mouse wheel.
 This is actually a cons cell, where the first item is the amount to scroll
-on a normal wheel event, and the second is the amount to scroll when the
-wheel is moved with the shift key depressed.
+on a normal wheel event, and the rest is an alist mapping the modifier key
+to the amount to scroll when the wheel is moved with the modifier key depressed.
 
 Each item should be the number of lines to scroll, or `nil' for near
 full screen.  It can also be a floating point number, specifying
@@ -79,10 +79,14 @@ A near full screen is `next-screen-context-lines' less than a full screen."
 		  (const :tag "Full screen" :value nil)
 		  (integer :tag "Specific # of lines")
 		  (float :tag "Fraction of window"))
-	  (choice :tag "Shifted"
-		  (const :tag "Full screen" :value nil)
-		  (integer :tag "Specific # of lines")
-		  (float :tag "Fraction of window"))))
+          (repeat
+           (cons
+            (repeat (choice :tag "modifier" (const alt) (const control) (const hyper)
+                            (const meta) (const shift) (const super)))
+            (choice :tag "scroll amount"
+                    (const :tag "Full screen" :value nil)
+                    (integer :tag "Specific # of lines")
+                    (float :tag "Fraction of window"))))))
 
 (defcustom mouse-wheel-progessive-speed t
   "If non-nil, the faster the user moves the wheel, the faster the scrolling.
@@ -114,13 +118,14 @@ This can be slightly disconcerting, but some people may prefer it."
   "Scroll up or down according to the EVENT.
 This should only be bound to mouse buttons 4 and 5."
   (interactive "e")
-  (let ((curwin (if mouse-wheel-follow-mouse
-		    (prog1
-			(selected-window)
-		      (select-window (mwheel-event-window event)))))
-	(amt (if (memq 'shift (event-modifiers event))
-		 (cdr mouse-wheel-scroll-amount)
-	       (car mouse-wheel-scroll-amount))))
+  (let* ((curwin (if mouse-wheel-follow-mouse
+                     (prog1
+                         (selected-window)
+                       (select-window (mwheel-event-window event)))))
+         (mods (delete 'click (event-modifiers event)))
+         (amt (if mods
+                  (cdr (assoc mods (cdr mouse-wheel-scroll-amount)))
+                  (car mouse-wheel-scroll-amount))))
     (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
     (when (and mouse-wheel-progessive-speed (numberp amt))
       ;; When the double-mouse-N comes in, a mouse-N has been executed already,
@@ -145,16 +150,15 @@ Returns non-nil if the new state is enabled."
   ;; (S-)*mouse-[45], since those are aliases for the button
   ;; equivalents in XEmacs, but I want this to work in as many
   ;; versions of XEmacs as it can.
-  (let ((keys
-	 (if (featurep 'xemacs)
-	     (let ((down (intern (format "button%d" mouse-wheel-down-button)))
-		   (up (intern (format "button%d" mouse-wheel-up-button))))
-	       `(,down [(shift ,down)] ,up [(shift ,up)]))
-	   (let ((down (intern (format "mouse-%d" mouse-wheel-down-button)))
-		 (s-down (intern (format "S-mouse-%d" mouse-wheel-down-button)))
-		 (up (intern (format "mouse-%d" mouse-wheel-up-button)))
-		 (s-up (intern (format "S-mouse-%d" mouse-wheel-up-button))))
-	     `([,down] [,s-down] [,up] [,s-up])))))
+  (let* ((prefix (if (featurep 'xemacs) "button%d" "mouse-%d"))
+         (dn (intern (format prefix mouse-wheel-down-button)))
+         (up (intern (format prefix mouse-wheel-up-button)))
+         (keys
+          (nconc (list dn up)
+                 (mapcar (lambda (amt) `[(,@(car amt) ,up)])
+                         (cdr mouse-wheel-scroll-amount))
+                 (mapcar (lambda (amt) `[(,@(car amt) ,dn)])
+                         (cdr mouse-wheel-scroll-amount)))))
     ;; This condition-case is here because Emacs 19 will throw an error
     ;; if you try to define a key that it does not know about.  I for one
     ;; prefer to just unconditionally do a mwheel-install in my .emacs, so

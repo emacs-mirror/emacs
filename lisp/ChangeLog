@@ -1,3 +1,11 @@
+2002-02-19  Sam Steingold  <sds@gnu.org>
+
+	* mwheel.el (mouse-wheel-scroll-amount): Can specify different
+	scroll amounts for different modifiers now.
+	(mwheel-scroll): Handle the new `mouse-wheel-scroll-amount'
+	format properly.
+	(mouse-wheel-mode): Ditto.
+
 2002-02-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/bibtex.el (bibtex-parse-keys): Put save-match-data
@@ -208,11 +216,11 @@
 	(describe-text-category): New command.
 	(describe-text-at): New command.
 	(facemenu-menu): Replace `list-text-properties-at' with
-	`describe-text-at' in the menu.  
-	
+	`describe-text-at' in the menu.
+
 	* wid-edit.el (widgetp): New function.
 	* wid-edit.el (widget-keymap, widget-insert, widget-setup):
-	Autoloaded. 
+	Autoloaded.
 
 	* emacs-lisp/pp.el (pp-to-string): Autoloaded.
 
@@ -258,7 +266,7 @@
 
 	* menu-bar.el (menu-bar-options-save): Removed `truncate-lines'.
 	(menu-bar-options-menu): Don't set default value for
-	`truncate-lines'. 
+	`truncate-lines'.
 
 2002-02-12  Per Abrahamsen  <abraham@dina.kvl.dk>
 
@@ -294,14 +302,14 @@
 	(menu-bar-showhide-menu): Ditto.
 	(menu-bar-options-menu): Ditto.
 	(menu-bar-scroll-bar-right, menu-bar-scroll-bar-left,
-	menu-bar-scroll-bar-none): Removed. 
+	menu-bar-scroll-bar-none): Removed.
 	(menu-bar-showhide-scroll-bar-menu): Use customize aware lambda
 	expressions instead.
 
 	* cus-edit.el (customize-set-value): Return value.
 	(customize-set-variable): Ditto.
 	(customize-save-variable): Ditto.
-	(customize-set-variable): Load dependencies before setting value. 
+	(customize-set-variable): Load dependencies before setting value.
         (custom-load-symbol): Autoload it.
 	(customize-mark-as-set): New function.
 
@@ -342,24 +350,24 @@
 	toggling.
 
 2002-02-10  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-util.el (viper-read-key-sequence): fixed so it'll read
 	fast key sequences in emacs native mode
 	(viper-events-to-keys): deleted
-	
+
 	* viper.el (describe-key, describe-key-briefly): get rid of
 	viper-events-to-keys.
 
 	* ediff-init.el (ediff-has-gutter-support): Steven Turnbull's patch.
-	
+
 	* ediff-wind.el (ediff-setup-control-frame): Use
 	ediff-has-gutter-support.
-	
+
 	* ediff-util.el (ediff-dispose-of-variant-according-to-user):
 	check if buff is alive.
-	
+
 	* ediff.el: typo in comment.
-	
+
 2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-options-save): Take care of
