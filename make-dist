@@ -145,7 +145,7 @@ echo "Updating Info files"
 
 echo "Updating finder-inf.el"
 
-(cd lisp; ../src/emacs -batch -l finder -f finder-compile-keywords)
+(cd lisp; ../src/emacs -batch -l finder -f finder-compile-keywords-make-dist)
 
 echo "Recompiling Lisp files"
 
