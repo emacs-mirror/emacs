@@ -1422,7 +1422,8 @@ good, skip, fatal, or unknown."
 	ange-ftp-hash-mark-count (+ (- (match-end 0)
 				       (match-beginning 0))
 				    ange-ftp-hash-mark-count))
-  (and ange-ftp-process-msg
+  (and ange-ftp-hash-mark-unit
+       ange-ftp-process-msg
        ange-ftp-process-verbose
        (not (eq (selected-window) (minibuffer-window)))
        (not (boundp 'search-message))	;screws up isearch otherwise
@@ -1466,8 +1467,7 @@ good, skip, fatal, or unknown."
 	      (set-buffer (process-buffer proc))
 	      
 	      ;; handle hash mark printing
-	      (and ange-ftp-hash-mark-unit
-		   ange-ftp-process-busy
+	      (and ange-ftp-process-busy
 		   (string-match "^#+$" str)
 		   (setq str (ange-ftp-process-handle-hash str)))
 	      (comint-output-filter proc str)
