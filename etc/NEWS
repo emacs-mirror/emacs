@@ -721,9 +721,13 @@ multiple files, and C-x d passes it to `dired'.
 with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
 *** isearch in Info uses Info-search and searches through multiple nodes.
-Failed isearch wraps to the top/final node.  The user option
-`Info-isearch-search' controls whether to use Info-search or the
-default isearch search function.
+Before leaving the initial Info node isearch fails once with the error
+message [initial node], and with subsequent C-s/C-r continues through
+other nodes.  When isearch fails for the rest of the manual, it wraps
+aroung the whole manual to the top/final node.  The user option
+`Info-isearch-search' controls whether to use Info-search for isearch,
+or the default isearch search function that wraps around the current
+Info node.
 
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
