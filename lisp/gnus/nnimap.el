@@ -271,11 +271,13 @@ use this to make replies go directly to the group.")
 					  (string :format "Login: %v"))
 				    (cons :format "%v"
 					  (const :format "" "password")
-					  (string :format "Password: %v")))))))
+					  (string :format "Password: %v"))))))
+  :group 'nnimap)
 
 (defcustom nnimap-prune-cache t
   "If non-nil, nnimap check whether articles still exist on server before using data stored in NOV cache."
-  :type 'boolean)
+  :type 'boolean
+  :group 'nnimap)
 
 (defvar nnimap-request-list-method 'imap-mailbox-list
   "Method to use to request a list of all folders from the server.

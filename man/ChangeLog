@@ -1,3 +1,36 @@
+2004-06-29  Jesper Harder  <harder@ifa.au.dk>
+
+	* ses.texi, viper.texi, search.texi, flymake.texi, faq.texi:
+	* eshell.texi, ediff.texi, calendar.texi: Markup fixes.
+
+2004-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Replace): Rewrite description of \# \, and \?.
+
+2004-06-25  David Kastrup  <dak@gnu.org>
+
+	* search.texi (Regexp Replace): Some typo corrections and
+	rearrangement.
+
+2004-06-24  David Kastrup  <dak@gnu.org>
+
+	* search.texi (Unconditional Replace): Use replace-string instead
+	of query-replace in example.
+	(Regexp Replace): Add explanations for `\,', `\#' and `\?'
+	sequences.
+	(Query Replace): Correct explanation of `^' which does not use
+	the mark stack.
+
+2004-06-21  Nick Roberts  <nickrob@gnu.org>
+
+	* misc.texi (Shell History Copying): Document comint-insert-input.
+	(Shell Ring): Describe comint-dynamic-list-input-ring here.
+
+2004-06-21  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): mention that only Emacs has mouse support.
+	(Getting Started): mention this in a few other places.
+
 2004-06-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.

@@ -54,10 +54,12 @@ a non-nil value, TYPE is the image's type.")
 
 Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
 representing a supported image type, and the rest are strings giving
-alternate filenames for the corresponding external libraries to load.
-They are tried in the order they appear on the list; if none of them can
-be loaded, the running session of Emacs won't display the image type.
-No entries are needed for pbm and xbm images; they're always supported.")
+alternate filenames for the corresponding external libraries.
+
+Emacs tries to load the libraries in the order they appear on the
+list; if none is loaded, the running session of Emacs won't
+support the image type.  Types 'pbm and 'xbm don't need to be
+listed; they're always supported.")
 ;;;###autoload (put 'image-library-alist 'risky-local-variable t)
 
 (defun image-jpeg-p (data)

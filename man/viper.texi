@@ -1312,7 +1312,7 @@ These two keys invoke many important Emacs functions.  For example, if you
 hit @kbd{C-x} followed by @kbd{2}, then the current window will be split
 into 2.  Except for novice users, @kbd{C-c} is also set to execute an Emacs
 command from the current major mode.  @key{ESC} will do the same, if you
-configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to nil
+configure @key{ESC} as Meta by setting @code{viper-no-multiple-ESC} to @code{nil}
 in @file{.viper}.  @xref{Customization}.  @kbd{C-\} in Insert, Replace, or Vi
 states will make Emacs think @kbd{Meta} has been hit.@refill
 @item \
@@ -1742,7 +1742,7 @@ executed.  Otherwise, it is processed as an ordinary sequence of typed keys.
 
 Setting this variable too high may slow down your typing.  Setting it too
 low may make it hard to type macros quickly enough.
-@item viper-translate-all-ESC-keysequences t on tty, nil on windowing display
+@item viper-translate-all-ESC-keysequences @code{t} on tty, @code{nil} on windowing display
 Normally, Viper lets Emacs translate only those ESC key sequences that are
 defined in the low-level key-translation-map or function-key-map, such as those
 emitted by the arrow and function keys. Other sequences, e.g., @kbd{\\e/}, are
@@ -1753,7 +1753,7 @@ The default is to translate all sequences only when using a dumb terminal.
 This permits you to use @kbd{ESC} as a meta key in insert mode. For instance,
 hitting @kbd{ESC x} fast would have the effect of typing @kbd{M-x}.
 If your dumb terminal is not so dumb and understands the meta key, then you
-probably will be better off setting this variable to nil. Try and see which
+probably will be better off setting this variable to @code{nil}. Try and see which
 way suits you best.
 @item viper-ex-style-motion t
 Set this to @code{nil}, if you want @kbd{l,h} to cross
@@ -1764,8 +1764,8 @@ Set this to @code{nil}, if you want
 at the beginning of a line in Insert state, @key{X} and @key{x} to delete
 characters across lines in Vi command state, etc.
 @item viper-ESC-moves-cursor-back t
-It t, cursor moves back 1 character when switching from insert state to vi
-state.  If nil, the cursor stays where it was before the switch.
+It @code{t}, cursor moves back 1 character when switching from insert state to vi
+state.  If @code{nil}, the cursor stays where it was before the switch.
 @item viper-always t
 @code{t} means: leave it to Viper to decide when a buffer must be brought
 up in Vi state,
@@ -1873,17 +1873,17 @@ If set to a valid color, this will be the cursor color when Viper is in
 insert state.
 @item viper-replace-region-end-delimiter "$"
 A string used to mark the end of replacement regions.  It is used only on
-TTYs or if @code{viper-use-replace-region-delimiters} is non-nil.
+TTYs or if @code{viper-use-replace-region-delimiters} is non-@code{nil}.
 @item viper-replace-region-start-delimiter  ""
 A string used to mark the beginning of replacement regions.  It is used
-only on TTYs or if @code{viper-use-replace-region-delimiters} is non-nil.
+only on TTYs or if @code{viper-use-replace-region-delimiters} is non-@code{nil}.
 @item viper-use-replace-region-delimiters
-If non-nil, Viper will always use @code{viper-replace-region-end-delimiter} and
+If non-@code{nil}, Viper will always use @code{viper-replace-region-end-delimiter} and
 @code{viper-replace-region-start-delimiter} to delimit replacement regions,
 even on color displays (where this is unnecessary).  By default, this
-variable is non-nil only on TTYs or monochrome displays.
+variable is non-@code{nil} only on TTYs or monochrome displays.
 @item viper-allow-multiline-replace-regions t
-If non-nil, multi-line text replacement regions, such as those produced by
+If non-@code{nil}, multi-line text replacement regions, such as those produced by
 commands @kbd{c55w}, @kbd{3C}, etc., will stay around until the user exits
 the replacement mode.  In this variable is set to @code{nil}, Viper will
 emulate the standard Vi behavior, which supports only intra-line
@@ -2390,7 +2390,7 @@ can unbind `/' and `:' in @code{viper-dired-modifier-map} (for Dired) or in
 
 To unbind the macros `//' and `///' for a major mode where you feel they
 are undesirable, execute @code{viper-set-emacs-state-searchstyle-macros} with a
-non-nil argument.  This can be done either interactively, by supplying a
+non-@code{nil} argument.  This can be done either interactively, by supplying a
 prefix argument, or by placing
 @example
 (viper-set-emacs-state-searchstyle-macros 'undefine)
@@ -3360,7 +3360,7 @@ this function.
 Find the next bracket/parenthesis/brace and go to its match.
 By default, Viper ignores brackets/parentheses/braces that occur inside
 parentheses.  You can change this by setting
-@code{viper-parse-sexp-ignore-comments} to nil in your @file{.viper} file.
+@code{viper-parse-sexp-ignore-comments} to @code{nil} in your @file{.viper} file.
 This option can also be toggled interactively if you quickly hit @kbd{%%%}.
 
 This latter feature is implemented as a vi-style keyboard macro.  If you

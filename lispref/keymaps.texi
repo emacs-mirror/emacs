@@ -95,6 +95,27 @@ precedence over) the corresponding global bindings.  The minor mode
 keymaps shadow both local and global keymaps.  @xref{Active Keymaps},
 for details.
 
+  The Emacs Lisp representation for a key sequence is a string or vector.
+You can enter key sequence constants using the ordinary string or vector
+representation; it is also convenient to use @code{kbd}:
+
+@defmac kbd keyseq-text
+This macro converts the text @var{keyseq-text} (a string constant)
+into a key sequence (a string or vector constant).  The contents
+of @var{keyseq-text} should describe the key sequence using the syntax
+used in this manual:
+
+@example
+(kbd "C-x") @result{} "\C-x"
+(kbd "C-x C-f") @result{} "\C-x\C-f"
+(kbd "C-c C-c") @result{} "\C-c\C-c"
+(kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
+(kbd "X") @result{} "X"
+(kbd "RET") @result{} "\^M"
+(kbd "C-c 3") @result{} "\C-c3"
+@end example
+@end defmac
+
 @node Format of Keymaps
 @section Format of Keymaps
 @cindex format of keymaps
@@ -880,6 +901,10 @@ the other functions described in this chapter that look up keys use
     @result{} find-file
 @end group
 @group
+(lookup-key (current-global-map) (kbd "C-x C-f"))
+    @result{} find-file
+@end group
+@group
 (lookup-key (current-global-map) "\C-x\C-f12345")
     @result{} 2
 @end group
@@ -1126,7 +1151,7 @@ map
 
 @group
 ;; @r{Build sparse submap for @kbd{C-x} and bind @kbd{f} in that.}
-(define-key map "\C-xf" 'forward-word)
+(define-key map (kbd "C-x f") 'forward-word)
     @result{} forward-word
 @end group
 @group
@@ -1139,14 +1164,14 @@ map
 
 @group
 ;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
-(define-key map "\C-p" ctl-x-map)
+(define-key map (kbd "C-p") ctl-x-map)
 ;; @code{ctl-x-map}
 @result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
 @end group
 
 @group
 ;; @r{Bind @kbd{C-f} to @code{foo} in the @code{ctl-x-map}.}
-(define-key map "\C-p\C-f" 'foo)
+(define-key map (kbd "C-p C-f") 'foo)
 @result{} 'foo
 @end group
 @group
@@ -1333,7 +1358,7 @@ changing key bindings.  They work by calling @code{define-key}.
 (@pxref{Init File}) for simple customization.  For example,
 
 @smallexample
-(global-set-key "\C-x\C-\\" 'next-line)
+(global-set-key (kbd "C-x C-\\") 'next-line)
 @end smallexample
 
 @noindent

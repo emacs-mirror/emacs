@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
+@c 2003, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/loading
@@ -140,8 +141,8 @@ This variable is non-@code{nil} if Emacs is in the process of loading a
 file, and it is @code{nil} otherwise.
 @end defvar
 
-@anchor{Definition of load-read-function}
 @defvar load-read-function
+@anchor{Definition of load-read-function}
 This variable specifies an alternate expression-reading function for
 @code{load} and @code{eval-region} to use instead of @code{read}.
 The function should accept one argument, just as @code{read} does.

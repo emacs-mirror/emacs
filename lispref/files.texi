@@ -329,8 +329,8 @@ With an argument of 0, unconditionally do @emph{not} make any backup file.
 @end itemize
 @end deffn
 
-@anchor{Definition of save-some-buffers}
 @deffn Command save-some-buffers &optional save-silently-p pred
+@anchor{Definition of save-some-buffers}
 This command saves some modified file-visiting buffers.  Normally it
 asks the user about each buffer.  But if @var{save-silently-p} is
 non-@code{nil}, it saves all the file-visiting buffers without querying
@@ -352,8 +352,8 @@ whether to offer to save that buffer.  If it returns a non-@code{nil}
 value in a certain buffer, that means do offer to save that buffer.
 @end deffn
 
-@anchor{Definition of write-file}
 @deffn Command write-file filename &optional confirm
+@anchor{Definition of write-file}
 This function writes the current buffer into file @var{filename}, makes
 the buffer visit that file, and marks it not modified.  Then it renames
 the buffer based on @var{filename}, appending a string like @samp{<2>}
@@ -417,10 +417,11 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 @defvar write-contents-functions
 This works just like @code{write-file-functions}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
-pertain to where the file came from.  Such hooks are usually set up by
+pertain to the file's name or location.  Such hooks are usually set up by
 major modes, as buffer-local bindings for this variable.  If any of the
-functions in this hook returns non-@code{nil}, @code{write-file-functions}
-is not run.
+functions in this hook returns non-@code{nil}, the file is considered
+already written and the rest are not called and neither are the functions
+in @code{write-file-functions}.
 
 This variable automatically becomes buffer-local whenever it is set;
 switching to a new major mode always resets this variable, but
@@ -625,8 +626,8 @@ feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
 @end deffn
 
-@anchor{Definition of with-temp-file}
 @defmac with-temp-file file body...
+@anchor{Definition of with-temp-file}
 The @code{with-temp-file} macro evaluates the @var{body} forms with a
 temporary buffer as the current buffer; then, at the end, it writes the
 buffer contents into file @var{file}.  It kills the temporary buffer
@@ -1124,8 +1125,8 @@ link to.
 @end example
 @end defun
 
-@anchor{Definition of file-attributes}
 @defun file-attributes filename &optional id-format
+@anchor{Definition of file-attributes}
 This function returns a list of attributes of file @var{filename}.  If
 the specified file cannot be opened, it returns @code{nil}.
 The optional parameter @var{id-format} specifies the preferred format
@@ -1823,8 +1824,8 @@ and so on.
   To convert a directory name to its abbreviation, use this
 function:
 
-@anchor{Definition of abbreviate-file-name}
 @defun abbreviate-file-name filename
+@anchor{Definition of abbreviate-file-name}
 This function applies abbreviations from @code{directory-abbrev-alist}
 to its argument, and substitutes @samp{~} for the user's home
 directory.  You can use it for directory names and for file names,
@@ -1951,8 +1952,8 @@ default-directory
 @end example
 @end defvar
 
-@anchor{Definition of substitute-in-file-name}
 @defun substitute-in-file-name filename
+@anchor{Definition of substitute-in-file-name}
 This function replaces environment variable references in
 @var{filename} with the environment variable values.  Following
 standard Unix shell syntax, @samp{$} is the prefix to substitute an

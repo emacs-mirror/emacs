@@ -5,7 +5,7 @@
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Keywords: help, unix
-;; Adapted-By: Eli Zaretskii <eliz@is.elta.co.il>
+;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
 ;; Version: see `woman-version'
 ;; URL: http://centaur.maths.qmul.ac.uk/Emacs/WoMan/
 

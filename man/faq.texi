@@ -2367,7 +2367,7 @@ file, will bind the sequence @kbd{C-x g} to @code{goto-line}:
 
 Each menu title (e.g., @samp{File}, @samp{Edit}, @samp{Buffers})
 represents a local or global keymap.  Selecting a menu title with the
-mouse displays that keymap's non-nil contents in the form of a menu.
+mouse displays that keymap's non-@code{nil} contents in the form of a menu.
 
 So to add a menu option to an existing menu, all you have to do is add a
 new definition to the appropriate keymap.  Adding a @samp{Forward Word}
@@ -3173,7 +3173,7 @@ Obviously, there is a potential for Trojan horses to exploit this
 feature.
 
 Emacs 18 allowed this feature by default; users could disable it by
-setting the variable @code{inhibit-local-variables} to a non-nil value.
+setting the variable @code{inhibit-local-variables} to a non-@code{nil} value.
 
 As of Emacs 19, Emacs has a list of local variables that create a
 security risk.  If a file tries to set one of them, it asks the user to

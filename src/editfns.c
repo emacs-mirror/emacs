@@ -3381,6 +3381,7 @@ usage: (format STRING &rest OBJECTS)  */)
   int longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
+  USE_SAFE_ALLOCA;
 
   /* discarded[I] is 1 if byte I of the format
      string was not copied into the output.
@@ -3429,7 +3430,7 @@ usage: (format STRING &rest OBJECTS)  */)
   longest_format = 0;
 
   /* Make room in result for all the non-%-codes in the control string.  */
-  total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]);
+  total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]) + 1;
 
   /* Allocate the info and discarded tables.  */
   {
@@ -3622,10 +3623,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the space for the result.
      Note that TOTAL is an overestimate.  */
-  if (total < 1000)
-    buf = (char *) alloca (total + 1);
-  else
-    buf = (char *) xmalloc (total + 1);
+  SAFE_ALLOCA (buf, char *, total);
 
   p = buf;
   nchars = 0;
@@ -3758,7 +3756,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		maybe_combine_byte = 1;
 	      this_nchars = strlen (p);
 	      if (multibyte)
-		p += str_to_multibyte (p, buf + total - p, this_nchars);
+		p += str_to_multibyte (p, buf + total - 1 - p, this_nchars);
 	      else
 		p += this_nchars;
 	      nchars += this_nchars;
@@ -3795,7 +3793,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	*p++ = *format++, nchars++;
     }
 
-  if (p > buf + total + 1)
+  if (p > buf + total)
     abort ();
 
   if (maybe_combine_byte)
@@ -3803,8 +3801,7 @@ usage: (format STRING &rest OBJECTS)  */)
   val = make_specified_string (buf, nchars, p - buf, multibyte);
 
   /* If we allocated BUF with malloc, free it too.  */
-  if (total >= 1000)
-    xfree (buf);
+  SAFE_FREE (total);
 
   /* If the format string has text properties, or any of the string
      arguments has text properties, set up text properties of the
@@ -4173,12 +4170,9 @@ Transposing beyond buffer boundaries is an error.  */)
       /* First region smaller than second.  */
       if (len1_byte < len2_byte)
         {
-	  /* We use alloca only if it is small,
-	     because we want to avoid stack overflow.  */
-	  if (len2_byte > 20000)
-	    temp = (unsigned char *) xmalloc (len2_byte);
-	  else
-	    temp = (unsigned char *) alloca (len2_byte);
+	  USE_SAFE_ALLOCA;
+
+	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
 	     at the last minute, because the relocating allocator might
@@ -4189,23 +4183,20 @@ Transposing beyond buffer boundaries is an error.  */)
           bcopy (start2_addr, temp, len2_byte);
           bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
           bcopy (temp, start1_addr, len2_byte);
-	  if (len2_byte > 20000)
-	    xfree (temp);
+	  SAFE_FREE (len2_byte);
         }
       else
 	/* First region not smaller than second.  */
         {
-	  if (len1_byte > 20000)
-	    temp = (unsigned char *) xmalloc (len1_byte);
-	  else
-	    temp = (unsigned char *) alloca (len1_byte);
+	  USE_SAFE_ALLOCA;
+
+	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start1_addr + len2_byte, len1_byte);
-	  if (len1_byte > 20000)
-	    xfree (temp);
+	  SAFE_FREE (len1_byte);
         }
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
                                    len1, current_buffer, 0);
@@ -4222,6 +4213,8 @@ Transposing beyond buffer boundaries is an error.  */)
       if (len1_byte == len2_byte)
 	/* Regions are same size, though, how nice.  */
         {
+	  USE_SAFE_ALLOCA;
+
           modify_region (current_buffer, start1, end1);
           modify_region (current_buffer, start2, end2);
           record_change (start1, len1);
@@ -4233,17 +4226,14 @@ Transposing beyond buffer boundaries is an error.  */)
           Fset_text_properties (make_number (start2), make_number (end2),
 				Qnil, Qnil);
 
-	  if (len1_byte > 20000)
-	    temp = (unsigned char *) xmalloc (len1_byte);
-	  else
-	    temp = (unsigned char *) alloca (len1_byte);
+	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (temp, start2_addr, len1_byte);
-	  if (len1_byte > 20000)
-	    xfree (temp);
+	  SAFE_FREE (len1_byte);
+
           graft_intervals_into_buffer (tmp_interval1, start2,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval2, start1,
@@ -4253,6 +4243,8 @@ Transposing beyond buffer boundaries is an error.  */)
       else if (len1_byte < len2_byte)	/* Second region larger than first */
         /* Non-adjacent & unequal size, area between must also be shifted.  */
         {
+	  USE_SAFE_ALLOCA;
+
           modify_region (current_buffer, start1, end2);
           record_change (start1, (end2 - start1));
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4262,18 +4254,15 @@ Transposing beyond buffer boundaries is an error.  */)
 				Qnil, Qnil);
 
 	  /* holds region 2 */
-	  if (len2_byte > 20000)
-	    temp = (unsigned char *) xmalloc (len2_byte);
-	  else
-	    temp = (unsigned char *) alloca (len2_byte);
+	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start2_addr, temp, len2_byte);
           bcopy (start1_addr, start1_addr + len_mid + len2_byte, len1_byte);
           safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr, len2_byte);
-	  if (len2_byte > 20000)
-	    xfree (temp);
+	  SAFE_FREE (len2_byte);
+
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
@@ -4284,6 +4273,8 @@ Transposing beyond buffer boundaries is an error.  */)
       else
 	/* Second region smaller than first.  */
         {
+	  USE_SAFE_ALLOCA;
+
           record_change (start1, (end2 - start1));
           modify_region (current_buffer, start1, end2);
 
@@ -4294,18 +4285,15 @@ Transposing beyond buffer boundaries is an error.  */)
 				Qnil, Qnil);
 
 	  /* holds region 1 */
-	  if (len1_byte > 20000)
-	    temp = (unsigned char *) xmalloc (len1_byte);
-	  else
-	    temp = (unsigned char *) alloca (len1_byte);
+	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
           bcopy (start1_addr, temp, len1_byte);
           bcopy (start2_addr, start1_addr, len2_byte);
           bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
           bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
-	  if (len1_byte > 20000)
-	    xfree (temp);
+	  SAFE_FREE (len1_byte);
+
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
                                        len1, current_buffer, 0);
           graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,

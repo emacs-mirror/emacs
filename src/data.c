@@ -1983,11 +1983,6 @@ or a byte-code object.  IDX starts at 0.  */)
     }
 }
 
-/* Don't use alloca for relocating string data larger than this, lest
-   we overflow their stack.  The value is the same as what used in
-   fns.c for base64 handling.  */
-#define MAX_ALLOCA 16*1024
-
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
        doc: /* Store into the element of ARRAY at index IDX the value NEWELT.
 Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
@@ -2051,10 +2046,9 @@ bool-vector.  IDX starts at 0.  */)
 	  /* We must relocate the string data.  */
 	  int nchars = SCHARS (array);
 	  unsigned char *str;
+	  USE_SAFE_ALLOCA;
 
-	  str = (nbytes <= MAX_ALLOCA
-		 ? (unsigned char *) alloca (nbytes)
-		 : (unsigned char *) xmalloc (nbytes));
+	  SAFE_ALLOCA (str, unsigned char *, nbytes);
 	  bcopy (SDATA (array), str, nbytes);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
@@ -2062,8 +2056,7 @@ bool-vector.  IDX starts at 0.  */)
 	  p1 = SDATA (array) + idxval_byte;
 	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
 		 nbytes - (idxval_byte + prev_bytes));
-	  if (nbytes > MAX_ALLOCA)
-	    xfree (str);
+	  SAFE_FREE (nbytes);
 	  clear_string_char_byte_cache ();
 	}
       while (new_bytes--)
@@ -2086,14 +2079,13 @@ bool-vector.  IDX starts at 0.  */)
 	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 	  unsigned char *origstr = SDATA (array), *str;
 	  int nchars, nbytes;
+	  USE_SAFE_ALLOCA;
 
 	  nchars = SCHARS (array);
 	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
 	  nbytes += count_size_as_multibyte (origstr + idxval,
 					     nchars - idxval);
-	  str = (nbytes <= MAX_ALLOCA
-		 ? (unsigned char *) alloca (nbytes)
-		 : (unsigned char *) xmalloc (nbytes));
+	  SAFE_ALLOCA (str, unsigned char *, nbytes);
 	  copy_text (SDATA (array), str, nchars, 0, 1);
 	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
 			       prev_bytes);
@@ -2106,8 +2098,7 @@ bool-vector.  IDX starts at 0.  */)
 	    *p1++ = *p0++;
 	  bcopy (str + idxval_byte + prev_bytes, p1,
 		 nbytes - (idxval_byte + prev_bytes));
-	  if (nbytes > MAX_ALLOCA)
-	    xfree (str);
+	  SAFE_FREE (nbytes);
 	  clear_string_char_byte_cache ();
 	}
     }

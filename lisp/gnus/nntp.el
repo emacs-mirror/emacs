@@ -174,7 +174,8 @@ server there that you can connect to.  See also
 					  (string :format "Login: %v"))
 				    (cons :format "%v"
 					  (const :format "" "password")
-					  (string :format "Password: %v")))))))
+					  (string :format "Password: %v"))))))
+  :group 'nntp)
 
 
 
@@ -223,7 +224,7 @@ noticing asynchronous data.")
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
 
-(defvar nntp-ssl-program 
+(defvar nntp-ssl-program
   "openssl s_client -quiet -ssl3 -connect %s:%p"
 "A string containing commands for SSL connections.
 Within a string, %s is replaced with the server address and %p with
@@ -928,10 +929,10 @@ password contained in '~/.nntp-authinfo'."
 
 (defun nntp-open-ssl-stream (buffer)
   (let* ((process-connection-type nil)
-	 (proc (start-process "nntpd" buffer 
+	 (proc (start-process "nntpd" buffer
 			      shell-file-name
 			      shell-command-switch
-			      (format-spec nntp-ssl-program 
+			      (format-spec nntp-ssl-program
 					   (format-spec-make
 					    ?s nntp-address
 					    ?p nntp-port-number)))))

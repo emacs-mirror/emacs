@@ -1,3 +1,131 @@
+2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+        
+        * macterm.c (do_window_activate, do_window_deactivate): Remove.
+        (XTread_socket): Send mouse button events to the toolbox
+        dispatcher even when the mouse is grabbed.  Don't process window
+        activate events for non-Emacs windows.  Replace function calls to
+        do_window_activate and do_window_deactivate with their contents.
+        Reset mouse grabbing status when a window is deactivated.
+
+2004-06-29  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_get_emulated_btn)
+	(mac_event_to_emacs_modifiers): Fix emulated mouse button
+	support to correctly mask out modifiers.
+
+2004-06-29  David Kastrup  <dak@gnu.org>
+
+	* search.c (Fset_match_data): Allow buffer before end of list
+	which can happen if set-match-data is using a pre-consed list.
+
+2004-06-28  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (XTread_socket): Correctly set the frame position
+	after the window is moved.
+
+2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): Call g_object_unref on
+	gpix and gmask just before return to avoid memory leak.
+	(xg_get_image_for_pixmap): Add workaround for monochrome displays
+	so insensitive and activated icons look ok.
+
+2004-06-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (file_dialog_callback): Disable edit control if set
+	to directories only on CDN_INITDONE message.
+	(Fx_file_dialog): Default to directories only when prompt starts
+	with "Dired".
+
+2004-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (allocate_misc): Update total_free_markers.
+	(free_misc): New function.
+	(safe_alloca_unwind, free_marker): Use it.
+
+	* lisp.h (free_misc): Add prototype.
+
+	* fns.c (Fmapconcat, Fmapcar): Remove superfluous GCPROs.
+
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (Vsignal_USR1_hook, Vsignal_USR2_hook): Definitions deleted.
+	(syms_of_emacs): Lisp variables deleted.
+
+2004-06-23  David Kastrup  <dak@gnu.org>
+
+	* search.c (Freplace_match): Adjust the match-data more thoroughly
+	when replacing strings in the buffer.
+	(Fmatch_data): When INTEGERS is non-nil and the last match was in
+	a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is a
+	buffer, restore it to last_thing_searched.
+	(save_search_regs): Save last_thing_searched as part of the match
+	data.
+	(restore_match_data): Restore it again.
+
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Ftext_char_description): Doc fix.
+	* doc.c (Fsnarf_documentation): Doc fix.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmapcar, Fmapconcat): GCPRO the args array.
+
+	* lisp.h (struct Lisp_Save_Value): New member dogc.
+	(SAFE_ALLOCA_LISP): Change second arg to number of elements.
+	Set dogc member in Lisp_Save_Value object so it will be GC'ed.
+	(SAFE_FREE_LISP): New macro.
+
+	* alloc.c (safe_alloca_unwind): Clear dogc and pointer members.
+	(make_save_value): Init new dogc member.
+	(mark_object): Mark Lisp_Save_Value pointer array if dogc is set.
+
+	* fns.c (Fmapconcat, Fmapcar): Use new SAFE_ALLOCA_LISP and
+	SAFE_FREE_LISP macros.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (SAFE_ALLOCA_LISP): New macro to allocate Lisp_Objects.
+	Temporarily inhibits GC if memory is xmalloc'ed, as the Lisp_Objects
+	in that memory area are unknown to GC.  Add comments.
+
+	* fns.c (Fmapconcat, Fmapcar): Use SAFE_ALLOCA_LISP.
+
+2004-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (MAX_ALLOCA): Define here.
+	(safe_alloca_unwind): Add prototype.
+	(USE_SAFE_ALLOCA, SAFE_ALLOCA, SAFE_FREE): New macros.
+
+	* alloc.c (safe_alloca_unwind): New function.
+
+	* casefiddle.c (casify_object): Use SAFE_ALLOCA.
+
+	* charset.c (Fstring): Use SAFE_ALLOCA.
+
+	* coding.c (MAX_ALLOCA): Remove define.
+
+	* data.c (MAX_ALLOCA): Remove define.
+	(Faset): Use SAFE_ALLOCA.
+
+	* editfns.c (Fformat, Ftranspose_regions): Use SAFE_ALLOCA.
+
+	* fns.c (string_make_multibyte, string_to_multibyte)
+	(string_make_unibyte, Fmapconcat, Fmapcar): Use SAFE_ALLOCA.
+	(MAX_ALLOCA): Remove define.
+	(Fbase64_encode_region, Fbase64_encode_string)
+	(Fbase64_decode_region, Fbase64_decode_string): Use SAFE_ALLOCA.
+	(Fbase64_encode_region, Fbase64_encode_string): Fix potential
+	memory leak if encoding fails.
+
+	* xdisp.c (add_to_log): Use SAFE_ALLOCA.
+
+2004-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
 	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.

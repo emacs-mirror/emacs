@@ -1203,7 +1203,10 @@ struct Lisp_Save_Value
   {
     int type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
-    int spacer : 15;
+    int spacer : 14;
+    /* If DOGC is set, POINTER is the address of a memory
+       area containing INTEGER potential Lisp_Objects.  */
+    unsigned int dogc : 1;
     void *pointer;
     int integer;
   };
@@ -2498,6 +2501,7 @@ extern Lisp_Object make_float P_ ((double));
 extern void display_malloc_warning P_ ((void));
 extern int inhibit_garbage_collection P_ ((void));
 extern Lisp_Object make_save_value P_ ((void *, int));
+extern void free_misc P_ ((Lisp_Object));
 extern void free_marker P_ ((Lisp_Object));
 extern void free_cons P_ ((struct Lisp_Cons *));
 extern void init_alloc_once P_ ((void));
@@ -3288,6 +3292,64 @@ extern Lisp_Object Vdirectory_sep_char;
       : (!NILP (Fmemq ((el), (check)))		\
 	 ? Qnil					\
 	 : Fcons ((el), (check)))))
+
+
+/* SAFE_ALLOCA normally allocates memory on the stack, but if size is
+   larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
+
+#define MAX_ALLOCA 16*1024
+
+extern Lisp_Object safe_alloca_unwind (Lisp_Object);
+
+#define USE_SAFE_ALLOCA			\
+  int sa_count = SPECPDL_INDEX ()
+
+/* SAFE_ALLOCA allocates a simple buffer.  */
+
+#define SAFE_ALLOCA(buf, type, size)			  \
+  do {							  \
+    if ((size) < MAX_ALLOCA)				  \
+      buf = (type) alloca (size);			  \
+    else						  \
+      {							  \
+	buf = (type) xmalloc (size);			  \
+	record_unwind_protect (safe_alloca_unwind,	  \
+			       make_save_value (buf, 0)); \
+      }							  \
+  } while (0)
+
+/* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
+
+#define SAFE_FREE(size)			\
+  do {					\
+    if ((size) >= MAX_ALLOCA)		\
+      unbind_to (sa_count, Qnil);	\
+  } while (0)
+
+
+/* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.  */
+
+#define SAFE_ALLOCA_LISP(buf, nelt)			  \
+  do {							  \
+    int size_ = (nelt) * sizeof (Lisp_Object);		  \
+    if (size_ < MAX_ALLOCA)				  \
+      buf = (Lisp_Object *) alloca (size_);		  \
+    else						  \
+      {							  \
+	Lisp_Object arg_;				  \
+	buf = (Lisp_Object *) xmalloc (size_);		  \
+	arg_ = make_save_value (buf, nelt);		  \
+	XSAVE_VALUE (arg_)->dogc = 1;			  \
+	record_unwind_protect (safe_alloca_unwind, arg_); \
+      }							  \
+  } while (0)
+
+#define SAFE_FREE_LISP(nelt)				\
+  do {							\
+    if (((nelt) * sizeof (Lisp_Object)) >= MAX_ALLOCA)	\
+      unbind_to (sa_count, Qnil);			\
+  } while (0)
+
 
 
 #endif /* EMACS_LISP_H */

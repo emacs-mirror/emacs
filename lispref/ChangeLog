@@ -1,3 +1,50 @@
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Misc Events): Describe usr1-signal, usr2-signal event.
+
+	* customize.texi (Variable Definitions): Note about doc strings
+	and :set.
+
+	* keymaps.texi (Keymap Terminology): Document `kbd'.
+	(Changing Key Bindings, Key Binding Commands): Use kbd in examples.
+
+	* display.texi (Invisible Text): Setting buffer-invisibility-spec
+	makes it buffer-local.
+
+	* files.texi (Saving Buffers): Correct previous change.
+
+	* commands.texi (Accessing Events):
+	Clarify posn-col-row and posn-actual-col-row.
+
+2004-06-24  David Ponce  <david.ponce@wanadoo.fr>
+
+	* commands.texi (Accessing Events): New functions
+	posn-at-point and posn-at-x-y.  Add example to posn-x-y.
+
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi, files.texi, processes.texi, macros.texi, hash.texi:
+	* frames.texi, buffers.texi, backups.texi, variables.texi:
+	* loading.texi, eval.texi, functions.texi, control.texi:
+	* symbols.texi, minibuf.texi: Reposition @anchor's.
+
+	* help.texi: Various small changes in addition to the following.
+	(Describing Characters): Describe PREFIX argument to
+	`key-description'.  Correct and clarify definition of
+	`text-char-description'.  Describe NEED-VECTOR argument to
+	`read-kbd-macro'.
+	(Help Functions): Clarify definition of `apropos'.
+
+2004-06-23  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.texi (Saving Buffers): Correct description of
+	`write-contents-functions'.
+
+2004-06-21  Juanma Barranquero  <lektu@terra.es>
+
+	* display.texi (Images): Remove redundant @vindex directives.
+	Rewrite `image-library-alist' doc in active voice.
+
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
 
 	* display.texi (Images): Document new delayed library loading,

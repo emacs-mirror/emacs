@@ -393,7 +393,8 @@ updates before the buffer is saved, use `before-save-hook' .")
 (defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
-and the rest are not called.
+and the rest are not called and neither are the functions in
+`write-file-functions'.
 
 This variable is meant to be used for hooks that pertain to the
 buffer's contents, not to the particular visited file; thus,
@@ -649,7 +650,13 @@ This is an interface to the function `load'."
   (load library))
 
 (defun file-remote-p (file)
-  "Test whether FILE specifies a location on a remote system."
+  "Test whether FILE specifies a location on a remote system.
+Return an identification of the system if the location is indeed
+remote.  The identification of the system may comprise a method
+to access the system and its hostname, amongst other things.
+
+For example, the filename \"/user@host:/foo\" specifies a location
+on the system \"/user@host:\"."
   (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
 	(funcall handler 'file-remote-p file)
@@ -2915,8 +2922,8 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (file-name-as-directory (expand-file-name (or directory
 							default-directory))))
     (setq filename (expand-file-name filename))
-    (let ((hf (find-file-name-handler filename 'file-remote-p))
-          (hd (find-file-name-handler directory 'file-remote-p)))
+    (let ((fremote (file-remote-p filename))
+          (dremote (file-remote-p directory)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different drives on DOS/Windows
@@ -2924,20 +2931,8 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	    ;; Should `cygwin' really be included here?  --stef
 	    (memq system-type '(ms-dos cygwin windows-nt))
 	    (not (eq t (compare-strings filename 0 2 directory 0 2))))
-	   ;; Test for different remote file handlers
-	   (not (eq hf hd))
 	   ;; Test for different remote file system identification
-	   (and
-	    hf
-	    (let ((re (car (rassq hf file-name-handler-alist))))
-	      (not
-	       (equal
-		(and
-		 (string-match re filename)
-		 (substring filename 0 (match-end 0)))
-		(and
-		 (string-match re directory)
-		 (substring directory 0 (match-end 0))))))))
+	   (not (equal fremote dremote)))
 	  filename
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))

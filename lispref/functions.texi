@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/functions
@@ -577,8 +577,8 @@ defined is often done deliberately, and there is no way to distinguish
 deliberate redefinition from unintentional redefinition.
 @end defspec
 
-@anchor{Definition of defalias}
 @defun defalias name definition &optional docstring
+@anchor{Definition of defalias}
 This special form defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
 It returns @var{definition}.
@@ -752,8 +752,8 @@ is a sparse array whose nominal range of indices is very large.  To map
 over a char-table in a way that deals properly with its sparse nature,
 use the function @code{map-char-table} (@pxref{Char-Tables}).
 
-@anchor{Definition of mapcar}
 @defun mapcar function sequence
+@anchor{Definition of mapcar}
 @code{mapcar} applies @var{function} to each element of @var{sequence}
 in turn, and returns a list of the results.
 

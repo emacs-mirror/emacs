@@ -340,7 +340,15 @@ If a number, only buffers greater than this size have fontification messages."
 
 (defvar font-lock-keywords nil
   "A list of the keywords to highlight.
-Each element should have one of these forms:
+There are two kinds of values: user-level, and compiled.
+
+A user-level keywords list is what a major mode or the user would
+set up.  Normally the list would come from `font-lock-defaults'.
+through selection of a fontification level and evaluation of any
+contained expressions.  You can also alter it by calling
+`font-lock-add-keywords' or `font-lock-remove-keywords' with MODE = nil.
+
+Each element in a user-level keywords list should have one of these forms:
 
  MATCHER
  (MATCHER . MATCH)
@@ -438,7 +446,14 @@ support modes like jit-lock or lazy-lock.
 
 This variable is set by major modes via the variable `font-lock-defaults'.
 Be careful when composing regexps for this list; a poorly written pattern can
-dramatically slow things down!")
+dramatically slow things down!
+
+A compiled keywords list starts with t.  It is produced internal
+by `font-lock-compile-keywords' from a user-level keywords list.
+Its second element is the user-level keywords list that was
+compiled.  The remaining elements have the same form as
+user-level keywords, but normally their values have been
+optimized.")
 
 (defvar font-lock-keywords-alist nil
   "*Alist of `font-lock-keywords' local to a `major-mode'.
@@ -659,16 +674,26 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 (font-lock-update-removed-keyword-alist mode keywords append))
 	(t
 	 ;; Otherwise set or add the keywords now.
+	 ;; This is a no-op if it has been done already in this buffer.
 	 (font-lock-set-defaults)
- 	 (if (eq append 'set)
- 	     (setq font-lock-keywords keywords)
-	   (font-lock-remove-keywords nil keywords) ;to avoid duplicates
-	   (let ((old (if (eq (car-safe font-lock-keywords) t)
-			  (cdr font-lock-keywords)
-			font-lock-keywords)))
-	     (setq font-lock-keywords (if append
-					  (append old keywords)
-					(append keywords old))))))))
+	 (let ((was-compiled (eq (car font-lock-keywords) t)))
+	   ;; Bring back the user-level (uncompiled) keywords.
+	   (if was-compiled
+	       (setq font-lock-keywords (cadr font-lock-keywords)))
+	   ;; Now modify or replace them.
+	   (if (eq append 'set)
+	       (setq font-lock-keywords keywords)
+	     (font-lock-remove-keywords nil keywords) ;to avoid duplicates
+	     (let ((old (if (eq (car-safe font-lock-keywords) t)
+			    (cdr font-lock-keywords)
+			  font-lock-keywords)))
+	       (setq font-lock-keywords (if append
+					    (append old keywords)
+					  (append keywords old)))))
+	   ;; If the keywords were compiled before, compile them again.
+	   (if was-compiled
+	       (set (make-local-variable 'font-lock-keywords)
+		    (font-lock-compile-keywords keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords append)
   ;; Update `font-lock-removed-keywords-alist' when adding new
@@ -762,13 +787,21 @@ subtle problems due to details of the implementation."
 	(t
 	 ;; Otherwise remove it immediately.
 	 (font-lock-set-defaults)
-	 (setq font-lock-keywords (copy-sequence font-lock-keywords))
-	 (dolist (keyword keywords)
-	   (setq font-lock-keywords
-		 (delete keyword
-			 ;; The keywords might be compiled.
-			 (delete (font-lock-compile-keyword keyword)
-				 font-lock-keywords)))))))
+	 (let ((was-compiled (eq (car font-lock-keywords) t)))
+	   ;; Bring back the user-level (uncompiled) keywords.
+	   (if was-compiled
+	       (setq font-lock-keywords (cadr font-lock-keywords)))
+
+	   ;; Edit them.
+	   (setq font-lock-keywords (copy-sequence font-lock-keywords))
+	   (dolist (keyword keywords)
+	     (setq font-lock-keywords
+		   (delete keyword font-lock-keywords)))
+
+	   ;; If the keywords were compiled before, compile them again.
+	   (if was-compiled
+	       (set (make-local-variable 'font-lock-keywords)
+		    (font-lock-compile-keywords keywords t)))))))
 
 ;;; Font Lock Support mode.
 
@@ -1224,7 +1257,7 @@ START should be at the beginning of a line."
 					font-lock-syntactic-keywords)))
   ;; Get down to business.
   (let ((case-fold-search font-lock-keywords-case-fold-search)
-	(keywords (cdr font-lock-syntactic-keywords))
+	(keywords (cddr font-lock-syntactic-keywords))
 	keyword matcher highlights)
     (while keywords
       ;; Find an occurrence of `matcher' from `start' to `end'.
@@ -1349,7 +1382,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
     (setq font-lock-keywords
 	  (font-lock-compile-keywords font-lock-keywords t)))
   (let ((case-fold-search font-lock-keywords-case-fold-search)
-	(keywords (cdr font-lock-keywords))
+	(keywords (cddr font-lock-keywords))
 	(bufname (buffer-name)) (count 0)
 	keyword matcher highlights)
     ;;
@@ -1394,14 +1427,16 @@ LOUDLY, if non-nil, allows progress-meter bar."
 ;; Various functions.
 
 (defun font-lock-compile-keywords (keywords &optional regexp)
-  "Compile KEYWORDS into the form (t KEYWORD ...).
-Here KEYWORD is of the form (MATCHER HIGHLIGHT ...) as shown in the
+  "Compile KEYWORDS into the form (t KEYWORDS COMPILED...)
+Here each COMPILED is of the form (MATCHER HIGHLIGHT ...) as shown in the
 `font-lock-keywords' doc string.
 If REGEXP is non-nil, it means these keywords are used for
 `font-lock-keywords' rather than for `font-lock-syntactic-keywords'."
   (if (eq (car-safe keywords) t)
       keywords
-    (setq keywords (cons t (mapcar 'font-lock-compile-keyword keywords)))
+    (setq keywords
+	  (cons t (cons keywords
+			(mapcar 'font-lock-compile-keyword keywords))))
     (if (and regexp
 	     (eq (or syntax-begin-function
 		     font-lock-beginning-of-syntax-function)
@@ -1512,17 +1547,21 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
       ;; Variable alist?
       (dolist (x (nthcdr 5 defaults))
 	(set (make-local-variable (car x)) (cdr x)))
-      ;; Setup `font-lock-keywords' last because its value might depend
+      ;; Set up `font-lock-keywords' last because its value might depend
       ;; on other settings (e.g. font-lock-compile-keywords uses
       ;; font-lock-beginning-of-syntax-function).
       (set (make-local-variable 'font-lock-keywords)
-	   (font-lock-compile-keywords (font-lock-eval-keywords keywords) t))
+	   (font-lock-eval-keywords keywords))
       ;; Local fontification?
       (while local
 	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
 	(setq local (cdr local)))
       (when removed-keywords
-	(font-lock-remove-keywords nil removed-keywords)))))
+	(font-lock-remove-keywords nil removed-keywords))
+      ;; Now compile the keywords.
+      (unless (eq (car font-lock-keywords) t)
+	(set (make-local-variable 'font-lock-keywords)
+	     (font-lock-compile-keywords font-lock-keywords t))))))
 
 ;;; Colour etc. support.
 

@@ -54,6 +54,7 @@ to make output that `read' can handle, whenever this is possible."
 	  (buffer-string))
       (kill-buffer (current-buffer)))))
 
+;;;###autoload
 (defun pp-buffer ()
   "Prettify the current buffer with printed representation of a Lisp object."
   (goto-char (point-min))

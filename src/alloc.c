@@ -579,6 +579,22 @@ xstrdup (s)
 }
 
 
+/* Unwind for SAFE_ALLOCA */
+
+Lisp_Object
+safe_alloca_unwind (arg)
+     Lisp_Object arg;
+{
+  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+
+  p->dogc = 0;
+  xfree (p->pointer);
+  p->pointer = 0;
+  free_misc (arg);
+  return Qnil;
+}
+
+
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
@@ -2863,15 +2879,30 @@ allocate_misc ()
 	  marker_block = new;
 	  marker_block_index = 0;
 	  n_marker_blocks++;
+	  total_free_markers += MARKER_BLOCK_SIZE;
 	}
       XSETMISC (val, &marker_block->markers[marker_block_index]);
       marker_block_index++;
     }
 
+  --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
   XMARKER (val)->gcmarkbit = 0;
   return val;
+}
+
+/* Free a Lisp_Misc object */
+
+void
+free_misc (misc)
+     Lisp_Object misc;
+{
+  XMISC (misc)->u_marker.type = Lisp_Misc_Free;
+  XMISC (misc)->u_free.chain = marker_free_list;
+  marker_free_list = XMISC (misc);
+
+  total_free_markers++;
 }
 
 /* Return a Lisp_Misc_Save_Value object containing POINTER and
@@ -2891,6 +2922,7 @@ make_save_value (pointer, integer)
   p = XSAVE_VALUE (val);
   p->pointer = pointer;
   p->integer = integer;
+  p->dogc = 0;
   return val;
 }
 
@@ -2919,12 +2951,7 @@ free_marker (marker)
      Lisp_Object marker;
 {
   unchain_marker (XMARKER (marker));
-
-  XMISC (marker)->u_marker.type = Lisp_Misc_Free;
-  XMISC (marker)->u_free.chain = marker_free_list;
-  marker_free_list = XMISC (marker);
-
-  total_free_markers++;
+  free_misc (marker);
 }
 
 
@@ -4924,6 +4951,7 @@ mark_object (arg)
       if (XMARKER (obj)->gcmarkbit)
 	break;
       XMARKER (obj)->gcmarkbit = 1;
+
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Buffer_Local_Value:
@@ -4948,6 +4976,8 @@ mark_object (arg)
 	  /* DO NOT mark thru the marker's chain.
 	     The buffer's markers chain does not preserve markers from gc;
 	     instead, markers are removed from the chain when freed by gc.  */
+	  break;
+
 	case Lisp_Misc_Intfwd:
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
@@ -4957,7 +4987,21 @@ mark_object (arg)
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
 	     are protected with staticpro.  */
+	  break;
+
 	case Lisp_Misc_Save_Value:
+	  {
+	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	    /* If DOGC is set, POINTER is the address of a memory
+	       area containing INTEGER potential Lisp_Objects.  */
+	    if (ptr->dogc)
+	      {
+		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
+		int nelt;
+		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
+		  mark_maybe_object (*p);
+	      }
+	  }
 	  break;
 
 	case Lisp_Misc_Overlay:

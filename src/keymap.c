@@ -2273,7 +2273,11 @@ push_text_char_description (c, p)
 
 DEFUN ("text-char-description", Ftext_char_description, Stext_char_description, 1, 1, 0,
        doc: /* Return a pretty description of file-character CHARACTER.
-Control characters turn into "^char", etc.  */)
+Control characters turn into "^char", etc.  This differs from
+`single-key-description' which turns them into "C-char".
+Also, this function recognizes the 2**7 bit as the Meta character,
+whereas `single-key-description' uses the 2**27 bit for Meta.
+See Info node `(elisp)Describing Characters' for examples.  */)
      (character)
      Lisp_Object character;
 {

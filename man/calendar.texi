@@ -1332,7 +1332,7 @@ begins with a recognizable time of day, Emacs can warn you several
 minutes beforehand that that appointment is pending.  Emacs alerts you
 to the appointment by displaying a message in your chosen format, as
 specified by the variable @code{appt-display-format}.  If the value
-of @code{appt-audible} is non-nil, an audible reminder is also given.
+of @code{appt-audible} is non-@code{nil}, an audible reminder is also given.
 
 @findex appt-activate
   To enable appointment notification, call the function
