@@ -4811,7 +4811,6 @@ This does code conversion according to the value of
   int save_errno = 0;
   const unsigned char *fn;
   struct stat st;
-  int tem;
   int count = SPECPDL_INDEX ();
   int count1;
 #ifdef VMS
