@@ -679,7 +679,7 @@ If nil, uses `change-log-default-name'."
 		     (if (> arg 0) -1
 			 (if (< arg 0) 1 0))))
 	   (setq vc-comment-ring-index
-		 (ring-mod (+ vc-comment-ring-index arg) len))
+		 (mod (+ vc-comment-ring-index arg) len))
 	   (message "%d" (1+ vc-comment-ring-index))
 	   (insert (ring-ref vc-comment-ring vc-comment-ring-index))))))
 
