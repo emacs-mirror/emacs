@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.130 $")
+(defconst byte-compile-version "$Revision: 2.131 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1272,7 +1272,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	     ;; here than caaar and friends.
 	     (not (and (eq (get func 'byte-compile)
 			   'cl-byte-compile-compiler-macro)
-		       (match-string "\\`c[ad]+r\\'" (symbol-name func)))))
+		       (string-match "\\`c[ad]+r\\'" (symbol-name func)))))
 	(byte-compile-warn "Function `%s' from cl package called at runtime"
 			   func)))
   form)
