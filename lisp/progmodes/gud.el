@@ -1967,14 +1967,14 @@ nil)
 	 ;; FIXME: Java ID's are UNICODE strings, this matches ASCII
 	 ;; ID's only.
          ;;
-         ;; The "," in the last square-bracket is necessary because of
-         ;; Sun's total disrespect for backwards compatibility in
+         ;; The ".," in the last square-bracket are necessary because
+         ;; of Sun's total disrespect for backwards compatibility in
          ;; reported line numbers from jdb - starting in 1.4.0 they
-         ;; introduced a comma at the thousands position (how
-         ;; ingenious!)
+         ;; print line numbers using LOCALE, inserting a comma or a
+         ;; period at the thousands positions (how ingenious!).
 
 	 "\\(\[[0-9]+\] \\)*\\([a-zA-Z0-9.$_]+\\)\\.[a-zA-Z0-9$_<>(),]+ \
-\\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9,]+\\)"
+\\(([a-zA-Z0-9.$_]+:\\|line=\\)\\([0-9.,]+\\)"
 	 gud-marker-acc)
 
       ;; A good marker is one that:
@@ -2001,7 +2001,7 @@ nil)
 			  (string-to-int
 			   (let
                                ((numstr (match-string 4 gud-marker-acc)))
-                             (if (string-match "," numstr)
+                             (if (string-match "[.,]" numstr)
                                  (replace-match "" nil nil numstr)
                                numstr)))))
 	    (message "Could not find source file.")))
