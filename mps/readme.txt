@@ -86,8 +86,8 @@ of the project.
 Some project documents are client confidential.  The MPS project has a
 long history, and it will take some time to sort through the documents
 to see which can be published.  If there's a particular document you
-want to see, please write to us <info@ravenbrook.com> and we'll see what
-we can do.
+want to see, please write to us <mps-questions@ravenbrook.com> and we'll
+see what we can do.
 
 Many documents are referenced by tags, which look like
 "design.mps.buffer" or "req.dylan".  These are references to the
@@ -188,8 +188,8 @@ we have not yet had time to make it easy to run.
 The procedure for building a release of the MPS is in
 "procedure/release-build".  This will only be of interest if you are
 intending to maintain and publish a variant of the MPS.  If you do want
-to do this, please get in touch with us <info@ravenbrook.com> to discuss
-it.
+to do this, please get in touch with us <mps-questions@ravenbrook.com>
+to discuss it.
 
 
 7. CONTRIBUTING YOUR WORK
@@ -208,7 +208,7 @@ accurate notes) and the procedures have been maintained.
 You can obtain expert professional support for the MPS from Ravenbrook
 Limited <http://www.ravenbrook.com/>, the developers of the MPS, who
 have many years of experience in commercial memory management systems. 
-Write to us <info@ravenbrook.com> for more information.
+Write to us <mps-questions@ravenbrook.com> for more information.
 
 You might also want to join the MPS discussion mailing list.  To join,
 send a message with the word "subscribe" in the body to
@@ -225,8 +225,8 @@ distribute your product, or your product is open source too.
 
 If you are developing a closed source product and want to use the MPS
 you must license under commercial terms from Ravenbrook Limited
-<http://www.ravenbrook.com/>.  Please write to us <info@ravenbrook.com>
-for more information.
+<http://www.ravenbrook.com/>.  Please write to us
+<mps-questions@ravenbrook.com> for more information.
 
 
 A. REFERENCES
