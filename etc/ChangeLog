@@ -1,3 +1,10 @@
+2005-02-08  Lute Kamstra  <lute@gnu.org>
+
+	* TUTORIAL: Remove some uses of the term "buffer" before it is
+	properly introduced.  Update the description of the mode line.
+	Consistently use "<ESC>" to denote the ESC key and "<SPC>" to
+	denote the Space bar.  Capitalize all command descriptions.
+
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* DEBUG: Minor clarification.
