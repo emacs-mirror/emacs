@@ -787,7 +787,7 @@ If this is nil, no message will be displayed."
 		       (if (assq 'display (frame-parameters))
 			   (progn
 			     (insert "\
-The menu bar menus above are sufficient for basic editing with the mouse.
+The menu bar above is sufficient for basic editing with the mouse.
 
 Useful Files menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
