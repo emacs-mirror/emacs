@@ -2221,8 +2221,8 @@ make_lispy_event (event)
 		    Lisp_Object pos, string;
 		    pos = Fcdr (Fcdr (Fcar (items)));
 		    string = Fcar (Fcdr (Fcar (items)));
-		    if (XINT (event->x) > XINT (pos)
-			&& XINT (event->x) <= XINT (pos) + XSTRING (string)->size)
+		    if (XINT (event->x) >= XINT (pos)
+			&& XINT (event->x) < XINT (pos) + XSTRING (string)->size)
 		      break;
 		  }
 		position
