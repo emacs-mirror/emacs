@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.258 1999/12/02 14:21:08 gerd Exp $
+;; $Id: vc.el,v 1.259 2000/01/26 10:31:13 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2951,10 +2951,11 @@ THRESHOLD, nil otherwise"
       ;; If --brief didn't work, do a double-take and remember it 
       ;; for the future.
       (if (eq status 2)
-          (prog1
-              (apply 'vc-do-command "*vc-diff*" 1 "rcsdiff" file 'WORKFILE
-                     (if cmp (cdr options) options))
-            (if cmp (setq vc-rcsdiff-knows-brief 'no)))
+	  (setq status
+		(prog1
+		    (apply 'vc-do-command "*vc-diff*" 1 "rcsdiff" file 'WORKFILE
+			   (if cmp (cdr options) options))
+		  (if cmp (setq vc-rcsdiff-knows-brief 'no))))
         ;; If --brief DID work, remember that, too.
         (and cmp (not vc-rcsdiff-knows-brief)
              (setq vc-rcsdiff-knows-brief 'yes))
