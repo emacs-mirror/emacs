@@ -158,12 +158,14 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
     : Qnil))
 #endif
 
-/* Then there are six single-bit flags that have the following meanings:
+/* Then there are seven single-bit flags that have the following meanings:
   1. This character is the first of a two-character comment-start sequence.
   2. This character is the second of a two-character comment-start sequence.
   3. This character is the first of a two-character comment-end sequence.
   4. This character is the second of a two-character comment-end sequence.
   5. This character is a prefix, for backward-prefix-chars.
+  6. see below
+  7. This character is part of a nestable comment sequence.
   Note that any two-character sequence whose first character has flag 1
   and whose second character has flag 2 will be interpreted as a comment start.
 
@@ -188,6 +190,8 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 
 #define SYNTAX_COMMENT_STYLE(c) ((SYNTAX_WITH_FLAGS (c) >> 21) & 1)
 
+#define SYNTAX_COMMENT_NESTED(c) ((SYNTAX_WITH_FLAGS (c) >> 22) & 1)
+
 /* These macros extract specific flags from an integer
    that holds the syntax code and the flags.  */
 
@@ -202,6 +206,8 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #define SYNTAX_FLAGS_PREFIX(flags) (((flags) >> 20) & 1)
 
 #define SYNTAX_FLAGS_COMMENT_STYLE(flags) (((flags) >> 21) & 1)
+
+#define SYNTAX_FLAGS_COMMENT_NESTED(flags) (((flags) >> 22) & 1)
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
