@@ -4686,7 +4686,7 @@ If FRAME is omitted or nil, use the selected frame.  */)
 	  && !EQ (LFACE_WEIGHT (lface), Qnormal))
 	result = Fcons (Qbold, result);
 
-      if (!NILP (LFACE_SLANT (lface))
+      if (!UNSPECIFIEDP (LFACE_SLANT (lface))
 	  && !EQ (LFACE_SLANT (lface), Qnormal))
 	result = Fcons (Qitalic, result);
 
