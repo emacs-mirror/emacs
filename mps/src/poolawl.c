@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.18) $
+ * $HopeName: MMsrc!poolawl.c(trunk.19) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.18) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.19) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -571,9 +571,7 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   /* If the scanner isn't going to scan all the objects then the */
   /* summary of the unscanned objects must be added into the scan */
   /* state summary, so that it's a valid summary of the entire */
-  /* segment on return.
-  /* Additionally the white set must be added to the fixed set */
-  /* because we are not scanning all the R(white) objects */
+  /* segment on return. */
   scanAllObjects =
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
   if(!scanAllObjects) {
