@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.16
+;; Version:    5.17
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -188,13 +188,13 @@
 	  (goto-char end))
 	(re-search-backward "[;{}]")
 	(forward-char 1))
-    (error 
+    (error
      (let ((beg (point)))
-       (backward-up-list -1)
+       (c-safe (backward-up-list -1))
        (let ((end (point)))
 	 (goto-char beg)
-	 (search-forward ";" end 'move))))))
-
+	 (search-forward ";" end 'move)))
+     )))
 
 
 (defun c-crosses-statement-barrier-p (from to)
@@ -750,9 +750,11 @@
        (save-excursion
 	 (goto-char containing-sexp)
 	 (forward-sexp -1)
-	 (if (or (looking-at "enum[\t\n ]+")
-		 (progn (forward-sexp -1)
-			(looking-at "enum[\t\n ]+")))
+	 (if (and (or (looking-at "enum[\t\n ]+")
+		      (progn (forward-sexp -1)
+			     (looking-at "enum[\t\n ]+")))
+		  (progn (c-end-of-statement-1)
+			 (> (point) containing-sexp)))
 	     (point)))
      (error nil))
    ;; this will pick up array/aggregate init lists, even if they are nested.
