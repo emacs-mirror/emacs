@@ -1136,7 +1136,7 @@ the sequence."
   (string-as-unibyte (encode-coding-string str 'iso-latin-1)))
 
 ;; Encode STR for a font specified by FONT-SPEC and return the result.
-;; If necessary, it's generated the Postscript code for the font and glyphs to
+;; If necessary, it generates the PostScript code for the font and glyphs to
 ;; print STR.  If optional 4th arg HEADER-P is non-nil, it is assumed that STR
 ;; is for headers.
 (defun ps-mule-string-encoding (font-spec str &optional no-setfont header-p)
