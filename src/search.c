@@ -69,6 +69,8 @@ static Lisp_Object last_thing_searched;
 
 Lisp_Object Qinvalid_regexp;
 
+static void set_search_regs ();
+
 static void
 matcher_overflow ()
 {
@@ -576,7 +578,7 @@ search_command (string, bound, noerror, count, direction, RE)
   return make_number (np);
 }
 
-/* search for the n'th occurrence of STRING in the current buffer,
+/* Search for the n'th occurrence of STRING in the current buffer,
    starting at position POS and stopping at position LIM,
    treating PAT as a literal string if RE is false or as
    a regular expression if RE is true.
@@ -611,7 +613,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 
   /* Null string is found at starting position.  */
   if (len == 0)
-    return pos;
+    {
+      set_search_regs (pos, 0);
+      return pos;
+    }
 
   /* Searching 0 times means don't move.  */
   if (n == 0)
@@ -883,28 +888,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    {
 		      cursor -= direction;
 
-		      /* Make sure we have registers in which to store
-			 the match position.  */
-		      if (search_regs.num_regs == 0)
-			{
-			  regoff_t *starts, *ends;
+		      set_search_regs (pos + cursor - p2 + ((direction > 0)
+							    ? 1 - len : 0),
+				       len);
 
-			  starts =
-			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-			  ends =
-			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-			  BLOCK_INPUT;
-			  re_set_registers (&searchbuf,
-					    &search_regs,
-					    2, starts, ends);
-			  UNBLOCK_INPUT;
-			}
-
-		      search_regs.start[0]
-			= pos + cursor - p2 + ((direction > 0)
-					       ? 1 - len : 0);
-		      search_regs.end[0] = len + search_regs.start[0];
-		      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 		      if ((n -= direction) != 0)
 			cursor += dirlen; /* to resume search */
 		      else
@@ -960,27 +947,9 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		    {
 		      pos -= direction;
 
-		      /* Make sure we have registers in which to store
-			 the match position.  */
-		      if (search_regs.num_regs == 0)
-			{
-			  regoff_t *starts, *ends;
+		      set_search_regs (pos + ((direction > 0) ? 1 - len : 0),
+				       len);
 
-			  starts =
-			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-			  ends =
-			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
-			  BLOCK_INPUT;
-			  re_set_registers (&searchbuf,
-					    &search_regs,
-					    2, starts, ends);
-			  UNBLOCK_INPUT;
-			}
-
-		      search_regs.start[0]
-			= pos + ((direction > 0) ? 1 - len : 0);
-		      search_regs.end[0] = len + search_regs.start[0];
-		      XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 		      if ((n -= direction) != 0)
 			pos += dirlen; /* to resume search */
 		      else
@@ -997,6 +966,33 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	}
       return pos;
     }
+}
+
+/* Record beginning BEG and end BEG + LEN
+   for a match just found in the current buffer.  */
+
+static void
+set_search_regs (beg, len)
+     int beg, len;
+{
+  /* Make sure we have registers in which to store
+     the match position.  */
+  if (search_regs.num_regs == 0)
+    {
+      regoff_t *starts, *ends;
+
+      starts = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+      ends = (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+      BLOCK_INPUT;
+      re_set_registers (&searchbuf,
+			&search_regs,
+			2, starts, ends);
+      UNBLOCK_INPUT;
+    }
+
+  search_regs.start[0] = beg;
+  search_regs.end[0] = beg + len;
+  XSET (last_thing_searched, Lisp_Buffer, current_buffer);
 }
 
 /* Given a string of words separated by word delimiters,
