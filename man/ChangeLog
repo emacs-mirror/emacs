@@ -1,3 +1,13 @@
+2004-06-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.texi (Dired Enter): Mention conditions on `ls' switches.
+	(Dired and Find): Mention differences with ordinary Dired buffers.
+
+2004-06-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autotype.texi (Copyrights, Timestamps): Recommend
+	`before-save-hook' instead of `write-file-functions'.
+
 2004-06-13  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Init Syntax): Explain about vars that do special

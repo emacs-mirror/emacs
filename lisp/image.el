@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 99, 2000, 01, 04 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
@@ -48,6 +48,17 @@ IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
 
+;;;###autoload
+(defvar image-library-alist nil
+  "Alist of image types vs external libraries needed to display them.
+
+Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
+representing a supported image type, and the rest are strings giving
+alternate filenames for the corresponding external libraries to load.
+They are tried in the order they appear on the list; if none of them can
+be loaded, the running session of Emacs won't display the image type.
+No entries are needed for pbm and xbm images; they're always supported.")
+;;;###autoload (put 'image-library-alist 'risky-local-variable t)
 
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
@@ -111,8 +122,8 @@ be determined."
 (defun image-type-available-p (type)
   "Value is non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
-  (and (boundp 'image-types) (not (null (memq type image-types)))))
-
+  (and (fboundp 'init-image-library)
+       (init-image-library type image-library-alist)))
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)

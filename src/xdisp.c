@@ -670,10 +670,6 @@ EMACS_INT hscroll_margin;
 /* How much to scroll horizontally when point is inside the above margin.  */
 Lisp_Object Vhscroll_step;
 
-/* A list of symbols, one for each supported image type.  */
-
-Lisp_Object Vimage_types;
-
 /* The variable `resize-mini-windows'.  If nil, don't resize
    mini-windows.  If t, always resize them to fit the text they
    display.  If `grow-only', let mini-windows grow only until they
@@ -22258,11 +22254,6 @@ scroll more than the value given by the scroll step.
 Note that the lower bound for automatic hscrolling specified by `scroll-left'
 and `scroll-right' overrides this variable's effect.  */);
   Vhscroll_step = make_number (0);
-
-  DEFVAR_LISP ("image-types", &Vimage_types,
-    doc: /* List of supported image types.
-Each element of the list is a symbol for a supported image type.  */);
-  Vimage_types = Qnil;
 
   DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines,
     doc: /* If non-nil, messages are truncated instead of resizing the echo area.

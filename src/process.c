@@ -3619,6 +3619,8 @@ FLAGS is the current flags of the interface.  */)
 #endif
 #endif	/* HAVE_SOCKETS */
 
+/* Turn off input and output for process PROC.  */
+
 void
 deactivate_process (proc)
      Lisp_Object proc;

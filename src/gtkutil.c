@@ -229,23 +229,100 @@ xg_create_default_cursor (dpy)
   return gdk_cursor_new_for_display (gdpy, GDK_LEFT_PTR);
 }
 
-/* For the image defined in IMG, make and return a GdkPixmap for
-   the pixmap in *GPIX, and a GdkBitmap for the mask in *GMASK.
-   If IMG has no mask, *GMASK is set to NULL.
-   The image is defined on the display where frame F is.  */
-static void
-xg_get_gdk_pixmap_and_mask (f, img, gpix, gmask)
+/* For the image defined in IMG, make and return a GtkImage.  For displays with
+   8 planes or less we must make a GdkPixbuf and apply the mask manually.
+   Otherwise the highlightning and dimming the tool bar code in GTK does
+   will look bad.  For display with more than 8 planes we just use the
+   pixmap and mask directly.  For monochrome displays, GTK doesn't seem
+   able to use external pixmaps, it looks bad whatever we do.
+   The image is defined on the display where frame F is.
+   WIDGET is used to find the GdkColormap to use for the GdkPixbuf.
+   If OLD_WIDGET is NULL, a new widget is constructed and returned.
+   If OLD_WIDGET is not NULL, that widget is modified.  */
+static GtkWidget *
+xg_get_image_for_pixmap (f, img, widget, old_widget)
      FRAME_PTR f;
      struct image *img;
-     GdkPixmap **gpix;
-     GdkBitmap **gmask;
+     GtkWidget *widget;
+     GtkImage *old_widget;
 {
+  GdkPixmap *gpix;
+  GdkPixmap *gmask;
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
 
-  *gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
-  *gmask = img->mask ?
-    (GdkBitmap*) gdk_pixmap_foreign_new_for_display (gdpy, img->mask)
-    : 0;
+  gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
+  gmask = img->mask ? gdk_pixmap_foreign_new_for_display (gdpy, img->mask) : 0;
+
+  if (x_screen_planes (f) > 8 || x_screen_planes (f) == 1)
+    {
+      if (! old_widget)
+        old_widget = GTK_IMAGE (gtk_image_new_from_pixmap (gpix, gmask));
+      else
+        gtk_image_set_from_pixmap (old_widget, gpix, gmask);
+    }
+  else
+    {
+      int x, y, width, height, rowstride, mask_rowstride;
+      GdkPixbuf *icon_buf, *tmp_buf;
+      guchar *pixels;
+      guchar *mask_pixels;
+
+      gdk_drawable_get_size (gpix, &width, &height);
+      tmp_buf = gdk_pixbuf_get_from_drawable (NULL,
+                                              gpix,
+				              gtk_widget_get_colormap (widget),
+                                              0, 0, 0, 0, width, height);
+      icon_buf = gdk_pixbuf_add_alpha (tmp_buf, FALSE, 0, 0, 0);
+      g_object_unref (G_OBJECT (tmp_buf));
+
+      if (gmask)
+        {
+          GdkPixbuf *mask_buf = gdk_pixbuf_get_from_drawable (NULL,
+                                                              gmask,
+                                                              NULL,
+                                                              0, 0, 0, 0,
+                                                              width, height);
+          guchar *pixels = gdk_pixbuf_get_pixels (icon_buf);
+          guchar *mask_pixels = gdk_pixbuf_get_pixels (mask_buf);
+          int rowstride = gdk_pixbuf_get_rowstride (icon_buf);
+          int mask_rowstride = gdk_pixbuf_get_rowstride (mask_buf);
+          int y;
+
+          for (y = 0; y < height; ++y)
+            {
+              guchar *iconptr, *maskptr;
+              int x;
+
+              iconptr = pixels + y * rowstride;
+              maskptr = mask_pixels + y * mask_rowstride;
+
+              for (x = 0; x < width; ++x)
+                {
+                  /* In a bitmap, RGB is either 255/255/255 or 0/0/0.  Checking
+                     just R is sufficient.  */
+                  if (maskptr[0] == 0)
+                    iconptr[3] = 0; /* 0, 1, 2 is R, G, B.  3 is alpha.  */
+
+                  iconptr += rowstride/width;
+                  maskptr += mask_rowstride/width;
+                }
+            }
+
+          g_object_unref (G_OBJECT (gmask));
+          g_object_unref (G_OBJECT (mask_buf));
+        }
+
+      g_object_unref (G_OBJECT (gpix));
+
+      if (! old_widget)
+        old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
+      else
+        gtk_image_set_from_pixbuf (old_widget, icon_buf);
+
+      g_object_unref (G_OBJECT (icon_buf));
+    }
+
+  return GTK_WIDGET (old_widget);
 }
 
 
@@ -3205,12 +3282,8 @@ update_frame_tool_bar (f)
 
       if (! wicon)
         {
-          GdkPixmap *gpix;
-          GdkBitmap *gmask;
-          GtkWidget *w;
+          GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
 
-          xg_get_gdk_pixmap_and_mask (f, img, &gpix, &gmask);
-          w = gtk_image_new_from_pixmap (gpix, gmask);
           gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
                                    0, 0, 0,
                                    w,
@@ -3267,13 +3340,7 @@ update_frame_tool_bar (f)
           g_list_free (chlist);
 
           if (old_img != img->pixmap)
-            {
-              GdkPixmap *gpix;
-              GdkBitmap *gmask;
-
-              xg_get_gdk_pixmap_and_mask (f, img, &gpix, &gmask);
-              gtk_image_set_from_pixmap (wimage, gpix, gmask);
-            }
+            (void) xg_get_image_for_pixmap (f, img, x->widget, wimage);
 
           g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
                              (gpointer)img->pixmap);

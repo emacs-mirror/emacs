@@ -58,7 +58,9 @@ the special commands of Dired are available.
 give to @code{ls} for listing directory; this string @emph{must} contain
 @samp{-l}.  If you use a numeric prefix argument with the @code{dired}
 command, you can specify the @code{ls} switches with the minibuffer
-before you enter the directory specification.
+before you enter the directory specification.  No matter how they are
+specified, the @code{ls} switches should all be short options (that
+is, single characters) requiring no arguments.
 
 @findex dired-other-window
 @kindex C-x 4 d
@@ -1098,6 +1100,11 @@ may need to change the value of this variable.
   @kbd{M-x locate} provides a similar interface to the @code{locate}
 program.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
 matching a given regular expression.
+
+These buffers don't work entirely like ordinary Dired buffers.  File
+operations work, but do not always automatically update the buffer.
+Reverting the buffer with @kbd{g} deletes all inserted subdirectories,
+and erases all flags and marks.
 
 @node Misc Dired Commands
 @section Other Dired Commands
