@@ -1,3 +1,8 @@
+2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* bindings.el (mode-line-mule-info): Don't show the tip with
+	buffer-file-coding-system if that is nil.
+
 2001-07-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* calendar/todo-mode.el (todo-top-priorities): Use delete-region
