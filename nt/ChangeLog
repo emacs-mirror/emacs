@@ -1,3 +1,8 @@
+2001-11-17  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs (SYS_LDFLAGS): Add setargv.obj for wildcard
+	expansion.  From Juanma Barranquero <lektu@terra.es>.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
