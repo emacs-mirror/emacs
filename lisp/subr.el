@@ -20,6 +20,39 @@
 
 ;;; Code:
 
+
+;;;; Lisp language features.
+
+(defmacro lambda (&rest cdr)
+  "Return a lambda expression.
+A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
+self-quoting; the result of evaluating the lambda expression is the
+expression itself.  The lambda expression may then be treated as a
+function, i. e. stored as the function value of a symbol, passed to
+funcall or mapcar, etcetera.
+ARGS should take the same form as an argument list for a `defun'.
+DOCSTRING should be a string, as described for `defun'.  It may be omitted.
+INTERACTIVE should be a call to the function `interactive', which see.
+It may also be omitted.
+BODY should be a list of lisp expressions."
+  ;; Note that this definition should not use backquotes; subr.el should not
+  ;; depend on backquote.el.
+  (list 'function (cons 'lambda cdr)))
+
+;;(defmacro defun-inline (name args &rest body)
+;;  "Create an \"inline defun\" (actually a macro).
+;;Use just like `defun'."
+;;  (nconc (list 'defmacro name '(&rest args))
+;;	 (if (stringp (car body))
+;;	     (prog1 (list (car body))
+;;	       (setq body (or (cdr body) body))))
+;;	 (list (list 'cons (list 'quote
+;;				 (cons 'lambda (cons args body)))
+;;		     'args))))
+
+
+;;;; Window tree functions.
+
 (defun one-window-p (&optional nomini)
   "Returns non-nil if there is only one window.
 Optional arg NOMINI non-nil means don't count the minibuffer
@@ -50,42 +83,12 @@ If ALL-FRAMES is neither nil nor t, stick strictly to the selected frame."
 	     (funcall proc walk-windows-current)
 	     (not (eq walk-windows-current walk-windows-start))))))
 
-(defun read-quoted-char (&optional prompt)
-  "Like `read-char', except that if the first character read is an octal
-digit, we read up to two more octal digits and return the character
-represented by the octal number consisting of those digits.
-Optional argument PROMPT specifies a string to use to prompt the user."
-  (let ((count 0) (code 0) char)
-    (while (< count 3)
-      (let ((inhibit-quit (zerop count))
-	    (help-form nil))
-	(and prompt (message "%s-" prompt))
-	(setq char (read-char))
-	(if inhibit-quit (setq quit-flag nil)))
-      (cond ((null char))
-	    ((and (<= ?0 char) (<= char ?7))
-	     (setq code (+ (* code 8) (- char ?0))
-		   count (1+ count))
-	     (and prompt (message (setq prompt
-					(format "%s %c" prompt char)))))
-	    ((> count 0)
-	     (setq unread-command-events (list char) count 259))
-	    (t (setq code char count 259))))
-    (logand 255 code)))
-
-(defun error (&rest args)
-  "Signal an error, making error message by passing all args to `format'."
-  (while t
-    (signal 'error (list (apply 'format args)))))
+
+;;;; Keymap support.
 
 (defun undefined ()
   (interactive)
   (ding))
-
-;; Some programs still use this as a function.
-(defun baud-rate ()
-  "Obsolete function returning the value of the `baud-rate' variable."
-  baud-rate)
 
 ;Prevent the \{...} documentation construct
 ;from mentioning keys that run this command.
@@ -108,26 +111,6 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	(while (<= loop ?9)
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
-
-;; now in fns.c
-;(defun nth (n list)
-;  "Returns the Nth element of LIST.
-;N counts from zero.  If LIST is not that long, nil is returned."
-;  (car (nthcdr n list)))
-;
-;(defun copy-alist (alist)
-;  "Return a copy of ALIST.
-;This is a new alist which represents the same mapping
-;from objects to objects, but does not share the alist structure with ALIST.
-;The objects mapped (cars and cdrs of elements of the alist)
-;are shared, however."
-;  (setq alist (copy-sequence alist))
-;  (let ((tail alist))
-;    (while tail
-;      (if (consp (car tail))
-;	  (setcar tail (cons (car (car tail)) (cdr (car tail)))))
-;      (setq tail (cdr tail))))
-;  alist)
 
 ;Moved to keymap.c
 ;(defun copy-keymap (keymap)
@@ -197,7 +180,56 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 						     prefix1)))))
 		(setq i (1+ i))))))
       (setq scan (cdr scan)))))
+
+(defun keyboard-translate (from to)
+  "Translate character FROM to TO at a low level.
+This function creates a `keyboard-translate-table' if necessary
+and then modifies one entry in it."
+  (or (arrayp keyboard-translate-table)
+      (setq keyboard-translate-table ""))
+  (if (or (> from (length keyboard-translate-table))
+	  (> to   (length keyboard-translate-table)))
+      (progn
+	(let* ((i (length keyboard-translate-table))
+	       (table (make-string (- 256 i) 0)))
+	  (while (< i 256)
+	    (aset table i i)
+	    (setq i (1+ i)))
+	  (setq keyboard-translate-table table))))
+  (aset keyboard-translate-table from to))
+
 
+;;;; The global keymap tree.  
+
+;;; global-map, esc-map, and ctl-x-map have their values set up in
+;;; keymap.c; we just give them docstrings here.
+
+(defvar global-map nil
+  "Default global keymap mapping Emacs keyboard input into commands.
+The value is a keymap which is usually (but not necessarily) Emacs's
+global map.")
+
+(defvar esc-map nil
+  "Default keymap for ESC (meta) commands.
+The normal global definition of the character ESC indirects to this keymap.")
+
+(defvar ctl-x-map nil
+  "Default keymap for C-x commands.
+The normal global definition of the character C-x indirects to this keymap.")
+
+(defvar ctl-x-4-map (make-sparse-keymap)
+  "Keymap for subcommands of C-x 4")
+(fset 'ctl-x-4-prefix ctl-x-4-map)
+(define-key ctl-x-map "4" 'ctl-x-4-prefix)
+
+(defvar ctl-x-5-map (make-sparse-keymap)
+  "Keymap for frame commands.")
+(fset 'ctl-x-5-prefix ctl-x-5-map)
+(define-key ctl-x-map "5" 'ctl-x-5-prefix)
+
+
+;;;; Event manipulation functions.
+
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
   (if (vectorp key)
@@ -302,22 +334,25 @@ POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
 nas returned by the `event-start' and `event-end' functions."
   (nth 3 position))
-
-(defmacro save-match-data (&rest body)
-  "Execute the BODY forms, restoring the global value of the match data."
-  (let ((original (make-symbol "match-data")))
-    (list
-     'let (list (list original '(match-data)))
-     (list 'unwind-protect
-           (cons 'progn body)
-           (list 'store-match-data original)))))
 
-(defun ignore (&rest ignore) 
-  "Do nothing.
-Accept any number of arguments, but ignore them."
-  nil)
 
-; old names
+;;;; Overlay dissection functions.
+
+(defsubst overlay-start (overlay)
+  "Return the position at which OVERLAY starts."
+  (marker-position (car (car overlay))))
+
+(defsubst overlay-end (overlay)
+  "Return the position at which OVERLAY ends."
+  (marker-position (cdr (car overlay))))
+
+(defsubst overlay-buffer (overlay)
+  "Return the buffer OVERLAY belongs to."
+  (marker-buffer (overlay-start overlay)))
+
+
+;;;; Obsolescent names for functions.
+
 (fset 'make-syntax-table 'copy-syntax-table)
 (fset 'dot 'point)
 (fset 'dot-marker 'point-marker)
@@ -340,7 +375,14 @@ Accept any number of arguments, but ignore them."
 ;;; `mod' name around for a while longer.
 (fset 'mod '%)
 
-; alternate names
+;; Some programs still use this as a function.
+(defun baud-rate ()
+  "Obsolete function returning the value of the `baud-rate' variable."
+  baud-rate)
+
+
+;;;; Alternate names for functions - these are not being phased out.
+
 (fset 'string= 'string-equal)
 (fset 'string< 'string-lessp)
 (fset 'move-marker 'set-marker)
@@ -359,32 +401,8 @@ Accept any number of arguments, but ignore them."
 ;;; to go through all the sources and change them.
 (fset 'string-to-int 'string-to-number)
 
-;;; global-map, esc-map, and ctl-x-map have their values set up
-;;; in keymap.c.
-(defvar global-map nil
-  "Default global keymap mapping Emacs keyboard input into commands.
-The value is a keymap which is usually (but not necessarily) Emacs's
-global map.")
+;;;; Hook manipulation functions.
 
-(defvar esc-map nil
-  "Default keymap for ESC (meta) commands.
-The normal global definition of the character ESC indirects to this keymap.")
-
-(defvar ctl-x-map nil
-  "Default keymap for C-x commands.
-The normal global definition of the character C-x indirects to this keymap.")
-
-(defvar ctl-x-4-map (make-sparse-keymap)
-  "Keymap for subcommands of C-x 4")
-(fset 'ctl-x-4-prefix ctl-x-4-map)
-(define-key ctl-x-map "4" 'ctl-x-4-prefix)
-
-(defvar ctl-x-5-map (make-sparse-keymap)
-  "Keymap for frame commands.")
-(fset 'ctl-x-5-prefix ctl-x-5-map)
-(define-key ctl-x-map "5" 'ctl-x-5-prefix)
-
-
 (defun run-hooks (&rest hooklist)
   "Takes hook names and runs each one in turn.  Major mode functions use this.
 Each argument should be a symbol, a hook variable.
@@ -425,7 +443,57 @@ function.  If HOOK is void, it is first set to nil."
 	   (if append
 	       (nconc (symbol-value hook) (list function))
 	     (cons function (symbol-value hook))))))
+
 
+;;;; Specifying things to do after certain files are loaded.
+
+(defun eval-after-load (file form)
+  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
+This makes or adds to an entry on `after-load-alist'.
+FILE should be the name of a library, with no directory name."
+  (or (assoc file after-load-alist)
+      (setq after-load-alist (cons (list file) after-load-alist)))
+  (nconc (assoc file after-load-alist) (list form))
+  form)
+
+(defun eval-next-after-load (file)
+  "Read the following input sexp, and run it whenever FILE is loaded.
+This makes or adds to an entry on `after-load-alist'.
+FILE should be the name of a library, with no directory name."
+  (eval-after-load file (read)))
+
+
+;;;; Input and display facilities.
+
+(defun read-quoted-char (&optional prompt)
+  "Like `read-char', except that if the first character read is an octal
+digit, we read up to two more octal digits and return the character
+represented by the octal number consisting of those digits.
+Optional argument PROMPT specifies a string to use to prompt the user."
+  (let ((count 0) (code 0) char)
+    (while (< count 3)
+      (let ((inhibit-quit (zerop count))
+	    (help-form nil))
+	(and prompt (message "%s-" prompt))
+	(setq char (read-char))
+	(if inhibit-quit (setq quit-flag nil)))
+      (cond ((null char))
+	    ((and (<= ?0 char) (<= char ?7))
+	     (setq code (+ (* code 8) (- char ?0))
+		   count (1+ count))
+	     (and prompt (message (setq prompt
+					(format "%s %c" prompt char)))))
+	    ((> count 0)
+	     (setq unread-command-events (list char) count 259))
+	    (t (setq code char count 259))))
+    (logand 255 code)))
+
+(defun force-mode-line-update (&optional all)
+  "Force the mode-line of the current buffer to be redisplayed.
+With optional non-nil ALL then force then force redisplay of all mode-lines."
+  (if all (save-excursion (set-buffer (other-buffer))))
+  (set-buffer-modified-p (buffer-modified-p)))
+
 (defun momentary-string-display (string pos &optional exit-char message) 
   "Momentarily display STRING in the buffer at POS.
 Display remains until next character is typed.
@@ -457,6 +525,24 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
       (setq buffer-file-name name)
       (set-buffer-modified-p modified))))
 
+
+;;;; Miscellanea.
+
+(defun ignore (&rest ignore) 
+  "Do nothing.
+Accept any number of arguments, but ignore them."
+  nil)
+
+(defun error (&rest args)
+  "Signal an error, making error message by passing all args to `format'."
+  (while t
+    (signal 'error (list (apply 'format args)))))
+
+(defun user-original-login-name ()
+  "Return user's login name from original login.
+This tries to remain unaffected by `su', by looking in environment variables."
+  (or (getenv "LOGNAME") (getenv "USER") (user-login-name)))
+
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
 Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
@@ -473,76 +559,35 @@ Wildcards and redirection are handle as usual in the shell."
       (apply 'start-process name buffer args)
     (start-process name buffer shell-file-name "-c"
 		   (concat "exec " (mapconcat 'identity args " ")))))
-
-(defun eval-after-load (file form)
-  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (or (assoc file after-load-alist)
-      (setq after-load-alist (cons (list file) after-load-alist)))
-  (nconc (assoc file after-load-alist) (list form))
-  form)
 
-(defun eval-next-after-load (file)
-  "Read the following input sexp, and run it whenever FILE is loaded.
-This makes or adds to an entry on `after-load-alist'.
-FILE should be the name of a library, with no directory name."
-  (eval-after-load file (read)))
+(defmacro save-match-data (&rest body)
+  "Execute the BODY forms, restoring the global value of the match data."
+  (let ((original (make-symbol "match-data")))
+    (list
+     'let (list (list original '(match-data)))
+     (list 'unwind-protect
+           (cons 'progn body)
+           (list 'store-match-data original)))))
 
-;;(defmacro defun-inline (name args &rest body)
-;;  "Create an \"inline defun\" (actually a macro).
-;;Use just like `defun'."
-;;  (nconc (list 'defmacro name '(&rest args))
-;;	 (if (stringp (car body))
-;;	     (prog1 (list (car body))
-;;	       (setq body (or (cdr body) body))))
-;;	 (list (list 'cons (list 'quote
-;;				 (cons 'lambda (cons args body)))
-;;		     'args))))
-
-(defun user-original-login-name ()
-  "Return user's login name from original login.
-This tries to remain unaffected by `su', by looking in environment variables."
-  (or (getenv "LOGNAME") (getenv "USER") (user-login-name)))
-
-(defun force-mode-line-update (&optional all)
-  "Force the mode-line of the current buffer to be redisplayed.
-With optional non-nil ALL then force then force redisplay of all mode-lines."
-  (if all (save-excursion (set-buffer (other-buffer))))
-  (set-buffer-modified-p (buffer-modified-p)))
-
-(defun keyboard-translate (from to)
-  "Translate character FROM to TO at a low level.
-This function creates a `keyboard-translate-table' if necessary
-and then modifies one entry in it."
-  (or (arrayp keyboard-translate-table)
-      (setq keyboard-translate-table ""))
-  (if (or (> from (length keyboard-translate-table))
-	  (> to   (length keyboard-translate-table)))
-      (progn
-	(let* ((i (length keyboard-translate-table))
-	       (table (make-string (- 256 i) 0)))
-	  (while (< i 256)
-	    (aset table i i)
-	    (setq i (1+ i)))
-	  (setq keyboard-translate-table table))))
-  (aset keyboard-translate-table from to))
-
-
-(defmacro lambda (&rest cdr)
-  "Return a lambda expression.
-A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
-self-quoting; the result of evaluating the lambda expression is the
-expression itself.  The lambda expression may then be treated as a
-function, i. e. stored as the function value of a symbol, passed to
-funcall or mapcar, etcetera.
-ARGS should take the same form as an argument list for a `defun'.
-DOCSTRING should be a string, as described for `defun'.  It may be omitted.
-INTERACTIVE should be a call to the function `interactive', which see.
-It may also be omitted.
-BODY should be a list of lisp expressions."
-  ;; Note that this definition should not use backquotes; subr.el should not
-  ;; depend on backquote.el.
-  (list 'function (cons 'lambda cdr)))
+;; now in fns.c
+;(defun nth (n list)
+;  "Returns the Nth element of LIST.
+;N counts from zero.  If LIST is not that long, nil is returned."
+;  (car (nthcdr n list)))
+;
+;(defun copy-alist (alist)
+;  "Return a copy of ALIST.
+;This is a new alist which represents the same mapping
+;from objects to objects, but does not share the alist structure with ALIST.
+;The objects mapped (cars and cdrs of elements of the alist)
+;are shared, however."
+;  (setq alist (copy-sequence alist))
+;  (let ((tail alist))
+;    (while tail
+;      (if (consp (car tail))
+;	  (setcar tail (cons (car (car tail)) (cdr (car tail)))))
+;      (setq tail (cdr tail))))
+;  alist)
 
 ;;; subr.el ends here
+
