@@ -383,7 +383,7 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (arabic-2-column
      (normal bdf ("arab24-2-etl.bdf" "etl24-arabic2.bdf") ps-mule-encode-7bit 1))
     (indian-is13194
-     (normal bdf ("isci24-etl.bdf" "mule-iscii-24.bdf") ps-mule-encode-7bit 1))
+     (normal bdf ("isci24-mule.bdf" "mule-iscii-24.bdf") ps-mule-encode-7bit 1))
     (indian-1-column
      (normal bdf ("ind1c24-mule.bdf" "mule-indian-1col-24.bdf") ps-mule-encode-7bit 2))
     (tibetan-1-column
