@@ -3,6 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.org>
+;; Keywords: wp data
 
 ;; This file is part of GNU Emacs.
 

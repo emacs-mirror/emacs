@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
+;; Maintainer: FSF
 ;; Keywords: abbrev convenience
 
 ;; This file is part of GNU Emacs.

@@ -4,6 +4,7 @@
 
 ;; Author: Robert J. Chassell      
 ;; Maintainer: FSF
+;; Keywords: docs convenience
 
 ;; This file is part of GNU Emacs.
 

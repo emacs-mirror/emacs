@@ -4,6 +4,7 @@
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
+;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
 

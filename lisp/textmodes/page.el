@@ -3,6 +3,7 @@
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Keywords: wp convenience
 
 ;; This file is part of GNU Emacs.
 

@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
+;; Maintainer: FSF
 ;; Keywords: unix, tools
 
 ;; This file is part of GNU Emacs.
