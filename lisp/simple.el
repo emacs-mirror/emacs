@@ -1263,7 +1263,10 @@ as an argument limits undo to changes within the current region."
     (unless (and (eq last-command 'undo)
 		 ;; If something (a timer or filter?) changed the buffer
 		 ;; since the previous command, don't continue the undo seq.
-		 (eq undo-list-saved buffer-undo-list))
+		 (let ((list buffer-undo-list))
+		   (while (eq (car list) nil)
+		     (setq list (cdr list)))
+		   (eq undo-list-saved list)))
       (setq undo-in-region
 	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
       (if undo-in-region
@@ -1527,8 +1530,9 @@ is not *inside* the region START...END."
 ;; so it had better not do a lot of consing.
 (setq undo-outer-limit-function 'undo-outer-limit-truncate)
 (defun undo-outer-limit-truncate (size)
-  (if (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
-			   (buffer-name) size))
+  (if (let (use-dialog-box)
+	(yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+			     (buffer-name) size)))
       (progn (setq buffer-undo-list nil) t)
     nil))
 
