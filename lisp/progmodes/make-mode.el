@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.16 1994/05/22 22:10:39 rms Exp $
+;; $Id: makefile.el,v 1.17 1994/10/11 20:42:23 rms Exp simon $
 
 ;; This file is part of GNU Emacs.
 
@@ -207,11 +207,14 @@ not be enclosed in { } or ( ).")
 
 (defconst makefile-font-lock-keywords
   (list
-   ;; Do macro assignments.  These get the "type" face rather
+   ;; Do macro assignments.  These get the "variable-name" face rather
    ;; arbitrarily.
-   (list makefile-macroassign-regex 1 'font-lock-type-face)
-
-    ;; Do dependencies.  These get the function name face.
+   (list makefile-macroassign-regex 1 'font-lock-variable-name-face)
+   ;;
+   ;; Variable references even in targets/strings/comments:
+   '("\\$[({]\\([a-zA-Z0-9_]+\\)[})]" 1 font-lock-reference-face t)
+   ;;
+   ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face)))
 
 ;;; ------------------------------------------------------------
@@ -326,6 +329,8 @@ interface:
   (modify-syntax-entry ?\] "([    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)  
   (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
+  (modify-syntax-entry ?\' "\"     " makefile-mode-syntax-table)
+  (modify-syntax-entry ?\` "\"     " makefile-mode-syntax-table)
   (modify-syntax-entry ?#  "<     " makefile-mode-syntax-table)
   (modify-syntax-entry ?\n ">     " makefile-mode-syntax-table))
 
@@ -478,10 +483,8 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords makefile-font-lock-keywords)
-  (make-local-variable 'font-lock-keywords-case-fold-search)
-  (setq font-lock-keywords-case-fold-search t)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(makefile-font-lock-keywords))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
