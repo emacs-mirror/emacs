@@ -238,6 +238,7 @@ copy_widget_value_tree (val, change)
   copy->value = safe_strdup (val->value);
   copy->key = safe_strdup (val->key);
   copy->enabled = val->enabled;
+  copy->button_type = val->button_type;
   copy->selected = val->selected;
   copy->edited = False;
   copy->change = change;
@@ -492,6 +493,13 @@ merge_widget_value (val1, val2, level)
 	       val1->enabled, val2->enabled);
       change = max (change, VISIBLE_CHANGE);
       val1->enabled = val2->enabled;
+    }
+  if (val1->button_type != val2->button_type)
+    {
+      EXPLAIN (val1->name, change, VISIBLE_CHANGE, "button type change",
+	       val1->button_type, val2->button_type);
+      change = max (change, VISIBLE_CHANGE);
+      val1->button_type = val2->button_type;
     }
   if (val1->selected != val2->selected)
     {
@@ -1387,3 +1395,73 @@ lw_allow_resizing (w, flag)
   xm_manage_resizing (w, flag);
 #endif
 }
+
+
+/* Value is non-zero if LABEL is a menu separator.  If it is, *TYPE is
+   set to an appropriate enumerator of type enum menu_separator.
+   MOTIF_P non-zero means map separator types not supported by Motif
+   to similar ones that are supported.  */
+
+int
+lw_separator_p (label, type, motif_p)
+     char *label;
+     enum menu_separator *type;
+     int motif_p;
+{
+  int separator_p;
+
+  if (strlen (label) >= 3
+      && bcmp (label, "--:", 3) == 0)
+    {
+      static struct separator_table
+      {
+	char *name;
+	enum menu_separator type;
+      }
+      separator_names[] =
+      {
+	"noLine",		     SEPARATOR_NO_LINE,
+	"singleLine",		     SEPARATOR_SINGLE_LINE,
+	"doubleLine",		     SEPARATOR_DOUBLE_LINE,
+	"singleDashedLine",	     SEPARATOR_SINGLE_DASHED_LINE,
+	"doubleDashedLine",	     SEPARATOR_DOUBLE_DASHED_LINE,
+	"shadowEtchedIn",	     SEPARATOR_SHADOW_ETCHED_IN,
+	"shadowEtchedOut",	     SEPARATOR_SHADOW_ETCHED_OUT,
+	"shadowEtchedInDash",	     SEPARATOR_SHADOW_ETCHED_IN_DASH,
+	"shadowEtchedOutDash",	     SEPARATOR_SHADOW_ETCHED_OUT_DASH,
+	"shadowDoubleEtchedIn",	     SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
+	"shadowDoubleEtchedOut",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
+	"shadowDoubleEtchedInDash",  SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
+	"shadowDoubleEtchedOutDash", SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH,
+	0
+      };
+
+      int i;
+
+      label += 3;
+      for (i = 0; separator_names[i].name; ++i)
+	if (strcmp (label, separator_names[i].name) == 0)
+	  {
+	    separator_p = 1;
+	    *type = separator_names[i].type;
+
+	    /* If separator type is not supported under Motif,
+	       use a similar one.  */
+	    if (motif_p && *type >= SEPARATOR_SHADOW_DOUBLE_ETCHED_IN)
+	      *type -= 4;
+	    break;
+	  }
+    }
+  else
+    {
+      /* Old-style separator, maybe.  It's a separator if it contains
+	 only dashes.  */
+      while (*label == '-')
+	++label;
+      separator_p = *label == 0;
+      *type = SEPARATOR_SHADOW_ETCHED_IN;
+    }
+
+  return separator_p;
+}
+
