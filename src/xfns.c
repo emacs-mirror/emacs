@@ -1695,12 +1695,16 @@ x_set_cursor_type (f, arg, oldval)
       FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
       f->output_data.x->cursor_width = 2;
     }
-  else if (CONSP (arg) && EQ (XCAR (arg), Qbar)
-	   && INTEGERP (XCDR (arg)))
+  else if (CONSP (arg)
+	   && EQ (XCAR (arg), Qbar)
+	   && INTEGERP (XCDR (arg))
+	   && XINT (XCDR (arg)) >= 0)
     {
       FRAME_DESIRED_CURSOR (f) = BAR_CURSOR;
       f->output_data.x->cursor_width = XINT (XCDR (arg));
     }
+  else if (NILP (arg))
+    FRAME_DESIRED_CURSOR (f) = NO_CURSOR;
   else
     /* Treat anything unknown as "box cursor".
        It was bad to signal an error; people have trouble fixing
