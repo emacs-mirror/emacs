@@ -126,16 +126,17 @@ sub compile {
 }
 
 sub compile_and_link {
- local($srcfile, $exefile, $linkfiles) = @_;
+ local($srcfile, $exefile, $linkfiles, $objfile) = @_;
 
  &compiler_settings;
  $linkfiles = " ".$linkfiles;
  $linkfiles =~ s/ +/ $obj_dir\//g;
  $linkfiles = $linkfiles." ";
  $linkfiles =~ s/\.o /$obj_suffix /g;
+ $objfile = "$obj_dir/tmp_obj$obj_suffix";
 
- $command = "$cc_command $cc_opts $cc_exe$exefile $srcfile ".
-  "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
+ $command = "$cc_command $cc_opts $cc_obj$objfile $cc_exe$exefile ".
+ "$srcfile $linkfiles $MPS_LINK_OBJ $cc_link $cc_include $cc_link_opts";
  
  if (&mysystem($command)) {
   return 0;
