@@ -285,6 +285,14 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-adv-search-menu [re-search-forward]
   '(menu-item "Search Regexp..." nonincremental-re-search-forward
 	      :help "Search forward for a regular expression"))
+(define-key menu-bar-adv-search-menu [separator-tag-isearch]
+  '(menu-item "--"))
+(define-key menu-bar-adv-search-menu [isearch-backward]
+  '(menu-item "Incremental Search Backwards..." isearch-backward
+	      :help "Incremental search backwards for a string"))
+(define-key menu-bar-adv-search-menu [isearch-forward]
+  '(menu-item "Incremental Search..." isearch-forward
+	      :help "Incremental search forward for a string"))
 (define-key menu-bar-search-menu [re-search]
   (list 'menu-item "Advanced Search/Replace" menu-bar-adv-search-menu
 	      :help "Regexp and Tags search and replace"))
@@ -530,7 +538,7 @@ Do the same for the keys of the same name."
 		(substring help 1) ".")
        (interactive)
        (if ,(if body `(progn . ,body)
-	      `(progn 
+	      `(progn
 		 (custom-load-symbol ',variable)
 		 (let ((set (or (get ',variable 'custom-set) 'set-default))
 		       (get (or (get ',variable 'custom-get) 'default-value)))
@@ -543,7 +551,7 @@ Do the same for the keys of the same name."
      ;; options the user have already set explicitly in his init
      ;; file.  Unfortunately, he could very likely call the function
      ;; defined above there.  So we put `customize-mark-as-set' in a
-     ;; lambda expression. 
+     ;; lambda expression.
      ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
      '(menu-item ,doc (lambda ()
 			(interactive)
@@ -616,7 +624,7 @@ Do the same for the keys of the same name."
     (message "Display-time mode disabled.")))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date and time" (lambda ()
+  '(menu-item "Date and Time" (lambda ()
 				(interactive)
 				(showhide-date-time)
 				(customize-mark-as-set 'display-time-mode))
@@ -632,13 +640,13 @@ Do the same for the keys of the same name."
 	      :button (:toggle
 		       . (and (boundp 'speedbar-frame)
 			      (frame-live-p (symbol-value 'speedbar-frame))
-			      (frame-visible-p 
+			      (frame-visible-p
 			       (symbol-value 'speedbar-frame))))))
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
 (define-key menu-bar-showhide-scroll-bar-menu [right]
-  '(menu-item "On the Right" 
+  '(menu-item "On the Right"
 	      (lambda ()
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode 'right))
@@ -648,7 +656,7 @@ Do the same for the keys of the same name."
 					       (frame-parameters))) 'right))))
 
 (define-key menu-bar-showhide-scroll-bar-menu [left]
-  '(menu-item "On the Left" 	   
+  '(menu-item "On the Left"
 	      (lambda ()
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode 'left))
@@ -658,7 +666,7 @@ Do the same for the keys of the same name."
 					       (frame-parameters))) 'left))))
 
 (define-key menu-bar-showhide-scroll-bar-menu [none]
-  '(menu-item "None" 
+  '(menu-item "None"
 	      (lambda ()
 		(interactive)
 		(customize-set-variable 'scroll-bar-mode nil))
@@ -668,7 +676,7 @@ Do the same for the keys of the same name."
 					       (frame-parameters))) nil))))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
-  (list 'menu-item "Scroll-Bar" menu-bar-showhide-scroll-bar-menu
+  (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
 	:visible 'window-system
 	:help "Select scroll-bar mode"))
 
@@ -681,7 +689,7 @@ Do the same for the keys of the same name."
     (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
 
 (define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar" 
+  '(menu-item "Menu-bar"
 	      (lambda ()
 		(interactive)
 		(showhide-menu-bar)
@@ -697,7 +705,7 @@ Do the same for the keys of the same name."
     (message "Tool-bar mode disabled.")))
 
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  '(menu-item "Tool-bar" 
+  '(menu-item "Tool-bar"
 	      (lambda ()
 		(interactive)
 		(showhide-tool-bar)
@@ -778,7 +786,7 @@ Do the same for the keys of the same name."
 		(interactive)
 		(toggle-text-mode-auto-fill)
 		;; This is somewhat questionable, as `text-mode-hook'
-		;; might have changed outside customize.  
+		;; might have changed outside customize.
 		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
 		(customize-mark-as-set 'text-mode-hook))
 	      :help "Automatically fill text between left and right margins"
@@ -791,7 +799,7 @@ Do the same for the keys of the same name."
 		(interactive)
 		(setq truncate-lines (not truncate-lines))
 		(set-buffer-modified-p (buffer-modified-p))
-		(message "Truncate long lines %s" 
+		(message "Truncate long lines %s"
 			 (if truncate-lines "enabled" "disabled")))
 	      :help "Truncate long lines on the screen"
 	      :button (:toggle . truncate-lines)))
