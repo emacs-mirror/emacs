@@ -642,8 +642,9 @@ reverse-engineering of communication protocols.
 @chapter Programming Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
-Algol 60, Algol 68, PL/I, Cobol, Fortran 90, or whatever, to be
-used with the code generation phases of the GNU C compiler.
+Algol 60, Algol 68, PL/I, Cobol, Fortran 90, Delphi, Modula 2, Modula 3,
+and any other languages designed for compilation, to be used with the
+code generation phases of the GNU C compiler.
 
 @c Fortran status is here so gnu@gnu.org and the volunteer coordinators
 @c don't have to answer the question -len
