@@ -524,9 +524,11 @@ extern int iso_charset_table[2][2][128];
    advance.  Returns the length of the multi-byte form.  If C is an
    invalid character code, signal an error.  */
 
-#define CHAR_STRING(c, str)		\
-  (ASCII_BYTE_P (c)			\
-   ? (*(str) = (unsigned char)(c), 1)	\
+#define CHAR_STRING(c, str)						  \
+  (SINGLE_BYTE_CHAR_P (c)						  \
+   ? ((ASCII_BYTE_P (c) || c >= 0xA0)					  \
+      ? (*(str) = (unsigned char)(c), 1)				  \
+      : (*(str) = LEADING_CODE_8_BIT_CONTROL, *((str)+ 1) = c + 0x20, 2)) \
    : char_to_string (c, (unsigned char *) str))
 
 /* Return a character code of the character of which multi-byte form
