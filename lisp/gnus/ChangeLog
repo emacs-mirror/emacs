@@ -1,3 +1,12 @@
+2000-10-04  Dave Love  <fx@gnu.org>
+
+	* smiley-ems.el (smiley-regexp-alist, smiley-update-cache): Use
+	pbm images.
+
+	* frown.pbm, smile.pbm, wry.pbm: New files.
+
+	* frown.xbm, smile.xbm, wry.xbm: Deleted.
+
 2000-10-03  Dave Love  <fx@gnu.org>
 
 	* mail-source.el (mail-sources): Revert to nil.
