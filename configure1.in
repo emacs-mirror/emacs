@@ -1,49 +1,53 @@
 #!/bin/sh
-# Configuration script for GNU Emacs
-#   Copyright (C) 1992 Free Software Foundation, Inc.
+#### Configuration script for GNU Emacs
+#### Copyright (C) 1992 Free Software Foundation, Inc.
 
-#This file is part of GNU Emacs.
+### This file is part of GNU Emacs.
 
-#GNU Emacs is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 1, or (at your option)
-#any later version.
+### GNU Emacs is free software; you can redistribute it and/or modify
+### it under the terms of the GNU General Public License as published by
+### the Free Software Foundation; either version 1, or (at your option)
+### any later version.
 
-#GNU Emacs is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+### GNU Emacs is distributed in the hope that it will be useful,
+### but WITHOUT ANY WARRANTY; without even the implied warranty of
+### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+### GNU General Public License for more details.
 
-#You should have received a copy of the GNU General Public License
-#along with GNU Emacs; see the file COPYING.  If not, write to
-#the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+### You should have received a copy of the GNU General Public License
+### along with GNU Emacs; see the file COPYING.  If not, write to
+### the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-# Shell script to edit files and make symlinks in preparation for
-# compiling Emacs.
-#
-# Usage: configure config_name
-#
-# If configure succeeds, it leaves its status in config.status.
-# If configure fails after disturbing the status quo,
-# 	config.status is removed.
-#
+### Shell script to edit files and make symlinks in preparation for
+### compiling Emacs.
+###
+### Usage: configure config_name
+###
+### If configure succeeds, it leaves its status in config.status.
+### If configure fails after disturbing the status quo,
+### 	config.status is removed.
+###
 
-# Remove any leading "." elements from the path name.  If we don't
-# remove them, then another "./" will be prepended to the file name
-# each time we use config.status, and the program name will get larger
-# and larger.  This wouldn't be a problem, except that since progname
-# gets recorded in all the Makefiles this script produces,
-# move-if-changed thinks they're different when they're not.
-#
-# It would be nice if we could put the ./ in a \( \) group and then
-# apply the * operator to that, so we remove as many leading ./././'s
-# as are present, but some seds (like Ultrix's sed) don't allow you to
-# apply * to a \( \) group.  Bleah.
+
+### Remove any leading "." elements from the path name.  If we don't
+### remove them, then another "./" will be prepended to the file name
+### each time we use config.status, and the program name will get larger
+### and larger.  This wouldn't be a problem, except that since progname
+### gets recorded in all the Makefiles this script produces,
+### move-if-changed thinks they're different when they're not.
+###
+### It would be nice if we could put the ./ in a \( \) group and then
+### apply the * operator to that, so we remove as many leading ./././'s
+### as are present, but some seds (like Ultrix's sed) don't allow you to
+### apply * to a \( \) group.  Bleah.
 progname="`echo $0 | sed 's:^\./::'`"
 
-short_usage="Type \`${progname} -usage' for more information about options."
 
-usage_message="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
+#### Usage messages.
+
+short_usage="Type \`${progname} --usage' for more information about options."
+
+long_usage="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
 
 Set compilation and installation parameters for GNU Emacs, and report.
 CONFIGURATION specifies the machine and operating system to build for.
@@ -52,72 +56,41 @@ For example:
 configures Emacs to build on a Sun Sparc machine running SunOS 4.1, and 
         ${progname} decstation
 configures Emacs to run on a DECstation running Ultrix.  See \`etc/MACHINES'.
-Options are:
-  --with-x, --with-x11 or --with-x10 - what window system to use;
-         default is to use X11 if present.  If you don't want X, specify
-         \`--with-x=no'.
-  -g, -O - Passed to the compiler.  Default is -g, plus -O if using gcc.
-  --prefix=DIR - where to install Emacs's library files
-  --libdir=DIR - where to look for arch-dependent library files
-  --datadir=DIR - where to look for architecture-independent library files
-  --bindir=DIR - where to install the Emacs executable, and some friends
-  --lisppath=PATH - colon-separated list of Emacs Lisp directories
-  --lockdir=DIR - where Emacs should do its file-locking stuff
+
+The --with-x, --with-x11 and --with-x10 options specify what window
+	system to use; if all are omitted, use X11 if present.  If you
+	don't want X, specify \`--with-x=no'.
+
+The --srcdir=DIR option specifies that the configuration and build
+	processes should look for the Emacs source code in DIR, when
+	DIR is not the current directory.  To use this, you must build
+	Emacs using a \`make' program which supports the \`VPATH'
+	feature.
+
 If successful, ${progname} leaves its status in config.status.  If
-unsuccessful after disturbing the status quo, config.status is removed."
-# These are omitted since users should not mess with them.
-#  --gnu-malloc=[yes] or no - use the GNU memory allocator
-#  --rel-alloc=[yes] or no - use compacting allocator for buffers
-#  --lisp-float-type=[yes] or no - Support floating point in Emacs Lisp.
-# --window-system is omitted because --with... follow the conventions.
+unsuccessful after disturbing the status quo, it removes config.status."
 
-if [ ! -r ./src/lisp.h ]; then
-  echo "${progname}: Can't find Emacs sources in \`./src'.
-Run this config script in the top directory of the Emacs source tree." >&2
-  exit 1
-fi
 
-# The option names defined here are actually the shell variable names.
-# They should have `_' in place of `-'.
-options=":\
-usage:help:\
-with_x:with_x11:with_x10:\
-g:O:\
-prefix:bindir:emacsdir:datadir:lispdir:locallisppath:\
-lisppath:buildlisppath:statedir:lockdir:libdir:mandir:infodir:\
-"
+#### Option processing.
 
-boolean_opts=":\
-g:O:with_x:with_x10:\
-"
+### These are the names of CPP symbols we want to define or leave undefined
+### in src/config.h; their values are given by the shell variables of the same
+### names.
+config_h_opts=" \
+HAVE_X_WINDOWS HAVE_X11 HAVE_X_MENU \
+SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE "
 
-config_h_opts=":\
-have_x_windows:have_x11:have_x_menu:\
-c_switch_site:sigtype:gnu_malloc:rel_alloc:lisp_float_type:\
-"
-
-prefix=
-bindir=/usr/local/bin
-gnu_malloc=yes
-lisp_float_type=yes
-
-# The default values for the following options are guessed at after other
-# options have been checked and given values, so we set them to null here.
-lisppath=""
-datadir=""
-libdir=""
-lockdir=""
-window_system=""
-
-# Record all the arguments, so we can save them in config.status.
+### Record all the arguments, so we can save them in config.status.
 arguments="$@"
 
-echo "Examining options."
 while [ $# != 0 ]; do
   arg="$1"
   case "${arg}" in
-    -*)
-      # Separate the switch name from the value it's being given.
+
+    ## Anything starting with a hyphen we assume is an option.
+    -* )
+
+      ## Separate the switch name from the value it's being given.
       case "${arg}" in
         -*=*)
 	  opt=`echo ${arg} | sed 's:^-*\([^=]*\)=.*$:\1:'`
@@ -125,101 +98,130 @@ while [ $# != 0 ]; do
 	  valomitted=no
 	;;
         -*)
-          # If FOO is a boolean argument, -FOO is equivalent to
-          # -FOO=yes.  Otherwise, the value comes from the next
-          # argument - see below.
+          ## If FOO is a boolean argument, --FOO is equivalent to
+          ## --FOO=yes.  Otherwise, the value comes from the next
+          ## argument - see below.
 	  opt=`echo ${arg} | sed 's:^-*\(.*\)$:\1:'`
           val="yes"
           valomitted=yes
         ;;
       esac
 
-      # Also change `-' in the option name to `_'.
+      ## Change `-' in the option name to `_'.
       opt="`echo ${opt} | tr - _`"
 
-      # Make sure the argument is valid and unambiguous.
-      case ${options} in
-        *:${opt}:* )	# Exact match.
-          optvar=${opt}
-        ;;
-        *:${opt}*:${opt}*:* )	# Ambiguous prefix.
-	  echo "\`-${opt}' is an ambiguous switch; it could be any of the following:"
-	  # We can't just use tr to translate colons to newlines, since
-	  # BSD sed and SYSV sed use different syntaxes for that.
-	  spaced_options=`echo ${options} | tr ':' ' '`
-	  echo `(for option in ${spaced_options}; do echo $option; done) \
-	        | grep "^${opt}"`
-	  echo ${short_usage}
-	  exit 1
-	;;
-        *:${opt}*:* )		# Unambigous prefix.
-	  optvar=`echo ${options} | sed 's/^.*:\('${opt}'[^:]*\):.*$/\1/'`
-        ;;
-	* )
-	  (echo "\`-${opt}' is not a valid option."
-	   echo "${short_usage}") | more
-	  exit 1
-	;;
-      esac
+      ## Process the option.
+      case "${opt}" in
 
-      case "${optvar}" in
-        usage | help)
-          echo "${usage_message}" | more
-          exit 1
-        ;;
-      esac
-
-      # If the variable is supposed to be boolean, make sure the value
-      # given is either "yes" or "no".  If not, make sure some value
-      # was given.
-      case "${boolean_opts}" in
-        *:${optvar}:* )
+        ## Has the user specified which window systems they want to support?
+        "with_x" | "with_x11" | "with_x10" )
+	  ## Make sure the value given was either "yes" or "no".
 	  case "${val}" in
 	    y | ye | yes )	val=yes ;;
 	    n | no )		val=no  ;;
 	    * )
-	      echo "The \`-${optvar}' option (\`-${opt}') is supposed to have a boolean
-  value - set it to either \`yes' or \`no'." >&2
+	      (echo "${progname}: the \`--${opt}' option is supposed to have a boolean value.
+Set it to either \`yes' or \`no'."
+	       echo "${short_usage}") >&2
 	      exit 1
 	    ;;
 	  esac
+          eval "${opt}=\"${val}\""
         ;;
-        *)
+
+        ## Has the user specified a source directory?
+	"srcdir" )
+	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
+	    ## Get the next argument from the argument list, if there is one.
             if [ $# = 1 ]; then
-	      (echo "${progname}: You must give a value for the \`-${opt}' option, as in
-    \`-${opt}=FOO'."
-	       echo "${short_usage}") | more
+	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
+    \`--${opt}=FOO'."
+	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
 	    shift; val="$1"
 	  fi
-        ;;
-      esac
+          srcdir="${val}"
+	;;
 
-      eval "${optvar}=\"${val}\""
+	## Has the user asked for some help?
+	"usage" | "help" )
+	  echo "${long_usage}" | more
+	  exit
+	;;
+
+        ## We ignore all other options silently.
+      esac
     ;;
+
+    ## Anything not starting with a hyphen we assume is a
+    ## configuration name.
     *)
       configuration=${arg}
     ;;
+
   esac
   shift
 done
 
 if [ "${configuration}" = "" ]; then
-  (echo "You must specify a configuration name as an argument to ${progname}."
-   echo "${short_usage}") | more
+  (echo "${progname}: You must specify a configuration name as an argument."
+   echo "${short_usage}") >&2
   exit 1
 fi
 
-# Canonicalize the configuration name.
+
+#### Decide where the source is.
+case "${srcdir}" in
+
+  ## By default, it's in the current directory.
+  "" )
+    srcdir=`pwd`
+  ;;
+
+  ## Otherwise, make sure it's a directory at all.
+  * )
+    if [ ! -d "${srcdir}" ]; then
+      (echo "${progname}: The path specified with the `--srcdir' option"
+       echo "isn't a valid directory."
+       echo "${short_usage}") >&2
+      exit 1
+    fi
+  ;;
+
+esac
+
+### Check that the source directory actually contains the source.
+if [ ! -f "${srcdir}/src/lisp.h" -o ! -f "${srcdir}/lisp/version.el" ]; then
+  (echo "The directory \`${srcdir}' doesn't contain the Emacs sources."
+   echo "You should either run the \`${progname}' script at the top of"
+   echo "the Emacs source tree, or use the \`--srcdir' option to specify"
+   echo "where the Emacs sources are."
+   echo "${short_usage}") >&2
+  exit 1
+fi
+
+### Make the necessary directories, if they don't exist.
+if [ ! -d ./src ]; then
+  mkdir ./src
+fi
+if [ ! -d ./lib-src ]; then
+  mkdir ./lib-src
+fi
+if [ ! -d ./cpp ]; then
+  mkdir ./cpp
+fi
+
+
+#### Given the configuration name, set machfile and opsysfile to the
+#### names of the m/*.h and s/*.h files we should use.
+
+### Canonicalize the configuration name.
 echo "Checking the configuration name."
 if configuration=`./config.sub "${configuration}"` ; then : ; else
   exit $?
 fi
-
-# Given the canonicalized configuration name, set machfile and opsysfile to
-# the names of the m/*.h and s/*.h files we should use.
 
 ### You would hope that you could choose an m/*.h file pretty much
 ### based on the machine portion of the configuration name, and an s-
@@ -667,54 +669,8 @@ fi
 machfile="m/${machine}.h"
 opsysfile="s/${opsys}.h"
 
-if [ ! "${prefix}" ]; then
-  prefix="/usr/local"
-fi
 
-if [ ! "${emacsdir}" ]; then
-  emacsdir="${prefix}/emacs-19.0"
-fi
-
-if [ ! "${datadir}" ]; then
-  datadir="${emacsdir}/etc"
-fi
-
-if [ ! "${lispdir}" ]; then
-  lispdir="${emacsdir}/lisp"
-fi
-
-if [ ! "${locallisppath}" ]; then
-  locallisppath="${emacsdir}/local-lisp"
-fi
-
-if [ ! "${lisppath}" ]; then
-  lisppath="${locallisppath}:${lispdir}"
-fi
-
-if [ ! "${buildlisppath}" ]; then
-  buildlisppath=../lisp
-fi
-
-if [ ! "${statedir}" ]; then
-  statedir="${emacsdir}"
-fi
-
-if [ ! "${lockdir}" ]; then
-  lockdir="${statedir}/lock"
-fi
-
-if [ "${libdir}" = "" ]; then
-  libdir="${emacsdir}/arch-lib"
-fi
-
-if [ ! "${mandir}" ]; then
-  mandir="/usr/man/man1"
-fi
-
-if [ ! "${infodir}" ]; then
-  infodir="${prefix}/info"
-fi
-
+#### Choose a window system.
 echo "Checking window system."
 window_system=''
 case "${with_x}" in
@@ -752,70 +708,60 @@ esac
 
 case "${window_system}" in
   x11 )
-    have_x_windows=yes
-    have_x11=yes
+    HAVE_X_WINDOWS=yes
+    HAVE_X11=yes
     echo "  Using X11."
   ;;
   x10 )
-    have_x_windows=yes
-    have_x11=no
+    HAVE_X_WINDOWS=yes
+    HAVE_X11=no
     echo "  Using X10."
   ;;
   none )
-    have_x_windows=no
-    have_x11=no
+    HAVE_X_WINDOWS=no
+    HAVE_X11=no
     echo "  Using no window system."
   ;;
 esac
 
-# If we're using X11, we should use the X menu package.
-have_x_menu=no
-case ${have_x11} in
+### If we're using X11, we should use the X menu package.
+HAVE_X_MENU=no
+case ${HAVE_X11} in
   yes )
-    have_x_menu=yes
+    HAVE_X_MENU=yes
   ;;
 esac
 
+
+#### Choose a compiler.
 echo "Checking for GCC."
 temppath=`echo $PATH | sed 's/^:/.:/
 			    s/::/:.:/g
 			    s/:$/:./
 			    s/:/ /g'`
-cc=`(
+default_cc=`(
   for dir in ${temppath}; do
     if [ -f ${dir}/gcc ]; then echo gcc; exit 0; fi
   done
   echo cc
 )`
 
-case "${cc}" in
+case "${default_cc}" in
   "gcc" )
     echo "  Using GCC."
-    # With GCC, both O and g should default to yes, no matter what
-    # the other is.
-    case "${O},${g}" in
-      ,  ) O=yes; g=yes ;;
-      ,* ) O=yes;	;;
-      *, )        g=yes ;;
-    esac
+    default_cflags='-g -O'
   ;;
   "*" )
     echo "  Using the system's CC."
-    # With other compilers, treat them as mutually exclusive,
-    # defaulting to debug.
-    case "${O},${g}" in
-      ,    ) O=no ; g=yes ;;
-      ,no  ) O=yes;       ;;
-      ,yes ) O=no ;       ;;
-      no,  )        g=yes ;;
-      yes, )        g=no  ;;
-    esac
+    default_cflags='-g'
   ;;
 esac
 
-# What is the return type of a signal handler?  We run
-# /usr/include/signal.h through cpp and grep for the declaration of
-# the signal function.  Yuck.
+
+#### What is the return type of a signal handler?
+
+### We run /usr/include/signal.h through cpp and grep for the
+### declaration of the signal function.  Yuck.
 echo "Looking for return type of signal handler functions."
 signal_h_file=''
 if [ -r /usr/include/signal.h ]; then
@@ -823,20 +769,23 @@ if [ -r /usr/include/signal.h ]; then
 elif [ -r /usr/include/sys/signal.h ]; then
   signal_h_file=/usr/include/sys/signal.h
 fi
-sigtype=void
+SIGTYPE=void
 if [ "${signal_h_file}" ]; then
   sigpattern='[ 	]*([ 	]*\*[ 	]*signal[ 	]*('
 
-  # We make a copy whose name ends in .c, so the compiler
-  # won't complain about having only been given a .h file.
+  ## We make a copy whose name ends in .c, so the compiler
+  ## won't complain about having only been given a .h file.
   tempcname="configure.tmp.$$.c"
   cp ${signal_h_file}  ${tempcname}
-  if ${cc} -E ${tempcname} | grep "int${sigpattern}" > /dev/null; then
-    sigtype=int
+  if ${default_cc} -E ${tempcname} | grep "int${sigpattern}" > /dev/null; then
+    SIGTYPE=int
   fi
   rm -f ${tempcname}
 fi
-echo "  Guessing that signals return \`${sigtype}'."
+echo "  Guessing that signals return \`${SIGTYPE}'."
+
+
+#### Extract some information from the operating system and machine files.
 
 echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
@@ -857,114 +806,107 @@ echo '#include "src/'${opsysfile}'"
 @configure@ system_malloc=no
 #endif
 ' > ${tempcname}
-eval `${cc} -E ${tempcname} \
+eval `${default_cc} -E ${tempcname} \
       | grep '@configure@' \
       | sed -e 's/^@configure@//'`
 rm ${tempcname}
 
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
 if [ "${system_malloc}" = "yes" ]; then
-  gnu_malloc=no
-  gnu_malloc_reason="
+  GNU_MALLOC=no
+  GNU_MALLOC_reason="
   (The GNU allocators don't work with this system configuration.)"
 fi
 
-if [ ! "${rel_alloc}" ]; then
-  rel_alloc=${gnu_malloc}
+if [ ! "${REL_ALLOC}" ]; then
+  REL_ALLOC=${GNU_MALLOC}
 fi
 
+LISP_FLOAT_TYPE=yes
+
+#### Make the proper settings in `src/config.h'.
 rm -f config.status
 set -e
 
-# Make the proper settings in the config file.
-echo "Making src/config.h from src/config.h.in"
-case "${g}" in
-  "yes" ) c_switch_site="${c_switch_site} -g" ;;
-esac
-case "${O}" in
-  "yes" ) c_switch_site="${c_switch_site} -O" ;;
-esac
-sed_flags="-e 's:@machine@:${machfile}:'"
-sed_flags="${sed_flags} -e 's:@opsystem@:${opsysfile}:'"
+echo "Making \`./src/config.h' from \`${srcdir}/src/config.h.in'."
+sed_flags="-e 's:@machine@:${machfile}:' -e 's:@opsystem@:${opsysfile}:'"
 
-for flag in `echo ${config_h_opts} | tr ':' ' '`; do
-  # Note that SYSV `tr' doesn't handle character ranges.
-  cflagname=`echo ${flag} \
-	     | tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ`
+for flag in ${config_h_opts}; do
   val=`eval echo '$'${flag}`
   case ${val} in
     no | "")
-      f="-e 's:.*#define ${cflagname}.*:/\\* #define ${cflagname} \\*/:'"
+      f="-e 's:.*#define ${flag}.*:/\\* #define ${flag} \\*/:'"
     ;;
     yes)
-      f="-e 's:.*#define ${cflagname}.*:#define ${cflagname}:'"
+      f="-e 's:.*#define ${flag}.*:#define ${flag}:'"
     ;;
     *)
-      f="-e 's:.*#define ${cflagname}.*:#define ${cflagname} ${val}:'"
+      f="-e 's:.*#define ${flag}.*:#define ${flag} ${val}:'"
     ;;
   esac
   sed_flags="${sed_flags} ${f}"
 done
 
-rm -f src/config.h.tmp
-eval '/bin/sed '${sed_flags}' < src/config.h.in > src/config.h.tmp'
+rm -f ./src/config.h.tmp
+(echo "/* This file is generated by \`${progname}' from"
+ echo "   \`${srcdir}/src/config.h.in'."
+ echo "   If you are thinking about editing it, you should seriously consider"
+ echo "   running \`${progname} instead, or editing"
+ echo "   \`${srcdir}/src/config.h.in' itself." 
+ eval '/bin/sed '${sed_flags}' < "${srcdir}/src/config.h.in"'
+) > src/config.h.tmp
 ./move-if-change src/config.h.tmp src/config.h
-# Remind people not to edit this.
+### Remind people not to edit this.
 chmod -w src/config.h
 
-# Modify the parameters in the top makefile.
-echo "Producing ./Makefile from ./Makefile.in."
+
+### Modify the parameters in the top makefile.
+echo "Producing \`./Makefile' from \`${srcdir}/Makefile.in'."
 rm -f Makefile.tmp
-(echo "# This file is generated by \`${progname}' from \`./Makefile.in'.
+(echo "\
+# This file is generated by \`${progname}' from \`${srcdir}/Makefile.in'.
 # If you are thinking about editing it, you should seriously consider
 # editing \`./Makefile.in' itself, or running \`${progname}' instead."
- /bin/sed < Makefile.in					\
- -e '/^# DIST: /d'					\
- -e 's;^\(prefix=\).*$;\1'"${prefix};"			\
- -e 's;^\(bindir=\).*$;\1'"${bindir};"			\
- -e 's;^\(emacsdir=\).*$;\1'"${emacsdir};"		\
- -e 's;^\(datadir=\).*$;\1'"${datadir};"		\
- -e 's;^\(lispdir=\).*$;\1'"${lispdir};"		\
- -e 's;^\(locallisppath=\).*$;\1'"${locallisppath};"	\
- -e 's;^\(lisppath=\).*$;\1'"${lisppath};"		\
- -e 's;^\(buildlisppath=\).*$;\1'"${buildlisppath};"	\
- -e 's;^\(statedir=\).*$;\1'"${statedir};"		\
- -e 's;^\(lockdir=\).*$;\1'"${lockdir};"		\
- -e 's;^\(libdir=\).*$;\1'"${libdir};"			\
- -e 's;^\(mandir=\).*$;\1'"${mandir};"			\
- -e 's;^\(infodir=\).*$;\1'"${infodir};"		\
-) > ./Makefile.tmp
-./move-if-change Makefile.tmp Makefile
+ /bin/sed < ${srcdir}/Makefile.in			\
+ -e 's/^CC=.*$/CC='"${default_cc}"'/'			\
+ -e 's/^CFLAGS=.*$/CFLAGS='"${default_cflags}"'/'	\
+ -e '/^# DIST: /d') > ./Makefile.tmp
+./move-if-change ./Makefile.tmp ./Makefile
 # Remind people not to edit this.
 chmod -w ./Makefile
 
-# Modify the parameters in the `build-install' script.
-echo "Producing ./build-install from ./build-install.in."
-rm -f ./build-install.tmp
-(echo "# This file is generated by \`${progname}' from \`./build-install.in'.
-# If you are thinking about editing it, you should seriously consider
-# editing \`./build-install.in' itself, or running \`${progname}' instead."
- /bin/sed < build-install.in				\
- -e 's;^\(prefix=\).*$;\1'"${prefix};"			\
- -e 's;^\(bindir=\).*$;\1'"${bindir};"			\
- -e 's;^\(lisppath=\).*$;\1'"${lisppath};"		\
- -e 's;^\(datadir=\).*$;\1'"${datadir};"		\
- -e 's;^\(lockdir=\).*$;\1'"${lockdir};"		\
- -e 's;^\(libdir=\).*$;\1'"${libdir};") > ./build-install.tmp
-./move-if-change build-install.tmp build-install
-# Remind people not to edit this.
-chmod -w build-install
-chmod +x build-install
+### I'm commenting out this section until I bring the `build-install' script
+### into line with the rest of the configuration stuff.
+
+### # Modify the parameters in the `build-install' script.
+### echo "Producing \`./build-install' from \`${srcdir}/build-install.in'."
+### rm -f ./build-install.tmp
+### (echo "\
+### # This file is generated by \`${progname}' from \`${srcdir}/build-install.in'.
+### # If you are thinking about editing it, you should seriously consider
+### # editing \`./build-install.in' itself, or running \`${progname}' instead."
+###  /bin/sed < ${srcdir}/build-install.in			\
+###  -e 's;^\(prefix=\).*$;\1'"${prefix};"			\
+###  -e 's;^\(bindir=\).*$;\1'"${bindir};"			\
+###  -e 's;^\(lisppath=\).*$;\1'"${lisppath};"		\
+###  -e 's;^\(datadir=\).*$;\1'"${datadir};"		\
+###  -e 's;^\(lockdir=\).*$;\1'"${lockdir};"		\
+###  -e 's;^\(libdir=\).*$;\1'"${libdir};") > ./build-install.tmp
+### ./move-if-change build-install.tmp build-install
+### # Remind people not to edit this.
+### chmod -w build-install
+### chmod +x build-install
 
 # Modify the parameters in the src makefile.
-echo "Producing src/Makefile from src/Makefile.in."
+echo "Producing \`./src/Makefile' from \`${srcdir}/src/Makefile.in'."
 rm -f src/Makefile.tmp
 (echo "# This file is generated by \`${progname}' from \`Makefile.in'.
 # If you are thinking about editing it, you should seriously consider
 # editing \`Makefile.in' itself, or running \`${progname}' instead."
  /bin/sed < src/Makefile.in				\
- -e '/^# DIST: /d'					\
- -e 's;^\(CC[ ]*=\).*$;\1'"${cc};") > src/Makefile.tmp
+ -e 's;^\(CC *=\).*$;\1'"${default_cc};"		\
+ -e 's;^\(CFLAGS *=\).*$;\1'"${default_cflags};"	\
+ -e '/^# DIST: /d') > src/Makefile.tmp
 ./move-if-change src/Makefile.tmp src/Makefile
 # Remind people not to edit this.
 chmod -w src/Makefile
@@ -1004,8 +946,8 @@ The following values have been set in ./Makefile and ./build-install:
 The following values have been set in src/config.h:
   What operating system and machine description files should Emacs use?
         \`${opsysfile}' and \`${machfile}'
-  Should Emacs use the GNU version of malloc?             ${gnu_malloc}${gnu_malloc_reason}
-  Should Emacs use the relocating allocator for buffers?  ${rel_alloc}
+  Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
+  Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
   Should Emacs support a floating point data type?        ${lisp_float_type}
   What window system should Emacs use?                    ${window_system}
   What compiler should emacs be built with?               ${cc}

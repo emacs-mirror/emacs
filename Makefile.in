@@ -23,6 +23,9 @@ SHELL = /bin/sh
 
 # ==================== Where To Install Things ====================
 
+version=version-not-set
+configname=configuration-name-not-set
+
 # The default location for installation.  Everything is placed in
 # subdirectories of this directory.  This directory must exist when
 # you start installation.  The default values for many of the
@@ -34,25 +37,46 @@ prefix=/usr/local
 # run directly (like etags).
 bindir=${prefix}/bin
 
-# A directory under which we will install many of Emacs's files.  The
-# default values for many of the variables below are expressed in
-# terms of this one, so you may not need to change them.
-emacsdir=${prefix}/emacs-19.0
+# Where to install architecture-independent data files.  ${lispdir}
+# and ${etcdir} are below this.
+datadir=${prefix}/lib/emacs/${version}
 
-# Where to install and expect the architecture-independent data files
-# (like the tutorial and the Zippy database).
-datadir=${emacsdir}/etc
+# Where to install and expect the files that Emacs modifies as it
+# runs.	 These files are all architecture-independent.	Right now,
+# the only such data is the locking directory.
+statedir=${prefix}/lib/emacs
 
-# Where to install the elisp files distributed with Emacs.  Strictly
-# speaking, all the elisp files should go under datadir (above), since
-# both elisp source and compiled elisp are completely portable, but
-# it's traditional to give the lisp files their own subdirectory.
-lispdir=${emacsdir}/lisp
+# Where to install and expect executable files to be run by Emacs
+# rather than directly by users, and other architecture-dependent
+# data.
+libdir=${prefix}/${version}/${configname}
+
+# Where to install Emacs's man pages, and what extension they should have.
+mandir=/usr/man/man1
+manext=.1
+
+# Where to install and expect the info files describing Emacs.	In the
+# past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
+# since there are now many packages documented with the texinfo
+# system, it is inappropriate to imply that it is part of Emacs.
+infodir=${prefix}/info
+
+# Where to find the source code.  The source code for Emacs's C kernel
+# is expected to be in ${srcdir}/src, and the source code for Emacs's
+# utility programs is expected to be in ${srcdir}/lib-src.
+# This is set by the configure script's `--srcdir' option.
+srcdir=.
+
+
+# ==================== Emacs-specific directories ====================
+
+# Where to install the elisp files distributed with Emacs.
+lispdir=${datadir}/lisp
 
 # Directories Emacs should search for elisp files specific to this
 # site (i.e. customizations), before consulting ${lispdir}.  This
 # should be a colon-separated list of directories.
-locallisppath=${emacsdir}/local-lisp
+locallisppath=${prefix}/lib/emacs/local-lisp
 
 # Where Emacs will search to find its elisp files.  Before changing
 # this, check to see if your purpose wouldn't better be served by
@@ -69,29 +93,22 @@ lisppath=${locallisppath}:${lispdir}
 # directories.
 buildlisppath=../lisp
 
-# Where to install and expect the files that Emacs modifies as it
-# runs.	 These files are all architecture-independent.	Right now,
-# the only such data is the locking directory.
-statedir=${emacsdir}
+# Where to install the other architecture-independent data files
+# distributed with Emacs (like the tutorial, the cookie recipes and
+# the Zippy database).
+etcdir=${datadir}/etc
 
 # Where to create and expect the locking directory, where the Emacs
 # locking code keeps track of which files are currently being edited.
 lockdir=${statedir}/lock
 
-# Where to install and expect executable files to be run by Emacs
-# rather than directly by users, and other architecture-dependent
-# data.
-libdir=${emacsdir}/arch-lib
+# Where to put executables to be run by Emacs rather than the user.
+archlibdir=${libdir}
 
-# Where to install Emacs's man pages.
-mandir=/usr/man/man1
+# ==================== Things `configure' might edit ====================
 
-# Where to install and expect the info files describing Emacs.	In the
-# past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
-# since there are now many packages documented with the texinfo
-# system, it is inappropriate to imply that it is part of Emacs.
-infodir=${prefix}/info
-
+CC=cc
+CFLAGS=-g
 
 # ==================== Utility Programs for the Build ====================
 
@@ -101,11 +118,10 @@ INSTALLFLAGS = -c
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DATA = ${INSTALL}
 
-
 # ============================= Targets ==============================
 
 # Flags passed down to subdirectory makefiles.
-MFLAGS =
+MFLAGS = CC='${CC}' CFLAGS='${CFLAGS}'
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution

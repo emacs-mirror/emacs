@@ -5,7 +5,10 @@
 MAKE = make
 # BSD doesn't have it as a default.
 
-CC =gcc
+# These values are edited by configure.
+CC=cc
+CFLAGS=-g
+
 CPP = $(CC) -E -Is -Im
 #Note: an alternative is  CPP = /lib/cpp
 
@@ -40,7 +43,13 @@ dotemacs: xmakefile
 xmakefile: ymakefile config.h
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ymakefile junk.c
-	$(CPP) junk.c > junk.cpp
+	## The flags for optimization and debugging depend on the
+	## system, so take an ordinary CFLAGS value and choose the
+	## appropriate CPP symbols to use in ymakefile.
+	$(CPP) junk.c > junk.cpp \
+	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
+			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
+				-e 's/-O /C_OPTIMIZE_SWITCH /`"
 	< junk.cpp					\
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
@@ -48,7 +57,7 @@ xmakefile: ymakefile config.h
 	| sed -n -e '/^..*$$/p' 			\
 	> xmakefile.new
 	mv -f xmakefile.new xmakefile
-	rm -f junk.c
+	rm -f junk.c junk.cpp
 
 tags TAGS:
 	etags [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el \
