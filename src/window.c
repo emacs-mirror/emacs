@@ -4404,7 +4404,13 @@ showing that buffer, popping the buffer up if necessary.  */)
 
 DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 1, "P",
        doc: /* Scroll selected window display ARG columns left.
-Default for ARG is window width minus 2.  */)
+Default for ARG is window width minus 2.
+Value is the total amount of leftward horizontal scrolling in
+effect after the change.
+If `automatic-hscrolling' is non-nil, the argument ARG modifies
+a lower bound for automatic scrolling, i.e. automatic scrolling
+will not scroll a window to a column less than the value returned
+by this function.  */)
      (arg)
      register Lisp_Object arg;
 {
@@ -4428,7 +4434,13 @@ Default for ARG is window width minus 2.  */)
 
 DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 1, "P",
        doc: /* Scroll selected window display ARG columns right.
-Default for ARG is window width minus 2.  */)
+Default for ARG is window width minus 2.
+Value is the total amount of leftward horizontal scrolling in
+effect after the change.
+If `automatic-hscrolling' is non-nil, the argument ARG modifies
+a lower bound for automatic scrolling, i.e. automatic scrolling
+will not scroll a window to a column less than the value returned
+by this function.  */)
      (arg)
      register Lisp_Object arg;
 {
