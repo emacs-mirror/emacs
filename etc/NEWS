@@ -860,6 +860,12 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** If an abbrevs has only a hook, and that hooks has a non-nil
+`no-self-insert' property, the return value of the hook specifies
+whether an expansion has been done or not.  If it returns nil, no
+expansion has been performed.  The character leading to the call of
+the hook will then be self-inserted.
+
 ** The function `intern-soft' now accepts a symbol as first argument.
 In this case, that exact symbol is looked up in the specified obarray,
 and the function's value is nil if it is not found.
