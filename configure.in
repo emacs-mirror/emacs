@@ -255,7 +255,7 @@ case "${canonical}" in
     case "${canonical}" in
     # This is necessary on 5.0 to avoid mangling src/Makefile.
     # Separated out in case it causes problems on earlier versions.
-    alpha*-dec-osf[5-9])
+    alpha*-dec-osf[5-9]*)
       NON_GNU_CPP='cc -E -std0' ;;
     esac
   ;;
