@@ -1,4 +1,4 @@
-;;; devan-util.el --- Support for composing Devanagari characters
+;;; devan-util.el --- Support for composing Devanagari characters -*-coding: iso2022-7bit;-*-
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -110,7 +110,7 @@ PATTERN regexp."
 ;; Register a function to compose Devanagari characters.
 (mapc
  (function (lambda (ucs)
-   (aset composition-function-table (decode-char 'ucs ucs)
+   (aset composition-function-table ucs
 	 (list (cons devanagari-composable-pattern 
                      'devanagari-composition-function)))))
  (nconc '(#x0903) (devanagari-range #x0905 #x0939) (devanagari-range #x0958 #x0961)))
