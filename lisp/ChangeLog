@@ -1,5 +1,8 @@
 2001-01-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* isearch.el (isearch, isearch-lazy-highlight-face): New
+	definitions for face colors and attributes.
+
 	* wid-edit.el (widget-choose): Call display-popup-menus-p instead
 	of display-mouse-p.
 
