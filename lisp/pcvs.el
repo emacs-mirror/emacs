@@ -8,13 +8,13 @@
 ;;	(Jim Blandy) jimb@cyclic.com
 ;;	(Karl Fogel) kfogel@floss.red-bean.com
 ;;	(Jim Kingdon) kingdon@cyclic.com
-;;      (Stefan Monnier) monnier@cs.yale.edu
-;;      (Greg Klanderman) greg@alphatech.com
-;;      (Jari Aalto+mail.emacs) jari.aalto@poboxes.com
+;;	(Stefan Monnier) monnier@cs.yale.edu
+;;	(Greg Klanderman) greg@alphatech.com
+;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.8 2000/08/09 15:27:48 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.9 2000/08/16 20:27:37 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1444,8 +1444,8 @@ Signal an error if there is no backup file."
   (dolist (tb tmp-bufs)
     (when (and tb (buffer-live-p tb) (not (buffer-modified-p tb)))
       (let ((win (get-buffer-window tb t)))
-	(when win (delete-window win))
-	(kill-buffer tb))))
+	(kill-buffer tb)
+	(when (window-live-p win) (delete-window win)))))
   ;; switch back to the *cvs* buffer
   (when (and cvs-buf (buffer-live-p cvs-buf)
 	     (not (get-buffer-window cvs-buf t)))
@@ -1454,7 +1454,7 @@ Signal an error if there is no backup file."
 (defun cvs-ediff-diff (b1 b2)
   (let ((ediff-after-quit-destination-buffer (current-buffer))
 	(startup-hook '(cvs-ediff-startup-hook)))
-    (ediff-buffers b1 b2 startup-hook 'ediff-revisions)))
+    (ediff-buffers b1 b2 startup-hook 'ediff-revision)))
 
 (defun cvs-ediff-merge (b1 b2 base out)
   (let ((ediff-after-quit-destination-buffer (current-buffer))
@@ -1984,15 +1984,13 @@ this file, or a list of arguments to send to the program."
 		  ;; read-write changes) which is not changed by `commit'.
 		  (buffer-modified-p buffer))
 	(with-current-buffer buffer
-	  (let ((cvs-buf-was-ro buffer-read-only))
-	    (ignore-errors
-	      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
-	      ;; `preserve-modes' avoids changing the (minor) modes.  But we
-	      ;; do want to reset the mode for VC, so we do it explicitly.
-	      (vc-find-file-hook))
-	    ;; protect the buffer-read-only setting
-	    (if cvs-buf-was-ro (toggle-read-only 1))))))))
-
+	  (ignore-errors
+	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	    ;; `preserve-modes' avoids changing the (minor) modes.  But we
+	    ;; do want to reset the mode for VC, so we do it explicitly.
+	    (vc-find-file-hook)
+	    (when (eq (cvs-fileinfo->type fileinfo) 'CONFLICT)
+	      (smerge-mode 1))))))))
 
 
 (defun cvs-change-cvsroot (newroot)
