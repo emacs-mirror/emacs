@@ -598,7 +598,7 @@ With prefix arg 1, restrict index to the section at point."
    ["External Document TOC  " reftex-toc-external t]
    "--"
    ("Update"
-    ["Rebuilt *toc* Buffer" revert-buffer t]
+    ["Rebuild *toc* Buffer" revert-buffer t]
     ["Rescan One File" reftex-toc-rescan reftex-enable-partial-scans]
     ["Rescan Entire Document" reftex-toc-Rescan t])
    ("Options"
