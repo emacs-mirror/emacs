@@ -94,6 +94,7 @@ extern void _XEditResCheckMessages ();
 #endif
 
 #ifdef USE_X_TOOLKIT
+#include "widget.h"
 #ifndef XtNinitialState
 #define XtNinitialState "initialState"
 #endif
@@ -5411,7 +5412,7 @@ x_wm_set_size_hint (f, flags, user_position)
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
   XtSetArg (al[ac], XtNheight, &widget_height); ac++;
-  XtGetValues (f->display.x->column_widget, al, ac);
+  XtGetValues (f->display.x->widget, al, ac);
   size_hints.height = widget_height;
   size_hints.width = widget_width;
 #else /* not USE_X_TOOLKIT */
@@ -5426,6 +5427,11 @@ x_wm_set_size_hint (f, flags, user_position)
   size_hints.max_height
     = FRAME_X_DISPLAY_INFO (f)->height - CHAR_TO_PIXEL_HEIGHT (f, 0);
 
+  /* Calculate the base and minimum sizes.
+
+     (When we use the X toolkit, we don't do it here.
+     Instead we copy the values that the widgets are using, below.)  */
+#ifndef USE_X_TOOLKIT
   {
     int base_width, base_height;
     int min_rows = 0, min_cols = 0;
@@ -5457,32 +5463,51 @@ x_wm_set_size_hint (f, flags, user_position)
 #endif
   }
 
+  /* If we don't need the old flags, we don't need the old hint at all.  */
   if (flags)
-    size_hints.flags |= flags;
-  else
     {
-      XSizeHints hints;		/* Sometimes I hate X Windows... */
-      long supplied_return;
-      int value;
+      size_hints.flags |= flags;
+      goto no_read;
+    }
+#endif /* not USE_X_TOOLKIT */
+
+  {
+    XSizeHints hints;		/* Sometimes I hate X Windows... */
+    long supplied_return;
+    int value;
 
 #ifdef HAVE_X11R4
-      value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
-				 &supplied_return);
+    value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
+			       &supplied_return);
 #else
-      value = XGetNormalHints (FRAME_X_DISPLAY (f), window, &hints);
+    value = XGetNormalHints (FRAME_X_DISPLAY (f), window, &hints);
 #endif
 
-      if (value == 0)
-	hints.flags = 0;
-      if (hints.flags & PSize)
-	size_hints.flags |= PSize;
-      if (hints.flags & PPosition)
-	size_hints.flags |= PPosition;
-      if (hints.flags & USPosition)
-	size_hints.flags |= USPosition;
-      if (hints.flags & USSize)
-	size_hints.flags |= USSize;
-    }
+#ifdef USE_X_TOOLKIT
+    size_hints.base_height = hints.base_height;
+    size_hints.base_width = hints.base_width;
+    size_hints.min_height = hints.min_height;
+    size_hints.min_width = hints.min_width;
+#endif
+
+    if (flags)
+      size_hints.flags |= flags;
+    else
+      {
+	if (value == 0)
+	  hints.flags = 0;
+	if (hints.flags & PSize)
+	  size_hints.flags |= PSize;
+	if (hints.flags & PPosition)
+	  size_hints.flags |= PPosition;
+	if (hints.flags & USPosition)
+	  size_hints.flags |= USPosition;
+	if (hints.flags & USSize)
+	  size_hints.flags |= USSize;
+      }
+  }
+
+ no_read:
 
 #ifdef PWinGravity
   size_hints.win_gravity = f->display.x->win_gravity;
