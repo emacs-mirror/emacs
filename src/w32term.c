@@ -5479,7 +5479,8 @@ x_scroll_run (w, run)
 {
   struct frame *f = XFRAME (w->frame);
   int x, y, width, height, from_y, to_y, bottom_y;
-  HDC hdc = get_frame_dc (f);
+  HWND hwnd = FRAME_W32_WINDOW (f);
+  HRGN expect_dirty;
 
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the flags areas to the
@@ -5500,6 +5501,7 @@ x_scroll_run (w, run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+      expect_dirty = CreateRectRgn (x, y + height, x + width, bottom_y);
     }
   else
     {
@@ -5509,6 +5511,7 @@ x_scroll_run (w, run)
 	height = bottom_y - to_y;
       else
 	height = run->height;
+      expect_dirty = CreateRectRgn (x, y, x + width, to_y);
     }
 
   BLOCK_INPUT;
@@ -5517,10 +5520,32 @@ x_scroll_run (w, run)
   updated_window = w;
   x_clear_cursor (w);
 
-  BitBlt (hdc, x, to_y, width, height, hdc, x, from_y, SRCCOPY);
-  
+  {
+    RECT from;
+    RECT to;
+    HRGN dirty = CreateRectRgn (0, 0, 0, 0);
+    HRGN combined = CreateRectRgn (0, 0, 0, 0);
+
+    from.left = to.left = x;
+    from.right = to.right = x + width;
+    from.top = from_y;
+    from.bottom = from_y + height;
+    to.top = y;
+    to.bottom = bottom_y;
+
+    ScrollWindowEx (hwnd, 0, to_y - from_y, &from, &to, dirty,
+		    NULL, SW_INVALIDATE);
+
+    /* Combine this with what we expect to be dirty. This covers the
+       case where not all of the region we expect is actually dirty.  */
+    CombineRgn (combined, dirty, expect_dirty, RGN_OR);
+
+    /* If the dirty region is not what we expected, redraw the entire frame.  */
+    if (!EqualRgn (combined, expect_dirty))
+      SET_FRAME_GARBAGED (f);
+  }
+
   UNBLOCK_INPUT;
-  release_frame_dc (f, hdc);
 }
 
 

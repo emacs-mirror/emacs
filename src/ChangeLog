@@ -1,3 +1,12 @@
+2002-01-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_scroll_run): Use ScrollWindowEx in place of BitBlt.
+	If region left to draw is not what was expected, mark the frame as
+	garbaged.
+
+	* w32fns.c (w32_wnd_proc) <WM_PAINT>: Initialize update_rect.
+	Combine the regions returned by BeginPaint and GetUpdateRect.
+
 2002-01-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* unexelf.c (unexec) [__sgi]: Support the .got sections.
