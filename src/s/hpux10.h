@@ -55,3 +55,6 @@
 
 /* Don't define _BSD */
 #undef C_SWITCH_SYSTEM
+
+/* HPUX 10.10 needs this; HPUX 10.20 does not.  */
+#define POLLING_PROBLEM_IN_SELECT
