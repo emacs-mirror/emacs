@@ -82,9 +82,6 @@ find_defun_start (pos)
 
   /* Back up to start of line.  */
   tem = scan_buffer ('\n', pos, -1, &shortage);
-  /* If we found a newline, we moved back over it, so advance fwd past it.  */
-  if (shortage == 0)
-    tem++;
 
   while (tem > BEGV)
     {
@@ -93,8 +90,6 @@ find_defun_start (pos)
 	break;
       /* Move to beg of previous line.  */
       tem = scan_buffer ('\n', tem, -2, &shortage);
-      if (shortage == 0)
-	tem++;
     }
 
   /* Record what we found, for the next try.  */
