@@ -766,7 +766,7 @@ one of the following safe coding systems, or edit the buffer:\n")
 			 (goto-char (point-min))
 			 (set-auto-coding (or file buffer-file-name "")
 					  (buffer-size))))))
-	(if (and auto-cs
+	(if (and auto-cs coding-system
 		 ;; Don't barf if writing a compressed file, say.
 		 ;; This check perhaps isn't ideal, but is probably
 		 ;; the best thing to do.
