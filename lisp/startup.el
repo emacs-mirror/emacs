@@ -706,14 +706,14 @@ Copyright (C) 1996 Free Software Foundation, Inc.")
 			    (eq (key-binding "\C-ht") 'help-with-tutorial)
 			    (eq (key-binding "\C-hi") 'info))
 		       (insert "\n
-Type C-h for help; C-x u to undo changes.  (`C-' means use CTRL key.)
-To kill the Emacs job, type C-x C-c.
+Type C-x C-c to exit Emacs.
+Type C-h for help; C-x u to undo changes.
 Type C-h t for a tutorial on using Emacs.
 Type C-h i to enter Info, which you can use to read GNU documentation.")
 		     (insert (substitute-command-keys
 			      (format "\n
-Type %s for help; \\[advertised-undo] to undo changes.  (`C-' means use CTRL key.)
-To kill the Emacs job, type \\[save-buffers-kill-emacs].
+Type \\[save-buffers-kill-emacs] to exit Emacs.
+Type %s for help; \\[advertised-undo] to undo changes.
 Type \\[help-with-tutorial] for a tutorial on using Emacs.
 Type \\[info] to enter Info, which you can use to read GNU documentation."
 				      (let ((where (where-is-internal
@@ -721,11 +721,15 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 					(if where
 					    (key-description where)
 					  "M-x help"))))))
+		   ;; Many users seem to have problems with these.
+		   (insert "
+(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
+If you have no Meta key, you may instead type ESC followed by the character.)")
 		   ;; Say how to use the menu bar
 		   ;; if that is not with the mouse.
 		   (if (not (assq 'display (frame-parameters)))
 		       (if (eq (key-binding "\M-`") 'tmm-menubar)
-			   (insert "\n\nType F10, ESC ` or Meta-` to use the menu bar.")
+			   (insert "\n\nType F10 or M-` to use the menu bar.")
 			 (insert (substitute-command-keys
 				  "\n\nType \\[tmm-menubar] to use the menu bar."))))
 
