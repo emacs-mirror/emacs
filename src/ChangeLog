@@ -1,3 +1,8 @@
+2001-08-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Don't change the multibyteness
+	of the buffer if REPLACE is non-nil.
+
 2001-08-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Undo change of 2001-08-27.

@@ -1,5 +1,7 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/find-gc.el: Moved here from lisp/.
+
 	* international/quail.el (quail-completion-1): Reverse
 	the ((CHAR . DEFN) ...) list before processing it.
 	From Kenichi Handa <handa@etl.go.jp>.
