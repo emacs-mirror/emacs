@@ -793,7 +793,7 @@ Key bindings:
 ;	    (progn
 ;	      (set-buffer-menubar (copy-sequence current-menubar))
 ;	      (add-menu nil (car hs-menu-bar) (cdr hs-menu-bar))))
-	(make-variable-buffer-local 'line-move-ignore-invisible)
+	(make-local-variable 'line-move-ignore-invisible)
 	(setq  line-move-ignore-invisible t)
 	(add-to-invisibility-spec '(hs . t)) ;;hs invisible
 	(hs-grok-mode-type)
