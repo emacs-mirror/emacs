@@ -5986,7 +5986,9 @@ decode_coding_string (str, coding, nocopy)
       shrinked_bytes = from + (SBYTES (str) - to_byte);
     }
 
-  if (!require_decoding)
+  if (!require_decoding
+      && !(SYMBOLP (coding->post_read_conversion)
+	   && !NILP (Ffboundp (coding->post_read_conversion))))
     {
       coding->consumed = SBYTES (str);
       coding->consumed_char = SCHARS (str);
