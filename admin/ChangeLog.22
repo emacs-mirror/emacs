@@ -1,3 +1,15 @@
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/Makefile (TRANS_TABLE): New macro.
+	(JISX0208.map): Convert 0x2015 to 0x2014.
+	(cp51932.el): New target. 
+	(eucjp-ms.el): New target.
+	(install): Include ${TRANS_TABLE}.
+
+	* charsets/eucjp-ms.awk: New file.
+
+	* charsets/cp51932.awk: New file.
+
 2004-01-26  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/Makefile (CP932-2BYTE.map): Call mapconv with
