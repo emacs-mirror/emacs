@@ -15,12 +15,12 @@
 
 2004-06-23  David Kastrup  <dak@gnu.org>
 
-	* search.c (Freplace_match): Adjust the match-data more
-	thoroughly when replacing strings in the buffer.
-	search.c (match-data): When INTEGERS is non-nil and the last match
-	was in a buffer, add the buffer as last element to the match data.
-	(Fset_match_data): If an additional element of the match-data is
-	a buffer, restore it to last_thing_searched.
+	* search.c (Freplace_match): Adjust the match-data more thoroughly
+	when replacing strings in the buffer.
+	(Fmatch_data): When INTEGERS is non-nil and the last match was in
+	a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is a
+	buffer, restore it to last_thing_searched.
 	(save_search_regs): Save last_thing_searched as part of the match
 	data.
 	(restore_match_data): Restore it again.
