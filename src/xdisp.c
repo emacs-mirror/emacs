@@ -3789,6 +3789,11 @@ set_iterator_to_next (it, reseat_p)
      struct it *it;
      int reseat_p;
 {
+  /* Reset flags indicating start and end of a sequence of characters
+     with box.  Reset them at the start of this function because
+     moving the iterator to a new position might set them.  */
+  it->start_of_box_run_p = it->end_of_box_run_p = 0;
+  
   if (it->method == next_element_from_buffer)
     {
       /* The current display element of IT is a character from
@@ -3912,10 +3917,6 @@ set_iterator_to_next (it, reseat_p)
     /* There are no other methods defined, so this should be a bug.  */
     abort ();
 
-  /* Reset flags indicating start and end of a sequence of
-     characters with box.  */
-  it->start_of_box_run_p = it->end_of_box_run_p = 0;
-  
   xassert (it->method != next_element_from_string
 	   || (STRINGP (it->string)
 	       && IT_STRING_CHARPOS (*it) >= 0));
