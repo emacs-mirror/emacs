@@ -34,7 +34,7 @@ Returns nil if MARKER points into a dead buffer.")
   CHECK_MARKER (marker, 0);
   if (XMARKER (marker)->buffer)
     {
-      XSET (buf, Lisp_Buffer, XMARKER (marker)->buffer);
+      XSETBUFFER (buf, XMARKER (marker)->buffer);
       /* Return marker's buffer only if it is not dead.  */
       if (!NILP (XBUFFER (buf)->name))
 	return buf;
