@@ -57,19 +57,28 @@ char *progname;
 /* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
+/* Nonzero means args are expressions to be evaluated.  --eval.  */
+int eval = 0;
+
+/* The display on which Emacs should work.  --display.  */
+char *display = NULL;
+
+/* If non-NULL, the name of an editor to fallback to if the server
+   is not running.  --alternate-editor.   */
+const char * alternate_editor = NULL;
+
 void print_help_and_exit ();
 
 struct option longopts[] =
 {
   { "no-wait",	no_argument,	   NULL, 'n' },
+  { "eval",	no_argument,	   NULL, 'e' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "alternate-editor", required_argument, NULL, 'a' },
-  { 0 }
+  { "display",	required_argument, NULL, 'd' },
+  { 0, 0, 0, 0 }
 };
-
-
-const char * alternate_editor = NULL;
 
 /* Decode the options from argv and argc.
    The global variable `optind' will say how many arguments we used up.  */
@@ -82,7 +91,7 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHna:", longopts, 0);
+			     "VHnea:d:", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -100,8 +109,16 @@ decode_options (argc, argv)
 	  alternate_editor = optarg;
 	  break;
 
+	case 'd':
+	  display = optarg;
+	  break;
+
 	case 'n':
 	  nowait = 1;
+	  break;
+
+	case 'e':
+	  eval = 1;
 	  break;
 
 	case 'V':
@@ -120,13 +137,18 @@ void
 print_help_and_exit ()
 {
   fprintf (stderr,
-	   "Usage: %s [-a ALTERNATE-EDITOR] [-n] [--no-wait] [+LINE[:COLUMN]] FILENAME\n",
-	   progname);
-  fprintf (stderr,
-	   "Or %s --version\n",
-	   progname);
-  fprintf (stderr,
-	   "Report bugs to bug-gnu-emacs@gnu.org.\n");
+	   "Usage: %s [OPTIONS] FILE...\n\
+Tell the Emacs server to visit the specified files.\n\
+Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
+The following OPTIONS are accepted:\n\
+-V, --version           Just print a version info and return\n\
+-H, --help              Print this usage information message\n\
+-n, --no-wait           Don't wait for the server to return\n\
+-e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
+-d, --display=DISPLAY   Visit the file in the given display\n\
+-a, --alternate-editor=EDITOR\n\
+                        Editor to fallback to if the server is not running\n\
+Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (1);
 }
 
@@ -208,7 +230,7 @@ fail (argc, argv)
 
 
 
-#if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
+#if !defined (HAVE_SOCKETS) || defined (NO_SOCKETS_IN_FILE_SYSTEM)
 
 int
 main (argc, argv)
@@ -217,15 +239,12 @@ main (argc, argv)
 {
   fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
 	   argv[0]);
-  fprintf (stderr, "on systems with Berkeley sockets or System V IPC.\n");
+  fprintf (stderr, "on systems with Berkeley sockets.\n");
 
   fail (argc, argv);
 }
 
-#else /* HAVE_SOCKETS or HAVE_SYSVIPC */
-
-#if defined (HAVE_SOCKETS) && ! defined (NO_SOCKETS_IN_FILE_SYSTEM)
-/* BSD code is very different from SYSV IPC code */
+#else /* HAVE_SOCKETS */
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -428,9 +447,17 @@ main (argc, argv)
   if (nowait)
     fprintf (out, "-nowait ");
 
+  if (eval)
+    fprintf (out, "-eval ");
+
+  if (display)
+    fprintf (out, "-display %s ", quote_file_name (display));
+
   for (i = optind; i < argc; i++)
     {
-      if (*argv[i] == '+')
+      if (eval)
+	; /* Don't prepend any cwd or anything like that.  */
+      else if (*argv[i] == '+')
 	{
 	  char *p = argv[i] + 1;
 	  while (isdigit ((unsigned char) *p) || *p == ':') p++;
@@ -449,8 +476,11 @@ main (argc, argv)
   if (nowait)
     return 0;
 
-  printf ("Waiting for Emacs...");
-  needlf = 2;
+  if (!eval)
+    {
+      printf ("Waiting for Emacs...");
+      needlf = 2;
+    }
   fflush (stdout);
 
   /* Now, wait for an answer and print any messages.  */
@@ -469,183 +499,7 @@ main (argc, argv)
   return 0;
 }
 
-#else /* This is the SYSV IPC section */
-
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/utsname.h>
-#include <stdio.h>
-#include <errno.h>
-extern int errno;
-
-char *getwd (), *getcwd (), *getenv ();
-struct utsname system_name;
-
-main (argc, argv)
-     int argc;
-     char **argv;
-{
-  int s;
-  key_t key;
-  /* Size of text allocated in MSGP.  */
-  int size_allocated = BUFSIZ;
-  /* Amount of text used in MSGP.  */
-  int used;
-  struct msgbuf *msgp
-    = (struct msgbuf *) malloc (sizeof (struct msgbuf) + size_allocated);
-  struct msqid_ds * msg_st;
-  char *homedir, buf[BUFSIZ];
-  char gwdirb[BUFSIZ];
-  char *cwd;
-  char *temp;
-
-  progname = argv[0];
-
-  /* Process options.  */
-  decode_options (argc, argv);
-
-  if (argc - optind < 1)
-    print_help_and_exit ();
-
-  /*
-   * Create a message queue using ~/.emacs-server as the path for ftok
-   */
-  if ((homedir = getenv ("HOME")) == NULL)
-    {
-      fprintf (stderr, "%s: No home directory\n", argv[0]);
-      exit (1);
-    }
-  strcpy (buf, homedir);
-#ifndef HAVE_LONG_FILE_NAMES
-  /* If file names are short, we can't fit the host name.  */
-  strcat (buf, "/.emacs-server");
-#else
-  strcat (buf, "/.emacs-server-");
-  uname (&system_name);
-  strcat (buf, system_name.nodename);
-#endif
-  creat (buf, 0600);
-  key = ftok (buf, 1);	/* unlikely to be anyone else using it */
-  s = msgget (key, 0600 | IPC_CREAT);
-  if (s == -1)
-    {
-      fprintf (stderr, "%s: ", argv[0]);
-      perror ("msgget");
-      exit (1);
-    }
-
-  /* Determine working dir, so we can prefix it to all the arguments.  */
-#ifdef BSD_SYSTEM
-  temp = getwd (gwdirb);
-#else
-  temp = getcwd (gwdirb, sizeof gwdirb);
-#endif
-
-  cwd = gwdirb;
-  if (temp != 0)
-    {
-      /* On some systems, cwd can look like `@machine/...';
-	 ignore everything before the first slash in such a case.  */
-      while (*cwd && *cwd != '/')
-	cwd++;
-      strcat (cwd, "/");
-    }
-  else
-    {
-#ifdef BSD_SYSTEM
-      fprintf (stderr, "%s: %s\n", argv[0], cwd);
-#else
-      fprintf (stderr, "%s: Cannot get current working directory: %s\n",
-	       argv[0], strerror (errno));
-#endif
-      fail (argc, argv);
-    }
-
-  msgp->mtext[0] = 0;
-  used = 0;
-
-  if (nowait)
-    {
-      strcat (msgp->mtext, "-nowait ");
-      used += 8;
-    }
-
-  argc -= optind;
-  argv += optind;
-
-  while (argc)
-    {
-      int need_cwd = 0;
-      char *modified_arg = argv[0];
-
-      if (*modified_arg == '+')
-	{
-	  char *p = modified_arg + 1;
-	  while (isdigit (*p) || *p == ':')
-	    p++;
-	  if (*p != 0)
-	    need_cwd = 1;
-	}
-      else if (*modified_arg != '/')
-	need_cwd = 1;
-
-      modified_arg = quote_file_name (modified_arg);
-
-      if (need_cwd)
-	/* Overestimate in case we have to quote something in CWD.  */
-	used += 2 * strlen (cwd);
-      used += strlen (modified_arg) + 1;
-      while (used + 2 > size_allocated)
-	{
-	  size_allocated *= 2;
-	  msgp = (struct msgbuf *) realloc (msgp,
-					    (sizeof (struct msgbuf)
-					     + size_allocated));
-	}
-
-      if (need_cwd)
-	strcat (msgp->mtext, quote_file_name (cwd));
-
-      strcat (msgp->mtext, modified_arg);
-      strcat (msgp->mtext, " ");
-      argv++; argc--;
-    }
-  strcat (msgp->mtext, "\n");
-#ifdef HPUX /* HPUX has a bug.  */
-  if (strlen (msgp->mtext) >= 512)
-    {
-      fprintf (stderr, "%s: args too long for msgsnd\n", progname);
-      fail (argc, argv);
-    }
-#endif
-  msgp->mtype = 1;
-  if (msgsnd (s, msgp, strlen (msgp->mtext)+1, 0) < 0)
-    {
-      fprintf (stderr, "%s: ", progname);
-      perror ("msgsnd");
-      fail (argc, argv);
-    }
-
-  /* Maybe wait for an answer.   */
-  if (nowait)
-    return 0;
-
-  printf ("Waiting for Emacs...");
-  fflush (stdout);
-
-  msgrcv (s, msgp, BUFSIZ, getpid (), 0);	/* wait for anything back */
-  strcpy (buf, msgp->mtext);
-
-  printf ("\n");
-  if (*buf)
-    printf ("%s\n", buf);
-  exit (0);
-}
-
-#endif /* HAVE_SYSVIPC */
-
-#endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
+#endif /* HAVE_SOCKETS */
 
 #ifndef HAVE_STRERROR
 char *
