@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.34 2001/09/01 21:23:17 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.35 2001/09/27 21:13:44 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -203,6 +203,7 @@ This is obsolete because you might as well use \\[newline-and-indent]."
   "Return the mirror image of string S, without any trailing space."
   (comment-string-strip (concat (nreverse (string-to-list s))) nil t))
 
+;;;###autoload
 (defun comment-normalize-vars (&optional noerror)
   (if (not comment-start) (or noerror (error "No comment syntax is defined"))
     ;; comment-use-syntax
@@ -228,7 +229,11 @@ This is obsolete because you might as well use \\[newline-and-indent]."
     (unless (or comment-continue (string= comment-end ""))
       (set (make-local-variable 'comment-continue)
 	   (concat (if (string-match "\\S-\\S-" comment-start) " " "|")
-		   (substring comment-start 1))))
+		   (substring comment-start 1)))
+      ;; Hasn't been necessary yet.
+      ;; (unless (string-match comment-start-skip comment-continue)
+      ;; 	(kill-local-variable 'comment-continue))
+      )
     ;; comment-skip regexps
     (unless comment-start-skip
       (set (make-local-variable 'comment-start-skip)
@@ -466,11 +471,9 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 		   (+ (current-column)
 		      (- fill-column
 			 (save-excursion (end-of-line) (current-column))))))
-	(if (= (current-column) indent)
-	    (goto-char begpos)
+	(unless (= (current-column) indent)
 	  ;; If that's different from current, change it.
-	  (skip-chars-backward " \t")
-	  (delete-region (point) begpos)
+	  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
 	  (indent-to (if (bolp) indent
 		       (max indent (1+ (current-column)))))))
       (goto-char cpos)
@@ -762,7 +765,14 @@ rather than at left margin."
       (unless (or ce (eolp)) (insert "\n") (indent-according-to-mode))
       (comment-with-narrowing beg end
 	(let ((min-indent (point-max))
-	      (max-indent 0))
+	      (max-indent 0)
+	      ;; We rebind the invisibility spec because move-to-column
+	      ;; skips invisible text.  Only reveal ellipses.
+	      (buffer-invisibility-spec
+	       (if (listp buffer-invisibility-spec)
+	      	   (mapcar (lambda (x) (if (cdr-safe x) t x))
+	      		   buffer-invisibility-spec)
+	      	 buffer-invisibility-spec)))
 	  (goto-char (point-min))
 	  ;; Quote any nested comment marker
 	  (comment-quote-nested comment-start comment-end nil)
@@ -921,6 +931,14 @@ This has no effect in modes that do not define a comment syntax."
   :type 'boolean
   :group 'comment)
 
+(defun comment-valid-prefix (prefix compos)
+  (or
+   ;; Accept any prefix if the current comment is not EOL-terminated.
+   (save-excursion (goto-char compos) (comment-forward) (not (bolp)))
+   ;; Accept any prefix that starts with a comment-start marker.
+   (string-match (concat "\\`[ \t]*\\(?:" comment-start-skip "\\)")
+		 fill-prefix)))
+
 ;;;###autoload
 (defun comment-indent-new-line (&optional soft)
   "Break line at point and indent, continuing comment if within one.
@@ -950,7 +968,8 @@ unless optional argument SOFT is non-nil."
       ;; Now we know we should auto-fill.
       (delete-horizontal-space)
       (if soft (insert-and-inherit ?\n) (newline 1))
-      (if fill-prefix
+      (if (and fill-prefix (not adaptive-fill-mode))
+	  ;; Blindly trust a non-adaptive fill-prefix.
 	  (progn
 	    (indent-to-left-margin)
 	    (insert-and-inherit fill-prefix))
@@ -962,8 +981,17 @@ unless optional argument SOFT is non-nil."
 	    (setq compos (comment-beginning))
 	    (setq comin (point))))
 
-	;; If we're not inside a comment, just try to indent.
-	(if (not compos) (indent-according-to-mode)
+	(cond
+	 ;; If there's an adaptive prefix, use it unless we're inside
+	 ;; a comment and the prefix is not a comment starter.
+	 ((and fill-prefix
+	       (or (not compos)
+		   (comment-valid-prefix fill-prefix compos)))
+	  (indent-to-left-margin)
+	  (insert-and-inherit fill-prefix))
+	 ;; If we're not inside a comment, just try to indent.
+	 ((not compos) (indent-according-to-mode))
+	 (t
 	  (let* ((comment-column
 		  ;; The continuation indentation should be somewhere between
 		  ;; the current line's indentation (plus 2 for good measure)
@@ -1006,7 +1034,7 @@ unless optional argument SOFT is non-nil."
 		  (beginning-of-line)
 		  (backward-char)
 		  (insert comend)
-		  (forward-char))))))))))
+		  (forward-char)))))))))))
 
 (provide 'newcomment)
 
