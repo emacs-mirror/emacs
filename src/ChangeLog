@@ -1,3 +1,8 @@
+2000-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* indent.c (Fvertical_motion): Always use the current buffer.
+	Temporarily change the window's buffer, if necessary.
+
 2000-03-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (fast_find_position): Make sure not to consider rows
