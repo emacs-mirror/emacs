@@ -40,6 +40,22 @@
     (?\~ . mute-asciitilde))
   "Mapping of ASCII characters to their corresponding dead-key symbols.")
 
+;; Some X servers use these alternate names.
+(or key-translation-map
+    (setq key-translation-map (make-sparse-keymap)))
+(define-key key-translation-map [dead-acute] [mute-acute])
+(define-key key-translation-map [dead-grave] [mute-grave])
+(define-key key-translation-map [dead-diaeresis] [mute-diaeresis])
+(define-key key-translation-map [dead-asciicircum] [mute-asciicircum])
+(define-key key-translation-map [dead-asciitilde] [mute-asciitilde])
+;; Someone reports that these keys don't work if shifted.
+;; This might fix it--no word yet.
+(define-key key-translation-map [S-dead-acute] [mute-acute])
+(define-key key-translation-map [S-dead-grave] [mute-grave])
+(define-key key-translation-map [S-dead-diaeresis] [mute-diaeresis])
+(define-key key-translation-map [S-dead-asciicircum] [mute-asciicircum])
+(define-key key-translation-map [S-dead-asciitilde] [mute-asciitilde])
+
 ;; The two-character mnemonics are intended to be available in all languages.
 ;; The ones beginning with `*' have one-character synonyms, but a
 ;; language-specific table might override the short form for its own use.
