@@ -350,6 +350,7 @@ struct w32_output
   Cursor cross_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
+  Cursor hand_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is
      temporarily mapped to display an hourglass cursor.  */
@@ -735,7 +736,8 @@ extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
 #define WM_EMACS_DESTROY_CARET         (WM_EMACS_START + 16)
 #define WM_EMACS_SHOW_CARET            (WM_EMACS_START + 17)
 #define WM_EMACS_HIDE_CARET            (WM_EMACS_START + 18)
-#define WM_EMACS_END                   (WM_EMACS_START + 19)
+#define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
+#define WM_EMACS_END                   (WM_EMACS_START + 20)
 
 #define WND_FONTWIDTH_INDEX    (0) 
 #define WND_LINEHEIGHT_INDEX   (4) 
