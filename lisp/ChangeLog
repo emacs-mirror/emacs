@@ -1,3 +1,25 @@
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.el (defcustom): Doc fix.
+
+2002-09-28  Richard M. Stallman  <rms@gnu.org>
+
+	* loadhist.el (unload-feature): When undefining a variable,
+	delete its buffer-local bindings.
+
+2002-09-28  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* subr.el (remove-yank-excluded-properties): Fix bugs in
+        handling of category properties.
+
+2002-09-28  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el (ps-print-emacs-type): Error if ps-print is
+	activated in Epoch, inLucid or in Emacs v19 or lesser.
+	Value can no longer be `lucid'.
+	(ps-print-version): New version number (6.5.8).
+	(faces): Never do (require 'faces).
+	
 2002-09-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Only negotiate starttls on
@@ -44,10 +66,7 @@
 	(uniquify-delay-rationalize-file-buffer-names): Remove useless check.
 	(kill-buffer-hook): Don't change globally.
 
-2002-09-27  Colin Walters  <walters@verbum.org>
-
-	The following changes were written by
-	Stefan Monnier <monnier@cs.yale.edu>.
+2002-09-27  Stefan Monnier  <monnier@cs.yale.edu>.
 
 	* calc/calc.el (calc-bug-address, calc-scan-for-dels, calc-stack)
 	(calc-stack-top, calc-always-load-extensions)
