@@ -842,12 +842,12 @@ If this is nil, no message will be displayed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar fancy-splash-text
-  '((:face 'variable-pitch
+  '((:face variable-pitch
 	   "The menu bar and scroll bar are sufficient \
 for basic editing with the mouse.\n\n"
-	   :face '(variable-pitch :weight bold)
+	   :face (variable-pitch :weight bold)
 	   "Useful Files menu items:\n"
-	   :face 'variable-pitch "\
+	   :face variable-pitch "\
 Exit Emacs		(or type Control-x followed by Control-c)
 Recover Session		recover files you were editing before a crash
 
@@ -857,15 +857,15 @@ Recover Session		recover files you were editing before a crash
   (:face 'variable-pitch
 	   "The menu bar and scroll bar are sufficient \
 for basic editing with the mouse.\n\n"
-	   :face '(variable-pitch :weight bold)
+	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
-	   :face 'variable-pitch "\
+	   :face variable-pitch "\
 Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
 Emacs FAQ		Frequently asked questions and answers
 \(Non)Warranty		GNU Emacs comes with "
-	   :face '(variable-pitch :slant oblique)
+	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
-	   :face `variable-pitch
+	   :face variable-pitch
 	   "Copying Conditions	Conditions for redistributing and \
 changing Emacs\n"))
   "A list of texts to show in the middle part of splash screens.
