@@ -1,5 +1,37 @@
 2000-11-03  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/icon.el (icon-mode-map): Don't rebind \t.
+	(icon-mode): Define indent-line-function.
+	(icon-comment-indent): Simplify.
+	(icon-font-lock-keywords-2): Use the `words' arg to regexp-opt.
+
+	* emacs-lisp/find-func.el (find-function-do-it): Quote the hook.
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
+	Bind change-log-default-mode to defeat the caching done on it.
+	Don't bother saving excursion any more.
+
+	* menu-bar.el (minibuffer maps): Use dolist rather than mapcar.
+
+	* frame.el (after-setting-font-hook): Rename hooks -> hook.
+	(set-frame-font): Use the new name (and the old for compatibility).
+
+	* toolbar/tool-bar.el (tool-bar-mode): 
+	* time.el (display-time-mode): 
+	* recentf.el (recentf-mode): 
+	* paren.el (show-paren-mode): 
+	* mwheel.el (mouse-wheel-mode): 
+	* msb.el (msb-mode): 
+	* jka-compr.el (auto-compression-mode): 
+	* image-file.el (auto-image-file-mode): 
+	* hl-line.el (hl-line-mode): 
+	* delsel.el (delete-selection-mode): 
+	* autoinsert.el (auto-insert-mode): 
+	* complete.el (partial-completion-mode): Drop unneeded positional args.
+
+	* info.el (Info-mode): 
+	* comint.el (comint-mode): Don't both with make-local-hook.
+
 	* log-edit.el (log-edit-menu): New menu.
 
 2000-11-03  Miles Bader  <miles@gnu.org>
