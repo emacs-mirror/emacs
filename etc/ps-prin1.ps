@@ -334,7 +334,7 @@ StandardEncoding 46 82 getinterval aload pop
   /double-zebra ZebraHeight ZebraHeight add def
   /yiter double-zebra LineHeight mul neg def
   /xiter PrintWidth InterColumn add def
-  /zebra-line PageNumber 1 sub NumberOfColumns mul LinesPerColumn mul def
+  /zebra-line LinesPrinted def
   NumberOfColumns{LinesPerColumn doColumnZebra xiter 0 rmoveto}repeat
   grestore
 }def
@@ -456,6 +456,7 @@ StandardEncoding 46 82 getinterval aload pop
 /PrintHeaderWidth PrintOnlyOneHeader{PrintPageWidth}{PrintWidth}ifelse def
 
 /BeginPage{
+  /LinesPrinted exch def
   % ---- when 1st column, print all background effects
   ColumnIndex 1 eq{
     0 PrintStartY moveto		% move to where printing will start
