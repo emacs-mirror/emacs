@@ -198,6 +198,8 @@ extern Lisp_Object Vuser_login_name;
 
 extern int minibuf_level;
 
+extern int minibuffer_auto_raise;
+
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
 
@@ -3081,6 +3083,16 @@ This does code conversion according to the value of\n\
     setup_coding_system (Fcheck_coding_system (val), &coding);
   }
 
+#ifdef DOS_NT
+  /* Use the conversion type to determine buffer-file-type
+     (find-buffer-file-type is now used to help determine the
+     conversion).  */
+  if (coding.type == coding_type_no_conversion)
+    current_buffer->buffer_file_type = Qt;
+  else
+    current_buffer->buffer_file_type = Qnil;
+#endif
+
   fd = -1;
 
 #ifndef APOLLO
@@ -3819,9 +3831,8 @@ to the file, instead of any buffer contents, and END is ignored.")
       val = Qnil;
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
-    else if (NILP (current_buffer->enable_multibyte_characters)
-	     || !NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
-						 Qnil)))
+    else if (NILP (current_buffer->enable_multibyte_characters) ||
+	     ! NILP (Fsymbol_value (Qbuffer_file_coding_system)))
       val = Fsymbol_value (Qbuffer_file_coding_system);
     else
       {
@@ -3838,10 +3849,6 @@ to the file, instead of any buffer contents, and END is ignored.")
     setup_coding_system (Fcheck_coding_system (val), &coding); 
     if (!STRINGP (start) && !NILP (current_buffer->selective_display))
       coding.selective = 1;
-#ifdef DOS_NT
-    if (!NILP (current_buffer->buffer_file_type))
-      coding.eol_type = CODING_EOL_LF;
-#endif /* DOS_NT */
   }
 
   filename = Fexpand_file_name (filename, Qnil);
@@ -4475,6 +4482,14 @@ do_auto_save_unwind (stream)  /* used as unwind-protect function */
   return Qnil;
 }
 
+static Lisp_Object
+do_auto_save_unwind_1 (value)  /* used as unwind-protect function */
+     Lisp_Object value;
+{
+  minibuffer_auto_raise = XINT (value);
+  return Qnil;
+}
+
 DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
   "Auto-save all buffers that need it.\n\
 This is all buffers that have auto-saving enabled\n\
@@ -4499,6 +4514,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   Lisp_Object lispstream;
   int count = specpdl_ptr - specpdl;
   int *ptr;
+  int orig_minibuffer_auto_raise = minibuffer_auto_raise;
 
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
@@ -4533,7 +4549,9 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
     }
 
   record_unwind_protect (do_auto_save_unwind, lispstream);
-
+  record_unwind_protect (do_auto_save_unwind_1,
+			 make_number (minibuffer_auto_raise));
+  minibuffer_auto_raise = 0;
   auto_saving = 1;
 
   /* First, save all files which don't have handlers.  If Emacs is
@@ -4604,8 +4622,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 		&& NILP (no_message))
 	      {
 		/* It has shrunk too much; turn off auto-saving here.  */
+		minibuffer_auto_raise = orig_minibuffer_auto_raise;
 		message ("Buffer %s has shrunk a lot; auto save turned off there",
 			 XSTRING (b->name)->data);
+		minibuffer_auto_raise = 0;
 		/* Turn off auto-saving until there's a real save,
 		   and prevent any more warnings.  */
 		XSETINT (b->save_length, -1);
@@ -4866,6 +4886,13 @@ DIR defaults to current buffer's directory default.")
   val = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			  dir, mustmatch, insdef1,
 			  Qfile_name_history, default_filename);
+  /* If Fcompleting_read returned the default string itself
+     (rather than a new string with the same contents),
+     it has to mean that the user typed RET with the minibuffer empty.
+     In that case, we really want to return ""
+     so that commands such as set-visited-file-name can distinguish.  */
+  if (EQ (val, default_filename))
+    val = build_string ("");
 
 #ifdef VMS
   unbind_to (count, Qnil);
