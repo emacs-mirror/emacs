@@ -368,12 +368,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 ;;;###autoload
 (defun easy-menu-change (path name items &optional before)
   "Change menu found at PATH as item NAME to contain ITEMS.
-PATH is a list of strings for locating the menu containing NAME in the
-menu bar.  ITEMS is a list of menu items, as in `easy-menu-define'.
-These items entirely replace the previous items in that map.
-If NAME is not present in the menu located by PATH, then add item NAME to
-that menu. If the optional argument BEFORE is present add NAME in menu
-just before BEFORE, otherwise add at end of menu.
+PATH is a list of strings for locating the menu that
+should contain a submenu named NAME.
+ITEMS is a list of menu items, as in `easy-menu-define'.
+These items entirely replace the previous items in that submenu.
+
+If the menu located by PATH has no submenu named NAME, add one.
+If the optional argument BEFORE is present, add it just before
+the submenu named BEFORE, otherwise add it at the end of the menu.
 
 Either call this from `menu-bar-update-hook' or use a menu filter,
 to implement dynamic menus."
@@ -396,10 +398,12 @@ Do it if `easy-menu-precalculate-equivalent-keybindings' is on,"
 
 (defun easy-menu-add-item (map path item &optional before)
   "To the submenu of MAP with path PATH, add ITEM.
-If ITEM is already present in this submenu, then this item will be changed.
-otherwise ITEM will be added at the end of the submenu, unless the optional
-argument BEFORE is present, in which case ITEM will instead be added
-before the item named BEFORE.
+
+If an item with the same name is already present in this submenu,
+then ITEM replaces it.  Otherwise, ITEM is added to this submenu.
+In the latter case, ITEM is normally added at the end of the submenu.
+However, if BEFORE is a string and there is an item in the submenu
+with that name, then ITEM is added before that item.
 
 MAP should normally be a keymap; nil stands for the global menu-bar keymap.
 It can also be a symbol, which has earlier been used as the first
@@ -413,7 +417,10 @@ submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a non-nil value returned
 by `easy-menu-item-present-p' or `easy-menu-remove-item' or a menu defined
 earlier by `easy-menu-define' or `easy-menu-create-menu'."
-  (setq map (easy-menu-get-map map path))
+  (setq map (easy-menu-get-map map path
+			       (and (null map) (null path)
+				    (stringp (car-safe item))
+				    (car item))))
   (if (and (consp item) (consp (cdr item)) (eq (cadr item) 'menu-item))
       ;; This is a value returned by `easy-menu-item-present-p' or
       ;; `easy-menu-remove-item'.
@@ -469,22 +476,39 @@ NAME should be a string, the name of the element to be removed."
       (if cache (setq ret (cons cache ret)))
       (cons name (cons 'menu-enable (cons label (cons item ret))))))))
 
-(defun easy-menu-get-map (map path)
+(defun easy-menu-get-map-look-for-name (name submap)
+  (while (and submap (not (or (equal (car-safe (cdr-safe (car submap))) name)
+			      (equal (car-safe (cdr-safe (cdr-safe (car submap)))) name))))
+    (setq submap (cdr submap)))
+  submap)
+
+(defun easy-menu-get-map (map path &optional to-modify)
   ;; Return a sparse keymap in which to add or remove an item.
   ;; MAP and PATH are as defined in `easy-menu-add-item'.
+
+  ;; TO-MODIFY, if non-nil, is the name of the item the caller
+  ;; wants to modify in the map that we return.
+  ;; In some cases we use that to select between the local and global maps.
   (if (null map)
       (let ((local (and (current-local-map)
 			(lookup-key (current-local-map)
 				    (vconcat '(menu-bar) (mapcar 'intern path)))))
 	    (global (lookup-key global-map
 				(vconcat '(menu-bar) (mapcar 'intern path)))))
-	(if (and local (not (integerp local)))
-	    (setq map local)
-	  (if (and global (not (integerp global)))
-	      (setq map global)
-	    (setq map (make-sparse-keymap))
-	    (define-key (current-local-map)
-	      (vconcat '(menu-bar) (mapcar 'intern path)) map))))
+	(cond ((and to-modify local (not (integerp local))
+		    (easy-menu-get-map-look-for-name to-modify local))
+	       (setq map local))
+	      ((and to-modify global (not (integerp global))
+		    (easy-menu-get-map-look-for-name to-modify global))
+	       (setq map global))
+	      ((and local local (not (integerp local)))
+	       (setq map local))
+	      ((and global (not (integerp global)))
+	       (setq map global))
+	      (t
+	       (setq map (make-sparse-keymap))
+	       (define-key (current-local-map)
+		 (vconcat '(menu-bar) (mapcar 'intern path)) map))))
     (if (and (symbolp map) (not (keymapp map)))
 	(setq map (symbol-value map)))
     (if path (setq map (lookup-key map (vconcat (mapcar 'intern path))))))
