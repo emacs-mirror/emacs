@@ -66,18 +66,13 @@ inherit all the commands defined in this map.")
   (define-key text-mode-map "\eS" 'center-paragraph))
 
 
-(defun text-mode ()
+(define-derived-mode text-mode nil "Text"
   "Major mode for editing text written for humans to read.
 In this mode, paragraphs are delimited only by blank or white lines.
 You can thus get the full benefit of adaptive filling
  (see the variable `adaptive-fill-mode').
 \\{text-mode-map}
 Turning on Text mode runs the normal hook `text-mode-hook'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map text-mode-map)
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat page-delimiter "\\|[ \t]*$"))
   (if (eq ?^ (aref paragraph-start 0))
@@ -85,10 +80,7 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'indent-relative-maybe)
-  (setq mode-name "Text")
-  (setq major-mode 'text-mode)
-  (run-hooks 'text-mode-hook))
+  (setq indent-line-function 'indent-relative-maybe))
 
 (defun paragraph-indent-text-mode ()
   "Major mode for editing text, with leading spaces starting a paragraph.
@@ -136,16 +128,14 @@ This is how `toggle-text-mode-auto-fill' knows which buffers to operate on."
 This command affects all buffers that use modes related to Text mode,
 both existing buffers and buffers that you subsequently create."
   (interactive)
-  (let ((enable-mode (not (memq 'turn-on-auto-fill text-mode-hook)))
-	(buffers (buffer-list)))
+  (let ((enable-mode (not (memq 'turn-on-auto-fill text-mode-hook))))
     (if enable-mode
 	(add-hook 'text-mode-hook 'turn-on-auto-fill)
       (remove-hook 'text-mode-hook 'turn-on-auto-fill))
-    (while buffers
-      (with-current-buffer (car buffers)
-	(if text-mode-variant
-	    (auto-fill-mode (if enable-mode 1 0))))
-      (setq buffers (cdr buffers)))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+	(if (or (derived-mode-p 'text-mode) text-mode-variant)
+	    (auto-fill-mode (if enable-mode 1 0)))))
     (message "Auto Fill %s in Text modes"
 	     (if enable-mode "enabled" "disabled"))))
 
