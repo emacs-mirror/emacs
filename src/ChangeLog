@@ -1,3 +1,10 @@
+2002-07-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.h (FRAME_CURSOR_WIDTH): New macro.
+
+	* xterm.c (x_display_and_set_cursor): Check FRAME_CURSOR_WIDTH
+	for bar cursor.
+
 2002-07-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (detect_coding_iso2022): While checking a byte sequence
