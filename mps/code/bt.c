@@ -12,8 +12,10 @@
  * .design: see design.mps.bt
  */
 
+#include "bt.h"
+#include "config.h"
+#include "check.h"
 #include "mpm.h"
-
 
 SRCID(bt, "$Id$");
 
@@ -999,3 +1001,18 @@ void BTCopyOffsetRange(BT fromBT, BT toBT,
   }
 }
 
+
+/* BTCountResRange -- count number of reset bits in a range */
+
+Count BTCountResRange(BT bt, Index base, Index limit)
+{
+  Count c = 0;
+  Index bit;
+
+  AVER(BTCheck(bt));
+  AVER(base < limit);
+
+  for (bit = base; bit < limit; ++bit)
+    if (!BTGet(bt, bit)) ++c;
+  return c;
+}

@@ -11,14 +11,12 @@
 #define mpsw3_h
 
 #include "mps.h"               /* needed for mps_tramp_t */
-#include "mpswin.h"            /* needed for SEH filter */
+#include <windows.h>           /* needed for SEH filter */
 
 
 extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
 extern void mps_SEH_handler(void *, size_t);
 
-
-#undef mps_tramp /* Override generic version */
 
 #define mps_tramp(r_o, f, p, s) \
   MPS_BEGIN \

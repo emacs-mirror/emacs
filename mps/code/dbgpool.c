@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
  */
@@ -9,9 +10,7 @@
 #include "dbgpool.h"
 #include "poolmfs.h"
 #include "splay.h"
-#include "mpslib.h"
 #include "mpm.h"
-#include "mps.h"
 #include <stdarg.h>
 
 SRCID(dbgpool, "$Id$");
@@ -34,8 +33,7 @@ typedef tagStruct *Tag;
 
 /* tag init methods: copying the user-supplied data into the tag */
 
-#define TagInitMethodCheck(f) \
-  ((f) != NULL) /* that's the best we can do */
+#define TagInitMethodCheck(f) FUNCHECK(f)
 
 static void TagTrivInit(void* tag, va_list args)
 {
@@ -68,12 +66,16 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
 {
   /* Nothing to check about fenceTemplate */
   /* Nothing to check about fenceSize */
-  CHECKL(TagInitMethodCheck(debug->tagInit));
-  /* Nothing to check about tagSize */
-  CHECKD(Pool, debug->tagPool);
-  CHECKL(CHECKTYPE(Addr, void*)); /* tagPool relies on this */
-  /* Nothing to check about missingTags */
-  CHECKL(SplayTreeCheck(&debug->index));
+  /* Nothing to check about freeTemplate */
+  /* Nothing to check about freeSize */
+  if (debug->tagInit != NULL) {
+    CHECKL(TagInitMethodCheck(debug->tagInit));
+    /* Nothing to check about tagSize */
+    CHECKD(Pool, debug->tagPool);
+    CHECKL(CHECKTYPE(Addr, void*)); /* tagPool relies on this */
+    /* Nothing to check about missingTags */
+    CHECKL(SplayTreeCheck(&debug->index));
+  }
   UNUSED(debug); /* see impl.c.mpm.check.unused */
   return TRUE;
 }
@@ -101,6 +103,10 @@ static Bool PoolDebugOptionsCheck(PoolDebugOptions opt)
   if (opt->fenceSize != 0) {
     CHECKL(opt->fenceTemplate != NULL);
     /* Nothing to check about fenceSize */
+  }
+  if (opt->freeSize != 0) {
+    CHECKL(opt->freeTemplate != NULL);
+    /* Nothing to check about freeSize */
   }
   return TRUE;
 }
@@ -150,7 +156,20 @@ static Res DebugPoolInit(Pool pool, va_list args)
     }
     debug->fenceTemplate = options->fenceTemplate;
   }
- 
+
+  /* free-checking init */
+  /* @@@@ This parses a user argument, options, so it should really */
+  /* go through the MPS interface.  The template needs to be copied */
+  /* into Addr memory, to avoid breaking design.mps.type.addr.use. */
+  debug->freeSize = options->freeSize;
+  if (debug->freeSize != 0) {
+    if (PoolAlignment(pool) % debug->freeSize != 0) {
+      res = ResPARAM;
+      goto alignFail;
+    }
+    debug->freeTemplate = options->freeTemplate;
+  }
+
   /* tag init */
   debug->tagInit = tagInit;
   if (debug->tagInit != NULL) {
@@ -195,7 +214,119 @@ static void DebugPoolFinish(Pool pool)
 }
 
 
-/* FenceAlloc -- allocation wrapper for fenceposts
+/* freeSplat -- splat free block with splat pattern
+ *
+ * If base is in a segment, the whole block has to be in it.
+ */
+
+static void freeSplat(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
+{
+  Addr p, next;
+  Size freeSize = debug->freeSize;
+  Arena arena;
+  Seg seg;
+  Bool inSeg;
+
+  AVER(base < limit);
+
+  /* If the block is in a segment, make sure any shield is up. */
+  arena = PoolArena(pool);
+  inSeg = SegOfAddr(&seg, arena, base);
+  if (inSeg) {
+    AVER(limit <= SegLimit(seg));
+    ShieldExpose(arena, seg);
+  }
+  /* Write as many copies of the template as fit in the block. */
+  for (p = base, next = AddrAdd(p, freeSize);
+       next <= limit && p < next /* watch out for overflow in next */;
+       p = next, next = AddrAdd(next, freeSize))
+    (void)AddrCopy(p, debug->freeTemplate, freeSize);
+  /* Fill the tail of the block with a partial copy of the template. */
+  if (next > limit || next < p)
+    (void)AddrCopy(p, debug->freeTemplate, AddrOffset(p, limit));
+  if (inSeg) {
+    ShieldCover(arena, seg);
+  }
+}
+
+
+/* freeCheck -- check free block for splat pattern */
+
+static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
+{
+  Addr p, next;
+  Size freeSize = debug->freeSize;
+  Res res;
+  Arena arena;
+  Seg seg;
+  Bool inSeg;
+
+  AVER(base < limit);
+
+  /* If the block is in a segment, make sure any shield is up. */
+  arena = PoolArena(pool);
+  inSeg = SegOfAddr(&seg, arena, base);
+  if (inSeg) {
+    AVER(limit <= SegLimit(seg));
+    ShieldExpose(arena, seg);
+  }
+  /* Compare this to the AddrCopys in freeSplat. */
+  /* Check the complete copies of the template in the block. */
+  for (p = base, next = AddrAdd(p, freeSize);
+       next <= limit && p < next /* watch out for overflow in next */;
+       p = next, next = AddrAdd(next, freeSize))
+    if (AddrComp(p, debug->freeTemplate, freeSize) != 0) {
+      res = FALSE; goto done;
+    }
+  /* Check the partial copy of the template at the tail of the block. */
+  if (next > limit || next < p)
+    if (AddrComp(p, debug->freeTemplate, AddrOffset(p, limit)) != 0) {
+      res = FALSE; goto done;
+    }
+  res = TRUE;
+
+done:
+  if (inSeg) {
+    ShieldCover(arena, seg);
+  }
+  return res;
+}
+
+
+/* freeCheckAlloc -- allocation wrapper for free-checking */
+
+static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
+                          Size size, Bool withReservoir)
+{
+  Res res;
+  Addr new;
+
+  AVER(aReturn != NULL);
+
+  res = SuperclassOfPool(pool)->alloc(&new, pool, size, withReservoir);
+  if (res != ResOK)
+    return res;
+  if (debug->freeSize != 0)
+    ASSERT(freeCheck(debug, pool, new, AddrAdd(new, size)),
+           "free space corrupted on alloc");
+
+  *aReturn = new;
+  return res;
+}
+
+
+/* freeCheckFree -- freeing wrapper for free-checking */
+
+static void freeCheckFree(PoolDebugMixin debug,
+                          Pool pool, Addr old, Size size)
+{
+  if (debug->freeSize != 0)
+    freeSplat(debug, pool, old, AddrAdd(old, size));
+  SuperclassOfPool(pool)->free(pool, old, size);
+}
+
+
+/* fenceAlloc -- allocation wrapper for fenceposts
  *
  * Allocates an object, adding fenceposts on both sides.  Layout:
  *
@@ -211,7 +342,7 @@ static void DebugPoolFinish(Pool pool)
  * the template is larger).
  */
 
-static Res FenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
+static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
                       Size size, Bool withReservoir)
 {
   Res res;
@@ -219,37 +350,31 @@ static Res FenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
   Size alignedSize;
 
   AVER(aReturn != NULL);
-  AVERT(PoolDebugMixin, debug);
-  AVERT(Pool, pool);
-  AVER(size > 0);
-  AVERT(Bool, withReservoir);
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  res = SuperclassOfPool(pool)->alloc(&new, pool,
-                                      alignedSize + 2*debug->fenceSize,
-                                      withReservoir);
+  res = freeCheckAlloc(&new, debug, pool, alignedSize + 2*debug->fenceSize,
+                       withReservoir);
   if (res != ResOK)
     return res;
   clientNew = AddrAdd(new, debug->fenceSize);
   /* @@@@ shields? */
   /* start fencepost */
-  AddrCopy(new, debug->fenceTemplate, debug->fenceSize);
+  (void)AddrCopy(new, debug->fenceTemplate, debug->fenceSize);
   /* alignment slop */
-  AddrCopy(AddrAdd(clientNew, size),
-           debug->fenceTemplate, alignedSize - size);
+  (void)AddrCopy(AddrAdd(clientNew, size),
+                 debug->fenceTemplate, alignedSize - size);
   /* end fencepost */
-  AddrCopy(AddrAdd(clientNew, alignedSize),
-           debug->fenceTemplate, debug->fenceSize);
+  (void)AddrCopy(AddrAdd(clientNew, alignedSize),
+                 debug->fenceTemplate, debug->fenceSize);
 
   *aReturn = clientNew;
   return res;
 }
 
 
-/* FenceCheck -- check fences of an object */
+/* fenceCheck -- check fences of an object */
 
-static Bool FenceCheck(PoolDebugMixin debug, Pool pool,
-                       Addr obj, Size size)
+static Bool fenceCheck(PoolDebugMixin debug, Pool pool, Addr obj, Size size)
 {
   Size alignedSize;
 
@@ -258,7 +383,8 @@ static Bool FenceCheck(PoolDebugMixin debug, Pool pool,
   /* Can't check obj */
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  /* Compare this to the memcpy's in FenceAlloc */
+  /* @@@@ shields? */
+  /* Compare this to the AddrCopys in fenceAlloc */
   return (AddrComp(AddrSub(obj, debug->fenceSize), debug->fenceTemplate,
                    debug->fenceSize) == 0
           && AddrComp(AddrAdd(obj, size), debug->fenceTemplate,
@@ -268,38 +394,30 @@ static Bool FenceCheck(PoolDebugMixin debug, Pool pool,
 }
 
 
-/* FenceFree -- freeing wrapper for fenceposts */
+/* fenceFree -- freeing wrapper for fenceposts */
 
-static void FenceFree(PoolDebugMixin debug,
+static void fenceFree(PoolDebugMixin debug,
                       Pool pool, Addr old, Size size)
 {
   Size alignedSize;
 
-  AVERT(PoolDebugMixin, debug);
-  AVERT(Pool, pool);
-  /* Can't check old */
-  AVER(size > 0);
-
-  ASSERT(FenceCheck(debug, pool, old, size), "fencepost check on free");
+  ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free");
 
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
-  SuperclassOfPool(pool)->free(pool, AddrSub(old, debug->fenceSize),
-                               alignedSize + 2*debug->fenceSize);
+  freeCheckFree(debug, pool, AddrSub(old, debug->fenceSize),
+                alignedSize + 2*debug->fenceSize);
 }
 
 
-/* TagAlloc -- allocation wrapper for tagged pools */
+/* tagAlloc -- allocation wrapper for tagged pools */
 
-static Res TagAlloc(PoolDebugMixin debug,
+static Res tagAlloc(PoolDebugMixin debug,
                     Pool pool, Addr new, Size size, Bool withReservoir)
 {
   Tag tag;
   Res res;
 
-  AVERT(PoolDebugMixin, debug);
-  AVERT(Pool, pool);
-  AVER(size > 0);
-
+  UNUSED(pool);
   res = PoolAlloc((Addr*)&tag, debug->tagPool, debug->tagSize, FALSE);
   if (res != ResOK) {
     if (withReservoir) { /* design.mps.object-debug.out-of-space */
@@ -318,9 +436,9 @@ static Res TagAlloc(PoolDebugMixin debug,
 }
 
 
-/* TagFree -- deallocation wrapper for tagged pools */
+/* tagFree -- deallocation wrapper for tagged pools */
 
-static void TagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
+static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
 {
   SplayNode node;
   Tag tag;
@@ -351,7 +469,7 @@ static void TagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
  */
 
 static Res DebugPoolAlloc(Addr *aReturn,
-                           Pool pool, Size size, Bool withReservoir)
+                          Pool pool, Size size, Bool withReservoir)
 {
   Res res;
   Addr new;
@@ -365,19 +483,24 @@ static Res DebugPoolAlloc(Addr *aReturn,
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
-  res = FenceAlloc(&new, debug, pool, size, withReservoir);
+  if (debug->fenceSize != 0)
+    res = fenceAlloc(&new, debug, pool, size, withReservoir);
+  else
+    res = freeCheckAlloc(&new, debug, pool, size, withReservoir);
   if (res != ResOK)
     return res;
   /* Allocate object first, so it fits even when the tag doesn't. */
-  res = TagAlloc(debug, pool, new, size, withReservoir);
-  if (res != ResOK)
-    goto tagFail;
+  if (debug->tagInit != NULL) {
+    res = tagAlloc(debug, pool, new, size, withReservoir);
+    if (res != ResOK)
+      goto tagFail;
+  }
 
   *aReturn = new;
   return res;
 
 tagFail:
-  FenceFree(debug, pool, new, size);
+  fenceFree(debug, pool, new, size);
   return res;
 }
 
@@ -395,13 +518,18 @@ static void DebugPoolFree(Pool pool, Addr old, Size size)
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
-  FenceFree(debug, pool, old, size);
+
+  if (debug->fenceSize != 0)
+    fenceFree(debug, pool, old, size);
+  else
+    freeCheckFree(debug, pool, old, size);
   /* Free the object first, to get fences checked before tag. */
-  TagFree(debug, pool, old, size);
+  if (debug->tagInit != NULL)
+    tagFree(debug, pool, old, size);
 }
 
 
-/* TagWalk -- walk all object in the pool using tags */
+/* TagWalk -- walk all objects in the pool using tags */
 
 typedef void (*ObjectsStepMethod)(Addr addr, Size size, Format fmt,
                                   Pool pool, void *tagData, void *p);
@@ -434,21 +562,21 @@ static void TagWalk(Pool pool, ObjectsStepMethod step, void *p)
 }
 
 
-/* FenceCheckingStep -- step function for DebugPoolCheckFences */
+/* fenceCheckingStep -- step function for DebugPoolCheckFences */
 
-static void FenceCheckingStep(Addr addr, Size size, Format fmt,
+static void fenceCheckingStep(Addr addr, Size size, Format fmt,
                               Pool pool, void *tagData, void *p)
 {
   /* no need to check arguments checked in the caller */
   UNUSED(fmt); UNUSED(tagData);
-  ASSERT(FenceCheck((PoolDebugMixin)p, pool, addr, size),
+  ASSERT(fenceCheck((PoolDebugMixin)p, pool, addr, size),
          "fencepost check requested by client");
 }
 
 
 /* DebugPoolCheckFences -- check all the fenceposts in the pool */
 
-static void DebugPoolCheckFences(Pool pool)
+void DebugPoolCheckFences(Pool pool)
 {
   PoolDebugMixin debug;
 
@@ -458,7 +586,74 @@ static void DebugPoolCheckFences(Pool pool)
     return;
   AVERT(PoolDebugMixin, debug);
 
-  TagWalk(pool, FenceCheckingStep, (void *)debug);
+  if (debug->fenceSize != 0)
+    TagWalk(pool, fenceCheckingStep, (void *)debug);
+}
+
+
+/* DebugPoolFreeSplat -- if in a free-checking debug pool, splat free block */
+
+void DebugPoolFreeSplat(Pool pool, Addr base, Addr limit)
+{
+  PoolDebugMixin debug;
+
+  AVERT(Pool, pool);
+  AVER(PoolHasAddr(pool, base));
+  AVER(PoolHasAddr(pool, AddrSub(limit, 1)));
+
+  debug = DebugPoolDebugMixin(pool);
+  if (debug != NULL) {
+    AVERT(PoolDebugMixin, debug);
+    if (debug->freeSize != 0)
+      freeSplat(debug, pool, base, limit);
+  }
+}
+
+
+/* DebugPoolFreeCheck -- if in a free-checking debug pool, check free block */
+
+void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit)
+{
+  PoolDebugMixin debug;
+
+  AVERT(Pool, pool);
+  AVER(PoolHasAddr(pool, base));
+  AVER(PoolHasAddr(pool, AddrSub(limit, 1)));
+
+  debug = DebugPoolDebugMixin(pool);
+  if (debug != NULL) {
+    AVERT(PoolDebugMixin, debug);
+    if (debug->freeSize != 0)
+      ASSERT(freeCheck(debug, pool, base, limit),
+             "free space corrupted on release");
+  }
+}
+
+
+/* freeCheckingStep -- step function for DebugPoolCheckFreeSpace */
+
+static void freeCheckingStep(Addr base, Addr limit, Pool pool, void *p)
+{
+  /* no need to check arguments checked in the caller */
+  ASSERT(freeCheck((PoolDebugMixin)p, pool, base, limit),
+         "free space corrupted on client check");
+}
+
+
+/* DebugPoolCheckFreeSpace -- check free space in the pool for overwrites */
+
+void DebugPoolCheckFreeSpace(Pool pool)
+{
+  PoolDebugMixin debug;
+
+  AVERT(Pool, pool);
+  debug = DebugPoolDebugMixin(pool);
+  if (debug == NULL)
+    return;
+  AVERT(PoolDebugMixin, debug);
+
+  if (debug->freeSize != 0)
+    PoolFreeWalk(pool, freeCheckingStep, (void *)debug);
 }
 
 
@@ -471,24 +666,4 @@ void PoolClassMixInDebug(PoolClass class)
   class->finish = DebugPoolFinish;
   class->alloc = DebugPoolAlloc;
   class->free = DebugPoolFree;
-}
-
-
-/* mps_pool_check_fenceposts -- check all the fenceposts in the pool */
-
-void mps_pool_check_fenceposts(mps_pool_t mps_pool)
-{
-  Pool pool = (Pool)mps_pool;
-  Arena arena;
- 
-  /* CHECKT not AVERT, see design.mps.interface.c.check.space */
-  AVER(CHECKT(Pool, pool));
-  arena = PoolArena(pool);
-
-  ArenaEnter(arena);
-
-  AVERT(Pool, pool);
-  DebugPoolCheckFences(pool);
-
-  ArenaLeave(arena);
 }

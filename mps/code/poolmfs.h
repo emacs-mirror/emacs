@@ -1,6 +1,4 @@
-/*  impl.h.poolmfs  draft impl
- *
- *                    MANUAL FIXED SMALL UNIT POOL
+/*  impl.h.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
  *  $Id$
  *

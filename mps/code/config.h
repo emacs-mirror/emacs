@@ -2,15 +2,13 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
  *
  * This module translates from high-level symbols defined by the
  * external build system (gnumake, nmake, etc.) into specific sets
- * of features used by MPS modules.  For example, the build system
- * will defined one of the CONFIG_VAR_* symbols to indicate which
- * variety it is building, this file translates that into a certain
- * level of checking, and a certain level of telemetry.
+ * of features used by MPS modules.
  *
  * DESIGN
  *
@@ -21,64 +19,37 @@
 #define config_h
 
 
-/* Variety Configuration
- *
- * Convert CONFIG_VAR_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.var
- * and design.mps.variety.macro.  Note that MPS_HOT is subclassed
- * into MPS_HOT_RED and MPS_HOT_WHITE; this distinction should
- * be rarely used.
- */
+/* Variety Configuration */
 
-#if defined(CONFIG_VAR_HI)      /* Hot, Internal; variety.hi */
-#define MPS_VARIETY_STRING      "hi"
-#define MPS_HOT
-#define MPS_HOT_RED
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
-#define MPS_VARIETY_STRING      "ci"
-#define MPS_COOL
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
-#define MPS_VARIETY_STRING      "ti"
-#define MPS_COOL
-#define EVENT
-#elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
-#define MPS_VARIETY_STRING      "he"
-#define MPS_HOT
-#define MPS_HOT_RED
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
-#define MPS_VARIETY_STRING      "ce"
-#define MPS_COOL
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
-#define MPS_VARIETY_STRING      "wi"
-#define MPS_HOT
-#define MPS_HOT_WHITE
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_WE)    /* White hot, External; variety.we */
-#define MPS_VARIETY_STRING      "we"
-#define MPS_HOT
-#define MPS_HOT_WHITE
-#define EVENT_NONE
-#elif defined(CONFIG_VAR_II)    /* Ice, Internal; variety.ii */
-#define MPS_VARIETY_STRING      "ii"
-#define MPS_HOT
-#define MPS_HOT_RED
-#define EVENT
+
+#if defined(CONFIG_ASSERT)
+#define CHECK
+#define MPS_ASSERT_STRING "asserted"
 #else
-#error "No target variety configured."
+#define CHECK_NONE
+#define MPS_ASSERT_STRING "nonasserted"
 #endif
 
 
-#if defined(EVENT)
+#if defined(CONFIG_LOG)
+#define EVENT
+#define MPS_LOG_STRING "logging"
+#else
+#define EVENT_NONE
+#define MPS_LOG_STRING "nonlogging"
+#endif
+
+
+#if defined(CONFIG_DEBUG)
 #define DIAGNOSTICS
-#elif defined(EVENT_NONE)
-#define DIAGNOSTICS_NONE
+#define MPS_DEBUG_STRING "debug"
 #else
-#error "Events not configured."
+#define DIAGNOSTICS_NONE
+#define MPS_DEBUG_STRING "nondebug"
 #endif
+
+#define MPS_VARIETY_STRING \
+  MPS_ASSERT_STRING "." MPS_LOG_STRING "." MPS_DEBUG_STRING
 
 
 /* Platform Configuration */
@@ -125,12 +96,11 @@
 #endif /* MPS_ARCH_PP */
 
 
-/* In white-hot versions, absolutely no checking is done.  This leads to
- * many spurious warnings because parameters are suddenly unused, etc.
- * We aren't interested in these.
+/* Non-checking varieties give many spurious warnings because parameters
+ * are suddenly unused, etc.  We aren't interested in these
  */
 
-#if defined(MPS_HOT_WHITE)
+#if defined(CHECK_NONE)
 
 /* "unreferenced formal parameter" */
 #pragma warning(disable: 4100)
@@ -138,7 +108,7 @@
 /* "unreferenced local function has been removed" */
 #pragma warning(disable: 4505)
 
-#endif /* MPS_HOT_WHITE */
+#endif /* CHECK_NONE */
 
 #endif /* MPS_BUILD_MV */
 
@@ -240,7 +210,7 @@
  * create a dependence on an external library.
  */
 
-#if defined(MPS_PF_W3I3MV) && defined(MPS_HOT)
+#if defined(MPS_PF_W3I3MV)
 /* MSVC on Intel inlines mem* when optimizing */
 #define mps_lib_memset memset
 #define mps_lib_memcpy memcpy
@@ -264,6 +234,7 @@
 #define THREAD_SINGLE
 #define PROTECTION_NONE
 #define DONGLE_NONE
+#define CHECK_DEFAULT CheckNONE /* CheckSHALLOW is too slow for SW */
 
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_STRING         "dylan"
@@ -277,6 +248,7 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
+#define CHECK_DEFAULT CheckSHALLOW
 
 #elif defined(CONFIG_PROD_CONFIGURA)
 #define MPS_PROD_STRING         "configura"
@@ -293,6 +265,7 @@
 #define THREAD_MULTI
 #define PROTECTION
 #define DONGLE_NONE
+#define CHECK_DEFAULT CheckSHALLOW
 
 #else
 #error "No target product configured."

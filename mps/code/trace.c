@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * .design: design.mps.trace.  */
 
@@ -1543,7 +1544,9 @@ Bool TracePoll(Globals globals)
 
       res = TraceCreate(&trace, arena);
       AVER(res == ResOK); /* succeeds because no other trace is busy */
-      traceCondemnAll(trace);
+      res = traceCondemnAll(trace);
+      if (res != ResOK) /* should try some other trace, really @@@@ */
+        goto failCondemn;
       finishingTime = ArenaAvail(arena)
                       - trace->condemned * (1.0 - TraceTopGenMortality);
       if (finishingTime < 0)
@@ -1574,7 +1577,7 @@ Bool TracePoll(Globals globals)
         res = TraceCreate(&trace, arena);
         AVER(res == ResOK);
         res = ChainCondemnAuto(&mortality, firstChain, trace);
-        if (res != ResOK)
+        if (res != ResOK) /* should try some other trace, really @@@@ */
           goto failCondemn;
         trace->chain = firstChain;
         ChainStartGC(firstChain, trace);

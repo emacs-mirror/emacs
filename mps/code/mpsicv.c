@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  */
 
 #include "testlib.h"
@@ -10,11 +11,13 @@
 #include "mpscmv.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
-#include "mpstd.h"
-#ifdef MPS_OS_W3
-#include "mpsw3.h"
-#endif
 #include "mps.h"
+#if !defined(CONFIG_PROD_EPCORE)
+#  include "mpstd.h"
+#  ifdef MPS_OS_W3
+#    include "mpsw3.h"
+#  endif
+#endif
 #include <stdlib.h>
 #include <stdarg.h>
 #include <math.h>
@@ -229,12 +232,12 @@ static void arena_commit_test(mps_arena_t arena)
   die(mps_pool_create(&pool, arena, mps_class_mv(), 0x1000, 1024, 16384),
       "commit pool create");
   limit = mps_arena_commit_limit(arena);
-  mps_arena_commit_limit_set(arena, committed);
+  die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
   do {
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   } while (res == MPS_RES_OK);
   die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
-  mps_arena_commit_limit_set(arena, limit);
+  die(mps_arena_commit_limit_set(arena, limit), "commit_limit_set after");
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
   mps_pool_destroy(pool);
@@ -280,6 +283,8 @@ static void *test(void *arg, size_t s)
   mps_addr_t obj;
   mps_ld_s ld;
   mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
+  size_t rampCount = 0;
+  mps_res_t res;
 
   arena = (mps_arena_t)arg;
   testlib_unused(s);
@@ -358,9 +363,20 @@ static void *test(void *arg, size_t s)
 
     if (rnd() % patternFREQ == 0)
       switch(rnd() % 4) {
-      case 0: case 1: mps_ap_alloc_pattern_begin(ap, ramp); break;
-      case 2: mps_ap_alloc_pattern_end(ap, ramp); break;
-      case 3: mps_ap_alloc_pattern_reset(ap); break;
+      case 0: case 1: {
+        die(mps_ap_alloc_pattern_begin(ap, ramp), "alloc_pattern_begin");
+        ++rampCount;
+        } break;
+      case 2: {
+        res = mps_ap_alloc_pattern_end(ap, ramp);
+        cdie(rampCount > 0 ? res == MPS_RES_OK : res == MPS_RES_FAIL,
+             "alloc_pattern_end");
+        if (rampCount > 0) --rampCount;
+        } break;
+      case 3: {
+        die(mps_ap_alloc_pattern_reset(ap), "alloc_pattern_reset");
+        rampCount = 0;
+        } break;
       }
 
     if (rnd() & 1)
@@ -377,7 +393,7 @@ static void *test(void *arg, size_t s)
   reservoir_test(arena);
   alignmentTest(arena);
 
-  mps_arena_collect(arena);
+  die(mps_arena_collect(arena), "collect");
 
   mps_free(mv, alloced_obj, 32);
   alloc_v_test(mv);
@@ -402,26 +418,31 @@ int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
+#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   mps_root_t reg_root;
+#endif
   void *r;
   void *marker = &marker;
 
   randomize(argc, argv);
 
-  (void)mps_assert_install(mps_assert_default());
   die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
       "arena_create");
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
+#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   die(mps_root_create_reg(&reg_root, arena,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
                           thread, &mps_stack_scan_ambig,
                           marker, (size_t)0),
       "root_create_reg");
+#endif
 
   (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
   mps_tramp(&r, test, arena, 0);
+#if !defined(CONFIG_PROD_EPCORE) && !defined(CONFIG_PF_XCPPGC)
   mps_root_destroy(reg_root);
+#endif 
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 

@@ -18,7 +18,6 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-
 SRCID(cbs, "$Id$");
 
 

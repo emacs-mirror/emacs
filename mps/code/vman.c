@@ -195,7 +195,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(AddrIsAligned(limit, VMANPageALIGNMENT));
  
   size = AddrOffset(base, limit);
-  memset((void *)base, VM_JUNKBYTE, size);
+  memset((void *)base, 0xCD, size);
 
   AVER(vm->mapped >= size);
   vm->mapped -= size;

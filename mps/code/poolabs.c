@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * PURPOSE
  *
@@ -141,6 +142,7 @@ DEFINE_CLASS(AbstractPoolClass, class)
   class->framePop = PoolNoFramePop;
   class->framePopPending = PoolNoFramePopPending;
   class->walk = PoolNoWalk;
+  class->freewalk = PoolNoFreeWalk;
   class->bufferClass = PoolNoBufferClass;
   class->describe = PoolTrivDescribe;
   class->debugMixin = PoolNoDebugMixin;
@@ -617,6 +619,18 @@ void PoolNoWalk(Pool pool, Seg seg,
   UNUSED(s);
 
   NOTREACHED;
+}
+
+
+void PoolNoFreeWalk(Pool pool, FreeBlockStepMethod f, void *p)
+{
+  AVERT(Pool, pool);
+  AVER(FUNCHECK(f));
+  /* p is arbitrary, hence can't be checked */
+  UNUSED(p);
+
+  /* FreeWalk doesn't have be perfect, so just pretend you didn't find any. */
+  NOOP;
 }
 
 

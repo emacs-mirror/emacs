@@ -34,6 +34,7 @@
 
 SRCID(sslii3, "$Id$");
 
+
 /* .assume.asm.order */
 #define ASMV(x) __asm__ volatile (x)
 

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2002 Global Graphics Software.
  *
  * .design: Adapted from amsss.c (because AMS already supports
  * a protocol for subclassing AMS segments). Defines a new pool
@@ -343,7 +344,7 @@ static Res AMSTInit(Pool pool, va_list args)
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
     return res;
-  res = AMSInitInternal(Pool2AMS(pool), format, chain);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain, FALSE);
   if (res != ResOK)
     return res;
   amst = Pool2AMST(pool);
@@ -704,6 +705,8 @@ static mps_class_t mps_class_amst(void)
 }
 
 
+/* AMS collection parameters */
+
 #define exactRootsCOUNT 50
 #define ambigRootsCOUNT 100
 #define sizeScale       4
@@ -717,12 +720,16 @@ static mps_class_t mps_class_amst(void)
 #define stressTestFREQ  40
 
 
+/* static variables for the test */
+
 static mps_pool_t pool;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 static size_t totalSize = 0;
 
+
+/* make -- object allocation and init */
 
 static mps_addr_t make(void)
 {
@@ -743,6 +750,8 @@ static mps_addr_t make(void)
   return p;
 }
 
+
+/* test -- the actual stress test */
 
 static void *test(void *arg, size_t s)
 {

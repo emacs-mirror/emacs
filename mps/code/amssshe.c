@@ -55,7 +55,7 @@ static mps_addr_t make(void)
     res = dylan_init(userP, size, exactRoots, exactRootsCOUNT);
     if(res)
       die(res, "dylan_init");
-    ((int*)p)[0] = realTYPE;
+    ((int*)p)[0] = realHeader;
     ((int*)p)[1] = 0xED0ED;
   } while(!mps_commit(ap, p, size + headerSIZE));
 
@@ -80,8 +80,8 @@ static void *test(void *arg, size_t s)
 
   die(EnsureHeaderFormat(&format, arena), "make header format");
   die(mps_chain_create(&chain, arena, 1, testChain), "chain_create");
-  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain),
-      "pool_create(ams)");
+  die(mps_pool_create(&pool, arena, mps_class_ams(), format, chain,
+                      TRUE), "pool_create(ams)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
   die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");

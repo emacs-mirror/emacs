@@ -25,7 +25,7 @@ static Bool testit(ArenaClass class, ...)
 
   die(PoolCreate(&pool, arena, PoolClassN()), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1, /* withReservoirPermit */ FALSE);
-  if(res == ResOK) {
+  if (res == ResOK) {
     fprintf(stderr,
             "Error:  Unexpectedly succeeded in"
             "allocating block from PoolN\n");
@@ -40,7 +40,7 @@ static Bool testit(ArenaClass class, ...)
 
 int main(void)
 {
-  if(testit((ArenaClass)mps_arena_class_vm(), (Size)200000)) {
+  if (testit((ArenaClass)mps_arena_class_vm(), (Size)600000)) {
     fprintf(stderr, "Conclusion:  Defects found.\n");
   } else {
     fprintf(stderr, "Conclusion:  Failed to find any defects.\n");

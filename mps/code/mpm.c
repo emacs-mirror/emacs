@@ -8,14 +8,25 @@
  *
  * .sources: design.mps.writef */
 
+#include "check.h"
 #include "mpm.h"
 #include <stdarg.h>
 /* Get some floating constants for WriteDouble */
 #include <float.h>
 #include <limits.h>
 
-
 SRCID(mpm, "$Id$");
+
+
+#if defined(CHECK)
+
+
+/* CheckLevel -- Control check level 
+ *
+ * This controls the behaviour of Check methods (see impl.h.check).
+ */
+
+unsigned CheckLevel = CHECK_DEFAULT;
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -110,6 +121,9 @@ Bool AlignCheck(Align align)
   UNUSED(align);
   return TRUE;
 }
+
+
+#endif /* defined(CHECK) */
 
 
 /* WordIsAligned -- test whether a word is aligned */
@@ -446,7 +460,8 @@ Res WriteF(mps_lib_FILE *stream, ...)
 
           case 'F': {                   /* function */
             WriteFF f = va_arg(args, WriteFF);
-            Byte *b = (Byte *)&f;
+            WriteFF *fp = &f; /* dodge to placate splint */
+            Byte *b = *((Byte **)&fp);
             for(i=0; i < sizeof(WriteFF); i++) {
               res = WriteWord(stream, (Word)(b[i]), 16,
                               (CHAR_BIT + 3) / 4);

@@ -2,6 +2,7 @@
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
@@ -37,14 +38,7 @@ SRCID(poolmv, "$Id$");
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
 
-#define PoolPoolMV(pool) PARENT(MVStruct, poolStruct, pool)
-
-
-Pool (MVPool)(MV mv)
-{
-  AVERT(MV, mv);
-  return &mv->poolStruct;
-}
+#define Pool2MV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
 /* MVDebug -- MV Debug pool class */
@@ -57,8 +51,8 @@ typedef struct MVDebugStruct {
 typedef MVDebugStruct *MVDebug;
 
 
-#define MVPoolMVDebug(mv)   PARENT(MVDebugStruct, MVStruct, mv)
-#define MVDebugPoolMV(mvd)  (&((mvd)->MVStruct))
+#define MV2MVDebug(mv)   PARENT(MVDebugStruct, MVStruct, mv)
+#define MVDebug2MV(mvd)  (&((mvd)->MVStruct))
 
 
 /* MVBlockStruct -- block structure
@@ -207,7 +201,7 @@ static Res MVInit(Pool pool, va_list arg)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   arena = PoolArena(pool);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
@@ -255,7 +249,7 @@ static void MVFinish(Pool pool)
   MVSpan span;
 
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
 
   /* Destroy all the spans attached to the pool. */
@@ -477,7 +471,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
 
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
   AVER(size > 0);
   AVERT(Bool, withReservoirPermit);
@@ -530,8 +524,10 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
       return res;
     }
   }
-
   limit = AddrAdd(base, regionSize);
+
+  DebugPoolFreeSplat(pool, base, limit);
+
   span->size = regionSize;
   span->tract = TractOfBaseAddr(arena, base);
   span->mv = mv;
@@ -551,7 +547,6 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   span->base.next = &span->limit;
   span->blocks = &span->base;
   span->blockCount = 2;
-
   span->base.limit = AddrAdd(span->base.limit, size);
   span->space -= size;
   span->largest = span->space;
@@ -581,7 +576,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   Tract tract;
 
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
 
   AVER(old != (Addr)0);
@@ -632,10 +627,10 @@ static PoolDebugMixin MVDebugMixin(Pool pool)
   MV mv;
 
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
   /* Can't check MVDebug, because this is called during MVDebug init */
-  return &(MVPoolMVDebug(mv)->debug);
+  return &(MV2MVDebug(mv)->debug);
 }
 
 
@@ -650,7 +645,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
   if(!CHECKT(Pool, pool)) return ResFAIL;
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   if(!CHECKT(MV, mv)) return ResFAIL;
   if(stream == NULL) return ResFAIL;
 
@@ -808,7 +803,7 @@ size_t mps_mv_free_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
 
   spans = &mv->spans;
@@ -834,7 +829,7 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   pool = (Pool)mps_pool;
 
   AVERT(Pool, pool);
-  mv = PoolPoolMV(pool);
+  mv = Pool2MV(pool);
   AVERT(MV, mv);
   arena = PoolArena(pool);
 

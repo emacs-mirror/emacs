@@ -1,4 +1,4 @@
-/*  impl.h.lo
+/*  impl.h.lo: LEAF OBJECT POOL CLASS INTERFACE
  *
  *                   LEAF OBJECT POOL CLASS
  *
@@ -29,7 +29,6 @@
  *
  *  Space and time performance will degrade when fragmentation
  *  increases.
- *
  */
 
 #ifndef lo_h
