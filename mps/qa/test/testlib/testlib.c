@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.20) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.21) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -388,6 +388,8 @@ size_t arena_committed_and_used(mps_arena_t arena) {
    class 
 */
 
+#ifdef MMQA_SYMBOL_mps_arena_t
+
 mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size) {
  mps_res_t res;
@@ -431,6 +433,7 @@ mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
  return res;
 }
  
+#endif
 
 
 /* TimeQueue
