@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; This is a major mode documented in the Emacs manual.
+;; This is a major mode documented in the Emacs Lisp manual.
 
 ;;; Code:
 
@@ -479,8 +479,6 @@ Applies to the frame whose line point is on in the backtrace."
 	(insert ? )))
   (beginning-of-line))
 
-
-
 (put 'debugger-env-macro 'lisp-indent-function 0)
 (defmacro debugger-env-macro (&rest body)
   "Run BODY in original environment."
@@ -694,7 +692,6 @@ If argument is nil or an empty string, cancel for all functions."
 	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
-
 (defconst debug-entry-code '(if inhibit-debug-on-entry nil (debug 'debug))
   "Code added to a function to cause it to call the debugger upon entry.")
 
@@ -705,22 +702,18 @@ If argument is nil or an empty string, cancel for all functions."
 	(debug-on-entry-1 function (cdr defn) flag)
       (or (eq (car defn) 'lambda)
 	  (error "%s not user-defined Lisp function" function))
-      (let ((tail (cddr defn)))
+      (let ((tail (cdr defn)))
 	;; Skip the docstring.
-	(if (stringp (car tail)) (setq tail (cdr tail)))
+	(when (and (stringp (cadr tail)) (cddr tail))
+	  (setq tail (cdr tail)))
 	;; Skip the interactive form.
-	(if (eq 'interactive (car-safe (car tail))) (setq tail (cdr tail)))
-	(unless (eq flag (equal (car tail) debug-entry-code))
-	  ;; If the function has no body, add nil as a body element.
-	  (when (null tail)
-	    (setq tail (list nil))
-	    (nconc defn tail))
+	(when (eq 'interactive (car-safe (cadr tail))) 
+	  (setq tail (cdr tail)))
+	(unless (eq flag (equal (cadr tail) debug-entry-code))
 	  ;; Add/remove debug statement as needed.
-	  (if (not flag)
-	      (progn (setcar tail (cadr tail))
-		     (setcdr tail (cddr tail)))
-	    (setcdr tail (cons (car tail) (cdr tail)))
-	    (setcar tail debug-entry-code)))
+	  (if flag
+	      (setcdr tail (cons debug-entry-code (cdr tail)))
+	    (setcdr tail (cddr tail))))
 	defn))))
 
 (defun debugger-list-functions ()
