@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.16) $
+ * $HopeName: MMsrc!arenavm.c(trunk.17) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.16) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.17) $");
 
 
 /* Space Arena Projection
@@ -633,57 +633,71 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
  * This function is private to this module and is used in the segment
  * iteration protocol (SegFirst and SegNext).
  */
-static Seg SegSearch(Arena arena, Index i)
+static Bool SegSearch(Seg *segReturn, Arena arena, Index i)
 {
+  /* static function called with checked arguments, */
+  /* so we don't bother checking them here as well */
+
   while(i < arena->pages &&
         (BTGet(arena->freeTable, i) ||
-         arena->pageTable[i].the.head.pool == NULL))
+         arena->pageTable[i].the.head.pool == NULL)) {
     ++i;
+  }
   
-  if(i < arena->pages)
-    return &arena->pageTable[i].the.head;
+  if(i < arena->pages) {
+    *segReturn = &arena->pageTable[i].the.head;
+    return TRUE;
+  }
   
   AVER(i == arena->pages);
-  return NULL;
+  return FALSE;
 }
 
 
 /* SegFirst -- return the first segment in the arena
  *
  * This is used to start an iteration over all segments in the arena.
- * See SEG_FOR (impl.h.mpm).
  */
 
-Seg SegFirst(Space space)
+Bool SegFirst(Seg *segReturn, Space space)
 {
   Arena arena;
 
-  AVERT(Arena, SpaceArena(space));
+  AVER(segReturn != NULL);
+  AVERT(Space, space);
   arena = SpaceArena(space);
+  AVERT(Arena, arena);
 
   /* We start from tablePages, as the tables can't be a segment.
    * See .tablepages */
-  return SegSearch(arena, (Index)arena->tablePages);
+  return SegSearch(segReturn, arena, (Index)arena->tablePages);
 }
 
 
 /* SegNext -- return the next segment in the arena
  *
  * This is used as the iteration step when iterating over all
- * segments in the arena.  See SEG_FOR (impl.h.mpm).
+ * segments in the arena.
  */
 
-Seg SegNext(Space space, Seg seg)
+Bool SegNext(Seg *segReturn, Space space, Addr addr)
 {
   Arena arena;
-  Page page;
   Index i;
-  AVERT(Arena, SpaceArena(space));
-  AVERT(Seg, seg);
-  page = PARENT(PageStruct, the.head, seg);
+
+  AVER(segReturn != NULL);
+  AVERT(Space, space);
+  /* There are further restrictions on addr, but they are much */
+  /* harder to check */
+  AVER(AddrIsAligned((addr), ArenaAlign(space)));
+
   arena = SpaceArena(space);
-  i = page - arena->pageTable;
-  return SegSearch(arena, i + 1);
+  AVERT(Arena, arena);
+  i = IndexOfAddr(arena, addr);
+  /* There are fewer pages than addresses, therefore the */
+  /* page index can never wrap around */
+  AVER(i+1 != 0);
+  return SegSearch(segReturn, arena, i + 1);
 }
 
 

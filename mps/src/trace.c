@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.23) $
+ * $HopeName: MMsrc!trace.c(trunk.24) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.23) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.24) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -233,27 +233,28 @@ Res TraceStart(Trace trace, Pool pool)
   /* of segments are scannable.  Perhaps we should choose */
   /* dynamically which method to use. */
 
-  seg = SegFirst(space);
-  while(seg != NULL) {
-    /* Segment should be either black or white by now. */
-    AVER(!TraceSetIsMember(seg->grey, trace->ti));
+  if(SegFirst(&seg, space)) {
+    Addr base;
+    do {
+      base = SegBase(space, seg);
+      /* Segment should be either black or white by now. */
+      AVER(!TraceSetIsMember(seg->grey, trace->ti));
 
-    /* A segment can only be grey if it contains some references. */
-    /* This is indicated by the rankSet begin non-empty.  Such */
-    /* segments may only belong to scannable pools. */
-    if(seg->rankSet != RankSetEMPTY) {
-      /* Segments with ranks may only belong to scannable pools. */
-      AVER((seg->pool->class->attr & AttrSCAN) != 0);
+      /* A segment can only be grey if it contains some references. */
+      /* This is indicated by the rankSet begin non-empty.  Such */
+      /* segments may only belong to scannable pools. */
+      if(seg->rankSet != RankSetEMPTY) {
+	/* Segments with ranks may only belong to scannable pools. */
+	AVER((seg->pool->class->attr & AttrSCAN) != 0);
 
-      /* Turn the segment grey if there might be a reference in it */
-      /* to the white set.  This is done by seeing if the summary */
-      /* of references in the segment intersects with the approximation */
-      /* to the white set. */
-      if(RefSetInter(seg->summary, trace->white) != RefSetEMPTY)
-        PoolGrey(seg->pool, trace, seg);
-    }
-
-    seg = SegNext(space, seg);
+	/* Turn the segment grey if there might be a reference in it */
+	/* to the white set.  This is done by seeing if the summary */
+	/* of references in the segment intersects with the approximation */
+	/* to the white set. */
+	if(RefSetInter(seg->summary, trace->white) != RefSetEMPTY)
+	  PoolGrey(seg->pool, trace, seg);
+      }
+    } while(SegNext(&seg, space, base));
   }
 
   ring = SpaceRootRing(space);
@@ -467,20 +468,20 @@ static void TraceReclaim(Trace trace)
   AVER(trace->state == TraceRECLAIM);
 
   space = trace->space;
-  seg = SegFirst(space);
-  while(seg != NULL) {
-    Seg next = SegNext(space, seg);
+  if(SegFirst(&seg, space)) {
+    Addr base;
+    do {
+      base = SegBase(space, seg);
 
-    /* There shouldn't be any grey stuff left for this trace. */
-    AVER(!TraceSetIsMember(seg->grey, trace->ti));
+      /* There shouldn't be any grey stuff left for this trace. */
+      AVER(!TraceSetIsMember(seg->grey, trace->ti));
 
-    if(TraceSetIsMember(seg->white, trace->ti)) {
-      AVER((seg->pool->class->attr & AttrGC) != 0);
+      if(TraceSetIsMember(seg->white, trace->ti)) {
+	AVER((seg->pool->class->attr & AttrGC) != 0);
 
-      PoolReclaim(seg->pool, trace, seg);
-    }
-
-    seg = next;
+	PoolReclaim(seg->pool, trace, seg);
+      }
+    } while(SegNext(&seg, space, base));
   }
 
   trace->state = TraceFINISHED;
@@ -510,14 +511,20 @@ static Bool FindGrey(Seg *segReturn, Rank *rankReturn,
   AVERT(Space, space);
   AVER(TraceIdCheck(ti));
   
-  for(rank = 0; rank < RankMAX; ++rank)
-    for(seg = SegFirst(space); seg != NULL; seg = SegNext(space, seg))
-      if(RankSetIsMember(seg->rankSet, rank) &&
-         TraceSetIsMember(seg->grey, ti)) {
-	*segReturn = seg;
-        *rankReturn = rank;
-	return TRUE;
-      }
+  for(rank = 0; rank < RankMAX; ++rank) {
+    if(SegFirst(&seg, space)) {
+      Addr base;
+      do {
+	base = SegBase(space, seg);
+	if(RankSetIsMember(seg->rankSet, rank) &&
+	   TraceSetIsMember(seg->grey, ti)) {
+	  *segReturn = seg;
+	  *rankReturn = rank;
+	  return TRUE;
+	}
+      } while(SegNext(&seg, space, base));
+    }
+  }
 
   return FALSE;
 }
