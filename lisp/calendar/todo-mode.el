@@ -6,9 +6,12 @@
 ;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
 ;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
 
-;; $Id: todomode.el,v 1.2 1997/08/03 12:15:28 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.3 1997/08/03 12:47:26 os10000 Exp os10000 $
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.3  1997/08/03  12:47:26  os10000
+;; Cleaned up variables, prefix and cursor position.
+;;
 ;; Revision 1.2  1997/08/03 12:15:28  os10000
 ;; It appears to work.
 ;;
@@ -32,6 +35,8 @@
 ;; e                          to edit the current entry
 ;; i                          to insert a new entry
 ;; k                          to kill the current entry
+;; r                          raise current entryk's priority
+;; l                          lower the current entry's priority
 ;; f                          to file the current entry, including a
 ;;                            comment and timestamp
 ;;
@@ -75,6 +80,8 @@
 (define-key todo-mode-map "e" 'todo-cmd-edit)
 (define-key todo-mode-map "i" 'todo-cmd-inst)
 (define-key todo-mode-map "k" 'todo-cmd-kill)
+(define-key todo-mode-map "r" 'todo-cmd-rais)
+(define-key todo-mode-map "l" 'todo-cmd-lowr)
 (define-key todo-mode-map "f" 'todo-cmd-file)
 
 (defun todo-cmd-prev () "Select previous entry."
@@ -162,6 +169,38 @@
 	(if todo-answer (progn (delete-region todo-begin (+ 1 todo-end)) (forward-char -1)))
 	)
     (message "No entry to delete.")
+    )
+  (beginning-of-line nil)
+  (message "")
+  )
+
+(defun todo-cmd-rais () "Raise priority of current entry."
+  (interactive)
+  (if (> (count-lines (point-min) (point-max)) 0)
+      (progn
+	(setq todo-entry (todo-line))
+	(delete-region todo-begin (+ 1 todo-end))
+	(forward-line -1)
+	(insert (concat todo-entry "\n"))
+	(forward-char -1)
+	)
+    (message "No entry to raise.")
+    )
+  (beginning-of-line nil)
+  (message "")
+  )
+
+(defun todo-cmd-lowr () "Lower priority of current entry."
+  (interactive)
+  (if (> (count-lines (point-min) (point-max)) 0)
+      (progn
+	(setq todo-entry (todo-line))
+	(delete-region todo-begin (+ 1 todo-end))
+	(forward-line 1)
+	(insert (concat todo-entry "\n"))
+	(forward-char -1)
+	)
+    (message "No entry to raise.")
     )
   (beginning-of-line nil)
   (message "")
