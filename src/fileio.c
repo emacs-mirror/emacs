@@ -44,6 +44,10 @@ Boston, MA 02111-1307, USA.  */
 #ifdef MSDOS
 #include "msdos.h"
 #include <sys/param.h>
+#if __DJGPP__ >= 2
+#include <fcntl.h>
+#include <string.h>
+#endif
 #endif
 
 #include <ctype.h>
