@@ -1,3 +1,8 @@
+2004-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Use whole read buffer.
+	Don't trigger adaptive read buffering on errors.
+
 2004-07-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymap.c (Fset_keymap_parent, Fdefine_prefix_command): Doc fixes.
