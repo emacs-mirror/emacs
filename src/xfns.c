@@ -4506,6 +4506,7 @@ x_create_tip_frame (dpyinfo, parms, text)
       && !EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
+
   Vx_resource_name = name;
 
   frame = Qnil;
@@ -4562,6 +4563,16 @@ x_create_tip_frame (dpyinfo, parms, text)
   {
     Lisp_Object black;
     struct gcpro gcpro1;
+
+    /* Function x_decode_color can signal an error.  Make
+       sure to initialize color slots so that we won't try
+       to free colors we haven't allocated.  */
+    f->output_data.x->foreground_pixel = -1;
+    f->output_data.x->background_pixel = -1;
+    f->output_data.x->cursor_pixel = -1;
+    f->output_data.x->cursor_foreground_pixel = -1;
+    f->output_data.x->border_pixel = -1;
+    f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
     GCPRO1 (black);
@@ -4638,7 +4649,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
-  /* This defaults to 2 in order to match xterm.  We recognize either
+  /* This defaults to 1 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
   if (NILP (Fassq (Qinternal_border_width, parms)))
