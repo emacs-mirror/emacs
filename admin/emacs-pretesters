@@ -1,0 +1,440 @@
+Here are the guidelines for being an Emacs pretester.
+If you would like to do this, say so, and I'll add you to
+the pretest list.
+
+
+		  Information for Emacs Pretesters
+
+The purpose of Emacs pretesting is to verify that the new Emacs
+distribution, about to be released, works properly on your system *with
+no change whatever*, when installed following the precise
+recommendations that come with the Emacs distribution.
+
+Here are some guidelines on how to do pretesting so as to make it
+helpful.  All of them follow from common sense together with the
+nature of the purpose and the situation.
+
+Please save this file, and reread it when a new series of pretests
+starts.
+
+* Get the pretest from gnu/emacs/emacs-MM.NN.tar.gz and
+gnu/emacs/leim-MM.NN.tar.gz on alpha.gnu.org.
+
+* After a few days of testing, if there are no problems, please report
+that Emacs works for you and what configuration you are testing it on.
+
+* If you want to communicate with other pretesters, send mail to
+emacs-pretesters@gnu.org.  I don't use that mailing list when I send
+to you because I've found that mailing lists tend to amplify random
+noise into long discussions or even arguments, and that can waste a
+lot of time.  But when you have a reason to ask other pretesters for
+help, you can do it that way.
+
+* It is absolutely vital that you tell me about even the smallest
+change or departure from the standard sources and procedure.
+
+Otherwise, you are not testing the same program that I asked you to
+test.  Testing a different program is usually of no use whatever.  It
+can even cause trouble if you fail to tell me that you tested some
+other program instead of what I am about to release.  I might think
+that Emacs works, when in fact it has not even been tried, and might
+have a glaring fault.
+
+* Don't use a site-load.el file or a site-init.el file when you pretest.
+Using either of those files means you are not testing Emacs as a typical
+site would use it.
+
+Actually, it does no harm to test Emacs with such customizations *as
+well as* testing it "out of the box".  Anything you do that could find
+a bug is useful, as long as you make sure I know exactly what you did.
+The important point is that testing with local changes is no
+substitute for testing Emacs exactly as it is distributed.
+
+* Even changing the compilation options counts as a change in the
+program.  The Emacs sources specify which compilation options to use.
+Some of them are specified in makefiles, and some in machine-specific
+configuration files.  They also give you ways to override this--but if
+you do, then you are not testing what ordinary users will do.
+Therefore, when pretesting, it is vital to test with the default
+compilation options.
+
+(Testing with a different set of options can be useful *in addition*,
+but not *instead of* the default options.)
+
+* The machine and system configuration files of Emacs are parts of
+Emacs.  So when you test Emacs, you need to do it with the
+configuration files that come with Emacs.
+
+If Emacs does not come with configuration files for a certain machine,
+and you test it with configuration files that don't come with Emacs,
+this is effectively changing Emacs.  Because the crucial fact about
+the planned release is that, without changes, it doesn't work on that
+machine.
+
+To make Emacs work on that machine, I would need to install new
+configuration files.  That is not out of the question, since it is
+safe--it certainly won't break any other machines that already work.
+But you will have to rush me the legal papers to give the FSF
+permission to use such a large piece of text.
+
+* Look in the etc/MACHINES file.
+
+The etc/MACHINES file says which configuration files to use for your
+machine, so use the ones that are recommended.  If you guess, you might
+guess wrong and encounter spurious difficulties.  What's more, if you
+don't follow etc/MACHINES then you aren't helping to test that its
+recommendations are valid.
+
+The etc/MACHINES file may describe other things that you need to do
+to make Emacs work on your machine.  If so, you should follow these
+recommendations also, for the same reason.
+
+* Send your problem reports to emacs-pretest-bug@gnu.org, not
+bug-gnu-emacs.
+
+Sometimes I won't know what to do about a system-dependent issue, and
+I may need people to tell me what happens if you try a certain thing
+on a certain system.  When this happens, I'll send out a query.
+
+* Don't delay sending information.
+
+When you test on a system and encounter no problems, please tell me
+about it right away.  That way, I will know that someone has tested
+Emacs on that kind of system.
+
+Please don't wait for several days "to see if it really works before
+you say anything."  Tell me right away that Emacs seems basically to
+work; then, if you notice a problem a few days later, tell me
+immediately about that when you see it.
+
+It is okay if you double check things before reporting a problem, such
+as to see if you can easily fix it.  But don't wait very long.  A good
+rule to use in pretesting is always to tell me about every problem on
+the same day you encounter it, even if that means you can't find a
+solution before you report the problem.
+
+I'd much rather hear about a problem today and a solution tomorrow
+than get both of them tomorrow at the same time.
+
+* Make each bug report self-contained.
+
+If you refer back to another message, whether from you or from someone
+else, then it will be necessary for anyone who wants to investigate
+the bug to find the other message.  This may be difficult, it is
+probably time-consuming.
+
+To help me save time, simply copy the relevant parts of any previous
+messages into your own bug report.
+
+In particular, if I ask you for more information because a bug report
+was incomplete, it is best to send me the *entire* collection of
+relevant information, all together.  If you send just the additional
+information, that makes me do extra work.  There is even a risk that
+I won't remember what question you are sending me the answer to.
+
+* When you encounter a bug that manifests itself as a Lisp error,
+try setting debug-on-error to t and making the bug happen again.
+Then you will get a Lisp backtrace.  Including that in your bug report
+is very useful.
+
+* Debugging optimized code is possible, if you compile with GCC, but
+in some cases the optimized code can be confusing.  If you are not
+accustomed to that, recompile Emacs without -O.  One way to do this is
+
+    make clean
+    make CFLAGS=-g
+
+* If you use X windows, it is a good idea to run Emacs under GDB (or
+some other suitable debugger) *all the time*, at least while
+pretesting.
+
+Then, when Emacs crashes, you will be able to debug the live process,
+not just a core dump.  The `pr' command defined in src/.gdbinit is very
+useful in this case for examining Lisp_Object values as they would
+appear in Lisp.
+
+If you can't use `pr' because Emacs has got a fault already, or
+because you have only a core dump, you can use `xtype' to look at the
+type of a value, and then choose one of the other commands `xsymbol',
+`xstring', `xcons', `xvector' and so on to examine the contents.
+
+I myself *always* run Emacs under GDB so that I can debug conveniently
+if the occasion arises.
+
+* To get Lisp-level backtrace information within GDB,
+look for stack frames that call Ffuncall.  Select them one by one in GDB
+and type this:
+
+   p *args
+   pr
+
+This will print the name of the Lisp function called by that level
+of function calling.
+
+By printing the remaining elements of args, you can see the argument
+values.  Here's how to print the first argument:
+  
+   p args[1]
+   pr
+
+If you do not have a live process, you can use xtype and the other
+x...  commands such as xsymbol to get such information, albeit less
+conveniently.
+
+* Even with a live process, these x...  commands are useful for
+examining the fields in a buffer, window, process, frame or marker.
+Here's an example using concepts explained in the node "Value History"
+of the GDB manual to print the variable frame from this line in
+xmenu.c:
+
+		  buf.frame_or_window = Fcons (frame, prefix);
+
+First, use these commands:
+
+    cd src
+    gdb emacs
+    b xmenu.c:1209
+    r -q 
+
+Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
+
+    (gdb) p frame
+    $1 = 1077872640
+    (gdb) xtype
+    Lisp_Vectorlike
+    PVEC_FRAME
+    (gdb) xframe
+    $2 = (struct frame *) 0x3f0800
+    (gdb) p *$
+    $3 = {
+      size = 536871989, 
+      next = 0x366240, 
+      name = 809661752, 
+      [...]
+    }
+    (gdb) p $3->name
+    $4 = 809661752
+
+Now we can use `pr' to print the name of the frame:
+
+    (gdb) pr
+    "emacs@steenrod.math.nwu.edu"
+
+* The Emacs C code heavily uses macros defined in lisp.h.  So suppose
+we want the address of the l-value expression near the bottom of
+`kbd_buffer_store_event' from keyboard.c:
+
+      XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_store_ptr
+						      - kbd_buffer]
+       = event->frame_or_window);
+
+XVECTOR is a macro, and therefore GDB does not know about it.
+GDB cannot evaluate   p XVECTOR (kbd_buffer_frame_or_window).
+
+However, you can use the xvector command in GDB to get the same
+result.  Here is how:
+
+    (gdb) p kbd_buffer_frame_or_window
+    $1 = 1078005760
+    (gdb) xvector
+    $2 = (struct Lisp_Vector *) 0x411000
+    0
+    (gdb) p $->contents[kbd_store_ptr  - kbd_buffer]
+    $3 = 1077872640
+    (gdb) p &$
+    $4 = (int *) 0x411008
+
+* Here's a related example of macros and the GDB `define' command.
+There are many Lisp vectors such as `recent_keys', which contains the
+last 100 keystrokes.  We can print this Lisp vector
+
+p recent_keys
+pr
+
+But this may be inconvenient, since `recent_keys' is much more verbose
+than `C-h l'.  We might want to print only the last 10 elements of
+this vector.  `recent_keys' is updated in keyboard.c by the command
+
+  XVECTOR (recent_keys)->contents[recent_keys_index] = c;
+
+So we define a GDB command `xvector-elts', so the last 10 keystrokes
+are printed by 
+
+    xvector-elts recent_keys recent_keys_index 10
+
+where you can define xvector-elts as follows:
+
+    define xvector-elts
+    set $i = 0
+    p $arg0
+    xvector
+    set $foo = $
+    while $i < $arg2
+    p $foo->contents[$arg1-($i++)] 
+    pr
+    end
+    document xvector-elts
+    Prints a range of elements of a Lisp vector.
+    xvector-elts  v n i
+    prints `i' elements of the vector `v' ending at the index `n'.
+    end
+
+* To debug what happens while preloading and dumping Emacs,
+do `gdb temacs' and start it with `r -batch -l loadup dump'.
+
+If temacs actually succeeds when running under GDB in this way, do not
+try to run the dumped Emacs, because it was dumped with the GDB
+breakpoints in it.
+
+* If you encounter X protocol errors, try evaluating (x-synchronize t).
+That puts Emacs into synchronous mode, where each Xlib call checks for
+errors before it returns.  This mode is much slower, but when you get
+an error, you will see exactly which call really caused the error.
+
+* If the symptom of the bug is that Emacs fails to respond, don't
+assume Emacs is `hung'--it may instead be in an infinite loop.  To
+find out which, make the problem happen under GDB and stop Emacs once
+it is not responding.  (If Emacs is using X Windows directly, you can
+stop Emacs by typing C-z at the GDB job.)  Then try stepping with
+`step'.  If Emacs is hung, the `step' command won't return.  If it is
+looping, `step' will return.
+
+If this shows Emacs is hung in a system call, stop it again and
+examine the arguments of the call.  In your bug report, state exactly
+where in the source the system call is, and what the arguments are.
+
+If Emacs is in an infinite loop, please determine where the loop
+starts and ends.  The easiest way to do this is to use the GDB command
+`finish'.  Each time you use it, Emacs resumes execution until it
+exits one stack frame.  Keep typing `finish' until it doesn't
+return--that means the infinite loop is in the stack frame which you
+just tried to finish.
+
+Stop Emacs again, and use `finish' repeatedly again until you get back
+to that frame.  Then use `next' to step through that frame.  By
+stepping, you will see where the loop starts and ends.  Also please
+examine the data being used in the loop and try to determine why the
+loop does not exit when it should.  Include all of this information in
+your bug report.
+
+* If certain operations in Emacs are slower than they used to be, here
+is some advice for how to find out why.
+
+Stop Emacs repeatedly during the slow operation, and make a backtrace
+each time.  Compare the backtraces looking for a pattern--a specific
+function that shows up more often than you'd expect.
+
+If you don't see a pattern in the C backtraces, get some Lisp
+backtrace information by looking at Ffuncall frames (see above), and
+again look for a pattern.
+
+When using X, you can stop Emacs at any time by typing C-z at GDB.
+When not using X, you can do this with C-g.
+
+* Configure tries to figure out what kind of system you have by
+compiling and linking programs which calls various functions and looks
+at whether that succeeds.  The file config.log contains any messages
+produced by compilers while running configure, to aid debugging if
+configure makes a mistake.  But note that config.cache reads:
+
+# Giving --cache-file=/dev/null disables caching, for debugging configure.
+
+or more simply, 
+
+rm config.cache
+./configure
+
+* Always be precise when talking about changes you have made.  Show
+things rather than describing them.  Use exact filenames (relative to
+the main directory of the distribution), not partial ones.  For
+example, say "I changed Makefile" rather than "I changed the
+makefile".  Instead of saying "I defined the MUMBLE macro", send a
+diff.
+
+* Always use `diff -c' to make diffs.  If you don't include context, it
+may be hard for me to figure out where you propose to make the
+changes.  So I might have to ignore your patch.
+
+* When you write a fix, keep in mind that I can't install a change
+that *might* break other systems without the risk that it will fail to
+work and therefore require an additional cycle of pretesting.
+
+People often suggest fixing a problem by changing config.h or
+src/ymakefile or even src/Makefile to do something special that a
+particular system needs.  Sometimes it is totally obvious that such
+changes would break Emacs for almost all users.  I can't possibly make
+a change like that.  All I can do is send it back to you and ask you
+to find a fix that is safe to install.
+
+Sometimes people send fixes that *might* be an improvement in
+general--but it is hard to be sure of this.  I can install such
+changes some of the time, but not during pretest, when I am trying to
+get a new version to work reliably as quickly as possible.
+
+The safest changes for me to install are changes to the s- and m-
+files.  At least I know those can't affect most systems.
+
+Another safe kind of change is one that uses a conditional to make
+sure it will apply only to a particular kind of system.  Ordinarily,
+that is a bad way to solve a problem, and I would want to find a
+cleaner alternative.  But the virtue of safety can make it superior at
+pretest time.
+
+* Don't try changing Emacs *in any way*  unless it fails to work unchanged.
+
+* Don't even suggest changes to add features or make something
+cleaner.  Every change I install could introduce a bug, so I won't
+install a change during pretest unless I see it is *necessary*.
+
+* If you would like to suggest changes for purposes other than fixing
+user-visible bugs, don't wait till pretest time.  Instead, send them
+after I have made a release that proves to be stable.  Then I can give
+your suggestions proper consideration.  If you send them at pretest
+time, I will have to defer them till later, and that might mean I
+forget all about them.
+
+* In some cases, if you don't follow these guidelines, your
+information might still be useful, but I might have to do more work to
+make use of it.  Unfortunately, I am so far behind in my work that I
+just can't keep up unless you help me to do it efficiently.
+
+Some suggestions for debugging on MS Windows:
+
+    Marc Fleischeuers, Geoff Voelker and Andrew Innes
+
+To debug emacs with Microsoft Visual C++, you either start emacs from
+the debugger or attach the debugger to a running emacs process.  To
+start emacs from the debugger, you can use the file bin/debug.bat.  The
+Microsoft Developer studio will start and under Project, Settings,
+Debug, General you can set the command-line arguments and emacs'
+startup directory.  Set breakpoints (Edit, Breakpoints) at Fsignal and
+other functions that you want to examine.  Run the program (Build,
+Start debug).  Emacs will start and the debugger will take control as
+soon as a breakpoint is hit.
+
+You can also attach the debugger to an already running emacs process.
+To do this, start up the Microsoft Developer studio and select Build,
+Start debug, Attach to process.  Choose the emacs process from the
+list.  Send a break to the running process (Debug, Break) and you will
+find that execution is halted somewhere in user32.dll.  Open the stack
+trace window and go up the stack to w32_msg_pump.  Now you can set
+breakpoints in emacs (Edit, Breakpoints).  Continue the running emacs
+process (Debug, Step out) and control will return to emacs, until a
+breakpoint is hit.
+
+To examine the contents of a lisp variable, you can use the function
+'debug_print'.  Right-click on a variable, select QuickWatch, and
+place 'debug_print(' and ')' around the expression.  Press
+'Recalculate' and the output is sent to the 'Debug' pane in the Output
+window.  If emacs was started from the debugger, a console window was
+opened at emacs' startup; this console window also shows the output of
+'debug_print'.  It is also possible to keep appropriately masked and
+typecast lisp symbols in the Watch window, this is more convenient
+when steeping though the code.  For instance, on entering
+apply_lambda, you can watch (struct Lisp_Symbol *) (0xfffffff &
+args[0]).
+
+
+Local Variables:
+mode: text
+End:
