@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.8) $
+# $HopeName: MMQA_harness!script:headread(trunk.9) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -173,8 +173,8 @@ sub get_parmdefs {
  local ($var, $missing);
  $missing = "";
  %parmdefs = ();
- if (exists $test_header{"params"}) {
-  foreach (split /\s+/, $test_header{"params"}) {
+ if (exists $test_header{"parameters"}) {
+  foreach (split /\s+/, $test_header{"parameters"}) {
    $var = getparameter($_);
    if (defined $var) {
     $parmdefs{$_} = $var;
