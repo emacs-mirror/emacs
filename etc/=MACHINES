@@ -1,5 +1,5 @@
 This is a list of the status of GNU Emacs on various machines and systems.
-Last updated 14 October 1990.
+Last updated 27 December 1990.
 
 Systems:
   For each type of system, the name of the appropriate s- header file
@@ -68,7 +68,12 @@ System V rel 4 (s-usg5-4.h)
   work because TIOCGPGRP fails to work on ptys.
   This failure is probably due to a misunderstanding of the 
   consequences of the POSIX spec: many system designers mistakenly
-  think that POSIX requires this feature to fail.
+  think that POSIX requires this feature to fail.  This is untrue;
+  ptys are an extension, and POSIX says that extensions *when used*
+  may change the action of standard facilities in any fashion.
+
+  The standard C preprocessor generate xmakefile incorrectly.  However,
+  /lib/cpp will work, so use `make CPP=/lib/cpp'.
 
 Ultrix (s-bsd4-2.h)
 
@@ -361,16 +366,11 @@ IBM RS/6000 (m-ibmrs6000.h; s-aix3-1.h)
 
   Changes merged in version 19.
 
-  Note that Emacs can store the pure Lisp data in a shared segment on
-  this machine, but only if you put this command in one of the boot
-  scripts
-
-      emacs -batch -q
-
-  so that it is run as root when the machine is booted.  This command
-  creates a read-only shared segment owned by root.  Otherwise the
-  pure data is not shared.  The pure data size is around 100K, which
-  may not be enough to matter for most users of this machine.
+  Dumping does not work.  Code has been written to implement it, but
+  it fails because the address of bss seems to vary occasionally
+  between Emacs runs.  It does not seem to vary from minute to minute,
+  but every few days or weeks it changes to a new steady state.
+  When this happens, the dumped Emacs data file becomes invalid.
 
 IBM RT/PC (m-ibmrt.h or m-ibmrt-aix.h; s-bsd4-2.h or s-usg5-2-2.h)
 
@@ -402,7 +402,7 @@ Integrated Solutions `Optimum V' (m-isi-ov.h; s-bsd4-2.h or s-bsd4-3.h)
   indicates the Umax operating system).
 
 Intel 80386 (m-intel386.h or m-is386.h; s-bsd4-2.h, s-usg5-2-2.h, s-usg5-3.h,
-	     s-386-ix.h or s-xenix.h)
+	     s-386-ix.h, s-esix.h or s-xenix.h)
 
   Changes merged in 18.50 for all three operating systems.
   If you are using Xenix, see notes above under Xenix.
@@ -414,13 +414,25 @@ Intel 80386 (m-intel386.h or m-is386.h; s-bsd4-2.h, s-usg5-2-2.h, s-usg5-3.h,
   If you use optimization on V.3, you may need the option -W2,'-y 0'
   to prevent certain faulty optimization.
 
+  On 386/ix, to link with shared libraries, add #define USG_SHARED_LIBRARIES
+  to config.h.
+
   There is no consistency in the handling of certain system header files
   on V.3.
 
   Some versions have sys/sioctl.h, and require it in sysdep.c.
   But some versions do not have sys/sioctl.h.
-  Some versions have been known to need sys/ttold.h, sys/stream.h,
-  and sys/ptem.h included in sysdep.c.
+  For a given version of the system, this may depend on whether you have
+  X Windows or TCP/IP.  Define or undefine NO_SIOCTL_H in config.h
+  according to whether you have the file.
+
+  Likewise, some versions have been known to need sys/ttold.h, sys/stream.h,
+  and sys/ptem.h included in sysdep.c.  If your system has these files,
+  try defining NEED_PTEM_H in config.h if you have trouble without it.
+
+  You may find that adding -I/usr/X/include or -I/usr/netinclude or both
+  to CFLAGS avoids compilation errors on certain systems.
+
   Some versions convince sysdep.c to try to use `struct tchars'
   but define `struct tc' instead; add `#define tchars tc'
   to config.h to solve this problem.
@@ -440,11 +452,12 @@ Iris 2500 Turbo (m-irist.h; s-iris3-5.h or s-iris3-6.h)
 
 Iris 4D (m-iris4d.h; s-iris3-6.h or s-irix3-3.h)
 
-  Changes for 18.49 are merged in 18.50.  18.52 seems to work.
-  The system version called Irix 3.3 is newer than what was called 3.6.
+  18.56 is known to work on 4D series machines with Irix 3.3 or later.
 
-  Note that the compilation of etc/loadst.c requires editing etc/Makefile.
-  See the comment in that file.
+  If you use the X menu facility, you must edit oldXmenu/Makefile
+  to add the line 
+
+    RANLIB=true
 
   Someone says that with the yellow pages you must change two definitions
   in m-iris4d.h as follows:
@@ -486,11 +499,11 @@ Megatest (m-mega68.h; s-bsd4-2.h)
   Emacs 15 worked; do not have any reports about Emacs 16 or 17
   but any new bugs are probably not difficult.
 
-Mips (m-mips.h or m-mips4.h; s-usg5-2-2.h)
+Mips (m-mips.h or m-mips4.h; s-usg5-2-2.h, s-bsd4-3.h)
 
-  Changes merged in 18.39.
+  Changes merged in 18.39.  Some fixes in 18.56.
 
-  Use m-mips4.h for RISCOS version 4.
+  Use m-mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
 
 Motorola Delta (m-delta.h; s-usg5-3.h)
 
@@ -501,9 +514,19 @@ National Semiconductor 32000 (m-ns32000.h; s-usg5-2.h)
   This is for a complete machine from National Semiconductor,
   running Genix.  Changes merged in version 19.
 
-NCR Tower 32 (m-tower32.h; s-usg5-2.h)
+NCR Tower 32 running System V release 2 (m-tower32.h; s-usg5-2-2.h)
 
-  Works as of 17.56.
+  Works as of 17.56.  If you change src/ymakefile so that CFLAGS includes
+  C_OPTIMIZE_SWITCH rather than C_DEBUG_SWITCH, check out the comments
+  in src/m-tower32.h about this.
+
+  There is a report that compilation with -O did not work with 18.54.
+
+NCR Tower 32 running System V release 3 (m-tower32v3.h; s-usg5-3.h)
+
+  Works as of 18.56.  If you change src/ymakefile so that CFLAGS includes
+  C_OPTIMIZE_SWITCH rather than C_DEBUG_SWITCH, and do not use gcc, check 
+  out the comments in src/m-tower32v3.h about this.
 
 Nixdorf Targon 31 (m-targon31.h; s-usg5-2-2.h)
 
@@ -637,6 +660,13 @@ Tahoe (m-tahoe.h; s-bsd4-2.h or s-bsd4-3.h)
 
   If you have trouble compiling etc/loadst.c, turn off the definition
   of DKSTAT_HEADER_FILE in m-tahoe.h.
+
+Tandem Integrity S2 (m-tandem-s2.h; s-usg5-3.h)
+
+  Changes merged in 18.56 but subprocess support is turned off.
+  You will probably want to see if you can make subprocesses work.
+
+  You must edit etc/Makefile to define LOADLIBES = -mld.
 
 Tektronix 16000 box (6130?) (m-ns16000.h; s-bsd4-2.h)
 
