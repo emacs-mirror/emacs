@@ -1,3 +1,10 @@
+2005-04-05  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el (define-generic-mode): Don't use custom-current-group.
+	Document default :group value.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Ditto.
+	(define-global-minor-mode): Don't use custom-current-group.
+
 2005-04-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/sh-script.el (sh-builtins) <bash>: Add `caller'.
