@@ -968,7 +968,7 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	  coding->produced_char++;
 	  continue;
 	}
-      else if (*src == 0x80)
+      else if (*src == 0x80 && coding->cmp_data)
 	{
 	  /* Start of composition data.  */
 	  int consumed  = decode_composition_emacs_mule (coding, src, src_end,
@@ -3506,7 +3506,6 @@ setup_coding_system (coding_system, coding)
       coding->type = coding_type_emacs_mule;
       coding->common_flags
 	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
-      coding->composing = COMPOSITION_NO;
       if (!NILP (coding->post_read_conversion))
 	coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
       if (!NILP (coding->pre_write_conversion))
