@@ -635,14 +635,6 @@ and source-file directory for your debugger."
     ;; Make dbx give out the source location info that we need.
     (process-send-string (get-buffer-process gud-comint-buffer)
 			 "printf \"\032\032%1d:\",$curline;file\n"))
-   ((or (string-match "-sunos" system-configuration)
-	(string-match "-solaris" system-configuration))
-    ;; The following works for both the UCB and SunPro 2.0.1 versions
-    ;; of dbx.  The `stop' is lost using the `\n' separator as in the
-    ;; default case.  Is there a dbx where the newline is actually
-    ;; necessary?  (d.love@dl.ac.uk)
-    (gud-def gud-break "file \"%d%f\";stop at %l"
-				  "\C-b" "Set breakpoint at current line."))
    (t
     (gud-def gud-break "file \"%d%f\"\nstop at %l"
 				  "\C-b" "Set breakpoint at current line.")))
