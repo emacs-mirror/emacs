@@ -3,6 +3,8 @@
 	* progmodes/hideshow.el (hs-discard-overlays, hs-flag-region,
 	hs-show-block): Don't use `mapcar' when not accumulating.
 
+	Fix buglet in local variables initialization.
+
 2000-01-05  Andreas Schwab  <schwab@suse.de>
 
 	* hscroll.el (hscroll): Doc fix.
