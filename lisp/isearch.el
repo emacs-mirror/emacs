@@ -1149,7 +1149,9 @@ and the meta character is unread so that it applies to editing the string."
 	     ;; is in isearch mode.  So end the search in that buffer.
 	     (if (and (listp main-event)
 		      (setq window (posn-window (event-start main-event)))
-		      (windowp window))
+		      (windowp window)
+		      (or (> (minibuffer-depth) 0)
+			  (not (window-minibuffer-p window))))
 		 (save-excursion
 		   (set-buffer (window-buffer window))
 		   (isearch-done)
