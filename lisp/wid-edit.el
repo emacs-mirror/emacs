@@ -1805,8 +1805,8 @@ the earlier input."
 ;;; The `text' Widget.
 
 (define-widget 'text 'editable-field
-  :keymap widget-text-keymap
-  "A multiline text area.")
+  "A multiline text area."
+  :keymap widget-text-keymap)
 
 ;;; The `menu-choice' Widget.
 
