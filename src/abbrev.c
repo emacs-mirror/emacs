@@ -234,8 +234,7 @@ Returns the abbrev symbol, if expansion took place.  */)
 
   value = Qnil;
 
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qpre_abbrev_expand_hook);
+  Frun_hooks (1, &Qpre_abbrev_expand_hook);
 
   wordstart = 0;
   if (!(BUFFERP (Vabbrev_start_location_buffer)
