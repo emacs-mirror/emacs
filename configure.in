@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -1880,8 +1880,7 @@ if test "${HAVE_X11}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
     AC_EGREP_CPP(
 changequote({, })dnl avoid leadingspace on the next line
-{version= *(6[2-9]|[7-9][0-9])},
-changequote([, ])dnl
+{version= *(6[2-9]|[7-9][0-9])}changequote([, ]),
         [#include <jpeglib.h>
 	 version=JPEG_LIB_VERSION
 ],    
