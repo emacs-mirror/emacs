@@ -32,6 +32,8 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "dispextern.h"
 #include "atimer.h"
+#include <signal.h>
+#include "syssignal.h"
 
 /* FreeBSD has machine/soundcard.h.  Voxware sound driver docs mention
    sys/soundcard.h.  So, let's try whatever's there.  */
@@ -765,7 +767,13 @@ vox_configure (sd)
   
   xassert (sd->fd >= 0);
 
+  /* On GNU/Linux, it seems that the device driver doesn't like to be
+     interrupted by a signal.  Block the ones we know to cause
+     troubles.  */
   turn_on_atimers (0);
+#ifdef SIGIO
+  sigblock (sigmask (SIGIO));
+#endif
 
   val = sd->format;
   if (ioctl (sd->fd, SNDCTL_DSP_SETFMT, &sd->format) < 0
@@ -796,6 +804,9 @@ vox_configure (sd)
     }
   
   turn_on_atimers (1);
+#ifdef SIGIO
+  sigunblock (sigmask (SIGIO));
+#endif
 }
 
 
@@ -807,10 +818,21 @@ vox_close (sd)
 {
   if (sd->fd >= 0)
     {
-      /* Flush sound data, and reset the device.  */
+      /* On GNU/Linux, it seems that the device driver doesn't like to
+	 be interrupted by a signal.  Block the ones we know to cause
+	 troubles.  */
+#ifdef SIGIO
+      sigblock (sigmask (SIGIO));
+#endif
       turn_on_atimers (0);
+      
+      /* Flush sound data, and reset the device.  */
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
+      
       turn_on_atimers (1);
+#ifdef SIGIO
+      sigunblock (sigmask (SIGIO));
+#endif
 
       /* Close the device.  */
       emacs_close (sd->fd);
