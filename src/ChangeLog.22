@@ -1,5 +1,7 @@
 2004-01-27  Kenichi Handa  <handa@m17n.org>
 
+	* coding.h (SJIS_TO_JIS2, JIS_TO_SJIS2): New macros.
+
 	* coding.c (QCmnemonic, QCdefalut_char)
 	(QCdecode_translation_table, QCencode_translation_table)
 	(QCpost_read_conversion, QCpre_write_conversion): New variables.
@@ -13,6 +15,8 @@
 	(Fcoding_system_put): New function.
 	(syms_of_coding): Declare new symbols.  Defsubr
 	Scoding_system_put.
+	(decode_coding_sjis): Handle 4th charset (typically JISX0212).
+	(encode_coding_sjis): Likewise.
 
 	* charset.c (map_charset_chars): Fix arg to map_charset_chars in
 	when the charset is superset type.
