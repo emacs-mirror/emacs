@@ -2337,7 +2337,7 @@ from input that has not yet been sent."
     (message "Point is now at the process mark")))
 
 (defun comint-bol-or-process-mark ()
-  "Move point beginning of line (after prompt) or to the process mark.
+  "Move point to beginning of line (after prompt) or to the process mark.
 The first time you use this command, it moves to the beginning of the line
 \(but after the prompt, if any).  If you repeat it again immediately,
 it moves point to the process mark.
