@@ -117,7 +117,7 @@ arguments compiles from `load-path'."
        (lambda (d)
 	 (mapcar
 	  (lambda (f) 
-	    (if (and (string-match "^[^=].*\\.el$" f)
+	    (if (and (string-match "^[^=.].*\\.el$" f)
 		     (not (member f processed)))
 		(let (summary keystart keywords)
 		  (setq processed (cons f processed))
