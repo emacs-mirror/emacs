@@ -22,7 +22,7 @@
 ;; INSTALLATION =======================================================
 ;; 
 ;; Put this file into your load-path.  To use it, load it
-;; with (load "directory").
+;; with (load "ls-lisp").
 
 ;; OVERVIEW ===========================================================
 
@@ -57,7 +57,7 @@ Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
 
-This version of the function comes from `directory.el'.
+This version of the function comes from `ls-lisp.el'.
 It does not support ordinary shell wildcards; instead, it allows
 regular expressions to match file names.
 
@@ -187,8 +187,12 @@ The switches that work are: A a c i r S s t u"
 	    ;; optional arg.
 	    (format " %3d %-8d %-8d %8d "
 		    (nth 1 file-attr)	; no. of links
-		    (nth 2 file-attr)	; uid
-		    (nth 3 file-attr)	; gid
+		    (if (= (user-uid) (nth 2 file-attr))
+			(user-login-name)
+		      (nth 2 file-attr))	; uid
+		    (if (eq system-type 'ms-dos)
+			"root"		; everything is root on MSDOS.
+		      (nth 3 file-attr))	; gid
 		    (nth 7 file-attr)	; size in bytes
 		    )
 	    (ls-lisp-format-time file-attr switches)
