@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.6) $
+ * $HopeName: MMsrc!arena.c(trunk.7) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.6) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.7) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1094,4 +1094,66 @@ Res ArenaFinalize(Arena arena, Addr obj)
   }
 
   return ResOK;
+}
+
+
+/* Peek / Poke */
+
+Word ArenaPeek(Arena arena, Addr addr)
+{
+  Seg seg;
+  Bool b;
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, addr);
+  AVER(b);
+  return ArenaPeekSeg(arena, seg, addr);
+}
+
+Word ArenaPeekSeg(Arena arena, Seg seg, Addr addr)
+{
+  Word w;
+
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+
+  ShieldExpose(arena, seg);
+  w = *(Word *)addr;
+  ShieldCover(arena, seg);
+  return w;
+}
+
+void ArenaPoke(Arena arena, Addr addr, Word word)
+{
+  Seg seg;
+  Bool b;
+
+  AVERT(Arena, arena);
+  /* can't check word, will check addr shortly */
+
+  b = SegOfAddr(&seg, arena, addr);
+  AVER(b);
+  ArenaPokeSeg(arena, seg, addr, word);
+}
+
+void ArenaPokeSeg(Arena arena, Seg seg, Addr addr, Word word)
+{
+  RefSet summary;
+
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  /* word is arbitrary and can't be checked */
+
+  ShieldExpose(arena, seg);
+  *(Word *)addr = word;
+  summary = SegSummary(seg);
+  summary = RefSetAdd(arena, summary, (Addr)word);
+  SegSetSummary(seg, summary);
+  ShieldCover(arena, seg);
 }
