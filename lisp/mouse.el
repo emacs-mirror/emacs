@@ -82,8 +82,27 @@ Display cursor at that position for a second."
     (unwind-protect
 	(progn (mouse-set-point event)
 	       (push-mark nil t)
-	       (sleep-for 1))
+	       (sit-for 1))
       (goto-char point-save))))
+
+(defun mouse-fill-paragraph (event)
+  "Fill the paragraph at the mouse position."
+  (interactive "@e")
+  (save-excursion
+    (mouse-set-point event)
+    (fill-paragraph)))
+
+(defun mouse-fill-paragraph-with-prefix (event)
+  "Fill the paragraph at the mouse position with specified fill prefix.
+Click at the end of the fill prefix that you want; 
+The text before the mouse position, on the same line, is used as the prefix."
+  (interactive "@e")
+  (save-excursion
+    (mouse-set-point event)
+    (let ((fill-prefix (buffer-substring (save-excursion (beginning-of-line)
+							 (point))
+					 (point))))      
+      (fill-paragraph))))
 
 (defun mouse-scroll (event)
   "Scroll point to the mouse position."
