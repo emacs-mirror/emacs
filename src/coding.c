@@ -1043,7 +1043,6 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
     translation_table = Vstandard_translation_table_for_decode;
 
   coding->produced_char = 0;
-  coding->composed_chars = 0;
   coding->fake_multibyte = 0;
   while (src < src_end && (dst_bytes
 			   ? (dst < adjusted_dst_end)
@@ -2885,6 +2884,7 @@ setup_coding_system (coding_system, coding)
 
   /* Initialize remaining fields.  */
   coding->composing = 0;
+  coding->composed_chars = 0;
 
   /* Get values of coding system properties:
      `post-read-conversion', `pre-write-conversion',
