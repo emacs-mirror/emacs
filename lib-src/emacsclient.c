@@ -251,19 +251,20 @@ main (argc, argv)
   while (argc)
     {
       int need_cwd = 0;
-      if (*argv[0] == '+')
+      char *modified_arg = argv[0];
+      if (*modified_arg == '+')
 	{
-	  char *p = argv[0] + 1;
+	  char *p = modified_arg + 1;
 	  while (*p >= '0' && *p <= '9') p++;
 	  if (*p != 0)
 	    need_cwd = 1;
 	}
-      else if (*argv[0] != '/')
+      else if (*modified_arg != '/')
 	need_cwd = 1;
 
       if (need_cwd)
 	used += strlen (cwd);
-      used += strlen (argv[0]) + 1;
+      used += strlen (modified_arg) + 1;
       while (used + 2 > size_allocated)
 	{
 	  size_allocated *= 2;
@@ -275,7 +276,7 @@ main (argc, argv)
       if (need_cwd)
 	strcat (msgp->mtext, cwd);
 
-      strcat (msgp->mtext, argv[0]);
+      strcat (msgp->mtext, modified_arg);
       strcat (msgp->mtext, " ");
       argv++; argc--;
     }
