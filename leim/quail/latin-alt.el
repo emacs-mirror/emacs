@@ -1409,9 +1409,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  "turkish-alt-postfix" "Turkish" "TR«" t
  "Turkish (Türkçe) input method with postfix modifiers.
 
-This is for those who use Latin-5 (ISO-8859-9) for Turkish.  If you
-use Latin-3 (ISO-8859-3), you should use
-\"turkish-latin-3-alt-postfix\" instead.
+turkish-latin-3-alt-postfix is an obsolete alisa for turkish-alt-postfix.
 
 Note for I, ı, İ, i.
 
@@ -1470,8 +1468,8 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 
 ;; Backwards compatibility.
 (push (cons "turkish-latin-3-alt-postfix"
-	    (cdr (assoc "turkish-alt-postfix" input-method-alist)))
-      input-method-alist)
+	    (cdr (assoc "turkish-alt-postfix" quail-package-alist)))
+      quail-package-alist)
 
 
 ;; Dutch Quail input method derived from the one in Yudit by Roman
@@ -1479,7 +1477,7 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
 (quail-define-package
  "dutch" "Dutch" "NL" t
  "Dutch character mixfix input method.
-Uses the `mule-unicode-0100-24ff' charset to supplement Latin-1.
+Caters for French and Turkish as well as Dutch.
 
              |         | examples
  ------------+---------+----------
