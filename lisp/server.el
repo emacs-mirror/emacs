@@ -891,7 +891,7 @@ If FRAME is nil or missing, then the selected frame is used."
       (setq env (server-client-get (car clients) 'environment))
       (if (null env)
 	  (getenv variable)
-	(assq variable env)))))
+	(cdr (assoc variable env))))))
 
 (defun server-unload-hook ()
   (server-start t)
