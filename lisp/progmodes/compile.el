@@ -184,10 +184,13 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ("ning [0-9]+: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
     )
   "Alist that specifies how to match errors in compiler output.
-Each element has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX]).
+Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
 If REGEXP matches, the FILE-IDX'th subexpression gives the file name, and
 the LINE-IDX'th subexpression gives the line number.  If COLUMN-IDX is
-given, the COLUMN-IDX'th subexpression gives the column number on that line.")
+given, the COLUMN-IDX'th subexpression gives the column number on that line.
+If any FILE-FORMAT is given, each is a format string to produce a file name to
+try; %s in the string is replaced by the text matching the FILE-IDX'th
+subexpression.")
 
 (defvar compilation-read-command t
   "If not nil, M-x compile reads the compilation command to use.
@@ -586,7 +589,9 @@ Just inserts the text, but uses `insert-before-markers'."
     errors))
 
 (defsubst compilation-buffer-p (buffer)
-  (or compilation-minor-mode (eq major-mode 'compilation-mode)))
+  (save-excursion
+    (set-buffer buffer)
+    (or compilation-minor-mode (eq major-mode 'compilation-mode))))
 
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
@@ -971,9 +976,8 @@ The current buffer should be the desired compilation output buffer."
 		    ;; This error has a filename/lineno pair.
 		    ;; Find the file and turn it into a marker.
 		    (let* ((fileinfo (car (cdr next-error)))
-			   (buffer (compilation-find-file (cdr fileinfo)
-							  (car fileinfo)
-							  (car next-error))))
+			   (buffer (apply 'compilation-find-file
+					  (car next-error) fileinfo)))
 		      (if (null buffer)
 			  ;; We can't find this error's file.
 			  ;; Remove all errors in the same file.
@@ -1078,14 +1082,19 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 ;; current directory, which is passed in DIR.
 ;; If FILENAME is not found at all, ask the user where to find it.
 ;; Pop up the buffer containing MARKER and scroll to MARKER if we ask the user.
-(defun compilation-find-file (filename dir marker)
+(defun compilation-find-file (marker filename dir &rest formats)
+  (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
-	result name)
+	result thisdir fmts name)
     (while (and dirs (null result))
-      (setq name (expand-file-name filename (or (car dirs) dir))
-	    result (and (file-exists-p name)
-			(find-file-noselect name))
-	    dirs (cdr dirs)))
+      (setq thisdir (or (car dirs) dir)
+	    fmts formats)
+      (while (and fmts (null result))
+	(setq name (expand-file-name (format (car fmts) filename) thisdir)
+	      result (and (file-exists-p name)
+			  (find-file-noselect name))
+	      fmts (cdr fmts)))
+      (setq dirs (cdr dirs)))
     (or result
 	;; The file doesn't exist.
 	;; Ask the user where to find it.
@@ -1319,7 +1328,9 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		    ;; compile-abbreviate-directory).
 		    (file-name-absolute-p filename)
 		    (setq filename (concat comint-file-name-prefix filename)))
-	       (setq filename (cons default-directory filename))
+	       (setq filename (cons filename (cons default-directory
+						   (nthcdr 4 alist))))
+				     
 
 	       ;; Locate the erring file and line.
 	       ;; Cons a new elt onto compilation-error-list,
