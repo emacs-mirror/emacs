@@ -1,4 +1,4 @@
-;;; snake.el -- Implementation of Snake for Emacs.
+;;; snake.el -- Implementation of Snake for Emacs
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
