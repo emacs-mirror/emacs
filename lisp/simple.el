@@ -4106,7 +4106,8 @@ Returns nil if PROCESS has already terminated."
 		(let ((args (process-contact process t)))
 		  (setq args (plist-put args :name newname))
 		  (setq args (plist-put args :buffer
-					(if (process-buffer process) (current-buffer))))
+					(if (process-buffer process)
+					    (current-buffer))))
 		  (apply 'make-network-process args))
 	      (apply 'start-process newname
 		     (if (process-buffer process) (current-buffer))
@@ -4117,6 +4118,7 @@ Returns nil if PROCESS has already terminated."
        new-process (process-inherit-coding-system-flag process))
       (set-process-filter new-process (process-filter process))
       (set-process-sentinel new-process (process-sentinel process))
+      (set-process-plist new-process (copy-sequence (process-plist process)))
       new-process)))
 
 ;; things to maybe add (currently partly covered by `funcall mode'):
