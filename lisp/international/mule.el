@@ -85,6 +85,7 @@ Return t if file exists."
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.
 ;;			 (not default-enable-multibyte-characters)
+			 nil t
 			 ))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
