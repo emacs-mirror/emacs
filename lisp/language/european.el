@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, European
 
@@ -24,7 +25,8 @@
 
 ;;; Commentary:
 
-;; For Europeans, character sets ISO8859-1,2,3,4,9,14,15 are supported.
+;; For European scripts, character sets ISO8859-1,2,3,4,9,14,15 are
+;; supported.
 
 ;;; Code:
 
@@ -544,7 +546,6 @@ but select's the Dutch tutorial."))
 
 (defconst diacritic-composition-pattern "\\C^\\c^+")
 
-;;;###autoload
 (defun diacritic-compose-region (beg end)
   "Compose diacritic characters in the region.
 When called from a program, expects two arguments,
@@ -556,7 +557,6 @@ positions (integers or markers) specifying the region."
     (while (re-search-forward diacritic-composition-pattern nil t)
       (compose-region (match-beginning 0) (match-end 0)))))
 
-;;;###autoload
 (defun diacritic-compose-string (string)
   "Compose diacritic characters in STRING and return the resulting string."
   (let ((idx 0))
@@ -565,18 +565,15 @@ positions (integers or markers) specifying the region."
       (setq idx (match-end 0))))
   string)
       
-;;;###autoload
 (defun diacritic-compose-buffer ()
   "Compose diacritic characters in the current buffer."
   (interactive)
   (diacritic-compose-region (point-min) (point-max)))
 
-;;;###autoload
 (defun diacritic-post-read-conversion (len)
   (diacritic-compose-region (point) (+ (point) len))
   len)
 
-;;;###autoload
 (defun diacritic-composition-function (from to pattern &optional string)
   "Compose diacritic text in the region FROM and TO.
 The text matches the regular expression PATTERN.
@@ -592,7 +589,7 @@ The return value is number of composed characters."
 	(- to from))))
 
 ;; Register a function to compose Unicode diacrtics and marks.
-(let ((patterns '(("\\C^\\c^+" . diacrtic-composition-function))))
+(let ((patterns '(("\\C^\\c^+" . diacritic-composition-function))))
   (let ((c #x300))
     (while (<= c #x362)
       (aset composition-function-table (decode-char 'ucs c) patterns)
