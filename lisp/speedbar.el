@@ -185,7 +185,7 @@
 ;; customization stuff
 (defgroup speedbar nil
   "File and tag browser frame."
-  :group 'tags
+  :group 'etags
   :group 'tools
   :group 'convenience
   :version "20.3")
