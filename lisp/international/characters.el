@@ -899,7 +899,7 @@
 	 (#x1800 #x18AF mongolian)
 	 (#x1E00 #x1EFF latin)
 	 (#x1F00 #x1FFF greek)
-	 (#x20A0 #x20AF currency)
+	 (#x2000 #x27FF symbol)
 	 (#x2800 #x28FF braille)
 	 (#x2E80 #x2FDF han)
 	 (#x2FF0 #x2FFF ideographic-description)
