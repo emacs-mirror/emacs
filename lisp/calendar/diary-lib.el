@@ -642,7 +642,8 @@ to run it every morning at 1am."
     (insert (format-time-string "%a %d %b %Y" (current-time)))
     (mail-text)
     (insert text)
-    (mail-send-and-exit nil)))
+    (mail-send-and-exit nil)
+    (exit-calendar)))
 
 (defun diary-name-pattern (string-array &optional fullname)
   "Convert an STRING-ARRAY, an array of strings to a pattern.
