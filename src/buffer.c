@@ -2482,12 +2482,17 @@ DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
   return (OVERLAYP (object) ? Qt : Qnil);
 }
 
-DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 3, 0,
+DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 5, 0,
   "Create a new overlay with range BEG to END in BUFFER.\n\
 If omitted, BUFFER defaults to the current buffer.\n\
-BEG and END may be integers or markers.")
-  (beg, end, buffer)
+BEG and END may be integers or markers.\n\
+The fourth arg FRONT-ADVANCE, if non-nil, makes the\n\
+front delimiter advance when text is inserted there.\n\
+The fifth arg REAR-ADVANCE, if non-nil, makes the\n\
+rear delimiter advance when text is inserted there.")
+  (beg, end, buffer, front_advance, rear_advance)
      Lisp_Object beg, end, buffer;
+     Lisp_Object front_advance, rear_advance;
 {
   Lisp_Object overlay;
   struct buffer *b;
@@ -2517,7 +2522,10 @@ BEG and END may be integers or markers.")
   beg = Fset_marker (Fmake_marker (), beg, buffer);
   end = Fset_marker (Fmake_marker (), end, buffer);
 
-  XMARKER (end)->insertion_type = 1;
+  if (!NILP (front_advance))
+    XMARKER (beg)->insertion_type = 1;
+  if (!NILP (rear_advance))
+    XMARKER (end)->insertion_type = 1;
 
   overlay = allocate_misc ();
   XMISCTYPE (overlay) = Lisp_Misc_Overlay;
@@ -3905,15 +3913,6 @@ functions; it should only affect their performance.");
     "List of formats to use when saving this buffer.\n\
 Formats are defined by `format-alist'.  This variable is\n\
 set when a file is visited.  Automatically local in all buffers.");
-
-  DEFVAR_PER_BUFFER ("buffer-redisplay-end-trigger",
-		     &current_buffer->redisplay_end_trigger, Qnil,
-    "Trigger point for running `redisplay-end-trigger-hook'.\n\
-This variable is always local in every buffer.\n\
-If redisplay in the buffer reaches a position larger than the\n\
-value of `buffer-redisplay-end-trigger', then the hook is run\n\
-after first setting `buffer-redisplay-end-trigger' to nil.\n\
-If `buffer-redisplay-end-trigger' is nil, the hook is never run.");
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
