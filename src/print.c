@@ -702,7 +702,8 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
 DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
        doc: /* Output the printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
-can handle, whenever this is possible.
+can handle, whenever this is possible.  For complex objects, the behavior
+is controled by `print-level' and `print-length', which see.
 
 OBJECT is any of the Lisp data types: a number, a string, a symbol,
 a list, a buffer, a window, a frame, etc.
@@ -819,7 +820,8 @@ is used instead.  */)
 DEFUN ("print", Fprint, Sprint, 1, 2, 0,
        doc: /* Output the printed representation of OBJECT, with newlines around it.
 Quoting characters are printed when needed to make output that `read'
-can handle, whenever this is possible.
+can handle, whenever this is possible.  For complex objects, the behavior
+is controled by `print-level' and `print-length', which see.
 
 OBJECT is any of the Lisp data types: a number, a string, a symbol,
 a list, a buffer, a window, a frame, etc.
