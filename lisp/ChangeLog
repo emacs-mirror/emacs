@@ -1,3 +1,8 @@
+2000-12-08  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode): Set
+	font-lock-keywords-case-fold-search.
+
 2000-12-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/ispell.el (ispell): Doc fix.
