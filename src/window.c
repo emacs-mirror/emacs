@@ -1113,7 +1113,7 @@ window_loop (type, obj, mini, frames)
 		   on the frame, find a new buffer to display there.  */
 		if (NILP (XWINDOW (w)->parent))
 		  {
-		    Lisp_Object new_buffer = Fother_buffer (obj);
+		    Lisp_Object new_buffer = Fother_buffer (obj, Qnil);
 		    if (NILP (new_buffer))
 		      new_buffer
 			= Fget_buffer_create (build_string ("*scratch*"));
@@ -1151,7 +1151,7 @@ window_loop (type, obj, mini, frames)
 	    if (EQ (XWINDOW (w)->buffer, obj))
 	      {
 		/* Find another buffer to show in this window.  */
-		Lisp_Object another_buffer = Fother_buffer (obj);
+		Lisp_Object another_buffer = Fother_buffer (obj, Qnil);
 		if (NILP (another_buffer))
 		  another_buffer
 		    = Fget_buffer_create (build_string ("*scratch*"));
