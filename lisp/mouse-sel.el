@@ -176,8 +176,8 @@ If nil, point will always be placed at the beginning of the region."
 (defcustom mouse-sel-default-bindings t
   "*Control mouse bindings."
   :type '(choice (const :tag "none" nil)
-		 (const :tag "default bindings" t)
-		 (const :tag "cut and paste" interprogram-cut-paste))
+		 (const :tag "cut and paste" interprogram-cut-paste)
+		 (other :tag "default bindings" t))
   :group 'mouse-sel)
 
 ;;=== User Command ========================================================
