@@ -67,9 +67,11 @@ strings or patterns."
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
 				   query-replace-to-history-variable from t))
-    (list from to current-prefix-arg)))
+    (if (and transient-mark-mode mark-active)
+	(list from to current-prefix-arg (region-beginning) (region-end))
+      (list from to current-prefix-arg nil nil))))
 
-(defun query-replace (from-string to-string &optional delimited)
+(defun query-replace (from-string to-string &optional delimited start end)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -89,14 +91,15 @@ then its replacement is upcased or capitalized.)
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
+Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace" nil))
-  (perform-replace from-string to-string t nil delimited))
+  (perform-replace from-string to-string start end t nil delimited))
 
 (define-key esc-map "%" 'query-replace)
 
-(defun query-replace-regexp (regexp to-string &optional delimited)
+(defun query-replace-regexp (regexp to-string &optional delimited start end)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -110,16 +113,19 @@ minibuffer.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
+Fourth and fifth arg START and END specify the region to operate on.
+
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp" t))
-  (perform-replace regexp to-string t t delimited))
+  (perform-replace regexp to-string start end t t delimited))
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
-(defun query-replace-regexp-eval (regexp to-expr &optional delimited)
+(defun query-replace-regexp-eval (regexp to-expr &optional delimited start end)
   "Replace some things after point matching REGEXP with the result of TO-EXPR.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -143,10 +149,15 @@ minibuffer.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches surrounded by word boundaries."
+only matches surrounded by word boundaries.
+Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
+   (let (from to start end)
+     (when (and transient-mark-mode mark-active)
+       (setq start (region-beginning)
+	     end (region-end)))
      (if query-replace-interactive
          (setq from (car regexp-search-ring))
        (setq from (read-from-minibuffer "Query replace regexp: "
@@ -159,11 +170,11 @@ only matches surrounded by word boundaries."
      ;; We make TO a list because replace-match-string-symbols requires one,
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
-     (list from (car to) current-prefix-arg)))
+     (list from (car to) start end current-prefix-arg)))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
-		   t t delimited))
+		   start end t t delimited))
 
-(defun map-query-replace-regexp (regexp to-strings &optional delimited)
+(defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
 The second argument TO-STRINGS contains the replacement strings, separated
 by spaces.  This command works like `query-replace-regexp' except
@@ -179,9 +190,13 @@ If `query-replace-interactive' is non-nil, the last incremental search
 regexp is used as REGEXP--you don't have to specify it with the minibuffer.
 
 A prefix argument N says to use each replacement string N times
-before rotating to the next."
+before rotating to the next.
+Fourth and fifth arg START and END specify the region to operate on."
   (interactive
-   (let (from to)
+   (let (from to start end)
+     (when (and transient-mark-mode mark-active)
+       (setq start (region-beginning)
+	     end (region-end)))
      (setq from (if query-replace-interactive
 		    (car regexp-search-ring)
 		  (read-from-minibuffer "Map query replace (regexp): "
@@ -192,7 +207,7 @@ before rotating to the next."
 		       from)
 	       nil nil nil
 	       'query-replace-history from t))
-     (list from to current-prefix-arg)))
+     (list from to start end current-prefix-arg)))
   (let (replacements)
     (if (listp to-strings)
 	(setq replacements to-strings)
@@ -206,9 +221,9 @@ before rotating to the next."
 				       (1+ (string-match " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
-    (perform-replace regexp replacements t t nil delimited)))
+    (perform-replace regexp replacements start end t t nil n)))
 
-(defun replace-string (from-string to-string &optional delimited)
+(defun replace-string (from-string to-string &optional delimited start end)
   "Replace occurrences of FROM-STRING with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and FROM-STRING has no uppercase letters.
@@ -220,6 +235,7 @@ of the region.  Otherwise, operate from point to the end of the buffer.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
+Fourth and fifth arg START and END specify the region to operate on.
 
 If `query-replace-interactive' is non-nil, the last incremental search
 string is used as FROM-STRING--you don't have to specify it with the
@@ -233,20 +249,23 @@ which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
   (interactive (query-replace-read-args "Replace string" nil))
-  (perform-replace from-string to-string nil nil delimited))
+  (perform-replace from-string to-string start end nil nil delimited))
 
-(defun replace-regexp (regexp to-string &optional delimited)
+(defun replace-regexp (regexp to-string &optional delimited start end)
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and REGEXP has no uppercase letters.
-Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches surrounded by word boundaries.
-In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
-and `\\=\\N' (where N is a digit) stands for
- whatever what matched the Nth `\\(...\\)' in REGEXP.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
+
+Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
+only matches surrounded by word boundaries.
+Fourth and fifth arg START and END specify the region to operate on.
+
+In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
+and `\\=\\N' (where N is a digit) stands for
+ whatever what matched the Nth `\\(...\\)' in REGEXP.
 
 If `query-replace-interactive' is non-nil, the last incremental search
 regexp is used as REGEXP--you don't have to specify it with the minibuffer.
@@ -257,7 +276,7 @@ What you probably want is a loop like this:
     (replace-match TO-STRING nil nil))
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp" t))
-  (perform-replace regexp to-string nil t delimited))
+  (perform-replace regexp to-string start end nil t delimited))
 
 (defvar regexp-history nil
   "History list for some commands that read regular expressions.")
@@ -781,7 +800,7 @@ The valid answers include `act', `skip', `act-and-show',
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
 
-(defun perform-replace (from-string replacements
+(defun perform-replace (from-string replacements start end
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
@@ -822,11 +841,10 @@ which will run faster and probably do exactly what you want."
 	      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) "))))
 
     ;; If region is active, in Transient Mark mode, operate on region.
-    (if (and transient-mark-mode mark-active)
-	(progn
-	  (setq limit (copy-marker (region-end)))
-	  (goto-char (region-beginning))
-	  (deactivate-mark)))
+    (when start
+      (setq limit (copy-marker (max start end)))
+      (goto-char (min start end))
+      (deactivate-mark))
 
     ;; REPLACEMENTS is either a string, a list of strings, or a cons cell
     ;; containing a function and its first argument.  The function is
