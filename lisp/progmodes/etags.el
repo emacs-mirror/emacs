@@ -22,6 +22,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'ring)
@@ -81,7 +83,7 @@ to the current list (as opposed to starting a new list)."
   "List of tags tables to search, computed from `tags-table-list'.
 This includes tables implicitly included by other tables.  The list is not
 always complete: the included tables of a table are not known until that
-table is read into core.  An element that is `t' is a placeholder
+table is read into core.  An element that is t is a placeholder
 indicating that the preceding element is a table that has not been read
 into core and might contain included tables to search.
 See `tags-table-check-computed-list'.")
@@ -144,7 +146,7 @@ If non-nil, value should be a list of triples (TITLE FUNCTION
 TO-SEARCH).  For each triple, `tags-apropos' processes TO-SEARCH and
 lists tags from it.  TO-SEARCH should be an alist, obarray, or symbol.
 If it is a symbol, the symbol's value is used.
-TITLE. a string, is a title used to label the additional list of tags.
+TITLE, a string, is a title used to label the additional list of tags.
 FUNCTION is a function to call when a symbol is selected in the
 *Tags List* buffer.  It will be called with one argument SYMBOL which
 is the symbol being selected.
@@ -190,7 +192,7 @@ nil means it has not yet been computed; use `tags-table-files' to do so.")
 
 (defvar tags-table-format-hooks '(etags-recognize-tags-table
 				  tags-recognize-empty-tags-table)
-  "List of functions to be called in a tags table buffer to identify the type of tags table.  
+  "Hook to be called in a tags table buffer to identify the type of tags table.
 The functions are called in order, with no arguments,
 until one returns non-nil.  The function should make buffer-local bindings
 of the format-parsing tags function variables if successful.")
@@ -200,7 +202,7 @@ of the format-parsing tags function variables if successful.")
 (defvar tags-table-files-function nil
   "Function to do the work of `tags-table-files' (which see).")
 (defvar tags-completion-table-function nil
-  "Function to build the tags-completion-table.")
+  "Function to build the `tags-completion-table'.")
 (defvar snarf-tag-function nil
   "Function to get info about a matched tag for `goto-tag-location-function'.")
 (defvar goto-tag-location-function nil
@@ -240,11 +242,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
   ;; are global.
 
   ;; Value is t if we have found a valid tags table buffer.
-  (let ((hooks tags-table-format-hooks))
-    (while (and hooks
-		(not (funcall (car hooks))))
-      (setq hooks (cdr hooks)))
-    hooks))
+  (run-hook-with-args-until-success 'tags-table-format-hooks))
 
 ;;;###autoload
 (defun visit-tags-table (file &optional local)
@@ -886,7 +884,10 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (interactive (find-tag-interactive "Find tag: "))
-  (switch-to-buffer (find-tag-noselect tagname next-p regexp-p)))
+  (let ((buf (find-tag-noselect tagname next-p regexp-p)))
+    (condition-case nil
+	(switch-to-buffer buf)
+      (error (pop-to-buffer buf)))))
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
 ;;;###autoload
@@ -1629,7 +1630,7 @@ See documentation of variable `tags-file-name'."
 
 ;;;###autoload
 (defun tags-query-replace (from to &optional delimited file-list-form start end)
-  "Query-replace-regexp FROM with TO through all files listed in tags table.
+  "`Query-replace-regexp' FROM with TO through all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query-replace
 with the command \\[tags-loop-continue].
