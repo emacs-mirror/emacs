@@ -320,26 +320,27 @@ at the end of the buffer."
   "Non-nil if the character after point is visible."
   (not (get-char-property (point) 'invisible)))
 
-(defun outline-back-to-heading ()
+(defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
-Only visible heading lines are considered."
+Only visible heading lines are considered, unless INVISIBLE-OK is non-nil."
   (beginning-of-line)
-  (or (outline-on-heading-p)
+  (or (outline-on-heading-p t)
       (let (found)
 	(save-excursion
 	  (while (not found)
 	    (or (re-search-backward (concat "^\\(" outline-regexp "\\)")
 				    nil t)
 		(error "before first heading"))
-	    (setq found (and (outline-visible) (point)))))
+	    (setq found (and (or invisible-ok (outline-visible)) (point)))))
 	(goto-char found)
 	found)))
 
-(defun outline-on-heading-p ()
-  "Return t if point is on a (visible) heading line."
+(defun outline-on-heading-p (&optional invisible-ok)
+  "Return t if point is on a (visible) heading line.
+If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
   (save-excursion
     (beginning-of-line)
-    (and (bolp) (outline-visible)
+    (and (bolp) (or invisible-ok (outline-visible))
 	 (looking-at outline-regexp))))
 
 (defun outline-end-of-heading ()
@@ -455,10 +456,13 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
    (outline-flag-region (point) (progn (outline-next-preface) (point)) t)))
 
 (defun show-entry ()
-  "Show the body directly following this heading."
+  "Show the body directly following this heading.
+Show the heading too, if it is currently invisible."
   (interactive)
   (save-excursion
-   (outline-flag-region (point) (progn (outline-next-preface) (point)) nil)))
+    (outline-back-to-heading t)
+    (outline-flag-region (1- (point))
+			 (progn (outline-next-preface) (point)) nil)))
 
 (defun hide-body ()
   "Hide all of buffer except headings."
@@ -526,22 +530,16 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	(goto-char end)))))
 
 (defun hide-other ()
-  "Hide everything except for the current body and the parent headings."
+  "Hide everything except current body and parent and top-level headings."
   (interactive)
   (hide-sublevels 1)
-  (let ((last (point))
-	(pos (point)))
-    (while (save-excursion
-	     (and (end-of-line 0)
-		  (not (outline-visible))))
-      (save-excursion
-	(beginning-of-line)
-	(if (eq last (point))
-	    (progn
-	      (outline-next-heading)
-	      (outline-flag-region last (point) nil))
-	  (show-children)
-	  (setq last (point)))))))
+  (save-excursion
+    (outline-back-to-heading t)
+    (show-entry)
+    (while (condition-case nil (progn (outline-up-heading 1) t) (error nil))
+      (outline-flag-region (1- (point))
+			   (save-excursion (forward-line 1) (point))
+			   nil))))
 
 (defun outline-flag-subtree (flag)
   (save-excursion
