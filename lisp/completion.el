@@ -286,7 +286,7 @@
 
 (defcustom enable-completion t
   "*Non-nil means enable recording and saving of completions.
-If nil, no new words added to the database or saved to the init file."
+If nil, no new words are added to the database or saved to the init file."
   :type 'boolean
   :group 'completion)
 
@@ -413,21 +413,20 @@ Used to decide whether to save completions.")
 ;;-----------------------------------------------
 
 (defun cmpl-string-case-type (string)
-  "Returns :capitalized, :up, :down, :mixed, or :neither."
+  "Return :capitalized, :up, :down, :mixed, or :neither for case of STRING."
   (let ((case-fold-search nil))
-    (cond ((string-match "[a-z]" string)
-	   (cond ((string-match "[A-Z]" string)
+    (cond ((string-match "[[:lower:]]" string)
+	   (cond ((string-match "[[:upper:]]" string)
 		  (cond ((and (> (length string) 1)
-			      (null (string-match "[A-Z]" string 1)))
-			 ':capitalized)
+			      (null (string-match "[[:upper:]]" string 1)))
+			 :capitalized)
 			(t
-			 ':mixed)))
-		 (t ':down)))
+			 :mixed)))
+		 (t :down)))
 	  (t
-	   (cond ((string-match "[A-Z]" string)
-		  ':up)
-		 (t ':neither))))
-    ))
+	   (cond ((string-match "[[:upper:]]" string)
+		  :up)
+		 (t :neither))))))
 
 ;; Tests -
 ;; (cmpl-string-case-type "123ABCDEF456") --> :up
@@ -437,29 +436,25 @@ Used to decide whether to save completions.")
 ;; (cmpl-string-case-type "Abcde123")     --> :capitalized
 
 (defun cmpl-coerce-string-case (string case-type)
-  (cond ((eq case-type ':down) (downcase string))
-	((eq case-type ':up) (upcase string))
-	((eq case-type ':capitalized)
+  (cond ((eq case-type :down) (downcase string))
+	((eq case-type :up) (upcase string))
+	((eq case-type :capitalized)
 	 (setq string (downcase string))
 	 (aset string 0 (logand ?\337 (aref string 0)))
 	 string)
-	(t string)
-	))
+	(t string)))
 
 (defun cmpl-merge-string-cases (string-to-coerce given-string)
-  (let ((string-case-type (cmpl-string-case-type string-to-coerce))
-	)
+  (let ((string-case-type (cmpl-string-case-type string-to-coerce)))
     (cond ((memq string-case-type '(:down :up :capitalized))
 	   ;; Found string is in a standard case.  Coerce to a type based on
 	   ;; the given string
 	   (cmpl-coerce-string-case string-to-coerce
-			       (cmpl-string-case-type given-string))
-	   )
+			       (cmpl-string-case-type given-string)))
 	  (t
 	   ;; If the found string is in some unusual case, just insert it
 	   ;; as is
-	   string-to-coerce)
-	  )))
+	   string-to-coerce))))
 
 ;; Tests -
 ;; (cmpl-merge-string-cases "AbCdEf456" "abc")     --> AbCdEf456
@@ -546,38 +541,32 @@ Used to decide whether to save completions.")
       (setq i (1+ i)))
     ;; Other ones
     (let ((symbol-chars '(?@ ?/ ?\\ ?* ?+ ?~ ?$ ?< ?> ?%))
-	  (symbol-chars-ignore '(?_ ?- ?: ?.))
-	  )
+	  (symbol-chars-ignore '(?_ ?- ?: ?.)))
       (dolist (char symbol-chars)
 	(modify-syntax-entry char "_" table))
       (dolist (char symbol-chars-ignore)
-	(modify-syntax-entry char "w" table)
-	)
-      )
+	(modify-syntax-entry char "w" table)))
     table))
 
 (defconst cmpl-standard-syntax-table (cmpl-make-standard-completion-syntax-table))
 
 (defun cmpl-make-lisp-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
-	(symbol-chars '(?! ?& ?? ?= ?^))
-	)
+	(symbol-chars '(?! ?& ?? ?= ?^)))
     (dolist (char symbol-chars)
       (modify-syntax-entry char "_" table))
     table))
 	   
 (defun cmpl-make-c-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
-	(separator-chars '(?+ ?* ?/ ?: ?%))
-	)
+	(separator-chars '(?+ ?* ?/ ?: ?%)))
     (dolist (char separator-chars)
       (modify-syntax-entry char " " table))
     table))
 
 (defun cmpl-make-fortran-completion-syntax-table ()
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
-	(separator-chars '(?+ ?- ?* ?/ ?:))
-	)
+	(separator-chars '(?+ ?- ?* ?/ ?:)))
     (dolist (char separator-chars)
       (modify-syntax-entry char " " table))
     table))
@@ -620,15 +609,13 @@ But only if it is longer than `completion-min-length'."
 		  (goto-char cmpl-symbol-start)
 		  (forward-word 1)
 		  (setq cmpl-symbol-start (point))
-		  (goto-char cmpl-saved-point)
-		  ))
+		  (goto-char cmpl-saved-point)))
 	   ;; Remove chars to ignore at the end.
 	   (cond ((= (char-syntax (char-after (1- cmpl-symbol-end))) ?w)
 		  (goto-char cmpl-symbol-end)
 		  (forward-word -1)
 		  (setq cmpl-symbol-end (point))
-		  (goto-char cmpl-saved-point)
-		  ))
+		  (goto-char cmpl-saved-point)))
 	   ;; Return completion if the length is reasonable.
 	   (if (and (<= (cmpl-read-time-eval completion-min-length)
 			(- cmpl-symbol-end cmpl-symbol-start))
@@ -661,21 +648,18 @@ Returns nil if there isn't one longer than `completion-min-length'."
 	(cond ((= (setq cmpl-preceding-syntax (char-syntax (preceding-char))) ?_)
 	       ;; Number of chars to ignore at end.
 	       (setq cmpl-symbol-end (point)
-		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1)
-		     )
+		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1))
 	       ;; Remove chars to ignore at the start.
 	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
 		      (goto-char cmpl-symbol-start)
 		      (forward-word 1)
 		      (setq cmpl-symbol-start (point))
-		      (goto-char cmpl-symbol-end)
-		      ))
+		      (goto-char cmpl-symbol-end)))
 	       ;; Return value if long enough.
 	       (if (>= cmpl-symbol-end
 		       (+ cmpl-symbol-start
 			  (cmpl-read-time-eval completion-min-length)))
-		   (buffer-substring cmpl-symbol-start cmpl-symbol-end))
-	       )
+		   (buffer-substring cmpl-symbol-start cmpl-symbol-end)))
 	      ((= cmpl-preceding-syntax ?w)
 	       ;; chars to ignore at end
 	       (setq cmpl-saved-point (point)
@@ -687,8 +671,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
 	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
 		      (goto-char cmpl-symbol-start)
 		      (forward-word 1)
-		      (setq cmpl-symbol-start (point))
-		      ))
+		      (setq cmpl-symbol-start (point))))
 	       ;; Restore state.
 	       (goto-char cmpl-saved-point)
 	       ;; Return completion if the length is reasonable
@@ -743,15 +726,13 @@ Returns nil if there isn't one longer than `completion-min-length'."
 	(cond ((memq (setq cmpl-preceding-syntax (char-syntax (preceding-char)))
 		     '(?_ ?w))
 	       (setq cmpl-symbol-end (point)
-		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1)
-		     )
+		     cmpl-symbol-start (scan-sexps cmpl-symbol-end -1))
 	       ;; Remove chars to ignore at the start.
 	       (cond ((= (char-syntax (char-after cmpl-symbol-start)) ?w)
 		      (goto-char cmpl-symbol-start)
 		      (forward-word 1)
 		      (setq cmpl-symbol-start (point))
-		      (goto-char cmpl-symbol-end)
-		      ))
+		      (goto-char cmpl-symbol-end)))
 	       ;; Return completion if the length is reasonable.
 	       (if (and (<= (cmpl-read-time-eval
 			     completion-prefix-min-length)
@@ -857,25 +838,21 @@ INITIAL-COMPLETIONS-TRIED is a list of downcased strings to ignore
 during the search."
   (setq cdabbrev-abbrev-string abbrev-string
 	cdabbrev-completions-tried
-	(cons (downcase abbrev-string) initial-completions-tried)
-	)
-  (reset-cdabbrev-window t)
-  )
+	(cons (downcase abbrev-string) initial-completions-tried))
+  (reset-cdabbrev-window t))
 
 (defun set-cdabbrev-buffer ()
   ;; cdabbrev-current-window must not be NIL
   (set-buffer (if (eq cdabbrev-current-window t)
 		  (other-buffer)
-		  (window-buffer cdabbrev-current-window)))
-  )
+		  (window-buffer cdabbrev-current-window))))
 
 
 (defun reset-cdabbrev-window (&optional initializep)
   "Resets the cdabbrev search to search for abbrev-string."
   ;; Set the window
   (cond (initializep
-	 (setq cdabbrev-current-window (selected-window))
-	 )
+	 (setq cdabbrev-current-window (selected-window)))
 	((eq cdabbrev-current-window t)
 	 ;; Everything has failed
 	 (setq cdabbrev-current-window nil))
@@ -883,8 +860,7 @@ during the search."
 	 (setq cdabbrev-current-window (next-window cdabbrev-current-window))
 	 (if (eq cdabbrev-current-window (selected-window))
 	     ;; No more windows, try other buffer.
-	     (setq cdabbrev-current-window t)))
-	)
+	     (setq cdabbrev-current-window t))))
   (if cdabbrev-current-window
       (save-excursion
 	(set-cdabbrev-buffer)
@@ -895,8 +871,7 @@ during the search."
 		  (max (point-min)
 		       (- cdabbrev-start-point completion-search-distance))
 		  (point-min))
-	      cdabbrev-wrapped-p nil)
-	)))
+	      cdabbrev-wrapped-p nil))))
 
 (defun next-cdabbrev ()
   "Return the next possible cdabbrev expansion or nil if there isn't one.
@@ -938,8 +913,7 @@ This is sensitive to `case-fold-search'."
 				    (forward-word -1)
 				    (prog1
 				      (= (char-syntax (preceding-char)) ? )
-				      (goto-char saved-point-2)
-				      ))))
+				      (goto-char saved-point-2)))))
 			 ;; is the symbol long enough ?
 			 (setq expansion (symbol-under-point))
 			 ;; have we not tried this one before
@@ -951,14 +925,12 @@ This is sensitive to `case-fold-search'."
 				       (not (string-equal downcase-expansion
 							  (car tried-list))))
 			     ;; Already tried, don't choose this one
-			     (setq tried-list (cdr tried-list))
-			     )
+			     (setq tried-list (cdr tried-list)))
 			   ;; at this point tried-list will be nil if this
 			   ;; expansion has not yet been tried
 			   (if tried-list
 			       (setq expansion nil)
-			       t)
-			   ))))
+			       t)))))
 		      ;; search failed
 		      (cdabbrev-wrapped-p
 		       ;; If already wrapped, then we've failed completely
@@ -970,18 +942,15 @@ This is sensitive to `case-fold-search'."
 					    (min (point-max) (+ cdabbrev-start-point completion-search-distance))
 					    (point-max))))
 
-		       (setq cdabbrev-wrapped-p t))
-		      ))
+		       (setq cdabbrev-wrapped-p t))))
 		;; end of while loop
 		(cond (expansion
 		       ;; successful
 		       (setq cdabbrev-completions-tried
 			     (cons downcase-expansion cdabbrev-completions-tried)
-			     cdabbrev-current-point (point))))
-		)
+			     cdabbrev-current-point (point)))))
 	    (set-syntax-table saved-syntax)
-	    (goto-char saved-point)
-	    ))
+	    (goto-char saved-point)))
 	;; If no expansion, go to next window
 	(cond (expansion)
 	      (t (reset-cdabbrev-window)
@@ -1109,18 +1078,17 @@ Each symbol is bound to a single completion entry.")
 ;;-----------------------------------------------
 
 (defun clear-all-completions ()
-  "Initializes the completion storage.  All existing completions are lost."
+  "Initialize the completion storage.  All existing completions are lost."
   (interactive)
   (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
   (setq cmpl-obarray (make-vector cmpl-obarray-length 0))
   (cmpl-statistics-block
-    (record-clear-all-completions))
-  )
+    (record-clear-all-completions)))
 
 (defvar completions-list-return-value)
 
 (defun list-all-completions ()
-  "Returns a list of all the known completion entries."
+  "Return a list of all the known completion entries."
   (let ((completions-list-return-value nil))
     (mapatoms 'list-all-completions-1 cmpl-prefix-obarray)
     completions-list-return-value))
@@ -1168,16 +1136,15 @@ Each symbol is bound to a single completion entry.")
 
 ;; READS
 (defun find-exact-completion (string)
-  "Returns the completion entry for string or nil.
+  "Return the completion entry for STRING or nil.
 Sets up `cmpl-db-downcase-string' and `cmpl-db-symbol'."
   (and (boundp (setq cmpl-db-symbol
 		     (intern (setq cmpl-db-downcase-string (downcase string))
 			     cmpl-obarray)))
-       (symbol-value cmpl-db-symbol)
-       ))
+       (symbol-value cmpl-db-symbol)))
 
 (defun find-cmpl-prefix-entry (prefix-string)
-  "Returns the prefix entry for string.
+  "Return the prefix entry for string.
 Sets `cmpl-db-prefix-symbol'.
 Prefix-string must be exactly `completion-prefix-min-length' long
 and downcased.  Sets up `cmpl-db-prefix-symbol'."
@@ -1189,20 +1156,18 @@ and downcased.  Sets up `cmpl-db-prefix-symbol'."
 ;; used to trap lossage in silent error correction
 
 (defun locate-completion-entry (completion-entry prefix-entry)
-  "Locates the completion entry.
+  "Locate the completion entry.
 Returns a pointer to the element before the completion entry or nil if
 the completion entry is at the head.
 Must be called after `find-exact-completion'."
   (let ((prefix-list (cmpl-prefix-entry-head prefix-entry))
-	 next-prefix-list
-	 )
+	 next-prefix-list)
     (cond
       ((not (eq (car prefix-list) completion-entry))
        ;; not already at head
        (while (and prefix-list
 		   (not (eq completion-entry
-			    (car (setq next-prefix-list (cdr prefix-list)))
-			    )))
+			    (car (setq next-prefix-list (cdr prefix-list))))))
 	 (setq prefix-list next-prefix-list))
        (cond (;; found
 	      prefix-list)
@@ -1218,8 +1183,7 @@ Must be called after `find-exact-completion'."
 	       ;; Patch out
 	       (set cmpl-db-symbol nil)
 	       ;; Retry
-	       (locate-completion-entry-retry completion-entry)
-	       ))))))
+	       (locate-completion-entry-retry completion-entry)))))))
 
 (defun locate-completion-entry-retry (old-entry)
   (let ((inside-locate-completion-entry t))
@@ -1231,19 +1195,16 @@ Must be called after `find-exact-completion'."
 	    (if cmpl-entry
 		(find-cmpl-prefix-entry
 		  (substring cmpl-db-downcase-string
-			     0 completion-prefix-min-length))))
-	  )
+			     0 completion-prefix-min-length)))))
       (if (and cmpl-entry pref-entry)
 	  ;; try again
 	  (locate-completion-entry cmpl-entry pref-entry)
 	  ;; still losing
-	  (locate-completion-db-error))
-      )))
+	  (locate-completion-db-error)))))
 
 (defun locate-completion-db-error ()
   ;; recursive error: really scrod
-  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report.")
-  )
+  (error "Completion database corrupted.  Try M-x clear-all-completions.  Send bug report."))
 
 ;; WRITES
 (defun add-completion-to-tail-if-new (string)
@@ -1261,8 +1222,7 @@ Returns the completion entry."
 	    (prefix-entry (find-cmpl-prefix-entry
 			    (substring cmpl-db-downcase-string 0
 				       (cmpl-read-time-eval
-					completion-prefix-min-length))))
-	    )
+					completion-prefix-min-length)))))
 	;; The next two forms should happen as a unit (atomically) but
 	;; no fatal errors should result if that is not the case.
 	(cond (prefix-entry
@@ -1271,14 +1231,12 @@ Returns the completion entry."
 	       (setcdr (cmpl-prefix-entry-tail prefix-entry) entry)
 	       (set-cmpl-prefix-entry-tail prefix-entry entry))
 	      (t
-	       (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))
-	       ))
+	       (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))))
 	;; statistics
 	(cmpl-statistics-block
 	  (note-added-completion))
 	;; set symbol
-	(set cmpl-db-symbol (car entry))
-	)))
+	(set cmpl-db-symbol (car entry)))))
 
 (defun add-completion-to-head (completion-string)
   "If COMPLETION-STRING is not in the database, add it to prefix list.
@@ -1298,8 +1256,7 @@ Returns the completion entry."
 					(cmpl-read-time-eval
 					 completion-prefix-min-length))))
 	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
-	     (cmpl-ptr (cdr splice-ptr))
-	     )
+	     (cmpl-ptr (cdr splice-ptr)))
 	;; update entry
 	(set-completion-string cmpl-db-entry completion-string)
 	;; move to head (if necessary)
@@ -1312,8 +1269,7 @@ Returns the completion entry."
 		   (set-cmpl-prefix-entry-tail prefix-entry splice-ptr))
 	       ;; splice in at head
 	       (setcdr cmpl-ptr (cmpl-prefix-entry-head prefix-entry))
-	       (set-cmpl-prefix-entry-head prefix-entry cmpl-ptr)
-	       ))
+	       (set-cmpl-prefix-entry-head prefix-entry cmpl-ptr)))
 	cmpl-db-entry)
     ;; not there
     (let (;; create an entry
@@ -1322,25 +1278,22 @@ Returns the completion entry."
 	  (prefix-entry (find-cmpl-prefix-entry
 			  (substring cmpl-db-downcase-string 0
 				     (cmpl-read-time-eval
-				      completion-prefix-min-length))))
-	  )
+				      completion-prefix-min-length)))))
       (cond (prefix-entry
 	     ;; Splice in at head
 	     (setcdr entry (cmpl-prefix-entry-head prefix-entry))
 	     (set-cmpl-prefix-entry-head prefix-entry entry))
 	    (t
 	     ;; Start new prefix entry
-	     (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))
-	     ))
+	     (set cmpl-db-prefix-symbol (make-cmpl-prefix-entry entry))))
       ;; statistics
       (cmpl-statistics-block
 	(note-added-completion))
       ;; Add it to the symbol
-      (set cmpl-db-symbol (car entry))
-      )))
+      (set cmpl-db-symbol (car entry)))))
       
 (defun delete-completion (completion-string)
-  "Deletes the completion from the database.
+  "Delete the completion from the database.
 String must be longer than `completion-prefix-min-length'."
   ;; Handle pending acceptance
   (if completion-to-accept (accept-completion))
@@ -1350,8 +1303,7 @@ String must be longer than `completion-prefix-min-length'."
 			     (substring cmpl-db-downcase-string 0
 					(cmpl-read-time-eval
 					 completion-prefix-min-length))))
-	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry))
-	     )
+	     (splice-ptr (locate-completion-entry cmpl-db-entry prefix-entry)))
 	 ;; delete symbol reference
 	 (set cmpl-db-symbol nil)
 	 ;; remove from prefix list
@@ -1359,20 +1311,16 @@ String must be longer than `completion-prefix-min-length'."
 		;; not at head
 		(or (setcdr splice-ptr (cdr (cdr splice-ptr)))
 		    ;; fix up tail if necessary
-		    (set-cmpl-prefix-entry-tail prefix-entry splice-ptr))
-		)
+		    (set-cmpl-prefix-entry-tail prefix-entry splice-ptr)))
 	       (t
 		;; at head
 		(or (set-cmpl-prefix-entry-head
 		      prefix-entry (cdr (cmpl-prefix-entry-head prefix-entry)))
 		    ;; List is now empty
-		    (set cmpl-db-prefix-symbol nil))
-		))
+		    (set cmpl-db-prefix-symbol nil))))
 	 (cmpl-statistics-block
-	   (note-completion-deleted))
-	 )
-      (error "Unknown completion `%s'" completion-string)
-      ))
+	   (note-completion-deleted)))
+      (error "Unknown completion `%s'" completion-string)))
 
 ;; Tests --
 ;;  - Add and Find -
@@ -1427,13 +1375,10 @@ String must be longer than `completion-prefix-min-length'."
 	 (new-prompt
 	  (if default
 	      (format "%s: (default: %s) " prompt default)
-	      (format "%s: " prompt))
-	   )
-	 (read (completing-read new-prompt cmpl-obarray))
-	 )
+	      (format "%s: " prompt)))
+	 (read (completing-read new-prompt cmpl-obarray)))
     (if (zerop (length read)) (setq read (or default "")))
-    (list read)
-    ))
+    (list read)))
 
 (defun check-completion-length (string)
   (if (< (length string) completion-min-length)
@@ -1454,8 +1399,7 @@ specified."
     
     (if num-uses (set-completion-num-uses entry num-uses))
     (if last-use-time
-	(set-completion-last-use-time entry last-use-time))
-    ))
+	(set-completion-last-use-time entry last-use-time))))
 
 (defun add-permanent-completion (string)
   "Add STRING if it isn't already listed, and mark it permanent."
@@ -1463,16 +1407,13 @@ specified."
     (interactive-completion-string-reader "Completion to add permanently"))
   (let ((current-completion-source (if (interactive-p)
 				       cmpl-source-interactive
-				       current-completion-source))
-	)
-    (add-completion string nil t)
-    ))
+				       current-completion-source)))
+    (add-completion string nil t)))
 
 (defun kill-completion (string)
   (interactive (interactive-completion-string-reader "Completion to kill"))
   (check-completion-length string)
-  (delete-completion string)
-  )
+  (delete-completion string))
 
 (defun accept-completion ()
   "Accepts the pending completion in `completion-to-accept'.
@@ -1481,13 +1422,11 @@ This bumps num-uses.  Called by `add-completion-to-head' and
   (let ((string completion-to-accept)
 	;; if this is added afresh here, then it must be a cdabbrev
 	(current-completion-source cmpl-source-cdabbrev)
-	entry
-	)
+	entry)
     (setq completion-to-accept nil)
     (setq entry (add-completion-to-head string))
     (set-completion-num-uses entry (1+ (completion-num-uses entry)))
-    (setq cmpl-completions-accepted-p t)
-    ))
+    (setq cmpl-completions-accepted-p t)))
 
 (defun use-completion-under-point ()
   "Add the completion symbol underneath the point into the completion buffer."
@@ -1515,16 +1454,14 @@ Completions added this way will automatically be saved if
 	(current-completion-source cmpl-source-separator)
 	entry)
     (cmpl-statistics-block
-      (note-separator-character string)
-      )
+      (note-separator-character string))
     (cond (string
 	   (setq entry (add-completion-to-head string))
 	   (if (and completion-on-separator-character
 		      (zerop (completion-num-uses entry)))
 	       (progn
 		 (set-completion-num-uses entry 1)
-		 (setq cmpl-completions-accepted-p t)))))
-    ))
+		 (setq cmpl-completions-accepted-p t)))))))
 
 ;; Tests --
 ;;  - Add and Find -
@@ -1589,16 +1526,14 @@ STRING must be longer than `completion-prefix-min-length'."
 	   (downcase (substring string 0 completion-prefix-min-length))))
 	cmpl-test-string string
 	cmpl-test-regexp (concat (regexp-quote string) "."))
-  (completion-search-reset-1)
-  )
+  (completion-search-reset-1))
 
 (defun completion-search-reset-1 ()
   (setq cmpl-next-possibilities cmpl-starting-possibilities
 	cmpl-next-possibility   nil
 	cmpl-cdabbrev-reset-p nil
 	cmpl-last-index -1
-	cmpl-tried-list nil
-	))
+	cmpl-tried-list nil))
 
 (defun completion-search-next (index)
   "Return the next completion entry.
@@ -1615,8 +1550,7 @@ If there are no more entries, try cdabbrev and returns only a string."
      ;; do a "normal" search
      (while (and (completion-search-peek nil)
 		 (< (setq index (1+ index)) 0))
-       (setq cmpl-next-possibility nil)
-       )
+       (setq cmpl-next-possibility nil))
      (cond ((not cmpl-next-possibilities))
 	    ;; If no more possibilities, leave it that way
 	   ((= -1 cmpl-last-index)
@@ -1628,8 +1562,7 @@ If there are no more entries, try cdabbrev and returns only a string."
 	    (setq cmpl-next-possibilities
 		  (nthcdr (- (length cmpl-starting-possibilities)
 			     (length cmpl-next-possibilities))
-			  cmpl-starting-possibilities))
-	    )))
+			  cmpl-starting-possibilities)))))
     (t
      ;; non-negative index, reset and search
      ;;(prin1 'reset)
@@ -1637,13 +1570,10 @@ If there are no more entries, try cdabbrev and returns only a string."
      (setq cmpl-last-index index)
      (while (and (completion-search-peek t)
 		 (not (< (setq index (1- index)) 0)))
-       (setq cmpl-next-possibility nil)
-       ))
-    )
+       (setq cmpl-next-possibility nil))))
   (prog1
       cmpl-next-possibility
-    (setq cmpl-next-possibility nil)
-    ))
+    (setq cmpl-next-possibility nil)))
       
 
 (defun completion-search-peek (use-cdabbrev)
@@ -1660,25 +1590,20 @@ If there are no more entries, try cdabbrev and then return only a string."
 	    (while
 		(and (not (eq 0 (string-match cmpl-test-regexp
 					      (completion-string (car cmpl-next-possibilities)))))
-		     (setq cmpl-next-possibilities (cdr cmpl-next-possibilities))
-		     ))
-	    cmpl-next-possibilities
-	    ))
+		     (setq cmpl-next-possibilities (cdr cmpl-next-possibilities))))
+	    cmpl-next-possibilities))
      ;; successful match
      (setq cmpl-next-possibility (car cmpl-next-possibilities)
 	   cmpl-tried-list (cons (downcase (completion-string cmpl-next-possibility))
 				 cmpl-tried-list)
-	   cmpl-next-possibilities (cdr cmpl-next-possibilities)
-	   )
+	   cmpl-next-possibilities (cdr cmpl-next-possibilities))
      cmpl-next-possibility)
     (use-cdabbrev
      ;; unsuccessful, use cdabbrev
      (cond ((not cmpl-cdabbrev-reset-p)
 	    (reset-cdabbrev cmpl-test-string cmpl-tried-list)
-	    (setq cmpl-cdabbrev-reset-p t)
-	    ))
-     (setq cmpl-next-possibility (next-cdabbrev))
-     )
+	    (setq cmpl-cdabbrev-reset-p t)))
+     (setq cmpl-next-possibility (next-cdabbrev)))
     ;; Completely unsuccessful, return nil
     ))
 
@@ -1728,11 +1653,10 @@ If there are no more entries, try cdabbrev and then return only a string."
 ;;-----------------------------------------------
 
 (defun completion-mode ()
-  "Toggles whether or not to add new words to the completion database."
+  "Toggle whether or not to add new words to the completion database."
   (interactive)
   (setq enable-completion (not enable-completion))
-  (message "Completion mode is now %s." (if enable-completion "ON" "OFF"))
-  )
+  (message "Completion mode is now %s." (if enable-completion "ON" "OFF")))
 	
 (defvar cmpl-current-index 0)
 (defvar cmpl-original-string nil)
@@ -1754,18 +1678,15 @@ Prefix args ::
 	 ;; Undo last one
 	 (delete-region cmpl-last-insert-location (point))
 	 ;; get next completion
-	 (setq cmpl-current-index (+ cmpl-current-index (or arg 1)))
-	 )
+	 (setq cmpl-current-index (+ cmpl-current-index (or arg 1))))
 	(t
 	 (if (not cmpl-initialized-p)
 	     (initialize-completions)) ;; make sure everything's loaded
 	 (cond ((consp current-prefix-arg) ;; control-u
 		(setq arg 0)
-		(setq cmpl-leave-point-at-start t)
-		)
+		(setq cmpl-leave-point-at-start t))
 	       (t
-		(setq cmpl-leave-point-at-start nil)
-		))
+		(setq cmpl-leave-point-at-start nil)))
 	 ;; get string
 	 (setq cmpl-original-string (symbol-before-point-for-complete))
 	 (cond ((not cmpl-original-string)
@@ -1780,8 +1701,7 @@ Prefix args ::
 	 ;; reset database
 	 (completion-search-reset cmpl-original-string)
 	 ;; erase what we've got
-	 (delete-region cmpl-symbol-start cmpl-symbol-end)
-	 ))
+	 (delete-region cmpl-symbol-start cmpl-symbol-end)))
 
   ;; point is at the point to insert the new symbol
   ;; Get the next completion
@@ -1790,8 +1710,7 @@ Prefix args ::
 	       (not (minibuffer-window-selected-p))))
 	 (insert-point (point))
 	 (entry (completion-search-next cmpl-current-index))
-	 string
-	 )
+	 string)
     ;; entry is either a completion entry or a string (if cdabbrev)
 
     ;; If found, insert
@@ -1810,8 +1729,7 @@ Prefix args ::
 		  (setq cmpl-last-insert-location (point))
 		  (goto-char insert-point))
 		 (t;; point at end,
-		  (setq cmpl-last-insert-location insert-point))
-		 )
+		  (setq cmpl-last-insert-location insert-point)))
 	   ;; statistics
 	   (cmpl-statistics-block
 	     (note-complete-inserted entry cmpl-current-index))
@@ -1829,9 +1747,7 @@ Prefix args ::
 			       entry (completion-string entry)))
 	      (setq string (cmpl-merge-string-cases
 			     string cmpl-original-string))
-	      (message "Next completion: %s" string)
-	      ))
-	   )
+	      (message "Next completion: %s" string))))
 	  (t;; none found, insert old 
 	   (insert cmpl-original-string)
 	   ;; Don't accept completions
@@ -1846,8 +1762,7 @@ Prefix args ::
 	   (cmpl-statistics-block
 	     (record-complete-failed cmpl-current-index))
 	   ;; Pretend that we were never here
-	   (setq this-command 'failed-complete)
-	   ))))
+	   (setq this-command 'failed-complete)))))
 
 ;;---------------------------------------------------------------------------
 ;; Parsing definitions from files into the database
@@ -1859,20 +1774,18 @@ Prefix args ::
 
 ;; User interface
 (defun add-completions-from-file (file)
-  "Parse possible completions from a file and add them to data base."
+  "Parse possible completions from a FILE and add them to data base."
   (interactive "fFile: ")
   (setq file (expand-file-name file))
   (let* ((buffer (get-file-buffer file))
-	 (buffer-already-there-p buffer)
-	 )
+	 (buffer-already-there-p buffer))
     (if (not buffer-already-there-p)
 	(let ((completions-merging-modes nil))
 	  (setq buffer (find-file-noselect file))))
     (unwind-protect
 	 (save-excursion
 	   (set-buffer buffer)
-	   (add-completions-from-buffer)
-	   )
+	   (add-completions-from-buffer))
       (if (not buffer-already-there-p)
 	  (kill-buffer buffer)))))
 
@@ -1882,40 +1795,31 @@ Prefix args ::
 	(start-num
 	 (cmpl-statistics-block
 	  (aref completion-add-count-vector cmpl-source-file-parsing)))
-	mode
-	)
+	mode)
     (cond ((memq major-mode '(emacs-lisp-mode lisp-mode))
 	   (add-completions-from-lisp-buffer)
-	   (setq mode 'lisp)
-	   )
+	   (setq mode 'lisp))
 	  ((memq major-mode '(c-mode))
 	   (add-completions-from-c-buffer)
-	   (setq mode 'c)
-	   )
+	   (setq mode 'c))
 	  (t
 	   (error "Cannot parse completions in %s buffers"
-		  major-mode)
-	   ))
+		  major-mode)))
     (cmpl-statistics-block
       (record-cmpl-parse-file
 	mode (point-max)
 	(- (aref completion-add-count-vector cmpl-source-file-parsing)
-	   start-num)))
-    ))
+	   start-num)))))
 
 ;; Find file hook
 (defun cmpl-find-file-hook ()
   (cond (enable-completion
 	 (cond ((and (memq major-mode '(emacs-lisp-mode lisp-mode))
-		     (memq 'lisp completions-merging-modes)
-		     )
+		     (memq 'lisp completions-merging-modes))
 		(add-completions-from-buffer))
 	       ((and (memq major-mode '(c-mode))
-		     (memq 'c completions-merging-modes)
-		     )
-		(add-completions-from-buffer)
-		)))
-	))
+		     (memq 'c completions-merging-modes))
+		(add-completions-from-buffer))))))
 
 ;;-----------------------------------------------
 ;; Tags Table Completions
@@ -1935,10 +1839,8 @@ Prefix args ::
 	     (backward-char 3)
 	     (and (setq string (symbol-under-point))
 		  (add-completion-to-tail-if-new string))
-	     (forward-char 3)
-	     )
-	 (search-failed)
-	 ))))
+	     (forward-char 3))
+	 (search-failed)))))
 
 
 ;;-----------------------------------------------
@@ -1952,8 +1854,7 @@ Prefix args ::
 ;;
 (defconst *lisp-def-regexp*
   "\n(\\(\\w*:\\)?def\\(\\w\\|\\s_\\)*\\s +(*"
-  "A regexp that searches for lisp definition form."
-  )
+  "A regexp that searches for Lisp definition form.")
 
 ;; Tests -
 ;;  (and (string-match *lisp-def-regexp* "\n(defun foo") (match-end 0)) -> 8
@@ -1973,10 +1874,8 @@ Prefix args ::
 	   (while t
 	     (re-search-forward *lisp-def-regexp*)
 	     (and (setq string (symbol-under-point))
-		  (add-completion-to-tail-if-new string))
-	     )
-	 (search-failed)
-	 ))))
+		  (add-completion-to-tail-if-new string)))
+	 (search-failed)))))
 
 
 ;;-----------------------------------------------
@@ -2000,8 +1899,7 @@ Prefix args ::
   (let ((table (make-syntax-table))
 	(whitespace-chars '(?  ?\n ?\t ?\f  ?\v ?\r))
 	;; unfortunately the ?( causes the parens to appear unbalanced
-	(separator-chars '(?, ?* ?= ?\( ?\;
-			   ))
+	(separator-chars '(?, ?* ?= ?\( ?\;))
 	i)
     ;; default syntax is whitespace
     (setq i 0)
@@ -2030,8 +1928,7 @@ Prefix args ::
   ;;"\n\\(\\(\\w\\|\\s_\\)+\\s *(\\|\\(\\(#define\\|auto\\|extern\\|register\\|static\\|int\\|long\\|short\\|unsigned\\|char\\|void\\|float\\|double\\|enum\\|struct\\|union\\|typedef\\)\\s +\\)+\\)"
   ;; this simple version picks up too much extraneous stuff
   ;; "\n\\(\\w\\|\\s_\\|#\\)\\B"
-  "A regexp that searches for a definition form."
-  )
+  "A regexp that searches for a definition form.")
 ;
 ;(defconst *c-cont-regexp*
 ;  "\\(\\w\\|\\s_\\)+\\b\\s *\\({\\|\\(\\[[0-9\t ]*\\]\\s *\\)*,\\(*\\|\\s \\)*\\b\\)"
@@ -2065,8 +1962,7 @@ Prefix args ::
   ;;  Sun 3/280-- 1250 lines/sec.
 
   (let (string next-point char
-	(saved-syntax (syntax-table))
-	)
+	(saved-syntax (syntax-table)))
     (save-excursion
       (goto-char (point-min))
       (catch 'finish-add-completions
@@ -2083,31 +1979,27 @@ Prefix args ::
 			 ;; preprocessor macro, see if it's one we handle
 			 (setq string (buffer-substring (point) (+ (point) 6)))
 			 (cond ((or (string-equal string "define")
-				    (string-equal string "ifdef ")
-				    )
+				    (string-equal string "ifdef "))
 				;; skip forward over definition symbol
 				;; and add it to database
 				(and (forward-word 2)
 				     (setq string (symbol-before-point))
 				     ;;(push string foo)
-				     (add-completion-to-tail-if-new string)
-				     ))))
+				     (add-completion-to-tail-if-new string)))))
 			(t
 			 ;; C definition
 			 (setq next-point (point))
 			 (while (and
 				  next-point
 				  ;; scan to next separator char.
-				  (setq next-point (scan-sexps next-point 1))
-				  )
+				  (setq next-point (scan-sexps next-point 1)))
 			   ;; position the point on the word we want to add
 			   (goto-char next-point)
 			   (while (= (setq char (following-char)) ?*)
 			     ;; handle pointer ref
 			     ;; move to next separator char.
 			     (goto-char
-			       (setq next-point (scan-sexps (point) 1)))
-			     )
+			       (setq next-point (scan-sexps (point) 1))))
 			   (forward-word -1)
 			   ;; add to database
 			   (if (setq string (symbol-under-point))
@@ -2118,11 +2010,8 @@ Prefix args ::
 					(progn
 					  (forward-word -1)
 					  (setq string
-						(symbol-under-point))
-					  ))
-				   (add-completion-to-tail-if-new string)
-				   )
-			       )
+						(symbol-under-point))))
+				   (add-completion-to-tail-if-new string)))
 			   ;; go to next
 			   (goto-char next-point)
 			   ;; (push (format "%c" (following-char)) foo)
@@ -2130,16 +2019,12 @@ Prefix args ::
 			       ;; if on an opening delimiter, go to end
 			       (while (= (char-syntax char) ?\()
 				 (setq next-point (scan-sexps next-point 1)
-				       char (char-after next-point))
-				 )
+				       char (char-after next-point)))
 			       (or (= char ?,)
 				   ;; Current char is an end char.
-				   (setq next-point nil)
-				   ))
-			   ))))
+				   (setq next-point nil)))))))
 		  (search-failed ;;done
-		    (throw 'finish-add-completions t)
-		    )
+		    (throw 'finish-add-completions t))
 		  (error
 		    ;; Check for failure in scan-sexps
 		    (if (or (string-equal (nth 1 e)
@@ -2149,11 +2034,8 @@ Prefix args ::
 			;;(ding)
 			(forward-line 1)
 			(message "Error parsing C buffer for completions--please send bug report")
-			(throw 'finish-add-completions t)
-			))
-		  ))
-	  (set-syntax-table saved-syntax)
-	  )))))
+			(throw 'finish-add-completions t)))))
+	  (set-syntax-table saved-syntax))))))
 
 
 ;;---------------------------------------------------------------------------
@@ -2206,8 +2088,7 @@ If file name is not specified, use `save-completions-file-name'."
 	       (total-in-db 0)
 	       (total-perm 0)
 	       (total-saved 0)
-	       (backup-filename (completion-backup-filename filename))
-	       )
+	       (backup-filename (completion-backup-filename filename)))
     
 	  (save-excursion
 	    (get-buffer-create " *completion-save-buffer*")
@@ -2244,13 +2125,11 @@ If file name is not specified, use `save-completions-file-name'."
 			     (or (not save-completions-retention-time)
 				 ;; or time since last use is < ...retention-time*
 				 (< (- current-time last-use-time)
-				    save-completions-retention-time))
-			     )))
+				    save-completions-retention-time)))))
 		     ;; write to file
 		     (setq total-saved (1+ total-saved))
 		     (insert (prin1-to-string (cons (completion-string completion)
-						    last-use-time)) "\n")
-		     )))
+						    last-use-time)) "\n"))))
 	
 	    ;; write the buffer
 	    (condition-case e
@@ -2275,14 +2154,11 @@ If file name is not specified, use `save-completions-file-name'."
 		      (delete-file backup-filename)))
 	      (error
 	       (set-buffer-modified-p nil)
-	       (message "Couldn't save completion file `%s'" filename)
-	       ))
+	       (message "Couldn't save completion file `%s'" filename)))
 	    ;; Reset accepted-p flag
-	    (setq cmpl-completions-accepted-p nil) 
-	    )
+	    (setq cmpl-completions-accepted-p nil) )
 	  (cmpl-statistics-block
-	   (record-save-completions total-in-db total-perm total-saved))
-	  ))))
+	   (record-save-completions total-in-db total-perm total-saved))))))
 
 ;;(defun auto-save-completions ()
 ;;  (if (and save-completions-flag enable-completion cmpl-initialized-p
@@ -2294,13 +2170,12 @@ If file name is not specified, use `save-completions-file-name'."
 ;;(add-hook 'cmpl-emacs-idle-time-hooks 'auto-save-completions)
 
 (defun load-completions-from-file (&optional filename no-message-p)
-  "Loads a completion init file FILENAME.
+  "Load a completion init file FILENAME.
 If file is not specified, then use `save-completions-file-name'."
   (interactive)
   (setq filename (expand-file-name (or filename save-completions-file-name)))
   (let* ((backup-filename (completion-backup-filename filename))
-	 (backup-readable-p (file-readable-p backup-filename))
-	 )
+	 (backup-readable-p (file-readable-p backup-filename)))
     (if backup-readable-p (setq filename backup-filename))
     (if (file-readable-p filename)
 	(progn
@@ -2324,8 +2199,7 @@ If file is not specified, then use `save-completions-file-name'."
 		  (start-num
 		   (cmpl-statistics-block
 		    (aref completion-add-count-vector cmpl-source-file-parsing)))
-		  (total-in-file 0) (total-perm 0)
-		  )
+		  (total-in-file 0) (total-perm 0))
 	      ;; insert the file into a buffer
 	      (condition-case e
 		  (progn (insert-file-contents filename t)
@@ -2353,61 +2227,50 @@ If file is not specified, then use `save-completions-file-name'."
 				   (setq last-use-time t))
 				  ((eq last-use-time t)
 				   (setq total-perm (1+ total-perm)))
-				  ((integerp last-use-time))
-				  ))
+				  ((integerp last-use-time))))
 			    ;; Valid entry
 			    ;; add it in
 			    (setq cmpl-last-use-time
 				  (completion-last-use-time
 				   (setq cmpl-entry
-					 (add-completion-to-tail-if-new string))
-				   ))
+					 (add-completion-to-tail-if-new string))))
 			    (if (or (eq last-use-time t) 
 				    (and (> last-use-time 1000);;backcompatibility
 					 (not (eq cmpl-last-use-time t))
 					 (or (not cmpl-last-use-time)
 					     ;; more recent
-					     (> last-use-time  cmpl-last-use-time))
-					 ))
+					     (> last-use-time  cmpl-last-use-time))))
 				;; update last-use-time
-				(set-completion-last-use-time cmpl-entry last-use-time)
-			      ))
+				(set-completion-last-use-time cmpl-entry last-use-time)))
 			   (t
 			    ;; Bad format
 			    (message "Error: invalid saved completion - %s"
 				     (prin1-to-string entry))
 			    ;; try to get back in sync
-			    (search-forward "\n(")
-			    )))
+			    (search-forward "\n("))))
 		      (search-failed
-		       (message "End of file while reading completions.")
-		       )
+		       (message "End of file while reading completions."))
 		      (end-of-file
 		       (if (= (point) (point-max))
 			   (if (not no-message-p)
 			       (message "Loading completions from file %s . . . Done."
 					filename))
-			 (message "End of file while reading completions.")
-			 ))
-		      )))
+			 (message "End of file while reading completions."))))))
 
 	      (cmpl-statistics-block
 	       (record-load-completions
 		total-in-file total-perm
 		(- (aref completion-add-count-vector cmpl-source-init-file)
 		   start-num)))
-
-	      ))))))
+))))))
 
 (defun initialize-completions ()
   "Load the default completions file.
 Also sets up so that exiting emacs will automatically save the file."
   (interactive)
   (cond ((not cmpl-initialized-p)
-	 (load-completions-from-file)
-	 ))
-  (setq cmpl-initialized-p t)
-  )
+	 (load-completions-from-file)))
+  (setq cmpl-initialized-p t))
 
 ;;-----------------------------------------------
 ;; Kill region patch
@@ -2454,16 +2317,14 @@ Patched to remove the most recent completion."
 (defun completion-separator-self-insert-command (arg)
   (interactive "p")
   (use-completion-before-separator)
-  (self-insert-command arg)
-  )
+  (self-insert-command arg))
 
 (defun completion-separator-self-insert-autofilling (arg)
   (interactive "p")
   (use-completion-before-separator)
   (self-insert-command arg)
   (and auto-fill-function
-       (funcall auto-fill-function))
-  )
+       (funcall auto-fill-function)))
 
 ;;-----------------------------------------------
 ;; Wrapping Macro
@@ -2475,25 +2336,25 @@ Patched to remove the most recent completion."
 (defmacro def-completion-wrapper (function-name type &optional new-name)
   "Add a call to update the completion database before function execution.
 TYPE is the type of the wrapper to be added.  Can be :before or :under."
-  (cond ((eq type ':separator)
+  (cond ((eq type :separator)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-before-separator))
-	((eq type ':before)
+	((eq type :before)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-before-point))
-	((eq type ':backward-under)
+	((eq type :backward-under)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-backward-under))
-	((eq type ':backward)
+	((eq type :backward)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-backward))
-	((eq type ':under)
+	((eq type :under)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-under-point))
-	((eq type ':under-or-before)
+	((eq type :under-or-before)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-under-or-before-point))
-	((eq type ':minibuffer-separator)
+	((eq type :minibuffer-separator)
 	 (list 'put (list 'quote function-name) ''completion-function
 	       ''use-completion-minibuffer-separator))))
 
@@ -2533,8 +2394,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (define-key fortran-mode-map "+" 'completion-separator-self-insert-command)
   (define-key fortran-mode-map "-" 'completion-separator-self-insert-command)
   (define-key fortran-mode-map "*" 'completion-separator-self-insert-command)
-  (define-key fortran-mode-map "/" 'completion-separator-self-insert-command)
-  )
+  (define-key fortran-mode-map "/" 'completion-separator-self-insert-command))
 
 ;;; Enable completion mode.
   
@@ -2670,6 +2530,11 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
    (record-completion-file-loaded))
 
   (initialize-completions))
+
+(mapc (lambda (x)
+	(add-to-list 'debug-ignored-errors x))
+      '("^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
+	"^The string \".*\" is too short to be saved as a completion\\.$"))
 
 (provide 'completion)
 
