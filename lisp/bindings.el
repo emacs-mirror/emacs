@@ -237,7 +237,7 @@ Menu of mode operations in the mode line.")
       (define-key map [overwrite-mode]
 	'(menu-item "Overwrite" overwrite-mode
 		    :active t :style toggle :selected overwrite-mode))
-      (setq mode-line-mode-menu map)
+      (setq mode-line-mode-menu (copy-keymap map))
       (defun mode-line-mode-menu (event)
 	(interactive "@e")
 	(x-popup-menu event mode-line-mode-menu)))
