@@ -246,7 +246,8 @@ read_c_string_or_comment (infile, printflag, comment)
 	  c = getc (infile);
 	}
 
-      c = getc (infile);
+      if (c != EOF)
+	c = getc (infile);
 
       if (comment)
 	{
@@ -255,6 +256,11 @@ read_c_string_or_comment (infile, printflag, comment)
 	      c = getc (infile);
 	      break;
 	    }
+	  
+	  if (printflag > 0)
+	    putc ('*', outfile);
+	  else if (printflag < 0)
+	    *p++ = '*';
 	}
       else
 	{
