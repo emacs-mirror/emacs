@@ -126,6 +126,12 @@ char pot_etags_version[] = "@(#) pot revision number is 14.13";
 #include <sys/types.h>
 #include <sys/stat.h>
 
+/* Work around bug in Mingw assert.h.  */
+#if defined (__MINGW32__) && defined(NDEBUG) && defined (assert)
+#undef assert
+#define assert(x) ((void) 0)
+#endif
+
 #if !defined (S_ISREG) && defined (S_IFREG)
 # define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
