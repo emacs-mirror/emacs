@@ -415,13 +415,15 @@ Otherwise, the value is whatever the function
 ;; buttons
 (define-button-type 'Man-xref-man-page
   'action (lambda (button) (man-follow (button-label button)))
-  'help-echo "RET, mouse-2: display this man page")
+  'follow-link t
+  'help-echo "mouse-2, RET: display this man page")
 
 (define-button-type 'Man-xref-header-file
     'action (lambda (button)
               (let ((w (button-get button 'Man-target-string)))
                 (unless (Man-view-header-file w)
                   (error "Cannot find header file: %s" w))))
+    'follow-link t
     'help-echo "mouse-2: display this header file")
 
 (define-button-type 'Man-xref-normal-file
@@ -433,6 +435,7 @@ Otherwise, the value is whatever the function
 		      (view-file f)
 		    (error "Cannot read a file: %s" f))
 		(error "Cannot find a file: %s" f))))
+  'follow-link t
   'help-echo "mouse-2: display this file")
 
 
