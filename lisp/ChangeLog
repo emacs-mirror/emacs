@@ -1,3 +1,9 @@
+2002-11-20   Markus Rost  <rost@math.ohio-state.edu>
+
+	* Makefile.in (setwins_almost): Renamed from finder_setwins.
+	(custom-deps): Use it.
+	(finder-data): Adjust to that name change.
+
 2002-11-19  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/bytecomp.el (maphash, map-char-table): Use
@@ -119,7 +125,7 @@
 	* emacs-lisp/autoload.el (update-autoloads-from-directories):
 	Sort the list of files with no autoloads.
 
-2002-08-23  Alan Shutko  <ats@acm.org>
+2002-11-16  Alan Shutko  <ats@acm.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Pass a marker
 	indicating source of entry to add-to-diary-list.
