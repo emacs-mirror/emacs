@@ -1432,6 +1432,7 @@ It can find the completion buffer in `standard-output'.")
   int column = 0;
   struct gcpro gcpro1;
   struct buffer *old = current_buffer;
+  int first = 1;
 
   /* Note that (when it matters) every variable
      points to a non-string that is pointed to by COMPLETIONS.  */
@@ -1448,14 +1449,49 @@ It can find the completion buffer in `standard-output'.")
       write_string ("Possible completions are:", -1);
       for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
 	{
-	  /* this needs fixing for the case of long completions
-	     and/or narrow windows */
-	  /* Sadly, the window it will appear in is not known
-	     until after the text has been made. */
-	  if (i & 1)
+	  Lisp_Object tem;
+	  int length;
+
+	  elt = Fcar (tail);
+	  /* Compute the length of this element.  */
+	  if (CONSP (elt))
+	    {
+	      tem = Fcar (elt);
+	      CHECK_STRING (tem, 0);
+	      length = XINT (XSTRING (tem)->size);
+
+	      tem = Fcar (Fcdr (elt));
+	      CHECK_STRING (tem, 0);
+	      length += XINT (XSTRING (tem)->size);
+	    }
+	  else
+	    {
+	      CHECK_STRING (elt, 0);
+	      length = XINT (XSTRING (elt)->size);
+	    }
+
+	  /* This does a bad job for narrower than usual windows.
+	     Sadly, the window it will appear in is not known
+	     until after the text has been made.  */
+
+	  /* If the previous completion was very wide,
+	     or we have two on this line already,
+	     don't put another on the same line.  */
+	  if (column > 33 || first
+	      /* If this is really wide, don't put it second on a line.  */
+	      || column > 0 && length > 45)
+	    {
+	      Fterpri (Qnil);
+	      column = 0;
+	    }
+	  /* Otherwise advance to column 35.  */
+	  else
 	    {
 	      if (BUFFERP (Vstandard_output))
-		Findent_to (make_number (35), make_number (2));
+		{
+		  tem = Findent_to (make_number (35), make_number (2));
+		  column = XINT (tem);
+		}
 	      else
 		{
 		  do
@@ -1466,35 +1502,27 @@ It can find the completion buffer in `standard-output'.")
 		  while (column < 35);
 		}
 	    }
-	  else
-	    {
-	      Fterpri (Qnil);
-	      column = 0;
-	    }
-	  elt = Fcar (tail);
+
+	  /* Output this element and update COLUMN.  */
 	  if (CONSP (elt))
 	    {
-	      if (!BUFFERP (Vstandard_output))
-		{
-		  Lisp_Object tem;
-		  tem = Flength (Fcar (elt));
-		  column += XINT (tem);
-		  tem = Flength (Fcar (Fcdr (elt)));
-		  column += XINT (tem);
-		}
 	      Fprinc (Fcar (elt), Qnil);
 	      Fprinc (Fcar (Fcdr (elt)), Qnil);
 	    }
 	  else
+	    Fprinc (elt, Qnil);
+
+	  column += length;
+
+	  /* If output is to a buffer, recompute COLUMN in a way
+	     that takes account of character widths.  */
+	  if (BUFFERP (Vstandard_output))
 	    {
-	      if (!BUFFERP (Vstandard_output))
-		{
-		  Lisp_Object tem;
-		  tem = Flength (elt);
-		  column += XINT (tem);
-		}
-	      Fprinc (elt, Qnil);
+	      tem = Fcurrent_column ();
+	      column = XINT (tem);
 	    }
+
+	  first = 0;
 	}
     }
 
