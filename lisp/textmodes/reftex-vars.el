@@ -316,7 +316,7 @@ This feature can be turned on and off from the menu
   :type '(choice
           (const :tag "never" nil)
           (const :tag "always" t)
-          (const :tag "in dedicated frame only" 'frame)))
+          (const :tag "in dedicated frame only" frame)))
  
 (defcustom reftex-toc-split-windows-horizontally nil
   "*Non-nil means, create TOC window by splitting window horizontally."
