@@ -1,3 +1,7 @@
+2005-03-16  Lute Kamstra  <lute@gnu.org>
+
+	* message.el (message-make-date): Require parse-time.
+
 2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix last change.
