@@ -42,6 +42,16 @@
    (purecopy '(-3 . "%p"))
    (purecopy "-%-")))
 
+;; Use ";" instead of ":" as a path separator (from files.el).
+(setq path-separator ";")
+
+;; Set the null device (for compile.el).
+(setq grep-null-device "NUL")
+
+;; Set the grep regexp to match entries with drive letters.
+(setq grep-regexp-alist
+  '(("^\\(\\([a-zA-Z]:\\)?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 3)))
+
 (defvar file-name-buffer-file-type-alist
   '(
     ("[:/].*config.sys$" . nil)		; config.sys text
