@@ -1568,4 +1568,9 @@ out of view."
      (insert-before-markers-and-inherit
       . "(insert-before-markers-and-inherit &rest ARGS)"))))
 
+;; Provide this for the sake of define-minor-mode which generates
+;; defcustoms which require 'help'.
+
+(provide 'help)
+
 ;;; help.el ends here
