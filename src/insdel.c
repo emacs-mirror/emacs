@@ -999,6 +999,18 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
       unchain_marker (preserve_marker);				\
     }
 
+#define PRESERVE_START_END			\
+  if (NILP (start_marker))			\
+    start_marker = Fcopy_marker (start, Qnil);	\
+  if (NILP (end_marker))			\
+    end_marker = Fcopy_marker (end, Qnil);
+
+#define FETCH_START				\
+  (! NILP (start_marker) ? Fmarker_position (start_marker) : start)
+
+#define FETCH_END				\
+  (! NILP (end_marker) ? Fmarker_position (end_marker) : end)
+
 /* Signal a change to the buffer immediately before it happens.
    START_INT and END_INT are the bounds of the text to be changed.
 
@@ -1011,13 +1023,16 @@ signal_before_change (start_int, end_int, preserve_ptr)
      int *preserve_ptr;
 {
   Lisp_Object start, end;
+  Lisp_Object start_marker, end_marker;
   Lisp_Object preserve_marker;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3;
 
   start = make_number (start_int);
   end = make_number (end_int);
   preserve_marker = Qnil;
-  GCPRO1 (preserve_marker);
+  start_marker = Qnil;
+  end_marker = Qnil;
+  GCPRO3 (preserve_marker, start_marker, end_marker);
 
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
@@ -1025,6 +1040,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
       && !NILP (Vrun_hooks))
     {
       PRESERVE_VALUE;
+      PRESERVE_START_END;
       call1 (Vrun_hooks, Qfirst_change_hook);
     }
 
@@ -1034,7 +1050,8 @@ signal_before_change (start_int, end_int, preserve_ptr)
   if (!NILP (Vbefore_change_function))
     {
       PRESERVE_VALUE;
-      call2 (Vbefore_change_function, start, end);
+      PRESERVE_START_END;
+      call2 (Vbefore_change_function, FETCH_START, FETCH_END);
     }
 
   /* Now run the before-change-functions if any.  */
@@ -1046,6 +1063,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
       struct gcpro gcpro1, gcpro2;
 
       PRESERVE_VALUE;
+      PRESERVE_START_END;
 
       /* "Bind" before-change-functions and after-change-functions
 	 to nil--but in a way that errors don't know about.
@@ -1058,8 +1076,8 @@ signal_before_change (start_int, end_int, preserve_ptr)
 
       /* Actually run the hook functions.  */
       args[0] = Qbefore_change_functions;
-      args[1] = start;
-      args[2] = end;
+      args[1] = FETCH_START;
+      args[2] = FETCH_END;
       run_hook_list_with_args (before_change_functions, 3, args);
 
       /* "Unbind" the variables we "bound" to nil.  */
@@ -1072,9 +1090,14 @@ signal_before_change (start_int, end_int, preserve_ptr)
       || !NILP (current_buffer->overlays_after))
     {
       PRESERVE_VALUE;
-      report_overlay_modification (start, end, 0, start, end, Qnil);
+      report_overlay_modification (FETCH_START, FETCH_END, 0,
+				   FETCH_START, FETCH_END, Qnil);
     }
 
+  if (! NILP (start_marker))
+    free_marker (start_marker);
+  if (! NILP (end_marker))
+    free_marker (end_marker);
   RESTORE_VALUE;
   UNGCPRO;
 }
