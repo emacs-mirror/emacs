@@ -37,13 +37,8 @@
 ;;; saves code, implementation time, etc., etc.).
 
 ;;; Several packages are already defined using comint mode:
-;;; - cmushell.el defines a shell-in-a-buffer mode.
+;;; - shell.el defines a shell-in-a-buffer mode.
 ;;; - cmulisp.el defines a simple lisp-in-a-buffer mode.
-;;; Cmushell and cmulisp mode are similar to, and intended to replace,
-;;; their counterparts in the standard gnu emacs release (in shell.el). 
-;;; These replacements are more featureful, robust, and uniform than the 
-;;; released versions. The key bindings in lisp mode are also more compatible
-;;; with the bindings of Hemlock and Zwei (the Lisp Machine emacs).
 ;;;
 ;;; - The file cmuscheme.el defines a scheme-in-a-buffer mode.
 ;;; - The file tea.el tunes scheme and inferior-scheme modes for T.
@@ -65,7 +60,7 @@
 
 ;;; Brief Command Documentation:
 ;;;============================================================================
-;;; Comint Mode Commands: (common to all derived modes, like cmushell & cmulisp
+;;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
 ;;; mode)
 ;;;
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
@@ -1039,8 +1034,8 @@ Useful if you accidentally suspend the top-level process."
 
 ;;; These are not installed in the comint-mode keymap. But they are
 ;;; available for people who want them. Shell-mode installs them:
-;;; (define-key cmushell-mode-map "\t" 'comint-dynamic-complete)
-;;; (define-key cmushell-mode-map "\M-?"  'comint-dynamic-list-completions)))
+;;; (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+;;; (define-key shell-mode-map "\M-?"  'comint-dynamic-list-completions)))
 ;;;
 ;;; Commands like this are fine things to put in load hooks if you
 ;;; want them present in specific modes.
@@ -1176,7 +1171,7 @@ it just adds completion characters to the end of the filename."
 ;;; (comint-prompt-regexp, comint-input-filter, comint-input-sentinel,
 ;;; comint-get-old-input) that need to be different from the defaults.  Call
 ;;; foo-mode-hook, and you're done. Don't run the comint-mode hook yourself;
-;;; comint-mode will take care of it. The following example, from cmushell.el,
+;;; comint-mode will take care of it. The following example, from shell.el,
 ;;; is typical:
 ;;; 
 ;;; (defun shell-mode ()
@@ -1320,7 +1315,7 @@ This is a good place to put keybindings.")
 ;;; - Prompt-search history commands have been commented out. I never
 ;;;   liked them; I don't think anyone used them.
 ;;; - Made comint-exec-hook a local var, as it should have been.
-;;;   (This way, for instance, you can have cmushell procs kill-w/o-query,
+;;;   (This way, for instance, you can have shell procs kill-w/o-query,
 ;;;    but let Scheme procs be default.)
 ;;;
 ;;; 7/91 Shivers
