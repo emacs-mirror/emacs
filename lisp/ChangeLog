@@ -1,3 +1,14 @@
+2003-06-22  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Avoid
+	variable as format argument for error.  Don't call symbol-name on
+	string.
+
+	* eshell/esh-opt.el (eshell-do-opt): Avoid variable as format
+	argument for error.
+
+	* simple.el (vis-mode): Doc fix.
+
 2003-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-check-diary-file): New function.

@@ -1,3 +1,7 @@
+2003-06-22  Andreas Schwab  <schwab@suse.de>
+
+	* objects.texi (Symbol Type): Fix description of examples.
+
 2003-06-16  Andreas Schwab  <schwab@suse.de>
 
 	* hash.texi (Creating Hash): Fix description of :weakness.
