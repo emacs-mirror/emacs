@@ -1,5 +1,26 @@
 2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-send-command): New fun.
+	(python-send-region, python-load-file): Use it.
+
+	* progmodes/compile.el (compilation-last-buffer): Add var alias.
+
+	* help-fns.el (help-C-file-name): Use new subr-name.
+	Prepend `src/' to the file name.
+	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
+	(describe-function-1, describe-variable): Only find a C source file name
+	if DOC is already loaded.
+
+	* help-mode.el (help-function-def, help-variable-def):
+	Use the new find-function-search-for-symbol functionality.
+	Allow FILE to be `C-source'.
+
+	* emacs-lisp/find-func.el (find-function-C-source-directory): New var.
+	(find-function-C-source): New fun.
+	(find-function-search-for-symbol): Use it.
+
+2004-03-15  Michael Mauger  <mmaug@yahoo.com>
+
 	* progmodes/sql.el (sql-product-alist): Rename variable
 	`sql-product-support'.  Add Postgres login parameters.
 	(sql-set-product, sql-product-feature): Update with renamed
@@ -28,27 +49,6 @@
 	(sql-add-product-keywords): Made similar to
 	`font-lock-add-keywords'.
 	(sql-send-string): Add function.
-
-	* progmodes/python.el (python-send-command): New fun.
-	(python-send-region, python-load-file): Use it.
-
-	* progmodes/compile.el (compilation-last-buffer): Add var alias.
-
-	* help-fns.el (help-C-file-name): Use new subr-name.
-	Prepend `src/' to the file name.
-	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
-	(describe-function-1, describe-variable): Only find a C source file name
-	if DOC is already loaded.
-
-	* help-mode.el (help-function-def, help-variable-def):
-	Use the new find-function-search-for-symbol functionality.
-	Allow FILE to be `C-source'.
-
-	* emacs-lisp/find-func.el (find-function-C-source-directory): New var.
-	(find-function-C-source): New fun.
-	(find-function-search-for-symbol): Use it.
-
-2004-03-15  Michael Mauger  <mmaug@yahoo.com>
 
 2004-04-29  Dave Love <fx@gnu.org>
 

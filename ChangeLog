@@ -1,3 +1,7 @@
+2004-04-29  Dave Love  <fx@gnu.org>
+
+	* configure.in: Don't forget to quote args to `test'.
+
 2004-04-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* autogen.sh: Update filename in "please read" message.

@@ -290,13 +290,15 @@ The technique of setting `sql-mode-font-lock-defaults' directly in
 your .emacs will no longer establish the default highlighting -- Use
 `sql-product' to accomplish this.
 
+ANSI keywords are always highlighted.
+
 *** The function `sql-add-product-keywords' can be used to add
 font-lock rules to the product specific rules.  For example, to have
 all identifiers ending in "_t" under MS SQLServer treated as a type,
 you would use the following line in your .emacs file:
 
   (sql-add-product-keywords 'ms
-             '("\\<\\w+_t\\>" . font-lock-type-face))
+             '(("\\<\\w+_t\\>" . font-lock-type-face)))
 
 *** Oracle support includes keyword highlighting for Oracle 9i.  Most
 SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
@@ -312,6 +314,13 @@ terminated.
 If the username and password are not provided to `sql-ms', osql is
 called with the -E command line argument to use the operating system
 credentials to authenticate the user.
+
+*** Postgres support is enhanced.
+Keyword highlighting of Postgres 7.3 is implemented.  Prompting for
+the username and the pgsql `-U' option is added.
+
+*** MySQL support is enhanced.
+Keyword higlighting of MySql 4.0 is implemented.
 
 *** Imenu support has been enhanced to locate tables, views, indexes,
 packages, procedures, functions, triggers, sequences, rules, and
