@@ -1296,8 +1296,10 @@ int polling_period;
 /* Nonzero means polling for input is temporarily suppressed.  */
 int poll_suppress_count;
 
-#ifdef POLL_FOR_INPUT
+/* Nonzero if polling_for_input is actually being used.  */
 int polling_for_input;
+
+#ifdef POLL_FOR_INPUT
 
 /* Handle an alarm once each second and read pending input
    so as to handle a C-g if it comces in.  */
