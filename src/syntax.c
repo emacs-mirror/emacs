@@ -2414,12 +2414,10 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
       UPDATE_SYNTAX_TABLE_FORWARD (from);
       code = SYNTAX (FETCH_CHAR (from));
       INC_FROM;
+
       if (code == Scomment)
 	state.comstr_start = prev_from;
-      
-      else if (code == Scomment_fence 
-	       || (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (prev_from))
-		   && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from))))
+      else if (code == Scomment_fence)
 	{
 	  /* Record the comment style we have entered so that only
 	     the comment-end sequence of the same style actually
@@ -2431,6 +2429,22 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	  if (code != Scomment_fence) INC_FROM;
 	  code = Scomment;
 	}
+     else if (from < end)
+	if (SYNTAX_COMSTART_FIRST (FETCH_CHAR (prev_from)))
+	  if (SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
+	    /* Duplicate code to avoid a very complex if-expression
+	       which causes trouble for the SGI compiler.  */
+	    {
+	      /* Record the comment style we have entered so that only
+		 the comment-end sequence of the same style actually
+		 terminates the comment section.  */
+	      state.comstyle = ( code == Scomment_fence 
+				 ? ST_COMMENT_STYLE 
+				 : SYNTAX_COMMENT_STYLE (FETCH_CHAR (from)));
+	      state.comstr_start = prev_from;
+	      if (code != Scomment_fence) INC_FROM;
+	      code = Scomment;
+	    }
 
       if (SYNTAX_PREFIX (FETCH_CHAR (prev_from)))
 	continue;
