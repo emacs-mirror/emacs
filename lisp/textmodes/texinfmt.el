@@ -617,17 +617,14 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
           ;; 4. Else go to end of paragraph and insert @refill
           (forward-paragraph)
           (forward-line -1)
-          (end-of-line)
-          (delete-region
-           (point)
-           (save-excursion (skip-chars-backward " \t") (point)))
-          ;; `looking-at-backward' not available in v. 18.57
-          ;; (if (not (looking-at-backward "@refill\\|@bye")) ;)
-          (if (not (re-search-backward
-                    "@refill\\|@bye"
-                    (save-excursion (beginning-of-line) (point))
-                    t))
-              (insert "@refill"))
+	  (let ((line-beg (point)))
+	    (end-of-line)
+	    (delete-region
+	     (point)
+	     (save-excursion (skip-chars-backward " \t") (point)))
+	    (search-backward "@c" line-beg t)
+	    (unless (re-search-backward "@refill\\|@bye" line-beg t)
+	      (insert "@refill")))
           (forward-line 1))))))
 
 
@@ -874,6 +871,11 @@ lower types.")
       (if (= (char-syntax (following-char)) ?w)
           (forward-word 1)
         (forward-char 1))
+      (setq texinfo-command-end (point))
+      ;; Detect the case of two @-commands in a row;
+      ;; process just the first one.
+      (goto-char (1+ texinfo-command-start))
+      (skip-chars-forward "^@" texinfo-command-end)
       (setq texinfo-command-end (point))
       ;; Handle let aliasing
       (setq texinfo-command-name
@@ -2603,41 +2605,43 @@ Default is to leave the number of spaces as is."
   "Refill paragraph. Also, indent first line as set by @paragraphindent.
 Default is to leave paragraph indentation as is."
   (texinfo-discard-command)
-  (forward-paragraph -1)     
-  (if (looking-at "[ \t\n]*$") (forward-line 1))
-  ;; Do not indent if an entry in a list, table, or deffn,
-  ;; or if paragraph is preceded by @noindent.
-  ;; Otherwise, indent
-  (cond 
-   ;; delete a @noindent line and do not indent paragraph
-   ((save-excursion (forward-line -1)
-                    (looking-at "^@noindent")) 
+  (let ((position (point-marker)))
+    (forward-paragraph -1)     
+    (if (looking-at "[ \t\n]*$") (forward-line 1))
+    ;; Do not indent if an entry in a list, table, or deffn,
+    ;; or if paragraph is preceded by @noindent.
+    ;; Otherwise, indent
+    (cond 
+     ;; delete a @noindent line and do not indent paragraph
+     ((save-excursion (forward-line -1)
+		      (looking-at "^@noindent")) 
+      (forward-line -1)
+      (delete-region (point) (progn (forward-line 1) (point))))
+     ;; do nothing if "asis"
+     ((equal texinfo-paragraph-indent "asis"))
+     ;; do no indenting in list, etc.
+     ((> texinfo-stack-depth 0))   
+     ;; otherwise delete existing whitespace and indent
+     (t 
+      (delete-region (point) (progn (skip-chars-forward " \t") (point)))
+      (insert (make-string texinfo-paragraph-indent ? ))))
+    (forward-paragraph 1) 
     (forward-line -1)
-    (delete-region (point) (progn (forward-line 1) (point))))
-   ;; do nothing if "asis"
-   ((equal texinfo-paragraph-indent "asis"))
-   ;; do no indenting in list, etc.
-   ((> texinfo-stack-depth 0))   
-   ;; otherwise delete existing whitespace and indent
-   (t 
-    (delete-region (point) (progn (skip-chars-forward " \t") (point)))
-    (insert (make-string texinfo-paragraph-indent ? ))))
-  (forward-paragraph 1) 
-  (forward-line -1)
-  (end-of-line)
-  ;; Do not fill a section title line with asterisks, hyphens, etc. that
-  ;; are used to underline it.  This could occur if the line following
-  ;; the underlining is not an index entry and has text within it.
-  (let* ((previous-paragraph-separate paragraph-separate)
-         (paragraph-separate
-          (concat paragraph-separate "\\|[-=.]+\\|\\*\\*+"))
-         (previous-paragraph-start paragraph-start)
-         (paragraph-start 
-          (concat paragraph-start "\\|[-=.]+\\|\\*\\*+")))
-    (unwind-protect
-        (fill-paragraph nil)
-      (setq paragraph-separate previous-paragraph-separate)
-      (setq paragraph-start previous-paragraph-start))))
+    (end-of-line)
+    ;; Do not fill a section title line with asterisks, hyphens, etc. that
+    ;; are used to underline it.  This could occur if the line following
+    ;; the underlining is not an index entry and has text within it.
+    (let* ((previous-paragraph-separate paragraph-separate)
+	   (paragraph-separate
+	    (concat paragraph-separate "\\|[-=.]+\\|\\*\\*+"))
+	   (previous-paragraph-start paragraph-start)
+	   (paragraph-start 
+	    (concat paragraph-start "\\|[-=.]+\\|\\*\\*+")))
+      (unwind-protect
+	  (fill-paragraph nil)
+	(setq paragraph-separate previous-paragraph-separate)
+	(setq paragraph-start previous-paragraph-start)))
+    (goto-char position)))
 
 (put 'noindent 'texinfo-format 'texinfo-noindent)
 (defun texinfo-noindent ()  
