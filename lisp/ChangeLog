@@ -1,3 +1,17 @@
+2005-01-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-restore-eager, desktop-lazy-verbose,
+	desktop-lazy-idle-delay): New customizable variables.
+	(desktop-buffer-args-list): New variable.
+	(desktop-append-buffer-args): New function.
+	(desktop-save): Call desktop-append-buffer-args for some buffers.
+	(desktop-lazy-create-buffer): New function.
+	(desktop-idle-create-buffers): New function.
+	(desktop-read): Add message about buffers to restore lazily.
+	(desktop-lazy-abort): New command.
+	(desktop-clear): Call desktop-lazy-abort.
+	(desktop-lazy-complete): New command.
+
 2005-01-06  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/find-func.el (find-face-definition):
