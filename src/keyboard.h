@@ -291,6 +291,7 @@ struct input_event;
 
 extern Lisp_Object get_keymap_1 P_ ((Lisp_Object, int, int));
 EXFUN (Fkeymapp, 1);
+extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
 extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 /* User-supplied string to translate input characters through.  */
