@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.11) $
+ * $HopeName: MMsrc!shield.c(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,7 +73,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.11) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.12) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -127,7 +127,7 @@ static void flush(Arena arena, Size i)
 {
   Seg seg;
   AVERT(Arena, arena);
-  AVER(i < SHIELD_CACHE_SIZE);
+  AVER(i < arena->shCacheLimit);
 
   seg = arena->shCache[i];
   if(seg == (Seg)0) return;
@@ -165,12 +165,15 @@ static void cache(Arena arena, Seg seg)
     ++arena->shDepth;
     AVER(arena->shDepth > 0);
     AVER(SegDepth(seg) > 0);
-    AVER(arena->shCacheI < SHIELD_CACHE_SIZE);
+    AVER(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+    AVER(arena->shCacheI < arena->shCacheLimit);
     flush(arena, arena->shCacheI);
     arena->shCache[arena->shCacheI] = seg;
     ++arena->shCacheI;
     if(arena->shCacheI == SHIELD_CACHE_SIZE)
       arena->shCacheI = 0;
+    if(arena->shCacheI == arena->shCacheLimit)
+      ++arena->shCacheLimit;
   }
 }
 
@@ -208,10 +211,13 @@ void (ShieldEnter)(Arena arena)
   AVER(!arena->insideShield);
   AVER(arena->shDepth == 0);
   AVER(!arena->suspended);
-  AVER(arena->shCacheI < SHIELD_CACHE_SIZE);
-  for(i = 0; i < SHIELD_CACHE_SIZE; i++)
+  AVER(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+  AVER(arena->shCacheI < arena->shCacheLimit);
+  for(i = 0; i < arena->shCacheLimit; i++)
     AVER(arena->shCache[i] == (Seg)0);
 
+  arena->shCacheI = (Size)0;
+  arena->shCacheLimit = (Size)1;
   arena->insideShield = TRUE;
 }
 
@@ -223,7 +229,7 @@ void (ShieldFlush)(Arena arena)
 {
   Size i;
 
-  for(i = 0; i < SHIELD_CACHE_SIZE; ++i) {
+  for(i = 0; i < arena->shCacheLimit; ++i) {
     if(arena->shDepth == 0)
       break;
     flush(arena, i);
