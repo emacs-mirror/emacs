@@ -148,6 +148,8 @@ Lisp_Object x_display_name_list;
    is the frame to apply to.  */
 extern struct frame *updating_frame;
 
+extern waiting_for_input;
+
 /* This is a frame waiting to be autoraised, within XTread_socket.  */
 struct frame *pending_autoraise_frame;
 
@@ -4532,6 +4534,12 @@ x_connection_closed (display, error_message)
 #endif
   sigunblock (sigmask (SIGALRM));
   TOTALLY_UNBLOCK_INPUT;
+
+  if (waiting_for_input)
+    {
+      message ("%s", error_message);
+      quit_throw_to_read_char ();
+    }
 
   error ("%s", error_message);
 }
