@@ -280,7 +280,7 @@ leim/Makefile: leim/Makefile.in config.status
 ## source exists and is distinct from the destination.
 ### We do install-arch-indep first because
 ### the executable needs the Lisp files and DOC file to work properly.
-install: all install-arch-indep install-arch-dep blessmail install-leim
+install: all install-arch-indep install-arch-dep install-leim blessmail
 	@true
 
 ### Install the executables that were compiled specifically for this machine.
