@@ -514,15 +514,18 @@ Other major modes are defined by comparison with this one."
 
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
-(defun eval-expression (eval-expression-arg)
+(defun eval-expression (eval-expression-arg
+			&optional eval-expression-insert-value)
   "Evaluate EXPRESSION and print value in minibuffer.
 Value is also consed on to front of the variable `values'."
   (interactive
    (list (read-from-minibuffer "Eval: "
 			       nil read-expression-map t
-			       'read-expression-history)))
+			       'read-expression-history)
+	 current-prefix-arg))
   (setq values (cons (eval eval-expression-arg) values))
-  (prin1 (car values) t))
+  (prin1 (car values)
+	 (if eval-expression-insert-value (current-buffer) t)))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
