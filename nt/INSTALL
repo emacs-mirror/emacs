@@ -16,6 +16,9 @@
   fixing first. The easiest way to do this and avoid future conflicts
   is to run the following command in this (emacs/nt) directory:
      cvs update -kb
+  In addition to this file, you should also read INSTALL.CVS in the
+  parent directory, and make sure that you have a version of "touch.exe"
+  in your path, and that it will create files that do not yet exist.
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with Mingw
@@ -31,10 +34,14 @@
   like this, we recommend the use of the supported compilers mentioned
   in the previous paragraph.
 
+  You will also need a copy of the Posix cp, rm and mv programs. These
+  and other useful Posix utilities can be obtained from the Mingw or
+  Cygwin projects.
+
   If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
   Windows NT, we suggest to install the Cygwin port of Bash.
 
-  Please see http://www.mingw.org for pointers to GCC/Mingw binaries.
+  Please see http://www.mingw.org for pointers to GCC/Mingw and binaries.
 
   For reference, here is a list of which builds of GNU make are known
   to work or not, and whether they work in the presence and/or absence
