@@ -1,3 +1,8 @@
+2001-03-07  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-toggle-header): Use a window which
+	is showing the Rmail buffer, rather than the selected window.
+
 2001-03-07  Dave Love  <fx@gnu.org>
 
 	* imenu.el (imenu--create-keymap-2): Revert use of menu-item for
