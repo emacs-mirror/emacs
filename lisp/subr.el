@@ -740,13 +740,18 @@ Wildcards and redirection are handled as usual in the shell."
     (start-process name buffer shell-file-name shell-command-switch
 		   (mapconcat 'identity args " ")))))
 
+(defvar save-match-data-internal)
+
+;; We use save-match-data-internal as the local variable because
+;; that works ok in practice (people should not use that variable elsewhere).
+;; We used to use an uninterned symbol; the compiler handles that properly
+;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
-  (let ((original (make-symbol "match-data")))
-    (list 'let (list (list original '(match-data)))
-	  (list 'unwind-protect
-		(cons 'progn body)
-		(list 'store-match-data original)))))
+  `(let ((save-match-data-variable '(match-data)))
+       (unwind-protect
+	   (progn ,@body)
+	 (store-match-data save-match-data-variable)))))
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
