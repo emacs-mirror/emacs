@@ -200,7 +200,7 @@
 (let ((all '((bold "Use bold font.")
 	     (bold-italic "Use bold italic font.")
 	     (italic "Use italic font.")
-	     (underline "Undeline text.")
+	     (underline "Underline text.")
 	     (default "Used for text not covered by other faces.")
 	     (highlight "Highlight text in some way.")
 	     (modeline "Used for displaying the modeline.")
