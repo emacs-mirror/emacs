@@ -115,7 +115,7 @@
 	("customize"	    	(customize-group "viper"))
 	("delete"		(ex-delete))
 	("edit"			(ex-edit))
-	("file"			(viper-info-on-file))
+	("file"			(ex-set-visited-file-name))
 	("g"			"global")
 	("global"		(ex-global nil) is-mashed)
 	("goto"			(ex-goto))
@@ -2231,6 +2231,25 @@ Type 'mak ' (including the space) to run make with no args."
 	  (viper-set-unread-command-events (viper-read-event)))
 	(kill-buffer " *viper-info*")))
     ))
+
+
+;; Without arguments displays info on file. With an arg, sets the visited file
+;; name to that arg
+(defun ex-set-visited-file-name ()
+  (viper-get-ex-file)
+  (if (string= ex-file "")
+      (viper-info-on-file)
+    ;; If ex-file is a directory, use the file portion of the buffer
+    ;; file name (like ex-write).  Do this even if ex-file is a
+    ;; non-existent directory, since set-visited-file-name signals an
+    ;; error on this condition, too.
+    (if (and (string= (file-name-nondirectory ex-file) "")
+	     buffer-file-name
+	     (not (file-directory-p buffer-file-name)))
+	(setq ex-file (concat (file-name-as-directory ex-file)
+			      (file-name-nondirectory buffer-file-name))))
+    (set-visited-file-name ex-file)))
+
 
 ;; display all variables set through :set
 (defun ex-show-vars ()

@@ -298,10 +298,12 @@
   ;; desirable that viper-pre-command-sentinel is the last hook and
   ;; viper-post-command-sentinel is the first hook.
 
-  (make-local-hook 'viper-after-change-functions)
-  (make-local-hook 'viper-before-change-functions)
-  (make-local-hook 'viper-post-command-hooks)
-  (make-local-hook 'viper-pre-command-hooks)
+  (if viper-xemacs-p
+      (progn
+	(make-local-hook 'viper-after-change-functions)
+	(make-local-hook 'viper-before-change-functions)
+	(make-local-hook 'viper-post-command-hooks)
+	(make-local-hook 'viper-pre-command-hooks)))
 
   (remove-hook 'post-command-hook 'viper-post-command-sentinel)
   (add-hook 'post-command-hook 'viper-post-command-sentinel)
@@ -786,9 +788,15 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	       ;; key translation. (Such left-overs are possible if the user
 	       ;; types a regular key.)
 	       (let (unread-command-events)
-		 ;; The next 2 cmds are intended to prevent the input method
+		 ;; The next cmd  and viper-set-unread-command-events
+		 ;; are intended to prevent the input method
 		 ;; from swallowing ^M, ^Q and other special characters
 		 (setq ch (read-char))
+		 ;; replace ^M with the newline
+		 (if (eq ch ?\C-m) (setq ch ?\n))
+		 ;; Make sure ^V and ^Q work as quotation chars
+		 (if (memq ch '(?\C-v ?\C-q))
+		     (setq ch (read-char)))
 		 (viper-set-unread-command-events ch)
 		 (quail-input-method nil)
 
@@ -806,6 +814,11 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	       ;; quail-input-method
 	       (let (unread-command-events)
 		 (setq ch (read-char))
+		 ;; replace ^M with the newline
+		 (if (eq ch ?\C-m) (setq ch ?\n))
+		 ;; Make sure ^V and ^Q work as quotation chars
+		 (if (memq ch '(?\C-v ?\C-q))
+		     (setq ch (read-char)))
 		 (viper-set-unread-command-events ch)
 		 (quail-start-translation nil)
 
@@ -818,9 +831,19 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		 ))
 	      ((and (boundp 'iso-accents-mode) iso-accents-mode)
 	       (setq ch (aref (read-key-sequence nil) 0))
+	       ;; replace ^M with the newline
+	       (if (eq ch ?\C-m) (setq ch ?\n))
+	       ;; Make sure ^V and ^Q work as quotation chars
+	       (if (memq ch '(?\C-v ?\C-q))
+		   (setq ch (aref (read-key-sequence nil) 0)))
 	       (insert ch))
 	      (t
 	       (setq ch (read-char))
+	       ;; replace ^M with the newline
+	       (if (eq ch ?\C-m) (setq ch ?\n))
+	       ;; Make sure ^V and ^Q work as quotation chars
+	       (if (memq ch '(?\C-v ?\C-q))
+		   (setq ch (read-char)))
 	       (insert ch))
 	      )
 	(setq last-command-event
@@ -2554,12 +2577,9 @@ These keys are ESC, RET, and LineFeed"
     (or (eq viper-intermediate-command 'viper-repeat)
 	(viper-special-read-and-insert-char))
 
-    ;; Is this needed?
-    (if (eq char ?\C-m) (setq char ?\n))
-    
     (delete-char 1 t)
-    
     (setq char (if com viper-d-char (viper-char-at-pos 'backward)))
+
     (if com (insert char))
     
     (setq viper-d-char char)
@@ -3836,7 +3856,7 @@ Null string will repeat previous search."
   (define-key viper-vi-basic-map
     (cond ((viper-characterp viper-buffer-search-char)
 	   (char-to-string viper-buffer-search-char))
-	  (t (error "viper-buffer-search-char: wrong value type, %s"
+	  (t (error "viper-buffer-search-char: wrong value type, %S"
 		    viper-buffer-search-char)))
     'viper-command-argument)
   (aset viper-exec-array viper-buffer-search-char 'viper-exec-buffer-search)

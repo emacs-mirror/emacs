@@ -1018,8 +1018,10 @@ into icons, regardless of the window manager."
 	
     (if ediff-xemacs-p
 	(ediff-with-current-buffer ctl-buffer
-	  (make-local-hook 'select-frame-hook)
-	  (add-hook 'select-frame-hook 'ediff-xemacs-select-frame-hook nil t)
+	  (if ediff-xemacs-p
+	      (make-local-hook 'select-frame-hook))
+	  (add-hook
+	   'select-frame-hook 'ediff-xemacs-select-frame-hook nil 'local)
 	  ))
 	
     (ediff-with-current-buffer ctl-buffer

@@ -40,6 +40,8 @@
 (defvar mark-active)
 (defvar ediff-emacs-p)
 
+(defvar ediff-after-quit-hook-internal nil)
+
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
@@ -294,8 +296,6 @@ to invocation.")
       (make-local-variable 'ediff-window-setup-function)
       (make-local-variable 'ediff-keep-variants)
 
-      (make-local-hook 'ediff-after-quit-hook-internal)
-      
       ;; unwrap set up parameters passed as argument
       (while setup-parameters
 	(set (car (car setup-parameters)) (cdr (car setup-parameters)))
@@ -317,9 +317,11 @@ to invocation.")
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
 
-      (make-local-hook 'pre-command-hook)
+      (if ediff-xemacs-p
+	  (make-local-hook 'pre-command-hook))
+
       (if (ediff-window-display-p)
-	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil t))
+	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil 'local))
       (setq ediff-mouse-pixel-position (mouse-pixel-position))
       
       ;; adjust for merge jobs
@@ -3845,7 +3847,10 @@ Mail anyway? (y or n) ")
   "Toggle profiling Ediff commands."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (make-local-hook 'post-command-hook)
+
+  (if ediff-xemacs-p
+      (make-local-hook 'post-command-hook))
+
   (let ((pre-hook 'pre-command-hook)
 	(post-hook 'post-command-hook))
     (if (not (equal ediff-command-begin-time '(0 0 0)))
@@ -3853,8 +3858,8 @@ Mail anyway? (y or n) ")
 	       (remove-hook post-hook 'ediff-calc-command-time)
 	       (setq ediff-command-begin-time '(0 0 0))
 	       (message "Ediff profiling disabled"))
-      (add-hook pre-hook 'ediff-save-time t t)
-      (add-hook post-hook 'ediff-calc-command-time nil t)
+      (add-hook pre-hook 'ediff-save-time t 'local)
+      (add-hook post-hook 'ediff-calc-command-time nil 'local)
       (message "Ediff profiling enabled"))))
     
 (defun ediff-print-diff-vector (diff-vector-var)

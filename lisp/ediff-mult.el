@@ -2110,10 +2110,17 @@ If this is a session registry buffer then just bury it."
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 
-(defun ediff-meta-mark-equal-files ()
-  "Run though the session list and mark identical files.
-This is used only for sessions that involve 2 or 3 files at the same time."
+;; ACTION is ?h, ?m, ?=: to mark for hiding, mark for operation, or simply
+;; indicate which are equal files
+(defun ediff-meta-mark-equal-files (&optional action)
+  "Run through the session list and mark identical files.
+This is used only for sessions that involve 2 or 3 files at the same time.
+ACTION is an optional argument that can be ?h, ?m, ?=, to mark for hiding, mark
+for operation, or simply indicate which are equal files. If it is nil, then
+last-command-char is used to decide which action to take."
   (interactive)
+  (if (null action)
+      (setq action last-command-char))
   (let ((list (cdr ediff-meta-list))
 	marked1 marked2 marked3
 	fileinfo1 fileinfo2 fileinfo3 elt)
@@ -2138,9 +2145,9 @@ This is used only for sessions that involve 2 or 3 files at the same time."
 	    (or (ediff-mark-if-equal fileinfo2 fileinfo3)
 		(setq marked3 nil))))
       (if (and marked1 marked2 marked3)
-	  (cond ((eq last-command-char ?h)
+	  (cond ((eq action ?h)
 		 (ediff-mark-session-for-hiding elt 'mark))
-		((eq last-command-char ?m)
+		((eq action ?m)
 		 (ediff-mark-session-for-operation elt 'mark))
 		))
       (setq list (cdr list)))

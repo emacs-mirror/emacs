@@ -1,3 +1,27 @@
+2001-12-24  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* viper-cmd.el (viper-change-state): Got rid of make-local-hook.
+	(viper-special-read-and-insert-char): Make C-m work right in the r
+	comand.
+	(viper-buffer-search-enable): Fixed format string.
+	
+	* viper-ex.el (ex-token-alist): Use ex-set-visited-file-name
+	instead of viper-info-on-file.
+	(ex-set-visited-file-name): New function.
+	
+	* viper.el (viper-emacs-state-mode-list): Added mail-mode.
+	
+	* ediff-mult.el (ediff-meta-mark-equal-files): Added optional
+	action argument.
+	
+	* ediff-init.el: Fixed some doc strings.
+	
+	* ediff-util.el (ediff-after-quit-hook-internal): New variable.
+	Got rid of make-local-hook.
+	
+	* ediff-wind.el (ediff-setup-control-frame): Got rid of
+	make-local-hook.
+	
 2001-12-23  Richard M. Stallman  <rms@gnu.org>
 
 	* term/x-win.el (x-handle-geometry): Put height and width

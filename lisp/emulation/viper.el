@@ -426,6 +426,7 @@ widget."
     tar-mode
 
     mh-folder-mode
+    mail-mode
     gnus-group-mode
     gnus-summary-mode
     

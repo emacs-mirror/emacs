@@ -4012,8 +4012,10 @@ Save and kill buffer.
 Preserve the file -- autosave buffers.
 @item :rec
 Recover file from autosave.
-@item :f
-Print file name and lines.
+@item :f [<file>]
+without the argument, prints file name and character/line information afout
+the currently visited file. With an argument, sets the currently visited
+filename to @file{file}.
 @item :cd [<dir>]
 Set the working directory to <dir> (default home directory).
 @item :pwd
@@ -4451,6 +4453,7 @@ bronson@@trestle.com (Scott Bronson),
 cook@@biostat.wisc.edu (Tom Cook),
 csdayton@@midway.uchicago.edu (Soren Dayton),
 dave@@hellgate.utah.edu,
+dm@@scs.cs.nyu.edu (David Mazieres),
 dominik@@strw.LeidenUniv.nl (Carsten Dominik),
 dwallach@@cs.princeton.edu (Dan Wallach),
 dwight@@toolucky.llnl.gov (Dwight Shih),
@@ -4486,6 +4489,7 @@ roderick@@argon.org (Roderick Schertler),
 rxga@@ulysses.att.com,
 sawdey@@lcse.umn.edu (Aaron Sawdey),
 simonb@@prl.philips.co.uk (Simon Blanchard),
+spadgett1@@nc.rr.com (Samuel Padgett),
 stephen@@farrell.org (Stephen Farrell),
 sudish@@MindSpring.COM (Sudish Joseph),
 schwab@@issan.informatik.uni-dortmund.de (Andreas Schwab)
