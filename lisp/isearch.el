@@ -1849,6 +1849,7 @@ since they have special meaning in a regexp."
 (defgroup isearch-lazy-highlight nil
   "Lazy highlighting feature for incremental search."
   :prefix "isearch-lazy-highlight-"
+  :version "21.1"
   :group 'isearch)
 
 (defcustom isearch-lazy-highlight t
