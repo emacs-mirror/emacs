@@ -1,3 +1,27 @@
+2003-09-17  Dave Love  <fx@gnu.org>
+
+	* indent.c (check_composition): Make start and end EMACS_INT.
+
+	* character.c (lisp_string_width): Make ignore and end EMACS_INT.
+
+	* xdisp.c (handle_composition_prop, check_point_in_composition):
+	Make buffer positions EMACS_INT.
+
+	* composite.c (find_composition, run_composition_function)
+	(update_compositions, Ffind_composition_internal): Make buffer
+	positions EMACS_INT.
+
+	* composite.h (find_composition, update_compositions): Make
+	position args EMACS_INT.
+
+	* keyboard.c (adjust_point_for_property): Make beg and end
+	EMACS_INT.
+
+	* intervals.c (get_property_and_range)
+	* intervals.h (get_property_and_range): Make start and end EMACS_INT.
+
+	* unexalpha.c: Don't include varargs.h.
+
 2003-09-16  Dave Love  <fx@gnu.org>
 
 	* coding.h (ENCODE_UTF_8): New.
