@@ -366,6 +366,7 @@ Default value, nil, means edit the string instead."
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
 (defvar isearch-barrier 0)
 (defvar isearch-just-started nil)
+(defvar isearch-start-hscroll 0)	; hscroll when starting the search.
 
 ; case-fold-search while searching.
 ;   either nil, t, or 'yes.  'yes means the same as t except that mixed
@@ -557,6 +558,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-other-end nil
 	isearch-small-window nil
 	isearch-just-started t
+	isearch-start-hscroll (window-hscroll)
 
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
@@ -636,8 +638,13 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
                                              (window-hscroll))
                          (set-window-hscroll (selected-window) 0))
                 (other-window 1))
-              (goto-char found-point)))
-        (if isearch-other-end
+              (goto-char found-point))
+	  ;; Keep same hscrolling as at the start of the search when possible
+	  (let ((current-scroll (window-hscroll)))
+	    (set-window-hscroll (selected-window) isearch-start-hscroll)
+	    (unless (pos-visible-in-window-p)
+	      (set-window-hscroll (selected-window) current-scroll))))
+	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
                 (isearch-highlight isearch-other-end (point))
               (isearch-highlight (point) isearch-other-end))
