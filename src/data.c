@@ -1697,11 +1697,9 @@ or a byte-code object.  IDX starts at 0.")
 	  Lisp_Object sub_table;
 
 	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
-	  if (code[0] != CHARSET_COMPOSITION)
-	    {
-	      if (code[1] < 32) code[1] = -1;
-	      else if (code[2] < 32) code[2] = -1;
-	    }
+	  if (code[1] < 32) code[1] = -1;
+	  else if (code[2] < 32) code[2] = -1;
+
 	  /* Here, the possible range of CODE[0] (== charset ID) is
 	    128..MAX_CHARSET.  Since the top level char table contains
 	    data for multibyte characters after 256th element, we must
@@ -1807,11 +1805,9 @@ IDX starts at 0.")
 	  Lisp_Object val;
 
 	  SPLIT_NON_ASCII_CHAR (idxval, code[0], code[1], code[2]);
-	  if (code[0] != CHARSET_COMPOSITION)
-	    {
-	      if (code[1] < 32) code[1] = -1;
-	      else if (code[2] < 32) code[2] = -1;
-	    }
+	  if (code[1] < 32) code[1] = -1;
+	  else if (code[2] < 32) code[2] = -1;
+
 	  /* See the comment of the corresponding part in Faref.  */
 	  code[0] += 128;
 	  code[3] = -1;		/* anchor */
@@ -1842,7 +1838,7 @@ IDX starts at 0.")
     {
       int idxval_byte, new_len, actual_len;
       int prev_byte;
-      unsigned char *p, workbuf[4], *str;
+      unsigned char *p, workbuf[MAX_MULTIBYTE_LENGTH], *str = workbuf;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
@@ -1852,7 +1848,7 @@ IDX starts at 0.")
 
       actual_len = MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)));
       CHECK_NUMBER (newelt, 2);
-      new_len = CHAR_STRING (XINT (newelt), workbuf, str);
+      new_len = CHAR_STRING (XINT (newelt), str);
       if (actual_len != new_len)
 	error ("Attempt to change byte length of a string");
 
