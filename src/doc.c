@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <sys/types.h>
 #include <sys/file.h>	/* Must be after sys/types.h for USG and BSD4_1*/
+#include <ctype.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -826,7 +827,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
-	  Lisp_Object firstkey;
 	  int start_idx;
 
 	  changed = 1;
