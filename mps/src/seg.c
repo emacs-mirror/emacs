@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.12) $
+ * $HopeName: MMsrc!seg.c(trunk.13) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.12) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.13) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -109,23 +109,26 @@ void SegFinish(Seg seg)
 {
   AVERT(Seg, seg);
 
+  if(SegGrey(seg) != TraceSetEMPTY) {
+    SegSetGrey(seg, TraceSetEMPTY);
+  }
+  SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
+
   /* See impl.c.shield.shield.flush */
   ShieldFlush(PoolArena(seg->_pool));
 
   /* Check that the segment is not exposed, or in the shield */
   /* cache (see impl.c.shield.def.depth). */
   AVER(seg->_depth == 0);
+  /* Check not shielded or protected (so that pages in hysteresis */
+  /* fund are not protected) */
+  AVER(seg->_sm == AccessSetEMPTY);
+  AVER(seg->_pm == AccessSetEMPTY);
   
   /* Don't leave a dangling buffer allocating into hyperspace. */
   AVER(seg->_buffer == NULL);
 
   RingRemove(SegPoolRing(seg));
-
-  /* Detach the segment from the grey list if it is grey.  It is OK */
-  /* to delete a grey segment provided the objects in it have been */
-  /* proven to be unreachable by another trace. */
-  if(seg->_grey != TraceSetEMPTY)
-    RingRemove(&seg->_greyRing);
 
   RingFinish(&seg->_poolRing);
   RingFinish(&seg->_greyRing);
