@@ -28,11 +28,17 @@
 
 ;;; Code:
 
-(defvar standard-indent 4 "\
-Default number of columns for margin-changing functions to indent.")
+(defgroup indent nil
+  "Indentation commands"
+  :group 'editing)
 
-(defvar indent-line-function 'indent-to-left-margin "\
-Function to indent current line.")
+(defcustom standard-indent 4
+  "*Default number of columns for margin-changing functions to indent."
+  :group 'indent
+  :type 'integer)
+
+(defvar indent-line-function 'indent-to-left-margin
+  "Function to indent current line.")
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode."
@@ -357,10 +363,12 @@ column point starts at, `tab-to-tab-stop' is done instead."
 	  (move-marker opoint nil))
       (tab-to-tab-stop))))
 
-(defvar tab-stop-list
+(defcustom tab-stop-list
   '(8 16 24 32 40 48 56 64 72 80 88 96 104 112 120)
   "*List of tab stop positions used by `tab-to-tab-stops'.
-This should be a list of integers, ordered from smallest to largest.")
+This should be a list of integers, ordered from smallest to largest."
+  :group 'indent
+  :type '(repeat integer))
 
 (defvar edit-tab-stops-map nil "Keymap used in `edit-tab-stops'.")
 (if edit-tab-stops-map

@@ -54,23 +54,35 @@
 
 (defvar hscroll-version "2.2")
 
-(defvar hscroll-margin 5 
-  "*How many columns away from the edge of the window point is allowed to get
-before HScroll will horizontally scroll the window.")
+(defgroup hscroll nil
+  "Minor mode to automatically scroll truncated lines horizontally."
+  :group 'editing)
 
-(defvar hscroll-snap-threshold 30
+(defcustom hscroll-margin 5 
+  "*How many columns away from the edge of the window point is allowed to get
+before HScroll will horizontally scroll the window."
+  :group 'hscroll
+  :type 'integer)
+
+(defcustom hscroll-snap-threshold 30
   "*When point is this many columns (or less) from the left edge of the document, 
 don't do any horizontal scrolling.  In other words, be biased towards the left
 edge of the document.
-  Set this variable to zero to disable this bias.")
+  Set this variable to zero to disable this bias."
+  :group 'hscroll
+  :type 'integer)
 
-(defvar hscroll-step-percent 25
+(defcustom hscroll-step-percent 25
   "*How far away to place the point from the window's edge when scrolling.
-Expressed as a percentage of the window's width.")
+Expressed as a percentage of the window's width."
+  :group 'hscroll
+  :type 'integer)
 
-(defvar hscroll-mode-name " Hscr"
+(defcustom hscroll-mode-name " Hscr"
   "*Horizontal scrolling mode line indicator.
-Set this to nil to conserve valuable mode line space.")
+Set this to nil to conserve valuable mode line space."
+  :group 'hscroll
+  :type 'string)
 
 (or (assq 'hscroll-mode minor-mode-alist)
     (setq minor-mode-alist
