@@ -251,8 +251,9 @@ Lisp_Object Qbytecode;
 
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
   "Function used internally in byte-compiled code.\n\
-The first argument is a string of byte code; the second, a vector of constants;\n\
-the third, the maximum stack depth used in this function.\n\
+The first argument, BYTESTR, is a string of byte code;\n\
+the second, VECTOR, a vector of constants;\n\
+the third, MAXDEPTH, the maximum stack depth used in this function.\n\
 If the third argument is incorrect, Emacs may crash.")
   (bytestr, vector, maxdepth)
      Lisp_Object bytestr, vector, maxdepth;
