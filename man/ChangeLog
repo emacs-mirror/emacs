@@ -1,3 +1,8 @@
+2005-04-01  Lute Kamstra  <lute@gnu.org>
+
+	* maintaining.texi (Change Log): add-change-log-entry uses
+	add-log-mailing-address.
+
 2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Reverting): Move `auto-revert-check-vc-info' to
