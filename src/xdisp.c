@@ -563,10 +563,10 @@ message (m, a1, a2, a3)
 	    {
 	      int len;
 #ifdef NO_ARG_ARRAY
-	      EMACS_INT a[3];
-	      a[0] = a1;
-	      a[1] = a2;
-	      a[2] = a3;
+	      char *a[3];
+	      a[0] = (char *) a1;
+	      a[1] = (char *) a2;
+	      a[2] = (char *) a3;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
 			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
