@@ -3159,8 +3159,6 @@ read_process_output (proc, channel)
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
-      signal_after_change (before, 0, PT - before);
-      update_compositions (before, PT, CHECK_BORDER);
 
       /* Make sure the process marker's position is valid when the
 	 process buffer is changed in the signal_after_change above.
