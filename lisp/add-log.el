@@ -55,31 +55,37 @@ current buffer to the complete file name."
   (or file-name
       (setq file-name (or change-log-default-name
 			  default-directory)))
-  (if (file-directory-p file-name)
-      (setq file-name (expand-file-name (change-log-name) file-name)))
-  ;; Chase links before visiting the file.
-  ;; This makes it easier to use a single change log file
-  ;; for several related directories.
-  (setq file-name
-	(expand-file-name (or (file-symlink-p file-name) file-name)))
-  ;; Move up in the dir hierarchy till we find a change log file.
-  (let ((file1 file-name)
-	parent-dir)
-    (while (and (not (file-exists-p file1))
-		(progn (setq parent-dir
-			     (file-name-directory
-			      (directory-file-name
-			       (file-name-directory file1))))
-		       ;; Give up if we are already at the root dir.
-		       (not (string= (file-name-directory file1) parent-dir))))
-      ;; Move up to the parent dir and try again.
-      (setq file1 (expand-file-name (change-log-name) parent-dir)))
-    ;; If we found a change log in a parent, use that.
-    (if (file-exists-p file1)
-	(setq file-name file1)))
-  ;; Make a local variable in this buffer so we needn't search again.
-  (set (make-local-variable 'change-log-default-name) file-name)
-  file-name)
+  (if (and (eq file-name change-log-default-name)
+	   (assq 'change-log-default-name (buffer-local-variables)))
+      ;; Don't do the searching if we already have a buffer-local value.
+      file-name
+
+    (if (file-directory-p file-name)
+	(setq file-name (expand-file-name (change-log-name) file-name)))
+    ;; Chase links before visiting the file.
+    ;; This makes it easier to use a single change log file
+    ;; for several related directories.
+    (setq file-name
+	  (expand-file-name (or (file-symlink-p file-name) file-name)))
+    ;; Move up in the dir hierarchy till we find a change log file.
+    (let ((file1 file-name)
+	  parent-dir)
+      (while (and (not (file-exists-p file1))
+		  (progn (setq parent-dir
+			       (file-name-directory
+				(directory-file-name
+				 (file-name-directory file1))))
+			 ;; Give up if we are already at the root dir.
+			 (not (string= (file-name-directory file1)
+				       parent-dir))))
+	;; Move up to the parent dir and try again.
+	(setq file1 (expand-file-name (change-log-name) parent-dir)))
+      ;; If we found a change log in a parent, use that.
+      (if (file-exists-p file1)
+	  (setq file-name file1)))
+    ;; Make a local variable in this buffer so we needn't search again.
+    (set (make-local-variable 'change-log-default-name) file-name)
+    file-name))
 
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window)
