@@ -100,6 +100,12 @@ int auto_save_mode_bits;
    whose I/O is done with a special handler.  */
 Lisp_Object Vfile_name_handler_alist;
 
+/* Functions to be called to process text properties in inserted file.  */
+Lisp_Object Vafter_insert_file_functions;
+
+/* Functions to be called to create text property annotations for file.  */
+Lisp_Object Vwrite_region_annotate_functions;
+
 /* Nonzero means, when reading a filename in the minibuffer,
  start out by inserting the default directory into the minibuffer. */
 int insert_default_directory;
@@ -111,6 +117,8 @@ int vms_stmlf_recfm;
 Lisp_Object Qfile_error, Qfile_already_exists;
 
 Lisp_Object Qfile_name_history;
+
+Lisp_Object Qcar_less_than_car;
 
 report_file_error (string, data)
      char *string;
@@ -2353,13 +2361,15 @@ If VISIT is non-nil, BEG and END must be nil.")
   register int inserted = 0;
   register int how_much;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1;
-  Lisp_Object handler, val;
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object handler, val, insval;
+  Lisp_Object p;
   int total;
 
   val = Qnil;
+  p = Qnil;
 
-  GCPRO1 (filename);
+  GCPRO2 (filename, p);
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only();
 
@@ -2523,6 +2533,22 @@ If VISIT is non-nil, BEG and END must be nil.")
 
   signal_after_change (point, 0, inserted);
   
+  if (inserted > 0)
+    {
+      p = Vafter_insert_file_functions;
+      while (!NILP (p))
+	{
+	  insval = call1 (Fcar (p), make_number (inserted));
+	  if (!NILP (insval))
+	    {
+	      CHECK_NUMBER (insval, 0);
+	      inserted = XFASTINT (insval);
+	    }
+	  QUIT;
+	  p = Fcdr (p);
+	}
+    }
+
   if (!NILP (val))
     RETURN_UNGCPRO (val);
   RETURN_UNGCPRO (Fcons (filename,
@@ -2530,6 +2556,8 @@ If VISIT is non-nil, BEG and END must be nil.")
 				Qnil)));
 }
 
+static Lisp_Object build_annotations ();
+
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 5,
   "r\nFWrite region to file: ",
   "Write current region into specified file.\n\
@@ -2555,13 +2583,15 @@ to the file, instead of any buffer contents, and END is ignored.")
   int save_errno;
   unsigned char *fn;
   struct stat st;
-  int tem;
+  int tem, tem2;
   int count = specpdl_ptr - specpdl;
 #ifdef VMS
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
 #endif /* VMS */
   Lisp_Object handler;
   Lisp_Object visit_file;
+  Lisp_Object annotations;
+  int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   /* Special kludge to simplify auto-saving */
@@ -2579,7 +2609,12 @@ to the file, instead of any buffer contents, and END is ignored.")
   else
     visit_file = filename;
 
-  GCPRO4 (start, filename, visit, visit_file);
+  visiting = (EQ (visit, Qt) || XTYPE (visit) == Lisp_String);
+  quietly = !NILP (visit);
+
+  annotations = Qnil;
+
+  GCPRO4 (start, filename, annotations, visit_file);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2594,7 +2629,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       /* Do this before reporting IO error
 	 to avoid a "file has changed on disk" warning on
 	 next attempt to save.  */
-      if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
+      if (visiting)
 	{
 	  current_buffer->modtime = 0;
 	  current_buffer->save_modified = MODIFF;
@@ -2604,6 +2639,8 @@ to the file, instead of any buffer contents, and END is ignored.")
       UNGCPRO;
       return val;
     }
+
+  annotations = build_annotations (start, end);
 
 #ifdef CLASH_DETECTION
   if (!auto_saving)
@@ -2713,18 +2750,20 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   if (XTYPE (start) == Lisp_String)
     {
-      failure = 0 > e_write (desc, XSTRING (start)->data,
-			     XSTRING (start)->size);
+      failure = 0 > a_write (desc, XSTRING (start)->data,
+			     XSTRING (start)->size, 0, &annotations);
       save_errno = errno;
     }
   else if (XINT (start) != XINT (end))
     {
+      tem2 = 1;
       if (XINT (start) < GPT)
 	{
 	  register int end1 = XINT (end);
 	  tem = XINT (start);
-	  failure = 0 > e_write (desc, &FETCH_CHAR (tem),
-				 min (GPT, end1) - tem);
+	  failure = 0 > a_write (desc, &FETCH_CHAR (tem),
+				 min (GPT, end1) - tem, 1, &annotations);
+	  tem2 += min (GPT, end1) - tem;
 	  save_errno = errno;
 	}
 
@@ -2732,7 +2771,15 @@ to the file, instead of any buffer contents, and END is ignored.")
 	{
 	  tem = XINT (start);
 	  tem = max (tem, GPT);
-	  failure = 0 > e_write (desc, &FETCH_CHAR (tem), XINT (end) - tem);
+	  failure = 0 > a_write (desc, &FETCH_CHAR (tem), XINT (end) - tem,
+				 tem2, &annotations);
+	  tem2 += XINT (end) - tem;
+	  save_errno = errno;
+	}
+      if (tem2 == 1)
+	{
+	  /* If file was empty, still need to write the annotations */
+	  failure = 0 > a_write (desc, "", 0, 1, &annotations);
 	  save_errno = errno;
 	}
     }
@@ -2795,25 +2842,106 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* Do this before reporting IO error
      to avoid a "file has changed on disk" warning on
      next attempt to save.  */
-  if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
+  if (visiting)
     current_buffer->modtime = st.st_mtime;
 
   if (failure)
     error ("IO error writing %s: %s", fn, err_str (save_errno));
 
-  if (EQ (visit, Qt) || XTYPE (visit) == Lisp_String)
+  if (visiting)
     {
       current_buffer->save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
       current_buffer->filename = visit_file;
     }
-  else if (!NILP (visit))
+  else if (quietly)
     return Qnil;
 
   if (!auto_saving)
     message ("Wrote %s", XSTRING (visit_file)->data);
 
   return Qnil;
+}
+
+Lisp_Object merge ();
+
+DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
+  "Return t if (car A) is numerically less than (car B)."
+  (a, b)
+     Lisp_Object a, b;
+{
+  return Flss (Fcar (a), Fcar (b));
+}
+
+/* Build the complete list of annotations appropriate for writing out
+   the text between START and END, by calling all the functions in
+   write-region-annotate-functions and merging the lists they return.  */
+
+static Lisp_Object
+build_annotations (start, end)
+     Lisp_Object start, end;
+{
+  Lisp_Object annotations;
+  Lisp_Object p, res;
+  struct gcpro gcpro1, gcpro2;
+
+  annotations = Qnil;
+  p = Vwrite_region_annotate_functions;
+  GCPRO2 (annotations, p);
+  while (!NILP (p))
+    {
+      res = call2 (Fcar (p), start, end);
+      Flength (res);   /* Check basic validity of return value */
+      annotations = merge (annotations, res, Qcar_less_than_car);
+      p = Fcdr (p);
+    }
+  UNGCPRO;
+  return annotations;
+}
+
+/* Write to descriptor DESC the LEN characters starting at ADDR,
+   assuming they start at position POS in the buffer.
+   Intersperse with them the annotations from *ANNOT
+   (those which fall within the range of positions POS to POS + LEN),
+   each at its appropriate position.
+
+   Modify *ANNOT by discarding elements as we output them.
+   The return value is negative in case of system call failure.  */
+
+int
+a_write (desc, addr, len, pos, annot)
+     int desc;
+     register char *addr;
+     register int len;
+     int pos;
+     Lisp_Object *annot;
+{
+  Lisp_Object tem;
+  int nextpos;
+  int lastpos = pos + len;
+
+  while (1)
+    {
+      tem = Fcar_safe (Fcar (*annot));
+      if (INTEGERP (tem) && XINT (tem) >= pos && XFASTINT (tem) <= lastpos)
+	nextpos = XFASTINT (tem);
+      else
+	return e_write (desc, addr, lastpos - pos);
+      if (nextpos > pos)
+	{
+	  if (0 > e_write (desc, addr, nextpos - pos))
+	    return -1;
+	  addr += nextpos - pos;
+	  pos = nextpos;
+	}
+      tem = Fcdr (Fcar (*annot));
+      if (STRINGP (tem))
+	{
+	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size))
+	    return -1;
+	}
+      *annot = Fcdr (*annot);
+    }
 }
 
 int
@@ -3411,6 +3539,9 @@ syms_of_fileio ()
   Qfile_already_exists = intern("file-already-exists");
   staticpro (&Qfile_already_exists);
 
+  Qcar_less_than_car = intern ("car-less-than-car");
+  staticpro (&Qcar_less_than_car);
+
   Fput (Qfile_error, Qerror_conditions,
 	Fcons (Qfile_error, Fcons (Qerror, Qnil)));
   Fput (Qfile_error, Qerror_message,
@@ -3445,6 +3576,24 @@ and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
 The function `find-file-name-handler' checks this list for a handler\n\
 for its argument.");
   Vfile_name_handler_alist = Qnil;
+
+  DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
+    "A list of functions to be called at the end of `insert-file-contents'.
+Each is passed one argument, the number of bytes inserted.  It should return
+the new byte count, and leave point the same.  If `insert-file-contents' is
+intercepted by a handler from `file-name-handler-alist', that handler is
+responsible for calling the after-insert-file-functions if appropriate.");
+  Vafter_insert_file_functions = Qnil;
+
+  DEFVAR_LISP ("write-region-annotate-functions", &Vwrite_region_annotate_functions,
+    "A list of functions to be called at the start of `write-region'.
+Each is passed two arguments, START and END as for `write-region'.  It should
+return a list of pairs (POSITION . STRING) of strings to be effectively
+inserted at the specified positions of the file being written (1 means to
+insert before the first byte written).  The POSITIONs must be sorted into
+increasing order.  If there are several functions in the list, the several
+lists are merged destructively.");
+  Vwrite_region_annotate_functions = Qnil;
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);
@@ -3485,6 +3634,7 @@ for its argument.");
   defsubr (&Sfile_newer_than_file_p);
   defsubr (&Sinsert_file_contents);
   defsubr (&Swrite_region);
+  defsubr (&Scar_less_than_car);
   defsubr (&Sverify_visited_file_modtime);
   defsubr (&Sclear_visited_file_modtime);
   defsubr (&Svisited_file_modtime);
