@@ -935,7 +935,10 @@ if you wish to pass an empty string as the argument."
 
 (defun write-file (filename)
   "Write current buffer into file FILENAME.
-Makes buffer visit that file, and marks it not modified."
+Makes buffer visit that file, and marks it not modified.
+If the buffer is already visiting a file, you can specify
+a directory name as FILENAME, to write a file of the same
+old name in that directory."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
@@ -946,7 +949,13 @@ Makes buffer visit that file, and marks it not modified."
 					  (buffer-local-variables)))
 			       nil nil (buffer-name)))))
   (or (null filename) (string-equal filename "")
-      (set-visited-file-name filename))
+      (progn
+	;; If arg is just a directory,
+	;; use same file name, but in that directory.
+	(if (and (file-directory-p filename) buffer-file-name)
+	    (setq filename (concat (file-name-as-directory filename)
+				   (file-name-nondirectory buffer-file-name))))
+	(set-visited-file-name filename)))
   (set-buffer-modified-p t)
   (save-buffer))
 
