@@ -1193,6 +1193,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       syms_of_w32faces ();
       syms_of_w32select ();
       syms_of_w32menu ();
+      syms_of_fontset ();
 #endif /* HAVE_NTGUI */
 
 #ifdef SYMS_SYSTEM
