@@ -81,7 +81,7 @@ Lines that do not match are assumed to be error messages.")
   
 ;;; Fine differences 
 
-(ediff-defvar-local ediff-auto-refine (if window-system 'on 'nix)
+(ediff-defvar-local ediff-auto-refine (if (ediff-window-display-p) 'on 'nix)
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
 If `off', auto-highlighting is not used. If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.
@@ -131,7 +131,7 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
   ;; force all minibuffers to display ediff's messages.
-  ;; when xemacs implements minibufferless screens, this won't be necessary
+  ;; when xemacs implements minibufferless frames, this won't be necessary
   (if ediff-xemacs-p (setq synchronize-minibuffers t))
 						  
   (or (ediff-buffer-live-p ediff-diff-buffer)
@@ -476,12 +476,13 @@ one optional arguments, diff-number to refine.")
       (ediff-overlay-put overlay 'ediff-diff-num current-diff)
       (ediff-overlay-put 
        overlay 'insert-in-front-hooks '(ediff-insert-in-front))
-      (ediff-overlay-put
-       overlay 'face (if (ediff-odd-p current-diff)
-			 (intern 
-			  (format "ediff-odd-diff-face-%S-var" buf-type))
-		       (intern
-			(format "ediff-even-diff-face-%S-var" buf-type))))
+      (if (ediff-window-display-p)
+	  (ediff-overlay-put
+	   overlay 'face (if (ediff-odd-p current-diff)
+			     (intern 
+			      (format "ediff-odd-diff-face-%S-var" buf-type))
+			   (intern
+			    (format "ediff-even-diff-face-%S-var" buf-type)))))
 
       (if (= 0 (mod current-diff 10))
 	  (message "Buffer %S: Processing difference region %d of %d"
@@ -678,7 +679,7 @@ one optional arguments, diff-number to refine.")
     
 ;; if fine diff vector is not set for diff N, then do nothing
 (defun ediff-set-fine-diff-properties (n &optional default)
-  (or (not window-system)
+  (or (not (ediff-window-display-p))
       (< n 0)
       (>= n ediff-number-of-differences)
       ;; in a window system, set faces and priorities of fine overlays
@@ -951,7 +952,7 @@ one optional arguments, diff-number to refine.")
 (defun ediff-setup-diff-regions3 (file-A file-B file-C)
   
   ;; force all minibuffers to display ediff's messages.
-  ;; when xemacs implements minibufferless screens, this won't be necessary
+  ;; when xemacs implements minibufferless frames, this won't be necessary
   (if ediff-xemacs-p (setq synchronize-minibuffers t))
 						  
   (or (ediff-buffer-live-p ediff-diff-buffer)
