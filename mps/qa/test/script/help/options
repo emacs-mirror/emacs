@@ -1,5 +1,5 @@
 display options and their current values
-% $HopeName: MMQA_harness!script:help:options(trunk.4) $
+% $HopeName: MMQA_harness!script:help:options(trunk.5) $
 
 Usage: qa options [<options>]
 
@@ -118,4 +118,25 @@ MMQA_DEBUG_INFO / -[no]debug
  default is 'off'. If you turn this on, qa commands will output
  various diagnostic messages, which may or may not be useful in
  the event of a problem with the test system. Not recommended.
+
+MMQA_MAIL_RESULTS / -[no]mail
+ If MAIL_RESULTS is on, then MAIL_SUBJECT will be put at the beginning
+ of the subject header when test logs are mailed out. Default is
+ "MMQA-log". Don't change this unless you are going to change
+ MMQA_MAIL_TO, in which case you might want to use it to help you
+ filter your mail automatically.
+
+MMQA_MAIL_TO / -m
+ If MAIL_RESULTS is on, then MAIL_TO is who to mail test logs to.
+ The default is mm-qa-test-log, which get archived in the
+ "MM QA Test Log" Notes database. Leave this unchanged, unless for
+ example you want to mail results (which are more detailed than
+ those displayed on screen) to yourself.
+
+MMQA_MAIL_SUBJECT / -subj
+ If MAIL_RESULTS is on, then MAIL_SUBJECT will be put at the
+ beginning of the subject header when test logs are mailed out.
+ Default is "MMQA-log". Don't change this unless you are going to
+ change MMQA_MAIL_TO, in which case you might want to use it to help
+ you filter your mail automatically.
 
