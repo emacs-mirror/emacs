@@ -78,6 +78,11 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.2
 
++++
+** Functions `file-name-sans-extension' and `file-name-extension' now
+ignore the leading dots in file names, so that file names such as
+`.emacs' are treated as extensionless.
+
 ** Functions `user-uid' and `user-real-uid' now return floats if the
 user UID doesn't fit in a Lisp integer.  Function `user-full-name'
 accepts a float as UID parameter.
