@@ -29,6 +29,11 @@
 
 ;;; Code:
 
+(defgroup warnings nil
+  "Log and display warnings."
+  :version "21.4"
+  :group 'lisp)
+
 (defvar warning-levels
   '((:emergency "Emergency%s: " ding)
     (:error "Error%s: ")
