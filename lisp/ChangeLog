@@ -1,23 +1,44 @@
+2000-06-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode): Autoload.
+	Use find-file-hooks in the minor-mode function.
+	Be careful not to loop indefinitely in the post-command-hook function.
+
 2000-06-05  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-init.el (ediff-has-face-support-p): make it paint faces on
 	tty's.
 	* ediff-diff.el (ediff-exec-process): use --binary for fine
-	differences whenever apropriate.
+	differences whenever appropriate.
 	* viper-cmd.el (viper-smart-suffix-list): rearranged list members.
-	* viper.el (find-file,find-file-other-window): get viper to do
+	* viper.el (find-file, find-file-other-window): get viper to do
 	wildcards. 
 	
 2000-06-04  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-define-toggle):
-	Remove (inline into define-minor-mode).
+	* jit-lock.el (jit-lock-saved-fontify-buffer-function): New var.
+	(jit-lock-fontify-buffer): New function for JIT refontification.
+	(jit-lock-mode): Fix docstring.
+	Use jit-lock-fontify-buffer for font-lock-fontify-buffer-function.
+	Remove jit-lock-after-change from the _local_ hook.
+	(jit-lock-function-1): Fix docstring.
+
+	* info.el (Info-on-current-buffer): Initialize info.
+
+	* newcomment.el (comment-indent): Ignore comment-indent-hook.
+
+	* progmodes/tcl.el (tcl-indent-for-comment):
+	Ignore comment-indent-hook.
+
+	* emacs-lisp/easy-mmode.el: Require CL during compilation.
+	(easy-mmode-define-toggle): Remove (inline into define-minor-mode).
 	(easy-mmode-pretty-mode-name): Rename from easy-mmode-derive-name
 	and improve to use the lighter to guess the capitalization.
 	(define-minor-mode): Inline code from easy-mmode-define-toggle.
 	Add keyword arguments to specify global-ness or the custom group.
 	Add local-map and help-echo properties to the lighter.
 	(easy-mmode-define-navigation): Add the errors to debug-ignored-errors.
+	(easy-mmode-define-global-mode): New macro.
 
 2000-06-02  Dave Love  <fx@gnu.org>
 
