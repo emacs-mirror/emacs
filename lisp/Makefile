@@ -62,8 +62,8 @@ updates: doit
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done; \
-	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins \
-	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins \
+	$(EMACS) -batch -l cus-dep.el -f custom-make-dependencies $$wins; \
+	$(EMACS) -batch -l finder -f finder-compile-keywords-make-dist $$wins; \
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
 TAGS: $(lisptagsfiles)
