@@ -751,7 +751,6 @@ Compatibility function for \\[next-error] invocations."
     ;; In case the *Occur* buffer is visible in a nonselected window.
     (set-window-point (get-buffer-window (current-buffer)) (point))
     (occur-mode-goto-occurrence)))
-
 
 (defcustom list-matching-lines-default-context-lines 0
   "*Default number of context lines included around `list-matching-lines' matches.
@@ -774,7 +773,7 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
-(defun occur-accumulate-lines (count &optional no-props)
+(defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
 	  (result nil))
@@ -784,9 +783,9 @@ If the value is nil, don't highlight the buffer names specially."
 			(bobp))))
 	(setq count (+ count (if forwardp -1 1)))
 	(push
-	 (funcall (if no-props
-		      #'buffer-substring-no-properties
-		    #'buffer-substring)
+	 (funcall (if keep-props
+		      #'buffer-substring
+		    #'buffer-substring-no-properties)
 	  (line-beginning-position)
 	  (line-end-position))
 	 result)
@@ -921,7 +920,7 @@ See also `multi-occur'."
 		    (and case-fold-search
 			 (isearch-no-upper-case-p regexp t))
 		    list-matching-lines-buffer-name-face
-		    nil list-matching-lines-face nil)))
+		    nil list-matching-lines-face t)))
 	(let* ((bufcount (length active-bufs))
 	       (diff (- (length bufs) bufcount)))
 	  (message "Searched %d buffer%s%s; %s match%s for `%s'"
@@ -1004,7 +1003,11 @@ See also `multi-occur'."
 					     (append
 					      `(occur-match t)
 					      (when match-face
-						`(font-lock-face ,match-face)))
+						;; Use `face' rather than
+						;; `font-lock-face' here
+						;; so as to override faces
+						;; copied from the buffer.
+						`(face ,match-face)))
 					     curstring)
 			(setq start (match-end 0))))
 		    ;; Generate the string to insert for this match
