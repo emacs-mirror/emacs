@@ -6,6 +6,8 @@
 
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* abbrev.c (abbrev-start-location): Doc fix.
+
 	* indent.c (Fvertical_motion): Fix last change.
 
 2002-04-25  Gerd Moellmann  <gerd@gnu.org>
