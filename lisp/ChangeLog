@@ -1,3 +1,14 @@
+2004-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-read-noecho): Add trivial compatibility
+	definition.
+
+	* generic.el (define-generic-mode): Doc fix.
+
+	* menu-bar.el (menu-bar-options-save): For the options
+	that are toggled with menu-bar-make-mm-toggle, don't check
+	for customized-value prop.
+
 2004-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/supercite.el (sc-cite-region): Handle the case where

@@ -1,3 +1,8 @@
+2004-11-26  Richard M. Stallman  <rms@gnu.org>
+
+	* locals.texi (Standard Buffer-Local Variables): Undo prev change.
+	Remove a few vars that are not always buffer-local.
+
 2004-11-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locals.texi (Standard Buffer-Local Variables): Comment out
