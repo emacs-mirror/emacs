@@ -1,3 +1,7 @@
+2000-02-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Setup case table for Vietnamese.
+
 2000-02-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* uniquify.el (toplevel): Require CL at compile time.
