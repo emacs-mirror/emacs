@@ -1,3 +1,18 @@
+2001-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* net/browse-url.el: Support Mozilla and Galeon.
+	By default, find the installed browser whichever it is.
+	(browse-url-mozilla): New function.
+	(browse-url-mozilla-sentinel): New function.
+	(browse-url-galeon, browse-url-galeon-sentinel): New functions.
+	(browse-url-default-browser): New function.
+	(browse-url-process-environment): Use browse-url-browser-display.
+	(browse-url-browser-display): Renamed from browse-url-netscape-display.
+	(browse-url-mozilla-startup-arguments, browse-url-galeon-program) 
+	(browse-url-galeon-arguments, browse-url-galeon-startup-arguments)
+	(browse-url-mozilla-program, browse-url-mozilla-arguments): New vars.
+	(browse-url-browser-function): New default, new options.
+
 2001-11-19  Sam Steingold  <sds@gnu.org>
 
 	* bindings.el (last-buffer, unbury-buffer): New function.
