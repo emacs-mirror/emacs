@@ -580,7 +580,7 @@ of the start of the containing expression."
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)
-(put 'with-current-buffer 'lisp-indent-function 0)
+(put 'with-current-buffer 'lisp-indent-function 1)
 (put 'with-output-to-string 'lisp-indent-function 0)
 (put 'with-temp-file 'lisp-indent-function 1)
 (put 'with-temp-buffer 'lisp-indent-function 0)
