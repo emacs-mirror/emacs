@@ -1,3 +1,9 @@
+2000-03-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* dispextern.h: Define FACE_SUITABLE_FOR_CHAR_P and FACE_FOR_CHAR
+	differently for the configuration of --without-x by "ifdef
+	HAVE_WINDOW_SYSTEM".
+
 2000-03-21  Dave Love  <fx@gnu.org>
 
 	* fontset.c (Fset_fontset_font, Ffontset_font): Fix newlines in
