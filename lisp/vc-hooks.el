@@ -237,7 +237,8 @@ value of this flag.")
 	      ;; Add vc-path to PATH for the execution of this command.
 	      (process-environment
 	       (cons (concat "PATH=" (getenv "PATH")
-			     ":" (mapconcat 'identity vc-path ":"))
+			     path-separator
+			     (mapconcat 'identity vc-path path-separator))
 		     process-environment)))
 	  (apply 'call-process command nil "*vc*" nil 
 		 (append flags (list (file-name-nondirectory file)))))
