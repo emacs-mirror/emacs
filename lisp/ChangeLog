@@ -1,3 +1,9 @@
+2003-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Don't call mail-strip-quoted-names.
+
+	* files.el (backup-buffer): Cope if file-modes returns nil.
+
 2002-12-30  Steven Tamm  <steventamm@mac.com>
 
 	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have
