@@ -712,34 +712,30 @@ Returns t for rescan and otherwise a position number."
 					   (cdr menu)
 					 (cdr (cadr menu)))))
     (setq position (x-popup-menu event menu))
-    (if imenu-use-keymap-menu
-	(progn
-	  (cond 
-	   ((and (listp position)
-		 (numberp (car position))
-		 (stringp (nth (1- (length position)) position)))
-	    (setq position (nth (1- (length position)) position)))
-	   ((and (stringp (car position))
-		 (null (cdr position)))
-	    (setq position (car position))))))
-    (cond
-     ((eq position nil)
-      position)
-     ((listp position)
-      (imenu--mouse-menu position event
-			 (if title
-			     (concat title imenu-level-separator
-				     (car (rassq position index-alist)))
-			   (car (rassq position index-alist)))))
-     ((stringp position)
-      (or (string= position (car imenu--rescan-item))
-	  (imenu--in-alist position index-alist)))
-     ((or (= position (cdr imenu--rescan-item))
-	  (and (stringp position)
-	       (string= position (car imenu--rescan-item))))
-      t)
-     (t
-      (rassq position index-alist)))))
+    (cond ((and (listp position)
+		(numberp (car position))
+		(stringp (nth (1- (length position)) position)))
+	   (setq position (nth (1- (length position)) position)))
+	  ((and (stringp (car position))
+		(null (cdr position)))
+	   (setq position (car position))))
+    (cond ((eq position nil)
+	   position)
+	  ((listp position)
+	   (imenu--mouse-menu position event
+			      (if title
+				  (concat title imenu-level-separator
+					  (car (rassq position index-alist)))
+				(car (rassq position index-alist)))))
+	  ((stringp position)
+	   (or (string= position (car imenu--rescan-item))
+	       (imenu--in-alist position index-alist)))
+	  ((or (= position (cdr imenu--rescan-item))
+	       (and (stringp position)
+		    (string= position (car imenu--rescan-item))))
+	   t)
+	  (t
+	   (rassq position index-alist)))))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
   "Let the user select from a buffer index and return the chosen index.
