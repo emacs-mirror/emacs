@@ -292,7 +292,7 @@ echo "Making links to \`etc'."
 
 echo "Making links to \`etc/e'."
 (cd etc/e
- ln `ls -d * | grep -v 'RCS' ../${tempdir}/etc/e
+ ln `ls -d * | grep -v 'RCS'` ../${tempdir}/etc/e
  cd ../${tempdir}/etc
  rm -f DOC* *~ \#*\# *,v =* core)
 
