@@ -1,3 +1,9 @@
+2003-09-24  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* cmdargs.texi (Font X): Mention new default font.  More
+	fully describe long font names, wildcard patterns and the
+	problems involved.  (Result of discussion on emacs-devel.)
+
 2003-09-22  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* emacs.texi (Acknowledgements): Correct typo.
