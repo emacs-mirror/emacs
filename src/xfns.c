@@ -570,6 +570,23 @@ x_real_positions (f, xptr, yptr)
   int win_x = 0, win_y = 0;
   Window child;
 
+  /* This is pretty gross, but seems to be the easiest way out of
+     the problem that arises when restarting window-managers.  */
+
+#ifdef USE_X_TOOLKIT
+  Window outer = XtWindow (f->display.x->widget);
+#else
+  Window outer = f->display.x->window_desc;
+#endif
+  Window tmp_root_window;
+  Window *tmp_children;
+  int tmp_nchildren;
+
+  XQueryTree (x_current_display, outer, &tmp_root_window,
+	      &f->display.x->parent_desc,
+	      &tmp_children, &tmp_nchildren);
+  xfree (tmp_children);
+
   /* Find the position of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
   if (f->display.x->parent_desc != ROOT_WINDOW)
