@@ -175,7 +175,7 @@ get_data_region(
 	kern_return_t ret;
 	struct section *sect;
 
-	sect = getsectbyname(SEG_DATA, SECT_DATA);
+	sect = (struct section *) getsectbyname(SEG_DATA, SECT_DATA);
 	region.address = 0;
 	*address = 0;
 	for (;;) {
