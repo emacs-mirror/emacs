@@ -338,10 +338,10 @@ install-arch-indep: mkdir
 	-rm -f ${lispdir}/subdirs.el
 	$(srcdir)/update-subdirs ${lispdir}
 	-rm -f ${datadir}/emacs/${version}/site-lisp/subdirs.el
-	echo "(normal-top-level-add-subdirs-to-load-path)\n" \
+	echo "(normal-top-level-add-subdirs-to-load-path)" \
 	  > ${datadir}/emacs/${version}/site-lisp/subdirs.el
 	-rm -f ${datadir}/emacs/site-lisp/subdirs.el
-	echo "(normal-top-level-add-subdirs-to-load-path)\n" \
+	echo "(normal-top-level-add-subdirs-to-load-path)" \
 	  > ${datadir}/emacs/site-lisp/subdirs.el
 	-chmod -R a+r ${COPYDESTS}
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
