@@ -733,6 +733,18 @@ The function @code{delq} offers a way to perform this operation
 destructively.  See @ref{Sets And Lists}.
 @end defun
 
+@defun copy-tree tree &optional vecp
+This function returns a copy the tree @code{tree}.  If @var{tree} is a
+cons cell, this makes a new cons cell with the same @sc{car} and
+@sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
+same way.
+
+Normally, when @var{tree} is anything other than a cons cell,
+@code{copy-tree} simply returns @var{tree}.  However, if @var{vecp} is
+non-@code{nil}, it copies vectors too (and operates recursively on
+their elements).
+@end defun
+
 @defun number-sequence from to &optional separation
 This returns a list of numbers starting with @var{from}
 and incrementing by @var{separation} (or by 1 if @var{separation}
