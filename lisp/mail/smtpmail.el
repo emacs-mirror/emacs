@@ -35,7 +35,7 @@
 ;; Please add these lines in your .emacs(_emacs) or use customize.
 ;;
 ;;(setq send-mail-function 'smtpmail-send-it) ; if you use `mail'
-;;(setq message-send-mail-function 'smtpmail-send-it) ; if you are using Gnus.
+;;(setq message-send-mail-function 'smtpmail-send-it) ; if you use message/Gnus
 ;;(setq smtpmail-default-smtp-server "YOUR SMTP HOST")
 ;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-sendto-domain "YOUR DOMAIN NAME")
@@ -191,6 +191,8 @@ This is relative to `smtpmail-queue-dir'.")
 (defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list)
 
+(defvar smtpmail-queue-counter 0)
+
 ;; Buffer-local variable.
 (defvar smtpmail-read-point)
 
@@ -334,8 +336,10 @@ This is relative to `smtpmail-queue-dir'.")
 	    (let* ((file-data (concat 
 			       smtpmail-queue-dir
 			       (concat (time-stamp-yyyy-mm-dd)
-				       "_" (time-stamp-hh:mm:ss))))
-		      (file-data (convert-standard-filename file-data))
+				       "_" (time-stamp-hh:mm:ss)
+				       "_"
+				       (setq smtpmail-queue-counter
+					     (1+ smtpmail-queue-counter)))))
 		      (file-elisp (concat file-data ".el"))
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
