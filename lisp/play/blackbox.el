@@ -1,6 +1,6 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2001 Free Software Foundation, Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ;; Adapted-By: ESR
@@ -70,8 +70,25 @@
 
 (defvar blackbox-mode-map nil "")
 
-(if blackbox-mode-map
-    ()
+(defvar bb-board nil
+  "Blackbox board.")
+
+(defvar bb-x -1
+  "Current x-position.")
+
+(defvar bb-y -1
+  "Current y-position.")
+
+(defvar bb-score 0
+  "Current score.")
+
+(defvar bb-detour-count 0
+  "Number of detours.")
+
+(defvar bb-balls-placed nil
+  "List of already placed balls.")
+
+(unless blackbox-mode-map
   (setq blackbox-mode-map (make-keymap))
   (suppress-keymap blackbox-mode-map t)
   (define-key blackbox-mode-map "\C-f" 'bb-right)
@@ -243,7 +260,7 @@ a reflection."
       (while
 	  (progn
 	    (setq pos (cons (random 8) (random 8)))
-	    (bb-member pos board)))
+	    (member pos board)))
       (setq board (cons pos board)))
     board))
 
@@ -310,12 +327,12 @@ a reflection."
 (defun bb-place-ball (x y)
   (let ((coord (cons x y)))
     (cond
-     ((bb-member coord bb-balls-placed)
-      (setq bb-balls-placed (bb-delete coord bb-balls-placed))
+     ((member coord bb-balls-placed)
+      (setq bb-balls-placed (delete coord bb-balls-placed))
       (bb-update-board "-"))
      (t
       (setq bb-balls-placed (cons coord bb-balls-placed))
-      (bb-update-board "O")))))
+      (bb-update-board (propertize "O" 'help-echo "Placed ball"))))))
 
 (defun bb-trace-ray (x y)
   (let ((result (bb-trace-ray-2
@@ -332,17 +349,19 @@ a reflection."
 		  (t 0)))))
     (cond
      ((eq result 'hit)
-      (bb-update-board "H")
+      (bb-update-board (propertize "H" 'help-echo "Hit"))
       (setq bb-score (1+ bb-score)))
      ((equal result (cons x y))
-      (bb-update-board "R")
+      (bb-update-board (propertize "R" 'help-echo "Reflection"))
       (setq bb-score (1+ bb-score)))
      (t
       (setq bb-detour-count (1+ bb-detour-count))
-      (bb-update-board (format "%d" bb-detour-count))
+      (bb-update-board (propertize (format "%d" bb-detour-count)
+				   'help-echo "Detour"))
       (save-excursion
 	(bb-goto result)
-	(bb-update-board (format "%d" bb-detour-count)))
+	(bb-update-board (propertize (format "%d" bb-detour-count)
+				     'help-echo "Detour")))
       (setq bb-score (+ bb-score 2))))))
 
 (defun bb-trace-ray-2 (first x dx y dy)
@@ -350,11 +369,11 @@ a reflection."
    ((and (not first)
 	 (bb-outside-box x y))
     (cons x y))
-   ((bb-member (cons (+ x dx) (+ y dy)) bb-board)
+   ((member (cons (+ x dx) (+ y dy)) bb-board)
     'hit)
-   ((bb-member (cons (+ x dx dy) (+ y dy dx)) bb-board)
+   ((member (cons (+ x dx dy) (+ y dy dx)) bb-board)
     (bb-trace-ray-2 nil x (- dy) y (- dx)))
-   ((bb-member (cons (+ x dx (- dy)) (+ y dy (- dx))) bb-board)
+   ((member (cons (+ x dx (- dy)) (+ y dy (- dx))) bb-board)
     (bb-trace-ray-2 nil x dy y dx))
    (t
     (bb-trace-ray-2 nil (+ x dx) dx (+ y dy) dy))))
@@ -388,7 +407,7 @@ a reflection."
   (cond
    ((null list-1)
     0)
-   ((bb-member (car list-1) list-2)
+   ((member (car list-1) list-2)
     (bb-show-bogus-balls-2 (cdr list-1) list-2 c))
    (t
     (bb-goto (car list-1))
@@ -408,16 +427,6 @@ a reflection."
     (insert c)
     (backward-char 1)))
   
-(defun bb-member (elt list)
-  "Returns non-nil if ELT is an element of LIST."
-  (eval (cons 'or (mapcar (function (lambda (x) (equal x elt))) list))))
-
-(defun bb-delete (item list)
-  "Deletes ITEM from LIST and returns a copy."
-  (cond
-   ((equal item (car list)) (cdr list))
-   (t (cons (car list) (bb-delete item (cdr list))))))
-
 (provide 'blackbox)
 
 ;;; blackbox.el ends here
