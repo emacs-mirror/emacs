@@ -1,3 +1,7 @@
+2000-06-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eshell/esh-module.el: Require CL when compiling.
+
 2000-06-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* comint.el (comint-substitute-in-file-name): Call replace-match
