@@ -224,6 +224,13 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
     (setq user-mail-address (concat (user-login-name) "@"
 				    (or mail-host-address
 					(system-name))))
+    ;; Specify the file for recording all the auto save files of this session.
+    ;; This is used by multiple-recover.
+    (setq auto-save-list-file-name
+	  (expand-file-name
+	   (format "~/.saves-%d-%s"
+		   (emacs-pid)
+		   (or mail-host-address (system-name)))))
     (let ((menubar-bindings-done nil))
       (unwind-protect
 	  (command-line)
