@@ -104,6 +104,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define FONT_WIDTH(f)	((f)->max_bounds.width)
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
+#define FONT_DESCENT(f) ((f)->descent)
 
 /* The mask of events that text windows always want to receive.  This
    includes mouse movement events, since handling the mouse-font text property
@@ -667,6 +668,9 @@ enum
 };
 
 
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.x)
+
 /* Return the X window used for displaying data in frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
 
@@ -703,6 +707,7 @@ enum
 /* Width of the default font of frame F.  Must be defined by each
    terminal specific header.  */
 #define FRAME_DEFAULT_FONT_WIDTH(F) 	FONT_WIDTH (FRAME_FONT (F))
+#define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
@@ -1165,3 +1170,16 @@ extern int x_session_check_input P_ ((struct input_event *bufp,
                                       int *numchars));
 extern int x_session_have_connection P_ ((void));
 #endif
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
+
+#define STORE_XCHAR2B(chp, b1, b2) \
+  ((chp)->byte1 = (b1), (chp)->byte2 = (b2))
+
+#define XCHAR2B_BYTE1(chp) \
+  ((chp)->byte1)
+
+#define XCHAR2B_BYTE2(chp) \
+  ((chp)->byte2)
+
