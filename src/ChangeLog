@@ -1,3 +1,27 @@
+2002-06-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* bytecode.c (Fbyte_code): Cast `current_column' return value to int.
+	* cmds.c (Fdelete_backward_char, internal_self_insert): Likewise.
+	* keymap.c (describe_command): Likewise.
+	* minibuf.c (read_minibuf): Likewise.
+
+	* xdisp.c (redisplay_internal, redisplay_window, decode_mode_spec):
+	Cast `current_column' return value to int.
+	(back_to_previous_visible_line_start,
+	reseat_at_next_visible_line_start, next_element_from_buffer):
+	Cast `indented_beyond_p' 3rd arg to float.
+
+	* indent.c (last_known_column): Now a float.
+	(current_column_1, position_indentation, current_column,
+	string_display_width): Return float.
+	(Fcurrent_column): Cast `current_column' return value to int.
+	(Fcurrent_indentation): Cast `position_indentation' retval to int.
+	(indented_beyond_p): Third arg now a float.
+	(compute_motion, vmotion): Cast `indented_beyond_p' 3rd arg to float.
+
+	* lisp.h (current_column): Now returns float.
+	(indented_beyond_p): 3rd arg now a float.
+
 2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfns.c (x_encode_text): Return stringp non-NULL if coding_system
@@ -57,7 +81,7 @@
 	(substitute_object_recurse, substitute_object_in_subtree)
 	(substitute_in_interval): Prototype.
 	(read_multibyte): Return c if it's less than zero.
-	
+
 2002-05-28  Kim F. Storm  <storm@cua.dk>
 
 	* fileio.c (Fread_file_name_internal): Added brute-force
@@ -77,7 +101,7 @@
 	Call Vread_file_name_function to read the file name if non-nil.
 
 	* lisp.h (Fread_file_name): Now has 6 args.
-	
+
 	* callint.c (Fcall_interactively) <"D">: Supply Qfile_directory_p
 	predicate for Fread_file_name when reading directory name.
 	Supply Qnil for predicate in other calls to Fread_file_name.
@@ -1036,8 +1060,8 @@
 	* w32fns.c (x_set_cursor_color): Set foreground of cursor, not frame.
 	(Fimage_size, Fimage_mask_p, XPutPixel): New functions.
 	(four_corners_best, x_clear_image_1, x_clear_image)
-	(x_alloc_image_color, postprocess_image) 
-	(x_create_x_image_and_pixmap, x_destroy_x_image, xbm_load_image) 
+	(x_alloc_image_color, postprocess_image)
+	(x_create_x_image_and_pixmap, x_destroy_x_image, xbm_load_image)
 	(x_from_x_colors, x_disable_image, pbm_load): Adapt for Windows.
 	(init_xfns, syms_of_w32fns): Initialize image functions and constants.
 
@@ -1052,7 +1076,7 @@
 	socket functions.
 	(socket_to_fd): New function.
 	(sys_socket): Use it.
-	(sys_setsockopt, sys_listen, sys_getsockname, sys_accept) 
+	(sys_setsockopt, sys_listen, sys_getsockname, sys_accept)
 	(sys_recvfrom, sys_sendto): New wrapper functions.
 
 	* process.c (QCfamily, QCfilter): Remove duplicate declaration
@@ -1182,7 +1206,7 @@
 
 2002-03-16  Richard M. Stallman  <rms@gnu.org>
 
-	* xdisp.c (redisplay_internal, redisplay_windows): 
+	* xdisp.c (redisplay_internal, redisplay_windows):
 	Use list_of_error to call internal_condition_case_1.
 	(safe_eval, safe_call): Pass Qt to internal_condition_case_{1,2}
 	so as to catch all errors with no possibility of debugger redisplay.
