@@ -19,6 +19,7 @@ s/\.h\.in/.h-in/
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^LIBOBJS *=/s/@[^@\n]*@//
+/^GETLOADAVG_LIBS *=/s/@[^@\n]*@/getloadavg.o/
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
