@@ -183,7 +183,8 @@ Thus ARG can also contain additional grep options."
   ;; by FIFOs and devices.  I'm not sure what's best to do
   ;; about symlinks, so as far as I know this is not wrong.
   (find-dired dir
-	      (concat "-type f -exec grep " find-grep-options " "
+	      (concat "-type f -exec grep " find-grep-options " -e "
+		      (shell-quote-argument args)
 		      args " {} \\\; ")))
 
 (defun find-dired-filter (proc string)
