@@ -439,7 +439,7 @@ main (argc, argv)
 
   /* Maybe wait for an answer.   */
   if (nowait)
-    return 0;
+    return EXIT_SUCCESS;
 
   printf ("Waiting for Emacs...");
   fflush (stdout);
@@ -452,7 +452,7 @@ main (argc, argv)
   while (str = fgets (string, BUFSIZ, in))
     printf ("%s", str);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #else /* This is the SYSV IPC section */
