@@ -165,7 +165,7 @@ regardless of where in the line point is when the TAB command is used.")
 
 ;;; Regular expression used internally to recognize labels in switch
 ;;; statements.
-(defconst c-switch-label-regexp "case[ \t'/(]\\|default\\(\\S_\\|'\\)")
+(defconst c-switch-label-regexp "case[ \t'/(]\\|default[ \t]*:")
 
 
 (defun c-mode ()
