@@ -864,7 +864,7 @@ and move to the line in the SGML document that caused it."
 (defun sgml-lexical-context (&optional limit)
   "Return the lexical context at point as (TYPE . START).
 START is the location of the start of the lexical element.
-TYPE is one of `string', `comment', `tag', or `text'.
+TYPE is one of `string', `comment', `tag', `cdata', or `text'.
 
 If non-nil LIMIT is a nearby position before point outside of any tag."
   ;; As usual, it's difficult to get a reliable answer without parsing the
@@ -883,11 +883,11 @@ If non-nil LIMIT is a nearby position before point outside of any tag."
 	  ;; When entering this loop we're inside text.
 	  (setq text-start (point))
 	  (skip-chars-forward "^<" pos)
-          (setq cdata-start (if (looking-at "<!\\[CDATA\\[") (point)))
+          (setq cdata-start (if (looking-at "<!\\[[A-Z]+\\[") (point)))
           ;; We skipped text and reached a tag.  Parse it.
           ;; FIXME: Handle net-enabling start-tags
           (if cdata-start
-              (search-forward "]]>" pos 'limit)
+              (search-forward "]]>" pos 'move)
             (setq state (parse-partial-sexp (point) pos 0))))
 	(cond
          (cdata-start  (cons 'cdata cdata-start))
@@ -980,8 +980,8 @@ Leave point at the beginning of the tag."
       (setq tag-type 'comment
             tag-start (search-backward "<!--" nil t)))
      ((sgml-looking-back-at "]]")   ; cdata
-      (setq tag-type 'cdata
-            tag-start (search-backward "<![CDATA[" nil t)))
+      (setq tag-type 'cdata 
+            tag-start (re-search-backward "<!\\[[A-Z]+\\[" nil t)))
      (t
       (setq tag-start
             (with-syntax-table sgml-tag-syntax-table
