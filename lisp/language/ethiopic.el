@@ -1,6 +1,6 @@
 ;;; ethiopic.el --- Support for Ethiopic -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, Ethiopic
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
 
 ;;; Code:
 
@@ -57,7 +57,24 @@
 	      (input-method . "ethiopic")
 	      (features ethio-util)
 	      (sample-text . "$(3$Q#U!.(B")
-	      (documentation . t)))
+	      (documentation . 
+"This language envrironment provides these function key bindings
+    \(old bindings are shown in parentheses):
+    [f3]   ethio-fidel-to-sera-buffer         (f5)
+    [S-f3] ethio-fidel-to-sera-region         (f5)
+    [C-f3] ethio-fidel-to-sera-mail-or-marker (f5)
+
+    [f4]   ethio-sera-to-fidel-buffer         (unchanged)
+    [S-f4] ethio-sera-to-fidel-region         (unchanged)
+    [C-f4] ethio-sera-to-fidel-mail-or-marker (unchanged)
+
+    [S-f5] ethio-toggle-punctuation           (f3)
+    [S-f6] ethio-modify-vowel                 (f6)
+    [S-f7] ethio-replace-space                (f7)
+    [S-f8] ethio-input-special-character      (f8)
+    [S-f9] ethio-replace-space                (unchanged)
+    [C-f9] ethio-toggle-space                 (f2)"
+)))
 
 (provide 'ethiopic)
 
