@@ -1,6 +1,6 @@
 ;;; ispell.el --- spell checking using Ispell
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Authors         : Ken Stevens <k.stevens@ieee.org>
 ;; Last Modified On: Tue Jun 13 12:05:28 EDT 1995
