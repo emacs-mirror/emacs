@@ -145,6 +145,9 @@ The following interactive lisp functions help control operation :
 			  (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
 
+  (define-key gud-minor-mode-map [left-margin mouse-1] 'gdb-mouse-toggle-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-1] 'gdb-mouse-toggle-breakpoint)
+
   (setq comint-input-sender 'gdb-send)
   ;;
   ;; (re-)initialise
@@ -1054,6 +1057,20 @@ static char *magick[] = {
 				  (gdb-put-string "b" (+ start 1))))))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
+
+(defun gdb-mouse-toggle-breakpoint (event)
+  "Toggle breakpoint with mouse click in left margin."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let ((posn (event-end event)))
+    (message "pt=%S posn=%S" (posn-point posn) posn)
+    (if (numberp (posn-point posn))
+	(with-selected-window (posn-window posn)
+	  (save-excursion
+	    (goto-char (posn-point posn))
+	    (if (posn-object posn)
+		(gud-remove nil)
+	      (gud-break nil)))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
