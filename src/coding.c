@@ -7825,7 +7825,7 @@ associated with each coding-category one by one in this order.  When
 one algorithm agrees with a byte sequence of source text, the coding
 system bound to the corresponding coding-category is selected.
 
-Don't modify this variable directly, but use `set-coding-category'.  */);
+Don't modify this variable directly, but use `set-coding-priority'.  */);
   {
     int i;
 
