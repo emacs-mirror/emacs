@@ -547,7 +547,7 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
 }
 
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
-  "Return the (or, a) process associated with BUFFER.\n\
+  "Return the (or a) process associated with BUFFER.\n\
 BUFFER may be a buffer or the name of one.")
   (buffer)
      register Lisp_Object buffer;
@@ -635,7 +635,8 @@ nil, indicating the current buffer's process.")
 }
 
 DEFUN ("process-status", Fprocess_status, Sprocess_status, 1, 1, 0,
-  "Return the status of PROCESS: a symbol, one of these:\n\
+  "Return the status of PROCESS.\n\
+The returned value is one of the following symbols:\n\
 run  -- for a process that is running.\n\
 stop -- for a process stopped but continuable.\n\
 exit -- for a process that has exited.\n\
@@ -751,8 +752,7 @@ DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
 DEFUN ("process-buffer", Fprocess_buffer, Sprocess_buffer,
   1, 1, 0,
   "Return the buffer PROCESS is associated with.\n\
-Output from PROCESS is inserted in this buffer\n\
-unless PROCESS has a filter.")
+Output from PROCESS is inserted in this buffer unless PROCESS has a filter.")
   (process)
      register Lisp_Object process;
 {
@@ -917,9 +917,9 @@ For a net connection, the value is a cons cell of the form (HOST SERVICE).")
 #if 0 /* Turned off because we don't currently record this info
 	 in the process.  Perhaps add it.  */
 DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 1, 1, 0,
- "Return the connection type of `PROCESS'.\n\
-The value is `nil' for a pipe,\n\
-`t' or `pty' for a pty, or `stream' for a socket connection.")
+ "Return the connection type of PROCESS.\n\
+The value is nil for a pipe, t or `pty' for a pty, or `stream' for\n\
+a socket connection.")
   (process)
      Lisp_Object process;
 {
@@ -1047,8 +1047,8 @@ Proc         Status   Buffer         Tty         Command\n\
 
 DEFUN ("list-processes", Flist_processes, Slist_processes, 0, 0, "",
   "Display a list of all processes.\n\
-\(Any processes listed as Exited or Signaled are actually eliminated\n\
-after the listing is made.)")
+Any process listed as exited or signaled is actually eliminated\n\
+after the listing is made.")
   ()
 {
   internal_with_output_to_temp_buffer ("*Process List*",
@@ -3639,7 +3639,7 @@ process_send_signal (process, signo, current_group, nomsg)
 }
 
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
-  "Interrupt process PROCESS.  May be process or name of one.\n\
+  "Interrupt process PROCESS.\n\
 PROCESS may be a process, a buffer, or the name of a process or buffer.\n\
 nil or no arg means current buffer's process.\n\
 Second arg CURRENT-GROUP non-nil means send signal to\n\
@@ -3828,7 +3828,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.")
 
 DEFUN ("process-send-eof", Fprocess_send_eof, Sprocess_send_eof, 0, 1, 0,
   "Make PROCESS see end-of-file in its input.\n\
-Eof comes after any text already sent to it.\n\
+EOF comes after any text already sent to it.\n\
 PROCESS may be a process, a buffer, the name of a process or buffer, or\n\
 nil, indicating the current buffer's process.\n\
 If PROCESS is a network connection, or is a process communicating\n\
@@ -4301,8 +4301,9 @@ status_notify ()
 
 DEFUN ("set-process-coding-system", Fset_process_coding_system,
        Sset_process_coding_system, 1, 3, 0,
-  "Set coding systems of PROCESS to DECODING (input from the process) and\n\
-ENCODING (output to the process).")
+  "Set coding systems of PROCESS to DECODING and ENCODING.\n\
+DECODING will be used to decode subprocess output and ENCODING to\n\
+encode subprocess input.")
   (proc, decoding, encoding)
      register Lisp_Object proc, decoding, encoding;
 {
