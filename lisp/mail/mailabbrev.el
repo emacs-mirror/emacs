@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997, 2000, 2002
+;; Copyright (C) 1985, 86, 87, 92, 93, 96, 1997, 2000, 2002, 2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>, now <jwz@jwz.org>
@@ -111,10 +111,8 @@
 ;;  (add-hook
 ;;   'mail-mode-hook
 ;;   (lambda ()
-;;      (substitute-key-definition 'next-line 'mail-abbrev-next-line
-;;				 mail-mode-map global-map)
-;;      (substitute-key-definition 'end-of-buffer 'mail-abbrev-end-of-buffer
-;;				 mail-mode-map global-map)))
+;;      (define-key mail-mode-map [remap next-line] 'mail-abbrev-next-line)
+;;      (define-key mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
 ;;
 ;; If you want multiple addresses separated by a string other than ", " then
 ;; you can set the variable mail-alias-separator-string to it.  This has to
