@@ -196,30 +196,34 @@ Prefix arg means just kill any existing server communications subprocess."
 (defun server-visit-files (files client)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
 FILES is an alist whose elements are (FILENAME LINENUMBER)."
-  (let (client-record)
-    (while files
-      (save-excursion
-	;; If there is an existing buffer modified or the file is modified,
-	;; revert it.
-	;; If there is an existing buffer with deleted file, offer to write it.
- 	(let* ((filen (car (car files)))
-	       (obuf (get-file-buffer filen)))
- 	  (if (and obuf (set-buffer obuf))
- 	      (if (file-exists-p filen)
- 		  (if (or (not (verify-visited-file-modtime obuf))
-			  (buffer-modified-p obuf))
-		      (revert-buffer t nil))
- 		(if (y-or-n-p
- 		     (concat "File no longer exists: "
- 			     filen
- 			     ", write buffer to file? "))
- 		    (write-file filen)))
- 	    (set-buffer (find-file-noselect filen))
-	    (run-hooks 'server-visit-hook)))
-	(goto-line (nth 1 (car files)))
-  	(setq server-buffer-clients (cons (car client) server-buffer-clients))
-  	(setq client-record (cons (current-buffer) client-record)))
-        (setq files (cdr files)))
+  (let (client-record (obuf (current-buffer)))
+    ;; Restore the current buffer afterward, but not using save-excursion,
+    ;; because we don't want to save point in this buffer
+    ;; if it happens to be one of those specified by the server.
+    (unwind-protect
+	(while files
+	  ;; If there is an existing buffer modified or the file is modified,
+	  ;; revert it.
+	  ;; If there is an existing buffer with deleted file, offer to write it.
+	  (let* ((filen (car (car files)))
+		 (obuf (get-file-buffer filen)))
+	    (if (and obuf (set-buffer obuf))
+		(if (file-exists-p filen)
+		    (if (or (not (verify-visited-file-modtime obuf))
+			    (buffer-modified-p obuf))
+			(revert-buffer t nil))
+		  (if (y-or-n-p
+		       (concat "File no longer exists: "
+			       filen
+			       ", write buffer to file? "))
+		      (write-file filen)))
+	      (set-buffer (find-file-noselect filen))
+	      (run-hooks 'server-visit-hook)))
+	  (goto-line (nth 1 (car files)))
+	  (setq server-buffer-clients (cons (car client) server-buffer-clients))
+	  (setq client-record (cons (current-buffer) client-record))
+	  (setq files (cdr files)))
+      (set-buffer obuf))
     (nconc client client-record)))
 
 (defun server-buffer-done (buffer)
