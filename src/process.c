@@ -253,6 +253,13 @@ static Lisp_Object get_process ();
 
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
+
+/* Open an available pty, returning a file descriptor.
+   Return -1 on failure.
+   The file name of the terminal corresponding to the pty
+   is left in the variable pty_name.  */
+
+static char pty_name[24];
 
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
@@ -360,13 +367,6 @@ status_message (status)
 }
 
 #ifdef HAVE_PTYS
-
-/* Open an available pty, returning a file descriptor.
-   Return -1 on failure.
-   The file name of the terminal corresponding to the pty
-   is left in the variable pty_name.  */
-
-char pty_name[24];
 
 int
 allocate_pty ()
@@ -703,6 +703,17 @@ For a non-child channel, this is nil.")
 {
   CHECK_PROCESS (proc, 0);
   return XPROCESS (proc)->command;
+}
+
+DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 1, 0,
+  "Return the name of the terminal PROCESS uses, or nil if none.\n\
+This is the terminal that the process itself reads and writes on,\n\
+not the name of the pty that Emacs uses to talk with that terminal.")
+  (proc)
+     register Lisp_Object proc;
+{
+  CHECK_PROCESS (proc, 0);
+  return XPROCESS (proc)->tty_name;
 }
 
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
@@ -1445,6 +1456,8 @@ create_process (process, new_argv, current_dir)
   if (forkin != forkout && forkout >= 0)
     close (forkout);
 
+  XPROCESS (process)->tty_name = build_string (pty_name);
+
 #ifdef SIGCHLD
 #ifdef BSD4_1
   sigrelse (SIGCHLD);
@@ -2177,6 +2190,25 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   return got_some_input;
 }
 
+/* Given a list (FUNCTION ARGS...), apply FUNCTION to the ARGS.  */
+
+static Lisp_Object
+read_process_output_call (fun_and_args)
+     Lisp_Object fun_and_args;
+{
+  return apply1 (XCONS (fun_and_args)->car, XCONS (fun_and_args)->cdr);
+}
+
+static Lisp_Object
+read_process_output_error_handler (error)
+     Lisp_Object error;
+{
+  cmd_error_internal (error, "error in process filter: ");
+  Vinhibit_quit = Qt;
+  update_echo_area ();
+  Fsleep_for (make_number (2));
+}
+
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
    Yield number of characters read.
@@ -2253,7 +2285,14 @@ read_process_output (proc, channel)
 
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
-      call2 (outstream, proc, make_string (chars, nchars));
+
+      internal_condition_case_1 (read_process_output_call,
+				 Fcons (outstream,
+					Fcons (proc,
+					       Fcons (make_string (chars, nchars),
+						      Qnil))),
+				 !NILP (Vdebug_on_error) ? Qnil : Qerror,
+				 read_process_output_error_handler);
 
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
@@ -3094,6 +3133,16 @@ exec_sentinel_unwind (data)
   return Qnil;
 }
 
+static Lisp_Object
+exec_sentinel_error_handler (error)
+     Lisp_Object error;
+{
+  cmd_error_internal (error, "error in process sentinel: ");
+  Vinhibit_quit = Qt;
+  update_echo_area ();
+  Fsleep_for (make_number (2));
+}
+
 static void
 exec_sentinel (proc, reason)
      Lisp_Object proc, reason;
@@ -3115,7 +3164,12 @@ exec_sentinel (proc, reason)
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
   specbind (Qlast_nonmenu_event, Qt);
-  call2 (sentinel, proc, reason);
+
+  internal_condition_case_1 (read_process_output_call,
+			     Fcons (sentinel,
+				    Fcons (proc, Fcons (reason, Qnil))),
+			     !NILP (Vdebug_on_error) ? Qnil : Qerror,
+			     exec_sentinel_error_handler);
 
   Vdeactivate_mark = odeactivate;
   if (! EQ (Fcurrent_buffer (), obuffer))
@@ -3322,6 +3376,7 @@ The value takes effect when `start-process' is called.");
   defsubr (&Sprocess_exit_status);
   defsubr (&Sprocess_id);
   defsubr (&Sprocess_name);
+  defsubr (&Sprocess_tty_name);
   defsubr (&Sprocess_command);
   defsubr (&Sset_process_buffer);
   defsubr (&Sprocess_buffer);
