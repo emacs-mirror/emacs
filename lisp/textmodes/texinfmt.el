@@ -37,7 +37,7 @@
     (defmacro defcustom (var value doc &rest ignore)
       `(defvar ,var ,value ,doc)))
 
-(defvar texinfmt-version "2.40 of  6 Dec 2002")
+(defvar texinfmt-version "2.41 of  1 Mar 2005")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
@@ -637,7 +637,7 @@ Do not append @refill to paragraphs containing @w{TEXT} or @*."
 	    (forward-char 1)
 	    (unless (re-search-backward "@c[ \t\n]\\|@comment[ \t\n]" line-beg t)
 	      (forward-char -1))
-	    (unless (re-search-backward "@refill\\|@bye" line-beg t)
+	    (unless (re-search-backward "@refill\\|^[ \t]*@" line-beg t)
 	      (insert "@refill")))
           (forward-line 1))))))
 
