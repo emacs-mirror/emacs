@@ -14,6 +14,10 @@
 
 	* language/thai.el (thai-tis620): Make it safe.
 
+2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+
+	* bookmark.el (bookmark-menu-length): Fix typo in group name.
+
 2002-11-17   Markus Rost  <rost@math.ohio-state.edu>
 
 	* speedbar.el (defgroup speedbar): Use group 'etags instead of
@@ -109,7 +113,7 @@
 
 	* custom.el (custom-declare-group): Remove unnecessary line of
 	code.
-	
+
 	* cus-dep.el (custom-make-dependencies): Bind load-file-name.
 
 2002-11-14  Edward M. Reingold  <reingold@emr.cs.iit.edu>
