@@ -1,3 +1,9 @@
+2004-04-16  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Quote signal.
+
+	* vc.el (vc-print-log): Likewise.
+
 2004-04-16  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Set an initial value
