@@ -527,11 +527,8 @@ LANGUAGE.aff file \(e.g., english.aff\)."
   :group 'ispell)
 
 ;;; update the dictionaries at load time
-(eval-when (load)
-  (setq ispell-dictionary-alist
-	(append ispell-dictionary-alist-1 ispell-dictionary-alist-2)))
-
-
+(setq ispell-dictionary-alist
+      (append ispell-dictionary-alist-1 ispell-dictionary-alist-2))
 
 ;;; The preparation of the menu bar menu must be autoloaded
 ;;; because otherwise this file gets autoloaded every time Emacs starts
@@ -540,7 +537,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 ;;;###autoload
 (defvar ispell-menu-map nil "Key map for ispell menu.")
 ;;; redo menu when loading ispell to get dictionary modifications
-(eval-when (load) (setq ispell-menu-map nil))
+(setq ispell-menu-map nil)
 
 ;;;###autoload
 (defvar ispell-menu-xemacs nil
