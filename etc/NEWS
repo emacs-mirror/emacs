@@ -591,6 +591,7 @@ you edit the replacement string.
 you complete mail aliases in the text, analogous to
 lisp-complete-symbol.
 
++++
 ** Emacs now resizes mini-windows if appropriate.
 
 If a message is longer than one line, or minibuffer contents are
