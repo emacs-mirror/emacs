@@ -172,12 +172,12 @@ in shell buffers.  You set this variable by calling one of:
 \\[ansi-color-for-comint-mode-on]
 \\[ansi-color-for-comint-mode-off]
 \\[ansi-color-for-comint-mode-filter]"
-  :version "21.1"
   :type '(choice (const :tag "Do nothing" nil)
 		 (const :tag "Filter" filter)
 		 (const :tag "Translate" t))
   :group 'ansi-colors)
 
+;;;###autoload
 (defun ansi-color-for-comint-mode-on ()
   "Set `ansi-color-for-comint-mode' to t."
   (interactive)
@@ -193,6 +193,7 @@ in shell buffers.  You set this variable by calling one of:
   (interactive)
   (setq ansi-color-for-comint-mode 'filter))
 
+;;;###autoload
 (defun ansi-color-process-output (string)
   "Maybe translate SGR control sequences of comint output into text-properties.
 
@@ -553,7 +554,7 @@ case we return nil."
 	  ((eq (car new-faces) 'default)
 	   (cdr new-faces))
 	  (t
-	   (append new-faces face)))))
+	   (append new-faces faces)))))
 
 (defun ansi-color-make-color-map ()
   "Creates a vector of face definitions and returns it.
