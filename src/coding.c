@@ -555,7 +555,7 @@ coding_safe_chars (coding)
    In that case, a sequence of one-byte codes has a slightly different
    form.
 
-   At first, all characters in eight-bit-control are represented by
+   Firstly, all characters in eight-bit-control are represented by
    one-byte sequences which are their 8-bit code.
 
    Next, character composition data are represented by the byte
@@ -564,9 +564,9 @@ coding_safe_chars (coding)
 	METHOD is 0xF0 plus one of composition method (enum
 	composition_method),
 
-	BYTES is 0x20 plus a byte length of this composition data,
+	BYTES is 0xA0 plus the byte length of these composition data,
 
-	CHARS is 0x20 plus a number of characters composed by this
+	CHARS is 0xA0 plus the number of characters composed by these
 	data,
 
 	COMPONENTs are characters of multibyte form or composition
