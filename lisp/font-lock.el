@@ -1892,9 +1892,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      ;; Definitions.
      (list (concat "(\\(def\\("
 		   ;; Function declarations.
-		   "\\(advice\\|alias\\|"
+		   "\\(advice\\|alias\\|method\\|"
 		   "ine-\\(derived-mode\\|function\\|skeleton\\|widget\\)\\|"
-		   "macro\\|method\\|subst\\|un\\)\\|"
+		   "macro\\|subst\\|un\\)\\|"
 		   ;; Variable declarations.
 		   "\\(const\\|custom\\|face\\|var\\)\\|"
 		   ;; Structure declarations.
