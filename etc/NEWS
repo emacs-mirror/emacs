@@ -1410,10 +1410,32 @@ it remains unchanged.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
-** New user option `compilation-environment'.
+** Compilation mode enhancements:
+
+*** New user option `compilation-environment'.
 This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
+
+*** `next-error' now temporarily highlights the corresponding source line.
+
+** Grep has been decoupled from compilation mode setup.
+
+*** Grep commands now have their own submenu and customization group.
+
+*** The new variables `grep-window-height', `grep-auto-highlight', and
+`grep-scroll-output' can be used to override the corresponding
+compilation mode settings for grep commands.
+
+*** Source line is temporarily highlighted when going to next match.
+
+*** New key bindings in grep output window:  
+SPC and DEL scrolls window up and down.  C-n and C-p moves to next and
+previous match in the grep window.  RET jumps to the source line of
+the current match.  `n' and `p' shows next and previous match in
+other window, but does not switch buffer.  `{' and `}' jumps to the
+previous or next file in the grep output.  TAB also jumps to the next
+file.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
@@ -1694,6 +1716,38 @@ a match if part of it has a read-only property.
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
+** Mouse event enhancements:
+
+*** Mouse clicks on fringes now generates left-fringe or right-fringes
+events, rather than a text area click event.
+
++++
+*** Mouse events now includes buffer position for all event types.
+
++++
+*** `posn-point' now returns buffer position for non-text area events.
+
+*** Function `mouse-set-point' now works for events outside text area.
+
++++
+*** Ǹew function `posn-area' returns window area clicked on (nil means
+text area).
+
++++
+*** Mouse events include actual glyph column and row for all event types.
+
++++
+*** New function `posn-actual-col-row' returns actual glyph coordinates.
+
+** New function `force-window-update' can initiate a full redisplay of
+one or all windows.  Normally, this is not needed as changes in window
+contents are detected automatically.  However, certain implicit
+changes to mode lines, header lines, or display properties may require
+forcing an explicit window update.
+
+** New function `redirect-debugging-output' can be used to redirect
+debugging output on the stderr file handle to a file.
 
 +++
 ** `split-string' now includes null substrings in the returned list if
