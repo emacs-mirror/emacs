@@ -1666,6 +1666,11 @@ of vc.el for a detailed list of them).  To make VC use that library,
 you need to put it somewhere into Emacs' load path and add the atom
 `FOO' to the list `vc-handled-backends'.
 
+*** The customizable EDT emulation package now supports the EDT
+SUBS command and EDT scroll margins.  It also works with more
+terminal/keyboard configurations and it now works under XEmacs.
+See etc/edt-user.doc for more information.
+
 ** New modes and packages
 
 *** The new global minor mode `minibuffer-electric-default-mode'
@@ -1920,7 +1925,8 @@ the text at point.
 +++
 *** fortune.el uses the fortune program to create mail/news signatures.
 
-*** whitespace.el ???
+*** whitespace.el is a package for warning about and cleaning bogus
+whitespace in a file.
 
 *** PostScript mode (ps-mode) is a new major mode for editing PostScript
 files. It offers: interaction with a PostScript interpreter, including

@@ -32,6 +32,8 @@
 @cindex Tibetan
 @cindex Turkish
 @cindex Vietnamese
+@cindex Dutch
+@cindex Spanish
   Emacs supports a wide variety of international character sets,
 including European variants of the Latin alphabet, as well as Chinese,
 Cyrillic, Devanagari (Hindi and Marathi), Ethiopic, Greek, Hebrew, IPA,
@@ -195,8 +197,8 @@ Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
 Cyrillic-KOI8, Czech, Devanagari, English, Ethiopic, German, Greek,
 Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3, Latin-4,
 Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the Euro
-sign), Polish, Romanian, Slovak, Slovenian, Thai, Tibetan, Turkish, and
-Vietnamese.
+sign), Polish, Romanian, Slovak, Slovenian, Thai, Tibetan, Turkish, 
+Dutch, Spanish, and Vietnamese.
 @end quotation
 
 @cindex fonts, for displaying different languages

@@ -1,3 +1,8 @@
+2001-01-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* language/european.el: Add Dutch and Spanish language info
+	to be able to use the appropriate tutorials.
+
 2001-01-09  Alex Schroeder  <alex@gnu.org>
 
 	* ansi-color.el (ansi-color-process-output): Use markers instead
