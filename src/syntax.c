@@ -1235,10 +1235,9 @@ and the function returns nil.  Field boundaries are not noticed if\n\
     val = XINT (count) > 0 ? ZV : BEGV;
 
   /* Avoid jumping out of an input field.  */
-  if (NILP (Vinhibit_field_text_motion))
-    val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
-					 Qt, Qnil));
-
+  val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
+				       Qt, Qnil));
+  
   SET_PT (val);
   return val == orig_val ? Qt : Qnil;
 }
