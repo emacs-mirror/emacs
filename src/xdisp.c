@@ -2708,7 +2708,7 @@ try_window_id (window)
   if (bp.contin && bp.hpos != lmargin)
     {
       val.hpos = bp.prevhpos - width + lmargin;
-      val.tab_offset = bp.tab_offset + bp.prevhpos - width;
+      val.tab_offset = bp.tab_offset + width - bp.prevhpos;
       did_motion = 1;
       DEC_BOTH (pos, pos_byte);
     }
