@@ -79,6 +79,7 @@ lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
+docdir='${libdir}/emacs/${version}/etc'
 
 # On Sun systems, people sometimes set up the variable CPP
 # with a value that is a directory, not an executable at all.
@@ -296,7 +297,7 @@ Set it to either \`yes' or \`no'."
 	## Has the user specified one of the path options?
 	prefix | exec_prefix | bindir | libdir | etcdir | datadir | \
 	archlibdir | statedir | mandir | infodir | lispdir | lockdir | \
-	lisppath | locallisppath )
+	lisppath | locallisppath | docdir )
 	   ## If the value was omitted, get it from the next argument.
 	   if [ "${valomitted}" = "yes" ]; then
 	      if [ $# = 0 ]; then
@@ -1413,6 +1414,7 @@ AC_SUBST(lisppath)
 AC_SUBST(etcdir)
 AC_SUBST(lockdir)
 AC_SUBST(archlibdir)
+AC_SUBST(docdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(c_switch_machine)
 AC_SUBST(libsrc_libs)
@@ -1469,6 +1471,7 @@ if [ "$run_in_place" = "1" ]; then
    etcdir='${srcdir}/etc'
    lockdir='${srcdir}/lock'
    archlibdir=`(cd lib-src && pwd)`
+   docdir=$archlibdir
    infodir='${srcdir}/info'
 elif [ "$single_tree" = "1" ]; then
    if [ "$exec_prefix_specified" = "" ]; then
@@ -1500,6 +1503,9 @@ elif [ "$single_tree" = "1" ]; then
    fi
    if [ "$etcdir_specified" = "" ]; then
       etcdir='${prefix}/common/data'
+   fi
+   if [ "$docdir_specified" = "" ]; then
+      docdir='${prefix}/common/data'
    fi
 fi
 
