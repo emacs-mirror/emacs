@@ -37,6 +37,7 @@ information about the calendar and diary.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
+* iCalendar::           Converting diary events to/from iCalendar format.
 * Daylight Savings::    How to specify when daylight savings time is active.
 * Time Intervals::      Keeping track of time intervals.
 @end menu
@@ -1382,6 +1383,57 @@ diary file is saved.
 clock.  The command @kbd{M-x appt-add} adds entries to the appointment
 list without affecting your diary file.  You delete entries from the
 appointment list with @kbd{M-x appt-delete}.
+
+@node iCalendar
+@section iCalendar
+@cindex iCalendar support
+
+  The icalendar package aims at providing an implementation of the
+iCalendar standard, as defined in ``RFC 2445 -- Internet Calendaring and
+Scheduling Core Object Specification (iCalendar)''.  It provides a means
+for importing [iv]Calendar data into Emacs diary files and vice versa.
+
+  Importing should work correctly for ``ordinary'', i.e. non-recurring,
+events.  Recurring events may not be imported correctly, if they are
+imported at all.  Exporting of diary files into iCalendar files should
+work correctly for most diary entries.  Please note that
+@file{icalendar.el} is work in progress, so usage may evolve in future.
+
+@subsection Usage
+
+  To activate the package, use @code{(require 'icalendar)}.
+
+@findex icalendar-extract-ical-from-buffer
+  The command @code{icalendar-extract-ical-from-buffer} extracts
+iCalendar data from the current buffer and adds it to your (default)
+diary file.  It can be used interactively, or for automatic extraction
+of iCalendar data; for example with the VM mail reader one could use:
+
+@example
+(add-hook 'vm-select-new-message-hook 'icalendar-extract-ical-from-buffer)
+@end example
+
+@findex icalendar-import-file
+  The function @code{icalendar-import-file} can be used
+non-interactively to import an iCalendar file.  @strong{Caution:} the
+contents of the target diary file are @emph{deleted} by default!  It is
+highly recommended to use a dedicated diary file for importing.  For
+example:
+
+@example
+(icalendar-import-file "/here/is/calendar.ics" "/there/goes/ical-diary")
+@end example
+
+@noindent
+The import file can be added to the diary using an @code{#include}
+directive.  @xref{Fancy Diary Display,,, elisp, The Emacs Lisp Reference
+Manual}.
+
+@findex icalendar-convert-diary-to-ical
+  Use @code{icalendar-convert-diary-to-ical} to interactively export an
+Emacs diary file to iCalendar format.  @strong{Caution:} the contents of
+the target file are @emph{deleted} by default!
+
 
 @node Daylight Savings
 @section Daylight Savings Time
