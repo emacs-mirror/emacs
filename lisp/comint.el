@@ -1169,7 +1169,7 @@ See functions `expand-file-name' and `substitute-in-file-name'.  See also
 	   (message "No completions of %s" pathname)
 	   (ding))
 	  ((eql completion t)
-	   (message "Unique completion"))
+	   (message "Sole completion"))
 	  (t				; this means a string was returned.
 	   (delete-region (match-beginning 0) (match-end 0))
 	   (insert (expand-file-name (concat pathdir completion)))))))
