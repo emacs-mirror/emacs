@@ -686,8 +686,8 @@ and sometimes other things."
   (if current-language-environment
       (let ((func (get-language-info current-language-environment
 				     'exit-function)))
-	(if (fboundp func) (funcall func))
-	(run-hooks 'exit-language-environment-hook)))
+	(run-hooks 'exit-language-environment-hook)
+	(if (fboundp func) (funcall func))))
   (setq current-language-environment language-name)
   (funcall (get-language-info language-name 'setup-function))
   (run-hooks 'set-language-environment-hook)
