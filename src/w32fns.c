@@ -7252,7 +7252,7 @@ enum_font_maybe_add_to_list (lpef, logfont, match_charset, width)
       if (NILP (Fmember (font_name, lpef->list)))
 	{
 	  *lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
-	  lpef->tail = &(XCDR (*lpef->tail));
+	  lpef->tail = &(XCDR_AS_LVALUE (*lpef->tail));
 	  lpef->numFonts++;
 	}
     }
