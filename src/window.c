@@ -88,6 +88,12 @@ Lisp_Object Vspecial_display_regexps;
 /* Function to pop up a special frame.  */
 Lisp_Object Vspecial_display_function;
 
+/* List of buffer *names* for buffers to appear in selected window.  */
+Lisp_Object Vsame_window_buffer_names;
+
+/* List of regexps for buffer names to appear in selected window.  */
+Lisp_Object Vsame_window_regexps;
+
 /* Hook run at end of temp_output_buffer_show.  */
 Lisp_Object Qtemp_buffer_show_hook;
 
@@ -1876,6 +1882,32 @@ Returns the window displaying BUFFER.")
       && XBUFFER (XWINDOW (selected_window)->buffer) == XBUFFER (buffer))
     return selected_window;
 
+  /* See if the user has specified this buffer should appear
+     in the selected window.  */
+  if (NILP (not_this_window))
+    {
+      tem = Fmember (XBUFFER (buffer)->name, Vsame_window_buffer_names);
+      if (!NILP (tem))
+	return Fswitch_to_buffer (buffer, Qnil);
+
+      tem = Fassoc (XBUFFER (buffer)->name, Vsame_window_buffer_names);
+      if (!NILP (tem))
+	return Fswitch_to_buffer (buffer, Qnil);
+
+      for (tem = Vsame_window_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
+	{
+	  Lisp_Object car = XCONS (tem)->car;
+	  if (STRINGP (car)
+	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
+	    return Fswitch_to_buffer (buffer, Qnil);
+	  else if (CONSP (car)
+		   && STRINGP (XCONS (car)->car)
+		   && fast_string_match (XCONS (car)->car,
+					 XBUFFER (buffer)->name) >= 0)
+	    return Fswitch_to_buffer (buffer, Qnil);
+	}
+    }
+
 #ifdef MULTI_FRAME
   /* If pop_up_frames,
      look for a window showing BUFFER on any visible or iconified frame.  */
@@ -3372,6 +3404,34 @@ using `special-display-frame-alist' to specify the frame parameters.\n\
 A buffer is special if its is listed in `special-display-buffer-names'\n\
 or matches a regexp in `special-display-regexps'.");
   Vspecial_display_function = Qnil;
+
+  DEFVAR_LISP ("same-window-buffer-names", &Vsame_window_buffer_names,
+    "*List of buffer names that should appear in the selected window.\n\
+Displaying one of these buffers using `display-buffer' or `pop-to-buffer'\n\
+switches to it in the selected window, rather than making it appear\n\
+in some other window.
+\n\
+An element of the list can be a cons cell instead of just a string.\n\
+Then the car must be a string, which specifies the buffer name.\n\
+This is for compatibility with `special-display-buffer-names';\n\
+the cdr of the cons cell is ignored.\n\
+\n\
+See also `same-window-regexps'.");
+  Vsame_window_buffer_names = Qnil;
+
+  DEFVAR_LISP ("same-window-regexps", &Vsame_window_regexps,
+    "*List of regexps saying which buffers should appear in the selected window.\n\
+If a buffer name matches one of these regexps, then displaying it\n\
+using `display-buffer' or `pop-to-buffer' switches to it\n\
+in the selected window, rather than making it appear in some other window.\n\
+\n\
+An element of the list can be a cons cell instead of just a string.\n\
+Then the car must be a string, which specifies the buffer name.\n\
+This is for compatibility with `special-display-buffer-names';\n\
+the cdr of the cons cell is ignored.\n\
+\n\
+See also `same-window-buffer-names'.");
+  Vsame_window_regexps = Qnil;
 
   DEFVAR_BOOL ("pop-up-windows", &pop_up_windows,
     "*Non-nil means display-buffer should make new windows.");
