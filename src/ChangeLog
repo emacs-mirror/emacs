@@ -1,3 +1,7 @@
+2000-09-29  Andreas Schwab  <schwab@suse.de>
+
+	* m/ia64.h: Remove hack of not prototyping bcopy, etc.
+
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (menu_bar_one_keymap): If KEYMAP is a symbol,
