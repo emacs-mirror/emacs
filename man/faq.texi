@@ -3723,12 +3723,12 @@ Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
 Windows 9X, Windows ME, and Windows 2000.  More information is available
 from
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/emacs.README}
+@uref{http://www.simtel.net/pub/djgpp/v2gnu/emacs.README}
 
 The binary itself is available in the files @file{em*.zip} in the
 directory
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/}
+@uref{http://www.simtel.net/pub/djgpp/v2gnu/}
 
 If you prefer to compile Emacs for yourself, you can do so with the
 current distribution directly.  You will need a 386 (or
@@ -3747,7 +3747,7 @@ long file names on Windows 9X/ME/2K.
 You can get the latest release of DJGPP by retrieving all of
 the files in
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2*}
+@uref{http://www.simtel.net/pub/djgpp/v2*}
 
 @item Unpacking program
 The easiest way is to use @code{djtar} which comes with DJGPP v2.x,
@@ -3766,11 +3766,11 @@ actually prevent Emacs from building successfully!
 @item make, mv, sed, and rm
 All of these utilities are available at
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu}
+@uref{http://www.simtel.net/pub/djgpp/v2gnu}
 
 16-bit utilities can be found in GNUish, at
 
-@uref{http://www.simtel.net/pub/gnu/gnuish}
+@uref{http://www.simtel.net/pub/gnuish/}
 
 @noindent
 (@code{mv} and @code{rm} are in the Fileutils package, @code{sed} and
@@ -4086,7 +4086,7 @@ better than the one distributed with Emacs:
 4.3
 
 @item Distribution
-@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/modes/vip-mode.tar.Z}
+@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/old-archive/modes/vip-mode.tar.Z}
 
 @end table
 
@@ -4137,7 +4137,7 @@ Development team is at @email{auc-tex_mgr@@iesd.auc.dk}
 2.00
 
 @item Distribution
-@uref{http://www.netcom.com/~simmonmt/bbdb/index.html}
+@uref{http://bbdb.sf.net/}
 
 @item Mailing lists
 Subscription requests to @email{info-bbdb-request@@xemacs.org}@*
