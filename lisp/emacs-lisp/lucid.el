@@ -179,7 +179,7 @@ bottom of the buffer stack."
 (defalias 'visible-screen-list 'visible-frame-list)
 (defalias 'window-screen 'window-frame)
 (defalias 'x-create-screen 'x-create-frame)
-(defalias 'x-new-screen 'new-frame)
+(defalias 'x-new-screen 'make-frame)
 
 (provide 'lucid)
 
