@@ -1751,11 +1751,15 @@ See variables `compilation-parse-errors-function' and
 			   (consp argp))))
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
-(defun previous-error ()
+(defun previous-error (argp)
   "Visit previous compilation error message and corresponding source code.
-This operates on the output from the \\[compile] command."
-  (interactive)
-  (next-error -1))
+
+A prefix ARGP specifies how many error messages to move;
+negative means move forward to next error messages.
+
+This operates on the output from the \\[compile] and \\[grep] commands."
+  (interactive "P")
+  (next-error (- (prefix-numeric-value argp))))
 
 (defun first-error ()
   "Reparse the error message buffer and start at the first error.
