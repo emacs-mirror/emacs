@@ -37,7 +37,7 @@
   
 (defun widget-event-point (event)
   "Character position of the end of event if that exists, or nil."
-  (posn-point (event-end event))))
+  (posn-point (event-end event)))
 
 (defalias 'widget-read-event 'read-event)
 
@@ -202,23 +202,6 @@ minibuffer."
 	 ;; We are in Emacs-19, pressed by the mouse
 	 (x-popup-menu event
 		       (list title (cons "" items))))
-	((and (< (length items) widget-menu-max-size)
-	      event (fboundp 'popup-menu) window-system)
-	 ;; We are in XEmacs, pressed by the mouse
-	 (let ((val (get-popup-menu-response
-		     (cons title
-			   (mapcar
-			    (function
-			     (lambda (x)
-			       (if (stringp x)
-				   (vector x nil nil) 
-				 (vector (car x) (list (car x)) t))))
-			    items)))))
-	   (setq val (and val
-			  (listp (event-object val))
-			  (stringp (car-safe (event-object val)))
-			  (car (event-object val))))
-	   (cdr (assoc val items))))
 	(widget-menu-minibuffer-flag
 	 ;; Read the choice of name from the minibuffer.
 	 (setq items (widget-remove-if 'stringp items))
@@ -994,7 +977,7 @@ Recommended as a parent keymap for modes using widgets.")
       (if (eq extent (event-glyph-extent last))
 	  (set-extent-property extent 'end-glyph down-glyph)
 	(set-extent-property extent 'end-glyph up-glyph))
-      (setq last (next-event event)))
+      (setq last (read-event event)))
     ;; Release glyph.
     (when down-glyph
       (set-extent-property extent 'end-glyph up-glyph))
@@ -1107,9 +1090,7 @@ With optional ARG, move across that many fields."
 	 (start (and field (widget-field-start field))))
     (if (and start (not (eq start (point))))
 	(goto-char start)
-      (call-interactively 'beginning-of-line)))
-  ;; XEmacs: preserve the region
-  (setq zmacs-region-stays t))
+      (call-interactively 'beginning-of-line))))
 
 (defun widget-end-of-line ()
   "Go to end of field or end of line, whichever is first."
@@ -1118,9 +1099,7 @@ With optional ARG, move across that many fields."
 	 (end (and field (widget-field-end field))))
     (if (and end (not (eq end (point))))
 	(goto-char end)
-      (call-interactively 'end-of-line)))
-  ;; XEmacs: preserve the region
-  (setq zmacs-region-stays t))
+      (call-interactively 'end-of-line))))
 
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
@@ -3372,13 +3351,9 @@ To use this type, you must define :match or :match-alternatives."
 		    (widget-value widget)
 		  (error (widget-get widget :value))))
 	 (symbol (intern (concat "fg:" value))))
-    (if (string-match "XEmacs" emacs-version)
-	(prog1 symbol
-	  (or (find-face symbol)
-	      (set-face-foreground (make-face symbol) value)))
-      (condition-case nil
-	  (facemenu-get-face symbol)
-	(error 'default)))))
+    (condition-case nil
+	(facemenu-get-face symbol)
+      (error 'default))))
 
 (defvar widget-color-choice-list nil)
 ;; Variable holding the possible colors.
@@ -3386,10 +3361,8 @@ To use this type, you must define :match or :match-alternatives."
 (defun widget-color-choice-list ()
   (unless widget-color-choice-list
     (setq widget-color-choice-list 
-	  (if (fboundp 'read-color-completion-table)
-	      (read-color-completion-table)
-	    (mapcar '(lambda (color) (list color))
-		    (x-defined-colors)))))
+	  (mapcar '(lambda (color) (list color))
+		  (x-defined-colors))))
   widget-color-choice-list)
 
 (defvar widget-color-history nil
