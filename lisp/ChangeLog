@@ -1,3 +1,8 @@
+2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* imenu.el (imenu-syntax-alist): Add autoload cookie for
+	the `make-variable-buffer-local'.
+
 2001-01-29  Dave Love  <fx@gnu.org>
 
 	* ansi-color.el (ansi-color-for-comint-mode): Add :version.
