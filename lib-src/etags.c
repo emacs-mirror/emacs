@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.15";
+char pot_etags_version[] = "@(#) pot revision number is 14.18";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -58,7 +58,11 @@ char pot_etags_version[] = "@(#) pot revision number is 14.15";
 # undef static
 # define ETAGS_REGEXPS		/* use the regexp features */
 # define LONG_OPTIONS		/* accept long options */
-#endif /* HAVE_CONFIG_H */
+#else
+# ifndef __STDC__
+#   define static		/* remove static for old compilers' sake */
+# endif
+#endif /* !HAVE_CONFIG_H */
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
@@ -1943,7 +1947,7 @@ enum sym_type
   st_C_ignore,
   st_C_javastruct,
   st_C_operator,
-  st_C_class,
+  st_C_class, st_C_template,
   st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef, st_C_typespec
 };
 
@@ -1953,7 +1957,6 @@ static enum sym_type C_symtype P_((char *, int, int));
 
 /* Feed stuff between (but not including) %[ and %] lines to:
       gperf -c -k 1,3 -o -p -r -t
-   then put a `static' keyword in front of the in_word_set function.
 %[
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 %%
@@ -1982,6 +1985,7 @@ enum,    	0,	st_C_enum
 typedef, 	0,	st_C_typedef
 define,  	0,	st_C_define
 operator,	C_PLPL, st_C_operator
+template,	0,	st_C_template
 bool,		C_PLPL,	st_C_typespec
 long,    	0,	st_C_typespec
 short,   	0,	st_C_typespec
@@ -2016,12 +2020,12 @@ then make in_word_set static. */
 /* Command-line: gperf -c -k 1,3 -o -p -r -t  */
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
 
-#define TOTAL_KEYWORDS 46
+#define TOTAL_KEYWORDS 47
 #define MIN_WORD_LENGTH 2
 #define MAX_WORD_LENGTH 15
-#define MIN_HASH_VALUE 13
-#define MAX_HASH_VALUE 121
-/* maximum key range = 109, duplicates = 0 */
+#define MIN_HASH_VALUE 18
+#define MAX_HASH_VALUE 138
+/* maximum key range = 121, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -2033,32 +2037,32 @@ hash (str, len)
 {
   static unsigned char asso_values[] =
     {
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122,  57, 122, 122, 122,  55,   6,
-       60, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-       51, 122, 122,  10,   2, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122,   2,  52,  59,
-       49,  38,  56,  41, 122,  22, 122, 122,   9,  32,
-       33,  60,  26, 122,   1,  28,  46,  59,  44,  51,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122, 122, 122, 122, 122,
-      122, 122, 122, 122, 122, 122
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139,  63, 139, 139, 139,  33,  44,
+       62, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+       42, 139, 139,  12,  32, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139,  34,  59,  37,
+       24,  58,  33,   3, 139,  16, 139, 139,  42,  60,
+       18,  11,  39, 139,  23,  57,   4,  63,   6,  20,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139, 139, 139, 139, 139,
+      139, 139, 139, 139, 139, 139
     };
   register int hval = len;
 
@@ -2086,77 +2090,79 @@ in_word_set (str, len)
   static struct C_stab_entry wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""},
-      {"ENTRY",		0,	st_C_gnumacro},
       {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""},
       {"if",		0,	st_C_ignore},
-      {""}, {""},
-      {"SYSCALL",	0,	st_C_gnumacro},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {"struct", 	0,	st_C_struct},
-      {"static",  	0,	st_C_typespec},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {"long",    	0,	st_C_typespec},
-      {""}, {""}, {""}, {""}, {""},
-      {"auto",    	0,	st_C_typespec},
-      {"return",		0,	st_C_ignore},
-      {"import",		C_JAVA,	st_C_ignore},
-      {""},
-      {"switch",		0,	st_C_ignore},
-      {""},
-      {"implements",  	C_JAVA,	st_C_javastruct},
-      {""},
-      {"for",		0,	st_C_ignore},
-      {"volatile",	0,	st_C_typespec},
-      {""},
-      {"PSEUDO",		0,	st_C_gnumacro},
-      {""},
-      {"char",    	0,	st_C_typespec},
-      {"class",  	0,	st_C_class},
-      {"@protocol",	0,	st_C_objprot},
+      {""}, {""}, {""}, {""},
+      {"int",     	0,	st_C_typespec},
       {""}, {""},
       {"void",    	0,	st_C_typespec},
-      {"int",     	0,	st_C_typespec},
-      {"explicit",	C_PLPL,	st_C_typespec},
-      {""},
-      {"namespace",	C_PLPL,	st_C_struct},
-      {"signed",  	0,	st_C_typespec},
-      {""},
+      {""}, {""},
       {"interface",	C_JAVA, st_C_struct},
+      {""},
+      {"SYSCALL",	0,	st_C_gnumacro},
+      {""},
+      {"return",		0,	st_C_ignore},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""},
       {"while",		0,	st_C_ignore},
+      {"auto",    	0,	st_C_typespec},
+      {""}, {""}, {""}, {""}, {""}, {""},
+      {"float",   	0,	st_C_typespec},
       {"typedef", 	0,	st_C_typedef},
       {"typename",	C_PLPL,	st_C_typespec},
       {""}, {""}, {""},
       {"friend",		C_PLPL,	st_C_ignore},
-      {"mutable",	C_PLPL,	st_C_typespec},
-      {"union",  	0,	st_C_struct},
-      {"domain", 	C_STAR,	st_C_struct},
+      {"volatile",	0,	st_C_typespec},
       {""}, {""},
+      {"for",		0,	st_C_ignore},
+      {"const",   	0,	st_C_typespec},
+      {"import",		C_JAVA,	st_C_ignore},
+      {""},
+      {"define",  	0,	st_C_define},
+      {"long",    	0,	st_C_typespec},
+      {"implements",  	C_JAVA,	st_C_javastruct},
+      {"signed",  	0,	st_C_typespec},
+      {""},
       {"extern",  	0,	st_C_extern},
       {"extends",  	C_JAVA,	st_C_javastruct},
-      {"package",	C_JAVA,	st_C_ignore},
+      {""},
+      {"mutable",	C_PLPL,	st_C_typespec},
+      {"template",	0,	st_C_template},
       {"short",   	0,	st_C_typespec},
-      {"@end",		0,	st_C_objend},
-      {"unsigned",	0,	st_C_typespec},
-      {""},
-      {"const",   	0,	st_C_typespec},
-      {""}, {""},
-      {"@interface",	0,	st_C_objprot},
-      {"enum",    	0,	st_C_enum},
-      {""}, {""},
-      {"@implementation",0,	st_C_objimpl},
-      {""},
+      {"bool",		C_PLPL,	st_C_typespec},
+      {"char",    	0,	st_C_typespec},
+      {"class",  	0,	st_C_class},
       {"operator",	C_PLPL, st_C_operator},
-      {""}, {""}, {""}, {""},
-      {"define",  	0,	st_C_define},
+      {""},
+      {"switch",		0,	st_C_ignore},
+      {""},
+      {"ENTRY",		0,	st_C_gnumacro},
+      {""},
+      {"package",	C_JAVA,	st_C_ignore},
+      {"union",  	0,	st_C_struct},
+      {"@end",		0,	st_C_objend},
+      {"struct", 	0,	st_C_struct},
+      {"namespace",	C_PLPL,	st_C_struct},
       {""}, {""},
+      {"domain", 	C_STAR,	st_C_struct},
+      {"@interface",	0,	st_C_objprot},
+      {"PSEUDO",		0,	st_C_gnumacro},
       {"double",  	0,	st_C_typespec},
       {""},
-      {"bool",		C_PLPL,	st_C_typespec},
-      {""}, {""}, {""},
+      {"@protocol",	0,	st_C_objprot},
+      {""},
+      {"static",  	0,	st_C_typespec},
+      {""}, {""},
       {"DEFUN",		0,	st_C_gnumacro},
-      {"float",   	0,	st_C_typespec}
+      {""}, {""}, {""}, {""},
+      {"explicit",	C_PLPL,	st_C_typespec},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+      {""},
+      {"enum",    	0,	st_C_enum},
+      {""}, {""},
+      {"unsigned",	0,	st_C_typespec},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
+      {"@implementation",0,	st_C_objimpl}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -2523,12 +2529,15 @@ consider_token (str, len, c, c_extp, cblev, parlev, is_func_or_var)
       if (structdef == stagseen)
         structdef = scolonseen;
       return FALSE;
+    case st_C_template:
     case st_C_class:
       if (cblev == 0
 	  && (*c_extp & C_AUTO)	/* automatic detection of C++ language */
 	  && definedef == dnone && structdef == snone
 	  && typdef == tnone && fvdef == fvnone)
 	*c_extp = (*c_extp | C_PLPL) & ~C_AUTO;
+      if (toktype == st_C_template)
+	break;
       /* FALLTHRU */
     case st_C_struct:
     case st_C_enum:
@@ -2792,7 +2801,7 @@ C_entries (c_ext, inf)
       cstack.cblev = xnew (cstack.size, int);
     }
 
-  tokoff = toklen = 0;		/* keep compiler quiet */
+  tokoff = toklen = typdefcblev = 0; /* keep compiler quiet */
   curndx = newndx = 0;
   lineno = 0;
   charno = 0;
@@ -3370,8 +3379,10 @@ C_entries (c_ext, inf)
 	    break;
 	  if (typdef == ttypeseen)
 	    {
-	      typdefcblev = cblev;
+	      /* Whenever typdef is set to tinbody (currently only
+		 here), typdefcblev should be set to cblev. */
 	      typdef = tinbody;
+	      typdefcblev = cblev;
 	    }
 	  switch (fvdef)
 	    {
@@ -3433,6 +3444,7 @@ C_entries (c_ext, inf)
 	    cblev--;
 	  popclass_above (cblev);
 	  structdef = snone;
+	  /* Only if typdef == tinbody is typdefcblev significant. */
 	  if (typdef == tinbody && cblev <= typdefcblev)
 	    {
 	      assert (cblev == typdefcblev);
