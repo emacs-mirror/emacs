@@ -1,10 +1,9 @@
 ;;; mouse-sel.el --- Multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: mouse
-;; Version: 2.1
 
 ;; This file is part of GNU Emacs.
 
@@ -34,19 +33,24 @@
 ;;     Double-clicking on quotes or parentheses selects sexps.
 ;;     Double-clicking on whitespace selects whitespace.
 ;;     Triple-clicking selects lines.
+;;     Quad-clicking selects paragraphs.
 ;;
 ;;   * Selecting sets the region & X primary selection, but does NOT affect
 ;;     the kill-ring.  Because the mouse handlers set the primary selection
 ;;     directly, mouse-sel sets the variables interprogram-cut-function
 ;;     and interprogram-paste-function to nil.
 ;;
-;;   * Clicking mouse-2 pastes contents of primary selection at the mouse
-;;     position.
+;;   * Clicking mouse-2 inserts the contents of the primary selection at
+;;     the mouse position (or point, if mouse-yank-at-point is non-nil).
 ;;
 ;;   * Pressing mouse-2 while selecting or extending copies selection
 ;;     to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
 ;;     
 ;;   * Double-clicking mouse-3 also kills selection.
+;;     
+;;   * M-mouse-1, M-mouse-2 & M-mouse-3 work similarly to mouse-1, mouse-2
+;;     & mouse-3, but operate on the X secondary selection rather than the
+;;     primary selection and region.
 ;;
 ;; This module requires my thingatpt.el module, which it uses to find the
 ;; bounds of words, lines, sexps, etc.
@@ -71,10 +75,10 @@
 ;;
 ;;   (a) If mouse-sel-default-bindings = t (the default)
 ;;   
-;;       Mouse sets and pastes selection
+;;       Mouse sets and insert selection
 ;;	   mouse-1		mouse-select
 ;;	   mouse-2		mouse-insert-selection
-;;         mouse-3		mouse-extend
+;; 	   mouse-3		mouse-extend
 ;;
 ;;       Selection/kill-ring interaction is disabled
 ;;         interprogram-cut-function   = nil
@@ -83,9 +87,9 @@
 ;;   (b) If mouse-sel-default-bindings = 'interprogram-cut-paste
 ;;   
 ;;       Mouse sets selection, and pastes from kill-ring
-;;	   mouse-1		mouse-select
-;;	   mouse-2		mouse-yank-at-click
-;;	   mouse-3		mouse-extend
+;; 	   mouse-1		mouse-select
+;; 	   mouse-2		mouse-yank-at-click
+;; 	   mouse-3		mouse-extend
 ;;  
 ;;       Selection/kill-ring interaction is retained
 ;;         interprogram-cut-function   = x-select-text
@@ -108,46 +112,23 @@
 ;;
 ;;     (setq mouse-sel-leave-point-near-mouse nil)
 ;;
-;; * Normally, the selection highlight will be removed when the mouse is
-;;   lifted.  You can tell mouse-sel to retain the selection highlight
-;;   (useful if you don't use transient-mark-mode) with:
-;;
-;;     (setq mouse-sel-retain-highlight t)
-;;
-;; * By default, mouse-select cycles the click count after 3 clicks.  That
-;;   is, clicking mouse-1 four times has the same effect as clicking it
-;;   once, clicking five times has the same effect as clicking twice, etc.
+;; * By default, mouse-select cycles the click count after 4 clicks.  That
+;;   is, clicking mouse-1 five times has the same effect as clicking it
+;;   once, clicking six times has the same effect as clicking twice, etc.
 ;;   Disable this behaviour with:
 ;;
 ;;     (setq mouse-sel-cycle-clicks nil)
 ;;
-;; * The variables mouse-sel-{set,get,check}-selection-function control how
-;;   the selection is handled.  Under X Windows, these variables default so
+;; * The variables mouse-sel-{set,get}-selection-function control how the
+;;   selection is handled.  Under X Windows, these variables default so
 ;;   that the X primary selection is used.  Under other windowing systems,
 ;;   alternate functions are used, which simply store the selection value
 ;;   in a variable.
-;;
-;;--- Hints ---------------------------------------------------------------
 ;;
 ;; * You can change the selection highlight face by altering the properties
 ;;   of mouse-drag-overlay, eg.
 ;;
 ;;     (overlay-put mouse-drag-overlay 'face 'bold)
-;;
-;; * Pasting from the primary selection under emacs 19.19 is SLOW (there's
-;;   a two second delay).  The following code will cause mouse-sel to use
-;;   the cut buffer rather than the primary selection.  However, be aware
-;;   that cut buffers are OBSOLETE, and some X applications may not support
-;;   them.
-;;   
-;;     (setq mouse-sel-set-selection-function 'x-select-text
-;;           mouse-sel-get-selection-function 'x-get-cut-buffer)
-;;           
-;;--- Warnings ------------------------------------------------------------
-;;
-;; * When selecting sexps, the selection extends by sexps at the same
-;;   nesting level.  This also means the selection cannot be extended out
-;;   of the enclosing nesting level.  This is INTENTIONAL.
 
 ;;; Code: =================================================================
 
@@ -155,280 +136,473 @@
 
 (require 'mouse)
 (require 'thingatpt)
-
-;;=== Version =============================================================
-
-(defconst mouse-sel-version "2.1" 
-  "The version number of mouse-sel (as string).")
+(require 'backquote)
 
 ;;=== User Variables ======================================================
 
 (defvar mouse-sel-leave-point-near-mouse t
   "*Leave point near last mouse position.
-If non-nil, \\[mouse-select] and \\[mouse-extend] leave point at the end
+If non-nil, \\[mouse-select] and \\[mouse-extend] will leave point at the end
 of the region nearest to where the mouse last was.
-If nil, point is always placed at the beginning of the region.")
-
-(defvar mouse-sel-retain-highlight nil
-  "*Retain highlight after dragging is finished.
-If non-nil, regions selected using \\[mouse-select] and \\[mouse-extend] will
-remain highlighted.
-If nil, highlighting turns off when you release the mouse button.")
+If nil, point will always be placed at the beginning of the region.")
 
 (defvar mouse-sel-cycle-clicks t
-  "*If non-nil, \\[mouse-select] cycles the click-counts after 3 clicks.
-Ie. 4 clicks = 1 click, 5 clicks = 2 clicks, etc.")
+  "*If non-nil, \\[mouse-select] cycles the click-counts after 4 clicks.")
 
 (defvar mouse-sel-default-bindings t
   "Set to nil before loading `mouse-sel' to prevent default mouse bindings.")
 
-;;=== Selection ===========================================================
+;;=== Internal Variables/Constants ========================================
 
-(defvar mouse-sel-selection-type nil "Type of current selection")
-(make-variable-buffer-local 'mouse-sel-selection-type)
+(defvar mouse-sel-primary-thing nil 
+  "Type of PRIMARY selection in current buffer.")
+(make-variable-buffer-local 'mouse-sel-primary-thing)
 
-(defvar mouse-sel-selection "" 
-  "Store the selection value when using a window systems other than X.")
+(defvar mouse-sel-secondary-thing nil 
+  "Type of SECONDARY selection in current buffer.")
+(make-variable-buffer-local 'mouse-sel-secondary-thing)
 
+;; Ensure that secondary overlay is defined
+(if (overlayp mouse-secondary-overlay) nil
+  (setq mouse-secondary-overlay (make-overlay 1 1))
+  (overlay-put mouse-secondary-overlay 'face 'secondary-selection))
+
+(defconst mouse-sel-selection-alist
+  '((PRIMARY mouse-drag-overlay mouse-sel-primary-thing)
+    (SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
+  "Alist associating selections with variables.  Each element is of
+the form:
+
+   (SELECTION-NAME OVERLAY-SYMBOL SELECTION-THING-SYMBOL)
+
+where   SELECTION-NAME          = name of selection
+        OVERLAY-SYMBOL          = name of variable containing overlay to use
+	SELECTION-THING-SYMBOL 	= name of variable where the current selection
+ 				  type for this selection should be stored.")
+    
 (defvar mouse-sel-set-selection-function 
   (if (fboundp 'x-set-selection)
-      (function (lambda (s) (x-set-selection 'PRIMARY s)))
-    (function (lambda (s) (setq mouse-sel-selection s))))
+      'x-set-selection)
   "Function to call to set selection.
-Called with one argument, the text to select.")
+Called with two arguments:
+
+  SELECTION, the name of the selection concerned, and
+  VALUE, the text to store.")
 
 (defvar mouse-sel-get-selection-function
   (if (fboundp 'x-get-selection)
-      'x-get-selection 
-    (function (lambda () mouse-sel-selection)))
+      'x-get-selection)
   "Function to call to get the selection.
-Called with no argument.")
+Called with one argument:
 
-(defvar mouse-sel-check-selection-function
+   SELECTION: the name of the selection concerned.")
+
+(defvar mouse-sel-selection-owner-p-function
   (if (fboundp 'x-selection-owner-p)
-      'x-selection-owner-p 
-    nil)
+      'x-selection-owner-p)
   "Function to check whether Emacs still owns the selection.
-Called with no arguments.")
+Called with one argument:
 
-(defun mouse-sel-determine-selection-type (NCLICKS)
-  "Determine what \"thing\" `mouse-sel' should operate on.
-The first argument, NCLICKS, is the number of consecutive
-mouse clicks at the same position."
-  (let* ((next-char (char-after (point)))
-	 (char-syntax (if next-char (char-syntax next-char)))
-	 (nclicks (if mouse-sel-cycle-clicks (1+ (% (1- NCLICKS) 3)) NCLICKS)))
-    (cond
-     ((= nclicks 1) nil)
-     ((>= nclicks 3) 'line)
-     ((memq char-syntax '(?\( ?\) ?\" ?')) 'sexp)
-     ((memq next-char '(? ?\t ?\n)) 'whitespace)
-     ((eq char-syntax ?_) 'symbol)
-     ((eq char-syntax ?w) 'word))))
+   SELECTION: the name of the selection concerned.")
 
-(defun mouse-select (EVENT)
-  "Set region/selection using the mouse.
+;;=== Support/access functions ============================================
 
-Clicking sets point to click position, and deactivates the mark
-if you are in Transient Mark mode.
-Dragging extends region/selection.
+(defun mouse-sel-determine-selection-thing (nclicks)
+  "Determine what `thing' `mouse-sel' should operate on.
+The first argument is NCLICKS, is the number of consecutive
+mouse clicks at the same position.
 
 Double-clicking on word constituents selects words.
 Double-clicking on symbol constituents selects symbols.
 Double-clicking on quotes or parentheses selects sexps.
 Double-clicking on whitespace selects whitespace.
 Triple-clicking selects lines.
+Quad-clicking selects paragraphs.
 
-Clicking mouse-2 while selecting copies the region to the kill-ring.
-Clicking mouse-1 or mouse-3 kills the region.
+Feel free to re-define this function to support your own desired
+multi-click semantics."
+  (let* ((next-char (char-after (point)))
+	 (char-syntax (if next-char (char-syntax next-char))))
+    (if mouse-sel-cycle-clicks 
+	(setq nclicks (1+ (% (1- nclicks) 4))))
+    (cond
+     ((= nclicks 1) nil)
+     ((= nclicks 3) 'line)
+     ((>= nclicks 4) 'paragraph)
+     ((memq char-syntax '(?\( ?\) ?\" ?')) 'sexp)
+     ((memq next-char '(? ?\t ?\n)) 'whitespace)
+     ((eq char-syntax ?_) 'symbol)
+     ((eq char-syntax ?w) 'word))))
 
-This should be bound to a down-mouse event."
-  (interactive "e")
-  (mouse-set-point EVENT)
-  (setq mouse-sel-selection-type
-	(mouse-sel-determine-selection-type (event-click-count EVENT)))
-  (let ((object-bounds (bounds-of-thing-at-point mouse-sel-selection-type)))
-    (if object-bounds
+(defun mouse-sel-set-selection (selection value)
+  "Set the specified SELECTION to VALUE."
+  (if mouse-sel-set-selection-function
+      (funcall mouse-sel-set-selection-function selection value)
+    (put 'mouse-sel-internal-selection selection value)))
+
+(defun mouse-sel-get-selection (selection)
+  "Get the value of the specified SELECTION."
+  (if mouse-sel-get-selection-function
+      (funcall mouse-sel-get-selection-function selection)
+    (get 'mouse-sel-internal-selection selection)))
+
+(defun mouse-sel-selection-owner-p (selection)
+  "Determine whether Emacs owns the specified SELECTION."
+  (if mouse-sel-selection-owner-p-function
+      (funcall mouse-sel-selection-owner-p-function selection)
+    t))
+
+(defun mouse-sel-selection-overlay (selection)
+  "Return overlay corresponding to SELECTION."
+  (let ((symbol (nth 1 (assoc selection mouse-sel-selection-alist))))
+    (or symbol (error "No overlay corresponding to %s selection" selection))
+    (symbol-value symbol)))
+
+(defun mouse-sel-selection-thing (selection)
+  "Return overlay corresponding to SELECTION."
+  (let ((symbol (nth 2 (assoc selection mouse-sel-selection-alist))))
+    (or symbol (error "No symbol corresponding to %s selection" selection))
+    symbol))
+
+(defun mouse-sel-region-to-primary (orig-window)
+  "Convert region to PRIMARY overlay and deactivate region.
+Argument ORIG-WINDOW specifies the window the cursor was in when the 
+originating command was issued, and is used to determine whether the 
+region was visible or not."
+  (if transient-mark-mode
+      (let ((overlay (mouse-sel-selection-overlay 'PRIMARY)))
+	(cond
+	 ((and mark-active 
+	       (or highlight-nonselected-windows 
+		   (eq orig-window (selected-window))))
+	  ;; Region was visible, so convert region to overlay
+	  (move-overlay overlay (region-beginning) (region-end) 
+			(current-buffer)))
+	 ((eq orig-window (selected-window))
+	  ;; Point was visible, so set overlay at point
+	  (move-overlay overlay (point) (point) (current-buffer)))
+	 (t
+	  ;; Nothing was visible, so remove overlay
+	  (delete-overlay overlay)))
+	(setq mark-active nil))))
+
+(defun mouse-sel-primary-to-region (&optional direction)
+  "Convert PRIMARY overlay to region.
+Optional argument DIRECTION specifies the mouse drag direction: a value of
+1 indicates that the mouse was dragged left-to-right, otherwise it was
+dragged right-to-left."
+  (let* ((overlay (mouse-sel-selection-overlay 'PRIMARY))
+	 (start (overlay-start overlay))
+	 (end (overlay-end overlay)))
+    (if (eq start end)
 	(progn
-	  (setq mark-active t)
-	  (goto-char (car object-bounds))
-	  (set-mark (cdr object-bounds)))
-      (deactivate-mark)))
-  (mouse-extend (if mouse-sel-selection-type EVENT)))
+	  (if start (goto-char start))
+	  (deactivate-mark))
+      (if (and mouse-sel-leave-point-near-mouse (eq direction 1))
+	  (progn
+	    (goto-char end)
+	    (push-mark start 'nomsg 'active))
+	(goto-char start)
+	(push-mark end 'nomsg 'active)))
+    (if transient-mark-mode (delete-overlay overlay))))
 
-(defun mouse-extend (&optional EVENT)
-  "Extend region/selection using the mouse.
+(defmacro mouse-sel-eval-at-event-end (event &rest forms)
+  "Evaluate forms at mouse position.
+Move to the end position of EVENT, execute FORMS, and restore original
+point and window."
+    (` 
+     (let ((posn (event-end (, event))))
+       (if posn (mouse-minibuffer-check (, event)))
+       (if (and posn (not (windowp (posn-window posn))))
+	   (error "Cursor not in text area of window"))
+       (let (orig-window orig-point-marker)
+	 (setq orig-window (selected-window))
+	 (if posn (select-window (posn-window posn)))
+	 (setq orig-point-marker (point-marker))
+	 (if (and posn (numberp (posn-point posn)))
+	     (goto-char (posn-point posn)))
+	 (unwind-protect
+	     (progn
+	       (,@ forms))
+	   (goto-char (marker-position orig-point-marker))
+	   (move-marker orig-point-marker nil)
+	   (select-window orig-window)
+	   )))))
 
-See documentation for mouse-select for more details.
+(put 'mouse-sel-eval-at-event-end 'lisp-indent-hook 1)
+
+;;=== Select ==============================================================
+
+(defun mouse-select (event)
+  "Set region/selection using the mouse.
+
+Click sets point & mark to click position.
+Dragging extends region/selection.
+
+Multi-clicking selects word/lines/paragraphs, as determined by 
+'mouse-sel-determine-selection-thing.
+
+Clicking mouse-2 while selecting copies selected text to the kill-ring.
+Clicking mouse-1 or mouse-3 kills the selected text.
 
 This should be bound to a down-mouse event."
-  (interactive "e")
-  (if EVENT (select-window (posn-window (event-end EVENT))))
-  (let* ((use-region (and (or EVENT transient-mark-mode) mark-active))
-	 (min (if use-region (region-beginning) (point)))
-	 (max (if use-region (region-end) (point)))
-	 (orig-window (selected-window))
-	 (orig-window-frame (window-frame orig-window))
-	 (top (nth 1 (window-edges orig-window)))
-	 (bottom (nth 3 (window-edges orig-window)))
-	 (orig-cursor-type 
-	  (cdr (assoc 'cursor-type (frame-parameters (selected-frame)))))
-	 direction
-	 event)
-
-    ;; Inhibit normal region highlight
-    (setq mark-active nil)
-
-    ;; Highlight region (forcing re-highlight)
-    (move-overlay mouse-drag-overlay min max (current-buffer))
-    (overlay-put mouse-drag-overlay 'face
-		 (overlay-get mouse-drag-overlay 'face))
-
-    ;; Bar cursor
-    (if (fboundp 'modify-frame-parameters)
-	(modify-frame-parameters (selected-frame) '((cursor-type . bar))))
-
-    ;; Handle dragging
+  (interactive "@e")
+  (let (direction)
     (unwind-protect
-	(progn 
-	  (track-mouse
-	    
-	    (while (if EVENT		; Use initial event
-		       (prog1
-			   (setq event EVENT)
-			 (setq EVENT nil))
-		     (setq event (read-event))
-		     (and (consp event)
-			  (memq (car event) '(mouse-movement switch-frame))))
-		  
-	      (let ((end (event-end event)))
+	(setq direction (mouse-select-internal 'PRIMARY event))
+      (mouse-sel-primary-to-region direction))))
+
+(defun mouse-select-secondary (event)
+   "Set secondary selection using the mouse.
+
+Click sets the start of the secondary selection to click position.
+Dragging extends the secondary selection.
+
+Multi-clicking selects word/lines/paragraphs, as determined by 
+'mouse-sel-determine-selection-thing.
+
+Clicking mouse-2 while selecting copies selected text to the kill-ring.
+Clicking mouse-1 or mouse-3 kills the selected text.
+
+This should be bound to a down-mouse event."
+   (interactive "e")
+  (mouse-select-internal 'SECONDARY event))
+
+(defun mouse-select-internal (selection event)
+  "Set SELECTION using the mouse."
+  (mouse-sel-eval-at-event-end event
+    (let ((thing-symbol (mouse-sel-selection-thing selection))
+	  (overlay (mouse-sel-selection-overlay selection)))
+      (set thing-symbol
+	   (mouse-sel-determine-selection-thing (event-click-count event)))
+      (let ((object-bounds (bounds-of-thing-at-point
+			    (symbol-value thing-symbol))))
+	(if object-bounds
+	    (progn
+	      (move-overlay overlay
+			    (car object-bounds) (cdr object-bounds)
+			    (current-buffer)))
+	  (move-overlay overlay (point) (point) (current-buffer)))))
+    (mouse-extend-internal selection)))
+
+;;=== Extend ==============================================================
+
+(defun mouse-extend (event)
+  "Extend region/selection using the mouse."
+  (interactive "e")
+  (let ((orig-window (selected-window))
+	direction)
+    (select-window (posn-window (event-end event)))
+    (unwind-protect
+	(progn
+	  (mouse-sel-region-to-primary orig-window)
+	  (setq direction (mouse-extend-internal 'PRIMARY event)))
+      (mouse-sel-primary-to-region direction))))
+
+(defun mouse-extend-secondary (event)
+  "Extend secondary selection using the mouse."
+  (interactive "e")
+  (save-window-excursion
+    (mouse-extend-internal 'SECONDARY event)))
+
+(defun mouse-extend-internal (selection &optional initial-event)
+  "Extend specified SELECTION using the mouse.
+Track mouse-motion events, adjusting the SELECTION appropriately.
+Optional argument INITIAL-EVENT specifies an initial down-mouse event to 
+process. 
+
+See documentation for mouse-select-internal for more details."
+  (mouse-sel-eval-at-event-end initial-event
+    (let ((orig-cursor-type 
+	   (cdr (assoc 'cursor-type (frame-parameters (selected-frame))))))
+      (unwind-protect
+
+	  (let* ((thing-symbol (mouse-sel-selection-thing selection))
+		 (overlay (mouse-sel-selection-overlay selection))
+		 (orig-window (selected-window))
+		 (orig-window-frame (window-frame orig-window))
+		 (top (nth 1 (window-edges orig-window)))
+		 (bottom (nth 3 (window-edges orig-window)))
+		 (mark-active nil)	; inhibit normal region highlight
+		 (echo-keystrokes 0)	; don't echo mouse events
+		 min max
+		 direction
+		 event)
+
+	    ;; Get current bounds of overlay
+	    (if (eq (overlay-buffer overlay) (current-buffer))
+		(setq min (overlay-start overlay)
+		      max (overlay-end overlay))
+	      (setq min (point)
+		    max min)
+	      (set thing-symbol nil))
 		    
-		(cond
-		     
-		 ;; Ignore any movement outside the frame
-		 ((eq (car-safe event) 'switch-frame) nil)
-		 ((and (posn-window end)
-		       (not (eq (let ((posn-w (posn-window end)))
-				  (if (windowp posn-w)
-				      (window-frame posn-w)
-				    posn-w))
-				(window-frame orig-window)))) nil)
-		     
-		 ;; Different window, same frame
-		 ((not (eq (posn-window end) orig-window))
-		  (let ((end-row (cdr (cdr (mouse-position)))))
-		    (cond
-		     ((and end-row (not (bobp)) (< end-row top))
-		      (mouse-scroll-subr orig-window (- end-row top)
-					 mouse-drag-overlay max))
-		     ((and end-row (not (eobp)) (>= end-row bottom))
-		      (mouse-scroll-subr orig-window (1+ (- end-row bottom))
-					 mouse-drag-overlay min))
-		     )))
 
-		 ;; On the mode line
-		 ((eq (posn-point end) 'mode-line)
-		  (mouse-scroll-subr orig-window 1 mouse-drag-overlay min))
-
-		 ;; In original window
-		 (t (goto-char (posn-point end)))
-
-		 )
-		;; Determine direction of drag
-		(cond
-		 ((and (not direction) (not (eq min max)))
-		  (setq direction (if (< (point) (/ (+ min max) 2)) -1 1)))
-		 ((and (not (eq direction -1)) (<= (point) min))
-		  (setq direction -1))
-		 ((and (not (eq direction 1)) (>= (point) max))
-		  (setq direction 1)))
-		
-		(if (not mouse-sel-selection-type) nil
-		  
-		  ;; If dragging forward, goal is next character
-		  (if (and (eq direction 1) (not (eobp))) (forward-char 1))
-		  
-		  ;; Move to start/end of selected thing
-		  (let ((goal (point))
-			last)
-		    (goto-char (if (eq 1 direction) min max))
-		    (condition-case nil
-			(progn
-			  (while (> (* direction (- goal (point))) 0)
-			    (setq last (point))
-			    (forward-thing mouse-sel-selection-type 
-					   direction))
-			  (let ((end (point)))
-			    (forward-thing mouse-sel-selection-type
-					   (- direction))
-			    (goto-char
-			     (if (> (* direction (- goal (point))) 0)
-				 end last))))
-		      (error))))
-		
-		;; Move overlay
-		(move-overlay mouse-drag-overlay
-			      (if (eq 1 direction) min (point))
-			      (if (eq -1 direction) max (point))
-			      (current-buffer))
-	      
-		)))			; end track-mouse
-
-	  (let ((overlay-start (overlay-start mouse-drag-overlay))
-		(overlay-end (overlay-end mouse-drag-overlay)))
-
-	    ;; Set region
-	    (if (eq overlay-start overlay-end)
-		(deactivate-mark)
-	      (if (and mouse-sel-leave-point-near-mouse (eq direction 1))
-		  (progn
-		    (set-mark overlay-start)
-		    (goto-char overlay-end))
-		(set-mark overlay-end)
-		(goto-char overlay-start)))
+	    ;; Bar cursor
+	    (if (fboundp 'modify-frame-parameters)
+		(modify-frame-parameters (selected-frame)
+					 '((cursor-type . bar))))
 	    
-	    ;; Set selection
-	    (if (and mark-active mouse-sel-set-selection-function)
-		(funcall mouse-sel-set-selection-function 
-			 (buffer-substring overlay-start overlay-end)))
+	    ;; Handle dragging
+	    (track-mouse
+	    
+	      (while (if initial-event	; Use initial event
+			 (prog1
+			     (setq event initial-event)
+			   (setq initial-event nil))
+		       (setq event (read-event))
+		       (and (consp event)
+			    (memq (car event) '(mouse-movement switch-frame))))
+		
+		(let ((selection-thing (symbol-value thing-symbol))
+		      (end (event-end event)))
+		
+		  (cond
+		     
+		   ;; Ignore any movement outside the frame
+		   ((eq (car-safe event) 'switch-frame) nil)
+		   ((and (posn-window end)
+			 (not (eq (let ((posn-w (posn-window end)))
+				    (if (windowp posn-w)
+					(window-frame posn-w)
+				      posn-w))
+				  (window-frame orig-window)))) nil)
+		     
+		   ;; Different window, same frame
+		   ((not (eq (posn-window end) orig-window))
+		    (let ((end-row (cdr (cdr (mouse-position)))))
+		      (cond
+		       ((and end-row (not (bobp)) (< end-row top))
+			(mouse-scroll-subr orig-window (- end-row top)
+					   overlay max))
+		       ((and end-row (not (eobp)) (>= end-row bottom))
+			(mouse-scroll-subr orig-window (1+ (- end-row bottom))
+					   overlay min))
+		       )))
+		   
+		   ;; On the mode line
+		   ((eq (posn-point end) 'mode-line)
+		    (mouse-scroll-subr orig-window 1 overlay min))
+		   
+		   ;; In original window
+		   (t (goto-char (posn-point end)))
+		   
+		   )
+		  
+		  ;; Determine direction of drag
+		  (cond
+		   ((and (not direction) (not (eq min max)))
+		    (setq direction (if (< (point) (/ (+ min max) 2)) -1 1)))
+		   ((and (not (eq direction -1)) (<= (point) min))
+		    (setq direction -1))
+		   ((and (not (eq direction 1)) (>= (point) max))
+		    (setq direction 1)))
+		  
+		  (if (not selection-thing) nil
+		    
+		    ;; If dragging forward, goal is next character
+		    (if (and (eq direction 1) (not (eobp))) (forward-char 1))
+		    
+		    ;; Move to start/end of selected thing
+		    (let ((goal (point))
+			  last)
+		      (goto-char (if (eq 1 direction) min max))
+		      (condition-case nil
+			  (progn
+			    (while (> (* direction (- goal (point))) 0)
+			      (setq last (point))
+			      (forward-thing selection-thing direction))
+			    (let ((end (point)))
+			      (forward-thing selection-thing (- direction))
+			      (goto-char
+			       (if (> (* direction (- goal (point))) 0)
+				   end last))))
+			(error))))
+		  
+		  ;; Move overlay
+		  (move-overlay overlay
+				(if (eq 1 direction) min (point))
+				(if (eq -1 direction) max (point))
+				(current-buffer))
+		  
+		  )))			; end track-mouse
+
+	    ;; Finish up after dragging
+	    (let ((overlay-start (overlay-start overlay))
+		  (overlay-end (overlay-end overlay)))
 	      
-	    ;; Handle copy/kill
-	    (cond
-	     ((eq (car-safe last-input-event) 'down-mouse-2)
-	      (copy-region-as-kill overlay-start overlay-end)
-	      (read-event) (read-event))
-	     ((memq (car-safe last-input-event) '(down-mouse-1 down-mouse-3))
-	      (kill-region overlay-start overlay-end)
-	      (deactivate-mark)
-	      (read-event) (read-event))
-	     ((eq (car-safe last-input-event) 'double-mouse-3)
-	      (kill-region overlay-start overlay-end)
-	      (deactivate-mark)))))
+	      ;; Set selection
+	      (if (not (eq overlay-start overlay-end))
+		  (mouse-sel-set-selection
+		   selection
+		   (buffer-substring overlay-start overlay-end)))
+	      
+	      ;; Handle copy/kill
+	      (let (this-command)
+		(cond
+		 ((eq (event-basic-type last-input-event) 'mouse-2)
+		  (copy-region-as-kill overlay-start overlay-end)
+		  (read-event) (read-event))
+		 ((and (memq (event-basic-type last-input-event)
+			     '(mouse-1 mouse-3))
+		       (memq 'down (event-modifiers last-input-event)))
+		  (kill-region overlay-start overlay-end)
+		  (move-overlay overlay overlay-start overlay-start)
+		  (read-event) (read-event))
+		 ((and (eq (event-basic-type last-input-event) 'mouse-3)
+		       (memq 'double (event-modifiers last-input-event)))
+		  (kill-region overlay-start overlay-end)
+		  (move-overlay overlay overlay-start overlay-start)))))
 
-      ;; Restore cursor
-      (if (fboundp 'modify-frame-parameters)
-	  (modify-frame-parameters 
-	   (selected-frame) (list (cons 'cursor-type orig-cursor-type))))
-      
-      ;; Remove overlay
-      (or mouse-sel-retain-highlight
-	  (delete-overlay mouse-drag-overlay)))))
+	    direction)
 
-(defun mouse-insert-selection (click)
-  "Insert the contents of the selection at mouse click.
+	;; Restore cursor
+	(if (fboundp 'modify-frame-parameters)
+	    (modify-frame-parameters 
+	     (selected-frame) (list (cons 'cursor-type orig-cursor-type))))
+	
+	))))
+
+;;=== Paste ===============================================================
+
+(defun mouse-insert-selection (event)
+  "Insert the contents of the PRIMARY selection at mouse click.
 If `mouse-yank-at-point' is non-nil, insert at point instead."
   (interactive "e")
+  (mouse-insert-selection-internal 'PRIMARY event))
+
+(defun mouse-insert-secondary (event)
+  "Insert the contents of the SECONDARY selection at mouse click.
+If `mouse-yank-at-point' is non-nil, insert at point instead."
+  (interactive "e")
+  (mouse-insert-selection-internal 'SECONDARY event))
+
+(defun mouse-insert-selection-internal (selection event)
+  "Insert the contents of the named SELECTION at mouse click.
+If `mouse-yank-at-point' is non-nil, insert at point instead."
   (or mouse-yank-at-point 
-      (mouse-set-point click))
-  (deactivate-mark)
+      (mouse-set-point event))
   (if mouse-sel-get-selection-function
-      (insert (or (funcall mouse-sel-get-selection-function) ""))))
+      (progn
+	(push-mark (point) 'nomsg)
+	(insert (or (funcall mouse-sel-get-selection-function selection) "")))))
+
+;;=== Validate selection ==================================================
 
 (defun mouse-sel-validate-selection ()
-  "Remove selection highlight if emacs no longer owns the primary selection."
-  (or (not mouse-sel-check-selection-function)
-      (funcall mouse-sel-check-selection-function)
-      (delete-overlay mouse-drag-overlay)))
+  "Validate selections in mouse-sel-selection-alist.
+For each listed selection, remove the selection overlay if Emacs no longer 
+owns the selection." 
+  (let ((owner-p-function mouse-sel-selection-owner-p-function)
+	(alist mouse-sel-selection-alist)
+	selection overlay)
+    (if owner-p-function
+	(while alist
+	  (setq selection (car (car alist))
+		overlay (symbol-value (nth 1 (car alist)))
+		alist (cdr alist))
+	  (or (funcall owner-p-function selection)
+	      (delete-overlay overlay))))))
 
 (add-hook 'pre-command-hook 'mouse-sel-validate-selection)
 
@@ -442,13 +616,47 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
   
   (global-set-key [down-mouse-1]	'mouse-select)
   (global-set-key [down-mouse-3] 	'mouse-extend)
+
+  (global-unset-key [M-mouse-1])
+  (global-unset-key [M-drag-mouse-1])
+  (global-unset-key [M-mouse-3])
   
+  (global-set-key [M-down-mouse-1]	'mouse-select-secondary)
+  (global-set-key [M-down-mouse-3] 	'mouse-extend-secondary)
+
   (if (eq mouse-sel-default-bindings 'interprogram-cut-paste) nil
     
-    (global-set-key [mouse-2] 	'mouse-insert-selection)
+    (global-set-key [mouse-2] 		'mouse-insert-selection)
+
     (setq interprogram-cut-function nil
 	  interprogram-paste-function nil))
   
+  (global-set-key [M-mouse-2] 		'mouse-insert-secondary)
+    
   )
+
+;;=== Bug reporting =======================================================
+
+(defconst mouse-sel-maintainer-address "mikew@gopher.dosli.govt.nz")
+
+(defun mouse-sel-submit-bug-report ()
+  "Submit a bug report on mouse-sel.el via mail."
+  (interactive)
+  (require 'reporter)
+  (reporter-submit-bug-report
+   mouse-sel-maintainer-address
+   (concat "mouse-sel.el "
+	    (or (condition-case nil mouse-sel-version (error))
+		"(distributed with Emacs)"))
+   (list 'transient-mark-mode
+	 'delete-selection-mode
+	 'mouse-sel-default-bindings
+	 'mouse-sel-leave-point-near-mouse
+	 'mouse-sel-cycle-clicks
+	 'mouse-sel-selection-alist
+	 'mouse-sel-set-selection-function
+	 'mouse-sel-get-selection-function
+	 'mouse-sel-selection-owner-p-function
+	 'mouse-yank-at-point)))
 
 ;; mouse-sel.el ends here.
