@@ -829,7 +829,8 @@ The buffer is not selected, just returned to the caller."
 		 (setq backup-inhibited t)))
 	  (if rawfile
 	      nil
-	    (after-find-file error (not nowarn)))))
+	    (after-find-file error (not nowarn))
+	    (setq buf (current-buffer)))))
       buf)))
 
 (defvar after-find-file-from-revert-buffer nil)
