@@ -186,7 +186,7 @@ Return a string to display in the mode line for the current mode name."
 
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
-  `(and (boundp (quote ,v)) ,var))
+  `(and (boundp (quote ,var)) ,var))
 
 (defvar mode-line-mouse-sensitive-p nil "\
 Non-nil means mode line has been made mouse-sensitive.")
@@ -287,7 +287,7 @@ Menu of mode operations in the mode line.")
 		".brn" ".rnt" ".mem" ".lni" ".lis"
 		".olb" ".tlb" ".mlb" ".hlb"))
 	     (t
-	      '(".o" "~" ".bin" ".lbin" ".fasl"
+	      '(".o" "~" ".bin" ".lbin" ".fasl" ".ufsl"
 		".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
@@ -298,7 +298,7 @@ Menu of mode operations in the mode line.")
 	 ;; Clisp
 	 ".fas" ".lib"
 	 ;; CMUCL
-	 ".x86f"
+	 ".x86f" ".sparcf"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
