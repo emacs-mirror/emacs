@@ -243,7 +243,7 @@ but optional second arg NODIGITS non-nil treats them like other chars."
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine
-in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
+in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP."
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -1568,5 +1568,19 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 	    (setq minor-mode-map-alist (cons (cons toggle keymap)
 					     minor-mode-map-alist))))))))
 
+;; XEmacs compatibility/convenience.
+(if (fboundp 'play-sound)
+    (defun play-sound-file (file &optional volume device)
+      "Play sound stored in FILE.
+VOLUME and DEVICE correspond to the keywords of the sound
+specification for `play-sound'."
+      (interactive "fPlay sound file: ")
+      (let ((sound (list :file file)))
+	(if volume
+	    (plist-put sound :volume volume))
+	(if device
+	    (plist-put sound :device device))
+	(push 'sound sound)
+	(play-sound sound))))
 
 ;;; subr.el ends here
