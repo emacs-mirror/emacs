@@ -2322,7 +2322,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
   if (NILP (name))
     return Qnil;
 
-#ifdef HAVE_X_MENU
+#ifdef HAVE_X_WINDOW
+#ifndef NO_X_MENU
   /* If we got to this point via a mouse click,
      use a real menu for mouse selection.  */
   if (XTYPE (prev_event) == Lisp_Cons)
@@ -2344,7 +2345,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       *used_mouse_menu = 1;
       return value;
     }
-#endif /* HAVE_X_MENU */
+#endif /* not NO_X_MENU */
+#endif /* HAVE_X_WINDOW */
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
