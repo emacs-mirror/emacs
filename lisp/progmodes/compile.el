@@ -794,7 +794,7 @@ exited abnormally with code %d\n"
     (define-key map [menu-bar compilation-menu compilation-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation-menu compilation-mode-grep]
-      '("Grep" . grep))
+      '("Search Files (grep)" . grep))
     (define-key map [menu-bar compilation-menu compilation-mode-recompile]
       '("Recompile" . recompile))
     (define-key map [menu-bar compilation-menu compilation-mode-compile]
