@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.10) $
+ * $HopeName: MMsrc!poolawl.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.10) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.11) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -277,8 +277,12 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
     group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
 
-    if(AWLGroupAlloc(&base, &limit, group, awl, size))
-      goto found;
+    /* Only try to allocate in the segment if it is not already */
+    /* buffered, and has the same ranks as the buffer. */
+    if(SegBuffer(seg) == NULL &&
+       SegRankSet(seg) == BufferRankSet(buffer))
+      if(AWLGroupAlloc(&base, &limit, group, awl, size))
+	goto found;
   }
 
   /* No free space in existing groups, so create new group */
