@@ -796,6 +796,7 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 #ifdef WINDOWSNT
   /* Initialize environment from registry settings.  */
   init_environment ();
+  init_ntproc ();	/* must precede init_editfns */
 #endif
 
   /* egetenv is a pretty low-level facility, which may get called in
@@ -1312,6 +1313,10 @@ shut_down_emacs (sig, no_x, stuff)
      and cause a SIGHUP because the input descriptor is already closed.  */
   unrequest_sigio ();
   signal (SIGIO, SIG_IGN);
+#endif
+
+#ifdef WINDOWSNT
+  term_ntproc ();
 #endif
 }
 
