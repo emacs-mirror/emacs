@@ -516,11 +516,23 @@ also dependent on the values of `edebug-all-defs' and
 (defun edebug-eval-defun (edebug-it)
   "Evaluate the top-level form containing point, or after point.
 
-This version, from Edebug, has the following differences: With a
-prefix argument instrument the code for Edebug.  If `edebug-all-defs' is
-non-nil, then the code is instrumented *unless* there is a prefix
-argument.  If instrumenting, it prints: `Edebug: FUNCTIONNAME'.
-Otherwise, it prints in the minibuffer."
+If the current defun is actually a call to `defvar', then reset the
+variable using its initial value expression even if the variable
+already has some other value.  (Normally `defvar' does not change the
+variable's value if it already has a value.)
+
+With a prefix argument, instrument the code for Edebug.
+
+Setting `edebug-all-defs' to a non-nil value reverses the meaning of
+the prefix argument.  Code is then instrumented when this function is
+invoked without a prefix argument
+
+If acting on a `defun' for FUNCTION, and the function was
+instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
+instrumented, just FUNCTION is printed.
+
+If not acting on a `defun', the result of evaluation is displayed in
+the minibuffer."
   (interactive "P")
   (let* ((edebugging (not (eq (not edebug-it) (not edebug-all-defs))))
 	 (edebug-result)
