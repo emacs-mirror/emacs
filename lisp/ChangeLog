@@ -1,5 +1,7 @@
 2005-01-02  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (basic-save-buffer-1): Fix previous change.
+
 	* loadhist.el (file-loadhist-lookup): New function.
 	(file-provides, file-requires): Use it.
 
