@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.6) $
+ * $HopeName: MMsrc!mpm.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.6) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.7) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -80,6 +80,16 @@ Bool AttrCheck(Attr attr)
 }
 
 
+/* .rootvarcheck: RootVarCheck -- check a Root union discriminator */
+
+Bool RootVarCheck(RootVar rootVar)
+{
+  AVER(rootVar == RootTABLE || rootVar == RootFUN || rootVar == RootFMT ||
+    rootVar == RootREG);
+  return(TRUE);
+}
+
+
 /* AlignCheck -- check that an alignment is valid */
 
 Bool AlignCheck(Align align)
@@ -140,7 +150,9 @@ Shift SizeLog2(Size size)
 
 Addr (AddrAdd)(Addr addr, Size size)
 {
-  Addr next = (Addr)((Word)addr + size);
+  Addr next;
+  AVER(addr != (Addr)0);
+  next = AddrAdd(addr, size);
   AVER(next >= addr);   /* overflow check */
   return next;
 }
@@ -150,7 +162,9 @@ Addr (AddrAdd)(Addr addr, Size size)
 
 Addr (AddrSub)(Addr addr, Size size)
 {
-  Addr next = (Addr)((Word)addr - size);
+  Addr next;
+  AVER(addr != (Addr)0);
+  next = AddrSub(addr, size);
   AVER(next <= addr);   /* overflow check */
   return next;
 }
@@ -160,8 +174,45 @@ Addr (AddrSub)(Addr addr, Size size)
 
 Size (AddrOffset)(Addr base, Addr limit)
 {
+  AVER(base != 0);
+  AVER(limit != 0);
   AVER(base <= limit);
-  return (Size)((Word)limit - (Word)base);
+  return AddrOffset(base, limit);
+}
+
+
+/* PointerAdd -- add a size to a pointer */
+
+Pointer (PointerAdd)(Pointer p, Size s)
+{
+  Pointer next;
+  AVER(p != NULL);
+  next = PointerAdd(p, s);
+  AVER(next >= p);   /* overflow check */
+  return next;
+}
+
+
+/* PointerSub -- subtract a size from a pointer */
+
+Pointer (PointerSub)(Pointer p, Size s)
+{
+  Pointer next;
+  AVER(p != NULL);
+  next = PointerSub(p, s);
+  AVER(next <= p);   /* overflow check */
+  return next;
+}
+
+
+/* PointerOffset -- calculate the offset between two addresses */
+
+Size (PointerOffset)(Pointer base, Pointer limit)
+{
+  AVER(base != NULL);
+  AVER(limit != NULL);
+  AVER(base <= limit);
+  return PointerOffset(base, limit);
 }
 
 

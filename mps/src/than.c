@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.11) $
+ *  $HopeName: MMsrc!than.c(trunk.12) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -17,7 +17,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.11) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.12) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -35,11 +35,13 @@ Res ThreadRegister(Thread *threadReturn, Space space)
   Res res;
   Thread thread;
   Ring ring;
+  void *p;
 
   AVER(threadReturn != NULL);
 
-  res = SpaceAlloc((Addr *)&thread, space, sizeof(ThreadStruct));
+  res = SpaceAlloc(&p, space, sizeof(ThreadStruct));
   if(res != ResOK) return res;
+  thread = (Thread)p;
 
   thread->space = space;
   RingInit(&thread->spaceRing);

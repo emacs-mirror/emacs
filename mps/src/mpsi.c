@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.17) $
+ * $HopeName: MMsrc!mpsi.c(trunk.18) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -55,7 +55,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.17) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.18) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -604,7 +604,7 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
   AVER(mps_rm == (mps_rm_t)0);
 
   /* See .root-mode. */
-  res = RootCreate(&root, space, rank,
+  res = RootCreateFun(&root, space, rank,
                    (RootScanMethod)mps_root_scan, p, s);
 
   SpaceLeave(space);
@@ -689,7 +689,8 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
                               mps_rm_t mps_rm,
                               mps_thr_t mps_thr,
                               mps_reg_scan_t mps_reg_scan,
-                              void *reg_scan_p)
+                              void *reg_scan_p,
+                              size_t mps_size)
 {
   Space space = (Space)mps_space;
   Rank rank = (Rank)mps_rank;
@@ -711,7 +712,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   /* See .root-mode. */
   res = RootCreateReg(&root, space, rank, thread,
                       (RootScanRegMethod)mps_reg_scan,
-                      reg_scan_p);
+                      reg_scan_p, mps_size);
 
   SpaceLeave(space);
   
@@ -728,8 +729,9 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
  */
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
-                               mps_reg_t mps_reg, void *p)
+                               mps_reg_t mps_reg, void *p, size_t s)
 {
+  /* s is unused */
   ScanState ss = (ScanState)mps_ss;
   Thread thread = (Thread)mps_reg;
   return ThreadScan(ss, thread, p);

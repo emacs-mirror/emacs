@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(trunk.10) $
+ *  $HopeName: MMsrc!format.c(trunk.11) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.10) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.11) $");
 
 
 Bool FormatCheck(Format format)
@@ -37,12 +37,14 @@ Res FormatCreate(Format *formatReturn, Space space,
 {
   Format format;
   Res res;
+  void *p;
 
   AVER(formatReturn != NULL);
 
-  res = SpaceAlloc((Addr *)&format, space, sizeof(FormatStruct));
+  res = SpaceAlloc(&p, space, sizeof(FormatStruct));
   if(res != ResOK)
     return res;
+  format = (Format)p; /* avoid pun */
 
   format->space = space;
   RingInit(&format->spaceRing);
