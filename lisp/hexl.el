@@ -42,9 +42,9 @@
 ;;
 
 (defvar hexl-program "hexl"
-  "The program that will hexlify and de-hexlify its stdin.  hexl-program
-will always be concated with hexl-options and "-de" when dehexlfying a
-buffer.")
+  "The program that will hexlify and de-hexlify its stdin.
+`hexl-program' will always be concated with `hexl-options'
+and \"-de\" when dehexlfying a buffer.")
 
 (defvar hexl-iso ""
   "If your emacs can handle ISO characters, this should be set to
@@ -75,7 +75,7 @@ A major mode for editting binary files in hex dump format.
 This function automatically converts a buffer into the hexl format
 using the function `hexlify-buffer'.
 
-Each line in the buffer has an `address' (displayed in hexadecimal)
+Each line in the buffer has an \"address\" (displayed in hexadecimal)
 representing the offset into the file that the characters on this line
 are at and 16 characters from the file (displayed as hexadecimal
 values grouped every 16 bits) and as their ASCII values.
@@ -84,8 +84,8 @@ If any of the characters (displayed as ASCII characters) are
 unprintable (control or meta characters) they will be replaced as
 periods.
 
-If hexl-mode is invoked with an argument the buffer is assumed to be
-in hexl-format.
+If `hexl-mode' is invoked with an argument the buffer is assumed to be
+in hexl format.
 
 A sample format:
 

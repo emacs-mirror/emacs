@@ -87,13 +87,13 @@
   (sit-for 4))
 
 (defun Helper-describe-key-briefly (key)
-  "Briefly describe binding of KEYS."
+  "Briefly describe binding of KEY."
   (interactive "kDescribe key briefly: ")
   (describe-key-briefly key)
   (sit-for 4))
 
 (defun Helper-describe-key (key)
-  "Describe binding of KEYS."
+  "Describe binding of KEY."
   (interactive "kDescribe key: ")
   (save-window-excursion (describe-key key))
   (Helper-help-scroller))
