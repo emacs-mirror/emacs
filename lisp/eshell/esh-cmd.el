@@ -1284,20 +1284,21 @@ COMMAND may result in an alias being executed, or a plain command."
 (defun eshell-find-alias-function (name)
   "Check whether a function called `eshell/NAME' exists."
   (let* ((sym (intern-soft (concat "eshell/" name)))
-	 (file (symbol-file sym))
-	 module-sym)
+	 (file (symbol-file sym)))
+    ;; If the function exists, but is defined in an eshell module
+    ;; that's not currently enabled, don't report it as found
     (if (and file
 	     (string-match "\\(em\\|esh\\)-\\(.*\\)\\(\\.el\\)?\\'" file))
-	(setq file (concat "eshell-" (match-string 2 file))))
-    (setq module-sym
-	  (and sym file (fboundp 'symbol-file)
+	(let ((module-sym
 	       (intern (file-name-sans-extension
-			(file-name-nondirectory file)))))
-    (and sym (functionp sym)
-	 (or (not module-sym)
-	     (eshell-using-module module-sym)
-	     (memq module-sym (eshell-subgroups 'eshell)))
-	 sym)))
+			(file-name-nondirectory
+			 (concat "eshell-" (match-string 2 file)))))))
+	  (if (and (eshell-using-module module-sym)
+		   (memq module-sym (eshell-subgroups 'eshell)))
+	      sym))
+      ;; Otherwise, if it's bound, return it.
+      (if (functionp sym)
+	  sym))))
 
 (defun eshell-plain-command (command args)
   "Insert output from a plain COMMAND, using ARGS.
