@@ -1,3 +1,13 @@
+2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* charsets/Makefile (MAPS): Add gbk.map and gb18030-bmp.map.
+	(ICUDIR): New macro.
+	(gbk.map, gb18030-bmp.map): New targets.
+
+	* charsets/gbk.map, charsets/gb18030-bmp.map: New files.
+
+	* charsets/gbk18030.awk: New file.
+
 2002-03-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* charsets: New directory for charset mapping tables.

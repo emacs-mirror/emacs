@@ -1,3 +1,15 @@
+2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Change the registry for
+	chinese-gb2312 and add the registry for chinese-gbk.
+
+	* international/mule.el (charset-chars): Fix typo.
+
+	* international/mule-conf.el (chinese-gbk): New charset.
+
+	* international/titdic-cnv.el (titdic-convert): Read into a
+	unibyte buffer then make the buffer multibyte.
+
 2002-03-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el (utf-16-le): Use :bom attribute

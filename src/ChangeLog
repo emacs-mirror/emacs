@@ -1,5 +1,10 @@
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* xdisp.c (display_mode_element): When the variable `elt' is
+	changed, update `this' and `lisp_string'.
+
+2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+
 	* buffer.c (Fset_buffer_multibyte): Fix 8-bit char handling.
 
 	* callproc.c (Fcall_process): Be sure to give the current buffer
@@ -55,6 +60,7 @@
 	* coding.c (produce_chars): Set the variable `multibytep' correctly.
 	(decode_coding_gap): Set coding->dst_multibyte correctly.
 
+>>>>>>> 1.2479.2.9
 2002-03-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
