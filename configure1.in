@@ -1065,6 +1065,11 @@ esac
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE="-L${x_libraries}"
 [ -n "${x_includes}" ] && C_SWITCH_X_SITE="-I${x_includes}"
 
+# Avoid forcing the search of /usr/include before fixed include files.
+if [ "$C_SWITCH_X_SITE" = "-I/usr/include" ]; then
+   C_SWITCH_X_SITE=" "
+fi
+
 case "${window_system}" in
   x11 )
     HAVE_X_WINDOWS=yes
