@@ -34,6 +34,8 @@ File: dir	Node: Top	This is the top of the INFO tree
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 * EUDC: (eudc).		Emacs Unified Directory Client.
 * Ebrowse: (ebrowse)	A C++ class browser for Emacs.
+* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
+
 
 Editors
 * Autotype: (autotype). Convenient features for text that you enter frequently
