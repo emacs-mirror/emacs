@@ -2611,6 +2611,9 @@ in the mode line."
 (defconst blink-matching-delay 1
   "*The number of seconds that `blink-matching-open' will delay at a match.")
 
+(defconst blink-matching-paren-dont-ignore-comments nil
+  "*Non-nil means `blink-matching-paren' should not ignore comments.")
+
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
@@ -2632,13 +2635,18 @@ in the mode line."
 					(- (point) blink-matching-paren-distance))
 				   oldpos))
 	     (condition-case ()
-		 (setq blinkpos (scan-sexps oldpos -1))
+		 (let ((parse-sexp-ignore-comments
+			(and parse-sexp-ignore-comments
+			     (not blink-matching-paren-dont-ignore-comments))))
+		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
-	   (and blinkpos (/= (char-syntax (char-after blinkpos))
-			     ?\$)
+	   (and blinkpos
+		(/= (char-syntax (char-after blinkpos))
+		    ?\$)
 		(setq mismatch
-		      (/= (char-after (1- oldpos))
-			  (matching-paren (char-after blinkpos)))))
+		      (or (null (matching-paren (char-after blinkpos)))
+			  (/= (char-after (1- oldpos))
+			      (matching-paren (char-after blinkpos))))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
 	       (progn
