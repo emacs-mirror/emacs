@@ -66,16 +66,16 @@ int byte_metering_on;
 
 #define METER_1(code) METER_2 (0, (code))
 
-#define METER_CODE(last_code, this_code)			\
-{								\
-  if (byte_metering_on)						\
-    {								\
-      if (METER_1 (this_code) != ((1<<VALBITS)-1))		\
-        METER_1 (this_code)++;					\
-      if (last_code						\
-	  && METER_2 (last_code, this_code) != ((1<<VALBITS)-1))\
-        METER_2 (last_code, this_code)++;			\
-    }								\
+#define METER_CODE(last_code, this_code)				\
+{									\
+  if (byte_metering_on)							\
+    {									\
+      if (METER_1 (this_code) < MOST_POSITIVE_FIXNUM)			\
+        METER_1 (this_code)++;						\
+      if (last_code							\
+	  && METER_2 (last_code, this_code) < MOST_POSITIVE_FIXNUM)	\
+        METER_2 (last_code, this_code)++;				\
+    }									\
 }
 
 #else /* no BYTE_CODE_METER */
@@ -1747,11 +1747,12 @@ syms_of_bytecode ()
 
   DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
    "A vector of vectors which holds a histogram of byte-code usage.\n\
-(aref (aref byte-code-meter 0) CODE) indicates how many times the byte\n\
+\(aref (aref byte-code-meter 0) CODE) indicates how many times the byte\n\
 opcode CODE has been executed.\n\
-(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,\n\
+\(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,\n\
 indicates how many times the byte opcodes CODE1 and CODE2 have been\n\
 executed in succession.");
+  
   DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
    "If non-nil, keep profiling information on byte code usage.\n\
 The variable byte-code-meter indicates how often each byte opcode is used.\n\
