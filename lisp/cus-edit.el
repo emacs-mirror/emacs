@@ -740,22 +740,24 @@ are shown; the contents of those subgroups are initially hidden."
    (list (list symbol 'custom-group))
    (format "*Customize Group: %s*" (custom-unlispify-tag-name symbol))))
 
+;;;### (defalias 'customize-variable 'customize-option)
+
 ;;;###autoload
-(defun customize-variable (symbol)
-  "Customize SYMBOL, which must be a variable."
+(defun customize-option (symbol)
+  "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
   (custom-buffer-create (list (list symbol 'custom-variable))
-			(format "*Customize Variable: %s*"
+			(format "*Customize Option: %s*"
 				(custom-unlispify-tag-name symbol))))
 
 ;;;###autoload
-(defun customize-variable-other-window (symbol)
-  "Customize SYMBOL, which must be a variable.
+(defun customize-option-other-window (symbol)
+  "Customize SYMBOL, which must be a user option variable.
 Show the buffer in another window, but don't select it."
   (interactive (custom-variable-prompt))
   (custom-buffer-create-other-window
    (list (list symbol 'custom-variable))
-   (format "*Customize Variable: %s*" (custom-unlispify-tag-name symbol))))
+   (format "*Customize Option: %s*" (custom-unlispify-tag-name symbol))))
 
 ;;;###autoload
 (defun customize-face (&optional symbol)
@@ -1331,6 +1333,7 @@ Change the state of this item."
 		   (require load)
 		 (error nil)))
 	      ;; Don't reload a file already loaded.
+	      ((assoc load load-history))
 	      ((assoc (locate-library load) load-history))
 	      (t
 	       (condition-case nil
