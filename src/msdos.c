@@ -988,7 +988,7 @@ IT_set_frame_parameters (f, alist)
       Lisp_Object prop = parms[i];
       Lisp_Object val  = values[i];
 
-      if (EQ (prop, intern ("foreground-color")))
+      if (EQ (prop, Qforeground_color))
 	{
 	  unsigned long new_color = load_color (f, val);
 	  if (new_color != ~0)
@@ -999,7 +999,7 @@ IT_set_frame_parameters (f, alist)
 		fprintf (termscript, "<FGCOLOR %lu>\n", new_color);
 	    }
 	}
-      else if (EQ (prop, intern ("background-color")))
+      else if (EQ (prop, Qbackground_color))
 	{
 	  unsigned long new_color = load_color (f, val);
 	  if (new_color != ~0)
@@ -3500,6 +3500,12 @@ syms_of_msdos ()
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
   Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
+
+  /* The following two are from xfns.c:  */
+  Qbackground_color = intern ("background-color");
+  staticpro (&Qbackground_color);
+  Qforeground_color = intern ("foreground-color");
+  staticpro (&Qforeground_color);
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
