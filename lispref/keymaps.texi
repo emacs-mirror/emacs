@@ -1573,10 +1573,8 @@ You can also supply a second string, called the help string, as follows:
 (@var{item-string} @var{help-string} . @var{real-binding})
 @end example
 
-Currently Emacs does not actually use @var{help-string}; it knows only
-how to ignore @var{help-string} in order to extract @var{real-binding}.
-In the future we may use @var{help-string} as extended documentation for
-the menu item, available on request.
+@var{help-string} specifies a ``help-echo'' string to display while the
+mouse is on that item.
 
 As far as @code{define-key} is concerned, @var{item-string} and
 @var{help-string} are part of the event's binding.  However,
@@ -1659,8 +1657,8 @@ does not appear, then the menu is displayed as if this item were
 not defined at all.
 
 @item :help @var{help}
-The value of this property, @var{help}, is the extra help string (not
-currently used by Emacs).
+The value of this property, @var{help}, is the ``help-echo'' string to
+display while the mouse is on that item.
 
 @item :button (@var{type} . @var{selected})
 This property provides a way to define radio buttons and toggle buttons.
