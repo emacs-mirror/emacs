@@ -240,6 +240,14 @@ expanded when a program is compiled, not when a compiled program is run.
 All subroutines used by the advice need to be available when the byte
 compiler expands the macro.
 
+@deffn Command ad-unadvise function
+This command deletes the advice from @var{function}.
+@end deffn
+
+@deffn Command ad-unadvise-all
+This command deletes all pieces of advice from all functions.
+@end deffn
+
 @node Around-Advice
 @section Around-Advice
 
@@ -359,12 +367,24 @@ This command deactivates the advice for @var{function}.
 @cindex advice, deactivating
 @end deffn
 
+@deffn Command ad-update function &optional compile
+This command activates the advice for @var{function}
+if its advice is already activated.  This is useful
+if you change the advice.
+@end deffn
+
 @deffn Command ad-activate-all &optional compile
 This command activates the advice for all functions.
 @end deffn
 
 @deffn Command ad-deactivate-all
 This command deactivates the advice for all functions.
+@end deffn
+
+@deffn Command ad-update-all &optional compile
+This command activates the advice for all functions
+whose advice is already activated.  This is useful
+if you change the advice of some functions.
 @end deffn
 
 @deffn Command ad-activate-regexp regexp &optional compile
@@ -393,8 +413,8 @@ last time it was activated.
 
 @deffn Command ad-start-advice
 Turn on automatic advice activation when a function is defined or
-redefined.  If you turn on this mode, then advice really does
-take effect immediately when defined.
+redefined.  If you turn on this mode, then advice takes effect
+immediately when defined.
 @end deffn
 
 @deffn Command ad-stop-advice
@@ -405,6 +425,19 @@ redefined.
 @defopt ad-default-compilation-action
 This variable controls whether to compile the combined definition
 that results from activating advice for a function.
+
+A value of @code{always} specifies to compile unconditionally
+A value of @code{nil} specifies never compile the advice.
+
+A value of @code{maybe} specifies to compile if the byte-compiler is
+already loaded.  A value of @code{like-original} specifies to compile
+the advice if the the original definition of the advised function is
+compiled or a built-in function.
+
+This variable takes effect only if the @var{compile} argument of
+@code{ad-activate} (or any of the above functions) was supplied as
+@code{nil}.  If that argument is non-@code{nil}, that means
+to compile the advice regardless.
 @end defopt
 
   If the advised definition was constructed during ``preactivation''
