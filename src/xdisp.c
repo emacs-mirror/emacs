@@ -398,7 +398,11 @@ int buffer_shared;
 
 static Lisp_Object default_invis_vector[3];
 
-/* Nonzero means display mode line highlighted.  */
+/* Zero means display the mode-line/header-line/menu-bar in the default face
+   (this slightly odd definition is for compatibility with previous versions
+   of emacs), non-zero means display them using their respective faces.
+
+   This variable is deprecated.  */
 
 int mode_line_inverse_video;
 
@@ -12314,6 +12318,10 @@ display_menu_bar (w)
     }
 #endif /* not USE_X_TOOLKIT */
 
+  if (! mode_line_inverse_video)
+    /* Force the menu-bar to be displayed in the default face.  */
+    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
+
   /* Clear all rows of the menu bar.  */
   for (i = 0; i < FRAME_MENU_BAR_LINES (f); ++i)
     {
@@ -12322,10 +12330,6 @@ display_menu_bar (w)
       row->enabled_p = 1;
       row->full_width_p = 1;
     }
-
-  /* Make the first line of the menu bar appear in reverse video.  */
-  if (mode_line_inverse_video)
-    it.glyph_row->inverse_p = 1;
 
   /* Display all items of the menu bar.  */
   items = FRAME_MENU_BAR_ITEMS (it.f);
@@ -12481,6 +12485,10 @@ display_mode_line (w, face_id, format)
   init_iterator (&it, w, -1, -1, NULL, face_id);
   prepare_desired_row (it.glyph_row);
 
+  if (! mode_line_inverse_video)
+    /* Force the mode-line to be displayed in the default face.  */
+    it.base_face_id = it.face_id = DEFAULT_FACE_ID;
+
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
@@ -12494,7 +12502,7 @@ display_mode_line (w, face_id, format)
   compute_line_metrics (&it);
   it.glyph_row->full_width_p = 1;
   it.glyph_row->mode_line_p = 1;
-  it.glyph_row->inverse_p = mode_line_inverse_video != 0;
+  it.glyph_row->inverse_p = 0;
   it.glyph_row->continued_p = 0;
   it.glyph_row->truncated_on_left_p = 0;
   it.glyph_row->truncated_on_right_p = 0;
@@ -13808,10 +13816,12 @@ of the top or bottom of the window.");
   truncate_partial_width_windows = 1;
 
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
-    "Non-nil means use inverse video for the mode line.\n\
+    "nil means display the mode-line/header-line/menu-bar in the default face.\n\
+Any other value means to use the appropriate face, `mode-line',\n\
+`header-line', or `menu' respectively.\n\
 \n\
-This variable is deprecated; please use the face `mode-line' instead.");
-  mode_line_inverse_video = 0;
+This variable is deprecated; please change the above faces instead.");
+  mode_line_inverse_video = 1;
 
   DEFVAR_LISP ("line-number-display-limit", &Vline_number_display_limit,
     "*Maximum buffer size for which line number should be displayed.\n\
