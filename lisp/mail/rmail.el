@@ -141,6 +141,15 @@ Called with region narrowed to the message, including headers.")
 
 (defvar rmail-overlay-list nil)
 
+(defvar rmail-font-lock-keywords
+  '(("^\\(From\\|Sender\\):" . font-lock-function-name-face)
+    ("^Reply-To:.*$" . font-lock-function-name-face)
+    ("^Subject:" . font-lock-comment-face)
+    ("^\\(To\\|Apparently-To\\|Cc\\):" . font-lock-keyword-face)
+    ("^[ \t]*\\sw*[>|}].*$" . font-lock-reference-face)		; Citation.
+    ("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$" . font-lock-string-face))
+  "Additional expressions to highlight in Rmail mode.")
+
 ;; These are used by autoloaded rmail-summary.
 
 (defvar rmail-summary-buffer nil)
@@ -605,6 +614,8 @@ Instead, these commands are available:
 (defun rmail-variables ()
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords rmail-font-lock-keywords)
   (make-local-variable 'rmail-last-label)
   (make-local-variable 'rmail-last-regexp)
   (make-local-variable 'rmail-deleted-vector)
