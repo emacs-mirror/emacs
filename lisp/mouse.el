@@ -347,12 +347,23 @@ which prepares for a second click to delete the text."
 	;; If this is the second time we've called
 	;; mouse-save-then-kill, delete the text from the buffer.
 	(progn
+	  ;; Delete just one char, so in case buffer is being modified
+	  ;; for the first time, the undo list records that fact.
+	  (delete-region (point)
+			 (+ (point) (if (> (mark) (point)) 1 -1)))
+	  ;; Now delete the rest of the specified region,
+	  ;; but don't record it.
 	  (let ((buffer-undo-list t))
 	    (delete-region (point) (mark)))
-	  ;; Make the undo list by hand so it is shared.
 	  (if (not (eq buffer-undo-list t))
-	      (setq buffer-undo-list
-		    (cons (cons (car kill-ring) (point)) buffer-undo-list))))
+	      (let ((tail buffer-undo-list))
+		;; Search back in buffer-undo-list for the string
+		;; that came from the first delete-region.
+		(while (and tail (not (stringp (car (car tail)))))
+		  (setq tail (cdr tail)))
+		;; Replace it with an entry for the entire deleted text.
+		(and tail
+		     (setcar tail (cons (car kill-ring) (point))))))))
       ;; Otherwise, save this region.
       (mouse-set-mark-fast click)
       (kill-ring-save (point) (mark t))
