@@ -1048,6 +1048,10 @@ Returns t if checkout was successful, nil otherwise."
     ()
   ;;(define-key vc-menu-map [show-files]
   ;;  '("Show Files under VC" . (vc-directory t)))
+  (define-key vc-menu-map [vc-retrieve-snapshot]
+    '("Retrieve Snapshot" . vc-retrieve-snapshot))
+  (define-key vc-menu-map [vc-create-snapshot]
+    '("Create Snapshot" . vc-create-snapshot))
   (define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
   (define-key vc-menu-map [separator1] '("----"))
   (define-key vc-menu-map [vc-annotate] '("Annotate" . vc-annotate))
