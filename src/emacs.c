@@ -108,6 +108,9 @@ Lisp_Object Vinstallation_directory;
 /* Hook run by `kill-emacs' before it does really anything.  */
 Lisp_Object Vkill_emacs_hook;
 
+/* An empty lisp string.  To avoid having to build any other.  */
+Lisp_Object empty_string;
+
 #ifdef SIGUSR1
 /* Hooks for signal USR1 and USR2 handing */
 Lisp_Object Vsignal_USR1_hook;
@@ -2207,6 +2210,9 @@ in other similar situations), functions placed on this hook should not\n\
 expect to be able to interact with the user.  To ask for confirmation,\n\
 see `kill-emacs-query-functions' instead.");
   Vkill_emacs_hook = Qnil;
+
+  empty_string = build_string ("");
+  staticpro (&empty_string);
 
 #ifdef SIGUSR1
   DEFVAR_LISP ("signal-USR1-hook", &Vsignal_USR1_hook,
