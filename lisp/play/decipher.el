@@ -408,7 +408,7 @@ The most useful commands are:
               (setcdr (nthcdr (1- new-size) decipher-undo-list) nil)
               (setq decipher-undo-list-size new-size))))))
 
-(defun decipher-get-undo-copy (cons)
+(defun decipher-copy-cons (cons)
   (if cons
       (cons (car cons) (cdr cons))))
 
@@ -417,8 +417,8 @@ The most useful commands are:
   ;;   (decipher-set-map CIPHER-CHAR PLAIN-CHAR)
   ;; We must copy the cons cell because the original cons cells will be
   ;; modified using setcdr.
-  (let ((cipher-map (decipher-get-undo-copy (rassoc cipher-char decipher-alphabet)))
-        (plain-map  (decipher-get-undo-copy (assoc  plain-char  decipher-alphabet))))
+  (let ((cipher-map (decipher-copy-cons (rassoc cipher-char decipher-alphabet)))
+        (plain-map  (decipher-copy-cons (assoc  plain-char  decipher-alphabet))))
     (cond ((equal ?\  plain-char)
            cipher-map)
           ((equal cipher-char (cdr plain-map))
