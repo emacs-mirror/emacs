@@ -1,3 +1,8 @@
+2001-10-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* floatfns.c: float_error() is defined iff FLOAT_CATCH_SIGILL is
+	defined.
+
 2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xfns.c (x_create_bitmap_from_file, x_find_image_file):
