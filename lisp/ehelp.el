@@ -91,7 +91,7 @@
   )
 
 ;;;###autoload
-(defun with-electric-help (thunk &optional buffer noerase)
+(defun with-electric-help (thunk &optional buffer noerase minheight)
   "Pop up an \"electric\" help buffer.
 The arguments are THUNK &optional BUFFER NOERASE MINHEIGHT.
 THUNK is a function of no arguments which is called to initialize the
