@@ -557,6 +557,8 @@ Please convert your programs to use the variable `baud-rate' directly."
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
+(defalias 'point-at-eol 'line-end-position)
+(defalias 'point-at-bol 'line-beginning-position)
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
