@@ -1768,7 +1768,7 @@ With prefix argument, prompts for a revision name."
 	()
       (define-key menu-bar-ediff-menu [ediff-revision]
 	'("File with Revision ..." . ediff-revision))
-      (define-key menu-bar-file-menu [separator-ediff-files] '("--"))
+      (define-key menu-bar-ediff-menu [separator-ediff-files] '("--"))
       (define-key menu-bar-ediff-menu [ediff-buffers3]
 	'("Three Buffers ..." . ediff-buffers3))
       (define-key menu-bar-ediff-menu [ediff-files3]
@@ -1784,12 +1784,12 @@ With prefix argument, prompts for a revision name."
     ;; explicit string-match, as ediff-xemacs-p is not defined at build time
     (if (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
 	()
-      (define-key menu-bar-file-menu [separator-ediff-regions] '("--"))
+      (define-key menu-bar-ediff-menu [separator-ediff-regions] '("--"))
       (define-key menu-bar-ediff-menu [ediff-regions-linewise]
 	'("Regions Line-by-line ..." . ediff-regions-linewise))
       (define-key menu-bar-ediff-menu [ediff-regions-wordwise]
 	'("Regions Word-by-word ..." . ediff-regions-wordwise))
-      (define-key menu-bar-file-menu [separator-ediff-windows] '("--"))
+      (define-key menu-bar-ediff-menu [separator-ediff-windows] '("--"))
       (define-key menu-bar-ediff-menu [ediff-windows-linewise]
 	'("Windows Line-by-line ..." . ediff-windows-linewise))
       (define-key menu-bar-ediff-menu [ediff-windows-wordwise]
@@ -1806,7 +1806,7 @@ With prefix argument, prompts for a revision name."
 	'("Revisions with Ancestor ..." . ediff-merge-revisions-with-ancestor))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-revisions]
 	'("Revisions ..." . ediff-merge-revisions))
-      (define-key menu-bar-file-menu [separator-ediff-merge] '("--"))
+      (define-key menu-bar-ediff-merge-menu [separator-ediff-merge] '("--"))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-buffers-with-ancestor]
 	'("Buffers with Ancestor ..." . ediff-merge-buffers-with-ancestor))
       (define-key menu-bar-ediff-merge-menu [ediff-merge-buffers]
