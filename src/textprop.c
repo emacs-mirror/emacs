@@ -64,6 +64,7 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 #define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCONS (o1)->cdr, CONSP (o2)))
 
 Lisp_Object Vinhibit_point_motion_hooks;
+Lisp_Object Vdefault_properties;
 
 
 /* Extract the interval at the position pointed to by BEGIN from
@@ -1379,6 +1380,12 @@ copy_text_properties (start, end, src, pos, dest, prop)
 void
 syms_of_textprop ()
 {
+  DEFVAR_LISP ("default-properties", &Vdefault_properties,
+   "Property-list used as default values.\n\
+The value of a property in this list is seen as the value for every character\n\
+that does not have its own value for that property.");
+  Vdefault_properties = Qnil;
+
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
    "If non-nil, don't run `point-left' and `point-entered' text properties.\n\
 This also inhibits the use of the `intangible' text property.");
