@@ -184,7 +184,7 @@ Returns one of:
    ;; beginning of a document)
    ((looking-at "<\\?")
     (search-forward "?>" end)
-    (skip-chars-forward " \t\n")
+    (goto-char (- (re-search-forward "[^[:space:]]") 1))
     (xml-parse-tag end))
    ;;  Character data (CDATA) sections, in which no tag should be interpreted
    ((looking-at "<!\\[CDATA\\[")
@@ -198,7 +198,7 @@ Returns one of:
       (if parse-dtd
 	  (setq dtd (xml-parse-dtd end))
 	(xml-skip-dtd end))
-      (skip-chars-forward " \t\n")
+      (goto-char (- (re-search-forward "[^[:space:]]") 1))
       (if dtd
 	  (cons dtd (xml-parse-tag end))
 	(xml-parse-tag end))))
@@ -210,7 +210,7 @@ Returns one of:
    ((looking-at "</")
     '())
    ;;  opening tag
-   ((looking-at "<\\([^/> \t\n]+\\)")
+   ((looking-at "<\\([^/>[:space:]]+\\)")
     (goto-char (match-end 1))
     (let* ((case-fold-search nil) ;; XML is case-sensitive.
 	   (node-name (match-string 1))
@@ -219,7 +219,7 @@ Returns one of:
 	   pos)
 
       ;; is this an empty element ?
-      (if (looking-at "/[ \t\n]*>")
+      (if (looking-at "/[[:space:]]*>")
 	  (progn
 	    (forward-char 2)
 	    (nreverse (cons '("") children)))
@@ -230,7 +230,7 @@ Returns one of:
 	      (forward-char 1)
 	      ;;  Now check that we have the right end-tag. Note that this
 	      ;;  one might contain spaces after the tag name
-	      (while (not (looking-at (concat "</" node-name "[ \t\n]*>")))
+	      (while (not (looking-at (concat "</" node-name "[[:space:]]*>")))
 		(cond
 		 ((looking-at "</")
 		  (error (concat
@@ -281,8 +281,8 @@ The search for attributes end at the position END in the current buffer.
 Leaves the point on the first non-blank character after the tag."
   (let ((attlist ())
 	name)
-    (skip-chars-forward " \t\n")
-    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[ \t\n]*=[ \t\n]*")
+    (goto-char (- (re-search-forward "[^[:space:]]") 1))
+    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[[:space:]]*=[[:space:]]*")
       (setq name (intern (match-string 1)))
       (goto-char (match-end 0))
 
@@ -298,7 +298,7 @@ Leaves the point on the first non-blank character after the tag."
 
       (push (cons name (match-string-no-properties 1)) attlist)
       (goto-char (match-end 0))
-      (skip-chars-forward " \t\n")
+      (goto-char (- (re-search-forward "[^[:space:]]") 1))
       (if (> (point) end)
 	  (error "XML: end of attribute list not found before end of region"))
       )
@@ -318,14 +318,14 @@ The DTD must end before the position END in the current buffer.
 The point must be just before the starting tag of the DTD.
 This follows the rule [28] in the XML specifications."
   (forward-char (length "<!DOCTYPE"))
-  (if (looking-at "[ \t\n]*>")
+  (if (looking-at "[[:space:]]*>")
       (error "XML: invalid DTD (excepting name of the document)"))
   (condition-case nil
       (progn
 	(forward-word 1)  ;; name of the document
-	(skip-chars-forward " \t\n")
+	(goto-char (- (re-search-forward "[^[:space:]]") 1))
 	(if (looking-at "\\[")
-	    (re-search-forward "\\][ \t\n]*>" end)
+	    (re-search-forward "\\][[:space:]]*>" end)
 	  (search-forward ">" end)))
     (error (error "XML: No end to the DTD"))))
 
@@ -333,7 +333,7 @@ This follows the rule [28] in the XML specifications."
   "Parse the DTD that point is looking at.
 The DTD must end before the position END in the current buffer."
   (forward-char (length "<!DOCTYPE"))
-  (skip-chars-forward " \t\n")
+  (goto-char (- (re-search-forward "[^[:space:]]") 1))
   (if (looking-at ">")
       (error "XML: invalid DTD (excepting name of the document)"))
 
@@ -343,7 +343,7 @@ The DTD must end before the position END in the current buffer."
 	type element end-pos)
     (goto-char (match-end 0))
 
-    (skip-chars-forward " \t\n")
+    (goto-char (- (re-search-forward "[^[:space:]]") 1))
 
     ;;  External DTDs => don't know how to handle them yet
     (if (looking-at "SYSTEM")
@@ -354,13 +354,13 @@ The DTD must end before the position END in the current buffer."
 
     ;;  Parse the rest of the DTD
     (forward-char 1)
-    (while (and (not (looking-at "[ \t\n]*\\]"))
+    (while (and (not (looking-at "[[:space:]]*\\]"))
 		(<= (point) end))
       (cond
 
        ;;  Translation of rule [45] of XML specifications
        ((looking-at
-	 "[\t \n]*<!ELEMENT[ \t\n]+\\([a-zA-Z0-9.%;]+\\)[ \t\n]+\\([^>]+\\)>")
+	 "[[:space:]]*<!ELEMENT[[:space:]]+\\([a-zA-Z0-9.%;]+\\)[[:space:]]+\\([^>]+\\)>")
 
 	(setq element (intern (match-string-no-properties 1))
 	      type    (match-string-no-properties 2))
@@ -368,13 +368,13 @@ The DTD must end before the position END in the current buffer."
 
 	;;  Translation of rule [46] of XML specifications
 	(cond
-	 ((string-match "^EMPTY[ \t\n]*$" type)     ;; empty declaration
+	 ((string-match "^EMPTY[[:space:]]*$" type)     ;; empty declaration
 	  (setq type 'empty))
-	 ((string-match "^ANY[ \t\n]*$" type)       ;; any type of contents
+	 ((string-match "^ANY[[:space:]]*$" type)       ;; any type of contents
 	  (setq type 'any))
-	 ((string-match "^(\\(.*\\))[ \t\n]*$" type) ;; children ([47])
+	 ((string-match "^(\\(.*\\))[[:space:]]*$" type) ;; children ([47])
 	  (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
-	 ((string-match "^%[^;]+;[ \t\n]*$" type)   ;; substitution
+	 ((string-match "^%[^;]+;[[:space:]]*$" type)   ;; substitution
 	  nil)
 	 (t
 	  (error "XML: Invalid element type in the DTD")))
@@ -416,7 +416,7 @@ The DTD must end before the position END in the current buffer."
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ","))))
 	      )))
-      (if (string-match "[ \t\n]*\\([^+*?]+\\)\\([+*?]?\\)" string)
+      (if (string-match "[[:space:]]*\\([^+*?]+\\)\\([+*?]?\\)" string)
 	  (setq elem     (match-string 1 string)
 		modifier (match-string 2 string))))
 
