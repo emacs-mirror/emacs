@@ -200,46 +200,34 @@ if that value is non-nil."
   (lisp-mode-variables nil)
   (run-hooks 'lisp-interaction-mode-hook))
 
-(defun eval-print-last-sexp (arg)
+(defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer."
-  (interactive "P")
-  (eval-region
-    (let ((stab (syntax-table)))
-      (unwind-protect
-	  (save-excursion
-	    (set-syntax-table emacs-lisp-mode-syntax-table)
-	    (forward-sexp -1)
-	    (point))
-	(set-syntax-table stab)))
-    (point)
-    (current-buffer)))
+  (interactive)
+  (eval-last-sexp t))
 
 (defun eval-last-sexp (arg)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (interactive "P")
-  (eval-region
-    (let ((stab (syntax-table)))
-      (unwind-protect
-	  (save-excursion
-	    (set-syntax-table emacs-lisp-mode-syntax-table)
-	    (forward-sexp -1)
-	    (point))
-	(set-syntax-table stab)))
-    (point)
-    (if arg (current-buffer) t)))
+  (prin1 (let ((stab (syntax-table)))
+	   (eval (unwind-protect
+		     (save-excursion
+		       (set-syntax-table emacs-lisp-mode-syntax-table)
+		       (forward-sexp -1)
+		       (read (current-buffer)))
+		   (set-syntax-table stab))))
+	 (if arg (current-buffer) t)))
 
 (defun eval-defun (arg)
-  "Evaluate defun that point is in or before.  Print value in minibuffer.
-With argument, edebug-defun it instead, preparing it for source-level
-debugging with the electric debugger."
+  "Evaluate defun that point is in or before.
+Print value in minibuffer.
+With argument, insert value in current buffer after the defun."
   (interactive "P")
-  (if arg (edebug-defun)
-    (save-excursion
-      (end-of-defun)
-      (let ((end (point)))
-	(beginning-of-defun)
-	(eval-region (point) end t)))))
+  (prin1 (eval (save-excursion
+		 (end-of-defun)
+		 (beginning-of-defun)
+		 (read (current-buffer))))
+	 (if arg (current-buffer) t)))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
