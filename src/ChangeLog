@@ -26,6 +26,8 @@
 	(vox_write): Buffer argument points to const.
 	* syntax.c (Fstring_to_syntax, skip_chars): Treat Lisp string
 	contents as const.
+	* sysdep.c (emacs_write): Buffer pointer now const.
+	* term.c (encode_terminal_code): Buffer pointer now const.
 	* xfaces.c (may_use_scalable_font_p): Argument now points to
 	const.
 	(x_face_list_fonts, x_update_menu_appearance):
