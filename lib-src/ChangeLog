@@ -1,3 +1,7 @@
+2002-04-16  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (find_entries): Bug fix in list management.
+
 2002-04-15  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (get_language_from_filename): Add one argument.
