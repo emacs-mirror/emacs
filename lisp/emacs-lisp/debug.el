@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -153,7 +153,7 @@ first will be printed into the backtrace buffer."
     (setq last-event-frame debugger-outer-last-event-frame)
     (setq standard-input debugger-outer-standard-input)
     (setq standard-output debugger-outer-standard-output)
-    (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area))
+    (setq cursor-in-echo-area debugger-outer-cursor-in-echo-area)
     (setq debug-on-next-call debugger-step-after-exit)
     debugger-value))
 
