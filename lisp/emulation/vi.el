@@ -40,7 +40,10 @@
   (let ((mode-cmd (lookup-key vi-tilde-map (char-to-string mode-char))))
     (if (null mode-cmd)
 	(with-output-to-temp-buffer "*Help*"
-	  (princ (substitute-command-keys "Possible major modes to switch to: \\{vi-tilde-map}")))
+	  (princ (substitute-command-keys "Possible major modes to switch to: \\{vi-tilde-map}"))
+	  (save-excursion
+	    (set-buffer standard-output)
+	    (help-mode)))
       (setq prefix-arg arg)		; prefix arg will be passed down
       (command-execute mode-cmd nil)	; may need to save mode-line-format etc
       (set-buffer-modified-p (buffer-modified-p))))) ; just in case
@@ -485,7 +488,10 @@ set sw=n     M-x set-variable vi-shift-width n "
 ;; (let ((cmd (read-string ":")) (lines 1))
 ;;  (cond ((string-match "s"))))
   (with-output-to-temp-buffer "*Help*"
-    (princ (documentation 'vi-ex-cmd))))
+    (princ (documentation 'vi-ex-cmd))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))))
 
 (defun vi-undefined ()
   (interactive)
