@@ -84,6 +84,7 @@ extern int h_errno;
 
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
+#undef setpgrp
 #define setpgrp setpgid
 #endif
 #endif
@@ -6503,8 +6504,8 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     {
       char *command, *t, tempmacpathname[MAXPATHLEN+1];
     
-      /* The arguments for the command in argv[2] are separated by spaces.  Count them and put
-	 the count in newargc.  */
+      /* The arguments for the command in argv[2] are separated by
+	 spaces.  Count them and put the count in newargc.  */
       command = (char *) alloca (strlen (argv[2])+2);
       strcpy (command, argv[2]);
       if (command[strlen (command) - 1] != ' ')
