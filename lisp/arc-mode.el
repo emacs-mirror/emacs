@@ -523,8 +523,8 @@ archive.
 
 	(make-local-variable 'require-final-newline)
 	(setq require-final-newline nil)
-	(make-local-variable 'enable-local-variables)
-	(setq enable-local-variables nil)
+	(make-local-variable 'local-enable-local-variables)
+	(setq local-enable-local-variables nil)
 
 	(make-local-variable 'archive-read-only)
 	;; Archives which are inside other archives and whose
