@@ -1217,7 +1217,6 @@ See also the function `condition-case'.")
   Lisp_Object debugger_value;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
-  Lisp_Object combined_data;
   extern int display_busy_cursor_p;
 
   immediate_quit = 0;
@@ -1526,8 +1525,6 @@ Also, a symbol satisfies `commandp' if its function definition does so.")
 {
   register Lisp_Object fun;
   register Lisp_Object funcar;
-  register Lisp_Object tem;
-  register int i = 0;
 
   fun = function;
 
@@ -1647,7 +1644,7 @@ do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object fun, val, queue, first, second;
+  Lisp_Object fun, queue, first, second;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   fun = funname;
