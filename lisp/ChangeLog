@@ -1,3 +1,7 @@
+2000-05-02  Dave Love  <fx@gnu.org>
+
+	* help.el (help-xref-on-pp): Check for constant symbols.
+
 2000-04-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (normal-top-level): Put a condition-case around
