@@ -374,7 +374,7 @@ int max_frame_width;
 
 int max_frame_height;
 
-int costs_set = 0;		/* Nonzero if costs have been calculated. */
+static int costs_set;	  /* Nonzero if costs have been calculated. */
 
 int insert_mode;			/* Nonzero when in insert mode.  */
 int standout_mode;			/* Nonzero when in standout mode.  */
