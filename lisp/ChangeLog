@@ -1,3 +1,7 @@
+2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-check-vc-info): Minor doc fix.
+
 2005-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-move-columns): Fix face after extending a line.

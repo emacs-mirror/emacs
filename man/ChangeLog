@@ -1,3 +1,11 @@
+2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi: Several small changes in addition to:
+	(Visiting): Change xref for Dialog Boxes to ref.
+	(Version Headers): Replace references to obsolete var
+	`vc-header-alist' with `vc-BACKEND-header'.
+	(Customizing VC): Update value of `vc-handled-backends'.
+
 2005-03-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* emacs-xtra.texi (Advanced Calendar/Diary Usage): New section;
@@ -49,7 +57,7 @@
 	* files.texi (Visiting): Fix cross-references introduced with the
 	last change.
 
-	* xresources.texi (GTK resources): Fix last change. 
+	* xresources.texi (GTK resources): Fix last change.
 
 2005-03-26  Jay Belanger  <belanger@truman.edu>
 
