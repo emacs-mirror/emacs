@@ -151,7 +151,7 @@ Commands:
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 
 (defun help-mode-finish ()
-  (when (eq major-mode 'help-mode) 
+  (when (eq major-mode 'help-mode)
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
     (toggle-read-only 1)
@@ -790,9 +790,7 @@ Return 0 if there is no such symbol."
 	       ((looking-at "\"") (forward-sexp 1))
 	       ((looking-at "#<") (search-forward ">" nil 'move))
 	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
-		(let* ((sym (intern-soft
-			     (buffer-substring (match-beginning 1)
-					       (match-end 1))))
+		(let* ((sym (intern-soft (match-string 1)))
 		       (fn (cond ((fboundp sym) #'describe-function)
 				 ((or (memq sym '(t nil))
 				      (keywordp sym))
@@ -804,10 +802,12 @@ Return 0 if there is no such symbol."
 	       (t (forward-char 1))))))
       (set-syntax-table ost))))
 
-(defun describe-variable (variable)
+(defun describe-variable (variable &optional buffer)
   "Display the full documentation of VARIABLE (a symbol).
-Returns the documentation as a string, also."
-  (interactive 
+Returns the documentation as a string, also.
+If VARIABLE has a buffer-local value in BUFFER (default to the current buffer),
+it is displayed along with the global value."
+  (interactive
    (let ((v (variable-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
@@ -819,8 +819,11 @@ Returns the documentation as a string, also."
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (if (symbolp variable)
-      (let (valvoid)
+  (unless (bufferp buffer) (setq buffer (current-buffer)))
+  (if (not (symbolp variable))
+      (message "You did not specify a variable")
+    (let (valvoid)
+      (with-current-buffer buffer
 	(with-output-to-temp-buffer "*Help*"
 	  (prin1 variable)
 	  (if (not (boundp variable))
@@ -853,8 +856,7 @@ Returns the documentation as a string, also."
 			(help-xref-on-pp from (point))))))
 		(terpri)))
 	  (terpri)
-	  (save-current-buffer
-	    (set-buffer standard-output)
+	  (with-current-buffer standard-output
 	    (if (> (count-lines (point-min) (point-max)) 10)
 		(progn
 		  ;; Note that setting the syntax table like below
@@ -873,8 +875,9 @@ Returns the documentation as a string, also."
 	  (terpri)
 	  (let ((doc (documentation-property variable 'variable-documentation)))
 	    (princ (or doc "not documented as a variable.")))
-          (help-setup-xref (list #'describe-variable variable) (interactive-p))
-
+          (help-setup-xref (list #'describe-variable variable (current-buffer))
+			   (interactive-p))
+	  
 	  ;; Make a link to customize if this variable can be customized.
 	  ;; Note, it is not reliable to test only for a custom-type property
 	  ;; because those are only present after the var's definition
@@ -888,7 +891,7 @@ Returns the documentation as a string, also."
 		(princ (concat "You can " customize-label " this variable."))
 		(with-current-buffer "*Help*"
 		  (save-excursion
-		    (re-search-backward 
+		    (re-search-backward
 		     (concat "\\(" customize-label "\\)") nil t)
 		    (help-xref-button 1 (lambda (v)
 					  (if help-xref-stack
@@ -919,8 +922,7 @@ Returns the documentation as a string, also."
 	  (save-excursion
 	    (set-buffer standard-output)
 	    ;; Return the text we displayed.
-	    (buffer-string))))
-    (message "You did not specify a variable")))
+	    (buffer-string)))))))
 
 (defun describe-bindings (&optional prefix buffer)
   "Show a list of all defined keys, and their definitions.
@@ -1201,7 +1203,7 @@ that."
 			  (help-xref-button
 			   7 #'describe-face sym)))))))
               ;; An obvious case of a key substitution:
-              (save-excursion              
+              (save-excursion
                 (while (re-search-forward
 			;; Assume command name is only word characters
 			;; and dashes to get things like `use M-x foo.'.
@@ -1217,7 +1219,7 @@ that."
 		(goto-char (point-min))
                 ;; Find a header and the column at which the command
                 ;; name will be found.
-                (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n" 
+                (while (re-search-forward "^key +binding\n\\(-+ +\\)-+\n\n"
                                           nil t)
                   (let ((col (- (match-end 1) (match-beginning 1))))
                     (while
@@ -1232,7 +1234,7 @@ that."
 					(looking-at "\\(\\sw\\|-\\)+$"))
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
-                                         (help-xref-button 
+                                         (help-xref-button
                                           0 #'describe-function sym
 					  "mouse-2, RET: describe this function"))))
 			       (zerop (forward-line)))))))))
@@ -1427,23 +1429,6 @@ For the cross-reference format, see `help-make-xrefs'."
 
 ;;; Automatic resizing of temporary buffers.
 
-(defcustom temp-buffer-resize-mode nil
-  "Non-nil means resize windows displaying temporary buffers.
-This makes the window the right height for its contents, but never
-more than `temp-buffer-max-height' nor less than `window-min-height'.
-This applies to `help', `apropos' and `completion' buffers, and some others.
-
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `temp-buffer-resize-mode'."
-  :get (lambda (symbol)
-         (and (memq 'resize-temp-buffer-window temp-buffer-show-hook) t))
-  :set (lambda (symbol value)
-         (temp-buffer-resize-mode (if value 1 -1)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'help
-  :version "20.4")
-
 (defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
   "*Maximum height of a window displaying a temporary buffer.
 This is the maximum height (in text lines) which `resize-temp-buffer-window'
@@ -1455,25 +1440,19 @@ positive number."
   :group 'help
   :version "20.4")
 
-(defun temp-buffer-resize-mode (arg)
-  "Toggle the mode which that makes windows smaller for temporary buffers.
+(define-minor-mode temp-buffer-resize-mode
+  "Toggle the mode which makes windows smaller for temporary buffers.
 With prefix argument ARG, turn the resizing of windows displaying temporary
 buffers on if ARG is positive or off otherwise.
-See the documentation of the variable `temp-buffer-resize-mode' for
-more information."
-  (interactive "P")
-  (let ((turn-it-on
-         (if (null arg)
-             (not (memq 'resize-temp-buffer-window temp-buffer-show-hook))
-           (> (prefix-numeric-value arg) 0))))
-    (if turn-it-on
-        (progn
-          ;; `help-mode-maybe' may add a `back' button and thus increase the
-          ;; text size, so `resize-temp-buffer-window' must be run *after* it.
-          (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
-          (setq temp-buffer-resize-mode t))
-      (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)
-      (setq temp-buffer-resize-mode nil))))
+This makes the window the right height for its contents, but never
+more than `temp-buffer-max-height' nor less than `window-min-height'.
+This applies to `help', `apropos' and `completion' buffers, and some others."
+  nil nil nil :global t :group 'help
+  (if temp-buffer-resize-mode
+      ;; `help-mode-maybe' may add a `back' button and thus increase the
+      ;; text size, so `resize-temp-buffer-window' must be run *after* it.
+      (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
+    (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window))))
 
 (defun resize-temp-buffer-window ()
   "Resize the current window to fit its contents.
