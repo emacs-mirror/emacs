@@ -1,3 +1,11 @@
+2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* xterm.c (x_draw_glyph_string): Add a workaround so that fonts
+	that specify a negative underline position can still use underlines.
+
+	* window.c (Fpos_visible_in_window_p): Make POS default to
+	WINDOW's point, not the current buffer's point.
+
 2000-10-26  Dave Love  <fx@gnu.org>
 
 	* s/sol2-5.h: Don't define SYSTEM_MALLOC so that we can find out

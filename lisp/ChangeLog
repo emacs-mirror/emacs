@@ -1,3 +1,9 @@
+2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* faces.el (face-spec-choose): Change syntax so that the list of
+	attribute-value pairs is now the cdr of each clause, not the cadr.
+	Detect old-style entries, and handle them.  Use pop.
+
 2000-10-26  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-start-entry): Only erase the buffer if comment is set.

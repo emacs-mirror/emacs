@@ -1,3 +1,12 @@
+2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* gnus-ems.el (gnus-ems-redefine): Use (featurep 'xemacs) instead
+	of the `gnus-xemacs' variable, as the latter has been removed.
+	* gnus-start.el (gnus-1, gnus-read-descriptions-file): Likewise.
+	* gnus-art.el (gnus-treat-display-xface)
+	(gnus-treat-display-smileys, gnus-treat-display-picons) 
+	(gnus-article-read-summary-keys): Likewise.
+
 2000-10-26  Dave Love  <fx@gnu.org>
 
 	* flow-fill.el: Require cl when compiling.
