@@ -64,7 +64,8 @@ gap_left (pos, newgap)
 
   if (!newgap)
     {
-      if (unchanged_modified == MODIFF)
+      if (unchanged_modified == MODIFF
+	  && overlay_unchanged_modified == OVERLAY_MODIFF)
 	{
 	  beg_unchanged = pos;
 	  end_unchanged = Z - pos - 1;
@@ -144,7 +145,9 @@ gap_right (pos)
 
   pos--;
 
-  if (unchanged_modified == MODIFF)
+  if (unchanged_modified == MODIFF
+      && overlay_unchanged_modified == OVERLAY_MODIFF)
+
     {
       beg_unchanged = pos;
       end_unchanged = Z - pos - 1;
@@ -716,10 +719,13 @@ modify_region (buffer, start, end)
 
   prepare_to_modify_buffer (start, end);
 
-  if (start - 1 < beg_unchanged || unchanged_modified == MODIFF)
+  if (start - 1 < beg_unchanged
+      || (unchanged_modified == MODIFF
+	  && overlay_unchanged_modified == OVERLAY_MODIFF))
     beg_unchanged = start - 1;
   if (Z - end < end_unchanged
-      || unchanged_modified == MODIFF)
+      || (unchanged_modified == MODIFF
+	  && overlay_unchanged_modified == OVERLAY_MODIFF))
     end_unchanged = Z - end;
 
   if (MODIFF <= SAVE_MODIFF)
