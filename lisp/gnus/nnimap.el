@@ -1,5 +1,5 @@
 ;;; nnimap.el --- imap backend for Gnus
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;;         Jim Radford <radford@robby.caltech.edu>
@@ -1088,10 +1088,12 @@ function is generally only called when Gnus is shutting down."
 
 (defun nnimap-date-days-ago (daysago)
   "Return date, in format \"3-Aug-1998\", for DAYSAGO days ago."
-  (let ((date (format-time-string "%d-%b-%Y"
-				  (nnimap-time-substract
-				   (current-time)
-				   (days-to-time daysago)))))
+  (let* ((time (nnimap-time-substract (current-time) (days-to-time daysago)))
+	 (date (format-time-string
+		(format "%%d-%s-%%Y"
+			(capitalize (car (rassoc (nth 4 (decode-time time))
+						 parse-time-months))))
+		time)))
     (if (eq ?0 (string-to-char date))
 	(substring date 1)
       date)))
