@@ -163,8 +163,8 @@ Insert the output in that buffer, before point.  This includes both the
 standard output stream and the standard error stream of the process.
 
 @item a string
-Find or create a buffer with that name, then insert
-the output in that buffer, before point.
+Find the buffer with that name, then insert the output in that buffer,
+before point.
 
 @item @code{t}
 Insert the output in the current buffer, before point.
