@@ -676,7 +676,7 @@ as a way for the user to ask to recalculate the buffer's index alist."
   "Alist of syntax table modifiers to use while in `imenu--generic-function'.
 
 The car of the assocs may be either a character or a string and the
-cdr is a syntax description appropriate fo `modify-syntax-entry'.  For
+cdr is a syntax description appropriate for `modify-syntax-entry'.  For
 a string, all the characters in the string get the specified syntax.
 
 This is typically used to give word syntax to characters which
