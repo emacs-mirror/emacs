@@ -76,6 +76,16 @@ The alias definitions in `~/.mailrc' have this form:
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
 nil means use indentation.")
+(defvar mail-indentation-spaces 3
+  "*Number of spaces to insert at the beginning of each cited line.
+Used by `mail-yank-original' via `mail-yank-cite'.")
+(defvar mail-yank-hooks '(mail-indent-citation)
+  "*Hook for modifying a citation just inserted in the mail buffer.
+Each hook function can find the citation between (point) and (mark t).
+And each hook function should leave point and mark around the citation
+text as modified.
+
+This is a normal hook, currently misnamed for historical reasons.")
 
 (defvar mail-abbrevs-loaded nil)
 (defvar mail-mode-map nil)
@@ -538,7 +548,7 @@ the user from the mailer."
     (end-of-line)
     (or atpoint
 	(delete-region (point) (point-max)))
-    (insert "\n\n--\n")
+    (insert "\n\n")
     (insert-file-contents (expand-file-name "~/.signature"))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
@@ -552,6 +562,23 @@ Numeric argument means justify as well."
 				(point-max)
 				justifyp
 				t)))
+
+(defun mail-indent-citation ()
+  "Modify text just inserted from a message to be cited.
+The inserted text should be the region.
+When this function returns, the region is again around the modified text.
+
+Normally, indent each nonblank line `mail-indentation-spaces' spaces.
+However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
+  (let ((start (point)))
+    (mail-yank-clear-headers start (mark t))
+    (if (null mail-yank-prefix)
+	(indent-rigidly start (mark t) mail-indentation-spaces)
+      (save-excursion
+	(goto-char start)
+	(while (< (point) (mark t))
+	  (insert mail-yank-prefix)
+	  (forward-line 1))))))
 
 (defun mail-yank-original (arg)
   "Insert the message being replied to, if any (in rmail).
@@ -568,15 +595,10 @@ and don't delete any header fields."
 	(insert-buffer mail-reply-buffer)
 	(if (consp arg)
 	    nil
-	  (mail-yank-clear-headers start (mark t))
-	  (if (null mail-yank-prefix)
-	      (indent-rigidly start (mark t)
-			      (if arg (prefix-numeric-value arg) 3))
-	    (save-excursion
-	      (goto-char start)
-	      (while (< (point) (mark t))
-		(insert mail-yank-prefix)
-		(forward-line 1)))))
+	  (goto-char start)
+	  (let ((mail-indentation-spaces (if arg (prefix-numeric-value arg)
+					   mail-indentation-spaces)))
+	    (run-hooks 'mail-yank-hooks)))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
 	;; loop would deactivate the mark because we inserted text.
