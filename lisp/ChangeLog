@@ -5,6 +5,8 @@
 	(forward-button): Implement wrapping, iterating, and skipping here
 	instead.
 	(button-activate): USE-MOUSE-ACTION is optional.
+	(button-nop): Function removed.
+	(default-button): Use `ignore' as default button action.
 
 	* apropos.el (apropos-next-label-button): Update arguments to
 	`next-button'.
