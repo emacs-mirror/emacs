@@ -26,6 +26,9 @@ Boston, MA 02111-1307, USA.
 
 #include <windows.h>
 
+#define ROUND_UP(p, align)   (((DWORD)(p) + (align)-1) & ~((align)-1))
+#define ROUND_DOWN(p, align) ((DWORD)(p) & ~((align)-1))
+
 /*
  * Heap related stuff.
  */
@@ -41,10 +44,9 @@ Boston, MA 02111-1307, USA.
 
 extern unsigned char *get_data_start();
 extern unsigned char *get_data_end();
-extern unsigned long  data_region_size;
 extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
-extern BOOL   	      need_to_recreate_heap;
+extern BOOL   	      using_dynamic_heap;
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;
 
@@ -58,27 +60,14 @@ extern int os_subtype;
 /* Emulation of Unix sbrk().  */
 extern void *sbrk (unsigned long size);
 
-/* Recreate the heap created during dumping.  */
-extern void recreate_heap (char *executable_path);
+/* Initialize heap structures for sbrk on startup.  */
+extern void init_heap ();
 
 /* Round the heap to this size.  */
 extern void round_heap (unsigned long size);
 
-/* Load in the dumped .bss section.  */
-extern void read_in_bss (char *name);
-
-/* Map in the dumped heap.  */
-extern void map_in_heap (char *name);
-
 /* Cache system info, e.g., the NT page size.  */
 extern void cache_system_info (void);
-
-/* Round ADDRESS up to be aligned with ALIGN.  */
-extern unsigned char *round_to_next (unsigned char *address, 
-				     unsigned long align);
-
-/* Report a fatal error during dumped heap management.  */
-void w32_fatal_reload_error (char *step);
 
 /* ----------------------------------------------------------------- */
 /* Useful routines for manipulating memory-mapped files. */
@@ -103,8 +92,6 @@ typedef struct file_data {
 int open_input_file (file_data *p_file, char *name);
 int open_output_file (file_data *p_file, char *name, unsigned long size);
 void close_file_data (file_data *p_file);
-
-unsigned long get_section_size (PIMAGE_SECTION_HEADER p_section);
 
 /* Return pointer to section header for named section. */
 IMAGE_SECTION_HEADER * find_section (char * name, IMAGE_NT_HEADERS * nt_header);
