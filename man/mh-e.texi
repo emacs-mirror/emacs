@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.1 1999/09/29 15:17:04 fx Exp $
+@c $Id: mh-e.texi,v 1.2 1999/11/18 15:59:59 eliz Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -2375,17 +2375,9 @@ very nice feature indeed.
 
 (defun my-mh-show-mode-hook ()
   "Hook to turn on and customize fonts."
-  (require 'font-lock)                 ; @r{for font-lock-keywords below}
-  (make-local-variable 'font-lock-mode-hook) ; @r{don't affect other buffers}
-  (add-hook 'font-lock-mode-hook       ; @r{set a hook with inline function}
-            (function                  ; @r{modifies font-lock-keywords when}
-             (lambda ()                ; @r{font-lock-mode run}
-               (setq font-lock-keywords
-                     (append my-mh-keywords font-lock-keywords)))))
-  (font-lock-mode 1))                  ; @r{change the typefaces}
+  (font-lock-add-keywords nil my-mh-keywords))
 
-(if window-system                      ; @r{can't do this on @sc{ascii} terminal}
-    (add-hook 'mh-show-mode-hook 'my-mh-show-mode-hook))
+(add-hook 'mh-show-mode-hook 'my-mh-show-mode-hook))
 @end group
 @end lisp
 
