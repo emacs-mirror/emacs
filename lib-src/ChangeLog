@@ -1,3 +1,7 @@
+2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in (emacsclient${EXEEXT}): Use makefile var `version'.
+
 2004-05-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* b2m.c (GOOD, BAD): Delete macros.  Throughout,
