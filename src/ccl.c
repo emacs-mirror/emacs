@@ -1026,8 +1026,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  break;
 
 	case CCL_End:		/* 0000000000000000000000XXXXX */
-	  if (stack_idx-- > 0)
+	  if (stack_idx > 0)
 	    {
+	      stack_idx--;
 	      ccl_prog = ccl_prog_stack_struct[stack_idx].ccl_prog;
 	      ic = ccl_prog_stack_struct[stack_idx].ic;
 	      break;
