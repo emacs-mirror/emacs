@@ -568,6 +568,8 @@ property_change_between_p (beg, end)
   while (! NULL_INTERVAL_P (next) && intervals_equal (i, next))
     {
       next = next_interval (next);
+      if (NULL_INTERVAL_P (next))
+	return 0;
       if (next->position >= end)
 	return 0;
     }
