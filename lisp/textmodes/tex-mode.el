@@ -179,19 +179,23 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 (defvar tex-mode-syntax-table nil
   "Syntax table used while in TeX mode.")
 
-;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
-(defvar latex-imenu-generic-expression
-  '(
-    ("Part" "\\\\part{\\([^}]*\\)}" 1)
-    ("Chapter" "\\\\chapter{\\([^}]*\\)}" 1)
-    ("Section" "\\\\[a-zA-Z]*section{\\([^}]*\\)}" 1)
-    ;; i put numbers like 3.15 before my
-    ;; \begin{equation}'s which tell me
-    ;; the number the equation will get when
-    ;; being printed.
-    ("Equations" "%[ \t]*\\([0-9]+\\.[0-9]+\\)[,;]?[ \t]?" 1))  
-
-  "Imenu generic expression for LaTex mode.  See `imenu-generic-expression'.")
+(defun latex-imenu-create-index ()
+  "Generates an alist for imenu from a LaTeX buffer."
+  (let (result temp)
+    (goto-char (point-max))
+    (while (re-search-backward "\\\\\\(part\\|chapter\\|\
+\\(sub\\)?\\(\\(sub\\)?section\\|paragraph\\)\\)\\*?[ \t\n]*{\\([^}]*\\)}" nil t)
+      (setq temp
+	    (assoc (buffer-substring-no-properties (match-beginning 1)
+						   (match-end 1)) 
+		   '(("part" . "") ("chapter" . " ")
+		     ("section" . "  ") ("subsection" . "   ")
+		     ("subsubsection" . "    ")
+		     ("paragraph" . "     ") ("subparagraph" . "      "))))
+      (setq result (cons (cons (concat (cdr temp) (match-string 5)) 
+			       (match-beginning 0))
+			 result)))
+    result))
 
 (defun tex-define-common-keys (keymap)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
@@ -430,8 +434,8 @@ subshell is initiated, `tex-shell-hook' is run."
 \\\\[a-z]*space\\|\\\\[a-z]*skip\\|\
 \\\\newpage\\|\\\\[a-z]*page[a-z]*\\|\\\\footnote\\|\
 \\\\marginpar\\|\\\\parbox\\|\\\\caption\\)[ \t]*\\($\\|%\\)")
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression latex-imenu-generic-expression)
+  (make-local-variable 'imenu-create-index-function)
+  (setq imenu-create-index-function 'latex-imenu-create-index)
   (make-local-variable 'tex-face-alist)
   (setq tex-face-alist tex-latex-face-alist)
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
