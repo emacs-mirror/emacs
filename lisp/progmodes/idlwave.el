@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/12/01 13:14:33 $
+;; Date: $Date: 2002/05/16 16:07:25 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -553,7 +553,7 @@ This option is only effective when the online help system is installed."
 
 (defcustom idlwave-support-inheritance t
   "Non-nil means, treat inheritance with completion, online help etc.
-When nil,  IDLWAVE only knows about the native methods and tags of a class,
+When nil, IDLWAVE only knows about the native methods and tags of a class,
 not about inherited ones."
   :group 'idlwave-routine-info
   :type 'boolean)
@@ -7150,7 +7150,7 @@ routines are implemented as library routines."
 (defun idlwave-routine-entry-compare (a b)
   "Compare two routine info entries for sortiung.  This is the general case.
 It first compates class, names, and type.  If it turns out that A and B
-are twins (same name, class, and type),  calls another routine which
+are twins (same name, class, and type), calls another routine which
 compares twins on the basis of their file names and path locations."
   (let ((name (car a)) (type (nth 1 a)) (class (nth 2 a)))
     (cond
