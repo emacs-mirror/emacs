@@ -315,12 +315,13 @@ BS must be a list of (KEY . BINDING) where
 KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
-ARGS is a list of additional arguments."
+ARGS is a list of additional keyword arguments."
   (let (inherit dense suppress)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))
 	(case key
+	 (:name (setq name val))
 	 (:dense (setq dense val))
 	 (:inherit (setq inherit val))
 	 (:group)
