@@ -1,3 +1,9 @@
+2002-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (scan_lists): Don't get fooled by a symbol ending with
+	a backslash-quoted char.
+	(scan_lists, scan_sexps_forward): Pacify the compiler.
+
 2002-10-13  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (window_scroll): Set immediate_quit.
@@ -17,9 +23,9 @@
 
 2002-10-10  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (syms_of_macterm, mac_get_mouse_btn): Reversed
-	functionality of mac-wheel-button-is-mouse-2 to be correct.  Also
-	switched the default to Qnil from Qt.
+	* macterm.c (syms_of_macterm, mac_get_mouse_btn):
+	Reverse functionality of mac-wheel-button-is-mouse-2 to be correct.
+	Also switch the default to Qnil from Qt.
 
 2002-10-08  Kenichi Handa  <handa@m17n.org>
 
@@ -53,7 +59,7 @@
 
 2002-10-04  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (keycode_to_xkeysym_table): Change return to be 
+	* macterm.c (keycode_to_xkeysym_table): Change return to be
 	treated like an X keysym
 
 2002-10-03  Jan D.  <jan.h.d@swipnet.se>
@@ -118,8 +124,7 @@
 2002-09-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (try_font_list): New arg PREFER_FACE_FAMILY.  If it is
-	nonzero, try face's family at first.  Otherwise try FAMILY at
-	first.
+	nonzero, try face's family at first.  Otherwise try FAMILY at first.
 	(choose_face_font): If C is a single byte char or latin-1, call
 	try_font_list with PREFER_FACE_FAMILY 1.
 
