@@ -9842,7 +9842,7 @@ will be in `last-command' during the following command.");
   Vthis_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", &auto_save_interval,
-    "*Number of keyboard input characters between auto-saves.\n\
+    "*Number of input events between auto-saves.\n\
 Zero means disable autosaving due to number of characters typed.");
   auto_save_interval = 300;
 
