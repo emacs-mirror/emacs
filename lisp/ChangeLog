@@ -1,4 +1,4 @@
-2002-12-10  R. Bernstein  <rocky@muffin.peccary.sty>
+2002-12-10  R. Bernstein  <rocky@panix.com>
 
 	* gud.el (bashdb): Prompt now included parenthesis for subshell
 	levels. Fix erroneous print expression command, and fix typos. 
