@@ -20,7 +20,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'gnuspost)
 (require 'gnus)
 
 (defvar gnus-organization-file "/usr/lib/news/organization"
@@ -670,3 +669,5 @@ containing the organization."
 	       )))
 	  (t organization))
     ))
+
+(provide 'gnuspost)

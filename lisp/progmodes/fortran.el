@@ -89,8 +89,6 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(provide 'fortran)
-
 ;;;###autoload
 (defvar fortran-tab-mode-default nil
   "*Default tabbing/carriage control style for empty files in fortran mode.
@@ -994,4 +992,6 @@ character format style."
     (setq minor-mode-alist (cons
 			    '(fortran-tab-mode-string fortran-tab-mode-string)
 			    minor-mode-alist)))
+
+(provide 'fortran)
 

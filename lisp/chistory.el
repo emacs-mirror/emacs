@@ -19,8 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'chistory)
-
 ;; This really has nothing to do with list-command-history per se, but
 ;; its a nice alternative to C-x ESC (repeat-complex-command) and
 ;; functions as a lister if given no pattern.  It's not important
@@ -165,3 +163,6 @@ The Command History listing is recomputed each time this mode is invoked."
   (list-command-history)
   (pop-to-buffer "*Command History*")
   (run-hooks 'command-history-hook))
+
+(provide 'chistory)
+

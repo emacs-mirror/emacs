@@ -17,8 +17,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'info)
-
 (defvar Info-history nil
   "List of info nodes user has visited.
 Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
@@ -994,3 +992,6 @@ Interactively, if the binding is execute-extended-command, a command is read."
 	   (Info-goto-emacs-command-node command)))))
 ;;;###autoload
 (define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
+
+(provide 'info)
+

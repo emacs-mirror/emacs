@@ -24,7 +24,6 @@
 ;;; GoodIdeas Feb. 1987, Steve Greenbaum
 ;;; & UpClicks           Reasoning Systems, Inc.
 ;;;
-(provide 'sun-fns)
 (require 'sun-mouse)
 ;;;
 ;;; Functions for manipulating via the mouse and mouse-map definitions
@@ -628,3 +627,4 @@ To unmark a buffer marked for deletion, select it with LEFT."
 (global-set-mouse '(minibuffer shift  control meta right)  'mouse-help-region)
 (global-set-mouse '(minibuffer double control meta right)  'mouse-help-region)
 
+(provide 'sun-fns)

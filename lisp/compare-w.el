@@ -17,8 +17,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'compare-w)
-
 (defvar compare-windows-whitespace " \t\n"
   "*String of characters considered whitespace for \\[compare-windows].
 Changes in whitespace are optionally ignored.
@@ -127,3 +125,6 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
     (set-window-point w2 p2)
     (if (= (point) opoint1)
 	(ding))))
+
+(provide 'compare-w)
+

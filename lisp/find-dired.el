@@ -46,8 +46,6 @@
 ;; in your ~/.emacs.
 
 (require 'dired)
-(provide 'find-dired)
-
 ;;;###autoload
 (defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
 			 "-exec ls -ldi {} \\;")
@@ -199,4 +197,6 @@ Wildcards and redirection are handle as usual in the shell."
 	  (apply 'start-process name buffer args)
 	(start-process name buffer shell-file-name "-c"
 		       (concat "exec " (mapconcat 'identity args " "))))))
+
+(provide 'find-dired)
 

@@ -48,8 +48,6 @@
 ;;; text to the process? Switch selectable?
 
 (require 'comint)
-(provide 'cmulisp)
-
 ;; YOUR .EMACS FILE
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
@@ -599,3 +597,6 @@ This is a good place to put keybindings.")
 ;;; 3/12/90 Olin
 ;;; - lisp-load-file and lisp-compile-file no longer switch-to-lisp.
 ;;;   Tale suggested this.
+
+(provide 'cmulisp)
+

@@ -18,8 +18,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'mlsupport)
-
 (defmacro ml-defun (&rest defs)
   (list 'ml-defun-1 (list 'quote defs)))
 
@@ -403,3 +401,6 @@
     (if (< from 0) (setq from (+ from length)))
     (if (< to 0) (setq to (+ to length)))
     (substring string from (+ from to))))
+
+(provide 'mlsupport)
+

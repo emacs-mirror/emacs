@@ -88,8 +88,6 @@
 ;; require and provide features
 ;;
 (require 'sendmail)
-(provide 'superyank)
-
 ;;
 ;; ======================================================================
 ;;
@@ -1209,4 +1207,6 @@ inserts that many newlines."
 	(sy-insert-persist-attribution)
 	(forward-line 1)
 	(setq arg (- arg 1))))))
+
+(provide 'superyank)
 

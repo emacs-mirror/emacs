@@ -23,8 +23,6 @@
 
 (require 'texnfo-upd)
 (require 'tex-mode)
-(provide 'texinfo)
-
 (defvar texinfo-mode-syntax-table nil)
 
 (if texinfo-mode-syntax-table
@@ -412,4 +410,6 @@ Runs the shell command defined by tex-dvi-print-command."
 	       (concat tex-dvi-print-command
                        " " tex-zap-file ".dvi" "\n"))
   (tex-recenter-output-buffer nil))
+
+(provide 'texinfo)
 

@@ -19,7 +19,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'rmailsort)
 (require 'rmail)
 (require 'sort)
 
@@ -201,3 +200,5 @@ Arguments are MSG and FIELD."
   (if (<= (length year-string) 2)
       (concat "19" year-string)
     year-string))
+
+(provide 'rmailsort)

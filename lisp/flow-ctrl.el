@@ -80,7 +80,7 @@ and C-q characters to OS."
     (and (memstr= term losing-terminal-types) (evade-flow-control)))
   )
 
-(provide 'flow-ctrl)
-
 ;;; flow-ctrl.el ends here
+
+(provide 'flow-ctrl)
 

@@ -17,8 +17,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'sort)
-
 ;; Original version of most of this contributed by Howie Kaye
 
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
@@ -444,3 +442,6 @@ From a program takes two point or marker arguments, BEG and END."
 	(insert (car ll) "\n")
 	(setq ll (cdr ll)))
       (insert (car ll)))))
+
+(provide 'sort)
+

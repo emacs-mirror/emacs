@@ -18,8 +18,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'rfc822)
-
 ;; uses address-start free, throws to address
 (defun rfc822-bad-address (reason)
   (save-restriction
@@ -303,4 +301,6 @@
 		     (setq list (nconc (nreverse tem) list)))))
 	    (nreverse list)))
       (and buf (kill-buffer buf))))))
+
+(provide 'rfc822)
 

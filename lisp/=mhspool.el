@@ -20,7 +20,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'mhspool)
 (require 'nntp)
 
 ;; This package enables you to read mail or articles in MH folders, or
@@ -402,3 +401,5 @@ If the stream is opened, return T, otherwise return NIL."
       (setq idx (1+ idx)))
     string
     ))
+
+(provide 'mhspool)

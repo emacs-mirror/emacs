@@ -18,8 +18,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'life)
-
 (defconst life-patterns
   [("@@@" " @@" "@@@")
    ("@@@ @@@" "@@  @@ " "@@@ @@@")
@@ -272,3 +270,6 @@ generations (this defaults to 1)."
 
 (put 'life-extinct 'error-conditions '(life-extinct quit))
 (put 'life-extinct 'error-message "All life has perished")
+
+(provide 'life)
+

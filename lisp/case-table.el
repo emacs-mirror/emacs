@@ -46,7 +46,7 @@
 
 (defun invert-case (count)
   "Change the case of the character just after point and move over it.
-With arg, applies to that many chars.
+With prefix arg, applies to that many chars.
 Negative arg inverts characters before point but does not move."
   (interactive "p")
   (if (< count 0)
@@ -63,9 +63,8 @@ Negative arg inverts characters before point but does not move."
 
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
-Sets the entries for L and R in standard-case-table,
-standard-syntax-table, and text-mode-syntax-table to indicate
-left and right delimiters."
+Sets the entries for L and R in `standard-case-table', `standard-syntax-table',
+and `text-mode-syntax-table' to indicate left and right delimiters."
   (aset (car table) l l)
   (aset (car table) r r)
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
@@ -79,10 +78,10 @@ left and right delimiters."
 
 (defun set-case-syntax-pair (uc lc table)
   "Make characters UC and LC a pair of inter-case-converting letters.
-Sets the entries for characters UC and LC in
-standard-case-table, standard-syntax-table, and
-text-mode-syntax-table to indicate an (uppercase, lowercase)
-pair of letters."
+Sets the entries for characters UC and LC in `standard-case-table',
+`standard-syntax-table' and `text-mode-syntax-table' to indicate an
+(uppercase, lowercase) pair of letters."
+
   (aset (car table) uc lc)
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry lc "w   " text-mode-syntax-table)
@@ -91,8 +90,8 @@ pair of letters."
 
 (defun set-case-syntax (c syntax table)
   "Make characters C case-invariant with syntax SYNTAX.
-Sets the entries for character C in standard-case-table,
-standard-syntax-table, and text-mode-syntax-table to indicate this.
+Sets the entries for character C in `standard-case-table',
+`standard-syntax-table' and `text-mode-syntax-table' to indicate this.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (aset (car table) c c)
   (modify-syntax-entry c syntax (standard-syntax-table))

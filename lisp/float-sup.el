@@ -27,8 +27,6 @@
   (error "Floating point was disabled at compile time"))
 
 ;; provide an easy hook to tell if we are running with floats or not.
-(provide 'lisp-float-type)
-
 ;; define pi and e via math-lib calls. (much less prone to killer typos.)
 (defconst pi (* 4 (atan 1)) "The value of Pi (3.1415926...)")
 (defconst e (exp 1) "The value of e (2.7182818...)")
@@ -50,3 +48,6 @@
 (defmacro radians-to-degrees (x)
   "Convert ARG from radians to degrees."
   (list '* (/ 180.0 pi) x))
+
+(provide 'lisp-float-type)
+

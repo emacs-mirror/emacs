@@ -19,8 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'picture)
-
 (defun move-to-column-force (column)
   "Move to column COLUMN in current line.
 Differs from `move-to-column' in that it creates or modifies whitespace
@@ -558,3 +556,6 @@ With no argument strips whitespace from end of every line in Picture buffer
    (goto-char (point-min))
    (while (re-search-forward "[ \t][ \t]*$" nil t)
      (delete-region (match-beginning 0) (point)))))
+
+(provide 'picture)
+

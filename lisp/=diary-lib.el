@@ -28,8 +28,6 @@
 ;;                                   Urbana, Illinois 61801
 
 (require 'calendar)
-(provide 'diary)
-
 (defun diary (&optional arg)
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
@@ -2125,3 +2123,6 @@ to the date indicated by point.  Prefix arg will make the entry nonmarking."
          (or (calendar-cursor-to-date)
              (error "Cursor is not on a date!"))))))
      arg)))
+
+(provide 'diary)
+

@@ -27,8 +27,6 @@
 ;; manner
 
 (require 'comint)
-(provide 'telnet)
-
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map nil)
 (defvar telnet-prompt-pattern "^[^#$%>]*[#$%>] *")
@@ -179,3 +177,6 @@ Bugs:
 	     (setq quit-flag nil))
       (setq answ (concat answ (char-to-string tem))))
     answ))
+
+(provide 'telnet)
+

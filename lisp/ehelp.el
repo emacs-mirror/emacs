@@ -17,8 +17,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 (require 'electric)
-(provide 'ehelp) 
-
 (defvar electric-help-map ()
   "Keymap defining commands available in `electric-help-mode'.")
 
@@ -305,3 +303,6 @@ will select it.)"
     (fset 'ehelp-command map)))
 
 ;; Do (define-key global-map "\C-h" 'ehelp-command) if you want to win
+
+(provide 'ehelp) 
+

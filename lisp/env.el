@@ -17,8 +17,6 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'setenv)
-
 (defun setenv (variable value)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE and VALUE should both be strings.
@@ -35,3 +33,6 @@ This function works by modifying process-environment."
 	 ((null (setq scan (cdr scan)))
 	  (setq process-environment
 		(cons (concat variable "=" value) process-environment))))))))
+
+(provide 'setenv)
+

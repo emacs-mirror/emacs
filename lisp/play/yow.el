@@ -16,8 +16,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'yow)
-
 ; Randomize the seed in the random number generator.
 (random t)
 
@@ -85,4 +83,6 @@
     (sit-for 0)
     (doctor-ret-or-read 1)
     (doctor-ret-or-read 1)))
+
+(provide 'yow)
 

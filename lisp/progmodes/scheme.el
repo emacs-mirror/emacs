@@ -25,7 +25,6 @@
 
 ;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
 
-(provide 'scheme)
 
 (defvar scheme-mode-syntax-table nil "")
 (if (not scheme-mode-syntax-table)
@@ -498,3 +497,5 @@ of the start of the containing expression."
 	    (if (/= (current-column) this-indent)
 		(progn (delete-region bol (point))
 		       (indent-to this-indent)))))))))
+
+(provide 'scheme)

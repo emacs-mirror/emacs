@@ -19,8 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'mim-mode)
-
 (autoload 'fast-syntax-check-mim "mim-syntax"
 	  "Checks Mim syntax quickly.
 Answers correct or incorrect, cannot point out the error context."
@@ -839,3 +837,6 @@ You need type only enough of the name to be unambiguous."
 (defun next-char (direction)
   "Returns preceding-char if DIRECTION < 0, otherwise following-char."
   (if (>= direction 0) (following-char) (preceding-char)))
+
+(provide 'mim-mode)
+

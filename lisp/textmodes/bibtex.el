@@ -69,7 +69,7 @@
 ;;; Bengt Martensson, March 6
 ;;;   Adapted to Bibtex 0.99 by updating the optional fields according
 ;;;   to the document BibTeXing, Oren Patashnik, dated January 31, 1988.
-;;;   Updated documentation strings accordingly.  Added (provide 'bibtex).
+;;;   Updated documentation strings accordingly.  Added .
 ;;;   If bibtex-include-OPT-crossref is non-nil, every entry will have
 ;;;   an OPTcrossref field, analogously for bibtex-include-OPTkey and
 ;;;   bibtex-include-OPTannote.  Added bibtex-preamble, bound to ^C^EP,
@@ -138,8 +138,6 @@
 ;;; (bibtex-x-environment) binds an X menu for bibtex mode to x-button-c-right.
 ;;; Trouble is, in Emacs 18.44 you can't have a mode-specific mouse binding,
 ;;; so it will remain active in all windows.  Yuck!
-
-(provide 'bibtex)
 
 (defvar bibtex-mode-syntax-table nil "")
 (defvar bibtex-mode-abbrev-table nil "")
@@ -1101,3 +1099,6 @@ an undefined location.
 ))  ; matches (if...
 
 ;;; ------------- end bibtex-mode.el -------------------------------
+
+(provide 'bibtex)(provide 'bibtex)
+

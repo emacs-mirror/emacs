@@ -24,8 +24,6 @@
 ;;   expunging by dispatch table, sticky options for file commands.
 
 (require 'mail-utils)
-(provide 'rmail)
-
 ; These variables now declared paths.el
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
 ;  "This is the name of the directory used by the system mailer for\n\
@@ -1605,3 +1603,6 @@ buffer visiting that file."
   "Break up a digest message into its constituent messages.
 Leaves original message, deleted, before the undigestified messages."
   t)
+
+(provide 'rmail)
+

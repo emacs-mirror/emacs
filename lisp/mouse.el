@@ -17,8 +17,6 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'mouse)
-
 
 ;;; Utility functions.
 
@@ -454,3 +452,6 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (global-set-key   [mouse-1]	'mouse-set-point)
 (global-set-key [S-mouse-1]	'mouse-set-mark)
 (global-set-key   [mouse-3]	'mouse-delete-other-windows)
+
+(provide 'mouse)
+

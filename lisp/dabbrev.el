@@ -38,8 +38,6 @@
 ;;   (interactive)
 ;;   (&info "emacs" "dabbrevs")	; Select the specific info node.
 ;; )
-(provide 'dabbrevs)
-
 (defvar dabbrevs-limit nil
   "*Limits region searched by `dabbrevs-expand' to this many chars away.")
 (make-variable-buffer-local 'dabbrevs-limit)
@@ -256,3 +254,6 @@ with the next possible expansion not yet tried."
 		     (= (point) beg))
 		   (setq result (downcase result))))))
       result)))
+
+(provide 'dabbrevs)
+

@@ -1,5 +1,5 @@
 ;; List one abbrev table alphabetically ordered.
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
 
 ;; This file is part of GNU Emacs.
@@ -18,8 +18,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-(provide 'abbrevlist)
 
 (defun list-one-abbrev-table (abbrev-table output-buffer)
   "Display alphabetical listing of ABBREV-TABLE in buffer OUTPUT-BUFFER."
@@ -43,3 +41,6 @@
 	  (insert (symbol-value (car abbrev-list)))
 	  (setq first-column (+ first-column 40))
 	  (setq abbrev-list (cdr abbrev-list)))))))
+
+(provide 'abbrevlist)
+

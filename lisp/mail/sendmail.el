@@ -18,8 +18,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'sendmail)
-
 ;;;###autoload
 (defconst mail-self-blind nil "\
 Non-nil means insert BCC to self in messages to be sent.
@@ -660,3 +658,6 @@ The seventh argument ACTIONS is a list of actions to take
 
 
 ;;; Do not add anything but external entries on this page.
+
+(provide 'sendmail)
+

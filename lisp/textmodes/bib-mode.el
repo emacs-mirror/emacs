@@ -24,8 +24,6 @@
 ;;   bibliography file.  Keys are automagically inserted as you type,
 ;;   and appropriate keys are presented for various kinds of entries.
 
-(provide 'bib-mode)
-
 (defvar bib-file "~/my-bibliography.bib" 
    "Default name of file used by `addbib'.")
 
@@ -231,3 +229,6 @@ in the title).")
       (insert s)
       (capitalize-title-region (point-min) (point-max))
       (buffer-string)))
+
+(provide 'bib-mode)
+

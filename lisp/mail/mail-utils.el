@@ -18,8 +18,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'mail-utils)
-
 ;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
 ;;; been initialized.
 (require 'lisp-mode)
@@ -199,3 +197,6 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 		    "\\|"
 		    (substring labels (match-end 0))))))
   labels)
+
+(provide 'mail-utils)
+

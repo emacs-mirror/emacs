@@ -22,8 +22,6 @@
 ;;;  Original version by John Robinson (jr@bbn-unix.arpa, bbncca!jr), Oct 1985
 ;;;  Modularized and enhanced by gildea@bbn.com Nov 1987
 
-(provide 'bg-mouse)
-
 ;;;  User customization option:
 
 (defvar bg-mouse-fast-select-window nil
@@ -301,4 +299,6 @@ X and Y are 0-based character positions on the screen."
 (bind-bg-mouse-click (+ bg-in-minibuf bg-button-l) 'execute-extended-command)
 (bind-bg-mouse-click (+ bg-in-minibuf bg-button-m) 'suspend-emacs)
 (bind-bg-mouse-click (+ bg-in-minibuf bg-button-r) 'eval-expression)
+
+(provide 'bg-mouse)
 

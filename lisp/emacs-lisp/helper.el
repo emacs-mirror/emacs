@@ -21,7 +21,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'helper)			; hey, here's a helping hand.
+; hey, here's a helping hand.
 
 ;; Bind this to a string for <blank> in "... Other keys <blank>".
 ;; Helper-help uses this to construct help string when scrolling.
@@ -147,3 +147,4 @@
 	     (ding)
 	     (setq continue nil))))))
 
+(provide 'helper)			

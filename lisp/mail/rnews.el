@@ -42,8 +42,7 @@
 ;;	tower@prep Oct 29 1986
 ;; added caesar-region, rename news-caesar-buffer-body, hacked accordingly
 ;;	tower@prep Nov 21 1986
-;; added (provide 'rnews)	tower@prep 22 Apr 87
-(provide 'rnews)
+;; added tower@prep 22 Apr 87
 (require 'mail-utils)
 
 (autoload 'rmail-output "rmailout"
@@ -977,3 +976,5 @@ Mail and USENET news headers are not rotated."
       (goto-char (point-max))
       (caesar-region rotnum)
       (setq buffer-read-only buffer-status))))
+
+(provide 'rnews)	(provide 'rnews)

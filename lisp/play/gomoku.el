@@ -23,9 +23,6 @@
 ;;; with precious advices from J.-F. Rit.
 ;;; This has been tested with GNU Emacs 18.50.
 
-(provide 'gomoku)
-
-
 ;; RULES:
 ;;
 ;; Gomoku is a game played between two players on a rectangular board.	Each
@@ -1157,5 +1154,7 @@ If the game is finished, this command requests for another game."
   (interactive)
   (gomoku-move-down)
   (gomoku-move-left))
+
+(provide 'gomoku)
 
 

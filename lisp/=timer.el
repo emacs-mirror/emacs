@@ -25,6 +25,7 @@
   ;; rescheduling or people who otherwise expect to use the process frequently
   "If non-nil, don't exit the timer process when no more events are pending.")
 
+;;;###autoload
 (defun run-at-time (time repeat function &rest args)
   "Run a function at a time, and optionally on a regular interval.
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.

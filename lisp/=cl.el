@@ -43,7 +43,6 @@
 ;;;; Bug reports, suggestions and comments,
 ;;;; to quiroz@cs.rochester.edu
 
-(provide 'cl)
 (defvar cl-version "2.0 beta 29 October 1989")
 
 
@@ -3135,3 +3134,5 @@ Common-Lisp codes."
   form)
 
 ;;;; end of cl.el
+
+(provide 'cl)

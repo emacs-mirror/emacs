@@ -17,8 +17,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(provide 'lisp-mode)
-
 (defvar lisp-mode-syntax-table nil "")
 (defvar emacs-lisp-mode-syntax-table nil "")
 (defvar lisp-mode-abbrev-table nil "")
@@ -613,3 +611,6 @@ means don't indent that line."
 					(progn
 					  (forward-line 1) (point))
 					nil nil state))))))
+
+(provide 'lisp-mode)
+

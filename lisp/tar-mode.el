@@ -66,9 +66,6 @@
 ;;;    know how to print an arbitrary date, and I don't really want to have to
 ;;;    implement decode-universal-time.
 ;;;
-;;; o  There's code to update the datestamp of edited subfiles, but we set it
-;;;    to zero because I don't know how to get the current time as an integer.
-;;;
 ;;; o  The code is less efficient that it could be - in a lot of places, I
 ;;;    pull a 512-character string out of the buffer and parse it, when I could
 ;;;    be parsing it in place, not garbaging a string.  Should redo that.
@@ -108,11 +105,7 @@ tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
 in a tar archive has been changed, but it is bad for the same reason that
 editing a file in the tar archive at all is bad - the changed version of 
-the file never exists on disk.
-
-## This doesn't work yet because there's no way to get the current time as
-## an integer - if this var is true, then editing a file sets its date to
-## December 31, 1969 (which happens to be what 0 encodes).")
+the file never exists on disk.")
 
 
 
@@ -978,7 +971,7 @@ to make your changes permanent."
 		  nil
 		(goto-char (+ header-start tar-time-offset))
 		(delete-region (point) (+ (point) 12))
-		(insert (format "%11o" 0))  ; ## oops - how to get it??
+		(insert (format "%11o" (current-time)))
 		(insert ? ))
 	      ;;
 	      ;; compute a new checksum and insert it.

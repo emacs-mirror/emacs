@@ -20,7 +20,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'gnusmisc)
 (require 'gnus)
 
 ;;;
@@ -212,3 +211,5 @@ inserting it before the newsgroup on the line containging point."
     (forward-line -1)
     (search-forward ":" nil t)
     ))
+
+(provide 'gnusmisc)

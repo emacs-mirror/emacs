@@ -44,7 +44,6 @@
 ; modified 3/1/89,  fixed capitialize-title for first words all caps
 ; modified 3/15/89, allow use of " to delimit fields
 ; modified 4/18/89, properly "quote" special characters on output
-(provide 'refer-to-bibtex)
 ;**********************************************************
 ; User Parameters
 
@@ -708,3 +707,5 @@ To see this message again, perform
    (r2b-help))
 
 (message "r2b loaded")
+
+(provide 'refer-to-bibtex)

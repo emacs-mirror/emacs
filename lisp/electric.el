@@ -19,7 +19,7 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'electric)                           ; zaaaaaaap
+; zaaaaaaap
 
 ;; perhaps this should be in subr.el...
 (defun shrink-window-if-larger-than-buffer (window)
@@ -179,3 +179,5 @@
 		 (enlarge-window (- target-height (window-height win)))))
       (goto-char (point-min))
       win)))
+
+(provide 'electric)                           

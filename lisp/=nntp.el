@@ -42,8 +42,6 @@
 ;;  system, please send me the diffs. I'll include some of them in the
 ;;  future releases.
 
-(provide 'nntp)
-
 (defvar nntp-server-hook nil
   "*Hooks for the NNTP server.
 If the kanji code of the NNTP server is different from the local kanji
@@ -665,3 +663,6 @@ defining this function as macro."
 	      (signal (car errorcode) (cdr errorcode))))
        ))
     ))
+
+(provide 'nntp)
+

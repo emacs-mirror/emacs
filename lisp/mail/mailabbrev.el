@@ -427,6 +427,6 @@ mail-mode-syntax-table is used when the cursor is not in an address header.")
 		   t))))
   (setq mail-aliases nil)
   (build-mail-aliases file))
-  
+
 (provide 'mail-abbrevs)
 

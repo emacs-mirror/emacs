@@ -84,7 +84,6 @@
 ;;;   *or* just delete the autoload declaration from scheme.el altogether,
 ;;;   which will allow the autoload in your .emacs to have its say.
 
-(provide 'cmuscheme)
 (require 'scheme)
 (require 'comint)
 
@@ -428,3 +427,5 @@ This is a good place to put keybindings.")
 ;;; 3/12/90 Olin
 ;;; - scheme-load-file and scheme-compile-file no longer switch-to-scheme.
 ;;;   Tale suggested this.
+
+(provide 'cmuscheme)

@@ -57,8 +57,6 @@
  ;;; this or changing the syntax to ... ,(<form>).  RMS: opinion?
 
 
-(provide 'backquote)
-
 ;;; a raft of general-purpose macros follows.  See the nearest
  ;;; Commonlisp manual.
 (defmacro bq-push (v l)
@@ -353,3 +351,6 @@ for making the list so far."
 (defun bq-splicenil (form)
   (setq state 'append
 	tailmaker (list form)))
+
+(provide 'backquote)
+

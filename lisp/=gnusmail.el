@@ -19,7 +19,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'gnusmail)
 (require 'gnus)
 
 ;; Provides mail reply and mail other window command using usual mail
@@ -146,3 +145,5 @@ The command \\[mh-yank-cur-msg] yanks the original message into current buffer."
     (mh-send-other-window to cc subject)
     (setq mh-sent-from-folder (current-buffer))
     (setq mh-sent-from-msg 1)))
+
+(provide 'gnusmail)

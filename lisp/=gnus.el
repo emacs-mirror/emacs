@@ -48,7 +48,6 @@
 ;; (3) Multi-GNUS (Talking to many hosts same time).
 ;; (4) Asynchronous transmission of large messages.
 
-(provide 'gnus)
 (require 'nntp)
 (require 'mail-utils)
 
@@ -6079,3 +6078,5 @@ Range of OBJ is expressed as `((beg1 . end1) (beg2 . end2) ...)."
 ;;Local variables:
 ;;eval: (put 'gnus-eval-in-buffer-window 'lisp-indent-function 1)
 ;;end:
+
+(provide 'gnus)

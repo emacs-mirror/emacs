@@ -23,8 +23,6 @@
 ;;;
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
-(provide 'sm-cursors)
-
 (defvar sc::cursors nil "List of known cursors")
 
 (defmacro defcursor (name x y string)
@@ -204,4 +202,6 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
       (setq char (lsh char 1)) 
     (setq char (1+ (lsh char 1))))
   (if (not (eolp))(forward-char)))
+
+(provide 'sm-cursors)
 

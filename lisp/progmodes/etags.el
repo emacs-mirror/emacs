@@ -18,8 +18,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'etags)
-
 ;;;###autoload
 (defvar tags-file-name nil "\
 *File name of tag table.
@@ -354,3 +352,6 @@ unless it has one in the tag table."
        (forward-line 1)))))
 
 ;; etags.el ends here
+
+(provide 'etags)
+

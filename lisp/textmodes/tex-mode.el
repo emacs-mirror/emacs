@@ -33,8 +33,6 @@
 ;;  The code for finding matching $ needs to be fixed.
 
 (require 'oshell)
-(provide 'tex-mode)
-
 (defvar tex-directory "./"
   "*Directory in which to run TeX subjob.  Temporary files are created here.")
 
@@ -802,4 +800,6 @@ Runs the shell command defined by tex-show-queue-command."
     (send-string "tex-shell"
 		 (concat tex-bibtex-command " \"" tex-out-file "\"\n")))
   (tex-recenter-output-buffer 0))
+
+(provide 'tex-mode)
 

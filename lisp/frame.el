@@ -1,5 +1,5 @@
 ;;;; Multi-screen management that is independent of window systems.
-;;;; Copyright (C) 1990 Free Software Foundation, Inc.
+;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
 
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -16,8 +16,6 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-(provide 'screen)
 
 (defvar screen-creation-function nil
   "Window-system dependent function to call to create a new screen.
@@ -270,3 +268,5 @@ under the X Window System."
 
 (define-key ctl-x-3-map "2" 'new-screen)
 (define-key ctl-x-3-map "0" 'delete-screen)
+
+(provide 'screen)

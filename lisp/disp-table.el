@@ -31,7 +31,7 @@
       (setq i (1+ i)))))
 
 (defun describe-display-table (DT)
-  "Describe the display-table DT in a help buffer."
+  "Describe the display table DT in a help buffer."
   (with-output-to-temp-buffer "*Help*"
     (princ "\nTruncation glyf: ")
     (prin1 (aref dt 256))
@@ -56,7 +56,7 @@
     (print-help-return-message)))
 
 (defun describe-current-display-table ()
-   "Describe the display-table in use in the selected window and buffer."
+   "Describe the display table in use in the selected window and buffer."
    (interactive)
    (describe-display-table
     (or (window-display-table (selected-window))
@@ -67,7 +67,7 @@
   (make-vector 261 nil))
 
 (defun standard-display-8bit (l h)
-  "Display characters in the range [L, H] literally."
+  "Display characters in the range L to H literally."
   (while (<= l h)
     (if (and (>= l ?\ ) (< l 127))
 	(if standard-display-table (aset standard-display-table l nil))

@@ -26,7 +26,6 @@
 ;;>> One probably wants to do setenv MORE -c when running with
 ;;>>   more-processing enabled.
 
-(provide 'terminal)
 (require 'ehelp)
 
 (defvar terminal-escape-char ?\C-^
@@ -1228,3 +1227,5 @@ of the terminal-emulator"
 					     (1+ end)))
 		   start (1+ end)))
 	   (concat "\"" harder "\"")))))
+
+(provide 'terminal)

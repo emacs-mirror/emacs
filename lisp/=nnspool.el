@@ -20,7 +20,6 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-(provide 'nnspool)
 (require 'nntp)
 
 (defvar nnspool-inews-program news-inews-program
@@ -372,3 +371,5 @@ If the stream is opened, return T, otherwise return NIL."
       (setq idx (1+ idx)))
     string
     ))
+
+(provide 'nnspool)

@@ -33,8 +33,6 @@
 ;; pages 899-928.
 
 (require 'calendar)
-(provide 'holidays)
-
 (defun holidays ()
   "Display the holidays for last month, this month, and next month.
 This function is suitable for execution in a .emacs file."
@@ -585,3 +583,6 @@ checked.  If nil, the holiday (car (cdr (cdr X))), if there, is checked."
           (setq visible (append (list (car p)) visible)))
       (setq p (cdr p)))
     visible))
+
+(provide 'holidays)
+

@@ -19,8 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-(provide 'view)
-
 (defvar view-mode-map nil)
 (if view-mode-map
     nil
@@ -438,3 +436,6 @@ invocations return to earlier marks."
 
 ;;;###autoload
 (define-key ctl-x-4-map "v" 'view-file-other-window)
+
+(provide 'view)
+
