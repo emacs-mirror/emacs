@@ -1,3 +1,23 @@
+2003-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (echo_char): Don't clear out a dash that follows a space.
+
+	* alloc.c (abort_on_gc): New variable.
+	(Fgarbage_collect): Abort if abort_on_gc is set.
+
+	* lisp.h (abort_on_gc): Add decl.
+
+	* eval.c (Fsignal): Clear abort_on_gc.
+
+	* editfns.c (Fformat): Set abort_on_gc during first scan of format.
+	Reinit FORMAT_START and END before second scan. 
+
+	* xdisp.c (move_it_vertically_backward): Do the final big else
+	even if nlines is 0.
+
+	* xdisp.c (redisplay_internal): Finish the per-frame loop
+	even if redisplay is suspended by input.
+
 2003-04-24  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (x_list_fonts): Return all fonts that match if
