@@ -3005,7 +3005,7 @@ in any of these classes."
 	  (ad-real-documentation origdef t))
 	 (usage (help-split-fundoc origdoc function))
 	 paragraphs advice-docstring ad-usage)
-    (if usage (setq origdoc (cdr usage) usage (car usage)))
+    (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
       (push (concat "This " origtype " is advised.") paragraphs))
