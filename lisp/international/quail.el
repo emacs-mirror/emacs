@@ -1270,12 +1270,14 @@ The returned value is a Quail map specific to KEY."
 Do so while interleaving with the following special events:
 \(compose-last-chars LEN COMPONENTS)
 \(quail-advice INPUT-STRING)"
-  (let* ((events (lambda (c)
+  (let* ((events
+	  (mapcar (lambda (c)
 		    ;; This gives us the chance to unify on input
 		    ;; (e.g. using ucs-tables.el).
 		    (or (and translation-table-for-input
 			     (aref translation-table-for-input c))
-			c)))
+			c))
+		  (string-to-list str)))
 	 (len (length str))
 	 (idx len)
 	 composition from to)
