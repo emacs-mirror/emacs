@@ -104,8 +104,8 @@ print_help_and_exit ()
   exit (1);
 }
 
-/* Return a copy of NAME, inserting a \
-   before each \, each -, and each space.
+/* Return a copy of NAME, inserting a &
+   before each &, each space, and any initial -.
    Change spaces to underscores, too, so that the
    return value never contains a space.  */
 
@@ -122,17 +122,18 @@ quote_file_name (name)
     {
       if (*p == ' ')
 	{
-	  *q++ = '\\';
+	  *q++ = '&';
 	  *q++ = '_';
 	  p++;
 	}
       else
 	{
-	  if (*p == '\\' || *p == '-')
-	    *q++ = '\\';
+	  if (*p == '&' || (*p == '-' && p == name))
+	    *q++ = '&';
 	  *q++ = *p++;
 	}
     }
+  *q++ = 0;
 
   return copy;
 }
