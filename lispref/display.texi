@@ -2470,22 +2470,38 @@ background color.  This color is used for each pixel in the XBM that is
 @end table
 
   If you specify an XBM image using data within Emacs instead of an
-external file, use the following three properties (all of them):
+external file, use the following three properties:
 
 @table @code
+@item :data @var{data}
+The value, @var{data}, specifies the contents of the image.
+There are three formats you can use for @var{data}:
+
+@itemize @bullet
+@item
+A vector of strings or bool-vectors, each specifying one line of the
+image.  Do specify @code{:height} and @code{:width}.
+
+@item
+A string containing the same byte sequence as an XBM file would contain.
+You must not specify @code{:height} and @code{:width} in this case,
+because omitting them is what indicates the data has the format of an
+XBM file.  The file contents specify the height and width of the image.
+
+@item
+A string or a bool-vector containing the bits of the image (plus perhaps
+some extra bits at the end that will not be used).  It should contain at
+least @var{width} * @code{height} bits.  In this case, you must specify
+@code{:height} and @code{:width}, both to indicate that the string
+contains just the bits rather than a whole XBM file, and to specify the
+size of the image.
+@end itemize
+
 @item :width @var{width}
-The value, @var{width}, specifies the width the image in pixels.
+The value, @var{width}, specifies the width of the image, in pixels.
 
 @item :height @var{height}
-The value, @var{height}, specifies the height of the image in pixels.
-
-@item :data @var{data}
-The value, @var{data}, should normally be a string or a bool-vector.
-Either way, it must contain enough bits for the area of the image: at
-least @var{width} * @code{height} bits.
-
-Alternatively, @var{data} can be a vector of strings or bool-vectors,
-each specifying one line of the image.
+The value, @var{height}, specifies the height of the image, in pixels.
 @end table
 
 @node XPM Images
