@@ -1416,19 +1416,6 @@ value around the call.
 The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
 
-@node Reading a Password
-@section Reading a Password
-
-  This function is useful for reading passwords.
-
-@defun read-password prompt default
-@tindex read-password
-This function reads a password, echoing @samp{.} in the echo area
-for each character entered, and returns it as a string.  It prompts
-with @var{prompt}, and returns @var{default} if the user enters the
-null string.
-@end defun
-
 @node Minibuffer Misc
 @section Minibuffer Miscellany
 
