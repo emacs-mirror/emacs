@@ -600,6 +600,7 @@ Runs `change-log-mode-hook'."
 	tab-width 8)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
+  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
