@@ -242,7 +242,7 @@ Each argument may be a list, vector or string.")
      int nargs;
      Lisp_Object *args;
 {
-  return concat (nargs, args, Lisp_Vector, 0);
+  return concat (nargs, args, Lisp_Vectorlike, 0);
 }
 
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
@@ -308,7 +308,7 @@ concat (nargs, args, target_type, last_special)
 
   if (target_type == Lisp_Cons)
     val = Fmake_list (len, Qnil);
-  else if (target_type == Lisp_Vector)
+  else if (target_type == Lisp_Vectorlike)
     val = Fmake_vector (len, Qnil);
   else
     val = Fmake_string (len, len);
