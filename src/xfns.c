@@ -24,6 +24,10 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <math.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 /* This makes the fields of a Display accessible, in Xlib header files.  */
 
 #define XLIB_ILLEGAL_ACCESS
