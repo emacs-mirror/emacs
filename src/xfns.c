@@ -3353,8 +3353,15 @@ also be depressed for NEWSTRING to appear.")
 	  mod = Fcar (rest);
 	  CHECK_STRING (mod, 3);
 	  modifier_list[i] = XStringToKeysym ((char *) XSTRING (mod)->data);
+#ifndef HAVE_X11R5
+	  if (modifier_list[i] == NoSymbol
+	      || !(IsModifierKey (modifier_list[i]) 
+                   || ((unsigned)(modifier_list[i]) == XK_Mode_switch)
+                   || ((unsigned)(modifier_list[i]) == XK_Num_Lock)))
+#else
 	  if (modifier_list[i] == NoSymbol
 	      || !IsModifierKey (modifier_list[i]))
+#endif
 	    error ("Element is not a modifier keysym");
 	  i++;
 	}
