@@ -2,6 +2,7 @@
 ;; Copyright (C) 1995,96,97,98,99 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -34,7 +35,7 @@
 (require 'nnmail)
 (require 'gnus-util)
 (eval-and-compile
-  (if (string-match "XEmacs" (emacs-version))
+  (if (featurep 'xemacs)
       (require 'itimer)
     (require 'timer)))
 
@@ -152,7 +153,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
            (nowParts (decode-time now))
            ;; obtain THEN as discrete components
            (thenParts (parse-time-string time))
-           (thenHour (elt thenParts 0))
+           (thenHour (elt thenParts 2))
            (thenMin (elt thenParts 1))
            ;; convert time as elements into number of seconds since EPOCH.
            (then (encode-time 0
