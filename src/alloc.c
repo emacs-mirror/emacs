@@ -1138,7 +1138,7 @@ allocate_string ()
   consing_since_gc += sizeof *s;
 
 #ifdef GC_CHECK_STRING_BYTES
-  if (++check_string_bytes_count == 10)
+  if (!noninteractive && ++check_string_bytes_count == 50)
     {
       check_string_bytes_count = 0;
       check_string_bytes ();
