@@ -337,7 +337,7 @@ Autoload section for %s is up to date."
 		(setq found 'new)
 		;; No later sections in the file.  Put before the last page.
 		(goto-char (point-max))
-		(search-backward "\f")))
+		(search-backward "\f" nil t)))
 	  (or (eq found 'up-to-date)
 	      (and (eq found 'new)
 		   ;; Check that FILE has any cookies before generating a
