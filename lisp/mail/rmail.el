@@ -2989,10 +2989,13 @@ specifying headers which should not be copied into the new message."
   (require 'mail-utils)
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
+	(pruned (rmail-msg-is-pruned))
 	bounce-start bounce-end bounce-indent resending)
     (save-excursion
       ;; Narrow down to just the quoted original message
-      (rmail-beginning-of-message)
+      (if pruned
+	  (rmail-toggle-header 0)
+	(rmail-beginning-of-message))
       (let* ((case-fold-search t)
 	     (top (point))
 	     (content-type
@@ -3003,7 +3006,7 @@ specifying headers which should not be copied into the new message."
 	;; Handle MIME multipart bounce messages
 	(if (and content-type 
 		 (string-match 
-		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=?]+\\)\"?" 
+		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?" 
 		  content-type))
 	    (let ((codestring
 		   (concat "\n--"
@@ -3084,7 +3087,9 @@ specifying headers which should not be copied into the new message."
 	    (goto-char (point-min))
 	    (mail-position-on-field (if resending "Resent-To" "To") t)
 	    (set-buffer rmail-this-buffer)
-	    (rmail-beginning-of-message))))))
+	    (rmail-beginning-of-message))))
+    (if pruned
+	(rmail-toggle-header))))
 
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
