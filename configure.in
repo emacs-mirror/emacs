@@ -891,10 +891,10 @@ test "${x_libraries}" != NONE && LD_SWITCH_X_SITE="-L${x_libraries}"
 test "${x_libraries}" != NONE && LD_SWITCH_X_SITE_AUX="-R${x_libraries}"
 test "${x_includes}" != NONE && C_SWITCH_X_SITE="-I${x_includes}"
 
-if [ x"${x_includes}" = x ]; then
-  bitmapdir=/usr/include/X11/bitmaps;
+if test x"${x_includes}" = x; then
+  bitmapdir=/usr/include/X11/bitmaps
 else
-  bitmapdir="${x_includes}/bitmaps";
+  bitmapdir="${x_includes}/bitmaps"
 fi
 
 case "${window_system}" in
