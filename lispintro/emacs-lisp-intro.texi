@@ -61,7 +61,7 @@
 @c     makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
 
 @c After creating the Info file, edit your Info `dir' file, if the
-@c START-INFO-DIR-ENTRY section below does not enable your system to
+@c `dircategory' section below does not enable your system to
 @c install the manual automatically.
 @c (The `dir' file is often in the `/usr/local/info/' directory.)
 
