@@ -77,9 +77,16 @@ struct frame
   Lisp_Object name;
 
   /* The frame which should recieve keystrokes that occur in this
-     frame.  This is usually the frame itself, but if the frame is
-     minibufferless, this points to the minibuffer frame when it is
-     active.  */
+     frame, or nil if they should go to the frame itself.  This is
+     usually nil, but if the frame is minibufferless, we can use this
+     to redirect keystrokes to a surrogate minibuffer frame when
+     needed.
+
+     Note that a value of nil is different than having the field point
+     to the frame itself.  Whenever the Fselect_frame function is used
+     to shift from one frame to the other, any redirections to the
+     original frame are shifted to the newly selected frame; if
+     focus_frame is nil, Fselect_frame will leave it alone.  */
   Lisp_Object focus_frame;
 
   /* This frame's root window.  Every frame has one.
@@ -118,6 +125,7 @@ struct frame
 
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
+     DON'T SET IT DIRECTLY; instead, use FRAME_SET_VISIBLE.
 
      iconified is nonzero if the frame is currently iconified.
 
@@ -154,6 +162,14 @@ struct frame
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   char wants_modeline;
+
+  /* Non-zero if the hardware device this frame is displaying on can
+     support scrollbars.  */
+  char can_have_scrollbars;
+
+  /* If can_have_scrollbars is non-zero, this is non-zero if we should
+     actually display them on this frame.  */
+  char has_vertical_scrollbars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
@@ -203,7 +219,9 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_NEW_WIDTH(f) (f)->new_width
 #define FRAME_CURSOR_X(f) (f)->cursor_x
 #define FRAME_CURSOR_Y(f) (f)->cursor_y
-#define FRAME_VISIBLE_P(f) (f)->visible
+#define FRAME_VISIBLE_P(f) ((f)->visible != 0)
+#define FRAME_SET_VISIBLE(f,p) \
+  ((f)->async_visible = (p), FRAME_SAMPLE_VISIBILITY (f))
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
 #define FRAME_GARBAGED_P(f) (f)->garbaged
 #define FRAME_NO_SPLIT_P(f) (f)->no_split
@@ -220,6 +238,8 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
+#define FRAME_CAN_HAVE_SCROLLBARS(f) ((f)->can_have_scrollbars)
+#define FRAME_HAS_VERTICAL_SCROLLBARS(f) ((f)->has_vertical_scrollbars)
 
 /* Emacs's redisplay code could become confused if a frame's
    visibility changes at arbitrary times.  For example, if a frame is
@@ -237,7 +257,9 @@ typedef struct frame *FRAME_PTR;
    the async_visible and async_iconified flags; the redisplay code
    calls the FRAME_SAMPLE_VISIBILITY macro before doing any redisplay,
    which sets visible and iconified from their asynchronous
-   counterparts.  */
+   counterparts.
+
+   Synchronous code must use the FRAME_SET_VISIBLE macro.  */
 #define FRAME_SAMPLE_VISIBILITY(f) \
   ((f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
@@ -327,6 +349,7 @@ extern int message_buf_print;
 #define FRAME_NEW_WIDTH(f) (the_only_frame.new_width)
 #define FRAME_CURSOR_X(f) (the_only_frame.cursor_x)
 #define FRAME_CURSOR_Y(f) (the_only_frame.cursor_y)
+#define FRAME_SET_VISIBLE(f,p) (p)
 #define FRAME_VISIBLE_P(f) 1
 #define SET_FRAME_GARBAGED(f) (frame_garbaged = 1)
 #define FRAME_GARBAGED_P(f) (frame_garbaged)
@@ -343,7 +366,10 @@ extern int message_buf_print;
 #define FRAME_DELETEN_COST(frame) (the_only_frame.delete_n_lines_cost)
 #define FRAME_MESSAGE_BUF(f) (the_only_frame.message_buf)
 #define FRAME_SCROLL_BOTTOM_VPOS(f) (the_only_frame.scroll_bottom_vpos)
-#define FRAME_FOCUS_FRAME(f) (0)
+#define FRAME_FOCUS_FRAME(f) (Qnil)
+#define FRAME_CAN_HAVE_SCROLLBARS(f) (the_only_frame.can_have_scrollbars)
+#define FRAME_HAS_VERTICAL_SCROLLBARS(f) \
+  (the_only_frame.has_vertical_scrollbars)
 
 /* See comments in definition above.  */
 #define FRAME_SAMPLE_VISIBILITY(f) (0)
@@ -365,3 +391,32 @@ extern int message_buf_print;
   for (frame_var = (FRAME_PTR) 1; frame_var; frame_var = (FRAME_PTR) 0)
 
 #endif /* not MULTI_FRAME */
+
+
+/* Device- and MULTI_FRAME-independent scrollbar stuff.  */
+
+/* The number of columns a vertical scrollbar occupies.  */
+#define VERTICAL_SCROLLBAR_WIDTH (2)
+
+/* Turn a window's scrollbar member into a `struct scrollbar *';
+   return NULL if the window doesn't have a scrollbar.  */
+#define WINDOW_VERTICAL_SCROLLBAR(w) \
+  (XTYPE ((w)->vertical_scrollbar) == Lisp_Int \
+   ? (struct scrollbar *) XPNTR ((w)->vertical_scrollbar) \
+   : (struct scrollbar *) 0)
+
+
+/* Return the starting column (zero-based) of the vertical scrollbar
+   for window W.  The column before this one is the last column we can
+   use for text.  If the window touches the right edge of the frame,
+   we have extra space allocated for it.  Otherwise, the scrollbar
+   takes over the window's rightmost columns.  */
+#define WINDOW_VERTICAL_SCROLLBAR_COLUMN(w) \
+  (((XINT ((w)->left) + XINT ((w)->width)) \
+    < FRAME_WIDTH (XFRAME (WINDOW_FRAME (w)))) \
+   ? XINT ((w)->left) + XINT ((w)->width) - VERTICAL_SCROLLBAR_WIDTH \
+   : FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
+
+/* Return the height in lines of the vertical scrollbar in w.  If the
+   window has a mode line, don't make the scrollbar extend that far.  */
+#define WINDOW_VERTICAL_SCROLLBAR_HEIGHT(w) (window_internal_height (w))
