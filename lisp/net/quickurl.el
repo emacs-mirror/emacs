@@ -71,8 +71,7 @@
 ;;
 ;; quickurl is always available from:
 ;;
-;;   <URL:http://www.hagbard.demon.co.uk/archives/quickurl.el>
-;;   <URL:http://www.acemake.com/hagbard/archives/quickurl.el>
+;;   <URL:http://www.davep.org/emacs/quickurl.el>
 
 ;;; TODO:
 ;;
