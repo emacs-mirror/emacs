@@ -626,27 +626,24 @@ do_symval_forwarding (valcontents)
      register Lisp_Object valcontents;
 {
   register Lisp_Object val;
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (valcontents))
-#else
-  switch (XTYPE (valcontents))
-#endif
-    {
-    case Lisp_Intfwd:
-      XSETINT (val, *XINTPTR (valcontents));
-      return val;
+  int offset;
+  if (MISCP (valcontents))
+    switch (XMISC (valcontents)->type)
+      {
+      case Lisp_Misc_Intfwd:
+	XSETINT (val, *XINTFWD (valcontents)->intvar);
+	return val;
 
-    case Lisp_Boolfwd:
-      if (*XINTPTR (valcontents))
-	return Qt;
-      return Qnil;
+      case Lisp_Misc_Boolfwd:
+	return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
 
-    case Lisp_Objfwd:
-      return *XOBJFWD (valcontents);
+      case Lisp_Misc_Objfwd:
+	return *XOBJFWD (valcontents)->objvar;
 
-    case Lisp_Buffer_Objfwd:
-      return *(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer);
-    }
+      case Lisp_Misc_Buffer_Objfwd:
+	offset = XBUFFER_OBJFWD (valcontents)->offset;
+	return *(Lisp_Object *)(offset + (char *)current_buffer);
+      }
   return valcontents;
 }
 
@@ -666,35 +663,42 @@ store_symval_forwarding (sym, valcontents, newval)
   switch (XTYPE (valcontents))
 #endif
     {
-    case Lisp_Intfwd:
-      CHECK_NUMBER (newval, 1);
-      *XINTPTR (valcontents) = XINT (newval);
+    case Lisp_Misc:
+      switch (XMISC (valcontents)->type)
+	{
+	case Lisp_Misc_Intfwd:
+	  CHECK_NUMBER (newval, 1);
+	  *XINTFWD (valcontents)->intvar = XINT (newval);
+	  break;
+
+	case Lisp_Misc_Boolfwd:
+	  *XBOOLFWD (valcontents)->boolvar = NILP (newval) ? 0 : 1;
+	  break;
+
+	case Lisp_Misc_Objfwd:
+	  *XOBJFWD (valcontents)->objvar = newval;
+	  break;
+
+	case Lisp_Misc_Buffer_Objfwd:
+	  {
+	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
+	    Lisp_Object type;
+
+	    type = *(Lisp_Object *)(offset + (char *)&buffer_local_types);
+	    if (! NILP (type) && ! NILP (newval)
+		&& XTYPE (newval) != XINT (type))
+	      buffer_slot_type_mismatch (offset);
+
+	    *(Lisp_Object *)(offset + (char *)current_buffer) = newval;
+	    break;
+	  }
+	default:
+	  goto def;
+	}
       break;
-
-    case Lisp_Boolfwd:
-      *XINTPTR (valcontents) = NILP(newval) ? 0 : 1;
-      break;
-
-    case Lisp_Objfwd:
-      *XOBJFWD (valcontents) = newval;
-      break;
-
-    case Lisp_Buffer_Objfwd:
-      {
-	unsigned int offset = XUINT (valcontents);
-	Lisp_Object type;
-
-	type = *(Lisp_Object *)(offset + (char *)&buffer_local_types);
-	if (! NILP (type) && ! NILP (newval)
-	    && XTYPE (newval) != XINT (type))
-	  buffer_slot_type_mismatch (valcontents, newval);
-	
-	*(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer)
-	  = newval;
-	break;
-      }
 
     default:
+    def:
       valcontents = XSYMBOL (sym)->value;
       if (BUFFER_LOCAL_VALUEP (valcontents)
 	  || SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -773,20 +777,23 @@ find_symbol_value (sym)
       valcontents = swap_in_symval_forwarding (sym, valcontents);
       goto retry;
 
-    case Lisp_Intfwd:
-      XSETINT (val, *XINTPTR (valcontents));
-      return val;
+    case Lisp_Misc:
+      switch (XMISC (valcontents)->type)
+	{
+	case Lisp_Misc_Intfwd:
+	  XSETINT (val, *XINTFWD (valcontents)->intvar);
+	  return val;
 
-    case Lisp_Boolfwd:
-      if (*XINTPTR (valcontents))
-	return Qt;
-      return Qnil;
+	case Lisp_Misc_Boolfwd:
+	  return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
 
-    case Lisp_Objfwd:
-      return *XOBJFWD (valcontents);
+	case Lisp_Misc_Objfwd:
+	  return *XOBJFWD (valcontents)->objvar;
 
-    case Lisp_Buffer_Objfwd:
-      return *(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer);
+	case Lisp_Misc_Buffer_Objfwd:
+	  return *(Lisp_Object *)(XBUFFER_OBJFWD (valcontents)->offset
+				  + (char *)current_buffer);
+	}
     }
 
   return valcontents;
@@ -822,7 +829,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
 
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XUINT (valcontents);
+      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
       if (mask > 0)
@@ -938,7 +945,7 @@ default_value (sym)
      rather than letting do_symval_forwarding get the current value.  */
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XUINT (valcontents);
+      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
 
       if (XINT (*(Lisp_Object *) (idx + (char *) &buffer_local_flags)) != 0)
 	return *(Lisp_Object *)(idx + (char *) &buffer_defaults);
@@ -1011,7 +1018,7 @@ for this variable.")
      variables.  */
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XUINT (valcontents);
+      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
       register struct buffer *b;
       register int mask = XINT (*((Lisp_Object *)
 				  (idx + (char *)&buffer_local_flags)));
@@ -1205,7 +1212,7 @@ From now on the default value will apply in this buffer.")
 
   if (BUFFER_OBJFWDP (valcontents))
     {
-      register int idx = XUINT (valcontents);
+      register int idx = XBUFFER_OBJFWD (valcontents)->offset;
       register int mask = XINT (*((Lisp_Object*)
 				  (idx + (char *)&buffer_local_flags)));
 
