@@ -118,8 +118,6 @@
     '("Evaluate Last Definition" . scheme-send-definition))
   (define-key map [send-region-go]
     '("Evaluate Region & Go" . scheme-send-region-and-go))
-  (define-key map [send-region-go]
-    '("Evaluate Region" . scheme-send-region))
   (define-key map [send-region]
     '("Evaluate Region" . scheme-send-region))
   (define-key map [send-sexp]
