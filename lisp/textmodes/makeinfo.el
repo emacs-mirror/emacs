@@ -193,10 +193,14 @@ command to gain use of `next-error'."
   (if (and makeinfo-temp-file (file-exists-p makeinfo-temp-file))
       (delete-file makeinfo-temp-file))
   ;; Always use the version on disk.
-  (if (get-file-buffer makeinfo-output-file-name)
-      (progn (set-buffer makeinfo-output-file-name)
-	     (revert-buffer t t))
-    (find-file makeinfo-output-file-name))
+  (let ((buffer (get-file-buffer makeinfo-output-file-name)))
+    (if buffer
+	(with-current-buffer buffer
+	  (revert-buffer t t))
+      (setq buffer (find-file-noselect makeinfo-output-file-name)))
+    (if (window-dedicated-p (selected-window))
+	(switch-to-buffer-other-window buffer)
+      (switch-to-buffer buffer)))
   (goto-char (point-min)))
 
 (defun makeinfo-buffer ()
