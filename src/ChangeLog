@@ -1,3 +1,7 @@
+2004-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* editfns.c (Fchar_after, Fchar_before): Doc fixes.
+
 2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xselect.c: Include stdio,h.
