@@ -37,9 +37,10 @@
     "Eval BODY, preserving the current buffer's modified state."
     (let ((modified (make-symbol "modified")))
       `(let ((,modified (buffer-modified-p)))
-	 ,@body
-	 (unless ,modified
-	   (restore-buffer-modified-p nil)))))
+	 (unwind-protect
+	     (progn ,@body)
+	   (unless ,modified
+	     (restore-buffer-modified-p nil))))))
   
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
@@ -137,6 +138,9 @@ The value of this variable is used when JIT Lock mode is turned on."
   "Non-nil means Just-in-time Lock mode is active.")
 (make-variable-buffer-local 'jit-lock-mode)
 
+(defvar jit-lock-functions nil
+  "Functions to do the actual fontification.
+They are called with two arguments: the START and END of the region to fontify.")
 
 (defvar jit-lock-first-unfontify-pos nil
   "Consider text after this position as unfontified.
@@ -216,6 +220,7 @@ the variable `jit-lock-stealth-nice'."
 	 ;; Initialize deferred contextual fontification if requested.
 	 (when (or (eq jit-lock-defer-contextually 'always)
 		   (and (not (eq jit-lock-defer-contextually 'never))
+			(boundp 'font-lock-keywords-only)
 			(null font-lock-keywords-only)))
 	   (setq jit-lock-first-unfontify-pos (point-max)))
 
@@ -276,45 +281,38 @@ is active."
      (save-restriction
        (widen)
        (let ((end (min (point-max) (+ start jit-lock-chunk-size)))
-	     (parse-sexp-lookup-properties font-lock-syntactic-keywords)
 	     (font-lock-beginning-of-syntax-function nil)
-	     (old-syntax-table (syntax-table))
-	     next font-lock-start font-lock-end)
-	 (when font-lock-syntax-table
-	   (set-syntax-table font-lock-syntax-table))
+	     next)
 	 (save-match-data
-	   (condition-case error
-	       ;; Fontify chunks beginning at START.  The end of a
-	       ;; chunk is either `end', or the start of a region
-	       ;; before `end' that has already been fontified.
-	       (while start
-		 ;; Determine the end of this chunk.
-		 (setq next (or (text-property-any start end 'fontified t)
-				end))
+	   ;; Fontify chunks beginning at START.  The end of a
+	   ;; chunk is either `end', or the start of a region
+	   ;; before `end' that has already been fontified.
+	   (while start
+	     ;; Determine the end of this chunk.
+	     (setq next (or (text-property-any start end 'fontified t)
+			    end))
 
-		 ;; Decide which range of text should be fontified.
-		 ;; The problem is that START and NEXT may be in the
-		 ;; middle of something matched by a font-lock regexp.
-		 ;; Until someone has a better idea, let's start
-		 ;; at the start of the line containing START and
-		 ;; stop at the start of the line following NEXT.
-		 (goto-char next)
-		 (setq font-lock-end (line-beginning-position 2))
-		 (goto-char start)
-		 (setq font-lock-start (line-beginning-position))
+	     ;; Decide which range of text should be fontified.
+	     ;; The problem is that START and NEXT may be in the
+	     ;; middle of something matched by a font-lock regexp.
+	     ;; Until someone has a better idea, let's start
+	     ;; at the start of the line containing START and
+	     ;; stop at the start of the line following NEXT.
+	     (goto-char next)
+	     (setq next (line-beginning-position 2))
+	     (goto-char start)
+	     (setq start (line-beginning-position))
 		   
-		 ;; Fontify the chunk, and mark it as fontified.
-		 (font-lock-fontify-region font-lock-start font-lock-end nil)
-		 (add-text-properties start next '(fontified t))
+	     ;; Fontify the chunk, and mark it as fontified.
+	     ;; We mark it first, to make sure that we don't indefinitely
+	     ;; re-execute this fontification if an error occurs.
+	     (add-text-properties start next '(fontified t))
+	     (if jit-lock-functions
+		 (run-hook-with-args 'jit-lock-functions start next)
+	       (font-lock-fontify-region start next))
 		   
-		 ;; Find the start of the next chunk, if any.
-		 (setq start (text-property-any next end 'fontified nil)))
-	       
-	     ((error quit)
-	      (message "Fontifying region...%s" error))))
-       
-	 ;; Restore previous buffer settings.
-	 (set-syntax-table old-syntax-table))))))
+	     ;; Find the start of the next chunk, if any.
+	     (setq start (text-property-any next end 'fontified nil)))))))))
 
 
 ;;; Stealth fontification.
