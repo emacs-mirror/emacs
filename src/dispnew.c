@@ -3844,18 +3844,6 @@ update_window (w, force_p)
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
 	    int i;
 	    
-	    /* A row can be completely invisible in case a desired
-	       matrix was built with a vscroll and then
-	       make_cursor_line_fully_visible shifts the matrix.
-	       Make sure to make such rows current anyway, since
-	       we need the correct y-position, for example, in the
-	       current matrix.  */
-	    if (row->visible_height <= 0)
-	      {
-		make_current (w->desired_matrix, w->current_matrix, vpos);
-		continue;
-	      }
-	    
 	    /* We'll Have to play a little bit with when to
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
@@ -4137,50 +4125,57 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
   int changed_p = 0;
 
-  xassert (desired_row->enabled_p);
-
   /* Set the row being updated.  This is important to let xterm.c
      know what line height values are in effect.  */
   updated_row = desired_row;
 
-  /* Update display of the left margin area, if there is one.  */
-  if (!desired_row->full_width_p
-      && !NILP (w->left_margin_width))
+  /* A row can be completely invisible in case a desired matrix was 
+     built with a vscroll and then make_cursor_line_fully_visible shifts 
+     the matrix.  Make sure to make such rows current anyway, since
+     we need the correct y-position, for example, in the current matrix.  */
+  if (desired_row->visible_height > 0)
     {
-      changed_p = 1;
-      update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
+      xassert (desired_row->enabled_p);
+
+      /* Update display of the left margin area, if there is one.  */
+      if (!desired_row->full_width_p
+	  && !NILP (w->left_margin_width))
+	{
+	  changed_p = 1;
+	  update_marginal_area (w, LEFT_MARGIN_AREA, vpos);
+	}
+      
+      /* Update the display of the text area.  */
+      if (update_text_area (w, vpos))
+	{
+	  changed_p = 1;
+	  if (current_row->mouse_face_p)
+	    *mouse_face_overwritten_p = 1;
+	}
+      
+      /* Update display of the right margin area, if there is one.  */
+      if (!desired_row->full_width_p
+	  && !NILP (w->right_margin_width))
+	{
+	  changed_p = 1;
+	  update_marginal_area (w, RIGHT_MARGIN_AREA, vpos);
+	}
+      
+      /* Draw truncation marks etc.  */
+      if (!current_row->enabled_p
+	  || desired_row->y != current_row->y
+	  || desired_row->visible_height != current_row->visible_height
+	  || desired_row->overlay_arrow_p != current_row->overlay_arrow_p
+	  || desired_row->truncated_on_left_p != current_row->truncated_on_left_p
+	  || desired_row->truncated_on_right_p != current_row->truncated_on_right_p
+	  || desired_row->continued_p != current_row->continued_p
+	  || desired_row->mode_line_p != current_row->mode_line_p
+	  || (desired_row->indicate_empty_line_p
+	      != current_row->indicate_empty_line_p)
+	  || (MATRIX_ROW_CONTINUATION_LINE_P (desired_row)
+	      != MATRIX_ROW_CONTINUATION_LINE_P (current_row)))
+	rif->after_update_window_line_hook (desired_row);
     }
-  
-  /* Update the display of the text area.  */
-  if (update_text_area (w, vpos))
-    {
-      changed_p = 1;
-      if (current_row->mouse_face_p)
-	*mouse_face_overwritten_p = 1;
-    }
-  
-  /* Update display of the right margin area, if there is one.  */
-  if (!desired_row->full_width_p
-      && !NILP (w->right_margin_width))
-    {
-      changed_p = 1;
-      update_marginal_area (w, RIGHT_MARGIN_AREA, vpos);
-    }
-  
-  /* Draw truncation marks etc.  */
-  if (!current_row->enabled_p
-      || desired_row->y != current_row->y
-      || desired_row->visible_height != current_row->visible_height
-      || desired_row->overlay_arrow_p != current_row->overlay_arrow_p
-      || desired_row->truncated_on_left_p != current_row->truncated_on_left_p
-      || desired_row->truncated_on_right_p != current_row->truncated_on_right_p
-      || desired_row->continued_p != current_row->continued_p
-      || desired_row->mode_line_p != current_row->mode_line_p
-      || (desired_row->indicate_empty_line_p
-	  != current_row->indicate_empty_line_p)
-      || (MATRIX_ROW_CONTINUATION_LINE_P (desired_row)
-	  != MATRIX_ROW_CONTINUATION_LINE_P (current_row)))
-    rif->after_update_window_line_hook (desired_row);
   
   /* Update current_row from desired_row.  */
   make_current (w->desired_matrix, w->current_matrix, vpos);
