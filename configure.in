@@ -95,9 +95,9 @@ AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
-                           don't use Motif or Xaw3d scroll bars])
+                          don't use Motif or Xaw3d scroll bars])
 AC_ARG_WITH(xim,
-[  --without-xim	   don't use X11 XIM])
+[  --without-xim           don't use X11 XIM])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
