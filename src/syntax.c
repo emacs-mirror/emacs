@@ -126,9 +126,10 @@ static void
 check_syntax_table (obj)
      Lisp_Object obj;
 {
-  CHECK_CHAR_TABLE (obj, 0);
+  if (!(CHAR_TABLE_P (obj)
+	&& XCHAR_TABLE (obj)->purpose == Qsyntax_table))
+    wrong_type_argument (Qsyntax_table_p, obj);
 }   
-
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
   "Return the current syntax table.\n\
@@ -338,8 +339,12 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
     }
 
   if (*p)
-    XSETINT (match, *p++);
-  if (XFASTINT (match) == ' ')
+    {
+      XSETINT (match, *p++);
+      if (XFASTINT (match) == ' ')
+	match = Qnil;
+    }
+  else
     match = Qnil;
 
   val = (int) code;
