@@ -1218,9 +1218,9 @@ encode_invocation_designation (charset, coding, dst)
       /* CHARSET is not yet designated to any graphic registers.  */
       /* At first check the requested designation.  */
       reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
-      if (reg < 0)
-	/* Since CHARSET requests no special designation, designate to
-	   graphic register 0.  */
+      if (reg == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)
+	/* Since CHARSET requests no special designation, designate it
+	   to graphic register 0.  */
 	reg = 0;
 
       ENCODE_DESIGNATION (charset, reg, coding);
@@ -1329,7 +1329,7 @@ encode_designation_at_bol (coding, table, src, src_end, dstp)
 	}
 
       reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
-      if (r[reg] < 0)
+      if (r[reg] == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)
 	{
 	  found++;
 	  r[reg] = charset;
@@ -2193,7 +2193,8 @@ setup_coding_system (coding_system, coding)
 		  if an element is t, REG can be used by any charset,
 		nil: REG is never used.  */
 	for (charset = 0; charset <= MAX_CHARSET; charset++)
-	  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) = -1;
+	  CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+	    = CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION;
 	for (i = 0; i < 4; i++)
 	  {
 	    if (INTEGERP (flags[i])
@@ -2255,7 +2256,8 @@ setup_coding_system (coding_system, coding)
 
 	for (charset = 0; charset <= MAX_CHARSET; charset++)
 	  if (CHARSET_VALID_P (charset)
-	      && CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) < 0)
+	      && (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		  == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 	    {
 	      /* We have not yet decided where to designate CHARSET.  */
 	      int reg_bits = default_reg_bits;
@@ -3334,19 +3336,14 @@ Return the corresponding character code in Big5.")
   return val;
 }
 
-DEFUN ("set-terminal-coding-system",
-       Fset_terminal_coding_system, Sset_terminal_coding_system, 1, 1,
-       "zCoding-system for terminal display: ",
-  "Set coding-system of your terminal to CODING-SYSTEM.\n\
-All outputs to terminal are encoded to this coding-system.")
+DEFUN ("set-terminal-coding-system-internal",
+       Fset_terminal_coding_system_internal,
+       Sset_terminal_coding_system_internal, 1, 1, 0, "")
   (coding_system)
      Lisp_Object coding_system;
 {
   CHECK_SYMBOL (coding_system, 0);
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
-  update_mode_lines++;
-  if (!NILP (Finteractive_p ()))
-    Fredraw_display ();
   return Qnil;
 }
 
@@ -3358,14 +3355,9 @@ DEFUN ("terminal-coding-system",
   return terminal_coding.symbol;
 }
 
-DEFUN ("set-keyboard-coding-system",
-       Fset_keyboard_coding_system, Sset_keyboard_coding_system, 1, 1, 0,
-  "Set coding-system of codes sent from terminal keyboard to CODING-SYSTEM.\n\
-In Encoded-kbd minor mode, user inputs are decoded\n\
-accoding to CODING-SYSTEM.\n\
-Do not call this function directly, but use the command\n\
-encoded-kbd-set-coding-system to activate Encoded-kbd mode\n\
-with a specific coding system.")
+DEFUN ("set-keyboard-coding-system-internal",
+       Fset_keyboard_coding_system_internal,
+       Sset_keyboard_coding_system_internal, 1, 1, 0, "")
   (coding_system)
      Lisp_Object coding_system;
 {
@@ -3594,9 +3586,9 @@ syms_of_coding ()
   defsubr (&Sencode_sjis_char);
   defsubr (&Sdecode_big5_char);
   defsubr (&Sencode_big5_char);
-  defsubr (&Sset_terminal_coding_system);
+  defsubr (&Sset_terminal_coding_system_internal);
   defsubr (&Sterminal_coding_system);
-  defsubr (&Sset_keyboard_coding_system);
+  defsubr (&Sset_keyboard_coding_system_internal);
   defsubr (&Skeyboard_coding_system);
   defsubr (&Sfind_coding_system);
 
