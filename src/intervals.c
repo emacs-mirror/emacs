@@ -54,6 +54,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
 Lisp_Object merge_properties_sticky ();
+static INTERVAL reproduce_tree P_ ((INTERVAL, INTERVAL));
+static INTERVAL reproduce_tree_obj P_ ((INTERVAL, Lisp_Object));
 
 /* Utility functions for intervals.  */
 
@@ -84,7 +86,7 @@ create_root_interval (parent)
       new->position = 0;
     }
 
-  new->parent = (INTERVAL) XFASTINT (parent);
+  SET_INTERVAL_OBJECT (new, parent);
 
   return new;
 }
@@ -269,7 +271,7 @@ root_interval (interval)
   register INTERVAL i = interval;
 
   while (! ROOT_INTERVAL_P (i))
-    i = i->parent;
+    i = INTERVAL_PARENT (i);
 
   return i;
 }
@@ -296,21 +298,21 @@ rotate_right (interval)
   if (! ROOT_INTERVAL_P (interval))
     {
       if (AM_LEFT_CHILD (interval))
-	interval->parent->left = B;
+	INTERVAL_PARENT (interval)->left = B;
       else
-	interval->parent->right = B;
+	INTERVAL_PARENT (interval)->right = B;
     }
-  B->parent = interval->parent;
+  COPY_INTERVAL_PARENT (B, interval);
 
   /* Make B the parent of A */
   i = B->right;
   B->right = interval;
-  interval->parent = B;
+  SET_INTERVAL_PARENT (interval, B);
 
   /* Make A point to c */
   interval->left = i;
   if (! NULL_INTERVAL_P (i))
-    i->parent = interval;
+    SET_INTERVAL_PARENT (i, interval);
 
   /* A's total length is decreased by the length of B and its left child.  */
   interval->total_length -= B->total_length - LEFT_TOTAL_LENGTH (interval);
@@ -342,21 +344,21 @@ rotate_left (interval)
   if (! ROOT_INTERVAL_P (interval))
     {
       if (AM_LEFT_CHILD (interval))
-	interval->parent->left = B;
+	INTERVAL_PARENT (interval)->left = B;
       else
-	interval->parent->right = B;
+	INTERVAL_PARENT (interval)->right = B;
     }
-  B->parent = interval->parent;
+  COPY_INTERVAL_PARENT (B, interval);
 
   /* Make B the parent of A */
   i = B->left;
   B->left = interval;
-  interval->parent = B;
+  SET_INTERVAL_PARENT (interval, B);
 
   /* Make A point to c */
   interval->right = i;
   if (! NULL_INTERVAL_P (i))
-    i->parent = interval;
+    SET_INTERVAL_PARENT (i, interval);
 
   /* A's total length is decreased by the length of B and its right child.  */
   interval->total_length -= B->total_length - RIGHT_TOTAL_LENGTH (interval);
@@ -411,17 +413,25 @@ balance_possible_root_interval (interval)
      register INTERVAL interval;
 {
   Lisp_Object parent;
+  int have_parent = 0;
 
-  if (interval->parent == NULL_INTERVAL)
+  if (!INTERVAL_HAS_OBJECT (interval) && !INTERVAL_HAS_PARENT (interval))
     return interval;
 
-  XSETFASTINT (parent, (EMACS_INT) interval->parent);
+  if (INTERVAL_HAS_OBJECT (interval))
+    {
+      have_parent = 1;
+      GET_INTERVAL_OBJECT (parent, interval);
+    }
   interval = balance_an_interval (interval);
 
-  if (BUFFERP (parent))
-    BUF_INTERVALS (XBUFFER (parent)) = interval;
-  else if (STRINGP (parent))
-    XSTRING (parent)->intervals = interval;
+  if (have_parent)
+    {
+      if (BUFFERP (parent))
+	BUF_INTERVALS (XBUFFER (parent)) = interval;
+      else if (STRINGP (parent))
+	XSTRING (parent)->intervals = interval;
+    }
 
   return interval;
 }
@@ -476,7 +486,7 @@ split_interval_right (interval, offset)
   int new_length = LENGTH (interval) - offset;
 
   new->position = position + offset;
-  new->parent = interval;
+  SET_INTERVAL_PARENT (new, interval);
 
   if (NULL_RIGHT_CHILD (interval))
     {
@@ -487,7 +497,7 @@ split_interval_right (interval, offset)
     {
       /* Insert the new node between INTERVAL and its right child.  */
       new->right = interval->right;
-      interval->right->parent = new;
+      SET_INTERVAL_PARENT (interval->right, new);
       interval->right = new;
       new->total_length = new_length + new->right->total_length;
       balance_an_interval (new);
@@ -521,7 +531,7 @@ split_interval_left (interval, offset)
 
   new->position = interval->position;
   interval->position = interval->position + offset;
-  new->parent = interval;
+  SET_INTERVAL_PARENT (new, interval);
 
   if (NULL_LEFT_CHILD (interval))
     {
@@ -532,7 +542,7 @@ split_interval_left (interval, offset)
     {
       /* Insert the new node between INTERVAL and its left child.  */
       new->left = interval->left;
-      new->left->parent = new;
+      SET_INTERVAL_PARENT (new->left, new);
       interval->left = new;
       new->total_length = new_length + new->left->total_length;
       balance_an_interval (new);
@@ -560,7 +570,7 @@ interval_start_pos (source)
   if (NULL_INTERVAL_P (source))
     return 0;
 
-  XSETFASTINT (parent, (EMACS_INT) source->parent);
+  GET_INTERVAL_OBJECT (parent, source);
   if (BUFFERP (parent))
     return BUF_BEG (XBUFFER (parent));
   return 0;
@@ -584,15 +594,18 @@ find_interval (tree, position)
   /* The distance from the left edge of the subtree at TREE
                     to POSITION.  */
   register int relative_position;
-  Lisp_Object parent;
 
   if (NULL_INTERVAL_P (tree))
     return NULL_INTERVAL;
 
-  XSETFASTINT (parent, (EMACS_INT) tree->parent);
   relative_position = position;
-  if (BUFFERP (parent))
-    relative_position -= BUF_BEG (XBUFFER (parent));
+  if (INTERVAL_HAS_OBJECT (tree))
+    {
+      Lisp_Object parent;
+      GET_INTERVAL_OBJECT (parent, tree);
+      if (BUFFERP (parent))
+	relative_position -= BUF_BEG (XBUFFER (parent));
+    }
 
   if (relative_position > TOTAL_LENGTH (tree))
     abort ();			/* Paranoia */
@@ -653,12 +666,12 @@ next_interval (interval)
     {
       if (AM_LEFT_CHILD (i))
 	{
-	  i = i->parent;
+	  i = INTERVAL_PARENT (i);
 	  i->position = next_position;
 	  return i;
 	}
 
-      i = i->parent;
+      i = INTERVAL_PARENT (i);
     }
 
   return NULL_INTERVAL;
@@ -692,12 +705,12 @@ previous_interval (interval)
     {
       if (AM_RIGHT_CHILD (i))
 	{
-	  i = i->parent;
+	  i = INTERVAL_PARENT (i);
 
 	  i->position = interval->position - LENGTH (i);
 	  return i;
 	}
-      i = i->parent;
+      i = INTERVAL_PARENT (i);
     }
 
   return NULL_INTERVAL;
@@ -728,7 +741,7 @@ update_interval (i, pos)
 	  else if (NULL_PARENT (i)) 
 	    error ("Point before start of properties");
 	  else  
-	      i = i->parent;
+	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else if (pos >= INTERVAL_LAST_POS (i))
@@ -743,7 +756,7 @@ update_interval (i, pos)
 	  else if (NULL_PARENT (i)) 
 	    error ("Point after end of properties");
 	  else 
-	      i = i->parent;
+	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else 
@@ -838,7 +851,7 @@ adjust_intervals_for_insertion (tree, position, length)
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
-  XSETFASTINT (parent, (EMACS_INT) tree->parent);
+  GET_INTERVAL_OBJECT (parent, tree);
   offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
 
   /* If inserting at point-max of a buffer, that position will be out
@@ -944,7 +957,7 @@ adjust_intervals_for_insertion (tree, position, length)
       /* Even if we are positioned between intervals, we default
 	 to the left one if it exists.  We extend it now and split
 	 off a part later, if stickiness demands it.  */
-      for (temp = prev ? prev : i;! NULL_INTERVAL_P (temp); temp = temp->parent)
+      for (temp = prev ? prev : i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
 	  temp = balance_possible_root_interval (temp);
@@ -1000,7 +1013,7 @@ adjust_intervals_for_insertion (tree, position, length)
   /* Otherwise just extend the interval.  */
   else
     {
-      for (temp = i; ! NULL_INTERVAL_P (temp); temp = temp->parent)
+      for (temp = i; temp; temp = INTERVAL_PARENT_OR_NULL (temp))
 	{
 	  temp->total_length += length;
 	  temp = balance_possible_root_interval (temp);
@@ -1208,7 +1221,7 @@ delete_node (i)
       this->total_length += migrate_amt;
     }
   this->left = migrate;
-  migrate->parent = this;
+  SET_INTERVAL_PARENT (migrate, this);
 
   return i->right;
 }
@@ -1232,10 +1245,10 @@ delete_interval (i)
   if (ROOT_INTERVAL_P (i))
     {
       Lisp_Object owner;
-      XSETFASTINT (owner, (EMACS_INT) i->parent);
+      GET_INTERVAL_OBJECT (owner, i);
       parent = delete_node (i);
       if (! NULL_INTERVAL_P (parent))
-	parent->parent = (INTERVAL) XFASTINT (owner);
+	SET_INTERVAL_OBJECT (parent, owner);
 
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
@@ -1247,18 +1260,18 @@ delete_interval (i)
       return;
     }
 
-  parent = i->parent;
+  parent = INTERVAL_PARENT (i);
   if (AM_LEFT_CHILD (i))
     {
       parent->left = delete_node (i);
       if (! NULL_INTERVAL_P (parent->left))
-	parent->left->parent = parent;
+	SET_INTERVAL_PARENT (parent->left, parent);
     }
   else
     {
       parent->right = delete_node (i);
       if (! NULL_INTERVAL_P (parent->right))
-	parent->right->parent = parent;
+	SET_INTERVAL_PARENT (parent->right, parent);
     }
 }
 
@@ -1343,7 +1356,7 @@ adjust_intervals_for_deletion (buffer, start, length)
   Lisp_Object parent;
   int offset;
 
-  XSETFASTINT (parent, (EMACS_INT) tree->parent);
+  GET_INTERVAL_OBJECT (parent, tree);
   offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
 
   if (NULL_INTERVAL_P (tree))
@@ -1440,12 +1453,12 @@ merge_interval_right (i)
     {
       if (AM_LEFT_CHILD (successor))
 	{
-	  successor = successor->parent;
+	  successor = INTERVAL_PARENT (successor);
 	  delete_interval (i);
 	  return successor;
 	}
 
-      successor = successor->parent;
+      successor = INTERVAL_PARENT (successor);
       successor->total_length -= absorb;
     }
 
@@ -1493,12 +1506,12 @@ merge_interval_left (i)
     {
       if (AM_RIGHT_CHILD (predecessor))
 	{
-	  predecessor = predecessor->parent;
+	  predecessor = INTERVAL_PARENT (predecessor);
 	  delete_interval (i);
 	  return predecessor;
 	}
 
-      predecessor = predecessor->parent;
+      predecessor = INTERVAL_PARENT (predecessor);
       predecessor->total_length -= absorb;
     }
 
@@ -1520,7 +1533,25 @@ reproduce_tree (source, parent)
 
   bcopy (source, t, INTERVAL_SIZE);
   copy_properties (source, t);
-  t->parent = parent;
+  SET_INTERVAL_PARENT (t, parent);
+  if (! NULL_LEFT_CHILD (source))
+    t->left = reproduce_tree (source->left, t);
+  if (! NULL_RIGHT_CHILD (source))
+    t->right = reproduce_tree (source->right, t);
+
+  return t;
+}
+
+static INTERVAL
+reproduce_tree_obj (source, parent)
+     INTERVAL source;
+     Lisp_Object parent;
+{
+  register INTERVAL t = make_interval ();
+
+  bcopy (source, t, INTERVAL_SIZE);
+  copy_properties (source, t);
+  SET_INTERVAL_OBJECT (t, parent);
   if (! NULL_LEFT_CHILD (source))
     t->left = reproduce_tree (source->left, t);
   if (! NULL_RIGHT_CHILD (source))
@@ -1654,7 +1685,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	{
 	  Lisp_Object buf;
 	  XSETBUFFER (buf, buffer);
-	  BUF_INTERVALS (buffer) = reproduce_tree (source, buf);
+	  BUF_INTERVALS (buffer) = reproduce_tree_obj (source, buf);
 	  BUF_INTERVALS (buffer)->position = 1;
 
 	  /* Explicitly free the old tree here?  */
@@ -1676,7 +1707,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
        some zero length intervals.  Eventually, do something clever
        about inserting properly.  For now, just waste the old intervals.  */
     {
-      BUF_INTERVALS (buffer) = reproduce_tree (source, tree->parent);
+      BUF_INTERVALS (buffer) = reproduce_tree (source, INTERVAL_PARENT (tree));
       BUF_INTERVALS (buffer)->position = 1;
       /* Explicitly free the old tree here.  */
 
@@ -2236,7 +2267,7 @@ copy_intervals_to_string (string, buffer, position, length)
   if (NULL_INTERVAL_P (interval_copy))
     return;
 
-  interval_copy->parent = (INTERVAL) XFASTINT (string);
+  SET_INTERVAL_OBJECT (interval_copy, string);
   XSTRING (string)->intervals = interval_copy;
 }
 

@@ -711,7 +711,7 @@ make_interval ()
   if (interval_free_list)
     {
       val = interval_free_list;
-      interval_free_list = interval_free_list->parent;
+      interval_free_list = INTERVAL_PARENT (interval_free_list);
     }
   else
     {
@@ -4215,7 +4215,7 @@ gc_sweep ()
 	  {
 	    if (! XMARKBIT (iblk->intervals[i].plist))
 	      {
-		iblk->intervals[i].parent = interval_free_list;
+		SET_INTERVAL_PARENT (&iblk->intervals[i], interval_free_list);
 		interval_free_list = &iblk->intervals[i];
 		this_free++;
 	      }
@@ -4233,7 +4233,7 @@ gc_sweep ()
 	  {
 	    *iprev = iblk->next;
 	    /* Unhook from the free list.  */
-	    interval_free_list = iblk->intervals[0].parent;
+	    interval_free_list = INTERVAL_PARENT (&iblk->intervals[0]);
 	    lisp_free (iblk);
 	    n_interval_blocks--;
 	  }

@@ -1,3 +1,35 @@
+2000-03-22  Ken Raeburn  <raeburn@gnu.org>
+
+	* intervals.h (NULL_INTERVAL): Cast to INTERVAL type.
+	(INT_LISPLIKE): New macro.
+	(NULL_INTERVAL_P): Use it.
+	(INTERVAL_HAS_PARENT, INTERVAL_HAS_OBJECT, SET_INTERVAL_PARENT,
+	SET_INTERVAL_OBJECT, INTERVAL_PARENT, COPY_INTERVAL_PARENT,
+	GET_INTERVAL_OBJECT, INTERVAL_PARENT_OR_NULL): New macros.
+
+	* alloc.c (make_interval, gc_sweep): Use new macros; eliminate all
+	explicit references to "parent" field of struct interval and
+	associated unclean type conversions.
+	* intervals.c (create_root_interval, root_interval, rotate_right,
+	rotate_left, balance_possible_root_interval, split_interval_right,
+	split_interval_left, interval_start_pos, find_interval,
+	next_interval, previous_interval, update_interval,
+	adjust_intervals_for_insertion, delete_node, delete_interval,
+	adjust_intervals_for_deletion, merge_interval_right,
+	merge_interval_left, reproduce_tree, graft_intervals_into_buffer,
+	copy_intervals_to_string): Likewise.
+	* intervals.h (AM_LEFT_CHILD, AM_RIGHT_CHILD, RESET_INTERVAL):
+	Likewise.
+	* syntax.c (update_syntax_table): Likewise.
+
+	* intervals.c (reproduce_tree_obj): New function, like
+	reproduce_tree but takes a Lisp_Object for the parent.  Declare
+	with prototype.
+	(graft_intervals_into_buffer): Use it when appropriate.
+	(reproduce_tree): Declare with prototype.
+	(balance_possible_root_interval): Check that the parent is a lisp
+	object before trying to examine its type.
+
 2000-03-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (lface_same_font_attributes_p): Compare font attributes

@@ -140,14 +140,14 @@ update_syntax_table (charpos, count, init, object)
       while (!NULL_PARENT (i)) 
 	{
 	  if (AM_RIGHT_CHILD (i))
-	    i->parent->position = i->position
+	    INTERVAL_PARENT (i)->position = i->position
 	      - LEFT_TOTAL_LENGTH (i) + TOTAL_LENGTH (i) /* right end */
-	      - TOTAL_LENGTH (i->parent)
-	      + LEFT_TOTAL_LENGTH (i->parent);
+	      - TOTAL_LENGTH (INTERVAL_PARENT (i))
+	      + LEFT_TOTAL_LENGTH (INTERVAL_PARENT (i));
 	  else
-	    i->parent->position = i->position - LEFT_TOTAL_LENGTH (i)
+	    INTERVAL_PARENT (i)->position = i->position - LEFT_TOTAL_LENGTH (i)
 	      + TOTAL_LENGTH (i);
-	  i = i->parent;
+	  i = INTERVAL_PARENT (i);
 	}
       i = gl_state.forward_i;
       gl_state.b_property = i->position - 1 - gl_state.offset;

@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #endif
 
-#define NULL_INTERVAL 0
+#define NULL_INTERVAL ((INTERVAL)0)
 #define INTERVAL_DEFAULT NULL_INTERVAL
 
 /* These are macros for dealing with the interval tree. */
@@ -37,14 +37,13 @@ Boston, MA 02111-1307, USA.  */
    Lisp_String pointer (meaning it points to the owner of this
    interval tree). */
 #ifdef NO_UNION_TYPE
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL           \
-			    || BUFFERP ((Lisp_Object)(i)) \
-			    || STRINGP ((Lisp_Object)(i)))
+#define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object)(i)) \
+			 || STRINGP ((Lisp_Object)(i)))
 #else
-#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL           \
-			    || BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
-			    || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
+#define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
+			 || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
 #endif
+#define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i))
 
 /* True if this interval has no right child. */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
@@ -56,12 +55,12 @@ Boston, MA 02111-1307, USA.  */
 #define NULL_PARENT(i) (NULL_INTERVAL_P ((i)->parent))
 
 /* True if this interval is the left child of some other interval. */
-#define AM_LEFT_CHILD(i) (! NULL_INTERVAL_P ((i)->parent) \
-			  && (i)->parent->left == (i))
+#define AM_LEFT_CHILD(i) (! NULL_PARENT (i) \
+			  && INTERVAL_PARENT (i)->left == (i))
 
 /* True if this interval is the right child of some other interval. */
-#define AM_RIGHT_CHILD(i) (! NULL_INTERVAL_P ((i)->parent) \
-			   && (i)->parent->right == (i))
+#define AM_RIGHT_CHILD(i) (! NULL_PARENT (i) \
+			   && INTERVAL_PARENT (i)->right == (i))
 
 /* True if this interval has no children. */
 #define LEAF_INTERVAL_P(i) ((i)->left == NULL_INTERVAL \
@@ -103,12 +102,38 @@ Boston, MA 02111-1307, USA.  */
    or having no properties. */
 #define DEFAULT_INTERVAL_P(i) (NULL_INTERVAL_P (i) || EQ ((i)->plist, Qnil))
 
+/* Test what type of parent we have.  Three possibilities: another
+   interval, a buffer or string object, or NULL_INTERVAL.  */
+#define INTERVAL_HAS_PARENT(i) ((i)->parent && ! INT_LISPLIKE ((i)->parent))
+#define INTERVAL_HAS_OBJECT(i) ((i)->parent &&   INT_LISPLIKE ((i)->parent))
+
+/* Set/get parent of an interval.
+
+   The choice of macros is dependent on the type needed.  Don't add
+   casts to get around this, it will break some development work in
+   progress.  */
+#define SET_INTERVAL_PARENT(i,p) ((i)->parent = (p))
+#define SET_INTERVAL_OBJECT(i,o) ((i)->parent = (INTERVAL) XFASTINT (o))
+#define INTERVAL_PARENT(i) ((i)->parent)
+/* Because XSETFASTINT has to be used, this can't simply be
+   value-returning.  */
+#define GET_INTERVAL_OBJECT(d,s) XSETFASTINT((d), (EMACS_INT) (s)->parent)
+
+/* Make the parent of D be whatever the parent of S is, regardless of
+   type.  This is used when balancing an interval tree.  */
+#define COPY_INTERVAL_PARENT(d,s) ((d)->parent = (s)->parent)
+
+/* Get the parent interval, if any, otherwise a null pointer.  Useful
+   for walking up to the root in a "for" loop; use this to get the
+   "next" value, and test the result to see if it's NULL_INTERVAL.  */
+#define INTERVAL_PARENT_OR_NULL(i) (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
+
 /* Reset this interval to its vanilla, or no-property state. */
 #define RESET_INTERVAL(i) \
 { \
     (i)->total_length = (i)->position = 0;    \
     (i)->left = (i)->right = NULL_INTERVAL;   \
-    (i)->parent = NULL_INTERVAL;              \
+    SET_INTERVAL_PARENT (i, NULL_INTERVAL);	      \
     (i)->write_protect = 0;                   \
     (i)->visible = 0;                         \
     (i)->front_sticky = (i)->rear_sticky = 0; \
