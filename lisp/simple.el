@@ -3922,7 +3922,8 @@ The completion list buffer is available as the value of `standard-output'.")
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
-      (if (eq minibuffer-completion-table 'read-file-name-internal)
+      (if (memq minibuffer-completion-table
+		'(ffap-read-file-or-url-internal read-file-name-internal))
 	  ;; For file name completion,
 	  ;; use the number of chars before the start of the
 	  ;; last file name component.
