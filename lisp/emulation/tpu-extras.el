@@ -1,4 +1,5 @@
 ;;; tpu-extras.el --- Scroll margins and free cursor mode for TPU-edt
+
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
@@ -20,8 +21,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-;;; Revision: $Id: tpu-extras.el,v 1.2 1993/08/04 08:19:13 rms Exp rms $
 
 ;;; Commentary:
 
@@ -105,7 +104,7 @@
 
 ;;;  Revision Information
 
-(defconst tpu-extras-revision "$Revision: 1.2 $"
+(defconst tpu-extras-revision "$Revision: 3.5 $"
   "Revision number of the TPU-edt extras.")
 
 
@@ -133,7 +132,11 @@ the previous line when starting from a line beginning.")
 ;;;  Hooks  --  Set cursor free in picture mode.
 ;;;             Clean up when writing a file from cursor free mode.
 
-(add-hook 'edit-picture-hook 'tpu-set-cursor-free)
+(if tpu-gnu-emacs18-p
+    (or (memq 'tpu-set-cursor-free edit-picture-hook)
+	(setq edit-picture-hook
+	      (cons 'tpu-set-cursor-free edit-picture-hook)))
+  (add-hook 'picture-mode-hook 'tpu-set-cursor-free))
 
 (defun tpu-write-file-hook nil
   "Eliminate whitespace at ends of lines, if the cursor is free."
@@ -374,7 +377,7 @@ A repeat count means scroll that many sections."
 	 (far (save-excursion
 		(goto-char bottom) (forward-line (- height 2)) (point))))
     (tpu-search-internal-core pat quiet)
-    (if searching-forward
+    (if tpu-searching-forward
 	(cond((> (point) far)
 	      (setq left (save-excursion (forward-line height)))
 	      (if (= 0 left) (recenter top-margin)
