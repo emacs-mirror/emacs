@@ -1516,7 +1516,10 @@ row_equal_p (w, a, b, mouse_face_p)
       if (a->fill_line_p != b->fill_line_p
 	  || a->cursor_in_fringe_p != b->cursor_in_fringe_p
 	  || a->left_fringe_bitmap != b->left_fringe_bitmap
+	  || a->left_fringe_face_id != b->left_fringe_face_id
 	  || a->right_fringe_bitmap != b->right_fringe_bitmap
+	  || a->right_fringe_face_id != b->right_fringe_face_id
+	  || a->overlay_arrow_p != b->overlay_arrow_p
 	  || a->exact_window_width_line_p != b->exact_window_width_line_p
 	  || a->overlapped_p != b->overlapped_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (a)
@@ -3826,10 +3829,15 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       paused_p = update_window_tree (root_window, force_p);
       update_end (f);
 
-#if 0 /* This flush is a performance bottleneck under X,
-	 and it doesn't seem to be necessary anyway.  */
-      rif->flush_display (f);
-#endif
+      /* This flush is a performance bottleneck under X,
+	 and it doesn't seem to be necessary anyway (in general).
+         It is necessary when resizing the window with the mouse, or
+	 at least the fringes are not redrawn in a timely manner.  ++kfs */
+      if (f->force_flush_display_p)
+	{
+	  rif->flush_display (f);
+	  f->force_flush_display_p = 0;
+	}
     }
   else
     {
@@ -4519,6 +4527,7 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
 	  || desired_row->y != current_row->y
 	  || desired_row->visible_height != current_row->visible_height
 	  || desired_row->cursor_in_fringe_p != current_row->cursor_in_fringe_p
+	  || desired_row->overlay_arrow_p != current_row->overlay_arrow_p
 	  || current_row->redraw_fringe_bitmaps_p
 	  || desired_row->mode_line_p != current_row->mode_line_p
 	  || desired_row->exact_window_width_line_p != current_row->exact_window_width_line_p
@@ -5025,7 +5034,10 @@ scrolling_window (w, header_line_p)
 	    to_overlapped_p = to->overlapped_p;
 	    if (!from->mode_line_p && !w->pseudo_window_p
 		&& (to->left_fringe_bitmap != from->left_fringe_bitmap
-		    || to->right_fringe_bitmap != from->right_fringe_bitmap))
+		    || to->right_fringe_bitmap != from->right_fringe_bitmap
+		    || to->left_fringe_face_id != from->left_fringe_face_id
+		    || to->right_fringe_face_id != from->right_fringe_face_id
+		    || to->overlay_arrow_p != from->overlay_arrow_p))
 	      from->redraw_fringe_bitmaps_p = 1;
 	    assign_row (to, from);
 	    to->enabled_p = 1, from->enabled_p = 0;
