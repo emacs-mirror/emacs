@@ -1,5 +1,8 @@
 2001-08-21  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
+	* INSTALL: Add to the note on using -opt speed in MPW the function
+	macterm.c (x_draw_hollow_cursor).
+
 	* src/macterm.c (mac_scroll_area): Call CopyBits with local
 	coordinates and portBits instead of global coordinates and
 	screenBits.  Set fore color and back color to black and white,

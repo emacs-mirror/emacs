@@ -93,8 +93,9 @@ the Mac.
 
 When Emacs is built with "-opt speed" enabled in makefile.MPW,
 optimization causes the functions reset_buffer_local_variables in
-buffer.c and syms_of_lread in lread.c to crash.  Avoid this by
-enclosing them in the following pragmas.
+buffer.c, syms_of_lread in lread.c, and x_draw_hollow_cursor in
+macterm.c to crash.  Avoid this by enclosing them in the following
+pragmas.
 
   #pragma options opt off
 
