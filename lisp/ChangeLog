@@ -1,3 +1,10 @@
+2005-04-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-url): Use format to generate the url.
+	(bibtex-generate-url-list): Update docstring accordingly. Put the
+	complex example in the docstring.
+	(bibtex-font-lock-url): Use pop.
+
 2005-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/tcl.el (tcl-set-font-lock-keywords): Use new \_< ops.
