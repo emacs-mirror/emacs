@@ -60,7 +60,7 @@
   ;; If this is a Latin-N character set, set up syntax for it in
   ;; single-byte mode.
   (if (string-match "^Latin-\\([1-9]\\)$" language)
-      (load (downcase language))))
+      (require (intern (downcase language)))))
 
 ;; Latin-1 (ISO-8859-1)
 
