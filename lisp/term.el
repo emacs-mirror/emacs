@@ -2943,7 +2943,9 @@ This mirrors the optional behavior of tcsh.")
 
 (defvar term-completion-addsuffix t
   "*If non-nil, add a `/' to completed directories, ` ' to file names.
-This mirrors the optional behavior of tcsh.")
+If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
+DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact
+completion.  This mirrors the optional behavior of tcsh.")
 
 (defvar term-completion-recexact nil
   "*If non-nil, use shortest completion if characters cannot be added.
@@ -3031,6 +3033,12 @@ See `term-dynamic-complete-filename'.  Returns t if successful."
   (let* ((completion-ignore-case nil)
 	 (completion-ignored-extensions term-completion-fignore)
 	 (success t)
+	 (dirsuffix (cond ((not term-completion-addsuffix) "")
+			  ((not (consp term-completion-addsuffix)) "/")
+			  (t (car term-completion-addsuffix))))
+	 (filesuffix (cond ((not term-completion-addsuffix) "")
+			   ((not (consp term-completion-addsuffix)) " ")
+			   (t (cdr term-completion-addsuffix))))	 
 	 (filename (or (term-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
@@ -3051,14 +3059,13 @@ See `term-dynamic-complete-filename'.  Returns t if successful."
                                 (length pathnondir)))
              (cond ((symbolp (file-name-completion completion directory))
                     ;; We inserted a unique completion.
-                    (if term-completion-addsuffix
-                        (insert (if (file-directory-p file) "/" " ")))
+		    (insert (if (file-directory-p file) dirsuffix filesuffix))
                     (or mini-flag (message "Completed")))
                    ((and term-completion-recexact term-completion-addsuffix
                          (string-equal pathnondir completion)
                          (file-exists-p file))
                     ;; It's not unique, but user wants shortest match.
-                    (insert (if (file-directory-p file) "/" " "))
+		    (insert (if (file-directory-p file) dirsuffix filesuffix))
                     (or mini-flag (message "Completed shortest")))
                    ((or term-completion-autolist
                         (string-equal pathnondir completion))
