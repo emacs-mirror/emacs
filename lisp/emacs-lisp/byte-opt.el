@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;;; Copyright (c) 1991, 1994, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1991, 1994, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -186,8 +186,8 @@
 (require 'bytecomp)
 
 (defun byte-compile-log-lap-1 (format &rest args)
-  (if (aref byte-code-vector 0)
-      (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
+;;   (if (aref byte-code-vector 0)
+;;       (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
    (apply 'format format
      (let (c a)
@@ -500,15 +500,6 @@
 	   (cons fn
 		 (cons (byte-optimize-form (nth 1 form) nil)
 		       (cdr (cdr form)))))
-
-	  ;; If optimization is on, this is the only place that macros are
-	  ;; expanded.  If optimization is off, then macroexpansion happens
-	  ;; in byte-compile-form.  Otherwise, the macros are already expanded
-	  ;; by the time that is reached.
-	  ((not (eq form
-		    (setq form (macroexpand form
-					    byte-compile-macro-environment))))
-	   (byte-optimize-form form for-effect))
 
 	  ;; Support compiler macros as in cl.el.
 	  ((and (fboundp 'compiler-macroexpand)
