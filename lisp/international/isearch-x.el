@@ -56,15 +56,6 @@
     map)
   "Keymap to use in minibuffer for multibyte character inputting in isearch.")
 
-
-;; These two variables are used to refer to the values of
-;; `current-input-method' and `input-method-function' of the original
-;; buffer in the function isearch-with-input-method which runs in a
-;; minibuffer.
-
-(defvar isearch-minibuffer-input-method nil)
-(defvar isearch-minibuffer-input-method-function nil)
-
 ;; Exit from recursive edit safely.  Set in `after-change-functions'
 ;; by isearch-with-keyboard-coding.
 (defun isearch-exit-recursive-edit ()
@@ -86,8 +77,7 @@
 
 (defun isearch-with-input-method ()
   (interactive)
-  (let* ((current-input-method isearch-minibuffer-input-method)
-	 (events (funcall isearch-minibuffer-input-method-function nil)))
+  (let ((events (funcall input-method-function nil)))
     ;; EVENTS is a list of events the input method has generated.  It
     ;; contains a character event and/or the special event
     ;; `compose-last-chars'.  We extract only character events and
@@ -106,20 +96,19 @@
 	    str)
 	(if isearch-input-method-function
 	    (let (;; Let input method work rather tersely.
-		  (input-method-verbose-flag nil)
-		  (isearch-minibuffer-input-method current-input-method)
-		  (isearch-minibuffer-input-method-function
-		   isearch-input-method-function))
+		  (input-method-verbose-flag nil))
 	      (setq unread-command-events
 		    (cons 'with-input-method
 			  (cons last-char unread-command-events))
-		    str (read-string prompt))
+		    ;; Inherit current-input-method in a minibuffer.
+		    str (read-string prompt nil nil nil t))
 	      (if (not str)
 		  ;; All inputs were deleted while the input method
 		  ;; was working.
 		  (setq str "")
 		(if (and (= (length str) 1)
-			 (= (aref str 0) last-char))
+			 (= (aref str 0) last-char)
+			 (>= last-char 128))
 		    ;; The input method couldn't handle LAST-CHAR.
 		    (setq str nil)))))
 
