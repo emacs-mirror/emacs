@@ -105,7 +105,7 @@ bind C-w to `isearch-yank-word' in `isearch-mode-map'.
 ** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
 
-** GUD mode improvements fo jdb:
+** GUD mode improvements for jdb:
 
 *** Search for source files using jdb classpath and class
     information. Fast startup since there is no need to scan all

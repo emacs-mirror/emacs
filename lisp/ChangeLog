@@ -1,3 +1,30 @@
+2002-01-20  Thomas Dorner  <Thomas.Dorner@start.de>
+
+	* ange-ftp.el: Added support for BS2000, and for raw ftp
+	login commands (needed in some circumstances).
+	(ange-ftp-raw-login): New custom var.
+	(ange-ftp-normal-login): Perform login with raw ftp commands, if
+	ange-ftp-raw-login is set and account password is needed.
+	(ange-ftp-host-type, ange-ftp-guess-host-type): Handle BS2000 hosts.
+	(ange-ftp-bs2000-filename-pubset-regexp)
+	(ange-ftp-bs2000-filename-username-regexp)
+	(ange-ftp-bs2000-filename-prefix-regexp)
+	(ange-ftp-bs2000-name-template): New consts.
+	(ange-ftp-bs2000-short-filename-regexp)
+	(ange-ftp-bs2000-fix-name-regexp-reverse)
+	(ange-ftp-bs2000-fix-name-regexp): New consts.
+	(ange-ftp-bs2000-special-prefix): New custom var.
+	(ange-ftp-fix-name-for-bs2000)
+	(ange-ftp-fix-dir-name-for-bs2000): New funs.
+	(ange-ftp-bs2000-host-regexp, ange-ftp-bs2000-posix-host-regexp)
+	(ange-ftp-bs2000-posix-hook-installed): New vars.
+	(ange-ftp-parse-bs2000-filename, ange-ftp-parse-bs2000-listing)
+	(ange-ftp-bs2000-host, ange-ftp-bs2000-posix-host)
+	(ange-ftp-add-bs2000-host, ange-ftp-add-bs2000-posix-host): New funs.
+	(ange-ftp-bs2000-filename-regexp): New const.
+	(ange-ftp-bs2000-additional-pubsets): New custom var.
+	(ange-ftp-bs2000-cd-to-posix): New fun.
+
 2002-01-20  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el: (toplevel) Require `ibuf-ext', which is now compiled
