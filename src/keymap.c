@@ -1184,7 +1184,7 @@ current_minor_maps (modeptr, mapptr)
 	    {
 	      val = assq_no_quit (var, lists[0]);
 	      if (!NILP (val))
-		break;
+		continue;
 	    }
 
 	  if (i >= cmm_size)
