@@ -162,3 +162,6 @@
 
 * Remove the special treatment of binary files by DOS and Windows ports.
   They should use find-file-literally and `no-conversion' instead.
+
+* Investigate using GNU Lightning or similar system for incremental
+  (`JIT') compilation.
