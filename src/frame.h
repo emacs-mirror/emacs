@@ -233,7 +233,6 @@ typedef struct frame *FRAME_PTR;
 
 #define WINDOW_FRAME(w) (w)->frame
 
-#define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
 #define FRAME_LIVE_P(f) ((f)->display.nothing != 0)
 #define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
 #define FRAME_X_P(f) ((f)->output_method == output_x_window)
@@ -365,7 +364,6 @@ extern int last_nonminibuf_frame;
 #define XFRAME(f) selected_frame
 #define WINDOW_FRAME(w) selected_frame
 
-#define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
 #define FRAME_LIVE_P(f) 1
 #define FRAME_TERMCAP_P(f) 1
 #define FRAME_X_P(f) 0
