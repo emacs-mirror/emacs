@@ -59,7 +59,7 @@
 (set-language-info-alist
  "Vietnamese" `((charset viscii)
 		(coding-system vietnamese-viscii vietnamese-vscii
-			       vietnamese-viqr windows-1258)
+			       vietnamese-tcvn vietnamese-viqr windows-1258)
 		(coding-priority vietnamese-viscii)
 		(nonascii-translation . viscii)
 		(input-method . "vietnamese-viqr")
@@ -67,11 +67,12 @@
 		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
-For Vietnamese, Emacs uses special character sets internally.
-They can be decoded from and encoded to VISCII, VSCII, and VIQR.
-Current setting put higher priority to the coding system VISCII than VSCII.
-If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
-		))
+For Vietnamese, Emacs can use encodings VISCII, VSCII, TCVN-5712, VIQR
+and windows-1258.  VSCII is deprecated in favour of TCVN-5712.  The
+current setting gives higher priority to the coding system VISCII than
+TCVN-5712.  If you prefer TCVN-5712, please do: (prefer-coding-system
+'vietnamese-tcvn).  There are two Vietnamese input methods: VIQR and
+Telex; VIQR is the default setting.")))
 
 (define-coding-system 'windows-1258
   "windows-1258 encoding for Vietnamese (MIME: WINDOWS-1258)"
@@ -80,6 +81,13 @@ If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
   :charset-list '(windows-1258)
   :mime-charset 'windows-1258)
 (define-coding-system-alias 'cp1258 'windows-1258)
+
+(define-coding-system 'vietnamese-tcvn
+  "8-bit encoding for Vietnamese TCVN-5712"
+  :coding-type 'charset
+  :mnemonic ?t
+  :charset-list '(tcvn-5712))
+(define-coding-system-alias 'tcvn 'vietnamese-tcvn)
 
 (provide 'vietnamese)
 
