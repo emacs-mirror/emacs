@@ -1,5 +1,7 @@
 2000-12-02  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* tmm.el (tmm-get-keymap): Eval the menu name in `menu-item'.
+
 	* textmodes/ispell.el (check-ispell-version): Don't use match-beginning
 	to check if the match succeeded.
 
