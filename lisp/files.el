@@ -3264,7 +3264,12 @@ See also `auto-save-file-name-p'."
 
 	(if (and (eq system-type 'ms-dos)
 		 (not (msdos-long-file-names)))
-	    (let ((fn (file-name-nondirectory buffer-file-name)))
+	    ;; We truncate the file name to DOS 8+3 limits before
+	    ;; doing anything else, because the regexp passed to
+	    ;; string-match below cannot handle extensions longer than
+	    ;; 3 characters, multiple dots, and other atrocities.
+	    (let ((fn (dos-8+3-filename
+		       (file-name-nondirectory buffer-file-name))))
 	      (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
 	      (concat (file-name-directory buffer-file-name)
 		      "#" (match-string 1 fn)
