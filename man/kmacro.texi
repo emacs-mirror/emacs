@@ -7,13 +7,6 @@
 @cindex defining keyboard macros
 @cindex keyboard macro
 
-
-@node Keyboard Macros
-@section Keyboard Macros
-
-@cindex defining keyboard macros
-@cindex keyboard macro
-
   In this chapter we describe how a sequence of editing commands can
 be recorded and repeated multiple times.
 
