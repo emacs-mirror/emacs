@@ -61,7 +61,6 @@
 (or news-reply-mode-map
     (progn
       (setq news-reply-mode-map (make-keymap))
-      (define-key news-reply-mode-map "\C-c?" 'describe-mode)
       (define-key news-reply-mode-map "\C-c\C-f\C-d" 'news-reply-distribution)
       (define-key news-reply-mode-map "\C-c\C-f\C-k" 'news-reply-keywords)
       (define-key news-reply-mode-map "\C-c\C-f\C-n" 'news-reply-newsgroups)
