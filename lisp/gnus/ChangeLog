@@ -15,7 +15,8 @@
 
 2001-11-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
-	* gnus-sum.el (gnus-summary-limit-to-author): The number of arguments.
+	* gnus-sum.el (gnus-summary-limit-to-author): Fix the number of
+	arguments.
 
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -38,7 +39,7 @@
 	(message-forward-rmail-make-body): New function.
 
 	* gnus-util.el (gnus-directory-sep-char-regexp): New variable.
-	* gnus-score.el (gnus-score-find-bnews): Sync with Gnus CVS.
+	* gnus-score.el (gnus-score-find-bnews): Use it.
 	* mm-util.el: Sync. Read ChangeLog in Gnus CVS.
 
 	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
