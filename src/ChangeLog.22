@@ -1,3 +1,24 @@
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (QCmnemonic, QCdefalut_char)
+	(QCdecode_translation_table, QCencode_translation_table)
+	(QCpost_read_conversion, QCpre_write_conversion): New variables.
+	(get_translation_table): Return a list of translation tables if
+	necessary.
+	(decode_coding): Call get_translation_table with ENCODEP 0.
+	(char_encodable_p): If translation_table is non-nil, always call
+	translate_char.
+	(Fdefine_coding_system_internal): Accept list of translation
+	tables as :encode-translation-table and :decode-translation-table.
+	(Fcoding_system_put): New function.
+	(syms_of_coding): Declare new symbols.  Defsubr
+	Scoding_system_put.
+
+	* charset.c (map_charset_chars): Fix arg to map_charset_chars in
+	when the charset is superset type.
+
+	* character.c (translate_char): Accept list of translation tables.
+
 2004-01-25  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (enum coding_attr_index): New member

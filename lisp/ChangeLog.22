@@ -1,5 +1,10 @@
 2004-01-27  Kenichi Handa  <handa@m17n.org>
 
+	* language/japanese.el: Load cp51932 and eucjp-ms.
+	(japanese-ucs-cp932-map, japanese-ucs-jis-map)
+	(japanese-ucs-glibc-map): New translation tables.
+	(eucjp-ms): New coding system.
+
 	* international/mule.el (coding-system-put): Delete it
 	(implemented in C).
 

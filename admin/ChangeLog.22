@@ -12,6 +12,8 @@
 
 2004-01-26  Kenichi Handa  <handa@m17n.org>
 
+	* charsets/cp932.awk: New file.
+
 	* charsets/Makefile (CP932-2BYTE.map): Call mapconv with
 	cp932.awk.
 
