@@ -29,6 +29,13 @@ Lisp_Object last_undo_buffer;
 
 Lisp_Object Qinhibit_read_only;
 
+/* The first time a command records something for undo.
+   it also allocates the undo-boundary object
+   which will be added to the list at the end of the command.
+   This ensures we can't run out of space while trying to make
+   an undo-boundary.  */
+Lisp_Object pending_boundary;
+
 /* Record an insertion that just happened or is about to happen,
    for LENGTH characters at position BEG.
    (It is possible to record an insertion before or after the fact
@@ -41,6 +48,10 @@ record_insert (beg, length)
 
   if (EQ (current_buffer->undo_list, Qt))
     return;
+
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
@@ -81,6 +92,10 @@ record_delete (beg, length)
 
   if (EQ (current_buffer->undo_list, Qt))
     return;
+
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
 
   if (current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
@@ -151,6 +166,10 @@ record_property_change (beg, length, prop, value, buffer)
   if (EQ (XBUFFER (buffer)->undo_list, Qt))
     return;
 
+  /* Allocate a cons cell to be the undo boundary after this command.  */
+  if (NILP (pending_boundary))
+    pending_boundary = Fcons (Qnil, Qnil);
+
   if (!EQ (buffer, last_undo_buffer))
     boundary = 1;
   last_undo_buffer = buffer;
@@ -183,7 +202,19 @@ but another undo command will undo to the previous boundary.")
     return Qnil;
   tem = Fcar (current_buffer->undo_list);
   if (!NILP (tem))
-    current_buffer->undo_list = Fcons (Qnil, current_buffer->undo_list);
+    {
+      /* One way or another, cons nil onto the front of the undo list.  */
+      if (!NILP (pending_boundary))
+	{
+	  /* If we have preallocated the cons cell to use here,
+	     use that one.  */
+	  XCONS (pending_boundary)->cdr = current_buffer->undo_list;
+	  current_buffer->undo_list = pending_boundary;
+	  pending_boundary = Qnil;
+	}
+      else
+	current_buffer->undo_list = Fcons (Qnil, current_buffer->undo_list);
+    }
   return Qnil;
 }
 
@@ -424,6 +455,9 @@ syms_of_undo ()
 {
   Qinhibit_read_only = intern ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);
+
+  pending_boundary = Qnil;
+  staticpro (&pending_boundary);
 
   defsubr (&Sprimitive_undo);
   defsubr (&Sundo_boundary);
