@@ -174,6 +174,70 @@ check_mark (for_region)
     Fsignal (Qmark_inactive, Qnil);
 }
 
+static void
+fix_command (input, values)
+     Lisp_Object input, values;
+{
+  /* If the list of args was produced with an explicit call to `list',
+     look for elements that were computed with (region-beginning)
+     or (region-end), and put those expressions into VALUES
+     instead of the present values.  */
+  if (CONSP (input))
+    {
+      Lisp_Object car;
+
+      car = XCAR (input);
+      /* Skip through certain special forms.  */
+      while (EQ (car, Qlet) || EQ (car, Qletx)
+	     || EQ (car, Qsave_excursion)
+	     || EQ (car, Qprogn))
+	{
+	  while (CONSP (XCDR (input)))
+	    input = XCDR (input);
+	  input = XCAR (input);
+	  if (!CONSP (input))
+	    break;
+	  car = XCAR (input);
+	}
+      if (EQ (car, Qlist))
+	{
+	  Lisp_Object intail, valtail;
+	  for (intail = Fcdr (input), valtail = values;
+	       CONSP (valtail);
+	       intail = Fcdr (intail), valtail = Fcdr (valtail))
+	    {
+	      Lisp_Object elt;
+	      elt = Fcar (intail);
+	      if (CONSP (elt))
+		{
+		  Lisp_Object presflag, carelt;
+		  carelt = Fcar (elt);
+		  /* If it is (if X Y), look at Y.  */
+		  if (EQ (carelt, Qif)
+		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
+		    elt = Fnth (make_number (2), elt);
+		  /* If it is (when ... Y), look at Y.  */
+		  else if (EQ (carelt, Qwhen))
+		    {
+		      while (CONSP (XCDR (elt)))
+			elt = XCDR (elt);
+		      elt = Fcar (elt);
+		    }
+
+		  /* If the function call we're looking at
+		     is a special preserved one, copy the
+		     whole expression for this argument.  */
+		  if (CONSP (elt))
+		    {
+		      presflag = Fmemq (Fcar (elt), preserved_fns);
+		      if (!NILP (presflag))
+			Fsetcar (valtail, Fcar (intail));
+		    }
+		}
+	    }
+	}
+    }
+}
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
        doc: /* Call FUNCTION, reading args according to its interactive calling specs.
@@ -785,70 +849,6 @@ supply if the command inquires which events were used to invoke it.  */)
   }
 }
 
-Lisp_Object
-fix_command (input, values)
-     Lisp_Object input, values;
-{
-  /* If the list of args was produced with an explicit call to `list',
-     look for elements that were computed with (region-beginning)
-     or (region-end), and put those expressions into VALUES
-     instead of the present values.  */
-  if (CONSP (input))
-    {
-      Lisp_Object car;
-
-      car = XCAR (input);
-      /* Skip through certain special forms.  */
-      while (EQ (car, Qlet) || EQ (car, Qletx)
-	     || EQ (car, Qsave_excursion)
-	     || EQ (car, Qprogn))
-	{
-	  while (CONSP (XCDR (input)))
-	    input = XCDR (input);
-	  input = XCAR (input);
-	  if (!CONSP (input))
-	    break;
-	  car = XCAR (input);
-	}
-      if (EQ (car, Qlist))
-	{
-	  Lisp_Object intail, valtail;
-	  for (intail = Fcdr (input), valtail = values;
-	       CONSP (valtail);
-	       intail = Fcdr (intail), valtail = Fcdr (valtail))
-	    {
-	      Lisp_Object elt;
-	      elt = Fcar (intail);
-	      if (CONSP (elt))
-		{
-		  Lisp_Object presflag, carelt;
-		  carelt = Fcar (elt);
-		  /* If it is (if X Y), look at Y.  */
-		  if (EQ (carelt, Qif)
-		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
-		    elt = Fnth (make_number (2), elt);
-		  /* If it is (when ... Y), look at Y.  */
-		  else if (EQ (carelt, Qwhen))
-		    {
-		      while (CONSP (XCDR (elt)))
-			elt = XCDR (elt);
-		      elt = Fcar (elt);
-		    }
-
-		  /* If the function call we're looking at
-		     is a special preserved one, copy the
-		     whole expression for this argument.  */
-		  if (CONSP (elt))
-		    {
-		      presflag = Fmemq (Fcar (elt), preserved_fns);
-		      if (!NILP (presflag))
-			Fsetcar (valtail, Fcar (intail));
-		    }
-		}
-	    }
-	}
-    }
-}
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        1, 1, 0,
        doc: /* Return numeric meaning of raw prefix argument RAW.
