@@ -313,7 +313,8 @@ These hooks have the following distinct roles:
                               (buffer-substring
                                entry-start (point))
                               (buffer-substring
-                               (1+ date-start) (1- entry-start)))))))
+                               (1+ date-start) (1- entry-start))
+			      (copy-marker entry-start))))))
                      (setq d (cdr d)))
                    (or entry-found
                        (not diary-list-include-blanks)
@@ -412,6 +413,20 @@ changing the variable `diary-include-string'."
       (display-buffer (find-buffer-visiting d-file))
       (message "Preparing diary...done"))))
 
+(defface diary-button-face '((((type pc) (class color))
+		   (:foreground "lightblue")))
+  "Default face used for buttons.")
+
+(define-button-type 'diary-entry
+  'action #'diary-goto-entry
+  'face #'diary-button-face)
+
+(defun diary-goto-entry (button)
+  (let ((marker (button-get button 'marker)))
+    (when marker
+      (pop-to-buffer (marker-buffer marker))
+      (goto-char (marker-position marker)))))
+
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
 This function is provided for optional use as the `diary-display-hook'."
@@ -497,12 +512,17 @@ This function is provided for optional use as the `diary-display-hook'."
                                        (concat "\n" (make-string l ? ))))
                     (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
           (if (< 0 (length (car (cdr (car entry-list)))))
-              (insert (car (cdr (car entry-list))) ?\n))
+	      (if (nth 3 (car entry-list))
+		  (insert-button (concat (car (cdr (car entry-list))) "\n")
+				 'marker (nth 3 (car entry-list))
+				 :type 'diary-entry)
+		(insert (car (cdr (car entry-list))) ?\n)))
           (setq entry-list (cdr entry-list))))
       (set-buffer-modified-p nil)
       (goto-char (point-min))
       (setq buffer-read-only t)
       (display-buffer fancy-diary-buffer)
+      (fancy-diary-display-mode)
       (message "Preparing diary...done"))))
 
 (defun make-fancy-diary-buffer ()
@@ -1164,7 +1184,8 @@ best if they are nonmarking."
           (re-search-backward "\^M\\|\n\\|\\`")
           (setq line-start (point)))
         (setq specifier
-              (buffer-substring-no-properties (1+ line-start) (point)))
+              (buffer-substring-no-properties (1+ line-start) (point))
+	      entry-start (1+ line-start))
         (forward-char 1)
         (if (and (or (char-equal (preceding-char) ?\^M)
                      (char-equal (preceding-char) ?\n))
@@ -1187,7 +1208,9 @@ best if they are nonmarking."
 			     (if (consp diary-entry)
 				 (cdr diary-entry)
 			       diary-entry)
-			     specifier)
+			     specifier
+			     (if entry-start (copy-marker entry-start)
+			       nil))
 	  (setq entry-found (or entry-found diary-entry)))))
     entry-found))
 
@@ -1245,7 +1268,7 @@ use when highlighting the day in the calendar."
          (or (and (listp year) (memq y year))
              (equal y year)
              (eq year t)))
-        entry)))
+        (cons mark entry))))
 
 (defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
@@ -1445,12 +1468,13 @@ marked on the calendar."
       (or (diary-remind sexp (car days) marking)
           (diary-remind sexp (cdr days) marking))))))
 
-(defun add-to-diary-list (date string specifier)
+(defun add-to-diary-list (date string specifier marker)
   "Add the entry (DATE STRING SPECIFIER) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (and date string
        (setq diary-entries-list
-             (append diary-entries-list (list (list date string specifier))))))
+             (append diary-entries-list
+		     (list (list date string specifier marker))))))
 
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
@@ -1562,6 +1586,139 @@ Prefix arg will make the entry nonmarking."
                             (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
+
+;;;###autoload
+(define-derived-mode diary-mode text-mode
+  "Diary"
+  "Major mode for editing the diary file."
+  (set (make-local-variable 'font-lock-defaults)
+       '(diary-font-lock-keywords t)))
+
+(define-derived-mode fancy-diary-display-mode text-mode
+  "Diary"
+  "Major mode used while displaying diary entries using Fancy Display."
+  (set (make-local-variable 'font-lock-defaults)
+       '(fancy-diary-font-lock-keywords t)))
+
+
+(defvar fancy-diary-font-lock-keywords
+  (list
+   (cons
+    (concat
+     (let ((dayname
+	    (concat "\\("
+		    (diary-name-pattern calendar-day-name-array t)
+		    "\\)"))
+	   (monthname
+	    (concat "\\("
+		    (diary-name-pattern calendar-month-name-array t)
+		    "\\)"))
+	   (day "[0-9]+")
+	   (year "-?[0-9]+"))
+       (mapconcat 'eval calendar-date-display-form ""))
+     "\\(\\(: .*\\)\\|\\(\n +.*\\)\\)*\n=+$")
+    'diary-face)
+   '("^.*anniversary.*$" . font-lock-keyword-face)
+   '("^.*birthday.*$" . font-lock-keyword-face)
+   '("^.*Yahrzeit.*$" . font-lock-reference-face)
+   '("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
+   '("^Day.*omer.*$" . font-lock-builtin-face)
+   '("^Parashat.*$" . font-lock-comment-face)
+   '("^[ \t]*[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\)?"
+     . font-lock-variable-name-face))
+  "Keywords to highlight in fancy diary display")
+
+
+(defun font-lock-diary-sexps (limit)
+  "Recognize sexp diary entry for font-locking."
+  (if (re-search-forward
+       (concat "^" (regexp-quote diary-nonmarking-symbol)
+               "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+       limit t)
+      (condition-case nil
+	  (save-restriction
+	    (narrow-to-region (point-min) limit)
+	    (let ((start (point)))
+	      (forward-sexp 1)
+	      (store-match-data (list start (point)))
+	      t))
+	(error t))))
+
+(defun font-lock-diary-date-forms (month-list &optional symbol noabbrev)
+  "Create a list of font-lock patterns for `diary-date-forms' with MONTH-LIST.
+If given, optional SYMBOL must be a prefix to entries.
+If optional NOABBREV is t, do not allow abbreviations in names."
+  (let* ((dayname
+          (concat "\\(" (diary-name-pattern calendar-day-name-array) "\\)"))
+         (monthname (concat "\\("
+                            (diary-name-pattern month-list noabbrev)
+                            "\\|\\*\\)"))
+         (month "\\([0-9]+\\|\\*\\)")
+         (day "\\([0-9]+\\|\\*\\)")
+         (year "-?\\([0-9]+\\|\\*\\)"))
+    (mapcar '(lambda (x)
+               (cons
+                (concat "^" (regexp-quote diary-nonmarking-symbol) "?"
+                        (if symbol (regexp-quote symbol) "") "\\("
+                        (mapconcat 'eval
+                                   ;; If backup, omit first item (backup)
+                                   ;; and last item (not part of date)
+                                   (if (equal (car x) 'backup)
+                                       (reverse (cdr (reverse (cdr x))))
+                                     x)
+                                   "")
+                        ;; With backup, last item is not part of date
+                        (if (equal (car x) 'backup)
+                            (concat "\\)" (eval (car (reverse x))))
+                          "\\)"))
+                '(1 diary-face)))
+            diary-date-forms)))
+
+(defvar diary-font-lock-keywords
+      (append
+       (font-lock-diary-date-forms calendar-month-name-array)
+       (if (or (memq 'mark-hebrew-diary-entries
+                     nongregorian-diary-marking-hook)
+               (memq 'list-hebrew-diary-entries
+                     nongregorian-diary-listing-hook))
+           (progn
+             (require 'cal-hebrew)
+             (font-lock-diary-date-forms
+              calendar-hebrew-month-name-array-leap-year
+              hebrew-diary-entry-symbol t)))
+       (if (or (memq 'mark-islamic-diary-entries
+                     nongregorian-diary-marking-hook)
+               (memq 'list-islamic-diary-entries
+                     nongregorian-diary-listing-hook))
+           (progn
+             (require 'cal-islamic)
+             (font-lock-diary-date-forms
+              calendar-islamic-month-name-array-leap-year
+              islamic-diary-entry-symbol t)))
+       (list
+        (cons
+         (concat "^" (regexp-quote diary-include-string) ".*$")
+         'font-lock-keyword-face)
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol))
+         'font-lock-reference-face)
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote hebrew-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        '(font-lock-diary-sexps . font-lock-keyword-face)
+        '("[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\)?"
+          . font-lock-function-name-face)))
+      "Forms to highlight in diary-mode")
+  
 
 (provide 'diary-lib)
 
