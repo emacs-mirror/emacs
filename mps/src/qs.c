@@ -1,6 +1,6 @@
 /*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.15) $
+ *  $HopeName: MMsrc!qs.c(trunk.16) $
  *  Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
@@ -20,9 +20,6 @@
  *  Some registers are not nulled out when they could be.
  */
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "testlib.h"
 #include "mps.h"
 #include "mpsavm.h"
@@ -32,6 +29,7 @@
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
 #endif
+#include <stdlib.h>
 
 
 #define testArenaSIZE   ((size_t)16<<20)
@@ -126,8 +124,8 @@ static void cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
  */
 static void append(void)
 {
-  assert(regtag[0] == QSRef);
-  assert(regtag[1] == QSRef);
+  cdie(regtag[0] == QSRef, "append 0");
+  cdie(regtag[1] == QSRef, "append 1");
 
   if(reg[0] == (mps_word_t)0) {
     reg[0] = reg[1];
@@ -142,7 +140,7 @@ static void append(void)
 
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "append tail");
   reg[0] = (mps_word_t)((QSCell)reg[0])->tail; /* (cdr x) */
   regtag[0] = QSRef;
   append();
@@ -150,7 +148,7 @@ static void append(void)
   regtag[1] = regtag[0];
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "append sec");
   regtag[0] = ((QSCell)reg[0])->tag;
   reg[0] = ((QSCell)reg[0])->value; /* (car x) */
   cons(regtag[0], reg[0], (QSCell)reg[1]);
@@ -183,7 +181,7 @@ static void makerndlist(int l)
   int i;
   mps_word_t r;
 
-  assert(l > 0);
+  cdie(l > 0, "list len");
   if(list != NULL) {
     mps_free(mpool, (mps_addr_t)list, (listl * sizeof(mps_word_t)));
     list = NULL;
@@ -208,14 +206,14 @@ static void part(mps_word_t p)
 {
   regtag[2]=regtag[0];
   reg[2]=reg[0];
-  assert(regtag[2] == QSRef);
+  cdie(regtag[2] == QSRef, "part 0");
   regtag[0]=QSRef;
   reg[0]=(mps_word_t)0;
   regtag[1]=QSRef;
   reg[1]=(mps_word_t)0;
 
   while(reg[2] != (mps_word_t)0) {
-    assert(((QSCell)reg[2])->tag == QSInt);
+    cdie(((QSCell)reg[2])->tag == QSInt, "part int");
     if(((QSCell)reg[2])->value < p) {
       /* cons onto reg[0] */
       cons(QSInt, ((QSCell)reg[2])->value, (QSCell)reg[0]);
@@ -238,7 +236,7 @@ static void qs(void)
 {
   mps_word_t pivot;
 
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "qs 0");
 
   /* base case */
   if(reg[0] == (mps_word_t)0) {
@@ -246,7 +244,7 @@ static void qs(void)
   }
 
   /* check that we have an int list */
-  assert(((QSCell)reg[0])->tag == QSInt);
+  cdie(((QSCell)reg[0])->tag == QSInt, "qs int");
 
   pivot = ((QSCell)reg[0])->value;
   reg[0] = (mps_word_t)((QSCell)reg[0])->tail;
@@ -259,7 +257,7 @@ static void qs(void)
 
   reg[0] = reg[1];
   regtag[0] = regtag[1];
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "qs 1");
   qs();
   cons(QSInt, pivot, (QSCell)reg[0]);
   activationStack = activationStack->tail;
@@ -267,7 +265,7 @@ static void qs(void)
   activationStack = (QSCell)reg[0];
   reg[0] = activationStack->tail->value;
   regtag[0] = activationStack->tail->tag;
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "qs tail");
   qs();
   reg[1] = activationStack->value;
   regtag[1] = activationStack->tag;
@@ -301,11 +299,11 @@ static void validate(void)
 {
   mps_word_t i;
 
-  assert(regtag[0] == QSRef);
+  cdie(regtag[0] == QSRef, "validate 0");
   regtag[1] = regtag[0];
   reg[1] = reg[0];
   for(i = 0; i < listl; ++i) {
-    assert(((QSCell)reg[1])->tag == QSInt);
+    cdie(((QSCell)reg[1])->tag == QSInt, "validate int");
     if(((QSCell)reg[1])->value != list[i]) {
       fprintf(stdout,
               "mps_res_t: Element %lu of the two lists do not match.\n",
@@ -314,7 +312,7 @@ static void validate(void)
     }
     reg[1] = (mps_word_t)((QSCell)reg[1])->tail;
   }
-  assert(reg[1] == (mps_word_t)0);
+  cdie(reg[1] == (mps_word_t)0, "validate end");
   fprintf(stdout, "Note: Lists compare equal.\n");
 }
 
@@ -364,12 +362,12 @@ static void *go(void *p, size_t s)
 static void pad(mps_addr_t base, size_t size)
 {
   mps_word_t *object = base;
-  assert(size >= sizeof(mps_word_t));
+  cdie(size >= sizeof(mps_word_t), "pad size");
   if(size == sizeof(mps_word_t)) {
     object[0] = QSPadOne;
     return;
   }
-  assert(size >= 2*sizeof(mps_word_t));
+  cdie(size >= 2*sizeof(mps_word_t), "pad size 2");
   object[0] = QSPadMany;
   object[1] = size;
   return;
@@ -381,7 +379,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
   QSCell cell;
   mps_res_t res;
 
-  assert(objectIO != NULL);
+  cdie(objectIO != NULL, "objectIO");
 
   MPS_SCAN_BEGIN(ss) {
     cell = (QSCell)*objectIO;
@@ -417,7 +415,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
       return MPS_RES_OK;
 
     default:
-      assert(0);
+      cdie(0, "unknown tag");
       return MPS_RES_OK;
     }
   } MPS_SCAN_END(ss);
@@ -439,7 +437,7 @@ static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
     }
   }
 
-  assert(base == limit);
+  cdie(base == limit, "scan limit");
   return MPS_RES_OK;
 }
 
