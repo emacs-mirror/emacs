@@ -542,12 +542,15 @@ to provide correct modes for autoloaded files."
       (progn
 	(require 'info)
 	(Info-find-node (nth 0 desktop-buffer-misc) (nth 1 desktop-buffer-misc))
-	t)))
+	(current-buffer))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load an RMAIL file."
   (if (eq 'rmail-mode desktop-buffer-major-mode)
       (condition-case error
-	  (progn (rmail-input desktop-buffer-file-name) t)
+	  (progn (rmail-input desktop-buffer-file-name)
+                         (if (eq major-mode 'rmail-mode)
+                             (current-buffer)
+                           rmail-buffer))
 	(file-locked
 	 (kill-buffer (current-buffer))
 	 'ignored))))
@@ -557,16 +560,16 @@ to provide correct modes for autoloaded files."
       (progn
 	(require 'mh-e)
 	(mh-find-path)
-	(mh-visit-folder desktop-buffer-name)
-	t)))
+        (mh-visit-folder desktop-buffer-name)
+	(current-buffer))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
   (if (eq 'dired-mode desktop-buffer-major-mode)
       (if (file-directory-p (file-name-directory (car desktop-buffer-misc)))
 	  (progn
-	    (dired (car desktop-buffer-misc))
+            (dired (car desktop-buffer-misc))
 	    (mapcar 'dired-insert-subdir (cdr desktop-buffer-misc))
-	    t)
+	    (current-buffer))
 	(message "Directory %s no longer exists." (car desktop-buffer-misc))
 	(sit-for 1)
 	'ignored)))
@@ -578,7 +581,7 @@ to provide correct modes for autoloaded files."
 		   (y-or-n-p (format
 			      "File \"%s\" no longer exists. Re-create? "
 			      desktop-buffer-file-name))))
-	  (progn (find-file desktop-buffer-file-name) t)
+	  (progn (find-file desktop-buffer-file-name) (current-buffer))
 	'ignored)))
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
@@ -593,31 +596,30 @@ to provide correct modes for autoloaded files."
       (setq handler (car hlist))
       (setq result (funcall handler))
       (setq hlist (cdr hlist)))
-    (if (eq result t)
-	(progn
-	  (if (not (equal (buffer-name) desktop-buffer-name))
-	      (rename-buffer desktop-buffer-name))
-	  (auto-fill-mode (if (nth 0 mim) 1 0))
-	  (goto-char pt)
-	  (if (consp mk)
+    (when (bufferp result)
+      (set-buffer result)
+      (if (not (equal (buffer-name) desktop-buffer-name))
+	  (rename-buffer desktop-buffer-name))
+      (auto-fill-mode (if (nth 0 mim) 1 0))
+      (goto-char pt)
+      (if (consp mk)
+	  (progn
+	    (set-mark (car mk))
+	    (setq mark-active (car (cdr mk))))
+	(set-mark mk))
+      ;; Never override file system if the file really is read-only marked.
+      (if ro (setq buffer-read-only ro))
+      (while locals
+	(let ((this (car locals)))
+	  (if (consp this)
+	      ;; an entry of this form `(symbol . value)'
 	      (progn
-		(set-mark (car mk))
-		(setq mark-active (car (cdr mk))))
-	    (set-mark mk))
-	  ;; Never override file system if the file really is read-only marked.
-	  (if ro (setq buffer-read-only ro))
-	  (while locals
-	    (let ((this (car locals)))
-	      (if (consp this)
-		  ;; an entry of this form `(symbol . value)'
-		  (progn
-		    (make-local-variable (car this))
-		    (set (car this) (cdr this)))
-		;; an entry of the form `symbol'
-		(make-local-variable this)
-		(makunbound this)))
-	    (setq locals (cdr locals)))
-	  ))))
+		(make-local-variable (car this))
+		(set (car this) (cdr this)))
+	    ;; an entry of the form `symbol'
+	    (make-local-variable this)
+	    (makunbound this)))
+	(setq locals (cdr locals))))))
 
 ;; Backward compatibility -- update parameters to 205 standards.
 (defun desktop-buffer (desktop-buffer-file-name desktop-buffer-name
