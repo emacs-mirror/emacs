@@ -258,7 +258,7 @@ the user's init file.")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial *scratch* buffer."
-  :type 'command
+  :type 'function
   :group 'initialization)
 
 (defcustom init-file-user nil
