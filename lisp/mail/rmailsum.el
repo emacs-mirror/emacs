@@ -34,12 +34,16 @@
 (require 'rmail)
 
 ;;;###autoload
-(defvar rmail-summary-scroll-between-messages t
-  "*Non-nil means Rmail summary scroll commands move between messages.")
+(defcustom rmail-summary-scroll-between-messages t
+  "*Non-nil means Rmail summary scroll commands move between messages."
+  :type 'boolean
+  :group 'rmail-summary)
 
 ;;;###autoload
-(defvar rmail-summary-line-count-flag t
-  "*Non-nil if Rmail summary should show the number of lines in each message.")
+(defcustom rmail-summary-line-count-flag t
+  "*Non-nil if Rmail summary should show the number of lines in each message."
+  :type 'boolean
+  :group 'rmail-summary)
 
 (defvar rmail-summary-font-lock-keywords
   '(("^....D.*" . font-lock-string-face)			; Deleted.
@@ -267,10 +271,12 @@ nil for FUNCTION means all messages."
     line))
 
 ;;;###autoload
-(defvar rmail-summary-line-decoder (function identity)
+(defcustom rmail-summary-line-decoder (function identity)
   "*Function to decode summary-line.
 
-By default, `identity' is set.")
+By default, `identity' is set."
+  :type 'function
+  :group 'rmail-summary)
 
 (defun rmail-make-summary-line-1 (msg)
   (goto-char (rmail-msgbeg msg))

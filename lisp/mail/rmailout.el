@@ -27,13 +27,18 @@
 (require 'rmail)
 
 ;;;###autoload
-(defvar rmail-output-file-alist nil
+(defcustom rmail-output-file-alist nil
   "*Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
 The suggestion is taken if REGEXP matches anywhere in the message buffer.
 NAME-EXP may be a string constant giving the file name to use,
 or more generally it may be any kind of expression that returns
-a file name as a string.")
+a file name as a string."
+  :type '(repeat (cons regexp
+		       (choice :value ""
+			       (string :tag "File Name")
+			       sexp)))
+  :group 'rmail-output)
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
@@ -172,8 +177,11 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	    (rmail-next-undeleted-message 1))))))
 
 ;;;###autoload
-(defvar rmail-fields-not-to-output nil
-  "*Regexp describing fields to exclude when outputting a message to a file.")
+(defcustom rmail-fields-not-to-output nil
+  "*Regexp describing fields to exclude when outputting a message to a file."
+  :type '(choice (const :tag "None" nil)
+		 regexp)
+  :group 'rmail-output)
 
 ;; Delete from the buffer header fields we don't want output.
 ;; NOT-RMAIL if t means this buffer does not have the full header
