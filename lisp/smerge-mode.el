@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.2 2000/03/22 00:54:55 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.3 2000/05/25 18:08:26 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -126,7 +126,24 @@ Used in `smerge-diff-base-mine' and related functions."
 (easy-menu-define smerge-mode-menu smerge-mode-map
   "Menu for `smerge-mode'."
   '("SMerge"
-    ["Invoke Ediff"		smerge-ediff		t]
+    ["Next" smerge-next :help "Go to next conflict"]
+    ["Previous" smerge-prev :help "Go to previous'th conflict"]
+    ["Keep All" smerge-keep-all :help "Keep all three versions"]
+    ["Revert to Base" smerge-keep-base :help "Revert to base version"]
+    ["Keep Other" smerge-keep-other :help "Keep `other' version"]
+    ["Keep Yours" smerge-keep-mine :help "Keep your version"]
+    ["Keep Current"  smerge-keep-current
+     :help "Use current (at point) version"]
+    "--"
+    ["Diff Base/Mine" smerge-diff-base-mine
+     :help "Diff `base' and `mine' for current conflict"]
+    ["Diff Base/Other" smerge-diff-base-other
+     :help "Diff `base' and `other' for current conflict"]
+    ["Diff Mine/Other" smerge-diff-mine-other
+     :help "Diff `mine' and `other' for current conflict"]
+    "--"
+    ["Invoke Ediff" smerge-ediff
+     :help "Use Ediff to resolve the conflicts"]
     ))
 
 (defconst smerge-font-lock-keywords
@@ -444,6 +461,9 @@ The point is moved to the end of the conflict."
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.3  2000/05/25 18:08:26  fx
+;; (smerge-diff-switches): Don't use list* in defcustom.
+;;
 ;; Revision 1.2  2000/03/22 00:54:55  monnier
 ;; (smerge-auto-leave): New function and variable.
 ;; (smerge-basic-map): Rename from smerge-basic-keymap.
