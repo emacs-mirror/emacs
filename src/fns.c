@@ -127,7 +127,7 @@ A byte-code function object is also allowed.")
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
   "T if two strings have identical contents.\n\
-Case is significant.\n\
+Case is significant, but text properties are ignored.\n\
 Symbols are also allowed; their print names are used instead.")
   (s1, s2)
      register Lisp_Object s1, s2;
@@ -930,6 +930,13 @@ internal_equal (o1, o2, depth)
 	return 0;
       if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data, XSTRING (o1)->size))
 	return 0;
+#ifdef USE_TEXT_PROPERTIES
+      /* If the strings have intervals, verify they match;
+	 if not, they are unequal.  */
+      if ((XSTRING (o1)->intervals != 0 || XSTRING (o2)->intervals != 0)
+	  && ! compare_string_intervals (o1, o2))
+	return 0;
+#endif
       return 1;
     }
   return 0;
