@@ -29,11 +29,35 @@ Boston, MA 02111-1307, USA.  */
 
 #include "w32bdf.h"
 
+/* Emulate XCharStruct.  */
+typedef struct _XCharStruct
+{
+  short rbearing;
+  short lbearing;
+  short width;
+  short ascent;
+  short descent;
+} XCharStruct;
+
+enum w32_char_font_type
+{
+  UNKNOWN_FONT,
+  ANSI_FONT,
+  UNICODE_FONT,
+  BDF_1D_FONT,
+  BDF_2D_FONT
+};
+
 typedef struct W32FontStruct {
+  enum w32_char_font_type font_type;
   TEXTMETRIC tm;
   HFONT hfont;
   bdffont *bdf;
   int double_byte_p;
+  XCharStruct max_bounds;
+  XCharStruct scratch;
+  /* Only store info for ascii chars, if not fixed pitch.  */
+  XCharStruct * per_char;
 } W32FontStruct;
 
 typedef struct W32FontStruct XFontStruct;
