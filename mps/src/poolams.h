@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.15) $
+ * $HopeName: MMsrc!poolams.h(trunk.16) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -22,7 +22,7 @@ typedef struct AMSSegStruct *AMSSeg;
 typedef Ring (*AMSRingFunction)(AMS ams, RankSet rankSet, Size size);
 /* AMSSegClassFunction is the type of the method to indicate */
 /* the segment class of an AMS pool. Returns a subclass of AMSSegClass. */
-/* The type is congruent with Ensure*SegClass functions.  */
+/* The type is congruent with SegClassGet functions.  */
 typedef SegClass (*AMSSegClassFunction)(void);
 /* AMSSegsDestroyFunction is the type of the method to destroy all */
 /* segs of an AMS pool. */
@@ -85,11 +85,11 @@ typedef struct AMSSegStruct {
 
 /* macros to get between child and parent structures */
 
-#define SegAMSSeg(seg)             ((AMSSeg)(seg))
-#define AMSSegSeg(amsseg)          ((Seg)(amsseg))
+#define Seg2AMSSeg(seg) ((AMSSeg)(seg))
+#define AMSSeg2Seg(amsseg) ((Seg)(amsseg))
 
-#define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
-#define AMSPool(ams)      (&(ams)->poolStruct)
+#define Pool2AMS(pool) PARENT(AMSStruct, poolStruct, pool)
+#define AMS2Pool(ams) (&(ams)->poolStruct)
 
 
 /* macros for abstracting index/address computations */
@@ -98,9 +98,9 @@ typedef struct AMSSegStruct {
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
 
-#define AMSGrains2Size(ams, grains) ((grains) << (ams)->grainShift)
+#define AMSGrainsSize(ams, grains) ((grains) << (ams)->grainShift)
 
-#define AMSSegShift(seg) (SegAMSSeg(seg)->ams->grainShift)
+#define AMSSegShift(seg) (Seg2AMSSeg(seg)->ams->grainShift)
 
 #define AMS_ADDR_INDEX(seg, addr) \
   ((Index)(AddrOffset(SegBase(seg), addr) >> AMSSegShift(seg)))
@@ -111,10 +111,10 @@ typedef struct AMSSegStruct {
 /* colour ops */
 
 #define AMSIsWhite(seg, index) \
-  (!BTGet(SegAMSSeg(seg)->nonwhiteTable, index))
+  (!BTGet(Seg2AMSSeg(seg)->nonwhiteTable, index))
 
 #define AMSIsGrey(seg, index) \
-  (!BTGet(SegAMSSeg(seg)->nongreyTable, index))
+  (!BTGet(Seg2AMSSeg(seg)->nongreyTable, index))
 
 #define AMSIsBlack(seg, index) \
   (!AMSIsGrey(seg, index) && !AMSIsWhite(seg, index))
@@ -124,50 +124,50 @@ typedef struct AMSSegStruct {
 
 #define AMSGreyBlacken(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nongreyTable, index); \
+    BTSet(Seg2AMSSeg(seg)->nongreyTable, index); \
   END
 
 #define AMSWhiteGreyen(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nonwhiteTable, index); \
-    BTRes(SegAMSSeg(seg)->nongreyTable, index); \
+    BTSet(Seg2AMSSeg(seg)->nonwhiteTable, index); \
+    BTRes(Seg2AMSSeg(seg)->nongreyTable, index); \
   END
 
 #define AMSWhiteBlacken(seg, index) \
   BEGIN \
-    BTSet(SegAMSSeg(seg)->nonwhiteTable, index); \
+    BTSet(Seg2AMSSeg(seg)->nonwhiteTable, index); \
   END
 
 #define AMSRangeWhiteBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
+    BTSetRange(Seg2AMSSeg(seg)->nonwhiteTable, base, limit); \
   END
 
 #define AMSRangeWhiten(seg, base, limit) \
   BEGIN \
-    BTResRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
-    BTSetRange(SegAMSSeg(seg)->nongreyTable, base, limit); \
+    BTResRange(Seg2AMSSeg(seg)->nonwhiteTable, base, limit); \
+    BTSetRange(Seg2AMSSeg(seg)->nongreyTable, base, limit); \
   END
 
 #define AMSRangeBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, base, limit); \
-    BTSetRange(SegAMSSeg(seg)->nongreyTable, base, limit); \
+    BTSetRange(Seg2AMSSeg(seg)->nonwhiteTable, base, limit); \
+    BTSetRange(Seg2AMSSeg(seg)->nongreyTable, base, limit); \
   END
 
 #define AMSFindGrey(pos, dummy, seg, base, limit) \
-  BTFindShortResRange(pos, dummy, SegAMSSeg(seg)->nongreyTable, \
+  BTFindShortResRange(pos, dummy, Seg2AMSSeg(seg)->nongreyTable, \
                       base, limit, 1) \
 
 #define AMSFindWhite(pos, dummy, seg, base, limit) \
-  BTFindShortResRange(pos, dummy, SegAMSSeg(seg)->nonwhiteTable, \
+  BTFindShortResRange(pos, dummy, Seg2AMSSeg(seg)->nonwhiteTable, \
                       base, limit, 1) \
 
 
 #define AMS_ALLOCED(seg, index) \
-  (SegAMSSeg(seg)->allocTableInUse \
-   ? BTGet(SegAMSSeg(seg)->allocTable, index) \
-   : (SegAMSSeg(seg)->firstFree > (index)))
+  (Seg2AMSSeg(seg)->allocTableInUse \
+   ? BTGet(Seg2AMSSeg(seg)->allocTable, index) \
+   : (Seg2AMSSeg(seg)->firstFree > (index)))
 
 
 /* the rest */
