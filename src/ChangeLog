@@ -1,4 +1,4 @@
-2005-03-03  Thien-Thi Nguyen  <ttn@surf.glug.org>
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs.c (Fkill_emacs): Use EXIT_SUCCESS;
 	no longer special-case VMS.  Add bogus return value.
