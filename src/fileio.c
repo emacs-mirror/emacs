@@ -4075,7 +4075,7 @@ actually used.")
 	setup_raw_text_coding_system (&coding);
     }
 
-  if (inserted > 0)
+  if (inserted > 0 || coding.type == coding_type_ccl)
     {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
