@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
 ;; Time-stamp: <95/10/22 17:58:16 gildea>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of mh-e, part of GNU Emacs.
 
@@ -23,10 +23,6 @@
 ;;; Commentary:
 
 ;; Internal support for mh-e package.
-
-;;; Change Log:
-
-;; $Id: mh-utils.el,v 1.10 1996/06/28 06:56:17 rms Exp rms $
 
 ;;; Code:
 
@@ -51,23 +47,37 @@ the mhl program and the components file.")
 
 ;;; User preferences:
 
-(defvar mh-auto-folder-collect t
+(defgroup mh-buffer nil
+  "Layout of MH-E buffers"
+  :prefix "mh-"
+  :group 'mh)
+
+
+(defcustom mh-auto-folder-collect t
   "*Whether to start collecting MH folder names immediately in the background.
 Non-nil means start a background process collecting the names of all
-folders as soon as mh-e is loaded.")
+folders as soon as mh-e is loaded."
+  :type 'boolean
+  :group 'mh)
 
-(defvar mh-recursive-folders nil
-  "*If non-nil, then commands which operate on folders do so recursively.")
+(defcustom mh-recursive-folders nil
+  "*If non-nil, then commands which operate on folders do so recursively."
+  :type 'boolean
+  :group 'mh)
 
-(defvar mh-clean-message-header nil
+(defcustom mh-clean-message-header nil
   "*Non-nil means clean headers of messages that are displayed or inserted.
 The variables `mh-visible-headers' and `mh-invisible-headers' control what
-is removed.")
+is removed."
+  :type 'boolean
+  :group 'mh-buffer)
 
-(defvar mh-visible-headers nil
+(defcustom mh-visible-headers nil
   "*If non-nil, contains a regexp specifying the headers to keep when cleaning.
 Only used if `mh-clean-message-header' is non-nil.  Setting this variable
-overrides `mh-invisible-headers'.")
+overrides `mh-invisible-headers'."
+  :type '(choice (const nil) regexp)
+  :group 'mh-buffer)
 
 (defvar mh-invisible-headers
   "^Received: \\|^Message-Id: \\|^Remailed-\\|^Via: \\|^Mail-from: \\|^Return-Path: \\|^Delivery-Date: \\|^In-Reply-To: \\|^Resent-"
@@ -75,11 +85,15 @@ overrides `mh-invisible-headers'.")
 If `mh-visible-headers' is non-nil, it is used instead to specify what
 to keep.")
 
-(defvar mh-bury-show-buffer t
-  "*Non-nil means that the displayed show buffer for a folder is buried.")
+(defcustom mh-bury-show-buffer t
+  "*Non-nil means that the displayed show buffer for a folder is buried."
+  :type 'boolean
+  :group 'mh-buffer)
 
-(defvar mh-summary-height 4
-  "*Number of lines in MH-Folder window (including the mode line).")
+(defcustom mh-summary-height 4
+  "*Number of lines in MH-Folder window (including the mode line)."
+  :type 'integer
+  :group 'mh-buffer)
 
 (defvar mh-msg-number-regexp "^ *\\([0-9]+\\)"
   "Regexp to find the number of a message in a scan line.
@@ -89,13 +103,15 @@ The message's number must be surrounded with \\( \\)")
   "Format string containing a regexp matching the scan listing for a message.
 The desired message's number will be an argument to format.")
 
-(defvar mhl-formfile nil
+(defcustom mhl-formfile nil
   "*Name of format file to be used by mhl to show and print messages.
 A value of T means use the default format file.
 Nil means don't use mhl to format messages when showing; mhl is still used,
 with the default format file, to format messages when printing them.
 The format used should specify a non-zero value for overflowoffset so
-the message continues to conform to RFC 822 and mh-e can parse the headers.")
+the message continues to conform to RFC 822 and mh-e can parse the headers."
+  :type '(choice (const nil) (const t) string)
+  :group 'mh)
 (put 'mhl-formfile 'info-file "mh-e")
 
 (defvar mh-default-folder-for-message-function nil

@@ -1,7 +1,7 @@
 ;;; mh-comp --- mh-e functions for composing messages
 ;; Time-stamp: <95/08/19 17:48:59 gildea>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of mh-e, part of GNU Emacs.
 
@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.7 1995/11/03 02:28:52 kwzh Exp erik $
+;; $Id: mh-comp.el,v 1.8 1996/01/14 07:34:30 erik Exp rms $
 
 ;;; Code:
 
@@ -34,6 +34,12 @@
 (require 'mh-utils)
 
 ;;; Site customization (see also mh-utils.el):
+
+(defgroup mh-compose nil
+  "Mh-e functions for composing messages"
+  :prefix "mh-"
+  :group 'mh)
+
 
 (defvar mh-send-prog "send"
   "Name of the MH send program.
@@ -81,37 +87,51 @@ much of the message passed to the hook.")
 
 ;;; Personal preferences:
 
-(defvar mh-delete-yanked-msg-window nil
+(defcustom mh-delete-yanked-msg-window nil
   "*Controls window display when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
 If non-nil, yanking the current message into a draft letter deletes any
-windows displaying the message.")
+windows displaying the message."
+  :type 'boolean
+  :group 'mh-compose)
 
-(defvar mh-yank-from-start-of-msg t
+(defcustom mh-yank-from-start-of-msg t
   "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
 If non-nil, include the entire message.  If the symbol `body', then yank the
 message minus the header.  If nil, yank only the portion of the message
 following the point.  If the show buffer has a region, this variable is
-ignored.")
+ignored."
+  :type '(choice (const t) (const nil) (const body))
+  :group 'mh-compose)
 
-(defvar mh-ins-buf-prefix "> "
+(defcustom mh-ins-buf-prefix "> "
   "*String to put before each non-blank line of a yanked or inserted message.
 \\<mh-letter-mode-map>Used when the message is inserted into an outgoing letter
-by \\[mh-insert-letter] or \\[mh-yank-cur-msg].")
+by \\[mh-insert-letter] or \\[mh-yank-cur-msg]."
+  :type 'string
+  :group 'mh-compose)
 
-(defvar mh-reply-default-reply-to nil
+(defcustom mh-reply-default-reply-to nil
   "*Sets the person or persons to whom a reply will be sent.
 If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
 value and it should be one of \"from\", \"to\", \"cc\", or \"all\".
-The values \"cc\" and \"all\" do the same thing.")
+The values \"cc\" and \"all\" do the same thing."
+  :type '(choice (const :tag "Prompt" nil)
+		 (const "from") (const "to")
+		 (const "cc") (const "all"))
+  :group 'mh-compose)
 
-(defvar mh-signature-file-name "~/.signature"
+(defcustom mh-signature-file-name "~/.signature"
   "*Name of file containing the user's signature.
-Inserted into message by \\<mh-letter-mode-map>\\[mh-insert-signature].")
+Inserted into message by \\<mh-letter-mode-map>\\[mh-insert-signature]."
+  :type 'file
+  :group 'mh-compose)
 
-(defvar mh-forward-subject-format "%s: %s"
+(defcustom mh-forward-subject-format "%s: %s"
   "*Format to generate the Subject: line contents for a forwarded message.
 The two string arguments to the format are the sender of the original
-message and the original subject line.")
+message and the original subject line."
+  :type 'string
+  :group 'mh-compose)
 
 (defvar mh-comp-formfile "components"
   "Name of file to be used as a skeleton for composing messages.
@@ -127,15 +147,21 @@ system MH lib directory.")
 
 ;;; Hooks:
 
-(defvar mh-letter-mode-hook nil
-  "Invoked in `mh-letter-mode' on a new letter.")
+(defcustom mh-letter-mode-hook nil
+  "Invoked in `mh-letter-mode' on a new letter."
+  :type 'hook
+  :group 'mh-compose)
 
-(defvar mh-compose-letter-function nil
+(defcustom mh-compose-letter-function nil
   "Invoked when setting up a letter draft.
-It is passed three arguments: TO recipients, SUBJECT, and CC recipients.")
+It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
+  :type 'function
+  :group 'mh-compose)
 
-(defvar mh-before-send-letter-hook nil
-  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.")
+(defcustom mh-before-send-letter-hook nil
+  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command."
+  :type 'hook
+  :group 'mh-compose)
 
 
 (defvar mh-rejected-letter-start

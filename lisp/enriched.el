@@ -46,8 +46,14 @@
 ;;; Variables controlling the display
 ;;;
 
-(defvar enriched-verbose t
-  "*If non-nil, give status messages when reading and writing files.")
+(defgroup enriched nil
+  "Read and save files in text/enriched format"
+  :group 'wp)
+
+(defcustom enriched-verbose t
+  "*If non-nil, give status messages when reading and writing files."
+  :type 'boolean
+  :group 'enriched)
 
 ;;;
 ;;; Set up faces & display table
@@ -143,11 +149,13 @@ Any property that is neither on this list nor dealt with by
 	  (cons '(enriched-mode " Enriched")
 		minor-mode-alist)))
 
-(defvar enriched-mode-hook nil
+(defcustom enriched-mode-hook nil
   "Functions to run when entering Enriched mode.
 If you set variables in this hook, you should arrange for them to be restored
 to their old values if you leave Enriched mode.  One way to do this is to add
-them and their old values to `enriched-old-bindings'.")
+them and their old values to `enriched-old-bindings'."
+  :type 'hook
+  :group 'enriched)
 
 (defvar enriched-old-bindings nil
   "Store old variable values that we change when entering mode.
