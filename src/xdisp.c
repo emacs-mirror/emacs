@@ -670,7 +670,11 @@ static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int cursor_row_p P_ ((struct window *, struct glyph_row *));
 static int redisplay_mode_lines P_ ((Lisp_Object, int));
 static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
+
+#if 0
 static int invisible_text_between_p P_ ((struct it *, int, int));
+#endif
+
 static int next_element_from_ellipsis P_ ((struct it *));
 static void pint2str P_ ((char *, int, int));
 static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
