@@ -36,7 +36,7 @@
 Arguments are TIME, REPEAT, FUNCTION &rest ARGS.
 TIME, a string,  can be specified absolutely or relative to now.
 REPEAT, an integer number of seconds, is the interval on which to repeat
-the call to the function."
+the call to the function.  If REPEAT is nil, call it just once."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
   (cond ((or (not timer-process) 
              (memq (process-status timer-process) '(exit signal nil)))
