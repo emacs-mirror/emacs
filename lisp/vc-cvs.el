@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.57 2003/05/08 18:23:53 monnier Exp $
+;; $Id: vc-cvs.el,v 1.58 2003/05/08 20:08:12 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -297,19 +297,11 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
-  (let ((switches (append
-		   (if (stringp vc-register-switches)
-		       (list vc-register-switches)
-		     vc-register-switches)
-		   (if (stringp vc-cvs-register-switches)
-		       (list vc-cvs-register-switches)
-		     vc-cvs-register-switches))))
-
-    (apply 'vc-cvs-command nil 0 file
-	   "add"
-	   (and comment (string-match "[^\t\n ]" comment)
-		(concat "-m" comment))
-	   switches)))
+  (apply 'vc-cvs-command nil 0 file
+	 "add"
+	 (and comment (string-match "[^\t\n ]" comment)
+	      (concat "-m" comment))
+	 (vc-switches 'CVS 'register)))
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
@@ -324,26 +316,18 @@ This is only possible if CVS is responsible for FILE's directory.")
 
 (defun vc-cvs-checkin (file rev comment)
   "CVS-specific version of `vc-backend-checkin'."
-  (let ((switches (if (stringp vc-checkin-switches)
-		      (list vc-checkin-switches)
-		    vc-checkin-switches))
-	status)
-    (if (or (not rev) (vc-cvs-valid-version-number-p rev))
-        (setq status (apply 'vc-cvs-command nil 1 file
-                            "ci" (if rev (concat "-r" rev))
-                            (concat "-m" comment)
-                            switches))
-      (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
-          (error "%s is not a valid symbolic tag name" rev)
-        ;; If the input revison is a valid symbolic tag name, we create it
-        ;; as a branch, commit and switch to it.
-        (apply 'vc-cvs-command nil 0 file "tag" "-b" (list rev))
-        (apply 'vc-cvs-command nil 0 file "update" "-r" (list rev))
-        (setq status (apply 'vc-cvs-command nil 1 file
-                            "ci"
-                            (concat "-m" comment)
-                            switches))
-        (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
+  (unless (or (not rev) (vc-cvs-valid-version-number-p rev))
+    (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
+	(error "%s is not a valid symbolic tag name" rev)
+      ;; If the input revison is a valid symbolic tag name, we create it
+      ;; as a branch, commit and switch to it.
+      (apply 'vc-cvs-command nil 0 file "tag" "-b" (list rev))
+      (apply 'vc-cvs-command nil 0 file "update" "-r" (list rev))
+      (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
+  (let ((status (apply 'vc-cvs-command nil 1 file
+		       "ci" (if rev (concat "-r" rev))
+		       (concat "-m" comment)
+		       (vc-switches 'CVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (when (not (zerop status))
@@ -382,9 +366,7 @@ This is only possible if CVS is responsible for FILE's directory.")
 	 (and rev (not (string= rev ""))
 	      (concat "-r" rev))
 	 "-p"
-	 (if (stringp vc-checkout-switches)
-	     (list vc-checkout-switches)
-	   vc-checkout-switches)))
+	 (vc-switches 'CVS 'checkout)))
 
 (defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
@@ -397,9 +379,7 @@ REV is the revision to check out into WORKFILE."
     (save-excursion
       ;; Change buffers to get local value of vc-checkout-switches.
       (if file-buffer (set-buffer file-buffer))
-      (setq switches (if (stringp vc-checkout-switches)
-			 (list vc-checkout-switches)
-		       vc-checkout-switches))
+      (setq switches (vc-switches 'CVS 'checkout))
       ;; Save this buffer's default-directory
       ;; and use save-excursion to make sure it is restored
       ;; in the same buffer it was saved in.
@@ -445,7 +425,7 @@ REV is the revision to check out into WORKFILE."
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
-      (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+		(and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
                      (if vc-cvs-use-edit
                          (vc-cvs-command nil 0 file "edit")
                        (set-file-modes file (logior (file-modes file) 128))
@@ -473,30 +453,7 @@ REV is the revision to check out into WORKFILE."
   (unless contents-done
     ;; Check out via standard output (caused by the final argument
     ;; FILE below), so that no sticky tag is set.
-    ;; Change buffers to get local value of vc-checkout-switches.
-    (with-current-buffer (or (get-file-buffer file) (current-buffer))
-      (let ((failed t)
-	    (backup-name (car (find-backup-file-name file))))
-	(when backup-name
-	  (copy-file file backup-name
-		     'ok-if-already-exists 'keep-date))
-	(unless (file-writable-p file)
-	  (set-file-modes file (logior (file-modes file) 128)))
-	(unwind-protect
-	    (let ((buf (vc-find-version file (vc-workfile-version file))))
-	      (rename-file (with-current-buffer buf buffer-file-name)
-			   file 'ok-if-already-exists)
-	      (setq failed nil))
-	  (if failed
-	      (if backup-name
-		  (rename-file backup-name file
-			       'ok-if-already-exists)
-		(if (file-exists-p file)
-		    (delete-file file)))
-	    (and backup-name
-		 (not vc-make-backup-files)
-		 (delete-file backup-name)))))))
-
+    (vc-cvs-checkout file nil (vc-workfile-version file) file))
   (unless (eq (vc-checkout-model file) 'implicit)
     (if vc-cvs-use-edit
         (vc-cvs-command nil 0 file "unedit")
@@ -577,32 +534,26 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
   "Get a difference report using CVS between two versions of FILE."
-  (let (status (diff-switches-list (vc-diff-switches-list 'CVS)))
-    (if (string= (vc-workfile-version file) "0")
-	;; This file is added but not yet committed; there is no master file.
-	(if (or oldvers newvers)
-	    (error "No revisions of %s exist" file)
-	  ;; We regard this as "changed".
-	  ;; Diff it against /dev/null.
-          ;; Note: this is NOT a "cvs diff".
-          (apply 'vc-do-command "*vc-diff*"
-                 1 "diff" file
-                 (append diff-switches-list '("/dev/null")))
-	  ;; Even if it's empty, it's locally modified.
-	  1)
-      (setq status
-            (apply 'vc-cvs-command "*vc-diff*"
-                   (if (and (vc-cvs-stay-local-p file)
-			    (fboundp 'start-process))
-		       'async
-		     1)
-                   file "diff"
-                   (and oldvers (concat "-r" oldvers))
-                   (and newvers (concat "-r" newvers))
-                   diff-switches-list))
-      (if (vc-cvs-stay-local-p file)
-          1 ;; async diff, pessimistic assumption
-        status))))
+  (if (string= (vc-workfile-version file) "0")
+      ;; This file is added but not yet committed; there is no master file.
+      (if (or oldvers newvers)
+	  (error "No revisions of %s exist" file)
+	;; We regard this as "changed".
+	;; Diff it against /dev/null.
+	;; Note: this is NOT a "cvs diff".
+	(apply 'vc-do-command "*vc-diff*"
+	       1 "diff" file
+	       (append (vc-switches nil 'diff) '("/dev/null")))
+	;; Even if it's empty, it's locally modified.
+	1)
+    (let* ((async (and (vc-cvs-stay-local-p file) (fboundp 'start-process)))
+	   (status (apply 'vc-cvs-command "*vc-diff*"
+			  (if async 'async 1)
+			  file "diff"
+			  (and oldvers (concat "-r" oldvers))
+			  (and newvers (concat "-r" newvers))
+			  (vc-switches 'CVS 'diff))))
+      (if async 1 status))))		; async diff, pessimistic assumption
 
 (defun vc-cvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
@@ -626,13 +577,12 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
         (apply 'vc-cvs-command "*vc-diff*" 1 nil "diff"
                (and rev1 (concat "-r" rev1))
                (and rev2 (concat "-r" rev2))
-               (vc-diff-switches-list 'CVS))))))
+               (vc-switches 'CVS 'diff))))))
 
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg VERSION is a version to annotate from."
-  (vc-cvs-command buffer 0 file "annotate" (if version
-                                                    (concat "-r" version))))
+  (vc-cvs-command buffer 0 file "annotate" (if version (concat "-r" version))))
 
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and
