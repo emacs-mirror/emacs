@@ -781,8 +781,7 @@ rotate_matrix (matrix, first, last, by)
    DELTA_BYTES.  */
 
 void
-increment_glyph_matrix_buffer_positions (matrix, start, end, delta,
-					 delta_bytes)
+increment_matrix_positions (matrix, start, end, delta, delta_bytes)
      struct glyph_matrix *matrix;
      int start, end, delta, delta_bytes;
 {
@@ -792,8 +791,7 @@ increment_glyph_matrix_buffer_positions (matrix, start, end, delta,
   xassert (start <= end);
 
   for (; start < end; ++start)
-    increment_glyph_row_buffer_positions (matrix->rows + start,
-					  delta, delta_bytes);
+    increment_row_positions (matrix->rows + start, delta, delta_bytes);
 }
 
 
@@ -1030,7 +1028,7 @@ blank_row (w, row, y)
    ends.  */
 
 void
-increment_glyph_row_buffer_positions (row, delta, delta_bytes)
+increment_row_positions (row, delta, delta_bytes)
      struct glyph_row *row;
      int delta, delta_bytes;
 {
@@ -1154,7 +1152,7 @@ copy_glyph_row_contents (to, from, delta, delta_bytes)
 	     from->used[area] * sizeof (struct glyph));
 
   /* Increment buffer positions in TO by DELTA.  */
-  increment_glyph_row_buffer_positions (to, delta, delta_bytes);
+  increment_row_positions (to, delta, delta_bytes);
 }
 
 
@@ -3278,10 +3276,10 @@ direct_output_for_insert (g)
     }
       
   /* Adjust positions in lines following the one we are in.  */
-  increment_glyph_matrix_buffer_positions (w->current_matrix,
-					   w->cursor.vpos + 1,
-					   w->current_matrix->nrows,
-					   delta, delta_bytes);
+  increment_matrix_positions (w->current_matrix,
+			      w->cursor.vpos + 1,
+			      w->current_matrix->nrows,
+			      delta, delta_bytes);
 
   glyph_row->contains_overlapping_glyphs_p
     |= it.glyph_row->contains_overlapping_glyphs_p;
