@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing
 
-;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000
+;; Copyright (C) 1985, 1989, 1994, 1995, 1997, 2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -157,14 +157,13 @@ that use View mode automatically.")
 This is local in each buffer, once it is used.")
 (make-variable-buffer-local 'view-overlay)
 
-(or (assq 'view-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons (list 'view-mode
-		      (propertize " View"
-				  'help-echo "mouse-2: exit View mode"
-				  'local-map (make-mode-line-mouse2-map
-					      #'view-mode)))
-		minor-mode-alist)))
+(unless (assq 'view-mode minor-mode-alist)
+  (setq minor-mode-alist
+	(cons (list 'view-mode
+		    (propertize " View"
+				'local-map mode-line-minor-mode-keymap
+				'help-echo "mouse-3: minor mode menu"))
+	      minor-mode-alist)))
 
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.
