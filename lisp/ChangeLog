@@ -5,7 +5,7 @@
 	eol-type is not auto-detection.
 
 	* international/mule-diag.el (print-coding-system-briefly): Fix
-	the handling of an alias of which eol-type is not auto-detction.
+	the handling of an alias of which eol-type is not auto-detection.
 
 	* international/mule-conf.el (us-ascii): Define it as an alias of
 	iso-safe.
