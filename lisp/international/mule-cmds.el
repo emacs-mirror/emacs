@@ -1095,18 +1095,20 @@ To deactivate it programmatically, use \\[inactivate-input-method]."
   (setq default-input-method input-method))
 
 (defun toggle-input-method (&optional arg)
-  "Turn on or off a multilingual text input method for the current buffer.
+  "Enable or disable multilingual text input method for the current buffer.
+Only one input method can be enabled at any time in a given buffer.
 
-With no prefix argument, if an input method is currently activated,
-turn it off.  Otherwise, activate an input method -- the one most
-recently used, or the one specified in `default-input-method', or
-the one read from the minibuffer.
+The normal action is to enable an input method if none was
+enabled, and disable the current one otherwise.  Which input method
+to enable can be determined in various ways--either the one most
+recently used, or the one specified by `default-input-method', or
+as a last resort by reading the name of an input method in the
+minibuffer.
 
-With a prefix argument, read an input method from the minibuffer and
-turn it on.
-
-The default is to use the most recent input method specified
+With a prefix argument, read an input method name with the minibuffer
+and enable that one.  The default is the most recent input method specified
 \(not including the currently active input method, if any)."
+
   (interactive "P")
   (if (and current-input-method (not arg))
       (inactivate-input-method)
