@@ -2865,6 +2865,10 @@ int marker_block_index;
 
 union Lisp_Misc *marker_free_list;
 
+/* Marker blocks which should be freed at end of GC.  */
+
+struct marker_block *marker_blocks_pending_free;
+
 /* Total number of marker blocks now in use.  */
 
 int n_marker_blocks;
@@ -2875,6 +2879,7 @@ init_marker ()
   marker_block = NULL;
   marker_block_index = MARKER_BLOCK_SIZE;
   marker_free_list = 0;
+  marker_blocks_pending_free = 0;
   n_marker_blocks = 0;
 }
 
@@ -4529,6 +4534,18 @@ returns nil, because real GC can't be done.  */)
       }
   }
 
+  /* Undo lists have been cleaned up, so we can free marker blocks now.  */
+
+  {
+    struct marker_block *mblk;
+
+    while ((mblk = marker_blocks_pending_free) != 0)
+      {
+	marker_blocks_pending_free = mblk->next;
+	lisp_free (mblk);
+      }
+  }
+
   /* Clear the mark bits that we set in certain root slots.  */
 
   unmark_byte_stack ();
@@ -5437,6 +5454,7 @@ gc_sweep ()
     register int num_free = 0, num_used = 0;
 
     marker_free_list = 0;
+    marker_blocks_pending_free = 0;
 
     for (mblk = marker_block; mblk; mblk = *mprev)
       {
@@ -5467,19 +5485,20 @@ gc_sweep ()
 	/* If this block contains only free markers and we have already
 	   seen more than two blocks worth of free markers then deallocate
 	   this block.  */
-#if 0
-	/* There may still be pointers to these markers from a buffer's
-	   undo list, so don't free them.  KFS 2004-05-21  /
 	if (this_free == MARKER_BLOCK_SIZE && num_free > MARKER_BLOCK_SIZE)
 	  {
 	    *mprev = mblk->next;
 	    /* Unhook from the free list.  */
 	    marker_free_list = mblk->markers[0].u_free.chain;
-	    lisp_free (mblk);
 	    n_marker_blocks--;
+
+	    /* It is not safe to free the marker block at this stage,
+	       since there may still be pointers to these markers from
+	       a buffer's undo list.  KFS 2004-05-25.  */
+	    mblk->next = marker_blocks_pending_free;
+	    marker_blocks_pending_free = mblk;
 	  }
 	else
-#endif
 	  {
 	    num_free += this_free;
 	    mprev = &mblk->next;
