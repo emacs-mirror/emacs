@@ -543,14 +543,14 @@ echo_char (c)
       /* If someone has passed us a composite event, use its head symbol.  */
       c = EVENT_HEAD (c);
 
-      if (XTYPE (c) == Lisp_Int)
+      if (INTEGERP (c))
 	{
 	  if (ptr - echobuf > sizeof echobuf - 6)
 	    return;
 
 	  ptr = push_key_description (XINT (c), ptr);
 	}
-      else if (XTYPE (c) == Lisp_Symbol)
+      else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
 	  if (((ptr - echobuf) + name->size + 4) > sizeof echobuf)
@@ -820,7 +820,7 @@ cmd_error_internal (data, context)
   if (!NILP (file_error) && !NILP (tail))
     errmsg = XCONS (tail)->car, tail = XCONS (tail)->cdr;
 
-  if (XTYPE (errmsg) == Lisp_String)
+  if (STRINGP (errmsg))
     Fprinc (errmsg, stream);
   else
     write_string_1 ("peculiar error", -1, stream);
@@ -1031,7 +1031,7 @@ command_loop_1 ()
 	 switch-frame events will take care of this, but if some lisp
 	 code swallows a switch-frame event, we'll fix things up here.
 	 Is this a good idea?  */
-      if (XTYPE (internal_last_event_frame) == Lisp_Frame
+      if (FRAMEP (internal_last_event_frame)
 	  && XFRAME (internal_last_event_frame) != selected_frame)
 	Fselect_frame (internal_last_event_frame, Qnil);
 #endif
@@ -1162,7 +1162,7 @@ command_loop_1 ()
 		}
 	      else if (EQ (this_command, Qself_insert_command)
 		       /* Try this optimization only on ascii keystrokes.  */
-		       && XTYPE (last_command_char) == Lisp_Int)
+		       && INTEGERP (last_command_char))
 		{
 		  unsigned char c = XINT (last_command_char);
 		  int value;
@@ -1211,10 +1211,10 @@ command_loop_1 ()
 			      if (lose >= 0x20 && lose <= 0x7e)
 				no_redisplay = direct_output_for_insert (lose);
 			    }
-			  else if (XTYPE (obj) == Lisp_Vector
+			  else if (VECTORP (obj)
 				   && XVECTOR (obj)->size == 1
-				   && (XTYPE (obj = XVECTOR (obj)->contents[0])
-				       == Lisp_Int)
+				   && (obj = XVECTOR (obj)->contents[0],
+				       INTEGERP (obj))
 				   /* Insist face not specified in glyph.  */
 				   && (XINT (obj) & ((-1) << 8)) == 0)
 			    no_redisplay
@@ -1535,7 +1535,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
       
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
-      if (XTYPE (Vexecuting_macro) == Lisp_String
+      if (STRINGP (Vexecuting_macro)
 	  && (XINT (c) & 0x80))
 	XFASTINT (c) = CHAR_META | (XINT (c) & ~0x80);
 
@@ -1676,7 +1676,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Auto save if enough time goes by without input.  */
       if (commandflag != 0
 	  && num_nonmacro_input_chars > last_auto_save
-	  && XTYPE (Vauto_save_timeout) == Lisp_Int
+	  && INTEGERP (Vauto_save_timeout)
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
@@ -1718,10 +1718,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Terminate Emacs in batch mode if at eof.  */
-  if (noninteractive && XTYPE (c) == Lisp_Int && XINT (c) < 0)
+  if (noninteractive && INTEGERP (c) && XINT (c) < 0)
     Fkill_emacs (make_number (1));
 
-  if (XTYPE (c) == Lisp_Int)
+  if (INTEGERP (c))
     {
       /* Add in any extra modifiers, where appropriate.  */
       if ((extra_keyboard_modifiers & CHAR_CTL)
@@ -1743,7 +1743,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Buffer switch events are only for internal wakeups
      so don't show them to the user.  */
-  if (XTYPE (c) == Lisp_Buffer)
+  if (BUFFERP (c))
     return c;
 
   if (key_already_recorded)
@@ -1753,13 +1753,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   echo_area_glyphs = 0;
 
   /* Handle things that only apply to characters.  */
-  if (XTYPE (c) == Lisp_Int)
+  if (INTEGERP (c))
     {
       /* If kbd_buffer_get_event gave us an EOF, return that.  */
       if (XINT (c) == -1)
 	return c;
 
-      if (XTYPE (Vkeyboard_translate_table) == Lisp_String
+      if (STRINGP (Vkeyboard_translate_table)
 	  && XSTRING (Vkeyboard_translate_table)->size > XFASTINT (c))
 	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
     }
@@ -1774,7 +1774,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      If you, dear reader, have a better idea, you've got the source.  :-) */
   if (dribble)
     {
-      if (XTYPE (c) == Lisp_Int)
+      if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
 	    putc (XINT (c), dribble);
@@ -1788,7 +1788,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* If it's a structured event, take the event header.  */
 	  dribblee = EVENT_HEAD (c);
 
-	  if (XTYPE (dribblee) == Lisp_Symbol)
+	  if (SYMBOLP (dribblee))
 	    {
 	      putc ('<', dribble);
 	      fwrite (XSYMBOL (dribblee)->name->data, sizeof (char),
@@ -1831,13 +1831,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 			     Fcurrent_window_configuration (Qnil));
 
       tem0 = Feval (Vhelp_form);
-      if (XTYPE (tem0) == Lisp_String)
+      if (STRINGP (tem0))
 	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
 
       cancel_echoing ();
       do
 	c = read_char (0, 0, 0, Qnil, 0);
-      while (XTYPE (c) == Lisp_Buffer);
+      while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
       prepare_menu_bars ();
@@ -1847,7 +1847,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  cancel_echoing ();
 	  do
 	    c = read_char (0, 0, 0, Qnil, 0);
-	  while (XTYPE (c) == Lisp_Buffer);
+	  while (BUFFERP (c));
 	}
     }
 
@@ -2138,7 +2138,7 @@ kbd_buffer_get_event ()
 	  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
 	    {
 	      frame = XCONS (tail)->car;
-	      if (XTYPE (frame) != Lisp_Frame || EQ (frame, event->frame_or_window))
+	      if (!FRAMEP (frame) || EQ (frame, event->frame_or_window))
 		continue;
 	      f = XFRAME (frame);
 	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
@@ -2179,7 +2179,7 @@ kbd_buffer_get_event ()
 	  Lisp_Object focus;
 
 	  frame = event->frame_or_window;
-	  if (XTYPE (frame) == Lisp_Window)
+	  if (WINDOWP (frame))
 	    frame = WINDOW_FRAME (XWINDOW (frame));
 
 	  focus = FRAME_FOCUS_FRAME (XFRAME (frame));
@@ -2714,7 +2714,7 @@ make_lispy_event (event)
 
 	    window = window_from_coordinates (f, column, row, &part);
 
-	    if (XTYPE (window) != Lisp_Window)
+	    if (!WINDOWP (window))
 	      {
 		window = event->frame_or_window;
 		posn = Qnil;
@@ -2808,12 +2808,12 @@ make_lispy_event (event)
 	       of the button that chose the menu item
 	       as a separate event.  */
 
-	    if (XTYPE (start_pos) != Lisp_Cons)
+	    if (!CONSP (start_pos))
 	      return Qnil;
 
 	    event->modifiers &= ~up_modifier;
 #if 0 /* Formerly we treated an up with no down as a click event.  */
-	    if (XTYPE (start_pos) != Lisp_Cons)
+	    if (!CONSP (start_pos))
 	      event->modifiers |= click_modifier;
 	    else
 #endif
@@ -2928,7 +2928,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       else
 	window = Qnil;
 
-      if (XTYPE (window) == Lisp_Window)
+      if (WINDOWP (window))
 	{
 	  int pixcolumn, pixrow;
 	  column -= XINT (XWINDOW (window)->left);
@@ -3721,7 +3721,7 @@ map_prompt (map)
     {
       register Lisp_Object tem;
       tem = Fcar (map);
-      if (XTYPE (tem) == Lisp_String)
+      if (STRINGP (tem))
 	return tem;
       map = Fcdr (map);
     }
@@ -3886,23 +3886,23 @@ menu_bar_one_keymap (keymap)
   Lisp_Object tail, item, key, binding, item_string, table;
 
   /* Loop over all keymap entries that have menu strings.  */
-  for (tail = keymap; XTYPE (tail) == Lisp_Cons; tail = XCONS (tail)->cdr)
+  for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       item = XCONS (tail)->car;
-      if (XTYPE (item) == Lisp_Cons)
+      if (CONSP (item))
 	{
 	  key = XCONS (item)->car;
 	  binding = XCONS (item)->cdr;
-	  if (XTYPE (binding) == Lisp_Cons)
+	  if (CONSP (binding))
 	    {
 	      item_string = XCONS (binding)->car;
-	      if (XTYPE (item_string) == Lisp_String)
+	      if (STRINGP (item_string))
 		menu_bar_item (key, item_string, Fcdr (binding));
 	    }
 	  else if (EQ (binding, Qundefined))
 	    menu_bar_item (key, Qnil, binding);
 	}
-      else if (XTYPE (item) == Lisp_Vector)
+      else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
 	  int len = XVECTOR (item)->size;
@@ -3912,10 +3912,10 @@ menu_bar_one_keymap (keymap)
 	      Lisp_Object character;
 	      XFASTINT (character) = c;
 	      binding = XVECTOR (item)->contents[c];
-	      if (XTYPE (binding) == Lisp_Cons)
+	      if (CONSP (binding))
 		{
 		  item_string = XCONS (binding)->car;
-		  if (XTYPE (item_string) == Lisp_String)
+		  if (STRINGP (item_string))
 		    menu_bar_item (key, item_string, Fcdr (binding));
 		}
 	      else if (EQ (binding, Qundefined))
@@ -3969,7 +3969,7 @@ menu_bar_item (key, item_string, def)
   /* See if this entry is enabled.  */
   enabled = Qt;
 
-  if (XTYPE (def) == Lisp_Symbol)
+  if (SYMBOLP (def))
     {
       /* No property, or nil, means enable.
 	 Otherwise, enable if value is not nil.  */
@@ -4182,7 +4182,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	  else
 	    elt = Fcar_safe (rest);
 
-	  if (idx < 0 && XTYPE (elt) == Lisp_Vector)
+	  if (idx < 0 && VECTORP (elt))
 	    {
 	      /* If we found a dense table in the keymap,
 		 advanced past it, but start scanning its contents.  */
@@ -4197,7 +4197,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 		s = Fcar_safe (Fcdr_safe (elt));	/* alist */
 	      else
 		s = Fcar_safe(elt);			/* vector */
-	      if (XTYPE (s) != Lisp_String)
+	      if (!STRINGP (s))
 		/* Ignore the element if it has no prompt string.  */
 		;
 	      /* If we have room for the prompt string, add it to this line.
@@ -4254,16 +4254,16 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       defining_kbd_macro = 0 ;
       do
 	obj = read_char (commandflag, 0, 0, Qnil, 0);
-      while (XTYPE (obj) == Lisp_Buffer);
+      while (BUFFERP (obj));
       defining_kbd_macro = orig_defn_macro ;
 
-      if (XTYPE (obj) != Lisp_Int)
+      if (!INTEGERP (obj))
 	return obj;
       else
 	ch = XINT (obj);
 
       if (! EQ (obj, menu_prompt_more_char)
-	  && (XTYPE (menu_prompt_more_char) != Lisp_Int
+	  && (!INTEGERP (menu_prompt_more_char)
 	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
 	{
 	  if ( defining_kbd_macro )
@@ -4301,7 +4301,7 @@ follow_key (key, nmaps, current, defs, next)
 
   /* If KEY is a meta ASCII character, treat it like meta-prefix-char
      followed by the corresponding non-meta character.  */
-  if (XTYPE (key) == Lisp_Int && (XINT (key) & CHAR_META))
+  if (INTEGERP (key) && (XINT (key) & CHAR_META))
     {
       for (i = 0; i < nmaps; i++)
 	if (! NILP (current[i]))
@@ -4639,7 +4639,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
 	     zero, so that's what we'll do.  */
-	  if (XTYPE (key) == Lisp_Int && XINT (key) == -1)
+	  if (INTEGERP (key) && XINT (key) == -1)
 	    {
 	      t = 0;
 	      goto done;
@@ -4647,7 +4647,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  
 	  /* If the current buffer has been changed from under us, the
 	     keymap may have changed, so replay the sequence.  */
-	  if (XTYPE (key) == Lisp_Buffer)
+	  if (BUFFERP (key))
 	    {
 	      mock_input = t;
 	      goto replay_sequence;
@@ -4692,7 +4692,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      window = POSN_WINDOW      (EVENT_START (key));
 	      posn   = POSN_BUFFER_POSN (EVENT_START (key));
-	      if (XTYPE (posn) == Lisp_Cons)
+	      if (CONSP (posn))
 		{
 		  /* We're looking at the second event of a
 		     sequence which we expanded before.  Set
@@ -4706,8 +4706,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		 not the current buffer.  If we're at the
 		 beginning of a key sequence, switch buffers.  */
 	      if (last_real_key_start == 0
-		  && XTYPE (window) == Lisp_Window
-		  && XTYPE (XWINDOW (window)->buffer) == Lisp_Buffer
+		  && WINDOWP (window)
+		  && BUFFERP (XWINDOW (window)->buffer)
 		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		{
 		  keybuf[t] = key;
@@ -4728,7 +4728,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 		  goto replay_sequence;
 		}
-	      else if (XTYPE (posn) == Lisp_Symbol)
+	      else if (SYMBOLP (posn))
 		{
 		  /* Expand mode-line and scroll-bar events into two events:
 		     use posn as a fake prefix key.  */
@@ -4788,7 +4788,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  mock_input = t + 2;
 		  goto replay_sequence;
 		}
-	      else if (XTYPE (posn) == Lisp_Cons)
+	      else if (CONSP (posn))
 		{
 		  /* We're looking at the second event of a
 		     sequence which we expanded before.  Set
@@ -4822,7 +4822,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      goto done;
 	    }
 
-	  if (XTYPE (head) == Lisp_Symbol)
+	  if (SYMBOLP (head))
 	    {
 	      Lisp_Object breakdown;
 	      int modifiers;
@@ -4949,7 +4949,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      key = keybuf[fkey_end++];
 	      /* Look up meta-characters by prefixing them
 		 with meta_prefix_char.  I hate this.  */
-	      if (XTYPE (key) == Lisp_Int && XINT (key) & meta_modifier)
+	      if (INTEGERP (key) && XINT (key) & meta_modifier)
 		{
 		  fkey_next
 		    = get_keymap_1
@@ -5053,7 +5053,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    key = keybuf[keytran_end++];
 	    /* Look up meta-characters by prefixing them
 	       with meta_prefix_char.  I hate this.  */
-	    if (XTYPE (key) == Lisp_Int && XINT (key) & meta_modifier)
+	    if (INTEGERP (key) && XINT (key) & meta_modifier)
 	      {
 		keytran_next
 		  = get_keymap_1
@@ -5139,7 +5139,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
       if (first_binding == nmaps && ! function_key_possible
-	  && XTYPE (key) == Lisp_Int
+	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
 		< XSTRING (current_buffer->downcase_table)->size)
 	       && UPPERCASEP (XINT (key) & 0x3ffff))
@@ -5272,7 +5272,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
   Vcurrent_prefix_arg = prefixarg;
   debug_on_next_call = 0;
 
-  if (XTYPE (cmd) == Lisp_Symbol)
+  if (SYMBOLP (cmd))
     {
       tem = Fget (cmd, Qdisabled);
       if (!NILP (tem) && !NILP (Vrun_hooks))
@@ -5289,8 +5289,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
 	break;
     }
 
-  if (XTYPE (final) == Lisp_String
-      || XTYPE (final) == Lisp_Vector)
+  if (STRINGP (final) || VECTORP (final))
     {
       /* If requested, place the macro in the command history.  For
 	 other sorts of commands, call-interactively takes care of
@@ -5303,8 +5302,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
 
       return Fexecute_kbd_macro (final, prefixarg);
     }
-  if (CONSP (final) || XTYPE (final) == Lisp_Subr
-      || XTYPE (final) == Lisp_Compiled)
+  if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
     {
       backtrace.next = backtrace_list;
       backtrace_list = &backtrace;
@@ -5341,9 +5339,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     strcpy (buf, "- ");
   else if (CONSP (prefixarg) && XINT (XCONS (prefixarg)->car) == 4)
     strcpy (buf, "C-u ");
-  else if (CONSP (prefixarg) && XTYPE (XCONS (prefixarg)->car) == Lisp_Int)
+  else if (CONSP (prefixarg) && INTEGERP (XCONS (prefixarg)->car))
     sprintf (buf, "%d ", XINT (XCONS (prefixarg)->car));
-  else if (XTYPE (prefixarg) == Lisp_Int)
+  else if (INTEGERP (prefixarg))
     sprintf (buf, "%d ", XINT (prefixarg));
 
   /* This isn't strictly correct if execute-extended-command
@@ -5574,7 +5572,7 @@ stuff_buffered_input (stuffstring)
 /* stuff_char works only in BSD, versions 4.2 and up.  */
 #ifdef BSD
 #ifndef BSD4_1
-  if (XTYPE (stuffstring) == Lisp_String)
+  if (STRINGP (stuffstring))
     {
       register int count;
 
@@ -5762,7 +5760,7 @@ quit_throw_to_read_char ()
     abort ();
 #endif
 #ifdef MULTI_FRAME
-  if (XTYPE (internal_last_event_frame) == Lisp_Frame
+  if (FRAMEP (internal_last_event_frame)
       && XFRAME (internal_last_event_frame) != selected_frame)
     Fhandle_switch_frame (make_lispy_switch_frame (internal_last_event_frame));
 #endif
@@ -5785,8 +5783,7 @@ See also `current-input-mode'.")
      Lisp_Object interrupt, flow, meta, quit;
 {
   if (!NILP (quit)
-      && (XTYPE (quit) != Lisp_Int
-	  || XINT (quit) < 0 || XINT (quit) > 0400))
+      && (!INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400))
     error ("set-input-mode: QUIT must be an ASCII character");
 
 #ifdef POLL_FOR_INPUT
