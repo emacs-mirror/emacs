@@ -387,7 +387,7 @@
 ;;; 2. Some combinations of FTP clients and servers break and get out of sync
 ;;;    when asked to list a non-existent directory.  Some of the ai.mit.edu
 ;;;    machines cause this problem for some FTP clients. Using
-;;;    ange-ftp-kill-process can be used to restart the ftp process, which
+;;;    ange-ftp-kill-ftp-process can restart the ftp process, which
 ;;;    should get things back in synch.
 ;;;
 ;;; 3. Ange-ftp does not check to make sure that when creating a new file,
@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.49 $")
+(defconst ange-ftp-version "$Revision: 1.50 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1747,6 +1747,11 @@ on the gateway machine to do the ftp instead."
 		       ange-ftp-gateway-ftp-program-name
 		     ange-ftp-ftp-program-name))
 	 (args (append (list ftp-prog) ange-ftp-ftp-program-args))
+	 ;; Without the following binding, ange-ftp-start-process
+	 ;; recurses on file-accessible-directory-p, since it needs to
+	 ;; restart its process in order to determine anything about
+	 ;; default-directory.
+	 (file-name-handler-alist)
 	 (default-directory
 	   (if (file-accessible-directory-p default-directory)
 	       default-directory
