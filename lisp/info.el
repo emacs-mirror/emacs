@@ -606,15 +606,15 @@ else defaults to `Top'."
 	   ;; Verify that none of the files we used has changed
 	   ;; since we used it.
 	   (eval (cons 'and
-		       (mapcar '(lambda (elt)
-				  (let ((curr (file-attributes
-					       ;; Handle symlinks
-					       (file-truename (car elt)))))
+		       (mapcar (lambda (elt)
+				 (let ((curr (file-attributes
+					      ;; Handle symlinks
+					      (file-truename (car elt)))))
 
-				    ;; Don't compare the access time.
-				    (if curr (setcar (nthcdr 4 curr) 0))
-				    (setcar (nthcdr 4 (cdr elt)) 0)
-				    (equal (cdr elt) curr)))
+				   ;; Don't compare the access time.
+				   (if curr (setcar (nthcdr 4 curr) 0))
+				   (setcar (nthcdr 4 (cdr elt)) 0)
+				   (equal (cdr elt) curr)))
 			       Info-dir-file-attributes))))
       (progn
 	(insert Info-dir-contents)
