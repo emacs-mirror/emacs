@@ -1682,6 +1682,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       XPutBackEvent (XDISPLAY &queue_tmp->event);
       queue = queue_tmp->next;
       free ((char *)queue_tmp);
+      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
+      interrupt_input_pending = 1;
     }
 
   /* Find the selected item, and its pane, to return
@@ -1930,6 +1932,8 @@ xdialog_show (f, menubarp, keymaps, title, error)
       XPutBackEvent (XDISPLAY &queue_tmp->event);
       queue = queue_tmp->next;
       free ((char *)queue_tmp);
+      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
+      interrupt_input_pending = 1;
     }
 
   /* Find the selected item, and its pane, to return
