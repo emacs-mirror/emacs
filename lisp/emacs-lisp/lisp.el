@@ -24,13 +24,14 @@
 
 ;;; Commentary:
 
-;; Lisp editing commands to go with Lisp major mode.
+;; Lisp editing commands to go with Lisp major mode.  More-or-less
+;; applicable in other modes too.
 
 ;;; Code:
 
 ;; Note that this variable is used by non-lisp modes too.
 (defcustom defun-prompt-regexp nil
-  "*Non-nil => regexp to ignore, before the character that starts a defun.
+  "*If non-nil, a regexp to ignore before the character that starts a defun.
 This is only necessary if the opening paren or brace is not in column 0.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
@@ -39,7 +40,7 @@ See function `beginning-of-defun'."
 (make-variable-buffer-local 'defun-prompt-regexp)
 
 (defcustom parens-require-spaces t
-  "Non-nil => `insert-parentheses' should insert whitespace as needed."
+  "Non-nil means `insert-parentheses' should insert whitespace as needed."
   :type 'boolean
   :group 'lisp)
 
@@ -60,14 +61,14 @@ move forward across N balanced expressions."
   (or arg (setq arg 1))
   (forward-sexp (- arg)))
 
-(defun mark-sexp (arg)
+(defun mark-sexp (&optional arg)
   "Set mark ARG sexps from point.
 The place mark goes is the same place \\[forward-sexp] would
 move to with the same argument."
   (interactive "p")
   (push-mark
     (save-excursion
-      (forward-sexp arg)
+      (forward-sexp (or arg 1))
       (point))
     nil t))
 
@@ -87,51 +88,53 @@ Negative arg -N means move forward across N groups of parentheses."
   (or arg (setq arg 1))
   (forward-list (- arg)))
 
-(defun down-list (arg)
+(defun down-list (&optional arg)
   "Move forward down one level of parentheses.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 In Lisp programs, an argument is required."
   (interactive "p")
+  (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
     (while (/= arg 0)
       (goto-char (or (scan-lists (point) inc -1) (buffer-end arg)))
       (setq arg (- arg inc)))))
 
-(defun backward-up-list (arg)
+(defun backward-up-list (&optional arg)
   "Move backward out of one level of parentheses.
 With ARG, do this that many times.
 A negative argument means move forward but still to a less deep spot.
 In Lisp programs, an argument is required."
   (interactive "p")
-  (up-list (- arg)))
+  (up-list (- (or arg 1))))
 
-(defun up-list (arg)
+(defun up-list (&optional arg)
   "Move forward out of one level of parentheses.
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 In Lisp programs, an argument is required."
   (interactive "p")
+  (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
     (while (/= arg 0)
       (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
       (setq arg (- arg inc)))))
 
-(defun kill-sexp (arg)
+(defun kill-sexp (&optional arg)
   "Kill the sexp (balanced expression) following the cursor.
 With ARG, kill that many sexps after the cursor.
 Negative arg -N means kill N sexps before the cursor."
   (interactive "p")
   (let ((opoint (point)))
-    (forward-sexp arg)
+    (forward-sexp (or arg 1))
     (kill-region opoint (point))))
 
-(defun backward-kill-sexp (arg)
+(defun backward-kill-sexp (&optional arg)
   "Kill the sexp (balanced expression) preceding the cursor.
 With ARG, kill that many sexps before the cursor.
 Negative arg -N means kill N sexps after the cursor."
   (interactive "p")
-  (kill-sexp (- arg)))
+  (kill-sexp (- (or arg 1))))
 
 (defvar beginning-of-defun-function nil
   "If non-nil, function for `beginning-of-defun-raw' to call.
@@ -337,32 +340,33 @@ unbalanced character."
 		  (error "Unmatched bracket or quote"))
 		 (t (signal (car data) (cdr data)))))))
 
-(defun lisp-complete-symbol ()
+(defun lisp-complete-symbol (&optional predicate)
   "Perform completion on Lisp symbol preceding point.
 Compare that symbol against the known Lisp symbols.
 
-The context determines which symbols are considered.
-If the symbol starts just after an open-parenthesis, only symbols
-with function definitions are considered.  Otherwise, all symbols with
-function definitions, values or properties are considered."
+When called from a program, optional arg PREDICATE is a predicate
+determining which symbols are considered, e.g. `commandp'.
+If PREDICATE is nil, the context determines which symbols are
+considered.  If the symbol starts just after an open-parenthesis, only
+symbols with function definitions are considered.  Otherwise, all
+symbols with function definitions, values or properties are
+considered."
   (interactive)
   (let* ((end (point))
-	 (buffer-syntax (syntax-table))
-	 (beg (unwind-protect
+	 (beg (with-syntax-table emacs-lisp-mode-syntax-table
 		  (save-excursion
-		    (set-syntax-table emacs-lisp-mode-syntax-table)
 		    (backward-sexp 1)
 		    (while (= (char-syntax (following-char)) ?\')
 		      (forward-char 1))
-		    (point))
-		(set-syntax-table buffer-syntax)))
-	 (pattern (buffer-substring beg end))
+		    (point))))
+	 (pattern (buffer-substring-no-properties beg end))
 	 (predicate
-	  (if (eq (char-after (1- beg)) ?\()
-	      'fboundp
-	    (function (lambda (sym)
-			(or (boundp sym) (fboundp sym)
-			    (symbol-plist sym))))))
+	  (or predicate
+	      (if (eq (char-after (1- beg)) ?\()
+		  'fboundp
+		(function (lambda (sym)
+			    (or (boundp sym) (fboundp sym)
+				(symbol-plist sym)))))))
 	 (completion (try-completion pattern obarray predicate)))
     (cond ((eq completion t))
 	  ((null completion)
