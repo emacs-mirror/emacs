@@ -876,7 +876,8 @@ selected frame."
       (if (cdr (or (assq 'reverse parameters)
 		   (assq 'reverse default-frame-alist)
 		   (cons nil
-			 (x-get-resource "reverseVideo" "ReverseVideo"))))
+			 (member (x-get-resource "reverseVideo" "ReverseVideo")
+				 '("on" "true")))))
 	  (let ((params (frame-parameters frame)))
 	    (modify-frame-parameters
 	     frame
