@@ -1696,6 +1696,9 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** `makehash' is now obsolete.  Use `make-hash-table' instead.
+
++++
 ** If optional third argument APPEND to `add-to-list' is non-nil, a
 new element gets added at the end of the list instead of at the
 beginning.  This change actually occurred in Emacs-21.1, but was not
