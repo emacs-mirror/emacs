@@ -162,12 +162,14 @@ NOTE-END
 
 #define ORDINARY_LINK
 
+#ifdef __osf1__
 /* Some systems seem to have this, others don't.  */
 #ifdef HAVE_LIBDNET
 #define LIBS_MACHINE -ldnet
 #else
 #define LIBS_MACHINE -ldnet_stub
 #endif
+#endif /* __osf1__ */
 
 #if 0 /* Rainer Schoepf <schoepf@uni-mainz.de> says this loses with X11R6
 	 since it has only shared libraries.  */
@@ -179,8 +181,10 @@ NOTE-END
 #endif
 #endif /* 0 */
 
+#ifdef __osf1__
 #define LIBS_DEBUG
 #define START_FILES pre-crt0.o
+#endif
 
 
 /* The program to be used for unexec. */
