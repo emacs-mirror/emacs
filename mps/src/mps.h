@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.15) $
+ * $HopeName: MMsrc!mps.h(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * .readership: customers, MPS developers.
@@ -65,8 +65,8 @@ enum {
 enum {
   MPS_RANK_AMBIG = 0,           /* ambiguous reference */
   MPS_RANK_EXACT = 1,           /* exact reference */
-  MPS_RANK_WEAK = 2,            /* weak reference */
-  MPS_RANK_FINAL = 3            /* final reference */
+  MPS_RANK_FINAL = 2,           /* final reference */
+  MPS_RANK_WEAK = 3             /* weak reference */
 };
 
 
