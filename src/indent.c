@@ -68,6 +68,7 @@ buffer_display_table ()
 /* Width run cache considerations.  */
 
 /* Return the width of character C under display table DP.  */
+
 static int
 character_width (c, dp)
      int c;
@@ -78,18 +79,16 @@ character_width (c, dp)
   /* These width computations were determined by examining the cases
      in display_text_line.  */
 
-  /* Some characters are never handled by the display table.  */
+  /* Everything can be handled by the display table, if it's
+     present and the element is right.  */
+  if (dp && (elt = DISP_CHAR_VECTOR (dp, c), VECTORP (elt)))
+    return XVECTOR (elt)->size;
+
+  /* Some characters are special.  */
   if (c == '\n' || c == '\t' || c == '\015')
     return 0;
 
-  /* Everything else might be handled by the display table, if it's
-     present and the element is right.  */
-  else if (dp && (elt = DISP_CHAR_VECTOR (dp, c),
-                  VECTORP (elt)))
-    return XVECTOR (elt)->size;
-
-  /* In the absence of display table perversities, printing characters
-     have width 1.  */
+  /* Printing characters have width 1.  */
   else if (c >= 040 && c < 0177)
     return 1;
 
@@ -241,11 +240,10 @@ current_column ()
 	}
 
       c = *--ptr;
-      if (c >= 040 && c < 0177
-	  && (dp == 0 || !VECTORP (DISP_CHAR_VECTOR (dp, c))))
-	{
-	  col++;
-	}
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+      else if (c >= 040 && c < 0177)
+	col++;
       else if (c == '\n')
 	break;
       else if (c == '\r' && EQ (current_buffer->selective_display, Qt))
@@ -259,8 +257,6 @@ current_column ()
 	  col = 0;
 	  tab_seen = 1;
 	}
-      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else
 	col += (ctl_arrow && c < 0200) ? 2 : 4;
     }
@@ -436,6 +432,12 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   while (col < goal && pos < end)
     {
       c = FETCH_CHAR (pos);
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	{
+	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	  pos++;
+	  break;
+	}
       if (c == '\n')
 	break;
       if (c == '\r' && EQ (current_buffer->selective_display, Qt))
@@ -447,8 +449,6 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 	  col += tab_width;
 	  col = col / tab_width * tab_width;
 	}
-      else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else if (ctl_arrow && (c < 040 || c == 0177))
         col += 2;
       else if (c < 040 || c >= 0177)
@@ -631,23 +631,30 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	  {
 	    Lisp_Object end, limit, proplimit;
 
-	    /* Get a quit lower bound for how soon property might change.  */
+	    /* We must not advance farther than the next overlay change.
+	       The overlay change might change the invisible property;
+	       we have no way of telling.  */
 	    limit = Fnext_overlay_change (position);
+	    /* As for text properties, this gives a lower bound
+	       for where the invisible text property could change.  */
 	    proplimit = Fnext_property_change (position, buffer, Qt);
-	    if (XFASTINT (proplimit) < XFASTINT (limit))
-	      limit = proplimit;
-	    /* LIMIT is now a lower bound for the next change
+	    if (XFASTINT (limit) < XFASTINT (proplimit))
+	      proplimit = limit;
+	    /* PROPLIMIT is now a lower bound for the next change
 	       in invisible status.  If that is plenty far away,
 	       use that lower bound.  */
-	    if (XFASTINT (limit) > pos + 100 || XFASTINT (limit) >= to)
-	      next_invisible = XINT (limit);
+	    if (XFASTINT (proplimit) > pos + 100 || XFASTINT (proplimit) >= to)
+	      next_invisible = XINT (proplimit);
 	    /* Otherwise, scan for the next `invisible' property change.  */
 	    else
 	      {
 		/* Don't scan terribly far.  */
-		XSETFASTINT (limit, min (pos + 100, to));
+		XSETFASTINT (proplimit, min (pos + 100, to));
+		/* No matter what. don't go past next overlay change.  */
+		if (XFASTINT (limit) < XFASTINT (proplimit))
+		  proplimit = limit;
 		end = Fnext_single_property_change (position, Qinvisible,
-						    buffer, limit);
+						    buffer, proplimit);
 		if (INTEGERP (end) && XINT (end) < to)
 		  next_invisible = XINT (end);
 		else
@@ -743,8 +750,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
                 }
             }
 
-          if (c >= 040 && c < 0177
-              && (dp == 0 || ! VECTORP (DISP_CHAR_VECTOR (dp, c))))
+          if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+            hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+          else if (c >= 040 && c < 0177)
             hpos++;
           else if (c == '\t')
             {
@@ -802,8 +810,6 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
                     hpos = width;
                 }
             }
-          else if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-            hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
           else
             hpos += (ctl_arrow && c < 0200) ? 2 : 4;
         }
