@@ -372,6 +372,17 @@ you are working on the host called `marvin'.  Then an entry in the
 
 The solution is to remove this line from `etc/fstab'.
 
+* Emacs binary is not in executable format, and cannot be run.
+
+This was reported to happen when Emacs is built in a directory mounted
+via NFS.  Usually, the file `emacs' produced in these cases is full of
+binary null characters, and the `file' utility says:
+
+    emacs: ASCII text, with no line terminators
+
+We don't know what exactly causes this failure.  A work-around is to
+build Emacs in a directory on a local disk.
+
 * Accented ISO-8859-1 characters are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
