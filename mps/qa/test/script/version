@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.6) $
+# $HopeName: MMQA_harness!script:version(trunk.7) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
-$HARNESS_VERSION="2.4";
+$HARNESS_VERSION="2.5";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -17,5 +17,6 @@ $HARNESS_VERSION="2.4";
 #  2.4 -- Changed to use "/usr/lib/sendmail" on unix platforms.
 #         Made easy_tramp2 static.
 #         Added mmqa_arena_create function.
-#
+#  2.5 -- Added quoting for -Dparm=value options to compiler. Needed
+#         because some tests have e.g. value = (size_t)1024.
 #
