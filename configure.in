@@ -2136,7 +2136,7 @@ changequote([, ])dnl
 
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
-	leim/Makefile, [
+	lisp/Makefile leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in etc lisp ; do
