@@ -42,9 +42,12 @@
       "lp" "lpr")
   "*Name of program for printing a file.")
 
-(defvar lpr-headers-switches
-  (if (equal lpr-command "lpr") '("-p") nil)
-  "*List of strings to use as options for `lpr' to request page headings.")
+;; Default is nil, because that enables us to use pr -f
+;; which is more reliable than pr with no args, which is what lpr -p does.
+(defvar lpr-headers-switches nil
+  "*List of strings to use as options for `lpr' to request page headings.
+If nil, we run `lpr-page-header-program' to make page headings
+and print the result.")
 
 (defvar print-region-function nil
   "Function to call to print the region on a printer.
@@ -103,11 +106,13 @@ See definition of `print-region-1' for calling conventions.")
 	    (untabify (point-min) (point-max))))
       (if page-headers
 	  (if lpr-headers-switches
-	      ;; On BSD, use an option to get page headers.
+	      ;; It is possible to use an lpr option
+	      ;; to get page headers.
 	      (setq switches (append (if (stringp lpr-headers-switches)
 					 (list lpr-headers-switches)
 				        lpr-headers-switches)
 				     switches))
+	    ;; Run a separate program to get page headers.
 	    (print-region-new-buffer start end)
 	    (call-process-region start end lpr-page-header-program
 				 t t lpr-page-header-options)
