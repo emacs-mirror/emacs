@@ -1071,8 +1071,12 @@ but if the second optional argument FORCE is non-nil, you may do so.")
   if (NILP (force) && !other_visible_frames (f))
     error ("Attempt to delete the sole visible or iconified frame");
 
+#if 0
+  /* This is a nice idea, but x_connection_closed needs to be able
+     to delete the last frame, if it is gone.  */
   if (NILP (XCONS (Vframe_list)->cdr))
     error ("Attempt to delete the only frame");
+#endif
 
   /* Does this frame have a minibuffer, and is it the surrogate
      minibuffer for any other frame?  */
