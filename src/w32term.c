@@ -192,6 +192,7 @@ extern Lisp_Object Vwindow_system;
 
 /* This is display since w32 does not support multiple ones.  */
 struct w32_display_info one_w32_display_info;
+struct w32_display_info *x_display_list;
 
 /* This is a list of cons cells, each of the form (NAME . FONT-LIST-CACHE),
    one for each element of w32_display_list and in the same order.
@@ -10196,6 +10197,10 @@ w32_term_init (display_name, xrm_option, resource_name)
   w32_initialize_display_info (display_name);
 
   dpyinfo = &one_w32_display_info;
+
+  /* Put this display on the chain.  */
+  dpyinfo->next = x_display_list;
+  x_display_list = dpyinfo;
   
   hdc = GetDC (GetDesktopWindow ());
 
