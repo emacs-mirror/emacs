@@ -220,12 +220,7 @@ static int baud_convert[] =
   };
 #endif
 
-#ifdef HAVE_TERMIOS
-# include <termios.h>
-  extern speed_t ospeed;
-#else
-  extern short ospeed;
-#endif
+extern short ospeed;
 
 /* The file descriptor for Emacs's input terminal.
    Under Unix, this is normally zero except when using X;
