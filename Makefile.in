@@ -186,13 +186,14 @@ EMACS = emacs
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
-SUBDIR = lib-src src
+SUBDIR = lib-src src leim
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
+# leim's makefile also knows how to install it, so we don't do that here.
 # When installing the info files, we need to do special things to
 # avoid nuking an existing dir file, so we don't do that here;
 # instead, we have written out explicit code in the `install' targets.
@@ -250,6 +251,9 @@ oldXMenu/Makefile: oldXMenu/Makefile.in config.status
 	./config.status
 
 lwlib/Makefile: lwlib/Makefile.in config.status
+	./config.status
+
+leim/Makefile: leim/Makefile.in config.status
 	./config.status
 
 # ==================== Installation ====================
