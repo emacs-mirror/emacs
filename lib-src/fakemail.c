@@ -401,15 +401,49 @@ put_string (s)
 }
 
 void
-put_line (s)
-     char *s;
+put_line (string)
+     char *string;
 {
   register stream_list rem;
   for (rem = the_streams;
        rem != ((stream_list) NULL);
        rem = rem->rest_streams)
     {
-      fputs (s, rem->handle);
+      char *s = string;
+      int column = 0;
+
+      /* Divide STRING into lines.  */
+      while (*s != 0)
+	{
+	  char *breakpos;
+
+	  /* Find the last char that fits. */
+	  for (breakpos = s; *breakpos && column < 78; ++breakpos)
+	    {
+	      if (*breakpos == '\t')
+		column += 8;
+	      else
+		column++;
+	    }
+	  /* Back up to just after the last comma that fits.  */
+	  while (breakpos != s && breakpos[-1] != ',') --breakpos;
+	  if (breakpos == s)
+	    {
+	      /* If no comma fits, move past the first address anyway.  */
+	      while (*breakpos != 0 && *breakpos != ',') ++breakpos;
+	      if (*breakpos != 0)
+		/* Include the comma after it.  */
+		++breakpos;
+	    }
+	  /* Output that much, then break the line.  */
+	  fwrite (s, 1, breakpos - s, rem->handle);
+	  fputs ("\n\t", rem->handle);
+	  column = 8;
+
+	  /* Skip whitespace and prepare to print more addresses.  */
+	  s = breakpos;
+	  while (*s == ' ' || *s == '\t') ++s;
+	}
       putc ('\n', rem->handle);
     }
   return;
