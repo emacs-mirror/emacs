@@ -1,3 +1,9 @@
+2000-11-25  Jason Rumney  <jasonr@gnu.org>
+
+	* startup.el (command-line): Call set-locale-environment after
+	Window System init file is read, as it can result in a call to
+	redraw-frame.
+
 2000-11-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (shell-command): Mention the effect of the prefix
