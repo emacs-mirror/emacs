@@ -1,3 +1,48 @@
+2002-10-17  Juanma Barranquero  <lektu@terra.es>
+
+	* align.el (align-rules-list, align-exclude-rules-list): Fix typos.
+
+	* subr.el (remq): Likewise.
+
+	* vc-cvs.el (vc-cvs-sticky-tag-display): Likewise.
+
+	* vc-hooks.el (vc-insert-file): Likewise.
+
+	* vcursor.el (vcursor-other-window): Likewise.
+
+	* wid-edit.el (widget-choose): Likewise.
+
+	* calendar/diary-lib.el (diary-name-pattern): Likewise.
+
+	* emacs-lisp/elint.el (elint-error, elint-warning): Likewise.
+
+	* emacs-lisp/lisp.el (beginning-of-defun): Likewise.
+
+	* emulation/edt-mapper.el (top-level): Likewise.
+
+	* eshell/esh-var.el (eshell/define): Likewise.
+
+	* mail/feedmail.el (feedmail-nuke-body-in-fcc)
+	(feedmail-queue-draft-directory): Likewise.
+
+	* net/netrc.el (netrc-parse): Likewise.
+
+	* obsolete/cplus-md.el (c++-empty-arglist-indent): Likewise.
+
+	* progmodes/ebrowse.el (ebrowse-ts)
+	(ebrowse-view/find-file-and-search-pattern)
+	(ebrowse-draw-file-member-info): Likewise.
+
+	* progmodes/idlwave.el (idlwave-region-active-p): Likewise.
+
+	* progmodes/idlw-shell.el (idlwave-shell-set-bp): Likewise.
+
+	* progmodes/sh-script.el (sh-indent-for-then): Likewise.
+
+	* textmodes/bibtex.el (bibtex-find-entry-location): Likewise.
+
+	* textmodes/sgml-mode.el (sgml-close-tag, html-imenu-index): Likewise.
+
 2002-10-17  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el (non-iso-charset-alist): Add koi8-u.
@@ -14,8 +59,6 @@
 
 	* language/european.el ("Slovenian"): Use slovenian input-method.
 	(encode-mac-roman): Use ucs-mule-to-mule-unicode.
-
-2002-10-17  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
 	the table.
@@ -34,7 +77,7 @@
 
 	* dired-aux.el (dired-insert-subdir-doinsert): Preserve point.
 
-2002-10-16   Markus Rost  <rost@math.ohio-state.edu>
+2002-10-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/reftex-vars.el: Move reftex-set-dirty here from
 	reftex.el.  Move the provide call to end of file.
@@ -260,7 +303,7 @@
 	(tramp-handle-shell-command): Logic error.  From Ivan
 	Zakharyaschev <imz@altlinux.org>.
 
-2002-10-06  Markus Holmberg <markush@acc.umu.se>  (tiny change)
+2002-10-06  Markus Holmberg  <markush@acc.umu.se>  (tiny change)
 
 	* thingatpt.el (thing-at-point-uri-schemes): New variable.
 	(thing-at-point-url-regexp): Use it.
@@ -349,7 +392,7 @@
 2002-10-02  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (widget-default-get): Change to return external
-	value. 
+	value.
 	(widget-choice-action): Update caller.
 	(widget-editable-list-entry-create): Update caller.
 
@@ -2243,7 +2286,7 @@
 
 2002-09-05  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el Don't require vc.el at compile-time; it causes
+	* vc-hooks.el: Don't require vc.el at compile-time; it causes
 	recursive requirements during bootstrap.
 
 2002-09-05  Kenichi Handa  <handa@etl.go.jp>
@@ -2688,7 +2731,7 @@
 
 	* vc-hooks.el (vc-kill-buffer-hook): Add it to kill-buffer-hook again.
 
-2002-08-22  Katsumi Yamaoka <yamaoka@jpl.org>  (tiny change)
+2002-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
 	* frame.el (select-frame-by-name, select-frame-set-input-focus):
 	Always call x-focus-frame, if using x.
@@ -4857,7 +4900,7 @@
 	* international/mule-diag.el (describe-char-after):
 	Moved to descr-text.el.
 
-2002-06-17  Eli Zaretskii <eliz@is.elta.co.il>
+2002-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (ctext-pre-write-conversion): Fix the values
 	of FROM and TO if we create a new buffer.
@@ -5698,7 +5741,7 @@
 	(report-emacs-bug-hook): Unclutter by deleting the content of
 	`report-emacs-bug-text-prompt'.
 
-2002-05-17  Thomas Morgan <tlm@pocketmail.com>
+2002-05-17  Thomas Morgan  <tlm@pocketmail.com>
 
 	* forms.el (forms-jump-record, forms-insert-record)
 	(forms-delete-record): Calculate lines from the beginning of the
@@ -6045,7 +6088,7 @@
 	* windmove.el (windmove-default-keybindings): Add optional
 	parameter to allow using a modifier other than 'shift.
 
-2002-05-07 Thomas Link <t.link@gmx.at>
+2002-05-07  Thomas Link  <t.link@gmx.at>
 
 	* filesets.el:
 	(filesets-external-viewers): Fix customization problem.
@@ -6105,7 +6148,7 @@
 	(filesets-menu-before, filesets-menu-path, filesets-menu-in-menu):
 	Don't defcustom them if running in Emacs.
 
-2002-05-04  Thomas Link <t.link@gmx.at>
+2002-05-04  Thomas Link  <t.link@gmx.at>
 
 	* filesets.el (filesets-ingroup-collect-files):
 	Fix problem with inclusion groups' :scan-depth property.
@@ -6715,7 +6758,7 @@
 
 	* net/netrc.el: New file.
 
-2002-04-24  Thomas DeWeese <tdeweese@rochester.rr.com>
+2002-04-24  Thomas DeWeese  <tdeweese@rochester.rr.com>
 
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
 	Check if any of the available selection sources has new content
@@ -7742,7 +7785,7 @@
 	* files.el (file-name-non-special): Don't mangle the 0'th arg and the
 	return value of file-name-completion and file-name-all-completions.
 
-2002-04-19  Glenn Morris <gmorris@ast.cam.ac.uk>
+2002-04-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el: Update maintainer.
 	(f90-line-continued): Recognize blank/comment lines embedded in
@@ -12681,7 +12724,7 @@
 	Moved all `apropos' bindings to this menu.
 	(menu-bar-help-menu): Added `menu-bar-apropos-menu'.
 
-2001-11-24  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+2001-11-24  KAWABATA, Taichi  <batta@beige.ocn.ne.jp>
 
 	The following changes are for new indian languages support based
 	on Unicode charset and CDAC fonts.

@@ -1,3 +1,7 @@
+2002-10-17  Juanma Barranquero  <lektu@terra.es>
+
+	* lread.c (syms_of_lread): Fix typos.
+
 2002-10-17  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (TEMACS_LDFLAGS): Add trailing comment.
@@ -2290,7 +2294,7 @@
 	(IT_set_cursor_type, IT_set_frame_parameters): Handle the `hbar'
 	cursor type.
 
-2002-04-19  Dave Lambert <dlambert@acm.org>
+2002-04-19  Dave Lambert  <dlambert@acm.org>
 
 	Theses change implement an underscore-like (`hbar') cursor.
 
