@@ -77,8 +77,8 @@ the action arguments in the order they are written.
 
 @table @samp
 @item @var{file}
-@itemx --visit @var{file}
-@itemx --file @var{file}
+@itemx --visit=@var{file}
+@itemx --file=@var{file}
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
 
 @item +@var{linenum} @var{file}
@@ -97,8 +97,8 @@ with @env{EMACSLOADPATH} (@pxref{General Variables}).
 @itemx --funcall=@var{function}
 Call Lisp function @var{function} with no arguments.
 
-@item --eval @var{expression}
-@itemx --execute @var{expression}
+@item --eval=@var{expression}
+@itemx --execute=@var{expression}
 Evaluate Lisp expression @var{expression}.
 
 @item --insert=@var{file}
@@ -344,9 +344,9 @@ files---used to initialize @code{exec-path}.
 Used for shell-mode to override the @env{SHELL} environment variable.
 @item HISTFILE
 The name of the file that shell commands are saved in between logins.
-This variable defaults to @file{~/.history} if you use (t)csh as shell,
-to @file{~/.bash_history} if you use bash, to @file{~/.sh_history} if
-you use ksh, and to @file{~/.history} otherwise.
+This variable defaults to @file{~/.bash_history} if you use Bash, to
+@file{~/.sh_history} if you use ksh, and to @file{~/.history}
+otherwise.
 @item HOME
 The location of the user's files in the directory tree; used for
 expansion of file names starting with a tilde (@file{~}).  On MS-DOS, it
@@ -426,7 +426,7 @@ Used by the Emerge package as a prefix for temporary files.
 This specifies the current time zone and possibly also daylight
 savings information.  On MS-DOS, if @code{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
-appropriate for the country code returned by DOS.  MS Windows
+appropriate for the country code returned by DOS.  On MS Windows, Emacs
 does not use @code{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
@@ -443,8 +443,10 @@ These variables are used only on particular configurations:
 
 @table @env
 @item COMSPEC
-On MS-DOS, the name of the command interpreter to use.  This is used to
-make a default value for the @env{SHELL} environment variable.
+On MS-DOS and MS-Windows, the name of the command interpreter to use
+when invoking batch files and commands internal to the shell.  On MS-DOS
+this is also used to make a default value for the @env{SHELL} environment
+variable.
 
 @item NAME
 On MS-DOS, this variable defaults to the value of the @env{USER}
@@ -452,8 +454,8 @@ variable.
 
 @item TEMP
 @itemx TMP
-On MS-DOS, these specify the name of the directory for storing temporary
-files in.
+On MS-DOS and MS-Windows, these specify the name of the directory for
+storing temporary files in.
 
 @item EMACSTEST
 On MS-DOS, this specifies a file to use to log the operation of the
@@ -463,7 +465,7 @@ reports.
 @item EMACSCOLORS
 Used on MS-DOS systems to set screen colors early, so that the screen
 won't momentarily flash the default colors when Emacs starts up.  The
-value of this variable should be two-character encoding of the
+value of this variable should be the two-character encoding of the
 foreground (the first character) and the background (the second
 character) colors of the default face.  Each character should be the
 hexadecimal code for the desired color on a standard PC text-mode
@@ -492,7 +494,7 @@ remotely, displaying on your local screen.
 
   With Emacs, the main reason people change the default display is to
 let them log into another system, run Emacs on that system, but have the
-window displayed at their local terminal.  You might need to use login
+window displayed at their local terminal.  You might need to login
 to another system because the files you want to edit are there, or
 because the Emacs executable file you want to run is there.
 
@@ -517,7 +519,7 @@ by changing the @env{DISPLAY} variable, or with the option @samp{-d
 emacs --display=glasperle:0 &
 @end smallexample
 
-  You can inhibit the direct use of X with the @samp{-nw} option.  This
+  You can inhibit the direct use of the GUI with the @samp{-nw} option.  This
 is also an initial option.  It tells Emacs to display using ordinary
 ASCII on its controlling terminal.
 
@@ -541,14 +543,13 @@ remote machine.
   By default, Emacs displays text in the font named @samp{9x15}, which
 makes each character nine pixels wide and fifteen pixels high.  You can
 specify a different font on your command line through the option
-@samp{-fn @var{name}}.
+@samp{-fn @var{name}} (or @samp{--font}, which is an alias for
+@samp{-fn}).
 
 @table @samp
 @item -fn @var{name}
+@itemx --font=@var{name}
 Use font @var{name} as the default font.
-
-@item --font=@var{name}
-@samp{--font} is an alias for @samp{-fn}.
 @end table
 
   Under X, each font has a long name which consists of eleven words or
@@ -605,7 +606,7 @@ to specify just one of them and use @samp{*} for the other.
 This is the horizontal resolution, in pixels per inch, of the screen for
 which the font is intended.
 @item vert
-This is the vertical resolution, in dots per inch, of the screen for
+This is the vertical resolution, in pixels per inch, of the screen for
 which the font is intended.  Normally the resolution of the fonts on
 your system is the right value for your screen; therefore, you normally
 specify @samp{*} for this and @var{horiz}.
@@ -668,7 +669,9 @@ background is usually black and the foreground is white.
 @table @samp
 @item -fg @var{color} 
 @itemx --foreground-color=@var{color} 
-Specify the foreground color.
+Specify the foreground color.  @var{color} should be a standard color
+name or a numeric specification of the color's red, green, and blue
+components as in @samp{#4682B4} or @samp{RGB:46/82/B4}.
 @item -bg @var{color} 
 @itemx --background-color=@var{color} 
 Specify the background color.
@@ -728,13 +731,16 @@ negative, but that doesn't change their meaning, only their direction.
 
   Emacs uses the same units as @code{xterm} does to interpret the geometry.
 The @var{width} and @var{height} are measured in characters, so a large font
-creates a larger frame than a small font.  The @var{xoffset} and
-@var{yoffset} are measured in pixels.
+creates a larger frame than a small font.  The @var{xoffset}
+and @var{yoffset} are measured in pixels.
 
   Since the mode line and the echo area occupy the last 2 lines of the
 frame, the height of the initial text window is 2 less than the height
 specified in your geometry.  In non-X-toolkit versions of Emacs,
-the menu bar also takes one line of the specified number.
+the menu bar also takes one line of the specified number.  The tool bar,
+if present, is excluded from the height of the initial text window;
+Emacs will enlarge the frame's height as needed to accomodate for the
+tool bar.
 
   You do not have to specify all of the fields in the geometry
 specification.
@@ -776,11 +782,11 @@ the window.
 @table @samp
 @item -ib @var{width}
 @itemx --internal-border=@var{width}
-Specify @var{width} as the width of the internal border.
+Specify @var{width} as the width of the internal border in pixels.
 
 @item -bw @var{width}
 @itemx --border-width=@var{width}
-Specify @var{width} as the width of the main border.
+Specify @var{width} as the width of the main border in pixels.
 @end table
 
   When you specify the size of the frame, that does not count the
@@ -842,7 +848,7 @@ rectangle containing the frame's title.
 
   The @samp{-iconic} option tells Emacs to begin running as an icon,
 rather than opening a frame right away.  In this situation, the icon
-window provides only indication that Emacs has started; the usual text
+window provides only an indication that Emacs has started; the usual text
 frame doesn't appear until you deiconify it.
 
 @node Resources X
@@ -933,7 +939,7 @@ Emacs.borderWidth: 4
 use with the command line option @samp{-xrm @var{resources}}.  The text
 @var{resources} should have the same format that you would use inside a file
 of X resources.  To include multiple resource specifications in
-@var{data}, put a newline between them, just as you would in a file.
+@var{resources}, put a newline between them, just as you would in a file.
 You can also use @samp{#include "@var{filename}"} to include a file full
 of resource specifications.  Resource values specified with @samp{-xrm}
 take precedence over all other resource specifications.
@@ -1137,8 +1143,8 @@ Emacs.pane.menubar.@var{subwidget}.@var{resource}:  @var{value}
 
   Each individual string in the menu bar is a subwidget; the subwidget's
 name is the same as the menu item string.  For example, the word
-@samp{Files} in the menu bar is part of a subwidget named
-@samp{emacs.pane.menubar.Files}.  Most likely, you want to specify the
+@samp{File} in the menu bar is part of a subwidget named
+@samp{emacs.pane.menubar.File}.  Most likely, you want to specify the
 same resources for the whole menu bar.  To do this, use @samp{*} instead
 of a specific subwidget name.  For example, to specify the font
 @samp{8x16} for the menu-bar items, write this:
@@ -1151,25 +1157,26 @@ Emacs.pane.menubar.*.fontList:  8x16
 This also specifies the resource value for submenus.
 
   Each item in a submenu in the menu bar also has its own name for X
-resources; for example, the @samp{Files} submenu has an item named
-@samp{Save Buffer}.  A resource specification for a submenu item looks
-like this:
+resources; for example, the @samp{File} submenu has an item named
+@samp{Save (current buffer)}.  A resource specification for a submenu
+item looks like this:
 
 @smallexample
 Emacs.pane.menubar.popup_*.@var{menu}.@var{item}.@var{resource}: @var{value}
 @end smallexample
 
 @noindent
-For example, here's how to specify the font for the @samp{Save Buffer}
-item:
+For example, here's how to specify the font for the @samp{Save (current
+buffer)} item:
 
 @smallexample
-Emacs.pane.menubar.popup_*.Files.Save Buffer.fontList: 8x16
+Emacs.pane.menubar.popup_*.File.Save (current buffer).fontList: 8x16
 @end smallexample
 
 @noindent
-For an item in a second-level submenu, such as @samp{Check Message}
-under @samp{Spell} under @samp{Edit}, the resource fits this template:
+For an item in a second-level submenu, such as @samp{Spell-Check Message}
+under @samp{Spell Checking} under @samp{Tools}, the resource fits this
+template:
 
 @smallexample
 Emacs.pane.menubar.popup_*.popup_*.@var{menu}.@var{resource}: @var{value}
@@ -1179,7 +1186,7 @@ Emacs.pane.menubar.popup_*.popup_*.@var{menu}.@var{resource}: @var{value}
 For example,
 
 @smallexample
-Emacs.pane.menubar.popup_*.popup_*.Spell.Check Message: @var{value}
+Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Spell-Check Message: @var{value}
 @end smallexample
   
   It's impossible to specify a resource for all the menu-bar items
