@@ -1,5 +1,12 @@
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_window): Detect pending input every nth line
+	updated, i.e. do it depending on real work done, and not on the
+	vpos of the line.
+
+	* xterm.c (expose_window): Don't redraw the window that's
+	currently being updated.
+
 	* window.c (Fset_window_point): Remove test for
 	cursor_in_non_selected_windows.
 
