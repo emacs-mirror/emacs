@@ -1166,8 +1166,7 @@ TAGS: $(srcdir)/$(ctagsfiles)
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
-	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags \
-	    lispsource=${lispsource}
+	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags
 tags: TAGS TAGS-LISP
 .PHONY: tags
 
