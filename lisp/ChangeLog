@@ -1,3 +1,19 @@
+2000-12-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/texnfo-upd.el (texinfo-chapter-level-regexp)
+	(texinfo-filter): Removed (moved to texinfo.el).
+
+	* textmodes/texinfo.el: Move the (require 'cl) to the front of the
+	file where it's more visible.
+	(texinfo-filter, texinfo-chapter-level-regexp): New variables
+	moved from texnfo-upd.el (for AUCTeX's compatibility, originally).
+	(texinfo-mode): Use texinfo-chapter-level-regexp for page-delimiter.
+	(texinfo-inside-macro-p): Only catch `scan-error's.
+	(texinfo-inside-env-p): Make better use of the match info.
+	(texinfo-insert-quote): Collapse calls to `texinfo-inside-macro-p'.
+	(texinfo-insert-@end): Slight re-organization.
+	Also remove useless `looking-at' call.
+
 2000-12-08  Andrew Innes  <andrewi@gnu.org>
 
 	* w32-fns.el: Add clipboard support from term/w32-win.el, so it is
