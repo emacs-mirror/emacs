@@ -208,6 +208,7 @@ extern Lisp_Object Vglobal_fontset_alist;
 
 extern Lisp_Object Qfontset;
 extern Lisp_Object Vuse_default_ascent; 
+extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternative_fontname_alist;
 extern Lisp_Object Vhighlight_wrong_size_font;
 extern Lisp_Object Vclip_large_size_font;
