@@ -2001,21 +2001,20 @@ when he invoked the menu."
 (defun widget-toggle-value-create (widget)
   "Insert text representing the `on' and `off' states."
   (if (widget-value widget)
-      (progn
+      (let ((image (widget-get widget :on-glyph)))
 	(and (display-graphic-p)
-	     (listp (widget-get widget :on-glyph))
-	     (widget-put widget :on-glyph
-			 (eval (widget-get widget :on-glyph))))
+	     (listp image)
+	     (not (eq (car image) 'image))
+	     (widget-put widget :on-glyph (setq image (eval image))))
 	(widget-image-insert widget
 			     (widget-get widget :on)
-			     (widget-get widget :on-glyph)))
-    (and (display-graphic-p)
-	 (listp (widget-get widget :off-glyph))
-	 (widget-put widget :off-glyph
-		     (eval (widget-get widget :off-glyph))))
-    (widget-image-insert widget
-			 (widget-get widget :off)
-			 (widget-get widget :off-glyph))))
+			     image))
+    (let ((image (widget-get widget :off-glyph)))
+      (and (display-graphic-p)
+	   (listp image)
+	   (not (eq (car image) 'image))
+	   (widget-put widget :off-glyph (setq image (eval image))))
+      (widget-image-insert widget (widget-get widget :off) image))))
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.
