@@ -1857,13 +1857,14 @@ Selecting a special element performs:
 A nested sub-alist element looks like this:
 
 @example
-(@var{index-name} @var{sub-alist})
+(@var{menu-title} @var{sub-alist})
 @end example
 
-It creates a submenu specified by @var{sub-alist}.
+It creates the submenu @var{menu-title} specified by @var{sub-alist}.
 
-The default value of @code{imenu-create-index-function} is a function
-that uses @code{imenu-prev-index-position-function} and
+The default value of @code{imenu-create-index-function} is
+@code{imenu-default-create-index-function}.  This function uses
+@code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function} to produce the index alist.
 However, if either of these two variables is @code{nil}, the default
 function uses @code{imenu-generic-expression} instead.
