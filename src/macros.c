@@ -147,6 +147,14 @@ finalize_kbd_macro_chars ()
 {
   current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
 }
+
+DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
+       Scancel_kbd_macro_events, 0, 0, 0,
+  "Cancel the events added to a keyboard macro for this command.")
+  ()
+{
+  current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
+}
 
 DEFUN ("call-last-kbd-macro", Fcall_last_kbd_macro, Scall_last_kbd_macro,
   0, 1, "p",
@@ -238,6 +246,7 @@ syms_of_macros ()
   defsubr (&Send_kbd_macro);
   defsubr (&Scall_last_kbd_macro);
   defsubr (&Sexecute_kbd_macro);
+  defsubr (&Scancel_kbd_macro_events);
 
   DEFVAR_KBOARD ("defining-kbd-macro", defining_kbd_macro,
     "Non-nil while a keyboard macro is being defined.  Don't set this!");
