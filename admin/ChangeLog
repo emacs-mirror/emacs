@@ -1,3 +1,7 @@
+2002-10-08  Markus Rost  <rost@math.ohio-state.edu>
+
+	* cus-test.el: New file.
+
 2002-05-27  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs (VERSION): Calculate using the same method
