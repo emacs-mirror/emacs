@@ -1110,6 +1110,15 @@ this form:
  @var{click-count})
 @end example
 
+or, for clicks on strings in the mode line, header line or marginal
+areas:
+
+@example
+(@var{event-type}
+ (@var{window} @var{buffer-pos} (@var{x} . @var{y}) @var{timestamp} (@var{string} . @var{string-pos})
+ @var{click-count})
+@end example
+
 Here is what the elements normally mean:
 
 @table @asis
@@ -1140,7 +1149,16 @@ This is the buffer position of the character clicked on.
 @item @var{timestamp}
 This is the time at which the event occurred, in milliseconds.  (Since
 this value wraps around the entire range of Emacs Lisp integers in about
-five hours, it is useful only for relating the times of nearby events.)
+five hours, it is useful only for relating the times of nearby
+events.)
+
+@item @var{string}
+This is the string on which the click occurred, including any
+properties.
+
+@item @var{string-pos}
+This is the position in the string on which the click occurred,
+relevant if properties at the click need to be looked up.
 
 @item @var{click-count}
 This is the number of rapid repeated presses so far of the same mouse
@@ -1158,10 +1176,11 @@ If the location is in a scroll bar, then @var{buffer-pos} is the symbol
 the top or left end of the scroll bar, and @var{whole} is the length of
 the entire scroll bar.
 
-If the position is on a mode line or the vertical line separating
-@var{window} from its neighbor to the right, then @var{buffer-pos} is
-the symbol @code{mode-line}, @code{header-line}, or
-@code{vertical-line}.  For the mode line, @var{y} does not have
+If the position is on a mode line, the vertical line separating
+@var{window} from its neighbor to the right, or in a marginal area,
+then @var{buffer-pos} is the symbol @code{mode-line},
+@code{header-line}, @code{vertical-line}, @code{left-margin}, or
+@code{right-margin}.  For the mode line, @var{y} does not have
 meaningful data.  For the vertical line, @var{x} does not have
 meaningful data.
 
