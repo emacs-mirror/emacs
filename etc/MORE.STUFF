@@ -171,8 +171,9 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
    dismal.html>
 	  
- * EDB: database: <URL:ftp://theory.lcs.mit.edu/pub/emacs/edb>
-   No longer maintained?
+ * EDB: database:
+   <URL:http://sdg.lcs.mit.edu/%7Emernst/software/edb-mrp.tar.gz>
+   Not maintained?
 
  * EIEIO (object system), ETalk (interface to Internet talk):
    <URL:ftp://www.ultranet.com/pub/zappo/>

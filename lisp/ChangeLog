@@ -1,5 +1,7 @@
 2001-01-23  Dave Love  <fx@gnu.org>
 
+	* international/mule.el (make-coding-system): Fix typo.
+
 	* textmodes/outline.el (outline-mode) <font-lock-defaults>: Add
 	backward-paragraph as font-lock-beginning-of-syntax-function.
 
