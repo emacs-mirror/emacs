@@ -102,6 +102,27 @@ extern Lisp_Object Vminibuf_scroll_window;
 
 extern Lisp_Object Voverriding_local_map;
 
+/* Put minibuf on currently selected frame's minibuffer.
+   We do this whenever the user starts a new minibuffer
+   or when a minibuffer exits.  */
+
+void
+choose_minibuf_frame ()
+{
+  if (selected_frame != 0
+      && !EQ (minibuf_window, selected_frame->minibuffer_window))
+    {
+      /* I don't think that any frames may validly have a null minibuffer
+	 window anymore.  */
+      if (NILP (selected_frame->minibuffer_window))
+	abort ();
+
+      Fset_window_buffer (selected_frame->minibuffer_window,
+			  XWINDOW (minibuf_window)->buffer);
+      minibuf_window = selected_frame->minibuffer_window;
+    }
+}
+
 /* Actual minibuffer invocation. */
 
 void read_minibuf_unwind ();
