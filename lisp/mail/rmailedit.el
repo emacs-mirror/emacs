@@ -115,6 +115,7 @@ to return to regular RMAIL:
   (interactive)
   (delete-region (point-min) (point-max))
   (insert rmail-old-text)
-  (rmail-cease-edit))
+  (rmail-cease-edit)
+  (rmail-highlight-headers))
 
 ;;; rmailedit.el ends here
