@@ -1,3 +1,9 @@
+1999-12-04  Michael Kifer  <kifer@cs.sunysb.edu>
+
+	* viper-cmd.el (viper-change-state): Use
+	viper-ESC-moves-cursor-back to decide whether to move the cursor
+	back.
+	
 1999-12-03  Kenichi Handa  <handa@mule.m17n.org>
 
 	* international/mule-util.el (truncate-string-to-width): Docsting

@@ -224,6 +224,22 @@
 		 (control n) (control p) (control f) (control b)))
       (viper-restore-cursor-color 'after-replace-mode)))
 
+
+;; Make sure we don't delete more than needed.
+;; This is executed at viper-last-posn-in-replace-region
+(defsubst viper-trim-replace-chars-to-delete-if-necessary ()
+  (setq viper-replace-chars-to-delete
+	(max 0
+	     (min viper-replace-chars-to-delete
+		  ;; Don't delete more than to the end of repl overlay
+		  (viper-chars-in-region
+		   (viper-replace-end) viper-last-posn-in-replace-region)
+		  ;; point is viper-last-posn-in-replace-region now
+		  ;; So, this limits deletion to the end of line
+		  (viper-chars-in-region (point) (viper-line-pos 'end))
+		  ))))
+
+
 (defun viper-replace-state-post-command-sentinel ()
   ;; Restoring cursor color is needed despite
   ;; viper-replace-state-pre-command-sentinel: When one jumps to another buffer
@@ -316,7 +332,7 @@
 		    (viper-push-onto-ring viper-last-insertion
 					  'viper-insertion-ring))
 
-		(if viper-ex-style-editing
+		(if viper-ESC-moves-cursor-back
 		    (or (bolp) (backward-char 1))))
 	       ))
 
@@ -2234,20 +2250,6 @@ problems."
 	    ))
 
       )))
-
-;; Make sure we don't delete more than needed.
-;; This is executed at viper-last-posn-in-replace-region
-(defsubst viper-trim-replace-chars-to-delete-if-necessary ()
-  (setq viper-replace-chars-to-delete
-	(max 0
-	     (min viper-replace-chars-to-delete
-		  ;; Don't delete more than to the end of repl overlay
-		  (viper-chars-in-region
-		   (viper-replace-end) viper-last-posn-in-replace-region)
-		  ;; point is viper-last-posn-in-replace-region now
-		  ;; So, this limits deletion to the end of line
-		  (viper-chars-in-region (point) (viper-line-pos 'end))
-		  ))))
 
 
 ;; Delete stuff between viper-last-posn-in-replace-region and the end of
