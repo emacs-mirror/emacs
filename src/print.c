@@ -248,7 +248,7 @@ void print_interval ();
        print_buffer_pos = 0;						\
        print_buffer_pos_byte = 0;					\
      }									\
-   if (EQ (printcharfun, Qt))						\
+   if (EQ (printcharfun, Qt) && ! noninteractive)			\
      setup_echo_area_for_printing (multibyte);
 
 #define PRINTFINISH							\
