@@ -1,5 +1,7 @@
 2004-11-05  Kim F. Storm  <storm@cua.dk>
 
+	* print.c (print_object): Print Lisp_Misc_Save_Value objects.
+
 	* fileio.c (Ffile_modes): Doc fix.
 	(auto_save_1): Check for Ffile_modes nil value.
 
