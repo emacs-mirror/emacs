@@ -1111,7 +1111,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
       cursor_in_echo_area = 1;
       message ("%s(y or n) ", XSTRING (xprompt)->data);
 
-      obj = read_char (0, 0, 0, Qnil, 0);
+      obj = read_filtered_event (1, 0, 0);
       cursor_in_echo_area = 0;
       /* If we need to quit, quit with cursor_in_echo_area = 0.  */
       QUIT;

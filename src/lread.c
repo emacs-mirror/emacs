@@ -172,6 +172,84 @@ static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
 
 extern Lisp_Object read_char ();
 
+/* Read input events until we get one that's acceptable for our purposes.
+
+   If NO_SWITCH_FRAME is non-zero, switch-frame events are stashed
+   until we get a character we like, and then stuffed into
+   unread_switch_frame.
+
+   If ASCII_REQUIRED is non-zero, we check function key events to see
+   if the unmodified version of the symbol has a Qascii_character
+   property, and use that character, if present.
+
+   If ERROR_NONASCII is non-zero, we signal an error if the input we
+   get isn't an ASCII character with modifiers.  If it's zero but
+   ASCII_REQUIRED is non-zero, we just re-read until we get an ASCII
+   character.  */
+Lisp_Object
+read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
+     int no_switch_frame, ascii_required, error_nonascii;
+{
+#ifdef standalone
+  return make_number (getchar ());
+#else
+  register Lisp_Object val;
+  register Lisp_Object delayed_switch_frame = Qnil;
+
+  /* Read until we get an acceptable event.  */
+ retry:
+  val = read_char (0, 0, 0, Qnil, 0);
+
+  /* switch-frame events are put off until after the next ASCII
+     character.  This is better than signalling an error just because
+     the last characters were typed to a separate minibuffer frame,
+     for example.  Eventually, some code which can deal with
+     switch-frame events will read it and process it.  */
+  if (no_switch_frame
+      && EVENT_HAS_PARAMETERS (val)
+      && EQ (EVENT_HEAD (val), Qswitch_frame))
+    {
+      delayed_switch_frame = val;
+      goto retry;
+    }
+
+  if (ascii_required)
+    {
+      /* Convert certain symbols to their ASCII equivalents.  */
+      if (XTYPE (val) == Lisp_Symbol)
+	{
+	  Lisp_Object tem, tem1, tem2;
+	  tem = Fget (val, Qevent_symbol_element_mask);
+	  if (!NILP (tem))
+	    {
+	      tem1 = Fget (Fcar (tem), Qascii_character);
+	      /* Merge this symbol's modifier bits
+		 with the ASCII equivalent of its basic code.  */
+	      if (!NILP (tem1))
+		XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
+	    }
+	}
+	  
+      /* If we don't have a character now, deal with it appropriately.  */
+      if (XTYPE (val) != Lisp_Int)
+	{
+	  if (error_nonascii)
+	    {
+	      unread_command_events = Fcons (val, Qnil);
+	      error ("Non-character input-event");
+	    }
+	  else
+	    goto retry;
+	}
+    }
+
+  if (! NILP (delayed_switch_frame))
+    unread_switch_frame = delayed_switch_frame;
+
+  return val;
+#endif
+}
+
 DEFUN ("read-char", Fread_char, Sread_char, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
 It is returned as a number.\n\
@@ -183,70 +261,14 @@ If you want to read non-character events, or ignore them, call\n\
 `read-event' or `read-char-exclusive' instead.")
   ()
 {
-  register Lisp_Object val;
-
-#ifndef standalone
-  {
-    register Lisp_Object delayed_switch_frame;
-
-    delayed_switch_frame = Qnil;
-
-    for (;;)
-      {
-	val = read_char (0, 0, 0, Qnil, 0);
-      
-	/* switch-frame events are put off until after the next ASCII
-	   character.  This is better than signalling an error just
-	   because the last characters were typed to a separate
-	   minibuffer frame, for example.  Eventually, some code which
-	   can deal with switch-frame events will read it and process
-	   it.  */
-	if (EVENT_HAS_PARAMETERS (val)
-	    && EQ (EVENT_HEAD (val), Qswitch_frame))
-	  delayed_switch_frame = val;
-	else
-	  break;
-      }
-      
-    if (! NILP (delayed_switch_frame))
-      unread_switch_frame = delayed_switch_frame;
-
-    /* Only ASCII characters are acceptable.
-       But convert certain symbols to their ASCII equivalents.  */
-    if (XTYPE (val) == Lisp_Symbol)
-      {
-	Lisp_Object tem, tem1, tem2;
-	tem = Fget (val, Qevent_symbol_element_mask);
-	if (!NILP (tem))
-	  {
-	    tem1 = Fget (Fcar (tem), Qascii_character);
-	    /* Merge this symbol's modifier bits
-	       with the ASCII equivalent of its basic code.  */
-	    if (!NILP (tem1))
-	      XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
-	  }
-      }
-    if (XTYPE (val) != Lisp_Int)
-      {
-	unread_command_events = Fcons (val, Qnil);
-	error ("Non-character input-event");
-      }
-  }
-#else
-  val = getchar ();
-#endif
-
-  return val;
+  return read_filtered_event (1, 1, 1);
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
   "Read an event object from the input stream.")
   ()
 {
-  register Lisp_Object val;
-
-  val = read_char (0, 0, 0, Qnil, 0);
-  return val;
+  return read_filtered_event (0, 0, 0);
 }
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 0,
@@ -254,57 +276,7 @@ DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 
 It is returned as a number.  Non character events are ignored.")
   ()
 {
-  register Lisp_Object val;
-
-#ifndef standalone
-  {
-    Lisp_Object delayed_switch_frame;
-
-    delayed_switch_frame = Qnil;
-
-    for (;;)
-      {
-	val = read_char (0, 0, 0, Qnil, 0);
-
-	/* Convert certain symbols (for keys like RET, DEL, TAB)
-	   to ASCII integers.  */
-	if (XTYPE (val) == Lisp_Symbol)
-	  {
-	    Lisp_Object tem, tem1;
-	    tem = Fget (val, Qevent_symbol_element_mask);
-	    if (!NILP (tem))
-	      {
-		tem1 = Fget (Fcar (tem), Qascii_character);
-		/* Merge this symbol's modifier bits
-		   with the ASCII equivalent of its basic code.  */
-		if (!NILP (tem1))
-		  XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
-	      }
-	  }
-	if (XTYPE (val) == Lisp_Int)
-	  break;
-
-	/* switch-frame events are put off until after the next ASCII
-	   character.  This is better than signalling an error just
-	   because the last characters were typed to a separate
-	   minibuffer frame, for example.  Eventually, some code which
-	   can deal with switch-frame events will read it and process
-	   it.  */
-	else if (EVENT_HAS_PARAMETERS (val)
-	    && EQ (EVENT_HEAD (val), Qswitch_frame))
-	  delayed_switch_frame = val;
-
-	/* Drop everything else.  */
-      }
-
-    if (! NILP (delayed_switch_frame))
-      unread_switch_frame = delayed_switch_frame;
-  }
-#else
-  val = getchar ();
-#endif
-
-  return val;
+  return read_filtered_event (1, 1, 0);
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
