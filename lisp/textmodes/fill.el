@@ -466,9 +466,9 @@ space does not end a sentence, so don't break a line there."
 		  ;; Do KINSOKU processing.
 		  (if (and enable-multibyte-characters enable-kinsoku
 			   (save-excursion
-			     (goto-char from)
-			     (skip-chars-forward "\0-\177" to)
-			     (/= (point) to)))
+			     (goto-char (point-min))
+			     (skip-chars-forward "\0-\177")
+			     (/= (point) (point-max))))
 		      (kinsoku linebeg)))
 
 		;; If the left margin and fill prefix by themselves
