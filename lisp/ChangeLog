@@ -1,3 +1,8 @@
+2001-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-print): SPACING is now nil or a separator string.
+	(apropos-documentation, apropos-value): Pass a suitable string.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.el (dired-free-space-program, dired-free-space-args):
