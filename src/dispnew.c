@@ -1267,7 +1267,7 @@ buffer_posn_from_coords (window, col, line)
 #endif
       {
 	start_line = 0;
-	posn = Fmarker_position (window->start);
+	posn = marker_position (window->start);
       }
 
     posn
