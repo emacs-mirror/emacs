@@ -2,10 +2,6 @@
 ;; Copyright (C) 1996 Free Software Foundation
 
 ;; Author: Steven L. Baur <steve@miranova.com>
-;; Keywords: news fun sound
-
-;; This file is part of GNU Emacs.
-
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
@@ -39,12 +35,12 @@
   :group 'gnus-visual)
 
 (defcustom earcon-auto-play nil
-  "When True, automatically play sounds as well as buttonize them."
+  "*When True, automatically play sounds as well as buttonize them."
   :type 'boolean
   :group 'earcon)
 
 (defcustom earcon-prefix "**"
-  "String denoting the start of an earcon."
+  "*String denoting the start of an earcon."
   :type 'string
   :group 'earcon)
 
@@ -70,12 +66,11 @@
     ("cackle" 1 "witch.au")
     ("yell\\|roar" 1 "yell2.au")
     ("whoop-de-doo" 1 "whistle.au"))
-  "A list of regexps to map earcons to real sounds."
+  "*A list of regexps to map earcons to real sounds."
   :type '(repeat (list regexp
 		       (integer :tag "Match")
 		       (string :tag "Sound")))
   :group 'earcon)
-
 (defvar earcon-button-marker-list nil)
 (make-variable-buffer-local 'earcon-button-marker-list)
 
