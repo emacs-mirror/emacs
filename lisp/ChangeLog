@@ -1,3 +1,17 @@
+2000-06-22  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Fix bug: if ^L is the very first buffer character,
+	ps-print crashes.  New feature: page selection for printing.  Create
+	raw-text-unix coding system for XEmacs.  Doc fix.
+	(ps-print-version): New version number (5.2.3).
+	(ps-plot-region): Bug fix.
+	(ps-setup, ps-init-output-queue, ps-output, ps-begin-job, ps-end-file)
+	(ps-header-sheet, ps-generate, ps-end-job): Code fix.
+	(ps-restore-selected-pages, ps-selected-pages, ps-print-page-p): New
+	funs.
+	(ps-selected-pages, ps-last-selected-pages, ps-first-page)
+	(ps-last-page): New vars.
+
 2000-06-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/sh-script.el (sh-while-getopts): Fix handling of
