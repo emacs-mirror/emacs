@@ -585,11 +585,6 @@ No argument or nil as argument means use current buffer as BUFFER.")
   result = Qnil;
 
   {
-    /* Reference each variable in the alist in our current buffer.
-       If inquiring about the current buffer, this gets the current values,
-       so store them into the alist so the alist is up to date.
-       If inquiring about some other buffer, this swaps out any values
-       for that buffer, making the alist up to date automatically.  */
     register Lisp_Object tail;
     for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
       {
@@ -597,9 +592,14 @@ No argument or nil as argument means use current buffer as BUFFER.")
 
 	elt = XCONS (tail)->car;
 
-	if (buf == current_buffer)
-	  val = find_symbol_value (XCONS (elt)->car);
-	else
+	/* Reference each variable in the alist in buf.
+	   If inquiring about the current buffer, this gets the current values,
+	   so store them into the alist so the alist is up to date.
+	   If inquiring about some other buffer, this swaps out any values
+	   for that buffer, making the alist up to date automatically.  */
+	val = find_symbol_value (XCONS (elt)->car);
+	/* Use the current buffer value only if buf is the current buffer.  */
+	if (buf != current_buffer)
 	  val = XCONS (elt)->cdr;
 
 	/* If symbol is unbound, put just the symbol in the list.  */
@@ -2985,7 +2985,7 @@ and this buffer is not full-frame width.");
     "Non-nil if the visited file is a binary file.\n\
 This variable is meaningful on MS-DOG and Windows NT.\n\
 On those systems, it is automatically local in every buffer.\n\
-On other systems, this variable is normally always nil.")
+On other systems, this variable is normally always nil.");
 #endif
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
