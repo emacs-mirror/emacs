@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001
+   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -417,7 +417,7 @@ struct skp
   };
 
 static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				  struct skp*));
+				  void *));
 
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
@@ -489,13 +489,14 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
    not.  */
 
 static void
-single_menu_item (key, item, dummy, skp)
+single_menu_item (key, item, dummy, skp_v)
      Lisp_Object key, item, dummy;
-     struct skp *skp;
+     void *skp_v;
 {
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
+  struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
