@@ -29,6 +29,10 @@ Boston, MA 02111-1307, USA.  */
 #define __STDC_EXTENDED__
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #include <X11/Xlib.h>

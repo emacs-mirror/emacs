@@ -22,6 +22,10 @@ Boston, MA 02111-1307, USA.  */
 #undef __STRICT_BSD__ /* ick */
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -29,10 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
 
-#ifdef __osf__
-#include <string.h>
-#include <stdlib.h>
-#endif
 extern long *xmalloc();
 
 #if defined (USE_LUCID)

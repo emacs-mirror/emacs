@@ -20,6 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Created by devin@lucid.com */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 
 #include <sys/types.h>

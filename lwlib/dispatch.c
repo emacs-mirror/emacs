@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA. */
  *   compile this file unless you have the Xt sources online.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <IntrinsicI.h>   /* Don't change this: see comments in Imakefile. */
 #include <X11/Xatom.h>
 #include "dispatch.h"

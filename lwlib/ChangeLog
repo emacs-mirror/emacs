@@ -1,3 +1,14 @@
+1999-10-19  Paul Eggert  <eggert@twinsun.com>
+	
+	Add support for large files, plus some locale improvements.
+
+	* dispatch.c, lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib.c, xlwmenu.c,
+	xrdb-cpp.c, xrdb.c:
+	Include <config.h> before any system include files.
+
+	* lwlib-Xm.c, lwlib.c:
+	Do not include <stdlib.h> or <string.h>, as <config.h> does this.
+	
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (make_menu_in_widget, update_one_menu_entry): Use
