@@ -308,22 +308,22 @@ START-EVENT is the starting mouse-event of the drag action.
 MODE-LINE-P non-nil means a mode line is dragged."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (let ((done nil)
-	(echo-keystrokes 0)
-	(start-event-frame (window-frame (car (car (cdr start-event)))))
-	(start-event-window (car (car (cdr start-event))))
-	(start-nwindows (count-windows t))
-	(old-selected-window (selected-window))
-	should-enlarge-minibuffer
-	event mouse minibuffer y top bot edges wconfig params growth)
-    (setq params (frame-parameters))
-    (setq minibuffer (cdr (assq 'minibuffer params)))
+  (let* ((done nil)
+	 (echo-keystrokes 0)
+	 (start (event-start start-event))
+	 (start-event-window (posn-window start))
+	 (start-event-frame (window-frame start-event-window))
+	 (start-nwindows (count-windows t))
+	 (old-selected-window (selected-window))
+	 (minibuffer (frame-parameter nil 'minibuffer))
+	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
       (progn
 	;; enlarge-window only works on the selected window, so
 	;; we must select the window where the start event originated.
 	;; unwind-protect will restore the old selected window later.
 	(select-window start-event-window)
+	
 	;; if this is the bottommost ordinary window, then to
 	;; move its modeline the minibuffer must be enlarged.
 	(setq should-enlarge-minibuffer
@@ -332,11 +332,13 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		   (not (one-window-p t))
 		   (= (nth 1 (window-edges minibuffer))
 		      (nth 3 (window-edges)))))
+	
 	;; loop reading events and sampling the position of
 	;; the mouse.
 	(while (not done)
 	  (setq event (read-event)
 		mouse (mouse-position))
+	  
 	  ;; do nothing if
 	  ;;   - there is a switch-frame event.
 	  ;;   - the mouse isn't in the frame that we started in
@@ -350,18 +352,21 @@ MODE-LINE-P non-nil means a mode line is dragged."
 	  ;;     unknown event.
 	  (cond ((integerp event)
 		 (setq done t))
+		
 		((eq (car event) 'switch-frame)
 		 nil)
-		((not (memq (car event)
-			    '(mouse-movement scroll-bar-movement)))
-		 (if (consp event)
-		     (setq unread-command-events
-			   (cons event unread-command-events)))
+		
+		((not (memq (car event) '(mouse-movement scroll-bar-movement)))
+		 (when (consp event)
+		   (push event unread-command-events))
 		 (setq done t))
+		
 		((not (eq (car mouse) start-event-frame))
 		 nil)
+		
 		((null (car (cdr mouse)))
 		 nil)
+		
 		(t
 		 (setq y (cdr (cdr mouse))
 		       edges (window-edges)
@@ -382,10 +387,10 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		 (setq wconfig (current-window-configuration))
 		 
 		 ;; Check for an error case.
-		 (if (and (/= growth 0)
-			  (not minibuffer)
-			  (one-window-p t))
-		     (error "Attempt to resize sole window"))
+		 (when (and (/= growth 0)
+			    (not minibuffer)
+			    (one-window-p t))
+		   (error "Attempt to resize sole window"))
 		 
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
@@ -405,7 +410,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		       (enlarge-window (- growth))
 		       (select-window start-event-window))
 		   ;; no.  grow/shrink the selected window
-		   ;; (message "growth = %d" growth)
+		   ;(message "growth = %d" growth)
 		   (enlarge-window growth))
 		 
 		 ;; if this window's growth caused another
@@ -418,11 +423,11 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		 ;; the minibuffer.  minibuffer size changes
 		 ;; can cause all windows to shrink... no way
 		 ;; around it.
-		 (if (or (/= start-nwindows (count-windows t))
-			 (and (not should-enlarge-minibuffer)
-			      mode-line-p
-			      (/= top (nth 1 (window-edges)))))
-		     (set-window-configuration wconfig)))))))))
+		 (when (or (/= start-nwindows (count-windows t))
+			   (and (not should-enlarge-minibuffer)
+				mode-line-p
+				(/= top (nth 1 (window-edges)))))
+		   (set-window-configuration wconfig)))))))))
 
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
@@ -430,9 +435,22 @@ MODE-LINE-P non-nil means a mode line is dragged."
   (mouse-drag-mode-line-1 start-event t))
 
 (defun mouse-drag-header-line (start-event)
-  "Change the height of a window by dragging on the header line."
+  "Change the height of a window by dragging on the header line.
+Windows whose header-lines are at the top of the frame cannot be
+resized by dragging their header-line."
   (interactive "e")
-  (mouse-drag-mode-line-1 start-event nil))
+  ;; Changing the window's size by dragging its header-line when the
+  ;; header-line is at the top of the frame is somewhat strange,
+  ;; because the header-line doesn't move, so don't do it.
+  (let* ((start (event-start start-event))
+	 (window (posn-window start))
+	 (frame (window-frame window))
+	 (first-window (frame-first-window frame)))
+    (when (or (eq window first-window)
+	      (= (nth 1 (window-edges window))
+		 (nth 1 (window-edges first-window))))
+      (error "Cannot move header-line at the top of the frame"))
+    (mouse-drag-mode-line-1 start-event nil)))
 
 
 (defun mouse-drag-vertical-line (start-event)
