@@ -3,6 +3,9 @@
 	* quail/japanese.el (quail-japanese-transliteration-rules): New
 	variable.  Use it to define these input methods: "japanese",
 	"japanese-hiragana", "japanese-katakana".
+	(quail-japanese-kana-state): Delete this variable.
+	(quail-japanese-toggle-kana): Don't use quail-japanese-kana-state,
+	instead check if there's any Hiraganas in the converison region.
 
 2001-03-14  Kenichi Handa  <handa@mule.m17n.org>
 
