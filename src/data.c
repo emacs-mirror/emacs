@@ -897,10 +897,6 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    Lisp_Object type;
 
-	    type = PER_BUFFER_TYPE (offset);
-	    if (XINT (type) == -1)
-	      error ("Variable %s is read-only", SDATA (SYMBOL_NAME (symbol)));
-
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
@@ -1616,10 +1612,11 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
      loaded, recompute its value.  We have to do it now, or else
      forwarded objects won't work right.  */
   {
-    Lisp_Object *pvalbuf;
+    Lisp_Object *pvalbuf, buf;
     valcontents = SYMBOL_VALUE (variable);
     pvalbuf = &XBUFFER_LOCAL_VALUE (valcontents)->buffer;
-    if (current_buffer == XBUFFER (*pvalbuf))
+    XSETBUFFER (buf, current_buffer);
+    if (EQ (buf, *pvalbuf))
       {
 	*pvalbuf = Qnil;
 	XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
