@@ -1,3 +1,8 @@
+2003-10-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Document new behavior for face
+	and variable hyperlinks in Help mode.
+
 2003-10-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* objects.texi (Integer Type): Update for extra bit of integer range.

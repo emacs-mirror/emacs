@@ -83,6 +83,12 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
++++
+** Help mode now only makes hyperlinks for faces when the face name is
+preceded or followed by the word `face'.  It no longer makes
+hyperlinks for variables without variable documentation, unless
+preceded by one of the words `variable' or `option'.
+
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
