@@ -3245,13 +3245,13 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   CHECK_SYMBOL (feature);
 
   tem = Fmemq (feature, Vfeatures);
-
-  LOADHIST_ATTACH (Fcons (Qrequire, feature));
   
   if (NILP (tem))
     {
       int count = SPECPDL_INDEX ();
       int nesting = 0;
+
+      LOADHIST_ATTACH (Fcons (Qrequire, feature));
 
       /* This is to make sure that loadup.el gives a clear picture
 	 of what files are preloaded and when.  */
