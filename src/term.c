@@ -2066,6 +2066,10 @@ void
 tty_setup_colors (mode)
      int mode;
 {
+  /* Canonicalize all negative values of MODE.  */
+  if (mode < -1)
+    mode = -1;
+
   switch (mode)
     {
       case -1:	 /* no colors at all */
