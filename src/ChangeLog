@@ -1,3 +1,14 @@
+2003-07-31  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.h (struct x_bitmap_record): New member have_mask.
+
+	* xfns.c (x_create_bitmap_from_data): Initialize have_mask member
+	to 0.
+	(x_create_bitmap_from_file): Likewise.
+	(x_destroy_bitmap): Check have_mask member before freeing a mask.
+	(x_destroy_all_bitmaps): Likewise.
+	(x_create_bitmap_mask): Set have_mask member to 1.
+
 2003-07-30  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (CFLAGS) [!OPTIMIZE]: Undo previous change.
