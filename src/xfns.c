@@ -5144,7 +5144,7 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
-  if (x_menu_in_use ())
+  if (popup_activated ())
     error ("Trying to use a menu from within a menu-entry");
 
   CHECK_STRING (prompt);
@@ -5232,6 +5232,7 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   record_unwind_protect (clean_up_file_dialog, make_save_value (dialog, 0));
 
   /* Process events until the user presses Cancel or OK.  */
+  x_menu_set_in_use (1);
   result = 0;
   while (result == 0)
     {
@@ -5297,7 +5298,7 @@ directories.  */)
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
-  if (x_menu_in_use ())
+  if (popup_activated ())
     error ("Trying to use a menu from within a menu-entry");
 
   CHECK_STRING (prompt);

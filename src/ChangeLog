@@ -1,3 +1,13 @@
+2004-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_menu_in_use): Removed.
+	(x_menu_set_in_use): Also set popup_activated_flag.
+
+	* xfns.c (Fx_file_dialog): Call popup_activated instead of 
+	x_menu_in_use.  Call x_menu_set_in_use in Motif version also.
+
+	* xterm.h: (x_menu_in_use): Removed.
+
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fmap_keymap): New arg SORT-FIRST.  Use
