@@ -1,5 +1,7 @@
 2000-06-01  Dave Love  <fx@gnu.org>
 
+	* callint.c (Fcall_interactively): Doc fix.
+
 	* terminfo.c (ospeed) [HAVE_SPEED_T]: Don't declare extern.
 
 2000-05-31  Dave Love  <fx@gnu.org>
