@@ -4,3 +4,4 @@
 
 /^lisp=/s|@srcdir@|.|
 /^VPATH=/s|@srcdir@|.|
+/^srcdir=/s|@srcdir@|.|
