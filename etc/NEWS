@@ -98,6 +98,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** `apply-macro-to-region-lines' now operates on all lines that begin
+in the region, rather than on all complete lines in the region.
+
 ** global-whitespace-mode is a new alias for whitespace-global-mode.
 
 +++
