@@ -3617,8 +3617,8 @@ non-nil, it is called instead of rereading visited file contents."
 	   (let ((buffer-read-only nil)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
-		 ;; Auto-saved file shoule be read without any code conversion.
-		 (coding-system-for-read 'emacs-mule-unix))
+		 ;; Auto-saved file shoule be read with special coding.
+		 (coding-system-for-read 'auto-save-coding))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)
 	     (set-buffer-file-coding-system coding-system))
