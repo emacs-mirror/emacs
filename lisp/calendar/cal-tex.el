@@ -215,6 +215,7 @@ Optional ARGS are included."
       (insert "[" args "]"))
   (insert "{article}\n"
           "\\hbadness 20000
+\\hfuzz=1000pt
 \\vbadness 20000
 \\marginparwidth 0pt
 \\oddsidemargin  -2cm
