@@ -356,6 +356,8 @@ link to another group.
 other groups do.  By examining various groups, you will eventually find
 the options and faces that belong to the feature you are interested in
 customizing.  Then you can use the customization buffer to set them.
+You can go straight to a particular group by name using the command
+@kbd{M-x customize-group}.
 
 @findex customize-browse
   You can view the structure of customization groups on a larger scale
