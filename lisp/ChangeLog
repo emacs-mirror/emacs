@@ -1,3 +1,25 @@
+2001-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el, cus-edit.el, diff-mode.el, enriched.el, font-lock.el:
+	* generic-x.el, info.el, log-view.el, pcvs-info.el, speedbar.el:
+	* wid-edit.el, woman.el, calendar/calendar.el, textmodes/flyspell.el:
+	* emulation/viper-init.el, eshell/em-ls.el, progmodes/antlr-mode.el: 
+	* progmodes/cperl-mode.el, progmodes/idlwave.el:
+	* progmodes/sh-script.el, progmodes/vhdl-mode.el:
+	Adapt face definitions to use :weight and :slant.
+	
+	* ps-print.el (ps-font-lock-face-attributes): Use :weight and :slant.
+
+	* cus-edit.el (custom-face-edit-fix-value): Delete `assert' call.
+
+	* font-lock.el (initializing from font-lock-face-attributes):
+	Use :weight and :slant, not :bold and :italic.
+
+2001-12-31  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-face-edit-fix-value): New function.
+	(custom-face-edit): Use it, to convert :italic and :bold to new forms.
+
 2001-12-30  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* progmodes/octave-mod.el (octave-abbrev-table):
