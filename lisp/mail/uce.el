@@ -259,8 +259,9 @@ address, and postmaster of the mail relay used."
       (if (eq uce-mail-reader 'rmail)
 	  (progn
 	    (forward-line 2)
-	    (while (looking-at "Summary-Line:\\|Mail-From:")
-	      (forward-line 1))
+	    (let ((case-fold-search t))
+	      (while (looking-at "Summary-Line:\\|Mail-From:")
+		(forward-line 1)))
 	    (delete-region temp (point))))
       ;; Now find the mail hub that first accepted this message.
       ;; This should try to find the last Received: header.
