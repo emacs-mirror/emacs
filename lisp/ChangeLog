@@ -1,3 +1,8 @@
+2003-05-31  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-buffer-ignore): Update custom type to
+	allow functions.
+
 2003-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* wid-edit.el (widget-specify-insert): Simplify.
