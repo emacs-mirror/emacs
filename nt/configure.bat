@@ -187,7 +187,7 @@ gcc -c junk.c
 if not exist junk.o goto checkw32api
 gcc -mno-cygwin -c junk.c
 if exist junk.o set nocygwin=Y
-del junk.o junk.c
+rm -f junk.c junk.o
 
 :checkw32api
 rem ----------------------------------------------------------------------
@@ -216,13 +216,13 @@ goto end
 
 :gccOk
 set COMPILER=gcc
-del junk.c junk.o
+rm -f junk.c junk.o
 echo Using 'gcc'
 goto genmakefiles
 
 :clOk
 set COMPILER=cl
-del junk.c junk.obj
+rm -f junk.c junk.obj
 echo Using 'MSVC'
 goto genmakefiles
 
@@ -252,7 +252,7 @@ copy paths.h ..\src\epaths.h
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
-if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile Makefile.unix
+if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile.in Makefile.unix
 if exist ..\lisp\makefile del /f ..\lisp\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
 rem   Use the default (no-op) Makefile.in if the nt version is not present.
