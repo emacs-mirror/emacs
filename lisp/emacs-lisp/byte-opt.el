@@ -260,16 +260,17 @@
 		 (and (fboundp name) (symbol-function name)))))
     (if (null fn)
 	(progn
-	  (byte-compile-warn "attempt to inline %s before it was defined" name)
+	  (byte-compile-warn "Attempt to inline `%s' before it was defined"
+			     name)
 	  form)
       ;; else
       (if (and (consp fn) (eq (car fn) 'autoload))
 	  (progn
-	    (load (nth 1 fn))
+	    (load (nth 2 fn))
 	    (setq fn (or (cdr (assq name byte-compile-function-environment))
 			 (and (fboundp name) (symbol-function name))))))
       (if (and (consp fn) (eq (car fn) 'autoload))
-	  (error "file \"%s\" didn't define \"%s\"" (nth 1 fn) name))
+	  (error "File `%s' didn't define `%s'" (nth 2 fn) name))
       (if (symbolp fn)
 	  (byte-compile-inline-expand (cons fn (cdr form)))
 	(if (byte-code-function-p fn)
