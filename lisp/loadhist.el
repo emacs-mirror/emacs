@@ -38,7 +38,10 @@ which is cleared out before dumping to make Emacs smaller.")
 
 (defun symbol-file (sym)
   "Return the input source from which SYM was loaded.
-This is a file name, or nil if the source was a buffer with no associated file."
+The value is normally a string that was passed to `load':
+either an absolute file name, or a library name
+\(with no directory name and no `.el' or `.elc' at the end).
+It can also be nil, if the definition is not associated with any file."
   (unless load-history-loaded
     (load (expand-file-name
 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
