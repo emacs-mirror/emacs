@@ -532,7 +532,7 @@ A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).")
 	(push item keep-at-top)
 	(setq menulist (delq item menulist))))
     (if imenu-sort-function
-	(setq menulist (sort menulist imenu-sort-function)))
+	(setq menulist (sort (copy-sequence menulist) imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)
 	(setq menulist
 	      (mapcar
@@ -817,32 +817,30 @@ depending on PATTERNS."
 		(setq start (point))
 		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		(goto-char beg)
+		;; Go to the start of the match.
+		;; That's the official position of this definition.
+		(goto-char start)
 		(imenu-progress-message prev-pos nil t)
 		;; Add this sort of submenu only when we've found an
 		;; item for it, avoiding empty, duff menus.
 		(unless (assoc menu-title index-alist)
 		  (push (list menu-title) index-alist))
 		(if imenu-use-markers
-		    (setq beg (copy-marker beg)))
+		    (setq start (copy-marker start)))
 		(let ((item
 		       (if function
 			   (nconc (list (match-string-no-properties index)
-					beg function)
+					start function)
 				  rest)
 			 (cons (match-string-no-properties index)
-			       beg)))
+			       start)))
 		      ;; This is the desired submenu,
 		      ;; starting with its title (or nil).
 		      (menu (assoc menu-title index-alist)))
 		  ;; Insert the item unless it is already present.
 		  (unless (member item (cdr menu))
 		    (setcdr menu
-			    (cons item (cdr menu)))))
-		;; Move to the start of the entire match,
-		;; to ensure we keep moving backwards
-		;; as long as the match is nonempty.
-		(goto-char start))))
+			    (cons item (cdr menu))))))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.
