@@ -39,9 +39,10 @@ However, we recommend that you not do this.
 It is better to write a Texinfo file and generate the Info file from that,
 because that gives you a printed manual as well.")
 
-(defvar Info-enable-active-nodes t
+(defvar Info-enable-active-nodes nil
   "Non-nil allows Info to execute Lisp code associated with nodes.
 The Lisp code is executed when the node is selected.")
+(put 'Info-enable-active-nodes 'risky-local-variable t)
 
 (defvar Info-fontify t
   "*Non-nil enables highlighting and fonts in Info nodes.")
