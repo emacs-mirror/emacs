@@ -1,12 +1,13 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(MMdevel_restr.2) $
+ * $HopeName: MMsrc!ld.c(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
- * of some references have been used directly (most likely for
+ * of some references will be used directly (most likely for
  * hashing), and provides a protocol for finding out whether that
- * dependency has become stale because a reference has been changed.
+ * dependency has become stale because a reference has been changed (by
+ * a moving memory manager).
  *
  * .rationale: The client may build hash-tables using pointer hashing.
  * The collector may change the values of the pointers transparently,
@@ -38,11 +39,16 @@
  * .epoch-size: The epoch should probably be a longer integer to avoid
  * the possibility of overflow.
  * (32 bits only gives 50 days at 1ms frequency)
+ *
+ * .ld.access: Accesses (reads and writes) to the ld structure must be
+ * "wrapped" with an ShieldExpose/Cover pair if and only if the access
+ * is taking place inside the space.  Currently this is only the case for
+ * LDReset.
  */
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(MMdevel_restr.2) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.3) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -54,11 +60,21 @@ SRCID(ld, "$HopeName: MMsrc!ld.c(MMdevel_restr.2) $");
 
 void LDReset(LD ld, Space space)
 {
+  Bool b;
+  Seg seg;
+
   AVER(ld != NULL);
   AVERT(Space, space);
 
+  b = SegOfAddr(&seg, space, (Addr)ld);
+  if(b) {
+    ShieldExpose(space, seg);   /* .ld.access */
+  }
   ld->epoch = space->epoch;
   ld->rs = RefSetEmpty;
+  if(b) {
+    ShieldCover(space, seg);
+  }
 }
 
 
