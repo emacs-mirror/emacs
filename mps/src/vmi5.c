@@ -1,7 +1,7 @@
 /* impl.c.vmi5: VIRTUAL MEMORY MAPPING FOR IRIX 5 (AND 6)
  *
- * $HopeName: MMsrc!vmi5.c(MMdevel_irix_vm.4) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * Design: design.mps.vm
  *
@@ -13,38 +13,40 @@
  * onto store by creating a copy-on-write mapping to /dev/zero.
  *
  * .assume.not-last: The implementation of VMCreate assumes that
- *   mmap() will not choose a region which contains the last page
- *   in the address space, so that the limit of the mapped area
- *   is representable.
+ * mmap() will not choose a region which contains the last page
+ * in the address space, so that the limit of the mapped area
+ * is representable.
  *
- * .assume.mmap.err: EAGAIN is the only error we really expect to
- *   get from mmap.  The others are either caused by invalid params
- *   or features we don't use.  See mmap(2) for details.
+ * .assume.mmap.err: EAGAIN is the only error we really expect to get
+ * from mmap when committing and ENOMEM when reserving or committing (we
+ * have actually observed ENOMEM when committing).  The others are
+ * either caused by invalid params or features we don't use.  See
+ * mmap(2) for details.
  *
  * TRANSGRESSIONS
  *
- * .fildes.name: VMStruct has one fields whose name violates our
- * naming conventions.  It's called zero_fd to emphasize that it's a
- * file descriptor and this fact is not reflected in the type.
+ * .fildes.name: VMStruct has one fields whose name violates our naming
+ * conventions.  It's called zero_fd to emphasize that it's a file
+ * descriptor and this fact is not reflected in the type.
  */
 
 #include "mpm.h"
 
-#ifndef MPS_OS_I5
-#error "vmi5.c is IRIX 5 specific, but MPS_OS_I5 is not set"
+#if !defined(MPS_OS_I5) && !defined(MPS_OS_IA)
+#error "vmi5.c is IRIX-specific, but MPS_OS_I5 or MPS_OS_IA is not set"
 #endif
 
-/* Open sesame magic */
 #define _POSIX_SOURCE
+#define _POSIX_C_SOURCE 199309L
 
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <unistd.h> /* for _SC_PAGESIZE */
+#include <unistd.h>
 
-SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(MMdevel_irix_vm.4) $");
+SRCID(vmi5, "$HopeName: MMsrc!vmi5.c(trunk.2) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -108,8 +110,8 @@ Res VMCreate(VM *vmReturn, Size size)
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
   if(addr == (void *)-1) {
-    AVER(errno == EAGAIN); /* .assume.mmap.err */
-    res = (errno == EAGAIN) ? ResMEMORY : ResFAIL;
+    AVER(errno == ENOMEM || errno == EAGAIN); /* .assume.mmap.err */
+    res = (errno == ENOMEM || errno == EAGAIN) ? ResMEMORY : ResFAIL;
     goto failVMMap;
   }
   vm = (VM)addr;
@@ -121,8 +123,8 @@ Res VMCreate(VM *vmReturn, Size size)
   addr = mmap((void *)0, (size_t)size, PROT_NONE, MAP_SHARED | MAP_AUTORESRV,
 	      zero_fd, (off_t)0);
   if(addr == (void *)-1) {
-    AVER(errno == EAGAIN); /* .assume.mmap.err */
-    res = (errno == EAGAIN) ? ResRESOURCE : ResFAIL;
+    AVER(errno == ENOMEM); /* .assume.mmap.err */
+    res = (errno == ENOMEM) ? ResRESOURCE : ResFAIL;
     goto failReserve;
   }
 
@@ -208,6 +210,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
   AVERT(VM, vm);
   AVER(base < limit);
   AVER(base >= vm->base);
+
   AVER(limit <= vm->limit);
   AVER(AddrIsAligned(base, vm->align));
   AVER(AddrIsAligned(limit, vm->align));
@@ -222,7 +225,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 	      MAP_PRIVATE | MAP_FIXED,
 	      vm->zero_fd, (off_t)0);
   if(addr == (void *)-1) {
-    AVER(errno == EAGAIN); /* .assume.mmap.err */
+    AVER(errno == ENOMEM || errno == EAGAIN); /* .assume.mmap.err */
     return ResMEMORY;
   }
   AVER(addr == (void *)base);
