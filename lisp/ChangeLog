@@ -1,3 +1,7 @@
+2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (convert-standard-filename): Doc fix.
+
 2004-11-14  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): handle .gtkrc, and under /etc
