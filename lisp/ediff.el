@@ -5,8 +5,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.46" "The current version of Ediff")
-(defconst ediff-date "September 28, 1995" "Date of last update")  
+(defconst ediff-version "2.47" "The current version of Ediff")
+(defconst ediff-date "October 11, 1995" "Date of last update")  
 
 ;; This file is part of GNU Emacs.
 
@@ -1482,6 +1482,15 @@ If `F.~REV~' already exists, it is used instead of being re-created."
 	  (sc-visit-previous-revision rev2))
       (setq rev2buf (current-buffer)))
     (ediff-buffers rev1buf rev2buf startup-hooks 'ediff-revision)))
+
+;;;###autoload
+(defun ediff-version ()
+  "Return string describing the version of Ediff.
+When called interactively, displays the version."
+  (interactive)
+  (if (interactive-p)
+      (message (ediff-version))
+    (format "Ediff %s of %s" ediff-version ediff-date)))
 
 
 (provide 'ediff)
