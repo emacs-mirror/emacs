@@ -41,7 +41,7 @@
   (concat "\\(" 	; context diff 2-liner
 	  "^\\*\\*\\* \\([^ \t]+\\)[^*]+[\t ]*\n--- \\([^ \t]+\\)"
 	  "\\|" 	; GNU unified format diff 2-liner
-	  "^--- \\([^ \t]+\\)[^-]+[\t ]*\n\\+\\+\\+ \\([^ \t]+\\)"
+	  "^--- \\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ \\([^ \t]+\\)"
 	  "\\)")
   "*Regexp matching filename 2-liners at the start of each context diff.")
 
@@ -112,10 +112,10 @@
 	      (forward-char 1) ; ensure progress towards the end
 	    (setq mark2 (move-marker (make-marker) (match-beginning 0))
 		  mark2-end (match-end 0)
-		  beg1 (match-beginning 2)
-		  end1 (match-end 2)
-		  beg2 (match-beginning 3)
-		  end2 (match-end 3))
+		  beg1 (or (match-beginning 2) (match-beginning 4))
+		  end1 (or (match-end 2) (match-end 4))
+		  beg2 (or (match-beginning 3) (match-beginning 5))
+		  end2 (or (match-end 3) (match-end 5)))
 	    ;; possible-file-names is holding the new file names until we
 	    ;; insert the old file name in the patch map
 	    ;; It is a pair (filename from 1st header line . fn from 2nd line)
