@@ -89,7 +89,7 @@ Returns the number of actions taken."
 			    query-replace-map)))
 	 (actions 0)
 	 prompt char elt tail def delayed-switch-frame
-	 (next (if (or (symbolp list)
+	 (next (if (or (and list (symbolp list))
 		       (subrp list)
 		       (byte-code-function-p list)
 		       (and (consp list)
