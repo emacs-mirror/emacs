@@ -1,3 +1,8 @@
+2001-03-01  Dave Love  <fx@gnu.org>
+
+	* mm-util.el (mm-inhibit-file-name-handlers): Add
+	image-file-handler.
+
 2001-02-11  Dave Love  <fx@gnu.org>
 
 	* message.el (message-signature-file): Fix doc, :type.

@@ -494,8 +494,6 @@ If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers."
   (let ((coding-system-for-write 
 	 (or codesys mm-text-coding-system-for-write 
 	     mm-text-coding-system))
-	;; Why on earth doesn't this just nullify
-	;; file-name-handler-alist?  -- fx
 	(inhibit-file-name-operation (if inhibit 
 					 'append-to-file
 				       inhibit-file-name-operation))
