@@ -177,8 +177,7 @@ int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
 #else
 #ifdef MSDOS
-#include <../go32/gotypes.h>
-#include <../go32/ed/coff.h>
+#include <coff.h>
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
 #define syment external_syment
@@ -187,14 +186,14 @@ int need_coff_header = 1;
 #define n_type e_type
 struct aouthdr
 {
-  word16 	magic;		/* type of file				*/
-  word16	vstamp;		/* version stamp			*/
-  word32	tsize;		/* text size in bytes, padded to FW bdry*/
-  word32	dsize;		/* initialized data "  "		*/
-  word32	bsize;		/* uninitialized data "   "		*/
-  word32	entry;		/* entry pt.				*/
-  word32 	text_start;	/* base of text used for this file */
-  word32 	data_start;	/* base of data used for this file */
+  unsigned short	magic;	/* type of file				*/
+  unsigned short	vstamp;	/* version stamp			*/
+  unsigned long		tsize;	/* text size in bytes, padded to FW bdry*/
+  unsigned long		dsize;	/* initialized data "  "		*/
+  unsigned long		bsize;	/* uninitialized data "   "		*/
+  unsigned long		entry;	/* entry pt.				*/
+  unsigned long	 	text_start;/* base of text used for this file */
+  unsigned long	 	data_start;/* base of data used for this file */
 };
 
 
