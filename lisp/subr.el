@@ -748,7 +748,7 @@ Wildcards and redirection are handled as usual in the shell."
 ;; now, but it generates slower code.
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
-  `(let ((save-match-data-internal '(match-data)))
+  `(let ((save-match-data-internal (match-data)))
        (unwind-protect
 	   (progn ,@body)
 	 (store-match-data save-match-data-internal))))
