@@ -1,34 +1,29 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
+;; Copyright (C) 1994 Free Software Foundation, Inc.
+
 ;; Author: 1994 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Maintainer:    bwarsaw@cen.com
 ;; Created:       26-Feb-1994
-;; Version:       2.11
-;; Last Modified: 1994/06/06 22:38:07
+;; Version:       2.15
+;; Last Modified: 1994/07/05 13:46:02
 ;; Keywords:      Emacs Lisp Profile Timing
 
-;; Copyright (C) 1994 Barry A. Warsaw
+;; This file is part of GNU Emacs.
 
-;; This file is not yet part of GNU Emacs.
-;;
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; LCD Archive Entry:
-;; elp|Barry A. Warsaw|tools-help@anthem.nlm.nih.gov|
-;; Emacs Lisp Profiler|
-;; 1994/06/06 22:38:07|2.11|~/misc/elp.el.Z|
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 ;;
@@ -37,7 +32,7 @@
 ;; profiler.el. Both were written for Emacs 18 and both were pretty
 ;; good first shots at profiling, but I found that they didn't provide
 ;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in Lucid Emacs 19.9 and in Emacs 19.22. There's no
+;; I've tested elp in Lucid Emacs 19.9 and Emacs 19.22. There's no
 ;; point in even trying to make this work with Emacs 18.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
@@ -67,6 +62,7 @@
 ;;   elp-restore-function
 ;;   elp-instrument-list
 ;;   elp-restore-list
+;;   elp-instrument-package
 ;;   elp-restore-all
 ;;   elp-reset-function
 ;;   elp-reset-list
@@ -80,21 +76,28 @@
 ;; information is recorded whenever they are called.  To print out the
 ;; current results, use elp-results.  With elp-reset-after-results set
 ;; to non-nil, profiling information will be reset whenever the
-;; results are displayed, but you can reset all profiling info with
-;; elp-reset-all.
+;; results are displayed. You can also reset all profiling info at any
+;; time with elp-reset-all.
+;;
+;; You can also instrument all functions in a package, provided that
+;; the package follows the GNU coding standard of a common textural
+;; prefix. elp-instrument-package does this.
 ;;
 ;; If you want to sort the results, set elp-sort-by-function to some
 ;; predicate function.  The three most obvious choices are predefined:
 ;; elp-sort-by-call-count, elp-sort-by-average-time, and
-;; elp-sort-by-total-time.
+;; elp-sort-by-total-time.  Also, you can prune from the output
+;; display, all functions that have been called fewer than a given
+;; number of times by setting elp-report-limit to that number.
 ;;
 ;; Elp can instrument byte-compiled functions just as easily as
-;; interpreted functions.  However, when you redefine a function (e.g.
-;; with eval-defun), you'll need to re-instrument it with
-;; elp-instrument-function.  Re-instrumenting resets profiling
-;; information for that function.  Elp can also handle interactive
-;; functions (i.e. commands), but of course any time spent idling for
-;; user prompts will show up in the timing results.
+;; interpreted functions, but it cannot instrument macros.  However,
+;; when you redefine a function (e.g.  with eval-defun), you'll need
+;; to re-instrument it with elp-instrument-function.  Re-instrumenting
+;; resets profiling information for that function.  Elp can also
+;; handle interactive functions (i.e. commands), but of course any
+;; time spent idling for user prompts will show up in the timing
+;; results.
 ;;
 ;; You can also designate a `master' function.  Profiling times will
 ;; be gathered for instrumented functions only during execution of
@@ -142,12 +145,18 @@ the call count, element 1 is the total time spent in the function,
 element 2 is the average time spent in the function, and element 3 is
 the symbol's name string.")
 
+(defvar elp-report-limit nil
+  "*Prevents some functions from being displayed in the results buffer.
+If a number, no function that has been called fewer than that number
+of times will be displayed in the output buffer.  If nil, all
+functions will be displayed.")
+
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user configuration variables
 
 
-(defconst elp-version "2.11"
+(defconst elp-version "2.15"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@anthem.nlm.nih.gov"
@@ -178,6 +187,9 @@ FUNSYM must be a symbol of a defined function."
   (let* ((funguts (symbol-function funsym))
 	 (infovec (vector 0 0 funguts))
 	 (newguts '(lambda (&rest args))))
+    ;; we cannot profile macros
+    (and (eq (car-safe funguts) 'macro)
+	 (error "ELP cannot profile macro %s" funsym))
     ;; put rest of newguts together
     (if (commandp funsym)
 	(setq newguts (append newguts '((interactive)))))
@@ -255,6 +267,21 @@ Use optional LIST if provided instead."
   (interactive "PList of functions to instrument: ")
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-instrument-function list)))
+
+(defun elp-instrument-package (prefix)
+  "Instrument for profiling, all functions which start with PREFIX.
+For example, to instrument all ELP functions, do the following:
+
+    \\[elp-instrument-package] RET elp- RET"
+  (interactive "sPrefix of package to instrument: ")
+  (elp-instrument-list
+   (mapcar 'intern (all-completions prefix obarray
+				    (function
+				     (lambda (sym)
+				       (and (fboundp sym)
+					    (not (eq (car-safe
+						      (symbol-function sym))
+						     'macro)))))))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
@@ -388,22 +415,27 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	 (at (aref resultvec 2))
 	 (symname (aref resultvec 3))
 	 callcnt totaltime avetime)
-    (insert symname)
-    (insert-char 32 (+ elp-field-len (- (length symname)) 2))
     (setq callcnt (number-to-string cc)
 	  totaltime (number-to-string tt)
 	  avetime (number-to-string at))
-    ;; print stuff out, formatting it nicely
-    (insert callcnt)
-    (insert-char 32 (+ elp-cc-len (- (length callcnt)) 2))
-    (if (> (length totaltime) elp-et-len)
-	(insert (substring totaltime 0 elp-et-len) "  ")
-      (insert totaltime)
-      (insert-char 32 (+ elp-et-len (- (length totaltime)) 2)))
-    (if (> (length avetime) elp-at-len)
-	(insert (substring avetime 0 elp-at-len))
-      (insert avetime))
-    (insert "\n")))
+    ;; possibly prune the results
+    (if (and elp-report-limit
+	     (numberp elp-report-limit)
+	     (< cc elp-report-limit))
+	nil
+      (insert symname)
+      (insert-char 32 (+ elp-field-len (- (length symname)) 2))
+      ;; print stuff out, formatting it nicely
+      (insert callcnt)
+      (insert-char 32 (+ elp-cc-len (- (length callcnt)) 2))
+      (if (> (length totaltime) elp-et-len)
+	  (insert (substring totaltime 0 elp-et-len) "  ")
+	(insert totaltime)
+	(insert-char 32 (+ elp-et-len (- (length totaltime)) 2)))
+      (if (> (length avetime) elp-at-len)
+	  (insert (substring avetime 0 elp-at-len))
+	(insert avetime))
+      (insert "\n"))))
 
 (defun elp-results ()
   "Display current profiling results.
@@ -484,10 +516,11 @@ displayed."
    (require 'reporter)
    (reporter-submit-bug-report
     elp-help-address (concat "elp " elp-version)
-    '(elp-reset-after-results
+    '(elp-report-limit
+      elp-reset-after-results
       elp-sort-by-function))))
 
 
 (provide 'elp)
-;; elp.el ends here
 
+;; elp.el ends here
