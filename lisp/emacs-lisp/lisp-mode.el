@@ -340,6 +340,12 @@ With argument, print output into current buffer."
 			       (or (eq (following-char) ?\')
 				   (eq (preceding-char) ?\')))
 			 (forward-sexp -1)
+			 ;; If we were after `?\e' (or similar case),
+			 ;; use the whole thing, not just the `e'.
+			 (when (eq (preceding-char) ?\\)
+			   (forward-char -1)
+			   (when (eq (preceding-char) ??)
+			     (forward-char -1)))
 			 (save-restriction
 			   ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
 			   ;; `variable' so that the value is returned, not the
