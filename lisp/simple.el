@@ -2316,8 +2316,13 @@ unless optional argument SOFT is non-nil."
 		  (setq win (match-beginning 0)))
 		;; Indent this line like what we found.
 		(goto-char win)
+		;; If comment-start-skip contains a \(...\) pair,
+		;; the real comment delimiter starts at the end of that pair.
+		(if (match-end 1)
+		    (goto-char (match-end 1)))
 		(setq comcol (current-column))
-		(setq comstart (buffer-substring (point) (match-end 0)))))))
+		(setq comstart
+		      (buffer-substring (point) (match-end 0)))))))
     (if comcol
 	(let ((comment-column comcol)
 	      (comment-start comstart)
