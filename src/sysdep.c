@@ -667,7 +667,7 @@ sys_subshell ()
   if (XFASTINT (Fboundp (dir)) == XFASTINT (Qnil))
     goto xyzzy;
   dir = Fsymbol_value (dir);
-  if (XTYPE (dir) != Lisp_String)
+  if (!STRINGP (dir))
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
