@@ -139,7 +139,12 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)
-  (setq multibyte-syntax-as-symbol t))
+  (setq multibyte-syntax-as-symbol t)
+  (setq font-lock-defaults
+	'((lisp-font-lock-keywords
+	   lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
+	  nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+	  (font-lock-mark-block-function . mark-defun))))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -149,14 +154,12 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
     (- (match-end 0) (match-beginning 0))))
 
 
-(defvar lisp-mode-shared-map ()
+(defvar lisp-mode-shared-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\e\C-q" 'indent-sexp)
+    (define-key map "\177" 'backward-delete-char-untabify)
+    map)
   "Keymap for commands shared by all sorts of Lisp modes.")
-
-(if lisp-mode-shared-map
-    ()
-   (setq lisp-mode-shared-map (make-sparse-keymap))
-   (define-key lisp-mode-shared-map "\e\C-q" 'indent-sexp)
-   (define-key lisp-mode-shared-map "\177" 'backward-delete-char-untabify))
 
 (defvar emacs-lisp-mode-map ()
   "Keymap for Emacs Lisp mode.
@@ -232,7 +235,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
-(defun emacs-lisp-mode ()
+(define-derived-mode emacs-lisp-mode nil "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -240,15 +243,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{emacs-lisp-mode-map}
 Entry to this mode calls the value of `emacs-lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map emacs-lisp-mode-map)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (setq major-mode 'emacs-lisp-mode)
-  (setq mode-name "Emacs-Lisp")
   (lisp-mode-variables nil)
-  (setq imenu-case-fold-search nil)
-  (run-hooks 'emacs-lisp-mode-hook))
+  (setq imenu-case-fold-search nil))
 
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap)))
@@ -259,7 +255,7 @@ if that value is non-nil."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(defun lisp-mode ()
+(define-derived-mode lisp-mode nil "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -270,15 +266,8 @@ or to switch back to an existing one.
 
 Entry to this mode calls the value of `lisp-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map lisp-mode-map)
-  (setq major-mode 'lisp-mode)
-  (setq mode-name "Lisp")
   (lisp-mode-variables t)
-  (setq imenu-case-fold-search t)
-  (set-syntax-table lisp-mode-syntax-table)
-  (run-hooks 'lisp-mode-hook))
+  (setq imenu-case-fold-search t))
 
 ;; This will do unless inf-lisp.el is loaded.
 (defun lisp-eval-defun (&optional and-go)
@@ -296,7 +285,7 @@ if that value is non-nil."
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(defun lisp-interaction-mode ()
+(define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
 before point, and prints its value into the buffer, advancing point.
@@ -307,15 +296,7 @@ Paragraphs are separated only by blank lines.
 Semicolons start comments.
 \\{lisp-interaction-mode-map}
 Entry to this mode calls the value of `lisp-interaction-mode-hook'
-if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map lisp-interaction-mode-map)
-  (setq major-mode 'lisp-interaction-mode)
-  (setq mode-name "Lisp Interaction")
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (lisp-mode-variables nil)
-  (run-hooks 'lisp-interaction-mode-hook))
+if that value is non-nil.")
 
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer."
