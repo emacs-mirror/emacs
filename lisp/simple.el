@@ -2483,7 +2483,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 (defun choose-completion ()
   "Choose the completion that point is in or next to."
   (interactive)
-  (let (beg end)
+  (let (beg end completion (buffer completion-reference-buffer))
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
     (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
@@ -2492,7 +2492,16 @@ it were the arg to `interactive' (which see) to interactively read the value."
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
-    (choose-completion-string (buffer-substring beg end))))
+    (setq completion (buffer-substring beg end))
+    (let ((owindow (selected-window)))
+      (if (and (one-window-p t 'selected-frame)
+	       (window-dedicated-p (selected-window)))
+	  ;; This is a special buffer's frame
+	  (iconify-frame (selected-frame))
+	(or (window-dedicated-p (selected-window))
+	    (bury-buffer)))
+      (select-window owindow))
+    (choose-completion-string completion buffer)))
 
 ;; Delete the longest partial match for STRING
 ;; that can be found before POINT.
