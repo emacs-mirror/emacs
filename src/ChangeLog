@@ -14,6 +14,9 @@
 
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (gc_sweep): Prevent symbols read during loadup
+	from being freed.
+
 	* xdisp.c (underlying_face_id): New function.
 	(handle_face_prop, face_before_or_after_it_pos): Use it
 	to determine the face ``under'' a string.  Let strings inherit
