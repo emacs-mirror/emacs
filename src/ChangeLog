@@ -1,3 +1,7 @@
+2003-08-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (lookup_rgb_color): Handle TrueColor visuals specially.
+
 2003-08-28  David Abrahams  <dave@boost-consulting.com>  (tiny change)
 
 	* coding.c (decode_coding_iso2022): Initialized local variable c2.
