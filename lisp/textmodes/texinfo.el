@@ -317,14 +317,14 @@ to jump to the corresponding spot in the Texinfo file."
   "*Command used by  texinfo-texindex  to sort unsorted index files.")
 
 (defun texinfo-tex-region (beg end)
-  "Run tex on the current region.  A temporary file (tex-zap-file) is
-written in directory tex-directory, and tex is run in that directory.
-The first line of the file is copied to the temporary file; and
-if the buffer has a header, it is written to the temporary file before
-the region itself.  The buffer's header is all lines between the
-strings defined by tex-start-of-header and tex-end-of-header
-inclusive.  The header must start in the first 100 lines.  The value
-of tex-trailer is appended to the temporary file after the region."
+  "Run tex on the current region.
+A temporary file (`tex-zap-file') is written in directory `tex-directory', and
+tex is run in that directory.  The first line of the file is copied to the
+temporary file; and if the buffer has a header, it is written to the
+temporary file before the region itself.  The buffer's header is all lines
+between the strings defined by `tex-start-of-header' and `tex-end-of-header'
+inclusive.  The header must start in the first 100 lines.  The value of
+tex-trailer is appended to the temporary file after the region."
   (interactive "r")
   (if (get-buffer "*tex-shell*")
       (tex-kill-job)
@@ -398,7 +398,7 @@ See \\[texinfo-tex-region] for more information."
 (defun texinfo-texindex ()
   "Run texindex on unsorted index files.
 The index files are made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
-Runs the shell command defined by texinfo-texindex-command."
+Runs the shell command defined by `texinfo-texindex-command'."
   (interactive)
   (send-string "tex-shell"
 	       (concat texinfo-texindex-command
@@ -407,7 +407,7 @@ Runs the shell command defined by texinfo-texindex-command."
 
 (defun texinfo-tex-print ()
   "Print .dvi file made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
-Runs the shell command defined by tex-dvi-print-command."
+Runs the shell command defined by `tex-dvi-print-command'."
   (interactive)
   (send-string "tex-shell"
 	       (concat tex-dvi-print-command

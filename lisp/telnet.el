@@ -48,11 +48,11 @@
 while looking for the initial password.")
 
 (defvar telnet-initial-count -50
-  "Initial value of telnet-count.  Should be set to the negative of the
+  "Initial value of `telnet-count'.  Should be set to the negative of the
 number of terminal writes telnet will make setting up the host connection.")
 
 (defvar telnet-maximum-count 4
-  "Maximum value telnet-count can have.
+  "Maximum value `telnet-count' can have.
 After this many passes, we stop looking for initial setup data.
 Should be set to the number of terminal writes telnet will make
 rejecting one login and prompting for the again for a username and password.")
@@ -165,8 +165,8 @@ Normally input is edited in Emacs and sent a line at a time."
     (setq telnet-count telnet-initial-count)))
 
 (defun telnet-mode ()
-  "This mode is for use during telnet from a buffer to another
-host. It has most of the same commands as comint-mode.
+  "This mode is for telnetting from a buffer to another host.
+It has most of the same commands as comint-mode.
 There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed.

@@ -2924,7 +2924,8 @@ a token has type \(command, address, end-mark\) and value."
   (shell))
 
 (defun ex-substitute (&optional repeat r-flag) 
-  "ex substitute. if REPEAT use previous reg-exp which is ex-reg-exp or
+  "ex substitute.
+If REPEAT use previous reg-exp which is ex-reg-exp or
 vip-s-string"
   (let (pat repl (opt-g nil) (opt-c nil) (matched-pos nil))
     (if repeat (setq ex-token nil) (vip-get-ex-pat))

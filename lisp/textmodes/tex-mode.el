@@ -824,8 +824,8 @@ line LINE of the window, or centered if LINE is nil."
 
 (defun tex-print (&optional alt)
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
-Runs the shell command defined by tex-dvi-print-command.  If prefix argument
-is provided, use the alternative command, tex-alt-dvi-print-command."
+Runs the shell command defined by `tex-dvi-print-command'.  If prefix argument
+is provided, use the alternative command, `tex-alt-dvi-print-command'."
   (interactive "P")
   (let ((print-file-name-dvi (tex-append tex-print-file ".dvi"))
 	test-name)
@@ -863,7 +863,7 @@ so normally SUFFIX starts with one."
 
 (defun tex-show-print-queue ()
   "Show the print queue that \\[tex-print] put your job on.
-Runs the shell command defined by tex-show-queue-command."
+Runs the shell command defined by `tex-show-queue-command'."
   (interactive)
   (if (tex-shell-running)
       (tex-kill-job)

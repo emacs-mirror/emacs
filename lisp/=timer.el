@@ -87,7 +87,7 @@ the call to the function.  If REPEAT is nil, call it just once."
       (setq timer-process nil timer-alist nil))))
 
 (defun cancel-timer (function)
-  "Cancel all events scheduled by ``run-at-time'' which would run FUNCTION."
+  "Cancel all events scheduled by `run-at-time' which would run FUNCTION."
   (interactive "aCancel function: ")
   (let ((alist timer-alist))
     (while alist

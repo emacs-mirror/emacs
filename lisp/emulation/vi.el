@@ -733,8 +733,9 @@ are given, use those instead of the ones saved."
     (setq count (1- count))))
 
 (defun vi-scroll-down-window (count)
-  "Scrolls down window COUNT lines.  If COUNT is nil (actually, non-integer),
-scrolls default amount.  The given COUNT is remembered for future scrollings."
+  "Scrolls down window COUNT lines.
+If COUNT is nil (actually, non-integer), scrolls default amount.
+The given COUNT is remembered for future scrollings."
   (interactive "P")
   (if (integerp count)
       (setq vi-scroll-amount count))
@@ -774,8 +775,9 @@ scrolls default amount.  The given COUNT is remembered for future scrollings."
   (back-to-indentation))
 
 (defun vi-scroll-up-window (count)
-  "Scrolls up window COUNT lines.  If COUNT is nil (actually, non-integer),
-scrolls default amount.  The given COUNT is remembered for future scrollings."
+  "Scrolls up window COUNT lines.
+If COUNT is nil (actually, non-integer), scrolls default amount.
+The given COUNT is remembered for future scrollings."
   (interactive "P")
   (if (integerp count)
       (setq vi-scroll-amount count))
@@ -798,8 +800,8 @@ Possible perfix-arg cases are NIL, INTEGER, (NIL . CHAR) or (INTEGER . CHAR)."
 	  (t (setq prefix-arg (cons (car arg) char))))))
 
 (defun vi-goto-mark (mark-char &optional line-flag)
-  "Go to marked position or line (if line-flag is given). Goto mark '@' means
-jump into and pop the top mark on the mark ring."
+  "Go to marked position or line (if line-flag is given).
+Goto mark '@' means jump into and pop the top mark on the mark ring."
   (cond ((char-equal mark-char last-command-char)	; `` or ''
 	 (exchange-point-and-mark) (if line-flag (back-to-indentation)))
 	((char-equal mark-char ?@)	; jump and pop mark
@@ -1070,14 +1072,14 @@ MOTION-COMMAND with ARG.
       (vi-set-last-change-command 'vi-yank-op 'next-line arg)))
 
 (defun vi-string-end-with-nl-p (string)
-  "See if STRING ends with a newline char.  Used in checking whether the yanked
-text should be put back as lines or not."
+  "See if STRING ends with a newline char.
+Used in checking whether the yanked text should be put back as lines or not."
   (= (aref string (1- (length string))) ?\n))
 
 (defun vi-put-before (arg &optional after-p)
-  "Put yanked (in vi sense) text back before/above cursor.  If a numeric prefix
-value (currently it should be >1) is given, put back text as lines.
-If the optional after-p is given, put after/below the cursor."
+  "Put yanked (in vi sense) text back before/above cursor.  
+If a numeric prefix value (currently it should be >1) is given, put back
+text as lines.  If the optional after-p is given, put after/below the cursor."
   (interactive "P")
   (let ((reg (vi-prefix-char-value arg)) put-text)
     (if (and reg (or (< reg ?1) (> reg ?9)) (null (get-register reg)))
@@ -1107,7 +1109,8 @@ If the optional after-p is given, put after/below the cursor."
   (vi-put-before arg t))
 
 (defun vi-shell-op (motion-command arg &optional shell-command)
-  "Perform shell command (as filter) on range specified by MOTION-COMMAND
+  "Perform shell command (as filter).
+Performs command on range specified by MOTION-COMMAND
 with ARG. If SHELL-COMMAND is not given, ask for one from minibuffer.
 If char argument is given, it directs the output to a *temp* buffer."
   (let* ((range (vi-effective-range motion-command arg))
@@ -1157,8 +1160,8 @@ SPECIAL FEATURE: char argument can be used to specify shift amount(1-9)."
   (cdr (assq char vi-mark-alist)))
 
 (defun vi-set-mark (char)
-  "Set contents of vi mark register named CHAR to current point. '@' is the
-special anonymous mark register."
+  "Set contents of vi mark register named CHAR to current point.
+'@' is the special anonymous mark register."
   (interactive "c")
   (if (char-equal char ?@)
       (set-mark-command nil)
@@ -1219,12 +1222,12 @@ special anonymous mark register."
     (vi-ding)))
 
 (defun vi-set-last-change-command (fun &rest args)
-  "Set (FUN . ARGS) as the last-change-command."
+  "Set (FUN . ARGS) as the `last-change-command'."
   (setq vi-last-change-command (cons fun args)))
 
 (defun vi-redo-last-change-command (count &optional command)
   "Redo last change command COUNT times.  If the optional COMMAND is given,
-it is used instead of the current last-change-command."
+it is used instead of the current `last-change-command'."
   (interactive "p")
   (if (null command)
       (setq command vi-last-change-command))
@@ -1241,7 +1244,8 @@ it is used instead of the current last-change-command."
   (vi-set-last-change-command 'delete-char count t))
 
 (defun vi-transpose-objects (arg unit)
-  "Transpose objects, the following char specifies unit of objects to be
+  "Transpose objects.
+The following char specifies unit of objects to be
 transposed -- \"c\" for chars, \"l\" for lines, \"w\" for words, \"s\" for
  sexp, \"p\" for paragraph.
 For the use of the prefix-arg, refer to individual functions called."
@@ -1296,9 +1300,9 @@ For the use of the prefix-arg, refer to individual functions called."
       (ding))))
 
 (defun vi-name-last-change-or-macro (arg char)
-  "Give name to the last change command or just defined kbd macro.  If prefix
-ARG is given, name last macro, otherwise name last change command.  The
-following CHAR will be the name for the command or macro."
+  "Give name to the last change command or just defined kbd macro.  
+If prefix ARG is given, name last macro, otherwise name last change command.
+The following CHAR will be the name for the command or macro."
   (interactive "P\nc")
   (if arg
       (name-last-kbd-macro (intern (char-to-string char)))
@@ -1397,8 +1401,8 @@ r(egion), s(tring), w(ord) ]."
 	  (command-execute cmd nil)))))
 
 (defun vi-quote-words (arg char)
-  "Quote ARG words from the word point is on with the pattern specified by the
-CHAR. Currently, CHAR could be [,{,(,\",',`,<,*, etc."
+  "Quote ARG words from the word point is on with pattern specified by CHAR.
+Currently, CHAR could be [,{,(,\",',`,<,*, etc."
   (interactive "*p\nc")
   (while (not (string-match "[[({<\"'`*]" (char-to-string char)))
     (message "Enter any of [,{,(,<,\",',`,* as quoting character.")
@@ -1416,8 +1420,8 @@ CHAR. Currently, CHAR could be [,{,(,\",',`,<,*, etc."
   (insert char))
 
 (defun vi-locate-def ()
-  "Locate definition in current file for the name before the point. It assumes
-a `(def..' always starts at the beginning of a line."
+  "Locate definition in current file for the name before the point.
+It assumes a `(def..' always starts at the beginning of a line."
   (interactive)
   (let (name)
     (save-excursion
@@ -1437,7 +1441,7 @@ a `(def..' always starts at the beginning of a line."
 
 (defun vi-split-open-line (arg)
   "Insert a newline and leave point before it.
-With arg, inserts that many newlines."
+With ARG, inserts that many newlines."
   (interactive "*p")
   (vi-goto-insert-state 1
     (list (function (lambda (arg)
