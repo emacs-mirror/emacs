@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859/1.
 
-;; Copyright (C) 1987, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
@@ -24,20 +24,28 @@
 
 ;;; Commentary:
 
-;; Loading this package defines two ways of entering the ISO Latin 1 characters
-;; with codes above 127.
-
-;; One way is to type C-x 8 followed by a special chaacter sequence.
-;; For example, C-x 8 " A enters an upper-case A-umlaut.
-
-;; The other way is to type the same special sequence
-;; but hold down Alt for the first character in it.
+;; Loading this package defines three ways of entering the non-ASCII
+;; printable characters with codes above 127: the prefix C-x 8, or the
+;; Alt key, or a dead accent key.  For example, you can enter uppercase
+;; A-umlaut as `C-x 8 " A' or `Alt-" A' (if you have an Alt key) or
+;; `umlaut A' (if you have an umlaut/diaeresis key).
 
 ;;; Code:
 
+(defvar iso-transl-dead-key-alist
+  '((?\' . mute-acute)
+    (?\` . mute-grave)
+    (?\" . mute-diaeresis)
+    (?\^ . mute-asciicircum)
+    (?\~ . mute-asciitilde))
+  "Mapping of ASCII characters to their corresponding dead-key symbols.")
+
+;; The two-character mnemonics are intended to be available in all languages.
+;; The ones beginning with `*' have one-character synonyms, but a
+;; language-specific table might override the short form for its own use.
 (defvar iso-transl-char-map
-  '((" "    . [160])
-    ("!"    . [161])
+  '(("* "   . [160])(" "   . [160])
+    ("*!"   . [161])("!"   . [161])
     ("\"\"" . [168])
     ("\"A"  . [196])
     ("\"E"  . [203])
@@ -63,33 +71,33 @@
     ("'o"   . [243])
     ("'u"   . [250])
     ("'y"   . [253])
-    ("$"    . [164])
-    ("+"    . [177])
+    ("*$"   . [164])("$"   . [164])
+    ("*+"   . [177])("+"   . [177])
     (",,"   . [184])
     (",C"   . [199])
     (",c"   . [231])
-    ("-"    . [173])
-    ("."    . [183])
+    ("*-"   . [173])("-"   . [173])
+    ("*."   . [183])("."   . [183])
     ("//"   . [247])
     ("/O"   . [216])
     ("/o"   . [248])
     ("1/2"  . [189])
     ("1/4"  . [188])
     ("3/4"  . [190])
-    ("<"    . [171])
-    ("="    . [175])
-    (">"    . [187])
-    ("?"    . [191])
-    ("A"    . [197])
-    ("E"    . [198])
-    ("C"    . [169])
-    ("D"    . [208])
-    ("L"    . [163])
-    ("P"    . [182])
-    ("R"    . [174])
-    ("S"    . [167])
-    ("T"    . [222])
-    ("Y"    . [165])
+    ("*<"   . [171])("<"   . [171])
+    ("*="   . [175])("="   . [175])
+    ("*>"   . [187])(">"   . [187])
+    ("*?"   . [191])("?"   . [191])
+    ("*A"   . [197])("A"   . [197])
+    ("*E"   . [198])("E"   . [198])
+    ("*C"   . [169])("C"   . [169])
+    ("*D"   . [208])("D"   . [208])
+    ("*L"   . [163])("L"   . [163])
+    ("*P"   . [182])("P"   . [182])
+    ("*R"   . [174])("R"   . [174])
+    ("*S"   . [167])("S"   . [167])
+    ("*T"   . [222])("T"   . [222])
+    ("*Y"   . [165])("Y"   . [165])
     ("^1"   . [185])
     ("^2"   . [178])
     ("^3"   . [179])
@@ -115,16 +123,16 @@
     ("`i"   . [236])
     ("`o"   . [242])
     ("`u"   . [249])
-    ("a"    . [229])
-    ("e"    . [230])
-    ("c"    . [162])
-    ("d"    . [240])
-    ("o"    . [176])
-    ("s"    . [223])
-    ("t"    . [254])
-    ("u"    . [181])
-    ("x"    . [215])
-    ("|"    . [166])
+    ("*a"   . [229])("a"   . [229])
+    ("*e"   . [230])("e"   . [230])
+    ("*c"   . [162])("c"   . [162])
+    ("*d"   . [240])("d"   . [240])
+    ("*o"   . [176])("o"   . [176])
+    ("*s"   . [223])("s"   . [223])
+    ("*t"   . [254])("t"   . [254])
+    ("*u"   . [181])("u"   . [181])
+    ("*x"   . [215])("x"   . [215])
+    ("*|"   . [166])("|"   . [166])
     ("~A"   . [195])
     ("~N"   . [209])
     ("~O"   . [213])
@@ -137,63 +145,80 @@ Each element has the form (STRING . VECTOR).
 The sequence STRING of ASCII chars translates into the
 sequence VECTOR.  (VECTOR is normally one character long.)")
 
+;; Language-specific translation lists.
+(defvar iso-transl-language-alist
+  '(("German"
+     ("A"  . [196])
+     ("O"  . [214]) 
+     ("U"  . [220])
+     ("a"  . [228])
+     ("o"  . [246])
+     ("s"  . [223])
+     ("u"  . [252]))
+    ("Spanish"
+     ("!"  . [161])
+     ("?"  . [191])
+     ("N"  . [241])
+     ("n"  . [209]))
+    ("Esperanto"
+     ("C"  . [198])
+     ("G"  . [216])
+     ("H"  . [166])
+     ("J"  . [172])
+     ("S"  . [222])
+     ("U"  . [221])
+     ("c"  . [230])
+     ("g"  . [248])
+     ("h"  . [182])
+     ("j"  . [188])
+     ("s"  . [254])
+     ("u"  . [253]))))
 
-(let ((map (make-sparse-keymap))
-      table)
-  (setq table iso-transl-char-map)
-;;;  ;; Create all the prefixes we need.
-;;;  (define-key map "\""   (make-sparse-keymap))
-;;;  (define-key map "'"    (make-sparse-keymap))
-;;;  (define-key map ","    (make-sparse-keymap))
-;;;  (define-key map "/"    (make-sparse-keymap))
-;;;  (define-key map "1"    (make-sparse-keymap))
-;;;  (define-key map "1/"   (make-sparse-keymap))
-;;;  (define-key map "3"    (make-sparse-keymap))
-;;;  (define-key map "3/"   (make-sparse-keymap))
-;;;  (define-key map "A"    (make-sparse-keymap))
-;;;  (define-key map "^"    (make-sparse-keymap))
-;;;  (define-key map "_"    (make-sparse-keymap))
-;;;  (define-key map "`"    (make-sparse-keymap))
-;;;  (define-key map "a"    (make-sparse-keymap))
-;;;  (define-key map "~"    (make-sparse-keymap))
+(defvar iso-transl-ctl-x-8-map nil
+  "Keymap for C-x 8 prefix.")
+(or iso-transl-ctl-x-8-map
+    (setq iso-transl-ctl-x-8-map (make-sparse-keymap)))
+(or key-translation-map
+    (setq key-translation-map (make-sparse-keymap)))
+(define-key key-translation-map "\C-x8" iso-transl-ctl-x-8-map)
 
-  ;; Enter the individual sequences.
-  (setq table iso-transl-char-map)
-  (while table
-    (define-key map (car (car table)) (cdr (car table)))
-    (setq table (cdr table)))
+;; For each entry in the alist, we'll make up to three ways to generate
+;; the character in question: the prefix `C-x 8'; the ALT modifier on
+;; the first key of the sequence; and (if applicable) replacing the first
+;; key of the sequence with the corresponding dead key.  For example, a
+;; character associated with the string "~n" can be input with `C-x 8 ~ n'
+;; or `Alt-~ c' or `mute-asciitilde c'.
+(defun iso-transl-define-keys (alist)
+    (while alist
+      (define-key iso-transl-ctl-x-8-map (car (car alist)) (cdr (car alist)))
+      (let ((vec      (vconcat (car (car alist))))
+	    (deadpair (assq (aref (car (car alist)) 0)
+			    iso-transl-dead-key-alist)))
+	(aset vec 0 (logior (aref vec 0) ?\A-\^@))
+	(define-key key-translation-map vec (cdr (car alist)))
+	(define-key isearch-mode-map (vector (aref vec 0)) nil)
+	(if deadpair
+	    (let ((deadvec (copy-sequence vec)))
+	      (aset deadvec 0 (cdr deadpair))
+	      (define-key isearch-mode-map (vector (aref deadvec 0)) nil)
+	      (define-key key-translation-map deadvec (cdr (car alist))))))
+      (setq alist (cdr alist))))
 
-  (or key-translation-map
-      (setq key-translation-map (make-sparse-keymap)))
-  (define-key key-translation-map "\C-x8" map)
+(defun iso-transl-set-language (lang)
+  (interactive (list (let ((completion-ignore-case t))
+		       (completing-read "Set which language? "
+					iso-transl-language-alist nil t))))
+  (iso-transl-define-keys (cdr (assoc lang iso-transl-language-alist))))
 
-  ;; Enter the individual sequences, this time with Alt as a modifier
-  ;; on the first character, instead of with C-x 8 as a prefix.
-  (setq table iso-transl-char-map)
-  (while table
-    (let ((string (vconcat (car (car table)))))
-      (aset string 0 (+ (aref string 0) 262144))
-      (define-key key-translation-map string (cdr (car table))))
-    (setq table (cdr table)))
 
-  ;; Enter the individual sequences, this time with
-  ;; certain special function keys replacing the punctuation characters.
-  (setq table iso-transl-char-map)
-  (while table
-    (let ((mapping
-	   (assq (aref (car (car table)) 0) '((?\' . mute-acute)
-					      (?\` . mute-grave)
-					      (?\" . mute-diaeresis)
-					      (?\^ . mute-asciicircum)
-					      (?\~ . mute-asciitilde)))))
-      (if mapping
-	  (let ((string (vector (cdr mapping) (aref (car (car table)) 1))))
-	    (define-key key-translation-map string (cdr (car table))))))
-    (setq table (cdr table)))
+;; The standard mapping comes automatically.  You can partially overlay it
+;; with a language-specific mapping by using `M-x iso-transl-set-language'.
+(iso-transl-define-keys iso-transl-char-map)
 
-  (define-key isearch-mode-map "\C-x" nil)
-  (define-key isearch-mode-map [?\C-x t] 'isearch-other-control-char)
-  (define-key isearch-mode-map "\C-x8" nil))
+(define-key isearch-mode-map "\C-x" nil)
+(define-key isearch-mode-map [?\C-x t] 'isearch-other-control-char)
+(define-key isearch-mode-map "\C-x8" nil)
+
 
 (provide 'iso-transl)
 
