@@ -542,9 +542,9 @@ buffer.
 
 Emacs uses highlighting in several ways.  When you mark a region with
 the mouse, the region is always highlighted.  Optionally Emacs can
-also highlight the region whenever it is active (@pref{Transient
-Mark}).  Incremental search also highlights matches (@pref{Incremental
-Search}).  See also `font lock'.
+also highlight the region whenever it is active. @xref{Transient
+Mark}.  Incremental search also highlights matches.  @xref{Incremental
+Search}.  See also `font lock'.
 
 @item Hardcopy
 Hardcopy means printed output.  Emacs has commands for making printed
