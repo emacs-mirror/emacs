@@ -40,6 +40,7 @@
 ;;
 
 (require 'mail-utils)
+(eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
@@ -621,7 +622,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (rmail-require-mime-maybe)
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
-	 ;; This binding is necessary because we much decide if we
+	 ;; This binding is necessary because we must decide if we
 	 ;; need code conversion while the buffer is unibyte
 	 ;; (i.e. enable-multibyte-characters is nil).
          (rmail-enable-multibyte
@@ -772,7 +773,16 @@ Note:    it means the file has no messages in it.\n\^_")))
     (setq to (point))
     (unless (and coding-system
 		 (coding-system-p coding-system))
-      (setq coding-system (detect-coding-region from to t)))
+      (setq coding-system
+	    ;; Emacs 21.1 and later writes RMAIL files in emacs-mule, but
+	    ;; earlier versions did that with the current buffer's encoding.
+	    ;; So we want to favor detection of emacs-mule (whose normal
+	    ;; priority is quite low), but still allow detection of other
+	    ;; encodings if emacs-mule won't fit.  The call to
+	    ;; detect-coding-with-priority below achieves that.
+	    (car (detect-coding-with-priority
+		  from to
+		  '((coding-category-emacs-mule . emacs-mule))))))
     (unless (memq coding-system
 		  '(undecided undecided-unix))
       (set-buffer-modified-p t)		; avoid locking when decoding
