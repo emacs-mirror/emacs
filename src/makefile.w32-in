@@ -137,6 +137,7 @@ LIBS =  $(TLIB0)	\
 	$(GDI32)	\
 	$(COMDLG32)	\
 	$(USER32)	\
+	$(WSOCK32)	\
 	$(MPR)		\
 	$(SHELL32)	\
 	$(libc)
