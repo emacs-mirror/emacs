@@ -52,10 +52,10 @@ minibuffer even if it is active.
 
 Several frames may share a single minibuffer; if the minibuffer
 counts, all windows on all frames that share that minibuffer count
-too.  Therefore, when a separate minibuffer frame is active,
+too.  Therefore, if you are using a separate minibuffer frame
+and the minibuffer is active and MINIBUF says it counts,
 `walk-windows' includes the windows in the frame from which you
-entered the minibuffer, as well as the minibuffer window.  But if the
-minibuffer does not count, only windows from WINDOW's frame count.
+entered the minibuffer, as well as the minibuffer window.
 
 ALL-FRAMES is the optional third argument.
 ALL-FRAMES nil or omitted means cycle within the frames as specified above.
