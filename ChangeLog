@@ -1,5 +1,8 @@
 2001-04-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* make-dist: Copy only `[a-z]*.{el,elc}' from leim/quail.
+	Don't copy quick-b5, quick-cns, tsang-b5, and tsang-cns files.
+	
 	* make-dist: Handle leim/MISC-DIC.  Only include
 	`[a-zA-Z]*.{el,elc}' from leim/quail.
 
