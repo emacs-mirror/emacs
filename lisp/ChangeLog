@@ -1,3 +1,15 @@
+2002-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-indent.el (lisp-loop-keyword-indentation)
+	(lisp-loop-forms-indentation, lisp-simple-loop-indentation): New
+	user options.
+	(extended-loop-p, common-lisp-loop-part-indentation): New
+	functions.
+	(common-lisp-indent-function-1): Renamed from
+	common-lisp-indent-function.
+	(common-lisp-indent-function): Handle loop forms specially.
+	(lisp-indent-defmethod): Use car/cdr instead of first/rest.
+
 2002-03-12  Francesco Potorti`  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
