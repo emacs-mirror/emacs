@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility.
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
 ;; Maintainers: FSF (unless Schleicher can be found)
@@ -27,14 +27,6 @@
 ;;; Code:
 
 (require 'info)
-(eval-and-compile
-  (condition-case nil
-      (require 'custom)
-    (error
-     (defmacro defgroup (&rest arg)
-       nil)
-     (defmacro defcustom (symbol value doc &rest arg)
-       `(defvar ,symbol ,value ,doc ,@arg)))))
 
 (defgroup info-lookup nil
   "Major mode sensitive help agent."
@@ -350,10 +342,10 @@ If optional argument QUERY is non-nil, query for the help mode."
 	      prefix (nth 2 (car doc-spec))
 	      suffix (nth 3 (car doc-spec)))
 	(when (condition-case error-data
-		  (progn 
+		  (progn
 		    (Info-goto-node node)
 		    (setq doc-found t))
-		(error 
+		(error
 		 (message "Cannot access Info node %s" node)
 		 (sit-for 1)
 		 nil))
@@ -449,10 +441,10 @@ If optional argument QUERY is non-nil, query for the help mode."
       (with-current-buffer buffer
 	(message "Processing Info node `%s'..." node)
 	(when (condition-case error-data
-		  (progn 
+		  (progn
 		    (Info-goto-node node)
 		    (setq doc-found t))
-		(error 
+		(error
 		 (message "Cannot access Info node `%s'" node)
 		 (sit-for 1)
 		 nil))
@@ -466,7 +458,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 		       ;; `trans' can return nil if the regexp doesn't match.
 		       (when (and item
 				  ;; Sometimes there's more than one Menu:
-				  (not (string= entry "Menu"))) 
+				  (not (string= entry "Menu")))
 			 (and (info-lookup->ignore-case topic mode)
 			      (setq item (downcase item)))
 			 (and (string-equal entry item)
@@ -511,7 +503,11 @@ Return nil if there is nothing appropriate in the buffer near point."
 		  subexp (cdr rule))
 	  (setq regexp rule
 		subexp 0))
-	(skip-chars-backward " \t\n") (setq end (point))
+	;; If at start of symbol, don't go back to end of previous one.
+	(if (save-match-data
+	      (looking-at "[ \t\n]"))
+	    (skip-chars-backward " \t\n"))
+	(setq end (point))
 	(while (and (re-search-backward regexp nil t)
 		    (looking-at regexp)
 		    (>= (match-end 0) end))
@@ -602,7 +598,11 @@ Return nil if there is nothing appropriate in the buffer near point."
 				   (format "Complete %S: " topic)
 				   completions nil t completion
 				   info-lookup-history)))
-	     (delete-region (- start (length try)) start)
+	     ;; Find the original symbol and zap it.
+	     (end-of-line)
+	     (while (and (search-backward try nil t)
+			 (< start (point))))
+	     (replace-match "")
 	     (insert completion))
 	    (t
 	     (message "%s is complete"
@@ -764,7 +764,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :doc-spec '(("(octave)Function Index" nil "^ - [^:]+:[ ]+" nil)
 	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
-	     ("(octave)Concept Index" 
+	     ("(octave)Concept Index"
 	      (lambda (item)
 		(cond
 		 ((string-match "^\\([A-Z]+\\) statement\\b" item)
