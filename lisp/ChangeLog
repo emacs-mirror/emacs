@@ -1,3 +1,8 @@
+2004-10-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.el (set-left-margin, set-right-margin): Rename `lm' arg
+	to `width' for consistency with docstring.  Doc fix.
+
 2004-10-01  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-langs.el: Load cl here since cc-defs doesn't do it.
