@@ -719,8 +719,8 @@ LOGINFUNC is passed a username and a password, it should return t if
 it where sucessful authenticating itself to the server, nil otherwise.
 Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
-    (make-variable-buffer-local 'imap-username)
-    (make-variable-buffer-local 'imap-password)
+    (make-local-variable 'imap-username)
+    (make-local-variable 'imap-password)
     (let (user passwd ret)
       ;;      (condition-case ()
       (while (or (not user) (not passwd))
@@ -887,7 +887,7 @@ necessery.  If nil, the buffer name is generated."
   (with-current-buffer (get-buffer-create buffer)
     (if (imap-opened buffer)
 	(imap-close buffer))
-    (mapcar 'make-variable-buffer-local imap-local-variables)
+    (mapcar 'make-local-variable imap-local-variables)
     (imap-disable-multibyte)
     (buffer-disable-undo)
     (setq imap-server (or server imap-server))
@@ -957,8 +957,8 @@ password is remembered in the buffer."
 	(or (eq imap-state 'auth)
 	    (eq imap-state 'select)
 	    (eq imap-state 'examine))
-      (make-variable-buffer-local 'imap-username)
-      (make-variable-buffer-local 'imap-password)
+      (make-local-variable 'imap-username)
+      (make-local-variable 'imap-password)
       (if user (setq imap-username user))
       (if passwd (setq imap-password passwd))
       (if (funcall (nth 2 (assq imap-auth imap-authenticator-alist)) buffer)
