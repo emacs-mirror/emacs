@@ -222,7 +222,7 @@ The following keywords are meaningful:
         version VERSION.
 :tag LABEL
         Use LABEL, a string, instead of the item's name, to label the item
-        a  in customization menus and buffers.
+        in customization menus and buffers.
 :load FILE
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load-library', and only if the file is
