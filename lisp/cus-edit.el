@@ -878,8 +878,7 @@ then prompt for the MODE to customize."
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
-  (or (get group 'custom-group)
-      (custom-load-symbol group))
+  (custom-load-symbol group)
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
@@ -903,8 +902,7 @@ then prompt for the MODE to customize."
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
-  (or (get group 'custom-group)
-      (custom-load-symbol group))
+  (custom-load-symbol group)
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
@@ -1082,7 +1080,7 @@ suggest to customized that face, if it's customizable."
 			     t nil)
 			    "*Customize Faces*")
     (unless (facep face)
-      (error "Invalid face %S"))
+      (error "Invalid face %S" face))
     (custom-buffer-create (list (list face 'custom-face))
 			  (format "*Customize Face: %s*"
 				  (custom-unlispify-tag-name face)))))
@@ -1108,7 +1106,7 @@ suggest to customized that face, if it's customizable."
 	t nil)
        "*Customize Faces*")
     (unless (facep face)
-      (error "Invalid face %S"))
+      (error "Invalid face %S" face))
     (custom-buffer-create-other-window
      (list (list face 'custom-face))
      (format "*Customize Face: %s*"
