@@ -1052,11 +1052,12 @@ do_completion ()
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (completion, last);
   completion = Ftry_completion (Fbuffer_string (), Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
   last_exact_completion = Qnil;
+
+  GCPRO2 (completion, last);
 
   if (NILP (completion))
     {
