@@ -1357,7 +1357,7 @@ do not put this buffer at the front of the list of recently selected ones.")
   Fset_buffer (buf);
   if (NILP (norecord))
     record_buffer (buf);
-  Fselect_window (Fdisplay_buffer (buf, other_window));
+  Fselect_window (Fdisplay_buffer (buf, other_window, Qnil));
   return buf;
 }
 
