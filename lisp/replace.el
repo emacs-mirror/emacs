@@ -623,7 +623,7 @@ the matching is case-sensitive."
 	      (goto-char (point-max)))
 	  (save-excursion
 	    ;; Find next match, but give up if prev match was at end of buffer.
-	    (while (and (not (= prevpos (point-max)))
+	    (while (and (not (eobp))
 			(re-search-forward regexp nil t))
 	      (goto-char (match-beginning 0))
 	      (beginning-of-line)
