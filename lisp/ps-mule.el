@@ -199,7 +199,7 @@ See also the variable `ps-font-info-database'.")
   "Sample setting of `ps-mule-font-info-database' to use latin fonts.")
 
 (defvar ps-mule-font-info-database-default
-  ps-mule-font-info-database-default
+  ps-mule-font-info-database-latin
   "The default setting to use if `ps-multibyte-buffer' (which see) is nil.")
 
 (defconst ps-mule-font-info-database-ps
