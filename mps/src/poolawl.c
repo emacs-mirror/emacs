@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.40) $
+ * $HopeName: MMsrc!poolawl.c(trunk.41) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.40) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.41) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -942,7 +942,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
     case ResOK:
       AWLStatNoteRefAccess(awl, seg, addr);
       return ResOK;
-    case ResUNIMPL:
+    case ResFAIL:
       /* Not all accesses can be managed singly. Default to segment */
       break;
     default:
