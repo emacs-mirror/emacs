@@ -59,6 +59,7 @@ sub settings_nt {
  $err_red = "2>";
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
+ $quotestring = \&nt_quotestring;
  $platmailfile = \&nt_mailfile;
  $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c 2>&1";
  $exesuff = ".exe";
@@ -99,6 +100,7 @@ sub settings_unix {
  $err_red = "2>";
  $stdout_dup = "| tee";
  $stdin_red = "<";
+ $quotestring = \&unix_quotestring;
  $platmailfile = \&unix_mailfile;
  $stringscommand = "strings 2>&1";
  $exesuff = "";
@@ -106,6 +108,20 @@ sub settings_unix {
 
 sub settings_gprof {
  $cc_opts = "-pg ".$cc_opts;
+}
+
+#
+# Wrapping up strings to quote them in system calls
+#
+
+sub nt_quotestring {
+ return $_[0];
+}
+
+sub unix_quotestring {
+ local ($_) = @_;
+ s/'/'\''/;
+ return "'".$_."'";
 }
 
 #
