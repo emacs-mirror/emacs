@@ -1902,7 +1902,7 @@ verify_interval_modification (buf, start, end)
 	interval_insert_in_front_hooks
 	  = textget (i->plist, Qinsert_in_front_hooks);
     }
-  else if (!inhibit_modification_hooks)
+  else
     {
       /* Loop over intervals on or next to START...END,
 	 collecting their hooks.  */
@@ -1913,11 +1913,14 @@ verify_interval_modification (buf, start, end)
 	  if (! INTERVAL_WRITABLE_P (i))
 	    text_read_only ();
 
-	  mod_hooks = textget (i->plist, Qmodification_hooks);
-	  if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
+	  if (!inhibit_modification_hooks)
 	    {
-	      hooks = Fcons (mod_hooks, hooks);
-	      prev_mod_hooks = mod_hooks;
+	      mod_hooks = textget (i->plist, Qmodification_hooks);
+	      if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
+		{
+		  hooks = Fcons (mod_hooks, hooks);
+		  prev_mod_hooks = mod_hooks;
+		}
 	    }
 
 	  i = next_interval (i);
@@ -1925,15 +1928,18 @@ verify_interval_modification (buf, start, end)
       /* Keep going thru the interval containing the char before END.  */
       while (! NULL_INTERVAL_P (i) && i->position < end);
 
-      GCPRO1 (hooks);
-      hooks = Fnreverse (hooks);
-      while (! EQ (hooks, Qnil))
+      if (!inhibit_modification_hooks)
 	{
-	  call_mod_hooks (Fcar (hooks), make_number (start),
-			  make_number (end));
-	  hooks = Fcdr (hooks);
+	  GCPRO1 (hooks);
+	  hooks = Fnreverse (hooks);
+	  while (! EQ (hooks, Qnil))
+	    {
+	      call_mod_hooks (Fcar (hooks), make_number (start),
+			      make_number (end));
+	      hooks = Fcdr (hooks);
+	    }
+	  UNGCPRO;
 	}
-      UNGCPRO;
     }
 }
 
