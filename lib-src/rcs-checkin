@@ -44,7 +44,7 @@ do
 	test -f "$file" || continue
 
 	# Check that file is readable.
-	<$file || exit
+	test -r "$file" || exit
 
 	# If the RCS file does not already exist,
 	# initialize it with a description from $file's first line.
