@@ -1,3 +1,85 @@
+2004-01-16  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.h (struct buffer): New member indicate_buffer_boundaries.
+
+	* buffer.c (init_buffer_once):  Set buffer_defaults and
+	buffer_local_flags for indicate_buffer_boundaries.
+	(syms_of_buffer): Defvar_per_buffer it, and defvar_lisp_nopro
+	default- variable for it.
+
+	* dispextern.h (struct glyph_row): New members left_fringe_bitmap,
+	right_fringe_bitmap, redraw_fringe_bitmaps_p for new fringe handling.
+	New members exact_window_width_line_p and cursor_in_fringe_p for 
+	overflowing newlines into right fringe.
+	New members indicate_bob_p, indicate_top_line_p, indicate_eob_p,
+	and indicate_bottom_line_p for buffer boundaries and scrolling.
+	(enum fringe_bitmap_type): Add UP_ARROW_BITMAP, DOWN_ARROW_BITMAP,
+	FIRST_LINE_BITMAP, LAST_LINE_BITMAP, FILLED_BOX_CURSOR_BITMAP,
+	HOLLOW_BOX_CURSOR_BITMAP, BAR_CURSOR_BITMAP, HBAR_CURSOR_BITMAP,
+	and HOLLOW_SQUARE_BITMAP.
+	(draw_fringe_bitmap, draw_window_fringes, update_window_fringes):
+	Add prototypes.
+
+	* dispnew.c (row_equal_p, update_window_line): Compare fringe bitmaps
+	instead of related indicator fields.
+	Compare exact_window_width_line_p and cursor_in_mouse_face_p indicators.
+	(direct_output_for_insert): Handle exact width lines like
+	contined lines.  Call update_window_fringes.
+	(update_window): Call update_window_fringes.
+	(scrolling_window): Don't skip desired rows with changed bitmaps.
+	Check if fringe bitmaps changes when assigning scrolled rows.
+
+	* xdisp.c (Voverflow_newline_into_fringe): New variable.
+	(IT_OVERFLOW_NEWLINE_INTO_FRINGE): New macro.
+	(move_it_in_display_line_to): Overflow newline into fringe for
+	rows that are exactly as wide as the window.
+	(up_arrow_bits, down_arrow_bits, first_line_bits, last_line_bits)
+	(filled_box_cursor_bits, hollow_box_cursor_bits, bar_cursor_bits)
+	(hbar_cursor_bits, hollow_square_bits): New fringe bitmaps.
+	(fringe_bitmaps): Add new bitmaps.
+	(draw_fringe_bitmap): Make extern.  Remove WHICH arg.
+	Select proper bitmap for cursor in fringe when appropriate.
+	Handle alignment of bitmap to top or bottom of row.
+	(draw_row_fringe_bitmaps): Don't select bitmaps here; that is now
+	done by update_window_fringes.
+	(update_window_fringes, draw_window_fringes): New functions.
+	(redisplay_internal): Call update_window_fringes in case only
+	cursor row is updated.
+	(redisplay_window): Call update_window_fringes.
+	Explicitly call draw_window_fringes if redisplay was done using
+	the current matrix or the overlay arrow is in the window.
+	(try_window_reusing_current_matrix): Mark scrolled rows for
+	fringe update (to update buffer-boundaries / scrolling icons).
+	(find_last_unchanged_at_beg_row): Handle exact width lines line
+	continued lines.
+	(display_line): Overflow newline into fringe for rows that are
+	exactly as wide as the window.  Don't append space for newline
+	in this case.  
+	(notice_overwritten_cursor): Explicitly clear cursor bitmap
+	in fringe as if it had been overwritten.
+	(erase_phys_cursor): Erase cursor bitmap in fringe.
+	(syms_of_xdisp): Mark show-trailing-whitespace and 
+	void-text-area-pointer as user options.
+	DEFVAR_LISP Voverflow_newline_into_fringe.  Enable by default.
+	
+	* xterm.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(x_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(x_draw_window_cursor): Draw cursor in fringe.
+
+	* w32term.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(w32_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(w32_draw_window_cursor): Draw cursor in fringe.
+
+	* macterm.c (x_update_window_end): Call draw_window_fringes.
+	(x_after_update_window_line): Just set redraw_fringe_bitmaps_p
+	in row instead of actually drawing fringe bitmaps.
+	(x_draw_fringe_bitmap): Handle bottom aligned bitmaps.
+	(mac_draw_window_cursor): Draw cursor in fringe.
+
 2004-01-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Don't handle characters that are part
