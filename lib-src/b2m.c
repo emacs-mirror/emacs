@@ -39,15 +39,6 @@
 #undef FALSE
 #define FALSE	0
 
-/* Exit codes for success and failure.  */
-#ifdef VMS
-#define	GOOD	1
-#define BAD	0
-#else
-#define	GOOD	0
-#define	BAD	1
-#endif
-
 #define streq(s,t)	(strcmp (s, t) == 0)
 #define strneq(s,t,n)	(strncmp (s, t, n) == 0)
 
@@ -124,18 +115,18 @@ main (argc, argv)
 	case 'V':
 	  printf ("%s (GNU Emacs %s)\n", "b2m", VERSION);
 	  puts ("b2m is in the public domain.");
-	  exit (GOOD);
+	  exit (EXIT_SUCCESS);
 
 	case 'h':
 	  fprintf (stderr, "Usage: %s <babylmailbox >unixmailbox\n", progname);
-	  exit (GOOD);
+	  exit (EXIT_SUCCESS);
 	}
     }
 
   if (optind != argc)
     {
       fprintf (stderr, "Usage: %s <babylmailbox >unixmailbox\n", progname);
-      exit (GOOD);
+      exit (EXIT_SUCCESS);
     }
 
   labels_saved = printing = header = FALSE;
@@ -191,7 +182,7 @@ main (argc, argv)
 	puts (data.buffer);
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
@@ -298,8 +289,10 @@ fatal (message)
      char *message;
 {
   fprintf (stderr, "%s: %s\n", progname, message);
-  exit (BAD);
+  exit (EXIT_FAILURE);
 }
 
 /* arch-tag: 5a3ad2af-a802-408f-83cc-e7cf5e98653e
    (do not change this comment) */
+
+/* b2m.c ends here */

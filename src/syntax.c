@@ -977,7 +977,7 @@ text property.  */)
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   "cSet syntax for character: \nsSet syntax for %s to: ",
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
-The syntax is changed only for table SYNTAX_TABLE, which defaults to
+The syntax is changed only for table SYNTAX-TABLE, which defaults to
  the current buffer's syntax table.
 The first character of NEWENTRY should be one of the following:
   Space or -  whitespace syntax.    w   word constituent.
@@ -1517,12 +1517,12 @@ skip_chars (forwardp, syntaxp, string, lim)
     if (forwardp)
       {
 	endp = (XINT (lim) == GPT) ? GPT_ADDR : CHAR_POS_ADDR (XINT (lim));
-	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp; 
+	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp;
       }
     else
       {
 	endp = CHAR_POS_ADDR (XINT (lim));
-	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp; 
+	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp;
       }
 
     immediate_quit = 1;

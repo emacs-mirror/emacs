@@ -1,3 +1,29 @@
+2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+
+	Version 2.0.40 of Tramp released.
+
+2004-04-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	Complete rework, based on review by Karl Berry <karl@gnu.org>.
+
+	* tramp.texi (Auto-save and Backup): Explain exploitation of new
+	variables `tramp-backup-directory-alist' and
+	`tramp-bkup-backup-directory-info'. (Overview, Connection types)
+	(External transfer methods, Default Method)
+	(Windows setup hints): Remove restriction of password entering
+	with external methods.
+	(Auto-save and Backup): Make file name example
+	(X)Emacs neutral. In case of XEmacs, `bkup-backup-directory-info'
+	and `auto-save-directory' must be used.
+	(Frequently Asked Questions): Use "MS Windows NT/2000/XP" (not
+	only "NT").  Remove doubled entry "What kinds of systems does
+	@tramp{} work on".
+	(tramp): Macro removed.
+	(Obtaining Tramp): Flag removed from title.
+	(all): "tramp-" and "-" removed from flag names.  Flags `tramp'
+	and `trampver' used properly.  Flag `tramp-inst' replaced by
+	`installchapter'.  Installation related text adapted.
+
 2004-05-04  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Revert last change

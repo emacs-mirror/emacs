@@ -241,28 +241,32 @@ KIND should be `var' for a variable or `subr' for a subroutine."
   "Face to highlight function arguments in docstrings.")
 
 (defun help-do-arg-highlight (doc args)
-  (while args
-    (let ((arg (prog1 (car args) (setq args (cdr args)))))
-      (setq doc (replace-regexp-in-string
-                 (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
-                 (propertize arg 'face 'help-argument-name)
-                 doc t t 1))))
-  doc)
+  (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
+    (modify-syntax-entry ?\- "w")
+    (while args
+      (let ((arg (prog1 (car args) (setq args (cdr args)))))
+        (setq doc (replace-regexp-in-string
+                   (concat "\\<\\(" arg "\\)\\(?:es\\|s\\|th\\)?\\>")
+                   (propertize arg 'face 'help-argument-name)
+                   doc t t 1))))
+    doc))
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when usage
     (let ((case-fold-search nil)
-          (next (not args)))
+          (next (not args))
+          (opt nil))
       ;; Make a list of all arguments
       (with-temp-buffer
         (insert usage)
         (goto-char (point-min))
         ;; Make a list of all arguments
         (while next
+          (or opt (not (looking-at " &")) (setq opt t))
           (if (not (re-search-forward " \\([\\[(]?\\)\\([^] &)\.]+\\)" nil t))
               (setq next nil)
             (setq args (cons (match-string 2) args))
-            (when (string= (match-string 1) "(")
+            (when (and opt (string= (match-string 1) "("))
               ;; A pesky CL-style optional argument with default value,
               ;; so let's skip over it
               (search-backward "(")

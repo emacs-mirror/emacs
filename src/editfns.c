@@ -2347,21 +2347,21 @@ of the buffer.  */)
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
        1, 3, 0,
-       doc: /* Insert before point a substring of the contents of buffer BUFFER.
+       doc: /* Insert before point a substring of the contents of BUFFER.
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character numbers specifying the substring.
 They default to the beginning and the end of BUFFER.  */)
-     (buf, start, end)
-     Lisp_Object buf, start, end;
+     (buffer, start, end)
+     Lisp_Object buffer, start, end;
 {
   register int b, e, temp;
   register struct buffer *bp, *obuf;
-  Lisp_Object buffer;
+  Lisp_Object buf;
 
-  buffer = Fget_buffer (buf);
-  if (NILP (buffer))
-    nsberror (buf);
-  bp = XBUFFER (buffer);
+  buf = Fget_buffer (buffer);
+  if (NILP (buf))
+    nsberror (buffer);
+  bp = XBUFFER (buf);
   if (NILP (bp->name))
     error ("Selecting deleted buffer");
 

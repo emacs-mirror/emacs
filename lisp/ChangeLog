@@ -1,8 +1,84 @@
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (help-do-arg-highlight): Temporarily set ?\- to be a
+	word constituent so FOO-ARG is not recognized as an arg.
+	(help-highlight-arguments): Don't skip lists in mandatory
+	arguments.
+
+	* simple.el (next-error): Fix typo in docstring.
+	(open-line): Make argument names match their use in docstring.
+	(split-line): Fix docstring.
+
+2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+
+	Version 2.0.40 of Tramp released.
+
+	* net/tramp.el (tramp-completion-mode, tramp-md5-function): Use
+	symbol-function to invoke functions only known on some Emacs
+	flavors.  This avoids byte-compiler warnings.  Reported by Kevin
+	Scaldeferri <kevin@scaldeferri.com>.
+	(tramp-do-copy-or-rename-file-via-buffer): Renamed from
+	tramp-do-copy-or-rename-via-buffer (without `file'), to make it
+	consistent with the other tramp-do-* functions.
+	(tramp-do-copy-or-rename-file): Calls adjusted.
+	(tramp-process-initial-commands): Avoid liveness check on shell --
+	we know that it must be alive since we're opening a connection at
+	this moment.
+	(tramp-last-cmd): New internal variable.
+	(tramp-process-echoes): New tunable.
+	(tramp-send-command): Set tramp-last-cmd.
+	(tramp-wait-for-output): Delete echo, if applicable.
+	(tramp-read-passwd): Construct the key for the password cache in a
+	way that works for multi methods, too.
+	(tramp-bug): Add backup-directory-alist and
+	bkup-backup-directory-info to bug reports, with Tramp
+	counterparts.
+
+2004-05-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp*.el: Suppress byte-compiler warnings where possible.
+
+	* net/tramp.el (tramp-out-of-band-prompt-regexp)
+	(tramp-actions-copy-out-of-band): New defcustoms.
+	(tramp-do-copy-or-rename-file-out-of-band): Asynchronous process
+	used instead of a synchronous one.  Allows password entering.
+	(tramp-action-out-of-band): New defun.
+	(tramp-open-connection-rsh, tramp-method-out-of-band-p): Remove
+	restriction with password from doc string.
+	(tramp-bug): Add variables `tramp-terminal-prompt-regexp',
+	`tramp-out-of-band-prompt-regexp',
+	`tramp-actions-copy-out-of-band', `password-cache' and
+	`password-cache-expiry'.
+	(toplevel): Remove todo item wrt ssh-agent.  Obsolete due to
+	password caching.
+	(tramp-touch): FILE can be a local file, too.
+	(TODO): Remove items done.
+	(tramp-handle-insert-directory): Properly quote file name also if
+	not full-directory-p.  Handle wildcard case.  Reported by Andreas
+	Schwab <schwab@suse.de>.
+	(tramp-do-copy-or-rename-file-via-buffer): Set permissions of the
+	new file.
+	(tramp-handle-file-local-copy, tramp-handle-write-region): The
+	permissions of the temporary file are set if filename exists.
+	Reported by Ted Stern <stern@cray.com>.
+	(tramp-backup-directory-alist)
+	(tramp-bkup-backup-directory-info): New defcustoms.
+	(tramp-file-name-handler-alist): Add entry for
+	`find-backup-file-name'.
+	(tramp-handle-find-backup-file-name): New function.  Implements
+	Tramp's find-backup-file-name.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry
+	for `find-backup-file-name'.
+
+	* net/tramp-vc.el (tramp-vc-workfile-unchanged-p): Correct typo
+	("file" -> "filename").  Reported by Kim F. Storm <storm@cua.dk>.
+
+2004-05-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-mode-handlers): Fix docstring.
 
 2004-05-07  Juanma Barranquero  <lektu@terra.es>
-
-	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
-	Make argument names match their use in docstring.
 
 	* subr.el (lambda): Add arglist description to docstring.
 	(declare): Fix typo in docstring.
@@ -13,6 +89,9 @@
 	(insert-buffer-substring-no-properties): Likewise.
 	(insert-buffer-substring-as-yank): Likewise.
 	(split-string): Fix docstring.
+
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Make argument names match their use in docstring.
 
 	* emacs-lisp/re-builder.el (reb-auto-update): Fix typo in docstring.
 

@@ -1,3 +1,25 @@
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* editfns.c (Finsert_buffer_substring): Make argument names match their
+	use in docstring.
+
+	* syntax.c (Fmodify_syntax_entry): Fix docstring.
+
+2004-05-07  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_check_for_quit_char): Adding BLOCK_INPUT
+	around call to ReceiveEvent to avoid certain crashes.
+
+2004-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+	* macterm.c (mac_draw_line_to_pixmap, XCreatePixmapFromBitmapData)
+	(mac_fill_rectangle_to_pixmap, mac_draw_rectangle_to_pixmap)
+	(mac_copy_area_to_pixmap, mac_copy_area_with_mask_to_pixmap):
+	Save/restore the current graphics port and device handle when
+	drawing into an offscreen graphics world.
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel, image_load_qt_1)
+	(gif_load): Likewise.
+
 2004-05-07  Juanma Barranquero  <lektu@terra.es>
 
 	* window.c (Fset_window_buffer): Fix docstring.
