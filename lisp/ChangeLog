@@ -12,7 +12,7 @@
 
 	* gs.el (gs-set-ghostview-colors-window-prop):
 	Call x-change-window-property with 3rd arg FRAME.
-	(gs-load-image): Wait for a previoius Ghostscript process
+	(gs-load-image): Wait for a previous Ghostscript process
 	to complete before starting a new one.
 
 	* image.el (image-type-regexps): Make sure that the TIFF

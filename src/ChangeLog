@@ -1,3 +1,8 @@
+2001-08-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* keymap.c (access_keymap): Fix last change to not consider
+	IDX when it has modifiers.
+
 2001-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* keymap.c (access_keymap): If a binding of the form (GENERIC-CHAR
