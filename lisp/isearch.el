@@ -1004,7 +1004,8 @@ and the meta character is unread so that it applies to editing the string."
 	 (keylist (listify-key-sequence key)))
     (cond ((and (= (length key) 1)
 		(let ((lookup (lookup-key function-key-map key)))
-		  (not (or (null lookup) (integerp lookup)))))
+		  (not (or (null lookup) (integerp lookup)
+			   (keymapp lookup)))))
 	   ;; Handle a function key that translates into something else.
 	   ;; If the key has a global definition too,
 	   ;; exit and unread the key itself, so its global definition runs.
