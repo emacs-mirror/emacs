@@ -234,23 +234,6 @@ STARTFILES = START_FILES
 #define C_SWITCH_ASM
 #endif
 
-/* Figure out whether the system cpp can handle long names.
-   Do it by testing it right now.
-   If it loses, arrange to use the GNU cpp.  */
-
-#define LONGNAMEBBBFOOX
-#ifdef LONGNAMEBBBARFOOX
-/* Installed cpp fails to distinguish those names!  */
-/* Arrange to compile the GNU cpp later on */
-#define NEED_CPP
-/* Cause cc to invoke the cpp that comes with Emacs,
-   which will be in a file named localcpp.  */
-MYCPPFLAG= -Blocal
-/* LOCALCPP is the local one or nothing.
-   CPP is the local one or the standard one.  */
-LOCALCPP= localcpp
-#endif /* ! defined (LONGNAMEBBBARFOOX) */
-
 #ifdef USE_X_TOOLKIT
 #define USE_@X_TOOLKIT_TYPE@
 TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
@@ -520,20 +503,12 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
 
 INTERVAL_SRC = intervals.h composite.h
 
-#ifdef HAVE_GETLOADAVG
-#define GETLOADAVG_OBJ
-#else
-#define GETLOADAVG_OBJ getloadavg.o
-#endif
-
 #ifdef MSDOS
 #ifdef HAVE_X_WINDOWS
-#define MSDOS_OBJ dosfns.o msdos.o
+MSDOS_OBJ = dosfns.o msdos.o
 #else
-#define MSDOS_OBJ dosfns.o msdos.o w16select.o
+MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
-#else
-#define MSDOS_OBJ
 #endif
 
 
@@ -552,7 +527,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o \
-	$(LIBOBJS) MSDOS_OBJ
+	$(MSDOS_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -616,7 +591,7 @@ widgetobj=
 
 /* define otherobj as list of object files that make-docfile
    should not be told about.  */
-otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
+otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBOBJS)
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
@@ -864,25 +839,6 @@ temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj
    which are only good with temacs.  */
 prefix-args: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
-
-/* These are needed for C compilation, on the systems that need them */
-#ifdef NEED_CPP
-CPP = ./localcpp
-localcpp:
-	cd ${cppdir}; ${MAKE} ${MFLAGS} EMACS=-DEMACS
-	ln ${cppdir}cpp localcpp  /* Name where ALL_CFLAGS will refer to it */
-/* cc appears to be cretinous and require all of these to exist
-   if -B is specified -- we can't use one local pass and let the
-   others be the standard ones.  What a loser.
-   We can't even use ln, since they are probably
-   on different disks.  */
-	cp /lib/ccom localccom
-	-cp /lib/optim localoptim
-	-cp /lib/c2 localc2
-	cp /bin/as localas
-#else /* ! defined (NEED_CPP) */
-CPP = $(CC) -E
-#endif /* ! defined (NEED_CPP) */
 
 /* Don't lose if this was not defined.  */
 #ifndef OLDXMENU_OPTIONS
