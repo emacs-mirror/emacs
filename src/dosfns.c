@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "dosfns.h"
 #include "msdos.h"
+#include <go32.h>
 
 DEFUN ("mode25", Fmode25, Smode25, 0, 0, "", "\
 Changes the number of rows to 25.")
@@ -137,6 +138,74 @@ REGISTERS should be a vector produced by `make-register' and\n\
   return regs;
 }
 
+DEFUN ("msdos-memget", Fdos_memget, Sdos_memget, 2, 2, 0,
+  "Read DOS memory at offset ADDRESS into VECTOR.\n\
+Return the updated VECTOR.")
+  (addr, v)
+  Lisp_Object addr, v;
+{
+  register int i;
+  int offs, len;
+  char *buf;
+  Lisp_Object val;
+
+  CHECK_NUMBER (addr, 0);
+  offs = (unsigned long) XINT (addr);
+  CHECK_VECTOR (v, 1);
+  len = XVECTOR (v)-> size;
+  if (len < 1 || len > 2048 || addr < 0 || addr > 0xfffff - len) 
+    return Qnil;
+  buf = alloca (len);
+  dosmemget (offs, len, buf);
+  
+  for (i = 0; i < len; i++)
+    XVECTOR (v)->contents[i] = make_number (buf[i]);
+
+  return v;
+}
+
+DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
+  "Write DOS memory at offset ADDRESS from VECTOR.")
+  (addr, v)
+  Lisp_Object addr, v;
+{
+  register int i;
+  int offs, len;
+  char *buf;
+  Lisp_Object val;
+
+  CHECK_NUMBER (addr, 0);
+  offs = (unsigned long) XINT (addr);
+  CHECK_VECTOR (v, 1);
+  len = XVECTOR (v)-> size;
+  if (len < 1 || len > 2048 || addr < 0 || addr > 0xfffff - len) 
+    return Qnil;
+  buf = alloca (len);
+
+  for (i = 0; i < len; i++)
+    {
+      CHECK_NUMBER (XVECTOR (v)->contents[i], 1);
+      buf[i] = (unsigned char) XFASTINT (XVECTOR (v)->contents[i]) & 0xFF;
+    }
+
+  dosmemput (buf, len, offs);
+  return Qt;
+}
+
+DEFUN ("msdos-set-keyboard", Fmsdos_set_keyboard, Smsdos_set_keyboard, 1, 2, 0,
+  "Set keyboard layout according to COUNTRY.\n\
+If the optional argument ALLKEYS is non-nil, the keyboard is mapped for\n\
+all keys; otherwise it is only used when the ALT key is pressed.\n\
+The current keyboard layout is available in dos-keyboard-code.")
+  (country_code, allkeys)
+  Lisp_Object country_code;
+{
+  CHECK_NUMBER (country_code, 0);
+  if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
+    return Qnil;
+  return Qt;
+}
+
 #ifndef HAVE_X_WINDOWS
 /* Later we might want to control the mouse interface with this function,
    e.g., with respect to non-80 column screen modes.  */
@@ -173,11 +242,12 @@ DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
   "Initialize and enable mouse if available.")
   ()
 {
-  if (have_mouse) {
-	have_mouse = 1;
-	mouse_init ();
-    return Qt;
-  }
+  if (have_mouse)
+    {
+      have_mouse = 1;
+      mouse_init ();
+      return Qt;
+    }
   return Qnil;
 }
 
@@ -187,8 +257,8 @@ DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
 {
   if (have_mouse)
     {
-	  have_mouse = 1;
-	  mouse_on ();
+      have_mouse = 1;
+      mouse_on ();
     }
   return have_mouse ? Qt : Qnil;
 }
@@ -202,12 +272,49 @@ DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, 
   return Qnil;
 }
 
+DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "", "\
+Insert copy of screen contents prior to starting emacs.\n\
+Return nil if startup screen is not available.")
+  ()
+{
+  char *s;
+  int rows, cols;
+  int i, j;
+  
+  if (!dos_get_saved_screen (&s, &rows, &cols))
+    return Qnil;
+  
+  for (i = 0; i < rows; i++)
+    {
+      for (j = 0; j < cols; j++)
+	{
+	  insert_char (*s, 1);
+	  s += 2;
+	}
+      insert_char ('\n', 1);
+    }
+
+  return Qt;
+}
 
 
+/* country info */
 int dos_country_code;
 int dos_codepage;
-Lisp_Object Vdos_version;
+int dos_timezone_offset;
+int dos_decimal_point;
+int dos_keyboard_layout;
+unsigned char dos_country_info[DOS_COUNTRY_INFO];
 
+int dos_hyper_key;
+int dos_super_key;
+int dos_keypad_mode;
+
+Lisp_Object Vdos_version;
+Lisp_Object Vdos_display_scancodes;
+Lisp_Object Vdos_menubar_clock;
+Lisp_Object Vdos_timer_hooks;
+  
 void
 init_dosfns ()
 {
@@ -224,7 +331,7 @@ init_dosfns ()
   Vdos_version = Fcons (make_number (regs.h.al), make_number (regs.h.ah));
 
   /* Obtain the country code by calling Dos via Dpmi.  Don't rely on GO32.  */
-  info.size = (34 + 15) / 16;
+  info.size = (sizeof(dos_country_info) + 15) / 16;
   if (_go32_dpmi_allocate_dos_memory (&info))
     dos_country_code = 1;
   else
@@ -235,8 +342,10 @@ init_dosfns ()
       dpmiregs.x.ss = dpmiregs.x.sp = 0;
       _go32_dpmi_simulate_int (0x21, &dpmiregs);
       dos_country_code = dpmiregs.x.bx;
+      dosmemget (info.rm_segment * 16, DOS_COUNTRY_INFO, dos_country_info);
       _go32_dpmi_free_dos_memory (&info);
     }
+  dos_set_keyboard (dos_country_code, 0);
 
   regs.x.ax = 0x6601;
   intdos (&regs, &regs);
@@ -264,8 +373,12 @@ syms_of_dosfns ()
   defsubr (&Smode25);
   defsubr (&Smode4350);
   defsubr (&Sint86);
+  defsubr (&Sdos_memget);
+  defsubr (&Sdos_memput);
   defsubr (&Smsdos_mouse_init);
   defsubr (&Smsdos_mouse_enable);
+  defsubr (&Smsdos_set_keyboard);
+  defsubr (&Sinsert_startup_screen);
   defsubr (&Smsdos_mouse_disable);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
@@ -280,7 +393,7 @@ syms_of_dosfns ()
 Usually this is the international telephone prefix.");
 
   DEFVAR_INT ("dos-codepage", &dos_codepage,
-	      "The codepage active when Emacs was started.\n\
+    "The codepage active when Emacs was started.\n\
 The following are known:\n\
 	437	United States\n\
 	850	Multilingual (Latin I)\n\
@@ -291,7 +404,71 @@ The following are known:\n\
 	863	Canada (French)\n\
 	865	Norway/Denmark");
 
+  DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
+    "The current timezone offset to UTC in minutes.
+Implicitly modified when the TZ variable is changed.");
+  
   DEFVAR_LISP ("dos-version", &Vdos_version,
     "The (MAJOR . MINOR) Dos version (subject to modification with setver).");
+
+  DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
+    "*When non-nil, the keyboard scan-codes are displayed at the bottom right\n\
+corner of the display (typically at the end of the mode line).\n\
+The output format is: scan code:char code*modifiers.");
+  Vdos_display_scancodes = Qnil;
+  
+  DEFVAR_LISP ("dos-menubar-clock", &Vdos_menubar_clock,
+    "*When non-nil, the current time is displayed in the upper right\n\
+corner of the screen (typically at the end of the menu bar).");
+  Vdos_menubar_clock = Qt;
+  
+  DEFVAR_LISP ("dos-timer-hooks", &Vdos_timer_hooks,
+    "List of hooks which are run every second.");
+  Vdos_timer_hooks = Qnil;
+  
+  DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
+    "*If set to 1, use right ALT key as hyper key.\n\
+If set to 2, use right CTRL key as hyper key.");
+  dos_hyper_key = 0;
+  
+  DEFVAR_INT ("dos-super-key", &dos_super_key,
+    "*If set to 1, use right ALT key as super key.\n\
+If set to 2, use right CTRL key as super key.");
+  dos_super_key = 0;
+  
+  DEFVAR_INT ("dos-keypad-mode", &dos_keypad_mode,
+    "*Controls what key code is returned by a key in the numeric keypad.\n\
+The `numlock ON' action is only taken if no modifier keys are pressed.\n\
+The value is an integer constructed by adding the following bits together:\n\
+ \n\
+  0x00	Digit key returns digit    (if numlock ON)\n\
+  0x01	Digit key returns kp-digit (if numlock ON)\n\
+  0x02	Digit key returns M-digit  (if numlock ON)\n\
+  0x03	Digit key returns edit key (if numlock ON)\n\
+ \n\
+  0x00	Grey key returns char      (if numlock ON)\n\
+  0x04	Grey key returns kp-key    (if numlock ON)\n\
+ \n\
+  0x00	Digit key returns digit    (if numlock OFF)\n\
+  0x10	Digit key returns kp-digit (if numlock OFF)\n\
+  0x20	Digit key returns M-digit  (if numlock OFF)\n\
+  0x30	Digit key returns edit key (if numlock OFF)\n\
+ \n\
+  0x00	Grey key returns char      (if numlock OFF)\n\
+  0x40	Grey key returns kp-key    (if numlock OFF)\n\
+ \n\
+  0x200	ALT-0..ALT-9 in top-row produces shifted codes.");
+  dos_keypad_mode = 0x70;
+  
+  DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
+    "Contains the country code for the current keyboard layout.\n\
+Use msdos-set-keyboard to select another keyboard layout.");
+  dos_keyboard_layout = 1;	/* US */
+  
+  DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
+    "If non-zero, it contains the character to be returned when the\n\
+decimal point key in the numeric keypad is pressed when Num Lock is on.\n\
+If zero, the decimal point key returns the country code specific value.");
+  dos_decimal_point = 0;
 }
 #endif /* MSDOS */
