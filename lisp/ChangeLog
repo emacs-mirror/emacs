@@ -1,3 +1,7 @@
+2005-01-01  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Use t for line-height property.
+
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calcVar-digit, calcVar-oper):  Remove the need
@@ -27,7 +31,7 @@
 	* progmodes/antlr-mode.el (antlr-mode): Use mode-require-final-newline.
 	Delete old-Emacs compatibility code.
 	(antlr-c-common-init): Function deleted.
-	
+
 	* net/snmp-mode.el (snmp-common-mode): Use mode-require-final-newline.
 	* progmodes/vhdl-mode.el (vhdl-mode): Use mode-require-final-newline.
 	* progmodes/simula.el (simula-mode): Use mode-require-final-newline.
