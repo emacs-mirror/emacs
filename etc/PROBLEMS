@@ -635,6 +635,84 @@ Index: psgml-parse.el
 +    (setq after-change-functions '(sgml-set-face-after-change)))
    (sgml-with-parser-syntax-ro
 
+* TeX'ing the Calc manual fails.
+
+The following patches allow to build the Calc manual using texinfo.tex
+from Emacs 19.34 distribution:
+
+*** calc-maint.e~0	Mon Dec 16 07:11:26 1996
+--- calc-maint.el	Sun Dec 10 14:32:38 2000
+***************
+*** 308,314 ****
+      (insert "@tex\n"
+  	    "\\global\\advance\\appendixno2\n"
+  	    "\\gdef\\xref#1.{See ``#1.''}\n")
+!     (setq midpos (point))
+      (insert "@end tex\n")
+      (insert-buffer-substring srcbuf sumpos endpos)
+      (insert "@bye\n")
+--- 308,314 ----
+      (insert "@tex\n"
+  	    "\\global\\advance\\appendixno2\n"
+  	    "\\gdef\\xref#1.{See ``#1.''}\n")
+!     (setq midpos (point-marker))
+      (insert "@end tex\n")
+      (insert-buffer-substring srcbuf sumpos endpos)
+      (insert "@bye\n")
+*** Makefile.~0	Mon Dec 16 07:11:24 1996
+--- Makefile	Sun Dec 10 14:44:00 2000
+***************
+*** 98,106 ****
+  # Format the Calc manual as one printable volume using TeX.
+  tex:
+  	$(REMOVE) calc.aux
+! 	$(TEX) calc.texinfo
+  	$(TEXINDEX) calc.[cfkptv]?
+! 	$(TEX) calc.texinfo
+  	$(PURGE) calc.cp calc.fn calc.pg calc.tp calc.vr
+  	$(PURGE) calc.cps calc.fns calc.kys calc.pgs calc.tps calc.vrs
+  	$(PURGE) calc.toc
+--- 98,106 ----
+  # Format the Calc manual as one printable volume using TeX.
+  tex:
+  	$(REMOVE) calc.aux
+! 	-$(TEX) calc.texinfo
+  	$(TEXINDEX) calc.[cfkptv]?
+! 	-$(TEX) calc.texinfo
+  	$(PURGE) calc.cp calc.fn calc.pg calc.tp calc.vr
+  	$(PURGE) calc.cps calc.fns calc.kys calc.pgs calc.tps calc.vrs
+  	$(PURGE) calc.toc
+*** calc.texinfo.~1~	Thu Oct 10 18:18:56 1996
+--- calc.texinfo	Mon Dec 11 08:25:00 2000
+***************
+*** 12,17 ****
+--- 12,19 ----
+  % Because makeinfo.c exists, we can't just define new commands.
+  % So instead, we take over little-used existing commands.
+  %
++ % Suggested by Karl Berry <karl@@freefriends.org>
++ \gdef\!{\mskip-\thinmuskip}
+  % Redefine @cite{text} to act like $text$ in regular TeX.
+  % Info will typeset this same as @samp{text}.
+  \gdef\goodtex{\tex \let\rm\goodrm \let\t\ttfont \turnoffactive}
+***************
+*** 23686,23692 ****
+  a vector of the actual parameter values, written as equations:
+  @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
+  than pick them out of the formula.  (You can type @kbd{t y}
+! to move this vector to the stack; @pxref{Trail Commands}.)
+  
+  Specifying a different independent variable name will affect the
+  resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
+--- 23689,23695 ----
+  a vector of the actual parameter values, written as equations:
+  @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
+  than pick them out of the formula.  (You can type @kbd{t y}
+! to move this vector to the stack; see @ref{Trail Commands}.)
+  
+  Specifying a different independent variable name will affect the
+  resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
+
 * Unicode characters are not unified with other Mule charsets.
 
 As of v21.1, Emacs charsets are still not unified.  This means that
