@@ -1,3 +1,17 @@
+2003-01-27  Juanma Barranquero  <lektu@terra.es>
+
+	* filesets.el (filesets-file-open): Fix typo.
+
+	* vcursor.el (vcursor-disable): Likewise.
+
+	* eshell/esh-cmd.el (eshell-separate-commands): Likewise.
+
+	* progmodes/cc-styles.el (c-make-styles-buffer-local): Likewise.
+
+	* progmodes/cc-vars.el (c-offsets-alist): Likewise.
+
+	* progmodes/ebrowse.el (ebrowse-draw-tree-fn): Likewise.
+
 2003-01-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-vars.el, progmodes/cc-mode.el
@@ -42,7 +56,7 @@
 
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable): 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable):
 	Compile any lambda-expressions among the args.
 
 	* view.el (view-mode): Doc fix.
