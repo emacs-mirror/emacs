@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/commands
@@ -119,7 +119,7 @@ controls the reading of arguments for an interactive call.
 
   This section describes how to write the @code{interactive} form that
 makes a Lisp function an interactively-callable command, and how to
-examine a commands's @code{interactive} form.
+examine a command's @code{interactive} form.
 
 @defspec interactive arg-descriptor
 @cindex argument descriptors
@@ -235,12 +235,13 @@ string (starting with the first character that is not @samp{*} or
 
 @cindex examining the @code{interactive} form
 @defun interactive-form function
-This function returns the @code{interactive} form of @var{function}.  If
-@var{function} is a command (@pxref{Interactive Call}), the value is a
-list of the form @code{(interactive @var{spec})}, where @var{spec} is
-the descriptor specification used by the command's @code{interactive}
-form to compute the function's arguments.  If @var{function} is not a
-command, @code{interactive-form} returns @code{nil}.
+This function returns the @code{interactive} form of @var{function}.
+If @var{function} is an interactively callable function
+(@pxref{Interactive Call}), the value is the command's
+@code{interactive} form @code{(interactive @var{spec})}, which
+specifies how to compute its arguments.  Otherwise, the value is
+@code{nil}.  If @var{function} is a symbol, its function definition is
+used.
 @end defun
 
 @node Interactive Codes
@@ -416,8 +417,9 @@ the string.)  Other characters that normally terminate a symbol (e.g.,
 parentheses and brackets) do not do so here.  Prompt.
 
 @item v
-A variable declared to be a user option (i.e., satisfying the predicate
-@code{user-variable-p}).  @xref{High-Level Completion}.  Existing,
+A variable declared to be a user option (i.e., satisfying the
+predicate @code{user-variable-p}).  This reads the variable using
+@code{read-variable}.  @xref{Definition of read-variable}.  Existing,
 Completion, Prompt.
 
 @item x
@@ -528,10 +530,12 @@ realistic example of using @code{commandp}.
 @defun call-interactively command &optional record-flag keys
 This function calls the interactively callable function @var{command},
 reading arguments according to its interactive calling specifications.
-An error is signaled if @var{command} is not a function or if it cannot
-be called interactively (i.e., is not a command).  Note that keyboard
-macros (strings and vectors) are not accepted, even though they are
-considered commands, because they are not functions.
+It returns whatever @var{command} returns.  An error is signaled if
+@var{command} is not a function or if it cannot be called
+interactively (i.e., is not a command).  Note that keyboard macros
+(strings and vectors) are not accepted, even though they are
+considered commands, because they are not functions.  If @var{command}
+is a symbol, then @code{call-interactively} uses its function definition.
 
 @cindex record command history
 If @var{record-flag} is non-@code{nil}, then this command and its
@@ -541,6 +545,8 @@ an argument.  @xref{Command History}.
 
 The argument @var{keys}, if given, specifies the sequence of events to
 supply if the command inquires which events were used to invoke it.
+If @var{keys} is omitted or @code{nil}, the return value of
+@code{this-command-keys} is used.  @xref{Definition of this-command-keys}.
 @end defun
 
 @defun command-execute command &optional record-flag keys special
@@ -551,16 +557,14 @@ callable function or a keyboard macro.
 
 A string or vector as @var{command} is executed with
 @code{execute-kbd-macro}.  A function is passed to
-@code{call-interactively}, along with the optional @var{record-flag}.
+@code{call-interactively}, along with the optional @var{record-flag}
+and @var{keys}.
 
 A symbol is handled by using its function definition in its place.  A
 symbol with an @code{autoload} definition counts as a command if it was
 declared to stand for an interactively callable function.  Such a
 definition is handled by loading the specified library and then
 rechecking the definition of the symbol.
-
-The argument @var{keys}, if given, specifies the sequence of events to
-supply if the command inquires which events were used to invoke it.
 
 The argument @var{special}, if given, means to ignore the prefix
 argument and not clear it.  This is used for executing special events
@@ -741,10 +745,14 @@ was specified to run but remapped into another command.
 @end defvar
 
 @defun this-command-keys
+@anchor{Definition of this-command-keys}
 This function returns a string or vector containing the key sequence
 that invoked the present command, plus any previous commands that
-generated the prefix argument for this command.  The value is a string
-if all those events were characters.  @xref{Input Events}.
+generated the prefix argument for this command.  However, if the
+command has called @code{read-key-sequence}, it returns the last read
+key sequence.  @xref{Definition of read-key-sequence}.  The value is a
+string if all events in the sequence were characters that fit in a
+string.  @xref{Input Events}.
 
 @example
 @group
@@ -762,13 +770,13 @@ input events in a string (@pxref{Strings of Events}).
 @end defun
 
 @tindex clear-this-command-keys
-@defun clear-this-command-keys
+@defun clear-this-command-keys &optional keep-record
 This function empties out the table of events for
-@code{this-command-keys} to return, and also empties the records that
-the function @code{recent-keys} (@pxref{Recording Input}) will
-subsequently return.  This is useful after reading a password, to
-prevent the password from echoing inadvertently as part of the next
-command in certain cases.
+@code{this-command-keys} to return.  Unless @var{keep-record} is
+non-@code{nil}, it also empties the records that the function
+@code{recent-keys} (@pxref{Recording Input}) will subsequently return.
+This is useful after reading a password, to prevent the password from
+echoing inadvertently as part of the next command in certain cases.
 @end defun
 
 @defvar last-nonmenu-event
@@ -809,6 +817,8 @@ Usually this is the frame that was selected when the event was
 generated, but if that frame has redirected input focus to another
 frame, the value is the frame to which the event was redirected.
 @xref{Input Focus}.
+
+If the last event came from a keyboard macro, the value is @code{macro}.
 @end defvar
 
 @node Adjusting Point
@@ -1155,7 +1165,7 @@ the marginal areas, @var{position} has this form:
 
 @example
 (@var{window} @var{pos-or-area} (@var{x} . @var{y}) @var{timestamp}
- @var{object} @var{text-pos} (@var{col} . @var{row}) 
+ @var{object} @var{text-pos} (@var{col} . @var{row})
  @var{image} (@var{dx} . @var{dy}) (@var{width} . @var{height}))
 @end example
 
@@ -1387,22 +1397,25 @@ the value is 3 or greater.  If @var{event} is an ordinary mouse event
 (not a repeat event), the value is 1.
 @end defun
 
-@defvar double-click-fuzz
+@defopt double-click-fuzz
 To generate repeat events, successive mouse button presses must be at
 approximately the same screen position.  The value of
 @code{double-click-fuzz} specifies the maximum number of pixels the
-mouse may be moved between two successive clicks to make a
-double-click.
-@end defvar
+mouse may be moved (horizontally or vertically) between two successive
+clicks to make a double-click.
 
-@defvar double-click-time
+This variable is also the threshold for motion of the mouse to count
+as a drag.
+@end defopt
+
+@defopt double-click-time
 To generate repeat events, the number of milliseconds between
 successive button presses must be less than the value of
 @code{double-click-time}.  Setting @code{double-click-time} to
 @code{nil} disables multi-click detection entirely.  Setting it to
 @code{t} removes the time limit; Emacs then detects multi-clicks by
 position only.
-@end defvar
+@end defopt
 
 @node Motion Events
 @subsection Motion Events
@@ -1593,16 +1606,22 @@ This function returns a list of the modifiers that @var{event} has.  The
 modifiers are symbols; they include @code{shift}, @code{control},
 @code{meta}, @code{alt}, @code{hyper} and @code{super}.  In addition,
 the modifiers list of a mouse event symbol always contains one of
-@code{click}, @code{drag}, and @code{down}.
+@code{click}, @code{drag}, and @code{down}.  For double or triple
+events, it also contains @code{double} or @code{triple}.
 
-The argument @var{event} may be an entire event object, or just an event
-type.
+The argument @var{event} may be an entire event object, or just an
+event type.  If @var{event} is a symbol that has never been used in an
+event that has been read as input in the current Emacs session, then
+@code{event-modifiers} can return @code{nil}, even when @var{event}
+actually has modifiers.
 
 Here are some examples:
 
 @example
 (event-modifiers ?a)
      @result{} nil
+(event-modifiers ?A)
+     @result{} (shift)
 (event-modifiers ?\C-a)
      @result{} (control)
 (event-modifiers ?\C-%)
@@ -1627,7 +1646,8 @@ but the event symbol name itself does not contain @samp{click}.
 
 @defun event-basic-type event
 This function returns the key or mouse button that @var{event}
-describes, with all modifiers removed.  For example:
+describes, with all modifiers removed.  The @var{event} argument is as
+in @code{event-modifiers}.  For example:
 
 @example
 (event-basic-type ?a)
@@ -1656,7 +1676,8 @@ event.
 
 @defun event-convert-list list
 This function converts a list of modifier names and a basic event type
-to an event type which specifies all of them.  For example,
+to an event type which specifies all of them.  The basic event type
+must be the last element of the list.  For example,
 
 @example
 (event-convert-list '(control ?a))
@@ -1788,7 +1809,7 @@ is a buffer position, return the size of the character at that position.
 
 @cindex mouse event, timestamp
 @cindex timestamp of a mouse event
-@defun posn-timestamp
+@defun posn-timestamp position
 Return the timestamp in @var{position}.  This is the time at which the
 event occurred, in milliseconds.
 @end defun
@@ -1998,10 +2019,13 @@ for example, @code{describe-key} uses it to read the key to describe.
 
 @defun read-key-sequence prompt
 @cindex key sequence
+@anchor{Definition of read-key-sequence}
 This function reads a key sequence and returns it as a string or
 vector.  It keeps reading events until it has accumulated a complete key
 sequence; that is, enough to specify a non-prefix command using the
-currently active keymaps.
+currently active keymaps.  (Remember that a key sequence that starts
+with a mouse event is read using the keymaps of the buffer in the
+window that the mouse was in, not the current buffer.)
 
 If the events are all characters and all can fit in a string, then
 @code{read-key-sequence} returns a string (@pxref{Strings of Events}).
@@ -2101,6 +2125,8 @@ from the terminal---not counting those generated by keyboard macros.
   The lowest level functions for command input are those that read a
 single event.
 
+None of the three functions below suppresses quitting.
+
 @defun read-event &optional prompt inherit-input-method
 This function reads and returns the next event of command input, waiting
 if necessary until an event is available.  Events can come directly from
@@ -2122,8 +2148,8 @@ If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
 moves the cursor temporarily to the echo area, to the end of any message
 displayed there.  Otherwise @code{read-event} does not move the cursor.
 
-If @code{read-event} gets an event that is defined as a help character, in
-some cases @code{read-event} processes the event directly without
+If @code{read-event} gets an event that is defined as a help character,
+then in some cases @code{read-event} processes the event directly without
 returning.  @xref{Help Functions}.  Certain other events, called
 @dfn{special events}, are also processed directly within
 @code{read-event} (@pxref{Special Events}).
@@ -2235,7 +2261,10 @@ The command @code{quoted-insert} uses this function.
 This function is like @code{read-char}, except that if the first
 character read is an octal digit (0-7), it reads any number of octal
 digits (but stopping if a non-octal digit is found), and returns the
-character represented by that numeric character code.
+character represented by that numeric character code.  If the
+character that terminates the sequence of octal digits is @key{RET},
+it is discarded.  Any other terminating character is used as input
+after this function returns.
 
 Quitting is suppressed when the first character is read, so that the
 user can enter a @kbd{C-g}.  @xref{Quitting}.
@@ -2252,7 +2281,7 @@ is 127 in decimal).
 
 @group
 ---------- Echo Area ----------
-What character-@kbd{177}
+What character @kbd{1 7 7}-
 ---------- Echo Area ----------
 
      @result{} 127
@@ -2370,7 +2399,8 @@ during the sleep.
 @cindex special events
 Special events are handled at a very low level---as soon as they are
 read.  The @code{read-event} function processes these events itself, and
-never returns them.
+never returns them.  Instead, it keeps waiting for the first event
+that is not special and returns that one.
 
 Events that are handled in this way do not echo, they are never grouped
 into key sequences, and they never appear in the value of
@@ -2543,6 +2573,28 @@ This variable determines whether Emacs should quit when @code{quit-flag}
 is set to a value other than @code{nil}.  If @code{inhibit-quit} is
 non-@code{nil}, then @code{quit-flag} has no special effect.
 @end defvar
+
+@defmac with-local-quit forms@dots{}
+This macro executes @var{forms} in sequence, but allows quitting, at
+least locally, within @var{body} even if @code{inhibit-quit} was
+non-@code{nil} outside this construct.  It returns the value of the
+last form in @var{forms}.
+
+If @code{inhibit-quit} is @code{nil} on entry to @code{with-local-quit},
+it only executes the @var{forms}, and setting @code{quit-flag} causes
+a normal quit.  However, if @code{inhibit-quit} is non-@code{nil} so
+that ordinary quitting is delayed, a non-@code{nil} @code{quit-flag}
+triggers a special kind of local quit.  This ends the execution of
+@var{forms} and exits the @code{with-local-quit} form with
+@code{quit-flag} still non-@code{nil}, so that another (ordinary) quit
+will happen as soon as that is allowed.  If @code{quit-flag} is
+already non-@code{nil} at the beginning of @var{forms}, the local quit
+happens immediately and they don't execute at all.
+
+This macro is mainly useful in functions that can be called from
+timers, @code{pre-command-hook}, @code{post-command-hook} and other
+places where @code{inhibit-quit} is normally bound to @code{t}.
+@end defmac
 
 @deffn Command keyboard-quit
 This function signals the @code{quit} condition with @code{(signal 'quit
@@ -2844,15 +2896,14 @@ Disabling a command has no effect on calling it as a function from Lisp
 programs.
 
 @deffn Command enable-command command
-Allow @var{command} to be executed without special confirmation from now
-on, and (if the user confirms) alter the user's init file (@pxref{Init
+Allow @var{command} (a symbol) to be executed without special
+confirmation from now on, and alter the user's init file (@pxref{Init
 File}) so that this will apply to future sessions.
 @end deffn
 
 @deffn Command disable-command command
 Require special confirmation to execute @var{command} from now on, and
-(if the user confirms) alter the user's init file so that this
-will apply to future sessions.
+alter the user's init file so that this will apply to future sessions.
 @end deffn
 
 @defvar disabled-command-hook
@@ -2862,7 +2913,8 @@ is run instead of the disabled command.  The hook functions can use
 command, and thus find the command itself.  @xref{Hooks}.
 
 By default, @code{disabled-command-hook} contains a function that asks
-the user whether to proceed.
+the user whether to proceed.  If the value is @code{nil}, then all
+commands work normally, even disabled ones.
 @end defvar
 
 @node Command History
@@ -2918,7 +2970,7 @@ representation of a keyboard macro is a string or vector containing the
 events.  Don't confuse keyboard macros with Lisp macros
 (@pxref{Macros}).
 
-@defun execute-kbd-macro kbdmacro &optional count
+@defun execute-kbd-macro kbdmacro &optional count loopfunc
 This function executes @var{kbdmacro} as a sequence of events.  If
 @var{kbdmacro} is a string or vector, then the events in it are executed
 exactly as if they had been input by the user.  The sequence is
@@ -2935,10 +2987,14 @@ many times.  If @var{count} is omitted or @code{nil}, @var{kbdmacro} is
 executed once.  If it is 0, @var{kbdmacro} is executed over and over until it
 encounters an error or a failing search.
 
+If @var{loopfunc} is non-@code{nil}, it is a function that is called,
+without arguments, prior to each iteration of the macro.  If
+@var{loopfunc} returns @code{nil}, then this stops execution of the macro.
+
 @xref{Reading One Event}, for an example of using @code{execute-kbd-macro}.
 @end defun
 
-@defvar executing-macro
+@defvar executing-kbd-macro
 This variable contains the string or vector that defines the keyboard
 macro that is currently executing.  It is @code{nil} if no macro is
 currently executing.  A command can test this variable so as to behave
@@ -2947,10 +3003,11 @@ yourself.
 @end defvar
 
 @defvar defining-kbd-macro
-This variable indicates whether a keyboard macro is being defined.  A
-command can test this variable so as to behave differently while a macro
-is being defined.  The commands @code{start-kbd-macro} and
-@code{end-kbd-macro} set this variable---do not set it yourself.
+This variable is non-@code{nil} if and only if a keyboard macro is
+being defined.  A command can test this variable so as to behave
+differently while a macro is being defined.  The commands
+@code{start-kbd-macro} and @code{end-kbd-macro} set this variable---do
+not set it yourself.
 
 The variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
