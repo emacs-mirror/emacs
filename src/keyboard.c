@@ -3967,9 +3967,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
-	  obj = Fcons (event->modifiers, Qnil);
-	  obj = Fcons (event->code, obj);
-	  obj = Fcons (event->frame_or_window, obj);
+	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
