@@ -4193,6 +4193,8 @@ A value of nil means don't display a mode line.\n\
 For a symbol, its value is used (but it is ignored if t or nil).\n\
  A string appearing directly as the value of a symbol is processed verbatim\n\
  in that the %-constructs below are not recognized.\n\
+For a list of the form `(:eval FORM)', FORM is evaluated and the result\n\
+ is used as a mode line element.\n\
 For a list whose car is a symbol, the symbol's value is taken,\n\
  and if that is non-nil, the cadr of the list is processed recursively.\n\
  Otherwise, the caddr of the list (if there is one) is processed.\n\
