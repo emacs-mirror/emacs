@@ -116,7 +116,7 @@ alloca:
    this compiler saves used registers relative to %sp instead of %fp.
    alright, just make new copy of saved register set whenever we allocate
    new space from stack..
-   this is true at last until SVR3V5.1 . bug has reported to Motorola. */
+   this is true at last until SVR3V7 . bug has reported to Motorola. */
 	set	MAXREG,10	# max no of registers to save (d2-d7, a2-a5)
         mov.l   (%sp)+,%a1	# pop return addr from top of stack
         mov.l   (%sp)+,%d0	# pop size in bytes from top of stack
