@@ -1,3 +1,7 @@
+2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* fileio.c: Remove unused code.
+
 2001-10-22  Miles Bader  <miles@gnu.org>
 
 	* lisp.h (DEFVAR_LISP, DEFVAR_LISP_NOPRO, DEFVAR_BOOL)
