@@ -1,3 +1,8 @@
+2000-08-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* syntax.c (skip_chars): Fix previous change.  Make the handling
+	of unibyte string consistent with that of regex search.
+
 2000-08-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (popup_get_selection): Use xfree instead of free.
