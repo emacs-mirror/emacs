@@ -3064,9 +3064,40 @@ by `sh' are supported."
 
 (defun file-expand-wildcards (pattern &optional full)
   "Expand wildcard pattern PATTERN.
-This returns a list of file names which match the pattern."
-  (directory-files (file-name-directory pattern) full
-		   (wildcard-to-regexp (file-name-nondirectory pattern))))
+This returns a list of file names which match the pattern.
+
+If PATTERN is written as an absolute relative file name,
+the values are absolute also.
+
+If PATTERN is written as a relative file name, it is interpreted
+relative to the current default directory, `default-directory'.
+The file names returned are normally also relative to the current
+default directory.  However, if FULL is non-nil, they are absolute."
+  (let* ((nondir (file-name-nondirectory pattern))
+	 (dirpart (file-name-directory pattern))
+	 ;; A list of all dirs that DIRPART specifies.
+	 ;; This can be more than one dir
+	 ;; if DIRPART contains wildcards.
+	 (dirs (if (and dirpart (string-match "[[.*+\\^$?]" dirpart))
+		   (mapcar 'file-name-as-directory
+			   (file-expand-wildcards (directory-file-name dirpart)))
+		 (list dirpart)))
+	 contents)
+    (while dirs
+      (when (or (null (car dirs))	; Possible if DIRPART is not wild.
+		(file-directory-p (directory-file-name (car dirs))))
+	(let ((this-dir-contents
+	       (directory-files (or (car dirs) ".") full
+				(wildcard-to-regexp nondir))))
+	  (setq contents
+		(nconc
+		 (if (and (car dirs) (not full))
+		     (mapcar (function (lambda (name) (concat (car dirs) name)))
+			     this-dir-contents)
+		   this-dir-contents)
+		 contents))))
+      (setq dirs (cdr dirs)))
+    contents))
 
 (defun list-directory (dirname &optional verbose)
   "Display a list of files in or matching DIRNAME, a la `ls'.
