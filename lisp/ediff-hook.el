@@ -44,7 +44,6 @@
 ;; end pacifier
 
 ;; allow menus to be set up without ediff-wind.el being loaded
-;;;###autoload
 (defvar ediff-window-setup-function)
 
 ;; This is used to avoid compilation warnings. When emacs/xemacs forms can
@@ -52,7 +51,6 @@
 ;; In this case, the macro will expand into the form that is appropriate to the
 ;; compiler at hand.
 ;; Suggested by rms.
-;;;###autoload
 (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
   (if (string-match "XEmacs" emacs-version)
       xemacs-form emacs-form))
@@ -60,7 +58,6 @@
 ;; Note we wrap this in a progn so that we pick up the whole def
 ;; for auto-autoload. That way we do not load ediff-hook.el when defining
 ;; the menus.
-;;;###autoload
 (progn
   (ediff-cond-compile-for-xemacs-or-emacs
    ;; xemacs form
@@ -82,7 +79,6 @@
    ))
 
 
-;;;###autoload
 (ediff-cond-compile-for-xemacs-or-emacs
  (progn
    (defvar ediff-menu
