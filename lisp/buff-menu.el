@@ -190,6 +190,8 @@ Letters do not insert themselves; instead, they are commands.
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
 
+;; This function exists so we can make the doc string of Buffer-menu-mode
+;; look nice.
 (defun Buffer-menu-revert ()
   "Update the list of buffers."
   (interactive)
