@@ -711,6 +711,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	   3) Drawing a composite character.
 	   4) Font has non-zero _MULE_BASELINE_OFFSET property.
            5) Font is a bdf font.
+	   6) Font is italic (italic fonts falsely report their height).
 	   After filling background, we draw glyphs by XDrawString16.  */
 	int background_filled;
 	/* Baseline position of a character, offset from TOP.  */
@@ -940,6 +941,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                  || FONT_HEIGHT (font) < line_height
                  || FONT_WIDTH (font) < glyph_width
                  || FONT_MAX_WIDTH (font) != FONT_WIDTH (font)
+		 || font->tm.tmItalic
                  || cmpcharp)
           {
 	    /* Fill in the background for the current run.  */
