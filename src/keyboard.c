@@ -103,7 +103,7 @@ extern int input_fd;
 #define KBD_BUFFER_SIZE 4096
 #endif
 #else	/* No X-windows, character input */
-#define KBD_BUFFER_SIZE 256
+#define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
 
 /* Following definition copied from eval.c */
