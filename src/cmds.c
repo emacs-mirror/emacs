@@ -117,7 +117,6 @@ With positive N, a non-empty line at the end counts as one line\n\
   int opoint = PT, opoint_byte = PT_BYTE;
   int pos, pos_byte;
   int count, shortage;
-  int temp;
 
   if (NILP (n))
     count = 1;
@@ -349,8 +348,7 @@ internal_self_insert (c, noautofill)
   int spaces_to_insert = 0;
 
   overwrite = current_buffer->overwrite_mode;
-  if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function)
-      || !NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
+  if (!NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
     hairy = 1;
 
   /* At first, get multi-byte form of C in STR.  */
