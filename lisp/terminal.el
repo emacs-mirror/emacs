@@ -187,7 +187,9 @@ performance."
 ;; Required to support terminfo systems
 (defconst te-terminal-name-prefix "emacs-em"
   "Prefix used for terminal type names for Terminfo.")
-(defconst te-terminfo-directory "/tmp/emacs-terminfo/"
+(defconst te-terminfo-directory
+  (file-name-as-directory
+   (expand-file-name "emacs-terminfo" temporary-file-directory))
   "Directory used for run-time terminal definition files for Terminfo.")
 (defvar te-terminal-name nil)
 
