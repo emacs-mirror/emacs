@@ -1030,11 +1030,11 @@ where they were found."
 ;; any member of the function list ORDER (third arg).  If ORDER is nil,
 ;; use saved state to continue a previous search.
 
-;; Fourth arg MATCHING is a string, an English '-ing' word, to be used in
-;; an error message.
-
-;; Fifth arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
+;; Fourth arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
 ;; point should be moved to the next line.
+
+;; Fifth arg MATCHING is a string, an English '-ing' word, to be used in
+;; an error message.
 
 ;; Algorithm is as follows.  For each qualifier-func in ORDER, go to
 ;; beginning of tags file, and perform inner loop: for each naive match for
