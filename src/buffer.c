@@ -35,6 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
@@ -302,7 +303,9 @@ The value is never nil.")
 
   BUF_GAP_SIZE (b) = 20;
   BLOCK_INPUT;
-  BUFFER_ALLOC (BUF_BEG_ADDR (b), BUF_GAP_SIZE (b));
+  /* We allocate extra 1-byte at the tail and keep it always '\0' for
+     anchoring a search.  */
+  BUFFER_ALLOC (BUF_BEG_ADDR (b), (BUF_GAP_SIZE (b) + 1));
   UNBLOCK_INPUT;
   if (! BUF_BEG_ADDR (b))
     buffer_memory_full ();
@@ -316,6 +319,7 @@ The value is never nil.")
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
   BUF_INTERVALS (b) = 0;
+  *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -472,6 +476,7 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
+  b->enable_multibyte_characters = Qt;
   b->last_selected_window = Qnil;
   b->extra2 = Qnil;
   b->extra3 = Qnil;
@@ -2514,6 +2519,81 @@ fix_overlays_in_range (start, end)
   recenter_overlay_lists (current_buffer,
 			  XINT (current_buffer->overlay_center));
 }
+
+/* We have two types of overlay: the one whose ending marker is
+   after-insertion-marker (this is the usual case) and the one whose
+   ending marker is before-insertion-marker.  When `overlays_before'
+   contains overlays of the latter type and the former type in this
+   order and both overlays end at inserting position, inserting a text
+   increases only the ending marker of the latter type, which results
+   in incorrect ordering of `overlays_before'.
+
+   This function fixes ordering of overlays in the slot
+   `overlays_before' of the buffer *BP.  Before the insertion, `point'
+   was at PREV, and now is at POS.  */
+
+fix_overlays_before (bp, prev, pos)
+     struct buffer *bp;
+     int prev, pos;
+{
+  Lisp_Object *tailp = &bp->overlays_before;
+  Lisp_Object *right_place;
+  int end;
+
+  /* After the insertion, the several overlays may be in incorrect
+     order.  The possibility is that, in the list `overlays_before',
+     an overlay which ends at POS appears after an overlay which ends
+     at PREV.  Since POS is greater than PREV, we must fix the
+     ordering of these overlays, by moving overlays ends at POS before
+     the overlays ends at PREV.  */
+
+  /* At first, find a place where disordered overlays should be linked
+     in.  It is where an overlay which end before POS exists. (i.e. an
+     overlay whose ending marker is after-insertion-marker if disorder
+     exists).  */
+  while (!NILP (*tailp)
+	 && ((end = OVERLAY_POSITION (OVERLAY_END (XCONS (*tailp)->car)))
+	     >= pos))
+    tailp = &XCONS (*tailp)->cdr;
+
+  /* If we don't find such an overlay,
+     or the found one ends before PREV,
+     or the found one is the last one in the list,
+     we don't have to fix anything.  */
+  if (NILP (*tailp)
+      || end < prev
+      || NILP (XCONS (*tailp)->cdr))
+    return;
+
+  right_place = tailp;
+  tailp = &XCONS (*tailp)->cdr;
+
+  /* Now, end position of overlays in the list *TAILP should be before
+     or equal to PREV.  In the loop, an overlay which ends at POS is
+     moved ahead to the place pointed by RIGHT_PLACE.  If we found an
+     overlay which ends before PREV, the remaining overlays are in
+     correct order.  */
+  while (!NILP (*tailp))
+    {
+      end = OVERLAY_POSITION (OVERLAY_END (XCONS (*tailp)->car));
+
+      if (end == pos)
+	{			/* This overlay is disordered. */
+	  Lisp_Object found = *tailp;
+
+	  /* Unlink the found overlay.  */
+	  *tailp = XCONS (found)->cdr;
+	  /* Move an overlay at RIGHT_PLACE to the next of the found one.  */
+	  XCONS (found)->cdr = *right_place;
+	  /* Link it into the right place.  */
+	  *right_place = found;
+	}
+      else if (end == prev)
+	tailp = &XCONS (*tailp)->cdr;
+      else			/* No more disordered overlay. */
+	break;
+    }
+}
 
 DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
   "Return t if OBJECT is an overlay.")
@@ -3432,6 +3512,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_defaults.tab_width, 8);
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.ctl_arrow = Qt;
+  buffer_defaults.direction_reversed = Qnil;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
@@ -3465,6 +3546,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
+  XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3489,6 +3571,8 @@ init_buffer_once ()
 #endif
   XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
+  XSETFASTINT (buffer_local_flags.category_table, 0x20000);
+  XSETFASTINT (buffer_local_flags.direction_reversed, 0x40000);
 
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -3629,6 +3713,11 @@ This is the same as (default-value 'abbrev-mode).");
     "Default value of `ctl-arrow' for buffers that do not override it.\n\
 This is the same as (default-value 'ctl-arrow).");
 
+   DEFVAR_LISP_NOPRO ("default-direction-reversed",
+ 	      &buffer_defaults.direction_reversed,
+     "Default value of `direction_reversed' for buffers that do not override it.\n\
+ This is the same as (default-value 'direction-reversed).");
+ 
   DEFVAR_LISP_NOPRO ("default-truncate-lines",
 	      &buffer_defaults.truncate_lines,
     "Default value of `truncate-lines' for buffers that do not override it.\n\
@@ -3745,6 +3834,16 @@ Nil means use backslash and octal digits.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
 This variable does not apply to characters whose display is specified\n\
 in the current display table (if there is one).");
+
+  DEFVAR_PER_BUFFER ("enable-multibyte-characters",
+		     &current_buffer->enable_multibyte_characters, Qnil,
+    "Non-nil means the buffer contents are regarded as multi-byte form\n\
+of characters, not a binary code.  This affects the display, file I/O,\n\
+and behaviors of various editing commands.");
+
+  DEFVAR_PER_BUFFER ("direction-reversed", &current_buffer->direction_reversed,
+		     Qnil,
+    "*Non-nil means lines in the buffer are displayed right to left.");
 
   DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
     "*Non-nil means do not display continuation lines;\n\
