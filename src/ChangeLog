@@ -1,3 +1,8 @@
+2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_char): Only do the 7-bit-meta -> 27-bit-meta
+	translation for chars in the 0-255 range.
+
 2005-03-16  Lute Kamstra  <lute@gnu.org>
 
 	* floatfns.c (Ffloor): Doc fix.
@@ -23,8 +28,8 @@
 	(parse_binding, parse_component, parse_resource_name, parse_value)
 	(parse_resource_line, xrm_create_database, xrm_q_put_resource)
 	(xrm_merge_string_database, xrm_q_get_resource, xrm_get_resource)
-	(xrm_cfproperty_list_to_value, xrm_get_preference_database): New
-	functions.
+	(xrm_cfproperty_list_to_value, xrm_get_preference_database):
+	New functions.
 
 	* macfns.c (mac_get_rdb_resource): Remove function.
 	(x_get_string_resource): Use xrm_get_resource.
@@ -64,22 +69,21 @@
 	MAC_OSX.
 	(show_hourglass) [TARGET_API_MAC_CARBON]: Create progress
 	indicator for each non-tooltip frame if needed, and show it.
-	(hide_hourglass) [TARGET_API_MAC_CARBON]: Hide progress
-	indicators.
+	(hide_hourglass) [TARGET_API_MAC_CARBON]: Hide progress indicators.
 
 	* macgui.h [!TARGET_API_MAC_CARBON]: Include Appearance.h and
 	Controls.h.  Use ThemeCursor instead of CursHandle.
 
-	* macterm.c (activate_scroll_bars, deactivate_scroll_bars): Remove
-	functions and declarations.
-	(mac_set_colors): Take argument for saving background color.  All
-	callers changed.
+	* macterm.c (activate_scroll_bars, deactivate_scroll_bars):
+	Remove functions and declarations.
+	(mac_set_colors): Take argument for saving background color.
+	All callers changed.
 	(XDrawLine, XClearArea, mac_draw_bitmap, XFillRectangle)
 	(mac_draw_rectangle, mac_draw_string_common): Save and Restore
 	background color.
 	(x_update_end, mac_do_track_drag): Don't reset background color.
-	(mac_define_frame_cursor) [!TARGET_API_MAC_CARBON]: Use
-	SetThemeCursor.
+	(mac_define_frame_cursor) [!TARGET_API_MAC_CARBON]:
+	Use SetThemeCursor.
 	(x_set_window_size) [TARGET_API_MAC_CARBON]: Move progress
 	indicator control to the upper-right corner of the window.
 	(arrow_cursor) [!TARGET_API_MAC_CARBON]: Remove variable.
@@ -91,11 +95,10 @@
 	root control instead of contained scroll bar controls.
 	(make_mac_terminal_frame): Use ThemeCursor constants.
 
-	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]: New
-	member hourglass_control.
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]:
+	New member hourglass_control.
 	(HOURGLASS_WIDTH, HOURGLASS_HEIGHT): New defines.
-	(activate_scroll_bars, deactivate_scroll_bars): Remove
-	declarations.
+	(activate_scroll_bars, deactivate_scroll_bars): Remove declarations.
 
 2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -513,8 +516,8 @@
 
 	* xselect.c (selection_data_to_lisp_data): For the special case
 	type == XA_ATOM, data contains array of int, not array of Atom.
-	(x_property_data_to_lisp, selection_data_to_lisp_data): Comment
-	update: data must be array of int for format == 32.
+	(x_property_data_to_lisp, selection_data_to_lisp_data):
+	Comment update: data must be array of int for format == 32.
 
 2005-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
