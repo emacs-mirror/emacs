@@ -2185,11 +2185,11 @@ regex_compile (pattern, size, syntax, bufp)
 		  }
 		else
 		  {
-		/* Could be the end of the bracket expression.	If it's
-		   not (i.e., when the bracket expression is `[]' so
-		   far), the ']' character bit gets set way below.  */
-		if (c == ']' && p != p1 + 1)
-		  break;
+		    /* Could be the end of the bracket expression.	If it's
+		       not (i.e., when the bracket expression is `[]' so
+		       far), the ']' character bit gets set way below.  */
+		    if (c == ']' && p != p1 + 1)
+		      break;
 		  }
 
 		/* If C indicates start of multibyte char, get the
@@ -2210,7 +2210,8 @@ regex_compile (pattern, size, syntax, bufp)
 
 		else if (!escaped_char &&
 			 syntax & RE_CHAR_CLASSES && c == '[' && *p == ':')
-		  { /* Leave room for the null.	 */
+		  {
+		    /* Leave room for the null.	 */
 		    char str[CHAR_CLASS_MAX_LENGTH + 1];
 
 		    PATFETCH (c);
