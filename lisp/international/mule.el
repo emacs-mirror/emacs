@@ -845,10 +845,12 @@ function by default."
 	    (modified-p (buffer-modified-p)))
 	(when coding-system
 	  (set-buffer-file-coding-system coding-system)
-	  (if (or (eq coding-system 'no-conversion)
-		  (eq (coding-system-type coding-system) 5))
-	      ;; It seems that random 8-bit codes are read.  We had
-	      ;; better edit this buffer without multibyte characters.
+	  (if (and (or (eq coding-system 'no-conversion)
+		       (eq (coding-system-type coding-system) 5))
+		   ;; If buffer was unmodified, we must be visiting it.
+		   (not modified-p))
+	      ;; For coding systems no-conversion and raw-text...,
+	      ;; edit the buffer as unibyte.
 	      (set-buffer-multibyte nil))
 	  (set-buffer-modified-p modified-p))))
   nil)
