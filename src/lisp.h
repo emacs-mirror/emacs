@@ -2095,6 +2095,7 @@ extern void init_floatfns P_ ((void));
 extern void syms_of_floatfns P_ ((void));
 
 /* Defined in insdel.c */
+extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap P_ ((int));
 extern void move_gap_both P_ ((int, int));
 extern void make_gap P_ ((int));
