@@ -1923,9 +1923,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   XSETINT (bar->start, start);
   XSETINT (bar->end, end);
 
-  /* If we are less than half of the page use start otherwise use end */
-
-  SetScrollPos (w, SB_CTL, ((start >> 1) < bar->height)?start:end, TRUE);
+  SetScrollPos (w, SB_CTL, start, TRUE);
 
   UNBLOCK_INPUT;
 }
@@ -2138,6 +2136,7 @@ win32_judge_scroll_bars (f)
 
    This may be called from a signal handler, so we have to ignore GC
    mark bits.  */
+
 static int
 x_scroll_bar_handle_click (bar, msg, emacs_event)
      struct scroll_bar *bar;
@@ -2162,43 +2161,39 @@ x_scroll_bar_handle_click (bar, msg, emacs_event)
     int y = GetScrollPos ((HWND) msg->msg.lParam, SB_CTL);
 
     switch (LOWORD (msg->msg.wParam))
-    {
-    case SB_THUMBTRACK:
+      {
+      case SB_THUMBTRACK:
 	emacs_event->part = scroll_bar_handle;
 	if (VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height)) <= 0xffff)
 	    y = HIWORD (msg->msg.wParam);
 	break;
-    case SB_LINEDOWN:
+      case SB_LINEDOWN:
 	emacs_event->part = scroll_bar_down_arrow;
-	if (y < top_range) y++;
 	break;
-    case SB_LINEUP:
+      case SB_LINEUP:
 	emacs_event->part = scroll_bar_up_arrow;
-	if (y) y--;
 	break;
-    case SB_PAGEUP:
+      case SB_PAGEUP:
 	emacs_event->part = scroll_bar_above_handle;
 	break;
-    case SB_PAGEDOWN:
+      case SB_PAGEDOWN:
 	emacs_event->part = scroll_bar_below_handle;
 	break;
-    case SB_TOP:
+      case SB_TOP:
 	emacs_event->part = scroll_bar_handle;
 	y = 0;
 	break;
-    case SB_BOTTOM:
+      case SB_BOTTOM:
 	emacs_event->part = scroll_bar_handle;
 	y = top_range;
 	break;
-    case SB_THUMBPOSITION:
+      case SB_THUMBPOSITION:
 	emacs_event->part = scroll_bar_handle;
 	break;
-    case SB_ENDSCROLL:
-    default:
+      case SB_ENDSCROLL:
+      default:
 	return FALSE;
-    }
-
-    x_scroll_bar_set_handle (bar, y , y, 0);
+      }
 
     XSETINT (emacs_event->x, y);
     XSETINT (emacs_event->y, top_range);
