@@ -52,6 +52,10 @@
 
 ;;; ChangeLog: 
 
+;; * 1994-06-21         Per Abrahamsen
+;;      Added `double-prefix-only'.
+;; * 1994-02-28         Per Abrahamsen
+;;      Use 127 instead of 'delete to delete a character.
 ;; * 1994-02-03		Per Abrahamsen
 ;;	Created.
 
@@ -70,6 +74,11 @@ Each entry is a list with three elements:
 1. The key activating the translation.
 2. The string to be inserted when the key is pressed once.
 3. The string to be inserted when the key is pressed twice.")
+
+(defvar double-prefix-only t
+  "*Non-nil means that double mode mapping only works for prefix keys.
+That is, for any key `X' in `double-map',  `X' alone will be mapped
+but not `C-u X' or `ESC X' since the X is not the prefix key.")
 
 ;;; Read Event
 
@@ -98,6 +107,10 @@ Each entry is a list with three elements:
   (let ((key last-input-char))
     (cond (unread-command-events
 	   ;; Artificial event, ignore it.
+	   (vector key))
+	  ((and double-prefix-only
+		(> (length (this-command-keys)) 1))
+	   ;; This is not a prefix key, ignore it.
 	   (vector key))
 	  ((eq key 'magic-start)
 	   ;; End of generated event.  See if he will repeat it...
