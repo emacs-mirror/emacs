@@ -3447,18 +3447,14 @@ dos_rawgetc ()
 	     changed, generate a HELP_EVENT.  */
 	  if (!NILP (help_echo) || !NILP (previous_help_echo))
 	    {
-	      /* HELP_EVENT takes 2 events in the event loop.  */
 	      event.kind = HELP_EVENT;
 	      event.frame_or_window = selected_frame;
 	      event.arg = help_echo_object;
-	      event.x = make_number (help_echo_pos);
+	      event.x = WINDOWP (help_echo_window)
+		? help_echo_window : selected_frame;
+	      event.y = help_echo;
 	      event.timestamp = event_timestamp ();
-	      event.code = 0;
-	      kbd_buffer_store_event (&event);
-	      if (WINDOWP (help_echo_window))
-		event.frame_or_window = help_echo_window;
-	      event.arg = help_echo;
-	      event.code = 1;
+	      event.code = make_number (help_echo_pos);
 	      kbd_buffer_store_event (&event);
 	    }
 	}
