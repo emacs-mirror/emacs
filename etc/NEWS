@@ -1140,9 +1140,18 @@ file.
 
 *** The commands to evaluate Lisp expressions, such as C-M-x in Lisp
 modes, C-j in Lisp Interaction mode, and M-:, now bind the variables
-print-level, print-length, and debug-on-error based on the
+print-level, print-length, and debug-on-error based on the new
 customizable variables eval-expression-print-level,
 eval-expression-print-length, and eval-expression-debug-on-error.
+
+The default values for the first two of these variables are 12 and 4
+respectively, which means that `eval-expression' now prints at most
+the first 12 members of a list and at most 4 nesting levels deep (if
+the list is longer or deeper than that, an ellipsis `...'  is
+printed).
+
+The default value of eval-expression-debug-on-error is t, so any error
+during evaluation produces a backtrace.
 
 *** The function `eval-defun' (M-C-x) now loads Edebug and instruments
 code when called with a prefix argument.
