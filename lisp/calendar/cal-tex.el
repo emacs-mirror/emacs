@@ -51,23 +51,29 @@
 ;;; Customizable variables 
 ;;;
 
-(defvar cal-tex-which-days '(0 1 2 3 4 5 6)
+(defcustom cal-tex-which-days '(0 1 2 3 4 5 6)
   "*The days of the week that are displayed on the portrait monthly calendar.
 Sunday is 0, Monday is 1, and so on.  The default is to print from Sunday to
 Saturday.  For example, use
 
                     (setq cal-tex-which-days '(1 3 5))
 
-to only print Monday, Wednesday, Friday.")
+to only print Monday, Wednesday, Friday."
+  :type '(repeat integer)
+  :group 'calendar-tex)
 
-(defvar cal-tex-holidays t
+(defcustom cal-tex-holidays t
   "*If t (default), then the holidays are also printed.
-If finding the holidays is too slow, set this to nil.")
+If finding the holidays is too slow, set this to nil."
+  :type 'boolean
+  :group 'calendar-tex)
 
-(defvar cal-tex-diary nil
-  "*If t, the diary entries are printed in the calendar.")
+(defcustom cal-tex-diary nil
+  "*If t, the diary entries are printed in the calendar."
+  :type 'boolean
+  :group 'calendar-tex)
 
-(defvar cal-tex-daily-string
+(defcustom cal-tex-daily-string
   '(let* ((year (extract-calendar-year date))
           (day  (calendar-day-number date))
           (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
@@ -84,19 +90,29 @@ As an example of what you do, setting this to
        (require 'cal-hebrew)
        (calendar-hebrew-date-string date))
 
-will put the Hebrew date at the bottom of each day.")
+will put the Hebrew date at the bottom of each day."
+  :type 'sexp
+  :group 'calendar-tex)
 
-(defvar cal-tex-buffer "calendar.tex"
-  "*The name for the tex-ed calendar.")
+(defcustom cal-tex-buffer "calendar.tex"
+  "*The name for the tex-ed calendar."
+  :type 'string
+  :group 'calendar-tex)
 
-(defvar cal-tex-24 nil
-  "*If t, use a 24 hour clock in the daily calendar.")
+(defcustom cal-tex-24 nil
+  "*If t, use a 24 hour clock in the daily calendar."
+  :type 'boolean
+  :group 'calendar-tex)
 
-(defvar cal-tex-daily-start 8
-  "*The first hour of the daily calendar page.")
+(defcustom cal-tex-daily-start 8
+  "*The first hour of the daily calendar page."
+  :type 'integer
+  :group 'calendar-tex)
 
-(defvar cal-tex-daily-end 20
-  "*The last hour of the daily calendar page.")
+(defcustom cal-tex-daily-end 20
+  "*The last hour of the daily calendar page."
+  :type 'integer
+  :group 'calendar-tex)
 
 ;;;
 ;;; Definitions for LaTeX code

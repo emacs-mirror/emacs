@@ -1233,7 +1233,7 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
   "Day of year and number of days remaining in the year of date diary entry."
   (calendar-day-of-year-string date))
 
-(defvar diary-remind-message
+(defcustom diary-remind-message
   '("Reminder: Only "
     (if (= 0 (% days 7))
         (concat (int-to-string (/ days 7)) (if (= 7 days) " week" " weeks"))
@@ -1245,7 +1245,9 @@ display.
  
 Used by the function `diary-remind', a pseudo-pattern is a list of
 expressions that can involve the keywords `days' (a number), `date' (a list of
-month, day, year), and `diary-entry' (a string).")
+month, day, year), and `diary-entry' (a string)."
+  :type 'sexp
+  :group 'diary)
 
 (defun diary-remind (sexp days &optional marking)
   "Provide a reminder of a diary entry.

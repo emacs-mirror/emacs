@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events.
 
-;; Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Denis B. Roegel <Denis.Roegel@loria.fr>
@@ -63,7 +63,7 @@
 (require 'cal-julian)
 
 ;;;###autoload
-(defvar calendar-time-display-form
+(defcustom calendar-time-display-form
   '(12-hours ":" minutes am-pm
     (if time-zone " (") time-zone (if time-zone ")"))
   "*The pseudo-pattern that governs the way a time of day is formatted.
@@ -77,10 +77,12 @@ For example, the form
   '(24-hours \":\" minutes
     (if time-zone \" (\") time-zone (if time-zone \")\"))
 
-would give military-style times like `21:07 (UTC)'.")
+would give military-style times like `21:07 (UTC)'."
+  :type 'sexp
+  :group 'calendar)
 
 ;;;###autoload
-(defvar calendar-latitude nil
+(defcustom calendar-latitude nil
   "*Latitude of `calendar-location-name' in degrees.
 
 The value can be either a decimal fraction (one place of accuracy is
@@ -88,10 +90,19 @@ sufficient), + north, - south, such as 40.7 for New York City, or the value
 can be a vector [degrees minutes north/south] such as [40 50 north] for New
 York City.
 
-This variable should be set in `site-start'.el.")
+This variable should be set in `site-start'.el."
+  :type '(choice (const nil)
+		 (number :tag "Exact")
+		 (vector :value [0 0 north]
+			 (integer :tag "Degrees")
+			 (integer :tag "Minutes")
+			 (choice :tag "Position"
+				 (const north)
+				 (const south))))
+  :group 'calendar)
 
 ;;;###autoload
-(defvar calendar-longitude nil
+(defcustom calendar-longitude nil
   "*Longitude of `calendar-location-name' in degrees.
 
 The value can be either a decimal fraction (one place of accuracy is
@@ -99,7 +110,16 @@ sufficient), + east, - west, such as -73.9 for New York City, or the value
 can be a vector [degrees minutes east/west] such as [73 55 west] for New
 York City.
 
-This variable should be set in `site-start'.el.")
+This variable should be set in `site-start'.el."
+  :type '(choice (const nil)
+		 (number :tag "Exact")
+		 (vector :value [0 0 west]
+			 (integer :tag "Degrees")
+			 (integer :tag "Minutes")
+			 (choice :tag "Position"
+				 (const east)
+				 (const west))))
+  :group 'calendar)
 
 (defsubst calendar-latitude ()
   "Convert calendar-latitude to a signed decimal fraction, if needed."
@@ -122,7 +142,7 @@ This variable should be set in `site-start'.el.")
         (- long)))))
 
 ;;;###autoload
-(defvar calendar-location-name
+(defcustom calendar-location-name
   '(let ((float-output-format "%.1f"))
      (format "%s%s, %s%s"
              (if (numberp calendar-latitude)
@@ -143,9 +163,11 @@ This variable should be set in `site-start'.el.")
 For example, \"New York City\".  Default value is just the latitude, longitude
 pair.
 
-This variable should be set in `site-start'.el.")
+This variable should be set in `site-start'.el."
+  :type 'sexp
+  :group 'calendar)
 
-(defvar solar-error 0.5
+(defcustom solar-error 0.5
 "*Tolerance (in minutes) for sunrise/sunset calculations.
 
 A larger value makes the calculations for sunrise/sunset faster, but less
@@ -156,7 +178,9 @@ It is useless to set the value smaller than 4*delta, where delta is the
 accuracy in the longitude of the sun (given by the function
 `solar-ecliptic-coordinates') in degrees since (delta/360) x (86400/60) = 4 x
 delta.  At present, delta = 0.01 degrees, so the value of the variable
-`solar-error' should be at least 0.04 minutes (about 2.5 seconds).")
+`solar-error' should be at least 0.04 minutes (about 2.5 seconds)."
+  :type 'number
+  :group 'calendar)
 
 (defvar solar-n-hemi-seasons
   '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
