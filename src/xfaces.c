@@ -1232,15 +1232,15 @@ face_color_supported_p (f, color_name, background_p)
   XColor not_used;
 
   XSETFRAME (frame, f);
-  return ((FRAME_WINDOW_P (f)
-	  && (!NILP (Fxw_display_color_p (frame))
-	      || xstricmp (color_name, "black") == 0
-	      || xstricmp (color_name, "white") == 0
-	      || (background_p
-		  && face_color_gray_p (f, color_name))
-	      || (!NILP (Fx_display_grayscale_p (frame))
-		  && face_color_gray_p (f, color_name))))
-	  || tty_defined_color (f, color_name, &not_used, 0));
+  return (FRAME_WINDOW_P (f)
+	  ? (!NILP (Fxw_display_color_p (frame))
+	     || xstricmp (color_name, "black") == 0
+	     || xstricmp (color_name, "white") == 0
+	     || (background_p
+		 && face_color_gray_p (f, color_name))
+	     || (!NILP (Fx_display_grayscale_p (frame))
+		 && face_color_gray_p (f, color_name)))
+	  : tty_defined_color (f, color_name, &not_used, 0));
 }
 
 
