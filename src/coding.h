@@ -128,6 +128,14 @@ enum iso_code_class_type
 /* If set, do not produce ISO6429's direction specifying sequence.  */
 #define CODING_FLAG_ISO_NO_DIRECTION	0x0100
 
+/* If set, assume designation states are reset at beginning of line on
+   output.  */
+#define CODING_FLAG_ISO_INIT_AT_BOL	0x0200
+
+/* If set, designation sequence should be placed at beginning of line
+   on output.  */
+#define CODING_FLAG_ISO_DESIGNATE_AT_BOL 0x0400
+
 /* Structure of the field `spec.iso2022' in the structure `coding_system'.  */
 struct iso2022_spec
 {
@@ -141,11 +149,14 @@ struct iso2022_spec
   int initial_designation[4];
 
   /* A graphic register to which each charset should be designated.  */
-  int requested_designation[MAX_CHARSET];
+  char requested_designation[MAX_CHARSET];
 
   /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
      by single-shift while encoding.  */
   int single_shifting;
+
+  /* Set to 1 temporarily only when processing at beginning of line.  */
+  int bol;
 };
 
 /* Macros to access each field in the structure `spec.iso2022'.  */
@@ -157,11 +168,10 @@ struct iso2022_spec
   coding->spec.iso2022.initial_designation[reg]
 #define CODING_SPEC_ISO_REQUESTED_DESIGNATION(coding, charset) \
   coding->spec.iso2022.requested_designation[charset]
-
-/* Set to 1 temporarily only when encoding a character with
-   single-shift function.  */
 #define CODING_SPEC_ISO_SINGLE_SHIFTING(coding) \
   coding->spec.iso2022.single_shifting
+#define CODING_SPEC_ISO_BOL(coding) \
+  coding->spec.iso2022.bol
 
 /* Return a charset which is currently designated to the graphic plane
    PLANE in the coding-system CODING.  */
