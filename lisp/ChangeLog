@@ -5,6 +5,9 @@
 
 2005-01-02  Stefan  <monnier@iro.umontreal.ca>
 
+	* vc-svn.el (vc-svn-diff): Stay local if possible.
+	From Karl Chen <quarl@cs.berkeley.edu>.
+
 	* vc-arch.el (vc-arch-workfile-version): Handle the empty-branch case.
 
 	* files.el (hack-local-variables): Fix last change.
