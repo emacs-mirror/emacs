@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#include "intervals.h"
 #include "buffer.h"
 #include "window.h"
 
@@ -305,6 +306,9 @@ insert (string, length)
 
   bcopy (string, GPT_ADDR, length);
 
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, point, length);
+
   GAP_SIZE -= length;
   GPT += length;
   ZV += length;
@@ -314,11 +318,15 @@ insert (string, length)
   signal_after_change (point-length, 0, length);
 }
 
-/* Function to insert part of the text of a string (STRING) consisting
-   of LENGTH characters at position POS.
-   It does not work to use `insert' for this, becase a GC could happen
+/* Insert the part of the text of STRING, a Lisp object assumed to be
+   of type string, consisting of the LENGTH characters starting at
+   position POS.  If the text of STRING has properties, they are absorbed
+   into the buffer.
+
+   It does not work to use `insert' for this, because a GC could happen
    before we bcopy the stuff into the buffer, and relocate the string
    without insert noticing.  */
+
 insert_from_string (string, pos, length)
      Lisp_Object string;
      register int pos, length;
@@ -348,10 +356,18 @@ insert_from_string (string, pos, length)
 
   bcopy (XSTRING (string)->data, GPT_ADDR, length);
 
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, point, length);
+
   GAP_SIZE -= length;
   GPT += length;
   ZV += length;
   Z += length;
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  graft_intervals_into_buffer (XSTRING (string)->intervals, point,
+			       current_buffer);
+
   SET_PT (point + length);
 
   signal_after_change (point-length, 0, length);
@@ -428,6 +444,9 @@ del_range (from, to)
   record_delete (from, numdel);
   MODIFF++;
 
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  offset_intervals (current_buffer, point, - numdel);
+
   /* Relocate point as if it were a marker.  */
   if (from < point)
     {
@@ -468,7 +487,9 @@ modify_region (start, end)
 }
 
 /* Check that it is okay to modify the buffer between START and END.
-   Run the before-change-function, if any.  */
+   Run the before-change-function, if any.  If intervals are in use,
+   verify that the text to be modified is not read-only, and call
+   any modification properties the text may have. */
 
 prepare_to_modify_buffer (start, end)
      Lisp_Object start, end;
@@ -476,8 +497,13 @@ prepare_to_modify_buffer (start, end)
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
 
+#if 0				/* Superceded by interval code */
   if (check_protected_fields)
     Fregion_fields (start, end, Qnil, Qt);
+#endif
+
+  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+  verify_interval_modification (current_buffer, start, end);
 
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->filename)
