@@ -6,6 +6,7 @@
 	* gnus-win.el (gnus-configure-windows): Make sure
 	nntp-server-buffer is live.
 	(gnus-remove-some-windows): switch-to-buffer -> set-buffer.
+	(gnus-configure-frame): Save selected window.
 
 2000-12-04  Andreas Jaeger  <aj@suse.de>
 
