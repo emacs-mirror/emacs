@@ -79,6 +79,7 @@
   (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
   (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table)
   (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
+  (define-key Buffer-menu-mode-map "g" 'revert-buffer)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
 
@@ -125,9 +126,14 @@ Letters do not insert themselves; instead, they are commands.
       (let ((where (Buffer-menu-buffer-name-position)))
 	(put-text-property (car where) (cdr where) 'mouse-face 'highlight))
       (forward-line 1)))
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'Buffer-menu-revert-function)
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
+
+(defun Buffer-menu-revert-function (ignore1 ignore2)
+  (list-buffers))
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
