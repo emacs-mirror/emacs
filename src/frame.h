@@ -300,16 +300,10 @@ struct frame
   /* Asynchronous input handlers change these, and
      FRAME_SAMPLE_VISIBILITY copies them into visible and iconified.
      See FRAME_SAMPLE_VISIBILITY, below.  */
-#ifdef __STDC__
-  volatile
-#endif
-  char async_visible, async_iconified;
+  volatile char async_visible, async_iconified;
 
   /* Nonzero if this frame should be redrawn.  */
-#ifdef __STDC__
-  volatile
-#endif
-  char garbaged;
+  volatile char garbaged;
 
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
@@ -682,7 +676,7 @@ extern Lisp_Object Vterminal_frame;
 extern Lisp_Object selected_frame;
 
 /* Value is a pointer to the selected frame.  If the selected frame
-   isn't life, abort.  */
+   isn't live, abort.  */
 
 #define SELECTED_FRAME()				\
      ((FRAMEP (selected_frame)				\
