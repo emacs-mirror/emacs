@@ -1,3 +1,12 @@
+2001-01-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (frame-initialize): Create initial frame visible.
+	(frame-notice-user-settings): When tool-bar has been switched off,
+	correct the frame size and sync too-bar-mode.
+
+	* startup.el (command-line): Remove manipulation of frame
+	height for tool bars.
+
 2001-01-30  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* lpr.el: Compatibility with XEmacs and doc fixes.
