@@ -983,9 +983,15 @@ Quotes are single and double."
   (if (or (null comint-delimiter-argument-list)
 	  (string-match "[\"\'\`]" arg))
       (list arg)
-    (let ((not-delim (format "[^%s]+" (mapconcat
-				       (function (lambda (d) (regexp-quote d)))
-				       comint-delimiter-argument-list "")))
+    (let ((not-delim (concat
+		      (format "\\([^%s]" (mapconcat
+					(function (lambda (d) (regexp-quote d)))
+					comint-delimiter-argument-list ""))
+		      "\\|"
+		      (mapconcat (function (lambda (d)
+					     (concat "\\\\" (regexp-quote d))))
+				 comint-delimiter-argument-list "\\|")
+		      "\\)+"))
 	  (delim-str (mapconcat (function (lambda (d)
 					    (concat (regexp-quote d) "+")))
 				comint-delimiter-argument-list "\\|"))
@@ -1080,10 +1086,7 @@ Similarly for Soar, Scheme, etc."
 			  ;; functions used do insertion, rather than return
 			  ;; strings.  We have to expand, then insert back.
 			  (comint-replace-by-expanded-history)
-			  (let ((copy (buffer-substring pmark (point))))
-			    (delete-region pmark (point))
-			    (insert input)
-			    (comint-arguments copy 0 nil)))))
+			  (buffer-substring pmark (point)))))
           (if comint-process-echoes
               (delete-region pmark (point))
 	    (insert ?\n))
