@@ -1,3 +1,10 @@
+2003-04-13  Masatake YAMATO  <jet@gyve.org>
+
+	* bindings.el (toplevel): Don't change the face
+	of major-mode on the mode line. Setting the face on 
+	the mode line code is installed by my mistake in
+	my last change.
+	
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* add-log.el (change-log-version-number-search): Fix old bug.

@@ -300,8 +300,7 @@ Keymap to display on minor modes.")
      (propertize "%[(" 'help-echo help-echo)
      `(:propertize ("" mode-name)
 		   help-echo "mouse-2: help for current major mode"
-		   local-map ,mode-line-major-mode-keymap
-		   mouse-face bold)
+		   local-map ,mode-line-major-mode-keymap)
      `(:propertize ("" mode-line-process))
      `(:propertize ("" minor-mode-alist)
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
