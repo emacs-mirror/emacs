@@ -1231,7 +1231,8 @@ ESC or `q' to not overwrite any of the remaining files,
 		   (dired-mark-read-file-name
 		    (concat (if dired-one-file op1 operation) " %s to: ")
 		    (dired-dwim-target-directory)
-		    op-symbol arg rfn-list)))
+		    op-symbol arg rfn-list
+		    (and dired-one-file (car fn-list)))))
 	 (into-dir (cond ((null how-to)
 			  ;; Allow DOS/Windows users to change the letter
 			  ;; case of a directory.  If we don't test these
@@ -1276,12 +1277,15 @@ ESC or `q' to not overwrite any of the remaining files,
 ;; marks (ARG=nil) or a repeat factor (integerp ARG).
 ;; If the current file was used, the list has but one element and ARG
 ;; does not matter. (It is non-nil, non-integer in that case, namely '(4)).
+;; DEFAULT is the default value to return if the user just hits RET;
+;; if it is omitted or nil, then the name of the directory is used.
 
-(defun dired-mark-read-file-name (prompt dir op-symbol arg files)
+(defun dired-mark-read-file-name (prompt dir op-symbol arg files
+					 &optional default)
   (dired-mark-pop-up
    nil op-symbol files
    (function read-file-name)
-   (format prompt (dired-mark-prompt arg files)) dir))
+   (format prompt (dired-mark-prompt arg files)) dir default))
 
 (defun dired-dwim-target-directory ()
   ;; Try to guess which target directory the user may want.
