@@ -1,3 +1,8 @@
+2003-04-24  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (skip_chars): Make the code faster by using the common
+	technique of *p, *stop, and *endp.
+
 2003-04-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (update_tool_bar): BLOCK_INPUT before calling
