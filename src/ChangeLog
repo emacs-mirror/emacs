@@ -1,3 +1,8 @@
+2001-12-17  Richard M. Stallman  <rms@gnu.org>
+
+	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)
+	instead of only for COMPOSITION_DISABLED.
+
 2001-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Change heuristic
