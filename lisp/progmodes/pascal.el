@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 1994, 95, 96, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <espensk@stud.cs.uit.no>
 ;; Keywords: languages
@@ -119,6 +119,7 @@
 (defconst pascal-beg-block-re   "\\<\\(begin\\|case\\|record\\|repeat\\)\\>")
 (defconst pascal-end-block-re   "\\<\\(end\\|until\\)\\>")
 (defconst pascal-declaration-re "\\<\\(const\\|label\\|type\\|var\\)\\>")
+(defconst pascal-progbeg-re     "\\<\\program\\>")
 (defconst pascal-defun-re       "\\<\\(function\\|procedure\\|program\\)\\>")
 (defconst pascal-sub-block-re   "\\<\\(if\\|else\\|for\\|while\\|with\\)\\>")
 (defconst pascal-noindent-re    "\\<\\(begin\\|end\\|until\\|else\\)\\>")
@@ -195,6 +196,11 @@ These include after semicolons and after the punctuation mark after an `end'."
   :type 'boolean
   :group 'pascal)
 
+(defcustom pascal-indent-nested-functions t
+  "*Non-nil means nested functions are indented."
+  :type 'boolean
+  :group 'pascal)
+
 (defcustom pascal-tab-always-indent t
   "*Non-nil means TAB in Pascal mode should always reindent the current line.
 If this is nil, TAB inserts a tab if it is at the end of the line
@@ -216,10 +222,11 @@ do auto lineup in parameterlist, declarations or case-statements
 respectively. The word 'all' will do all lineups. '(case paramlist) for
 instance will do lineup in case-statements and parameterlist, while '(all)
 will do all lineups."
-  :type '(repeat (choice (const all)
-			 (const paramlist)
-			 (const declaration)
-			 (const case)))
+  :type '(set :extra-offset 8
+	      (const :tag "Everything" all)
+	      (const :tag "Parameter lists" paramlist)
+	      (const :tag "Decalrations" declaration)
+	      (const :tag "Case statements" case))
   :group 'pascal)
 
 (defcustom pascal-toggle-completions nil
@@ -323,20 +330,22 @@ Other useful functions are:
 
 Variables controlling indentation/edit style:
 
- pascal-indent-level      (default 3)
+ pascal-indent-level (default 3)
     Indentation of Pascal statements with respect to containing block.
- pascal-case-indent       (default 2)
+ pascal-case-indent (default 2)
     Indentation for case statements.
- pascal-auto-newline      (default nil)
+ pascal-auto-newline (default nil)
     Non-nil means automatically newline after semicolons and the punctuation
     mark after an end.
+ pascal-indent-nested-functions (default t)
+    Non-nil means nested functions are indented.
  pascal-tab-always-indent (default t)
     Non-nil means TAB in Pascal mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
- pascal-auto-endcomments  (default t)
+ pascal-auto-endcomments (default t)
     Non-nil means a comment { ... } is set after the ends which ends cases and
     functions. The name of the function or case will be set between the braces.
- pascal-auto-lineup       (default t)
+ pascal-auto-lineup (default t)
     List of contexts where auto lineup of :'s or ='s should be done.
 
 See also the user variables pascal-type-keywords, pascal-start-keywords and
@@ -611,7 +620,7 @@ area.  See also `pascal-comment-area'."
 		   (setq func (1+ func)))
 	       (setq nest (1- nest)))
 	      ((match-end 3)                       ; function|procedure
-	       (if (or (> nest 0) (= 0 func))
+	       (if (= 0 func)
 		   (throw 'found t)
 		 (setq func (1- func)))))))
     nil))
@@ -777,7 +786,7 @@ on the line which ends a function or procedure named NAME."
     (paramlist . (pascal-indent-paramlist t))
     (comment . (pascal-indent-comment t))
     (defun . ind) (contexp . ind)
-    (unknown . 0) (string . 0)))
+    (unknown . ind) (string . 0) (progbeg . 0)))
 
 (defun pascal-indent-command ()
   "Indent for special part of code."
@@ -805,20 +814,27 @@ on the line which ends a function or procedure named NAME."
   (let* ((indent-str (pascal-calculate-indent))
 	 (type (car indent-str))
 	 (ind (car (cdr indent-str))))
-    (if (looking-at "^[0-9a-zA-Z]+[ \t]*:[^=]")
+    ;; Labels should not be indented.
+    (if (and (looking-at "^[0-9a-zA-Z]+[ \t]*:[^=]")
+	     (not (eq type 'declaration)))
 	(search-forward ":" nil t))
     (delete-horizontal-space)
-    ;; Some things should not be indented
-    (if (or (and (eq type 'declaration) (looking-at pascal-declaration-re))
-	    (eq type 'cpp)
-	    (looking-at pascal-defun-re))
-	()
-      ;; Other things should have no extra indent
-      (if (looking-at pascal-noindent-re)
-	  (indent-to ind)
-	;; But most lines are treated this way:
-	(indent-to (eval (cdr (assoc type pascal-indent-alist))))
-	))))
+    (cond (; Some things should not be indented
+	   (or (and (eq type 'declaration) (looking-at pascal-declaration-re))
+	       (eq type 'cpp))
+	   ())
+	  (; Other things should have no extra indent
+	   (looking-at pascal-noindent-re)
+	   (indent-to ind))
+	  (; Nested functions should be indented
+	   (looking-at pascal-defun-re)
+	   (if (and pascal-indent-nested-functions
+		    (eq type 'defun))
+	       (indent-to (+ ind pascal-indent-level))
+	     (indent-to ind)))
+	  (; But most lines are treated this way
+	   (indent-to (eval (cdr (assoc type pascal-indent-alist))))
+	   ))))
 
 (defun pascal-calculate-indent ()
   "Calculate the indent of the current Pascal line.
@@ -828,7 +844,8 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 	   (oldpos (point))
 	   (state (save-excursion (parse-partial-sexp (point-min) (point))))
 	   (nest 0) (par 0) (complete (looking-at "[ \t]*end\\>"))
-	   (elsed (looking-at "[ \t]*else\\>"))
+	   (elsed (looking-at "[ \t]*else\\>")) (funccnt 0)
+	   (did-func (looking-at "[ \t]*\\(procedure\\|function\\)\\>"))
 	   (type (catch 'nesting
 		   ;; Check if inside a string, comment or parenthesis
 		   (cond ((nth 3 state) (throw 'nesting 'string))
@@ -855,6 +872,12 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 						    (point))
 				    (point)))
 			    (throw 'nesting 'caseblock))
+			   (;--Beginning of program
+			    (looking-at pascal-progbeg-re)
+			    (throw 'nesting 'progbeg))
+			   (;--No known statements
+			    (bobp)
+			    (throw 'nesting 'progbeg))
 			   (;--Nest block outwards
 			    (looking-at pascal-beg-block-re)
 			    (if (= nest 0)
@@ -863,16 +886,26 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				      ((looking-at "record\\>")
 				       (throw 'nesting 'declaration))
 				      (t (throw 'nesting 'block)))
+			      (if (and (looking-at "record\\>") (= nest 1))
+				  (setq funccnt (1- funccnt)))
 			      (setq nest (1- nest))))
 			   (;--Nest block inwards
 			    (looking-at pascal-end-block-re)
 			    (if (and (looking-at "end\\s ")
 				     elsed (not complete))
 				(throw 'nesting 'block))
+			    (if (= nest 0)
+				(setq funccnt (1+ funccnt)))
 			    (setq complete t
 				  nest (1+ nest)))
 			   (;--Defun (or parameter list)
-			    (looking-at pascal-defun-re)
+			    (and (looking-at pascal-defun-re)
+				 (progn (setq funccnt (1- funccnt)
+					      did-func t)
+					(or (bolp) (< funccnt 0))))
+			    ;; Prevent searching whole buffer
+			    (if (and (bolp) (>= funccnt 0))
+				(throw 'nesting 'progbeg))
 			    (if (= 0 par)
 				(throw 'nesting 'defun)
 			      (setq par 0)
@@ -886,7 +919,9 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 				    (throw 'nesting 'declaration)
 				  (throw 'nesting 'paramlist)))))
 			   (;--Declaration part
-			    (looking-at pascal-declaration-re)
+			    (and (looking-at pascal-declaration-re)
+				 (not did-func)
+				 (= funccnt 0))
 			    (if (save-excursion
 				  (goto-char oldpos)
 				  (forward-line -1)
@@ -897,9 +932,6 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			    (and (not complete)
 				 (looking-at pascal-sub-block-re))
 			    (throw 'nesting 'block))
-			   (;--No known statements
-			    (bobp)
-			    (throw 'nesting 'unknown))
 			   (;--Found complete statement
 			    (save-excursion (forward-sexp 1)
 					    (= (following-char) ?\;))
@@ -1052,23 +1084,25 @@ indent of the current line in parameterlist."
 (defun pascal-get-lineup-indent (b e str)
   (save-excursion
     (let ((ind 0)
-	  (reg (concat str "\\|\\(\\<record\\>\\)")))
+	  (reg (concat str "\\|\\(\\<record\\>\\)\\|" pascal-defun-re)))
       (goto-char b)
       ;; Get rightmost position
       (while (< (point) e)
-	(if (re-search-forward reg (min e (pascal-get-end-of-line 2)) 'move)
-	    (progn
-	      ;; Skip record blocks
-	      (if (match-beginning 1)
-		  (pascal-declaration-end)
-		(progn
-		  (goto-char (match-beginning 0))
-		  (skip-chars-backward " \t")
-		  (if (> (current-column) ind)
-		      (setq ind (current-column)))
-		  (goto-char (match-end 0))
-		  (end-of-line)
-		  )))))
+	(and (re-search-forward reg (min e (pascal-get-end-of-line 2)) 'move)
+	     (cond ((match-beginning 1)
+		    ;; Skip record blocks
+		    (pascal-declaration-end))
+		   ((match-beginning 2)
+		    ;; We have entered a new procedure.  Exit.
+		    (goto-char e))
+		   (t
+		    (goto-char (match-beginning 0))
+		    (skip-chars-backward " \t")
+		    (if (> (current-column) ind)
+			(setq ind (current-column)))
+		    (goto-char (match-end 0))
+		    (end-of-line)
+		    ))))
       ;; In case no lineup was found
       (if (> ind 0)
 	  (1+ ind)
