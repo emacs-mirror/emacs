@@ -1,3 +1,7 @@
+2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* keymap.c (Fdefine_key): Doc fix.
+
 2003-02-21  Juanma Barranquero  <lektu@terra.es>
 
 	Port of patch for RC by Klaus Zeitler <kzeitler@lucent.com>.

@@ -988,8 +988,9 @@ DEF is anything that can be a key's definition:
     (DEFN should be a valid definition in its own right),
  or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
 
-If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at
-the front of KEYMAP.  */)
+If KEYMAP is a sparse keymap with a binding for KEY, the existing
+binding is altered.  If there is no binding for KEY, the new pair
+binding KEY to DEF is added at the front of KEYMAP.  */)
      (keymap, key, def)
      Lisp_Object keymap;
      Lisp_Object key;
