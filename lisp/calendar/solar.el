@@ -198,8 +198,8 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
    nil 
    "Sidereal time at Greenwich at midnight (universal time).")
 
-(defvar solar-spring-or-summer-season nil  
-  "T if spring or summer and nil otherwise.
+(defvar solar-northern-spring-or-summer-season nil
+  "T if northern spring or summer and nil otherwise.
 Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 
 (defun solar-setup ()
@@ -298,8 +298,8 @@ Both arguments are in degrees."
    (* (solar-sin-degrees obliquity)
       (solar-sin-degrees longitude))))
 
-(defun solar-sunrise-and-sunset (time latitude longitude)
-  "Sunrise, sunset and length of day. 
+(defun solar-sunrise-and-sunset (time latitude longitude height)
+  "Sunrise, sunset and length of day.
 Parameters are the midday TIME and the LATITUDE, LONGITUDE of the location.
 
 TIME is a pair with the first component being the number of Julian centuries
@@ -308,22 +308,28 @@ time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
 \(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
-Coordinates are included because this function is called with latitude=10
+HEIGHT is the angle the center of the sun has over the horizon for the contact
+we are trying to find. For sunrise and sunset, it is usually -0.61 degrees,
+accounting for the edge of the sun being on the horizon.
+
+Coordinates are included because this function is called with latitude=1
 degrees to find out if polar regions have 24 hours of sun or only night."
-  (let* ((rise-time (solar-moment -1 latitude longitude time))
-         (set-time (solar-moment 1 latitude longitude time))
+  (let* ((rise-time (solar-moment -1 latitude longitude time height))
+         (set-time (solar-moment 1 latitude longitude time height))
          (day-length))
     (if (not (and rise-time set-time))
-        (if (or (and (> latitude 0) solar-spring-or-summer-season)
-                (and (< latitude 0) (not solar-spring-or-summer-season)))
-	    (setq day-length 0)
-          (setq day-length 24))
-        (setq day-length (- set-time rise-time)))
+        (if (or (and (> latitude 0)
+                     solar-northern-spring-or-summer-season)
+                (and (< latitude 0)
+                     (not solar-northern-spring-or-summer-season)))
+            (setq day-length 24)
+	  (setq day-length 0))
+      (setq day-length (- set-time rise-time)))
     (list (if rise-time (+ rise-time (/ calendar-time-zone 60.0)) nil)
           (if set-time (+ set-time (/ calendar-time-zone 60.0)) nil)
           day-length)))
 
-(defun solar-moment (direction latitude longitude time)
+(defun solar-moment (direction latitude longitude time height)
   "Sunrise/sunset at location.
 Sunrise if DIRECTION =-1 or sunset if =1 at LATITUDE, LONGITUDE, with midday
 being TIME.
@@ -334,41 +340,45 @@ time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
 \(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
+HEIGHT is the angle the center of the sun has over the horizon for the contact
+we are trying to find. For sunrise and sunset, it is usually -0.61 degrees,
+accounting for the edge of the sun being on the horizon.
+
 Uses binary search."
   (let* ((ut (car (cdr time)))
-         (possible 1) ; we assume that rise or set are possible
-         (utmin (+ ut (* direction 12.0))) 
+         (possible t) ; we assume that rise or set are possible
+         (utmin (+ ut (* direction 12.0)))
          (utmax ut)    ; the time searched is between utmin and utmax
             ; utmin and utmax are in hours
          (utmoment-old 0.0)    ; rise or set approximation
          (utmoment 1.0) ; rise or set approximation
          (hut 0)         ; sun height at utmoment
          (t0 (car time))
-         (hmin (car (cdr 
-               (solar-horizontal-coordinates (list t0 utmin) 
+         (hmin (car (cdr
+               (solar-horizontal-coordinates (list t0 utmin)
                                                 latitude longitude t))))
-         (hmax (car (cdr 
-               (solar-horizontal-coordinates (list t0 utmax) 
+         (hmax (car (cdr
+               (solar-horizontal-coordinates (list t0 utmax)
                                                 latitude longitude t)))))
        ; -0.61 degrees is the height of the middle of the sun, when it rises
        ;   or sets.
-     (if (< hmin -0.61) 
-              (if (> hmax -0.61)
+     (if (< hmin height)
+              (if (> hmax height)
                   (while ;(< i 20) ; we perform a simple dichotomy
-                         ; (> (abs (+ hut 0.61)) epsilon)
+                         ; (> (abs (- hut height)) epsilon)
                          (>= (abs (- utmoment utmoment-old))
                              (/ solar-error 60))
                     (setq utmoment-old utmoment)
                     (setq utmoment (/ (+ utmin utmax) 2))
-                    (setq hut (car (cdr 
-                                    (solar-horizontal-coordinates 
+                    (setq hut (car (cdr
+                                    (solar-horizontal-coordinates
                                    (list t0 utmoment) latitude longitude t))))
-                    (if (< hut -0.61) (setq utmin utmoment))
-                    (if (> hut -0.61) (setq utmax utmoment))
+                    (if (< hut height) (setq utmin utmoment))
+                    (if (> hut height) (setq utmax utmoment))
                    )
-                (setq possible 0)) ; the sun never rises
-                (setq possible 0)) ; the sun never sets
-     (if (equal possible 0) nil utmoment)))
+                (setq possible nil)) ; the sun never rises
+                (setq possible nil)) ; the sun never sets
+     (if (not possible) nil utmoment)))
 
 (defun solar-time-string (time time-zone)
   "Printable form for decimal fraction TIME in TIME-ZONE.
@@ -423,24 +433,24 @@ Corresponding value is nil if there is no sunrise/sunset."
          ; store the sidereal time at Greenwich at midnight of UT time.
          ; find if summer or winter slightly above the equator
          (equator-rise-set
-          (progn (setq solar-sidereal-time-greenwich-midnight 
+          (progn (setq solar-sidereal-time-greenwich-midnight
                        (solar-sidereal-time t0))
-                 (solar-sunrise-and-sunset 
+                 (solar-sunrise-and-sunset
                   (list t0 (car (cdr exact-local-noon)))
-                  10.0
-                  (calendar-longitude))))
+                  1.0
+                  (calendar-longitude) 0)))
          ; store the spring/summer information,
          ; compute sunrise and sunset (two first components of rise-set).
          ; length of day is the third component (it is only the difference
          ; between sunset and sunrise when there is a sunset and a sunrise)
          (rise-set
           (progn
-            (setq solar-spring-or-summer-season 
-                  (if (> (car (cdr (cdr equator-rise-set))) 12) 1 0))
-            (solar-sunrise-and-sunset 
+            (setq solar-northern-spring-or-summer-season
+                  (if (> (car (cdr (cdr equator-rise-set))) 12) t nil))
+            (solar-sunrise-and-sunset
              (list t0 (car (cdr exact-local-noon)))
              (calendar-latitude)
-             (calendar-longitude))))
+             (calendar-longitude) -0.61)))
          (rise (car rise-set))
          (adj-rise (if rise (dst-adjust-time date rise) nil))
          (set (car (cdr rise-set)))
@@ -904,6 +914,12 @@ Accurate to a few seconds."
       (solar-setup))
   (solar-sunrise-sunset-string date))
 
+(defcustom diary-sabbath-candles-minutes 18
+  "*Number of minutes before sunset for sabbath candle lighting."
+  :group 'diary
+  :type 'integer
+  :version "21.1")
+
 (defun diary-sabbath-candles ()
   "Local time of candle lighting diary entry--applies if date is a Friday.
 No diary entry if there is no sunset on that date."
@@ -911,8 +927,10 @@ No diary entry if there is no sunset on that date."
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5);;  Friday
       (let* ((sunset (car (cdr (solar-sunrise-sunset date))))
-                  (light (if sunset
-                        (cons (- (car sunset) (/ 18.0 60.0)) (cdr sunset)))))
+             (light (if sunset
+                        (cons (- (car sunset)
+                                 (/ diary-sabbath-candles-minutes 60.0))
+                              (cdr sunset)))))
         (if sunset
             (format "%s Sabbath candle lighting"
                     (apply 'solar-time-string light))))))
