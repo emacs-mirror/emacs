@@ -443,6 +443,11 @@ tgetent (bp, name)
     }
 #endif /* INTERNAL_TERMINAL */
 
+  /* For compatibility with programs like `less' that want to
+     put data in the termcap buffer themselves as a fallback.  */
+  if (bp)
+    term_entry = bp;
+
   termcap_name = getenv ("TERMCAP");
   if (termcap_name && *termcap_name == '\0')
     termcap_name = NULL;
