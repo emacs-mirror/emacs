@@ -3355,16 +3355,25 @@ read_avail_input (expected)
 	  if (nread == 0)
 	    kill (0, SIGHUP);
 #endif
-	  /* Retry the read if it was interrupted.  */
 	}
-      while (nread < 0 && (errno == EINTR
+      while (
+	     /* We used to retry the read if it was interrupted.
+		But this does the wrong thing when O_NDELAY causes
+		an EAGAIN error.  Does anybody know of a situation
+		where a retry is actually needed?  */
+#if 0
+	     nread < 0 && (errno == EAGAIN
 #ifdef EFAULT
 			   || errno == EFAULT
 #endif
 #ifdef EBADSLT
 			   || errno == EBADSLT
 #endif
-			   ));
+			   )
+#else
+	     0
+#endif
+	     );
 
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX)
