@@ -335,18 +335,28 @@ Do the same for the keys of the same name."
 
 (defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
 
-(define-key menu-bar-custom-menu [Custom-menu-update]
-  '("Update This Menu" . Custom-menu-update))
+(define-key menu-bar-custom-menu [customize-apropos-groups]
+  '("Apropos Groups..." . customize-apropos-groups))
+(define-key menu-bar-custom-menu [customize-apropos-faces]
+  '("Apropos Faces..." . customize-apropos-faces))
+(define-key menu-bar-custom-menu [customize-apropos-options]
+  '("Apropos Options..." . customize-apropos-options))
 (define-key menu-bar-custom-menu [customize-apropos]
   '("Apropos..." . customize-apropos))
+(define-key menu-bar-custom-menu [separator-2]
+  '("--"))
 (define-key menu-bar-custom-menu [customize-group]
   '("Specific Group..." . customize-group))
 (define-key menu-bar-custom-menu [customize-face]
   '("Specific Face..." . customize-face))
-(define-key menu-bar-custom-menu [customize-variable]
-  '("Specific Variable..." . customize-variable))
+(define-key menu-bar-custom-menu [customize-option]
+  '("Specific Option..." . customize-option))
+(define-key menu-bar-custom-menu [separator-3]
+  '("--"))
 (define-key menu-bar-custom-menu [customize-browse]
-  '("Browse Hierarchy of User Options" . customize-browse))
+  '("Browse Customization Groups" . customize-browse))
+(define-key menu-bar-custom-menu [customize]
+  '("Top-level Customization Group" . customize))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
