@@ -149,7 +149,12 @@
 
 (defun x-handle-display (switch)
   (setq x-display-name (car x-invocation-args)
-	x-invocation-args (cdr x-invocation-args)))
+	x-invocation-args (cdr x-invocation-args))
+  ;; Make subshell programs see the same DISPLAY value Emacs really uses.
+  ;; Note that this isn't completely correct, since Emacs can use
+  ;; multiple displays.  However, there is no way to tell an already
+  ;; running subshell which display the user is currently typing on.
+  (setenv "DISPLAY" x-display-name))
 
 (defun x-handle-args (args)
   "Process the X-related command line options in ARGS.
