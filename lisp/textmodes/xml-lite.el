@@ -95,15 +95,17 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
     (bolp)))
 
 (defun xml-lite-in-string-p (&optional limit)
-  "Determine whether point is inside a string."
+  "Determine whether point is inside a string.
+ 
+Parse begins from LIMIT, which defaults to the preceding occurence of a tag
+at the beginning of a line."
   (let (syntax-info)
     (or limit
         (setq limit (or (save-excursion 
                           (re-search-backward "^[ \t]*<" nil t))
                         (point-min))))
     (setq syntax-info (parse-partial-sexp limit (point)))
-    (if (nth 3 syntax-info)
-        (list (nth 3 syntax-info) (nth 8 syntax-info)))))
+    (if (nth 3 syntax-info) (nth 8 syntax-info))))
 
 
 ;; Parsing
