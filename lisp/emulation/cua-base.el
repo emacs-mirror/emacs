@@ -413,29 +413,101 @@ Can be toggled by [M-p] while the rectangle is active,"
 				       "red")
   "Normal (non-overwrite) cursor color.
 Also used to indicate that rectangle padding is not in effect.
-Default is to load cursor color from initial or default frame parameters."
+Default is to load cursor color from initial or default frame parameters.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
   :initialize 'custom-initialize-default
-  :type 'color
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" block))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" block))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-read-only-cursor-color "darkgreen"
   "*Cursor color used in read-only buffers, if non-nil.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" block))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" block))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "*Cursor color used when overwrite mode is set, if non-nil.
 Also used to indicate that rectangle padding is in effect.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" block))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" block))
+		(color :tag "Color")))
   :group 'cua)
 
 (defcustom cua-global-mark-cursor-color "cyan"
   "*Indication for active global mark.
 Will change cursor color to specified color if string.
-Only used when `cua-enable-cursor-indications' is non-nil."
-  :type 'color
+Only used when `cua-enable-cursor-indications' is non-nil.
+
+If the value is a COLOR name, then only the `cursor-color' attribute will be
+affected.  If the value is a cursor TYPE (one of: box, block, bar, or hbar),
+then only the `cursor-type' property will be affected.  If the value is
+a cons (TYPE . COLOR), then both properties are affected."
+  :type '(choice
+	  (color :tag "Color")
+	  (choice :tag "Type"
+		  (const :tag "Filled box" box)
+		  (const :tag "Vertical bar" bar)
+		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Hollow box" block))
+	  (cons :tag "Color and Type"
+		(choice :tag "Type"
+			(const :tag "Filled box" box)
+			(const :tag "Vertical bar" bar)
+			(const :tag "Horisontal bar" hbar)
+			(const :tag "Hollow box" block))
+		(color :tag "Color")))
   :group 'cua)
 
 
@@ -946,23 +1018,29 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 ;;; Cursor indications
 
 (defun cua--update-indications ()
-  (let ((cursor
-	 (cond
-	  ((and cua--global-mark-active
-		(stringp cua-global-mark-cursor-color))
-	   cua-global-mark-cursor-color)
-	  ((and buffer-read-only
-		(stringp cua-read-only-cursor-color))
-	   cua-read-only-cursor-color)
-	  ((and (stringp cua-overwrite-cursor-color)
-		(or overwrite-mode
-		    (and cua--rectangle (cua--rectangle-padding))))
-	   cua-overwrite-cursor-color)
-	  (t cua-normal-cursor-color))))
-    (if (and cursor
-	     (not (equal cursor (frame-parameter nil 'cursor-color))))
-	(set-cursor-color cursor))
-    cursor))
+  (let* ((cursor
+	  (cond
+	   ((and cua--global-mark-active
+		 cua-global-mark-cursor-color)
+	    cua-global-mark-cursor-color)
+	   ((and buffer-read-only
+		 cua-read-only-cursor-color)
+	    cua-read-only-cursor-color)
+	   ((and cua-overwrite-cursor-color
+		 (or overwrite-mode
+		     (and cua--rectangle (cua--rectangle-padding))))
+	    cua-overwrite-cursor-color)
+	   (t cua-normal-cursor-color)))
+	 (color (if (consp cursor) (cdr cursor) cursor))
+	 (type (if (consp cursor) (car cursor) cursor)))
+    (if (and color
+	     (stringp color)
+	     (not (equal color (frame-parameter nil 'cursor-color))))
+	(set-cursor-color color))
+    (if (and type
+	     (symbolp type)
+	     (not (eq type (frame-parameter nil 'cursor-type))))
+	(setq default-cursor-type type))))
 
 
 ;;; Pre-command hook
@@ -1233,7 +1311,9 @@ paste (in addition to the normal emacs bindings)."
 	(add-hook 'post-command-hook 'cua--post-command-handler)
 	(if (and cua-enable-modeline-indications (not (assoc 'cua-mode minor-mode-alist)))
 	    (setq minor-mode-alist (cons '(cua-mode cua--status-string) minor-mode-alist)))
-	)
+	(if cua-enable-cursor-indications
+	    (cua--update-indications)))
+
     (remove-hook 'pre-command-hook 'cua--pre-command-handler)
     (remove-hook 'post-command-hook 'cua--post-command-handler))
 
