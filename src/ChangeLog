@@ -1,3 +1,8 @@
+2001-11-05  Dale Hagglund <rdh@yottayotta.com>
+
+	* unexelf.c (unexec): Don't use `mmap'.  Instead, read and write
+	the program image directly.
+
 2001-11-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buffer.h (Fbuffer_local_value): Add prototype.
