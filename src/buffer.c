@@ -1079,16 +1079,13 @@ so the buffer is truly empty after this.")
 validate_region (b, e)
      register Lisp_Object *b, *e;
 {
-  register int i;
-
   CHECK_NUMBER_COERCE_MARKER (*b, 0);
   CHECK_NUMBER_COERCE_MARKER (*e, 1);
 
   if (XINT (*b) > XINT (*e))
     {
-      i = XFASTINT (*b);	/* This is legit even if *b is < 0 */
-      *b = *e;
-      XSETFASTINT (*e, i);	/* because this is all we do with i.  */
+      Lisp_Object tem;
+      tem = *b;  *b = *e;  *e = tem;
     }
 
   if (!(BEGV <= XINT (*b) && XINT (*b) <= XINT (*e)
