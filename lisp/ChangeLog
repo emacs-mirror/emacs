@@ -1,3 +1,192 @@
+2003-10-14  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Special-case
+	`backquote-list*' to avoid stack overflows.
+
+2003-04-04  Miles Bader  <miles@gnu.org>
+
+	* help-fns.el (help-function-arglist): Handle interpreted closures.
+
+2002-11-20  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-stack-adjustment):
+	Correctly handle discardN* operators.
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Fix stack-depth
+	tracking errors.
+
+2002-08-26  Miles Bader  <miles@gnu.org>
+
+	* international/mule.el (make-char): Macroexpand call to
+	charset-id constructed by `byte-compile' hook.
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defconst value.
+
+	* emacs-lisp/byte-opt.el (byte-opt-update-stack-params): New macro.
+	(byte-optimize-lapcode): Keep track of stack-depth in final pass too.
+	Add more optimizations for lexical binding.
+	(byte-compile-inline-expand): Macroexpand result of inlining.
+
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Update call to
+	byte-compile-closure-initial-lexenv-p.
+	(byte-discardN-preserve-tos): Alias to byte-discardN.
+	(byte-compile-push-binding-init): Don't push unused variables on
+	init-lexenv.
+	(byte-compile-push-binding-init): Don't use LFORMINFO if it's nil.
+	(byte-compile-lambda): Don't look at lexical environment unless
+	we're using lexical binding.
+	(byte-compile-defmacro): Correctly generate macros.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-unbind): Optimize the
+	dynamic-bindings-only case.
+	(byte-compile-bind): Don't special-case unused lexical variables.
+
+	* emacs-lisp/disass.el (disassemble-1): Print arg for discardN ops.
+
+2002-08-19  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Handle
+	`byte-discardN-preserve-tos' pseudo-op.
+	(byte-compile-side-effect-and-error-free-ops): Add `byte-stack-ref'.
+	(byte-compile-side-effect-free-ops): Add `byte-vec-ref'.
+	(byte-optimize-lapcode): Add some cases for stack-set/ref ops.
+	Add tracking of stack-depth.  Unfinished code to collapse
+	lexical-unbinding sequences.
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Handle
+	`byte-discardN-preserve-tos' pseudo-op.
+	(byte-compile-top-level): If there are lexical args, output a TAG
+	op to record the initial stack-depth for the optimizer.
+
+2002-08-17  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-discardN): Add byte-defop.
+	(byte-compile-lapcode): Include byte-discardN.
+	(byte-compile-lambda): Fixup closure detection.
+	(byte-compile-top-level): Handle arguments for a lexical lambda.
+	(byte-compile-lexical-variable-ref, byte-compile-variable-ref)
+	(byte-compile-variable-set): Use byte-compile-stack-set/ref.
+	(byte-compile-discard): Add new parameters NUM and PRESERVE-TOS.
+	(byte-compile-stack-ref, byte-compile-stack-set): New functions.
+	(byte-compile-push-binding-init): Get the variable list properly
+	from LFORMINFO.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-lforminfo-analyze):
+	Ignore setq'd variables we're not interested in.
+	(byte-compile-make-lambda-lexenv): Add assertion that closed-over
+	variables be heap allocated.
+	(byte-compile-closure-initial-lexenv-p): Renamed from
+	byte-compile-closure-lexenv-p.
+	(byte-compile-non-stack-bindings-p): Get the variable list
+	properly from LFORMINFO.
+	(byte-compile-maybe-push-heap-environment): Handle the
+	no-closed-over-variables case correctly.
+	(byte-compile-bind): Use byte-compile-stack-set/ref.
+	Don't bother modifying INIT-LEXENV as no one will see the changes.
+	(byte-compile-unbind): Call `byte-compile-discard' to handle
+	unbinding lexical bindings.
+
+	* emacs-lisp/disass.el (disassemble-internal): Handle closures.
+	(disassemble-1): Handle new bytecodes.
+	* emacs-lisp/byte-opt.el (disassemble-offset): Handle new bytecodes.
+
+2002-06-16  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/macroexp.el (macroexp-accumulate): New macro.
+	(macroexpand-all-forms, macroexpand-all-clauses): Use it.
+	* Makefile.in (compile): Undo previous change.
+
+2002-06-14  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (COMPILE_FIRST): Add `emacs-lisp/macroexp.el'.
+	(compile): Add a special case that compiles `emacs-lisp/macroexp.el'
+	with an increased max-lisp-eval-depth.
+
+	* emacs-lisp/bytecomp.el: Provide `bytecomp-preload', at the
+	beginning of the file.  Require `byte-lexbind' at compile time.
+	Add a few doc string.
+	(byte-compile-push-bytecodes)
+	(byte-compile-push-bytecode-const2): New macros.
+	(byte-compile-lapcode): Use them.  Do general code cleanup.
+	(byte-compile-initial-macro-environment): Expand macros in
+	byte-compile-eval before passing to byte-compile-top-level.
+	(byte-compile): Use the `byte-compile-initial-macro-environment'.
+
+	* emacs-lisp/byte-lexbind.el: Require `bytecomp-preload' instead of
+	`bytecomp'.
+	(byte-compile-bind): Use `byte-compile-dynamic-variable-bind' to bind
+	dynamic variables.
+	(byte-compile-maybe-push-heap-environment): Fix function name typo.
+
+2002-06-13  Miles Bader  <miles@gnu.org>
+
+	Byte compiler lexical binding support (not finished yet):
+	* emacs-lisp/bytecomp.el: Require `macroexp'.
+	(byte-compile-lexical-environment) 
+	(byte-compile-current-heap-environment) 
+	(byte-compile-current-num-closures): New variables.
+	(0, 178, 179, 180, 181): New byte-opcodes.
+	(byte-compile-lapcode): Handle stack-ref/set opcodes.  Signal an
+	error if a delay-output placeholder is not filled in yet.
+	(byte-compile-file-form, byte-compile): Expand all macros with
+	`macroexpand-all'.
+	(byte-compile-file-form-defsubst, byte-compile-form): Don't expand
+	macros here.
+	(byte-compile-make-lambda-lexenv): Autoload.
+	(byte-compile-lambda): Initial code for handling lexically-bound
+	arguments and closures; doesn't work yet.
+	(byte-compile-closure-code-p, byte-compile-make-closure) 
+	(byte-compile-closure): New functions.
+	(byte-compile-check-variable, byte-compile-dynamic-variable-op) 
+	(byte-compile-dynamic-variable-bind) 
+	(byte-compile-lexical-variable-ref, byte-compile-variable-set): 
+	New functions.
+	(byte-compile-variable-ref): Remove second argument.  Now only
+	handles real variable references (not setting or binding).
+	(byte-compile-push-unknown-constant) 
+	(byte-compile-resolve-unknown-constant): New functions.
+	(byte-compile-funarg, byte-compile-funarg-2): Functions removed.
+	(byte-compile-function-form): Use either `byte-compile-constant'
+	or `byte-compile-closure'.
+	(byte-compile-setq): Use `byte-compile-variable-set' instead of
+	`byte-compile-variable-ref'.
+	(apply, mapcar, mapatoms, mapconcat, mapc, sort):
+	`byte-defop-compiler-1's removed.
+	(byte-compile-while): Make sure lexically-bound variables inside
+	the loop don't get stored in an environment outside the loop.
+	(byte-compile-compute-lforminfo): Autoload.
+	(byte-compile-push-binding-init): New function.
+	(byte-compile-let, byte-compile-let*): Handle lexical binding.
+	(byte-compile-defun): Use `byte-compile-closure' to do the work.
+	(byte-compile-defmacro): Use `byte-compile-make-closure'.
+	(byte-compile-defvar): Expand the generated call to `push' since
+	we're past macroexpansion already.
+	(byte-compile-stack-adjustment): New function.
+	(byte-compile-out): Make second arg optional.  Rewrite for clarity.
+	(byte-compile-delay-out, byte-compile-delayed-out): New functions.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Don't
+	expand macros here.
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Expand defmacro forms.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-make-lvarinfo) 
+	(byte-compile-lforminfo-add-var) 
+	(byte-compile-lforminfo-note-closure) 
+	(byte-compile-compute-lforminfo) 
+	(byte-compile-lforminfo-from-lambda) 
+	(byte-compile-lforminfo-analyze) 
+	(byte-compile-heapenv-add-accessible-env) 
+	(byte-compile-heapenv-ensure-access) 
+	(byte-compile-rearrange-let-clauses, byte-compile-bind) 
+	(byte-compile-unbind): Fix a bunch of typos.
+
+2002-06-12  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/byte-lexbind.el, emacs-lisp/macroexp.el: New files.
+
+	* subr.el (functionp): Function removed (now a subr).
+	* help-fns.el (describe-function-1): Handle interpreted closures.
+
 2004-02-04  Sam Steingold  <sds@gnu.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods):
