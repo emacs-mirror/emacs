@@ -53,6 +53,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
 Lisp_Object merge_properties_sticky ();
 
 /* Utility functions for intervals.  */
@@ -2035,6 +2037,45 @@ copy_intervals_to_string (string, buffer, position, length)
 
   interval_copy->parent = (INTERVAL) string;
   XSTRING (string)->intervals = interval_copy;
+}
+
+/* Return 1 if string S1 and S2 have identical properties; 0 otherwise.
+   Assume they have identical characters.  */
+
+int
+compare_string_intervals (s1, s2)
+     Lisp_Object s1, s2;
+{
+  INTERVAL i1, i2;
+  int pos = 1;
+  int end = XSTRING (s1)->size + 1;
+
+  /* We specify 1 as position because the interval functions
+     always use positions starting at 1.  */
+  i1 = find_interval (XSTRING (s1)->intervals, 1);
+  i2 = find_interval (XSTRING (s2)->intervals, 1);
+
+  while (pos < end)
+    {
+      /* Determine how far we can go before we reach the end of I1 or I2.  */
+      int len1 = (i1 != 0 ? INTERVAL_LAST_POS (i1) : end) - pos;
+      int len2 = (i2 != 0 ? INTERVAL_LAST_POS (i2) : end) - pos;
+      int distance = min (len1, len2);
+
+      /* If we ever find a mismatch between the strings,
+	 they differ.  */
+      if (! intervals_equal (i1, i2))
+	return 0;
+
+      /* Advance POS till the end of the shorter interval,
+	 and advance one or both interval pointers for the new position.  */
+      pos += distance;
+      if (len1 == distance)
+	i1 = next_interval (i1);
+      if (len2 == distance)
+	i2 = next_interval (i2);
+    }
+  return 1;
 }
 
 #endif /* USE_TEXT_PROPERTIES */
