@@ -722,7 +722,10 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
   return marker;
 }
 
-/* This is called during garbage collection,
+/* Remove MARKER from the chain of whatever buffer it is in.
+   Leave it "in no buffer".
+
+   This is called during garbage collection,
    so we must be careful to ignore and preserve mark bits,
    including those in chain fields of markers.  */
 
