@@ -120,8 +120,7 @@
 ;;; Thanks to Harald Hanche-Olsen, Michael Ernst, David Loeffler, and
 ;;; Noah Friedman for suggestions and bug reports.
 
-;;; To use this file, add mail-abbrevs-setup as a hook 
-;;; to the hook list `mail-setup-hook'.
+;;; To use this package, do (add-hook 'mail-setup-hook 'mail-abbrevs-setup).
 
 ;;; Code:
 
