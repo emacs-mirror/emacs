@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.27 2002/11/06 00:45:03 karl Exp $
+@comment $Id: info.texi,v 1.28 2003/07/03 01:59:39 teirllm Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -51,7 +51,7 @@ license to the document, as described in section 6 of the license.
 @end titlepage
 
 @ifnottex
-@node Top, Getting Started, (dir), (dir)
+@node Top
 @top Info: An Introduction
 
 The GNU Project distributes most of its on-line manuals in the
@@ -132,7 +132,7 @@ the screen.
 * Help-Q::              Quitting Info
 @end menu
 
-@node Help-Small-Screen, Help, Getting Started, Getting Started
+@node Help-Small-Screen
 @section Starting Info on a Small Screen
 
 @ifnotinfo
