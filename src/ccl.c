@@ -1785,7 +1785,8 @@ setup_ccl_program (ccl, ccl_prog)
 #ifdef emacs
 
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
-  "Return t if OBJECT is a CCL program name or a compiled CCL program code.")
+  "Return t if OBJECT is a CCL program name or a compiled CCL program code.
+See the documentation of  `define-ccl-program' for the detail of CCL program.")
   (object)
      Lisp_Object object;
 {
@@ -1817,7 +1818,9 @@ REGISTERS is a vector of [R0 R1 ... R7] where RN is an initial value\n\
  of Nth register.\n\
 \n\
 As side effect, each element of REGISTERS holds the value of\n\
- corresponding register after the execution.")
+ corresponding register after the execution.\n\
+\n\
+See the documentation of `define-ccl-program' for the detail of CCL program.")
   (ccl_prog, reg)
      Lisp_Object ccl_prog, reg;
 {
@@ -1869,7 +1872,9 @@ CCL-PROGRAM on exit.\n\
 It returns the contents of write buffer as a string,\n\
  and as side effect, STATUS is updated.\n\
 If the optional 5th arg UNIBYTE-P is non-nil, the returned string\n\
-is a unibyte string.  By default it is a multibyte string.")
+is a unibyte string.  By default it is a multibyte string.\n\
+\n\
+See the documentation of `define-ccl-program' for the detail of CCL program.")
   (ccl_prog, status, str, contin, unibyte_p)
      Lisp_Object ccl_prog, status, str, contin, unibyte_p;
 {
