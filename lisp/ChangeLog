@@ -1,3 +1,7 @@
+2002-07-09  Juanma Barranquero  <lektu@terra.es>
+
+	* faces.el (face-id): Fix typo.
+
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-decode-babyl-format): Disable undo
@@ -45,7 +49,7 @@
 	* progmodes/perl-mode.el (perl-mode-abbrev-table): New variable.
 	Set it up as an abbrev-table for Perl mode.
 
-2002-06-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* dired.el (dired-find-file): Bind find-file-run-dired around the
 	call to find-file.  From Dan Nicolaescu <dann@ics.uci.edu>.
@@ -81,7 +85,7 @@
 	* emulation/viper-cmd.el (viper-smart-suffix-list): Fix typo.
 	(viper-ask-level): Fix typo.
 
-2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-06-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
 	the table to contain correct characters.
@@ -186,12 +190,12 @@
 
 	* Version 21.2 released.
 
-2002-03-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-03-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt
 	to match the actual code.
 
-2002-03-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-03-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* image.el (image-type-from-file-header): Make temporary buffer
 	unibyte.
@@ -224,7 +228,7 @@
 	* newcomment.el (comment-forward): Use forward-comment to skip
 	over whitespace (or comments) even when comment-use-syntax is nil.
 
-2002-03-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-03-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* textmodes/tildify.el (tildify-string-alist): Entry for xml-mode
 	added.  From Milan Zamazal <pdm@zamazal.org>.
