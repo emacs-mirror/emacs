@@ -364,7 +364,7 @@ This regular expression should start with a `^' character.")
 ;; utilities
 
 (defun Man-init-defvars ()
-  "Used for initialising variables based on the value of `window-system'.
+  "Used for initialising variables based on display's color support.
 This is necessary if one wants to dump man.el with Emacs."
 
   ;; The following is necessary until fonts are implemented on
@@ -634,23 +634,22 @@ See the variable `Man-notify-method' for the different notification behaviors."
       (save-excursion
 	(let ((frame (make-frame Man-frame-parameters)))
 	  (set-window-buffer (frame-selected-window frame) man-buffer)
-          (set-window-dedicated-p (frame-selected-window frame) t))))
+          (set-window-dedicated-p (frame-selected-window frame) t)
+	  (or (display-multi-frame-p frame)
+	      (select-frame frame)))))
      ((eq Man-notify-method 'pushy)
       (switch-to-buffer man-buffer))
      ((eq Man-notify-method 'bully)
-      (and window-system
-	   (frame-live-p saved-frame)
+      (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer)
       (delete-other-windows))
      ((eq Man-notify-method 'aggressive)
-      (and window-system
-	   (frame-live-p saved-frame)
+      (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer))
      ((eq Man-notify-method 'friendly)
-      (and window-system
-	   (frame-live-p saved-frame)
+      (and (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (display-buffer man-buffer 'not-this-window))
      ((eq Man-notify-method 'polite)
