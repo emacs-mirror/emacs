@@ -882,112 +882,134 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	    (if (or find-file-existing-other-name find-file-visit-truename)
 		(setq buf other))))
       (if buf
-	  (or nowarn
-	      (verify-visited-file-modtime buf)
-	      (cond ((not (file-exists-p filename))
-		     (error "File %s no longer exists!" filename))
-		    ;; Certain files should be reverted automatically
-		    ;; if they have changed on disk and not in the buffer.
-		    ((and (not (buffer-modified-p buf))
-			  (let ((tail revert-without-query)
-				(found nil))
-			    (while tail
-			      (if (string-match (car tail) filename)
-				  (setq found t))
-			      (setq tail (cdr tail)))
-			    found))
-		     (with-current-buffer buf
-		      (message "Reverting file %s..." filename)
-		      (revert-buffer t t)
-		      (message "Reverting file %s...done" filename)))
-		    ((yes-or-no-p
-		      (if (string= (file-name-nondirectory filename)
-				   (buffer-name buf))
+	  (progn
+	    (or nowarn
+		(verify-visited-file-modtime buf)
+		(cond ((not (file-exists-p filename))
+		       (error "File %s no longer exists!" filename))
+		      ;; Certain files should be reverted automatically
+		      ;; if they have changed on disk and not in the buffer.
+		      ((and (not (buffer-modified-p buf))
+			    (let ((tail revert-without-query)
+				  (found nil))
+			      (while tail
+				(if (string-match (car tail) filename)
+				    (setq found t))
+				(setq tail (cdr tail)))
+			      found))
+		       (with-current-buffer buf
+			 (message "Reverting file %s..." filename)
+			 (revert-buffer t t)
+			 (message "Reverting file %s...done" filename)))
+		      ((yes-or-no-p
+			(if (string= (file-name-nondirectory filename)
+				     (buffer-name buf))
+			    (format
+			     (if (buffer-modified-p buf)
+				 "File %s changed on disk.  Discard your edits? "
+			       "File %s changed on disk.  Reread from disk? ")
+			     (file-name-nondirectory filename))
 			  (format
 			   (if (buffer-modified-p buf)
-	"File %s changed on disk.  Discard your edits? "
-	"File %s changed on disk.  Reread from disk? ")
-			   (file-name-nondirectory filename))
-			(format
-			 (if (buffer-modified-p buf)
-      "File %s changed on disk.  Discard your edits in %s? "
-      "File %s changed on disk.  Reread from disk into %s? ")
-			 (file-name-nondirectory filename)
-			 (buffer-name buf))))
-		     (with-current-buffer buf
-		       (revert-buffer t t)))
-		    ((not (eq rawfile (not (null find-file-literally))))
-		     (if rawfile
-			 (message "File is already visited, and not literally")
-		       (message "File is already visited, and visited literally")))))
-	(save-excursion
-;;; The truename stuff makes this obsolete.
-;;;	  (let* ((link-name (car (file-attributes filename)))
-;;;		 (linked-buf (and (stringp link-name)
-;;;				  (get-file-buffer link-name))))
-;;;	    (if (bufferp linked-buf)
-;;;		(message "Symbolic link to file in buffer %s"
-;;;			 (buffer-name linked-buf))))
+			       "File %s changed on disk.  Discard your edits in %s? "
+			     "File %s changed on disk.  Reread from disk into %s? ")
+			   (file-name-nondirectory filename)
+			   (buffer-name buf))))
+		       (with-current-buffer buf
+			 (revert-buffer t t)))))
+	    (when (not (eq rawfile (not (null find-file-literally))))
+	      (with-current-buffer buf
+		(if (buffer-modified-p)
+		    (if (y-or-n-p (if rawfile
+				      "Save file and revisit literally? "
+				    "Save file and revisit non-literally? "))
+			(progn
+			  (save-buffer)
+			  (revert-buffer t t))
+		      (if (y-or-n-p (if rawfile
+					"Discard your edits and revisit file literally? "
+				      "Discard your edits and revisit file non-literally? "))
+			  (find-file-noselect-1 buf filename nowarn
+						rawfile truename number)
+			(error (if rawfile "File already visited non-literally"
+				 "File already visited literally"))))
+		  (if (y-or-n-p (if rawfile
+				    "Revisit file literally? "
+				  "Revisit file non-literally? "))
+		      (find-file-noselect-1 buf filename nowarn
+					    rawfile truename number)
+		    (error (if rawfile "File already visited non-literally"
+			     "File already visited literally")))))))
+	(progn
 	  (setq buf (create-file-buffer filename))
 	  (set-buffer-major-mode buf)
-	  (set-buffer buf)
-	  (erase-buffer)
-	  (if rawfile
-	      (condition-case ()
-		  (insert-file-contents-literally filename t)
-		(file-error
-		 (when (and (file-exists-p filename)
-			    (not (file-readable-p filename)))
-		   (kill-buffer buf)
-		   (signal 'file-error (list "File is not readable"
-					     filename)))
-		 ;; Unconditionally set error
-		 (setq error t)))
-	    (condition-case ()
-		(insert-file-contents filename t)
-	      (file-error
-	       (when (and (file-exists-p filename)
-			  (not (file-readable-p filename)))
-		 (kill-buffer buf)
-		 (signal 'file-error (list "File is not readable"
-					   filename)))
-	       ;; Run find-file-not-found-hooks until one returns non-nil.
-	       (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
-		   ;; If they fail too, set error.
-		   (setq error t)))))
-	  ;; Find the file's truename, and maybe use that as visited name.
-	  (setq buffer-file-truename truename)
-	  (setq buffer-file-number number)
-	  ;; On VMS, we may want to remember which directory in a search list
-	  ;; the file was found in.
-	  (and (eq system-type 'vax-vms)
-	       (let (logical)
-		 (if (string-match ":" (file-name-directory filename))
-		     (setq logical (substring (file-name-directory filename)
-					      0 (match-beginning 0))))
-		 (not (member logical find-file-not-true-dirname-list)))
-	       (setq buffer-file-name buffer-file-truename))
-	  (if find-file-visit-truename
-	      (setq buffer-file-name
-		    (setq filename
-			  (expand-file-name buffer-file-truename))))
-	  ;; Set buffer's default directory to that of the file.
-	  (setq default-directory (file-name-directory filename))
-	  ;; Turn off backup files for certain file names.  Since
-	  ;; this is a permanent local, the major mode won't eliminate it.
-	  (and (not (funcall backup-enable-predicate buffer-file-name))
-	       (progn
-		 (make-local-variable 'backup-inhibited)
-		 (setq backup-inhibited t)))
-	  (if rawfile
-	      (progn
-		(set-buffer-multibyte nil)
-		(setq buffer-file-coding-system 'no-conversion)
-		(make-local-variable 'find-file-literally)
-		(setq find-file-literally t))
-	    (after-find-file error (not nowarn))
-	    (setq buf (current-buffer)))))
+	  (find-file-noselect-1 buf filename nowarn rawfile truename number)))
       buf)))
+
+(defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
+  (let ((inhibit-read-only t))
+    (with-current-buffer buf
+      (kill-local-variable 'find-file-literally)
+      (setq buffer-file-coding-system nil)
+      (erase-buffer)
+      (and (default-value 'enable-multibyte-characters)
+	   (not rawfile)
+	   (set-buffer-multibyte t))
+      (if rawfile
+	  (condition-case ()
+	      (insert-file-contents-literally filename t)
+	    (file-error
+	     (when (and (file-exists-p filename)
+			(not (file-readable-p filename)))
+	       (kill-buffer buf)
+	       (signal 'file-error (list "File is not readable"
+					 filename)))
+	     ;; Unconditionally set error
+	     (setq error t)))
+	(condition-case ()
+	    (insert-file-contents filename t)
+	  (file-error
+	   (when (and (file-exists-p filename)
+		      (not (file-readable-p filename)))
+	     (kill-buffer buf)
+	     (signal 'file-error (list "File is not readable"
+				       filename)))
+	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
+	       ;; If they fail too, set error.
+	       (setq error t)))))
+      ;; Find the file's truename, and maybe use that as visited name.
+      (setq buffer-file-truename truename)
+      (setq buffer-file-number number)
+      ;; On VMS, we may want to remember which directory in a search list
+      ;; the file was found in.
+      (and (eq system-type 'vax-vms)
+	   (let (logical)
+	     (if (string-match ":" (file-name-directory filename))
+		 (setq logical (substring (file-name-directory filename)
+					  0 (match-beginning 0))))
+	     (not (member logical find-file-not-true-dirname-list)))
+	   (setq buffer-file-name buffer-file-truename))
+      (if find-file-visit-truename
+	  (setq buffer-file-name
+		(setq filename
+		      (expand-file-name buffer-file-truename))))
+      ;; Set buffer's default directory to that of the file.
+      (setq default-directory (file-name-directory filename))
+      ;; Turn off backup files for certain file names.  Since
+      ;; this is a permanent local, the major mode won't eliminate it.
+      (and (not (funcall backup-enable-predicate buffer-file-name))
+	   (progn
+	     (make-local-variable 'backup-inhibited)
+	     (setq backup-inhibited t)))
+      (if rawfile
+	  (progn
+	    (set-buffer-multibyte nil)
+	    (setq buffer-file-coding-system 'no-conversion)
+	    (make-local-variable 'find-file-literally)
+	    (setq find-file-literally t))
+	(after-find-file error (not nowarn))
+	(setq buf (current-buffer))))))
 
 (defun insert-file-contents-literally (filename &optional visit beg end replace)
   "Like `insert-file-contents', but only reads in the file literally.
