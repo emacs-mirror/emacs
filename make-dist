@@ -253,7 +253,7 @@ echo "Updating version number in README"
    '$1 " " $2 " " $3 " " $4 " " $5 == "This directory tree holds version" { $6 = version; print $0 }
     $1 " " $2 " " $3 " " $4 " " $5 != "This directory tree holds version"' \
    version=${version} README > tmp.README
- mv tmp.README README)
+ mv -f tmp.README README)
 
 
 echo "Creating subdirectories"
