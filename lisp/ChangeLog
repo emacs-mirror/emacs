@@ -1,5 +1,8 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* image.el (image-type-regexps): For JPEG files, use a regexp
+	derived from the JPEG spec.
+	
 	* image.el (image-type-regexps): Use `\`' instead of `^' in
 	most regular expressions.
 
