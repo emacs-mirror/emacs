@@ -1367,7 +1367,7 @@ Creates a buffer if necessary."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
-  ;; Bind `find-file-run-dired' so that the command works on directories 
+  ;; Bind `find-file-run-dired' so that the command works on directories
   ;; too, independent of the user's setting.
   (let ((find-file-run-dired t))
     (find-file (dired-get-file-for-visit))))
@@ -1487,13 +1487,13 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
     (cond
      ((null file)
       nil)
+     ((eq localp 'verbatim)
+      file)
      ((and (not no-error-if-not-filep)
 	   (save-excursion
 	     (beginning-of-line)
 	     (looking-at dired-re-dir)))
       (error "Cannot operate on `.' or `..'"))
-     ((eq localp 'verbatim)
-      file)
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
      (already-absolute
@@ -1519,7 +1519,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
       (concat (dired-current-directory localp) file)))))
 
 (defun dired-string-replace-match (regexp string newtext
-					  &optional literal global)
+                                   &optional literal global)
   "Replace first match of REGEXP in STRING with NEWTEXT.
 If it does not match, nil is returned instead of the new string.
 Optional arg LITERAL means to take NEWTEXT literally.
