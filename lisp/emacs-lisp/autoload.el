@@ -155,38 +155,36 @@ are used."
 		    (search-forward generate-autoload-cookie)
 		    (skip-chars-forward " \t")
 		    (setq done-any t)
-		    (let ((begin (save-excursion (set-buffer outbuf)
-						 (point))))
-		      (if (eolp)
-			  ;; Read the next form and make an autoload.
-			  (let* ((form (prog1 (read (current-buffer))
-					 (forward-line 1)))
-				 (autoload (make-autoload form load-name))
-				 (doc-string-elt (get (car-safe form)
-						      'doc-string-elt)))
-			    (if autoload
-				(setq autoloads-done (cons (nth 1 form)
-							   autoloads-done))
-			      (setq autoload form))
-			    (if (and doc-string-elt
-				     (stringp (nth doc-string-elt autoload)))
-				;; We need to hack the printing because the
-				;; doc-string must be printed specially for
-				;; make-docfile (sigh).
-				(let* ((p (nthcdr (1- doc-string-elt)
-						  autoload))
-				       (elt (cdr p)))
-				  (setcdr p nil)
-				  (princ "\n(" outbuf)
-				  (let ((print-escape-newlines t))
-				    (mapcar (function (lambda (elt)
-							(prin1 elt outbuf)
-							(princ " " outbuf)))
-					    autoload))
-				  (princ "\"\\\n" outbuf)
-				  (let ((begin (save-excursion
-						 (set-buffer outbuf)
-						 (point))))
+		    (if (eolp)
+			;; Read the next form and make an autoload.
+			(let* ((form (prog1 (read (current-buffer))
+				       (forward-line 1)))
+			       (autoload (make-autoload form load-name))
+			       (doc-string-elt (get (car-safe form)
+						    'doc-string-elt)))
+			  (if autoload
+			      (setq autoloads-done (cons (nth 1 form)
+							 autoloads-done))
+			    (setq autoload form))
+			  (if (and doc-string-elt
+				   (stringp (nth doc-string-elt autoload)))
+			      ;; We need to hack the printing because the
+			      ;; doc-string must be printed specially for
+			      ;; make-docfile (sigh).
+			      (let* ((p (nthcdr (1- doc-string-elt)
+						autoload))
+				     (elt (cdr p)))
+				(setcdr p nil)
+				(princ "\n(" outbuf)
+				(let ((print-escape-newlines t))
+				  (mapcar (function (lambda (elt)
+						      (prin1 elt outbuf)
+						      (princ " " outbuf)))
+					  autoload))
+				(princ "\"\\\n" outbuf)
+				(let ((begin (save-excursion
+					       (set-buffer outbuf)
+					       (point))))
 				  (princ (substring
 					  (prin1-to-string (car elt)) 1)
 					 outbuf)
@@ -206,19 +204,13 @@ are used."
 					    (prin1-to-string (cdr elt))
 					    1)
 					   outbuf))
-				  (terpri outbuf))
+				  (terpri outbuf)))
+			    (let ((print-escape-newlines t))
 			      (print autoload outbuf)))
-			;; Copy the rest of the line to the output.
-			(let ((begin (point)))
-			  (forward-line 1)
-			  (princ (buffer-substring begin (point)) outbuf)))
-		      (save-excursion
-			(set-buffer outbuf)
-			;; Replace literal ^Ls with \f in what we just wrote.
-			(save-excursion
-			  (while (search-backward "\f" begin t)
-			    (delete-char 1)
-			    (insert "\\f"))))))
+			  ;; Copy the rest of the line to the output.
+			  (let ((begin (point)))
+			    (forward-line 1)
+			    (princ (buffer-substring begin (point)) outbuf)))))
 		   ((looking-at ";")
 		    ;; Don't read the comment.
 		    (forward-line 1))
