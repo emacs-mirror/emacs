@@ -140,10 +140,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (!STRINGP (prompt))
     prompt = build_string ("");
 
-  /* Emacs in -batch mode calls minibuffer: print the prompt.  */
-  if (noninteractive && STRINGP (prompt))
-    printf ("%s", XSTRING (prompt)->data);
-
   if (!enable_recursive_minibuffers
       && minibuf_level > 0
       && (EQ (selected_window, minibuf_window)))
