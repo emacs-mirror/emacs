@@ -1031,6 +1031,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "a" 'vc-update-change-log)
       (define-key vc-prefix-map "c" 'vc-cancel-version)
       (define-key vc-prefix-map "d" 'vc-directory)
+      (define-key vc-prefix-map "g" 'vc-annotate)
       (define-key vc-prefix-map "h" 'vc-insert-headers)
       (define-key vc-prefix-map "i" 'vc-register)
       (define-key vc-prefix-map "l" 'vc-print-log)
@@ -1049,6 +1050,7 @@ Returns t if checkout was successful, nil otherwise."
   ;;  '("Show Files under VC" . (vc-directory t)))
   (define-key vc-menu-map [vc-directory] '("Show Locked Files" . vc-directory))
   (define-key vc-menu-map [separator1] '("----"))
+  (define-key vc-menu-map [vc-annotate] '("Annotate" . vc-annotate))
   (define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
   (define-key vc-menu-map [vc-version-other-window]
     '("Show Other Version" . vc-version-other-window))
@@ -1067,6 +1069,7 @@ Returns t if checkout was successful, nil otherwise."
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
 (put 'vc-rename-file 'menu-enable 'vc-mode)
+(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
 (put 'vc-version-other-window 'menu-enable 'vc-mode)
 (put 'vc-diff 'menu-enable 'vc-mode)
 (put 'vc-update-change-log 'menu-enable
