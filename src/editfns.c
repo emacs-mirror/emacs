@@ -579,7 +579,7 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
-      if (pos < BEGV || pos >= ZV)
+      if (XINT (pos) < BEGV || XINT (pos) >= ZV)
 	return Qnil;
       
       pos_byte = CHAR_TO_BYTE (XINT (pos));
@@ -614,7 +614,7 @@ is returned as a character.")
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-      if (pos <= BEGV || pos > ZV)
+      if (XINT (pos) <= BEGV || XINT (pos) > ZV)
 	return Qnil;
 
       pos_byte = CHAR_TO_BYTE (XINT (pos));
