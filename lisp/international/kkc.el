@@ -102,7 +102,13 @@ This string is shown at mode line when users are in KKC mode.")
     (define-key map [?\C-\ ] 'kkc-first-char-only)
     (define-key map [delete] 'kkc-cancel)
     (define-key map [return] 'kkc-terminate)
-    (append map '((t . kkc-non-kkc-command))))
+    (let ((meta-map (make-sparse-keymap)))
+      (define-key map (char-to-string meta-prefix-char) meta-map)
+      (define-key map [escape] meta-map))
+    (define-key map (vector meta-prefix-char t) 'kkc-non-kkc-command)
+    ;; At last, define default key binding.
+    (define-key map [t] 'kkc-non-kkc-command)
+    map)
   "Keymap for KKC (Kana Kanji Conversion) mode.")
 
 (defun kkc-mode ()
@@ -262,7 +268,9 @@ Optional arg KKC-MODE-EXIT-FUNCTION if non-nil is called on exiting KKC mode."
   "Exit from KKC mode by fixing the current conversion.
 After that, handle the event which invoked this command."
   (interactive)
-  (setq unread-command-events (list last-input-event))
+  (let* ((key (this-command-keys))
+	 (keylist (listify-key-sequence key)))
+    (setq unread-command-events (append keylist unread-command-events)))
   (kkc-terminate))
 
 (defun kkc-cancel ()
