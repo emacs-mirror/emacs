@@ -1,3 +1,11 @@
+2003-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (init_intervals, init_symbol, init_marker):
+	Don't preallocate anything.
+	(Fgarbage_collect, mark_object): Ignore the markbit.
+
+	* bytecode.c (mark_byte_stack, unmark_byte_stack): Ignore the markbit.
+
 2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* xdisp.c (pint2hrstr): New function.
@@ -12,8 +20,7 @@
 
 2003-09-07  Eli Zaretskii  <eliz@elta.co.il>
 
-	* editfns.c (region_limit): Support any non-zero value of
-	BEGINNINGP.
+	* editfns.c (region_limit): Support any non-zero value of BEGINNINGP.
 
 2003-09-03  Kim F. Storm  <storm@cua.dk>
 
@@ -54,9 +61,9 @@
 
 2003-08-29  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
-	* xdisp.c (redisplay_internal): Fix change of 2003-04-30.  Don't
-	tell redisplay display is accurate when it's actually been paused
-	for pending input.
+	* xdisp.c (redisplay_internal): Fix change of 2003-04-30.
+	Don't tell redisplay display is accurate when it's actually been
+	paused for pending input.
 
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -65,7 +72,7 @@
 
 	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
 	(Fkill_local_variable, Fmake_variable_frame_local)
-	(Flocal_variable_p, Flocal_variable_if_set_p): 
+	(Flocal_variable_p, Flocal_variable_if_set_p):
 	Use indirect_variable to trace thru variable aliases.
 
 	* config.in: Updated.
@@ -82,7 +89,7 @@
 
 2003-08-28  David Abrahams  <dave@boost-consulting.com>  (tiny change)
 
-	* coding.c (decode_coding_iso2022): Initialized local variable c2.
+	* coding.c (decode_coding_iso2022): Initialize local variable c2.
 	(decode_coding_sjis_big5): Likewise.
 
 2003-08-27  Jason Rumney  <jasonr@gnu.org>
@@ -100,13 +107,11 @@
 
 2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
 
-	* term.c (term_init): Remove `const' from buffer_size's
-	declaration.
+	* term.c (term_init): Remove `const' from buffer_size's declaration.
 
 	* Makefile.in (msdos.o): Depend on intervals.h.
 
-	* msdos.c: Include intervals.h, since STRING_INTERVALS requires
-	that.
+	* msdos.c: Include intervals.h, since STRING_INTERVALS requires that.
 
 2003-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -146,7 +151,7 @@
 	(xmalloc, xfree): Declare.
 	(malloc): Don't declare.
 
-	* Makefile.in (LWLIB_OPTIONS): Removed (unused).
+	* Makefile.in (LWLIB_OPTIONS): Remove (unused).
 	(alloca.o): Remove obsolete stuff concerning alloca.s.  Depend on
 	atimer.h, blockinput.h.
 
@@ -175,8 +180,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increase to 1100000.
 
-	* buffer.c (Fmove_overlay): Set overlay's next pointer
-	unconditionally.
+	* buffer.c (Fmove_overlay): Set overlay's next pointer unconditionally.
 
 2003-08-16  Richard M. Stallman  <rms@gnu.org>
 
@@ -190,7 +194,7 @@
 2003-08-16  Juri Linkov  <juri@jurta.org>  (tiny change)
 
 	* syntax.c (Fforward_word): Argument changed to optional.
-        Set default value to 1.
+	Set default value to 1.
 
 2003-08-15  Kenichi Handa  <handa@m17n.org>
 
@@ -248,8 +252,7 @@
 
 2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
 
-	* xfns.c (xic_set_preeditarea): Add the left fringe width to
-	spot.x.
+	* xfns.c (xic_set_preeditarea): Add the left fringe width to spot.x.
 
 2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
 
