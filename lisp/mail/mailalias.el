@@ -170,7 +170,7 @@ An address can contain spaces if it is quoted with double-quotes."
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p "~/.mailrc")
+	(if (file-exists-p (or (getenv "MAILRC") "~/.mailrc"))
 	    (build-mail-aliases))))
   ;; strip garbage from front and end
   (if (string-match "\\`[ \t\n,]+" definition)
