@@ -6205,11 +6205,13 @@ w32_handle_tool_bar_click (f, button_event)
 
       XSETFRAME (frame, f);
       event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = Fcons (frame, Fcons (Qtool_bar, Qnil));
+      event.frame_or_window = frame;
+      event.arg = frame;
       kbd_buffer_store_event (&event);
 
       event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = Fcons (frame, key);
+      event.frame_or_window = frame;
+      event.arg = key;
       event.modifiers = button_event->modifiers;
       kbd_buffer_store_event (&event);
       last_tool_bar_item = -1;
@@ -7622,7 +7624,8 @@ w32_read_socket (sd, bufp, numchars, expected)
 
               any_help_event_p = 1;
               bufp->kind = HELP_EVENT;
-              bufp->frame_or_window = Fcons (frame, help_echo);
+              bufp->frame_or_window = frame;
+              bufp->arg = help_echo;
               ++bufp, ++count, --numchars;
             }
           break;
@@ -7952,7 +7955,8 @@ w32_read_socket (sd, bufp, numchars, expected)
                 {
                   XSETFRAME (frame, f);
                   bufp->kind = HELP_EVENT;
-                  bufp->frame_or_window = Fcons (frame, Qnil);
+                  bufp->frame_or_window = frame;
+                  bufp->arg = Qnil;
                   ++bufp, ++count, --numchars;
                 }
             }
