@@ -31,6 +31,9 @@
 #undef BROKEN_TIOCGWINSZ
 #define NEED_SIOCTL
 
+/* Override the #undef in isc2-2.h.  */
+#define HAVE_SELECT
+
 /* select works okay on the X ptys, but not on the serial port.  */
 #define BROKEN_SELECT_NON_X
 
