@@ -1043,11 +1043,14 @@ set_internal (symbol, newval, buf, bindflag)
 	 currently cached, or if it's a Lisp_Buffer_Local_Value and
 	 we're looking at the default value, the cache is invalid; we
 	 need to write it out, and find the new CURRENT-ALIST-ELEMENT.  */
-      if (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
-	  || !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)
-	  || (BUFFER_LOCAL_VALUEP (valcontents)
-	      && EQ (XCAR (current_alist_element),
-		     current_alist_element)))
+      if ((XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer
+	   && (buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
+	       || (BUFFER_LOCAL_VALUEP (valcontents)
+		   && EQ (XCAR (current_alist_element),
+			  current_alist_element))))
+	  ||
+	  (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
+	   && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame)))
 	{
 	  /* Write out the cached value for the old buffer; copy it
 	     back to its alist element.  This works if the current
