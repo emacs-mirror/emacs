@@ -240,18 +240,14 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: subdirs.el compile-$(SHELLTYPE) doit
+compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
 
-compile-CMD:
+compile-files-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
-	for %f in ($(COMPILE_FIRST)) do \
-	  if not exist %f \
-	    $(emacs) -f batch-byte-compile-if-not-done %f
-	for %f in (. $(WINS)) do for %g in (%f/*.el) do \
-	  if not exist %f/%g \
-	    $(emacs) -f batch-byte-compile-if-not-done %f/%g
+	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 
-compile-SH:
+compile-files-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
@@ -338,7 +334,7 @@ bootstrap-clean-SH:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: update-subdirs autoloads compile finder-data custom-deps
+bootstrap: autoloads compile-files finder-data custom-deps
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
