@@ -1885,9 +1885,11 @@ This happens for interactive use with M-x.")
   GCPRO2 (filename, linkname);
   CHECK_STRING (filename, 0);
   CHECK_STRING (linkname, 1);
-#if 0 /* This made it impossible to make a link to a relative name.  */
-  filename = Fexpand_file_name (filename, Qnil);
-#endif
+  /* If the link target has a ~, we must expand it to get
+     a truly valid file name.  Otherwise, do not expand;
+     we want to permit links to relative file names.  */
+  if (XSTRING (filename)->data[0] == '~')
+    filename = Fexpand_file_name (filename, Qnil);
   linkname = Fexpand_file_name (linkname, Qnil);
 
   /* If the file name has special constructs in it,
@@ -3431,7 +3433,12 @@ DIR defaults to current buffer's directory default.")
   if (!NILP (tem) && !NILP (defalt))
     return defalt;
   if (XSTRING (val)->size == 0 && NILP (insdef))
-    return defalt;
+    {
+      if (!NILP (defalt))
+	return defalt;
+      else
+	error ("No default file name");
+    }
   return Fsubstitute_in_file_name (val);
 }
 
