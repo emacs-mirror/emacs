@@ -4411,7 +4411,8 @@ This does code conversion according to the value of\n\
   Lisp_Object visit_file;
   Lisp_Object annotations;
   Lisp_Object encoded_filename;
-  int visiting, quietly;
+  int visiting = (EQ (visit, Qt) || STRINGP (visit));
+  int quietly = !NILP (visit);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
 #ifdef DOS_NT
@@ -4419,7 +4420,7 @@ This does code conversion according to the value of\n\
 #endif /* DOS_NT */
   struct coding_system coding;
 
-  if (current_buffer->base_buffer && ! NILP (visit))
+  if (current_buffer->base_buffer && visiting)
     error ("Cannot do file visiting in an indirect buffer");
 
   if (!NILP (start) && !STRINGP (start))
@@ -4530,9 +4531,6 @@ This does code conversion according to the value of\n\
   else
     visit_file = filename;
   UNGCPRO;
-
-  visiting = (EQ (visit, Qt) || STRINGP (visit));
-  quietly = !NILP (visit);
 
   annotations = Qnil;
 
