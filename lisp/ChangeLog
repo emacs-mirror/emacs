@@ -1,5 +1,16 @@
 2001-04-23  John Wiegley  <johnw@gnu.org>
 
+	* eshell/em-unix.el (eshell/diff): Fixed problems that were
+	occurring with Emacs 21's diff.el/compile.el interaction layer.
+
+2001-04-23  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* eshell/esh-cmd.el (eshell-find-alias-function): Return t in the
+	case where the function was defined in a file, but not part of an
+	eshell module.
+
+2001-04-23  John Wiegley  <johnw@gnu.org>
+
 	* eshell/em-smart.el (eshell-smart-redisplay): Added some safety
 	code to work around a redisplay problem I've been having.
 
