@@ -1747,7 +1747,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
-  if (commandflag >= 0 && !input_pending && !detect_input_pending ())
+  if (commandflag >= 0 && !input_pending
+      && !detect_input_pending_run_timers (0))
     redisplay ();
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
@@ -1770,7 +1771,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0
-      && !detect_input_pending ())
+      && !detect_input_pending_run_timers (0))
     {
       c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
       if (! NILP (c))
@@ -1856,7 +1857,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (commandflag != 0
       && auto_save_interval > 0
       && num_nonmacro_input_chars - last_auto_save > max (auto_save_interval, 20)
-      && !detect_input_pending ())
+      && !detect_input_pending_run_timers (0))
     {
       Fdo_auto_save (Qnil, Qnil);
       /* Hooks can actually change some buffers in auto save.  */
@@ -1916,7 +1917,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      /* If we have auto-saved and there is still no input
 		 available, garbage collect if there has been enough
 		 consing going on to make it worthwhile.  */
-	      if (!detect_input_pending ()
+	      if (!detect_input_pending_run_timers (0)
 		  && consing_since_gc > gc_cons_threshold / 2)
 		Fgarbage_collect ();
 
@@ -2027,7 +2028,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  non_reread:
 
   /* Now that we have read an event, Emacs is not idle--
-     unless the event was a timer event.  */
+     unless the event was a timer event (not used now).  */
   if (! (CONSP (c) && EQ (XCONS (c)->car, Qtimer_event)))
     timer_stop_idle ();
 
@@ -2036,7 +2037,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (NILP (c))
     {
       if (commandflag >= 0
-	  && !input_pending && !detect_input_pending ())
+	  && !input_pending && !detect_input_pending_run_timers (0))
 	redisplay ();
 
       goto wrong_kboard;
@@ -2354,7 +2355,9 @@ static int
 readable_events (do_timers_now)
      int do_timers_now;
 {
-  timer_check (do_timers_now);
+  if (do_timers_now)
+    timer_check (do_timers_now);
+
   if (kbd_fetch_ptr != kbd_store_ptr)
     return 1;
 #ifdef HAVE_MOUSE
@@ -2860,6 +2863,7 @@ swallow_events (do_display)
 	  abort ();
 #endif
 	}
+      /* Note that timer_event is currently never used.  */
       else if (event->kind == timer_event)
 	{
 	  Lisp_Object tem, lisp_event;
@@ -2939,8 +2943,11 @@ struct input_event last_timer_event;
    timer is triggering now, return zero seconds.
    If no timer is active, return -1 seconds.
 
-   If a timer is ripe now, either queue a timer-event,
-   or call the timer's handler function here if DO_IT_NOW is nonzero.  */
+   If a timer is ripe, we run it, with quitting turned off.
+
+   DO_IT_NOW is now ignored.  It used to mean that we should
+   run the timer directly instead of queueing a timer-event.
+   Now we always run timers directly.  */
 
 EMACS_TIME
 timer_check (do_it_now)
@@ -3092,10 +3099,13 @@ timer_check (do_it_now)
 	      vector[0] = Qt;
 
 	      /* Run the timer or queue a timer event.  */
-	      if (do_it_now)
+	      if (1)
 		{
 		  Lisp_Object tem, event;
 		  int was_locked = single_kboard;
+		  int count = specpdl_ptr - specpdl;
+
+		  specbind (Qinhibit_quit, Qt);
 
 		  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
 		  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
@@ -3104,6 +3114,8 @@ timer_check (do_it_now)
 		  Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
 		  timers_run++;
 
+		  unbind_to (count, Qnil);
+
 		  /* Resume allowing input from any kboard, if that was true before.  */
 		  if (!was_locked)
 		    any_kboard_state ();
@@ -3111,6 +3123,7 @@ timer_check (do_it_now)
 		  /* Since we have handled the event,
 		     we don't need to tell the caller to wake up and do it.  */
 		}
+#if 0
 	      else
 		{
 		  /* Generate a timer event so the caller will handle it.  */
@@ -3138,6 +3151,7 @@ timer_check (do_it_now)
 		  UNGCPRO;
 		  return nexttime;
 		}
+#endif /* 0 */
 	    }
 	}
       else
@@ -3637,6 +3651,7 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
+      /* Note that timer_event is currently never used.  */
     case timer_event:
       return Fcons (Qtimer_event, Fcons (Fcdr (event->frame_or_window), Qnil));
 
