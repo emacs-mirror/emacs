@@ -63,7 +63,6 @@ init_editfns ()
   char *user_name;
   register unsigned char *p, *q, *r;
   struct passwd *pw;	/* password entry for the current user */
-  extern char *index ();
   Lisp_Object tem;
 
   /* Set up system_name even when dumping.  */
@@ -104,30 +103,9 @@ init_editfns ()
   /* If the user name claimed in the environment vars differs from
      the real uid, use the claimed name to find the full name.  */
   tem = Fstring_equal (Vuser_login_name, Vuser_real_login_name);
-  if (NILP (tem))
-    pw = (struct passwd *) getpwnam (XSTRING (Vuser_login_name)->data);
+  Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid())
+				     : Vuser_login_name);
   
-  p = (unsigned char *) (pw ? USER_FULL_NAME : "unknown");
-  q = (unsigned char *) index (p, ',');
-  Vuser_full_name = make_string (p, q ? q - p : strlen (p));
-  
-#ifdef AMPERSAND_FULL_NAME
-  p = XSTRING (Vuser_full_name)->data;
-  q = (unsigned char *) index (p, '&');
-  /* Substitute the login name for the &, upcasing the first character.  */
-  if (q)
-    {
-      r = (unsigned char *) alloca (strlen (p)
-				    + XSTRING (Vuser_login_name)->size + 1);
-      bcopy (p, r, q - p);
-      r[q - p] = 0;
-      strcat (r, XSTRING (Vuser_login_name)->data);
-      r[q - p] = UPCASE (r[q - p]);
-      strcat (r, q + 1);
-      Vuser_full_name = build_string (r);
-    }
-#endif /* AMPERSAND_FULL_NAME */
-
   p = (unsigned char *) getenv ("NAME");
   if (p)
     Vuser_full_name = build_string (p);
@@ -586,18 +564,55 @@ DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
   "Return the full name of the user logged in, as a string.\n\
 If optional argument UID is an integer, return the full name of the user\n\
-with that uid, or nil if there is no such user.")
+with that uid, or \"unknown\" if there is no such user.
+If UID is a string, return the full name of the user with that login\n\
+name, or \"unknown\" if no such user could be found.")
   (uid)
      Lisp_Object uid;
 {
   struct passwd *pw;
+  register char *p, *q;
+  extern char *index ();
+  Lisp_Object full;
 
   if (NILP (uid))
-    return Vuser_full_name;
+    return Vuser_full_name; 
+  else if (NUMBERP (uid))
+    pw = (struct passwd *) getpwuid (XINT (uid));
+  else if (STRINGP (uid)) 
+    pw = (struct passwd *) getpwnam (XSTRING (uid)->data);
+  else
+    error ("Invalid UID specification");
 
-  CHECK_NUMBER (uid, 0);
-  pw = (struct passwd *) getpwuid (XINT (uid));
-  return (pw ? build_string (pw->pw_gecos) : Qnil);
+  if (!pw)
+    return make_string ("unknown");
+  
+  p = (unsigned char *) USER_FULL_NAME;
+  /* Chop off everything after the first comma. */
+  q = (unsigned char *) index (p, ',');
+  full = make_string (p, q ? q - p : strlen (p));
+  
+#ifdef AMPERSAND_FULL_NAME
+  p = XSTRING (full)->data;
+  q = (unsigned char *) index (p, '&');
+  /* Substitute the login name for the &, upcasing the first character.  */
+  if (q)
+    {
+      register char *r;
+      Lisp_Object login;
+
+      login = Fuser_login_name (make_number (pw->pw_uid));
+      r = (unsigned char *) alloca (strlen (p) + XSTRING (login)->size + 1);
+      bcopy (p, r, q - p);
+      r[q - p] = 0;
+      strcat (r, XSTRING (login)->data);
+      r[q - p] = UPCASE (r[q - p]);
+      strcat (r, q + 1);
+      full = build_string (r);
+    }
+#endif /* AMPERSAND_FULL_NAME */
+
+  return full;
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
