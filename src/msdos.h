@@ -161,7 +161,7 @@ int XMenuAddSelection (Display *, XMenu *, int, int, char *, int, char *);
 void XMenuLocate (Display *, XMenu *, int, int, int, int,
 		  int *, int *, int *, int *);
 int XMenuActivate (Display *, XMenu *, int *, int *, int, int, unsigned,
-		   char **, void (*callback)(char *));
+		   char **, void (*callback)(char *, int, int));
 void XMenuDestroy (Display *, XMenu *);
 
 #endif /* not HAVE_X_WINDOWS */
