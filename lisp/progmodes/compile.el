@@ -987,7 +987,7 @@ NOMESSAGE-REGEXP-ALIST is the nomessage regexp alist to use.
 \`compilation-buffer-name-function', `compilation-enter-directory-regexp-alist',
 \`compilation-leave-directory-regexp-alist', `compilation-file-regexp-alist',
 \ and `compilation-nomessage-regexp-alist', respectively.
-For arg 7-10 a value `t' means an empty alist.
+For arg 7-10 a value t means an empty alist.
 
 If NO-ASYNC is non-nil, start the compilation process synchronously.
 
