@@ -1,7 +1,9 @@
 2002-07-31  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in: Revert some changes from 2002-07-23 because
-	they don't work on MSVC/nmake builds.
+	* makefile.w32-in: Revert some changes from 2002-07-23 because they
+	don't work on MSVC/nmake builds.
+	(update-subdirs-CMD): Generate the right list of subdirectories.  From
+	Tak Ota <Takaaki.Ota@am.sony.com>.
 
 2002-07-30  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
