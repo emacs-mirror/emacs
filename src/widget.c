@@ -900,8 +900,6 @@ EmacsFrameSetCharSize (widget, columns, rows)
   EmacsFrame ew = (EmacsFrame) widget;
   Dimension pixel_width, pixel_height;
   struct frame *f = ew->emacs_frame.frame;
-  Arg al[10];
-  int ac = 0;
   
   if (columns < 3) columns = 3;  /* no way buddy */
 
