@@ -1241,12 +1241,14 @@ automatically when you finish with them.
 and optionally line numbers as well.  Do it like this:
 
 @example
-emacsclient @r{@{}@r{[}+@var{line}@r{]} @var{filename}@r{@}}@dots{}
+emacsclient @r{@{}@r{[}+@var{line}@r{[}@var{column}@r{]}@r{]} @var{filename}@r{@}}@dots{}
 @end example
 
 @noindent
 This tells Emacs to visit each of the specified files; if you specify a
 line number for a certain file, Emacs moves to that line in the file.
+If you specify a column number for a file, Emacs moves to that column
+in the file.
 
   Ordinarily, @code{emacsclient} does not return until you use the
 @kbd{C-x #} command on each of these buffers.  When that happens,
