@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98.2.3 $")
+(defconst byte-compile-version "$Revision: 2.98.2.4 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -683,6 +683,10 @@ otherwise pop it")
 ;;    discard (following one byte & 0x7F) stack entries _underneath_ the top of stack
 ;;    (that is, if the operand = 0x83,  ... X Y Z T  =>  ... T)
 (byte-defop 182 nil byte-discardN)
+;; `byte-discardN-preserve-tos' is a pseudo-op that gets turned into
+;; `byte-discardN' with the high bit in the operand set (by
+;; `byte-compile-lapcode').
+(defconst byte-discardN-preserve-tos byte-discardN)
 
 ;; unused: 182-191
 
@@ -2399,7 +2403,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	    ;; This is true if we should be making a closure instead of
 	    ;; a simple lambda (because some variables from the
 	    ;; containing lexical environment are closed over).
-	    (byte-compile-closure-lexenv-p byte-compile-lexical-environment))
+	    (byte-compile-closure-initial-lexenv-p
+	     byte-compile-lexical-environment))
 	   (byte-compile-current-heap-environment nil)
 	   (byte-compile-current-num-closures 0)
 	   (compiled
@@ -3420,7 +3425,7 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 	 (vinfo (assq var (byte-compile-lforminfo-vars lforminfo)))
 	 (unused (and vinfo (zerop (cadr vinfo)))))
     (unless (and unused (symbolp clause))
-      (when lforminfo
+      (when (and lforminfo (not unused))
 	;; We record the stack position even of dynamic bindings and
 	;; variables in non-stack lexical environments; we'll put
 	;; them in the proper place below.
