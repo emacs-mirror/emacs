@@ -57,6 +57,9 @@ minibuffer.
 
 Preserves case in each replacement if `case-replace' and `case-fold-search'
 are non-nil and FROM-STRING has no uppercase letters.
+\(Preserving case means that if the string matched is all caps, or capitalized,
+then its replacement is upcased or capitalized.)
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 
@@ -133,6 +136,9 @@ before rotating to the next."
   "Replace occurrences of FROM-STRING with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
 are non-nil and FROM-STRING has no uppercase letters.
+\(Preserving case means that if the string matched is all caps, or capitalized,
+then its replacement is upcased or capitalized.)
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
 
