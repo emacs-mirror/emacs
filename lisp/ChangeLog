@@ -1,3 +1,8 @@
+2000-08-20  Miles Bader  <miles@gnu.org>
+
+	* faces.el (face-attr-match-p): Don't return true if ATTRS are
+	merely a subset of FACE's attributes.
+
 2000-08-19  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-output-filter): Save the point with a marker,
