@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.125 $")
+(defconst byte-compile-version "$Revision: 2.126 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3566,9 +3566,13 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (byte-compile-set-symbol-position fun)
     (when (or (> (length form) 4)
 	      (and (eq fun 'defconst) (null (cddr form))))
-      (byte-compile-warn
-       "%s called with %d arguments, but accepts only %s"
-       fun (length (cdr form)) "2-3"))
+      (let ((ncall (length (cdr form))))
+	(byte-compile-warn
+	 "%s called with %d argument%s, but %s %s"
+	 fun ncall
+	 (if (= 1 ncall) "" "s")
+	 (if (< ncall 2) "requires" "accepts only")
+	 "2-3")))
     (when (memq 'free-vars byte-compile-warnings)
       (push var byte-compile-bound-variables)
       (if (eq fun 'defconst)
