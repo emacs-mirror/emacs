@@ -389,6 +389,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       emacs_close (filefd);
       report_file_error ("Searching for program", Fcons (args[0], Qnil));
     }
+
+  /* If program file name starts with /: for quoting a magic name,
+     discard that.  */
+  if (SBYTES (path) > 2 && SREF (path, 0) == '/'
+      && SREF (path, 1) == ':')
+    path = Fsubstring (path, make_number (2), Qnil);
+
   new_argv[0] = SDATA (path);
   if (nargs > 4)
     {
