@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse switches controlling interface with X window system
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -117,9 +117,12 @@
 
 ;; Handle the -xrm option.
 (defun x-handle-xrm-switch (switch)
-  (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-command-line-resources (car x-invocation-args))
+  (unless (consp x-invocation-args)
+    (error "%s: missing argument to `%s' option" (invocation-name) switch))
+  (setq x-command-line-resources
+	(if (null x-command-line-resources)
+	    (car x-invocation-args)
+	  (concat x-command-line-resources "\n" (car x-invocation-args))))
   (setq x-invocation-args (cdr x-invocation-args)))
 
 ;; Handle the geometry option
