@@ -60,17 +60,27 @@
 ;;; Code:
 
 ;; User customizable variables
+(defgroup docref nil
+  "Simple cross references for Elisp documentation strings."
+  :prefix "docref-"
+  :group 'help
+  :group 'lisp
+  :group 'docs)
 
-(defvar docref-highlight-p t
+(defcustom docref-highlight-p t
   "*If non-nil, \\(f@docref-subst) highlights cross-references.
 Under window system it highlights them with face defined by
 \\(v@docref-highlight-face), on character terminal highlighted references
-look like cross-references in info mode.")
+look like cross-references in info mode."
+  :type 'boolean
+  :group 'docref)
 
-(defvar docref-highlight-face 'highlight
-  "*Face used to highlight cross-references (used by \\(f@docref-subst))")
+(defcustom docref-highlight-face 'highlight
+  "*Face used to highlight cross-references (used by \\(f@docref-subst))"
+  :type 'face
+  :group 'docref)
 
-(defvar docref-methods-alist
+(defcustom docref-methods-alist
   '(("f" . docref-describe-function)	; reference to a function documentation
     ("v" . docref-describe-variable)	; reference to a variable documentation
     ("F" . docref-read-file)		; reference to a file contents
@@ -81,10 +91,14 @@ look like cross-references in info mode.")
 
 The car of each element is a string that serves as `type' in cross-references.
 \(See \\(f@docref-subst)).  The cdr is a function of one argument,
-to be called to find this reference.")
+to be called to find this reference."
+  :type '(repeat (cons string function))
+  :group 'docref)
 
-(defvar docref-back-label "\nback"
-  "Label to use by \\(f@docref-subst) for the go-back reference.")
+(defcustom docref-back-label "\nback"
+  "Label to use by \\(f@docref-subst) for the go-back reference."
+  :type 'string
+  :group 'docref)
 
 (defvar docref-back-reference nil
   "If non-nil, this is a go-back reference to add to the current buffer.

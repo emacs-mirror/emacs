@@ -30,7 +30,12 @@
 
 ;;; Code:
 
-(defvar compare-windows-whitespace "[ \t\n]+"
+(defgroup compare-w nil
+  "Compare text between windows."
+  :prefix "compare-"
+  :group 'tools)
+
+(defcustom compare-windows-whitespace "[ \t\n]+"
   "*Regexp that defines whitespace sequences for \\[compare-windows].
 Changes in whitespace are optionally ignored.
 
@@ -42,10 +47,14 @@ point; it should also advance past any whitespace.
 The function is passed one argument, the point where `compare-windows'
 was originally called; it should not consider any text before that point.
 If the function returns the same value for both buffers, then the
-whitespace is considered to match, and is skipped.")
+whitespace is considered to match, and is skipped."
+  :type '(choice regexp function)
+  :group 'compare-w)
 
-(defvar compare-ignore-case nil
-  "*Non-nil means \\[compare-windows] ignores case differences.")
+(defcustom compare-ignore-case nil
+  "*Non-nil means \\[compare-windows] ignores case differences."
+  :type 'boolean
+  :group 'compare-w)
 
 ;;;###autoload
 (defun compare-windows (ignore-whitespace)

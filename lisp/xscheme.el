@@ -33,21 +33,33 @@
 
 (require 'scheme)
 
-(defvar scheme-program-name "scheme"
-  "*Program invoked by the `run-scheme' command.")
+(defgroup xscheme nil
+  "Major mode for editing Scheme and interacting with MIT's C-Scheme."
+  :group 'lisp)
 
-(defvar scheme-band-name nil
-  "*Band loaded by the `run-scheme' command.")
+(defcustom scheme-program-name "scheme"
+  "*Program invoked by the `run-scheme' command."
+  :type 'string
+  :group 'xscheme)
 
-(defvar scheme-program-arguments nil
-  "*Arguments passed to the Scheme program by the `run-scheme' command.")
+(defcustom scheme-band-name nil
+  "*Band loaded by the `run-scheme' command."
+  :type '(choice (const nil) string)
+  :group 'xscheme)
 
-(defvar xscheme-allow-pipelined-evaluation t
+(defcustom scheme-program-arguments nil
+  "*Arguments passed to the Scheme program by the `run-scheme' command."
+  :type '(choice (const nil) string)
+  :group 'xscheme)
+
+(defcustom xscheme-allow-pipelined-evaluation t
   "If non-nil, an expression may be transmitted while another is evaluating.
 Otherwise, attempting to evaluate an expression before the previous expression
-has finished evaluating will signal an error.")
+has finished evaluating will signal an error."
+  :type 'boolean
+  :group 'xscheme)
 
-(defvar xscheme-startup-message
+(defcustom xscheme-startup-message
   "This is the Scheme process buffer.
 Type \\[advertised-xscheme-send-previous-expression] to evaluate the expression before point.
 Type \\[xscheme-send-control-g-interrupt] to abort evaluation.
@@ -55,10 +67,14 @@ Type \\[describe-mode] for more information.
 
 "
   "String to insert into Scheme process buffer first time it is started.
-Is processed with `substitute-command-keys' first.")
+Is processed with `substitute-command-keys' first."
+  :type 'string
+  :group 'xscheme)
 
-(defvar xscheme-signal-death-message nil
-  "If non-nil, causes a message to be generated when the Scheme process dies.")
+(defcustom xscheme-signal-death-message nil
+  "If non-nil, causes a message to be generated when the Scheme process dies."
+  :type 'boolean
+  :group 'xscheme)
 
 (defun xscheme-evaluation-commands (keymap)
   (define-key keymap "\e\C-x" 'xscheme-send-definition)
@@ -477,9 +493,11 @@ from being inserted into the process-buffer.")
 (defvar xscheme-string-receiver nil
   "Procedure to send the string argument from the scheme process.")
 
-(defvar xscheme-start-hook nil
+(defcustom xscheme-start-hook nil
   "If non-nil, a procedure to call when the Scheme process is started.
-When called, the current buffer will be the Scheme process-buffer.")
+When called, the current buffer will be the Scheme process-buffer."
+  :type 'hook
+  :group 'xscheme)
 
 (defvar xscheme-runlight-string nil)
 (defvar xscheme-mode-string nil)

@@ -302,6 +302,11 @@
 
 ;;; Code:
 
+(defgroup vcursor nil
+  "Manipulate an alternative (\"virtual\") cursor."
+  :prefix "vcursor-"
+  :group 'display)
+
 (or (memq 'vcursor (face-list))
     (progn
       (copy-face 'modeline 'vcursor)
@@ -312,24 +317,32 @@
 	    (set-face-background 'vcursor "cyan")))
       (set-face-underline-p 'vcursor t)))
 
-(defvar vcursor-auto-disable nil
+(defcustom vcursor-auto-disable nil
   "*If non-nil, disable the virtual cursor after use.
-Any non-vcursor command will force `vcursor-disable' to be called.")
+Any non-vcursor command will force `vcursor-disable' to be called."
+  :type 'boolean
+  :group 'vcursor)
 
-(defvar vcursor-key-bindings t
+(defcustom vcursor-key-bindings t
   "*How to bind keys when vcursor is loaded.
 If t (the default), guess; if xterm, use bindings suitable for an
 X terminal; if oemacs, use bindings which work on a PC with Oemacs.
-If nil, don't define any key bindings.")
+If nil, don't define any key bindings."
+  :type '(choice (const t) (const xterm) (const oemacs) (const nil))
+  :group 'vcursor)
 
-(defvar vcursor-interpret-input nil
+(defcustom vcursor-interpret-input nil
   "*If non-nil, input from the vcursor is treated as interactive input.
 This will cause text insertion to be much slower.  Note that no special
 interpretation of strings is done: \"\C-x\" is a string of four
-characters.  The default is simply to copy strings.")
+characters.  The default is simply to copy strings."
+  :type 'boolean
+  :group 'vcursor)
 
-(defvar vcursor-string "**>"
-  "String used to show the vcursor position on dumb terminals.")
+(defcustom vcursor-string "**>"
+  "String used to show the vcursor position on dumb terminals."
+  :type 'string
+  :group 'vcursor)
 
 (defvar vcursor-overlay nil 
   "Overlay for the virtual cursor.
@@ -346,8 +359,10 @@ scrolling set this.  It is used by the `vcursor-auto-disable' code.")
 ;; could do some memq-ing with last-command instead, but this will
 ;; automatically handle any new commands using the primitives.
 
-(defvar vcursor-copy-flag nil 
-  "*Non-nil means moving vcursor should copy characters moved over to point.")
+(defcustom vcursor-copy-flag nil 
+  "*Non-nil means moving vcursor should copy characters moved over to point."
+  :type 'boolean
+  :group 'vcursor)
 
 (defvar vcursor-temp-goal-column nil
   "Keeps track of temporary goal columns for the virtual cursor.")

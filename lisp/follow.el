@@ -369,14 +369,23 @@
 ;;}}}
 ;;{{{ Variables
 
+(defgroup follow nil
+  "Synchronize windows showing the same buffer."
+  :prefix "follow-"
+  :group 'windows)
+
 (defvar follow-mode nil
   "Variable indicating if Follow mode is active.")
 
-(defvar follow-mode-hook nil
-  "*Hooks to run when follow-mode is turned on.")
+(defcustom follow-mode-hook nil
+  "*Hooks to run when follow-mode is turned on."
+  :type 'hook
+  :group 'follow)
 
-(defvar follow-mode-off-hook nil
-  "*Hooks to run when follow-mode is turned off.")
+(defcustom follow-mode-off-hook nil
+  "*Hooks to run when follow-mode is turned off."
+  :type 'hook
+  :group 'follow)
 
 (defvar follow-mode-version "follow.el (Release 1.6)"
   "The current version of Follow mode.")
@@ -384,21 +393,29 @@
 (defvar follow-mode-map nil
   "*Minor mode keymap for Follow mode.")
 
-(defvar follow-mode-line-text " Follow"
+(defcustom follow-mode-line-text " Follow"
   "*Text shown in the mode line when Follow mode is active.
 Defaults to \" Follow\".  Examples of other values
-are \" Fw\", or simply \"\".")
+are \" Fw\", or simply \"\"."
+  :type 'string
+  :group 'follow)
 
-(defvar follow-auto nil
-  "*Non-nil activates Follow mode whenever a file is loaded.")
+(defcustom follow-auto nil
+  "*Non-nil activates Follow mode whenever a file is loaded."
+  :type 'boolean
+  :group 'follow)
 
-(defvar follow-mode-prefix "\C-c."
+(defcustom follow-mode-prefix "\C-c."
   "*Prefix key to use for follow commands in Follow mode.
 The value of this variable is checked as part of loading Follow mode.
-After that, changing the prefix key requires manipulating keymaps.")
+After that, changing the prefix key requires manipulating keymaps."
+  :type 'string
+  :group 'follow)
 
-(defvar follow-intercept-processes t
-  "*When non-nil, Follow Mode will monitor process output.")
+(defcustom follow-intercept-processes t
+  "*When non-nil, Follow Mode will monitor process output."
+  :type 'boolean
+  :group 'follow)
 
 (defvar follow-emacs-version-xemacs-p
   (string-match "XEmacs" emacs-version)

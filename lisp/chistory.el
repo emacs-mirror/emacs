@@ -31,6 +31,10 @@
 
 ;;; Code:
 
+(defgroup chistory nil
+  "List command history."
+  :group 'keyboard)
+
 ;;;###autoload
 (defun repeat-matching-complex-command (&optional pattern)
   "Edit and re-evaluate complex command with name matching PATTERN.
@@ -59,15 +63,17 @@ editing and the result is evaluated."
 	  (setq command-history (cdr command-history)))
       (edit-and-eval-command "Redo: " what))))
 
-(defvar default-command-history-filter-garbage
+(defcustom default-command-history-filter-garbage
   '(command-history-mode
     list-command-history
     electric-command-history)
   "*A list of symbols to be ignored by `default-command-history-filter'.
-It that function is given a list whose car is an element of this list,
+If that function is given a list whose car is an element of this list,
 then it will return non-nil (indicating the list should be discarded from
 the history).
-Initially, all commands related to the command history are discarded.")
+Initially, all commands related to the command history are discarded."
+  :type '(repeat symbol)
+  :group 'chistory)
 
 (defvar list-command-history-filter 'default-command-history-filter
   "Predicate to test which commands should be excluded from the history listing.
@@ -83,8 +89,10 @@ from the command history."
   (or (not (consp frob))
       (memq (car frob) default-command-history-filter-garbage)))
 
-(defvar list-command-history-max 32
-  "*If non-nil, maximum length of the listing produced by `list-command-history'.")
+(defcustom list-command-history-max 32
+  "*If non-nil, maximum length of the listing produced by `list-command-history'."
+  :type '(choice integer (const nil))
+  :group 'chistory)
 
 ;;;###autoload
 (defun list-command-history ()
@@ -126,8 +134,10 @@ The buffer is left in Command History mode."
   (setq major-mode (or majormode 'command-history-mode))
   (setq mode-name (or modename "Command History")))
 
-(defvar command-history-hook nil
-  "If non-nil, its value is called on entry to `command-history-mode'.")
+(defcustom command-history-hook nil
+  "If non-nil, its value is called on entry to `command-history-mode'."
+  :type 'hook
+  :group 'chistory)
 
 (defvar command-history-map nil)
 (if command-history-map

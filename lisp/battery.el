@@ -33,10 +33,16 @@
 (require 'timer)
 
 
-(defvar battery-status-function
+
+(defgroup battery nil
+  "Display battery status information."
+  :prefix "battery-"
+  :group 'hardware)
+
+(defcustom battery-status-function
   (cond ((and (eq system-type 'gnu/linux)
 	      (file-readable-p "/proc/apm"))
-	 'battery-linux-proc-apm))
+	 'battery-linux-proc-apm))  
   "*Function for getting battery status information.
 The function have to return an alist of conversion definitions.
 Cons cells are of the form
@@ -44,31 +50,39 @@ Cons cells are of the form
     (CONVERSION . REPLACEMENT-TEXT)
 
 CONVERSION is the character code of a \"conversion specification\"
-introduced by a `%' character in a control string.")
+introduced by a `%' character in a control string."
+  :type 'function
+  :group 'battery)
 
-(defvar battery-echo-area-format
+(defcustom battery-echo-area-format
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
 	 "Power %L, battery %B (%p%% load, remaining time %t)"))
   "*Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
-`battery-status-function'.")
+`battery-status-function'."
+  :type '(choice string (const nil))
+  :group 'battery)
 
 (defvar battery-mode-line-string nil
   "String to display in the mode line.")
 
-(defvar battery-mode-line-format
+(defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
 	 " [%b%p%%]"))
   "*Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
 string are substituted as defined by the current value of the variable
-`battery-status-function'.")
+`battery-status-function'."
+  :type '(choice string (const nil))
+  :group 'battery)
 
-(defvar battery-update-interval 60
-  "*Seconds after which the battery status will be updated.")
+(defcustom battery-update-interval 60
+  "*Seconds after which the battery status will be updated."
+  :type 'integer
+  :group 'battery)
 
 (defvar battery-update-timer nil
   "Interval timer object.")

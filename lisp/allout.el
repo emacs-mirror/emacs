@@ -61,6 +61,10 @@
 (provide 'allout)
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
+(defgroup allout nil
+  "Extensive outline mode for use alone and with other modes."
+  :prefix "outline-"
+  :group 'outlines)
 
 ;;;_ + Layout, Mode, and Topic Header Configuration
 
@@ -122,17 +126,19 @@ is modulo the setting of `outline-use-mode-specific-leader', which see.")
 (make-variable-buffer-local 'outline-layout)
 
 ;;;_  = outline-header-prefix
-(defvar outline-header-prefix "."
+(defcustom outline-header-prefix "."
   "*Leading string which helps distinguish topic headers.
 
 Outline topic header lines are identified by a leading topic
 header prefix, which mostly have the value of this var at their front.
 \(Level 1 topics are exceptions.  They consist of only a single
 character, which is typically set to the outline-primary-bullet.  Many
-outlines start at level 2 to avoid this discrepancy.")
+outlines start at level 2 to avoid this discrepancy."
+  :type 'string
+  :group 'allout)
 (make-variable-buffer-local 'outline-header-prefix)
 ;;;_  = outline-primary-bullet
-(defvar outline-primary-bullet "*"
+(defcustom outline-primary-bullet "*"
   "Bullet used for top-level outline topics.
 
 Outline topic header lines are identified by a leading topic header
@@ -142,10 +148,12 @@ var and the respective outline-*-bullets-string vars.
 The value of an asterisk (`*') provides for backwards compatibility
 with the original emacs outline mode.  See outline-plain-bullets-string
 and outline-distinctive-bullets-string for the range of available
-bullets.")
+bullets."
+  :type 'string
+  :group 'allout)
 (make-variable-buffer-local 'outline-primary-bullet)
 ;;;_  = outline-plain-bullets-string
-(defvar outline-plain-bullets-string (concat outline-primary-bullet
+(defcustom outline-plain-bullets-string (concat outline-primary-bullet
 					     "+-:.;,")
   "*The bullets normally used in outline topic prefixes.
 
@@ -155,10 +163,12 @@ bullets.
 DO NOT include the close-square-bracket, `]', as a bullet.
 
 Outline mode has to be reactivated in order for changes to the value
-of this var to take effect.")
+of this var to take effect."
+  :type 'string
+  :group 'allout)
 (make-variable-buffer-local 'outline-plain-bullets-string)
 ;;;_  = outline-distinctive-bullets-string
-(defvar outline-distinctive-bullets-string "=>([{}&!?#%\"X@$~\\"
+(defcustom outline-distinctive-bullets-string "=>([{}&!?#%\"X@$~\\"
   "*Persistent outline header bullets used to distinguish special topics.
 
 These bullets are not offered among the regular, level-specific
@@ -170,11 +180,13 @@ You must run `set-outline-regexp' in order for changes
 to the value of this var to effect outline-mode operation.
 
 DO NOT include the close-square-bracket, `]', on either of the bullet
-strings.")
+strings."
+  :type 'string
+  :group 'allout)
 (make-variable-buffer-local 'outline-distinctive-bullets-string)
 
 ;;;_  = outline-use-mode-specific-leader
-(defvar outline-use-mode-specific-leader t
+(defcustom outline-use-mode-specific-leader t
   "*When non-nil, use mode-specific topic-header prefixes.
 
 Allout outline mode will use the mode-specific `outline-mode-leaders'
@@ -198,7 +210,11 @@ comment strings.  comment-start strings that do end in spaces are not
 tripled, but an underscore is substituted for the space.  [This
 presumes that the space is for appearance, not comment syntax.  You
 can use `outline-mode-leaders' to override this behavior, when
-incorrect.]")
+incorrect.]"
+  :type '(choice (const t) (const nil) string 
+		 (const outline-mode-leaders)
+		 (const comment-start))
+  :group 'allout)
 ;;;_  = outline-mode-leaders
 (defvar outline-mode-leaders '()
   "Specific outline-prefix leading strings per major modes.
@@ -212,7 +228,7 @@ character, like an \"_\" underscore, to distinguish the lead string
 from regular comments that start at bol.")
 
 ;;;_  = outline-old-style-prefixes
-(defvar outline-old-style-prefixes nil
+(defcustom outline-old-style-prefixes nil
   "*When non-nil, use only old-and-crusty outline-mode `*' topic prefixes.
 
 Non-nil restricts the topic creation and modification
@@ -220,10 +236,12 @@ functions to asterix-padded prefixes, so they look exactly
 like the original emacs-outline style prefixes.
 
 Whatever the setting of this variable, both old and new style prefixes
-are always respected by the topic maneuvering functions.")
+are always respected by the topic maneuvering functions."
+  :type 'boolean
+  :group 'allout)
 (make-variable-buffer-local 'outline-old-style-prefixes)
 ;;;_  = outline-stylish-prefixes - alternating bullets
-(defvar outline-stylish-prefixes t
+(defcustom outline-stylish-prefixes t
   "*Do fancy stuff with topic prefix bullets according to level, etc.
 
 Non-nil enables topic creation, modification, and repositioning
@@ -264,51 +282,73 @@ always respected by the topic maneuvering functions, regardless of
 this variable setting.
 
 The setting of this var is not relevant when outline-old-style-prefixes
-is non-nil.")
+is non-nil."
+  :type 'boolean
+  :group 'allout)
 (make-variable-buffer-local 'outline-stylish-prefixes)
 
 ;;;_  = outline-numbered-bullet
-(defvar outline-numbered-bullet "#"
+(defcustom outline-numbered-bullet "#"
   "*String designating bullet of topics that have auto-numbering; nil for none.
 
 Topics having this bullet have automatic maintenance of a sibling
 sequence-number tacked on, just after the bullet.  Conventionally set
 to \"#\", you can set it to a bullet of your choice.  A nil value
-disables numbering maintenance.")
+disables numbering maintenance."
+  :type '(choice (const nil) string)
+  :group 'allout)
 (make-variable-buffer-local 'outline-numbered-bullet)
 ;;;_  = outline-file-xref-bullet
-(defvar outline-file-xref-bullet "@"
+(defcustom outline-file-xref-bullet "@"
   "*Bullet signifying file cross-references, for `outline-resolve-xref'.
 
 Set this var to the bullet you want to use for file cross-references.
-Set it to nil if you want to inhibit this capability.")
+Set it to nil if you want to inhibit this capability."
+  :type '(choice (const nil) string)
+  :group 'allout)
 
 ;;;_ + LaTeX formatting
 ;;;_  - outline-number-pages
-(defvar outline-number-pages nil
-  "*Non-nil turns on page numbering for LaTeX formatting of an outline.")
+(defcustom outline-number-pages nil
+  "*Non-nil turns on page numbering for LaTeX formatting of an outline."
+  :type 'boolean
+  :group 'allout)
 ;;;_  - outline-label-style
-(defvar outline-label-style "\\large\\bf"
-  "*Font and size of labels for LaTeX formatting of an outline.")
+(defcustom outline-label-style "\\large\\bf"
+  "*Font and size of labels for LaTeX formatting of an outline."
+  :type 'string
+  :group 'allout)
 ;;;_  - outline-head-line-style
-(defvar outline-head-line-style "\\large\\sl "
-  "*Font and size of entries for LaTeX formatting of an outline.")
+(defcustom outline-head-line-style "\\large\\sl "
+  "*Font and size of entries for LaTeX formatting of an outline."
+  :type 'string
+  :group 'allout)
 ;;;_  - outline-body-line-style
-(defvar outline-body-line-style " "
-  "*Font and size of entries for LaTeX formatting of an outline.")
+(defcustom outline-body-line-style " "
+  "*Font and size of entries for LaTeX formatting of an outline."
+  :type 'string
+  :group 'allout)
 ;;;_  - outline-title-style
-(defvar outline-title-style "\\Large\\bf"
-  "*Font and size of titles for LaTeX formatting of an outline.")
+(defcustom outline-title-style "\\Large\\bf"
+  "*Font and size of titles for LaTeX formatting of an outline."
+  :type 'string
+  :group 'allout)
 ;;;_  - outline-title
-(defvar outline-title '(or buffer-file-name (current-buffer-name))
+(defcustom outline-title '(or buffer-file-name (current-buffer-name))
   "*Expression to be evaluated to determine the title for LaTeX
-formatted copy.")
+formatted copy."
+  :type 'sexp
+  :group 'allout)
 ;;;_  - outline-line-skip
-(defvar outline-line-skip ".05cm"
-  "*Space between lines for LaTeX formatting of an outline.")
+(defcustom outline-line-skip ".05cm"
+  "*Space between lines for LaTeX formatting of an outline."
+  :type 'string
+  :group 'allout)
 ;;;_  - outline-indent
-(defvar outline-indent ".3cm"
-  "*LaTeX formatted depth-indent spacing.")
+(defcustom outline-indent ".3cm"
+  "*LaTeX formatted depth-indent spacing."
+  :type 'string
+  :group 'allout)
 
 ;;;_ + Miscellaneous customization
 
@@ -361,29 +401,35 @@ will be used as is.")
         ("?c" outline-copy-exposed)))
 
 ;;;_  = outline-command-prefix
-(defvar outline-command-prefix "\C-c"
-  "*Key sequence to be used as prefix for outline mode command key bindings.")
+(defcustom outline-command-prefix "\C-c"
+  "*Key sequence to be used as prefix for outline mode command key bindings."
+  :type 'string
+  :group 'allout)
 
 ;;;_  = outline-enwrap-isearch-mode
-(defvar outline-enwrap-isearch-mode t
+(defcustom outline-enwrap-isearch-mode t
   "*Set non-nil to enable automatic exposure of concealed isearch targets.
 
 If non-nil, isearch will expose hidden text encountered in the course
-of a search, and to reconceal it if the search is continued past it.")
+of a search, and to reconceal it if the search is continued past it."
+  :type 'boolean
+  :group 'allout)
 
 ;;;_  = outline-use-hanging-indents
-(defvar outline-use-hanging-indents t
+(defcustom outline-use-hanging-indents t
   "*If non-nil, topic body text auto-indent defaults to indent of the header.
 Ie, it is indented to be just past the header prefix.  This is
 relevant mostly for use with indented-text-mode, or other situations
 where auto-fill occurs.
 
 \[This feature no longer depends in any way on the `filladapt.el'
-lisp-archive package.\]")
+lisp-archive package.\]"
+  :type 'boolean
+  :group 'allout)
 (make-variable-buffer-local 'outline-use-hanging-indents)
 
 ;;;_  = outline-reindent-bodies
-(defvar outline-reindent-bodies (if outline-use-hanging-indents
+(defcustom outline-reindent-bodies (if outline-use-hanging-indents
 				    'text)
   "*Non-nil enables auto-adjust of topic body hanging indent with depth shifts.
 
@@ -393,12 +439,14 @@ the header.
 
 A value of `t' enables reindent in non-programming-code buffers, ie
 those that do not have the variable `comment-start' set.  A value of
-`force' enables reindent whether or not `comment-start' is set.")
+`force' enables reindent whether or not `comment-start' is set."
+  :type '(choice (const nil) (const t) (const text) (const force))
+  :group 'allout)
 
 (make-variable-buffer-local 'outline-reindent-bodies)
 
 ;;;_  = outline-inhibit-protection
-(defvar outline-inhibit-protection nil
+(defcustom outline-inhibit-protection nil
   "*Non-nil disables warnings and confirmation-checks for concealed-text edits.
 
 Outline mode uses emacs change-triggered functions to detect unruly
@@ -407,7 +455,9 @@ protection, potentially increasing text-entry responsiveness a bit.
 
 This var takes effect at outline-mode activation, so you may have to
 deactivate and then reactivate the mode if you want to toggle the
-behavior.")
+behavior."
+  :type 'boolean
+  :group 'allout)
 
 ;;;_* CODE - no user customizations below.
 

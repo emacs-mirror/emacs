@@ -96,11 +96,19 @@
 (require 'scheme)
 (require 'comint)
 
+
+(defgroup cmuscheme nil
+  "Run a scheme process in a buffer."
+  :group 'lisp)
+
 ;;; INFERIOR SCHEME MODE STUFF
 ;;;============================================================================
 
-(defvar inferior-scheme-mode-hook nil
-  "*Hook for customising inferior-scheme mode.")
+(defcustom inferior-scheme-mode-hook nil
+  "*Hook for customising inferior-scheme mode."
+  :type 'hook
+  :group 'cmuscheme)
+
 (defvar inferior-scheme-mode-map nil)
 
 (cond ((not inferior-scheme-mode-map)
@@ -202,9 +210,11 @@ to continue it."
   (setq comint-get-old-input (function scheme-get-old-input))
   (run-hooks 'inferior-scheme-mode-hook))
 
-(defvar inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
+(defcustom inferior-scheme-filter-regexp "\\`\\s *\\S ?\\S ?\\s *\\'"
   "*Input matching this regexp are not saved on the history list.
-Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
+Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
+  :type 'regexp
+  :group 'cmuscheme)
 
 (defun scheme-input-filter (str)
   "Don't save anything matching inferior-scheme-filter-regexp"
@@ -230,8 +240,10 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
 		 (scheme-args-to-list (substring string pos
 						 (length string)))))))))
 
-(defvar scheme-program-name "scheme"
-  "*Program invoked by the run-scheme command")
+(defcustom scheme-program-name "scheme"
+  "*Program invoked by the run-scheme command"
+  :type 'string
+  :group 'cmuscheme)
 
 ;;;###autoload
 (defun run-scheme (cmd)
@@ -275,8 +287,10 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
   (interactive)
   (scheme-send-region (save-excursion (backward-sexp) (point)) (point)))
 
-(defvar scheme-compile-exp-command "(compile '%s)"
-  "*Template for issuing commands to compile arbitrary Scheme expressions.")
+(defcustom scheme-compile-exp-command "(compile '%s)"
+  "*Template for issuing commands to compile arbitrary Scheme expressions."
+  :type 'string
+  :group 'cmuscheme)
 
 (defun scheme-compile-region (start end)
   "Compile the current region in the inferior Scheme process.
@@ -335,11 +349,13 @@ Then switch to the process buffer."
   (scheme-compile-region start end)
   (switch-to-scheme t))
 
-(defvar scheme-source-modes '(scheme-mode)
+(defcustom scheme-source-modes '(scheme-mode)
   "*Used to determine if a buffer contains Scheme source code.
 If it's loaded into a buffer that is in one of these major modes, it's
 considered a scheme source file by scheme-load-file and scheme-compile-file.
-Used by these commands to determine defaults.")
+Used by these commands to determine defaults."
+  :type '(repeat function)
+  :group 'cmuscheme)
 
 (defvar scheme-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
@@ -425,9 +441,11 @@ for a minimal, simple implementation. Feel free to extend it.")
 
 ;;; Do the user's customisation...
 
-(defvar cmuscheme-load-hook nil
+(defcustom cmuscheme-load-hook nil
   "This hook is run when cmuscheme is loaded in.
-This is a good place to put keybindings.")
+This is a good place to put keybindings."
+  :type 'hook
+  :group 'cmuscheme)
 	
 (run-hooks 'cmuscheme-load-hook)
 

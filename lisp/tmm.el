@@ -36,6 +36,11 @@
 
 (require 'electric)
 
+(defgroup tmm nil
+  "Text mode access to menu-bar."
+  :prefix "tmm-"
+  :group 'menu)
+
 ;;; The following will be localized, added only to pacify the compiler.
 (defvar tmm-short-cuts)
 (defvar tmm-old-mb-map nil)
@@ -94,15 +99,17 @@ See the documentation for `tmm-prompt'."
   (interactive "e")
   (tmm-menubar (car (posn-x-y (event-start event)))))
 
-(defvar tmm-mid-prompt "==>"
+(defcustom tmm-mid-prompt "==>"
   "*String to insert between shortcut and menu item. 
 If nil, there will be no shortcuts. It should not consist only of spaces,
-or else the correct item might not be found in the `*Completions*' buffer.")
+or else the correct item might not be found in the `*Completions*' buffer."
+  :type 'string
+  :group 'tmm)
 
 (defvar tmm-mb-map nil
   "A place to store minibuffer map.")
 
-(defvar tmm-completion-prompt 
+(defcustom tmm-completion-prompt 
   "Press PageUp Key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the 
@@ -110,17 +117,25 @@ marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
 "
   "*Help text to insert on the top of the completion buffer.
 To save space, you can set this to nil,
-in which case the standard introduction text is deleted too.")
+in which case the standard introduction text is deleted too."
+  :type '(choice string (const nil))
+  :group 'tmm)
 
-(defvar tmm-shortcut-style '(downcase upcase)
+(defcustom tmm-shortcut-style '(downcase upcase)
   "*What letters to use as menu shortcuts. 
 Must be either one of the symbols `downcase' or `upcase', 
-or else a list of the two in the order you prefer.")
+or else a list of the two in the order you prefer."
+  :type '(choice (const downcase)
+		 (const upcase)
+		 (repeat (choice (const downcase) (const upcase))))
+  :group 'tmm)
 
-(defvar tmm-shortcut-words 2
+(defcustom tmm-shortcut-words 2
   "*How many successive words to try for shortcuts, nil means all.
 If you use only one of `downcase' or `upcase' for `tmm-shortcut-style', 
-specify nil for this variable.")
+specify nil for this variable."
+  :type '(choice integer (const nil))
+  :group 'tmm)
 
 ;;;###autoload
 (defun tmm-prompt (menu &optional in-popup default-item)

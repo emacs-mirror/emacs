@@ -28,8 +28,15 @@
 
 ;;; Code:
 
-(defvar ispell-have-new-look t
-  "Non-nil means use the `-r' option when running `look'.")
+(defgroup ispell4 nil
+  "Interface to GNU ISPELL version 4."
+  :prefix "ispell-"
+  :group 'applications)
+
+(defcustom ispell-have-new-look t
+  "Non-nil means use the `-r' option when running `look'."
+  :type 'boolean
+  :group 'ispell4)
 
 (defvar ispell-enable-tex-parser nil
   "Non-nil enables experimental TeX parser in Ispell for TeX-mode buffers.")
@@ -38,16 +45,23 @@
 (defvar ispell-next-message nil
   "An integer: where in `*ispell*' buffer to find next message from Ispell.")
 
-(defvar ispell-command "ispell"
-  "Command for running Ispell.")
-(defvar ispell-command-options nil
+(defcustom ispell-command "ispell"
+  "Command for running Ispell."
+  :type 'string
+  :group 'ispell4)
+
+(defcustom ispell-command-options nil
   "*String (or list of strings) to pass to Ispell as command arguments.
 You can specify your private dictionary via the -p <filename> option.
 The -S option is always passed to Ispell as the last parameter,
-and need not be mentioned here.")
+and need not be mentioned here."
+  :type '(repeat string)
+  :group 'ispell4)
 
-(defvar ispell-look-command "look"
-  "*Command for running look.")
+(defcustom ispell-look-command "look"
+  "*Command for running look."
+  :type 'string
+  :group 'ispell4)
 
 ;Each marker in this list points to the start of a word that
 ;ispell thought was bad last time it did the :file command.
@@ -629,8 +643,10 @@ L lookup; Q quit\n")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
 
-(defvar ispell-highlight t
-  "*Non-nil means to highlight ispell words.")
+(defcustom ispell-highlight t
+  "*Non-nil means to highlight ispell words."
+  :type 'boolean
+  :group 'ispell4)
 
 (defvar ispell-overlay nil)
 
@@ -756,12 +772,15 @@ L lookup; Q quit\n")
 
 ;;;; User-defined variables.
 
-(defvar ispell-look-dictionary nil
+(defcustom ispell-look-dictionary nil
   "*If non-nil then spelling dictionary as string for `ispell-complete-word'.
 Overrides default dictionary file such as \"/usr/dict/words\" or GNU look's
-\"${prefix}/lib/ispell/ispell.words\"")
+\"${prefix}/lib/ispell/ispell.words\""
+  :type '(choice (const nil) file)
+  :group 'ispell4)
 
-(defvar ispell-gnu-look-still-broken-p nil
+
+(defcustom ispell-gnu-look-still-broken-p nil
   "*t if GNU look -r can give different results with and without trailing `.*'.
 Example: `look -dfr \"^ya\" foo' returns nothing, while `look -dfr \"^ya.*\" foo'
 returns `yacc', where `foo' is a dictionary file containing the three lines
@@ -772,7 +791,9 @@ returns `yacc', where `foo' is a dictionary file containing the three lines
 
 Both commands should return `yacc'.  If `ispell-complete-word' erroneously
 states that no completions exist for a string, then setting this variable to t
-will help find those completions.")
+will help find those completions."
+  :type 'boolean
+  :group 'ispell4)
 
 ;;;; Internal variables.
 
@@ -959,10 +980,12 @@ an interior word fragment.  `ispell-have-new-look' should be t."
       "\\'\\`" ; An unmatchable string if string is null.
     (regexp-quote string)))
 
-(defvar ispell-message-cite-regexp "^   \\|^\t"
-  "*Regular expression to match lines cited from one message into another.")
+(defcustom ispell-message-cite-regexp "^   \\|^\t"
+  "*Regular expression to match lines cited from one message into another."
+  :type 'regexp
+  :group 'ispell4)
 
-(defvar ispell-message-text-end
+(defcustom ispell-message-text-end
   (concat "^\\(" (mapconcat (function identity)
 				'(
 				  ;; Matches postscript files.
@@ -979,10 +1002,14 @@ an interior word fragment.  `ispell-have-new-look' should be t."
 	      "\\)")
   "*End of text which will be checked in ispell-message.
 If it is a string, limit at first occurrence of that regular expression.
-Otherwise, it must be a function which is called to get the limit.")
+Otherwise, it must be a function which is called to get the limit."
+  :type '(choice string function)
+  :group 'ispell4)
 
-(defvar ispell-message-limit (* 100 80)
-  "*Ispell-message will check no more than this number of characters.")
+(defcustom ispell-message-limit (* 100 80)
+  "*Ispell-message will check no more than this number of characters."
+  :type 'integer
+  :group 'ispell4)
 
 ;;;autoload
 (defun ispell-message ()
@@ -1088,4 +1115,4 @@ Or you can bind the function to C-c i in gnus or mail with:
 
 (provide 'ispell)
 
-;;; ispell.el ends here
+;;; ispell4.el ends here
