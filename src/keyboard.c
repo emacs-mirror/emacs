@@ -1485,7 +1485,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   /* Actually read a character, waiting if necessary.  */
-  while (1)
+  while (NILP (c))
     {
       c = kbd_buffer_get_event ();
       if (!NILP (c))
