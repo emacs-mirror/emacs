@@ -2869,6 +2869,8 @@ the variable `Info-file-list-for-emacs'."
 		(skip-syntax-backward " ")
 		(setq other-tag
 		      (cond
+		       ((<= (point) (point-min))
+			"See ")
 		       ((memq (char-before) '(nil ?\. ?! ))
 			"See ")
 		       ((memq (char-before) '( ?\( ?\[ ?\{ ?\, ?\; ?\: ))
@@ -2896,15 +2898,23 @@ the variable `Info-file-list-for-emacs'."
 		(push (set-marker (make-marker) start)
 		      paragraph-markers)))))
 
-	(let ((fill-nobreak-invisible t))
+	(let ((fill-nobreak-invisible t)
+	      (fill-individual-varying-indent nil)
+	      (paragraph-start "\f\\|[ \t]*[-*]\\|[ \t]*$")
+	      (paragraph-separate "[ \t]*[-*]\\|[ \t\f]*$")
+	      (adaptive-fill-mode nil))
 	  (goto-char (point-max))
 	  (while paragraph-markers
 	    (let ((m (car paragraph-markers)))
 	      (setq paragraph-markers (cdr paragraph-markers))
 	      (when (< m (point))
 		(goto-char m)
-		(fill-paragraph nil)
-		(backward-paragraph 1))
+		(move-to-left-margin)
+		(when (zerop (forward-paragraph))
+		  (let ((end (point))
+			(beg (progn (backward-paragraph) (point))))
+		    (fill-individual-paragraphs beg end nil nil)
+		    (goto-char beg))))
 	      (set-marker m nil))))
 
 	(goto-char (point-min))
@@ -2919,7 +2929,7 @@ the variable `Info-file-list-for-emacs'."
 					      "\\([ \t]*\\)\\)")
 				      nil t)
 	      (setq n (1+ n))
-	      (if (zerop (% n 3))	; visual aids to help with 1-9 keys
+	      (if (and (<= n 9) (zerop (% n 3))) ; visual aids to help with 1-9 keys
 		  (put-text-property (match-beginning 0)
 				     (1+ (match-beginning 0))
 				     'font-lock-face 'info-menu-5))
