@@ -1122,7 +1122,13 @@ otherwise pop it")
 
 
 ;;;###autoload
-(defun byte-recompile-directory (directory &optional arg)
+(defun byte-force-recompile (directory)
+  "Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
+Files in subdirectories of DIRECTORY are processed also."
+  (byte-recompile-directory directory nil t))
+
+;;;###autoload
+(defun byte-recompile-directory (directory &optional arg force)
   "Recompile every `.el' file in DIRECTORY that needs recompilation.
 This is if a `.elc' file exists but is older than the `.el' file.
 Files in subdirectories of DIRECTORY are processed also.
@@ -1132,7 +1138,10 @@ But a prefix argument (optional second arg) means ask user,
 for each such `.el' file, whether to compile it.  Prefix argument 0 means
 don't ask and compile the file anyway.
 
-A nonzero prefix argument also means ask about each subdirectory."
+A nonzero prefix argument also means ask about each subdirectory.
+
+If the third argument FORCE is non-nil,
+recompile every `.el' file that already has a `.elc' file."
   (interactive "DByte recompile directory: \nP")
   (if arg
       (setq arg (prefix-numeric-value arg)))
@@ -1155,16 +1164,20 @@ A nonzero prefix argument also means ask about each subdirectory."
 	   (if (and (not (member (car files) '("." ".." "RCS" "CVS")))
 		    (file-directory-p source)
 		    (not (file-symlink-p source)))
+	       ;; This file is a subdirectory.  Handle them differently.
 	       (if (or (null arg)
 		       (eq 0 arg)
 		       (y-or-n-p (concat "Check " source "? ")))
 		   (setq directories
 			 (nconc directories (list source))))
+	     ;; It is an ordinary file.  Decide whether to compile it.
 	     (if (and (string-match emacs-lisp-file-regexp source)
 		      (not (auto-save-file-name-p source))
 		      (setq dest (byte-compile-dest-file source))
 		      (if (file-exists-p dest)
-			  (file-newer-than-file-p source dest)
+			  ;; File was already compiled.
+			  (or force (file-newer-than-file-p source dest))
+			;; No compiled file exists yet.
 			(and arg
 			     (or (eq 0 arg)
 				 (y-or-n-p (concat "Compile " source "? "))))))
