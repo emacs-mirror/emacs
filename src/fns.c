@@ -1047,7 +1047,7 @@ mapcar1 (leni, vals, fn, seq)
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
   "Apply FN to each element of SEQ, and concat the results as strings.\n\
 In between each pair of results, stick in SEP.\n\
-Thus, \" \" as SEP results in spaces between the values return by FN.")
+Thus, \" \" as SEP results in spaces between the values returned by FN.")
   (fn, seq, sep)
      Lisp_Object fn, seq, sep;
 {
