@@ -564,22 +564,41 @@ struct Lisp_Vector
     Lisp_Object contents[1];
   };
 
-/* A char table is a kind of vectorlike, with contents are like a vector
-   but with a few other slots.  For some purposes, it makes sense
-   to handle a chartable with type struct Lisp_Vector.  */
-
+/* A char table is a kind of vectorlike, with contents are like a
+   vector but with a few other slots.  For some purposes, it makes
+   sense to handle a chartable with type struct Lisp_Vector.  An
+   element of a char table can be any Lisp objects, but if it is a sub
+   char-table, we treat it a table that contains information of a
+   group of characters of the same charsets or a specific character of
+   a charset.  A sub char-table has the same structure as a char table
+   except for that the former omits several slots at the tail.  A sub
+   char table appears only in an element of a char table, and there's
+   no way to access it directly from Emacs Lisp program.  */
+  
 /* This is the number of slots that apply to characters or character
    sets.  The first 128 are for ASCII, the next 128 are for 8-bit
-   European characters, and the last 128 are for multibyte characters.  */
+   European characters, and the last 128 are for multibyte characters.
+   The first 256 are indexed by the code itself, but the last 128 are
+   indexed by (charset-id + 128).  */
 #define CHAR_TABLE_ORDINARY_SLOTS 384
 
 /* This is the number of slots that apply to characters of ASCII and
    8-bit Europeans only.  */
 #define CHAR_TABLE_SINGLE_BYTE_SLOTS 256
 
-/* This is the number of slots that every char table must have.
-   This counts the ordinary slots and the parent and defalt slots.  */
-#define CHAR_TABLE_STANDARD_SLOTS (CHAR_TABLE_ORDINARY_SLOTS + 3)
+/* This is the number of slots that every char table must have.  This
+   counts the ordinary slots and the top, defalt, parent, and purpose
+   slots.  */
+#define CHAR_TABLE_STANDARD_SLOTS (CHAR_TABLE_ORDINARY_SLOTS + 4)
+
+/* This is the number of slots that apply to position-code-1 and
+   position-code-2 of a multibyte character at the 2nd and 3rd level
+   sub char tables respectively.  */
+#define SUB_CHAR_TABLE_ORDINARY_SLOTS 128
+
+/* This is the number of slots that every sub char table must have.
+   This counts the ordinary slots and the top and defalt slot.  */
+#define SUB_CHAR_TABLE_STANDARD_SLOTS (SUB_CHAR_TABLE_ORDINARY_SLOTS + 2) 
 
 /* Return the number of "extra" slots in the char table CT.  */
 
@@ -609,13 +628,22 @@ struct Lisp_Char_Table
   {
     /* This is the vector's size field, which also holds the
        pseudovector type information.  It holds the size, too.
-       The size counts the defalt and parent slots.  */
+       The size counts the top, defalt, purpose, and parent slots.
+       The last three are not counted if this is a sub char table.  */
     EMACS_INT size;
     struct Lisp_Vector *next;
-    Lisp_Object contents[CHAR_TABLE_ORDINARY_SLOTS];
+    /* This holds a flag to tell if this is a top level char table (t)
+       or a sub char table (nil).  */
+    Lisp_Object top;
     /* This holds a default value,
        which is used whenever the value for a specific character is nil.  */
     Lisp_Object defalt;
+    /* This holds an actual value of each element.  A sub char table
+       has only SUB_CHAR_TABLE_ORDINARY_SLOTS number of elements.  */
+    Lisp_Object contents[CHAR_TABLE_ORDINARY_SLOTS];
+
+    /* A sub char table doesn't has the following slots.  */
+
     /* This points to another char table, which we inherit from
        when the value for a specific character is nil.
        The `defalt' slot takes precedence over this.  */
@@ -1034,6 +1062,8 @@ typedef unsigned char UCHAR;
 #define GC_BOOL_VECTOR_P(x) GC_PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
 #define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
+
+#define SUB_CHAR_TABLE_P(x) (CHAR_TABLE_P (x) && NILP (XCHAR_TABLE (x)->top))
 
 #define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
 #define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
@@ -1544,6 +1574,7 @@ extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
 extern Lisp_Object Fmake_byte_code ();
 extern Lisp_Object Fmake_bool_vector (), Fmake_char_table ();
+extern Lisp_Object make_sub_char_table ();
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vectorlike ();
 extern int gc_in_progress;
