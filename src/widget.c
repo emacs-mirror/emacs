@@ -731,8 +731,12 @@ EmacsFrameRealize (widget, mask, attrs)
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
-  attrs->event_mask = (STANDARD_EVENT_SET | PropertyChangeMask
-		       | SubstructureNotifyMask | SubstructureRedirectMask);
+  /* This used to contain SubstructureRedirectMask, but this turns out
+     to be a problem with XIM on Solaris, and events from that mask
+     don't seem to be used.  Let's check that.  */);
+  attrs->event_mask = (STANDARD_EVENT_SET
+		       | PropertyChangeMask
+		       | SubstructureNotifyMask);
   *mask |= CWEventMask;
   XtCreateWindow (widget, InputOutput, (Visual *)CopyFromParent, *mask,
 		  attrs);
