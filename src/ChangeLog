@@ -1,3 +1,9 @@
+2002-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (convert_mono_to_color_image): New function.
+	(xbm_load, xbm_load_image): Use it when foreground or background
+	is explicitly set.
+
 2002-11-19  Dave Love  <fx@gnu.org>
 
 	* s/usg5-4.h, sco4.h (bcopy, bzero, bcmp): Don't define.
