@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!207.c(trunk.1) $
+/*
 TEST_HEADER
+ id = $HopeName$
  summary = MVFF low-memory test
  language = c
  link = testlib.o
@@ -17,7 +18,7 @@ void *stackpointer;
 mps_space_t space;
 
 mps_bool_t slotHigh, arenaHigh, firstFit;
-int comments = 1;
+int comments = 0;
 
 static struct {mps_addr_t addr; size_t size;} queue[MAXNUMBER];
 
