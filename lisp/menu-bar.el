@@ -334,8 +334,9 @@ A large number or nil slows down menu responsiveness.")
 						"List All Buffers")
 					'list-buffers)))))))
 
+
       ;; Make a Frames menu if we have more than one frame.
-      (if (cdr frame)
+      (if (cdr frames)
 	  (setq frames-menu
 		(cons "Select Frame"
 		      (mapcar '(lambda (frame)
@@ -344,7 +345,7 @@ A large number or nil slows down menu responsiveness.")
 							 (frame-parameters frame)))
 					      (cons nil nil))
 					'menu-bar-select-frame))
-			      frame))))
+			      frames))))
       (if buffers-menu
 	  (setq buffers-menu (cons 'keymap buffers-menu)))
       (if frames-menu
