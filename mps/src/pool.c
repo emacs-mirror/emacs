@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(MMdevel_restr.5) $
+ * $HopeName: MMsrc!pool.c(MMdevel_restr2.8) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -9,14 +9,42 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_restr.5) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_restr2.8) $");
 
+
+Bool PoolClassCheck(PoolClass class)
+{
+  CHECKS(PoolClass, class);
+  CHECKL(class->name != NULL);
+  CHECKL(class->size >= sizeof(PoolStruct));
+  CHECKL(class->offset <= (size_t)(class->size - sizeof(PoolStruct)));
+  CHECKL(class->init != NULL);
+  CHECKL(class->finish != NULL);
+  CHECKL(class->alloc != NULL);
+  CHECKL(class->free != NULL);
+  CHECKL(class->bufferInit != NULL);
+  CHECKL(class->bufferFinish != NULL);
+  CHECKL(class->bufferFill != NULL);
+  CHECKL(class->bufferTrip != NULL);
+  CHECKL(class->bufferExpose != NULL);
+  CHECKL(class->bufferCover != NULL);
+  CHECKL(class->condemn != NULL);
+  CHECKL(class->grey != NULL);
+  CHECKL(class->scan != NULL);
+  CHECKL(class->fix != NULL);
+  CHECKL(class->reclaim != NULL);
+  CHECKL(class->access != NULL);
+  CHECKL(class->describe != NULL);
+  CHECKL(class->endSig == PoolClassSig);
+  return TRUE;
+}
 
 Bool PoolCheck(Pool pool)
 {
   CHECKS(Pool, pool);
   CHECKU(Space, pool->space);
   CHECKL(pool->serial < pool->space->poolSerial);
+  CHECKD(PoolClass, pool->class);
   CHECKL(RingCheck(&pool->spaceRing));
   CHECKL(RingCheck(&pool->bufferRing));
   CHECKL(AlignCheck(pool->alignment));
@@ -24,8 +52,26 @@ Bool PoolCheck(Pool pool)
 }
 
 
-void PoolInit(Pool pool, Space space, PoolClass class)
+/* PoolInitV -- initialize a pool
+ *
+ * Initialize the generic fields of the pool.  The pool gets the
+ * default alignment initially.
+ */
+
+Res PoolInit(Pool pool, Space space, PoolClass class, ...)
 {
+  Res res;
+  va_list args;
+  va_start(args, class);
+  res = PoolInitV(pool, space, class, args);
+  va_end(args);
+  return res;
+}
+
+Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args)
+{
+  Res res;
+
   AVER(pool != NULL);
   AVERT(Space, space);
 
@@ -41,20 +87,19 @@ void PoolInit(Pool pool, Space space, PoolClass class)
 
   AVERT(Pool, pool);
 
+  /* Do class-specific initialization. */
+  res = (*class->init)(pool, args);
+  if(res != ResOK)
+    goto failInit;
+
   RingAppend(SpacePoolRing(space), &pool->spaceRing);
-}
+  return ResOK;
 
-
-void PoolFinish(Pool pool)
-{
-  AVERT(Pool, pool);
-
-  RingRemove(&pool->spaceRing);
-  RingFinish(&pool->spaceRing);
-
-  RingFinish(&pool->bufferRing);
-
+failInit:
   pool->sig = SigInvalid;
+  RingFinish(&pool->bufferRing);
+  RingFinish(&pool->spaceRing);
+  return res;
 }
 
 
@@ -71,15 +116,71 @@ Res PoolCreate(Pool *poolReturn, PoolClass class, Space space, ...)
 Res PoolCreateV(Pool *poolReturn, PoolClass class,
                   Space space, va_list arg)
 {
+  Res res;
+  Pool pool;
+  Addr base;
+
   AVER(poolReturn != NULL);
   AVERT(Space, space);
-  return (*class->create)(poolReturn, space, arg);
+
+  /* Allocate the pool instance structure with the size requested */
+  /* in the pool class. */
+  res = SpaceAlloc(&base, space, class->size);
+  if(res != ResOK) return res;
+
+  /* Calculate the adress of the generic pool structure within the */
+  /* instance by using the offset information from the class. */
+  pool = (Pool)AddrAdd(base, class->offset);
+
+  /* Initialize the pool. */  
+  res = PoolInitV(pool, space, class, arg);
+  if(res != ResOK) {
+    SpaceFree(space, base, class->size);
+    return res;
+  }
+  
+  *poolReturn = pool;  
+  return ResOK;
+}
+
+
+void PoolFinish(Pool pool)
+{
+  PoolClass class;
+
+  AVERT(Pool, pool);  
+  
+  class = pool->class;
+
+  /* Do any class-specific finishing. */
+  (*class->finish)(pool);
+  
+  /* Detach the pool from the space, and unsig it. */
+  RingRemove(&pool->spaceRing);
+  pool->sig = SigInvalid;
+  
+  /* Finish the generic fields. */
+  RingFinish(&pool->bufferRing);
+  RingFinish(&pool->spaceRing);
 }
 
 void PoolDestroy(Pool pool)
 {
-  AVERT(Pool, pool);
-  (*pool->class->destroy)(pool);
+  PoolClass class;
+  Space space;
+  Addr base;
+
+  AVERT(Pool, pool);  
+  
+  class = pool->class;
+  space = pool->space;
+
+  /* Finish the pool instance structure. */
+  PoolFinish(pool);
+
+  /* Free the pool instance structure. */
+  base = AddrSub((Addr)pool, class->offset);
+  SpaceFree(space, base, class->size);
 }
 
 
@@ -100,40 +201,31 @@ Res (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
   return ResOK;
 }
 
-void PoolFree(Pool pool, Addr old, Size size)
+void (PoolFree)(Pool pool, Addr old, Size size)
 {
   AVERT(Pool, pool);
   AVER(old != (Addr)0);
   AVER(PoolHasAddr(pool, old));
-
-  if(pool->class->free != NULL)
-    (*pool->class->free)(pool, old, size);
+  (*pool->class->free)(pool, old, size);
 }
 
-Res PoolCondemn(RefSet *condemnedReturn, Pool pool,
+Res (PoolCondemn)(RefSet *condemnedReturn, Pool pool,
                   Space space, TraceId ti)
 {
-  if(pool->class->condemn != NULL)
-    return (*pool->class->condemn)(condemnedReturn, pool, space, ti);
-
-  *condemnedReturn = RefSetEmpty;
-  return ResOK;
+  AVERT(Pool, pool);
+  return (*pool->class->condemn)(condemnedReturn, pool, space, ti);
 }
 
-void PoolGrey(Pool pool, Space space, TraceId ti)
+void (PoolGrey)(Pool pool, Space space, TraceId ti)
 {
-  if(pool->class->grey != NULL)
-    (*pool->class->grey)(pool, space, ti);
+  AVERT(Pool, pool);
+  (*pool->class->grey)(pool, space, ti);
 }
 
-Res PoolScan(ScanState ss, Pool pool, Bool *finishedReturn)
+Res (PoolScan)(ScanState ss, Pool pool, Bool *finishedReturn)
 {
-  if(pool->class->scan != NULL)
-    return (*pool->class->scan)(ss, pool, finishedReturn);
-  else {
-    *finishedReturn = TRUE;
-    return ResOK;
-  }
+  AVERT(Pool, pool);
+  return (*pool->class->scan)(ss, pool, finishedReturn);
 }
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
@@ -142,39 +234,40 @@ Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
   return PoolFix(pool, ss, seg, refIO);
 }
 
-void PoolReclaim(Pool pool, Space space, TraceId ti)
+void (PoolReclaim)(Pool pool, Space space, TraceId ti)
 {
-  if(pool->class->reclaim != NULL)
-    (*pool->class->reclaim)(pool, space, ti);
+  AVERT(Pool, pool);
+  (*pool->class->reclaim)(pool, space, ti);
 }
 
-
-void PoolAccess(Pool pool, Seg seg, AccessSet mode)
+void (PoolAccess)(Pool pool, Seg seg, AccessSet mode)
 {
-  if(pool->class->access != NULL)
-    (*pool->class->access)(pool, seg, mode);
+  AVERT(Pool, pool);
+  (*pool->class->access)(pool, seg, mode);
 }
 
 
 Res PoolDescribe(Pool pool, Lib_FILE *stream)
 {
+  int e;
+  Res res;
   AVERT(Pool, pool);
   AVER(stream != NULL);
 
-  Lib_fprintf(stream,
-              "Pool %p {\n"
-              "  Class %s\n"
-              "  alignment %lu\n",
-              pool,
-              pool->class->name,
-              (unsigned long)pool->alignment);
+  e = Lib_fprintf(stream,
+                  "Pool %p {\n"
+                  "  Class %s\n"
+                  "  alignment %lu\n",
+                  pool,
+                  pool->class->name,
+                  (unsigned long)pool->alignment);
+  if(e < 0) return ResIO;
 
-  if(pool->class->describe == NULL)
-    Lib_fprintf(stream, "  No class-specific description available.\n");
-  else
-    (void)(*pool->class->describe)(pool, stream);
+  res = (*pool->class->describe)(pool, stream);
+  if(res != ResOK) return res;
 
-  Lib_fprintf(stream, "} Pool %p\n", pool);
+  e = Lib_fprintf(stream, "} Pool %p\n", pool);
+  if(e < 0) return ResIO;
 
   return ResOK;
 }
@@ -216,7 +309,9 @@ void PoolSegFree(Pool pool, Seg seg)
   AVERT(Pool, pool);
 
   space = PoolSpace(pool);
+
   ShieldFlush(space);
+
   SegFree(space, seg);
 }
 
@@ -255,4 +350,172 @@ Align (PoolAlignment)(Pool pool)
 {
   AVERT(Pool, pool);
   return pool->alignment;
+}
+
+
+/* PoolNo*, PoolTriv* -- Trivial and non-methods for Pool Classes
+ *
+ * If a pool class doesn't implement a method, and doesn't expect it
+ * to be called, it should use a non-method (PoolNo*) which will cause
+ * an assertion failure if they are reached.
+ *
+ * If a pool class supports a protocol but does not require any more
+ * than a trivial implementation, it should use a trivial method
+ * (PoolTriv*) which will do the trivial thing.
+ */
+
+Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
+{
+  AVER(pReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(size > 0);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+void PoolNoFree(Pool pool, Addr old, Size size)
+{
+  AVERT(Pool, pool);
+  AVER(old != NULL);
+  AVER(size > 0);
+  NOTREACHED;
+}
+
+void PoolTrivFree(Pool pool, Addr old, Size size)
+{
+  AVERT(Pool, pool);
+  AVER(old != NULL);
+  AVER(size > 0);
+  NOOP;                         /* trivial free has no effect */
+}
+
+Res PoolNoBufferInit(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+Res PoolTrivBufferInit(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  return ResOK;
+}
+
+void PoolNoBufferFinish(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+  NOTREACHED;
+}
+
+void PoolTrivBufferFinish(Pool pool, Buffer buf)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buf);
+}
+
+Res PoolNoBufferFill(Addr *baseReturn, Pool pool, Buffer buffer, Size size)
+{
+  AVER(baseReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  AVER(size > 0);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+Bool PoolNoBufferTrip(Pool pool, Buffer buffer, Addr base, Size size)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  AVER(base != NULL);
+  AVER(size > 0);
+  NOTREACHED;
+  return FALSE;
+}
+
+void PoolNoBufferExpose(Pool pool, Buffer buffer)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  NOTREACHED;
+}
+
+void PoolNoBufferCover(Pool pool, Buffer buffer)
+{
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  NOTREACHED;
+}
+
+Res PoolNoDescribe(Pool pool, Lib_FILE *stream)
+{
+  AVERT(Pool, pool);
+  AVER(stream != NULL);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+Res PoolTrivDescribe(Pool pool, Lib_FILE *stream)
+{
+  int e;
+  AVERT(Pool, pool);
+  AVER(stream != NULL);
+  e = Lib_fprintf(stream, "  No class-specific description available.\n");
+  if(e < 0)
+    return ResIO;
+  return ResOK;
+}
+
+Res PoolNoCondemn(RefSet *condemnedReturn, Pool pool, Space space, TraceId ti)
+{
+  AVER(condemnedReturn != NULL);
+  AVERT(Pool, pool);
+  AVERT(Space, space);
+  AVER(TraceIdCheck(ti));
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+void PoolNoGrey(Pool pool, Space space, TraceId ti)
+{
+  AVERT(Pool, pool);
+  AVERT(Space, space);
+  AVER(TraceIdCheck(ti));
+  NOTREACHED;
+}
+
+Res PoolNoScan(ScanState ss, Pool pool, Bool *finishedReturn)
+{
+  AVERT(ScanState, ss);
+  AVERT(Pool, pool);
+  AVER(finishedReturn != NULL);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+{
+  AVERT(Pool, pool);
+  AVERT(ScanState, ss);
+  AVERT(Seg, seg);
+  AVER(refIO != NULL);
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+void PoolNoReclaim(Pool pool, Space space, TraceId ti)
+{
+  AVERT(Pool, pool);
+  AVERT(Space, space);
+  AVER(TraceIdCheck(ti));
+  NOTREACHED;
+}
+
+void PoolNoAccess(Pool pool, Seg seg, AccessSet mode)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  NOTREACHED;
 }

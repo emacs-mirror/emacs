@@ -1,17 +1,17 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(MMdevel_restr.10) $
+ * $HopeName: MMsrc!arenavm.c(MMdevel_restr2.2) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(MMdevel_restr.10) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(MMdevel_restr2.2) $");
 
-#define SpaceArena(space)	(&(space)->arenaStruct)
+#define SpaceArena(space)       (&(space)->arenaStruct)
 
-typedef Size PI;		/* page index type */
-typedef Size BI;		/* bool index type */
+typedef Size PI;                /* page index type */
+typedef Size BI;                /* bool index type */
 
 
 /* PageStruct -- page structure
@@ -25,16 +25,16 @@ typedef Size BI;		/* bool index type */
  * so that lookup is fast, and the limit of the segment in memory.
  */
 
-typedef struct PageStruct {		/* page structure */
+typedef struct PageStruct {             /* page structure */
   union
   {
-    SegStruct head;		/* segment */
+    SegStruct head;             /* segment */
     struct
     {
-      Pool pool;		/* NULL -- MUST BE FIRST FIELD */
-      Seg seg;			/* segment at base page of run */
-      Addr limit;		/* limit of segment */
-    } tail;			/* tail page */
+      Pool pool;                /* NULL -- MUST BE FIRST FIELD */
+      Seg seg;                  /* segment at base page of run */
+      Addr limit;               /* limit of segment */
+    } tail;                     /* tail page */
   } the;
 } PageStruct;
 
@@ -49,8 +49,8 @@ typedef struct PageStruct {		/* page structure */
 #if 0
 static Bool (BTGet)(BT bt, BI i)
 {
-  Size wi = i >> WORD_SHIFT;		/* word index */
-  Size bi = i & (WORD_WIDTH - 1);	/* bit index */
+  Size wi = i >> WORD_SHIFT;            /* word index */
+  Size bi = i & (WORD_WIDTH - 1);       /* bit index */
   return (bt[wi] >> bi) & 1;
 }
 #endif /* 0 */
@@ -63,9 +63,9 @@ static Bool (BTGet)(BT bt, BI i)
 
 static void BTSet(BT bt, BI i, Bool b)
 {
-  Size bi = i & (WORD_WIDTH - 1);	/* bit index */
+  Size bi = i & (WORD_WIDTH - 1);       /* bit index */
   Word mask = ~((Word)1 << bi);
-  Size wi = i >> WORD_SHIFT;		/* word index */
+  Size wi = i >> WORD_SHIFT;            /* word index */
   bt[wi] = (bt[wi] & mask) | ((Word)b << bi);
 }
 
@@ -196,7 +196,7 @@ Bool ArenaCheck(Arena arena)
 }
 
 
-/* SegCheck -- check the consistency of a segment structure */	
+/* SegCheck -- check the consistency of a segment structure */  
 
 Bool SegCheck(Seg seg)
 {
@@ -428,7 +428,7 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
       if(page->the.head.pool != NULL)
         *segReturn = &page->the.head;
       else
-	*segReturn = page->the.tail.seg;
+        *segReturn = page->the.tail.seg;
       return TRUE;
     }
   }
@@ -448,7 +448,7 @@ static Seg SegSearch(Arena arena, PI pi)
 {
   while(pi < arena->pages &&
         (BTGET(arena->freeTable, pi) ||
-  	 arena->pageTable[pi].the.head.pool == NULL))
+         arena->pageTable[pi].the.head.pool == NULL))
     ++pi;
   
   if(pi < arena->pages)

@@ -2,7 +2,7 @@
  *
  *                   LEAF OBJECT POOL CLASS
  *
- *  $HopeName: MMsrc!lo.h(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!lo.h(MMdevel_restr2.2) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  *
@@ -40,9 +40,5 @@
 typedef struct LOStruct *LO;
 
 extern PoolClass PoolClassLO(void);
-extern Bool LOCheck(LO lo);
-extern Res LOCreate(LO *loReturn, Space space, Format format);
-extern void LODestroy(LO lo);
-extern Pool (LOPool)(LO lo);
 
 #endif /* lo_h */

@@ -1,11 +1,11 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(MMdevel_restr.8) $
+ * $HopeName: MMsrc!trace.c(MMdevel_restr2.2) $
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_restr.8) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_restr2.2) $");
 
 Bool ScanStateCheck(ScanState ss)
 {
@@ -91,7 +91,8 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
     Ring next = RingNext(node);
     Pool pool = RING_ELT(Pool, spaceRing, node);
 
-    PoolGrey(pool, space, ti);  /* implicitly excludes condemned set */
+    if((pool->class->attr & AttrSCAN) != 0)
+      PoolGrey(pool, space, ti);  /* implicitly excludes condemned set */
 
     node = next;
   }
@@ -159,7 +160,8 @@ static void TraceReclaim(Space space, TraceId ti)
     Ring next = RingNext(node);
     Pool pool = RING_ELT(Pool, spaceRing, node);
 
-    PoolReclaim(pool, space, ti);
+    if((pool->class->attr & AttrGC) != 0)
+      PoolReclaim(pool, space, ti);
 
     node = next;
   }
@@ -302,14 +304,14 @@ Res TraceRun(Space space, TraceId ti, Bool *finishedReturn)
       Pool pool = RING_ELT(Pool, spaceRing, node);
       Bool finished;
 
-      res = PoolScan(&ss, pool, &finished);
-      if(res != ResOK) {
-        return res;
-      }
+      if((pool->class->attr & AttrSCAN) != 0) {
+        res = PoolScan(&ss, pool, &finished);
+        if(res != ResOK) return res;
 
-      if(!finished) {
-        *finishedReturn = FALSE;
-        return ResOK;
+        if(!finished) {
+          *finishedReturn = FALSE;
+          return ResOK;
+        }
       }
 
       node = next;
