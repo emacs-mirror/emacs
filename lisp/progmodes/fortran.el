@@ -908,22 +908,35 @@ Auto-indent does not happen if a numeric ARG is used."
       (fortran-indent-line))))
 
 (defvar fortran-end-prog-re1
-  ;; `end' followed by optional block type name and then optional
-  ;; symbol, then eol.  In the absence of the block type name, the
-  ;; trailing symbol would presumably be a sequence number in cols 72+.
   "end\
-\\([ \t]+\\(program\\|subroutine\\|function\\|block[ \t]*data\\)\\>\\)?\
-[ \t]*\\(\\(\\sw\\|\\s_\\)+[ \t]*\\)?\
-$")
+\\([ \t]*\\(program\\|subroutine\\|function\\|block[ \t]*data\\)\\>\
+\\([ \t]*\\(\\sw\\|\\s_\\)+\\)?\\)?")
+
 (defvar fortran-end-prog-re
+  "Regexp possibly marking subprogram end."
   (concat "^[ \t0-9]*" fortran-end-prog-re1))
 
+(defun fortran-check-end-prog-re ()
+  "Check a preliminary match against `fortran-end-prog-re'."
+  ;; Having got a possible match for the subprogram end, we need a
+  ;; match of whitespace, avoiding possible column 73+ stuff.
+  (save-match-data
+    (string-match "^\\s-*\\'"
+		  (buffer-substring (match-end 0)
+				    (min (line-end-position)
+					 (+ 72 (line-beginning-position)))))))
+
+;; Note that you can't just check backwards for `subroutine' &c in
+;; case of un-marked main programs not at the start of the file.
 (defun beginning-of-fortran-subprogram ()
   "Moves point to the beginning of the current Fortran subprogram."
   (interactive)
   (let ((case-fold-search t))
     (beginning-of-line -1)
-    (if (re-search-backward fortran-end-prog-re nil 'move)
+    (if (catch 'ok
+	  (while (re-search-backward fortran-end-prog-re nil 'move)
+	    (if (fortran-check-end-prog-re)
+		(throw 'ok t))))
 	(forward-line))))
 
 (defun end-of-fortran-subprogram ()
@@ -932,10 +945,14 @@ $")
   (let ((case-fold-search t))
     (if (save-excursion			; on END
 	  (beginning-of-line)
-	  (looking-at fortran-end-prog-re))
+	  (and (looking-at fortran-end-prog-re)
+	       (fortran-check-end-prog-re)))
 	(forward-line)
       (beginning-of-line 2)
-      (re-search-forward fortran-end-prog-re nil 'move)
+      (catch 'ok
+	(while (re-search-forward fortran-end-prog-re nil 'move)
+	  (if (fortran-check-end-prog-re)
+	      (throw 'ok t))))
       (goto-char (match-beginning 0))
       (forward-line))))
 
