@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>
@@ -168,7 +168,7 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
      (put 'gomoku-mode 'rear-nonsticky '(intangible)))
 (put 'gomoku-mode 'intangible 1)
 
-(defun gomoku-mode ()
+(define-derived-mode gomoku-mode nil "Gomoku"
   "Major mode for playing Gomoku against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
@@ -180,15 +180,10 @@ Other useful commands:
 \\{gomoku-mode-map}
 Entry to this mode calls the value of `gomoku-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
-  (interactive)
-  (setq major-mode 'gomoku-mode
-	mode-name "Gomoku")
   (gomoku-display-statistics)
-  (use-local-map gomoku-mode-map)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(gomoku-font-lock-keywords t))
-  (toggle-read-only t)
-  (run-hooks 'gomoku-mode-hook))
+  (set (make-local-variable 'font-lock-defaults)
+       '(gomoku-font-lock-keywords t))
+  (toggle-read-only t))
 
 ;;;
 ;;; THE BOARD.
