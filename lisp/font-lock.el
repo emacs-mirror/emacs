@@ -2943,11 +2943,14 @@ See also `java-font-lock-extra-types'.")
     '("\\<\\(false\\|null\\|true\\)\\>" . font-lock-constant-face)
     ;;
     ;; Javadoc tags within comments.
-    '("@\\(author\\|exception\\|return\\|see\\|version\\)\\>"
+    '("@\\(author\\|deprecated\\|link\\|return\\|see\\|version\\)\\>"
       (1 font-lock-constant-face prepend))
     '("@\\(param\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-constant-face prepend)
       (2 font-lock-variable-name-face prepend t))
+    '("@\\(exception\\|throws\\)\\>[ \t]*\\(\\S-+\\)?"
+      (1 font-lock-constant-face prepend)
+      (2 font-lock-type-face prepend t))
     )))
 
  (setq java-font-lock-keywords-3
