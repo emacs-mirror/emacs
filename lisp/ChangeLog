@@ -1,3 +1,26 @@
+2004-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el: Add coding cookie.
+	Fix up docstrings, follow new commenting conventions.
+	(ses-header-line-menu): Fix missing variable rename for header-row.
+	(ses-cell-size): Remove.
+	(ses-make-cell): New function.
+	(ses-cell, ses-insert-row, ses-insert-column): Use it.
+	(ses-calculate-cell): Remove unused var `symbol'.
+	(ses-narrowed-p): New function.
+	(ses-goto-data, undo-more, ses-reconstruct-all): Use it.
+	(ses-initial-file-trailer): Change ;;; to ;; for local vars.
+	(ses-load, ses-reconstruct-all): Adjust string search accordingly.
+	(ses-setup): Use restore-buffer-modified-p.
+	(ses-cleanup): Remove unused var `end'.
+	(ses-header-string-left-offset): Remove.
+	(ses-create-header-string): Adjust to new behavior of `align-to'.
+	Truncate excessively large fields to preserve alignment.
+	(ses-reconstruct-all): Remove unused var `refs'.
+	(ses-read-cell-printer): Remove unused var `prompt'.
+	(ses-delete-row): Remove unused var `pos'.
+	(ses-delete-column): Remove unused var `new'.
+
 2004-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Insert :version tag into all defgroup and defcustom.
@@ -26,8 +49,7 @@
 	(calcFunc-typeof): Replace undeclared variable by expression.
 
 	(math-exp-env): New variable.
-	(math-define-body, math-define-exp): Replace exp-env by declared
-	variable.
+	(math-define-body, math-define-exp): Replace exp-env by declared var.
 
 	(math-define-exp): Replace misplaced variable by expression.
 
@@ -136,8 +158,7 @@
 	(calc-finish-selection-edit):  Replace variable disp-trail by
 	declared variable.
 
-	(calc-selection-cache-entry): Move declaration to earlier in
-	the file.
+	(calc-selection-cache-entry): Move declaration to earlier in the file.
 
 	(calc-selection-cache-num, calc-selection-cache-comp)
 	(calc-selection-cache-offset, calc-selection-true-num)
@@ -146,8 +167,7 @@
 
 	(calc-fnp-op, calc-fnp-num): New variables.
 	(calc-find-nth-part, calc-find-nth-part-rec)
-	(calc-select-previous): Replace op and num by declared
-	variables.
+	(calc-select-previous): Replace op and num by declared variables.
 
 	(calc-rsf-old, calc-rsf-new): New variables.
 	(calc-replace-sub-formula, calc-replace-sub-formula-rec):
@@ -193,8 +213,7 @@
 
 	(math-apply-rw-regs): New variable.
 	(math-apply-rewrites, math-rwapply-replace-regs)
-	(math-rwapply-reg-looks-negp): Replace variable regs by declared
-	variable.
+	(math-rwapply-reg-looks-negp): Replace variable regs by declared var.
 
 	(math-apply-rw-ruleset): New variable.
 	(math-apply-rewrites, math-rwapply-remember): Replace variable
@@ -218,8 +237,7 @@
 
 2004-11-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary
-	variables.
+	* calc/calc-alg.el (math-simplify-divisor): Remove unnecessary vars.
 
 2004-11-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
