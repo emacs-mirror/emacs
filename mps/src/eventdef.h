@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.8) $
+ * $HopeName: MMsrc!eventdef.h(trunk.9) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -108,3 +108,8 @@ RELATION(Intern                          , 0x0033, TRUE, User, WS)
 RELATION(Label                           , 0x0034, TRUE, User, AW)
 /* TraceStep is not really seg level event */
 RELATION(TraceStep                       , 0x0033, TRUE, Seg, PP)
+RELATION(BufferReserve                   , 0x0034, TRUE, Object, PAW)
+RELATION(BufferCommit                    , 0x0035, TRUE, Object, PAWW)
+/* BufferInit/Finish is not really pool level event */
+RELATION(BufferInit                      , 0x0036, TRUE, Pool, PPU)
+RELATION(BufferFinish                    , 0x0037, TRUE, Pool, P)
