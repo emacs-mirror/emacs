@@ -257,7 +257,7 @@ Returns t if expansion took place.")
 
   p = buffer = (char *) alloca (wordend - wordstart);
 
-  for (idx = wordstart; idx < point; idx++)
+  for (idx = wordstart; idx < wordend; idx++)
     {
       register int c = FETCH_CHAR (idx);
       if (UPPERCASEP (c))
