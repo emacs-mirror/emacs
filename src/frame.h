@@ -516,11 +516,21 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_SCROLL_BAR_COLS(f) ((f)->scroll_bar_cols)
 
 /* Width of a scroll bar in frame F, measured in columns (characters),
-   but only if scroll bars are on the left.
-   If scroll bars are on the right in this frame, it is 0.  */
-#define FRAME_LEFT_SCROLL_BAR_WIDTH(f) \
-     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f) \
-      ? FRAME_SCROLL_BAR_COLS (f) \
+   but only if scroll bars are on the left.  If scroll bars are on
+   the right in this frame, or there are no scroll bars, value is 0.  */
+
+#define FRAME_LEFT_SCROLL_BAR_WIDTH(f)			\
+     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)	\
+      ? FRAME_SCROLL_BAR_COLS (f)			\
+      : 0)
+
+/* Width of a scroll bar in frame F, measured in columns (characters),
+   but only if scroll bars are on the right.  If scroll bars are on
+   the left in this frame, or there are no scroll bars, value is 0.  */
+
+#define FRAME_RIGHT_SCROLL_BAR_WIDTH(f)			\
+     (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f)	\
+      ? FRAME_SCROLL_BAR_COLS (f)			\
       : 0)
 
 /* Width of a scroll bar in frame F, measured in columns (characters).  */
