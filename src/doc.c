@@ -43,25 +43,12 @@ Lisp_Object Vdoc_file_name;
 
 extern Lisp_Object Voverriding_local_map;
 
-Lisp_Object
-get_doc_string (filepos)
-     long filepos;
+/* For VMS versions with limited file name syntax,
+   convert the name to something VMS will allow. */
+static void
+munge_doc_file_name (name)
+     char *name;
 {
-  char buf[512 * 32 + 1];
-  register int fd;
-  register char *name;
-  register char *p, *p1;
-  register int count;
-  extern char *index ();
-
-  if (XTYPE (Vdoc_directory) != Lisp_String
-      || XTYPE (Vdoc_file_name) != Lisp_String)
-    return Qnil;
-
-  name = (char *) alloca (XSTRING (Vdoc_directory)->size
-			  + XSTRING (Vdoc_file_name)->size + 8);
-  strcpy (name, XSTRING (Vdoc_directory)->data);
-  strcat (name, XSTRING (Vdoc_file_name)->data);
 #ifdef VMS
 #ifndef VMS4_4
   /* For VMS versions with limited file name syntax,
@@ -78,10 +65,53 @@ get_doc_string (filepos)
   strcpy (name, sys_translate_unix (name));
 #endif /* VMS4_4 */
 #endif /* VMS */
+}
+
+Lisp_Object
+get_doc_string (filepos)
+     long filepos;
+{
+  char buf[512 * 32 + 1];
+  register int fd;
+  register char *name;
+  register char *p, *p1;
+  register int count;
+  int minsize;
+  extern char *index ();
+
+  if (XTYPE (Vdoc_directory) != Lisp_String
+      || XTYPE (Vdoc_file_name) != Lisp_String)
+    return Qnil;
+
+  minsize = XSTRING (Vdoc_directory)->size;
+  /* sizeof ("../etc/") == 8 */
+  if (minsize < 8)
+    minsize = 8;
+  name = (char *) alloca (minsize + XSTRING (Vdoc_file_name)->size + 8);
+  strcpy (name, XSTRING (Vdoc_directory)->data);
+  strcat (name, XSTRING (Vdoc_file_name)->data);
+  munge_doc_file_name (name);
 
   fd = open (name, O_RDONLY, 0);
   if (fd < 0)
-    error ("Cannot open doc string file \"%s\"", name);
+    {
+#ifndef CANNOT_DUMP
+      if (!NILP (Vpurify_flag))
+	{
+	  /* Preparing to dump; DOC file is probably not installed.
+	     So check in ../etc. */
+	  strcpy (name, "../etc/");
+	  strcat (name, XSTRING (Vdoc_file_name)->data);
+	  munge_doc_file_name (name);
+
+	  fd = open (name, O_RDONLY, 0);
+	}
+#endif
+
+      if (fd < 0)
+	error ("Cannot open doc string file \"%s\"", name);
+    }
+
   if (0 > lseek (fd, filepos, 0))
     {
       close (fd);
