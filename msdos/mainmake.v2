@@ -32,8 +32,8 @@
 # This gork is required for those who use a Unix-style shell, and
 # have SHELL in the environment pointing to it.  Here we force
 # Make to use COMMAND.COM instead.  This Makefile won't work otherwise.
-override SHELL=/dos/command
-override MAKESHELL=/dos/command
+SHELL=/dos/command
+MAKESHELL=/dos/command
 
 # Generate a full pathname of the top-level installation directory
 top_srcdir := $(subst \,/,$(shell cd))
