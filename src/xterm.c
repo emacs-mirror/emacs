@@ -543,8 +543,11 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
      struct cmpchar_info *cmpcharp;
 {
   /* Holds characters to be displayed. */
-  XChar2b *buf = (XChar2b *) alloca (FRAME_WINDOW_WIDTH (f) * sizeof (*buf));
-  register XChar2b *cp;		/* Steps through buf[]. */
+  XChar2b *x_2byte_buffer
+    = (XChar2b *) alloca (FRAME_WINDOW_WIDTH (f) * sizeof (*x_2byte_buffer));
+  register XChar2b *cp;		/* Steps through x_2byte_buffer[]. */
+  char *x_1byte_buffer
+    = (char *) alloca (FRAME_WINDOW_WIDTH (f) * sizeof (*x_1byte_buffer));
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   Window window = FRAME_X_WINDOW (f);
@@ -592,10 +595,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
       /* Find the run of consecutive glyphs which can be drawn with
 	 the same GC (i.e. the same charset and the same face-code).
-	 Extract their character codes into BUF.
+	 Extract their character codes into X_2BYTE_BUFFER.
 	 If CMPCHARP is not NULL, face-code is not checked because we
 	 use only the face specified in `cmpcharp->face_work'.  */
-      cp = buf;
+      cp = x_2byte_buffer;
       while (n > 0)
 	{
 	  int this_charset, c1, c2;
@@ -619,7 +622,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	}
 
       /* LEN gets the length of the run.  */
-      len = cp - buf;
+      len = cp - x_2byte_buffer;
       /* Now output this run of chars, with the font and pixel values
 	 determined by the face code CF.  */
       {
@@ -725,7 +728,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		struct ccl_program *ccl = fontp->font_encoder;
 
 		if (CHARSET_DIMENSION (charset) == 1)
-		  for (cp = buf; cp < buf + len; cp++)
+		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 		    {
 		      ccl->reg[0] = charset;
 		      ccl->reg[1] = cp->byte2;
@@ -733,7 +736,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      cp->byte2 = ccl->reg[1];
 		    }
 		else
-		  for (cp = buf; cp < buf + len; cp++)
+		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 		    {
 		      ccl->reg[0] = charset;
 		      ccl->reg[1] = cp->byte1, ccl->reg[2] = cp->byte2;
@@ -746,10 +749,10 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		int enc = fontp->encoding[charset];
 
 		if ((enc == 1 || enc == 2) && CHARSET_DIMENSION (charset) == 2)
-		  for (cp = buf; cp < buf + len; cp++)
+		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 		    cp->byte1 |= 0x80;
 		if (enc == 1 || enc == 3)
-		  for (cp = buf; cp < buf + len; cp++)
+		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 		    cp->byte2 |= 0x80;
 	      }
 	  }
@@ -769,7 +772,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      font = NULL;
 		    else
 		      {
-			for (cp = buf; cp < buf + len; cp++)
+			for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
 			  cp->byte2 |= 0x80;
 		      }
 		  }
@@ -913,24 +916,50 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      if (background_filled)
 			XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
 				       left + glyph_width * i,
-				       top + baseline, buf + i, 1);
+				       top + baseline, x_2byte_buffer + i, 1);
 		      else
 			XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
 					    left + glyph_width * i,
-					    top + baseline, buf + i, 1);
+					    top + baseline, x_2byte_buffer + i, 1);
 		    }
 		else
 		  {
-		    if (background_filled)
-		      XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
-				     left, top + baseline, buf, len);
+		    /* See if this whole buffer can be output as 8-bit chars.
+		       If so, copy x_2byte_buffer to x_1byte_buffer
+		       and do it as 8-bit chars.  */
+		    for (i = 0; i < len; i++)
+		      {
+			if (x_2byte_buffer[i].byte1 != 0)
+			  break;
+			x_1byte_buffer[i] = x_2byte_buffer[i].byte2;
+		      }
+
+		    if (i == len)
+		      {
+			if (background_filled)
+			  XDrawString (FRAME_X_DISPLAY (f), window, gc,
+				       left, top + baseline, x_1byte_buffer, len);
+			else
+			  XDrawImageString (FRAME_X_DISPLAY (f), window, gc,
+					    left, top + baseline, x_1byte_buffer, len);
+		      }
 		    else
-		      XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
-					  left, top + baseline, buf, len);
+		      {
+			/* We can't output them as 8-bit chars,
+			   so do it as 16-bit chars.  */
+
+			if (background_filled)
+			  XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
+					 left, top + baseline, x_2byte_buffer, len);
+			else
+			  XDrawImageString16 (FRAME_X_DISPLAY (f), window, gc,
+					      left, top + baseline, x_2byte_buffer, len);
+		      }
 		  }
 	      }
 	    else
 	      {
+		/* Handle composite characters.  */
 		XCharStruct *pcm; /* Pointer to per char metric info.  */
 
 		if ((cmpcharp->cmp_rule || relative_compose)
@@ -950,7 +979,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      }
 		    else
 		      {
-			pcm = PER_CHAR_METRIC (font, buf);
+			pcm = PER_CHAR_METRIC (font, x_2byte_buffer);
 			highest = pcm->ascent + 1;
 			lowest = - pcm->descent;
 		      }
@@ -960,7 +989,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 				  * FONT_WIDTH (f->output_data.x->font));
 		    /* Draw the first character at the normal position.  */
 		    XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
-				   left + x_offset, top + baseline, buf, 1);
+				   left + x_offset, top + baseline, x_2byte_buffer, 1);
 		    i = 1;
 		    gidx++;
 		  }
@@ -973,7 +1002,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 
 		    if (relative_compose)
 		      {
-			pcm = PER_CHAR_METRIC (font, buf + i);
+			pcm = PER_CHAR_METRIC (font, x_2byte_buffer + i);
 			if (- pcm->descent >= relative_compose)
 			  {
 			    /* Draw above the current glyphs.  */
@@ -999,7 +1028,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			gref = gref / 3 + (gref == 4) * 2;
 			nref = nref / 3 + (nref == 4) * 2;
 
-			pcm = PER_CHAR_METRIC (font, buf + i);
+			pcm = PER_CHAR_METRIC (font, x_2byte_buffer + i);
 			bottom = ((gref == 0 ? highest : gref == 1 ? 0
 				   : gref == 2 ? lowest
 				   : (highest + lowest) / 2)
@@ -1017,7 +1046,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      }
 		    XDrawString16 (FRAME_X_DISPLAY (f), window, gc,
 				   left + x_offset, top + baseline - y_offset,
-				   buf + i, 1);
+				   x_2byte_buffer + i, 1);
 		  }
 	      }
 	    if (require_clipping)
@@ -3792,13 +3821,16 @@ XTread_socket (sd, bufp, numchars, expected)
 		    if (event.xclient.data.l[0]
 			== dpyinfo->Xatom_wm_take_focus)
 		      {
-			f = x_window_to_frame (dpyinfo, event.xclient.window);
+			/* Use x_any_window_to_frame because this
+			   could be the shell widget window
+			   if the frame has no title bar.  */
+			f = x_any_window_to_frame (dpyinfo, event.xclient.window);
 			/* Since we set WM_TAKE_FOCUS, we must call
 			   XSetInputFocus explicitly.  But not if f is null,
 			   since that might be an event for a deleted frame.  */
 #ifdef HAVE_X_I18N
 			/* Not quite sure this is needed -pd */
-			if (f)
+			if (f && FRAME_XIC (f))
 			  XSetICFocus (FRAME_XIC (f));
 #endif
 			if (f)
