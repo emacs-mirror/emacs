@@ -1,3 +1,8 @@
+2000-12-14  Dave Love  <fx@gnu.org>
+
+	* xlwmenu.c (gray_bitmap_bits): Remove `unsigned' from
+	declaration.
+
 2000-12-11  Dave Love  <fx@gnu.org>
 
 	* xlwmenu.c (draw_separator) <SEPARATOR_SHADOW_ETCHED_IN_DASH>:
