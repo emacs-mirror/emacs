@@ -104,10 +104,8 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    size_bound = -size_bound;
 	  size_bound += 50;
 
-	  if (size_bound > bufsize)
-	    /* This is certainly enough that it doesn't matter
-	       to lose the rest.  */
-	    size_bound = bufsize + 100;
+	  if (size_bound > (unsigned) (1 << (INTBITS - 1)))
+	    error ("Format padding to large");
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
