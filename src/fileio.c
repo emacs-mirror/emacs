@@ -852,7 +852,12 @@ PREFIX should be an absolute file name.")
   /* Here we try to minimize useless stat'ing when this function is
      invoked many times successively with the same PREFIX.  We achieve
      this by initializing count to a random value, and incrementing it
-     afterwards.  */
+     afterwards.
+
+     We don't want make-temp-name to be called while dumping,
+     because then make_temp_name_count_initialized_p would get set
+     and then make_temp_name_count would not be set when Emacs starts.  */
+
   if (!make_temp_name_count_initialized_p)
     {
       make_temp_name_count = (unsigned) time (NULL);
