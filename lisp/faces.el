@@ -572,7 +572,7 @@ set its foreground and background to the default background and foreground."
 ;     (swidth		"\\(\\*\\|normal\\|semicondensed\\|\\)")	; 3
       (swidth		"\\([^-]*\\)")					; 3
 ;     (adstyle		"\\(\\*\\|sans\\|\\)")				; 4
-      (adstyle		"[^-]*")					; 4
+      (adstyle		"\\([^-]*\\)")					; 4
       (pixelsize	"[0-9]+")
       (pointsize	"[0-9][0-9]+")
       (resx		"[0-9][0-9]+")
