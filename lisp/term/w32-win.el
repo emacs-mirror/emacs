@@ -152,113 +152,63 @@ the last file dropped is selected."
 
 (defvar x-command-line-resources nil)
 
-(defconst x-option-alist
-  '(("-bw" .	x-handle-numeric-switch)
-    ("-d" .		x-handle-display)
-    ("-display" .	x-handle-display)
-    ("-name" .	x-handle-name-rn-switch)
-    ("-rn" .	x-handle-name-rn-switch)
-    ("-T" .		x-handle-switch)
-    ("-r" .		x-handle-switch)
-    ("-rv" .	x-handle-switch)
-    ("-reverse" .	x-handle-switch)
-    ("-fn" .	x-handle-switch)
-    ("-font" .	x-handle-switch)
-    ("-ib" .	x-handle-numeric-switch)
-    ("-g" .		x-handle-geometry)
-    ("-geometry" .	x-handle-geometry)
-    ("-fg" .	x-handle-switch)
-    ("-foreground".	x-handle-switch)
-    ("-bg" .	x-handle-switch)
-    ("-background".	x-handle-switch)
-    ("-ms" .	x-handle-switch)
-    ("-itype" .	x-handle-switch)
-    ("-i" 	.	x-handle-switch)
-    ("-iconic" .	x-handle-iconic)
-    ("-xrm" .       x-handle-xrm-switch)
-    ("-cr" .	x-handle-switch)
-    ("-vb" .	x-handle-switch)
-    ("-hb" .	x-handle-switch)
-    ("-bd" .	x-handle-switch)))
-
-(defconst x-long-option-alist
-  '(("--border-width" .	"-bw")
-    ("--display" .	"-d")
-    ("--name" .		"-name")
-    ("--title" .	"-T")
-    ("--reverse-video" . "-reverse")
-    ("--font" .		"-font")
-    ("--internal-border" . "-ib")
-    ("--geometry" .	"-geometry")
-    ("--foreground-color" . "-fg")
-    ("--background-color" . "-bg")
-    ("--mouse-color" .	"-ms")
-    ("--icon-type" .	"-itype")
-    ("--iconic" .	"-iconic")
-    ("--xrm" .		"-xrm")
-    ("--cursor-color" .	"-cr")
-    ("--vertical-scroll-bars" . "-vb")
-    ("--border-color" .	"-bd")))
-
-(defconst x-switch-definitions
-  '(("-name" name)
-    ("-T" name)
-    ("-r" reverse t)
-    ("-rv" reverse t)
-    ("-reverse" reverse t)
-    ("-fn" font)
-    ("-font" font)
-    ("-ib" internal-border-width)
-    ("-fg" foreground-color)
-    ("-foreground" foreground-color)
-    ("-bg" background-color)
-    ("-background" background-color)
-    ("-ms" mouse-color)
-    ("-cr" cursor-color)
-    ("-itype" icon-type t)
-    ("-i" icon-type t)
-    ("-vb" vertical-scroll-bars t)
-    ("-hb" horizontal-scroll-bars t)
-    ("-bd" border-color)
-    ("-bw" border-width)))
-
-
 (defun x-handle-switch (switch)
   "Handle SWITCH of the form \"-switch value\" or \"-switch\"."
-  (let ((aelt (assoc switch x-switch-definitions)))
+  (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(if (nth 2 aelt)
+	(let ((param (nth 3 aelt))
+	      (value (nth 4 aelt)))
+	  (if value
+	      (setq default-frame-alist
+		    (cons (cons param value)
+			  default-frame-alist))
 	    (setq default-frame-alist
-		  (cons (cons (nth 1 aelt) (nth 2 aelt))
+		  (cons (cons param
+			      (car x-invocation-args))
 			default-frame-alist))
-	  (setq default-frame-alist
-		(cons (cons (nth 1 aelt)
-			    (car x-invocation-args))
-		      default-frame-alist)
-		x-invocation-args (cdr x-invocation-args))))))
+	    x-invocation-args (cdr x-invocation-args))))))
+
+(defun x-handle-numeric-switch (switch)
+  "Handle SWITCH of the form \"-switch n\"."
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt)))
+	(setq default-frame-alist
+	      (cons (cons param
+			  (string-to-int (car x-invocation-args)))
+		    default-frame-alist)
+	      x-invocation-args
+	      (cdr x-invocation-args))))))
+
+;; Handle options that apply to initial frame only
+(defun x-handle-initial-switch (switch)
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt))
+	      (value (nth 4 aelt)))
+	  (if value
+	      (setq initial-frame-alist
+		    (cons (cons param value)
+			  initial-frame-alist))
+	    (setq initial-frame-alist
+		  (cons (cons param
+			      (car x-invocation-args))
+			initial-frame-alist)
+		  x-invocation-args (cdr x-invocation-args)))))))
 
 (defun x-handle-iconic (switch)
   "Make \"-iconic\" SWITCH apply only to the initial frame."
   (setq initial-frame-alist
 	(cons '(visibility . icon) initial-frame-alist)))
 
-
-(defun x-handle-numeric-switch (switch)
-  "Handle SWITCH of the form \"-switch n\"."
-  (let ((aelt (assoc switch x-switch-definitions)))
-    (if aelt
-	(setq default-frame-alist
-	      (cons (cons (nth 1 aelt)
-			  (string-to-int (car x-invocation-args)))
-		    default-frame-alist)
-	      x-invocation-args
-	      (cdr x-invocation-args)))))
-
 (defun x-handle-xrm-switch (switch)
   "Handle the \"-xrm\" SWITCH."
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq x-command-line-resources (car x-invocation-args))
+  (setq x-command-line-resources
+	(if (null x-command-line-resources)
+	    (car x-invocation-args)
+	  (concat x-command-line-resources "\n" (car x-invocation-args))))
   (setq x-invocation-args (cdr x-invocation-args)))
 
 (defun x-handle-geometry (switch)
@@ -282,18 +232,16 @@ the last file dropped is selected."
 		      (if top (list top)))))
     (setq x-invocation-args (cdr x-invocation-args))))
 
-(defun x-handle-name-rn-switch (switch)
-  "Handle a \"-name\" or \"-rn\" SWITCH."
-;; Handle the -name and -rn options.  Set the variable x-resource-name
-;; to the option's operand; if the switch was `-name', set the name of
-;; the initial frame, too.
+(defun x-handle-name-switch (switch)
+  "Handle a \"-name\" SWITCH."
+;; Handle the -name option.  Set the variable x-resource-name
+;; to the option's operand; set the name of the initial frame, too.
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-resource-name (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args))
-  (if (string= switch "-name")
-      (setq initial-frame-alist (cons (cons 'name x-resource-name)
-				      initial-frame-alist))))
+  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+				  initial-frame-alist)))
 
 (defvar x-display-name nil
   "The display name specifying server and frame.")
@@ -303,50 +251,50 @@ the last file dropped is selected."
   (setq x-display-name (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
 
-(defvar x-invocation-args nil)
-
 (defun x-handle-args (args)
   "Process the X-related command line options in ARGS.
 This is done before the user's startup file is loaded.  They are copied to
-x-invocation args from which the X-related things are extracted, first
+`x-invocation args' from which the X-related things are extracted, first
 the switch (e.g., \"-fg\") in the following code, and possible values
 \(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
 This returns ARGS with the arguments that have been processed removed."
+  ;; We use ARGS to accumulate the args that we don't handle here, to return.
   (setq x-invocation-args args
 	args nil)
-  (while x-invocation-args
+  (while (and x-invocation-args
+	      (not (equal (car x-invocation-args) "--")))
     (let* ((this-switch (car x-invocation-args))
 	   (orig-this-switch this-switch)
-	   completion argval aelt)
+	   completion argval aelt handler)
       (setq x-invocation-args (cdr x-invocation-args))
       ;; Check for long options with attached arguments
       ;; and separate out the attached option argument into argval.
       (if (string-match "^--[^=]*=" this-switch)
 	  (setq argval (substring this-switch (match-end 0))
 		this-switch (substring this-switch 0 (1- (match-end 0)))))
-      (setq completion (try-completion this-switch x-long-option-alist))
-      (if (eq completion t)
-	  ;; Exact match for long option.
-	  (setq this-switch (cdr (assoc this-switch x-long-option-alist)))
-	(if (stringp completion)
-	    (let ((elt (assoc completion x-long-option-alist)))
-	      ;; Check for abbreviated long option.
-	      (or elt
-		  (error "Option `%s' is ambiguous" this-switch))
-	      (setq this-switch (cdr elt)))
-	  ;; Check for a short option.
-	  (setq argval nil this-switch orig-this-switch)))
-      (setq aelt (assoc this-switch x-option-alist))
-      (if aelt
+      ;; Complete names of long options.
+      (if (string-match "^--" this-switch)
+	  (progn
+	    (setq completion (try-completion this-switch command-line-x-option-alist))
+	    (if (eq completion t)
+		;; Exact match for long option.
+		nil
+	      (if (stringp completion)
+		  (let ((elt (assoc completion command-line-x-option-alist)))
+		    ;; Check for abbreviated long option.
+		    (or elt
+			(error "Option `%s' is ambiguous" this-switch))
+		    (setq this-switch completion))))))
+      (setq aelt (assoc this-switch command-line-x-option-alist))
+      (if aelt (setq handler (nth 2 aelt)))
+      (if handler
 	  (if argval
 	      (let ((x-invocation-args
 		     (cons argval x-invocation-args)))
-		(funcall (cdr aelt) this-switch))
-	    (funcall (cdr aelt) this-switch))
-	(setq args (cons this-switch args)))))
-  (setq args (nreverse args)))
-
-
+		(funcall handler this-switch))
+	    (funcall handler this-switch))
+	(setq args (cons orig-this-switch args)))))
+  (nconc (nreverse args) x-invocation-args))
 
 ;;
 ;; Available colors
