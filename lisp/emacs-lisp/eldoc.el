@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.11 1997/03/27 10:44:56 friedman Exp rms $
+;; $Id: eldoc.el,v 1.12 1997/04/14 07:33:28 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -106,31 +106,31 @@ returns another string is acceptable."
 
 ;; No user options below here.
 
-(defvar eldoc-message-commands nil
-  "Commands after which it is appropriate to print in the echo area.
-
-Eldoc does not try to print function arglists, etc. after just any command,
-because some commands print their own messages in the echo area and these
-functions would instantly overwrite them.  But self-insert-command as well
-as most motion commands are good candidates.
-
-This variable contains an obarray of symbols; do not manipulate it
-directly.  Instead, use the functions `eldoc-add-command' and
-`eldoc-remove-command'.")
+;; Commands after which it is appropriate to print in the echo area.
+;; Eldoc does not try to print function arglists, etc. after just any command,
+;; because some commands print their own messages in the echo area and these
+;; functions would instantly overwrite them.  But self-insert-command as well
+;; as most motion commands are good candidates.
+;; This variable contains an obarray of symbols; do not manipulate it
+;; directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.
+(defvar eldoc-message-commands nil)
 
 ;; This is used by eldoc-add-command to initialize eldoc-message-commands
 ;; as an obarray.
-;; If you increase the number of buckets, keep it a prime number.
-(defconst eldoc-message-commands-table-size 31)
+;; It should probably never be necessary to do so, but if you
+;; choose to increase the number of buckets, you must do so before loading
+;; this file since the obarray is initialized at load time.
+;; Remember to keep it a prime number to improve hash performance.
+(defvar eldoc-message-commands-table-size 31)
 
 ;; Bookkeeping; the car contains the last symbol read from the buffer.
 ;; The cdr contains the string last displayed in the echo area, so it can
 ;; be printed again if necessary without reconsing.
-(defvar eldoc-last-data '(nil . nil))
+(defvar eldoc-last-data (cons nil nil))
 (defvar eldoc-last-message nil)
 
 ;; Idle timers are supported in Emacs 19.31 and later.
-(defconst eldoc-use-idle-timer-p (fboundp 'run-with-idle-timer))
+(defvar eldoc-use-idle-timer-p (fboundp 'run-with-idle-timer))
 
 ;; eldoc's timer object, if using idle timers
 (defvar eldoc-timer nil)
@@ -394,7 +394,13 @@ the mode, respectively."
                       (cond ((>= strip len)
                              (format "%s" doc))
                             (t
-                             (setq name (substring name 0 (- len strip)))
+                             ;;(setq name (substring name 0 (- len strip)))
+                             ;;
+                             ;; Show the end of the partial variable name,
+                             ;; rather than the beginning, since the former
+                             ;; is more likely to be unique given package
+                             ;; namespace conventions.
+                             (setq name (substring name strip))
                              (format "%s: %s" name doc)))))
                    (t
                     (format "%s: %s" symbol doc))))))))
@@ -417,11 +423,11 @@ the mode, respectively."
 ;; The order in this table is significant, since later predicates may be
 ;; more general than earlier ones.
 ;;
-;; Compiler note for Emacs 19.29 and later: these functions will be
-;; compiled to bytecode, but can't be lazy-loaded even if you set
-;; byte-compile-dynamic; to do that would require making them named
-;; top-level defuns, and that's not particularly desirable either.
-(defconst eldoc-function-argstring-from-docstring-method-table
+;; Compiler note for Emacs/XEmacs versions which support dynamic loading:
+;; these functions will be compiled to bytecode, but can't be lazy-loaded
+;; even if you set byte-compile-dynamic; to do that would require making
+;; them named top-level defuns, which is not particularly desirable either.
+(defvar eldoc-function-argstring-from-docstring-method-table
   (list
    ;; Try first searching for args starting with symbol name.
    ;; This is to avoid matching parenthetical remarks in e.g. sit-for.
@@ -437,7 +443,10 @@ the mode, respectively."
    ;; Try again not requiring this symbol name in the docstring.
    ;; This will be the case when looking up aliases.
    (list (function (lambda (doc fn)
-                     (string-match "^([^\n)]+)$" doc)))
+                     ;; save-restriction has a pathological docstring in
+                     ;; Emacs/XEmacs 19.
+                     (and (not (eq fn 'save-restriction))
+                          (string-match "^([^\n)]+)$" doc))))
          (function (lambda (doc)
                      ;; end does not include trailing ")" sequence.
                      (let ((end (- (match-end 0) 1)))
@@ -490,8 +499,7 @@ the mode, respectively."
          (function (lambda (doc)
                      (substring doc (match-beginning 1) (match-end 1)))))
 
-   ;; These subrs don't have arglists in their docstrings.
-   ;; This is cheating.
+   ;; These common subrs don't have arglists in their docstrings.  So cheat.
    (list (function (lambda (doc fn)
                      (memq fn '(and or list + -))))
          (function (lambda (doc)
@@ -593,8 +601,9 @@ the mode, respectively."
 ;; Prime the command list.
 (eldoc-add-command-completions
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
- "end-of-" "forward-" "goto-" "mouse-set-point" "next-" "other-window"
- "previous-" "recenter" "scroll-" "self-insert-command" "split-window-")
+ "end-of-" "forward-" "indent-for-tab-command" "goto-" "mouse-set-point"
+ "next-" "other-window" "previous-" "recenter" "scroll-"
+ "self-insert-command" "split-window-")
 
 (provide 'eldoc)
 
