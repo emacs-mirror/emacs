@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.42) $
+ * $HopeName: MMsrc!trace.c(trunk.43) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.42) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.43) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -485,6 +485,9 @@ static void TraceReclaim(Trace trace)
         /* Note that the seg returned by this SegOfAddr may not be */
         /* the same as the one above, but in that case it's new and */
         /* still shouldn't be white for this trace. */
+
+	/* The code from the class-specific reclaim methods to */
+	/* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;	/* prevents compiler warning */
 	  AVER(!(SegOfAddr(&nonWhiteSeg, arena, base) &&
@@ -802,6 +805,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
       Res res;
       EVENT_0(TraceFixWhite);
       pool = SegPool(seg);
+      /* Could move the rank switch here from the class-specific
+       * fix methods. */
       res = PoolFix(pool, ss, seg, refIO);
       if (res != ResOK)
         return res;
