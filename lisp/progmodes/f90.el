@@ -243,7 +243,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :group 'f90)
 
 (defconst f90-xemacs-flag (string-match "XEmacs\\|Lucid" emacs-version)
-  "Non-nil means f90-mode thinks it is running under XEmacs.")
+  "Non-nil means F90 mode thinks it is running under XEmacs.")
 
 (defconst f90-keywords-re
   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
@@ -312,7 +312,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 
 (defconst f90-hpf-keywords-re
   (regexp-opt
-   ;; Intrinsic procedures
+   ;; Intrinsic procedures.
    '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
      "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
      "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
@@ -326,20 +326,20 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
      "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
      "processors_shape" "product_prefix" "product_scatter"
      "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
-     ;; Directives
+     ;; Directives.
      "align" "distribute" "dynamic" "independent" "inherit" "processors"
      "realign" "redistribute" "template"
-     ;; Keywords
+     ;; Keywords.
      "block" "cyclic" "extrinsic" "new" "onto" "pure" "with") 'words)
   "Regexp for all HPF keywords, procedures and directives.")
 
-;; Highlighting patterns
+;; Highlighting patterns.
 
 (defvar f90-font-lock-keywords-1
   (list
-   ;; Special highlighting of "module procedure foo-list"
+   ;; Special highlighting of "module procedure".
    '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
-   ;; Highlight definition of new type
+   ;; Highlight declaration of derived type.
 ;;;   '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
 ;;;     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    ;; Other functions and declarations.
@@ -353,18 +353,18 @@ subroutine\\|type\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
   (append
    f90-font-lock-keywords-1
    (list
-    ;; Variable declarations (avoid the real function call)
+    ;; Variable declarations (avoid the real function call).
     '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
 logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^!\n]*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face))
-    ;; do, if, select, where, and forall constructs
+    ;; do, if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
       (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
     '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|\
 do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
-    ;; implicit declaration
+    ;; Implicit declaration.
     '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
 \\|logical\\|type[ \t]*(\\sw+)\\|none\\)\\>"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
@@ -387,7 +387,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
            f90-keywords-level-3-re
            f90-operators-re
            (list f90-procedures-re '(1 font-lock-keyword-face keep))
-           "\\<real\\>"			; Avoid overwriting real defs.
+           "\\<real\\>"			; avoid overwriting real defs
            ))
   "Highlights all F90 keywords and intrinsic procedures.")
 
@@ -400,27 +400,27 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   f90-font-lock-keywords-2
   "*Default expressions to highlight in F90 mode.")
 
-;; syntax table
+
 (defvar f90-mode-syntax-table nil
   "Syntax table in use in F90 mode buffers.")
 
 (unless f90-mode-syntax-table
   (setq f90-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\! "<" f90-mode-syntax-table)  ; beg. comment
-  (modify-syntax-entry ?\n ">" f90-mode-syntax-table)  ; end comment
-  (modify-syntax-entry ?_ "w" f90-mode-syntax-table)   ; underscore in names
+  (modify-syntax-entry ?\! "<"  f90-mode-syntax-table) ; begin comment
+  (modify-syntax-entry ?\n ">"  f90-mode-syntax-table) ; end comment
+  (modify-syntax-entry ?_  "w"  f90-mode-syntax-table) ; underscore in names
   (modify-syntax-entry ?\' "\"" f90-mode-syntax-table) ; string quote
   (modify-syntax-entry ?\" "\"" f90-mode-syntax-table) ; string quote
-  (modify-syntax-entry ?\` "w" f90-mode-syntax-table)  ; for abbrevs
-  (modify-syntax-entry ?\r " " f90-mode-syntax-table)  ; return is whitespace
-  (modify-syntax-entry ?+ "." f90-mode-syntax-table)
-  (modify-syntax-entry ?- "." f90-mode-syntax-table)
-  (modify-syntax-entry ?= "." f90-mode-syntax-table)
-  (modify-syntax-entry ?* "." f90-mode-syntax-table)
-  (modify-syntax-entry ?/ "." f90-mode-syntax-table)
+  (modify-syntax-entry ?\` "w"  f90-mode-syntax-table) ; for abbrevs
+  (modify-syntax-entry ?\r " "  f90-mode-syntax-table) ; return is whitespace
+  (modify-syntax-entry ?+  "."  f90-mode-syntax-table) ; punctuation
+  (modify-syntax-entry ?-  "."  f90-mode-syntax-table)
+  (modify-syntax-entry ?=  "."  f90-mode-syntax-table)
+  (modify-syntax-entry ?*  "."  f90-mode-syntax-table)
+  (modify-syntax-entry ?/  "."  f90-mode-syntax-table)
   (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)) ; escape chars
 
-;; keys
+
 (defvar f90-mode-map ()
   "Keymap used in F90 mode.")
 
@@ -435,7 +435,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   (define-key f90-mode-map "\C-j"     'f90-indent-new-line) ; LFD equals C-j
   (define-key f90-mode-map "\r"       'newline)
   (define-key f90-mode-map "\C-c\r"   'f90-break-line)
-  ;;  (define-key f90-mode-map [M-return] 'f90-break-line)
+;;;  (define-key f90-mode-map [M-return] 'f90-break-line)
   (define-key f90-mode-map "\C-c\C-d" 'f90-join-lines)
   (define-key f90-mode-map "\C-c\C-f" 'f90-fill-region)
   (define-key f90-mode-map "\C-c\C-p" 'f90-previous-statement)
@@ -449,7 +449,6 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   (define-key f90-mode-map "/"        'f90-electric-insert))
 
 
-;; menus
 (if f90-xemacs-flag
     (defvar f90-xemacs-menu
       '("F90"
@@ -468,43 +467,40 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 	["Insert Block End"        f90-insert-end t]
 	"-----"
 	["Upcase Keywords (buffer)"      f90-upcase-keywords t]
-	["Upcase Keywords (region)"      f90-upcase-region-keywords
-	 t]
+	["Upcase Keywords (region)"      f90-upcase-region-keywords t]
 	["Capitalize Keywords (buffer)"  f90-capitalize-keywords t]
-	["Capitalize Keywords (region)"
-	 f90-capitalize-region-keywords t]
+	["Capitalize Keywords (region)"  f90-capitalize-region-keywords t]
 	["Downcase Keywords (buffer)"    f90-downcase-keywords t]
-	["Downcase Keywords (region)"
-	 f90-downcase-region-keywords t]
+	["Downcase Keywords (region)"    f90-downcase-region-keywords t]
 	"-----"
-	["Toggle abbrev-mode"   abbrev-mode             t]
-	["Toggle auto-fill"     auto-fill-mode		t])
+	["Toggle abbrev-mode"   abbrev-mode t]
+	["Toggle auto-fill"     auto-fill-mode t])
       "XEmacs menu for F90 mode.")
-  ;; Emacs
 
+  ;; Emacs.
   (defvar f90-change-case-menu
     (let ((map (make-sparse-keymap "Change Keyword Case")))
-      (define-key map [dkr] (cons "Downcase Keywords (region)"
-				  'f90-downcase-region-keywords))
+      (define-key map [dkr]
+        (cons "Downcase Keywords (region)" 'f90-downcase-region-keywords))
       (put 'f90-downcase-region-keywords 'menu-enable 'mark-active)
-      (define-key map [ckr] (cons "Capitalize Keywords (region)"
-				  'f90-capitalize-region-keywords))
+      (define-key map [ckr]
+        (cons "Capitalize Keywords (region)" 'f90-capitalize-region-keywords))
       (put 'f90-capitalize-region-keywords 'menu-enable 'mark-active)
-      (define-key map [ukr] (cons "Upcase Keywords (region)"
-				  'f90-upcase-region-keywords))
+      (define-key map [ukr]
+        (cons "Upcase Keywords (region)" 'f90-upcase-region-keywords))
       (put 'f90-upcase-region-keywords 'menu-enable 'mark-active)
       (define-key map [line] (list "-----------------"))
-      (define-key map [dkb] (cons "Downcase Keywords (buffer)"
-				  'f90-downcase-keywords))
-      (define-key map [ckb] (cons "Capitalize Keywords (buffer)"
-				  'f90-capitalize-keywords))
-      (define-key map [ukb] (cons "Upcase Keywords (buffer)"
-				  'f90-upcase-keywords))
+      (define-key map [dkb]
+        (cons "Downcase Keywords (buffer)" 'f90-downcase-keywords))
+      (define-key map [ckb]
+        (cons "Capitalize Keywords (buffer)" 'f90-capitalize-keywords))
+      (define-key map [ukb]
+        (cons "Upcase Keywords (buffer)" 'f90-upcase-keywords))
       map)
     "Submenu for change of case.")
   (defalias 'f90-change-case-menu f90-change-case-menu)
 
-  ;; font-lock-menu and function calls
+  ;; Font-lock-menu and function calls.
   (defalias 'f90-font-lock-on  'font-lock-mode)
   (defalias 'f90-font-lock-off 'font-lock-mode)
   (put 'f90-font-lock-on  'menu-enable 'font-lock-mode)
@@ -540,21 +536,22 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 
   (defvar f90-font-lock-menu
     (let ((map (make-sparse-keymap "f90-font-lock-menu")))
-      (define-key map [h4] (cons "Maximum highlighting (level 4)"
-				 'f90-font-lock-4))
-      (define-key map [h3] (cons "Heavy highlighting (level 3)"
-				 'f90-font-lock-3))
-      (define-key map [h2] (cons "Default highlighting (level 2)"
-				 'f90-font-lock-2))
-      (define-key map [h1] (cons "Light highlighting (level 1)"
-				 'f90-font-lock-1))
+      (define-key map [h4]
+        (cons "Maximum highlighting (level 4)" 'f90-font-lock-4))
+      (define-key map [h3]
+        (cons "Heavy highlighting (level 3)" 'f90-font-lock-3))
+      (define-key map [h2]
+        (cons "Default highlighting (level 2)" 'f90-font-lock-2))
+      (define-key map [h1]
+        (cons "Light highlighting (level 1)" 'f90-font-lock-1))
       (define-key map [line] (list "-----------------"))
-      (define-key map [floff] (cons "Turn off font-lock-mode"
-				    'f90-font-lock-on))
-      (define-key map [flon] (cons "Turn on font-lock-mode"
-				   'f90-font-lock-off))
+      (define-key map [floff]
+        (cons "Turn off font-lock-mode" 'f90-font-lock-on))
+      (define-key map [flon]
+        (cons "Turn on font-lock-mode" 'f90-font-lock-off))
       map)
     "Submenu for highlighting using font-lock-mode.")
+
   (defalias 'f90-font-lock-menu f90-font-lock-menu)
 
   (define-key f90-mode-map [menu-bar] (make-sparse-keymap))
@@ -566,22 +563,19 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
     '("Toggle abbrev-mode" . abbrev-mode))
   (define-key f90-mode-map [menu-bar f90 auto-fill-mode]
     '("Toggle auto-fill" . auto-fill-mode))
-  (define-key f90-mode-map [menu-bar f90 line1]
-    '("----"))
+  (define-key f90-mode-map [menu-bar f90 line1] '("----"))
   (define-key f90-mode-map [menu-bar f90 f90-change-case-menu]
     (cons "Change Keyword Case" 'f90-change-case-menu))
   (define-key f90-mode-map [menu-bar f90 f90-font-lock-menu]
     (cons "Highlighting" 'f90-font-lock-menu))
-  (define-key f90-mode-map [menu-bar f90 line2]
-    '("----"))
+  (define-key f90-mode-map [menu-bar f90 line2] '("----"))
   (define-key f90-mode-map [menu-bar f90 f90-insert-end]
     '("Insert Block End" . f90-insert-end))
   (define-key f90-mode-map [menu-bar f90 f90-join-lines]
     '("Join with Next Line" . f90-join-lines))
   (define-key f90-mode-map [menu-bar f90 f90-break-line]
     '("Break Line at Point" . f90-break-line))
-  (define-key f90-mode-map [menu-bar f90 line3]
-    '("----"))
+  (define-key f90-mode-map [menu-bar f90 line3] '("----"))
   (define-key f90-mode-map [menu-bar f90 f90-fill-region]
     '("Fill Region" . f90-fill-region))
   (put 'f90-fill-region 'menu-enable 'mark-active)
@@ -590,8 +584,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   (define-key f90-mode-map [menu-bar f90 f90-comment-region]
     '("(Un)Comment Region" . f90-comment-region))
   (put 'f90-comment-region 'menu-enable 'mark-active)
-  (define-key f90-mode-map [menu-bar f90 line4]
-    '("----"))
+  (define-key f90-mode-map [menu-bar f90 line4] '("----"))
   (define-key f90-mode-map [menu-bar f90 f90-end-of-subprogram]
     '("End of Subprogram" . f90-end-of-subprogram))
   (define-key f90-mode-map [menu-bar f90 f90-beginning-of-subprogram]
@@ -604,28 +597,48 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
-  "\\(block[ \t]*data\\|do\\|if\\|interface\\|function\\|module\\|\
-program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
+  (concat "\\(block[ \t]*data\\|"
+          (regexp-opt '("do" "if" "interface" "function" "module" "program"
+                        "select" "subroutine" "type" "where" "forall"))
+          "\\)\\>")
+  "Regexp potentially indicating a \"block\" of F90 code.")
+
 (defconst f90-program-block-re
-  "\\(program\\|module\\|subroutine\\|function\\)")
+  (regexp-opt '("program" "module" "subroutine" "function") 'paren)
+  "Regexp used to locate the start/end of a \"subprogram\".")
+
 (defconst f90-else-like-re
-  "\\(else\\([ \t]*if\\|where\\)?\\|case[ \t]*\\(default\\|(\\)\\)")
+  "\\(else\\([ \t]*if\\|where\\)?\\|case[ \t]*\\(default\\|(\\)\\)"
+  "Regexp matching an ELSE IF, ELSEWHERE, CASE statement.")
+
 (defconst f90-end-if-re
-  "end[ \t]*\\(if\\|select\\|where\\|forall\\)\\>")
+  (concat "end[ \t]*"
+          (regexp-opt '("if" "select" "where" "forall") 'paren)
+          "\\>")
+  "Regexp matching the end of an IF, SELECT, WHERE, FORALL block.")
+
 (defconst f90-end-type-re
-  "end[ \t]*\\(type\\|interface\\|block[ \t]*data\\)")
+  "end[ \t]*\\(type\\|interface\\|block[ \t]*data\\)\\>"
+  "Regexp matching the end of a TYPE, INTERFACE, BLOCK DATA section.")
+
 (defconst f90-type-def-re
-  "\\<\\(type\\)\\([^(\n]*\\)\\(::\\)?[ \t]*\\b\\(\\sw+\\)")
-(defconst f90-no-break-re  "\\(\\*\\*\\|//\\|=>\\)")
-;; A temporary position to make region operators faster
-(defvar f90-cache-position nil)
+  "\\<\\(type\\)\\([^(\n]*\\)\\(::\\)?[ \t]*\\b\\(\\sw+\\)"
+  "Regexp matching the declaration of a variable of derived type.")
+
+(defconst f90-no-break-re
+  (regexp-opt '("**" "//" "=>") 'paren)
+  "Regexp specifying where not to break lines when filling.")
+
+(defvar f90-cache-position nil
+  "Temporary position used to speed up region operations.")
 (make-variable-buffer-local 'f90-cache-position)
-;; A flag to tell whether f90-imenu is turned on.
-(defvar f90-imenu nil)
-(make-variable-buffer-local 'f90-imenu)
+
+(defvar f90-imenu-flag nil
+  "Non-nil means this buffer already has an imenu.")
+(make-variable-buffer-local 'f90-imenu-flag)
 
 
-;; Imenu support
+;; Imenu support.
 (defvar f90-imenu-generic-expression
   (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
 	(not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]"))
@@ -638,14 +651,14 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
       (concat
        "^[ \t0-9]*"
        "\\("
-       ;; At least three non-space characters before function/subroutine
-       ;; Check that the last three non-space characters don't spell E N D
+       ;; At least three non-space characters before function/subroutine.
+       ;; Check that the last three non-space characters do not spell E N D.
        "[^!\"\&\n]*\\("
        not-e good-char good-char "\\|"
        good-char not-n good-char "\\|"
        good-char good-char not-d "\\)"
        "\\|"
-       ;; Less than three non-space characters before function/subroutine
+       ;; Less than three non-space characters before function/subroutine.
        good-char "?" good-char "?"
        "\\)"
        "[ \t]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)")
@@ -655,21 +668,21 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defun f90-add-imenu-menu ()
   "Add an imenu menu to the menubar."
   (interactive)
-  (if f90-imenu
+  (if f90-imenu-flag
       (message "%s" "F90-imenu already exists.")
     (imenu-add-to-menubar "F90-imenu")
     (redraw-frame (selected-frame))
-    (setq f90-imenu t)))
+    (setq f90-imenu-flag t)))
 
-(put 'f90-add-imenu-menu 'menu-enable '(not f90-imenu))
+(put 'f90-add-imenu-menu 'menu-enable '(not f90-imenu-flag))
 
 
-;; When compiling under GNU Emacs, load imenu during compilation.  If
-;; you have 19.22 or earlier, comment this out, or get imenu.
+;; When compiling under GNU Emacs, load imenu during compilation.
+;; If you have 19.22 or earlier, comment this out, or get imenu.
 (or f90-xemacs-flag (eval-when-compile (require 'imenu)))
 
 
-;; abbrevs have generally two letters, except standard types `c, `i, `r, `t
+;; Abbrevs have generally two letters, except standard types `c, `i, `r, `t.
 (defvar f90-mode-abbrev-table nil)
 (unless f90-mode-abbrev-table
   (let ((ac abbrevs-changed))
@@ -730,7 +743,7 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
     (setq abbrevs-changed ac)))
 
 (defcustom f90-mode-hook nil
-  "Hook run by F90 mode."
+  "Hook run when entering F90 mode."
   :type 'hook
   :options '(f90-add-imenu-menu)
   :group 'f90)
@@ -739,9 +752,9 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defun f90-mode ()
   "Major mode for editing Fortran 90,95 code in free format.
 
-\\[f90-indent-new-line] corrects current indentation and creates new\
+\\[f90-indent-new-line] indents current line and creates a new\
  indented line.
-\\[f90-indent-line] indents the current line correctly.
+\\[f90-indent-line] indents the current line.
 \\[f90-indent-subprogram] indents the current subprogram.
 
 Type `? or `\\[help-command] to display a list of built-in\
@@ -752,45 +765,45 @@ Key definitions:
 
 Variables controlling indentation style and extra features:
 
- `f90-do-indent'
-    Extra indentation within do blocks.  (default 3)
- `f90-if-indent'
-    Extra indentation within if/select case/where/forall blocks.  (default 3)
- `f90-type-indent'
-    Extra indentation within type/interface/block-data blocks.  (default 3)
- `f90-program-indent'
-    Extra indentation within program/module/subroutine/function blocks.
-    (default 2)
- `f90-continuation-indent'
-    Extra indentation applied to continuation lines.  (default 5)
- `f90-comment-region'
-    String inserted by \\[f90-comment-region] at start of each line in
-    region.  (default \"!!!$\")
- `f90-indented-comment-re'
-    Regexp determining the type of comment to be intended like code.
-    (default \"!\")
- `f90-directive-comment-re'
-    Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented.
-    (default \"!hpf\\\\$\")
- `f90-break-delimiters'
-    Regexp holding list of delimiters at which lines may be broken.
-    (default \"[-+*/><=,% \\t]\")
- `f90-break-before-delimiters'
-    Non-nil causes `f90-do-auto-fill' to break lines before delimiters.
-    (default t)
- `f90-beginning-ampersand'
-    Automatic insertion of \& at beginning of continuation lines. (default t)
- `f90-smart-end'
-    From an END statement, check and fill the end using matching block start.
-    Allowed values are 'blink, 'no-blink, and nil, which determine
-    whether to blink the matching beginning.  (default 'blink)
- `f90-auto-keyword-case'
-    Automatic change of case of keywords.  (default nil)
-    The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
- `f90-leave-line-no'
-    Do not left-justify line numbers.  (default nil)
- `f90-keywords-re'
-    List of keywords used for highlighting/upcase-keywords etc.
+`f90-do-indent'
+  Extra indentation within do blocks (default 3).
+`f90-if-indent'
+  Extra indentation within if/select case/where/forall blocks (default 3).
+`f90-type-indent'
+  Extra indentation within type/interface/block-data blocks (default 3).
+`f90-program-indent'
+  Extra indentation within program/module/subroutine/function blocks
+  (default 2).
+`f90-continuation-indent'
+  Extra indentation applied to continuation lines (default 5).
+`f90-comment-region'
+  String inserted by \\[f90-comment-region] at start of each line in
+  region (default \"!!!$\").
+`f90-indented-comment-re'
+  Regexp determining the type of comment to be intended like code
+  (default \"!\").
+`f90-directive-comment-re'
+  Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented
+  (default \"!hpf\\\\$\").
+`f90-break-delimiters'
+  Regexp holding list of delimiters at which lines may be broken
+  (default \"[-+*/><=,% \\t]\").
+`f90-break-before-delimiters'
+  Non-nil causes `f90-do-auto-fill' to break lines before delimiters
+  (default t).
+`f90-beginning-ampersand'
+  Automatic insertion of \& at beginning of continuation lines (default t).
+`f90-smart-end'
+  From an END statement, check and fill the end using matching block start.
+  Allowed values are 'blink, 'no-blink, and nil, which determine
+  whether to blink the matching beginning (default 'blink).
+`f90-auto-keyword-case'
+  Automatic change of case of keywords (default nil).
+  The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
+`f90-leave-line-no'
+  Do not left-justify line numbers (default nil).
+`f90-keywords-re'
+  List of keywords used for highlighting/upcase-keywords etc.
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."
@@ -818,7 +831,7 @@ with no args, if that value is non-nil."
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'f90-do-auto-fill)
   (setq indent-tabs-mode nil)
-  ;; Setting up things for font-lock
+  ;; Setting up things for font-lock.
   (when f90-xemacs-flag
     (put 'f90-mode 'font-lock-keywords-case-fold-search t)
     (when (and (featurep 'menubar)
@@ -826,7 +839,7 @@ with no args, if that value is non-nil."
                (not (assoc "F90" current-menubar)))
       (set-buffer-menubar (copy-sequence current-menubar))
       (add-submenu nil f90-xemacs-menu)))
-  ;; XEmacs: (Don't need a special case, since both emacsen work alike -sb)
+  ;; XEmacs: Does not need a special case, since both emacsen work alike -sb.
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
 	'((f90-font-lock-keywords f90-font-lock-keywords-1
@@ -841,11 +854,12 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
   (run-hooks 'f90-mode-hook))
+
 
-;; inline-functions
+;; Inline-functions.
 (defsubst f90-in-string ()
   "Return non-nil if point is inside a string.
-Checks from point-min, or f90-cache-position, if that is non-nil
+Checks from `point-min', or `f90-cache-position', if that is non-nil
 and lies before point."
   (let ((beg-pnt
 	 (if (and f90-cache-position (> (point) f90-cache-position))
@@ -855,7 +869,7 @@ and lies before point."
 
 (defsubst f90-in-comment ()
   "Return non-nil if point is inside a comment.
-Checks from point-min, or f90-cache-position, if that is non-nil
+Checks from `point-min', or `f90-cache-position', if that is non-nil
 and lies before point."
   (let ((beg-pnt
 	 (if (and f90-cache-position (> (point) f90-cache-position))
@@ -910,14 +924,13 @@ For example, \"!\" or \"!!\"."
       type)))
 
 (defsubst f90-equal-symbols (a b)
-  "Compare strings neglecting case and allowing for nil value."
+  "Compare strings A and B neglecting case and allowing for nil value."
   (let ((a-local (if a (downcase a) nil))
 	(b-local (if b (downcase b) nil)))
     (equal a-local b-local)))
 
-;; XEmacs 19.11 & 19.12 gives back a single char when matching an empty regular
-;; expression. Therefore, the next 2 functions are longer than necessary.
-
+;; XEmacs 19.11 & 19.12 return a single char when matching an empty regexp.
+;; The next 2 functions are therefore longer than necessary.
 (defsubst f90-looking-at-do ()
   "Return (\"do\" NAME) if a do statement starts after point.
 NAME is nil if the statement has no label."
@@ -998,6 +1011,11 @@ NAME is non-nil only for type."
       (list (match-string 1) (match-string 3))))
 
 (defsubst f90-comment-indent ()
+  "Return the indentation to be used for a comment starting at point.
+Used for `comment-indent-function' by F90 mode.
+\"!!!\", `f90-directive-comment-re', variable `f90-comment-region' return 0.
+`f90-indented-comment-re' (if not trailing code) calls `f90-calculate-indent'.
+Any other type return `comment-column', leaving at least one space after code."
   (cond ((looking-at "!!!") 0)
 	((and f90-directive-comment-re
 	      (looking-at f90-directive-comment-re)) 0)
@@ -1138,7 +1156,7 @@ Does not check type and subprogram indentation."
 		 (goto-char pnt)
 		 (beginning-of-line)
 		 (cond ((looking-at "[ \t]*$"))
-		       ((looking-at "[ \t]*#") ; Check for cpp directive.
+		       ((looking-at "[ \t]*#") ; check for cpp directive
 			(setq icol 0))
 		       (t
 			(skip-chars-forward " \t0-9")
@@ -1155,10 +1173,10 @@ Does not check type and subprogram indentation."
 		 ))))
     icol))
 
-;; Statement = statement line, a line which is neither blank, nor a comment.
 (defun f90-previous-statement ()
   "Move point to beginning of the previous F90 statement.
-Return nil if no previous statement is found."
+Return nil if no previous statement is found.
+A statement is a line which is neither blank nor a comment."
   (interactive)
   (let (not-first-statement)
     (beginning-of-line)
@@ -1180,7 +1198,7 @@ Return nil if no later statement is found."
 
 (defun f90-beginning-of-subprogram ()
   "Move point to the beginning of subprogram.
-Return (type name) or nil if not found."
+Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-beg)
     (beginning-of-line) (skip-chars-forward " \t0-9")
@@ -1197,12 +1215,12 @@ Return (type name) or nil if not found."
     (beginning-of-line)
     (if (zerop count)
 	matching-beg
-      (message "No beginning-found.")
+      (message "No beginning found.")
       nil)))
 
 (defun f90-end-of-subprogram ()
   "Move point to the end of subprogram.
-Return (type name) or nil if not found."
+Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((count 1) (case-fold-search t) matching-end)
     (beginning-of-line) (skip-chars-forward " \t0-9")
@@ -1277,7 +1295,7 @@ after indenting."
   (interactive)
   (let (indent (no-line-number nil) (pos (make-marker)) (case-fold-search t))
     (set-marker pos (point))
-    (beginning-of-line)			; Digits after & \n are not line-no
+    (beginning-of-line)			; digits after & \n are not line-nos
     (if (save-excursion (and (f90-previous-statement) (f90-line-continued)))
 	(progn (setq no-line-number t) (skip-chars-forward " \t"))
       (f90-indent-line-no))
@@ -1305,12 +1323,11 @@ If run in the middle of a line, the line is not broken."
   (interactive)
   (let (string cont (case-fold-search t))
     (if abbrev-mode (expand-abbrev))
-    (beginning-of-line)			; Reindent where likely to be needed.
+    (beginning-of-line)			; reindent where likely to be needed
     (f90-indent-line-no)
-    (if (or (looking-at "\\(end\\|else\\|!\\)"))
-	(f90-indent-line 'no-update))
+    (f90-indent-line 'no-update)
     (end-of-line)
-    (delete-horizontal-space)		;Destroy trailing whitespace
+    (delete-horizontal-space)		; destroy trailing whitespace
     (setq string (f90-in-string))
     (setq cont (f90-line-continued))
     (if (and string (not cont)) (insert "&"))
@@ -1328,7 +1345,7 @@ If run in the middle of a line, the line is not broken."
 	struct beg-struct end-struct)
     (set-marker end-region-mark end-region)
     (goto-char beg-region)
-    ;; first find a line which is not a continuation line or comment
+    ;; First find a line which is not a continuation line or comment.
     (beginning-of-line)
     (while (and (looking-at "[ \t]*[0-9]*\\(!\\|#\\|[ \t]*$\\)")
 		(progn (f90-indent-line 'no-update)
@@ -1338,7 +1355,7 @@ If run in the middle of a line, the line is not broken."
     (while (and (or (eq cont 'middle) (eq cont 'end))
 		(f90-previous-statement))
       (setq cont (f90-present-statement-cont)))
-    ;; process present line for beginning of block
+    ;; Process present line for beginning of block.
     (setq f90-cache-position (point))
     (f90-indent-line 'no-update)
     (setq ind-lev (f90-current-indentation))
@@ -1360,10 +1377,12 @@ If run in the middle of a line, the line is not broken."
     (if struct (setq block-list (cons struct block-list)))
     (while (and (f90-line-continued) (zerop (forward-line 1))
 		(< (point) end-region-mark))
-      (if (not (zerop (- (current-indentation)
-			 (+ ind-curr f90-continuation-indent))))
-	  (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no)))
-    ;; process all following lines
+      (if (looking-at "[ \t]*!")
+          (f90-indent-to (f90-comment-indent))
+        (if (not (zerop (- (current-indentation)
+                           (+ ind-curr f90-continuation-indent))))
+            (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no))))
+    ;; Process all following lines.
     (while (and (zerop (forward-line 1)) (< (point) end-region-mark))
       (beginning-of-line)
       (f90-indent-line-no)
@@ -1394,8 +1413,8 @@ If run in the middle of a line, the line is not broken."
 		   block-list (cdr block-list))
 	     (if f90-smart-end
 		 (save-excursion
-		   (f90-block-match (car beg-struct)(car (cdr beg-struct))
-				    (car end-struct)(car (cdr end-struct)))))
+		   (f90-block-match (car beg-struct) (car (cdr beg-struct))
+				    (car end-struct) (car (cdr end-struct)))))
 	     (setq ind-b
 		   (cond ((looking-at f90-end-if-re) f90-if-indent)
 			 ((looking-at "end[ \t]*do\\>")  f90-do-indent)
@@ -1405,15 +1424,18 @@ If run in the middle of a line, the line is not broken."
 	     (if ind-b (setq ind-lev (- ind-lev ind-b)))
 	     (setq ind-curr ind-lev))
 	    (t (setq ind-curr ind-lev)))
-      ;; do the indentation if necessary
+      ;; Do the indentation if necessary.
       (if (not (zerop (- ind-curr (current-column))))
 	  (f90-indent-to ind-curr))
       (while (and (f90-line-continued) (zerop (forward-line 1))
 		  (< (point) end-region-mark))
-	(if (not (zerop (- (current-indentation)
-			   (+ ind-curr f90-continuation-indent))))
-	    (f90-indent-to (+ ind-curr f90-continuation-indent) 'no-line-no))))
-    ;; restore point etc
+        (if (looking-at "[ \t]*!")
+            (f90-indent-to (f90-comment-indent))
+          (if (not (zerop (- (current-indentation)
+                             (+ ind-curr f90-continuation-indent))))
+              (f90-indent-to
+               (+ ind-curr f90-continuation-indent) 'no-line-no)))))
+    ;; Restore point, etc.
     (setq f90-cache-position nil)
     (goto-char save-point)
     (set-marker end-region-mark nil)
@@ -1423,7 +1445,7 @@ If run in the middle of a line, the line is not broken."
       (deactivate-mark))))
 
 (defun f90-indent-subprogram ()
-  "Properly indent the subprogram which contains point."
+  "Properly indent the subprogram containing point."
   (interactive)
   (save-excursion
     (let (program)
@@ -1439,7 +1461,6 @@ If run in the middle of a line, the line is not broken."
 	(indent-region (point) (mark) nil)
 	(message "Indenting the whole file...done")))))
 
-;; autofill and break-line
 (defun f90-break-line (&optional no-update)
   "Break line at point, insert continuation marker(s) and indent.
 Unless in a string or comment, or if the optional argument NO-UPDATE
@@ -1474,9 +1495,9 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
   "Break line if non-white characters beyond `fill-column'.
 Update keyword case first."
   (interactive)
-  ;; Break the line before or after the last delimiter (non-word char) if
+  ;; Break line before or after last delimiter (non-word char) if
   ;; position is beyond fill-column.
-  ;; Will not break **, //, or => (specified by f90-no-break-re).
+  ;; Will not break **, //, or => (as specified by f90-no-break-re).
   (f90-update-line)
   (while (> (current-column) fill-column)
     (let ((pos-mark (point-marker)))
@@ -1521,9 +1542,9 @@ Update keyword case first."
     (set-marker end-region-mark end-region)
     (goto-char beg-region)
     (while go-on
-      ;; join as much as possible
+      ;; Join as much as possible.
       (while (f90-join-lines))
-      ;; chop the line if necessary
+      ;; Chop the line if necessary.
       (while (> (save-excursion (end-of-line) (current-column))
 		fill-column)
 	(move-to-column fill-column)
@@ -1539,6 +1560,10 @@ Update keyword case first."
 
 (defun f90-block-match (beg-block beg-name end-block end-name)
   "Match end-struct with beg-struct and complete end-block if possible.
+BEG-BLOCK is the type of block as indicated at the start (e.g., do).
+BEG-NAME is the block start name (may be nil).
+END-BLOCK is the type of block as indicated at the end (may be nil).
+END-NAME is the block end name (may be nil).
 Leave point at the end of line."
   (search-forward "end" (line-end-position))
   (catch 'no-match
@@ -1567,7 +1592,7 @@ Leave point at the end of line."
     (if (not (looking-at "[ \t]*!")) (delete-horizontal-space))))
 
 (defun f90-match-end ()
-  "From an end foo statement, find the corresponding foo including name."
+  "From an end block statement, find the corresponding block and name."
   (interactive)
   (let ((count 1) (top-of-window (window-start)) (matching-beg nil)
 	(end-point (point)) (case-fold-search t)
@@ -1627,7 +1652,7 @@ Leave point at the end of line."
     (insert "end")
     (f90-indent-new-line)))
 
-;; abbrevs and keywords
+;; Abbrevs and keywords.
 
 (defun f90-abbrev-start ()
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
@@ -1639,7 +1664,7 @@ Any other key combination is executed normally."
         (setq c (read-event))
       (setq e (next-command-event)
             c (event-to-character e)))
-    ;; insert char if not equal to `?'
+    ;; Insert char if not equal to `?'.
     (if (or (eq c ??) (eq c help-char))
 	(f90-abbrev-help)
       (if f90-xemacs-flag
@@ -1654,6 +1679,7 @@ Any other key combination is executed normally."
   (message "Listing abbrev table...done"))
 
 (defun f90-prepare-abbrev-list-buffer ()
+  "Create a buffer listing the F90 mode abbreviations."
   (save-excursion
     (set-buffer (get-buffer-create "*Abbrevs*"))
     (erase-buffer)
@@ -1695,6 +1721,8 @@ Any other key combination is executed normally."
 
 ;; Change the keywords according to argument.
 (defun f90-change-keywords (change-word &optional beg end)
+  "Change the case of F90 keywords in the region (if specified) or buffer.
+CHANGE-WORD should be one of 'upcase-word, 'downcase-word, capitalize-word."
   (save-excursion
     (setq beg (if beg beg (point-min)))
     (setq end (if end end (point-max)))
@@ -1710,7 +1738,7 @@ Any other key combination is executed normally."
 	    (unless (progn
                       (setq state (parse-partial-sexp ref-point (point)))
                       (or (nth 3 state) (nth 4 state)
-                          (save-excursion ; Check for cpp directive.
+                          (save-excursion ; check for cpp directive
                             (beginning-of-line)
                             (skip-chars-forward " \t0-9")
                             (looking-at "#"))))
