@@ -1,5 +1,8 @@
 2000-01-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/irix6-5.h [__GNUC__ && __GNUC_MINOR__ >= 95]: Undef
+	LD_SWITCH_SYSTEM inherited from irix5-0.h.
+
 	* bytecode.c (Fbyte_code) [BYTE_CODE_SAFE]: Fix typo.
 
 2000-01-25  Gerd Moellmann  <gerd@gnu.org>
