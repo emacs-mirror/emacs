@@ -1096,13 +1096,14 @@ print_partial_compiled_pattern (start, end)
 
 	case wordend:
 	  fprintf (stderr, "/wordend");
+	  break;
 
 	case symbeg:
-	  printf ("/symbeg");
+	  fprintf (stderr, "/symbeg");
 	  break;
 
 	case symend:
-	  printf ("/symend");
+	  fprintf (stderr, "/symend");
 	  break;
 
 	case syntaxspec:
