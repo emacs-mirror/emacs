@@ -252,7 +252,10 @@ Whichever character you type to run this command is inserted.")
    A value of 2 means this did things that call for an undo boundary.  */
 
 internal_self_insert (c1, noautofill)
-     char c1;
+     /* This has to be unsigned char; when it is char,
+	some compilers sign-extend it in SYNTAX_ENTRY, despite
+	the casts to unsigned char there.  */
+     unsigned char c1;
      int noautofill;
 {
   extern Lisp_Object Fexpand_abbrev ();
