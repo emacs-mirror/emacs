@@ -60,6 +60,7 @@ extern Lisp_Object Vw32_enable_num_lock;
 extern Lisp_Object Vw32_recognize_altgr;
 extern Lisp_Object Vw32_pass_lwindow_to_system;
 extern Lisp_Object Vw32_pass_rwindow_to_system;
+extern Lisp_Object Vw32_phantom_key_code;
 extern Lisp_Object Vw32_lwindow_modifier;
 extern Lisp_Object Vw32_rwindow_modifier;
 extern Lisp_Object Vw32_apps_modifier;
@@ -270,12 +271,13 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 
 extern char *lispy_function_keys[];
 
+static int faked_key = 0;
+
 /* return code -1 means that event_queue_ptr won't be incremented. 
    In other word, this event makes two key codes.   (by himi)       */
 int 
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
-  static int faked_key = 0;
   static int mod_key_state = 0;
   int wParam;
 
@@ -317,8 +319,11 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	     Space which we will ignore.  */
 	  if ((mod_key_state & LEFT_WIN_PRESSED) == 0)
 	    {
-	      faked_key = VK_SPACE;
-	      keybd_event (VK_SPACE, (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+	      if (NUMBERP (Vw32_phantom_key_code))
+		faked_key = XUINT (Vw32_phantom_key_code) & 255;
+	      else
+		faked_key = VK_SPACE;
+	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);
 	    }
 	}
       mod_key_state |= LEFT_WIN_PRESSED;
@@ -330,8 +335,11 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	{
 	  if ((mod_key_state & RIGHT_WIN_PRESSED) == 0)
 	    {
-	      faked_key = VK_SPACE;
-	      keybd_event (VK_SPACE, (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+	      if (NUMBERP (Vw32_phantom_key_code))
+		faked_key = XUINT (Vw32_phantom_key_code) & 255;
+	      else
+		faked_key = VK_SPACE;
+	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);
 	    }
 	}
       mod_key_state |= RIGHT_WIN_PRESSED;
@@ -379,6 +387,23 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
     case VK_CONTROL:
     case VK_SHIFT:
       return 0;
+    case VK_CANCEL:
+      /* Windows maps Ctrl-Pause (aka Ctrl-Break) into VK_CANCEL,
+	 which is confusing for purposes of key binding; convert
+	 VK_CANCEL events into VK_PAUSE events.  */
+      event->wVirtualKeyCode = VK_PAUSE;
+      break;
+    case VK_PAUSE:
+      /* Windows maps Ctrl-NumLock into VK_PAUSE, which is confusing
+	 for purposes of key binding; convert these back into
+	 VK_NUMLOCK events, at least when we want to see NumLock key
+	 presses.  (Note that there is never any possibility that
+	 VK_PAUSE with Ctrl really is C-Pause as per above.)  */
+      if (NILP (Vw32_enable_num_lock)
+	  && (event->dwControlKeyState
+	      & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0)
+	event->wVirtualKeyCode = VK_NUMLOCK;
+      break;
     }
 
   /* Recognize state of Windows and Apps keys.  */
@@ -442,6 +467,32 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 					       event->wVirtualKeyCode);
   emacs_ev->timestamp = GetTickCount ();
   return 1;
+}
+
+int
+w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
+{
+  int cur_state = (GetKeyState (vk_code) & 1);
+
+  if (NILP (new_state)
+      || (NUMBERP (new_state)
+	  && (XUINT (new_state)) & 1 != cur_state))
+    {
+      faked_key = vk_code;
+
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | 0, 0);
+      keybd_event ((BYTE) vk_code,
+		   (BYTE) MapVirtualKey (vk_code, 0),
+		   KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      cur_state = !cur_state;
+    }
+
+  return cur_state;
 }
 
 /* Mouse position hook.  */
