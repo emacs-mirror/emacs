@@ -306,6 +306,7 @@
 (defgroup feedmail nil
   "Assist other email packages to massage outgoing messages."
   :link '(url-link "http://www.carpenter.org/feedmail/feedmail.html")
+  :link '(emacs-commentary "feedmail")
   :group 'mail)
 
 (defgroup feedmail-misc nil
@@ -1432,12 +1433,9 @@ insertion.")
 
 ;;;###autoload
 (defun feedmail-send-it ()
-  "A function which is a suitable value for `send-mail-function'.
-To use it, you probably want something like this in your .emacs or
-similar place:
-
-  (setq send-mail-function 'feedmail-send-it)
-  (autoload 'feedmail-send-it \"feedmail\")"
+  "Send the current mail buffer using the Feedmail package.
+This is a suitable value for `send-mail-function'.  It can be used
+with various lower-level mechanisms to provide features such as queueing."
 
   ;; avoid matching trouble over slash vs backslash by getting canonical
   (if feedmail-queue-directory
