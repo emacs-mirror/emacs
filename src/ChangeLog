@@ -1,3 +1,10 @@
+1999-12-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Compute BEG_UNCHANGED and END_UNCHANGED
+	if MODIFF > 1.
+
+	* buffer.c (modify_overlay): Always compute unchanged info.
+
 1999-12-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* dispextern.h (FACE_FROM_ID): Cast the arg ID to `unsigned'.
