@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Gnu Emacs TAGS format and modifications by RMS?
  *	Sam Kendall added C++.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.4
+ *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.5
  */
 
 #ifdef HAVE_CONFIG_H
@@ -436,7 +436,7 @@ print_version ()
 #ifdef ETAGS
   printf ("ETAGS ");
 #endif
-  printf ("for Emacs version 19.0.\n");
+  printf ("for Emacs version 19.\n");
 
   exit (0);
 }
