@@ -18,9 +18,14 @@ NOTE-END  */
 #define MAIL_USE_FLOCK
 #define HAVE_UNION_WAIT
 
+
+#ifdef MACH
+#define START_FILES pre-crt0.o /usr/lib/crt0.o
+#else
 /* This line starts being needed with ultrix 4.0.  */
 /* You must delete it for version 3.1.  */
 #define START_FILES pre-crt0.o /usr/lib/cmplrs/cc/crt0.o
+#endif
 
 /* Supposedly the following will overcome a kernel bug.  */
 #undef LD_SWITCH_MACHINE
@@ -37,7 +42,7 @@ NOTE-END  */
 #define SYSTEM_MALLOC
 #endif
 
-/* Override what m-mips.h says about this.  */
+/* Override what mips.h says about this.  */
 #undef LINKER
 
 /* Ultrix 4.2 (perhaps also 4.1) implements O_NONBLOCK
@@ -45,7 +50,7 @@ NOTE-END  */
    and it causes hanging in read_process_output.  */
 #define BROKEN_O_NONBLOCK
 
-#ifdef OSF1
+#if defined (OSF1) || defined (MACH)
 #undef C_ALLOCA
 #define HAVE_ALLOCA
 #endif
@@ -64,6 +69,7 @@ NOTE-END  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/vmunix"
 
+#ifndef MACH
 /* Jim Wilson writes:
    [...] The X11 include files that Dec distributes with Ultrix
    are bogus.
@@ -89,6 +95,7 @@ NOTE-END  */
    going to disable non-variadic prototypes, we also need to disable
    variadic prototypes.  --kwzh@gnu.ai.mit.edu */
 #define C_SWITCH_X_MACHINE -DNeedFunctionPrototypes=0 -DNeedVarargsPrototypes=0
+#endif
 
 /* Enable a fix in process.c.  */
 #define SET_CHILD_PTY_PGRP
