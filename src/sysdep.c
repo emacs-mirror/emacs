@@ -3010,10 +3010,12 @@ char *sys_siglist[NSIG + 1] =
   "LAN I/O interrupt",			/* 25 SIGAIO */
   "PTY I/O interrupt",			/* 26 SIGPTY */
   "I/O intervention required",		/* 27 SIGIOINT */
+#ifdef AIXHFT
   "HFT grant",				/* 28 SIGGRANT */
   "HFT retract",			/* 29 SIGRETRACT */
   "HFT sound done",			/* 30 SIGSOUND */
   "HFT input ready",			/* 31 SIGMSG */
+#endif
 #else /* not AIX */
   "bogus signal",			/* 0 */
   "hangup",				/* 1  SIGHUP */
