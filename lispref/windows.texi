@@ -1003,8 +1003,14 @@ When you create a window, or display a different buffer in it, the
 display-start position is set to a display-start position recently used
 for the same buffer, or 1 if the buffer doesn't have any.
 
-For a realistic example, see the description of @code{count-lines} in
-@ref{Text Lines}.
+Redisplay updates the window-start position (if you have not specified
+it explicitly since the previous redisplay) so that point appears on the
+screen.  Nothing except redisplay automatically changes the window-start
+position; if you move point, do not expect the window-start position to
+change in response until after the next redisplay.
+
+For a realistic example of using @code{window-start}, see the
+description of @code{count-lines} in @ref{Text Lines}.
 @end defun
 
 @defun window-end &optional window
