@@ -1,5 +1,9 @@
 1999-10-24  Stephen Eglen  <stephen@gnu.org>
 
+	* progmodes/octave-mod.el (octave-auto-indent): Remove :version so
+	that Octave lisp files can also run under XEmacs 20.  
+	(require 'custom) added so that files can run under Emacs 19.34.
+
 	* iswitchb.el (iswitchb-default-keybindings): No need to use
 	read-kbd-macro in keybindings.
 
