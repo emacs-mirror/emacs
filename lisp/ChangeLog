@@ -1,3 +1,9 @@
+2004-01-22  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-at-pos): New defun.
+	(what-line): Use it.  Optimize by only counting lines in narrowed
+	region once.
+
 2004-01-22  Kenichi Handa  <handa@m17n.org>
 
 	* language/cyrillic.el (ccl-encode-windows-1251-font): Rearrange
