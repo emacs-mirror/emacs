@@ -332,10 +332,10 @@ Returns non-nil iff it is a valid table."
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
 ;; does).  Returns the tail of `tags-table-computed-list' whose car is a
-;; table listing THIS-FILE.  If CORE-ONLY is non-nil, check only tags
-;; tables that are already in buffers--don't visit any new files.
+;; table listing THIS-FILE; if the table is one included by another table,
+;; it is the master table that we return.  If CORE-ONLY is non-nil, check
+;; only tags tables that are already in buffers--don't visit any new files.
 (defun tags-table-including (this-file core-only)
-  (tags-table-check-computed-list)
   (let ((tables tags-table-computed-list)
 	(found nil))
     ;; Loop over the list, looking for a table containing tags for THIS-FILE.
@@ -350,13 +350,27 @@ Returns non-nil iff it is a valid table."
 	  ;; Skip this table not in core.
 	  (setq tables (cdr (cdr tables))))
 
-      ;; Select the tags table buffer and get the file list up to date.
-      (let ((tags-file-name (car tables)))
-	(visit-tags-table-buffer 'same)
-	(if (member this-file (tags-table-files))
-	    ;; Found it.
-	    (setq found tables)))
+      (if tables
+	  ;; Select the tags table buffer and get the file list up to date.
+	  (let ((tags-file-name (car tables)))
+	    (visit-tags-table-buffer 'same)
+	    (if (member this-file (tags-table-files))
+		;; Found it.
+		(setq found tables))))
       (setq tables (cdr tables)))
+    (if found
+	;; Now determine if the table we found was one included by another
+	;; table, not explicitly listed.
+	(let ((could-be nil)
+	      (elt tags-table-computed-list))
+	  (while (not (eq elt (cdr found)))
+	    (if (tags-table-list-member (car elt) tags-table-list)
+		;; This table appears in the user's list, so it could be
+		;; the one which includes the table we found.
+		(setq could-be (cons (car elt) could-be)))
+	    (setq elt (cdr elt)))
+	  ;; The last element we found in the computed list before
+	  ;; FOUND that appears in the 
     found))
 
 ;; Subroutine of visit-tags-table-buffer.  Move tags-table-list-pointer
