@@ -1,3 +1,7 @@
+2000-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* xfaces.c (realize_face): Change FRAME_X_P to FRAME_WINDOW_P.
+
 2000-04-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (setup_echo_area_for_printing): Choose an echo
