@@ -789,8 +789,8 @@ kills modified buffers without asking."
 (defun tpu-save-all-buffers-kill-emacs nil
   "Save all buffers and exit emacs."
   (interactive)
-  (setq trim-versions-without-asking t)
-  (save-buffers-kill-emacs t))
+  (let ((delete-old-versions t))
+    (save-buffers-kill-emacs t)))
 
 (defun tpu-write-current-buffers nil
   "Save all modified buffers without exiting."
