@@ -1114,8 +1114,8 @@ echo '
 #ifndef C_SWITCH_SYSTEM
 #define C_SWITCH_SYSTEM
 #endif
-@configure@ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
-@configure@ c_switch_system=C_SWITCH_SYSTEM
+configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
+configure___ c_switch_system=C_SWITCH_SYSTEM
 
 #ifndef LIB_X11_LIB
 #define LIB_X11_LIB -lX11
@@ -1128,18 +1128,18 @@ echo '
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
 #endif
-@configure@ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+configure___ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
 
 #ifdef UNEXEC
-@configure@ unexec=UNEXEC
+configure___ unexec=UNEXEC
 #else
-@configure@ unexec=unexec.o
+configure___ unexec=unexec.o
 #endif
 
 #ifdef SYSTEM_MALLOC
-@configure@ system_malloc=yes
+configure___ system_malloc=yes
 #else
-@configure@ system_malloc=no
+configure___ system_malloc=no
 #endif
 
 #ifndef C_DEBUG_SWITCH
@@ -1151,17 +1151,17 @@ echo '
 #endif
 
 #ifdef __GNUC__
-@configure@ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH
+configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH
 #else
-@configure@ CFLAGS=C_DEBUG_SWITCH
+configure___ CFLAGS=C_DEBUG_SWITCH
 #endif
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
 eval `${CPP} -Isrc ${tempcname} \
-       | grep '@configure@' \
-       | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
+       | grep 'configure___' \
+       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
 
 ### Compute the unexec source name from the object name.
