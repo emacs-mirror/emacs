@@ -1180,19 +1180,10 @@ links: groups have links to subgroups."
 		(const links))
   :group 'custom-buffer)
 
-;; If we pass BUFFER to `bury-buffer', the buffer isn't removed from
-;; the window.
-(defun custom-bury-buffer (buffer)
-  (with-current-buffer buffer
-    (bury-buffer)))
-
-(defcustom custom-buffer-done-function 'custom-bury-buffer
-  "*Function called to remove a Custom buffer when the user is done with it.
-Called with one argument, the buffer to remove."
-  :type '(choice (function-item :tag "Bury buffer" custom-bury-buffer)
-		 (function-item :tag "Kill buffer" kill-buffer)
-		 (function :tag "Other"))
-  :version "21.1"
+(defcustom custom-buffer-done-kill nil
+  "*Non-nil means exiting a Custom buffer should kill it."
+  :type 'boolean
+  :version "21.4"
   :group 'custom-buffer)
 
 (defcustom custom-buffer-indent 3
@@ -1262,9 +1253,9 @@ This button will have a menu with all three reset operations."
   :group 'custom-buffer)
 
 (defun Custom-buffer-done (&rest ignore)
-  "Remove current buffer by calling `custom-buffer-done-function'."
+  "Exit current Custom buffer according to `custom-buffer-done-kill'."
   (interactive)
-  (funcall custom-buffer-done-function (current-buffer)))
+  (quit-window custom-buffer-done-kill))
 
 (defcustom custom-raised-buttons (not (equal (face-valid-attribute-values :box)
 					     '(("unspecified" . unspecified))))
@@ -1350,13 +1341,9 @@ Un-customize all values in this buffer.  They get their standard settings."
 		 :tag "Finish"
 		 :help-echo
 		 (lambda (&rest ignore)
-		   (cond
-		    ((eq custom-buffer-done-function
-			 'custom-bury-buffer)
-		     "Bury this buffer")
-		    ((eq custom-buffer-done-function 'kill-buffer)
-		     "Kill this buffer")
-		    (t "Finish with this buffer")))
+		   (if custom-buffer-done-kill
+		       "Kill this buffer"
+		     "Bury this buffer"))
 		 :action #'Custom-buffer-done)
   (widget-insert "\n\n")
   (message "Creating customization items...")
