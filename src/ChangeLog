@@ -1,5 +1,8 @@
 2000-11-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (lucid_event_type_list_p): Handle `help-echo',
+	`vertical-line', `mode-line' and `header-line' events.
+
 	* xdisp.c (try_window_id): Avoid starting to display in the moddle
 	 of a character, a TAB for instance.  This is easier than to set
 	 up the iterator exactly, and it's not a frequent case, so the
