@@ -912,7 +912,7 @@ If `enable-local-variables' is nil, this function does not check for a
 	     (goto-char beg)
 	     (if (save-excursion (search-forward ":" end t))
 		 ;; Find all specifications for the `mode:' variable
-		 ;; and execute hem left to right.
+		 ;; and execute them left to right.
 		 (while (let ((case-fold-search t))
 			  (search-forward "mode:" end t))
 		   (skip-chars-forward " \t")
