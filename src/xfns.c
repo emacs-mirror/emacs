@@ -4277,9 +4277,6 @@ This function is an internal primitive--use `make-frame' instead.")
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
 
-  /* Set up faces after all frame parameters are known.  */
-  call1 (Qface_set_after_frame_default, frame);
-
 #ifdef USE_X_TOOLKIT
   /* Create the menu bar.  */
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
