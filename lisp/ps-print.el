@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson <thompson@wg2.waii.com>
-;; Version: Jim's last version is 1.10
+;; Thompson's last version: 1.14
 ;; Keywords: print, PostScript
 
 ;; This file is part of GNU Emacs.
@@ -22,6 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;; LCD Archive Entry:
+;; ps-print|James C. Thompson|thompson@wg2.waii.com|
+;; Jim's Pretty-Good PostScript Generator for Emacs 19 (ps-print)|
+;; 26-Feb-1994|1.6|~/packages/ps-print.el|
+
 ;;; Commentary:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -31,31 +36,15 @@
 ;; This package provides printing of Emacs buffers on PostScript
 ;; printers; the buffer's bold and italic text attributes are
 ;; preserved in the printer output.  Ps-print is intended for use with
-;; Emacs 19 (Lucid or FSF) and a fontifying package such as font-lock
-;; or hilit.
+;; Emacs 19 or Lucid Emacs, together with a fontifying package such as
+;; font-lock or hilit.
 ;; 
 ;; Installing ps-print
 ;; -------------------
 ;;
-;; 1. Place ps-print.el somewhere in your load-path and byte-compile
-;;    it.  You can ignore all byte-compiler warnings; they are the
-;;    result of multi-Emacs support.  This step is necessary only if
-;;    you're installing your own ps-print; if ps-print came with your
-;;    copy of Emacs, this been done already.
-;;
-;; 2. Place in your .emacs file the line
-;;
-;;        (require 'ps-print)
-;;
-;;    to load ps-print.  Or you may cause any of the ps-print commands
-;;    to be autoloaded with an autoload command such as:
-;;
-;;      (autoload 'ps-print-buffer "ps-print"
-;;        "Generate and print a PostScript image of the buffer..." t)
-;;
-;; 3. Make sure that the variables ps-lpr-command and ps-lpr-switches
-;;    contain appropriate values for your system; see the usage notes
-;;    below and the documentation of these variables.
+;; Make sure that the variables ps-lpr-command and ps-lpr-switches
+;; contain appropriate values for your system; see the usage notes
+;; below and the documentation of these variables.
 ;;
 ;; Using ps-print
 ;; --------------
@@ -174,7 +163,7 @@
 ;; NOTE: ps-lpr-command and ps-lpr-switches take their initial values
 ;;       from the variables lpr-command and lpr-switches.  If you have
 ;;       lpr-command set to invoke a pretty-printer such as enscript,
-;;       then ps-print won't work properly.  Ps-lpr-command must name
+;;       then ps-print won't work properly.  ps-lpr-command must name
 ;;       a program that does not format the files it prints.
 ;;
 ;;
@@ -313,30 +302,18 @@
 ;; formats for; it should contain one of the symbols ps-letter,
 ;; ps-legal, or ps-a4.  The default is ps-letter.
 ;;
-;; 
-;; New in version 1.6
-;; ------------------
-;; Color output capability.
-;;
-;; Automatic detection of font attributes (bold, italic).
-;;
-;; Configurable headers with page numbers.
-;;
-;; Slightly faster.
-;;
-;; Support for different paper sizes.
-;;
-;; Better conformance to PostScript Document Structure Conventions.
-;;
 ;;
 ;; Known bugs and limitations of ps-print:
 ;; --------------------------------------
+;; Automatic font-attribute detection doesn't work will, especially
+;; with hilit19 and older versions of get-create-face.  Users having
+;; problems with auto-font detection should use the lists ps-italic-
+;; faces and ps-bold-faces and/or turn off automatic detection by
+;; setting ps-auto-font-detect to nil.
+;;
 ;; Color output doesn't yet work in XEmacs.
 ;;
-;; Slow.  Because XEmacs implements certain functions, such as
-;; next-property-change, in lisp, printing with faces is several times
-;; slower in XEmacs.  In Emacs, these functions are implemented in C,
-;; so Emacs is somewhat faster.
+;; Still too slow; could use some hand-optimization.
 ;;
 ;; ASCII Control characters other than tab, linefeed and pagefeed are
 ;; not handled.
@@ -384,11 +361,8 @@
 
 ;;; Code:
 
-(defconst ps-print-version "1.10"
-  "ps-print.el,v 1.10 1995/01/09 14:45:03 jct Exp
-
-Please send all bug fixes and enhancements to
-	Jim Thompson <thompson@wg2.waii.com>.")
+(defconst ps-print-thompson-version "1.14"
+  "Report bugs to thompson@wg2.waii.com and bug-gnu-emacs@prep.ai.mit.edu.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -410,7 +384,7 @@ the left on even-numbered pages.")
 
 (defvar ps-paper-type 'ps-letter
   "*Specifies the size of paper to format for.  Should be one of
-'ps-letter, 'ps-legal, or 'ps-a4.")
+`ps-letter', `ps-legal', or `ps-a4'.")
 
 (defvar ps-print-header t
   "*Non-nil means print a header at the top of each page.
@@ -423,9 +397,9 @@ customizable by changing variables `ps-header-left' and
   "*Non-nil means draw a gaudy frame around the header.")
 
 (defvar ps-show-n-of-n t
-  "*Non-nil means show page numbers as `N/M', meaning page N of M.
-Note: page numbers are displayed as part of headers, see variable `ps-
-print-headers'.")
+  "*Non-nil means show page numbers as N/M, meaning page N of M.
+Note: page numbers are displayed as part of headers, see variable
+`ps-print-headers'.")
 
 (defvar ps-print-color-p (and (fboundp 'x-color-values)
 			      (fboundp 'float))
@@ -552,6 +526,7 @@ variable.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User commands
 
+;;;###autoload
 (defun ps-print-buffer (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
@@ -564,50 +539,50 @@ is nil, send the image to the printer.  If FILENAME is a string, save
 the PostScript image in a file with that name.  If FILENAME is a
 number, prompt the user for the name of the file to save in."
 
-  (interactive "P")
-  (setq filename (ps-print-preprint filename))
+  (interactive (list (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) (point-min) (point-max)
 	       'ps-generate-postscript)
   (ps-do-despool filename))
 
 
+;;;###autoload
 (defun ps-print-buffer-with-faces (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
 Like `ps-print-buffer', but includes font, color, and underline
 information in the generated image."
-  (interactive "P")
-  (setq filename (ps-print-preprint filename))
+  (interactive (list (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) (point-min) (point-max)
 	       'ps-generate-postscript-with-faces)
   (ps-do-despool filename))
 
 
+;;;###autoload
 (defun ps-print-region (from to &optional filename)
   "Generate and print a PostScript image of the region.
 
 Like `ps-print-buffer', but prints just the current region."
 
-  (interactive "r\nP")
-  (setq filename (ps-print-preprint filename))
+  (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) from to
 	       'ps-generate-postscript)
   (ps-do-despool filename))
 
 
+;;;###autoload
 (defun ps-print-region-with-faces (from to &optional filename)
   "Generate and print a PostScript image of the region.
 
 Like `ps-print-region', but includes font, color, and underline
 information in the generated image."
 
-  (interactive "r\nP")
-  (setq filename (ps-print-preprint filename))
+  (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (ps-generate (current-buffer) from to
 	       'ps-generate-postscript-with-faces)
   (ps-do-despool filename))
 
 
+;;;###autoload
 (defun ps-spool-buffer ()
   "Generate and spool a PostScript image of the buffer.
 
@@ -620,6 +595,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
 	       'ps-generate-postscript))
 
 
+;;;###autoload
 (defun ps-spool-buffer-with-faces ()
   "Generate and spool a PostScript image of the buffer.
 
@@ -633,6 +609,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
 	       'ps-generate-postscript-with-faces))
 
 
+;;;###autoload
 (defun ps-spool-region (from to)
   "Generate a PostScript image of the region and spool locally.
 
@@ -644,6 +621,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
 	       'ps-generate-postscript))
 
 
+;;;###autoload
 (defun ps-spool-region-with-faces (from to)
   "Generate a PostScript image of the region and spool locally.
 
@@ -655,6 +633,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
   (ps-generate (current-buffer) from to
 	       'ps-generate-postscript-with-faces))
 
+;;;###autoload
 (defun ps-despool (&optional filename)
   "Send the spooled PostScript to the printer.
 
@@ -666,8 +645,8 @@ More specifically, the FILENAME argument is treated as follows: if it
 is nil, send the image to the printer.  If FILENAME is a string, save
 the PostScript image in a file with that name.  If FILENAME is a
 number, prompt the user for the name of the file to save in."
-  (interactive "P")
-  (ps-do-despool (ps-print-preprint filename)))
+  (interactive (list (ps-print-preprint current-prefix-arg)))
+  (ps-do-despool filename))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
@@ -807,7 +786,7 @@ StandardEncoding 46 82 getinterval aload pop
   findfont
   dup /Ascent get /Ascent exch def
   dup /Descent get /Descent exch def
-  dup /FontHeight get /LineHeight exch def
+  dup /FontHeight get /FontHeight exch def
   dup /UnderlinePosition get /UnderlinePosition exch def
   dup /UnderlineThickness get /UnderlineThickness exch def
   setfont
@@ -930,7 +909,7 @@ StandardEncoding 46 82 getinterval aload pop
 
 /h1 F
 
-/HeaderLineHeight LineHeight def
+/HeaderLineHeight FontHeight def
 /HeaderDescent Descent def
 /HeaderPad 2 def
 
@@ -1021,7 +1000,7 @@ StandardEncoding 46 82 getinterval aload pop
   2 copy
   /t0 3 1 roll Font
   /t0 F
-  /lh LineHeight def
+  /lh FontHeight def
   /sw ( ) stringwidth pop def
   /aw (01234567890abcdefghijklmnopqrstuvwxyz) dup length exch
   stringwidth pop exch div def
@@ -1039,7 +1018,7 @@ StandardEncoding 46 82 getinterval aload pop
     sw 32 string cvs show
     (,) show
   grestore
-  0 LineHeight neg rmoveto
+  0 FontHeight neg rmoveto
   (and a crude estimate of average character width is ) show
   aw 32 string cvs show
   (.) show
@@ -1284,6 +1263,8 @@ StandardEncoding 46 82 getinterval aload pop
   (ps-output (format "/PrintWidth %d def\n" ps-print-width))
   (ps-output (format "/PrintHeight %d def\n" ps-print-height))
   
+  (ps-output (format "/LineHeight %d def\n" ps-line-height))
+  
   (ps-output ps-print-prologue)
 
   (ps-output (format "/f0 %d /%s Font\n" ps-font-size ps-font))
@@ -1425,7 +1406,7 @@ EndDSCPage\n"))
 	     (chunkfrac (/ q-todo 8))
 	     (chunksize (if (> chunkfrac 1000) 1000 chunkfrac)))
 	(if (> (- q-done ps-razchunk) chunksize)
-	    (progn
+	    (let (foo)
 	      (setq ps-razchunk q-done)
 	      (setq foo
 		    (if (< q-todo 100)
@@ -1437,9 +1418,7 @@ EndDSCPage\n"))
   (setq ps-current-font font)
   (ps-output (format "/f%d F\n" ps-current-font)))
 
-(defvar ps-print-color-scale (if ps-print-color-p
-				 (float (car (x-color-values "white")))
-			       1.0))
+(defvar ps-print-color-scale nil)
 
 (defun ps-set-bg (color)
   (if (setq ps-current-bg color)
@@ -1571,7 +1550,9 @@ EndDSCPage\n"))
 (defun ps-face-italic-p (face)
   (if (eq emacs-type 'fsf)
       (ps-fsf-face-kind-p face 'italic "-[io]-" ps-italic-faces)
-    (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)))
+    (or
+     (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o" ps-italic-faces)
+     (ps-xemacs-face-kind-p face 'SLANT "i\\|o" ps-italic-faces))))
 
 (defun ps-face-underlined-p (face)
   (or (face-underline-p face)
@@ -1613,13 +1594,25 @@ EndDSCPage\n"))
 
 (defun ps-sorter (a b)
   (< (car a) (car b)))
+
+(defun ps-extent-sorter (a b)
+  (< (extent-priority a) (extent-priority b)))
     
 (defun ps-generate-postscript-with-faces (from to)
+  ;; Build the reference lists of faces if necessary.
   (if (or ps-always-build-face-reference
 	  ps-build-face-reference)
       (progn
 	(message "Collecting face information...")
 	(ps-build-reference-face-lists)))
+  ;; Set the color scale.  We do it here instead of in the defvar so
+  ;; that ps-print can be dumped into emacs.  This expression can't be
+  ;; evaluated at dump-time because X isn't initialized.
+  (setq ps-print-color-scale
+	(if ps-print-color-p
+	    (float (car (x-color-values "white")))
+	  1.0))
+  ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
     (let ((face 'default)
@@ -1708,64 +1701,66 @@ EndDSCPage\n"))
   (ps-plot-region from to 0 nil))
 
 (defun ps-generate (buffer from to genfunc)
-  (save-restriction
-    (narrow-to-region from to)
-    (if ps-razzle-dazzle
-	(message "Formatting...%d%%" (setq ps-razchunk 0)))
-    (set-buffer buffer)
-    (setq ps-source-buffer buffer)
-    (setq ps-spool-buffer (get-buffer-create ps-spool-buffer-name))
-    (ps-init-output-queue)
-    (let (safe-marker completed-safely needs-begin-file)
-      (unwind-protect
-	  (progn
-	    (set-buffer ps-spool-buffer)
-	    
-	    ;; Get a marker and make it point to the current end of the
-	    ;; buffer,  If an error occurs, we'll delete everything from
-	    ;; the end of this marker onwards.
-	    (setq safe-marker (make-marker))
-	    (set-marker safe-marker (point-max))
-	    
-	    (goto-char (point-min))
-	    (if (looking-at (regexp-quote "%!PS-Adobe-1.0"))
-		nil
-	      (setq needs-begin-file t))
-	    (save-excursion
-	      (set-buffer ps-source-buffer)
-	      (if needs-begin-file (ps-begin-file))
-	      (ps-begin-job)
-	      (ps-begin-page))
-	    (set-buffer ps-source-buffer)
-	    (funcall genfunc from to)
-	    (ps-end-page)
-	    
-	    (if (and ps-spool-duplex
-		     (= (mod ps-page-count 2) 1))
-		(ps-dummy-page))
-	    (ps-flush-output)
-	    
-	    ;; Back to the PS output buffer to set the page count
-	    (set-buffer ps-spool-buffer)
-	    (goto-char (point-max))
-	    (while (re-search-backward "^/PageCount 0 def$" nil t)
-	      (replace-match (format "/PageCount %d def" ps-page-count) t))
-
-	    ;; Setting this variable tells the unwind form that the
-	    ;; the postscript was generated without error.
-	    (setq completed-safely t))
-
-	;; Unwind form: If some bad mojo ocurred while generating
-	;; postscript, delete all the postscript that was generated.
-	;; This protects the previously spooled files from getting
-	;; corrupted.
-	(if (and (markerp safe-marker) (not completed-safely))
+  (let ((from (min to from))
+	(to (max to from)))
+    (save-restriction
+      (narrow-to-region from to)
+      (if ps-razzle-dazzle
+	  (message "Formatting...%d%%" (setq ps-razchunk 0)))
+      (set-buffer buffer)
+      (setq ps-source-buffer buffer)
+      (setq ps-spool-buffer (get-buffer-create ps-spool-buffer-name))
+      (ps-init-output-queue)
+      (let (safe-marker completed-safely needs-begin-file)
+	(unwind-protect
 	    (progn
 	      (set-buffer ps-spool-buffer)
-	      (delete-region (marker-position safe-marker) (point-max))))))
+	    
+	      ;; Get a marker and make it point to the current end of the
+	      ;; buffer,  If an error occurs, we'll delete everything from
+	      ;; the end of this marker onwards.
+	      (setq safe-marker (make-marker))
+	      (set-marker safe-marker (point-max))
+	    
+	      (goto-char (point-min))
+	      (if (looking-at (regexp-quote "%!PS-Adobe-1.0"))
+		  nil
+		(setq needs-begin-file t))
+	      (save-excursion
+		(set-buffer ps-source-buffer)
+		(if needs-begin-file (ps-begin-file))
+		(ps-begin-job)
+		(ps-begin-page))
+	      (set-buffer ps-source-buffer)
+	      (funcall genfunc from to)
+	      (ps-end-page)
+	    
+	      (if (and ps-spool-duplex
+		       (= (mod ps-page-count 2) 1))
+		  (ps-dummy-page))
+	      (ps-flush-output)
+	    
+	      ;; Back to the PS output buffer to set the page count
+	      (set-buffer ps-spool-buffer)
+	      (goto-char (point-max))
+	      (while (re-search-backward "^/PageCount 0 def$" nil t)
+		(replace-match (format "/PageCount %d def" ps-page-count) t))
 
-    (if ps-razzle-dazzle
-	(message "Formatting...done"))))
+	      ;; Setting this variable tells the unwind form that the
+	      ;; the postscript was generated without error.
+	      (setq completed-safely t))
+
+	  ;; Unwind form: If some bad mojo ocurred while generating
+	  ;; postscript, delete all the postscript that was generated.
+	  ;; This protects the previously spooled files from getting
+	  ;; corrupted.
+	  (if (and (markerp safe-marker) (not completed-safely))
+	      (progn
+		(set-buffer ps-spool-buffer)
+		(delete-region (marker-position safe-marker) (point-max))))))
+
+      (if ps-razzle-dazzle
+	  (message "Formatting...done")))))
 
 (defun ps-do-despool (filename)
   (if (or (not (boundp 'ps-spool-buffer))
@@ -1818,6 +1813,12 @@ EndDSCPage\n"))
 ;; and able to figure out how to use it.  It isn't really part of ps-
 ;; print, but I'll leave it here in hopes it might be useful:
 
+(defmacro ps-prsc () (list 'if (list 'eq 'emacs-type ''fsf) [f22] ''f22))
+(defmacro ps-c-prsc () (list 'if (list 'eq 'emacs-type ''fsf) [C-f22]
+			     ''(control f22)))
+(defmacro ps-s-prsc () (list 'if (list 'eq 'emacs-type ''fsf) [S-f22]
+			     ''(shift f22)))
+
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in ps-left-headers.
 (defun ps-article-subject ()
@@ -1868,7 +1869,7 @@ EndDSCPage\n"))
 ;; left-headers specially for mail messages.  This header setup would
 ;; also work, I think, for RMAIL.
 (defun ps-vm-mode-hook ()
-  (local-set-key 'f22 'ps-vm-print-message-from-summary)
+  (local-set-key (ps-prsc) 'ps-vm-print-message-from-summary)
   (setq ps-header-lines 3)
   (setq ps-left-header
 	;; The left headers will display the message's subject, its
@@ -1899,9 +1900,7 @@ EndDSCPage\n"))
 ;; A hook to bind to bind to gnus-summary-setup-buffer to locally bind
 ;; prsc.
 (defun ps-gnus-summary-setup ()
-  (local-set-key 'f22 'ps-gnus-print-article-from-summary))
-
-;; File: lispref.info,  Node: Standard Errors
+  (local-set-key (ps-prsc) 'ps-gnus-print-article-from-summary))
 
 ;; Look in an article or mail message for the Subject: line.  To be
 ;; placed in ps-left-headers.
@@ -1927,12 +1926,13 @@ EndDSCPage\n"))
 	(list 'ps-info-node 'ps-info-file)))
 
 (defun ps-jts-ps-setup ()
-  (global-set-key 'f22 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key '(shift f22) 'ps-spool-region-with-faces)
-  (global-set-key '(control f22) 'ps-despool)
+  (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
+  (global-set-key (ps-s-prsc) 'ps-spool-region-with-faces)
+  (global-set-key (ps-c-prsc) 'ps-despool)
   (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
   (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
   (add-hook 'vm-mode-hook 'ps-vm-mode-hook)
+  (add-hook 'vm-mode-hooks 'ps-vm-mode-hook)
   (add-hook 'Info-mode-hook 'ps-info-mode-hook)
   (setq ps-spool-duplex t)
   (setq ps-print-color-p nil)
