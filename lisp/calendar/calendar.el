@@ -1,4 +1,4 @@
-;;; calendar.el --- Calendar functions.
+;;; calendar.el --- Calendar functions.  -*-byte-compile-dynamic: t;-*-
 
 ;;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994 Free Software
 ;;; Foundation, Inc.
