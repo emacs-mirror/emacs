@@ -7,7 +7,7 @@
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  cc-mode.info
+@setfilename  ../info/ccmode
 @settitle     CC Mode Manual
 @footnotestyle end
 
@@ -39,7 +39,7 @@ Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 01 Free Software Foundation, 
 @comment here is by request from the FSF folks.
 @dircategory Emacs
 @direntry
-* CC Mode: (cc-mode).   Emacs mode for editing C, C++, Objective-C,
+* CC Mode: (ccmode).   Emacs mode for editing C, C++, Objective-C,
                           Java, Pike, and IDL code.
 @end direntry
 
@@ -49,7 +49,25 @@ Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 01 Free Software Foundation, 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ifnottex
-@copyrightblurb
+Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end ifnottex
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -67,7 +85,25 @@ Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 01 Free Software Foundation, 
 
 @page
 @vskip 0pt plus 1filll
-@copyrightblurb
+Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+@sp 1
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -223,7 +259,7 @@ How to customize the new indentation engine.
 @findex java-mode
 @findex idl-mode
 @findex pike-mode
-Note that the name of this package is ``@ccmode{}'', but there is no top
+Note that the name of this package is ``@ccmode{},'' but there is no top
 level @code{cc-mode} entry point.  All of the variables, commands, and
 functions in @ccmode{} are prefixed with @code{c-@var{<thing>}}, and
 @code{c-mode}, @code{c++-mode}, @code{objc-mode}, @code{java-mode},
@@ -918,7 +954,7 @@ automatically.
 @dfn{Clean-ups} are mechanisms complementary to colon and brace hanging.
 On the surface, it would seem that clean-ups overlap the functionality
 provided by the @code{c-hanging-*-alist} variables.  Clean-ups are
-however used to adjust code ``after-the-fact'', i.e. to adjust the
+however used to adjust code ``after-the-fact,'' i.e. to adjust the
 whitespace in constructs after they are typed.
 
 Most of the clean-ups are only applicable to counteract automatically
@@ -1131,7 +1167,7 @@ hungry-delete in @strong{all} your editing modes!
 In a nutshell, when hungry-delete mode is enabled, hitting the
 @key{Backspace} key@footnote{I say ``hit the @key{Backspace} key'' but
 what I really mean is ``when Emacs receives the @code{BackSpace} key
-event''.  The difference usually isn't significant to most users, but
+event.''  The difference usually isn't significant to most users, but
 advanced users will realize that under window systems such as X, any
 physical key (keycap) on the keyboard can be configured to generate any
 keysym, and thus any Emacs key event.  Also, the use of Emacs on TTYs
@@ -2277,14 +2313,14 @@ Whitesmiths C, an early commercial C compiler.
 @cindex Ellemtel style
 @item
 @code{ellemtel} --- Popular C++ coding standards as defined by
-``Programming in C++, Rules and Recommendations'', Erik Nyquist and Mats
+``Programming in C++, Rules and Recommendations,'' Erik Nyquist and Mats
 Henricson, Ellemtel@footnote{This document is available at
 @uref{http://www.doc.ic.ac.uk/lab/cplus/c++.rules/} among other
 places.}.
 
 @cindex Linux style
 @item
-@code{linux} --- C coding standard for Linux development.
+@code{linux} --- C coding standard for Linux (the kernel).
 
 @cindex Python style
 @item
