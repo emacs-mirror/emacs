@@ -1,3 +1,11 @@
+2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* process.c (Fstart_process): Add usage to doc-string.
+
+	* data.c (Fsetq_default): Ditto.
+
+	* callint.c (Finteractive): Ditto.
+
 2001-11-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* macros.c: Don't include keymap.h any more.
