@@ -1,3 +1,7 @@
+2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
+
+	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.
+
 2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (XSync): If USE_GTK, define XSync as process_all and then
