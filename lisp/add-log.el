@@ -248,7 +248,9 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function-face))
     ;;
     ;; Acknowledgements.
-    ("\\(^\t\\|  \\)\\(From\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
+    ;; Don't include plain "From" because that is vague;
+    ;; we want to encourage people to say something more specific.
+    ("\\(^\t\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
      2 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
 
