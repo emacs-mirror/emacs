@@ -801,6 +801,10 @@ can optionally enable mouse highlighting only after you move the
 mouse, so that highlighting disappears when you press a key.  You can
 also disable mouse highlighting.
 
+** You can now customize if selecting a region by dragging the mouse
+shall not copy the selected text to the kill-ring by setting the new
+variable mouse-drag-copy-region to nil.
+
 +++
 ** font-lock: in modes like C and Lisp where the fontification assumes that
 an open-paren in column 0 is always outside of any string or comment,
@@ -2034,8 +2038,8 @@ specified number of evenly sized slices (rows x columns).
 
 ** New line-height and line-spacing properties for newline characters
 
-A newline may now have line-height and line-spacing text properties that
-control the height of the corresponding display row.
+A newline may now have line-height and line-spacing text or overlay
+properties that control the height of the corresponding display row.
 
 If the line-height property value is 0, the newline does not
 contribute to the height of the display row; instead the height of the
