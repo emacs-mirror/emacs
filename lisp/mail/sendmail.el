@@ -1582,7 +1582,7 @@ The seventh argument ACTIONS is a list of actions to take
       (define-key (current-local-map) "v"
 	(lambda ()
 	  (interactive)
-	  (let ((coding-system-for-read 'emacs-mule-unix))
+	  (let ((coding-system-for-read 'utf-8-emacs-unix))
 	    (dired-view-file))))
       (define-key (current-local-map) "\C-c\C-c"
 	(lambda ()
@@ -1590,13 +1590,13 @@ The seventh argument ACTIONS is a list of actions to take
 	  (let ((fname (dired-get-filename))
 		;; Auto-saved files are written in the internal
 		;; representation, so they should be read accordingly.
-		(coding-system-for-read 'emacs-mule-unix))
+		(coding-system-for-read 'utf-8-emacs-unix))
 	    (switch-to-buffer-other-window "*mail*")
 	    (let ((buffer-read-only nil))
 	      (erase-buffer)
 	      (insert-file-contents fname nil)
 	      ;; insert-file-contents will set buffer-file-coding-system
-	      ;; to emacs-mule, which is probably not what they want to
+	      ;; to utf-8-emacs, which is probably not what they want to
 	      ;; use for sending the message.  But we don't know what
 	      ;; was its value before the buffer was killed or Emacs
 	      ;; crashed.  We therefore reset buffer-file-coding-system
@@ -1648,7 +1648,7 @@ you can move to one of them and type C-c C-c to recover that one."
 		     (buffer-coding buffer-file-coding-system)
 		     ;; Auto-save files are written in internal
 		     ;; representation of non-ASCII characters.
-		     (coding-system-for-read 'emacs-mule-unix))
+		     (coding-system-for-read 'utf-8-emacs-unix))
 		 (erase-buffer)
 		 (insert-file-contents file-name nil)
 		 (setq buffer-file-coding-system buffer-coding)))))
