@@ -52,7 +52,7 @@ Typical examples might be `upcase' or `capitalize'.")
 (defvar skeleton-autowrap t
   "Controls wrapping behaviour of functions created with `define-skeleton'.
 When the region is visible (due to `transient-mark-mode' or marking a region
-with the mouse) and this is non-`nil' and the function was called without an
+with the mouse) and this is non-nil and the function was called without an
 explicit ARG, then the ARG defaults to -1, i.e. wrapping around the visible
 region.
 
@@ -78,10 +78,10 @@ The variables `v1' and `v2' are still set when calling this.")
   "Function for transforming a skeleton proxy's aliases' variable value.")
 
 (defvar skeleton-untabify t
-  "When non-`nil' untabifies when deleting backwards with element -ARG.")
+  "When non-nil untabifies when deleting backwards with element -ARG.")
 
 (defvar skeleton-newline-indent-rigidly nil
-  "When non-`nil', indent rigidly under current line for element `\\n'.
+  "When non-nil, indent rigidly under current line for element `\\n'.
 Else use mode's `indent-line-function'.")
 
 (defvar skeleton-further-elements ()
@@ -284,19 +284,19 @@ strings with the subskeleton being repeated once for each string.
 
 Quoted Lisp expressions are evaluated for their side-effects.
 Other Lisp expressions are evaluated and the value treated as above.
-Note that expressions may not return `t' since this implies an
+Note that expressions may not return t since this implies an
 endless loop.  Modes can define other symbols by locally setting them
 to any valid skeleton element.  The following local variables are
 available:
 
 	str	first time: read a string according to INTERACTOR
 		then: insert previously read string once more
-	help	help-form during interaction with the user or `nil'
+	help	help-form during interaction with the user or nil
 	input	initial input (string or cons with index) while reading str
 	v1, v2	local variables for memorizing anything you want
 
 When done with skeleton, but before going back to `_'-point call
-`skeleton-end-hook' if that is non-`nil'."
+`skeleton-end-hook' if that is non-nil."
   (let ((skeleton-regions regions))
     (and skeleton-regions
 	 (setq skeleton-regions
@@ -334,8 +334,8 @@ When done with skeleton, but before going back to `_'-point call
 
 PROMPT must be a string or a form that evaluates to a string.
 It may contain a `%s' which will be replaced by `skeleton-subprompt'.
-If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
-cons with index to insert before reading.  If third arg RECURSIVE is non-`nil'
+If non-nil second arg INITIAL-INPUT or variable `input' is a string or
+cons with index to insert before reading.  If third arg RECURSIVE is non-nil
 i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
