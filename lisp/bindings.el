@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables.
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000
+;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000, 2001
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -619,7 +619,8 @@ language you are using."
 (define-key global-map [menu] 'execute-extended-command)
 (define-key global-map [find] 'search-forward)
 
-(define-key global-map [delete] 'backward-delete-char)
+;; Don't do this.  We define <delete> in function-key-map instead.
+;(define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
 (define-key global-map [home]		'beginning-of-line)
@@ -731,6 +732,8 @@ language you are using."
 (define-key function-key-map [kp-begin] [begin])
 (define-key function-key-map [kp-insert] [insert])
 (define-key function-key-map [kp-delete] [delete])
+(define-key function-key-map [backspace] [?\C-?])
+(define-key function-key-map [delete] [?\C-?])
 
 (define-key global-map [mouse-movement] 'ignore)
 
