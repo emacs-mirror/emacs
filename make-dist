@@ -315,7 +315,10 @@ echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
  rm -f TAGS =* */=*)
 
 ### Move the real-leim directory outside of Emacs proper.
-(cd ${tempparent}; mv ${emacsname}/real-leim ${emacsname}-leim)
+(cd ${tempparent}
+ mkdir ${emacsname}-leim
+ mkdir ${emacsname}-leim/${emacsname}
+ mv ${emacsname}/real-leim ${emacsname}-leim/${emacsname}/leim)
 
 echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
@@ -549,7 +552,7 @@ if [ "${make_tar}" = yes ]; then
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \
     | ${default_gzip} \
     > ${emacsname}.tar${gzip_extension}
-  (cd ${tempparent} ; tar cvf - ${emacsname}-leim ) \
+  (cd ${tempparent}/${emacsname}-leim ; tar cvf - ${emacsname} ) \
     | ${default_gzip} \
     > ${emacsname}-leim.tar${gzip_extension}
 fi
