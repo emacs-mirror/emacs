@@ -664,8 +664,8 @@ can be changed by some entry functions to provide more hilighting.")
   (self-insert-command (prefix-numeric-value arg))
   (if (and (equal sql-electric-stuff 'go)
 	   (save-excursion
-	     (beginning-of-line)
-	     (looking-at (concat sql-prompt-regexp "go\\b"))))
+	     (comint-bol nil)
+	     (looking-at "go\\b")))
       (comint-send-input)))
 
 (defun sql-magic-semicolon (arg)
@@ -885,21 +885,21 @@ Inserts SELECT or commas if appropriate."
 		  (progn (forward-char 1) (backward-sexp 1) (point))
 		  (progn (forward-sexp 1) (point))))
       (goto-char (point-max))
-      (cond
-       ;; if empty command line, insert SELECT
-       ((save-excursion (beginning-of-line)
-			(looking-at (concat comint-prompt-regexp "$")))
-	(insert "SELECT "))
-       ;; else if appending to INTO .* (, SELECT or ORDER BY, insert a comma
-       ((save-excursion
-	  (re-search-backward "\\b\\(\\(into\\s-+\\S-+\\s-+(\\)\\|select\\|order by\\) .+"
-			      (save-excursion (beginning-of-line) (point)) t))
-	(insert ", "))
-       ;; else insert a space
-       (t
-	(if (eq (preceding-char) ? )
-	    nil
-	  (insert " "))))
+      (let ((bol (comint-line-beginning-position)))
+	(cond
+	 ;; if empty command line, insert SELECT
+	 ((= bol (point))
+	  (insert "SELECT "))
+	 ;; else if appending to INTO .* (, SELECT or ORDER BY, insert a comma
+	 ((save-excursion
+	    (re-search-backward "\\b\\(\\(into\\s-+\\S-+\\s-+(\\)\\|select\\|order by\\) .+"
+				bol t))
+	  (insert ", "))
+	 ;; else insert a space
+	 (t
+	  (if (eq (preceding-char) ? )
+	      nil
+	    (insert " ")))))
       ;; in any case, insert the column
       (insert column)
       (message "%s" column))))
