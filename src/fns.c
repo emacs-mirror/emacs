@@ -3189,13 +3189,17 @@ ARGS are passed as extra arguments to the function.")
 /* Used by base64_decode_1 to retrieve a non-base64-ignorable
    character or return retval if there are no characters left to
    process. */
-#define READ_QUADRUPLET_BYTE(retval) \
-  do \
-    { \
-      if (i == length) \
-        return (retval); \
-      c = from[i++]; \
-    } \
+#define READ_QUADRUPLET_BYTE(retval)	\
+  do					\
+    {					\
+      if (i == length)			\
+	{				\
+	  if (nchars_return)		\
+	    *nchars_return = nchars;	\
+	  return (retval);		\
+	}				\
+      c = from[i++];			\
+    }					\
   while (IS_BASE64_IGNORABLE (c))
 
 /* Don't use alloca for regions larger than this, lest we overflow
@@ -3252,7 +3256,7 @@ static short base64_char_to_value[128] =
 
 
 static int base64_encode_1 P_ ((const char *, char *, int, int, int));
-static int base64_decode_1 P_ ((const char *, char *, int));
+static int base64_decode_1 P_ ((const char *, char *, int, int, int *));
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
@@ -3386,9 +3390,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (bytes > 1)
+	  if (c >= 256)
 	    return -1;
-	  i++;
+	  i += bytes;
 	}
       else
 	c = from[i++];
@@ -3424,9 +3428,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (bytes > 1)
+	  if (c >= 256)
 	    return -1;
-	  i++;
+	  i += bytes;
 	}
       else
 	c = from[i++];
@@ -3446,9 +3450,9 @@ base64_encode_1 (from, to, length, line_break, multibyte)
       if (multibyte)
 	{
 	  c = STRING_CHAR_AND_LENGTH (from + i, length - i, bytes);
-	  if (bytes > 1)
+	  if (c >= 256)
 	    return -1;
-	  i++;
+	  i += bytes;
 	}
       else
 	c = from[i++];
@@ -3469,11 +3473,12 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
      (beg, end)
      Lisp_Object beg, end;
 {
-  int ibeg, iend, length;
+  int ibeg, iend, length, allength;
   char *decoded;
   int old_pos = PT;
   int decoded_length;
   int inserted_chars;
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&beg, &end);
 
@@ -3481,34 +3486,35 @@ If the region can't be decoded, signal an error and don't modify the buffer.")
   iend = CHAR_TO_BYTE (XFASTINT (end));
 
   length = iend - ibeg;
-  /* We need to allocate enough room for decoding the text. */
-  if (length <= MAX_ALLOCA)
-    decoded = (char *) alloca (length);
+
+  /* We need to allocate enough room for decoding the text.  If we are
+     working on a multibyte buffer, each decoded code may occupy at
+     most two bytes.  */
+  allength = multibyte ? length * 2 : length;
+  if (allength <= MAX_ALLOCA)
+    decoded = (char *) alloca (allength);
   else
-    decoded = (char *) xmalloc (length);
+    decoded = (char *) xmalloc (allength);
 
   move_gap_both (XFASTINT (beg), ibeg);
-  decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length);
-  if (decoded_length > length)
+  decoded_length = base64_decode_1 (BYTE_POS_ADDR (ibeg), decoded, length,
+				    multibyte, &inserted_chars);
+  if (decoded_length > allength)
     abort ();
 
   if (decoded_length < 0)
     {
       /* The decoding wasn't possible. */
-      if (length > MAX_ALLOCA)
+      if (allength > MAX_ALLOCA)
 	xfree (decoded);
       error ("Invalid base64 data");
     }
-
-  inserted_chars = decoded_length;
-  if (!NILP (current_buffer->enable_multibyte_characters))
-    decoded_length = str_to_multibyte (decoded, length, decoded_length);
 
   /* Now we have decoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
   TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
   insert_1_both (decoded, inserted_chars, decoded_length, 0, 1, 0);
-  if (length > MAX_ALLOCA)
+  if (allength > MAX_ALLOCA)
     xfree (decoded);
   /* Delete the original text.  */
   del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars,
@@ -3544,7 +3550,8 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   else
     decoded = (char *) xmalloc (length);
 
-  decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length);
+  decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length,
+				    STRING_MULTIBYTE (string), NULL);
   if (decoded_length > length)
     abort ();
   else if (decoded_length >= 0)
@@ -3560,16 +3567,24 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   return decoded_string;
 }
 
+/* Base64-decode the data at FROM of LENGHT bytes into TO.  If
+   MULTIBYTE is nonzero, the decoded result should be in multibyte
+   form.  If NCHARS_RETRUN is not NULL, store the number of produced
+   characters in *NCHARS_RETURN.  */
+
 static int
-base64_decode_1 (from, to, length)
+base64_decode_1 (from, to, length, multibyte, nchars_return)
      const char *from;
      char *to;
      int length;
+     int multibyte;
+     int *nchars_return;
 {
   int i = 0;
   char *e = to;
   unsigned char c;
   unsigned long value;
+  int nchars = 0;
 
   while (1)
     {
@@ -3589,7 +3604,12 @@ base64_decode_1 (from, to, length)
 	return -1;
       value |= base64_char_to_value[c] << 12;
 
-      *e++ = (unsigned char) (value >> 16);
+      c = (unsigned char) (value >> 16);
+      if (multibyte)
+	e += CHAR_STRING (c, e);
+      else
+	*e++ = c;
+      nchars++;
 
       /* Process third byte of a quadruplet.  */
 
@@ -3608,7 +3628,12 @@ base64_decode_1 (from, to, length)
 	return -1;
       value |= base64_char_to_value[c] << 6;
 
-      *e++ = (unsigned char) (0xff & value >> 8);
+      c = (unsigned char) (0xff & value >> 8);
+      if (multibyte)
+	e += CHAR_STRING (c, e);
+      else
+	*e++ = c;
+      nchars++;
 
       /* Process fourth byte of a quadruplet.  */
 
@@ -3621,7 +3646,12 @@ base64_decode_1 (from, to, length)
 	return -1;
       value |= base64_char_to_value[c];
 
-      *e++ = (unsigned char) (0xff & value);
+      c = (unsigned char) (0xff & value);
+      if (multibyte)
+	e += CHAR_STRING (c, e);
+      else
+	*e++ = c;
+      nchars++;
     }
 }
 
