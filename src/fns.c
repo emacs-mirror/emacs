@@ -1872,7 +1872,11 @@ one of the properties on the list.")
     {
       if (EQ (prop, XCAR (tail)))
 	return XCAR (XCDR (tail));
-      QUIT;
+
+      /* This function can be called asynchronously
+	 (setup_coding_system).  Don't QUIT in that case.  */
+      if (!interrupt_input_blocked)
+	QUIT;
     }
 
   if (!NILP (tail))
@@ -1915,6 +1919,7 @@ The PLIST is modified by side effects.")
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
 	}
+      
       prev = tail;
       QUIT;
     }
