@@ -151,14 +151,14 @@ followed by the first character of the construct.
   (setq font-lock-defaults
 	'((m3-font-lock-keywords
 	   m3-font-lock-keywords-1 m3-font-lock-keywords-2)
-	  nil nil ((?_ . "w") (?. . "w")) nil
+	  nil nil ((?_ . "w") (?. . "w") (?< . ". 1") (?> . ". 4")) nil
 	  ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
 	  ;(font-lock-comment-start-regexp . "(\\*")
 	  ))
   (run-hooks 'm2-mode-hook))
 
-;; Regexps written with help from Ron Forrester <ron@orcad.com>.
-
+;; Regexps written with help from Ron Forrester <ron@orcad.com>
+;; and Spencer Allain <sallain@teknowledge.com>.
 (defconst m3-font-lock-keywords-1
   '(
     ;;
@@ -174,7 +174,10 @@ followed by the first character of the construct.
       (1 font-lock-reference-face)))
     ;;
     ;; Pragmas as warnings.
-    ("<\\*.*\\*>" . font-lock-warning-face)
+    ;; Spencer Allain <sallain@teknowledge.com> says do them as comments...
+    ;; ("<\\*.*\\*>" . font-lock-warning-face)
+    ;; ... but instead we fontify the first word.
+    ("<\\*[ \t]*\\(\\sw+\\)" 1 font-lock-warning-face prepend)
     )
   "Subdued level highlighting for Modula-3 modes.")
 
@@ -182,42 +185,25 @@ followed by the first character of the construct.
   (append m3-font-lock-keywords-1
    (eval-when-compile
      (let ((m3-types
-;	    (make-regexp
-;	     '("INTEGER" "BITS" "BOOLEAN" "CARDINAL" "CHAR" "FLOAT"
-;	       "LONGREAL" "REAL" "REFANY" "ADDRESS" "ARRAY" "TEXT"))
-	    (concat "A\\(DDRESS\\|RRAY\\)\\|B\\(ITS\\|OOLEAN\\)\\|"
-		    "C\\(ARDINAL\\|HAR\\)\\|FLOAT\\|INTEGER\\|LONGREAL\\|"
-		    "RE\\(AL\\|FANY\\)\\|TEXT"))
+	    (regexp-opt
+	     '("INTEGER" "BITS" "BOOLEAN" "CARDINAL" "CHAR" "FLOAT" "REAL"
+	       "LONGREAL" "REFANY" "ADDRESS" "ARRAY" "SET" "TEXT"
+	       "MUTEX" "ROOT" "EXTENDED")))
 	   (m3-keywords
-;	    (make-regexp
-;	     '("AND" "ANY" "AS" "BEGIN" "BRANDED" "BY" "CASE" "CONST" "DIV"
-;	       "DO" "ELSE" "ELSIF" "EVAL" "EXCEPT" "EXIT" "EXTENDED" "FINALLY"
-;	       "FOR" "IF" "IN" "LOCK" "LOOP" "METHODS" "MOD" "MUTEX" "NOT"
-;	       "OBJECT" "OF" "OR" "OVERRIDES" "READONLY" "RECORD" "REF"
-;	       "REPEAT" "RETURN" "REVEAL" "ROOT" "SET" "THEN" "TO" "TRY"
-;	       "TYPE" "TYPECASE" "UNSAFE" "UNTIL" "UNTRACED" "VAR" "VALUE"
-;	       "WHILE" "WITH"))
-	    (concat "A\\(N[DY]\\|S\\)\\|B\\(EGIN\\|RANDED\\|Y\\)\\|"
-		    "C\\(ASE\\|ONST\\)\\|D\\(IV\\|O\\)\\|"
-		    "E\\(LS\\(E\\|IF\\)\\|VAL\\|"
-		    "X\\(CEPT\\|IT\\|TENDED\\)\\)\\|F\\(INALLY\\|OR\\)\\|"
-		    "I[FN]\\|LO\\(CK\\|OP\\)\\|M\\(ETHODS\\|OD\\|UTEX\\)\\|"
-		    "NOT\\|O\\([FR]\\|BJECT\\|VERRIDES\\)\\|"
-		    "R\\(E\\(ADONLY\\|CORD\\|F\\|PEAT\\|TURN\\|VEAL\\)\\|"
-		    "OOT\\)\\|SET\\|T\\(HEN\\|O\\|RY\\|YPE\\(\\|CASE\\)\\)\\|"
-		    "UN\\(SAFE\\|T\\(IL\\|RACED\\)\\)\\|VA\\(LUE\\|R\\)\\|"
-		    "W\\(HILE\\|ITH\\)"))
+	    (regexp-opt
+	     '("AND" "ANY" "AS" "BEGIN" "BRANDED" "BY" "CASE" "CONST" "DIV"
+	       "DO" "ELSE" "ELSIF" "EVAL" "EXCEPT" "EXIT" "FINALLY"
+	       "FOR" "GENERIC" "IF" "IN" "LOCK" "LOOP" "METHODS" "MOD" "NOT"
+	       "OBJECT" "OF" "OR" "OVERRIDES" "READONLY" "RECORD" "REF"
+	       "REPEAT" "RETURN" "REVEAL" "THEN" "TO" "TRY"
+	       "TYPE" "TYPECASE" "UNSAFE" "UNTIL" "UNTRACED" "VAR" "VALUE"
+	       "WHILE" "WITH")))
 	   (m3-builtins
-;	    (make-regexp
-;	     '("ABS" "ADR" "ADRSIZE" "BITSIZE" "BYTESIZE" "CEILING"
-;	       "DEC" "DISPOSE" "FIRST" "FLOOR" "INC" "ISTYPE" "LAST"
-;	       "LOOPHOLE" "MAX" "MIN" "NARROW" "NEW" "NUMBER" "ORD"
-;	       "ROUND" "SUBARRAY" "TRUNC" "TYPECODE" "VAL"))
-	    (concat "A\\(BS\\|DR\\(\\|SIZE\\)\\)\\|B\\(ITSIZE\\|YTESIZE\\)\\|"
-		    "CEILING\\|D\\(EC\\|ISPOSE\\)\\|F\\(IRST\\|LOOR\\)\\|"
-		    "I\\(NC\\|STYPE\\)\\|L\\(AST\\|OOPHOLE\\)\\|"
-		    "M\\(AX\\|IN\\)\\|N\\(ARROW\\|EW\\|UMBER\\)\\|ORD\\|"
-		    "ROUND\\|SUBARRAY\\|T\\(RUNC\\|YPECODE\\)\\|VAL"))
+	    (regexp-opt
+	     '("ABS" "ADR" "ADRSIZE" "BITSIZE" "BYTESIZE" "CEILING"
+	       "DEC" "DISPOSE" "FIRST" "FLOOR" "INC" "ISTYPE" "LAST"
+	       "LOOPHOLE" "MAX" "MIN" "NARROW" "NEW" "NUMBER" "ORD"
+	       "ROUND" "SUBARRAY" "TRUNC" "TYPECODE" "VAL")))
 	   )
        (list
 	;;
@@ -233,7 +219,8 @@ followed by the first character of the construct.
 	;; Fontify tokens as function names.
 	'("\\<\\(END\\|EXCEPTION\\|RAISES?\\)\\>[ \t{]*"
 	  (1 font-lock-keyword-face)
-	  (font-lock-match-c-style-declaration-item-and-skip-to-next nil nil
+	  (font-lock-match-c-style-declaration-item-and-skip-to-next
+	   nil (goto-char (match-end 0))
 	   (1 font-lock-function-name-face)))
 	;;
 	;; Fontify constants as references.
