@@ -644,6 +644,10 @@ Lisp_Object Vdisable_point_adjustment;
 
 Lisp_Object Vglobal_disable_point_adjustment;
 
+/* The time when Emacs started being idle.  */
+
+static EMACS_TIME timer_idleness_start_time;
+
 
 /* Global variable declarations.  */
 
@@ -2095,6 +2099,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   volatile Lisp_Object also_record;
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
+  EMACS_TIME last_idle_start;
 
   also_record = Qnil;
 
@@ -2588,6 +2593,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
  non_reread:
 
+  /* Record the last idle start time so that we can reset it
+     should the next event read be a help-echo.  */
+  last_idle_start = timer_idleness_start_time;
   timer_stop_idle ();
   start_polling ();
 
@@ -2804,6 +2812,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       object = Fnth (make_number (4), c);
       position = Fnth (make_number (5), c);
       show_help_echo (help, window, object, position, 0);
+
+      /* We stopped being idle for this event; undo that.  */
+      timer_idleness_start_time = last_idle_start;
       goto retry;
     }
   
@@ -3824,8 +3835,6 @@ swallow_events (do_display)
     redisplay_preserve_echo_area (7);
 }
 
-static EMACS_TIME timer_idleness_start_time;
-
 /* Record the start of when Emacs is idle,
    for the sake of running idle-time timers.  */
 
