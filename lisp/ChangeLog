@@ -22,6 +22,10 @@
 
 	* cus-start.el (recursive-load-depth-limit): Delete item.
 
+2001-11-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help-fns.el (describe-categories, help-describe-category-set): New.
+
 2001-11-26  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-mode.el (c-submit-bug-report): Make sure that the

@@ -1,5 +1,16 @@
 2001-11-26  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* syntax.c (syms_of_syntax): Remove defsubr of Sdescribe_syntax.
+	(describe_syntax, describe_syntax_1, Fdescribe_syntax): Remove.
+
+	* eval.c: Use AREF and ASIZE.
+	(Ffetch_bytecode): Add the file name to the error message.
+
+	* fileio.c (Ffind_file_name_handler): Give precedence to handlers
+	which match the end of the file-name.
+	(Fsubstitute_in_file_name): Don't signal an error if $ENVVAR
+	is not a valid env var, but leave it as is instead.
+
 	* keymap.c (access_keymap): Handle t bindings like nil bindings.
 	Make nil bindings in char-tables transparent.
 	(store_in_keymap): Turn a nil binding into a t binding for char-tables.
