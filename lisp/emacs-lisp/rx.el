@@ -286,9 +286,11 @@ FORM is of the form `(and FORM1 ...)'."
     (dolist (arg (cdr form))
       (unless (stringp arg)
 	(setq all-args-strings nil)))
-    (if all-args-strings
-	(regexp-opt (cdr form))
-      (mapconcat #'rx-to-string (cdr form) "\\|"))))
+    (concat "\\(?:"
+	    (if all-args-strings
+		(regexp-opt (cdr form))
+	      (mapconcat #'rx-to-string (cdr form) "\\|"))
+	    "\\)")))
 
 
 (defun rx-quote-for-set (string)
