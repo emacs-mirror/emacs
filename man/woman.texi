@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.3 2000/08/09 13:14:26 eliz Exp $
+@c $Id: woman.texi,v 1.4 2000/09/28 15:01:34 gerd Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse UN*X Manual Pages ``Wo (without) Man''
@@ -289,10 +289,10 @@ WoMan to handle the major formatting within a single recursive pass,
 rather than the present multiple passes without any significant
 recursion.  There are some @code{ROFF} requests that cannot be handled
 satisfactorily within the present design.  Some of these are currently
-handled by kludges that ``usually more or less work''.
+handled by kludges that ``usually more or less work.''
 
 The principle advantage of WoMan is that it does not require @code{man},
-and indeed the name WoMan is a contraction of ``without man''.  But it
+and indeed the name WoMan is a contraction of ``without man.''  But it
 has other advantages.  It does not paginate the document, so it does not
 need to un-paginate it again, thereby saving time.  It could take full
 advantage of the display capabilities available to it, and I hope to
@@ -617,7 +617,7 @@ configuration file named (by default) @file{man.conf} (or something very
 similar), which seems to be the standard mechanism under GNU/Linux, then
 it parses that.  To be precise, ``something very similar'' means having
 two name components separated by a dot and respectively containing
-``man'' and beginning with ``conf'', e.g.@: @file{manual.configuration}.
+@samp{man} and beginning with @samp{conf}, e.g.@: @file{manual.configuration}.
 The search path and/or precise full path name for this file are set by
 the value of the customizable user option @code{woman-man.conf-path}.
 If all else fails, WoMan uses a plausible default man search path.
@@ -920,19 +920,19 @@ to other man pages.  If these man pages are installed then WoMan can
 easily be directed to follow the reference, i.e.@: to find and format the
 man page.  When the mouse is passed over a correctly formatted reference
 it is highlighted, in which case clicking the middle button
-@key{mouse-2} will cause WoMan to follow the reference.  Alternatively,
+@kbd{Mouse-2} will cause WoMan to follow the reference.  Alternatively,
 when point is over such a reference the key @key{RET} will follow the
 reference.
 
 Any word in the buffer can be used as a reference by clicking
-@key{mouse-2} over it provided the Meta key is also used (although in
+@kbd{Mouse-2} over it provided the Meta key is also used (although in
 general such a ``reference'' will not lead to a man page).
 Alternatively, the key @kbd{r} allows completion to be used to select a
 reference to follow, based on the word at point as default.
 
 @table @kbd
-@item @key{mouse-2}
-@kindex mouse-2
+@item @kbd{Mouse-2}
+@kindex Mouse-2
 @findex woman-mouse-2
 Run WoMan with word under mouse as topic (@code{woman-mouse-2}).  The
 word must be mouse-highlighted unless @code{woman-mouse-2} is used with

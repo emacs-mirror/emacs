@@ -175,7 +175,7 @@ living in another way.
 
 Once GNU is written, everyone will be able to obtain good system
 software free, just like air.@footnote{This is another place I failed to
-distinguish carefully between the two different meanings of ``free''.
+distinguish carefully between the two different meanings of ``free.''
 The statement as it stands is not false---you can get copies of GNU
 software at no charge, from your friends or over the net.  But it does
 suggest the wrong idea.}
