@@ -1,7 +1,8 @@
 2005-04-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (visible-mode): Use explicit :group keyword.
-	This changes the group from paren-blinking to editing-basics.
+	This changes the group of `visible-mode-hook' from paren-blinking
+	to editing-basics.
 
 2005-04-02  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
 
