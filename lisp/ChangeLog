@@ -130,7 +130,7 @@
 	(tex-validate-buffer): Don't bother with marker-position.
 
 	* textmodes/flyspell.el (flyspell-prog-text-faces): New var.
-	(flyspell-generic-progmode-verify): Use it.n
+	(flyspell-generic-progmode-verify): Use it.
 
 2000-11-22  Sam Steingold  <sds@gnu.org>
 
@@ -138,7 +138,7 @@
 	function.
 	
 	* progmodes/ada-mode.el (ada-mode): Use it instead of
-	`ada-remove-trailing-spaces'
+	`ada-remove-trailing-spaces'.
 	(ada-remove-trailing-spaces): Removed.
 	
 	* textmodes/two-column.el (2C-merge): Recommend it in the doc.
