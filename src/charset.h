@@ -475,7 +475,7 @@ extern int width_by_char_head[256];
   ((c) >= 0				\
    && (SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, genericp)))
 
-/* This default value is used when nonascii-translate-table or
+/* This default value is used when nonascii-translation-table or
    nonascii-insert-offset fail to convert unibyte character to a valid
    multibyte character.  This makes a Latin-1 character.  */
 
@@ -574,7 +574,7 @@ extern int iso_charset_table[2][2][128];
   ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
     || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
    ? (unsigned char) *(str)				    	\
-   : string_to_non_ascii_char (str, len, 0))
+   : string_to_non_ascii_char (str, len, 0, 0))
 
 /* This is like STRING_CHAR but the third arg ACTUAL_LEN is set to
    the length of the multi-byte form.  Just to know the length, use
@@ -584,7 +584,15 @@ extern int iso_charset_table[2][2][128];
   ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
     || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
    ? (actual_len = 1), (unsigned char) *(str)		    	\
-   : string_to_non_ascii_char (str, len, &actual_len))
+   : string_to_non_ascii_char (str, len, &actual_len, 0))
+
+/* This is like STRING_CHAR_AND_LENGTH but the third arg ACTUAL_LEN
+   does not include garbage bytes following the multibyte character.  */
+#define STRING_CHAR_AND_CHAR_LENGTH(str, len, actual_len)	    	\
+  ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) == 1	    	\
+    || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > (len))	\
+   ? (actual_len = 1), (unsigned char) *(str)		    	\
+   : string_to_non_ascii_char (str, len, &actual_len, 1))
 
 /* Fetch the "next" multibyte character from Lisp string STRING
    at byte position BYTEIDX, character position CHARIDX.
@@ -794,7 +802,8 @@ extern void invalid_character P_ ((int));
 extern int translate_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_non_ascii_string P_ ((const unsigned char *, int, int *,
 				       unsigned char *, unsigned char *));
-extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *));
+extern int string_to_non_ascii_char P_ ((const unsigned char *, int, int *,
+					 int));
 extern int non_ascii_char_to_string P_ ((int, unsigned char *, unsigned char **));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
 extern int str_cmpchar_id P_ ((const unsigned char *, int));
@@ -804,11 +813,11 @@ extern int find_charset_in_str P_ ((unsigned char *, int, int *,
 				    Lisp_Object, int));
 extern int strwidth P_ ((unsigned char *, int));
 
-extern Lisp_Object Vcharacter_translation_table_vector;
+extern Lisp_Object Vtranslation_table_vector;
 
-/* Return a character translation table of id number ID.  */
+/* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
-  (XCONS(XVECTOR(Vcharacter_translation_table_vector)->contents[(id)])->cdr)
+  (XCONS(XVECTOR(Vtranslation_table_vector)->contents[(id)])->cdr)
 
 /* Copy LEN bytes from FROM to TO.  This macro should be used only
    when a caller knows that LEN is short and the obvious copy loop is
