@@ -1435,10 +1435,13 @@ if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
   LD_SWITCH_X_SITE_AUX=-R`echo ${x_libraries} | sed -e "s/:/ -R/g"`
   x_default_search_path=""
   for x_library in `echo ${x_libraries} | sed -e "s/:/ /g"`; do
-    x_search_path="${x_library}/X11/%L/%T/%N%C%S:\
-${x_library}/X11/%L/%T/%N%C%S:${x_libary}/X11/%l/%T/%N%C%S:\
-${x_library}/X11/%T/%N%C%S:${x_library}/X11/%L/%T/%N%S:\
-${x_library}/X11/%l/%T/%N%S:${x_library}/X11/%T/%N%S"
+    x_search_path="\
+${x_library}/X11/%L/%T/%N%C%S:\
+${x_library}/X11/%l/%T/%N%C%S:\
+${x_library}/X11/%T/%N%C%S:\
+${x_library}/X11/%L/%T/%N%S:\
+${x_library}/X11/%l/%T/%N%S:\
+${x_library}/X11/%T/%N%S"
     if test x"${x_default_search_path}" = x; then
       x_default_search_path=${x_search_path}
     else
