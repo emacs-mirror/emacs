@@ -1,3 +1,7 @@
+2000-09-28  Dave Love  <fx@gnu.org>
+
+	* eshell/eshell.el (eshell) <defgroup>: Add :version.
+
 2000-09-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/authors.el (authors-add): Use `nconc' instead of
