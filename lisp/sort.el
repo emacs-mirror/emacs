@@ -76,7 +76,11 @@ same as ENDRECFUN."
 				    ;; This handles both ints and floats.
 				    '<)
 				   ((consp (car (car sort-lists)))
-				    'buffer-substring-lessp)
+				    (function
+				     (lambda (a b)
+				       (> 0 (compare-buffer-substrings 
+					     nil (car a) (nth 1 a)
+					     nil (car b) (nth 1 b))))))
 				   (t
 				    'string<)))
 		  (sort sort-lists
@@ -87,7 +91,9 @@ same as ENDRECFUN."
 			      ((consp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
-				  (buffer-substring-lessp (car a) (car b)))))
+				  (> 0 (compare-buffer-substrings 
+					nil (car (car a)) (nth 1 (car a))
+					nil (car (car b)) (nth 1 (car b)))))))
 			      (t
 			       (function
 				(lambda (a b)
@@ -123,9 +129,7 @@ same as ENDRECFUN."
 		      (let ((start (point)))
 			(funcall (or endkeyfun
 				     (prog1 endrecfun (setq done t))))
-			(if (fboundp 'buffer-substring-lessp)
-			    (cons start (point))
-			  (buffer-substring start (point)))))))
+			(cons start (point))))))
       ;; Move to end of this record (start of next one, or end of buffer).
       (cond ((prog1 done (setq done nil)))
 	    (endrecfun (funcall endrecfun))
