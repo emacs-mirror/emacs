@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 01, 02
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1033,6 +1033,23 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		      ".lit4")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
+	  /* The conditional bit below was in Oliva's original code
+	     (1999-08-25) and seems to have been dropped by mistake
+	     subsequently.  It prevents a crash at startup under X in
+	     `IRIX64 6.5 6.5.17m' with c_dev 7.3.1.3m.  It causes no
+	     trouble on the other ELF platforms I could test (Irix
+	     6.5.15m, Solaris 8, Debian Potato x86, Debian Woody
+	     SPARC); however, it's reported to cause crashes under
+	     some version of GNU/Linux.  It's not yet clear what's
+	     changed in that Irix version to cause the problem, or why
+	     the fix sometimes fails under GNU/Linux.  There's
+	     probably no good reason to have something Irix-specific
+	     here, but this will have to do for now.  IRIX6_5 is the
+	     most specific macro we have to test.  -- fx 2002-10-01  */
+#ifdef IRIX6_5
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+		      ".got")
+#endif
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
@@ -1211,6 +1228,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 			".lit4")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".lit8")
+#ifdef IRIX6_5			/* see above */
+	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			".got")
+#endif
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".sdata1")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
