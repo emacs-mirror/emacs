@@ -5,6 +5,9 @@ CC = gcc
 CPP = $(CC) -E
 #Note: an alternative is  CPP = /lib/cpp
 
+# Just to avoid uncertainty.
+SHELL = /bin/sh
+
 all: xmakefile doall
 
 doall:
