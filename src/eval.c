@@ -1816,6 +1816,65 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
 }
 
+DEFUN ("run-hook-with-args", Frun_hook_with_args, Srun_hook_with_args, 1, MANY, 0,
+  "Run HOOK with the specified arguments ARGS.\n\
+HOOK should be a symbol, a hook variable.  If HOOK has a non-nil\n\
+value, that value may be a function or a list of functions to be\n\
+called to run the hook.  If the value is a function, it is called with\n\
+the given arguments and its return value is returned.  If it is a list\n\
+of functions, those functions are called, in order,\n\
+with the given arguments ARGS.\n\
+It is best not to depend on the value return by `run-hook-with-args',\n\
+as that may change.\n\
+\n\
+To make a hook variable buffer-local, use `make-local-hook', not\n\
+`make-local-variable'.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object sym, val;
+
+  sym = args[0];
+  CHECK_SYMBOL (sym, 0);
+  val = XSYMBOL (sym)->value;
+  if (BUFFER_LOCAL_VALUEP (val)
+      || SOME_BUFFER_LOCAL_VALUEP (val))
+    val = swap_in_symval_forwarding (sym, val);
+  if (EQ (val, Qunbound) || NILP (val))
+    return Qnil;
+  else if (!CONSP (val) || EQ (XCONS (val)->car, Qlambda))
+    {
+      args[0] = val;
+      return Ffuncall (nargs, args);
+    }
+  else
+    {
+      for (; CONSP (val); val = XCONS (val)->cdr)
+	{
+	  if (EQ (XCONS (val)->car, Qt))
+	    {
+	      /* t indicates this hook has a local binding;
+		 it means to run the global binding too.  */
+	      Lisp_Object globals;
+
+	      for (globals = Fdefault_value (sym); CONSP (globals);
+		   globals = XCONS (globals)->cdr)
+		{
+		  args[0] = XCONS (globals)->car;
+		  Ffuncall (nargs, args);
+		}
+	    }
+	  else
+	    {
+	      args[0] = XCONS (val)->car;
+	      Ffuncall (nargs, args);
+	    }
+	}
+      return Qnil;
+    }
+}
+
 /* Apply fn to arg */
 Lisp_Object
 apply1 (fn, arg)
