@@ -1,5 +1,23 @@
 2000-06-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_window_reusing_current_matrix): Don't try to reuse
+	 the display if windows_or_buffers_changed.
+
+	* dispnew.c (struct row_entry): New structure.
+	(row_entry_pool, row_entry_pool_size, row_entry_idx, row_table)
+	(row_table_size, old_lines, new_lines, old_lines_size)
+	(new_lines_size, run_pool, runs_size, runs): New variables.
+	(add_row_entry): New function.
+	(scrolling_window): Use data structures allocated with xmalloc and
+	held in global variables, instead of allocing them with alloca and
+	holding them in local variables.  Use a larger hash table whose
+	size depends on glyph matrix sizes.  Don't use bzero to clear the
+	hash table; instead, clear used slots only.
+
+	* fns.c (next_almost_prime): Make it externally visible.
+
+	* lisp.h (next_almost_prime): Add prototype.
+
 	* s/isc4-0.h (sigunblock): Define.
 
 	* s/sco5.h (sigunblock): Define.

@@ -10,6 +10,11 @@
 
 2000-06-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (region): Change background color for light background.
+
+	* ediff-wind.el (ediff-setup-control-frame): Remove :box
+	attribute from mode-line face of Ediff control frame.
+
 	* replace.el (query-replace-map): Bind `e' like `E'.
 
 2000-06-28  Eli Zaretskii  <eliz@is.elta.co.il>
