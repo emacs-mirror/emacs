@@ -258,13 +258,12 @@ never indented."
   :group 'dcl)
 
 (defcustom dcl-imenu-generic-expression
-  (`
-   ((nil "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):[ \t]+SUBROUTINE\\b" 1)
-    ((, dcl-imenu-label-labels)
+  `((nil "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):[ \t]+SUBROUTINE\\b" 1)
+    (,dcl-imenu-label-labels
      "^\\$[ \t]*\\([A-Za-z0-9_\$]+\\):\\([ \t]\\|$\\)" 1)
-    ((, dcl-imenu-label-goto) "\\s-GOTO[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
-    ((, dcl-imenu-label-gosub) "\\s-GOSUB[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
-    ((, dcl-imenu-label-call) "\\s-CALL[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)))
+    (,dcl-imenu-label-goto "\\s-GOTO[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
+    (,dcl-imenu-label-gosub "\\s-GOSUB[ \t]+\\([A-Za-z0-9_\$]+\\)" 1)
+    (,dcl-imenu-label-call "\\s-CALL[ \t]+\\([A-Za-z0-9_\$]+\\)" 1))
   "*Default imenu generic expression for DCL.
 
 The default includes SUBROUTINE labels in the main listing and
@@ -2216,4 +2215,5 @@ otherwise return nil."
 
 (run-hooks 'dcl-mode-load-hook)		; for your customizations
 
+;;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
 ;;; dcl-mode.el ends here
