@@ -337,7 +337,7 @@ install-arch-indep: mkdir info
 	  && (echo "Copying $${dir} to $${dest}..." ; \
 	      (cd $${dir}; tar -cf - . ) \
 		|(cd $${dest};umask 022; tar -xvf - && cat > /dev/null); \
-	      for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
 		rm -rf $${subdir}/CVS ; \
@@ -611,7 +611,7 @@ check:
 dist:
 	cd ${srcdir}; ./make-dist
 
-.PHONY: info dvi dist check
+.PHONY: info dvi dist check html
 force-info:
 info: force-info
 	# Note that man/Makefile knows how to
