@@ -278,9 +278,11 @@ Not actually set up until the first time you you use it.")
 
 (defun cd-absolute (dir)
   "Change current directory to given absolute file name DIR."
-  (setq dir (abbreviate-file-name (expand-file-name dir)))
+  ;; Put the name into directory syntax now,
+  ;; because otherwise expand-file-name may give some bad results.
   (if (not (eq system-type 'vax-vms))
       (setq dir (file-name-as-directory dir)))
+  (setq dir (abbreviate-file-name (expand-file-name dir)))
   (if (not (file-directory-p dir))
       (error "%s is not a directory" dir)
     (if (file-executable-p dir)
@@ -964,7 +966,6 @@ If `enable-local-variables' is nil, this function does not check for a
       ;; If we didn't find a mode from a -*- line, try using the file name.
       (if (and (not done) buffer-file-name)
 	  (let ((name buffer-file-name)
-		(case-fold-search (eq system-type 'vax-vms))
 		(keep-going t))
 	    ;; Remove backup-suffixes from file name.
 	    (setq name (file-name-sans-versions name))
@@ -973,17 +974,18 @@ If `enable-local-variables' is nil, this function does not check for a
 	      (let ((alist auto-mode-alist)
 		    (mode nil))
 		;; Find first matching alist entry.
-		(while (and (not mode) alist)
-		  (if (string-match (car (car alist)) name)
-		      (if (and (consp (cdr (car alist)))
-			       (nth 2 (car alist)))
-			  (progn
-			    (setq mode (car (cdr (car alist)))
-				  name (substring name 0 (match-beginning 0))
-				  keep-going t))
-			(setq mode (cdr (car alist))
-			      keep-going nil)))
-		  (setq alist (cdr alist)))
+		(let ((case-fold-search (eq system-type 'vax-vms)))
+		  (while (and (not mode) alist)
+		    (if (string-match (car (car alist)) name)
+			(if (and (consp (cdr (car alist)))
+				 (nth 2 (car alist)))
+			    (progn
+			      (setq mode (car (cdr (car alist)))
+				    name (substring name 0 (match-beginning 0))
+				    keep-going t))
+			  (setq mode (cdr (car alist))
+				keep-going nil)))
+		    (setq alist (cdr alist))))
 		(if mode
 		    (funcall mode)
 		  ;; If we can't deduce a mode from the file name,
@@ -1633,43 +1635,46 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 		(error "Attempt to save to a file which you aren't allowed to write"))))))
     (or buffer-backed-up
 	(setq setmodes (backup-buffer)))
-    (if file-precious-flag
-	;; If file is precious, write temp name, then rename it.
-	(let ((dir (file-name-directory buffer-file-name))
-	      (realname buffer-file-name)
-	      tempname temp nogood i succeed)
-	  (setq i 0)
-	  (setq nogood t)
-	  ;; Find the temporary name to write under.
-	  (while nogood
-	    (setq tempname (format "%s#tmp#%d" dir i))
-	    (setq nogood (file-exists-p tempname))
-	    (setq i (1+ i)))
-	  (unwind-protect
-	      (progn (clear-visited-file-modtime)
-		     (write-region (point-min) (point-max)
-				   tempname nil realname)
-		     (setq succeed t))
-	    ;; If writing the temp file fails,
-	    ;; delete the temp file.
-	    (or succeed (delete-file tempname)))
-	  ;; Since we have created an entirely new file
-	  ;; and renamed it, make sure it gets the
-	  ;; right permission bits set.
-	  (setq setmodes (file-modes buffer-file-name))
-	  ;; We succeeded in writing the temp file,
-	  ;; so rename it.
-	  (rename-file tempname buffer-file-name t))
-      ;; If file not writable, see if we can make it writable
-      ;; temporarily while we write it.
-      ;; But no need to do so if we have just backed it up
-      ;; (setmodes is set) because that says we're superseding.
-      (cond ((and tempsetmodes (not setmodes))
-	     ;; Change the mode back, after writing.
-	     (setq setmodes (file-modes buffer-file-name))
-	     (set-file-modes buffer-file-name 511)))
-      (write-region (point-min) (point-max)
-		    buffer-file-name nil t))
+    (let ((dir (file-name-directory buffer-file-name))) 
+      (if (and file-precious-flag
+	       (file-writable-p dir))
+	  ;; If file is precious, write temp name, then rename it.
+	  ;; This requires write access to the containing dir,
+	  ;; which is why we don't try it if we don't have that access.
+	  (let ((realname buffer-file-name)
+		tempname temp nogood i succeed)
+	    (setq i 0)
+	    (setq nogood t)
+	    ;; Find the temporary name to write under.
+	    (while nogood
+	      (setq tempname (format "%s#tmp#%d" dir i))
+	      (setq nogood (file-exists-p tempname))
+	      (setq i (1+ i)))
+	    (unwind-protect
+		(progn (clear-visited-file-modtime)
+		       (write-region (point-min) (point-max)
+				     tempname nil realname)
+		       (setq succeed t))
+	      ;; If writing the temp file fails,
+	      ;; delete the temp file.
+	      (or succeed (delete-file tempname)))
+	    ;; Since we have created an entirely new file
+	    ;; and renamed it, make sure it gets the
+	    ;; right permission bits set.
+	    (setq setmodes (file-modes buffer-file-name))
+	    ;; We succeeded in writing the temp file,
+	    ;; so rename it.
+	    (rename-file tempname buffer-file-name t))
+	;; If file not writable, see if we can make it writable
+	;; temporarily while we write it.
+	;; But no need to do so if we have just backed it up
+	;; (setmodes is set) because that says we're superseding.
+	(cond ((and tempsetmodes (not setmodes))
+	       ;; Change the mode back, after writing.
+	       (setq setmodes (file-modes buffer-file-name))
+	       (set-file-modes buffer-file-name 511)))
+	(write-region (point-min) (point-max)
+		      buffer-file-name nil t)))
     setmodes))
 
 (defun save-some-buffers (&optional arg exiting)
