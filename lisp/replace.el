@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -573,10 +573,10 @@ which will run faster and probably do exactly what you want."
 	      (setq stack
 		    (cons (cons (point)
 				(or replaced
-				    (mapcar
-				     (function (lambda (elt)
-						 (and elt
-						      (marker-position elt))))
+				    (mapcar (lambda (elt)
+					      (and elt
+						   (prog1 (marker-position elt)
+						     (set-marker elt nil))))
 				     (match-data))))
 			  stack))
 	      (if replaced (setq replace-count (1+ replace-count)))))
