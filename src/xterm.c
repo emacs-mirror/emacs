@@ -3090,6 +3090,33 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  SET_FRAME_GARBAGED (f);
 		}
 
+	      if (! event.xconfigure.send_event
+		  /* Sometimes we get root-relative coordinates
+		     even tho send_event is 0.
+		     This is not a perfectly reliable way of distinguishing,
+		     but it does the right thing except in a case
+		     where it doesn't hurt much to be wrong.  */
+		  && event.xconfigure.x < 20)
+		{
+		  Window win, child;
+		  int win_x, win_y;
+
+		  XTranslateCoordinates (x_current_display,
+			       
+					 /* From-window, to-window.  */
+					 event.xconfigure.window, ROOT_WINDOW,
+
+					 /* From-position, to-position.  */
+					 event.xconfigure.x,
+					 event.xconfigure.y,
+					 &win_x, &win_y,
+
+					 /* Child of win.  */
+					 &child);
+		  event.xconfigure.x = win_x;
+		  event.xconfigure.y = win_y;
+		}
+
 	      f->display.x->pixel_width = event.xconfigure.width;
 	      f->display.x->pixel_height = event.xconfigure.height;
 	      f->display.x->left_pos = event.xconfigure.x;
