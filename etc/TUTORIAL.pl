@@ -1,4 +1,4 @@
-Copyright (c) 1985 Free Software Foundation, Inc. -*-text-*-
+Copyright (c) 1985, 2001 Free Software Foundation, Inc. 
 Szczegó³y na koñcu pliku.  Czytasz w³a¶nie krótki podrêcznik Emacsa.
 
 Polecenia Emacsa ogólnie wymagaj± wci¶niêcia klawisza CONTROL (czasami
@@ -1097,6 +1097,11 @@ Oto kilka innych u¿ytecznych wariantów C-h:
    informacje, jak± Emacs ma na temat funkcji, która implementuje
    polecenie C-p.
 
+Podobnie komenda C-h v pokazuje na ekranie dokumentacjê zmiennych, których
+wartosci mozesz zmieniæ, aby dostosowaæ Emacsa do swoich
+preferencji. Wpisz nazwê zmiennej, gdy Emacs o ni± poprosi.
+
+
    C-h a	Apropos.   Wpisz s³owo kluczowe, a Emacs wypisze listê
                 wszystkich poleceñ, których nazwa zawiera to s³owo.
                 Polecenia te mog± zostaæ wywo³ane za pomoc± Meta-x.
@@ -1107,6 +1112,20 @@ Oto kilka innych u¿ytecznych wariantów C-h:
    dostêpnych za pomoc± M-x, które maja s³owo "file" w swojej nazwie.
    Zauwa¿ysz tam tak¿e polecenia takie, jak C-x C-f oraz C-x C-w,
    umieszczone obok nazw poleceñ "find-file" i "write-file".
+
+>> Napisz C-M-v, aby przewin±æ okno pomocy. Zrób to kilka razy.
+>> Napisz C-x 1, aby usun±æ okno pomocy.
+
+   C-h i 	Czytanie elektronicznych podrêczników (w formacie Info). To
+         	polecenie prze³±czy ciê do specjalnego bufora o nazwie
+         	*info*, gdzie bedziesz móg³ przeczytaæ podrêczniki
+		dotycz±ce pakietów zainstalowanych w twoim
+		systemie. Napisz m emacs <Return>, aby zapoznaæ siê z
+		podrêcznikiem Emacsa.  Je¿eli nigdy wczesniej nie u¿ywa³es
+		Info, napisz ? a Emacs przedstawi ci mo¿liwo¶ci
+		tego trybu. Po tym, jak zapoznasz siê z tym krótkim
+		podrêcznikiem w dalszej pracy podstawow± dokumentacjê
+		stanowiæ bêdzie w³a¶nie Emacs Info.
 
 
 PODSUMOWANIE
@@ -1137,10 +1156,14 @@ buforze, oznacza to, ze nie masz zainstalowanych polskich fontow.
 Pomoc w tym zakresie mozesz znalezc pod adresem: 
                <URL:http://www.agh.edu.pl/ogonki>
 
+T³umaczenie to zosta³o uaktualnione dla wersji GNU Emacs 21
+przez Beatê Wierzcho³owsk± <beataw@orient.uw.edu.pl> z pomoc±
+Janusza S. Bienia <jsbien@mail.uw.edu.pl>
+
 Ta wersja podrêcznika, podobnie jak GNU Emacs, jest zastrze¿ona, a
 pozwolenie na kopiowanie udzielone jest pod nastêpuj±cymi warunkami:
 
-Copyright (c) 1985, 1994 Free Software Foundation
+Copyright (c) 1985, 1994, 2001 Free Software Foundation
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
