@@ -1,3 +1,9 @@
+2004-01-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-ann3): Revert previous change.
+	(gdb-source-info): Allow for case of where compilation directory
+	is not recorded.
+
 2004-01-08  John Paul Wallington  <jpw@gnu.org>
 
 	* emerge.el (emerge-restore-buffer-characteristics): Doc fix.
@@ -7,8 +13,9 @@
 	* progmodes/gud.el (gdb-first-prompt): Renamed from
 	gdb-first-pre-prompt
 
-	* gdb-ui.el (gdba): Avoid duplication, use gdb-ann3. Use GDB
-	command "set width 0" to prevent word wrapping problems.
+	* gdb-ui.el (gdba): Avoid duplication, use gdb-ann3.
+	(gdb-ann3): Use GDB command "set width 0" to prevent word wrapping
+	problems.
 	(gdb-prompt): Set (renamed) gdb-first-prompt to nil in gdb-ann3.
 
 2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
