@@ -1158,7 +1158,7 @@ AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h)
+  termcap.h stdio_ext.h fcntl.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1868,12 +1868,14 @@ rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
-__fpending getloadavg mblen mbrlen strsignal setitimer ualarm)
+__fpending mblen mbrlen strsignal setitimer ualarm)
 
 AC_FUNC_MKTIME
 if test "$ac_cv_func_working_mktime" = no; then
   AC_DEFINE(BROKEN_MKTIME)
 fi
+
+AC_FUNC_GETLOADAVG
 
 AC_SYS_LARGEFILE
 AC_CHECK_FUNCS(ftello)
@@ -1980,28 +1982,9 @@ AC_TRY_LINK([
 #endif
 #endif],
   [struct timeval time;
-   struct timezone dummy;
-   gettimeofday (&time, &dummy);],
+   gettimeofday (&time, 0);],
   emacs_cv_gettimeofday_two_arguments=yes,
-dnl The above test loses, e.g. on OSF 5.0 with _XOPEN_SOURCE defined by
-dnl AC_SYS_LARGEFILE, because struct timezone is hidden.
-dnl Try again assuming a void * second arg.
-  AC_TRY_LINK([
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif],
-    [struct timeval time;
-     int dummy;
-     gettimeofday (&time, &dummy);], 
-    emacs_cv_gettimeofday_two_arguments=yes,
-    emacs_cv_gettimeofday_two_arguments=no)))
+  emacs_cv_gettimeofday_two_arguments=no))
   if test $emacs_cv_gettimeofday_two_arguments = no; then
     AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)
   fi
@@ -2076,6 +2059,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
+AC_SUBST(GETLOADAVG_LIBS)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}")
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}")
