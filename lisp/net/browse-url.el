@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
-;; Maintainer: Dave Love <fx@gnu.org>
+;; Maintainer: FSF
 ;; Created: 03 Apr 1995
 ;; Keywords: hypertext, hypermedia, mouse
 
@@ -37,6 +37,8 @@
 ;; some of them probably now obsolete:
 
 ;; Function                           Browser     Earliest version
+;; browse-url-mozilla                 Mozilla     Don't know
+;; browse-url-galeon                  Galeon      Don't know
 ;; browse-url-netscape                Netscape    1.1b1
 ;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
 ;; browse-url-cci                     XMosaic     2.5
@@ -66,14 +68,6 @@
 ;; control but which window DO you want to control and how do you
 ;; discover its id?
 
-;; If using XMosaic before version 2.5, check the definition of
-;; browse-url-usr1-signal below.
-;; <URL:http://www.ncsa.uiuc.edu/SDG/Software/XMosaic/remote-control.html>
-
-;; XMosaic version 2.5 introduced Common Client Interface allowing you
-;; to control mosaic through Unix sockets.
-;; <URL:http://www.ncsa.uiuc.edu/SDG/Software/XMosaic/CCI/cci-spec.html>
-
 ;; William M. Perry's excellent "w3" WWW browser for
 ;; Emacs <URL:ftp://cs.indiana.edu/pub/elisp/w3/>
 ;; has a function w3-follow-url-at-point, but that
@@ -89,10 +83,6 @@
 ;; <URL:http://grail.cnri.reston.va.us/> and for more information on
 ;; Python see <url:http://www.python.org/>.  Grail support in
 ;; browse-url.el written by Barry Warsaw <bwarsaw@python.org>.
-
-;; MMM is a semi-free WWW browser implemented in Objective Caml, an
-;; interesting impure functional programming language.  See
-;; <URL:http://pauillac.inria.fr/%7Erouaix/mmm/>.
 
 ;; Lynx is now distributed by the FSF.  See also
 ;; <URL:http://lynx.browser.org/>.
@@ -226,6 +216,7 @@
 (eval-when-compile (require 'thingatpt)
                    (require 'term)
 		   (require 'dired)
+                   (require 'executable)
 		   (require 'w3-auto nil t))
 
 (defgroup browse-url nil
@@ -238,7 +229,7 @@
 (defcustom browse-url-browser-function
   (if (memq system-type '(windows-nt ms-dos))
       'browse-url-default-windows-browser
-    'browse-url-netscape)
+    'browse-url-default-browser)
   "*Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -252,6 +243,8 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Emacs W3" :value  browse-url-w3)
 	  (function-item :tag "W3 in another Emacs via `gnudoit'"
 			 :value  browse-url-w3-gnudoit)
+	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
+	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
@@ -269,6 +262,8 @@ regexp should probably be \".\" to specify a default browser."
 			 :value browse-url-default-windows-browser)
 	  (function-item :tag "GNOME invoking Mozilla"
 			 :value browse-url-gnome-moz)
+	  (function-item :tag "Default browser"
+			 :value browse-url-default-browser)
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
@@ -300,18 +295,53 @@ Defaults to the value of `browse-url-netscape-arguments' at the time
   :group 'browse-url)
 
 ;;;###autoload
+(defcustom browse-url-browser-display nil
+  "*The X display for running the browser, if not same as Emacs'."
+  :type '(choice string (const :tag "Default" nil))
+  :group 'browse-url)
+
+(defcustom browse-url-mozilla-program "mozilla"
+  "The name by which to invoke Mozilla."
+  :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-mozilla-arguments nil
+  "A list of strings to pass to Mozilla as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-mozilla-startup-arguments browse-url-mozilla-arguments
+  "A list of strings to pass to Mozilla when it starts up.
+Defaults to the value of `browse-url-mozilla-arguments' at the time
+`browse-url' is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+;;;###autoload
+(defcustom browse-url-galeon-program "galeon"
+  "The name by which to invoke Galeon."
+  :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-galeon-arguments nil
+  "A list of strings to pass to Galeon as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-galeon-startup-arguments browse-url-galeon-arguments
+  "A list of strings to pass to Galeon when it starts up.
+Defaults to the value of `browse-url-galeon-arguments' at the time
+`browse-url' is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+;;;###autoload
 (defcustom browse-url-new-window-flag nil
   "*If non-nil, always open a new browser window with appropriate browsers.
 Passing an interactive argument to \\[browse-url], or specific browser
 commands reverses the effect of this variable.  Requires Netscape version
 1.1N or later or XMosaic version 2.5 or later if using those browsers."
   :type 'boolean
-  :group 'browse-url)
-
-;;;###autoload
-(defcustom browse-url-netscape-display nil
-  "*The X display for running Netscape, if not same as Emacs'."
-  :type '(choice string (const :tag "Default" nil))
   :group 'browse-url)
 
 (defcustom browse-url-mosaic-program "xmosaic"
@@ -679,11 +709,11 @@ to use."
 ;; --- Netscape ---
 
 (defun browse-url-process-environment ()
-  "Set DISPLAY in the environment to the X display Netscape is running on.
-This is either the value of variable `browse-url-netscape-display' if
+  "Set DISPLAY in the environment to the X display the browser will use.
+This is either the value of variable `browse-url-browser-display' if
 non-nil, or the same display as Emacs if different from the current
 environment, otherwise just use the current environment."
-  (let ((display (or browse-url-netscape-display (browse-url-emacs-display))))
+  (let ((display (or browse-url-browser-display (browse-url-emacs-display))))
     (if display
 	(cons (concat "DISPLAY=" display) process-environment)
       process-environment)))
@@ -697,6 +727,35 @@ one showing the selected frame."
   (let ((display (cdr-safe (assq 'display (frame-parameters)))))
     (and (not (equal display (getenv "DISPLAY")))
          display)))
+
+;;;###autoload
+(defun browse-url-default-browser (url &rest args)
+  "Find a suitable browser and ask it to load URL.
+Default to the URL around or before point.
+
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new window, if possible, otherwise use
+a random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'.
+
+The order attempted is gnome-moz-remote, Mozilla, Galeon, Netscape,
+Mosaic, IXI Mosaic, Lynx in an xterm, MMM, Konqueror, and then W3."
+  (apply
+    (cond
+     ((executable-find "gnome-moz-remote") 'browse-url-gnome-moz)
+     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
+     ((executable-find browse-url-galeon-program) 'browse-url-galeon)
+     ((executable-find browse-url-kde-program) 'browse-url-kde)
+     ((executable-find browse-url-netscape-program) 'browse-url-netscape)
+     ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
+     ((executable-find "tellw3b") 'browse-url-iximosaic)
+     ((executable-find browse-url-xterm-program) 'browse-url-lynx-xterm)
+     ((executable-find "mmm") 'browse-url-mmm)
+     (t 'browse-url-w3))
+     url args))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
@@ -764,6 +823,91 @@ How depends on `browse-url-netscape-version'."
            browse-url-netscape-program
            (append browse-url-netscape-arguments
                    (list "-remote" command)))))
+
+;;;###autoload
+(defun browse-url-mozilla (url &optional new-window)
+  "Ask the Mozilla WWW browser to load URL.
+Default to the URL around or before point.  The strings in variable
+`browse-url-mozilla-arguments' are also passed to Mozilla.
+
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new Mozilla window, otherwise use a
+random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (let* ((process-environment (browse-url-process-environment))
+         (process (apply 'start-process
+			 (concat "mozilla " url) nil
+			 browse-url-mozilla-program
+			 (append
+			  browse-url-mozilla-arguments
+			  (list "-remote"
+				(concat "openURL("
+					url
+					(if new-window ",new-window")
+					")"))))))
+    (set-process-sentinel process
+			  `(lambda (process change)
+			     (browse-url-mozilla-sentinel process ,url)))))
+
+(defun browse-url-mozilla-sentinel (process url)
+  "Handle a change to the process communicating with Mozilla."
+  (or (eq (process-exit-status process) 0)
+      (let* ((process-environment (browse-url-process-environment)))
+	;; Mozilla is not running - start it
+	(message "Starting Mozilla...")
+	(apply 'start-process (concat "mozilla " url) nil
+	       browse-url-mozilla-program
+	       (append browse-url-mozilla-startup-arguments (list url))))))
+
+;;;###autoload
+(defun browse-url-galeon (url &optional new-window)
+  "Ask the Galeon WWW browser to load URL.
+Default to the URL around or before point.  The strings in variable
+`browse-url-galeon-arguments' are also passed to Galeon.
+
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new Galeon window, otherwise use a
+random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (let* ((process-environment (browse-url-process-environment))
+         (process (apply 'start-process
+			 (concat "galeon " url) nil
+			 browse-url-galeon-program
+			 (append
+			  browse-url-galeon-arguments
+                          (if new-window '("-w" "--noraise"))
+                          (list "-x" url)))))
+    (set-process-sentinel process
+			  `(lambda (process change)
+			     (browse-url-galeon-sentinel process ,url)))))
+
+(defun browse-url-galeon-sentinel (process url)
+  "Handle a change to the process communicating with Galeon."
+  (or (eq (process-exit-status process) 0)
+      (let* ((process-environment (browse-url-process-environment)))
+	;; Galeon is not running - start it
+	(message "Starting Galeon...")
+	(apply 'start-process (concat "galeon " url) nil
+	       browse-url-galeon-program
+	       (append browse-url-galeon-startup-arguments (list url))))))
 
 ;; GNOME means of invoking either Mozilla or Netrape.
 
