@@ -41,6 +41,12 @@ This is the basis for `mail-complete'.")
   "Alist of local users.
 When t this still needs to be initialized.")
 
+(defvar mail-passwd-files '("/etc/passwd")
+  "List of files from which to determine valid user names.")
+
+(defvar mail-passwd-command nil
+  "Shell command to retrieve text to add to `/etc/passwd', or nil.")
+
 (defvar mail-directory-names t
   "Alist of mail address directory entries.
 When t this still needs to be initialized.")
@@ -338,8 +344,14 @@ Consults `/etc/passwd' and a directory service if one is set up via
   (if (eq mail-local-names t)
       (save-excursion
 	(set-buffer (generate-new-buffer " passwd"))
-	(insert-file-contents "/etc/passwd" nil nil nil t)
-	(setq mail-local-names)
+	(let ((files mail-passwd-files))
+	  (while files
+	    (insert-file-contents (car files) nil nil nil t)
+	    (setq files (cdr files))))
+	(if mail-passwd-command
+	    (call-process shell-file-name nil t nil
+			  shell-command-switch mail-passwd-command))
+	(setq mail-local-names nil)
 	(while (not (eobp))
 	  ;;Recognize lines like
 	  ;;  nobody:*:65534:65534::/:
