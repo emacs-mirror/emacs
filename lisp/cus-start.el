@@ -196,6 +196,7 @@
 					    (integer :menu-tag "lines"
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
+	     (unibyte-display-via-language-environment mule boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))))
