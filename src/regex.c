@@ -3064,7 +3064,12 @@ regex_compile (pattern, size, syntax, bufp)
 
 	  GET_BUFFER_SPACE (MAX_MULTIBYTE_LENGTH);
 	  {
-	    int len = CHAR_STRING (c, b);
+	    int len;
+
+	    if (multibyte)
+	      len = CHAR_STRING (c, b);
+	    else
+	      *b = c, len = 1;
 	    b += len;
 	    (*pending_exact) += len;
 	  }
@@ -3375,7 +3380,15 @@ analyse_first (p, pend, fastmap, multibyte)
 	 with `break'.	*/
 
 	case exactn:
-	  if (fastmap) fastmap[p[1]] = 1;
+	  if (fastmap)
+	    {
+	      int c = RE_STRING_CHAR (p + 1, pend - p);
+
+	      if (SINGLE_BYTE_CHAR_P (c))
+		fastmap[c] = 1;
+	      else
+		fastmap[p[1]] = 1;
+	    }
 	  break;
 
 
