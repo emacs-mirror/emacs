@@ -383,23 +383,40 @@ mapped into one syllable sign.
 
   Chinese and Japanese require more complex methods.  In Chinese input
 methods, first you enter the phonetic spelling of a Chinese word (in
-input method @code{chinese-py}, among others), or a sequence of portions
-of the character (input methods @code{chinese-4corner} and
-@code{chinese-sw}, and others).  Since one phonetic spelling typically
-corresponds to many different Chinese characters, you must select one of
-the alternatives using special Emacs commands.  Keys such as @kbd{C-f},
-@kbd{C-b}, @kbd{C-n}, @kbd{C-p}, and digits have special definitions in
-this situation, used for selecting among the alternatives.  @key{TAB}
-displays a buffer showing all the possibilities; clicking @kbd{Mouse-2}
-on one of the possible completions selects that alternative.
-@code{C-@key{SPC}} selects the current alternative, while typing a
-number @var{n} selects the @var{n}th column of the current row.
+input method @code{chinese-py}, among others), or a sequence of
+portions of the character (input methods @code{chinese-4corner} and
+@code{chinese-sw}, and others).  One phonetic spelling typically
+corresponds to many different Chinese characters.  You select the one
+you mean using keys such as @kbd{C-f}, @kbd{C-b}, @kbd{C-n},
+@kbd{C-p}, and digits, which have special meanings in this situation.
 
-   In Japanese input methods, first you input a whole word using
-phonetic spelling; then, after the word is in the buffer, Emacs converts
-it into one or more characters using a large dictionary.  One phonetic
-spelling corresponds to many differently written Japanese words, so you
-must select one of them; use @kbd{C-n} and @kbd{C-p} to cycle through
+  The possible characters are conceptually arranged in several rows,
+with each row holding up to 10 alternatives.  Normally, Emacs displays
+just one row at a time, in the echo area; @code{(@var{i}/@var{j})}
+appears at the beginning, to indicate that this is the @var{i}th row
+out of a total of @var{j} rows.  Type @kbd{C-n} or @kbd{C-p} to
+display the next row or the previous row.
+
+    Type @kbd{C-f} and @kbd{C-b} to move forward and backward among
+the alternatives in the current row.  As you do this, Emacs highlights
+the current alternative with a special color; type @code{C-@key{SPC}}
+to select the current alternative and use it as input.  The
+alternatives in the row are also numbered; the number appears before
+the alternative.  Typing a digit @var{n} selects the @var{n}th
+alternative of the current row and uses it as input.
+
+  @key{TAB} in these Chinese input methods displays a buffer showing
+all the possible characters at once; then clicking @kbd{Mouse-2} on
+one of them selects that alternative.  The keys @kbd{C-f}, @kbd{C-b},
+@kbd{C-n}, @kbd{C-p}, and digits continue to work also.  When this
+buffer is visible, @kbd{C-n} and @kbd{C-p} move the current
+alternative to a different row.
+
+  In Japanese input methods, first you input a whole word using
+phonetic spelling; then, after the word is in the buffer, Emacs
+converts it into one or more characters using a large dictionary.  One
+phonetic spelling corresponds to a number of different Japanese words;
+to select one of them, use @kbd{C-n} and @kbd{C-p} to cycle through
 the alternatives.
 
   Sometimes it is useful to cut off input method processing so that the
