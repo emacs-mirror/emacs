@@ -3500,7 +3500,8 @@ when it is off screen)."
 			   (point)))))
        (let* ((oldpos (point))
 	      (blinkpos)
-	      (mismatch))
+	      (mismatch)
+	      matching-paren)
 	 (save-excursion
 	   (save-restriction
 	     (if blink-matching-paren-distance
@@ -3514,12 +3515,20 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(/= (char-syntax (char-after blinkpos))
-		    ?\$)
-		(setq mismatch
-		      (or (null (matching-paren (char-after blinkpos)))
+		(save-excursion
+		  (goto-char blinkpos)
+		  (not (looking-at "\\s$")))
+		(setq matching-paren
+		      (or (and parse-sexp-lookup-properties
+			       (let ((prop (get-text-property blinkpos 'syntax-table)))
+				 (and (consp prop)
+				      (eq (car prop) 4)
+				      (cdr prop))))
+			  (matching-paren (char-after blinkpos)))
+		      mismatch
+		      (or (null matching-paren)
 			  (/= (char-after (1- oldpos))
-			      (matching-paren (char-after blinkpos))))))
+			      matching-paren))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
 	       ;; Don't log messages about paren matching.
