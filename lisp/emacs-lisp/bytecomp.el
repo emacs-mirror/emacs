@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.55 $")
+(defconst byte-compile-version "$Revision: 2.56 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1643,11 +1643,9 @@ list that represents a doc string reference.
 	 (insert (car info))
 	 (let ((print-escape-newlines t)
 	       (print-quoted t)
-	       ;; Use a cons cell to say that we want
-	       ;; print-gensym-alist not to be cleared
-	       ;; between calls to print functions.
-	       (print-gensym '(t))
-	       print-gensym-alist
+	       (print-gensym t)
+	       (print-continuous-numbering t)
+	       print-number-table
 	       (index 0))
 	   (prin1 (car form) outbuffer)
 	   (while (setq form (cdr form))
