@@ -543,8 +543,8 @@ but contains full information about each coding systems."
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
   (interactive "sFontname (default, current choice for ASCII chars): ")
-  (or window-system
-      (error "No window system being used"))
+  (or (and window-system (boundp 'global-fontset-alist))
+      (error "No fontsets being used"))
   (when (or (not fontname) (= (length fontname) 0))
     (setq fontname (cdr (assq 'font (frame-parameters))))
     (if (query-fontset fontname)
@@ -627,8 +627,8 @@ The O column of each font contains one of the following letters.
 The Charset column of each font contains a name of character set
 displayed by the font."
   (interactive
-   (if (not window-system)
-       (error "No window system being used")
+   (if (not (and window-system (boundp 'global-fontset-alist)))
+       (error "No fontsets being used")
      (let ((fontset-list (mapcar '(lambda (x) (list x)) (fontset-list)))
 	   (completion-ignore-case t))
        (list (completing-read
@@ -654,15 +654,17 @@ It prints name, size, and style of each fontset.
 With prefix arg, it also lists up fonts contained in each fontset.
 See the function `describe-fontset' for the format of the list."
   (interactive "P")
-  (with-output-to-temp-buffer "*Help*"
-    (save-excursion
-      (set-buffer standard-output)
-      (insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
-      (insert "------------\t\t\t\t\t\t  ----- -----\n")
-      (let ((fontsets (fontset-list)))
-	(while fontsets
-	  (print-fontset (car fontsets) arg)
-	  (setq fontsets (cdr fontsets)))))))
+  (if (not (and window-system (boundp 'global-fontset-alist)))
+      (error "No fontsets being used")
+    (with-output-to-temp-buffer "*Help*"
+      (save-excursion
+	(set-buffer standard-output)
+	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
+	(insert "------------\t\t\t\t\t\t  ----- -----\n")
+	(let ((fontsets (fontset-list)))
+	  (while fontsets
+	    (print-fontset (car fontsets) arg)
+	    (setq fontsets (cdr fontsets))))))))
 
 ;;;###autoload
 (defun list-input-methods ()
@@ -672,10 +674,10 @@ See the function `describe-fontset' for the format of the list."
     (if (not input-method-alist)
 	(progn
 	  (princ "
-No input method is avairable, perhaps because you have not yet
+No input method is available, perhaps because you have not yet
 installed LEIM (Libraries of Emacs Input Method).
 
-LEIM is avairable from the same ftp directory as Emacs.  For instance,
+LEIM is available from the same ftp directory as Emacs.  For instance,
 if there exists an archive file emacs-20.N.tar.gz, there should also
 be a file leim-20.N.tar.gz.  When you extract this file, LEIM files
 are put under the subdirectory emacs-20.2/leim.  When you install
@@ -718,7 +720,7 @@ Emacs again, you should be able to use various input methods."))
 It prints various information related to the current multilingual
 environment, including lists of input methods, coding systems,
 character sets, and fontsets (if Emacs running under some window
-system)."
+system which uses fontsets)."
   (interactive)
   (with-output-to-temp-buffer "*Mule-Diagnosis*"
     (save-excursion
@@ -731,7 +733,7 @@ system)."
 	      "          Section 3.  Input methods\n"
 	      "          Section 4.  Coding systems\n"
 	      "          Section 5.  Character sets\n")
-      (if window-system
+      (if (and window-system (boundp 'global-fontset-alist))
 	  (insert "          Section 6.  Fontsets\n"))
       (insert "\n")
 
@@ -775,7 +777,7 @@ system)."
       (insert-buffer-substring "*Help*")
       (insert "\n")
 
-      (when window-system
+      (when (and window-system (boundp 'global-fontset-alist))
 	(insert-section 6 "Fontsets")
 	(save-excursion (list-fontsets t))
 	(insert-buffer-substring "*Help*"))
