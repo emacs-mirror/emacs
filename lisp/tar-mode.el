@@ -747,11 +747,7 @@ appear on disk when you save the tar-file's buffer."
 	      (set-buffer tar-buffer))
 	  (narrow-to-region 1 tar-header-offset)))
       (if view-p
-	  (progn
-	    (view-buffer buffer)
-	    (and just-created
-		 ;; This will be created by view.el
-		 (setq view-exit-action 'kill-buffer)))
+	  (view-buffer buffer (and just-created 'kill-buffer))
 	(if (eq other-window-p 'display)
 	    (display-buffer buffer)
 	  (if other-window-p
