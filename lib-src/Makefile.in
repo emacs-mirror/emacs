@@ -70,7 +70,6 @@ archlibdir=@archlibdir@
 
 @ ../configure figures out the correct values for these.
 INSTALL = @INSTALL@
-INSTALLFLAGS = -c
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 
@@ -117,7 +116,11 @@ ${archlibdir}: all
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
-	  for file in ${UTILITIES} ${SCRIPTS}; do \
+	  for file in ${UTILITIES}; do \
+	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
+	    chmod 755 ${archlibdir}/$$file ; \
+	  done ; \
+	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
 	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
@@ -125,7 +128,7 @@ ${archlibdir}: all
 	@echo
 	@echo "Changing the owner and group of Emacs's utility programs to \`bin'."
 	@echo "(You may ignore errors here if you don't care about this.)"
-	-for file in ${EXECUTABLES} ; do \
+	-for file in ${UTILITIES} ${SCRIPTS} ; do \
 	  chgrp bin ${archlibdir}/$${file} ; \
 	  chown bin ${archlibdir}/$${file} ; \
 	done
