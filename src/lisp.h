@@ -601,6 +601,20 @@ typedef unsigned char UCHAR;
 #define CHECK_WINDOW(x, i) \
   { if (XTYPE ((x)) != Lisp_Window) x = wrong_type_argument (Qwindowp, (x)); }
 
+/* This macro rejects windows on the interior of the window tree as
+   "dead", which is what we want; this is an argument-checking macro, and 
+   the user should never get access to interior windows.
+
+   A window of any sort, leaf or interior, is dead iff the buffer,
+   vchild, and hchild members are all nil.  */
+
+#define CHECK_LIVE_WINDOW(x, i)				\
+  {							\
+    if (XTYPE ((x)) != Lisp_Window			\
+	|| NILP (XWINDOW ((x))->buffer))		\
+      x = wrong_type_argument (Qlive_window_p, (x));	\
+  }
+
 #define CHECK_PROCESS(x, i) \
   { if (XTYPE ((x)) != Lisp_Process) x = wrong_type_argument (Qprocessp, (x)); }
 
@@ -1108,7 +1122,7 @@ extern Lisp_Object get_keyelt (), get_keymap();
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
 
 /* defined in window.c */
-extern Lisp_Object Qwindowp;
+extern Lisp_Object Qwindowp, Qlive_window_p;
 extern Lisp_Object Fget_buffer_window ();
 extern Lisp_Object Fsave_window_excursion ();
 extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration ();
