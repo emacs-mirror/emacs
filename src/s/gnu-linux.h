@@ -156,7 +156,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This is needed for disknew.c:update_frame() */
 
 #ifdef emacs
-#include <stdio.h>
 #ifdef _IO_STDIO_H
 /* new C libio names */
 #define PENDING_OUTPUT_COUNT(FILE) \
