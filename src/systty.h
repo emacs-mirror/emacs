@@ -118,7 +118,7 @@ static struct sensemode {
 #include <termios.h>
 #endif
 
-#ifdef AIX
+#ifdef AIXHFT
 /* Get files for keyboard remapping */
 #define HFNKEYS 2
 #include <sys/hft.h>
