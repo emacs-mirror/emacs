@@ -2170,7 +2170,8 @@ minibuffer contents show.")
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
       bcopy (XSTRING (val)->data, message_text, STRING_BYTES (XSTRING (val)));
-      message2 (message_text, STRING_BYTES (XSTRING (val)));
+      message2 (message_text, STRING_BYTES (XSTRING (val)),
+		STRING_MULTIBYTE (val));
       return val;
 #endif /* not HAVE_MENUS */
     }
