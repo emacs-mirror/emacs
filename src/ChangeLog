@@ -1,5 +1,12 @@
 2001-01-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Fdump_tool_bar_row) [GLYPH_DEBUG]: Add parameters ROW
+	and GLYPHS.
+
+	* dispnew.c (update_text_area): Put code which decrements the
+	stop position when the row's face extends to the end of the
+	line in ,Ad(Bif 0.
+
 	* xfns.c (x_set_mouse_color): Fix color allocation.
 
 	* keyboard.c: Call get_local_map with new argument list.
