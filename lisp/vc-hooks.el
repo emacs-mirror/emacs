@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc-hooks.el,v 1.108 1998/05/06 13:36:45 spiegel Exp rms $
+;; $Id: vc-hooks.el,v 1.109 1998/05/07 21:34:54 rms Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -338,7 +338,10 @@ similarly for other version control systems."
               ((string-match "Needs Merge"         status) 'needs-merge)
               ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
                'needs-checkout)
-              ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
+              ((string-match "Unresolved Conflict" status) 
+	       'unresolved-conflict)
+	      ((string-match "File had conflicts on merge" status)
+	       'unresolved-conflict)
               ((string-match "Locally Added"       status) 'locally-added)
               ((string-match "New file!"           status) 'locally-added)
               (t 'unknown))))))))))
