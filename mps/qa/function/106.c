@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!106.c(trunk.2) $
  summary = string twiddling with an AMCZ pool
  language = c
  link = lofmt.o testlib.o
@@ -17,6 +17,7 @@ mps_ap_t ap;
 
 #define MAXLEN 1000000;
 
+
 static locell *string_ch(char* x) {
  size_t len;
  locell *y;
@@ -30,43 +31,6 @@ static locell *string_ch(char* x) {
  return y;
 }
 
-static char *ch_string(locell *x) {
- return x->data.data;
-}
-
-/*
-static size_t string_len(locell *x) {
- return x->data.len;
-}
-
-static locell *mid(locell *x, size_t i, size_t j) {
- locell *y;
- size_t l;
-
- l = x->data.len;
- if (i>l) i = l;
- if (j>l) j = l;
- if (j<i) j = i;
-
- y = alloclo(ap, j-i+1);
- memcpy(y->data.data, &(x->data.data[i]), j-i);
- y->data.data[j-i] = '\0';
- y->data.len = j-i;
-
- return y;
-}
-
-static locell *left(locell *x, size_t i) {
- return mid(x, 0, i);
-}
-
-static locell *right(locell *x, size_t i) {
- size_t l;
-
- l = x->data.len;
- return mid(x, l-i, l);
-}
-*/
 
 static locell *conc(locell *x, locell *y) {
  size_t l, m;
@@ -83,6 +47,7 @@ static locell *conc(locell *x, locell *y) {
 
  return z;
 }
+
 
 static void test(void) {
  mps_space_t space;
@@ -145,8 +110,8 @@ static void test(void) {
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
