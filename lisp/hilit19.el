@@ -815,9 +815,11 @@ non-nil."
 	 (if (> buffer-saved-size (car hilit-auto-rehighlight-fallback))
 	     (setq hilit-auto-rehighlight
 		   (cdr hilit-auto-rehighlight-fallback)))
-	 (if (> buffer-saved-size hilit-auto-highlight-maxout) nil
-	   (hilit-rehighlight-buffer)
-	   (set-buffer-modified-p nil)))))
+	 (if (> buffer-saved-size hilit-auto-highlight-maxout)
+	     nil
+	   (let ((bm (buffer-modified-p)))
+	     (hilit-rehighlight-buffer)
+	     (set-buffer-modified-p bm))))))
 
 (defun hilit-repaint-command (arg)
   "Rehighlights according to the value of hilit-auto-rehighlight, or the
