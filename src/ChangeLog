@@ -1,5 +1,7 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacs.c: Doc fix.
+
 	* coding.c: Doc fix.
 
 	* cmds.c, composite.c, dired.c, doc.c, filelock.c, floatfns.c,
