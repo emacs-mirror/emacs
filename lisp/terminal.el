@@ -1,6 +1,6 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs.
 
-;; Copyright (C) 1986, 1987, 1988, 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1988, 1989, 1993 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
@@ -65,11 +65,19 @@ performance.")
 (defvar terminal-more-break-insertion
   "*** More break -- Press space to continue ***")
 
+(defvar terminal-meta-map nil)
+(if terminal-meta-map
+    nil
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'te-pass-through)
+    (setq terminal-meta-map map)))
+
 (defvar terminal-map nil)
 (if terminal-map
     nil
-  (let ((map (make-keymap)))
-    (fillarray (car (cdr map)) 'te-pass-through)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'te-pass-through)
+    (define-key map "\e" terminal-meta-map)
     ;(define-key map "\C-l"
     ;  '(lambda () (interactive) (te-pass-through) (redraw-display)))
     (setq terminal-map map)))
@@ -77,9 +85,8 @@ performance.")
 (defvar terminal-escape-map nil)
 (if terminal-escape-map
     nil
-  (let ((map (make-keymap)))
-    ;(fillarray map 'te-escape-extended-command-unread)
-    (fillarray (car (cdr map)) 'undefined)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'undefined)
     (let ((s "0"))
       (while (<= (aref s 0) ?9)
 	(define-key map s 'digit-argument)
@@ -124,8 +131,8 @@ performance.")
 (defvar terminal-more-break-map nil)
 (if terminal-more-break-map
     nil
-  (let ((map (make-keymap)))
-    (fillarray (car (cdr map)) 'te-more-break-unread)
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'te-more-break-unread)
     (define-key map (char-to-string help-char) 'te-more-break-help)
     (define-key map " " 'te-more-break-resume)
     (define-key map "\C-l" 'redraw-display)
@@ -343,7 +350,7 @@ set it smaller for more frequent updates (but overall slower performance."
 (put 'te-more-break-unread 'suppress-keymap t)
 (defun te-more-break-unread ()
   (interactive)
-  (if (= last-input-char terminal-escape-char)
+  (if (eq last-input-char terminal-escape-char)
       (call-interactively 'te-escape)
     (message "Continuing from more break (\"%s\" typed, %d chars output pending...)"
 	     (single-key-description last-input-char)
@@ -416,13 +423,31 @@ One characters is treated specially:
 the terminal escape character (normally C-^)
 lets you type a terminal emulator command."
   (interactive)
-  (cond ((= last-input-char terminal-escape-char)
+  (setq list (cons last-input-char list))
+  (cond ((eq last-input-char terminal-escape-char)
 	 (call-interactively 'te-escape))
 	(t
-	 (and terminal-more-processing (null (cdr te-pending-output))
-	      (te-set-more-count nil))
-	 (send-string te-process (make-string 1 last-input-char))
-	 (te-process-output t))))
+	 ;; Convert `return' to C-m, etc. 
+	 (if (and (symbolp last-input-char)
+		  (get last-input-char 'ascii-character))
+	     (setq last-input-char (get last-input-char 'ascii-character)))
+	 ;; Convert meta characters to 8-bit form for transmission.
+	 (if (and (integerp last-input-char)
+		  (not (zerop (logand last-input-char (lsh 1 23)))))
+	     (setq last-input-char (+ 128 (logand last-input-char 127))))
+	 (setq list (cons (list 'really last-input-char) list))
+	 ;; Now ignore all but actual characters.
+	 ;; (It ought to be possible to send through function
+	 ;; keys as character sequences if we add a description
+	 ;; to our termcap entry of what they should look like.)
+	 (if (integerp last-input-char)
+	     (progn
+	       (and terminal-more-processing (null (cdr te-pending-output))
+		    (te-set-more-count nil))
+	       (send-string te-process (make-string 1 last-input-char))
+	       (te-process-output t))
+	   (message "Function key `%s' ignored"
+		    (single-key-description last-input-char))))))
 
 
 (defun te-set-window-start ()
@@ -803,8 +828,7 @@ move to start of new line, clear to end of line."
 
 
 (defun te-filter (process string)
-  (let* ((obuf (current-buffer))
-	 (m meta-flag))
+  (let* ((obuf (current-buffer)))
     ;; can't use save-excursion, as that preserves point, which we don't want
     (unwind-protect
 	(progn
@@ -820,13 +844,8 @@ move to start of new line, clear to end of line."
 		 (set-buffer (process-buffer process))))
 	  (setq te-pending-output (nconc te-pending-output (list string)))
 	  (te-update-pending-output-display)
-	  ;; this binding is needed because emacs looks at meta-flag when
-	  ;;  the keystroke is read from the keyboard, not when it is about
-	  ;;  to be fed into a keymap (or returned by read-char)
-	  ;; There still could be some screws, though.
-	  (let ((meta-flag m))
-	    (te-process-output (eq (current-buffer)
-				   (window-buffer (selected-window)))))
+	  (te-process-output (eq (current-buffer)
+				 (window-buffer (selected-window))))
 	  (set-buffer (process-buffer process))
 	  (setq te-saved-point (point)))
       (set-buffer obuf))))
@@ -993,7 +1012,7 @@ move to start of new line, clear to end of line."
 		 (progn (goto-char (point-max))
 			(recenter -1)))))))
 
-(defvar te-stty-string "stty -nl erase ^? kill ^u intr ^c echo"
+(defvar te-stty-string "stty -nl erase '^?' kill '^u' intr '^c' echo pass8"
   "Shell command to set terminal modes for terminal emulator.")
 ;; This used to have `new' in it, but that loses outside BSD
 ;; and it's apparently not needed in BSD.
@@ -1117,11 +1136,6 @@ work with `terminfo' we will try to use it."
 	(set-process-sentinel te-process 'te-sentinel))
     (error (fundamental-mode)
 	   (signal (car err) (cdr err))))
-  ;; sigh
-  (if (default-value 'meta-flag)
-      (progn (message
- "Note:  Meta key disabled due to maybe-eventually-reparable braindamage")
-	     (sit-for 1)))
   (setq inhibit-quit t)			;sport death
   (use-local-map terminal-map)
   (run-hooks 'terminal-mode-hook)
@@ -1194,10 +1208,6 @@ of the terminal-emulator"
   (setq te-more-count -1)
   (make-local-variable 'te-redisplay-count)
   (setq te-redisplay-count terminal-redisplay-interval)
-  ;;>> Nothing can be done about this without decruftifying
-  ;;>>  emacs keymaps.
-  (make-local-variable 'meta-flag) ;sigh
-  (setq meta-flag nil)
   ;(use-local-map terminal-mode-map)
   ;; terminal-mode-hook is called above in function terminal-emulator
   )
