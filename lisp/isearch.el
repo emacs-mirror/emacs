@@ -1898,6 +1898,8 @@ A value of nil means highlight all matches."
 (defvar isearch-lazy-highlight-last-string nil)
 (defvar isearch-lazy-highlight-window nil)
 (defvar isearch-lazy-highlight-window-start nil)
+(defvar isearch-lazy-highlight-case-fold-search nil)
+(defvar isearch-lazy-highlight-regexp nil)
 
 (defun isearch-lazy-highlight-cleanup (&optional force)
   "Stop lazy highlighting and remove extra highlighting from current buffer.
@@ -1924,6 +1926,10 @@ search string to change or the window to scroll)."
                              isearch-lazy-highlight-last-string))
                  (not (eq (selected-window)
                           isearch-lazy-highlight-window))
+		 (not (eq isearch-lazy-highlight-case-fold-search
+			  isearch-case-fold-search))
+		 (not (eq isearch-lazy-highlight-regexp
+			  isearch-regexp))
                  (not (= (window-start)
                          isearch-lazy-highlight-window-start))))
     ;; something important did indeed change
@@ -1934,6 +1940,8 @@ search string to change or the window to scroll)."
             isearch-lazy-highlight-start        (point)
             isearch-lazy-highlight-end          (point)
             isearch-lazy-highlight-last-string  isearch-string
+	    isearch-lazy-highlight-case-fold-search isearch-case-fold-search
+	    isearch-lazy-highlight-regexp	isearch-regexp
             isearch-lazy-highlight-wrapped      nil)
       (setq isearch-lazy-highlight-timer
             (run-with-idle-timer isearch-lazy-highlight-initial-delay nil
