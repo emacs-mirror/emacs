@@ -1,3 +1,7 @@
+2004-05-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* coding.c (detect_coding_mask): Fix call of detect_coding_iso2022.
+
 2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* editfns.c: Include stdio.h.

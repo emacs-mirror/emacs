@@ -60,7 +60,7 @@ Boston, MA 02111-1307, USA.  */
   all variants of ISO2022.  Details are described in section 3.
 
   2. SJIS (or Shift-JIS or MS-Kanji-Code)
-   
+
   A coding system to encode character sets: ASCII, JISX0201, and
   JISX0208.  Widely used for PC's in Japan.  Details are described in
   section 4.
@@ -503,7 +503,7 @@ coding_safe_chars (coding)
      struct coding_system *coding;
 {
   Lisp_Object coding_spec, plist, safe_chars;
-  
+
   coding_spec = Fget (coding->symbol, Qcoding_system);
   plist = XVECTOR (coding_spec)->contents[3];
   safe_chars = Fplist_get (XVECTOR (coding_spec)->contents[3], Qsafe_chars);
@@ -900,7 +900,7 @@ decode_composition_emacs_mule (coding, src, src_end,
       CODING_ADD_COMPOSITION_START (coding, coding->produced_char, method);
       for (i = 0; i < ncomponent; i++)
 	CODING_ADD_COMPOSITION_COMPONENT (coding, component[i]);
-      CODING_ADD_COMPOSITION_END (coding, coding->produced_char + nchars);  
+      CODING_ADD_COMPOSITION_END (coding, coding->produced_char + nchars);
       if (buf < bufp)
 	{
 	  unsigned char *p = buf;
@@ -1066,7 +1066,7 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 	coding->cmp_data_start = 0;					\
       }									\
   } while (0)
-  
+
 
 static void encode_eol P_ ((struct coding_system *, unsigned char *,
 			    unsigned char *, int, int));
@@ -1470,7 +1470,7 @@ detect_coding_iso2022 (src, src_end, multibytep)
 	      mask_found |= CODING_CATEGORY_MASK_ISO_SHIFT;
 	    }
 	  break;
-	  
+
 	case ISO_CODE_SI:
 	  if (inhibit_iso_escape_detection)
 	    break;
@@ -2476,7 +2476,7 @@ encode_designation_at_bol (coding, translation_table, src, src_end, dst)
       ONE_MORE_CHAR (c);
       if (c == '\n')
 	break;
-      
+
       charset = CHAR_CHARSET (c);
       reg = CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset);
       if (reg != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION && r[reg] < 0)
@@ -2646,7 +2646,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		*dst++ = ISO_CODE_CR;
 	      CODING_SPEC_ISO_BOL (coding) = 1;
 	    }
-	  else 
+	  else
 	    {
 	      if (coding->flags & CODING_FLAG_ISO_RESET_AT_CNTL)
 		ENCODE_RESET_PLANE_AND_REGISTER;
@@ -3069,7 +3069,7 @@ encode_coding_sjis_big5 (coding, source, destination,
 
       src_base = src;
       ONE_MORE_CHAR (c);
-      
+
       /* Now encode the character C.  */
       if (SINGLE_BYTE_CHAR_P (c))
 	{
@@ -3394,7 +3394,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 
 	If the value is nil, graphic register N is never used on
 	encoding.
-   
+
    sub-element[N] where N is 4 through 11: to be set in `coding->flags'
    	Each value takes t or nil.  See the section ISO2022 of
 	`coding.h' for more information.
@@ -3518,7 +3518,7 @@ setup_coding_system (coding_system, coding)
     }
   else
     goto label_invalid_coding_system;
-  
+
   /* If the coding system has non-nil `composition' property, enable
      composition handling.  */
   val = Fplist_get (plist, Qcomposition);
@@ -3658,7 +3658,7 @@ setup_coding_system (coding_system, coding)
 	      }
 	    else
 	      CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i) = -1;
-	    
+
 	    CODING_SPEC_ISO_DESIGNATION (coding, i)
 	      = CODING_SPEC_ISO_INITIAL_DESIGNATION (coding, i);
 	  }
@@ -4031,7 +4031,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
 		  | CODING_CATEGORY_MASK_UTF_16_LE);
 
 	  /* Or, if C is a special latin extra code,
-	     or is an ISO2022 specific control code of C1 (SS2 or SS3), 
+	     or is an ISO2022 specific control code of C1 (SS2 or SS3),
 	     or is an ISO2022 control-sequence-introducer (CSI),
 	     we should also consider the possibility of ISO2022 codings.  */
 	  if ((VECTORP (Vlatin_extra_code_table)
@@ -4074,7 +4074,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
 	      if (!iso2022_examined_p
 		  && (priorities[i] & try & CODING_CATEGORY_MASK_ISO))
 		{
-		  mask |= detect_coding_iso2022 (src, src_end);
+		  mask |= detect_coding_iso2022 (src, src_end, multibytep);
 		  iso2022_examined_p = 1;
 		}
 	      else if (priorities[i] & try & CODING_CATEGORY_MASK_SJIS)
@@ -5149,7 +5149,7 @@ shrink_encoding_region (beg, end, coding, str)
 	break;
       if (coding->flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL)
 	{
-	  unsigned char *bol = begp; 
+	  unsigned char *bol = begp;
 	  while (begp < endp && *begp < 0x80)
 	    {
 	      begp++;
@@ -5655,7 +5655,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	    coding->symbol = XVECTOR (eol_type)->contents[CODING_EOL_LF];
 	  else
 	    coding->symbol = saved_coding_symbol;
-	  
+
 	  continue;
 	}
       if (len_byte <= 0)
@@ -5673,7 +5673,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  if (multibyte_p)
 	    {
 	      unsigned char *start = dst;
-	      
+
 	      inserted += len_byte;
 	      while (len_byte--)
 		{
@@ -5766,7 +5766,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       inserted_byte = str_to_multibyte (GPT_ADDR, GAP_SIZE, inserted_byte);
     }
 
-  /* If we shrank the conversion area, adjust it now.  */ 
+  /* If we shrank the conversion area, adjust it now.  */
   if (total_skip > 0)
     {
       if (tail_skip > 0)
@@ -6015,7 +6015,7 @@ decode_coding_string (str, coding, nocopy)
 		}
 	      produced += num_eol;
 	      produced_char += num_eol;
-	    } 
+	    }
 	  /* Suppress eol-format conversion in the further conversion.  */
 	  coding->eol_type = CODING_EOL_LF;
 
@@ -6285,7 +6285,7 @@ detect_coding_system (src, src_bytes, highest, multibytep)
 	}
     }
   return (highest ? XCAR (val) : val);
-}  
+}
 
 DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        2, 3, 0,
@@ -6481,7 +6481,7 @@ DEFUN ("find-coding-systems-region-internal",
       for (p = p1; p < p1end && ASCII_BYTE_P (*p); p++);
       if (p == p1end)
 	{
-	  for (p = p2; p < p2end && ASCII_BYTE_P (*p); p++);	  
+	  for (p = p2; p < p2end && ASCII_BYTE_P (*p); p++);
 	  if (p == p2end)
 	    return Qt;
 	}
@@ -7015,7 +7015,7 @@ init_coding_once ()
 {
   int i;
 
-  /* Emacs' internal format specific initialize routine.  */ 
+  /* Emacs' internal format specific initialize routine.  */
   for (i = 0; i <= 0x20; i++)
     emacs_code_class[i] = EMACS_control_code;
   emacs_code_class[0x0A] = EMACS_linefeed_code;
