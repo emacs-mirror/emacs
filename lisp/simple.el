@@ -1242,8 +1242,7 @@ of ERROR-BUFFER."
 	exit-status)
     (if (or replace
 	    (and output-buffer
-		 (not (or (bufferp output-buffer) (stringp output-buffer))))
-	    (equal (buffer-name (current-buffer)) "*Shell Command Output*"))
+		 (not (or (bufferp output-buffer) (stringp output-buffer)))))
 	;; Replace specified region with output from command.
 	(let ((swap (and replace (< start end))))
 	  ;; Don't muck with mark unless REPLACE says we should.
