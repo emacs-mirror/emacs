@@ -1716,6 +1716,10 @@ but the contents viewed as characters do change.")
 {
   Lisp_Object tail, markers;
 
+  /* Do nothing if nothing actually changes.  */
+  if (NILP (flag) == NILP (current_buffer->enable_multibyte_characters))
+    return flag;
+
   /* It would be better to update the list,
      but this is good enough for now.  */
   if (! EQ (current_buffer->undo_list, Qt))
