@@ -1409,6 +1409,9 @@ create_process (process, new_argv, current_dir)
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 
+	signal (SIGINT, SIG_DFL);
+	signal (SIGQUIT, SIG_DFL);
+
 	if (pty_flag)
 	  child_setup_tty (xforkout);
 	child_setup (xforkin, xforkout, xforkout,
@@ -1950,7 +1953,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* Wait till there is something to do */
 
       Available = input_wait_mask;
-      if (! XINT (read_kbd) || wait_for_cell != 0)
+      if (! XINT (read_kbd) && wait_for_cell == 0)
 	FD_CLR (keyboard_descriptor, &Available);
 
       /* If frame size has changed or the window is newly mapped,
@@ -2035,7 +2038,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* We used to do this if wait_for_cell,
 	 but that caused infinite recursion in selection request events.  */
-      if ((XINT (read_kbd))
+      if ((XINT (read_kbd) || wait_for_cell)
 	  && detect_input_pending ())
 	{
 	  swallow_events ();
