@@ -1,5 +1,10 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* hexl.el (hexl-mode-old-hl-line-mode, hexl-mode-old-ruler-mode): 
+	New variables.
+	(hexl-mode): Set those variables, record ruler-mode and hl-line-mode.
+	(hexl-mode-exit): Restore status of ruler-mode and hl-line-mode.
+
 	* imenu.el (imenu--generic-function):
 	Ensure we keep moving backward even if BEG isn't further back.
 
