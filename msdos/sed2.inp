@@ -6,6 +6,7 @@
 # To use the djgpp malloc, deactivate the following line and active the next
 /^#undef REL_ALLOC *$/s/undef/define/
 # /^#define GNU_MALLOC *$/s/GNU_MALLOC/SYSTEM_MALLOC/
+/^#undef STDC_HEADERS *$/s/undef/define/
 /^#undef HAVE_SYS_TIMEB_H *$/s/undef/define/
 /^#undef HAVE_SYS_TIME_H *$/s/undef/define/
 # /^#undef HAVE_UNISTD_H *$/s/undef/define/
