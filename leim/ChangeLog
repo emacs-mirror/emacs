@@ -1,3 +1,12 @@
+2002-06-10  Dave Love  <fx@gnu.org>
+
+	* quail/cyrillic.el: Doc fixes.
+	("cyrillic-beylorussian"): Commented-out.
+	("cyrillic-translit-bulgarian"): Deleted.
+	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
+	("ukrainian-computer", "belarusian", "bulgarian-standard"): New.
+	("bulgarian-pho"): Add ,A'(B, ,Lp(B, ,LN(B.
+
 2002-05-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/indian.el: Replace commented-out lines with a condition
