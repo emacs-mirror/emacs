@@ -1403,7 +1403,13 @@ x_find_modifier_meanings ()
   x_super_mod_mask = 0;
   x_hyper_mod_mask = 0;
   
+#ifdef HAVE_X11R4
   XDisplayKeycodes (x_current_display, &min_code, &max_code);
+#else
+  min_code = x_current_display->min_keycode;
+  max_code = x_current_display->max_keycode;
+#endif
+
   syms = XGetKeyboardMapping (x_current_display,
 			      min_code, max_code - min_code + 1,
 			      &syms_per_code);
