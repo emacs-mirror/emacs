@@ -74,7 +74,7 @@ extern long time ();
 #endif
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
-       doc: /* Return the argument unchanged. */)
+       doc: /* Return the argument unchanged.  */)
      (arg)
      Lisp_Object arg;
 {
@@ -1166,8 +1166,7 @@ Elements of ALIST that are not conses are also shared.  */)
 }
 
 DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
-       doc: /* 
-Return a substring of STRING, starting at index FROM and ending before TO.
+       doc: /* Return a substring of STRING, starting at index FROM and ending before TO.
 TO may be nil or omitted; then the substring runs to the end of STRING.
 If FROM or TO is negative, it counts from the end.
 

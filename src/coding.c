@@ -6727,7 +6727,7 @@ DEFUN ("set-terminal-coding-system-internal",
 DEFUN ("set-safe-terminal-coding-system-internal",
        Fset_safe_terminal_coding_system_internal,
        Sset_safe_terminal_coding_system_internal, 1, 1, 0,
-       doc: /* Internal use only. */)
+       doc: /* Internal use only.  */)
      (coding_system)
      Lisp_Object coding_system;
 {

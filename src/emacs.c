@@ -2279,7 +2279,7 @@ before you compile Emacs, to enable the code for this feature.  */);
   emacs_priority = 0;
 
   DEFVAR_LISP ("path-separator", &Vpath_separator,
-	       doc: /* The directory separator in search paths, as a string. */);
+	       doc: /* The directory separator in search paths, as a string.  */);
   {
     char c = SEPCHAR;
     Vpath_separator = make_string (&c, 1);
