@@ -1,13 +1,13 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.114) $
+ * $HopeName: MMsrc!mpm.h(trunk.115) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
 #ifndef mpm_h
 #define mpm_h
 
-#include "config.h"     /* must come first: it defines target options */
+#include "config.h"
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "check.h"      /* assertion and consistency checking support */
 
@@ -999,43 +999,5 @@ extern void SplayNodeRefresh(SplayTree tree, SplayNode node, void *key);
 extern Res SplayTreeDescribe(SplayTree tree, mps_lib_FILE *stream,
                              SplayNodeDescribeMethod nodeDescribe);
 
-/* CBS* -- see design.mps.cbs */
-
-extern Bool CBSCheck(CBS cbs);
-extern Bool CBSBlockCheck(CBSBlock block);
-extern Res CBSInit(Arena arena, CBS cbs,
-                   CBSChangeSizeMethod new,
-                   CBSChangeSizeMethod delete,
-                   CBSChangeSizeMethod grow,
-                   CBSChangeSizeMethod shrink,
-                   Size minSize,
-                   Align alignment,
-                   Bool mayUseInline,
-                   Bool fastFind); 
-extern void CBSFinish(CBS cbs);
-extern Res CBSInsert(CBS cbs, Addr base, Addr limit);
-extern Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
-                                   CBS cbs, Addr base, Addr limit);
-extern Res CBSDelete(CBS cbs, Addr base, Addr limit);
-extern void CBSIterate(CBS cbs, CBSIterateMethod iterate, 
-                       void *closureP, unsigned long closureS);
-extern void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, 
-                            void *closureP, unsigned long closureS);
-extern void CBSSetMinSize(CBS cbs, Size minSize);
-extern Res CBSDescribe(CBS cbs, mps_lib_FILE *stream);
-extern Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream);
-#define CBSBlockBase(block) ((block)->base)
-extern Addr (CBSBlockBase)(CBSBlock block);
-#define CBSBlockLimit(block) ((block)->limit)
-extern Addr (CBSBlockLimit)(CBSBlock block);
-/* ANSI C doesn't define subtraction of zero pointers. */
-#define CBSBlockSize(block) \
-  (CBSBlockBase((block)) == (Addr)0 ? (Size)0 : \
-    (AddrOffset(CBSBlockBase((block)), CBSBlockLimit((block)))))
-extern Size (CBSBlockSize)(CBSBlock block);
-extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
-                         CBS cbs, Size size, CBSFindDelete findDelete);
-extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
-                        CBS cbs, Size size, CBSFindDelete findDelete);
 
 #endif /* mpm_h */
