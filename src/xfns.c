@@ -1988,8 +1988,8 @@ x_set_font (f, arg, oldval)
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
-	    ? x_new_fontset (f, XSTRING (fontset_name)->data)
-	    : x_new_fontset (f, XSTRING (arg)->data));
+	    ? x_new_fontset (f, fontset_name)
+	    : x_new_fontset (f, arg));
   UNBLOCK_INPUT;
   
   if (EQ (result, Qnil))
@@ -4424,31 +4424,42 @@ This function is an internal primitive--use `make-frame' instead.  */)
   {
     Lisp_Object font;
 
-    font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
+    font = x_get_arg (dpyinfo, parms, Qfont,
+		      "font", "Font", RES_TYPE_STRING);
 
-    BLOCK_INPUT;
-    /* First, try whatever font the caller has specified.  */
-    if (STRINGP (font))
-      font = x_new_fontset (f, XSTRING (font)->data);
-    
-    /* Try out a font which we hope has bold and italic variations.  */
+    /* If the caller has specified no font, try out fonts which we
+       hope have bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_fontset (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
-    if (!STRINGP (font))
-      font = x_new_fontset (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      font = x_new_fontset (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      /* This was formerly the first thing tried, but it finds too many fonts
-	 and takes too long.  */
-      font = x_new_fontset (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
-    /* If those didn't work, look for something which will at least work.  */
-    if (! STRINGP (font))
-      font = x_new_fontset (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
-    UNBLOCK_INPUT;
-    if (! STRINGP (font))
-      font = build_string ("fixed");
+      {
+	char *names[]
+	  = { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
+	      "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	      "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	      /* This was formerly the first thing tried, but it finds
+		 too many fonts and takes too long.  */
+	      "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1",
+	      /* If those didn't work, look for something which will
+		 at least work.  */
+	      "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
+	      NULL };
+	int i;
 
+	BLOCK_INPUT;
+	for (i = 0; names[i]; i++)
+	  {
+	    Lisp_Object list;
+
+	    list = x_list_fonts (f, build_string (names[i]), 0, 1);
+	    if (CONSP (list))
+	      {
+		font = XCAR (list);
+		break;
+	      }
+	  }
+	UNBLOCK_INPUT;
+	if (! STRINGP (font))
+	  font = build_string ("fixed");
+      }
     x_default_parameter (f, parms, Qfont, font,
 			 "font", "Font", RES_TYPE_STRING);
   }
@@ -11019,9 +11030,9 @@ x_create_tip_frame (dpyinfo, parms, text)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, XSTRING (tem)->data);
+	  font = x_new_fontset (f, tem);
 	else
-	  font = x_new_font (f, XSTRING (font)->data);
+	  font = x_new_fontset (f, font);
       }
     
     /* Try out a font which we hope has bold and italic variations.  */
