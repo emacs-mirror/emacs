@@ -3877,9 +3877,13 @@ get_next_display_element (it)
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
 		  it->method = next_element_from_display_vector;
+		  success_p = get_next_display_element (it);
 		}
-
-	      success_p = get_next_display_element (it);
+	      else
+		{
+		  set_iterator_to_next (it, 0);
+		  success_p = get_next_display_element (it);
+		}
 	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
