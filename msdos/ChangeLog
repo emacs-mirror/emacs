@@ -1,5 +1,7 @@
 2003-08-24  Eli Zaretskii  <eliz@elta.co.il>
 
+	* sed3v2.inp (EXEEXT): Define to an empty string.
+
 	* sed1v2.inp (EXEEXT): Define to an empty string.
 	Remove src/emacs after producing b-emacs.exe.
 
