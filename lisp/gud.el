@@ -47,7 +47,7 @@
   "Prefix of all GUD commands valid in C buffers.")
 
 (global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
-(global-set-key "\C-x " 'gud-break)	;; backward compatibility hack
+(define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
 
 ;; ======================================================================
 ;; the overloading mechanism
