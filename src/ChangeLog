@@ -1,3 +1,9 @@
+1999-11-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (display_line): Set charpos of first glyph in blank
+	lines not corresponding to any text to -1, even if no glyphs are
+	filled in in that line.
+
 1999-11-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (png_load) [PNG_READ_sRGB_SUPPORTED]: Put code using 
