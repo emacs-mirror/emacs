@@ -1492,6 +1492,10 @@ good, skip, fatal, or unknown."
   (let ((buffer (process-buffer proc))
 	(old-buffer (current-buffer)))
 
+    ;; Eliminate nulls.
+    (while (string-match "\000+" str)
+      (setq str (replace-match "" nil nil str))) 
+
     ;; see if the buffer is still around... it could have been deleted.
     (if (buffer-name buffer)
 	(unwind-protect
