@@ -92,7 +92,7 @@ enum Lisp_Type
 #endif /* LISP_FLOAT_TYPE */
 
     /* This is not a type code.  It is for range checking.  */
-    Max_Lisp_Type,
+    Lisp_Type_Limit,
   };
 
 /* This is the set of datatypes that share a common structure.
