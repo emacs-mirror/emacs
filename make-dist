@@ -241,7 +241,7 @@ echo "Making links to \`src/s'."
 
 echo "Making links to \`lib-src'."
 (cd lib-src
- ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex ../${tempdir}/lib-src
+ ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in.in README testfile vcdiff ../${tempdir}/lib-src
  ln emacs.csh rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
@@ -286,16 +286,16 @@ echo "Making links to \`etc'."
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
 ### tex litter.
 (cd etc
- ln `ls -d * | grep -v 'RCS' | grep -v 'Old'` ../${tempdir}/etc
+ ln `ls -d * | grep -v 'RCS' | grep -v 'Old' | grep -v '^e$'` ../${tempdir}/etc
  cd ../${tempdir}/etc
  rm -f DOC* *~ \#*\# *.dvi *.log *,v =* core
  rm -f TAGS)
 
 echo "Making links to \`etc/e'."
 (cd etc/e
- ln `ls -d * | grep -v 'RCS'` ../${tempdir}/etc/e
- cd ../${tempdir}/etc
- rm -f DOC* *~ \#*\# *,v =* core)
+ ln `ls -d * | grep -v 'RCS'` ../../${tempdir}/etc/e
+ cd ../../${tempdir}/etc
+ rm -f *~ \#*\# *,v =* core)
 
 echo "Making links to \`cpp'."
 (cd cpp
@@ -316,7 +316,7 @@ echo "Making links to \`man'."
  test -f README && ln README ../${tempdir}/man
  test -f Makefile.in && ln Makefile.in ../${tempdir}/man
  ln ChangeLog split-man ../${tempdir}/man
- cp texinfo.tex texindex.c getopt.c ../${tempdir}/man
+ cp texinfo.tex ../${tempdir}/man
  cd ../${tempdir}/man
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
@@ -342,7 +342,9 @@ done
 #### Make sure that there aren't any hard links between files in the
 #### distribution; people with afs can't deal with that.  Okay,
 #### actually we just re-copy anything with a link count greater
-#### than two.
+#### than two.  (Yes, strictly greater than 2 is correct; since we
+#### created these files by linking them in from the original tree,
+#### they'll have exactly two links normally.)
 echo "Breaking intra-tree links."
 find ${tempdir} ! -type d -links +2 \
   -exec cp -p {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
