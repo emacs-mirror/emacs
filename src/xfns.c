@@ -1879,7 +1879,8 @@ XSetWMProtocols (dpy, w, protocols, count)
 
 #ifdef USE_X_TOOLKIT
 
-/* WM_DELETE_WINDOW, and WM_SAVE_YOURSELF, then add them.  (They may
+/* If the WM_PROTOCOLS property does not already contain WM_TAKE_FOCUS,
+   WM_DELETE_WINDOW, and WM_SAVE_YOURSELF, then add them.  (They may
    already be present because of the toolkit (Motif adds some of them,
    for example, but Xt doesn't).  */
 
@@ -2362,6 +2363,10 @@ be shared by the new frame.")
   f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (f->display.x, sizeof (struct x_display));
 
+  FRAME_X_SCREEN (f) = &the_x_screen;
+  FRAME_X_SCREEN (f)->reference_count++;
+  the_x_screen.x_display_value = x_current_display;
+
   /* Note that the frame has no physical cursor right now.  */
   f->phys_cursor_x = -1;
 
@@ -2490,10 +2495,6 @@ be shared by the new frame.")
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
-
-  FRAME_X_SCREEN (f) = &the_x_screen;
-  FRAME_X_SCREEN (f)->reference_count++;
-  the_x_screen.x_display_value = x_current_display;
 
   UNGCPRO;
 
