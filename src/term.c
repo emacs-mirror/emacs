@@ -800,7 +800,7 @@ static int encode_terminal_bufsize;
    Set CODING->produced to the byte-length of the resulting byte
    sequence, and return a pointer to that byte sequence.  */
 
-static unsigned char *
+unsigned char *
 encode_terminal_code (src, src_len, coding)
      struct glyph *src;
      int src_len;
