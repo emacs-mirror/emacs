@@ -246,14 +246,6 @@ coding-spec (see the function `make-coding-system')."
 	   (coding-system-unification-table
 	    (get coding-system 'coding-system)))))
 
-;;;###autoload
-(defun coding-system-parent (coding-system)
-  "Return parent of CODING-SYSTEM."
-  (let ((parent (get coding-system 'parent-coding-system)))
-    (and parent
-	 (or (coding-system-parent parent)
-	     parent))))
-
 (defun coding-system-lessp (x y)
   (cond ((eq x 'no-conversion) t)
 	((eq y 'no-conversion) nil)
