@@ -965,9 +965,11 @@ int term_initted;		/* 1 if outer tty status has been recorded */
 int lmode;
 #endif
 
+#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
 int old_fcntl_owner;
 #endif /* F_SETOWN */
+#endif /* F_SETOWN_BUG */
 
 /* This may also be defined in stdio,
    but if so, this does no harm,
@@ -1226,6 +1228,7 @@ init_sys_modes ()
     }
 
 #ifdef F_SETFL
+#ifndef F_SETOWN_BUG
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input)
     {
@@ -1234,6 +1237,7 @@ init_sys_modes ()
       init_sigio ();
     }
 #endif /* F_GETOWN */
+#endif /* F_SETOWN_BUG */
 #endif /* F_SETFL */
 
 #ifdef BSD4_1
@@ -1375,6 +1379,7 @@ reset_sys_modes ()
 #endif
 
 #ifdef F_SETFL
+#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
@@ -1382,6 +1387,7 @@ reset_sys_modes ()
       fcntl (0, F_SETOWN, old_fcntl_owner);
     }
 #endif /* F_SETOWN */
+#endif /* F_SETOWN_BUG */
 #endif /* F_SETFL */
 #ifdef BSD4_1
   if (interrupt_input)
