@@ -196,20 +196,14 @@ use."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-dvi-view-command nil
+(defcustom tex-dvi-view-command '(if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\")
   "*Command used by \\[tex-view] to display a `.dvi' file.
+If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
-otherwise, the file name, preceded by blank, is added at the end.
+otherwise, the file name, preceded by a space, is added at the end.
 
-This can be set conditionally so that the previewer used is suitable for the
-window system being used.  For example,
-
-    (setq tex-dvi-view-command
-          (if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\"))
-
-would tell \\[tex-view] to use xdvi under X windows and to use dvi2tty
-otherwise."
-  :type '(choice (const nil) string)
+If the value is a form, it is evaluated to get the command to use."
+  :type '(choice (const nil) string sexp)
   :group 'tex-view)
 
 ;;;###autoload
@@ -1800,7 +1794,7 @@ because there is no standard value that would generally work."
   (interactive)
   (or tex-dvi-view-command
       (error "You must set `tex-dvi-view-command'"))
-  (let ((tex-dvi-print-command tex-dvi-view-command))
+  (let ((tex-dvi-print-command (eval tex-dvi-view-command)))
     (tex-print)))
 
 (defun tex-append (file-name suffix)
