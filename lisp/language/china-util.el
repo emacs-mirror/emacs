@@ -32,6 +32,7 @@
 
   (setq primary-language "Chinese-GB")
 
+  (set-default-coding-systems 'chinese-iso-8bit)
   (setq coding-category-iso-8-2 'chinese-iso-8bit)
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
@@ -46,8 +47,8 @@
      coding-category-iso-8-else))
 
   (setq-default buffer-file-coding-system 'chinese-iso-8bit)
-  (set-terminal-coding-system-internal 'chinese-iso-8bit)
-  (set-keyboard-coding-system-internal 'chinese-iso-8bit)
+  (setq default-terminal-coding-system 'chinese-iso-8bit)
+  (setq default-keyboard-coding-system 'chinese-iso-8bit)
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
@@ -62,6 +63,7 @@
 
   (setq primary-language "Chinese-BIG5")
 
+  (set-default-coding-systems 'chinese-big5)
   (setq coding-category-iso-8-2 'chinese-big5)
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
@@ -75,8 +77,8 @@
      coding-category-iso-8-else))
 
   (setq-default buffer-file-coding-system 'chinese-big5)
-  (set-terminal-coding-system-internal 'chinese-big5)
-  (set-keyboard-coding-system-internal 'chinese-big5)
+  (setq default-terminal-coding-system 'chinese-big5)
+  (setq default-keyboard-coding-system 'chinese-big5)
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chienese-iso-7bit)
 
@@ -94,6 +96,7 @@
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
   (setq coding-category-iso-8-2 'chinese-big5)
+  (set-default-coding-systems 'chinese-iso-7bit)
 
   (set-coding-priority
    '(coding-category-iso-7
@@ -103,8 +106,8 @@
      coding-category-iso-7-else))
 
   (setq-default buffer-file-coding-system 'chinese-iso-7bit)
-  (set-terminal-coding-system-internal 'chinese-iso-7bit)
-  (set-keyboard-coding-system-internal 'chinese-iso-7bit)
+  (setq default-terminal-coding-system 'chinese-iso-7bit)
+  (setq default-keyboard-coding-system 'chinese-iso-7bit)
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
