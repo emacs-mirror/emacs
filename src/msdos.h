@@ -104,6 +104,8 @@ extern struct x_output the_only_x_display;
 #define FRAME_FONT(f) (the_only_x_display.font)
 #define FRAME_X_DISPLAY_INFO(f) (&the_only_x_display.display_info)
 
+#define FRAME_INTERNAL_BORDER_WIDTH(f) (0)
+
 /* Prototypes.  */
 
 /* Forward declarations for prototypes.  */
