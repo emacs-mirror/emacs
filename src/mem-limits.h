@@ -1,5 +1,5 @@
 /* Includes for memory limit warnings.
-   Copyright (C) 1990 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,6 +26,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/resource.h>
 #endif /* BSD4_2 */
 
+/* The important properties of this type are that 1) it's a pointer, and
+   2) arithmetic on it should work as if the size of the object pointed
+   to has a size of 1.  */
 #ifdef __STDC__
 typedef void *POINTER;
 #else
