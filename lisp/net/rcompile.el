@@ -171,9 +171,8 @@ See \\[compile]."
     (compile-internal compile-command "No more errors")
     ;; Set comint-file-name-prefix in the compilation buffer so
     ;; compilation-parse-errors will find referenced files by ange-ftp.
-    (save-excursion
-      (set-buffer compilation-last-buffer)
-      (make-variable-buffer-local 'comint-file-name-prefix)
-      (setq comint-file-name-prefix (concat "/" host ":")))))
+    (with-current-buffer compilation-last-buffer
+      (set (make-local-variable 'comint-file-name-prefix)
+	   (concat "/" host ":")))))
 
 ;;; rcompile.el ends here
