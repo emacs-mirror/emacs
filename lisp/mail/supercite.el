@@ -419,7 +419,7 @@ and the return value must be a string, which is used as the selected
 attribution.  Note that the variable `sc-preferred-attribution-list'
 must contain an element of the string \"sc-consult\" for this variable
 to be consulted during attribution selection."
-  :type '(repeat (list symbol (repeat (cons regexp
+  :type '(repeat (list string (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
   :group 'supercite-attr)
