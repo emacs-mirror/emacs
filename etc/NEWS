@@ -9,6 +9,13 @@ Temporary note: +++ indicates that the appropriate manual
 has already been updated.  --- means no change in the manuals
 is called for.
 
+* Installation Changes in Emacs 21.3
+
+** Emacs now supports new configure options `--program-prefix',
+`--program-suffix' and `--program-transform-name' that affect the names of
+installed programs.
+
+
 * Changes in Emacs 21.3
  
 +++
