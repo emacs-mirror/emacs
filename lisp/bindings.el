@@ -187,7 +187,7 @@ Normally nil in most modes, since there is no process to display.")
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
-				 (format "%sodified: mouse-2 toggles flag"
+				 (format "%sodified: mouse-2 toggles"
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
