@@ -4190,11 +4190,11 @@ xm_scroll_callback (widget, client_data, call_data)
 #else /* !USE_MOTIF, i.e. Xaw or GTK */
 #ifdef USE_GTK
 /* Scroll bar callback for GTK scroll bars.  WIDGET is the scroll
-   bar adjustment widget.  DATA is a pointer to the scroll_bar structure. */
+   bar widget.  DATA is a pointer to the scroll_bar structure. */
 
 static void
 xg_scroll_callback (widget, data)
-     GtkWidget *widget;
+     GtkRange *widget;
      gpointer data;
 {
   struct scroll_bar *bar = (struct scroll_bar *) data;
@@ -4204,7 +4204,7 @@ xg_scroll_callback (widget, data)
   int diff;
 
   int part = -1, whole = 0, portion = 0;
-  GtkAdjustment *adj = GTK_ADJUSTMENT (widget);
+  GtkAdjustment *adj = GTK_ADJUSTMENT (gtk_range_get_adjustment (widget));
 
   if (xg_ignore_gtk_scrollbar) return;
 

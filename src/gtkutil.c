@@ -2512,25 +2512,25 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
 
   scroll_id = xg_store_widget_in_map (wscroll);
 
-  g_signal_connect (G_OBJECT (vadj),
+  g_signal_connect (G_OBJECT (wscroll),
                     "value-changed",
                     scroll_callback,
-                    (gpointer)bar);
+                    (gpointer) bar);
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer)scroll_id);
+                    (gpointer) scroll_id);
 
   /* Connect to button press and button release to detect if any scroll bar
      has the pointer.  */
   g_signal_connect (G_OBJECT (wscroll),
                     "button-press-event",
                     G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer)bar);
+                    (gpointer) bar);
   g_signal_connect (G_OBJECT (wscroll),
                     "button-release-event",
                     G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer)bar);
+                    (gpointer) bar);
 
   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget),
                  wscroll, -1, -1);
