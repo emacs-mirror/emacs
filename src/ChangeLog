@@ -1,3 +1,8 @@
+2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (silly_event_symbol_error): New subrtn, from Fdefine_key.
+	Handle modifier bits.  Correct typo in error message.
+
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* abbrev.c: Use the plist of an abbrev for multiple params if nec.
