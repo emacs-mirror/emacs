@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000, 2001
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5279,6 +5279,7 @@ do_auto_save_unwind (stream)  /* used as unwind-protect function */
   if (!NILP (stream))
     fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
 		      | XFASTINT (XCDR (stream))));
+  pop_message ();
   return Qnil;
 }
 
@@ -5474,7 +5475,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 
   Vquit_flag = oquit;
 
-  pop_message ();
   unbind_to (count, Qnil);
   return Qnil;
 }
