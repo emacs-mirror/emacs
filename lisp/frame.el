@@ -261,7 +261,9 @@ These supersede the values given in `default-frame-alist'.")
 		    (make-frame
 		     ;; Use the geometry args that created the existing
 		     ;; frame, rather than the parms we get for it.
-		     (append frame-initial-geometry-arguments parms)))
+		     (append frame-initial-geometry-arguments
+			     '((user-size . t) (user-position . t))
+			     parms)))
 	      ;; The initial frame, which we are about to delete, may be
 	      ;; the only frame with a minibuffer.  If it is, create a
 	      ;; new one.
