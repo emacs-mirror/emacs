@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.5) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName$");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.6) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -67,15 +67,6 @@ typedef MVFFDebugStruct *MVFFDebug;
 
 #define MVFFPoolMVFFDebug(mvff) PARENT(MVFFDebugStruct, mvffStruct, mvff)
 #define MVFFDebugPoolMVFF(mvffd) (&((mvffd)->mvffStruct))
-
-
-/* MVFFMinSegSize -- Minimum size of all MVFF segments */
-
-static Size MVFFMinSegSize(MVFF mvff) {
-  /* Used from MVFFCheck */
-
-  return mvff->extendBy;
-}
 
 
 /* MVFFAddToFreeList -- Add given range to free list 
