@@ -1,5 +1,7 @@
 2004-06-03  Miles Bader  <miles@gnu.org>
 
+	* subr.el (read-number): Use canonical format for default in prompt.
+
 	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
 	regexp for " [...]" style defaults.
 

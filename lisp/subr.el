@@ -1335,9 +1335,11 @@ Optional DEFAULT is a default password to use instead of empty input."
   (let ((n nil))
     (when default
       (setq prompt
-	    (if (string-match "\\(\\):[^:]*" prompt)
-		(replace-match (format " [%s]" default) t t prompt 1)
-	      (concat prompt (format " [%s] " default)))))
+	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
+		(replace-match (format " (default %s)" default) t t prompt 1)
+	      (replace-regexp-in-string "[ \t]*\\'"
+					(format " (default %s) " default)
+					prompt t t)))) 
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
