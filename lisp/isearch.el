@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/06/09 11:53:58 $|$Revision: 1.42 $
+;; |$Date: 1993/06/13 21:43:15 $|$Revision: 1.43 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -1008,13 +1008,21 @@ and the meta character is unread so that it applies to editing the string."
 	 (isearch-edit-string))
 	(search-exit-option
 	 (let ((key (this-command-keys))
+	       (index 0)
 	       window)
 	   (apply 'isearch-unread (listify-key-sequence key))
+	   ;; Properly handle scroll-bar and mode-line clicks
+	   ;; for which a dummy prefix event was generated as (aref key 0).
+	   (and (> (length key) 1)
+		(symbolp (aref key 0))
+		(listp (aref key 1))
+		(consp (posn-point (event-start (aref key 1))))
+		(setq index 1))
 	   ;; If we got a mouse click, maybe it was read with the buffer
 	   ;; it was clicked on.  If so, that buffer, not the current one,
 	   ;; is in isearch mode.  So end the search in that buffer.
-	   (if (and (listp (aref key 0))
-		    (setq window (posn-window (event-start (aref key 0))))
+	   (if (and (listp (aref key index))
+		    (setq window (posn-window (event-start (aref key index))))
 		    (windowp window))
 	       (save-excursion
 		 (set-buffer (window-buffer window))
@@ -1023,7 +1031,6 @@ and the meta character is unread so that it applies to editing the string."
 	(t;; otherwise nil
 	 (isearch-process-search-string (this-command-keys)
 					(this-command-keys)))))
-
 
 (defun isearch-quote-char ()
   "Quote special characters for incremental search."
