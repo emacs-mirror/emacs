@@ -625,7 +625,7 @@ See `shell-command-regexp'."
 (defun shell-get-current-command ()
   "Function that returns the current command including arguments."
   (save-excursion
-    (if (looking-at "\\s *[^;&|]")
+    (if (looking-at "[\t ]*[^;&|\n]")
 	(goto-char (match-end 0)))
     (buffer-substring
      (progn (shell-backward-command 1) (point))
