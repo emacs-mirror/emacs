@@ -177,20 +177,25 @@ main (argc, argv)
 #include <sys/msg.h>
 #include <stdio.h>
 
+char *getwd (), *getcwd (), *getenv ();
+
 main (argc, argv)
      int argc;
      char **argv;
 {
   int s;
   key_t key;
-  struct msgbuf * msgp =
-      (struct msgbuf *) malloc (sizeof *msgp + BUFSIZ);
+  /* Size of text allocated in MSGP.  */
+  int size_allocated = BUFSIZ;
+  /* Amount of text used in MSGP.  */
+  int used;
+  struct msgbuf *msgp
+    = (struct msgbuf *) malloc (sizeof (struct msgbuf) + size_allocated);
   struct msqid_ds * msg_st;
   char *homedir, buf[BUFSIZ];
   char gwdirb[BUFSIZ];
   char *cwd;
   char *temp;
-  char *getwd (), *getcwd (), *getenv ();
 
   if (argc < 2)
     {
@@ -241,17 +246,33 @@ main (argc, argv)
     }
 
   msgp->mtext[0] = 0;
+  used = 0;
   argc--; argv++;
   while (argc)
     {
+      int need_cwd = 0;
       if (*argv[0] == '+')
 	{
 	  char *p = argv[0] + 1;
 	  while (*p >= '0' && *p <= '9') p++;
 	  if (*p != 0)
-	    strcat (msgp->mtext, cwd);
+	    need_cwd = 1;
 	}
       else if (*argv[0] != '/')
+	need_cwd = 1;
+
+      if (need_cwd)
+	used += strlen (cwd);
+      used += strlen (argv[0]) + 1;
+      while (used + 2 > size_allocated)
+	{
+	  size_allocated *= 2;
+	  msgp = (struct msgbuf *) realloc (msgp,
+					    (sizeof (struct msgbuf)
+					     + size_allocated));
+	}
+
+      if (need_cwd)
 	strcat (msgp->mtext, cwd);
 
       strcat (msgp->mtext, argv[0]);
@@ -259,6 +280,13 @@ main (argc, argv)
       argv++; argc--;
     }
   strcat (msgp->mtext, "\n");
+#ifdef HPUX /* HPUX has a bug.  */
+  if (strlen (msgp->mtext) >= 512)
+    {
+      fprintf (stderr, "emacsclient: args too long for msgsnd\n");
+      exit (1);
+    }
+#endif
   msgp->mtype = 1;
   if (msgsnd (s, msgp, strlen (msgp->mtext)+1, 0) < 0)
     {
