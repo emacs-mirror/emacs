@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -412,13 +412,6 @@ Filesz      Memsz       Flags       Align
 
  */
 
-#ifndef emacs
-#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
-#else
-#include <config.h>
-extern void fatal (char *, ...);
-#endif
-
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -436,7 +429,7 @@ extern void fatal (char *, ...);
 #include <sym.h>
 #endif /* __sony_news && _SYSTYPE_SYSV */
 #if __sgi
-#include <sym.h> /* for HDRR declaration */
+#include <syms.h> /* for HDRR declaration */
 #endif /* __sgi */
 
 #if defined (__alpha__) && !defined (__NetBSD__) && !defined (__OpenBSD__)
@@ -497,16 +490,6 @@ typedef struct {
 # define SHN_ABS	Elf_eshn_absolute
 # define SHN_COMMON	Elf_eshn_common
 
-/*
- * The magic of picking the right size types is handled by the ELFSIZE
- * definition above.
- */
-# ifdef __STDC__
-#  define ElfW(type)    Elf_##type
-# else
-#  define ElfW(type)    Elf_/**/type
-# endif
-
 # ifdef __alpha__
 #  include <sys/exec_ecoff.h>
 #  define HDRR		struct ecoff_symhdr
@@ -524,18 +507,17 @@ typedef struct {
 
 #ifndef ElfW
 # ifdef __STDC__
-#  define ElfBitsW(bits, type) Elf##bits##_##type
+#  define ElfW(type)	Elf32_##type
 # else
-#  define ElfBitsW(bits, type) Elf/**/bits/**/_/**/type
+#  define ElfW(type)	Elf32_/**/type
 # endif
-# ifdef _LP64
-#  define ELFSIZE 64
-# else
-#  define ELFSIZE 32
-# endif
-  /* This macro expands `bits' before invoking ElfBitsW.  */
-# define ElfExpandBitsW(bits, type) ElfBitsW (bits, type)
-# define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
+#endif
+
+#ifndef emacs
+#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
+#else
+#include <config.h>
+extern void fatal (char *, ...);
 #endif
 
 #ifndef ELF_BSS_SECTION_NAME
@@ -596,6 +578,45 @@ round_up (x, y)
   return x - rem + y;
 }
 
+/* Return the index of the section named NAME.
+   SECTION_NAMES, FILE_NAME and FILE_H give information
+   about the file we are looking in.
+
+   If we don't find the section NAME, that is a fatal error
+   if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
+
+static int
+find_section (name, section_names, file_name, old_file_h, old_section_h, noerror)
+     char *name;
+     char *section_names;
+     char *file_name;
+     ElfW(Ehdr) *old_file_h;
+     ElfW(Shdr) *old_section_h;
+     int noerror;
+{
+  int idx;
+
+  for (idx = 1; idx < old_file_h->e_shnum; idx++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for %s - found %s\n", name,
+	       section_names + OLD_SECTION_H (idx).sh_name);
+#endif
+      if (!strcmp (section_names + OLD_SECTION_H (idx).sh_name,
+		   name))
+	break;
+    }
+  if (idx == old_file_h->e_shnum)
+    {
+      if (noerror)
+	return -1;
+      else
+	fatal ("Can't find %s in %s.\n", name, file_name, 0);
+    }
+
+  return idx;
+}
+
 /* ****************************************************************
  * unexec
  *
@@ -630,8 +651,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   ElfW(Off)  new_data2_offset;
   ElfW(Addr) new_data2_addr;
 
-  int n, nn, old_bss_index, old_data_index, new_data2_index;
-  int old_sbss_index, old_mdebug_index;
+  int n, nn;
+  int old_bss_index, old_sbss_index;
+  int old_data_index, new_data2_index;
+  int old_mdebug_index;
   struct stat stat_buf;
 
   /* Open the old file & map it into the address space. */
@@ -663,65 +686,40 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   old_section_names = (char *) old_base
     + OLD_SECTION_H (old_file_h->e_shstrndx).sh_offset;
 
+  /* Find the mdebug section, if any.  */
+
+  old_mdebug_index = find_section (".mdebug", old_section_names,
+				   old_name, old_file_h, old_section_h, 1);
+
   /* Find the old .bss section.  Figure out parameters of the new
    * data2 and bss sections.
    */
 
-  for (old_bss_index = 1; old_bss_index < (int) old_file_h->e_shnum;
-       old_bss_index++)
-    {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .bss - found %s\n",
-	       old_section_names + OLD_SECTION_H (old_bss_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H (old_bss_index).sh_name,
-		   ELF_BSS_SECTION_NAME))
-	break;
-    }
-  if (old_bss_index == old_file_h->e_shnum)
-    fatal ("Can't find .bss in %s.\n", old_name, 0);
+  old_bss_index = find_section (".bss", old_section_names,
+				old_name, old_file_h, old_section_h, 0);
 
-  for (old_sbss_index = 1; old_sbss_index < (int) old_file_h->e_shnum;
-       old_sbss_index++)
+  old_sbss_index = find_section (".sbss", old_section_names,
+				 old_name, old_file_h, old_section_h, 1);
+
+  if (old_sbss_index == -1)
     {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .sbss - found %s\n",
-	       old_section_names + OLD_SECTION_H (old_sbss_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H (old_sbss_index).sh_name,
-		   ".sbss"))
-	break;
-    }
-  if (old_sbss_index == old_file_h->e_shnum)
-    {
-      old_sbss_index = -1;
-      old_bss_addr = OLD_SECTION_H(old_bss_index).sh_addr;
-      old_bss_size = OLD_SECTION_H(old_bss_index).sh_size;
-      new_data2_offset = OLD_SECTION_H(old_bss_index).sh_offset;
+      old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
+      old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
       new_data2_index = old_bss_index;
     }
   else
     {
-      old_bss_addr = OLD_SECTION_H(old_sbss_index).sh_addr;
-      old_bss_size = OLD_SECTION_H(old_bss_index).sh_size
-	+ OLD_SECTION_H(old_sbss_index).sh_size;
-      new_data2_offset = OLD_SECTION_H(old_sbss_index).sh_offset;
+      old_bss_addr = OLD_SECTION_H (old_sbss_index).sh_addr;
+      old_bss_size = OLD_SECTION_H (old_bss_index).sh_size
+	+ OLD_SECTION_H (old_sbss_index).sh_size;
       new_data2_index = old_sbss_index;
     }
 
-  for (old_mdebug_index = 1; old_mdebug_index < (int) old_file_h->e_shnum;
-       old_mdebug_index++)
-    {
-#ifdef DEBUG
-      fprintf (stderr, "Looking for .mdebug - found %s\n",
-	       old_section_names + OLD_SECTION_H (old_mdebug_index).sh_name);
-#endif
-      if (!strcmp (old_section_names + OLD_SECTION_H (old_mdebug_index).sh_name,
-		   ".mdebug"))
-	break;
-    }
-    if (old_mdebug_index == old_file_h->e_shnum)
-	old_mdebug_index = 0;
+  /* Find the old .data section.  Figure out parameters of
+     the new data2 and bss sections.  */
+
+  old_data_index = find_section (".data", old_section_names,
+				 old_name, old_file_h, old_section_h, 0);
 
 #if defined (emacs) || !defined (DEBUG)
   new_bss_addr = (ElfW(Addr)) sbrk (0);
@@ -730,6 +728,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
   new_data2_addr = old_bss_addr;
   new_data2_size = new_bss_addr - old_bss_addr;
+  new_data2_offset  = OLD_SECTION_H (old_data_index).sh_offset +
+    (new_data2_addr - OLD_SECTION_H (old_data_index).sh_addr);
 
 #ifdef DEBUG
   fprintf (stderr, "old_bss_index %d\n", old_bss_index);
@@ -814,13 +814,13 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
 	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
 
-#ifdef __mips
+#ifdef __sgi
 	  /* According to r02kar@x4u2.desy.de (Karsten Kuenne)
 	     and oliva@gnu.org (Alexandre Oliva), on IRIX 5.2, we
 	     always get "Program segment above .bss" when dumping
 	     when the executable doesn't have an sbss section.  */
       if (old_sbss_index != -1)
-#endif /* __mips */
+#endif /* __sgi */
       if (NEW_PROGRAM_H (n).p_vaddr + NEW_PROGRAM_H (n).p_filesz
 	  > (old_sbss_index == -1
 	     ? old_bss_addr
@@ -934,15 +934,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #else
-	  /* The idea of this is that the bss section's sh_offset
-	     may need rounding up to compare with new_data2_offset.
-	     So we cannot simply compare the sh_offset.
-	     However, another small section could exist just before
-	     the bss section, and we need to know that is before.  */
-	  if (round_up (NEW_SECTION_H (nn).sh_offset
-			+ NEW_SECTION_H (nn).sh_size,
+	  if (round_up (NEW_SECTION_H (nn).sh_offset,
 			OLD_SECTION_H (old_bss_index).sh_addralign)
-	      > new_data2_offset)
+	      >= new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #endif
 	  /* Any section that was originally placed after the section
@@ -979,8 +973,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
-		      ".got")
-	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".data1"))
@@ -1013,7 +1005,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif /* __alpha__ */
 
 #if defined (__sony_news) && defined (_SYSTYPE_SYSV)
-      if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG && old_mdebug_index) 
+      if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
+	  && old_mdebug_index != -1) 
         {
 	  int diff = NEW_SECTION_H(nn).sh_offset 
 	 	- OLD_SECTION_H(old_mdebug_index).sh_offset;
@@ -1155,8 +1148,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 			".lit4")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".lit8")
-	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			".got")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			".sdata1")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
