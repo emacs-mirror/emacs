@@ -1,3 +1,7 @@
+2000-06-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_LIBXP): Change test for libXp.
+
 2000-06-21  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check for fcntl.h.  Use AC_FUNC_GETLOADAVG, not

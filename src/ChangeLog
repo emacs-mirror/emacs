@@ -1,5 +1,15 @@
 2000-06-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xrdb.c (x_load_resources): Add default resource for scroll bar's
+	trough color and main window's background color.
+
+	* xfns.c (Fx_file_dialog) [HAVE_MOTIF_2_1]: Handle events 
+	differently.
+
+	* xterm.h (Xt_app_con): External declaration.
+
+	* widget.c (EmacsFrameRealize): Fix typo.
+	
 	* widget.c (EmacsFrameRealize): Remove SubstructureRedirectMask.
 
 	* xdisp.c (handle_stop): Initialize it->add_overlay_start to zero.
