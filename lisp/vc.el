@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.282 2000/10/25 21:45:09 monnier Exp $
+;; $Id: vc.el,v 1.283 2000/10/26 12:38:02 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1197,14 +1197,12 @@ for vc-log-operation-hook."
 	(setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
     (setq vc-log-version rev)
-    (erase-buffer)
-    (if (eq comment t)
-	(vc-finish-logentry t)
-      (if comment
-	  (insert comment))
-      (if (and comment (not initial-contents))
-	  (vc-finish-logentry nil)
-	(message "%s  Type C-c C-c when done" msg)))))
+    (when comment
+      (erase-buffer)
+      (when (stringp comment) (insert comment)))
+    (if (or (not comment) initial-contents)
+	(message "%s  Type C-c C-c when done" msg)
+      (vc-finish-logentry (eq comment t)))))
 
 (defun vc-checkout (file &optional writable rev)
   "Retrieve a copy of the revision REV of FILE.
