@@ -678,7 +678,11 @@ _malloc_internal (size)
 	{
 	  /* No free fragments of the desired size, so get a new block
 	     and break it into fragments, returning the first.  */
+#ifdef GC_MALLOC_CHECK
+	  result = _malloc_internal (BLOCKSIZE);
+#else
 	  result = malloc (BLOCKSIZE);
+#endif
 	  if (result == NULL)
 	    return NULL;
 
@@ -1092,7 +1096,11 @@ _free_internal (ptr)
 	  _chunks_free -= BLOCKSIZE >> type;
 	  _bytes_free -= BLOCKSIZE;
 
+#ifdef GC_MALLOC_CHECK
+	  _free_internal (ADDRESS (block));
+#else
 	  free (ADDRESS (block));
+#endif
 	}
       else if (_heapinfo[block].busy.info.frag.nfree != 0)
 	{
