@@ -1,3 +1,37 @@
+2002-07-19  Ken Raeburn  <raeburn@gnu.org>
+
+	* bytecode.c (struct byte_stack): Pointers into byte string now
+	point to const.
+	* callproc.c (Fcall_process): Make NEW_ARGV array hold pointer to
+	const.
+	* charset.h (BCOPY_SHORT): Source pointer now points to const.
+	* coding.c (encode_eol, detect_coding, detect_eol):
+	(decode_coding, encode_coding, detect_coding_system): Source
+	strings now treated as const.
+	(decode_coding_string, encode_coding_string): Use STRING_COPYIN to
+	modify Lisp string contents.
+	* coding.h (decode_coding, encode_coding, detect_coding,
+	detect_eol): Declarations updated.
+	* composite.c (compose_chars_in_text): Treat Lisp string contents
+	as const.
+	* dispnew.c (safe_bcopy): Source pointer now points to const.
+	* lisp.h (STRING_COPYIN): New macro.
+	(detect_coding_system, safe_bcopy, temp_output_buffer_setup):
+	(internal_with_output_to_temp_buffer): Declarations updated.
+	* print.c (temp_output_buffer_setup):
+	(internal_with_output_to_temp_buffer): Buffer name argument is now
+	pointer to const.
+	* sound.c (struct sound_device): Function pointer field "write"
+	buffer argument now points to const.
+	(vox_write): Buffer argument points to const.
+	* syntax.c (Fstring_to_syntax, skip_chars): Treat Lisp string
+	contents as const.
+	* xfaces.c (may_use_scalable_font_p): Argument now points to
+	const.
+	(x_face_list_fonts, x_update_menu_appearance):
+	(hash_string_case_insensitive): Treat Lisp string contents as
+	const.
+
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
