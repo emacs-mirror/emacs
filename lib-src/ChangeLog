@@ -1,3 +1,9 @@
+2002-06-19  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (add_regex): Invalid regexp modifiers are ignored.
+	(Makefile_targets): Tag variables unless --no-globals.
+	(LOOP_ON_INPUT_LINES): Serious bug corrected.
+
 2002-06-13  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (erlang_atom, erlang_attribute): Bugs corrected.

@@ -610,19 +610,23 @@ per line.  Lines beginning with space or tab are ignored.
 
 *** New language parsing features
 
-**** In Prolog, etags creates tags for rules in addition to predicates.
-
 **** In Perl, packages are tags.
 Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
 package::sub.
 
+**** New language PHP: tags are functions, classes and defines.
+If the --members option is specified to etags, tags are vars also.
+
 **** New default keywords for TeX.
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
-**** New language PHP: tags are functions, classes and defines.
-If the --members option is specified to etags, tags are vars also.
+**** In Makefiles, constants are tagged
+If you want the old behaviour instead, thus avoiding to increase the
+size of the tags file, use the --no-globals option.
+
+**** In Prolog, etags creates tags for rules in addition to predicates.
 
 *** Honour #line directives.
 When Etags parses an input file that contains C preprocessor's #line

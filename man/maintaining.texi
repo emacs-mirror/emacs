@@ -332,7 +332,8 @@ in the file.
 In Fortran code, functions, subroutines and block data are tags.
 
 @item
-In makefiles, targets are tags.
+In makefiles, targets are tags; additionally, variables are tags
+unless you specify @samp{--no-globals}.
 
 @item
 In Objective C code, tags include Objective C definitions for classes,
