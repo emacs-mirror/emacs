@@ -47,8 +47,8 @@
 ;; turn this output into manual template instantiations, copy from the
 ;; first name of an objective file (here this is AFile.o) to right
 ;; after the very last `'' of the output.  Put this in a buffer and
-;; call mantemp-make-mantemps-buffer with the point in the buffer.
-;; You can also use mantemp-make-mantemps-region directly on the
+;; call `mantemp-make-mantemps-buffer' with the point in the buffer.
+;; You can also use `mantemp-make-mantemps-region' directly on the
 ;; region if the output is already in Emacs.
 ;;
 ;; The resulting buffer yields (connect the three output lines above
@@ -67,6 +67,17 @@
 ;; which can be included in your C++ program.  However, its probably
 ;; better to include the necessary header files in the buffer and
 ;; compile it as a stand alone implementation file.
+;;
+;; Sometimes, an uninstantiated template may cause a message like the
+;; following
+;;
+;; main.cc:66: invalid use of undefined type
+;;   `struct valarray<double,arrayminusopclass<double,c_array<double> > >'
+;;
+;; Follow the same procedure as above and the line is changed to
+;;
+;; template struct valarray<double,
+;;   arrayminusopclass<double,c_array<double> > >;
 
 ;; g++ does not output the templates that are needed by the
 ;; uninstantiated templates.  Therefore you will often get new error
@@ -139,7 +150,9 @@ the lines."
     (while (re-search-forward "^.+" nil t)
       (progn
 	(beginning-of-line)
-	(insert "template class ")))
+	(if (looking-at "struct[\\t ]+\\|class[\\t ]+")
+	    (insert "template ")
+	  (insert "template class "))))
     (goto-char (point-min))
     (message "Inserting 'template' for functions")
     (while (re-search-forward
@@ -167,12 +180,12 @@ should otherwise be empty.
 See the commentary in file mantemp.el for an example of use."
   (interactive)
   (mantemp-make-mantemps)
-  (message "mantemp-make-mantemps-buffer is done"))
+  (message "Done"))
 
 (defun mantemp-make-mantemps-region ()
   "Make manual template instantiations from g++ error messages in the region.
-This function does the same as
-'mantemp-make-mantemps-buffer' but operates on the region."
+This function does the same thing as `mantemp-make-mantemps-buffer',
+but operates on the region."
   (interactive)
   (let ((cur-buf (current-buffer))
 	(mantemp-buffer (generate-new-buffer "*mantemp*")))
@@ -186,7 +199,7 @@ This function does the same as
     (set-buffer cur-buf)
     (yank)
     (kill-buffer mantemp-buffer))
-  (message "mantemp-make-mantemps-region is done"))
+  (message "Done"))
 
 (provide 'mantemp)
 
