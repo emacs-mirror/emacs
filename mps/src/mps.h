@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.25) $
+ * $HopeName: MMsrc!mps.h(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #ifdef MPS_OS_W3
-#include <windows.h>            /* needed for SEH filter type */
+#include "mpswin.h"            /* needed for SEH filter type */
 #endif /* MPS_OS_W3 */
 
 
@@ -148,6 +148,10 @@ typedef struct mps_fmt_A_s {
 
 #define MPS_BEGIN       do {
 #define MPS_END         } while(0)
+/* Disable warning about constant conditionals */
+#ifdef MPS_BUILD_MV
+#pragma warning(disable: 4127)
+#endif
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
