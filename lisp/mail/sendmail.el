@@ -274,13 +274,14 @@ actually occur.")
 Like Text Mode but with these additional commands:
 C-c C-s  mail-send (send the message)    C-c C-c  mail-send-and-exit
 C-c C-f  move to a header field (and create it if there isn't):
-	 C-c C-f C-t  move to To:	C-c C-f C-s  move to Subj:
-	 C-c C-f C-b  move to BCC:	C-c C-f C-c  move to CC:
+	 C-c C-f C-t  move to To:	C-c C-f C-s  move to Subject:
+	 C-c C-f C-c  move to CC:	C-c C-f C-b  move to BCC:
 	 C-c C-f C-f  move to FCC:
-C-c C-t  move to message text.
+C-c C-t  mail-text (move to beginning of message text).
+C-c C-w  mail-signature (insert `~/.signature' file).
 C-c C-y  mail-yank-original (insert current message, in Rmail).
 C-c C-q  mail-fill-yanked-message (fill what was yanked).
-C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
+C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'mail-reply-buffer)
@@ -769,7 +770,7 @@ the user from the mailer."
       nil)))
 
 (defun mail-text ()
-  "Move point to beginning of text field."
+  "Move point to beginning of message text."
   (interactive)
   (goto-char (point-min))
   (search-forward (concat "\n" mail-header-separator "\n")))
