@@ -1,5 +1,8 @@
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (try_window_id): When trying to locate cursor in
+	unchanged rows at the top, handle the case that we can't find it.
+
 	* xterm.c (x_draw_glyphs): Handle case START and END are out
 	of bounds more carefully.
 
