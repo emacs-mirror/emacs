@@ -1,3 +1,8 @@
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (completion-setup-function): Count completion-size
+	from minibuffer-prompt-end, not from point-min.
+
 2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (read-face-attribute, defined-colors, color-defined-p):
