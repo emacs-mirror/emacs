@@ -1,4 +1,4 @@
-;;; ps-print.el --- Jim's Pretty-Good PostScript Generator for Emacs 19.
+;;; ps-print.el --- Print text from the buffer as PostScript
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -12,7 +12,7 @@
 (defconst ps-print-version "3.05"
   "ps-print.el, v 3.05 <97/08/09 vinicius>
 
-Jack's last change version -- this file may have been edited as part of
+Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
 please also report the version of Emacs, if any, that ps-print was
 distributed with.
@@ -373,24 +373,27 @@ Please send all bug fixes and enhancements to
 ;; Zebra Stripes
 ;; -------------
 ;;
-;; Zebra stripes is a kind of background effect, where the background looks
-;; like:
+;; Zebra stripes are a kind of background which you can request
+;; to appear "underneath" the text.  They look like this:
 ;;
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
+;; XXXXXXXXXXXXXXXXXXXXXXXX
+;;
 ;;
 ;;
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;; XXXXXXXXXXXXXXXXXXXXXXXX
+;; XXXXXXXXXXXXXXXXXXXXXXXX
 ;;
-;; The X's are representing a rectangle area filled with a light gray color.
-;;
+;; The X's here represent a rectangle area filled with a light gray color.
+;; The height, in lines, of the gray area pis controlled by
+;; the variable `ps-zebra-stripe-height', which is 3 by default.
+;; The distance between stripes equals the height of a stripe.
+;; 
 ;; The variable `ps-zebra-stripe' determines if zebra stripe lines will be
 ;; printed (non-nil value) or not (nil value).
 ;; The default is not print zebra stripes (nil value).
-;;
-;; The variable `ps-number-of-zebra' indicates the number of lines on a
-;; zebra stripe.  The default is 3.
 ;;
 ;;
 ;; Font managing
@@ -539,7 +542,7 @@ Please send all bug fixes and enhancements to
 ;;   overline  - like underline, but the line is over the text.
 ;;   shadow    - text will have a shadow.
 ;;   box       - text will be surrounded by a box.
-;;   outline   - only the text border font will be printed.
+;;   outline   - only the contour of the characters will be printed.
 ;;
 ;; See the documentation for `ps-extend-face' and `ps-extend-face-list'.
 ;;
@@ -547,14 +550,6 @@ Please send all bug fixes and enhancements to
 ;; and bold attribute:
 ;;
 ;;    (ps-extend-face '(font-lock-keyword-face "RoyalBlue" nil bold))
-;;
-;; If we wish to extend a list of faces, we could do:
-;;
-;;    (ps-extend-face-list
-;;     '((font-lock-function-name-face "Blue"      nil bold)
-;;       (font-lock-variable-name-face "Sienna"    nil bold italic)
-;;       (font-lock-keyword-face       "RoyalBlue" nil underline))
-;;     'MERGE)
 ;;
 ;; Note: the only attributes that have effect on screen are: bold, italic and
 ;; underline. All other screen effect is ignored.
@@ -874,15 +869,15 @@ example `letter', `legal' or `a4'."
   :type 'number
   :group 'ps-print)
 
-(defcustom ps-zebra-stripe nil
+(defcustom ps-zebra-stripes nil
   "*Non-nil means print zebra stripes.
-See also documentation for ps-print-n-zebra."
+See also documentation for `ps-print-n-zebra'."
   :type 'boolean
   :group 'ps-print)
 
-(defcustom ps-number-of-zebra 3
+(defcustom ps-zebra-stripe-height 3
   "*Number of zebra stripe lines.
-See also documentation for ps-print-zebra."
+See also documentation for `ps-print-zebra'."
   :type 'number
   :group 'ps-print)
 
@@ -2283,7 +2278,7 @@ Each symbol correspond to one bit in a bit vector.")
 (defun ps-extend-face-list (face-extension-list &optional merge-p)
   "Extend face in `ps-print-face-extension-alist'.
 
-If optional MERGE-p is non-nil, extensions in FACE-EXTENSION are merged with
+If optional MERGE-P is non-nil, extensions in FACE-EXTENSION are merged with
 face extension in `ps-print-face-extension-alist'; otherwise, overrides.
 
 The elements in FACE-EXTENSION-LIST is like those for `ps-extend-face'.
@@ -2944,8 +2939,8 @@ page-height == bm + print-height + tm - ho - hh
 				  (* ps-line-height 0.45))
 			       ps-line-height))))
 
-  (ps-output-boolean "Zebra" ps-zebra-stripe)
-  (ps-output (format "/NumberOfZebra %d def\n" ps-number-of-zebra))
+  (ps-output-boolean "Zebra" ps-zebra-stripes)
+  (ps-output (format "/NumberOfZebra %d def\n" ps-zebra-stripe-height))
 
   (ps-output-boolean "PrintLineNumber" ps-line-number)
   (ps-output (format "/Lines %d def\n" (ps-count-lines (point-min) (point-max))))
