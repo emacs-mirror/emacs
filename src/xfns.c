@@ -5021,7 +5021,7 @@ x_display_info_for_name (name)
 
   validate_x_resource_name ();
 
-  dpyinfo = x_term_init (name, (unsigned char *)0,
+  dpyinfo = x_term_init (name, (char *)0,
 			 (char *) XSTRING (Vx_resource_name)->data);
 
   if (dpyinfo == 0)
@@ -5953,7 +5953,6 @@ lookup_image (f, spec)
 	  /* Handle image type independent image attributes
 	     `:ascent ASCENT', `:margin MARGIN', `:relief RELIEF'.  */
 	  Lisp_Object ascent, margin, relief;
-	  Lisp_Object file;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -6836,12 +6835,11 @@ xbm_load (f, img)
     {
       struct image_keyword fmt[XBM_LAST];
       Lisp_Object data;
-      unsigned char *bitmap_data;
       int depth;
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
       unsigned long background = FRAME_BACKGROUND_PIXEL (f);
       char *bits;
-      int parsed_p, height, width;
+      int parsed_p;
       int in_memory_file_p = 0;
 
       /* See if data looks like an in-memory XBM file.  */
@@ -7232,7 +7230,7 @@ xpm_load (f, img)
      struct frame *f;
      struct image *img;
 {
-  int rc, i;
+  int rc;
   XpmAttributes attrs;
   Lisp_Object specified_file, color_symbols;
 
@@ -9746,7 +9744,7 @@ gif_load (f, img)
     {
       static int interlace_start[] = {0, 4, 2, 1};
       static int interlace_increment[] = {8, 8, 4, 2};
-      int pass, inc;
+      int pass;
       int row = interlace_start[0];
 
       pass = 0;
