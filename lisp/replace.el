@@ -445,17 +445,24 @@ end of the buffer."
 
 (put 'occur-mode 'mode-class 'special)
 
-(define-derived-mode occur-mode nil "Occur"
+(defun occur-mode ()
   "Major mode for output from \\[occur].
 \\<occur-mode-map>Move point to one of the items in this buffer, then use
 \\[occur-mode-goto-occurrence] to go to the occurrence that the item refers to.
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
+  (kill-all-local-variables)
+  (use-local-map occur-mode-map)
+  (setq major-mode 'occur-mode)
+  (setq mode-name "Occur")
+  (make-local-variable 'revert-buffer-function)
+  (setq revert-buffer-function 'occur-revert-function)
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-buffer)
   (make-local-variable 'occur-nlines)
-  (make-local-variable 'occur-command-arguments))
+  (make-local-variable 'occur-command-arguments)
+  (run-hooks 'occur-mode-hook))
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle `revert-buffer' for *Occur* buffers."
