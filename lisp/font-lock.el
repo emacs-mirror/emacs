@@ -275,21 +275,21 @@ See `font-lock-make-face' and `list-faces-display'."
 						    grayshade greyshade))
 		     (list
 		      (list 'font-lock-comment-face
-			    (if light-bg "DimGray" "Gray80") nil t t nil)
+			    nil (if light-bg "Gray80" "DimGray") t t nil)
 		      (list 'font-lock-string-face
-			    (if light-bg "Gray50" "LightGray") nil nil t nil)
+			    nil (if light-bg "Gray50" "LightGray") nil t nil)
 		      (list 'font-lock-keyword-face
-			    (if light-bg "DimGray" "Gray90") nil t nil nil)
+			    nil (if light-bg "Gray90" "DimGray") t nil nil)
 		      (list 'font-lock-function-name-face
 			    (cdr (assq 'background-color (frame-parameters)))
 			    (cdr (assq 'foreground-color (frame-parameters)))
 			    t nil nil)
 		      (list 'font-lock-variable-name-face
-			    (if light-bg "DimGray" "Gray90") nil t t nil)
+			    nil (if light-bg "Gray90" "DimGray") t t nil)
 		      (list 'font-lock-type-face
-			    (if light-bg "DimGray" "Gray80") nil t nil t)
+			    nil (if light-bg "Gray80" "DimGray") t nil t)
 		      (list 'font-lock-reference-face
-			    (if light-bg "Gray50" "LightGray") nil t nil t)))
+			    nil (if light-bg "LightGray" "Gray50") t nil t)))
 		    (light-bg		; light colour background
 		     '((font-lock-comment-face "Firebrick")
 		       (font-lock-string-face "RosyBrown")
