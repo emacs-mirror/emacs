@@ -1,3 +1,8 @@
+2002-03-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* mwheel.el (mouse-wheel-mode): Use the result of
+	current-global-map instead of the variable `global-map'.
+
 2002-03-23  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (mail-abbrev-make-syntax-table): New subroutine
