@@ -147,9 +147,12 @@ to this variable.")
 (defvar ibuffer-cached-filter-formats nil)
 (defvar ibuffer-compiled-filter-formats nil)  
 
-(defcustom ibuffer-old-time 3
-  "The number of days before a buffer is considered \"old\"."
-  :type 'integer
+(defcustom ibuffer-old-time 72
+  "The number of hours before a buffer is considered \"old\"."
+  :type '(choice (const :tag "72 hours (3 days)" 72)
+ 		 (const :tag "48 hours (2 days)" 48)
+ 		 (const :tag "24 hours (1 day)" 24)
+		 (integer :tag "hours"))
   :group 'ibuffer)
 
 (defcustom ibuffer-save-with-custom t
@@ -1017,7 +1020,7 @@ You can then feed the file name(s) to other commands with C-y.
 			      (car buffer-display-time))
 			   (float (cadr buffer-display-time))
 			   (* 0.0000001 (caddr buffer-display-time)))))
-	     (> (- now then) (* 24 60 60 ibuffer-old-time))))))))
+	     (> (- now then) (* 60 60 ibuffer-old-time))))))))
 
 ;;;###autoload
 (defun ibuffer-mark-special-buffers ()
