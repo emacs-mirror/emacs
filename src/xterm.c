@@ -12867,6 +12867,8 @@ x_initialize ()
   XtToolkitInitialize ();
   Xt_app_con = XtCreateApplicationContext ();
   XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
+#endif
+#if USE_TOOLKIT_SCROLL_BARS
   xaw3d_arrow_scroll = False;
   xaw3d_pick_top = True;
 #endif
