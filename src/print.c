@@ -290,13 +290,6 @@ void print_interval ();
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
-/* Nonzero if there is no room to print any more characters
-   so print might as well return right away.  */
-
-#define PRINTFULLP()					\
- (EQ (printcharfun, Qt) && !noninteractive		\
-  && printbufidx >= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))))
-
 /* This is used to restore the saved contents of print_buffer
    when there is a recursive call to print.  */
 
@@ -849,7 +842,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
      Lisp_Object obj;
 {
   struct buffer *old = current_buffer;
-  Lisp_Object original, printcharfun, value;
+  Lisp_Object value;
   struct gcpro gcpro1;
 
   /* If OBJ is (error STRING), just return STRING.
@@ -1255,7 +1248,7 @@ print_object (obj, printcharfun, escapeflag)
       if (sizeof (int) == sizeof (EMACS_INT))
 	sprintf (buf, "%d", XINT (obj));
       else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld", XINT (obj));
+	sprintf (buf, "%ld", (long) XINT (obj));
       else
 	abort ();
       strout (buf, -1, -1, printcharfun, 0);
@@ -1278,7 +1271,6 @@ print_object (obj, printcharfun, escapeflag)
       else
 	{
 	  register int i, i_byte;
-	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  unsigned char *str;
 	  int size_byte;
