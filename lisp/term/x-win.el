@@ -444,6 +444,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
 (define-key global-map [down] 'next-line)
 (define-key global-map [prior] 'scroll-down)
 (define-key global-map [next] 'scroll-up)
+(define-key global-map [M-next] 'scroll-other-window)
 (define-key global-map [begin] 'beginning-of-buffer)
 (define-key global-map [end] 'end-of-buffer)
 
