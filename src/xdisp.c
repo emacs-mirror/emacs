@@ -5284,11 +5284,11 @@ ensure_echo_area_buffers ()
    Value is what FN returns. */
 
 static int
-with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
+with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
      struct window *w;
      int which;
      int (*fn) ();
-     int a1, a2, a3, a4, a5;
+     int a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
