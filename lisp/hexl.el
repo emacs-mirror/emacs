@@ -927,11 +927,8 @@ This function is assumed to be used as call back function for `hl-line-mode'."
 (defun hexl-mode-ruler ()
   "Return a string ruler for hexl mode."
   (let* ((highlight (mod (hexl-current-address) 16))
-	 (s "87654321  0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789abcdef")
-	 (pos 0)
-	 (spaces (+ (scroll-bar-columns 'left) 
-		    (fringe-columns 'left)
-		    (or (car (window-margins)) 0))))
+	 (s " 87654321  0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789abcdef")
+	 (pos 0))
     (set-text-properties 0 (length s) nil s)
     ;; Turn spaces in the header into stretch specs so they work
     ;; regardless of the header-line face.
@@ -939,21 +936,16 @@ This function is assumed to be used as call back function for `hl-line-mode'."
       (setq pos (match-end 0))
       (put-text-property (match-beginning 0) pos 'display
 			 ;; Assume fixed-size chars
-			 `(space :align-to (+ (scroll-bar . left)
-					      left-fringe left-margin
-					      ,pos))
+			 `(space :align-to ,(1- pos))
 			 s))
     ;; Highlight the current column.
-    (put-text-property (+ 10 (/ (* 5 highlight) 2))
-		       (+ 12 (/ (* 5 highlight) 2))
+    (put-text-property (+ 11 (/ (* 5 highlight) 2))
+		       (+ 13 (/ (* 5 highlight) 2))
 		       'face 'highlight s)
     ;; Highlight the current ascii column
-    (put-text-property (+ 12 39 highlight) (+ 12 40 highlight)
+    (put-text-property (+ 13 39 highlight) (+ 13 40 highlight)
 		       'face 'highlight s)
-    ;; Add the leading space.
-    (concat (propertize (make-string (floor spaces) ? )
-			'display `(space :width ,spaces))
-	    s)))
+    s))
 
 ;; startup stuff.
 
