@@ -1,3 +1,8 @@
+2001-01-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* gud.el (gud-perldb-massage-args): Avoid nreverse'ing a list
+	part of which is a constant.
+
 2001-01-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* loadup.el (Top-level) [ms-dos]: Don't load international/ccl
