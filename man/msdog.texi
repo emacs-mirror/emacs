@@ -668,14 +668,20 @@ knows the language.)  Even though the character may occupy several
 columns on the screen, it is really still just a single character, and
 all Emacs commands treat it as one.
 
-@vindex dos-unsupported-character-glyph
+@cindex IBM graphics characters (MS-DOS)
+@cindex box-drawing characters (MS-DOS)
+@cindex line-drawing characters (MS-DOS)
   Not all characters in DOS codepages correspond to ISO 8859
 characters---some are used for other purposes, such as box-drawing
-characters and other graphics.  Emacs cannot represent these characters
-internally, so when you read a file that uses these characters, they are
-converted into a particular character code, specified by the variable
-@code{dos-unsupported-character-glyph}.
+characters and other graphics.  Emacs maps these characters to two
+special character sets called @code{eight-bit-control} and
+@code{eight-bit-graphic}, and displays them as their IBM glyphs.
+However, you should be aware that other systems might display these
+characters differently, so you should avoid them in text that might be
+copied to a different operating system, or even to another DOS machine
+that uses a different codepage.
 
+@vindex dos-unsupported-character-glyph
   Emacs supports many other characters sets aside from ISO 8859, but it
 cannot display them on MS-DOS.  So if one of these multibyte characters
 appears in a buffer, Emacs on MS-DOS displays them as specified by the
