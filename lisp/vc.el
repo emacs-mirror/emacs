@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.244 1999/03/13 05:04:24 kwzh Exp spiegel $
+;; $Id: vc.el,v 1.245 1999/04/08 12:43:48 spiegel Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -1700,9 +1700,9 @@ There is a special command, `*l', to mark all files currently locked."
            (dd "[ 0-3][0-9]")
            (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
            (western (concat "\\(" month s dd "\\|" dd s month "\\)"
-                            s "\\(" HH:MM "\\|" s yyyy "\\)"))
+                            s "\\(" HH:MM "\\|" s yyyy"\\|" yyyy s "\\)"))
            (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
-         (concat s "\\(" western "\\|" japanese "\\)" s)))
+         (concat "\\([0-9]\\|) +\\|     \\)" s "\\(" western "\\|" japanese "\\)" s)))
   (and (boundp 'vc-dired-switches)
        vc-dired-switches
        (set (make-local-variable 'dired-actual-switches)
