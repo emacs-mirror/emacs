@@ -32,7 +32,7 @@
 ;; This file has been censored by the Communications Decency Act.
 ;; Some of its features were removed.  The law was promoted as a ban
 ;; on pornography, but it bans far more than that.  The doctor program
-;; did not contain pornograpy, but part of it was prohibited
+;; did not contain pornography, but part of it was prohibited
 ;; nonetheless.
 
 ;; For information on US government censorship of the Internet, and
