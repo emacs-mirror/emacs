@@ -511,6 +511,12 @@ This is normally set via `font-lock-defaults'.")
   "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
 This is normally set via `font-lock-defaults'.")
 
+(defvar font-lock-syntactically-fontified 0
+  "Point up to which `font-lock-syntactic-keywords' has been applied.
+If nil, this is ignored, in which case the syntactic fontification may
+sometimes be slightly incorrect.")
+(make-variable-buffer-local 'font-lock-syntactically-fontified)
+
 (defvar font-lock-syntactic-keywords nil
   "A list of the syntactic keywords to highlight.
 Can be the list or the name of a function or variable whose value is the list.
@@ -638,7 +644,7 @@ Major/minor modes can set this variable if they know which option applies.")
 (defun font-lock-mode (&optional arg)
   "Toggle Font Lock mode.
 With arg, turn Font Lock mode on if and only if arg is positive.
-(Font Lock is also known as \"syntax highlighting\".)
+\(Font Lock is also known as \"syntax highlighting\".)
 
 When Font Lock mode is enabled, text is fontified as you type it:
 
@@ -699,7 +705,6 @@ buffer local value for `font-lock-defaults', via its mode hook."
     (set (make-local-variable 'font-lock-mode) on-p)
     ;; Turn on Font Lock mode.
     (when on-p
-      (make-local-hook 'after-change-functions)
       (add-hook 'after-change-functions 'font-lock-after-change-function nil t)
       (font-lock-set-defaults)
       (font-lock-turn-on-thing-lock)
@@ -1447,6 +1452,11 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 (defun font-lock-fontify-syntactic-keywords-region (start end)
   "Fontify according to `font-lock-syntactic-keywords' between START and END.
 START should be at the beginning of a line."
+  ;; Ensure the beginning of the file is properly syntactic-fontified.
+  (when (and font-lock-syntactically-fontified
+	     (< font-lock-syntactically-fontified start))
+    (setq start (max font-lock-syntactically-fontified (point-min)))
+    (setq font-lock-syntactically-fontified end))
   ;; If `font-lock-syntactic-keywords' is a symbol, get the real keywords.
   (when (symbolp font-lock-syntactic-keywords)
     (setq font-lock-syntactic-keywords (font-lock-eval-keywords
