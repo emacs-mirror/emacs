@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.5) $
+ * $HopeName: MMsrc!config.h(trunk.6) $
  */
 
 #ifndef config_h
@@ -19,7 +19,13 @@
  */
 
 #if defined(CONFIG_VAR_DF)
-#define MPS_VAR_DF
+#define MPS_VAR_DF              /* debug, full checking */
+#define ASSERT_MPSI             /* impl.c.mpsi */
+#define ASSERT_MPM              /* impl.h.mpm */
+#define CHECK_DEEP              /* impl.h.assert */
+#define CHECK_ASSERT            /* impl.h.assert */
+#elif defined(CONFIG_VAR_DL)    /* debug, full checking, telemetry */
+#define EVENT                   /* impl.h.event */
 #define ASSERT_MPSI             /* impl.c.mpsi */
 #define ASSERT_MPM              /* impl.h.mpm */
 #define CHECK_DEEP              /* impl.h.assert */
@@ -108,5 +114,14 @@
 
 #define TRACE_MAX               ((Size)1)
 
+
+/*  impl.c.event
+ *
+ *  EVENT_BUFFER_SIZE is the number of words in the global event buffer.
+ *  EVENT_HEADER_SIZE is the number of words in each event header
+ */
+
+#define EVENT_BUFFER_SIZE       ((Count)4096)
+#define EVENT_HEADER_SIZE       ((Count)3)
 
 #endif /* config_h */
