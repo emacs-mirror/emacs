@@ -2052,6 +2052,8 @@ anyone has committed to the repository since you last executed
 
 * New modes and packages in Emacs 21.4
 
+** The new package password.el provide a password cache and expiring mechanism.
+
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
 to increment the SOA serial.
