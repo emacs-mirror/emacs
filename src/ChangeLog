@@ -1,3 +1,11 @@
+2004-03-30  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_mouse_click_focus_ignore_position): New var.
+	(syms_of_xterm): DEFVAR_BOOL it.
+	(ignore_next_mouse_click_timeout): New var.
+	(handle_one_xevent): Clear it on KeyPress, set it on EnterNotify.
+	Use it to filter mouse clicks following focus event.
+
 2004-03-29  David Ponce  <david@dponce.com>
 
 	* callint.c (Fcall_interactively): Fix last change.
