@@ -1,5 +1,7 @@
 1999-11-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* puresize.h (BASE_PURESIZE): Increase to 550000.
+
 	* textprop.c (set_text_properties): New function.  Like
 	Fset_text_properties, but with additional parameter
 	SIGNAL_AFTER_CHANGE_P.  If that is nil, don't signal after
