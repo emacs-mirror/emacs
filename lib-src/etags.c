@@ -1895,7 +1895,7 @@ put_entries (np)
     put_entries (np->left);
 
   /* Output this entry */
-  if (!CTAGS)
+#if !CTAGS
     {
       /* Etags mode */
       if (file != np->file
@@ -1918,7 +1918,7 @@ put_entries (np)
       else
 	fprintf (tagf, "%ld\n", np->cno);
     }
-  else
+#else
     {
       /* Ctags mode */
       if (np->name == NULL)
@@ -1957,7 +1957,7 @@ put_entries (np)
 	  putc ('\n', tagf);
 	}
     }
-
+#endif
 
   /* Output subentries that follow this one */
   put_entries (np->right);
