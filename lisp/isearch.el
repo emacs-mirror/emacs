@@ -1730,16 +1730,47 @@ If there is no completion possible, say so and continue searching."
 
 (defvar isearch-overlay nil)
 
+(defsubst isearch-set-lazy-highlight-faces-at (pos face)
+  "Set the face property of isearch lazy highlight overlays at POS to FACE.
+If POS is nil, nothing is done."
+  (unless (null pos)
+    (dolist (ov (overlays-at pos))
+      (when (and (not (eq ov isearch-overlay))
+		 (memq ov isearch-lazy-highlight-overlays)
+		 (not (eq (overlay-get ov 'face) face)))
+	(overlay-put ov 'face face)))))
+
 (defun isearch-highlight (beg end)
-  (if (or (null search-highlight) (null (display-color-p)))
-      nil
-    (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
-    (move-overlay isearch-overlay beg end (current-buffer))
-    (overlay-put isearch-overlay 'face isearch)))
+  (unless (or (null search-highlight) (null (display-color-p)))
+    (cond (isearch-overlay
+	   ;; Overlay already exists, just move it.
+
+	   ;; Check to see if there are any lazy-isearch overlays at
+	   ;; the same position with their face property suppressed
+	   ;; (to avoid face clashes), and if so, give them their face
+	   ;; back.
+	   (isearch-set-lazy-highlight-faces-at (overlay-start isearch-overlay)
+						isearch-lazy-highlight-face)
+
+	   (move-overlay isearch-overlay beg end (current-buffer)))
+
+	  (t
+	   ;; Overlay doesn't exist, create it.
+	   (setq isearch-overlay (make-overlay beg end))
+	   (overlay-put isearch-overlay 'face isearch)))
+
+    ;; Suppress the faces of any lazy-isearch overlays at the new position
+    (isearch-set-lazy-highlight-faces-at beg nil)))
 
 (defun isearch-dehighlight (totally)
-  (if isearch-overlay
-      (delete-overlay isearch-overlay)))
+  (when isearch-overlay
+    ;; Check to see if there are any lazy-isearch overlays at the same
+    ;; position with their face property suppressed (to avoid face
+    ;; clashes), and if so, give them their face back.
+    (isearch-set-lazy-highlight-faces-at (overlay-start isearch-overlay)
+					 isearch-lazy-highlight-face)
+    (delete-overlay isearch-overlay)))
+
 
 ;;; General utilities
 
@@ -1933,21 +1964,20 @@ Attempt to do the search exactly the way the pending isearch would."
                      isearch-lazy-highlight-start))
         (let ((found (isearch-lazy-highlight-search))) ;do search
           (if found
-	      (progn
-		;; Don't put a second overlay with a different face
-		;; over/under the overlay isearch uses to highlight the
-		;; current match.  That can lead to odd looking face
-		;; combinations.
+	      ;; found the next match
+	      (let ((ov (make-overlay (match-beginning 0)
+				      (match-end 0))))
+		;; If OV overlaps the current isearch overlay, suppress
+		;; its face property; otherwise, we sometimes get odd
+		;; looking face combinations.
 		(unless (memq isearch-overlay
 			      (overlays-at (match-beginning 0)))
-		  ;; found the next match
-		  (let ((ov (make-overlay (match-beginning 0)
-					  (match-end 0))))
-		    (overlay-put ov 'face isearch-lazy-highlight-face)
-		    (overlay-put ov 'priority 0)
-		    (setq isearch-lazy-highlight-overlays
-			  (cons ov isearch-lazy-highlight-overlays))))
-		  
+		  (overlay-put ov 'face isearch-lazy-highlight-face))
+
+		(overlay-put ov 'priority 0)
+
+		(push ov isearch-lazy-highlight-overlays)
+
 		(setq isearch-lazy-highlight-timer
 		      (run-at-time isearch-lazy-highlight-interval nil
 				   'isearch-lazy-highlight-update))
