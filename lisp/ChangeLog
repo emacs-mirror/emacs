@@ -1,3 +1,16 @@
+2000-05-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/cal-french.el 
+	(french-calendar-multibyte-special-days-array) 
+	(french-calendar-special-days-array): Change French text.
+	(calendar-french-date-string): Change output.
+	(calendar-goto-french-date): Likewise.
+
+2000-05-02  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-default-active): Obey `:always-active'.
+	(widget-documentation-string-value-create): Set `:always-active'.
+
 2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (auto-save-list-file-prefix): For ms-dos, set the
