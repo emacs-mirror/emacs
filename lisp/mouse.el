@@ -636,6 +636,8 @@ If you do this twice in the same position, the selection is killed."
 ;; May be nil.
 (defvar mouse-secondary-overlay nil)
 
+(defvar mouse-secondary-click-count 0)
+
 ;; A marker which records the specified first end for a secondary selection.
 ;; May be nil.
 (defvar mouse-secondary-start nil)
@@ -694,7 +696,7 @@ This must be bound to a button-down mouse event."
 	 (click-count (1- (event-click-count start-event))))
     (save-excursion
       (set-buffer (window-buffer start-window))
-      (setq mouse-selection-click-count click-count)
+      (setq mouse-secondary-click-count click-count)
       (or mouse-secondary-overlay
 	  (setq mouse-secondary-overlay
 		(make-overlay (point) (point))))
@@ -825,14 +827,14 @@ again.  If you do this twice in the same position, it kills the selection."
 	(error "Wrong buffer"))
     (save-excursion
       (set-buffer (window-buffer (posn-window posn)))
-      (if (> (mod mouse-selection-click-count 3) 0)
+      (if (> (mod mouse-secondary-click-count 3) 0)
 	  (if (not (and (eq last-command 'mouse-secondary-save-then-kill)
 			(equal click-posn
 			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
 	      ;; Find both ends of the object selected by this click.
 	      (let* ((range
 		      (mouse-start-end click-posn click-posn
-				       mouse-selection-click-count)))
+				       mouse-secondary-click-count)))
 		;; Move whichever end is closer to the click.
 		;; That's what xterm does, and it seems reasonable.
 		(if (< (abs (- click-posn (overlay-start mouse-secondary-overlay)))
@@ -858,7 +860,7 @@ again.  If you do this twice in the same position, it kills the selection."
 	       (overlay-start mouse-secondary-overlay)
 	       (overlay-end mouse-secondary-overlay))
 	      (setq mouse-save-then-kill-posn nil)
-	      (setq mouse-selection-click-count 0)
+	      (setq mouse-secondary-click-count 0)
 	      (delete-overlay mouse-secondary-overlay)))
 	(if (and (eq last-command 'mouse-secondary-save-then-kill)
 		 mouse-save-then-kill-posn
