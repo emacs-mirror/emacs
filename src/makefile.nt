@@ -729,7 +729,8 @@ $(BLD)\keyboard.obj : \
 	$(SRC)\w32gui.h \
 	$(SRC)\xterm.h \
 	$(SRC)\vmstime.h \
-	$(SRC)\systime.h
+	$(SRC)\systime.h \
+	$(SRC)\atimer.h
 
 $(BLD)\keymap.obj : \
 	$(SRC)\keymap.c \
@@ -896,7 +897,8 @@ $(BLD)\process.obj : \
 	$(SRC)\vmstime.h \
 	$(SRC)\systime.h \
 	$(SRC)\termopts.h \
-	$(SRC)\composite.h
+	$(SRC)\composite.h \
+	$(SRC)\atimer.h
 
 $(BLD)\ralloc.obj : \
 	$(SRC)\ralloc.c \
@@ -1225,7 +1227,8 @@ $(BLD)\w32term.obj: \
 	$(SRC)\window.h \
 	$(SRC)\keyboard.h \
 	$(SRC)\intervals.h \
-	$(SRC)\composite.h
+	$(SRC)\composite.h \
+	$(SRC)\atimer.h
 
 $(BLD)\w32select.obj: \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
