@@ -1,5 +1,23 @@
 2000-03-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (free_frame_xic) [HAVE_X_I18N]: Add missing semicolon.
+
+	* xterm.c (xim_close_dpy, xim_initialize): Use X11R6-style XIM
+	support functions only if HAVE_X11R6_XIM is defined.
+	(xim_instantiate_callback): Define only if HAVE_X11R6_XIM.
+
+	* s/sol2.h (INHIBIT_X11R6_XIM): Define.
+
+	* xfns.c (X_I18N_INHIBITED): Don't define.
+	(create_frame_xic): Remove conditional compilation on
+	X_I18N_INHIBITED.
+	(x_kill_gs_process, x_window): Use FRAME_X_VISUAL.
+
+	* config.in (HAVE_X_I18N): Moved here from xterm.h.
+	(HAVE_X11R6_XIM): Define.
+
+	* xterm.h (HAVE_X_I18N) [HAVE_X11R6]: Moved to config.in.
+
 	* xterm.c (x_term_init): Add support for X resource `synchronous'.
 	If set, call XSynchronize.
 
