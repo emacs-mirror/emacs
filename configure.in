@@ -2607,7 +2607,7 @@ Configured for \`${canonical}'.
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
   Should Emacs use mmap(2) for buffer allocation?         $use_mmap_for_buffers
   What window system should Emacs use?                    ${window_system}
-  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}
+  What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
 
 if test -n "${x_includes}"; then
 echo "  Where do we find X Windows header files?                ${x_includes}"
