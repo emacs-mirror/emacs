@@ -2367,6 +2367,7 @@ extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
 extern int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 extern Lisp_Object mode_line_string P_ ((struct window *, int, int, int, int *));
+extern Lisp_Object marginal_area_string P_ ((struct window *, int, int, int, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
