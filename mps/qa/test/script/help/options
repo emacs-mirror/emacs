@@ -1,5 +1,5 @@
 display options and their current values
-% $HopeName$
+% $HopeName: MMQA_harness!script:help:options(trunk.3) $
 
 Usage: qa options [<options>]
 
@@ -8,27 +8,87 @@ by the qa harness. Each may be specified by setting an
 environment variable (to "on" or "off" in the case of a flag)
 or as a command line option. The current values (i.e. resulting
 from defaults, environment variables and any options given
-to the 'options' command) are also shown.
+to the 'options' command) are also shown. You can use command-
+line options with the 'options' command to check that you're
+specifying them correctly, but of course they won't remain
+set for future commands.
+
+In general, if you specify a command-line option or flag, it
+will override whatever setting was made with environment variables.
+If the option is _cumulative_, however, both will apply.
 
 What the options mean:
 
-MMQA_MPS_INCLUDE_DIR
- a directory where the MM header files may be found.
-
-MMQA_MPS_LINK_OBJ
- the MM libraries (and any other necessary files, eg the
- plinth) that must be linked.
-
-MMQA_INTERFACE_VERSION
- the version of the MM interface to use. Default is
- GR (grotesque), which should be correct for honeybee.3 and later
- releases to Dylan. Older interfaces were known as MO (modern) and
- OS (oldstyle). For testing the MM as supplied to Scriptworks,
- use version SW (this does not try to use the trampoline, as it
- doesn't seem to be supported in the mmsw library.
+MMQA_MPS_INCLUDE_DIR / -i
+ a directory where the MM header files may be found. No default.
  Note: if you change this setting, it may be necessary to recompile
  the test libraries (qa clib).
 
-MMQA_LOG_DIR
- the directory in which log files should be saved.
+MMQA_MPS_LINK_OBJ / -l
+ the MM libraries and plinth to link with. Separate multiple files
+ with spaces. No default.
+
+MMQA_INTERFACE_VERSION / -v
+ the version of the MM interface to use. Default is BQ (baroque),
+ which should be correct for recent releases of the Dylan MM.
+ Older interface versions were GR (grotesque), MO (modern) and
+ OS (oldstyle). For testing the MM as supplied to Scriptworks,
+ use version SW (this does not try to use the trampoline).
+ Note: if you change this setting, it is necessary to recompile
+ the test libraries (qa clib).
+
+MMQA_LOG_DIR / -g
+ the directory in which log files should be saved. Default is
+ 'log' directory inside the MMQA 'test' directory.
+
+MMQA_DATA_DIR / -data
+ the diretory in which MMQA data files may be found. Default is
+ '../data' from the MMQA 'test' directory. This is used when tests
+ specify a particular file as their standard input. If you specify
+ the standard input with MMQA_STDIN, the current directory is used.
+
+MMQA_PLATFORM / -p
+ the platform you are running on. This is determined automatically,
+ and used to specify compiler options and command-line syntax for
+ running tests. Setting it to a value not appropriate to the
+ machine you are using will make the test system go wrong.
+
+MMQA_PARAMETERS / -a (cumulative)
+ parameter settings to use for a test. These override any parameter
+ settings specified in the test header. Examples (all equivalent):
+
+ 1) qa run test.c -a DEPTH=10 -a WIDTH=5
+
+ 2) qa run test.c -a "WIDTH=5 DEPTH=10"
+ 
+ 3) MMQA_PARAMETERS='DEPTH=10 WIDTH=5'
+    qa run test.c
+
+ 4) MMQA_PARAMETERS='DEPTH=10'
+    qa run test.c -a WIDTH=5
+
+ Parameters may also be specified individually:
+
+ 5) MMQA_PARAM_DEPTH=10
+    MMQA_PARAM_WIDTH=5
+    qa run test.c
+
+ All these kinds of parameter settings may be combined. In the case
+ of a clash, the command-line setting takes precedence, then the
+ setting via MMQA_PARAMETERS. I recommend using command-line settings
+ only, otherwise there's a risk you'll leave the parameters set and
+ end up using them by mistake with other tests.
+
+MMQA_STDIN / -s
+ allows you to specify what a test will use for its standard
+ input. If unset, the file specified by the test itself will
+ be used (from the MMQA_DATA_DIR directory). By setting MMQA_STDIN,
+ you can use a file of your choosing, or specify "STDIN" if you want
+ to force input from whatever is the qa harness's standard input
+ (usually the keyboard).
+
+MMQA_DEBUG_INFO / -[no]debug
+ default is 'off'. If you turn this on, qa commands will output
+ various diagnostic messages, which may or may not be useful in
+ the event of a problem with the test system. Not recommended.
 
