@@ -1312,6 +1312,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
+  extern int x_use_old_gtk_file_dialog;
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
@@ -1321,7 +1322,6 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 #endif /* HAVE_GTK_AND_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_BOTH
-  extern int x_use_old_gtk_file_dialog;
 
   if (x_use_old_gtk_file_dialog)
     w = xg_get_file_with_selection (f, prompt, default_filename,
@@ -3161,7 +3161,6 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
       /* When detaching a tool bar, not everything dissapear.  There are
          a few pixels left that are used to drop the tool bar back into
          place.  */
-      int bw = gtk_container_get_border_width (GTK_CONTAINER (wbox));
       FRAME_TOOLBAR_HEIGHT (f) = 2;
 
       /* The height has changed, resize outer widget and set columns

@@ -1,3 +1,9 @@
+2005-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_detach_callback): Remove unused variable bw.
+	(xg_get_file_name): Move declaration ofx_use_old_gtk_file_dialog to
+	start of function for older compilers.
+
 2005-01-20  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fmessage): If arg is "", return "" (as before).
