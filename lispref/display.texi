@@ -2563,7 +2563,7 @@ you can call @code{set-window-buffer} to display it in a window again.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widthes of window @var{window}.
-If window is @code{nil}, that stands for the selected window.
+If @var{window} is @code{nil}, the selected window is used.
 
 The argument @var{left} specifies the width in pixels of the left
 fringe, and likewise @var{right} for the right fringe.  A value of
@@ -2572,9 +2572,10 @@ fringe, and likewise @var{right} for the right fringe.  A value of
 should appear outside of the display margins.
 @end defun
 
-@defun window-fringes window
+@defun window-fringes &optional window
 This function returns information about the fringes of a window
-@var{window}.  The value has the form @code{(@var{left-width}
+@var{window}.  If @var{window} is omitted or @code{nil}, the selected
+window is used.  The value has the form @code{(@var{left-width}
 @var{right-width} @var{frames-outside-margins})}.
 @end defun
 
@@ -2591,8 +2592,8 @@ You can also control this for individual windows.  Call the function
 @code{set-window-scroll-bars} to specify what to do for a specific window:
 
 @defun set-window-scroll-bars window width &optional vertical-type horizontal-type
-Set width and type of scroll bars of window @var{window}.  (If
-@var{window} is @code{nil}, this applies to the selected window.)
+Set width and type of scroll bars of window @var{window}.  
+If @var{window} is @code{nil}, the selected window is used.
 @var{width} specifies the scroll bar width in pixels (@code{nil} means
 use whatever is specified for width for the frame).
 @var{vertical-type} specifies whether to have a vertical scroll bar
@@ -2607,8 +2608,8 @@ implemented, it has no effect.
 
 @defun window-scroll-bars &optional window
 Report the width and type of scroll bars specified for @var{window}.
-If @var{window} is omitted or @code{nil}, it defaults to the currently
-selected window.  The value is a list of the form @code{(@var{width}
+If @var{window} is omitted or @code{nil}, the selected window is used.
+The value is a list of the form @code{(@var{width}
 @var{cols} @var{vertical-type} @var{horizontal-type})}.  The value
 @var{width} is the value that was specified for the width (which may
 be @code{nil}); @var{cols} is the number of columns that the scroll
