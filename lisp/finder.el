@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -87,6 +87,7 @@
     (let ((map (make-sparse-keymap)))
       (define-key map " "	'finder-select)
       (define-key map "f"	'finder-select)
+      (define-key map [mouse-2]	'finder-mouse-select)
       (define-key map "\C-m"	'finder-select)
       (define-key map "?"	'finder-summary)
       (define-key map "q"	'finder-exit)
@@ -117,7 +118,12 @@ arguments compiles from `load-path'."
        (lambda (d)
 	 (mapcar
 	  (lambda (f) 
-	    (if (and (string-match "^[^=.].*\\.el$" f)
+	    (if (and (or (string-match "^[^=].*\\.el$" f)
+			 ;; Allow compressed files also.  Fixme:
+			 ;; generalize this, especially for
+			 ;; MS-DOG-type filenames.
+			 (and (string-match "^[^=].*\\.el\\.\\(gz\\|Z\\)$" f)
+			      (require 'jka-compr)))
 		     (not (member f processed)))
 		(let (summary keystart keywords)
 		  (setq processed (cons f processed))
@@ -130,7 +136,10 @@ arguments compiles from `load-path'."
 		    (setq summary (lm-synopsis))
 		    (setq keywords (lm-keywords)))
 		  (insert
-		   (format "    (\"%s\"\n        " f))
+		   (format "    (\"%s\"\n        "
+			   (if (string-match "\\.\\(gz\\|Z\\)$" f)
+			       (file-name-sans-extension f) 
+			     f)))
 		  (prin1 summary (current-buffer))
 		  (insert
 		   "\n        ")
@@ -215,23 +224,9 @@ arguments compiles from `load-path'."
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
 
-;; Search for a file named FILE the same way `load' would search.
-(defun finder-find-library (file)
-  (if (file-name-absolute-p file)
-      file
-    (let ((dirs load-path)
-	  found)
-      (while (and dirs (not found))
-	(if (file-exists-p (expand-file-name (concat file ".el") (car dirs)))
-	    (setq found (expand-file-name file (car dirs)))
-	  (if (file-exists-p (expand-file-name file (car dirs)))
-	      (setq found (expand-file-name file (car dirs)))))
-	(setq dirs (cdr dirs)))
-      found)))
-
 (defun finder-commentary (file)
   (interactive)
-  (let* ((str (lm-commentary (finder-find-library file))))
+  (let* ((str (lm-commentary (locate-library file))))
     (if (null str)
 	(error "Can't find any Commentary section"))
     (pop-to-buffer "*Finder*")
@@ -261,9 +256,17 @@ arguments compiles from `load-path'."
 (defun finder-select ()
   (interactive)
   (let ((key (finder-current-item)))
-    (if (string-match "\\.el$" key)
-	(finder-commentary key)
-      (finder-list-matches key))))
+      (if (string-match "\\.el$" key)
+	  (finder-commentary key)
+	(finder-list-matches key))))
+
+(defun finder-mouse-select (event)
+  (interactive "e")
+  (save-excursion
+	(set-buffer (window-buffer (posn-window (event-start event))))
+	(goto-char (posn-point (event-start event)))
+	(let ((key (finder-current-item)))
+      (finder-select))))
 
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
@@ -289,13 +292,21 @@ arguments compiles from `load-path'."
   (interactive)
   (message "%s"
    (substitute-command-keys
-    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
+    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-mouse-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
   "Exit Finder mode and kill the buffer"
   (interactive)
-  (delete-window)
-  (kill-buffer "*Finder*"))
+  (condition-case nil			; might be sole window
+      (delete-window)
+    (error nil))
+  ;; Can happen in either buffer -- kill each of the two that exists
+  (condition-case nil
+      (kill-buffer "*Finder*")
+    (error nil))
+  (condition-case nil
+      (kill-buffer "*Finder Category*")
+    (error nil)))
 
 (provide 'finder)
 
