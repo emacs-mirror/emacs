@@ -459,7 +459,9 @@ Customised bindings may be defined in `ielm-map', which currently contains:
 
   ;; A dummy process to keep comint happy. It will never get any input
   (if (comint-check-proc (current-buffer)) nil
-    (start-process "ielm" (current-buffer) "cat")
+    ;; Was cat, but on non-Unix platforms that might not exist, so
+    ;; use hexl instead, which is part of the Emacs distribution.
+    (start-process "ielm" (current-buffer) "hexl")
     (process-kill-without-query (ielm-process))
     (goto-char (point-max))
     ;; Add a silly header
