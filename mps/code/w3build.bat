@@ -3,7 +3,7 @@
 @rem $HopeName: !gathconf.bat(trunk.1) $
 @rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
-rmdir /s w3i3mv
+rmdir /q/s w3i3mv
 nmake /f w3i3mv.nmk VARIETY=we mps.lib mpsplan.lib
 nmake /f w3i3mv.nmk VARIETY=wi mps.lib mpsplan.lib
 nmake /f w3i3mv.nmk VARIETY=ce mps.lib mpsplan.lib
