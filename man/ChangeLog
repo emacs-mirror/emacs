@@ -1,5 +1,8 @@
 2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
+	* widget.texi (Basic Types): The argument to `:help-echo' can now
+	be a form that evaluates to a string.
+
 	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
 	chapter.
 	(Intro): Include kmacro.texi after fixit.texi instead of after

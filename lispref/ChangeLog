@@ -1,3 +1,8 @@
+2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* customize.texi (Type Keywords): Correct the description of
+	`:help-echo' in the case where `motion-doc' is a function.
+
 2003-08-14  John Paul Wallington  <jpw@gnu.org>
 
 	* modes.texi (Emulating Mode Line): Subsection, not section.
