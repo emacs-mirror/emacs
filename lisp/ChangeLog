@@ -1,3 +1,10 @@
+2005-01-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event): Enable
+	mouse clicks on mode-line, header-line and margin.
+	(event-type): Give mouse event symbols an 'event-kind property
+	with value 'mouse-click.
+
 2005-01-12  Juri Linkov  <juri@jurta.org>
 
 	* facemenu.el (list-colors-display): Add new arg buffer-name.
