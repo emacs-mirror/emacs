@@ -118,7 +118,7 @@ is nil, REGEXP matches only half a hunk.")
 	 (function (lambda (file subexpr)
 		     (setq compilation-error-list
 			   (cons
-			    (cons (save-excursion
+			    (list (save-excursion
 				    ;; Report location of message
 				    ;; at beginning of line.
 				    (goto-char
@@ -126,16 +126,12 @@ is nil, REGEXP matches only half a hunk.")
 				    (beginning-of-line)
 				    (point-marker))
 				  ;; Report location of corresponding text.
-				  (let ((line (string-to-int
-					       (buffer-substring
-						(match-beginning subexpr)
-						(match-end subexpr)))))
-				    (save-excursion
-				      (save-match-data
-					(set-buffer (find-file-noselect file)))
-				      (save-excursion
-					(goto-line line)
-					(point-marker)))))
+				  (list file nil)
+				  (string-to-int
+				   (buffer-substring
+				    (match-beginning subexpr)
+				    (match-end subexpr)))
+				  nil)
 			    compilation-error-list)))))
 
 	(found-desired nil)
