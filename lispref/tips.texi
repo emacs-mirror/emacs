@@ -605,7 +605,8 @@ example).
 @item Keywords
 This line lists keywords for the @code{finder-by-keyword} help command.
 This field is important; it's how people will find your package when
-they're looking for things by topic area.
+they're looking for things by topic area.  To separate the keywords, you
+can use spaces, commas, or both.
 @end table
 
   Just about every Lisp library ought to have the @samp{Author} and
