@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.133) $
+ * $HopeName: MMsrc!mpm.h(trunk.134) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -553,12 +553,15 @@ extern unsigned long TraceGen0RampmodeSize;
 extern unsigned long TraceGen1RampmodeSize;
 extern unsigned long TraceGen2RampmodeSize;
 extern unsigned long TraceGen2plusRampmodeSizeMultiplier;
+
 extern Serial TraceRampGenFollows;
 extern Serial TraceTopGen; /* highest generation to use */
 extern Serial TraceFinalGen;
 
+extern double TraceEphemeralMortality;
+extern double TraceTopGenMortality;
 extern double TraceGen0IncrementalityMultiple;
-extern double TraceMortalityEstimate;
+extern double TraceWorkFactor;
 
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
