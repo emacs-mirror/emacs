@@ -262,6 +262,7 @@ finish_menu_items ()
 
 static Lisp_Object
 unuse_menu_items (dummy)
+     int dummy;
 {
   return menu_items_inuse = Qnil;
 }
@@ -1415,7 +1416,7 @@ parse_single_submenu (item_key, item_name, maps)
 
 static widget_value *
 digest_single_submenu (start, end, top_level_items)
-     int start, end;
+     int start, end, top_level_items;
 {
   widget_value *wv, *prev_wv, *save_wv, *first_wv;
   int i;
