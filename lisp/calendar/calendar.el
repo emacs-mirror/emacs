@@ -1962,12 +1962,12 @@ ERROR is t, otherwise just returns nil."
           (list month
                 (string-to-int (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))
-      (if (looking-at "\\*")
-          (save-excursion
-            (re-search-backward "[^*]")
-            (if (looking-at ".\\*\\*")
-                (list month starred-day year)
-              (if error (error "Cursor is not on a date!"))))))))
+      (if (and (looking-at "\\*")
+	       (save-excursion
+		 (re-search-backward "[^*]")
+		 (looking-at ".\\*\\*")))
+	  (list month starred-day year)
+	(if error (error "Cursor is not on a date!"))))))
 
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
