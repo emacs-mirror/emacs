@@ -8,6 +8,7 @@
 ;; Status          : Release with 3.1.12+ and 3.2.0+ ispell.
 ;; Bug Reports     : ispell-el-bugs@itcorp.com
 ;; Web Site        : http://kdstevens.com/~stevens/ispell-page.html
+;; Keywords: unix wp
 
 ;; This file is part of GNU Emacs.
 
