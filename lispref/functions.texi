@@ -190,8 +190,9 @@ the argument values are matched up against the variables in the lambda
 list, which are given local bindings with the values provided.
 @xref{Local Variables}.
 
-  The documentation string is an actual string that serves to describe
-the function for the Emacs help facilities.  @xref{Function Documentation}.
+  The documentation string is a Lisp string object placed within the
+function definition to describe the function for the Emacs help
+facilities.  @xref{Function Documentation}.
 
   The interactive declaration is a list of the form @code{(interactive
 @var{code-string})}.  This declares how to provide arguments if the
@@ -245,8 +246,8 @@ this example:
 
 @noindent
 This evaluates the arguments @code{1}, @code{(* 2 3)}, and @code{(- 5
-4)} from left to right.  Then it applies the lambda expression applied
-to the argument values 1, 6 and 1 to produce the value 8.
+4)} from left to right.  Then it applies the lambda expression to the
+argument values 1, 6 and 1 to produce the value 8.
 
   It is not often useful to write a lambda expression as the @sc{car} of
 a form in this way.  You can get the same result, of making local
@@ -277,7 +278,7 @@ arguments to be omitted.  For example, the function @code{substring}
 accepts three arguments---a string, the start index and the end
 index---but the third argument defaults to the @var{length} of the
 string if you omit it.  It is also convenient for certain functions to
-accept an indefinite number of arguments, as the functions @code{and}
+accept an indefinite number of arguments, as the functions @code{list}
 and @code{+} do.
 
 @cindex optional arguments
@@ -310,12 +311,12 @@ that unless the lambda list uses @code{&rest}.  In that case, there may
 be any number of extra actual arguments.
 
   If actual arguments for the optional and rest variables are omitted,
-then they always default to @code{nil}.  However, the body of the function
-is free to consider @code{nil} an abbreviation for some other meaningful
-value.  This is what @code{substring} does; @code{nil} as the third argument
-means to use the length of the string supplied.  There is no way for the
+then they always default to @code{nil}.  There is no way for the
 function to distinguish between an explicit argument of @code{nil} and
-an omitted argument.
+an omitted argument.  However, the body of the function is free to
+consider @code{nil} an abbreviation for some other meaningful value.
+This is what @code{substring} does; @code{nil} as the third argument to
+@code{substring} means to use the length of the string supplied.
 
 @cindex CL note---default optional arg
 @quotation
@@ -385,10 +386,10 @@ of one or two complete sentences that summarize the function's purpose.
   The start of the documentation string is usually indented, but since
 these spaces come before the starting double-quote, they are not part of
 the string.  Some people make a practice of indenting any additional
-lines of the string so that the text lines up.  @emph{This is a
-mistake.}  The indentation of the following lines is inside the string;
-what looks nice in the source code will look ugly when displayed by the
-help commands.
+lines of the string so that the text lines up in the program source.
+@emph{This is a mistake.}  The indentation of the following lines is
+inside the string; what looks nice in the source code will look ugly
+when displayed by the help commands.
 
   You may wonder how the documentation string could be optional, since
 there are required components of the function that follow it (the body).
@@ -530,9 +531,10 @@ deliberate redefinition from unintentional redefinition.
 
 @defun defalias name definition
 This special form defines the symbol @var{name} as a function, with
-definition @var{definition}.  It's best to use this rather than
-@code{fset} when defining a function in a file, because @code{defalias}
-records which file defined the function (@pxref{Unloading}).
+definition @var{definition} (which can be any valid Lisp function).
+It's best to use this rather than @code{fset} when defining a function
+in a file, because @code{defalias} records which file defined the
+function (@pxref{Unloading}), while @code{fset} does not.
 @end defun
 
 @node Calling Functions
@@ -544,9 +546,10 @@ records which file defined the function (@pxref{Unloading}).
 anything until you @dfn{call} them, i.e., tell them to run.  Calling a
 function is also known as @dfn{invocation}.
 
-  The most common way of invoking a function is by evaluating a list.  For
-example, evaluating the list @code{(concat "a" "b")} calls the function
-@code{concat}.  @xref{Evaluation}, for a description of evaluation.
+  The most common way of invoking a function is by evaluating a list.
+For example, evaluating the list @code{(concat "a" "b")} calls the
+function @code{concat} with arguments @code{"a"} and @code{"b"}.
+@xref{Evaluation}, for a description of evaluation.
 
   When you write a list as an expression in your program, the function
 name is part of the program.  This means that you choose which function
@@ -600,8 +603,8 @@ Compare these example with the examples of @code{apply}.
 @code{apply} calls @var{function} with @var{arguments}, just like
 @code{funcall} but with one difference: the last of @var{arguments} is a
 list of arguments to give to @var{function}, rather than a single
-argument.  We also say that this list is @dfn{appended} to the other
-arguments.
+argument.  We also say that @code{apply} @dfn{spreads} this list so that
+each individual element becomes an argument.
 
 @code{apply} returns the result of calling @var{function}.  As with
 @code{funcall}, @var{function} must either be a Lisp function or a
@@ -665,10 +668,10 @@ here.  For the third mapping function, @code{mapatoms}, see
 @ref{Creating Symbols}.
 
 @defun mapcar function sequence
-@code{mapcar} applies @var{function} to each element of @var{sequence} in
-turn.  The results are made into a @code{nil}-terminated list.
+@code{mapcar} applies @var{function} to each element of @var{sequence}
+in turn, and returns a list of the results.
 
-The argument @var{sequence} may be a list, a vector or a string.  The
+The argument @var{sequence} may be a list, a vector, or a string.  The
 result is always a list.  The length of the result is the same as the
 length of @var{sequence}.
 
@@ -857,6 +860,9 @@ realistic example using @code{function} and an anonymous function.
 function cell of the symbol.  The functions described here access, test,
 and set the function cell of symbols.
 
+  See also the function @code{indirect-function} in @ref{Function
+Indirection}.
+
 @defun symbol-function symbol
 @kindex void-function
 This returns the object in the function cell of @var{symbol}.  If the
@@ -896,8 +902,7 @@ as a function, it signals a @code{void-function} error.
 @code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
 and can be stored into a function cell just as any other object can be
 (and they can be valid functions if you define them in turn with
-@code{defun}); but @code{nil} or @code{void} is @emph{an object}.  A
-void function cell contains no object whatsoever.
+@code{defun}).  A void function cell contains no object whatsoever.
 
   You can test the voidness of a symbol's function definition with
 @code{fboundp}.  After you have given a symbol a function definition, you
@@ -918,6 +923,10 @@ error.  (See also @code{makunbound}, in @ref{Local Variables}.)
 @group
 (defun foo (x) x)
      @result{} x
+@end group
+@group
+(foo 1)
+     @result{}1
 @end group
 @group
 (fmakunbound 'foo)
@@ -944,8 +953,10 @@ making an alternate name for a function.)
 
 @item
 Giving a symbol a function definition that is not a list and therefore
-cannot be made with @code{defun}.  @xref{Classifying Lists}, for an
-example of this usage.
+cannot be made with @code{defun}.  For example, you can use @code{fset}
+to give a symbol @code{s1} a function definition which is another symbol
+@code{s2}; then @code{s1} serves as an alias for whatever definition
+@code{s2} presently has.
 
 @item
 In constructs for defining or altering functions.  If @code{defun}
@@ -990,6 +1001,9 @@ Here are examples of the first two uses:
      @result{} "\^u2\^k"
 @end group
 @end example
+
+See also the related function @code{defalias}, in @ref{Defining
+Functions}.
 @end defun
 
   When writing a function that extends a previously defined function,
@@ -1012,9 +1026,6 @@ to define @code{old-foo} by loading a file.  Since this presumably
 defines @code{foo} rather than @code{old-foo}, it does not produce the
 proper results.  The only way to avoid this problem is to make sure the
 file is loaded before moving aside the old definition of @code{foo}.
-
-See also the function @code{indirect-function} in @ref{Function
-Indirection}.
 
 @node Inline Functions
 @section Inline Functions
@@ -1049,7 +1060,7 @@ evaluated exactly once, you needn't worry about how many times the
 body uses the arguments, as you do for macros.  (@xref{Argument
 Evaluation}.)
 
-Inline functions can be used and open coded later on in the same file,
+Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
 
 Emacs versions prior to 19 did not have inline functions.
