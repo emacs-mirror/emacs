@@ -778,11 +778,15 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 		   (set-buffer-modified-p nil)
 		   (sit-for 120))
-	       (save-excursion
-		 ;; In case the Emacs server has already selected
-		 ;; another buffer, erase the one our message is in.
-		 (set-buffer (get-buffer "*scratch*"))
+	       (with-current-buffer (get-buffer "*scratch*")
 		 (erase-buffer)
+		 (insert "\
+If you want to create a file, don't type the text in this buffer.
+This buffer is for notes you don't want to save, and for Lisp evaluation.
+If you want to create a file, first visit that file with C-x C-f,
+then enter the text in that file's own buffer.
+
+")
 		 (set-buffer-modified-p nil)))))
     ;; Delay 2 seconds after the init file error message
     ;; was displayed, so user can read it.
