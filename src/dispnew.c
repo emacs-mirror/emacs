@@ -3584,7 +3584,10 @@ direct_output_for_insert (g)
     {
       rif->update_window_begin_hook (w);
       
-      if (glyphs == end - n)
+      if (glyphs == end - n
+	  /* In front of a space added by append_space.  */
+	  || (glyphs == end - n - 1
+	      && (end - n)->charpos <= 0))
 	rif->write_glyphs (glyphs, n);
       else
 	rif->insert_glyphs (glyphs, n);
