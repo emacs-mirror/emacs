@@ -2,7 +2,7 @@ MAKE = make
 # BSD doesn't have it as a default.
 
 CC =gcc
-CPP = $(CC) -E
+CPP = $(CC) -E -Is -Im
 #Note: an alternative is  CPP = /lib/cpp
 
 # Just to avoid uncertainty.
@@ -19,7 +19,7 @@ distclean:
 	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ \#* *.o
 
 clean:
-	-rm -f temacs xemacs xmakefile core \#* *.o
+	-rm -f temacs xemacs xmakefile* core \#* *.o
 
 xemacs: xmakefile doxemacs
 
@@ -34,10 +34,16 @@ dotemacs:
 # If you have a problem with cc -E here, changing
 # the definition of CPP above may fix it.
 xmakefile: ymakefile config.h
-	-rm -f xmakefile junk.c
+	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ymakefile junk.c
-	$(CPP) junk.c | sed -e 's/^#.*//' -e 's/^[ \f\t][ \f\t]*$$//' -e 's/^ /	/' | \
-	sed -n -e '/^..*$$/p' > xmakefile
+	$(CPP) junk.c > junk.cpp
+	< junk.cpp					\
+	sed	-e 's/^#.*//'				\
+		-e 's/^[ \f\t][ \f\t]*$$//'		\
+		-e 's/^ /	/' 			\
+	| sed -n -e '/^..*$$/p' 			\
+	> xmakefile.new
+	mv -f xmakefile.new xmakefile
 	rm -f junk.c
 
 tags TAGS:

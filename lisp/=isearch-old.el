@@ -18,59 +18,45 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;;###autoload
 (defvar search-last-string "" "\
 Last string search for by a non-regexp search command.
 This does not include direct calls to the primitive search functions,
 and does not include searches that are aborted.")
 
-;;;###autoload
 (defvar search-last-regexp "" "\
 Last string searched for by a regexp search command.
 This does not include direct calls to the primitive search functions,
 and does not include searches that are aborted.")
 
 
-;;;###autoload
 (defconst search-repeat-char ?\C-s "\
 *Character to repeat incremental search forwards.")
-;;;###autoload
 (defconst search-reverse-char ?\C-r "\
 *Character to repeat incremental search backwards.")
-;;;###autoload
 (defconst search-exit-char ?\C-m "\
 *Character to exit incremental search.")
-;;;###autoload
 (defconst search-delete-char ?\177 "\
 *Character to delete from incremental search string.")
-;;;###autoload
 (defconst search-quote-char ?\C-q "\
 *Character to quote special characters for incremental search.")
-;;;###autoload
 (defconst search-yank-word-char ?\C-w "\
 *Character to pull next word from buffer into search string.")
-;;;###autoload
 (defconst search-yank-line-char ?\C-y "\
 *Character to pull rest of line from buffer into search string.")
-;;;###autoload
 (defconst search-ring-advance-char ?\M-n "\
 *Character to pull next (more recent) search string from the ring of same.")
-;;;###autoload
 (defconst search-ring-retreat-char ?\M-p "\
 *Character to pull previous (older) search string from the ring of same.")
 
-;;;###autoload
 (defconst search-exit-option t "\
 *Non-nil means random control characters terminate incremental search.")
 
-;;;###autoload
 (defvar search-slow-window-lines 1 "\
 *Number of lines in slow search display windows.
 These are the short windows used during incremental search on slow terminals.
 Negative means put the slow search window at the top (normally it's at bottom)
 and the value is minus the number of lines.")
 
-;;;###autoload
 (defvar search-slow-speed 1200 "\
 *Highest terminal speed at which to use \"slow\" style incremental search.
 This is the style where a one-line window is created to show the line
@@ -104,7 +90,6 @@ Each element is a cons cell of the form (STRING . UPPERCASE-FLAG).")
 thing searched for.")
 
 
-;;;###autoload
 (defun isearch-forward ()
   "Do incremental search forward.
 As you type characters, they add to the search string and are found.
@@ -123,36 +108,29 @@ C-g while searching or when search has failed
 C-g when search is successful aborts and moves point to starting point."
   (interactive)
   (isearch t))
-;;;###autoload
 (define-key global-map "\C-s" 'isearch-forward)
 
-;;;###autoload
 (defun isearch-forward-regexp ()
   "Do incremental search forward for regular expression.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive)
   (isearch t t))
-;;;###autoload
 (define-key esc-map "\C-s" 'isearch-forward-regexp)
 
-;;;###autoload
 (defun isearch-backward ()
   "Do incremental search backward.
 See \\[isearch-forward] for more information."
   (interactive)
   (isearch nil))
-;;;###autoload
 (define-key global-map "\C-r" 'isearch-backward)
 
-;;;###autoload
 (defun isearch-backward-regexp ()
   "Do incremental search backward for regular expression.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive)
   (isearch nil t))
-;;;###autoload
 (define-key esc-map "\C-r" 'isearch-backward-regexp)
 
 

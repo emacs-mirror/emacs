@@ -2,13 +2,13 @@
 
 ;;;; Version 2.00   14 Dec 1990
 
-;;;; Copyright 1989, 1990 Free Software Foundation
+;;;; Copyright 1989, 1990, 1992 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -1031,13 +1031,13 @@ which menu descriptions are indented. Its default value is 24."
   
   (interactive "P")
   (if (not region-p)
-      (let ((auto-fill-hook nil)) ; update a single node
+      (let ((auto-fill-function nil)) ; update a single node
         (if (not (re-search-backward "^@node" (point-min) t))
             (error "Node line not found before this position."))
         (texinfo-update-the-node)
         (message "Done...updated the node.  You may save the buffer."))
     ;; else
-    (let ((auto-fill-hook nil)
+    (let ((auto-fill-function nil)
           (beginning (region-beginning))
 	  (end (region-end)))
       (if (= end beginning)
@@ -1245,14 +1245,14 @@ Info `g*' command is inadequate."
   
   (interactive "P")
   (if (not region-p)
-      (let ((auto-fill-hook nil))   ; update a single node
+      (let ((auto-fill-function nil))   ; update a single node
         (if (not (re-search-backward "^@node" (point-min) t))
             (error "Node line not found before this position."))
         (texinfo-sequentially-update-the-node)
         (message 
          "Done...sequentially updated the node .  You may save the buffer."))
     ;; else
-    (let ((auto-fill-hook nil)
+    (let ((auto-fill-function nil)
           (beginning (region-beginning))
           (end (region-end)))
       (if (= end beginning)

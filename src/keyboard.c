@@ -310,7 +310,7 @@ Lisp_Object Qevent_unmodified;
 
 /* Symbols to use for non-text mouse positions.  */
 Lisp_Object Qmode_line;
-Lisp_Object Qvertical_split;
+Lisp_Object Qvertical_line;
 
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
@@ -1625,7 +1625,8 @@ kbd_buffer_get_event ()
   else if (do_mouse_tracking && mouse_moved)
     {
       SCREEN_PTR screen;
-      Lisp_Object x, y, time;
+      Lisp_Object x, y;
+      unsigned long time;
 
       (*mouse_position_hook) (&screen, &x, &y, &time);
       XSET (Vlast_event_screen, Lisp_Screen, screen);
@@ -1779,7 +1780,7 @@ make_lispy_event (event)
 	    if (part == 1)
 	      posn = Qmode_line;
 	    else if (part == 2)
-	      posn = Qvertical_split;
+	      posn = Qvertical_line;
 	    else
 	      XSET (posn, Lisp_Int,
 		    buffer_posn_from_coords (XWINDOW (window),
@@ -1831,7 +1832,7 @@ static Lisp_Object
 make_lispy_movement (screen, x, y, time)
      SCREEN_PTR screen;
      Lisp_Object x, y;
-     Lisp_Object time;
+     unsigned long time;
 {
   Lisp_Object window;
   int ix, iy;
@@ -1852,7 +1853,7 @@ make_lispy_movement (screen, x, y, time)
       if (part == 1)
 	posn = Qmode_line;
       else if (part == 2)
-	posn = Qvertical_split;
+	posn = Qvertical_line;
       else
 	XSET (posn, Lisp_Int, buffer_posn_from_coords (XWINDOW (window),
 						       ix, iy));
@@ -1864,7 +1865,7 @@ make_lispy_movement (screen, x, y, time)
 		Fcons (window,
 		       Fcons (posn,
 			      Fcons (Fcons (x, y),
-				     Fcons (time, Qnil)))));
+				     Fcons (make_number (time), Qnil)))));
 }
 
 
@@ -2638,6 +2639,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  
 	  Vquit_flag = Qnil;
 
+#ifdef MULTI_SCREEN
 	  /* What buffer was this event typed/moused at?  */
 	  if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
 	    buf = (XBUFFER
@@ -2674,6 +2676,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      goto restart;
 	    }
+#endif
 	}
 
       first_binding = (follow_key (key,
@@ -3512,8 +3515,8 @@ syms_of_keyboard ()
 
   Qmode_line = intern ("mode-line");
   staticpro (&Qmode_line);
-  Qvertical_split = intern ("vertical-split");
-  staticpro (&Qvertical_split);
+  Qvertical_line = intern ("vertical-line");
+  staticpro (&Qvertical_line);
 
   Qevent_kind = intern ("event-type");
   staticpro (&Qevent_kind);

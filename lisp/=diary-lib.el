@@ -1,6 +1,5 @@
 ;;; diary.el --- diary functions.
-
-;; Copyright (C) 1989, 1990, 1991 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +28,8 @@
 ;;                                   Urbana, Illinois 61801
 
 (require 'calendar)
+
+;;;###autoload
 (defun diary (&optional arg)
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
@@ -1254,8 +1255,8 @@ ending of that number (that is, `st', `nd', `rd' or `th', as appropriate."
 
 (defun diary-ordinal-suffix (n)
   "Ordinal suffix for N. (That is, `st', `nd', `rd', or `th', as appropriate.)"
-  (if (or (and (< 9 n) (< n 20))
-          (memq (% n 10) '(4 5 6 7 8 9 0)))
+  (if (or (memq (% n 100) '(11 12 13))
+	  (< 3 (% n 10)))
       "th"
     (aref ["th" "st" "nd" "rd"] (% n 10))))
 
@@ -1374,8 +1375,8 @@ order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR."
                       (t "th"))))))
 
 (defun diary-rosh-hodesh ()
-  "Rosh Hodesh diary entry--entry applies if date is Rosh Hodesh or the
-Saturday before."
+  "Rosh Hodesh diary entry--entry applies if date is Rosh Hodesh, the day
+before, or the Saturday before."
   (let* ((d (calendar-absolute-from-gregorian date))
          (h-date (calendar-hebrew-from-absolute d))
          (h-month (extract-calendar-month h-date))
@@ -1415,9 +1416,18 @@ Saturday before."
                 ((and (< h-day 30) (> h-day 22) (= 30 last-day))
                  (format "Mevarhim Rosh Hodesh %s (%s-%s)"
                          (aref h-month-names h-month)
-                         (aref calendar-day-name-array (- 29 h-day))
+                         (if (= h-day 29)
+                             "tomorrow"
+                           (aref calendar-day-name-array (- 29 h-day)))
                          (aref calendar-day-name-array
-                               (mod (- 30 h-day) 7)))))))))
+                               (mod (- 30 h-day) 7)))))
+        (if (and (= h-day 29) (/= h-month 6))
+            (format "Erev Rosh Hodesh %s"
+                    (aref h-month-names
+                          (if (= h-month
+                                 (hebrew-calendar-last-month-of-year
+                                  h-year))
+                              0 h-month))))))))
 
 (defun diary-parasha ()
   "Parasha diary entry--entry applies if date is a Saturday."
@@ -1605,39 +1615,6 @@ start on Tuesday.")
               (aref hebrew-calendar-parashiot-names (aref p 0))
               (aref hebrew-calendar-parashiot-names (aref p 1)))
     (aref hebrew-calendar-parashiot-names p)))
-
-(defun hebrew-calendar-yahrzeit (death-date year)
-  "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
-  (let* ((death-day (extract-calendar-day death-date))
-         (death-month (extract-calendar-month death-date))
-         (death-year (extract-calendar-year death-date)))
-    (cond
-     ;; If it's Heshvan 30 it depends on the first anniversary; if
-     ;; that was not Heshvan 30, use the day before Kislev 1.
-     ((and (= death-month 8)
-           (= death-day 30)
-           (not (hebrew-calendar-long-heshvan-p (1+ death-year))))
-      (1- (calendar-absolute-from-hebrew (list 9 1 year))))
-     ;; If it's Kislev 30 it depends on the first anniversary; if
-     ;; that was not Kislev 30, use the day before Teveth 1.
-     ((and (= death-month 9)
-           (= death-day 30)
-           (hebrew-calendar-short-kislev-p (1+ death-year)))
-      (1- (calendar-absolute-from-hebrew (list 10 1 year))))
-     ;; If it's Adar II, use the same day in last month of
-     ;; year (Adar or Adar II).
-     ((= death-month 13)
-      (calendar-absolute-from-hebrew
-       (list (last-month-of-hebrew-year year) death-day year)))
-     ;; If it's the 30th in Adar I and $year$ is not a leap year
-     ;; (so Adar has only 29 days), use the last day in Shevat.
-     ((and (= death-day 30)
-           (= death-month 12)
-           (not (hebrew-calendar-leap-year-p death-year)))
-      (calendar-absolute-from-hebrew (list 11 30 year)))
-     ;; In all other cases, use the normal anniversary of the date of death.
-     (t (calendar-absolute-from-hebrew
-         (list death-month death-day year))))))
 
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary-file to diary-entries-list.

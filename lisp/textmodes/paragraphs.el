@@ -19,25 +19,20 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload
 (defconst paragraph-start "^[ \t\n\f]" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.")
 
-;;;###autoload
 (defconst paragraph-separate "^[ \t\f]*$" "\
 *Regexp for beginning of a line that separates paragraphs.
 If you change this, you may have to change paragraph-start also.")
 
-;;;###autoload
 (defconst sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") "\
 *Regexp describing the end of a sentence.
 All paragraph boundaries also end sentences, regardless.")
 
-;;;###autoload
 (defconst page-delimiter "^\014" "\
 *Regexp describing line-beginnings that separate pages.")
 
-;;;###autoload
 (defvar paragraph-ignore-fill-prefix nil "\
 Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters.")

@@ -20,6 +20,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 
 #include "config.h"
+
+#ifdef MULTI_SCREEN
+
 #include "lisp.h"
 #include "screen.h"
 #include "window.h"
@@ -33,11 +36,6 @@ Lisp_Object Vterminal_screen;
 Lisp_Object Vdefault_minibuffer_screen;
 Lisp_Object Vdefault_screen_alist;
 Lisp_Object Qminibuffer;
-
-/* A screen which is not just a minibuffer, or 0 if there are no
-   such screens.  This is usually the most recent such screen that
-   was selected.  */
-struct screen *last_nonminibuf_screen;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -1220,3 +1218,5 @@ For values specific to the separate minibuffer screen, see\n\
   defsubr (&Srubber_band_rectangle);
 #endif	/* HAVE_X11 */
 }
+
+#endif

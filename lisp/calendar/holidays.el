@@ -1,6 +1,5 @@
 ;;; holidays.el --- holiday functions for the calendar package
-
-;; Copyright (C) 1989, 1990, 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,6 +33,8 @@
 ;; pages 899-928.
 
 (require 'calendar)
+
+;;;###autoload
 (defun holidays ()
   "Display the holidays for last month, this month, and next month.
 This function is suitable for execution in a .emacs file."
@@ -62,7 +63,8 @@ The holidays are those in the list calendar-holidays."
   "Find holidays for the date specified by the cursor in the calendar window."
   (interactive)
   (message "Checking holidays...")
-  (let* ((date (calendar-cursor-to-date))
+  (let* ((date (or (calendar-cursor-to-date)
+                   (error "Cursor is not on a date!")))
          (date-string (calendar-date-string date))
          (holiday-list (check-calendar-holidays date))
          (holiday-string (mapconcat 'identity holiday-list ";  "))

@@ -1,6 +1,5 @@
 ;;; calendar.el --- Calendar functions.
-
-;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
+;;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -67,7 +66,7 @@
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.
 
-(defconst calendar-version "Version 4.01, released August 20, 1991")
+(defconst calendar-version "Version 4.02, released June 14, 1992")
 
 (defvar view-diary-entries-initially nil
   "*If T, the diary entries for the current date will be displayed on entry.
@@ -102,6 +101,7 @@ The marking symbol is specified by the variable `diary-entry-marker'.")
 on entry.  The holidays are displayed in another window when the calendar is
 first displayed.")
 
+;;;###autoload
 (defvar mark-holidays-in-calendar nil
   "*If t, dates of holidays will be marked in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'.")
@@ -109,18 +109,21 @@ The marking symbol is specified by the variable `calendar-holiday-marker'.")
 (defvar calendar-holiday-marker "*"
   "*The symbol used to mark notable dates in the calendar.")
 
+;;;###autoload
 (defvar all-hebrew-calendar-holidays nil
   "*If nil, the holidays from the Hebrew calendar that are shown will
 include only those days of such major interest as to appear on secular
 calendars.  If t, the holidays shown in the calendar will include all
 special days that would be shown on a complete Hebrew calendar.")
 
+;;;###autoload
 (defvar all-christian-calendar-holidays nil
   "*If nil, the holidays from the Christian calendar that are shown will
 include only those days of such major interest as to appear on secular
 calendars.  If t, the holidays shown in the calendar will include all
 special days that would be shown on a complete Christian calendar.")
 
+;;;###autoload
 (defvar all-islamic-calendar-holidays nil
   "*If nil, the holidays from the Islamic calendar that are shown will
 include only those days of such major interest as to appear on secular
@@ -401,6 +404,7 @@ include, for example, rearranging the lines into order by day and time,
 saving the buffer instead of deleting it, or changing the function used to
 do the printing.")
 
+;;;###autoload
 (defvar list-diary-entries-hook nil
   "*List of functions to be called after the diary file is culled for
 relevant entries. It is to be used for diary entries that are not found in
@@ -432,6 +436,7 @@ in your .emacs file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
 lexicographic order.")
 
+;;;###autoload
 (defvar diary-display-hook 'simple-diary-display
   "*List of functions that handle the display of the diary.
 
@@ -453,6 +458,7 @@ diary buffer will not show days for which there are no diary entries, even
 if that day is a holiday; if you want such days to be shown in the fancy
 diary buffer, set the variable `diary-list-include-blanks' to t.")
 
+;;;###autoload
 (defvar nongregorian-diary-listing-hook nil
   "*List of functions to be called for the diary file and included files as
 they are processed for listing diary entries.  You can use any or all of
@@ -474,12 +480,14 @@ variable `diary-include-string'.  When you use `mark-included-diary-files' as
 part of the mark-diary-entries-hook, you will probably also want to use the
 function `include-other-diary-files' as part of the list-diary-entries-hook.")
 
+;;;###autoload
 (defvar nongregorian-diary-marking-hook nil
   "*List of functions to be called as the diary file and included files are
 processed for marking diary entries.  You can use either or both of
 mark-hebrew-diary-entries and mark-islamic-diary-entries.  The documentation
 for these functions describes the style of such diary entries.")
 
+;;;###autoload
 (defvar diary-list-include-blanks nil
   "*If nil, do not include days with no diary entry in the list of diary
 entries.  Such days will then not be shown in the the fancy diary buffer,
@@ -693,7 +701,6 @@ the inclusion of the functions `calendar-holiday-function-fixed',
 `calendar-holiday-function-islamic', `calendar-holiday-function-julian',
 and `calendar-holiday-function-if', respectively.")
 
-
 (defconst calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
 
@@ -726,6 +733,37 @@ sum EXPRESSION."
          (setq (, index) (1+ (, index))))
        sum)))
 
+;; The following macros are for speed; the code would be clearer if they
+;; were functions, but they can be called thousands of times when
+;; looking up holidays or processing the diary.  Here, for example, are the
+;; numbers of calls to calendar/diary/holiday functions in preparing the
+;; fancy diary display, for a moderately complex diary file, with functions
+;; used instead of macros.  There were a total of 10000 such calls:
+;;
+;;  1934   extract-calendar-month
+;;  1852   extract-calendar-year
+;;  1819   extract-calendar-day
+;;   845   calendar-leap-year-p
+;;   837   calendar-day-number
+;;   775   calendar-absolute-from-gregorian
+;;   346   calendar-last-day-of-month
+;;   286   hebrew-calendar-last-day-of-month
+;;   188   hebrew-calendar-leap-year-p
+;;   180   hebrew-calendar-elapsed-days
+;;   163   hebrew-calendar-last-month-of-year
+;;    66   calendar-date-compare
+;;    65   hebrew-calendar-days-in-year
+;;    60   calendar-absolute-from-julian
+;;    50   calendar-absolute-from-hebrew
+;;    43   calendar-date-equal
+;;    38   calendar-gregorian-from-absolute
+;;     .
+;;     .
+;;     .
+;;
+;; The use of these seven macros eliminates the overhead of 92% of the function
+;; calls; it's faster this way.
+
 (defmacro extract-calendar-month (date)
   "Extract the month part of DATE which has the form (month day year)."
   (` (car (, date))))
@@ -737,6 +775,52 @@ sum EXPRESSION."
 (defmacro extract-calendar-year (date)
   "Extract the year part of DATE which has the form (month day year)."
   (` (car (cdr (cdr (, date))))))
+
+(defmacro calendar-leap-year-p (year)
+  "Returns t if YEAR is a Gregorian leap year."
+  (` (or
+        (and (=  (% (, year) 4) 0)
+             (/= (% (, year) 100) 0))
+        (= (% (, year) 400) 0))))
+
+(defmacro calendar-last-day-of-month (month year)
+  "The last day in MONTH during YEAR."
+  (` (if (and
+            (, (macroexpand (` (calendar-leap-year-p (, year)))))
+            (= (, month) 2))
+           29
+         (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- (, month))))))
+
+(defmacro calendar-day-number (date)
+  "Return the day number within the year of the date DATE.
+For example, (calendar-day-number '(1 1 1987)) returns the value 1,
+while (calendar-day-number '(12 31 1980)) returns 366."
+;;
+;; An explanation of the calculation can be found in PascAlgorithms by
+;; Edward and Ruth Reingold, Scott-Foresman/Little, Brown, 1988.
+;;
+  (` (let* ((month (, (macroexpand (` (extract-calendar-month (, date))))))
+            (day (, (macroexpand (` (extract-calendar-day (, date))))))
+            (year  (, (macroexpand (` (extract-calendar-year (, date))))))
+            (day-of-year (+ day (* 31 (1- month)))))
+       (if (> month 2)
+           (progn
+             (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
+            (if (, (macroexpand (` (calendar-leap-year-p year))))
+                (setq day-of-year (1+ day-of-year)))))
+       day-of-year)))
+
+(defmacro calendar-absolute-from-gregorian (date)
+  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
+The Gregorian date Sunday, December 31, 1 BC is imaginary."
+  (` (let ((month (, (macroexpand (` (extract-calendar-month (, date))))))
+           (day (, (macroexpand (` (extract-calendar-day (, date))))))
+           (year  (, (macroexpand (` (extract-calendar-year (, date)))))))
+       (+ (, (macroexpand (` (calendar-day-number (, date)))));; Days this year
+          (* 365 (1- year));;        + Days in prior years
+          (/ (1- year) 4);;          + Julian leap years
+          (- (/ (1- year) 100));;    - century years
+          (/ (1- year) 400)))));;     + Gregorian leap years
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -944,10 +1028,11 @@ from the first character on the line and does not disturb the first INDENT
 characters on the line."
   (let* ((first-day-of-month (calendar-day-of-week (list month 1 year)))
          (first-saturday (- 7 first-day-of-month))
-         (last (calendar-last-day-of-month month year)))
+         (last (calendar-last-day-of-month month year))
+         (heading (format "%s %d" (calendar-month-name month) year)))
     (goto-char (point-min))
     (calendar-insert-indented
-       (format "   %s %d" (calendar-month-name month) year) indent t)
+     heading (+ indent (/ (- 20 (length heading)) 2)) t)
     (calendar-insert-indented " S  M Tu  W Th  F  S" indent t)
     (calendar-insert-indented "" indent);; Move to appropriate spot on line
     ;; Add blank days before the first of the month
@@ -1902,44 +1987,12 @@ is a string to insert in the minibuffer before reading."
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defun calendar-leap-year-p (year)
-  "Returns t if YEAR is a Gregorian leap year."
-  (or
-    (and (=  (% year   4) 0)
-         (/= (% year 100) 0))
-    (= (% year 400) 0)))
-
-(defun calendar-day-number (date)
-  "Return the day number within the year of the date DATE.
-For example, (calendar-day-number '(1 1 1987)) returns the value 1,
-while (calendar-day-number '(12 31 1980)) returns 366."
-;;
-;; An explanation of the calculation can be found in PascAlgorithms by
-;; Edward and Ruth Reingold, Scott-Foresman/Little, Brown, 1988.
-;;
-    (let* ((month (extract-calendar-month date))
-           (day (extract-calendar-day date))
-           (year (extract-calendar-year date))
-         (day-of-year (+ day (* 31 (1- month)))))
-      (if (> month 2)
-          (progn
-            (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
-            (if (calendar-leap-year-p year)
-                (setq day-of-year (1+ day-of-year)))))
-      day-of-year))
-
 (defun calendar-day-name (date)
   "Returns a string with the name of the day of the week of DATE."
   (aref calendar-day-name-array (calendar-day-of-week date)))
 
 (defconst calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
-
-(defun calendar-last-day-of-month (month year)
-  "The last day in MONTH during YEAR."
-  (if (and (calendar-leap-year-p year) (= month 2))
-      29
-    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
 
 (defconst calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
@@ -1964,18 +2017,6 @@ If FILTER is provided, apply it to each item in the list."
 (defun calendar-day-of-week (date)
   "Returns the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
   (% (calendar-absolute-from-gregorian date) 7))
-
-(defun calendar-absolute-from-gregorian (date)
-  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
-    (+ (calendar-day-number date);; Days this year
-       (* 365 (1- year));;        + Days in prior years
-       (/ (1- year) 4);;          + Julian leap years
-       (- (/ (1- year) 100));;    - century years
-       (/ (1- year) 400))));;     + Gregorian leap years
 
 (defun calendar-unmark ()
   "Delete the diary and holiday marks from the calendar."
@@ -2458,6 +2499,94 @@ Gregorian date Sunday, December 31, 1 BC."
               calendar-hebrew-month-name-array-leap-year
             calendar-hebrew-month-name-array-common-year)))
     (message "Hebrew date: %s" (calendar-date-string hebrew-date nil t))))
+
+(defun hebrew-calendar-yahrzeit (death-date year)
+  "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
+  (let* ((death-day (extract-calendar-day death-date))
+         (death-month (extract-calendar-month death-date))
+         (death-year (extract-calendar-year death-date)))
+    (cond
+     ;; If it's Heshvan 30 it depends on the first anniversary; if
+     ;; that was not Heshvan 30, use the day before Kislev 1.
+     ((and (= death-month 8)
+           (= death-day 30)
+           (not (hebrew-calendar-long-heshvan-p (1+ death-year))))
+      (1- (calendar-absolute-from-hebrew (list 9 1 year))))
+     ;; If it's Kislev 30 it depends on the first anniversary; if
+     ;; that was not Kislev 30, use the day before Teveth 1.
+     ((and (= death-month 9)
+           (= death-day 30)
+           (hebrew-calendar-short-kislev-p (1+ death-year)))
+      (1- (calendar-absolute-from-hebrew (list 10 1 year))))
+     ;; If it's Adar II, use the same day in last month of
+     ;; year (Adar or Adar II).
+     ((= death-month 13)
+      (calendar-absolute-from-hebrew
+       (list (last-month-of-hebrew-year year) death-day year)))
+     ;; If it's the 30th in Adar I and $year$ is not a leap year
+     ;; (so Adar has only 29 days), use the last day in Shevat.
+     ((and (= death-day 30)
+           (= death-month 12)
+           (not (hebrew-calendar-leap-year-p death-year)))
+      (calendar-absolute-from-hebrew (list 11 30 year)))
+     ;; In all other cases, use the normal anniversary of the date of death.
+     (t (calendar-absolute-from-hebrew
+         (list death-month death-day year))))))
+
+(defun list-yahrzeit-dates (death-date start-year end-year)
+  "List of Yahrzeit dates for *Gregorian* DEATH-DATE
+from START-YEAR to END-YEAR.  When called interactively
+the date of death is taken from the cursor in the calendar window."
+  (interactive
+   (let* ((death-date (calendar-cursor-to-date))
+          (death-year (extract-calendar-year death-date))
+          (start-year (calendar-read
+                       (format "Starting year of Yahrzeit table (>%d): "
+                               death-year)
+                       '(lambda (x) (> x death-year))
+                       (int-to-string (1+ death-year))))
+          (end-year (calendar-read
+                     (format "Ending year of Yahrzeit table (>=%d): "
+                             start-year)
+                       '(lambda (x) (>= x start-year)))))
+   (list death-date start-year end-year)))
+  (message "Computing yahrzeits...")
+  (let* ((yahrzeit-buffer "*Yahrzeits*")
+         (h-date (calendar-hebrew-from-absolute
+                  (calendar-absolute-from-gregorian death-date)))
+         (h-month (extract-calendar-month h-date))
+         (h-day (extract-calendar-day h-date))
+         (h-year (extract-calendar-year h-date)))
+    (set-buffer (get-buffer-create yahrzeit-buffer))
+    (setq buffer-read-only nil)
+    (setq mode-line-format
+     (format "------Yahrzeit dates for %s = %s%%-"
+             (calendar-date-string death-date)
+             (let ((calendar-month-name-array
+                    (if (hebrew-calendar-leap-year-p h-year)
+                        calendar-hebrew-month-name-array-leap-year
+                      calendar-hebrew-month-name-array-common-year))
+                   (calendar-date-display-form
+                    (if european-calendar-style
+                        '(day " " monthname " " year)
+                      '(monthname " " day ", " year))))
+               (calendar-date-string h-date nil t))))
+    (erase-buffer)
+    (goto-char (point-min))
+    (calendar-for-loop i from start-year to end-year do
+        (insert
+         (calendar-date-string
+          (calendar-gregorian-from-absolute
+           (hebrew-calendar-yahrzeit
+            h-date
+            (extract-calendar-year
+             (calendar-hebrew-from-absolute
+              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))
+    (goto-char (point-min))
+    (set-buffer-modified-p nil)
+    (setq buffer-read-only t)
+    (display-buffer yahrzeit-buffer)
+    (message "Computing yahrzeits...done")))
 
 (defun french-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.

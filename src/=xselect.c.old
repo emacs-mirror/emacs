@@ -193,7 +193,7 @@ use X selections.")
     {
       BLOCK_INPUT;
       XStoreBytes (x_current_display,
-		   XSTRING (string)->data,
+		   (char *) XSTRING (string)->data,
 		   XSTRING (string)->size);
       UNBLOCK_INPUT;
     }

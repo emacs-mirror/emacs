@@ -47,14 +47,6 @@ static struct window *decode_window();
 
 Lisp_Object selected_window;
 
-#ifndef MULTI_SCREEN
-
-/* The root window for the screen.
-   This is accessed via SCREEN_ROOT_WINDOW (selected_screen).  */
-Lisp_Object root_window;
-
-#endif
-
 /* The minibuffer window of the selected screen.
    Note that you cannot test for minibufferness of an arbitrary window
    by comparing against this; but you can test for minibufferness of
@@ -222,7 +214,7 @@ POS defaults to point; WINDOW, to the selected window.")
       posval = *compute_motion (top, 0, 0, posint, height, 0,
 				XFASTINT (w->width) - 1
 				- (XFASTINT (w->width) + XFASTINT (w->left)
-				   != XSCREEN (w->screen)->width),
+				   != SCREEN_WIDTH (XSCREEN (w->screen))),
 				XINT (w->hscroll), 0);
 
       return posval.vpos < height ? Qt : Qnil;
@@ -363,9 +355,9 @@ measured in characters from the upper-left corner of the screen.\n\
 screen.\n\
 If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
-If they are in the mode line of WINDOW, 'mode-line is returned.\n\
+If they are in the mode line of WINDOW, `mode-line' is returned.\n\
 If they are on the border between WINDOW and its right sibling,\n\
-   'vertical-split is returned.")
+   `vertical-line' is returned.")
   (coordinates, window)
      register Lisp_Object coordinates, window;
 {
@@ -388,7 +380,7 @@ If they are on the border between WINDOW and its right sibling,\n\
       return Qmode_line;
       
     case 3:			/* On right border of window.  */
-      return Qvertical_split;
+      return Qvertical_line;
 
     default:
       abort ();
@@ -642,8 +634,8 @@ replace_window (old, replacement)
   /* If OLD is its screen's root_window, then replacement is the new
      root_window for that screen.  */
 
-  if (old == XSCREEN (o->screen)->root_window)
-    XSCREEN (o->screen)->root_window = replacement;
+  if (old == SCREEN_ROOT_WINDOW (XSCREEN (o->screen)))
+    SCREEN_ROOT_WINDOW (XSCREEN (o->screen)) = replacement;
 
   p->left = o->left;
   p->top = o->top;
@@ -1062,7 +1054,8 @@ window_loop (type, obj, mini, screens)
 
 	  case GET_LRU_WINDOW:
 	    /* t as arg means consider only full-width windows */
-	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width) != screen->width)
+	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width)
+		!= SCREEN_WIDTH (screen))
 	      break;
 #if 0
 	    /* Ignore invisible and iconified screens.  */
@@ -2614,32 +2607,33 @@ init_window_once ()
 #else /* not MULTI_SCREEN */
   extern Lisp_Object get_minibuffer ();
 
-  root_window = make_window ();
+  SCREEN_ROOT_WINDOW (selected_screen) = make_window ();
   minibuf_window = make_window ();
 
-  XWINDOW (root_window)->next = minibuf_window;
-  XWINDOW (minibuf_window)->prev = root_window;
+  XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->next = minibuf_window;
+  XWINDOW (minibuf_window)->prev = SCREEN_ROOT_WINDOW (selected_screen);
 
   /* These values 9 and 10 are arbitrary,
      just so that there is "something there."
      Correct values are put in in init_xdisp */
 
-  XFASTINT (XWINDOW (root_window)->width) = 10;
+  XFASTINT (XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->width) = 10;
   XFASTINT (XWINDOW (minibuf_window)->width) = 10;
 
-  XFASTINT (XWINDOW (root_window)->height) = 9;
+  XFASTINT (XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->height) = 9;
   XFASTINT (XWINDOW (minibuf_window)->top) = 9;
   XFASTINT (XWINDOW (minibuf_window)->height) = 1;
 
   /* Prevent error in Fset_window_buffer.  */
-  XWINDOW (root_window)->buffer = Qt;
+  XWINDOW (SCREEN_ROOT_WINDOW (selected_screen))->buffer = Qt;
   XWINDOW (minibuf_window)->buffer = Qt;
 
   /* Now set them up for real.  */
-  Fset_window_buffer (root_window, Fcurrent_buffer ());
+  Fset_window_buffer (SCREEN_ROOT_WINDOW (selected_screen),
+		      Fcurrent_buffer ());
   Fset_window_buffer (minibuf_window, get_minibuffer (0));
 
-  selected_window = root_window;
+  selected_window = SCREEN_ROOT_WINDOW (selected_screen);
   /* Make sure this window seems more recently used than
      a newly-created, never-selected window.  Increment
      window_select_count so the first selection ever will get

@@ -68,7 +68,7 @@ unsuccessful after disturbing the status quo, config.status is removed."
 
 if [ ! -r ./src/lisp.h ]; then
   echo "${progname}: Can't find Emacs sources in \`./src'.
-Run this config script in the top directory of the Emacs source tree." 1>&2
+Run this config script in the top directory of the Emacs source tree." >&2
   exit 1
 fi
 
@@ -139,7 +139,11 @@ while [ $# != 0 ]; do
         ;;
         *:${opt}*:${opt}*:* )	# Ambiguous prefix.
 	  echo "\`-${opt}' is an ambiguous switch; it could be any of the following:"
-	  echo `echo ${options} | tr ':' '\012' | grep '^'${opt}`
+	  # We can't just use tr to translate colons to newlines, since
+	  # BSD sed and SYSV sed use different syntaxes for that.
+	  spaced_options=`echo ${options} | tr ':' ' '`
+	  echo `(for option in ${spaced_options}; do echo $option; done) \
+	        | grep "^${opt}"`
 	  echo ${short_usage}
 	  exit 1
 	;;
@@ -170,7 +174,7 @@ while [ $# != 0 ]; do
 	    n | no )		val=no  ;;
 	    * )
 	      echo "The \`-${optvar}' option (\`-${opt}') is supposed to have a boolean
-  value - set it to either \`yes' or \`no'." 1>&2
+  value - set it to either \`yes' or \`no'." >&2
 	      exit 1
 	    ;;
 	  esac
@@ -208,7 +212,7 @@ machfile="m/${machine}.h"
 if [ ! -r src/${machfile} ]; then
   echo "${progname}: Emacs has no configuration info for the machine called
 \`${machine}'.  Look at etc/MACHINES for the names of machines
-that Emacs has been ported to." 1>&2
+that Emacs has been ported to." >&2
   exit 1
 fi
 
@@ -226,7 +230,7 @@ if [ "${opsystem}" = "" ]; then
 system a \`${machine}' machine might run.  Try specifying the
 operating system explicitly by passing ${progname} an
 \`-opsystem=SYSTEM-NAME' flag.  Look at etc/MACHINES for the
-names of operating systems that Emacs has been ported to." 1>&2
+names of operating systems that Emacs has been ported to." >&2
     exit 1
   fi
 
@@ -238,7 +242,7 @@ out which one you're running.  Run ${progname} with -machine and
 (This information comes from the file \`etc/MACHINES' - see that
 file for more detail.)
 
-" 1>&2
+" >&2
     sed < src/${machfile} -e '1,/NOTE-START/d' -e '/NOTE-END/,$d' | more
     echo
     exit 1
@@ -250,7 +254,7 @@ file for more detail.)
 operating system for the machine \`${machine}' is \`${opsystem}',
 but there is no configuration file for \`${opsystem}', so Emacs's
 default info is screwed up.  Try specifying the operating system
-explicitly by passing ${progname} an \`-opsystem=SYSTEM-NAME' flag." 1>&2
+explicitly by passing ${progname} an \`-opsystem=SYSTEM-NAME' flag." >&2
     exit 1
   fi
 else
@@ -258,7 +262,7 @@ else
   if [ ! -r src/${opsysfile} ]; then
     echo "${progname}: Emacs has no configuration info for the operating system
 \`${opsystem}'.  Look at etc/MACHINES for the names of operating
-systems that Emacs has been ported to." 1>&2
+systems that Emacs has been ported to." >&2
     exit 1
   fi
 fi
@@ -312,7 +316,9 @@ if [ ! "${infodir}" ]; then
 fi
 
 echo "Checking window system."
-window_system="`echo ${window_system} | tr A-Z a-z`"
+# Note that SYSV `tr' doesn't handle character ranges.
+window_system="`echo ${window_system} \
+                | tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz`"
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "x" ) window_system=x11 ;;
@@ -324,7 +330,7 @@ case "${window_system}" in
     fi
   ;;
   * )
-    echo "The \`-window_system' option must be set to \`none' or \`X11'." 1>&2
+    echo "The \`-window_system' option must be set to \`none' or \`X11'." >&2
     exit 1
   ;;
 esac
@@ -463,6 +469,7 @@ esac
 sed_flags="-e 's:@machine@:${machfile}:'"
 sed_flags="${sed_flags} -e 's:@opsystem@:${opsysfile}:'"
 for flag in `echo ${config_h_opts} | tr ':' ' '`; do
+  # Note that SYSV `tr' doesn't handle character ranges.
   cflagname=`echo ${flag} \
 	     | tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ`
   val=`eval echo '$'${flag}`
@@ -562,28 +569,28 @@ if [ "${highpri}" ]; then
 else
   desc_highpri="none"
 fi
-message="# Configured for machine \`${machine}' running \`${opsystem}'.
-# The following values have been set in ./Makefile and ./build-install:
-#   Executables will be placed in
-#         ${bindir}.
-#   Emacs's lisp search path will be
-#         \`${lisppath}'.
-#   Emacs will look for its architecture-independent data in
-#         ${datadir}.
-#   Emacs will look for its utility programs and other architecture-
-#   dependent data in
-#         ${libdir}.
-#   Emacs will keep track of file-locking in
-#         ${lockdir}.
-# The following values have been set in src/config.h:
-#   At how much higher than normal priority should Emacs run? ${desc_highpri}
-#   Should Emacs use the GNU version of malloc?             ${gnu_malloc}${gnu_malloc_reason}
-#   Should Emacs use the relocating allocator for buffers?  ${rel_alloc}
-#   Should Emacs support a floating point Elisp type?       ${lisp_float_type}
-#   What window system should Emacs use?                    ${window_system}
-#   Should Emacs support mouse menus, which require X11?    ${have_x_menu}
-#   What compiler should emacs be built with?               ${cc}
-#   Should the compilation use \`-g' and/or \`-O'?           ${c_switch_site- neither}"
+message="Configured for machine \`${machine}' running \`${opsystem}'.
+The following values have been set in ./Makefile and ./build-install:
+  \`make install' or \`build-install' will placed executables in
+        ${bindir}.
+  Emacs's lisp search path will be
+        \`${lisppath}'.
+  Emacs will look for its architecture-independent data in
+        ${datadir}.
+  Emacs will look for its utility programs and other architecture-
+  dependent data in
+        ${libdir}.
+  Emacs will keep track of file-locking in
+        ${lockdir}.
+The following values have been set in src/config.h:
+  At how much higher than normal priority should Emacs run? ${desc_highpri}
+  Should Emacs use the GNU version of malloc?             ${gnu_malloc}${gnu_malloc_reason}
+  Should Emacs use the relocating allocator for buffers?  ${rel_alloc}
+  Should Emacs support a floating point Elisp type?       ${lisp_float_type}
+  What window system should Emacs use?                    ${window_system}
+  Should Emacs support mouse menus, which require X11?    ${have_x_menu}
+  What compiler should emacs be built with?               ${cc}
+  Should the compilation use \`-g' and/or \`-O'?           ${c_switch_site- neither}"
 
 # Document the damage we have done by writing config.status.
 
@@ -593,7 +600,7 @@ echo "# This file is generated by \`${progname}.'
 # If you are thinking about editing it, you should seriously consider
 # running \`${progname}' instead.
 " >> config.status
-echo "${message}" >> config.status
+echo "${message}" | sed -e 's/^/# /' >> config.status
 echo "'./${progname}' ${arguments} "'$@' >> config.status
 # Remind people not to edit this.
 chmod -w config.status
@@ -601,6 +608,6 @@ chmod +x config.status
 
 # Print the description.
 echo
-echo "${message}" | sed -e 's/^# //'
+echo "${message}"
 
 exit 0

@@ -19,7 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload
 (defconst only-global-abbrevs nil "\
 *t means user plans to use global abbrevs only.
 Makes the commands to define mode-specific abbrevs define global ones instead.")

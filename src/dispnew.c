@@ -106,25 +106,17 @@ int cursor_in_echo_area;
 
 SCREEN_PTR selected_screen;
 
+/* A screen which is not just a minibuffer, or 0 if there are no such
+   screens.  This is usually the most recent such screen that was
+   selected.  In a single-screen version, this variable always remains 0.  */
+SCREEN_PTR last_nonminibuf_screen;
+
 /* In a single-screen version, the information that would otherwise
-   exist inside a `struct screen' lives in the following variables instead.  */
+   exist inside screen objects lives in the following structure instead.  */
 
 #ifndef MULTI_SCREEN
-
-/* Desired terminal cursor position (to show position of point),
-   origin zero */
-
-int cursX, cursY;
-
-/* Description of current screen contents */
-
-struct screen_glyphs *current_glyphs;
-
-/* Description of desired screen contents */
-
-struct screen_glyphs *desired_glyphs;
-
-#endif /* not MULTI_SCREEN */
+struct screen the_only_screen;
+#endif
 
 /* This is a vector, made larger whenever it isn't large enough,
    which is used inside `update_screen' to hold the old contents
@@ -142,8 +134,6 @@ extern short ospeed;	/* Output speed (from sg_ospeed) */
 int in_display;		/* 1 if in redisplay: can't handle SIGWINCH now.  */
 
 int delayed_size_change;  /* 1 means SIGWINCH happened when not safe.  */
-int delayed_screen_height;  /* Remembered new screen height.  */
-int delayed_screen_width;   /* Remembered new screen width.  */
 
 #ifdef MULTI_SCREEN
 
@@ -834,8 +824,8 @@ cancel_my_columns (w)
      struct window *w;
 {
   register int vpos;
-  register SCREEN_PTR screen = XSCREEN (w->screen);
-  register struct screen_glyphs *desired_glyphs = screen->desired_glyphs;
+  register struct screen_glyphs *desired_glyphs =
+    SCREEN_DESIRED_GLYPHS (XSCREEN (w->screen));
   register int start = XFASTINT (w->left);
   register int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
@@ -1049,8 +1039,10 @@ update_screen (s, force, inhibit_hairy_id)
 #endif /* HAVE_X_WINDOWS */
 	}
 
+#ifdef HAVE_X_WINDOWS
       if (SCREEN_IS_X (s))
 	downto += LINE_HEIGHT(s, i);
+#endif
     }
   pause = (i < SCREEN_HEIGHT (s) - 1) ? i : 0;
 
@@ -1603,11 +1595,10 @@ window_change_signal ()
 
   {
     Lisp_Object tail;
+    SCREEN_PTR s;
 
-    for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+    FOR_EACH_SCREEN (tail, s)
       {
-	SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
-	
 	if (SCREEN_IS_TERMCAP (s))
 	  {
 	    ++in_display;
@@ -1632,12 +1623,12 @@ do_pending_window_change ()
   while (delayed_size_change)
     {
       Lisp_Object tail;
+      SCREEN_PTR s;
 
       delayed_size_change = 0;
 
-      for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      FOR_EACH_SCREEN (tail, s)
 	{
-	  SCREEN_PTR s = XSCREEN (XCONS (tail)->car);
 	  int height = SCREEN_NEW_HEIGHT (s);
 	  int width = SCREEN_NEW_WIDTH (s);
 	    

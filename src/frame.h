@@ -1,11 +1,11 @@
 /* Define screen-object for GNU Emacs.
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -18,7 +18,12 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#ifdef MULTI_SCREEN
+/* The structure representing a screen.
+
+   We declare this even if MULTI_SCREEN is not defined, because when
+   we lack multi-screen support, we use one instance of this structure
+   to represent the one screen we support.  This is cleaner than
+   having miscellaneous random variables scattered about.  */
 
 enum output_method
 { output_termcap, output_x_window };
@@ -34,15 +39,13 @@ struct screen
   /* glyphs we'd like to appear on the screen */
   struct screen_glyphs *desired_glyphs;
 
+  /* See do_line_insertion_deletion_costs for info on these arrays. */
   /* Cost of inserting 1 line on this screen */
   int *insert_line_cost;
-
   /* Cost of deleting 1 line on this screen */
   int *delete_line_cost;
-
   /* Cost of inserting n lines on this screen */
   int *insert_n_lines_cost;
-
   /* Cost of deleting n lines on this screen */
   int *delete_n_lines_cost;
 
@@ -148,6 +151,8 @@ struct screen
   int scroll_bottom_vpos;
 };
 
+#ifdef MULTI_SCREEN
+
 typedef struct screen *SCREEN_PTR;
 
 #define XSCREEN(p) ((struct screen *) XPNTR (p))
@@ -157,7 +162,6 @@ typedef struct screen *SCREEN_PTR;
 
 #define SCREENP(s) (XTYPE(s) == Lisp_Screen)
 #define SCREEN_LIVE_P(s) ((s)->display.nothing != 0)
-#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1, s->garbaged = 1)
 #define SCREEN_IS_TERMCAP(s) ((s)->output_method == output_termcap)
 #define SCREEN_IS_X(s) ((s)->output_method == output_x_window)
 #define SCREEN_MINIBUF_ONLY_P(s) \
@@ -173,6 +177,7 @@ typedef struct screen *SCREEN_PTR;
 #define SCREEN_CURSOR_X(s) (s)->cursor_x
 #define SCREEN_CURSOR_Y(s) (s)->cursor_y
 #define SCREEN_VISIBLE_P(s) (s)->visible
+#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1, s->garbaged = 1)
 #define SCREEN_GARBAGED_P(s) (s)->garbaged
 #define SCREEN_NO_SPLIT_P(s) (s)->no_split
 #define SCREEN_WANTS_MODELINE_P(s) (s)->wants_modeline
@@ -202,6 +207,22 @@ typedef struct screen *SCREEN_PTR;
       x = wrong_type_argument (Qlive_screen_p, (x));	\
   }
 
+/* FOR_EACH_SCREEN (LIST_VAR, SCREEN_VAR) followed by a statement is a
+   `for' loop which iterates over the elements of Vscreen_list.  The
+   loop will set SCREEN_VAR, a SCREEN_PTR, to each screen in
+   Vscreen_list in succession and execute the statement.  LIST_VAR
+   should be a Lisp_Object; it is used to iterate through the
+   Vscreen_list.  
+
+   If MULTI_SCREEN isn't defined, then this loop expands to something which 
+   executes the statement once.  */
+#define FOR_EACH_SCREEN(list_var, screen_var)			\
+  for ((list_var) = Vscreen_list;				\
+       (CONSP (list_var)					\
+	&& (screen_var = XSCREEN (XCONS (list_var)->car), 1));	\
+       list_var = XCONS (list_var)->cdr)
+
+
 extern Lisp_Object Qscreenp, Qlive_screen_p;
 
 extern struct screen *selected_screen;
@@ -211,6 +232,10 @@ extern struct screen *make_terminal_screen ();
 extern struct screen *make_screen ();
 extern struct screen *make_minibuffer_screen ();
 extern struct screen *make_screen_without_minibuffer ();
+
+/* Nonzero means SCREEN_MESSAGE_BUF (selected_screen) is being used by
+   print.  */
+extern int message_buf_print;
 
 extern Lisp_Object Vscreen_list;
 extern Lisp_Object Vdefault_screen_alist;
@@ -223,47 +248,65 @@ extern Lisp_Object Vterminal_screen;
 
 #define SCREEN_PTR int
 
+extern struct screen the_only_screen;
+
 extern int selected_screen;
-#define last_nonminibuf_screen selected_screen
+extern int last_nonminibuf_screen;
+
+/* Nonzero means SCREEN_MESSAGE_BUF (selected_screen) is being used by
+   print.  */
+extern int message_buf_print;
 
 #define XSCREEN(s) selected_screen
 #define WINDOW_SCREEN(w) selected_screen
 
 #define SCREENP(s) (XTYPE(s) == Lisp_Screen)
 #define SCREEN_LIVE_P(s) 1
-#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1)
 #define SCREEN_IS_TERMCAP(s) 1
 #define SCREEN_IS_X(s) 0
-#define SCREEN_IS_MINIBUF_ONLY(s) 0
+#define SCREEN_MINIBUF_ONLY_P(s) 0
 #define SCREEN_HAS_MINIBUF(s) 1
-#define SCREEN_CURRENT_GLYPHS(s) current_glyphs
-#define SCREEN_DESIRED_GLYPHS(s) desired_glyphs
-#define SCREEN_TEMP_GLYPHS(s) temp_glyphs
-#define SCREEN_HEIGHT(s) screen_height
-#define SCREEN_WIDTH(s) screen_width
-#define SCREEN_NEW_HEIGHT(s) delayed_screen_height
-#define SCREEN_NEW_WIDTH(s) delayed_screen_width
-#define SCREEN_CURSOR_X(s) cursX
-#define SCREEN_CURSOR_Y(s) cursY
+#define SCREEN_CURRENT_GLYPHS(s) the_only_screen.current_glyphs
+#define SCREEN_DESIRED_GLYPHS(s) the_only_screen.desired_glyphs
+#define SCREEN_TEMP_GLYPHS(s) the_only_screen.temp_glyphs
+#define SCREEN_HEIGHT(s) the_only_screen.height
+#define SCREEN_WIDTH(s) the_only_screen.width
+#define SCREEN_NEW_HEIGHT(s) the_only_screen.new_height
+#define SCREEN_NEW_WIDTH(s) the_only_screen.new_width
+#define SCREEN_CURSOR_X(s) the_only_screen.cursor_x
+#define SCREEN_CURSOR_Y(s) the_only_screen.cursor_y
 #define SCREEN_VISIBLE_P(s) 1
+#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1)
 #define SCREEN_GARBAGED_P(s) screen_garbaged
 #define SCREEN_NO_SPLIT_P(s) 0
 #define SCREEN_WANTS_MODELINE_P(s) 1
 #define SCREEN_ICONIFIED_P(s) 0
 #define SCREEN_MINIBUF_WINDOW(s) minibuf_window
-#define SCREEN_ROOT_WINDOW(s) root_window
+#define SCREEN_ROOT_WINDOW(s) the_only_screen.root_window
 #define SCREEN_SELECTED_WINDOW(s) selected_window
 #define SET_GLYPHS_SCREEN(glyphs,screen)
-#define SCREEN_INSERT_COST(screen)  insert_line_cost    
-#define SCREEN_DELETE_COST(screen)  delete_line_cost    
-#define SCREEN_INSERTN_COST(screen) insert_n_lines_cost
-#define SCREEN_DELETEN_COST(screen) delete_n_lines_cost
-#define SCREEN_MESSAGE_BUF(s) message_buf
-#define SCREEN_SCROLL_BOTTOM_VPOS(s) scroll_bottom_vpos
+#define SCREEN_INSERT_COST(screen)  the_only_screen.insert_line_cost    
+#define SCREEN_DELETE_COST(screen)  the_only_screen.delete_line_cost    
+#define SCREEN_INSERTN_COST(screen) the_only_screen.insert_n_lines_cost
+#define SCREEN_DELETEN_COST(screen) the_only_screen.delete_n_lines_cost
+#define SCREEN_MESSAGE_BUF(s) the_only_screen.message_buf
+#define SCREEN_SCROLL_BOTTOM_VPOS(s) the_only_screen.scroll_bottom_vpos
+#define SCREEN_FOCUS_SCREEN(s) 0
 
 #define CHECK_SCREEN(x, i) { ; }
+#define CHECK_LIVE_SCREEN(x, y) { ; }
 
-extern int screen_width, screen_height;
-extern int cursX, cursY;
+/* FOR_EACH_SCREEN (LIST_VAR, SCREEN_VAR) followed by a statement is a
+   `for' loop which iterates over the elements of Vscreen_list.  The
+   loop will set SCREEN_VAR, a SCREEN_PTR, to each screen in
+   Vscreen_list in succession and execute the statement.  LIST_VAR
+   should be a Lisp_Object; it is used to iterate through the
+   Vscreen_list.  
+
+   If MULTI_SCREEN _is_ defined, then this loop expands to a real
+   `for' loop which traverses Vscreen_list using LIST_VAR and
+   SCREEN_VAR.  */
+#define FOR_EACH_SCREEN(list_var, screen_var)			\
+  for (screen_var = (SCREEN_PTR) 1; screen_var; screen_var = (SCREEN_PTR) 0)
 
 #endif /* not MULTI_SCREEN */

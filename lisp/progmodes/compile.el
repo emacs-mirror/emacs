@@ -272,6 +272,7 @@ means the default).  The defaults for these variables are the global values of
       (set-buffer outbuf)
       (compilation-mode)
       (buffer-disable-undo (current-buffer))
+      (setq buffer-read-only t)
       (set (make-local-variable 'compilation-parse-errors-function) parser)
       (set (make-local-variable 'compilation-error-message) error-message)
       (set (make-local-variable 'compilation-error-regexp-alist) regexp-alist)
@@ -343,6 +344,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		   ;; Write something in the compilation buffer
 		   ;; and hack its mode line.
 		   (set-buffer buffer)
+		   (setq buffer-read-only nil)
 		   (setq omax (point-max)
 			 opoint (point))
 		   (goto-char omax)
@@ -360,7 +362,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 		   ;; will stay around until M-x list-processes.
 		   (delete-process proc))
 	       ;; Force mode line redisplay soon.
-	       (set-buffer-modified-p (buffer-modified-p)))
+	       (set-buffer-modified-p (buffer-modified-p))
+	       (setq buffer-read-only t))
 	     (if (and opoint (< opoint omax))
 		 (goto-char opoint))
 	     (set-buffer obuf)

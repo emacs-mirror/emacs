@@ -18,7 +18,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;;###autoload
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
@@ -42,6 +41,8 @@
 (define-key help-map "f" 'describe-function)
 
 (define-key help-map "i" 'info)
+(define-key help-map "\C-f" 'Info-goto-emacs-command-node)
+(define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
 
 (define-key help-map "l" 'view-lossage)
 

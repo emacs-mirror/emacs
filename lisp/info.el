@@ -978,8 +978,6 @@ The locations are of the format used in Info-history, i.e.
 			(if (> num-matches 2) "ies" "y")
 			(if (> num-matches 2) "them" "it"))))))
       (error "Couldn't find documentation for %s." command))))
-;;;###autoload
-(define-key help-map "\C-f" 'Info-goto-emacs-command-node)
 
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
@@ -995,8 +993,6 @@ Interactively, if the binding is execute-extended-command, a command is read."
 	    (read-command "Find documentation for command: ")))
 	  (t
 	   (Info-goto-emacs-command-node command)))))
-;;;###autoload
-(define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
 
 (provide 'info)
 

@@ -1094,7 +1094,9 @@ See also the function `condition-case'.")
   if (gc_in_progress || waiting_for_input)
     abort ();
 
+#ifdef HAVE_X_WINDOWS
   TOTALLY_UNBLOCK_INPUT;
+#endif
 
   conditions = Fget (sig, Qerror_conditions);
 

@@ -348,7 +348,7 @@ If non-nil second arg INITIAL-INPUT is a string to insert before reading.")
   return Fread_from_minibuffer (prompt, initial_input, Qnil, Qnil, Qnil);
 }
 
-DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 2, 1, 0,
+DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 2, 2, 0,
   "Args PROMPT and INIT, strings.  Read a string from the terminal, not allowing blanks.\n\
 Prompt with PROMPT, and provide INIT as an initial value of the input string.")
   (prompt, init)

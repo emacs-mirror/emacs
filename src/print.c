@@ -159,7 +159,7 @@ glyph_to_str_cpy (glyphs, str)
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
-/* Index of first unused element of message_buf */
+/* Index of first unused element of SCREEN_MESSAGE_BUF(selected_screen). */
 static int printbufidx;
 
 static void

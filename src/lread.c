@@ -188,6 +188,7 @@ DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
   val = read_char (0);
   return val;
 }
+#endif
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
@@ -206,7 +207,6 @@ It is returned as a number.  Non character events are ignored.")
 
   return val;
 }
-#endif	/* HAVE_X_WINDOWS */
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
   "Don't use this yourself.")
@@ -501,7 +501,7 @@ readevalloop (readcharfun, stream, evalfun, printflag)
 
 #ifndef standalone
 
-DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 1, "",
+DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 2, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
 BUFFER is the buffer to evaluate (nil means use current buffer).\n\

@@ -43,11 +43,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Terminal charateristics that higher levels want to look at.
    These are all extern'd in termchar.h */
 
-#ifndef MULTI_SCREEN
-int screen_width;		/* Number of usable columns */
-int screen_height;		/* Number of lines */
-#endif
-
 int must_write_spaces;		/* Nonzero means spaces in the text
 				   must actually be output; can't just skip
 				   over some columns to leave them blank.  */
@@ -103,7 +98,7 @@ int (*read_socket_hook) ();
 void (*mouse_position_hook) ( /* SCREEN_PTR *s,
 					Lisp_Object *x,
 					Lisp_Object *y,
-					Lisp_Object *time */ );
+					unsigned long *time */ );
 
 /* When reading from a minibuffer in a different screen, Emacs wants
    to shift the highlight from the selected screen to the minibuffer's

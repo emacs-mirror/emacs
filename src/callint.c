@@ -174,7 +174,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  /* Save this now, since use ofminibuffer will clobber it. */
+  /* Save this now, since use of minibuffer will clobber it. */
   prefix_arg = Vcurrent_prefix_arg;
 
  retry:
@@ -233,7 +233,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (char *) alloca (XSTRING (specs)->size + 1);
+      string = (unsigned char *) alloca (XSTRING (specs)->size + 1);
       bcopy (XSTRING (specs)->data, string, XSTRING (specs)->size + 1);
     }
   else if (string == 0)
@@ -388,6 +388,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		   (XTYPE (function) == Lisp_Symbol
 		    ? (char *) XSYMBOL (function)->name->data
 		    : "Command"));
+	  varies[i] = -1;
 	  break;
 
 	case 'm':		/* Value of mark.  Does not do I/O.  */

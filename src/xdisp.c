@@ -167,31 +167,7 @@ int clip_changed;
 int windows_or_buffers_changed;
 
 
-#ifndef MULTI_SCREEN
-
-DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
-  "Clear the screen and output again what is supposed to appear on it.")
-  ()
-{
-  if (screen_height == 0) abort (); /* Some bug zeros some core */
-  clear_screen ();
-  fflush (stdout);
-  clear_screen_records ();
-  if (screen_height == 0) abort (); /* Some bug zeros some core */
-  windows_or_buffers_changed++;
-  /* Mark all windows as INaccurate,
-     so that every window will have its redisplay done.  */
-  mark_window_display_accurate (XWINDOW (minibuf_window)->prev, 0);
-  if (screen_height == 0) abort (); /* Some bug zeros some core */
-  return Qnil;
-}
-
-#endif /* not MULTI_SCREEN */
-
-/* Buffer used for messages formatted by `message'.  */
-char *message_buf;
-
-/* Nonzero if message_buf is being used by print;
+/* Nonzero if SCREEN_MESSAGE_BUF (selected_screen) is being used by print;
    zero if being used by message.  */
 int message_buf_print;
 
@@ -310,7 +286,7 @@ echo_area_display ()
 
       /* If desired cursor location is on this line, put it at end of text */
       if (SCREEN_CURSOR_Y (s) == vpos)
-	SCREEN_CURSOR_X (s) = s->desired_glyphs->used[vpos];
+	SCREEN_CURSOR_X (s) = SCREEN_DESIRED_GLYPHS (s)->used[vpos];
 
       /* Fill the rest of the minibuffer window with blank lines.  */
       {
@@ -1786,7 +1762,7 @@ display_mode_line (w)
      and the rest of this line is mode lines of the sibling windows).  */
   if (XFASTINT (w->width) == SCREEN_WIDTH (s)
       || XFASTINT (XWINDOW (w->parent)->width) == SCREEN_WIDTH (s))
-    s->desired_glyphs->highlight[vpos] = mode_line_inverse_video;
+    SCREEN_DESIRED_GLYPHS (s)->highlight[vpos] = mode_line_inverse_video;
 
 #ifdef HAVE_X_WINDOWS
   /* I'm trying this out because I saw Unimpress use it, but it's
@@ -2325,10 +2301,6 @@ If this is zero, point is always centered after it moves off screen.");
   DEFVAR_BOOL ("mode-line-inverse-video", &mode_line_inverse_video,
     "*Non-nil means use inverse video for the mode line.");
   mode_line_inverse_video = 1;
-
-#ifndef MULTI_SCREEN
-  defsubr (&Sredraw_display);
-#endif /* MULTI_SCREEN */
 }
 
 /* initialize the window system */

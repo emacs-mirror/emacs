@@ -119,6 +119,12 @@ end
 
 set print pretty on
 
+unset environment TERMCAP
+unset environment TERM
+set environment DISPLAY :0.0
+show environment DISPLAY
+set args -q
+
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command below as well.
 break abort
@@ -128,8 +134,3 @@ break abort
 # instead...
 break _XPrintDefaultError
 
-unset environment TERMCAP
-unset environment TERM
-set environment DISPLAY :0.0
-show environment DISPLAY
-set args -q

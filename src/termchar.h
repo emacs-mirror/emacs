@@ -19,8 +19,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 extern int baud_rate;		/* Output speed in baud */
-extern int screen_width;	/* Number of usable columns */
-extern int screen_height;	/* Number of lines */
 extern int must_write_spaces;	/* Nonzero means spaces in the text
 				   must actually be output; can't just skip
 				   over some columns to leave them blank.  */

@@ -50,7 +50,7 @@ extern int (*read_socket_hook) ();
 extern void (*mouse_position_hook) ( /* SCREEN_PTR *s,
 					Lisp_Object *x,
 					Lisp_Object *y,
-					Lisp_Object *time */ );
+					unsigned long *time */ );
 
 /* The window system handling code should set this if the mouse has
    moved since the last call to the mouse_position_hook.  Calling that
@@ -135,8 +135,20 @@ struct input_event {
   
   Lisp_Object code;
   Lisp_Object part;
+
+/* This is obviously wrong, but I'm not sure what else I should do.
+   Obviously, this should be a SCREEN_PTR.  But that would require that
+   every file which #includes this one should also #include "screen.h",
+   which would mean that files like cm.c and other innocents would be
+   dragged into the set of screen.h users.  Maybe the definition of this
+   structure should be elsewhere?  In its own file?  */
+#ifdef MULTI_SCREEN
   struct screen *screen;
+#else
+  int screen;
+#endif
   int modifiers;		/* See enum below for interpretation.  */
+
   Lisp_Object x, y;
   unsigned long timestamp;
 };

@@ -1522,7 +1522,7 @@ construct_mouse_click (result, event, s, part, prefix)
    other kinds of events (focus changes and button clicks, for
    example), or by XQueryPointer calls; when one of these happens, we
    get another MotionNotify event the next time the mouse moves.  This
-   is at least as efficient than getting motion events when mouse
+   is at least as efficient as getting motion events when mouse
    tracking is on, and I suspect only negligibly worse when tracking
    is off.
 
@@ -1535,6 +1535,14 @@ construct_mouse_click (result, event, s, part, prefix)
 /* Where the mouse was last time we reported a mouse event.  */
 static SCREEN_PTR last_mouse_screen;
 static XRectangle last_mouse_glyph;
+
+/* This is a hack.  We would really prefer that XTmouse_position would
+   return the time associated with the position it returns, but there
+   doesn't seem to be any way to wrest the timestamp from the server
+   along with the position query.  So, we just keep track of the time
+   of the last movement we received, and return that in hopes that
+   it's somewhat accurate.  */
+static Time last_mouse_movement_time;
 
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
@@ -1549,6 +1557,8 @@ note_mouse_position (screen, event)
      XMotionEvent *event;
 
 {
+  last_mouse_movement_time = event->time;
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (event->x < last_mouse_glyph.x
       || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
@@ -1580,7 +1590,7 @@ static void
 XTmouse_position (s, x, y, time)
      SCREEN_PTR *s;
      Lisp_Object *x, *y;
-     Lisp_Object *time;
+     unsigned long *time;
 {
   int ix, iy, dummy;
   Display *d = x_current_display;
@@ -1635,8 +1645,11 @@ XTmouse_position (s, x, y, time)
   mouse_moved = 0;
 
   /* I don't know how to find the time for the last movement; it seems
-   like XQueryPointer ought to return it, but it doesn't.  */
-  *time = Qnil;
+     like XQueryPointer ought to return it, but it doesn't.  So, we'll
+     return the time of the last MotionNotify event we received.  Note
+     that the use of motion hints means that this isn't guaranteed to
+     be accurate at all.  */
+  *time = last_mouse_movement_time;
 
   UNBLOCK_INPUT;
 }

@@ -107,7 +107,7 @@ are used."
     ;; under a different path on another system,
     ;; `update-autoloads-here' won't be able to find the files to be
     ;; autoloaded.  So, if FILE is in the same directory or a
-    ;; subdirectory of the current buffer's file, we'll make it
+    ;; subdirectory of the current buffer's directory, we'll make it
     ;; relative to the current buffer's directory.
     (setq file (expand-file-name file))
     (if (and (< (length default-directory) (length file))

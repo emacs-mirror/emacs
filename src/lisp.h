@@ -97,30 +97,33 @@ enum Lisp_Type
     Lisp_Internal_Stream,
 
     /* Used in a symbol value cell when the symbol's value is per-buffer.
-        The actual contents are a cons cell which starts a list like this:
-        (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE)).
+       The actual contents are a cons cell which starts a list like this:
+       (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
 
-	BUFFER is the last buffer for which this symbol's value was
-	made up to date.
+       BUFFER is the last buffer for which this symbol's value was
+       made up to date.
 
-        CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-	b_local_var_alist, that being the element whose car is this variable.
-        Or it can be a pointer to the (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE), if BUFFER
-	does not have an element in its alist for this variable
-	(that is, if BUFFER sees the default value of this variable).
+       CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
+       local_var_alist, that being the element whose car is this
+       variable.  Or it can be a pointer to the
+       (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE),
+       if BUFFER does not have an element in its alist for this
+       variable (that is, if BUFFER sees the default value of this
+       variable).
 
-	If we want to examine or set the value and BUFFER is current,
-	we just examine or set REALVALUE.
-	If BUFFER is not current, we store the current REALVALUE value into
-	CURRENT-ALIST-ELEMENT, then find the appropriate alist element for
-	the buffer now current and set up CURRENT-ALIST-ELEMENT.
-	Then we set REALVALUE out of that element, and store into BUFFER.
+       If we want to examine or set the value and BUFFER is current,
+       we just examine or set REALVALUE. If BUFFER is not current, we
+       store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
+       then find the appropriate alist element for the buffer now
+       current and set up CURRENT-ALIST-ELEMENT.  Then we set
+       REALVALUE out of that element, and store into BUFFER.
 
-	If we are setting the variable and the current buffer does not have
-	an alist entry for this variable, an alist entry is created.
+       If we are setting the variable and the current buffer does not
+       have an alist entry for this variable, an alist entry is
+       created.
 
-	Note that REALVALUE can be a forwarding pointer.
-	Each time it is examined or set, forwarding must be done.  */
+       Note that REALVALUE can be a forwarding pointer.  Each time it
+       is examined or set, forwarding must be done.  */
     Lisp_Buffer_Local_Value,
 
     /* Like Lisp_Buffer_Local_Value with one difference:

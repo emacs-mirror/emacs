@@ -1,12 +1,12 @@
 ;;; replace.el --- replace commands for Emacs.
 
-;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 92 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,11 +19,9 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload
 (defconst case-replace t "\
 *Non-nil means query-replace should preserve case in replacements.")
 
-;;;###autoload
 (defun query-replace (from-string to-string &optional arg)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
@@ -36,10 +34,8 @@ only matches surrounded by word boundaries."
   (interactive "sQuery replace: \nsQuery replace %s with: \nP")
   (perform-replace from-string to-string t nil arg)
   (message "Done"))
-;;;###autoload
 (define-key esc-map "%" 'query-replace)
 
-;;;###autoload
 (defun query-replace-regexp (regexp to-string &optional arg)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
@@ -55,7 +51,6 @@ and \\=\\<n> means insert what matched <n>th \\(...\\) in REGEXP."
   (perform-replace regexp to-string t t arg)
   (message "Done"))
 
-;;;###autoload
 (defun map-query-replace-regexp (regexp to-strings &optional arg)
   "Replace some matches for REGEXP with various strings, in rotation.
 The second argument TO-STRINGS contains the replacement strings, separated
@@ -84,7 +79,6 @@ before rotating to the next."
     (perform-replace regexp replacements t t nil arg))
   (message "Done"))
 
-;;;###autoload
 (defun replace-string (from-string to-string &optional delimited)
   "Replace occurrences of FROM-STRING with TO-STRING.
 Preserve case in each match if `case-replace' and `case-fold-search'
@@ -101,7 +95,6 @@ which will run faster and will not set the mark or print anything."
   (perform-replace from-string to-string nil nil delimited)
   (message "Done"))
 
-;;;###autoload
 (defun replace-regexp (regexp to-string &optional delimited)
   "Replace things after point matching REGEXP with TO-STRING.
 Preserve case in each match if case-replace and case-fold-search
@@ -348,7 +341,6 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 ^ to move point back to previous match."
   "Help message while in query-replace")
 
-;;;###autoload
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count)
@@ -364,6 +356,7 @@ which will run faster and do exactly what you probably want."
 	(literal (not regexp-flag))
 	(search-function (if regexp-flag 're-search-forward 'search-forward))
 	(search-string from-string)
+	(real-match-data nil)		; the match data for the current match
 	(next-replacement nil)
 	(replacement-index 0)
 	(keep-going t)
@@ -400,6 +393,10 @@ which will run faster and do exactly what you probably want."
 		      (forward-char 1)
 		      (funcall search-function search-string nil t))
 		  t))
+
+      ;; Save the data associated with the real match.
+      (setq real-match-data (match-data))
+
       ;; Before we make the replacement, decide whether the search string
       ;; can match again just after this match.
       (if regexp-flag
@@ -414,15 +411,13 @@ which will run faster and do exactly what you probably want."
 	    (setq replacement-index (% (1+ replacement-index) (length replacements)))))
       (if (not query-flag)
 	  (progn
+	    (store-match-data real-match-data)
 	    (replace-match next-replacement nocasify literal)
 	    (setq replace-count (1+ replace-count)))
 	(undo-boundary)
 	(let (done replaced)
 	  (while (not done)
-	    ;; Preserve the match data.  Process filters and sentinels
-	    ;; could run inside read-char..
-	    (let ((data (match-data))
-		  (help-form
+	    (let ((help-form
 		   '(concat "Query replacing "
 			    (if regexp-flag "regexp " "")
 			    from-string " with " next-replacement ".\n\n"
@@ -432,8 +427,9 @@ which will run faster and do exactly what you probably want."
 		(message "Query replacing %s with %s: " from-string next-replacement)
 		(setq char (read-event))
 		(if (and (numberp char) (= char ??))
-		    (setq unread-command-char help-char char help-char)))
-	      (store-match-data data))
+		    (setq unread-command-char help-char char help-char))))
+	    ;; Restore the match data while we process the command.
+	    (store-match-data real-match-data)
 	    (cond ((or (= char ?\e)
 		       (= char ?q))
 		   (setq keep-going nil)

@@ -2834,8 +2834,8 @@ Patched to remove the most recent completion."
   (use-completion-before-separator)
   (self-insert-command arg)
   (and (> (current-column) fill-column)
-       auto-fill-hook
-       (funcall auto-fill-hook))
+       auto-fill-function
+       (funcall auto-fill-function))
   )
 
 ;;;-----------------------------------------------

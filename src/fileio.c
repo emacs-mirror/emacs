@@ -621,7 +621,7 @@ See also the function `substitute-in-file-name'.")
 #ifdef VMS
 	|| nm[1] == ':'
 #endif /* VMS */
-	|| nm[1] == 0)/* ~/filename */
+	|| nm[1] == 0)/* ~ by itself */
       {
 	if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	  newdir = (unsigned char *) "";
@@ -642,15 +642,18 @@ See also the function `substitute-in-file-name'.")
 	o [p - nm] = 0;
 
 	pw = (struct passwd *) getpwnam (o + 1);
-	if (!pw)
-	  error ("\"%s\" isn't a registered user", o + 1);
-
+	if (pw)
+	  {
+	    newdir = (unsigned char *) pw -> pw_dir;
 #ifdef VMS
-	nm = p + 1;		/* skip the terminator */
+	    nm = p + 1;		/* skip the terminator */
 #else
-	nm = p;
+	    nm = p;
 #endif /* VMS */
-	newdir = (unsigned char *) pw -> pw_dir;
+	  }
+
+	/* If we don't find a user of that name, leave the name
+	   unchanged; don't move nm forward to p.  */
       }
 
   if (nm[0] != '/'
@@ -794,7 +797,8 @@ See also the function `substitute-in-file-name'.")
   return make_string (target, o - target);
 }
 #if 0
-DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
+/* Changed this DEFUN to a DEAFUN, so as not to confuse `make-docfile'.
+DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
   "Convert FILENAME to absolute, and canonicalize it.\n\
 Second arg DEFAULT is directory to start with if FILENAME is relative\n\
  (does not start with slash); if DEFAULT is nil or missing,\n\
@@ -1589,38 +1593,38 @@ Signals a `file-already-exists' error if a file NEWNAME already exists\n\
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.\n\
 A number as third arg means request confirmation if NEWNAME already exists.\n\
 This happens for interactive use with M-x.")
-  (filename, newname, ok_if_already_exists)
-     Lisp_Object filename, newname, ok_if_already_exists;
+  (filename, linkname, ok_if_already_exists)
+     Lisp_Object filename, linkname, ok_if_already_exists;
 {
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];
 #endif
   struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (filename, newname);
+  GCPRO2 (filename, linkname);
   CHECK_STRING (filename, 0);
-  CHECK_STRING (newname, 1);
+  CHECK_STRING (linkname, 1);
 #if 0 /* This made it impossible to make a link to a relative name.  */
   filename = Fexpand_file_name (filename, Qnil);
 #endif
-  newname = Fexpand_file_name (newname, Qnil);
+  linkname = Fexpand_file_name (linkname, Qnil);
   if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
-    barf_or_query_if_file_exists (newname, "make it a link",
+    barf_or_query_if_file_exists (linkname, "make it a link",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
-  if (0 > symlink (XSTRING (filename)->data, XSTRING (newname)->data))
+  if (0 > symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
     {
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
 	  unlink (XSTRING (filename)->data);
-	  if (0 <= symlink (XSTRING (filename)->data, XSTRING (newname)->data))
+	  if (0 <= symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
 	    return Qnil;
 	}
 
 #ifdef NO_ARG_ARRAY
       args[0] = filename;
-      args[1] = newname;
+      args[1] = linkname;
       report_file_error ("Making symbolic link", Flist (2, args));
 #else
       report_file_error ("Making symbolic link", Flist (2, &filename));

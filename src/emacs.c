@@ -63,6 +63,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Command line args from shell, as list of strings */
 Lisp_Object Vcommand_line_args;
 
+/* Hook run by `kill-emacs' before it does really anything.  */
+Lisp_Object Vkill_emacs_hook;
+
 /* Set nonzero after Emacs has started up the first time.
   Prevents reinitialization of the Lisp world and keymaps
   on subsequent starts.  */
@@ -761,4 +764,9 @@ syms_of_emacs ()
 
   DEFVAR_BOOL ("noninteractive", &noninteractive1,
     "Non-nil means Emacs is running without interactive terminal.");
+
+  Vkill_emacs_hook = Qnil;
+
+  DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
+    "Hook to be run whenever kill-emacs is called.");
 }

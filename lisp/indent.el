@@ -19,7 +19,6 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload
 (defvar indent-line-function 'indent-to-left-margin "\
 Function to indent current line.");Now in loaddefs.el
 

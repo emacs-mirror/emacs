@@ -1,11 +1,11 @@
 /* Calculate what line insertion or deletion to do, and do it,
-   Copyright (C) 1985, 1986, 1990 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1990, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -53,15 +53,6 @@ struct matrix_elt
        for the cost in deletecost.  */
     char deletecount;
   };
-
-/* See do_line_insertion_deletion_costs for info on these arrays. */
-
-#ifndef MULTI_SCREEN
-static int *insert_line_cost;
-static int *delete_line_cost;
-static int *insert_n_lines_cost;
-static int *delete_n_lines_cost;
-#endif
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old lines
