@@ -1,3 +1,8 @@
+2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ps-bdf.el (bdf-directory-list): Use the value relative to
+	installation-directory for MS-Windows as well.
+
 2001-06-29  Richard M. Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-color-sample-face-get):
