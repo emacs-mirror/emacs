@@ -90,7 +90,7 @@ EOF
       ;;
     --version)
       cat <<EOF
-$me 1.5
+$me 1.6
 
 Written by Miles Bader <miles@gnu.org>
 EOF
