@@ -944,11 +944,6 @@ prefix-args${EXEEXT}: prefix-args.c $(config_h)
 #define OLDXMENU_OPTIONS
 #endif
 
-/* Don't lose if this was not defined.  */
-#ifndef LWLIB_OPTIONS
-#define LWLIB_OPTIONS
-#endif
-
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS)
 
 /* We use stamp-xmenu with these two deps
@@ -972,7 +967,7 @@ C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-lwlib:
-	cd ${lwlibdir}; ${MAKE} ${MFLAGS} LWLIB_OPTIONS \
+	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
@@ -1023,40 +1018,11 @@ stamp-oldxmenu:
 	exit 1
 
 /* Some machines have alloca built-in.
-   They should define HAVE_ALLOCA, or may just let alloca.s
-   be used but generate no code.
-   Some have it written in assembler in alloca.s.
+   They should define HAVE_ALLOCA.
    Some use the C version in alloca.c (these define C_ALLOCA in config.h).
    */
-
-#ifdef C_ALLOCA
-/* We could put something in alloca.c to #define free and malloc
-   whenever emacs was #defined, but that's not appropriate for all
-   users of alloca in Emacs.  Check out ../lib-src/getopt.c.  */
-alloca.o : alloca.c
-	$(CC) -c $(CPPFLAGS) -DEMACS_FREE=xfree -DDO_BLOCK_INPUT \
-	$(ALL_CFLAGS) ${srcdir}/alloca.c
-#else
-#ifndef HAVE_ALLOCA
-alloca.o : alloca.s $(config_h)
-/* $(CPP) is cc -E, which may get confused by filenames
-   that do not end in .c.  So copy file to a safe name.  */
-	-rm -f allocatem.c
-	cp ${srcdir}/alloca.s allocatem.c
-/* Remove any ^L, blank lines, and preprocessor comments,
-   since some assemblers barf on them.  Use a different basename for the
-   output file, since some stupid compilers (Green Hill's) use that
-   name for the intermediate assembler file. */
-	$(CPP) $(CPPFLAGS) $(ALL_CFLAGS) allocatem.c | \
-	sed -e 's///' -e 's/^#.*//' | \
-	sed -n -e '/^..*$$/p' > allocax.s
-	-rm -f alloca.o
-/* Xenix, in particular, needs to run assembler via cc.  */
-	$(CC) -c allocax.s
-	mv allocax.o alloca.o
-	-rm -f allocax.s allocatem.c
-#endif /* HAVE_ALLOCA */
-#endif /* ! defined (C_ALLOCA) */
+alloca.o : alloca.c blockinput.h atimer.h
+	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) ${srcdir}/alloca.c
 
 /* Nearly all the following files depend on lisp.h,
    but it is not included as a dependency because
