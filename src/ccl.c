@@ -528,7 +528,7 @@ int ccl_backtrace_idx;
 
 struct ccl_prog_stack
   {
-    int *ccl_prog;		/* Pointer to an array of CCL code.  */
+    Lisp_Object *ccl_prog;	/* Pointer to an array of CCL code.  */
     int ic;			/* Instruction Counter.  */
   };
 
