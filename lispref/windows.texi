@@ -1345,10 +1345,12 @@ non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is
 non-@code{nil}, it returns a list of the form @code{(@var{x} @var{y}
-@var{fully})}, where @var{x} and @var{y} are the pixel coordinates
-relative to the top left corner of the window, and @var{fully} is
-@code{t} if the character after @var{position} is fully visible and
-@code{nil} otherwise.
+@var{partial})}, where @var{x} and @var{y} are the pixel coordinates
+relative to the top left corner of the window, and @var{partial} is
+@code{nil} if the character after @var{position} is fully visible;
+otherwise it is a cons @code{(@var{rtop} . @var{rbot})} where the
+@var{rtop} and @var{rbot} specify the number of invisible pixels at
+the top and bottom of the row at @var{position}.
 
 Here is an example:
 
@@ -1396,6 +1398,12 @@ names that fit the user's point of view.
 @code{scroll-other-window}) have unpredictable results if the current
 buffer is different from the buffer that is displayed in the selected
 window.  @xref{Current Buffer}.
+
+  If the window contains a row which is taller than the height of the
+window (for example in the presense of a large image), the scroll
+functions will adjust the window vscroll to scroll the partially
+visible row.  To disable this feature, Lisp code may bind the variable
+`auto-window-vscroll' to @code{nil} (@pxref{Vertical Scrolling}).
 
 @deffn Command scroll-up &optional count
 This function scrolls the text in the selected window upward
@@ -1621,6 +1629,13 @@ The return value is the result of this rounding.
 If @var{pixels-p} is non-@code{nil}, @var{lines} specifies a number of
 pixels.  In this case, the return value is @var{lines}.
 @end defun
+
+@defvar auto-window-vscroll
+If this variable is non-@code{nil}, the line-move, scroll-up, and
+scroll-down functions will automatically modify the window vscroll to
+scroll through display rows that are taller that the height of the
+window, for example in the presense of large images.
+@end defvar
 
 @node Horizontal Scrolling
 @section Horizontal Scrolling

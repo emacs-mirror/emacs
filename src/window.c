@@ -333,11 +333,10 @@ If POS is only out of view because of horizontal scrolling, return non-nil.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y FULLY [RTOP RBOT]) where X and Y are the pixel
-coordinates relative to the top left corner of the window, and FULLY is t if the
-character after POS is fully visible and nil otherwise.  If FULLY is nil,
-RTOP and RBOT are the number of pixels invisible at the top and bottom row
-of the window.  */)
+return value is a list (X Y PARTIAL) where X and Y are the pixel coordinates
+relative to the top left corner of the window. PARTIAL is nil if the character
+after POS is fully visible; otherwise it is a cons (RTOP . RBOT) where RTOP
+and RBOT are the number of pixels invisible at the top and bottom of the row.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -376,12 +375,10 @@ of the window.  */)
   if (!NILP (in_window) && !NILP (partially))
     in_window = Fcons (make_number (x),
 		       Fcons (make_number (y),
-			      Fcons (fully_p ? Qt : Qnil,
-				     (fully_p
-				      ? Qnil
-				      : Fcons (make_number (rtop),
-					       Fcons (make_number (rbot),
-						      Qnil))))));
+			      Fcons ((fully_p ? Qnil
+				     : Fcons (make_number (rtop),
+					      make_number (rbot))),
+				     Qnil)));
   return in_window;
 }
 
@@ -4578,21 +4575,23 @@ window_scroll_pixel_based (window, n, whole, noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (NILP (XCAR (XCDR (XCDR (tem)))))
+      if (tem = XCAR (XCDR (XCDR (tem))), CONSP (tem))
 	{
 	  int px;
 	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
 	  if (whole)
-	    dy = window_box_height (w) - next_screen_context_lines * dy;
+	    dy = max ((window_box_height (w)
+		       - next_screen_context_lines * dy),
+		      dy);
 	  dy *= n;
 
-	  if (n < 0 && (px = XINT (Fnth (make_number (3), tem))) > 0)
+	  if (n < 0 && (px = XINT (XCAR (tem))) > 0)
 	    {
 	      px = max (0, -w->vscroll - min (px, -dy));
 	      Fset_window_vscroll (window, make_number (px), Qt);
 	      return;
 	    }
-	  if (n > 0 && (px = XINT (Fnth (make_number (4), tem))) > 0)
+	  if (n > 0 && (px = XINT (XCDR (tem))) > 0)
 	    {
 	      px = max (0, -w->vscroll + min (px, dy));
 	      Fset_window_vscroll (window, make_number (px), Qt);
@@ -4618,18 +4617,34 @@ window_scroll_pixel_based (window, n, whole, noerror)
   start_display (&it, w, start);
   if (whole)
     {
-      int screen_full = (window_box_height (w)
-			 - next_screen_context_lines * FRAME_LINE_HEIGHT (it.f));
-      int dy = n * screen_full;
+      int start_pos = IT_CHARPOS (it);
+      int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+      dy = max ((window_box_height (w)
+		 - next_screen_context_lines * dy),
+		dy) * n;
 
       /* Note that move_it_vertically always moves the iterator to the
          start of a line.  So, if the last line doesn't have a newline,
 	 we would end up at the start of the line ending at ZV.  */
       if (dy <= 0)
-	move_it_vertically_backward (&it, -dy);
+	{
+	  move_it_vertically_backward (&it, -dy);
+	  /* Ensure we actually does move, e.g. in case we are currently
+	     looking at an image that is taller that the window height.  */
+	  while (start_pos == IT_CHARPOS (it)
+		 && start_pos > BEGV)
+	    move_it_by_lines (&it, -1, 1);
+	}
       else if (dy > 0)
-	move_it_to (&it, ZV, -1, it.current_y + dy, -1,
-		    MOVE_TO_POS | MOVE_TO_Y);
+	{
+	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
+		      MOVE_TO_POS | MOVE_TO_Y);
+	  /* Ensure we actually does move, e.g. in case we are currently
+	     looking at an image that is taller that the window height.  */
+	  while (start_pos == IT_CHARPOS (it)
+		 && start_pos < ZV)
+	    move_it_by_lines (&it, 1, 1);
+	}
     }
   else
     move_it_by_lines (&it, n, 1);

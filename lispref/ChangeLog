@@ -1,3 +1,11 @@
+2005-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Start): Fix `pos-visible-in-window-p'
+	return value.  Third element FULLY replaced by PARTIAL which
+	specifies number of invisible pixels if row is only partially visible.
+	(Textual Scrolling): Mention auto-window-vscroll.
+	(Vertical Scrolling): New defvar auto-window-vscroll.
+
 2005-01-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymaps.texi (Changing Key Bindings): `suppress-keymap' now uses

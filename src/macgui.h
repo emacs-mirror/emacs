@@ -92,6 +92,13 @@ typedef struct _XCharStruct
   int descent;
 } XCharStruct;
 
+#define STORE_XCHARSTRUCT(xcs, w, bds)			\
+  ((xcs).width = (w),					\
+   (xcs).lbearing = (bds).left,				\
+   (xcs).rbearing = (bds).right,			\
+   (xcs).ascent = -(bds).top,				\
+   (xcs).descent = (bds).bottom)
+
 struct MacFontStruct {
   char *fontname;
 
