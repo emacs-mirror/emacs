@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.51) $
+ * $HopeName: MMsrc!arenavm.c(trunk.52) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.51) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.52) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -1266,21 +1266,22 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   if(!VMSegFind(&base, &chunk, vmArena, pref, size, FALSE)) {
     VMArenaChunk newChunk;
     Size chunkSize;
+    /* @@@@ .improve.debug: chunkSize (calculated below) won't */
+    /* be big enough if the tables of the new chunk are */
+    /* more than vmArena->extendBy (because there will be few than */
+    /* size bytes free in the new chunk).  Fix this. */
     chunkSize = vmArena->extendBy + size;
     res = VMArenaChunkCreate(&newChunk, NULL /* spare */,
 			     FALSE /* primary */, vmArena,
 			     chunkSize, 0 /* spareSize */);
-    if(res != ResOK) {
-      /* We could trim chunkSize down to size and try again (but */
-      /* don't). */
-      return res;
+    if(ResOK == res) {
+      RingAppend(&vmArena->chunkRing, &newChunk->arenaRing);
     }
-    RingAppend(&vmArena->chunkRing, &newChunk->arenaRing);
+    /* We may or may not have a new chunk at this point */
+    /* we proceed to try the allocation again anyway. */
+    /* We specify barging, but if we have got a new chunk */
+    /* then hopefully we won't need to. */
     if(!VMSegFind(&base, &chunk, vmArena, pref, size, TRUE)) {
-      /* even with new chunk didn't work... */
-      /* @@@@ .improve.debug: If the tables of the new chunk */
-      /* were more than vmArena->extendBy then we will have failed */
-      /* to allocate the seg anyway. */
       /* .improve.alloc-fail: This could be because the request was */
       /* too large, or perhaps the arena is fragmented.  We could return a */
       /* more meaningful code. */
