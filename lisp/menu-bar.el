@@ -105,9 +105,12 @@
   '("--"))
 
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
-(define-key menu-bar-edit-menu [choose-next-paste]
-  '("Choose Next Paste >" . mouse-menu-choose-yank))
-(define-key menu-bar-edit-menu [paste] '("Paste" . yank))
+
+(define-key menu-bar-edit-menu [paste] '("Paste most recent" . yank))
+
+(defvar yank-menu (cons "Select Yank" nil))
+(fset 'yank-menu (cons 'keymap yank-menu))
+(define-key menu-bar-edit-menu [select-paste] '("Select and Paste" . yank-menu))
 (define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
 (define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
 (define-key menu-bar-edit-menu [undo] '("Undo" . undo))
@@ -116,6 +119,7 @@
 (put 'kill-region 'menu-enable 'mark-active)
 (put 'kill-ring-save 'menu-enable 'mark-active)
 (put 'yank 'menu-enable '(x-selection-exists-p))
+(put 'yank-menu 'menu-enable '(cdr yank-menu))
 (put 'delete-region 'menu-enable 'mark-active)
 (put 'undo 'menu-enable '(if (eq last-command 'undo)
 			     pending-undo-list
@@ -232,40 +236,31 @@ Do the same for the keys of the same name."
 	     buffer-undo-list)))
 
 (defvar yank-menu-length 100
-  "*Maximum length of an item in the menu for \
-\\[mouse-menu-choose-yank].")
+  "*Maximum length to display in the yank-menu.")
 
-(defun mouse-menu-choose-yank (event)
-  "Pop up a menu of the kill-ring for selection with the mouse.
-The kill-ring-yank-pointer is moved to the selected element.
-A subsequent \\[yank] yanks the choice just selected."
-  (interactive "e")
-  (let* ((count 0)
-	 (menu (mapcar (lambda (string)
-			 (if (> (length string) yank-menu-length)
-			     (setq string (substring string
-						     0 yank-menu-length)))
-			 (prog1 (cons string count)
-			   (setq count (1+ count))))
-		       kill-ring))
-	 (arg (x-popup-menu event 
-			    (list "Yank Menu"
-				  (cons "Choose Next Yank" menu)))))
-    ;; A mouse click outside the menu returns nil.
-    ;; Avoid a confusing error from passing nil to rotate-yank-pointer.
-    ;; XXX should this perhaps do something other than simply return? -rm
-    (if arg
+(defun menu-bar-update-yank-menu (string old)
+  (let ((front (car (cdr yank-menu)))
+	(menu-string (if (<= (length string) yank-menu-length)
+			 string
+		       (substring string 0 yank-menu-length))))
+    ;; If we're supposed to be extending an existing string, and that
+    ;; string really is at the front of the menu, then update it in place.
+    (if (and old (or (eq old (car front))
+		     (string= old (car front))))
 	(progn
-	  ;; We don't use `rotate-yank-pointer' because we want to move
-	  ;; relative to the beginning of kill-ring, not the current
-	  ;; position.  Also, that would ask for any new X selection and
-	  ;; thus change the list of items the user just chose from, which
-	  ;; would be highly confusing.
-	  (setq kill-ring-yank-pointer (nthcdr arg kill-ring))
-	  (if (interactive-p)
-	      (message "The next yank will insert the selected text.")
-	    (current-kill 0))))))
-(put 'mouse-menu-choose-yank 'menu-enable 'kill-ring)
+	  (setcar front string)
+	  (setcar (cdr front) menu-string))
+      (setcdr yank-menu
+	      (cons
+	       (cons string (cons menu-string 'menu-bar-select-yank))
+	       (cdr yank-menu)))))
+  (if (> (length (cdr yank-menu)) kill-ring-max)
+      (setcdr (nthcdr kill-ring-max yank-menu) nil)))
+
+(defun menu-bar-select-yank ()
+  (interactive "*")
+  (push-mark (point))
+  (insert last-command-event))
 
 (define-key global-map [menu-bar buffer] '("Buffers" . menu-bar-buffers))
 
