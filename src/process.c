@@ -3190,8 +3190,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	/* System sometimes fails to deliver SIGIO.  */
 	kill (getpid (), SIGIO);
 #endif
+#ifdef SIGIO
       if (XINT (read_kbd) && interrupt_input && (waitchannels & 1))
 	kill (0, SIGIO);
+#endif
 
       /* If we have timed out (nfds == 0) or found some input (nfds > 0),
 	 we should exit.  */
