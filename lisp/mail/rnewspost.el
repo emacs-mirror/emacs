@@ -74,7 +74,36 @@
       (define-key news-reply-mode-map "\C-c\C-y" 'news-reply-yank-original)
       (define-key news-reply-mode-map "\C-c\C-q" 'mail-fill-yanked-message)
       (define-key news-reply-mode-map "\C-c\C-c" 'news-inews)
-      (define-key news-reply-mode-map "\C-c\C-s" 'news-inews)))
+      (define-key news-reply-mode-map "\C-c\C-s" 'news-inews)
+      (define-key news-reply-mode-map [menu-bar] (make-sparse-keymap))
+      (define-key news-reply-mode-map [menu-bar fields]
+	(cons "Fields" (make-sparse-keymap "Fields")))
+      (define-key news-reply-mode-map [menu-bar fields news-reply-distribution]
+	'("Distribution" . news-reply-distribution))
+      (define-key news-reply-mode-map [menu-bar fields news-reply-keywords]
+	'("Keywords" . news-reply-keywords))
+      (define-key news-reply-mode-map [menu-bar fields news-reply-newsgroups]
+	'("Newsgroups" . news-reply-newsgroups))
+      (define-key news-reply-mode-map [menu-bar fields news-reply-followup-to]
+	'("Followup-to" . news-reply-followup-to))
+      (define-key news-reply-mode-map [menu-bar fields mail-subject]
+	'("Subject" . mail-subject))
+      (define-key news-reply-mode-map [menu-bar fields news-reply-summary]
+	'("Summary" . news-reply-summary))
+      (define-key news-reply-mode-map [menu-bar fields mail-text]
+	'("Text" . mail-text))
+      (define-key news-reply-mode-map [menu-bar news]
+	(cons "News" (make-sparse-keymap "News")))
+      (define-key news-reply-mode-map [menu-bar news news-caesar-buffer-body]
+	'("Rot13" . news-caesar-buffer-body))
+      (define-key news-reply-mode-map [menu-bar news news-reply-signature]
+	'("Signature" . news-reply-signature))
+      (define-key news-reply-mode-map [menu-bar news news-reply-yank-original]
+	'("Yank Original" . news-reply-yank-original))
+      (define-key news-reply-mode-map [menu-bar news mail-fill-yanked-message]
+	'("Fill Yanked Messages" . mail-fill-yanked-message))
+      (define-key news-reply-mode-map [menu-bar news news-inews]
+	'("Send" . news-inews))))
 
 (defun news-reply-mode ()
   "Major mode for editing news to be posted on USENET.
