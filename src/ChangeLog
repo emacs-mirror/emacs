@@ -1,3 +1,8 @@
+2000-02-12  Dave Love  <fx@gnu.org>
+
+	* frame.h (SELECTED_FRAME): Use NULL, not 0 to avoid warnings on
+	Alpha.
+
 2000-02-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (syms_of_xdisp): Doc fix for scroll-conservatively.
