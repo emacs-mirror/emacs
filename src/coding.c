@@ -4170,6 +4170,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   unsigned char *src, *dst;
   Lisp_Object deletion;
   int orig_point = PT, orig_len = len;
+  int prev_Z;
 
   deletion = Qnil;
   saved_coding_symbol = Qnil;
@@ -4523,7 +4524,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       to += tail_skip; to_byte += tail_skip;
     }
 
+  prev_Z = Z;
   adjust_after_replace (from, from_byte, deletion, inserted, inserted_byte);
+  inserted = Z - prev_Z;
 
   if (! encodep && ! NILP (coding->post_read_conversion))
     {
@@ -4531,12 +4534,10 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 
       if (from != PT)
 	TEMP_SET_PT_BOTH (from, from_byte);
+      prev_Z = Z;
       val = call1 (coding->post_read_conversion, make_number (inserted));
-      if (! NILP (val))
-	{
-	  CHECK_NUMBER (val, 0);
-	  inserted = XFASTINT (val);
-	}
+      CHECK_NUMBER (val, 0);
+      inserted = Z - prev_Z;
     }
 
   if (orig_point >= from)
