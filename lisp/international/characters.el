@@ -101,11 +101,9 @@
 
 ;; ASCII
 
-(let ((ch 32))
-  (while (< ch 127)			; All ASCII characters have
-    (modify-category-entry ch ?a)	; the category `a' (ASCII)
-    (modify-category-entry ch ?l)	; and `l' (Latin).
-    (setq ch (1+ ch))))
+;; All ASCII characters have the category `a' (ASCII) and `l' (Latin).
+(modify-category-entry '(32 . 127) ?a)
+(modify-category-entry '(32 . 127) ?l)
 
 ;; Arabic character set
 
@@ -116,28 +114,12 @@
   (while charsets
 ;;     (modify-syntax-entry (make-char (car charsets)) "w")
     (map-charset-chars
-     #'(lambda (char ignore)
-	 (if (consp char)
-	     (let ((from (car char))
-		   (to (cdr char)))
-	       (while (<= from to)
-		 (modify-category-entry from ?b)
-		 (setq from (1+ from))))
-	   (modify-category-entry char ?b)))
+     #'(lambda (char ignore) (modify-category-entry char ?b))
      (car charsets))
     (setq charsets (cdr charsets))))
-(let ((ch #x600))
-  (while (<= ch #x6ff)
-    (modify-category-entry (decode-char 'ucs ch) ?b)
-    (setq ch (1+ ch)))
-  (setq ch #xfb50)
-  (while (<= ch #xfdff)
-    (modify-category-entry (decode-char 'ucs ch) ?b)
-    (setq ch (1+ ch)))
-  (setq ch #xfe70)
-  (while (<= ch #xfefe)
-    (modify-category-entry (decode-char 'ucs ch) ?b)
-    (setq ch (1+ ch))))
+(modify-category-entry '(#x600 . #x6ff) ?b)
+(modify-category-entry '(#xfb50 . #xfdff) ?b)
+(modify-category-entry '(#xfe70 . #xfefe) ?b)
 
 ;; Chinese character set (GB2312)
 
@@ -366,8 +348,7 @@
 
 ;; (modify-category-entry (make-char 'ethiopic) ?e)
 ;; (modify-syntax-entry (make-char 'ethiopic) "w")
-(dotimes (i (1+ (- #x137c #x1200)))
-  (modify-category-entry (decode-char 'ucs (+ #x1200 i)) ?e))
+(modify-category-entry '(#x1200 . #x137b) ?e)
 (let ((chars '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%i(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B
 	       ;; Unicode equivalents of the above:
 	       ?$,1Q!(B ?$,1Q"(B ?$,1Q#(B ?$,1Q$(B ?$,1Q%(B ?$,1Q&(B ?$,1Q'(B ?$,1Q((B ?$,3op(B ?$,3o{(B ?$,3o|(B ?$,3o}(B ?$,3o~(B ?$,3o(B)))
