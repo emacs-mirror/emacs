@@ -404,12 +404,16 @@ make_frame_without_minibuffer (mini_window, kb, display)
 	}
       mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
     }
-  /* Install the chosen minibuffer window, with proper buffer.  */
+
   f->minibuffer_window = mini_window;
-  Fset_window_buffer (mini_window,
-		      (NILP (Vminibuffer_list)
-		       ? get_minibuffer (0)
-		       : Fcar (Vminibuffer_list)));
+
+  /* Make the chosen minibuffer window display the proper minibuffer,
+     unless it is already showing a minibuffer.  */
+  if (NILP (Fmemq (XWINDOW (mini_window)->buffer, Vminibuffer_list)))
+    Fset_window_buffer (mini_window,
+			(NILP (Vminibuffer_list)
+			 ? get_minibuffer (0)
+			 : Fcar (Vminibuffer_list)));
   return f;
 }
 
