@@ -2383,17 +2383,23 @@ do { prev_from = from;				\
   curlevel->prev = -1;
   curlevel->last = -1;
 
+  SETUP_SYNTAX_TABLE (prev_from, 1);
+  prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
+  UPDATE_SYNTAX_TABLE_FORWARD (from);
+
   /* Enter the loop at a place appropriate for initial state.  */
 
-  if (state.incomment) goto startincomment;
+  if (state.incomment)
+    goto startincomment;
   if (state.instring >= 0)
     {
       nofence = state.instring != ST_STRING_STYLE;
-      if (start_quoted) goto startquotedinstring;
+      if (start_quoted)
+	goto startquotedinstring;
       goto startinstring;
     }
-  if (start_quoted) goto startquoted;
-
+  else if (start_quoted)
+    goto startquoted;
 
   SETUP_SYNTAX_TABLE (prev_from, 1);
   prev_from_syntax = SYNTAX_WITH_FLAGS (FETCH_CHAR (prev_from_byte));
