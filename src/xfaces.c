@@ -1574,7 +1574,7 @@ If FRAME is nil or omitted, use the selected frame.  */)
 
 
 DEFUN ("color-supported-p", Fcolor_supported_p,
-       Scolor_supported_p, 2, 3, 0,
+       Scolor_supported_p, 1, 3, 0,
        doc: /* Return non-nil if COLOR can be displayed on FRAME.
 BACKGROUND-P non-nil means COLOR is used as a background.
 If FRAME is nil or omitted, use the selected frame.
