@@ -1,5 +1,4 @@
-;;; generic-mode.el --- A meta-mode which makes it easy to create small
-;;   modes with basic comment and font-lock support
+;;; generic.el --- Defining simple major modes with comment and font-lock.
 ;;
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 ;;
@@ -116,6 +115,9 @@
 
 ;;; Change log:
 ;; $Log: generic.el,v $
+;; Revision 1.2  1997/12/12 16:53:45  fx
+;; Use imenu-case-fold-search.
+;;
 ;; Revision 1.1  1997/06/15 07:01:26  rms
 ;; Initial revision
 ;;
@@ -611,6 +613,6 @@ The regexp is highlighted with FACE."
     (or suffix "")
     ) 1 face))
 
-(provide 'generic-mode)
+(provide 'generic)
 
-;;; generic-mode.el ends here
+;;; generic.el ends here
