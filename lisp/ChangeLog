@@ -1,3 +1,26 @@
+2004-02-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-display-format): Change default to
+	'ignore, for backwards compatability.
+	(appt-display-message): If appt-display-format is 'ignore,
+	respect old vars appt-msg-window and appt-visible.
+	(appt-activate): Don't depend on return value of cancel-timer.
+
+	* calendar/calendar.el (calendar-holidays): Doc fix.
+
+	* calendar/cal-coptic.el (coptic-prompt-for-date): Use
+	assoc-string instead of assoc-ignore-case.
+	* calendar/cal-french.el (calendar-goto-french-date): Ditto.
+	* calendar/cal-hebrew.el (calendar-goto-hebrew-date)
+	(mark-hebrew-diary-entries, list-yahrzeit-dates): Ditto.
+	* calendar/cal-islam.el (calendar-goto-islamic-date)
+	(mark-islamic-diary-entries): Ditto.
+	* calendar/cal-julian.el (calendar-goto-julian-date): Ditto.
+	* calendar/cal-mayan.el (calendar-read-mayan-haab-date)
+	(calendar-read-mayan-tzolkin-date): Ditto.
+	* calendar/calendar.el (calendar-read-date): Ditto.
+	* calendar/diary-lib.el (mark-diary-entries): Ditto.
+
 2004-02-18  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* progmodes/executable.el (executable-command-find-posix-p):  Fix
