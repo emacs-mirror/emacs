@@ -197,7 +197,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   breve      |    ~    | a~ -> ,Bc(B
   cedilla    |    `    | c` -> ,Bg(B
   caron      |    ~    | c~ -> ,Bh(B
-  dbl. acute |    \"    | o\" -> ,Bu(B
+  dbl. acute |    :    | o\" -> ,Bu(B
   ring       |    `    | u` -> ,By(B
   dot        |    `    | z` -> ,B?(B
   stroke     |    /    | d/ -> ,Bp(B
@@ -233,7 +233,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("N'" ?,BQ(B)
  ("N~" ?,BR(B)
  ("O'" ?,BS(B)
- ("O\"" ?,BU(B)
+ ("O:" ?,BU(B)
  ("O\"" ?,BV(B)
  ("O^" ?,BT(B)
  ("R'" ?,B@(B)
@@ -244,7 +244,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("T`" ?,B^(B)
  ("T~" ?,B+(B)
  ("U'" ?,BZ(B)
- ("U\"" ?,B[(B)
+ ("U:" ?,B[(B)
  ("U\"" ?,B\(B)
  ("U`" ?,BY(B)
  ("Y'" ?,B](B)
@@ -273,7 +273,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("n'" ?,Bq(B)
  ("n~" ?,Br(B)
  ("o'" ?,Bs(B)
- ("o\"" ?,Bu(B)
+ ("o:" ?,Bu(B)
  ("o\"" ?,Bv(B)
  ("o^" ?,Bt(B)
  ("r'" ?,B`(B)
@@ -285,7 +285,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("t`" ?,B~(B)
  ("t~" ?,B;(B)
  ("u'" ?,Bz(B)
- ("u\"" ?,B{(B)
+ ("u:" ?,B{(B)
  ("u\"" ?,B|(B)
  ("u`" ?,By(B)
  ("y'" ?,B}(B)
