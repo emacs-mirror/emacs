@@ -2999,18 +2999,24 @@ After saving the buffer, this function runs `after-save-hook'."
 This requires the external program `diff' to be in your `exec-path'."
   (interactive "bBuffer: ")
   (with-current-buffer (get-buffer (or buffer (current-buffer)))
-    (if (null buffer-file-name)
-	(message "Buffer %s has no associated file" (buffer-name))
-      (let ((tempfile (make-temp-file "buffer-content-")))
-	(unwind-protect
-	    (save-restriction
-	      (widen)
-	      (write-region (point-min) (point-max) tempfile nil 'nomessage)
-	      (diff buffer-file-name tempfile nil t)
-	      (sit-for 0))
-	  (when (file-exists-p tempfile)
-	    (delete-file tempfile)))
-	nil))))
+    (if (and buffer-file-name
+	     (file-exists-p buffer-file-name))
+	(let ((tempfile (make-temp-file "buffer-content-")))
+	  (unwind-protect
+	      (save-restriction
+		(widen)
+		(write-region (point-min) (point-max) tempfile nil 'nomessage)
+		(diff buffer-file-name tempfile nil t)
+		(sit-for 0))
+	    (when (file-exists-p tempfile)
+	      (delete-file tempfile))))
+      (message "Buffer %s has no associated file on disc" (buffer-name))
+      ;; Display that message for 1 second so that user can read it
+      ;; in the minibuffer.
+      (sit-for 1)))
+  ;; return always nil, so that save-buffers-kill-emacs will not move
+  ;; over to the next unsaved buffer when calling `d'.
+  nil)
 
 (defvar save-some-buffers-action-alist
   '((?\C-r
