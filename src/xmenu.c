@@ -1814,6 +1814,8 @@ set_frame_menubar (f, first_time, deep_p)
 	    + f->output_data.x->menubar_widget->core.border_width)
 	 : 0);
 
+#if 0 /* Experimentally, we now get the right results
+	 for -geometry -0-0 without this.  24 Aug 96, rms.  */
 #ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
@@ -1823,6 +1825,7 @@ set_frame_menubar (f, first_time, deep_p)
         menubar_size += ibw;
       }
 #endif /* USE_LUCID */
+#endif /* 0 */
 
     f->output_data.x->menubar_height = menubar_size;
   }
