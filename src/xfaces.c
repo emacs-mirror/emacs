@@ -1213,7 +1213,10 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
      And we must inhibit any Expose events until the redraw is done,
      since they would try to use the invalid display faces.  */
   if (garbaged)
-    SET_FRAME_GARBAGED (f);
+    {
+      SET_FRAME_GARBAGED (f);
+      FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 1;
+    }
 
   return Qnil;
 }
