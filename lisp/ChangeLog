@@ -1,3 +1,14 @@
+2002-07-25  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-find-index-name): Search for a function definition
+	with a return type.
+
+2002-07-25  David Ponce  <david@dponce.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-set-symbol-position):
+	Don't recompute `entry' on each iteration.
+	(byte-compile-delete-first): Make it defsubst.
+
 2002-07-25  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-engine.el (c-search-uplist-for-classkey): When
@@ -29,7 +40,6 @@
 
 	* textmodes/reftex-sel.el (reftex-select-label-mode): likewise.
 	(reftex-select-bib-mode): likewise
-
 
 2002-07-25  Colin Walters  <walters@debian.org>
 
