@@ -252,6 +252,11 @@ The head element is the directory the compilation was started in.")
 ;; History of grep commands.
 (defvar grep-history nil)
 
+(defvar compilation-mode-font-lock-keywords
+  '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
+;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
+  "Additional expressions to highlight in Compilation mode.")
+
 ;;;###autoload
 (defun compile (command)
   "Compile the program including the current buffer.  Default: run `make'.
@@ -468,11 +473,13 @@ To kill the compilation, type \\[kill-compilation].
 
 Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (interactive)
-  (fundamental-mode)
+  (kill-all-local-variables)
   (use-local-map compilation-mode-map)
   (setq major-mode 'compilation-mode
 	mode-name "Compilation")
   (compilation-setup)
+  (set (make-local-variable 'font-lock-keywords)
+       compilation-mode-font-lock-keywords)
   (run-hooks 'compilation-mode-hook))
 
 ;; Prepare the buffer for the compilation parsing commands to work.
