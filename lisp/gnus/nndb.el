@@ -1,6 +1,6 @@
 ;;; nndb.el --- nndb access for Gnus
 
-;; Copyright (C) 1997, 1998, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;         Kai Grossjohann <grossjohann@ls6.informatik.uni-dortmund.de>
@@ -57,12 +57,6 @@
 (require 'nnmail)
 (require 'nnheader)
 (require 'nntp)
-(eval-when-compile (require 'cl))
-
-(eval-and-compile
-  (unless (fboundp 'open-network-stream)
-    (require 'tcp)))
-
 (eval-when-compile (require 'cl))
 
 (eval-and-compile

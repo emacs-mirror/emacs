@@ -1,3 +1,28 @@
+2004-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* gnus.texi (IMAP): Add example.  Suggested and partially written
+	by Steinar Bang <sb@dod.no>.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (IMAP): add comments about imaps synonym to imap in
+	netrc syntax
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Sequence of Events): some clarifications
+	(Spam ELisp Package Global Variables)
+	(Spam ELisp Package Global Variables): more clarifications
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Filtering of Incoming Mail):
+	mention spam-split does not modify incoming mail
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Sequence of Events): fix typo
+
 2004-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/gnus, gnus.dvi): Depend on gnus-faq.texi

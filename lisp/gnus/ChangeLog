@@ -1,3 +1,15 @@
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-open-connection): allow 'imaps' as a synonym
+	for the 'imap' port in netrc files
+
+	* gnus-registry.el (gnus-registry-trim): watch out for negatives
+	in gnus-registry-trim
+
+2004-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* nndb.el (require): Remove tcp and duplicate cl.
+
 2004-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nntp.el (nntp): New customization group.
