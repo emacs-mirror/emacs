@@ -136,9 +136,9 @@ BASE_LIBS	= $(libc) $(baselibs) -nodefaultlib:oldnames.lib
 
 # We want any debugging info in the executable.
 !if "$(LINK)" == "link32"
-SYS_LDFLAGS	= 
+SYS_LDFLAGS	= -nologo
 !else
-SYS_LDFLAGS	= -release -incremental:no -version:3.10
+SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10
 !endif
 
 # Tag the executables to run out of the swapfile when execute off CD or network shares
