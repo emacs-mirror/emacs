@@ -1840,7 +1840,7 @@ to be sure of changing the value of `foo'.  */)
 
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
        doc: /* Reverse LIST by modifying cdr pointers.
-Returns the beginning of the reversed list.  */)
+Return the reversed list.  */)
      (list)
      Lisp_Object list;
 {
@@ -1863,7 +1863,7 @@ Returns the beginning of the reversed list.  */)
 }
 
 DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
-       doc: /* Reverse LIST, copying.  Returns the beginning of the reversed list.
+       doc: /* Reverse LIST, copying.  Return the reversed list.
 See also the function `nreverse', which is used more often.  */)
      (list)
      Lisp_Object list;
