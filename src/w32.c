@@ -583,6 +583,9 @@ w32_get_resource (key, lpdwtype)
   return (NULL);
 }
 
+char *get_emacs_configuration (void);
+extern Lisp_Object Vsystem_configuration;
+
 void
 init_environment ()
 {
@@ -632,6 +635,9 @@ init_environment ()
 	  }
       }
   }
+
+  /* Rebuild system configuration to reflect invoking system.  */
+  Vsystem_configuration = build_string (EMACS_CONFIGURATION);
 
   init_user_info ();
 }
