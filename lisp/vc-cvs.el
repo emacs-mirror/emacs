@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.25 2001/10/21 12:21:29 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.26 2001/10/22 07:57:00 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -736,46 +736,18 @@ is non-nil."
 	     ;; revision
 	     "/\\([^/]*\\)"
 	     ;; timestamp
-	     "/[A-Z][a-z][a-z]"       ;; week day (irrelevant)
-	     " \\([A-Z][a-z][a-z]\\)" ;; month name
-	     " *\\([0-9]*\\)"         ;; day of month
-	     " \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\)"  ;; hms
-	     " \\([0-9]*\\)"          ;; year
-	     ;; optional conflict field
-	     "\\(+[^/]*\\)?/"))
+	     "/\\([^/]*\\)"))
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     ;; compare checkout time and modification time
-    (let ((second (string-to-number (match-string 6)))
-	  (minute (string-to-number (match-string 5)))
-	  (hour (string-to-number (match-string 4)))
-	  (day (string-to-number (match-string 3)))
-	  (year (string-to-number (match-string 7)))
-	  (month (/ (string-match
-		     (match-string 2)
-		     "xxxJanFebMarAprMayJunJulAugSepOctNovDec")
-		    3))
-	  (mtime (nth 5 (file-attributes file))))
-      (cond ((equal mtime
-		    (encode-time second minute hour day month year 0))
+    (let ((mtime (nth 5 (file-attributes file)))
+	  (system-time-locale "C"))
+      (cond ((equal (format-time-string "%c" mtime 'utc) (match-string 2))
 	     (vc-file-setprop file 'vc-checkout-time mtime)
 	     (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
 	    (t
 	     (vc-file-setprop file 'vc-checkout-time 0)
-	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))
-   ;; entry with arbitrary text as timestamp
-   ;; (this means we should consider it modified)
-   ((looking-at
-     (concat "/[^/]+"
-	     ;; revision
-	     "/\\([^/]*\\)"
-	     ;; timestamp (arbitrary text)
-	     "/[^/]*"
-	     ;; optional conflict field
-	     "\\(+[^/]*\\)?/"))
-    (vc-file-setprop file 'vc-workfile-version (match-string 1))
-    (vc-file-setprop file 'vc-checkout-time 0)
-    (if set-state (vc-file-setprop file 'vc-state 'edited)))))
-
+	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
+           
 (provide 'vc-cvs)
 
 ;;; vc-cvs.el ends here
