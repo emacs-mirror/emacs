@@ -177,10 +177,16 @@ set to the appropriate coding system, and the value of
 (defun find-file-not-found-set-buffer-file-coding-system ()
   (save-excursion
     (set-buffer (current-buffer))
-    (let* ((dummy-insert-op (list 'insert-file-contents (buffer-file-name)))
-	   (coding-system-pair
-	    (find-buffer-file-type-coding-system dummy-insert-op)))
-      (setq buffer-file-coding-system (car coding-system-pair))
+    (let ((coding buffer-file-coding-system))
+      ;; buffer-file-coding-system is already set by
+      ;; find-operation-coding-system, which was called from
+      ;; insert-file-contents.  All that's left is to change
+      ;; the EOL conversion, if required by the user.
+      (when (and (null coding-system-for-read)
+		 (or inhibit-eol-conversion
+		     (untranslated-file-p (buffer-file-name))))
+	(setq coding (coding-system-change-eol-conversion coding 0))
+	(setq buffer-file-coding-system coding))
       (setq buffer-file-type (eq buffer-file-coding-system 'no-conversion)))))
 
 ;;; To set the default coding system on new files.
@@ -233,7 +239,10 @@ CR/LF translation, and nil otherwise."
 CR/LF translation.  FILESYSTEM is a string containing the directory
 prefix corresponding to the filesystem.  For example, for a Unix 
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
-  (interactive "fUntranslated file system: ")
+  ;; We use "D", not "f", to avoid confusing the user: "f" prompts
+  ;; with a directory, but RET returns the current buffer's file, not
+  ;; its directory.
+  (interactive "DUntranslated file system: ")
   (let ((fs (untranslated-canonical-name filesystem)))
     (if (member fs untranslated-filesystem-list)
 	untranslated-filesystem-list
