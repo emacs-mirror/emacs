@@ -4002,14 +4002,6 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  internal_last_event_frame = frame;
 	  kbd_fetch_ptr = event + 1;
 	}
-      else if (event->kind == SELECT_WINDOW_EVENT)
-	{
-	  /* Make an event (select-window (WINDOW)).  */
-	  obj = Fcons (event->frame_or_window, Qnil);
-	  obj = Fcons (Qselect_window, Fcons (obj, Qnil));
-
-	  kbd_fetch_ptr = event + 1;
-	}
       else
 	{
 	  /* If this event is on a different frame, return a switch-frame this
@@ -5657,6 +5649,12 @@ make_lispy_event (event)
 	return Fcons (Qmenu_bar, Qnil);
       return event->arg;
 #endif
+
+    case SELECT_WINDOW_EVENT:
+      /* Make an event (select-window (WINDOW)).  */
+      return Fcons (Qselect_window,
+		    Fcons (Fcons (event->frame_or_window, Qnil),
+			   Qnil));
 
     case TOOL_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
@@ -11276,8 +11274,12 @@ keys_of_keyboard ()
 			    "ignore-event");
   initial_define_lispy_key (Vspecial_event_map, "make-frame-visible",
 			    "ignore-event");
-  initial_define_lispy_key (Vspecial_event_map, "select-window",
-			    "handle-select-window");
+  /* Handling it at such a low-level causes read_key_sequence to get
+   * confused because it doesn't realize that the current_buffer was
+   * changed by read_char.
+   * 
+   * initial_define_lispy_key (Vspecial_event_map, "select-window",
+   * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",
 			    "handle-save-session");
 }
