@@ -700,6 +700,9 @@ where each @var{command} can either be a string or a lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
 
+If @samp{*} in the shell command, that means to substitute the file
+name.
+
 You can set this variable in your @file{~/.emacs}.  For example,
 to add rules for @samp{.foo} and @samp{.bar} file extensions, write
 
