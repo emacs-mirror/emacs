@@ -1500,9 +1500,9 @@ created."
   '((((type tty) (class color))
      (:background "cyan"))
     (((class color) (background light))
-     (:background "paleturquoise"))
+     (:background "darkyellow"))
     (((class color) (background dark))
-     (:background "darkslateblue"))
+     (:background "yellow"))
     (t (:inverse-video t)))
   "Basic face for displaying the secondary selection."
   :group 'basic-faces)
