@@ -1,3 +1,7 @@
+1999-12-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* font-lock.el (java-keywords): Add Javadoc tags as of JDK 1.2.1.
+
 1999-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Print an explicit message
