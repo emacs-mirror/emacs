@@ -238,16 +238,26 @@ put_char (ch, printflag, bufp, pending_newlines, pending_spaces)
    character that follows.  COMMENT non-zero means skip a comment.  If
    PRINTFLAG is positive, output string contents to outfile.  If it is
    negative, store contents in buf.  Convert escape sequences \n and
-   \t to newline and tab; discard \ followed by newline.  */
+   \t to newline and tab; discard \ followed by newline.
+   If SAW_USAGE is non-zero, then any occurances of the string `usage:'
+   at the beginning of a line will be removed, and *SAW_USAGE set to
+   true if any were encountered.  */
 
 int
-read_c_string_or_comment (infile, printflag, comment)
+read_c_string_or_comment (infile, printflag, comment, saw_usage)
      FILE *infile;
      int printflag;
+     int *saw_usage;
 {
   register int c;
   unsigned pending_spaces = 0, pending_newlines = 0;
   char *p = buf;
+  /* When this keyword occurs at the beginning of a line, we remove it,
+     and set *SAW_USAGE to true.  */
+  static char usage_keyword[] = "usage:";
+  /* The current point we've reached in an occurance of USAGE_KEYWORD in
+     the input stream.  */
+  char *cur_usage_ptr = usage_keyword;
 
   if (comment)
     {
@@ -258,6 +268,9 @@ read_c_string_or_comment (infile, printflag, comment)
   else
     c = getc (infile);
   
+  if (saw_usage)
+    *saw_usage = 0;
+
   while (c != EOF)
     {
       while (c != EOF && (comment ? c != '*' : c != '"'))
@@ -284,7 +297,52 @@ read_c_string_or_comment (infile, printflag, comment)
 	      pending_spaces = 0;
 	    }
 	  else
-	    put_char (c, printflag, &p, &pending_newlines, &pending_spaces);
+	    {
+	      if (saw_usage
+		  && *cur_usage_ptr == c
+		  && (cur_usage_ptr > usage_keyword || pending_newlines > 0))
+		/* We might be looking at USAGE_KEYWORD at some point.
+		   Keep looking until we know for sure.  */
+		{
+		  if (*++cur_usage_ptr == '\0')
+		    /* Saw the whole keyword.  Set *SAW_USAGE to true.  */
+		    {
+		      *saw_usage = 1;
+
+		      /* Reset the scanning pointer.  */
+		      cur_usage_ptr = usage_keyword;
+
+		      /* Canonicalize whitespace preceding a usage string. */
+		      pending_newlines = 2;
+		      pending_spaces = 0;
+
+		      /* Skip any whitespace between the keyword and the
+			 usage string.  */
+		      do
+			c = getc (infile);
+		      while (c == ' ' || c == '\n');
+
+		      continue;	/* This just skips the getc at end-of-loop. */
+		    }
+		}
+	      else
+		{
+		  if (cur_usage_ptr > usage_keyword)
+		    /* We scanned the beginning of a potential usage
+		       keyword, but it was a false alarm.  Output the
+		       part we scanned.  */
+		    {
+		      char *p;
+		      for (p = usage_keyword; p < cur_usage_ptr; p++)
+			put_char (*p, printflag, &p,
+				  &pending_newlines, &pending_spaces);
+		      cur_usage_ptr = usage_keyword;
+		    }
+
+		  put_char (c, printflag, &p,
+			    &pending_newlines, &pending_spaces);
+		}
+	    }
 
 	  c = getc (infile);
 	}
@@ -507,7 +565,7 @@ scan_c_file (filename, mode)
       c = getc (infile);
       if (c != '"')
 	continue;
-      c = read_c_string_or_comment (infile, -1, 0);
+      c = read_c_string_or_comment (infile, -1, 0, 0);
 
       /* DEFVAR_LISP ("name", addr, "doc")
 	 DEFVAR_LISP ("name", addr /\* doc *\/)
@@ -555,7 +613,7 @@ scan_c_file (filename, mode)
 	c = getc (infile);
       
       if (c == '"')
-	c = read_c_string_or_comment (infile, 0, 0);
+	c = read_c_string_or_comment (infile, 0, 0, 0);
       
       while (c != EOF && c != ',' && c != '/')
 	c = getc (infile);
@@ -582,6 +640,7 @@ scan_c_file (filename, mode)
 		  c == '*')))
 	{
 	  int comment = c != '"';
+	  int saw_usage;
 	  
 	  putc (037, outfile);
 	  putc (defvarflag ? 'V' : 'F', outfile);
@@ -589,7 +648,7 @@ scan_c_file (filename, mode)
 
 	  if (comment)
 	    getc (infile); 	/* Skip past `*' */
-	  c = read_c_string_or_comment (infile, 1, comment);
+	  c = read_c_string_or_comment (infile, 1, comment, &saw_usage);
 
 	  /* If this is a defun, find the arguments and print them.  If
 	     this function takes MANY or UNEVALLED args, then the C source
@@ -601,7 +660,7 @@ scan_c_file (filename, mode)
 	      1: DEFUN (..., /\* DOC *\/ (args))      [comment && !doc_keyword]
 	      2: DEFUN (..., doc: /\* DOC *\/) (args) [comment && doc_keyword]
 	  */
-	  if (defunflag && maxargs != -1)
+	  if (defunflag && maxargs != -1 && !saw_usage)
 	    {
 	      char argbuf[1024], *p = argbuf;
 
@@ -1021,7 +1080,7 @@ scan_lisp_file (filename, mode)
 		       buffer, filename);
 	      continue;
 	    }
-	  read_c_string_or_comment (infile, 0, 0);
+	  read_c_string_or_comment (infile, 0, 0, 0);
 	  skip_white (infile);
 
 	  if (saved_string == 0)
@@ -1074,7 +1133,7 @@ scan_lisp_file (filename, mode)
 	  saved_string = 0;
 	}
       else
-	read_c_string_or_comment (infile, 1, 0);
+	read_c_string_or_comment (infile, 1, 0, 0);
     }
   fclose (infile);
   return 0;
