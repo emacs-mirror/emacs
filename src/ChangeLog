@@ -1,3 +1,21 @@
+2004-06-30  Stefan  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_detect_focus_change): Remove unused var `nr_events'.
+	(x_calc_absolute_position): Remove unused var `child'.
+
+	* xfaces.c (x_supports_face_attributes_p)
+	(Fdisplay_supports_face_attributes_p): YAILOM.
+	(tty_supports_face_attributes_p): Remove unused var `i'.
+
+	* syntax.c (skip_chars): Remove unused labels fwd_unibyte_ok and
+	back_unibyte_ok.
+
+	* search.c (match_limit, Fmatch_data, Fset_match_data): YAILOM.
+
+	* fontset.c (Fset_fontset_font): Remove unused vars `family' and `registry'.
+
+	* Makefile.in (${etc}DOC): Fix file name of make-docfile.
+
 2004-06-30  Andreas Schwab  <schwab@suse.de>
 
 	* image.c (CHECK_LIB_AVAILABLE): Add third parameter LIBRARIES.
