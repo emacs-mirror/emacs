@@ -285,12 +285,12 @@ otherwise stated, affects only the current Emacs session.
 @findex customize
 @cindex customization buffer
   A convenient way to find the user option variables that you want to
-change, and then change them, is with @kbd{M-x customize}.  This command
-creates a @dfn{customization buffer} with which you can browse through
-the Emacs user options in a logically organized structure, then edit and
-set their values.  You can also use the customization buffer to save
-settings permanently.  (Not all Emacs user options are included in this
-structure as of yet, but we are adding the rest.)
+change, and then change them, is with @kbd{M-x customize}.  This
+command creates a @dfn{customization buffer} with which you can browse
+through the Emacs user options in a logically organized structure,
+then edit and set their values.  You can also use the customization
+buffer to save settings permanently in your @file{~/.emacs} file
+(@pxref{Init File}).
 
 The appearance of the example buffers in the following is typically
 different under a window system where faces can be used to indicate the
