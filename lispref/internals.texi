@@ -173,8 +173,9 @@ vectors and cons cells.  It does not make copies of other objects such
 as symbols, but just returns them unchanged.  It signals an error if
 asked to copy markers.
 
-This function is used only while Emacs is being built and dumped; it is
-called only in the file @file{emacs/lisp/loaddefs.el}.
+This function is a no-op except while Emacs is being built and dumped;
+it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
+a few packages call it just in case you decide to preload them.
 @end defun
 
 @defvar pure-bytes-used
