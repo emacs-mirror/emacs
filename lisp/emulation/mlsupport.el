@@ -227,10 +227,10 @@
     (symbol-value symbol)))
 
 (defun define-hooked-local-abbrev (name exp hook)
-  (define-local-abbrev name exp (intern hook)))
+  (define-abbrev local-abbrev-table name exp (intern hook)))
 
 (defun define-hooked-global-abbrev (name exp hook)
-  (define-global-abbrev name exp (intern hook)))
+  (define-abbrev global-abbrev-table name exp (intern hook)))
 
 (defun case-word-lower ()
   (ml-casify-word 'downcase-region))
