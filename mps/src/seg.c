@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(MMdevel_action2.2) $
+ * $HopeName: MMsrc!seg.c(MMdevel_bufferscan.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(MMdevel_action2.2) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(MMdevel_bufferscan.2) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -30,7 +30,7 @@ Bool SegCheck(Seg seg)
   if(seg->buffer != NULL) {
     CHECKU(Buffer, seg->buffer);
     /* design.mps.seg.field.buffer.owner */
-    CHECKL(seg->buffer->pool == seg->pool);
+    CHECKL(BufferPool(seg->buffer) == seg->pool);
   }
   CHECKL(RingCheck(&seg->poolRing));
   CHECKL(RankSetCheck(seg->rankSet));
