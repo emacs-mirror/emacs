@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.35.4.1 2001/11/13 20:16:06 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.35.4.2 2001/11/19 04:59:10 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -179,7 +179,9 @@ Can also be an integer which will be automatically turned into a string
 of the corresponding number of spaces.
 
 Extra spacing between the comment characters and the comment text
-makes the comment easier to read.  Default is 1.  nil means 0.")
+makes the comment easier to read.  Default is \" \".  nil means 0."
+  :group 'comment
+  :type '(choice string integer (const nil)))
 
 ;;;###autoload
 (defcustom comment-multi-line nil
