@@ -622,8 +622,8 @@ See the documentation for hilit-translate and hilit-face-translation-table."
       
       ;; catch errors if we can't allocate the color(s)
       (condition-case nil
-	  (progn (set-face-foreground 'scratch-face fgcolor)
-		 (set-face-background 'scratch-face bgcolor)
+	  (progn (and fgcolor (set-face-foreground 'scratch-face fgcolor))
+		 (and bgcolor (set-face-background 'scratch-face bgcolor))
 		 (copy-face 'scratch-face face)
 		 (put face 'basefont basefont))
 	(error (message "couldn't allocate color for '%s'"
@@ -635,7 +635,7 @@ See the documentation for hilit-translate and hilit-face-translation-table."
 	  ;; we wanted, but ignore errors making the face bold or italic
 	  ;; if the font isn't available, there's nothing to do about it...
 	  (progn
-	    (set-face-font face nil frame)
+	    (set-face-font face basefont frame)
 	    (set-face-underline-p face (string-match "underline" fn))
 	    (if (string-match ".*bold" fn)
 		;; make face bold in all frames
