@@ -1,9 +1,14 @@
+2004-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (widget-specify-button): Use hand pointer rather
+	than mouse-face as visible mouse-over effect.
+
 2004-06-07  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Bind `print-length'
-	and `print-level' to nil when writing out `save-place-alist'.  
+	and `print-level' to nil when writing out `save-place-alist'.
 	Thanks to Kai Grossjohann <kai@emptydomain.de> for enlightenment.
-	
+
 2004-06-07  Juanma Barranquero  <lektu@terra.es>
 
 	* completion.el (completion-kill-region): Doc fix.
