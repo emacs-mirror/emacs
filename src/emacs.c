@@ -1518,7 +1518,7 @@ main (argc, argv, envp)
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
   init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.).  */
-#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
   init_xfns ();
 #endif /* HAVE_X_WINDOWS */
   init_fns ();
