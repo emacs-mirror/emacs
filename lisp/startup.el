@@ -220,7 +220,7 @@ Setting `init-file-user' does not prevent Emacs from loading
   "File containing site-wide run-time initializations.
 This file is loaded at run-time before `~/.emacs'.  It contains inits
 that need to be in place for the entire site, but which, due to their
-higher incidence of change, don't make sense to load into emacs'
+higher incidence of change, don't make sense to load into Emacs's
 dumped image.  Thus, the run-time load order is: 1. file described in
 this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.
 
@@ -293,8 +293,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (let* ((this-dir (car dirs))
 	     (contents (directory-files this-dir))
 	     (default-directory this-dir)
-	     (canonicalized (and (eq system-type 'windows-nt)
-				 (untranslated-canonical-name this-dir))))
+	     (canonicalized (if (fboundp 'untranslated-canonical-name)
+				(untranslated-canonical-name this-dir))))
 	;; The Windows version doesn't report meaningful inode
 	;; numbers, so use the canonicalized absolute file name of the
 	;; directory instead.
@@ -343,12 +343,14 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Give *Messages* the same default-directory as *scratch*,
     ;; just to keep things predictable.
     (let ((dir default-directory))
-      (save-excursion
-	(set-buffer (get-buffer "*Messages*"))
+      (with-current-buffer "*Messages*"
 	(setq default-directory dir)))
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
+    ;; Subprocesses of Emacs do not have direct access to the terminal,
+    ;; so unless told otherwise they should only assume a dumb terminal.
+    (setenv "TERM" "dumb")
     ;; For root, preserve owner and group when editing files.
     (if (equal (user-uid) 0)
 	(setq backup-by-copying-when-mismatch t))
@@ -357,32 +359,25 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; of that dir into load-path,
     ;; Look for a leim-list.el file too.  Loading it will register
     ;; available input methods.
-    (let ((tail load-path)
-	  new)
-      (while tail
-	(push (car tail) new)
-	(condition-case nil
-	    (let ((default-directory (car tail)))
-	      (load (expand-file-name "subdirs.el" (car tail)) t t t)))
-	(condition-case nil
-	    (let ((default-directory (car tail)))
-	      (load (expand-file-name "leim-list.el" (car tail)) t t t)))
-	(setq tail (cdr tail))))
-    (if (not (eq system-type 'vax-vms))
-	(progn
-	  ;; If the PWD environment variable isn't accurate, delete it.
-	  (let ((pwd (getenv "PWD")))
-	    (and (stringp pwd)
-		 ;; Use FOO/., so that if FOO is a symlink, file-attributes
-		 ;; describes the directory linked to, not FOO itself.
-		 (or (equal (file-attributes
-			     (concat (file-name-as-directory pwd) "."))
-			    (file-attributes
-			     (concat (file-name-as-directory default-directory)
-				     ".")))
-		     (setq process-environment
-			   (delete (concat "PWD=" pwd)
-				   process-environment)))))))
+    (dolist (dir load-path)
+      (let ((default-directory dir))
+	(load (expand-file-name "subdirs.el") t t t))
+      (let ((default-directory dir))
+	(load (expand-file-name "leim-list.el") t t t)))
+    (unless (eq system-type 'vax-vms)
+      ;; If the PWD environment variable isn't accurate, delete it.
+      (let ((pwd (getenv "PWD")))
+	(and (stringp pwd)
+	     ;; Use FOO/., so that if FOO is a symlink, file-attributes
+	     ;; describes the directory linked to, not FOO itself.
+	     (or (equal (file-attributes
+			 (concat (file-name-as-directory pwd) "."))
+			(file-attributes
+			 (concat (file-name-as-directory default-directory)
+				 ".")))
+		 (setq process-environment
+		       (delete (concat "PWD=" pwd)
+			       process-environment))))))
     (setq default-directory (abbreviate-file-name default-directory))
     (let ((menubar-bindings-done nil))
       (unwind-protect
