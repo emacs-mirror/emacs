@@ -1,3 +1,8 @@
+2002-03-18  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-options-menu): Cope if
+	text-mode-hook is not a list.
+
 2002-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* emulation/pc-select.el (pc-selection-mode):

@@ -67,6 +67,9 @@ Other features we would like:
 * Save undo information in files, and reload it when needed
   for undoing.
 
+* Merge the Emacs regex.c with the Glibc regex.c.
+  They split off a few years ago through negligance.
+
 * Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
   regenerating the whole menu bar menu tree except
