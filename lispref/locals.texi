@@ -108,9 +108,6 @@ use, but we don't try to list them all here.
 @item local-abbrev-table
 @xref{Abbrevs}.
 
-@item local-write-file-hooks
-@xref{Saving Buffers}.
-
 @item major-mode
 @xref{Mode Help}.
 

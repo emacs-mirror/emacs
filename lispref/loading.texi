@@ -637,7 +637,7 @@ The compiler ignores the @code{provide}, then processes the
 execute the @code{provide} call, so the subsequent @code{require} call
 does nothing when the file is loaded.
 
-@defun provide feature
+@defun provide feature &optional subfeatures
 This function announces that @var{feature} is now loaded, or being
 loaded, into the current Emacs session.  This means that the facilities
 associated with @var{feature} are or will be available for other Lisp
@@ -647,6 +647,9 @@ The direct effect of calling @code{provide} is to add @var{feature} to
 the front of the list @code{features} if it is not already in the list.
 The argument @var{feature} must be a symbol.  @code{provide} returns
 @var{feature}.
+
+If provided, @var{subfeatures} should be a list of symbols indicating
+a set of specific subfeatures provided by this version of @var{feature}.
 
 @smallexample
 features
@@ -681,10 +684,13 @@ signals an error, @samp{Required feature @var{feature} was not
 provided}, unless @var{noerror} is non-@code{nil}.
 @end defun
 
-@defun featurep feature
+@defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in the
 current Emacs session (i.e., if @var{feature} is a member of
-@code{features}.)
+@code{features}.)  If @var{subfeature} is non-nil, then the function
+returns @code{t} only if that subfeature is provided as well (i.e.
+if @var{subfeature} is a member of the @var{subfeature} property
+of the @var{feature} symbol.)
 @end defun
 
 @defvar features
@@ -796,10 +802,13 @@ This function arranges to evaluate @var{form} at the end of loading the
 library @var{library}, if and when @var{library} is loaded.  If
 @var{library} is already loaded, it evaluates @var{form} right away.
 
-The library name @var{library} must exactly match the argument of
-@code{load}.  To get the proper results when an installed library is
-found by searching @code{load-path}, you should not include any
-directory names in @var{library}.
+If @var{library} is a string, it must exactly match the argument of
+@code{load} used to load the library.  To get the proper results when an
+installed library is found by searching @code{load-path}, you should not
+include any directory names in @var{library}.
+
+@var{library} can also be a feature (i.e. a symbol), in which case,
+@var{form} is evaluated when @code{(provide @var{library})} is called.
 
 An error in @var{form} does not undo the load, but does prevent
 execution of the rest of @var{form}.

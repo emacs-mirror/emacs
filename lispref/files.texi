@@ -141,11 +141,11 @@ The @code{find-file-noselect} function normally calls
 Visiting}).  That function sets the buffer major mode, parses local
 variables, warns the user if there exists an auto-save file more recent
 than the file just visited, and finishes by running the functions in
-@code{find-file-hooks}.
+@code{find-file-hook}.
 
 If the optional argument @var{rawfile} is non-@code{nil}, then
 @code{after-find-file} is not called, and the
-@code{find-file-not-found-hooks} are not run in case of failure.  What's
+@code{find-file-not-found-functions} are not run in case of failure.  What's
 more, a non-@code{nil} @var{rawfile} value suppresses coding system
 conversion (@pxref{Coding Systems}) and format conversion (@pxref{Format
 Conversion}).
@@ -200,7 +200,7 @@ match them.  If this is @code{nil}, then wildcard characters are
 not treated specially.
 @end defvar
 
-@defvar find-file-hooks
+@defvar find-file-hook
 The value of this variable is a list of functions to be called after a
 file is visited.  The file's local-variables specification (if any) will
 have been processed before the hooks are run.  The buffer visiting the
@@ -210,7 +210,7 @@ This variable works just like a normal hook, but we think that renaming
 it would not be advisable.  @xref{Hooks}.
 @end defvar
 
-@defvar find-file-not-found-hooks
+@defvar find-file-not-found-functions
 The value of this variable is a list of functions to be called when
 @code{find-file} or @code{find-file-noselect} is passed a nonexistent
 file name.  @code{find-file-noselect} calls these functions as soon as
@@ -285,11 +285,11 @@ of this variable.
 
 If @var{nomodes} is non-@code{nil}, that means don't alter the buffer's
 major mode, don't process local variables specifications in the file,
-and don't run @code{find-file-hooks}.  This feature is used by
+and don't run @code{find-file-hook}.  This feature is used by
 @code{revert-buffer} in some cases.
 
 The last thing @code{after-find-file} does is call all the functions
-in the list @code{find-file-hooks}.
+in the list @code{find-file-hook}.
 @end defun
 
 @node Saving Buffers
@@ -362,14 +362,14 @@ before overwriting an existing file.
 conversion (@pxref{Format Conversion}), and may save text properties in
 ``annotations'' (@pxref{Saving Properties}).
 
-@defvar write-file-hooks
+@defvar write-file-functions
 The value of this variable is a list of functions to be called before
 writing out a buffer to its visited file.  If one of them returns
 non-@code{nil}, the file is considered already written and the rest of
 the functions are not called, nor is the usual code for writing the file
 executed.
 
-If a function in @code{write-file-hooks} returns non-@code{nil}, it
+If a function in @code{write-file-functions} returns non-@code{nil}, it
 is responsible for making a backup file (if that is appropriate).
 To do so, execute the following code:
 
@@ -381,43 +381,33 @@ You might wish to save the file modes value returned by
 @code{backup-buffer} and use that to set the mode bits of the file that
 you write.  This is what @code{save-buffer} normally does.
 
-The hook functions in @code{write-file-hooks} are also responsible for
+The hook functions in @code{write-file-functions} are also responsible for
 encoding the data (if desired): they must choose a suitable coding
 system (@pxref{Lisp and Coding Systems}), perform the encoding
 (@pxref{Explicit Encoding}), and set @code{last-coding-system-used} to
 the coding system that was used (@pxref{Encoding and I/O}).
 
-Do not make this variable buffer-local.  To set up buffer-specific hook
-functions, use @code{write-contents-hooks} instead.
+If you set this hook locally in a buffer, it is assumed to be
+associated with the file or the way the contents of the buffer were
+obtained.  Thus the variable is marked as a permanent local, so that
+changing the major mode does not alter a buffer-local value.  On the
+other hand, calling @code{set-visited-file-name} will reset it.
+If this is not what you want, you might like to use
+@code{write-contents-functions} instead.
 
 Even though this is not a normal hook, you can use @code{add-hook} and
 @code{remove-hook} to manipulate the list.  @xref{Hooks}.
 @end defvar
 
 @c Emacs 19 feature
-@defvar local-write-file-hooks
-This works just like @code{write-file-hooks}, but it is intended to be
-made buffer-local in particular buffers, and used for hooks that pertain
-to the file name or the way the buffer contents were obtained.
-
-The variable is marked as a permanent local, so that changing the major
-mode does not alter a buffer-local value.  This is convenient for
-packages that read ``file'' contents in special ways, and set up hooks
-to save the data in a corresponding way.
-@end defvar
-
-@c Emacs 19 feature
-@defvar write-contents-hooks
-This works just like @code{write-file-hooks}, but it is intended for
+@defvar write-contents-functions
+This works just like @code{write-file-functions}, but it is intended for
 hooks that pertain to the contents of the file, as opposed to hooks that
 pertain to where the file came from.  Such hooks are usually set up by
 major modes, as buffer-local bindings for this variable.
 
 This variable automatically becomes buffer-local whenever it is set;
-switching to a new major mode always resets this variable.  When you use
-@code{add-hooks} to add an element to this hook, you should @emph{not}
-specify a non-@code{nil} @var{local} argument, since this variable is
-used @emph{only} buffer-locally.
+switching to a new major mode always resets this variable.
 @end defvar
 
 @c Emacs 19 feature
@@ -514,7 +504,7 @@ with @code{insert-file-contents}, as long as @var{replace} and
 This function works like @code{insert-file-contents} except that it does
 not do format decoding (@pxref{Format Conversion}), does not do
 character code conversion (@pxref{Coding Systems}), does not run
-@code{find-file-hooks}, does not perform automatic uncompression, and so
+@code{find-file-hook}, does not perform automatic uncompression, and so
 on.
 @end defun
 

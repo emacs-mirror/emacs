@@ -11,7 +11,7 @@
 @c Version values, for easy modification
 @c NOTE: The 'UPDATED' value is updated by the 'time-stamp' function.
 @c       If you change it by hand, the modifications will not stay.
-@set VERSION $Revision: 1.1 $
+@set VERSION $Revision: 1.2 $
 @set UPDATED Monday, 17 June, 2002
 
 
@@ -1618,7 +1618,7 @@ mailing list.
 @c   host and then send commands to it.
 
 @c Local Variables:
-@c eval: (add-hook 'write-file-hooks 'time-stamp)
+@c eval: (add-hook 'write-file-functions 'time-stamp)
 @c time-stamp-start: "@set UPDATED "
 @c time-stamp-format: "%:a, %:d %:b, %:y"
 @c time-stamp-end: "$"

@@ -744,7 +744,7 @@ in @samp{-hooks} or @samp{-functions}, instead of @samp{-hook}.  What
 makes these hooks abnormal is that there is something peculiar about the
 way its functions are called---perhaps they are given arguments, or
 perhaps the values they return are used in some way.  For example,
-@code{find-file-not-found-hooks} (@pxref{Visiting}) is abnormal because
+@code{find-file-not-found-functions} (@pxref{Visiting}) is abnormal because
 as soon as one hook function returns a non-@code{nil} value, the rest
 are not called at all.  The documentation of each abnormal hook variable
 explains in detail what is peculiar about it.

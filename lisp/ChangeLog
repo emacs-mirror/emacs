@@ -1,3 +1,24 @@
+2002-06-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (event-start, event-end, event-click-count):
+	Accept non-mouse events as well.
+	(read-key): New function.
+	(read-quoted-char): Use it.  Use this-single-command-raw-keys as well.
+
+	* files.el: Rename (and mark as obsolete)
+	find-file-hooks to find-file-hook,
+	find-file-not-found-hooks to find-file-not-found-functions,
+	write-file-hooks to write-file-functions,
+	write-contents-hooks to write-contents-functions.
+	Mark local-write-file-hooks as obsolete.
+	(locate-file-completion): Don't cons uselessly.  Use test-completion.
+	(basic-save-buffer): Use (point-min) rather than 1.
+	(basic-save-buffer-2): Obey the `setmodes' returned by backup-buffer.
+
+	* help-fns.el (describe-variable): Only use `buffer' is still live.
+	Use `delete-region' instead of save-excursion + delete-char.
+	Document the obsolescence of the variable, if applicable.
+
 2002-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-do-auto-fill): Respect the value of

@@ -884,6 +884,7 @@ mode-lines in inverse-video.
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** Renamed file hooks to follow the convention:
 find-file-hooks to find-file-hook,
 find-file-not-found-hooks to find-file-not-found-functions,

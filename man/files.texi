@@ -320,21 +320,20 @@ does not add a final newline because of @code{require-final-newline}.
 If you already have visited the same file in the usual (non-literal)
 manner, this command asks you whether to visit it literally instead.
 
-@vindex find-file-hooks
-@vindex find-file-not-found-hooks
+@vindex find-file-hook
+@vindex find-file-not-found-functions
   Two special hook variables allow extensions to modify the operation of
 visiting files.  Visiting a file that does not exist runs the functions
-in the list @code{find-file-not-found-hooks}; this variable holds a list
+in the list @code{find-file-not-found-functions}; this variable holds a list
 of functions, and the functions are called one by one (with no
 arguments) until one of them returns non-@code{nil}.  This is not a
-normal hook, and the name ends in @samp{-hooks} rather than @samp{-hook}
+normal hook, and the name ends in @samp{-functions} rather than @samp{-hook}
 to indicate that fact.
 
   Successful visiting of any file, whether existing or not, calls the
-functions in the list @code{find-file-hooks}, with no arguments.
-This variable is really a normal hook, but it has an abnormal name for
-historical compatibility.  In the case of a nonexistent file, the
-@code{find-file-not-found-hooks} are run first.  @xref{Hooks}.
+functions in the list @code{find-file-hook}, with no arguments.
+This variable is a normal hook.  In the case of a nonexistent file, the
+@code{find-file-not-found-functions} are run first.  @xref{Hooks}.
 
   There are several ways to specify automatically the major mode for
 editing the file (@pxref{Choosing Modes}), and to specify local
@@ -832,7 +831,7 @@ Time-stamp: ""
 @end example
 
   Then add the hook function @code{time-stamp} to the hook
-@code{write-file-hooks}; that hook function will automatically update
+@code{write-file-functions}; that hook function will automatically update
 the time stamp, inserting the current date and time when you save the
 file.  You can also use the command @kbd{M-x time-stamp} to update the
 time stamp manually.  For other customizations, see the Custom group

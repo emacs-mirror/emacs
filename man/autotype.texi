@@ -371,7 +371,7 @@ certain contexts.  For example an escaped character stands for itself.
 the buffer.  The main application for this function, as its name suggests,
 is to have it be called automatically every time an empty, and only an
 empty file is visited.  This is accomplished by putting @code{(add-hook
-'find-file-hooks 'auto-insert)} into your @file{~/.emacs} file
+'find-file-hook 'auto-insert)} into your @file{~/.emacs} file
 (@pxref{(emacs)Init File}).
 
 @vindex auto-insert-alist
@@ -473,7 +473,7 @@ that is updated too.
 
   An interesting application for this function is to have it be called
 automatically every time a file is saved.  This is accomplished by putting
-@code{(add-hook 'write-file-hooks 'copyright-update)} into your @file{~/.emacs}
+@code{(add-hook 'write-file-functions 'copyright-update)} into your @file{~/.emacs}
 file (@pxref{(emacs)Init File}).
 
 @vindex copyright-query
@@ -481,7 +481,7 @@ file (@pxref{(emacs)Init File}).
 copyright or whether to ask about it.  When this is @code{nil} updating is
 only done with @kbd{M-x copyright-update}.  When this is @code{function}
 you are queried whenever @code{copyright-update} is called as a function,
-such as in the @code{write-file-hooks} feature mentioned above.  Otherwise
+such as in the @code{write-file-functions} feature mentioned above.  Otherwise
 you are always queried.
 
 
@@ -538,10 +538,10 @@ The ``interpreter'' used is @code{executable-self-display} with argument
 @cindex timestamps
 
 @findex time-stamp
-@vindex write-file-hooks
+@vindex write-file-functions
 The @code{time-stamp} command can be used to update automatically a
 template in a file with a new time stamp every time you save the file.
-Customize the hook @code{write-file-hooks} to add the function
+Customize the hook @code{write-file-functions} to add the function
 @code{time-stamp} to arrange this.
 
 @vindex time-stamp-active
