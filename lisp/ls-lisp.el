@@ -200,7 +200,18 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	  (if (memq ?B switches) (setq wildcard "[^~]\\'")))
 	(ls-lisp-insert-directory
 	 file switches (ls-lisp-time-index switches)
-	 wildcard full-directory-p)))))
+	 wildcard full-directory-p)
+	;; Try to insert the amount of free space.
+	(save-excursion
+	  (goto-char (point-min))
+	  ;; First find the line to put it on.
+	  (when (re-search-forward "^total" nil t)
+	    (let ((available (get-free-disk-space ".")))
+	      (when available
+		;; Replace "total" with "used", to avoid confusion.
+		(replace-match "used")
+		(end-of-line)
+		(insert " available " available)))))))))
 
 (defun ls-lisp-insert-directory
   (file switches time-index wildcard full-directory-p)
