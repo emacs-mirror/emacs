@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
 ;;;
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -221,9 +221,16 @@ are used."
 			    (let ((print-escape-newlines t))
 			      (print autoload outbuf))))
 			  ;; Copy the rest of the line to the output.
-			  (let ((begin (point)))
-			    (forward-line 1)
-			    (princ (buffer-substring begin (point)) outbuf))))
+		      (princ (buffer-substring
+			      (progn
+				;; Back up over whitespace, to preserve it.
+				(skip-chars-backward " \f\t")
+				(if (= (char-after (1+ (point))) ? )
+				    ;; Eat one space.
+				    (forward-char 1))
+				(point))
+			      (progn (forward-line 1) (point)))
+			     outbuf)))
 		   ((looking-at ";")
 		    ;; Don't read the comment.
 		    (forward-line 1))
