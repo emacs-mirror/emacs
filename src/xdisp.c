@@ -148,6 +148,7 @@ int debug_end_pos;
 /* Nonzero means display mode line highlighted */
 int mode_line_inverse_video;
 
+static int message_log_check_duplicate ();
 static void echo_area_display ();
 void mark_window_display_accurate ();
 static void redisplay_windows ();
@@ -254,15 +255,52 @@ message_dolog (m, len, nlflag)
       if (len)
 	insert_1 (m, len, 1, 0);
       if (nlflag)
-	insert_1 ("\n", 1, 1, 0);
-      if (NATNUMP (Vmessage_log_max))
 	{
-	  int pos = scan_buffer ('\n', PT, 0,
-				 -XFASTINT (Vmessage_log_max) - 1, 0, 1);
-	  oldpoint -= min (pos, oldpoint) - BEG;
-	  oldbegv -= min (pos, oldbegv) - BEG;
-	  oldzv -= min (pos, oldzv) - BEG;
-	  del_range_1 (BEG, pos, 0);
+	  int this_bol, prev_bol, dup;
+	  insert_1 ("\n", 1, 1, 0);
+
+	  this_bol = scan_buffer ('\n', Z, 0, -2, 0, 0);
+	  if (this_bol > BEG)
+	    {
+	      prev_bol = scan_buffer ('\n', this_bol, 0, -2, 0, 0);
+	      dup = message_log_check_duplicate (prev_bol, this_bol);
+	      if (dup)
+		{
+		  if (oldpoint > prev_bol)
+		    oldpoint -= min (this_bol, oldpoint) - prev_bol;
+		  if (oldbegv > prev_bol)
+		    oldbegv -= min (this_bol, oldbegv) - prev_bol;
+		  if (oldzv > prev_bol)
+		    oldzv -= min (this_bol, oldzv) - prev_bol;
+		  del_range_1 (prev_bol, this_bol, 0);
+		  if (dup > 1)
+		    {
+		      char dupstr[40];
+		      int duplen;
+
+		      /* If you change this format, don't forget to also
+			 change message_log_check_duplicate.  */
+		      sprintf (dupstr, " [%d times]", dup);
+		      duplen = strlen (dupstr);
+		      TEMP_SET_PT (Z-1);
+		      if (oldpoint == Z)
+			oldpoint += duplen;
+		      if (oldzv == Z)
+			oldzv += duplen;
+		      insert_1 (dupstr, duplen, 1, 0);
+		    }
+		}
+	    }
+
+	  if (NATNUMP (Vmessage_log_max))
+	    {
+	      int pos = scan_buffer ('\n', Z, 0,
+				     -XFASTINT (Vmessage_log_max) - 1, 0, 0);
+	      oldpoint -= min (pos, oldpoint) - BEG;
+	      oldbegv -= min (pos, oldbegv) - BEG;
+	      oldzv -= min (pos, oldzv) - BEG;
+	      del_range_1 (BEG, pos, 0);
+	    }
 	}
       BEGV = oldbegv;
       ZV = oldzv;
@@ -272,6 +310,43 @@ message_dolog (m, len, nlflag)
     }
 }
 
+
+/* We are at the end of the buffer after just having inserted a newline.
+   (Note: We depend on the fact we won't be crossing the gap.)
+   Check to see if the most recent message looks a lot like the previous one.
+   Return 0 if different, 1 if the new one should just replace it, or a
+   value N > 1 if we should also append " [N times]".  */
+static int
+message_log_check_duplicate (prev_bol, this_bol)
+     int prev_bol, this_bol;
+{
+  int i;
+  int len = Z - 1 - this_bol;
+  int seen_dots = 0;
+  char *p1 = BUF_CHAR_ADDRESS (current_buffer, prev_bol);
+  char *p2 = BUF_CHAR_ADDRESS (current_buffer, this_bol);
+
+  for (i = 0; i < len; i++)
+    {
+      if (i >= 3 && p1[i-3] == '.' && p1[i-2] == '.' && p1[i-1] == '.'
+	  && p1[i] != '\n')
+	seen_dots = 1;
+      if (p1[i] != p2[i])
+	return seen_dots;
+    }
+  p1 += len;
+  if (*p1 == '\n')
+    return 2;
+  if (*p1++ == ' ' && *p1++ == '[')
+    {
+      int n = 0;
+      while (*p1 >= '0' && *p1 <= '9')
+	n = n * 10 + *p1++ - '0';
+      if (strncmp (p1, " times]\n", 8) == 0)
+	return n+1;
+    }
+  return 0;
+}
 
 /* Display an echo area message M with a specified length of LEN chars.
    The string may include null characters.  If m is 0, clear out any
