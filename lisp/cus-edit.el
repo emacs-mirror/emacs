@@ -1960,7 +1960,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     ("Don't show as Lisp expression" custom-variable-edit 
      (lambda (widget)
        (eq (widget-get widget :custom-form) 'lisp)))
-    ("Show as Lisp expression" custom-variable-edit-lisp
+    ("Show initial Lisp expression" custom-variable-edit-lisp
      (lambda (widget)
        (eq (widget-get widget :custom-form) 'edit))))
   "Alist of actions for the `custom-variable' widget.
@@ -2023,7 +2023,7 @@ Optional EVENT is the location for the menu."
     (custom-redraw-magic widget)))
 
 (defun custom-variable-save (widget)
-  "Set the default value for the variable being edited by WIDGET."
+  "Set and save the value for the variable being edited by WIDGET."
   (let* ((form (widget-get widget :custom-form))
 	 (state (widget-get widget :custom-state))
 	 (child (car (widget-get widget :children)))
