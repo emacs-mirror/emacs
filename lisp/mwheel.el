@@ -70,16 +70,26 @@ on a normal wheel event, and the second is the amount to scroll when the
 wheel is moved with the shift key depressed.
 
 Each item should be the number of lines to scroll, or `nil' for near
-full screen.
+full screen.  It can also be a floating point number, specifying
+the fraction of the window to scroll.
 A near full screen is `next-screen-context-lines' less than a full screen."
   :group 'mouse
   :type '(cons
 	  (choice :tag "Normal"
 		  (const :tag "Full screen" :value nil)
-		  (integer :tag "Specific # of lines"))
+		  (integer :tag "Specific # of lines")
+		  (float :tag "Fraction of window"))
 	  (choice :tag "Shifted"
 		  (const :tag "Full screen" :value nil)
-		  (integer :tag "Specific # of lines"))))
+		  (integer :tag "Specific # of lines")
+		  (float :tag "Fraction of window"))))
+
+(defcustom mouse-wheel-progessive-speed t
+  "If non-nil, the faster the user moves the wheel, the faster the scrolling.
+Note that this has no effect when `mouse-wheel-scroll-amount' specifies
+a \"near full screen\" scroll."
+  :group 'mouse
+  :type 'boolean)
 
 (defcustom mouse-wheel-follow-mouse nil
   "Whether the mouse wheel should scroll the window that the mouse is over.
@@ -101,6 +111,8 @@ This can be slightly disconcerting, but some people may prefer it."
   (fset 'mwheel-event-window 'event-window))
 
 (defun mwheel-scroll (event)
+  "Scroll up or down according to the EVENT.
+This should only be bound to mouse buttons 4 and 5."
   (interactive "e")
   (let ((curwin (if mouse-wheel-follow-mouse
 		    (prog1
@@ -109,6 +121,11 @@ This can be slightly disconcerting, but some people may prefer it."
 	(amt (if (memq 'shift (event-modifiers event))
 		 (cdr mouse-wheel-scroll-amount)
 	       (car mouse-wheel-scroll-amount))))
+    (if (floatp amt) (setq amt (1+ (truncate (* amt (window-height))))))
+    (when (and mouse-wheel-progessive-speed (numberp amt))
+      ;; When the double-mouse-N comes in, a mouse-N has been executed already,
+      ;; So by adding things up we get a squaring up (1, 3, 6, 10, 16, ...).
+      (setq amt (* amt (event-click-count event))))
     (unwind-protect
 	(let ((button (mwheel-event-button event)))
 	  (cond ((= button mouse-wheel-down-button) (scroll-down amt))
@@ -117,10 +134,6 @@ This can be slightly disconcerting, but some people may prefer it."
       (if curwin (select-window curwin)))))
 
 
-;;; Note this definition must be at the end of the file, because
-;;; `define-minor-mode' actually calls the mode-function if the
-;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.
 ;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
