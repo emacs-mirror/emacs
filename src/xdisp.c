@@ -807,7 +807,7 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 /* Function prototypes.  */
 
-static void setup_for_ellipsis P_ ((struct it *));
+static void setup_for_ellipsis P_ ((struct it *, int));
 static void mark_window_display_accurate_1 P_ ((struct window *, int));
 static int single_display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
@@ -3227,7 +3227,7 @@ handle_invisible_prop (it)
 	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
 	    }
 	  else if (display_ellipsis_p)
-	    setup_for_ellipsis (it);
+	    setup_for_ellipsis (it, 0);
 	}
     }
 
@@ -3235,14 +3235,17 @@ handle_invisible_prop (it)
 }
 
 
-/* Make iterator IT return `...' next.  */
+/* Make iterator IT return `...' next.
+   Replaces LEN characters from buffer.  */
 
 static void
-setup_for_ellipsis (it)
+setup_for_ellipsis (it, len)
      struct it *it;
+     int len;
 {
-  if (it->dp
-      && VECTORP (DISP_INVIS_VECTOR (it->dp)))
+  /* Use the display table definition for `...'.  Invalid glyphs
+     will be handled by the method returning elements from dpvec.  */
+  if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
     {
       struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
       it->dpvec = v->contents;
@@ -3255,12 +3258,12 @@ setup_for_ellipsis (it)
       it->dpend = default_invis_vector + 3;
     }
 
-  /* The ellipsis display does not replace the display of the
-     character at the new position.  Indicate this by setting
-     IT->dpvec_char_len to zero.  */
-  it->dpvec_char_len = 0;
-
+  it->dpvec_char_len = len;
   it->current.dpvec_index = 0;
+
+  /* Remember the current face id in case glyphs specify faces.
+     IT's face is restored in set_iterator_to_next.  */
+  it->saved_face_id = it->face_id;
   it->method = next_element_from_display_vector;
 }
 
@@ -4048,7 +4051,7 @@ next_overlay_string (it)
       /* If we have to display `...' for invisible text, set
 	 the iterator up for that.  */
       if (display_ellipsis_p)
-	setup_for_ellipsis (it);
+	setup_for_ellipsis (it, 0);
     }
   else
     {
@@ -4840,7 +4843,10 @@ get_next_display_element (it)
      we hit the end of what we iterate over.  Performance note: the
      function pointer `method' used here turns out to be faster than
      using a sequence of if-statements.  */
-  int success_p = (*it->method) (it);
+  int success_p;
+
+ get_next:
+  success_p = (*it->method) (it);
 
   if (it->what == IT_CHARACTER)
     {
@@ -4872,14 +4878,14 @@ get_next_display_element (it)
 		  it->dpvec = v->contents;
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
+		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
-		  success_p = get_next_display_element (it);
 		}
 	      else
 		{
 		  set_iterator_to_next (it, 0);
-		  success_p = get_next_display_element (it);
 		}
+	      goto get_next;
 	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
@@ -4915,6 +4921,7 @@ get_next_display_element (it)
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
+	      int ctl_len;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -4929,14 +4936,7 @@ get_next_display_element (it)
 
 		  g = FAST_MAKE_GLYPH (it->c ^ 0100, 0);
 		  XSETINT (it->ctl_chars[1], g);
-
-		  /* Set up IT->dpvec and return first character from it.  */
-		  it->dpvec_char_len = it->len;
-		  it->dpvec = it->ctl_chars;
-		  it->dpend = it->dpvec + 2;
-		  it->current.dpvec_index = 0;
-		  it->method = next_element_from_display_vector;
-		  get_next_display_element (it);
+		  ctl_len = 2;
 		}
 	      else
 		{
@@ -4985,16 +4985,17 @@ get_next_display_element (it)
 		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0', 0);
 		      XSETINT (it->ctl_chars[i * 4 + 3], g);
 		    }
-
-		  /* Set up IT->dpvec and return the first character
-                     from it.  */
-		  it->dpvec_char_len = it->len;
-		  it->dpvec = it->ctl_chars;
-		  it->dpend = it->dpvec + len * 4;
-		  it->current.dpvec_index = 0;
-		  it->method = next_element_from_display_vector;
-		  get_next_display_element (it);
+		  ctl_len = len * 4;
 		}
+
+	      /* Set up IT->dpvec and return first character from it.  */
+	      it->dpvec_char_len = it->len;
+	      it->dpvec = it->ctl_chars;
+	      it->dpend = it->dpvec + ctl_len;
+	      it->current.dpvec_index = 0;
+	      it->saved_face_id = it->face_id;
+	      it->method = next_element_from_display_vector;
+	      goto get_next;
 	    }
 	}
 
@@ -5184,11 +5185,14 @@ set_iterator_to_next (it, reseat_p)
 	       && IT_STRING_CHARPOS (*it) >= 0));
 }
 
-
 /* Load IT's display element fields with information about the next
    display element which comes from a display table entry or from the
    result of translating a control character to one of the forms `^C'
-   or `\003'.  IT->dpvec holds the glyphs to return as characters.  */
+   or `\003'.
+
+   IT->dpvec holds the glyphs to return as characters.
+   IT->saved_face_id holds the face id before the display vector--
+   it is restored into IT->face_idin set_iterator_to_next.  */
 
 static int
 next_element_from_display_vector (it)
@@ -5196,10 +5200,6 @@ next_element_from_display_vector (it)
 {
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
-
-  /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.  */
-  it->saved_face_id = it->face_id;
 
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
@@ -5384,28 +5384,7 @@ next_element_from_ellipsis (it)
      struct it *it;
 {
   if (it->selective_display_ellipsis_p)
-    {
-      if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
-	{
-	  /* Use the display table definition for `...'.  Invalid glyphs
-	     will be handled by the method returning elements from dpvec.  */
-	  struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
-	  it->dpvec_char_len = it->len;
-	  it->dpvec = v->contents;
-	  it->dpend = v->contents + v->size;
-	  it->current.dpvec_index = 0;
-	  it->method = next_element_from_display_vector;
-	}
-      else
-	{
-	  /* Use default `...' which is stored in default_invis_vector.  */
-	  it->dpvec_char_len = it->len;
-	  it->dpvec = default_invis_vector;
-	  it->dpend = default_invis_vector + 3;
-	  it->current.dpvec_index = 0;
-	  it->method = next_element_from_display_vector;
-	}
-    }
+    setup_for_ellipsis (it, it->len);
   else
     {
       /* The face at the current position may be different from the
@@ -5776,8 +5755,6 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 				  result = MOVE_NEWLINE_OR_CR;
 				  break;
 				}
-			      if (it->method == next_element_from_display_vector)
-				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -5862,8 +5839,6 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		  result = MOVE_NEWLINE_OR_CR;
 		  break;
 		}
-	      if (it->method == next_element_from_display_vector)
-		it->face_id = it->saved_face_id;
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	  result = MOVE_LINE_TRUNCATED;
@@ -14633,8 +14608,6 @@ display_line (it)
     {
       move_it_in_display_line_to (it, ZV, it->first_visible_x,
 				  MOVE_TO_POS | MOVE_TO_X);
-      if (it->method == next_element_from_display_vector)
-	it->face_id = it->saved_face_id;
     }
 
   /* Get the initial row height.  This is either the height of the
@@ -14794,8 +14767,6 @@ display_line (it)
 				  row->continued_p = 0;
 				  row->exact_window_width_line_p = 1;
 				}
-			      else if (it->method == next_element_from_display_vector)
-				it->face_id = it->saved_face_id;
 			    }
 #endif /* HAVE_WINDOW_SYSTEM */
 			}
@@ -14976,8 +14947,6 @@ display_line (it)
 		      row->exact_window_width_line_p = 1;
 		      goto at_end_of_line;
 		    }
-		  if (it->method == next_element_from_display_vector)
-		    it->face_id = it->saved_face_id;
 		}
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
