@@ -652,6 +652,7 @@ lisp= \
 	${lispsource}custom.elc \
 	${lispsource}emacs-lisp/lisp-mode.elc \
 	${lispsource}emacs-lisp/lisp.elc \
+	${lispsource}env.elc \
 	${lispsource}faces.elc \
 	${lispsource}files.elc \
 	${lispsource}format.elc \
