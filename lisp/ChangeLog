@@ -1,8 +1,59 @@
+2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
+	not to treat nil as a function.
+
+	* vc-arch.el (vc-arch-root): Be a bit more careful.
+	(vc-arch-register): Save the buffer if we modified it.
+	(vc-arch-delete-rej-if-obsolete): Save excursion.
+	(vc-arch-find-file-hook): Use the simpler after-save-hook.
+	(vc-arch-responsible-p, vc-arch-init-version): New functions.
+
+	* net/ldap.el (ldap-search): Use list*.
+
 2004-04-12  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-follow-reference): Allow multiline reference name.
 
 2004-04-11  Dave Love  <fx@gnu.org>
+
+	* url/url-mailto.el (url-mailto):
+	* url/url-history.el (url-history-setup-save-timer):
+	* url/url-cookie.el (url-cookie-setup-save-timer): Avoid warnings.
+
+	* url/url-file.el (url-file-build-filename): Don't use
+	directory-sep-char.
+
+	* url/url-auth.el (url-register-auth-scheme): Fix `format' call.
+
+	* url/url-about.el (url-scheme-registry): Defvar.
+	(url-about): Use text/plain.
+
+	* url/url-vars.el (cl): Don't require.
+	(url): Add :version.
+	(url-bug-address): Use bug-gnu-emacs.
+
+	* url/url-util.el (url-hexify-string): Don't give multibyte error
+	for char <16.
+	(mail-header-extract): Autoload.
+
+	* url/url-parse.el: Doc fixes.
+
+	* url/url-ldap.el (ldap): Require.
+	(url-ldap): Fix `format' call.
+	(url-ldap-certificate-formatter): Avoid warning.
+
+	* url/url-https.el (url-https-create-secure-wrapper): Use modern
+	backquotes.
+
+	* url/url-dav.el (url-dav-rename-file): Fix args of `signal'.
+	(url-intersection): New.
+	(url-dav-supported-p): Use it.
+	(url-dav-save-resource): Declare url-http-response-status special.
+
+	* url/url-cache.el (url-util): Require.
+
+	* emacs-lisp/bytecomp.el (byte-compile-cond): Fix last change.
 
 	* progmodes/python.el: New file.
 
