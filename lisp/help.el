@@ -766,7 +766,9 @@ Returns the documentation as a string, also."
 	  ;; Note, it is not reliable to test only for a custom-type property
 	  ;; because those are only present after the var's definition
 	  ;; has been loaded.
-	  (if (or (user-variable-p variable) (get variable 'custom-type))
+	  (if (or (user-variable-p variable)
+		  (get variable 'custom-loads)
+		  (get variable 'custom-type))
 	      (let ((customize-label "customize"))
 		(terpri)
 		(terpri)
