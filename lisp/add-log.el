@@ -545,36 +545,34 @@ non-nil, otherwise in local time."
     ;; Now insert the function name, if we have one.
     ;; Point is at the item for this file,
     ;; either at the end of the line or at the first blank line.
-    (if defun
-	(progn
-	  ;; Make it easy to get rid of the function name.
-	  (undo-boundary)
-	  (unless (save-excursion
-		    (beginning-of-line 1)
-		    (looking-at "\\s *$"))
-	    (insert ?\ ))
-	  ;; See if the prev function name has a message yet or not.
-	  ;; If not, merge the two items.
-	  (let ((pos (point-marker)))
-	    (if (and (skip-syntax-backward " ")
-		     (skip-chars-backward "):")
-		     (looking-at "):")
-		     (progn (delete-region (+ 1 (point)) (+ 2 (point))) t)
-		     (> fill-column (+ (current-column) (length defun) 3)))
-		(progn (delete-region (point) pos)
-		       (insert ", "))
-	      (goto-char pos)
-	      (insert "("))
-	    (set-marker pos nil))
-	  (insert defun "): ")
-	  (if version
-	      (insert version ?\ )))
-      ;; No function name, so put in a colon unless we have just a star.
+    (if (not defun)
+	;; No function name, so put in a colon unless we have just a star.
+	(unless (save-excursion
+		  (beginning-of-line 1)
+		  (looking-at "\\s *\\(\\*\\s *\\)?$"))
+	  (insert ": ")
+	  (if version (insert version ?\ )))
+      ;; Make it easy to get rid of the function name.
+      (undo-boundary)
       (unless (save-excursion
 		(beginning-of-line 1)
-		(looking-at "\\s *\\(\\*\\s *\\)?$"))
-	(insert ": ")
-	(if version (insert version ?\ ))))))
+		(looking-at "\\s *$"))
+	(insert ?\ ))
+      ;; See if the prev function name has a message yet or not.
+      ;; If not, merge the two items.
+      (let ((pos (point-marker)))
+	(skip-syntax-backward " ")
+	(skip-chars-backward "):")
+	(if (and (looking-at "):")
+		 (> fill-column (+ (current-column) (length defun) 4)))
+	    (progn (delete-region (point) pos) (insert ", "))
+	  (if (looking-at "):")
+	      (delete-region (+ 1 (point)) (line-end-position)))
+	  (goto-char pos)
+	  (insert "("))
+	(set-marker pos nil))
+      (insert defun "): ")
+      (if version (insert version ?\ )))))
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
@@ -829,7 +827,7 @@ Has a preference of looking backwards."
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		((memq major-mode '(perl-mode cperl-mode))
-		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
+		 (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		;; Emacs's autoconf-mode installs its own
 		;; `add-log-current-defun-function'.  This applies to
