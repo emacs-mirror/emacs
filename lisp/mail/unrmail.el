@@ -26,7 +26,7 @@
 
 ;;;###autoload
 (defun batch-unrmail ()
-  "Convert Rmail files to mailbox files.
+  "Convert Rmail files to system inbox format.
 Specify the input Rmail file names as command line arguments.
 For each Rmail file, the corresponding output file name
 is made by adding `.mail' at the end.
@@ -45,7 +45,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 
 ;;;###autoload
 (defun unrmail (file to-file)
-  "Convert Rmail file FILE to mailbox-format file TO-FILE."
+  "Convert Rmail file FILE to system inbox format file TO-FILE."
   (interactive "fUnrmail (rmail file): \nFUnrmail into (new mailbox file): ")
   (let ((message-count 0)
 	(rmail-delete-after-output nil))
