@@ -724,9 +724,9 @@ instead, and/or reached via \`ange-ftp-gateway-ftp-program-name\'.")
   "*If non-nil then the gateway program should  give a shell prompt.
 Both telnet and rlogin do something like this.")
 
-(defvar ange-ftp-gateway-program (if (eq system-type 'hpux) "remsh" "rsh")
+(defvar ange-ftp-gateway-program remote-shell-program
   "*Name of program to spawn a shell on the gateway machine.
-Valid candidates are rsh (remsh on hp-ux), telnet and rlogin.  See
+Valid candidates are rsh (remsh on some systems), telnet and rlogin.  See
 also the gateway variable above.")
 
 (defvar ange-ftp-gateway-prompt-pattern "^[^#$%>;\n]*[#$%>;] *"
@@ -3999,12 +3999,6 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     (if func (funcall func file keep-backup-version)
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
-(defvar ange-ftp-remote-shell-file-name
-  (if (memq system-type '(hpux usg-unix-v)) ; hope that's right
-      "remsh"
-    "rsh")
-  "Name of command to run a remote shell, for ange-ftp.")
-
 ;;; This doesn't work yet; a new hook needs to be created.
 ;;; Maybe the new hook should be in call-process.
 (defun ange-ftp-shell-command (command)
@@ -4019,7 +4013,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       (setq command
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried
-		     ange-ftp-remote-shell-file-name host command))
+		     remote-shell-program host command))
       (ange-ftp-message "Remote command '%s' ..." command)
       ;; Cannot call ange-ftp-real-dired-run-shell-command here as it
       ;; would prepend "cd default-directory" --- which bombs because
