@@ -766,9 +766,14 @@ Return 0 if there is no such symbol."
 	       ((looking-at "#<") (search-forward ">" nil 'move))
 	       ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
 		(let* ((sym (intern-soft
-			     (buffer-substring (match-beginning 1) (match-end 1))))
+			     (buffer-substring (match-beginning 1)
+					       (match-end 1))))
 		       (fn (cond ((fboundp sym) #'describe-function)
-				 ((and sym (boundp sym)) #'describe-variable))))
+				 ((or (memq sym '(t nil))
+				      (keywordp sym))
+				  nil)
+				 ((and sym (boundp sym))
+				  #'describe-variable))))
 		  (when fn (help-xref-button 1 fn sym)))
 		(goto-char (match-end 1)))
 	       (t (forward-char 1))))))
@@ -782,7 +787,8 @@ Returns the documentation as a string, also."
 	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read (if (symbolp v)
-				    (format "Describe variable (default %s): " v)
+				    (format
+				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray 'boundp t nil nil
 				(if (symbolp v) (symbol-name v))))
