@@ -68,21 +68,24 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		     (setq answer (eval (cdr (car tail)))))
 		 (setq tail (cdr tail))))
 	     ;; If not suggestions, use same file as last time.
-	     (or answer rmail-default-rmail-file))))
-     (list (setq rmail-default-rmail-file
-		 (let ((read-file
-			(read-file-name
-			 (concat "Output message to Rmail file: (default "
-				 (file-name-nondirectory default-file)
-				 ") ")
-			 (file-name-directory default-file)
-			 default-file)))
-		   (if (file-directory-p read-file)
-		       (expand-file-name (file-name-nondirectory default-file)
-					 read-file)
-		     (expand-file-name
-		      (or read-file default-file)
-		      (file-name-directory default-file)))))
+	     (expand-file-name (or answer rmail-default-rmail-file)))))
+     (let ((read-file
+	    (expand-file-name
+	     (read-file-name
+	      (concat "Output message to Rmail file: (default "
+		      (file-name-nondirectory default-file)
+		      ") ")
+	      (file-name-directory default-file)
+	      default-file)
+	     (file-name-directory default-file))))
+       ;; If the user enters just a directory,
+       ;; use the name within that directory chosen by the default.
+       (setq rmail-default-rmail-file
+	     (if (file-directory-p read-file)
+		 (expand-file-name (file-name-nondirectory default-file)
+				   read-file)
+	       read-file)))
+     (list rmail-default-rmail-file
 	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
   (setq file-name
