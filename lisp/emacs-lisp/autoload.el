@@ -72,6 +72,9 @@ or macro definition or a defcustom)."
     (cond
      ;; For complex cases, try again on the macro-expansion.
      ((and (memq car '(easy-mmode-define-global-mode
+		       define-ibuffer-column define-ibuffer-filter
+		       define-ibuffer-sorter
+		       define-ibuffer-op
 		       easy-mmode-define-minor-mode define-minor-mode))
 	   (setq expand (let ((load-file-name file)) (macroexpand form)))
 	   (eq (car expand) 'progn)
