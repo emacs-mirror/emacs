@@ -1202,7 +1202,7 @@ run `normal-mode' explicitly."
     ("\\.m\\'" . objc-mode)
     ("\\.java\\'" . java-mode)
     ("\\.mk\\'" . makefile-mode)
-    ("\\(M\\|m\\|GNUm\\)akefile\\(.in\\)?\\'" . makefile-mode)
+    ("\\(M\\|m\\|GNUm\\)akefile\\(\\.in\\)?\\'" . makefile-mode)
     ("\\.am\\'" . makefile-mode)	;For Automake.
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
@@ -1212,12 +1212,12 @@ run `normal-mode' explicitly."
     ("\\.S\\'" . asm-mode)
     ("\\.asm\\'" . asm-mode)
     ("ChangeLog\\'" . change-log-mode)
-    ("change.log\\'" . change-log-mode)
+    ("change\\.log\\'" . change-log-mode)
     ("changelo\\'" . change-log-mode)
-    ("ChangeLog.[0-9]+\\'" . change-log-mode)
+    ("ChangeLog\\.[0-9]+\\'" . change-log-mode)
     ;; for MSDOS and MS-Windows (which are case-insensitive)
     ("changelog\\'" . change-log-mode)
-    ("changelog.[0-9]+\\'" . change-log-mode)
+    ("changelog\\.[0-9]+\\'" . change-log-mode)
     ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
     ("\\.scm\\.[0-9]*\\'" . scheme-mode)
     ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -1278,7 +1278,7 @@ run `normal-mode' explicitly."
     ;; .emacs following a directory delimiter
     ;; in Unix, MSDOG or VMS syntax.
     ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
-    ("\\`.*emacs\\'" . emacs-lisp-mode)
+    ("\\`\\..*emacs\\'" . emacs-lisp-mode)
     ;; _emacs following a directory delimiter
     ;; in MsDos syntax
     ("[:/]_emacs\\'" . emacs-lisp-mode)
