@@ -1,3 +1,7 @@
+2003-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix syntax for Ethiopic.
+
 2003-10-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Accept more charset aliases.
