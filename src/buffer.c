@@ -457,6 +457,9 @@ reset_buffer (b)
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
   b->redisplay_end_trigger = Qnil;
+  b->extra1 = Qnil;
+  b->extra2 = Qnil;
+  b->extra3 = Qnil;
 }
 
 /* Reset buffer B's local variables info.
