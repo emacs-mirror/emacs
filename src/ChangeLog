@@ -1,5 +1,20 @@
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.c: Simplity last change.
+	(lookup_fringe_bitmap): New function.
+	(valid_fringe_bitmap_p, resolve_fringe_bitmap): Remove.
+	(Fdestroy_fringe_bitmap): Use lookup_fringe_bitmap.
+	Keep standard bitmaps in Vfringe_bitmaps.
+	(Fdefine_fringe_bitmap): Use lookup_fringe_bitmap.
+	(Fset_fringe_bitmap_face): Likewise.
+
+	* dispextern.h (lookup_fringe_bitmap): Add prototype.
+	(valid_fringe_bitmap_p): Remove prototype.
+
+	* xdisp.c (handle_single_display_prop): Use lookup_fringe_bitmap.
+
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
 	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap)
 	(w32_init_fringe, w32_reset_fringes): Fix bootstrap (NULL rif).
 

@@ -3,7 +3,8 @@
 	* display.texi (Fringe Bitmaps): Use symbols rather than numbers
 	to identify bitmaps.  Remove -fringe-bitmap suffix for standard
 	fringe bitmap symbols, as they now have their own namespace.
-	(Customizing Bitmaps): Signal error if no free bitmap slots.
+	(Customizing Bitmaps) <define-fringe-bitmap>: Clarify bit ordering
+	vs. pixels.  Signal error if no free bitmap slots.
 	(Pixel Specification): Change IMAGE to @var{image}.
 
 2004-09-28  Richard M. Stallman  <rms@gnu.org>
