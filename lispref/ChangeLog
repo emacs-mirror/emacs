@@ -1,5 +1,7 @@
 2004-09-24  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* hooks.texi (Standard Hooks): Add `after-change-major-mode-hook'.
+
 	* modes.texi: Various minor changes in addition to:
 	(Major Mode Conventions): Final call to `run-mode-hooks' should
 	not be inside the `delay-mode-hooks' form.
