@@ -1,5 +1,7 @@
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* which-func.el (which-func-mode): Doc fix.
+
 	* align.el, apropos.el, autorevert.el, battery.el, bookmark.el,
 	calculator.el, calendar/todo-mode.el, complete.el, cus-dep.el,
 	cus-edit.el, cus-face.el, delim-col.el, dos-fns.el, double.el,
