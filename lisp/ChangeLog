@@ -1,3 +1,20 @@
+2004-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (do-auto-fill): Remove unused vars `bol' and `opoint'.
+	(completion-setup-function): Use with-current-buffer.
+	Properly save excursion.  Simplify.
+	Don't assume there is necessarily a `mouse-face' property somewhere.
+
+	* progmodes/gud.el (gud-reset): Use unless & with-current-buffer.
+
+	* progmodes/gdb-ui.el (gdb-reset): Use unless.  Fix regexp.
+
+	* emacs-lisp/bytecomp.el (byte-compile-log): Use backquotes.
+	(byte-compile-log-1): Don't call (byte-goto-log-buffer).
+	Use with-current-buffer.
+	(byte-goto-log-buffer): Delete.
+	(byte-compile-log-file): Call compilation-forget-errors.
+
 2004-05-19  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Avoid mixing standard error
@@ -5,7 +22,7 @@
 
 2004-05-19  Masatake YAMATO  <jet@gyve.org>
 
-	* wid-edit.el (widget-radio-button-notify): Revert my last 
+	* wid-edit.el (widget-radio-button-notify): Revert my last
 	change. Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
 
 2004-05-19  Kenichi Handa  <handa@m17n.org>
@@ -7412,7 +7429,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+    Copyright (C) 2001, 02, 04  Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 
