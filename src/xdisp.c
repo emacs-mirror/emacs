@@ -1665,7 +1665,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   register unsigned char *p;
   GLYPH *endp;
   register GLYPH *startp;
-  register GLYPH *p1prev;
+  register GLYPH *p1prev = 0;
   FRAME_PTR f = XFRAME (w->frame);
   int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
@@ -1932,10 +1932,16 @@ display_text_line (w, start, vpos, hpos, taboffset)
   /* by backing up over it */
   if (p1 > endp)
     {
-      /* Start the next line with that same character */
-      pos--;
-      /* but at a negative hpos, to skip the columns output on this line.  */
-      val.hpos += p1prev - endp;
+      /* Don't back up if we never actually displayed any text.
+	 This occurs when the minibuffer prompt takes up the whole line.  */
+      if (p1prev)
+	{
+	  /* Start the next line with that same character */
+	  pos--;
+	  /* but at negative hpos, to skip the columns output on this line.  */
+	  val.hpos += p1prev - endp;
+	}
+
       /* Keep in this line everything up to the continuation column.  */
       p1 = endp;
     }
