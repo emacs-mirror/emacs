@@ -356,10 +356,11 @@ esac
 
 #### Make sure that the source directory doesn't already have a
 #### configured system in it.
-if [ -f "${srcdir}/src/config.h" ] ; then
-  (echo "${progname}: the directory tree \`${srcdir}' is being used as a build"
-   echo "  directory right now; it has been configured in its own right."
-   echo "  You can't use srcdir in this situation.") >&2
+if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
+   && [ -f "${srcdir}/src/config.h" ] ; then
+  (echo "${progname}: the directory tree \`${srcdir}' is being used"
+   echo "   as a build directory right now; it has been configured in its own"
+   echo "   right.  You can't use srcdir in this situation.") >&2
   exit 1
 fi
 
@@ -686,7 +687,7 @@ case "${configuration}" in
   ## handling two odd situations, and that every other situation
   ## should use mips.h and usg5-2-2, they being listed first.
   mips-mips-riscos4* )
-    machine=mips4 opsys=usg5-2-2
+    machine=mips4 opsys=bsd4-3
   ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
