@@ -4496,7 +4496,8 @@ Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal\n\
 Third arg META t means accept 8-bit input (for a Meta key).\n\
  META nil means ignore the top bit, on the assumption it is parity.\n\
  Otherwise, accept 8-bit input and don't use the top bit for Meta.\n\
-Optional fourth arg QUIT if non-nil specifies character to use for quitting.")
+Optional fourth arg QUIT if non-nil specifies character to use for quitting.\n\
+See also `current-input-mode'.")
   (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {
@@ -4543,18 +4544,20 @@ The value is a list of the form (INTERRUPT FLOW META QUIT), where\n\
     nil, Emacs is using CBREAK mode.\n\
   FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the\n\
     terminal; this does not apply if Emacs uses interrupt-driven input.\n\
-  META is non-nil if Emacs is accepting 8-bit input; otherwise, Emacs\n\
-    clears the eighth bit of every input character.\n\
+  META is t if accepting 8-bit input with 8th bit as Meta flag.\n\
+    META nil means ignoring the top bit, on the assumption it is parity.\n\
+    META is neither t nor nil if accepting 8-bit input and using\n\
+    all 8 bits as the character code.\n\
   QUIT is the character Emacs currently uses to quit.\n\
 The elements of this list correspond to the arguments of\n\
-set-input-mode.")
+`set-input-mode'.")
   ()
 {
   Lisp_Object val[4];
 
   val[0] = interrupt_input ? Qt : Qnil;
   val[1] = flow_control ? Qt : Qnil;
-  val[2] = meta_key ? Qt : Qnil;
+  val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
   XSETINT (val[3], quit_char);
 
   return Flist (val, sizeof (val) / sizeof (val[0]));
