@@ -1,9 +1,11 @@
-2003-08-19  Luc Teirlinck  <teirllm@auburn.mail.edu>
+2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
+	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
+	chapter.
 	* emacs.texi (Intro): Include kmacro.texi after fixit.texi
 	instead of after custom.texi. (Suggested by Kim Storm.)
 
-2003-08-18  Luc Teirlinck  <teirllm@auburn.mail.edu>
+2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* fixit.texi (Fixit): Update `Next' pointer.
 	* files.texi (Files): Update `Previous' pointer.
