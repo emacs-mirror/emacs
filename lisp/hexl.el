@@ -900,7 +900,6 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 (defun hexl-follow-line ()
   "Activate `hl-line-mode'"
   (require 'frame)
-  (require 'fringe)
   (require 'hl-line)
   (set (make-local-variable 'hl-line-range-function)
        'hexl-highlight-line-range)
