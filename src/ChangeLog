@@ -1,5 +1,8 @@
 2000-03-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* doc.c (Fdocumentation_property): If value is not a string,
+	and doesn't refer to etc/DOC, evaluate it to obtain a string.
+
 	* xterm.c (x_connection_closed) [USE_X_TOOLKIT]: Don't try to
 	close the display with XtCloseDisplay.  This caused a bus error
 	on OpenWindows.

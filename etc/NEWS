@@ -1019,6 +1019,10 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function documentation-property now evaluates the value of
+the given property to obtain a a string if it doesn't refer to etc/DOC
+and isn't a string.
+
 +++
 ** The last argument of `define-key-after' defaults to t for convenience.
 
