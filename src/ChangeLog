@@ -1,7 +1,7 @@
 2002-10-10  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_8): Check incomplete byte sequence.
-	Don't update *mask even if correctly detected.
+	Don't update *mask when correctly detected.
 	(detect_coding_utf_16): Likewise.
 	(detect_coding_emacs_mule): Likewise.
 	(detect_coding_iso_2022): Likewise.
