@@ -1073,11 +1073,23 @@ N is the digit argument used to invoke this command."
   (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
 
 (defun Info-next-preorder ()
-  "Go to the next node, popping up a level if there is none."
+  "Go to the next subnode, popping up a level if there is none."
   (interactive)
-  (cond ((Info-no-error (Info-next-menu-item))	)
-	((Info-no-error (Info-up))		(forward-line 1))
-	(t 					(error "No more nodes"))))
+  (cond ((Info-no-error (Info-next-menu-item)))
+	((Info-no-error (Info-up))
+	 (forward-line 1))
+	(t
+	 (error "No more nodes"))))
+
+(defun Info-next-preorder-1 ()
+  "Go to the next subnode or the next node, or go up a level."
+  (interactive)
+  (cond ((Info-no-error (Info-next-menu-item)))
+	((Info-no-error (Info-next)))
+	((Info-no-error (Info-up))
+	 (forward-line 1))
+	(t
+	 (error "No more nodes"))))
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
@@ -1300,7 +1312,7 @@ At end of the node's text, moves to the next node, or up if none."
     (goto-char pos))
   (and (not (Info-try-follow-nearest-node))
        (save-excursion (forward-line 1) (eobp))
-       (Info-next-preorder)))
+       (Info-next-preorder-1)))
 
 (defun Info-follow-nearest-node ()
   "\\<Info-mode-map>Follow a node reference near point.
@@ -1308,7 +1320,7 @@ Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \
 If no reference to follow, moves to the next node, or up if none."
   (interactive)
   (or (Info-try-follow-nearest-node)
-      (Info-next-preorder)))
+      (Info-next-preorder-1)))
 
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node ()
