@@ -177,17 +177,22 @@ turn this feature back on, if someone would like to do the work.
 
   Use @code{defcustom} to declare user-editable variables.
 
-@defmac defcustom option default doc [keyword value]...
+@defmac defcustom option default doc [keyword value]@dots{}
 Declare @var{option} as a customizable user option variable.  Do not
 quote @var{option}.  The argument @var{doc} specifies the documentation
-string for the variable; it should normally start with a @samp{*}.  This
-marks the variable, for other purposes, as one that users may want to
-customize.
+string for the variable.  It should often start with a @samp{*} to mark
+it as a @dfn{user option} (@pxref{Defining Variables}).  Do not start
+the documentation string with @samp{*} for options which cannot or
+normally should not be set with @code{set-variable}; examples of the
+former are global minor mode options such as
+@code{global-font-lock-mode} and examples of the latter are hooks.
 
 If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
 value; be careful in writing it, because it can be evaluated on more
-than one occasion.
+than one occasion.  You should normally avoid using backquotes in
+@var{default} because they are not expanded when editing the value,
+causing list values to appear to have the wrong structure.
 
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
@@ -632,7 +637,7 @@ separately, according to the type specified for it.
 Like @code{list} except that the value must be a vector instead of a
 list.  The elements work the same as in @code{list}.
 
-@item (choice @var{alternative-types}...)
+@item (choice @var{alternative-types}@dots{})
 The value must fit at least one of @var{alternative-types}.
 For example, @code{(choice integer string)} allows either an
 integer or a string.
@@ -658,6 +663,13 @@ so that the menu offers @samp{Number of spaces} and @samp{Literal Text}.
 In any alternative for which @code{nil} is not a valid value, other than
 a @code{const}, you should specify a valid default for that alternative
 using the @code{:value} keyword.  @xref{Type Keywords}.
+
+@item (radio @var{element-types}@dots{})
+This is similar to @code{choice}, except that the choices are displayed
+using `radio buttons' rather than a menu.  This has the advantage of
+displaying documentation for the choices when applicable and so is often
+a good choice for a choice between constant functions
+(@code{function-item} customization types).
 
 @item (const @var{value})
 The value must be @var{value}---nothing else is allowed.
