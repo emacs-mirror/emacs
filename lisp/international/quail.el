@@ -327,7 +327,7 @@ This map is activated while translation region is active.")
     (define-key map (vector meta-prefix-char t)
       'quail-execute-non-quail-command)
     ;; At last, define default key binding.
-    (define-key map (vector meta-prefix-char t)
+    (define-key map [t]
       'quail-execute-non-quail-command)
     map)
   "Keymap used while processing translation in simple Quail modes.
