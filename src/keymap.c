@@ -204,11 +204,8 @@ get_keymap (object)
 
 
 /* Look up IDX in MAP.  IDX may be any sort of event.
-
    Note that this does only one level of lookup; IDX must be a single
-   event, not a sequence.  If IDX is unbound in MAP but MAP has a
-   binding for Qt, then Qt's binding is returned; this makes bindings
-   of Qt act like "default" bindings.  */
+   event, not a sequence.  */
 
 Lisp_Object
 access_keymap (map, idx)
@@ -232,7 +229,6 @@ access_keymap (map, idx)
 
   {
     Lisp_Object tail;
-    Lisp_Object t_binding = Qnil;
 
     for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
       {
@@ -243,8 +239,6 @@ access_keymap (map, idx)
 	  case Lisp_Cons:
 	    if (EQ (XCONS (binding)->car, idx))
 	      return XCONS (binding)->cdr;
-	    if (EQ (XCONS (binding)->car, Qt))
-	      t_binding = XCONS (binding)->cdr;
 	    break;
 
 	  case Lisp_Vector:
@@ -254,9 +248,9 @@ access_keymap (map, idx)
 	    break;
 	  }
       }
-
-    return t_binding;
   }
+
+  return Qnil;
 }
 
 /* Given OBJECT which was found in a slot in a keymap,
@@ -276,10 +270,9 @@ get_keyelt (object)
     {
       register Lisp_Object map, tem;
 
+      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
       map = get_keymap_1 (Fcar_safe (object), 0);
       tem = Fkeymapp (map);
-
-      /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
       if (!NILP (tem))
 	object = access_keymap (map, Fcdr (object));
       
@@ -1219,6 +1212,8 @@ indirect definition itself.")
       int last_is_meta = (XINT (last) >= 0
 			  && EQ (Faref (this, last), meta_prefix_char));
 
+      QUIT;
+
       while (CONSP (map))
 	{
 	  /* Because the code we want to run on each binding is rather
@@ -1232,6 +1227,8 @@ indirect definition itself.")
 	  
 	  Lisp_Object elt = XCONS (map)->car;
 	  Lisp_Object key, binding, sequence;
+
+	  QUIT;
 
 	  /* Set key and binding to the current key and binding, and
 	     advance map and i to the next binding.  */
@@ -1261,7 +1258,10 @@ indirect definition itself.")
 	  else
 	    /* We want to ignore keymap elements that are neither
 	       vectors nor conses.  */
-	    continue;
+	    {
+	      map = XCONS (map)->cdr;
+	      continue;
+	    }
 
 	  /* Search through indirections unless that's not wanted.  */
 	  if (NILP (noindirect))
