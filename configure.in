@@ -1248,7 +1248,8 @@ AC_MSG_RESULT($HAVE_XFREE386)
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
-  LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
+  LDFLAGS="$LDFLAGS $LD_SWITCH_X_SITE"
+  LIBS="$LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
 
   if test "${opsys}" = "linux"; then
