@@ -383,7 +383,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 	  event = XVECTOR (this_command_keys)->contents[next_event];
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && (event = XCONS (event)->car, CONSP (event))
+	      && (event = XCONS (event)->cdr, CONSP (event))
 	      && (event = XCONS (event)->car, CONSP (event))
 	      && (event = XCONS (event)->car), WINDOWP (event))
 	    {
