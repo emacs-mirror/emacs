@@ -9,12 +9,7 @@
 ;; LCD Archive Entry:
 ;; cust-print|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Handle print-level, print-circle and more.
-;; |$Date: 1994/03/24 20:26:05 $|1.5|
-
-;; Version 1.5 ($Revision: 1.13 $ from Emacs 19)
-
-;; Emacs maintainers: please inform me of any changes to this code.
-;; Better yet, ask me first.
+;; |$Date: 1994/04/05 21:05:09 $|$Revision: 1.14 $|
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +28,11 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; ===============================
+;;; $Header:  $
 ;;; $Log: cust-print.el,v $
+;;; Revision 1.14  1994/04/05  21:05:09  liberte
+;;; Change install- and uninstall- to -install and -uninstall.
+;;;
 ;;; Revision 1.13  1994/03/24  20:26:05  liberte
 ;;; Change "internal" to "original" throughout.
 ;;;         (add-custom-printer, delete-custom-printer) replace customizers.
@@ -162,9 +161,8 @@
 
 ;; Emacs 18 doesnt have defalias.
 ;; Provide def for byte compiler.
-(defun defalias (symbol func) (fset symbol func))
-;; Better def when loaded.
-(or (fboundp 'defalias) (fset 'defalias 'fset))
+(eval-and-compile
+  (or (fboundp 'defalias) (fset 'defalias 'fset)))
 
 
 ;; Variables:
@@ -724,3 +722,4 @@ See `custom-format' for the details."
 (provide 'cust-print)
 
 ;;; cust-print.el ends here
+
