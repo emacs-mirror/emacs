@@ -1,5 +1,11 @@
 2001-08-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (message_cleared_p): New variable.
+	(clear_message): Set message_cleared_p when clearing the current
+	message.
+	(redisplay_internal): Look at message_cleared_p to capture
+	the case that the echo area should be cleared.
+
 	* keyboard.c (command_loop_1): Fix spelling of
 	resize_echo_area_exactly.
 
