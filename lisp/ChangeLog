@@ -1,3 +1,38 @@
+1999-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* textmodes/bibtex.el (bibtex-hs-forward-sexp): Added to support
+	using the hideshow package.
+	(hs-special-modes-alist): Added entry for bibtex to allow the use
+	of the hideshow package.
+	(bibtex-hide-entry-bodies): Deleted as hiding of entry bodies is
+	not longer provided by bibtex.el directly.  Instead the hideshow
+	package should be used.
+	(bibtex-mode-map, bibtex-edit-menu, bibtex-mode): Delete
+	references to bibtex-hide-entry-bodies.
+
+1999-12-05  Dirk Herrmann  <D.Herrmann@tu-bs.de>
+
+	* textmodes/bibtex.el: Copyright notice is up to date.  Moved
+	maintainer information closer to the beginning of the bibtex.el
+	file.
+	(bibtex-maintainer-salutation): New constant.
+        (bibtex-version): New constant.
+        (bibtex-submit-bug-report): Use bibtex-version and
+	bibtex-maintainer-salutation.
+	(bibtex-entry-field-alist): Made booktitle field optional for
+	@inproceedings entries when crossreferenced.
+	(bibtex-entry-field-alist): Added booktitle field to proceedings
+	entry type (for cross referencing). Thanks to Wagner Toledo Correa
+	for the suggestion.
+	(bibtex-string-file-path): Fixed typo.
+
+1999-12-05  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* textmodes/bibtex.el (bibtex-mode-map): Reserved the key `C-c &'
+	for reftex.el.
+	(bibtex-edit-menu): Added `reftex-view-crossref-from-bibtex'
+	to menu.
+
 1999-12-04  Dave Love  <fx@gnu.org>
 
 	* delsel.el: Revert previous change -- region is significant to
