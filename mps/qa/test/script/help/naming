@@ -1,20 +1,21 @@
 Numbering of test programs
 
-Test programs are identified by codes consisting of a single letter
-and some numbers (no leading zeros). The letter gives the type
-of test, and where to find it, as follows: 
+Test program are indentified by their hope names, i.e. by a hope
+compound, an exclamation mark, and the test file name. The test
+file name will usually be a number followed by .c.
+
+e.g. test 12.c in directory 'function' is MMQA_test_function!12.c.
+
+-------
+
+Some older documents may refer to test programs by codes consisting
+of a single letter and some numbers (no leading zeros). The letter
+gives the type of test, and where to find it, as follows: 
 
   f --  Functional test        MMQA_test_function
   a --  Argument violation     MMQA_test_argerr
   c --  Context violation      MMQA_test_conerr
-  t -- aTtribute test          MMQA_test_attribute
   m --  Miscellaneous test     MMQA_test_misc
 
-Every program is classified as one of these, and for each there is
-a directory, as given above. In the directory, nn.c are the
-test files, numbered in decimal from 0, and index is a text
-file giving short summaries of what the tests test.
-
-When citing a test in a bug report, Darwin request or other
-documentation, give its code as, e.g. 'f5'.
+Please do not use this naming system any more.
 
