@@ -6496,12 +6496,21 @@ x_list_fonts (f, pattern, size, maxnames)
 	      int len = strlen (name);
 	      char *tmp;
 
-	      num_fonts = 1;
-	      names = (char **) alloca (sizeof (char *));
-	      /* Some systems only allow alloca assigned to a simple var.  */
-	      tmp = (char *) alloca (len + 1);  names[0] = tmp;
-	      bcopy (name, names[0], len + 1);
-	      XFree (name);
+	      /* If DXPC (a Differential X Protocol Compressor)
+                 Ver.3.7 is running, XGetAtomName will return null
+                 string.  We must avoid such a name.  */
+	      if (len == 0)
+		try_XLoadQueryFont = 0;
+	      else
+		{
+		  num_fonts = 1;
+		  names = (char **) alloca (sizeof (char *));
+		  /* Some systems only allow alloca assigned to a
+                     simple var.  */
+		  tmp = (char *) alloca (len + 1);  names[0] = tmp;
+		  bcopy (name, names[0], len + 1);
+		  XFree (name);
+		}
 	    }
 	  else
 	    try_XLoadQueryFont = 0;
