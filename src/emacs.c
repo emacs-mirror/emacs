@@ -135,7 +135,7 @@ fatal_error_signal (sig)
     {
       fatal_error_in_progress = 1;
 
-      shut_down_emacs (sig, 0);
+      shut_down_emacs (sig, 0, Qnil);
     }
 
 #ifdef VMS
@@ -301,7 +301,7 @@ main (argc, argv, envp)
 #ifdef BSD
   {
 #ifdef GETPGRP_NO_ARG
-    inherited_pgroup = getpgrp (0);
+    inherited_pgroup = getpgrp ();
 #else /* THISSENTENCE_NO_VERB */
     inherited_pgroup = getpgrp (0);
 #endif
@@ -652,7 +652,6 @@ all of which are called before Emacs is actually killed.")
 /* #ifdef VMS
   stop_vms_input ();
  #endif  */
-  stuff_buffered_input (arg);
 
   shut_down_emacs (0, 0);
 
@@ -677,9 +676,11 @@ all of which are called before Emacs is actually killed.")
 
    This is called by fatal signal handlers, X protocol error handlers,
    and Fkill_emacs.  */
+
 void
-shut_down_emacs (sig, no_x)
+shut_down_emacs (sig, no_x, stuff)
      int sig, no_x;
+     Lisp_Object stuff;
 {
   /* If we are controlling the terminal, reset terminal modes */
 #ifdef EMACS_HAVE_TTY_PGRP
@@ -702,6 +703,8 @@ shut_down_emacs (sig, no_x)
   fflush (stdout);
   reset_sys_modes ();
 #endif
+
+  stuff_buffered_input (stuff);
 
   kill_buffer_processes (Qnil);
   Fdo_auto_save (Qt, Qnil);
