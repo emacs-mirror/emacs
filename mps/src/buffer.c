@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.34) $
+ * $HopeName: MMsrc!buffer.c(trunk.35) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.34) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.35) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -38,6 +38,7 @@ Bool BufferCheck(Buffer buffer)
   CHECKU(Pool, buffer->pool);
   CHECKL(buffer->arena == buffer->pool->arena);
   CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
+  CHECKL(BoolCheck(buffer->isMutator));
   CHECKL(RankSetCheck(buffer->rankSet));
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
@@ -124,6 +125,10 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
                (WriteFP)buffer, (WriteFU)buffer->serial,
                "  Arena $P\n",       (WriteFP)buffer->arena,
                "  Pool $P\n",        (WriteFP)buffer->pool,
+	       buffer->isMutator ?
+	         "  Mutator Buffer\n" : "  Internal Buffer\n",
+	       "  fill $U\n",        (WriteFU)buffer->fill,
+	       "  empty $U\n",       (WriteFU)buffer->empty,
                "  Seg $P\n",         (WriteFP)buffer->seg,
                "  rankSet $U\n",     (WriteFU)buffer->rankSet,
                "  alignment $W\n",   (WriteFW)buffer->alignment,
@@ -142,6 +147,57 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 }
 
 
+/* BufferInitV -- initialize an allocation buffer */
+
+static Res BufferInitV(Buffer buffer, Pool pool, Bool isMutator, va_list args)
+{
+  Res res;
+
+  AVER(buffer != NULL);
+  AVERT(Pool, pool);
+  /* The PoolClass should support buffer protocols */
+  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  
+  /* Initialize the buffer.  See impl.h.mpmst for a definition of */
+  /* the structure.  sig and serial comes later .init.sig-serial */
+  buffer->arena = PoolArena(pool);
+  buffer->pool = pool;
+  RingInit(&buffer->poolRing);
+  buffer->isMutator = isMutator;
+  buffer->fill = (Count)0;
+  buffer->empty = (Count)0;
+  buffer->alignment = pool->alignment; /* .trans.mod */
+  buffer->seg = NULL;
+  buffer->rankSet = RankSetEMPTY;
+  buffer->base = (Addr)0;
+  buffer->initAtFlip = (Addr)0;
+  buffer->apStruct.init = (Addr)0;
+  buffer->apStruct.alloc = (Addr)0;
+  buffer->apStruct.limit = (Addr)0;
+  buffer->poolLimit = (Addr)0;
+  buffer->p = NULL;
+  buffer->i = 0;
+
+  /* Dispatch to the pool class method to perform any extra */
+  /* initialization of the buffer. */
+  res = (*pool->class->bufferInit)(pool, buffer, args);
+  if(res != ResOK)
+    return res;
+
+  /* .init.sig-serial: Now that it's initialized, sign the buffer, */
+  /* give it a serial number, and check it. */
+  buffer->sig = BufferSig;
+  buffer->serial = pool->bufferSerial; /* .trans.mod */
+  ++pool->bufferSerial;
+  AVERT(Buffer, buffer);
+
+  /* Attach the initialized buffer to the pool. */
+  RingAppend(&pool->bufferRing, &buffer->poolRing);
+
+  return ResOK;
+}
+
+
 /* BufferCreate -- create an allocation buffer
  *
  * See design.mps.buffer.method.create.
@@ -153,7 +209,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, ...)
   va_list args;
 
   va_start(args, pool);
-  res = BufferCreateV(bufferReturn, pool, args);
+  res = BufferCreateV(bufferReturn, pool, FALSE, args);
   va_end(args);
   return res;
 }
@@ -164,7 +220,8 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, ...)
  * See design.mps.buffer.method.create.
  */
 
-Res BufferCreateV(Buffer *bufferReturn, Pool pool, va_list args)
+Res BufferCreateV(Buffer *bufferReturn,
+                  Pool pool, Bool isMutator, va_list args)
 {
   Res res;
   Buffer buffer;
@@ -182,7 +239,7 @@ Res BufferCreateV(Buffer *bufferReturn, Pool pool, va_list args)
   buffer = p;
 
   /* Initialize the buffer descriptor structure. */
-  res = BufferInitV(buffer, pool, args);
+  res = BufferInitV(buffer, pool, isMutator, args);
   if(res != ResOK) goto failInit;
 
   *bufferReturn = buffer;
@@ -192,53 +249,6 @@ failInit:
   ArenaFree(arena, buffer, sizeof(BufferStruct));
 failAlloc:
   return res;
-}
-
-
-/* BufferInitV -- initialize an allocation buffer */
-
-Res BufferInitV(Buffer buffer, Pool pool, va_list args)
-{
-  Res res;
-
-  AVER(buffer != NULL);
-  AVERT(Pool, pool);
-  /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
-  
-  /* Initialize the buffer.  See impl.h.mpmst for a definition of */
-  /* the structure.  sig and serial comes later .init.sig-serial */
-  buffer->arena = PoolArena(pool);
-  buffer->pool = pool;
-  RingInit(&buffer->poolRing);
-  buffer->alignment = pool->alignment; /* .trans.mod */
-  buffer->seg = NULL;
-  buffer->rankSet = RankSetEMPTY;
-  buffer->base = (Addr)0;
-  buffer->initAtFlip = (Addr)0;
-  buffer->apStruct.init = (Addr)0;
-  buffer->apStruct.alloc = (Addr)0;
-  buffer->apStruct.limit = (Addr)0;
-  buffer->poolLimit = (Addr)0;
-  buffer->p = NULL;
-  buffer->i = 0;
-
-  /* Dispatch to the pool class method to perform any extra */
-  /* initialization of the buffer. */
-  res = (*pool->class->bufferInit)(pool, buffer, args);
-  if(res != ResOK) return res;
-
-  /* .init.sig-serial: Now that it's initialized, sign the buffer, */
-  /* give it a serial number, and check it. */
-  buffer->sig = BufferSig;
-  buffer->serial = pool->bufferSerial; /* .trans.mod */
-  ++pool->bufferSerial;
-  AVERT(Buffer, buffer);
-
-  /* Attach the initialized buffer to the pool. */
-  RingAppend(&pool->bufferRing, &buffer->poolRing);
-
-  return ResOK;
 }
 
 
@@ -344,6 +354,18 @@ Bool BufferIsReady(Buffer buffer)
     return TRUE;
 
   return FALSE;
+}
+
+/* BufferIsMutator
+ *
+ * returns TRUE iff mutator was created at mutator request (ie a
+ * mutator buffer).
+ */
+Bool BufferIsMutator(Buffer buffer)
+{
+  AVERT(Buffer, buffer);
+
+  return buffer->isMutator;
 }
 
 

@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.38) $
+ * $HopeName: MMsrc!mpsi.c(trunk.39) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.38) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.39) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -515,12 +515,13 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   AVERT(Pool, pool);
 
   va_start(args, mps_pool);
-  res = BufferCreateV(&buf, pool, args);
+  res = BufferCreateV(&buf, pool, TRUE, args);
   va_end(args);
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
 }
@@ -544,11 +545,12 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
 
   AVERT(Pool, pool);
 
-  res = BufferCreateV(&buf, pool, args);
+  res = BufferCreateV(&buf, pool, TRUE, args);
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if(res != ResOK)
+    return res;
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
 }
