@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(MMdevel_restr.6) $
+ * $HopeName: MMsrc!shield.c(trunk.5) $
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -72,7 +72,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(MMdevel_restr.6) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.5) $");
 
 void ShieldSuspend(Space space)
 {
@@ -210,7 +210,7 @@ void ShieldEnter(Space space)
   space->insideShield = TRUE;
 }
 
-/* Flush empties the shield cache.
+/* .shield.flush: Flush empties the shield cache.
  * This needs to be called before segments are destroyed as there
  * may be references to them in the cache.
  */
