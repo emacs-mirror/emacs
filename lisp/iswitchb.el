@@ -201,6 +201,7 @@ example functions that filter buffernames.")
 Possible values:
 `samewindow'	Show new buffer in same window
 `otherwindow'	Show new buffer in another window (same frame)
+`display'	Display buffer in another window without switching to it
 `otherframe'	Show new buffer in another frame
 `maybe-frame'	If a buffer is visible in another frame, prompt to ask if you
 		you want to see the buffer in the same window of the current
@@ -233,7 +234,7 @@ See also `iswitchb-newbuffer'.")
 
 (defvar iswitchb-method nil
   "*Stores the method for viewing the selected buffer.  
-Its value is one of `samewindow', `otherwindow', `otherframe',
+Its value is one of `samewindow', `otherwindow', `display', `otherframe',
 `maybe-frame' or `always-frame'.  See `iswitchb-default-method' for
 details of values.")
 
@@ -637,7 +638,7 @@ current frame, rather than all frames, regardless of value of
 
 (defun iswitchb-get-matched-buffers (regexp &optional string-format buffer-list)
   "Return matched buffers.
-If STRING-FORMAT is non-nil, consider EGEXP as string.
+If STRING-FORMAT is non-nil, consider REGEXP as string.
 BUFFER-LIST can be list of buffers or list of strings."
   (let* ((case-fold-search  iswitchb-case)
 	 ;; need reverse since we are building up list backwards
@@ -815,6 +816,9 @@ Return the modified list with the last element prepended to it."
      ((eq iswitchb-method 'otherwindow)
       (switch-to-buffer-other-window buffer))
 
+     ((eq iswitchb-method 'display)
+      (display-buffer buffer))
+
      ((eq iswitchb-method 'otherframe)
       (progn
 	(switch-to-buffer-other-frame buffer)
@@ -865,6 +869,7 @@ Call this function to override the normal bindings."
   (interactive)
   (global-set-key "b" 'iswitchb-buffer)
   (global-set-key "4b" 'iswitchb-buffer-other-window)
+  (global-set-key "4" 'iswitchb-display-buffer)
   (global-set-key "5b" 'iswitchb-buffer-other-frame))
 
 
@@ -890,6 +895,17 @@ The buffer name is selected interactively by typing a substring.
 For details of keybindings, do `\\[describe-function] iswitchb'."
   (interactive)
   (setq iswitchb-method 'otherwindow)
+  (iswitchb-entry))
+
+
+
+;;;###autoload
+(defun iswitchb-display-buffer ()
+  "Display a buffer in another window but don't select it.
+The buffer name is selected interactively by typing a substring.
+For details of keybindings, do `\\[describe-function] iswitchb'."
+  (interactive)
+  (setq iswitchb-method 'display)
   (iswitchb-entry))
 
 
@@ -1149,6 +1165,7 @@ Copied from `icomplete-tidy'."
        (member (symbol-name this-command)
 	       '("iswitchb-buffer"
 		 "iswitchb-buffer-other-frame"
+		 "iswitchb-display-buffer"
 		 "iswitchb-buffer-other-window"))))
 
 (defun iswitchb-summaries-to-end ()
