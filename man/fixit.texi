@@ -153,7 +153,7 @@ case-convert it and go on typing.  @xref{Case}.@refill
 word or of a portion of a buffer.  These commands work with the spelling
 checker program Ispell, which is not part of Emacs.
 @ifinfo
-@xref{Top, Ispell, Overview ispell, ispell.info, The Ispell Manual}.
+@xref{Top, Ispell, Overview ispell, ispell, The Ispell Manual}.
 @end ifinfo
 
 @table @kbd
