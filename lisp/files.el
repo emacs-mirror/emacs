@@ -3727,8 +3727,9 @@ This command is used in the special Dired buffer created by
       (kill-buffer buffer))))
 
 (defun kill-some-buffers (&optional list)
-  "For each buffer in LIST, ask whether to kill it.
-LIST defaults to all existing live buffers."
+  "Kill some buffers.  Asks the user whether to kill each one of them.
+Non-interactively, if optional argument LIST is non-`nil', it
+specifies the list of buffers to kill, asking for approval for each one."
   (interactive)
   (if (null list)
       (setq list (buffer-list)))
