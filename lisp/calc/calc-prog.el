@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-prog.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -666,7 +666,7 @@
 		    (symbolp (cdr def))
 		    (eq major-mode 'calc-mode))
 	       (progn
-		 (if (and (< (window-width) (screen-width))
+		 (if (and (< (window-width) (frame-width))
 			  calc-display-trail)
 		     (let ((win (get-buffer-window (calc-trail-buffer))))
 		       (if win
@@ -722,7 +722,7 @@
 		      (if (>= (prog2 (forward-char -1)
 				     (current-column)
 				     (forward-char 1))
-			      (screen-width))
+			      (frame-width))
 			  (fill-region top (point))))
 		  (insert "Press C-q to quote control characters like RET"
 			  " and TAB.\n"
@@ -743,7 +743,7 @@
 		      (calc-edit-mode (list 'calc-finish-formula-edit
 					    (list 'quote func)))
 		      (insert (math-showing-full-precision
-			       (math-format-nice-expr defn (screen-width)))
+			       (math-format-nice-expr defn (frame-width)))
 			      "\n"))
 		     (calc-show-edit-buffer))
 		 (error "That command's definition cannot be edited"))))))
@@ -1241,7 +1241,7 @@
 	 (open last-command-char)
 	 (counter initial)
 	 ch)
-    (or executing-macro
+    (or executing-kbd-macro
 	(message "Reading loop body..."))
     (while (>= count 0)
       (setq ch (read-char))
@@ -1265,10 +1265,10 @@
 	(setq body (concat body (char-to-string ch)))))
     (if (/= ch (cdr (assq open '( (?\< . ?\>) (?\( . ?\)) (?\{ . ?\}) ))))
 	(error "Mismatched Z%c and Z%c in keyboard macro" open ch))
-    (or executing-macro
+    (or executing-kbd-macro
 	(message "Looping..."))
     (setq body (concat (substring body 0 -2) "Z]"))
-    (and (not executing-macro)
+    (and (not executing-kbd-macro)
 	 (= rpt-count 1000000)
 	 (null parts)
 	 (null counter)
@@ -1300,7 +1300,7 @@
 		     (calc-pop-stack 1)
 		     (setq counter (calcFunc-add counter step)))
 		 (setq rpt-count (1- rpt-count))))))))
-    (or executing-macro
+    (or executing-kbd-macro
 	(message "Looping...done")))
 )
 
@@ -1358,7 +1358,7 @@
 	  (count 0)
 	  (body "")
 	  ch)
-     (if (or executing-macro defining-kbd-macro)
+     (if (or executing-kbd-macro defining-kbd-macro)
 	 (progn
 	   (if defining-kbd-macro
 	       (message "Reading body..."))
@@ -1400,7 +1400,7 @@
 (defun calc-kbd-report (msg)
   (interactive "sMessage: ")
   (calc-wrapper
-   (let ((executing-macro nil)
+   (let ((executing-kbd-macro nil)
 	 (defining-kbd-macro nil))
      (math-working msg (calc-top-n 1))))
 )
@@ -1408,7 +1408,7 @@
 (defun calc-kbd-query (msg)
   (interactive "sPrompt: ")
   (calc-wrapper
-   (let ((executing-macro nil)
+   (let ((executing-kbd-macro nil)
 	 (defining-kbd-macro nil))
      (calc-alg-entry nil (and (not (equal msg "")) msg))))
 )

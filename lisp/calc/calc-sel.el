@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-sel.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -672,7 +672,7 @@
 	  (sel (or (calc-auto-selection entry) expr))
 	  alg)
      (let ((str (math-showing-full-precision
-		 (math-format-nice-expr sel (screen-width)))))
+		 (math-format-nice-expr sel (frame-width)))))
        (calc-edit-mode (list 'calc-finish-selection-edit
 			     num (list 'quote sel) reselect))
        (insert str "\n"))))

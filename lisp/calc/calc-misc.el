@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part I [calc-misc.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -108,8 +108,8 @@ Calc user interface as before (either M-# C or M-# K; initially M-# C)."
     (if cwin
 	(setq calc-full-mode
 	      (if kwin
-		  (and twin (eq (window-width twin) (screen-width)))
-		(eq (window-height cwin) (1- (screen-height))))))
+		  (and twin (eq (window-width twin) (frame-width)))
+		(eq (window-height cwin) (1- (frame-height))))))
     (setq calc-full-mode (if arg
 			     (> (prefix-numeric-value arg) 0)
 			   (not calc-full-mode)))
@@ -759,7 +759,7 @@ loaded and the keystroke automatically re-typed."
 
 
 (defun math-do-working (msg arg)
-  (or executing-macro
+  (or executing-kbd-macro
       (progn
 	(calc-set-command-flag 'clear-message)
 	(if math-working-step

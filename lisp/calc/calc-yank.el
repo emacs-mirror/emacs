@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-yank.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -410,7 +410,7 @@
 			   (function
 			    (lambda (x)
 			      (if (math-vectorp x) (setq allow-ret t))
-			      (math-format-nice-expr x (screen-width)))))
+			      (math-format-nice-expr x (frame-width)))))
 			 (if (> n 0)
 			     (calc-top-list n)
 			   (calc-top-list 1 (- n)))))))
@@ -488,7 +488,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	   (select-window (get-buffer-window (aref calc-embedded-info 1))))
       (switch-to-buffer (get-buffer-create "*Calc Edit*")))
     (setq calc-return-buffer buf)
-    (if (and (< (window-width) (screen-width))
+    (if (and (< (window-width) (frame-width))
 	     calc-display-trail)
 	(let ((win (get-buffer-window (calc-trail-buffer))))
 	  (if win

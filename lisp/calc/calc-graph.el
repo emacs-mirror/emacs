@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-graph.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -352,11 +352,11 @@
 				  "dumb" "postscript")))))
 	 (if (equal device "dumb")
 	     (setq device (format "dumb %d %d"
-				  (1- (screen-width)) (1- (screen-height)))))
+				  (1- (frame-width)) (1- (frame-height)))))
 	 (if (equal device "big")
 	     (setq device (format "dumb %d %d"
-				  (* 4 (- (screen-width) 3))
-				  (* 4 (- (screen-height) 3)))))
+				  (* 4 (- (frame-width) 3))
+				  (* 4 (- (frame-height) 3)))))
 	 (if (stringp output)
 	     (if (or (equal output "auto")
 		     (and (equal output "tty") (setq tty-output t)))
@@ -1370,7 +1370,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	      (set-window-buffer win buf)
 	    (if (eq major-mode 'calc-mode)
 		(if (or need
-			(< (window-height) (1- (screen-height))))
+			(< (window-height) (1- (frame-height))))
 		    (display-buffer buf))
 	      (switch-to-buffer buf)))))
     (save-excursion
