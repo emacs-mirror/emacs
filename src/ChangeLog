@@ -1,7 +1,11 @@
+2002-12-29  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* data.c (Fstring_to_number, Fminus): Better English in doc strings.
+
 2002-12-28  Steven Tamm  <steventamm@mac.com>
 
-	* Makefile.in (macosx-bundle): Fixes to Mac OS X/Carbon port to 
-	allow building in a different directory than source.  Uses some 
+	* Makefile.in (macosx-bundle): Fixes to Mac OS X/Carbon port to
+	allow building in a different directory than source.  Uses some
 	GNU Make extensions, but there is no other make on Mac OS X.
 
 2002-12-26  Francesco Potort,Al(B  <pot@gnu.org>
