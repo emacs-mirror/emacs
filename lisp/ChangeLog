@@ -1,3 +1,10 @@
+2000-08-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* abbrev.el (list-abbrevs): Add optional parameter LOCAL.
+	(abbrev-table-name): New function.
+	(prepare-abbrev-list-buffer): Add optional parameter LOCAL.
+	If non-nil list local abbrev, only.
+
 2000-08-28  Stanislav Shalunov  <shalunov@internet2.edu>
 
 	* uce.el (uce-reply-to-uce): Remove hard-coded "*Article*" from

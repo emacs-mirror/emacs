@@ -1210,6 +1210,9 @@ the buffer, just like for the local files.
 
 ** The buffer menu (C-x C-b) no longer lists the *Buffer List* buffer.
 
+** When invoked with a prefix argument, the command `list-abbrevs' now
+displays local abbrevs, only.
+
 ** New modes and packages
 
 +++
