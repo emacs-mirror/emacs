@@ -570,7 +570,15 @@ work in concert: running the hook actually runs all the hook
 functions listed in *either* the local value *or* the global value
 of the hook variable.
 
-This function does nothing if HOOK is already local in the current buffer.
+This function works by making `t' a member of the buffer-local value,
+which acts as a flag to run the hook functions in the default value as
+well.  This works for all normal hooks, but does not work for most
+non-normal hooks yet.  We will be changing the callers of non-normal
+hooks so that they can handle localness; this has to be done one by
+one.
+
+This function does nothing if HOOK is already local in the current
+buffer.
 
 Do not use `make-local-variable' to make a hook variable buffer-local."
   (if (local-variable-p hook)
@@ -856,13 +864,15 @@ STRING should be given if the last search was by `string-match' on STRING."
   "Quote an argument for passing as argument to an inferior shell."
   ;; Quote everything except POSIX filename characters.
   ;; This should be safe enough even for really weird shells.
-  (let ((result "") (start 0) end)
-    (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-      (setq end (match-beginning 0)
-	    result (concat result (substring argument start end)
-			   "\\" (substring argument end (1+ end)))
-	    start (1+ end)))
-    (concat result (substring argument start))))
+  (if (eq system-type 'windows-nt)
+      (concat "\"" argument "\"")
+    (let ((result "") (start 0) end)
+      (while (string-match "[^-0-9a-zA-Z_./]" argument start)
+	(setq end (match-beginning 0)
+	      result (concat result (substring argument start end)
+			     "\\" (substring argument end (1+ end)))
+	      start (1+ end)))
+      (concat result (substring argument start)))))
 
 (defun make-syntax-table (&optional oldtable)
   "Return a new syntax table.
