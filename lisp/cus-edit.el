@@ -737,11 +737,12 @@ are shown; the contents of those subgroups are initially hidden."
 ;;;###autoload
 (defun customize-group (group)
   "Customize GROUP, which must be a customization group."
-  (interactive (list (completing-read "Customize group: (default emacs) "
-				      obarray 
-				      (lambda (symbol)
-					(get symbol 'custom-group))
-				      t)))
+  (interactive (list (let ((completion-ignore-case t))
+		       (completing-read "Customize group: (default emacs) "
+					obarray 
+					(lambda (symbol)
+					  (get symbol 'custom-group))
+					t))))
 
   (when (stringp group)
     (if (string-equal "" group)
@@ -1044,6 +1045,9 @@ Reset all visible items in this buffer to their standard settings."
 		      (when (eq type (nth 1 (assq name group)))
 			(push symbol parents))))))
       (when parents
+	(goto-char (point-min))
+	(search-forward "[Set]")
+	(forward-line 1)
 	(widget-insert "\nParent groups:")
 	(mapcar (lambda (group)
 		  (widget-insert " ")
@@ -1056,7 +1060,7 @@ Create customize buffer for `%S' group." group)
 					    (widget-value widget)))
 				 group))
 		parents)
-	(widget-insert ".\n"))))
+	(widget-insert "\n"))))
   (message "Creating customization magic...")
   (mapcar 'custom-magic-reset custom-options)
   (message "Creating customization setup...")
@@ -1338,29 +1342,29 @@ and `face'."
 	 (category (widget-get widget :custom-category)))
     (cond ((eq escape ?l)
 	   (when level 
-	     (insert-char ?\  (1- level))
+	     (insert-char ?\  (* 3 (1- level)))
 	     (if (eq state 'hidden)
-		 (insert-char ?- (1+ level))
-	       (insert "/")
-	       (insert-char ?- level))))
+		 (insert "--")
+	       (insert "/-"))))
 	  ((eq escape ?e)
 	   (when (and level (not (eq state 'hidden)))
 	     (insert "\n")
-	     (insert-char ?\  (1- level))
-	     (insert "\\")
-	     (insert-char ?-  level)
+	     (insert-char ?\  (* 3 (1- level)))
+	     (insert "\\-")
 	     (insert " " (widget-get widget :tag) " group end ")
 	     (insert-char ?- (- 75 (current-column) level))
 	     (insert "/\n")))
 	  ((eq escape ?-)
 	   (when (and level (not (eq state 'hidden)))
-	     (insert-char ?- (- 76 (current-column) level))
+	     ;; Add 1 to compensate for the extra < character
+	     ;; at the beginning of the line.
+	     (insert-char ?- (- (+ 75 1) (current-column) level))
 	     (insert "\\")))
 	  ((eq escape ?i)
-	   (insert-char ?\  (+ 1 level level)))
+	   (insert-char ?\  (* 3 level)))
 	  ((eq escape ?L)
 	   (push (widget-create-child-and-convert
-		  widget 'visibility
+		  widget 'group-visibility
 		  :help-echo "Show or hide this group."
 		  :action 'custom-toggle-parent
 		  (not (eq state 'hidden)))
