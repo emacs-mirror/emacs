@@ -1033,7 +1033,7 @@ variable `highlight-changes-global-changes-existing-buffers' is non-nil).
 	  (if (eq arg  'passive)
 	      (setq highlight-changes-global-initial-state 'passive)))
 	(setq global-highlight-changes t)
-	(message "turning ON Global Highlight Changes mode in %s state"
+	(message "Turning ON Global Highlight Changes mode in %s state"
 		 highlight-changes-global-initial-state)
 	(add-hook 'hilit-chg-major-mode-hook 'hilit-chg-major-mode-hook)
 	(add-hook 'find-file-hooks 'hilit-chg-check-global)
@@ -1041,7 +1041,7 @@ variable `highlight-changes-global-changes-existing-buffers' is non-nil).
 	    (hilit-chg-update-all-buffers 
 	     highlight-changes-global-initial-state)))
     
-    (message "turning OFF global Highlight Changes mode")
+    (message "Turning OFF global Highlight Changes mode")
     (remove-hook 'hilit-chg-major-mode-hook 'hilit-chg-major-mode-hook)
     (remove-hook 'find-file-hooks 'hilit-chg-check-global)
     (remove-hook 'post-command-hook
