@@ -484,7 +484,8 @@ inputting at minibuffer if this flag is t.")
 	  (force-mode-line-update t))
       (error "Bogus calling sequence"))))
 
-(defun setup-language-environment (language-name)
+;;;###autoload
+(defun set-language-environment (language-name)
   "Setup multi-lingual environment convenient for LANGUAGE-NAME users."
   (interactive (list (read-language-name 'setup-function "Language: ")))
   (if (or (null language-name)
