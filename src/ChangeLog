@@ -1,5 +1,7 @@
 2001-03-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (init_from_display_pos): Remove unwarranted assertion.
+
 	* xmenu.c (free_frame_menubar) [USE_MOTIF]: If the shell widget's
 	x/y position is (0, 0) after destroying the menu bar, restore
 	its original position.
