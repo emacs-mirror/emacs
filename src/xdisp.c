@@ -12327,8 +12327,17 @@ display_line (it)
 	  /* Maybe add truncation glyphs.  */
 	  if (!FRAME_WINDOW_P (it->f))
 	    {
-	      --it->glyph_row->used[TEXT_AREA];
-	      produce_special_glyphs (it, IT_TRUNCATION);
+	      int i, n;
+	      
+	      for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
+		if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
+		  break;
+
+	      for (n = row->used[TEXT_AREA]; i < n; ++i)
+		{
+		  row->used[TEXT_AREA] = i;
+		  produce_special_glyphs (it, IT_TRUNCATION);
+		}
 	    }
 	  
 	  row->truncated_on_right_p = 1;
