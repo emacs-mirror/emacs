@@ -255,6 +255,9 @@ Default value, nil, means edit the string instead.")
       (define-key map [delete-frame] nil)
       (define-key map [iconify-frame] nil)
       (define-key map [make-frame-visible] nil)
+      ;; For searching multilingual text.
+      (define-key map "\C-\\" 'isearch-toggle-input-method)
+      (define-key map "\C-^" 'isearch-toggle-specified-input-method)
 
       (setq isearch-mode-map map)
       ))
@@ -315,6 +318,9 @@ Default value, nil, means edit the string instead.")
 
 ;; Flag to indicate a yank occurred, so don't move the cursor.
 (defvar isearch-yank-flag nil)
+
+;; Flag to indicate that we are searching multibyte characaters.
+(defvar isearch-multibyte-characters-flag nil)
 
 ;;; A function to be called after each input character is processed.
 ;;; (It is not called after characters that exit the search.)
@@ -463,6 +469,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-other-end nil
 	isearch-small-window nil
 	isearch-just-started t
+	isearch-multibyte-characters-flag nil
 
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
@@ -1100,7 +1107,9 @@ Obsolete."
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)
-  (isearch-process-search-char (isearch-last-command-char)))
+  (if isearch-multibyte-characters-flag
+      (isearch-process-search-multibyte-characters (isearch-last-command-char))
+    (isearch-process-search-char (isearch-last-command-char))))
 
 (defun isearch-whitespace-chars ()
   "Match all whitespace chars, if in regexp mode.
@@ -1331,7 +1340,10 @@ If there is no completion possible, say so and continue searching."
 		   (if isearch-word "word " "")
 		   (if isearch-regexp "regexp " "")
 		   (if nonincremental "search" "I-search")
-		   (if isearch-forward ": " " backward: ")
+		   (if isearch-forward "" " backward")
+		   (if isearch-multibyte-characters-flag
+		       (concat " [" default-input-method-title "]: ")
+		     ": ")
 		   )))
     (aset m 0 (upcase (aref m 0)))
     m))
