@@ -2164,7 +2164,9 @@ syms_of_emacs ()
   Vsystem_type = intern (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
-    "Value is string indicating configuration Emacs was built for.");
+    "Value is string indicating configuration Emacs was built for.\n\
+On MS-Windows, the value reflects the OS flavor and version on which\n\
+Emacs is running.");
   Vsystem_configuration = build_string (EMACS_CONFIGURATION);
 
   DEFVAR_LISP ("system-configuration-options", &Vsystem_configuration_options,
