@@ -218,19 +218,21 @@ New clients have no properties."
       (setq server-clients (delq client server-clients))
 
       (dolist (buf buffers)
-	(with-current-buffer buf
-	  ;; Remove PROC from the clients of each buffer.
-	  (setq server-buffer-clients (delq proc server-buffer-clients))
-	  ;; Kill the buffer if necessary.
-	  (when (and (null server-buffer-clients)
-		     (or (and server-kill-new-buffers
-			      (not server-existing-buffer))
-			 (server-temp-file-p)))
-	    (kill-buffer (current-buffer)))))
+	(when (buffer-live-p buf)
+	  (with-current-buffer buf
+	    ;; Remove PROC from the clients of each buffer.
+	    (setq server-buffer-clients (delq proc server-buffer-clients))
+	    ;; Kill the buffer if necessary.
+	    (when (and (null server-buffer-clients)
+		       (or (and server-kill-new-buffers
+				(not server-existing-buffer))
+			   (server-temp-file-p)))
+	      (kill-buffer (current-buffer))))))
 
       ;; Delete the client's tty.
       (let ((tty (server-client-get client 'tty)))
-	(when tty (delete-tty tty)))
+	(when (and tty (server-tty-live-p tty))
+	  (delete-tty tty)))
 
       ;; Delete the client's frames.
       (dolist (frame (frame-list))
@@ -279,7 +281,9 @@ New clients have no properties."
 (defun server-handle-delete-frame (frame)
   "Delete the client connection when the emacsclient frame is deleted."
   (let ((proc (frame-parameter frame 'client)))
-    (when proc
+    (when (and proc (window-system frame))
+      ;; (Closing a terminal frame must not trigger a delete;
+      ;; we must wait for delete-tty-after-functions.)
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc))))
 
