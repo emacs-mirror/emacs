@@ -1,3 +1,8 @@
+2000-09-21  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* info.el: Use the correct capitalization when making Info-mode
+	and Info-edit-mode `special' modes.
+
 2000-09-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-add-log-file-name, diff-current-defun): New funs.
