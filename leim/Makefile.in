@@ -160,7 +160,8 @@ ${SUBDIRS}:
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
 # The "if [ -f $@ ]; then true; " part prevents parallel Make's
-# which don't honor .NOTPARALLEL, such as SGI's Make.
+# which don't honor .NOTPARALLEL, such as SGI's Make, from running
+# this rule many times, one each for every file it creates.
 ${TIT}:
 	if [ -d quail ]; then true; else make quail; fi
 	if [ -f $@ ]; then true; else \
