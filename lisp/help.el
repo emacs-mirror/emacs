@@ -404,7 +404,7 @@ For minor modes, see following pages.\n\n"))
   "Display info on the GNU project."
   (interactive)
   (find-file-read-only
-   (expand-file-name "GNU" data-directory))
+   (expand-file-name "THE-GNU-PROJECT" data-directory))
   (goto-char (point-min)))
 
 (defun describe-no-warranty ()
