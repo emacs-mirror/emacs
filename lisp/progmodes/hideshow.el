@@ -29,8 +29,8 @@
 
 ;; * Commands provided
 ;;
-;; This file provides `hs-minor-mode'. When active, eight commands are
-;; available, implementing block hiding and showing.  They (and their
+;; This file provides Hideshow Minor Mode.  When active, eight commands
+;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
 ;;   hs-hide-block                      C-c h
@@ -254,6 +254,9 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
 (defvar hs-minor-mode-map nil
   "Keymap for hideshow minor mode.")
 
+(defvar hs-minor-mode-menu nil
+  "Menu for hideshow minor mode.")
+
 (defvar hs-c-start-regexp nil
   "Regexp for beginning of comments.
 Differs from mode-specific comment regexps in that
@@ -340,6 +343,7 @@ Note that `mode-line-format' is buffer-local.")
 ;; support functions
 
 (defun hs-discard-overlays (from to)
+  "Delete hideshow overlays in region defined by FROM and TO."
   (when (< to from)
     (setq from (prog1 to (setq to from))))
   (mapcar (lambda (ov)
@@ -348,10 +352,21 @@ Note that `mode-line-format' is buffer-local.")
           (overlays-in from to)))
 
 (defun hs-isearch-show (ov)
+  "Delete overlay OV, and set `hs-headline' to nil.
+
+This function is meant to be used as the `isearch-open-invisible'
+property of an overlay."
   (setq hs-headline nil)
-  (hs-flag-region (overlay-start ov) (overlay-end ov) nil))
+  (delete-overlay ov))
 
 (defun hs-isearch-show-temporary (ov hide-p)
+  "Hide or show overlay OV, and set `hs-headline', all depending on HIDE-P.
+If HIDE-P is non-nil, `hs-headline' is set to nil and overlay OV is hidden.
+Otherwise, `hs-headline' is set to the line of text at the head of OV, and
+OV is shown.
+
+This function is meant to be used as the `isearch-open-invisible-temporary'
+property of an overlay."
   (setq hs-headline
 	(if hide-p
 	    nil
@@ -531,7 +546,7 @@ function; and adjust-block-beginning function."
 
 (defun hs-find-block-beginning ()
   "Reposition point at block-start.
-Return point, or nil if top-level."
+Return point, or nil if original point was not in a block."
   (let ((done nil)
         (here (point)))
     ;; look if current line is block start
