@@ -358,7 +358,7 @@ starts server process and that is all.  Invoked by \\[server-edit]."
       (server-start nil)
     (apply 'server-switch-buffer (server-done))))
 
-(defun server-switch-buffer (next-buffer &optional killed-one)
+(defun server-switch-buffer (&optional next-buffer killed-one)
   "Switch to another buffer, preferably one that has a client.
 Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
   ;; KILLED-ONE is t in a recursive call
