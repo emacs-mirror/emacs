@@ -1535,22 +1535,119 @@ The seventh argument ACTIONS is a list of actions to take
 	(message "Auto save file for draft message exists; consider M-x mail-recover"))
     initialized))
 
-(defun mail-recover ()
-  "Reread contents of current buffer from its last auto-save file."
+(defun mail-recover-1 ()
+  "Pop up a list of auto-saved draft messages and allow to recover them."
   (interactive)
-  (let ((file-name (make-auto-save-file-name)))
-    (cond ((save-window-excursion
-	     (if (not (eq system-type 'vax-vms))
-		 (with-output-to-temp-buffer "*Directory*"
-		   (buffer-disable-undo standard-output)
-		   (let ((default-directory "/"))
-		     (call-process
-		      "ls" nil standard-output nil "-l" file-name))))
-	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
-	   (let ((buffer-read-only nil))
-	     (erase-buffer)
-	     (insert-file-contents file-name nil)))
-	  (t (error "mail-recover cancelled")))))
+  (let ((file-name (make-auto-save-file-name))
+	(ls-lisp-support-shell-wildcards t)
+	non-random-len wildcard)
+    ;; Remove the random part from the auto-save-file-name, and
+    ;; create a wildcard which matches possible candidates.
+    ;; Note: this knows that make-auto-save-file-name appends
+    ;; "#<RANDOM-STUFF>#" to the buffer name, where RANDOM-STUFF
+    ;; is the result of (make-temp-name "").
+    (setq non-random-len
+	  (- (length file-name) (length (make-temp-name "")) 1))
+    (setq wildcard (concat (substring file-name 0 non-random-len) "*"))
+    (if (null (file-expand-wildcards wildcard))
+	(message "There are no auto-saved drafts to recover")
+      ;; Bind dired-trivial-filenames to t because all auto-save file
+      ;; names are normally ``trivial'', so Dired will set point after
+      ;; all the files, at buffer bottom.  We want it on the first
+      ;; file instead.
+      (let ((dired-trivial-filenames t))
+	(dired-other-window wildcard (concat dired-listing-switches "t")))
+      (rename-buffer "*Auto-saved Drafts*" t)
+      (save-excursion
+	(goto-char (point-min))
+	(or (looking-at " Move to the draft file you want to recover,")
+	    (let ((inhibit-read-only t))
+	      ;; Each line starts with a space so that Font Lock mode
+	      ;; won't highlight the first character.
+	      (insert "\
+ Move to the draft file you want to recover, then type C-c C-c
+ to recover text of message whose composition was interrupted.
+ To browse text of a draft, type v on the draft file's line.
+
+ You can also delete some of these files;
+ type d on a line to mark that file for deletion.
+
+ List of possible auto-save files for recovery:
+
+"))))
+      (use-local-map
+       (let ((map (make-sparse-keymap)))
+	 (set-keymap-parent map (current-local-map))
+	 map))
+      (define-key (current-local-map) "v"
+	(lambda ()
+	  (interactive)
+	  (let ((coding-system-for-read 'emacs-mule-unix))
+	    (dired-view-file))))
+      (define-key (current-local-map) "\C-c\C-c"
+	(lambda ()
+	  (interactive)
+	  (let ((fname (dired-get-filename))
+		;; Auto-saved files are written in the internal
+		;; representation, so they should be read accordingly.
+		(coding-system-for-read 'emacs-mule-unix))
+	    (switch-to-buffer-other-window "*mail*")
+	    (let ((buffer-read-only nil))
+	      (erase-buffer)
+	      (insert-file-contents fname nil)
+	      ;; insert-file-contents will set buffer-file-coding-system
+	      ;; to emacs-mule, which is probably not what they want to
+	      ;; use for sending the message.  But we don't know what
+	      ;; was its value before the buffer was killed or Emacs
+	      ;; crashed.  We therefore reset buffer-file-coding-system
+	      ;; to the default value, so that either the default does
+	      ;; TRT, or the user will get prompted for the right
+	      ;; encoding when they send the message.
+	      (setq buffer-file-coding-system
+		    default-buffer-file-coding-system))))))))
+
+(defun mail-recover ()
+  "Recover interrupted mail composition from auto-save files."
+  (interactive)
+  ;; In case they invoke us from some random buffer...
+  (switch-to-buffer "*mail*")
+  ;; If *mail* didn't exist, set its directory, so that auto-saved
+  ;; drafts will be found.
+  (if (file-exists-p (expand-file-name "~/"))
+      (setq default-directory "~/"))
+  (or (eq major-mode 'mail-mode)
+      (mail-mode))
+  (let ((file-name buffer-auto-save-file-name))
+    (cond ((and file-name (file-exists-p file-name))
+	   (let ((dispbuf
+		  ;; This used to invoke `ls' via call-process, but
+		  ;; dired-noselect is more portable to systems where
+		  ;; `ls' is not a standard program (it will use
+		  ;; ls-lisp instead).
+		  (dired-noselect file-name
+				  (concat dired-listing-switches "t"))))
+	     (save-excursion
+	       (set-buffer dispbuf)
+	       (let ((buffer-read-only nil))
+		 (goto-char (point-min))
+		 (forward-line)
+		 (kill-line 2)
+		 (dired-move-to-filename)
+		 (setq dispbuf (rename-buffer "*Directory*" t))))
+	     (display-buffer dispbuf t)
+	     (if (not (yes-or-no-p
+		       (format "Recover mail draft from auto save file %s? "
+			       file-name)))
+		 (error "mail-recover cancelled")
+	       (let ((buffer-read-only nil)
+		     (buffer-coding buffer-file-coding-system)
+		     ;; Auto-save files are written in internal
+		     ;; representation of non-ASCII characters.
+		     (coding-system-for-read 'emacs-mule-unix))
+		 (erase-buffer)
+		 (insert-file-contents file-name nil)
+		 (setq buffer-file-coding-system buffer-coding)))))
+	  (t (mail-recover-1)))))
 
 ;;;###autoload
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
