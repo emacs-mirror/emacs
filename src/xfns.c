@@ -5796,8 +5796,9 @@ Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-Lisp_Object QCtype, QCdata, QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
+extern Lisp_Object QCdata;
+Lisp_Object QCtype, QCascent, QCmargin, QCrelief;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex;
 
@@ -11225,8 +11226,6 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&QCheuristic_mask);
   QCcolor_symbols = intern (":color-symbols");
   staticpro (&QCcolor_symbols);
-  QCdata = intern (":data");
-  staticpro (&QCdata);
   QCascent = intern (":ascent");
   staticpro (&QCascent);
   QCmargin = intern (":margin");
