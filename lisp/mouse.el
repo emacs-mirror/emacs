@@ -96,6 +96,9 @@ This command must be bound to a mouse click."
 This must be bound to a mouse click."
   (interactive "e")
   (let ((posn (event-start click)))
+    (and (window-minibuffer-p (posn-window posn))
+	 (not (minibuffer-window-active-p (posn-window posn)))
+	 (error "Minibuffer window is not active"))
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))))
@@ -168,8 +171,7 @@ This must be bound to a button-down mouse event."
 		     (nth 3 bounds)
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds)))))
-    (select-window start-window)
-    (goto-char start-point)
+    (mouse-set-point start-event)
     (move-overlay mouse-drag-overlay
 		  start-point start-point
 		  (window-buffer start-window))
@@ -219,10 +221,11 @@ This must be bound to a button-down mouse event."
       (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
 	       (eq (posn-window (event-end event)) start-window)
 	       (numberp (posn-point (event-end event))))
-	  (goto-char (posn-point (event-end event))))
-      (if (= (point) start-point)
-	  (deactivate-mark)
-	(set-mark start-point))
+	  (progn
+	    (mouse-set-point event)
+	    (if (= (point) start-point)
+		(deactivate-mark)
+	      (set-mark start-point))))
       (delete-overlay mouse-drag-overlay))))
 
 ;;;! (defun mouse-drag-region (click)
