@@ -2882,10 +2882,12 @@ If NFRAMES is more than the number of frames, the value is nil.")
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
-    "Limit on number of Lisp variable bindings & unwind-protects before error.");
+    "*Limit on number of Lisp variable bindings & unwind-protects.\n\
+If Lisp code tries to make more than this many at once,\n\
+an error is signaled.");
 
   DEFVAR_INT ("max-lisp-eval-depth", &max_lisp_eval_depth,
-    "Limit on depth in `eval', `apply' and `funcall' before error.\n\
+    "*Limit on depth in `eval', `apply' and `funcall' before error.\n\
 This limit is to catch infinite recursions for you before they cause\n\
 actual stack overflow in C, which would be fatal for Emacs.\n\
 You can safely make it considerably larger than its default value,\n\
