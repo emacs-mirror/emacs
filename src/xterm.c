@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1989, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4948,6 +4948,9 @@ x_new_font (f, fontname)
   }
 }
 
+/* Calculate the absolute position in frame F
+   from its current recorded position values and gravity.  */
+
 x_calc_absolute_position (f)
      struct frame *f;
 {
@@ -4985,17 +4988,18 @@ x_calc_absolute_position (f)
      position that fits on the screen.  */
   if (flags & XNegative)
     f->output_data.x->left_pos = (FRAME_X_DISPLAY_INFO (f)->width
-			      - 2 * f->output_data.x->border_width - win_x
-			      - PIXEL_WIDTH (f)
-			      + f->output_data.x->left_pos);
+				  - 2 * f->output_data.x->border_width - win_x
+				  - PIXEL_WIDTH (f)
+				  + f->output_data.x->left_pos);
 
   if (flags & YNegative)
     /* We used to subtract f->output_data.x->menubar_height here
        in the toolkit case, but PIXEL_HEIGHT already includes that.  */
     f->output_data.x->top_pos = (FRAME_X_DISPLAY_INFO (f)->height
-			     - 2 * f->output_data.x->border_width - win_y
-			     - PIXEL_HEIGHT (f)
-			     + f->output_data.x->top_pos);
+				 - 2 * f->output_data.x->border_width - win_y
+				 - PIXEL_HEIGHT (f)
+				 + f->output_data.x->top_pos);
+
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
