@@ -1,3 +1,46 @@
+2000-01-22  Jason Rumney <jasonr@gnu.org>
+
+	* makefile.nt (intervals.obj, composite.obj): New modules.
+	(composite.h): Added as dependency where appropriate.
+
+	* w32gui.h (XGCValue): New struct for emulating X GCs.
+
+	* w32term.h (XCharStruct): New struct for emulating X.
+
+	* w32console.c (turn_on_face, turn_off_face): New functions.
+	(change_line_highlight): New prototype for new redisplay.
+	(write_glyphs): Support multibyte text. Support faces.
+
+	* w32faces.c: Complete rewrite for new redisplay based on new
+	xfaces.c.
+
+	* w32fns.c: Use SELECTED_FRAME macro in place of selected_frame
+	throughout. struct frame * in place of FRAME_PTR.
+	Skeleton support for images, toolbars, tooltips from xfns.c.
+	(Fx_create_frame): Use system default for default scroll bar
+	width.
+	(w32_get_arg): Renamed from x_get_arg.
+	(Fx_file_dialog): New function.
+	(w32_list_fonts): Check cache before asking system.
+	(Vw32_enable_synthesized_fonts): New variable.
+	(Vw32_enable_italics): Obsolete, removed.
+
+	* w32inevt.c (get_frame, w32_console_mouse_position, mouse_moved_to):
+	Use SELECTED_FRAME macro.
+
+	* w32menu.c: Add skeleton support for help strings on menus.
+	(add_menu_item): Native checkbox and radio support added, but not
+	yet enabled due to bugs.
+	(push_menu_item): Add parameters type, selection and help.
+	Callers updated.
+	Formatting changes to reduce unnecessary diffs with xmenu.c.
+
+	* w32select.c (Fw32_set_clipboard_data): Update call to
+	find_charset_in_str.
+
+	* w32term.c: Complete rewrite for new redisplay based on new
+	xterm.c with necessary sections merged back in from old w32term.c.
+
 2000-01-21  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* data.c (set_internal): Further fix in same criterion.
