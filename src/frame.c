@@ -1793,7 +1793,8 @@ set_term_frame_name (f, name)
 
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
-      if (frame_name_fnn_p (XSTRING (f->name)->data, XSTRING (f->name)->size))
+      if (frame_name_fnn_p (XSTRING (f->name)->data,
+			    XSTRING (f->name)->size_byte))
 	return;
 
       terminal_frame_count++;
@@ -1810,7 +1811,7 @@ set_term_frame_name (f, name)
 
       /* Don't allow the user to set the frame name to F<num>, so it
 	 doesn't clash with the names we generate for terminal frames.  */
-      if (frame_name_fnn_p (XSTRING (name)->data, XSTRING (name)->size))
+      if (frame_name_fnn_p (XSTRING (name)->data, XSTRING (name)->size_byte))
 	error ("Frame names of the form F<num> are usurped by Emacs");
     }
 
