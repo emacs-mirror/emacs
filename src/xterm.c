@@ -3222,6 +3222,18 @@ x_draw_glyph_string_foreground (s)
 	    XDrawImageString (s->display, s->window, s->gc, x,
 			      s->ybase - boff, char1b, s->nchars);
 	}
+
+      if (s->face->overstrike)
+	{
+	  /* For overstriking (to simulate bold-face), draw the
+	     characters again shifted to the right by one pixel.  */
+	  if (s->two_byte_p)
+	    XDrawString16 (s->display, s->window, s->gc, x + 1,
+			   s->ybase - boff, s->char2b, s->nchars);
+	  else
+	    XDrawString (s->display, s->window, s->gc, x + 1,
+			 s->ybase - boff, char1b, s->nchars);
+	}
     }
 }
 
@@ -3257,10 +3269,17 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	XDrawString16 (s->display, s->window, s->gc,
-		       x + s->cmp->offsets[s->gidx * 2],
-		       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-		       s->char2b + i, 1);
+	{
+	  XDrawString16 (s->display, s->window, s->gc,
+			 x + s->cmp->offsets[s->gidx * 2],
+			 s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			 s->char2b + i, 1);
+	  if (s->face->overstrike)
+	    XDrawString16 (s->display, s->window, s->gc,
+			   x + s->cmp->offsets[s->gidx * 2] + 1,
+			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			   s->char2b + i, 1);
+	}
     }
 }
 
