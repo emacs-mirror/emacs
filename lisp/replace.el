@@ -454,6 +454,8 @@ The valid answers include `act', `skip', `act-and-show',
 (define-key query-replace-map [backspace] 'skip)
 (define-key query-replace-map "y" 'act)
 (define-key query-replace-map "n" 'skip)
+(define-key query-replace-map "Y" 'act)
+(define-key query-replace-map "N" 'skip)
 (define-key query-replace-map "," 'act-and-show)
 (define-key query-replace-map "q" 'exit)
 (define-key query-replace-map "\r" 'exit)
