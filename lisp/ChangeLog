@@ -1,5 +1,7 @@
 2001-05-20  Richard M. Stallman  <rms@gnu.org>
 
+	* play/landmark.el (lm): Use "p" not "P" for interactive spec.
+
 	* mail/rmail.el (rmail-retry-failure): Do save-window-excursion.
 
 	* info.el (Info-read-subfile): Widen before finding the
