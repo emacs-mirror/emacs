@@ -3186,7 +3186,7 @@ kbd_buffer_store_event (event)
 }
 
 
-/* Generate HELP_EVENT input_events in BUFP which has roon for
+/* Generate HELP_EVENT input_events in BUFP which has room for
    SIZE events.  If there's not enough room in BUFP, ignore this
    event.
 
