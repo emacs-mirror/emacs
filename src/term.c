@@ -322,10 +322,6 @@ char *TS_enter_reverse_mode;
 
 char *TS_exit_underline_mode, *TS_enter_underline_mode;
 
-/* "ug" -- number of blanks left by underline.  */
-
-int TN_magic_cookie_glitch_ul;
-
 /* "as"/"ae" -- start/end alternate character set.  Not really
    supported, yet.  */
 
@@ -360,13 +356,6 @@ int TF_underscore;	/* termcap ul flag: _ underlines if over-struck on
 			   non-blank position.  Must clear before writing _.  */
 int TF_teleray;		/* termcap xt flag: many weird consequences.
 			   For t1061. */
-
-int TF_xs;		/* Nonzero for "xs".  If set together with
-			   TN_standout_width == 0, it means don't bother
-			   to write any end-standout cookies.  */
-
-int TN_standout_width;	/* termcap sg number: width occupied by standout
-			   markers */
 
 static int RPov;	/* # chars to start a TS_repeat */
 
@@ -475,19 +464,13 @@ reset_terminal_modes ()
 {
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
-      if (TN_standout_width < 0)
-	turn_off_highlight ();
+      turn_off_highlight ();
       turn_off_insert ();
       OUTPUT_IF (TS_end_keypad_mode);
       OUTPUT_IF (TS_cursor_normal);
       OUTPUT_IF (TS_end_termcap_modes);
       OUTPUT_IF (TS_orig_pair);
       /* Output raw CR so kernel can track the cursor hpos.  */
-      /* But on magic-cookie terminals this can erase an end-standout
-	 marker and cause the rest of the frame to be in standout, so
-	 move down first.  */
-      if (TN_standout_width >= 0)
-	cmputc ('\n');
       cmputc ('\r');
     }
   else if (reset_terminal_modes_hook)
@@ -573,33 +556,22 @@ turn_off_insert ()
   insert_mode = 0;
 }
 
-/* Handle highlighting when TN_standout_width (termcap sg) is not specified.
-   In these terminals, output is affected by the value of standout
-   mode when the output is written.
-
-   These functions are called on all terminals, but do nothing
-   on terminals whose standout mode does not work that way.  */
+/* Handle highlighting.  */
 
 void
 turn_off_highlight ()
 {
-  if (TN_standout_width < 0)
-    {
-      if (standout_mode)
-	OUTPUT_IF (TS_end_standout_mode);
-      standout_mode = 0;
-    }
+  if (standout_mode)
+    OUTPUT_IF (TS_end_standout_mode);
+  standout_mode = 0;
 }
 
 static void
 turn_on_highlight ()
 {
-  if (TN_standout_width < 0)
-    {
-      if (!standout_mode)
-	OUTPUT_IF (TS_standout_mode);
-      standout_mode = 1;
-    }
+  if (!standout_mode)
+    OUTPUT_IF (TS_standout_mode);
+  standout_mode = 1;
 }
 
 static void
@@ -646,8 +618,6 @@ tty_show_cursor ()
 void
 background_highlight ()
 {
-  if (TN_standout_width >= 0)
-    return;
   if (inverse_video)
     turn_on_highlight ();
   else
@@ -659,8 +629,6 @@ background_highlight ()
 static void
 highlight_if_desired ()
 {
-  if (TN_standout_width >= 0)
-    return;
   if (inverse_video)
     turn_on_highlight ();
   else
@@ -1222,13 +1190,6 @@ ins_del_lines (vpos, n)
       set_scroll_region (0, specified_window);
     }
 
-  if (TN_standout_width >= 0)
-    {
-      register int lower_limit
-	= (scroll_region_ok
-	   ? specified_window
-	   : FRAME_HEIGHT (sf));
-    }
   if (!scroll_region_ok && memory_below_frame && n < 0)
     {
       cursor_to (FRAME_HEIGHT (sf) + n, 0);
@@ -1935,10 +1896,7 @@ turn_on_face (f, face_id)
       && MAY_USE_WITH_COLORS_P (NC_BLINK))
     OUTPUT1_IF (TS_enter_blink_mode);
 
-  if (face->tty_underline_p
-      /* Don't underline if that's difficult.  */
-      && TN_magic_cookie_glitch_ul <= 0
-      && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
+  if (face->tty_underline_p && MAY_USE_WITH_COLORS_P (NC_UNDERLINE))
     OUTPUT1_IF (TS_enter_underline_mode);
 
   if (TN_max_colors > 0)
@@ -2000,9 +1958,7 @@ turn_off_face (f, face_id)
       if (face->tty_alt_charset_p)
 	OUTPUT_IF (TS_exit_alt_charset_mode);
 
-      if (face->tty_underline_p
-	  /* We don't underline if that's difficult.  */
-	  && TN_magic_cookie_glitch_ul <= 0)
+      if (face->tty_underline_p)
 	OUTPUT_IF (TS_exit_underline_mode);
     }
 
@@ -2180,7 +2136,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   
   TS_enter_underline_mode = tgetstr ("us", address);
   TS_exit_underline_mode = tgetstr ("ue", address);
-  TN_magic_cookie_glitch_ul = tgetnum ("ug");
   TS_enter_bold_mode = tgetstr ("md", address);
   TS_enter_dim_mode = tgetstr ("mh", address);
   TS_enter_blink_mode = tgetstr ("mb", address);
@@ -2228,7 +2183,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TF_insmode_motion = tgetflag ("mi");
   TF_standout_motion = tgetflag ("ms");
   TF_underscore = tgetflag ("ul");
-  TF_xs = tgetflag ("xs");
   TF_teleray = tgetflag ("xt");
 
   term_get_fkeys (address);
@@ -2254,7 +2208,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	   FRAME_HEIGHT (sf), FRAME_WIDTH (sf));
 
   min_padding_speed = tgetnum ("pb");
-  TN_standout_width = tgetnum ("sg");
   TabWidth = tgetnum ("tw");
 
 #ifdef VMS
@@ -2283,11 +2236,24 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     Wcm.cm_tab = "\t";
 */
 
+  /* We don't support standout modes that use `magic cookies', so
+     turn off any that do.  */
+  if (TS_standout_mode && tgetnum ("sg") >= 0)
+    {
+      TS_standout_mode = 0;
+      TS_end_standout_mode = 0;
+    }
+  if (TS_enter_underline_mode && tgetnum ("ug") >= 0)
+    {
+      TS_enter_underline_mode = 0;
+      TS_exit_underline_mode = 0;
+    }
+
+  /* If there's no standout mode, try to use underlining instead.  */
   if (TS_standout_mode == 0)
     {
-      TN_standout_width = tgetnum ("ug");
-      TS_end_standout_mode = tgetstr ("ue", address);
-      TS_standout_mode = tgetstr ("us", address);
+      TS_standout_mode = TS_enter_underline_mode;
+      TS_end_standout_mode = TS_exit_underline_mode;
     }
 
   /* If no `se' string, try using a `me' string instead.
@@ -2304,10 +2270,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   if (TF_teleray)
     {
       Wcm.cm_tab = 0;
-      /* Teleray: most programs want a space in front of TS_standout_mode,
-	   but Emacs can do without it (and give one extra column).  */
-      TS_standout_mode = "\033RD";
-      TN_standout_width = 1;
+      /* We can't support standout mode, because it uses magic cookies.  */
+      TS_standout_mode = 0;
       /* But that means we cannot rely on ^M to go to column zero! */
       CR = 0;
       /* LF can't be trusted either -- can alter hpos */
@@ -2406,10 +2370,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   se_is_so = (TS_standout_mode
 	      && TS_end_standout_mode
 	      && !strcmp (TS_standout_mode, TS_end_standout_mode));
-
-  /* Remove width of standout marker from usable width of line */
-  if (TN_standout_width > 0)
-    SET_FRAME_WIDTH (sf, FRAME_WIDTH (sf) - TN_standout_width);
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 
