@@ -183,6 +183,8 @@
 
 ;;; Code:
 
+(require 'bytecomp)
+
 (defun byte-compile-log-lap-1 (format &rest args)
   (if (aref byte-code-vector 0)
       (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well."))
