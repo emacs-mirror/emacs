@@ -749,8 +749,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (and command-line-args (setcdr command-line-args args)))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
-  (if (fboundp 'frame-initialize)
-      (frame-initialize))
+  (when (fboundp 'frame-initialize)
+    (frame-initialize))
+
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (if (and (not noninteractive)
 	   (or (not (memq window-system '(x w32)))
@@ -934,23 +935,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 					  (system-name)))))
 
   (run-hooks 'after-init-hook)
-
-  ;; When the tool-bar is on, increase the frame's height by the
-  ;; number of lines it usually occupies.  The normal height of images
-  ;; in the tool bar is assumed to be `tool-bar-images-pixel-height'.
-  (when tool-bar-mode
-    (let* ((char-height (frame-char-height))
-	   (bar-height (+ tool-bar-images-pixel-height
-			  tool-bar-button-margin
-			  tool-bar-button-relief))
-	   (lines (/ (+ bar-height (1- char-height)) char-height)))
-      (set-frame-height nil (+ (frame-height) lines))))
-
-  ;; Now, make the frame visible.  If we make it visible before this
-  ;; point, ugly flickering can happens because of possibly changing
-  ;; frame heights.  Note that any message or error make the frame
-  ;; visible automatically.
-  (make-frame-visible)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
