@@ -1451,7 +1451,7 @@ If point is on a group name, this function operates on that group."
 		    ;; generate a call to the column function.
 		    (ibuffer-aif (assq sym ibuffer-inline-columns)
 				 (nth 1 it)
-				 `(,sym buffer mark (current-buffer))))
+				 `(,sym buffer mark)))
 		   ;; You're not expected to understand this.  Hell, I
 		   ;; don't even understand it, and I wrote it five
 		   ;; minutes ago.
@@ -1624,7 +1624,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column filename-and-process (:name "Filename/Process")
   (let ((proc (get-buffer-process buffer))
-	(filename (ibuffer-make-column-filename buffer mark ibuffer-buf)))
+	(filename (ibuffer-make-column-filename buffer mark)))
     (if proc
 	(concat (propertize (format "(%s %s) " proc (process-status proc))
 			    'font-lock-face 'italic)
@@ -2380,6 +2380,9 @@ will be inserted before the group at point."
   (setq show-trailing-whitespace nil)
   (set (make-local-variable 'revert-buffer-function)
        #'ibuffer-update)
+  ;; Only use font-core.el.
+  (set (make-local-variable 'font-lock-defaults)
+       '(nil t nil nil nil (font-lock-core-only . t)))
   (set (make-local-variable 'ibuffer-sorting-mode)
        ibuffer-default-sorting-mode)
   (set (make-local-variable 'ibuffer-sorting-reversep)
