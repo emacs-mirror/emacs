@@ -1,3 +1,8 @@
+2003-01-11  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/sgml-mode.el (sgml-font-lock-keywords-2): Add flag to
+	merge with existing fontification.
+
 2003-01-11  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gud.el (gud-kill-buffer-hook): Save gud-minor-mode type.
