@@ -801,8 +801,13 @@ use \\[list-coding-systems].
 If the buffer's previous file coding-system value specifies end-of-line
 conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
 merged with the already-specified end-of-line conversion.
-However, if the optional prefix argument FORCE is non-nil,
-then CODING-SYSTEM is used exactly as specified.
+
+If the buffer's previous file coding-system value specifies text
+conversion, and CODING-SYSTEM does not specify one, CODING-SYSTEM is
+merged with the already-specified text conversion.
+
+However, if the optional prefix argument FORCE is non-nil, then
+CODING-SYSTEM is used exactly as specified.
 
 This marks the buffer modified so that the succeeding \\[save-buffer]
 surely saves the buffer with CODING-SYSTEM.  From a program, if you
@@ -810,11 +815,15 @@ don't want to mark the buffer modified, just set the variable
 `buffer-file-coding-system' directly."
   (interactive "zCoding system for visited file (default, nil): \nP")
   (check-coding-system coding-system)
-  (if (null force)
+  (if (and buffer-file-coding-system (null force))
       (let ((x (coding-system-eol-type buffer-file-coding-system))
 	    (y (coding-system-eol-type coding-system)))
 	(if (and (numberp x) (>= x 0) (<= x 2) (vectorp y))
-	    (setq coding-system (aref y x)))))
+	    (setq coding-system (aref y x))
+	  (if (and (eq (coding-system-base coding-system) 'undecided)
+		   (numberp y))
+	      (setq coding-system (coding-system-change-eol-conversion
+				   buffer-file-coding-system y))))))
   (setq buffer-file-coding-system coding-system)
   (set-buffer-modified-p t)
   (force-mode-line-update))
