@@ -935,7 +935,8 @@ lower types.")
          (error "Unterminated @%s" (car (car texinfo-stack)))))
 
   ;; Remove excess whitespace
-  (whitespace-cleanup))
+  (let ((whitespace-silent t))
+    (whitespace-cleanup)))
 
 (defvar texinfo-copying-text ""
   "Text of the copyright notice and copying permissions.")
