@@ -1052,19 +1052,20 @@ SIG optional fourth argument, controls action on no match
   (save-excursion
     (goto-char pos)
     (re-search-backward start (max (point-min) (- pos 200)) 'yes)
-    (while (and (re-search-forward all (min (point-max) (+ pos 200)) 'yes)
-		(not (and (<= (match-beginning 0) pos)
-			  (> (match-end 0) pos)))))
-    (if (and (<= (match-beginning 0) pos)
-	     (> (match-end 0) pos))
-	(buffer-substring (match-beginning 1) (match-end 1))
-      (cond ((null errorstring)
-	     nil)
-	    ((eq errorstring t)
-	     (beep)
-	     nil)
-	    (t
-	     (error "No %s around position %d" errorstring pos))))))
+    (let (found)
+      (while (and (re-search-forward all (min (point-max) (+ pos 200)) 'yes)
+		  (not (setq found (and (<= (match-beginning 0) pos)
+					(> (match-end 0) pos))))))
+      (if (and found (<= (match-beginning 0) pos)
+	       (> (match-end 0) pos))
+	  (buffer-substring (match-beginning 1) (match-end 1))
+	(cond ((null errorstring)
+	       nil)
+	      ((eq errorstring t)
+	       (beep)
+	       nil)
+	      (t
+	       (error "No %s around position %d" errorstring pos)))))))
 
 (defun Info-follow-nearest-node (click)
   "\\<Info-mode-map>Follow a node reference near point.
