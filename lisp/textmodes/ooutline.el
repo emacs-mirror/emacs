@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 1986, 1993 Free Software Foundation, Inc.
 
+;; 7-Feb-94	Kevin Broadey
+;; Fix show-children so it doesn't try to narrow to (1+ (point-max)) when
+;; exposing the last level-n header in the buffer.
+;;
 ;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
@@ -384,7 +388,8 @@ Default is enough to cause the following heading to appear."
     (beginning-of-line)
     (setq level (+ level (funcall outline-level)))
     (narrow-to-region (point)
-		      (progn (outline-end-of-subtree) (1+ (point))))
+		      (progn (outline-end-of-subtree)
+			     (if (eobp) (point-max) (1+ (point)))))
     (goto-char (point-min))
     (while (and (not (eobp))
 		(progn
