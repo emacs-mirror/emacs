@@ -1,3 +1,9 @@
+2001-01-24  Edward M. Reingold  <reingold@emr.cs.uiuc.edu>
+
+	* calendar/diary-lib.el (diary-float): Fix case of MONTH
+	being a list of numbers.
+	(diary-mail-entries): Rewritten.
+
 2001-01-23  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (make-coding-system): Fix typo.
