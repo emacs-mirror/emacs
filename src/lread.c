@@ -175,6 +175,12 @@ static file_offset prev_saved_doc_string_position;
    Fread initializes this to zero, so we need not specbind it
    or worry about what happens to it when there is an error.  */
 static int new_backquote_flag;
+
+/* A list of file names for files being loaded in Fload.  Used to
+   check for recursive loads.  */
+
+static Lisp_Object Vloads_in_progress;
+
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
@@ -584,6 +590,17 @@ safe_to_load_p (fd)
 }
 
 
+/* Callback for record_unwind_protect.  Restore the old load list OLD,
+   after loading a file successfully.  */
+
+static Lisp_Object
+record_load_unwind (old)
+     Lisp_Object old;
+{
+  return Vloads_in_progress = old;
+}
+
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
   "Execute a file of Lisp code named FILE.\n\
 First try FILE with `.elc' appended, then try with `.el',\n\
@@ -691,6 +708,13 @@ Return t if file exists.")
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
     }
 
+  /* Check if we're loading this file again while another load
+     of the same file is already in progress.  */
+  if (!NILP (Fmember (found, Vloads_in_progress)))
+    error ("Recursive load of file `%s'", XSTRING (file)->data);
+  record_unwind_protect (record_load_unwind, Vloads_in_progress);
+  Vloads_in_progress = Fcons (found, Vloads_in_progress);
+
   /* Load .elc files directly, but not when they are
      remote and have no handler!  */
   if (!bcmp (&(XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 4]),
@@ -737,11 +761,14 @@ Return t if file exists.")
       /* We are loading a source file (*.el).  */
       if (!NILP (Vload_source_file_function))
 	{
+	  Lisp_Object val;
+	  
 	  if (fd != 0)
 	    emacs_close (fd);
-	  return call4 (Vload_source_file_function, found, file,
-			NILP (noerror) ? Qnil : Qt,
-			NILP (nomessage) ? Qnil : Qt);
+	  val = call4 (Vload_source_file_function, found, file,
+		       NILP (noerror) ? Qnil : Qt,
+		       NILP (nomessage) ? Qnil : Qt);
+	  return unbind_to (count, val);
 	}
     }
 
@@ -817,6 +844,7 @@ Return t if file exists.")
       else /* The typical case; compiled file newer than source file.  */
 	message_with_string ("Loading %s...done", file, 1);
     }
+
   return Qt;
 }
 
@@ -1647,7 +1675,7 @@ read_integer (readcharfun, radix)
      Lisp_Object readcharfun;
      int radix;
 {
-  int number, ndigits, invalid_p, c, sign;
+  int number = 0, ndigits = 0, invalid_p, c, sign = 0;
 
   if (radix < 2 || radix > 36)
     invalid_p = 1;
@@ -1833,6 +1861,7 @@ read1 (readcharfun, pch, first_in_list)
 	      Lisp_Object beg, end, plist;
 
 	      beg = read1 (readcharfun, &ch, 0);
+	      end = plist = Qnil;
 	      if (ch == ')')
 		break;
 	      if (ch == 0)
@@ -3599,4 +3628,6 @@ to load.  See also `load-dangerous-libraries'.");
   read_objects = Qnil;
   staticpro (&seen_list);
   
+  Vloads_in_progress = Qnil;
+  staticpro (&Vloads_in_progress);
 }
