@@ -332,7 +332,7 @@ If NOW, use that time instead."
 			     t (current-buffer) nil)
 	;; The meaningful output is the first 32 characters.
 	;; Don't return the newline that follows them!
-	(buffer-substring 1 33)))))
+	(buffer-substring (point-min) (+ 32 (point-min)))))))
 
 (defun pop3-stat (process)
   "Return the number of messages in the maildrop and the maildrop's size."
