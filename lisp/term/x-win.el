@@ -243,8 +243,8 @@ This function returns ARGS minus the arguments that have been processed."
 	x-invocation-args (cdr x-invocation-args)))
 
 (defvar emacs-save-session-functions nil
-  "Functions to run when a save-session event occurs.
-The functions does not get any argument.
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
 Functions can return non-nil to inform the session manager that the
 window system shutdown should be aborted.
 
@@ -1158,13 +1158,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     defined-colors))
 
 ;;;; Function keys
-
-(defun iconify-or-deiconify-frame ()
-  "Iconify the selected frame, or deiconify if it's currently an icon."
-  (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
-      (iconify-frame)
-    (make-frame-visible)))
 
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
@@ -2367,11 +2360,14 @@ This is in addition to, but in preference to, the primary selection."
 ;; Don't show the frame name; that's redundant with X.
 (setq-default mode-line-frame-identification "  ")
 
-;;; Motif direct handling of f10 wasn't working right,
-;;; So temporarily we've turned it off in lwlib-Xm.c
-;;; and turned the Emacs f10 back on.
-;;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
-;;; (if (featurep 'motif)
-;;;     (global-set-key [f10] 'ignore))
+;; Motif direct handling of f10 wasn't working right,
+;; So temporarily we've turned it off in lwlib-Xm.c
+;; and turned the Emacs f10 back on.
+;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
+;; (if (featurep 'motif)
+;;     (global-set-key [f10] 'ignore))
+
+;; Turn on support for mouse wheels.
+(mouse-wheel-mode 1)
 
 ;;; x-win.el ends here
