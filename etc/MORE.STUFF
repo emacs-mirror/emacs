@@ -88,6 +88,8 @@ You might find bug-fixes or enhancements in these places.
 
  * Flyspell: <URL:http://kaolin.unice.fr/%7Eserrano/emacs/flyspell>
 
+ * Fortune: <URL:http://www.coling.uni-freiburg.de/~%7Eschauer/emacs.html>
+
  * Gnus home page: <URL:http://www.gnus.org/>
    Native MIME support is in development at the time of writing.
 
@@ -103,6 +105,8 @@ You might find bug-fixes or enhancements in these places.
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
  * PS mode: <URL:http://odur.let.rug.nl/~kleiweg/postscript/>
+
+ * PS-print: <URL:ftp://ftp.cpqd.com.br/pub/users/vinicius/>
 
  * QuickURL: <URL:http://www.acemake.com/hagbard/archives/quickurl.el>
 
@@ -166,7 +170,7 @@ the future.
    From GNU distribution mirrors.
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
-   <URL:http://simon.cs.cornell.edu/info/people/raman/emacspeak/emacspeak.html>
+   <URL:http://emacspeak.sourceforge.net/>
 
  * Gnuserv:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz>
@@ -189,8 +193,8 @@ the future.
  * JDE: <URL:http://sunsite.auc.dk/jde/>
    Wrapper around Java development tools.
 
- * MULE-UCS: Universal enCoding System
-   <URL:ftp://ftp.jaist.ac.jp/pub/GNU/mule/Mule-UCS/>: 
+ * MULE-UCS: Universal enCoding System:
+   <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
    Extended coding systems for MULE, specifically for reading and
    writing UTF-8 encoded Unicode.
 
