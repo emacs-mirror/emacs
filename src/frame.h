@@ -178,7 +178,7 @@ struct frame
      These should probably be considered read-only by everyone except
      FRAME_SAMPLE_VISIBILITY.
 
-     This two are mutually exclusive.  They might both be zero, if the
+     These two are mutually exclusive.  They might both be zero, if the
      frame has been made invisible without an icon.  */
   char visible, iconified;
 
