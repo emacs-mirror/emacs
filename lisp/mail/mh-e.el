@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.12 1996/01/20 02:47:33 erik Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.13 1996/01/25 01:02:59 kwzh Exp kwzh $")
 
 ;;; Code:
 
@@ -519,7 +519,7 @@ provided, then prompt for the message sequence."
   (mh-find-progs)
   (set-buffer (get-buffer-create mh-temp-buffer))
   (erase-buffer)
-  (insert "  mh-e info:\n\nversion: " mh-e-version "\n" mh-e-time-stamp
+  (insert "  mh-e info:\n\nversion: " mh-e-RCS-id
 	  "\nEmacs: " emacs-version " on " (symbol-name system-type) " ")
   (condition-case ()
       (call-process "uname" nil t nil "-a")
