@@ -152,7 +152,7 @@
 ;; User-modifiable variables
 (defcustom file-cache-filter-regexps 
   (list "~$" "\\.o$" "\\.exe$" "\\.a$" "\\.elc$" ",v$" "\\.output$" 
-	"\\.$" "#$")
+	"\\.$" "#$" "\\.class$")
   "*List of regular expressions used as filters by the file cache.
 File names which match these expressions will not be added to the cache.
 Note that the functions `file-cache-add-file' and `file-cache-add-file-list' 
