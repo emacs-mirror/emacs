@@ -35,11 +35,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define alloca __builtin_alloca
 #endif
 
-#if ((!__GNUC__) && !defined(__hpux)) && !defined(AIXV3)
+#if ((!__GNUC__) && !defined(__hpux)) && !defined(_AIX)
 #include <alloca.h>
 #endif
 
-#if defined(AIXV3)
+#if defined(_AIX)
 #pragma alloca
 #endif
 
@@ -51,6 +51,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #if defined (USE_OLIT)
 #include "lwlib-Xol.h"
+#endif
+#if defined (USE_XAW)
+#include "lwlib-Xaw.h"
 #endif
 
 #if !defined (USE_LUCID) && !defined (USE_MOTIF) && !defined (USE_OLIT)
@@ -321,6 +324,14 @@ get_widget_info (id, remove_p)
   return NULL;
 }
 
+/* Internal function used by the library dependent implementation to get the
+   widget_value for a given widget in an instance */
+widget_info *
+lw_get_widget_info (LWLIB_ID id)
+{
+  return get_widget_info (id, 0);
+}
+
 static widget_instance *
 get_widget_instance (widget, remove_p)
      Widget widget;
@@ -573,6 +584,10 @@ set_one_value (instance, val, deep_p)
       if (lw_olit_widget_p (instance->widget))
 	xol_update_one_widget (instance, widget, val, deep_p);
 #endif
+#if defined (USE_XAW)
+      if (lw_xaw_widget_p (instance->widget))
+	xaw_update_one_widget (instance, widget, val, deep_p);
+#endif
     }
 }
 
@@ -741,6 +756,10 @@ instanciate_widget_instance (instance)
   if (!function)
     function = find_in_table (instance->info->type, xol_creation_table);
 #endif
+#if defined (USE_XAW)
+  if (!function)
+    function = find_in_table (instance->info->type, xaw_creation_table);
+#endif
 
   if (!function)
     {
@@ -752,6 +771,10 @@ instanciate_widget_instance (instance)
 #if defined(USE_MOTIF)
 	  if (!function)
 	    function = xm_create_dialog;
+#endif
+#if defined (USE_XAW)
+	  if (!function)
+	    function = xaw_create_dialog;
 #endif
 #if defined (USE_OLIT)
 	  /* not yet */
@@ -879,6 +902,11 @@ destroy_one_instance (instance)
 	xol_destroy_instance (instance);
       else
 #endif
+#if defined (USE_XAW)
+      if (lw_xaw_widget_p (instance->widget))
+	xaw_destroy_instance (instance);
+      else 
+#endif
 	/* do not remove the empty statement */
 	;
     }
@@ -995,19 +1023,34 @@ lw_pop_all_widgets (id, up)
     for (instance = info->instances; instance; instance = instance->next)
       if (instance->pop_up_p && instance->widget)
 	{
-	  if (!XtIsRealized (instance->widget))
-	    XtRealizeWidget (instance->widget);
 #if defined (USE_LUCID)
 	  if (lw_lucid_widget_p (instance->widget))
-	    xlw_pop_instance (instance, up);
+	    {
+	      XtRealizeWidget (instance->widget);
+	      xlw_pop_instance (instance, up);
+	    }
 #endif
 #if defined (USE_MOTIF)
 	  if (lw_motif_widget_p (instance->widget))
-	    xm_pop_instance (instance, up);
+	    {
+	      XtRealizeWidget (instance->widget);
+	      xm_pop_instance (instance, up);
+	    }
 #endif
 #if defined (USE_OLIT)
 	  if (lw_olit_widget_p (instance->widget))
-	    xol_pop_instance (instance, up);
+	    {
+	      XtRealizeWidget (instance->widget);
+	      xol_pop_instance (instance, up);
+	    }
+#endif
+#if defined (USE_XAW)
+	  if (lw_xaw_widget_p (instance->widget))
+	    {
+	      XtRealizeWidget (XtParent (instance->widget));
+	      XtRealizeWidget (instance->widget);
+	      xaw_pop_instance (instance, up);
+	    }
 #endif
 	}
 }
@@ -1042,6 +1085,10 @@ lw_popup_menu (widget)
   if (lw_olit_widget_p (widget))
     xol_popup_menu (widget);
 #endif
+#if defined (USE_XAW)
+  if (lw_xaw_widget_p (widget))
+    xaw_popup_menu (widget);
+#endif
 }
 
 /* get the values back */
@@ -1065,6 +1112,10 @@ get_one_value (instance, val)
 #if defined (USE_OLIT)
       if (lw_olit_widget_p (instance->widget))
 	xol_update_one_value (instance, widget, val);
+#endif
+#if defined (USE_XAW)
+      if (lw_xaw_widget_p (instance->widget))
+	xaw_update_one_value (instance, widget, val);
 #endif
       return True;
     }
