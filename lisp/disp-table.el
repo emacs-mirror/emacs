@@ -211,25 +211,24 @@ probably want to edit European characters in single-byte mode."
       (setq-default enable-multibyte-characters nil)
       (if (get-buffer "*scratch*")
 	  (with-current-buffer "*scratch*"
-	    (set-buffer-multibyte nil)
-	    (load "latin-1"))))
-    (standard-display-8bit 160 255)
+	    (set-buffer-multibyte nil))))
+    ;; If the user does this explicitly,
+    ;; switch to Latin-1 language environment
+    ;; unless some other has been specified.
+    (unless auto
+      (if (equal current-language-environment "English")
+	  (set-language-environment "latin-1")))
     (unless (or noninteractive (eq window-system 'x))
       ;; Send those codes literally to a non-X terminal.
       ;; If AUTO is nil, we are using single-byte characters,
       ;; so it doesn't matter which one we use.
       (set-terminal-coding-system
-       (cond ((eq auto t) 'latin-1)
+       (cond ((not (equal current-language-environment "English"))
+	      (intern (downcase current-language-environment)))
+	     ((eq auto t) 'latin-1)
 	     ((symbolp auto) (or auto 'latin-1))
 	     ((stringp auto) (intern auto)))))
-    ;; Make non-line-break space display as a plain space.
-    ;; Most X fonts do the wrong thing for code 160.
-    (aset standard-display-table 160 [32])
-    ;; Most Windows programs send out apostrophe's as \222.  Most X fonts
-    ;; don't contain a character at that position.  Map it to the ASCII
-    ;; apostrophe.
-    (aset standard-display-table 146 [39])
-    ))
+    (standard-display-european-internal)))
 
 (provide 'disp-table)
 
