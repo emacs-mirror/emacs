@@ -16460,7 +16460,7 @@
 
 1988-09-26  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
 
-*	* dispnew.c (baud_rate): Now a Lisp variable, not a function.
+	* dispnew.c (baud_rate): Now a Lisp variable, not a function.
 	* termcap.c (tputs) [emacs]: Use baud_rate as the speed.
 
 1988-09-19  Richard Stallman  (rms at gluteus.ai.mit.edu)
@@ -16471,11 +16471,11 @@
 	* window.c (init_window_once): Init the ->buffer fields
 	to satisfy error check in Fset_window_buffer.
 
-*	* xmenu.c (Fx_popup_menu): 1st arg is now ((X Y) WINDOW).
+	* xmenu.c (Fx_popup_menu): 1st arg is now ((X Y) WINDOW).
 
 	* process.c (child_sig): If synch process terminates, clear
 	synch_process_pid and record synch_process_death.
-*	* callproc.c (Fcall_process): return synch_process_death.
+	* callproc.c (Fcall_process): return synch_process_death.
 	Always set synch_process_pid and do it with SIGCHLD masked off.
 	* sysdep.c (wait_for_termination) [subprocesses and not VMS]:
 	Use alarms to check every second whether synch_process_pid is 0.
@@ -16500,7 +16500,7 @@
 
 	* lread.c (OBARRAY_SIZE): Change slightly to 509 (prime).
 
-*	* keyboard.c, dispnew.c, term.c, xterm.c (meta_flag): MetaFlag renamed.
+	* keyboard.c, dispnew.c, term.c, xterm.c (meta_flag): MetaFlag renamed.
 	* keyboard.c (Fset_input_mode): 3rd arg sets meta_flag.
 	(syms_of_keyboard): Variable meta-flag deleted.
 	* sysdep.c (init_sys_modes): Don't override parity settings
@@ -16508,7 +16508,7 @@
 
 1988-09-15  Richard Stallman  (rms at corn-chex.ai.mit.edu)
 
-*	* search.c (Fsearch_forward, etc.): All buffer-search functions
+	* search.c (Fsearch_forward, etc.): All buffer-search functions
 	return new the value of point if they succeed.
 
 1988-09-13  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
@@ -16531,3 +16531,7 @@
 	* fileio.c (Fdo_auto_save): No "file has shrunk" msg if < 5000 chars.
 
 See ChangeLog.2 for earlier changes.
+
+    Copyright (C) 1993 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.

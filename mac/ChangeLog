@@ -245,3 +245,7 @@
 	* src/macmenu.c: New file.
 
 	* src/macterm.c: New file.
+
+    Copyright (C) 2001 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
