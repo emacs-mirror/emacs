@@ -106,12 +106,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    characters.  Elements 0 and 1 of computed_faces always describe the
    default and mode-line faces.
 
-   Elements 0 and 1 of computed_faces have GC's; all the other faces
-   in computed_faces do not.  The global array face_vector contains
-   faces with their GC's set.  Given a computed_face, the function
-   intern_face finds (or adds) an element of face_vector with
-   equivalent parameters, and returns a pointer to that face, whose GC
-   can then be used for display.
+   Computed faces have graphics contexts some of the time.
+   intern_face builds a GC for a specified computed face
+   if it doesn't have one already.
+   clear_face_cache clears out the GCs of all computed faces.
+   This is done from time to time so that we don't hold on to
+   lots of GCs that are no longer needed.
 
    Constraints:
 
@@ -132,34 +132,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    to be valid on all frames.  If they were the same array, then that
    array would grow very large on all frames, because any facial
    combination displayed on any frame would need to be a valid entry
-   on all frames.
-
-   Since face_vector is just a cache --- there are no pointers into it
-   from the rest of the code, and everyone accesses it through
-   intern_face --- we could just free its GC's and throw the whole
-   thing away without breaking anything.  This gives us a simple way
-   to garbage-collect old GC's nobody's using any more - we can just
-   purge face_vector, and then let subsequent calls to intern_face
-   refill it as needed.  The function clear_face_vector performs this
-   purge.
-
-   We're often applying intern_face to faces in computed_faces -
-   for example, we do this while sending GLYPHs from a struct
-   frame_glyphs to X during redisplay.  It would be nice to avoid
-   searching all of face_vector every time we intern a frame's face.
-   So, when intern_face finds a match for FACE in face_vector, it
-   stores the index of the match in FACE's cached_index member, and
-   checks there first next time.  */
-   
+   on all frames.  */
 
 /* Definitions and declarations.  */
-
-/* A table of display faces.  */
-static struct face **face_vector;
-/* The length in use of the table.  */
-static int nfaces;
-/* The allocated length of the table.   */
-static int nfaces_allocated;
 
 /* The number of face-id's in use (same for all frames).  */
 int next_face_id;
@@ -173,7 +148,6 @@ int region_face;
 
 Lisp_Object Qface, Qmouse_face;
 
-static void build_face ( /* FRAME_PTR, struct face * */ );
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
 
 struct face *intern_face ( /* FRAME_PTR, struct face * */ );
@@ -224,133 +198,21 @@ face_eql (face1, face2)
 	  && face1->underline  == face2->underline);
 }
 
-/* Interning faces in the `face_vector' cache, and clearing that cache.  */
+/* Managing graphics contexts of faces.  */
 
-/* Return the unique display face corresponding to the user-level face FACE.
-   If there isn't one, make one, and find a slot in the face_vector to
-   put it in.  */
-static struct face *
-get_cached_face (f, face)
-     struct frame *f;
-     struct face *face;
-{
-  int i, empty = -1;
-  struct face *result;
-
-  /* Perhaps FACE->cached_index is valid; this could happen if FACE is
-     in a frame's face list.  */
-  if (face->cached_index >= 0
-      && face->cached_index < nfaces
-      && face_eql (face_vector[face->cached_index], face))
-    return face_vector[face->cached_index];
-
-  /* Look for an existing display face that does the job.
-     Also find an empty slot if any.   */
-  for (i = 0; i < nfaces; i++)
-    {
-      if (face_eql (face_vector[i], face))
-	{
-	  face->cached_index = i;
-	  return face_vector[i];
-	}
-      if (face_vector[i] == 0)
-	empty = i;
-    }
-
-  /* If no empty slots, make one.  */
-  if (empty < 0 && nfaces == nfaces_allocated)
-    {
-      int newsize = nfaces + 20;
-      face_vector
-	= (struct face **) xrealloc (face_vector,
-				     newsize * sizeof (struct face *));
-      nfaces_allocated = newsize;
-    }
-
-  if (empty < 0)
-    empty = nfaces++;
-
-  /* Put a new display face in the empty slot.  */
-  result = copy_face (face);
-  face_vector[empty] = result;
-  
-  /* Make a graphics context for it.  */
-  build_face (f, result);
-
-  face->cached_index = empty;
-  return result;
-}
-
-/* Given a computed face, return an equivalent display face
-   (one which has a graphics context).  */
+/* Given a computed face, construct its graphics context if necessary.  */
 
 struct face *
 intern_face (f, face)
      struct frame *f;
      struct face *face;
 {
-  /* If it's equivalent to the default face, use that.  */
-  if (face_eql (face, FRAME_DEFAULT_FACE (f)))
-    {
-      if (!FRAME_DEFAULT_FACE (f)->gc)
-	build_face (f, FRAME_DEFAULT_FACE (f));
-      return FRAME_DEFAULT_FACE (f);
-    }
-  
-  /* If it's equivalent to the mode line face, use that.  */
-  if (face_eql (face, FRAME_MODE_LINE_FACE (f)))
-    {
-      if (!FRAME_MODE_LINE_FACE (f)->gc)
-	build_face (f, FRAME_MODE_LINE_FACE (f));
-      return FRAME_MODE_LINE_FACE (f);
-    }
-
-  /* If it's not one of the frame's default faces, it shouldn't have a GC.  */
-  if (face->gc)
-    abort ();
-  
-  /* Get a specialized display face.  */
-  return get_cached_face (f, face);
-}
-
-/* Clear out face_vector and start anew.
-   This should be done from time to time just to avoid
-   keeping too many graphics contexts in face_vector
-   that are no longer needed.  */
-
-void
-clear_face_vector ()
-{
-  Lisp_Object rest;
-  Display *dpy = x_current_display;
-  int i;
-
-  BLOCK_INPUT;
-  /* Free the display faces in the face_vector.  */
-  for (i = 0; i < nfaces; i++)
-    {
-      struct face *face = face_vector[i];
-      if (face->gc)
-	XFreeGC (dpy, face->gc);
-      xfree (face);
-    }
-  nfaces = 0;
-
-  UNBLOCK_INPUT;
-}
-
-/* Allocating and freeing X resources for display faces.  */
-
-/* Make a graphics context for face FACE, which is on frame F,
-   if that can be done.  */
-static void
-build_face (f, face)
-     struct frame *f;
-     struct face *face;
-{
   GC gc;
   XGCValues xgcv;
   unsigned long mask;
+
+  if (face->gc)
+    return face;
 
   BLOCK_INPUT;
 
@@ -372,19 +234,53 @@ build_face (f, face)
   xgcv.graphics_exposures = 0;
 
   mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
-  gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
+  gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  mask, &xgcv);
 
 #if 0
   if (face->stipple && face->stipple != FACE_DEFAULT)
-    XSetStipple (x_current_display, gc, face->stipple);
+    XSetStipple (FRAME_X_DISPLAY (f), gc, face->stipple);
 #endif
 
   face->gc = gc;
 
   UNBLOCK_INPUT;
+
+  return face;
 }
 
+/* Clear out all graphics contexts for all computed faces
+   except for the default and mode line faces.
+   This should be done from time to time just to avoid
+   keeping too many graphics contexts that are no longer needed.  */
+
+void
+clear_face_cache ()
+{
+  Lisp_Object tail, frame;
+
+  BLOCK_INPUT;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      FRAME_PTR f = XFRAME (frame);
+      if (FRAME_X_P (f))
+	{
+	  int i;
+	  Display *dpy = FRAME_X_DISPLAY (f);
+
+	  for (i = 2; i < FRAME_N_COMPUTED_FACES (f); i++)
+	    {
+	      struct face *face = FRAME_COMPUTED_FACES (f) [i];
+	      if (face->gc)
+		XFreeGC (dpy, face->gc);
+	      face->gc = 0;
+	    }
+	}
+    }
+
+  UNBLOCK_INPUT;
+}
+
 /* Allocating, freeing, and duplicating fonts, colors, and pixmaps.  */
 
 static XFontStruct *
@@ -399,7 +295,7 @@ load_font (f, name)
 
   CHECK_STRING (name, 0);
   BLOCK_INPUT;
-  font = XLoadQueryFont (x_current_display, (char *) XSTRING (name)->data);
+  font = XLoadQueryFont (FRAME_X_DISPLAY (f), (char *) XSTRING (name)->data);
   UNBLOCK_INPUT;
 
   if (! font)
@@ -417,7 +313,7 @@ unload_font (f, font)
     return;
 
   BLOCK_INPUT;
-  XFreeFont (x_current_display, font);
+  XFreeFont (FRAME_X_DISPLAY (f), font);
   UNBLOCK_INPUT;
 }
 
@@ -426,7 +322,7 @@ load_color (f, name)
      struct frame *f;
      Lisp_Object name;
 {
-  Display *dpy = x_current_display;
+  Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap;
   XColor color;
   int result;
@@ -434,7 +330,7 @@ load_color (f, name)
   if (NILP (name))
     return FACE_DEFAULT;
 
-  cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (x_current_display));
+  cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
 
   CHECK_STRING (name, 0);
   BLOCK_INPUT;
@@ -465,12 +361,12 @@ unload_color (f, pixel)
      we'll get the same pixel.  */
 #if 0
   Colormap cmap;
-  Display *dpy = x_current_display;
+  Display *dpy = FRAME_X_DISPLAY (f);
   if (pixel == FACE_DEFAULT
       || pixel == BLACK_PIX_DEFAULT
       || pixel == WHITE_PIX_DEFAULT)
     return;
-  cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (x_current_display));
+  cmap = DefaultColormapOfScreen (DefaultScreenOfDisplay (dpy));
   BLOCK_INPUT;
   XFreeColors (dpy, cmap, &pixel, 1, 0);
   UNBLOCK_INPUT;
@@ -529,7 +425,7 @@ void
 free_frame_faces (f)
      struct frame *f;
 {
-  Display *dpy = x_current_display;
+  Display *dpy = FRAME_X_DISPLAY (f);
   int i;
 
   BLOCK_INPUT;
@@ -539,8 +435,6 @@ free_frame_faces (f)
       struct face *face = FRAME_PARAM_FACES (f) [i];
       if (face)
 	{
-	  if (face->gc)
-	    XFreeGC (dpy, face->gc);
 	  unload_font (f, face->font);
 	  unload_color (f, face->foreground);
 	  unload_color (f, face->background);
@@ -555,7 +449,18 @@ free_frame_faces (f)
   FRAME_N_PARAM_FACES (f) = 0;
 
   /* All faces in FRAME_COMPUTED_FACES use resources copied from
-     FRAME_PARAM_FACES; we can free them without fuss.  */
+     FRAME_PARAM_FACES; we can free them without fuss.
+     But we do free the GCs and the face objects themselves.  */
+  for (i = 0; i < FRAME_N_COMPUTED_FACES (f); i++)
+    {
+      struct face *face = FRAME_COMPUTED_FACES (f) [i];
+      if (face)
+	{
+	  if (face->gc)
+	    XFreeGC (dpy, face->gc);
+	  xfree (face);
+	}
+    }
   xfree (FRAME_COMPUTED_FACES (f));
   FRAME_COMPUTED_FACES (f) = 0;
   FRAME_N_COMPUTED_FACES (f) = 0;
@@ -971,9 +876,9 @@ recompute_basic_faces (f)
   BLOCK_INPUT;
 
   if (FRAME_DEFAULT_FACE (f)->gc)
-    XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
+    XFreeGC (FRAME_X_DISPLAY (f), FRAME_DEFAULT_FACE (f)->gc);
   if (FRAME_MODE_LINE_FACE (f)->gc)
-    XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
+    XFreeGC (FRAME_X_DISPLAY (f), FRAME_MODE_LINE_FACE (f)->gc);
 
   compute_base_face (f, FRAME_DEFAULT_FACE (f));
   compute_base_face (f, FRAME_MODE_LINE_FACE (f));
@@ -981,8 +886,8 @@ recompute_basic_faces (f)
   merge_faces (FRAME_DEFAULT_PARAM_FACE (f), FRAME_DEFAULT_FACE (f));
   merge_faces (FRAME_MODE_LINE_PARAM_FACE (f), FRAME_MODE_LINE_FACE (f));
   
-  build_face (f, FRAME_DEFAULT_FACE (f));
-  build_face (f, FRAME_MODE_LINE_FACE (f));
+  intern_face (f, FRAME_DEFAULT_FACE (f));
+  intern_face (f, FRAME_MODE_LINE_FACE (f));
 
   UNBLOCK_INPUT;
 }
