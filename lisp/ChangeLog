@@ -1,3 +1,13 @@
+2002-06-20  Miles Bader  <miles@gnu.org>
+
+	* international/characters.el: Re-enable code giving word syntax
+	to certain japanese-jisx0208 characters.
+
+2002-06-18  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-output-filter): Run output-filter functions
+	before setting up the prompt.
+
 2002-06-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-type-def-re): Fix value.
