@@ -1,5 +1,13 @@
 2002-06-17  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* window.c (Fset_window_configuration): Lisp_Object/int mixup.
+
+	* keyboard.c (read_key_sequence): Be more careful with first_unbound.
+	Lookup keys in function-key-map immediately so that key-translation-map
+	can be applied earlier.
+	Remove function_key_possible and key_translation_possible, replaced
+	by checking `keytran_start < t'.
+
 	* .gdbinit (xsymbol): Use the name `xname' field.
 
 2002-06-17  Andrew Choi  <akochoi@shaw.ca>
