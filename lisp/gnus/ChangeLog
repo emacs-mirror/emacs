@@ -1,3 +1,14 @@
+2000-10-27  John Wiegley  <johnw@gnu.org>
+
+	* gnus-art.el (gnus-treat-hide-citation-maybe): Added this
+	variable to correspond with `gnus-article-hide-citation-maybe'.
+	(gnus-treatment-function-alist): Added entry for the above
+	correlation.
+
+2000-10-27  Richard M. Alderson III <alderson@netcom2.netcom.com> 
+
+	* gnus-art.el (gnus-read-save-file-name): expand-file-name.
+
 2000-10-27  Dave Love  <fx@gnu.org>
 
 	* gnus.el: Don't require custom.  Don't require message at top
@@ -6,10 +17,41 @@
 
 2000-10-27  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
+	* gnus-art.el (article-strip-banner): Use
+	gnus-group-find-parameter rather than gnus-group-get-parameter, to
+	allow inheritance on the banner.
+	From elkin@tverd.astro.spbu.ru.
+
 	* gnus-sum.el (gnus-get-split-value): Use first match only (Ed L
 	Cashin <ecashin@coe.uga.edu>).
 
 2000-10-27  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-group-overview-filename): Create directory for
+	newfile (when use long filenames is nil).  Copy+delete file if
+	rename didn't work.
+	(nnimap-group-overview-filename): `rename-file' and `copy-file'
+	doesn't return anything useful, use ignore-errors instead.
+	(nnimap-verify-uidvalidity): Delete overview file when
+	uid validity changes.
+	(nnimap-group-overview-filename): Store uidvalidity in filenames.
+	Rename old files into new format.
+	(nnimap-request-accept-article): Remove \n's from
+	From_ lines.
+	(nnimap-request-accept-article): Remove From[^:] lines.
+	(imap-starttls-p): Check for starttls binary.
+	(imap-starttls-open): More verbose.
+	(imap-gssapi-auth): Ditto.
+	(imap-kerberos4-auth): Ditto.
+	(imap-cram-md5-auth): Ditto.
+	(imap-login-auth): Ditto.
+	(imap-anonymous-auth): Ditto.
+	(imap-digest-md5-auth): Ditto.
+	(imap-open): Ditto.
+	(imap-digest-md5-p): Check capability first.
+	(imap-parse-flag-list): Correctly parse empty lists.
+	(imap-login-p): Support LOGINDISABLED.
+	(imap-parse-body): Work around bug in Sun SIMS.
 
 	* gnus-agent.el (gnus-agent-possibly-do-gcc): 
 	(gnus-agent-restore-gcc): 
@@ -33,6 +75,35 @@
 	support ACL's.
 
 2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-request-article-this-buffer):
+	gnus-refer-article-method might be a single method.
+	(gnus-article-mime-total-parts): New function.
+	(gnus-mm-display-part): Use it.
+	(gnus-mime-display-single): Ditto.
+	(gnus-mime-display-alternative): Ditto.
+	(gnus-mime-inline-part): Check validity of charset.
+	(gnus-treat-display-smileys): Default value in Emacs 21.
+	* gnus-art.el: Define dynamic variables in eval-when-compile.
+	(gnus-article-prepare): Configure it again.
+	(gnus-insert-mime-button): Use gnus-overlay-buffer,
+	gnus-overlay-start.
+	(gnus-article-prepare): Configure windows before
+	gnus-article-prepare-display is called.  Otherwise, BBDB's popup
+	window might be overrided.
+	(gnus-mime-inline-part): Use prefix argument only
+	when it is called interactively.
+	(gnus-mime-action-alist): New variable.
+	(gnus-mime-action-on-part): Use it.
+	(gnus-mime-button-commands): Add command ".".
+	(gnus-mime-inline-part): Support prefix argument.
+	(gnus-article-banner-alist): New variable.
+	(article-strip-banner): Use it.
+
+	* mailcap.el (mailcap-parse-mailcaps): Don't use parse-colon-path,
+	because they are files, not paths.
+	(mailcap-parse-mimetypes): Ditto.
+	(mailcap-mime-types): Use mailcap-mime-data.
 
 	* gnus.el (gnus-xmas-define): Defalias gnus-overlay-buffer,
 	gnus-overlay-start.
