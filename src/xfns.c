@@ -7715,10 +7715,6 @@ colors_in_color_table (n)
 			      Algorithms
  ***********************************************************************/
 
-static void x_laplace_write_row P_ ((struct frame *, long *,
-				     int, XImage *, int));
-static void x_laplace_read_row P_ ((struct frame *, Colormap,
-				    XColor *, int, XImage *, int));
 static XColor *x_to_xcolors P_ ((struct frame *, struct image *, int));
 static void x_from_xcolors P_ ((struct frame *, struct image *, XColor *));
 static void x_detect_edges P_ ((struct frame *, struct image *, int[9], int));
