@@ -1,3 +1,9 @@
+2002-07-05  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--rectangle-operation): Don't call
+	FCT if current column is outside rectangle.
+	(cua--delete-rectangle): Do nothing if zero width or out of bounds.
+
 2002-07-04  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* simple.el (toggle-truncate-lines): New command.
