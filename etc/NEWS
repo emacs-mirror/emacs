@@ -721,17 +721,26 @@ lisp-complete-symbol.
 ** Emacs now resizes mini-windows if appropriate.
 
 If a message is longer than one line, or minibuffer contents are
-longer than one line, Emacs now resizes the minibuffer window unless
-it is on a frame of its own.  You can control the maximum minibuffer
-window size by setting the following variable:
+longer than one line, Emacs can resize the minibuffer window unless it
+is on a frame of its own.  You can control resizing and the maximum
+minibuffer window size by setting the following variables:
 
 - User option: max-mini-window-height
 
 Maximum height for resizing mini-windows.  If a float, it specifies a
 fraction of the mini-window frame's height.  If an integer, it
-specifies a number of lines.  If nil, don't resize.
+specifies a number of lines.
 
 Default is 0.25.
+
+- User option: resize-mini-windows
+
+How to resize mini-windows.  If nil, don't resize.  If t, always
+resize ot fit the size of the text.  If `grow-only', let mini-windows
+grow only, until they become empty, at which point they are shrunk
+again.
+
+Default is `grow-only'.
 
 ** The command `Info-search' now uses a search history.
 
@@ -2666,11 +2675,14 @@ strings that have been consed so far.
 * Lisp-level Display features added after release 2.6 of the Emacs
 Lisp Manual
 
-*** The function `pos-visible-in-window-p' now has a third argument, FULLY.
+** The user-option `resize-mini-windows' controls how Emacs resizes
+mini-windows.
+
+** The function `pos-visible-in-window-p' now has a third argument, FULLY.
 If FULLY is non-nil, then locations that are partially obscured aren't
 considered visible.
 
-*** On window systems, `glyph-table' is no longer used.
+** On window systems, `glyph-table' is no longer used.
 
 +++
 ** Help strings in menu items are now used to provide `help-echo' text.
