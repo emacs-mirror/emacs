@@ -1,10 +1,10 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;;; Copyright (c) 1986, 1993 Free Software Foundation, Inc.
+;;; Copyright (c) 1986, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30.3 (November 16, 1993)
+;; Version 1.30.4 (January 20, 1994)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30.3")
+(defconst fortran-mode-version "version 1.30.4")
 
 ;;; Code:
 
@@ -59,7 +59,7 @@ with a character in column 6.")
 
 ;; Buffer local, used to display mode line.
 (defvar fortran-tab-mode-string nil
-  "String to appear in mode line when TAB-format mode is on.")
+  "String to appear in mode line when TAB format mode is on.")
 
 (defvar fortran-do-indent 3
   "*Extra indentation applied to DO blocks.")
@@ -68,7 +68,7 @@ with a character in column 6.")
   "*Extra indentation applied to IF blocks.")
 
 (defvar fortran-structure-indent 3
-  "*Extra indentation applied to STRUCTURE, UNION and MAP blocks.")
+  "*Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks.")
 
 (defvar fortran-continuation-indent 5
   "*Extra indentation applied to Fortran continuation lines.")
@@ -138,7 +138,7 @@ Normally $.")
 [   ]|{   |    |    |    |    |    |    |    |    \
 |    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
-This variable used in fixed-format mode.")
+This variable used in fixed format mode.")
 
 (defvar fortran-column-ruler-tab
   "0       810        20        30        40        5\
@@ -146,7 +146,7 @@ This variable used in fixed-format mode.")
 [   ]|  { |    |    |    |    |    |    |    |    \
 |    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
-This variable used in TAB-format mode.")
+This variable used in TAB format mode.")
 
 (defconst bug-fortran-mode "bug-fortran-mode@erl.mit.edu"
   "Address of mailing list for Fortran mode bugs.")
@@ -295,7 +295,8 @@ Variables controlling indentation style and extra features:
  fortran-if-indent
     Extra indentation within if blocks.  (default 3)
  fortran-structure-indent
-    Extra indentation within structure, union and map blocks.  (default 3)
+    Extra indentation within structure, union, map and interface blocks.
+    (default 3)
  fortran-continuation-indent
     Extra indentation applied to continuation statements.  (default 5)
  fortran-comment-line-extra-indent
@@ -491,7 +492,8 @@ Any other key combination is executed normally."
 
 (defun fortran-column-ruler ()
   "Inserts a column ruler momentarily above current line, till next keystroke.
-The ruler is defined by the value of `fortran-column-ruler'.
+The ruler is defined by the value of `fortran-column-ruler-fixed' when in fixed
+format mode, and `fortran-column-ruler-tab' when in TAB format mode.
 The key typed is executed unless it is SPC."
   (interactive)
   (momentary-string-display 
@@ -805,6 +807,12 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		     (setq icol (+ icol fortran-if-indent))))
 		((looking-at "\\(else\\|elseif\\)\\b")
 		 (setq icol (+ icol fortran-if-indent)))
+		((looking-at "select[ \t]*case[ \t](.*)\\b")
+		 (setq icol (+ icol fortran-if-indent)))
+		((looking-at "case[ \t]*(.*)[ \t]*\n")
+		 (setq icol (+ icol fortran-if-indent)))
+		((looking-at "case[ \t]*default\\b")
+		 (setq icol (+ icol fortran-if-indent)))
 		((looking-at "\\(otherwise\\|else[ \t]*where\\)\\b")
 		 (setq icol (+ icol fortran-if-indent)))
 		((looking-at "where[ \t]*(.*)[ \t]*\n")
@@ -812,7 +820,7 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		((looking-at "do\\b")
 		 (setq icol (+ icol fortran-do-indent)))
 		((looking-at
-		  "\\(structure\\|union\\|map\\)\\b[ \t]*[^ \t=(a-z]")
+		  "\\(structure\\|union\\|map\\|interface\\)\\b[ \t]*[^ \t=(a-z]")
 		 (setq icol (+ icol fortran-structure-indent)))
 		((looking-at "end\\b[ \t]*[^ \t=(a-z]")
 		 ;; Previous END resets indent to minimum
@@ -846,6 +854,10 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		    (setq icol (- icol fortran-if-indent)))
 		   ((looking-at "\\(else\\|elseif\\)\\b")
 		    (setq icol (- icol fortran-if-indent)))
+                   ((looking-at "case[ \t]*(.*)[ \t]*\n")
+		    (setq icol (- icol fortran-if-indent)))
+                   ((looking-at "case[ \t]*default\\b")
+		    (setq icol (- icol fortran-if-indent)))
 		   ((looking-at "\\(otherwise\\|else[ \t]*where\\)\\b")
 		    (setq icol (- icol fortran-if-indent)))
 		   ((looking-at "end[ \t]*where\\b")
@@ -857,8 +869,11 @@ An abbrev before point is expanded if `abbrev-mode' is non-nil."
 		    (setq icol (- icol fortran-do-indent)))
 		   ((looking-at
 		     "end[ \t]*\
-\\(structure\\|union\\|map\\)\\b[ \t]*[^ \t=(a-z]")
+\\(structure\\|union\\|map\\|interface\\)\\b[ \t]*[^ \t=(a-z]")
 		    (setq icol (- icol fortran-structure-indent)))
+		   ((looking-at
+		     "end[ \t]*select\\b[ \t]*[^ \t=(a-z]")
+		    (setq icol (- icol fortran-if-indent)))
 		   ((and (looking-at "end\\b[ \t]*[^ \t=(a-z]")
 			 (not (= icol fortran-minimum-statement-indent)))
  		    (message "Warning: `end' not in column %d.  Probably\
@@ -1205,7 +1220,7 @@ automatically breaks the line at a previous space."
 	  (insert comment-string)))))
 
 (defun fortran-analyze-file-format ()
-  "Returns nil if Fixed format is used, t if TAB formatting is used.
+  "Returns nil if fixed format is used, t if TAB formatting is used.
 Use `fortran-tab-mode-default' if no non-comment statements are found in the
 file before the end or the first `fortran-analyze-depth' lines."
   (let ((i 0))
