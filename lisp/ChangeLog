@@ -1,6 +1,6 @@
 2005-04-03  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* xt-mouse.el (xterm-mouse-mode): Add explicit Custom group (mouse).
+	* xt-mouse.el (xterm-mouse-mode): Add explicit Custom group, mouse.
 	Doc fix.
 
 2005-04-03  Marcelo Toledo  <marcelo@marcelotoledo.org>
