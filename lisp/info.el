@@ -1063,6 +1063,10 @@ NAME may be an abbreviation of the reference name."
 	   (list (if (equal input "")
 		     default input)))
        (error "No cross-references in this node"))))
+
+  (unless footnotename
+    (error "No reference was specified"))
+
   (let (target beg i (str (concat "\\*note " (regexp-quote footnotename)))
 	       (case-fold-search t))
     (while (setq i (string-match " " str i))
