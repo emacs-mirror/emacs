@@ -3357,7 +3357,7 @@ read_avail_input (expected)
 #endif
 	  /* Retry the read if it was interrupted.  */
 	}
-      while (nread < 0 && (errno == EAGAIN 
+      while (nread < 0 && (errno == EINTR
 #ifdef EFAULT
 			   || errno == EFAULT
 #endif
