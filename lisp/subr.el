@@ -228,6 +228,13 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine
 in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
+  ;; Don't document PREFIX in the doc string because we don't want to
+  ;; advertise it.  It's meant for recursive calls only.  Here's its
+  ;; meaning
+  
+  ;; If optional argument PREFIX is specified, it should be a key
+  ;; prefix, a string.  Redefined bindings will then be bound to the
+  ;; original key, with PREFIX added at the front.
   (or prefix (setq prefix ""))
   (let* ((scan (or oldmap keymap))
 	 (vec1 (vector nil))
