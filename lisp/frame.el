@@ -490,7 +490,7 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   "Functions to run after a frame is created.
 The functions are run with one arg, the newly created frame.")
 
-(defvar after-setting-font-hooks nil
+(defvar after-setting-font-hook nil
   "Functions to run after a frame's font has been changed.")
 
 ;; Alias, kept temporarily.
@@ -733,7 +733,7 @@ To get the frame's current default font, use `frame-parameters'."
 			       (x-list-fonts "*" nil (selected-frame)))))))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name)))
-  (run-hooks 'after-setting-font-hooks))
+  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
 
 (defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR-NAME.
