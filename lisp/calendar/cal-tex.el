@@ -38,9 +38,6 @@
 ;;     (*)  Make calendar styles for A4 paper.
 ;;
 ;;     (*)  Make daily and monthly styles Filofax paper.
-;;
-;;     (*)  Improve the LaTeX command that produces the boxes in the monthly
-;;          calendar to eliminate slight gap--what causes it?!
 
 ;;; Code:
 
@@ -217,6 +214,7 @@ Optional ARGS are included."
           "\\hbadness 20000
 \\hfuzz=1000pt
 \\vbadness 20000
+\\lineskip 0pt
 \\marginparwidth 0pt
 \\oddsidemargin  -2cm
 \\evensidemargin -2cm
