@@ -4896,7 +4896,7 @@ mark_buffer (buf)
     mark_object (ptr);
 
   /* If this is an indirect buffer, mark its base buffer.  */
-  if (buffer->base_buffer && !XMARKBIT (buffer->base_buffer->name))
+  if (buffer->base_buffer && !VECTOR_MARKED_P (buffer->base_buffer))
     {
       XSETBUFFER (base_buffer, buffer->base_buffer);
       mark_buffer (base_buffer);
