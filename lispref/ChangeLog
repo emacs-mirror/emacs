@@ -1,3 +1,7 @@
+2004-11-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* modes.texi (Font Lock Basics): Fix typo.
+
 2004-11-08  Richard M. Stallman  <rms@gnu.org>
 
 	* syntax.texi (Syntax Table Functions): Add syntax-after.
