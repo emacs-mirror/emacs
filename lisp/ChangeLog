@@ -1,3 +1,7 @@
+2003-01-29   Taro Kawagishi  <tarok@transpulse.org>
+
+	* arc-mode.el (archive-lzh-summarize): Fix previous change.
+
 2003-01-29  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el: New format of AUTHORS file; list each
@@ -12,7 +16,7 @@
 	(authors-renamed-files-regexps): New variables.
 	(authors-canonical-file-name): New function.  Validates that file
 	exists or occurs in one of the above lists.  Record unrecognized
-	file names in global authors-invalid-file-names list. 
+	file names in global authors-invalid-file-names list.
 	(authors-add): Change to record per-change counts.
 	(authors-canonical-author-name): Handle new format of
 	authors-aliases list.

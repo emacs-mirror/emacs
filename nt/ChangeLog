@@ -1,3 +1,8 @@
+2003-01-29  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* configure.bat: Avoid endless loop when configuring without image
+	support.
+
 2003-01-26  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Automatically detect jpeglib.
