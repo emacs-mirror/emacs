@@ -1140,48 +1140,96 @@ calculate_costs (frame)
   cmcostinit ();		/* set up cursor motion costs */
 }
 
-/* Find the escape codes sent by the function keys for Vfunction_key_map.
-   This function scans the termcap function key sequence entries, and 
-   adds entries to Vfunction_key_map for each function key it finds.  */
-
 struct fkey_table {
   char *cap, *name;
 };
 
+  /* Termcap capability names that correspond directly to X keysyms.
+     Some of these (marked "terminfo") aren't supplied by old-style
+     (Berkeley) termcap entries.  They're listed in X keysym order;
+     except we put the keypad keys first, so that if they clash with
+     other keys (as on the IBM PC keyboard) they get overridden.
+  */
+
 static struct fkey_table keys[] = {
-  "kl", "left",
-  "kr", "right",
-  "ku", "up",
-  "kd", "down",
-  "K2", "center",
-  "k1", "f1",
-  "k2", "f2",
-  "k3", "f3",
-  "k4", "f4",
-  "k5", "f5",
-  "k6", "f6",
-  "k7", "f7",
-  "k8", "f8",
-  "k9", "f9",
-  "F1", "f11",
-  "F2", "f12",
-  "kh", "home",
-  "kH", "home-down",
-  "ka", "clear-tabs",
-  "kt", "clear-tab",
-  "kT", "set-tab",
-  "kC", "clear",
-  "kL", "deleteline",
-  "kM", "exit-insert",
-  "kE", "clear-eol",
-  "kS", "clear-eos",
-  "kI", "insert",
-  "kA", "insertline",
-  "kN", "next",
-  "kP", "prior",
-  "kF", "scroll-forward",
-  "kR", "scroll-reverse"
+  "kh", "home",		/* termcap */
+  "kl", "left",		/* termcap */
+  "ku", "up",		/* termcap */
+  "kr", "right",	/* termcap */
+  "kd", "down",		/* termcap */
+  "%8", "prior",	/* terminfo */
+  "%5", "next",		/* terminfo */
+  "@7",	"end",		/* terminfo */
+  "@1", "begin",	/* terminfo */
+  "*6", "select",	/* terminfo */
+  "%9", "print",	/* terminfo */
+  "@4", "execute",	/* terminfo --- actually the `command' key */
+  /*
+   * "insert" --- see below
+   */
+  "&8",	"undo",		/* terminfo */
+  "%0",	"redo",		/* terminfo */
+  "%7",	"menu",		/* terminfo --- actually the `options' key */
+  "@0",	"find",		/* terminfo */
+  "@2",	"cancel",	/* terminfo */
+  "%1", "help",		/* terminfo */
+  /*
+   * "break" goes here, but can't be reliably intercepted with termcap
+   */
+  "&4", "reset",	/* terminfo --- actually `restart' */
+  /*
+   * "system" and "user" --- no termcaps
+   */
+  "kE", "clearline",	/* terminfo */
+  "kA", "insertline",	/* terminfo */
+  "kL", "deleteline",	/* terminfo */
+  "kI", "insertchar",	/* terminfo */
+  "kD", "deletechar",	/* terminfo */
+  "kB", "backtab",	/* terminfo */
+  /*
+   * "kp_backtab", "kp-space", "kp-tab" --- no termcaps
+   */
+  "@8", "kp-enter",	/* terminfo */
+  /*
+   * "kp-f1", "kp-f2", "kp-f3" "kp-f4",
+   * "kp-multiply", "kp-add", "kp-separator",
+   * "kp-subtract", "kp-decimal", "kp-divide", "kp-0";
+   * --- no termcaps for any of these.
+   */
+  "K4", "kp-1",		/* terminfo */
+  /*
+   * "kp-2" --- no termcap
+   */
+  "K5", "kp-3",		/* terminfo */
+  /*
+   * "kp-4" --- no termcap
+   */
+  "K2", "kp-5",		/* terminfo */
+  /*
+   * "kp-6" --- no termcap
+   */
+  "K1", "kp-7",		/* terminfo */
+  /*
+   * "kp-8" --- no termcap
+   */
+  "K3", "kp-9",		/* terminfo */
+  /*
+   * "kp-equal" --- no termcap
+   */
+  "k1",	"f1",
+  "k2",	"f2",
+  "k3",	"f3",
+  "k4",	"f4",
+  "k5",	"f5",
+  "k6",	"f6",
+  "k7",	"f7",
+  "k8",	"f8",
+  "k9",	"f9",
   };
+
+/* Find the escape codes sent by the function keys for Vfunction_key_map.
+   This function scans the termcap function key sequence entries, and 
+   adds entries to Vfunction_key_map for each function key it finds.  */
 
 void
 term_get_fkeys (address)
@@ -1221,6 +1269,48 @@ term_get_fkeys (address)
       Fdefine_key (Vfunction_key_map,
 		   build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
+  }
+
+  /* Set up cookies for numbered function keys above f10. */
+  {
+    char fcap[3], fkey[4];
+
+    fcap[0] = 'k'; fcap[2] = '\0';
+    for (i = 11; i < 64; i++)
+      {
+	if (i <= 19)
+	  fcap[1] = '1' + i - 11;
+	else if (i <= 45)
+	  fcap[1] = 'A' + i - 11;
+	else
+	  fcap[1] = 'a' + i - 11;
+
+	if (tgetstr(fcap))
+	  {
+	    (void) sprintf(fkey, "f%d", i);	    
+	    Fdefine_key (Vfunction_key_map,
+			 build_string (fcap),
+			 Fmake_vector (make_number (1), intern (fkey)));
+	  }
+      }
+   }
+
+  /*
+   * Various mappings to try and get a better fit.
+   */
+  {
+#define CONDITIONAL_REASSIGN(cap1, cap2, sym) \
+      if (!tigetstr(cap1) && tgetstr(cap2)) \
+	    Fdefine_key (Vfunction_key_map, \
+			 build_string (cap2), \
+			 Fmake_vector (make_number (1), intern (sym)))
+	  
+      /* if there's no key_next keycap, map key_npage to `next' keysym */
+      CONDITIONAL_REASSIGN("%5", "kN", "next");
+      /* if there's no key_prev keycap, map key_ppage to `previous' keysym */
+      CONDITIONAL_REASSIGN("%8", "kP", "previous");
+      /* if there's no key_dc keycap, map key_ic to `insert' keysym */
+      CONDITIONAL_REASSIGN("kD", "kI", "insert");
   }
 }
 
