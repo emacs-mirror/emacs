@@ -321,6 +321,11 @@ This also sets the following values:
   o default value for the command `set-keyboard-coding-system'."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
+  (if (fboundp 'ucs-set-table-for-input)
+      (dolist (buffer (buffer-list))
+	(or (local-variable-p 'buffer-file-coding-system buffer)
+	    (ucs-set-table-for-input buffer))))
+
   (if default-enable-multibyte-characters
       (setq default-file-name-coding-system coding-system))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
