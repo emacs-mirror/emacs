@@ -26,9 +26,9 @@ void fail(void);
 void report(const char *str, const char *format, ...);
 void vreport(const char *str, const char *format, va_list args);
 
-/* adie: print text and err code to stderr by calling error
+/* adie: print text and err code to stdout by calling error
     die: as above, but if err is MPS_RES_OK do nothing
-   cdie: print text and err code to stderr as comment, or as error
+   cdie: print text and err code to stdout as comment, or as error
          if err isn't MPS_RES_OK
 */
 
@@ -36,21 +36,21 @@ void cdie(mps_res_t err, const char *str);
 void  die(mps_res_t err, const char *str);
 void adie(mps_res_t err, const char *str);
 
-/* Prints text to stderr */
+/* Prints text to stdout */
 
 void comment(const char *format, ...);
 void vcomment(const char *format, va_list args);
 
-/* Prints text to stderr if cond is true */
+/* Prints text to stdout if cond is true */
 
 void commentif(int cond, const char *format, ...);
 
-/* Prints text to stderr and aborts */
+/* Prints text to stdout and aborts */
 
 void error(const char *format, ...);
 void verror(const char *format, va_list args);
 
-/* If exp is false, prints text to stderr and aborts */
+/* If exp is false, prints text to stdout and aborts */
 
 void asserts(int expr, const char *format, ...);
 
