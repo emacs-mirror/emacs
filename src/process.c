@@ -103,6 +103,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termopts.h"
 #include "commands.h"
 #include "frame.h"
+#include "blockinput.h"
 
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal, Qopen, Qclosed;
@@ -1359,6 +1360,8 @@ create_process (process, new_argv, current_dir)
      processes to get their return values scrambled.  */
   XSETINT (XPROCESS (process)->pid, -1);
 
+  BLOCK_INPUT;
+  
   {
     /* child_setup must clobber environ on systems with true vfork.
        Protect it from permanent change.  */
@@ -1527,6 +1530,8 @@ create_process (process, new_argv, current_dir)
       }
     environ = save_environ;
   }
+
+  UNBLOCK_INPUT;
 
   /* This runs in the Emacs process.  */
   if (pid < 0)
