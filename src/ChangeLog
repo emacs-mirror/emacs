@@ -1,3 +1,8 @@
+2002-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (x_set_name): Encode by Qcompound_text unconditionally.
+	(x_set_title): Likewise.
+
 2002-10-23  Richard M. Stallman  <rms@gnu.org>
 
 	* w32fns.c (syms_of_w32fns <w32-charset-info-alist>):
