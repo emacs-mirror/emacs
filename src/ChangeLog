@@ -1,3 +1,8 @@
+2001-05-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_stretch_glyph_string): Don't draw background
+	again if it has already been drawn.
+
 2001-05-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (update_syntax_table): Check that oldi has the same
