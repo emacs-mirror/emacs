@@ -1,5 +1,10 @@
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c: Use BINDING_STACK_SIZE throughout.
+
+	* xfns.c (x_set_tool_bar_lines): When clearing the frame, also
+	clear current matrices.
+
 	* buffer.c (mmap_enlarge): Don't print a message on stderr
 	if mapping new memory at the end of the existing region fails.
 
