@@ -222,7 +222,6 @@ if it is a sub-alist.
 This function is called within a `save-excursion'.
 
 The variable is buffer-local.")
-;;;###autoload
 (make-variable-buffer-local 'imenu-create-index-function)
 
 (defvar imenu-prev-index-position-function 'beginning-of-defun
