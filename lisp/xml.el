@@ -727,13 +727,13 @@ This follows the rule [28] in the XML specifications."
 				(match-string 1 this-part)))))))
 
 	(cond ((null children)
-	       (if (stringp expansion)
+	       (if (and (eq (length expansion) 1)
+			(stringp (cadr expansion)))
 		   (setq children (concat prev-part expansion))
-		 (if (stringp (car (last expansion)))
-		     (progn 
-			    (setq children
-				  (list (concat prev-part (car expansion))
-					(cdr expansion))))
+		 (if (stringp (car expansion))
+		     (setq children
+			   (list (concat prev-part (car expansion))
+				 (append (cdr expansion))))
 		   (setq children (append expansion prev-part)))))
 	      ((stringp children)
 	       (if (stringp expansion)
@@ -756,11 +756,15 @@ This follows the rule [28] in the XML specifications."
     (cond ((stringp children)
 	   (concat children (substring string point)))
 	  ((stringp (car (last children)))
-	   (concat (car children) (substring string point)))
+	   (concat (car (last children)) (substring string point)))
 	  ((null children)
 	   string)
 	  (t
-	   (nreverse children)))))
+	   (concat (mapconcat 'identity
+			      (nreverse children)
+			      "")
+		   (substring string point))))))
+
 ;;*******************************************************************
 ;;**
 ;;**  Printing a tree.
