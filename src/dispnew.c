@@ -1360,7 +1360,7 @@ update_frame (f, force, inhibit_hairy_id)
 	      while (row > top && col == 0);
 
 	      /* Make sure COL is not out of range.  */
-	      if (col >= FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f))
+	      if (col >= FRAME_CURSOR_X_LIMIT (f))
 		{
 		  /* If we have another row, advance cursor into it.  */
 		  if (row < FRAME_HEIGHT (f) - 1)
@@ -1370,7 +1370,7 @@ update_frame (f, force, inhibit_hairy_id)
 		    }
 		  /* Otherwise move it back in range.  */
 		  else
-		    col = FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f);
+		    col = FRAME_CURSOR_X_LIMIT (f) - 1;
 		}
 	    }
 
@@ -1378,7 +1378,8 @@ update_frame (f, force, inhibit_hairy_id)
 	}
       else
 	cursor_to (FRAME_CURSOR_Y (f), 
-		   minmax (0, FRAME_CURSOR_X (f), FRAME_WINDOW_WIDTH (f) - 1));
+		   minmax (0, FRAME_CURSOR_X (f),
+			   FRAME_CURSOR_X_LIMIT (f) - 1));
     }
 
   update_end (f);
@@ -2246,8 +2247,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
   FRAME_HEIGHT (frame) = newheight;
   SET_FRAME_WIDTH (frame, newwidth);
 
-  if (FRAME_CURSOR_X (frame) >= FRAME_WINDOW_WIDTH (frame))
-    FRAME_CURSOR_X (frame) = FRAME_WINDOW_WIDTH (frame) - 1;
+  if (FRAME_CURSOR_X (frame) >= FRAME_CURSOR_X_LIMIT (frame))
+    FRAME_CURSOR_X (frame) = FRAME_CURSOR_X_LIMIT (frame) - 1;
   if (FRAME_CURSOR_Y (frame) >= FRAME_HEIGHT (frame))
     FRAME_CURSOR_Y (frame) = FRAME_HEIGHT (frame) - 1;
 
