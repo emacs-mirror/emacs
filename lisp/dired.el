@@ -2165,19 +2165,21 @@ A prefix argument means to unmark them instead.
      (and (not (looking-at dired-re-dot))
 	  (not (eolp))			; empty line
 	  (let ((fn (dired-get-filename nil t)))
-	    (and fn (let ((prebuf (get-file-buffer fn)))
-		      (message "Checking %s" fn)
-		      ;; For now we do it inside emacs
-		      ;; Grep might be better if there are a lot of files
-		      (if prebuf
-			  (with-current-buffer prebuf
-			    (save-excursion
-			      (goto-char (point-min))
-			      (re-search-forward regexp nil t)))
-			(with-temp-buffer
-			  (insert-file-contents fn)
-			  (goto-char (point-min))
-			  (re-search-forward regexp nil t))))
+	    (when (and fn (file-readable-p fn)
+		       (not (file-directory-p fn)))
+	      (let ((prebuf (get-file-buffer fn)))
+		(message "Checking %s" fn)
+		;; For now we do it inside emacs
+		;; Grep might be better if there are a lot of files
+		(if prebuf
+		    (with-current-buffer prebuf
+		      (save-excursion
+			(goto-char (point-min))
+			(re-search-forward regexp nil t)))
+		  (with-temp-buffer
+		    (insert-file-contents fn)
+		    (goto-char (point-min))
+		    (re-search-forward regexp nil t))))
 		      )))
      "matching file")))
 
