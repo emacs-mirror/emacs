@@ -1011,7 +1011,9 @@ If `enable-local-variables' is nil, this function does not check for a
 	((memq var ignored-local-variables)
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
-	((eq var 'eval)
+	;; Likewise for setting hook variables.
+	((or (eq var 'eval)
+	     (string-match "-hooks?$\\|-functions?$" (symbol-name var)))
 	 (if (and (not (string= (user-login-name) "root"))
 		  (or (eq enable-local-eval t)
 		      (and enable-local-eval
@@ -1021,9 +1023,12 @@ If `enable-local-variables' is nil, this function does not check for a
 			       (beginning-of-line)
 			       (set-window-start (selected-window) (point)))
 			     (setq enable-local-eval
-				   (y-or-n-p (format "Process `eval' local variable in file %s? "
+				   (y-or-n-p (format "Process `eval' or hook local variables in file %s? "
 						     (file-name-nondirectory buffer-file-name))))))))
-	     (save-excursion (eval val))
+	     (if (eq var 'eval)
+		 (save-excursion (eval val))
+	       (make-local-variable var)
+	       (set var val))
 	   (message "Ignoring `eval:' in file's local variables")))
 	;; Ordinary variable, really set it.
 	(t (make-local-variable var)
