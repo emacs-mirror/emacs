@@ -2078,7 +2078,7 @@ search_embedded_absfilename (nm, endp)
 #if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
 	  /* // at start of file name is meaningful in Apollo,
 	     WindowsNT and Cygwin systems.  */
-	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 != nm)
+	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
 #endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
 	      )
 	{
