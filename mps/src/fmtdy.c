@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.15) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.16) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers, Dylan developers
@@ -62,11 +62,6 @@
  * fix it by supplying stderr.
  */
 #include <stdio.h>
-/* .hack.malloc: builder.lc (LCC) uses Sun's header files.  Sun's
- * stdlib.h is broken, as it has an incorrect declaration of malloc.
- * We fix that here in a very hacky way.
- */
-#define malloc(x) (void *)malloc(x)
 #endif
 
 
