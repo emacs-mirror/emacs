@@ -557,43 +557,47 @@ concat (nargs, args, target_type, last_special)
 	    if (NILP (this)) break;
 	    if (CONSP (this))
 	      elt = XCONS (this)->car, this = XCONS (this)->cdr;
-	    else
+	    else if (thisindex >= thisleni)
+	      break;
+	    else if (STRINGP (this))
 	      {
-		if (thisindex >= thisleni) break;
-		if (STRINGP (this))
+		if (STRING_MULTIBYTE (this))
 		  {
-		    if (STRING_MULTIBYTE (this))
-		      {
-			int c;
-			FETCH_STRING_CHAR_ADVANCE (c, this,
-						   thisindex,
-						   thisindex_byte);
-			XSETFASTINT (elt, c);
-		      }
-		    else
-		      {
-			unsigned char c;
-			XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
-			if (some_multibyte)
-			  XSETINT (elt,
-				   unibyte_char_to_multibyte (XINT (elt)));
-		      }
-		  }
-		else if (BOOL_VECTOR_P (this))
-		  {
-		    int size_in_chars
-		      = ((XBOOL_VECTOR (this)->size + BITS_PER_CHAR - 1)
-			 / BITS_PER_CHAR);
-		    int byte;
-		    byte = XBOOL_VECTOR (val)->data[thisindex / BITS_PER_CHAR];
-		    if (byte & (1 << (thisindex % BITS_PER_CHAR)))
-		      elt = Qt;
-		    else
-		      elt = Qnil;
+		    int c;
+		    FETCH_STRING_CHAR_ADVANCE (c, this,
+					       thisindex,
+					       thisindex_byte);
+		    XSETFASTINT (elt, c);
 		  }
 		else
-		  elt = XVECTOR (this)->contents[thisindex++];
+		  {
+		    unsigned char c;
+		    XSETFASTINT (elt, XSTRING (this)->data[thisindex++]);
+		    if (some_multibyte && XINT (elt) >= 0200
+			&& XINT (elt) < 0400)
+		      {
+			c = XINT (elt);
+			if (nonascii_insert_offset > 0)
+			  c += nonascii_insert_offset;
+			else
+			  c += DEFAULT_NONASCII_INSERT_OFFSET;
+
+			XSETINT (elt, c);
+		      }
+		  }
 	      }
+	    else if (BOOL_VECTOR_P (this))
+	      {
+		int byte;
+		byte = XBOOL_VECTOR (this)->data[thisindex / BITS_PER_CHAR];
+		if (byte & (1 << (thisindex % BITS_PER_CHAR)))
+		  elt = Qt;
+		else
+		  elt = Qnil;
+		thisindex++;
+	      }
+	    else
+	      elt = XVECTOR (this)->contents[thisindex++];
 
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
