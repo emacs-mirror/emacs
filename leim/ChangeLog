@@ -1,11 +1,11 @@
-2002-01-10  Nick Patavalis  <npat@inaccessnetworks.com>
+2002-01-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/greek.el: Changed the behavior of the "greek" input
-	method, to consider the "accent" and "diaeresis" as prefix
-	keys.  A new method (named "greek-postfix") was added which
-	implements the old behavior.  Also changed the mapping of the
-	"Q/q" key to produce the ":/;" characters, as is customary in
-	greek keyboards.
+	method, to consider the "accent" and "diaeresis" as prefix keys.
+	A new method (named "greek-postfix") was added which implements
+	the old behavior.  Also changed the mapping of the "Q/q" key to
+	produce the ":/;" characters, as is customary in greek keyboards.
+	From Nick Patavalis <npat@inaccessnetworks.com>.
 
 2002-01-07  Jaeyoun Chung  <jay@kldp.org>
 
