@@ -93,27 +93,38 @@
 
 ;;; Code:
 
-(defvar tar-anal-blocksize 20
+(defgroup tar nil
+  "Simple editing of tar files."
+  :prefix "tar-"
+  :group 'data)
+
+(defcustom tar-anal-blocksize 20
   "*The blocksize of tar files written by Emacs, or nil, meaning don't care.
 The blocksize of a tar file is not really the size of the blocks; rather, it is
 the number of blocks written with one system call.  When tarring to a tape, 
 this is the size of the *tape* blocks, but when writing to a file, it doesn't
 matter much.  The only noticeable difference is that if a tar file does not
 have a blocksize of 20, tar will tell you that; all this really controls is
-how many null padding bytes go on the end of the tar file.")
+how many null padding bytes go on the end of the tar file."
+  :type '(choice integer (const nil))
+  :group 'tar)
 
-(defvar tar-update-datestamp nil
+(defcustom tar-update-datestamp nil
   "*Non-nil means tar-mode should play fast and loose with sub-file datestamps.
 If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
 in a tar archive has been changed, but it is bad for the same reason that
 editing a file in the tar archive at all is bad - the changed version of 
-the file never exists on disk.")
+the file never exists on disk."
+  :type 'boolean
+  :group 'tar)
 
-(defvar tar-mode-show-date nil
+(defcustom tar-mode-show-date nil
   "*Non-nil means Tar mode should show the date/time of each subfile.
-This information is useful, but it takes screen space away from file names.")
+This information is useful, but it takes screen space away from file names."
+  :type 'boolean
+  :group 'tar)
 
 (defvar tar-parse-info nil)
 (defvar tar-header-offset nil)
