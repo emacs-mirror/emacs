@@ -614,6 +614,7 @@ between them, return t; otherwise return nil.")
 	  if (from == stop)
 	    {
 	      SET_PT (from);
+	      immediate_quit = 0;
 	      return Qnil;
 	    }
 	  c = FETCH_CHAR (from);
