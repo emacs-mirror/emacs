@@ -1,3 +1,15 @@
+2002-05-09  Dave Love  <fx@gnu.org>
+
+	* syntax.h (syntax_temp) [!__GNUC__]: Declare.
+
+	* dispextern.h (generate_ascii_font): Fix return type.
+
+	* xfaces.c (generate_ascii_font): Fix arg declaration.
+
+	* coding.c (coding_inherit_eol_type)
+	(Fset_terminal_coding_system_internal)
+	(Fset_safe_terminal_coding_system_internal): Fix arg declarations.
+
 2002-05-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (decode_coding_charset, encode_coding_charset): Handle
@@ -68,7 +80,6 @@
 	* coding.c (produce_chars): Set the variable `multibytep' correctly.
 	(decode_coding_gap): Set coding->dst_multibyte correctly.
 
->>>>>>> 1.2479.2.9
 2002-03-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
