@@ -838,7 +838,7 @@ error occurs."
   "Return the mail header field value associated with FIELD.
 If there was no mail header with FIELD as its key, return the value of
 `sc-mumble'.  FIELD is case insensitive."
-  (or (cdr (assoc (downcase field) sc-mail-info)) sc-mumble))
+  (or (cdr (assoc-string field sc-mail-info 'case-fold)) sc-mumble))
 
 (defun sc-mail-field-query (arg)
   "View the value of a mail field.
@@ -916,8 +916,8 @@ Match addresses of the style ``<name[stuff]>.''"
   "Get the full email address path from FROM.
 AUTHOR is the author's name (which is removed from the address)."
   (let ((eos (length from)))
-    (if (string-match (concat "\\(^\\|^\"\\)" author
-			      "\\(\\s +\\|\"\\s +\\)") from 0)
+    (if (string-match (concat "\\`\"?" (regexp-quote author)
+			      "\"?\\s +") from 0)
 	(let ((address (substring from (match-end 0) eos)))
 	  (if (and (= (aref address 0) ?<)
 		   (= (aref address (1- (length address))) ?>))
@@ -2054,5 +2054,5 @@ more information.  Info node `(SC)Top'."
 (provide 'supercite)
 (run-hooks 'sc-load-hook)
 
-;;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
+;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
 ;;; supercite.el ends here
