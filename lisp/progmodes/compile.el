@@ -189,6 +189,10 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;;  foo.c(3:8) : warning EDC0833: Implicit return statement encountered.
     ;;  foo.c(5:5) : error EDC0350: Syntax error.
     ("\n\\([^( \n\t]+\\)(\\([0-9]+\\):\\([0-9]+\\)) : " 1 2 3)
+
+    ;; Sun ada (VADS, Solaris):
+    ;;  /home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
+    ("\n\\([^, ]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
