@@ -871,7 +871,7 @@ do_cdr:
   if (XTYPE (o1) == Lisp_Marker)
     {
       return ((XMARKER (o1)->buffer == XMARKER (o2)->buffer
-	      && (NILP (XMARKER (o1)->buffer)
+	      && (XMARKER (o1)->buffer == 0
 		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos))
 	      ? Qt : Qnil);
     }
