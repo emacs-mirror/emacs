@@ -1,3 +1,8 @@
+2001-01-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (CCL_READ_CHAR): Change the argument name from r to REG
+	as a workaround for SunOS 4's cc.
+
 2001-01-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_set_window_size_1): New function extracted from
