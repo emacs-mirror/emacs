@@ -246,18 +246,20 @@ default.  Also, installing them may be rather slow."
 	  (load "subst-gb2312")
 	  (load "subst-big5")
 	  (load "subst-jis")))	  ; jis covers as much as big5, gb2312
-	(let ((table (make-char-table 'translation-table)))
-	  (maphash (lambda (k v)
-		     (aset table k t))
-		   ucs-mule-cjk-to-unicode)
-	  (define-translation-hash-table 'utf-subst-table-for-decode
-	    ucs-unicode-to-mule-cjk)
-	  (define-translation-hash-table 'utf-subst-table-for-encode
-	    ucs-mule-cjk-to-unicode)))
+	(define-translation-hash-table 'utf-subst-table-for-decode
+	  ucs-unicode-to-mule-cjk)
+	(define-translation-hash-table 'utf-subst-table-for-encode
+	  ucs-mule-cjk-to-unicode)
+	(set-char-table-extra-slot (get 'utf-translation-table-for-encode
+					'translation-table)
+				   1 ucs-mule-cjk-to-unicode))
     (define-translation-hash-table 'utf-subst-table-for-decode
       (make-hash-table :test 'eq))
     (define-translation-hash-table 'utf-subst-table-for-encode
-      (make-hash-table :test 'eq))))
+      (make-hash-table :test 'eq))
+    (set-char-table-extra-slot (get 'utf-translation-table-for-encode
+				    'translation-table)
+			       1 nil)))
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
@@ -800,6 +802,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."
    (valid-codes (0 . 255))
 ;;    (pre-write-conversion . utf-8-pre-write-conversion)
    (post-read-conversion . utf-8-post-read-conversion)
+   (translation-table-for-encode . utf-translation-table-for-encode)
    (dependency unify-8859-on-encoding-mode
 	       unify-8859-on-decoding-mode
 	       utf-fragment-on-decoding
