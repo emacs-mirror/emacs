@@ -1856,6 +1856,12 @@ if test "$ac_cv_func_working_mktime" = no; then
   AC_DEFINE(BROKEN_MKTIME)
 fi
 
+# UNIX98 PTYs.
+AC_CHECK_FUNCS(grantpt)
+
+# PTY-related GNU extensions.
+AC_CHECK_FUNCS(getpt)
+
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
 # It's better to believe a function is not available
