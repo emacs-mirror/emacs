@@ -729,6 +729,11 @@ setting of Scroll Bar mode similarly.  @xref{Resources X}.
   To enable or disable scroll bars for just the selected frame, use the
 @kbd{M-x toggle-scroll-bar} command.
 
+@vindex scroll-bar-width
+@cindex width of the scroll bar
+  You can control the scroll bar width by changing the value of the
+@code{scroll-bar-width} frame parameter.
+
 @node Wheeled Mice
 @section Scrolling With ``Wheeled'' Mice
 
