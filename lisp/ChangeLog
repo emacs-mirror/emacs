@@ -1,3 +1,25 @@
+2002-07-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* net/tramp.el: Bump version to 2.0.2.
+	(tramp-methods): Rename methods invoking "ssh1" or "ssh2" to
+	longer names.  Use old names "sm1", "sm2" and so on for methods
+	invoking "ssh -1" or "ssh -2".
+	(tramp-multi-file-name-structure-separate): Typo, its name was set
+	to "tramp-file-name-structure-separate".  Trivial patch.  From
+	Steve Youngs <youngs@xemacs.org>.
+	(tramp-multi-sh-program): New variable.
+	(tramp-open-connection-multi): Use it.  Now you can use multi
+	methods from Windows (at least in principle).
+	(tramp-do-copy-or-rename-via-buffer): New function.
+	(tramp-do-copy-or-rename-file): Use it.  Change and simplify
+	logic.  Omit special case of invoking rcp directly to copy the
+	files.
+	(tramp-open-connection-su, tramp-multi-connect-telnet)
+	(tramp-multi-connect-rlogin, tramp-multi-connect-su)
+	(tramp-make-tramp-file-name, tramp-make-tramp-multi-file-name):
+	Use backticks in format-spec for brevity and to avoid
+	character/number confusion in XEmacs.
+
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-documentation-string-value-create):

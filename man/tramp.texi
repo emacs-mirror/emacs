@@ -632,9 +632,16 @@ transfer files between the machines.
 This is identical to the previous option except that the @command{ssh}
 package is used, making the connection more secure.
 
-There are also two variants, @option{sm1} and @option{sm2} that use the
-@command{ssh1} and @command{ssh2} commands explicitly. If you don't know
-what these are, you do not need these options.
+There are also two variants, @option{sm1} and @option{sm2}, that call
+@samp{ssh -1} and @samp{ssh -2}, respectively.  This way, you can
+explicitly select whether you want to use the SSH protocol version 1
+or 2 to connect to the remote host.  (You can also specify in
+@file{~/.ssh/config}, the SSH configuration file, which protocol
+should be used, and use the regular @option{sm} method.)
+
+There are also two variants, @option{sm-ssh1} and @option{sm-ssh2}
+that use the @command{ssh1} and @command{ssh2} commands explicitly. If
+you don't know what these are, you do not need these options.
 
 All the methods based on @command{ssh} have an additional kludgy
 feature: you can specify a host name which looks like @file{host#42}
@@ -683,7 +690,8 @@ between the machines.
 
 As with the @command{ssh} and base64 option (@option{sm}) above, this
 provides the @option{su1} and @option{su2} methods to explicitly
-select an ssh version.
+select an SSH protocol version, and the @option{su-ssh1} and
+@option{su-ssh2} variants to call specific SSH binaries.
 
 Note that this method does not invoke the @command{su} program, see
 below for methods which use that.

@@ -69,7 +69,7 @@
 
 ;;; Code:
 
-(defconst tramp-version "2.0.1"
+(defconst tramp-version "2.0.2"
   "This version of tramp.")
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
   "Email address to send bug reports to.")
@@ -131,6 +131,25 @@ use for the remote host."
   :group 'tramp
   :type '(file :must-match t))
 
+(defcustom tramp-multi-sh-program
+  (if (memq system-type '(windows-nt))
+      "cmd.exe"
+    tramp-sh-program)
+  "*Use this program for bootstrapping multi-hop connections.
+This variable is similar to `tramp-sh-program', but it is only used
+when initializing a multi-hop connection.  Therefore, the set of
+commands sent to this shell is quite restricted, and if you are
+careful it works to use CMD.EXE under Windows (instead of a Bourne-ish
+shell which does not normally exist on Windows anyway).
+
+To use multi-hop methods from Windows, you also need suitable entries
+in `tramp-multi-connection-function-alist' for the first hop.
+
+This variable defaults to CMD.EXE on Windows NT, and to the value of
+`tramp-sh-program' on other systems."
+  :group 'tramp
+  :type '(file :must-match t))
+
 ;; CCC I have changed all occurrences of comint-quote-filename with
 ;; tramp-shell-quote-argument, except in tramp-handle-expand-many-files.
 ;; There, comint-quote-filename was removed altogether.  If it turns
@@ -178,6 +197,36 @@ use for the remote host."
               (tramp-telnet-program       nil)
               (tramp-telnet-args          nil))
      ("scp1"  (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          "scp")
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-1" "-e" "none"))
+              (tramp-rcp-args             ("-1"))
+              (tramp-rcp-keep-date-arg    "-p")
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     nil)
+              (tramp-decoding-command     nil)
+              (tramp-encoding-function    nil)
+              (tramp-decoding-function    nil)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          "scp")
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-2" "-e" "none"))
+              (tramp-rcp-args             ("-2"))
+              (tramp-rcp-keep-date-arg    "-p")
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     nil)
+              (tramp-decoding-command     nil)
+              (tramp-encoding-function    nil)
+              (tramp-decoding-function    nil)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("scp-ssh1" (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh1")
               (tramp-rcp-program          "scp1")
               (tramp-remote-sh            "/bin/sh")
@@ -192,7 +241,7 @@ use for the remote host."
               (tramp-decoding-function    nil)
               (tramp-telnet-program       nil)
               (tramp-telnet-args          nil))
-     ("scp2"  (tramp-connection-function  tramp-open-connection-rsh)
+     ("scp-ssh2"  (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh2")
               (tramp-rcp-program          "scp2")
               (tramp-remote-sh            "/bin/sh")
@@ -255,6 +304,38 @@ use for the remote host."
               (tramp-telnet-program       nil)
               (tramp-telnet-args          nil))
      ("su1"   (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          nil)
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-1" "-e" "none"))
+              (tramp-rcp-args             ("-1"))
+              (tramp-rcp-keep-date-arg    nil)
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     "uuencode xxx")
+              (tramp-decoding-command
+               "( uudecode -o - 2>/dev/null || uudecode -p 2>/dev/null )")
+              (tramp-encoding-function    nil)
+              (tramp-decoding-function    uudecode-decode-region)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("su2"   (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          nil)
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-2" "-e" "none"))
+              (tramp-rcp-args             ("-2"))
+              (tramp-rcp-keep-date-arg    nil)
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     "uuencode xxx")
+              (tramp-decoding-command
+               "( uudecode -o - 2>/dev/null || uudecode -p 2>/dev/null )")
+              (tramp-encoding-function    nil)
+              (tramp-decoding-function    uudecode-decode-region)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("su-ssh1"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh1")
               (tramp-rcp-program          nil)
               (tramp-remote-sh            "/bin/sh")
@@ -270,7 +351,7 @@ use for the remote host."
               (tramp-decoding-function    uudecode-decode-region)
               (tramp-telnet-program       nil)
               (tramp-telnet-args          nil))
-     ("su2"   (tramp-connection-function  tramp-open-connection-rsh)
+     ("su-ssh2"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh2")
               (tramp-rcp-program          nil)
               (tramp-remote-sh            "/bin/sh")
@@ -331,6 +412,36 @@ use for the remote host."
               (tramp-decoding-function    base64-decode-region)
               (tramp-telnet-program       nil))
      ("sm1"   (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          nil)
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-1" "-e" "none"))
+              (tramp-rcp-args             ("-1"))
+              (tramp-rcp-keep-date-arg    nil)
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     "mimencode -b")
+              (tramp-decoding-command     "mimencode -u -b")
+              (tramp-encoding-function    base64-encode-region)
+              (tramp-decoding-function    base64-decode-region)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("sm2"   (tramp-connection-function  tramp-open-connection-rsh)
+              (tramp-rsh-program          "ssh")
+              (tramp-rcp-program          nil)
+              (tramp-remote-sh            "/bin/sh")
+              (tramp-rsh-args             ("-2" "-e" "none"))
+              (tramp-rcp-args             ("-2"))
+              (tramp-rcp-keep-date-arg    nil)
+              (tramp-su-program           nil)
+              (tramp-su-args              nil)
+              (tramp-encoding-command     "mimencode -b")
+              (tramp-decoding-command     "mimencode -u -b")
+              (tramp-encoding-function    base64-encode-region)
+              (tramp-decoding-function    base64-decode-region)
+              (tramp-telnet-program       nil)
+              (tramp-telnet-args          nil))
+     ("sm-ssh1"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh1")
               (tramp-rcp-program          nil)
               (tramp-remote-sh            "/bin/sh")
@@ -345,7 +456,7 @@ use for the remote host."
               (tramp-decoding-function    base64-decode-region)
               (tramp-telnet-program       nil)
               (tramp-telnet-args          nil))
-     ("sm2"   (tramp-connection-function  tramp-open-connection-rsh)
+     ("sm-ssh2"   (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-rsh-program          "ssh2")
               (tramp-rcp-program          nil)
               (tramp-remote-sh            "/bin/sh")
@@ -1032,7 +1143,7 @@ Also see `tramp-make-tramp-file-format', `tramp-file-name-structure', and `tramp
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and Tramp.
 See `tramp-file-name-structure-unified' for details.")
 
-(defconst tramp-file-name-structure-separate
+(defconst tramp-multi-file-name-structure-separate
   (list (concat
          ;; prefix
          "\\`/\\[\\(\\([a-z0-9]+\\)?\\)"
@@ -2287,80 +2398,73 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
     (when (file-exists-p newname)
       (signal 'file-already-exists
               (list newname))))
-  (with-parsed-tramp-file-name filename v1
-    (with-parsed-tramp-file-name newname v2
-      (when (and (tramp-ange-ftp-file-name-p v1-multi-method v1-method)
-		 (tramp-ange-ftp-file-name-p v2-multi-method v2-method))
-	(tramp-invoke-ange-ftp
-			       (if (eq op 'copy) 'copy-file 'rename-file)
-			       filename newname ok-if-already-exists keep-date))
-      (let* ((mmeth (tramp-file-name-multi-method (or v1 v2)))
-	     (meth (tramp-file-name-method (or v1 v2)))
-	     (rcp-program (tramp-get-rcp-program mmeth meth))
-	     (rcp-args (tramp-get-rcp-args mmeth meth))
-	     (trampbuf (get-buffer-create "*tramp output*")))
-	;; Check if we can use a shortcut.
-	(if (and v1-method v2-method
-		 (equal v1-multi-method v2-multi-method)
-		 (equal v1-method v2-method)
-		 (equal v1-host v2-host)
-		 (equal v1-user v2-user))
-	    ;; Shortcut: if method, host, user are the same for both
-	    ;; files, we invoke `cp' or `mv' on the remote host directly.
-	    (tramp-do-copy-or-rename-file-directly
-	     op
-	     v1-multi-method v1-method v1-user v1-host v1-path v2-path
-	     keep-date)
-	  ;; New algorithm: copy file first.  Then, if operation is
-	  ;; `rename', go back and delete the original file if the copy
-	  ;; was successful.
-	  (if rcp-program
-	      ;; The following code uses a tramp program to copy the file.
-	      (let ((f1 (if (not v1)
-			    filename
-			  (tramp-make-rcp-program-file-name
-			   v1-user v1-host
-			   (tramp-shell-quote-argument v1-path))))
-		    (f2 (if (not v2)
-			    newname
-			  (tramp-make-rcp-program-file-name
-			   v2-user v2-host
-			   (tramp-shell-quote-argument v2-path))))
-		    (default-directory
-		      (if (tramp-tramp-file-p default-directory)
-			  (tramp-temporary-file-directory)
-			default-directory)))
-		(when keep-date
-		  (add-to-list 'rcp-args
-			       (tramp-get-rcp-keep-date-arg mmeth meth)))
-		(save-excursion (set-buffer trampbuf) (erase-buffer))
-		(unless (equal 0 (apply #'call-process
-					(tramp-get-rcp-program mmeth meth)
-					nil trampbuf nil
-					(append rcp-args (list f1 f2))))
-		  (pop-to-buffer trampbuf)
-		  (error (concat "tramp-do-copy-or-rename-file: %s"
-				 " didn't work, see buffer `%s' for details")
-			 (tramp-get-rcp-program mmeth meth) trampbuf)))
-	    ;; The following code uses an inline method for copying.
-	    ;; Let's start with a simple-minded approach: we create a new
-	    ;; buffer, insert the contents of the source file into it,
-	    ;; then write out the buffer.  This should work fine, whether
-	    ;; the source or the target files are tramp files.
-	    ;; CCC TODO: error checking
-	    (when keep-date
-	      (tramp-message
-	       1 (concat "Warning: cannot preserve file time stamp"
-			 " with inline copying across machines")))
-	    (save-excursion
-	      (set-buffer trampbuf) (erase-buffer)
-	      (insert-file-contents-literally filename)
-	      (let ((coding-system-for-write 'no-conversion))
-		(write-region (point-min) (point-max) newname))))
+  (let ((t1 (tramp-tramp-file-p filename))
+	(t2 (tramp-tramp-file-p newname)))
+    ;; Check which ones of source and target are Tramp files.
+    (cond
+     ((and t1 t2)
+      ;; Both are Tramp files.
+      (with-parsed-tramp-file-name filename v1
+	(with-parsed-tramp-file-name newname v2
+	  ;; Possibly invoke Ange-FTP.
+	  (when (and (tramp-ange-ftp-file-name-p v1-multi-method v1-method)
+		     (tramp-ange-ftp-file-name-p v2-multi-method v2-method))
+	    (tramp-invoke-ange-ftp
+	     (if (eq op 'copy) 'copy-file 'rename-file)
+	     filename newname ok-if-already-exists keep-date))
+	  ;; Check if we can use a shortcut.
+	  (if (and (equal v1-multi-method v2-multi-method)
+		   (equal v1-method v2-method)
+		   (equal v1-host v2-host)
+		   (equal v1-user v2-user))
+	      ;; Shortcut: if method, host, user are the same for both
+	      ;; files, we invoke `cp' or `mv' on the remote host
+	      ;; directly.
+	      (tramp-do-copy-or-rename-file-directly
+	       op v1-multi-method v1-method v1-user v1-host
+	       v1-path v2-path keep-date)
+	    ;; The shortcut was not possible.  So we copy the
+	    ;; file first.  If the operation was `rename', we go
+	    ;; back and delete the original file (if the copy was
+	    ;; successful).  The approach is simple-minded: we
+	    ;; create a new buffer, insert the contents of the
+	    ;; source file into it, then write out the buffer to
+	    ;; the target file.  The advantage is that it doesn't
+	    ;; matter which filename handlers are used for the
+	    ;; source and target file.
 
-	  ;; If the operation was `rename', delete the original file.
-	  (unless (eq op 'copy)
-	    (delete-file filename)))))))
+	    ;; CCC: If both source and target are Tramp files,
+	    ;; and both are using the same rcp-program, then we
+	    ;; can invoke rcp directly.  Note that
+	    ;; default-directory should point to a local
+	    ;; directory if we want to invoke rcp.
+	    (tramp-do-copy-or-rename-via-buffer
+	     op filename newname keep-date)))))
+	  ((or t1 t2)
+	   ;; Use the generic method via a Tramp buffer.
+	   (tramp-do-copy-or-rename-via-buffer op filename newname keep-date))
+	  (t
+	   ;; One of them must be a Tramp file.
+	   (error "Tramp implementation says this cannot happen")))))
+
+(defun tramp-do-copy-or-rename-via-buffer (op filename newname keep-date)
+  "Use an Emacs buffer to copy or rename a file.
+First arg OP is either `copy' or `rename' and indicates the operation.
+FILENAME is the source file, NEWNAME the target file.
+KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
+  (let ((trampbuf (get-buffer-create "*tramp output*")))
+    (when keep-date
+      (tramp-message
+       1 (concat "Warning: cannot preserve file time stamp"
+		 " with inline copying across machines")))
+    (save-excursion
+      (set-buffer trampbuf) (erase-buffer)
+      (insert-file-contents-literally filename)
+      (let ((coding-system-for-write 'no-conversion))
+	(write-region (point-min) (point-max) newname)))
+    ;; If the operation was `rename', delete the original file.
+    (unless (eq op 'copy)
+      (delete-file filename))))
 
 (defun tramp-do-copy-or-rename-file-directly
   (op multi-method method user host path1 path2 keep-date)
@@ -3771,8 +3875,7 @@ at all unlikely that this variable is set up wrongly!"
                        (tramp-get-su-program multi-method method)
                        (mapcar
                         '(lambda (x)
-                           (format-spec
-                            x (list (cons ?u user))))
+                           (format-spec x `((?u ,user))))
                         (tramp-get-su-args multi-method method))))
              (found nil)
              (pw nil))
@@ -3847,7 +3950,7 @@ log in as u2 to h2."
                                        tramp-dos-coding-system))
              (p (start-process (tramp-buffer-name multi-method method user host)
                                (tramp-get-buffer multi-method method user host)
-                               tramp-sh-program))
+                               tramp-multi-sh-program))
              (num-hops (length method))
              (i 0))
         (process-kill-without-query p)
@@ -3887,10 +3990,8 @@ set in `tramp-rsh-end-of-line'.  Use `%%' if you want a literal percent
 character.
 
 If USER is nil, uses the return value of (user-login-name) instead."
-  (let ((cmd (format-spec command (list (cons ?h host)
-                                        (cons ?n tramp-rsh-end-of-line))))
-        (cmd1 (format-spec command (list (cons ?h host)
-                                         (cons ?n ""))))
+  (let ((cmd (format-spec command `((?h ,host) (?n ,tramp-rsh-end-of-line))))
+        (cmd1 (format-spec command `((?h ,host) (?n ""))))
         found pw)
     (erase-buffer)
     (tramp-message 9 "Sending telnet command `%s'" cmd1)
@@ -3939,12 +4040,12 @@ will be replaced with the value of `tramp-rsh-end-of-line'.  You can use
 `%%' if you want to use a literal percent character.
 
 If USER is nil, uses the return value of (user-login-name) instead."
-  (let ((cmd (format-spec command (list (cons ?h host)
-                                        (cons ?u (or user (user-login-name)))
-                                        (cons ?n tramp-rsh-end-of-line))))
-        (cmd1 (format-spec command (list (cons ?h host)
-                                         (cons ?u (or user (user-login-name)))
-                                         (cons ?n ""))))
+  (let ((cmd (format-spec command `((?h ,host)
+				    (?u ,(or user (user-login-name)))
+				    (?n ,tramp-rsh-end-of-line))))
+        (cmd1 (format-spec command `((?h ,host)
+				     (?u ,(or user (user-login-name)))
+				     (?n ""))))
         found)
     (erase-buffer)
     (tramp-message 9 "Sending rlogin command `%s'" cmd1)
@@ -3992,10 +4093,10 @@ You can use percent escapes in the COMMAND.  `%u' is replaced with the
 user name, and `%n' is replaced with the value of
 `tramp-rsh-end-of-line'.  Use `%%' if you want a literal percent
 character."
-  (let ((cmd (format-spec command (list (cons ?u (or user (user-login-name)))
-                                        (cons ?n tramp-rsh-end-of-line))))
-        (cmd1 (format-spec command (list (cons ?u (or user (user-login-name)))
-                                         (cons ?n ""))))
+  (let ((cmd (format-spec command `((?u ,(or user (user-login-name)))
+				    (?n ,tramp-rsh-end-of-line))))
+        (cmd1 (format-spec command `((?u ,(or user (user-login-name)))
+				     (?n ""))))
         found)
     (erase-buffer)
     (tramp-message 9 "Sending su command `%s'" cmd1)
@@ -4826,14 +4927,9 @@ remote path name."
       (tramp-make-tramp-multi-file-name multi-method method user host path)
     (if user
         (format-spec tramp-make-tramp-file-format
-                     (list (cons ?m method)
-                           (cons ?u user)
-                           (cons ?h host)
-                           (cons ?p path)))
+                     `((?m ,method) (?u ,user) (?h ,host) (?p ,path)))
       (format-spec tramp-make-tramp-file-user-nil-format
-                   (list (cons ?m method)
-                         (cons ?h host)
-                         (cons ?p path))))))
+                   `((?m ,method) (?h ,host) (?p ,path))))))
 
 ;; CCC: Henrik Holm: Not Changed.  Multi Method.  What should be done
 ;; with this when USER is nil?
@@ -4844,21 +4940,15 @@ remote path name."
   (let* ((prefix-format (nth 0 tramp-make-multi-tramp-file-format))
          (hop-format    (nth 1 tramp-make-multi-tramp-file-format))
          (path-format   (nth 2 tramp-make-multi-tramp-file-format))
-         (prefix (format-spec prefix-format (list (cons ?m multi-method))))
+         (prefix (format-spec prefix-format `((?m ,multi-method))))
          (hops "")
-         (path (format-spec path-format (list (cons ?p path))))
+         (path (format-spec path-format `((?p ,path))))
          (i 0)
          (len (length method)))
     (while (< i len)
-      (let ((m (aref method i))
-            (u (aref user i))
-            (h (aref host i)))
-        (setq hops (concat hops
-                           (format-spec
-                            hop-format
-                            (list (cons ?m m)
-                                  (cons ?u u)
-                                  (cons ?h h)))))
+      (let ((m (aref method i)) (u (aref user i)) (h (aref host i)))
+        (setq hops (concat hops (format-spec hop-format
+					     `((?m ,m) (?u ,u) (?h ,h)))))
         (incf i)))
     (concat prefix hops path)))
 
