@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.312 2001/10/21 12:15:22 spiegel Exp $
+;; $Id: vc.el,v 1.313 2001/10/21 23:31:45 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -302,15 +302,26 @@
 ;;   of FILE in BUF, relative to version REV.  This is currently only
 ;;   implemented for CVS, using the `cvs annotate' command.
 ;;
-;; - annotate-difference (point)
+;; - annotate-time ()
 ;;
 ;;   Only required if `annotate-command' is defined for the backend.
-;;   Return the difference between the age of the line at point and the
-;;   current time.  Return NIL if there is no more comparison to be made
-;;   in the buffer.  Return value as defined for `current-time'.  You can
-;;   safely assume that point is placed at the beginning of each line,
-;;   starting at `point-min'.  The buffer that point is placed in is the
-;;   Annotate output, as defined by the relevant backend.
+;;   Return the time of the next line of annotation at or after point,
+;;   as a floating point fractional number of days.  The helper
+;;   function `vc-annotate-convert-time' may be useful for converting
+;;   multi-part times as returned by `current-time' and `encode-time'
+;;   to this format.  Return NIL if no more lines of annotation appear
+;;   in the buffer.  You can safely assume that point is placed at the
+;;   beginning of each line, starting at `point-min'.  The buffer that
+;;   point is placed in is the Annotate output, as defined by the
+;;   relevant backend.
+;;
+;; - annotate-current-time ()
+;;
+;;   Only required if `annotate-command' is defined for the backend,
+;;   AND you'd like the current time considered to be anything besides
+;;   (vs-annotate-convert-time (current-time)) -- i.e. the current
+;;   time with hours, minutes, and seconds included.  Probably safe to
+;;   ignore.  Return the current-time, in units of fractional days.
 ;;
 ;; SNAPSHOT SYSTEM
 ;;
@@ -493,6 +504,15 @@ See `run-hooks'."
   :group 'vc
   :version "21.1")
 
+(defcustom vc-annotate-display-mode nil
+  "Which mode to color the annotations with by default."
+  :type '(choice (const :tag "Default" nil)
+		 (const :tag "Scale to Oldest" scale)
+		 (const :tag "Scale Oldest->Newest" fullscale)
+		 (number :tag "Specify Fractional Number of Days"
+			 :value "20.5"))
+  :group 'vc)
+
 ;;;###autoload
 (defcustom vc-checkin-hook nil
   "*Normal hook (list of functions) run after a checkin is done.
@@ -517,26 +537,26 @@ version control backend imposes itself."
 
 ;; Annotate customization
 (defcustom vc-annotate-color-map
-  '(( 26.3672 . "#FF0000")
-    ( 52.7344 . "#FF3800")
-    ( 79.1016 . "#FF7000")
-    (105.4688 . "#FFA800")
-    (131.8359 . "#FFE000")
-    (158.2031 . "#E7FF00")
-    (184.5703 . "#AFFF00")
-    (210.9375 . "#77FF00")
-    (237.3047 . "#3FFF00")
-    (263.6719 . "#07FF00")
-    (290.0391 . "#00FF31")
-    (316.4063 . "#00FF69")
-    (342.7734 . "#00FFA1")
-    (369.1406 . "#00FFD9")
-    (395.5078 . "#00EEFF")
-    (421.8750 . "#00B6FF")
-    (448.2422 . "#007EFF"))
-  "*Association list of age versus color, for \\[vc-annotate].
-Ages are given in units of 2**-16 seconds.
-Default is eighteen steps using a twenty day increment."
+  '(( 20. . "#FF0000")
+    ( 40. . "#FF3800")
+    ( 60. . "#FF7000")
+    ( 80. . "#FFA800")
+    (100. . "#FFE000")
+    (120. . "#E7FF00")
+    (140. . "#AFFF00")
+    (160. . "#77FF00")
+    (180. . "#3FFF00")
+    (200. . "#07FF00")
+    (220. . "#00FF31")
+    (240. . "#00FF69")
+    (260. . "#00FFA1")
+    (280. . "#00FFD9")
+    (300. . "#00EEFF")
+    (320. . "#00B6FF")
+    (340. . "#007EFF"))
+  "*ASSOCIATION list of age versus color, for \\[vc-annotate].  
+Ages are given in units of fractional days.  Default is eighteen steps
+using a twenty day increment."
   :type 'alist
   :group 'vc)
 
@@ -2828,7 +2848,9 @@ Uses `rcs2log' which only works for RCS and CVS."
 
 ;; Declare globally instead of additional parameter to
 ;; temp-buffer-show-function (not possible to pass more than one
-;; parameter).
+;; parameter).  The use of annotate-ratio is deprecated in favor of
+;; annotate-mode, which replaces it with the more sensible "span-to
+;; days", along with autoscaling support.
 (defvar vc-annotate-ratio nil "Global variable.")
 (defvar vc-annotate-backend nil "Global variable.")
 
@@ -2846,43 +2868,120 @@ colors.  See variable `vc-annotate-menu-elements' for customizing the
 menu items."
   (vc-annotate-add-menu))
 
-(defun vc-annotate-display-default (&optional event)
-  "Use the default color spectrum for VC Annotate mode."
+(defun vc-annotate-display-default (&optional ratio)
+  "Use the default color spectrum for VC Annotate mode, scaling the
+colormap by RATIO, if present.  Use the current time as offset."
   (interactive "e")
   (message "Redisplaying annotation...")
-  (vc-annotate-display (current-buffer)
-		       nil
-		       (vc-annotate-get-backend (current-buffer)))
+  (vc-annotate-display 
+   (if ratio (vc-annotate-time-span vc-annotate-color-map ratio)))
   (message "Redisplaying annotation...done"))
 
+(defun vc-annotate-display-autoscale (&optional full)
+  "Re-display annotation using colormap scaled from the current time
+to the oldest annotation in the buffer, or, with argument FULL set, to
+cover the full time range, from oldest to newest."
+  (interactive)
+  (let ((newest 0.0)
+	(oldest 999999.)		;Any CVS users at the founding of Rome?
+	(current (vc-annotate-convert-time (current-time)))
+	date)
+    (message "Redisplaying annotation...")
+    ;; Run through this file and find the oldest and newest dates annotated.
+    (save-excursion
+      (goto-char (point-min))
+      (while (setq date (vc-call-backend vc-annotate-backend 'annotate-time))
+	(if (> date newest)
+	    (setq newest date))
+	(if (< date oldest)
+	    (setq oldest date))))
+    (vc-annotate-display
+     (vc-annotate-time-span		;return the scaled colormap.
+      vc-annotate-color-map
+      (/ (-  (if full newest current) oldest) 
+	 (vc-annotate-car-last-cons vc-annotate-color-map)))
+     (if full newest))
+    (message "Redisplaying annotation...done \(%s\)" 
+	     (if full 
+		 (format "Spanned from %.1f to %.1f days old" 
+			 (- current oldest)
+			 (- current newest))
+	       (format "Spanned to %.1f days old" (- current oldest))))))
+
+;; Menu -- Using easymenu.el
 (defun vc-annotate-add-menu ()
   "Add the menu 'Annotate' to the menu bar in VC-Annotate mode."
-  (setq vc-annotate-mode-menu (make-sparse-keymap "Annotate"))
-  (define-key vc-annotate-mode-map [menu-bar vc-annotate-mode]
-    (cons "VC-Annotate" vc-annotate-mode-menu))
-  (define-key vc-annotate-mode-menu [default]
-    '("Default" . vc-annotate-display-default))
-  (let ((menu-elements vc-annotate-menu-elements))
+  (let ((menu-elements vc-annotate-menu-elements)
+	(menu-def
+	 '("VC-Annotate"
+	   ["Default" (unless (null vc-annotate-display-mode)
+			(setq vc-annotate-display-mode nil)
+			(vc-annotate-display-select))
+	    :style toggle :selected (null vc-annotate-display-mode)]))
+	(oldest-in-map (vc-annotate-car-last-cons vc-annotate-color-map)))
     (while menu-elements
       (let* ((element (car menu-elements))
-	     (days (round (* element
-			     (vc-annotate-car-last-cons vc-annotate-color-map)
-			     0.7585))))
+	     (days (* element oldest-in-map)))
 	(setq menu-elements (cdr menu-elements))
-	(define-key vc-annotate-mode-menu
-	  (vector days)
-	  (cons (format "Span %d days"
-			days)
-		`(lambda ()
-		   ,(format "Use colors spanning %d days" days)
-		   (interactive)
-		   (message "Redisplaying annotation...")
-		   (vc-annotate-display
-		    (get-buffer (buffer-name))
-		    (vc-annotate-time-span vc-annotate-color-map ,element)
-		    (vc-annotate-get-backend (current-buffer)))
-		   (message "Redisplaying annotation...done"))))))))
+	(setq menu-def 
+	      (append menu-def 
+		      `([,(format "Span %.1f days" days)
+			 (unless (and (numberp vc-annotate-display-mode)
+				      (= vc-annotate-display-mode ,days))
+			   (vc-annotate-display-select nil ,days))
+			 :style toggle :selected 
+			 (and (numberp vc-annotate-display-mode)
+			      (= vc-annotate-display-mode ,days)) ])))))
+    (setq menu-def 
+	  (append menu-def 
+		  (list
+		   ["Span ..."
+		    (let ((days 
+			   (float (string-to-number
+				   (read-string "Span how many days? ")))))
+		      (vc-annotate-display-select nil days)) t])
+		  (list "--")
+		  (list 
+		   ["Span to Oldest" 
+		    (unless (eq vc-annotate-display-mode 'scale)
+		      (vc-annotate-display-select nil 'scale))
+		    :style toggle :selected 
+		    (eq vc-annotate-display-mode 'scale)])
+		  (list 
+		   ["Span Oldest->Newest" 
+		    (unless (eq vc-annotate-display-mode 'fullscale)
+		      (vc-annotate-display-select nil 'fullscale))
+		    :style toggle :selected 
+		    (eq vc-annotate-display-mode 'fullscale)])))
+    ;; Define the menu
+    (if (or (featurep 'easymenu) (load "easymenu" t))
+	(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map 
+			  "VC Annotate Display Menu" menu-def))))
 
+(defun vc-annotate-display-select (&optional buffer mode)
+  "Do the default or chosen annotation display as specified in the
+customizable variable `vc-annotate-display-mode'."
+		   (interactive)
+  (if mode (setq vc-annotate-display-mode mode))
+  (when buffer
+    (set-buffer buffer)
+    (display-buffer buffer))
+  (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
+      (vc-annotate-mode))
+  (cond ((null vc-annotate-display-mode) (vc-annotate-display-default 
+					  vc-annotate-ratio))
+	((symbolp vc-annotate-display-mode) ; One of the auto-scaling modes
+	 (cond ((eq vc-annotate-display-mode 'scale)
+		(vc-annotate-display-autoscale))
+	       ((eq vc-annotate-display-mode 'fullscale) 
+		(vc-annotate-display-autoscale t))
+	       (t (error "No such display mode: %s" 
+			 vc-annotate-display-mode))))
+	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
+	 (vc-annotate-display-default
+	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons 
+				       vc-annotate-color-map))))
+	(t (error "Error in display mode select"))))
 
 ;;;; (defun vc-BACKEND-annotate-command (file buffer) ...)
 ;;;;  Execute "annotate" on FILE by using `call-process' and insert
@@ -2918,19 +3017,19 @@ colors. `vc-annotate-background' specifies the background color."
   (interactive "P")
   (vc-ensure-vc-buffer)
   (let* ((temp-buffer-name (concat "*Annotate " (buffer-name) "*"))
-         (temp-buffer-show-function 'vc-annotate-display)
+         (temp-buffer-show-function 'vc-annotate-display-select)
          (rev (vc-workfile-version (buffer-file-name)))
          (vc-annotate-version 
           (if prefix (read-string 
                       (format "Annotate from version: (default %s) " rev) 
                       nil nil rev)
-            rev))
-         (vc-annotate-ratio 
-          (if prefix (string-to-number
-                      (read-string "Annotate ratio: (default 1.0) " 
-                                   nil nil "1.0"))
-            1.0))
-         (vc-annotate-backend (vc-backend (buffer-file-name))))
+            rev)))
+    (if prefix 
+        (setq vc-annotate-display-mode
+              (float (string-to-number
+                      (read-string "Annotate span days: (default 20) " 
+                                   nil nil "20")))))
+    (setq vc-annotate-backend (vc-backend (buffer-file-name)))
     (message "Annotating...")
     (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
 	(error "Sorry, annotating is not implemented for %s"
@@ -2946,7 +3045,6 @@ colors. `vc-annotate-background' specifies the background color."
 	  (append vc-annotate-buffers
 		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend))))
   (message "Annotating... done")))
-
 
 (defun vc-annotate-car-last-cons (a-list)
   "Return car of last cons in association list A-LIST."
@@ -2977,26 +3075,34 @@ nil otherwise"
      (setq i (+ i 1)))
    tmp-cons))				; Return the appropriate value
 
+(defun vc-annotate-convert-time (time)
+  "Convert high/low times, as returned by `current-time' and
+`encode-time', to a single floating point value in units of days.
+TIME is list, only the first two elements of TIME are considered,
+comprising the high 16 and low 16 bits of the number of seconds since
+Jan 1, 1970."
+  (/ (+ (* (float (car time)) (lsh 1 16)) (cadr time)) 24 3600))
 
-(defun vc-annotate-display (buffer &optional color-map backend)
-  "Do the VC-Annotate display in BUFFER using COLOR-MAP.
-The original annotating file is supposed to be handled by BACKEND.
-If BACKEND is NIL, variable VC-ANNOTATE-BACKEND is used instead.
-This function is destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
+(defun vc-annotate-difference (&optional offset)
+   "Calculate the difference, in days, from the current time and the
+time returned from the backend function annotate-time.  If OFFSET is
+set, use it as the time base instead of the current time."
+   (let ((next-time (vc-call-backend vc-annotate-backend 'annotate-time)))
+     (if next-time
+	 (- (or offset 
+		(vc-call-backend vc-annotate-backend 'annotate-current-time))
+	    next-time))))
 
-  ;; Handle the case of the global variable vc-annotate-ratio being
-  ;; set. This variable is used to pass information from function
-  ;; vc-annotate since it is not possible to use another parameter
-  ;; (see temp-buffer-show-function).
-  (if (and (not color-map) vc-annotate-ratio)
-      ;; This will only be true if called from vc-annotate with ratio
-      ;; being non-nil.
-      (setq color-map (vc-annotate-time-span vc-annotate-color-map
-					     vc-annotate-ratio)))
-  (set-buffer buffer)
-  (display-buffer buffer)
-  (if (not vc-annotate-mode)		; Turn on vc-annotate-mode if not done
-      (vc-annotate-mode))
+(defun vc-default-annotate-current-time (backend)
+  "Return the current time, encoded as fractional days."
+  (vc-annotate-convert-time (current-time)))
+  
+(defun vc-annotate-display (&optional color-map offset)
+  "Do the VC-Annotate display in BUFFER using COLOR-MAP, and time
+offset OFFSET (defaults to the present time).  You probably want
+`vc-annotate-select' instead, after setting
+`vc-annotate-display-mode'"
+  (save-excursion
   (goto-char (point-min))		; Position at the top of the buffer.
   ;; Delete old overlays
   (mapcar
@@ -3005,11 +3111,8 @@ This function is destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
 	 (delete-overlay overlay)))
    (overlays-in (point-min) (point-max)))
   (goto-char (point-min))		; Position at the top of the buffer.
-
-  (if backend (setq vc-annotate-backend backend)) ; Destructive on `vc-annotate-backend'
-
-  (let ((difference (vc-call-backend vc-annotate-backend 'annotate-difference (point))))
-    (while difference
+    (let (difference)
+      (while (setq difference (vc-annotate-difference offset))
       (let*
 	  ((color (or (vc-annotate-compcar
 		       difference (or color-map vc-annotate-color-map))
@@ -3021,16 +3124,15 @@ This function is destructive on VC-ANNOTATE-BACKEND when BACKEND is non-nil."
 		     (let ((tmp-face (make-face (intern face-name))))
 		       (set-face-foreground tmp-face (cdr color))
 		       (if vc-annotate-background
-			   (set-face-background tmp-face vc-annotate-background))
+			     (set-face-background tmp-face 
+						  vc-annotate-background))
 		       tmp-face)))	; Return the face
 	   (point (point))
 	   overlay)
 	(forward-line 1)
 	(setq overlay (make-overlay point (point)))
 	(overlay-put overlay 'face face)
-	(overlay-put overlay 'vc-annotation t))
-      (setq difference (vc-call-backend vc-annotate-backend 'annotate-difference (point))))))
-
+	  (overlay-put overlay 'vc-annotation t))))))
 
 ;; Collect back-end-dependent stuff here
 
