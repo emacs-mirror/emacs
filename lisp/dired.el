@@ -1486,8 +1486,10 @@ DIR must be a directory name, not a file name."
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
          ;; weiand: changed: year potentially unaligned
 ;;old			  s "\\(" HH:MM "\\|" s yyyy "\\|" yyyy s "\\)"))
-			  s "\\(" HH:MM "\\|" s "?" yyyy "\\|" yyyy s
-"\\)"))
+			  s "\\(" HH:MM 
+			          "\\|" yyyy s s "?"
+			          "\\|" s "?" yyyy
+			     "\\)"))
 	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
