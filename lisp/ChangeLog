@@ -1,3 +1,20 @@
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for ICCCM  Extended Segments in X selections:
+
+	* international/mule-conf.el (ctext-no-compositions): New coding
+	system.
+	(compount-text-no-extensions): Renamed from compound-text.
+	(x-ctext-no-extensions, ctext-no-extensions): Aliases for
+	compound-text-no-extensions.
+	(compound-text): Redefined using post-read and pre-write
+	conversions.
+
+	* international/mule.el (non-standard-icccm-encodings-alist)
+	(non-standard-designations-alist): New variables.
+	(ctext-post-read-conversion, ctext-pre-write-conversion): New
+	functions.
+
 2002-02-21  Andre Spiegel  <spiegel@gnu.org>
 
 	Patch by Jonathan Kamens <jik@kamens.brookline.ma.us>.
@@ -349,8 +366,8 @@
 	(menu-bar-options-save): Ditto.
 	(menu-bar-showhide-menu): Ditto.
 	(menu-bar-options-menu): Ditto.
-	(menu-bar-scroll-bar-right, menu-bar-scroll-bar-left,
-	menu-bar-scroll-bar-none): Removed.
+	(menu-bar-scroll-bar-right, menu-bar-scroll-bar-left)
+	(menu-bar-scroll-bar-none): Removed.
 	(menu-bar-showhide-scroll-bar-menu): Use customize aware lambda
 	expressions instead.
 
