@@ -1,3 +1,11 @@
+2000-02-21  Dave Love  <fx@gnu.org>
+
+	* frame.c (Vmouse_position_function): New variable.
+	(Fmouse_position): Use it.
+	(syms_of_frame): Install it.
+
+	* charset.c (find_charset_in_str): Fix use of `c' instead of `c1'.
+
 2000-02-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* fileio.c (Finsert_file_contents): Unbind the binding of
