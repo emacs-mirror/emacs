@@ -1,3 +1,8 @@
+2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* cus-start.el (x-use-underline-position-properties):
+	Allow customization.
+
 2002-02-04  Simon Josefsson  <jas@extundo.com>
 
 	* dired.el (dired-load-hook, dired-mode-hook) 

@@ -1,3 +1,7 @@
+2002-02-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* binhex.el (binhex-decoder-switches): Doc fix.
+
 2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-forward-rmail-make-body): Directly use
