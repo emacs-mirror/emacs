@@ -1,15 +1,12 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.38) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolams.c(trunk.39) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
  * 
- * .purpose: A canonical mark/sweep pool to be used as the basis for
- * other mark/sweep pools and for understanding the issues involved in
- * doing mark/sweep collection in the MPS framework.
- * 
  * .design: See design.mps.poolams.
+ *
  *
  * TRANSGRESSSIONS
  *
@@ -23,7 +20,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.38) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.39) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -635,7 +632,6 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   group->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   group->ambiguousFixes = FALSE;
 
-  /* d.m.p.condemn.white [can't locate this tag] */
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
 
   return ResOK;
@@ -901,7 +897,9 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
           /* design.mps.poolams.fix.to-black */
           Addr next;
 
+          ShieldExpose(PoolArena(pool), seg);
           next = (*pool->format->skip)(ref);
+          ShieldCover(PoolArena(pool), seg);
           /* Part of the object might be grey, because of ambiguous */
           /* fixes, but that's OK, because scan will ignore that. */
           AMSRangeWhiteBlacken(group, i, AMS_ADDR_INDEX(group, next));
