@@ -172,7 +172,7 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)\etags.exe $(INSTALL_DIR)\bin
 		$(CP) $(BLD)\ctags.exe $(INSTALL_DIR)\bin
 		$(CP) $(BLD)\hexl.exe $(INSTALL_DIR)\bin
-		$(CP) $(BLD)\wakeup.exe $(INSTALL_DIR)\bin\wakeup
+		$(CP) $(BLD)\wakeup.exe $(INSTALL_DIR)\bin
 		- mkdir $(INSTALL_DIR)\etc
 		$(CP) $(DOC) $(INSTALL_DIR)\etc
 
