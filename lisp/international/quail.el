@@ -1259,7 +1259,7 @@ The returned value is a Quail map specific to KEY."
       (quail-terminate-translation)))
 
 (defun quail-self-insert-command ()
-  "Translate the typed character to by the current Quail map."
+  "Translate the typed key by the current Quail map, and insert."
   (interactive "*")
   (setq quail-current-key
 	(concat quail-current-key (char-to-string last-command-event)))
