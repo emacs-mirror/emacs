@@ -36,10 +36,12 @@
 \\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
 instead) with no arguments.  It returns a string or nil if it cannot guess.")
 
+;;;###autoload
 (defvar add-log-full-name nil
   "*Full name of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by the `user-full-name' function.")
 
+;;;###autoload
 (defvar add-log-mailing-address nil
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
 This defaults to the value of `user-mail-address'.")
