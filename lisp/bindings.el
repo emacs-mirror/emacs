@@ -225,9 +225,9 @@ Normally nil in most modes, since there is no process to display.")
 		 'local-map (make-mode-line-mouse2-map #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)
      `(which-func-mode ("" which-func-format ,dashes))
-     `(line-number-mode ("L%l" ,dashes))
-     `(column-number-mode ("C%c" ,dashes))
-     (purecopy '(-3 . "%p"))
+     `(line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
+     `(column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
+     `(-3 . ,(propertize "%p" 'help-echo help-echo))
      (propertize "-%-" 'help-echo help-echo))))
 
 (defvar minor-mode-alist nil "\
