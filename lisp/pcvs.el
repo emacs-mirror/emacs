@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.1 2000/03/11 03:42:30 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.2 2000/03/22 02:56:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -57,6 +57,7 @@
 
 ;; ******** FIX THE DOCUMENTATION *********
 ;; 
+;; - proper `g' that passes safe args and uses either cvs-status or cvs-examine
 ;; - write cvs-fast-examine that parses CVS/Entries instead of running cvs
 ;;   we could even steal code from vc-cvs-hooks for that.
 ;; - add toolbar entries
@@ -760,9 +761,7 @@ RM-MSGS if non-nil means remove messages."
 		  (keep
 		   (case type
 		     ;; remove temp messages and keep the others
-		     (MESSAGE
-		      (or (memq subtype '(HEADER FOOTER))
-			  (not (or rm-msgs (eq subtype 'TEMP)))))
+		     (MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
 		     ;; remove entries
 		     (DEAD nil)
 		     ;; handled also?
@@ -782,7 +781,13 @@ RM-MSGS if non-nil means remove messages."
 			    (eq subtype 'FOOTER)))
 	       (setf (cvs-fileinfo->type last-fi) 'DEAD)
 	       (setq rerun t))
-	     (when keep (setq last-fi fi))))))))
+	     (when keep (setq last-fi fi)))))
+      ;; remove empty last dir
+      (when (and rm-dirs
+		 (not first-dir)
+		 (eq (cvs-fileinfo->type last-fi) 'DIRCHANGE))
+	(setf (cvs-fileinfo->type last-fi) 'DEAD)
+	(setq rerun t)))))
 
 (defun cvs-get-cvsroot ()
   "Gets the CVSROOT for DIR."
@@ -1673,7 +1678,9 @@ This command ignores files that are not flagged as `Unknown'."
     (when (ignore-errors
 	    (and buffer-read-only
 		 (eq 'CVS (vc-backend buffer-file-name))
-		 (not (vc-locking-user buffer-file-name))))
+		 (not (if (fboundp 'vc-editable-p)
+			  (vc-editable-p buffer-file-name)
+			(vc-locking-user buffer-file-name)))))
       ;; CVSREAD=on special case
       (vc-toggle-read-only))
     (goto-char (point-max))
@@ -1913,8 +1920,7 @@ With prefix argument, prompt for cvs flags."
 (defun cvs-dir-member-p (fileinfo dir)
   "Return true if FILEINFO represents a file in directory DIR."
   (and (not (eq (cvs-fileinfo->type fileinfo) 'DIRCHANGE))
-       (cvs-string-prefix-p dir (cvs-fileinfo->dir fileinfo))
-       (not (memq (cvs-fileinfo->subtype fileinfo) '(HEADER FOOTER)))))
+       (cvs-string-prefix-p dir (cvs-fileinfo->dir fileinfo))))
 
 (defun cvs-execute-single-file (fi extractor program constant-args)
   "Internal function for `cvs-execute-single-file-list'."
@@ -2005,8 +2011,7 @@ Anything else means to do it only if the prefix arg is equal to this value."
 		 (const :tag "Prefix" (4))))
 
 ;;;###autoload
-(progn
-(defun cvs-dired-noselect (dir)
+(progn (defun cvs-dired-noselect (dir)
   "Run `cvs-examine' if DIR is a CVS administrative directory.
 The exact behavior is determined also by `cvs-dired-use-hook'."
   (when (stringp dir)
@@ -2028,8 +2033,12 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
   (cvs-vc-command-advice "*vc-info*" (ad-get-arg 1) (ad-get-arg 3)))
 
 (defadvice vc-do-command (after pcl-cvs-vc activate)
-  (cvs-vc-command-advice (or (ad-get-arg 0) "*vc*")
-			 (ad-get-arg 2) (ad-get-arg 5)))
+  (cvs-vc-command-advice (if (eq t (ad-get-arg 0)) (current-buffer)
+			   (or (ad-get-arg 0) "*vc*"))
+			 (ad-get-arg 2)
+			 (if (stringp (ad-get-arg 4))
+			     (ad-get-arg 4)
+			   (ad-get-arg 5))))
 
 (defun cvs-vc-command-advice (buffer command cvscmd)
   (when (and (setq buffer (get-buffer buffer))
