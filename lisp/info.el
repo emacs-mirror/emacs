@@ -50,8 +50,8 @@ in paths.el.")
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
-variable INFODIR to initialize it, or `Info-default-directory-list'
-if there is no INFODIR variable in the environment.")
+variable INFOPATH to initialize it, or `Info-default-directory-list'
+if there is no INFOPATH variable in the environment.")
 
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.")
@@ -153,7 +153,6 @@ to read a file name from the minibuffer."
 		    Info-current-subfile nil
 		    buffer-file-name nil)
 	      (erase-buffer)
-	      (setq default-directory Info-directory)
 	      (if (eq filename t)
 		  (Info-insert-dir)
 		(insert-file-contents filename t)
@@ -232,35 +231,63 @@ to read a file name from the minibuffer."
 	  (goto-char (nth 2 hist)))))
   (goto-char (point-min)))
 
-;; Record the contents of the (virtual) dir file,
-;; once we have merged it for the first time,
-;; so we can save time subsequently.
+;; Cache the contents of the (virtual) dir file, once we have merged
+;; it for the first time, so we can save time subsequently.
 (defvar Info-dir-contents nil)
 
+;; Cache for the directory we decided to use for the default-directory
+;; of the merged dir text.
+(defvar Info-dir-contents-directory nil)
+
 ;; Construct the Info directory node by merging the files named `dir'
-;; from various directories.
+;; from various directories.  Set the *info* buffer's
+;; default-directory to the first directory we actually get any text
+;; from.
 (defun Info-insert-dir ()
   (if Info-dir-contents
       (insert Info-dir-contents)
     (let ((dirs Info-directory-list)
 	  buffers buffer others nodes)
-      ;; Search the directory list for file FILENAME.
+
+      ;; Search the directory list for the directory file.
       (while dirs
-	(setq temp (expand-file-name "dir" (car dirs)))
 	;; Try several variants of specified name.
-	;; Try downcasing, appending `.info', or both.
-	(cond ((file-exists-p temp)
-	       (setq buffers (cons (find-file-noselect temp) buffers)))
-	      ((file-exists-p (concat temp ".info"))
-	       (setq buffers (cons (find-file-noselect (concat temp ".info"))
-				   buffers))))
-	(setq dirs (cdr dirs)))
-      ;; Distinguish the dir file that comes with Emacs
-      ;; from all the others.
+	;; Try upcasing, appending `.info', or both.
+	(let (temp
+	      (buffer
+	       (cond
+		((progn (setq temp (expand-file-name "DIR" (car dirs)))
+			(file-exists-p temp))
+		 (find-file-noselect temp))
+		((progn (setq temp (expand-file-name "dir" (car dirs)))
+			(file-exists-p temp))
+		 (find-file-noselect temp))
+		((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
+			(file-exists-p temp))
+		 (find-file-noselect temp))
+		((progn (setq temp (expand-file-name "dir.info" (car dirs)))
+			(file-exists-p temp))
+		 (find-file-noselect temp)))))
+	  (if buffer (setq buffers (cons buffer buffers)))
+	  (setq dirs (cdr dirs))))
+
+      ;; Distinguish the dir file that comes with Emacs from all the
+      ;; others.  [This sounds like baloney - who knows what order
+      ;; Info-directory-list is in, especially after checking the
+      ;; INFOPATH variable, and why should Emacs's dir be special?  If
+      ;; you understand what this comment should have said, please
+      ;; change it.]
       (setq buffer (car buffers)
 	    others (cdr buffers))
-      ;; Insert the entire original dir file as a start.
+
+      ;; Insert the entire original dir file as a start; use its
+      ;; default directory as the default directory for the whole
+      ;; concatenation.
       (insert-buffer buffer)
+      (setq Info-dir-contents-directory (save-excursion
+					  (set-buffer buffer)
+					  default-directory))
+
       ;; Look at each of the other buffers one by one.
       (while others
 	(let ((other (car others)))
@@ -322,7 +349,8 @@ to read a file name from the minibuffer."
       (while buffers
 	(kill-buffer (car buffers))
 	(setq buffers (cdr buffers))))
-    (setq Info-dir-contents (buffer-string))))
+    (setq Info-dir-contents (buffer-string)))
+  (setq default-directory Info-dir-contents-directory))
 
 (defun Info-read-subfile (nodepos)
   (set-buffer (marker-buffer Info-tag-table-marker))
