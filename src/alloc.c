@@ -1197,8 +1197,26 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.")
   return val;
 }
 
+/* Make a string from NBYTES bytes at CONTENTS,
+   and compute the number of characters from the contents.  */
+
 Lisp_Object
-make_string (contents, length)
+make_string (contents, nbytes)
+     char *contents;
+     int nbytes;
+{
+  register Lisp_Object val;
+  int nchars = chars_in_text (contents, nbytes);
+  val = make_uninit_multibyte_string (nchars, nbytes);
+  bcopy (contents, XSTRING (val)->data, nbytes);
+  return val;
+}
+
+/* Make a string from LENGTH bytes at CONTENTS,
+   assuming each byte is a character.  */
+
+Lisp_Object
+make_unibyte_string (contents, length)
      char *contents;
      int length;
 {
@@ -1207,6 +1225,22 @@ make_string (contents, length)
   bcopy (contents, XSTRING (val)->data, length);
   return val;
 }
+
+/* Make a string from NCHARS characters occupying NBYTES bytes at CONTENTS.  */
+
+Lisp_Object
+make_multibyte_string (contents, nchars, nbytes)
+     char *contents;
+     int nchars, nbytes;
+{
+  register Lisp_Object val;
+  val = make_uninit_multibyte_string (nchars, nbytes);
+  bcopy (contents, XSTRING (val)->data, nbytes);
+  return val;
+}
+
+/* Make a string from the data at STR,
+   treating it as multibyte if the data warrants.  */
 
 Lisp_Object
 build_string (str)
@@ -1219,8 +1253,15 @@ Lisp_Object
 make_uninit_string (length)
      int length;
 {
+  return make_uninit_multibyte_string (length, length);
+}
+
+Lisp_Object
+make_uninit_multibyte_string (length, length_byte)
+     int length, length_byte;
+{
   register Lisp_Object val;
-  register int fullsize = STRING_FULLSIZE (length);
+  register int fullsize = STRING_FULLSIZE (length_byte);
 
   if (length < 0) abort ();
 
@@ -1276,7 +1317,8 @@ make_uninit_string (length)
     
   string_chars_consed += fullsize;
   XSTRING (val)->size = length;
-  XSTRING (val)->data[length] = 0;
+  XSTRING (val)->size_byte = length_byte;
+  XSTRING (val)->data[length_byte] = 0;
   INITIALIZE_INTERVAL (XSTRING (val), NULL_INTERVAL);
 
   return val;
@@ -1329,19 +1371,22 @@ make_event_array (nargs, args)
  then the string is not protected from gc. */
 
 Lisp_Object
-make_pure_string (data, length)
+make_pure_string (data, length, length_byte)
      char *data;
      int length;
+     int length_byte;
 {
   register Lisp_Object new;
-  register int size = sizeof (EMACS_INT) + INTERVAL_PTR_SIZE + length + 1;
+  register int size = (2 * sizeof (EMACS_INT)
+		       + INTERVAL_PTR_SIZE + length_byte + 1);
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
   XSETSTRING (new, PUREBEG + pureptr);
   XSTRING (new)->size = length;
-  bcopy (data, XSTRING (new)->data, length);
-  XSTRING (new)->data[length] = 0;
+  XSTRING (new)->size_byte = length_byte;
+  bcopy (data, XSTRING (new)->data, length_byte);
+  XSTRING (new)->data[length_byte] = 0;
 
   /* We must give strings in pure storage some kind of interval.  So we
      give them a null one.  */
@@ -1445,7 +1490,8 @@ Does not copy symbols.")
     return make_pure_float (XFLOAT (obj)->data);
 #endif /* LISP_FLOAT_TYPE */
   else if (STRINGP (obj))
-    return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size);
+    return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
+			     XSTRING (obj)->size_byte);
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
@@ -2539,6 +2585,7 @@ compact_strings ()
 
 	  register struct Lisp_String *newaddr;
 	  register EMACS_INT size = nextstr->size;
+	  EMACS_INT size_byte = nextstr->size_byte;
 
 	  /* NEXTSTR is the old address of the next string.
 	     Just skip it if it isn't marked.  */
@@ -2553,7 +2600,7 @@ compact_strings ()
 		  size = *(EMACS_INT *)size & ~MARKBIT;
 		}
 
-	      total_string_size += size;
+	      total_string_size += size_byte;
 
 	      /* If it won't fit in TO_SB, close it out,
 		 and move to the next sb.  Keep doing so until
@@ -2562,7 +2609,7 @@ compact_strings ()
 		 since FROM_SB is large enough to contain this string.
 		 Any string blocks skipped here
 		 will be patched out and freed later.  */
-	      while (to_pos + STRING_FULLSIZE (size)
+	      while (to_pos + STRING_FULLSIZE (size_byte)
 		     > max (to_sb->pos, STRING_BLOCK_SIZE))
 		{
 		  to_sb->pos = to_pos;
@@ -2572,12 +2619,11 @@ compact_strings ()
 	      /* Compute new address of this string
 		 and update TO_POS for the space being used.  */
 	      newaddr = (struct Lisp_String *) &to_sb->chars[to_pos];
-	      to_pos += STRING_FULLSIZE (size);
+	      to_pos += STRING_FULLSIZE (size_byte);
 
 	      /* Copy the string itself to the new place.  */
 	      if (nextstr != newaddr)
-		bcopy (nextstr, newaddr, size + 1 + sizeof (EMACS_INT)
-		       + INTERVAL_PTR_SIZE);
+		bcopy (nextstr, newaddr, STRING_FULLSIZE (size_byte));
 
 	      /* Go through NEXTSTR's chain of references
 		 and make each slot in the chain point to
@@ -2613,7 +2659,7 @@ compact_strings ()
 		}
 #endif /* USE_TEXT_PROPERTIES */
 	    }
-	  pos += STRING_FULLSIZE (size);
+	  pos += STRING_FULLSIZE (size_byte);
 	}
     }
 
