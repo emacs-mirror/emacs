@@ -63,29 +63,11 @@ This function works by modifying `process-environment'."
   (interactive
    (if current-prefix-arg
        (list (read-envvar-name "Clear environment variable: " 'exact) nil t)
-     (let* ((var (read-envvar-name "Set environment variable: " nil))
-	    (oldval (getenv var))
-	    newval
-	    oldhist)
-       ;; Don't put the current value on the history
-       ;; if it is already there.
-       (if (equal oldval (car setenv-history))
-	   (setq oldval nil))
-       ;; Now if OLDVAL is non-nil, we should add it to the history.
-       (if oldval
-	   (setq setenv-history (cons oldval setenv-history)))
-       (setq oldhist setenv-history)
-       (setq newval (read-from-minibuffer (format "Set %s to value: " var)
-					  nil nil nil 'setenv-history))
-       ;; If we added the current value to the history, remove it.
-       ;; Note that read-from-minibuffer may have added the new value.
-       ;; Don't remove that!
-       (if oldval
-	   (if (eq oldhist setenv-history)
-	       (setq setenv-history (cdr setenv-history))
-	     (setcdr setenv-history (cdr (cdr setenv-history)))))
+     (let ((var (read-envvar-name "Set environment variable: " nil)))
        ;; Here finally we specify the args to give call setenv with.
-       (list var newval))))
+       (list var (read-from-minibuffer (format "Set %s to value: " var)
+				       nil nil nil 'setenv-history
+				       (getenv var))))))
   (if unset (setq value nil))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable)
