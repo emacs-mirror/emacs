@@ -246,7 +246,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "french-prefix" "Latin-1" "FR>" t
+ "french-prefix" "French" "FR>" t
  "French (Fran,Ag(Bais) input method with prefix modifiers
 
     effect   | prefix | examples
@@ -342,7 +342,7 @@ Key translation rules are:
  ("''" ?') ("\"\"" ?\"))
 
 (quail-define-package
- "german-prefix" "Latin-1" "DE>" t
+ "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
  \"A -> ,AD(B ->   \"O -> ,AV(B   \"U -> ,A\(B   \"s -> ?,A_(B
@@ -432,7 +432,7 @@ Key translation rules are:
 )
 
 (quail-define-package
- "spanish-prefix" "Latin-1" "ES>" t
+ "spanish-prefix" "Spanish" "ES>" t
  "Spanish (Espa,Aq(Bol) input method with prefix modifiers
 
     effect   | prefix | examples
