@@ -1,3 +1,10 @@
+2002-12-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (LATIN): Add welsh.elc.
+	(MISC): Add georgian.elc.
+	(UNICODE): Add it.
+	(WORLD): Add $(UNICODE).
+
 2002-11-14  Dave Love  <fx@gnu.org>
 
 	* quail/slovak.el: Add coding cookie.
@@ -130,19 +137,19 @@
 
 2001-12-15  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("french-prefix", "german-prefix") 
+	* quail/latin-pre.el ("french-prefix", "german-prefix")
 	("spanish-prefix"): Fix language assignment.
 
-	* quail/latin-post.el ("french-postfix", "german-postfix") 
-	("spanish-postfix", "turkish-latin-3-postfix", "turkish-postfix") 
-	("french-keyboard", "french-azerty", "german") 
+	* quail/latin-post.el ("french-postfix", "german-postfix")
+	("spanish-postfix", "turkish-latin-3-postfix", "turkish-postfix")
+	("french-keyboard", "french-azerty", "german")
 	("spanish-keyboard"): Fix language assignment.
 
 	* quail/indian.el: Don't require cl.
 	(quail-indian-flatten-list): Renamed from flatten-list.
 
-	* quail/cyrillic.el ("cyrillic-beylorussian") 
-	("cyrillic-ukrainian", "cyrillic-translit-bulgarian") 
+	* quail/cyrillic.el ("cyrillic-beylorussian")
+	("cyrillic-ukrainian", "cyrillic-translit-bulgarian")
 	("belarusian", "bulgarian-pho"): Fix language assignment.
 
 	* quail/latin-alt.el ("french-alt-postfix", "german-alt-postfix")
