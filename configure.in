@@ -696,7 +696,7 @@ case "${canonical}" in
     esac
   ;;
   sparc-*-nextstep* )
-    machine=sparc.h opsys=nextstep.h
+    machine=sparc opsys=nextstep
   ;;
 
   ## Tadpole 68k
