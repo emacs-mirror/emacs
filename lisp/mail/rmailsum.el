@@ -186,7 +186,7 @@ nil for FUNCTION means all messages."
 	    (setq buffer-read-only t)
 	    (rmail-summary-mode)
 	    (make-local-variable 'minor-mode-alist)
-	    (setq minor-mode-alist (list ": " description))
+	    (setq minor-mode-alist (list '(t (concat ": " description))))
 	    (setq rmail-buffer rbuf
 		  rmail-summary-redo redo-form
 		  rmail-total-messages total))))
@@ -362,7 +362,7 @@ With optional prefix argument NUMBER, moves forward this number of non-deleted
 messages, or backward if NUMBER is negative."
   (interactive "p")
   (forward-line 0)
-  (and (> number 0) (forward-line 1))
+  (and (> number 0) (end-of-line))
   (let ((count (if (< number 0) (- number) number))
 	(search (if (> number 0) 're-search-forward 're-search-backward))
 	(non-del-msg-found nil))
@@ -370,6 +370,7 @@ messages, or backward if NUMBER is negative."
 				  (or (funcall search "^.....[^D]" nil t)
 				      non-del-msg-found)))
       (setq count (1- count))))
+  (beginning-of-line)
   (display-buffer rmail-buffer))
 
 (defun rmail-summary-previous-msg (&optional number)
@@ -677,24 +678,30 @@ Instead, all of the Rmail Mode commands are available, plus:
   (interactive)
   (save-excursion
     (set-buffer rmail-buffer)
-    (rmail-only-expunge)
+    (rmail-only-expunge))
+  (rmail-update-summary)
+  (save-excursion
     (set-buffer rmail-buffer)
-    (save-buffer))
-  (rmail-update-summary))
+    (save-buffer)))
 
 (defun rmail-summary-get-new-mail ()
   "Get new mail and recompute summary headers."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (rmail-get-new-mail)))
+  (let (msg)
+    (save-excursion
+      (set-buffer rmail-buffer)
+      (rmail-get-new-mail)
+      ;; Get the proper new message number.
+      (setq msg rmail-current-message))
+    ;; Make sure that message is displayed.
+    (rmail-summary-goto-msg msg)))
 
 (defun rmail-summary-input (filename)
   "Run Rmail on file FILENAME."
   (interactive "FRun rmail on RMAIL file: ")
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (rmail filename)))
+  ;; We switch windows here, then display the other Rmail file there.
+  (pop-to-buffer rmail-buffer)
+  (rmail filename))
 
 (defun rmail-summary-first-message ()
   "Show first message in Rmail file from summary buffer."
