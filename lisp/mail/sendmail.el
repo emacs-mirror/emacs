@@ -686,7 +686,7 @@ If within the headers, this makes the new lines into continuation lines."
 
 ;; User-level commands for sending.
 
-(defun mail-send-and-exit (arg)
+(defun mail-send-and-exit (&optional arg)
   "Send message like `mail-send', then, if no errors, exit from mail buffer.
 Prefix arg means don't delete this window."
   (interactive "P")
