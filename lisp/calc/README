@@ -1,16 +1,17 @@
 
-This directory contains version 2.02c of Calc, an advanced desk
-calculator for GNU Emacs.
+This directory contains Calc, an advanced desk calculator for GNU
+Emacs.
 
-"Calc"  Copyright 1990, 1991, 1992, 1993  Free Software Foundation, Inc.
+"Calc"  Copyright 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
-Written and maintained by:   Dave Gillespie
-			     c/o Synaptics, Inc.
-			     2698 Orchard Parkway
-			     San Jose CA 95134
-			     daveg@synaptics.com, uunet!synaptx!daveg
+Written by:
+	Dave Gillespie
+	c/o Synaptics, Inc.
+	2698 Orchard Parkway
+	San Jose CA 95134
+	daveg@synaptics.com, uunet!synaptx!daveg
 
-
+Currently maintained by: Colin Walters <walters@debian.org>
 
 From the introduction to the manual:
 
@@ -47,23 +48,6 @@ From the introduction to the manual:
 
     * Easy programming using keyboard macros, algebraic formulas,
       algebraic rewrite rules, or extended Emacs Lisp.
-
-
-
-
-To install Calc:
-
-  1. Type "uncompress calc-2.02.tar.Z"
-
-  2. Type "tar xvf calc-2.02.tar"
-
-1,2. Alternatively: "zcat calc-2.02.tar.Z | tar xvf -"
-
-  3. Note that the Calc tar file now creates a "calc-2.02" subdirectory
-     of the current directory in which to place its files.
-
-  4. Follow the instructions in the file "INSTALL".
-
 
 
 Calc is written entirely in Emacs Lisp, for maximum portability.
