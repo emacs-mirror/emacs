@@ -1930,6 +1930,7 @@ set_frame_menubar (f, first_time, deep_p)
       FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
       items = FRAME_MENU_BAR_ITEMS (f);
+      inhibit_garbage_collection ();
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)

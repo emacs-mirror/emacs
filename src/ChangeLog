@@ -1,5 +1,8 @@
 2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xmenu.c (set_frame_menubar): Reintroduce inhibit_garbage_collection
+	from 1.233 so that strings from ENCODE_UTF_8 isn't GC:ed before used.
+
 	* gtkutil.c (xg_create_frame_widgets): Compensate for tool bar when
 	tool bar items is 0.
 
