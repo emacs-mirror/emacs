@@ -790,7 +790,7 @@ Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
 @end defopt
 
   These variables are used for detecting and reporting circular
-and shared structure---but they are only defined in Emacs 21.
+and shared structure:
 
 @tindex print-circle
 @defvar print-circle
