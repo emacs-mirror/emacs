@@ -1,10 +1,10 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.4 2000/07/21 13:52:19 fx Exp $
+;; Revision: $Id: smerge-mode.el,v 1.5 2000/08/16 19:51:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -77,25 +77,37 @@ Used in `smerge-diff-base-mine' and related functions."
   :type 'boolean)
 
 (defface smerge-mine-face
-  '((t (:foreground "blue")))
+  '((((background light))
+     (:foreground "blue"))
+    (((background dark))
+     (:foreground "cyan")))
   "Face for your code."
   :group 'smerge)
 (defvar smerge-mine-face 'smerge-mine-face)
 
 (defface smerge-other-face
-  '((t (:foreground "darkgreen")))
+  '((((background light))
+     (:foreground "darkgreen"))
+    (((background dark))
+     (:foreground "lightgreen")))
   "Face for the other code."
   :group 'smerge)
 (defvar smerge-other-face 'smerge-other-face)
 
 (defface smerge-base-face
-  '((t (:foreground "red")))
+  '((((background light))
+     (:foreground "red"))
+    (((background dark))
+     (:foreground "orange")))
   "Face for the base code."
   :group 'smerge)
 (defvar smerge-base-face 'smerge-base-face)
 
 (defface smerge-markers-face
-  '((t (:background "grey85")))
+  '((((background light))
+     (:background "grey85"))
+    (((background dark))
+     (:background "grey30")))
   "Face for the conflict markers."
   :group 'smerge)
 (defvar smerge-markers-face 'smerge-markers-face)
@@ -460,6 +472,9 @@ The point is moved to the end of the conflict."
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.5  2000/08/16 19:51:55  monnier
+;; (smerge-mode-menu): Doc fix.
+;;
 ;; Revision 1.4  2000/07/21 13:52:19  fx
 ;; (smerge-mode-menu): Fill it out.
 ;;
