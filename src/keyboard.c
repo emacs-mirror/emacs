@@ -474,6 +474,8 @@ EMACS_TIME timer_check ();
 
 extern char *x_get_keysym_name ();
 
+static void record_menu_key ();
+
 Lisp_Object Qpolling_period;
 
 /* List of absolute timers.  Appears in order of next scheduled event.  */
@@ -1902,7 +1904,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Don't bring up a menu if we already have another event.  */
       && NILP (Vunread_command_events)
       && unread_command_char < 0)
-    c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
+    {
+      c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
+
+      /* Now that we have read an event, Emacs is not idle.  */
+      timer_stop_idle ();
+
+      return c;
+    }
 
   /* Maybe autosave and/or garbage collect due to idleness.  */
 
@@ -2212,6 +2221,39 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   return c;
+}
+
+/* Record a key that came from a mouse menu.
+   Record it for echoing, for this-command-keys, and so on.  */
+
+static void
+record_menu_key (c)
+     Lisp_Object c;
+{
+  /* Wipe the echo area.  */
+  echo_area_glyphs = 0;
+
+  record_char (c);
+
+  before_command_key_count = this_command_key_count;
+  before_command_echo_length = echo_length ();
+
+  /* Don't echo mouse motion events.  */
+  if (echo_keystrokes)
+    {
+      echo_char (c);
+
+      /* Once we reread a character, echoing can happen
+	 the next time we pause to read a new one.  */
+      ok_to_echo_at_next_pause = 0;
+    }
+
+  /* Record this character as part of the current key.  */
+  add_command_key (c);
+
+  /* Re-reading in the middle of a command */
+  last_input_char = c;
+  num_input_chars++;
 }
 
 /* Return 1 if should recognize C as "the help character".  */
@@ -5374,6 +5416,8 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  Lisp_Object tem;
 
+	  record_menu_key (XCONS (value)->car);
+
 	  /* If we got multiple events, unread all but
 	     the first.
 	     There is no way to prevent those unread events
@@ -5384,10 +5428,13 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	     they won't confuse things.  */
 	  for (tem = XCONS (value)->cdr; !NILP (tem);
 	       tem = XCONS (tem)->cdr)
-	    if (SYMBOLP (XCONS (tem)->car)
-		|| INTEGERP (XCONS (tem)->car))
-	      XCONS (tem)->car
-		= Fcons (XCONS (tem)->car, Qnil);
+	    {
+	      record_menu_key (XCONS (tem)->car);
+	      if (SYMBOLP (XCONS (tem)->car)
+		  || INTEGERP (XCONS (tem)->car))
+		XCONS (tem)->car
+		  = Fcons (XCONS (tem)->car, Qnil);
+	    }
 
 	  /* If we got more than one event, put all but the first
 	     onto this list to be read later.
