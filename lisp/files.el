@@ -1193,15 +1193,17 @@ This function ensures that none of these modifications will take place."
 	(coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
 	(find-buffer-file-type-function
-	 (if (fboundp 'find-buffer-file-type)
-	     (symbol-function 'find-buffer-file-type)
-	   nil))
-	(inhibit-file-name-handlers '(jka-compr-handler image-file-handler))
-	(inhibit-file-name-operation 'insert-file-contents))
+         (if (fboundp 'find-buffer-file-type)
+             (symbol-function 'find-buffer-file-type)
+           nil))
+        (inhibit-file-name-handlers
+         (append '(jka-compr-handler image-file-handler)
+                 inhibit-file-name-handlers))
+        (inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect
-	(progn
-	  (fset 'find-buffer-file-type (lambda (filename) t))
-	  (insert-file-contents filename visit beg end replace))
+         (progn
+           (fset 'find-buffer-file-type (lambda (filename) t))
+           (insert-file-contents filename visit beg end replace))
       (if find-buffer-file-type-function
 	  (fset 'find-buffer-file-type find-buffer-file-type-function)
 	(fmakunbound 'find-buffer-file-type)))))
