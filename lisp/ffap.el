@@ -1240,9 +1240,7 @@ which may actually result in an url rather than a filename."
   ;; Note: t and non-nil mean somewhat different reasons.
   (if (eq minibuffer-completion-table 'ffap-read-file-or-url-internal)
       (not (ffap-url-p (buffer-string))) ; t
-    (memq minibuffer-completion-table
-	  '(read-file-name-internal read-directory-name-internal)) ; list
-    ))
+    (and minibuffer-completing-file-name '(t)))) ;list
 
 (and
  (featurep 'complete)
