@@ -63,7 +63,9 @@ extern int sys_nerr;
 
 #ifdef HPUX
 #include <netio.h>
+#ifndef HPUX8
 #include <errnet.h>
+#endif
 #endif
 
 #ifndef O_WRONLY
@@ -2014,13 +2016,9 @@ before the error is signaled.")
 
   signal_after_change (point, 0, inserted);
   
-  {
-    Lisp_Object result = Fcons (filename,
-				Fcons (make_number (inserted),
-				       Qnil));
-    UNGCPRO;
-    return result;
-  }
+  RETURN_UNGCPRO (Fcons (filename,
+			 Fcons (make_number (inserted),
+				Qnil)));
 }
 
 DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 5,
