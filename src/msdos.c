@@ -64,6 +64,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "blockinput.h"
 #include "keyboard.h"
+#include "intervals.h"
 #include <go32.h>
 #include <pc.h>
 #include <ctype.h>
