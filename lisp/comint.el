@@ -1490,8 +1490,8 @@ This variable is permanent-local.")
 	      ;; inserted with insert-before-markers?), and only make
 	      ;; a new overlay if it hasn't.
 	      (unless (and comint-last-output-overlay
-			   (= (overlay-end comint-last-output-overlay)
-			      (point)))
+			   (equal (overlay-end comint-last-output-overlay)
+				  (point)))
 		;; Create a new overlay
 		(let ((over (make-overlay ostart (point))))
 		  (overlay-put over 'field 'output)
