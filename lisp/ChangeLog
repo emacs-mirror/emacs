@@ -1,3 +1,8 @@
+2002-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (charset-script-alist): Fix script
+	names.
+
 2002-10-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/latin-1.el: Bind set-case-syntax-charset to
