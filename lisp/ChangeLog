@@ -1,4 +1,4 @@
-2000-07-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-07-19  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mail-utils.el (mail-strip-quoted-names): 
 	Handle case where <...> appears inside "...".
@@ -424,7 +424,7 @@
 
 	* hilit19.el (hilit-lookup-face-create): Don't set face colors to nil.
 
-2000-07-03  Richard Stallman  <rms@caffeine.ai.mit.edu>
+2000-07-03  Richard Stallman  <rms@gnu.org>
 
 	* window.el (walk-windows): Guarantee termination by keeping a list
 	of all the windows already handled.
@@ -2579,7 +2579,7 @@
 	* ps-mule.el: Customization fix, doc fix.
 	(ps-multibyte-buffer): Customization fix.
 
-2000-04-17  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-04-17  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (read-passwd): Use read-char-exclusive.
 
@@ -3296,7 +3296,7 @@
 	* jit-lock.el (with-buffer-prepared-for-font-lock): Add comment
 	about behavior of set-buffer-modified-p wrt redisplay.
 
-2000-03-19  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-03-19  Richard M. Stallman  <rms@gnu.org>
 
 	* view.el (view-mode-disable): Kill local binding of view-read-only.
 
@@ -3792,7 +3792,7 @@
 	* emacs-lisp/cl-indent.el (toplevel): Indent `pprint-logical-block'
 	properly.
 
-2000-02-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-02-25  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-resend): Verify buffer is really Rmail.
 
@@ -4649,13 +4649,13 @@
 	* term/w32-win.el (w32_create_initial_fontsets): Disabled as it
 	conflicts with new face support.
 
-2000-01-22  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-22  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace): Rename last arg to DELIMITED.
 	(map-query-replace-regexp, query-replace-regexp-eval): Likewise.
 	(query-replace-regexp): Likewise.
 
-2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-20  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (with-syntax-table): Use make-symbol, not gensym.
 
@@ -4720,7 +4720,7 @@
 	(frame-notice-user-settings): Don't modify frame parameters
 	if called a second time.
 
-2000-01-13  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.el (frame-notice-user-settings):
 	Notice default-frame-parameters even for non-window frames.
@@ -4758,7 +4758,7 @@
 	eval-expression-debug-on-error is non-nil,
 	(eval-expression-debug-on-error): Change doc string.
 
-2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (with-syntax-table): Add a def-edebug-spec.
 
@@ -4778,7 +4778,7 @@
 	(fill-context-prefix): Use the longest common prefix of first
 	and second line fill prefix, if there is one.
 
-2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* array.el (array-mode): Don't use make-variable-buffer-local.
 	Use make-local-variable for `truncate-lines'.
@@ -4858,7 +4858,7 @@
 	starting with math characters.  Doesn't resend a line already sent
 	to ispell process.  Fixes alignment error bug.
 
-2000-01-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-01-10  Richard M. Stallman  <rms@gnu.org>
 
 	* dired-x.el (dired-guess-shell-alist-default):
 	Suggest xloadimage, which is free, not xv, which isn't.
@@ -5099,7 +5099,7 @@
 	(image-type-from-file-header): Use it.
 	(create-image): Add parameter DATA-P.
 
-1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* echistory.el (electric-command-history): Call Command-history-setup
 	and command-history-mode using their new conventions.
@@ -5112,7 +5112,7 @@
 	Command-history-setup.
 	(command-history): Renamed from command-history-mode.
 
-1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* arc-mode.el (archive-mode-map): Bind q to quit-window.
 
@@ -5121,12 +5121,12 @@
 	* image.el (defimage): Images with the `:data' keyword should be
 	considered valid as well.
 
-1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-get-filename): Don't call file-name-absolute-p
 	with FILE if FILE is nil.
 
-1999-12-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-30  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (choose-completion-string): In minibuffer,
 	do not delete the prompt string.
@@ -5142,7 +5142,7 @@
 	* expand.el (expand-abbrev-hook): Return t if expansion was
 	done, nil otherwise.
 
-1999-12-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* tar-mode.el (tar-mode-map): Bind q to quit-window, not tar-quit.
 	(tar-quit): Function deleted.
@@ -5173,13 +5173,13 @@
 
 	* bs.el: New file.
 
-1999-12-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-28  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-process-line):
 	Add local var line-offset to adjust for the change
 	in positions within the line, due to previous replacements.
 
-1999-12-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* lpr.el (lpr-buffer, print-buffer, lpr-region, print-region):
 	Doc fixes.
@@ -5254,7 +5254,7 @@
 
 	When constructing menu, use `[(shift button2)]' notation.
 
-1999-12-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* jka-compr.el (jka-compr-info-file-magic-bytes): New function.
 	(jka-compr-compression-info-list): Add new elt to each vector.
@@ -6052,7 +6052,7 @@
 	* help.el (where-is): Use `commandp' as predicate for
 	`completing-read'
 
-1999-12-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-10  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-save-delete): Delete all occurrences,
 	leave point where the first occurrence was.
@@ -6091,7 +6091,7 @@
 	(font-lock-fontify-keywords-region): Only handle multiline strings
 	if necessary (avoids a pathological behavior in (f.ex) diff-mode).
 
-1999-12-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* bookmark.el (bookmark-bmenu-mode-map): Bind RET like f.
 
@@ -6330,7 +6330,7 @@
 
 	* delsel.el: Grok skeleton-pair-insert-maybe.
 
-1999-11-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-30  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-under-as-char):
 	Use nil as default.
@@ -6373,7 +6373,7 @@
 
 	* emacs-lisp/advice.el: Fix last change.
 
-1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (Custom-reset-standard): Doc fix.
 	(custom-variable-reset-standard): Doc fix.
@@ -6397,13 +6397,13 @@
 	(add-log-current-defun): Use
 	fortran-{beginning,end}-of-subprogram.
 
-1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/advice.el: Many doc fixes.
 
 	* comint.el (comint-preoutput-filter-functions): Doc fix.
 
-1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
 	Improve messages for capitalization of arg names,
@@ -6418,7 +6418,7 @@
 	(checkdoc-triple-semi-comment-check-flag): Variable deleted.
 	(checkdoc-comments): Don't bind that variable.
 
-1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (write-file-hooks): Doc fix.
 
@@ -6618,7 +6618,7 @@
 	quickurl-completion-ignore-case for the duration of the call to
 	completing-read.
 
-1999-11-18  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-18  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmailedit.el (rmail-cease-edit): Run rmail-mode-hook.
 
@@ -6850,7 +6850,7 @@
 	* diary-lib.el (simple-diary-display): Reset modeline even if
 	there are no diary entries since the diary buffer may be displayed.
 
-1999-11-03  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-03  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/debug.el (debug): If noninteractive, display the
 	backtrace using `message', then exit Emacs.
@@ -6873,7 +6873,7 @@
 	* dired-x.el (dired-smart-shell-command): Use
 	shell-command-history as in shell-command.
 
-1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* userlock.el (ask-user-about-lock): Doc fix.
 
@@ -6887,7 +6887,7 @@
 
 	* textmodes/tex-mode.el (tex-default-mode): Changed to latex-mode.
 
-1999-11-01  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* window.el (walk-windows): If ALL-FRAMES is a frame,
 	start on that frame.  Use save-selected-window.
@@ -7030,12 +7030,12 @@
 	* ange-ftp.el (ange-ftp-insert-file-contents): Don't change
 	last-coding-system-used by the call of ange-ftp-set-ascii-mode.
 
-1999-10-24  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-24  Richard M. Stallman  <rms@gnu.org>
 
 	* window.el (walk-windows): If ALL-FRAMES is a frame,
 	start on that frame.  Use save-selected-window.
 
-1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-27  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/advice.el (ad-activate-internal): Renamed from
 	ad-activate.  All callers changed, including those in data.c.
@@ -7072,7 +7072,7 @@
 	* info.el (Info-build-node-completions): Add '("*") to the
 	completion list.
 
-1999-10-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-25  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.el (auto-raise-mode): When enabling the mode,
 	immediately raise the selected frame.
@@ -7402,7 +7402,7 @@
 	* smtpmail.el (smtpmail-via-smtp): Add support for
 	automatically appending a domain to RCPT TO: addresses.
 
-1999-10-14  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-14  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-insert-directory): Insert the amount of
 	free space after the total size.
@@ -7642,7 +7642,7 @@
 
 	* help-macro.el (three-step-help): Customize.
 
-1999-10-04  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-10-04  Richard M. Stallman  <rms@gnu.org>
 
 	* hexl.el (hexlify-buffer): Move point in proper range
 	if it is too large.
@@ -7689,7 +7689,7 @@
 	(sql-interactive-mode): Use ?_ and ?. instead of 95 and 46 when
 	setting font-lock-defaults' SYNTAX-ALIST.
 
-1999-09-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-28  Richard M. Stallman  <rms@gnu.org>
 
 	* map-ynp.el (map-y-or-n-p): If we read -1, for end of keyboard
 	macro, try again.
@@ -7704,11 +7704,11 @@
 	(custom-variable-reset-standard, custom-face-set)
 	(custom-face-save): Use it.
 
-1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-27  Richard M. Stallman  <rms@gnu.org>
 
 	* hexl.el (hexl-mode): Do nothing if already in hexl mode.
 
-1999-09-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-27  Richard M. Stallman  <rms@gnu.org>
 
 	* faces.el (region): Doc fix.
 
@@ -7745,7 +7745,7 @@
 	* dired.el (dired-move-to-filename-regexp): Make it work
 	for LANG=de_DE.iso88591 on HPUX 11.0.
 
-1999-09-24  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-09-24  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (info-initialize): Don't test existence of ALTERNATIVE
 	if we know for some other reason it should not be used.
@@ -10703,7 +10703,7 @@
 
 	* progmodes/sql.el (SQL): Add defgroup :version.
 
-1999-03-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-03-31  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Clear
 	buffer-file-coding-system.  If the coding system used is raw-text,
