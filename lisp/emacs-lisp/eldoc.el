@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date: 1995/11/12 21:04:08 $|$Revision: 1.1 $|~/misc/eldoc.el.gz|
+;; $Date: 1995/11/13 01:37:40 $|$Revision: 1.2 $|~/misc/eldoc.el.gz|
 
-;; $Id: eldoc.el,v 1.1 1995/11/12 21:04:08 friedman Rel friedman $
+;; $Id: eldoc.el,v 1.2 1995/11/13 01:37:40 friedman Exp friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -115,11 +115,14 @@ It is probably best to manipulate this data structure with the commands
 ;; be printed again if necessary without reconsing.
 (defvar eldoc-last-data '(nil . nil))
 
+(defvar eldoc-minor-mode-string " ElDoc"
+  "*String to display in mode line when Eldoc Mode is enabled.")
+
 ;; Put this minor mode on the global minor-mode-alist.
 (or (assq 'eldoc-mode (default-value 'minor-mode-alist))
     (setq-default minor-mode-alist
                   (append (default-value 'minor-mode-alist)
-                          '((eldoc-mode " ElDoc")))))
+                          '((eldoc-mode eldoc-minor-mode-string)))))
 
 
 ;;;###autoload
