@@ -1125,13 +1125,27 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
   while (1)
     {
-      cursor_in_echo_area = 1;
-      message ("%s(y or n) ", XSTRING (xprompt)->data);
+      if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+	{
+	  Lisp_Object pane, menu;
+	  pane = Fcons (Fcons (build_string ("Yes"), Qt),
+			Fcons (Fcons (build_string ("No"), Qnil),
+			       Qnil));
+	  menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
+	  obj = Fx_popup_menu (Qt, menu);
+	  answer = !NILP (obj);
+	  break;
+	}
+      else
+	{
+	  cursor_in_echo_area = 1;
+	  message ("%s(y or n) ", XSTRING (xprompt)->data);
 
-      obj = read_filtered_event (1, 0, 0);
-      cursor_in_echo_area = 0;
-      /* If we need to quit, quit with cursor_in_echo_area = 0.  */
-      QUIT;
+	  obj = read_filtered_event (1, 0, 0);
+	  cursor_in_echo_area = 0;
+	  /* If we need to quit, quit with cursor_in_echo_area = 0.  */
+	  QUIT;
+	}
 
       key = Fmake_vector (make_number (1), obj);
       def = Flookup_key (map, key);
@@ -1209,14 +1223,35 @@ and can edit it until it as been confirmed.")
   register Lisp_Object ans;
   Lisp_Object args[2];
   struct gcpro gcpro1;
+  Lisp_Object menu;
 
   CHECK_STRING (prompt, 0);
+
+  if (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+    {
+      Lisp_Object pane, menu, obj;
+      pane = Fcons (Fcons (build_string ("Yes"), Qt),
+		    Fcons (Fcons (build_string ("No"), Qnil),
+			   Qnil));
+      GCPRO1 (pane);
+      menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
+      obj = Fx_popup_menu (Qt, menu);
+      if (!NILP (obj))
+	{
+	  prompt = build_string ("Confirm");
+	  menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
+	  obj = Fx_popup_menu (Qt, menu);
+	}
+      UNGCPRO;
+      return obj;
+    }
 
   args[0] = prompt;
   args[1] = build_string ("(yes or no) ");
   prompt = Fconcat (2, args);
 
   GCPRO1 (prompt);
+
   while (1)
     {
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
