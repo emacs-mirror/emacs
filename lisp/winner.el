@@ -121,12 +121,12 @@ which excludes \"invisible buffers\"."
 (defcustom winner-mode-hook nil
   "Functions to run whenever Winner mode is turned on."
   :type 'hook
-  :group winner)
+  :group 'winner)
 
-(defvar winner-mode-leave-hook nil
+(defcustom winner-mode-leave-hook nil
   "Functions to run whenever Winner mode is turned off."
   :type 'hook
-  :group winner)
+  :group 'winner)
 
 (defvar winner-mode-map nil "Keymap for Winner mode.")
 
