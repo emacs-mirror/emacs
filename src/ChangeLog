@@ -1,3 +1,8 @@
+2001-01-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* sysdep.c: Don't prototype srandom; it takes an unsigned argument
+	 on some systems, and an unsigned long on others, like FreeBSD 4.1.
+
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (clear_mouse_face): Don't return if tip_frame is

@@ -4,7 +4,7 @@
 
 2000-01-05  Kenichi Handa  <handa@etl.go.jp>
 
-	* composite.el (compose-last-chars): New argument COMPONENTS.  It
+	* composite.el (compose-last-chars): New argument COMPONENTS.  If
 	it is non-nil, compose preceding characters by compose-region with
 	COMPONENTS.
 
