@@ -3127,7 +3127,7 @@ Includes Latex/Nroff modes and extended character mode."
   ;; If needed, test for SGML & HTML modes and set a buffer local nil/t value.
   (if (and ispell-skip-html (not (eq ispell-skip-html t)))
       (set (make-local-variable 'ispell-skip-html)
-	   (not (null (string-match "sgml\\|html"
+	   (not (null (string-match "sgml\\|html\\|xml"
 				    (downcase (symbol-name major-mode)))))))
   ;; Set default extended character mode for given buffer, if any.
   (let ((extended-char-mode (ispell-get-extended-character-mode)))
