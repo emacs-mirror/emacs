@@ -428,7 +428,7 @@ Frames and X Windows
 
 International Character Set Support
 
-* International Intro::     Basic concepts of multibyte characters.
+* International Chars::     Basic concepts of multibyte characters.
 * Enabling Multibyte::      Controlling whether to use multibyte characters.
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
