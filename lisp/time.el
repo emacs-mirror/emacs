@@ -132,6 +132,28 @@ This runs the normal hook `display-time-hook' after each update."
       (remove-hook 'rmail-after-get-new-mail-hook
 		   'display-time-event-handler))))
 
+(defcustom display-time-mail-face 'mode-line
+  "Face to use for `display-time-mail-string'.
+If `display-time-use-mail-icon' is non-nil, the image's background
+colour is the background of this face.  Set this to a face other than
+`mode-line' to make the mail indicator stand out on a suitable
+display."
+  :group 'faces
+  :group 'display-time
+  :type 'face)
+
+(defvar display-time-mail-icon
+  (find-image '((:type xbm :file "letter.xbm" :ascent 100)))
+  "Image specification to offer as the mail indictor on a grephic
+display.  See `display-time-use-mail-icon' and
+`display-time-mail-face'.")
+
+(defcustom display-time-use-mail-icon nil
+  "Non-nil means use an icon as the mail indictor on a grephic display.
+Otherwise use the string \"Mail\".  The icon may consume less of the
+mode line.  It is specified by `display-time-mail-icon'."
+  :group 'display-time
+  :type 'boolean)
 
 (defcustom display-time-format nil
   "*A string specifying the format for displaying the time in the mode line.
@@ -143,19 +165,26 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
   :group 'display-time)
 
 (defcustom display-time-string-forms
-  `((if (and (not display-time-format) display-time-day-and-date)
+  '((if (and (not display-time-format) display-time-day-and-date)
 	(format-time-string "%a %b %e " now)
       "")
     (format-time-string (or display-time-format
 			    (if display-time-24hr-format "%H:%M" "%-I:%M%p"))
 			now)
     load
-    (if mail ,(propertize " Mail"
-			  'help-echo "mouse-2: Read mail"
-			  'local-map (make-mode-line-mouse2-map
-				      (lambda (e)
-					(interactive "e")
-					(funcall read-mail-command))))
+    (if mail
+	;; Build the string every time to act on customization.
+	(concat " "
+		(propertize
+		 "Mail"
+		 'display `(when (and display-time-use-mail-icon
+				      (display-graphic-p))
+			     ,@display-time-mail-icon
+			     ,@(list :background (face-attribute
+						  display-time-mail-face
+						  :background)))
+		 'help-echo "mouse-2: Read mail"
+		 'local-map (make-mode-line-mouse2-map read-mail-command)))
       ""))
   "*A list of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
