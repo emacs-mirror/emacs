@@ -1,3 +1,18 @@
+2001-07-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* server.el (server-visit-files): Handle the case the specified
+	column number is <= 0.
+
+2001-07-17  Jan Nieuwenhuizen  <jan@netland.nl>
+
+	* startup.el (command-line-1): Add support for +LINE:COLUMN
+	command line argument.
+
+2000-07-17  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* server.el (server-process-filter, server-visit-files): Add
+	support for +LINE:COLUMN style emacsclient calls.
+
 2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs-lisp/easy-mmode.el: Add Keywords header.
