@@ -795,7 +795,8 @@ with @kbd{C-Mouse-3} on a display which supports pop-up menus.
 @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
-menu bar.
+menu bar.  @xref{X Resources}, for how to customize the menu bar
+menus.
 
 @node Tool Bars
 @section Tool Bars
@@ -849,8 +850,11 @@ tooltip-mode}.  The customization group @code{tooltip} controls
 various aspects of how tooltips work.  When Tooltip mode is disabled,
 the help text is displayed in the echo area instead.
 
-  As of Emacs 21.1, tooltips are not supported on MS-Windows.
-So help text always appears in the echo area.
+  As of Emacs 21.1, tooltips are not supported on MS-Windows,
+so on that system the help text always appears in the echo area.
+
+  @xref{X Resources}, for information on customizing the windows
+that display tooltips.
 
 @node Mouse Avoidance
 @section Mouse Avoidance
