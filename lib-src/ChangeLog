@@ -11,6 +11,10 @@
 	* profile.c: Include config.h, not ../src/config.h.
 	Include systime.h, not ../src/systime.h.
 
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-10-01  Alexander Zhuckov  <zuav@int.spb.ru>
 
 	* ebrowse.c (struct alias): Add two new struct members: NAMESP and

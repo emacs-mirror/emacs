@@ -323,6 +323,10 @@
 	* minibuf.c, sunfns.c, w16select.c: Use SYMBOL_VALUE/
 	SET_SYMBOL_VALUE macros instead of accessing symbol values directly.
 
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-10-03  Miles Bader  <miles@gnu.org>
 
 	* callproc.c (syms_of_callproc): Explicitly state in the

@@ -6,6 +6,10 @@
 
 	* variables.texi (Variable Aliases): New node.
 
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-10-02  Miles Bader  <miles@gnu.org>
 
 	* minibuf.texi (Minibuffer Misc): Add entries for

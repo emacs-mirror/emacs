@@ -5,6 +5,10 @@
 	* src/macterm.c: Include keymap.h.
 	(note_mode_line_highlight): Use KEYMAPP.
 
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* src/macmenu.c (mac_menu_show): Use refcon of selected menu item.

@@ -3,6 +3,10 @@
 	* lwlib-Xaw.c (xaw_create_scrollbar) [!0]: Return NULL.
 	From Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
 
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenu.c (xlwmenu_window_p): New function.

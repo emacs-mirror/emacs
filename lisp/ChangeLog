@@ -358,6 +358,10 @@
 	(setenv): Add parameter SUBSTITUTE-ENV-VARS.  If set, substitute
 	environment variables in VALUE.  Return VALUE.
 
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.

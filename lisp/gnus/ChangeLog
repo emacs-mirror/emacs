@@ -1,3 +1,7 @@
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+	
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Skip over previously
