@@ -473,7 +473,7 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
 }
 
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
-  "Return non-nil if ELT is an element of LIST.  Comparison done with EQUAL.\n\
+  "Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.\n\
 The value is actually the tail of LIST whose car is ELT.")
   (elt, list)
      register Lisp_Object elt;
@@ -626,8 +626,9 @@ to be sure of changing the value of `foo'.")
 DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
   "Delete by side effect any occurrences of ELT as a member of LIST.\n\
 The modified LIST is returned.  Comparison is done with `equal'.\n\
-If the first member of LIST is ELT, there is no way to remove it by side effect;\n\
-therefore, write `(setq foo (delete element foo))'\n\
+If the first member of LIST is ELT, deleting it is not a side effect;\n\
+it is simply using a different list.\n\
+Therefore, write `(setq foo (delete element foo))'\n\
 to be sure of changing the value of `foo'.")
   (elt, list)
      register Lisp_Object elt;
