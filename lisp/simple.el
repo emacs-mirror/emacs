@@ -1137,8 +1137,13 @@ Negative arguments kill lines backward.
 When calling from a program, nil means \"no arg\",
 a number counts as a prefix arg.
 
-If `kill-whole-line' is non-nil, then kill the whole line
-when given no argument at the beginning of a line."
+To kill a whole line, when point is not at the beginning, type \
+\\[beginning-of-line] \\[kill-line] \\[kill-line].
+
+If `kill-whole-line' is non-nil, then this command kills the whole line
+including its terminating newline, when used at the beginning of a line
+with no argument.  As a consequence, you can always kill a whole line
+by typing \\[beginning-of-line] \\[kill-line]."
   (interactive "P")
   (kill-region (point)
 	       ;; It is better to move point to the other end of the kill
@@ -1806,9 +1811,11 @@ to create a line, and moves the cursor to that line.  Otherwise it moves the
 cursor to the end of the buffer.
 
 The command \\[set-goal-column] can be used to create
-a semipermanent goal column to which this command always moves.
-Then it does not try to move vertically.  This goal column is stored
-in `goal-column', which is nil when there is none.
+a semipermanent goal column for this command.
+Then instead of trying to move exactly vertically (or as close as possible),
+this command moves to the specified goal column (or as close as possible).
+The goal column is stored in the variable `goal-column', which is nil
+when there is no goal column.
 
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
@@ -1835,8 +1842,11 @@ the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
 
 The command \\[set-goal-column] can be used to create
-a semipermanent goal column to which this command always moves.
-Then it does not try to move vertically.
+a semipermanent goal column for this command.
+Then instead of trying to move exactly vertically (or as close as possible),
+this command moves to the specified goal column (or as close as possible).
+The goal column is stored in the variable `goal-column', which is nil
+when there is no goal column.
 
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
