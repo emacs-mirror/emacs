@@ -929,6 +929,7 @@ This function also returns nil meaning don't specify the indentation."
 (put 'let* 'lisp-indent-function 1)
 (put 'while 'lisp-indent-function 1)
 (put 'if 'lisp-indent-function 2)
+(put 'read-if 'lisp-indent-function 2)
 (put 'catch 'lisp-indent-function 1)
 (put 'condition-case 'lisp-indent-function 2)
 (put 'unwind-protect 'lisp-indent-function 1)
