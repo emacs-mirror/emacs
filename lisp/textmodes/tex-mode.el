@@ -281,7 +281,8 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
     (?\\ . "/")
     (?\" . ".")
     (?& . ".")
-    (?_ . "."))
+    (?_ . ".")
+    (?^ . "."))
   "Syntax table used while in TeX mode.")
 
 ;;;;
@@ -437,11 +438,15 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   (includes (regexp-opt
 		      '("input" "include" "includeonly" "bibliography"
 			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
+			"documentstyle" "documentclass" "verbatiminput"
 			"includegraphics" "includegraphics*")
 		      t))
 	   ;; Miscellany.
 	   (slash "\\\\")
-	   (opt "\\(\\[[^]]*\\]\\)?")
+	   (opt " *\\(\\[[^]]*\\] *\\)*")
+	   ;; This would allow highlighting \newcommand\CMD but requires
+	   ;; adapting subgroup numbers below.
+	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
        ;; Heading args.
@@ -456,15 +461,17 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	     ;; but they get turned back to normal a little while later
 	     ;; because "there's already a face there".
 	     ;; Using `keep' works around this un-intuitive behavior as well
-	     ;; as improves the behavior in the very rare case where you do have
-	     ;; a comment in ARG.
+	     ;; as improves the behavior in the very rare case where you do
+	     ;; have a comment in ARG.
 	     3 'font-lock-function-name-face 'keep)
+       (list (concat slash "\\(re\\)?newcommand\\** *\\(\\\\[A-Za-z@]+\\)")
+	     2 'font-lock-function-name-face 'keep)
        ;; Variable args.
-       (list (concat slash variables arg) 2 'font-lock-variable-name-face)
+       (list (concat slash variables " *" arg) 2 'font-lock-variable-name-face)
        ;; Include args.
        (list (concat slash includes opt arg) 3 'font-lock-builtin-face)
        ;; Definitions.  I think.
-       '("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)"
+       '("^[ \t]*\\\\def *\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face))))
   "Subdued expressions to highlight in TeX modes.")
 
@@ -481,7 +488,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    ;; Names of commands whose arg should be fontified as a citation.
 	    (citations (regexp-opt
 			'("label" "ref" "pageref" "vref" "eqref"
-			  "cite" "nocite" "index" "glossary"
+			  "cite" "nocite" "index" "glossary" "bibitem"
 			  ;; These are text, rather than citations.
 			  ;; "caption" "footnote" "footnotemark" "footnotetext"
 			  )
@@ -489,7 +496,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    ;;
 	    ;; Names of commands that should be fontified.
 	    (specials (regexp-opt
-		       '("\\"
+		       '("\\" "\\*" ;; "-"
 			 "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
 			 "newline" "newpage" "clearpage" "cleardoublepage"
 			 "displaybreak" "allowdisplaybreaks" "enlargethispage")
@@ -498,12 +505,18 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    ;;
 	    ;; Miscellany.
 	    (slash "\\\\")
-	    (opt "\\(\\[[^]]*\\]\\)?")
+	    (opt " *\\(\\[[^]]*\\] *\\)*")
 	    (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
        (list
 	;;
 	;; Citation args.
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
+	;;
+	;; Text between `` quotes ''.
+	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "«") t)
+		      "[^'\">»]+"	;a bit pessimistic
+		      (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
+	      'font-lock-string-face)
 	;;
 	;; Command names, special and general.
 	(cons (concat slash specials) 'font-lock-warning-face)
@@ -511,8 +524,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	;;
 	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
 	;; since we might not be able to display those fonts.
-	(list (concat slash bold arg) 2 '(quote bold) 'append)
-	(list (concat slash italic arg) 2 '(quote italic) 'append)
+	(list (concat slash bold " *" arg) 2 '(quote bold) 'append)
+	(list (concat slash italic " *" arg) 2 '(quote italic) 'append)
 	;; (list (concat slash type arg) 2 '(quote bold-italic) 'append)
 	;;
 	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
@@ -562,6 +575,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defvar tex-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
     (tex-define-common-keys map)
     (define-key map "\"" 'tex-insert-quote)
     (define-key map "(" 'skeleton-pair-insert-maybe)
@@ -569,6 +583,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
     (define-key map "[" 'skeleton-pair-insert-maybe)
     (define-key map "$" 'skeleton-pair-insert-maybe)
     (define-key map "\n" 'tex-terminate-paragraph)
+    (define-key map "\t" 'indent-for-tab-command)
     (define-key map "\M-\r" 'latex-insert-item)
     (define-key map "\C-c}" 'up-list)
     (define-key map "\C-c{" 'tex-insert-braces)
@@ -593,7 +608,19 @@ An alternative value is \" . \", if you use a font with a narrow period."
       '("TeX Buffer" . tex-buffer))
     (define-key map [menu-bar tex tex-file] '("TeX File" . tex-file))
     map)
- "Keymap for TeX modes.")
+ "Keymap shared by TeX modes.")
+
+(defvar latex-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map tex-mode-map)
+    map)
+  "Keymap for `latex-mode'.  See also `tex-mode-map'.")
+
+(defvar plain-tex-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map tex-mode-map)
+    map)
+  "Keymap for `plain-tex-mode'.  See also `tex-mode-map'.")
 
 (defvar tex-shell-map
   (let ((m (make-sparse-keymap)))
@@ -616,8 +643,8 @@ Inherits `shell-mode-map' with a few additions.")
     ,@tex-face-alist)
   "Alist of face and LaTeX font name for facemenu.")
 
-;;; This would be a lot simpler if we just used a regexp search,
-;;; but then it would be too slow.
+;; This would be a lot simpler if we just used a regexp search,
+;; but then it would be too slow.
 ;;;###autoload
 (defun tex-mode ()
   "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
@@ -676,7 +703,7 @@ Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
-\\{tex-mode-map}
+\\{plain-tex-mode-map}
 
 Mode variables:
 tex-run-command
@@ -724,7 +751,7 @@ Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
-\\{tex-mode-map}
+\\{latex-mode-map}
 
 Mode variables:
 latex-run-command
@@ -786,7 +813,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
-  (set (make-local-variable 'skeleton-end-hook) 'latex-skeleton-end-hook)
+  (set (make-local-variable 'skeleton-end-hook) nil)
   (run-hooks 'tex-mode-hook))
 
 ;;;###autoload
@@ -808,7 +835,7 @@ Use \\[tex-validate-buffer] to check buffer for paragraphs containing
 mismatched $'s or braces.
 
 Special commands:
-\\{tex-mode-map}
+\\{slitex-mode-map}
 
 Mode variables:
 slitex-run-command
@@ -835,7 +862,6 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\documentclass{slides}"))
 
 (defun tex-common-initialization ()
-  (use-local-map tex-mode-map)
   (set-syntax-table tex-mode-syntax-table)
   ;; Regexp isearch should accept newline and formfeed as whitespace.
   (set (make-local-variable 'search-whitespace-regexp) "[ \t\r\n\f]+")
@@ -1053,12 +1079,7 @@ A prefix arg inhibits the checking."
 
 (defvar latex-block-default "enumerate")
 
-(defun latex-skeleton-end-hook ()
-  (unless (or (eolp) (save-excursion (move-to-left-margin)
-				     (not (looking-at paragraph-separate))))
-    (newline-and-indent)))
-
-;;; Like tex-insert-braces, but for LaTeX.
+;; Like tex-insert-braces, but for LaTeX.
 (define-skeleton tex-latex-block
   "Create a matching pair of lines \\begin[OPT]{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
@@ -1074,17 +1095,15 @@ Puts point on a blank line between them."
       ;; Remember new block names for later completion.
       (push choice latex-block-names))
     choice)
-  (unless (save-excursion (beginning-of-line) (looking-at "[ \t]*$")) '\n)
-  "\\begin{" str ?\}
+  \n "\\begin{" str ?\}
   ?\[ (skeleton-read "[options]: ") & ?\] | -1
   > \n _ \n
-  "\\end{" str ?\} >)
+  "\\end{" str ?\} > \n)
 
 (define-skeleton latex-insert-item
   "Insert a \item macro."
   nil
-  (unless (save-excursion (beginning-of-line) (looking-at "[ \t]*$")) '\n)
-  "\\item " >)
+  \n "\\item " >)
 
 
 ;;;;
@@ -1170,7 +1189,7 @@ Mark is left at original location."
 
 (defun latex-syntax-after ()
   "Like (char-syntax (char-after)) but aware of multi-char elements."
-  (if (looking-at "\\\\end\\>") ?\) (char-syntax (char-after))))
+  (if (looking-at "\\\\end\\>") ?\) (char-syntax (following-char))))
 
 (defun latex-skip-close-parens ()
   "Like (skip-syntax-forward \" )\") but aware of multi-char elements."
@@ -1204,13 +1223,52 @@ Mark is left at original location."
     (indent-to indentation)
     (insert "\\end" text)
     (if new-line-needed (insert ?\n))))
+
+(defconst tex-discount-args-cmds
+  '("begin" "end" "input" "special" "cite" "ref" "include" "includeonly"
+    "documentclass" "usepackage" "label")
+  "TeX commands whose arguments should not be counted as text.")
+
+(defun tex-count-words (begin end)
+  "Count the number of words in the buffer."
+  (interactive
+   (if (and transient-mark-mode mark-active)
+       (list (region-beginning) (region-end))
+     (list (point-min) (point-max))))
+  ;; TODO: skip comments and math and maybe some environments.
+  (save-excursion
+    (goto-char begin)
+    (let ((count 0))
+      (while (and (< (point) end) (re-search-forward "\\<" end t))
+	(if (not (eq (char-syntax (preceding-char)) ?/))
+	    (progn
+	      ;; Don't count single-char words.
+	      (unless (looking-at ".\\>") (incf count))
+	      (forward-char 1))
+	  (let ((cmd
+		 (buffer-substring-no-properties
+		  (point) (progn (when (zerop (skip-chars-forward "a-zA-Z@"))
+				   (forward-char 1))
+				 (point)))))
+	    (when (member cmd tex-discount-args-cmds)
+	      (skip-chars-forward "*")
+	      (forward-comment (point-max))
+	      (when (looking-at "\\[")
+		(forward-sexp 1)
+		(forward-comment (point-max)))
+	      (if (not (looking-at "{"))
+		  (forward-char 1)
+		(forward-sexp 1))))))
+      (message "%s words" count))))
+	    
+	    
 
 ;;; Invoking TeX in an inferior shell.
 
-;;; Why use a shell instead of running TeX directly?  Because if TeX
-;;; gets stuck, the user can switch to the shell window and type at it.
+;; Why use a shell instead of running TeX directly?  Because if TeX
+;; gets stuck, the user can switch to the shell window and type at it.
 
-;;; The utility functions:
+;; The utility functions:
 
 (define-derived-mode tex-shell shell-mode "TeX-Shell"
   (compilation-shell-minor-mode t))
