@@ -35,3 +35,5 @@
 
 #define HAVE_TERMIOS
 
+/* Specify the type that the 3rd arg of `accept' points to.  */
+#define SOCKLEN_TYPE int
