@@ -1229,23 +1229,22 @@ To replace a single match, make REGEXP match up to \\'."
       (while (and (< start l) (string-match regexp string start))
 	(setq mb (match-beginning 0)
 	      me (match-end 0))
-	(if (= me mb)
-	    (setq start l		; Matched empty string -- bail out.
-		  matches (list string))
-	  ;; Generate a replacement for the matched substring.
-	  ;; Operate only on the substring to minimize string consing.
-	  ;; Set up match data for the substring for replacement;
-	  ;; presumably this is likely to be faster than munging the
-	  ;; match data directly in Lisp.
-	  (string-match regexp (setq str (substring string mb me)))
-	  (setq matches
-		(cons (replace-match (if (stringp rep)
-					 rep
-				       (funcall rep (match-string 0 str)))
-				     fixedcase literal str subexp)
-		      (cons (substring string start mb) ; unmatched prefix
-			    matches)))
-	  (setq start me)))
+	;; If we matched the empty string, make sure we advance by one char
+	(when (= me mb) (setq me (min l (1+ mb))))
+	;; Generate a replacement for the matched substring.
+	;; Operate only on the substring to minimize string consing.
+	;; Set up match data for the substring for replacement;
+	;; presumably this is likely to be faster than munging the
+	;; match data directly in Lisp.
+	(string-match regexp (setq str (substring string mb me)))
+	(setq matches
+	      (cons (replace-match (if (stringp rep)
+				       rep
+				     (funcall rep (match-string 0 str)))
+				   fixedcase literal str subexp)
+		    (cons (substring string start mb) ; unmatched prefix
+			  matches)))
+	(setq start me))
       ;; Reconstruct a string from the pieces.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
