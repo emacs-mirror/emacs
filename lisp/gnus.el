@@ -55,12 +55,6 @@ See the documentation to that variable.")
   "Default default new newsgroups the first time Gnus is run.
 Should be set in paths.el, and shouldn't be touched by the user.")
 
-(defvar gnus-local-domain nil
-  "Local domain name without a host name.
-The DOMAINNAME environment variable is used instead if it is defined.
-If the `system-name' function returns the full Internet name, there is
-no need to set this variable.")
-
 (defvar gnus-local-organization nil
   "String with a description of what organization (if any) the user belongs to.
 The ORGANIZATION environment variable is used instead if it is defined.

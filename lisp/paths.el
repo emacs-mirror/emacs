@@ -79,12 +79,6 @@ The null string means use the local host as the server site.")
 Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
 should be set to `(system-name)'.")
 
-(defvar gnus-local-domain nil
-  "*Your domain name without a host name: for example, \"ai.mit.edu\".
-The DOMAINNAME environment variable is used instead if defined.
-If the function `system-name' returns a fully qualified domain name,
-there is no need to set this variable.")
-
 (defvar gnus-local-organization nil
   "*The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
