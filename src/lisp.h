@@ -2302,6 +2302,7 @@ extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
 extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
 EXFUN (Fcurrent_message, 0);
+extern Lisp_Object Vinhibit_field_text_motion;
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
