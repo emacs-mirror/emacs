@@ -69,7 +69,9 @@ Location and color should be set in .Xdefaults.")
 Can be used to change frame parameters, such as font, color, location, etc.")
 
 (defun calendar-one-frame-setup (&optional arg)
-  "Start calendar and display it in a dedicated frame together with the diary."
+  "Start calendar and display it in a dedicated frame together with the diary.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -97,7 +99,9 @@ Can be used to change frame parameters, such as font, color, location, etc.")
            'diary))))))
 
 (defun calendar-only-one-frame-setup (&optional arg)
-  "Start calendar and display it in a dedicated frame."
+  "Start calendar and display it in a dedicated frame.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -116,7 +120,9 @@ Can be used to change frame parameters, such as font, color, location, etc.")
           (set-window-dedicated-p (selected-window) 'calendar))))))
 
 (defun calendar-two-frame-setup (&optional arg)
-  "Start calendar and diary in separate, dedicated frames."
+  "Start calendar and diary in separate, dedicated frames.
+This function requires a display capable of multiple frames, else
+`calendar-basic-setup' is used instead."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
