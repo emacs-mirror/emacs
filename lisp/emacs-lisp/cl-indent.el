@@ -429,6 +429,7 @@ by `lisp-body-indent'."
 	   (multiple-value-setq
 			(4 2))
 	   (multiple-value-setf . multiple-value-setq)
+           (pprint-logical-block (4 2))
 	   ;; Combines the worst features of BLOCK, LET and TAGBODY
 	   (prog        (&lambda &rest lisp-indent-tagbody))
 	   (prog* . prog)
