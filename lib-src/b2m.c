@@ -15,9 +15,6 @@
  *   Mon Nov 7 15:54:06 PDT 1988
  */
 
-/* Serious bug: This program uses `gets', which is intrinsically
-   unreliable--long lines will cause crashes.
-   Someone should fix this program not to use `gets'.  */
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
@@ -37,9 +34,11 @@ extern char *strtok ();
 #define FALSE (0)
 #endif
 
+#define MAX_DATA_LEN 256   /* size for from[], labels[], and data[] arrays */
+
 int header = FALSE, printing;
 time_t ltoday;
-char from[256], labels[256], data[256], *p, *today;
+char from[MAX_DATA_LEN], labels[MAX_DATA_LEN], data[MAX_DATA_LEN], *p, *today;
 
 main (argc, argv)
      int argc;
@@ -58,8 +57,7 @@ main (argc, argv)
   ltoday = time (0);
   today = ctime (&ltoday);
 
-  /* BUG!  Must not use gets in a reliable program!  */
-  if (gets (data))
+  if (fgets (data, MAX_DATA_LEN, stdin))
     {
       if (strncmp (data, "BABYL OPTIONS:", 14))
 	{
@@ -74,7 +72,7 @@ main (argc, argv)
   if (printing)
     puts (data);
 
-  while (gets (data))
+  while (fgets (data, MAX_DATA_LEN, stdin))
     {
 
 #if 0
@@ -94,7 +92,7 @@ main (argc, argv)
       if (!strcmp (data, "\037\f"))
 	{
 	  /* save labels */
-	  gets (data);
+	  fgets (data, MAX_DATA_LEN, stdin);
 	  p = strtok (data, " ,\r\n\t");
 	  strcpy (labels, "X-Babyl-Labels: ");
 
