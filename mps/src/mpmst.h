@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.27) $
+ * $HopeName: MMsrc!mpmst.h(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -126,8 +126,8 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
-  RingStruct actionRing;	/* actions are attached to pool */
-  Serial actionSerial;		/* serial of next action */
+  RingStruct actionRing;        /* actions are attached to pool */
+  Serial actionSerial;          /* serial of next action */
   Align alignment;              /* alignment for units */
 } PoolStruct;
 
@@ -269,18 +269,18 @@ typedef struct VMStruct {
  */
 
 typedef struct SegStruct {      /* segment structure */
-  Pool _pool;			/* MUST BE FIRST (design.mps.seg.field.pool) */
-  RingStruct _poolRing;		/* link in list of segs in pool */
-  void *_p;			/* pointer for use of owning pool */
-  Buffer _buffer;		/* non-NULL if seg is buffered */
-  RefSet _summary;		/* summary of references out of seg */
+  Pool _pool;                   /* MUST BE FIRST (design.mps.seg.field.pool) */
+  RingStruct _poolRing;         /* link in list of segs in pool */
+  void *_p;                     /* pointer for use of owning pool */
+  Buffer _buffer;               /* non-NULL if seg is buffered */
+  RefSet _summary;              /* summary of references out of seg */
   unsigned _depth : SHIELD_DEPTH_WIDTH; /* see impl.c.shield.def.depth */
   AccessSet _pm : AccessMAX;    /* protection mode, impl.c.shield */
   AccessSet _sm : AccessMAX;    /* shield mode, impl.c.shield */
   TraceSet _grey : TRACE_MAX;   /* traces for which seg is grey */
   TraceSet _white : TRACE_MAX;  /* traces for which seg is white */
-  unsigned int _single : 1;	/* is a single page segment? */
-  RankSet _rankSet : RankMAX;	/* ranks of references in this seg */
+  unsigned int _single : 1;     /* is a single page segment? */
+  RankSet _rankSet : RankMAX;   /* ranks of references in this seg */
 } SegStruct;
 
 
@@ -390,9 +390,9 @@ typedef struct BufferStruct {
   Addr base;                    /* base address of allocation buffer */
   Addr initAtFlip;              /* limit of initialized data at flip */
   APStruct apStruct;            /* the allocation point */
-  Addr poolLimit;		/* the pool's idea of the limit */
+  Addr poolLimit;               /* the pool's idea of the limit */
   Align alignment;              /* allocation alignment */
-  void *p;			/* closure variable for pool */
+  void *p;                      /* closure variable for pool */
   int i;                        /* closure variable for pool */
 } BufferStruct;
 
@@ -508,7 +508,7 @@ typedef struct RootStruct {
   RingStruct spaceRing;         /* attachment to space */
   Rank rank;                    /* rank of references in this root */
   TraceSet grey;                /* traces for which root is grey */
-  RefSet summary;		/* summary of references in root */
+  RefSet summary;               /* summary of references in root */
   RootVar var;                  /* union discriminator */
   union RootUnion {
     struct {
@@ -565,25 +565,25 @@ typedef struct ScanStateStruct {
   RefSet summary;               /* accumulated summary of scanned references */
   Sig sig;                      /* design.mps.sig */
   Space space;                  /* owning space */
-  TraceSet traces;		/* traces to scan for */
+  TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
-  RefSet fixed;			/* accumulated summary of fixed references */
+  RefSet fixed;                 /* accumulated summary of fixed references */
 } ScanStateStruct;
 
 
 /* TraceStruct -- tracer state structure */
 
-#define TraceSig	((Sig)0x51924ACE)
+#define TraceSig        ((Sig)0x51924ACE)
 
 typedef struct TraceStruct {
-  Sig sig;			/* design.mps.sig */
-  TraceId ti;			/* index into TraceSets */
-  Space space;			/* owning space */
-  Action action;		/* the action that launched the trace */
-  RefSet white;			/* superset of refs in white set */
-  TraceState state;		/* current state of trace */
-  Size interval;		/* polling interval */
+  Sig sig;                      /* design.mps.sig */
+  TraceId ti;                   /* index into TraceSets */
+  Space space;                  /* owning space */
+  Action action;                /* the action that launched the trace */
+  RefSet white;                 /* superset of refs in white set */
+  TraceState state;             /* current state of trace */
+  Size interval;                /* polling interval */
 } TraceStruct;
 
 
@@ -592,13 +592,13 @@ typedef struct TraceStruct {
  * See design.mps.action.
  */
 
-#define ActionSig	((Sig)0x519AC209)
+#define ActionSig       ((Sig)0x519AC209)
 
 typedef struct ActionStruct {
-  Sig sig;			/* design.mps.sig */
-  Serial serial;		/* from pool->actionSerial */
-  Pool pool;			/* owning pool */
-  RingStruct poolRing;		/* link in list of actions in pool */
+  Sig sig;                      /* design.mps.sig */
+  Serial serial;                /* from pool->actionSerial */
+  Pool pool;                    /* owning pool */
+  RingStruct poolRing;          /* link in list of actions in pool */
 } ActionStruct;
 
 
@@ -617,18 +617,18 @@ typedef struct ActionStruct {
 typedef struct SpaceStruct {
   /* space fields (impl.c.space) */
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from static spaceSerial */
+  Serial serial;                /* design.mps.space.static.serial */
   RingStruct globalRing;        /* node in global ring of spaces */
-  Bool poolReady;               /* has control pool been initialized? */
-  MVStruct controlPoolStruct;   /* pool for miscellaneous items */
+  Bool poolReady;               /* design.mps.space.pool.ready */
+  MVStruct controlPoolStruct;   /* design.mps.space.pool */
   LockStruct lockStruct;        /* space's lock */
-  Size pollThreshold;           /* see impl.c.mpsi.poll and SpacePoll */
-  Bool insidePoll;              /* prevent recursive polling, see SpacePoll */
-  Size actionInterval;		/* see SpacePoll */
-  double allocTime;		/* "time" in allocated bytes */
+  Size pollThreshold;           /* design.mps.space.poll */
+  Bool insidePoll;              /* design.mps.space.poll */
+  Size actionInterval;          /* design.mps.space.poll.interval */
+  double allocTime;             /* "time" in allocated bytes */
 
   /* arena fields (impl.c.arena*) */
-  ArenaStruct arenaStruct;      /* the arena */
+  ArenaStruct arenaStruct;      /* design.mps.space.arena */
   Shift zoneShift;              /* see also impl.c.ref */
 
   /* pool fields (impl.c.pool) */
@@ -656,14 +656,14 @@ typedef struct SpaceStruct {
 
   /* trace fields (impl.c.trace) */
   TraceSet busyTraces;          /* set of running traces */
-  TraceSet flippedTraces;	/* set of running and flipped traces */
+  TraceSet flippedTraces;       /* set of running and flipped traces */
   TraceStruct trace[TRACE_MAX]; /* trace structures.  See
                                    design.mps.trace.intance.limit */
 
   /* location dependency fields (impl.c.ld) */
-  Epoch epoch;                  /* current epoch */
-  RefSet prehistory;            /* all-time history of movements */
-  RefSet history[SPACE_LD_LENGTH]; /* history of object movements */
+  Epoch epoch;                     /* design.mps.space.ld.epoch */
+  RefSet prehistory;               /* design.mps.space.ld.prehistory */
+  RefSet history[SPACE_LD_LENGTH]; /* design.mps.space.ld.history */
 } SpaceStruct;
 
 
