@@ -257,6 +257,12 @@ The default value matches lines printed by the `-w' option of GNU Make.")
   "Stack of previous directories for `compilation-leave-directory-regexp'.
 The head element is the directory the compilation was started in.")
 
+(defvar compilation-exit-message-function nil "\
+If non-nil, called when a compilation process dies to return a status message.
+This should be a function a two arguments as passed to a process sentinel
+\(see `set-process-sentinel\); it returns a cons (MESSAGE . MODELINE) of the
+strings to write into the compilation buffer, and to put in its mode line.")
+
 ;; History of compile commands.
 (defvar compile-history nil)
 ;; History of grep commands.
@@ -266,7 +272,7 @@ The head element is the directory the compilation was started in.")
   '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
 ;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
   "Additional expressions to highlight in Compilation mode.")
-
+
 ;;;###autoload
 (defun compile (command)
   "Compile the program including the current buffer.  Default: run `make'.
@@ -317,10 +323,23 @@ easily repeat a grep command."
   (interactive
    (list (read-from-minibuffer "Run grep (like this): "
 			       grep-command nil nil 'grep-history)))
-  (compile-internal (concat command-args " " grep-null-device)
-		    "No more grep hits" "grep"
-		    ;; Give it a simpler regexp to match.
-		    nil grep-regexp-alist))
+  (let ((buf (compile-internal (concat command-args " " grep-null-device)
+			       "No more grep hits" "grep"
+			       ;; Give it a simpler regexp to match.
+			       nil grep-regexp-alist)))
+    (save-excursion
+      (set-buffer buf)
+      (set (make-local-variable 'compilation-exit-message-function)
+	   (lambda (proc msg)
+	     (let ((code (process-exit-status proc)))
+	       (if (eq (process-status proc) 'exit)
+		   (cond ((zerop code)
+			  '("finished (matches found)\n" . "matched"))
+			 ((= code 1)
+			  '("finished with no matches found\n" . "no match"))
+			 (t
+			  (cons msg code)))
+		 (cons msg code))))))))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
@@ -546,7 +565,11 @@ See `compilation-mode'."
 	      ;; buffer killed
 	      (set-process-buffer proc nil)
 	    (let ((obuf (current-buffer))
-		  omax opoint)
+		  omax opoint
+		  (status (if compilation-exit-message-function
+			      (funcall compilation-exit-message-function
+				       proc msg)
+			    (cons msg (process-exit-status proc)))))
 	      ;; save-excursion isn't the right thing if
 	      ;; process-buffer is current-buffer
 	      (unwind-protect
@@ -560,13 +583,13 @@ See `compilation-mode'."
 		      (goto-char omax)
 		      ;; Record where we put the message, so we can ignore it
 		      ;; later on.
-		      (insert ?\n mode-name " " msg)
+		      (insert ?\n mode-name " " (car status))
 		      (forward-char -1)
 		      (insert " at " (substring (current-time-string) 0 19))
 		      (forward-char 1)
 		      (setq mode-line-process
-			    (format ":%s [%d]" (process-status proc)
-				    (process-exit-status proc)))
+			    (format ":%s [%s]"
+				    (process-status proc) (cdr status)))
 		      ;; Since the buffer and mode line will show that the
 		      ;; process is dead, we can delete it now.  Otherwise it
 		      ;; will stay around until M-x list-processes.
