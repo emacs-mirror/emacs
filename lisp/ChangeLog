@@ -1,3 +1,10 @@
+2001-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/etags.el (find-tag-interactive): If last-tag is nil,
+	behave as if there were no prefix argument.
+	(find-tag-noselect): If last-tag is nil, behave as if the NEXT-P
+	argument were nil.
+
 2001-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-update): 
