@@ -2,9 +2,10 @@
 
 	* diff-mode.el (diff-goto-source): Emit a status message.
 	(diff-test-hunk, diff-apply-hunk): Remove unneeded `let'.
-	(diff-test-hunk): Make the return value agree with the doc string.
+	(diff-test-hunk): Fix doc string.
 	(diff-apply-hunk): Only advance if `diff-advance-after-apply-hunk'.
 	(diff-advance-after-apply-hunk): New variable.
+	(diff-apply-hunk): Don't return a value.
 
 2000-10-01  Stefan Monnier  <monnier@cs.yale.edu>
 
