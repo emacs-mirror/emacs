@@ -3845,7 +3845,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	    = nconc2 (XCONS (value)->cdr, unread_command_events);
 	  value = XCONS (value)->car;
 	}
-      if (NILP (value))
+      else if (NILP (value))
 	value = Qt;
       if (used_mouse_menu)
 	*used_mouse_menu = 1;
