@@ -24,13 +24,13 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
+
 ;;    This library provides specific CCSO PH/QI protocol support for the
-;;    Emacs Unified Directory Client package
+;;    Emacs Unified Directory Client package.
 
 ;;; Code:
 
 (require 'eudc)
-
 
 ;;{{{      Internal cooking
 
@@ -44,9 +44,6 @@
 
 (defconst eudc-ph-default-server-port 105
   "Default TCP port for CCSO PH/QI directory services.")
-
-
-
 
 (defun eudc-ph-query-internal (query &optional return-fields)
   "Query the PH/QI server with QUERY.
@@ -85,7 +82,6 @@ are returned"
   (if full-records
       (eudc-ph-parse-query-result)
     (mapcar 'eudc-caar (eudc-ph-parse-query-result))))
-
 
 (defun eudc-ph-parse-query-result (&optional fields)
   "Return a list of alists of key/values from in `eudc-ph-process-buffer'.
@@ -140,11 +136,9 @@ Fields not in FIELDS are discarded."
 	     (setq record (if (not (eq 'list eudc-duplicate-attribute-handling-method))
 			      (eudc-filter-duplicate-attributes record)
 			    (list record)))
-	     (setq records (append record records))))
-      )
+	     (setq records (append record records)))))
     (message "Done")
-    records)
-  )
+    records))
 
 (defun eudc-ph-do-request (request)
   "Send REQUEST to the server.
@@ -192,15 +186,12 @@ SERVER is either a string naming the server or a list (NAME PORT)."
       (process-kill-without-query process)
       process)))
 
-
 (defun eudc-ph-close-session (process)
   (save-excursion
     (set-buffer (process-buffer process))
     (eudc-ph-send-command process "quit")
     (eudc-ph-read-response process)
-    (if (fboundp 'add-async-timeout)
-	(add-async-timeout 10 'delete-process process)
-      (run-at-time 2 nil 'delete-process process))))
+    (run-at-time 2 nil 'delete-process process)))
 
 (defun eudc-ph-send-command (process command)
   (goto-char (point-max))
@@ -248,7 +239,6 @@ depending on RETURN-RESPONSE."
   (eudc-set-server server 'ph))
 
 ;;}}}
-
 
 (eudc-register-protocol 'ph)
 
