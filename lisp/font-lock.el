@@ -1090,7 +1090,9 @@ The value of this variable is used when Font Lock mode is turned on."
 
 (defun font-lock-default-unfontify-region (beg end)
   (save-buffer-state nil
-    (remove-text-properties beg end '(face nil syntax-table nil))))
+    (if font-lock-syntactic-keywords
+	(remove-text-properties beg end '(face nil syntax-table nil))
+      (remove-text-properties beg end '(face nil)))))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
