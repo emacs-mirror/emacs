@@ -1,3 +1,9 @@
+2001-11-17  Stephen Eglen  <stephen@gnu.org>
+
+	* locate.el (locate): Show default locate pattern within the
+	prompt, but don't insert it into the minibuffer contents.  Catch
+	the case when pattern is the empty string.
+
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* language/european.el ("French"): New language environment.
