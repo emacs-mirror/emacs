@@ -1,6 +1,7 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -345,17 +346,6 @@ are used."
 		    (insert "\n" generate-autoload-section-continuation)))))
 	  (insert ";;; Generated autoloads from "
 		  (autoload-trim-file-name file) "\n")
-	  ;; Warn if we put a line in loaddefs.el
-	  ;; that is long enough to cause trouble.
-	  (while (< (point) output-end)
-	    (let ((beg (point)))
-	      (end-of-line)
-	      (if (> (- (point) beg) 900)
-		  (progn
-		    (message "A line is too long--over 900 characters")
-		    (sleep-for 2)
-		    (goto-char output-end))))
-	    (forward-line 1))
 	  (goto-char output-end)
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
