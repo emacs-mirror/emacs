@@ -958,7 +958,8 @@ The value of this variable is used when Font Lock mode is turned on."
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
-  (funcall font-lock-unfontify-region-function beg end))
+  (save-buffer-state nil
+    (funcall font-lock-unfontify-region-function beg end)))
 
 (defun font-lock-default-fontify-buffer ()
   (let ((verbose (if (numberp font-lock-verbose)
@@ -1046,13 +1047,12 @@ This is used by `font-lock-default-unfontify-region' to decide
 what properties to clear before refontifying a region.")
 
 (defun font-lock-default-unfontify-region (beg end)
-  (save-buffer-state nil
-    (remove-list-of-text-properties
-     beg end (append
-	      font-lock-extra-managed-props
-	      (if font-lock-syntactic-keywords
-		  '(syntax-table face font-lock-multiline)
-		'(face font-lock-multiline))))))
+  (remove-list-of-text-properties
+   beg end (append
+	    font-lock-extra-managed-props
+	    (if font-lock-syntactic-keywords
+		'(syntax-table face font-lock-multiline)
+	      '(face font-lock-multiline)))))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
