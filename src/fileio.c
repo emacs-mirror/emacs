@@ -4415,11 +4415,10 @@ actually used.  */)
 	  /* Since we are sure that the current buffer was empty
 	     before the insertion, we can toggle
 	     enable-multibyte-characters directly here without taking
-	     care of marker adjustment and byte combining problem.  By
-	     this way, we can run Lisp program safely before decoding
-	     the inserted text.  */
+	     care of marker adjustment.  By this way, we can run Lisp
+	     program safely before decoding the inserted text.  */
 	  Lisp_Object unwind_data;
-	      int count = SPECPDL_INDEX ();
+	  int count = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
 			       Fcons (current_buffer->undo_list,
@@ -4468,15 +4467,7 @@ actually used.  */)
   if (!NILP (visit))
     {
       /* When we visit a file by raw-text, we change the buffer to
-	 unibyte.  If we have not yet decided how to decode a text,
-	 decide it at first by detecting the file's encoding.  */
-      if (CODING_REQUIRE_DETECTION (&coding))
-	{
-	  coding_system = detect_coding_system (PT_ADDR, inserted, inserted,
-						1, 0, coding_system);
-	  setup_coding_system (coding_system, &coding);
-	}
-
+	 unibyte.  */
       if (CODING_FOR_UNIBYTE (&coding)
 	  /* Can't do this if part of the buffer might be preserved.  */
 	  && NILP (replace))
