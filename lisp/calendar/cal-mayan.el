@@ -362,8 +362,8 @@ under the cursor."
          (long-count (calendar-mayan-long-count-from-absolute d)))
       (message "Mayan date: Long count = %s; tzolkin = %s; haab = %s"
                (calendar-mayan-long-count-to-string long-count)
-               (calendar-mayan-tzolkin-to-string haab)
-               (calendar-mayan-haab-to-string tzolkin))))
+               (calendar-mayan-tzolkin-to-string tzolkin)
+               (calendar-mayan-haab-to-string haab))))
 
 (defun calendar-goto-mayan-long-count-date (date &optional noecho)
   "Move cursor to Mayan long count DATE.  Echo Mayan date unless NOECHO is t."
