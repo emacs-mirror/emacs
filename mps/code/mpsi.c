@@ -1894,7 +1894,8 @@ mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t mps_arena,
   res = ChainCreate(&chain, arena, gen_count, (GenParamStruct *)params);
 
   ArenaLeave(arena);
-  if (res != ResOK) return res;
+  if (res != ResOK)
+    return res;
   *chain_o = (mps_chain_t)chain;
   return MPS_RES_OK;
 }
