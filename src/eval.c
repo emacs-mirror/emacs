@@ -2045,9 +2045,11 @@ grow_specpdl ()
 	max_specpdl_size = 400;
       if (specpdl_size >= max_specpdl_size)
 	{
+	  if (!NILP (Vdebug_on_error))
+	    /* Leave room for some specpdl in the debugger.  */
+	    max_specpdl_size = specpdl_size + 100;
 	  Fsignal (Qerror,
 		   Fcons (build_string ("Variable binding depth exceeds max-specpdl-size"), Qnil));
-	  max_specpdl_size *= 2;
 	}
     }
   specpdl_size *= 2;
