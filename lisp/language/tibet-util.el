@@ -29,6 +29,7 @@
 ;; History:
 ;; 1997.03.13 Modification in treatment of text properties;
 ;;            Support for some special signs and punctuations.
+;; 1999.10.25 Modification for a new composition way by K.Handa.
 
 ;;; Code:
 
@@ -37,61 +38,79 @@
   (interactive)
   (set-language-environment "Tibetan"))
 
-;;; This function makes a transcription string for
-;;; re-composing a character.
+;;;###autoload
+(defun tibetan-char-p (ch)
+  "Check if char CH is Tibetan character.
+Returns non-nil if CH is Tibetan. Otherwise, returns nil."
+  (memq (char-charset ch) '(tibetan tibetan-1-column)))
+
+;;; Functions for Tibetan <-> Tibetan-transcription.
 
 ;;;###autoload
-(defun tibetan-tibetan-to-transcription (ch)
-  "Return a transcription string of Tibetan character CH"
-  (let ((char ch)
-	(l (append tibetan-consonant-transcription-alist
-		   tibetan-vowel-transcription-alist
-		   tibetan-precomposed-transcription-alist
-		   tibetan-subjoined-transcription-alist)) 
-	decomp-l t-char trans str result)
-    (if (eq (char-charset char) 'composition)
-	(setq decomp-l (decompose-composite-char char 'list nil))
-      (setq decomp-l (cons char nil)))
-    (setq str "")
-    (while decomp-l
-      (setq t-char (char-to-string (car decomp-l)))
-      (setq trans (car (rassoc t-char l)))
-      (setq str (concat str trans))
-      (setq decomp-l (cdr decomp-l)))
-    (setq result str)))
-
-;;; This function translates transcription string into a string of
-;;; Tibetan characters.
+(defun tibetan-tibetan-to-transcription (str)
+  "Transcribe Tibetan string STR and return the corresponding Roman string."
+  (let (;; Accumulate transcriptions here in reverse order.
+	(trans nil)
+	(len (length str))
+	(i 0)
+	ch this-trans)
+    (while (< i len)
+      (let ((idx (string-match tibetan-precomposition-rule-alist str i)))
+	(if (eq idx i)
+	    ;; Ith character and the followings matches precomposable
+	    ;; Tibetan sequence.
+	    (setq i (match-end 0)
+		  this-trans
+		  (car (rassoc
+			(cdr (assoc (match-string 0 str)
+				    tibetan-precomposition-rule-alist))
+			tibetan-precomposed-transcription-alist)))
+	  (setq ch (substring str i (1+ i))
+		i (1+ i)
+		this-trans
+		(car (or (rassoc ch tibetan-consonant-transcription-alist)
+			 (rassoc ch tibetan-vowel-transcription-alist)
+			 (rassoc ch tibetan-subjoined-transcription-alist)))))
+	(setq trans (cons this-trans trans))))
+    (apply 'concat (nreverse trans))))
 
 ;;;###autoload
-(defun tibetan-transcription-to-tibetan (transcription)
-  "Translate Roman transcription into a sequence of Tibetan components."
-  (let ((trans transcription)
-	(lp tibetan-precomposed-transcription-alist)
-	(l (append tibetan-consonant-transcription-alist
-		   tibetan-vowel-transcription-alist
-		   tibetan-subjoined-transcription-alist))
+(defun tibetan-transcription-to-tibetan (str)
+  "Convert Tibetan Roman string STR to Tibetan character string.
+The returned string has no composition information."
+  (let (;; Case is significant.
 	(case-fold-search nil)
-	substr t-char p-str t-str result)
-    (setq substr "")
-    (setq p-str "")
-    (setq t-str "")
-    (cond ((string-match tibetan-precomposed-regexp trans)
-	   (setq substr (substring trans (match-beginning 0) (match-end 0)))
-	   (setq trans (substring trans (match-end 0)))
-	   (setq t-char (cdr (assoc substr lp)))
-	   (setq p-str t-char)))
-    (while (string-match tibetan-regexp trans)
-      (setq substr (substring trans (match-beginning 0) (match-end 0)))
-      (setq trans (substring trans 0 (match-beginning 0)))
-      (setq t-char
-	    (cdr (assoc substr l)))
-      (setq t-str (concat t-char t-str)))
-    (setq result (concat p-str t-str))))
-
+	(idx 0)
+	;; Accumulate Tibetan strings here in reverse order.
+	(t-str-list nil)
+	i subtrans)
+    (while (setq i (string-match tibetan-regexp str idx))
+      (if (< idx i)
+	  ;; STR contains a pattern that doesn't match Tibetan
+	  ;; transcription.  Include the pattern as is.
+	  (setq t-str-list (cons (substring str idx i) t-str-list)))
+      (setq subtrans (match-string 0 str)
+	    idx (match-end 0))
+      (let ((t-char (cdr (assoc subtrans
+				tibetan-precomposed-transcription-alist))))
+	(if t-char
+	    ;; SUBTRANS corresponds to a transcription for
+	    ;; precomposable Tibetan sequence.
+	    (setq t-char (car (rassoc t-char
+				      tibetan-precomposition-rule-alist)))
+	  (setq t-char
+		(cdr
+		 (or (assoc subtrans tibetan-consonant-transcription-alist)
+		     (assoc subtrans tibetan-vowel-transcription-alist)
+		     (assoc subtrans tibetan-modifier-transcription-alist)
+		     (assoc subtrans tibetan-subjoined-transcription-alist)))))
+	(setq t-str-list (cons t-char t-str-list))))
+    (if (< idx (length str))
+	(setq t-str-list (cons (substring str idx) t-str-list)))
+    (apply 'concat (nreverse t-str-list))))
 
 ;;;
-;;; Functions for composing Tibetan character.
+;;; Functions for composing/decomposing Tibetan sequence.
 ;;;
 ;;; A Tibetan syllable is typically structured as follows:
 ;;;
@@ -104,7 +123,7 @@
 ;;;
 ;;; Here are examples of the words "bsgrubs" and "h'uM"
 ;;;
-;;;            $(7"7(B2$(7%q`"U(B1$(7"7"G(B         2$(7"H`#A`"U0"_(B1        
+;;;            $(7"7"G###C"U"7"G(B         $(7"H"A"U"_(B
 ;;;
 ;;;                             M
 ;;;             b s b s         h
@@ -112,305 +131,122 @@
 ;;;               r             u
 ;;;               u
 ;;;
-;;; Consonants ''', 'w', 'y', 'r' take special forms when they are used
-;;; as subjoined consonant. Consonant 'r' takes another special form
-;;; when used as superjoined as in "rka", and so on, while it does not
-;;; change its form when conjoined with subjoined ''', 'w' or 'y'
-;;; as in "rwa", "rya".
-;;;
-;;;
-;;; As a Tibetan input method should avoid using conversion key,
-;;; we use a "Tibetan glyph -> transcription -> Tibetan glyph"
-;;; translation at each key input.
-;;;
-;;; 1st stage -  Check the preceding char.
-;;;              If the preceding char is Tibetan and composable, then
-;;;
-;;; 2nd stage -  Translate the preceding char into transcription
-;;;
-;;; 3rd stage -  Concatenate the transcription of preceding char
-;;;              and the current input key.
-;;;
-;;; 4th stage -  Re-translate the concatenated transcription into
-;;;              a sequence of Tibetan letters.
-;;;
-;;; 5th stage -  Convert leading consonants into one single precomposed char
-;;;              if possible.
-;;;
-;;; 6th stage -  Compose the consonants into one composite glyph.
-;;;
-;;; (If the current input is a vowel sign or a vowel modifier,
-;;;  then it is composed with preceding char without checking
-;;;  except when the preceding char is a punctuation or a digit.)
-;;;
-;;;
+;;; Consonants `'' ($(7"A(B), `w' ($(7">(B), `y' ($(7"B(B), `r' ($(7"C(B) take special
+;;; forms when they are used as subjoined consonant.  Consonant `r'
+;;; takes another special form when used as superjoined in such a case
+;;; as "rka", while it does not change its form when conjoined with
+;;; subjoined `'', `w' or `y' as in "rwa", "rya".
 
-;;; This function is used to avoid composition
-;;;      between Tibetan and non-Tibetan chars.
+;; Append a proper composition rule and glyph to COMPONENTS to compose
+;; CHAR with a composition that has COMPONENTS.
 
-;;;###autoload
-(defun tibetan-char-examin (ch)
-  "Check if char CH is Tibetan character.
-Returns non-nil if CH is Tibetan. Otherwise, returns nil."
-  (let ((chr ch))
-    (if (eq (char-charset chr) 'composition)
-	(string-match "\\cq+" (decompose-composite-char chr))
-      (string-match "\\cq" (char-to-string chr)))))
+(defun tibetan-add-components (components char)
+  (let ((last (last components))
+	(stack-upper '(tc . bc))
+	(stack-under '(bc . tc))
+	rule)
+    ;; Special treatment for 'a chung.
+    ;; If 'a follows a consonant, turn it into the subjoined form.
+    (if (and (= char ?$(7"A(B)
+	     (aref (char-category-set (car last)) ?0))
+	(setq char ?$(7#A(B))
 
-;;; This is used to avoid composition between digits, signs, punctuations
-;;; and word constituents.
+    (cond
+     ;; Compose upper vowel sign vertically over.
+     ((aref (char-category-set char) ?2)
+      (setq rule stack-upper))
 
-;;;###autoload
-(defun tibetan-composable-examin (ch)
-  "Check if Tibetan char CH is composable.
-Returns t if CH is a composable char \(i.e. neither punctuation nor digit)."
-  (let ((chr ch)
-	chstr)
-    (if (eq (char-charset chr) 'composition)
-	(setq chstr (decompose-composite-char chr))
-      (setq chstr (char-to-string chr)))
-    (not (string-match "[$(7!1(B-$(7!o"f$(8!;!=!?!@!A!D"`(B]" chstr))))
+     ;; Compose lower vowel sign vertically under.
+     ((aref (char-category-set char) ?3)
+      (setq rule stack-under))
 
+     ;; Transform ra-mgo (superscribed r) if followed by a subjoined
+     ;; consonant other than w, ', y, r.
+     ((and (= (car last) ?$(7"C(B)
+	   (not (memq char '(?$(7#>(B ?$(7#A(B ?$(7#B(B ?$(7#C(B))))
+      (setcar last ?$(7#P(B)
+      (setq rule stack-under))
 
-;;; This checks if a character to be composed contains already
-;;; one or more vowels / vowel modifiers. If the character contains
-;;; them, then no more consonant should be added.
+     ;; Transform initial base consonant if followed by a subjoined
+     ;; consonant but 'a.
+     (t
+      (let ((laststr (char-to-string (car last))))
+	(if (and (/= char ?$(7#A(B)
+		 (string-match "[$(7"!(B-$(7"="?"@"D(B-$(7"J(B]" laststr))
+	    (setcar last (string-to-char
+			  (cdr (assoc (char-to-string (car last))
+				      tibetan-base-to-subjoined-alist)))))
+	(setq rule stack-under))))
 
-;;;###autoload
-(defun tibetan-complete-char-examin (ch)
-  "Check if composite char CH contains one or more vowel/vowel modifiers.
-Returns non-nil, if CH contains vowel/vowel modifiers."
-  (let ((chr ch)
-	chstr)
-    (if (eq (char-charset chr) 'composition)
-	(setq chstr (decompose-composite-char chr))
-      (setq chstr (char-to-string chr)))
-    (string-match "[$(7!g!e"Q(B-$(7"^"_(B-$(7"l(B]" chstr)))
-
-;;; This function makes a composite character consisting of two characters
-;;; vertically stacked.
-
-;;;###autoload
-(defun tibetan-vertical-stacking (first second upward)
-  "Return a vertically stacked composite char consisting of FIRST and SECOND.
-If UPWARD is non-nil, then SECOND is put above FIRST."
-  (let (l rule)
-    (if (cmpcharp first)
-	    (setq l (decompose-composite-char first 'list t))
-        (setq l (list first)))
-    (if upward
-	    (setq rule (list '(tc . bc)))
-        (setq rule (list '(bc . tc))))
-    (setq l (append l rule (list second)))
-    (apply 'compose-chars l)))
-
-;;; This function makes a composite char from a string.
-;;; Note that this function returns a string, not a char.
+    (setcdr last (list rule char))))
 
 ;;;###autoload
 (defun tibetan-compose-string (str)
-  "Compose a sequence of Tibetan character components into a composite character.
-Returns a string containing a composite character."
-  (let ((t-str str)
-	f-str s-str f-ch s-ch rest composed result)
-    ;;Make sure no redundant vowel sign is present.  
-    (if (string-match
-	 "^\\(.+\\)\\($(7"Q(B\\)\\([$(7!I!g!e"Q(B-$(7"^"_(B-$(7"l(B]\\)" t-str)
-	(setq t-str (concat
-		     (match-string 1 t-str)
-		     (match-string 3 t-str))))
-    (if (string-match
-	 "^\\(.+\\)\\([$(7!I!g!e"Q(B-$(7"^"_(B-$(7"l(B]\\)\\($(7"Q(B\\)" t-str)
-	(setq t-str (concat
-		     (match-string 1 t-str)
-		     (match-string 2 t-str))))
-    ;;Start conversion.
-    (setq result "")
-    ;; Consecutive base/precomposed consonants are reduced to the last one.
-    (while (string-match "^\\([$(7"!(B-$(7"J$!(B-$(7%u(B]\\)\\([$(7"!(B-$(7"@"B(B-$(7"J$!(B-$(7%u(B].*\\)" t-str)
-      (setq result (concat result (match-string 1 t-str)))
-      (setq t-str (match-string 2 t-str)))
-    ;; Vowel/vowel modifier, subjoined consonants are added one by one
-    ;; to the preceding element.
-    (while
-	(string-match "^\\(.\\)\\([$(7"A#!(B-$(7#J!I!g!e"Q(B-$(7"^"_(B-$(7"l(B]\\)\\(.*\\)" t-str)
-      (setq f-str (match-string 1 t-str))
-      (setq f-ch (string-to-char f-str))
-      (setq s-str (match-string 2 t-str))
-      ;;Special treatment for 'a chung.
-      ;;If 'a follows a consonant, then turned into its subjoined form.
-      (if (and (string-match "$(7"A(B" s-str)
-	       (not (tibetan-complete-char-examin f-ch)))
-	  (setq s-str "$(7#A(B"))
-      (setq s-ch (string-to-char s-str))
-      (setq rest (match-string 3 t-str))
-      (cond ((string-match "\\c2" s-str);; upper vowel sign
-	     (setq composed
-		   (tibetan-vertical-stacking f-ch s-ch t)))
-	    ((string-match "\\c3" s-str);; lower vowel sign
-	     (setq composed
-		   (tibetan-vertical-stacking f-ch s-ch nil)))
-	    ;;Automatic conversion of ra-mgo (superscribed r).
-	    ;;'r' is converted if followed by a subjoined consonant
-	    ;;other than w, ', y, r.
-	    ((and (string-match "$(7"C(B" f-str)
-		  (not (string-match "[$(7#>#A#B#C(B]" s-str)))
-	     (setq f-ch ?$(7#P(B)
-	     (setq composed
-		   (tibetan-vertical-stacking f-ch s-ch nil)))
-	    ((not (tibetan-complete-char-examin f-ch))
-	     ;;Initial base consonant is tranformed, if followed by
-	     ;;a subjoined consonant, except when it is followed
-	     ;;by a subscribed 'a.
-	     (if (and (string-match "[$(7"!(B-$(7"="?"@"D(B-$(7"J(B]" f-str)
-		      (not (string-match "$(7#A(B" s-str)))
-		 (setq f-ch
-		       (string-to-char
-			(cdr (assoc f-str tibetan-base-to-subjoined-alist)))))
-	     (setq composed
-		   (tibetan-vertical-stacking f-ch s-ch nil)))
-	    (t
-	     (setq composed s-str)
-	     (setq result (concat result f-str))))
-      (setq t-str (concat composed rest)))
-    (setq result (concat result t-str))))
-
-;;; quail <-> conversion interface.
-
-;;;###autoload
-(defun tibetan-composition (pc key)
-  "Interface to quail input method.
-Takes two arguments: char PC and string KEY, where PC is the preceding
-character to be composed with current input KEY.
-Returns a string which is the result of composition."
-  (let (trans cur-ch t-str result)
-    ;; Make a tibetan character corresponding to current input key.
-    (setq cur-ch (tibetan-transcription-to-tibetan key))
-    ;; Check if the preceding character is Tibetan and composable.
-    (cond ((and (tibetan-char-examin pc)
-		(tibetan-composable-examin pc))
-	   ;;If Tibetan char corresponding to the current input key exists,
-	   (cond (cur-ch
-		  ;; Then,
-		  ;; Convert the preceding character into transcription,
-		  ;; and concatenate it with the current input key,
-		  (setq trans (tibetan-tibetan-to-transcription pc))
-		  (setq trans (concat trans key))
-		  ;; Concatenated transcription is converted to
-		  ;; a sequence of Tibetan characters,
-		  (setq t-str (tibetan-transcription-to-tibetan trans))
-		  ;; And it is composed into a composite character.
-		  (setq result (tibetan-compose-string t-str)))
-		 ;; Else,
-		 (t
-		  ;; Simply concatenate the preceding character and
-		  ;; the current input key.
-		  (setq result (char-to-string pc))
-		  (setq result (concat result key)))))
-	  ;; If the preceding char is not Tibetan or not composable,
-	  (t
-	   ;; pc = 0 means the point is at the beginning of buffer.
-	   (if (not (eq pc 0))
-	       (setq result (char-to-string pc)))
-	   (if cur-ch
-	       (setq result (concat result cur-ch))
-	     (setq result (concat result key))))
-	  )))
-
-
-;;;###autoload
-(defun tibetan-decompose-region (beg end)
-  "Decompose Tibetan characters in the region BEG END into their components.
-Components are: base and subjoined consonants, vowel signs, vowel modifiers.
-One column punctuations are converted to their 2 column equivalents."
-  (interactive "r")
-  (let (ch-str ch-beg ch-end)
-    (save-excursion
-      (save-restriction
-	(narrow-to-region beg end)
-	(goto-char (point-min))
-	;; \\cq = Tibetan character
-	(while (re-search-forward "\\cq" nil t)
-	  (setq ch-str (buffer-substring-no-properties
-			(match-beginning 0) (match-end 0)))
-	  ;; Save the points. Maybe, using save-match-data is preferable.
-	  ;; But in order not to lose the trace(because the body is too long),
-	  ;; we save the points in variables.
-	  (setq ch-beg (match-beginning 0))
-	  (setq ch-end (match-end 0))
-	  ;; Here starts the decomposition.
-	  (cond
-	   ;; 1 column punctuations -> 2 column equivalent
-	   ((string-match "[$(8!D!;!=!?!@!A"`(B]" ch-str)
-	    (setq ch-str
-		  (car (rassoc ch-str tibetan-precomposition-rule-alist))))
-	   ;; Decomposition of composite character.
-	   ((eq (char-charset (string-to-char ch-str)) 'composition)
-	    ;; Make a string which consists of a sequence of
-	    ;; components.
-	    (setq ch-str (decompose-composite-char (string-to-char ch-str)))
-	    ;; Converts nyi zla into base elements.
-	    (cond ((string= ch-str "$(7#R#S#S#S(B")
-		   (setq ch-str "$(7!4!5!5(B"))
-		  ((string= ch-str "$(7#R#S#S(B")
-		   (setq ch-str "$(7!4!5(B"))
-		  ((string= ch-str "$(7#R#S!I(B")
-		   (setq ch-str "$(7!6(B"))
-		  ((string= ch-str "$(7#R#S(B")
-		   (setq ch-str "$(7!4(B")))))
-	  ;; If the sequence of components starts with a subjoined consonants,
-	  (if (string-match "^\\([$(7#!(B-$(7#J(B]\\)\\(.*\\)$" ch-str)
-	      ;; then the first components is converted to its base form.
-	      (setq ch-str
-		    (concat (car (rassoc (match-string 1 ch-str)
-					 tibetan-base-to-subjoined-alist))
-			    (match-string 2 ch-str))))
-	  ;; If the sequence of components starts with a precomposed character,
-	  (if (string-match "^\\([$(7$!(B-$(7%u(B]\\)\\(.*\\)$" ch-str)
-	      ;; then it is converted into a sequence of components.
-	      (setq ch-str
-		    (concat (car (rassoc (match-string 1 ch-str)
-					 tibetan-precomposition-rule-alist))
-			    (match-string 2 ch-str))))
-	  ;; Special treatment for superscribed r.
-	  (if (string-match "^$(7#P(B\\(.*\\)$" ch-str)
-	      (setq ch-str (concat "$(7"C(B" (match-string 1 ch-str))))
-	  ;; Finally, the result of decomposition is inserted, and
-	  ;; the composite character is deleted.
-	  (insert-and-inherit ch-str)
-	  (delete-region ch-beg ch-end))))))
+  "Compose Tibetan string STR."
+  (let ((idx 0))
+    ;; `$(7"A(B' is included in the pattern for subjoined consonants
+    ;; because we treat it specially in tibetan-add-components.
+    (while (setq idx (string-match tibetan-composable-pattern str idx))
+      (let ((from idx)
+	    (to (match-end 0))
+	    components)
+	(if (eq (string-match tibetan-precomposition-rule-regexp str idx) idx)
+	    (setq idx (match-end 0)
+		  components
+		  (list (string-to-char
+			 (cdr
+			  (assoc (match-string 0 str)
+				 tibetan-precomposition-rule-alist)))))
+	  (setq components (list (aref str idx))
+		idx (1+ idx)))
+	(while (< idx to)
+	  (tibetan-add-components components (aref str idx))
+	  (setq idx (1+ idx)))
+	(compose-string str from to components))))
+  str)
 
 ;;;###autoload
 (defun tibetan-compose-region (beg end)
-  "Make composite chars from Tibetan character components in the region BEG END.
-Two column punctuations are converted to their 1 column equivalents."
+  "Compose Tibetan text the region BEG and END."
   (interactive "r")
-  (let (str result)
+  (let (str result chars)
     (save-excursion
       (save-restriction
 	(narrow-to-region beg end)
 	(goto-char (point-min))
-	;; First, sequence of components which has a precomposed equivalent
-	;; is converted.
-	(while (re-search-forward
-		tibetan-precomposition-rule-regexp nil t)
-	  (setq str (buffer-substring-no-properties
-		     (match-beginning 0) (match-end 0)))
-	  (save-match-data
-	    (insert-and-inherit
-	     (cdr (assoc str tibetan-precomposition-rule-alist))))
-	  (delete-region (match-beginning 0) (match-end 0)))
-	(goto-char (point-min))
-	;; Then, composable elements are put into a composite character. 
-	(while (re-search-forward
-		"[$(7"!(B-$(7"J$!(B-$(7%u(B]+[$(7#!(B-$(7#J!I!g!e"Q(B-$(7"^"_(B-$(7"l(B]+"
-		nil t)
-	  (setq str (buffer-substring-no-properties
-		     (match-beginning 0) (match-end 0)))
-	  (save-match-data
-	    (setq result (tibetan-compose-string str))
-	    (insert-and-inherit result))
-	  (delete-region (match-beginning 0) (match-end 0)))))))
+	;; `$(7"A(B' is included in the pattern for subjoined consonants
+	;; because we treat it specially in tibetan-add-components.
+	(while (re-search-forward tibetan-composable-pattern nil t)
+	  (let ((from (match-beginning 0))
+		(to (match-end 0))
+		components)
+	    (goto-char from)
+	    (if (looking-at tibetan-precomposition-rule-regexp)
+		(progn
+		  (setq components
+			(list (string-to-char
+			       (cdr
+				(assoc (match-string 0)
+				       tibetan-precomposition-rule-alist)))))
+		  (goto-char (match-end 0)))
+	      (setq components (list (char-after from)))
+	      (forward-char 1))
+	    (while (< (point) to)
+	      (tibetan-add-components components (following-char))
+	      (forward-char 1))
+	    (compose-region from to components)))))))
+
+;;;###autoload
+(defalias 'tibetan-decompose-region 'decompose-region)
+;;;###autoload
+(defalias 'tibetan-decompose-string 'decompose-string)
+
+;;;###autoload
+(defun tibetan-composition-function (from to pattern &optional string)
+  (if string
+      (tibetan-compose-string string)
+    (tibetan-compose-region from to))
+  (- to from))
 
 ;;;
 ;;; This variable is used to avoid repeated decomposition.
@@ -420,7 +256,7 @@ Two column punctuations are converted to their 1 column equivalents."
 ;;;###autoload
 (defun tibetan-decompose-buffer ()
   "Decomposes Tibetan characters in the buffer into their components.
-See also docstring of the function tibetan-decompose-region."
+See also the documentation of the function `tibetan-decompose-region'."
   (interactive)
   (make-local-variable 'tibetan-decomposed)
   (cond ((not tibetan-decomposed)
