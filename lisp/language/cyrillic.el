@@ -29,9 +29,9 @@
 
 ;;; Code:
 
-(define-prefix-command 'describe-cyrillic-support-map)
-(define-key-after describe-language-support-map [Cyrillic]
-  '("Cyrillic" . describe-cyrillic-support-map)
+(define-prefix-command 'describe-cyrillic-environment-map)
+(define-key-after describe-language-environment-map [Cyrillic]
+  '("Cyrillic" . describe-cyrillic-environment-map)
   t)
 
 (define-prefix-command 'setup-cyrillic-environment-map)
@@ -206,7 +206,7 @@
 		  (charset . (cyrillic-iso8859-5))
 		  (coding-system . (iso-8859-5))
 		  (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		  (documentation . (t . describe-cyrillic-support-map))))
+		  (documentation . (t . describe-cyrillic-environment-map))))
 
 (set-language-info-alist
  "Cyrillic-KOI8" '((setup-function . (setup-cyrillic-iso-environment
@@ -214,16 +214,16 @@
 		   (charset . (cyrillic-iso8859-5))
 		   (coding-system . (koi8-4))
 		   (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
-		   (documentation . (t . describe-cyrillic-support-map))))
+		   (documentation . (t . describe-cyrillic-environment-map))))
 
 (set-language-info-alist
- "Cyrillic-ALTERNATIVNYJ" '((setup-function
+ "Cyrillic-Alternativnyj" '((setup-function
 			     . (setup-cyrillic-iso-environment
 				. setup-cyrillic-environment-map))
 			    (charset . (cyrillic-iso8859-5))
 			    (coding-system . (alternativnyj))
 			    (sample-text . "Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!")
 			    (documentation
-			     . (t . describe-cyrillic-support-map))))
+			     . (t . describe-cyrillic-environment-map))))
 
 ;;; cyrillic.el ends here
