@@ -8321,7 +8321,7 @@ EOF
 fi
 done
 
-for ac_header in maillock.h
+for ac_header in maillock.h sys/un.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 echo "$as_me:8327: checking for $ac_header" >&5
@@ -8369,12 +8369,13 @@ EOF
 fi
 done
 
-for ac_func in gethostname getdomainname getpeername dup2 \
+for ac_func in gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
+sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
