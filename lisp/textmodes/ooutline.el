@@ -134,6 +134,20 @@ in the file it applies to.")
     (setq minor-mode-alist (append minor-mode-alist
 				   (list '(outline-minor-mode " Outl")))))
 
+(defvar outline-font-lock-keywords
+  '(;; Highlight headings according to the level.
+    ("^\\(\\*+\\)[ \t]*\\(.+\\)?[ \t]*$"
+     (1 font-lock-string-face)
+     (2 (let ((len (- (match-end 1) (match-beginning 1))))
+	  (or (cdr (assq len '((1 . font-lock-function-name-face)
+			       (2 . font-lock-keyword-face)
+			       (3 . font-lock-comment-face))))
+	      font-lock-variable-name-face))
+	nil t))
+    ;; Highight citations of the form [1] and [Mar94].
+    ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
+  "Additional expressions to highlight in Outline mode.")
+
 ;;;###autoload
 (defun outline-mode ()
   "Set major mode for editing outlines with selective display.
@@ -192,6 +206,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat paragraph-separate "\\|^\\("
 				   outline-regexp "\\)"))
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords outline-font-lock-keywords)
   (make-local-variable 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
