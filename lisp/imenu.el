@@ -557,17 +557,15 @@ This variable is local in all buffers, once set.")
 
 ;;; Truncate all strings in MENULIST to imenu-max-item-length
 (defun imenu--truncate-items (menulist)
-  (mapcar (function
-	   (lambda (item)
-	     (cond
-	      ((consp (cdr item))
-	       (imenu--truncate-items (cdr item)))
-	      (t
-	       ;; truncate if necessary
-	       (if (and (numberp imenu-max-item-length)
-			(> (length (car item)) imenu-max-item-length))
-		   (setcar item (substring (car item) 0 imenu-max-item-length)))))))
-	  menulist))
+  (dolist (item menulist)
+    (cond
+     ((consp (cdr item))
+      (imenu--truncate-items (cdr item)))
+     (t
+      ;; truncate if necessary
+      (if (and (numberp imenu-max-item-length)
+	       (> (length (car item)) imenu-max-item-length))
+	  (setcar item (substring (car item) 0 imenu-max-item-length)))))))
 
 
 (defun imenu--make-index-alist (&optional noerror)
@@ -618,16 +616,15 @@ as a way for the user to ask to recalculate the buffer's index alist."
     (setq alist imenu--index-alist imenu--cleanup-seen (list alist)))
 
   (and alist
-       (mapcar
-	(function
-	 (lambda (item)
-	   (cond
-	    ((markerp (cdr item))
-	     (set-marker (cdr item) nil))
-	    ;; Don't process one alist twice.
-	    ((memq (cdr item) imenu--cleanup-seen))
-	    ((imenu--subalist-p item)
-	     (imenu--cleanup (cdr item))))))
+       (mapc
+	(lambda (item)
+	  (cond
+	   ((markerp (cdr item))
+	    (set-marker (cdr item) nil))
+	   ;; Don't process one alist twice.
+	   ((memq (cdr item) imenu--cleanup-seen))
+	   ((imenu--subalist-p item)
+	    (imenu--cleanup (cdr item)))))
 	alist)
        t))
 
@@ -722,18 +719,6 @@ Their results are gathered into an index alist."
 	(t
 	 (error "This buffer cannot use `imenu-default-create-index-function'"))))
 
-(defun imenu--replace-spaces (name replacement)
-  ;; Replace all spaces in NAME with REPLACEMENT.
-  ;; That second argument should be a string.
-  (mapconcat
-   (function
-    (lambda (ch)
-      (if (char-equal ch ?\ )
-	  replacement
-	(char-to-string ch))))
-   name
-   ""))
-
 ;; Not used and would require cl at run time
 ;;; (defun imenu--flatten-index-alist (index-alist &optional concat-names prefix)
 ;;;   ;; Takes a nested INDEX-ALIST and returns a flat index alist.
@@ -806,10 +791,8 @@ PATTERNS."
       ;; The character(s) to modify may be a single char or a string.
       (if (numberp (caar slist))
 	  (modify-syntax-entry (caar slist) (cdar slist) table)
-	(mapcar (function
-		 (lambda (c)
-		   (modify-syntax-entry c (cdar slist) table)))
-		(caar slist)))
+	(dolist (c (caar slist))
+	  (modify-syntax-entry c (cdar slist) table)))
       (setq slist (cdr slist)))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
@@ -818,39 +801,38 @@ PATTERNS."
 	  (set-syntax-table table)
 	  ;; map over the elements of imenu-generic-expression
 	  ;; (typically functions, variables ...)
-	  (mapcar
-	   (function
-	    (lambda (pat)
-	      (let ((menu-title (car pat))
-		    (regexp (nth 1 pat))
-		    (index (nth 2 pat))
-		    (function (nth 3 pat))
-		    (rest (nthcdr 4 pat)))
-		;; Go backwards for convenience of adding items in order.
-		(goto-char (point-max))
-		(while (re-search-backward regexp nil t)
-		  (imenu-progress-message prev-pos nil t)
-		  (setq beg (match-beginning index))
-		  ;; Add this sort of submenu only when we've found an
-		  ;; item for it, avoiding empty, duff menus.
-		  (unless (assoc menu-title index-alist)
-		    (push (list menu-title) index-alist))
-		  (if imenu-use-markers
-		      (setq beg (set-marker (make-marker) beg)))
-		  (let ((item
-			 (if function
-			     (nconc (list (match-string-no-properties index)
-					  beg function)
-				    rest)
-			   (cons (match-string-no-properties index)
-				 beg)))
-			;; This is the desired submenu,
-			;; starting with its title (or nil).
-			(menu (assoc menu-title index-alist)))
-		    ;; Insert the item unless it is already present.
-		    (unless (member item (cdr menu))
-		      (setcdr menu
-			      (cons item (cdr menu)))))))))
+	  (mapc
+	   (lambda (pat)
+	     (let ((menu-title (car pat))
+		   (regexp (nth 1 pat))
+		   (index (nth 2 pat))
+		   (function (nth 3 pat))
+		   (rest (nthcdr 4 pat)))
+	       ;; Go backwards for convenience of adding items in order.
+	       (goto-char (point-max))
+	       (while (re-search-backward regexp nil t)
+		 (imenu-progress-message prev-pos nil t)
+		 (setq beg (match-beginning index))
+		 ;; Add this sort of submenu only when we've found an
+		 ;; item for it, avoiding empty, duff menus.
+		 (unless (assoc menu-title index-alist)
+		   (push (list menu-title) index-alist))
+		 (if imenu-use-markers
+		     (setq beg (copy-marker beg)))
+		 (let ((item
+			(if function
+			    (nconc (list (match-string-no-properties index)
+					 beg function)
+				   rest)
+			  (cons (match-string-no-properties index)
+				beg)))
+		       ;; This is the desired submenu,
+		       ;; starting with its title (or nil).
+		       (menu (assoc menu-title index-alist)))
+		   ;; Insert the item unless it is already present.
+		   (unless (member item (cdr menu))
+		     (setcdr menu
+			     (cons item (cdr menu))))))))
 	   patterns)
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
@@ -881,10 +863,10 @@ Returns t for rescan and otherwise a position number."
 	choice
 	(prepared-index-alist
 	 (mapcar
-	  (function
-	   (lambda (item)
-	     (cons (imenu--replace-spaces (car item) imenu-space-replacement)
-		   (cdr item))))
+	  (lambda (item)
+	    (cons (subst-char-in-string ?\ (aref imenu-space-replacement 0)
+					(car item))
+		  (cdr item)))
 	  index-alist)))
     (cond (prompt)
 	  ((and name (imenu--in-alist name prepared-index-alist))
@@ -1016,15 +998,15 @@ See the command `imenu' for more information."
 	  imenu-generic-expression
 	  (not (eq imenu-create-index-function
 		   'imenu-default-create-index-function)))
-      (let ((newmap (make-sparse-keymap))
-	    (menu-bar (lookup-key (current-local-map) [menu-bar])))
+      (let ((newmap (make-sparse-keymap)))
+	(set-keymap-parent newmap (current-local-map))
 	(setq imenu--last-menubar-index-alist nil)
 	(define-key newmap [menu-bar]
-	  (append (make-sparse-keymap) menu-bar))
-	(define-key newmap [menu-bar index]
-	  (cons name (nconc (make-sparse-keymap "Imenu")
-			    (make-sparse-keymap))))
-	(use-local-map (append newmap (current-local-map)))
+	  (let ((map (make-sparse-keymap)))
+	    (define-key map [index] 
+	      `(menu-item ,name ,(make-sparse-keymap "Imenu")))
+	    map))
+	(use-local-map newmap)
 	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
     (error "The mode `%s' does not support Imenu" mode-name)))
 
