@@ -581,13 +581,9 @@ int
 detect_coding_iso2022 (src, src_end)
      unsigned char *src, *src_end;
 {
-  unsigned char c, g1 = 0;
-  int mask = (CODING_CATEGORY_MASK_ISO_7
-	      | CODING_CATEGORY_MASK_ISO_8_1
-	      | CODING_CATEGORY_MASK_ISO_8_2);
-  /* We may look ahead at most 4 bytes.  */
-  unsigned char *adjusted_src_end = src_end - 4;
-  int i;
+  int mask = CODING_CATEGORY_MASK_ANY;
+  int g1 = 0;			/* 1 iff designating to G1.  */
+  int c, i;
 
   while (src < src_end)
     {
@@ -598,14 +594,21 @@ detect_coding_iso2022 (src, src_end)
 	  if (src >= src_end)
 	    break;
 	  c = *src++;
-	  if (src + 2 >= src_end
+	  if (src < src_end
 	      && ((c >= '(' && c <= '/')
 		  || c == '$' && ((*src >= '(' && *src <= '/')
 				  || (*src >= '@' && *src <= 'B'))))
 	    {
 	      /* Valid designation sequence.  */
+	      mask &= (CODING_CATEGORY_MASK_ISO_7
+		       | CODING_CATEGORY_MASK_ISO_8_1
+		       | CODING_CATEGORY_MASK_ISO_8_2
+		       | CODING_CATEGORY_MASK_ISO_ELSE);
 	      if (c == ')' || (c == '$' && *src == ')'))
-		g1 = 1;
+		{
+		  g1 = 1;
+		  mask &= ~CODING_CATEGORY_MASK_ISO_7;
+		}
 	      src++;
 	      break;
 	    }
@@ -2362,6 +2365,7 @@ detect_coding_mask (src, src_bytes)
 
   /* At first, skip all ASCII characters and control characters except
      for three ISO2022 specific control characters.  */
+ label_loop_detect_coding:
   while (src < src_end)
     {
       c = *src;
@@ -2378,10 +2382,15 @@ detect_coding_mask (src, src_bytes)
   /* The text seems to be encoded in some multilingual coding system.
      Now, try to find in which coding system the text is encoded.  */
   if (c < 0x80)
-    /* i.e. (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO) */
-    /* C is an ISO2022 specific control code of C0.  */
-    mask = detect_coding_iso2022 (src, src_end);
-
+    {
+      /* i.e. (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO) */
+      /* C is an ISO2022 specific control code of C0.  */
+      mask = detect_coding_iso2022 (src, src_end);
+      src++;
+      if (mask == CODING_CATEGORY_MASK_ANY)
+	/* No valid ISO2022 code follows C.  Try again.  */
+	goto label_loop_detect_coding;
+    }
   else if (c == ISO_CODE_SS2 || c == ISO_CODE_SS3 || c == ISO_CODE_CSI)
     /* C is an ISO2022 specific control code of C1,
        or the first byte of SJIS's 2-byte character code,
@@ -3225,8 +3234,7 @@ Return the corresponding character code in SJIS.")
   (ch)
      Lisp_Object ch;
 {
-  int charset;
-  unsigned char c1, c2, s1, s2;
+  int charset, c1, c2, s1, s2;
   Lisp_Object val;
 
   CHECK_NUMBER (ch, 0);
@@ -3234,7 +3242,7 @@ Return the corresponding character code in SJIS.")
   if (charset == charset_jisx0208)
     {
       ENCODE_SJIS (c1, c2, s1, s2);
-      XSETFASTINT (val, ((int)s1 << 8) | s2);
+      XSETFASTINT (val, (s1 << 8) | s2);
     }
   else
     XSETFASTINT (val, 0);
@@ -3265,8 +3273,7 @@ Return the corresponding character code in Big5.")
   (ch)
      Lisp_Object ch;
 {
-  int charset;
-  unsigned char c1, c2, b1, b2;
+  int charset, c1, c2, b1, b2;
   Lisp_Object val;
 
   CHECK_NUMBER (ch, 0);
@@ -3274,7 +3281,7 @@ Return the corresponding character code in Big5.")
   if (charset == charset_big5_1 || charset == charset_big5_2)
     {
       ENCODE_BIG5 (charset, c1, c2, b1, b2);
-      XSETFASTINT (val, ((int)b1 << 8) | b2);
+      XSETFASTINT (val, (b1 << 8) | b2);
     }
   else
     XSETFASTINT (val, 0);
