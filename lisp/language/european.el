@@ -62,7 +62,7 @@
 	     (nonascii-translation . latin-iso8859-1)
 	     (unibyte-syntax . "latin-1")
 	     (unibyte-display . iso-latin-1)
-	     (input-method "latin-1-prefix")
+	     (input-method . "latin-1-prefix")
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . "\
@@ -97,7 +97,7 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set:
 	     (nonascii-translation . latin-iso8859-2)
 	     (unibyte-syntax . "latin-2")
 	     (unibyte-display . iso-latin-2)
-	     (input-method "latin-2-prefix")
+	     (input-method . "latin-2-prefix")
 	     (documentation . "\
 These languages are supported with the Latin-2 (ISO-8859-2) character set:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
@@ -131,7 +131,7 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set:
 	     (nonascii-translation . latin-iso8859-3)
 	     (unibyte-syntax . "latin-3")
 	     (unibyte-display . iso-latin-3)
-	     (input-method "latin-3-prefix")
+	     (input-method . "latin-3-prefix")
 	     (documentation . "\
 These languages are supported with the Latin-3 (ISO-8859-3) character set:
  Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
@@ -164,7 +164,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 	     (nonascii-translation . latin-iso8859-4)
 	     (unibyte-syntax . "latin-4")
 	     (unibyte-display . iso-8859-4)
-	     (input-method "latin-4-prefix")
+	     (input-method . "latin-4-prefix")
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
@@ -197,7 +197,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
 	     (unibyte-display . iso-latin-5)
-	     (input-method "latin-5-prefix")
+	     (input-method . "latin-5-prefix")
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set."))
  '("European"))
@@ -213,7 +213,7 @@ These languages are supported with the Latin-5 (ISO-8859-9) character set."))
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1)
 	    (coding-priority iso-latin-1)
-	    (input-method "german-postfix")
+	    (input-method . "german-postfix")
 	    (nonascii-translation . iso-latin-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
