@@ -1,6 +1,6 @@
 ;;; webjump.el --- programmable Web hotlist
 
-;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2004 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
 ;; Created:   09-Aug-1996
@@ -300,7 +300,8 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
      ((eq builtin 'mirrors)
       (if (= (length expr) 1)
           (error
-           "WebJump URL builtin \"mirrors\" for \"%s\" needs at least 1 arg"))
+           "WebJump URL builtin \"mirrors\" for \"%s\" needs at least 1 arg"
+	   name))
       (webjump-choose-mirror name (cdr (append expr nil))))
      ((eq builtin 'name)
       name)
