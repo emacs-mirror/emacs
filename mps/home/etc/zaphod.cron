@@ -1,9 +1,0 @@
-# $HopeName: HOMEmm!etc:zaphod.cron(trunk.15) $
-# minutes hours day-of-month month day-of-week command
-50 20  *  *  *  sh -c ". etc/shenv && overnight checkout"
-55 22  *  *  1-4  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk sos8gc"
-#30 01  *  *  3  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_anchovy sos8gc"
-00 02  *  *  2-5  sh -c ". etc/shenv && overnight ./bin/build/MM_epcore_brisling sos8gc"
-40 02  *  *  2-5  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk sos8gc hi we"
-55 20  *  *  5  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk sos8gc ci"
-00 20  *  *  0  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_epcore_brisling sos8gc hi we ci"
