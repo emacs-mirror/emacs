@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -204,26 +204,14 @@ This variable is buffer-local."
 		 (other :tag "on" t))
   :group 'comint)
 
-(defcustom comint-highlight-input t
-  "*If non-nil, highlight input; also allow choosing previous input with a mouse.
-The face used is `comint-highlight-input'."
-  :type 'boolean
-  :group 'comint)
-
 (defface comint-highlight-input '((t (:weight bold)))
-  "Face to use to highlight input when `comint-highlight-input' is non-nil."
-  :group 'comint)
-
-(defcustom comint-highlight-prompt t
-  "*If non-nil, highlight program prompts.
-The face used is `comint-highlight-prompt'."
-  :type 'boolean
+  "Face to use to highlight user input."
   :group 'comint)
 
 (defface comint-highlight-prompt
   '((((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
-  "Face to use to highlight prompt when `comint-highlight-prompt' is non-nil."
+  "Face to use to highlight prompts."
   :group 'comint)
 
 (defcustom comint-input-ignoredups nil
@@ -521,6 +509,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   (set (make-local-variable 'comint-accum-marker) (make-marker))
+  (set (make-local-variable 'font-lock-defaults)
+       '(nil t nil nil nil (font-lock-core-only . t)))
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -1469,13 +1459,12 @@ Similarly for Soar, Scheme, etc."
 		  ;; `boundary' field to make cursor movement between input
 		  ;; and output fields smoother.
 		  (overlay-put over 'field 'input))
-		(when comint-highlight-input
-		  (overlay-put over 'face 'comint-highlight-input)
-		  (overlay-put over 'mouse-face 'highlight)
-		  (overlay-put over
-			       'help-echo
-			       "mouse-2: insert after prompt as new input")
-		  (overlay-put over 'evaporate t))))
+		(overlay-put over 'font-lock-face 'comint-highlight-input)
+		(overlay-put over 'mouse-face 'highlight)
+		(overlay-put over
+			     'help-echo
+			     "mouse-2: insert after prompt as new input")
+		(overlay-put over 'evaporate t)))
 	    (unless comint-use-prompt-regexp-instead-of-fields
 	      ;; Make an overlay for the terminating newline
 	      (let ((over (make-overlay end (1+ end) nil t nil)))
@@ -1698,23 +1687,22 @@ This function should be in the list `comint-output-filter-functions'."
 		  (overlay-put over 'evaporate t)
 		  (setq comint-last-output-overlay over))))
 
-	    (when comint-highlight-prompt
-	      ;; Highlight the prompt, where we define `prompt' to mean
-	      ;; the most recent output that doesn't end with a newline.
-	      (unless (and (bolp) (null comint-last-prompt-overlay))
-		;; Need to create or move the prompt overlay (in the case
-		;; where there is no prompt ((bolp) == t), we still do
-		;; this if there's already an existing overlay).
-		(let ((prompt-start (save-excursion (forward-line 0) (point))))
-		  (if comint-last-prompt-overlay
-		      ;; Just move an existing overlay
-		      (move-overlay comint-last-prompt-overlay
-				    prompt-start (point))
-		    ;; Need to create the overlay
-		    (setq comint-last-prompt-overlay
-			  (make-overlay prompt-start (point)))
-		    (overlay-put comint-last-prompt-overlay
-				 'face 'comint-highlight-prompt)))))
+	    ;; Highlight the prompt, where we define `prompt' to mean
+	    ;; the most recent output that doesn't end with a newline.
+	    (unless (and (bolp) (null comint-last-prompt-overlay))
+	      ;; Need to create or move the prompt overlay (in the case
+	      ;; where there is no prompt ((bolp) == t), we still do
+	      ;; this if there's already an existing overlay).
+	      (let ((prompt-start (save-excursion (forward-line 0) (point))))
+		(if comint-last-prompt-overlay
+		    ;; Just move an existing overlay
+		    (move-overlay comint-last-prompt-overlay
+				  prompt-start (point))
+		  ;; Need to create the overlay
+		  (setq comint-last-prompt-overlay
+			(make-overlay prompt-start (point)))
+		  (overlay-put comint-last-prompt-overlay
+			       'font-lock-face 'comint-highlight-prompt))))
 
 	    (goto-char saved-point)
 
