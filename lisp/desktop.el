@@ -521,7 +521,7 @@ MODE is the major mode."
       (set-buffer buf)
       (erase-buffer)
 
-      (insert ";; -*- coding: emacs-mule; -*-\n"
+      (insert ";; -*- coding: utf-8-emacs; -*-\n"
 	      desktop-header
 	      ";; Created " (current-time-string) "\n"
 	      ";; Emacs version " emacs-version "\n\n"
@@ -548,7 +548,7 @@ MODE is the major mode."
        info)
       (setq default-directory dirname)
       (if (file-exists-p filename) (delete-file filename))
-      (let ((coding-system-for-write 'emacs-mule))
+      (let ((coding-system-for-write 'utf-8-emacs))
 	(write-region (point-min) (point-max) filename nil 'nomessage))))
   (setq desktop-dirname dirname))
 ;; ----------------------------------------------------------------------------
