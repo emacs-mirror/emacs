@@ -514,11 +514,6 @@ print_string (string, printcharfun)
 	    int len;
 	    int ch = STRING_CHAR_AND_LENGTH (XSTRING (string)->data + i,
 					     size_byte - i, len);
-	    if (!CHAR_VALID_P (ch, 0))
-	      {
-		ch = XSTRING (string)->data[i];
-		len = 1;
-	      }
 	    PRINTCHAR (ch);
 	    i += len;
 	  }
