@@ -1,3 +1,9 @@
+2003-11-01  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* mail/rmailsum.el (rmail-summary-goto-msg): Don't call itself
+	recursively if the last message is deleted, thus avoiding an
+	infinite loop.
+
 2003-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-compile-commands): Add `yap' and `ps2pdf'.
