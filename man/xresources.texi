@@ -19,7 +19,7 @@ and how to use them.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 @end menu
 
-@node Resources X
+@node Resources
 @appendixsec X Resources
 @cindex resources
 
