@@ -143,7 +143,11 @@ and this notice must be preserved on all copies.  */
  * we have the wrong name for networking libs
  */
 #undef LIBX11_SYSTEM
+#ifdef USG5_4
+#define LIBX11_SYSTEM -lX11
+#else
 #define LIBX11_SYSTEM -lnsl -lbsd
+#endif /* USG5_4 */
 
 /* 
  * we have Berkeley style <sys/time.h>
@@ -160,8 +164,20 @@ and this notice must be preserved on all copies.  */
  */
 #define USE_UTIME
 
+#ifdef USG5_4
+#define LIBS_SYSTEM -lsocket -lnsl 
+#else
 #define LIBS_SYSTEM -lbsd -lg
+#endif /* USG5_4 */
 
 #define NEED_TERMIOS
 
 #define NO_SIOCTL_H
+
+#ifdef USG5_4
+#ifdef HAVE_X_WINDOWS
+#define HAVE_RANDOM
+#else
+#undef BSTRING
+#endif /* HAVE_X_WINDOWS */
+#endif /* USG5_4 */
