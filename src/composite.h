@@ -76,7 +76,7 @@ extern Lisp_Object composition_temp;
 #define COMPOSITION_MODIFICATION_FUNC(prop)	\
   (COMPOSITION_REGISTERD_P (prop)		\
    ? XCDR (XCDR (XCDR (prop)))			\
-   : XCDR (prop))
+   : CONSP (prop) ? XCDR (prop) : Qnil)
 
 /* Return the method of composition.  */
 #define COMPOSITION_METHOD(prop)					\
