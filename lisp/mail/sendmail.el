@@ -382,6 +382,7 @@ the user from the mailer."
 		  0))
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
+	resend-to-addresses
 	delimline
 	(mailbuf (current-buffer)))
     (unwind-protect
@@ -413,6 +414,17 @@ the user from the mailer."
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
 		(mail-do-fcc delimline))
+	    (goto-char (point-min))
+	    (require 'mail-utils)
+	    (while (re-search-forward "^Resent-to:" delimline t)
+	      (setq resend-to-addresses
+		    (save-restriction
+		      (narrow-to-region (point)
+					(save-excursion
+					  (end-of-line)
+					  (point)))
+		      (append (mail-parse-comma-list)
+			      resend-to-addresses))))
 ;;; Apparently this causes a duplicate Sender.
 ;;;	    ;; If the From is different than current user, insert Sender.
 ;;;	    (goto-char (point-min))
@@ -450,8 +462,7 @@ the user from the mailer."
 			       (if (boundp 'sendmail-program)
 				   sendmail-program
 				 "/usr/lib/sendmail")
-			       nil errbuf nil
-			       "-oi" "-t")
+			       nil errbuf nil "-oi")
 			 ;; Always specify who from,
 			 ;; since some systems have broken sendmails.
 			 (list "-f" (user-login-name))
@@ -462,7 +473,14 @@ the user from the mailer."
 			      (list (concat "-oA" mail-alias-file)))
 			 ;; These mean "report errors by mail"
 			 ;; and "deliver in background".
-			 (if (null mail-interactive) '("-oem" "-odb"))))
+			 (if (null mail-interactive) '("-oem" "-odb"))
+			 ;; Get the addresses from the message
+			 ;; unless this is a resend.
+			 ;; We must not do that for a resend
+			 ;; because we would find the original addresses.
+			 ;; For a resend, include the specific addresses.
+			 (or resend-to-addresses
+			     '("-t"))))
 	  (if mail-interactive
 	      (save-excursion
 		(set-buffer errbuf)
