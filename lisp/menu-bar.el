@@ -402,22 +402,17 @@ Do the same for the keys of the same name."
 (define-key menu-bar-options-menu [auto-fill-mode]
   '("Toggle Auto Fill (word wrap) in Text modes"
     . toggle-text-mode-auto-fill))
-(define-key menu-bar-options-menu [font-lock-mode]
-  (menu-bar-make-toggle toggle-font-lock-mode font-lock-mode
-			"Toggle Font Lock (syntax highlighting)"
-			"Font Lock mode %s"
+(define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
+  (menu-bar-make-toggle toggle-global-lazy-font-lock-mode nil
+			"Toggle Global Font Lock (highlights syntax)"
+			"Global Font Lock mode %s"
+			;; Make sure a support mode is used;
+			;; otherwise Font Lock will be too slow.
 			(require 'font-lock)
-			(if global-font-lock-mode
-			    (let ((buffers (buffer-list)))
-			      (while buffers
-				(with-current-buffer (car buffers)
-				  (if font-lock-mode
-				      (font-lock-mode 0)))
-				(setq buffers (cdr buffers)))
-			      (setq global-font-lock-mode nil))
-			  (setq font-lock-support-mode 'lazy-lock-mode)
-			  (global-font-lock-mode))
-			global-font-lock-mode))
+			(if (not global-font-lock-mode)
+			    (or font-lock-support-mode
+				(setq font-lock-support-mode 'lazy-lock-mode)))
+			(global-font-lock-mode)))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
