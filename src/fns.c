@@ -2488,9 +2488,9 @@ a character set name, or a character code.  */)
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
        doc: /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
-RANGE should be t (for all characters), nil (for the default value)
-a vector which identifies a character set or a row of a character set,
-a coding system, or a character code.  */)
+RANGE should be t (for all characters), nil (for the default value),
+a character set, a vector which identifies a character set, a row of a
+character set, or a character code.  Return VALUE.  */)
      (char_table, range, value)
      Lisp_Object char_table, range, value;
 {
