@@ -372,8 +372,6 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
-      else if (EQ (funcar, Qmocklisp))
-	return Qnil;
       else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
       else
