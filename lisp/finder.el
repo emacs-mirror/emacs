@@ -77,7 +77,7 @@
 (defun finder-compile-keywords (&rest dirs)
   "Regenerate the keywords association list into the file finder-inf.el.
 Optional arguments are a list of Emacs Lisp directories to compile from; no
-arguments compiles from load-path."
+arguments compiles from `load-path'."
   (save-excursion
     (find-file "finder-inf.el")
     (erase-buffer)

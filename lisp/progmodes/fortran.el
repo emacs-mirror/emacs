@@ -481,7 +481,7 @@ Any other key combination is executed normally."
 
 (defun fortran-column-ruler ()
   "Inserts a column ruler momentarily above current line, till next keystroke.
-The ruler is defined by the value of fortran-column-ruler.
+The ruler is defined by the value of `fortran-column-ruler'.
 The key typed is executed unless it is SPC."
   (interactive)
   (momentary-string-display 
@@ -490,7 +490,7 @@ The key typed is executed unless it is SPC."
 
 (defun fortran-window-create ()
   "Makes the window 72 columns wide.
-See also fortran-window-create-momentarily."
+See also `fortran-window-create-momentarily'."
   (interactive)
   (condition-case error
       (progn
@@ -508,7 +508,7 @@ See also fortran-window-create-momentarily."
 (defun fortran-window-create-momentarily (&optional arg)
   "Momentarily makes the window 72 columns wide.
 Optional ARG non-nil and non-unity disables the momentary feature.
-See also fortran-window-create."
+See also `fortran-window-create'."
   (interactive "p")
   (if (or (not arg)
 	  (= arg 1))
@@ -937,8 +937,8 @@ Otherwise return a nil."
 
 (defun fortran-analyze-file-format ()
   "Return 0 if Fixed format is used, 1 if Tab formatting is used.
-Use fortran-tab-mode-default if no non-comment statements are found in the
-file before the end or the first fortran-analyze-depth lines."
+Use `fortran-tab-mode-default' if no non-comment statements are found in the
+file before the end or the first `fortran-analyze-depth' lines."
   (save-excursion
     (goto-char (point-min))
     (setq i 0)
@@ -956,11 +956,10 @@ file before the end or the first fortran-analyze-depth lines."
      (t 0))))
 
 (defun fortran-tab-mode (arg)
-  "Toggle fortran-tab-mode which indicates style of continuation lines.
+  "Toggle `fortran-tab-mode' which indicates style of continuation lines.
 With no argument, toggle on/off the tabbing mode of continuation lines.
-If argument is a positive number, or non-nil if not a number, fortran-tab-mode
-is turned on.  Otherwise 
-If `fortran-tab-mode' is false"
+If argument is a positive number, or non-nil if not a number,
+`fortran-tab-mode' is turned on.  Otherwise `fortran-tab-mode' is false"
   (interactive "P")
   (setq fortran-tab-mode
 	(if (null arg) (not fortran-tab-mode)
@@ -987,7 +986,7 @@ Use the command fortran-tab-mode to toggle between this and fixed format style."
 
 (defun fortran-setup-fixed-format-style ()
   "Set up fortran mode to use the column 6 mode of continuation lines.
-Use the command fortran-tab-mode to toggle between this and tab
+Use the command `fortran-tab-mode' to toggle between this and tab
 character format style."
   (setq fortran-comment-line-column 6)
   (setq fortran-minimum-statement-indent 6)

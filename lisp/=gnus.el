@@ -4961,7 +4961,7 @@ that it was marked as read once."
   "Configure GNUS windows according to the next ACTION.
 The ACTION is either a symbol, such as `SelectNewsgroup', or a
 configuration list such as `(1 1 2)'.  If ACTION is not a list,
-configuration list is got from the variable gnus-window-configuration."
+configuration list is got from the variable `gnus-window-configuration'."
   (let* ((windows
 	  (if (listp action)
 	      action (car (cdr (assq action gnus-window-configuration)))))
