@@ -81,7 +81,9 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 			     'compare-windows-skip-whitespace
 			   compare-windows-whitespace))))
     (setq p1 (point) b1 (current-buffer))
-    (setq w2 (next-window (selected-window) nil 'visible))
+    (setq w2 (next-window (selected-window)))
+    (if (eq w2 (selected-window))
+	(setq w2 (next-window (selected-window) nil 'visible)))
     (if (eq w2 (selected-window))
 	(error "No other window"))
     (setq p2 (window-point w2)
