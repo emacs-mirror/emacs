@@ -2405,20 +2405,16 @@ This function is useful for creating multiple shell process buffers
 or multiple mail buffers, etc."
   (interactive)
   (save-match-data
-    (let* ((base-name (if (and (string-match "<[0-9]+>\\'" (buffer-name))
-			       (not (and buffer-file-name
-					 (string= (buffer-name)
-						  (file-name-nondirectory
-						   buffer-file-name)))))
-			  ;; If the existing buffer name has a <NNN>,
-			  ;; which isn't part of the file name (if any),
-			  ;; then get rid of that.
-			  (substring (buffer-name) 0 (match-beginning 0))
-			(buffer-name)))
-	   (new-buf (generate-new-buffer base-name))
-	   (name (buffer-name new-buf)))
-      (kill-buffer new-buf)
-      (rename-buffer name)
+    (let ((base-name (buffer-name)))
+      (and (string-match "<[0-9]+>\\'" base-name)
+	   (not (and buffer-file-name
+		     (string= base-name
+			      (file-name-nondirectory buffer-file-name))))
+	   ;; If the existing buffer name has a <NNN>,
+	   ;; which isn't part of the file name (if any),
+	   ;; then get rid of that.
+	   (setq base-name (substring base-name 0 (match-beginning 0))))
+      (rename-buffer (generate-new-buffer-name base-name))
       (force-mode-line-update))))
 
 (defun make-directory (dir &optional parents)
