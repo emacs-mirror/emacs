@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@ LN_S=@LN_S@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
+LIBS = @LIBS@
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
@@ -516,19 +517,12 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
 #define UNEXEC_SRC unexec.c
 #endif
 
-#define INTERVAL_SRC intervals.h composite.h
-#define INTERVAL_OBJ intervals.o textprop.o  composite.o
+INTERVAL_SRC = intervals.h composite.h
 
 #ifdef HAVE_GETLOADAVG
 #define GETLOADAVG_OBJ
 #else
 #define GETLOADAVG_OBJ getloadavg.o
-#endif
-
-#if HAVE_MKTIME && ! BROKEN_MKTIME
-#define MKTIME_OBJ
-#else
-#define MKTIME_OBJ mktime.o
 #endif
 
 #ifdef MSDOS
@@ -548,7 +542,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	charset.o coding.o category.o ccl.o\
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
-	buffer.o filelock.o insdel.o marker.o INTERVAL_OBJ \
+	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o filemode.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
@@ -556,13 +550,14 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ MSDOS_OBJ
+	doprnt.o strftime.o intervals.o textprop.o composite.o \
+	@LIBOBJS@ MSDOS_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
-SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o intervals.o textprop.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o composite.o
+SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o
 
 
 #ifdef TERMINFO
@@ -622,25 +617,11 @@ widgetobj=
    should not be told about.  */
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
-#ifdef HAVE_FACES
-#define FACE_SUPPORT ${lispsource}facemenu.elc
-#else
-#define FACE_SUPPORT
-#endif
-
-#define FLOAT_SUPPORT ${lispsource}float-sup.elc
-
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
 #define MOUSE_SUPPORT
-#endif
-
-#ifdef HAVE_X_WINDOWS
-#define X_WINDOWS_SUPPORT
-#else
-#define X_WINDOWS_SUPPORT
 #endif
 
 #ifdef VMS
@@ -686,11 +667,10 @@ lisp= \
 	${lispsource}faces.elc \
 	${lispsource}files.elc \
 	${lispsource}format.elc \
-	FACE_SUPPORT \
+	${lispsource}facemenu.elc \
 	MOUSE_SUPPORT \
-	FLOAT_SUPPORT \
+	${lispsource}float-sup.elc \
 	${lispsource}frame.elc\
-	X_WINDOWS_SUPPORT \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
@@ -755,9 +735,12 @@ shortlisp= \
 	../lisp/custom.elc \
 	../lisp/emacs-lisp/lisp-mode.elc \
 	../lisp/emacs-lisp/lisp.elc \
+	../lisp/facemenu.elc \
 	../lisp/faces.elc \
 	../lisp/files.elc \
+	../lisp/float-sup.elc \
 	../lisp/format.elc \
+	../lisp/frame.elc \
 	../lisp/help.elc \
 	../lisp/indent.elc \
 	../lisp/isearch.elc \
@@ -811,9 +794,7 @@ shortlisp= \
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
    for the sake of systems which can't handle large ones.  */
-SOME_MACHINE_LISP = ${dotdot}/lisp/facemenu.elc \
-  ${dotdot}/lisp/float-sup.elc ${dotdot}/lisp/frame.elc \
-  ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
+SOME_MACHINE_LISP = ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
   ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
@@ -823,18 +804,13 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/facemenu.elc \
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
-LIBES = $(LOADLIBES) $(LDLIBS) $(LIBX) LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
+LIBES = $(LOADLIBES) $(LIBS) $(LIBX) LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
 /* Enable recompilation of certain other files depending on system type.  */
 
 #ifndef OTHER_FILES
 #define OTHER_FILES
-#endif
-
-/* Enable inclusion of object files in temacs depending on system type.  */
-#ifndef OBJECTS_SYSTEM
-#define OBJECTS_SYSTEM
 #endif
 
 #ifndef OBJECTS_MACHINE
@@ -877,10 +853,10 @@ ${libsrc}make-docfile:
 #define MAKE_PARALLEL
 #endif
 
-temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
+temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
-    OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
+    OBJECTS_MACHINE ${LIBES}
 
 /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs's crt0,
@@ -1033,7 +1009,7 @@ alloca.o : alloca.s $(config_h)
 
 abbrev.o: abbrev.c buffer.h window.h commands.h charset.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
-   INTERVAL_SRC blockinput.h charset.h $(config_h)
+   $(INTERVAL_SRC) blockinput.h charset.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
@@ -1058,11 +1034,11 @@ dispnew.o: dispnew.c  commands.h frame.h window.h buffer.h dispextern.h \
 doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h charset.h
 doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
-editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
+editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
-   termhooks.h buffer.h INTERVAL_SRC $(config_h)
-fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
+   termhooks.h buffer.h $(INTERVAL_SRC) $(config_h)
+fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h ccl.h msdos.h $(config_h)
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
@@ -1072,11 +1048,11 @@ fontset.o: dispextern.h fontset.h fontset.c ccl.h charset.h frame.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h charset.h composite.h
-insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h charset.h\
+insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h\
    $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
-   systty.h systime.h dispextern.h syntax.h INTERVAL_SRC blockinput.h \
+   systty.h systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
    xterm.h puresize.h msdos.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    puresize.h charset.h $(config_h)
@@ -1147,25 +1123,25 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 /* The files of Lisp proper */
 
 alloc.o: alloc.c frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
- blockinput.h charset.h $(config_h) INTERVAL_SRC
+ blockinput.h charset.h $(config_h) $(INTERVAL_SRC)
 bytecode.o: bytecode.c buffer.h syntax.h charset.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h \
- frame.h window.h INTERVAL_SRC
+ frame.h window.h $(INTERVAL_SRC)
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
  termhooks.h msdos.h
 
 /* Text properties support */
-textprop.o: textprop.c buffer.h window.h INTERVAL_SRC $(config_h)
-intervals.o: intervals.c buffer.h INTERVAL_SRC keyboard.h puresize.h $(config_h)
-composite.o: composite.c buffer.h  charset.h INTERVAL_SRC $(config_h)
+textprop.o: textprop.c buffer.h window.h $(INTERVAL_SRC) $(config_h)
+intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h $(config_h)
+composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
 
 /* System-specific programs to be made.
-   OTHER_FILES, OBJECTS_SYSTEM and OBJECTS_MACHINE
+   OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
 sunfns.o: sunfns.c buffer.h window.h $(config_h)
