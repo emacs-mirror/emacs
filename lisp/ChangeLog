@@ -8,15 +8,16 @@
 
 2001-11-20  Juanma Barranquero  <lektu@terra.es>
 
-	* emacs-lisp/re-builder.el (reb-change-target-buffer): New
-	function.
+	* emacs-lisp/re-builder.el (reb-change-target-buffer): New function.
 	(top-level): Bind it to C-c C-b.
 	(re-builder): Don't re-enter RE Builder Mode.
 
-	* bs.el (bs-delete): Signal an error if the buffer cannot be
-	deleted.
+	* bs.el (bs-delete): Signal an error if the buffer cannot be deleted.
 
-2001-11-20  Stefan Monnier  <monnier@rum.cs.yale.edu>
+2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/cperl-mode.el (cperl-perldoc): Require man before binding
+	`manual-program'.
 
 	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Don't move back
 	to a line without a comment.
