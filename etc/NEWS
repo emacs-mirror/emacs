@@ -106,6 +106,12 @@ escape-glyph face.
 character, unless the new user variable `show-nonbreak-escape' is set
 to nil.
 
+---
+** The type-break package now allows `type-break-file-name' to be nil
+and if so, doesn't store any data across sessions.  This is handy if
+you don't want the .type-break file in your home directory or are
+annoyed by the need for interaction when you kill Emacs.
+
 ** display-battery has been replaced by display-battery-mode.
 
 ** calculator.el now has radix grouping mode, which is available when
