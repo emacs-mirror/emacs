@@ -481,7 +481,7 @@ copyright notice is allowed."
 		    (concat "^;;;[ \t]+" name "[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
 		    nil t)))
-		(format "Can't find a footer line"))
+		(format "Can't find the footer line"))
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
 		"Can't find a valid copyright notice")
 	       ((not (or non-fsf-ok
