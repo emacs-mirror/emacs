@@ -1872,7 +1872,7 @@ Emacs was built without floating point support.\n\
   else
     sec += usec / 1000000, usec %= 1000000;
 
-  if (sec < 0)
+  if (sec <= 0)
     return Qnil;
 
   {
