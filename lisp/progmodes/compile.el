@@ -944,6 +944,7 @@ Returns the compilation buffer created."
 	;; Fake modeline display as if `start-process' were run.
 	(setq mode-line-process ":run")
 	(force-mode-line-update)
+	(sit-for 0)			; Force redisplay
 	(let ((status (call-process shell-file-name nil outbuf nil "-c"
 				    command)))
 	  (cond ((numberp status)
