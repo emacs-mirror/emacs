@@ -402,9 +402,10 @@ by `lisp-body-indent'."
 	   (eval-when	1)
 	   (flet        ((&whole 4 &rest (&whole 1 (&whole 4 &rest 1) &body))
 			 &body))
-           (handler-case (4 &rest (&whole 2 (&whole 4 &rest 1) &body)))
 	   (labels . flet)
 	   (macrolet . flet)
+           (handler-case (4 &rest (&whole 2 (&whole 4 &rest 1) &body)))
+           (restart-case . handler-case)
 	   ;; `else-body' style
 	   (if          (nil nil &body))
 	   ;; single-else style (then and else equally indented)
@@ -415,6 +416,7 @@ by `lisp-body-indent'."
 	   (let         ((&whole 4 &rest (&whole 1 1 2)) &body))
 	   (let* . let)
 	   (compiler-let . let) ;barf
+           (handler-bind . let) (restart-bind . let)
 	   (locally 1)
 	   ;(loop ...)
 	   (multiple-value-bind 
