@@ -1,3 +1,8 @@
+2002-09-18  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (make-network-process): Doc fix (there is no
+	network-server-log-function hook).
+
 2002-09-18  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print): Clear out the unused parts of Vprint_number_table.
