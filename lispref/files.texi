@@ -1410,8 +1410,8 @@ parts: the @dfn{directory name} part, and the @dfn{nondirectory} part
 Concatenating these two parts reproduces the original file name.
 
   On most systems, the directory part is everything up to and including
-the last slash; the nondirectory part is the rest.  The rules in VMS
-syntax are complicated.
+the last slash (or backslash, on MS-DOS or MS-Windows); the nondirectory
+part is the rest.  The rules in VMS syntax are complicated.
 
   For some purposes, the nondirectory part is further subdivided into
 the name proper and the @dfn{version number}.  On most systems, only
@@ -1504,6 +1504,15 @@ The extension, in a file name, is the part that starts with the last
      @result{} "big.hack/foo"
 @end example
 @end defun
+
+@defvar directory-sep-char
+@tindex directory-sep-char
+This variable holds the character that the system normally uses to
+separate file name components.  The value is @code{?/} on GNU and Unix
+systems, and @code{?\\} on MS-DOS and MS-Windows.  Note that file names
+using slashes as separators work properly in Emacs on all of these
+systems; you are not obliged to use backslashes on Microsoft systems.
+@end defvar
 
 @node Directory Names
 @comment  node-name,  next,  previous,  up
