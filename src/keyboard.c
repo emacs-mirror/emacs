@@ -38,6 +38,8 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "blockinput.h"
 #include "puresize.h"
+#include "systime.h"
+#include "atimer.h"
 #include <setjmp.h>
 #include <errno.h>
 
@@ -1689,37 +1691,48 @@ safe_run_hooks (hook)
 
   unbind_to (count, Qnil);
 }
+
 
-/* Number of seconds between polling for input.  */
+/* Number of seconds between polling for input.  This is a Lisp
+   variable that can be bound.  */
+
 int polling_period;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
+
 int poll_suppress_count;
 
-/* Nonzero if polling_for_input is actually being used.  */
-int polling_for_input;
+/* Asynchronous timer for polling.  */
+
+struct atimer *poll_timer;
+
 
 #ifdef POLL_FOR_INPUT
 
-/* Handle an alarm once each second and read pending input
-   so as to handle a C-g if it comces in.  */
+/* Poll for input, so what we catch a C-g if it comes in.  This
+   function is called from x_make_frame_visible, see comment
+   there.  */
 
-SIGTYPE
-input_poll_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls. */
+void
+poll_for_input_1 ()
 {
-  /* This causes the call to start_polling at the end
-     to do its job.  It also arranges for a quit or error
-     from within read_avail_input to resume polling.  */
-  poll_suppress_count++;
   if (interrupt_input_blocked == 0
       && !waiting_for_input)
     read_avail_input (0);
-  /* Turn on the SIGALRM handler and request another alarm.  */
-  start_polling ();
 }
 
-#endif
+/* Timer callback function for poll_timer.  TIMER is equal to
+   poll_timer.  */
+
+void
+poll_for_input (timer)
+     struct atimer *timer;
+{
+  if (poll_suppress_count == 0)
+    poll_for_input_1 ();
+}
+
+#endif /* POLL_FOR_INPUT */
 
 /* Begin signals to poll for input, if they are appropriate.
    This function is called unconditionally from various places.  */
@@ -1730,13 +1743,28 @@ start_polling ()
 #ifdef POLL_FOR_INPUT
   if (read_socket_hook && !interrupt_input)
     {
-      poll_suppress_count--;
-      if (poll_suppress_count == 0)
+      /* Turn alarm handling on unconditionally.  It might have
+	 been turned off in process.c.  */
+      turn_on_atimers (1);
+      
+      /* If poll timer doesn't exist, are we need one with
+	 a different interval, start a new one.  */
+      if (poll_timer == NULL
+	  || EMACS_SECS (poll_timer->interval) != polling_period)
 	{
-	  signal (SIGALRM, input_poll_signal);
-	  polling_for_input = 1;
-	  alarm (polling_period);
+	  EMACS_TIME interval;
+
+	  if (poll_timer)
+	    cancel_atimer (poll_timer);
+      
+	  EMACS_SET_SECS_USECS (interval, polling_period, 0);
+	  poll_timer = start_atimer (ATIMER_CONTINUOUS, interval,
+				     poll_for_input, NULL);
 	}
+
+      /* Let the timer's callback function poll for input
+	 if this becomes zero.  */
+      --poll_suppress_count;
     }
 #endif
 }
@@ -1760,14 +1788,7 @@ stop_polling ()
 {
 #ifdef POLL_FOR_INPUT
   if (read_socket_hook && !interrupt_input)
-    {
-      if (poll_suppress_count == 0)
-	{
-	  polling_for_input = 0;
-	  alarm (0);
-	}
-      poll_suppress_count++;
-    }
+    ++poll_suppress_count;
 #endif
 }
 
