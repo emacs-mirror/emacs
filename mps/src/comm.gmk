@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.36) $
+# $HopeName: MMsrc!comm.gmk(trunk.37) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -234,7 +234,6 @@ endif
 
 # == Pseudo-targets ==
 
-# "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 # Not all targets need be specified in the "all" target.  It is
 # just a convenient set of targets to build.
@@ -242,6 +241,18 @@ endif
 all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
      locv qs finalcv arenacv bttest teletest abqtest cbstest \
      mv2eptst mv2test
+
+# Runs the automatic tests that are built with CONFIG_PROD_MPS
+# These tests are run overnight (see design.buildsys.overnight).
+#   bttest & teletest cannot be run unattended
+testrun: mpmss amcss amsss awlut mpsicv lockcov poolncv \
+         locv qs finalcv arenacv abqtest cbstest mv2test
+	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
+
+# Runs the automatic tests that are built with CONFIG_PROD_EPCORE
+#   mv2eptst cannot be run unattended
+testrunep: epvmss
+	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
