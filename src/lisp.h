@@ -1332,6 +1332,7 @@ extern Lisp_Object Fdirectory_file_name ();
 extern Lisp_Object Ffile_name_directory ();
 extern Lisp_Object expand_and_dir_to_file ();
 extern Lisp_Object Ffile_accessible_directory_p ();
+extern Lisp_Object Funhandled_file_name_directory ();
 
 /* Defined in abbrev.c */
 
