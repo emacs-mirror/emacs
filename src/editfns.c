@@ -171,7 +171,7 @@ INDEX not pointing at character boundary is an error.")
 
   p = XSTRING (str)->data + idxval;
   if (!NILP (current_buffer->enable_multibyte_characters)
-      && !CHAR_HEAD_P (p)
+      && !CHAR_HEAD_P (*p)
       && idxval > 0)
     {
       /* We must check if P points to a tailing byte of a multibyte
@@ -195,12 +195,12 @@ INDEX not pointing at character boundary is an error.")
 
 
 static Lisp_Object
-buildmark (val)
-     int val;
+buildmark (charpos, bytepos)
+     int charpos, bytepos;
 {
   register Lisp_Object mark;
   mark = Fmake_marker ();
-  Fset_marker (mark, make_number (val), Qnil);
+  set_marker_both (mark, Qnil, charpos, bytepos);
   return mark;
 }
 
@@ -218,7 +218,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
    "Return value of point, as a marker object.")
   ()
 {
-  return buildmark (PT);
+  return buildmark (PT, PT_BYTE);
 }
 
 int
@@ -245,30 +245,22 @@ except in the case that `enable-multibyte-characters' is nil.")
   int pos;
   unsigned char *p;
 
+  if (MARKERP (position))
+    {
+      pos = marker_position (position);
+      if (pos < BEGV)
+	SET_PT_BOTH (BEGV, BEGV_BYTE);
+      else if (pos > ZV)
+	SET_PT_BOTH (ZV, ZV_BYTE);
+      else
+	SET_PT_BOTH (pos, marker_byte_position (position));
+
+      return position;
+    }
+
   CHECK_NUMBER_COERCE_MARKER (position, 0);
 
   pos = clip_to_bounds (BEGV, XINT (position), ZV);
-  /* If POS is in a middle of multi-byte form (i.e. *P >= 0xA0), we
-     must decrement POS until it points the head of the multi-byte
-     form.  */
-  if (!NILP (current_buffer->enable_multibyte_characters)
-      && *(p = POS_ADDR (pos)) >= 0xA0
-      && pos > BEGV)
-    {
-      /* Since a multi-byte form does not contain the gap, POS should
-         not stride over the gap while it is being decreased.  So, we
-         set the limit as below.  */
-      unsigned char *p_min = pos < GPT ? BEG_ADDR : GAP_END_ADDR;
-      unsigned int saved_pos = pos;
-
-      do {
-	p--, pos--;
-      } while (p > p_min && *p >= 0xA0);
-      if (*p < 0x80)
-	/* This was an invalid multi-byte form.  */
-	pos = saved_pos;
-      XSETFASTINT (position, pos);
-    }
   SET_PT (pos);
   return position;
 }
@@ -322,7 +314,7 @@ This function does not move point.")
   (n)
      Lisp_Object n;
 {
-  register int orig, end;
+  register int orig, orig_byte, end;
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -330,9 +322,10 @@ This function does not move point.")
     CHECK_NUMBER (n, 0);
 
   orig = PT;
+  orig_byte = PT_BYTE;
   Fforward_line (make_number (XINT (n) - 1));
   end = PT;
-  SET_PT (orig);
+  SET_PT_BOTH (orig, orig_byte);
 
   return make_number (end);
 }
@@ -481,7 +474,7 @@ DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
 This is the beginning, unless narrowing (a buffer restriction) is in effect.")
   ()
 {
-  return buildmark (BEGV);
+  return buildmark (BEGV, BEGV_BYTE);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
@@ -501,7 +494,7 @@ This is (1+ (buffer-size)), unless narrowing (a buffer restriction)\n\
 is in effect, in which case it is less.")
   ()
 {
-  return buildmark (ZV);
+  return buildmark (ZV, ZV_BYTE);
 }
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
@@ -516,7 +509,7 @@ If `enable-multibyte-characters' is nil or point is not\n\
   if (PT >= ZV)
     XSETFASTINT (temp, 0);
   else
-    XSETFASTINT (temp, FETCH_CHAR (PT));
+    XSETFASTINT (temp, FETCH_CHAR (PT_BYTE));
   return temp;
 }
 
@@ -533,17 +526,17 @@ If `enable-multibyte-characters' is nil or point is not\n\
     XSETFASTINT (temp, 0);
   else if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      int pos = PT;
+      int pos = PT_BYTE;
       DEC_POS (pos);
       XSETFASTINT (temp, FETCH_CHAR (pos));
     }
   else
-    XSETFASTINT (temp, FETCH_BYTE (PT - 1));
+    XSETFASTINT (temp, FETCH_BYTE (PT_BYTE - 1));
   return temp;
 }
 
 DEFUN ("bobp", Fbobp, Sbobp, 0, 0, 0,
-  "Return T if point is at the beginning of the buffer.\n\
+  "Return t if point is at the beginning of the buffer.\n\
 If the buffer is narrowed, this means the beginning of the narrowed part.")
   ()
 {
@@ -553,7 +546,7 @@ If the buffer is narrowed, this means the beginning of the narrowed part.")
 }
 
 DEFUN ("eobp", Feobp, Seobp, 0, 0, 0,
-  "Return T if point is at the end of the buffer.\n\
+  "Return t if point is at the end of the buffer.\n\
 If the buffer is narrowed, this means the end of the narrowed part.")
   ()
 {
@@ -563,20 +556,20 @@ If the buffer is narrowed, this means the end of the narrowed part.")
 }
 
 DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
-  "Return T if point is at the beginning of a line.")
+  "Return t if point is at the beginning of a line.")
   ()
 {
-  if (PT == BEGV || FETCH_BYTE (PT - 1) == '\n')
+  if (PT == BEGV || FETCH_BYTE (PT_BYTE - 1) == '\n')
     return Qt;
   return Qnil;
 }
 
 DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
-  "Return T if point is at the end of a line.\n\
+  "Return t if point is at the end of a line.\n\
 `End of a line' includes point being at the end of the buffer.")
   ()
 {
-  if (PT == ZV || FETCH_BYTE (PT) == '\n')
+  if (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n')
     return Qt;
   return Qnil;
 }
@@ -591,22 +584,25 @@ If `enable-multibyte-characters' is nil or POS is not at character boundary,\n\
   (pos)
      Lisp_Object pos;
 {
+  register int pos_byte;
   register Lisp_Object val;
-  register int n;
 
   if (NILP (pos))
-    n = PT;
+    return make_number (FETCH_CHAR (PT_BYTE));
+
+  if (MARKERP (pos))
+    pos_byte = marker_byte_position (pos);
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
-
-      n = XINT (pos);
-      if (n < BEGV || n >= ZV)
-	return Qnil;
+      
+      pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
 
-  XSETFASTINT (val, FETCH_CHAR (n));
-  return val;
+  if (n < BEGV_BYTE || n >= ZV_BYTE)
+    return Qnil;
+
+  return make_number (FETCH_CHAR (pos_byte));
 }
 
 DEFUN ("char-before", Fchar_before, Schar_before, 0, 1, 0,
@@ -620,29 +616,31 @@ is returned as a character.")
      Lisp_Object pos;
 {
   register Lisp_Object val;
-  register int n;
+  register int pos_byte;
 
   if (NILP (pos))
-    n = PT;
+    pos_byte = PT_BYTE;
+  else if (MARKERP (pos))
+    pos_byte = marker_byte_position (pos);
   else
     {
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-      n = XINT (pos);
+      pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
 
-  if (n <= BEGV || n > ZV)
+  if (pos_byte <= BEGV_BYTE || pos_byte > ZV_BYTE)
     return Qnil;
 
   if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      DEC_POS (n);
-      XSETFASTINT (val, FETCH_CHAR (n));
+      DEC_POS (pos_byte);
+      XSETFASTINT (val, FETCH_CHAR (pos_byte));
     }
   else
     {
-      n--;
-      XSETFASTINT (val, FETCH_BYTE (n));
+      pos_byte--;
+      XSETFASTINT (val, FETCH_BYTE (pos_byte));
     }
    return val;
 }
@@ -1465,12 +1463,15 @@ make_buffer_string (start, end, props)
      int props;
 {
   Lisp_Object result, tem, tem1;
+  int start_byte = CHAR_TO_BYTE (start);
+  int end_byte = CHAR_TO_BYTE (end);
 
   if (start < GPT && GPT < end)
     move_gap (start);
 
-  result = make_uninit_string (end - start);
-  bcopy (POS_ADDR (start), XSTRING (result)->data, end - start);
+  result = make_uninit_string (end_byte - start_byte);
+  bcopy (BYTE_POS_ADDR (start_byte), XSTRING (result)->data,
+	 end_byte - start_byte);
 
   /* If desired, update and copy the text properties.  */
 #ifdef USE_TEXT_PROPERTIES
@@ -1482,7 +1483,8 @@ make_buffer_string (start, end, props)
       tem1 = Ftext_properties_at (make_number (start), Qnil);
 
       if (XINT (tem) != end || !NILP (tem1))
-	copy_intervals_to_string (result, current_buffer, start, end - start);
+	copy_intervals_to_string (result, current_buffer, start,
+				  end - start);
     }
 #endif
 
@@ -1633,6 +1635,8 @@ determines whether case is significant or ignored.")
   register Lisp_Object *trt
     = (!NILP (current_buffer->case_fold_search)
        ? XCHAR_TABLE (current_buffer->case_canon_table)->contents : 0);
+  int chars = 0;
+  int beg1_byte, beg2_byte;
 
   /* Find the first buffer and its substring.  */
 
@@ -1710,33 +1714,44 @@ determines whether case is significant or ignored.")
         && endp2 <= BUF_ZV (bp2)))
     args_out_of_range (start2, end2);
 
-  len1 = endp1 - begp1;
-  len2 = endp2 - begp2;
+  beg1_byte = buf_charpos_to_bytepos (bp1, begp1);
+  beg2_byte = buf_charpos_to_bytepos (bp2, begp2);
+  len1 = buf_charpos_to_bytepos (bp1, endp1) - begp1;
+  len2 = buf_charpos_to_bytepos (bp2, endp2) - begp2;
   length = len1;
   if (len2 < length)
     length = len2;
 
   for (i = 0; i < length; i++)
     {
-      int c1 = *BUF_CHAR_ADDRESS (bp1, begp1 + i);
-      int c2 = *BUF_CHAR_ADDRESS (bp2, begp2 + i);
+      unsigned char *p1 = BUF_BYTE_ADDRESS (bp1, beg1_byte + i);
+      int c1 = *p1;
+      int c2 = *BUF_BYTE_ADDRESS (bp2, beg2_byte + i);
+
+      /* If a character begins here,
+	 count the previous character now.  */
+      if (i > 0
+	  && (NILP (current_buffer->enable_multibyte_characters)
+	      || CHAR_HEAD_P (*p1)))
+	chars++;
+
       if (trt)
 	{
 	  c1 = XINT (trt[c1]);
 	  c2 = XINT (trt[c2]);
 	}
       if (c1 < c2)
-	return make_number (- 1 - i);
+	return make_number (- 1 - chars);
       if (c1 > c2)
-	return make_number (i + 1);
+	return make_number (chars + 1);
     }
 
   /* The strings match as far as they go.
      If one is shorter, that one is less.  */
   if (length < len1)
-    return make_number (length + 1);
+    return make_number (chars + 1);
   else if (length < len2)
-    return make_number (- length - 1);
+    return make_number (- chars - 1);
 
   /* Same length too => they are equal.  */
   return make_number (0);
@@ -1765,7 +1780,7 @@ Both characters must have the same length of multi-byte form.")
   (start, end, fromchar, tochar, noundo)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
-  register int pos, stop, i, len;
+  register int pos, stop, i, len, end_byte;
   int changed = 0;
   unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
   int count = specpdl_ptr - specpdl;
@@ -1787,8 +1802,9 @@ Both characters must have the same length of multi-byte form.")
       towork[0] = XFASTINT (tochar), tostr = towork;
     }
 
-  pos = XINT (start);
-  stop = XINT (end);
+  pos = CHAR_TO_BYTE (XINT (start));
+  stop = CHAR_TO_BYTE (XINT (end));
+  end_byte = stop;
 
   /* If we don't want undo, turn off putting stuff on the list.
      That's faster than getting rid of things,
@@ -1805,16 +1821,16 @@ Both characters must have the same length of multi-byte form.")
       current_buffer->filename = Qnil;
     }
 
-  if (pos < GPT)
-    stop = min(stop, GPT);
-  p = POS_ADDR (pos);
+  if (pos < GPT_BYTE)
+    stop = min (stop, GPT_BYTE);
+  p = BYTE_POS_ADDR (pos);
   while (1)
     {
       if (pos >= stop)
 	{
-	  if (pos >= XINT (end)) break;
-	  stop = XINT (end);
-	  p = POS_ADDR (pos);
+	  if (pos >= end_byte) break;
+	  stop = end_byte;
+	  p = BYTE_POS_ADDR (pos);
 	}
       if (p[0] == fromstr[0]
 	  && (len == 1
@@ -1863,13 +1879,12 @@ for the character with code N.  Returns the number of characters changed.")
      Lisp_Object end;
      register Lisp_Object table;
 {
-  register int pos, stop;	/* Limits of the region. */
+  register int pos_byte, stop;	/* Limits of the region. */
   register unsigned char *tt;	/* Trans table. */
-  register int oc;		/* Old character. */
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
-  Lisp_Object z;		/* Return. */
   int size;			/* Size of translate table. */
+  int charpos;
 
   validate_region (&start, &end);
   CHECK_STRING (table, 2);
@@ -1877,29 +1892,33 @@ for the character with code N.  Returns the number of characters changed.")
   size = XSTRING (table)->size;
   tt = XSTRING (table)->data;
 
-  pos = XINT (start);
-  stop = XINT (end);
-  modify_region (current_buffer, pos, stop);
+  pos_byte = CHAR_TO_BYTE (XINT (start));
+  stop = CHAR_TO_BYTE (XINT (end));
+  modify_region (current_buffer, XINT (start), XINT (end));
+  charpos = XINT (start);
 
   cnt = 0;
-  for (; pos < stop; ++pos)
+  for (; pos_byte < stop; ++pos_byte)
     {
-      oc = FETCH_BYTE (pos);
+      register unsigned char *p = BYTE_POS_ADDR (pos_byte);
+      register int oc = *p;		/* Old character. */
+      if (CHAR_HEAD_P (*p))
+	charpos++;
+
       if (oc < size)
 	{
 	  nc = tt[oc];
 	  if (nc != oc)
 	    {
-	      record_change (pos, 1);
-	      *(POS_ADDR (pos)) = nc;
-	      signal_after_change (pos, 1, 1);
+	      record_change (charpos, 1);
+	      *p = nc;
+	      signal_after_change (charpos, 1, 1);
 	      ++cnt;
 	    }
 	}
     }
 
-  XSETFASTINT (z, cnt);
-  return (z);
+  return make_number (cnt);
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
@@ -1922,7 +1941,8 @@ This allows the buffer's full text to be seen and edited.")
   if (BEG != BEGV || Z != ZV)
     current_buffer->clip_changed = 1;
   BEGV = BEG;
-  SET_BUF_ZV (current_buffer, Z);
+  BEGV_BYTE = BEG_BYTE;
+  SET_BUF_ZV_BOTH (current_buffer, Z, Z_BYTE);
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -1955,7 +1975,7 @@ or markers) bounding the text that should remain visible.")
   if (BEGV != XFASTINT (start) || ZV != XFASTINT (end))
     current_buffer->clip_changed = 1;
 
-  BEGV = XFASTINT (start);
+  SET_BUF_BEGV (current_buffer, XFASTINT (start));
   SET_BUF_ZV (current_buffer, XFASTINT (end));
   if (PT < XFASTINT (start))
     SET_PT (XFASTINT (start));
@@ -2005,15 +2025,17 @@ save_restriction_restore (data)
   obegv = BUF_BEGV (buf);
   ozv = BUF_ZV (buf);
 
-  BUF_BEGV (buf) = BUF_BEG (buf) + newhead;
+  SET_BUF_BEGV (buf, BUF_BEG (buf) + newhead);
   SET_BUF_ZV (buf, BUF_Z (buf) - newtail);
 
   if (obegv != BUF_BEGV (buf) || ozv != BUF_ZV (buf))
     current_buffer->clip_changed = 1;
 
   /* If point is outside the new visible range, move it inside. */
-  SET_BUF_PT (buf,
-	      clip_to_bounds (BUF_BEGV (buf), BUF_PT (buf), BUF_ZV (buf)));
+  SET_BUF_PT_BOTH (buf,
+		   clip_to_bounds (BUF_BEGV (buf), BUF_PT (buf), BUF_ZV (buf)),
+		   clip_to_bounds (BUF_BEGV_BYTE (buf), BUF_PT_BYTE (buf),
+				   BUF_ZV_BYTE (buf)));
 
   return Qnil;
 }
@@ -2333,7 +2355,7 @@ Use %% to put a single % into the output.")
 	buf[total - 1] = 0;
 
 	length = doprnt_lisp (buf, total + 1, strings[0],
-			      end, i-1, strings + 1);
+			      end, i-1, (char **) strings + 1);
 	if (buf[total - 1] == 0)
 	  break;
 
@@ -2391,28 +2413,39 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
    adjust the ones between them if necessary (i.e.: if the regions
    differ in size).
 
+   START1, END1 are the character positions of the first region.
+   START1_BYTE, END1_BYTE are the byte positions.
+   START2, END2 are the character positions of the second region.
+   START2_BYTE, END2_BYTE are the byte positions.
+
    Traverses the entire marker list of the buffer to do so, adding an
    appropriate amount to some, subtracting from some, and leaving the
    rest untouched.  Most of this is copied from adjust_markers in insdel.c.
   
-   It's the caller's job to see that (start1 <= end1 <= start2 <= end2).  */
+   It's the caller's job to ensure that START1 <= END1 <= START2 <= END2.  */
 
 void
-transpose_markers (start1, end1, start2, end2)
+transpose_markers (start1, end1, start2, end2,
+		   start1_byte, end1_byte, start2_byte, end2_byte)
      register int start1, end1, start2, end2;
+     register int start1_byte, end1_byte, start2_byte, end2_byte;
 {
-  register int amt1, amt2, diff, mpos;
+  register int amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
   register Lisp_Object marker;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
     ;
   else if (PT < end1)
-    TEMP_SET_PT (PT + (end2 - end1));
+    TEMP_SET_PT_BOTH (PT + (end2 - end1),
+		      PT_BYTE + (end2_byte - end1_byte));
   else if (PT < start2)
-    TEMP_SET_PT (PT + (end2 - start2) - (end1 - start1));
+    TEMP_SET_PT_BOTH (PT + (end2 - start2) - (end1 - start1),
+		      (PT_BYTE + (end2_byte - start2_byte)
+		       - (end1_byte - start1_byte)));
   else if (PT < end2)
-    TEMP_SET_PT (PT - (start2 - start1));
+    TEMP_SET_PT_BOTH (PT - (start2 - start1),
+		      PT_BYTE - (start2_byte - start1_byte));
 
   /* We used to adjust the endpoints here to account for the gap, but that
      isn't good enough.  Even if we assume the caller has tried to move the
@@ -2424,17 +2457,31 @@ transpose_markers (start1, end1, start2, end2)
 
   /* The difference between the region's lengths */
   diff = (end2 - start2) - (end1 - start1);
+  diff_byte = (end2_byte - start2_byte) - (end1_byte - start1_byte);
   
   /* For shifting each marker in a region by the length of the other
-   * region plus the distance between the regions.
-   */
+     region plus the distance between the regions.  */
   amt1 = (end2 - start2) + (start2 - end1);
   amt2 = (end1 - start1) + (start2 - end1);
+  amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
+  amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
   for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
        marker = XMARKER (marker)->chain)
     {
-      mpos = marker_position (marker);
+      mpos = marker_byte_position (marker);
+      if (mpos >= start1_byte && mpos < end2_byte)
+	{
+	  if (mpos < end1_byte)
+	    mpos += amt1_byte;
+	  else if (mpos < start2_byte)
+	    mpos += diff_byte;
+	  else
+	    mpos -= amt2_byte;
+	  if (mpos > GPT_BYTE) mpos += GAP_SIZE;
+	  XMARKER (marker)->bufpos = mpos;
+	}
+      mpos = XMARKER (marker)->charpos;
       if (mpos >= start1 && mpos < end2)
 	{
 	  if (mpos < end1)
@@ -2443,9 +2490,8 @@ transpose_markers (start1, end1, start2, end2)
 	    mpos += diff;
 	  else
 	    mpos -= amt2;
-	  if (mpos > GPT) mpos += GAP_SIZE;
-	  XMARKER (marker)->bufpos = mpos;
 	}
+      XMARKER (marker)->charpos = mpos;
     }
 }
 
@@ -2454,15 +2500,16 @@ DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5, 0,
 The regions may not be overlapping, because the size of the buffer is\n\
 never changed in a transposition.\n\
 \n\
-Optional fifth arg LEAVE_MARKERS, if non-nil, means don't transpose\n\
+Optional fifth arg LEAVE_MARKERS, if non-nil, means don't update\n\
 any markers that happen to be located in the regions.\n\
 \n\
 Transposing beyond buffer boundaries is an error.")
   (startr1, endr1, startr2, endr2, leave_markers)
      Lisp_Object startr1, endr1, startr2, endr2, leave_markers;
 {
-  register int start1, end1, start2, end2,
-  gap, len1, len_mid, len2;
+  register int start1, end1, start2, end2;
+  int start1_byte, start2_byte, len1_byte, len2_byte;
+  int gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
 #ifdef USE_TEXT_PROPERTIES
@@ -2494,9 +2541,9 @@ Transposing beyond buffer boundaries is an error.")
   len2 = end2 - start2;
 
   if (start2 < end1)
-    error ("transposed regions not properly ordered");
+    error ("Transposed regions not properly ordered");
   else if (start1 == end1 || start2 == end2)
-    error ("transposed region may not be of length 0");
+    error ("Transposed region may not be of length 0");
 
   /* The possibilities are:
      1. Adjacent (contiguous) regions, or separate but equal regions
@@ -2529,6 +2576,11 @@ Transposing beyond buffer boundaries is an error.")
       else
 	move_gap (end2);
     }
+
+  start1_byte = CHAR_TO_BYTE (start1);
+  start2_byte = CHAR_TO_BYTE (start2);
+  len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
+  len2_byte = CHAR_TO_BYTE (end2) - start2_byte;
       
   /* Hmmm... how about checking to see if the gap is large
      enough to use as the temporary storage?  That would avoid an
@@ -2550,40 +2602,40 @@ Transposing beyond buffer boundaries is an error.")
 #endif /* USE_TEXT_PROPERTIES */
 
       /* First region smaller than second.  */
-      if (len1 < len2)
+      if (len1_byte < len2_byte)
         {
 	  /* We use alloca only if it is small,
 	     because we want to avoid stack overflow.  */
-	  if (len2 > 20000)
-	    temp = (unsigned char *) xmalloc (len2);
+	  if (len2_byte > 20000)
+	    temp = (unsigned char *) xmalloc (len2_byte);
 	  else
-	    temp = (unsigned char *) alloca (len2);
+	    temp = (unsigned char *) alloca (len2_byte);
 
 	  /* Don't precompute these addresses.  We have to compute them
 	     at the last minute, because the relocating allocator might
 	     have moved the buffer around during the xmalloc.  */
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
+	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
+	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
 
-          bcopy (start2_addr, temp, len2);
-          bcopy (start1_addr, start1_addr + len2, len1);
-          bcopy (temp, start1_addr, len2);
-	  if (len2 > 20000)
+          bcopy (start2_addr, temp, len2_byte);
+          bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
+          bcopy (temp, start1_addr, len2_byte);
+	  if (len2_byte > 20000)
 	    free (temp);
         }
       else
 	/* First region not smaller than second.  */
         {
-	  if (len1 > 20000)
-	    temp = (unsigned char *) xmalloc (len1);
+	  if (len1_byte > 20000)
+	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
-	    temp = (unsigned char *) alloca (len1);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
-          bcopy (start1_addr, temp, len1);
-          bcopy (start2_addr, start1_addr, len2);
-          bcopy (temp, start1_addr + len2, len1);
-	  if (len1 > 20000)
+	    temp = (unsigned char *) alloca (len1_byte);
+	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
+	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+          bcopy (start1_addr, temp, len1_byte);
+          bcopy (start2_addr, start1_addr, len2_byte);
+          bcopy (temp, start1_addr + len2_byte, len1_byte);
+	  if (len1_byte > 20000)
 	    free (temp);
         }
 #ifdef USE_TEXT_PROPERTIES
@@ -2596,7 +2648,9 @@ Transposing beyond buffer boundaries is an error.")
   /* Non-adjacent regions, because end1 != start2, bleagh...  */
   else
     {
-      if (len1 == len2)
+      len_mid = start2_byte - (start1_byte + len1_byte);
+
+      if (len1_byte == len2_byte)
 	/* Regions are same size, though, how nice.  */
         {
           modify_region (current_buffer, start1, end1);
@@ -2612,16 +2666,16 @@ Transposing beyond buffer boundaries is an error.")
 				Qnil, Qnil);
 #endif /* USE_TEXT_PROPERTIES */
 
-	  if (len1 > 20000)
-	    temp = (unsigned char *) xmalloc (len1);
+	  if (len1_byte > 20000)
+	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
-	    temp = (unsigned char *) alloca (len1);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
-          bcopy (start1_addr, temp, len1);
-          bcopy (start2_addr, start1_addr, len2);
-          bcopy (temp, start2_addr, len1);
-	  if (len1 > 20000)
+	    temp = (unsigned char *) alloca (len1_byte);
+	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
+	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+          bcopy (start1_addr, temp, len1_byte);
+          bcopy (start2_addr, start1_addr, len2_byte);
+          bcopy (temp, start2_addr, len1_byte);
+	  if (len1_byte > 20000)
 	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, start2,
@@ -2631,10 +2685,9 @@ Transposing beyond buffer boundaries is an error.")
 #endif /* USE_TEXT_PROPERTIES */
         }
 
-      else if (len1 < len2)	/* Second region larger than first */
+      else if (len1_byte < len2_byte)	/* Second region larger than first */
         /* Non-adjacent & unequal size, area between must also be shifted.  */
         {
-          len_mid = start2 - end1;
           modify_region (current_buffer, start1, end2);
           record_change (start1, (end2 - start1));
 #ifdef USE_TEXT_PROPERTIES
@@ -2646,17 +2699,17 @@ Transposing beyond buffer boundaries is an error.")
 #endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 2 */
-	  if (len2 > 20000)
-	    temp = (unsigned char *) xmalloc (len2);
+	  if (len2_byte > 20000)
+	    temp = (unsigned char *) xmalloc (len2_byte);
 	  else
-	    temp = (unsigned char *) alloca (len2);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
-          bcopy (start2_addr, temp, len2);
-          bcopy (start1_addr, start1_addr + len_mid + len2, len1);
-          safe_bcopy (start1_addr + len1, start1_addr + len2, len_mid);
-          bcopy (temp, start1_addr, len2);
-	  if (len2 > 20000)
+	    temp = (unsigned char *) alloca (len2_byte);
+	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
+	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+          bcopy (start2_addr, temp, len2_byte);
+          bcopy (start1_addr, start1_addr + len_mid + len2_byte, len1_byte);
+          safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
+          bcopy (temp, start1_addr, len2_byte);
+	  if (len2_byte > 20000)
 	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
@@ -2670,7 +2723,6 @@ Transposing beyond buffer boundaries is an error.")
       else
 	/* Second region smaller than first.  */
         {
-          len_mid = start2 - end1;
           record_change (start1, (end2 - start1));
           modify_region (current_buffer, start1, end2);
 
@@ -2683,17 +2735,17 @@ Transposing beyond buffer boundaries is an error.")
 #endif /* USE_TEXT_PROPERTIES */
 
 	  /* holds region 1 */
-	  if (len1 > 20000)
-	    temp = (unsigned char *) xmalloc (len1);
+	  if (len1_byte > 20000)
+	    temp = (unsigned char *) xmalloc (len1_byte);
 	  else
-	    temp = (unsigned char *) alloca (len1);
-	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1);
-	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2);
-          bcopy (start1_addr, temp, len1);
-          bcopy (start2_addr, start1_addr, len2);
-          bcopy (start1_addr + len1, start1_addr + len2, len_mid);
-          bcopy (temp, start1_addr + len2 + len_mid, len1);
-	  if (len1 > 20000)
+	    temp = (unsigned char *) alloca (len1_byte);
+	  start1_addr = BUF_CHAR_ADDRESS (current_buffer, start1_byte);
+	  start2_addr = BUF_CHAR_ADDRESS (current_buffer, start2_byte);
+          bcopy (start1_addr, temp, len1_byte);
+          bcopy (start2_addr, start1_addr, len2_byte);
+          bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
+          bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
+	  if (len1_byte > 20000)
 	    free (temp);
 #ifdef USE_TEXT_PROPERTIES
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
@@ -2706,16 +2758,14 @@ Transposing beyond buffer boundaries is an error.")
         }
     }
 
-  /* todo: this will be slow, because for every transposition, we
-     traverse the whole friggin marker list.  Possible solutions:
-     somehow get a list of *all* the markers across multiple
-     transpositions and do it all in one swell phoop.  Or maybe modify
-     Emacs' marker code to keep an ordered list or tree.  This might
-     be nicer, and more beneficial in the long run, but would be a
-     bunch of work.  Plus the way they're arranged now is nice.  */
+  /* When doing multiple transpositions, it might be nice
+     to optimize this.  Perhaps the markers in any one buffer
+     should be organized in some sorted data tree.  */
   if (NILP (leave_markers))
     {
-      transpose_markers (start1, end1, start2, end2);
+      transpose_markers (start1, end1, start2, end2,
+			 start1_byte, start1_byte + len1_byte,
+			 start2_byte, start2_byte + len2_byte);
       fix_overlays_in_range (start1, end2);
     }
 
