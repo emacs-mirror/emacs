@@ -849,27 +849,27 @@ B) Speed of editing operations.
 (defvar cperl-tips-faces 'please-ignore-this-line
   "CPerl mode uses following faces for highlighting:
 
-  cperl-array-face		Array names
-  cperl-hash-face		Hash names
-  font-lock-comment-face	Comments, PODs and whatever is considered
+  `cperl-array-face'		Array names
+  `cperl-hash-face'		Hash names
+  `font-lock-comment-face'	Comments, PODs and whatever is considered
 				syntaxically to be not code
-  font-lock-constant-face	HERE-doc delimiters, labels, delimiters of
+  `font-lock-constant-face'	HERE-doc delimiters, labels, delimiters of
 				2-arg operators s/y/tr/ or of RExen,
-  font-lock-function-name-face	Special-cased m// and s//foo/, _ as
+  `font-lock-function-name-face' Special-cased m// and s//foo/, _ as 
 				a target of a file tests, file tests,
 				subroutine names at the moment of definition
 				(except those conflicting with Perl operators),
 				package names (when recognized), format names
-  font-lock-keyword-face	Control flow switch constructs, declarators
-  cperl-nonoverridable-face	Non-overridable keywords, modifiers of RExen
-  font-lock-string-face		Strings, qw() constructs, RExen, POD sections,
+  `font-lock-keyword-face'	Control flow switch constructs, declarators
+  `cperl-nonoverridable-face'	Non-overridable keywords, modifiers of RExen
+  `font-lock-string-face'	Strings, qw() constructs, RExen, POD sections,
 				literal parts and the terminator of formats
 				and whatever is syntaxically considered
 				as string literals
-  font-lock-type-face		Overridable keywords
-  font-lock-variable-name-face	Variable declarations, indirect array and
+  `font-lock-type-face'		Overridable keywords
+  `font-lock-variable-name-face' Variable declarations, indirect array and
 				hash names, POD headers/item names
-  cperl-invalid-face		Trailing whitespace
+  `cperl-invalid-face'		Trailing whitespace
 
 Note that in several situations the highlighting tries to inform about
 possible confusion, such as different colors for function names in
@@ -4341,7 +4341,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (setq
 	   t-font-lock-keywords
 	   (list
-	    (list "[ \t]+$" 0 cperl-invalid-face t)
+	    (list "[ \t]+$" 0 'cperl-invalid-face t)
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
