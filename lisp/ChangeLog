@@ -1,3 +1,8 @@
+2002-10-06  Markus Holmberg <markush@acc.umu.se>  (tiny change)
+
+	* thingatpt.el (thing-at-point-uri-schemes): New variable.
+	(thing-at-point-url-regexp): Use it.
+
 2002-10-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-beginning-do): Ignore labelled DO
