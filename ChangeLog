@@ -1,3 +1,8 @@
+2000-12-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (install-arch-indep): If tar fails, exit with
+	exit code 1.
+
 2000-12-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Test for XkbGetKeyboard with an AC_TRY_LINK whose

@@ -1,3 +1,18 @@
+2000-12-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (struct redisplay_history) [GLYPH_DEBUG]: New.
+	(REDISPLAY_HISTORY_SIZE) [GLYPH_DEBUG]: New macro.
+	(redisplay_history, history_idx, history_tick) [GLYPH_DEBUG]: New
+	variables.
+	(add_window_display_history, add_frame_display_history) 
+	(Fdump_redisplay_history) [GLYPH_DEBUG]: New functions.
+	(build_frame_matrix_from_leaf_window): Remove unused code.
+	(build_frame_matrix_from_leaf_window) [GLYPH_DEBUG]: Add to
+	redisplay history.
+	(update_frame) [GLYPH_DEBUG]: Add to redisplay history.
+	(update_window) [GLYPH_DEBUG]: Likewise.
+	(syms_of_display): Defsubr dump-redisplay-history.
+
 2000-12-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (echo_prompt): Always set current_kboard->echoptr to
