@@ -1,4 +1,5 @@
-;; Command to report Emacs bugs to appropriate mailing list.
+;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
+
 ;; Not fully installed because it can work only on Internet hosts.
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
@@ -37,3 +38,4 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (insert "\nIn " (emacs-version) "\n\n")
   (message (substitute-command-keys "Type \\[mail-send] to send bug report.")))
 
+;;; emacsbug.el ends here

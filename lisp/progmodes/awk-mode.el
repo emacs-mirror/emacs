@@ -1,4 +1,5 @@
-;; C code editing commands for Emacs
+;;; awk-mode.el --- AWK code editing commands for Emacs
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -81,3 +82,5 @@ with no args, if that value is non-nil."
   (make-local-variable 'comment-indent-hook)
   (setq comment-indent-hook 'c-comment-indent)
   (run-hooks 'awk-mode-hook))
+
+;;; awk-mode.el ends here

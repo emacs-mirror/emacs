@@ -1,4 +1,5 @@
-;; C++ code editing commands for Emacs
+;;; c++-mode.el --- C++ code editing commands for Emacs
+
 ;; 1987 Dave Detlefs  (dld@cs.cmu.edu) 
 ;; and  Stewart Clamen (clamen@cs.cmu.edu).
 ;; Done by fairly faithful modification of:
@@ -964,3 +965,5 @@ If non-nil, use `c++-defun-header-strong'.")
 	(next-line 1)
 	(beginning-of-line 1)))
     (goto-char restore)))
+
+;;; c++-mode.el ends here

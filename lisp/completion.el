@@ -1,3 +1,5 @@
+;;; completion.el --- dynamic word-completion code
+
 ;;; This is a Completion system for GNU Emacs
 ;;;
 ;;;  E-Mail: 
@@ -3111,3 +3113,5 @@ and KILLP is t if prefix arg is was specified."
 
 (cmpl-statistics-block
   (record-completion-file-loaded))
+
+;;; completion.el ends here

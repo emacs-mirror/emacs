@@ -1,4 +1,5 @@
-;; electric -- Window maker and Command loop for `electric' modes.
+;;; electric.el --- window maker and Command loop for `electric' modes.
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -180,4 +181,6 @@
       (goto-char (point-min))
       win)))
 
-(provide 'electric)                           
+(provide 'electric)
+
+; electric.el ends here

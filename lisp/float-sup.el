@@ -1,4 +1,5 @@
-;; Basic editing commands for Emacs
+;;; float-sup.el --- detect absence of floating-point support in Emacs runtime
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -51,3 +52,4 @@
 
 (provide 'lisp-float-type)
 
+;;; float-sup.el ends here

@@ -1,4 +1,5 @@
-;; Functions for dealing with char tables.
+;;; disp-table.el --- functions for dealing with char tables.
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -113,3 +114,5 @@
     (aset glyf-table i string)))
 
 (provide 'disp-table)
+
+;;; disp-table.el ends here

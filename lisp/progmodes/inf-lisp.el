@@ -1,4 +1,5 @@
-;;; -*-Emacs-Lisp-*- cmulisp.el
+;;; cmulisp.el --- improved version of standard inferior-lisp mode
+
 ;;; Copyright Olin Shivers (1988).
 ;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright
 ;;; notice appearing here to the effect that you may use this code any
@@ -600,3 +601,4 @@ This is a good place to put keybindings.")
 
 (provide 'cmulisp)
 
+;;; cmulisp.el ends here

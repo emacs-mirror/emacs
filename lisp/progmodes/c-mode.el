@@ -1,4 +1,5 @@
-;; C code editing commands for Emacs
+;;; c-mode.el --- C code editing commands for Emacs
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1062,3 +1063,5 @@ Available styles are GNU, K&R, BSD and Whitesmith."
     (while vars
       (set (car (car vars)) (cdr (car vars)))
       (setq vars (cdr vars)))))
+
+;;; c-mode.el ends here

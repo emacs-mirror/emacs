@@ -1,4 +1,5 @@
-; Ada editing support package in GNUlisp.  v1.0
+;;; ada.el --- Ada editing support package in GNUlisp.  v1.0
+
 ; Author: Vincent Broman <broman@bugs.nosc.mil>  May 1987.
 ; (borrows heavily from Mick Jordan's Modula-2 package for GNU,
 ; as modified by Peter Robinson, Michael Schmidt, and Tom Perrine.)
@@ -634,3 +635,5 @@ Initialize the library if a prefix arg is given."
   "Bind the current program library, using the current binding options."
   (interactive)
   (compile (concat "adabind " ada-bind-opts " " ada-lib-dir-name)))
+
+;;; ada.el ends here

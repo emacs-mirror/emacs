@@ -1,4 +1,5 @@
-;; Compare text between windows for Emacs.
+;;; compare-w.el --- compare text between windows for Emacs.
+
 ;; Copyright (C) 1986, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -128,3 +129,4 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 
 (provide 'compare-w)
 
+;;; compare-w.el ends here

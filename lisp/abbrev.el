@@ -1,4 +1,4 @@
-;; Abbrev mode commands for Emacs
+;;; abbrev.el --- abbrev mode commands for Emacs
 
 ;; Copyright (C) 1985-1991 Free Software Foundation, Inc.
 
@@ -287,3 +287,5 @@ If called from a Lisp program, arguments are START END &optional NOQUERY."
 		    pnt)))
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
 		(expand-abbrev)))))))
+
+;;; abbrev.el ends here

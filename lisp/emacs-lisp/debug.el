@@ -1,4 +1,5 @@
-;; Debuggers and related commands for Emacs
+;;; debug.el --- debuggers and related commands for Emacs
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -354,3 +355,5 @@ If argument is nil or an empty string, cancel for all functions."
 	  (setq list (cdr list))))
       (princ "Note: if you have redefined a function, then it may no longer\n")
       (princ "be set to debug on entry, even if it is in the list."))))
+
+;;; debug.el ends here

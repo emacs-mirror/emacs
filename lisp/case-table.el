@@ -1,4 +1,5 @@
-;; Functions for extending the character set and dealing with case tables.
+;;; case-table.el --- functions for extending the character set and dealing with case tables.
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -98,3 +99,5 @@ SYNTAX should be \" \", \"w\", \".\" or \"_\"."
   (modify-syntax-entry c syntax text-mode-syntax-table))
 
 (provide 'case-table)
+
+;;; case-table.el ends here

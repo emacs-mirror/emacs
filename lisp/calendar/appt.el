@@ -1,4 +1,5 @@
-;; Appointment notification functions.
+;;; appt.el --- appointment notification functions.
+
 ;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -494,7 +495,6 @@ The time should be in either 24 hour format or am/pm format."
     (setq conv-time (+ (* hr 60) min))
     conv-time))
 
-
 (setq display-time-hook 'appt-check)
 
-
+;;; appt.el ends here

@@ -1,4 +1,5 @@
-;;; Array editing commands for Gnu Emacs
+;;; array.el --- array editing commands for Gnu Emacs
+
 ;;;  Written by dmb%morgoth@harvard.harvard.edu (address is old)
 ;;;   (David M. Brown at Goldberg-Zoino & Associates, Inc.)
 ;;;  Thanks to cph@kleph.ai.mit.edu for assistance
@@ -955,3 +956,5 @@ array in this buffer."
 	(or arg
 	  (+ (ceiling max-column columns-per-line)
 	     (if rows-numbered 1 0)))))
+
+;;; array.el ends here

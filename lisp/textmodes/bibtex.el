@@ -1,4 +1,5 @@
-;;; BibTeX mode for GNU Emacs
+;;; bibtex.el --- BibTeX mode for GNU Emacs
+
 ;; Copyright (C) 1985, 1986, 1987, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1098,7 +1099,6 @@ an undefined location.
 
 ))  ; matches (if...
 
-;;; ------------- end bibtex-mode.el -------------------------------
+(provide 'bibtex)
 
-(provide 'bibtex)(provide 'bibtex)
-
+;;; bibtex.el ends here

@@ -1,4 +1,5 @@
-;; Psychological help for frustrated users.
+;;; doctor.el --- psychological help for frustrated users.
+
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1608,3 +1609,5 @@ Hack on previous word, setting global variable OWNER to correct result."
   (interactive)
   (insert "Mein fuhrer!!\n")
   (doctor-read-print))
+
+;;; doctor.el ends here

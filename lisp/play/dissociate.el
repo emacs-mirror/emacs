@@ -1,4 +1,5 @@
-;; Scramble text amusingly for Emacs.
+;;; dissociate.el --- scramble text amusingly for Emacs.
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -86,3 +87,5 @@ Default is 2."
 		 (goto-char 1)
 		 (funcall search-function overlap opoint t))))))
       (sit-for 0))))
+
+;;; dissociate.el ends here

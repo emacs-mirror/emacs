@@ -1,4 +1,5 @@
-;; Mode for editing assembler code
+;;; asm-mode.el --- Mode for editing assembler code
+
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.

@@ -1,4 +1,5 @@
-;;; find-dired.el -- Run a `find' command and dired the output
+;; find-dired.el --- run a `find' command and dired the output
+
 ;;; Copyright (C) 1991 Roland McGrath
 
 (defconst find-dired-version (substring "$Revision: 1.9 $" 11 -2)
@@ -200,3 +201,4 @@ Wildcards and redirection are handle as usual in the shell."
 
 (provide 'find-dired)
 
+;;; find-dired.el ends here

@@ -1,4 +1,5 @@
-;;; -*-Emacs-Lisp-*- General command interpreter in a window stuff
+;;; comint.el --- general command interpreter in a window stuff
+
 ;;; Copyright Olin Shivers (1988).
 
 ;;; This file is part of GNU Emacs.
@@ -1361,3 +1362,5 @@ This is a good place to put keybindings.")
 ;;;   liked them; I don't think anyone used them.
 
 (provide 'comint)
+
+;;; comint.el ends here

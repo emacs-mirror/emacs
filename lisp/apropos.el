@@ -1,4 +1,5 @@
-;; Faster apropos commands.
+;;; apropos.el --- faster apropos commands.
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -321,3 +322,4 @@ Will return nil instead."
       nil
     symbol))
 
+;;; apropos.el ends here

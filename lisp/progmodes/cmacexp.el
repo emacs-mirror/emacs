@@ -1,4 +1,5 @@
-;; C macro expansion
+;;; cmacexp.el --- C macro expansion
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -82,3 +83,5 @@ and macros to predefine."
       (while (eolp) (delete-char 1))
       (delete-region (point-min) (point)))
     (display-buffer outbuf)))
+
+;;; cmacexp.el ends here

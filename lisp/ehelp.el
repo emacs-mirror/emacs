@@ -1,3 +1,5 @@
+;;; ehelp.el --- bindings for electric-help mode
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -306,3 +308,4 @@ will select it.)"
 
 (provide 'ehelp) 
 
+;;; ehelp.el ends here

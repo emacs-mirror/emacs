@@ -1,4 +1,5 @@
-;; GNU Emacs code for BBN Bitgraph mouse.
+;;; bg-mouse.el --- GNU Emacs code for BBN Bitgraph mouse.
+
 ;; Copyright (C) Free Software Foundation, Inc. Oct 1985.
 ;; Time stamp <89/03/21 14:27:08 gildea>
 
@@ -302,3 +303,4 @@ X and Y are 0-based character positions on the screen."
 
 (provide 'bg-mouse)
 
+;;; bg-mouse.el ends here

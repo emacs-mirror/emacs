@@ -1,4 +1,5 @@
-;; Diary functions.
+;;; diary.el --- diary functions.
+
 ;; Copyright (C) 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -2126,3 +2127,4 @@ to the date indicated by point.  Prefix arg will make the entry nonmarking."
 
 (provide 'diary)
 
+;;; diary.el ends here

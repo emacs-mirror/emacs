@@ -1,4 +1,5 @@
-;; File input and output commands for Emacs
+;;; files.el --- file input and output commands for Emacs
+
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1382,3 +1383,5 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-3-map "b" 'switch-to-buffer-other-screen)
 (define-key ctl-x-3-map "f" 'find-file-other-screen)
 (define-key ctl-x-3-map "r" 'find-file-read-only-other-screen)
+
+;;; files.el ends here

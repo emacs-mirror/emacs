@@ -1,4 +1,5 @@
-;; Buffer menu main function and support functions.
+;;; buff-menu.el --- buffer menu main function and support functions.
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -282,3 +283,5 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
     (switch-to-buffer (other-buffer))
     (pop-to-buffer buff)
     (bury-buffer menu)))
+
+;;; buff-menu.el ends here

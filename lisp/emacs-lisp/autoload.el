@@ -1,4 +1,5 @@
-;;; Maintain autoloads in loaddefs.el.
+;;; autoload.el --- maintain autoloads in loaddefs.el.
+
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;; Written by Roland McGrath.
 ;;;
@@ -289,3 +290,4 @@ For example, invoke \"emacs -batch -f batch-update-autoloads *.el\""
 
 (provide 'autoload)
 
+;;; autoload.el ends here

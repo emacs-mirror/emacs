@@ -1,4 +1,5 @@
-;; Automatic mode-dependent insertion of text into new files.
+;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -90,3 +91,5 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 (setq find-file-not-found-hooks
       (cons 'insert-auto-insert-files
 	    find-file-not-found-hooks))
+
+;;; autoinsert.el ends here

@@ -1,4 +1,5 @@
-;; Fill commands for Emacs
+;;; fill.el --- fill commands for Emacs
+
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -285,3 +286,5 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 	  (let ((had-newline (bolp)))
 	    (fill-region-as-paragraph start (point) justifyp)
 	    (or had-newline (delete-char -1))))))))
+
+;;; fill.el ends here

@@ -1,4 +1,5 @@
-;; "DIFF" mode for handling output from unix diff utility.
+;;; diff.el --- "DIFF" mode for handling output from unix diff utility.
+
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;; Written fpb@ittc.wec.com 1/27/89
 
@@ -269,3 +270,5 @@ Differences are delimited by `diff-search-pattern'."
 	  (setq cnt (1+ cnt)))
 	(message "Counting differences...done (%d)" cnt)
 	cnt))))
+
+;;; diff.el ends here

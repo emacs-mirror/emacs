@@ -1,4 +1,5 @@
-;; Common-Lisp extensions for GNU Emacs Lisp.
+;;; cl.el --- Common-Lisp extensions for GNU Emacs Lisp.
+
 ;; Copyright (C) 1987, 1988, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -3133,6 +3134,6 @@ No checking is even attempted.  This is just for compatibility with
 Common-Lisp codes."
   form)
 
-;;;; end of cl.el
-
 (provide 'cl)
+
+;;; cl.el ends here

@@ -1,3 +1,5 @@
+;; backquote.el --- backquoting for Emacs Lisp macros
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Written by Dick King (king@kestrel).
 
@@ -354,3 +356,4 @@ for making the list so far."
 
 (provide 'backquote)
 
+;;; backquote.el ends here

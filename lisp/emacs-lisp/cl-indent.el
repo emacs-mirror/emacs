@@ -1,4 +1,5 @@
-;; Lisp mode, and its idiosyncratic commands.
+;;; cl-indent.el --- enhanced lisp-indent mode
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 ;; Written by Richard Mlynarik July 1987
 
@@ -464,3 +465,4 @@ by `lisp-body-indent'.")
 
 ;; To disable this stuff, (setq lisp-indent-function 'lisp-indent-function)
 
+;;; cl-indent.el ends here

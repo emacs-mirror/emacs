@@ -1,4 +1,5 @@
-;; chistory -- List command history
+;;; chistory.el --- list command history
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -166,3 +167,4 @@ The Command History listing is recomputed each time this mode is invoked."
 
 (provide 'chistory)
 
+;;; chistory.el ends here

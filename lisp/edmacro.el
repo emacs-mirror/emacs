@@ -1,4 +1,5 @@
-;; Keyboard macro editor for GNU Emacs.  Version 1.02.
+;;; edmacro.el --- keyboard macro editor for GNU Emacs.  Version 1.02.
+
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -641,3 +642,5 @@ directly back into keystrokes."
 (if (boundp 'edmacro-mode-map) ()
   (setq edmacro-mode-map (make-sparse-keymap))
   (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit))
+
+;;; edmacro.el ends here

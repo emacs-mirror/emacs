@@ -1,4 +1,5 @@
-;; Dynamic abbreviation package for GNU Emacs.
+;;; dabbrev.el --- dynamic abbreviation package for GNU Emacs.
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -257,3 +258,4 @@ with the next possible expansion not yet tried."
 
 (provide 'dabbrevs)
 
+;;; dabbrev.el ends here

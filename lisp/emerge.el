@@ -1,4 +1,4 @@
-;;; emerge.el   version 4
+;;; emerge.el --- merge diffs inder Emacs control (version 4)
 
 ;;; 13 Dec 1991
 
@@ -1140,6 +1140,7 @@ emerge-file-names.")
 
 ;;; Functions to start Emerge on files
 
+;;;###autoload
 (defun emerge-files (arg file-A file-B file-out &optional startup-hooks
 		     quit-hooks)
   "Run Emerge on two files."
@@ -1160,6 +1161,7 @@ emerge-file-names.")
      quit-hooks)
    file-out))
 
+;;;###autoload
 (defun emerge-files-with-ancestor (arg file-A file-B file-ancestor file-out
 				   &optional startup-hooks quit-hooks)
   "Run Emerge on two files, giving another file as the ancestor."
@@ -1189,6 +1191,7 @@ emerge-file-names.")
 
 ;;; Functions to start Emerge on buffers
 
+;;;###autoload
 (defun emerge-buffers (buffer-A buffer-B &optional startup-hooks quit-hooks)
   "Run Emerge on two buffers."
   (interactive "bBuffer A to merge: \nbBuffer B to merge: ")
@@ -1209,6 +1212,7 @@ emerge-file-names.")
 		  quit-hooks
 		  nil)))
 
+;;;###autoload
 (defun emerge-buffers-with-ancestor (buffer-A buffer-B buffer-ancestor
 					      &optional startup-hooks
 					      quit-hooks)
@@ -1243,6 +1247,7 @@ emerge-file-names.")
 
 ;;; Functions to start Emerge from the command line
 
+;;;###autoload
 (defun emerge-files-command ()
   (let ((file-a (nth 0 command-line-args-left))
 	(file-b (nth 1 command-line-args-left))
@@ -1252,6 +1257,7 @@ emerge-file-names.")
      file-a file-b nil
      (list (` (lambda () (emerge-command-exit (, file-out))))))))
 
+;;;###autoload
 (defun emerge-files-with-ancestor-command ()
   (let (file-a file-b file-anc file-out)
     ;; check for a -a flag, for filemerge compatibility
@@ -1279,6 +1285,7 @@ emerge-file-names.")
 
 ;;; Functions to start Emerge via remote request
 
+;;;###autoload
 (defun emerge-files-remote (file-a file-b file-out)
   (setq emerge-file-out file-out)
   (emerge-files-internal
@@ -1287,6 +1294,7 @@ emerge-file-names.")
    file-out)
   (throw 'client-wait nil))
 
+;;;###autoload
 (defun emerge-files-with-ancestor-remote (file-a file-b file-anc file-out)
   (setq emerge-file-out file-out)
   (emerge-files-with-ancestor-internal
@@ -2973,7 +2981,6 @@ See also auto-save-file-name-p."
       (setq limit (1+ (match-end 0)))))
   s)
 
-;;;;;;;;;;;;;;;; end emerge.el ;;;;;;;;;;;;;;;;
-
 (provide 'emerge)
 
+;;; emerge.el ends here

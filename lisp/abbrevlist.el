@@ -1,4 +1,5 @@
-;; List one abbrev table alphabetically ordered.
+;;; abbrevlist.el --- list one abbrev table alphabetically ordered.
+
 ;; Copyright (C) 1986, 1992 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
 
@@ -44,3 +45,4 @@
 
 (provide 'abbrevlist)
 
+;;; abbrevlist.el ends here

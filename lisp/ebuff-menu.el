@@ -1,3 +1,5 @@
+;;; ebuff-menu.el --- electric-buffer-list mode
+
 ; buggestions to mly@ai.mit.edu
 
 ;; who says one can't have typeout windows in gnu emacs?
@@ -236,6 +238,4 @@ Returns to Electric Buffer Menu when done."
       (message "Buffer %s does not exist!" bufnam)
       (sit-for 4))))
 
-
-
-
+;;; ebuff-menu.el ends here

@@ -1,4 +1,5 @@
-;; Electric Command History Mode
+;;; echistory.el --- Electric Command History Mode
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
 
@@ -136,3 +137,5 @@ The Command History listing is recomputed each time this mode is invoked."
   (if (boundp 'electric-history-in-progress)
       (progn (message "")
 	     (throw 'electric-history-quit nil))))
+
+;;; echistory.el ends here

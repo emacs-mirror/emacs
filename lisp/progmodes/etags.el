@@ -1,4 +1,5 @@
-;; Tags facility for Emacs.
+;;; etags.el --- tags facility for Emacs.
+
 ;; Copyright (C) 1985, 1986, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -351,7 +352,6 @@ unless it has one in the tag table."
        (terpri)
        (forward-line 1)))))
 
-;; etags.el ends here
-
 (provide 'etags)
 
+;;; etags.el ends here

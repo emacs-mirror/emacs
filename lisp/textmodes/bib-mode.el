@@ -1,4 +1,5 @@
-;; bib-mode, major mode for editing bib files.
+;;; bib-mode.el --- bib-mode, major mode for editing bib files.
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -232,3 +233,4 @@ in the title).")
 
 (provide 'bib-mode)
 
+;;; bib-mode.el ends here

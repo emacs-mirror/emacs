@@ -1,4 +1,5 @@
-;  Blackbox game in Emacs Lisp
+;;; blackbox.el --- blackbox game in Emacs Lisp
+
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -418,3 +419,5 @@ a reflection."
   (cond
    ((equal item (car list)) (cdr list))
    (t (cons (car list) (bb-delete item (cdr list))))))
+
+;;; blackbox.el ends here
