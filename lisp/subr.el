@@ -638,7 +638,7 @@ If EVENT is a mouse press or a mouse click, this returns the location
 of the event.
 If EVENT is a drag, this returns the drag's starting position.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -647,7 +647,7 @@ The `posn-' functions access elements of such lists."
   "Return the ending location of EVENT.  EVENT should be a click or drag event.
 If EVENT is a click event, this function is the same as `event-start'.
 The return value is of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW))
 The `posn-' functions access elements of such lists."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
@@ -659,60 +659,82 @@ The return value is a positive integer."
 
 (defsubst posn-window (position)
   "Return the window in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
   (nth 0 position))
+
+(defsubst posn-area (position)
+  "Return the window area recorded in POSITION, or nil for the text area.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (let ((area (if (consp (nth 1 position))
+		  (car (nth 1 position))
+		(nth 1 position))))
+    (and (symbolp area) area)))
 
 (defsubst posn-point (position)
   "Return the buffer location in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
-  (if (consp (nth 1 position))
-      (car (nth 1 position))
-    (nth 1 position)))
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (or (nth 5 position)
+      (if (consp (nth 1 position))
+	  (car (nth 1 position))
+	(nth 1 position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
   (nth 2 position))
 
 (defun posn-col-row (position)
-  "Return the column and row in POSITION, measured in characters.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions.
+  "Return the nominal column and row in POSITION, measured in characters.
+The column and row values are approximations calculated from the x
+and y coordinates in POSITION and the frame's default character width
+and height. 
 For a scroll-bar event, the result column is 0, and the row
-corresponds to the vertical position of the click in the scroll bar."
-  (let* ((pair   (nth 2 position))
-	 (window (posn-window position)))
-    (if (eq (if (consp (nth 1 position))
-		(car (nth 1 position))
-	      (nth 1 position))
-	    'vertical-scroll-bar)
-	(cons 0 (scroll-bar-scale pair (1- (window-height window))))
-      (if (eq (if (consp (nth 1 position))
-		  (car (nth 1 position))
-		(nth 1 position))
-	      'horizontal-scroll-bar)
-	  (cons (scroll-bar-scale pair (window-width window)) 0)
-	(let* ((frame (if (framep window) window (window-frame window)))
-	       (x (/ (car pair) (frame-char-width frame)))
-	       (y (/ (cdr pair) (+ (frame-char-height frame)
-				   (or (frame-parameter frame 'line-spacing)
-				       default-line-spacing
-				       0)))))
-	  (cons x y))))))
+corresponds to the vertical position of the click in the scroll bar.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (let* ((pair   (posn-x-y position))
+	 (window (posn-window position))
+	 (area   (posn-area position)))
+    (cond
+     ((null window)
+      '(0 . 0))
+     ((eq area 'vertical-scroll-bar)
+      (cons 0 (scroll-bar-scale pair (1- (window-height window)))))
+     ((eq area 'horizontal-scroll-bar)
+      (cons (scroll-bar-scale pair (window-width window)) 0))
+     (t
+      (let* ((frame (if (framep window) window (window-frame window)))
+	     (x (/ (car pair) (frame-char-width frame)))
+	     (y (/ (cdr pair) (+ (frame-char-height frame)
+				 (or (frame-parameter frame 'line-spacing)
+				     default-line-spacing
+				     0)))))
+	(cons x y))))))
+
+(defun posn-actual-col-row (position)
+  "Return the actual column and row in POSITION, measured in characters.
+These are the actual row number in the window and character number in that row.
+Return nil if POSITION does not contain the actual position; in that case
+`posn-col-row' can be used to get approximate values.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (nth 6 position))
 
 (defsubst posn-timestamp (position)
   "Return the timestamp of POSITION.
-POSITION should be a list of the form
-   (WINDOW BUFFER-POSITION (X . Y) TIMESTAMP)
-as returned by the `event-start' and `event-end' functions."
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
   (nth 3 position))
+
+(defsubst posn-object (position)
+  "Return the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (nth 4 position))
 
 
 ;;;; Obsolescent names for functions.
