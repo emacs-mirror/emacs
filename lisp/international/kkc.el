@@ -215,28 +215,30 @@ and the return value is the length of the conversion."
     (goto-char to)
     (kkc-update-conversion 'all))
 
-  ;; Then, ask users to selecte a desirable conversoin.
-  (let ((current-input-method-title kkc-input-method-title)
-	(input-method-function nil))
-    (force-mode-line-update)
-    (setq kkc-converting t)
-    (while kkc-converting
-      (let* ((echo-keystrokes 0)
-	     (keyseq (read-key-sequence nil))
-	     (cmd (lookup-key kkc-keymap keyseq)))
-	(if (commandp cmd)
-	    (condition-case err
-		(call-interactively cmd)
-	      (kkc-error (message "%s" (cdr err)) (beep)))
-	  ;; KEYSEQ is not defined in KKC keymap.
-	  ;; Let's put the event back.
-	  (setq unread-input-method-events
-		(append (string-to-list keyseq) unread-input-method-events))
-	  (kkc-terminate)))))
+  ;; Then, ask users to selecte a desirable conversion.
+  (unwind-protect
+      (let ((current-input-method-title kkc-input-method-title)
+	    (input-method-function nil))
+	(force-mode-line-update)
+	(setq kkc-converting t)
+	(while kkc-converting
+	  (let* ((echo-keystrokes 0)
+		 (keyseq (read-key-sequence nil))
+		 (cmd (lookup-key kkc-keymap keyseq)))
+	    (if (commandp cmd)
+		(condition-case err
+		    (call-interactively cmd)
+		  (kkc-error (message "%s" (cdr err)) (beep)))
+	      ;; KEYSEQ is not defined in KKC keymap.
+	      ;; Let's put the event back.
+	      (setq unread-input-method-events
+		    (append (string-to-list keyseq)
+			    unread-input-method-events))
+	      (kkc-terminate))))
 
-  (force-mode-line-update)
-  (goto-char (overlay-end kkc-overlay-tail))
-  (prog1 (- (overlay-start kkc-overlay-head) from)
+	(force-mode-line-update)
+	(goto-char (overlay-end kkc-overlay-tail))
+	(- (overlay-start kkc-overlay-head) from))
     (delete-overlay kkc-overlay-head)
     (delete-overlay kkc-overlay-tail)))
 
@@ -496,16 +498,19 @@ and change the current conversion to the last one in the group."
 	      (width-table kkc-current-conversions-width)
 	      (width 0)
 	      (idx this-idx)
+	      (max-items (length kkc-show-conversion-list-index-chars))
 	      l)
 	  (while (< idx current-idx)
-	    (if (<= (+ width (aref width-table idx)) max-width)
+	    (if (and (<= (+ width (aref width-table idx)) max-width)
+		     (< (- idx this-idx) max-items))
 		(setq width (+ width (aref width-table idx)))
 	      (setq this-idx idx width (aref width-table idx)))
 	    (setq idx (1+ idx)
 		  l (cdr l)))
 	  (aset first-slot 0 this-idx)
 	  (while (and (< idx len)
-		      (<= (+ width (aref width-table idx)) max-width))
+		      (<= (+ width (aref width-table idx)) max-width)
+		      (< (- idx this-idx) max-items))
 	    (setq width (+ width (aref width-table idx))
 		  idx (1+ idx)
 		  l (cdr l)))
