@@ -53,6 +53,17 @@ Even more powerful is @code{redraw-display}:
 This function clears and redisplays all visible frames.
 @end deffn
 
+  This function forces certain windows to be redisplayed
+but does not clear them.
+
+@defun force-window-update object
+This function forces redisplay of some or all windows.  If
+@var{object} is a window, it forces redisplay of that window.  If
+@var{object} is a buffer or buffer name, it forces redisplay of all
+windows displaying that buffer.  If @var{object} is @code{nil}, it
+forces redisplay of all windows.
+@end defun
+
   Processing user input takes absolute priority over redisplay.  If you
 call these functions when input is available, they do nothing
 immediately, but a full redisplay does happen eventually---after all the
@@ -517,6 +528,7 @@ warnings buffer.  Each element of the list should be a list of
 symbols.  If it matches the first few elements in a warning type, then
 that warning is not logged.
 @end defopt
+
 @node Invisible Text
 @section Invisible Text
 
@@ -613,11 +625,21 @@ major mode should use the mode's own name as an element of
 @end example
 
 @vindex line-move-ignore-invisible
-  Ordinarily, commands that operate on text or move point do not care
+  Ordinarily, functions that operate on text or move point do not care
 whether the text is invisible.  The user-level line motion commands
 explicitly ignore invisible newlines if
 @code{line-move-ignore-invisible} is non-@code{nil}, but only because
 they are explicitly programmed to do so.
+
+  However, if a command ends with point inside or immediately after
+invisible text, the main editing loop moves point further forward or
+further backward (in the same direction that the command already moved
+it) until that condition is no longer true.  Thus, if the command
+moved point back into an invisible range, Emacs moves point back to
+the beginning of that range, following the previous visible character.
+If the command moved point forward into an invisible range, Emacs
+moves point forward past the first visible character that follows the
+invisible text.
 
   Incremental search can make invisible overlays visible temporarily
 and/or permanently when a match includes invisible text.  To enable
@@ -980,6 +1002,10 @@ This function sets the value of property @var{prop} recorded in
 @var{overlay} to @var{value}.  It returns @var{value}.
 @end defun
 
+@defun overlay-properties overlay
+This returns a copy of the property list of @var{overlay}.
+@end defun
+
   See also the function @code{get-char-property} which checks both
 overlay properties and text properties for a given character.
 @xref{Examining Properties}.
@@ -1154,6 +1180,10 @@ property) rather than replacing it.
 
   This section describes the functions to create, delete and move
 overlays, and to examine their contents.
+
+@defun overlayp object
+This function returns @code{t} if @var{object} is an overlay.
+@end defun
 
 @defun make-overlay start end &optional buffer front-advance rear-advance
 This function creates and returns an overlay that belongs to
@@ -3114,8 +3144,8 @@ them, Emacs can display them.
 @item :index @var{index}
 You can use @code{:index} to specify one image from a GIF file that
 contains more than one image.  This property specifies use of image
-number @var{index} from the file.  An error is signaled if the GIF file
-doesn't contain an image with index @var{index}.
+number @var{index} from the file.  If the GIF file doesn't contain an
+image with index @var{index}, the image displays as a hollow box.
 @end table
 
 @ignore
