@@ -61,7 +61,7 @@
 ;; Latin-1 (ISO-8859-1)
 
 (make-coding-system
- 'iso-8859-1 2 ?X
+ 'iso-8859-1 2 ?1
  "MIME ISO-8859-1 Compound Text Encoding."
  '((ascii t) (latin-iso8859-1 t) nil nil
    nil ascii-eol ascii-cntl))
@@ -86,7 +86,9 @@
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . ("\
-These languages are supported with the Latin-1 (ISO-8859-1) character set.
+These languages are supported with the Latin-1 (ISO-8859-1) character set:
+ Danish, Dutch, English, Faeroese, Finnish, French, German, Icelandic,
+ Irish, Italian, Norwegian, Portuguese, Spanish, and Swedish.
 " . describe-european-support-map))
 	     ))
 
@@ -112,7 +114,9 @@ These languages are supported with the Latin-1 (ISO-8859-1) character set.
 	     (charset . (ascii latin-iso8859-2))
 	     (coding-system . (iso-8859-2))
 	     (documentation . ("\
-These languages are supported with the Latin-2 (ISO-8859-2) character set.
+These languages are supported with the Latin-2 (ISO-8859-2) character set:
+ Albanian, Czech, English, German, Hungarian, Polish, Romanian,
+ Serbo-Croatian, Slovak, Slovene, and Swedish.
 " . describe-european-support-map))
 	     ))
 
@@ -138,7 +142,9 @@ These languages are supported with the Latin-2 (ISO-8859-2) character set.
 	     (charset . (ascii latin-iso8859-3))
 	     (coding-system . (iso-8859-3))
 	     (documentation . ("\
-These languages are supported with the Latin-3 (ISO-8859-3) character set.
+These languages are supported with the Latin-3 (ISO-8859-3) character set:
+ Afrikaans, Catalan, Dutch, English, Esperanto, French, Galician,
+ German, Italian, Maltese, Spanish, and Turkish.
 " . describe-european-support-map))
 	     ))
 
@@ -164,7 +170,9 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set.
 	     (charset . (ascii latin-iso8859-4))
 	     (coding-system . (iso-8859-4))
 	     (documentation . ("\
-These languages are supported with the Latin-4 (ISO-8859-4) character set.
+These languages are supported with the Latin-4 (ISO-8859-4) character set:
+ Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
+ Latvian, Lithuanian, and Norwegian.
 " . describe-european-support-map))
 	     ))
 
