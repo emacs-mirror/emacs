@@ -187,19 +187,19 @@ upcase_initials_region (b, e)
 }
 
 Lisp_Object
-operate_on_word (arg)
+operate_on_word (arg, newpoint)
      Lisp_Object arg;
+     int *newpoint;
 {
   Lisp_Object val;
-  int end, farend;
+  int farend;
 
   CHECK_NUMBER (arg, 0);
   farend = scan_words (point, XINT (arg));
   if (!farend)
     farend = XINT (arg) > 0 ? ZV : BEGV;
 
-  end = point > farend ? point : farend;
-  SET_PT (end);
+  *newpoint = point > farend ? point : farend;
   XFASTINT (val) = farend;
 
   return val;
@@ -212,10 +212,12 @@ See also `capitalize-word'.")
   (arg)
      Lisp_Object arg;
 {
-  Lisp_Object opoint;
-
-  XFASTINT (opoint) = point;
-  casify_region (CASE_UP, opoint, operate_on_word (arg));
+  Lisp_Object beg, end;
+  int newpoint;
+  XFASTINT (beg) = point;
+  end = operate_on_word (arg, &newpoint);
+  casify_region (CASE_UP, beg, end);
+  SET_PT (newpoint);
   return Qnil;
 }
 
@@ -225,9 +227,12 @@ With negative argument, convert previous words but do not move.")
   (arg)
      Lisp_Object arg;
 {
-  Lisp_Object opoint;
-  XFASTINT (opoint) = point;
-  casify_region (CASE_DOWN, opoint, operate_on_word (arg));
+  Lisp_Object beg, end;
+  int newpoint;
+  XFASTINT (beg) = point;
+  end = operate_on_word (arg, &newpoint);
+  casify_region (CASE_DOWN, beg, end);
+  SET_PT (newpoint);
   return Qnil;
 }
 
@@ -239,9 +244,12 @@ With negative argument, capitalize previous words but do not move.")
   (arg)
      Lisp_Object arg;
 {
-  Lisp_Object opoint;
-  XFASTINT (opoint) = point;
-  casify_region (CASE_CAPITALIZE, opoint, operate_on_word (arg));
+  Lisp_Object beg, end;
+  int newpoint;
+  XFASTINT (beg) = point;
+  end = operate_on_word (arg, &newpoint);
+  casify_region (CASE_CAPITALIZE, beg, end);
+  SET_PT (newpoint);
   return Qnil;
 }
 
