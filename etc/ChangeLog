@@ -1,3 +1,8 @@
+2003-01-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* TUTORIAL.sk: Updated to reflect changes in English version.
+	From Miroslav Va,B9(Bko <zemiak@zoznam.sk>.
+
 2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.1: Added reference to the new `etags --help --lang=LANG'
