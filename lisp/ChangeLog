@@ -1,3 +1,10 @@
+2001-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/cwarn.el (cwarn-font-lock-match-assignment-in-expression):
+	Add shift-assignment operators to those highlighted, and highlight
+	the whole operator rather than just the "=".  From Broadey Kevin
+	<Kevin.Broadey@motorola.com>.
+
 2001-12-04  Juanma Barranquero  <lektu@terra.es>
 
 	* files.el (save-abbrevs, save-some-buffers): Don't ask the user
