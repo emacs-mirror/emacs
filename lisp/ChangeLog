@@ -1,3 +1,8 @@
+2001-05-20  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (command-line-1): When >2 files visited,
+	leave the last one visible, and make that the selected window.
+
 2001-05-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-1): Add `defvaralias'.
