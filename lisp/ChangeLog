@@ -1,3 +1,10 @@
+2005-03-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-highlight-timer): New variable.
+
+	* progmodes/compile.el (compilation-goto-locus):
+	Use `next-error-highlight-timer' instead of `sit-for'.
+
 2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/supercite.el (sc-mail-field): Use assoc-string.
