@@ -266,7 +266,8 @@ and that its contents match what the master file says.")
 	       (kill-buffer (get-buffer "*vc-info*")))
 	   (string= tip-version workfile-version))))
      ;; CVS
-     (string= (vc-workfile-version file) (vc-latest-version file))))
+     (or (string= (vc-workfile-version file) "0") ;; added but not committed.
+	 (string= (vc-workfile-version file) (vc-latest-version file)))))
 
 (defun vc-registration-error (file)
   (if file
@@ -1710,6 +1711,9 @@ From a program, any arguments are passed to the `rcs2log' script."
 	 ;; now do the checkout
 	 (apply 'vc-do-command
 		nil 0 "co" file 'MASTER
+		;; If locking is not strict, force to overwrite
+		;; the writable workfile.
+		(if (eq (vc-checkout-model file) 'implicit) "-f")
 		(if writable "-l")
 		(if rev (concat "-r" rev)
 		  ;; if no explicit revision was specified,
@@ -1751,14 +1755,21 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  ;; default for verbose checkout: clear the sticky tag
 	  ;; so that the actual update will go to the head of the trunk
 	  (and rev (string= rev "")
-	       (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A")
-	       (setq rev nil))
-	  (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
-		 "update"
-		 (and rev (concat "-r" rev))
-		 vc-checkout-switches)
-	  (vc-file-setprop file 'vc-workfile-version nil))
-	))
+	       (vc-do-command nil 0 "cvs" file 'WORKFILE "update" "-A"))
+	  ;; If a revision was specified, check that out.
+	  (if rev
+	      (apply 'vc-do-command nil 0 "cvs" file 'WORKFILE 
+		     (and writable (eq (vc-checkout-model file) 'manual) "-w")
+		     "update"
+		     (and rev (not (string= rev ""))
+			  (concat "-r" rev))
+		     vc-checkout-switches)
+	    ;; If no revision was specified, simply make the file writable.
+	    (and writable 
+		 (or (eq (vc-checkout-model file) 'manual)
+		     (zerop (logand 128 (file-modes file))))
+		 (set-file-modes file (logior 128 (file-modes file)))))
+	  (if rev (vc-file-setprop file 'vc-workfile-version nil))))
     (setq default-directory old-default-dir)
     (cond 
      ((not workfile)
@@ -1767,8 +1778,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (vc-file-setprop file 'vc-locking-user (user-login-name)))
       (vc-file-setprop file
 		       'vc-checkout-time (nth 5 (file-attributes file)))))
-    (message "Checking out %s...done" filename))
-  )
+    (message "Checking out %s...done" filename))))
 
 (defun vc-backend-logentry-check (file)
   (vc-backend-dispatch file
