@@ -1051,11 +1051,12 @@ This is caused by a bug in the KDE applet `klipper' which periodically
 requests the X clipboard contents from applications.  Early versions
 of klipper don't implement the ICCM protocol for large selections,
 which leads to Emacs being flooded with selection requests.  After a
-while, Emacs will print a message:
+while, Emacs may print a message:
 
   Timed out waiting for property-notify event
 
-A workaround is to not use `klipper'.
+A workaround is to not use `klipper'.  An upgrade to the `klipper' that
+comes with KDE 3.3 or later also solves the problem.
 
 *** CDE: Frames may cover dialogs they created when using CDE.
 
