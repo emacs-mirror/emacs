@@ -366,6 +366,7 @@ EXFUN (Fset_window_vscroll, 2);
 EXFUN (Fwindow_vscroll, 1);
 EXFUN (Fset_window_margins, 3);
 EXFUN (Fwindow_live_p, 1);
+EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window P_ ((void));
 extern void delete_window P_ ((Lisp_Object));
 extern Lisp_Object window_from_coordinates P_ ((struct frame *, int, int, int *, int));
