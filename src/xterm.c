@@ -1431,18 +1431,23 @@ unsigned int x_mouse_grabbed;
 /* Which modifier keys are on which modifier bits?
 
    With each keystroke, X returns eight bits indicating which modifier
-   keys were held down when the key was pressed.  The low three bits
-   indicate the state of the shift, shift lock, caps lock, and control
-   keys; their interpretation is fixed.  However, the interpretation
-   of the other five modifier bits depends on what keys are attached
+   keys were held down when the key was pressed.  The interpretation
+   of the top five modifier bits depends on what keys are attached
    to them.  If the Meta_L and Meta_R keysyms are on mod5, then mod5
    is the meta bit.
    
    x_meta_mod_mask is a mask containing the bits used for the meta key.
    It may have more than one bit set, if more than one modifier bit
    has meta keys on it.  Basically, if EVENT is a KeyPress event,
-   the meta key is pressed if (EVENT.state & x_meta_mod_mask) != 0.  */
-static int x_meta_mod_mask;
+   the meta key is pressed if (EVENT.state & x_meta_mod_mask) != 0.  
+
+   x_shift_lock_mask is LockMask if the XK_Shift_Lock keysym is on the
+   lock modifier bit, or zero otherwise.  Non-alphabetic keys should
+   only be affected by the lock modifier bit if XK_Shift_Lock is in
+   use; XK_Caps_Lock should only affect alphabetic keys.  With this
+   arrangement, the lock modifier should shift the character if
+   (EVENT.state & x_shift_lock_mask) != 0.  */
+static int x_meta_mod_mask, x_shift_lock_mask;
 
 /* Initialize mode_switch_bit and modifier_meaning.  */
 static void
@@ -1455,6 +1460,7 @@ x_find_modifier_meanings ()
   int alt_mod_mask = 0;
 
   x_meta_mod_mask = 0;
+  x_shift_lock_mask = 0;
   
   XDisplayKeycodes (x_current_display, &min_code, &max_code);
   syms = XGetKeyboardMapping (x_current_display,
@@ -1462,10 +1468,8 @@ x_find_modifier_meanings ()
 			      &syms_per_code);
   mods = XGetModifierMapping (x_current_display);
 
-  /* If CapsLock is on the lock modifier, then only letters should be
-     affected; since XLookupString takes care of this for us, the lock
-     modifier shouldn't set shift_modifier.  However, if ShiftLock is
-     on the lock modifier, then lock should mean shift.  */
+  /* Scan the modifier table to see which modifier bits the Meta and 
+     Alt keysyms are on.  */
   {
     int row, col;	/* The row and column in the modifier table. */
 
@@ -1494,6 +1498,12 @@ x_find_modifier_meanings ()
 		  case XK_Alt_R:
 		    alt_mod_mask |= (1 << row);
 		    break;
+
+		  case XK_Shift_Lock:
+		    /* Ignore this if it's not on the lock modifier.  */
+		    if ((1 << row) == LockMask)
+		      x_shift_lock_mask = LockMask;
+		    break;
 		  }
 	      }
 	  }
@@ -1516,9 +1526,9 @@ static Lisp_Object
 x_convert_modifiers (state)
      unsigned int state;
 {
-  return (  ((state & (ShiftMask | LockMask)) ? shift_modifier : 0)
-	  | ((state & ControlMask)            ? ctrl_modifier  : 0)
-	  | ((state & x_meta_mod_mask)        ? meta_modifier  : 0));
+  return (  ((state & (ShiftMask | x_shift_lock_mask)) ? shift_modifier : 0)
+	  | ((state & ControlMask)		       ? ctrl_modifier  : 0)
+	  | ((state & x_meta_mod_mask)		       ? meta_modifier  : 0));
 }
 
 extern struct frame *x_window_to_scrollbar ();
@@ -1745,6 +1755,15 @@ XTmouse_position (f, x, y, time)
    but we have to put it out here, since static variables within functions
    sometimes don't work.  */
 static Time enter_timestamp;
+
+/* This holds the state XLookupString needs to implement dead keys
+   and other tricks known as "compose processing".  _X Window System_ 
+   says that a portable program can't use this, but Stephen Gildea assures
+   me that letting the compiler initialize it to zeros will work okay.
+
+   This must be defined outside of XTread_socket, for the same reasons
+   given for enter_timestamp, above.  */
+static XComposeStatus compose_status;
 
 /* Communication with window managers. */
 Atom Xatom_wm_protocols;
@@ -2030,7 +2049,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (f != 0)
 	    {
 	      KeySym keysym;
-	      XComposeStatus status;
 	      char copy_buffer[80];
 	      int modifiers = event.xkey.state;
 
@@ -2041,12 +2059,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 just clear the meta-key flag to get the 'pure' character.  */
 	      event.xkey.state &= ~Mod1Mask;
 
-	      /* This will have to go some day... */
-	      nbytes = XLookupString (&event.xkey,
-				      copy_buffer,
-				      80,
-				      &keysym,
-				      &status);
+	      /* This will have to go some day...  */
+	      nbytes =
+		XLookupString (&event.xkey, copy_buffer, 80, &keysym,
+			       &compose_status);
 
 	      /* Strip off the vendor-specific keysym bit, and take a shot
 		 at recognizing the codes.  HP servers have extra keysyms
@@ -2400,12 +2416,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif /* ! defined (HAVE_X11) */
 
 	case MappingNotify:
-	  if (event.xmapping.request == MappingKeyboard)
-	    /* Someone has changed the keyboard mapping - flush the
-	       local cache.  */
-	    XRefreshKeyboardMapping (&event.xmapping);
-	  else if (event.xmapping.request == MappingModifier)
-	    x_find_modifier_meanings ();
+	  /* Someone has changed the keyboard mapping - update the
+	     local cache.  */
+	  switch (event.xmapping.request)
+	    {
+	    case MappingModifier:
+	      x_find_modifier_meanings ();
+	      /* This is meant to fall through.  */
+	    case MappingKeyboard:
+	      XRefreshKeyboardMapping (&event.xmapping);
+	    }
 	  break;
 
 	default:
