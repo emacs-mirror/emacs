@@ -2363,7 +2363,8 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
 	}
       else if (endpos < pos && endpos > prev)
 	prev = endpos;
-      else if (endpos == pos && startpos > prev && !change_req)
+      else if (endpos == pos && startpos > prev
+	       && (!change_req || startpos < pos))
 	prev = startpos;
     }
 
