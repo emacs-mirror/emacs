@@ -841,10 +841,6 @@ look for files that have been changed and need to be copied to other systems."
     (add-hook 'write-file-hooks 'shadow-add-to-todo)
     (define-key ctl-x-4-map "s" 'shadow-copy-files)))
 
-(if noninteractive
-    (add-hook 'after-init-hook 'shadow-initialize)
-  (shadow-initialize))
-
 ;;;Local Variables:
 ;;;eval:(put 'shadow-when 'lisp-indent-hook 1)
 ;;;End:
