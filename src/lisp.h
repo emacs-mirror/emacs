@@ -657,7 +657,7 @@ struct Lisp_Free
     union Lisp_Misc *chain;
   };
 
-/* In a marker, the markbit of the chain field is used as the gc mark bit */
+/* In a marker, the markbit of the chain field is used as the gc mark bit.  */
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
@@ -1521,7 +1521,7 @@ extern Lisp_Object Fintern (), Fintern_soft (), Fload ();
 extern Lisp_Object Fget_file_char (), Fread_char ();
 extern Lisp_Object read_filtered_event ();
 extern Lisp_Object Feval_current_buffer (), Feval_region ();
-extern Lisp_Object intern (), oblookup ();
+extern Lisp_Object intern (), make_symbol (), oblookup ();
 #define LOADHIST_ATTACH(x) \
  if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
 extern Lisp_Object Vcurrent_load_list;
