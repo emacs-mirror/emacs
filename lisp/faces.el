@@ -1138,7 +1138,8 @@ selected frame."
 	    (while (not (eobp))
 	      (insert "                          ")
 	      (forward-line 1))))
-	(goto-char (point-min))))
+	(goto-char (point-min)))
+      (print-help-return-message))
     ;; If the *Faces* buffer appears in a different frame,
     ;; copy all the face definitions from FRAME,
     ;; so that the display will reflect the frame that was selected.
@@ -1168,7 +1169,8 @@ selected frame."
     (let ((doc (face-documentation face)))
       (if doc
 	  (princ doc)
-	(princ "not documented as a face.")))))
+	(princ "not documented as a face.")))
+    (print-help-return-message)))
 
 ;;; Setting a face based on a SPEC.
 
