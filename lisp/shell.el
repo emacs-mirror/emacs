@@ -702,7 +702,8 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	(setq file (car comps-in-path)
 	      filepath (concat path file))
 	(if (and (not (member file completions))
-		 (not (string-match ignored-extensions file))
+		 (not (and ignored-extensions
+			   (string-match ignored-extensions file)))
 		 (or (string-equal path cwd)
 		     (not (file-directory-p filepath)))
 		 (or (null shell-completion-execonly)
