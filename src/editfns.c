@@ -841,12 +841,13 @@ save_excursion_restore (info)
     }
 
   /* If buffer was visible in a window, and a different window was
-     selected, and the old selected window is still live, restore
-     point in that window.  */
+     selected, and the old selected window is still showing this
+     buffer, restore point in that window.  */
   tem = XCDR (info);
   if (visible_p
       && !EQ (tem, selected_window)
-      && !NILP (Fwindow_live_p (tem)))
+      /* This also verifies that the window is still live.  */
+      && XBUFFER (XWINDOW (tem)->buffer) == current_buffer)
     Fset_window_point (tem, make_number (PT));
 
   UNGCPRO;
