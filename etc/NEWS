@@ -13,6 +13,9 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** C-x 5 1 runs the new command delete-other-frames which deletes
+all frames except the selected one.
+
 ** If your init file is compiled (.emacs.elc), `user-init-file' is set
 to the source name (.emacs.el), if that exists, after loading it.
 

@@ -1,3 +1,8 @@
+2000-01-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs.c (USAGE): New macro.
+	(main): Use it to display usage information.
+
 2000-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Support for the menu-help feature:
