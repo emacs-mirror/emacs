@@ -2501,12 +2501,18 @@ At top-level, as an editor command, this simply beeps."
 
 (define-key global-map "\C-g" 'keyboard-quit)
 
+(defvar buffer-quit-function nil
+  "Function to call to \"quit\" the current buffer, or nil if none.
+\\[keyboard-escape-quit] calls this function when its more local actions
+\(such as cancelling a prefix argument, minibuffer or region) do not apply.")
+
 (defun keyboard-escape-quit ()
   "Exit the current \"mode\" (in a generalized sense of the word).
 This command can exit an interactive command such as `query-replace',
 can clear out a prefix argument or a region,
 can get out of the minibuffer or other recursive edit,
-or delete other windows."
+cancel the use of the current buffer (for special-purpose buffers),
+or go back to just one window (by deleting all but the selected window)."
   (interactive)
   (cond ((eq last-command 'mode-exited) nil)
 	((> (minibuffer-depth) 0)
@@ -2516,11 +2522,12 @@ or delete other windows."
 	((and transient-mark-mode
 	      mark-active)
 	 (deactivate-mark))
+	(buffer-quit-function
+	 (funcall buffer-quit-function))
 	((not (one-window-p t))
 	 (delete-other-windows))))
 
-;;; This may not be safe yet.
-;;;(define-key global-map "\e\e\e" 'keyboard-escape-quit)
+(define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
@@ -2569,6 +2576,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
       (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
       (define-key map [return] 'choose-completion)
+      (define-key map "\e\e\e" 'delete-completion-window)
       (setq completion-list-mode-map map)))
 
 ;; Completion mode is suitable only for specially formatted data.
@@ -2580,6 +2588,15 @@ it were the arg to `interactive' (which see) to interactively read the value."
 ;; This records the length of the text at the beginning of the buffer
 ;; which was not included in the completion.
 (defvar completion-base-size nil)
+
+(defun delete-completion-window ()
+  "Delete the completion list window.
+Go to the window from which completion was requested."
+  (interactive)
+  (let ((buf completion-reference-buffer))
+    (delete-window (selected-window))
+    (if (get-buffer-window buf)
+	(select-window (get-buffer-window buf)))))
 
 (defun choose-completion ()
   "Choose the completion that point is in or next to."
