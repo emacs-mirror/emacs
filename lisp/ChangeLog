@@ -1,3 +1,33 @@
+2002-11-06  Dave Love  <fx@gnu.org>
+
+	* simple.el (quoted-insert): Bind keyboard-translate-table around
+	read-char.
+
+	* international/ucs-tables.el: Use keyboard-translate-table coding
+	system property, not translation-table-for-input, for
+	vietnamese-viscii & al.
+	(translation-table-for-input): Set,
+	don't defvar, and make permanent-local.
+	(ucs-unify-8859, ucs-unify-8859, ucs-fragment-8859): Add/remove
+	set-buffer-major-mode-hook, not quail-activate-hook.
+	(ucs-set-table-for-input): Renamed from ucs-quail-activate.
+	(ucs-unify-8859, ucs-unify-8859, ucs-fragment-8859): Setup
+	keyboard-translate-table, not translation-table-for-input.
+	Modify set-buffer-major-mode-hook, not quail-activate-hook.
+	(ucs-fragment-8859): Don't use translation-table-for-input coding
+	system property.
+	(ucs-quail-activate): Deleted.
+	(ucs-set-table-for-input): New.
+	(ucs-minibuffer-setup): Use it.
+
+	* international/quail.el (quail-input-string-to-events): Use
+	keyboard-translate-table, not translation-table-for-input.
+
+	* files.el (normal-mode): Call ucs-set-table-for-input.
+
+	* international/mule.el (set-buffer-file-coding-system): Call
+	ucs-set-table-for-input.
+
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace, query-replace-regexp): Doc fixes.
