@@ -916,12 +916,17 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
   /* minibuf == nil may or may not include minibuffers.
      Decide if it does.  */
   if (NILP (minibuf))
-    minibuf = (minibuf_level ? Qt : Qlambda);
+    minibuf = (minibuf_level ? minibuf_window : Qlambda);
+  else if (! EQ (minibuf, Qt))
+    minibuf = Qlambda;
+  /* Now minibuf can be t => count all minibuffer windows,
+     lambda => count none of them,
+     or a specific minibuffer window (the active one) to count.  */
 
 #ifdef MULTI_FRAME
   /* all_frames == nil doesn't specify which frames to include.  */
   if (NILP (all_frames))
-    all_frames = (EQ (minibuf, Qt)
+    all_frames = (! EQ (minibuf, Qlambda)
 		  ? (FRAME_MINIBUF_WINDOW
 		     (XFRAME
 		      (WINDOW_FRAME
@@ -994,11 +999,13 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
     }
   /* Which windows are acceptible?
      Exit the loop and accept this window if
-     this isn't a minibuffer window, or
-     we're accepting minibuffer windows, or
+     this isn't a minibuffer window,
+     or we're accepting all minibuffer windows,
+     or this is the active minibuffer and we are accepting that one, or
      we've come all the way around and we're back at the original window.  */
   while (MINI_WINDOW_P (XWINDOW (window))
 	 && ! EQ (minibuf, Qt)
+	 && ! EQ (minibuf, window)
 	 && ! EQ (window, start_window));
 
   return window;
@@ -1055,13 +1062,18 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
   /* minibuf == nil may or may not include minibuffers.
      Decide if it does.  */
   if (NILP (minibuf))
-    minibuf = (minibuf_level ? Qt : Qlambda);
+    minibuf = (minibuf_level ? minibuf_window : Qlambda);
+  else if (! EQ (minibuf, Qt))
+    minibuf = Qlambda;
+  /* Now minibuf can be t => count all minibuffer windows,
+     lambda => count none of them,
+     or a specific minibuffer window (the active one) to count.  */
 
 #ifdef MULTI_FRAME
   /* all_frames == nil doesn't specify which frames to include.
      Decide which frames it includes.  */
   if (NILP (all_frames))
-    all_frames = (EQ (minibuf, Qt)
+    all_frames = (! EQ (minibuf, Qlambda)
 		   ? (FRAME_MINIBUF_WINDOW
 		      (XFRAME
 		       (WINDOW_FRAME
@@ -1147,14 +1159,16 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 	    window = tem;
 	}
     }
-  /* Which windows are acceptable?
+  /* Which windows are acceptible?
      Exit the loop and accept this window if
-     this isn't a minibuffer window, or
-     we're accepting minibuffer windows, or
+     this isn't a minibuffer window,
+     or we're accepting all minibuffer windows,
+     or this is the active minibuffer and we are accepting that one, or
      we've come all the way around and we're back at the original window.  */
   while (MINI_WINDOW_P (XWINDOW (window))
-	 && !EQ (minibuf, Qt)
-	 && !EQ (window, start_window));
+	 && ! EQ (minibuf, Qt)
+	 && ! EQ (minibuf, window)
+	 && ! EQ (window, start_window));
 
   return window;
 }
