@@ -53,8 +53,11 @@
   "Keymap for Mule (Multilingual environment) menu specific commands.")
 
 (define-key global-map [menu-bar mule]
-  `(menu-item "Mule" ,mule-menu-keymap
-	      :visible default-enable-multibyte-characters))
+  ;; It is better not to use backquote here,
+  ;; because that makes a bootstrapping problem
+  ;; if you need to recompile all the Lisp files using interpreted code.
+  (list 'menu-item "Mule" mule-menu-keymap
+	':visible 'default-enable-multibyte-characters))
 
 (setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 
@@ -1216,6 +1219,16 @@ The default status is as follows:
   (setq nonascii-translation-table nil
 	nonascii-insert-offset 0))
 
+(defun set-display-table-and-terminal-coding-system (language-name)
+  "Set up the display table and terminal coding system for LANGUAGE-NAME."
+  (let ((coding (get-language-info language-name 'unibyte-display)))
+    (if coding
+	(standard-display-european-internal)
+      (standard-display-default (if (eq window-system 'pc) 128 160) 255)
+      (aset standard-display-table 146 nil))
+    (or (eq window-system 'pc)
+      (set-terminal-coding-system coding))))
+
 (defun set-language-environment (language-name)
   "Set up multi-lingual environment for using LANGUAGE-NAME.
 This sets the coding system priority and the default input method
@@ -1291,14 +1304,7 @@ specifies the character set for the major languages of Western Europe."
 	    (with-current-buffer (car list)
 	      (set-case-table (standard-case-table)))
 	    (setq list (cdr list))))))
-    ;; Display table and coding system for terminal.
-    (let ((coding (get-language-info language-name 'unibyte-display)))
-      (if coding
-	  (standard-display-european-internal)
-	(standard-display-default (if (eq window-system 'pc) 128 160) 255)
-	(aset standard-display-table 146 nil))
-      (or (eq window-system 'pc)
-	  (set-terminal-coding-system coding))))
+    (set-display-table-and-terminal-coding-system language-name))
 
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
@@ -1432,6 +1438,297 @@ of buffer-file-coding-system set by this function."
 		(princ (cons 'alias: (cdr aliases)))
 		(terpri)))
 	    (setq l (cdr l))))))))
+
+;;; Locales.
+
+(defvar locale-translation-file-name
+  (let ((files '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
+		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
+		 ;;
+		 ;; The following name appears after the X-related names above,
+		 ;; since the X-related names are what X actually uses.
+		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
+		 )))
+    (while (and files (not (file-exists-p (car files))))
+      (setq files (cdr files)))
+    (car files))
+  "*File name for the system's file of locale-name aliases, or nil if none.")
+
+(defvar locale-language-names
+  '(
+    ;; UTF-8 is not yet implemented.
+    ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
+    (".*[._]utf" . nil)
+
+    ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
+    ;; as specified in the Single Unix Spec, Version 2.
+    ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
+    ;; with additions from ISO 639/RA Newsletter No.1/1989;
+    ;; see Internet RFC 2165 (1997-06).
+    ;; TERRITORY is a country code taken from ISO 3166.
+    ;; CODESET and MODIFIER are implementation-dependent.
+    ;;
+    ; aa Afar
+    ; ab Abkhazian
+    ("af" . "Latin-3") ; Afrikaans
+    ("am" . "Ethiopic") ; Amharic
+    ; ar Arabic
+    ; as Assamese
+    ; ay Aymara
+    ; az Azerbaijani
+    ; ba Bashkir
+    ("be" . "Cyrillic-ISO") ; Byelorussian
+    ("bg" . "Cyrillic-ISO") ; Bulgarian
+    ; bh Bihari
+    ; bi Bislama
+    ; bn Bengali, Bangla
+    ("bo" . "Tibetan")
+    ("br" . "Latin-1") ; Breton
+    ("ca" . "Latin-1") ; Catalan
+    ; co Corsican
+    ("cs" . "Czech")
+    ; cy Welsh
+    ("da" . "Latin-1") ; Danish
+    ("de" . "German")
+    ; dz Bhutani
+    ("el" . "Greek")
+    ("en" . "English")
+    ("eo" . "Latin-3") ; Esperanto
+    ("es" . "Latin-1") ; Spanish
+    ("et" . "Latin-4") ; Estonian
+    ("eu" . "Latin-1") ; Basque
+    ; fa Persian
+    ("fi" . "Latin-1") ; Finnish
+    ; fj Fiji
+    ("fo" . "Latin-1") ; Faroese
+    ("fr" . "Latin-1") ; French
+    ("fy" . "Latin-1") ; Frisian
+    ("ga" . "Latin-1") ; Irish
+    ; gd Scots Gaelic
+    ("gl" . "Latin-3") ; Galician
+    ; gn Guarani
+    ; gu Gujarati
+    ; ha Hausa
+    ("he" . "Hebrew")
+    ("hi" . "Devanagari") ; Hindi
+    ("hr" . "Latin-2") ; Croatian
+    ("hu" . "Latin-2") ; Hungarian
+    ; hy Armenian
+    ; ia Interlingua
+    ("id" . "Latin-1") ; Indonesian
+    ; ie Interlingue
+    ; ik Inupiak
+    ("is" . "Latin-1") ; Icelandic
+    ("it" . "Latin-1") ; Italian
+    ; iu Inuktitut
+    ("ja" . "Japanese")
+    ; jw Javanese
+    ; ka Georgian
+    ; kk Kazakh
+    ("kl" . "Latin-4") ; Greenlandic
+    ; km Cambodian
+    ; kn Kannada
+    ("ko" . "Korean")
+    ; ks Kashmiri
+    ; ku Kurdish
+    ; ky Kirghiz
+    ("la" . "Latin-1") ; Latin
+    ; ln Lingala
+    ("lo" . "Lao") ; Laothian
+    ("lt" . "Latin-4") ; Lithuanian
+    ("lv" . "Latin-4") ; Latvian, Lettish
+    ; mg Malagasy
+    ; mi Maori
+    ("mk" . "Cyrillic-ISO") ; Macedonian
+    ; ml Malayalam
+    ; mn Mongolian
+    ; mo Moldavian
+    ("mr" . "Devanagari") ; Marathi
+    ; ms Malay
+    ("mt" . "Latin-3") ; Maltese
+    ; my Burmese
+    ; na Nauru
+    ("ne" . "Devanagari") ; Nepali
+    ("nl" . "Latin-1") ; Dutch
+    ("no" . "Latin-1") ; Norwegian
+    ; oc Occitan
+    ; om (Afan) Oromo
+    ; or Oriya
+    ; pa Punjabi
+    ("pl" . "Latin-2") ; Polish
+    ; ps Pashto, Pushto
+    ("pt" . "Latin-1") ; Portuguese
+    ; qu Quechua
+    ("rm" . "Latin-1") ; Rhaeto-Romance
+    ; rn Kirundi
+    ("ro" . "Romanian")
+    ("ru.*[_.]koi8" . "Cyrillic-KOI8") ; Russian
+    ("ru" . "Cyrillic-ISO") ; Russian
+    ; rw Kinyarwanda
+    ("sa" . "Devanagari") ; Sanskrit
+    ; sd Sindhi
+    ; sg Sangho
+    ("sh" . "Latin-2") ; Serbo-Croatian
+    ; si Sinhalese
+    ("sk" . "Slovak")
+    ("sl" . "Slovenian")
+    ; sm Samoan
+    ; sn Shona
+    ; so Somali
+    ("sq" . "Latin-2") ; Albanian
+    ("sr" . "Latin-2") ; Serbian (Latin alphabet)
+    ; ss Siswati
+    ; st Sesotho
+    ; su Sundanese
+    ("sv" . "Latin-1") ; Swedish
+    ("sw" . "Latin-1") ; Swahili
+    ; ta Tamil
+    ; te Telugu
+    ; tg Tajik
+    ("th" . "Thai")
+    ; ti Tigrinya
+    ; tk Turkmen
+    ; tl Tagalog
+    ; tn Setswana
+    ; to Tonga
+    ("tr" . "Latin-5") ; Turkish
+    ; ts Tsonga
+    ; tt Tatar
+    ; tw Twi
+    ; ug Uighur
+    ("uk" . "Cyrillic-ISO") ; Ukrainian
+    ; ur Urdu
+    ; uz Uzbek
+    ("vi" . "Vietnamese")
+    ; vo Volapuk
+    ; wo Wolof
+    ; xh Xhosa
+    ; yi Yiddish
+    ; yo Yoruba
+    ; za Zhuang
+    ("zh.*[._]big5" . "Chinese-BIG5")
+    ("zh.*[._]gbk" . nil) ; Solaris 2.7; has gbk-0 as well as GB 2312.1980-0
+    ("zh_tw" . "Chinese-CNS")
+    ("zh" . "Chinese-GB")
+    ; zu Zulu
+
+    ;; ISO standard locales
+    ("c$" . "ASCII")
+    ("posix$" . "ASCII")
+
+    ;; generic ISO 8859 locales
+    (".*8859[-_]?1" . "Latin-1")
+    (".*8859[-_]?2" . "Latin-2")
+    (".*8859[-_]?3" . "Latin-3")
+    (".*8859[-_]?4" . "Latin-4")
+    (".*8859[-_]?9" . "Latin-5")
+    (".*8859[-_]?14" . "Latin-8")
+    (".*8859[-_]?15" . "Latin-9")
+
+    ;; The "IPA" Emacs language environment does not correspond
+    ;; to any ISO 639 code, so let it stand for itself.
+    ("ipa$" . "IPA")
+
+    ;; Nonstandard or obsolete language codes
+    ("cz" . "Czech") ; e.g. Solaris 2.6
+    ("ee" . "Latin-4") ; Estonian, e.g. X11R6.4
+    ("iw" . "Hebrew") ; e.g. X11R6.4
+    ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
+    ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
+    )
+  "List of pairs of locale regexps and language names.
+The first element whose locale regexp matches the start of a downcased
+locale specifies the language name corresponding to that locale.
+If the language name is nil, there is no corresponding language environment.")
+
+(defvar locale-preferred-coding-systems
+  '(("ja.*[._]euc" . japanese-iso-8bit)
+    ("ja.*[._]jis7" . iso-2022-jp)
+    ("ja.*[._]pck" . japanese-shift-jis)
+    ("ja.*[._]sjis" . japanese-shift-jis)
+    (".*[._].*8859[-_]?1" . iso-8859-1)
+    (".*[._].*8859[-_]?2" . iso-8859-2)
+    (".*[._].*8859[-_]?3" . iso-8859-3)
+    (".*[._].*8859[-_]?4" . iso-8859-4)
+    (".*[._].*8859[-_]?5" . iso-8859-5)
+    (".*[._].*8859[-_]?7" . iso-8859-7)
+    (".*[._].*8859[-_]?8" . iso-8859-8)
+    (".*[._].*8859[-_]?9" . iso-8859-9)
+    )
+  "List of pairs of locale regexps and coding systems.
+The first element whose locale regexp matches the start of a downcased
+locale specifies the coding system to prefer when using that locale.
+If the coding system is nil, there is no special preference.")
+
+(defun locale-name-match (key alist)
+  "Search for KEY in ALIST, which should be a list of regexp-value pairs.
+Return the value corresponding to the first regexp that matches the
+start of KEY, or nil if there is no match."
+  (let (element)
+    (while (and alist (not element))
+      (if (string-match (concat "^\\(" (car (car alist)) "\\)") key)
+	  (setq element (car alist)))
+      (setq alist (cdr alist)))
+    (cdr element)))
+
+(defun set-locale-environment (locale-name)
+  "Set up multi-lingual environment for using LOCALE-NAME.
+This sets the coding system priority and the default input method
+and sometimes other things.  LOCALE-NAME should be a string
+which is the name of a locale supported by the system;
+often it is of the form xx_XX.CODE, where xx is a language,
+XX is a country, and CODE specifies a character set and coding system.
+For example, the locale name \"ja_JP.EUC\" might name a locale
+for Japanese in Japan using the `japanese-iso-8bit' coding-system.
+
+If LOCALE-NAME is nil, its value is taken from the environment.
+
+The locale names supported by your system can typically be found in a
+directory named `/usr/share/locale' or `/usr/lib/locale'."
+
+  (unless locale-name
+    ;; Use the first of these three environment variables
+    ;; that has a nonempty value.
+    (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
+      (while (and vars (not (setq locale-name (getenv (car vars)))))
+	(setq vars (cdr vars)))))
+
+  (when locale-name
+
+    ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
+    ;; using the translation file that many systems have.
+    (when locale-translation-file-name
+      (with-temp-buffer
+	(insert-file-contents locale-translation-file-name)
+	(when (re-search-forward
+	       (concat "^" (regexp-quote locale-name) ":?[ \t]+") nil t)
+	  (setq locale-name (buffer-substring (point) (line-end-position))))))
+
+    (setq locale-name (downcase locale-name))
+
+    (let ((language-name (locale-name-match
+			  locale-name locale-language-names))
+	  (coding-system (locale-name-match
+			  locale-name locale-preferred-coding-systems)))
+      (when language-name
+
+	;; Set up for this character set.  This is now the right way
+	;; to do it for both unibyte and multibyte modes.
+	(set-language-environment language-name)
+
+	;; If default-enable-multibyte-characters is nil,
+	;; we are using single-byte characters,
+	;; so the display table and terminal coding system are irrelevant.
+	(when default-enable-multibyte-characters
+	  (set-display-table-and-terminal-coding-system language-name))
+
+	(setq locale-coding-system
+	      (car (get-language-info language-name 'coding-priority))))
+
+      (when coding-system
+	(prefer-coding-system coding-system)
+	(setq locale-coding-system coding-system)))))
 
 ;;; Charset property
 

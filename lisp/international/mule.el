@@ -153,95 +153,101 @@ PLIST (property list) may contain any type of information a user
   `get-charset-property' respectively."
   (get charset 'charset))
 
+;; It is better not to use backquote in this file,
+;; because that makes a bootstrapping problem
+;; if you need to recompile all the Lisp files using interpreted code.
+
 (defmacro charset-id (charset)
   "Return charset identification number of CHARSET."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 0)
-    `(aref (charset-info ,charset) 0)))
+    (list 'aref (list 'charset-info charset) 0)))
 
 (defmacro charset-bytes (charset)
   "Return bytes of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 1)
-    `(aref (charset-info ,charset) 1)))
+    (list 'aref (list 'charset-info charset) 1)))
 
 (defmacro charset-dimension (charset)
   "Return dimension of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 2)
-    `(aref (charset-info ,charset) 2)))
+    (list 'aref (list 'charset-info charset) 2)))
 
 (defmacro charset-chars (charset)
   "Return character numbers contained in a dimension of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 3)
-    `(aref (charset-info ,charset) 3)))
+    (list 'aref (list 'charset-info charset) 3)))
 
 (defmacro charset-width (charset)
   "Return width (how many column occupied on a screen) of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 4)
-    `(aref (charset-info ,charset) 4)))
+    (list 'aref (list 'charset-info charset) 4)))
 
 (defmacro charset-direction (charset)
   "Return direction of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 5)
-    `(aref (charset-info ,charset) 5)))
+    (list 'aref (list 'charset-info charset) 5)))
 
 (defmacro charset-iso-final-char (charset)
   "Return final char of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 8)
-    `(aref (charset-info ,charset) 8)))
+    (list 'aref (list 'charset-info charset) 8)))
 
 (defmacro charset-iso-graphic-plane (charset)
   "Return graphic plane of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 9)
-    `(aref (charset-info ,charset) 9)))
+    (list 'aref (list 'charset-info charset) 9)))
 
 (defmacro charset-reverse-charset (charset)
   "Return reverse charset of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 10)
-    `(aref (charset-info ,charset) 10)))
+    (list 'aref (list 'charset-info charset) 10)))
 
 (defmacro charset-short-name (charset)
   "Return short name of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 11)
-    `(aref (charset-info ,charset) 11)))
+    (list 'aref (list 'charset-info charset) 11)))
 
 (defmacro charset-long-name (charset)
   "Return long name of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 12)
-    `(aref (charset-info ,charset) 12)))
+    (list 'aref (list 'charset-info charset) 12)))
 
 (defmacro charset-description (charset)
   "Return description of CHARSET.
 See the function `charset-info' for more detail."
   (if (charset-quoted-standard-p charset)
       (aref (charset-info (nth 1 charset)) 13)
-    `(aref (charset-info ,charset) 13)))
+    (list 'aref (list 'charset-info charset) 13)))
 
 (defmacro charset-plist (charset)
   "Return list charset property of CHARSET.
 See the function `charset-info' for more detail."
-  (if (charset-quoted-standard-p charset)
-      `(aref ,(charset-info (nth 1 charset)) 14)
-    `(aref (charset-info ,charset) 14)))
+  (list 'aref
+	(if (charset-quoted-standard-p charset)
+	    (charset-info (nth 1 charset))
+	  (list 'charset-info charset))
+	14))
 
 (defun set-charset-plist (charset plist)
   "Set CHARSET's property list to PLIST, and return PLIST."
