@@ -11287,12 +11287,16 @@ how much time has lapsed since DATE."
 	    ((eq type 'lapsed)
 	     ;; If the date is seriously mangled, the timezone
 	     ;; functions are liable to bug out, so we condition-case
-	     ;; the entire thing.  
-	     (let* ((real-sec (condition-case ()
+	     ;; the entire thing.  We call (current-time) once, rather than
+	     ;; letting current-time-string and current-time-zone default to
+	     ;; it, because that avoids a rare race condition when the time
+	     ;; zone changes between those two calls.
+	     (let* ((now (current-time))
+		    (real-sec (condition-case ()
 				  (- (gnus-seconds-since-epoch 
 				      (timezone-make-date-arpa-standard
-				       (current-time-string) 
-				       (current-time-zone) "UT"))
+				       (current-time-string now) 
+				       (current-time-zone now) "UT"))
 				     (gnus-seconds-since-epoch 
 				      (timezone-make-date-arpa-standard 
 				       date nil "UT")))
