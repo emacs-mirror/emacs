@@ -1464,8 +1464,6 @@ find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
   prefix = Qnil;
   i = 0;
 
-  while (gtk_events_pending ())
-    gtk_main_iteration ();
   while (i < menu_bar_items_used)
     {
       if (EQ (XVECTOR (vector)->contents[i], Qnil))
