@@ -1,3 +1,22 @@
+2000-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Add regexp
+	matching open parenthesis in column 0 to defun-prompt-regexp
+	only if open-paren-in-column-0-is-defun-start is set.
+
+	* sun-curs.el: Require CL at compile-time only.
+
+	* msb.el (msb--choose-file-menu): Use `(apply #'list ...)'
+	instead of copy-list which is a function from CL.
+	(msb--choose-menu, msb--mode-menu-cond)
+	(msb--create-buffer-menu-2): Use dolist instead of mapc.
+	(msb--init-file-alist): Use mapcar instead of mapcan.
+	(msb--aggregate-alist): Use mapcar instead of mapcan.  Fix
+	`(' in column 0 in doc string.
+	(msb--add-separators): Use mapcar instead of mapcan.
+
+	* cus-dep.el: Require CL at compile-time only.
+
 2000-03-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warning-types)

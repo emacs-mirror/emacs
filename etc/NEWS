@@ -1068,6 +1068,11 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The variable open-paren-in-column-0-is-defun-start controls whether
+an open parenthesis in column 0 is considered to be the start of a
+defun.  If set, the default, it is considered a defun start.  If not
+set, an open parenthesis in column 0 has no special meaning.
+
 ** The new function `string-to-syntax' can be used to translate syntax
 specificationa in string form as accepted my `modify-syntax-entry' to
 the cons-cell form that is used for the values of the `syntax-table'

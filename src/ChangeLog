@@ -1,3 +1,10 @@
+2000-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* syntax.c (open_paren_in_column_0_is_defun_start): New variable.
+	(find_defun_start): Consider an open parenthesis in column 0
+	a defun start only if open_paren_in_column_0_is_defun_start is set.
+	(syms_of_syntax): New variable open-paren-in-column-0-is-defun-start.
+
 2000-03-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* eval.c (Fautoload): Add entry in load-history (if after dump).
