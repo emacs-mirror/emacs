@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -995,7 +995,7 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 {
   register int nsyms;
   register int new;
-#ifdef amdahl_uts
+#if defined (amdahl_uts) || defined (pfa)
   SYMENT symentry;
   AUXENT auxentry;
 #else

@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -382,7 +382,6 @@ child_setup (in, out, err, new_argv, env, set_pgrp, current_dir)
      If using vfork and C_ALLOCA it is safe because that changes
      the superior's static variables as if the superior had done alloca
      and will be cleaned up in the usual way.  */
-
   {
     register unsigned char *temp;
     register int i;
@@ -438,6 +437,11 @@ child_setup (in, out, err, new_argv, env, set_pgrp, current_dir)
   close (out);
   close (err);
 
+#ifdef USG
+  setpgrp ();			/* No arguments but equivalent in this case */
+#else
+  setpgrp (pid, pid);
+#endif /* USG */
   setpgrp_of_tty (pid);
 
 #ifdef vipc

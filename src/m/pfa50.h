@@ -1,4 +1,4 @@
-/* machine description file for PFU A-series.
+/* Machine description file for PFU A-series.
    Copyright (C) 1988 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -112,4 +112,3 @@ and this notice must be preserved on all copies.  */
 #define NO_SIOCTL_H
 
 #undef SIGIO
-
