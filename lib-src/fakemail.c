@@ -18,12 +18,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-
-/* This is needed to get the declaration of cuserid in GNU libc.  */
-#define _XOPEN_SOURCE 1
-
 #define NO_SHORTNAMES
-#include <../src/config.h>
+#define _XOPEN_SOURCE 500	/* for cuserid */
+#include <config.h>
 
 #if defined (BSD_SYSTEM) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */
