@@ -6,7 +6,7 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (shut_down_emacs): Don't call check_glyph_memory
-	and check_message_stack if temrinating normally.  We want
+	and check_message_stack if terminating abnormally.  We want
 	glyph matrices etc. in a core dump.
 
 	* xdisp.c (Qbuffer_position, Qposition, Qobject): New variables.
