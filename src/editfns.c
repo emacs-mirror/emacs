@@ -2907,7 +2907,8 @@ extern Lisp_Object last_nonmenu_event;
 
 DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,
   "Display a message in a dialog box or in the echo area.\n\
-If this command was invoked with the mouse, use a dialog box.\n\
+If this command was invoked with the mouse, use a dialog box if\n\
+`use-dialog-box' is non-nil.\n\
 Otherwise, use the echo area.\n\
 The first argument is a format control string, and the rest are data\n\
 to be formatted under control of the string.  See `format' for details.\n\
