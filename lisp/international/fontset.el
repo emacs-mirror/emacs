@@ -317,7 +317,7 @@ automatically."
 	    (register-alternate-fontnames fontname))))
       (setq charsets (cdr charsets)))
 
-    ;; Be sure that ASCII font is avairable.
+    ;; Be sure that ASCII font is available.
     (let ((slot (or (assq 'ascii fontlist) (assq 'ascii new-fontlist)))
 	  ascii-font)
       (if (setq ascii-font (condition-case nil
@@ -551,7 +551,7 @@ It returns a name of the created fontset."
 
 Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
 omitted, x-resolve-font-name is called to get the resolved name.  At
-this time, if FONT is not avairable, error is signaled.
+this time, if FONT is not available, error is signaled.
 
 Optional 2nd arg FONTSET-NAME is a string to be used in
 `<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
