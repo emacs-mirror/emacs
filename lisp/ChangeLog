@@ -1,3 +1,7 @@
+2003-03-23  Peter Breton  <pbreton@attbi.com>
+
+	* net/net-utils.el (dns-lookup-host): New function.
+
 2003-03-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el (c-parse-state): Added kludge to avoid
