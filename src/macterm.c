@@ -6798,7 +6798,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	font->max_bounds.width = max_width;
       }
     }
-  
+
   TextFont (old_fontnum);  /* restore previous font number, size and face */
   TextSize (old_fontsize);
   TextFace (old_fontface);
@@ -9924,7 +9924,9 @@ Toolbox for processing before Emacs sees it.  */);
 #endif
 
   DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
-   doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
+   doc: /* If non-nil, allow anti-aliasing.
+The text will be rendered using Core Graphics text rendering which
+may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
