@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.11 1992/10/05 21:09:26 rms Exp rms $	
+;;	$Id: vc.el,v 1.12 1992/10/05 22:03:53 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -1103,6 +1103,7 @@ Return nil if there is no such person."
     )
   (progn
     (vc-do-command 0 "rcs" "-M" (concat "-u" rev) file)
+    (delete-file file)
     (vc-do-command 0 "rcs" (concat "-l" rev) file)
     )
   (vc-file-setprop file 'vc-locking-user (user-login-name))
