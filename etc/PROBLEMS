@@ -35,6 +35,11 @@ in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
 which can be used to unpack `.tar.gz' and `.zip' archives without
 mangling them.
 
+* `put-image' and `insert-image' don't work with JPEG images
+
+This can happen if Emacs is built with jpeg-6a library.  Upgrading to
+jpeg-6b reportedly solves the problem.
+
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
