@@ -100,7 +100,7 @@
   )
 
 (defvar pascal-imenu-generic-expression
-  '("^[ \t]*\\(function\\|procedure\\)[ \t\n]+\\([a-zA-Z0-9_.:]+\\)" . (2))
+  '((nil "^[ \t]*\\(function\\|procedure\\)[ \t\n]+\\([a-zA-Z0-9_.:]+\\)" 2))
   "Imenu expression for Pascal-mode.  See `imenu-generic-expression'.")
 
 (defvar pascal-keywords
