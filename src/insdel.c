@@ -78,6 +78,7 @@ void
 check_markers ()
 {
   register Lisp_Object tail, prev, next;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   tail = BUF_MARKERS (current_buffer);
 
@@ -88,6 +89,8 @@ check_markers ()
       if (XMARKER (tail)->charpos > Z)
 	abort ();
       if (XMARKER (tail)->bytepos > Z_BYTE)
+	abort ();
+      if (multibyte && ! CHAR_HEAD_P (FETCH_BYTE (XMARKER (tail)->bytepos)))
 	abort ();
 
       tail = XMARKER (tail)->chain;
@@ -494,6 +497,10 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
 		 Point the marker after the combined character,
 		 so that undoing the insertion puts it back where it was.  */
 	      m->bytepos += combined_before_bytes;
+	      if (combined_before_bytes == nbytes)
+		/* All new bytes plus combined_after_bytes (if any)
+		   are combined.  */
+		m->bytepos += combined_after_bytes;
 	    }
 	}
       /* If a marker was pointing into the combining bytes
@@ -906,7 +913,7 @@ count_combining_before (string, length, pos, pos_byte)
     return 0;
   if (length == 0 || CHAR_HEAD_P (*string))
     return 0;
-  if (pos == BEGV)
+  if (pos == BEG)
     return 0;
   c = FETCH_BYTE (pos_byte - 1);
   if (ASCII_BYTE_P (c))
@@ -963,12 +970,12 @@ count_combining_after (string, length, pos, pos_byte)
   else if (!BASE_LEADING_CODE_P (string[i]))
     return 0;
 
-  if (pos == ZV)
+  if (pos == Z)
     return 0;
   c = FETCH_BYTE (pos_byte);
   if (CHAR_HEAD_P (c))
     return 0;
-  while (pos_byte < ZV_BYTE)
+  while (pos_byte < Z_BYTE)
     {
       c = FETCH_BYTE (pos_byte);
       if (CHAR_HEAD_P (c))
@@ -1021,6 +1028,16 @@ combine_bytes (pos, pos_byte, nbytes)
     /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, pos, - nbytes);
 }
+
+/* If we are going to combine bytes at POS which is at a narrowed
+   region boundary, signal an error.  */
+#define CHECK_BYTE_COMBINING_FOR_INSERT(pos)				\
+  do {									\
+    if (combined_before_bytes && pos == BEGV				\
+	|| combined_after_bytes && pos == ZV)				\
+      error ("Byte combining across region boundary inhibitted");	\
+  } while (0)
+
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
    starting at STRING.  INHERIT, PREPARE and BEFORE_MARKERS
@@ -1053,6 +1070,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
     = count_combining_before (string, nbytes, PT, PT_BYTE);
   combined_after_bytes
     = count_combining_after (string, nbytes, PT, PT_BYTE);
+  CHECK_BYTE_COMBINING_FOR_INSERT (PT);
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1239,6 +1257,11 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
     = count_combining_before (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
   combined_after_bytes
     = count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
+  {
+    unsigned char save = *(GPT_ADDR);
+    CHECK_BYTE_COMBINING_FOR_INSERT (PT);
+    *(GPT_ADDR) = save;
+  }
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1418,8 +1441,12 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   combined_before_bytes
     = count_combining_before (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
   combined_after_bytes
-    = count_combining_after (GPT_ADDR, outgoing_nbytes,
-			     PT, PT_BYTE);
+    = count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
+  {
+    unsigned char save = *(GPT_ADDR);
+    CHECK_BYTE_COMBINING_FOR_INSERT (PT);
+    *(GPT_ADDR) = save;
+  }
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1561,6 +1588,16 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
       nbytes_del = STRING_BYTES (XSTRING (prev_text));
     }
 
+  if (combined_before_bytes && from == BEGV
+      || combined_after_bytes && from == ZV)
+    {
+      /* We can't combine bytes nor signal an error here.  So, let's
+	 pretend that the new text is just a single space.  */
+      len = len_byte = 1;
+      combined_before_bytes = combined_after_bytes = 0;
+      *(GPT_ADDR) = ' ';
+    }
+
   if (combined_after_bytes)
     {
       Lisp_Object deletion;
@@ -1655,6 +1692,10 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     if (combined_before_bytes)
       combine_bytes (from, from_byte, combined_before_bytes);
   }
+
+  /* As byte combining will decrease Z, we must check this again. */
+  if (Z - GPT < end_unchanged)
+    end_unchanged = Z - GPT;
 
   CHECK_MARKERS ();
 
@@ -1810,6 +1851,11 @@ replace_range (from, to, new, prepare, inherit, markers)
     = count_combining_before (GPT_ADDR, outgoing_insbytes, from, from_byte);
   combined_after_bytes
     = count_combining_after (GPT_ADDR, outgoing_insbytes, from, from_byte);
+  {
+    unsigned char save = *(GPT_ADDR);
+    CHECK_BYTE_COMBINING_FOR_INSERT (from);
+    *(GPT_ADDR) = save;
+  }
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1911,6 +1957,10 @@ replace_range (from, to, new, prepare, inherit, markers)
     }
   if (combined_before_bytes)
     combine_bytes (from, from_byte, combined_before_bytes);
+
+  /* As byte combining will decrease Z, we must check this again. */
+  if (Z - GPT < end_unchanged)
+    end_unchanged = Z - GPT;
 
   if (outgoing_insbytes == 0)
     evaporate_overlays (from);
@@ -2063,9 +2113,11 @@ del_range_2 (from, from_byte, to, to_byte)
 
   combined_after_bytes
     = count_combining_before (BUF_BYTE_ADDRESS (current_buffer, to_byte),
-			      ZV_BYTE - to_byte, from, from_byte);
+			      Z_BYTE - to_byte, from, from_byte);
   if (combined_after_bytes)
     {
+      if (to == ZV_BYTE)
+	error ("Byte combining across region boundary inhibitted");
       from_byte_1 = from_byte;
       DEC_POS (from_byte_1);
     }
@@ -2152,6 +2204,9 @@ del_range_2 (from, from_byte, to, to_byte)
       combine_bytes (from, from_byte, combined_after_bytes);
 
       record_insert (GPT - 1, 1);
+
+      if (Z - GPT < end_unchanged)
+	end_unchanged = Z - GPT;
     }
 
   CHECK_MARKERS ();
