@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.30 1995/10/27 22:34:50 friedman Exp erik $
+;; $Id: rlogin.el,v 1.31 1996/01/14 07:34:30 erik Exp friedman $
 
 ;;; Commentary:
 
@@ -180,12 +180,13 @@ variable."
       ;; Set process-mark to point-max in case there is text in the
       ;; buffer from a previous exited process.
       (set-marker (process-mark proc) (point-max))
-      (rlogin-mode)
 
       ;; comint-output-filter-functions is just like a hook, except that the
       ;; functions in that list are passed arguments.  add-hook serves well
       ;; enough for modifying it.
       (add-hook 'comint-output-filter-functions 'rlogin-carriage-filter)
+
+      (rlogin-mode)
 
       (make-local-variable 'rlogin-host)
       (setq rlogin-host host)
