@@ -1,3 +1,16 @@
+2004-11-19  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Vsearch_whitespace_regexp): New variable.
+	(syms_of_search): Defvar it.
+	(compile_pattern_1): Call re_set_whitespace_regexp with it.
+	(search_buffer): No regexp is trivial if Vsearch_whitespace_regexp
+	is non-nil.
+
+	* regex.c (regex_compile): Substitute whitespace_regexp
+	for spaces, if it is nonzero.
+	(whitespace_regexp): New variable.
+	(re_set_whitespace_regexp): New function.
+
 2004-11-19  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (Fvertical_motion): Fix last change.
