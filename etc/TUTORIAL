@@ -3,14 +3,14 @@ Copyright (c) 1985 Free Software Foundation, Inc;  See end for conditions.
 You are looking at the Emacs tutorial.
 
 Emacs commands generally involve the CONTROL key (sometimes labelled
-CTRL or CTL) or the META key (sometimes labelled EDIT).  Rather than
+CTRL or CTL) or the META key (sometimes labelled EDIT or ALT).  Rather than
 write out META or CONTROL each time we want you to prefix a character,
 we'll use the following abbreviations:
 
  C-<chr>  means hold the CONTROL key while typing the character <chr>
 	  Thus, C-f would be: hold the CONTROL key and type f.
- M-<chr>  means hold the META or EDIT key down while typing <chr>.
-	  If there is no META or EDIT key, type <ESC>, release it,
+ M-<chr>  means hold the META or EDIT or ALT key down while typing <chr>.
+	  If there is no META key or equivalent, type <ESC>, release it,
 	  then type the character <chr>.  "<ESC>" stands for the
 	  key labelled "ESC".
 
@@ -752,6 +752,16 @@ The command C-M-v is very useful when you are editing text in one
 window and using the other window just for reference.  You can keep
 the cursor always in the window where you are editing, and edit
 there as you advance through the other window.
+
+C-M-v is an example of a CONTROL-META character.  If you have a real
+META key, you can type C-M-v by holding down both CTRL and META while
+typing v.
+
+It doesn't matter whether CTRL or META "comes first," because both of
+these keys act by modifying the characters you type.  But if you don't
+have a real META key, and you use ESC instead, the order does matter:
+you must type ESC followed by CTRL-v; CTRL-ESC v will not work.  This
+is because ESC is a character in its own right, not a modifier key.
 
 >> Type C-x 1 (in the top window) to get rid of the bottom window.
 
