@@ -32,6 +32,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/param.h>
 #include <sys/time.h>
 #include <dos.h>
+#if __DJGPP__ >= 2
+#include <fcntl.h>
+#endif
+
 #include "dosfns.h"
 #include "msdos.h"
 #include "systime.h"
@@ -47,6 +51,27 @@ Boston, MA 02111-1307, USA.  */
 /* Damn that local process.h!  Instead we can define P_WAIT ourselves.  */
 #define P_WAIT 1
 
+#if __DJGPP__ > 1
+
+#ifndef SYSTEM_MALLOC
+
+#ifdef GNU_MALLOC
+
+/* If other `malloc' than ours is used, force our `sbrk' behave like
+   Unix programs expect (resize memory blocks to keep them contiguous).
+   If `sbrk' from `ralloc.c' is NOT used, also zero-out sbrk'ed memory,
+   because that's what `gmalloc' expects to get.  */
+#include <crt0.h>
+
+#ifdef REL_ALLOC
+int _crt0_startup_flags = _CRT0_FLAG_UNIX_SBRK;
+#else  /* not REL_ALLOC */
+int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
+#endif /* not REL_ALLOC */
+#endif /* GNU_MALLOC */
+
+#endif /* not SYSTEM_MALLOC */
+#endif /* __DJGPP__ > 1 */
 
 static unsigned long
 event_timestamp ()
@@ -862,8 +887,13 @@ internal_terminal_init ()
   colors = getenv ("EMACSCOLORS");
   if (colors && strlen (colors) >= 2)
     {
-      the_only_x_display.foreground_pixel = colors[0] & 0x07;
-      the_only_x_display.background_pixel = colors[1] & 0x07;
+      /* Foreground colrs use 4 bits, background only 3.  */
+      if (isxdigit (colors[0]) && !isdigit (colors[0]))
+        colors[0] += 10 - (isupper (colors[0]) ? 'A' : 'a');
+      if (colors[0] >= 0 && colors[0] < 16)
+        the_only_x_display.foreground_pixel = colors[0];
+      if (colors[1] >= 0 && colors[1] < 8)
+        the_only_x_display.background_pixel = colors[1];
     }
   the_only_x_display.line_height = 1;
   the_only_frame.output_data.x = &the_only_x_display;
@@ -2226,13 +2256,15 @@ init_environment (argc, argv, skip_args)
 	setenv ("TZ", "IST-02IDT-03,M4.1.6/00:00,M9.5.6/01:00", 0);
 	break;
       }
-  init_gettimeofday ();
+  tzset ();
 }
 
 
 
 static int break_stat;	 /* BREAK check mode status.	*/
 static int stdin_stat;	 /* stdin IOCTL status.		*/
+
+#if __DJGPP__ < 2
 
 /* These must be global.  */
 static _go32_dpmi_seginfo ctrl_break_vector;
@@ -2263,6 +2295,8 @@ install_ctrl_break_check ()
     }
 }
 
+#endif /* __DJGPP__ < 2 */
+
 /* Turn off Dos' Ctrl-C checking and inhibit interpretation of
    control chars by DOS.   Determine the keyboard type.  */
 
@@ -2274,7 +2308,9 @@ dos_ttraw ()
   
   break_stat = getcbrk ();
   setcbrk (0);
+#if __DJGPP__ < 2
   install_ctrl_break_check ();
+#endif
 
   if (first_time)
     {
@@ -2325,9 +2361,24 @@ dos_ttraw ()
 	      mouse_init ();
 	    }
 	}
-      
+
       first_time = 0;
+
+#if __DJGPP__ >= 2
+
+      stdin_stat = setmode (fileno (stdin), O_BINARY);
+      return (stdin_stat != -1);
     }
+  else
+    return (setmode (fileno (stdin), O_BINARY) != -1);
+
+#else /* __DJGPP__ < 2 */
+
+    }
+
+  /* I think it is wrong to overwrite `stdin_stat' every time
+     but the first one this function is called, but I don't
+     want to change the way it used to work in v1.x.--EZ  */
 
   inregs.x.ax = 0x4400;		/* Get IOCTL status. */
   inregs.x.bx = 0x00;		/* 0 = stdin. */
@@ -2338,6 +2389,8 @@ dos_ttraw ()
   inregs.x.ax = 0x4401;		/* Set IOCTL status */
   intdos (&inregs, &outregs);
   return !outregs.x.cflag;
+
+#endif /* __DJGPP__ < 2 */
 }
 
 /*  Restore status of standard input and Ctrl-C checking.  */
@@ -2350,11 +2403,19 @@ dos_ttcooked ()
   setcbrk (break_stat);
   mouse_off ();
 
+#if __DJGPP__ >= 2
+
+  return (setmode (fileno (stdin), stdin_stat) != -1);
+
+#else  /* not __DJGPP__ >= 2 */
+
   inregs.x.ax = 0x4401;	/* Set IOCTL status.	*/
   inregs.x.bx = 0x00;	/* 0 = stdin.		*/
   inregs.x.dx = stdin_stat;
   intdos (&inregs, &outregs);
   return !outregs.x.cflag;
+
+#endif /* not __DJGPP__ >= 2 */
 }
 
 
@@ -2473,6 +2534,8 @@ croak (badfunc)
   exit (1);
 }
 
+#if __DJGPP__ < 2
+
 /* ------------------------- Compatibility functions -------------------
  *	gethostname
  *	gettimeofday
@@ -2532,20 +2595,24 @@ gettimeofday (struct timeval *tp, struct timezone *tzp)
   return 0;
 }
 
+#endif /* __DJGPP__ < 2 */
 
 /*
  * A list of unimplemented functions that we silently ignore.
  */
 
+#if __DJGPP__ < 2
 unsigned alarm (s) unsigned s; {}
 fork () { return 0; }
 int kill (x, y) int x, y; { return -1; }
 nice (p) int p; {}
 void volatile pause () {}
+sigsetmask (x) int x; { return 0; }
+#endif
+
 request_sigio () {}
 setpgrp () {return 0; }
 setpriority (x,y,z) int x,y,z; { return 0; }
-sigsetmask (x) int x; { return 0; }
 sigblock (mask) int mask; { return 0; } 
 unrequest_sigio () {}
 
