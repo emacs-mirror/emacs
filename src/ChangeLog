@@ -1,3 +1,11 @@
+2004-02-15  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
+	controlling emulation of a three button mouse with option and
+	command keys.
+	(Qreverse, mac_get_enumlated_btn): Handle the emulation
+	(mac_event_to_emacs_modifiers, XTread_socket): Ditto
+
 2004-02-15  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (init_fringe_bitmap) [MAC_OS, WORDS_BIG_ENDIAN]:
