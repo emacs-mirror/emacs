@@ -945,6 +945,10 @@ extern void GC_thr_init();	/* Needed for Solaris/X86	*/
 #  include  "gc_local_alloc.h"
 #endif
 
+GC_API void (*GC_custom_finalize)(void);
+GC_API void (*GC_collect_start_callback) GC_PROTO((void));
+GC_API void (*GC_collect_end_callback) GC_PROTO((void));
+
 #ifdef __cplusplus
     }  /* end of extern "C" */
 #endif
