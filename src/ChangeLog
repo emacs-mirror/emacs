@@ -1,3 +1,7 @@
+2000-09-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Minor thinko.
+
 2000-09-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* ralloc.c (mmap_fd): Remove initializer which can make it
