@@ -9507,8 +9507,12 @@ try_window_reusing_current_matrix (w)
   struct glyph_row *start_row;
   int start_vpos, min_y, max_y;
 
-  /* Right now this function doesn't handle terminal frames.  */
-  if (!FRAME_WINDOW_P (f))
+  
+  if (/* This function doesn't handle terminal frames.  */
+      !FRAME_WINDOW_P (f)
+      /* Don't try to reuse the display if windows have been split
+	 or such.  */
+      || windows_or_buffers_changed)
     return 0;
 
   /* Can't do this if region may have changed.  */
