@@ -2230,6 +2230,7 @@ The name of the info file is prepended to the node name in parentheses."
 
 ;; Info mode is suitable only for specially formatted data.
 (put 'Info-mode 'mode-class 'special)
+(put 'Info-mode 'no-clone-indirect t)
 
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.
