@@ -86,6 +86,11 @@ extern Lisp_Object Qscrollbar_click;
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line;
 
+extern Lisp_Object get_keymap_1 ();
+extern Lisp_Object Fkeymapp ();
+extern Lisp_Object reorder_modifiers ();
+extern Lisp_Object Fmouse_click_p ();
+extern Lisp_Object read_char ();
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 
