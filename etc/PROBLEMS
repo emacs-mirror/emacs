@@ -808,13 +808,13 @@ when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
 http://www.gnu.org/software/emacs/windows/.
 
-* Windows 95/98/ME crashes when trying to run non-existant subprocesses.
+* Windows 95/98/ME crashes when trying to run non-existent subprocesses.
 
 When a subprocess you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
-particular, this has been reported when trying to compile a java
-program in JDEE when javac.exe is installed, but not on the system
-path.
+particular, this has been reported when trying to compile a Java
+program in JDE when javac.exe is installed, but not on the system
+PATH.
 
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
