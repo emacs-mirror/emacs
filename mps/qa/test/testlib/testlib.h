@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.8) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.9) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -114,6 +114,9 @@ The MPS doens't provide this useful function
 */
 
 size_t arena_committed_and_used(mps_arena_t);
+
+mps_res_t mmqa_arena_create(mps_arena_t *arena_p,
+ mps_arena_class_t arena_class, size_t chunk_size, size_t limit_size);
 
 
 /* time-based queue
