@@ -151,7 +151,7 @@
 (defcustom ispell-highlight-p 'block
   "*Highlight spelling errors when non-nil.
 When set to `block', assumes a block cursor with TTY displays."
-  :type '(choice (const block) (const t) (const nil))
+  :type '(choice (const block) (const nil) (other :tag "on" t))
   :group 'ispell)
 
 (defcustom ispell-highlight-face 'highlight
@@ -169,7 +169,7 @@ slightly different."
 When set to `exclusive', ONLY comments are checked.  (For code comments).
 Warning!  Not checking comments, when a comment start is embedded in strings,
 may produce undesired results."
-  :type '(choice (const exclusive) (const t) (const nil))
+  :type '(choice (const exclusive) (const nil) (other :tag "on" t))
   :group 'ispell)
 
 (defcustom ispell-query-replace-choices nil
@@ -300,7 +300,7 @@ The following valued are supported:
              for a couple of seconds.
   electric   Pop up a new buffer and display a long help message there. 
              User can browse and then exit the help mode."
-  :type '(choice (const electric) (const t) (const nil))
+  :type '(choice (const electric) (const nil) (other :tag "t" t))
 
   :group 'ispell)
 
@@ -818,7 +818,8 @@ for skipping in latex mode.")
 If t, always skip SGML markup; if nil, never skip; if non-t and non-nil,
 guess whether SGML markup should be skipped according to the name of the
 buffer's major mode."
-  :type '(choice (const use-mode-name) (const t) (const nil))
+  :type '(choice (const t) (const nil)
+		 (other :tag "use-mode-name" use-mode-name))
   :group 'ispell)
 
 (defvar ispell-local-pdict ispell-personal-dictionary
