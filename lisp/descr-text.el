@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 02, 03 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 95, 96, 2001, 02, 03, 04 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -99,8 +99,8 @@ if that value is non-nil."
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
-The `category' property is made into a widget button that call
-`describe-text-category' when pushed."
+The `category' and `face' properties are made into widget buttons
+that call `describe-text-category' or `describe-face' when pushed."
   ;; Sort the properties by the size of their value.
   (dolist (elt (sort (let ((ret nil)
 			   (key nil)
@@ -110,7 +110,7 @@ The `category' property is made into a widget button that call
 			 (setq key (pop properties)
 			       val (pop properties)
 			       len 0)
-			 (unless (or (eq key 'category)
+			 (unless (or (memq key '(category face))
 				     (widgetp val))
 			   (setq val (pp-to-string val)
 				 len (length val)))
@@ -127,6 +127,11 @@ The `category' property is made into a widget button that call
 	     (widget-create 'link
 			    :notify `(lambda (&rest ignore)
 				       (describe-text-category ',value))
+			    (format "%S" value)))
+            ((eq key 'face)
+	     (widget-create 'link
+			    :notify `(lambda (&rest ignore)
+				       (describe-face ',value))
 			    (format "%S" value)))
 	    ((widgetp value)
 	     (describe-text-widget value))
