@@ -815,10 +815,8 @@ a case-insensitive match is tried."
 			    (insert-file-contents file)
 			    (make-local-variable 'Info-dir-file-name)
 			    (setq Info-dir-file-name file)
-			    (setq buffers (cons (current-buffer) buffers)
-				  Info-dir-file-attributes
-				  (cons (cons file attrs)
-					Info-dir-file-attributes)))
+			    (push (current-buffer) buffers)
+			    (push (cons file attrs) Info-dir-file-attributes))
 			(error (kill-buffer (current-buffer))))))))
 	  (or (cdr dirs) (setq Info-dir-contents-directory
 			       (file-name-as-directory (car dirs))))
@@ -839,48 +837,34 @@ a case-insensitive match is tried."
       (insert-buffer buffer)
 
       ;; Look at each of the other buffers one by one.
-      (while others
-	(let ((other (car others))
-	      ;; Bind this in case the user sets it to nil.
-	      (case-fold-search t)
-	      this-buffer-nodes)
+      (dolist (other others)
+	(let (this-buffer-nodes)
 	  ;; In each, find all the menus.
-	  (save-excursion
-	    (set-buffer other)
+	  (with-current-buffer other
 	    (goto-char (point-min))
 	    ;; Find each menu, and add an elt to NODES for it.
 	    (while (re-search-forward "^\\* Menu:" nil t)
-	      (let (beg nodename end)
-		(forward-line 1)
-		(while (and (eolp) (not (eobp)))
-		  (forward-line 1))
-		(setq beg (point))
-		(or (search-backward "\n\^_" nil 'move)
-		    (looking-at "\^_")
-		    (signal 'search-failed (list "\n\^_")))
+	      (while (and (zerop (forward-line 1)) (eolp)))
+	      (let ((beg (point))
+		    nodename end)
+		(re-search-backward "^\^_")
 		(search-forward "Node: ")
 		(setq nodename (Info-following-node-name))
 		(search-forward "\n\^_" nil 'move)
 		(beginning-of-line)
 		(setq end (point))
-		(setq this-buffer-nodes
-		      (cons (list nodename other beg end)
-			    this-buffer-nodes))))
+		(push (list nodename other beg end) this-buffer-nodes)))
 	    (if (assoc-ignore-case "top" this-buffer-nodes)
 		(setq nodes (nconc this-buffer-nodes nodes))
 	      (setq problems t)
-	      (message "No `top' node in %s" Info-dir-file-name))))
-	(setq others (cdr others)))
+	      (message "No `top' node in %s" Info-dir-file-name)))))
       ;; Add to the main menu a menu item for each other node.
-      (let ((case-fold-search t)
-	    (re-search-forward "^\\* Menu:")))
+      (re-search-forward "^\\* Menu:")
       (forward-line 1)
       (let ((menu-items '("top"))
-	    (nodes nodes)
-	    (case-fold-search t)
 	    (end (save-excursion (search-forward "\^_" nil t) (point))))
-	(while nodes
-	  (let ((nodename (car (car nodes))))
+	(dolist (node nodes)
+	  (let ((nodename (car node)))
 	    (save-excursion
 	      (or (member (downcase nodename) menu-items)
 		  (re-search-forward (concat "^\\* +"
@@ -889,13 +873,12 @@ a case-insensitive match is tried."
 				     end t)
 		  (progn
 		    (insert "* " nodename "::" "\n")
-		    (setq menu-items (cons nodename menu-items))))))
-	  (setq nodes (cdr nodes))))
+		    (push nodename menu-items)))))))
       ;; Now take each node of each of the other buffers
       ;; and merge it into the main buffer.
-      (while nodes
+      (dolist (node nodes)
 	(let ((case-fold-search t)
-	      (nodename (car (car nodes))))
+	      (nodename (car node)))
 	  (goto-char (point-min))
 	  ;; Find the like-named node in the main buffer.
 	  (if (re-search-forward (concat "^\^_.*\n.*Node: "
@@ -911,18 +894,80 @@ a case-insensitive match is tried."
 	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
-	  (apply 'insert-buffer-substring (cdr (car nodes))))
-	(setq nodes (cdr nodes)))
+	  (apply 'insert-buffer-substring (cdr node))))
+      (Info-dir-remove-duplicates)
       ;; Kill all the buffers we just made.
-      (while buffers
-	(kill-buffer (car buffers))
-	(setq buffers (cdr buffers)))
+      (mapc 'kill-buffer buffers)
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
 	(message "Composing main Info directory...done")))
     (setq Info-dir-contents (buffer-string)))
   (setq default-directory Info-dir-contents-directory))
+
+(defvar Info-streamline-headings
+  '(("Emacs" . "Emacs")
+    ("Programming" . "Programming")
+    ("Libraries" . "Libraries")
+    ("World Wide Web\\|Net Utilities" . "Net Utilities"))
+  "List of elements (RE . NAME) to merge headings matching RE to NAME.")
+
+(defun Info-dir-remove-duplicates ()
+  (let (limit)
+    (goto-char (point-min))
+    ;; Remove duplicate headings in the same menu.
+    (while (search-forward "\n* Menu:" nil t)
+      (setq limit (save-excursion (search-forward "\n" nil t)))
+      ;; Look for the next heading to unify.
+      (while (re-search-forward "^\\(\\w.*\\)\n\\*" limit t)
+	(let ((name (match-string 1))
+	      (start (match-beginning 0))
+	      (entries nil) re)
+	  ;; Check whether this heading should be streamlined.
+	  (save-match-data
+	    (dolist (x Info-streamline-headings)
+	      (when (string-match (car x) name)
+		(setq name (cdr x))
+		(setq re (car x)))))
+	  (if re (replace-match name t t nil 1))
+	  (goto-char (if (re-search-forward "^[^* \n\t]" limit t)
+			 (match-beginning 0)
+		       (or limit (point-max))))
+	  ;; Look for other headings of the same category and merge them.
+	  (save-excursion
+	    (while (re-search-forward "^\\(\\w.*\\)\n\\*" limit t)
+	      (when (if re (save-match-data (string-match re (match-string 1)))
+		      (equal name (match-string 1)))
+		(forward-line 0)
+		;; Delete redundant heading.
+		(delete-region (match-beginning 0) (point))
+		;; Push the entries onto `text'.
+		(push
+		 (delete-and-extract-region
+		  (point)
+		  (if (re-search-forward "^[^* \n\t]" nil t)
+		      (match-beginning 0)
+		    (or limit (point-max)))) entries))))
+	  ;; Insert the entries just found.
+	  (while (= (line-beginning-position 0) (1- (point)))
+	    (backward-char))
+	  (dolist (entry (nreverse entries))
+	    (insert entry)
+	    (while (= (line-beginning-position 0) (1- (point)))
+	      (delete-region (1- (point)) (point))))
+      
+	  ;; Now remove duplicate entries under the same heading.
+	  (let ((seen nil)
+		(limit (point)))
+	    (goto-char start)
+	    (while (re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)"
+				      limit 'move)
+	      (let ((x (match-string 1)))
+	  	(if (member-ignore-case x seen)
+	  	    (delete-region (match-beginning 0)
+	  			   (progn (re-search-forward "^[^ \t]" nil t)
+	  				  (goto-char (match-beginning 0))))
+	  	  (push x seen))))))))))
 
 ;; Note that on entry to this function the current-buffer must be the
 ;; *info* buffer; not the info tags buffer.
@@ -1014,17 +1059,7 @@ Bind this in case the user sets it to nil."
 			    (point-max)))
 	(if Info-enable-active-nodes (eval active-expression))
 	(Info-fontify-node)
-	(if Info-use-header-line
-	    (progn
-	      (setq Info-header-line
-		    (get-text-property (point-min) 'header-line))
-	      (setq header-line-format 'Info-header-line)
-;;; It is useful to be able to copy the links line out of the buffer
-;;; with M-w.
-;;;           (narrow-to-region (1+ header-end) (point-max))
-	      )
-	  (setq Info-header-line nil)
-	  (setq header-line-format nil)) ; so the header line isn't displayed
+	(setq Info-header-line (get-text-property (point-min) 'header-line))
 	(run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
@@ -1251,10 +1286,6 @@ Bind this in case the user sets it to nil."
     (save-excursion
       (save-restriction
 	(goto-char (point-min))
-;;; 	(when Info-header-line
-;;; 	  ;; expose the header line in the buffer
-;;; 	  (widen)
-;;; 	  (forward-line -1))
 	(let ((bound (point)))
 	  (forward-line 1)
 	  (cond ((re-search-backward (concat name ":") bound t)
@@ -1326,7 +1357,6 @@ FOOTNOTENAME may be an abbreviation of the reference name."
   (interactive
    (let ((completion-ignore-case t)
 	 (case-fold-search t)
-	 (inhibit-point-motion-hooks t)
 	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
        ;; Store end and beginning of line.
@@ -1391,7 +1421,6 @@ FOOTNOTENAME may be an abbreviation of the reference name."
     (error "No reference was specified"))
 
   (let (target beg i (str (concat "\\*note " (regexp-quote footnotename)))
-	       (inhibit-point-motion-hooks t)
 	       (case-fold-search t))
     (while (setq i (string-match " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
@@ -1609,28 +1638,10 @@ N is the digit argument used to invoke this command."
 		(not (string-match "\\<index\\>" Info-current-node)))
 	   (Info-goto-node (Info-extract-menu-counting 1))
 	   t)
-	  ((save-excursion
-	     (save-restriction
-	       (let (limit)
-		 (when Info-header-line
-		   (goto-char (point-min))
-		   (widen)
-		   (forward-line -1)
-		   (setq limit (point))
-		   (forward-line 1))
-		 (search-backward "next:" limit t))))
+	  ((save-excursion (search-backward "next:" nil t))
 	   (Info-next)
 	   t)
-	  ((and (save-excursion
-		  (save-restriction
-		    (let (limit)
-		      (when Info-header-line
-			(goto-char (point-min))
-			(widen)
-			(forward-line -1)
-			(setq limit (point))
-			(forward-line 1))
-		      (search-backward "up:" limit t))))
+	  ((and (save-excursion (search-backward "up:" nil t))
 		;; Use string-equal, not equal, to ignore text props.
 		(not (string-equal (downcase (Info-extract-pointer "up"))
 				   "top")))
@@ -1819,7 +1830,6 @@ parent node."
   "Move cursor to the next cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
-	(inhibit-point-motion-hooks t)
 	(old-pt (point))
 	(case-fold-search t))
     (or (eobp) (forward-char 1))
@@ -1840,7 +1850,6 @@ parent node."
   "Move cursor to the previous cross-reference or menu item in the node."
   (interactive)
   (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
-	(inhibit-point-motion-hooks t)
 	(old-pt (point))
 	(case-fold-search t))
     (or (re-search-backward pat nil t)
@@ -2069,8 +2078,7 @@ If no reference to follow, moves to the next node, or up if none."
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node ()
   "Follow a node reference near point.  Return non-nil if successful."
-  (let (node
-	(inhibit-point-motion-hooks t))
+  (let (node)
     (cond
      ((setq node (Info-get-token (point) "\\*note[ \n]"
 				 "\\*note[ \n]\\([^:]*\\):"))
@@ -2365,6 +2373,7 @@ Advanced commands:
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
   (make-local-variable 'Info-header-line)
+  (setq header-line-format (if Info-use-header-line 'Info-header-line))
   (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
@@ -2645,16 +2654,13 @@ the variable `Info-file-list-for-emacs'."
   "Keymap to put on the Up link in the text or the header line.")
 
 (defun Info-fontify-node ()
-  ;; Only fontify the node if it hasn't already been done.  [We pass in
-  ;; LIMIT arg to `next-property-change' because it seems to search past
-  ;; (point-max).]
-  (unless (< (next-property-change (point-min) nil (point-max))
-	     (point-max))
+  ;; Only fontify the node if it hasn't already been done.
+  (unless (next-property-change (point-min))
     (save-excursion
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    (case-fold-search t))
 	(goto-char (point-min))
-	(when (looking-at "^File: [^,: \t]+,?[ \t]+")
+	(when (looking-at "^\\(File: [^,: \t]+,?[ \t]+\\)?")
 	  (goto-char (match-end 0))
 	  (while (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
 	    (goto-char (match-end 0))
@@ -2673,42 +2679,39 @@ the variable `Info-file-list-for-emacs'."
 		;; Always set up the text property keymap.
 		;; It will either be used in the buffer
 		;; or copied in the header line.
-		(cond ((equal tag "Prev")
-		       (put-text-property tbeg nend 'keymap
-					  Info-prev-link-keymap))
-		      ((equal tag "Next")
-		       (put-text-property tbeg nend 'keymap
-					  Info-next-link-keymap))
-		      ((equal tag "Up")
-		       (put-text-property tbeg nend 'keymap
-					  Info-up-link-keymap))))))
-	  (goto-char (point-min))
-	  (let ((header-end (save-excursion (end-of-line) (point)))
-		header)
-	    ;; If we find neither Next: nor Prev: link, show the entire
-	    ;; node header.  Otherwise, don't show the File: and Node:
-	    ;; parts, to avoid wasting precious space on information that
-	    ;; is available in the mode line.
-	    (if (re-search-forward
-		 "\\(next\\|up\\|prev[ious]*\\): "
-		 header-end t)
-		(progn
-		  (goto-char (match-beginning 1))
-		  (setq header (buffer-substring (point) header-end)))
-	      (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" nil t)
-		  (setq header
-			(concat "No next, prev or up links  --  "
-				(buffer-substring (point) header-end)))
-		(setq header (buffer-substring (point) header-end))))
-
-	    (put-text-property (point-min) (1+ (point-min))
-			       'header-line header)
-	    ;; Hide the part of the first line
-	    ;; that is in the header, if it is just part.
-	    (unless (bobp)
-	      ;; Hide the punctuation at the end, too.
-	      (skip-chars-backward " \t,")
-	      (put-text-property (point) header-end 'invisible t))))
+		(put-text-property tbeg nend 'keymap
+				   (cond
+				    ((equal tag "Prev") Info-prev-link-keymap)
+				    ((equal tag "Next") Info-next-link-keymap)
+				    ((equal tag "Up") Info-up-link-keymap))))))
+	  (when Info-use-header-line
+	    (goto-char (point-min))
+	    (let ((header-end (save-excursion (end-of-line) (point)))
+		  header)
+	      ;; If we find neither Next: nor Prev: link, show the entire
+	      ;; node header.  Otherwise, don't show the File: and Node:
+	      ;; parts, to avoid wasting precious space on information that
+	      ;; is available in the mode line.
+	      (if (re-search-forward
+		   "\\(next\\|up\\|prev[ious]*\\): "
+		   header-end t)
+		  (progn
+		    (goto-char (match-beginning 1))
+		    (setq header (buffer-substring (point) header-end)))
+		(if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" nil t)
+		    (setq header
+			  (concat "No next, prev or up links  --  "
+				  (buffer-substring (point) header-end)))
+		  (setq header (buffer-substring (point) header-end))))
+	      
+	      (put-text-property (point-min) (1+ (point-min))
+				 'header-line header)
+	      ;; Hide the part of the first line
+	      ;; that is in the header, if it is just part.
+	      (unless (bobp)
+		;; Hide the punctuation at the end, too.
+		(skip-chars-backward " \t,")
+		(put-text-property (point) header-end 'invisible t)))))
 	(goto-char (point-min))
 	(while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\|\\.+\\)$"
 				  nil t)
@@ -2725,7 +2728,7 @@ the variable `Info-file-list-for-emacs'."
 	  ;; on frames that can display the font above.
 	  (when (memq (framep (selected-frame)) '(x pc w32 mac))
 	    (add-text-properties (match-beginning 2) (1+ (match-end 2))
-				 '(invisible t intangible t))))
+				 '(invisible t))))
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\*Note[ \n\t]+\\)\\([^:]*\\)\\(:[^.,:]*[,:]?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
@@ -2748,15 +2751,15 @@ the variable `Info-file-list-for-emacs'."
 	      (if hide-tag
 		  (add-text-properties (match-beginning 1) (match-end 1)
 				       (if other-tag
-					   (list 'display other-tag 'intangible t)
-					 '(invisible t intangible t))))
+					   (list 'display other-tag)
+					 '(invisible t))))
 	      (add-text-properties (match-beginning 2) (match-end 2)
 				   '(font-lock-face info-xref
 						    mouse-face highlight
 						    help-echo "mouse-2: go to this node"))
 	      (if (eq Info-hide-note-references t)
 		  (add-text-properties (match-beginning 3) (match-end 3)
-				       '(invisible t intangible t))))))
+				       '(invisible t))))))
 
 	(goto-char (point-min))
 	(if (and (search-forward "\n* Menu:" nil t)
@@ -2776,9 +2779,8 @@ the variable `Info-file-list-for-emacs'."
 				       help-echo "mouse-2: go to this node"))
 		(if (eq Info-hide-note-references t)
 		    (add-text-properties (match-beginning 2) (match-end 2)
-					 (list 'display 
-					       (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )
-					       'intangible t))))))
+					 (list 'display
+					       (make-string (max 2 (- 22 (- (match-end 1) (match-beginning 1)))) ? )))))))
 
 	(Info-fontify-menu-headers)
 	(set-buffer-modified-p nil)))))
