@@ -821,7 +821,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  if (CONSP (coding_systems))
 	    val = XCONS (coding_systems)->cdr;
 	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->car;
+	    val = XCONS (Vdefault_process_coding_system)->cdr;
 	  else
 	    val = Qnil;
 	}
