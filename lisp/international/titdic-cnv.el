@@ -702,7 +702,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; # along with this program; if not, write to the Free Software Foundation,
 ;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
 
-    ("chinese-ctlau-b5" "$(0N,Gn(B"
+    ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
      ctlau-b5-converter
      "\
