@@ -1,3 +1,8 @@
+2000-11-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (weight_table): Add `demi' with the same meaning as
+	`demibold'.
+
 2000-11-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* dispnew.c (null_row): New global static variable.
