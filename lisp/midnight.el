@@ -39,8 +39,9 @@
 ;;; Code:
 
 (eval-when-compile
- (require 'cl)
- (require 'timer))
+ (require 'cl))
+
+(require 'timer)
 
 (defgroup midnight nil
   "Run something every day at midnight."
