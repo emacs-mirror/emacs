@@ -1,3 +1,8 @@
+2001-10-27  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* net/ange-ftp.el (ange-ftp-send-cmd): Call fix-name-func for
+	`mdtm'.  From "Forrest Cahoon" <forrest.cahoon@merrillcorp.com>.
+
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight):
