@@ -387,10 +387,10 @@ sh-script can attempt to "learn" the current buffer's style.
 *** In DOS, etags looks for file.cgz if it cannot find file.c.
 
 *** New option --ignore-case-regex is an alternative to --regex.  It is now
-    possible to bind a regexp to a language, by prepending the regexp with
-    {lang}, where lang is one of the languages that `etags --help' prints
-    out.  This feature is useful especially for regex files, where each
-    line contains a regular expression.  The manual contains details.
+possible to bind a regexp to a language, by prepending the regexp with
+{lang}, where lang is one of the languages that `etags --help' prints out.
+This feature is useful especially for regex files, where each line contains
+a regular expression.  The manual contains details.
 
 *** In C and derived languages, etags creates tags for function
 declarations when given the --declarations option.
@@ -413,7 +413,8 @@ variables are tagged.
 
 *** New language Python: def and class at the beginning of a line are tags.
 
-*** .ss files are Scheme files.
+*** .ss files are Scheme files, .pdb is Postscript with C syntax, .psw is
+for PSWrap.
 
 ** Emacs now attempts to determine the initial language environment
 and preferred and locale coding systems systematically from the

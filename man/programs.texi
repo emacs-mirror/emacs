@@ -1620,13 +1620,13 @@ recorded is called a @dfn{tag}.
 @item
 In C code, any C function or typedef is a tag, and so are definitions of
 @code{struct}, @code{union} and @code{enum}.  You can tag function
-declarations in addition to function definitions by giving the
-@samp{--declarations} option to @code{etags}.  @code{#define} macro
-definitions and @code{enum} constants are also tags, unless you specify
-@samp{--no-defines} when making the tags table.  Similarly, global
-variables are tags, unless you specify @samp{--no-globals}.  Use of
-@samp{--no-globals} and @samp{--no-defines} can make the tags table file
-much smaller.
+declarations and external variables in addition to function definitions
+by giving the @samp{--declarations} option to @code{etags}.
+@code{#define} macro definitions and @code{enum} constants are also
+tags, unless you specify @samp{--no-defines} when making the tags table.
+Similarly, global variables are tags, unless you specify
+@samp{--no-globals}.  Use of @samp{--no-globals} and @samp{--no-defines}
+can make the tags table file much smaller.
 
 @item
 In C++ code, in addition to all the tag constructs of C code, member
@@ -1680,7 +1680,9 @@ set with @code{set!} at top level in the file.
 @itemize @bullet
 
 @item
-In Ada code, functions, procedures, packages, tasks, and types are tags.
+In Ada code, functions, procedures, packages, tasks, and types are
+tags.  Use the @samp{--packages-only} option to create tags for packages
+only.
 
 @item
 In assembler code, labels appearing at the beginning of a line,
@@ -1720,11 +1722,11 @@ In Postscript code, the tags are the functions.
 
 @item
 In Prolog code, a tag name appears at the left margin.
-@end itemize
 
 @item
 In Python code, @code{def} or @code{class} at the beginning of a line
 generate a tag.
+@end itemize
 
   You can also generate tags based on regexp matching (@pxref{Using
 Regexps}) to handle other formats and languages.
@@ -1930,21 +1932,36 @@ from shell interpretation.
 @itemize @bullet
 
 @item
-Tag VHDL files (this example is a single long line, broken here for
-formatting reasons):
+Tag Octave files:
 
 @smallexample
---language=none
---regex='/[ \t]*\(ARCHITECTURE\|CONFIGURATION\) +[^ ]* +OF/'
---regex='/[ \t]*\(ATTRIBUTE\|ENTITY\|FUNCTION\|PACKAGE\
-\( BODY\)?\|PROCEDURE\|PROCESS\|TYPE\)[ \t]+\([^ \t(]+\)/\3/'
+etags --language=none \
+      --regex='/[ \t]*function.*=[ \t]*\([^ \t]*\)[ \t]*(/\1/' \
+      --regex='/###key \(.*\)/\1/' \
+      --regex='/[ \t]*global[ \t].*/' \
+      *.m
+@end smallexample
+
+@noindent
+Note that tags are not generated for scripts so that you have to add a
+line by yourself of the form `###key <script-name>' if you want to jump
+to it.
+
+@item
+Tag Tcl files:
+
+@smallexample
+etags --language=none --regex='/proc[ \t]+\([^ \t]+\)/\1/' *.tcl
 @end smallexample
 
 @item
-Tag Tcl files (this last example shows the usage of a @var{nameregexp}):
+Tag VHDL files:
 
 @smallexample
---lang=none --regex='/proc[ \t]+\([^ \t]+\)/\1/'
+--language=none \
+--regex='/[ \t]*\(ARCHITECTURE\|CONFIGURATION\) +[^ ]* +OF/' \
+--regex='/[ \t]*\(ATTRIBUTE\|ENTITY\|FUNCTION\|PACKAGE\
+\( BODY\)?\|PROCEDURE\|PROCESS\|TYPE\)[ \t]+\([^ \t(]+\)/\3/'
 @end smallexample
 @end itemize
 
