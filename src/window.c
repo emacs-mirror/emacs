@@ -840,6 +840,9 @@ windows, eventually ending up back at the window you started with.\n\
 		   : Qnil);
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
+  /* Now all_frames is t meaning search all frames,
+     nil meaning search just current frame,
+     or a window, meaning search the frame that window belongs to.  */
 
   /* Do this loop at least once, to get the next window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -942,6 +945,9 @@ windows, eventually ending up back at the window you started with.\n\
 		   : Qnil);
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
+  /* Now all_frames is t meaning search all frames,
+     nil meaning search just current frame,
+     or a window, meaning search the frame that window belongs to.  */
 
   /* Do this loop at least once, to get the previous window, and perhaps
      again, if we hit the minibuffer and that is not acceptable.  */
@@ -970,7 +976,11 @@ windows, eventually ending up back at the window you started with.\n\
 		 met.  */
 	      tem = prev_frame (tem, all_frames);
 #endif
-	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
+	    /* If this frame has a minibuffer, find that window first,
+	       because it is conceptually the last window in that frame.  */
+	    tem = FRAME_MINIBUFFER_WINDOW (XFRAME (tem));
+	    if (NILP (tem))
+	      tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
 	    break;
 	  }
@@ -2266,7 +2276,7 @@ showing that buffer, popping the buffer up if necessary.")
   return Qnil;
 }
 
-DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 1, 1, "P",
+DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 1, "P",
   "Scroll selected window display ARG columns left.\n\
 Default for ARG is window width minus 2.")
   (arg)
@@ -2284,7 +2294,7 @@ Default for ARG is window width minus 2.")
 				      + XINT (arg)));
 }
 
-DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 1, 1, "P",
+DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 1, "P",
   "Scroll selected window display ARG columns right.\n\
 Default for ARG is window width minus 2.")
   (arg)
