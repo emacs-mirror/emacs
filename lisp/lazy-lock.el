@@ -574,7 +574,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;;
   ;; Add hook if lazy-lock.el is fontifying on scrolling or is deferring.
   (when (or fontifying defer-change defer-scroll defer-context)
-    (make-local-hook 'window-scroll-functions)
     (add-hook 'window-scroll-functions (if defer-scroll
 					   'lazy-lock-defer-after-scroll
 					 'lazy-lock-fontify-after-scroll)
@@ -582,7 +581,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;;
   ;; Add hook if lazy-lock.el is fontifying and is not deferring changes.
   (when (and fontifying (not defer-change) (not defer-context))
-    (make-local-hook 'before-change-functions)
     (add-hook 'before-change-functions 'lazy-lock-arrange-before-change nil t))
   ;;
   ;; Replace Font Lock mode hook.
@@ -599,9 +597,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	    nil t)
   ;;
   ;; Add package-specific hook.
-  (make-local-hook 'outline-view-change-hook)
   (add-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage nil t)
-  (make-local-hook 'hs-hide-hook)
   (add-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage nil t))
 
 (defun lazy-lock-install-timers (dtime stime)
