@@ -1,4 +1,4 @@
-;;; dos-nt.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
+;;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
@@ -164,6 +164,6 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
 
-(provide 'dos-nt)
+(provide 'dos-w32)
 
-;;; dos-nt.el ends here
+;;; dos-w32.el ends here
