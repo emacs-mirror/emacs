@@ -40,6 +40,7 @@
 (if (not (fboundp 'calendar-basic-setup))
     (fset 'calendar-basic-setup (symbol-function 'calendar)))
  
+;;;###autoload
 (defvar calendar-setup 'one-frame
   "The frame set up of the calendar.
 The choices are `one-frame' (calendar and diary together in one separate,
