@@ -164,20 +164,28 @@ The target is used in the prompt for file copy, rename etc."
 
 ;;; Hook variables
 
-(defvar dired-load-hook nil
+(defcustom dired-load-hook nil
   "Run after loading dired.
-You can customize key bindings or load extensions with this.")
+You can customize key bindings or load extensions with this."
+  :group 'dired
+  :type 'hook)
 
-(defvar dired-mode-hook nil
-  "Run at the very end of dired-mode.")
+(defcustom dired-mode-hook nil
+  "Run at the very end of dired-mode."
+  :group 'dired
+  :type 'hook)
 
-(defvar dired-before-readin-hook nil
-  "This hook is run before a dired buffer is read in (created or reverted).")
+(defcustom dired-before-readin-hook nil
+  "This hook is run before a dired buffer is read in (created or reverted)."
+  :group 'dired
+  :type 'hook)
 
-(defvar dired-after-readin-hook nil
+(defcustom dired-after-readin-hook nil
   "Hook run after each time a file or directory is read by Dired.
 After each listing of a file or directory, this hook is run
-with the buffer narrowed to the listing.")
+with the buffer narrowed to the listing."
+  :group 'dired
+  :type 'hook)
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
