@@ -2389,9 +2389,6 @@ x_window (f, window_prompting, minibuffer_only)
 
   f->display.x->column_widget = pane_widget;
 
-  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
-    initialize_frame_menubar (f);
-
   /* mappedWhenManaged to false tells to the paned window to not map/unmap 
      the emacs screen when changing menubar.  This reduces flickering.  */
 
@@ -2522,6 +2519,9 @@ x_window (f, window_prompting, minibuffer_only)
 		 f->display.x->text_cursor);
 
   UNBLOCK_INPUT;
+
+  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
+    initialize_frame_menubar (f);
 
   if (FRAME_X_WINDOW (f) == 0)
     error ("Unable to create window");
