@@ -415,7 +415,7 @@ DEFUN ("pixmap-spec-p", Fpixmap_spec_p, Spixmap_spec_p, 1, 1, 0,
 
 static long
 load_pixmap (f, name, w_ptr, h_ptr)
-     FRAME_PTR *f;
+     FRAME_PTR f;
      Lisp_Object name;
      unsigned int *w_ptr, *h_ptr;
 {
@@ -452,8 +452,8 @@ load_pixmap (f, name, w_ptr, h_ptr)
     }
   UNBLOCK_INPUT;
 
-  if (! bitmap_id)
-    Fsignal (Qerror, Fcons (build_string ("undefined bitmap"),
+  if (bitmap_id < 0)
+    Fsignal (Qerror, Fcons (build_string ("invalid or undefined bitmap"),
 			    Fcons (name, Qnil)));
 
   *w_ptr = x_bitmap_width (f, bitmap_id);
