@@ -1132,7 +1132,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 			Fcons (Fcons (build_string ("No"), Qnil),
 			       Qnil));
 	  menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
-	  obj = Fx_popup_menu (Qt, menu);
+	  obj = Fx_popup_dialog (Qt, menu);
 	  answer = !NILP (obj);
 	  break;
 	}
@@ -1235,12 +1235,12 @@ and can edit it until it as been confirmed.")
 			   Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
-      obj = Fx_popup_menu (Qt, menu);
+      obj = Fx_popup_dialog(Qt, menu);
       if (!NILP (obj))
 	{
 	  prompt = build_string ("Confirm");
 	  menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
-	  obj = Fx_popup_menu (Qt, menu);
+	  obj = Fx_popup_dialog (Qt, menu);
 	}
       UNGCPRO;
       return obj;
