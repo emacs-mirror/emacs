@@ -1221,6 +1221,21 @@ case "${window_system}" in
   ;;
 esac
 
+case "${window_system}" in
+  "" | "x11" )
+    ### If the user hasn't specified where we should find X, try
+    ### letting autoconf figure that out.
+    if [ -z "${x_includes}" ] && [ -z "${x_libraries}" ]; then
+      ]
+      AC_FIND_X
+      [
+    fi
+    if [ -n "${x_includes}" ] || [ -n "${x_libraries}" ]; then
+      window_system=x11
+    fi
+  ;;
+esac
+
 [ -z "${window_system}" ] && window_system=none
 
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE="-L${x_libraries}"
