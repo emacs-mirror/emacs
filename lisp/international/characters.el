@@ -145,6 +145,8 @@
 (modify-syntax-entry ?\』 ")『")
 (modify-syntax-entry ?\〗 ")〖")
 (modify-syntax-entry ?\】 ")【")
+(modify-syntax-entry ?\〚 "(〛")
+(modify-syntax-entry ?\〛 ")〚")
 
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?|)
@@ -680,21 +682,21 @@
 
   ;; Arrows
   (setq c #x2190)
-  (while (<= c #c21FF)
-    (set-case-syntax-pair c "." tbl)
+  (while (<= c #x21FF)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
   ;; Mathematical Operators
   (while (<= c #x22FF)
-    (set-case-syntax-pair c "." tbl)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
   ;; Miscellaneous Technical
   (while (<= c #x23FF)
-    (set-case-syntax-pair c "." tbl)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
   ;; Control Pictures
   (while (<= c #x243F)
-    (set-case-syntax-pair c "_" tbl)
-    (set c (1+ c)))
+    (set-case-syntax c "_" tbl)
+    (setq c (1+ c)))
 
   ;; Circled Latin
   (setq c #x24b6)
