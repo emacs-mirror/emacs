@@ -487,7 +487,7 @@ See the variable `Man-notify' for the different notification behaviors."
     ;; the selected window's buffer.
     (save-excursion
       (set-buffer man-buffer)
-      (new-frame Man-frame-parameters)))
+      (make-frame Man-frame-parameters)))
    ((eq Man-notify 'bully)
     (and window-system
 	 (frame-live-p Man-original-frame)
