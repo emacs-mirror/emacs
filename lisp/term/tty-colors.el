@@ -36,29 +36,50 @@
 ;; rest of Emacs from including special code for this case.
 
 ;; Here's how it works.  The support for terminal and MSDOS frames
-;; maintains an alist, called `tty-color-alist', which associates
-;; colors supported by the terminal driver with small integers.
-;; (These small integers are passed to the library functions which set
-;; the color, and are effectively indices of the colors in the
-;; supported color palette.)  When Emacs needs to send a color command
-;; to the terminal, the color name is first looked up in
-;; `tty-color-alist'.  If not found, functions from this file can be
-;; used to map the color to one of the supported colors.
+;; maintains an alist, called `tty-defined-color-alist', which
+;; associates colors supported by the terminal driver with small
+;; integers.  (These small integers are passed to the library
+;; functions which set the color, and are effectively indices of the
+;; colors in the supported color palette.)  When Emacs needs to send a
+;; color command to the terminal, the color name is first looked up in
+;; `tty-defined-color-alist'.  If not found, functions from this file
+;; can be used to map the color to one of the supported colors.
 ;; Specifically, the X RGB values of the requested color are extracted
 ;; from `color-name-rgb-alist' and then the supported color is found
 ;; with the minimal distance in the RGB space from the requested
 ;; color.
 
-;; `tty-color-alist' is created at startup by calling the function
-;; `tty-color-define', defined below, passing it each supported color,
-;; its index, and its RGB values.  The standard list of colors
-;; supported by many Unix color terminals, including xterm, FreeBSD,
-;; and GNU/Linux, is supplied below in `tty-standard-colors'.  If your
-;; terminal supports different or additional colors, call
-;; `tty-color-define' from your `.emacs' or `site-start.el'.
+;; `tty-defined-color-alist' is created at startup by calling the
+;; function `tty-color-define', defined below, passing it each
+;; supported color, its index, and its RGB values.  The standard list
+;; of colors supported by many Unix color terminals, including xterm,
+;; FreeBSD, and GNU/Linux, is supplied below in `tty-standard-colors'.
+;; If your terminal supports different or additional colors, call
+;; `tty-color-define' from your `.emacs' or `site-start.el'.  For
+;; more-or-less standard definitions of VGA text-mode colors, see the
+;; beginning of lisp/term/pc-win.el.
 
 ;;; Code:
 
+;; The following list is taken from rgb.txt distributed with X.
+;;
+;; WARNING: Some colors, such as "lightred", do not appear in this
+;; list.  If you think it's a good idea to add them, don't!  The
+;; problem is that the X-standard definition of "red" actually
+;; corresponds to "lightred" on VGA (that's why pc-win.el and
+;; w32-fns.el define "lightred" with the same RGB values as "red"
+;; below).  Adding "lightred" here would therefore create confusing
+;; and counter-intuitive results, like "red" and "lightred" being the
+;; same color.  A similar situation exists with other "light*" colors.
+;;
+;; Nevertheless, "lightred" and other similar color names *are*
+;; defined for the MS-DOS and MS-Windows consoles, because the users
+;; on those systems expect these colors to be available.
+;;
+;; For these reasons, package maintaners are advised NOT to use color
+;; names such as "lightred" or "lightblue", because they will have
+;; different effect on different displays.  Instead, use "red1" and
+;; "blue1", respectively.
 (defvar color-name-rgb-alist
   '(("snow"		255 250 250)
     ("ghostwhite"	248 248 255)
@@ -713,9 +734,9 @@
     ("darkgrey"		169 169 169)
     ("darkgray"		169 169 169)
     ("darkblue"		0 0 139)
-    ("darkcyan"		0 139 139)
+    ("darkcyan"		0 139 139) ; no "lightmagenta", see the comment above
     ("darkmagenta"	139 0 139)
-    ("darkred"		139 0 0)
+    ("darkred"		139 0 0)  ; but no "lightred", see the comment above
     ("lightgreen"	144 238 144))
   "An alist of X color names and associated 8-bit RGB values.")
 
