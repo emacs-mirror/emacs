@@ -1,3 +1,10 @@
+2001-04-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.el (dired-move-to-filename-regexp): Support file sizes in
+	``human-readable'' format produced by GNU `ls'.  
+	(dired-move-to-filename-regexp): Recognize ISO format dates.  From
+	Paul Eggert <eggert@twinsun.com>.
+
 2001-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-keywords-list, lm-keywords-finder-p):
